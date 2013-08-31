@@ -54,14 +54,16 @@ namespace AGS.Editor
             this.chkRemapCols = new System.Windows.Forms.CheckBox();
             this.zoomSlider = new System.Windows.Forms.TrackBar();
             this.lblZoom = new System.Windows.Forms.Label();
-            this.previewPanel = new AGS.Editor.BufferedPanel();
             this.btnCancel = new System.Windows.Forms.Button();
+            this.previewPanel = new AGS.Editor.BufferedPanel();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.zoomSlider)).BeginInit();
             this.SuspendLayout();
             // 
             // groupBox1
             // 
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox1.Controls.Add(this.btnImportWholeImage);
             this.groupBox1.Controls.Add(this.lblHelpText);
             this.groupBox1.Controls.Add(this.chkTiled);
@@ -72,6 +74,7 @@ namespace AGS.Editor
             this.groupBox1.Controls.Add(this.chkRoomBackground);
             this.groupBox1.Controls.Add(this.chkRemapCols);
             this.groupBox1.Location = new System.Drawing.Point(12, 3);
+            this.groupBox1.MinimumSize = new System.Drawing.Size(740, 106);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(740, 106);
             this.groupBox1.TabIndex = 3;
@@ -184,7 +187,7 @@ namespace AGS.Editor
             this.zoomSlider.Minimum = 1;
             this.zoomSlider.Name = "zoomSlider";
             this.zoomSlider.Orientation = System.Windows.Forms.Orientation.Vertical;
-            this.zoomSlider.Size = new System.Drawing.Size(45, 145);
+            this.zoomSlider.Size = new System.Drawing.Size(42, 145);
             this.zoomSlider.TabIndex = 4;
             this.zoomSlider.Value = 1;
             this.zoomSlider.Scroll += new System.EventHandler(this.zoomSlider_Scroll);
@@ -198,22 +201,9 @@ namespace AGS.Editor
             this.lblZoom.TabIndex = 5;
             this.lblZoom.Text = "Zoom: x 1";
             // 
-            // previewPanel
-            // 
-            this.previewPanel.AutoScroll = true;
-            this.previewPanel.Location = new System.Drawing.Point(73, 124);
-            this.previewPanel.MaximumSize = new System.Drawing.Size(679, 389);
-            this.previewPanel.Name = "previewPanel";
-            this.previewPanel.Size = new System.Drawing.Size(679, 389);
-            this.previewPanel.TabIndex = 0;
-            this.previewPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.previewPanel_Paint);
-            this.previewPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.previewPanel_MouseMove);
-            this.previewPanel.Scroll += new System.Windows.Forms.ScrollEventHandler(this.previewPanel_Scroll);
-            this.previewPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.previewPanel_MouseDown);
-            this.previewPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.previewPanel_MouseUp);
-            // 
             // btnCancel
             // 
+            this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnCancel.Location = new System.Drawing.Point(7, 486);
             this.btnCancel.Name = "btnCancel";
@@ -222,6 +212,23 @@ namespace AGS.Editor
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
+            // 
+            // previewPanel
+            // 
+            this.previewPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.previewPanel.AutoScroll = true;
+            this.previewPanel.Location = new System.Drawing.Point(73, 124);
+            this.previewPanel.MinimumSize = new System.Drawing.Size(640, 320);
+            this.previewPanel.Name = "previewPanel";
+            this.previewPanel.Size = new System.Drawing.Size(679, 389);
+            this.previewPanel.TabIndex = 0;
+            this.previewPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.previewPanel_Paint);
+            this.previewPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.previewPanel_MouseMove);
+            this.previewPanel.Scroll += new System.Windows.Forms.ScrollEventHandler(this.previewPanel_Scroll);
+            this.previewPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.previewPanel_MouseDown);
+            this.previewPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.previewPanel_MouseUp);
             // 
             // SpriteImportWindow
             // 
@@ -235,10 +242,9 @@ namespace AGS.Editor
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.previewPanel);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MaximizeBox = false;
             this.MinimizeBox = false;
+            this.MinimumSize = new System.Drawing.Size(772, 552);
             this.Name = "SpriteImportWindow";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Import Sprite";

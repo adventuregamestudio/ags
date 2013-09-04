@@ -29,9 +29,9 @@ DynamicArray<GUIListBox> guilist;
 int numguilist = 0;
 
 void GUIListBox::ChangeFont(int newfont) {
+  font = newfont;
   rowheight = wgettextheight("YpyjIHgMNWQ", font) + get_fixed_pixel_size(2);
   num_items_fit = hit / rowheight;
-  font = newfont;
 }
 
  void GUIListBox::Resized() 
@@ -293,7 +293,7 @@ int GUIListBox::IsInRightMargin(int xx) {
 }
 
 int GUIListBox::GetIndexFromCoordinates(int xx, int yy) {
-  if (IsInRightMargin(xx))
+  if (rowheight <= 0 || IsInRightMargin(xx))
     return -1;
 
   int onindex = yy / rowheight + topItem;

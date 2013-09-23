@@ -271,7 +271,7 @@ void scr_StopMusic() {
 }
 
 void SeekMODPattern(int patnum) {
-    if (current_music_type == MUS_MOD) {
+    if (current_music_type == MUS_MOD && channels[SCHAN_MUSIC]) {
         channels[SCHAN_MUSIC]->seek (patnum);
         DEBUG_CONSOLE("Seek MOD/XM to pattern %d", patnum);
     }
@@ -279,9 +279,9 @@ void SeekMODPattern(int patnum) {
 void SeekMP3PosMillis (int posn) {
     if (current_music_type) {
         DEBUG_CONSOLE("Seek MP3/OGG to %d ms", posn);
-        if (crossFading)
+        if (crossFading && channels[crossFading])
             channels[crossFading]->seek (posn);
-        else
+        else if (channels[SCHAN_MUSIC])
             channels[SCHAN_MUSIC]->seek (posn);
     }
 }
@@ -291,7 +291,7 @@ int GetMP3PosMillis () {
     if (play.fast_forward)
         return 999999;
 
-    if (current_music_type) {
+    if (current_music_type && channels[SCHAN_MUSIC]) {
         int result = channels[SCHAN_MUSIC]->get_pos_ms();
         if (result >= 0)
             return result;

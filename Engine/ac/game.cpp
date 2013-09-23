@@ -296,7 +296,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
 }
 
 int Game_GetMODPattern() {
-    if (current_music_type == MUS_MOD) {
+    if (current_music_type == MUS_MOD && channels[SCHAN_MUSIC]) {
         return channels[SCHAN_MUSIC]->get_pos();
     }
     return -1;
@@ -2219,6 +2219,15 @@ int restore_game_data (Stream *in, const char *nametouse) {
 
     // preserve legacy music type setting
     current_music_type = in->ReadInt32();
+    // test if the playing music was properly loaded
+    if (current_music_type > 0)
+    {
+        if (crossFading > 0 && !channels[crossFading] ||
+            crossFading <= 0 && !channels[SCHAN_MUSIC])
+        {
+            current_music_type = 0;
+        }
+    }
 
     // restore these to the ones retrieved from the save game
     for (bb = 0; bb < MAX_DYNAMIC_SURFACES; bb++)

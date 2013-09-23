@@ -175,14 +175,10 @@ struct roomstruct {
     CustomProperties roomProps;
     CustomProperties hsProps[MAX_HOTSPOTS];
     int           gameId;
-    int           lastLoadNumHotspots; // Janet: Apparently unused
-    int           lastLoadNumObjects; // Janet: Apparently unused
-    int           lastLoadNumRegions; // Janet: Apparently unused
 
     roomstruct();
-    //void allocall();
-    //void freeall();
     void freemessage();
+    void freescripts();
 };
 
 #define BLOCKTYPE_MAIN        1

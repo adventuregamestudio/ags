@@ -55,9 +55,6 @@ roomstruct::roomstruct() {
     bscene_anim_speed = 5; bytes_per_pixel = 1;
     numLocalVars = 0;
     localvars = NULL;
-    lastLoadNumHotspots = 0;
-    lastLoadNumRegions = 0;
-    lastLoadNumObjects = 0;
     int i;
     for (i = 0; i <= MAX_WALK_AREAS; i++) {
         walk_area_zoom2[i] = NOT_VECTOR_SCALED;
@@ -82,30 +79,6 @@ roomstruct::roomstruct() {
     roomScripts = NULL;
 }
 
-/*void roomstruct::allocall() {
-// These all get recreated when a room is loaded anyway
-walls = BitmapHelper::CreateBitmap_(8, 320, 200);
-object = BitmapHelper::CreateBitmap_(8, 320, 200);
-lookat = BitmapHelper::CreateBitmap_(8, 320, 200);
-bscene = BitmapHelper::CreateBitmap_(8, 320, 200);
-shading = BitmapHelper::CreateBitmap_(8, 320, 200);
-
-if (shading == NULL)
-quit("roomstruct::allocall: out of memory");
-
-//  printf("Before %ld\n",farcoreleft());
-for (ff=0;ff<5;ff++) { //backups[ff]=wnewblock(0,0,319,199);
-backups[ff]=wallocblock(320,200);
-//    printf("%d ",ff); if (kbhit()) break;
-if (backups[ff]==NULL) quit("ROOM.C, AllocMem: Out of memory"); }
-walls=::backups[0];  // this is because blocks in a struct don't work
-object=::backups[1]; // properly
-lookat=::backups[2];
-bscene=::backups[3];
-shading=::backups[4];
-//  printf("After %ld\n",farcoreleft());
-}
-*/
 void roomstruct::freemessage() {
     for (int f = 0; f < nummes; f++) {
         if (message[f] != NULL)
@@ -113,22 +86,54 @@ void roomstruct::freemessage() {
     }
 }
 
-/*void roomstruct::freeall() {
-//  for (int f=0;f<4;f++) wfreeblock(::backups[f]);
-wfreeblock(walls);
-wfreeblock(lookat);
-wfreeblock(ebscene[0]);
-wfreeblock(object);
+void roomstruct::freescripts()
+{
+    if (scripts != NULL)
+    {
+        free(scripts);
+        scripts = NULL;
+    }
 
-if (shading != NULL)
-wfreeblock(shading);
+    if (!compiled_script_shared)
+    {
+        delete compiled_script;
+    }
+    compiled_script = NULL;
+    compiled_script_shared = false;
 
-freemessage();
-}*/
-
-/*void roomstruct::freeall() { wfreeblock(walls); wfreeblock(bscene);
-wfreeblock(object); wfreeblock(lookat);
-for (int f=0;f<nummes;f++) if (message[f]!=NULL) free(message[f]); }*/
+    if (roomScripts != NULL) 
+    {
+        delete roomScripts;
+        roomScripts = NULL;
+    }
+    if (hotspotScripts != NULL)
+    {
+        for (int i = 0; i < numhotspots; i++)
+	    {
+            delete hotspotScripts[i];
+        }
+        delete[] hotspotScripts;
+        hotspotScripts = NULL;
+    }
+    if (objectScripts != NULL)
+    {
+        for (int i = 0; i < numsprs; i++)
+	    {
+            delete objectScripts[i];
+        }
+        delete[] objectScripts;
+        objectScripts = NULL;
+    }
+    if (regionScripts != NULL)
+    {
+        for (int i = 0; i < numRegions; i++)
+        {
+            delete regionScripts[i];
+        }
+        delete[] regionScripts;
+        regionScripts = NULL;
+    }
+}
 
 void room_file_header::ReadFromFile(Stream *in)
 {
@@ -504,18 +509,8 @@ void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes) {
   int i;
 
   rstruc->freemessage();
-  if (rstruc->scripts != NULL) {
-    free(rstruc->scripts);
-    rstruc->scripts = NULL;
-  }
-
-  if (!rstruc->compiled_script_shared)
-  {
-    delete rstruc->compiled_script;
-  }
-  rstruc->compiled_script = NULL;
-  rstruc->compiled_script_shared = false;
-
+  rstruc->freescripts();
+  
   if (rstruc->num_bscenes > 1) {
     int ff;
 
@@ -544,39 +539,6 @@ void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes) {
   for (i = 0; i < rstruc->numsprs; i++)
     rstruc->objProps[i].reset();
   rstruc->roomProps.reset();
-
-  if (rstruc->roomScripts != NULL) 
-  {
-	  delete rstruc->roomScripts;
-	  rstruc->roomScripts = NULL;
-  }
-  if (rstruc->hotspotScripts != NULL)
-  {
-	  for (i = 0; i < rstruc->numhotspots; i++)
-	  {
-		  delete rstruc->hotspotScripts[i];
-	  }
-	  delete[] rstruc->hotspotScripts;
-	  rstruc->hotspotScripts = NULL;
-  }
-  if (rstruc->objectScripts != NULL)
-  {
-	  for (i = 0; i < rstruc->numsprs; i++)
-	  {
-		  delete rstruc->objectScripts[i];
-	  }
-	  delete[] rstruc->objectScripts;
-	  rstruc->objectScripts = NULL;
-  }
-  if (rstruc->regionScripts != NULL)
-  {
-	  for (i = 0; i < rstruc->numRegions; i++)
-	  {
-		  delete rstruc->regionScripts[i];
-	  }
-	  delete[] rstruc->regionScripts;
-	  rstruc->regionScripts = NULL;
-  }
 
   if (rstruc->localvars != NULL)
     free (rstruc->localvars);

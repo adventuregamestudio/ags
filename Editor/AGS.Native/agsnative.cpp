@@ -4426,6 +4426,9 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 
 void save_crm_file(Room ^room)
 {
+    thisroom.freemessage();
+    thisroom.freescripts();
+
 	thisroom.gameId = room->GameID;
 	thisroom.bottom = room->BottomEdgeY;
 	thisroom.left = room->LeftEdgeX;
@@ -4442,13 +4445,8 @@ void save_crm_file(Room ^room)
 	thisroom.bscene_anim_speed = room->BackgroundAnimationDelay;
 	thisroom.num_bscenes = room->BackgroundCount;
 
-	int i;
-	for (i = 0; i < thisroom.nummes; i++) 
-	{
-		free(thisroom.message[i]);
-	}
 	thisroom.nummes = room->Messages->Count;
-	for (i = 0; i < thisroom.nummes; i++) 
+	for (int i = 0; i < thisroom.nummes; i++) 
 	{
 		RoomMessage ^newMessage = room->Messages[i];
 		thisroom.message[i] = (char*)malloc(newMessage->Text->Length + 1);
@@ -4467,7 +4465,7 @@ void save_crm_file(Room ^room)
 	}
 
 	thisroom.numsprs = room->Objects->Count;
-	for (i = 0; i < thisroom.numsprs; i++) 
+	for (int i = 0; i < thisroom.numsprs; i++) 
 	{
 		RoomObject ^obj = room->Objects[i];
 		ConvertStringToCharArray(obj->Name, thisroom.objectscriptnames[i]);
@@ -4485,9 +4483,13 @@ void save_crm_file(Room ^room)
 	}
 
 	thisroom.numhotspots = room->Hotspots->Count;
-	for (i = 0; i < thisroom.numhotspots; i++) 
+	for (int i = 0; i < thisroom.numhotspots; i++) 
 	{
 		RoomHotspot ^hotspot = room->Hotspots[i];
+        if (thisroom.hotspotnames[i])
+        {
+            free(thisroom.hotspotnames[i]);
+        }
 		thisroom.hotspotnames[i] = (char*)malloc(hotspot->Description->Length + 1);
 		ConvertStringToCharArray(hotspot->Description, thisroom.hotspotnames[i]);
 		ConvertStringToCharArray(hotspot->Name, thisroom.hotspotScriptNames[i], 20);
@@ -4496,7 +4498,7 @@ void save_crm_file(Room ^room)
 		CompileCustomProperties(hotspot->Properties, &thisroom.hsProps[i]);
 	}
 
-	for (i = 0; i <= MAX_WALK_AREAS; i++) 
+	for (int i = 0; i <= MAX_WALK_AREAS; i++) 
 	{
 		RoomWalkableArea ^area = room->WalkableAreas[i];
 		thisroom.shadinginfo[i] = area->AreaSpecificView;
@@ -4513,13 +4515,13 @@ void save_crm_file(Room ^room)
 		}
 	}
 
-	for (i = 0; i < MAX_OBJ; i++) 
+	for (int i = 0; i < MAX_OBJ; i++) 
 	{
 		RoomWalkBehind ^area = room->WalkBehinds[i];
 		thisroom.objyval[i] = area->Baseline;
 	}
 
-	for (i = 0; i < MAX_REGIONS; i++) 
+	for (int i = 0; i < MAX_REGIONS; i++) 
 	{
 		RoomRegion ^area = room->Regions[i];
 		thisroom.regionTintLevel[i] = 0;
@@ -4550,48 +4552,18 @@ void save_crm_file(Room ^room)
 
 	TempDataStorage::RoomBeingSaved = nullptr;
 
-	for (i = 0; i < thisroom.numhotspots; i++) 
+	for (int i = 0; i < thisroom.numhotspots; i++) 
 	{
 		free(thisroom.hotspotnames[i]);
 		thisroom.hotspotnames[i] = NULL;
 	}
 }
 
-// [IKM] 2012-11-13: code moved to AGS.Types.FolderHelper
-/*
-static int CountViews(ViewFolder ^folder) 
-{
-	int highestViewNumber = 0;
-	for each (ViewFolder ^subFolder in folder->SubFolders)
-	{
-		int folderView = CountViews(subFolder);
-		if (folderView > highestViewNumber) 
-		{
-			highestViewNumber = folderView;
-		}
-	}
-	for each (View ^view in folder->Views)
-	{
-		if (view->ID > highestViewNumber)
-		{
-			highestViewNumber = view->ID;
-		}
-	}
-	return highestViewNumber;
-}
-*/
-
 ref class ManagedViewProcessing
 {
 public:
     static void ConvertViewsToDTAFormat(IViewFolder ^folder, Game ^game) 
     {
-        /*
-	    for each (ViewFolder ^subFolder in folder->SubFolders)
-	    {
-		    ConvertViewsToDTAFormat(subFolder, game);
-	    }
-        */
         AGS::Types::FolderHelper::ViewFolderProcessing ^del = 
             gcnew AGS::Types::FolderHelper::ViewFolderProcessing(ConvertViewsToDTAFormat);
         AGS::Types::FolderHelper::ForEachViewFolder(folder, game, del);

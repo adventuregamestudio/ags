@@ -46,10 +46,10 @@ namespace AGS.Editor
             this.lvwResults.FullRowSelect = true;
             this.lvwResults.GridLines = true;
             this.lvwResults.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
-            this.lvwResults.Location = new System.Drawing.Point(0, 0);
+            this.lvwResults.Location = new System.Drawing.Point(1, 20);
             this.lvwResults.MultiSelect = false;
             this.lvwResults.Name = "lvwResults";
-            this.lvwResults.Size = new System.Drawing.Size(521, 131);
+            this.lvwResults.Size = new System.Drawing.Size(519, 110);
             this.lvwResults.TabIndex = 2;
             this.lvwResults.UseCompatibleStateImageBehavior = false;
             this.lvwResults.View = System.Windows.Forms.View.Details;
@@ -80,6 +80,7 @@ namespace AGS.Editor
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "OutputPanel";
+            this.Padding = new System.Windows.Forms.Padding(1, 20, 1, 1);
             this.ResumeLayout(false);
 
         }

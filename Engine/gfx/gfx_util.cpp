@@ -27,9 +27,9 @@ namespace Engine
 namespace GfxUtil
 {
 
-void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int transparency)
+void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int alpha)
 {
-    if (transparency >= 0xFF)
+    if (alpha <= 0)
     {
         // fully transparent, don't draw it at all
         return;
@@ -80,9 +80,9 @@ void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int tr
     }
     else
     {
-        if (transparency != 0 && surface_depth > 8 && sprite_depth > 8) 
+        if (alpha < 0xFF && surface_depth > 8 && sprite_depth > 8) 
         {
-            set_trans_blender(0, 0, 0, transparency);
+            set_trans_blender(0, 0, 0, alpha);
             ds->TransBlendBlt(sprite, x, y);
         }
         else

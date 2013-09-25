@@ -14,14 +14,16 @@
 
 #include "ac/gamesetupstruct.h"
 #include "ac/common.h"
+#include "core/assetmanager.h"
 #include "util/string_utils.h"      // fputstring, etc
 #include "util/string.h"
 #include "util/alignedstream.h"
-#include "core/assetmanager.h"
+#include "util/math.h"
 
 using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
 using AGS::Common::String;
+namespace Math = AGS::Common::Math;
 
 
 // Create the missing audioClips data structure for 3.1.x games.
@@ -469,7 +471,7 @@ void GameSetupStruct::ReadAudioClips_Aligned(Common::Stream *in)
     }
 }
 
-void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* compsc, CharacterInfo* chwas,
+void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, bool extended, char* gswas, ccScript* compsc, CharacterInfo* chwas,
                                        WordsDictionary *olddict, char** mesbk)
 {
     int bb;
@@ -492,13 +494,21 @@ void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* c
     dict = olddict;
     for (int vv=0;vv<MAXGLOBALMES;vv++) messages[vv]=mesbk[vv];
 
-    in->ReadArrayOfInt32(&options[0], OPT_HIGHESTOPTION+1);
+    if (extended)
+    {
+        int option_count = in->ReadInt32();
+        in->ReadArrayOfInt32(&options[0], Math::Max(option_count, MAX_OPTIONS));
+    }
+    else
+    {
+        in->ReadArrayOfInt32(&options[0], OPT_HIGHESTOPTION_321 + 1);
+    }
     options[OPT_LIPSYNCTEXT] = in->ReadByte();
 
     ReadCharacters_Aligned(in);
 }
 
-void GameSetupStruct::WriteForSaveGame_v321(Stream *out)
+void GameSetupStruct::WriteForSaveGame_v321(Stream *out, bool extended)
 {
     WriteInvInfo_Aligned(out);
     WriteMouseCursors_Aligned(out);
@@ -512,7 +522,15 @@ void GameSetupStruct::WriteForSaveGame_v321(Stream *out)
         out->WriteArrayOfInt32 (&intrChar[bb]->timesRun[0], MAX_NEWINTERACTION_EVENTS); 
     }
 
-    out->WriteArrayOfInt32 (&options[0], OPT_HIGHESTOPTION+1);
+    if (extended)
+    {
+        out->WriteInt32(OPT_HIGHESTOPTION + 1);
+        out->WriteArrayOfInt32 (&options[0], OPT_HIGHESTOPTION + 1);
+    }
+    else
+    {
+        out->WriteArrayOfInt32 (&options[0], OPT_HIGHESTOPTION_321 + 1);
+    }
     out->WriteInt8 (options[OPT_LIPSYNCTEXT]);
 
     WriteCharacters_Aligned(out);

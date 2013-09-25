@@ -111,7 +111,7 @@ extern bool is_sprite_alpha(int spr);
 extern int final_col_dep;
 
 // This function has distinct implementations in Engine and Editor
-extern void draw_sprite_compensate(Common::Bitmap *ds, int spr, int x, int y, int xray);
+extern void draw_gui_sprite(Common::Bitmap *ds, int spr, int x, int y, bool use_alpha);
 
 extern AGS_INLINE int divide_down_coordinate(int coord);
 extern AGS_INLINE int multiply_up_coordinate(int coord);

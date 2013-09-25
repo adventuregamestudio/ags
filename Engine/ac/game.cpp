@@ -937,7 +937,22 @@ int Game_ChangeTranslation(const char *newFilename)
 //=============================================================================
 
 // save game functions
-#define SGVERSION 8
+
+//-----------------------------------------------------------------------------
+// Saved game version history
+//
+// 8      original format (3.2.1)
+// 9      slightly extended format (3.3.0)
+//-----------------------------------------------------------------------------
+enum SavedGameVersion
+{
+    kSvgVersion_Undefined = 0,
+    kSvgVersion_321       = 8,
+    kSvgVersion_330       = 9,
+    kSvgVersion_Current   = kSvgVersion_330,
+    kSvgVersion_LowestSupported = kSvgVersion_321
+};
+
 char*sgsig="Adventure Game Studio saved game";
 int sgsiglen=32;
 
@@ -1381,7 +1396,9 @@ void WriteGameState_Aligned(Stream *out)
 void save_game_data (Stream *out, Bitmap *screenshot) {
 
     platform->RunPluginHooks(AGSE_PRESAVEGAME, 0);
-    out->WriteInt32(SGVERSION);
+    // Support forward savedgame compatibility for older game data versions
+    const bool extended_savedgame = loaded_game_file_version > kGameVersion_321;
+    out->WriteInt32(extended_savedgame ? kSvgVersion_Current : kSvgVersion_321);
 
     save_game_screenshot(out, screenshot);
     save_game_header(out);
@@ -1408,7 +1425,7 @@ void save_game_data (Stream *out, Bitmap *screenshot) {
     WriteGameSetupStructBase_Aligned(out);
 
     //----------------------------------------------------------------
-    game.WriteForSaveGame_v321(out);
+    game.WriteForSaveGame_v321(out, extended_savedgame);
 
     WriteCharacterExtras_Aligned(out);
     save_game_palette(out);
@@ -2081,9 +2098,11 @@ void restore_game_audioclips_and_crossfade(Stream *in, int crossfadeInChannelWas
     crossFadeVolumeAtStart = in->ReadInt32();
 }
 
-int restore_game_data (Stream *in, const char *nametouse) {
+int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_version) {
 
     int bb, vv;
+
+    const bool extended_savedgame = svg_version > kSvgVersion_321;
 
     int sg_cur_mode = 0, sg_cur_cursor = 0;
     int res = restore_game_head_dynamic_values(in, /*out*/ sg_cur_mode, sg_cur_cursor);
@@ -2135,7 +2154,7 @@ int restore_game_data (Stream *in, const char *nametouse) {
     if (game.numviews != numviewswas)
         quit("!Restore_Game: Game has changed (views), unable to restore position");
 
-    game.ReadFromSaveGame_v321(in, gswas, compsc, chwas, olddict, mesbk);
+    game.ReadFromSaveGame_v321(in, extended_savedgame, gswas, compsc, chwas, olddict, mesbk);
     //
     //in->ReadArray(&game.invinfo[0], sizeof(InventoryItemInfo), game.numinvitems);
     //in->ReadArray(&game.mcurs[0], sizeof(MouseCursor), game.numcursors);
@@ -2391,6 +2410,11 @@ int restore_game_data (Stream *in, const char *nametouse) {
     return 0;
 }
 
+int restore_game_data (Common::Stream *in, const char *nametouse)
+{
+    return restore_game_data (in, nametouse, kSvgVersion_321);
+}
+
 int gameHasBeenRestored = 0;
 int oldeip;
 
@@ -2400,7 +2424,7 @@ void ReadRichMediaHeader_Aligned(RICH_GAME_MEDIA_HEADER &rich_media_header, Stre
     rich_media_header.ReadFromFile(&align_s);
 }
 
-Stream *open_savedgame(const char *savedgame, int &error_code)
+Stream *open_savedgame(const char *savedgame, int &error_code, SavedGameVersion *out_svg_version = NULL)
 {
     error_code = 0;
     Stream *in = Common::File::OpenFileRead(savedgame);
@@ -2433,7 +2457,13 @@ Stream *open_savedgame(const char *savedgame, int &error_code)
     safeguard_string ((unsigned char*)rbuffer);
 
     // check saved game format version
-    if (in->ReadInt32() != SGVERSION) {
+    SavedGameVersion svg_version = (SavedGameVersion)in->ReadInt32();
+    if (out_svg_version)
+    {
+        *out_svg_version = svg_version;
+    }
+    if (svg_version < kSvgVersion_LowestSupported || svg_version > kSvgVersion_Current)
+    {
         delete in;
         error_code = -3;
         return NULL;
@@ -2496,8 +2526,9 @@ int load_game(const Common::String &path, int slotNumber)
 {
     gameHasBeenRestored++;
 
-    int error_code;
-    Stream *in = open_savedgame(path, error_code);
+    SavedGameVersion svg_version;
+    int error_code;    
+    Stream *in = open_savedgame(path, error_code, &svg_version);
     if (!in)
     {
         return error_code;
@@ -2531,7 +2562,7 @@ int load_game(const Common::String &path, int slotNumber)
     }
 
     // do the actual restore
-    error_code = restore_game_data(in, path);
+    error_code = restore_game_data(in, path, svg_version);
     delete in;
     our_eip = oldeip;
 

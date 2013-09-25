@@ -89,7 +89,7 @@ void GUIButton::Draw(Common::Bitmap *ds)
       ds->SetClip(Rect(x, y, x + wid - 1, y + hit - 1));
 
     if (spriteset[usepic] != NULL)
-      draw_sprite_compensate(ds, usepic, x, y, 1);
+      draw_gui_sprite(ds, usepic, x, y, true);
 
     if (gui_inv_pic >= 0) {
       int drawInv = 0;
@@ -113,9 +113,10 @@ void GUIButton::Draw(Common::Bitmap *ds)
       if (drawInv == 1)
         ds->StretchBlt(spriteset[gui_inv_pic], RectWH(x + 3, y + 3, wid - 6, hit - 6), Common::kBitmap_Transparency);
       else if (drawInv == 2)
-        draw_sprite_compensate(ds, gui_inv_pic,
+        draw_gui_sprite(ds, gui_inv_pic,
                                x + wid / 2 - get_adjusted_spritewidth(gui_inv_pic) / 2,
-                               y + hit / 2 - get_adjusted_spriteheight(gui_inv_pic) / 2, 1);
+                               y + hit / 2 - get_adjusted_spriteheight(gui_inv_pic) / 2,
+                               true);
     }
 
     if ((drawDisabled) && (gui_disabled_style == GUIDIS_GREYOUT)) {

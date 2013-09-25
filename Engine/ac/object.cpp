@@ -89,6 +89,9 @@ int Object_GetTransparency(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.Transparent: invalid object number specified");
 
+    // NOTE by CJ:
+    // Transparency is a bit counter-intuitive
+    // 0=not transparent, 255=invisible, 1..254 barely visible .. mostly visible
     if (objs[objj->id].transparent == 0)
         return 0;
     if (objs[objj->id].transparent == 255)

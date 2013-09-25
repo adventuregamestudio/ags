@@ -29,8 +29,6 @@ extern "C" {
 #define geta32(xx) ((xx >> _rgb_a_shift_32) & 0xFF)
 #define makeacol32(r,g,b,a) ((r << _rgb_r_shift_32) | (g << _rgb_g_shift_32) | (b << _rgb_b_shift_32) | (a << _rgb_a_shift_32))
 
-BLENDER_FUNC pfn_additive_alpha_blender = NULL;
-
 // Take hue and saturation of blend colour, luminance of image
 unsigned long _myblender_color15_light(unsigned long x, unsigned long y, unsigned long n)
 {
@@ -156,7 +154,8 @@ unsigned long _myblender_alpha_trans24(unsigned long x, unsigned long y, unsigne
     return res | g | alph;
 }
 
-void set_my_trans_blender(int r, int g, int b, int a) {
+void set_my_trans_blender(int r, int g, int b, int a)
+{
     // use standard allegro 15 and 16 bit blenders, but customize
     // the 32-bit one to preserve the alpha channel
     set_blender_mode(_blender_trans15, _blender_trans16, _myblender_alpha_trans24, r, g, b, a);
@@ -173,32 +172,60 @@ unsigned long _additive_alpha_copysrc_blender(unsigned long x, unsigned long y, 
     return (newAlpha << 24) | (x & 0x00ffffff);
 }
 
-// blend source to destination with respect to source alpha;
+// blend source to destination with respect to source and destination alphas;
 // assign new alpha value as a multiplication of translucenses.
-unsigned long _additive_alpha_blender(unsigned long x, unsigned long y, unsigned long n)
+// combined_alpha = front.alpha + back.alpha * (1 - front.alpha);
+// combined_rgb = (front.rgb * front.alpha + back.rgb * (1 - front.alpha) * back.alpha) / combined_alpha;
+//
+// NOTE: Allegro does not call blender callback when source alpha is zero, therefore 
+// we do not check this case here; this should be kept in mind if a need arises to
+// use this function elsewise.
+unsigned long _argb2argb_alpha_blender(unsigned long src_col, unsigned long dst_col, unsigned long src_alpha)
 {
-    unsigned long res, g, res_alpha;
+    unsigned long dst_g, dst_alpha;
 
-    n = geta32(x);
-    if (n)
-        n++;
+    if (src_alpha > 0)
+        src_alpha = geta32(src_col) * ((src_alpha & 0xFF) + 1) / 256;
+    else
+        src_alpha = geta32(src_col);
+    if (src_alpha)
+        src_alpha++;
+    dst_alpha = geta32(dst_col);
+    if (dst_alpha)
+        dst_alpha++;
 
-    res_alpha = (255 - (255 - n) * (255 - geta32(y)) / 255) << 24;
+    // dst_g now contains the green hue from destination color
+    dst_g   = (dst_col & 0x00FF00) * dst_alpha / 256;
+    // dst_col now contains the red & blue hues from destination color
+    dst_col = (dst_col & 0xFF00FF) * dst_alpha / 256;
 
-    res = ((x & 0xFF00FF) - (y & 0xFF00FF)) * n / 256 + y;
-    y &= 0xFF00;
-    x &= 0xFF00;
-    g = (x - y) * n / 256 + y;
-
-    res &= 0xFF00FF;
-    g &= 0xFF00;
-
-    return res | g | res_alpha;
+    // res_g now contains the green hue of the pre-final color
+    dst_g   = (((src_col & 0x00FF00) - (dst_g   & 0x00FF00)) * src_alpha / 256 + dst_g)   & 0x00FF00;
+    // res_rb now contains the red & blue hues of the pre-final color
+    dst_col = (((src_col & 0xFF00FF) - (dst_col & 0xFF00FF)) * src_alpha / 256 + dst_col) & 0xFF00FF;
+    
+    // dst_alpha now contains the final alpha
+    // we assume that final alpha will never be zero (see note above)
+    dst_alpha   = src_alpha + (dst_alpha * (256 - src_alpha) / 256);
+    // src_alpha is now the final alpha factor made for being multiplied by,
+    // instead of divided by: this makes it possible to use it in faster
+    // calculation below
+    src_alpha  = /* 256 * 256 == */ 0x10000 / dst_alpha;
+    
+    // setting up final color hues
+    dst_g   = (dst_g   * src_alpha / 256) & 0x00FF00;
+    dst_col = (dst_col * src_alpha / 256) & 0xFF00FF;
+    return dst_col | dst_g | (--dst_alpha << 24);
 }
 
-void set_additive_alpha_blender() {
-    // add the alpha channels together
-    set_blender_mode(NULL, NULL, pfn_additive_alpha_blender, 0, 0, 0, 0);
+void set_additive_alpha_blender()
+{
+    set_blender_mode(NULL, NULL, _additive_alpha_copysrc_blender, 0, 0, 0, 0);
+}
+
+void set_argb2argb_alpha_blender(int custom_src_alpha)
+{
+    set_blender_mode(NULL, NULL, _argb2argb_alpha_blender, 0, 0, 0, custom_src_alpha);
 }
 
 // sets the alpha channel to opaque. used when drawing a non-alpha sprite onto an alpha-sprite
@@ -207,18 +234,7 @@ unsigned long _opaque_alpha_blender(unsigned long x, unsigned long y, unsigned l
     return x | 0xff000000;
 }
 
-void set_opaque_alpha_blender() {
-    set_blender_mode(NULL, NULL, _opaque_alpha_blender, 0, 0, 0, 0);
-}
-
-void init_blenders(GameGuiAlphaRenderingStyle gui_alpha_style)
+void set_opaque_alpha_blender()
 {
-    if (gui_alpha_style == kGuiAlphaRender_MultiplyTranslucenceSrcBlend)
-    {
-        pfn_additive_alpha_blender = _additive_alpha_blender;
-    }
-    else
-    {
-        pfn_additive_alpha_blender = _additive_alpha_copysrc_blender;
-    }
+    set_blender_mode(NULL, NULL, _opaque_alpha_blender, 0, 0, 0, 0);
 }

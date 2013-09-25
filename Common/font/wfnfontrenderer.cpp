@@ -151,10 +151,9 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
   set_our_eip(415);
 
   render_wrapper.WrapAllegroBitmap(destination, true);
-  color_t text_color = render_wrapper.GetCompatibleColor(colour);
 
   for (ee = 0; ee < strlen(text); ee++)
-    x += printchar(&render_wrapper, x, y, fonts[fontNumber], text_color, text[ee]);
+    x += printchar(&render_wrapper, x, y, fonts[fontNumber], colour, text[ee]);
 
   set_our_eip(oldeip);
 }

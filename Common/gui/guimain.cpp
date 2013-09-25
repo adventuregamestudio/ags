@@ -318,7 +318,7 @@ void GUIMain::draw_at(Common::Bitmap *ds, int xx, int yy)
   SET_EIP(378)
 
   if ((bgpic > 0) && (spriteset[bgpic] != NULL))
-    draw_sprite_compensate(subbmp, bgpic, 0, 0, 0);
+    draw_gui_sprite(subbmp, bgpic, 0, 0, false);
 
   SET_EIP(379)
 

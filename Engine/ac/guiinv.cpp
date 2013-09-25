@@ -65,7 +65,7 @@ void GUIInv::Draw(Bitmap *ds) {
 
     for (uu = this->topIndex; uu < lastItem; uu++) {
         // draw inv graphic
-        draw_sprite_compensate(ds, game.invinfo[charextra[this->CharToDisplay()].invorder[uu]].pic, cxp, cyp, 1);
+        draw_gui_sprite(ds, game.invinfo[charextra[this->CharToDisplay()].invorder[uu]].pic, cxp, cyp, true);
         cxp += multiply_up_coordinate(this->itemWidth);
 
         // go to next row when appropriate

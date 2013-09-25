@@ -622,7 +622,7 @@ void wputblock_stretch(Common::Bitmap *g, int xpt,int ypt,Common::Bitmap *tblock
   else g->StretchBlt(tblock,RectWH(xpt,ypt,nsx,nsy), Common::kBitmap_Transparency);
 }
 
-void draw_sprite_compensate(Common::Bitmap *g, int sprnum, int atxp, int atyp, int seethru) {
+void draw_gui_sprite(Common::Bitmap *g, int sprnum, int atxp, int atyp, bool use_alpha) {
   Common::Bitmap *blptr = get_sprite(sprnum);
   Common::Bitmap *towrite=blptr;
   int needtofree=0, main_color_depth = thisgame.color_depth * 8;
@@ -3734,6 +3734,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 	game->Settings->FontsForHiRes = (thisgame.options[OPT_NOSCALEFNT] != 0);
 	game->Settings->GameName = gcnew String(thisgame.gamename);
 	game->Settings->GUIAlphaStyle = GUIAlphaStyle::Classic;
+    game->Settings->SpriteAlphaStyle = SpriteAlphaStyle::Classic;
 	game->Settings->HandleInvClicksInScript = (thisgame.options[OPT_HANDLEINVCLICKS] != 0);
 	game->Settings->InventoryCursors = !thisgame.options[OPT_FIXEDINVCURSOR];
 	game->Settings->LeftToRightPrecedence = (thisgame.options[OPT_LEFTTORIGHTEVAL] != 0);
@@ -4831,6 +4832,7 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	thisgame.options[OPT_NOSCALEFNT] = game->Settings->FontsForHiRes;
 	ConvertStringToCharArray(game->Settings->GameName, thisgame.gamename, 50);
 	thisgame.options[OPT_NEWGUIALPHA] = (int)game->Settings->GUIAlphaStyle;
+    thisgame.options[OPT_SPRITEALPHA] = (int)game->Settings->SpriteAlphaStyle;
 	thisgame.options[OPT_HANDLEINVCLICKS] = game->Settings->HandleInvClicksInScript;
 	thisgame.options[OPT_FIXEDINVCURSOR] = !game->Settings->InventoryCursors;
   thisgame.options[OPT_OLDTALKANIMSPD] = game->Settings->LegacySpeechAnimationSpeed;

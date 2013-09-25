@@ -109,8 +109,8 @@ void RawDrawFrameTransparent (int frame, int translev) {
     }
     // Draw it transparently
     RAW_START();
-    int trans_mode = ((100-translev) * 25) / 10;
-    AGS::Engine::GfxUtil::DrawSpriteWithTransparency (RAW_SURFACE(), thisroom.ebscene[frame], 0, 0, trans_mode);
+    AGS::Engine::GfxUtil::DrawSpriteWithTransparency (RAW_SURFACE(), thisroom.ebscene[frame], 0, 0,
+        AGS::Engine::GfxUtil::Trans100ToAlpha255(translev));
     invalidate_screen();
     mark_current_background_dirty();
     RAW_END();
@@ -188,7 +188,8 @@ void RawDrawImageCore(int xx, int yy, int slot, int transparency) {
         debug_log("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, spriteset[slot]->GetColorDepth(), RAW_SURFACE()->GetColorDepth());
     }
 
-    draw_sprite_support_alpha(RAW_SURFACE(), xx, yy, spriteset[slot], slot, transparency);
+    draw_sprite_support_alpha(RAW_SURFACE(), false, xx, yy, spriteset[slot], slot,
+        AGS::Engine::GfxUtil::Trans100ToAlpha255(transparency));
     invalidate_screen();
     mark_current_background_dirty();
     RAW_END();

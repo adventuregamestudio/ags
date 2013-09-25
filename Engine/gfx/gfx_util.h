@@ -35,9 +35,17 @@ using Common::Bitmap;
 
 namespace GfxUtil
 {
-    // Draws a bitmap over another one with given transparency level;
+    inline int Trans100ToAlpha255(int transparency)
+    {
+        return ((100 - transparency) * 255) / 100;
+    }
+    inline int Alpha255ToTrans100(int alpha)
+    {
+        return 100 - ((alpha * 100) / 255);
+    }
+    // Draws a bitmap over another one with given alpha level (0 - 255);
     // selects proper drawing method depending on respected color depths.
-    void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int transparency = 0);
+    void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int alpha = 0xFF);
 } // namespace GfxUtil
 
 } // namespace Engine

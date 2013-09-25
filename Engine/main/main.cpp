@@ -119,7 +119,7 @@ void main_create_platform_driver()
 #define ACI_VERSION_MAJOR               3
 #define ACI_VERSION_MINOR               3
 #define ACI_VERSION_RELEASE             0
-#define ACI_VERSION_REVISION            1140
+#define ACI_VERSION_REVISION            1144
 #ifdef NO_MP3_PLAYER
 #define SPECIAL_VERSION "NMP"
 #else
@@ -376,7 +376,7 @@ int main(int argc,char*argv[]) {
     initialize_debug_system();
 
     Out::FPrint("Adventure Game Studio v%s Interpreter\n"
-           "Copyright (c) 1999-2011 Chris Jones and 2011-20xx others\n"
+           "Copyright (c) 1999-2011 Chris Jones and 2011-2013 others\n"
 #ifdef BUILD_STR
            "ACI version %s (Build: %s)\n",
            EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr(), EngineVersion.BuildInfo.GetCStr());

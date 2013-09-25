@@ -36,8 +36,10 @@ using namespace AGS; // FIXME later
 // game execution will depend on actual object addresses in memory
 //
 struct GameSetupStructBase {
+    static const int  MAX_OPTIONS = 100;
+
     char              gamename[50];
-    int32             options[100];
+    int32             options[MAX_OPTIONS];
     unsigned char     paluses[256];
     color             defpal[256];
     int32             numviews;

@@ -232,7 +232,7 @@ namespace AGS
       UnlockResource(versionData);
       FreeLibrary(module);
 
-      const char *searchFor = "AGS Engine by Chris Jones     ";
+      const char *searchFor = "AGS Engine by Chris Jones et al.        ";
       pin_ptr<Byte> authorNameData = &authorNameUnicode[0];
       ReplaceStringInMemory(dataCopy, dataSize, searchFor, authorNameData);
 

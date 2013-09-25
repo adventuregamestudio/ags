@@ -72,6 +72,7 @@ namespace AGS.Types
         private int _totalScore = 0;
         private bool _binaryFilesInSourceControl = false;
         private GUIAlphaStyle _guiAlphaStyle = GUIAlphaStyle.MultiplyTranslucenceSrcBlend;
+        private SpriteAlphaStyle _spriteAlphaStyle = SpriteAlphaStyle.Improved;
         private bool _runGameLoopsWhileDialogOptionsDisplayed = false;
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
         private bool _useLowResCoordinatesInScript = true;
@@ -288,6 +289,17 @@ namespace AGS.Types
         {
             get { return _guiAlphaStyle; }
             set { _guiAlphaStyle = value; }
+        }
+
+        [DisplayName("Sprite alpha rendering style")]
+        [Description("When using 32-bit alpha-channel images, should sprites be drawn with the new improved alpha method, or the backwards-compatible method?")]
+        [DefaultValue(SpriteAlphaStyle.Improved)]
+        [Category("Visual")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public SpriteAlphaStyle SpriteAlphaStyle
+        {
+            get { return _spriteAlphaStyle; }
+            set { _spriteAlphaStyle = value; }
         }
 
         [DisplayName("Run game loops while dialog options are displayed")]
@@ -817,6 +829,7 @@ namespace AGS.Types
             _saveGamesFolderName = null;
             _binaryFilesInSourceControl = false;
             _guiAlphaStyle = GUIAlphaStyle.Classic;
+            _spriteAlphaStyle = SpriteAlphaStyle.Classic;
             _runGameLoopsWhileDialogOptionsDisplayed = false;
             _inventoryHotspotMarker = new InventoryHotspotMarker();
             _useLowResCoordinatesInScript = true;

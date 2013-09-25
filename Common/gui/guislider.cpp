@@ -125,7 +125,7 @@ void GUISlider::Draw(Common::Bitmap *ds)
     int cx = bartlx, cy = bartly;
     // draw the tiled background image
     do {
-      draw_sprite_compensate(ds, bgimage, cx, cy, 1);
+      draw_gui_sprite(ds, bgimage, cx, cy, true);
       cx += xinc;
       cy += yinc;
       // done as a do..while so that at least one of the image is drawn
@@ -152,7 +152,7 @@ void GUISlider::Draw(Common::Bitmap *ds)
       handlepic = 0;
     handtlx -= get_adjusted_spritewidth(handlepic) / 2;
     handtly -= get_adjusted_spriteheight(handlepic) / 2;
-    draw_sprite_compensate(ds, handlepic, handtlx, handtly, 1);
+    draw_gui_sprite(ds, handlepic, handtlx, handtly, true);
     handbrx = handtlx + get_adjusted_spritewidth(handlepic);
     handbry = handtly + get_adjusted_spriteheight(handlepic);
   }

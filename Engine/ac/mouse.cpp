@@ -110,6 +110,7 @@ void set_mouse_cursor(int newcurs) {
                 //abuf = dotted_mouse_cursor;
 
                 draw_sprite_support_alpha(dotted_mouse_cursor,
+                    game.spriteflags[game.mcurs[newcurs].pic] & SPF_ALPHACHANNEL,
                     hotspotx - spritewidth[game.invhotdotsprite] / 2,
                     hotspoty - spriteheight[game.invhotdotsprite] / 2,
                     spriteset[game.invhotdotsprite],

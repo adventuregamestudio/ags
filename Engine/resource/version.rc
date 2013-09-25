@@ -7,8 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#define IDC_STATIC -1
-#include <windows.h>
+#include "afxres.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -37,7 +36,7 @@ PIXEL_SHADER_LEGACY     DATA                    "tintshaderLegacy.fxo"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,2,1,1115
+ FILEVERSION 3,3,0,1144
  PRODUCTVERSION 1,0,0,1
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -54,14 +53,14 @@ BEGIN
         BLOCK "080904b0"
         BEGIN
             VALUE "Comments", "This game was created using AGS - http://www.adventuregamestudio.co.uk/"
-            VALUE "CompanyName", "AGS Engine by Chris Jones     "
+            VALUE "CompanyName", "AGS Engine by Chris Jones et al.        "
             VALUE "FileDescription", "Adventure Game Studio run-time engine   "
-            VALUE "FileVersion", "3.2.1.1115"
+            VALUE "FileVersion", "3.3.0.1144"
             VALUE "InternalName", "acwin"
-            VALUE "LegalCopyright", "AGS Copyright (c) 1999-2010 Chris Jones"
+            VALUE "LegalCopyright", "AGS Copyright (c) 1999-2010 Chris Jones and 2011-2013 others."
             VALUE "OriginalFilename", "acwin.exe"
             VALUE "ProductName", "Made with Adventure Game Studio"
-            VALUE "ProductVersion", "3.2.1"
+            VALUE "ProductVersion", "3.3.0"
         END
     END
     BLOCK "VarFileInfo"

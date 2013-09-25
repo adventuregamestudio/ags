@@ -1414,6 +1414,9 @@ void Character_SetTransparency(CharacterInfo *chaa, int trans) {
     if ((trans < 0) || (trans > 100))
         quit("!SetCharTransparent: transparency value must be between 0 and 100");
 
+    // Note by CJ:
+    // Transparency is a bit counter-intuitive
+    // 0=not transparent, 255=invisible, 1..254 barely visible .. mostly visible
     if (trans == 0)
         chaa->transparency=0;
     else if (trans == 100)

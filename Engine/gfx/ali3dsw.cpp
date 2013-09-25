@@ -64,6 +64,9 @@ unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned 
 class ALSoftwareBitmap : public IDriverDependantBitmap
 {
 public:
+  // NOTE by CJ:
+  // Transparency is a bit counter-intuitive
+  // 0=not transparent, 255=invisible, 1..254 barely visible .. mostly visible
   virtual void SetTransparency(int transparency) { _transparency = transparency; }
   virtual void SetFlippedLeftRight(bool isFlipped) { _flipped = isFlipped; }
   virtual void SetStretch(int width, int height) 
@@ -531,16 +534,19 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
     }
     else if (bitmap->_hasAlpha)
     {
-      if (bitmap->_transparency == 0)
+      if (bitmap->_transparency == 0) // this means opaque
         set_alpha_blender();
       else
+        // here _transparency is used as alpha (between 1 and 254)
         set_blender_mode(NULL, NULL, _trans_alpha_blender32, 0, 0, 0, bitmap->_transparency);
 
 	  virtualScreen->TransBlendBlt(bitmap->_bmp, drawAtX, drawAtY);
     }
     else
     {
-      GfxUtil::DrawSpriteWithTransparency(virtualScreen, bitmap->_bmp, drawAtX, drawAtY, bitmap->_transparency);
+      // here _transparency is used as alpha (between 1 and 254), but 0 means opaque!
+      GfxUtil::DrawSpriteWithTransparency(virtualScreen, bitmap->_bmp, drawAtX, drawAtY,
+          bitmap->_transparency ? bitmap->_transparency : 255);
     }
   }
 

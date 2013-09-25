@@ -612,9 +612,8 @@ int load_game_file() {
     if (loaded_game_file_version < kGameVersion_320)
     {
         // Force new style rendering for gui sprites with alpha channel
-        game.options[OPT_NEWGUIALPHA] = 1;
+        game.options[OPT_NEWGUIALPHA] = kGuiAlphaRender_AdditiveOpacitySrcCopy;
     }
-    init_blenders((GameGuiAlphaRenderingStyle)game.options[OPT_NEWGUIALPHA]);
 
     if (game.numfonts > MAX_FONTS)
         quit("!This game requires a newer version of AGS. Too many fonts for this version to handle.");

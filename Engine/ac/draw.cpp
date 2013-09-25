@@ -838,17 +838,29 @@ void putpixel_compensate (Bitmap *ds, int xx,int yy, int col) {
 
 
 
-void draw_sprite_support_alpha(Bitmap *ds, int xpos, int ypos, Bitmap *image, int slot, int transparency) {
-
-    if ((game.spriteflags[slot] & SPF_ALPHACHANNEL) && (transparency == 0)) 
+void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, Bitmap *image, int src_slot, int alpha)
+{
+    if (alpha <= 0)
     {
-        set_alpha_blender();
+        return;
+    }
+
+    const bool use_new_sprite_alpha_blending =
+        (game.options[OPT_SPRITEALPHA] == kSpriteAlphaRender_Improved) && ds_has_alpha;
+
+    if (game.spriteflags[src_slot] & SPF_ALPHACHANNEL &&
+        (use_new_sprite_alpha_blending || alpha == 0xFF))
+    {
+        if (use_new_sprite_alpha_blending)
+           set_argb2argb_alpha_blender(alpha);
+        else
+            set_alpha_blender();
         ds->TransBlendBlt(image, xpos, ypos);
     }
-    else {
-        AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, image, xpos, ypos, transparency);
+    else
+    {
+        AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, image, xpos, ypos, alpha);
     }
-
 }
 
 
@@ -1104,16 +1116,27 @@ void repair_alpha_channel(Bitmap *dest, Bitmap *bgpic)
 
 
 // used by GUI renderer to draw images
-void draw_sprite_compensate(Bitmap *ds, int picc,int xx,int yy,int useAlpha) 
+void draw_gui_sprite(Bitmap *ds, int picc, int xx, int yy, bool use_alpha) 
 {
-    if ((useAlpha) && 
-        (game.options[OPT_NEWGUIALPHA] > 0) &&
+    if ((use_alpha) && 
+        (game.options[OPT_NEWGUIALPHA] != kGuiAlphaRender_Classic) &&
         (ds->GetColorDepth() == 32))
     {
         if (game.spriteflags[picc] & SPF_ALPHACHANNEL)
-            set_additive_alpha_blender();
+        {
+            if (game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_MultiplyTranslucenceSrcBlend)
+            {
+                set_argb2argb_alpha_blender();
+            }
+            else
+            {
+                set_additive_alpha_blender();
+            }
+        }
         else
+        {
             set_opaque_alpha_blender();
+        }
 
         ds->TransBlendBlt(spriteset[picc], xx, yy);
     }
@@ -2193,7 +2216,7 @@ void draw_screen_overlay() {
                 {
                     isAlpha = true;
 
-                    if ((game.options[OPT_NEWGUIALPHA] == 0) && (guis[aa].bgpic > 0))
+                    if ((game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Classic) && (guis[aa].bgpic > 0))
                     {
                         // old-style (pre-3.0.2) GUI alpha rendering
                         repair_alpha_channel(guibg[aa], spriteset[guis[aa].bgpic]);

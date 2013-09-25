@@ -67,6 +67,9 @@ Audio clips
 41 : 3.2.0
 42 : 3.2.1
 
+43 : 3.3.0
+Added few more game options.
+
 */
 
 enum GameDataVersion
@@ -92,7 +95,8 @@ enum GameDataVersion
     kGameVersion_312            = 40,
     kGameVersion_320            = 41,
     kGameVersion_321            = 42,
-    kGameVersion_Current        = kGameVersion_321
+    kGameVersion_330,
+    kGameVersion_Current        = kGameVersion_330
 };
 
 extern GameDataVersion loaded_game_file_version;

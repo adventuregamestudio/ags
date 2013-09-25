@@ -71,7 +71,9 @@ namespace AGS.Editor
         public SpriteSelector()
         {
             InitializeComponent();
-            _folders = new Dictionary<string, SpriteFolder>();
+            _folders = new Dictionary<string, SpriteFolder>(
+                // The TreeNodeCollection uses case-insensitive string comparer
+                StringComparer.Create(System.Globalization.CultureInfo.CurrentCulture, true));
 			_folderNodeMapping = new Dictionary<SpriteFolder, TreeNode>();
 			_nodeFolderMapping = new Dictionary<TreeNode, SpriteFolder>();
 

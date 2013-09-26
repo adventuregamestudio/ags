@@ -406,8 +406,7 @@ void PlaySilentMIDI (int mnum) {
         quitprintf("!PlaySilentMIDI: failed to load aMusic%d", mnum);
     }
     channels[play.silent_midi_channel]->play();
-    channels[play.silent_midi_channel]->set_volume(0);
-    channels[play.silent_midi_channel]->volAsPercentage = 0;
+    channels[play.silent_midi_channel]->set_volume_origin(0);
 }
 
 void SetSpeechVolume(int newvol) {

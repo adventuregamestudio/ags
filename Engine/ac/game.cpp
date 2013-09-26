@@ -281,8 +281,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
             ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
             if ((clip != NULL) && (clip->type == audioType))
             {
-                channels[aa]->set_volume((volume * 255) / 100);
-                channels[aa]->volAsPercentage = volume;
+                channels[aa]->set_volume_origin(volume);
             }
         }
     }
@@ -2072,9 +2071,8 @@ void restore_game_audioclips_and_crossfade(Stream *in, int crossfadeInChannelWas
             if (channels[bb] != NULL)
             {
                 channels[bb]->set_panning(pan);
-                channels[bb]->set_volume(vol);
+                channels[bb]->set_volume_alternate(volAsPercent, vol);
                 channels[bb]->panningAsPercentage = panAsPercent;
-                channels[bb]->volAsPercentage = volAsPercent;
             }
         }
     }
@@ -2623,8 +2621,7 @@ void stop_fast_forwarding() {
             (channels[aa]->volAsPercentage == 0) &&
             (channels[aa]->originalVolAsPercentage > 0))
         {
-            channels[aa]->volAsPercentage = channels[aa]->originalVolAsPercentage;
-            channels[aa]->set_volume((channels[aa]->volAsPercentage * 255) / 100);
+            channels[aa]->reset_volume_to_origin();
         }
     }
 

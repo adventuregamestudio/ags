@@ -115,7 +115,7 @@ void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpeed, int
 
     play.crossfading_out_channel = SPECIAL_CROSSFADE_CHANNEL;
     play.crossfade_step = 0;
-    play.crossfade_initial_volume_out = channels[SPECIAL_CROSSFADE_CHANNEL]->volAsPercentage;
+    play.crossfade_initial_volume_out = channels[SPECIAL_CROSSFADE_CHANNEL]->get_volume();
     play.crossfade_out_volume_per_step = crossfadeSpeed;
 
     play.crossfading_in_channel = fadeInChannel;
@@ -259,9 +259,7 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
     }
     if (soundClip != NULL)
     {
-        soundClip->volAsPercentage = audioClip->defaultVolume;
-        soundClip->originalVolAsPercentage = soundClip->volAsPercentage;
-        soundClip->set_volume((audioClip->defaultVolume * 255) / 100);
+        soundClip->set_volume_origin(audioClip->defaultVolume);
         soundClip->soundType = audioClip->type;
         soundClip->sourceClip = audioClip;
     }
@@ -285,7 +283,7 @@ void audio_update_polled_stuff()
         if (channels[play.crossfading_out_channel] == NULL)
             quitprintf("Crossfade out channel is %d but channel has gone", play.crossfading_out_channel);
 
-        int newVolume = channels[play.crossfading_out_channel]->volAsPercentage - play.crossfade_out_volume_per_step;
+        int newVolume = channels[play.crossfading_out_channel]->get_volume() - play.crossfade_out_volume_per_step;
         if (newVolume > 0)
         {
             AudioChannel_SetVolume(&scrAudioChannel[play.crossfading_out_channel], newVolume);
@@ -299,7 +297,7 @@ void audio_update_polled_stuff()
 
     if (play.crossfading_in_channel > 0)
     {
-        int newVolume = channels[play.crossfading_in_channel]->volAsPercentage + play.crossfade_in_volume_per_step;
+        int newVolume = channels[play.crossfading_in_channel]->get_volume() + play.crossfade_in_volume_per_step;
         if (newVolume > play.crossfade_final_volume_in)
         {
             newVolume = play.crossfade_final_volume_in;
@@ -376,15 +374,21 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
 
     if (play.crossfading_in_channel == channel)
     {
-        soundfx->set_volume(0);
-        soundfx->volAsPercentage = 0;
+        soundfx->set_volume_origin(0);
     }
 
+    // Mute the audio clip if fast-forwarding the cutscene
     if (play.fast_forward) 
     {
-        soundfx->set_volume(0);
-        soundfx->volAsPercentage = 0;
+        soundfx->set_volume_override(0);
 
+        // CHECKME!!
+        // [IKM] According to the 3.2.1 logic the clip will restore
+        // its value after cutscene, but only if originalVolAsPercentage
+        // is not zeroed. Something I am not sure about: why does it
+        // disable the clip under condition that there's more than one
+        // channel for this audio type? It does not even check if
+        // anything of this type is currently playing.
         if (game.audioClipTypes[clip->type].reservedChannels != 1)
             soundfx->originalVolAsPercentage = 0;
     }
@@ -848,12 +852,10 @@ void apply_volume_drop_modifier(bool applyModifier)
             if (applyModifier)
             {
                 int audioType = ((ScriptAudioClip*)channels[i]->sourceClip)->type;
-                channels[i]->volModifier = -(game.audioClipTypes[audioType].volume_reduction_while_speech_playing * 255 / 100);
+                channels[i]->apply_volume_modifier(-(game.audioClipTypes[audioType].volume_reduction_while_speech_playing * 255 / 100));
             }
             else
-                channels[i]->volModifier = 0;
-
-            channels[i]->set_volume(channels[i]->vol);
+                channels[i]->apply_volume_modifier(0);
         }
     }
 }

@@ -34,9 +34,15 @@ struct SOUNDCLIP
     int done;
     int priority;
     int soundType;
+    // absolute volume, set by implementations only!
     int vol;
+    // current relative volume, in percents
     int volAsPercentage;
+    // originalVolAsPercentage is used when there's a need to temporarily
+    // change and then restore the clip's relative volume (volAsPercentage)
     int originalVolAsPercentage;
+    // volModifier is used when there's a need to temporarily change and
+    // the restore the clip's absolute volume (vol)
     int volModifier;
     int paused;
     int panning;
@@ -67,6 +73,43 @@ struct SOUNDCLIP
 
     virtual void pause();
     virtual void resume();
+
+    inline int get_volume() const
+    {
+        return originalVolAsPercentage;
+    }
+
+    inline void set_volume_origin(int volume)
+    {
+        volAsPercentage = volume;
+        originalVolAsPercentage = volume;
+        set_volume((volume * 255) / 100);
+    }
+
+    inline void set_volume_alternate(int vol_percent, int vol_absolute)
+    {
+        volAsPercentage = vol_percent;
+        originalVolAsPercentage = vol_percent;
+        set_volume(vol_absolute);
+    }
+
+    inline void set_volume_override(int volume)
+    {
+        volAsPercentage = volume;
+        set_volume((volume * 255) / 100);
+    }
+
+    inline void reset_volume_to_origin()
+    {
+        set_volume_origin(originalVolAsPercentage);
+    }
+
+    inline void apply_volume_modifier(int mod)
+    {
+        volModifier = mod;
+        // this forces implementation to recalculate absolute volume using new modifier
+        set_volume(vol);
+    }
 
     SOUNDCLIP();
     ~SOUNDCLIP();

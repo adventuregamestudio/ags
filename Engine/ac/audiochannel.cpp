@@ -119,7 +119,7 @@ int AudioChannel_GetVolume(ScriptAudioChannel *channel)
     if ((channels[channel->id] != NULL) &&
         (channels[channel->id]->done == 0))
     {
-        return channels[channel->id]->volAsPercentage;
+        return channels[channel->id]->get_volume();
     }
     return 0;
 }
@@ -132,8 +132,7 @@ int AudioChannel_SetVolume(ScriptAudioChannel *channel, int newVolume)
     if ((channels[channel->id] != NULL) &&
         (channels[channel->id]->done == 0))
     {
-        channels[channel->id]->set_volume((newVolume * 255) / 100);
-        channels[channel->id]->volAsPercentage = newVolume;
+        channels[channel->id]->set_volume_origin(newVolume);
     }
     return 0;
 }

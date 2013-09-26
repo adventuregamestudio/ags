@@ -497,7 +497,13 @@ void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, bool extended, char* gsw
     if (extended)
     {
         int option_count = in->ReadInt32();
-        in->ReadArrayOfInt32(&options[0], Math::Max(option_count, MAX_OPTIONS));
+        const int max_options = Math::Min(option_count, MAX_OPTIONS);
+        in->ReadArrayOfInt32(&options[0], max_options);
+        option_count -= max_options;
+        if (option_count > 0)
+        {
+            in->Seek(Common::kSeekCurrent, option_count * sizeof(int32));
+        }
     }
     else
     {

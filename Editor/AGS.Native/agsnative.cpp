@@ -4660,7 +4660,7 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
 	}
 
   ooo->Write(game_file_sig,30);
-  ooo->WriteInt32(42);
+  ooo->WriteInt32(kGameVersion_Current);
   ooo->WriteInt32(strlen(AGS_VERSION));
   ooo->Write(AGS_VERSION, strlen(AGS_VERSION));
 

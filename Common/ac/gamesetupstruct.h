@@ -28,10 +28,6 @@
 #include "ac/dynobj/scriptaudioclip.h" // ScriptAudioClip
 #include "util/string.h"
 
-// [IKM] Do not change the order of variables in this struct!
-// Until the serialization and script referencing methods are improved
-// game execution will depend on actual object addresses in memory
-//
 struct GameSetupStruct: public GameSetupStructBase {
     unsigned char     fontflags[MAX_FONTS];
     char              fontoutline[MAX_FONTS];

@@ -20,7 +20,7 @@ namespace AGS.Types
 
         public const int MAX_CURSORS = 20;
         public const int MAX_DIALOGS = 500;
-        public const int MAX_FONTS = 15;
+        public const int MAX_FONTS = 30;
         public const int MAX_INV_ITEMS = 300;
         public const int MAX_SPRITES = 30000;
 

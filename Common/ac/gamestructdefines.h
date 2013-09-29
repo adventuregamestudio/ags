@@ -39,7 +39,7 @@
 #define PAL_BACKGROUND      2
 #define MAXGLOBALMES        500
 #define MAXLANGUAGE         5
-#define MAX_FONTS           15
+#define MAX_FONTS           30
 #define OPT_DEBUGMODE       0
 #define OPT_SCORESOUND      1
 #define OPT_WALKONLOOK      2

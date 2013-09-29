@@ -15,10 +15,7 @@
 #ifndef __AC_AGSFONTRENDERER_H
 #define __AC_AGSFONTRENDERER_H
 
-// temporary define copy
-#ifndef MAX_FONTS
-#define MAX_FONTS           15
-#endif
+#include "ac/gamestructdefines.h"
 
 typedef unsigned char* wgtfont;
 struct BITMAP;

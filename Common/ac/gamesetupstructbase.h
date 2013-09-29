@@ -28,12 +28,10 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-// This struct is written directly to the disk file // [IKM] not really anymore
-// The GameSetupStruct subclass parts are written individually
 //
-// [IKM] Do not change the order of variables in this struct!
-// Until the serialization and script referencing methods are improved
-// game execution will depend on actual object addresses in memory
+// This struct is still written by copying plain byte data in
+// AGS.Native (the editor); it must not be changed any way
+// until the game compilation was improved.
 //
 struct GameSetupStructBase {
     static const int  MAX_OPTIONS = 100;

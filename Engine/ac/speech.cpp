@@ -93,6 +93,16 @@ SkipSpeechStyle internal_skip_speech_to_user(int internal_val)
 extern GameSetupStruct game;
 extern GameState play;
 
+RuntimeScriptValue Sc_Speech_GetAnimationStopTimeMargin(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_VARGET_INT(play.close_mouth_speech_time);
+}
+
+RuntimeScriptValue Sc_Speech_SetAnimationStopTimeMargin(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_VARSET_PINT(play.close_mouth_speech_time);
+}
+
 RuntimeScriptValue Sc_Speech_GetCustomPortraitPlacement(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_VARGET_INT(play.speech_portrait_placement);
@@ -101,6 +111,16 @@ RuntimeScriptValue Sc_Speech_GetCustomPortraitPlacement(const RuntimeScriptValue
 RuntimeScriptValue Sc_Speech_SetCustomPortraitPlacement(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_VARSET_PINT(play.speech_portrait_placement);
+}
+
+RuntimeScriptValue Sc_Speech_GetDisplayPostTimeMs(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_VARGET_INT(play.speech_display_post_time_ms);
+}
+
+RuntimeScriptValue Sc_Speech_SetDisplayPostTimeMs(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_VARSET_PINT(play.speech_display_post_time_ms);
 }
 
 RuntimeScriptValue Sc_Speech_GetPortraitXOffset(const RuntimeScriptValue *params, int32_t param_count)
@@ -166,8 +186,12 @@ extern RuntimeScriptValue Sc_SetVoiceMode(const RuntimeScriptValue *params, int3
 
 void RegisterSpeechAPI()
 {
+    ccAddExternalStaticFunction("Speech::get_AnimationStopTimeMargin", Sc_Speech_GetAnimationStopTimeMargin);
+    ccAddExternalStaticFunction("Speech::set_AnimationStopTimeMargin", Sc_Speech_SetAnimationStopTimeMargin);
     ccAddExternalStaticFunction("Speech::get_CustomPortraitPlacement", Sc_Speech_GetCustomPortraitPlacement);
     ccAddExternalStaticFunction("Speech::set_CustomPortraitPlacement", Sc_Speech_SetCustomPortraitPlacement);
+    ccAddExternalStaticFunction("Speech::get_DisplayPostTimeMs",      Sc_Speech_GetDisplayPostTimeMs);
+    ccAddExternalStaticFunction("Speech::set_DisplayPostTimeMs",      Sc_Speech_SetDisplayPostTimeMs);
     ccAddExternalStaticFunction("Speech::get_PortraitXOffset",        Sc_Speech_GetPortraitXOffset);
     ccAddExternalStaticFunction("Speech::set_PortraitXOffset",        Sc_Speech_SetPortraitXOffset);
     ccAddExternalStaticFunction("Speech::get_PortraitY",              Sc_Speech_GetPortraitY);

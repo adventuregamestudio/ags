@@ -65,6 +65,7 @@ extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
 extern int is_text_overlay;
 extern IGraphicsDriver *gfxDriver;
+extern int frames_per_second;
 
 
 int do_movelist_move(short*mlnum,int*xx,int*yy) {
@@ -249,11 +250,13 @@ void update_overlay_timers()
 
 void update_speech_and_messages()
 {
-	// determine if speech text should be removed
+  const bool is_voice = channels[SCHAN_SPEECH] != NULL;
+
+  // determine if speech text should be removed
   if (play.messagetime>=0) {
     play.messagetime--;
     // extend life of text if the voice hasn't finished yet
-    if (channels[SCHAN_SPEECH] != NULL) {
+    if (is_voice && !play.speech_in_post_state) {
       if ((!rec_isSpeechFinished()) && (play.fast_forward == 0)) {
       //if ((!channels[SCHAN_SPEECH]->done) && (play.fast_forward == 0)) {
         if (play.messagetime <= 1)
@@ -261,6 +264,16 @@ void update_speech_and_messages()
       }
       else  // if the voice has finished, remove the speech
         play.messagetime = 0;
+    }
+
+    if (play.messagetime < 1 && play.speech_display_post_time_ms > 0 &&
+        play.fast_forward == 0)
+    {
+        if (!play.speech_in_post_state)
+        {
+            play.messagetime = play.speech_display_post_time_ms * frames_per_second / 1000;
+        }
+        play.speech_in_post_state = !play.speech_in_post_state;
     }
 
     if (play.messagetime < 1) 
@@ -280,6 +293,7 @@ void update_speech_and_messages()
 
 void update_sierra_speech()
 {
+  const bool is_voice = channels[SCHAN_SPEECH] != NULL;
 	// update sierra-style speech
   if ((face_talking >= 0) && (play.fast_forward == 0)) 
   {
@@ -340,11 +354,18 @@ void update_sierra_speech()
     }
     else if (facetalkwait>0) facetalkwait--;
     // don't animate if the speech has finished
-    else if ((play.messagetime < 1) && (facetalkframe == 0) && (play.close_mouth_speech_time > 0))
+    else if ((play.messagetime < 1) && (facetalkframe == 0) &&
+             // if play.close_mouth_speech_time = 0, this means animation should play till
+             // the speech ends; but this should not work in voice mode, and also if the
+             // speech is in the "post" state
+             (is_voice || play.speech_in_post_state || play.close_mouth_speech_time > 0))
       ;
     else {
-      // Close mouth at end of sentence
-      if ((play.messagetime < play.close_mouth_speech_time) &&
+      // Close mouth at end of sentence: if speech has entered the "post" state,
+      // or if this is a text only mode and close_mouth_speech_time is set
+      if (play.speech_in_post_state ||
+          !is_voice &&
+          (play.messagetime < play.close_mouth_speech_time) &&
           (play.close_mouth_speech_time > 0)) {
         facetalkframe = 0;
         facetalkwait = play.messagetime;
@@ -360,7 +381,7 @@ void update_sierra_speech()
         // normal non-lip-sync
         facetalkframe++;
         if ((facetalkframe >= views[facetalkview].loops[facetalkloop].numFrames) ||
-            ((play.messagetime < 1) && (play.close_mouth_speech_time > 0))) {
+            (!is_voice && (play.messagetime < 1) && (play.close_mouth_speech_time > 0))) {
 
           if ((facetalkframe >= views[facetalkview].loops[facetalkloop].numFrames) &&
               (views[facetalkview].loops[facetalkloop].RunNextLoop())) 

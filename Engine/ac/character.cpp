@@ -2301,6 +2301,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
     }
 
     play.messagetime = GetTextDisplayTime(texx);
+    play.speech_in_post_state = false;
 
     if (isPause) {
         if (update_music_at > 0)

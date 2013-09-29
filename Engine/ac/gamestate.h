@@ -22,7 +22,7 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-#define GAME_STATE_RESERVED_INTS 7
+#define GAME_STATE_RESERVED_INTS 6
 
 // Adding to this might need to modify AGSDEFNS.SH and AGSPLUGIN.H
 struct GameState {
@@ -54,12 +54,13 @@ struct GameState {
     int  bgspeech_game_speed;    // is background speech relative to game speed
     int  bgspeech_stay_on_display; // whether to remove bg speech when DisplaySpeech is used
     int  unfactor_speech_from_textlength; // remove "&10" when calculating time for text to stay
-    int  mp3_loop_before_end;    // loop this time before end of track (ms)
+    int  mp3_loop_before_end;    // (UNUSED!) loop this time before end of track (ms)
     int  speech_music_drop;      // how much to drop music volume by when speech is played
     int  in_cutscene;            // we are between a StartCutscene and EndCutscene
     int  fast_forward;           // player has elected to skip cutscene
     int  room_width;      // width of current room (320-res co-ordinates)
     int  room_height;     // height of current room (320-res co-ordinates)
+    // ** up to here is referenced in the plugin interface
     int  game_speed_modifier;
     int  score_sound;
     int  takeover_data;  // value passed to RunAGSGame in previous game
@@ -69,7 +70,8 @@ struct GameState {
     int  narrator_speech;
     int  ambient_sounds_persist;
     int  lipsync_speed;
-    int  close_mouth_speech_time;
+    int  close_mouth_speech_time; // stop speech animation at (messagetime - close_mouth_speech_time)
+                                  // (this is designed to work in text-only mode)
     int  disable_antialiasing;
     int  text_speed_modifier;
     int  text_align;
@@ -100,6 +102,8 @@ struct GameState {
     int  speech_portrait_placement; // speech portrait placement mode (automatic/custom)
     int  speech_portrait_x; // a speech portrait x offset from corresponding screen side
     int  speech_portrait_y; // a speech portrait y offset 
+    int  speech_display_post_time_ms; // keep speech text/portrait on screen after text/voice has finished playing;
+                                      // no speech animation is supposed to be played at this time
     int  reserved[GAME_STATE_RESERVED_INTS];  // make sure if a future version adds a var, it doesn't mess anything up
     // ** up to here is referenced in the script "game." object
     int   recording;   // user is recording their moves
@@ -181,6 +185,9 @@ struct GameState {
     int   ignore_user_input_after_text_timeout_ms;
     unsigned long ignore_user_input_until_time;
     int   default_audio_type_volumes[MAX_AUDIO_TYPES];
+
+    // These variables are not serialized
+    bool  speech_in_post_state;
 
     void ReadFromFile_v321(Common::Stream *in);
     void WriteToFile_v321(Common::Stream *out);

@@ -2122,7 +2122,12 @@ struct GameState {
   int  narrator_speech;
   int  ambient_sounds_persist;
   int  lipsync_speed;
+#ifdef STRICT
+  int  reserved__4;   // $AUTOCOMPLETEIGNORE$
+#endif
+#ifndef STRICT
   int  close_mouth_end_speech_time;
+#endif
   int  disable_antialiasing;
   int  text_speed_modifier;
   int  text_align;
@@ -2173,8 +2178,12 @@ enum SkipSpeechStyle {
 };
   
 managed struct Speech {
+  /// Stop speech animation this number of game loops before speech ends (text mode only)
+  import static attribute int             AnimationStopTimeMargin;
   /// Enables/disables the custom speech portrait placement.
   import static attribute bool            CustomPortraitPlacement;
+  /// Gets/sets extra time the speech will always stay on screen after its common time runs out
+  import static attribute int             DisplayPostTimeMs;
   /// Gets/sets speech portrait x offset relative to screen side.
   import static attribute int             PortraitXOffset;
   /// Gets/sets speech portrait y position.

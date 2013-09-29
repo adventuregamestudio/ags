@@ -1178,6 +1178,11 @@ void init_game_settings() {
     play.show_single_dialog_option = 0;
     play.keep_screen_during_instant_transition = 0;
     play.read_dialog_option_colour = -1;
+    play.speech_portrait_placement = 0;
+    play.speech_portrait_x = 0;
+    play.speech_portrait_y = 0;
+    play.speech_display_post_time_ms = 0;
+    play.speech_in_post_state = false;
     play.narrator_speech = game.playercharacter;
     play.crossfading_out_channel = 0;
     play.speech_textwindow_gui = game.options[OPT_TWCUSTOM];

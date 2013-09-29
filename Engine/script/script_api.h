@@ -320,6 +320,11 @@ extern char ScSfBuffer[3000];
     METHOD((CLASS*)self, params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue, params[5].IValue); \
     return RuntimeScriptValue()
 
+#define API_OBJCALL_VOID_PINT_PBOOL(CLASS, METHOD) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
+    METHOD((CLASS*)self, params[0].IValue, params[1].GetAsBool()); \
+    return RuntimeScriptValue()
+
 #define API_OBJCALL_VOID_PINT_POBJ(CLASS, METHOD, P1CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
     METHOD((CLASS*)self, params[0].IValue, (P1CLASS*)params[1].Ptr); \

@@ -124,6 +124,23 @@ int Dialog_HasOptionBeenChosen(ScriptDialog *sd, int option)
   return 0;
 }
 
+void Dialog_SetHasOptionBeenChosen(ScriptDialog *sd, int option, bool chosen)
+{
+    if (option < 1 || option > dialog[sd->id].numoptions)
+    {
+        quit("!Dialog.HasOptionBeenChosen: Invalid option number specified");
+    }
+    option--;
+    if (chosen)
+    {
+        dialog[sd->id].optionflags[option] |= DFLG_HASBEENCHOSEN;
+    }
+    else
+    {
+        dialog[sd->id].optionflags[option] &= ~DFLG_HASBEENCHOSEN;
+    }
+}
+
 int Dialog_GetOptionCount(ScriptDialog *sd)
 {
   return dialog[sd->id].numoptions;
@@ -1124,6 +1141,11 @@ RuntimeScriptValue Sc_Dialog_HasOptionBeenChosen(void *self, const RuntimeScript
     API_OBJCALL_INT_PINT(ScriptDialog, Dialog_HasOptionBeenChosen);
 }
 
+RuntimeScriptValue Sc_Dialog_SetHasOptionBeenChosen(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT_PBOOL(ScriptDialog, Dialog_SetHasOptionBeenChosen);
+}
+
 // void (ScriptDialog *sd, int option, int newState)
 RuntimeScriptValue Sc_Dialog_SetOptionState(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1145,6 +1167,7 @@ void RegisterDialogAPI()
     ccAddExternalObjectFunction("Dialog::GetOptionState^1",     Sc_Dialog_GetOptionState);
     ccAddExternalObjectFunction("Dialog::GetOptionText^1",      Sc_Dialog_GetOptionText);
     ccAddExternalObjectFunction("Dialog::HasOptionBeenChosen^1", Sc_Dialog_HasOptionBeenChosen);
+    ccAddExternalObjectFunction("Dialog::SetHasOptionBeenChosen^2", Sc_Dialog_SetHasOptionBeenChosen);
     ccAddExternalObjectFunction("Dialog::SetOptionState^2",     Sc_Dialog_SetOptionState);
     ccAddExternalObjectFunction("Dialog::Start^0",              Sc_Dialog_Start);
 

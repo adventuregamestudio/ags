@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "ac/game_version.h"
 #include "script/cc_error.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script_api.h"
@@ -64,9 +65,10 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
     // NOTE: although width and precision will
     // not likely be defined by a 10-digit
     // number, such case is theoretically valid.
-    char       fmtbuf[27];
+    const size_t fmtbuf_size = 27;
+    char       fmtbuf[fmtbuf_size];
     char       *fmt_bufptr;
-    char       *fmt_bufendptr = &fmtbuf[26];
+    char       *fmt_bufendptr = &fmtbuf[fmtbuf_size - 1];
 
     char       *out_ptr    = buffer;
     const char *out_endptr = buffer + buf_length;
@@ -124,10 +126,25 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
                 case 's':
                     if (!arg.Ptr)
                     {
-                        cc_error("ScriptSprintf: argument %d is expected to be a string, but it is null pointer", arg_idx);
-                        return "";
+                        if (loaded_game_file_version < kGameVersion_320)
+                        {
+                            // print "(null)" into the placeholder;
+                            // NOTE: the behavior of printf("%s", 0) is undefined (MS version prints "(null)",
+                            // but there's no guarantee others will), therefore we shouldn't let snprintf do
+                            // all the job here.
+                            *fmt_bufptr = 0;
+                            strncpy(out_ptr, "(null)", avail_outbuf);
+                            snprintf_res = Math::Min(avail_outbuf, 6);
+                            fmt_done = kFormatParseArgument;
+                            break;
+                        }
+                        else
+                        {
+                            cc_error("ScriptSprintf: argument %d is expected to be a string, but it is null pointer", arg_idx);
+                            return "";
+                        }
                     }
-                    if (arg.Ptr == buffer)
+                    else if (arg.Ptr == buffer)
                     {
                         cc_error("ScriptSprintf: argument %d is a pointer to output buffer", arg_idx);
                         return "";
@@ -168,7 +185,7 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
             // If placeholder was not valid, just copy stored format buffer as it is
             else
             {
-                size_t copy_len = Math::Min(Math::Min(fmt_bufptr - fmtbuf, 26), avail_outbuf);
+                size_t copy_len = Math::Min(Math::Min(fmt_bufptr - fmtbuf, fmtbuf_size - 1), avail_outbuf);
                 memcpy(out_ptr, fmtbuf, copy_len);
                 out_ptr += copy_len;
             }
@@ -198,9 +215,10 @@ const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *format, 
         return "";
     }
 
-    char       fmtbuf[27];
+    const size_t fmtbuf_size = 27;
+    char       fmtbuf[fmtbuf_size];
     char       *fmt_bufptr;
-    char       *fmt_bufendptr = &fmtbuf[26];
+    char       *fmt_bufendptr = &fmtbuf[fmtbuf_size - 1];
 
     char       *out_ptr    = buffer;
     const char *out_endptr = buffer + buf_length;
@@ -267,10 +285,21 @@ const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *format, 
                     arg = va_arg(arg_ptr, VAR_ARG);
                     if (!arg.Ptr)
                     {
-                        cc_error("ScriptSprintf: argument %d is expected to be a string, but it is null pointer", arg_idx);
-                        return "";
+                        if (loaded_game_file_version < kGameVersion_320)
+                        {
+                            *fmt_bufptr = 0;
+                            strncpy(out_ptr, "(null)", avail_outbuf);
+                            snprintf_res = Math::Min(avail_outbuf, 6);
+                            fmt_done = kFormatParseArgument;
+                            break;
+                        }
+                        else
+                        {
+                            cc_error("ScriptSprintf: argument %d is expected to be a string, but it is null pointer", arg_idx);
+                            return "";
+                        }
                     }
-                    if (arg.Ptr == buffer)
+                    else if (arg.Ptr == buffer)
                     {
                         cc_error("ScriptSprintf: argument %d is a pointer to output buffer", arg_idx);
                         return "";
@@ -311,7 +340,7 @@ const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *format, 
             // If placeholder was not valid, just copy stored format buffer as it is
             else
             {
-                size_t copy_len = Math::Min(Math::Min(fmt_bufptr - fmtbuf, 26), avail_outbuf);
+                size_t copy_len = Math::Min(Math::Min(fmt_bufptr - fmtbuf, fmtbuf_size - 1), avail_outbuf);
                 memcpy(out_ptr, fmtbuf, copy_len);
                 out_ptr += copy_len;
             }

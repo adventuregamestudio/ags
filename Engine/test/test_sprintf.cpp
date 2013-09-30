@@ -15,6 +15,7 @@
 #ifdef _DEBUG
 
 #include <string.h>
+#include "ac/game_version.h"
 #include "debug/assert.h"
 #include "script/script_api.h"
 #include "script/runtimescriptvalue.h"
@@ -57,7 +58,13 @@ void Test_ScriptSprintf()
     assert(strcmp(result, "12345678%") == 0);
     result = ScriptSprintf(ScSfBuffer, 10, "12345678%d", params, 0);
     assert(strcmp(result, "12345678%d") == 0);
-    
+
+    // Test null string pointer in backward-compatibility mode
+    loaded_game_file_version = kGameVersion_312;
+    params[0].SetStringLiteral(NULL);
+    result = ScriptSprintf(ScSfBuffer, 10, "A%sB", params, 1);
+    assert(strcmp(result, "A(null)B") == 0);
+    loaded_game_file_version = kGameVersion_Undefined;
 }
 
 #endif // _DEBUG

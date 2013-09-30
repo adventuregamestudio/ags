@@ -1988,7 +1988,13 @@ int wantMoveNow (CharacterInfo *chi, CharacterExtras *chex) {
     // scaling 60-80%, move 75% speed
     if (chex->zoom >= 60) {
         if ((chi->walkwaitcounter % 4) >= 1)
-            return 1;
+            return -1;
+        else if (chex->xwas != INVALID_X) {
+            // move the second half of the movement to make it smoother
+            chi->x = chex->xwas;
+            chi->y = chex->ywas;
+            chex->xwas = INVALID_X;
+        }
     }
     // scaling 30-60%, move 50% speed
     else if (chex->zoom >= 30) {

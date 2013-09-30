@@ -941,14 +941,12 @@ int Game_ChangeTranslation(const char *newFilename)
 // Saved game version history
 //
 // 8      original format (3.2.1)
-// 9      slightly extended format (3.3.0)
 //-----------------------------------------------------------------------------
 enum SavedGameVersion
 {
     kSvgVersion_Undefined = 0,
     kSvgVersion_321       = 8,
-    kSvgVersion_330       = 9,
-    kSvgVersion_Current   = kSvgVersion_330,
+    kSvgVersion_Current   = kSvgVersion_321,
     kSvgVersion_LowestSupported = kSvgVersion_321
 };
 
@@ -1395,9 +1393,7 @@ void WriteGameState_Aligned(Stream *out)
 void save_game_data (Stream *out, Bitmap *screenshot) {
 
     platform->RunPluginHooks(AGSE_PRESAVEGAME, 0);
-    // Support forward savedgame compatibility for older game data versions
-    const bool extended_savedgame = loaded_game_file_version > kGameVersion_321;
-    out->WriteInt32(extended_savedgame ? kSvgVersion_Current : kSvgVersion_321);
+    out->WriteInt32(kSvgVersion_Current);
 
     save_game_screenshot(out, screenshot);
     save_game_header(out);
@@ -1424,7 +1420,7 @@ void save_game_data (Stream *out, Bitmap *screenshot) {
     WriteGameSetupStructBase_Aligned(out);
 
     //----------------------------------------------------------------
-    game.WriteForSaveGame_v321(out, extended_savedgame);
+    game.WriteForSaveGame_v321(out);
 
     WriteCharacterExtras_Aligned(out);
     save_game_palette(out);
@@ -2100,8 +2096,6 @@ int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_v
 
     int bb, vv;
 
-    const bool extended_savedgame = svg_version > kSvgVersion_321;
-
     int sg_cur_mode = 0, sg_cur_cursor = 0;
     int res = restore_game_head_dynamic_values(in, /*out*/ sg_cur_mode, sg_cur_cursor);
     if (res != 0) {
@@ -2152,7 +2146,7 @@ int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_v
     if (game.numviews != numviewswas)
         quit("!Restore_Game: Game has changed (views), unable to restore position");
 
-    game.ReadFromSaveGame_v321(in, extended_savedgame, gswas, compsc, chwas, olddict, mesbk);
+    game.ReadFromSaveGame_v321(in, gswas, compsc, chwas, olddict, mesbk);
     //
     //in->ReadArray(&game.invinfo[0], sizeof(InventoryItemInfo), game.numinvitems);
     //in->ReadArray(&game.mcurs[0], sizeof(MouseCursor), game.numcursors);

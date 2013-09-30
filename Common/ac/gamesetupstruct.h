@@ -121,9 +121,9 @@ struct GameSetupStruct: public GameSetupStructBase {
     //--------------------------------------------------------------------
 
     // Functions for reading and writing appropriate data from/to save game
-    void ReadFromSaveGame_v321(Common::Stream *in, bool extended, char* gswas, ccScript* compsc, CharacterInfo* chwas,
+    void ReadFromSaveGame_v321(Common::Stream *in, char* gswas, ccScript* compsc, CharacterInfo* chwas,
                                    WordsDictionary *olddict, char** mesbk);
-    void WriteForSaveGame_v321(Common::Stream *out, bool extended);
+    void WriteForSaveGame_v321(Common::Stream *out);
 };
 
 //=============================================================================

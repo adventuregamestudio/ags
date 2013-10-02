@@ -325,8 +325,8 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
           frame++;
 
         if ((aa == char_speaking) &&
-            play.speech_in_post_state ||
-            ((!is_voice) &&
+             (play.speech_in_post_state ||
+             (!is_voice) &&
              (play.close_mouth_speech_time > 0) &&
              (play.messagetime < play.close_mouth_speech_time))) {
           // finished talking - stop animation

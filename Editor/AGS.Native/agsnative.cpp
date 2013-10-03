@@ -4048,7 +4048,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 		newGui->BackgroundColor = guis[i].bgcol;
 		newGui->BackgroundImage = guis[i].bgpic;
 		newGui->ID = i;
-		newGui->Name = gcnew String(guis[i].get_objscript_name(guis[i].name));
+		newGui->Name = gcnew String(guis[i].name);
 
 		for (int j = 0; j < guis[i].numobjs; j++)
 		{

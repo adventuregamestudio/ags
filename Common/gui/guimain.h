@@ -64,7 +64,6 @@ struct GUIMain
 
   GUIMain();
   void init();
-  const char *get_objscript_name(const char *basedOn);
   void rebuild_array();
   void resort_zorder();
   int  get_control_type(int);

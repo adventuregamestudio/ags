@@ -1,16 +1,11 @@
 package com.bigbluecup.android;
 
-import com.bigbluecup.android.EngineGlue;
-import com.bigbluecup.android.R;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.media.AudioManager;
@@ -32,6 +27,12 @@ import android.widget.Toast;
 
 public class AgsEngine extends Activity
 {
+	public static final String TAG = "AGS Engine";
+	
+	private static final IAgsApp defaultApp = new DefaultApp();
+	
+	private static IAgsApp app = defaultApp;
+	
 	public boolean isInGame = false;
 	
 	private Toast toast = null;
@@ -55,6 +56,91 @@ public class AgsEngine extends Activity
 	private boolean ignoreNextActionUp_Menu = false;
 
 	private boolean draggingMouse = false;
+	
+	public static class DefaultApp implements IAgsApp
+	{
+		public void onMenuKeyPressed(AgsEngine engine, boolean longPress)
+		{
+			if (longPress) engine.toggleKeyboard();
+			else engine.showInGameMenu();
+		}
+		
+		public void onBackKeyPressed(AgsEngine engine, boolean longPress)
+		{
+			if (longPress) engine.showExitConfirmation();
+			else engine.keyboardEvent(KeyCode.KeyBackHardKey);
+		}
+		
+		public boolean onInGameMenuItemSelected(AgsEngine engine, MenuItem item)
+		{
+			int id = item.getItemId();
+
+			// This must be if-else instead of switch-case because it is in a library
+			if (id == R.id.key_f1)
+				engine.keyboardEvent(KeyCode.KeyF1);
+			else if (id == R.id.key_f2)
+				engine.keyboardEvent(KeyCode.KeyF2);
+			else if (id == R.id.key_f3)
+				engine.keyboardEvent(KeyCode.KeyF3);
+			else if (id == R.id.key_f4)
+				engine.keyboardEvent(KeyCode.KeyF4);
+			else if (id == R.id.key_f5)
+				engine.keyboardEvent(KeyCode.KeyF5);
+			else if (id == R.id.key_f6)
+				engine.keyboardEvent(KeyCode.KeyF6);
+			else if (id == R.id.key_f7)
+				engine.keyboardEvent(KeyCode.KeyF7);
+			else if (id == R.id.key_f8)
+				engine.keyboardEvent(KeyCode.KeyF8);
+			else if (id == R.id.key_f9)
+				engine.keyboardEvent(KeyCode.KeyF9);
+			else if (id == R.id.key_f10)
+				engine.keyboardEvent(KeyCode.KeyF10);
+			else if (id == R.id.key_f11)
+				engine.keyboardEvent(KeyCode.KeyF11);
+			else if (id == R.id.key_f12)
+				engine.keyboardEvent(KeyCode.KeyF12);
+			else if (id == R.id.exitgame)
+				engine.showExitConfirmation();
+			else if (id == R.id.toggle_keyboard)
+				engine.toggleKeyboard();
+			else
+				return false;
+
+			return true;
+		}
+
+		@Override
+		public void onKeyboardEvent(AgsEngine engine, KeyCode key)
+		{
+			engine.keyboardEvent(key);
+		}
+		
+		public int getInGameMenuID(AgsEngine engine)
+		{
+			return R.menu.default_ingame;
+		}
+		
+		public static boolean DefaultInGameMenuItemSelection(AgsEngine engine, MenuItem item)
+		{
+			return defaultApp.onInGameMenuItemSelected(engine, item);
+		}
+		
+		public static void DefaultKeyboardEvent(AgsEngine engine, KeyCode key)
+		{
+			defaultApp.onKeyboardEvent(engine, key);
+		}
+		
+		public static void DefaultMenuKeyPress(AgsEngine engine, boolean longPress)
+		{
+			defaultApp.onMenuKeyPressed(engine, longPress);
+		}
+		
+		public static void DefaultBackKeyPress(AgsEngine engine, boolean longPress)
+		{
+			defaultApp.onBackKeyPressed(engine, longPress);
+		}
+	};
 
 	@Override
 	public void onCreate(Bundle savedInstanceState)
@@ -62,9 +148,10 @@ public class AgsEngine extends Activity
 		super.onCreate(savedInstanceState);
 
 		// Get the game filename from the launcher activity
-		String gameFilename = getIntent().getExtras().getString("filename");
-		String baseDirectory = getIntent().getExtras().getString("directory");
-		boolean loadLastSave = getIntent().getExtras().getBoolean("loadLastSave");
+		Bundle extras = getIntent().getExtras();
+		String gameFilename = extras.getString("filename");
+		String baseDirectory = extras.getString("directory");
+		boolean loadLastSave = extras.getBoolean("loadLastSave");
 		
 		// Get app directory
 		String appDirectory = "";
@@ -109,8 +196,7 @@ public class AgsEngine extends Activity
 	{
 		super.onPause();
 		wakeLock.release();
-		if (isInGame)
-			glue.pauseGame();
+		pauseGame();
 	}
 
 	@Override
@@ -118,8 +204,7 @@ public class AgsEngine extends Activity
 	{
 		super.onResume();
 		wakeLock.acquire();
-		if (isInGame)
-			glue.resumeGame();
+		resumeGame();
 	}
 	
 	// Prevent the activity from being destroyed on a configuration change
@@ -264,48 +349,15 @@ public class AgsEngine extends Activity
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
-		int id = item.getItemId();
-
-		// This must be if-else instead of switch-case because it is in a library
-		if (id == R.id.key_f1)
-			glue.keyboardEvent(0x1000 + 47, 0, false);
-		else if (id == R.id.key_f2)
-			glue.keyboardEvent(0x1000 + 48, 0, false);
-		else if (id == R.id.key_f3)
-			glue.keyboardEvent(0x1000 + 49, 0, false);
-		else if (id == R.id.key_f4)
-			glue.keyboardEvent(0x1000 + 50, 0, false);
-		else if (id == R.id.key_f5)
-			glue.keyboardEvent(0x1000 + 51, 0, false);
-		else if (id == R.id.key_f6)
-			glue.keyboardEvent(0x1000 + 52, 0, false);
-		else if (id == R.id.key_f7)
-			glue.keyboardEvent(0x1000 + 53, 0, false);
-		else if (id == R.id.key_f8)
-			glue.keyboardEvent(0x1000 + 54, 0, false);
-		else if (id == R.id.key_f9)
-			glue.keyboardEvent(0x1000 + 55, 0, false);
-		else if (id == R.id.key_f10)
-			glue.keyboardEvent(0x1000 + 56, 0, false);
-		else if (id == R.id.key_f11)
-			glue.keyboardEvent(0x1000 + 57, 0, false);
-		else if (id == R.id.key_f12)
-			glue.keyboardEvent(0x1000 + 58, 0, false);
-		else if (id == R.id.exitgame)
-			showExitConfirmation();
-		else if (id == R.id.toggle_keyboard)
-			toggleKeyboard();
-		else
-			return super.onOptionsItemSelected(item);
-		
-		return true;
+		if (app.onInGameMenuItemSelected(this, item) != false) return true;
+		return super.onOptionsItemSelected(item);
 	}	
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.ingame, menu);
+		inflater.inflate(app.getInGameMenuID(this), menu);
 		return true;
 	}	
 	
@@ -323,13 +375,13 @@ public class AgsEngine extends Activity
 				if ((key == KeyEvent.KEYCODE_BACK) && ((ev.getFlags() & 0x80) > 0)) // FLAG_LONG_PRESS
 				{
 					ignoreNextActionUp_Back = true;
-					showExitConfirmation();
+					app.onBackKeyPressed(this, true);
 				}
 				
 				if ((key == KeyEvent.KEYCODE_MENU) && ((ev.getFlags() & 0x80) > 0)) // FLAG_LONG_PRESS
 				{
 					ignoreNextActionUp_Menu = true;
-					toggleKeyboard();
+					app.onMenuKeyPressed(this, true);
 				}
 				
 				if (key == KeyEvent.KEYCODE_VOLUME_UP)
@@ -347,15 +399,16 @@ public class AgsEngine extends Activity
 				
 				if (key == KeyEvent.KEYCODE_MENU)
 				{
-					if (!ignoreNextActionUp_Menu)
-						openOptionsMenu();
+					if (!ignoreNextActionUp_Menu) app.onMenuKeyPressed(this, false);
 					ignoreNextActionUp_Menu = false;
 					return isInGame;
 				}
 				else if (key == KeyEvent.KEYCODE_BACK)
 				{
 					if (!ignoreNextActionUp_Back)
-						glue.keyboardEvent(key, 0, ev.isShiftPressed());
+					{
+						app.onBackKeyPressed(this, false);
+					}
 					ignoreNextActionUp_Back = false;
 					return isInGame;
 				}
@@ -372,8 +425,8 @@ public class AgsEngine extends Activity
 				{
 					return isInGame;
 				}
-
-				glue.keyboardEvent(key, ev.getUnicodeChar(), ev.isShiftPressed());
+				// key wasn't a special key, allow the app to intercept
+				app.onKeyboardEvent(this, KeyCode.findByAndroidKeyCode(key, ev.isShiftPressed()));
 				break;
 			}
 		}
@@ -382,7 +435,7 @@ public class AgsEngine extends Activity
 	}
 
 
-	private void toggleKeyboard()
+	public void toggleKeyboard()
 	{
 		InputMethodManager manager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 		manager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
@@ -390,7 +443,7 @@ public class AgsEngine extends Activity
 
 
 	// Exit confirmation dialog displayed when hitting the "back" button
-	private void showExitConfirmation()
+	public void showExitConfirmation()
 	{
 		onPause();
 		
@@ -455,6 +508,11 @@ public class AgsEngine extends Activity
 		
 		toast.show();
 	}
+	
+	public void showInGameMenu()
+	{
+		openOptionsMenu();
+	}
 
 	// Switch to the game view after loading is done
 	public void switchToIngame()
@@ -480,5 +538,30 @@ public class AgsEngine extends Activity
 		
 		isInGame = true;
 	}
-
+	
+	public void keyboardEvent(KeyCode key)
+	{
+		glue.keyboardEvent(key.getAndroidKeyCode(), key.getUnicodeChar(), key.hasShiftKey());
+	}
+	
+	public void pauseGame()
+	{
+		if (isInGame) glue.pauseGame();
+	}
+	
+	public void resumeGame()
+	{
+		if (isInGame) glue.resumeGame();
+	}
+	
+	public static void setApp(IAgsApp app)
+	{
+		if (app == null) AgsEngine.app = defaultApp;
+		else AgsEngine.app = app;
+	}
+	
+	public static IAgsApp getApp()
+	{
+		return app;
+	}
 }

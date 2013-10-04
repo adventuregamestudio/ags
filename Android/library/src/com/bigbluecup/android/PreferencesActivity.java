@@ -38,6 +38,7 @@ public class PreferencesActivity extends PreferenceActivity
 	private native int getAvailableTranslations(String translations[]);
 
 
+	@SuppressWarnings("unused")
 	@Override
 	public void onCreate(Bundle bundle)
 	{
@@ -45,9 +46,10 @@ public class PreferencesActivity extends PreferenceActivity
 		
 		System.loadLibrary("agsengine");
 		
-		gameName = getIntent().getExtras().getString("name");
-		gameFilename = getIntent().getExtras().getString("filename");
-		baseDirectory = getIntent().getExtras().getString("directory");
+		Bundle extras = getIntent().getExtras();
+		gameName = extras.getString("name");
+		gameFilename = extras.getString("filename");
+		baseDirectory = extras.getString("directory");
 		
 		isGlobalConfig = (gameName.length() == 0);
 		

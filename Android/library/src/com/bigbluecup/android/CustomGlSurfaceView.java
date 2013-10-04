@@ -18,6 +18,7 @@ class CustomGlSurfaceView extends SurfaceView implements SurfaceHolder.Callback
 		void onSurfaceChanged(int width, int height);
 	}
 
+	@SuppressWarnings("unused")
 	private GL gl;
 	private EGL10 egl;
 	private EGLDisplay display;

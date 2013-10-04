@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="CONFIG_NONE">-1</string>
-    <string name="CONFIG_IGNORE_ACSETUP">0</string>
-    <string name="CONFIG_CLEAR_CACHE">1</string>
-    <string name="CONFIG_AUDIO_RATE">2</string>
     <string name="CONFIG_AUDIO_ENABLED">3</string>
     <string name="CONFIG_AUDIO_THREADED">4</string>
-    <string name="CONFIG_AUDIO_CACHESIZE">5</string>
     <string name="CONFIG_MIDI_ENABLED">6</string>
     <string name="CONFIG_MIDI_PRELOAD">7</string>
     <string name="CONFIG_VIDEO_FRAMEDROP">8</string>
@@ -22,4 +17,6 @@
     <string name="CONFIG_DEBUG_LOGCAT">18</string>
     <string name="CONFIG_MOUSE_METHOD">19</string>
     <string name="CONFIG_MOUSE_LONGCLICK">20</string>
+    <string name="toggle_keyboard">Toggle keyboard</string>
+    <string name="exit_game">Exit game</string>
 </resources>

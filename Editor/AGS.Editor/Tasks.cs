@@ -438,14 +438,9 @@ namespace AGS.Editor
 
         private void AppendAudioClipsToHeader(StringBuilder sb, AudioClipFolder clips)
         {
-            foreach (AudioClip clip in clips.Items)
+            foreach (AudioClip clip in clips.AllItemsFlat)
             {
                 sb.AppendLine("import AudioClip " + clip.ScriptName + ";");
-            }
-
-            foreach (AudioClipFolder subFolder in clips.SubFolders)
-            {
-                AppendAudioClipsToHeader(sb, subFolder);
             }
         }
 

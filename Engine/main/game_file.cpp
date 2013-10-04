@@ -23,6 +23,7 @@
 #include "ac/charactercache.h"
 #include "ac/dialogtopic.h"
 #include "ac/draw.h"
+#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/gamestructdefines.h"

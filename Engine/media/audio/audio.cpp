@@ -53,8 +53,6 @@ volatile int psp_audio_multithreaded = 0;
 #endif
 
 ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
-CCAudioChannel ccDynamicAudio;
-CCAudioClip ccDynamicAudioClip;
 char acaudio_buffer[256];
 int reserved_channel_count = 0;
 
@@ -68,25 +66,6 @@ void calculate_reserved_channel_count()
         reservedChannels += game.audioClipTypes[i].reservedChannels;
     }
     reserved_channel_count = reservedChannels;
-}
-
-void register_audio_script_objects()
-{
-    int ee;
-    for (ee = 0; ee <= MAX_SOUND_CHANNELS; ee++) 
-    {
-        scrAudioChannel[ee].id = ee;
-        ccRegisterManagedObject(&scrAudioChannel[ee], &ccDynamicAudio);
-    }
-
-    for (ee = 0; ee < game.audioClipCount; ee++)
-    {
-        game.audioClips[ee].id = ee;
-        ccRegisterManagedObject(&game.audioClips[ee], &ccDynamicAudioClip);
-        ccAddExternalDynamicObject(game.audioClips[ee].scriptName, &game.audioClips[ee], &ccDynamicAudioClip);
-    }
-
-    calculate_reserved_channel_count();
 }
 
 void update_clip_default_volume(ScriptAudioClip *audioClip)
@@ -452,23 +431,6 @@ void play_audio_clip_by_index(int audioClipIndex)
         AudioClip_Play(&game.audioClips[audioClipIndex], SCR_NO_VALUE, SCR_NO_VALUE);
 }
 
-bool unserialize_audio_script_object(int index, const char *objectType, const char *serializedData, int dataSize)
-{
-    if (strcmp(objectType, "AudioChannel") == 0)
-    {
-        ccDynamicAudio.Unserialize(index, serializedData, dataSize);
-    }
-    else if (strcmp(objectType, "AudioClip") == 0)
-    {
-        ccDynamicAudioClip.Unserialize(index, serializedData, dataSize);
-    }
-    else
-    {
-        return false;
-    }
-    return true;
-}
-
 ScriptAudioClip* get_audio_clip_for_old_style_number(bool isMusic, int indexNumber)
 {
     char audioClipName[200];
@@ -487,8 +449,6 @@ ScriptAudioClip* get_audio_clip_for_old_style_number(bool isMusic, int indexNumb
 
     return NULL;
 }
-
-
 
 void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings) {
     if ((chid < 0) || (chid > MAX_SOUND_CHANNELS))

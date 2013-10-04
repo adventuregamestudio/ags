@@ -531,6 +531,10 @@ managed struct Game {
   readonly import static attribute bool UseNativeCoordinates;
   /// Gets the number of views in the game.
   readonly import static attribute int ViewCount;
+  /// Gets the number of audio clips in the game.
+  readonly import static attribute int AudioClipCount;
+  /// Accesses the audio clips collection.
+  readonly import static attribute AudioClip *AudioClips[];
 };
 
 managed struct Parser {

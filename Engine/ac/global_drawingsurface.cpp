@@ -101,25 +101,27 @@ void RawDrawFrameTransparent (int frame, int translev) {
     if (frame == play.bg_frame)
         quit("!RawDrawFrameTransparent: cannot draw current background onto itself");
 
-    if (translev == 0) {
-        // just draw it over the top, no transparency
-        thisroom.ebscene[play.bg_frame]->Blit(thisroom.ebscene[frame], 0, 0, 0, 0, thisroom.ebscene[frame]->GetWidth(), thisroom.ebscene[frame]->GetHeight());
-        play.raw_modified[play.bg_frame] = 1;
-        return;
-    }
-    // Draw it transparently
     RAW_START();
-    AGS::Engine::GfxUtil::DrawSpriteWithTransparency (RAW_SURFACE(), thisroom.ebscene[frame], 0, 0,
-        AGS::Engine::GfxUtil::Trans100ToAlpha255(translev));
+    if (translev == 0)
+    {
+        // just draw it over the top, no transparency
+        RAW_SURFACE()->Blit(thisroom.ebscene[frame], 0, 0, 0, 0, thisroom.ebscene[frame]->GetWidth(), thisroom.ebscene[frame]->GetHeight());
+    }
+    else
+    {
+        // Draw it transparently
+        AGS::Engine::GfxUtil::DrawSpriteWithTransparency (RAW_SURFACE(), thisroom.ebscene[frame], 0, 0,
+            AGS::Engine::GfxUtil::Trans100ToAlpha255(translev));
+    }
     invalidate_screen();
     mark_current_background_dirty();
     RAW_END();
 }
 
 void RawClear (int clr) {
-    play.raw_modified[play.bg_frame] = 1;
+    RAW_START();
     clr = RAW_SURFACE()->GetCompatibleColor(clr);
-    thisroom.ebscene[play.bg_frame]->Clear (clr);
+    RAW_SURFACE()->Clear (clr);
     invalidate_screen();
     mark_current_background_dirty();
 }

@@ -30,4 +30,4 @@ Solutions/Compiler.Lib/Release
 Solutions/Common.Lib/Release
 *.csproj.user
 *.idc
-Engine/version.aps
+Engine/resource/version.aps

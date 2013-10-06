@@ -19,6 +19,7 @@
 
 struct ScriptDialogOptionsRendering : AGSCCDynamicObject {
     int x, y, width, height;
+    bool hasAlphaChannel;
     int parserTextboxX, parserTextboxY;
     int parserTextboxWidth;
     int dialogID;

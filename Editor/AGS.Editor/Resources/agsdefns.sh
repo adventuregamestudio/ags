@@ -1687,6 +1687,8 @@ managed struct DialogOptionsRenderingInfo {
   import attribute int X;
   /// The Y co-ordinate of the top-left corner of the dialog options
   import attribute int Y;
+  /// Should the drawing surface have alpha channel
+  import attribute bool HasAlphaChannel;
 };
 
 managed struct AudioChannel {

@@ -65,6 +65,16 @@ void DialogOptionsRendering_SetHeight(ScriptDialogOptionsRendering *dlgOptRender
     dlgOptRender->height = newHeight;
 }
 
+int DialogOptionsRendering_GetHasAlphaChannel(ScriptDialogOptionsRendering *dlgOptRender)
+{
+    return dlgOptRender->hasAlphaChannel;
+}
+
+void DialogOptionsRendering_SetHasAlphaChannel(ScriptDialogOptionsRendering *dlgOptRender, bool hasAlphaChannel)
+{
+    dlgOptRender->hasAlphaChannel = hasAlphaChannel;
+}
+
 int DialogOptionsRendering_GetParserTextboxX(ScriptDialogOptionsRendering *dlgOptRender)
 {
     return dlgOptRender->parserTextboxX;
@@ -238,6 +248,17 @@ RuntimeScriptValue Sc_DialogOptionsRendering_SetY(void *self, const RuntimeScrip
     API_OBJCALL_VOID_PINT(ScriptDialogOptionsRendering, DialogOptionsRendering_SetY);
 }
 
+RuntimeScriptValue Sc_DialogOptionsRendering_GetHasAlphaChannel(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptDialogOptionsRendering, DialogOptionsRendering_GetHasAlphaChannel);
+}
+
+RuntimeScriptValue Sc_DialogOptionsRendering_SetHasAlphaChannel(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptDialogOptionsRendering, DialogOptionsRendering_SetHasAlphaChannel);
+}
+
+
 void RegisterDialogOptionsRenderingAPI()
 {
     ccAddExternalObjectFunction("DialogOptionsRenderingInfo::get_ActiveOptionID",   Sc_DialogOptionsRendering_GetActiveOptionID);
@@ -258,6 +279,8 @@ void RegisterDialogOptionsRenderingAPI()
     ccAddExternalObjectFunction("DialogOptionsRenderingInfo::set_X",                Sc_DialogOptionsRendering_SetX);
     ccAddExternalObjectFunction("DialogOptionsRenderingInfo::get_Y",                Sc_DialogOptionsRendering_GetY);
     ccAddExternalObjectFunction("DialogOptionsRenderingInfo::set_Y",                Sc_DialogOptionsRendering_SetY);
+    ccAddExternalObjectFunction("DialogOptionsRenderingInfo::get_HasAlphaChannel",  Sc_DialogOptionsRendering_GetHasAlphaChannel);
+    ccAddExternalObjectFunction("DialogOptionsRenderingInfo::set_HasAlphaChannel",  Sc_DialogOptionsRendering_SetHasAlphaChannel);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

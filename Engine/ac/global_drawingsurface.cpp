@@ -188,7 +188,7 @@ void RawDrawImageCore(int xx, int yy, int slot, int transparency) {
         debug_log("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, spriteset[slot]->GetColorDepth(), RAW_SURFACE()->GetColorDepth());
     }
 
-    draw_sprite_support_alpha(RAW_SURFACE(), false, xx, yy, spriteset[slot], slot,
+    draw_sprite_slot_support_alpha(RAW_SURFACE(), false, xx, yy, slot,
         AGS::Engine::GfxUtil::Trans100ToAlpha255(transparency));
     invalidate_screen();
     mark_current_background_dirty();

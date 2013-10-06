@@ -261,7 +261,8 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
         debug_log("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, spriteset[slot]->GetColorDepth(), ds->GetColorDepth());
     }
 
-    draw_sprite_support_alpha(ds, sds->hasAlphaChannel != 0, xx, yy, sourcePic, slot, AGS::Engine::GfxUtil::Trans100ToAlpha255(trans));
+    draw_sprite_support_alpha(ds, sds->hasAlphaChannel != 0, xx, yy, sourcePic, (game.spriteflags[slot] & SPF_ALPHACHANNEL) != 0,
+        AGS::Engine::GfxUtil::Trans100ToAlpha255(trans));
 
     sds->FinishedDrawing();
 

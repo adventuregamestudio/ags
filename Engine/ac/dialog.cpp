@@ -336,7 +336,7 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
   return result;
 }
 
-int write_dialog_options(Bitmap *ds, int dlgxp, int curyp, int numdisp, int mouseison, int areawid,
+int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, int numdisp, int mouseison, int areawid,
     int bullet_wid, int usingfont, DialogTopic*dtop, char*disporder, short*dispyp,
     int txthit, int utextcol) {
   int ww;
@@ -363,7 +363,9 @@ int write_dialog_options(Bitmap *ds, int dlgxp, int curyp, int numdisp, int mous
     break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[ww]]));
     dispyp[ww]=curyp;
     if (game.dialog_bullet > 0)
-      wputblock(ds, dlgxp,curyp,spriteset[game.dialog_bullet],1);
+    {
+        draw_gui_sprite_v330(ds, game.dialog_bullet, dlgxp, curyp, ds_has_alpha);
+    }
     int cc;
     if (game.options[OPT_DIALOGNUMBERED]) {
       char tempbfr[20];
@@ -498,6 +500,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
     int dirtyx = 0, dirtyy = 0;
     int dirtywidth = virtual_screen->GetWidth(), dirtyheight = virtual_screen->GetHeight();
     bool usingCustomRendering = false;
+    bool options_surface_has_alpha = false;
 
     dlgxp = 1;
     if (get_custom_dialog_options_dimensions(dlgnum))
@@ -519,7 +522,6 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       else {
         dlgxp = guib->x;
         dlgyp = guib->y;
-        draw_gui_for_dialog_options(ds, guib, dlgxp, dlgyp);
 
         dirtyx = dlgxp;
         dirtyy = dlgyp;
@@ -542,7 +544,6 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       areawid=scrnwid-5;
       GET_OPTIONS_HEIGHT
       dlgyp = scrnhit - needheight;
-      ds->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1), draw_color);
 
       dirtyx = 0;
       dirtyy = dlgyp - 1;
@@ -589,7 +590,8 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       ccDialogOptionsRendering.surfaceToRenderTo = dialogOptionsRenderingSurface;
       ccDialogOptionsRendering.surfaceAccessed = false;
       dialogOptionsRenderingSurface->linkedBitmapOnly = tempScrn;
-      dialogOptionsRenderingSurface->hasAlphaChannel = false;
+      dialogOptionsRenderingSurface->hasAlphaChannel = ccDialogOptionsRendering.hasAlphaChannel;
+      options_surface_has_alpha = dialogOptionsRenderingSurface->hasAlphaChannel != 0;
 
       renderDialogOptionsFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
       run_function_on_non_blocking_thread(&renderDialogOptionsFunc);
@@ -637,6 +639,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       push_screen(ds);
       Bitmap *text_window_ds = ds;
       draw_text_window(&text_window_ds, false, &txoffs,&tyoffs,&xspos,&yspos,&areawid,NULL,needheight, game.options[OPT_DIALOGIFACE]);
+      options_surface_has_alpha = guis[game.options[OPT_DIALOGIFACE]].is_alpha();
       ds = pop_screen();
       // snice draw_text_window incrases the width, restore it
       areawid = savedwid;
@@ -647,14 +650,14 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       dirtywidth = text_window_ds->GetWidth();
       dirtyheight = text_window_ds->GetHeight();
 
-      wputblock(ds, xspos,yspos,text_window_ds,1);
+      GfxUtil::DrawSpriteWithTransparency(ds, text_window_ds, xspos, yspos);
       delete text_window_ds;
 
       // Ignore the dialog_options_x/y offsets when using a text window
       txoffs += xspos;
       tyoffs += yspos;
       dlgyp = tyoffs;
-      curyp = write_dialog_options(ds, txoffs,tyoffs,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol);
+      curyp = write_dialog_options(ds, options_surface_has_alpha, txoffs,tyoffs,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol);
       if (parserInput)
         parserInput->x = txoffs;
     }
@@ -684,11 +687,13 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
         dirtyheight = guib->hit;
         dirtyy = dlgyp;
+        options_surface_has_alpha = guib->is_alpha();
       }
       else
       {
         dirtyy = dlgyp - 1;
         dirtyheight = needheight + 1;
+        options_surface_has_alpha = false;
       }
 
       dlgxp += multiply_up_coordinate(play.dialog_options_x);
@@ -701,7 +706,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
       //curyp = dlgyp + 1;
       curyp = dlgyp;
-      curyp = write_dialog_options(ds, dlgxp,curyp,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol);
+      curyp = write_dialog_options(ds, options_surface_has_alpha, dlgxp,curyp,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol);
 
       /*if (curyp > scrnhit) {
         dlgyp = scrnhit - (curyp - dlgyp);
@@ -721,7 +726,9 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         parserInput->textcol = forecol;
 
       if (game.dialog_bullet)  // the parser X will get moved in a second
-        wputblock(ds, parserInput->x, parserInput->y, spriteset[game.dialog_bullet], 1);
+      {
+          draw_gui_sprite_v330(ds, game.dialog_bullet, parserInput->x, parserInput->y, options_surface_has_alpha);
+      }
 
       parserInput->wid -= bullet_wid;
       parserInput->x += bullet_wid;
@@ -757,12 +764,16 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       gfxDriver->DestroyDDB(ddb);
       ddb = NULL;
     }
+    
     if (ddb == NULL)
-      ddb = gfxDriver->CreateDDBFromBitmap(subBitmap, false, false);
+      ddb = gfxDriver->CreateDDBFromBitmap(subBitmap, options_surface_has_alpha, false);
     else
-      gfxDriver->UpdateDDBFromBitmap(ddb, subBitmap, false);
+      gfxDriver->UpdateDDBFromBitmap(ddb, subBitmap, options_surface_has_alpha);
 
-    render_graphics(ddb, dirtyx, dirtyy);
+    if (runGameLoopsInBackground)
+    {
+        render_graphics(ddb, dirtyx, dirtyy);
+    }
 
     while (1) {
 

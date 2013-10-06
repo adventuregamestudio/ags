@@ -482,13 +482,16 @@ int wgettextwidth_compensate(const char *tex, int font) {
     return wdof;
 }
 
-void do_corner(Bitmap *ds, int sprn,int xx1,int yy1,int typx,int typy) {
+void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {
     if (sprn<0) return;
-    Bitmap *thisone = spriteset[sprn];
-    if (thisone == NULL)
-        thisone = spriteset[0];
+    if (spriteset[sprn] == NULL)
+    {
+        sprn = 0;
+    }
 
-    AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, thisone, xx1+typx*spritewidth[sprn],yy1+typy*spriteheight[sprn]);
+    x = x + offx * spritewidth[sprn];
+    y = y + offy * spriteheight[sprn];
+    draw_gui_sprite_v330(ds, sprn, x, y);
 }
 
 int get_but_pic(GUIMain*guo,int indx) {
@@ -548,7 +551,7 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
                     bgoffsy = bgoffsyStart;
                     while (bgoffsy <= bgfinishy)
                     {
-                        wputblock(ds, bgoffsx, bgoffsy, spriteset[iep->bgpic], 0);
+                        draw_gui_sprite_v330(ds, iep->bgpic, bgoffsx, bgoffsy);
                         bgoffsy += spriteheight[iep->bgpic];
                     }
                     bgoffsx += spritewidth[iep->bgpic];

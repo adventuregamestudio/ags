@@ -57,6 +57,7 @@
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_inventory.h"
 #include "script/script_runtime.h"
+#include "gfx/gfx_util.h"
 
 using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
@@ -1401,12 +1402,7 @@ void Character_SetThinkView(CharacterInfo *chaa, int vii) {
 
 int Character_GetTransparency(CharacterInfo *chaa) {
 
-    if (chaa->transparency == 0)
-        return 0;
-    if (chaa->transparency == 255)
-        return 100;
-
-    return 100 - ((chaa->transparency * 10) / 25);
+    return GfxUtil::LegacyTrans255ToTrans100(chaa->transparency);
 }
 
 void Character_SetTransparency(CharacterInfo *chaa, int trans) {
@@ -1414,15 +1410,7 @@ void Character_SetTransparency(CharacterInfo *chaa, int trans) {
     if ((trans < 0) || (trans > 100))
         quit("!SetCharTransparent: transparency value must be between 0 and 100");
 
-    // Note by CJ:
-    // Transparency is a bit counter-intuitive
-    // 0=not transparent, 255=invisible, 1..254 barely visible .. mostly visible
-    if (trans == 0)
-        chaa->transparency=0;
-    else if (trans == 100)
-        chaa->transparency = 255;
-    else
-        chaa->transparency = ((100-trans) * 25) / 10;
+    chaa->transparency = GfxUtil::Trans100ToLegacyTrans255(trans);
 }
 
 int Character_GetTurnBeforeWalking(CharacterInfo *chaa) {

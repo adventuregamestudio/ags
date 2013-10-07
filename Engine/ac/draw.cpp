@@ -859,7 +859,7 @@ void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos
     }
     else
     {
-        AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, image, xpos, ypos, alpha);
+        GfxUtil::DrawSpriteWithTransparency(ds, image, xpos, ypos, alpha);
     }
 }
 
@@ -1147,7 +1147,7 @@ void draw_gui_sprite(Bitmap *ds, int picc, int xx, int yy, bool use_alpha)
     }
     else
     {
-        AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, spriteset[picc], xx, yy);
+        GfxUtil::DrawSpriteWithTransparency(ds, spriteset[picc], xx, yy);
     }
 }
 

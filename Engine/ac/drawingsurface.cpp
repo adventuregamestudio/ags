@@ -35,6 +35,7 @@
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
+namespace GfxUtil = AGS::Engine::GfxUtil;
 
 extern GameSetupStruct game;
 extern GameState play;
@@ -213,8 +214,8 @@ void DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurfa
         quit("!DrawingSurface.DrawSurface: 256-colour surfaces cannot be drawn transparently");
 
     // Draw it transparently
-    AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, surfaceToDraw, 0, 0,
-        AGS::Engine::GfxUtil::Trans100ToAlpha255(translev));
+    GfxUtil::DrawSpriteWithTransparency(ds, surfaceToDraw, 0, 0,
+        GfxUtil::Trans100ToAlpha255(translev));
     target->FinishedDrawing();
 }
 
@@ -262,7 +263,7 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
     }
 
     draw_sprite_support_alpha(ds, sds->hasAlphaChannel != 0, xx, yy, sourcePic, (game.spriteflags[slot] & SPF_ALPHACHANNEL) != 0,
-        AGS::Engine::GfxUtil::Trans100ToAlpha255(trans));
+        GfxUtil::Trans100ToAlpha255(trans));
 
     sds->FinishedDrawing();
 

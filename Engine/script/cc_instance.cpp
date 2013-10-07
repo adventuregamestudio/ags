@@ -610,6 +610,9 @@ int ccInstance::Run(int32_t curpc)
         RuntimeScriptValue &reg2 = 
             registers[arg2.IValue >= 0 && arg2.IValue < CC_NUM_REGISTERS ? arg2.IValue : 0];
 
+        const char *direct_ptr1;
+        const char *direct_ptr2;
+
         if (write_debug_dump)
         {
             DumpInstruction(codeOp);
@@ -1321,10 +1324,9 @@ int ccInstance::Run(int32_t curpc)
               cc_error("No string class implementation set, but opcode was used");
               return -1;
           }
-          // TODO: test reg1 type;
-          // Might be local, global memory, and dynamic object too?
+          direct_ptr1 = (const char*)reg1.GetDirectPtr();
           reg1.SetDynamicObject(
-              (void*)stringClassImpl->CreateString((const char *)(reg1.GetPtrWithOffset())),
+              (void*)stringClassImpl->CreateString(direct_ptr1),
               &myScriptStringImpl);
           break;
       case SCMD_STRINGSEQUAL:
@@ -1332,8 +1334,9 @@ int ccInstance::Run(int32_t curpc)
               cc_error("!Null pointer referenced");
               return -1;
           }
-          reg1.SetInt32AsBool(
-            strcmp((const char*)reg1.GetPtrWithOffset(), (const char*)reg2.GetPtrWithOffset()) == 0 );
+          direct_ptr1 = (const char*)reg1.GetDirectPtr();
+          direct_ptr2 = (const char*)reg2.GetDirectPtr();
+          reg1.SetInt32AsBool(strcmp(direct_ptr1, direct_ptr2) == 0);
           
           break;
       case SCMD_STRINGSNOTEQ:
@@ -1341,8 +1344,9 @@ int ccInstance::Run(int32_t curpc)
               cc_error("!Null pointer referenced");
               return -1;
           }
-          reg1.SetInt32AsBool(
-              strcmp((const char*)reg1.GetPtrWithOffset(), (const char*)reg2.GetPtrWithOffset()) != 0 );
+          direct_ptr1 = (const char*)reg1.GetDirectPtr();
+          direct_ptr2 = (const char*)reg2.GetDirectPtr();
+          reg1.SetInt32AsBool(strcmp(direct_ptr1, direct_ptr2) != 0 );
           break;
       case SCMD_LOOPCHECKOFF:
           if (loopIterationCheckDisabled == 0)

@@ -368,7 +368,7 @@ bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
 
 RuntimeScriptValue &RuntimeScriptValue::DirectPtr()
 {
-    while (Type == kScValGlobalVar || Type == kScValStackPtr)
+    if (Type == kScValGlobalVar || Type == kScValStackPtr)
     {
         int ival = IValue;
         *this = *RValue;
@@ -381,4 +381,17 @@ RuntimeScriptValue &RuntimeScriptValue::DirectPtr()
         IValue = 0;
     }
     return *this;
+}
+
+intptr_t RuntimeScriptValue::GetDirectPtr() const
+{
+    const RuntimeScriptValue *temp_val = this;
+    int ival = temp_val->IValue;
+    if (temp_val->Type == kScValGlobalVar || temp_val->Type == kScValStackPtr)
+    {
+        temp_val  = temp_val->RValue;
+        ival     += temp_val->IValue;
+    }
+
+    return (intptr_t)(temp_val->Ptr + ival);
 }

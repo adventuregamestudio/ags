@@ -135,8 +135,6 @@ namespace AGS.Editor
             InitScintilla();            
         }
         
-        public bool MovedFromDocument { get; set; }
-
         public int FirstVisibleLine { get { return _firstVisibleLine; } }
 
         public string ModifiedText

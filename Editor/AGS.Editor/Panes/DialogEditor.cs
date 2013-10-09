@@ -28,12 +28,19 @@ namespace AGS.Editor
         private string _lastSearchText = string.Empty;
         private bool _lastCaseSensitive = false;
         private AGSEditor _agsEditor;
+        private string _lastKnownScriptText;        
 
         public DialogEditor(Dialog dialogToEdit, AGSEditor agsEditor)
         {
-            InitializeComponent();
             _dialog = dialogToEdit;
             _agsEditor = agsEditor;
+
+            Init();
+        }
+
+        public void Init()
+        {
+            InitializeComponent();
 
             _extraMenu.Commands.Add(new MenuCommand(FIND_COMMAND, "Find...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F, "FindMenuIcon"));
             _extraMenu.Commands.Add(new MenuCommand(FIND_NEXT_COMMAND, "Find next", System.Windows.Forms.Keys.F3, "FindNextMenuIcon"));
@@ -43,23 +50,10 @@ namespace AGS.Editor
             _extraMenu.Commands.Add(new MenuCommand(REPLACE_ALL_COMMAND, "Replace All...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.E));
             _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Go To Line...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G));
 
-            scintillaEditor.SetAsDialog();
-            scintillaEditor.AutoCompleteEnabled = true;
-            scintillaEditor.IgnoreLinesWithoutIndent = true;
-			scintillaEditor.AutoSpaceAfterComma = false;
-            scintillaEditor.CallTipsEnabled = true;
-            scintillaEditor.FixedTypeForThisKeyword = "Dialog";
-            scintillaEditor.SetFillupKeys(Constants.AUTOCOMPLETE_ACCEPT_KEYS);
-            //scintillaEditor.SetKeyWords(dialogKeyWords);
-            scintillaEditor.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
-            scintillaEditor.SetClassNamesList(BuildCharacterKeywords());
-            scintillaEditor.SetAutoCompleteKeyWords(Constants.SCRIPT_KEY_WORDS);
-            scintillaEditor.SetAutoCompleteSource(_dialog);
-            scintillaEditor.SetText(dialogToEdit.Script);
-
+            InitScintilla();
 
             flowLayoutPanel1.Controls.Remove(btnNewOption);
-            foreach (DialogOption option in dialogToEdit.Options)
+            foreach (DialogOption option in _dialog.Options)
             {
                 DialogOptionEditor optionEditor = new DialogOptionEditor(option);
                 _optionPanes.Add(optionEditor);
@@ -76,6 +70,75 @@ namespace AGS.Editor
             {
                 btnDeleteOption.Visible = false;
             }
+        }
+
+        public void OnFirstInit()
+        {
+            RegisterEvents();
+            DockingContainer_DockStateChanged(this, null);
+        }
+
+        private void RegisterEvents()
+        {
+            DockingContainer.DockStateChanged += new EventHandler(DockingContainer_DockStateChanged);
+            scintillaEditor.IsModifiedChanged += new EventHandler(scintillaEditor_IsModifiedChanged);
+        }
+
+        private void UnregisterEvents()
+        {
+            DockingContainer.DockStateChanged -= new EventHandler(DockingContainer_DockStateChanged);
+            scintillaEditor.IsModifiedChanged -= new EventHandler(scintillaEditor_IsModifiedChanged);
+        }
+
+        void scintillaEditor_IsModifiedChanged(object sender, EventArgs e)
+        {
+            //Using the same hack as in ScriptEditor.scintillaEditor_IsModifiedChanged
+            if (_lastKnownScriptText == null)
+            {
+                _lastKnownScriptText = _dialog.Text;
+            }
+            string newText = scintillaEditor.GetText();
+            if (_lastKnownScriptText == newText)
+            {
+                DockingContainer container = (DockingContainer)DockingContainer;
+                //container.InitScriptIfNeeded<object>(Reinitialize, null);
+                Reinitialize(null);
+            }
+            _lastKnownScriptText = newText;
+        }
+        
+        void DockingContainer_DockStateChanged(object sender, EventArgs e)
+        {
+            DockingContainer container = (DockingContainer)DockingContainer;
+            container.InitScriptIfNeeded<object>(Reinitialize, null);
+        }
+
+        private void Reinitialize(object state)
+        {
+            this.Controls.Clear();
+            _extraMenu.Commands.Clear();
+            flowLayoutPanel1.Controls.Clear();
+            UnregisterEvents();
+            Init();
+            RegisterEvents();
+            scintillaEditor.ActivateTextEditor();
+        }
+
+        private void InitScintilla()
+        {
+            scintillaEditor.SetAsDialog();
+            scintillaEditor.AutoCompleteEnabled = true;
+            scintillaEditor.IgnoreLinesWithoutIndent = true;
+            scintillaEditor.AutoSpaceAfterComma = false;
+            scintillaEditor.CallTipsEnabled = true;
+            scintillaEditor.FixedTypeForThisKeyword = "Dialog";
+            scintillaEditor.SetFillupKeys(Constants.AUTOCOMPLETE_ACCEPT_KEYS);
+            //scintillaEditor.SetKeyWords(dialogKeyWords);
+            scintillaEditor.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
+            scintillaEditor.SetClassNamesList(BuildCharacterKeywords());
+            scintillaEditor.SetAutoCompleteKeyWords(Constants.SCRIPT_KEY_WORDS);
+            scintillaEditor.SetAutoCompleteSource(_dialog);
+            scintillaEditor.SetText(_dialog.Script);            
         }
 
         public ScintillaWrapper ScriptEditor

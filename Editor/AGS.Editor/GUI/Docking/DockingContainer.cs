@@ -12,6 +12,7 @@ namespace AGS.Editor
     {
         private EditorContentPanel _panel;
         private bool _isShowing;
+        private bool _movedFromDocument;
         
         public DockingContainer(EditorContentPanel panel)
         {
@@ -28,6 +29,20 @@ namespace AGS.Editor
         {
             PerformUglyDockHack();
             base.Refresh();
+        }
+
+        public void InitScriptIfNeeded<TState>(Action<TState> action, TState state)
+        {
+            if (DockState != DockingState.Document && !_movedFromDocument)
+            {
+                _movedFromDocument = true;
+                action(state);
+            }
+            else if (DockState == DockingState.Document && _movedFromDocument)
+            {
+                _movedFromDocument = false;
+                action(state);
+            }            
         }
 
         public new IDockingPane FloatPane 

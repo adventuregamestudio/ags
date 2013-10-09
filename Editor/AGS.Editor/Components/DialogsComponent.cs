@@ -197,6 +197,8 @@ namespace AGS.Editor.Components
                 || document.Control.IsDisposed)
             {
                 DialogEditor dialogEditor = new DialogEditor(chosenItem, _agsEditor);
+                dialogEditor.DockingContainer = new DockingContainer(dialogEditor);
+                dialogEditor.OnFirstInit();
                 document = new ContentDocument(dialogEditor, chosenItem.WindowTitle,
                     this, ICON_KEY, ConstructPropertyObjectList(chosenItem));
                 _documents[chosenItem] = document;

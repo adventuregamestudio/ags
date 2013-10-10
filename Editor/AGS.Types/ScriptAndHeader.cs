@@ -41,6 +41,21 @@ namespace AGS.Types
             _script.ToXml(writer);
             writer.WriteEndElement();
             writer.WriteEndElement();
-        }        
+        }
+
+        public override bool Equals(object obj)
+        {
+            ScriptAndHeader scriptAndHeader = (obj as ScriptAndHeader);
+            if (scriptAndHeader == null) return false;
+            return (object.Equals(Header, scriptAndHeader.Header) && object.Equals(Script, scriptAndHeader.Script));
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 13;
+            if (Header != null) hash = (hash * 7) + Header.GetHashCode();
+            if (Script != null) hash = (hash * 7) + Script.GetHashCode();
+            return hash;
+        }
     }
 }

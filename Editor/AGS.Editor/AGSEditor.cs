@@ -831,18 +831,18 @@ namespace AGS.Editor
                 foreach (Script script in GetInternalScriptModules())
                 {
                     CompileScript(script, headers, errors, false);
-                    _game.ScriptsToCompile.Add(script);
+                    _game.ScriptsToCompile.Add(new ScriptAndHeader(null, script));
                 }
 
                 foreach (ScriptAndHeader scripts in _game.RootScriptFolder.AllItemsFlat)
                 {
                     headers.Add(scripts.Header);
                     CompileScript(scripts.Script, headers, errors, false);
-                    _game.ScriptsToCompile.Add(scripts.Script);					
+                    _game.ScriptsToCompile.Add(scripts);					
                 }
 
                 CompileScript(dialogScripts, headers, errors, false);
-                _game.ScriptsToCompile.Add(dialogScripts);
+                _game.ScriptsToCompile.Add(new ScriptAndHeader(null, dialogScripts));
 			}
             catch (CompileMessage ex)
             {

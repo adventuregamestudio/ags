@@ -6,10 +6,10 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    public class Scripts : IEnumerable
-    {        
+    public class Scripts : IEnumerable, IEnumerable<ScriptAndHeader>
+    {
         private IList<ScriptAndHeader> _scripts;
-        //private Script headerWithoutScript;
+        private Script headerWithoutScript;
 
         public Scripts()
         {
@@ -26,52 +26,67 @@ namespace AGS.Types
             _scripts.Clear();
         }
 
+        [Obsolete("Adding individual scripts is deprecated, and may not be supported by future versions of AGS. Add a ScriptAndHeader at once instead.")]
+        public void Add(Script newScript)
+        {
+            if (newScript == null) return;
+            ScriptAndHeader scriptAndHeader = null;
+            if (newScript.IsHeader)
+            {
+                if (headerWithoutScript != null)
+                {
+                    scriptAndHeader = new ScriptAndHeader(headerWithoutScript, null);
+                }
+                headerWithoutScript = newScript;
+            }
+            else
+            {
+                scriptAndHeader = new ScriptAndHeader(headerWithoutScript, newScript);
+                headerWithoutScript = null;
+            }
+            if (scriptAndHeader != null) _scripts.Add(scriptAndHeader);
+        }
+
         public void Add(ScriptAndHeader newScript)
         {
             _scripts.Add(newScript);
         }
 
-        /*public void Add(Script newScript)
+        [Obsolete("Adding individual scripts is deprecated, and may not be supported by future versions of AGS. Add a ScriptAndHeader at once instead.")]
+        public void AddAtTop(Script newScript)
         {
-            if (headerWithoutScript != null || !newScript.IsHeader)
+            if (newScript == null) return;
+            ScriptAndHeader scriptAndHeader = null;
+            if (newScript.IsHeader)
             {
-                ScriptAndHeader scriptAndHeader = new ScriptAndHeader(headerWithoutScript, newScript);
-                _scripts.Add(scriptAndHeader);
-                headerWithoutScript = null;
+                if (headerWithoutScript != null)
+                {
+                    scriptAndHeader = new ScriptAndHeader(headerWithoutScript, null);
+                }
+                headerWithoutScript = newScript;
             }
             else
             {
-                headerWithoutScript = newScript;
-            }            
-        }*/
+                scriptAndHeader = new ScriptAndHeader(headerWithoutScript, newScript);
+                headerWithoutScript = null;
+            }
+            if (scriptAndHeader != null) _scripts.Insert(0, scriptAndHeader);
+        }
 
         public void AddAtTop(ScriptAndHeader newScript)
         {
             _scripts.Insert(0, newScript);
         }
 
-        /*public void AddAtTop(Script newScript)
-        {
-            if (headerWithoutScript != null || !newScript.IsHeader)
-            {
-                ScriptAndHeader scriptAndHeader = new ScriptAndHeader(headerWithoutScript, newScript);
-                _scripts.Insert(0, scriptAndHeader);
-                headerWithoutScript = null;
-            }
-            else
-            {
-                headerWithoutScript = newScript;
-            }            
-        }*/
-
         public void Remove(ScriptAndHeader script)
         {
             _scripts.Remove(script);
         }
 
-        /*public void Remove(Script script)
+        public void Remove(Script script)
         {
-            for (int i = _scripts.Count; i >= 0; i--)
+            if (script == null) return;
+            for (int i = _scripts.Count; i >= 0; --i)
             {
                 ScriptAndHeader scriptAndHeader = _scripts[i];
                 if (script.Equals(scriptAndHeader.Header) ||
@@ -80,8 +95,19 @@ namespace AGS.Types
                     _scripts.RemoveAt(i);
                     break;
                 }
-            }            
-        }*/
+            }
+        }
+
+        public Script FindMatchingScriptOrHeader(Script scriptOrHeader)
+        {
+            if (scriptOrHeader == null) return null;
+            foreach (ScriptAndHeader script in _scripts)
+            {
+                if (scriptOrHeader.Equals(script.Header)) return script.Script;
+                if (scriptOrHeader.Equals(script.Script)) return script.Header;
+            }
+            return null;
+        }
 
         public ScriptAndHeader FindScriptAndHeader(Script scriptOrHeader)
         {
@@ -104,15 +130,10 @@ namespace AGS.Types
             return null;
         }
 
-        /*public Script FindMatchingScriptOrHeader(Script scriptOrHeader)
-		{
-            foreach (ScriptAndHeader scriptAndHeader in _scripts)
-            {
-                if (scriptOrHeader.Equals(scriptAndHeader.Header)) return scriptAndHeader.Script;
-                if (scriptOrHeader.Equals(scriptAndHeader.Script)) return scriptAndHeader.Header;
-            }
-            return null;
-		}*/
+        public void MoveScriptAndHeaderUp(Script script)
+        {
+            MoveScriptAndHeaderUp(FindScriptAndHeader(script));
+        }
 
         public void MoveScriptAndHeaderUp(ScriptAndHeader script)
         {
@@ -123,15 +144,10 @@ namespace AGS.Types
             _scripts.Insert(index - 1, script);
         }
 
-        /*public void MoveScriptAndHeaderUp(Script script)
+        public void MoveScriptAndHeaderDown(Script script)
         {
-            int index;
-            ScriptAndHeader scriptAndHeader = FindScriptAndHeader(script, out index);
-            if (scriptAndHeader == null) return;
-
-            _scripts.RemoveAt(index);
-            _scripts.Insert(index - 1, scriptAndHeader);                         
-        }*/
+            MoveScriptAndHeaderDown(FindScriptAndHeader(script));
+        }
 
         public void MoveScriptAndHeaderDown(ScriptAndHeader script)
         {
@@ -144,37 +160,6 @@ namespace AGS.Types
                 _scripts.Insert(index + 1, script);
             }
         }
-
-        /*public void MoveScriptAndHeaderDown(Script script)
-        {
-            int index;
-            ScriptAndHeader scriptAndHeader = FindScriptAndHeader(script, out index);
-            if (scriptAndHeader == null) return;
-
-            if (index < _scripts.Count - 1)
-            {
-                _scripts.RemoveAt(index);
-                _scripts.Insert(index + 1, scriptAndHeader);                
-            }
-        }*/
-
-        /*private ScriptAndHeader FindScriptAndHeader(Script script, out int index)
-        {
-            int currentIndex;
-            ScriptAndHeader scriptAndHeader = null;
-            for (currentIndex = 0; currentIndex < _scripts.Count; currentIndex++)
-            {
-                scriptAndHeader = _scripts[currentIndex];
-                if (script.Equals(scriptAndHeader.Header) || script.Equals(scriptAndHeader.Script))
-                {
-                    index = currentIndex;
-                    return scriptAndHeader;
-                }
-            }
-            index = -1;
-            return null;        
-        }*/
-
 
         public int Count
         {
@@ -189,24 +174,13 @@ namespace AGS.Types
             }
         }
 
-        /*public Script this[int index]
+        public Script GetScriptByFilename(string filename)
         {
-            get
-            {
-                int currentIndex = -1;
-                foreach (ScriptAndHeader scriptAndHeader in _scripts)
-                {
-                    if (scriptAndHeader.Header != null)
-                    {
-                        currentIndex++;
-                        if (currentIndex == index) return scriptAndHeader.Header;
-                    }
-                    currentIndex++;
-                    if (currentIndex == index) return scriptAndHeader.Script;
-                }
-                return null;
-            }
-        }*/
+            ScriptAndHeader scriptAndHeader = GetScriptAndHeaderByFile(filename);
+            if (scriptAndHeader == null) return null;
+            if (filename.EndsWith(".ash")) return scriptAndHeader.Header;
+            return scriptAndHeader.Script;
+        }
 
         public ScriptAndHeader GetScriptAndHeaderByFile(string filename)
         {
@@ -225,38 +199,23 @@ namespace AGS.Types
             return null;
         }
 
-        /*public Script GetScriptByFilename(string filename)
+        [Obsolete("The behavior of this enumerator is deprecated and may not be supported by future versions of AGS. Use the ScriptAndHeader enumerator instead.")]
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            foreach (ScriptAndHeader scriptAndHeader in _scripts)
+            foreach (ScriptAndHeader script in _scripts)
             {
-                if (scriptAndHeader.Header != null && scriptAndHeader.Header.FileName == filename)
-                {
-                    return scriptAndHeader.Header;
-                }
-                if (scriptAndHeader.Script.FileName == filename)
-                {
-                    return scriptAndHeader.Script;
-                }
+                if (script.Header != null) yield return script.Header;
+                if (script.Script != null) yield return script.Script;
             }
-            return null;
-        }*/
+        }
 
-        public IEnumerator GetEnumerator()
+        public IEnumerator<ScriptAndHeader> GetEnumerator()
         {
             foreach (ScriptAndHeader script in _scripts)
             {
                 yield return script;
             }
         }
-
-        /*public IEnumerator GetEnumerator()
-        {
-            foreach (ScriptAndHeader scriptAndHeader in _scripts)
-            {
-                if (scriptAndHeader.Header != null) yield return scriptAndHeader.Header;
-                yield return scriptAndHeader.Script;
-            }
-        }*/
 
         public void RefreshProjectTree(IAGSEditor editor, string selectedNodeID)
         {
@@ -303,15 +262,6 @@ namespace AGS.Types
                 }
             }
         }
-
-        /*public Scripts(XmlNode node)
-        {
-            _scripts = new ScriptFolders();
-            foreach (XmlNode child in node.SelectSingleNode("Scripts").ChildNodes)
-            {
-                Add(new Script(child));
-            }
-        }*/
 
         public void ToXml(XmlTextWriter writer)
         {

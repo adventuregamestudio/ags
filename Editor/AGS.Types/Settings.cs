@@ -76,7 +76,6 @@ namespace AGS.Types
         private bool _runGameLoopsWhileDialogOptionsDisplayed = false;
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
         private bool _useLowResCoordinatesInScript = true;
-        private bool _legacySpeechAnimationSpeed = true;
         // Vista game explorer fields
 		private bool _enableGameExplorer = false;
 		private string _description = string.Empty;
@@ -456,16 +455,6 @@ namespace AGS.Types
             set { _leftToRightPrecedence = value; }
         }
 
-        [DisplayName("Old-style game-wide speech animation speed")]
-        [Description("Use the old-style game.talkanim_speed setting to determine the animation speed of character speech; individual character SpeechAnimationDelay settings will be ignored")]
-        [DefaultValue(false)]
-        [Category("Backwards Compatibility")]
-        public bool LegacySpeechAnimationSpeed
-        {
-            get { return _legacySpeechAnimationSpeed; }
-            set { _legacySpeechAnimationSpeed = value; }
-        }
-
         [DisplayName("Play sound when the player gets points")]
         [Description("This sound number will be played whenever the player scores points (0 to disable)")]
         [DefaultValue(0)]
@@ -833,7 +822,6 @@ namespace AGS.Types
             _runGameLoopsWhileDialogOptionsDisplayed = false;
             _inventoryHotspotMarker = new InventoryHotspotMarker();
             _useLowResCoordinatesInScript = true;
-            _legacySpeechAnimationSpeed = true;
             _audioIndexer = 0;
             _enforceNewAudio = false;
 

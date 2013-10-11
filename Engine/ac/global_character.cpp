@@ -368,12 +368,7 @@ int GetCharacterSpeechAnimationDelay(CharacterInfo *cha)
 {
     if (game.options[OPT_OLDTALKANIMSPD])
     {
-        // The talkanim property only applies to Lucasarts style speech.
-        // Sierra style speech has a fixed delay of 5.
-        if (game.options[OPT_SPEECHTYPE] == 0)
-            return play.talkanim_speed;
-        else
-            return 5;
+        return play.talkanim_speed;
     }
     else
         return cha->speech_anim_speed;

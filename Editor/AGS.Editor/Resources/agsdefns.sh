@@ -2012,7 +2012,7 @@ managed struct Character {
   readonly import attribute bool Speaking;
   /// Gets the current frame of the character's speaking animation (only valid when Speaking is true)
   readonly import attribute int SpeakingFrame;
-  /// Gets/sets the character's speech animation delay.
+  /// Gets/sets the character's speech animation delay (only if not using global setting).
   import attribute int  SpeechAnimationDelay;
   /// Gets/sets the character's speech text colour.
   import attribute int  SpeechColor;
@@ -2182,12 +2182,14 @@ enum SkipSpeechStyle {
 };
   
 managed struct Speech {
-  /// Stop speech animation this number of game loops before speech ends (text mode only)
+  /// Stop speech animation this number of game loops before speech ends (text mode only).
   import static attribute int             AnimationStopTimeMargin;
   /// Enables/disables the custom speech portrait placement.
   import static attribute bool            CustomPortraitPlacement;
-  /// Gets/sets extra time the speech will always stay on screen after its common time runs out
+  /// Gets/sets extra time the speech will always stay on screen after its common time runs out.
   import static attribute int             DisplayPostTimeMs;
+  /// Gets/sets global speech animation delay (if using global setting).
+  import static attribute int             GlobalSpeechAnimationDelay;
   /// Gets/sets speech portrait x offset relative to screen side.
   import static attribute int             PortraitXOffset;
   /// Gets/sets speech portrait y position.
@@ -2200,6 +2202,8 @@ managed struct Speech {
   import static attribute eSpeechStyle    Style;
   /// Gets/sets how text in message boxes and Sierra-style speech is aligned.
   import static attribute Alignment       TextAlignment;
+  /// Gets/sets whether speech animation delay should use global setting (or Character setting).
+  import static attribute bool            UseGlobalSpeechAnimationDelay;
   /// Gets/sets whether voice and/or text are used in the game.
   import static attribute eVoiceMode      VoiceMode;
 };

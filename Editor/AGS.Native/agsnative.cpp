@@ -4835,7 +4835,7 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
     thisgame.options[OPT_SPRITEALPHA] = (int)game->Settings->SpriteAlphaStyle;
 	thisgame.options[OPT_HANDLEINVCLICKS] = game->Settings->HandleInvClicksInScript;
 	thisgame.options[OPT_FIXEDINVCURSOR] = !game->Settings->InventoryCursors;
-  thisgame.options[OPT_OLDTALKANIMSPD] = game->Settings->LegacySpeechAnimationSpeed;
+  thisgame.options[OPT_OLDTALKANIMSPD] = false;
 	thisgame.options[OPT_LEFTTORIGHTEVAL] = game->Settings->LeftToRightPrecedence;
 	thisgame.options[OPT_LETTERBOX] = game->Settings->LetterboxMode;
   thisgame.totalscore = game->Settings->MaximumScore;

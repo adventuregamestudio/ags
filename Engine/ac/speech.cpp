@@ -123,6 +123,18 @@ RuntimeScriptValue Sc_Speech_SetDisplayPostTimeMs(const RuntimeScriptValue *para
     API_VARSET_PINT(play.speech_display_post_time_ms);
 }
 
+RuntimeScriptValue Sc_Speech_GetGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
+{
+	API_VARGET_INT(play.talkanim_speed);
+}
+
+RuntimeScriptValue Sc_Speech_SetGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
+{
+	if (!game.options[OPT_OLDTALKANIMSPD])
+		quit("!Speech.GlobalSpeechAnimationDelay cannot be set when global speech animation speed is not enabled; set Speech.UseGlobalSpeechAnimationDelay first!");
+	API_VARSET_PINT(play.talkanim_speed);
+}
+
 RuntimeScriptValue Sc_Speech_GetPortraitXOffset(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_VARGET_INT(play.speech_portrait_x);
@@ -177,6 +189,16 @@ RuntimeScriptValue Sc_Speech_SetTextAlignment(const RuntimeScriptValue *params, 
     API_VARSET_PINT(play.speech_text_align);
 }
 
+RuntimeScriptValue Sc_Speech_GetUseGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
+{
+	API_VARGET_INT(game.options[OPT_OLDTALKANIMSPD]);
+}
+
+RuntimeScriptValue Sc_Speech_SetUseGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
+{
+	API_VARSET_PINT(game.options[OPT_OLDTALKANIMSPD]);
+}
+
 RuntimeScriptValue Sc_Speech_GetVoiceMode(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(GetVoiceMode);
@@ -192,6 +214,8 @@ void RegisterSpeechAPI()
     ccAddExternalStaticFunction("Speech::set_CustomPortraitPlacement", Sc_Speech_SetCustomPortraitPlacement);
     ccAddExternalStaticFunction("Speech::get_DisplayPostTimeMs",      Sc_Speech_GetDisplayPostTimeMs);
     ccAddExternalStaticFunction("Speech::set_DisplayPostTimeMs",      Sc_Speech_SetDisplayPostTimeMs);
+	ccAddExternalStaticFunction("Speech::get_GlobalSpeechAnimationDelay", Sc_Speech_GetGlobalSpeechAnimationDelay);
+	ccAddExternalStaticFunction("Speech::set_GlobalSpeechAnimationDelay", Sc_Speech_SetGlobalSpeechAnimationDelay);
     ccAddExternalStaticFunction("Speech::get_PortraitXOffset",        Sc_Speech_GetPortraitXOffset);
     ccAddExternalStaticFunction("Speech::set_PortraitXOffset",        Sc_Speech_SetPortraitXOffset);
     ccAddExternalStaticFunction("Speech::get_PortraitY",              Sc_Speech_GetPortraitY);
@@ -204,6 +228,8 @@ void RegisterSpeechAPI()
     ccAddExternalStaticFunction("Speech::set_Style",                  Sc_SetSpeechStyle);
     ccAddExternalStaticFunction("Speech::get_TextAlignment",          Sc_Speech_GetTextAlignment);
     ccAddExternalStaticFunction("Speech::set_TextAlignment",          Sc_Speech_SetTextAlignment);
+	ccAddExternalStaticFunction("Speech::get_UseGlobalSpeechAnimationDelay", Sc_Speech_GetUseGlobalSpeechAnimationDelay);
+	ccAddExternalStaticFunction("Speech::set_UseGlobalSpeechAnimationDelay", Sc_Speech_SetUseGlobalSpeechAnimationDelay);
     ccAddExternalStaticFunction("Speech::get_VoiceMode",              Sc_Speech_GetVoiceMode);
     ccAddExternalStaticFunction("Speech::set_VoiceMode",              Sc_SetVoiceMode);
 

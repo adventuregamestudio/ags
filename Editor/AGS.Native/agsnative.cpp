@@ -4694,7 +4694,7 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
   // Extract all the scripts we want to persist (all the non-headers, except
   // the global script which was already written)
   List<AGS::Types::Script^>^ scriptsToWrite = gcnew List<AGS::Types::Script^>();
-  for each (Script ^script in game->ScriptsToCompile)
+  for each (Script ^script in (System::Collections::IEnumerable^)game->ScriptsToCompile)
   {
 	  if ((!script->IsHeader) && 
       (!script->FileName->Equals(Script::GLOBAL_SCRIPT_FILE_NAME)) &&

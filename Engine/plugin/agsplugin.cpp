@@ -71,7 +71,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 #endif // BUILTIN_PLUGINS
 
 #if defined(MAC_VERSION)
-extern char dataDirectory[512];
 extern char appDirectory[512];
 extern "C"
 {

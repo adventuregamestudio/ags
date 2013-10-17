@@ -28,10 +28,28 @@
 #include <pwd.h>
 #include <sys/stat.h>
 
+void AGSMAcInitPaths(char gamename[256]);
 bool PlayMovie(char const *name, int skipType);
 
+// PSP variables
+int psp_ignore_acsetup_cfg_file = 0;
+int psp_clear_cache_on_room_change = 0;
+
+char psp_translation[100];
+
+unsigned int psp_audio_samplerate = 44100;
+int psp_audio_enabled = 1;
+int psp_audio_cachesize = 10;
+int psp_midi_enabled = 1;
+int psp_midi_preload_patches = 0;
+
+int psp_video_framedrop = 0;
+int psp_gfx_smooth_sprites = 0;
+
+char psp_game_file_name[256];
 
 struct AGSMac : AGSPlatformDriver {
+  AGSMac();
 
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
@@ -49,6 +67,11 @@ struct AGSMac : AGSPlatformDriver {
   virtual void ReplaceSpecialPaths(const char*, char*);  
   virtual void WriteDebugString(const char* texx, ...);
 };
+
+AGSMac::AGSMac()
+{
+  AGSMAcInitPaths(psp_game_file_name);
+}
 
 void AGSMac::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
   strcpy(destPath, sourcePath);
@@ -86,6 +109,7 @@ eScriptSystemOSID AGSMac::GetSystemOSID() {
 
 int AGSMac::InitializeCDPlayer() {
   //return cd_player_init();
+  return 0;
 }
 
 void AGSMac::PlayVideo(const char *name, int skip, int flags) {

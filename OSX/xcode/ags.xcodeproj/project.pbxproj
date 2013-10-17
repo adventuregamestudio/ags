@@ -2607,23 +2607,12 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					/Users/urkle/Projects/HIB/GemniRue/ags/OSX/lib,
-				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = ags_Prefix.pch;
 				INFOPLIST_FILE = "ags-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\\\"$(SRCROOT)/../lib\\\"",
-					"\\\"$(SRCROOT)/../../Engine\\\"",
-					"\\\"$(SRCROOT)/../../Plugins/agslua/agslua/zlib\\\"",
-					/Users/urkle/Projects/HIB/GemniRue/ags/OSX/lib,
-				);
 				PRODUCT_NAME = ags;
 			};
 			name = Debug;
@@ -2633,21 +2622,10 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					/Users/urkle/Projects/HIB/GemniRue/ags/OSX/lib,
-				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = ags_Prefix.pch;
 				INFOPLIST_FILE = "ags-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\\\"$(SRCROOT)/../lib\\\"",
-					"\\\"$(SRCROOT)/../../Engine\\\"",
-					"\\\"$(SRCROOT)/../../Plugins/agslua/agslua/zlib\\\"",
-					/Users/urkle/Projects/HIB/GemniRue/ags/OSX/lib,
-				);
 				PRODUCT_NAME = ags;
 			};
 			name = Release;
@@ -2683,7 +2661,7 @@
 					"-fpermissive",
 					"$(OTHER_CFLAGS)",
 				);
-				USER_HEADER_SEARCH_PATHS = "${SOURCE_ROOT}/../../Plugins ${SOURCE_ROOT}/../../Common ${SOURCE_ROOT}/../../Common/libinclude ${SOURCE_ROOT}/../../Engine ${SOURCE_ROOT}/../include";
+				USER_HEADER_SEARCH_PATHS = "${SOURCE_ROOT}/../include ${SOURCE_ROOT}/../../Plugins ${SOURCE_ROOT}/../../Common ${SOURCE_ROOT}/../../Common/libinclude ${SOURCE_ROOT}/../../Engine";
 			};
 			name = Debug;
 		};
@@ -2717,7 +2695,7 @@
 					"-fpermissive",
 					"$(OTHER_CFLAGS)",
 				);
-				USER_HEADER_SEARCH_PATHS = "${SOURCE_ROOT}/../../Plugins ${SOURCE_ROOT}/../../Common ${SOURCE_ROOT}/../../Common/libinclude ${SOURCE_ROOT}/../../Engine ${SOURCE_ROOT}/../include";
+				USER_HEADER_SEARCH_PATHS = "${SOURCE_ROOT}/../include ${SOURCE_ROOT}/../../Plugins ${SOURCE_ROOT}/../../Common ${SOURCE_ROOT}/../../Common/libinclude ${SOURCE_ROOT}/../../Engine";
 			};
 			name = Release;
 		};

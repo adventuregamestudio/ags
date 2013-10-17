@@ -239,7 +239,7 @@ void init_game_file_name_from_cmdline()
     WideCharToMultiByte(CP_ACP, 0, directoryPathBuffer, -1, buf, MAX_PATH, NULL, NULL);
     game_file_name = buf;
     delete [] buf;
-#elif defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
+#elif defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(MAC_VERSION)
     game_file_name = psp_game_file_name;
 #else
     game_file_name = global_argv[datafile_argv];

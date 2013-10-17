@@ -45,7 +45,6 @@ namespace Out = Common::Out;
 char appDirectory[512]; // Needed for library loading
 
 #ifdef MAC_VERSION
-char dataDirectory[512];
 extern "C"
 {
     int osx_sys_question(const char *msg, const char *but1, const char *but2);
@@ -87,7 +86,7 @@ bool justRegisterGame = false;
 bool justUnRegisterGame = false;
 const char *loadSaveGameOnStartup = NULL;
 
-#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+#if !defined(MAC_VERSION) && !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
 int psp_video_framedrop = 1;
 int psp_audio_enabled = 1;
 int psp_midi_enabled = 1;
@@ -342,10 +341,6 @@ void main_set_gamedir(int argc,char*argv[])
         // folder; else change to this exe's folder
         change_to_directory_of_file(wArgv[datafile_argv]);
     }
-
-#ifdef MAC_VERSION
-    getcwd(dataDirectory, 512);
-#endif
 }
 
 #if defined(WINDOWS_VERSION)

@@ -1285,8 +1285,17 @@ void engine_start_multithreaded_audio()
   {
     if (!audioThread.CreateAndStart(update_mp3_thread, true))
     {
+      Out::FPrint("Failed to start audio thread, audio will be processed on the main thread");
       psp_audio_multithreaded = 0;
     }
+    else
+    {
+      Out::FPrint("Audio thread started");
+    }
+  }
+  else
+  {
+    Out::FPrint("Audio is processed on the main thread");
   }
 }
 

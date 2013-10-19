@@ -47,7 +47,7 @@ extern CharacterInfo*playerchar;
 extern int psp_is_old_datafile;
 
 #if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
-volatile int psp_audio_multithreaded = 1;
+volatile int psp_audio_multithreaded = 0;
 #endif
 
 ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];

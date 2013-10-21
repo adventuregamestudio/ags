@@ -1071,8 +1071,16 @@ void init_game_settings() {
     play.score=0;
     play.sierra_inv_color=7;
     // copy the value set by the editor
-    play.talkanim_speed = abs(game.options[OPT_GLOBALTALKANIMSPD]);
-    game.options[OPT_GLOBALTALKANIMSPD] = game.options[OPT_GLOBALTALKANIMSPD] >= 0 ? 1 : 0;
+    if (game.options[OPT_GLOBALTALKANIMSPD] >= 0)
+    {
+        play.talkanim_speed = game.options[OPT_GLOBALTALKANIMSPD];
+        game.options[OPT_GLOBALTALKANIMSPD] = 1;
+    }
+    else
+    {
+        play.talkanim_speed = -game.options[OPT_GLOBALTALKANIMSPD] - 1;
+        game.options[OPT_GLOBALTALKANIMSPD] = 0;
+    }
     play.inv_item_wid = 40;
     play.inv_item_hit = 22;
     play.messagetime=-1;

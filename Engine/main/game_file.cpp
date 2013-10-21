@@ -606,7 +606,7 @@ int load_game_file() {
     if (filever <= kGameVersion_300)
     {
         // Fix animation speed for old formats
-        game.options[OPT_OLDTALKANIMSPD] = 1;
+		game.options[OPT_GLOBALTALKANIMSPD] = 1;
     }
     // 3.20: Fixed GUI AdditiveOpacity mode not working properly if you tried to have a non-alpha sprite on an alpha GUI
     if (loaded_game_file_version < kGameVersion_320)

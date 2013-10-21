@@ -3733,6 +3733,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 	game->Settings->EnforceObjectBasedScript = (thisgame.options[OPT_STRICTSCRIPTING] != 0);
 	game->Settings->FontsForHiRes = (thisgame.options[OPT_NOSCALEFNT] != 0);
 	game->Settings->GameName = gcnew String(thisgame.gamename);
+	game->Settings->UseGlobalSpeechAnimationDelay = (thisgame.options[OPT_GLOBALTALKANIMSPD] != 0);
 	game->Settings->GUIAlphaStyle = GUIAlphaStyle::Classic;
     game->Settings->SpriteAlphaStyle = SpriteAlphaStyle::Classic;
 	game->Settings->HandleInvClicksInScript = (thisgame.options[OPT_HANDLEINVCLICKS] != 0);
@@ -4835,7 +4836,7 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
     thisgame.options[OPT_SPRITEALPHA] = (int)game->Settings->SpriteAlphaStyle;
 	thisgame.options[OPT_HANDLEINVCLICKS] = game->Settings->HandleInvClicksInScript;
 	thisgame.options[OPT_FIXEDINVCURSOR] = !game->Settings->InventoryCursors;
-  thisgame.options[OPT_OLDTALKANIMSPD] = false;
+	thisgame.options[OPT_GLOBALTALKANIMSPD] = (game->Settings->UseGlobalSpeechAnimationDelay ? game->Settings->GlobalSpeechAnimationDelay : -1);
 	thisgame.options[OPT_LEFTTORIGHTEVAL] = game->Settings->LeftToRightPrecedence;
 	thisgame.options[OPT_LETTERBOX] = game->Settings->LetterboxMode;
   thisgame.totalscore = game->Settings->MaximumScore;

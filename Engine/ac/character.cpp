@@ -1364,7 +1364,7 @@ void Character_SetSpeechColor(CharacterInfo *chaa, int ncol) {
 
 void Character_SetSpeechAnimationDelay(CharacterInfo *chaa, int newDelay)
 {
-    if (game.options[OPT_OLDTALKANIMSPD])
+	if (game.options[OPT_GLOBALTALKANIMSPD] != 0)
         quit("!Character.SpeechAnimationDelay cannot be set when global speech animation speed is enabled");
 
     chaa->speech_anim_speed = newDelay;

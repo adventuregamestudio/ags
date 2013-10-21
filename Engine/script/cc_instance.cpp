@@ -1511,6 +1511,12 @@ void ccInstance::GetScriptName(char *curScrName) {
         strcpy (curScrName, "Unknown script");
 }
 
+void ccInstance::GetScriptPosition(ScriptPosition &script_pos)
+{
+    script_pos.Section = runningInst->instanceof->GetSectionName(pc);
+    script_pos.Line    = line_number;
+}
+
 // get a pointer to a variable or function exported by the script
 RuntimeScriptValue ccInstance::GetSymbolAddress(char *symname)
 {

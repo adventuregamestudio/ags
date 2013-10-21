@@ -27,6 +27,7 @@
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "script/script.h"
 
 extern GameState play;
@@ -56,6 +57,7 @@ void SetAmbientTint (int red, int green, int blue, int opacity, int luminance) {
     play.rtint_light = (luminance * 25) / 10;
 }
 
+extern ScriptPosition last_in_dialog_request_script_pos;
 void NewRoom(int nrnum) {
     if (nrnum < 0)
         quitprintf("!NewRoom: room change requested to invalid room number %d.", nrnum);
@@ -75,10 +77,14 @@ void NewRoom(int nrnum) {
     if (play.stop_dialog_at_end != DIALOG_NONE) {
         if (play.stop_dialog_at_end == DIALOG_RUNNING)
             play.stop_dialog_at_end = DIALOG_NEWROOM + nrnum;
-        else
-            quit("!NewRoom: two NewRoom/RunDialog/StopDialog requests within dialog");
+        else {
+            quitprintf("!NewRoom: two NewRoom/RunDialog/StopDialog requests within dialog; last was called in \"%s\", line %d",
+                last_in_dialog_request_script_pos.Section.GetCStr(), last_in_dialog_request_script_pos.Line);
+        }
         return;
     }
+
+    get_script_position(last_in_dialog_request_script_pos);
 
     if (in_leaves_screen >= 0) {
         // NewRoom called from the Player Leaves Screen event -- just

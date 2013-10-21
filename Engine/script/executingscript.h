@@ -39,6 +39,7 @@ struct ExecutingScript {
     ccInstance *inst;
     PostScriptAction postScriptActions[MAX_QUEUED_ACTIONS];
     const char *postScriptActionNames[MAX_QUEUED_ACTIONS];
+    ScriptPosition  postScriptActionPositions[MAX_QUEUED_ACTIONS];
     char postScriptSaveSlotDescription[MAX_QUEUED_ACTIONS][100];
     int  postScriptActionData[MAX_QUEUED_ACTIONS];
     int  numPostScriptActions;

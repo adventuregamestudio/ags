@@ -1070,8 +1070,9 @@ void init_game_settings() {
     }
     play.score=0;
     play.sierra_inv_color=7;
-    play.talkanim_speed = game.options[OPT_GLOBALTALKANIMSPD]; // copy the value set by the editor
-	game.options[OPT_GLOBALTALKANIMSPD] = (play.talkanim_speed != -1); // init the setting from the value
+    // copy the value set by the editor
+    play.talkanim_speed = abs(game.options[OPT_GLOBALTALKANIMSPD]);
+    game.options[OPT_GLOBALTALKANIMSPD] = game.options[OPT_GLOBALTALKANIMSPD] >= 0 ? 1 : 0;
     play.inv_item_wid = 40;
     play.inv_item_hit = 22;
     play.messagetime=-1;

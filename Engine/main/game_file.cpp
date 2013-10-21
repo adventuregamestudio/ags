@@ -603,11 +603,17 @@ int load_game_file() {
 
     ReadGameSetupStructBase_Aligned(in);
 
-    if (filever <= kGameVersion_300)
+    if (filever < kGameVersion_312)
     {
         // Fix animation speed for old formats
-		game.options[OPT_GLOBALTALKANIMSPD] = 1;
+		game.options[OPT_GLOBALTALKANIMSPD] = 5;
     }
+    else if (filever < kGameVersion_330)
+    {
+        // Convert game option for 3.1.2 - 3.2 games
+        game.options[OPT_GLOBALTALKANIMSPD] = game.options[OPT_GLOBALTALKANIMSPD] != 0 ? 5 : -5;
+    }
+
     // 3.20: Fixed GUI AdditiveOpacity mode not working properly if you tried to have a non-alpha sprite on an alpha GUI
     if (loaded_game_file_version < kGameVersion_320)
     {

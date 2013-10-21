@@ -61,6 +61,8 @@ a lot of variables (views, sounds).
 
 Dialogs are now scripts. New character animation speed.
 39 : 3.1.1
+
+Individual character speech animation speed.
 40 : 3.1.2
 
 Audio clips

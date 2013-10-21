@@ -130,7 +130,7 @@ RuntimeScriptValue Sc_Speech_GetGlobalSpeechAnimationDelay(const RuntimeScriptVa
 
 RuntimeScriptValue Sc_Speech_SetGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
 {
-	if (!game.options[OPT_OLDTALKANIMSPD])
+	if (game.options[OPT_GLOBALTALKANIMSPD] == 0)
 		quit("!Speech.GlobalSpeechAnimationDelay cannot be set when global speech animation speed is not enabled; set Speech.UseGlobalSpeechAnimationDelay first!");
 	API_VARSET_PINT(play.talkanim_speed);
 }
@@ -191,12 +191,12 @@ RuntimeScriptValue Sc_Speech_SetTextAlignment(const RuntimeScriptValue *params, 
 
 RuntimeScriptValue Sc_Speech_GetUseGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
 {
-	API_VARGET_INT(game.options[OPT_OLDTALKANIMSPD]);
+	API_VARGET_INT(game.options[OPT_GLOBALTALKANIMSPD]);
 }
 
 RuntimeScriptValue Sc_Speech_SetUseGlobalSpeechAnimationDelay(const RuntimeScriptValue *params, int32_t param_count)
 {
-	API_VARSET_PINT(game.options[OPT_OLDTALKANIMSPD]);
+	API_VARSET_PINT(game.options[OPT_GLOBALTALKANIMSPD]);
 }
 
 RuntimeScriptValue Sc_Speech_GetVoiceMode(const RuntimeScriptValue *params, int32_t param_count)

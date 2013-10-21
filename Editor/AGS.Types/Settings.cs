@@ -57,6 +57,8 @@ namespace AGS.Types
         private int _dialogBulletImage = 0;
         private SkipSpeechStyle _skipSpeech = SkipSpeechStyle.MouseOrKeyboardOrTimer;
         private SpeechStyle _speechStyle = SpeechStyle.Lucasarts;
+        private int _globalSpeechAnimationDelay = 5;
+        private bool _useGlobalSpeechAnimationDelay = false;
         private bool _numberDialogOptions = false;
         private bool _dialogOptionsBackwards = false;
         private SpeechPortraitSide _speechPortraitSide = SpeechPortraitSide.Left;
@@ -529,6 +531,40 @@ namespace AGS.Types
             set { _speechStyle = value; }
         }
 
+        [DisplayName("Use game-wide speech animation delay")]
+        [Description("Determines whether to use game-wide speech animation delay or use the individual character settings.")]
+        [DefaultValue(false)]
+        [Category("Dialog")]
+        [RefreshProperties(RefreshProperties.All)]
+        public bool UseGlobalSpeechAnimationDelay
+        {
+            get { return _useGlobalSpeechAnimationDelay; }
+            set { _useGlobalSpeechAnimationDelay = value; }
+        }
+
+        [DisplayName("Game-wide speech animation delay")]
+        [Description("Sets the Speech.GlobalSpeechAnimationDelay setting to determine the animation speed of character speech; individual character SpeechAnimationDelay settings will be ignored.")]
+        [DefaultValue(5)]
+        [Category("Dialog")]
+        public int GlobalSpeechAnimationDelay
+        {
+            get { return _globalSpeechAnimationDelay; }
+
+            set
+            {
+                if (value < 0) throw new ArgumentOutOfRangeException("Value must be greater than or equal to zero. Value was " + value.ToString() + ".");
+                _globalSpeechAnimationDelay = value;
+            }
+        }
+
+        [Browsable(false)]
+        [Obsolete("LegacySpeechAnimationSpeed has been replaced by UseGlobalSpeechAnimationDelay.")]
+        public bool LegacySpeechAnimationSpeed
+        {
+            get { return UseGlobalSpeechAnimationDelay; }
+            set { UseGlobalSpeechAnimationDelay = value; }
+        }
+
         [DisplayName("Number dialog options")]
         [Description("Dialog options become numbered bullet points, and the numeric keys can be used to select them")]
         [DefaultValue(false)]
@@ -909,6 +945,10 @@ namespace AGS.Types
                          (property.Name == "LetterboxMode"))
                 {
                     // Only show letterbox option for 320x200 and 640x400 games
+                    wantThisProperty = false;
+                }
+                else if ((property.Name == "GlobalSpeechAnimationDelay") && (!UseGlobalSpeechAnimationDelay))
+                {
                     wantThisProperty = false;
                 }
 

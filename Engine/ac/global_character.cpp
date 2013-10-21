@@ -366,10 +366,13 @@ void MoveCharacterBlocking(int chaa,int xx,int yy,int direct) {
 
 int GetCharacterSpeechAnimationDelay(CharacterInfo *cha)
 {
-    if (game.options[OPT_OLDTALKANIMSPD])
-    {
-        return play.talkanim_speed;
-    }
+	if ((loaded_game_file_version < kGameVersion_312) && (game.options[OPT_SPEECHTYPE] != 0))
+	{
+		// legacy versions of AGS assigned a fixed delay to Sierra-style speech only
+		return 5;
+	}
+	if (game.options[OPT_GLOBALTALKANIMSPD] != 0)
+		return play.talkanim_speed;
     else
         return cha->speech_anim_speed;
 }

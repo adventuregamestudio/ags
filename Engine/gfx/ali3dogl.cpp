@@ -401,6 +401,7 @@ public:
   virtual void SetTintMethod(TintMethod method);
   virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer);
+  virtual IGfxModeList *GetSupportedModeList(int color_depth);
   virtual int  FindSupportedResolutionWidth(int idealWidth, int height, int colDepth, int widthRangeAllowed);
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
@@ -947,6 +948,12 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
   BitmapHelper::SetScreenBitmap( ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(virtualWidth, virtualHeight, colourDepth)) );
 
   return true;
+}
+
+IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int color_depth)
+{
+    // TODO!!
+    return NULL;
 }
 
 void OGLGraphicsDriver::UnInit() 

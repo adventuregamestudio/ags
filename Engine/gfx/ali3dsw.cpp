@@ -118,6 +118,35 @@ public:
 
 };
 
+class ALSoftwareGfxModeList : public IGfxModeList
+{
+public:
+    ALSoftwareGfxModeList(GFX_MODE_LIST *alsw_gfx_mode_list)
+        : _gfxModeList(alsw_gfx_mode_list)
+    {
+    }
+
+    virtual int GetModeCount()
+    {
+        return _gfxModeList ? _gfxModeList->num_modes : 0;
+    }
+
+    virtual bool GetMode(int index, DisplayResolution &resolution)
+    {
+        if (_gfxModeList && index >= 0 && index < _gfxModeList->num_modes)
+        {
+            resolution.Width = _gfxModeList->mode[index].width;
+            resolution.Height = _gfxModeList->mode[index].height;
+            resolution.ColorDepth = _gfxModeList->mode[index].bpp;
+            return true;
+        }
+        return false;
+    }
+
+private:
+    GFX_MODE_LIST *_gfxModeList;
+};
+
 #include "gfx/gfxfilter_allegro.h"
 
 class ALSoftwareGraphicsDriver : public IGraphicsDriver
@@ -149,6 +178,7 @@ public:
   virtual void SetTintMethod(TintMethod method);
   virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer);
+  virtual IGfxModeList *GetSupportedModeList(int color_depth);
   virtual int  FindSupportedResolutionWidth(int idealWidth, int height, int colDepth, int widthRangeAllowed);
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _callback = callback; }
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
@@ -258,6 +288,19 @@ bool ALSoftwareGraphicsDriver::IsModeSupported(int driver, int width, int height
     return false;
   }
   return true;
+}
+
+IGfxModeList *ALSoftwareGraphicsDriver::GetSupportedModeList(int color_depth)
+{
+  if (_gfxModeList == NULL)
+  {
+    _gfxModeList = get_gfx_mode_list(GetAllegroGfxDriverID(false));
+  }
+  if (_gfxModeList == NULL)
+  {
+    return NULL;
+  }
+  return new ALSoftwareGfxModeList(_gfxModeList);
 }
 
 int ALSoftwareGraphicsDriver::FindSupportedResolutionWidth(int idealWidth, int height, int colDepth, int widthRangeAllowed)

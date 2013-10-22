@@ -58,6 +58,34 @@ inline Line VLine(int x, int y1, int y2)
 	return Line(x, y1, x, y2);
 }
 
+struct Size
+{
+    int Width;
+    int Height;
+
+    Size()
+    {
+        Width = 0;
+        Height = 0;
+    }
+
+    Size(int width, int height)
+    {
+        Width = width;
+        Height = height;
+    }
+
+    inline bool operator==(const Size size) const
+    {
+        return Width == size.Width && Height == size.Height;
+    }
+
+    inline bool operator!=(const Size size) const
+    {
+        return Width != size.Width || Height != size.Height;
+    }
+};
+
 struct Rect
 {
 	int Left;

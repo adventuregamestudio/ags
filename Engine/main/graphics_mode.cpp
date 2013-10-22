@@ -34,9 +34,13 @@
 #include "platform/base/agsplatformdriver.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "util/geometry.h"
+#include "util/math.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::String;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
+namespace Math = AGS::Common::Math;
 namespace Out = AGS::Common::Out;
 
 extern GameSetup usetup;
@@ -288,6 +292,8 @@ int initialize_graphics_filter(const char *filterID, int width, int height, int 
         thisFilter = filterList[idx];
     }
 
+    Out::FPrint("Applying scaling filter: %s", filter->GetFilterID());
+
     const char *filterError = filter->Initialize(width, height, colDepth);
     if (filterError != NULL) {
         proper_exit = 1;
@@ -298,48 +304,128 @@ int initialize_graphics_filter(const char *filterID, int width, int height, int 
     return 0;
 }
 
+void pre_create_gfx_driver(GFXFilter *set_filter) 
+{
+#ifdef WINDOWS_VERSION
+    if (stricmp(usetup.gfxDriverID, "D3D9") == 0)
+        gfxDriver = GetD3DGraphicsDriver(set_filter);
+    else
+#endif
+    {
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
+        if ((psp_gfx_renderer > 0) && (game.color_depth != 1))
+            gfxDriver = GetOGLGraphicsDriver(set_filter);
+        else
+#endif
+            gfxDriver = GetSoftwareGraphicsDriver(set_filter);
+    }
+}
+
+int find_max_supported_uniform_multiplier(const Size &base_size, const int color_depth)
+{
+    IGfxModeList *modes = gfxDriver->GetSupportedModeList(color_depth);
+    if (!modes)
+    {
+        Out::FPrint("Couldn't get a list of supported resolutions");
+        return 0;
+    }
+
+    int least_supported_multiplier = 0;
+    int mode_count = modes->GetModeCount();
+    DisplayResolution mode;
+    for (int i = 0; i < mode_count; ++i)
+    {
+        if (!modes->GetMode(i, mode))
+        {
+            continue;
+        }
+        if (mode.ColorDepth != color_depth)
+        {
+            continue;
+        }
+
+        if (mode.Width > base_size.Width && mode.Width % base_size.Width == 0 &&
+            mode.Height > base_size.Height && mode.Height % base_size.Height == 0)
+        {
+            int multiplier_x = mode.Width / base_size.Width;
+            int multiplier_y = mode.Height / base_size.Height;
+            if (multiplier_x == multiplier_y && multiplier_x > least_supported_multiplier)
+            {
+                least_supported_multiplier = multiplier_x;
+            }
+        }
+    }
+
+    delete modes;
+
+    if (least_supported_multiplier == 0)
+    {
+        Out::FPrint("Couldn't find acceptable supported resolution");
+    }
+    return least_supported_multiplier;
+}
+
+String get_maximal_supported_scaling_filter()
+{
+    Out::FPrint("Detecting maximal supported scaling");
+    pre_create_gfx_driver(NULL);
+    String gfxfilter = "None";
+
+    // calculate the correct game height when in letterbox mode
+    int game_height = initasy;
+    if (game.options[OPT_LETTERBOX])
+        game_height = (game_height * 12) / 10;
+
+    const int max_scaling = 8; // we support up to x8 scaling now
+    // fullscreen mode
+    if (usetup.windowed == 0)
+    {
+        Size base_size(initasx, game_height);
+        int selected_scaling = find_max_supported_uniform_multiplier(base_size, firstDepth);
+        if (selected_scaling > 1)
+        {
+            selected_scaling = Math::Min(selected_scaling, max_scaling);
+            gfxfilter.Format("StdScale%d", selected_scaling);
+        }
+    }
+    // windowed mode
+    else
+    {
+        // Do not try to create windowed mode larger than current desktop resolution
+        int desktop_width;
+        int desktop_height;
+        if (get_desktop_resolution(&desktop_width, &desktop_height) == 0)
+        {
+            desktop_height -= 32; // give some space for window borders
+            // TODO: a platform-specific way to do this?
+            int xratio = desktop_width / initasx;
+            int yratio = desktop_height / game_height;
+            int selected_scaling = Math::Min(Math::Min(xratio, yratio), max_scaling);
+            gfxfilter.Format("StdScale%d", selected_scaling);
+        }
+        else
+        {
+            Out::FPrint("Automatic scaling failed (unable to obtain desktop resolution)");
+        }
+    }
+    return gfxfilter;
+}
+
 int engine_init_gfx_filters()
 {
     Out::FPrint("Init gfx filters");
 
-    char *gfxfilter = NULL;
+    String gfxfilter;
 
     if (force_gfxfilter[0]) {
         gfxfilter = force_gfxfilter;
     }
-    else if (usetup.gfxFilterID) {
+    else if (usetup.gfxFilterID && stricmp(usetup.gfxFilterID, "Max") != 0) {
         gfxfilter = usetup.gfxFilterID;
     }
 #if defined (WINDOWS_VERSION) || defined (LINUX_VERSION)
     else {
-        int desktopWidth, desktopHeight;
-        if (get_desktop_resolution(&desktopWidth, &desktopHeight) == 0)
-        {
-            if (usetup.windowed > 0)
-                desktopHeight -= 100;
-
-            // calculate the correct game height when in letterbox mode
-            int gameHeight = initasy;
-            if (game.options[OPT_LETTERBOX])
-                gameHeight = (gameHeight * 12) / 10;
-
-            int xratio = desktopWidth / initasx;
-            int yratio = desktopHeight / gameHeight;
-            int min_ratio = xratio < yratio ? xratio : yratio;
-
-            if (min_ratio > 1)
-            {
-                if (min_ratio > 8)
-                    min_ratio = 8;
-                char filterID[12];
-                sprintf(filterID, "StdScale%d", min_ratio);
-                gfxfilter = filterID;
-            }
-        }
-        else
-        {
-            Out::FPrint("Automatic scaling: disabled (unable to obtain desktop resolution)");
-        }
+        gfxfilter = get_maximal_supported_scaling_filter();
     }
 #endif
 
@@ -353,19 +439,7 @@ int engine_init_gfx_filters()
 
 void create_gfx_driver() 
 {
-#ifdef WINDOWS_VERSION
-    if (stricmp(usetup.gfxDriverID, "D3D9") == 0)
-        gfxDriver = GetD3DGraphicsDriver(filter);
-    else
-#endif
-    {
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
-        if ((psp_gfx_renderer > 0) && (game.color_depth != 1))
-            gfxDriver = GetOGLGraphicsDriver(filter);
-        else
-#endif
-            gfxDriver = GetSoftwareGraphicsDriver(filter);
-    }
+    pre_create_gfx_driver(filter);
 
     gfxDriver->SetCallbackOnInit(GfxDriverOnInitCallback);
     gfxDriver->SetTintMethod(TintReColourise);

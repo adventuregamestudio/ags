@@ -52,6 +52,35 @@ char gameNameForTitleBar[200] = "";
 int curmaxcache = 1024 * 20, curusespeech = 1;
 int wwidth, wheight;
 GFXFilter **filterList = NULL;
+const int specialFilterListIndex = 1;
+const char *specialFilterName = "Max nearest-neighbour filter";
+const char *specialFilterID = "max";
+
+int get_filter_real_index(int list_index)
+{
+    if (list_index == specialFilterListIndex)
+    {
+        return -1;
+    }
+
+    return list_index > specialFilterListIndex ? list_index - 1 : list_index;    
+}
+
+int get_filter_list_index(int real_index)
+{
+    return real_index >= specialFilterListIndex ? real_index + 1 : real_index;
+}
+
+const char *get_filter_id(int list_index)
+{
+    if (list_index < 0)
+    {
+        return "";
+    }
+
+    int real_index = get_filter_real_index(list_index);
+    return real_index >= 0 ? filterList[real_index]->GetFilterID() : specialFilterID;
+}
 
 void update_resolution_texts(HWND hDlg) {
   int resx, resy;
@@ -95,7 +124,11 @@ void update_resolution_texts(HWND hDlg) {
 
   thisx = resx;
   thisy = resy;
-  filterList[selectedFilter]->GetRealResolution(&thisx, &thisy);
+  selectedFilter = get_filter_real_index(selectedFilter);
+  if (selectedFilter >= 0)
+  {
+    filterList[selectedFilter]->GetRealResolution(&thisx, &thisy);
+  }
   sprintf(buffer, "Resolution: %d""x%d", thisx, thisy);
   SendDlgItemMessage (hDlg, IDC_RESOLUTION, WM_SETTEXT, 0, (LPARAM)buffer);
 }
@@ -183,6 +216,7 @@ void populate_drop_down_with_filters(HWND hDlg)
 
   int idx = 0;
   GFXFilter *thisFilter = filterList[idx];
+  int selected_filter = 0;
   while (thisFilter != NULL) {
 
     if ((idx != 0) && (INIreadint("disabled", thisFilter->GetFilterID(), 0) == 1)) {
@@ -211,12 +245,25 @@ void populate_drop_down_with_filters(HWND hDlg)
 
     SendDlgItemMessage(hDlg, IDC_GFXFILTER, CB_ADDSTRING, 0, (LPARAM)filterNameBuffer);
 
-    if ((strcmp(curFilter, thisFilter->GetFilterID()) == 0) || (idx == 0))
-      SendDlgItemMessage(hDlg, IDC_GFXFILTER, CB_SETCURSEL, idx, 0);
+    if (strcmp(curFilter, thisFilter->GetFilterID()) == 0)
+    {
+      selected_filter = idx;
+    }
 
     idx++;
     thisFilter = filterList[idx];
   }
+
+  SendDlgItemMessage(hDlg, IDC_GFXFILTER, CB_INSERTSTRING, specialFilterListIndex, (LPARAM)specialFilterName);
+  if (stricmp(curFilter, specialFilterID) == 0)
+  {
+    selected_filter = specialFilterListIndex;
+  }
+  else
+  {
+    selected_filter = get_filter_list_index(selected_filter);
+  }
+  SendDlgItemMessage(hDlg, IDC_GFXFILTER, CB_SETCURSEL, selected_filter, 0);
 }
 
 void update_gfx_filter_box_enabled(HWND hDlg)
@@ -431,7 +478,8 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
       else if (LOWORD(wParam) == IDC_GFXFILTER)
       {
         int curSel = SendDlgItemMessage(hDlg, IDC_GFXFILTER, CB_GETCURSEL, 0, 0);
-        strcpy(curFilter, filterList[curSel]->GetFilterID());
+        const char *filter_id = get_filter_id(curSel);
+        strcpy(curFilter, filter_id);
       }
 
       if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL || LOWORD(wParam) == IDOKRUN) {
@@ -561,7 +609,8 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
             WritePrivateProfileString ("misc", "gfxdriver", "D3D9", ac_config_file);
 
           idx = SendDlgItemMessage(hDlg, IDC_GFXFILTER, CB_GETCURSEL, 0, 0);
-          WritePrivateProfileString("misc", "gfxfilter", filterList[idx]->GetFilterID(), ac_config_file);
+          const char *filter_id = get_filter_id(idx);
+          WritePrivateProfileString("misc", "gfxfilter", filter_id, ac_config_file);
         }
 	EndDialog(hDlg, LOWORD(wParam));
  	return TRUE;

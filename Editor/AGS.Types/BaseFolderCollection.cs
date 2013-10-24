@@ -64,6 +64,10 @@ namespace AGS.Types
             get { return _items; }
         }
 
+        [AGSNoSerialize]
+        [Browsable(false)]
+        public bool ShouldSkipChangeNotifications { get; set; }
+
         protected virtual string RootNodeName { get { return null; } }
 
         public IEnumerable<TFolderItem> AllItemsFlat
@@ -147,12 +151,19 @@ namespace AGS.Types
             _subFolders.BeforeClearing += _subFolders_BeforeClearing;
         }
 
-        void folder_OnFolderChange(object sender, FolderChangeEventArgs<TFolderItem> e)
+        private void FireFolderChange(object sender, FolderChangeEventArgs<TFolderItem> e)
         {
+            if (ShouldSkipChangeNotifications) return;
+
             if (OnFolderChange != null)
             {
                 OnFolderChange(sender, e);
             }
+        }
+
+        void folder_OnFolderChange(object sender, FolderChangeEventArgs<TFolderItem> e)
+        {
+            FireFolderChange(sender, e);
         }
 
         void _subFolders_BeforeClearing(object sender, EventArgs e)
@@ -190,22 +201,16 @@ namespace AGS.Types
 
         private void _items_BeforeClearing(object sender, EventArgs e)
         {
-            if (OnFolderChange != null)
+            foreach (TFolderItem folderItem in _items)
             {
-                foreach (TFolderItem folderItem in _items)
-                {
-                    OnFolderChange(this, new FolderChangeEventArgs<TFolderItem>(folderItem,
-                        FolderChange.ItemRemoved));
-                }
+                FireFolderChange(this, new FolderChangeEventArgs<TFolderItem>(folderItem,
+                    FolderChange.ItemRemoved));                    
             }
         }
 
         private void _items_BeforeChanging(object sender, FolderChangeEventArgs<TFolderItem> e)
         {
-            if (OnFolderChange != null)
-            {
-                OnFolderChange(this, e);
-            }
+            FireFolderChange(this, e);            
         }
 
         private void FromXml(XmlNode node)

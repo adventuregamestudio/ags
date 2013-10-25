@@ -1249,9 +1249,9 @@ void engine_init_game_shit()
     gfxDriver->SetRenderOffset(get_screen_x_adjustment(virtual_screen), get_screen_y_adjustment(virtual_screen));
 }
 
-void update_mp3_thread()
+void engine_update_mp3_thread()
 {
-  UPDATE_MP3_THREAD
+  update_mp3_thread();
   platform->Delay(50);
 }
 
@@ -1263,7 +1263,7 @@ void engine_start_multithreaded_audio()
   // Create sound update thread. This is a workaround for sound stuttering.
   if (psp_audio_multithreaded)
   {
-    if (!audioThread.CreateAndStart(update_mp3_thread, true))
+    if (!audioThread.CreateAndStart(engine_update_mp3_thread, true))
     {
       Out::FPrint("Failed to start audio thread, audio will be processed on the main thread");
       psp_audio_multithreaded = 0;

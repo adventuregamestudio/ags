@@ -29,7 +29,7 @@ namespace Engine
 {
 
 
-class WindowsMutex : BaseMutex
+class WindowsMutex : public BaseMutex
 {
 public:
   WindowsMutex()

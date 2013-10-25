@@ -2553,7 +2553,7 @@ void construct_virtual_screen(bool fullRedraw)
     walk_behind_baselines_changed = 0;
 
     // make sure that the mp3 is always playing smoothly
-    UPDATE_MP3
+    update_mp3();
         our_eip=4;
     draw_screen_overlay();
     put_sprite_list_on_screen();

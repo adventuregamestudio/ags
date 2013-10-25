@@ -20,6 +20,7 @@
 #include "ac/dynobj/scriptaudiochannel.h"
 #include "media/audio/ambientsound.h"
 #include "util/mutex.h"
+#include "util/mutex_lock.h"
 #include "util/thread.h"
 
 struct SOUNDCLIP;
@@ -88,26 +89,11 @@ void        newmusic(int mnum);
 extern AGS::Engine::Thread audioThread;
 extern AGS::Engine::Mutex _audio_mutex;
 extern volatile bool _audio_doing_crossfade;
-extern volatile int psp_audio_multithreaded;    // needed for UPDATE_MP3 macro
+extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1]; // needed for update_mp3_thread
+extern volatile int psp_audio_multithreaded;
 
-#define UPDATE_MP3 \
-    if (!psp_audio_multithreaded) \
-{ UPDATE_MP3_THREAD }
-
-//#define UPDATE_MP3 update_polled_stuff_if_runtime();
-
-// PSP: Update in thread if wanted.
-extern int musicPollIterator; // long name so it doesn't interfere with anything else
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1]; // needed for UPDATE_MP3_THREAD macro
-extern volatile int switching_away_from_game;
-#define UPDATE_MP3_THREAD \
-    while (switching_away_from_game) { } \
-    _audio_mutex.Lock(); \
-    for (musicPollIterator = 0; musicPollIterator <= MAX_SOUND_CHANNELS; musicPollIterator++) { \
-    if ((channels[musicPollIterator] != NULL) && (channels[musicPollIterator]->done == 0)) \
-    channels[musicPollIterator]->poll(); \
-    } \
-    _audio_mutex.Unlock();
+void update_mp3();
+void update_mp3_thread();
 
 extern volatile int mvolcounter;
 extern int update_music_at;

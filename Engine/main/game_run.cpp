@@ -673,7 +673,7 @@ void mainloop(bool checkControls, IDriverDependantBitmap *extraBitmap, int extra
     
     int res;
 
-    UPDATE_MP3
+    update_mp3();
 
     numEventsAtStartOfFunction = numevents;
 

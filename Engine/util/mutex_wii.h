@@ -23,7 +23,7 @@ namespace Engine
 {
 
 
-class WiiMutex : BaseMutex
+class WiiMutex : public BaseMutex
 {
 public:
   inline WiiMutex()

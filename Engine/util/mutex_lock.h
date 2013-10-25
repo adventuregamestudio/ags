@@ -12,12 +12,10 @@
 //
 //=============================================================================
 
-#ifndef __AGS_EE_UTIL__PSP_MUTEX_H
-#define __AGS_EE_UTIL__PSP_MUTEX_H
+#ifndef __AGS_EE_UTIL__MUTEX_LOCK_H
+#define __AGS_EE_UTIL__MUTEX_LOCK_H
 
-#include <pspsdk.h>
-#include <pspkernel.h>
-#include <pspthreadman.h>
+#include "util/mutex.h"
 
 namespace AGS
 {
@@ -25,39 +23,44 @@ namespace Engine
 {
 
 
-class PSPMutex : public BaseMutex
+class MutexLock
 {
-public:
-  PSPMutex()
-  {
-    _mutex = sceKernelCreateSema("", 0, 1, 1, 0);
-  }
-
-  ~PSPMutex()
-  {
-    Unlock();
-    sceKernelDeleteSema(_mutex);
-  }
-
-  inline void Lock()
-  {
-    sceKernelWaitSema(_mutex, 1, 0);
-  }
-
-  inline void Unlock()
-  {
-    sceKernelSignalSema(_mutex, 1);
-  }
-
 private:
-  SceUID _mutex;
-};
+	BaseMutex *_m;
+	MutexLock(MutexLock const &); // non-copyable
+	MutexLock& operator=(MutexLock const &); // not copy-assignable
 
+public:
+	void Release()
+	{
+		if (_m != NULL) _m->Unlock();
+		_m = NULL;
+	}
 
-typedef PSPMutex Mutex;
+	void Acquire(BaseMutex &mutex)
+	{
+		Release();
+		_m = &mutex;
+		_m->Lock();
+	}
+
+	MutexLock() : _m(NULL)
+	{
+	}
+
+	explicit MutexLock(BaseMutex &mutex) : _m(NULL)
+	{
+		Acquire(mutex);
+	}
+
+	~MutexLock()
+	{
+		Release();
+	}
+}; // class MutexLock
 
 
 } // namespace Engine
 } // namespace AGS
 
-#endif // __AGS_EE_UTIL__PSP_MUTEX_H
+#endif // __AGS_EE_UTIL__MUTEX_LOCK_H

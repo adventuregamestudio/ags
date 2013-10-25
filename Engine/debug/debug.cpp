@@ -443,7 +443,7 @@ bool send_exception_to_editor(char *qmsg)
 
     while ((check_for_messages_from_editor() == 0) && (want_exit == 0))
     {
-        UPDATE_MP3
+        update_mp3();
             platform->Delay(10);
     }
 #endif

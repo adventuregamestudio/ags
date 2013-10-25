@@ -19,6 +19,7 @@
 #include "media/audio/clip_mystaticmp3.h"
 #include "media/audio/audiointernaldefs.h"
 #include "media/audio/soundcache.h"
+#include "util/mutex_lock.h"
 
 #include "platform/base/agsplatformdriver.h"
 
@@ -30,7 +31,7 @@ AGS::Engine::Mutex _mp3_mutex;
 
 int MYSTATICMP3::poll()
 {
-    _mutex.Lock();
+    AGS::Engine::MutexLock _lock(_mutex);
 
     if (tune && !done && _destroyThis)
     {
@@ -45,9 +46,9 @@ int MYSTATICMP3::poll()
         ;
     else 
     {
-      _mp3_mutex.Lock();
+      AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
       int result = almp3_poll_mp3(tune);
-      _mp3_mutex.Unlock();
+	  _lockMp3.Release();
 
       if (result == ALMP3_POLL_PLAYJUSTFINISHED)
       {
@@ -61,8 +62,6 @@ int MYSTATICMP3::poll()
     }
     our_eip = oldeip;
 
-    _mutex.Unlock();
-
     return done;
 }
 
@@ -74,19 +73,18 @@ void MYSTATICMP3::set_volume(int newvol)
     {
         newvol += volModifier + directionalVolModifier;
         if (newvol < 0) newvol = 0;
-        _mp3_mutex.Lock();
+        AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
         almp3_adjust_mp3(tune, newvol, panning, 1000, repeat);
-        _mp3_mutex.Unlock();
     }
 }
 
 void MYSTATICMP3::internal_destroy()
 {
   if (tune != NULL) {
-      _mp3_mutex.Lock();
+      AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
       almp3_stop_mp3(tune);
       almp3_destroy_mp3(tune);
-      _mp3_mutex.Unlock();
+	  _lockMp3.Release();
       tune = NULL;
   }
   if (mp3buffer != NULL) {
@@ -100,36 +98,32 @@ void MYSTATICMP3::internal_destroy()
 
 void MYSTATICMP3::destroy()
 {
-    _mutex.Lock();
+	AGS::Engine::MutexLock _lock(_mutex);
 
     if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
       _destroyThis = true;
     else
       internal_destroy();
 
-    _mutex.Unlock();
+	_lock.Release();
 
     while (!done)
       AGSPlatformDriver::GetDriver()->YieldCPU();
 
     // Allow the last poll cycle to finish.
-    _mutex.Lock();
-    _mutex.Unlock();
+	_lock.Acquire(_mutex);
 }
 
 void MYSTATICMP3::seek(int pos)
 {
-    _mp3_mutex.Lock();
+    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     almp3_seek_abs_msecs_mp3(tune, pos);
-    _mp3_mutex.Unlock();
 }
 
 int MYSTATICMP3::get_pos()
 {
-    _mp3_mutex.Lock();
-    int result = almp3_get_pos_msecs_mp3(tune);
-    _mp3_mutex.Unlock();
-    return result;
+    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+    return almp3_get_pos_msecs_mp3(tune);
 }
 
 int MYSTATICMP3::get_pos_ms()
@@ -140,20 +134,18 @@ int MYSTATICMP3::get_pos_ms()
 
 int MYSTATICMP3::get_length_ms()
 {
-    _mp3_mutex.Lock();
-    int result = almp3_get_length_msecs_mp3(tune);
-    _mp3_mutex.Unlock();
-    return result;
+    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+    return almp3_get_length_msecs_mp3(tune);
 }
 
 void MYSTATICMP3::restart()
 {
     if (tune != NULL) {
-        _mp3_mutex.Lock();
+        AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
         almp3_stop_mp3(tune);
         almp3_rewind_mp3(tune);
         almp3_play_mp3(tune, 16384, vol, panning);
-        _mp3_mutex.Unlock();
+		_lockMp3.Release();
         done = 0;
 
         if (!psp_audio_multithreaded)
@@ -163,12 +155,9 @@ void MYSTATICMP3::restart()
 
 int MYSTATICMP3::get_voice()
 {
-    _mp3_mutex.Lock();
+	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     AUDIOSTREAM *ast = almp3_get_audiostream_mp3(tune);
-    _mp3_mutex.Unlock();
-    if (ast)
-        return ast->voice;
-    return -1;
+	return (ast != NULL ? ast->voice : -1);
 }
 
 int MYSTATICMP3::get_sound_type() {
@@ -176,9 +165,9 @@ int MYSTATICMP3::get_sound_type() {
 }
 
 int MYSTATICMP3::play() {
-    _mp3_mutex.Lock();
+    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     int result = almp3_play_ex_mp3(tune, 16384, vol, panning, 1000, repeat);
-    _mp3_mutex.Unlock();
+	_lockMp3.Release();
 
     if (result != ALMP3_OK) {
         destroy();

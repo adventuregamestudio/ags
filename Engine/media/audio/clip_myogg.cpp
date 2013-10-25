@@ -16,6 +16,7 @@
 #include "media/audio/clip_myogg.h"
 #include "media/audio/audiointernaldefs.h"
 #include "ac/common.h"               // quit()
+#include "util/mutex_lock.h"
 
 #include "platform/base/agsplatformdriver.h"
 
@@ -29,7 +30,7 @@ extern "C" {
 
 int MYOGG::poll()
 {
-    _mutex.Lock();
+    AGS::Engine::MutexLock _lock(_mutex);
 
     if (!done && _destroyThis)
     {
@@ -39,12 +40,10 @@ int MYOGG::poll()
 
     if (done)
     {
-        _mutex.Unlock();
         return done;
     }
     if (paused)
     {
-        _mutex.Unlock();
         return 0;
     }
 
@@ -70,8 +69,6 @@ int MYOGG::poll()
             internal_destroy();
     }
     else get_pos_ms();  // call this to keep the last_but_one stuff up to date
-
-    _mutex.Unlock();
 
     return done;
 }
@@ -106,14 +103,14 @@ void MYOGG::internal_destroy()
 
 void MYOGG::destroy()
 {
-    _mutex.Lock();
+	AGS::Engine::MutexLock _lock(_mutex);
 
     if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
       _destroyThis = true;
     else
       internal_destroy();
 
-    _mutex.Unlock();
+	_lock.Release();
 
     while (!done)
       AGSPlatformDriver::GetDriver()->YieldCPU();

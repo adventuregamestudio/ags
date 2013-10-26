@@ -1,4 +1,6 @@
 
+#include <sys/types.h>
+#include <sys/stat.h>
 #if defined (WINDOWS_VERSION)
 #include <windows.h>
 #endif
@@ -12,6 +14,30 @@ namespace Common
 
 namespace Path
 {
+
+bool IsDirectory(const String &filename)
+{
+    struct stat st;
+    String fixed_path = filename;
+    // stat() does not like trailing slashes, remove them
+    fixed_path.TrimRight('/');
+    fixed_path.TrimRight('\\');
+    if (stat(fixed_path, &st) == 0)
+    {
+        return (st.st_mode & S_IFMT) == S_IFDIR;
+    }
+    return false;
+}
+
+bool IsFile(const String &filename)
+{
+    struct stat st;
+    if (stat(filename, &st) == 0)
+    {
+        return (st.st_mode & S_IFMT) == S_IFREG;
+    }
+    return false;
+}
 
 int ComparePaths(const String &path1, const String &path2)
 {

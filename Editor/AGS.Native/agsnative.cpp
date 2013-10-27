@@ -4247,7 +4247,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	room->Script = roomToLoad->Script;
 	room->BottomEdgeY = thisroom.bottom;
 	room->LeftEdgeX = thisroom.left;
-	room->MusicVolumeAdjustment = (RoomVolumeAdjustment)thisroom.options[ST_VOLUME];
+    room->MusicVolumeAdjustment = (AGS::Types::RoomVolumeAdjustment)thisroom.options[ST_VOLUME];
 	room->PlayerCharacterView = thisroom.options[ST_MANVIEW];
 	room->PlayMusicOnRoomLoad = thisroom.options[ST_TUNE];
 	room->RightEdgeX = thisroom.right;

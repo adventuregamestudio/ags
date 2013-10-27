@@ -303,16 +303,18 @@ int GetMP3PosMillis () {
 }
 
 void SetMusicVolume(int newvol) {
-    if ((newvol < -3) || (newvol > 5))
-        quit("!SetMusicVolume: invalid volume number. Must be from -3 to 5.");
+    if ((newvol < kRoomVolumeMin) || (newvol > kRoomVolumeMax))
+        quitprintf("!SetMusicVolume: invalid volume number. Must be from %d to %d.", kRoomVolumeMin, kRoomVolumeMax);
     thisroom.options[ST_VOLUME]=newvol;
     update_music_volume();
 }
 
 void SetMusicMasterVolume(int newvol) {
-    if ((newvol<0) | (newvol>100))
-        quit("!SetMusicMasterVolume: invalid volume - must be from 0-100");
-    play.music_master_volume=newvol+60;
+    const int min_volume = loaded_game_file_version < kGameVersion_330 ? 0 :
+        -LegacyMusicMasterVolumeAdjustment - (kRoomVolumeMax * LegacyRoomVolumeFactor);
+    if ((newvol < min_volume) | (newvol>100))
+        quitprintf("!SetMusicMasterVolume: invalid volume - must be from %d to %d", min_volume, 100);
+    play.music_master_volume=newvol+LegacyMusicMasterVolumeAdjustment;
     update_music_volume();
 }
 

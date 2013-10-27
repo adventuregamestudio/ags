@@ -1132,7 +1132,7 @@ void init_game_settings() {
     play.key_skip_wait = 0;
     play.cur_music_number=-1;
     play.music_repeat=1;
-    play.music_master_volume=160;
+    play.music_master_volume=100 + LegacyMusicMasterVolumeAdjustment;
     play.digital_master_volume = 100;
     play.screen_flipped=0;
     play.offsets_locked=0;

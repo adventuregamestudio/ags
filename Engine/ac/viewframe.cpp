@@ -157,7 +157,7 @@ void CheckViewFrame (int view, int loop, int frame) {
 }
 
 // draws a view frame, flipped if appropriate
-void DrawViewFrame(Bitmap *ds, ViewFrame *vframe, int x, int y) {
+void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y) {
     if (vframe->flags & VFLG_FLIPSPRITE)
         ds->FlipBlt(spriteset[vframe->pic], x, y, Common::kBitmap_HFlip);
     else

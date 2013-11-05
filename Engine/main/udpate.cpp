@@ -435,16 +435,19 @@ void update_sierra_speech()
       }
 
       Bitmap *frame_pic = screenover[face_talking].pic;
-      DrawViewFrame(frame_pic, &views[facetalkview].loops[facetalkloop].frames[facetalkframe], view_frame_x, view_frame_y);
+      const ViewFrame *vf = &views[facetalkview].loops[facetalkloop].frames[facetalkframe];
+      DrawViewFrame(frame_pic, vf, view_frame_x, view_frame_y);
 
       if ((facetalkchar->blinkview > 0) && (facetalkchar->blinktimer < 0)) {
         // draw the blinking sprite on top
+        vf = &views[facetalkchar->blinkview].loops[facetalkBlinkLoop].frames[facetalkchar->blinkframe];
         DrawViewFrame(frame_pic,
-            &views[facetalkchar->blinkview].loops[facetalkBlinkLoop].frames[facetalkchar->blinkframe],
+            vf,
             view_frame_x, view_frame_y);
       }
+      const bool closeupface_has_alpha = (game.spriteflags[vf->pic] & SPF_ALPHACHANNEL) != 0;
 
-      gfxDriver->UpdateDDBFromBitmap(screenover[face_talking].bmp, screenover[face_talking].pic, false);
+      gfxDriver->UpdateDDBFromBitmap(screenover[face_talking].bmp, screenover[face_talking].pic, closeupface_has_alpha);
     }  // end if updatedFrame
   }
 }

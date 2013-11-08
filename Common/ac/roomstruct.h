@@ -92,6 +92,23 @@ enum RoomFileVersion
 
 const int ST_TUNE = 0, ST_SAVELOAD = 1, ST_MANDISABLED = 2, ST_MANVIEW = 3, ST_VOLUME = 4;
 
+enum RoomVolumeAdjustment
+{
+    kRoomVolumeQuietest = -3,
+    kRoomVolumeQuieter  = -2,
+    kRoomVolumeQuiet    = -1,
+    kRoomVolumeNormal   =  0,
+    kRoomVolumeLoud     =  1,
+    kRoomVolumeLouder   =  2,
+    kRoomVolumeLoudest  =  3,
+    // These two options are only settable at runtime by SetMusicVolume()
+    kRoomVolumeExtra1   =  4,
+    kRoomVolumeExtra2   =  5,
+
+    kRoomVolumeMin      = kRoomVolumeQuietest,
+    kRoomVolumeMax      = kRoomVolumeExtra2,
+};
+
 #pragma pack(1)
 struct sprstruc {
     short sprnum  PCKD;   // number from array

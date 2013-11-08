@@ -898,11 +898,15 @@ void String::ReserveAndShift(bool left, int more_length)
     if (_meta)
     {
         int total_length = _meta->Length + more_length;
-        if (_meta->RefCount > 1 || (_meta->Capacity < total_length))
+        if (_meta->Capacity < total_length)
         {
             // grow by 50% or at least to total_size
             int grow_length = _meta->Capacity + (_meta->Capacity >> 1);
             Copy(Math::Max(total_length, grow_length), left ? more_length : 0);
+        }
+        else if (_meta->RefCount > 1)
+        {
+            Copy(total_length, left ? more_length : 0);
         }
         else
         {

@@ -2555,7 +2555,9 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                 if (yy < 0)
                     tdyp = ovr_yp + get_textwindow_top_border_height(play.speech_textwindow_gui);
             }
-            DrawViewFrame(closeupface, &viptr->loops[0].frames[0], view_frame_x, view_frame_y);
+            const ViewFrame *vf = &viptr->loops[0].frames[0];
+            const bool closeupface_has_alpha = (game.spriteflags[vf->pic] & SPF_ALPHACHANNEL) != 0;
+            DrawViewFrame(closeupface, vf, view_frame_x, view_frame_y);
 
             int overlay_x = get_fixed_pixel_size(10);
             if (xx < 0) {
@@ -2610,7 +2612,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
             }
             if (game.options[OPT_SPEECHTYPE] == 3)
                 overlay_x = 0;
-            face_talking=add_screen_overlay(overlay_x,ovr_yp,ovr_type,closeupface);
+            face_talking=add_screen_overlay(overlay_x,ovr_yp,ovr_type,closeupface, closeupface_has_alpha);
             facetalkframe = 0;
             facetalkwait = viptr->loops[0].frames[0].speed + GetCharacterSpeechAnimationDelay(speakingChar);
             facetalkloop = 0;

@@ -63,6 +63,7 @@ using AGS::Common::String;
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
+namespace Path = AGS::Common::Path;
 namespace Out = AGS::Common::Out;
 
 #ifndef WINDOWS_VERSION
@@ -245,11 +246,11 @@ void init_game_file_name_from_cmdline()
 #else
     game_file_name = global_argv[datafile_argv];
 #endif
-    AGS::Common::Path::FixupPath(game_file_name);
 }
 
-String find_game_data_in_directory(const char *path)
+String find_game_data_in_directory(const String &path)
 {
+    String test_file;
     String found_data_file;
     // TODO: find a way to make this platform-agnostic way
     // using find-file interface or something
@@ -281,9 +282,10 @@ String find_game_data_in_directory(const char *path)
                     continue;
                 if (strcmp(version_info.internal_name, "acwin") == 0)
                 {
-                    if (AGS::Common::AssetManager::IsDataFile(entry->d_name))
+                    test_file.Format("%s/%s", path.GetCStr(), entry->d_name);
+                    if (AGS::Common::AssetManager::IsDataFile(test_file))
                     {
-                        found_data_file = entry->d_name;
+                        found_data_file = test_file;
                         break;
                     }
                 }
@@ -291,9 +293,10 @@ String find_game_data_in_directory(const char *path)
             else if (stricmp(&(entry->d_name[length - 4]), ".ags") == 0 ||
                 stricmp(entry->d_name, "ac2game.dat") == 0)
             {
-                if (AGS::Common::AssetManager::IsDataFile(entry->d_name))
+                test_file.Format("%s/%s", path.GetCStr(), entry->d_name);
+                if (AGS::Common::AssetManager::IsDataFile(test_file))
                 {
-                    found_data_file = entry->d_name;
+                    found_data_file = test_file;
                     break;
                 }
             }
@@ -326,9 +329,10 @@ String find_game_data_in_directory(const char *path)
                 strcmp(&(file_data.cFileName[length - 4]), ".ags") == 0 ||
                 strcmp(file_data.cFileName, "ac2game.dat") == 0)
             {
-                if (AGS::Common::AssetManager::IsDataFile(file_data.cFileName))
+                test_file.Format("%s/%s", path.GetCStr(), file_data.cFileName);
+                if (AGS::Common::AssetManager::IsDataFile(test_file))
                 {
-                    found_data_file = file_data.cFileName;
+                    found_data_file = test_file;
                     break;
                 }
             }
@@ -339,7 +343,6 @@ String find_game_data_in_directory(const char *path)
 #else
     // TODO ??? (PSP, ANDROID)
 #endif
-    AGS::Common::Path::FixupPath(found_data_file);
     return found_data_file;
 }
 
@@ -351,7 +354,7 @@ void initialise_game_file_name()
     {
         // set game_file_name from cmd arg (do any convertions if needed)
         init_game_file_name_from_cmdline();
-        if (game_file_name.GetLast() == '/')
+        if (!Path::IsFile(game_file_name))
         {
             // if it is not a file, assume it is a directory and seek for data file
             game_file_name = find_game_data_in_directory(game_file_name);
@@ -361,33 +364,32 @@ void initialise_game_file_name()
     else if (!usetup.main_data_filename.IsEmpty())
     {
         game_file_name = usetup.main_data_filename;
-        AGS::Common::Path::FixupPath(game_file_name);
     }
     // 3. Look in known locations
     else
     {
         // 3.1. Look for attachment in the running executable
         //
-        // set game_file_name from cmd arg (do any convertions if needed)
+        // set game_file_name from cmd arg (do any conversions if needed)
         // this will use argument zero, the executable's name
         init_game_file_name_from_cmdline();
-        if (!game_file_name.IsEmpty() && Common::AssetManager::IsDataFile(game_file_name))
+        if (game_file_name.IsEmpty() || !Common::AssetManager::IsDataFile(game_file_name))
         {
-            return;
-        }
-        // 3.2 Look in current directory
-        String cur_dir = AGS::Common::Directory::GetCurrentDirectory();
-        game_file_name = find_game_data_in_directory(cur_dir);
-        if (!game_file_name.IsEmpty())
-        {
-            return;
-        }
-        // 3.3 Look in executable's directory (if it's different from current dir)
-        if (AGS::Common::Path::ComparePaths(appDirectory, cur_dir))
-        {
-            game_file_name = find_game_data_in_directory(appDirectory);
+            // 3.2 Look in current directory
+            String cur_dir = AGS::Common::Directory::GetCurrentDirectory();
+            game_file_name = find_game_data_in_directory(cur_dir);
+            if (game_file_name.IsEmpty())
+            {
+                // 3.3 Look in executable's directory (if it's different from current dir)
+                if (AGS::Common::Path::ComparePaths(appDirectory, cur_dir))
+                {
+                    game_file_name = find_game_data_in_directory(appDirectory);
+                }
+            }
         }
     }
+
+    // Finally, store game file's absolute path, or report error
     if (game_file_name.IsEmpty())
     {
         AGS::Common::Out::FPrint("Game data file could not be found\n");
@@ -1130,7 +1132,7 @@ void init_game_settings() {
     play.key_skip_wait = 0;
     play.cur_music_number=-1;
     play.music_repeat=1;
-    play.music_master_volume=160;
+    play.music_master_volume=100 + LegacyMusicMasterVolumeAdjustment;
     play.digital_master_volume = 100;
     play.screen_flipped=0;
     play.offsets_locked=0;

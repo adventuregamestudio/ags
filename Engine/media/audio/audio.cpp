@@ -832,7 +832,7 @@ void play_next_queued() {
 
 int calculate_max_volume() {
     // quieter so that sounds can be heard better
-    int newvol=play.music_master_volume + ((int)thisroom.options[ST_VOLUME]) * 30;
+    int newvol=play.music_master_volume + ((int)thisroom.options[ST_VOLUME]) * LegacyRoomVolumeFactor;
     if (newvol>255) newvol=255;
     if (newvol<0) newvol=0;
 

@@ -96,13 +96,6 @@ extern CCInventory ccDynamicInv;
 
 //--------------------------------
 
-#define CHECK_DIAGONAL(maindir,othdir,codea,codeb) \
-    if (no_diagonal) ;\
-  else if (abs(maindir) > abs(othdir) / 2) {\
-  if (maindir < 0) useloop=codea;\
-    else useloop=codeb;\
-}
-
 
 CharacterExtras *charextra;
 CharacterInfo*playerchar;
@@ -315,80 +308,90 @@ void Character_FaceCharacter(CharacterInfo *char1, CharacterInfo *char2, int blo
     Character_FaceLocation(char1, char2->x, char2->y, blockingStyle);
 }
 
+enum DirectionalLoop
+{
+    kDirLoop_Down      = 0,
+    kDirLoop_Left      = 1,
+    kDirLoop_Right     = 2,
+    kDirLoop_Up        = 3,
+    kDirLoop_DownRight = 4,
+    kDirLoop_UpRight   = 5,
+    kDirLoop_DownLeft  = 6,
+    kDirLoop_UpLeft    = 7,
+
+    kDirLoop_Default       = kDirLoop_Down,
+    kDirLoop_LastOrtogonal = kDirLoop_Up,
+    kDirLoop_Last          = kDirLoop_UpLeft,
+};
+
+DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, int x_diff, int y_diff)
+{
+    DirectionalLoop next_loop = kDirLoop_Left; // NOTE: default loop was Left for some reason
+
+    const ViewStruct &chview  = views[chinfo->view];
+    const bool new_version    = loaded_game_file_version > kGameVersion_272;
+    const bool has_down_loop  = ((chview.numLoops > kDirLoop_Down)  && (chview.loops[kDirLoop_Down].numFrames > 0));
+    const bool has_up_loop    = ((chview.numLoops > kDirLoop_Up)    && (chview.loops[kDirLoop_Up].numFrames > 0));
+    // NOTE: 3.+ games required left & right loops to be present at all times
+    const bool has_left_loop  = new_version ||
+                                ((chview.numLoops > kDirLoop_Left)  && (chview.loops[kDirLoop_Left].numFrames > 0));
+    const bool has_right_loop = new_version ||
+                                ((chview.numLoops > kDirLoop_Right) && (chview.loops[kDirLoop_Right].numFrames > 0));
+    const bool has_diagonal_loops = useDiagonal(chinfo) == 0; // NOTE: useDiagonal returns 0 for "true"
+
+    const bool want_horizontal = (abs(y_diff) < abs(x_diff)) || new_version && (!has_down_loop || !has_up_loop);
+    if (want_horizontal)
+    {
+        const bool want_diagonal = has_diagonal_loops && (abs(y_diff) > abs(x_diff) / 2);
+        if (!has_left_loop && !has_right_loop)
+        {
+            next_loop = kDirLoop_Down;
+        }
+        else if (has_right_loop && (x_diff > 0))
+        {
+            next_loop = want_diagonal ? (y_diff < 0 ? kDirLoop_UpRight : kDirLoop_DownRight) :
+                kDirLoop_Right;
+        }
+        else if (has_left_loop && (x_diff <= 0))
+        {
+            next_loop = want_diagonal ? (y_diff < 0 ? kDirLoop_UpLeft : kDirLoop_DownLeft) :
+                kDirLoop_Left;
+        }
+    }
+    else
+    {
+        const bool want_diagonal = has_diagonal_loops && (abs(x_diff) > abs(y_diff) / 2);
+        if (y_diff > 0)
+        {
+            next_loop = want_diagonal ? (x_diff < 0 ? kDirLoop_DownLeft : kDirLoop_DownRight) :
+                kDirLoop_Down;
+        }
+        else
+        {
+            next_loop = want_diagonal ? (x_diff < 0 ? kDirLoop_UpLeft : kDirLoop_UpRight) :
+                kDirLoop_Up;
+        }
+    }
+    return next_loop;
+}
+
 void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingStyle) {
     DEBUG_CONSOLE("%s: Face location %d,%d", char1->scrname, xx, yy);
 
-    int diffrx = xx - char1->x;
-    int diffry = yy - char1->y;
-    int useloop = 1, wanthoriz=0, no_diagonal = 0;
-    int highestLoopForTurning = 3;
+    const int diffrx = xx - char1->x;
+    const int diffry = yy - char1->y;
 
     if ((diffrx == 0) && (diffry == 0)) {
         // FaceLocation called on their current position - do nothing
         return;
     }
 
-    no_diagonal = useDiagonal (char1);
+    const int useloop = GetDirectionalLoop(char1, diffrx, diffry);
 
+    int highestLoopForTurning = kDirLoop_LastOrtogonal;
+    const int no_diagonal = useDiagonal (char1);
     if (no_diagonal != 1) {
-        highestLoopForTurning = 7;
-    }
-
-    // Use a different logic on 2.x. This fixes some edge cases where
-    // FaceLocation() is used to select a specific loop.
-    if (loaded_game_file_version <= kGameVersion_272)
-    {
-        bool can_right = ((views[char1->view].numLoops >= 3) && (views[char1->view].loops[2].numFrames > 0));
-        bool can_left = ((views[char1->view].numLoops >= 2) && (views[char1->view].loops[1].numFrames > 0));
-
-        if (abs(diffry) < abs(diffrx))
-        {
-            if (!can_left && !can_right)
-                useloop = 0;
-            else if (can_right && (diffrx >= 0)) {
-                useloop=2;
-                CHECK_DIAGONAL(diffry, diffrx, 5, 4)
-            }
-            else if (can_left && (diffrx < 0)) {
-                useloop=1;
-                CHECK_DIAGONAL(diffry, diffrx,7,6)
-            }
-        }
-        else
-        {
-            if (diffry>=0) {
-                useloop=0;
-                CHECK_DIAGONAL(diffrx ,diffry ,6,4)
-            }
-            else if (diffry<0) {
-                useloop=3;
-                CHECK_DIAGONAL(diffrx, diffry,7,5)
-            }
-        }
-    }
-    else
-    {
-        if (hasUpDownLoops(char1) == 0)
-            wanthoriz = 1;
-        else if (abs(diffry) < abs(diffrx))
-            wanthoriz = 1;
-
-        if ((wanthoriz==1) && (diffrx > 0)) {
-            useloop=2;
-            CHECK_DIAGONAL(diffry, diffrx, 5, 4)
-        }
-        else if ((wanthoriz==1) && (diffrx <= 0)) {
-            useloop=1;
-            CHECK_DIAGONAL(diffry, diffrx,7,6)
-        }
-        else if (diffry>0) {
-            useloop=0;
-            CHECK_DIAGONAL(diffrx ,diffry ,6,4)
-        }
-        else if (diffry<0) {
-            useloop=3;
-            CHECK_DIAGONAL(diffrx, diffry,7,5)
-        }
+        highestLoopForTurning = kDirLoop_Last;
     }
 
     if ((game.options[OPT_TURNTOFACELOC] != 0) &&
@@ -1654,91 +1657,21 @@ void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal
 
 }
 
-
-
-// loops: 0=down, 1=left, 2=right, 3=up, 4=down-right, 5=up-right,
-// 6=down-left, 7=up-left
 void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
-    int view_num=chinf->view;
-    int want_horiz=1,useloop = 1,no_diagonal=0;
-    fixed xpmove = cmls->xpermove[cmls->onstage];
-    fixed ypmove = cmls->ypermove[cmls->onstage];
+    const fixed xpmove = cmls->xpermove[cmls->onstage];
+    const fixed ypmove = cmls->ypermove[cmls->onstage];
 
     // if not moving, do nothing
     if ((xpmove == 0) && (ypmove == 0))
         return;
 
-    no_diagonal = useDiagonal (chinf);
-
-    // Different logic for 2.x.
-    if (loaded_game_file_version <= kGameVersion_272)
-    {
-        bool can_right = ((views[chinf->view].numLoops >= 3) && (views[chinf->view].loops[2].numFrames > 0));
-        bool can_left = ((views[chinf->view].numLoops >= 2) && (views[chinf->view].loops[1].numFrames > 0));
-
-        if (abs(ypmove) < abs(xpmove))
-        {
-            if (!can_left && !can_right)
-                useloop = 0;
-            else if (can_right && (xpmove >= 0)) {
-                useloop=2;
-                CHECK_DIAGONAL(ypmove, xpmove, 5, 4)
-            }
-            else if (can_left && (xpmove < 0)) {
-                useloop=1;
-                CHECK_DIAGONAL(ypmove, xpmove,7,6)
-            }
-        }
-        else
-        {
-            if (ypmove>=0) {
-                useloop=0;
-                CHECK_DIAGONAL(xpmove ,ypmove ,6,4)
-            }
-            else if (ypmove<0) {
-                useloop=3;
-                CHECK_DIAGONAL(xpmove, ypmove,7,5)
-            }
-        }
-    }
-    else
-    {
-        if (hasUpDownLoops(chinf) == 0)
-            want_horiz = 1;
-        else if (abs(ypmove) > abs(xpmove))
-            want_horiz = 0;
-
-        if ((want_horiz==1) && (xpmove > 0)) {
-            // right
-            useloop=2;
-            // diagonal up-right/down-right
-            CHECK_DIAGONAL(ypmove,xpmove,5,4)
-        }
-        else if ((want_horiz==1) && (xpmove <= 0)) {
-            // left
-            useloop=1;
-            // diagonal up-left/down-left
-            CHECK_DIAGONAL(ypmove,xpmove,7,6)
-        }
-        else if (ypmove < 0) {
-            // up
-            useloop=3;
-            // diagonal up-left/up-right
-            CHECK_DIAGONAL(xpmove,ypmove,7,5)
-        }
-        else {
-            // down
-            useloop=0;
-            // diagonal down-left/down-right
-            CHECK_DIAGONAL(xpmove,ypmove,6,4)
-        }
-    }
+    const int useloop = GetDirectionalLoop(chinf, xpmove, ypmove);
 
     if ((game.options[OPT_ROTATECHARS] == 0) || ((chinf->flags & CHF_NOTURNING) != 0)) {
         chinf->loop = useloop;
         return;
     }
-    if ((chinf->loop > 3) && ((chinf->flags & CHF_NODIAGONAL)!=0)) {
+    if ((chinf->loop > kDirLoop_LastOrtogonal) && ((chinf->flags & CHF_NODIAGONAL)!=0)) {
         // They've just been playing an animation with an extended loop number,
         // so don't try and rotate using it
         chinf->loop = useloop;
@@ -1752,6 +1685,7 @@ void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
             chinf->loop = useloop;
             return;
     }
+    const int no_diagonal = useDiagonal (chinf);
     start_character_turning (chinf, useloop, no_diagonal);
 }
 
@@ -1896,7 +1830,7 @@ void find_nearest_walkable_area (int *xx, int *yy) {
 void FindReasonableLoopForCharacter(CharacterInfo *chap) {
 
     if (chap->loop >= views[chap->view].numLoops)
-        chap->loop=0;
+        chap->loop=kDirLoop_Default;
     if (views[chap->view].numLoops < 1)
         quitprintf("!View %d does not have any loops", chap->view + 1);
 

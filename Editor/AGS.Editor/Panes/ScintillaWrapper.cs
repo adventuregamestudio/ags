@@ -10,6 +10,7 @@ using System.Data;
 using System.Text;
 using System.Windows.Forms;
 using AGS.Types.Interfaces;
+using System.Runtime.InteropServices;
 
 namespace AGS.Editor
 {
@@ -556,7 +557,14 @@ namespace AGS.Editor
         public bool CanPaste()
         {
             //return this.scintillaControl1.CanPaste;
-            return Clipboard.ContainsText();
+            try
+            {
+                return Clipboard.ContainsText();
+            }
+            catch (ExternalException)
+            {
+                return false;
+            }
         }
 
         public void Paste()

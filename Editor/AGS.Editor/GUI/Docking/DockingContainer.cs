@@ -28,7 +28,7 @@ namespace AGS.Editor
         public new void Refresh()
         {
             PerformUglyDockHack();
-            base.Refresh();
+            base.Invalidate();
         }
 
         public void InitScriptIfNeeded<TState>(Action<TState> action, TState state)
@@ -93,8 +93,8 @@ namespace AGS.Editor
         {
             //Ugly Hack for a scenario when moving from floating to document dock, and the panel
             //dock is changed.
-            _panel.Dock = DockStyle.Bottom;
-            _panel.Dock = DockStyle.Fill;            
+            _panel.SuspendLayout();
+            _panel.ResumeLayout();
         }
     }
 }

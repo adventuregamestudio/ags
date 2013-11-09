@@ -339,7 +339,10 @@ DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, int x_diff, int y_diff
                                 ((chview.numLoops > kDirLoop_Right) && (chview.loops[kDirLoop_Right].numFrames > 0));
     const bool has_diagonal_loops = useDiagonal(chinfo) == 0; // NOTE: useDiagonal returns 0 for "true"
 
-    const bool want_horizontal = (abs(y_diff) < abs(x_diff)) || new_version && (!has_down_loop || !has_up_loop);
+    const bool want_horizontal = (abs(y_diff) < abs(x_diff)) ||
+        new_version && (!has_down_loop || !has_up_loop) ||
+        // NOTE: <= 2.72 games switch to horizontal loops only if both vertical ones are missing
+        !new_version && (!has_down_loop && !has_up_loop);
     if (want_horizontal)
     {
         const bool want_diagonal = has_diagonal_loops && (abs(y_diff) > abs(x_diff) / 2);
@@ -361,7 +364,7 @@ DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, int x_diff, int y_diff
     else
     {
         const bool want_diagonal = has_diagonal_loops && (abs(x_diff) > abs(y_diff) / 2);
-        if (y_diff > 0)
+        if (y_diff > 0 || !has_up_loop)
         {
             next_loop = want_diagonal ? (x_diff < 0 ? kDirLoop_DownLeft : kDirLoop_DownRight) :
                 kDirLoop_Down;

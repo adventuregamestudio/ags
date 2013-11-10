@@ -365,6 +365,69 @@ int find_max_supported_uniform_multiplier(const Size &base_size, const int color
     return least_supported_multiplier;
 }
 
+int find_supported_resolution_width(const Size &ideal_size, int color_depth, int width_range_allowed)
+{
+    // Temporary hack for incomplete OpenGL driver (always returns ideal width)
+    if (strcmp(gfxDriver->GetDriverID(), "OGL") == 0)
+    {
+        return ideal_size.Width;
+    }
+
+    IGfxModeList *modes = gfxDriver->GetSupportedModeList(color_depth);
+    if (!modes)
+    {
+        Out::FPrint("Couldn't get a list of supported resolutions");
+        return 0;
+    }
+
+    int ideal_width_scaled = ideal_size.Width;
+    int ideal_height_scaled = ideal_size.Height;
+    filter->GetRealResolution(&ideal_width_scaled, &ideal_height_scaled);
+    const int filter_factor = ideal_width_scaled / ideal_size.Width;
+    const int max_width_diff = width_range_allowed * filter_factor;
+
+    int nearest_width = 0;
+    int mode_count = modes->GetModeCount();
+    DisplayResolution mode;
+    for (int i = 0; i < mode_count; ++i)
+    {
+        if (!modes->GetMode(i, mode))
+        {
+            continue;
+        }
+        if (mode.ColorDepth != color_depth)
+        {
+            continue;
+        }
+
+        if (mode.Height == ideal_height_scaled)
+        {
+            if (mode.Width == ideal_width_scaled)
+            {
+                nearest_width = mode.Width;
+                break;
+            }
+
+            const int mode_diff    = abs(mode.Width - ideal_width_scaled);
+            const int nearest_diff = abs(nearest_width - ideal_width_scaled);
+            if (mode_diff <= max_width_diff &&
+                (mode_diff < nearest_diff ||
+                 mode_diff == nearest_diff && mode.Width > nearest_diff))
+            {
+                nearest_width = mode.Width;
+            }
+        }
+    }
+
+    delete modes;
+
+    if (nearest_width == 0)
+    {
+        Out::FPrint("Couldn't find acceptable supported resolution");
+    }
+    return nearest_width / filter_factor;
+}
+
 String get_maximal_supported_scaling_filter()
 {
     Out::FPrint("Detecting maximal supported scaling");
@@ -504,35 +567,31 @@ int try_widescreen_bordered_graphics_mode_if_appropriate(int initasx, int initas
     int desktopWidth, desktopHeight;
     if (get_desktop_resolution(&desktopWidth, &desktopHeight) == 0)
     {
-        int gameHeight = initasy;
+        const int game_width  = initasx;
+        const int game_height = initasy;
+        const int desktop_ratio = (desktopHeight << 10) / desktopWidth;
+        const int game_ratio    = (game_height << 10) / game_width;
 
-        int screenRatio = (desktopWidth * 1000) / desktopHeight;
-        int gameRatio = (initasx * 1000) / gameHeight;
-        // 1250 = 1280x1024 
-        // 1333 = 640x480, 800x600, 1024x768, 1152x864, 1280x960
-        // 1600 = 640x400, 960x600, 1280x800, 1680x1050
-        // 1666 = 1280x768
+        Out::FPrint("Widescreen side borders: game resolution: %d x %d; desktop resolution: %d x %d", game_width, game_height, desktopWidth, desktopHeight);
 
-        Out::FPrint("Widescreen side borders: game resolution: %d x %d; desktop resolution: %d x %d", initasx, gameHeight, desktopWidth, desktopHeight);
-
-        if ((screenRatio > 1500) && (gameRatio < 1500))
+        if (desktop_ratio < game_ratio)
         {
-            int tryWidth = (initasx * screenRatio) / gameRatio;
-            int supportedRes = gfxDriver->FindSupportedResolutionWidth(tryWidth, gameHeight, firstDepth, 110);
+            int tryWidth = (game_height << 10) / desktop_ratio;
+            int supportedRes = find_supported_resolution_width(Size(tryWidth, game_height), firstDepth, 110);
             if (supportedRes > 0)
             {
                 tryWidth = supportedRes;
-                Out::FPrint("Widescreen side borders: enabled, attempting resolution %d x %d", tryWidth, gameHeight);
+                Out::FPrint("Widescreen side borders: enabled, attempting resolution %d x %d", tryWidth, game_height);
             }
             else
             {
-                Out::FPrint("Widescreen side borders: gfx card does not support suitable resolution. will attempt %d x %d anyway", tryWidth, gameHeight);
+                Out::FPrint("Widescreen side borders: gfx card does not support suitable resolution. Will attempt %d x %d anyway", tryWidth, game_height);
             }
-            failed = init_gfx_mode(tryWidth, gameHeight, firstDepth);
+            failed = init_gfx_mode(tryWidth, game_height, firstDepth);
         }
         else
         {
-            Out::FPrint("Widescreen side borders: disabled (not necessary, game and desktop aspect ratios match)", initasx, gameHeight, desktopWidth, desktopHeight);
+            Out::FPrint("Widescreen side borders: disabled (not necessary, game and desktop aspect ratios match)", game_width, game_height, desktopWidth, desktopHeight);
         }
     }
     else 

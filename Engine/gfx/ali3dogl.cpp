@@ -402,7 +402,6 @@ public:
   virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual IGfxModeList *GetSupportedModeList(int color_depth);
-  virtual int  FindSupportedResolutionWidth(int idealWidth, int height, int colDepth, int widthRangeAllowed);
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
   virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
@@ -576,11 +575,6 @@ void OGLGraphicsDriver::Vsync()
 bool OGLGraphicsDriver::IsModeSupported(int width, int height, int colDepth)
 {
   return true;
-}
-
-int OGLGraphicsDriver::FindSupportedResolutionWidth(int idealWidth, int height, int colDepth, int widthRangeAllowed)
-{
-  return idealWidth;
 }
 
 bool OGLGraphicsDriver::SupportsGammaControl() 

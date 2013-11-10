@@ -179,7 +179,6 @@ public:
   virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual IGfxModeList *GetSupportedModeList(int color_depth);
-  virtual int  FindSupportedResolutionWidth(int idealWidth, int height, int colDepth, int widthRangeAllowed);
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _callback = callback; }
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
   virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
@@ -301,42 +300,6 @@ IGfxModeList *ALSoftwareGraphicsDriver::GetSupportedModeList(int color_depth)
     return NULL;
   }
   return new ALSoftwareGfxModeList(_gfxModeList);
-}
-
-int ALSoftwareGraphicsDriver::FindSupportedResolutionWidth(int idealWidth, int height, int colDepth, int widthRangeAllowed)
-{
-  if (_gfxModeList == NULL)
-  {
-    _gfxModeList = get_gfx_mode_list(GetAllegroGfxDriverID(false));
-  }
-  if (_gfxModeList != NULL)
-  {
-    int unfilteredWidth = idealWidth;
-    _filter->GetRealResolution(&idealWidth, &height);
-    int filterFactor = idealWidth / unfilteredWidth;
-
-    int nearestWidthFound = 0;
-
-    for (int i = 0; i < _gfxModeList->num_modes; i++)
-    {
-      if ((_gfxModeList->mode[i].height == height) &&
-          (_gfxModeList->mode[i].bpp == colDepth))
-      {
-        if (_gfxModeList->mode[i].width == idealWidth)
-          return idealWidth / filterFactor;
-
-        if (abs(_gfxModeList->mode[i].width - idealWidth) <
-            abs(nearestWidthFound - idealWidth))
-        {
-          nearestWidthFound = _gfxModeList->mode[i].width;
-        }
-      }
-    }
-
-    if (abs(nearestWidthFound - idealWidth) <= widthRangeAllowed * filterFactor)
-      return nearestWidthFound / filterFactor;
-  }
-  return 0;
 }
 
 int ALSoftwareGraphicsDriver::GetAllegroGfxDriverID(bool windowed)

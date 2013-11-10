@@ -283,7 +283,6 @@ public:
   virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual IGfxModeList *GetSupportedModeList(int color_depth);
-  virtual int  FindSupportedResolutionWidth(int idealWidth, int height, int colDepth, int widthRangeAllowed);
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
   virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
@@ -645,47 +644,6 @@ bool D3DGraphicsDriver::IsModeSupported(int width, int height, int colDepth)
 
   strcpy(allegro_error, "The requested adapter mode is not supported");
   return false;
-}
-
-int D3DGraphicsDriver::FindSupportedResolutionWidth(int idealWidth, int height, int colDepth, int widthRangeAllowed)
-{
-  if (!EnsureDirect3D9IsCreated())
-    return 0;
-
-  int unfilteredWidth = idealWidth;
-  _filter->GetRealResolution(&idealWidth, &height);
-  int filterFactor = idealWidth / unfilteredWidth;
-
-  D3DFORMAT pixelFormat = color_depth_to_d3d_format(colDepth, false);
-  D3DDISPLAYMODE displayMode;
-
-  int nearestWidthFound = 0;
-  int modeCount = direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, pixelFormat);
-  for (int i = 0; i < modeCount; i++)
-  {
-    if (FAILED(direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, pixelFormat, i, &displayMode)))
-    {
-      strcpy(allegro_error, "IDirect3D9::EnumAdapterModes failed");
-      return 0;
-    }
-
-    if (displayMode.Height == height)
-    {
-      if (displayMode.Width == idealWidth)
-        return idealWidth / filterFactor;
-
-      if (abs(displayMode.Width - idealWidth) <
-          abs(nearestWidthFound - idealWidth))
-      {
-        nearestWidthFound = displayMode.Width;
-      }
-    }
-  }
-
-  if (abs(nearestWidthFound - idealWidth) <= widthRangeAllowed * filterFactor)
-    return nearestWidthFound / filterFactor;
-
-  return 0;
 }
 
 bool D3DGraphicsDriver::SupportsGammaControl() 

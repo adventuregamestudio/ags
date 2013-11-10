@@ -349,9 +349,17 @@ void main_set_gamedir(int argc,char*argv[])
 
 #if defined(WINDOWS_VERSION)
 #include <new.h>
+
+#ifndef _DEBUG
+extern void CreateMiniDump( EXCEPTION_POINTERS* pep );
+#endif
+
 char tempmsg[100];
 char*printfworkingspace;
 int malloc_fail_handler(size_t amountwanted) {
+#ifndef _DEBUG
+  CreateMiniDump(NULL);
+#endif
   free(printfworkingspace);
   sprintf(tempmsg,"Out of memory: failed to allocate %ld bytes (at PP=%d)",amountwanted, our_eip);
   quit(tempmsg);

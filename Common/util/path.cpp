@@ -74,11 +74,13 @@ String MakeAbsolutePath(const String &path)
     }
     String abs_path = path;
 #if defined (WINDOWS_VERSION)
-    char long_path_buffer[MAX_PATH];
-    if (GetLongPathNameA(path, long_path_buffer, MAX_PATH) > 0)
-    {
-        abs_path = long_path_buffer;
-    }
+    // NOTE: cannot use long path names in the engine, because it does not have unicode strings support
+    //
+    //char long_path_buffer[MAX_PATH];
+    //if (GetLongPathNameA(path, long_path_buffer, MAX_PATH) > 0)
+    //{
+    //    abs_path = long_path_buffer;
+    //}
 #elif defined (PSP_VERSION)
     // FIXME: Properly construct a full PSP path
     return path;

@@ -36,7 +36,7 @@ PIXEL_SHADER_LEGACY     DATA                    "tintshaderLegacy.fxo"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,3,0,1146
+ FILEVERSION 3,3,0,1148
  PRODUCTVERSION 1,0,0,1
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -55,7 +55,7 @@ BEGIN
             VALUE "Comments", "This game was created using AGS - http://www.adventuregamestudio.co.uk/"
             VALUE "CompanyName", "AGS Engine by Chris Jones et al.        "
             VALUE "FileDescription", "Adventure Game Studio run-time engine   "
-            VALUE "FileVersion", "3.3.0.1146"
+            VALUE "FileVersion", "3.3.0.1148"
             VALUE "InternalName", "acwin"
             VALUE "LegalCopyright", "AGS Copyright (c) 1999-2010 Chris Jones and 2011-2013 others."
             VALUE "OriginalFilename", "acwin.exe"

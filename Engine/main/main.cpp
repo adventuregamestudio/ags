@@ -34,12 +34,16 @@
 #include "platform/base/agsplatformdriver.h"
 #include "ac/route_finder.h"
 #include "core/assetmanager.h"
+#include "util/directory.h"
+#include "util/path.h"
 
 #ifdef _DEBUG
 #include "test/test_all.h"
 #endif
 
-namespace Out = Common::Out;
+namespace Directory = AGS::Common::Directory;
+namespace Out       = AGS::Common::Out;
+namespace Path      = AGS::Common::Path;
 
 char appDirectory[512]; // Needed for library loading
 
@@ -59,9 +63,8 @@ LPWSTR *wArgv;
 
 #endif
 
-#ifndef WINDOWS_VERSION
-char **global_argv = 0;
-#endif
+char **global_argv = NULL;
+int    global_argc = 0;
 
 
 extern GameSetup usetup;
@@ -169,9 +172,9 @@ int main_preprocess_cmdline(int argc,char*argv[])
         platform->DisplayAlert("CommandLineToArgvW failed, unable to start the game.");
         return 9;
     }
-#else
-    global_argv = argv;
 #endif
+    global_argv = argv;
+    global_argc = argc;
     return RETURN_CONTINUE;
 }
 
@@ -305,23 +308,20 @@ void main_init_crt_report()
 #endif
 }
 
-void change_to_directory_of_file(LPCWSTR fileName)
+void change_to_directory_of_file(String path)
 {
-    WCHAR wcbuffer[MAX_PATH];
-    StrCpyW(wcbuffer, fileName);
-
-#if defined (WINDOWS_VERSION)
-    LPWSTR backSlashAt = StrRChrW(wcbuffer, NULL, L'\\');
-    if (backSlashAt != NULL) {
-        wcbuffer[wcslen(wcbuffer) - wcslen(backSlashAt)] = L'\0';
-        SetCurrentDirectoryW(wcbuffer);
+    if (Path::IsFile(path))
+    {
+        int slash_at = path.FindCharReverse('/');
+        if (slash_at > 0)
+        {
+            path.ClipMid(slash_at);
+        }
     }
-#else
-    if (strrchr(wcbuffer, '/') != NULL) {
-        strrchr(wcbuffer, '/')[0] = 0;
-        chdir(wcbuffer);
+    if (Path::IsDirectory(path))
+    {
+        Directory::SetCurrentDirectory(path);
     }
-#endif
 }
 
 void main_set_gamedir(int argc,char*argv[])
@@ -330,7 +330,7 @@ void main_set_gamedir(int argc,char*argv[])
     {
         // When launched by double-clicking a save game file, the curdir will
         // be the save game folder unless we correct it
-        change_to_directory_of_file(wArgv[0]);
+        change_to_directory_of_file(GetPathFromCmdArg(0));
     }
 
     getcwd(appDirectory, 512);
@@ -339,12 +339,41 @@ void main_set_gamedir(int argc,char*argv[])
     if (datafile_argv > 0) {
         // If launched by double-clicking .AGS file, change to that
         // folder; else change to this exe's folder
-        change_to_directory_of_file(wArgv[datafile_argv]);
+        change_to_directory_of_file(GetPathFromCmdArg(datafile_argv));
     }
 
 #ifdef MAC_VERSION
     getcwd(dataDirectory, 512);
 #endif
+}
+
+String GetPathFromCmdArg(int arg_index)
+{
+    if (arg_index < 0 || arg_index >= global_argc)
+    {
+        return "";
+    }
+
+    String path;
+#if defined (WINDOWS_VERSION)
+    // Hack for Windows in case there are unicode chars in the path.
+    // The normal argv[] array has ????? instead of the unicode chars
+    // and fails, so instead we manually get the short file name, which
+    // is always using ANSI chars.
+    WCHAR short_path[MAX_PATH];
+    char ansi_buffer[MAX_PATH];
+    LPCWSTR arg_path = wArgv[arg_index];
+    if (GetShortPathNameW(arg_path, short_path, MAX_PATH) == 0)
+    {
+        platform->DisplayAlert("Unable to determine path: GetShortPathNameW failed.\nCommand line argument %i: %s", arg_index, global_argv[arg_index]);
+        return "";
+    }
+    WideCharToMultiByte(CP_ACP, 0, short_path, -1, ansi_buffer, MAX_PATH, NULL, NULL);
+    path = ansi_buffer;
+#else
+    path = global_argv[arg_index];
+#endif
+    return Path::MakeAbsolutePath(path);
 }
 
 #if defined(WINDOWS_VERSION)

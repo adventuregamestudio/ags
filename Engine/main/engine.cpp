@@ -66,10 +66,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 namespace Path = AGS::Common::Path;
 namespace Out = AGS::Common::Out;
 
-#ifndef WINDOWS_VERSION
-extern char **global_argv;
-#endif
-
 extern char check_dynamic_sprites_at_exit;
 extern int our_eip;
 extern volatile char want_exit, abort_engine;
@@ -217,34 +213,10 @@ void engine_force_window()
 void init_game_file_name_from_cmdline()
 {
     game_file_name.Empty();
-#ifdef WINDOWS_VERSION
-    WCHAR buffer[MAX_PATH];
-    WCHAR directoryPathBuffer[MAX_PATH];
-    LPCWSTR dataFilePath = wArgv[datafile_argv];
-    // Hack for Windows in case there are unicode chars in the path.
-    // The normal argv[] array has ????? instead of the unicode chars
-    // and fails, so instead we manually get the short file name, which
-    // is always using ANSI chars.
-    if (wcschr(dataFilePath, '\\') == NULL)
-    {
-        GetCurrentDirectoryW(MAX_PATH, buffer);
-        wcscat(buffer, L"\\");
-        wcscat(buffer, dataFilePath);
-        dataFilePath = &buffer[0];
-    }
-    if (GetShortPathNameW(dataFilePath, directoryPathBuffer, MAX_PATH) == 0)
-    {
-        platform->DisplayAlert("Unable to determine startup path: GetShortPathNameW failed. The specified game file might be missing.");
-        return;
-    }
-    char *buf = new char[MAX_PATH];
-    WideCharToMultiByte(CP_ACP, 0, directoryPathBuffer, -1, buf, MAX_PATH, NULL, NULL);
-    game_file_name = buf;
-    delete [] buf;
-#elif defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
+#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
     game_file_name = psp_game_file_name;
 #else
-    game_file_name = global_argv[datafile_argv];
+    game_file_name = GetPathFromCmdArg(datafile_argv);
 #endif
 }
 

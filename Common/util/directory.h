@@ -21,7 +21,9 @@
 #include "util/string.h"
 
 #if defined (WINDOWS_VERSION)
-#undef GetCurrentDirectory  // undef the declaration from winbase.h
+// undef the declarations from winbase.h
+#undef SetCurrentDirectory
+#undef GetCurrentDirectory
 #endif
 
 namespace AGS

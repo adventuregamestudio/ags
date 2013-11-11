@@ -34,20 +34,12 @@ extern AGS::Engine::Version SavedgameLowestForwardCompatVersion;
 //=============================================================================
 
 #ifdef WINDOWS_VERSION
-
 extern int wArgc;
 extern LPWSTR *wArgv;
-
-#else
-
-#define wArgc argc
-#define wArgv argv
-#define LPWSTR char*
-#define LPCWSTR const char*
-#define WCHAR char
-#define StrCpyW strcpy
-
 #endif
+extern char **global_argv;
+
+AGS::Common::String GetPathFromCmdArg(int arg_index);
 
 // Startup flags, set from parameters to engine
 extern int datafile_argv, change_to_game_dir, force_window;

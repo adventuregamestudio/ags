@@ -239,6 +239,17 @@ void quit_delete_temp_files()
     al_findclose (&dfb);
 }
 
+void free_globals()
+{
+#if defined (WINDOWS_VERSION)
+    if (wArgv)
+    {
+        LocalFree(wArgv);
+        wArgv = NULL;
+    }
+#endif
+}
+
 // TODO: move to test unit
 extern Bitmap *test_allegro_bitmap;
 extern IDriverDependantBitmap *test_allegro_ddb;
@@ -331,6 +342,7 @@ void quit(const char *quitmsg) {
     Out::FPrint("***** ENGINE HAS SHUTDOWN");
 
     shutdown_debug_system();
+    free_globals();
 
     our_eip = 9904;
     exit(EXIT_NORMAL);

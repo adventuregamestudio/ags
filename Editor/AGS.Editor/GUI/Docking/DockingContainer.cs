@@ -28,7 +28,7 @@ namespace AGS.Editor
         public new void Refresh()
         {
             PerformUglyDockHack();
-            base.Invalidate();
+            base.Refresh();
         }
 
         public void InitScriptIfNeeded<TState>(Action<TState> action, TState state)

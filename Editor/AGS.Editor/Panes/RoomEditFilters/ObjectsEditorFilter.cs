@@ -55,16 +55,17 @@ namespace AGS.Editor
 		public bool KeyPressed(Keys key)
 		{
             if (_selectedObject == null) return false;
+            int step = GetArrowMoveStepSize();
             switch (key)
             {
                 case Keys.Right:
-                    return MoveObject(_selectedObject.StartX + 1, _selectedObject.StartY);                    
+                    return MoveObject(_selectedObject.StartX + step, _selectedObject.StartY);                    
                 case Keys.Left:
-                    return MoveObject(_selectedObject.StartX - 1, _selectedObject.StartY);                    
+                    return MoveObject(_selectedObject.StartX - step, _selectedObject.StartY);                    
                 case Keys.Down:
-                    return MoveObject(_selectedObject.StartX, _selectedObject.StartY + 1);
+                    return MoveObject(_selectedObject.StartX, _selectedObject.StartY + step);
                 case Keys.Up:
-                    return MoveObject(_selectedObject.StartX, _selectedObject.StartY - 1);                    
+                    return MoveObject(_selectedObject.StartX, _selectedObject.StartY - step);                    
             }
             return false;
 		}
@@ -364,10 +365,20 @@ namespace AGS.Editor
             return true;            
         }
 
+        private bool IsHighResGameWithLowResScript()
+        {
+            return (Factory.AGSEditor.CurrentGame.IsHighResolution) &&
+                (Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript);
+        }
+
+        private int GetArrowMoveStepSize()
+        {
+            return IsHighResGameWithLowResScript() ? 2 : 1;
+        }
+
         private int SetObjectCoordinate(int newCoord)
         {
-            if ((Factory.AGSEditor.CurrentGame.IsHighResolution) &&
-                (Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript))
+            if (IsHighResGameWithLowResScript())
             {
                 // Round co-ordinate to nearest even number to reflect what
                 // will happen in the engine

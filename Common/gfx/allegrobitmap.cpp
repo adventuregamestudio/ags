@@ -142,7 +142,7 @@ bool Bitmap::LoadFromFile(const char *filename)
 		_alBitmap = al_bmp;
         _isDataOwner = true;
 	}
-	return NULL;
+	return _alBitmap != NULL;
 }
 
 bool Bitmap::SaveToFile(const char *filename, const void *palette)

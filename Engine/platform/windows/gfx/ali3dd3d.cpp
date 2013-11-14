@@ -28,8 +28,11 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
+#include "main/main_allegro.h"
+#include "util/string.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::String;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using namespace AGS; // FIXME later
 
@@ -347,7 +350,7 @@ private:
   GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
   int _tint_red, _tint_green, _tint_blue;
   CUSTOMVERTEX defaultVertices[4];
-  char previousError[ALLEGRO_ERROR_SIZE];
+  String previousError;
   IDirect3DPixelShader9* pixelShader;
   bool _smoothScaling;
   bool _legacyPixelShader;
@@ -420,7 +423,6 @@ D3DGraphicsDriver::D3DGraphicsDriver(D3DGFXFilter *filter)
   _screenTintSprite.x = 0;
   _screenTintSprite.y = 0;
   pixelShader = NULL;
-  previousError[0] = 0;
   _legacyPixelShader = false;
   set_up_default_vertices();
 }
@@ -480,7 +482,7 @@ bool D3DGraphicsDriver::EnsureDirect3D9IsCreated()
    d3dlib = LoadLibrary("d3d9.dll");
    if (d3dlib == NULL) 
    {
-     strcpy(allegro_error, "Direct3D is not installed");
+     set_allegro_error("Direct3D is not installed");
      return false;
    }
 
@@ -489,7 +491,7 @@ bool D3DGraphicsDriver::EnsureDirect3D9IsCreated()
    {
      FreeLibrary(d3dlib);
      d3dlib = NULL;
-     strcpy(allegro_error, "Entry point not found in d3d9.dll");
+     set_allegro_error("Entry point not found in d3d9.dll");
      return false;
    }
 
@@ -497,7 +499,7 @@ bool D3DGraphicsDriver::EnsureDirect3D9IsCreated()
    if (direct3d == NULL) {
      FreeLibrary(d3dlib);
      d3dlib = NULL;
-     strcpy(allegro_error, "Direct3DCreate failed!");
+     set_allegro_error("Direct3DCreate failed!");
      return false;
    }
 
@@ -508,12 +510,12 @@ void D3DGraphicsDriver::initD3DDLL()
 {
    if (!EnsureDirect3D9IsCreated())
    {
-     throw Ali3DException(allegro_error);
+     throw Ali3DException(get_allegro_error());
    }
 
    if (!IsModeSupported(_newmode_screen_width, _newmode_screen_height, _newmode_depth))
    {
-     throw Ali3DException(allegro_error);
+     throw Ali3DException(get_allegro_error());
    }
 
    _enter_critical();
@@ -525,7 +527,7 @@ void D3DGraphicsDriver::initD3DDLL()
      direct3d = NULL;
      FreeLibrary(d3dlib);
      d3dlib = NULL;
-     throw Ali3DException(allegro_error);
+     throw Ali3DException(get_allegro_error());
    }
 
    // The display mode has been set up successfully, save the
@@ -632,7 +634,7 @@ bool D3DGraphicsDriver::IsModeSupported(int width, int height, int colDepth)
   {
     if (FAILED(direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, pixelFormat, i, &displayMode)))
     {
-      strcpy(allegro_error, "IDirect3D9::EnumAdapterModes failed");
+      set_allegro_error("IDirect3D9::EnumAdapterModes failed");
       return false;
     }
 
@@ -642,7 +644,7 @@ bool D3DGraphicsDriver::IsModeSupported(int width, int height, int colDepth)
     }
   }
 
-  strcpy(allegro_error, "The requested adapter mode is not supported");
+  set_allegro_error("The requested adapter mode is not supported");
   return false;
 }
 
@@ -781,10 +783,10 @@ int D3DGraphicsDriver::_initDLLCallback()
                       &d3dpp, &direct3ddevice);
   if (hr != D3D_OK)
   {
-    if (previousError[0] != 0)
-      sprintf(allegro_error, previousError);
+    if (!previousError.IsEmpty())
+      set_allegro_error(previousError);
     else
-      sprintf(allegro_error, "Failed to create Direct3D Device: 0x%08X", hr);
+      set_allegro_error("Failed to create Direct3D Device: 0x%08X", hr);
     return -1;
   }
 
@@ -794,7 +796,7 @@ int D3DGraphicsDriver::_initDLLCallback()
     {
       direct3ddevice->Release();
       direct3ddevice = NULL;
-      ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Window size not supported"));
+      set_allegro_error("Window size not supported");
       return -1;
     }
   }
@@ -816,8 +818,8 @@ int D3DGraphicsDriver::_initDLLCallback()
   {
     direct3ddevice->Release();
     direct3ddevice = NULL;
-    usprintf(allegro_error, "Graphics card does not support Pixel Shader %d.%d", requiredPSMajorVersion, requiredPSMinorVersion);
-    strcpy(previousError, allegro_error);
+    previousError = 
+        set_allegro_error("Graphics card does not support Pixel Shader %d.%d", requiredPSMajorVersion, requiredPSMinorVersion);
     return -1;
   }
 
@@ -836,8 +838,7 @@ int D3DGraphicsDriver::_initDLLCallback()
       {
         direct3ddevice->Release();
         direct3ddevice = NULL;
-        sprintf(allegro_error, "Failed to create pixel shader: 0x%08X", hr);
-        strcpy(previousError, allegro_error);
+        previousError = set_allegro_error("Failed to create pixel shader: 0x%08X", hr);
         return -1;
       }
       UnlockResource(hGlobal);
@@ -848,8 +849,7 @@ int D3DGraphicsDriver::_initDLLCallback()
   {
     direct3ddevice->Release();
     direct3ddevice = NULL;
-    sprintf(allegro_error, "Failed to load pixel shader resource");
-    strcpy(previousError, allegro_error);
+    previousError = set_allegro_error("Failed to load pixel shader resource");
     return -1;
   }
 
@@ -861,8 +861,7 @@ int D3DGraphicsDriver::_initDLLCallback()
   {
     direct3ddevice->Release();
     direct3ddevice = NULL;
-    ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Failed to create vertex buffer"));
-    strcpy(previousError, allegro_error);
+    previousError = set_allegro_error("Failed to create vertex buffer");
     return -1;
   }
 
@@ -1000,7 +999,7 @@ bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
 {
   if (colourDepth < 15)
   {
-    ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Direct3D driver does not support 256-colour games"));
+    set_allegro_error("Direct3D driver does not support 256-colour games");
     return false;
   }
 
@@ -1022,8 +1021,8 @@ bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
   }
   catch (Ali3DException exception)
   {
-    if (exception._message != allegro_error)
-      ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text(exception._message));
+    if (exception._message != get_allegro_error())
+      set_allegro_error(exception._message);
     return false;
   }
   // create dummy screen bitmap

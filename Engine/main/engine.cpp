@@ -47,6 +47,7 @@
 #include "main/graphics_mode.h"
 #include "main/engine.h"
 #include "main/main.h"
+#include "main/main_allegro.h"
 #include "media/audio/sound.h"
 #include "ac/spritecache.h"
 #include "util/filestream.h"
@@ -641,7 +642,7 @@ void engine_init_sound()
             if ((usetup.digicard != DIGI_NONE) && (usetup.midicard != MIDI_NONE)) {
                 // only flag an error if they wanted a sound card
                 platform->DisplayAlert("\nUnable to initialize your audio hardware.\n"
-                    "[Problem: %s]\n",allegro_error);
+                    "[Problem: %s]\n", get_allegro_error());
             }
             reserve_voices(0,0);
             install_sound(DIGI_NONE, MIDI_NONE, NULL);

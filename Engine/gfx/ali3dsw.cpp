@@ -17,14 +17,14 @@
 //=============================================================================
 
 #include <allegro.h>
+#include <stdio.h>
 #include "gfx/ali3d.h"
 #include "platform/base/agsplatformdriver.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
-
-#include <stdio.h>
+#include "main/main_allegro.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -283,7 +283,7 @@ bool ALSoftwareGraphicsDriver::IsModeSupported(int driver, int width, int height
         return true;
       }
     }
-    strcpy(allegro_error, "This graphics mode is not supported");
+    set_allegro_error("This graphics mode is not supported");
     return false;
   }
   return true;

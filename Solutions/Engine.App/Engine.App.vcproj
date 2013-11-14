@@ -1923,6 +1923,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\main\main_allegro.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\main\maindefines_ex.h"
 					>
 				</File>

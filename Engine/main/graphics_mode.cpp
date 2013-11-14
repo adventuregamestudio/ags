@@ -34,6 +34,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "main/main_allegro.h"
 #include "util/geometry.h"
 #include "util/math.h"
 
@@ -696,7 +697,7 @@ int engine_init_graphics_mode()
                 "Run the game setup program and try the other resolution.\n"
                 "* the graphics driver you have selected does not work. Try switching between Direct3D and DirectDraw.\n"
                 "* the graphics filter you have selected does not work. Try another filter.",
-                initasx, initasy, firstDepth, allegro_error);
+                initasx, initasy, firstDepth, get_allegro_error());
             return EXIT_NORMAL;
         }
     }

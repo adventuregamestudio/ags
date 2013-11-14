@@ -376,6 +376,20 @@ String GetPathFromCmdArg(int arg_index)
     return Path::MakeAbsolutePath(path);
 }
 
+const char *get_allegro_error()
+{
+    return allegro_error;
+}
+
+const char *set_allegro_error(const char *format, ...)
+{
+    va_list argptr;
+    va_start(argptr, format);
+    uvszprintf(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text(format), argptr);
+    va_end(argptr);
+    return allegro_error;
+}
+
 #if defined(WINDOWS_VERSION)
 #include <new.h>
 

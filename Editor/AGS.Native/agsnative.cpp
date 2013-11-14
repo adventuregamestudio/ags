@@ -2623,6 +2623,7 @@ public:
 
 void ConvertStringToCharArray(System::String^ clrString, char *textBuffer);
 void ConvertStringToCharArray(System::String^ clrString, char *textBuffer, int maxLength);
+void ConvertStringToNativeString(System::String^ clrString, Common::String &destStr);
 
 void ThrowManagedException(const char *message) 
 {
@@ -4650,7 +4651,9 @@ void serialize_room_interactions(Stream *ooo)
 
 void save_thisgame_to_file(const char *fileName, Game ^game)
 {
-	const char *AGS_VERSION = "3.3.0";
+    Common::String ags_version;
+    ConvertStringToNativeString(AGS::Types::Version::AGS_EDITOR_VERSION, ags_version);
+
   char textBuffer[500];
 	int bb;
 
@@ -4662,8 +4665,8 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
 
   ooo->Write(game_file_sig,30);
   ooo->WriteInt32(kGameVersion_Current);
-  ooo->WriteInt32(strlen(AGS_VERSION));
-  ooo->Write(AGS_VERSION, strlen(AGS_VERSION));
+  ooo->WriteInt32(ags_version.GetLength());
+  ooo->Write(ags_version, ags_version.GetLength());
 
   ooo->WriteArray(&thisgame, sizeof (GameSetupStructBase), 1);
   ooo->Write(&thisgame.guid[0], MAX_GUID_LENGTH);

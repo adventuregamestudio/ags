@@ -49,7 +49,7 @@ rebuild: clean all
 
 clean:
 	@echo "Cleaning..."
-	@rm -f ags common.a $(OBJS) $(OBJS_COMMON) $(DEPFILES)
+	@rm -f ags agsgame.log common.a $(OBJS) $(OBJS_COMMON) $(DEPFILES)
 
 install: ags
 	mkdir -p $(PREFIX)/bin

@@ -1,0 +1,17 @@
+TARGET = agswadjetutil
+include Makefile-objs
+OBJS += psp.o
+
+BUILD_PRX = 1
+PRX_EXPORTS = exports.exp
+
+INCDIR = ../../Engine ../../Common
+CFLAGS = -O2 -G0 -g -Wall -DPSP_VERSION -DPLUGIN_MODULE_NAME="\"$(TARGET)\""
+CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
+ASFLAGS = $(CFLAGS)
+LDFLAGS = -mno-crt0 -nostartfiles
+LIBS = -lm -lstdc++ -lpspmath
+LIBDIR =
+
+PSPSDK=$(shell psp-config --pspsdk-path)
+include $(PSPSDK)/lib/build.mak 

@@ -159,6 +159,27 @@ void SetFlashlightInt5(int Param1, int Param2, int Param3, int Param4, int Param
 {
 }
 
+bool wjuIsOnPhone()
+{
+  return false;
+}
+void wjuFakeKeypress(int keypress)
+{
+}
+void wjuIosSetAchievementValue(char* name, int value)
+{
+}
+int wjuIosGetAchievementValue(char* name)
+{
+  return -1;
+}
+void wjuIosShowAchievements()
+{
+}
+void wjuIosResetAchievements()
+{
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -409,6 +430,41 @@ RuntimeScriptValue Sc_SetFlashlightInt5(const RuntimeScriptValue *params, int32_
     API_SCALL_VOID_PINT5(SetFlashlightInt5);
 }
 
+// bool ()
+RuntimeScriptValue Sc_wjuIsOnPhone(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL(wjuIsOnPhone);
+}
+
+// void (int)
+RuntimeScriptValue Sc_wjuFakeKeypress(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(wjuFakeKeypress);
+}
+
+// void (char*, int)
+RuntimeScriptValue Sc_wjuIosSetAchievementValue(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_POBJ_PINT(wjuIosSetAchievementValue, char);
+}
+
+// int (char*)
+RuntimeScriptValue Sc_wjuIosGetAchievementValue(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_POBJ(wjuIosGetAchievementValue, char);
+}
+
+// void ()
+RuntimeScriptValue Sc_wjuIosShowAchievements(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(wjuIosShowAchievements);
+}
+
+// void ()
+RuntimeScriptValue Sc_wjuIosResetAchievements(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(wjuIosResetAchievements);
+}
 
 bool RegisterPluginStubs(const char* name)
 {
@@ -499,6 +555,17 @@ bool RegisterPluginStubs(const char* name)
     ccAddExternalStaticFunction("GetFlashlightCharacterVert",   Sc_GetFlashlightInt);
     ccAddExternalStaticFunction("SetFlashlightMask",            Sc_SetFlashlightInt1);
     ccAddExternalStaticFunction("GetFlashlightMask",            Sc_GetFlashlightInt);
+    return true;
+  }
+  else if (strncmp(name, "agswadjetutil", strlen("agswadjetutil")) == 0)
+  {
+    // agswadjetutil.dll
+    ccAddExternalStaticFunction("IsOnPhone",                    Sc_wjuIsOnPhone);
+    ccAddExternalStaticFunction("FakeKeypress",                 Sc_wjuFakeKeypress);
+    ccAddExternalStaticFunction("IosSetAchievementValue",       Sc_wjuIosSetAchievementValue);
+    ccAddExternalStaticFunction("IosGetAchievementValue",       Sc_wjuIosGetAchievementValue);
+    ccAddExternalStaticFunction("IosShowAchievements",          Sc_wjuIosShowAchievements);
+    ccAddExternalStaticFunction("IosResetAchievements",         Sc_wjuIosResetAchievements);
     return true;
   }
 

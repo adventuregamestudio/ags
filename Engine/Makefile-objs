@@ -53,7 +53,7 @@ else
 COMMON := $(wildcard $(addsuffix /*.cpp,$(COMMON_subdirs)))
 endif
 
-PLUGINS = ../Plugins/AGSflashlight/agsflashlight.cpp ../Plugins/agsblend/AGSBlend.cpp ../Plugins/ags_snowrain/ags_snowrain.cpp ../Plugins/ags_parallax/ags_parallax.cpp
+PLUGINS = ../Plugins/AGSflashlight/agsflashlight.cpp ../Plugins/agsblend/AGSBlend.cpp ../Plugins/ags_snowrain/ags_snowrain.cpp ../Plugins/ags_parallax/ags_parallax.cpp ../Plugins/agswadjetutil/agswadjetutil.cpp
 
 HQ2X3X = libsrc/hq2x/hq2x3x.cpp
 

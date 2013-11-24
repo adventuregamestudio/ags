@@ -1,7 +1,7 @@
 DISTRIB_NAME = AGS_Runtime_for_PSP_3.21_R9
 PSP_AGS_FOLDER = "j:/psp/game/ags"
 
-all: blend snowrain flashlight lua spritefont parallax
+all: blend snowrain flashlight lua spritefont parallax wadjetutil
 
 blend:
 	@make -C "agsblend" -f Makefile.psp
@@ -45,6 +45,13 @@ ifeq ($(COPY), 1)
 	@cp "ags_parallax/ags_parallax.prx" $(PSP_AGS_FOLDER)
 endif
 
+wadjetutil:
+	@make -f Makefile.psp -c "agswadjetutil"
+	@cp "agswadjetutil/agswadjetutil.prx" "../PSP/bin"
+ifeq ($(COPY), 1)
+	@cp "agswadjetutil/agswadjetutil.prx" $(PSP_AGS_FOLDER)
+endif
+
 cleanblend:
 	@make clean -f Makefile.psp -C "agsblend"
 	@rm -f "../PSP/bin/agsblend.prx"
@@ -69,6 +76,10 @@ cleanparallax:
 	@make clean -f Makefile.psp -C "ags_parallax"
 	@rm -f "../PSP/bin/ags_parallax.prx"
 
+cleanwadjetutil:
+	@make clean -f Makefile.psp -C "agswadjetutil"
+	@rm -f "../PSP/bin/agswadjetutil.prx"
+
 distrib:
 	@mkdir "../PSP/dist" || true
 	@mkdir "../PSP/dist/$(DISTRIB_NAME)" || true
@@ -78,6 +89,7 @@ distrib:
 	@cp "../PSP/bin/agslua.prx" "../PSP/dist/$(DISTRIB_NAME)/agslua.prx"
 	@cp "../PSP/bin/agsspritefont.prx" "../PSP/dist/$(DISTRIB_NAME)/agsspritefont.prx"
 	@cp "../PSP/bin/ags_parallax.prx" "../PSP/dist/$(DISTRIB_NAME)/ags_parallax.prx"
+	@cp "../PSP/bin/agswadjetutil.prx" "../PSP/dist/$(DISTRIB_NAME)/agswadjetutil.prx"
 	@cp "agsblend/License.txt" "../PSP/dist/$(DISTRIB_NAME)/License_AGSBlend.txt"
 
-clean: cleanblend cleansnowrain cleanflashlight cleanlua cleanspritefont cleanparallax
+clean: cleanblend cleansnowrain cleanflashlight cleanlua cleanspritefont cleanparallax cleanwadjetutil

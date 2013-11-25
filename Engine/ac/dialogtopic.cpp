@@ -21,7 +21,9 @@ void DialogTopic::ReadFromFile(Stream *in)
 {
     in->ReadArray(optionnames, 150*sizeof(char), MAXTOPICOPTIONS);
     in->ReadArrayOfInt32(optionflags, MAXTOPICOPTIONS);
-    optionscripts = (unsigned char *) in->ReadInt32();
+    // optionscripts pointer is not used anywhere in the engine
+    optionscripts = NULL;
+    in->ReadInt32(); // optionscripts 32-bit pointer
     in->ReadArrayOfInt16(entrypoints, MAXTOPICOPTIONS);
     startupentrypoint = in->ReadInt16();
     codesize = in->ReadInt16();

@@ -31,10 +31,12 @@ int mousex, mousey;
 #include "gui/guislider.h"
 #include "util/compress.h"
 #include "util/string_utils.h"    // fputstring, etc
+#include "util/alignedstream.h"
 #include "util/filestream.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 
+using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
@@ -1544,6 +1546,13 @@ void allocate_memory_for_views(int viewCount)
   }
 }
 
+void ReadGameSetupStructBase_Aligned(Stream *in)
+{
+    GameSetupStructBase *gameBase = (GameSetupStructBase *)&thisgame;
+    AlignedStream align_s(in, Common::kAligned_Read);
+    gameBase->ReadFromFile(&align_s);
+}
+
 const char *load_dta_file_into_thisgame(const char *fileName)
 {
   int bb;
@@ -1569,7 +1578,8 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   int stlen = iii->ReadInt32();
   iii->Seek(Common::kSeekCurrent, stlen);
 
-  iii->ReadArray(&thisgame, sizeof (GameSetupStructBase), 1);
+  ReadGameSetupStructBase_Aligned(iii);
+
   iii->Read(&thisgame.fontflags[0], thisgame.numfonts);
   iii->Read(&thisgame.fontoutline[0], thisgame.numfonts);
 
@@ -1591,14 +1601,14 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   numGlobalVars = iii->ReadInt32();
   iii->ReadArray (&globalvars[0], sizeof (InteractionVariable), numGlobalVars);
 
-  if (thisgame.dict != NULL) {
+  if (thisgame.load_dictionary) {
     thisgame.dict = (WordsDictionary*)malloc(sizeof(WordsDictionary));
     read_dictionary (thisgame.dict, iii);
   }
 
   thisgame.globalscript = NULL;
 
-  if (thisgame.compiled_script != NULL)
+  if (thisgame.load_compiled_script)
     thisgame.compiled_script = ccScript::CreateFromStream(iii);
 
   load_script_modules_compiled(iii);

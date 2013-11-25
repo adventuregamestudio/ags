@@ -51,17 +51,12 @@ void GameSetupStructBase::ReadFromFile(Stream *in)
     //for (i = 0; i < MAXGLOBALMES; i++)
     //  messages[i] = (char*)in->ReadInt32();
 
-    // The following pointers are used as flags at one point
-    // during game loading, therefore they are initialized with
-    // some values here. These values are never treated as
-    // actual addresses, only as boolean values.
-    // See:
-    // - GameSetupStruct::read_words_dictionary(), dict
-    // - load_game_file(), compiled_script
-    dict = (WordsDictionary *) in->ReadInt32();
+    // - GameSetupStruct::read_words_dictionary() checks load_dictionary
+    // - load_game_file() checks load_compiled_script
+    load_dictionary = in->ReadInt32() != 0;
     in->ReadInt32(); // globalscript
     in->ReadInt32(); // chars
-    compiled_script = (ccScript *) in->ReadInt32();
+    load_compiled_script = in->ReadInt32() != 0;
 }
 
 void GameSetupStructBase::WriteToFile(Stream *out)

@@ -634,7 +634,7 @@ int load_game_file() {
     game.ReadFromFile_Part1(in, read_data);
     //-----------------------------------------------------
 
-    if (game.compiled_script == NULL)
+    if (!game.load_compiled_script)
         quit("No global script in game; data load error");
 
     gamescript = ccScript::CreateFromStream(in);

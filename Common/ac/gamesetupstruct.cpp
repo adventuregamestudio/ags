@@ -228,7 +228,7 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GAME_STRUCT_R
 
 void GameSetupStruct::read_words_dictionary(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-    if (dict != NULL) {
+    if (load_dictionary) {
         dict = (WordsDictionary*)malloc(sizeof(WordsDictionary));
         read_dictionary (dict, in);
     }

@@ -38,8 +38,8 @@ struct GameSetup {
     AGS::Common::String data_files_dir;
     AGS::Common::String main_data_filename;
     char *translation;
-    char *gfxFilterID;
-    char *gfxDriverID;
+    AGS::Common::String gfxFilterID;
+    AGS::Common::String gfxDriverID;
     GameSetup();
 };
 

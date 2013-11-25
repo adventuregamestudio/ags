@@ -282,6 +282,7 @@ class D3DGraphicsDriver : public IGraphicsDriver
 public:
   virtual const char*GetDriverName() { return "Direct3D 9"; }
   virtual const char*GetDriverID() { return "D3D9"; }
+  virtual void SetGraphicsFilter(GFXFilter *filter);
   virtual void SetTintMethod(TintMethod method);
   virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer);
@@ -318,6 +319,8 @@ public:
   virtual Bitmap* GetMemoryBackBuffer() { return NULL; }
   virtual void SetMemoryBackBuffer(Bitmap *backBuffer) {  }
   virtual void SetScreenTint(int red, int green, int blue);
+
+  bool CreateDriver();
 
   // Internal
   int _initDLLCallback();
@@ -395,6 +398,11 @@ IGraphicsDriver* GetD3DGraphicsDriver(GFXFilter *filter)
     _d3d_driver->_filter = d3dfilter;
   }
 
+  if (!_d3d_driver->CreateDriver())
+  {
+      delete _d3d_driver;
+      return NULL;
+  }
   return _d3d_driver;
 }
 
@@ -465,6 +473,11 @@ void D3DGraphicsDriver::set_up_default_vertices()
   //defaultVertices[3].color=0xffffffff;
   defaultVertices[3].tu=1.0;
   defaultVertices[3].tv=1.0;
+}
+
+bool D3DGraphicsDriver::CreateDriver()
+{
+   return EnsureDirect3D9IsCreated();
 }
 
 void D3DGraphicsDriver::Vsync() 
@@ -983,6 +996,11 @@ void D3DGraphicsDriver::SetRenderOffset(int x, int y)
 {
   _global_x_offset = x;
   _global_y_offset = y;
+}
+
+void D3DGraphicsDriver::SetGraphicsFilter(GFXFilter *filter)
+{
+  _filter = (D3DGFXFilter*)filter;
 }
 
 void D3DGraphicsDriver::SetTintMethod(TintMethod method) 

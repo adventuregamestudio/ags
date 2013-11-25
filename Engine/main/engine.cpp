@@ -1431,14 +1431,13 @@ int initialize_engine(int argc,char*argv[])
 
     engine_init_modxm_player();
 
+    create_gfx_driver();
     engine_init_screen_settings();
 
     res = engine_init_gfx_filters();
     if (res != RETURN_CONTINUE) {
         return res;
     }
-
-    engine_init_gfx_driver();
 
     res = engine_init_graphics_mode();
     if (res != RETURN_CONTINUE) {

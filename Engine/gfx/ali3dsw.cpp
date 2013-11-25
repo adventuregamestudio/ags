@@ -175,6 +175,7 @@ public:
 
   virtual const char*GetDriverName() { return "Allegro/DX5"; }
   virtual const char*GetDriverID() { return "DX5"; }
+  virtual void SetGraphicsFilter(GFXFilter *filter);
   virtual void SetTintMethod(TintMethod method);
   virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer);
@@ -317,6 +318,11 @@ int ALSoftwareGraphicsDriver::GetAllegroGfxDriverID(bool windowed)
     return GFX_AUTODETECT_WINDOWED;
   return GFX_AUTODETECT_FULLSCREEN;
 #endif
+}
+
+void ALSoftwareGraphicsDriver::SetGraphicsFilter(GFXFilter *filter)
+{
+  _filter = (AllegroGFXFilter*)filter;
 }
 
 void ALSoftwareGraphicsDriver::SetTintMethod(TintMethod method) 

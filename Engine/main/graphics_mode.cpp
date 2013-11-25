@@ -305,21 +305,37 @@ int initialize_graphics_filter(const char *filterID, int width, int height, int 
     return 0;
 }
 
-void pre_create_gfx_driver(GFXFilter *set_filter) 
+void pre_create_gfx_driver()
 {
 #ifdef WINDOWS_VERSION
     if (stricmp(usetup.gfxDriverID, "D3D9") == 0)
-        gfxDriver = GetD3DGraphicsDriver(set_filter);
+    {
+        gfxDriver = GetD3DGraphicsDriver(NULL);
+        if (!gfxDriver)
+        {
+            Out::FPrint("Failed to initialize D3D9 driver: %s", get_allegro_error());
+        }
+    }
     else
 #endif
+#if defined (IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
+    if ((psp_gfx_renderer > 0) && (game.color_depth != 1))
     {
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
-        if ((psp_gfx_renderer > 0) && (game.color_depth != 1))
-            gfxDriver = GetOGLGraphicsDriver(set_filter);
-        else
-#endif
-            gfxDriver = GetSoftwareGraphicsDriver(set_filter);
+        gfxDriver = GetOGLGraphicsDriver(NULL);
+        if (!gfxDriver)
+        {
+            Out::FPrint("Failed to initialize OGL driver: %s", get_allegro_error());
+        }
     }
+#endif
+
+    if (!gfxDriver)
+    {
+        gfxDriver = GetSoftwareGraphicsDriver(NULL);
+        usetup.gfxDriverID = gfxDriver->GetDriverID();
+    }
+
+    Out::FPrint("Created graphics driver: %s", gfxDriver->GetDriverName());
 }
 
 int find_max_supported_uniform_multiplier(const Size &base_size, const int color_depth)
@@ -432,7 +448,6 @@ int find_supported_resolution_width(const Size &ideal_size, int color_depth, int
 String get_maximal_supported_scaling_filter()
 {
     Out::FPrint("Detecting maximal supported scaling");
-    pre_create_gfx_driver(NULL);
     String gfxfilter = "None";
 
     // calculate the correct game height when in letterbox mode
@@ -484,7 +499,7 @@ int engine_init_gfx_filters()
     if (force_gfxfilter[0]) {
         gfxfilter = force_gfxfilter;
     }
-    else if (usetup.gfxFilterID && stricmp(usetup.gfxFilterID, "Max") != 0) {
+    else if (!usetup.gfxFilterID.IsEmpty() && stricmp(usetup.gfxFilterID, "Max") != 0) {
         gfxfilter = usetup.gfxFilterID;
     }
 #if defined (WINDOWS_VERSION) || defined (LINUX_VERSION)
@@ -498,12 +513,14 @@ int engine_init_gfx_filters()
         return EXIT_NORMAL;
     }
 
+    gfxDriver->SetGraphicsFilter(filter);
     return RETURN_CONTINUE;
 }
 
 void create_gfx_driver() 
 {
-    pre_create_gfx_driver(filter);
+    Out::FPrint("Init gfx driver");
+    pre_create_gfx_driver();
 
     gfxDriver->SetCallbackOnInit(GfxDriverOnInitCallback);
     gfxDriver->SetTintMethod(TintReColourise);
@@ -640,13 +657,6 @@ int switch_to_graphics_mode(int initasx, int initasy, int scrnwid, int scrnhit, 
     return 0;
 }
 
-void engine_init_gfx_driver()
-{
-    Out::FPrint("Init gfx driver");
-
-    create_gfx_driver();
-}
-
 int engine_init_graphics_mode()
 {
     Out::FPrint("Switching to graphics mode");
@@ -655,7 +665,7 @@ int engine_init_graphics_mode()
     {
         bool errorAndExit = true;
 
-        if (((usetup.gfxFilterID == NULL) || 
+        if ((usetup.gfxFilterID.IsEmpty() || 
             (stricmp(usetup.gfxFilterID, "None") == 0)) &&
             (scrnwid == 320))
         {
@@ -668,8 +678,6 @@ int engine_init_graphics_mode()
             {
                 return EXIT_NORMAL;
             }
-
-            create_gfx_driver();
 
             if (!switch_to_graphics_mode(initasx, initasy, scrnwid, scrnhit, firstDepth, secondDepth))
             {

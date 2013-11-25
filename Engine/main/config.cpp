@@ -134,6 +134,17 @@ int INIreadint (const char *sectn, const char *item, int errornosect = 1) {
     return toret;
 }
 
+String INIreadstring(const char *sectn, const char *entry)
+{
+    char *tempstr = INIreaditem(sectn, entry);
+    String str = tempstr;
+    if (tempstr)
+    {
+        free(tempstr);
+    }
+    return str;
+}
+
 void read_config_file(char *argv0) {
 
     // Try current directory for config first; else try exe dir
@@ -244,7 +255,7 @@ void read_config_file(char *argv0) {
         else
             usetup.no_speech_pack = 0;
 
-        usetup.data_files_dir = INIreaditem("misc","datadir");
+        usetup.data_files_dir = INIreadstring("misc","datadir");
         if (usetup.data_files_dir.IsEmpty())
             usetup.data_files_dir = ".";
         // strip any trailing slash
@@ -259,17 +270,17 @@ void read_config_file(char *argv0) {
 #else
         usetup.data_files_dir.TrimRight('/');
 #endif
-        usetup.main_data_filename = INIreaditem ("misc", "datafile");
+        usetup.main_data_filename = INIreadstring ("misc", "datafile");
 
 #if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
         // PSP: No graphic filters are available.
-        usetup.gfxFilterID = NULL;
+        usetup.gfxFilterID = "";
 #else
-        usetup.gfxFilterID = INIreaditem("misc", "gfxfilter");
+        usetup.gfxFilterID = INIreadstring("misc", "gfxfilter");
 #endif
 
 #if defined (WINDOWS_VERSION)
-        usetup.gfxDriverID = INIreaditem("misc", "gfxdriver");
+        usetup.gfxDriverID = INIreadstring("misc", "gfxdriver");
 #else
         usetup.gfxDriverID = "DX5";
 #endif
@@ -294,7 +305,7 @@ void read_config_file(char *argv0) {
 
     }
 
-    if (usetup.gfxDriverID == NULL)
+    if (usetup.gfxDriverID.IsEmpty())
         usetup.gfxDriverID = "DX5";
 
 }

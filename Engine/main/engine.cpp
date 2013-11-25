@@ -1222,7 +1222,14 @@ void engine_init_game_shit()
     scsystem.viewport_height = divide_down_coordinate(scrnhit);
     // ScriptSystem::aci_version is only 10 chars long
     strncpy(scsystem.aci_version, EngineVersion.LongString, 10);
-    scsystem.os = platform->GetSystemOSID();
+    if (usetup.override_script_os >= 0)
+    {
+        scsystem.os = usetup.override_script_os;
+    }
+    else
+    {
+        scsystem.os = platform->GetSystemOSID();
+    }
 
     if (usetup.windowed)
         scsystem.windowed = 1;

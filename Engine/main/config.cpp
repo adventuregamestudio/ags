@@ -21,6 +21,7 @@
 #include "main/mainheader.h"
 #include "main/config.h"
 #include "ac/spritecache.h"
+#include "platform/base/agsplatformdriver.h"
 #include "platform/base/override_defines.h" //_getcwd()
 #include "util/filestream.h"
 #include "util/textstreamreader.h"
@@ -303,6 +304,25 @@ void read_config_file(char *argv0) {
         else
             play.playback = 0;
 
+        usetup.override_multitasking = INIreadint("override", "multitasking");
+        String override_os = INIreadstring("override", "os");
+        usetup.override_script_os = -1;
+        if (override_os.CompareNoCase("dos") == 0)
+        {
+            usetup.override_script_os = eOS_DOS;
+        }
+        else if (override_os.CompareNoCase("win") == 0)
+        {
+            usetup.override_script_os = eOS_Win;
+        }
+        else if (override_os.CompareNoCase("linux") == 0)
+        {
+            usetup.override_script_os = eOS_Linux;
+        }
+        else if (override_os.CompareNoCase("mac") == 0)
+        {
+            usetup.override_script_os = eOS_Mac;
+        }
     }
 
     if (usetup.gfxDriverID.IsEmpty())

@@ -40,6 +40,8 @@ struct GameSetup {
     char *translation;
     AGS::Common::String gfxFilterID;
     AGS::Common::String gfxDriverID;
+    int   override_script_os;
+    char  override_multitasking;
     GameSetup();
 };
 

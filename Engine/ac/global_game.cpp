@@ -763,6 +763,11 @@ void SetMultitasking (int mode) {
     if ((mode < 0) | (mode > 1))
         quit("!SetMultitasking: invalid mode parameter");
 
+    if (usetup.override_multitasking >= 0)
+    {
+        mode = usetup.override_multitasking;
+    }
+
     // Don't allow background running if full screen
     if ((mode == 1) && (usetup.windowed == 0))
         mode = 0;

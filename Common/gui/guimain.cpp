@@ -102,11 +102,8 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
   in->Read(vtext, 40);
   in->ReadArrayOfInt32(&x, 27);
 
-  // 64 bit fix: Read 4 byte int values into array of 8 byte long ints
-  in->ReadArrayOfIntPtr32((intptr_t*)objs, MAX_OBJS_ON_GUI);
-  //int i;
-  //for (i = 0; i < MAX_OBJS_ON_GUI; i++)
-  //  objs[i] = (GUIObject*)in->ReadInt32();
+  // array of 32-bit pointers; these values are unused
+  in->Seek(AGS::Common::kSeekCurrent, MAX_OBJS_ON_GUI * sizeof(int32_t));
 
   in->ReadArrayOfInt32(objrefptr, MAX_OBJS_ON_GUI);
 }
@@ -116,11 +113,9 @@ void GUIMain::WriteToFile(Stream *out)
   out->Write(vtext, 40);
   out->WriteArrayOfInt32(&x, 27);
 
-  // 64 bit fix: Write 4 byte int values from array of 8 byte long ints
-  out->WriteArrayOfIntPtr32((intptr_t*)objs, MAX_OBJS_ON_GUI);
-  //int i;
-  //for (i = 0; i < MAX_OBJS_ON_GUI; i++)
-  //  out->WriteArray(&objs[i], 4, 1);
+  // array of dummy 32-bit pointers
+  int32_t dummy_arr[MAX_OBJS_ON_GUI];
+  out->WriteArrayOfInt32(dummy_arr, MAX_OBJS_ON_GUI);
 
   out->WriteArrayOfInt32((int32_t*)&objrefptr, MAX_OBJS_ON_GUI);
 }

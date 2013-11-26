@@ -306,7 +306,7 @@ void GameSetupStruct::read_lipsync(Common::Stream *in, GAME_STRUCT_READ_DATA &re
 void GameSetupStruct::read_messages(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     for (int ee=0;ee<MAXGLOBALMES;ee++) {
-        if (messages[ee]==NULL) continue;
+        if (!load_messages[ee]) continue;
         messages[ee]=(char*)malloc(500);
 
         if (read_data.filever < kGameVersion_261) // Global messages are not encrypted on < 2.61
@@ -324,6 +324,8 @@ void GameSetupStruct::read_messages(Common::Stream *in, GAME_STRUCT_READ_DATA &r
         else
             read_string_decrypt(in, messages[ee]);
     }
+    delete [] load_messages;
+    load_messages = NULL;
 }
 
 void GameSetupStruct::ReadCharacters_Aligned(Stream *in)

@@ -4659,6 +4659,13 @@ void serialize_room_interactions(Stream *ooo)
 	}
 }
 
+void WriteGameSetupStructBase_Aligned(Stream *out)
+{
+    GameSetupStructBase *gameBase = (GameSetupStructBase *)&thisgame;
+    AlignedStream align_s(out, Common::kAligned_Write);
+    gameBase->WriteToFile(&align_s);
+}
+
 void save_thisgame_to_file(const char *fileName, Game ^game)
 {
     Common::String ags_version;
@@ -4678,7 +4685,7 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
   ooo->WriteInt32(ags_version.GetLength());
   ooo->Write(ags_version, ags_version.GetLength());
 
-  ooo->WriteArray(&thisgame, sizeof (GameSetupStructBase), 1);
+  WriteGameSetupStructBase_Aligned(ooo);
   ooo->Write(&thisgame.guid[0], MAX_GUID_LENGTH);
   ooo->Write(&thisgame.saveGameFileExtension[0], MAX_SG_EXT_LENGTH);
   ooo->Write(&thisgame.saveGameFolderName[0], MAX_SG_FOLDER_LEN);

@@ -182,15 +182,21 @@ extern char return_to_roomedit[30];
 extern char return_to_room[150];
 
 void main_print_help() {
-    printf("\nUsage: ags [<options>] [<gamefile or directory>]\n\n"
+    printf("Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
            "Options:\n"
-           "-windowed            Set display mode to windowed\n"
-           "-fullscreen          Set display mode to fullscreen\n"
-           "-hicolor             Enable 16bit colors\n"
-           "-letterbox           Enable letterbox mode\n"
-           "-gfxfilter <filter>  Enable graphics filter, where <filter> can be\n"
-           "                     StdScale2, StdScale3, StdScale4, Hq2x or Hq3x\n"
-           "--help               Print this help message\n");
+           "  -windowed                    Set display mode to windowed\n"
+           "  -fullscreen                  Set display mode to fullscreen\n"
+           "  -hicolor                     Convert 32bit colors to 16bit\n"
+           "  -letterbox                   Enable letterbox mode\n"
+           "  -gfxfilter <filter>          Enable graphics filter, where <filter> can be\n"
+           "                               StdScale2, StdScale3, StdScale4, Hq2x or Hq3x\n"
+           "  --help                       Print this help message\n"
+           "\n"
+           "Gamefile options:\n"
+           "  /dir/path/game/              Launch the first .exe in directory\n"
+           "  /dir/path/game/penguin.exe   Launch penguin.exe\n"
+           "  [nothing]                    Launch the first .exe in the current directory\n"
+    );
 }
 
 int main_process_cmdline(int argc,char*argv[])

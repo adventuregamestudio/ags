@@ -366,6 +366,7 @@ void initialise_game_file_name()
     if (game_file_name.IsEmpty())
     {
         AGS::Common::Out::FPrint("Game data file could not be found\n");
+        main_print_help();
     }
     else
     {
@@ -390,19 +391,18 @@ int engine_init_game_data(int argc,char*argv[])
         char emsg[STD_BUFFER_SIZE];
         if (errcod==Common::kAssetErrNoLibFile)
         {  // file not found
-            sprintf(emsg,
-                "You must create and save a game first in the AGS Editor before you can use "
-                "this engine.\n\n"
-                "If you have just downloaded AGS, you are probably running the wrong executable.\n"
-                "Run AGSEditor.exe to launch the editor.\n\n");
+            sprintf(emsg, "\n");
+
             int len = strlen(emsg);
             if (game_file_name.IsEmpty())
             {
-                sprintf(emsg + len, "(Unable to find game data file in any of the known locations.)\n");
+                sprintf(emsg + len, 
+                    "Error: Unable to find game data files\n"
+                );
             }
             else
             {
-                sprintf(emsg + len, "(Unable to find or open '%s'.)\n", game_file_name.GetCStr());
+                sprintf(emsg + len, "Error: Unable to find or open '%s'.\n", game_file_name.GetCStr());
             }
         }
         else if (errcod==Common::kAssetErrLibAssetCount)

@@ -366,7 +366,6 @@ void initialise_game_file_name()
     if (game_file_name.IsEmpty())
     {
         AGS::Common::Out::FPrint("Game data file could not be found\n");
-        main_print_help();
     }
     else
     {
@@ -391,30 +390,33 @@ int engine_init_game_data(int argc,char*argv[])
         char emsg[STD_BUFFER_SIZE];
         if (errcod==Common::kAssetErrNoLibFile)
         {  // file not found
-            sprintf(emsg, "\n");
 
             int len = strlen(emsg);
             if (game_file_name.IsEmpty())
             {
                 sprintf(emsg + len, 
-                    "Error: Unable to find game data files\n"
+                    "Error: Unable to find game data files\n\n"
                 );
             }
             else
             {
-                sprintf(emsg + len, "Error: Unable to find or open '%s'.\n", game_file_name.GetCStr());
+                sprintf(emsg + len, "Error: Unable to find or open '%s'.\n\n", game_file_name.GetCStr());
             }
         }
         else if (errcod==Common::kAssetErrLibAssetCount)
         {
-            sprintf(emsg, "ERROR: Too many files in data file.\n\n%s\n", game_file_name.GetCStr());
+            sprintf(emsg, "ERROR: Too many files in data file.\n\n%s\n\n", game_file_name.GetCStr());
         }
         else
         {
             sprintf(emsg, "ERROR: The file is corrupt. Make sure you have the correct version of the "
-                "editor, and that this really is an AGS game.\n\n%s\n", game_file_name.GetCStr());
+                "editor, and that this really is an AGS game.\n\n%s\n\n", game_file_name.GetCStr());
         }
+
         platform->DisplayAlert(emsg);
+
+        main_print_help();
+
         return EXIT_NORMAL;
     }
 

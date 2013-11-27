@@ -193,9 +193,9 @@ void main_print_help() {
            "  --help                       Print this help message\n"
            "\n"
            "Gamefile options:\n"
-           "  /dir/path/game/              Launch the first .exe in directory\n"
+           "  /dir/path/game/              Launch the game in specified directory\n"
            "  /dir/path/game/penguin.exe   Launch penguin.exe\n"
-           "  [nothing]                    Launch the first .exe in the current directory\n"
+           "  [nothing]                    Launch the game in the current directory\n"
     );
 }
 

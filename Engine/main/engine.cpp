@@ -395,12 +395,12 @@ int engine_init_game_data(int argc,char*argv[])
             if (game_file_name.IsEmpty())
             {
                 sprintf(emsg + len, 
-                    "Error: Unable to find game data files\n\n"
+                    "ERROR: Unable to find game data files\n\n"
                 );
             }
             else
             {
-                sprintf(emsg + len, "Error: Unable to find or open '%s'.\n\n", game_file_name.GetCStr());
+                sprintf(emsg + len, "ERROR: Unable to find or open '%s'.\n\n", game_file_name.GetCStr());
             }
         }
         else if (errcod==Common::kAssetErrLibAssetCount)

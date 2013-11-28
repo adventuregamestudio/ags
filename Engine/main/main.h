@@ -61,3 +61,4 @@ extern int psp_gfx_smooth_sprites;
 extern char psp_translation[];
 
 #endif // __AGS_EE_MAIN__MAIN_H
+void main_print_help();

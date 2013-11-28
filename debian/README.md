@@ -1,8 +1,7 @@
 #Building the engine on any Linux
-On Debian/Ubuntu, building a package (see below) is recommended.
-On other distributions, install development files of the following
-libraries. (In brackets are versions that are known to work, but other
-versions should work, too.)
+The following packages are required to build AGS. The versions in
+parentheses are known to work, but other versions will also
+probably work.
 
 -   Allegro 4 (>= 4.2.2)
 -   libaldmb (0.9.3)
@@ -12,7 +11,17 @@ versions should work, too.)
 -   libtheora (1.1.1-1.2.0)
 -   libvorbis (1.3.2)
 
-Download the sources with git and change into the **ags** directory:
+Fedora package installation
+---------------------------
+    yum -y install git allegro-devel dumb-devel freetype-devel libogg-devel libtheora-devel libvorbis-devel
+
+Debian/Ubuntu package installation
+----------------------------------
+    apt-get install git build-essential liballeggl4-dev libfreetype6-dev pkg-config libogg-dev libdumb1-dev libtheora-dev libvorbis-dev libaldmb1-dev
+
+Download and build
+------------------
+Download the source with git and change into the **ags** directory:
 
     git clone git://github.com/adventuregamestudio/ags.git
     cd ags
@@ -29,10 +38,6 @@ can be installed with
 #Building a Debian/Ubuntu package of AGS
 Building a package is the preferred way to install software on
 Debian/Ubuntu. This is how it's done.
-
-Install the build dependencies:
-
-    sudo apt-get install git debhelper build-essential pkg-config liballegro4.2-dev libaldmb1-dev libfreetype6-dev libtheora-dev libvorbis-dev libogg-dev
 
 Download the sources with git and change into the **ags** directory:
 

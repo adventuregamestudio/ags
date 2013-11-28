@@ -184,12 +184,12 @@ extern char return_to_room[150];
 void main_print_help() {
     printf("Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
            "Options:\n"
-           "  -windowed                    Set display mode to windowed\n"
-           "  -fullscreen                  Set display mode to fullscreen\n"
-           "  -hicolor                     Convert 32bit colors to 16bit\n"
-           "  -letterbox                   Enable letterbox mode\n"
-           "  -gfxfilter <filter>          Enable graphics filter, where <filter> can be\n"
-           "                               StdScale2, StdScale3, StdScale4, Hq2x or Hq3x\n"
+           "  --windowed                   Force display mode to windowed\n"
+           "  --fullscreen                 Force display mode to fullscreen\n"
+           "  --hicolor                    Downmix 32bit colors to 16bit\n"
+           "  --letterbox                  Enable letterbox mode\n"
+           "  --gfxfilter <filter>         Enable graphics filter. Available options:\n"
+           "                                 StdScale2, StdScale3, StdScale4, Hq2x or Hq3x\n"
            "  --help                       Print this help message\n"
            "\n"
            "Gamefile options:\n"
@@ -211,19 +211,19 @@ int main_process_cmdline(int argc,char*argv[])
             change_to_game_dir = 1;
         else if (stricmp(argv[ee],"-updatereg") == 0)
             debug_flags |= DBG_REGONLY;
-        else if (stricmp(argv[ee],"-windowed") == 0)
+        else if (stricmp(argv[ee],"-windowed") == 0 || stricmp(argv[ee],"--windowed") == 0)
             force_window = 1;
-        else if (stricmp(argv[ee],"-fullscreen") == 0)
+        else if (stricmp(argv[ee],"-fullscreen") == 0 || stricmp(argv[ee],"--fullscreen") == 0)
             force_window = 2;
-        else if (stricmp(argv[ee],"-hicolor") == 0)
+        else if (stricmp(argv[ee],"-hicolor") == 0 || stricmp(argv[ee],"--hicolor") == 0)
             force_16bit = 1;
-        else if (stricmp(argv[ee],"-letterbox") == 0)
+        else if (stricmp(argv[ee],"-letterbox") == 0 || stricmp(argv[ee],"--letterbox") == 0)
             force_letterbox = 1;
         else if (stricmp(argv[ee],"-record") == 0)
             play.recording = 1;
         else if (stricmp(argv[ee],"-playback") == 0)
             play.playback = 1;
-        else if ((stricmp(argv[ee],"-gfxfilter") == 0) && (argc > ee + 1))
+        else if ((stricmp(argv[ee],"-gfxfilter") == 0 || stricmp(argv[ee],"--gfxfilter") == 0) && (argc > ee + 1))
         {
             strncpy(force_gfxfilter, argv[ee + 1], 49);
             ee++;
@@ -446,7 +446,7 @@ int main(int argc,char*argv[]) {
         return 0;
     }
 
-    Out::FPrint("***** ENGINE STARTUP");
+    Out::FPrint("*** ENGINE STARTUP ***");
 
 #if defined(WINDOWS_VERSION)
     _set_new_handler(malloc_fail_handler);

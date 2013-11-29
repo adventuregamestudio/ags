@@ -17,7 +17,7 @@ Fedora package installation
 
 Debian/Ubuntu package installation
 ----------------------------------
-    apt-get install git build-essential liballeggl4-dev libfreetype6-dev pkg-config libogg-dev libdumb1-dev libtheora-dev libvorbis-dev libaldmb1-dev
+    sudo apt-get install git debhelper build-essential pkg-config libaldmb1-dev libfreetype6-dev libtheora-dev libvorbis-dev libogg-dev debhelper
 
 Download and build
 ------------------

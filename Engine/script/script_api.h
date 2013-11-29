@@ -213,6 +213,9 @@ extern char ScSfBuffer[3000];
     ASSERT_PARAM_COUNT(FUNCTION, 2) \
     return RuntimeScriptValue().SetInt32(FUNCTION(params[0].IValue, (P1CLASS*)params[1].Ptr))
 
+#define API_SCALL_BOOL(FUNCTION) \
+    return RuntimeScriptValue().SetInt32AsBool(FUNCTION())
+
 #define API_SCALL_OBJ(RET_CLASS, RET_MGR, FUNCTION) \
     return RuntimeScriptValue().SetDynamicObject((void*)(RET_CLASS*)FUNCTION(), &RET_MGR)
 

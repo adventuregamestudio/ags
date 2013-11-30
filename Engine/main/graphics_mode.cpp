@@ -887,3 +887,45 @@ void engine_set_color_conversions()
 
     set_color_conversion(COLORCONV_MOST | COLORCONV_EXPAND_256 | COLORCONV_REDUCE_16_TO_15);
 }
+
+int graphics_mode_init()
+{
+    create_gfx_driver();
+    engine_init_screen_settings();
+
+    int res = engine_init_gfx_filters();
+    if (res != RETURN_CONTINUE) {
+        return res;
+    }
+
+    res = engine_init_graphics_mode();
+    res = graphics_mode_init();
+    if (res != RETURN_CONTINUE) {
+        return res;
+    }
+
+    engine_post_init_gfx_driver();
+    engine_prepare_screen();
+    platform->PostAllegroInit((usetup.windowed > 0) ? true : false);
+    engine_set_gfx_driver_callbacks();
+    engine_set_color_conversions();
+    return RETURN_CONTINUE;
+}
+
+void graphics_mode_shutdown()
+{
+    // Release the display mode (and anything dependant on the window)
+    if (gfxDriver != NULL)
+    {
+        gfxDriver->UnInit();
+    }
+
+    // Tell Allegro that we are no longer in graphics mode
+    set_gfx_mode(GFX_TEXT, 0, 0, 0, 0);
+
+    delete gfxDriver;
+    gfxDriver = NULL;
+
+    delete filter;
+    filter = NULL;
+}

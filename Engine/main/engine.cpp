@@ -1440,28 +1440,10 @@ int initialize_engine(int argc,char*argv[])
 
     engine_init_modxm_player();
 
-    create_gfx_driver();
-    engine_init_screen_settings();
-
-    res = engine_init_gfx_filters();
+    res = graphics_mode_init();
     if (res != RETURN_CONTINUE) {
         return res;
     }
-
-    res = engine_init_graphics_mode();
-    if (res != RETURN_CONTINUE) {
-        return res;
-    }
-
-    engine_post_init_gfx_driver();
-
-    engine_prepare_screen();
-
-    platform->PostAllegroInit((usetup.windowed > 0) ? true : false);
-
-    engine_set_gfx_driver_callbacks();
-
-    engine_set_color_conversions();
 
     SetMultitasking(0);
 

@@ -302,6 +302,7 @@ int initialize_graphics_filter(const char *filterID, int width, int height, int 
         return -1;
     }
 
+    gfxDriver->SetGraphicsFilter(filter);
     return 0;
 }
 
@@ -512,8 +513,6 @@ int engine_init_gfx_filters()
     {
         return EXIT_NORMAL;
     }
-
-    gfxDriver->SetGraphicsFilter(filter);
     return RETURN_CONTINUE;
 }
 

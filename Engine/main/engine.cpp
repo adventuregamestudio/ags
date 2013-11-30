@@ -684,7 +684,7 @@ void atexit_handler() {
             "Program pointer: %+03d  (write this number down), ACI version %s\n"
             "If you see a list of numbers above, please write them down and contact\n"
             "Chris Jones. Otherwise, note down any other information displayed.\n",
-            EngineVersion.LongString.GetCStr(), our_eip);
+            our_eip, EngineVersion.LongString.GetCStr());
         platform->DisplayAlert(pexbuf);
     }
 

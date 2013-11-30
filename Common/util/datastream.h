@@ -95,8 +95,6 @@ public:
             WriteAndConvertArrayOfInt64(buffer, count) : WriteArray(buffer, sizeof(int64_t), count);
     }
 
-    virtual size_t ReadArrayOfIntPtr32(intptr_t *buffer, size_t count);
-
 protected:
     DataEndianess _streamEndianess;
 

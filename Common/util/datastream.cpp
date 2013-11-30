@@ -72,32 +72,6 @@ size_t DataStream::WriteInt64(int64_t val)
     return Write(&val, sizeof(int64_t));
 }
 
-size_t DataStream::ReadArrayOfIntPtr32(intptr_t *buffer, size_t count)
-{
-    if (!CanRead() || !buffer)
-    {
-        return 0;
-    }
-
-    int32_t* buf = sizeof(int32_t) == sizeof(intptr_t) ? (int32_t*) buffer \
-                     : (int32_t*) malloc(count * sizeof(int32_t));
-    if(!buf) return 0;
-
-    count = ReadArrayOfInt32(buf, count);
-
-    if (count == 0)
-    {
-        if(sizeof(int32_t) != sizeof(intptr_t)) free(buf);
-        return 0;
-    }
-    if(sizeof(int32_t) != sizeof(intptr_t)) {
-       for(size_t i = 0; i < count; i++) buffer[i] = buf[i];
-       free(buf);
-    }
-
-    return count;
-}
-
 size_t DataStream::ReadAndConvertArrayOfInt16(int16_t *buffer, size_t count)
 {
     if (!CanRead() || !buffer)

@@ -8,30 +8,28 @@ namespace Common
 
 size_t Stream::ReadArrayOfIntPtr32(intptr_t *buffer, size_t count)
 {
-    // Read 32-bit values to array; this will always be safe,
-    // because array is either 32-bit or 64-bit; in the last
-    // case only first half of array will be used.
-    count = ReadArrayOfInt32((int32_t*)buffer, count);
-
-    if (count == 0)
+    if (!CanRead())
     {
         return 0;
     }
 
-#if defined (AGS_64BIT) || defined (TEST_64BIT)
+    int32_t *buf_ptr = sizeof(int32_t) == sizeof(intptr_t) ?
+        (int32_t*)buffer : new int32_t[count];
+    if (!buf_ptr)
     {
-        // If we need 64-bit array, then copy 32-bit values to their
-        // correct 64-bit slots, starting from the last element and
-        // moving towards array head.
-        int32_t *buffer32 = (int32_t*)buffer;
-        buffer   += count - 1;
-        buffer32 += count - 1;
-        for (int i = count - 1; i >= 0; --i, --buffer, --buffer32)
-        {
-            *buffer = *buffer32 & 0xFFFFFFFF;
-        }
+        return 0;
     }
-#endif // AGS_64BIT
+
+    count = ReadArrayOfInt32(buf_ptr, count);
+
+    if (sizeof(int32_t) != sizeof(intptr_t))
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            buffer[i] = buf_ptr[i];
+        }
+        delete [] buf_ptr;
+    }
     return count;
 }
 

@@ -151,16 +151,6 @@ size_t ProxyStream::WriteArrayOfInt64(const int64_t *buffer, size_t count)
     return _stream ? _stream->WriteArrayOfInt64(buffer, count) : 0;
 }
 
-size_t ProxyStream::ReadArrayOfIntPtr32(intptr_t *buffer, size_t count)
-{
-    return _stream ? _stream->ReadArrayOfIntPtr32(buffer, count) : 0;
-}
-
-size_t ProxyStream::WriteArrayOfIntPtr32(const intptr_t *buffer, size_t count)
-{
-    return _stream ? _stream->WriteArrayOfIntPtr32(buffer, count) : 0;
-}
-
 size_t ProxyStream::Seek(StreamSeek seek, int pos)
 {
     return _stream ? _stream->Seek(seek, pos) : 0;

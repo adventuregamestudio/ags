@@ -270,7 +270,7 @@ int initialize_graphics_filter(const char *filterID, int width, int height, int 
     int idx = 0;
     GFXFilter **filterList;
 
-    if (stricmp(usetup.gfxDriverID, "D3D9") == 0)
+    if (usetup.gfxDriverID.CompareNoCase("D3D9") == 0)
     {
         filterList = get_d3d_gfx_filter_list(false);
     }
@@ -308,10 +308,10 @@ int initialize_graphics_filter(const char *filterID, int width, int height, int 
     return 0;
 }
 
-void pre_create_gfx_driver()
+void pre_create_gfx_driver(const String &gfx_driver_id)
 {
 #ifdef WINDOWS_VERSION
-    if (stricmp(usetup.gfxDriverID, "D3D9") == 0)
+    if (gfx_driver_id.CompareNoCase("D3D9") == 0 && (game.color_depth != 1))
     {
         gfxDriver = GetD3DGraphicsDriver(NULL);
         if (!gfxDriver)
@@ -322,7 +322,7 @@ void pre_create_gfx_driver()
     else
 #endif
 #if defined (IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
-    if ((psp_gfx_renderer > 0) && (game.color_depth != 1))
+    if (gfx_driver_id.CompareNoCase("DX5") != 0 && (psp_gfx_renderer > 0) && (game.color_depth != 1))
     {
         gfxDriver = GetOGLGraphicsDriver(NULL);
         if (!gfxDriver)
@@ -335,7 +335,6 @@ void pre_create_gfx_driver()
     if (!gfxDriver)
     {
         gfxDriver = GetSoftwareGraphicsDriver(NULL);
-        usetup.gfxDriverID = gfxDriver->GetDriverID();
     }
 
     Out::FPrint("Created graphics driver: %s", gfxDriver->GetDriverName());
@@ -552,10 +551,11 @@ int engine_init_gfx_filters()
     return RETURN_CONTINUE;
 }
 
-void create_gfx_driver() 
+void create_gfx_driver(const String &gfx_driver_id)
 {
     Out::FPrint("Init gfx driver");
-    pre_create_gfx_driver();
+    pre_create_gfx_driver(gfx_driver_id);
+    usetup.gfxDriverID = gfxDriver->GetDriverID();
 
     gfxDriver->SetCallbackOnInit(GfxDriverOnInitCallback);
     gfxDriver->SetTintMethod(TintReColourise);
@@ -698,8 +698,6 @@ int engine_init_graphics_mode()
 
     if (switch_to_graphics_mode(initasx, initasy, scrnwid, scrnhit, firstDepth, secondDepth))
     {
-        bool errorAndExit = true;
-
         if ((usetup.gfxFilterID.IsEmpty() || 
             (stricmp(usetup.gfxFilterID, "None") == 0)) &&
             (scrnwid == 320))
@@ -714,37 +712,14 @@ int engine_init_graphics_mode()
                 return EXIT_NORMAL;
             }
 
-            if (!switch_to_graphics_mode(initasx, initasy, scrnwid, scrnhit, firstDepth, secondDepth))
+            if (switch_to_graphics_mode(initasx, initasy, scrnwid, scrnhit, firstDepth, secondDepth))
             {
-                errorAndExit = false;
+                return EXIT_NORMAL;
             }
-
+            return RETURN_CONTINUE;
         }
-
-        if (errorAndExit)
-        {
-            proper_exit=1;
-            platform->FinishedUsingGraphicsMode();
-
-            // make sure the error message displays the true resolution
-            if (game.options[OPT_LETTERBOX])
-                initasy = (initasy * 12) / 10;
-
-            if (filter != NULL)
-                filter->GetRealResolution(&initasx, &initasy);
-
-            platform->DisplayAlert("There was a problem initializing graphics mode %d x %d (%d-bit).\n"
-                "(Problem: '%s')\n"
-                "Try to correct the problem, or seek help from the AGS homepage.\n"
-                "\nPossible causes:\n* your graphics card drivers do not support this resolution. "
-                "Run the game setup program and try the other resolution.\n"
-                "* the graphics driver you have selected does not work. Try switching between Direct3D and DirectDraw.\n"
-                "* the graphics filter you have selected does not work. Try another filter.",
-                initasx, initasy, firstDepth, get_allegro_error());
-            return EXIT_NORMAL;
-        }
+        return EXIT_NORMAL;
     }
-
     return RETURN_CONTINUE;
 }
 
@@ -888,19 +863,66 @@ void engine_set_color_conversions()
     set_color_conversion(COLORCONV_MOST | COLORCONV_EXPAND_256 | COLORCONV_REDUCE_16_TO_15);
 }
 
-int graphics_mode_init()
+int create_gfx_driver_and_init_mode(const String &gfx_driver_id)
 {
-    create_gfx_driver();
+    create_gfx_driver(gfx_driver_id);
     engine_init_screen_settings();
 
     int res = engine_init_gfx_filters();
-    if (res != RETURN_CONTINUE) {
+    if (res != RETURN_CONTINUE)
+    {
         return res;
     }
 
     res = engine_init_graphics_mode();
-    res = graphics_mode_init();
-    if (res != RETURN_CONTINUE) {
+    if (res != RETURN_CONTINUE)
+    {
+        return res;
+    }
+    return RETURN_CONTINUE;
+}
+
+void display_gfx_mode_error()
+{
+    proper_exit=1;
+    platform->FinishedUsingGraphicsMode();
+
+    // make sure the error message displays the true resolution
+    if (game.options[OPT_LETTERBOX])
+        initasy = (initasy * 12) / 10;
+
+    if (filter != NULL)
+        filter->GetRealResolution(&initasx, &initasy);
+
+    platform->DisplayAlert("There was a problem initializing graphics mode %d x %d (%d-bit).\n"
+        "(Problem: '%s')\n"
+        "Try to correct the problem, or seek help from the AGS homepage.\n"
+        "\nPossible causes:\n* your graphics card drivers do not support this resolution. "
+        "Run the game setup program and try the other resolution.\n"
+        "* the graphics driver you have selected does not work. Try switching between Direct3D and DirectDraw.\n"
+        "* the graphics filter you have selected does not work. Try another filter.",
+        initasx, initasy, firstDepth, get_allegro_error());
+}
+
+int graphics_mode_init()
+{
+    // Engine may try to change from windowed to fullscreen if the first failed;
+    // here we keep the original windowed flag in case we'll have to restore it
+    int windowed = usetup.windowed;
+
+    int res = create_gfx_driver_and_init_mode(usetup.gfxDriverID);
+    if (res != RETURN_CONTINUE)
+    {
+        if (gfxDriver && stricmp(gfxDriver->GetDriverID(), "DX5") != 0)
+        {
+            graphics_mode_shutdown();
+            usetup.windowed = windowed;
+            res = create_gfx_driver_and_init_mode("DX5");
+        }
+    }
+    if (res != RETURN_CONTINUE)
+    {
+        display_gfx_mode_error();
         return res;
     }
 

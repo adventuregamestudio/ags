@@ -369,6 +369,8 @@ private:
   int numToDrawLastTime;
   GlobalFlipType flipTypeLastTime;
 
+  LONG _allegroOriginalWindowStyle;
+
   bool EnsureDirect3D9IsCreated();
   void initD3DDLL();
   void InitializeD3DState();
@@ -432,6 +434,7 @@ D3DGraphicsDriver::D3DGraphicsDriver(D3DGFXFilter *filter)
   _screenTintSprite.y = 0;
   pixelShader = NULL;
   _legacyPixelShader = false;
+  _allegroOriginalWindowStyle = 0;
   set_up_default_vertices();
 }
 
@@ -765,6 +768,10 @@ int D3DGraphicsDriver::_initDLLCallback()
   {
     // Remove the border in full-screen mode, otherwise if the player
     // clicks near the edge of the screen it goes back to Windows
+    if (_allegroOriginalWindowStyle == 0)
+    {
+      _allegroOriginalWindowStyle = GetWindowLong(allegro_wnd, GWL_STYLE);
+    }
     LONG windowStyle = WS_POPUP;
     SetWindowLong(allegro_wnd, GWL_STYLE, windowStyle);
   }
@@ -1082,6 +1089,16 @@ void D3DGraphicsDriver::UnInit()
   {
     direct3ddevice->Release();
     direct3ddevice = NULL;
+  }
+
+  if (_allegroOriginalWindowStyle != 0)
+  {
+    HWND allegro_wnd = win_get_window();
+    if (allegro_wnd)
+    {
+      SetWindowLong(allegro_wnd, GWL_STYLE, _allegroOriginalWindowStyle);
+    }
+    _allegroOriginalWindowStyle = 0;
   }
 }
 

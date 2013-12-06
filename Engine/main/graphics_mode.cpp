@@ -67,6 +67,8 @@ extern Bitmap *_old_screen;
 extern Bitmap *_sub_screen;
 extern int _places_r, _places_g, _places_b;
 
+const int MaxSidebordersWidth = 110;
+
 int initasx,initasy;
 int firstDepth, secondDepth;
 
@@ -339,7 +341,7 @@ void pre_create_gfx_driver()
     Out::FPrint("Created graphics driver: %s", gfxDriver->GetDriverName());
 }
 
-int find_max_supported_uniform_multiplier(const Size &base_size, const int color_depth)
+int find_max_supported_uniform_multiplier(const Size &base_size, const int color_depth, int width_range_allowed)
 {
     IGfxModeList *modes = gfxDriver->GetSupportedModeList(color_depth);
     if (!modes)
@@ -362,12 +364,14 @@ int find_max_supported_uniform_multiplier(const Size &base_size, const int color
             continue;
         }
 
-        if (mode.Width > base_size.Width && mode.Width % base_size.Width == 0 &&
+        if (mode.Width > base_size.Width &&
             mode.Height > base_size.Height && mode.Height % base_size.Height == 0)
         {
             int multiplier_x = mode.Width / base_size.Width;
+            int remainder_x = mode.Width % base_size.Width;
             int multiplier_y = mode.Height / base_size.Height;
-            if (multiplier_x == multiplier_y && multiplier_x > least_supported_multiplier)
+            if (multiplier_x == multiplier_y && (remainder_x / multiplier_x <= width_range_allowed) &&
+                multiplier_x > least_supported_multiplier)
             {
                 least_supported_multiplier = multiplier_x;
             }
@@ -446,22 +450,54 @@ int find_supported_resolution_width(const Size &ideal_size, int color_depth, int
     return nearest_width / filter_factor;
 }
 
+int get_maximal_supported_scaling(const Size &game_size)
+{
+    int selected_scaling = 0;
+
+    // max scaling for siderborders mode
+    int desktop_width;
+    int desktop_height;
+    if (usetup.enable_side_borders != 0 &&
+        get_desktop_resolution(&desktop_width, &desktop_height) == 0)
+    {
+        const int desktop_ratio = (desktop_height << 10) / desktop_width;
+        const int game_ratio    = (game_size.Height << 10) / game_size.Width;
+        if (desktop_ratio < game_ratio)
+        {
+            const int fixed_ratio_width = (game_size.Height << 10) / desktop_ratio;
+            selected_scaling = find_max_supported_uniform_multiplier(Size(fixed_ratio_width, game_size.Height),
+                firstDepth, MaxSidebordersWidth);
+        }
+    }
+
+    // max scaling for normal mode
+    selected_scaling = Math::Max(selected_scaling,
+        find_max_supported_uniform_multiplier(game_size, firstDepth, 0));
+    return selected_scaling;
+}
+
 String get_maximal_supported_scaling_filter()
 {
     Out::FPrint("Detecting maximal supported scaling");
     String gfxfilter = "None";
-
-    // calculate the correct game height when in letterbox mode
-    int game_height = initasy;
-    if (game.options[OPT_LETTERBOX])
-        game_height = (game_height * 12) / 10;
-
+    const int game_width = initasx;
+    const int game_height = initasy;
     const int max_scaling = 8; // we support up to x8 scaling now
+
     // fullscreen mode
     if (usetup.windowed == 0)
     {
-        Size base_size(initasx, game_height);
-        int selected_scaling = find_max_supported_uniform_multiplier(base_size, firstDepth);
+        int selected_scaling = 0;
+        // max scaling for normal mode
+        if (game.options[OPT_LETTERBOX] == 0)
+        {
+            selected_scaling = get_maximal_supported_scaling(Size(game_width, game_height));
+        }
+        // max scaling for letterboxed view
+        const int game_height_letterbox = (game_height * 12) / 10;
+        selected_scaling = Math::Max(selected_scaling,
+            get_maximal_supported_scaling(Size(game_width, game_height_letterbox)));
+        
         if (selected_scaling > 1)
         {
             selected_scaling = Math::Min(selected_scaling, max_scaling);
@@ -478,7 +514,7 @@ String get_maximal_supported_scaling_filter()
         {
             desktop_height -= 32; // give some space for window borders
             // TODO: a platform-specific way to do this?
-            int xratio = desktop_width / initasx;
+            int xratio = desktop_width / game_width;
             int yratio = desktop_height / game_height;
             int selected_scaling = Math::Min(Math::Min(xratio, yratio), max_scaling);
             gfxfilter.Format("StdScale%d", selected_scaling);
@@ -500,7 +536,7 @@ int engine_init_gfx_filters()
     if (force_gfxfilter[0]) {
         gfxfilter = force_gfxfilter;
     }
-    else if (!usetup.gfxFilterID.IsEmpty() && stricmp(usetup.gfxFilterID, "Max") != 0) {
+    else if (!usetup.gfxFilterID.IsEmpty() && stricmp(usetup.gfxFilterID, "max") != 0) {
         gfxfilter = usetup.gfxFilterID;
     }
 #if defined (WINDOWS_VERSION) || defined (LINUX_VERSION)
@@ -594,7 +630,7 @@ int try_widescreen_bordered_graphics_mode_if_appropriate(int initasx, int initas
         if (desktop_ratio < game_ratio)
         {
             int tryWidth = (game_height << 10) / desktop_ratio;
-            int supportedRes = find_supported_resolution_width(Size(tryWidth, game_height), firstDepth, 110);
+            int supportedRes = find_supported_resolution_width(Size(tryWidth, game_height), firstDepth, MaxSidebordersWidth);
             if (supportedRes > 0)
             {
                 tryWidth = supportedRes;

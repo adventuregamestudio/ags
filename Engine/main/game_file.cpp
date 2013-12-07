@@ -271,7 +271,7 @@ void game_file_read_dialogs(Stream *in)
         dialog[iteratorCount].ReadFromFile(in);
     }
 
-    if (filever <= kGameVersion_300) // Dialog script
+    if (filever <= kGameVersion_310) // Dialog script
     {
         old_dialog_scripts = (unsigned char**)malloc(game.numdialog * sizeof(unsigned char**));
 

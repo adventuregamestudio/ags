@@ -81,7 +81,7 @@ int ff; // whatever!
 
 int adjust_pixel_size_for_loaded_data(int size, int filever)
 {
-    if (filever < kGameVersion_300)
+    if (filever < kGameVersion_310)
     {
         return multiply_up_coordinate(size);
     }

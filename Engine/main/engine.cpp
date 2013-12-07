@@ -390,17 +390,13 @@ int engine_init_game_data(int argc,char*argv[])
         char emsg[STD_BUFFER_SIZE];
         if (errcod==Common::kAssetErrNoLibFile)
         {  // file not found
-
-            int len = strlen(emsg);
             if (game_file_name.IsEmpty())
             {
-                sprintf(emsg + len, 
-                    "ERROR: Unable to find game data files\n\n"
-                );
+                sprintf(emsg, "ERROR: Unable to find game data files\n\n");
             }
             else
             {
-                sprintf(emsg + len, "ERROR: Unable to find or open '%s'.\n\n", game_file_name.GetCStr());
+                sprintf(emsg, "ERROR: Unable to find or open '%s'.\n\n", game_file_name.GetCStr());
             }
         }
         else if (errcod==Common::kAssetErrLibAssetCount)

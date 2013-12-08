@@ -135,22 +135,6 @@ extern "C" int compare_guicontrolzorder(const void *elem1, const void *elem2) {
   return e1->zorder - e2->zorder;
 }
 
-bool GUIMain::is_alpha() 
-{
-  if (this->bgpic > 0)
-  {
-    // alpha state depends on background image
-    return is_sprite_alpha(this->bgpic);
-  }
-  if (this->bgcol > 0)
-  {
-    // not alpha transparent if there is a background color
-    return false;
-  }
-  // transparent background, enable alpha blending
-  return (final_col_dep >= 24);
-}
-
 void GUIMain::resort_zorder()
 {
   int ff;

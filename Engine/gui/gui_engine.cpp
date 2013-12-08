@@ -18,6 +18,7 @@
 
 // Headers, as they are in acgui.cpp
 #pragma unmanaged
+#include "ac/game_version.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"
 #include "gui/guibutton.h"
@@ -30,6 +31,7 @@
 #include "ac/string.h"
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
+#include "gfx/blender.h"
 
 using AGS::Common::Bitmap;
 
@@ -43,6 +45,26 @@ extern void ensure_text_valid_for_font(char *, int);
 
 extern SpriteCache spriteset; // in ac_runningame
 extern GameSetupStruct game;
+
+bool GUIMain::is_alpha() 
+{
+    if (this->bgpic > 0)
+    {
+        // alpha state depends on background image
+        return is_sprite_alpha(this->bgpic);
+    }
+    if (this->bgcol > 0)
+    {
+        // not alpha transparent if there is a background color
+        return false;
+    }
+    // transparent background, enable alpha blending
+    return final_col_dep >= 24 &&
+        // transparent background have alpha channel only since 3.2.0;
+        // "classic" gui rendering mode historically had non-alpha transparent backgrounds
+        // (3.2.0 broke the compatibility, now we restore it)
+        loaded_game_file_version >= kGameVersion_320 && game.options[OPT_NEWGUIALPHA] != kGuiAlphaRender_Classic;
+}
 
 //=============================================================================
 // Engine-specific implementation split out of acgui.h

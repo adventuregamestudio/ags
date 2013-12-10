@@ -79,6 +79,8 @@ extern "C" extern LPDIRECTINPUTDEVICE key_dinput_device;
 char win32SavedGamesDirectory[MAX_PATH] = "\0";
 char win32AppDataDirectory[MAX_PATH] = "\0";
 
+const unsigned int win32TimerPeriod = 1;
+
 extern "C" HWND allegro_wnd;
 extern void dxmedia_abort_video();
 extern void dxmedia_pause_video();
@@ -502,6 +504,12 @@ void AGSWin32::UnRegisterGameWithGameExplorer()
 void AGSWin32::PostAllegroInit(bool windowed) 
 {
   check_parental_controls();
+
+  // Set the Windows timer resolution to 1 ms so that calls to
+  // Sleep() don't take more time than specified
+  MMRESULT result = timeBeginPeriod(win32TimerPeriod);
+  if (result != TIMERR_NOERROR)
+    platform->WriteDebugString("Failed to set the timer resolution to %d ms", win32TimerPeriod);
 }
 
 typedef UINT (CALLBACK* Dynamic_SHGetKnownFolderPathType) (GUID& rfid, DWORD dwFlags, HANDLE hToken, PWSTR *ppszPath); 
@@ -740,6 +748,9 @@ void AGSWin32::AboutToQuitGame()
 
 void AGSWin32::PostAllegroExit() {
   allegro_wnd = NULL;
+
+  // Release the timer setting
+  timeEndPeriod(win32TimerPeriod);
 }
 
 int AGSWin32::RunSetup() {

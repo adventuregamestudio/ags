@@ -1060,7 +1060,7 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
 
     if (exists(tempFileName))
     {
-        fileSize = file_size(tempFileName);
+        fileSize = file_size_ex(tempFileName);
         char *buffer = (char*)malloc(fileSize);
 
         Stream *temp_in = Common::File::OpenFileRead(tempFileName);

@@ -1,4 +1,6 @@
+#ifndef DISABLE_MPEG_AUDIO
 #define DISABLE_MPEG_AUDIO
+#endif
 /* mpeg1dec.c, initialization, option processing                    */
 
 #include <stdio.h>

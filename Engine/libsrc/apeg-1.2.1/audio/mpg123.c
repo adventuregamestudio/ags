@@ -5,7 +5,10 @@
  * See also 'README' !
  *
  */
+#ifndef DISABLE_MPEG_AUDIO
 #define DISABLE_MPEG_AUDIO // we have ALMP3 for that separately
+#endif
+
 #ifndef __GNUC__
 #define snprintf _snprintf
 #endif

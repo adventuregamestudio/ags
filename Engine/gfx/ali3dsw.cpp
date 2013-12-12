@@ -800,7 +800,6 @@ bool ALSoftwareGraphicsDriver::PlayVideo(const char *filename, bool useAVISound,
   int result = dxmedia_play_video(filename, useAVISound, skipType, stretchToFullScreen ? 1 : 0);
   return (result == 0);
 #else
-#warning ffmpeg implementation needed
   return 0;
 #endif
 }

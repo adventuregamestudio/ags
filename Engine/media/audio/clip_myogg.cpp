@@ -55,7 +55,7 @@ int MYOGG::poll()
         if (tempbuf != NULL)
         {
             int free_val = -1;
-            if (chunksize > in->todo)
+            if (chunksize >= in->todo)
             {
                 chunksize = in->todo;
                 free_val = chunksize;

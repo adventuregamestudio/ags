@@ -178,7 +178,7 @@ color_t Bitmap::GetCompatibleColor(color_t color)
 
 void Bitmap::SetClip(const Rect &rc)
 {
-	set_clip(_alBitmap, rc.Left, rc.Top, rc.Right, rc.Bottom);
+	set_clip_rect(_alBitmap, rc.Left, rc.Top, rc.Right, rc.Bottom);
 }
 
 Rect Bitmap::GetClip() const

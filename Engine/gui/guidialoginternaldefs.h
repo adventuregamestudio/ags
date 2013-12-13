@@ -25,8 +25,6 @@
 #define _getcwd getcwd
 #endif
 
-#define domouse rec_domouse
-
 #define _export
 #ifdef WINAPI
 #undef WINAPI

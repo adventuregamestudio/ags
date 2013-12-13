@@ -19,18 +19,11 @@
 #define __AGS_EE_GUI__GUIDIALOGINTERNALDEFS_H
 
 #include "gui/guidialogdefines.h"
+#include "ac/record.h"
 
 #if !defined (WINDOWS_VERSION)
 #define _getcwd getcwd
 #endif
-
-#undef kbhit
-extern int rec_getch();
-extern int rec_kbhit();
-#define kbhit rec_kbhit
-#define getch() rec_getch()
-
-#define domouse rec_domouse
 
 #define _export
 #ifdef WINAPI

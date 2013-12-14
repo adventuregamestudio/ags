@@ -26,6 +26,15 @@ void ProxyStream::Close()
     _stream = NULL;
 }
 
+bool ProxyStream::Flush()
+{
+    if (_stream)
+    {
+        return _stream->Flush();
+    }
+    return false;
+}
+
 bool ProxyStream::IsValid() const
 {
     return _stream && _stream->IsValid();

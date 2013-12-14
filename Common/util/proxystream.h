@@ -39,6 +39,7 @@ public:
     virtual ~ProxyStream();
 
     virtual void    Close();
+    virtual bool    Flush();
 
     // Is stream valid (underlying data initialized properly)
     virtual bool    IsValid() const;

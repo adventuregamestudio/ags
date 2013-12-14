@@ -34,6 +34,9 @@ namespace Common
 class Stream : public IAGSStream
 {
 public:
+    // Flush stream buffer to the underlying device
+    virtual bool Flush() = 0;
+
     //-----------------------------------------------------
     // Helper methods
     //-----------------------------------------------------

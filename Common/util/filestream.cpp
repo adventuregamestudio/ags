@@ -59,6 +59,15 @@ void FileStream::Close()
     _file = NULL;
 }
 
+bool FileStream::Flush()
+{
+    if (_file)
+    {
+        return fflush(_file) == 0;
+    }
+    return false;
+}
+
 bool FileStream::IsValid() const
 {
     return _file != NULL;

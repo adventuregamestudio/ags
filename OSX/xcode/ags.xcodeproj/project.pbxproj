@@ -309,7 +309,6 @@
 		60DC155A16675BBF002D0474 /* staticarray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60DC155416675BBE002D0474 /* staticarray.cpp */; };
 		60F49A4A155131E500A07887 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60F49A49155131E500A07887 /* AudioToolbox.framework */; };
 		DB994B1D180ECA6C00835511 /* acplmac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB994B1C180ECA6C00835511 /* acplmac.cpp */; };
-		DB994B22180ECAAF00835511 /* liballeg-main.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB994B20180ECAAF00835511 /* liballeg-main.a */; };
 		DB994B23180ECAAF00835511 /* liballeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB994B21180ECAAF00835511 /* liballeg.a */; };
 		DB994B27180ECB9B00835511 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB994B26180ECB9B00835511 /* AppKit.framework */; };
 		DB994B29180ECBB200835511 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB994B28180ECBB200835511 /* AudioUnit.framework */; };
@@ -1008,7 +1007,6 @@
 		60F49A49155131E500A07887 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		8D1107310486CEB800E47090 /* ags-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "ags-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
 		DB994B1C180ECA6C00835511 /* acplmac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = acplmac.cpp; sourceTree = "<group>"; };
-		DB994B20180ECAAF00835511 /* liballeg-main.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "liballeg-main.a"; path = "../lib/liballeg-main.a"; sourceTree = "<group>"; };
 		DB994B21180ECAAF00835511 /* liballeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liballeg.a; path = ../lib/liballeg.a; sourceTree = "<group>"; };
 		DB994B26180ECB9B00835511 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		DB994B28180ECBB200835511 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
@@ -1046,7 +1044,6 @@
 				DB994B27180ECB9B00835511 /* AppKit.framework in Frameworks */,
 				DBCDB73A180EE47C00FF80B1 /* libaldmb.a in Frameworks */,
 				28FD15000DC6FC520079059D /* OpenGL.framework in Frameworks */,
-				DB994B22180ECAAF00835511 /* liballeg-main.a in Frameworks */,
 				DBCDB72D180EDBAA00FF80B1 /* libogg.a in Frameworks */,
 				60F49A4A155131E500A07887 /* AudioToolbox.framework in Frameworks */,
 				6041A8881552E89E00596310 /* libz.dylib in Frameworks */,
@@ -1115,7 +1112,6 @@
 				DBCDB72B180EDBAA00FF80B1 /* libtheoradec.a */,
 				DBCDB730180EDBF500FF80B1 /* libvorbis.a */,
 				DBCDB72C180EDBAA00FF80B1 /* libvorbisfile.a */,
-				DB994B20180ECAAF00835511 /* liballeg-main.a */,
 				DB994B21180ECAAF00835511 /* liballeg.a */,
 				DBCDB732180EDC1D00FF80B1 /* FreeType.framework */,
 				DBCDB724180ED3CF00FF80B1 /* System Frameworks */,

@@ -28,7 +28,7 @@
 #include <pwd.h>
 #include <sys/stat.h>
 
-void AGSMAcInitPaths(char gamename[256]);
+void AGSMacInitPaths(char gamename[256], char appdata[PATH_MAX]);
 bool PlayMovie(char const *name, int skipType);
 
 // PSP variables
@@ -47,6 +47,7 @@ int psp_video_framedrop = 0;
 int psp_gfx_smooth_sprites = 0;
 
 char psp_game_file_name[256];
+char userAppDataRoot[PATH_MAX];
 
 struct AGSMac : AGSPlatformDriver {
   AGSMac();
@@ -70,11 +71,24 @@ struct AGSMac : AGSPlatformDriver {
 
 AGSMac::AGSMac()
 {
-  AGSMAcInitPaths(psp_game_file_name);
+  AGSMacInitPaths(psp_game_file_name, userAppDataRoot);
 }
 
 void AGSMac::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
-  strcpy(destPath, sourcePath);
+  static const char* token = "$MYDOCS$";
+  const char* mydocs = strstr(sourcePath, token);
+  if (mydocs) {
+    destPath[0] = '\0';
+    if ((mydocs - sourcePath) > 0) {
+      strncat(destPath, sourcePath, (mydocs - sourcePath));
+    }
+    strcat(destPath, userAppDataRoot);
+    if (strlen(mydocs) > strlen(token)) {
+      strcat(destPath, mydocs + strlen(token));
+    }
+  } else {
+    strcpy(destPath, sourcePath);
+  }
 }
 
 int AGSMac::CDPlayerCommand(int cmdd, int datt) {
@@ -143,7 +157,7 @@ void AGSMac::WriteDebugString(const char* texx, ...) {
   va_end(ap);
   strcat(displbuf, "\n");
 
-  printf(displbuf);
+  puts(displbuf);
 }
 
 void AGSMac::WriteConsole(const char *text, ...) {
@@ -152,7 +166,7 @@ void AGSMac::WriteConsole(const char *text, ...) {
   va_start(ap, text);
   vsprintf(displbuf, text, ap);
   va_end(ap);
-  printf("%s", displbuf);
+  puts(displbuf);
 }
 
 void AGSMac::ShutdownCDPlayer() {

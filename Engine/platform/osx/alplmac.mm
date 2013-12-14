@@ -1,6 +1,8 @@
 #import <Cocoa/Cocoa.h>
 
-void AGSMAcInitPaths(char gamename[256])
+#include <stdio.h>
+
+void AGSMacInitPaths(char gamename[256], char appdata[PATH_MAX])
 {
   NSAutoreleasePool *p = [[NSAutoreleasePool alloc] init];
 
@@ -9,6 +11,10 @@ void AGSMAcInitPaths(char gamename[256])
   [[NSFileManager defaultManager] changeCurrentDirectoryPath:resourcedir];
 
   strcpy(gamename, "agsgame.dat");
+
+  NSURL *path = [[NSFileManager defaultManager] URLForDirectory:NSApplicationSupportDirectory inDomain:NSUserDomainMask appropriateForURL:nil create:YES error:NULL];
+  
+  snprintf(appdata, PATH_MAX, "%s", [[path path] UTF8String]);
 
   [p drain];
 }

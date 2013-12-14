@@ -21,7 +21,7 @@
 #include "gui/dynamicarray.h"
 #include "debug/out.h"
 #include "debug/consoleoutputtarget.h"
-#include "debug/rawfileoutputtarget.h"
+#include "debug/logfile.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
 #include "script/script.h"
@@ -89,7 +89,7 @@ enum
 void initialize_output_subsystem()
 {
     Out::Init(0, NULL);
-	Out::AddOutputTarget(TARGET_FILE, new AGS::Engine::Out::RawFileOutputTarget("agsgame.log"),
+	Out::AddOutputTarget(TARGET_FILE, new AGS::Engine::Out::LogFile("agsgame.log"),
         Out::kVerbose_NoDebug, false);
     Out::AddOutputTarget(TARGET_SYSTEMDEBUGGER, AGSPlatformDriver::GetDriver(),
         Out::kVerbose_WarnErrors, true);

@@ -937,11 +937,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.cpp"
+					RelativePath="..\..\Engine\debug\logfile.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\debug\rawfileoutputtarget.cpp"
+					RelativePath="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.cpp"
 					>
 				</File>
 			</Filter>
@@ -1883,11 +1883,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.h"
+					RelativePath="..\..\Engine\debug\logfile.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\debug\rawfileoutputtarget.h"
+					RelativePath="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.h"
 					>
 				</File>
 			</Filter>

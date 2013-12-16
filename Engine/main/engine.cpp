@@ -1196,7 +1196,7 @@ void init_game_settings() {
         last_sound_played[ee] = -1;
 
     if (usetup.translation)
-        init_translation (usetup.translation);
+        init_translation (usetup.translation, true);
 
     update_invorder();
     displayed_room = -10;

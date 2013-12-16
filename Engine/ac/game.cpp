@@ -924,7 +924,7 @@ int Game_ChangeTranslation(const char *newFilename)
     char oldTransFileName[MAX_PATH];
     strcpy(oldTransFileName, transFileName);
 
-    if (!init_translation(newFilename))
+    if (!init_translation(newFilename, false))
     {
         strcpy(transFileName, oldTransFileName);
         return 0;

@@ -349,7 +349,7 @@ String String::LeftSection(char separator, bool exclude_separator) const
         if (slice_at >= 0)
         {
             slice_at = exclude_separator ? slice_at : slice_at + 1;
-            return Left(slice_at + 1);
+            return Left(slice_at);
         }
     }
     return String();

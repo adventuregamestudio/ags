@@ -921,10 +921,10 @@ int Game_ChangeTranslation(const char *newFilename)
         return 1;
     }
 
-    char oldTransFileName[MAX_PATH];
-    strcpy(oldTransFileName, transFileName);
+    String oldTransFileName;
+    oldTransFileName = transFileName;
 
-    if (!init_translation(newFilename, false))
+    if (!init_translation(newFilename, oldTransFileName.LeftSection('.'), false))
     {
         strcpy(transFileName, oldTransFileName);
         return 0;

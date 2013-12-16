@@ -49,14 +49,14 @@ void close_translation () {
 
 bool parse_translation(Stream *language_file, String &parse_error);
 
-bool init_translation (const char *lang, bool quit_on_error) {
+bool init_translation (const String &lang, const String &fallback_lang, bool quit_on_error) {
     char *transFileLoc;
 
-    if (lang == NULL) {
+    if (lang.IsEmpty()) {
         sprintf(transFileName, "default.tra");
     }
     else {
-        sprintf(transFileName, "%s.tra", lang);
+        sprintf(transFileName, "%s.tra", lang.GetCStr());
     }
 
     transFileLoc = ci_find_file(usetup.data_files_dir, transFileName);
@@ -67,10 +67,10 @@ bool init_translation (const char *lang, bool quit_on_error) {
     if (language_file == NULL) 
     {
         Out::FPrint("Cannot open translation: %s", transFileName);
-        if (lang != NULL)
+        if (!lang.IsEmpty())
         {
             // Just in case they're running in Debug, try compiled folder
-            sprintf(transFileName, "Compiled\\%s.tra", lang);
+            sprintf(transFileName, "Compiled\\%s.tra", lang.GetCStr());
             language_file = Common::AssetManager::OpenAsset(transFileName);
             if (!language_file)
                 Out::FPrint("Cannot open translation: %s", transFileName);
@@ -111,9 +111,15 @@ bool init_translation (const char *lang, bool quit_on_error) {
         else
         {
             Out::FPrint(parse_error);
+            if (!fallback_lang.IsEmpty())
+            {
+                Out::FPrint("Fallback to translation: %s", fallback_lang.GetCStr());
+                init_translation(fallback_lang, "", false);
+            }
             return false;
         }
     }
+    Out::FPrint("Translation initialized: %s", transFileName);
     return true;
 }
 

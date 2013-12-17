@@ -39,7 +39,25 @@ using AGS::Common::String;
 void* allegro_icon = icon_xpm;
 String LinuxOutputDirectory;
 
+#include "binreloc.h"
+
+// PSP variables
+int psp_video_framedrop = 1;
+int psp_audio_enabled = 1;
+int psp_midi_enabled = 1;
+int psp_ignore_acsetup_cfg_file = 0;
+int psp_clear_cache_on_room_change = 0;
+
+int psp_midi_preload_patches = 0;
+int psp_audio_cachesize = 10;
+char psp_game_file_name[256];
+int psp_gfx_smooth_sprites = 1;
+char psp_translation[100];
+
+char userAppDataRoot[PATH_MAX];
+
 struct AGSLinux : AGSPlatformDriver {
+  AGSLinux();
 
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
@@ -59,6 +77,22 @@ struct AGSLinux : AGSPlatformDriver {
   virtual void ReplaceSpecialPaths(const char*, char*);
 };
 
+AGSLinux::AGSLinux() {
+  strcpy(psp_game_file_name, "agsgame.dat");
+  strcpy(psp_translation, "default");
+
+  BrInitError e = BR_INIT_ERROR_DISABLED;
+  if (br_init(&e)) {
+    char *exedir = br_find_exe_dir(NULL);
+    if (exedir) {
+      chdir(exedir);
+      free(exedir);
+    }
+  }
+
+  // force private modules
+  setenv("ALLEGRO_MODULES", ".", 1);
+}
 
 int AGSLinux::CDPlayerCommand(int cmdd, int datt) {
   return cd_player_control(cmdd, datt);

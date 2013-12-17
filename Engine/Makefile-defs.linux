@@ -16,7 +16,7 @@ else
   RPATH=lib64
 endif
 
-CFLAGS := -O2 -g -fsigned-char -Wfatal-errors -DNDEBUG -DAGS_RUNTIME_PATCH_ALLEGRO -DAGS_HAS_CD_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DALLEGRO_STATICLINK -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2) $(CFLAGS)
+CFLAGS := -O2 -g -fsigned-char -Wfatal-errors -DNDEBUG -DAGS_HAS_CD_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DALLEGRO_STATICLINK -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2) $(CFLAGS)
 CXXFLAGS := -fno-rtti -Wno-write-strings $(CXXFLAGS)
 LIBS = -rdynamic -lalleg -laldmb -ldumb -Wl,-Bdynamic -ltheoradec -logg 
 
@@ -51,6 +51,7 @@ endif
 
 BASE_PLATFORM = \
 platform/linux/acpllnx.cpp \
+platform/linux/binreloc.c \
 platform/util/pe.c \
 platform/util/libc.c
 

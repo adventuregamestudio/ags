@@ -48,8 +48,12 @@ public:
 
   AGS::Common::String BuildPath(char *path, AGS::Common::String libraryName)
   {
-    AGS::Common::String platformLibraryName = path;
-    platformLibraryName.Append("/lib");
+    AGS::Common::String platformLibraryName = "";
+    if (path) {
+      platformLibraryName = path;
+      platformLibraryName.Append("/");
+    }
+    platformLibraryName.Append("lib");
     platformLibraryName.Append(libraryName);
 
 #if defined (MAC_VERSION)
@@ -65,6 +69,10 @@ public:
   bool Load(AGS::Common::String libraryName)
   {
     Unload();
+    // Try rpath first
+    _library = dlopen(BuildPath(NULL, libraryName).GetCStr(), RTLD_LAZY);
+    AGS::Common::Out::FPrint("dlopen returned: %s", dlerror());
+    if (_library != NULL) return true;
 
     // Try current path
     _library = dlopen(BuildPath(".", libraryName).GetCStr(), RTLD_LAZY);

@@ -72,6 +72,7 @@ struct AGSMac : AGSPlatformDriver {
 AGSMac::AGSMac()
 {
   AGSMacInitPaths(psp_game_file_name, userAppDataRoot);
+  strcpy(psp_translation, "default");
 }
 
 void AGSMac::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {

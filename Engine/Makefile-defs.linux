@@ -1,8 +1,23 @@
-INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins
-LIBDIR =
+INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins ../Linux/include
+_ARCH := $(shell uname -m)
+
+BUILD32 := 1
+ifeq ($(_ARCH),x86_64)
+  BUILD32 := 0
+endif
+ifeq ($(BUILD32), 1)
+  LIBDIR = ../Linux/lib32
+  RPATH=lib
+  override CFLAGS += -m32 $(shell getconf LFS_CFLAGS)
+  override CXXFLAGS += -m32 $(shell getconf LFS_CFLAGS)
+  override LDFLAGS += -m32
+else
+  LIBDIR = ../Linux/lib64
+  RPATH=lib64
+endif
 override CFLAGS += -O2 -g -fsigned-char -Wfatal-errors -DNDEBUG -DAGS_RUNTIME_PATCH_ALLEGRO -DAGS_HAS_CD_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DALLEGRO_STATICLINK -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2)
 override CXXFLAGS += -fno-rtti -Wno-write-strings -fpermissive
-LIBS = -rdynamic $(shell allegro-config --libs) -laldmb -ldumb -Wl,-Bdynamic -ltheora -logg 
+LIBS = -rdynamic -lalleg -laldmb -ldumb -Wl,-Bdynamic -ltheoradec -logg 
 
 ifeq ($(USE_TREMOR), 1)
   LIBS += -lvorbisidec

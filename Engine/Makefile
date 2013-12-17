@@ -40,6 +40,7 @@ common.a: $(OBJS_COMMON)
 	@$(CXX) $(CXXFLAGS) -MD -c -o $@ $<
 
 printflags:
+	@echo "BUILD32 = " $(BUILD32) "\n"
 	@echo "CFLAGS =" $(CFLAGS) "\n"
 	@echo "CXXFLAGS =" $(CXXFLAGS) "\n"
 	@echo "LDFLAGS =" $(LDFLAGS) "\n"

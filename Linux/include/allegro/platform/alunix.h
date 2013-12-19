@@ -69,6 +69,7 @@ AL_VAR(TIMER_DRIVER, timerdrv_unix_sigalrm);
 #define DIGI_ALSA             AL_ID('A','L','S','A')
 #define MIDI_ALSA             AL_ID('A','M','I','D')
 #define DIGI_JACK             AL_ID('J','A','C','K')
+#define DIGI_SDL2             AL_ID('S','D','L','2')
 
 
 #ifdef ALLEGRO_WITH_OSSDIGI
@@ -102,6 +103,12 @@ AL_VAR(DIGI_DRIVER, digi_sgial);
 #define DIGI_DRIVER_SGIAL                                        \
       {  DIGI_SGIAL,      &digi_sgial,          TRUE  },
 #endif /* ALLEGRO_WITH_SGIALDIGI */
+
+#ifdef ALLEGRO_WITH_SDL2ADIGI
+AL_VAR(DIGI_DRIVER, digi_sdl2);
+#define DIGI_DRIVER_SDL2                                         \
+      {  DIGI_SDL2,       &digi_sdl2,           TRUE  },
+#endif /* ALLEGRO_WITH_SDL2ADIGI */
 
 #ifdef ALLEGRO_WITH_ALSADIGI
 AL_VAR(DIGI_DRIVER, digi_alsa);

@@ -155,6 +155,9 @@
 /* Define if SGI AL DIGI driver is supported. */
 /* #undef ALLEGRO_WITH_SGIALDIGI */
 
+/* Define if SDL2 DIGI driver is supported. */
+#define ALLEGRO_WITH_SDL2DIGI
+
 /*---------------------------------------------------------------------------*/
 
 /* Define to (void *)-1, if MAP_FAILED is not defined. */

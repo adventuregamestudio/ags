@@ -156,7 +156,7 @@ void AGSMac::WriteDebugString(const char* texx, ...) {
   va_start(ap,texx);
   vsprintf(&displbuf[5],texx,ap);
   va_end(ap);
-  strcat(displbuf, "\n");
+//  strcat(displbuf, "\n");
 
   puts(displbuf);
 }

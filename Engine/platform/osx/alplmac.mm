@@ -18,3 +18,16 @@ void AGSMacInitPaths(char gamename[256], char appdata[PATH_MAX])
 
   [p drain];
 }
+
+void AGSMacGetBundleDir(char gamepath[PATH_MAX])
+{
+  NSAutoreleasePool *p = [[NSAutoreleasePool alloc] init];
+
+  NSBundle *bundle = [NSBundle mainBundle];
+  NSString *bundleDir = [bundle bundlePath];
+
+  NSString *parentDir = [bundleDir stringByDeletingLastPathComponent];
+  strcpy(gamepath, [parentDir UTF8String]);
+
+  [p drain];
+}

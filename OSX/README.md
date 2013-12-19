@@ -1,4 +1,4 @@
-The OSX port is currently only interesting for developers.
+This is the Humble Bundle port of AGS to OS X for Gemini Rue
 
-Main reason for this is that it only runs on OSX versions 10.6 (Snow Leopard)
-or lower. Important frameworks used by Allegro 4 were removed in later releases.
+This will work on Mac OS X 10.6+ (tested through 10.9).  It does so via a modified allegro 4 library which sets up an offscreen buffer that the game renders to. And then blits that to texture memory in the OpenGL graphics hardware and finally renders that texture to screen.  Currently aspect ratios are not taken into account (and probably should be).
+

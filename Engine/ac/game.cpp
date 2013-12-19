@@ -347,6 +347,10 @@ String get_save_game_path(int slotNum) {
     return path;
 }
 
+#if defined (MAC_VERSION)
+void AGSMacGetBundleDir(char gamepath[PATH_MAX]);
+#endif
+
 int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
 {
 
@@ -360,6 +364,23 @@ int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
     platform->ReplaceSpecialPaths(newFolder, newSaveGameDir);
     fix_filename_slashes(newSaveGameDir);
 
+  // evil evil evil kludge for autocloud on the steam build
+  // Makes sure the saves folder is the in "same" relative place on all 3 platforms
+  // OH and it must be lowercase because Steam lacks handling of MixedCase foldernames.
+#if defined (MAC_VERSION)
+    if (strcasecmp(newFolder, "Saves") == 0)
+    {
+      AGSMacGetBundleDir(newSaveGameDir);
+      strcat(newSaveGameDir, "/saves");
+    }
+#elif defined(LINUX_VERSION)
+    if (strcasecmp(newFolder, "Saves") == 0)
+    {
+      strcpy(newSaveGameDir, "saves");
+    }
+#endif
+
+  
 #if defined (WINDOWS_VERSION)
     mkdir(newSaveGameDir);
 #else

@@ -1,0 +1,10 @@
+# 32bit
+lib/alleg-dga2.so
+lib/alleg-alsadigi.so
+lib/alleg-alsamidi.so
+lib/alleg-sdl2digi.so
+# 64bit
+lib64/alleg-dga2.so
+lib64/alleg-alsadigi.so
+lib64/alleg-alsamidi.so
+lib64/alleg-sdl2digi.so

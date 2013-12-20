@@ -126,8 +126,15 @@ const char* AGSLinux::GetNoMouseErrorString() {
   return "This game requires a mouse. You need to configure and setup your mouse to play this game.\n";
 }
 
+extern int INIreadint (const char *sectn, const char *item, int errornosect = 1);
+
 eScriptSystemOSID AGSLinux::GetSystemOSID() {
-  return eOS_Linux;
+  int fake_win =  INIreadint("misc", "fake_os", 0);
+  if (fake_win > 0) {
+    return (eScriptSystemOSID)fake_win;
+  } else {
+    return eOS_Linux;
+  }
 }
 
 int AGSLinux::InitializeCDPlayer() {

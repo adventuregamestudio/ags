@@ -119,7 +119,12 @@ const char* AGSMac::GetNoMouseErrorString() {
 }
 
 eScriptSystemOSID AGSMac::GetSystemOSID() {
-  return eOS_Mac;
+  int fake_win =  INIreadint("misc", "fake_os", 0);
+  if (fake_win > 0) {
+    return (eScriptSystemOSID)fake_win;
+  } else {
+    return eOS_Mac;
+  }
 }
 
 int AGSMac::InitializeCDPlayer() {

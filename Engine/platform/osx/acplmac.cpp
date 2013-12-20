@@ -118,6 +118,8 @@ const char* AGSMac::GetNoMouseErrorString() {
   return "This game requires a mouse. You need to configure and setup your mouse to play this game.\n";
 }
 
+int INIreadint (const char *sectn, const char *item, int errornosect = 1);
+
 eScriptSystemOSID AGSMac::GetSystemOSID() {
   int fake_win =  INIreadint("misc", "fake_os", 0);
   if (fake_win > 0) {

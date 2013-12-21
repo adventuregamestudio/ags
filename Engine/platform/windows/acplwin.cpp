@@ -37,6 +37,7 @@
 #include "util/stream.h"
 
 using AGS::Common::Stream;
+using AGS::Common::String;
 using AGS::Common::Bitmap;
 
 extern GameSetupStruct game;
@@ -78,6 +79,7 @@ extern "C" extern LPDIRECTINPUTDEVICE key_dinput_device;
 
 char win32SavedGamesDirectory[MAX_PATH] = "\0";
 char win32AppDataDirectory[MAX_PATH] = "\0";
+String win32OutputDirectory;
 
 const unsigned int win32TimerPeriod = 1;
 
@@ -97,6 +99,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
   virtual const char *GetAllUsersDataDirectory();
+  virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
   virtual eScriptSystemOSID GetSystemOSID();
@@ -585,6 +588,31 @@ void determine_saved_games_folder()
   mkdir(win32SavedGamesDirectory);
 }
 
+void DetermineAppOutputDirectory()
+{
+  if (!win32OutputDirectory.IsEmpty())
+  {
+    return;
+  }
+
+  determine_saved_games_folder();
+  bool log_to_saves_dir = false;
+  if (win32SavedGamesDirectory[0])
+  {
+    win32OutputDirectory = win32SavedGamesDirectory;
+    win32OutputDirectory.Append("\\.ags");
+    log_to_saves_dir = mkdir(win32OutputDirectory) == 0 || errno == EEXIST;
+  }
+
+  if (!log_to_saves_dir)
+  {
+    char theexename[MAX_PATH + 1] = {0};
+    GetModuleFileName(NULL, theexename, MAX_PATH);
+    PathRemoveFileSpec(theexename);
+    win32OutputDirectory = theexename;
+  }
+}
+
 void AGSWin32::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
 
   determine_saved_games_folder();
@@ -610,6 +638,12 @@ const char* AGSWin32::GetAllUsersDataDirectory()
 {
   determine_app_data_folder();
   return &win32AppDataDirectory[0];
+}
+
+const char *AGSWin32::GetAppOutputDirectory()
+{
+  DetermineAppOutputDirectory();
+  return win32OutputDirectory;
 }
 
 void AGSWin32::DisplaySwitchOut() {

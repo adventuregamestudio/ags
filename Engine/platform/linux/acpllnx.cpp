@@ -24,22 +24,27 @@
 #include "ac/runtime_defines.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
+#include "util/string.h"
 #include <libcda.h>
 
 #include <pwd.h>
 #include <sys/stat.h>
+
+using AGS::Common::String;
 
 
 // Replace the default Allegro icon. The original defintion is in the
 // Allegro 4.4 source under "src/x/xwin.c".
 #include "icon.xpm"
 void* allegro_icon = icon_xpm;
+String LinuxOutputDirectory;
 
 struct AGSLinux : AGSPlatformDriver {
 
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
+  virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
   virtual eScriptSystemOSID GetSystemOSID();
@@ -77,6 +82,34 @@ void AGSLinux::DisplayAlert(const char *text, ...) {
   vsprintf(displbuf, text, ap);
   va_end(ap);
   printf("%s", displbuf);
+}
+
+void DetermineAppOutputDirectory()
+{
+  if (!LinuxOutputDirectory.IsEmpty())
+  {
+    return;
+  }
+
+  bool log_to_home_dir = false;
+  const char* home_dir = getenv("HOME");
+  if (home_dir)
+  {
+    LinuxOutputDirectory = home_dir;
+    LinuxOutputDirectory.Append("/.ags");
+    log_to_home_dir = mkdir(LinuxOutputDirectory, 0755) == 0 || errno == EEXIST;
+  }
+
+  if (!log_to_home_dir)
+  {
+    LinuxOutputDirectory = "/tmp";
+  }
+}
+
+const char *AGSLinux::GetAppOutputDirectory()
+{
+  DetermineAppOutputDirectory();
+  return LinuxOutputDirectory;
 }
 
 void AGSLinux::Delay(int millis) {

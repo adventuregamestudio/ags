@@ -56,6 +56,7 @@
 		60898DCA160785CB009E152F /* gfxfilter_hq2x.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60898DC9160785CB009E152F /* gfxfilter_hq2x.cpp */; };
 		60898DCC160785DD009E152F /* gfxfilter_hq3x.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60898DCB160785DD009E152F /* gfxfilter_hq3x.cpp */; };
 		60898DD6160787FF009E152F /* hq2x3x.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60898DD4160787FF009E152F /* hq2x3x.cpp */; };
+		608B20641866295B005B3BCD /* logfile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 608B20631866295B005B3BCD /* logfile.cpp */; };
 		608B4E57163BF27B00547FAA /* libc.c in Sources */ = {isa = PBXBuildFile; fileRef = 608B4E56163BF27B00547FAA /* libc.c */; };
 		608D787C176B82D300E48976 /* speech.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 608D787B176B82D300E48976 /* speech.cpp */; };
 		608D788B176B832C00E48976 /* gfx_util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 608D7889176B832C00E48976 /* gfx_util.cpp */; };
@@ -232,7 +233,6 @@
 		60CA3DAB160713FF00CFB3BD /* consoleoutputtarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3BAD160713FE00CFB3BD /* consoleoutputtarget.cpp */; };
 		60CA3DAC160713FF00CFB3BD /* debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3BAF160713FE00CFB3BD /* debug.cpp */; };
 		60CA3DAD160713FF00CFB3BD /* filebasedagsdebugger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3BB3160713FE00CFB3BD /* filebasedagsdebugger.cpp */; };
-		60CA3DAE160713FF00CFB3BD /* rawfileoutputtarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3BB5160713FE00CFB3BD /* rawfileoutputtarget.cpp */; };
 		60CA3DAF160713FF00CFB3BD /* mousew32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3BB8160713FE00CFB3BD /* mousew32.cpp */; };
 		60CA3DB1160713FF00CFB3BD /* fonts_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3BBC160713FE00CFB3BD /* fonts_engine.cpp */; };
 		60CA3DB2160713FF00CFB3BD /* ali3dogl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3BBF160713FE00CFB3BD /* ali3dogl.cpp */; };
@@ -408,6 +408,8 @@
 		60898DC9160785CB009E152F /* gfxfilter_hq2x.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gfxfilter_hq2x.cpp; sourceTree = "<group>"; };
 		60898DCB160785DD009E152F /* gfxfilter_hq3x.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gfxfilter_hq3x.cpp; sourceTree = "<group>"; };
 		60898DD4160787FF009E152F /* hq2x3x.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = hq2x3x.cpp; sourceTree = "<group>"; };
+		608B20621866295B005B3BCD /* logfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = logfile.h; sourceTree = "<group>"; };
+		608B20631866295B005B3BCD /* logfile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = logfile.cpp; sourceTree = "<group>"; };
 		608B4E56163BF27B00547FAA /* libc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = libc.c; path = util/libc.c; sourceTree = "<group>"; };
 		608D787A176B82C600E48976 /* speech.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = speech.h; sourceTree = "<group>"; };
 		608D787B176B82D300E48976 /* speech.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = speech.cpp; sourceTree = "<group>"; };
@@ -831,8 +833,6 @@
 		60CA3BB2160713FE00CFB3BD /* dummyagsdebugger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dummyagsdebugger.h; sourceTree = "<group>"; };
 		60CA3BB3160713FE00CFB3BD /* filebasedagsdebugger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = filebasedagsdebugger.cpp; sourceTree = "<group>"; };
 		60CA3BB4160713FE00CFB3BD /* filebasedagsdebugger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = filebasedagsdebugger.h; sourceTree = "<group>"; };
-		60CA3BB5160713FE00CFB3BD /* rawfileoutputtarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = rawfileoutputtarget.cpp; sourceTree = "<group>"; };
-		60CA3BB6160713FE00CFB3BD /* rawfileoutputtarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rawfileoutputtarget.h; sourceTree = "<group>"; };
 		60CA3BB8160713FE00CFB3BD /* mousew32.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mousew32.cpp; sourceTree = "<group>"; };
 		60CA3BB9160713FE00CFB3BD /* mousew32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mousew32.h; sourceTree = "<group>"; };
 		60CA3BBC160713FE00CFB3BD /* fonts_engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fonts_engine.cpp; sourceTree = "<group>"; };
@@ -1841,6 +1841,8 @@
 		60CA3BAB160713FE00CFB3BD /* debug */ = {
 			isa = PBXGroup;
 			children = (
+				608B20621866295B005B3BCD /* logfile.h */,
+				608B20631866295B005B3BCD /* logfile.cpp */,
 				60CA3BAC160713FE00CFB3BD /* agseditordebugger.h */,
 				60CA3BAD160713FE00CFB3BD /* consoleoutputtarget.cpp */,
 				60CA3BAE160713FE00CFB3BD /* consoleoutputtarget.h */,
@@ -1850,8 +1852,6 @@
 				60CA3BB2160713FE00CFB3BD /* dummyagsdebugger.h */,
 				60CA3BB3160713FE00CFB3BD /* filebasedagsdebugger.cpp */,
 				60CA3BB4160713FE00CFB3BD /* filebasedagsdebugger.h */,
-				60CA3BB5160713FE00CFB3BD /* rawfileoutputtarget.cpp */,
-				60CA3BB6160713FE00CFB3BD /* rawfileoutputtarget.h */,
 			);
 			path = debug;
 			sourceTree = "<group>";
@@ -2508,7 +2508,6 @@
 				60CA3DAB160713FF00CFB3BD /* consoleoutputtarget.cpp in Sources */,
 				60CA3DAC160713FF00CFB3BD /* debug.cpp in Sources */,
 				60CA3DAD160713FF00CFB3BD /* filebasedagsdebugger.cpp in Sources */,
-				60CA3DAE160713FF00CFB3BD /* rawfileoutputtarget.cpp in Sources */,
 				60CA3DAF160713FF00CFB3BD /* mousew32.cpp in Sources */,
 				60CA3DB1160713FF00CFB3BD /* fonts_engine.cpp in Sources */,
 				60CA3DB2160713FF00CFB3BD /* ali3dogl.cpp in Sources */,
@@ -2637,6 +2636,7 @@
 				6007696C16E9F61600DCE88E /* version.cpp in Sources */,
 				608D787C176B82D300E48976 /* speech.cpp in Sources */,
 				608D788B176B832C00E48976 /* gfx_util.cpp in Sources */,
+				608B20641866295B005B3BCD /* logfile.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

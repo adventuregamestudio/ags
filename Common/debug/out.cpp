@@ -121,6 +121,15 @@ void Out::AddOutputTarget(int target_id, Out::IOutputTarget *output_target, Outp
     IData.Targets[target_id] = new OutputTargetSlot(output_target, verbosity, shared_object);
 }
 
+void Out::RemoveOutputTarget(int target_id)
+{
+    if (target_id >= 0 && target_id < MAX_TARGETS)
+    {
+        delete IData.Targets[target_id];
+        IData.Targets[target_id] = NULL;
+    }
+}
+
 void Out::Shutdown ()
 {
     // release any memory, resources etc here

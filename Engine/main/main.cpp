@@ -190,6 +190,9 @@ void main_print_help() {
            "  --letterbox                  Enable letterbox mode\n"
            "  --gfxfilter <filter>         Enable graphics filter. Available options:\n"
            "                                 StdScale2, StdScale3, StdScale4, Hq2x or Hq3x\n"
+           "  --log                        Enable program output to the log file\n"
+           "  --no-log                     Disable program output to the log file,\n"
+           "                                 overriding configuration file setting\n"
            "  --help                       Print this help message\n"
            "\n"
            "Gamefile options:\n"
@@ -280,6 +283,14 @@ int main_process_cmdline(int argc,char*argv[])
             strncpy (play.takeover_from, argv[ee + 2], 49);
             play.takeover_from[49] = 0;
             ee += 2;
+        }
+        else if (stricmp(argv[ee], "--log") == 0)
+        {
+            enable_log_file = true;
+        }
+        else if (stricmp(argv[ee], "--no-log") == 0)
+        {
+            disable_log_file = true;
         }
         else if (argv[ee][0]!='-') datafile_argv=ee;
     }

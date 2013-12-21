@@ -18,6 +18,7 @@
 
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
+#include "debug/debug_log.h"
 #include "main/mainheader.h"
 #include "main/config.h"
 #include "ac/spritecache.h"
@@ -322,6 +323,17 @@ void read_config_file(char *argv0) {
         else if (override_os.CompareNoCase("mac") == 0)
         {
             usetup.override_script_os = eOS_Mac;
+        }
+
+        // NOTE: at the moment AGS provide little means to determine whether an
+        // option was overriden by command line, and since command line args
+        // are applied first, we need to check if the option differs from
+        // default before applying value from config file.
+        if (!enable_log_file && !disable_log_file)
+        {
+            tempint = INIreadint ("misc", "log");
+            if (tempint >= 0)
+                enable_log_file = tempint > 0;
         }
     }
 

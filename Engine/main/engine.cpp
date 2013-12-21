@@ -1307,6 +1307,8 @@ int initialize_engine(int argc,char*argv[])
     int res;
 
     engine_read_config(argc, argv);
+    apply_output_configuration();
+
     res = engine_init_allegro();
     if (res != RETURN_CONTINUE) {
         return res;

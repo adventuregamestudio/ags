@@ -31,7 +31,11 @@
 #include "util/textstreamwriter.h"
 
 using AGS::Common::Stream;
+using AGS::Common::String;
 using AGS::Common::TextStreamWriter;
+using AGS::Engine::Out::ConsoleOutputTarget;
+using AGS::Engine::Out::LogFile;
+namespace Out = AGS::Common::Out;
 
 extern char check_dynamic_sprites_at_exit;
 extern int displayed_room;
@@ -70,13 +74,15 @@ IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 #endif
 
 int debug_flags=0;
+bool enable_log_file = false;
+bool disable_log_file = false;
 
 DebugConsoleText debug_line[DEBUG_CONSOLE_NUMLINES];
 int first_debug_line = 0, last_debug_line = 0, display_console = 0;
 
 int fps=0,display_fps=0;
 
-namespace Out = AGS::Common::Out;
+LogFile *DebugLogFile = NULL;
 
 enum
 {
@@ -88,13 +94,42 @@ enum
 
 void initialize_output_subsystem()
 {
+    DebugLogFile = new LogFile();
+
     Out::Init(0, NULL);
-	Out::AddOutputTarget(TARGET_FILE, new AGS::Engine::Out::LogFile("agsgame.log"),
-        Out::kVerbose_NoDebug, false);
+    Out::AddOutputTarget(TARGET_FILE, DebugLogFile, Out::kVerbose_NoDebug, true);
     Out::AddOutputTarget(TARGET_SYSTEMDEBUGGER, AGSPlatformDriver::GetDriver(),
         Out::kVerbose_WarnErrors, true);
 	Out::AddOutputTarget(TARGET_GAMECONSOLE, new AGS::Engine::Out::ConsoleOutputTarget(),
         Out::kVerbose_Always, false);
+}
+
+void apply_output_configuration()
+{
+    if (disable_log_file)
+    {
+        enable_log_file = false;
+    }
+    else if (enable_log_file)
+    {
+        String logfile_path = platform->GetAppOutputDirectory();
+        logfile_path.Append("/ags.log");
+        if (DebugLogFile->OpenFile(logfile_path))
+        {
+            platform->WriteDebugString("Logging to %s", logfile_path.GetCStr());
+        }
+        else
+        {
+            enable_log_file = false;
+        }
+    }
+
+    if (!enable_log_file)
+    {
+        Out::RemoveOutputTarget(TARGET_FILE);
+        delete DebugLogFile;
+        DebugLogFile = NULL;
+    }
 }
 
 void initialize_debug_system()
@@ -106,6 +141,9 @@ void shutdown_debug_system()
 {
     // Shutdown output subsystem
     Out::Shutdown();
+
+    delete DebugLogFile;
+    DebugLogFile = NULL;
 }
 
 void quitprintf(const char *texx, ...) {

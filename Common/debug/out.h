@@ -90,6 +90,7 @@ namespace Out
     // TODO: use safer technique like shared ptrs or reference counted objects
     // instead of telling that ptr is shared
     void AddOutputTarget(int target_id, IOutputTarget *output_target, OutputVerbosity verbosity, bool shared_object);
+    void RemoveOutputTarget(int target_id);
     void Shutdown ();
 
     // Convenience functions, with regard to verbosity settings

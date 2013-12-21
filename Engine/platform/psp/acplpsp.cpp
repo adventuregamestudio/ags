@@ -45,6 +45,10 @@ extern "C" {
 #include "../PSP/malloc/malloc_p5.h"
 #include "../PSP/suspend/suspend.h"
 
+#include <util/string.h>
+
+using AGS::Common::String;
+
 
 #ifdef PSP_ENABLE_PROFILING
 extern "C" void gprof_cleanup();
@@ -59,6 +63,7 @@ struct AGSPSP : AGSPlatformDriver {
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
+  virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
   virtual eScriptSystemOSID GetSystemOSID();
@@ -73,6 +78,8 @@ struct AGSPSP : AGSPlatformDriver {
   virtual void WriteDebugString(const char* texx, ...);
 };
 
+
+String pspOutputDirectory;
 
 int psp_standalone;
 char psp_game_file_name[256];
@@ -420,10 +427,15 @@ void psp_initialize()
   // Read in the default configuration.
   ReadConfiguration(PSP_CONFIG_FILENAME);
   
+  // Store the current directory for later use
+  char cwd[256];
+  getcwd(cwd, sizeof(cwd));
+  pspOutputDirectory = cwd;
+  
   // Check the arguments, if it is only 1 the engine is running without the menu.
   if (psp_argc == 1)
   {
-    getcwd(psp_game_file_name, 256);
+    strcpy(psp_game_file_name, cwd);
     strcat(psp_game_file_name, "/");
     strcat(psp_game_file_name, "ac2game.dat");
 
@@ -570,6 +582,10 @@ void AGSPSP::ShutdownCDPlayer() {
   //cd_exit();
 }
 
+const char *AGSPSP::GetAppOutputDirectory()
+{
+  return pspOutputDirectory;
+}
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
   if (instance == NULL)

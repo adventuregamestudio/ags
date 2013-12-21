@@ -21,6 +21,7 @@ extern int psp_rotation;
 
 @synthesize context, inputAccessoryView, isInPortraitOrientation, isKeyboardActive, isIPad;
 
+char* ios_document_directory;
 
 agsViewController* agsviewcontroller;
 
@@ -451,9 +452,12 @@ extern "C" void ios_create_screen()
 	NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
 	NSString *documentPath = [searchPaths objectAtIndex:0];
 	
-	const char* bla = [documentPath UTF8String];
+	const char* temp_document_dir = [documentPath UTF8String];
+	ios_document_directory = (char*)malloc(strlen(temp_document_dir) + 1);
+	strcpy(ios_document_directory, temp_document_dir);
+	
 	char path[300];
-	strcpy(path, bla);
+	strcpy(path, temp_document_dir);
 	strcat(path, "/ags/game/");
 	
 	char filename[300];

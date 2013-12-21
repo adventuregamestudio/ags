@@ -30,6 +30,8 @@
 
 #define IOS_CONFIG_FILENAME "ios.cfg"
 
+extern char* ios_document_directory;
+
 extern char filetouse[];
 char *INIreaditem(const char *sectn, const char *entry);
 int INIreadint (const char *sectn, const char *item, int errornosect = 1);
@@ -116,6 +118,7 @@ struct AGSIOS : AGSPlatformDriver {
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
+  virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
   virtual eScriptSystemOSID GetSystemOSID();
@@ -668,6 +671,11 @@ void AGSIOS::SetGameWindowIcon() {
 
 void AGSIOS::ShutdownCDPlayer() {
   //cd_exit();
+}
+
+const char *AGSIOS::GetAppOutputDirectory()
+{
+  return ios_document_directory;
 }
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {

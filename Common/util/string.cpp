@@ -720,7 +720,7 @@ void String::TrimRight(char c)
 
 void String::TruncateToLeft(int count)
 {
-    if (_meta && count > 0)
+    if (_meta && count >= 0)
     {
         count = Math::Min(count, _meta->Length);
         if (count < _meta->Length)
@@ -750,7 +750,7 @@ void String::TruncateToMid(int from, int count)
 
 void String::TruncateToRight(int count)
 {
-    if (_meta && count > 0)
+    if (_meta && count >= 0)
     {
         count = Math::Min(count, GetLength());
         if (count < _meta->Length)

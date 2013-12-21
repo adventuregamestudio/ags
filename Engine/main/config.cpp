@@ -331,9 +331,9 @@ void read_config_file(char *argv0) {
         // default before applying value from config file.
         if (!enable_log_file && !disable_log_file)
         {
-            tempint = INIreadint ("misc", "log");
-            if (tempint >= 0)
-                enable_log_file = tempint > 0;
+            int log_value = INIreadint ("misc", "log");
+            if (log_value >= 0)
+                enable_log_file = log_value > 0;
         }
     }
 

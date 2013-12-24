@@ -37,6 +37,7 @@ class PosixLibrary : BaseLibrary
 {
 public:
   PosixLibrary()
+    : _library(NULL)
   {
   };
 
@@ -63,6 +64,8 @@ public:
 
   bool Load(AGS::Common::String libraryName)
   {
+    Unload();
+
     // Try current path
     _library = dlopen(BuildPath(".", libraryName).GetCStr(), RTLD_LAZY);
 

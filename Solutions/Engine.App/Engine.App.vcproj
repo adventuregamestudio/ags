@@ -2031,6 +2031,14 @@
 				Name="util"
 				>
 				<File
+					RelativePath="..\..\Engine\util\library.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\util\library_windows.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\util\mutex.h"
 					>
 				</File>

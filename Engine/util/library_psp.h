@@ -29,6 +29,7 @@ class PSPLibrary : BaseLibrary
 {
 public:
   PSPLibrary()
+    : _library(-1)
   {
   };
 
@@ -50,6 +51,8 @@ public:
 
   bool Load(AGS::Common::String libraryName)
   {
+    Unload();
+
     // Try current path
     _library = pspSdkLoadStartModule(BuildPath("./", libraryName).GetCStr(), PSP_MEMORY_PARTITION_USER);
 

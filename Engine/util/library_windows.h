@@ -29,11 +29,13 @@ class WindowsLibrary : BaseLibrary
 {
 public:
   WindowsLibrary()
+    : _library(NULL)
   {
   };
 
   virtual ~WindowsLibrary()
   {
+    Unload();
   };
 
   AGS::Common::String BuildPath(AGS::Common::String libraryName)
@@ -48,6 +50,8 @@ public:
 
   bool Load(AGS::Common::String libraryName)
   {
+    Unload();
+
     _library = LoadLibrary(BuildPath(libraryName).GetCStr());
 
     return (_library != NULL);
@@ -57,7 +61,7 @@ public:
   {
     if (_library)
     {
-      return (FreeLibrary(_library) == 0);
+      return (FreeLibrary(_library) != 0);
     }
     else
     {

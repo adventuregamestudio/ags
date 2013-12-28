@@ -187,7 +187,7 @@ void AGSLinux::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
     mkdir(destPath, 0755);
     strcat(destPath, "/share");
     mkdir(destPath, 0755);
-    strcat(destPath, &sourcePath[8]);
+    strcat(destPath, &sourcePath[13]);
     mkdir(destPath, 0755);
   } else if(strncasecmp(sourcePath, "$APPDATADIR$", 12) == 0) {
     struct passwd *p = getpwuid(getuid());

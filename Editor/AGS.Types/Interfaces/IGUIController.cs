@@ -91,5 +91,18 @@ namespace AGS.Types
         /// RequiredAGSVersion: 3.2.0.94
         /// </summary>
         ContentDocument ActivePane { get; }
-	}
+        /// <summary>
+        /// Repopulate the tree view of a selected component
+        /// RequiredAGSVersion: 3.3.0.1145
+        /// </summary>
+        /// <param name="component">Reference to a component</param>
+        /// <param name="selectedNode">Optional node name to select after refresh</param>
+        void RePopulateTreeView(IEditorComponent component, string selectedNode);
+        /// <summary>
+        /// Repopulate the tree view of a selected component
+        /// RequiredAGSVersion: 3.3.0.1145
+        /// </summary>
+        /// <param name="component">Reference to a component</param>
+        void RePopulateTreeView(IEditorComponent component);
+    }
 }

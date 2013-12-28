@@ -826,7 +826,7 @@ namespace AGS.Editor
             {
                 Script dialogScripts = CompileDialogs(errors, parameters.RebuildAll);
 
-                _game.ScriptsToCompile = new Scripts();
+                _game.ScriptsToCompile = new ScriptsAndHeaders();
 
                 foreach (Script script in GetInternalScriptModules())
                 {

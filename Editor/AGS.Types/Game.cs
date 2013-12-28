@@ -53,7 +53,7 @@ namespace AGS.Types
         private AudioClipFolders _audioClips;
         private List<AudioClipType> _audioClipTypes;
         private ScriptFolders _scripts;
-        private Scripts _scriptsToCompile;
+        private ScriptsAndHeaders _scriptsToCompile;
         private TextParser _textParser;
         private LipSync _lipSync;
         private CustomPropertySchema _propertySchema;
@@ -92,7 +92,7 @@ namespace AGS.Types
             _globalMessages = new string[NUMBER_OF_GLOBAL_MESSAGES];
 			_deletedViewIDs = new Dictionary<int, object>();
             _scripts = new ScriptFolders(ScriptFolder.MAIN_SCRIPT_FOLDER_NAME);
-            _scriptsToCompile = new Scripts();
+            _scriptsToCompile = new ScriptsAndHeaders();
             ScriptAndHeader globalScript = new ScriptAndHeader(
                 new Script(Script.GLOBAL_HEADER_FILE_NAME, "// script header\r\n", true),
                 new Script(Script.GLOBAL_SCRIPT_FILE_NAME, "// global script\r\n", false));
@@ -254,8 +254,17 @@ namespace AGS.Types
             }
         }
 
+        public ScriptsAndHeaders ScriptsAndHeaders
+        {
+            get
+            {
+                ScriptsAndHeaders scriptsAndHeaders = new ScriptsAndHeaders(_scripts);
+                return scriptsAndHeaders;
+            }
+        }
+
         // Used by the AGF->DTA compiler to bring in any extra modules
-        public Scripts ScriptsToCompile
+        public ScriptsAndHeaders ScriptsToCompile
         {
             get { return _scriptsToCompile; }
             set { _scriptsToCompile = value; }

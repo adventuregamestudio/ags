@@ -177,6 +177,7 @@
     <Compile Include="RoomWalkableArea.cs" />
     <Compile Include="RoomWalkBehind.cs" />
     <Compile Include="EditorFeatures\AutoComplete\ScriptAutoCompleteData.cs" />
+    <Compile Include="ScriptsAndHeaders.cs" />
     <Compile Include="Translation.cs" />
     <Compile Include="UnloadedRoom.cs" />
     <Compile Include="EditorFeatures\SourceControlProject.cs" />

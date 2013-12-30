@@ -104,5 +104,26 @@ namespace AGS.Types
         /// </summary>
         /// <param name="component">Reference to a component</param>
         void RePopulateTreeView(IEditorComponent component);
+        /// <summary>
+        /// Refresh the properties grid in the GUI
+        /// RequiredAGSVersion: 3.3.0.1147
+        /// </summary>
+        void RefreshPropertyGrid();
+        /// <summary>
+        /// Shows the output panel with a specified errors list
+        /// RequiredAGSVersion: 3.3.0.1147
+        /// </summary>
+        /// <param name="errors"></param>
+        void ShowOutputPanel(CompileMessages errors);
+        /// <summary>
+        /// Clears the output panel
+        /// RequiredAGSVersion: 3.3.0.1147
+        /// </summary>
+        void ClearOutputPanel();
+        /// <summary>
+        /// Hides the output panel
+        /// RequiredAGSVersion: 3.3.0.1147
+        /// </summary>
+        void HideOutputPanel();
     }
 }

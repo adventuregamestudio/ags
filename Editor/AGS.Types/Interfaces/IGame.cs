@@ -39,5 +39,10 @@ namespace AGS.Types
         /// RequiredAGSVersion: 3.3.0.1145
         /// </summary>
         ScriptsAndHeaders ScriptsAndHeaders { get; }
-	}
+        /// <summary>
+        /// Gets the player character
+        /// RequiredAGSVersion: 3.3.0.1147
+        /// </summary>
+        Character PlayerCharacter { get; }
+    }
 }

@@ -34,5 +34,10 @@ namespace AGS.Types
 		/// tree and returns the new view.
 		/// </summary>
 		View CreateNewView(IViewFolder createInFolder);
+        /// <summary>
+        /// Gets the list of ScriptandHeader
+        /// RequiredAGSVersion: 3.3.0.1145
+        /// </summary>
+        ScriptsAndHeaders ScriptsAndHeaders { get; }
 	}
 }

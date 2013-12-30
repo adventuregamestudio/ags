@@ -1555,6 +1555,28 @@ namespace AGS.Editor
             _mainForm.statusLabel.Text = text;
         }
 
+        public void RePopulateTreeView(IEditorComponent component, string selectedNode)
+        {
+            IRePopulatableComponent repopulatableComponent = component as IRePopulatableComponent;
+            if (repopulatableComponent != null)
+            {
+                if (selectedNode == null)
+                {
+                    repopulatableComponent.RePopulateTreeView();
+                }
+                else
+                {
+                    repopulatableComponent.RePopulateTreeView(selectedNode);
+                }
+            }
+        }
+
+        public void RePopulateTreeView(IEditorComponent component)
+        {
+            RePopulateTreeView(component, null);
+        }
+
+
         void IGUIController.SetStatusBarText(string text)
         {
             if (_mainForm.InvokeRequired)

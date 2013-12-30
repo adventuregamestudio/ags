@@ -76,10 +76,11 @@ A direct link is here:
 
 http://www.eglebbk.dds.nl/program/download/digmid.dat
 
-Rename that file to **patches.dat**; you can now place it:
-    - in the directory pointed to by the ALLEGRO environment variable; or
-    - if $ALLEGRO is not defined, in $HOME; or
-    - in the same folder of the AGS executable
+Rename that file to **patches.dat**. You can now place it:
+
+-   in the directory pointed to by the ALLEGRO environment variable; or
+-   if $ALLEGRO is not defined, in $HOME; or
+-   in the same folder of the AGS executable.
 
 #Debugging
 When using the Debian/Ubuntu package, the package ags-dbg_*.deb containing debugging

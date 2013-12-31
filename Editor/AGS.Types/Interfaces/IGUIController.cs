@@ -91,5 +91,39 @@ namespace AGS.Types
         /// RequiredAGSVersion: 3.2.0.94
         /// </summary>
         ContentDocument ActivePane { get; }
-	}
+        /// <summary>
+        /// Repopulate the tree view of a selected component
+        /// RequiredAGSVersion: 3.3.0.1145
+        /// </summary>
+        /// <param name="component">Reference to a component</param>
+        /// <param name="selectedNode">Optional node name to select after refresh</param>
+        void RePopulateTreeView(IEditorComponent component, string selectedNode);
+        /// <summary>
+        /// Repopulate the tree view of a selected component
+        /// RequiredAGSVersion: 3.3.0.1145
+        /// </summary>
+        /// <param name="component">Reference to a component</param>
+        void RePopulateTreeView(IEditorComponent component);
+        /// <summary>
+        /// Refresh the properties grid in the GUI
+        /// RequiredAGSVersion: 3.3.0.1147
+        /// </summary>
+        void RefreshPropertyGrid();
+        /// <summary>
+        /// Shows the output panel with a specified errors list
+        /// RequiredAGSVersion: 3.3.0.1147
+        /// </summary>
+        /// <param name="errors"></param>
+        void ShowOutputPanel(CompileMessages errors);
+        /// <summary>
+        /// Clears the output panel
+        /// RequiredAGSVersion: 3.3.0.1147
+        /// </summary>
+        void ClearOutputPanel();
+        /// <summary>
+        /// Hides the output panel
+        /// RequiredAGSVersion: 3.3.0.1147
+        /// </summary>
+        void HideOutputPanel();
+    }
 }

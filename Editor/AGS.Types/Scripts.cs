@@ -6,19 +6,24 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    public class Scripts : IEnumerable, IEnumerable<ScriptAndHeader>
+    public class Scripts : IEnumerable<Script>, IEnumerable
     {
-        private IList<ScriptAndHeader> _scripts;
-        private Script headerWithoutScript;
+        private ScriptsAndHeaders _scripts;
+
+        public Scripts(ScriptsAndHeaders listScriptAndHeaders)
+        {
+            _scripts = listScriptAndHeaders;
+        }
 
         public Scripts()
+            :this(new ScriptsAndHeaders())
         {
-            _scripts = new ScriptFolders();
+
         }
 
         public Scripts(ScriptFolders scriptFolders)
+            :this(new ScriptsAndHeaders(scriptFolders))
         {
-            _scripts = scriptFolders;
         }
 
         public void Clear()
@@ -26,181 +31,182 @@ namespace AGS.Types
             _scripts.Clear();
         }
 
-        [Obsolete("Adding individual scripts is deprecated, and may not be supported by future versions of AGS. Add a ScriptAndHeader at once instead.")]
+        /// <summary>
+        /// Helper private function to add a script. The index is the internal data structure index
+        /// to which we would like to add the script.
+        /// The function automatically finds the ScriptAndHeader that matches the current script file name
+        /// and adds the script to the pair, if it doesn't exist.
+        /// If the pair is not found, a new item is added
+        /// </summary>
+        /// <param name="newScript">The script to add</param>
+        /// <param name="index">The desired index where -1 indicates no specific location.</param>
+        private void AddAt(Script newScript, int index)
+        {
+            int indexExisting;
+            ScriptAndHeader scriptAndHeaderExisting = _scripts.GetScriptAndHeaderByFilename(newScript.FileName, out indexExisting);
+            if (scriptAndHeaderExisting == null)
+            {
+                // Script does not exist, add a new item
+                if (newScript.IsHeader)
+                {
+                    _scripts.AddAt(new ScriptAndHeader(newScript, null), index);
+                }
+                else
+                {
+                    _scripts.AddAt(new ScriptAndHeader(null, newScript), index);
+                }
+            }
+            else
+            {
+                // Update to the existing index if the requested index is -1
+                // (default value), otherwise, add it to the requested index    
+                if (index != -1) indexExisting = index;
+                if (scriptAndHeaderExisting.Header != null
+                     && scriptAndHeaderExisting.Script == null
+                     && !newScript.IsHeader)
+                {
+                    // Header found, script does not exist and trying to add a script, so add it as its pair.
+                    // Note that ScriptAndHeader is immutable so we remove the existing one and add a new one
+                    _scripts.AddAt(new ScriptAndHeader(scriptAndHeaderExisting.Header, newScript), indexExisting);                    _scripts.Remove(scriptAndHeaderExisting);
+                }
+                else if (scriptAndHeaderExisting.Header == null
+                         && scriptAndHeaderExisting.Script != null
+                         && newScript.IsHeader)
+                {
+                    // Script found, header does not exist and trying to add a script, so add it as its pair
+                    // Note that ScriptAndHeader is immutable so we remove the existing one and add a new one
+                    _scripts.AddAt(new ScriptAndHeader(newScript, scriptAndHeaderExisting.Script), indexExisting);
+                    _scripts.Remove(scriptAndHeaderExisting);
+
+                }
+            }
+
+            // Will not add duplicate file name scripts, this is a change from previous behavior
+            // for Add and AddAtTop, but it is not expected to be a real use case
+        }
+
+        [Obsolete("Adding individual scripts is deprecated, and may not be supported by future versions of AGS. Use ScriptsAndHeaders instead.")]
         public void Add(Script newScript)
         {
-            if (newScript == null) return;
-            ScriptAndHeader scriptAndHeader = null;
-            if (newScript.IsHeader)
-            {
-                if (headerWithoutScript != null)
-                {
-                    scriptAndHeader = new ScriptAndHeader(headerWithoutScript, null);
-                }
-                headerWithoutScript = newScript;
-            }
-            else
-            {
-                scriptAndHeader = new ScriptAndHeader(headerWithoutScript, newScript);
-                headerWithoutScript = null;
-            }
-            if (scriptAndHeader != null) _scripts.Add(scriptAndHeader);
+            AddAt(newScript, -1);
         }
 
-        public void Add(ScriptAndHeader newScript)
-        {
-            _scripts.Add(newScript);
-        }
-
-        [Obsolete("Adding individual scripts is deprecated, and may not be supported by future versions of AGS. Add a ScriptAndHeader at once instead.")]
+        [Obsolete("Adding individual scripts is deprecated, and may not be supported by future versions of AGS. Use ScriptsAndHeaders instead.")]
         public void AddAtTop(Script newScript)
         {
-            if (newScript == null) return;
-            ScriptAndHeader scriptAndHeader = null;
-            if (newScript.IsHeader)
-            {
-                if (headerWithoutScript != null)
-                {
-                    scriptAndHeader = new ScriptAndHeader(headerWithoutScript, null);
-                }
-                headerWithoutScript = newScript;
-            }
-            else
-            {
-                scriptAndHeader = new ScriptAndHeader(headerWithoutScript, newScript);
-                headerWithoutScript = null;
-            }
-            if (scriptAndHeader != null) _scripts.Insert(0, scriptAndHeader);
+            AddAt(newScript, 0);
         }
 
-        public void AddAtTop(ScriptAndHeader newScript)
-        {
-            _scripts.Insert(0, newScript);
-        }
-
-        public void Remove(ScriptAndHeader script)
-        {
-            _scripts.Remove(script);
-        }
-
+        [Obsolete("Removing individual scripts is deprecated, and may not be supported by future versions of AGS. Use ScriptsAndHeaders instead.")]
         public void Remove(Script script)
         {
-            if (script == null) return;
-            for (int i = _scripts.Count; i >= 0; --i)
+            int index;
+            ScriptAndHeader scriptAndHeader = _scripts.FindScriptAndHeader(script, out index);
+            if (scriptAndHeader != null)
             {
-                ScriptAndHeader scriptAndHeader = _scripts[i];
-                if (script.Equals(scriptAndHeader.Header) ||
-                    script.Equals(scriptAndHeader.Script))
+                _scripts.Remove(scriptAndHeader);
+
+                // Check if there is an existing item, if so add a ScriptAndHeader to keep it.
+                if (script.IsHeader && scriptAndHeader.Script != null)
                 {
-                    _scripts.RemoveAt(i);
-                    break;
+                    _scripts.AddAt(new ScriptAndHeader(null, scriptAndHeader.Script), index);
                 }
+                else if (!script.IsHeader && scriptAndHeader.Header != null)
+                {
+                    _scripts.AddAt(new ScriptAndHeader(scriptAndHeader.Header, null), index);
+                }
+
             }
         }
 
         public Script FindMatchingScriptOrHeader(Script scriptOrHeader)
         {
-            if (scriptOrHeader == null) return null;
-            foreach (ScriptAndHeader script in _scripts)
+            ScriptAndHeader scriptAndHeader = _scripts.FindScriptAndHeader(scriptOrHeader);
+            if (scriptAndHeader != null)
             {
-                if (scriptOrHeader.Equals(script.Header)) return script.Script;
-                if (scriptOrHeader.Equals(script.Script)) return script.Header;
+                if (scriptOrHeader.Equals(scriptAndHeader.Header)) return scriptAndHeader.Script;
+                else return scriptAndHeader.Header;
             }
-            return null;
-        }
-
-        public ScriptAndHeader FindScriptAndHeader(Script scriptOrHeader)
-        {
-            int dummy;
-            return FindScriptAndHeader(scriptOrHeader, out dummy);
-        }
-
-        public ScriptAndHeader FindScriptAndHeader(Script scriptOrHeader, out int index)
-        {
-            index = -1;
-            if (scriptOrHeader == null) return null;
-            for (int i = 0; i < _scripts.Count; ++i)
+            else
             {
-                if (scriptOrHeader.Equals(_scripts[i].Header) || scriptOrHeader.Equals(_scripts[i].Script))
-                {
-                    index = i;
-                    return _scripts[i];
-                }
+                return null;
             }
-            return null;
         }
 
         public void MoveScriptAndHeaderUp(Script script)
         {
-            MoveScriptAndHeaderUp(FindScriptAndHeader(script));
-        }
-
-        public void MoveScriptAndHeaderUp(ScriptAndHeader script)
-        {
-            if (script == null) return;
-            int index = _scripts.IndexOf(script);
-            if (index == -1) return;
-            _scripts.RemoveAt(index);
-            _scripts.Insert(index - 1, script);
+            _scripts.MoveScriptAndHeaderUp(_scripts.FindScriptAndHeader(script));
         }
 
         public void MoveScriptAndHeaderDown(Script script)
         {
-            MoveScriptAndHeaderDown(FindScriptAndHeader(script));
+            _scripts.MoveScriptAndHeaderDown(_scripts.FindScriptAndHeader(script));
         }
 
-        public void MoveScriptAndHeaderDown(ScriptAndHeader script)
-        {
-            if (script == null) return;
-            int index = _scripts.IndexOf(script);
-            if (index == -1) return;
-            if (index < (_scripts.Count - 1))
-            {
-                _scripts.RemoveAt(index);
-                _scripts.Insert(index + 1, script);
-            }
-        }
-
+        /// <summary>
+        /// Returns the number of script items in the list.
+        /// </summary>
+        /// <remarks>
+        /// This property scans the entire list (O(N) complexity)
+        /// </remarks>
         public int Count
-        {
-            get { return _scripts.Count; }
-        }
-
-        public ScriptAndHeader this[int index]
         {
             get
             {
-                return _scripts[index];
+                int count = 0;
+                foreach (Script script in this)
+                {
+                    count++;
+                }
+                return count;
+            }
+        }
+
+        /// <summary>
+        /// Returns a script based on its index number.
+        /// </summary>
+        /// <remarks>
+        /// This method scans the entire list (O(N) complexity) and thus it is not recommended
+        /// to be used when traversing the list. Use the enumerator instead to perform for loops.
+        /// </remarks>
+        public Script this[int index]
+        {
+            get
+            {
+                int count = 0;
+                foreach (Script script in this)
+                {
+                    if (count == index)
+                    {
+                        return script;
+                    }
+                    count++;
+                }
+
+                return null;
             }
         }
 
         public Script GetScriptByFilename(string filename)
         {
-            ScriptAndHeader scriptAndHeader = GetScriptAndHeaderByFile(filename);
-            if (scriptAndHeader == null) return null;
-            if (filename.EndsWith(".ash")) return scriptAndHeader.Header;
-            return scriptAndHeader.Script;
+            return _scripts.GetScriptByFilename(filename);
         }
 
-        public ScriptAndHeader GetScriptAndHeaderByFile(string filename)
+        /// <summary>
+        /// Returns an enumerator to traverse the scripts
+        /// </summary>
+        /// <remarks>
+        /// The class must use this version of GetEnumerator and not
+        /// <see cref="System.Collections.Generic.IEnumerable{T}"/> of <see cref="AGS.Types.Script"/>.
+        /// Otherwise existing plugins will break.
+        /// </remarks>
+        /// <returns>A reference for IEnumerator</returns>
+        public IEnumerator GetEnumerator()
         {
-            if (filename.EndsWith(".ash") || filename.EndsWith(".asc"))
-            {
-                filename = filename.Substring(0, filename.Length - 4);
-            }
-            foreach (ScriptAndHeader script in _scripts)
-            {
-                if (((script.Header != null) && (script.Header.FileName == (filename + ".ash"))) ||
-                    ((script != null) && (script.Script.FileName == (filename + ".asc"))))
-                {
-                    return script;
-                }
-            }
-            return null;
+            return (this as IEnumerable<Script>).GetEnumerator();
         }
 
-        [Obsolete("The behavior of this enumerator is deprecated and may not be supported by future versions of AGS. Use the ScriptAndHeader enumerator instead.")]
-        IEnumerator IEnumerable.GetEnumerator()
+        IEnumerator<Script> IEnumerable<Script>.GetEnumerator()
         {
             foreach (ScriptAndHeader script in _scripts)
             {
@@ -209,71 +215,14 @@ namespace AGS.Types
             }
         }
 
-        public IEnumerator<ScriptAndHeader> GetEnumerator()
-        {
-            foreach (ScriptAndHeader script in _scripts)
-            {
-                yield return script;
-            }
-        }
-
-        public void RefreshProjectTree(IAGSEditor editor, string selectedNodeID)
-        {
-            foreach (IEditorComponent component in editor.Components)
-            {
-                if ((component.ComponentID == "Scripts") && (component is IRePopulatableComponent))
-                {
-                    if (selectedNodeID == null)
-                    {
-                        (component as IRePopulatableComponent).RePopulateTreeView();
-                    }
-                    else
-                    {
-                        (component as IRePopulatableComponent).RePopulateTreeView(selectedNodeID);
-                    }
-                    return;
-                }
-            }
-        }
-
-        public void RefreshProjectTree(IAGSEditor editor)
-        {
-            RefreshProjectTree(editor, null);
-        }
-
         public Scripts(XmlNode node)
+            : this(new ScriptsAndHeaders(node))
         {
-            _scripts = new ScriptFolders();
-            XmlNodeList children = node.SelectSingleNode("Scripts").ChildNodes;
-            Script header = null;
-            for (int i = 0; i < children.Count; ++i)
-            {
-                Script script = new Script(children[i]);
-                if (!script.IsHeader)
-                {
-                    // found a script, with or without header
-                    Add(new ScriptAndHeader(header, script));
-                    header = null;
-                }
-                else // found a header
-                {
-                    if (header != null) Add(new ScriptAndHeader(header, null)); // found header with no script
-                    header = script; // found header, checking for script
-                }
-            }
         }
 
         public void ToXml(XmlTextWriter writer)
         {
-            writer.WriteStartElement("Scripts");
-
-            foreach (ScriptAndHeader script in _scripts)
-            {
-                if (script.Header != null) script.Header.ToXml(writer);
-                script.Script.ToXml(writer);
-            }
-
-            writer.WriteEndElement();
+            _scripts.ToXml(writer);
         }
     }
 }

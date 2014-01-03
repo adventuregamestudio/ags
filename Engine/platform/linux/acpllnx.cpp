@@ -171,6 +171,7 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
 
 void AGSLinux::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
   char* data_dir = NULL;
+  size_t s       = 0;
 
   // Check to see if XDG_DATA_HOME is set in the enviroment
   data_dir = getenv("XDG_DATA_HOME");
@@ -182,24 +183,24 @@ void AGSLinux::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
 
   // MYDOCS is what is used in acplwin.cpp
   if(strncasecmp(sourcePath, "$MYDOCS$", 8) == 0) {
-    snprintf(destPath, sizeof destPath, "%s/.local", data_dir);
+    s = snprintf(destPath, sizeof destPath, "%s/.local", data_dir);
     mkdir(destPath, 0755);
-    strcat(destPath, "/share");
+    snprintf(destPath + s, sizeof destPath - s, "/share");
     mkdir(destPath, 0755);
     strcat(destPath, &sourcePath[8]);
     mkdir(destPath, 0755);
   // SAVEGAMEDIR is what is actually used in ac.cpp
   } else if(strncasecmp(sourcePath, "$SAVEGAMEDIR$", 13) == 0) {
-    snprintf(destPath, sizeof destPath, "%s/.local", data_dir);
+    s = snprintf(destPath, sizeof destPath, "%s/.local", data_dir);
     mkdir(destPath, 0755);
-    strcat(destPath, "/share");
+    snprintf(destPath + s, sizeof destPath - s, "/share");
     mkdir(destPath, 0755);
     strcat(destPath, &sourcePath[13]);
     mkdir(destPath, 0755);
   } else if(strncasecmp(sourcePath, "$APPDATADIR$", 12) == 0) {
-    snprintf(destPath, sizeof destPath, "%s/.local", data_dir);
+    s = snprintf(destPath, sizeof destPath, "%s/.local", data_dir);
     mkdir(destPath, 0755);
-    strcat(destPath, "/share");
+    snprintf(destPath + s, sizeof destPath - s, "/share");
     mkdir(destPath, 0755);
     strcat(destPath, &sourcePath[12]);
     mkdir(destPath, 0755);

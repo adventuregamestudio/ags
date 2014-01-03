@@ -74,7 +74,6 @@ struct AGSPSP : AGSPlatformDriver {
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteConsole(const char*, ...);
-  virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath);
   virtual void WriteDebugString(const char* texx, ...);
 };
 
@@ -487,23 +486,6 @@ void AGSPSP::WriteDebugString(const char* texx, ...) {
   strcat(displbuf, "\n");
 
   printf(displbuf);
-}
-
-void AGSPSP::ReplaceSpecialPaths(const char *sourcePath, char *destPath)
-{
-  if (strnicmp(sourcePath, "$MYDOCS$", 8) == 0) 
-  {
-    strcpy(destPath, ".");
-    strcat(destPath, &sourcePath[8]);
-  }
-  else if (strnicmp(sourcePath, "$APPDATADIR$", 12) == 0) 
-  {
-    strcpy(destPath, ".");
-    strcat(destPath, &sourcePath[12]);
-  }
-  else {
-    strcpy(destPath, sourcePath);
-  }
 }
 
 int AGSPSP::CDPlayerCommand(int cmdd, int datt) {

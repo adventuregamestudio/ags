@@ -58,7 +58,6 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteConsole(const char*, ...);
-  virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath);
   virtual void WriteDebugString(const char* texx, ...);
 };
 
@@ -679,23 +678,6 @@ void AGSAndroid::WriteDebugString(const char* texx, ...)
     vsprintf(&displbuf[5],texx,ap);
     va_end(ap);
     __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", "%s", displbuf);
-  }
-}
-
-void AGSAndroid::ReplaceSpecialPaths(const char *sourcePath, char *destPath)
-{
-  if (strnicmp(sourcePath, "$MYDOCS$", 8) == 0) 
-  {
-    strcpy(destPath, ".");
-    strcat(destPath, &sourcePath[8]);
-  }
-  else if (strnicmp(sourcePath, "$APPDATADIR$", 12) == 0) 
-  {
-    strcpy(destPath, ".");
-    strcat(destPath, &sourcePath[12]);
-  }
-  else {
-    strcpy(destPath, sourcePath);
   }
 }
 

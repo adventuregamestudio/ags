@@ -129,7 +129,6 @@ struct AGSIOS : AGSPlatformDriver {
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteConsole(const char*, ...);
-  virtual void ReplaceSpecialPaths(const char*, char*);
   virtual void WriteDebugString(const char* texx, ...);
 };
 
@@ -682,20 +681,4 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
   if (instance == NULL)
     instance = new AGSIOS();
   return instance;
-}
-
-void AGSIOS::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
-  if (strnicmp(sourcePath, "$MYDOCS$", 8) == 0) 
-  {
-    strcpy(destPath, ".");
-    strcat(destPath, &sourcePath[8]);
-  }
-  else if (strnicmp(sourcePath, "$APPDATADIR$", 12) == 0) 
-  {
-    strcpy(destPath, ".");
-    strcat(destPath, &sourcePath[12]);
-  }
-  else {
-    strcpy(destPath, sourcePath);
-  }
 }

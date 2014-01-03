@@ -357,7 +357,7 @@ int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
         return 0;
 
     char newSaveGameDir[260];
-    platform->ReplaceSpecialPaths(newFolder, newSaveGameDir);
+    platform->ReplaceSpecialPaths(newFolder, newSaveGameDir, sizeof(newSaveGameDir));
     fix_filename_slashes(newSaveGameDir);
 
 #if defined (WINDOWS_VERSION)

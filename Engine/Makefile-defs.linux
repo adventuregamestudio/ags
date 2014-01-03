@@ -1,8 +1,24 @@
-INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins
-LIBDIR =
-CFLAGS := -O2 -g -fsigned-char -Wfatal-errors -DNDEBUG -DAGS_RUNTIME_PATCH_ALLEGRO -DAGS_HAS_CD_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DALLEGRO_STATICLINK -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2) $(CFLAGS)
+INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins ../Linux/include
+_ARCH := $(shell uname -m)
+
+BUILD32 := 1
+ifeq ($(_ARCH),x86_64)
+  BUILD32 := 0
+endif
+ifeq ($(BUILD32), 1)
+  LIBDIR = ../Linux/lib32
+  RPATH=lib
+  override CFLAGS += -m32 $(shell getconf LFS_CFLAGS)
+  override CXXFLAGS += -m32 $(shell getconf LFS_CFLAGS)
+  override LDFLAGS += -m32
+else
+  LIBDIR = ../Linux/lib64
+  RPATH=lib64
+endif
+
+CFLAGS := -O2 -g -fsigned-char -Wfatal-errors -DNDEBUG -DAGS_HAS_CD_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DALLEGRO_STATICLINK -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2) $(CFLAGS)
 CXXFLAGS := -fno-rtti -Wno-write-strings $(CXXFLAGS)
-LIBS := -rdynamic $(shell allegro-config --libs) -laldmb -ldumb -Wl,-Bdynamic -ltheora -logg 
+LIBS = -rdynamic -lalleg -laldmb -ldumb -Wl,-Bdynamic -ltheoradec -logg 
 
 ifeq ($(USE_TREMOR), 1)
   LIBS += -lvorbisidec
@@ -35,6 +51,7 @@ endif
 
 BASE_PLATFORM = \
 platform/linux/acpllnx.cpp \
+platform/linux/binreloc.c \
 platform/util/pe.c \
 platform/util/libc.c
 

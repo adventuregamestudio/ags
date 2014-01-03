@@ -1,0 +1,144 @@
+diff -rNu dumb-0.9.3-orig/Makefile dumb-0.9.3/Makefile
+--- dumb-0.9.3-orig/Makefile	2005-08-07 19:18:41.000000000 -0500
++++ dumb-0.9.3/Makefile	2013-10-16 11:09:02.000000000 -0400
+@@ -231,8 +231,8 @@
+ endif
+ endif
+ 
+-CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS)
+-CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS)
++CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS) $(PLAT_CFLAGS)
++CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS) $(PLAT_CFLAGS)
+ 
+ LDFLAGS := -s
+ 
+diff -rNu dumb-0.9.3-orig/Makefile.rdy dumb-0.9.3/Makefile.rdy
+--- dumb-0.9.3-orig/Makefile.rdy	2005-08-07 19:18:39.000000000 -0500
++++ dumb-0.9.3/Makefile.rdy	2013-10-16 11:08:56.000000000 -0400
+@@ -231,8 +231,8 @@
+ endif
+ endif
+ 
+-CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS)
+-CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS)
++CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS) $(PLAT_CFLAGS)
++CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS) $(PLAT_CFLAGS)
+ 
+ LDFLAGS := -s
+ 
+Binary files dumb-0.9.3-orig/lib/unix/libaldmb.a and dumb-0.9.3/lib/unix/libaldmb.a differ
+Binary files dumb-0.9.3-orig/lib/unix/libaldmd.a and dumb-0.9.3/lib/unix/libaldmd.a differ
+Binary files dumb-0.9.3-orig/lib/unix/libdumb.a and dumb-0.9.3/lib/unix/libdumb.a differ
+Binary files dumb-0.9.3-orig/lib/unix/libdumbd.a and dumb-0.9.3/lib/unix/libdumbd.a differ
+diff -rNu dumb-0.9.3-orig/make/config.txt dumb-0.9.3/make/config.txt
+--- dumb-0.9.3-orig/make/config.txt	1969-12-31 19:00:00.000000000 -0500
++++ dumb-0.9.3/make/config.txt	2013-10-16 11:09:49.000000000 -0400
+@@ -0,0 +1,4 @@
++include make/unix.inc
++ALL_TARGETS := core core-headers
++ALL_TARGETS += allegro allegro-headers
++PLAT_CFLAGS := -mmacosx-version-min=10.5 -arch i386 -arch x86_64 -I../../include
+\ No newline at end of file
+Binary files dumb-0.9.3-orig/make/dumbask and dumb-0.9.3/make/dumbask differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/alplay.o and dumb-0.9.3/obj/unix/debug/alplay.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/atexit.o and dumb-0.9.3/obj/unix/debug/atexit.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/clickrem.o and dumb-0.9.3/obj/unix/debug/clickrem.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/datduh.o and dumb-0.9.3/obj/unix/debug/datduh.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/datit.o and dumb-0.9.3/obj/unix/debug/datit.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/datitq.o and dumb-0.9.3/obj/unix/debug/datitq.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/datmod.o and dumb-0.9.3/obj/unix/debug/datmod.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/datmodq.o and dumb-0.9.3/obj/unix/debug/datmodq.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/dats3m.o and dumb-0.9.3/obj/unix/debug/dats3m.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/dats3mq.o and dumb-0.9.3/obj/unix/debug/dats3mq.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/datunld.o and dumb-0.9.3/obj/unix/debug/datunld.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/datxm.o and dumb-0.9.3/obj/unix/debug/datxm.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/datxmq.o and dumb-0.9.3/obj/unix/debug/datxmq.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/duhlen.o and dumb-0.9.3/obj/unix/debug/duhlen.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/duhtag.o and dumb-0.9.3/obj/unix/debug/duhtag.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/dumbfile.o and dumb-0.9.3/obj/unix/debug/dumbfile.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/itload.o and dumb-0.9.3/obj/unix/debug/itload.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/itload2.o and dumb-0.9.3/obj/unix/debug/itload2.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/itmisc.o and dumb-0.9.3/obj/unix/debug/itmisc.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/itorder.o and dumb-0.9.3/obj/unix/debug/itorder.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/itread.o and dumb-0.9.3/obj/unix/debug/itread.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/itread2.o and dumb-0.9.3/obj/unix/debug/itread2.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/itrender.o and dumb-0.9.3/obj/unix/debug/itrender.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/itunload.o and dumb-0.9.3/obj/unix/debug/itunload.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/loadduh.o and dumb-0.9.3/obj/unix/debug/loadduh.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/loadmod.o and dumb-0.9.3/obj/unix/debug/loadmod.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/loadmod2.o and dumb-0.9.3/obj/unix/debug/loadmod2.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/loads3m.o and dumb-0.9.3/obj/unix/debug/loads3m.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/loads3m2.o and dumb-0.9.3/obj/unix/debug/loads3m2.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/loadxm.o and dumb-0.9.3/obj/unix/debug/loadxm.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/loadxm2.o and dumb-0.9.3/obj/unix/debug/loadxm2.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/makeduh.o and dumb-0.9.3/obj/unix/debug/makeduh.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/memfile.o and dumb-0.9.3/obj/unix/debug/memfile.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/packfile.o and dumb-0.9.3/obj/unix/debug/packfile.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/rawsig.o and dumb-0.9.3/obj/unix/debug/rawsig.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/readduh.o and dumb-0.9.3/obj/unix/debug/readduh.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/readmod.o and dumb-0.9.3/obj/unix/debug/readmod.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/readmod2.o and dumb-0.9.3/obj/unix/debug/readmod2.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/reads3m.o and dumb-0.9.3/obj/unix/debug/reads3m.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/reads3m2.o and dumb-0.9.3/obj/unix/debug/reads3m2.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/readxm.o and dumb-0.9.3/obj/unix/debug/readxm.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/readxm2.o and dumb-0.9.3/obj/unix/debug/readxm2.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/register.o and dumb-0.9.3/obj/unix/debug/register.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/rendduh.o and dumb-0.9.3/obj/unix/debug/rendduh.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/rendsig.o and dumb-0.9.3/obj/unix/debug/rendsig.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/resample.o and dumb-0.9.3/obj/unix/debug/resample.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/sampbuf.o and dumb-0.9.3/obj/unix/debug/sampbuf.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/silence.o and dumb-0.9.3/obj/unix/debug/silence.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/stdfile.o and dumb-0.9.3/obj/unix/debug/stdfile.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/unload.o and dumb-0.9.3/obj/unix/debug/unload.o differ
+Binary files dumb-0.9.3-orig/obj/unix/debug/xmeffect.o and dumb-0.9.3/obj/unix/debug/xmeffect.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/alplay.o and dumb-0.9.3/obj/unix/release/alplay.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/atexit.o and dumb-0.9.3/obj/unix/release/atexit.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/clickrem.o and dumb-0.9.3/obj/unix/release/clickrem.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/datduh.o and dumb-0.9.3/obj/unix/release/datduh.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/datit.o and dumb-0.9.3/obj/unix/release/datit.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/datitq.o and dumb-0.9.3/obj/unix/release/datitq.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/datmod.o and dumb-0.9.3/obj/unix/release/datmod.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/datmodq.o and dumb-0.9.3/obj/unix/release/datmodq.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/dats3m.o and dumb-0.9.3/obj/unix/release/dats3m.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/dats3mq.o and dumb-0.9.3/obj/unix/release/dats3mq.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/datunld.o and dumb-0.9.3/obj/unix/release/datunld.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/datxm.o and dumb-0.9.3/obj/unix/release/datxm.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/datxmq.o and dumb-0.9.3/obj/unix/release/datxmq.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/duhlen.o and dumb-0.9.3/obj/unix/release/duhlen.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/duhtag.o and dumb-0.9.3/obj/unix/release/duhtag.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/dumbfile.o and dumb-0.9.3/obj/unix/release/dumbfile.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/itload.o and dumb-0.9.3/obj/unix/release/itload.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/itload2.o and dumb-0.9.3/obj/unix/release/itload2.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/itmisc.o and dumb-0.9.3/obj/unix/release/itmisc.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/itorder.o and dumb-0.9.3/obj/unix/release/itorder.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/itread.o and dumb-0.9.3/obj/unix/release/itread.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/itread2.o and dumb-0.9.3/obj/unix/release/itread2.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/itrender.o and dumb-0.9.3/obj/unix/release/itrender.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/itunload.o and dumb-0.9.3/obj/unix/release/itunload.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/loadduh.o and dumb-0.9.3/obj/unix/release/loadduh.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/loadmod.o and dumb-0.9.3/obj/unix/release/loadmod.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/loadmod2.o and dumb-0.9.3/obj/unix/release/loadmod2.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/loads3m.o and dumb-0.9.3/obj/unix/release/loads3m.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/loads3m2.o and dumb-0.9.3/obj/unix/release/loads3m2.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/loadxm.o and dumb-0.9.3/obj/unix/release/loadxm.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/loadxm2.o and dumb-0.9.3/obj/unix/release/loadxm2.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/makeduh.o and dumb-0.9.3/obj/unix/release/makeduh.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/memfile.o and dumb-0.9.3/obj/unix/release/memfile.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/packfile.o and dumb-0.9.3/obj/unix/release/packfile.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/rawsig.o and dumb-0.9.3/obj/unix/release/rawsig.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/readduh.o and dumb-0.9.3/obj/unix/release/readduh.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/readmod.o and dumb-0.9.3/obj/unix/release/readmod.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/readmod2.o and dumb-0.9.3/obj/unix/release/readmod2.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/reads3m.o and dumb-0.9.3/obj/unix/release/reads3m.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/reads3m2.o and dumb-0.9.3/obj/unix/release/reads3m2.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/readxm.o and dumb-0.9.3/obj/unix/release/readxm.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/readxm2.o and dumb-0.9.3/obj/unix/release/readxm2.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/register.o and dumb-0.9.3/obj/unix/release/register.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/rendduh.o and dumb-0.9.3/obj/unix/release/rendduh.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/rendsig.o and dumb-0.9.3/obj/unix/release/rendsig.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/resample.o and dumb-0.9.3/obj/unix/release/resample.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/sampbuf.o and dumb-0.9.3/obj/unix/release/sampbuf.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/silence.o and dumb-0.9.3/obj/unix/release/silence.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/stdfile.o and dumb-0.9.3/obj/unix/release/stdfile.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/unload.o and dumb-0.9.3/obj/unix/release/unload.o differ
+Binary files dumb-0.9.3-orig/obj/unix/release/xmeffect.o and dumb-0.9.3/obj/unix/release/xmeffect.o differ

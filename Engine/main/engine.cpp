@@ -214,7 +214,7 @@ void engine_force_window()
 void init_game_file_name_from_cmdline()
 {
     game_file_name.Empty();
-#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
+#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(MAC_VERSION) || defined(LINUX_VERSION)
     game_file_name = psp_game_file_name;
 #else
     game_file_name = GetPathFromCmdArg(datafile_argv);

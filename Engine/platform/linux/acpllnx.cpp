@@ -26,6 +26,7 @@
 #include "plugin/agsplugin.h"
 #include "util/string.h"
 #include <libcda.h>
+#include <stdlib.h>     /* getenv */
 
 #include <pwd.h>
 #include <sys/stat.h>
@@ -169,30 +170,37 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
 }
 
 void AGSLinux::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
+  char* data_dir = NULL;
+  size_t s       = 0;
+
+  // Check to see if XDG_DATA_HOME is set in the enviroment
+  data_dir = getenv("XDG_DATA_HOME");
+  if (data_dir == NULL) {
+    // No evironment variable, so we fall back to home dir in /etc/passwd
+    struct passwd *p = getpwuid(getuid());
+    snprintf(data_dir, sizeof data_dir, "%s", p->pw_dir);
+  }
+
   // MYDOCS is what is used in acplwin.cpp
   if(strncasecmp(sourcePath, "$MYDOCS$", 8) == 0) {
-    struct passwd *p = getpwuid(getuid());
-    strcpy(destPath, p->pw_dir);
-    strcpy(destPath, "/.ags");
+    s = snprintf(destPath, sizeof destPath, "%s/.local", data_dir);
     mkdir(destPath, 0755);
-    strcpy(destPath, "/SavedGames");
+    snprintf(destPath + s, sizeof destPath - s, "/share");
     mkdir(destPath, 0755);
     strcat(destPath, &sourcePath[8]);
     mkdir(destPath, 0755);
   // SAVEGAMEDIR is what is actually used in ac.cpp
   } else if(strncasecmp(sourcePath, "$SAVEGAMEDIR$", 13) == 0) {
-    struct passwd *p = getpwuid(getuid());
-    strcpy(destPath, p->pw_dir);
-    strcpy(destPath, "/.ags");
+    s = snprintf(destPath, sizeof destPath, "%s/.local", data_dir);
     mkdir(destPath, 0755);
-    strcpy(destPath, "/SavedGames");
+    snprintf(destPath + s, sizeof destPath - s, "/share");
     mkdir(destPath, 0755);
-    strcat(destPath, &sourcePath[8]);
+    strcat(destPath, &sourcePath[13]);
     mkdir(destPath, 0755);
   } else if(strncasecmp(sourcePath, "$APPDATADIR$", 12) == 0) {
-    struct passwd *p = getpwuid(getuid());
-    strcpy(destPath, p->pw_dir);
-    strcpy(destPath, "/.ags");
+    s = snprintf(destPath, sizeof destPath, "%s/.local", data_dir);
+    mkdir(destPath, 0755);
+    snprintf(destPath + s, sizeof destPath - s, "/share");
     mkdir(destPath, 0755);
     strcat(destPath, &sourcePath[12]);
     mkdir(destPath, 0755);

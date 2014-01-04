@@ -84,6 +84,26 @@ void AGSLinux::DisplayAlert(const char *text, ...) {
   printf("%s", displbuf);
 }
 
+size_t BuildXDGPath(char *destPath, size_t destSize)
+{
+  // Check to see if XDG_DATA_HOME is set in the enviroment
+  const char* home_dir = getenv("XDG_DATA_HOME");
+  if (home_dir)
+  {
+    return snprintf(destPath, destSize, "%s", home_dir);
+  }
+  else
+  {
+    // No evironment variable, so we fall back to home dir in /etc/passwd
+    struct passwd *p = getpwuid(getuid());
+    size_t l = snprintf(destPath, destSize, "%s/.local", p->pw_dir);
+    mkdir(destPath, 0755);
+    l += snprintf(destPath + l, destSize - l, "/share");
+    mkdir(destPath, 0755);
+    return l;
+  }
+}
+
 void DetermineAppOutputDirectory()
 {
   if (!LinuxOutputDirectory.IsEmpty())
@@ -92,11 +112,11 @@ void DetermineAppOutputDirectory()
   }
 
   bool log_to_home_dir = false;
-  const char* home_dir = getenv("HOME");
-  if (home_dir)
+  char xdg_path[256];
+  if (BuildXDGPath(xdg_path, sizeof(xdg_path)) > 0)
   {
-    LinuxOutputDirectory = home_dir;
-    LinuxOutputDirectory.Append("/.ags");
+    LinuxOutputDirectory = xdg_path;
+    LinuxOutputDirectory.Append("/ags");
     log_to_home_dir = mkdir(LinuxOutputDirectory, 0755) == 0 || errno == EEXIST;
   }
 
@@ -172,7 +192,6 @@ void AGSLinux::ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_
   
   static const char *special_paths[3] = {"$MYDOCS$", "$SAVEGAMEDIR$", "$APPDATADIR$"};
   static const size_t sp_path_len[3] = {8, 13, 12};
-  static const int appdata_path_index = 2;
   int use_sp_path = -1;
   for (int i = 0; i < 3; ++i)
   {
@@ -185,14 +204,7 @@ void AGSLinux::ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_
   
   if (use_sp_path >= 0)
   {
-    struct passwd *p = getpwuid(getuid());
-    size_t l = snprintf(destPath, destSize, "%s/.ags", p->pw_dir);
-    mkdir(destPath, 0755);
-    if (use_sp_path != appdata_path_index)
-    {
-      l += snprintf(destPath + l, destSize - l, "/SavedGames");
-      mkdir(destPath, 0755);
-    }
+    size_t l = BuildXDGPath(destPath, destSize);
     snprintf(destPath + l, destSize - l, "%s", sourcePath + sp_path_len[use_sp_path]);
     mkdir(destPath, 0755);
   }

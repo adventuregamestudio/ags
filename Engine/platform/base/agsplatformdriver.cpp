@@ -17,7 +17,6 @@
 //=============================================================================
 
 #include <stdio.h>
-#include <string.h>
 #include "util/wgt2allg.h"
 #include "platform/base/agsplatformdriver.h"
 #include "ac/common.h"
@@ -67,18 +66,21 @@ void AGSPlatformDriver::YieldCPU() {
     this->Delay(1);
 }
 
-void AGSPlatformDriver::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
+void AGSPlatformDriver::ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize) {
 
-    if (strnicmp(sourcePath, "$MYDOCS$", 8) == 0) {
-        // For platforms with no My Documents folder, just
-        // redirect it back to current folder
-        strcpy(destPath, ".");
-        strcat(destPath, &sourcePath[8]);
+    // For platforms with no special folders, just redirect it back to current folder
+    if (strnicmp(sourcePath, "$MYDOCS$", 8) == 0)
+    {
+        snprintf(destPath, destSize, ".%s", sourcePath + 8);
     }
-    else {
-        strcpy(destPath, sourcePath);
+    else if (strnicmp(sourcePath, "$APPDATADIR$", 12) == 0) 
+    {
+        snprintf(destPath, destSize, ".%s", sourcePath + 12);
     }
-
+    else
+    {
+        snprintf(destPath, destSize, "%s", sourcePath);
+    }
 }
 
 void AGSPlatformDriver::ReadPluginsFromDisk(AGS::Common::Stream *iii) {

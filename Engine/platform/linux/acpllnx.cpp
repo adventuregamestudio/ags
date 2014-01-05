@@ -56,7 +56,7 @@ struct AGSLinux : AGSPlatformDriver {
   virtual void ShutdownCDPlayer();
   virtual void WriteConsole(const char*, ...);
   virtual void WriteDebugString(const char* texx, ...);
-  virtual void ReplaceSpecialPaths(const char*, char*);
+  virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize);
 };
 
 
@@ -84,6 +84,26 @@ void AGSLinux::DisplayAlert(const char *text, ...) {
   printf("%s", displbuf);
 }
 
+size_t BuildXDGPath(char *destPath, size_t destSize)
+{
+  // Check to see if XDG_DATA_HOME is set in the enviroment
+  const char* home_dir = getenv("XDG_DATA_HOME");
+  if (home_dir)
+  {
+    return snprintf(destPath, destSize, "%s", home_dir);
+  }
+  else
+  {
+    // No evironment variable, so we fall back to home dir in /etc/passwd
+    struct passwd *p = getpwuid(getuid());
+    size_t l = snprintf(destPath, destSize, "%s/.local", p->pw_dir);
+    mkdir(destPath, 0755);
+    l += snprintf(destPath + l, destSize - l, "/share");
+    mkdir(destPath, 0755);
+    return l;
+  }
+}
+
 void DetermineAppOutputDirectory()
 {
   if (!LinuxOutputDirectory.IsEmpty())
@@ -92,11 +112,11 @@ void DetermineAppOutputDirectory()
   }
 
   bool log_to_home_dir = false;
-  const char* home_dir = getenv("HOME");
-  if (home_dir)
+  char xdg_path[256];
+  if (BuildXDGPath(xdg_path, sizeof(xdg_path)) > 0)
   {
-    LinuxOutputDirectory = home_dir;
-    LinuxOutputDirectory.Append("/.ags");
+    LinuxOutputDirectory = xdg_path;
+    LinuxOutputDirectory.Append("/ags");
     log_to_home_dir = mkdir(LinuxOutputDirectory, 0755) == 0 || errno == EEXIST;
   }
 
@@ -168,35 +188,28 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
   return instance;
 }
 
-void AGSLinux::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
-  // MYDOCS is what is used in acplwin.cpp
-  if(strncasecmp(sourcePath, "$MYDOCS$", 8) == 0) {
-    struct passwd *p = getpwuid(getuid());
-    strcpy(destPath, p->pw_dir);
-    strcpy(destPath, "/.ags");
+void AGSLinux::ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize) {
+  
+  static const char *special_paths[3] = {"$MYDOCS$", "$SAVEGAMEDIR$", "$APPDATADIR$"};
+  static const size_t sp_path_len[3] = {8, 13, 12};
+  int use_sp_path = -1;
+  for (int i = 0; i < 3; ++i)
+  {
+    if (strncasecmp(sourcePath, special_paths[i], sp_path_len[i]) == 0)
+    {
+      use_sp_path = i;
+      break;
+    }
+  }
+  
+  if (use_sp_path >= 0)
+  {
+    size_t l = BuildXDGPath(destPath, destSize);
+    snprintf(destPath + l, destSize - l, "%s", sourcePath + sp_path_len[use_sp_path]);
     mkdir(destPath, 0755);
-    strcpy(destPath, "/SavedGames");
-    mkdir(destPath, 0755);
-    strcat(destPath, &sourcePath[8]);
-    mkdir(destPath, 0755);
-  // SAVEGAMEDIR is what is actually used in ac.cpp
-  } else if(strncasecmp(sourcePath, "$SAVEGAMEDIR$", 13) == 0) {
-    struct passwd *p = getpwuid(getuid());
-    strcpy(destPath, p->pw_dir);
-    strcpy(destPath, "/.ags");
-    mkdir(destPath, 0755);
-    strcpy(destPath, "/SavedGames");
-    mkdir(destPath, 0755);
-    strcat(destPath, &sourcePath[8]);
-    mkdir(destPath, 0755);
-  } else if(strncasecmp(sourcePath, "$APPDATADIR$", 12) == 0) {
-    struct passwd *p = getpwuid(getuid());
-    strcpy(destPath, p->pw_dir);
-    strcpy(destPath, "/.ags");
-    mkdir(destPath, 0755);
-    strcat(destPath, &sourcePath[12]);
-    mkdir(destPath, 0755);
-  } else {
-    strcpy(destPath, sourcePath);
+  }
+  else
+  {
+    snprintf(destPath, destSize, "%s", sourcePath);
   }
 }

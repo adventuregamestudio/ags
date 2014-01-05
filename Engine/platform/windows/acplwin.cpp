@@ -19,6 +19,7 @@
 // ********* WINDOWS *********
 
 #include <stdio.h>
+#include <string.h>
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
@@ -35,6 +36,7 @@
 #include "plugin/agsplugin.h"
 #include "util/file.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
 using AGS::Common::Stream;
 using AGS::Common::String;
@@ -107,7 +109,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroInit(bool windowed);
   virtual void PostAllegroExit();
-  virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath);
+  virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize);
   virtual int  RunSetup();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
@@ -613,25 +615,22 @@ void DetermineAppOutputDirectory()
   }
 }
 
-void AGSWin32::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
-
-  determine_saved_games_folder();
+void AGSWin32::ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize) {
 
   if (strnicmp(sourcePath, "$MYDOCS$", 8) == 0) 
   {
-    strcpy(destPath, win32SavedGamesDirectory);
-    strcat(destPath, &sourcePath[8]);
+    determine_saved_games_folder();
+    snprintf(destPath, destSize, "%s%s", win32SavedGamesDirectory, sourcePath + 8);
   }
   else if (strnicmp(sourcePath, "$APPDATADIR$", 12) == 0) 
   {
     determine_app_data_folder();
-    strcpy(destPath, win32AppDataDirectory);
-    strcat(destPath, &sourcePath[12]);
+    snprintf(destPath, destSize, "%s%s", win32AppDataDirectory, sourcePath + 12);
   }
-  else {
-    strcpy(destPath, sourcePath);
+  else
+  {
+    snprintf(destPath, destSize, "%s", sourcePath);
   }
-
 }
 
 const char* AGSWin32::GetAllUsersDataDirectory() 

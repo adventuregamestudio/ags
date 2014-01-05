@@ -55,7 +55,7 @@ struct AGSPlatformDriver
     virtual void PostAllegroInit(bool windowed);
     virtual void PostAllegroExit() = 0;
     virtual void FinishedUsingGraphicsMode();
-    virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath) = 0;
+    virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize) = 0;
     virtual int  RunSetup() = 0;
     virtual void SetGameWindowIcon();
     virtual void WriteConsole(const char*, ...) = 0;

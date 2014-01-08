@@ -382,7 +382,7 @@ String GetPathFromCmdArg(int arg_index)
     LPCWSTR arg_path = wArgv[arg_index];
     if (GetShortPathNameW(arg_path, short_path, MAX_PATH) == 0)
     {
-        platform->DisplayAlert("Unable to determine path: GetShortPathNameW failed.\nCommand line argument %i: %s", arg_index, global_argv[arg_index]);
+        Out::FPrint("Unable to determine path: GetShortPathNameW failed.\nCommand line argument %i: %s", arg_index, global_argv[arg_index]);
         return "";
     }
     WideCharToMultiByte(CP_ACP, 0, short_path, -1, ansi_buffer, MAX_PATH, NULL, NULL);

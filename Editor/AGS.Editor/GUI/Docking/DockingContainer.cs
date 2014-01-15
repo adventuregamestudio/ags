@@ -85,6 +85,7 @@ namespace AGS.Editor
                 PerformUglyDockHack();
                 base.Show(dockPanel, (DockState)dockData.DockState);
             }
+            IsShowing = false;
         }
 
         #endregion

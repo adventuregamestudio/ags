@@ -4,12 +4,15 @@ Priority: optional
 Maintainer: Tobias Hansen <tobias.han@gmx.de>
 Build-Depends: debhelper (>= 8.0.0),
                pkg-config,
-               liballegro4.2-dev,
+               liballegro4-dev,
                libaldmb1-dev,
                libfreetype6-dev,
                libtheora-dev,
                libvorbis-dev,
-               libogg-dev
+               libogg-dev,
+               liballegro4.4-plugin-alsa
+# liballegro4.4-plugin-alsa is not really neccessary
+# and was just added for the ags+libraries script.
 Standards-Version: 3.9.3
 Homepage: https://github.com/adventuregamestudio/ags
 Vcs-Git: git://github.com/adventuregamestudio/ags.git

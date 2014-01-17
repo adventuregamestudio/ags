@@ -1,12 +1,28 @@
 #!/bin/sh
 set -e
 
-# In the moment this script should only be used on Debian.
-# That is because Debian currently uses glibc 2.13, while
+# This script uses Debian 7 (wheezy) chroots to build ags
+# on Debian or Ubuntu.
+# That is because Debian 7 uses glibc 2.13, while
 # most other major Linux distributions (including Ubuntu)
-# use version 2.15. Creating the allegro+libraries bundle
-# on a distribution with glibc 2.15 will likely result in
-# something that does not work on Debian.
+# use higher versions. Building ags
+# on a distribution with glibc > 2.13 will likely result in
+# something that does not work on Debian 7.
+
+# Preliminaries for running this script:
+# This script is intended for use on Debian or Ubuntu
+# Install ubuntu-dev-scripts and cowbuilder:
+
+# sudo apt-get install ubuntu-dev-tools cowbuilder
+
+# Create the (chroot) environments that will be used for building ags:
+
+# cowbuilder-dist wheezy i386 create
+# cowbuilder-dist wheezy amd64 create
+
+# The only other thing you should take care of is that your ags
+# source tree is git clean. That means: check 'git status', commit any
+# changes and maybe run 'git clean -dfx'.
 
 BASEPATH=$(dirname $(dirname $(readlink -f $0)))
 
@@ -20,56 +36,37 @@ echo Creating ags+libraries in $BASEPATH/
 echo "See debian/README.md for usage instructions."
 
 set -x
-mkdir -p $BASEPATH/ags+libraries/data/licenses
+mkdir -p $BASEPATH/ags+libraries
+set +x
 
-for bit in 32 64; do
-  set +x
-  if test $bit -eq 32
-    then
-      TRIPLET=i386-linux-gnu
-    else
-      TRIPLET=x86_64-linux-gnu
-  fi
-  set -x
+sed -i -r "4s/.*/BINDMOUNT=$(echo $BASEPATH | sed -e 's/[\/&]/\\&/g')\/ags+libraries/" $BASEPATH/debian/ags+libraries/hooks/B00_copy_libs.sh
+sed -i -r "5s/.*/BIT=32/" $BASEPATH/debian/ags+libraries/hooks/B00_copy_libs.sh
 
-  mkdir $BASEPATH/ags+libraries/data/lib$bit
+cd $BASEPATH
+VERSION=$(dpkg-parsechangelog | grep -x "Version:.*" | sed 's@Version: \(.\+\)@\1@')
+debian/rules get-orig-source
+debuild -us -uc -S
 
-  for library in \
-    liballeg.so.4.4 \
-    libaldmb.so.1 \
-    libdumb.so.1 \
-    libfreetype.so.6 \
-    libogg.so.0 \
-    libtheora.so.0 \
-    libvorbis.so.0 \
-    libvorbisfile.so.3 \
-    allegro/4.4.2/alleg-alsadigi.so \
-    allegro/4.4.2/alleg-alsamidi.so \
-    allegro/4.4.2/modules.lst; do
-      cp -L /usr/lib/$TRIPLET/$library $BASEPATH/ags+libraries/data/lib$bit
-  done
-done
+DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib32" cowbuilder-dist wheezy i386 build $BASEPATH/../ags_$VERSION.dsc --buildresult $BASEPATH/ags+libraries --hookdir $BASEPATH/debian/ags+libraries/hooks --bindmounts "$BASEPATH/ags+libraries" 
 
-for package in \
-  liballegro4.4 \
-  libdumb1 \
-  libfreetype6 \
-  libogg0 \
-  libtheora0 \
-  libvorbis0a; do
-    cp /usr/share/doc/$package/copyright $BASEPATH/ags+libraries/data/licenses/$package-copyright
-done
+cd $BASEPATH/ags+libraries
+ar p $BASEPATH/ags+libraries/ags_${VERSION}_i386.deb data.tar.gz | tar zx
+sudo cp $BASEPATH/ags+libraries/usr/bin/ags $BASEPATH/ags+libraries/data/ags32
+rm -rf $BASEPATH/ags+libraries/ags_* $BASEPATH/ags+libraries/ags-dbg_* $BASEPATH/ags+libraries/usr
 
-cp $BASEPATH/debian/copyright $BASEPATH/ags+libraries/data/licenses/ags-copyright
+sed -i -r "5s/.*/BIT=64/" $BASEPATH/debian/ags+libraries/hooks/B00_copy_libs.sh
+DEB_BUILD_OPTIONS="rpath=$ORIGIN/lib64" cowbuilder-dist wheezy amd64 build $BASEPATH/../ags_$VERSION.dsc --buildresult $BASEPATH/ags+libraries --hookdir $BASEPATH/debian/ags+libraries/hooks --bindmounts "$BASEPATH/ags+libraries"
+
+cd $BASEPATH/ags+libraries
+ar p $BASEPATH/ags+libraries/ags_${VERSION}_amd64.deb data.tar.gz | tar zx
+sudo cp $BASEPATH/ags+libraries/usr/bin/ags $BASEPATH/ags+libraries/data/ags64
+rm -rf $BASEPATH/ags+libraries/ags_* $BASEPATH/ags+libraries/ags-dbg_* $BASEPATH/ags+libraries/usr last_operation.log
+
+sed -i -r "4s/.*/BINDMOUNT=/" $BASEPATH/debian/ags+libraries/hooks/B00_copy_libs.sh
+sed -i -r "5s/.*/BIT=32/" $BASEPATH/debian/ags+libraries/hooks/B00_copy_libs.sh
+
+sudo cp $BASEPATH/debian/copyright $BASEPATH/ags+libraries/data/licenses/ags-copyright
 cp $BASEPATH/debian/ags+libraries/startgame $BASEPATH/ags+libraries/
 cp $BASEPATH/debian/ags+libraries/README $BASEPATH/ags+libraries/
-
-make --directory=$BASEPATH/Engine LDFLAGS="'-Wl,-rpath,\$\$ORIGIN/lib64'" -j5
-
-cp $BASEPATH/Engine/ags $BASEPATH/ags+libraries/data/ags64
-strip $BASEPATH/ags+libraries/data/ags64
-
-# I compile and strip the 32 bit binary separately and make sure it is in $BASEPATH.
-cp $BASEPATH/ags $BASEPATH/ags+libraries/data/ags32
 
 cd $BASEPATH && tar -cf - ags+libraries/ | xz -9 -c - > ags+libraries_$(date +%Y%m%d).tar.xz 

@@ -92,6 +92,13 @@ which can be viewed with
 
 This information should be included in bug reports.
 
+#Building AGS for a game release
+If you want to build AGS for inclusion in a game release, you want an
+engine that runs on most 32 and 64 bit Linux systems regardless of the library
+versions that are installed on that system. You can get such a built by using
+the script **debian/make_ags+libraries,sh**. The script itself can be used
+on Debian or Ubuntu. See the comments in the script for instructions.
+
 #Workaround: 32 bit AGS on 64 bit Debian/Ubuntu
 In the past AGS worked only on 32 bit architectures, so it was necessary to compile
 a 32 bit version on 64 bit systems. This is not necessary anymore, but these

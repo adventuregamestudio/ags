@@ -8,8 +8,8 @@
 \parskip=10pt%
 \parindent=0pt%
 \backgroundcolour{255;255;225}\textcolour{0;0;0}% Has an effect in HTML only
-\title{Adventure Game Studio 3.2.1}%
-\author{by Chris Jones}%
+\title{Adventure Game Studio 3.3.0}%
+\author{by Chris Jones et al.}%
 \makeindex%
 \begin{document}%
 
@@ -29,41 +29,28 @@ help you get even more out of AGS. Enjoy!
 \setheader{{\it COPYRIGHT}}{}{}{}{}{{\it COPYRIGHT}}%
 \setfooter{\thepage}{}{}{}{}{\thepage}%
 
-Copyright (c) 1999-2010 Chris Jones.
+Copyright (c) 1999-2011 Chris Jones and 2011-2014 various contributors.
+
+The software is provided under Artistic License 2.0 (http://www.opensource.org/licenses/artistic-license-2.0.php).
+Adventure Game Studio is an open source software, its source code is available at https://github.com/adventuregamestudio/ags.
 
 THE SOFTWARE IS PROVIDED 'AS-IS' AND WITHOUT WARRANTY OF ANY KIND, EXPRESS,
 IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY WARRANTY OF
 MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-IN NO EVENT SHALL CHRIS JONES BE LIABLE FOR ANY SPECIAL, INCIDENTAL,
-INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND, OR ANY DAMAGES WHATSOEVER
-RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER OR NOT ADVISED OF THE
-POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF LIABILITY, ARISING OUT OF OR
-IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+IN NO EVENT SHALL CHRIS JONES OR ANY OF THE CONTRIBUTORS BE LIABLE FOR ANY
+SPECIAL, INCIDENTAL, INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND, OR ANY
+DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER OR
+NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF LIABILITY,
+ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 NO MONEY WHATSOEVER MAY BE CHARGED FOR ADVENTURE GAME STUDIO UNLESS EXPRESS
-WRITTEN PERMISSION IS GIVEN BY THE AUTHOR. IF YOU PAID FOR THIS, THE SELLER
+WRITTEN PERMISSION IS GIVEN BY THE AUTHORS. IF YOU PAID FOR THIS, THE SELLER
 IS BREACHING THE TERMS OF DISTRIBUTION OF THIS APPLICATION.
 
-AGS is an adventure game creation system. As such, it is provided to you in
-good faith by the author. Chris Jones cannot be held responsible for the
-contents of any works created with AGS, including but not limited to any which
-infringe on copyright, are libellous or contain offensive material.
-Please use AGS responsibly.
+AGS is an adventure game creation system. As such, it is provided to you in good faith by its authors. Neither Chris Jones nor any of the contributors can be held responsible for the contents of any works created with AGS, including but not limited to any which infringe on copyright, are libellous or contain offensive material. Please use AGS responsibly.
 
-AGS allows user-made "Plugins" to be incorporated into games created by the system.
-These Plugins can access all standard Windows functionality and are therefore
-not protected from system functions as the scripting language is.
-Chris Jones cannot be held responsible for any Plugins for AGS which you use
-in your game. Any problems with the Plugin should be addressed to its author.
-
-Anything you distribute which has been created with AGS \bf{MUST} retain the Version resources
-unaltered in order to display the AGS version and copyright in the Version tab of the EXE
-properties.
-
-Please note that this is the \bf{only} evidence that remains that your game was created
-with AGS - I do not place any splash screens or copyright messages in your game, and
-leaving the version tab is all I ask.
+AGS allows user-made "Plugins" to be incorporated into games created by the system. These Plugins can access all standard Windows functionality and are therefore not protected from system functions as the scripting language is. Neither Chris Jones nor any of the contributors can be held responsible for any Plugins for AGS which you use in your game. Any problems with the Plugin should be addressed to its author.
 
 TrueType font display uses ALFont by Javier Gonzalez and the Freetype project. Distributed
 under the terms of the Freetype Project license.
@@ -87,7 +74,7 @@ Windows is a trademark or registered trademark of Microsoft corp.
 
 \Large{Adventure Game Studio}
 
-\large{Copyright 1999-2010 Chris Jones}\hrule
+\large{Copyright 1999-2011 Chris Jones and 2011-2014 various contributors}\hrule
 
 Welcome to AGS!
 
@@ -111,7 +98,7 @@ Any games you create have at least these system requirements:
 \begin{itemize}\itemsep=0pt
 \item Pentium or higher processor
 \item 64 Mb RAM
-\item Windows 98, ME, 2000, XP or Vista with DirectX 5 or above
+\item Windows 98, ME, 2000, XP, Vista, Seven with DirectX 5 or above
 \item Supports all DirectX-compatible sound and video cards
 \end{itemize}
 
@@ -159,8 +146,7 @@ game will try to show you some of what AGS can do.
 
 To run the demo, choose the "Open the Demo Game" option from the AGS folder
 in your start menu. If you're looking for the files, they're located in the
-All Users Application Data folder (this is for compatibility with Windows Vista's
-new security filters).
+All Users Application Data folder (this is for compatibility with the security filters in Windows Vista and later versions).
 
 \bf{NOTE:} The demo game is currently under development. It has various unfinished
 or unimplemented areas.
@@ -867,6 +853,8 @@ in-game. This can be set to allow the mouse and/or keyboard, or neither, to
 skip speech in the game.
 \item \bf{When interface disabled} - determines what happens to buttons on your
 GUIs while the game interface is disabled (eg. during a cutscene).
+\item \bf{GUI alpha rendering style} - determines which rendering method to use in 32-bit games when a GUI Control is drawn over GUI. The "Proper alpha belnding" choice is meant for full alpha blending support, other options exist for compatibility with older versions of AGS only.
+\item \bf{Sprite alpha rendering style} - determines which rendering method to use in 32-bit games when an image is drawn over \helpref{drawing surface}{DrawingSurfaceFunctions}.  The "Proper alpha belnding" choice is meant for full alpha blending support, "Classic" style exists for  compatibility with older versions of AGS only.
 \item \bf{Always display text as speech} - if you select this option, then all normal
 text in the game will be displayed above the main character's head as speech
 text, much like the way the Lucasarts games worked. If this option is not
@@ -984,14 +972,14 @@ If you check this option, however, then all the copies of the item that the play
 will be displayed. Useful for RPG-style inventories.
 \item \bf{Save games folder name} - if this is blank, then the player's saved games will
 be saved to the folder where the game is installed. This is not a good idea, because it
-forces different users on the same machine to share save games, and Windows Vista discourages
+forces different users on the same machine to share save games, and Windows Vista and later versions discourage
 games from writing to the Program Files folder. Instead, if you supply a folder name here,
-then AGS will automatically create it within the user's Saved Games (Vista) or My Documents
+then AGS will automatically create it within the user's Saved Games (Vista and later) or My Documents
 (XP and earlier) folder, and their save games will be saved there.
 \end{itemize}
 
 See Also: \helprefn{Enhanced Saved Games}{EnhancedSaveGames} ILBRK
-See Also: \helprefn{Windows Vista Game Explorer}{GameExplorer}
+See Also: \helprefn{Windows Game Explorer}{GameExplorer}
 
 
 \subsection{Cursors}\index{Mouse cursors}%
@@ -1211,7 +1199,7 @@ This section describes AGS features that were not covered in the tutorial.
 
 \section{Music and sound}\label{MusAndSound}\index{Sound effects}\index{Audio}%
 
-Sound and music are an essential part of any gameplay experience, and AGS 3.2 now
+Sound and music are an essential part of any gameplay experience, and AGS 3.2 and higher
 provides a re-written audio system giving you full control over your game audio.
 
 \bf{File formats}
@@ -1392,7 +1380,7 @@ from the rest of your game data so that you can offer it as an optional extra
 download to the player. The game will function correctly if the file is not
 present.
 
-\it{SeeAlso:} \helprefn{SetVoiceMode}{SetVoiceMode} script function.
+\it{SeeAlso:} \helprefn{Speech.VoiceMode}{Speech.VoiceMode} script property.
 
 
 \subsection{The AudioCache folder}\label{AudioCache}\index{AudioCache folder}%
@@ -1603,6 +1591,8 @@ You use the ListBox script functions to manipulate the list box - for
 example, ListBox.AddItem to add an item, or ListBox.SelectedIndex to get the current
 selection.
 
+The ListBox.Translated property defines whether the translation will be applied to list items or not. It is recommended to disable translation for lists containing saved games.
+
 The OnSelectionChanged event is fired when the player clicks on an item in the list.
 You may wish to ignore this or to do something useful with it.
 
@@ -1658,7 +1648,7 @@ file. To do this, simply place your icon in your game's folder, and name
 it USER.ICO. Then, load the editor and save the game.
 
 AGS is only able to build your custom icon if you are running the editor on
-Windows 2000, XP or Vista. If you're using Windows 98 then your game will be
+Windows 2000 and later. If you're using Windows 98 then your game will be
 built with the standard AGS icon.
 
 \it{NOTE: The icon \bf{must} be a proper Windows .ICO file, \bf{not} just a renamed
@@ -2144,7 +2134,7 @@ Once the script has stopped, you can use the "Step Into" button (F11) to step th
 the lines of code, one by one. To allow the game to continue running normally, use the Run (F5) button.
 
 \bf{NOTE:} The Script Debugger is not supported on Windows 98 or Windows ME systems.
-If you're still using Windows 98, please upgrade to Windows XP or Vista to take advantage
+If you're still using Windows 98, please upgrade to Windows XP or higher to take advantage
 of this feature.
 
 \bf{2. The Debug() command}
@@ -2195,7 +2185,7 @@ number, it will be overwritten:
 
 AGS has the ability to integrate with Windows in two ways. Firstly, it can
 be set up to launch save games directly from explorer when the player double-clicks
-them; and secondly, in Windows Vista, AGS can integrate with the Game Explorer feature.
+them; and secondly, in Windows Vista and later, AGS can integrate with the Game Explorer feature.
 
 
 \subsection{Enhanced Save Games}\label{EnhancedSaveGames}\index{Save games, enhanced}%
@@ -2217,13 +2207,13 @@ extension for Demo Quest, for example).
 By changing these settings, your game's saved game filenames will change, and therefore
 you will lose access to any existing saved games.
 
-\bf{Windows Vista extras}
+\bf{Extra features for Windows Vista and later}
 
-If the player is running Windows Vista, then this feature will also allow them to see
+If the player is running Windows Vista or later versions, then this feature will also allow them to see
 the save game description and screenshot (if enabled) in the Explorer preview window:
 
 LTSSimg src="images/GameExplorer3.jpg" GTSS ILBRK
-\it{Save games with embedded screenshots on Vista}
+\it{Save games with embedded screenshots on Vista and later versions}
 
 \bf{Enabling the integration}
 
@@ -2252,9 +2242,9 @@ Linux: \bf{ No }ILBRK
 MacOS: \bf{ No }
 
 
-\subsection{Windows Vista Game Explorer}\label{GameExplorer}\index{Vista Game Explorer}\index{Game Explorer}%
+\subsection{Windows Game Explorer}\label{GameExplorer}\index{Windows Game Explorer}\index{Game Explorer}%
 
-Windows Vista has a feature called the Game Explorer, which is a special folder on
+Windows Vista and later versions have a feature called the Game Explorer, which is a special folder on
 the Start Menu that lists all the games installed on the user's system and provides
 easy shortcuts to play them.
 
@@ -2268,7 +2258,7 @@ LTSSimg src="images/GameExplorer1.jpg" GTSS ILBRK
 \bf{Enabling Game Explorer support}
 
 Open the General Settings pane in the editor. If you scroll down to the bottom of the
-list, you'll find a section titled "Windows Vista Game Explorer". The main setting
+list, you'll find a section titled "Windows Game Explorer". The main setting
 is called "Enable Game Explorer integration", and is disabled by default. Set this
 to True if you want to be able to add your game to the Game Explorer (it will
 have no effect on Windows XP and earlier versions).
@@ -2279,7 +2269,7 @@ The rest of the settings here allow you to set up various fields that the Game E
 can display. \bf{Developer Website} must be a URL starting with "http://" if you fill
 it in, and \bf{Version} must be a four-point version number (eg. 1.0.0.0).
 
-The \bf{Windows Experience Index} is a score that Vista gives each computer depending
+The \bf{Windows Experience Index} is a score that Windows gives each computer depending
 on its game-playing prowess. 1 is the lowest score, and 5 is the highest at present.
 This field allows you to specify the minimum score required to play your game (this
 will usually be 1 for AGS games, unless you have high resolution and lots of animation).
@@ -2292,10 +2282,10 @@ This is only useful if you also enable Enhanced Save Games.
 
 \bf{Parental controls}
 
-AGS is not currently able to support the Vista Parental Controls, due to Vista requiring
+AGS is not currently able to support the Windows Parental Controls, due to Windows requiring
 the game to be digitally signed for this to work. Digital signatures require you to buy
 a certificate from an authority such as Verisign, so at present they are not supported.
-Your game will be classed as "Unrated" by Vista.
+Your game will be classed as "Unrated" by Windows.
 
 \bf{Boxart image}
 
@@ -2327,7 +2317,7 @@ both.
 
 \bf{Cross-Platform Support}
 
-Windows: \bf{ Vista only }ILBRK
+Windows: \bf{ Vista and later }ILBRK
 MS-DOS: \bf{ No }ILBRK
 Linux: \bf{ No }ILBRK
 MacOS: \bf{ No }
@@ -3142,7 +3132,7 @@ All the following variables are \verb$int$ variables.
 }\row{ { game.show_single_dialog_option }&{ If only a single dialog option is available, show it anyway (default=0) }
 }\row{ { game.sierra_inv_color }&{  The background color of the sierra-style inventory.}
 }\row{ { game.skip_display   }&{    Setting for how Display() messages are skipped;
-                           valid values are same as for SetSkipSpeech (default 3).}
+                           valid values are same as for Speech.SkipStyle (default 3).}
 }\row{ { game.skip_speech_specific_key }&{ Default 0. You can set it to a keycode, in which case only that key can skip speech text. }
 }\row{ { game.speech_bubble_width }&{ Maximum width of the thought bubble text window (default 100) }
 }\row{ { game.speech_text_align }&{ Sets how text in Lucasarts-style speech is aligned. Same possible values as game.text_align, default eAlignCentre }
@@ -3448,6 +3438,8 @@ function dialog_options_get_dimensions(DialogOptionsRenderingInfo *info)
   info.Y = 100;
   info.Width = 200;
   info.Height = 200;
+  // Enable alpha channel for the drawing surface
+  info.HasAlphaChannel = true;
   // Put the text parser at the bottom (if enabled)
   info.ParserTextBoxX = 10;
   info.ParserTextBoxY = 160;
@@ -3636,7 +3628,20 @@ enum eSpeechStyle {
   eSpeechFullScreen
 };
 \end{verbatim}
-\it{Used by:} \helprefn{SetSpeechStyle}{SetSpeechStyle}
+\it{Used by:} \helprefn{Speech.Style}{Speech.Style}
+
+\begin{verbatim}
+enum SkipSpeechStyle {
+  eSkipKeyMouseTime = 0,
+  eSkipKeyTime      = 1,
+  eSkipTime         = 2,
+  eSkipKeyMouse     = 3,
+  eSkipMouseTime    = 4,
+  eSkipKey          = 5,
+  eSkipMouse        = 6
+};
+\end{verbatim}
+\it{Used by:} \helprefn{Speech.SkipStyle}{Speech.SkipStyle}
 
 \begin{verbatim}
 enum eVoiceMode {
@@ -3645,7 +3650,7 @@ enum eVoiceMode {
   eSpeechVoiceOnly
 };
 \end{verbatim}
-\it{Used by:} \helprefn{SetVoiceMode}{SetVoiceMode}
+\it{Used by:} \helprefn{Speech.VoiceMode}{Speech.VoiceMode}
 
 \begin{verbatim}
 enum DialogOptionState {
@@ -3849,8 +3854,8 @@ See Also: \helprefn{Dynamic arrays}{DynamicArrays}
 \begin{tabular}{|l|l|}
 \row{ \bf{ Type } & \bf{ Description }
 }\row{{ char } & { Single byte data type, can store a single character or number 0 to 255 }
-}\row{{ short } & { 16-bit integer, can store numbers from –32,768 to 32,767 }
-}\row{{ int } & { 32-bit integer, can store from –2,147,483,648 to 2,147,483,647 }
+}\row{{ short } & { 16-bit integer, can store numbers from ï¿½32,768 to 32,767 }
+}\row{{ int } & { 32-bit integer, can store from ï¿½2,147,483,648 to 2,147,483,647 }
 }\row{{ String } & { Stores a string of characters }
 }\row{{ float } & { A 32-bit floating point number. Accuracy normally about 6 decimal places,
                     but varies depending on the size of the number being stored. }
@@ -6809,9 +6814,7 @@ how many game loops each frame of the character's speech animation is shown for.
 
 \bf{NOTE:} This property is ignored if lip sync is enabled.
 
-\bf{NOTE:} This property \bf{cannot} be used if the backwards compatibility option
-"Old-style game-wide speech animation speed" is enabled in the General Settings. In that
-case, the legacy \it{game.talkanim_speed} setting is used instead.
+\bf{NOTE:} This property \bf{cannot} be used if the Speech.UseGlobalSpeechAnimationDelay is set to \bf{true}. In that case, the Speech.GlobalSpeechAnimationDelay property value is used instead.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -6823,7 +6826,9 @@ will change the player character's speech animation speed to 4.
 
 \it{See Also:} \helprefn{Character.AnimationSpeed}{Character.AnimationSpeed},
 \helprefn{Character.SpeechView}{Character.SpeechView},
-\helprefn{Game.TextReadingSpeed}{Game.TextReadingSpeed}
+\helprefn{Game.TextReadingSpeed}{Game.TextReadingSpeed},
+\helprefn{Speech.GlobalSpeechAnimationDelay}{Speech.GlobalSpeechAnimationDelay},
+\helprefn{Speech.UseGlobalSpeechAnimationDelay}{Speech.UseGlobalSpeechAnimationDelay},
 
 
 \subsection{SpeechColor property}\label{Character.SpeechColor}\index{Character.SpeechColor}\index{SetTalkingColor}%
@@ -7336,6 +7341,7 @@ if (dJoeExcited.GetOptionState(2) != eOptionOn)
 Will display a message if option 2 of dialog dJoeExcited is not currently switched on.
 
 \it{See Also:} \helprefn{Dialog.HasOptionBeenChosen}{Dialog.HasOptionBeenChosen},
+\helprefn{Dialog.SetHasOptionBeenChosen}{Dialog.SetHasOptionBeenChosen},
 \helprefn{Dialog.SetOptionState}{Dialog.SetOptionState}
 
 
@@ -7383,7 +7389,8 @@ will display a message if the player has used option 2 of the dialog before.
 
 \it{Compatibility:} Supported by \bf{AGS 3.1.1} and later versions.
 
-\it{See Also:} \helprefn{Dialog.GetOptionState}{Dialog.GetOptionState}
+\it{See Also:} \helprefn{Dialog.GetOptionState}{Dialog.GetOptionState},
+\helprefn{Dialog.SetHasOptionBeenChosen}{Dialog.SetHasOptionBeenChosen},
 
 
 \subsection{ID property (dialog)}\label{Dialog.ID}\index{Dialog.ID}%
@@ -7426,6 +7433,27 @@ will display the number of options in the dFisherman dialog.
 \it{See Also:} \helprefn{Dialog.GetOptionText}{Dialog.GetOptionText},
 \helprefn{Dialog.GetOptionState}{Dialog.GetOptionState}
 
+\subsection{SetHasOptionBeenChosen (dialog)}\label{Dialog.SetHasOptionBeenChosen}\index{Dialog.SetHasOptionBeenChosen}%
+
+\begin{verbatim}
+Dialog.SetHasOptionBeenChosen(int option, bool chosen)
+\end{verbatim}
+Changes whether an option in a conversation is marked as previously chosen by the player. The option is marked as chosen whenever player selects it during the conversation, and is usually highlighted with different text colour. This function lets you to reset the option state, or force it change at any random moment.
+
+OPTION is the option number within the dialog, from 1 to whatever the
+highest option is for that topic.
+
+\fcol{red}{Example:}
+\begin{verbatim}
+if (dDialog1.HasOptionBeenChosen(1))
+    dDialog1.SetHasOptionBeenChosen(1, false); // reset the option state
+\end{verbatim}
+will mark option 1 of dialog dDialog1 as "not chosen yet".
+
+\it{Compatibility:} Supported by \bf{AGS 3.3.0} and later versions.
+
+\it{See Also:} \helprefn{Dialog.GetOptionState}{Dialog.GetOptionState},
+\helprefn{Dialog.HasOptionBeenChosen}{Dialog.HasOptionBeenChosen}
 
 \subsection{SetOptionState (dialog)}\label{Dialog.SetOptionState}\index{Dialog.SetOptionState}\index{SetDialogOption}%
 
@@ -7589,6 +7617,33 @@ For an example please see the \helprefn{custom dialog options}{CustomDialogOptio
 
 \it{See Also:} \helprefn{Dialog.GetOptionState}{Dialog.GetOptionState},
 \helprefn{DialogOptionsRenderingInfo.Surface}{DialogOptionsRenderingInfo.Surface}
+
+\subsection{HasAlphaChannel property (DialogOptionsRenderingInfo)}\label{DialogOptionsRenderingInfo.HasAlphaChannel}\index{DialogOptionsRenderingInfo.HasAlphaChannel}%
+
+\begin{verbatim}
+int DialogOptionsRenderingInfo.HasAlphaChannel;
+\end{verbatim}
+Gets/sets whether the dialog options's drawing surface will have alpha channel.
+
+This can only be set within the \verb$dialog_options_get_dimensions$ function, but
+can be read in other functions in order to render the options.
+
+\fcol{red}{Example:}
+\begin{verbatim}
+function dialog_options_get_dimensions(DialogOptionsRenderingInfo *info)
+{
+  info.Width = 300;
+  info.Height = 150;
+  info.HasAlphaChannel = true;
+}
+\end{verbatim}
+creates a 300x150 size area with alpha channel to draw the dialog options in.
+
+\it{Compatibility:} Supported by \bf{AGS 3.3.0} and later versions.
+
+\it{See Also:} 
+\helprefn{DialogOptionsRenderingInfo.Height}{DialogOptionsRenderingInfo.Height}
+\helprefn{DialogOptionsRenderingInfo.Width}{DialogOptionsRenderingInfo.Width}
 
 
 \subsection{Height property (DialogOptionsRenderingInfo)}\label{DialogOptionsRenderingInfo.Height}\index{DialogOptionsRenderingInfo.Height}%
@@ -9121,7 +9176,7 @@ The only exceptions to this rule are the special tags: ILBRK
 \verb^$APPDATADIR$^, which allows you to write/read files to a folder on the system which
 is accessible by and shared by all users
 
-\bf{IMPORTANT}: On Windows Vista, if your game is installed to Program Files then
+\bf{IMPORTANT}: On Windows Vista and later, if your game is installed to Program Files then
 it may not be able to write files into the game's installation directory. To be sure
 that your game won't have problems, \bf{always} write files to the Save Game Folder
 or the App Data Folder using the special tags. An example is below.
@@ -9184,7 +9239,7 @@ automatically be rejected, for security reasons.
 
 The only exception to this rule is the special tag \verb^$SAVEGAMEDIR$^, which allows
 you to access files in the save game directory. This is especially important with
-the move to Windows Vista, in which you may not have access to the main game folder.
+the move to Windows Vista or later versions, in which you may not have access to the main game folder.
 
 \bf{NOTE:} This is a static function, therefore you don't need an open File pointer
 to use it. See the example below.
@@ -9209,7 +9264,7 @@ Checks if the specified file exists on the file system.
 
 This command supports the special tag \verb^$SAVEGAMEDIR$^, which allows
 you to access files in the save game directory. This is especially important with
-the move to Windows Vista, in which you may not have access to the main game folder.
+the move to Windows Vista or later versions, in which you may not have access to the main game folder.
 
 \bf{NOTE:} This is a static function, therefore you don't need an open File pointer
 to use it. See the example below.
@@ -9514,7 +9569,7 @@ will write a number to the file 'test.dat', and display a message if there was a
 
 
 
-\section{Game / Global functions}%
+\section{Game / Global functions}\label{GlobalCommands}%
 
 
 
@@ -10782,7 +10837,7 @@ listed below:
 }\end{tabular}
 
 The game settings which are not listed here either have a separate command to change them
-(such as SetSpeechStyle), or simply cannot be changed at run-time (such as Letterbox Mode).
+(such as Speech.Style), or simply cannot be changed at run-time (such as Letterbox Mode).
 
 This command returns the old value of the setting.
 
@@ -10793,7 +10848,7 @@ SetGameOption (OPT_PIXELPERFECT, 0);
 will disable pixel-perfect click detection.
 
 \it{See Also:} \helprefn{GetGameOption}{GetGameOption},
-\helprefn{SetSpeechStyle}{SetSpeechStyle}, \helprefn{SetTextWindowGUI}{SetTextWindowGUI}
+\helprefn{Speech.Style}{Speech.Style}, \helprefn{SetTextWindowGUI}{SetTextWindowGUI}
 
 
 \subsection{SetGameSpeed}\label{SetGameSpeed}%
@@ -10939,7 +10994,7 @@ the player might have installed your game to any folder, and they might not be r
 Therefore, only two types of path are supported: ILBRK
 1. Relative paths (eg. "Saves"). This will create a "Saves" folder inside your game folder ILBRK
 2. The special tag \verb!$MYDOCS$! which allows you to create a folder for your save games
-inside the user's documents folder. On Vista, this is the "Saved Games" folder;
+inside the user's documents folder. On Vista and later, this is the "Saved Games" folder;
 on Windows XP and earlier, this is "My Documents". On Mac and Linux, currently this just points
 to the game folder.
 
@@ -10947,7 +11002,7 @@ Returns \it{true} if the save game directory has been changed successfully; \it{
 
 \bf{NOTE:} It is recommended that you do not use this function. Instead, set the "Save games
 folder name" property in the General Settings of the editor, which allows the save games to be
-detected by Vista's Game Explorer, and avoids problems writing to the Program Files folder.
+detected by Windows Game Explorer, and avoids problems writing to the Program Files folder.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -11322,7 +11377,7 @@ removed from the screen.
 \it{Compatibility:} Supported by \bf{AGS 3.2.0} and later versions.
 
 \it{See Also:} \helprefn{Game.MinimumTextDisplayTimeMs}{Game.MinimumTextDisplayTimeMs},
-\helprefn{Game.TextReadingSpeed}{Game.TextReadingSpeed}, \helprefn{SetSkipSpeech}{SetSkipSpeech}
+\helprefn{Game.TextReadingSpeed}{Game.TextReadingSpeed}, \helprefn{Speech.SkipStyle}{Speech.SkipStyle}
 
 
 \subsection{InSkippableCutscene property}\label{Game.InSkippableCutscene}\index{Game.InSkippableCutscene}%
@@ -11592,7 +11647,7 @@ for twice as long as usual.
 
 \it{See Also:} \helprefn{Character.SpeechAnimationDelay}{Character.SpeechAnimationDelay},
 \helprefn{Game.MinimumTextDisplayTimeMs}{Game.MinimumTextDisplayTimeMs},
-\helprefn{SetSkipSpeech}{SetSkipSpeech}
+\helprefn{Speech.SkipStyle}{Speech.SkipStyle}
 
 
 \subsection{TranslationFilename property}\label{Game.TranslationFilename}\index{Game.TranslationFilename}\index{GetTranslationName}%
@@ -13111,7 +13166,7 @@ or "data*.*"
 
 This command supports the special tag \verb^$SAVEGAMEDIR$^, which allows
 you to access files in the save game directory. This is especially important with
-the move to Windows Vista, in which you may not have access to the main game folder.
+the move to Windows Vista or later versions, in which you may not have access to the main game folder.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -13460,6 +13515,15 @@ Indexes for TopItem start from 0 for the first item in the list.
 lstSaveGames.TopItem = 0;
 \end{verbatim}
 will automatically scroll listbox \it{lstSaveGames} back to the top of the list.
+
+\subsection{Translated property (list box)}\label{ListBox.Translated}\index{ListBox.Translated}%
+
+\begin{verbatim}
+bool ListBox.Translated
+\end{verbatim}
+Gets/sets whether the list box's items are translated to the selected game language at runtime.
+
+\it{Compatibility:} Supported by \bf{AGS 3.3.0} and later versions.
 
 
 
@@ -15215,35 +15279,6 @@ SetSpeechVolume(200);
 will set the speech volume to 200.
 
 \it{See Also:} \helprefn{Game.SetAudioTypeVolume}{Game.SetAudioTypeVolume}
-
-
-\subsection{SetVoiceMode}\label{SetVoiceMode}%
-
-\begin{verbatim}
-SetVoiceMode (VoiceMode)
-\end{verbatim}
-Determines whether voice speech and/or text captions are used in the game.
-
-Valid values for VoiceMode are:
-\begin{verbatim}
-eSpeechTextOnly      no voice, text only
-eSpeechVoiceAndText  both voice and text
-eSpeechVoiceOnly     voice only, no text
-\end{verbatim}
-The default is \it{eSpeechVoiceAndText} if in-game speech is enabled, and \it{eSpeechTextOnly} if it
-is not. Changing this setting changes the behaviour of all \helprefn{Say}{Character.Say} and
-\helprefn{Display}{Display} commands which have a speech file assigned to them.
-
-\bf{WARNING:} you should only ever use \it{eSpeechVoiceOnly} at the player's request to
-do so, because there is no guarantee that they even have a sound card and so may
-not understand what is going on.
-
-\fcol{red}{Example:}
-\begin{verbatim}
-if (IsSpeechVoxAvailable()==1)
-    SetVoiceMode(eSpeechVoiceAndText); 
-\end{verbatim} 
-will set the voice mode to voice and text if the voice pack is available.
 
 
 \subsection{StopAudio}\label{Game.StopAudio}\index{Game.StopAudio}\index{Game.StopSound}\index{StopMusic}%
@@ -17718,6 +17753,273 @@ TintScreen (100, 50, 50);
 will tint a heavy dose of red. 
 
 
+\section{Speech functions and properties}\label{SpeechCommands}%
+
+\subsection{AnimationStopTimeMargin}\label{Speech.AnimationStopTimeMargin}\index{Speech.AnimationStopTimeMargin}%
+
+\it{(Formerly known as game.close_mouth_end_speech_time, which is now obsolete)}
+
+\begin{verbatim}
+static int Speech.AnimationStopTimeMargin
+\end{verbatim}
+
+Gets/sets the time margin at which the character talking animation should stop before before speech time ends.
+This property is specified in \bf{game loops} and is set to 10 by default.
+
+\bf{NOTE:} This property only affects the animation if voice mode is disabled.
+
+\fcol{red}{Example:}
+\begin{verbatim}
+Speech.AnimationStopTimeMargin = 40;
+\end{verbatim}
+will stop talking animation 40 game loops (1 second with the default game speed) before speech time ends.
+
+\it{See Also:} \helprefn{Speech.DisplayPostTimeMs}{Speech.DisplayPostTimeMs}
+
+
+\subsection{CustomPortraitPlacement}\label{Speech.CustomPortraitPlacement}\index{Speech.CustomPortraitPlacement}%
+
+\begin{verbatim}
+static bool Speech.CustomPortraitPlacement
+\end{verbatim}
+
+Enables/disables the custom speech portrait placement. When set to \bf{true} the character portraits are positioned at screen coordinates defined by \helprefn{Speech.PortraitXOffset}{Speech.PortraitXOffset} and \helprefn{Speech.PortraitY}{Speech.PortraitY}. When set to \bf{false} the portraits will be automatically aligned again.
+
+\bf{NOTE:} This property has no effect if the Lucas-Arts speech style is used.
+
+\it{Compatibility:} Supported by \bf{AGS 3.3.0} and later versions.
+
+\it{See Also:} \helprefn{Speech.PortraitXOffset}{Speech.PortraitXOffset},
+\helprefn{Speech.PortraitY}{Speech.PortraitY}
+
+
+\subsection{DisplayPostTimeMs}\label{Speech.DisplayPostTimeMs}\index{Speech.DisplayPostTimeMs}%
+
+\begin{verbatim}
+static int Speech.DisplayPostTimeMs
+\end{verbatim}
+
+Gets/sets the extra time the speech will stay on screen after its base time runs out.
+Commonly the time the speech lines and portrait stay on screen is calculated based on the text length - if the text mode is on, or voice clip length - if the voice mode is on. This property prolongs the time the speech text and/or portrait is displayed.
+This property does not interfere with speech skipping by key or mouse click: players will still be able to skip speech any time they want (if appropriate skip mode is enabled).
+This property is specified in \bf{milliseconds} and is set to zero by default.
+
+\it{Compatibility:} Supported by \bf{AGS 3.3.0} and later versions.
+
+\it{See Also:} \helprefn{Speech.AnimationStopTimeMargin}{Speech.AnimationStopTimeMargin}
+
+
+\subsection{GlobalSpeechAnimationDelay}\label{Speech.GlobalSpeechAnimationDelay}\index{Speech.GlobalSpeechAnimationDelay}%
+
+\it{(Formerly known as game.talkanim_speed, which is now obsolete)}
+
+\begin{verbatim}
+static int Speech.GlobalSpeechAnimationDelay
+\end{verbatim}
+
+Gets/sets global speech animation delay which affects every character in game.
+This property is specified in \bf{game loops} and is set to 5 by default.
+
+\bf{NOTE:} This property is ignored if lip sync is enabled.
+
+\bf{NOTE:} The property is only used when the \bf{Speech.UseGlobalSpeechAnimationDelay} is set to \bf{true}. This property \bf{cannot} be used if the global speech animation delay is disabled. In that case, the individual character's animation delay is used instead.
+
+\it{See Also:} \helprefn{Character.SpeechAnimationDelay}{Character.SpeechAnimationDelay},
+\helprefn{Speech.UseGlobalSpeechAnimationDelay}{Speech.UseGlobalSpeechAnimationDelay}
+
+
+\subsection{PortraitXOffset}\label{Speech.PortraitXOffset}\index{Speech.PortraitXOffset}%
+
+\begin{verbatim}
+static int Speech.PortraitXOffset
+\end{verbatim}
+
+Gets/sets the character's speech portrait \bf{horizontal} offset relative to screen side.
+The actual x coordinate of the portrait is calculated based on whether portrait is to be displayed at the left or right side of the screen. This property specifies the distance between the screen side and respected portrait's border.
+
+\bf{NOTE:}The property is only used when the \bf{Speech.CustomPortraitPlacement} is set to \bf{true}.
+
+\it{Compatibility:} Supported by \bf{AGS 3.3.0} and later versions.
+
+\it{See Also:} \helprefn{Speech.CustomPortraitPlacement}{Speech.CustomPortraitPlacement},
+\helprefn{Speech.PortraitY}{Speech.PortraitY}
+
+
+\subsection{PortraitY}\label{Speech.PortraitY}\index{Speech.PortraitY}%
+
+\begin{verbatim}
+static int Speech.PortraitY
+\end{verbatim}
+
+Gets/sets the character's speech portrait \bf{y} coordinate on screen.
+
+\bf{NOTE:}The property is only used when the \bf{Speech.CustomPortraitPlacement} is set to \bf{true}.
+
+\it{Compatibility:} Supported by \bf{AGS 3.3.0} and later versions.
+
+\it{See Also:} \helprefn{Speech.CustomPortraitPlacement}{Speech.CustomPortraitPlacement},
+\helprefn{Speech.PortraitXOffset}{Speech.PortraitXOffset}
+
+
+\subsection{SkipKey}\label{Speech.SkipKey}\index{Speech.SkipKey}%
+
+\it{(Formerly known as game.skip_speech_specific_key, which is now obsolete)}
+
+\begin{verbatim}
+static eKeyCode Speech.SkipKey
+\end{verbatim}
+
+Gets/sets special key which can skip speech text. This makes all other keys ignored when speech is displayed on screen, unless eKeyNone is assigned, in which case any key can be used again.
+
+\bf{NOTE:}The specified key will only skip speech if the appropriate speech skip style is enabled.
+
+\fcol{red}{Example:}
+\begin{verbatim}
+Speech.SkipKey = eKeySpace;
+\end{verbatim}
+will assign the "space" key to skip the speech.
+
+\it{See Also:} \helprefn{Speech.SkipStyle}{Speech.SkipStyle}
+
+
+\subsection{SkipStyle}\label{Speech.SkipStyle}\index{Speech.SkipStyle}\index{SetSkipSpeech}%
+
+\it{(Formerly known as SetSkipSpeech, which is now obsolete)} ILBRK
+
+\begin{verbatim}
+static SkipSpeechStyle Speech.SkipStyle
+\end{verbatim}
+
+Gets/sets how the player can skip speech lines.
+
+The accepted values are
+\begin{verbatim}
+eSkipKeyMouseTime  player can skip text by clicking mouse or pressing key
+eSkipKeyTime       player can skip text by pressing key only, not by clicking mouse
+eSkipTime          player cannot skip text with mouse or keyboard
+eSkipKeyMouse      text does not time-out; player must click mouse or press key each time
+eSkipMouseTime     player can skip text by clicking mouse only, not by pressing key
+eSkipKey           text does not time-out; player can skip text by pressing key only
+eSkipMouse         text does not time-out; player can skip text by clicking mouse only
+\end{verbatim}
+
+\fcol{red}{Example:}
+\begin{verbatim}
+Speech.SkipStyle = eSkipTime;
+\end{verbatim}
+will make the player unable to skip the text by pressing a mouse button or a key.
+
+\it{See Also:} \helprefn{Game.IgnoreUserInputAfterTextTimeoutMs}{Game.IgnoreUserInputAfterTextTimeoutMs},
+\helprefn{Game.TextReadingSpeed}{Game.TextReadingSpeed},
+\helprefn{Game.Speech.SkipKey}{Speech.SkipKey}
+
+
+\subsection{Style}\label{Speech.Style}\index{Speech.Style}%
+
+\it{(Formerly known as SetSpeechStyle, which is now obsolete)} ILBRK
+
+\begin{verbatim}
+static eSpeechStyle Speech.Style
+\end{verbatim}
+
+Gets/sets theway in which speech text is displayed. This modifies the setting
+originally set in the editor. SpeechStyle can be:
+\begin{verbatim}
+eSpeechLucasarts
+  speech text over character's head
+eSpeechSierra
+  close-up portrait of character
+eSpeechSierraWithBackground
+  close-up portrait + background window for text
+eSpeechFullScreen
+  QFG4-style full screen dialog pictures
+\end{verbatim}
+
+\fcol{red}{Example:}
+\begin{verbatim}
+Speech.Style = eSpeechSierra;
+\end{verbatim}
+will change the speech style to a close up portrait of the character.
+
+
+\subsection{TextAlignment}\label{Speech.TextAlignment}\index{Speech.TextAlignment}%
+
+\it{(Formerly known as game.speech_text_align, which is now obsolete)}
+
+\begin{verbatim}
+static Alignment Speech.TextAlignment
+\end{verbatim}
+
+Sets how text in Lucasarts-style speech is aligned.
+
+The accepted values are
+\begin{verbatim}
+eAlignLeft
+eAlignCentre
+eAlignRight
+\end{verbatim}
+The default is eAlignCentre.
+
+\fcol{red}{Example:}
+\begin{verbatim}
+Speech.TextAlignment = eAlignRight;
+\end{verbatim}
+will align the speech text at the right side.
+
+
+\subsection{UseGlobalSpeechAnimationDelay}\label{Speech.UseGlobalSpeechAnimationDelay}\index{Speech.UseGlobalSpeechAnimationDelay}%
+
+\begin{verbatim}
+static bool Speech.UseGlobalSpeechAnimationDelay
+\end{verbatim}
+
+Gets/sets whether speech animation delay should use global setting, as opposed to individual character's setting.
+The actual global delay value is specified with \bf{Speech.GlobalSpeechAnimationDelay}.
+
+\fcol{red}{Example:}
+\begin{verbatim}
+Speech.UseGlobalSpeechAnimationDelay = true;
+\end{verbatim}
+will make the game use global speech animation delay.
+
+\it{Compatibility:} Supported by \bf{AGS 3.3.0} and later versions.
+
+\it{See Also:} \helprefn{Character.SpeechAnimationDelay}{Character.SpeechAnimationDelay},
+\helprefn{Speech.GlobalSpeechAnimationDelay}{Speech.GlobalSpeechAnimationDelay}
+
+
+\subsection{VoiceMode}\label{Speech.VoiceMode}\index{Speech.VoiceMode}%
+
+\it{(Formerly known as SetVoiceMode, which is now obsolete)}
+
+\begin{verbatim}
+static eVoiceMode Speech.VoiceMode
+\end{verbatim}
+
+Gets/sets whether voice and/or text captions are used in the game.
+
+Valid values for VoiceMode are:
+\begin{verbatim}
+eSpeechTextOnly      no voice, text only
+eSpeechVoiceAndText  both voice and text
+eSpeechVoiceOnly     voice only, no text
+\end{verbatim}
+The default is \it{eSpeechVoiceAndText} if in-game speech is enabled, and \it{eSpeechTextOnly} if it
+is not. Changing this setting changes the behaviour of all \helprefn{Say}{Character.Say} and
+\helprefn{Display}{Display} commands which have a speech file assigned to them.
+
+\bf{WARNING:} you should only ever use \it{eSpeechVoiceOnly} at the player's request to
+do so, because there is no guarantee that they even have a sound card and so may
+not understand what is going on.
+
+\fcol{red}{Example:}
+\begin{verbatim}
+if (IsSpeechVoxAvailable()==1)
+    SetVoiceMode(eSpeechVoiceAndText); 
+\end{verbatim} 
+will set the voice mode to voice and text if the voice pack is available.
+
+
 
 \section{String functions}%
 
@@ -18812,58 +19114,6 @@ gray background.
 \it{See Also:} \helprefn{Display}{Display}, \helprefn{DisplayAt}{DisplayAt}
 
 
-\subsection{SetSkipSpeech}\label{SetSkipSpeech}%
-
-\begin{verbatim}
-SetSkipSpeech (int new_mode)
-\end{verbatim}
-Changes whether the player can skip speech text by clicking the mouse.
-This option is initially set in a checkbox in the Main tab of the editor, but
-this function allows you to change it at run-time.
-The value of NEW_MODE means the following:
-\begin{verbatim}
-0  player can skip text by clicking mouse or pressing key
-1  player can skip text by pressing key only, not by clicking mouse
-2  player cannot skip text with mouse or keyboard
-3  text does not time-out; player must click mouse or press key each time
-4  player can skip text by clicking mouse only, not by pressing key
-\end{verbatim}
-
-\fcol{red}{Example:}
-\begin{verbatim}
-SetSkipSpeech(2);
-\end{verbatim}
-will make the player unable to skip the text by pressing a mouse button or a key.
-
-\it{See Also:} \helprefn{Game.IgnoreUserInputAfterTextTimeoutMs}{Game.IgnoreUserInputAfterTextTimeoutMs},
-\helprefn{Game.TextReadingSpeed}{Game.TextReadingSpeed}
-
-
-\subsection{SetSpeechStyle}\label{SetSpeechStyle}%
-
-\begin{verbatim}
-SetSpeechStyle(SpeechStyle)
-\end{verbatim}
-Changes the way in which speech text is displayed. This modifies the setting
-originally set in the editor. SpeechStyle can be:
-\begin{verbatim}
-eSpeechLucasarts
-  speech text over character's head
-eSpeechSierra
-  close-up portrait of character
-eSpeechSierraWithBackground
-  close-up portrait + background window for text
-eSpeechFullScreen
-  QFG4-style full screen dialog pictures
-\end{verbatim}
-
-\fcol{red}{Example:}
-\begin{verbatim}
-SetSpeechStyle(eSpeechSierra);
-\end{verbatim}
-will change the speech style to a close up portrait of the character.
-
-
 \section{ViewFrame functions and properties}
 
 
@@ -19475,6 +19725,7 @@ There are maximum...
       20  mouse cursors
        8  audio channels
      100  local messages per room (excluding script)
+      30  fonts
 unlimited words in the text parser dictionary
 unlimited characters
 unlimited views
@@ -19534,6 +19785,7 @@ This section lists the key codes which can be passed to  on_key_press  and
 which keys they represent:
 \begin{verbatim}
 AGS KeyCode       Key         ASCII code
+eKeyNone          none          0
 eKeyCtrlA         Ctrl+A        1
 eKeyCtrlB         Ctrl+B        2
 eKeyCtrlC         Ctrl+C        3
@@ -19998,6 +20250,73 @@ naming convention as you always have done.
 See the \helprefn{Audio help}{MusAndSound} for more information.
 
 
+\chapter{Upgrading to AGS 3.3}\label{UpgradeTo33}%
+
+AGS 3.3 editor contains a major change to user interface that now lets you to "unpin" visual panels,
+drag them to any place you want and dock them or optionally leave them in "floating" mode. You may
+also have more than one editing panel on screen at once, for example room editor and script editor.
+This allows everyone to customize the panes layout in AGS to their own taste.
+
+You may now create folders for characters, dialogs, inventory items, guis, rooms, scripts and views,
+move them up/down by context menu, and drag & drop items to change their order.
+The "Sort room by number" command now sorts within folders.
+
+Script and header files are now combined into one group item, similar to room settings and script.
+
+\bf{Proper alpha blending}
+
+AGS now features proper alpha blending when drawing GUI Controls and using Drawing Surfaces.
+This feature is enabled by two separate options in the "Visual" section of the General Settings:
+"GUI alpha rendering style" and "Sprite alpha rendering style". This is done for compatibility with
+projects created in previous versions of AGS.
+When importing a project in AGS 3.3 these options will retain their original values. You may
+consider setting them to "Proper alpha blending", but that may alter the appearance of your game.
+New projects will have "proper blending" mode set by default.
+
+To support alpha blending a new \helprefn{HasAlphaChannel}{DialogOptionsRenderingInfo.HasAlphaChannel}
+property has been added to DialogOptionsRenderingInfo class. This property must be set it in
+\helprefn{dialog_options_get_dimensions}{CustomDialogOptions} function, the one where you
+normally define size and position of the drawing surface.
+
+\bf{System limits update}
+
+The maximal number of Fonts has been increased from 15 to 30.
+
+\bf{New Speech class}
+
+There's now a new Speech script class that contains several speech-related properties. This renders a 
+number of \helprefn{global functions}{GlobalCommands} obsolete, as well as some of the
+\helprefn{game variables}{Gamevariables}.
+If you are using any of them in your script you will likely get compilation errors. Simply replace
+them by the corresponding Speech properties, as shown in the table below:
+
+\begin{tabular}{|l|l|}
+\row{ {\bf obsolete function/variable }&{\bf replace with } }
+\row{ { SetVoiceMode }&{ \helprefn{Speech.VoiceMode}{Speech.VoiceMode} }}
+\row{ { SetSkipSpeech }&{ \helprefn{Speech.SkipStyle}{Speech.SkipStyle} }}
+\row{ { SetSpeechStyle }&{ \helprefn{Speech.Style}{Speech.Style} }}
+\row{ { game.close_mouth_end_speech_time }&{ \helprefn{Speech.AnimationStopTimeMargin}{Speech.AnimationStopTimeMargin} }}
+\row{ { game.speech_text_align }&{ \helprefn{Speech.TextAlignment}{Speech.TextAlignment} }}
+\row{ { game.skip_speech_specific_key }&{ \helprefn{Speech.SkipKey}{Speech.SkipKey} }}
+\row{ { game.talkanim_speed }&{ \helprefn{Speech.GlobalSpeechAnimationDelay}{Speech.GlobalSpeechAnimationDelay} }}
+\end{tabular}
+
+\bf{Game-wide speech animation delay}
+
+The "Old-style game-wide speech animation speed" general setting previously found in
+"Backwards compatibility" section was replaced with two settings in "Dialog" section:
+"Use game-wide speech animation delay" and "Game-wide speech animation delay". The first enables the
+use of the game-wide delay and the second specifies exact delay value.
+These settings are accompanied by two respective properties in the Speech class.
+
+\bf{Translated ListBox}
+
+In the previous versions of AGS the ListBox items were never translated. A new "Translated" property
+has been added to ListBox class, which forces engine to translate ListBox items. Default value is True
+but it is recommended to set it to False if you are using ListBox for listing savedgames.
+\bf{NOTE:} when older projects are imported, it is set to False automatically.
+
+
 \chapter{Anonymous usage information}\label{AnonymousUsageInfo}%
 
 AGS contains an option to send anonymous usage information to the AGS website.
@@ -20026,8 +20345,8 @@ examples of where it will be useful:
 \begin{itemize}
 \item A serious bug is found that affects an older version of AGS. By knowing how
 many people are still using that version, we can decide whether to fix it or not.
-\item We want to add a feature to the AGS Editor that would only work on Vista. By
-knowing how many people are running Vista, it gives us a clear idea of how many
+\item We want to add a feature to the AGS Editor that would only work on newer versions of Windows. By
+knowing how many people are running these, it gives us a clear idea of how many
 people would stand to benefit and therefore whether it's worth doing.
 \item The AGS Editor GUIs can be designed to work with the screen resolutions
 that most people are using. By knowing what the minimum resolution is that people
@@ -20102,22 +20421,43 @@ The AGS forum:   http://www.adventuregamestudio.co.uk/forum/
 \chapter{Credits}\label{Credits}%
 
 \begin{itemize}
-\item Adventure Game Studio was programmed by Chris Jones, with contributions from Tzach Shabtay, Steven Poulton, Nefasto and ProgZmax.
-\item Linux port by Shawn Walker (drevil@warpcore.org).
-\item Mac port by Steve McCrea.
+\item Adventure Game Studio was originally developed by Chris Jones.
+\item The latter versions and engine ports to various platforms are product of collaborative work of the following people (in alphabetic order):
+\begin{verbatim}
+  Bernhard Rosenkraenzer
+  Cristian Morales Vega
+  Gilad Shaham
+  Ivan Mogilko
+  Francesco Ariis
+  Janet Gilbert
+  Jochen Schleu
+  Michael Rittenhouse
+  Paul Wilkinson
+  Piotr Wieczorek
+  rofl0r
+  Scott Baker
+  Shane Stevens
+  Shawn R. Walker
+  Stefano Collavini
+  Steve McCrea
+  Steven Poulton
+  Sunit Das
+  Tobias Hansen
+  Tom Vandepoele
+  Tzach Shabtay
+\end{verbatim}
 \item Demo Quest III updated by RickJ.
 \item The default icon bar graphics were done by Teemu Eramaa (teemue@nic.fi)
 \item Windows editor icons by Klaus.
 \item Blank Game template created by AGA.
-\item Default Game template enhanced by Rui "Trovatore" Pires
-\item LEC 9-verb template by abstauber
-\item Verb Coin template by Electroshokker, graphics by Misj
+\item Default Game template enhanced by Rui "Trovatore" Pires.
+\item LEC 9-verb template by abstauber.
+\item Verb Coin template by Electroshokker, graphics by Misj.
+\item Lightweight BASS template by Bjorn Ludwig.
 \item Hq2x and Hq3x scalers by Maxim Stepin.
 \item Hi-colour fade out/in routines by Matthew Leverton.
 \item Sprite anti-aliasing code by Michael Bukin.
 \item Editor uses irrKlang .NET audio player (http://www.ambiera.com/irrklang)
-\item The DOS engine uses DJGPP, a free 32-bit C/C++ compiler by DJ Delorie,
-  which you can get from http://www.delorie.com/djgpp/
 \item Graphics and sound are courtesy of the Allegro graphics library by Shawn
   Hargreaves and many others. You can get it at
   http://alleg.sourceforge.net/

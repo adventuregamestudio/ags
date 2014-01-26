@@ -583,9 +583,9 @@ void write_gui(Stream *out, GUIMain * guiwrite, GameSetupStruct * gss, bool save
 
   out->WriteInt32(GUIMAGIC);
 
-  if (savedgame && GameGuiVersion >= kGuiVersion_ForwardCompatible)
+  if (savedgame)
   {
-    out->WriteInt32(GameGuiVersion);
+    out->WriteInt32(GameGuiVersion > kGuiVersion_ForwardCompatible ? GameGuiVersion : kGuiVersion_ForwardCompatible);
   }
   else
   {

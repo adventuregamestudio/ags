@@ -91,6 +91,8 @@ Common::Bitmap *drawBuffer = NULL;
 Common::Bitmap *undoBuffer = NULL;
 int loaded_room_number = -1;
 
+GameDataVersion loaded_game_file_version = kGameVersion_Current;
+
 // stuff for importing old games
 int numScriptModules;
 ScriptModule* scModules = NULL;
@@ -5260,9 +5262,3 @@ void update_polled_stuff_if_runtime()
 {
 	// do nothing
 }
-
-// [IKM] 2012-06-07
-// Had to copy this variable definition from Engine/ac.cpp, since it is required in acgui.cpp // GUIInv::CalculateNumCells()
-// due JJS's compatiblity fix for 2.70.
-// This *must* be not less than 31 (v270), otherwise function will work in backward-compatibility mode.
-GameDataVersion loaded_game_file_version = kGameVersion_270;

@@ -51,6 +51,7 @@ char curGfxDriver[100] = "";
 char gameNameForTitleBar[200] = "";
 int curmaxcache = 1024 * 20, curusespeech = 1;
 int wwidth, wheight;
+int base_height;
 GFXFilter **filterList = NULL;
 const int specialFilterListIndex = 1;
 const char *specialFilterName = "Max nearest-neighbour filter";
@@ -404,9 +405,6 @@ void InitializeDialog(HWND hDlg) {
   // If the game is 320x240, don't let them un-tick it
   if (mustBeLetterbox)
     EnableWindow (GetDlgItem (hDlg, IDC_LETTERBOX), FALSE);
-  // If it's 800x600, hide the letterbox option
-  if (defaultRes >= 5)
-    ShowWindow (GetDlgItem (hDlg, IDC_LETTERBOX), SW_HIDE);
 
   // If the game isn't 32-bit, disable it
   if (gameColDep < 32)
@@ -432,7 +430,8 @@ void InitializeDialog(HWND hDlg) {
   wwidth = winsize.right - winsize.left;
   wheight = winsize.bottom - winsize.top;
 
-  MoveWindow (hDlg, winsize.left, winsize.top, wwidth, wheight-175, TRUE);
+  base_height = MulDiv(112, HIWORD(GetDialogBaseUnits()), 8);
+  MoveWindow (hDlg, winsize.left, winsize.top + (wheight - base_height) / 2, wwidth, base_height, TRUE);
   update_resolution_texts (hDlg);
 
   SendMessage(hDlg, WM_SETTEXT, NULL, (LPARAM)gameNameForTitleBar);
@@ -461,9 +460,18 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
         ShowWindow (GetDlgItem(hDlg, IDC_STATICADV), SW_SHOW);
         ShowWindow (GetDlgItem(hDlg, IDC_STATICADV2), SW_SHOW);
         ShowWindow (GetDlgItem(hDlg, IDC_STATICADV3), SW_SHOW);
+        ShowWindow (GetDlgItem(hDlg, IDC_COMBO1), SW_SHOW);
+        ShowWindow (GetDlgItem(hDlg, IDC_COMBO2), SW_SHOW);
+        ShowWindow (GetDlgItem(hDlg, IDC_SPEECHPACK), SW_SHOW);
+        ShowWindow (GetDlgItem(hDlg, IDC_REFRESH), SW_SHOW);
+        ShowWindow (GetDlgItem(hDlg, IDC_SIDEBORDERS), SW_SHOW);
+        ShowWindow (GetDlgItem(hDlg, IDC_ANTIALIAS), SW_SHOW);
+        ShowWindow (GetDlgItem(hDlg, IDC_REDUCESPR), SW_SHOW);
+        ShowWindow (GetDlgItem(hDlg, IDC_LETTERBOX), SW_SHOW);
+        ShowWindow (GetDlgItem(hDlg, IDC_REPLAYBOX), SW_SHOW);
         ShowWindow (GetDlgItem(hDlg, IDC_COMBO4), SW_SHOW);
 
-        MoveWindow (hDlg, winsize.left, winsize.top, wwidth, wheight, TRUE);
+        MoveWindow (hDlg, winsize.left, winsize.top - (wheight - base_height) / 2, wwidth, wheight, TRUE);
         //SetActiveWindow (GetDlgItem(hDlg, IDOK));
         SetFocus (GetDlgItem(hDlg, IDOK));
       }

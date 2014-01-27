@@ -110,7 +110,7 @@ IDI_ICON2               ICON                    "game-1.ico"
 // Dialog
 //
 
-IDD_DIALOG1 DIALOGEX 0, 0, 360, 316
+IDD_DIALOG1 DIALOGEX 0, 0, 360, 285
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "AGS Game Settings"
 FONT 8, "Tahoma", 400, 0, 0x0
@@ -148,14 +148,11 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,179,135,9
     CONTROL         "Force alternate &letterbox resolution",IDC_LETTERBOX,
                     "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,194,132,9
-    GROUPBOX        "Replay",IDC_STATIC,7,210,345,29
-    LTEXT           "Run replay:",IDC_STATIC,13,222,41,9
-    COMBOBOX        IDC_REPLAYBOX,58,221,277,100,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Sprite cache",IDC_STATICADV,7,242,345,55,NOT WS_VISIBLE
-    LTEXT           "Maximum size:",IDC_STATICADV3,15,255,50,10,NOT WS_VISIBLE
-    COMBOBOX        IDC_COMBO4,68,253,108,100,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "You can limit the maximum amount of memory that the game will use for its sprite cache. Smaller values may make the game run slower but use less RAM; higher values may be faster but use more RAM. You should not normally need to adjust this.",IDC_STATICADV2,13,269,323,26,NOT WS_VISIBLE
-    CTEXT           "Static",IDC_VERSION,91,300,176,9
+    GROUPBOX        "Sprite cache",IDC_STATICADV,7,212,345,55,NOT WS_VISIBLE
+    LTEXT           "Maximum size:",IDC_STATICADV3,15,225,50,10,NOT WS_VISIBLE
+    COMBOBOX        IDC_COMBO4,68,223,108,100,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "You can limit the maximum amount of memory that the game will use for its sprite cache. Smaller values may make the game run slower but use less RAM; higher values may be faster but use more RAM. You should not normally need to adjust this.",IDC_STATICADV2,13,239,323,26,NOT WS_VISIBLE
+    CTEXT           "Static",IDC_VERSION,91,270,176,9
 END
 
 
@@ -172,7 +169,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 352
         TOPMARGIN, 7
-        BOTTOMMARGIN, 311
+        BOTTOMMARGIN, 280
     END
 END
 #endif    // APSTUDIO_INVOKED

@@ -22,8 +22,9 @@
 #include "script/script_common.h"
 #include "script/cc_script.h"  // ccScript
 #include "script/nonblockingscriptfunction.h"
+#include "util/string.h"
 
-namespace AGS { namespace Common { class Stream; }; };
+using namespace AGS;
 
 #define INSTF_SHAREDATA     1
 #define INSTF_ABORTED       2
@@ -80,6 +81,23 @@ struct ScriptVariable
 };
 
 struct FunctionCallStack;
+
+struct ScriptPosition
+{
+    ScriptPosition()
+        : Line(0)
+    {
+    }
+
+    ScriptPosition(const Common::String &section, int32_t line)
+        : Section(section)
+        , Line(line)
+    {
+    }
+
+    Common::String  Section;
+    int32_t         Line;
+};
 
 // Running instance of the script
 struct ccInstance
@@ -151,6 +169,7 @@ public:
     
     void    GetCallStack(char *buffer, int maxLines);
     void    GetScriptName(char *curScrName);
+    void    GetScriptPosition(ScriptPosition &script_pos);
     // get the address of an exported variable in the script
     RuntimeScriptValue GetSymbolAddress(char *);
     void    DumpInstruction(const ScriptOperation &op);

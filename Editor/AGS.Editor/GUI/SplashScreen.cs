@@ -53,7 +53,9 @@ namespace AGS.Editor
 			"Qué haces será",
             "Now available on the NHS",
             "Satisfaction guaranteed, or your money back",
-            "Chuck Norris made it happen"};
+            "Chuck Norris made it happen",
+            "\"Scary, but exciting!\"" // quoting Remigiusz Michalski :)
+        };
         /* Never quite finished implementing this april fool
         private readonly string[] TagLinesChristian = new string[] {
             "Thou shalt not commit adultery"

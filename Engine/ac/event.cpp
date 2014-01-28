@@ -286,7 +286,7 @@ void process_event(EventHappened*evp) {
                     screen_bmp->Blit(virtual_screen, lxp, lyp, lxp, lyp,
                         boxwid, boxhit);
                     render_to_screen(screen_bmp, 0, 0);
-                    UPDATE_MP3
+                    update_mp3();
                         while (timerloop == 0) ;
                 }
                 gfxDriver->SetMemoryBackBuffer(virtual_screen);

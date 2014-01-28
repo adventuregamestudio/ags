@@ -99,9 +99,16 @@ int MYMOD::get_pos()
     return dumb_it_sr_get_current_order(itsr);
 }
 
+int MYMOD::get_real_mod_pos()
+{
+    if ((duhPlayer == NULL) || (done))
+        return -1;
+    return al_duh_get_position(duhPlayer);
+}
+
 int MYMOD::get_pos_ms()
 {
-    return (get_pos() * 10) / 655;
+    return (get_real_mod_pos() * 10) / 655;
 }
 
 int MYMOD::get_length_ms()

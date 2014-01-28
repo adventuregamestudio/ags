@@ -74,35 +74,43 @@ char *ci_find_file(const char *dir_name, const char *file_name)
 char *ci_find_file(const char *dir_name, const char *file_name)
 {
   struct stat   statbuf;
-  struct dirent *entry = NULL;
-  DIR           *rough = NULL;
-  DIR           *prevdir = NULL;
-  char          *diamond = NULL;
+  struct dirent *entry     = NULL;
+  DIR           *rough     = NULL;
+  DIR           *prevdir   = NULL;
+  char          *diamond   = NULL;
   char          *directory = NULL;
-  char          *filename = NULL;
+  char          *filename  = NULL;
 
   if (dir_name == NULL && file_name == NULL)
       return NULL;
 
-  if (!(dir_name == NULL)) {
-    fix_filename_case(dir_name);
-    fix_filename_slashes(dir_name);
+  if (dir_name != NULL) {
+    directory = (char *)malloc(strlen(dir_name) + 1);
+    strcpy(directory, dir_name);
+
+    fix_filename_case(directory);
+    fix_filename_slashes(directory);
   }
 
-  fix_filename_case(file_name);
-  fix_filename_slashes(file_name);
+  if (file_name != NULL) {
+    filename = (char *)malloc(strlen(file_name) + 1);
+    strcpy(filename, file_name);
 
-  if (dir_name == NULL) {
-    char  *match = NULL;
+    fix_filename_case(filename);
+    fix_filename_slashes(filename);
+  }
+
+  if (directory == NULL) {
+    char  *match    = NULL;
     int   match_len = 0;
-    int   dir_len = 0;
+    int   dir_len   = 0;
 
-    match = get_filename(file_name);
+    match = get_filename(filename);
     if (match == NULL)
       return NULL;
 
     match_len = strlen(match);
-    dir_len = (match - file_name);
+    dir_len   = (match - filename);
 
     if (dir_len == 0) {
       directory = (char *)malloc(2);
@@ -116,12 +124,6 @@ char *ci_find_file(const char *dir_name, const char *file_name)
     filename = (char *)malloc(match_len + 1);
     strncpy(filename, match, match_len);
     filename[match_len] = '\0';
-  } else {
-    directory = (char *)malloc(strlen(dir_name) + 1);
-    strcpy(directory, dir_name);
-    
-    filename = (char *)malloc(strlen(file_name) + 1);
-    strcpy(filename, file_name);
   }
 
   if ((prevdir = opendir(".")) == NULL) {
@@ -159,6 +161,7 @@ char *ci_find_file(const char *dir_name, const char *file_name)
 
   free(directory);
   free(filename);
+
   return diamond;
 }
 #endif

@@ -43,6 +43,9 @@
 #define PLAYMP3FILE_MAX_FILENAME_LEN 50
 #define MAX_AUDIO_TYPES  30
 
+const int LegacyMusicMasterVolumeAdjustment = 60;
+const int LegacyRoomVolumeFactor            = 30;
+
 // These numbers were chosen arbitrarily -- the idea is
 // to make sure that the user gets the parameters the right way round
 #define ANYWHERE       304

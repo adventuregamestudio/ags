@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Tobias Hansen <tobias.han@gmx.de>
 Build-Depends: debhelper (>= 8.0.0),
                pkg-config,
-               liballegro4.2-dev,
+               liballegro4-dev,
                libaldmb1-dev,
                libfreetype6-dev,
                libtheora-dev,

@@ -404,7 +404,7 @@ void draw_gui_for_dialog_options(Bitmap *ds, GUIMain *guib, int dlgxp, int dlgyp
     ds->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->wid, dlgyp + guib->hit), draw_color);
   }
   if (guib->bgpic > 0)
-      AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, spriteset[guib->bgpic], dlgxp, dlgyp);
+      GfxUtil::DrawSpriteWithTransparency(ds, spriteset[guib->bgpic], dlgxp, dlgyp);
 }
 
 bool get_custom_dialog_options_dimensions(int dlgnum)
@@ -429,6 +429,7 @@ bool get_custom_dialog_options_dimensions(int dlgnum)
 int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBackground) 
 {
   int dlgxp,dlgyp = get_fixed_pixel_size(160);
+  int dialog_abs_x; // absolute dialog position on screen
   int usingfont=FONT_NORMAL;
   int txthit = wgetfontheight(usingfont);
   int curswas=cur_cursor;
@@ -510,6 +511,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       dirtyy = multiply_up_coordinate(ccDialogOptionsRendering.y);
       dirtywidth = multiply_up_coordinate(ccDialogOptionsRendering.width);
       dirtyheight = multiply_up_coordinate(ccDialogOptionsRendering.height);
+      dialog_abs_x = dirtyx;
     }
     else if (game.options[OPT_DIALOGIFACE] > 0)
     {
@@ -527,6 +529,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         dirtyy = dlgyp;
         dirtywidth = guib->wid;
         dirtyheight = guib->hit;
+        dialog_abs_x = guib->x;
 
         areawid=guib->wid - 5;
 
@@ -549,6 +552,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       dirtyy = dlgyp - 1;
       dirtywidth = scrnwid;
       dirtyheight = scrnhit - dirtyy;
+      dialog_abs_x = 0;
     }
     if (!is_textwindow)
       areawid -= multiply_up_coordinate(play.dialog_options_x) * 2;
@@ -649,6 +653,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       dirtyy = yspos;
       dirtywidth = text_window_ds->GetWidth();
       dirtyheight = text_window_ds->GetHeight();
+      dialog_abs_x = txoffs + xspos;
 
       GfxUtil::DrawSpriteWithTransparency(ds, text_window_ds, xspos, yspos);
       delete text_window_ds;
@@ -844,8 +849,9 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
           ccDialogOptionsRendering.activeOptionID = -1;
         }
       }
-      else if ((mousey <= dlgyp) || (mousey > curyp)) ;
-      else {
+      else if (mousex >= dialog_abs_x && mousex < (dialog_abs_x + areawid) &&
+               mousey >= dlgyp && mousey < curyp)
+      {
         mouseison=numdisp-1;
         for (ww=0;ww<numdisp;ww++) {
           if (mousey < dispyp[ww]) { mouseison=ww-1; break; }

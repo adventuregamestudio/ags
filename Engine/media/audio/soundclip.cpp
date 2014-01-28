@@ -17,7 +17,7 @@
 #include "media/audio/soundclip.h"
 #include "media/audio/audiointernaldefs.h"
 
-SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1]; // needed for UPDATE_MP3_THREAD macro
+SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1]; // needed for update_mp3_thread
 
 int SOUNDCLIP::play_from(int position) 
 {

@@ -28,6 +28,4 @@ GameSetup::GameSetup()
     enable_side_borders = 1;
     base_width = 320;
     base_height = 200;
-    gfxFilterID = NULL;
-    gfxDriverID = NULL;
 }

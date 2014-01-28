@@ -640,7 +640,8 @@ namespace AGS.Editor.Components
 
         private DockData GetPreviousDockData()
         {
-            if (_roomSettings != null &&
+            if (_roomSettings != null && _roomSettings.Control != null && 
+                _roomSettings.Control.DockingContainer != null &&
                 _roomSettings.Control.DockingContainer.DockState != DockingState.Hidden &&
                 _roomSettings.Control.DockingContainer.DockState != DockingState.Unknown)
             {

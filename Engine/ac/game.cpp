@@ -357,7 +357,7 @@ int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
         return 0;
 
     char newSaveGameDir[260];
-    platform->ReplaceSpecialPaths(newFolder, newSaveGameDir);
+    platform->ReplaceSpecialPaths(newFolder, newSaveGameDir, sizeof(newSaveGameDir));
     fix_filename_slashes(newSaveGameDir);
 
 #if defined (WINDOWS_VERSION)
@@ -921,10 +921,10 @@ int Game_ChangeTranslation(const char *newFilename)
         return 1;
     }
 
-    char oldTransFileName[MAX_PATH];
-    strcpy(oldTransFileName, transFileName);
+    String oldTransFileName;
+    oldTransFileName = transFileName;
 
-    if (!init_translation(newFilename))
+    if (!init_translation(newFilename, oldTransFileName.LeftSection('.'), false))
     {
         strcpy(transFileName, oldTransFileName);
         return 0;
@@ -1060,7 +1060,7 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
 
     if (exists(tempFileName))
     {
-        fileSize = file_size(tempFileName);
+        fileSize = file_size_ex(tempFileName);
         char *buffer = (char*)malloc(fileSize);
 
         Stream *temp_in = Common::File::OpenFileRead(tempFileName);

@@ -15,6 +15,7 @@
 #include "executingscript.h"
 #include <string.h>
 #include "debug/debug_log.h"
+#include "debug/debugger.h"
 
 int ExecutingScript::queue_action(PostScriptAction act, int data, const char *aname) {
     if (numPostScriptActions >= MAX_QUEUED_ACTIONS)
@@ -29,7 +30,9 @@ int ExecutingScript::queue_action(PostScriptAction act, int data, const char *an
     case ePSARestoreGameDialog:
     case ePSARunAGSGame:
     case ePSARestartGame:
-        quitprintf("!%s: Cannot run this command, since there is a %s command already queued to run", aname, postScriptActionNames[numPostScriptActions - 1]);
+        quitprintf("!%s: Cannot run this command, since there was a %s command already queued to run in \"%s\", line %d",
+            aname, postScriptActionNames[numPostScriptActions - 1],
+            postScriptActionPositions[numPostScriptActions - 1].Section.GetCStr(), postScriptActionPositions[numPostScriptActions - 1].Line);
         break;
         // MACPORT FIX 9/6/5: added default clause to remove warning
     default:
@@ -40,6 +43,7 @@ int ExecutingScript::queue_action(PostScriptAction act, int data, const char *an
     postScriptActions[numPostScriptActions] = act;
     postScriptActionData[numPostScriptActions] = data;
     postScriptActionNames[numPostScriptActions] = aname;
+    get_script_position(postScriptActionPositions[numPostScriptActions]);
     numPostScriptActions++;
     return numPostScriptActions - 1;
 }

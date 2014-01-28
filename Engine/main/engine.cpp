@@ -47,6 +47,7 @@
 #include "main/graphics_mode.h"
 #include "main/engine.h"
 #include "main/main.h"
+#include "main/main_allegro.h"
 #include "media/audio/sound.h"
 #include "ac/spritecache.h"
 #include "util/filestream.h"
@@ -63,11 +64,8 @@ using AGS::Common::String;
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
+namespace Path = AGS::Common::Path;
 namespace Out = AGS::Common::Out;
-
-#ifndef WINDOWS_VERSION
-extern char **global_argv;
-#endif
 
 extern char check_dynamic_sprites_at_exit;
 extern int our_eip;
@@ -216,40 +214,16 @@ void engine_force_window()
 void init_game_file_name_from_cmdline()
 {
     game_file_name.Empty();
-#ifdef WINDOWS_VERSION
-    WCHAR buffer[MAX_PATH];
-    WCHAR directoryPathBuffer[MAX_PATH];
-    LPCWSTR dataFilePath = wArgv[datafile_argv];
-    // Hack for Windows in case there are unicode chars in the path.
-    // The normal argv[] array has ????? instead of the unicode chars
-    // and fails, so instead we manually get the short file name, which
-    // is always using ANSI chars.
-    if (wcschr(dataFilePath, '\\') == NULL)
-    {
-        GetCurrentDirectoryW(MAX_PATH, buffer);
-        wcscat(buffer, L"\\");
-        wcscat(buffer, dataFilePath);
-        dataFilePath = &buffer[0];
-    }
-    if (GetShortPathNameW(dataFilePath, directoryPathBuffer, MAX_PATH) == 0)
-    {
-        platform->DisplayAlert("Unable to determine startup path: GetShortPathNameW failed. The specified game file might be missing.");
-        return;
-    }
-    char *buf = new char[MAX_PATH];
-    WideCharToMultiByte(CP_ACP, 0, directoryPathBuffer, -1, buf, MAX_PATH, NULL, NULL);
-    game_file_name = buf;
-    delete [] buf;
-#elif defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
+#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
     game_file_name = psp_game_file_name;
 #else
-    game_file_name = global_argv[datafile_argv];
+    game_file_name = GetPathFromCmdArg(datafile_argv);
 #endif
-    AGS::Common::Path::FixupPath(game_file_name);
 }
 
-String find_game_data_in_directory(const char *path)
+String find_game_data_in_directory(const String &path)
 {
+    String test_file;
     String found_data_file;
     // TODO: find a way to make this platform-agnostic way
     // using find-file interface or something
@@ -281,9 +255,10 @@ String find_game_data_in_directory(const char *path)
                     continue;
                 if (strcmp(version_info.internal_name, "acwin") == 0)
                 {
-                    if (AGS::Common::AssetManager::IsDataFile(entry->d_name))
+                    test_file.Format("%s/%s", path.GetCStr(), entry->d_name);
+                    if (AGS::Common::AssetManager::IsDataFile(test_file))
                     {
-                        found_data_file = entry->d_name;
+                        found_data_file = test_file;
                         break;
                     }
                 }
@@ -291,9 +266,10 @@ String find_game_data_in_directory(const char *path)
             else if (stricmp(&(entry->d_name[length - 4]), ".ags") == 0 ||
                 stricmp(entry->d_name, "ac2game.dat") == 0)
             {
-                if (AGS::Common::AssetManager::IsDataFile(entry->d_name))
+                test_file.Format("%s/%s", path.GetCStr(), entry->d_name);
+                if (AGS::Common::AssetManager::IsDataFile(test_file))
                 {
-                    found_data_file = entry->d_name;
+                    found_data_file = test_file;
                     break;
                 }
             }
@@ -326,9 +302,10 @@ String find_game_data_in_directory(const char *path)
                 strcmp(&(file_data.cFileName[length - 4]), ".ags") == 0 ||
                 strcmp(file_data.cFileName, "ac2game.dat") == 0)
             {
-                if (AGS::Common::AssetManager::IsDataFile(file_data.cFileName))
+                test_file.Format("%s/%s", path.GetCStr(), file_data.cFileName);
+                if (AGS::Common::AssetManager::IsDataFile(test_file))
                 {
-                    found_data_file = file_data.cFileName;
+                    found_data_file = test_file;
                     break;
                 }
             }
@@ -339,7 +316,6 @@ String find_game_data_in_directory(const char *path)
 #else
     // TODO ??? (PSP, ANDROID)
 #endif
-    AGS::Common::Path::FixupPath(found_data_file);
     return found_data_file;
 }
 
@@ -351,7 +327,7 @@ void initialise_game_file_name()
     {
         // set game_file_name from cmd arg (do any convertions if needed)
         init_game_file_name_from_cmdline();
-        if (game_file_name.GetLast() == '/')
+        if (!Path::IsFile(game_file_name))
         {
             // if it is not a file, assume it is a directory and seek for data file
             game_file_name = find_game_data_in_directory(game_file_name);
@@ -361,33 +337,32 @@ void initialise_game_file_name()
     else if (!usetup.main_data_filename.IsEmpty())
     {
         game_file_name = usetup.main_data_filename;
-        AGS::Common::Path::FixupPath(game_file_name);
     }
     // 3. Look in known locations
     else
     {
         // 3.1. Look for attachment in the running executable
         //
-        // set game_file_name from cmd arg (do any convertions if needed)
+        // set game_file_name from cmd arg (do any conversions if needed)
         // this will use argument zero, the executable's name
         init_game_file_name_from_cmdline();
-        if (!game_file_name.IsEmpty() && Common::AssetManager::IsDataFile(game_file_name))
+        if (game_file_name.IsEmpty() || !Common::AssetManager::IsDataFile(game_file_name))
         {
-            return;
-        }
-        // 3.2 Look in current directory
-        String cur_dir = AGS::Common::Directory::GetCurrentDirectory();
-        game_file_name = find_game_data_in_directory(cur_dir);
-        if (!game_file_name.IsEmpty())
-        {
-            return;
-        }
-        // 3.3 Look in executable's directory (if it's different from current dir)
-        if (AGS::Common::Path::ComparePaths(appDirectory, cur_dir))
-        {
-            game_file_name = find_game_data_in_directory(appDirectory);
+            // 3.2 Look in current directory
+            String cur_dir = AGS::Common::Directory::GetCurrentDirectory();
+            game_file_name = find_game_data_in_directory(cur_dir);
+            if (game_file_name.IsEmpty())
+            {
+                // 3.3 Look in executable's directory (if it's different from current dir)
+                if (AGS::Common::Path::ComparePaths(appDirectory, cur_dir))
+                {
+                    game_file_name = find_game_data_in_directory(appDirectory);
+                }
+            }
         }
     }
+
+    // Finally, store game file's absolute path, or report error
     if (game_file_name.IsEmpty())
     {
         AGS::Common::Out::FPrint("Game data file could not be found\n");
@@ -415,31 +390,29 @@ int engine_init_game_data(int argc,char*argv[])
         char emsg[STD_BUFFER_SIZE];
         if (errcod==Common::kAssetErrNoLibFile)
         {  // file not found
-            sprintf(emsg,
-                "You must create and save a game first in the AGS Editor before you can use "
-                "this engine.\n\n"
-                "If you have just downloaded AGS, you are probably running the wrong executable.\n"
-                "Run AGSEditor.exe to launch the editor.\n\n");
-            int len = strlen(emsg);
             if (game_file_name.IsEmpty())
             {
-                sprintf(emsg + len, "(Unable to find game data file in any of the known locations.)\n");
+                sprintf(emsg, "ERROR: Unable to find game data files\n\n");
             }
             else
             {
-                sprintf(emsg + len, "(Unable to find or open '%s'.)\n", game_file_name.GetCStr());
+                sprintf(emsg, "ERROR: Unable to find or open '%s'.\n\n", game_file_name.GetCStr());
             }
         }
         else if (errcod==Common::kAssetErrLibAssetCount)
         {
-            sprintf(emsg, "ERROR: Too many files in data file.\n\n%s\n", game_file_name.GetCStr());
+            sprintf(emsg, "ERROR: Too many files in data file.\n\n%s\n\n", game_file_name.GetCStr());
         }
         else
         {
             sprintf(emsg, "ERROR: The file is corrupt. Make sure you have the correct version of the "
-                "editor, and that this really is an AGS game.\n\n%s\n", game_file_name.GetCStr());
+                "editor, and that this really is an AGS game.\n\n%s\n\n", game_file_name.GetCStr());
         }
+
         platform->DisplayAlert(emsg);
+
+        main_print_help();
+
         return EXIT_NORMAL;
     }
 
@@ -667,7 +640,7 @@ void engine_init_sound()
             if ((usetup.digicard != DIGI_NONE) && (usetup.midicard != MIDI_NONE)) {
                 // only flag an error if they wanted a sound card
                 platform->DisplayAlert("\nUnable to initialize your audio hardware.\n"
-                    "[Problem: %s]\n",allegro_error);
+                    "[Problem: %s]\n", get_allegro_error());
             }
             reserve_voices(0,0);
             install_sound(DIGI_NONE, MIDI_NONE, NULL);
@@ -707,7 +680,7 @@ void atexit_handler() {
             "Program pointer: %+03d  (write this number down), ACI version %s\n"
             "If you see a list of numbers above, please write them down and contact\n"
             "Chris Jones. Otherwise, note down any other information displayed.\n",
-            EngineVersion.LongString.GetCStr(), our_eip);
+            our_eip, EngineVersion.LongString.GetCStr());
         platform->DisplayAlert(pexbuf);
     }
 
@@ -1130,7 +1103,7 @@ void init_game_settings() {
     play.key_skip_wait = 0;
     play.cur_music_number=-1;
     play.music_repeat=1;
-    play.music_master_volume=160;
+    play.music_master_volume=100 + LegacyMusicMasterVolumeAdjustment;
     play.digital_master_volume = 100;
     play.screen_flipped=0;
     play.offsets_locked=0;
@@ -1223,7 +1196,7 @@ void init_game_settings() {
         last_sound_played[ee] = -1;
 
     if (usetup.translation)
-        init_translation (usetup.translation);
+        init_translation (usetup.translation, "", true);
 
     update_invorder();
     displayed_room = -10;
@@ -1247,7 +1220,14 @@ void engine_init_game_shit()
     scsystem.viewport_height = divide_down_coordinate(scrnhit);
     // ScriptSystem::aci_version is only 10 chars long
     strncpy(scsystem.aci_version, EngineVersion.LongString, 10);
-    scsystem.os = platform->GetSystemOSID();
+    if (usetup.override_script_os >= 0)
+    {
+        scsystem.os = usetup.override_script_os;
+    }
+    else
+    {
+        scsystem.os = platform->GetSystemOSID();
+    }
 
     if (usetup.windowed)
         scsystem.windowed = 1;
@@ -1269,9 +1249,9 @@ void engine_init_game_shit()
     gfxDriver->SetRenderOffset(get_screen_x_adjustment(virtual_screen), get_screen_y_adjustment(virtual_screen));
 }
 
-void update_mp3_thread()
+void engine_update_mp3_thread()
 {
-  UPDATE_MP3_THREAD
+  update_mp3_thread();
   platform->Delay(50);
 }
 
@@ -1283,10 +1263,19 @@ void engine_start_multithreaded_audio()
   // Create sound update thread. This is a workaround for sound stuttering.
   if (psp_audio_multithreaded)
   {
-    if (!audioThread.CreateAndStart(update_mp3_thread, true))
+    if (!audioThread.CreateAndStart(engine_update_mp3_thread, true))
     {
+      Out::FPrint("Failed to start audio thread, audio will be processed on the main thread");
       psp_audio_multithreaded = 0;
     }
+    else
+    {
+      Out::FPrint("Audio thread started");
+    }
+  }
+  else
+  {
+    Out::FPrint("Audio is processed on the main thread");
   }
 }
 
@@ -1318,6 +1307,8 @@ int initialize_engine(int argc,char*argv[])
     int res;
 
     engine_read_config(argc, argv);
+    apply_output_configuration();
+
     res = engine_init_allegro();
     if (res != RETURN_CONTINUE) {
         return res;
@@ -1447,29 +1438,10 @@ int initialize_engine(int argc,char*argv[])
 
     engine_init_modxm_player();
 
-    engine_init_screen_settings();
-
-    res = engine_init_gfx_filters();
+    res = graphics_mode_init();
     if (res != RETURN_CONTINUE) {
         return res;
     }
-
-    engine_init_gfx_driver();
-
-    res = engine_init_graphics_mode();
-    if (res != RETURN_CONTINUE) {
-        return res;
-    }
-
-    engine_post_init_gfx_driver();
-
-    engine_prepare_screen();
-
-    platform->PostAllegroInit((usetup.windowed > 0) ? true : false);
-
-    engine_set_gfx_driver_callbacks();
-
-    engine_set_color_conversions();
 
     SetMultitasking(0);
 

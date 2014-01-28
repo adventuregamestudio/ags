@@ -23,7 +23,7 @@ namespace Engine
 {
 
 
-class PThreadMutex : BaseMutex
+class PThreadMutex : public BaseMutex
 {
 public:
   inline PThreadMutex()

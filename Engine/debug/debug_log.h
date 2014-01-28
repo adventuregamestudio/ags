@@ -22,6 +22,7 @@
 
 extern GameState play;
 void initialize_debug_system();
+void apply_output_configuration();
 void shutdown_debug_system();
 
 #define DEBUG_CONSOLE if (play.debug_mode) debug_write_console
@@ -49,6 +50,8 @@ struct DebugConsoleText {
 
 extern DebugConsoleText debug_line[DEBUG_CONSOLE_NUMLINES];
 extern int first_debug_line, last_debug_line, display_console;
+extern bool enable_log_file;
+extern bool disable_log_file;
 
 
 extern AGSPlatformDriver *platform;

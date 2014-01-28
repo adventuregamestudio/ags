@@ -31,10 +31,12 @@ int mousex, mousey;
 #include "gui/guislider.h"
 #include "util/compress.h"
 #include "util/string_utils.h"    // fputstring, etc
+#include "util/alignedstream.h"
 #include "util/filestream.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 
+using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
@@ -88,6 +90,8 @@ bool roomModified = false;
 Common::Bitmap *drawBuffer = NULL;
 Common::Bitmap *undoBuffer = NULL;
 int loaded_room_number = -1;
+
+GameDataVersion loaded_game_file_version = kGameVersion_Current;
 
 // stuff for importing old games
 int numScriptModules;
@@ -1544,6 +1548,13 @@ void allocate_memory_for_views(int viewCount)
   }
 }
 
+void ReadGameSetupStructBase_Aligned(Stream *in)
+{
+    GameSetupStructBase *gameBase = (GameSetupStructBase *)&thisgame;
+    AlignedStream align_s(in, Common::kAligned_Read);
+    gameBase->ReadFromFile(&align_s);
+}
+
 const char *load_dta_file_into_thisgame(const char *fileName)
 {
   int bb;
@@ -1569,7 +1580,8 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   int stlen = iii->ReadInt32();
   iii->Seek(Common::kSeekCurrent, stlen);
 
-  iii->ReadArray(&thisgame, sizeof (GameSetupStructBase), 1);
+  ReadGameSetupStructBase_Aligned(iii);
+
   iii->Read(&thisgame.fontflags[0], thisgame.numfonts);
   iii->Read(&thisgame.fontoutline[0], thisgame.numfonts);
 
@@ -1591,14 +1603,14 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   numGlobalVars = iii->ReadInt32();
   iii->ReadArray (&globalvars[0], sizeof (InteractionVariable), numGlobalVars);
 
-  if (thisgame.dict != NULL) {
+  if (thisgame.load_dictionary) {
     thisgame.dict = (WordsDictionary*)malloc(sizeof(WordsDictionary));
     read_dictionary (thisgame.dict, iii);
   }
 
   thisgame.globalscript = NULL;
 
-  if (thisgame.compiled_script != NULL)
+  if (thisgame.load_compiled_script)
     thisgame.compiled_script = ccScript::CreateFromStream(iii);
 
   load_script_modules_compiled(iii);
@@ -2623,6 +2635,7 @@ public:
 
 void ConvertStringToCharArray(System::String^ clrString, char *textBuffer);
 void ConvertStringToCharArray(System::String^ clrString, char *textBuffer, int maxLength);
+void ConvertStringToNativeString(System::String^ clrString, Common::String &destStr);
 
 void ThrowManagedException(const char *message) 
 {
@@ -4247,7 +4260,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	room->Script = roomToLoad->Script;
 	room->BottomEdgeY = thisroom.bottom;
 	room->LeftEdgeX = thisroom.left;
-	room->MusicVolumeAdjustment = (RoomVolumeAdjustment)thisroom.options[ST_VOLUME];
+    room->MusicVolumeAdjustment = (AGS::Types::RoomVolumeAdjustment)thisroom.options[ST_VOLUME];
 	room->PlayerCharacterView = thisroom.options[ST_MANVIEW];
 	room->PlayMusicOnRoomLoad = thisroom.options[ST_TUNE];
 	room->RightEdgeX = thisroom.right;
@@ -4648,9 +4661,18 @@ void serialize_room_interactions(Stream *ooo)
 	}
 }
 
+void WriteGameSetupStructBase_Aligned(Stream *out)
+{
+    GameSetupStructBase *gameBase = (GameSetupStructBase *)&thisgame;
+    AlignedStream align_s(out, Common::kAligned_Write);
+    gameBase->WriteToFile(&align_s);
+}
+
 void save_thisgame_to_file(const char *fileName, Game ^game)
 {
-	const char *AGS_VERSION = "3.3.0";
+    Common::String ags_version;
+    ConvertStringToNativeString(AGS::Types::Version::AGS_EDITOR_VERSION, ags_version);
+
   char textBuffer[500];
 	int bb;
 
@@ -4662,10 +4684,10 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
 
   ooo->Write(game_file_sig,30);
   ooo->WriteInt32(kGameVersion_Current);
-  ooo->WriteInt32(strlen(AGS_VERSION));
-  ooo->Write(AGS_VERSION, strlen(AGS_VERSION));
+  ooo->WriteInt32(ags_version.GetLength());
+  ooo->Write(ags_version, ags_version.GetLength());
 
-  ooo->WriteArray(&thisgame, sizeof (GameSetupStructBase), 1);
+  WriteGameSetupStructBase_Aligned(ooo);
   ooo->Write(&thisgame.guid[0], MAX_GUID_LENGTH);
   ooo->Write(&thisgame.saveGameFileExtension[0], MAX_SG_EXT_LENGTH);
   ooo->Write(&thisgame.saveGameFolderName[0], MAX_SG_FOLDER_LEN);
@@ -5240,9 +5262,3 @@ void update_polled_stuff_if_runtime()
 {
 	// do nothing
 }
-
-// [IKM] 2012-06-07
-// Had to copy this variable definition from Engine/ac.cpp, since it is required in acgui.cpp // GUIInv::CalculateNumCells()
-// due JJS's compatiblity fix for 2.70.
-// This *must* be not less than 31 (v270), otherwise function will work in backward-compatibility mode.
-GameDataVersion loaded_game_file_version = kGameVersion_270;

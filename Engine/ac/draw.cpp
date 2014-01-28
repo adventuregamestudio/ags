@@ -859,7 +859,7 @@ void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos
     }
     else
     {
-        AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, image, xpos, ypos, alpha);
+        GfxUtil::DrawSpriteWithTransparency(ds, image, xpos, ypos, alpha);
     }
 }
 
@@ -1147,7 +1147,7 @@ void draw_gui_sprite(Bitmap *ds, int picc, int xx, int yy, bool use_alpha)
     }
     else
     {
-        AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, spriteset[picc], xx, yy);
+        GfxUtil::DrawSpriteWithTransparency(ds, spriteset[picc], xx, yy);
     }
 }
 
@@ -2553,7 +2553,7 @@ void construct_virtual_screen(bool fullRedraw)
     walk_behind_baselines_changed = 0;
 
     // make sure that the mp3 is always playing smoothly
-    UPDATE_MP3
+    update_mp3();
         our_eip=4;
     draw_screen_overlay();
     put_sprite_list_on_screen();

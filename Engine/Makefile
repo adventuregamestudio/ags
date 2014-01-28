@@ -1,5 +1,11 @@
 UNAME := $(shell uname)
 
+ifeq ($(V), 1)
+CMD_PREFIX :=
+else
+CMD_PREFIX := @
+endif
+
 ifeq ($(UNAME), Darwin)
 include Makefile-defs.osx
 else
@@ -23,21 +29,21 @@ all: printflags ags
 
 ags: $(OBJS) common.a 
 	@echo "Linking engine..."
-	@$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS) $(LIBS)
+	$(CMD_PREFIX) $(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS) $(LIBS)
 
 common.a: $(OBJS_COMMON)
 	@echo "Linking common library..."
-	@$(AR) rcs $@ $^
+	$(CMD_PREFIX) $(AR) rcs $@ $^
 
 -include $(DEPFILES)
 
 %.o: %.c
 	@echo $@
-	@$(CC) $(CFLAGS) -MD -c -o $@ $<
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -MD -c -o $@ $<
 
 %.o: %.cpp
 	@echo $@
-	@$(CXX) $(CXXFLAGS) -MD -c -o $@ $<
+	$(CMD_PREFIX) $(CXX) $(CXXFLAGS) -MD -c -o $@ $<
 
 printflags:
 	@echo "CFLAGS =" $(CFLAGS) "\n"
@@ -49,7 +55,7 @@ rebuild: clean all
 
 clean:
 	@echo "Cleaning..."
-	@rm -f ags common.a $(OBJS) $(OBJS_COMMON) $(DEPFILES)
+	$(CMD_PREFIX) rm -f ags common.a $(OBJS) $(OBJS_COMMON) $(DEPFILES)
 
 install: ags
 	mkdir -p $(PREFIX)/bin

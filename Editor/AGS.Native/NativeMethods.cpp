@@ -11,6 +11,7 @@ see the license.txt for details.
 #include <windows.h>
 #include <stdlib.h>
 #include "NativeMethods.h"
+#include "util/string.h"
 
 using namespace System::Runtime::InteropServices;
 
@@ -98,6 +99,15 @@ void ConvertFileNameToCharArray(System::String^ clrString, char *textBuffer)
   {
     throw gcnew AGSEditorException(String::Format("Filename contains invalid unicode characters: {0}", clrString));
   }
+}
+
+void ConvertStringToNativeString(System::String^ clrString, AGS::Common::String &destStr)
+{
+    char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clrString).ToPointer();
+
+    destStr = stringPointer;
+
+    Marshal::FreeHGlobal(IntPtr(stringPointer));
 }
 
 void ConvertStringToCharArray(System::String^ clrString, char *textBuffer, int maxLength)

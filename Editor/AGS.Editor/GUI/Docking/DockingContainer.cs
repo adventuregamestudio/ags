@@ -85,6 +85,7 @@ namespace AGS.Editor
                 PerformUglyDockHack();
                 base.Show(dockPanel, (DockState)dockData.DockState);
             }
+            IsShowing = false;
         }
 
         #endregion
@@ -93,8 +94,8 @@ namespace AGS.Editor
         {
             //Ugly Hack for a scenario when moving from floating to document dock, and the panel
             //dock is changed.
-            _panel.Dock = DockStyle.Bottom;
-            _panel.Dock = DockStyle.Fill;            
+            _panel.SuspendLayout();
+            _panel.ResumeLayout();
         }
     }
 }

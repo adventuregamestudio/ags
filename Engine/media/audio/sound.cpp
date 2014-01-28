@@ -35,6 +35,7 @@
 #include "media/audio/clip_mydumbmod.h"
 #endif
 #include "media/audio/soundcache.h"
+#include "util/mutex_lock.h"
 
 #if defined JGMOD_MOD_PLAYER && defined DUMB_MOD_PLAYER
 #error JGMOD_MOD_PLAYER and DUMB_MOD_PLAYER macros cannot be defined at the same time.
@@ -115,9 +116,9 @@ SOUNDCLIP *my_load_mp3(const char *filname, int voll)
 
     thistune->buffer = (char *)tmpbuffer;
 
-    _mp3_mutex.Lock();
+    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     thistune->stream = almp3_create_mp3stream(tmpbuffer, thistune->chunksize, (mp3in->todo < 1));
-    _mp3_mutex.Unlock();
+	_lockMp3.Release();
 
     if (thistune->stream == NULL) {
         free(tmpbuffer);
@@ -150,9 +151,9 @@ SOUNDCLIP *my_load_static_mp3(const char *filname, int voll, bool loop)
     thismp3->mp3buffer = NULL;
     thismp3->repeat = loop;
 
-    _mp3_mutex.Lock();
+    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     thismp3->tune = almp3_create_mp3(mp3buffer, muslen);
-    _mp3_mutex.Unlock();
+	_lockMp3.Release();
     thismp3->done = 0;
     thismp3->ready = true;
 

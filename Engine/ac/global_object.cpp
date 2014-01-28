@@ -38,6 +38,7 @@
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "gfx/gfx_util.h"
 
 using AGS::Common::Bitmap;
 
@@ -176,15 +177,8 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
 void SetObjectTransparency(int obn,int trans) {
     if (!is_valid_object(obn)) quit("!SetObjectTransparent: invalid object number specified");
     if ((trans < 0) || (trans > 100)) quit("!SetObjectTransparent: transparency value must be between 0 and 100");
-    // Note by CJ:
-    // Transparency is a bit counter-intuitive
-    // 0=not transparent, 255=invisible, 1..254 barely visible .. mostly visible
-    if (trans == 0)
-        objs[obn].transparent=0;
-    else if (trans == 100)
-        objs[obn].transparent = 255;
-    else
-        objs[obn].transparent=((100-trans) * 25) / 10;
+
+    objs[obn].transparent = GfxUtil::Trans100ToLegacyTrans255(trans);
 }
 
 

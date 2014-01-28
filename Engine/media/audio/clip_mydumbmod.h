@@ -36,7 +36,17 @@ struct MYMOD : public SOUNDCLIP
 
     void seek(int patnum);
 
+    // NOTE: this implementation of the virtual function returns a MOD/XM
+    // "order" index, not actual playing position;
+    // this does not make much sense in the context of the interface itself,
+    // and, as it seems, was implemented so solely for the purpose of emulating
+    // deprecated "GetMODPattern" script function.
+    // (see Game_GetMODPattern(), and documentation for AudioChannel.Position property)
+    // TODO: find a way to redesign this behavior
     int get_pos();
+
+    // Returns real MOD/XM playing position
+    int get_real_mod_pos();
 
     int get_pos_ms();
 

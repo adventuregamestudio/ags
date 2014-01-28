@@ -315,6 +315,8 @@ public:
     // Convert to most simple pointer type by resolving RValue ptrs and applying offsets;
     // non pointer types are left unmodified
     RuntimeScriptValue &DirectPtr();
+    // Resolve and return direct pointer to the referenced data; non pointer types return IValue
+    intptr_t           GetDirectPtr() const;
 };
 
 #endif // __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H

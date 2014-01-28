@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "ac/game_version.h"
 #include "font/fonts.h"
 #include "gui/guilabel.h"
 #include "gui/guimain.h"
@@ -112,10 +113,12 @@ void GUILabel::Draw(Common::Bitmap *ds)
 
   Draw_split_lines(teptr, wid, font, numlines);
 
+  // < 2.72 labels did not limit vertical size of text
+  const bool limit_by_label_frame = loaded_game_file_version >= kGameVersion_272;
   for (int aa = 0; aa < numlines; aa++) {
     printtext_align(ds, cyp, text_color, lines[aa]);
     cyp += TEXT_HT;
-    if (cyp > y + hit)
+    if (limit_by_label_frame && cyp > y + hit)
       break;
   }
 

@@ -12,34 +12,20 @@
 //
 //=============================================================================
 //
-// Platform-independent Directory functions
+//
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__DIRECTORY_H
-#define __AGS_CN_UTIL__DIRECTORY_H
+#ifndef __AGS_EE_MAIN__MAINALLEGRO_H
+#define __AGS_EE_MAIN__MAINALLEGRO_H
 
-#include "util/string.h"
+// Gets allegro_error as a const string.
+// Please, use this getter to acquire error text, do not use allegro_error
+// global variable directly.
+const char *get_allegro_error();
+// Sets allegro_error global variable and returns a resulting string.
+// The maximal allowed text length is defined by ALLEGRO_ERROR_SIZE macro
+// (usually 256). If the formatted message is larger than that it will be
+// truncated. Null terminator is always guaranteed.
+const char *set_allegro_error(const char *format, ...);
 
-#if defined (WINDOWS_VERSION)
-// undef the declarations from winbase.h
-#undef SetCurrentDirectory
-#undef GetCurrentDirectory
-#endif
-
-namespace AGS
-{
-namespace Common
-{
-
-namespace Directory
-{
-    // Sets current working directory, returns the resulting path
-    String SetCurrentDirectory(const String &path);
-    // Gets current working directory
-    String GetCurrentDirectory();
-} // namespace Directory
-
-} // namespace Common
-} // namespace AGS
-
-#endif // __AGS_CN_UTIL__DIRECTORY_H
+#endif // __AGS_EE_MAIN__MAINALLEGRO_H

@@ -17,14 +17,14 @@
 //=============================================================================
 
 #include <allegro.h>
+#include <stdio.h>
 #include "gfx/ali3d.h"
 #include "platform/base/agsplatformdriver.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
-
-#include <stdio.h>
+#include "main/main_allegro.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -118,6 +118,35 @@ public:
 
 };
 
+class ALSoftwareGfxModeList : public IGfxModeList
+{
+public:
+    ALSoftwareGfxModeList(GFX_MODE_LIST *alsw_gfx_mode_list)
+        : _gfxModeList(alsw_gfx_mode_list)
+    {
+    }
+
+    virtual int GetModeCount()
+    {
+        return _gfxModeList ? _gfxModeList->num_modes : 0;
+    }
+
+    virtual bool GetMode(int index, DisplayResolution &resolution)
+    {
+        if (_gfxModeList && index >= 0 && index < _gfxModeList->num_modes)
+        {
+            resolution.Width = _gfxModeList->mode[index].width;
+            resolution.Height = _gfxModeList->mode[index].height;
+            resolution.ColorDepth = _gfxModeList->mode[index].bpp;
+            return true;
+        }
+        return false;
+    }
+
+private:
+    GFX_MODE_LIST *_gfxModeList;
+};
+
 #include "gfx/gfxfilter_allegro.h"
 
 class ALSoftwareGraphicsDriver : public IGraphicsDriver
@@ -146,10 +175,11 @@ public:
 
   virtual const char*GetDriverName() { return "Allegro/DX5"; }
   virtual const char*GetDriverID() { return "DX5"; }
+  virtual void SetGraphicsFilter(GFXFilter *filter);
   virtual void SetTintMethod(TintMethod method);
   virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer);
-  virtual int  FindSupportedResolutionWidth(int idealWidth, int height, int colDepth, int widthRangeAllowed);
+  virtual IGfxModeList *GetSupportedModeList(int color_depth);
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _callback = callback; }
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
   virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
@@ -254,46 +284,23 @@ bool ALSoftwareGraphicsDriver::IsModeSupported(int driver, int width, int height
         return true;
       }
     }
-    strcpy(allegro_error, "This graphics mode is not supported");
+    set_allegro_error("This graphics mode is not supported");
     return false;
   }
   return true;
 }
 
-int ALSoftwareGraphicsDriver::FindSupportedResolutionWidth(int idealWidth, int height, int colDepth, int widthRangeAllowed)
+IGfxModeList *ALSoftwareGraphicsDriver::GetSupportedModeList(int color_depth)
 {
   if (_gfxModeList == NULL)
   {
     _gfxModeList = get_gfx_mode_list(GetAllegroGfxDriverID(false));
   }
-  if (_gfxModeList != NULL)
+  if (_gfxModeList == NULL)
   {
-    int unfilteredWidth = idealWidth;
-    _filter->GetRealResolution(&idealWidth, &height);
-    int filterFactor = idealWidth / unfilteredWidth;
-
-    int nearestWidthFound = 0;
-
-    for (int i = 0; i < _gfxModeList->num_modes; i++)
-    {
-      if ((_gfxModeList->mode[i].height == height) &&
-          (_gfxModeList->mode[i].bpp == colDepth))
-      {
-        if (_gfxModeList->mode[i].width == idealWidth)
-          return idealWidth / filterFactor;
-
-        if (abs(_gfxModeList->mode[i].width - idealWidth) <
-            abs(nearestWidthFound - idealWidth))
-        {
-          nearestWidthFound = _gfxModeList->mode[i].width;
-        }
-      }
-    }
-
-    if (abs(nearestWidthFound - idealWidth) <= widthRangeAllowed * filterFactor)
-      return nearestWidthFound / filterFactor;
+    return NULL;
   }
-  return 0;
+  return new ALSoftwareGfxModeList(_gfxModeList);
 }
 
 int ALSoftwareGraphicsDriver::GetAllegroGfxDriverID(bool windowed)
@@ -311,6 +318,11 @@ int ALSoftwareGraphicsDriver::GetAllegroGfxDriverID(bool windowed)
     return GFX_AUTODETECT_WINDOWED;
   return GFX_AUTODETECT_FULLSCREEN;
 #endif
+}
+
+void ALSoftwareGraphicsDriver::SetGraphicsFilter(GFXFilter *filter)
+{
+  _filter = (AllegroGFXFilter*)filter;
 }
 
 void ALSoftwareGraphicsDriver::SetTintMethod(TintMethod method) 
@@ -788,7 +800,6 @@ bool ALSoftwareGraphicsDriver::PlayVideo(const char *filename, bool useAVISound,
   int result = dxmedia_play_video(filename, useAVISound, skipType, stretchToFullScreen ? 1 : 0);
   return (result == 0);
 #else
-#warning ffmpeg implementation needed
   return 0;
 #endif
 }

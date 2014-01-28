@@ -271,7 +271,7 @@ void game_file_read_dialogs(Stream *in)
         dialog[iteratorCount].ReadFromFile(in);
     }
 
-    if (filever <= kGameVersion_300) // Dialog script
+    if (filever <= kGameVersion_310) // Dialog script
     {
         old_dialog_scripts = (unsigned char**)malloc(game.numdialog * sizeof(unsigned char**));
 
@@ -614,13 +614,6 @@ int load_game_file() {
         game.options[OPT_GLOBALTALKANIMSPD] = game.options[OPT_GLOBALTALKANIMSPD] != 0 ? 5 : (-5 - 1);
     }
 
-    // 3.20: Fixed GUI AdditiveOpacity mode not working properly if you tried to have a non-alpha sprite on an alpha GUI
-    if (loaded_game_file_version < kGameVersion_320)
-    {
-        // Force new style rendering for gui sprites with alpha channel
-        game.options[OPT_NEWGUIALPHA] = kGuiAlphaRender_AdditiveOpacitySrcCopy;
-    }
-
     if (game.numfonts > MAX_FONTS)
         quit("!This game requires a newer version of AGS. Too many fonts for this version to handle.");
 
@@ -634,7 +627,7 @@ int load_game_file() {
     game.ReadFromFile_Part1(in, read_data);
     //-----------------------------------------------------
 
-    if (game.compiled_script == NULL)
+    if (!game.load_compiled_script)
         quit("No global script in game; data load error");
 
     gamescript = ccScript::CreateFromStream(in);

@@ -177,7 +177,13 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
         }
 
         if (drawBackground)
+        {
             draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &ttxleft, &ttxtop, &xx, &yy, &wii, &text_color, 0, usingGui);
+            if (usingGui > 0)
+            {
+                alphaChannel = guis[usingGui].is_alpha();
+            }
+        }
         else if ((ShouldAntiAliasText()) && (final_col_dep >= 24))
             alphaChannel = true;
 

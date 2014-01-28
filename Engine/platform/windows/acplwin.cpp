@@ -19,6 +19,7 @@
 // ********* WINDOWS *********
 
 #include <stdio.h>
+#include <string.h>
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
@@ -35,8 +36,10 @@
 #include "plugin/agsplugin.h"
 #include "util/file.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
 using AGS::Common::Stream;
+using AGS::Common::String;
 using AGS::Common::Bitmap;
 
 extern GameSetupStruct game;
@@ -78,6 +81,9 @@ extern "C" extern LPDIRECTINPUTDEVICE key_dinput_device;
 
 char win32SavedGamesDirectory[MAX_PATH] = "\0";
 char win32AppDataDirectory[MAX_PATH] = "\0";
+String win32OutputDirectory;
+
+const unsigned int win32TimerPeriod = 1;
 
 extern "C" HWND allegro_wnd;
 extern void dxmedia_abort_video();
@@ -95,6 +101,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
   virtual const char *GetAllUsersDataDirectory();
+  virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
   virtual eScriptSystemOSID GetSystemOSID();
@@ -102,7 +109,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroInit(bool windowed);
   virtual void PostAllegroExit();
-  virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath);
+  virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize);
   virtual int  RunSetup();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
@@ -502,6 +509,12 @@ void AGSWin32::UnRegisterGameWithGameExplorer()
 void AGSWin32::PostAllegroInit(bool windowed) 
 {
   check_parental_controls();
+
+  // Set the Windows timer resolution to 1 ms so that calls to
+  // Sleep() don't take more time than specified
+  MMRESULT result = timeBeginPeriod(win32TimerPeriod);
+  if (result != TIMERR_NOERROR)
+    platform->WriteDebugString("Failed to set the timer resolution to %d ms", win32TimerPeriod);
 }
 
 typedef UINT (CALLBACK* Dynamic_SHGetKnownFolderPathType) (GUID& rfid, DWORD dwFlags, HANDLE hToken, PWSTR *ppszPath); 
@@ -577,31 +590,59 @@ void determine_saved_games_folder()
   mkdir(win32SavedGamesDirectory);
 }
 
-void AGSWin32::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
+void DetermineAppOutputDirectory()
+{
+  if (!win32OutputDirectory.IsEmpty())
+  {
+    return;
+  }
 
   determine_saved_games_folder();
+  bool log_to_saves_dir = false;
+  if (win32SavedGamesDirectory[0])
+  {
+    win32OutputDirectory = win32SavedGamesDirectory;
+    win32OutputDirectory.Append("\\.ags");
+    log_to_saves_dir = mkdir(win32OutputDirectory) == 0 || errno == EEXIST;
+  }
+
+  if (!log_to_saves_dir)
+  {
+    char theexename[MAX_PATH + 1] = {0};
+    GetModuleFileName(NULL, theexename, MAX_PATH);
+    PathRemoveFileSpec(theexename);
+    win32OutputDirectory = theexename;
+  }
+}
+
+void AGSWin32::ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize) {
 
   if (strnicmp(sourcePath, "$MYDOCS$", 8) == 0) 
   {
-    strcpy(destPath, win32SavedGamesDirectory);
-    strcat(destPath, &sourcePath[8]);
+    determine_saved_games_folder();
+    snprintf(destPath, destSize, "%s%s", win32SavedGamesDirectory, sourcePath + 8);
   }
   else if (strnicmp(sourcePath, "$APPDATADIR$", 12) == 0) 
   {
     determine_app_data_folder();
-    strcpy(destPath, win32AppDataDirectory);
-    strcat(destPath, &sourcePath[12]);
+    snprintf(destPath, destSize, "%s%s", win32AppDataDirectory, sourcePath + 12);
   }
-  else {
-    strcpy(destPath, sourcePath);
+  else
+  {
+    snprintf(destPath, destSize, "%s", sourcePath);
   }
-
 }
 
 const char* AGSWin32::GetAllUsersDataDirectory() 
 {
   determine_app_data_folder();
   return &win32AppDataDirectory[0];
+}
+
+const char *AGSWin32::GetAppOutputDirectory()
+{
+  DetermineAppOutputDirectory();
+  return win32OutputDirectory;
 }
 
 void AGSWin32::DisplaySwitchOut() {
@@ -740,6 +781,9 @@ void AGSWin32::AboutToQuitGame()
 
 void AGSWin32::PostAllegroExit() {
   allegro_wnd = NULL;
+
+  // Release the timer setting
+  timeEndPeriod(win32TimerPeriod);
 }
 
 int AGSWin32::RunSetup() {

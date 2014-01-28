@@ -39,6 +39,7 @@ public:
     virtual ~ProxyStream();
 
     virtual void    Close();
+    virtual bool    Flush();
 
     // Is stream valid (underlying data initialized properly)
     virtual bool    IsValid() const;
@@ -72,9 +73,6 @@ public:
     virtual size_t  WriteArrayOfInt16(const int16_t *buffer, size_t count);
     virtual size_t  WriteArrayOfInt32(const int32_t *buffer, size_t count);
     virtual size_t  WriteArrayOfInt64(const int64_t *buffer, size_t count);
-
-    virtual size_t  ReadArrayOfIntPtr32(intptr_t *buffer, size_t count);
-    virtual size_t  WriteArrayOfIntPtr32(const intptr_t *buffer, size_t count);
 
     virtual size_t  Seek(StreamSeek seek, int pos);
 

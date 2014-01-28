@@ -17,13 +17,14 @@
 #include "media/audio/clip_mywave.h"
 #include "media/audio/audiointernaldefs.h"
 #include "media/audio/soundcache.h"
+#include "util/mutex_lock.h"
 
 #include "platform/base/agsplatformdriver.h"
 
 
 int MYWAVE::poll()
 {
-    _mutex.Lock();
+    AGS::Engine::MutexLock _lock(_mutex);
 
     if (!done && _destroyThis)
     {
@@ -33,12 +34,10 @@ int MYWAVE::poll()
 
     if (wave == NULL)
     {
-        _mutex.Unlock();
         return 1;
     }
     if (paused)
     {
-        _mutex.Unlock();
         return 0;
     }
 
@@ -54,8 +53,6 @@ int MYWAVE::poll()
         if (psp_audio_multithreaded)
             internal_destroy();
     }
-
-    _mutex.Unlock();
 
     return done;
 }
@@ -85,14 +82,14 @@ void MYWAVE::internal_destroy()
 
 void MYWAVE::destroy()
 {
-    _mutex.Lock();
+    AGS::Engine::MutexLock _lock(_mutex);
 
     if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
       _destroyThis = true;
     else
       internal_destroy();
 
-    _mutex.Unlock();
+	_lock.Release();
 
     while (!done)
       AGSPlatformDriver::GetDriver()->YieldCPU();

@@ -35,6 +35,7 @@ public:
     virtual ~FileStream();
 
     virtual void    Close();
+    virtual bool    Flush();
 
     // TODO
     // Temporary solution for cases when the code can't live without

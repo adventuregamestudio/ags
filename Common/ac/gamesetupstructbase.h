@@ -28,11 +28,6 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-//
-// This struct is still written by copying plain byte data in
-// AGS.Native (the editor); it must not be changed any way
-// until the game compilation was improved.
-//
 struct GameSetupStructBase {
     static const int  MAX_OPTIONS = 100;
 
@@ -63,14 +58,17 @@ struct GameSetupStructBase {
     char             *globalscript;
     CharacterInfo    *chars;
     ccScript         *compiled_script;
+
+    int32_t          *load_messages;
+    bool             load_dictionary;
+    bool             load_compiled_script;
     // [IKM] 2013-03-30
     // NOTE: it looks like nor 'globalscript', not 'compiled_script' are used
     // to store actual script data anytime; 'ccScript* gamescript' global
     // pointer is used for that instead.
-    // 'compiled_script' member is used once as a flag, to indicate that there's
-    // a global script data to be loaded; 'globalscript' is not used anywhere
-    // for anything useful.
 
+    GameSetupStructBase();
+    virtual ~GameSetupStructBase();
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);
 };

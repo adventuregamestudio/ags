@@ -21,11 +21,14 @@
 #include "ac/runtime_defines.h"
 #include "ac/translation.h"
 #include "ac/tree_map.h"
+#include "debug/out.h"
 #include "util/misc.h"
 #include "util/stream.h"
 #include "core/assetmanager.h"
 
 using AGS::Common::Stream;
+using AGS::Common::String;
+namespace Out = AGS::Common::Out;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
@@ -44,14 +47,16 @@ void close_translation () {
     }
 }
 
-bool init_translation (const char *lang) {
+bool parse_translation(Stream *language_file, String &parse_error);
+
+bool init_translation (const String &lang, const String &fallback_lang, bool quit_on_error) {
     char *transFileLoc;
 
-    if (lang == NULL) {
+    if (lang.IsEmpty()) {
         sprintf(transFileName, "default.tra");
     }
     else {
-        sprintf(transFileName, "%s.tra", lang);
+        sprintf(transFileName, "%s.tra", lang.GetCStr());
     }
 
     transFileLoc = ci_find_file(usetup.data_files_dir, transFileName);
@@ -61,11 +66,14 @@ bool init_translation (const char *lang) {
 
     if (language_file == NULL) 
     {
-        if (lang != NULL)
+        Out::FPrint("Cannot open translation: %s", transFileName);
+        if (!lang.IsEmpty())
         {
             // Just in case they're running in Debug, try compiled folder
-            sprintf(transFileName, "Compiled\\%s.tra", lang);
+            sprintf(transFileName, "Compiled\\%s.tra", lang.GetCStr());
             language_file = Common::AssetManager::OpenAsset(transFileName);
+            if (!language_file)
+                Out::FPrint("Cannot open translation: %s", transFileName);
         }
         if (language_file == NULL)
             return false;
@@ -73,9 +81,10 @@ bool init_translation (const char *lang) {
     // in case it's inside a library file, record the offset
     lang_offs_start = language_file->GetPosition();
 
-    char transsig[16];
+    char transsig[16] = {0};
     language_file->Read(transsig, 15);
     if (strcmp(transsig, "AGSTranslation") != 0) {
+        Out::FPrint("Translation signature mismatch: %s", transFileName);
         delete language_file;
         return false;
     }
@@ -86,6 +95,36 @@ bool init_translation (const char *lang) {
     }
     transtree = new TreeMap();
 
+    String parse_error;
+    bool result = parse_translation(language_file, parse_error);
+    delete language_file;
+
+    if (!result)
+    {
+        close_translation();
+        parse_error.Prepend(String::FromFormat("Failed to read translation file: %s:\n", transFileName));
+        if (quit_on_error)
+        {
+            parse_error.PrependChar('!');
+            quit(parse_error);
+        }
+        else
+        {
+            Out::FPrint(parse_error);
+            if (!fallback_lang.IsEmpty())
+            {
+                Out::FPrint("Fallback to translation: %s", fallback_lang.GetCStr());
+                init_translation(fallback_lang, "", false);
+            }
+            return false;
+        }
+    }
+    Out::FPrint("Translation initialized: %s", transFileName);
+    return true;
+}
+
+bool parse_translation(Stream *language_file, String &parse_error)
+{
     while (!language_file->EOS()) {
         int blockType = language_file->ReadInt32();
         if (blockType == -1)
@@ -101,7 +140,10 @@ bool init_translation (const char *lang) {
                 if ((strlen (original) < 1) && (strlen(translation) < 1))
                     break;
                 if (language_file->EOS())
-                    quit("!Language file is corrupt");
+                {
+                    parse_error = "Translation file is corrupt";
+                    return false;
+                }
                 transtree->addText (original, translation);
             }
 
@@ -112,13 +154,9 @@ bool init_translation (const char *lang) {
             uidfrom = language_file->ReadInt32();
             read_string_decrypt (language_file, wasgamename);
             if ((uidfrom != game.uniqueid) || (strcmp (wasgamename, game.gamename) != 0)) {
-                char quitmess[250];
-                sprintf(quitmess,
-                    "!The translation file you have selected is not compatible with this game. "
-                    "The translation is designed for '%s'. Make sure the translation was compiled by the original game author.",
+                parse_error.Format("The translation file is not compatible with this game. The translation is designed for '%s'.",
                     wasgamename);
-                delete language_file;
-                quit(quitmess);
+                return false;
             }
         }
         else if (blockType == 3) {
@@ -143,13 +181,17 @@ bool init_translation (const char *lang) {
             }
         }
         else
-            quit("Unknown block type in translation file.");
+        {
+            parse_error.Format("Unknown block type in translation file (%d).", blockType);
+            return false;
+        }
     }
 
-    delete language_file;
-
     if (transtree->text == NULL)
-        quit("!The selected translation file was empty. The translation source may have been translated incorrectly or you may have generated a blank file.");
+    {
+        parse_error = "The translation file was empty.";
+        return false;
+    }
 
     return true;
 }

@@ -16,6 +16,7 @@
 #include "media/audio/clip_mystaticogg.h"
 #include "media/audio/audiointernaldefs.h"
 #include "media/audio/soundcache.h"
+#include "util/mutex_lock.h"
 
 #include "platform/base/agsplatformdriver.h"
 
@@ -30,7 +31,7 @@ extern int use_extra_sound_offset;  // defined in ac.cpp
 
 int MYSTATICOGG::poll()
 {
-    _mutex.Lock();
+	AGS::Engine::MutexLock _lock(_mutex);
 
     if (tune && !done && _destroyThis)
     {
@@ -49,8 +50,6 @@ int MYSTATICOGG::poll()
         }
     }
     else get_pos();  // call this to keep the last_but_one stuff up to date
-
-    _mutex.Unlock();
 
     return done;
 }
@@ -86,33 +85,31 @@ void MYSTATICOGG::internal_destroy()
 
 void MYSTATICOGG::destroy()
 {
-    _mutex.Lock();
+	AGS::Engine::MutexLock _lock(_mutex);
 
     if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
       _destroyThis = true;
     else
       internal_destroy();
 
-    _mutex.Unlock();
+	_lock.Release();
 
     while (!done)
       AGSPlatformDriver::GetDriver()->YieldCPU();
 
     // Allow the last poll cycle to finish.
-    _mutex.Lock();
-    _mutex.Unlock();
+	_lock.Acquire(_mutex);
 }
 
 void MYSTATICOGG::seek(int pos)
 {
+	AGS::Engine::MutexLock _lock;
     if (psp_audio_multithreaded)
-      _mutex.Lock();  
+		_lock.Acquire(_mutex);
     // we stop and restart it because otherwise the buffer finishes
     // playing first and the seek isn't quite accurate
     alogg_stop_ogg(tune);
     play_from(pos);
-    if (psp_audio_multithreaded)
-      _mutex.Unlock();
 }
 
 int MYSTATICOGG::get_pos()

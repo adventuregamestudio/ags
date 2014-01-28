@@ -23,7 +23,6 @@
 #define IDC_SPEECHPACK                  1016
 #define IDC_REFRESH                     1017
 #define IDC_LETTERBOX                   1019
-#define IDC_REPLAYBOX                   1020
 #define IDC_ANTIALIAS                   1021
 #define IDC_REDUCESPR                   1022
 #define IDC_GFXFILTER                   1023

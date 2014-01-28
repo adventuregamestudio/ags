@@ -228,7 +228,7 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GAME_STRUCT_R
 
 void GameSetupStruct::read_words_dictionary(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-    if (dict != NULL) {
+    if (load_dictionary) {
         dict = (WordsDictionary*)malloc(sizeof(WordsDictionary));
         read_dictionary (dict, in);
     }
@@ -278,7 +278,7 @@ void GameSetupStruct::read_characters(Common::Stream *in, GAME_STRUCT_READ_DATA 
         }
     }
 
-    if (read_data.filever <= kGameVersion_300) // fix character walk speed for < 3.1.1
+    if (read_data.filever <= kGameVersion_310) // fix character walk speed for < 3.1.1
     {
         for (int i = 0; i < numcharacters; i++)
         {
@@ -306,7 +306,7 @@ void GameSetupStruct::read_lipsync(Common::Stream *in, GAME_STRUCT_READ_DATA &re
 void GameSetupStruct::read_messages(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     for (int ee=0;ee<MAXGLOBALMES;ee++) {
-        if (messages[ee]==NULL) continue;
+        if (!load_messages[ee]) continue;
         messages[ee]=(char*)malloc(500);
 
         if (read_data.filever < kGameVersion_261) // Global messages are not encrypted on < 2.61
@@ -324,6 +324,8 @@ void GameSetupStruct::read_messages(Common::Stream *in, GAME_STRUCT_READ_DATA &r
         else
             read_string_decrypt(in, messages[ee]);
     }
+    delete [] load_messages;
+    load_messages = NULL;
 }
 
 void GameSetupStruct::ReadCharacters_Aligned(Stream *in)
@@ -441,7 +443,7 @@ void GameSetupStruct::read_audio(Common::Stream *in, GAME_STRUCT_READ_DATA &read
 
 void GameSetupStruct::read_room_names(Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-    if ((read_data.filever >= kGameVersion_pre300) && (options[OPT_DEBUGMODE] != 0))
+    if ((read_data.filever >= kGameVersion_301) && (options[OPT_DEBUGMODE] != 0))
     {
         roomCount = in->ReadInt32();
         roomNumbers = (int*)malloc(roomCount * sizeof(int));

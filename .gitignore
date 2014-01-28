@@ -31,3 +31,7 @@ Solutions/Common.Lib/Release
 *.csproj.user
 *.idc
 Engine/resource/version.aps
+*.o
+*.d
+common.a
+ags

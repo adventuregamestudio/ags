@@ -55,9 +55,14 @@ Pointer to the "player" variable is now accessed via a dynamic object.
 31 : 2.7.0
 32 : 2.7.2
 
+35 : 3.0.0
+
+Room names are serialized when game is compiled in "debug" mode.
+36 : 3.0.1
+
 Interactions are now scripts. The number for "not set" changed from 0 to -1 for
 a lot of variables (views, sounds).
-37 : 3.0 + 3.1.0
+37 : 3.1.0
 
 Dialogs are now scripts. New character animation speed.
 39 : 3.1.1
@@ -90,8 +95,8 @@ enum GameDataVersion
     kGameVersion_262            = 27,
     kGameVersion_270            = 31,
     kGameVersion_272            = 32,
-    kGameVersion_pre300         = 36, // exact version unknown
-    kGameVersion_300            = 37,
+    kGameVersion_300            = 35,
+    kGameVersion_301            = 36,
     kGameVersion_310            = 37,
     kGameVersion_311            = 39,
     kGameVersion_312            = 40,

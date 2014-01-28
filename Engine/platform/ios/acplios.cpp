@@ -30,6 +30,8 @@
 
 #define IOS_CONFIG_FILENAME "ios.cfg"
 
+extern char* ios_document_directory;
+
 extern char filetouse[];
 char *INIreaditem(const char *sectn, const char *entry);
 int INIreadint (const char *sectn, const char *item, int errornosect = 1);
@@ -116,6 +118,7 @@ struct AGSIOS : AGSPlatformDriver {
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
+  virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
   virtual eScriptSystemOSID GetSystemOSID();
@@ -126,7 +129,6 @@ struct AGSIOS : AGSPlatformDriver {
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteConsole(const char*, ...);
-  virtual void ReplaceSpecialPaths(const char*, char*);
   virtual void WriteDebugString(const char* texx, ...);
 };
 
@@ -670,24 +672,13 @@ void AGSIOS::ShutdownCDPlayer() {
   //cd_exit();
 }
 
+const char *AGSIOS::GetAppOutputDirectory()
+{
+  return ios_document_directory;
+}
+
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
   if (instance == NULL)
     instance = new AGSIOS();
   return instance;
-}
-
-void AGSIOS::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
-  if (strnicmp(sourcePath, "$MYDOCS$", 8) == 0) 
-  {
-    strcpy(destPath, ".");
-    strcat(destPath, &sourcePath[8]);
-  }
-  else if (strnicmp(sourcePath, "$APPDATADIR$", 12) == 0) 
-  {
-    strcpy(destPath, ".");
-    strcat(destPath, &sourcePath[12]);
-  }
-  else {
-    strcpy(destPath, sourcePath);
-  }
 }

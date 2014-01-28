@@ -47,6 +47,7 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
+  virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
   virtual eScriptSystemOSID GetSystemOSID();
@@ -57,7 +58,6 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteConsole(const char*, ...);
-  virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath);
   virtual void WriteDebugString(const char* texx, ...);
 };
 
@@ -681,23 +681,6 @@ void AGSAndroid::WriteDebugString(const char* texx, ...)
   }
 }
 
-void AGSAndroid::ReplaceSpecialPaths(const char *sourcePath, char *destPath)
-{
-  if (strnicmp(sourcePath, "$MYDOCS$", 8) == 0) 
-  {
-    strcpy(destPath, ".");
-    strcat(destPath, &sourcePath[8]);
-  }
-  else if (strnicmp(sourcePath, "$APPDATADIR$", 12) == 0) 
-  {
-    strcpy(destPath, ".");
-    strcat(destPath, &sourcePath[12]);
-  }
-  else {
-    strcpy(destPath, sourcePath);
-  }
-}
-
 int AGSAndroid::CDPlayerCommand(int cmdd, int datt) {
   return 1;//cd_player_control(cmdd, datt);
 }
@@ -772,6 +755,11 @@ void AGSAndroid::WriteConsole(const char *text, ...) {
 
 void AGSAndroid::ShutdownCDPlayer() {
   //cd_exit();
+}
+
+const char *AGSAndroid::GetAppOutputDirectory()
+{
+  return android_base_directory;
 }
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {

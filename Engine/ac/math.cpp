@@ -50,13 +50,13 @@ int FloatToInt(SCRIPT_FLOAT(value), int roundDirection) {
 }
 
 FLOAT_RETURN_TYPE IntToFloat(int value) {
-    float fval = value;
+    float fval = (float)value;
 
     RETURN_FLOAT(fval);
 }
 
 FLOAT_RETURN_TYPE StringToFloat(const char *theString) {
-    float fval = atof(theString);
+    float fval = (float)atof(theString);
 
     RETURN_FLOAT(fval);
 }
@@ -178,7 +178,7 @@ FLOAT_RETURN_TYPE Math_RaiseToPower(SCRIPT_FLOAT(base), SCRIPT_FLOAT(exp)) {
 FLOAT_RETURN_TYPE Math_DegreesToRadians(SCRIPT_FLOAT(value)) {
     INIT_SCRIPT_FLOAT(value);
 
-    value = value * (M_PI / 180.0);
+    value = (float)(value * (M_PI / 180.0));
 
     RETURN_FLOAT(value);
 }
@@ -186,13 +186,13 @@ FLOAT_RETURN_TYPE Math_DegreesToRadians(SCRIPT_FLOAT(value)) {
 FLOAT_RETURN_TYPE Math_RadiansToDegrees(SCRIPT_FLOAT(value)) {
     INIT_SCRIPT_FLOAT(value);
 
-    value = value * (180.0 / M_PI);
+    value = (float)(value * (180.0 / M_PI));
 
     RETURN_FLOAT(value);
 }
 
 FLOAT_RETURN_TYPE Math_GetPi() {
-    float pi = M_PI;
+    float pi = (float)M_PI;
 
     RETURN_FLOAT(pi);
 }

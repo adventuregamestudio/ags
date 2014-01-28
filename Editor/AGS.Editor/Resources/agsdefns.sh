@@ -6,6 +6,10 @@
 #define FontType int
 #define AudioType int
 #define MAX_INV 301
+#define MAX_ROOM_OBJECTS    40
+#define MAX_LEGACY_GLOBAL_VARS  50
+#define MAX_LISTBOX_SAVED_GAMES 50
+#define PALETTE_SIZE       256
 #define FOLLOW_EXACTLY 32766
 #define NARRATOR -1
 #define OPT_WALKONLOOK       2
@@ -2079,7 +2083,7 @@ struct GameState {
   int  disabled_user_interface;
   int  gscript_timer;
   int  debug_mode;
-  int  globalvars[50];
+  int  globalvars[MAX_LEGACY_GLOBAL_VARS];
   int  messagetime;   // for auto-remove messages
   int  usedinv;
 #ifdef STRICT
@@ -2210,13 +2214,13 @@ managed struct Speech {
 
 
 import readonly Character *player;
-import Object object[40];
+import Object object[MAX_ROOM_OBJECTS];
 import Mouse mouse;
 import System system;
 import GameState  game;
-import int   gs_globals[50];
-import short savegameindex[20];
-import ColorType palette[256];
+import int   gs_globals[MAX_LEGACY_GLOBAL_VARS];
+import short savegameindex[MAX_LISTBOX_SAVED_GAMES];
+import ColorType palette[PALETTE_SIZE];
 
 #undef CursorMode
 #undef FontType

@@ -26,6 +26,15 @@ void ProxyStream::Close()
     _stream = NULL;
 }
 
+bool ProxyStream::Flush()
+{
+    if (_stream)
+    {
+        return _stream->Flush();
+    }
+    return false;
+}
+
 bool ProxyStream::IsValid() const
 {
     return _stream && _stream->IsValid();
@@ -149,16 +158,6 @@ size_t ProxyStream::WriteArrayOfInt32(const int32_t *buffer, size_t count)
 size_t ProxyStream::WriteArrayOfInt64(const int64_t *buffer, size_t count)
 {
     return _stream ? _stream->WriteArrayOfInt64(buffer, count) : 0;
-}
-
-size_t ProxyStream::ReadArrayOfIntPtr32(intptr_t *buffer, size_t count)
-{
-    return _stream ? _stream->ReadArrayOfIntPtr32(buffer, count) : 0;
-}
-
-size_t ProxyStream::WriteArrayOfIntPtr32(const intptr_t *buffer, size_t count)
-{
-    return _stream ? _stream->WriteArrayOfIntPtr32(buffer, count) : 0;
 }
 
 size_t ProxyStream::Seek(StreamSeek seek, int pos)

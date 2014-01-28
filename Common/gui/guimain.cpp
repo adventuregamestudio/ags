@@ -102,11 +102,8 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
   in->Read(vtext, 40);
   in->ReadArrayOfInt32(&x, 27);
 
-  // 64 bit fix: Read 4 byte int values into array of 8 byte long ints
-  in->ReadArrayOfIntPtr32((intptr_t*)objs, MAX_OBJS_ON_GUI);
-  //int i;
-  //for (i = 0; i < MAX_OBJS_ON_GUI; i++)
-  //  objs[i] = (GUIObject*)in->ReadInt32();
+  // array of 32-bit pointers; these values are unused
+  in->Seek(AGS::Common::kSeekCurrent, MAX_OBJS_ON_GUI * sizeof(int32_t));
 
   in->ReadArrayOfInt32(objrefptr, MAX_OBJS_ON_GUI);
 }
@@ -116,11 +113,9 @@ void GUIMain::WriteToFile(Stream *out)
   out->Write(vtext, 40);
   out->WriteArrayOfInt32(&x, 27);
 
-  // 64 bit fix: Write 4 byte int values from array of 8 byte long ints
-  out->WriteArrayOfIntPtr32((intptr_t*)objs, MAX_OBJS_ON_GUI);
-  //int i;
-  //for (i = 0; i < MAX_OBJS_ON_GUI; i++)
-  //  out->WriteArray(&objs[i], 4, 1);
+  // array of dummy 32-bit pointers
+  int32_t dummy_arr[MAX_OBJS_ON_GUI];
+  out->WriteArrayOfInt32(dummy_arr, MAX_OBJS_ON_GUI);
 
   out->WriteArrayOfInt32((int32_t*)&objrefptr, MAX_OBJS_ON_GUI);
 }
@@ -138,22 +133,6 @@ extern "C" int compare_guicontrolzorder(const void *elem1, const void *elem2) {
 
   // returns >0 if e1 is lower down, <0 if higher, =0 if the same
   return e1->zorder - e2->zorder;
-}
-
-bool GUIMain::is_alpha() 
-{
-  if (this->bgpic > 0)
-  {
-    // alpha state depends on background image
-    return is_sprite_alpha(this->bgpic);
-  }
-  if (this->bgcol > 0)
-  {
-    // not alpha transparent if there is a background color
-    return false;
-  }
-  // transparent background, enable alpha blending
-  return (final_col_dep >= 24);
 }
 
 void GUIMain::resort_zorder()
@@ -604,9 +583,9 @@ void write_gui(Stream *out, GUIMain * guiwrite, GameSetupStruct * gss, bool save
 
   out->WriteInt32(GUIMAGIC);
 
-  if (savedgame && GameGuiVersion >= kGuiVersion_ForwardCompatible)
+  if (savedgame)
   {
-    out->WriteInt32(GameGuiVersion);
+    out->WriteInt32(GameGuiVersion > kGuiVersion_ForwardCompatible ? GameGuiVersion : kGuiVersion_ForwardCompatible);
   }
   else
   {

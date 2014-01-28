@@ -760,10 +760,6 @@
 					RelativePath="..\..\Engine\gfx\gfxfilter_scalingallegro.cpp"
 					>
 				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\gfxfilterdefines.h"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="gui"
@@ -941,11 +937,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.cpp"
+					RelativePath="..\..\Engine\debug\logfile.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\debug\rawfileoutputtarget.cpp"
+					RelativePath="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.cpp"
 					>
 				</File>
 			</Filter>
@@ -1699,7 +1695,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\gfx\gfxfilterdefines.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\gfx\gfxfilterhelpers.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxmodelist.h"
 					>
 				</File>
 				<File
@@ -1879,11 +1883,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.h"
+					RelativePath="..\..\Engine\debug\logfile.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\debug\rawfileoutputtarget.h"
+					RelativePath="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.h"
 					>
 				</File>
 			</Filter>
@@ -1916,6 +1920,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\main\main.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\main_allegro.h"
 					>
 				</File>
 				<File
@@ -2022,6 +2030,14 @@
 			<Filter
 				Name="util"
 				>
+				<File
+					RelativePath="..\..\Engine\util\library.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\util\library_windows.h"
+					>
+				</File>
 				<File
 					RelativePath="..\..\Engine\util\mutex.h"
 					>

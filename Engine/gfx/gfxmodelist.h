@@ -12,43 +12,48 @@
 //
 //=============================================================================
 //
-// AGS logging system
+// Supported graphics mode interface
 //
 //=============================================================================
-#ifndef __AGS_EE_DEBUG__RAWFILEOUTPUTTARGET_H
-#define __AGS_EE_DEBUG__RAWFILEOUTPUTTARGET_H
+#ifndef __AGS_EE_GFX__GFXMODELIST_H
+#define __AGS_EE_GFX__GFXMODELIST_H
 
-#include <stdio.h>
-#include "debug/outputtarget.h"
+#include "core/types.h"
 
 namespace AGS
 {
 namespace Engine
 {
 
-namespace Out
+struct DisplayResolution
 {
-    class RawFileOutputTarget : public AGS::Common::Out::IOutputTarget
+    int32_t Width;
+    int32_t Height;
+    int32_t ColorDepth;
+
+    DisplayResolution()
+        : Width(0)
+        , Height(0)
+        , ColorDepth(0)
     {
-    public:
-        RawFileOutputTarget(const char *sz_filepath);
-        virtual ~RawFileOutputTarget();
+    }
 
-        virtual void Out(const char *sz_fullmsg);
+    DisplayResolution(int32_t width, int32_t height, int32_t color_depth)
+    {
+        Width = width;
+        Height = height;
+        ColorDepth = color_depth;
+    }
+};
 
-    protected:
-        bool OpenFile();
-        void CloseFile();
+class IGfxModeList
+{
+public:
+    virtual int  GetModeCount() = 0;
+    virtual bool GetMode(int index, DisplayResolution &resolution) = 0;
+};
 
-    private:
-        FILE *File;
-        char *FilePath;
-        bool DidWriteOnce;
-    };
+} // namespace Engine
+} // namespace AGS
 
-}   // namespace Out
-
-}   // namespace Engine
-}   // namespace AGS
-
-#endif // __AGS_EE_DEBUG__RAWFILEOUTPUTTARGET_H
+#endif // __AGS_EE_GFX__GFXMODELIST_H

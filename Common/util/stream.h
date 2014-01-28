@@ -34,6 +34,9 @@ namespace Common
 class Stream : public IAGSStream
 {
 public:
+    // Flush stream buffer to the underlying device
+    virtual bool Flush() = 0;
+
     //-----------------------------------------------------
     // Helper methods
     //-----------------------------------------------------
@@ -91,11 +94,11 @@ public:
 
     // Helper function for easier compatibility with 64-bit platforms
     // reads 32-bit values and stores them in intptr_t array
-    virtual size_t ReadArrayOfIntPtr32(intptr_t *buffer, size_t count);
+    size_t ReadArrayOfIntPtr32(intptr_t *buffer, size_t count);
 
     // Helper function for easier compatibility with 64-bit platforms,
     // writes intptr_t array elements as 32-bit values
-    virtual size_t WriteArrayOfIntPtr32(const intptr_t *buffer, size_t count);
+    size_t WriteArrayOfIntPtr32(const intptr_t *buffer, size_t count);
 };
 
 } // namespace Common

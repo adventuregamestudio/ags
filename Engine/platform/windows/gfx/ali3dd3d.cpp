@@ -28,8 +28,13 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
+#include "main/main_allegro.h"
+#include "util/library.h"
+#include "util/string.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::String;
+using AGS::Engine::Library;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using namespace AGS; // FIXME later
 
@@ -226,6 +231,47 @@ public:
   }
 };
 
+static D3DFORMAT color_depth_to_d3d_format(int color_depth, bool wantAlpha);
+static int d3d_format_to_color_depth(D3DFORMAT format, bool secondary);
+
+class D3DGfxModeList : public IGfxModeList
+{
+public:
+    D3DGfxModeList(IDirect3D9 *direct3d, D3DFORMAT d3dformat)
+        : _direct3d(direct3d)
+        , _pixelFormat(d3dformat)
+    {
+        _modeCount = _direct3d ? _direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, _pixelFormat) : 0;
+    }
+  
+    virtual int GetModeCount()
+    {
+        return _modeCount;
+    }
+
+    virtual bool GetMode(int index, DisplayResolution &resolution)
+    {
+        if (_direct3d && index >= 0 && index < _modeCount)
+        {
+            D3DDISPLAYMODE displayMode;
+            if (SUCCEEDED(_direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, _pixelFormat, index, &displayMode)))
+            {
+                resolution.Width = displayMode.Width;
+                resolution.Height = displayMode.Height;
+                resolution.ColorDepth = d3d_format_to_color_depth(displayMode.Format, false);
+                return true;
+            }
+        }
+        return false;
+    }
+
+private:
+    IDirect3D9 *_direct3d;
+    D3DFORMAT   _pixelFormat;
+    int         _modeCount;
+};
+
+
 struct SpriteDrawListEntry
 {
   D3DBitmap *bitmap;
@@ -238,10 +284,11 @@ class D3DGraphicsDriver : public IGraphicsDriver
 public:
   virtual const char*GetDriverName() { return "Direct3D 9"; }
   virtual const char*GetDriverID() { return "D3D9"; }
+  virtual void SetGraphicsFilter(GFXFilter *filter);
   virtual void SetTintMethod(TintMethod method);
   virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer);
-  virtual int  FindSupportedResolutionWidth(int idealWidth, int height, int colDepth, int widthRangeAllowed);
+  virtual IGfxModeList *GetSupportedModeList(int color_depth);
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
   virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
@@ -275,6 +322,8 @@ public:
   virtual void SetMemoryBackBuffer(Bitmap *backBuffer) {  }
   virtual void SetScreenTint(int red, int green, int blue);
 
+  bool CreateDriver();
+
   // Internal
   int _initDLLCallback();
   int _resetDeviceIfNecessary();
@@ -286,7 +335,6 @@ public:
   D3DGFXFilter *_filter;
 
 private:
-  HMODULE d3dlib;
   D3DPRESENT_PARAMETERS d3dpp;
   IDirect3D9* direct3d;
   IDirect3DDevice9* direct3ddevice;
@@ -306,7 +354,7 @@ private:
   GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
   int _tint_red, _tint_green, _tint_blue;
   CUSTOMVERTEX defaultVertices[4];
-  char previousError[ALLEGRO_ERROR_SIZE];
+  String previousError;
   IDirect3DPixelShader9* pixelShader;
   bool _smoothScaling;
   bool _legacyPixelShader;
@@ -321,6 +369,8 @@ private:
   SpriteDrawListEntry drawListLastTime[MAX_DRAW_LIST_SIZE];
   int numToDrawLastTime;
   GlobalFlipType flipTypeLastTime;
+
+  LONG _allegroOriginalWindowStyle;
 
   bool EnsureDirect3D9IsCreated();
   void initD3DDLL();
@@ -338,6 +388,22 @@ private:
 
 static int wnd_create_device();
 static D3DGraphicsDriver *_d3d_driver = NULL;
+//
+// IMPORTANT NOTE: since the Direct3d9 device is created with
+// D3DCREATE_MULTITHREADED behavior flag, once it is created the d3d9.dll may
+// only be unloaded after window is destroyed, as noted in the MSDN's article
+// on "D3DCREATE"
+// (http://msdn.microsoft.com/en-us/library/windows/desktop/bb172527.aspx).
+// Otherwise window becomes either destroyed prematurely or broken (details
+// are unclear), which causes errors during Allegro deinitialization.
+//
+// Curiously, this problem was only confirmed under WinXP so far.
+//
+// For the purpose of avoiding this problem, we have a global library wrapper
+// that unloads library only at the very program exit (except cases of device
+// creation failure).
+// 
+static Library D3D9Library;
 
 IGraphicsDriver* GetD3DGraphicsDriver(GFXFilter *filter)
 {
@@ -351,12 +417,16 @@ IGraphicsDriver* GetD3DGraphicsDriver(GFXFilter *filter)
     _d3d_driver->_filter = d3dfilter;
   }
 
+  if (!_d3d_driver->CreateDriver())
+  {
+      delete _d3d_driver;
+      return NULL;
+  }
   return _d3d_driver;
 }
 
 D3DGraphicsDriver::D3DGraphicsDriver(D3DGFXFilter *filter) 
 {
-  d3dlib = NULL;
   direct3d = NULL;
   direct3ddevice = NULL;
   vertexbuffer = NULL;
@@ -379,8 +449,8 @@ D3DGraphicsDriver::D3DGraphicsDriver(D3DGFXFilter *filter)
   _screenTintSprite.x = 0;
   _screenTintSprite.y = 0;
   pixelShader = NULL;
-  previousError[0] = 0;
   _legacyPixelShader = false;
+  _allegroOriginalWindowStyle = 0;
   set_up_default_vertices();
 }
 
@@ -424,6 +494,11 @@ void D3DGraphicsDriver::set_up_default_vertices()
   defaultVertices[3].tv=1.0;
 }
 
+bool D3DGraphicsDriver::CreateDriver()
+{
+   return EnsureDirect3D9IsCreated();
+}
+
 void D3DGraphicsDriver::Vsync() 
 {
   // do nothing on D3D
@@ -436,27 +511,24 @@ bool D3DGraphicsDriver::EnsureDirect3D9IsCreated()
 
    IDirect3D9 * (WINAPI * lpDirect3DCreate9)(UINT);
 
-   d3dlib = LoadLibrary("d3d9.dll");
-   if (d3dlib == NULL) 
+   if (!D3D9Library.Load("d3d9"))
    {
-     strcpy(allegro_error, "Direct3D is not installed");
+     set_allegro_error("Direct3D is not installed");
      return false;
    }
 
-   lpDirect3DCreate9 = (IDirect3D9 * (WINAPI *)(UINT))GetProcAddress(d3dlib, "Direct3DCreate9");
+   lpDirect3DCreate9 = (IDirect3D9 * (WINAPI *)(UINT))D3D9Library.GetFunctionAddress("Direct3DCreate9");
    if (lpDirect3DCreate9 == NULL) 
    {
-     FreeLibrary(d3dlib);
-     d3dlib = NULL;
-     strcpy(allegro_error, "Entry point not found in d3d9.dll");
+     D3D9Library.Unload();
+     set_allegro_error("Entry point not found in d3d9.dll");
      return false;
    }
 
    direct3d = lpDirect3DCreate9( D3D_SDK_VERSION );
    if (direct3d == NULL) {
-     FreeLibrary(d3dlib);
-     d3dlib = NULL;
-     strcpy(allegro_error, "Direct3DCreate failed!");
+     D3D9Library.Unload();
+     set_allegro_error("Direct3DCreate failed!");
      return false;
    }
 
@@ -467,12 +539,12 @@ void D3DGraphicsDriver::initD3DDLL()
 {
    if (!EnsureDirect3D9IsCreated())
    {
-     throw Ali3DException(allegro_error);
+     throw Ali3DException(get_allegro_error());
    }
 
    if (!IsModeSupported(_newmode_screen_width, _newmode_screen_height, _newmode_depth))
    {
-     throw Ali3DException(allegro_error);
+     throw Ali3DException(get_allegro_error());
    }
 
    _enter_critical();
@@ -482,9 +554,8 @@ void D3DGraphicsDriver::initD3DDLL()
      _exit_critical();
      direct3d->Release();
      direct3d = NULL;
-     FreeLibrary(d3dlib);
-     d3dlib = NULL;
-     throw Ali3DException(allegro_error);
+     D3D9Library.Unload();
+     throw Ali3DException(get_allegro_error());
    }
 
    // The display mode has been set up successfully, save the
@@ -549,6 +620,33 @@ static D3DFORMAT color_depth_to_d3d_format(int color_depth, bool wantAlpha)
   return D3DFMT_UNKNOWN;
 }
 
+/* d3d_format_to_color_depth:
+ *  Convert a D3D tag to colour depth
+ *
+ * TODO: this is currently an inversion of color_depth_to_d3d_format;
+ * check later if more formats should be handled
+ */
+static int d3d_format_to_color_depth(D3DFORMAT format, bool secondary)
+{
+  switch (format)
+  {
+  case D3DFMT_P8:
+    return 8;
+  case D3DFMT_A1R5G5B5:
+    return secondary ? 15 : 16;
+  case D3DFMT_X1R5G5B5:
+    return secondary ? 15 : 16;
+  case D3DFMT_R5G6B5:
+    return 16;
+  case D3DFMT_R8G8B8:
+    return secondary ? 24 : 32;
+  case D3DFMT_A8R8G8B8:
+  case D3DFMT_X8R8G8B8:
+    return 32;
+  }
+  return 0;
+}
+
 bool D3DGraphicsDriver::IsModeSupported(int width, int height, int colDepth)
 {
   if (_newmode_windowed)
@@ -564,7 +662,7 @@ bool D3DGraphicsDriver::IsModeSupported(int width, int height, int colDepth)
   {
     if (FAILED(direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, pixelFormat, i, &displayMode)))
     {
-      strcpy(allegro_error, "IDirect3D9::EnumAdapterModes failed");
+      set_allegro_error("IDirect3D9::EnumAdapterModes failed");
       return false;
     }
 
@@ -574,49 +672,8 @@ bool D3DGraphicsDriver::IsModeSupported(int width, int height, int colDepth)
     }
   }
 
-  strcpy(allegro_error, "The requested adapter mode is not supported");
+  set_allegro_error("The requested adapter mode is not supported");
   return false;
-}
-
-int D3DGraphicsDriver::FindSupportedResolutionWidth(int idealWidth, int height, int colDepth, int widthRangeAllowed)
-{
-  if (!EnsureDirect3D9IsCreated())
-    return 0;
-
-  int unfilteredWidth = idealWidth;
-  _filter->GetRealResolution(&idealWidth, &height);
-  int filterFactor = idealWidth / unfilteredWidth;
-
-  D3DFORMAT pixelFormat = color_depth_to_d3d_format(colDepth, false);
-  D3DDISPLAYMODE displayMode;
-
-  int nearestWidthFound = 0;
-  int modeCount = direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, pixelFormat);
-  for (int i = 0; i < modeCount; i++)
-  {
-    if (FAILED(direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, pixelFormat, i, &displayMode)))
-    {
-      strcpy(allegro_error, "IDirect3D9::EnumAdapterModes failed");
-      return 0;
-    }
-
-    if (displayMode.Height == height)
-    {
-      if (displayMode.Width == idealWidth)
-        return idealWidth / filterFactor;
-
-      if (abs(displayMode.Width - idealWidth) <
-          abs(nearestWidthFound - idealWidth))
-      {
-        nearestWidthFound = displayMode.Width;
-      }
-    }
-  }
-
-  if (abs(nearestWidthFound - idealWidth) <= widthRangeAllowed * filterFactor)
-    return nearestWidthFound / filterFactor;
-
-  return 0;
 }
 
 bool D3DGraphicsDriver::SupportsGammaControl() 
@@ -723,6 +780,10 @@ int D3DGraphicsDriver::_initDLLCallback()
   {
     // Remove the border in full-screen mode, otherwise if the player
     // clicks near the edge of the screen it goes back to Windows
+    if (_allegroOriginalWindowStyle == 0)
+    {
+      _allegroOriginalWindowStyle = GetWindowLong(allegro_wnd, GWL_STYLE);
+    }
     LONG windowStyle = WS_POPUP;
     SetWindowLong(allegro_wnd, GWL_STYLE, windowStyle);
   }
@@ -754,10 +815,10 @@ int D3DGraphicsDriver::_initDLLCallback()
                       &d3dpp, &direct3ddevice);
   if (hr != D3D_OK)
   {
-    if (previousError[0] != 0)
-      sprintf(allegro_error, previousError);
+    if (!previousError.IsEmpty())
+      set_allegro_error(previousError);
     else
-      sprintf(allegro_error, "Failed to create Direct3D Device: 0x%08X", hr);
+      set_allegro_error("Failed to create Direct3D Device: 0x%08X", hr);
     return -1;
   }
 
@@ -767,7 +828,7 @@ int D3DGraphicsDriver::_initDLLCallback()
     {
       direct3ddevice->Release();
       direct3ddevice = NULL;
-      ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Window size not supported"));
+      set_allegro_error("Window size not supported");
       return -1;
     }
   }
@@ -789,8 +850,8 @@ int D3DGraphicsDriver::_initDLLCallback()
   {
     direct3ddevice->Release();
     direct3ddevice = NULL;
-    usprintf(allegro_error, "Graphics card does not support Pixel Shader %d.%d", requiredPSMajorVersion, requiredPSMinorVersion);
-    strcpy(previousError, allegro_error);
+    previousError = 
+        set_allegro_error("Graphics card does not support Pixel Shader %d.%d", requiredPSMajorVersion, requiredPSMinorVersion);
     return -1;
   }
 
@@ -809,8 +870,7 @@ int D3DGraphicsDriver::_initDLLCallback()
       {
         direct3ddevice->Release();
         direct3ddevice = NULL;
-        sprintf(allegro_error, "Failed to create pixel shader: 0x%08X", hr);
-        strcpy(previousError, allegro_error);
+        previousError = set_allegro_error("Failed to create pixel shader: 0x%08X", hr);
         return -1;
       }
       UnlockResource(hGlobal);
@@ -821,8 +881,7 @@ int D3DGraphicsDriver::_initDLLCallback()
   {
     direct3ddevice->Release();
     direct3ddevice = NULL;
-    sprintf(allegro_error, "Failed to load pixel shader resource");
-    strcpy(previousError, allegro_error);
+    previousError = set_allegro_error("Failed to load pixel shader resource");
     return -1;
   }
 
@@ -834,8 +893,7 @@ int D3DGraphicsDriver::_initDLLCallback()
   {
     direct3ddevice->Release();
     direct3ddevice = NULL;
-    ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Failed to create vertex buffer"));
-    strcpy(previousError, allegro_error);
+    previousError = set_allegro_error("Failed to create vertex buffer");
     return -1;
   }
 
@@ -959,6 +1017,11 @@ void D3DGraphicsDriver::SetRenderOffset(int x, int y)
   _global_y_offset = y;
 }
 
+void D3DGraphicsDriver::SetGraphicsFilter(GFXFilter *filter)
+{
+  _filter = (D3DGFXFilter*)filter;
+}
+
 void D3DGraphicsDriver::SetTintMethod(TintMethod method) 
 {
   _legacyPixelShader = (method == TintReColourise);
@@ -973,7 +1036,7 @@ bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
 {
   if (colourDepth < 15)
   {
-    ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Direct3D driver does not support 256-colour games"));
+    set_allegro_error("Direct3D driver does not support 256-colour games");
     return false;
   }
 
@@ -995,8 +1058,8 @@ bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
   }
   catch (Ali3DException exception)
   {
-    if (exception._message != allegro_error)
-      ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text(exception._message));
+    if (exception._message != get_allegro_error())
+      set_allegro_error(exception._message);
     return false;
   }
   // create dummy screen bitmap
@@ -1004,6 +1067,14 @@ bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
 	  ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(virtualWidth, virtualHeight, colourDepth))
 	  );
   return true;
+}
+
+IGfxModeList *D3DGraphicsDriver::GetSupportedModeList(int color_depth)
+{
+  if (!EnsureDirect3D9IsCreated())
+    return false;
+
+  return new D3DGfxModeList(direct3d, color_depth_to_d3d_format(color_depth, false));
 }
 
 void D3DGraphicsDriver::UnInit() 
@@ -1031,6 +1102,16 @@ void D3DGraphicsDriver::UnInit()
     direct3ddevice->Release();
     direct3ddevice = NULL;
   }
+
+  if (_allegroOriginalWindowStyle != 0)
+  {
+    HWND allegro_wnd = win_get_window();
+    if (allegro_wnd)
+    {
+      SetWindowLong(allegro_wnd, GWL_STYLE, _allegroOriginalWindowStyle);
+    }
+    _allegroOriginalWindowStyle = 0;
+  }
 }
 
 D3DGraphicsDriver::~D3DGraphicsDriver()
@@ -1041,12 +1122,6 @@ D3DGraphicsDriver::~D3DGraphicsDriver()
   {
     direct3d->Release();
     direct3d = NULL;
-  }
-
-  if (d3dlib) 
-  {
-    FreeLibrary(d3dlib);
-    d3dlib = NULL;
   }
 }
 

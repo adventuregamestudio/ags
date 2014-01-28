@@ -36,7 +36,7 @@ PIXEL_SHADER_LEGACY     DATA                    "tintshaderLegacy.fxo"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,3,0,1144
+ FILEVERSION 3,3,0,1154
  PRODUCTVERSION 1,0,0,1
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -55,9 +55,9 @@ BEGIN
             VALUE "Comments", "This game was created using AGS - http://www.adventuregamestudio.co.uk/"
             VALUE "CompanyName", "AGS Engine by Chris Jones et al.        "
             VALUE "FileDescription", "Adventure Game Studio run-time engine   "
-            VALUE "FileVersion", "3.3.0.1144"
+            VALUE "FileVersion", "3.3.0.1154"
             VALUE "InternalName", "acwin"
-            VALUE "LegalCopyright", "AGS Copyright (c) 1999-2010 Chris Jones and 2011-2013 others."
+            VALUE "LegalCopyright", "AGS Copyright (c) 1999-2010 Chris Jones and 2011-2014 others."
             VALUE "OriginalFilename", "acwin.exe"
             VALUE "ProductName", "Made with Adventure Game Studio"
             VALUE "ProductVersion", "3.3.0"
@@ -110,51 +110,49 @@ IDI_ICON2               ICON                    "game-1.ico"
 // Dialog
 //
 
-IDD_DIALOG1 DIALOGEX 0, 0, 350, 293
+IDD_DIALOG1 DIALOGEX 0, 0, 360, 285
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "AGS Game Settings"
 FONT 8, "Tahoma", 400, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "S&ave",IDOK,7,164,56,14
-    PUSHBUTTON      "&Save and Run",IDOKRUN,67,164,56,14
-    PUSHBUTTON      "Cancel",IDCANCEL,127,164,56,14
-    PUSHBUTTON      "Ad&vanced  >>>",IDC_ADVANCED,220,163,70,15
+    GROUPBOX        "Graphics settings",IDC_STATIC,7,7,185,88
+    LTEXT           "Resolution: XXXX x XXXX",IDC_RESOLUTION,15,19,161,10
     CONTROL         "&Run in a window instead of full-screen",IDC_WINDOWED,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFT | BS_VCENTER | WS_TABSTOP,15,30,134,9
+                    "Button",BS_AUTOCHECKBOX | BS_LEFT | BS_VCENTER | WS_TABSTOP,15,31,134,9
+    LTEXT           "Graphics driver:",IDC_STATIC,14,45,51,10
+    COMBOBOX        IDC_GFXDRIVER,68,43,118,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Graphics filter:",IDC_STATIC,14,61,51,10
+    COMBOBOX        IDC_GFXFILTER,68,59,118,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Graphics filters can help you to get low-resolution games running well on high-resolution monitors.",IDC_STATIC,13,75,169,18
+    GROUPBOX        "Gameplay settings",IDC_STATIC,198,7,154,88
+    LTEXT           "Game language:",IDC_STATIC,205,19,56,10
+    COMBOBOX        IDC_COMBO3,205,31,140,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "S&ave",IDOK,7,102,56,14
+    PUSHBUTTON      "&Save and Run",IDOKRUN,67,102,56,14
+    PUSHBUTTON      "Cancel",IDCANCEL,127,102,56,14
+    PUSHBUTTON      "Ad&vanced  >>>",IDC_ADVANCED,282,101,70,15
+    GROUPBOX        "Sound options",IDC_STATIC,7,121,185,89
+    LTEXT           "Digital Sound:",IDC_STATIC,13,136,46,9
+    COMBOBOX        IDC_COMBO1,68,134,118,70,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_GROUP | WS_TABSTOP
+    LTEXT           "MIDI music:",IDC_STATIC,13,152,47,10
+    COMBOBOX        IDC_COMBO2,68,150,118,70,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_TABSTOP
+    CONTROL         "Use voice pack if available",IDC_SPEECHPACK,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,13,169,160,9
+    GROUPBOX        "Graphics options",IDC_STATIC,198,121,154,89
     CONTROL         "Use 85 &Hz display (CRT monitors only)",IDC_REFRESH,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,197,18,138,8
-    CONTROL         "Force alternate &letterbox resolution",IDC_LETTERBOX,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,197,76,132,9
-    CONTROL         "S&mooth scaled sprites (fast CPUs only)",IDC_ANTIALIAS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,197,47,138,8
-    COMBOBOX        IDC_COMBO1,63,108,112,70,CBS_DROPDOWNLIST | WS_GROUP | WS_TABSTOP
-    COMBOBOX        IDC_COMBO2,63,127,112,70,CBS_DROPDOWNLIST | WS_TABSTOP
-    CONTROL         "Use sp&eech pack if available",IDC_SPEECHPACK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,146,160,9
-    COMBOBOX        IDC_COMBO3,198,121,135,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_REPLAYBOX,58,197,277,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_COMBO4,68,229,108,100,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Language",IDC_STATIC,191,97,151,43
-    GROUPBOX        "Graphics settings",IDC_STATIC,7,7,335,88
-    GROUPBOX        "Sound options",IDC_STATIC,7,97,177,63
-    LTEXT           "Digital Sound:",IDC_STATIC,13,111,46,9
-    LTEXT           "MIDI music:",IDC_STATIC,13,129,47,10
-    CTEXT           "Static",IDC_VERSION,87,276,176,9
-    LTEXT           "Game language:",IDC_STATIC,198,109,56,10
-    GROUPBOX        "Advanced",IDC_STATICADV,7,218,335,55,NOT WS_VISIBLE
-    LTEXT           "Maximum size:",IDC_STATICADV3,15,231,50,10,NOT WS_VISIBLE
-    LTEXT           "You can limit the maximum amount of memory that the game will use for its sprite cache. Smaller values may make the game run slower but use less RAM; higher values may be faster but use more RAM. You should not normally need to adjust this.",IDC_STATICADV2,13,245,323,26,NOT WS_VISIBLE
-    GROUPBOX        "Replay",IDC_STATIC,7,186,335,29
-    LTEXT           "Run replay:",IDC_STATIC,13,198,41,9
-    CONTROL         "Downgra&de 32-bit graphics to 16-bit",IDC_REDUCESPR,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,197,61,135,9
-    COMBOBOX        IDC_GFXFILTER,68,58,118,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Graphics filter:",IDC_STATIC,14,58,51,10
-    LTEXT           "Graphics filters can help you to get low-resolution games running well on high-resolution monitors.",IDC_STATIC,13,74,169,18
-    COMBOBOX        IDC_GFXDRIVER,68,42,118,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Graphics driver:",IDC_STATIC,14,44,51,10
-    LTEXT           "Resolution: XXXX x XXXX",IDC_RESOLUTION,15,18,161,10
+                    "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,136,138,8
     CONTROL         "Side borders on widescreen monitors",IDC_SIDEBORDERS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,197,32,135,9
+                    "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,150,135,9
+    CONTROL         "S&mooth scaled sprites (fast CPUs only)",IDC_ANTIALIAS,
+                    "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,165,138,8
+    CONTROL         "Downgra&de 32-bit graphics to 16-bit",IDC_REDUCESPR,
+                    "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,179,135,9
+    CONTROL         "Force alternate &letterbox resolution",IDC_LETTERBOX,
+                    "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,194,132,9
+    GROUPBOX        "Sprite cache",IDC_STATICADV,7,212,345,55,NOT WS_VISIBLE
+    LTEXT           "Maximum size:",IDC_STATICADV3,15,225,50,10,NOT WS_VISIBLE
+    COMBOBOX        IDC_COMBO4,68,223,108,100,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "You can limit the maximum amount of memory that the game will use for its sprite cache. Smaller values may make the game run slower but use less RAM; higher values may be faster but use more RAM. You should not normally need to adjust this.",IDC_STATICADV2,13,239,323,26,NOT WS_VISIBLE
+    CTEXT           "Static",IDC_VERSION,91,270,176,9
 END
 
 
@@ -169,9 +167,9 @@ BEGIN
     IDD_DIALOG1, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 342
+        RIGHTMARGIN, 352
         TOPMARGIN, 7
-        BOTTOMMARGIN, 288
+        BOTTOMMARGIN, 280
     END
 END
 #endif    // APSTUDIO_INVOKED

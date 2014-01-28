@@ -318,12 +318,15 @@ int GetGameParameter (int parm, int data1, int data2, int data3) {
    case GP_FRAMESOUND:
    case GP_ISFRAMEFLIPPED:
        {
-           if ((data1 < 1) || (data1 > game.numviews))
-               quit("!GetGameParameter: invalid view specified");
-           if ((data2 < 0) || (data2 >= views[data1 - 1].numLoops))
-               quit("!GetGameParameter: invalid loop specified");
-           if ((data3 < 0) || (data3 >= views[data1 - 1].loops[data2].numFrames))
-               quit("!GetGameParameter: invalid frame specified");
+           if ((data1 < 1) || (data1 > game.numviews)) {
+               quitprintf("!GetGameParameter: invalid view specified (v: %d, l: %d, f: %d)", data1, data2, data3);
+           }
+           if ((data2 < 0) || (data2 >= views[data1 - 1].numLoops)) {
+               quitprintf("!GetGameParameter: invalid loop specified (v: %d, l: %d, f: %d)", data1, data2, data3);
+           }
+           if ((data3 < 0) || (data3 >= views[data1 - 1].loops[data2].numFrames)) {
+               quitprintf("!GetGameParameter: invalid frame specified (v: %d, l: %d, f: %d)", data1, data2, data3);
+           }
 
            ViewFrame *pvf = &views[data1 - 1].loops[data2].frames[data3];
 
@@ -468,11 +471,17 @@ void EndSkippingUntilCharStops() {
 // 4 = mouse button or any key
 // 5 = right click or ESC only
 void StartCutscene (int skipwith) {
-    if (play.in_cutscene)
-        quit("!StartCutscene: already in a cutscene");
+    static ScriptPosition last_cutscene_script_pos;
+
+    if (play.in_cutscene) {
+        quitprintf("!StartCutscene: already in a cutscene; previous started in \"%s\", line %d",
+            last_cutscene_script_pos.Section.GetCStr(), last_cutscene_script_pos.Line);
+    }
 
     if ((skipwith < 1) || (skipwith > 5))
         quit("!StartCutscene: invalid argument, must be 1 to 5.");
+
+    get_script_position(last_cutscene_script_pos);
 
     // make sure they can't be skipping and cutsceneing at the same time
     EndSkippingUntilCharStops();
@@ -753,6 +762,11 @@ int SaveScreenShot(const char*namm) {
 void SetMultitasking (int mode) {
     if ((mode < 0) | (mode > 1))
         quit("!SetMultitasking: invalid mode parameter");
+
+    if (usetup.override_multitasking >= 0)
+    {
+        mode = usetup.override_multitasking;
+    }
 
     // Don't allow background running if full screen
     if ((mode == 1) && (usetup.windowed == 0))

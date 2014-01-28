@@ -9,9 +9,9 @@ namespace AGS.Types
     {
         [Description("Classic")]
         Classic = 0,
-        [Description("Additive Opacity, Copy Source Color")]
+        [Description("Additive Opacity")]
         AdditiveOpacity = 1,
-        [Description("Multiplied Translucence, Blend Source Color")]
+        [Description("Proper Alpha Blending")]
         MultiplyTranslucenceSrcBlend = 2
     }
 }

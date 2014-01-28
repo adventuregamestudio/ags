@@ -1,36 +1,36 @@
 INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins
 LIBDIR =
-override CFLAGS += -O2 -g -fsigned-char -Wfatal-errors -DNDEBUG -DAGS_RUNTIME_PATCH_ALLEGRO -DAGS_HAS_CD_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DALLEGRO_STATICLINK -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2)
-override CXXFLAGS += -fno-rtti -Wno-write-strings -fpermissive
-LIBS = -rdynamic $(shell allegro-config --libs) -laldmb -ldumb -Wl,-Bdynamic -ltheora -logg 
+CFLAGS := -O2 -g -fsigned-char -Wfatal-errors -DNDEBUG -DAGS_RUNTIME_PATCH_ALLEGRO -DAGS_HAS_CD_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DALLEGRO_STATICLINK -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2) $(CFLAGS)
+CXXFLAGS := -fno-rtti -Wno-write-strings $(CXXFLAGS)
+LIBS := -rdynamic $(shell allegro-config --libs) -laldmb -ldumb -Wl,-Bdynamic -ltheora -logg 
 
 ifeq ($(USE_TREMOR), 1)
   LIBS += -lvorbisidec
-  override CFLAGS += -DUSE_TREMOR
+  CFLAGS += -DUSE_TREMOR
 else
   LIBS += -lvorbis
 endif
 LIBS += -lvorbisfile -lfreetype -logg -ldl -lpthread -lm -lc -lstdc++
 
 ifeq ($(ALLEGRO_MAGIC_DRV), 1)
-  override CFLAGS += -DALLEGRO_MAGIC_DRV
+  CFLAGS += -DALLEGRO_MAGIC_DRV
 endif	
 
 ifdef BUILD_STR
-  override CFLAGS += -DBUILD_STR=\"$(BUILD_STR)\"
+  CFLAGS += -DBUILD_STR=\"$(BUILD_STR)\"
 endif
 
 PREFIX ?= /usr/local
 CC ?= gcc
 CXX ?= g++
 AR ?= ar
-override CFLAGS   += $(addprefix -I,$(INCDIR))
-override CXXFLAGS += $(CFLAGS)
-override ASFLAGS  += $(CFLAGS)
-override LDFLAGS  += -Wl,--as-needed $(addprefix -L,$(LIBDIR))
+CFLAGS   += $(addprefix -I,$(INCDIR))
+CXXFLAGS += $(CFLAGS)
+ASFLAGS  += $(CFLAGS)
+LDFLAGS  += -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 
 ifneq (,$(RPATH))
-  override LDFLAGS  += -Wl,-rpath,'$$ORIGIN/$(RPATH)'
+  LDFLAGS  += -Wl,-rpath,'$$ORIGIN/$(RPATH)'
 endif
 
 BASE_PLATFORM = \

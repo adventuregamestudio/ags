@@ -1117,6 +1117,7 @@ void init_game_settings() {
     play.bad_parsed_word[0] = 0;
     play.swap_portrait_side = 0;
     play.swap_portrait_lastchar = -1;
+    play.swap_portrait_lastlastchar = -1;
     play.in_conversation = 0;
     play.skip_display = 3;
     play.no_multiloop_repeat = 0;

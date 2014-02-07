@@ -2390,17 +2390,21 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                 if (game.options[OPT_PORTRAITSIDE] == PORTRAIT_XPOSITION) {
                     // Portrait side based on character X-positions
                     if (play.swap_portrait_lastchar < 0) {
-                        // no previous character been spoken to
-                        // therefore, find another character in this room
-                        // that it could be
-                        for (int ce = 0; ce < game.numcharacters; ce++) {
-                            if ((game.chars[ce].room == speakingChar->room) &&
-                                (game.chars[ce].on == 1) &&
-                                (ce != aschar)) {
-                                    play.swap_portrait_lastchar = ce;
-                                    break;
+                        // No previous character been spoken to
+                        // therefore, assume it's the player
+                        if(game.playercharacter != aschar && game.chars[game.playercharacter].room == speakingChar->room && game.chars[game.playercharacter].on == 1)
+                            play.swap_portrait_lastchar = game.playercharacter;
+                        else
+                            // The player's not here. Find another character in this room
+                            // that it could be
+                            for (int ce = 0; ce < game.numcharacters; ce++) {
+                                if ((game.chars[ce].room == speakingChar->room) &&
+                                    (game.chars[ce].on == 1) &&
+                                    (ce != aschar)) {
+                                        play.swap_portrait_lastchar = ce;
+                                        break;
+                                }
                             }
-                        }
                     }
 
                     if (play.swap_portrait_lastchar >= 0) {
@@ -2412,9 +2416,18 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                             play.swap_portrait_side = 0;
                     }
                 }
-
+                play.swap_portrait_lastlastchar = play.swap_portrait_lastchar;
                 play.swap_portrait_lastchar = aschar;
             }
+            else
+                // If the portrait side is based on the character's X position and the same character is
+                // speaking, compare against the previous *previous* character to see where the speech should be
+                if (game.options[OPT_PORTRAITSIDE] == PORTRAIT_XPOSITION && play.swap_portrait_lastlastchar >= 0) {
+                    if (speakingChar->x > game.chars[play.swap_portrait_lastlastchar].x)
+                        play.swap_portrait_side = -1;
+                    else
+                        play.swap_portrait_side = 0;
+                }
 
             // Determine whether to display the portrait on the left or right
             int portrait_on_right = 0;

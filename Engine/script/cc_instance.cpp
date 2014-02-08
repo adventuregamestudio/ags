@@ -537,7 +537,7 @@ int ccInstance::Run(int32_t curpc)
         codeOp.ArgCount = want_args;
 
         int pc_at = pc + 1;
-        for (int i = 0; i < codeOp.ArgCount; ++i, ++pc_at)
+        for (int i = 0; i < want_args; ++i, ++pc_at)
         {
             char fixup = codeInst->code_fixups[pc_at];
             if (fixup > 0)

@@ -86,9 +86,9 @@ SOUNDCLIP *my_load_wave(const char *filename, int voll, int loop)
     return thiswave;
 }
 
-#ifndef NO_MP3_PLAYER
-
 PACKFILE *mp3in;
+
+#ifndef NO_MP3_PLAYER
 
 MYMP3 *thistune;
 SOUNDCLIP *my_load_mp3(const char *filname, int voll)

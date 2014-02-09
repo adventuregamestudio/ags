@@ -163,7 +163,8 @@ namespace AGS.Editor
 			{
 				_guiController.ShowMessage("An unexpected error occurred. Please post the following information on the AGS Technical Forum." + Environment.NewLine + Environment.NewLine + ex.ToString(), MessageBoxIcon.Stop);
 			}
-            _guiController.ShowMessage("A serious error occurred and the AGS Editor may now be in an unstable state. You are STRONGLY ADVISED to shut down the editor and restart it. Before saving your work, make a backup copy of your game folder in case any data has been corrupted.", MessageBoxIcon.Error);
+            _guiController.ShowMessage("A serious error occurred and the AGS Editor may now be in an unstable state. You are STRONGLY ADVISED to shut down the editor and restart it. Before saving your work, make a backup copy of your game folder in case any data has been corrupted."
+                 + Environment.NewLine + Environment.NewLine + "Error: " + ex.ToString(), MessageBoxIcon.Error);
         }
 
         private void GUIController_OnEditorShutdown()

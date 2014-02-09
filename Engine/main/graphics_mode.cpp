@@ -587,7 +587,7 @@ int init_gfx_mode(int wid,int hit,int cdep) {
         set_color_depth(cdep);
     }
 
-    working_gfx_mode_status = (gfxDriver->Init(wid, hit, final_col_dep, usetup.windowed > 0, &timerloop) ? 0 : -1);
+    working_gfx_mode_status = (gfxDriver->Init(wid, hit, final_col_dep, usetup.windowed > 0, &timerloop, usetup.vsync) ? 0 : -1);
 
     if (working_gfx_mode_status == 0) 
         Out::FPrint("Succeeded. Using gfx mode %d x %d (%d-bit)", wid, hit, final_col_dep);

@@ -28,6 +28,7 @@ struct GameSetup {
     int mp3_player;
     int want_letterbox;
     int windowed;
+    int vsync;
     int base_width, base_height;
     short refresh;
     char  no_speech_pack;

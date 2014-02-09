@@ -40,7 +40,7 @@ extern int  INIreadint(const char*, const char*, int=0);
 extern void fgetstring_limit (char *, Stream *, int);
 extern char* ac_config_file;
 const char*setupstring, *enginever;
-int curscrn=-1,csendto,curdigi=0,curmidi=0,windowed=0,useletterbox = 0;
+int curscrn=-1,csendto,curdigi=0,curmidi=0,windowed=0,useletterbox = 0,vsync = 0;
 int defaultRes = -1, mustBeLetterbox = 0, gameColDep = 0;
 int refresh = 0, antialias = 0, reduce32to16 = 0;
 int sideBorders = 1;
@@ -300,6 +300,9 @@ void InitializeDialog(HWND hDlg) {
   if (windowed > 0)
     SendDlgItemMessage(hDlg,IDC_WINDOWED,BM_SETCHECK,BST_CHECKED,0);
 
+  if (vsync > 0)
+    SendDlgItemMessage(hDlg,IDC_VSYNC,BM_SETCHECK,BST_CHECKED,0);
+
   if (refresh > 0)
     SendDlgItemMessage(hDlg,IDC_REFRESH,BM_SETCHECK,BST_CHECKED,0);
 
@@ -380,6 +383,7 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
         ShowWindow (GetDlgItem(hDlg, IDC_ANTIALIAS), SW_SHOW);
         ShowWindow (GetDlgItem(hDlg, IDC_REDUCESPR), SW_SHOW);
         ShowWindow (GetDlgItem(hDlg, IDC_LETTERBOX), SW_SHOW);
+        ShowWindow (GetDlgItem(hDlg, IDC_VSYNC), SW_SHOW);
         ShowWindow (GetDlgItem(hDlg, IDC_COMBO4), SW_SHOW);
 
         MoveWindow (hDlg, winsize.left, winsize.top - (wheight - base_height) / 2, wwidth, wheight, TRUE);
@@ -481,6 +485,11 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
           else
             WritePrivateProfileString("misc","windowed","0",ac_config_file);
 
+          if (SendDlgItemMessage(hDlg,IDC_VSYNC,BM_GETCHECK,0,0) == BST_CHECKED)
+            WritePrivateProfileString("misc","vsync","1",ac_config_file);
+          else
+            WritePrivateProfileString("misc","vsync","0",ac_config_file);
+
           if (SendDlgItemMessage(hDlg,IDC_ANTIALIAS,BM_GETCHECK,0,0) == BST_CHECKED)
             WritePrivateProfileString("misc","antialias","1",ac_config_file);
           else
@@ -546,6 +555,7 @@ int acwsetup(const char*vername, const char*enbuild) {
     if (curmidi < 0) curmidi=0;
 
     windowed = INIreadint("misc","windowed",0);
+    vsync = INIreadint("misc","vsync",0);
     useletterbox = INIreadint("misc","forceletterbox",0);
 
     reduce32to16 = INIreadint("misc","notruecolor",0);

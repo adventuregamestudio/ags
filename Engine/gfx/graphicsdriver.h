@@ -67,8 +67,8 @@ public:
   virtual const char*GetDriverID() = 0;
   virtual void SetGraphicsFilter(GFXFilter *filter) = 0;
   virtual void SetTintMethod(TintMethod method) = 0;
-  virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer) = 0;
-  virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer) = 0;
+  virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync) = 0;
+  virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync) = 0;
   virtual IGfxModeList *GetSupportedModeList(int color_depth) = 0;
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) = 0;
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) = 0;

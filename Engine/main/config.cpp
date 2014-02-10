@@ -235,6 +235,7 @@ void read_config_file(char *argv0) {
         usetup.enable_antialiasing = INIreadint ("misc", "antialias", 0);
         usetup.force_hicolor_mode = INIreadint("misc", "notruecolor", 0);
         usetup.enable_side_borders = INIreadint("misc", "sideborders", 0);
+        usetup.vsync = INIreadint("misc", "vsync", 0);
 
 #if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
         // PSP: Letterboxing is not useful on the PSP.

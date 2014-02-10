@@ -286,8 +286,8 @@ public:
   virtual const char*GetDriverID() { return "D3D9"; }
   virtual void SetGraphicsFilter(GFXFilter *filter);
   virtual void SetTintMethod(TintMethod method);
-  virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer);
-  virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer);
+  virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
+  virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
   virtual IGfxModeList *GetSupportedModeList(int color_depth);
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
@@ -346,6 +346,7 @@ private:
   int _newmode_screen_width, _newmode_screen_height;
   int _newmode_depth, _newmode_refresh;
   bool _newmode_windowed;
+  bool _newmode_vsync;
   int _global_x_offset, _global_y_offset;
   UINT availableVideoMemory;
   GFXDRV_CLIENTCALLBACK _pollingCallback;
@@ -801,8 +802,10 @@ int D3DGraphicsDriver::_initDLLCallback()
   d3dpp.EnableAutoDepthStencil = FALSE;
   d3dpp.Flags = 0;
   d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
-  d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE; //D3DPRESENT_INTERVAL_DEFAULT;
-  //d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
+  if(_newmode_vsync)
+    d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
+  else
+    d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
   /* If full screen, specify the refresh rate */
   if ((d3dpp.Windowed == FALSE) && (_newmode_refresh > 0))
     d3dpp.FullScreen_RefreshRateInHz = _newmode_refresh;
@@ -1027,12 +1030,12 @@ void D3DGraphicsDriver::SetTintMethod(TintMethod method)
   _legacyPixelShader = (method == TintReColourise);
 }
 
-bool D3DGraphicsDriver::Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer) 
+bool D3DGraphicsDriver::Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync)
 {
-  return this->Init(width, height, width, height, colourDepth, windowed, loopTimer);
+  return this->Init(width, height, width, height, colourDepth, windowed, loopTimer, vsync);
 }
 
-bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer)
+bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync)
 {
   if (colourDepth < 15)
   {
@@ -1047,6 +1050,7 @@ bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
   _newmode_depth = colourDepth;
   _newmode_refresh = 0;
   _newmode_windowed = windowed;
+  _newmode_vsync = vsync;
   _loopTimer = loopTimer;
 
   _filter->GetRealResolution(&_newmode_screen_width, &_newmode_screen_height);

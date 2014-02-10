@@ -44,5 +44,6 @@ int get_textwindow_top_border_height (int twgui);
 void draw_text_window(Common::Bitmap **text_window_ds, bool should_free_ds, int*xins,int*yins,int*xx,int*yy,int*wii,color_t *set_text_color,int ovrheight, int ifnum);
 void draw_text_window_and_bar(Common::Bitmap **text_window_ds, bool should_free_ds,
                               int*xins,int*yins,int*xx,int*yy,int*wii,color_t *set_text_color,int ovrheight=0, int ifnum=-1);
+int get_textwindow_padding(int ifnum);
 
 #endif // __AGS_EE_AC__DISPLAY_H

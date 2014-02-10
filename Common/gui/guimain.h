@@ -54,7 +54,8 @@ struct GUIMain
   int transparency;
   int zorder;
   int guiId;
-  int reserved[6];
+  int padding;                  // padding surrounding a GUI text window
+  int reserved[5];
   int on;
   GUIObject *objs[MAX_OBJS_ON_GUI];
   int objrefptr[MAX_OBJS_ON_GUI];       // for re-building objs array

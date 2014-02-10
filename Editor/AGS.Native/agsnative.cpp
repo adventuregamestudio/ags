@@ -3255,6 +3255,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
     gui->flags = 0;
 	gui->popup = POPUP_SCRIPT;
 	gui->vtext[0] = GUI_TEXTWINDOW;
+	gui->padding = twGui->Padding;
   gui->fgcol = twGui->TextColor;
   }
   gui->bgcol = guiObj->BackgroundColor;

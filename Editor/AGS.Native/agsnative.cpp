@@ -1624,10 +1624,12 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   iii->ReadArray (&thisgame.lipSyncFrameLetters[0][0], 20, 50);
 
   for (bb=0;bb<MAXGLOBALMES;bb++) {
-    if (thisgame.messages[bb]==NULL) continue;
+    if (!thisgame.load_messages[bb]) continue;
     thisgame.messages[bb]=(char*)malloc(500);
     read_string_decrypt(iii, thisgame.messages[bb]);
   }
+  delete [] thisgame.load_messages;
+  thisgame.load_messages = NULL;
 
   read_dialogs(iii, filever, true);
   read_gui(iii,&guis[0],&thisgame, &guis);

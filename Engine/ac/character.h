@@ -39,6 +39,7 @@ void    Character_FaceObject(CharacterInfo *char1, ScriptObject *obj, int blocki
 void    Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int distaway, int eagerness);
 int     Character_IsCollidingWithChar(CharacterInfo *char1, CharacterInfo *char2);
 int     Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid);
+bool    Character_IsInteractionAvailable(CharacterInfo *cchar, int mood);
 void    Character_LockView(CharacterInfo *chap, int vii);
 void    Character_LockViewAligned(CharacterInfo *chap, int vii, int loop, int align);
 void    Character_LockViewFrame(CharacterInfo *chaa, int view, int loop, int frame);

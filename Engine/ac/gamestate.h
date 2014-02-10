@@ -196,4 +196,6 @@ struct GameState {
     void WriteQueuedAudioItems_Aligned(Common::Stream *out);
 };
 
+extern GameState play;
+
 #endif // __AC_GAMESTATE_H

@@ -14,11 +14,12 @@
 
 #include "ac/hotspot.h"
 #include "ac/draw.h"
-#include "ac/roomstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_hotspot.h"
 #include "ac/global_translation.h"
 #include "ac/properties.h"
 #include "ac/roomstatus.h"
+#include "ac/roomstruct.h"
 #include "ac/string.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
@@ -70,6 +71,15 @@ void Hotspot_GetName(ScriptHotspot *hss, char *buffer) {
 
 const char* Hotspot_GetName_New(ScriptHotspot *hss) {
     return CreateNewScriptString(get_translation(thisroom.hotspotnames[hss->id]));
+}
+
+bool Hotspot_IsInteractionAvailable(ScriptHotspot *hhot, int mood) {
+
+    play.check_interaction_only = 1;
+    RunHotspotInteraction(hhot->id, mood);
+    int ciwas = play.check_interaction_only;
+    play.check_interaction_only = 0;
+    return (ciwas == 2);
 }
 
 void Hotspot_RunInteraction (ScriptHotspot *hss, int mood) {
@@ -139,6 +149,11 @@ RuntimeScriptValue Sc_Hotspot_GetTextProperty(void *self, const RuntimeScriptVal
     API_OBJCALL_OBJ_POBJ(ScriptHotspot, const char, myScriptStringImpl, Hotspot_GetTextProperty, const char);
 }
 
+RuntimeScriptValue Sc_Hotspot_IsInteractionAvailable(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_PINT(ScriptHotspot, Hotspot_IsInteractionAvailable);
+}
+
 // void  (ScriptHotspot *hss, int mood)
 RuntimeScriptValue Sc_Hotspot_RunInteraction(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -190,6 +205,7 @@ void RegisterHotspotAPI()
     ccAddExternalObjectFunction("Hotspot::GetProperty^1",       Sc_Hotspot_GetProperty);
     ccAddExternalObjectFunction("Hotspot::GetPropertyText^2",   Sc_Hotspot_GetPropertyText);
     ccAddExternalObjectFunction("Hotspot::GetTextProperty^1",   Sc_Hotspot_GetTextProperty);
+    ccAddExternalObjectFunction("Hotspot::IsInteractionAvailable^1", Sc_Hotspot_IsInteractionAvailable);
     ccAddExternalObjectFunction("Hotspot::RunInteraction^1",    Sc_Hotspot_RunInteraction);
     ccAddExternalObjectFunction("Hotspot::get_Enabled",         Sc_Hotspot_GetEnabled);
     ccAddExternalObjectFunction("Hotspot::set_Enabled",         Sc_Hotspot_SetEnabled);

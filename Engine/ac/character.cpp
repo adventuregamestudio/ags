@@ -68,7 +68,6 @@ extern GameSetupStruct game;
 extern int displayed_room,starting_room;
 extern roomstruct thisroom;
 extern MoveList *mls;
-extern GameState play;
 extern ViewStruct*views;
 extern RoomObject*objs;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -544,6 +543,15 @@ int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
 
     }
     return 0;
+}
+
+bool Character_IsInteractionAvailable(CharacterInfo *cchar, int mood) {
+
+    play.check_interaction_only = 1;
+    RunCharacterInteraction(cchar->index_id, mood);
+    int ciwas = play.check_interaction_only;
+    play.check_interaction_only = 0;
+    return (ciwas == 2);
 }
 
 void Character_LockView(CharacterInfo *chap, int vii) {
@@ -2859,6 +2867,11 @@ RuntimeScriptValue Sc_Character_IsCollidingWithObject(void *self, const RuntimeS
     API_OBJCALL_INT_POBJ(CharacterInfo, Character_IsCollidingWithObject, ScriptObject);
 }
 
+RuntimeScriptValue Sc_Character_IsInteractionAvailable(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_PINT(CharacterInfo, Character_IsInteractionAvailable);
+}
+
 // void (CharacterInfo *chap, int vii)
 RuntimeScriptValue Sc_Character_LockView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -3502,6 +3515,7 @@ void RegisterCharacterAPI()
 	ccAddExternalObjectFunction("Character::HasInventory^1",            Sc_Character_HasInventory);
 	ccAddExternalObjectFunction("Character::IsCollidingWithChar^1",     Sc_Character_IsCollidingWithChar);
 	ccAddExternalObjectFunction("Character::IsCollidingWithObject^1",   Sc_Character_IsCollidingWithObject);
+    ccAddExternalObjectFunction("Character::IsInteractionAvailable^1",  Sc_Character_IsInteractionAvailable);
 	ccAddExternalObjectFunction("Character::LockView^1",                Sc_Character_LockView);
 	ccAddExternalObjectFunction("Character::LockViewAligned^3",         Sc_Character_LockViewAligned);
 	ccAddExternalObjectFunction("Character::LockViewFrame^3",           Sc_Character_LockViewFrame);

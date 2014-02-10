@@ -1556,6 +1556,8 @@ managed struct Hotspot {
   import String GetTextProperty(const string property);
   /// Runs the specified event handler for this hotspot.
   import void RunInteraction(CursorMode);
+  /// Checks whether an event handler has been registered for clicking on this hotspot in the specified cursor mode.
+  import bool IsInteractionAvailable(CursorMode);
   /// Gets/sets whether this hotspot is enabled.
   import attribute bool Enabled;
   /// Gets the ID of the hotspot.
@@ -1832,6 +1834,8 @@ managed struct Object {
   import function RemoveTint();
   /// Runs the event handler for the specified event.
   import function RunInteraction(CursorMode);
+  /// Checks whether an event handler has been registered for clicking on this object in the specified cursor mode.
+  import bool     IsInteractionAvailable(CursorMode);
   /// Instantly moves the object to have its bottom-left at the new co-ordinates.
   import function SetPosition(int x, int y);
   /// Sets the object to use the specified view, ahead of doing an animation.
@@ -1920,6 +1924,8 @@ managed struct Character {
   import function IsCollidingWithChar(Character*);
   /// Checks whether this character is in collision with the object.
   import function IsCollidingWithObject(Object* );
+  /// Checks whether an event handler has been registered for clicking on this character in the specified cursor mode.
+  import bool     IsInteractionAvailable(CursorMode);
   /// Locks the character to this view, ready for doing animations.
   import function LockView(int view);
   /// Locks the character to this view, and aligns it against one side of the existing sprite.

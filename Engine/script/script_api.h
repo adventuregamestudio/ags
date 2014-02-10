@@ -391,6 +391,10 @@ extern char ScSfBuffer[3000];
     ASSERT_OBJ_PARAM_COUNT(METHOD, 2) \
     return RuntimeScriptValue().SetInt32(METHOD((CLASS*)self, (P1CLASS*)params[0].Ptr, params[1].GetAsBool()))
 
+#define API_OBJCALL_BOOL_PINT(CLASS, METHOD) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 1) \
+    return RuntimeScriptValue().SetInt32AsBool(METHOD((CLASS*)self, params[0].IValue))
+
 #define API_OBJCALL_OBJ_PINT_POBJ(CLASS, RET_CLASS, RET_MGR, METHOD, P1CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 2) \
     return RuntimeScriptValue().SetDynamicObject((void*)METHOD((CLASS*)self, params[0].IValue, (P1CLASS*)params[1].Ptr), &RET_MGR)

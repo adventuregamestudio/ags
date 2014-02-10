@@ -302,6 +302,7 @@ void unload_old_room() {
     }
 
     play.swap_portrait_lastchar = -1;
+    play.swap_portrait_lastlastchar = -1;
 
     for (ff = 0; ff < croom->numobj; ff++) {
         // un-export the object's script object

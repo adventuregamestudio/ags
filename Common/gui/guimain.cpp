@@ -501,6 +501,8 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
       sprintf(guiread[ee].name, "GUI%d", ee);
     if (GameGuiVersion < kGuiVersion_260)
       guiread[ee].zorder = ee;
+    if (GameGuiVersion < kGuiVersion_331)
+      guiread[ee].padding = TEXTWINDOW_PADDING_DEFAULT;
 
     if (loaded_game_file_version <= kGameVersion_272) // Fix names for 2.x: "GUI" -> "gGui"
         guiread->FixupGuiName(guiread[ee].name);

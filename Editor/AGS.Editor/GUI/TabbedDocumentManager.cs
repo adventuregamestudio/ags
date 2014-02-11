@@ -46,19 +46,20 @@ namespace AGS.Editor
 
         void _dockPanel_ActiveContentChanged(object sender, EventArgs e)
         {
-            List<ContentDocument> documentsToRemove = new List<ContentDocument>();
-            foreach (ContentDocument document in _panes)
-            {
-                if (document.Control == _dockPanel.ActiveContent)
+            /* When Ctrl+Tabbing, ActiveDocument is still the previously active tab, so let's double check which tab is actually active (i.e. has focus). */
+            foreach (ContentDocument focusDocument in _panes)
+                if (focusDocument.Control.ContainsFocus || focusDocument.Control.DockingContainer.ContainsFocus)
                 {
-                    if (document == ActiveDocument)
-                    {                        
-                        return;
-                    }                    
-                    SetActiveDocument(document, false);
-                    return;
-                }                
-            }            
+                    if (focusDocument != ActiveDocument)
+                    {
+                        SetActiveDocument(focusDocument, false);
+                        focusDocument.Control.DockingContainer.Refresh();
+                        _dockPanel.ActivePane.Refresh();
+                    }
+                    break;
+                }
+
+            return;
         }        
 
         public TabbedDocumentManager()

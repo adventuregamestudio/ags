@@ -9,6 +9,7 @@ namespace AGS.Types
         event EventHandler ActiveContentChanged;
 
         bool IsDisposed { get; }
+        IDockingPane ActivePane { get; }
         IDockingContent ActiveContent { get; }
     }
 }

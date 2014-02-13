@@ -163,7 +163,7 @@ void populate_drop_down_with_filters(HWND hDlg)
   int selected_filter = 0;
   while (thisFilter != NULL) {
 
-    if ((idx != 0) && (INIreadint("disabled", thisFilter->GetFilterID(), 0) == 1)) {
+    if ((idx != 0) && (INIreadint("disabled", thisFilter->GetFilterID()) == 1)) {
       // this filter is disabled
       delete thisFilter;
       // remove from list of filters
@@ -331,13 +331,13 @@ void InitializeDialog(HWND hDlg) {
   if (!Common::File::TestReadFile("speech.vox"))
     EnableWindow (GetDlgItem (hDlg, IDC_SPEECHPACK), FALSE);
 
-  if (INIreadint("disabled", "speechvox", 0) == 1)
+  if (INIreadint("disabled", "speechvox") == 1)
     EnableWindow (GetDlgItem (hDlg, IDC_SPEECHPACK), FALSE);
 
-  if (INIreadint("disabled", "16bit", 0) == 1)
+  if (INIreadint("disabled", "16bit") == 1)
     EnableWindow (GetDlgItem (hDlg, IDC_REDUCESPR), FALSE);
 
-  if (INIreadint("disabled", "filters", 0) == 1)
+  if (INIreadint("disabled", "filters") == 1)
     EnableWindow (GetDlgItem(hDlg, IDC_GFXFILTER), FALSE);
 
   RECT winsize;
@@ -543,7 +543,7 @@ int acwsetup(const char*vername, const char*enbuild) {
     curscrn=INIreadint("misc","screenres");
     if (curscrn > 1)
       curscrn = 1;
-    defaultRes = INIreadint ("misc", "defaultres", 0);
+    defaultRes = INIreadint ("misc", "defaultres");
     if (defaultRes < 1)
       defaultRes = -1;
 
@@ -554,40 +554,25 @@ int acwsetup(const char*vername, const char*enbuild) {
     if (curdigi > 3) curdigi = 0;
     if (curmidi < 0) curmidi=0;
 
-    windowed = INIreadint("misc","windowed",0);
-    vsync = INIreadint("misc","vsync",0);
-    useletterbox = INIreadint("misc","forceletterbox",0);
-
-    reduce32to16 = INIreadint("misc","notruecolor",0);
-    if (reduce32to16 < 0)
-      reduce32to16 = 0;
-
-    gameColDep = INIreadint("misc", "gamecolordepth", 0);
-    if (gameColDep < 0)
-      gameColDep = 0;
+    windowed = INIreadint("misc","windowed");
+    vsync = INIreadint("misc","vsync");
+    useletterbox = INIreadint("misc","forceletterbox");
+    reduce32to16 = INIreadint("misc","notruecolor");
+    gameColDep = INIreadint("misc", "gamecolordepth");
 
     if ((defaultRes == 2) || (defaultRes == 4)) {
       useletterbox = 1;
       mustBeLetterbox = 1;
     }
 
-    refresh = INIreadint("misc","refresh",0);
-    if (refresh < 1)
-      refresh = 0;
-    antialias = INIreadint("misc","antialias",0);
-    if (antialias < 1)
-      antialias = 0;
+    refresh = INIreadint("misc","refresh");
+    antialias = INIreadint("misc","antialias");
+    sideBorders = INIreadint("misc","sideborders", 1);
 
-    sideBorders = INIreadint("misc","sideborders",0);
-    if (sideBorders == -1)
-      sideBorders = 1;
-
-    int cacheval = INIreadint ("misc", "cachemax", 0);
+    int cacheval = INIreadint ("misc", "cachemax");
     if (cacheval > 0)
       curmaxcache = cacheval;
-    curusespeech = INIreadint ("sound", "usespeech", 0);
-    if (curusespeech < 0)
-      curusespeech = 1;
+    curusespeech = INIreadint ("sound", "usespeech", 1);
 
     GetPrivateProfileString("language", "translation", "", curtranslation, 200, ac_config_file);
     GetPrivateProfileString("misc", "datadir", ".", curdatadir, 255, ac_config_file);

@@ -97,6 +97,9 @@ void symbolTable::reset() {
     add_ex("if",SYM_IF,0);
     add_ex("else",SYM_ELSE,0);
     add_ex("while",SYM_WHILE,0);
+    add_ex("for",SYM_FOR,0);
+    add_ex("break",SYM_BREAK,0);
+    add_ex("continue",SYM_CONTINUE,0);
     add_ex("...",SYM_VARARGS,0);
     add_ex("struct",SYM_STRUCT,0);
     add_ex("import",SYM_IMPORT,0);

@@ -64,6 +64,9 @@
 #define SYM_AUTOPTR    51  // automatic pointer
 #define SYM_LOOPCHECKOFF 52  // disable loop count checking
 #define SYM_NEW        53  // "new" keyword
+#define SYM_FOR        54
+#define SYM_BREAK      55
+#define SYM_CONTINUE   56
 
 #define SFLG_PARAMETER  1
 #define SFLG_ARRAY      2

@@ -331,7 +331,7 @@ int remove_locals(int from_level, int just_count, ccCompiledScript *scrip) {
 }
 
 int deal_with_end_of_ifelse (char*nested_type,long*nested_info,long*nested_start,
-                             ccCompiledScript*scrip,ccInternalList*targ,int*nestlevel) {
+                             ccCompiledScript*scrip,ccInternalList*targ,int*nestlevel, intptr_t **nested_chunk, intptr_t *nested_chunk_size) {
      int nested_level = nestlevel[0];
      int is_else=0;
      if (nested_type[nested_level] == NEST_ELSESINGLE) ;
@@ -342,9 +342,12 @@ int deal_with_end_of_ifelse (char*nested_type,long*nested_info,long*nested_start
          is_else=1;
      }
      if (nested_start[nested_level]) {
-         // it's a while loop, so write a jump back to the check again
          scrip->flush_line_numbers();
-         scrip->write_cmd1(SCMD_JMP,-((scrip->codesize+2) - nested_start[nested_level]) );
+         // if it's a for loop, drop the yanked chunk (loop increment) back in
+         if(nested_chunk_size[nested_level] > 0)
+            scrip->write_chunk(nested_chunk, nested_level, nested_chunk_size[nested_level], true);
+         // it's a while loop, so write a jump back to the check again
+        scrip->write_cmd1(SCMD_JMP,-((scrip->codesize+2) - nested_start[nested_level]) );
      }
      // write the correct relative jump location
      scrip->code[nested_info[nested_level]] =
@@ -3126,6 +3129,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
     char nested_type[MAX_NESTED_LEVEL];
     long nested_info[MAX_NESTED_LEVEL];
     long nested_start[MAX_NESTED_LEVEL];
+    intptr_t *nested_chunk[MAX_NESTED_LEVEL];
+    intptr_t nested_chunk_size[MAX_NESTED_LEVEL];
     char next_is_import = 0, next_is_readonly = 0;
     char next_is_managed = 0, next_is_static = 0;
     char next_is_protected = 0, next_is_stringstruct = 0;
@@ -3276,14 +3281,14 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             else if ((nested_type[nested_level+1] == NEST_IF) ||
                 (nested_type[nested_level+1] == NEST_ELSE)) {
                     INC_NESTED_LEVEL;
-                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level))
+                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size))
                         continue;
             }
             while ((nested_type[nested_level] == NEST_IFSINGLE) ||
                 (nested_type[nested_level] == NEST_ELSESINGLE)) {
                     // loop round doing all the end of elses, but break once an IF
                     // has been turned into an ELSE
-                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level))
+                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size))
                         break;
             }
         }
@@ -4143,6 +4148,8 @@ startvarbit:
                     scrip->write_cmd1(SCMD_JZ,0);
                     // the 0 will be fixed to a proper offset later
                     INC_NESTED_LEVEL;
+                    nested_chunk_size[nested_level] = 0;
+
                     if (sym.get_type(targ.peeknext()) == SYM_OPENBRACE) {
                         targ.getnext();
                         if (iswhile)
@@ -4161,6 +4168,103 @@ startvarbit:
                         nested_start[nested_level] = oriaddr;
                     continue;
             }
+            else if (sym.get_type(cursym) == SYM_FOR) {
+                if (sym.get_type(targ.peeknext()) != SYM_OPENPARENTHESIS) {
+                    cc_error("expected '('");
+                    return -1;
+                }
+                targ.getnext(); // Skip the (
+                cursym = targ.getnext();
+                if (sym.get_type(cursym) != SYM_SEMICOLON) {
+                    lilen = extract_variable_name(cursym, &targ, &vnlist[0], &funcAtOffs);
+                    if (lilen < 0)
+                        return -1;
+                    if (evaluate_assignment(&targ, scrip, false, cursym, lilen, vnlist))
+                        return -1;
+                }
+                long oriaddr = scrip->codesize;
+                bool hasLimitCheck;
+                if (sym.get_type(targ.peeknext()) != SYM_SEMICOLON) {
+                    hasLimitCheck = true;
+                    if (evaluate_expression(&targ,scrip,0))
+                        return -1;
+                    if (sym.get_type(targ.peeknext()) != SYM_SEMICOLON) {
+                        cc_error("expected ';'");
+                        return -1;
+                    }
+                }
+                else
+                    hasLimitCheck = false; // Allow for loops without limit checks
+                long assignaddr = scrip->codesize;
+                targ.getnext(); // Skip the ;
+                cursym = targ.getnext();
+                if (sym.get_type(cursym) != SYM_CLOSEPARENTHESIS) {
+                    lilen = extract_variable_name(cursym, &targ, &vnlist[0], &funcAtOffs);
+                    if (lilen < 0)
+                        return -1;
+                    if (evaluate_assignment(&targ, scrip, true, cursym, lilen, vnlist))
+                        return -1;
+                } // Allow for loops without increments
+                INC_NESTED_LEVEL;
+                nested_chunk_size[nested_level] = scrip->yank_chunk((int32_t) assignaddr, nested_chunk, nested_level);
+                if(!hasLimitCheck)
+                    scrip->write_cmd2(SCMD_LITTOREG,SREG_AX,1); // Fake out the AX register so that jump works correctly
+                //nested_chunk_size[nested_level] = 0;
+                // since AX will hold the result of the check, we can use JZ
+                // to determine whether to jump or not (0 means test failed, so
+                // skip content of "if" block)
+                scrip->write_cmd1(SCMD_JZ,0);
+                // the 0 will be fixed to a proper offset later
+                if (sym.get_type(targ.peeknext()) == SYM_OPENBRACE) {
+                    targ.getnext();
+                    nested_type[nested_level] = NEST_ELSE;
+                }
+                else
+                    nested_type[nested_level] = NEST_ELSESINGLE;
+                nested_info[nested_level] = scrip->codesize-1;
+                nested_start[nested_level] = oriaddr;
+                continue;
+            }
+            else if (sym.get_type(cursym) == SYM_BREAK) {
+                int loop_level;
+                loop_level = nested_level;
+                while(loop_level > 0 && nested_start[loop_level] == 0)
+                    loop_level--;
+                if (loop_level > 0) {
+                    if (sym.get_type(targ.getnext()) != SYM_SEMICOLON) {
+                        cc_error("expected ';'");
+                        return -1;
+                    }
+                    scrip->flush_line_numbers();
+                    scrip->write_cmd2(SCMD_LITTOREG,SREG_AX,0); // Clear out the AX register so that the jump works correctly
+                    scrip->write_cmd1(SCMD_JMP, -((scrip->codesize+2) - nested_info[loop_level] + 1)); // Jump to the known break point
+                }
+                else {
+                    cc_error("Break not valid outside a loop");
+                    return -1;
+                }
+            }
+            else if (sym.get_type(cursym) == SYM_CONTINUE) {
+                int loop_level;
+                loop_level = nested_level;
+                while(loop_level > 0 && nested_start[loop_level] == 0)
+                    loop_level--;
+                if (loop_level > 0) {
+                    if (sym.get_type(targ.getnext()) != SYM_SEMICOLON) {
+                        cc_error("expected ';'");
+                        return -1;
+                    }
+                    // if it's a for loop, drop the yanked chunk (loop increment) back in
+                    if(nested_chunk_size[loop_level] > 0)
+                        scrip->write_chunk(nested_chunk, loop_level, nested_chunk_size[loop_level], false);
+                    scrip->flush_line_numbers();
+                    scrip->write_cmd1(SCMD_JMP, -((scrip->codesize+2) - nested_start[loop_level])); // Jump to the start of the loop
+                }
+                else {
+                    cc_error("Continue not valid outside a loop");
+                    return -1;
+                }
+            }
             else {
                 cc_error("PE04: parse error at '%s'",sym.get_name(cursym));
                 return -1;
@@ -4168,7 +4272,7 @@ startvarbit:
             // sort out jumps when a single-line if or else has finished
             while ((nested_type[nested_level] == NEST_IFSINGLE) ||
                 (nested_type[nested_level] == NEST_ELSESINGLE)) {
-                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level))
+                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size))
                         break;
             }
         }

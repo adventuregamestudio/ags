@@ -56,6 +56,9 @@ namespace AGS.CScript.Compiler
 				_DefaultTokens.Add(new KeywordToken("if", PredefinedSymbol.If));
 				_DefaultTokens.Add(new KeywordToken("else", PredefinedSymbol.Else));
 				_DefaultTokens.Add(new KeywordToken("while", PredefinedSymbol.While));
+				_DefaultTokens.Add(new KeywordToken("for", PredefinedSymbol.For));
+				_DefaultTokens.Add(new KeywordToken("break", PredefinedSymbol.Break));
+				_DefaultTokens.Add(new KeywordToken("continue", PredefinedSymbol.Continue));
 				_DefaultTokens.Add(new KeywordToken("...", PredefinedSymbol.VariableArguments));
 				_DefaultTokens.Add(new KeywordToken("struct", PredefinedSymbol.StructDefinition));
 				_DefaultTokens.Add(new KeywordToken("return", PredefinedSymbol.Return));

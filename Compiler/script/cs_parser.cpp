@@ -2734,6 +2734,128 @@ int evaluate_expression(ccInternalList*targ,ccCompiledScript*scrip,int countbrac
   return retcode;
   }
 
+int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, long lilen, long *vnlist) {
+    if (!sym.is_loadable_variable(cursym)) {
+        // allow through static properties
+        if ((sym.get_type(cursym) == SYM_VARTYPE) && (lilen > 2) &&
+            (sym.flags[vnlist[2]] & SFLG_STATIC))
+        { }
+        else {
+            cc_error("variable required on left of assignment %s ", sym.get_name(cursym));
+            return -1;
+        }
+    }
+    bool isAccessingDynamicArray = false;
+
+    if (((sym.flags[cursym] & SFLG_DYNAMICARRAY) != 0) && (lilen < 2))
+    {
+        if (sym.get_type(targ->peeknext()) != SYM_ASSIGN)
+        {
+            cc_error("invalid use of operator with array");
+            return -1;
+        }
+        isAccessingDynamicArray = true;
+    }
+    else if (((sym.flags[cursym] & SFLG_ARRAY) != 0) && (lilen < 2))
+    {
+        cc_error("cannot assign value to entire array");
+        return -1;
+    }
+    if (sym.flags[cursym] & SFLG_ISSTRING) {
+        cc_error ("cannot assign to string; use Str* functions instead");
+        return -1;
+    }
+    /*
+    if (sym.flags[cursym] & SFLG_READONLY) {
+    cc_error("variable '%s' is read-only", sym.get_name(cursym));
+    return -1;
+    }
+    */
+    int MARIntactAssumption = 0;
+    int asstype = targ->getnext();
+    if (sym.get_type(asstype) == SYM_SASSIGN) {
+
+        // ++ or --
+        readonly_cannot_cause_error = 0;
+
+        if (read_variable_into_ax(lilen,&vnlist[0],scrip, 1))
+            return -1;
+
+        int cpuOp = SCMD_SUB;
+        if (sym.ssize[asstype] == 1)
+            cpuOp = SCMD_ADD;
+
+        if (check_operator_valid_for_type(&cpuOp, scrip->ax_val_type, 0))
+            return -1;
+
+        scrip->write_cmd2(cpuOp, SREG_AX, 1);
+
+        if (!readonly_cannot_cause_error) {
+            MARIntactAssumption = 1;
+            // since the MAR won't have changed, we can directly write
+            // the value back to it without re-calculating the offset
+            scrip->write_cmd1(get_readcmd_for_size(readcmd_lastcalledwith,1),SREG_AX);
+        }
+    }
+    // not ++ or --, so we need to evaluate the RHS
+    else if (evaluate_expression(targ,scrip,0) < 0)
+        return -1;
+
+    if (sym.get_type(asstype) == SYM_MASSIGN) {
+        // it's a += or -=, so read in and adjust the result
+        scrip->push_reg(SREG_AX);
+        int varTypeRHS = scrip->ax_val_type;
+
+        if (read_variable_into_ax(lilen,&vnlist[0],scrip))
+            return -1;
+        if (check_type_mismatch(varTypeRHS, scrip->ax_val_type, 1))
+            return -1;
+
+        int cpuOp = SCMD_SUBREG;
+        if (sym.ssize[asstype] == 1)
+            cpuOp = SCMD_ADDREG;
+
+        if (check_operator_valid_for_type(&cpuOp, varTypeRHS, scrip->ax_val_type))
+            return -1;
+
+        scrip->pop_reg(SREG_BX);
+        scrip->write_cmd2(cpuOp, SREG_AX, SREG_BX);
+    }
+
+    if (sym.get_type(asstype) == SYM_ASSIGN) {
+        // Convert normal literal string into String object
+        int finalPartOfLHS = lilen - 1;
+        if (sym.get_type(vnlist[lilen - 1]) == SYM_CLOSEBRACKET) {
+            // deal with  a[1] = b
+            finalPartOfLHS = findOpeningBracketOffs(lilen - 1, vnlist) - 1;
+            if (finalPartOfLHS < 0) {
+                cc_error("No [ for ] to match");
+                return -1;
+            }
+        }
+        PerformStringConversionInAX(scrip, &scrip->ax_val_type, sym.vartype[vnlist[finalPartOfLHS]]);
+    }
+
+    if (MARIntactAssumption) ;
+    // so copy the result (currently in AX) into the variable
+    else if (write_ax_to_variable(lilen,&vnlist[0],scrip))
+        return -1;
+
+    if(expectCloseBracket) {
+        if (sym.get_type(targ->getnext()) != SYM_CLOSEPARENTHESIS) {
+            cc_error("Expected ')'");
+            return -1;
+        }
+    }
+    else
+        if (sym.get_type(targ->getnext()) != SYM_SEMICOLON) {
+            cc_error("Expected ';'");
+            return -1;
+        }
+
+    return 0;
+}
+
 int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     int varsize,ccCompiledScript*scrip,ccInternalList*targ, int vtwas,
     int isPointer) {
@@ -3953,116 +4075,8 @@ startvarbit:
                 (sym.get_type(targ.peeknext()) == SYM_MASSIGN) ||
                 (sym.get_type(targ.peeknext()) == SYM_SASSIGN)) {
                     // it's an assignment = or += -=
-                    if (!sym.is_loadable_variable(cursym)) {
-                        // allow through static properties
-                        if ((sym.get_type(cursym) == SYM_VARTYPE) && (lilen > 2) &&
-                            (sym.flags[vnlist[2]] & SFLG_STATIC))
-                        { }
-                        else {
-                            cc_error("variable required on left of assignment");
-                            return -1;
-                        }
-                    }
-                    bool isAccessingDynamicArray = false;
-
-                    if (((sym.flags[cursym] & SFLG_DYNAMICARRAY) != 0) && (lilen < 2))
-                    {
-                        if (sym.get_type(targ.peeknext()) != SYM_ASSIGN)
-                        {
-                            cc_error("invalid use of operator with array");
-                            return -1;
-                        }
-                        isAccessingDynamicArray = true;
-                    }
-                    else if (((sym.flags[cursym] & SFLG_ARRAY) != 0) && (lilen < 2))
-                    {
-                        cc_error("cannot assign value to entire array");
+                    if (evaluate_assignment(&targ, scrip, false, cursym, lilen, vnlist))
                         return -1;
-                    }
-                    if (sym.flags[cursym] & SFLG_ISSTRING) {
-                        cc_error ("cannot assign to string; use Str* functions instead");
-                        return -1;
-                    }
-                    /*
-                    if (sym.flags[cursym] & SFLG_READONLY) {
-                    cc_error("variable '%s' is read-only", sym.get_name(cursym));
-                    return -1;
-                    }
-                    */
-                    int MARIntactAssumption = 0;
-                    int asstype = targ.getnext();
-                    if (sym.get_type(asstype) == SYM_SASSIGN) {
-
-                        // ++ or --
-                        readonly_cannot_cause_error = 0;
-
-                        if (read_variable_into_ax(lilen,&vnlist[0],scrip, 1))
-                            return -1;
-
-                        int cpuOp = SCMD_SUB;
-                        if (sym.ssize[asstype] == 1)
-                            cpuOp = SCMD_ADD;
-
-                        if (check_operator_valid_for_type(&cpuOp, scrip->ax_val_type, 0))
-                            return -1;
-
-                        scrip->write_cmd2(cpuOp, SREG_AX, 1);
-
-                        if (!readonly_cannot_cause_error) {
-                            MARIntactAssumption = 1;
-                            // since the MAR won't have changed, we can directly write
-                            // the value back to it without re-calculating the offset
-                            scrip->write_cmd1(get_readcmd_for_size(readcmd_lastcalledwith,1),SREG_AX);
-                        }
-                    }
-                    // not ++ or --, so we need to evaluate the RHS
-                    else if (evaluate_expression(&targ,scrip,0) < 0)
-                        return -1;
-
-                    if (sym.get_type(asstype) == SYM_MASSIGN) {
-                        // it's a += or -=, so read in and adjust the result
-                        scrip->push_reg(SREG_AX);
-                        int varTypeRHS = scrip->ax_val_type;
-
-                        if (read_variable_into_ax(lilen,&vnlist[0],scrip))
-                            return -1;
-                        if (check_type_mismatch(varTypeRHS, scrip->ax_val_type, 1))
-                            return -1;
-
-                        int cpuOp = SCMD_SUBREG;
-                        if (sym.ssize[asstype] == 1)
-                            cpuOp = SCMD_ADDREG;
-
-                        if (check_operator_valid_for_type(&cpuOp, varTypeRHS, scrip->ax_val_type))
-                            return -1;
-
-                        scrip->pop_reg(SREG_BX);
-                        scrip->write_cmd2(cpuOp, SREG_AX, SREG_BX);
-                    }
-
-                    if (sym.get_type(asstype) == SYM_ASSIGN) {
-                        // Convert normal literal string into String object
-                        int finalPartOfLHS = lilen - 1;
-                        if (sym.get_type(vnlist[lilen - 1]) == SYM_CLOSEBRACKET) {
-                            // deal with  a[1] = b
-                            finalPartOfLHS = findOpeningBracketOffs(lilen - 1, vnlist) - 1;
-                            if (finalPartOfLHS < 0) {
-                                cc_error("No [ for ] to match");
-                                return -1;
-                            }
-                        }
-                        PerformStringConversionInAX(scrip, &scrip->ax_val_type, sym.vartype[vnlist[finalPartOfLHS]]);
-                    }
-
-                    if (MARIntactAssumption) ;
-                    // so copy the result (currently in AX) into the variable
-                    else if (write_ax_to_variable(lilen,&vnlist[0],scrip))
-                        return -1;
-
-                    if (sym.get_type(targ.getnext()) != SYM_SEMICOLON) {
-                        cc_error("Expected ';'");
-                        return -1;
-                    }
 
             }
             else if (sym.get_type(cursym) == SYM_RETURN) {

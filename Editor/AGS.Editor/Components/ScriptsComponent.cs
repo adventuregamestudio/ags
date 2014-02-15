@@ -263,9 +263,7 @@ namespace AGS.Editor.Components
             chosenItem.LoadFromDisk();
             ScriptEditor newEditor = new ScriptEditor(chosenItem, _agsEditor, ShowMatchingScriptOrHeader);
             newEditor.DockingContainer = new DockingContainer(newEditor);
-            newEditor.DockingContainer.DockStateChanged += new EventHandler(ScriptEditor_DockStateChanged);
             newEditor.IsModifiedChanged += new EventHandler(ScriptEditor_IsModifiedChanged);
-            newEditor.DockStateChanged_Hack += new EventHandler(ScriptEditor_DockStateChanged_Hack);
             _editors[chosenItem] = new ContentDocument(newEditor, chosenItem.FileName, this, ICON_KEY, null);
             _editors[chosenItem].PanelClosed += _panelClosedHandler;
             _editors[chosenItem].ToolbarCommands = newEditor.ToolbarIcons;

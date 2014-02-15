@@ -617,8 +617,6 @@ namespace AGS.Editor.Components
             {
                 scriptEditor.DockingContainer = new DockingContainer(scriptEditor);
             }
-            scriptEditor.DockingContainer.DockStateChanged += new EventHandler(ScriptEditor_DockStateChanged);     
-            scriptEditor.DockStateChanged_Hack +=new EventHandler(ScriptEditor_DockStateChanged_Hack);
             if ((_loadedRoom != null) && (_loadedRoom.Number == selectedRoom.Number))
             {
                 scriptEditor.Room = _loadedRoom;

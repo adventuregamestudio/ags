@@ -1,4 +1,5 @@
 using System.Windows.Forms;
+using System.ComponentModel;
 namespace Scintilla
 {
     partial class ScintillaControl
@@ -24,8 +25,20 @@ namespace Scintilla
             //	clean up its resources.
             Message destroyMessage = new Message();
             destroyMessage.Msg = WinAPI.WM_DESTROY;
-            destroyMessage.HWnd = Handle;
-            base.DefWndProc(ref destroyMessage);
+            //Usually a big no-no, but here while we can do a cross-thread operation from the finalizer thread,
+            //it's guaranteed all other threads are suspended (because we're in the finalizer thread), so
+            //for this very special scenario, cross-thread is ok.
+            Control.CheckForIllegalCrossThreadCalls = false;
+            try
+            {
+                destroyMessage.HWnd = Handle;
+                base.DefWndProc(ref destroyMessage);
+            }
+            catch (Win32Exception) { } //Can fail to create handle during application close
+            finally
+            {
+                Control.CheckForIllegalCrossThreadCalls = true;
+            }            
 
             base.Dispose(disposing);
         }

@@ -97,9 +97,14 @@ size_t BuildXDGPath(char *destPath, size_t destSize)
     // No evironment variable, so we fall back to home dir in /etc/passwd
     struct passwd *p = getpwuid(getuid());
     size_t l = snprintf(destPath, destSize, "%s/.local", p->pw_dir);
-    mkdir(destPath, 0755);
+    if (mkdir(destPath, 0755) != 0 && errno != EEXIST)
+      return 0;
     l += snprintf(destPath + l, destSize - l, "/share");
-    mkdir(destPath, 0755);
+    if (mkdir(destPath, 0755) != 0 && errno != EEXIST)
+      return 0;
+    l += snprintf(destPath + l, destSize - l, "/ags");
+    if (mkdir(destPath, 0755) != 0 && errno != EEXIST)
+      return 0;
     return l;
   }
 }
@@ -111,19 +116,11 @@ void DetermineAppOutputDirectory()
     return;
   }
 
-  bool log_to_home_dir = false;
   char xdg_path[256];
   if (BuildXDGPath(xdg_path, sizeof(xdg_path)) > 0)
-  {
     LinuxOutputDirectory = xdg_path;
-    LinuxOutputDirectory.Append("/ags");
-    log_to_home_dir = mkdir(LinuxOutputDirectory, 0755) == 0 || errno == EEXIST;
-  }
-
-  if (!log_to_home_dir)
-  {
+  else
     LinuxOutputDirectory = "/tmp";
-  }
 }
 
 const char *AGSLinux::GetAppOutputDirectory()

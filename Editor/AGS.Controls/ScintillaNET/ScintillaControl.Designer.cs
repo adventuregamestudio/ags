@@ -20,25 +20,17 @@ namespace Scintilla
                 components.Dispose();
             }
 
-            //	Since we eat the destroy message in WndProc
-            //	we have to manually let Scintilla know to
-            //	clean up its resources.
-            Message destroyMessage = new Message();
-            destroyMessage.Msg = WinAPI.WM_DESTROY;
-            //Usually a big no-no, but here while we can do a cross-thread operation from the finalizer thread,
-            //it's guaranteed all other threads are suspended (because we're in the finalizer thread), so
-            //for this very special scenario, cross-thread is ok.
-            Control.CheckForIllegalCrossThreadCalls = false;
-            try
+            // Fix taken from ScintillaNet code: https://scintillanet.codeplex.com/SourceControl/changeset/36876#Branches/2.0/ScintillaNET/Scintilla.cs
+            if (disposing && IsHandleCreated)
             {
+                //	Since we eat the destroy message in WndProc
+                //	we have to manually let Scintilla know to
+                //	clean up its resources.
+                Message destroyMessage = new Message();
+                destroyMessage.Msg = WinAPI.WM_DESTROY;
                 destroyMessage.HWnd = Handle;
-                base.DefWndProc(ref destroyMessage);
+                base.DefWndProc(ref destroyMessage);                
             }
-            catch (Win32Exception) { } //Can fail to create handle during application close
-            finally
-            {
-                Control.CheckForIllegalCrossThreadCalls = true;
-            }            
 
             base.Dispose(disposing);
         }

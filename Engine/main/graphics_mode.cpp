@@ -913,12 +913,15 @@ int graphics_mode_init()
     int res = create_gfx_driver_and_init_mode(usetup.gfxDriverID);
     if (res != RETURN_CONTINUE)
     {
-        if (gfxDriver && stricmp(gfxDriver->GetDriverID(), "DX5") != 0)
-        {
-            graphics_mode_shutdown();
-            usetup.windowed = windowed;
+        // User's preferred graphics driver failed. Try the alternative one.
+        graphics_mode_shutdown();
+        usetup.windowed = windowed;
+        if (stricmp(usetup.gfxDriverID, "D3D9") != 0 && stricmp(usetup.gfxDriverID, "OGL") != 0)
+            // If the preferred graphics driver wasn't D3D9 or OGL, it must have been DX5 or an invalid driver.
+            // An invalid driver means DX5 was tested, so try D3D9 instead.
+            res = create_gfx_driver_and_init_mode("D3D9");
+        else
             res = create_gfx_driver_and_init_mode("DX5");
-        }
     }
     if (res != RETURN_CONTINUE)
     {

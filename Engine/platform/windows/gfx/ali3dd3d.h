@@ -31,7 +31,7 @@
 #include "gfx/graphicsdriver.h"
 #include "util/string.h"
 
-struct D3DGFXFilter;
+struct D3DGfxFilter;
 
 namespace AGS
 {
@@ -162,7 +162,7 @@ class D3DGraphicsDriver : public IGraphicsDriver
 public:
     virtual const char*GetDriverName() { return "Direct3D 9"; }
     virtual const char*GetDriverID() { return "D3D9"; }
-    virtual void SetGraphicsFilter(GFXFilter *filter);
+    virtual void SetGraphicsFilter(GfxFilter *filter);
     virtual void SetTintMethod(TintMethod method);
     virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
     virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
@@ -208,10 +208,10 @@ public:
     int _resetDeviceIfNecessary();
     void _render(GlobalFlipType flip, bool clearDrawListAfterwards);
     void _reDrawLastFrame();
-    D3DGraphicsDriver(D3DGFXFilter *filter);
+    D3DGraphicsDriver(D3DGfxFilter *filter);
     virtual ~D3DGraphicsDriver();
 
-    D3DGFXFilter *_filter;
+    D3DGfxFilter *_filter;
 
 private:
     D3DPRESENT_PARAMETERS d3dpp;

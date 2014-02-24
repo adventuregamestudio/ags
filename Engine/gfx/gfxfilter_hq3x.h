@@ -12,32 +12,41 @@
 //
 //=============================================================================
 //
-// AGS specific color blending routines for transparency and tinting effects
+// High quality x3 scaling filter
 //
 //=============================================================================
 
-#ifndef __AC_HQ3XGFXFILTER_H
-#define __AC_HQ3XGFXFILTER_H
+#ifndef __AGS_EE_GFX__HQ3XGFXFILTER_H
+#define __AGS_EE_GFX__HQ3XGFXFILTER_H
 
-#include "gfx/gfxfilter_scalingallegro.h"
+#include "gfx/gfxfilter_allegro.h"
 
-namespace AGS { namespace Common { class Bitmap; }}
-using namespace AGS; // FIXME later
+namespace AGS
+{
+namespace Engine
+{
+namespace ALSW
+{
 
-struct Hq3xGFXFilter : public ScalingAllegroGFXFilter {
-private:
-    Common::Bitmap *realScreenBuffer;
-
+class Hq3xGfxFilter : public AllegroGfxFilter
+{
 public:
+    Hq3xGfxFilter() : AllegroGfxFilter(3) { }
 
-    Hq3xGFXFilter(bool justCheckingForSetup) : ScalingAllegroGFXFilter(3, justCheckingForSetup) { }
-
-    virtual const char* Initialize(int width, int height, int colDepth);
-    virtual Common::Bitmap *ScreenInitialized(Common::Bitmap *screen, int fakeWidth, int fakeHeight);
-    virtual Common::Bitmap *ShutdownAndReturnRealScreen(Common::Bitmap *currentScreen);
-    virtual void RenderScreen(Common::Bitmap *toRender, int x, int y);
+    virtual bool Initialize(const int color_depth, String &err_str);
+    virtual Bitmap *InitVirtualScreen(Bitmap *screen, int virtual_width, int virtual_height);
+    virtual Bitmap *ShutdownAndReturnRealScreen(Bitmap *currentScreen);
     virtual const char *GetVersionBoxText();
     virtual const char *GetFilterID();
+
+protected:
+    virtual Bitmap *PreRenderPass(Bitmap *toRender);
+
+    Bitmap *_hq3xScalingBuffer;
 };
 
-#endif // __AC_HQ3XGFXFILTER_H
+} // namespace ALSW
+} // namespace Engine
+} // namespace AGS
+
+#endif // __AGS_EE_GFX__HQ3XGFXFILTER_H

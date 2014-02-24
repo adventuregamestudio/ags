@@ -69,12 +69,13 @@
 
 #endif
 
-struct D3DGFXFilter;
-
 namespace AGS
 {
 namespace Engine
 {
+
+namespace D3D { class D3DGfxFilter; }
+
 namespace OGL
 {
 
@@ -183,7 +184,7 @@ class OGLGraphicsDriver : public IGraphicsDriver
 public:
     virtual const char*GetDriverName() { return "OpenGL"; }
     virtual const char*GetDriverID() { return "OGL"; }
-    virtual void SetGraphicsFilter(GFXFilter *filter);
+    virtual void SetGraphicsFilter(GfxFilter *filter);
     virtual void SetTintMethod(TintMethod method);
     virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
     virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
@@ -227,10 +228,10 @@ public:
     int _resetDeviceIfNecessary();
     void _render(GlobalFlipType flip, bool clearDrawListAfterwards);
     void _reDrawLastFrame();
-    OGLGraphicsDriver(D3DGFXFilter *filter);
+    OGLGraphicsDriver(D3D::D3DGfxFilter *filter);
     virtual ~OGLGraphicsDriver();
 
-    D3DGFXFilter *_filter;
+    D3D::D3DGfxFilter *_filter;
 
 private:
     HDC _hDC;

@@ -259,21 +259,21 @@ void engine_init_screen_settings(Size &game_size, Size &screen_size)
 int initialize_graphics_filter(const char *filterID, int width, int height, int colDepth)
 {
     int idx = 0;
-    GFXFilter **filterList;
+    GfxFilter **filterList;
 
     if (usetup.gfxDriverID.CompareNoCase("D3D9") == 0)
     {
-        filterList = get_d3d_gfx_filter_list(false);
+        filterList = get_d3d_gfx_filter_list();
     }
     else
     {
-        filterList = get_allegro_gfx_filter_list(false);
+        filterList = get_allegro_gfx_filter_list();
     }
 
     // by default, select No Filter
     filter = filterList[0];
 
-    GFXFilter *thisFilter = filterList[idx];
+    GfxFilter *thisFilter = filterList[idx];
     while (thisFilter != NULL) {
 
         if ((filterID != NULL) &&
@@ -288,10 +288,11 @@ int initialize_graphics_filter(const char *filterID, int width, int height, int 
 
     Out::FPrint("Applying scaling filter: %s", filter->GetFilterID());
 
-    const char *filterError = filter->Initialize(width, height, colDepth);
-    if (filterError != NULL) {
+    String filter_error;
+    if (!filter->Initialize(colDepth, filter_error))
+    {
         proper_exit = 1;
-        platform->DisplayAlert("Unable to initialize the graphics filter. It returned the following error:\n'%s'\n\nTry running Setup and selecting a different graphics filter.", filterError);
+        platform->DisplayAlert("Unable to initialize the graphics filter. It returned the following error:\n'%s'\n\nTry running Setup and selecting a different graphics filter.", filter_error.GetCStr());
         return -1;
     }
 

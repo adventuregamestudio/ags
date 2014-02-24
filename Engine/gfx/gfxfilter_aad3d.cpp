@@ -19,13 +19,20 @@
 #include <d3d9.h>
 #endif
 
-AAD3DGFXFilter::AAD3DGFXFilter(int multiplier, bool justCheckingForSetup) : D3DGFXFilter(multiplier, justCheckingForSetup)
+namespace AGS
+{
+namespace Engine
+{
+namespace D3D
+{
+
+AAD3DGfxFilter::AAD3DGfxFilter(int multiplier) : D3DGfxFilter(multiplier)
 {
     sprintf(filterName, "%d" "x anti-aliasing filter[", multiplier);
     sprintf(filterID, "AAx%d", multiplier);
 }
 
-void AAD3DGFXFilter::SetSamplerStateForStandardSprite(void *direct3ddevice9)
+void AAD3DGfxFilter::SetSamplerStateForStandardSprite(void *direct3ddevice9)
 {
 #ifdef WINDOWS_VERSION
     IDirect3DDevice9* d3d9 = ((IDirect3DDevice9*)direct3ddevice9);
@@ -34,8 +41,11 @@ void AAD3DGFXFilter::SetSamplerStateForStandardSprite(void *direct3ddevice9)
 #endif
 }
 
-bool AAD3DGFXFilter::NeedToColourEdgeLines()
+bool AAD3DGfxFilter::NeedToColourEdgeLines()
 {
     return true;
 }
 
+} // namespace D3D
+} // namespace Engine
+} // namespace AGS

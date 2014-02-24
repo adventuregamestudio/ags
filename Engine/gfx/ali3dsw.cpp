@@ -139,9 +139,9 @@ int ALSoftwareGraphicsDriver::GetAllegroGfxDriverID(bool windowed)
 #endif
 }
 
-void ALSoftwareGraphicsDriver::SetGraphicsFilter(GFXFilter *filter)
+void ALSoftwareGraphicsDriver::SetGraphicsFilter(GfxFilter *filter)
 {
-  _filter = (AllegroGFXFilter*)filter;
+  _filter = (AllegroGfxFilter*)filter;
 }
 
 void ALSoftwareGraphicsDriver::SetTintMethod(TintMethod method) 
@@ -180,7 +180,7 @@ bool ALSoftwareGraphicsDriver::Init(int virtualWidth, int virtualHeight, int rea
     BitmapHelper::SetScreenBitmap( _allegroScreenWrapper );
 
     BitmapHelper::GetScreenBitmap()->Clear();
-    BitmapHelper::SetScreenBitmap( _filter->ScreenInitialized(BitmapHelper::GetScreenBitmap(), _screenWidth, _screenHeight) );
+    BitmapHelper::SetScreenBitmap( _filter->InitVirtualScreen(BitmapHelper::GetScreenBitmap(), _screenWidth, _screenHeight) );
 
     // [IKM] 2012-09-07
     // At this point the wrapper we created is saved by filter for future reference,
@@ -412,15 +412,15 @@ void ALSoftwareGraphicsDriver::Render(GlobalFlipType flip)
   if (_autoVsync)
     this->Vsync();
 
-  if (flip == None)
+  if (flip == kFlip_None)
     _filter->RenderScreen(virtualScreen, _global_x_offset, _global_y_offset);
   else
-    _filter->RenderScreenFlipped(virtualScreen, _global_x_offset, _global_y_offset, (int)flip);
+    _filter->RenderScreenFlipped(virtualScreen, _global_x_offset, _global_y_offset, flip);
 }
 
 void ALSoftwareGraphicsDriver::Render()
 {
-  Render(None);
+  Render(kFlip_None);
 }
 
 void ALSoftwareGraphicsDriver::Vsync()
@@ -646,9 +646,9 @@ unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned 
 
 static ALSoftwareGraphicsDriver *_alsoftware_driver = NULL;
 
-IGraphicsDriver* GetSoftwareGraphicsDriver(GFXFilter *filter)
+IGraphicsDriver* GetSoftwareGraphicsDriver(GfxFilter *filter)
 {
-    AllegroGFXFilter* allegroFilter = (AllegroGFXFilter*)filter;
+    AllegroGfxFilter* allegroFilter = (AllegroGfxFilter*)filter;
 
     if (_alsoftware_driver == NULL)
     {

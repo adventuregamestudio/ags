@@ -15,7 +15,6 @@
 #include <stdlib.h>                   // NULL
 #include "gfx/gfxfilter.h"
 #include "gfx/gfxfilter_allegro.h"
-#include "gfx/gfxfilter_scalingallegro.h"
 #include "gfx/gfxfilter_hq2x.h"
 #include "gfx/gfxfilter_hq3x.h"
 #include "gfx/gfxfilter_d3d.h"
@@ -24,99 +23,101 @@
 
 // Standard do-nothing filter
 
-const char* GFXFilter::Initialize(int width, int height, int colDepth) {
-    return NULL;  // always succeeds
-}
+namespace AGS
+{
+namespace Engine
+{
 
-void GFXFilter::UnInitialize() {
-    // do nothing
-}
-
-void GFXFilter::GetRealResolution(int *wid, int *hit) {
-    // no change
-}
-
-void GFXFilter::SetMouseArea(int x1, int y1, int x2, int y2) {
-    mgraphconfine(x1, y1, x2, y2);
-}
-
-void GFXFilter::SetMouseLimit(int x1, int y1, int x2, int y2) {
-    msetcursorlimit(x1, y1, x2, y2);
-}
-
-void GFXFilter::SetMousePosition(int x, int y) {
-    msetgraphpos(x, y);
-}
-
-const char *GFXFilter::GetVersionBoxText() {
-    return "";
-}
-
-const char *GFXFilter::GetFilterID() {
-    return "None";
-}
-
-GFXFilter::~GFXFilter()
+GfxFilter::~GfxFilter()
 {
 }
 
+bool GfxFilter::Initialize(const int color_depth, String &err_str)
+{
+    return true;  // always succeeds
+}
 
-GFXFilter *filter;
+void GfxFilter::UnInitialize() {
+    // do nothing
+}
 
-GFXFilter *gfxFilterList[11];
-GFXFilter *gfxFilterListD3D[16];
+void GfxFilter::GetRealResolution(int *width, int *height)
+{
+    // no change
+}
 
-GFXFilter **get_allegro_gfx_filter_list(bool checkingForSetup) {
+void GfxFilter::SetMouseArea(int x1, int y1, int x2, int y2)
+{
+    mgraphconfine(x1, y1, x2, y2);
+}
 
-    gfxFilterList[0] = new AllegroGFXFilter(checkingForSetup);
-    gfxFilterList[1] = new ScalingAllegroGFXFilter(2, checkingForSetup);
-    gfxFilterList[2] = new ScalingAllegroGFXFilter(3, checkingForSetup);
-    gfxFilterList[3] = new ScalingAllegroGFXFilter(4, checkingForSetup);
-    gfxFilterList[4] = new ScalingAllegroGFXFilter(5, checkingForSetup);
-    gfxFilterList[5] = new ScalingAllegroGFXFilter(6, checkingForSetup);
-    gfxFilterList[6] = new ScalingAllegroGFXFilter(7, checkingForSetup);
-    gfxFilterList[7] = new ScalingAllegroGFXFilter(8, checkingForSetup);
-    gfxFilterList[8] = new Hq2xGFXFilter(checkingForSetup);
-    gfxFilterList[9] = new Hq3xGFXFilter(checkingForSetup);
+void GfxFilter::SetMouseLimit(int x1, int y1, int x2, int y2)
+{
+    msetcursorlimit(x1, y1, x2, y2);
+}
+
+void GfxFilter::SetMousePosition(int x, int y)
+{
+    msetgraphpos(x, y);
+}
+
+const char *GfxFilter::GetVersionBoxText()
+{
+    return "";
+}
+
+const char *GfxFilter::GetFilterID()
+{
+    return "None";
+}
+
+} // namespace Engine
+} // namespace AGS
+
+using namespace AGS::Engine;
+using namespace AGS::Engine::ALSW;
+using namespace AGS::Engine::D3D;
+
+Engine::GfxFilter *filter;
+
+Engine::GfxFilter *gfxFilterList[11];
+Engine::GfxFilter *gfxFilterListD3D[16];
+
+Engine::GfxFilter **get_allegro_gfx_filter_list() {
+
+    gfxFilterList[0] = new AllegroGfxFilter(1);
+    gfxFilterList[1] = new AllegroGfxFilter(2);
+    gfxFilterList[2] = new AllegroGfxFilter(3);
+    gfxFilterList[3] = new AllegroGfxFilter(4);
+    gfxFilterList[4] = new AllegroGfxFilter(5);
+    gfxFilterList[5] = new AllegroGfxFilter(6);
+    gfxFilterList[6] = new AllegroGfxFilter(7);
+    gfxFilterList[7] = new AllegroGfxFilter(8);
+    gfxFilterList[8] = new Hq2xGfxFilter();
+    gfxFilterList[9] = new Hq3xGfxFilter();
     gfxFilterList[10] = NULL;
 
     return gfxFilterList;
 }
 
-GFXFilter **get_d3d_gfx_filter_list(bool checkingForSetup) {
+Engine::GfxFilter **get_d3d_gfx_filter_list() {
 
-    gfxFilterListD3D[0] = new D3DGFXFilter(checkingForSetup);
-    gfxFilterListD3D[1] = new D3DGFXFilter(2, checkingForSetup);
-    gfxFilterListD3D[2] = new D3DGFXFilter(3, checkingForSetup);
-    gfxFilterListD3D[3] = new D3DGFXFilter(4, checkingForSetup);
-    gfxFilterListD3D[4] = new D3DGFXFilter(5, checkingForSetup);
-    gfxFilterListD3D[5] = new D3DGFXFilter(6, checkingForSetup);
-    gfxFilterListD3D[6] = new D3DGFXFilter(7, checkingForSetup);
-    gfxFilterListD3D[7] = new D3DGFXFilter(8, checkingForSetup);
-    gfxFilterListD3D[8] = new AAD3DGFXFilter(2, checkingForSetup);
-    gfxFilterListD3D[9] = new AAD3DGFXFilter(3, checkingForSetup);
-    gfxFilterListD3D[10] = new AAD3DGFXFilter(4, checkingForSetup);
-    gfxFilterListD3D[11] = new AAD3DGFXFilter(5, checkingForSetup);
-    gfxFilterListD3D[12] = new AAD3DGFXFilter(6, checkingForSetup);
-    gfxFilterListD3D[13] = new AAD3DGFXFilter(7, checkingForSetup);
-    gfxFilterListD3D[14] = new AAD3DGFXFilter(8, checkingForSetup);
+    gfxFilterListD3D[0] = new D3DGfxFilter(1);
+    gfxFilterListD3D[1] = new D3DGfxFilter(2);
+    gfxFilterListD3D[2] = new D3DGfxFilter(3);
+    gfxFilterListD3D[3] = new D3DGfxFilter(4);
+    gfxFilterListD3D[4] = new D3DGfxFilter(5);
+    gfxFilterListD3D[5] = new D3DGfxFilter(6);
+    gfxFilterListD3D[6] = new D3DGfxFilter(7);
+    gfxFilterListD3D[7] = new D3DGfxFilter(8);
+    gfxFilterListD3D[8] = new AAD3DGfxFilter(2);
+    gfxFilterListD3D[9] = new AAD3DGfxFilter(3);
+    gfxFilterListD3D[10] = new AAD3DGfxFilter(4);
+    gfxFilterListD3D[11] = new AAD3DGfxFilter(5);
+    gfxFilterListD3D[12] = new AAD3DGfxFilter(6);
+    gfxFilterListD3D[13] = new AAD3DGfxFilter(7);
+    gfxFilterListD3D[14] = new AAD3DGfxFilter(8);
     gfxFilterListD3D[15] = NULL;
 
     return gfxFilterListD3D;
 }
-
-/*
-const char *initialize_gfx_filter(int width, int height, int depth) {
-
-//filter = new ScalingGFXFilter(2, false);
-
-filter = new Super2xSAIGFXFilter(false);
-
-//filter = new Hq2xGFXFilter(false);
-
-//filter = new GFXFilter();
-
-return filter->Initialize(width, height, depth);
-}
-
-*/

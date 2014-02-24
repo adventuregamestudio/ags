@@ -245,9 +245,9 @@ void OGLBitmap::Dispose()
 
 static OGLGraphicsDriver *_ogl_driver = NULL;
 
-IGraphicsDriver* GetOGLGraphicsDriver(GFXFilter *filter)
+IGraphicsDriver* GetOGLGraphicsDriver(GfxFilter *filter)
 {
-  D3DGFXFilter* d3dfilter = (D3DGFXFilter*)filter;
+  D3D::D3DGfxFilter* d3dfilter = (D3D::D3DGfxFilter*)filter;
   if (_ogl_driver == NULL)
   {
     _ogl_driver = new OGLGraphicsDriver(d3dfilter);
@@ -260,7 +260,7 @@ IGraphicsDriver* GetOGLGraphicsDriver(GFXFilter *filter)
   return _ogl_driver;
 }
 
-OGLGraphicsDriver::OGLGraphicsDriver(D3DGFXFilter *filter) 
+OGLGraphicsDriver::OGLGraphicsDriver(D3D::D3DGfxFilter *filter) 
 {
   numToDraw = 0;
   numToDrawLastTime = 0;
@@ -336,9 +336,9 @@ void OGLGraphicsDriver::SetRenderOffset(int x, int y)
   _global_y_offset = y;
 }
 
-void OGLGraphicsDriver::SetGraphicsFilter(GFXFilter *filter)
+void OGLGraphicsDriver::SetGraphicsFilter(GfxFilter *filter)
 {
-  _filter = (D3DGFXFilter*)filter;
+  _filter = (D3D::D3DGfxFilter*)filter;
 }
 
 void OGLGraphicsDriver::SetTintMethod(TintMethod method) 
@@ -771,7 +771,7 @@ void OGLGraphicsDriver::RenderToBackBuffer()
 
 void OGLGraphicsDriver::Render()
 {
-  Render(None);
+  Render(kFlip_None);
 }
 
 void OGLGraphicsDriver::Render(GlobalFlipType flip)
@@ -911,8 +911,8 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
   SpriteDrawListEntry *listToDraw = drawList;
   int listSize = numToDraw;
 
-  bool globalLeftRightFlip = (flip == Vertical) || (flip == Both);
-  bool globalTopBottomFlip = (flip == Horizontal) || (flip == Both);
+  bool globalLeftRightFlip = (flip == kFlip_Vertical) || (flip == kFlip_Both);
+  bool globalTopBottomFlip = (flip == kFlip_Horizontal) || (flip == kFlip_Both);
 
   if (_render_to_texture)
   {

@@ -29,8 +29,6 @@
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 
-struct AllegroGFXFilter;
-
 namespace AGS
 {
 namespace Engine
@@ -38,6 +36,7 @@ namespace Engine
 namespace ALSW
 {
 
+class AllegroGfxFilter;
 using AGS::Common::Bitmap;
 
 class ALSoftwareBitmap : public IDriverDependantBitmap
@@ -122,7 +121,7 @@ private:
 class ALSoftwareGraphicsDriver : public IGraphicsDriver
 {
 public:
-    ALSoftwareGraphicsDriver(AllegroGFXFilter *filter) { 
+    ALSoftwareGraphicsDriver(AllegroGfxFilter *filter) { 
         _filter = filter; 
         _callback = NULL; 
         _drawScreenCallback = NULL;
@@ -145,7 +144,7 @@ public:
 
     virtual const char*GetDriverName() { return "Allegro/DX5"; }
     virtual const char*GetDriverID() { return "DX5"; }
-    virtual void SetGraphicsFilter(GFXFilter *filter);
+    virtual void SetGraphicsFilter(GfxFilter *filter);
     virtual void SetTintMethod(TintMethod method);
     virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
     virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
@@ -186,7 +185,7 @@ public:
         _tint_red = red; _tint_green = green; _tint_blue = blue; }
     virtual ~ALSoftwareGraphicsDriver();
 
-    AllegroGFXFilter *_filter;
+    AllegroGfxFilter *_filter;
 
 private:
     volatile int* _loopTimer;

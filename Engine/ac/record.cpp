@@ -40,7 +40,6 @@ extern int mousex,mousey;
 extern unsigned int loopcounter,lastcounter;
 extern volatile unsigned long globalTimerCounter;
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
-extern GFXFilter *filter;
 extern int pluginSimulatedClick;
 extern int displayed_room;
 extern char check_dynamic_sprites_at_exit;

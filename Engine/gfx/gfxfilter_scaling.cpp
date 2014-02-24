@@ -12,38 +12,44 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include "gfx/gfxfilter_scaling.h"
 #include "util/wgt2allg.h"
 #include "device/mousew32.h"
 #include "gfx/gfxfilterhelpers.h"
 
-// Standard scaling filter
+namespace AGS
+{
+namespace Engine
+{
 
-ScalingGFXFilter::ScalingGFXFilter(int multiplier, bool justCheckingForSetup) : GFXFilter() {
-    MULTIPLIER = multiplier;
-    mouseCallbackPtr = NULL;
-
-    sprintf(filterName, "%d" "x nearest-neighbour filter[", multiplier);
-    sprintf(filterID, "StdScale%d", multiplier);
+ScalingGfxFilter::~ScalingGfxFilter()
+{
+    if (mouseCallbackPtr != NULL)
+    {
+        delete mouseCallbackPtr;
+        mouseCallbackPtr = NULL;
+    }
 }
-
-const char* ScalingGFXFilter::Initialize(int width, int height, int colDepth) {
+bool ScalingGfxFilter::Initialize(const int color_depth, String &err_str)
+{
     mouseCallbackPtr = new MouseGetPosCallbackImpl(this);
     msetcallback(mouseCallbackPtr);
-    return NULL;
+    return true;
 }
 
-void ScalingGFXFilter::UnInitialize() {
+void ScalingGfxFilter::UnInitialize()
+{
     msetcallback(NULL);
 }
 
-void ScalingGFXFilter::GetRealResolution(int *wid, int *hit) {
-    *wid *= MULTIPLIER;
-    *hit *= MULTIPLIER;
+void ScalingGfxFilter::GetRealResolution(int *width, int *height)
+{
+    *width *= MULTIPLIER;
+    *height *= MULTIPLIER;
 }
 
-void ScalingGFXFilter::SetMouseArea(int x1, int y1, int x2, int y2) {
+void ScalingGfxFilter::SetMouseArea(int x1, int y1, int x2, int y2)
+{
     x1 *= MULTIPLIER;
     y1 *= MULTIPLIER;
     x2 *= MULTIPLIER;
@@ -51,7 +57,8 @@ void ScalingGFXFilter::SetMouseArea(int x1, int y1, int x2, int y2) {
     mgraphconfine(x1, y1, x2, y2);
 }
 
-void ScalingGFXFilter::SetMouseLimit(int x1, int y1, int x2, int y2) {
+void ScalingGfxFilter::SetMouseLimit(int x1, int y1, int x2, int y2)
+{
     // 199 -> 399
     x1 = x1 * MULTIPLIER + (MULTIPLIER - 1);
     y1 = y1 * MULTIPLIER + (MULTIPLIER - 1);
@@ -60,28 +67,32 @@ void ScalingGFXFilter::SetMouseLimit(int x1, int y1, int x2, int y2) {
     msetcursorlimit(x1, y1, x2, y2);
 }
 
-void ScalingGFXFilter::SetMousePosition(int x, int y) {
+void ScalingGfxFilter::SetMousePosition(int x, int y)
+{
     msetgraphpos(x * MULTIPLIER, y * MULTIPLIER);
 }
 
-void ScalingGFXFilter::AdjustPosition(int *x, int *y) {
+void ScalingGfxFilter::AdjustPosition(int *x, int *y)
+{
     *x /= MULTIPLIER;
     *y /= MULTIPLIER;
 }
 
-const char *ScalingGFXFilter::GetVersionBoxText() {
+const char *ScalingGfxFilter::GetVersionBoxText()
+{
     return filterName;
 }
 
-const char *ScalingGFXFilter::GetFilterID() {
+const char *ScalingGfxFilter::GetFilterID()
+{
     return filterID;
 }
 
-ScalingGFXFilter::~ScalingGFXFilter()
+ScalingGfxFilter::ScalingGfxFilter(int multiplier) : GfxFilter()
 {
-    if (mouseCallbackPtr != NULL)
-    {
-        delete mouseCallbackPtr;
-        mouseCallbackPtr = NULL;
-    }
+    MULTIPLIER = multiplier;
+    mouseCallbackPtr = NULL;
 }
+
+} // namespace Engine
+} // namespace AGS

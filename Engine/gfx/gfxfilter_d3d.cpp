@@ -18,20 +18,28 @@
 #include <d3d9.h>
 #endif
 
-// Standard 3D-accelerated filter
-
-D3DGFXFilter::D3DGFXFilter(bool justCheckingForSetup) : ScalingGFXFilter(1, justCheckingForSetup) { 
-    sprintf(filterName, "");
-    sprintf(filterID, "None");
-}
-
-D3DGFXFilter::D3DGFXFilter(int multiplier, bool justCheckingForSetup) : ScalingGFXFilter(multiplier, justCheckingForSetup)
+namespace AGS
 {
-    sprintf(filterName, "%d" "x nearest-neighbour filter[", multiplier);
-    sprintf(filterID, "StdScale%d", multiplier);
+namespace Engine
+{
+namespace D3D
+{
+
+D3DGfxFilter::D3DGfxFilter(int multiplier) : ScalingGfxFilter(multiplier)
+{
+    if (multiplier == 1)
+    {
+        sprintf(filterName, "");
+        sprintf(filterID, "None");
+    }
+    else
+    {
+        sprintf(filterName, "%d" "x nearest-neighbour filter[", multiplier);
+        sprintf(filterID, "StdScale%d", multiplier);
+    }
 }
 
-void D3DGFXFilter::SetSamplerStateForStandardSprite(void *direct3ddevice9)
+void D3DGfxFilter::SetSamplerStateForStandardSprite(void *direct3ddevice9)
 {
 #ifdef WINDOWS_VERSION
     IDirect3DDevice9* d3d9 = ((IDirect3DDevice9*)direct3ddevice9);
@@ -40,7 +48,11 @@ void D3DGFXFilter::SetSamplerStateForStandardSprite(void *direct3ddevice9)
 #endif
 }
 
-bool D3DGFXFilter::NeedToColourEdgeLines()
+bool D3DGfxFilter::NeedToColourEdgeLines()
 {
     return false;
 }
+
+} // namespace D3D
+} // namespace Engine
+} // namespace AGS

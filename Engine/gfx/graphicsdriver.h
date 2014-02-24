@@ -19,9 +19,8 @@
 #ifndef __AGS_EE_GFX__GRAPHICSDRIVER_H
 #define __AGS_EE_GFX__GRAPHICSDRIVER_H
 
+#include "gfx/gfxdefines.h"
 #include "gfx/gfxmodelist.h"
-
-struct GFXFilter;
 
 namespace AGS
 {
@@ -33,14 +32,7 @@ namespace Engine
 
 // Forward declaration
 class IDriverDependantBitmap;
-
-enum GlobalFlipType
-{
-  None = 0,
-  Horizontal = 1,
-  Vertical = 2,
-  Both = 3
-};
+class GfxFilter;
 
 enum TintMethod
 {
@@ -65,7 +57,7 @@ class IGraphicsDriver
 public:
   virtual const char*GetDriverName() = 0;
   virtual const char*GetDriverID() = 0;
-  virtual void SetGraphicsFilter(GFXFilter *filter) = 0;
+  virtual void SetGraphicsFilter(GfxFilter *filter) = 0;
   virtual void SetTintMethod(TintMethod method) = 0;
   virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync) = 0;
   virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync) = 0;
@@ -111,15 +103,15 @@ public:
 
 namespace OGL
 {
-extern IGraphicsDriver* GetOGLGraphicsDriver(GFXFilter *);
+extern IGraphicsDriver* GetOGLGraphicsDriver(GfxFilter *);
 }
 namespace D3D
 {
-extern IGraphicsDriver* GetD3DGraphicsDriver(GFXFilter *);
+extern IGraphicsDriver* GetD3DGraphicsDriver(GfxFilter *);
 }
 namespace ALSW
 {
-extern IGraphicsDriver* GetSoftwareGraphicsDriver(GFXFilter *);
+extern IGraphicsDriver* GetSoftwareGraphicsDriver(GfxFilter *);
 }
 
 } // namespace Engine

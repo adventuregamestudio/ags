@@ -12,36 +12,57 @@
 //
 //=============================================================================
 //
-// AGS specific color blending routines for transparency and tinting effects
+// Standard software scaling filter
 //
 //=============================================================================
 
-#ifndef __AC_ALLEGROGFXFILTER_H
-#define __AC_ALLEGROGFXFILTER_H
+#ifndef __AGS_EE_GFX__ALLEGROGFXFILTER_H
+#define __AGS_EE_GFX__ALLEGROGFXFILTER_H
 
+#include "gfx/bitmap.h"
 #include "gfx/gfxfilter_scaling.h"
+#include "gfx/gfxdefines.h"
 
-namespace AGS { namespace Common { class Bitmap; }}
-using namespace AGS; // FIXME later
+namespace AGS
+{
+namespace Engine
+{
+namespace ALSW
+{
 
-struct AllegroGFXFilter : ScalingGFXFilter {
+using Common::Bitmap;
+
+class AllegroGfxFilter : public ScalingGfxFilter
+{
+public:
+    AllegroGfxFilter(int multiplier = 1);
+
+    virtual Bitmap *InitVirtualScreen(Bitmap *screen, int virtual_width, int virtual_height);
+    virtual Bitmap *ShutdownAndReturnRealScreen(Bitmap *currentScreen);
+    virtual void RenderScreen(Bitmap *toRender, int x, int y);
+    virtual void RenderScreenFlipped(Bitmap *toRender, int x, int y, GlobalFlipType flipType);
+    virtual void ClearRect(int x1, int y1, int x2, int y2, int color);
+    virtual void GetCopyOfScreenIntoBitmap(Bitmap *copyBitmap);
+    virtual void GetCopyOfScreenIntoBitmap(Bitmap *copyBitmap, bool copy_with_yoffset);
+
 protected:
-    Common::Bitmap *realScreen;
+    virtual Bitmap *PreRenderPass(Bitmap *toRender);
+
+    // pointer to real screen bitmap
+    Bitmap *realScreen;
     int lastBlitX;
     int lastBlitY;
 
-public:
-
-    AllegroGFXFilter(bool justCheckingForSetup);
-    AllegroGFXFilter(int multiplier, bool justCheckingForSetup);
-
-    virtual Common::Bitmap *ScreenInitialized(Common::Bitmap *screen, int fakeWidth, int fakeHeight);
-    virtual Common::Bitmap *ShutdownAndReturnRealScreen(Common::Bitmap *currentScreen);
-    virtual void RenderScreen(Common::Bitmap *toRender, int x, int y);
-    virtual void RenderScreenFlipped(Common::Bitmap *toRender, int x, int y, int flipType);
-    virtual void ClearRect(int x1, int y1, int x2, int y2, int color);
-    virtual void GetCopyOfScreenIntoBitmap(Common::Bitmap *copyBitmap);
-    virtual void GetCopyOfScreenIntoBitmap(Common::Bitmap *copyBitmap, bool copyWithYOffset);
+    // bitmap the size of game resolution
+    Bitmap *virtualScreen;
+    // buffer for making a copy of video memory before stretching
+    // for screen capture
+    Bitmap *realScreenSizedBuffer;
+    Bitmap *lastBlitFrom;
 };
 
-#endif // __AC_ALLEGROGFXFILTER_H
+} // namespace ALSW
+} // namespace Engine
+} // namespace AGS
+
+#endif // __AGS_EE_GFX__ALLEGROGFXFILTER_H

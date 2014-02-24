@@ -15,12 +15,17 @@
 #ifndef __AC_GFXFILTERHELPERS_H
 #define __AC_GFXFILTERHELPERS_H
 
+namespace AGS
+{
+namespace Engine
+{
+
 struct MouseGetPosCallbackImpl : IMouseGetPosCallback {
 protected:
-    ScalingGFXFilter *_callbackFilter;
+    ScalingGfxFilter *_callbackFilter;
 
 public:
-    MouseGetPosCallbackImpl(ScalingGFXFilter *filter)
+    MouseGetPosCallbackImpl(ScalingGfxFilter *filter)
     {
         _callbackFilter = filter;
     }
@@ -30,5 +35,8 @@ public:
         _callbackFilter->AdjustPosition(x, y);
     }
 };
+
+} // namespace Engine
+} // namespace AGS
 
 #endif // __AC_GFXFILTERHELPERS_H

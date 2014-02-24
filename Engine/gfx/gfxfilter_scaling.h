@@ -12,39 +12,48 @@
 //
 //=============================================================================
 //
-// AGS specific color blending routines for transparency and tinting effects
+// Base class for graphic filter which provides virtual screen scaling
 //
 //=============================================================================
 
-#ifndef __AC_SCALINGGFXFILTER_H
-#define __AC_SCALINGGFXFILTER_H
+#ifndef __AGS_EE_GFX__SCALINGGFXFILTER_H
+#define __AGS_EE_GFX__SCALINGGFXFILTER_H
 
 #include "gfx/gfxfilter.h"
 
+namespace AGS
+{
+namespace Engine
+{
+
 struct MouseGetPosCallbackImpl;
 
-struct ScalingGFXFilter : public GFXFilter {
-protected:
-    int MULTIPLIER;
-    MouseGetPosCallbackImpl *mouseCallbackPtr;
-
-    char filterName[100];
-    char filterID[15];
-
-    ScalingGFXFilter(int multiplier, bool justCheckingForSetup);
-
+class ScalingGfxFilter : public GfxFilter
+{
 public:
+    virtual ~ScalingGfxFilter();
 
-    virtual const char* Initialize(int width, int height, int colDepth);
+    virtual bool Initialize(const int color_depth, String &err_str);
     virtual void UnInitialize();
-    virtual void GetRealResolution(int *wid, int *hit);
+    virtual void GetRealResolution(int *width, int *height);
     virtual void SetMouseArea(int x1, int y1, int x2, int y2);
     virtual void SetMouseLimit(int x1, int y1, int x2, int y2);
     virtual void SetMousePosition(int x, int y);
     virtual void AdjustPosition(int *x, int *y);
     virtual const char *GetVersionBoxText();
     virtual const char *GetFilterID();
-    virtual ~ScalingGFXFilter();
+
+protected:
+    ScalingGfxFilter(int multiplier);
+
+    int MULTIPLIER;
+    MouseGetPosCallbackImpl *mouseCallbackPtr;
+
+    char filterName[100];
+    char filterID[15];
 };
 
-#endif // __AC_SCALINGGFXFILTER_H
+} // namespace Engine
+} // namespace AGS
+
+#endif // __AGS_EE_GFX__SCALINGGFXFILTER_H

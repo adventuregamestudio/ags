@@ -192,9 +192,9 @@ static D3DGraphicsDriver *_d3d_driver = NULL;
 // 
 static Library D3D9Library;
 
-IGraphicsDriver* GetD3DGraphicsDriver(GFXFilter *filter)
+IGraphicsDriver* GetD3DGraphicsDriver(GfxFilter *filter)
 {
-  D3DGFXFilter* d3dfilter = (D3DGFXFilter*)filter;
+  D3DGfxFilter* d3dfilter = (D3DGfxFilter*)filter;
   if (_d3d_driver == NULL)
   {
     _d3d_driver = new D3DGraphicsDriver(d3dfilter);
@@ -212,7 +212,7 @@ IGraphicsDriver* GetD3DGraphicsDriver(GFXFilter *filter)
   return _d3d_driver;
 }
 
-D3DGraphicsDriver::D3DGraphicsDriver(D3DGFXFilter *filter) 
+D3DGraphicsDriver::D3DGraphicsDriver(D3DGfxFilter *filter) 
 {
   direct3d = NULL;
   direct3ddevice = NULL;
@@ -806,9 +806,9 @@ void D3DGraphicsDriver::SetRenderOffset(int x, int y)
   _global_y_offset = y;
 }
 
-void D3DGraphicsDriver::SetGraphicsFilter(GFXFilter *filter)
+void D3DGraphicsDriver::SetGraphicsFilter(GfxFilter *filter)
 {
-  _filter = (D3DGFXFilter*)filter;
+  _filter = (D3DGfxFilter*)filter;
 }
 
 void D3DGraphicsDriver::SetTintMethod(TintMethod method) 
@@ -1009,7 +1009,7 @@ void D3DGraphicsDriver::RenderToBackBuffer()
 
 void D3DGraphicsDriver::Render()
 {
-  Render(None);
+  Render(kFlip_None);
 }
 
 void D3DGraphicsDriver::Render(GlobalFlipType flip)
@@ -1223,8 +1223,8 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
   SpriteDrawListEntry *listToDraw = drawList;
   int listSize = numToDraw;
   HRESULT hr;
-  bool globalLeftRightFlip = (flip == Vertical) || (flip == Both);
-  bool globalTopBottomFlip = (flip == Horizontal) || (flip == Both);
+  bool globalLeftRightFlip = (flip == kFlip_Vertical) || (flip == kFlip_Both);
+  bool globalTopBottomFlip = (flip == kFlip_Horizontal) || (flip == kFlip_Both);
 
   direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 128), 0.5f, 0);
   hr = direct3ddevice->BeginScene();

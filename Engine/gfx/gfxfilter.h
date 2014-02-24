@@ -12,19 +12,30 @@
 //
 //=============================================================================
 //
-// AGS specific color blending routines for transparency and tinting effects
+// Graphics filter base class; does no processing
 //
 //=============================================================================
 
-#ifndef __AC_GFXFILTER_H
-#define __AC_GFXFILTER_H
+#ifndef __AGS_EE_GFX__GFXFILTER_H
+#define __AGS_EE_GFX__GFXFILTER_H
 
-struct GFXFilter {
+#include "util/string.h"
+
+namespace AGS
+{
+namespace Engine
+{
+
+using Common::String;
+
+class GfxFilter
+{
 public:
+    virtual ~GfxFilter();
 
-    virtual const char *Initialize(int width, int height, int colDepth);
+    virtual bool Initialize(const int color_depth, String &err_str);
     virtual void UnInitialize();
-    virtual void GetRealResolution(int *wid, int *hit);
+    virtual void GetRealResolution(int *width, int *height);
     virtual void SetMousePosition(int x, int y);
     // SetMouseArea shows the standard Windows cursor when the mouse moves outside
     // of it in windowed mode; SetMouseLimit does not
@@ -32,16 +43,18 @@ public:
     virtual void SetMouseLimit(int x1, int y1, int x2, int y2);
     virtual const char *GetVersionBoxText();
     virtual const char *GetFilterID();
-    virtual ~GFXFilter();
 };
 
-GFXFilter **get_allegro_gfx_filter_list(bool checkingForSetup);
-GFXFilter **get_d3d_gfx_filter_list(bool checkingForSetup);
+} // namespace Engine
+} // namespace AGS
 
 
-extern GFXFilter *filter;
+AGS::Engine::GfxFilter **get_allegro_gfx_filter_list();
+AGS::Engine::GfxFilter **get_d3d_gfx_filter_list();
 
-extern GFXFilter *gfxFilterList[11];
-extern GFXFilter *gfxFilterListD3D[16];
+extern AGS::Engine::GfxFilter *filter;
 
-#endif // __AC_GFXFILTER_H
+extern AGS::Engine::GfxFilter *gfxFilterList[11];
+extern AGS::Engine::GfxFilter *gfxFilterListD3D[16];
+
+#endif // __AGS_EE_GFX__GFXFILTER_H

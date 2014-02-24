@@ -843,10 +843,6 @@
 					RelativePath="..\..\Engine\gfx\gfxfilter_scaling.cpp"
 					>
 				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\gfxfilter_scalingallegro.cpp"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="gui"
@@ -1799,10 +1795,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\gfx\gfxfilter_scaling.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\gfxfilter_scalingallegro.h"
 					>
 				</File>
 				<File

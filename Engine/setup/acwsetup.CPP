@@ -21,8 +21,8 @@
 #include "gfx/gfxfilter.h"
 #include "util/filestream.h"
 
-using AGS::Common::Stream;
-using namespace AGS; // FIXME later
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 #define AL_ID(a,b,c,d)     (((a)<<24) | ((b)<<16) | ((c)<<8) | (d))
 
@@ -54,7 +54,7 @@ char gameNameForTitleBar[200] = "";
 int curmaxcache = 1024 * 20, curusespeech = 1;
 int wwidth, wheight;
 int base_height;
-GFXFilter **filterList = NULL;
+GfxFilter **filterList = NULL;
 const int specialFilterListIndex = 1;
 const char *specialFilterName = "Max nearest-neighbour filter";
 const char *specialFilterID = "max";
@@ -120,11 +120,11 @@ void retrieve_filter_list(bool isD3D)
 
   if (isD3D)
   {
-    filterList = get_d3d_gfx_filter_list(true);
+    filterList = get_d3d_gfx_filter_list();
   }
   else
   {
-    filterList = get_allegro_gfx_filter_list(true);
+    filterList = get_allegro_gfx_filter_list();
   }
 }
 
@@ -133,7 +133,7 @@ void populate_drop_down_with_filters(HWND hDlg)
   SendDlgItemMessage(hDlg, IDC_GFXFILTER, CB_RESETCONTENT, 0, 0);
 
   int idx = 0;
-  GFXFilter *thisFilter = filterList[idx];
+  GfxFilter *thisFilter = filterList[idx];
   int selected_filter = 0;
   while (thisFilter != NULL) {
 
@@ -299,7 +299,7 @@ void InitializeDialog(HWND hDlg) {
     SendDlgItemMessage(hDlg, IDC_REDUCESPR, BM_SETCHECK, BST_CHECKED,0);
 
   // if no speech pack, disable the checkbox
-  if (!Common::File::TestReadFile("speech.vox"))
+  if (!File::TestReadFile("speech.vox"))
     EnableWindow (GetDlgItem (hDlg, IDC_SPEECHPACK), FALSE);
 
   if (INIreadint("disabled", "speechvox") == 1)
@@ -515,7 +515,7 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
 int acwsetup(const char*vername, const char*enbuild) {
   setupstring = vername;
   enginever = enbuild;
-  if (Common::File::TestReadFile(ac_config_file)) {
+  if (File::TestReadFile(ac_config_file)) {
     curscrn=INIreadint("misc","screenres");
     if (curscrn > 1)
       curscrn = 1;

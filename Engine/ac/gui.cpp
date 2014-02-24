@@ -47,7 +47,6 @@ using namespace AGS::Engine;
 extern GameSetup usetup;
 extern roomstruct thisroom;
 extern GUIMain*guis;
-extern GFXFilter *filter;
 extern int cur_mode,cur_cursor;
 extern ccInstance *gameinst;
 extern ScriptGUI *scrGui;

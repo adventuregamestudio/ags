@@ -12,13 +12,23 @@
 //
 //=============================================================================
 
-#ifndef __AC_GFXFILTERDEFINES_H
-#define __AC_GFXFILTERDEFINES_H
+#ifndef __AGS_EE_GFX__GFXDEFINES_H
+#define __AGS_EE_GFX__GFXDEFINES_H
 
-#define SCR_HFLIP  1
-#define SCR_VFLIP  2
-#define SCR_VHFLIP 3
+namespace AGS
+{
+namespace Engine
+{
 
-#define BYTES_PER_PIXEL(bpp)     (((int)(bpp) + 7) / 8)
+enum GlobalFlipType
+{
+    kFlip_None,
+    kFlip_Horizontal,
+    kFlip_Vertical,
+    kFlip_Both
+};
 
-#endif // __AC_GFXFILTERDEFINES_H
+} // namespace Engine
+} // namespace AGS
+
+#endif // __AGS_EE_GFX__GFXDEFINES_H

@@ -494,7 +494,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
   if ((numdisp > 1) || (parserInput != NULL) || (play.show_single_dialog_option)) {
     draw_color = ds->GetCompatibleColor(0); //ds->FillRect(Rect(0,dlgyp-1,scrnwid-1,dlgyp+numdisp*txthit+1);
     int areawid, is_textwindow = 0;
-    int forecol = 14, savedwid;
+    int forecol = play.dialog_options_highlight_color, savedwid;
 
     int mouseison=-1,curyp;
     int mousewason=-10;

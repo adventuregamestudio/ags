@@ -2194,6 +2194,11 @@ struct GameState {
   int  keep_screen_during_instant_transition;
   int  read_dialog_option_color;
   int  stop_dialog_at_end;   // $AUTOCOMPLETEIGNORE$
+  int  reserved__5;   // $AUTOCOMPLETEIGNORE$
+  int  reserved__6;   // $AUTOCOMPLETEIGNORE$
+  int  reserved__7;   // $AUTOCOMPLETEIGNORE$
+  int  reserved__8;   // $AUTOCOMPLETEIGNORE$
+  int  dialog_options_highlight_color;
   };
   
 enum SkipSpeechStyle {

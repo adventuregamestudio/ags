@@ -1799,6 +1799,10 @@ void restore_game_play(Stream *in)
 
     ReadGameState_Aligned(in);
 
+    // Use a yellow dialog highlight for older game versions
+    if(loaded_game_file_version < kGameVersion_331)
+        play.dialog_options_highlight_color = DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT;
+
     // Preserve whether the music vox is available
     play.seperate_music_lib = musicvox;
     // If they had the vox when they saved it, but they don't now

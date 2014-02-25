@@ -22,7 +22,7 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-#define GAME_STATE_RESERVED_INTS 6
+#define GAME_STATE_RESERVED_INTS 5
 
 // Adding to this might need to modify AGSDEFNS.SH and AGSPLUGIN.H
 struct GameState {
@@ -104,6 +104,7 @@ struct GameState {
     int  speech_portrait_y; // a speech portrait y offset 
     int  speech_display_post_time_ms; // keep speech text/portrait on screen after text/voice has finished playing;
                                       // no speech animation is supposed to be played at this time
+    int  dialog_options_highlight_color; // The colour used for highlighted (hovered over) text in dialog options
     int  reserved[GAME_STATE_RESERVED_INTS];  // make sure if a future version adds a var, it doesn't mess anything up
     // ** up to here is referenced in the script "game." object
     int   recording;   // user is recording their moves

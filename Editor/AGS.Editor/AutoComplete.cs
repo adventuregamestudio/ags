@@ -390,7 +390,7 @@ namespace AGS.Editor
             if (preProcessorDirective == "define")
             {
                 string macroName = GetNextWord(ref script);
-                if ((Char.IsLetter(macroName[0])) &&
+                if (!string.IsNullOrEmpty(macroName) && (Char.IsLetter(macroName[0])) &&
                     (!DoesCurrentLineHaveToken(script, AUTO_COMPLETE_IGNORE)))
                 {
                     defines.Add(new ScriptDefine(macroName, state.InsideIfDefBlock, state.InsideIfNDefBlock));

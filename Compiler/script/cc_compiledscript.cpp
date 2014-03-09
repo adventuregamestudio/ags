@@ -244,7 +244,7 @@ intptr_t ccCompiledScript::yank_chunk(int32_t start, intptr_t **nested_chunk, in
     return chunk_size;
 }
 
-void ccCompiledScript::write_chunk(intptr_t **nested_chunk, int index, intptr_t chunk_size, bool dispose) {
+void ccCompiledScript::write_chunk(intptr_t **nested_chunk, int index, intptr_t chunk_size, bool dispose, int fixup_start, int fixup_stop, int32_t adjust) {
     intptr_t chunk_index;
     if(chunk_size > 0)
     {
@@ -258,6 +258,11 @@ void ccCompiledScript::write_chunk(intptr_t **nested_chunk, int index, intptr_t 
         codesize += chunk_size;
         if(dispose)
             free(nested_chunk[index]);
+    }
+    while(fixup_start < fixup_stop)
+    {
+        fixups[fixup_start] = fixups[fixup_start] + adjust;
+        fixup_start++;
     }
 }
 

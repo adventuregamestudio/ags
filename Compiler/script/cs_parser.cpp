@@ -331,7 +331,8 @@ int remove_locals(int from_level, int just_count, ccCompiledScript *scrip) {
 }
 
 int deal_with_end_of_ifelse (char*nested_type,long*nested_info,long*nested_start,
-                             ccCompiledScript*scrip,ccInternalList*targ,int*nestlevel, intptr_t **nested_chunk, intptr_t *nested_chunk_size) {
+                             ccCompiledScript*scrip,ccInternalList*targ,int*nestlevel, intptr_t **nested_chunk, intptr_t *nested_chunk_size,
+                             int *nested_fixup_start, int *nested_fixup_stop, int32_t *nested_assign_addr) {
      int nested_level = nestlevel[0];
      int is_else=0;
      if (nested_type[nested_level] == NEST_ELSESINGLE) ;
@@ -345,7 +346,7 @@ int deal_with_end_of_ifelse (char*nested_type,long*nested_info,long*nested_start
          scrip->flush_line_numbers();
          // if it's a for loop, drop the yanked chunk (loop increment) back in
          if(nested_chunk_size[nested_level] > 0)
-            scrip->write_chunk(nested_chunk, nested_level, nested_chunk_size[nested_level], true);
+            scrip->write_chunk(nested_chunk, nested_level, nested_chunk_size[nested_level], true, nested_fixup_start[nested_level], nested_fixup_stop[nested_level], scrip->codesize - nested_assign_addr[nested_level]);
          // it's a while loop, so write a jump back to the check again
         scrip->write_cmd1(SCMD_JMP,-((scrip->codesize+2) - nested_start[nested_level]) );
      }
@@ -3146,6 +3147,9 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
     long nested_start[MAX_NESTED_LEVEL];
     intptr_t *nested_chunk[MAX_NESTED_LEVEL];
     intptr_t nested_chunk_size[MAX_NESTED_LEVEL];
+    int nested_fixup_start[MAX_NESTED_LEVEL];
+    int nested_fixup_stop[MAX_NESTED_LEVEL];
+    int32_t nested_assign_addr[MAX_NESTED_LEVEL];
     char next_is_import = 0, next_is_readonly = 0;
     char next_is_managed = 0, next_is_static = 0;
     char next_is_protected = 0, next_is_stringstruct = 0;
@@ -3296,14 +3300,14 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             else if ((nested_type[nested_level+1] == NEST_IF) ||
                 (nested_type[nested_level+1] == NEST_ELSE)) {
                     INC_NESTED_LEVEL;
-                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size))
+                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
                         continue;
             }
             while ((nested_type[nested_level] == NEST_IFSINGLE) ||
                 (nested_type[nested_level] == NEST_ELSESINGLE)) {
                     // loop round doing all the end of elses, but break once an IF
                     // has been turned into an ELSE
-                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size))
+                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
                         break;
             }
         }
@@ -4211,6 +4215,7 @@ startvarbit:
                 else
                     hasLimitCheck = false; // Allow for loops without limit checks
                 long assignaddr = scrip->codesize;
+                int pre_fixup_count = scrip->numfixups;
                 targ.getnext(); // Skip the ;
                 cursym = targ.getnext();
                 if (sym.get_type(cursym) != SYM_CLOSEPARENTHESIS) {
@@ -4222,6 +4227,9 @@ startvarbit:
                 } // Allow for loops without increments
                 INC_NESTED_LEVEL;
                 nested_chunk_size[nested_level] = scrip->yank_chunk((int32_t) assignaddr, nested_chunk, nested_level);
+                nested_fixup_start[nested_level] = pre_fixup_count;
+                nested_fixup_stop[nested_level] = scrip->numfixups;
+                nested_assign_addr[nested_level] = assignaddr;
                 if(!hasLimitCheck)
                     scrip->write_cmd2(SCMD_LITTOREG,SREG_AX,1); // Fake out the AX register so that jump works correctly
                 //nested_chunk_size[nested_level] = 0;
@@ -4271,7 +4279,9 @@ startvarbit:
                     }
                     // if it's a for loop, drop the yanked chunk (loop increment) back in
                     if(nested_chunk_size[loop_level] > 0)
-                        scrip->write_chunk(nested_chunk, loop_level, nested_chunk_size[loop_level], false);
+                    {
+                        scrip->write_chunk(nested_chunk, loop_level, nested_chunk_size[loop_level], false, nested_fixup_start[nested_level], nested_fixup_stop[nested_level], scrip->codesize - nested_assign_addr[nested_level]);
+                    }
                     scrip->flush_line_numbers();
                     scrip->write_cmd1(SCMD_JMP, -((scrip->codesize+2) - nested_start[loop_level])); // Jump to the start of the loop
                 }
@@ -4287,7 +4297,7 @@ startvarbit:
             // sort out jumps when a single-line if or else has finished
             while ((nested_type[nested_level] == NEST_IFSINGLE) ||
                 (nested_type[nested_level] == NEST_ELSESINGLE)) {
-                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size))
+                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
                         break;
             }
         }

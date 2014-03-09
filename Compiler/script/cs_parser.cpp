@@ -1353,7 +1353,8 @@ int get_readcmd_for_size(int sizz, int writeinstead) {
   }
 
 
-int  evaluate_expression(ccInternalList*,ccCompiledScript*,int);
+int  evaluate_expression(ccInternalList*,ccCompiledScript*,int,bool insideBracketedDeclaration);
+int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, long lilen, long *vnlist, bool insideBracketedDeclaration);
 int  parse_sub_expr(long*,int,ccCompiledScript*);
 long extract_variable_name(int, ccInternalList*,long*, int*);
 int  check_type_mismatch(int typeIs, int typeWantsToBe, int orderMatters);
@@ -2667,7 +2668,20 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
 // returns 0 on success or -1 if compile error
 // leaves targ pointing to last token in expression, so do getnext() to
 // get the following ; or whatever
-int evaluate_expression(ccInternalList*targ,ccCompiledScript*scrip,int countbrackets) {
+// --
+// insideBracketedDeclaration is a special flag used to denote an expression that
+// starts inside a declaration that contains more than one evaluatable chunk in brackets
+// and expects the closing bracket to terminate the declaration. The while() loop relies
+// on the fact that a while loop's bracket completely surrounds its expression. With a
+// for loop, we need to break that up into segments:
+// for(a = 0; a < 10; a++)
+//     |seg1| seg 2 |seg3|
+// So segment 3 is an expression that looks like this:
+// ; a++)
+// For this to work properly, we can't just increment the initial brackdepth. We need
+// to parse the expression in a slightly different way so that the final bracket is not
+// consumed as part of evaluating the expression.
+int evaluate_expression(ccInternalList*targ,ccCompiledScript*scrip,int countbrackets, bool insideBracketedDeclaration) {
   ccInternalList ours;
   int j,ourlen=0,brackdepth=0;
   int hadMetaOnly = 1;
@@ -2681,7 +2695,7 @@ int evaluate_expression(ccInternalList*targ,ccCompiledScript*scrip,int countbrac
 
     if (sym.get_type(targ->script[j]) == SYM_OPENPARENTHESIS)
       brackdepth++;
-    else if (sym.get_type(targ->script[j]) == SYM_CLOSEPARENTHESIS) {
+    else if (sym.get_type(targ->script[j]) == SYM_CLOSEPARENTHESIS && (brackdepth > 0 || !insideBracketedDeclaration)) {
       brackdepth--;
       continue;
     }
@@ -2694,7 +2708,8 @@ int evaluate_expression(ccInternalList*targ,ccCompiledScript*scrip,int countbrac
       lastWasNew = false;
     }
     else if (((!isPartOfExpression(targ, j)) && (brackdepth == 0))
-          || ((brackdepth == 0) && (countbrackets!=0))) {
+          || ((brackdepth == 0) && (countbrackets!=0))
+          || sym.get_type(targ->script[j]) == SYM_CLOSEPARENTHESIS) {
       ourlen = j - targ->pos;
       if ((ourlen < 1) || (hadMetaOnly == 1)) {
         cc_error("PE01: Parse error at '%s'",sym.get_name(targ->script[j]));
@@ -2737,7 +2752,7 @@ int evaluate_expression(ccInternalList*targ,ccCompiledScript*scrip,int countbrac
   return retcode;
   }
 
-int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, long lilen, long *vnlist) {
+int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, long lilen, long *vnlist, bool insideBracketedDeclaration) {
     if (!sym.is_loadable_variable(cursym)) {
         // allow through static properties
         if ((sym.get_type(cursym) == SYM_VARTYPE) && (lilen > 2) &&
@@ -2801,7 +2816,7 @@ int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expe
         }
     }
     // not ++ or --, so we need to evaluate the RHS
-    else if (evaluate_expression(targ,scrip,0) < 0)
+    else if (evaluate_expression(targ,scrip,0,insideBracketedDeclaration) < 0)
         return -1;
 
     if (sym.get_type(asstype) == SYM_MASSIGN) {
@@ -3042,7 +3057,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     }
     else {
 
-      if (evaluate_expression(targ,scrip,0))
+      if (evaluate_expression(targ,scrip,0,false))
         return -1;
 
       PerformStringConversionInAX(scrip, &scrip->ax_val_type, actualVarType);
@@ -4067,7 +4082,7 @@ startvarbit:
 
                 targ.pos --;
 
-                if (evaluate_expression(&targ,scrip,0) < 0)
+                if (evaluate_expression(&targ,scrip,0,false) < 0)
                     return -1;
 
                 if (sym.get_type(targ.getnext()) != SYM_SEMICOLON) {
@@ -4080,7 +4095,7 @@ startvarbit:
                 (sym.get_type(targ.peeknext()) == SYM_MASSIGN) ||
                 (sym.get_type(targ.peeknext()) == SYM_SASSIGN)) {
                     // it's an assignment = or += -=
-                    if (evaluate_assignment(&targ, scrip, false, cursym, lilen, vnlist))
+                    if (evaluate_assignment(&targ, scrip, false, cursym, lilen, vnlist, false))
                         return -1;
 
             }
@@ -4095,7 +4110,7 @@ startvarbit:
                     }
 
                     // parse what is being returned
-                    if (evaluate_expression(&targ,scrip,0) < 0)
+                    if (evaluate_expression(&targ,scrip,0,false) < 0)
                         return -1;
                     // convert into String if appropriate
                     PerformStringConversionInAX(scrip, &scrip->ax_val_type, functionReturnType);
@@ -4140,7 +4155,7 @@ startvarbit:
                     }
                     long oriaddr = scrip->codesize;
 
-                    if (evaluate_expression(&targ,scrip,1))
+                    if (evaluate_expression(&targ,scrip,1,false))
                         return -1;
                     // since AX will hold the result of the check, we can use JZ
                     // to determine whether to jump or not (0 means test failed, so
@@ -4179,14 +4194,14 @@ startvarbit:
                     lilen = extract_variable_name(cursym, &targ, &vnlist[0], &funcAtOffs);
                     if (lilen < 0)
                         return -1;
-                    if (evaluate_assignment(&targ, scrip, false, cursym, lilen, vnlist))
+                    if (evaluate_assignment(&targ, scrip, false, cursym, lilen, vnlist, false))
                         return -1;
                 }
                 long oriaddr = scrip->codesize;
                 bool hasLimitCheck;
                 if (sym.get_type(targ.peeknext()) != SYM_SEMICOLON) {
                     hasLimitCheck = true;
-                    if (evaluate_expression(&targ,scrip,0))
+                    if (evaluate_expression(&targ,scrip,0,false))
                         return -1;
                     if (sym.get_type(targ.peeknext()) != SYM_SEMICOLON) {
                         cc_error("expected ';'");
@@ -4202,7 +4217,7 @@ startvarbit:
                     lilen = extract_variable_name(cursym, &targ, &vnlist[0], &funcAtOffs);
                     if (lilen < 0)
                         return -1;
-                    if (evaluate_assignment(&targ, scrip, true, cursym, lilen, vnlist))
+                    if (evaluate_assignment(&targ, scrip, true, cursym, lilen, vnlist, true))
                         return -1;
                 } // Allow for loops without increments
                 INC_NESTED_LEVEL;

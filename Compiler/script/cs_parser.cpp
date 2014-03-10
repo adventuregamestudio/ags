@@ -3367,6 +3367,10 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
 
                     if (sym.get_type(targ.peeknext()) == SYM_OPENPARENTHESIS) {
                         // member function
+                        if (!member_is_import) {
+                            cc_error("function in a struct requires the import keyword");
+                            return -1;
+                        }
                         if (member_is_writeprotected) {
                             cc_error("'writeprotected' does not apply to functions");
                             return -1;

@@ -478,18 +478,26 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
   char functionName[MAX_SYM_LEN];
   strcpy(functionName, sym.get_name(funcsym));
 
-  if (strcmp(sym.get_name(targ.peeknext()), "this") == 0)
+  if (strcmp(sym.get_name(targ.peeknext()), "this") == 0 || sym.get_type(targ.peeknext()) == SYM_STATIC)
   {
+    if(sym.get_type(targ.peeknext()) == SYM_STATIC)
+      func_is_static = 1;
     // extender function, eg.  function GoAway(this Character *someone)
     targ.getnext();
 	  if (sym.get_type(targ.peeknext()) != SYM_VARTYPE)
 	  {
-	    cc_error("'this' must be followed by a struct name");
+	    if(func_is_static)
+	      cc_error("'static' must be followed by a struct name");
+	    else
+	      cc_error("'this' must be followed by a struct name");
 	    return -1;
 	  }
 	  if ((sym.flags[targ.peeknext()] & SFLG_STRUCTTYPE) == 0)
 	  {
-	    cc_error("'this' cannot be used with primitive types");
+	    if(func_is_static)
+	      cc_error("'static' cannot be used with primitive types");
+	    else
+	      cc_error("'this' cannot be used with primitive types");
 	    return -1;
 	  }
 	  if (strchr(functionName, ':') != NULL) 
@@ -522,18 +530,23 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
 	    return -1;
 	  }
 	  sym.flags[funcsym] = SFLG_STRUCTMEMBER;
+	  if(func_is_static)
+	    sym.flags[funcsym] |= SFLG_STATIC;
   	
 	  targ.getnext();
-	  if (strcmp(sym.get_name(targ.getnext()), "*") != 0) 
+	  if (!func_is_static && strcmp(sym.get_name(targ.getnext()), "*") != 0) 
 	  {
-	    cc_error("extender function must be pointer");
+	    cc_error("instance extender function must be pointer");
 	    return -1;
 	  }
 
 	  if ((sym.get_type(targ.peeknext()) != SYM_COMMA) &&
 	      (sym.get_type(targ.peeknext()) != SYM_CLOSEPARENTHESIS))
 	  {
-	    cc_error("parameter name cannot be defined for extender type");
+	    if(strcmp(sym.get_name(targ.getnext()), "*") == 0)
+	      cc_error("static extender function cannot be pointer");
+	    else
+	      cc_error("parameter name cannot be defined for extender type");
 	    return -1;
 	  }
 

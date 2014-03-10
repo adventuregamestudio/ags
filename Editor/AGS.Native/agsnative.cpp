@@ -1576,6 +1576,8 @@ const char *load_dta_file_into_thisgame(const char *fileName)
 	  return "This game was saved by an old version of AGS. This version of the editor can only import games saved with AGS 2.72.";
   }
 
+  loaded_game_file_version = (GameDataVersion)filever;
+
   // skip required engine version
   int stlen = iii->ReadInt32();
   iii->Seek(Common::kSeekCurrent, stlen);
@@ -3724,6 +3726,7 @@ void ConvertInteractions(AGS::Types::Interactions ^interactions, ::NewInteractio
 Game^ load_old_game_dta_file(const char *fileName)
 {
 	const char *errorMsg = load_dta_file_into_thisgame(fileName);
+    loaded_game_file_version = kGameVersion_Current;
 	if (errorMsg != NULL)
 	{
 		throw gcnew AGS::Types::AGSEditorException(gcnew String(errorMsg));

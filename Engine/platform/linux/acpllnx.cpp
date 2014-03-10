@@ -88,20 +88,26 @@ size_t BuildXDGPath(char *destPath, size_t destSize)
 {
   // Check to see if XDG_DATA_HOME is set in the enviroment
   const char* home_dir = getenv("XDG_DATA_HOME");
+  size_t l = 0;
   if (home_dir)
   {
-    return snprintf(destPath, destSize, "%s", home_dir);
+    l = snprintf(destPath, destSize, "%s", home_dir);
   }
   else
   {
     // No evironment variable, so we fall back to home dir in /etc/passwd
     struct passwd *p = getpwuid(getuid());
-    size_t l = snprintf(destPath, destSize, "%s/.local", p->pw_dir);
-    mkdir(destPath, 0755);
+    l = snprintf(destPath, destSize, "%s/.local", p->pw_dir);
+    if (mkdir(destPath, 0755) != 0 && errno != EEXIST)
+      return 0;
     l += snprintf(destPath + l, destSize - l, "/share");
-    mkdir(destPath, 0755);
-    return l;
+    if (mkdir(destPath, 0755) != 0 && errno != EEXIST)
+      return 0;
   }
+  l += snprintf(destPath + l, destSize - l, "/ags");
+  if (mkdir(destPath, 0755) != 0 && errno != EEXIST)
+    return 0;
+  return l;
 }
 
 void DetermineAppOutputDirectory()
@@ -111,19 +117,11 @@ void DetermineAppOutputDirectory()
     return;
   }
 
-  bool log_to_home_dir = false;
   char xdg_path[256];
   if (BuildXDGPath(xdg_path, sizeof(xdg_path)) > 0)
-  {
     LinuxOutputDirectory = xdg_path;
-    LinuxOutputDirectory.Append("/ags");
-    log_to_home_dir = mkdir(LinuxOutputDirectory, 0755) == 0 || errno == EEXIST;
-  }
-
-  if (!log_to_home_dir)
-  {
+  else
     LinuxOutputDirectory = "/tmp";
-  }
 }
 
 const char *AGSLinux::GetAppOutputDirectory()

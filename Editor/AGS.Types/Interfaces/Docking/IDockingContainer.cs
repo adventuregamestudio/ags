@@ -37,6 +37,7 @@ namespace AGS.Types
         ContextMenuStrip TabPageContextMenuStrip { get; set; }
         string Text { get; set; }
         bool IsDisposed { get; }
+        bool ContainsFocus { get; }
 
         void Show(IDockingPanel panel, DockData dockData);
         void Hide();

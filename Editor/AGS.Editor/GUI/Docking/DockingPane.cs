@@ -17,6 +17,11 @@ namespace AGS.Editor
             _floatWindow = new FloatingWindow(dockPane.FloatWindow);
         }
 
+        public void Refresh()
+        {
+            _dockPane.Refresh();
+        }
+
         public IFloatWindow FloatWindow { get { return _floatWindow; } }
     }
 }

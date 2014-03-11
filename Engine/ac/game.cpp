@@ -3188,6 +3188,11 @@ RuntimeScriptValue Sc_Game_GetAudioClip(const RuntimeScriptValue *params, int32_
     API_SCALL_OBJ_PINT(ScriptAudioClip, ccDynamicAudioClip, Game_GetAudioClip);
 }
 
+RuntimeScriptValue Sc_Game_IsPluginLoaded(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL_OBJ(pl_is_plugin_loaded, const char);
+}
+
 
 void RegisterGameAPI()
 {
@@ -3239,6 +3244,7 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::get_ViewCount",                          Sc_Game_GetViewCount);
     ccAddExternalStaticFunction("Game::get_AudioClipCount",                     Sc_Game_GetAudioClipCount);
     ccAddExternalStaticFunction("Game::geti_AudioClips",                         Sc_Game_GetAudioClip);
+    ccAddExternalStaticFunction("Game::IsPluginLoaded",                         Sc_Game_IsPluginLoaded);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

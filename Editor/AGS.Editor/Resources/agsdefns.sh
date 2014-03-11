@@ -487,6 +487,8 @@ managed struct Game {
   /// Stops all currently playing sound effects.
   import static void   StopSound(bool includeAmbientSounds=false);   // $AUTOCOMPLETEIGNORE$
 #endif
+  /// Returns true if the given plugin is currently loaded.
+  import static bool   IsPluginLoaded(const string name);
   /// Gets the number of characters in the game.
   readonly import static attribute int CharacterCount;
   /// Gets the number of dialogs in the game.

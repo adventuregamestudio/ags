@@ -581,5 +581,6 @@ int  pl_run_plugin_hooks (int event, long data);
 void pl_run_plugin_init_gfx_hooks(const char *driverName, void *data);
 int  pl_run_plugin_debug_hooks (const char *scriptfile, int linenum);
 void pl_read_plugins_from_disk (Common::Stream *in);
+bool pl_is_plugin_loaded(const char *pl_name);
 
 #endif

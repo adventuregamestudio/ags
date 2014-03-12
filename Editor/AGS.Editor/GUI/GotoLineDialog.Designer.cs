@@ -50,7 +50,6 @@
             this.upDownLineNumber.Name = "upDownLineNumber";
             this.upDownLineNumber.Size = new System.Drawing.Size(199, 20);
             this.upDownLineNumber.TabIndex = 1;
-            this.upDownLineNumber.ThousandsSeparator = true;
             // 
             // btnOk
             // 

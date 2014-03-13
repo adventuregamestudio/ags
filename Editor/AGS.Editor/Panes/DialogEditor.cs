@@ -200,7 +200,6 @@ namespace AGS.Editor
                 };
                 if (gotoLineDialog.ShowDialog() != DialogResult.OK) return;
                 scintillaEditor.GoToLine(gotoLineDialog.LineNumber);
-                scintillaEditor.SelectCurrentLine();
             }
         }
 

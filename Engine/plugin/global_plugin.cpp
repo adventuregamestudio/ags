@@ -11,6 +11,10 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+//
+// Stubs for plugin functions.
+//
+//=============================================================================
 
 #include <string.h>
 #include "ac/global_plugin.h"
@@ -23,447 +27,26 @@ void PluginSimulateMouseClick(int pluginButtonID) {
 }
 
 //=============================================================================
-// Stubs for plugin functions.
-
-void ScriptStub_ShellExecute()
-{
-}
-void srSetSnowDriftRange(int min_value, int max_value)
-{
-}
-void srSetSnowDriftSpeed(int min_value, int max_value)
-{
-}
-void srSetSnowFallSpeed(int min_value, int max_value)
-{
-}
-void srChangeSnowAmount(int amount)
-{
-}
-void srSetSnowBaseline(int top, int bottom)
-{
-}
-void srSetSnowTransparency(int min_value, int max_value)
-{
-}
-void srSetSnowDefaultView(int view, int loop)
-{
-}
-void srSetSnowWindSpeed(int value)
-{
-}
-void srSetSnowAmount(int amount)
-{
-}
-void srSetSnowView(int kind_id, int event, int view, int loop)
-{
-}
-void srChangeRainAmount(int amount)
-{
-}
-void srSetRainView(int kind_id, int event, int view, int loop)
-{
-}
-void srSetRainDefaultView(int view, int loop)
-{
-}
-void srSetRainTransparency(int min_value, int max_value)
-{
-}
-void srSetRainWindSpeed(int value)
-{
-}
-void srSetRainBaseline(int top, int bottom)
-{
-}
-void srSetRainAmount(int amount)
-{
-}
-void srSetRainFallSpeed(int min_value, int max_value)
-{
-}
-void srSetWindSpeed(int value)
-{
-}
-void srSetBaseline(int top, int bottom)
-{
-}
-int JoystickCount()
-{
-    return 0;
-}
-int Joystick_Open(int a)
-{
-    return 0;
-}
-int Joystick_IsButtonDown(int a)
-{
-    return 0;
-}
-void Joystick_EnableEvents(int a)
-{
-}
-void Joystick_DisableEvents()
-{
-}
-void Joystick_Click(int a)
-{
-}
-int Joystick_Valid()
-{
-    return 0;
-}
-int Joystick_Unplugged()
-{
-    return 0;
-}
-int DrawAlpha(int destination, int sprite, int x, int y, int transparency)
-{
-    return 0;
-}
-int GetAlpha(int sprite, int x, int y)
-{
-    return 0;
-}
-int PutAlpha(int sprite, int x, int y, int alpha)
-{
-    return 0;
-}
-int Blur(int sprite, int radius)
-{
-    return 0;
-}
-int HighPass(int sprite, int threshold)
-{
-    return 0;
-}
-int DrawAdd(int destination, int sprite, int x, int y, float scale)
-{
-    return 0;
-}
-
-int GetFlashlightInt()
-{
-    return 0;
-}
-void SetFlashlightInt1(int Param1)
-{
-}
-void SetFlashlightInt2(int Param1, int Param2)
-{
-}
-void SetFlashlightInt3(int Param1, int Param2, int Param3)
-{
-}
-void SetFlashlightInt5(int Param1, int Param2, int Param3, int Param4, int Param5)
-{
-}
-
-bool wjuIsOnPhone()
-{
-  return false;
-}
-void wjuFakeKeypress(int keypress)
-{
-}
-void wjuIosSetAchievementValue(char* name, int value)
-{
-}
-int wjuIosGetAchievementValue(char* name)
-{
-  return -1;
-}
-void wjuIosShowAchievements()
-{
-}
-void wjuIosResetAchievements()
-{
-}
-
-//=============================================================================
 //
 // Script API Functions
 //
 //=============================================================================
 
-#include "debug/out.h"
-#include "script/script_api.h"
 #include "script/script_runtime.h"
 
-// void ()
-RuntimeScriptValue Sc_ScriptStub_ShellExecute(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_PluginStub_Void(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID(ScriptStub_ShellExecute);
+    return RuntimeScriptValue();
 }
 
-// void (int min_value, int max_value)
-RuntimeScriptValue Sc_srSetSnowDriftRange(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_PluginStub_Int0(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(srSetSnowDriftRange);
+    return RuntimeScriptValue().SetInt32(0);
 }
 
-// void (int min_value, int max_value)
-RuntimeScriptValue Sc_srSetSnowDriftSpeed(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_PluginStub_IntNeg1(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(srSetSnowDriftSpeed);
-}
-
-// void (int min_value, int max_value)
-RuntimeScriptValue Sc_srSetSnowFallSpeed(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(srSetSnowFallSpeed);
-}
-
-// void (int amount)
-RuntimeScriptValue Sc_srChangeSnowAmount(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(srChangeSnowAmount);
-}
-
-// void (int top, int bottom)
-RuntimeScriptValue Sc_srSetSnowBaseline(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(srSetSnowBaseline);
-}
-
-// void (int min_value, int max_value)
-RuntimeScriptValue Sc_srSetSnowTransparency(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(srSetSnowTransparency);
-}
-
-// void (int view, int loop)
-RuntimeScriptValue Sc_srSetSnowDefaultView(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(srSetSnowDefaultView);
-}
-
-// void (int value)
-RuntimeScriptValue Sc_srSetSnowWindSpeed(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(srSetSnowWindSpeed);
-}
-
-// void (int amount)
-RuntimeScriptValue Sc_srSetSnowAmount(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(srSetSnowAmount);
-}
-
-// void (int kind_id, int event, int view, int loop)
-RuntimeScriptValue Sc_srSetSnowView(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT4(srSetSnowView);
-}
-
-// void (int amount)
-RuntimeScriptValue Sc_srChangeRainAmount(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(srChangeRainAmount);
-}
-
-// void (int kind_id, int event, int view, int loop)
-RuntimeScriptValue Sc_srSetRainView(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT4(srSetRainView);
-}
-
-// void (int view, int loop)
-RuntimeScriptValue Sc_srSetRainDefaultView(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(srSetRainDefaultView);
-}
-
-// void (int min_value, int max_value)
-RuntimeScriptValue Sc_srSetRainTransparency(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(srSetRainTransparency);
-}
-
-// void (int value)
-RuntimeScriptValue Sc_srSetRainWindSpeed(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(srSetRainWindSpeed);
-}
-
-// void (int top, int bottom)
-RuntimeScriptValue Sc_srSetRainBaseline(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(srSetRainBaseline);
-}
-
-// void (int amount)
-RuntimeScriptValue Sc_srSetRainAmount(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(srSetRainAmount);
-}
-
-// void (int min_value, int max_value)
-RuntimeScriptValue Sc_srSetRainFallSpeed(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(srSetRainFallSpeed);
-}
-
-// void (int value)
-RuntimeScriptValue Sc_srSetWindSpeed(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(srSetWindSpeed);
-}
-
-// void (int top, int bottom)
-RuntimeScriptValue Sc_srSetBaseline(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(srSetBaseline);
-}
-
-// int ()
-RuntimeScriptValue Sc_JoystickCount(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(JoystickCount);
-}
-
-// int (int a)
-RuntimeScriptValue Sc_Joystick_Open(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(Joystick_Open);
-}
-
-// int (int a)
-RuntimeScriptValue Sc_Joystick_IsButtonDown(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(Joystick_IsButtonDown);
-}
-
-// void (int a)
-RuntimeScriptValue Sc_Joystick_EnableEvents(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Joystick_EnableEvents);
-}
-
-// void ()
-RuntimeScriptValue Sc_Joystick_DisableEvents(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID(Joystick_DisableEvents);
-}
-
-// void (int a)
-RuntimeScriptValue Sc_Joystick_Click(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(Joystick_Click);
-}
-
-// int ()
-RuntimeScriptValue Sc_Joystick_Valid(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Joystick_Valid);
-}
-
-// int ()
-RuntimeScriptValue Sc_Joystick_Unplugged(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Joystick_Unplugged);
-}
-
-// int (int destination, int sprite, int x, int y, int transparency)
-RuntimeScriptValue Sc_DrawAlpha(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT5(DrawAlpha);
-}
-
-// int (int sprite, int x, int y)
-RuntimeScriptValue Sc_GetAlpha(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT3(GetAlpha);
-}
-
-// int (int sprite, int x, int y, int alpha)
-RuntimeScriptValue Sc_PutAlpha(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT4(PutAlpha);
-}
-
-// int (int sprite, int radius)
-RuntimeScriptValue Sc_Blur(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT2(Blur);
-}
-
-// int (int sprite, int threshold)
-RuntimeScriptValue Sc_HighPass(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT2(HighPass);
-}
-
-// int (int destination, int sprite, int x, int y, float scale)
-RuntimeScriptValue Sc_DrawAdd(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT4_PFLOAT(DrawAdd);
-}
-
-// int ()
-RuntimeScriptValue Sc_GetFlashlightInt(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(GetFlashlightInt);
-}
-
-// void (int Param1)
-RuntimeScriptValue Sc_SetFlashlightInt1(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(SetFlashlightInt1);
-}
-
-// void (int Param1, int Param2)
-RuntimeScriptValue Sc_SetFlashlightInt2(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(SetFlashlightInt2);
-}
-
-// void (int Param1, int Param2, int Param3)
-RuntimeScriptValue Sc_SetFlashlightInt3(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT3(SetFlashlightInt3);
-}
-
-// void (int Param1, int Param2, int Param3, int Param4, int Param5)
-RuntimeScriptValue Sc_SetFlashlightInt5(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT5(SetFlashlightInt5);
-}
-
-// bool ()
-RuntimeScriptValue Sc_wjuIsOnPhone(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_BOOL(wjuIsOnPhone);
-}
-
-// void (int)
-RuntimeScriptValue Sc_wjuFakeKeypress(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(wjuFakeKeypress);
-}
-
-// void (char*, int)
-RuntimeScriptValue Sc_wjuIosSetAchievementValue(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_POBJ_PINT(wjuIosSetAchievementValue, char);
-}
-
-// int (char*)
-RuntimeScriptValue Sc_wjuIosGetAchievementValue(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_POBJ(wjuIosGetAchievementValue, char);
-}
-
-// void ()
-RuntimeScriptValue Sc_wjuIosShowAchievements(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID(wjuIosShowAchievements);
-}
-
-// void ()
-RuntimeScriptValue Sc_wjuIosResetAchievements(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID(wjuIosResetAchievements);
+    return RuntimeScriptValue().SetInt32(-1);
 }
 
 bool RegisterPluginStubs(const char* name)
@@ -473,99 +56,99 @@ bool RegisterPluginStubs(const char* name)
   if (strncmp(name, "ags_shell", strlen("ags_shell")) == 0)
   {
     // ags_shell.dll
-    ccAddExternalStaticFunction("ShellExecute",                 Sc_ScriptStub_ShellExecute);
+    ccAddExternalStaticFunction("ShellExecute",                 Sc_PluginStub_Void);
     return true;
   }
   else if (strncmp(name, "ags_snowrain", strlen("ags_snowrain")) == 0)
   {
     // ags_snowrain.dll
-    ccAddExternalStaticFunction("srSetSnowDriftRange",          Sc_srSetSnowDriftRange);
-    ccAddExternalStaticFunction("srSetSnowDriftSpeed",          Sc_srSetSnowDriftSpeed);
-    ccAddExternalStaticFunction("srSetSnowFallSpeed",           Sc_srSetSnowFallSpeed);
-    ccAddExternalStaticFunction("srChangeSnowAmount",           Sc_srChangeSnowAmount);
-    ccAddExternalStaticFunction("srSetSnowBaseline",            Sc_srSetSnowBaseline);
-    ccAddExternalStaticFunction("srSetSnowTransparency",        Sc_srSetSnowTransparency);
-    ccAddExternalStaticFunction("srSetSnowDefaultView",         Sc_srSetSnowDefaultView);
-    ccAddExternalStaticFunction("srSetSnowWindSpeed",           Sc_srSetSnowWindSpeed);
-    ccAddExternalStaticFunction("srSetSnowAmount",              Sc_srSetSnowAmount);
-    ccAddExternalStaticFunction("srSetSnowView",                Sc_srSetSnowView);
-    ccAddExternalStaticFunction("srChangeRainAmount",           Sc_srChangeRainAmount);
-    ccAddExternalStaticFunction("srSetRainView",                Sc_srSetRainView);
-    ccAddExternalStaticFunction("srSetRainDefaultView",         Sc_srSetRainDefaultView);
-    ccAddExternalStaticFunction("srSetRainTransparency",        Sc_srSetRainTransparency);
-    ccAddExternalStaticFunction("srSetRainWindSpeed",           Sc_srSetRainWindSpeed);
-    ccAddExternalStaticFunction("srSetRainBaseline",            Sc_srSetRainBaseline);
-    ccAddExternalStaticFunction("srSetRainAmount",              Sc_srSetRainAmount);
-    ccAddExternalStaticFunction("srSetRainFallSpeed",           Sc_srSetRainFallSpeed);
-    ccAddExternalStaticFunction("srSetWindSpeed",               Sc_srSetWindSpeed);
-    ccAddExternalStaticFunction("srSetBaseline",                Sc_srSetBaseline);
+    ccAddExternalStaticFunction("srSetSnowDriftRange",          Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srSetSnowDriftSpeed",          Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srSetSnowFallSpeed",           Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srChangeSnowAmount",           Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srSetSnowBaseline",            Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srSetSnowTransparency",        Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srSetSnowDefaultView",         Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srSetSnowWindSpeed",           Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srSetSnowAmount",              Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srSetSnowView",                Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srChangeRainAmount",           Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srSetRainView",                Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srSetRainDefaultView",         Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srSetRainTransparency",        Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srSetRainWindSpeed",           Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srSetRainBaseline",            Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srSetRainAmount",              Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srSetRainFallSpeed",           Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srSetWindSpeed",               Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("srSetBaseline",                Sc_PluginStub_Void);
     return true;
   }
   else if (strncmp(name, "agsjoy", strlen("agsjoy")) == 0)
   {
     // agsjoy.dll
-    ccAddExternalStaticFunction("JoystickCount",                Sc_JoystickCount);
-    ccAddExternalStaticFunction("Joystick::Open^1",             Sc_Joystick_Open);
-    ccAddExternalStaticFunction("Joystick::IsButtonDown^1",     Sc_Joystick_IsButtonDown);
-    ccAddExternalStaticFunction("Joystick::EnableEvents^1",     Sc_Joystick_EnableEvents);
-    ccAddExternalStaticFunction("Joystick::DisableEvents^0",    Sc_Joystick_DisableEvents);
-    ccAddExternalStaticFunction("Joystick::Click^1",            Sc_Joystick_Click);
-    ccAddExternalStaticFunction("Joystick::Valid^0",            Sc_Joystick_Valid);
-    ccAddExternalStaticFunction("Joystick::Unplugged^0",        Sc_Joystick_Unplugged);
+    ccAddExternalStaticFunction("JoystickCount",                Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("Joystick::Open^1",             Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("Joystick::IsButtonDown^1",     Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("Joystick::EnableEvents^1",     Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("Joystick::DisableEvents^0",    Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("Joystick::Click^1",            Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("Joystick::Valid^0",            Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("Joystick::Unplugged^0",        Sc_PluginStub_Int0);
     return true;
   }
   else if (strncmp(name, "agsblend", strlen("agsblend")) == 0)
   {
     // agsblend.dll
-    ccAddExternalStaticFunction("DrawAlpha",                    Sc_DrawAlpha);
-    ccAddExternalStaticFunction("GetAlpha",                     Sc_GetAlpha);
-    ccAddExternalStaticFunction("PutAlpha",                     Sc_PutAlpha);
-    ccAddExternalStaticFunction("Blur",                         Sc_Blur);
-    ccAddExternalStaticFunction("HighPass",                     Sc_HighPass);
-    ccAddExternalStaticFunction("DrawAdd",                      Sc_DrawAdd);
+    ccAddExternalStaticFunction("DrawAlpha",                    Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("GetAlpha",                     Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("PutAlpha",                     Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("Blur",                         Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("HighPass",                     Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("DrawAdd",                      Sc_PluginStub_Int0);
     return true;
   }
   else if (strncmp(name, "agsflashlight", strlen("agsflashlight")) == 0)
   {
     // agsflashlight.dll
-    ccAddExternalStaticFunction("SetFlashlightTint",            Sc_SetFlashlightInt3);
-    ccAddExternalStaticFunction("GetFlashlightTintRed",         Sc_GetFlashlightInt);
-    ccAddExternalStaticFunction("GetFlashlightTintGreen",       Sc_GetFlashlightInt);
-    ccAddExternalStaticFunction("GetFlashlightTintBlue",        Sc_GetFlashlightInt);
-    ccAddExternalStaticFunction("GetFlashlightMinLightLevel",   Sc_GetFlashlightInt);
-    ccAddExternalStaticFunction("GetFlashlightMaxLightLevel",   Sc_GetFlashlightInt);
-    ccAddExternalStaticFunction("SetFlashlightDarkness",        Sc_SetFlashlightInt1);
-    ccAddExternalStaticFunction("GetFlashlightDarkness",        Sc_GetFlashlightInt);
-    ccAddExternalStaticFunction("SetFlashlightDarknessSize",    Sc_SetFlashlightInt1);
-    ccAddExternalStaticFunction("GetFlashlightDarknessSize",    Sc_GetFlashlightInt);
-    ccAddExternalStaticFunction("SetFlashlightBrightness",      Sc_SetFlashlightInt1);
-    ccAddExternalStaticFunction("GetFlashlightBrightness",      Sc_GetFlashlightInt);
-    ccAddExternalStaticFunction("SetFlashlightBrightnessSize",  Sc_SetFlashlightInt1);
-    ccAddExternalStaticFunction("GetFlashlightBrightnessSize",  Sc_GetFlashlightInt);
-    ccAddExternalStaticFunction("SetFlashlightPosition",        Sc_SetFlashlightInt2);
-    ccAddExternalStaticFunction("GetFlashlightPositionX",       Sc_GetFlashlightInt);
-    ccAddExternalStaticFunction("GetFlashlightPositionY",       Sc_GetFlashlightInt);
-    ccAddExternalStaticFunction("SetFlashlightFollowMouse",     Sc_SetFlashlightInt1);
-    ccAddExternalStaticFunction("GetFlashlightFollowMouse",     Sc_GetFlashlightInt);
-    ccAddExternalStaticFunction("SetFlashlightFollowCharacter", Sc_SetFlashlightInt5);
-    ccAddExternalStaticFunction("GetFlashlightFollowCharacter", Sc_GetFlashlightInt);
-    ccAddExternalStaticFunction("GetFlashlightCharacterDX",     Sc_GetFlashlightInt);
-    ccAddExternalStaticFunction("GetFlashlightCharacterDY",     Sc_GetFlashlightInt);
-    ccAddExternalStaticFunction("GetFlashlightCharacterHorz",   Sc_GetFlashlightInt);
-    ccAddExternalStaticFunction("GetFlashlightCharacterVert",   Sc_GetFlashlightInt);
-    ccAddExternalStaticFunction("SetFlashlightMask",            Sc_SetFlashlightInt1);
-    ccAddExternalStaticFunction("GetFlashlightMask",            Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("SetFlashlightTint",            Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("GetFlashlightTintRed",         Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("GetFlashlightTintGreen",       Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("GetFlashlightTintBlue",        Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("GetFlashlightMinLightLevel",   Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("GetFlashlightMaxLightLevel",   Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("SetFlashlightDarkness",        Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("GetFlashlightDarkness",        Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("SetFlashlightDarknessSize",    Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("GetFlashlightDarknessSize",    Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("SetFlashlightBrightness",      Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("GetFlashlightBrightness",      Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("SetFlashlightBrightnessSize",  Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("GetFlashlightBrightnessSize",  Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("SetFlashlightPosition",        Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("GetFlashlightPositionX",       Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("GetFlashlightPositionY",       Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("SetFlashlightFollowMouse",     Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("GetFlashlightFollowMouse",     Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("SetFlashlightFollowCharacter", Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("GetFlashlightFollowCharacter", Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("GetFlashlightCharacterDX",     Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("GetFlashlightCharacterDY",     Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("GetFlashlightCharacterHorz",   Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("GetFlashlightCharacterVert",   Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("SetFlashlightMask",            Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("GetFlashlightMask",            Sc_PluginStub_Int0);
     return true;
   }
   else if (strncmp(name, "agswadjetutil", strlen("agswadjetutil")) == 0)
   {
     // agswadjetutil.dll
-    ccAddExternalStaticFunction("IsOnPhone",                    Sc_wjuIsOnPhone);
-    ccAddExternalStaticFunction("FakeKeypress",                 Sc_wjuFakeKeypress);
-    ccAddExternalStaticFunction("IosSetAchievementValue",       Sc_wjuIosSetAchievementValue);
-    ccAddExternalStaticFunction("IosGetAchievementValue",       Sc_wjuIosGetAchievementValue);
-    ccAddExternalStaticFunction("IosShowAchievements",          Sc_wjuIosShowAchievements);
-    ccAddExternalStaticFunction("IosResetAchievements",         Sc_wjuIosResetAchievements);
+    ccAddExternalStaticFunction("IsOnPhone",                    Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("FakeKeypress",                 Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("IosSetAchievementValue",       Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("IosGetAchievementValue",       Sc_PluginStub_IntNeg1);
+    ccAddExternalStaticFunction("IosShowAchievements",          Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("IosResetAchievements",         Sc_PluginStub_Void);
     return true;
   }
 

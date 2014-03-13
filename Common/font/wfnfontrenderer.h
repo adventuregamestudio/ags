@@ -17,11 +17,13 @@
 
 #include "font/agsfontrenderer.h"
 
+class WFNFont;
+
 class WFNFontRenderer : public IAGSFontRenderer {
 public:
   virtual bool LoadFromDisk(int fontNumber, int fontSize);
   virtual void FreeMemory(int fontNumber);
-  virtual bool SupportsExtendedCharacters(int fontNumber) { return false; }
+  virtual bool SupportsExtendedCharacters(int fontNumber);
   virtual int GetTextWidth(const char *text, int fontNumber);
   virtual int GetTextHeight(const char *text, int fontNumber);
   virtual void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) ;
@@ -29,7 +31,7 @@ public:
   virtual void EnsureTextValidForFont(char *text, int fontNumber);
 
 private:
-    int printchar(Common::Bitmap *ds, int xxx, int yyy, wgtfont foo, color_t text_color, int charr);
+    int printchar(Common::Bitmap *ds, int xxx, int yyy, WFNFont *foo, color_t text_color, int charr);
 };
 
 extern WFNFontRenderer wfnRenderer;

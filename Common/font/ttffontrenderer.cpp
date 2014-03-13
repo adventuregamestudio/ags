@@ -48,7 +48,7 @@ TTFFontRenderer ttfRenderer;
 
 #ifdef USE_ALFONT
 ALFONT_FONT *tempttffnt;
-ALFONT_FONT *get_ttf_block(wgtfont fontptr)
+ALFONT_FONT *get_ttf_block(IFont *fontptr)
 {
   memcpy(&tempttffnt, &fontptr[4], sizeof(tempttffnt));
   return tempttffnt;
@@ -136,7 +136,7 @@ bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   if (fontSize > 0)
     alfont_set_font_size(alfptr, fontSize);
 
-  wgtfont tempalloc = (wgtfont) malloc(20);
+  IFont *tempalloc = (IFont*) malloc(20);
   strcpy((char *)tempalloc, "TTF");
   memcpy(&((char *)tempalloc)[4], &alfptr, sizeof(alfptr));
   fonts[fontNumber] = tempalloc;

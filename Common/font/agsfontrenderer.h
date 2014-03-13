@@ -17,7 +17,7 @@
 
 #include "ac/gamestructdefines.h"
 
-typedef unsigned char* wgtfont;
+typedef unsigned char IFont;
 struct BITMAP;
 
 // WARNING: this interface is exposed for plugins and declared for the second time in agsplugin.h
@@ -38,6 +38,6 @@ public:
 };
 
 extern IAGSFontRenderer* fontRenderers[MAX_FONTS];
-extern wgtfont fonts[MAX_FONTS];
+extern IFont *fonts[MAX_FONTS];
 
 #endif // __AC_AGSFONTRENDERER_H

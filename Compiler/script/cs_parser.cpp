@@ -4195,6 +4195,10 @@ startvarbit:
                 targ.getnext(); // Skip the (
                 cursym = targ.getnext();
                 if (sym.get_type(cursym) != SYM_SEMICOLON) {
+                    if(sym.get_type(cursym) == SYM_CLOSEPARENTHESIS) {
+                        cc_error("Missing ';' inside for loop declaration");
+                        return -1;
+                    }
                     lilen = extract_variable_name(cursym, &targ, &vnlist[0], &funcAtOffs);
                     if (lilen < 0)
                         return -1;
@@ -4204,6 +4208,10 @@ startvarbit:
                 long oriaddr = scrip->codesize;
                 bool hasLimitCheck;
                 if (sym.get_type(targ.peeknext()) != SYM_SEMICOLON) {
+                    if(sym.get_type(targ.peeknext()) == SYM_CLOSEPARENTHESIS) {
+                        cc_error("Missing ';' inside for loop declaration");
+                        return -1;
+                    }
                     hasLimitCheck = true;
                     if (evaluate_expression(&targ,scrip,0,false))
                         return -1;

@@ -470,7 +470,7 @@ namespace AGS.Editor
 
 		public void GoToLine(int lineNumber)
 		{
-			GoToLine(lineNumber, true, false);
+			GoToLine(lineNumber, false, false);
 		}
 
         public void GoToLine(int lineNumber, bool selectLine, bool goToLineAfterOpeningBrace)

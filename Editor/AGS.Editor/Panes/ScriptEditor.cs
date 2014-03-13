@@ -124,7 +124,7 @@ namespace AGS.Editor
             _extraMenu.Commands.Add(new MenuCommand(SHOW_AUTOCOMPLETE_COMMAND, "Show Autocomplete", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Space, "ShowAutocompleteMenuIcon"));
             _extraMenu.Commands.Add(new MenuCommand(TOGGLE_BREAKPOINT_COMMAND, "Toggle Breakpoint", System.Windows.Forms.Keys.F9, "ToggleBreakpointMenuIcon"));
             _extraMenu.Commands.Add(new MenuCommand(MATCH_BRACE_COMMAND, "Match Brace", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.B));
-            _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Goto Line", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G));
+            _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Go to Line...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G));
             _extraMenu.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.M));
 
             this.Resize += new EventHandler(ScriptEditor_Resize);
@@ -618,9 +618,9 @@ namespace AGS.Editor
             {
                 GotoLineDialog gotoLineDialog = new GotoLineDialog
                 {
-                    Minimum = 0,
+                    Minimum = 1,
                     Maximum = scintilla.LineCount,
-                    LineNumber = scintilla.CurrentLine
+                    LineNumber = scintilla.CurrentLine + 1
                 };
                 if (gotoLineDialog.ShowDialog() != DialogResult.OK) return;
                 GoToLine(gotoLineDialog.LineNumber);

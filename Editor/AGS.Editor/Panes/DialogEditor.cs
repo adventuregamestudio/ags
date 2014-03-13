@@ -194,12 +194,13 @@ namespace AGS.Editor
             {
                 GotoLineDialog gotoLineDialog = new GotoLineDialog 
                 {
-                    Minimum = 0,
+                    Minimum = 1,
                     Maximum = scintillaEditor.LineCount,
-                    LineNumber = scintillaEditor.CurrentLine
+                    LineNumber = scintillaEditor.CurrentLine + 1
                 };
                 if (gotoLineDialog.ShowDialog() != DialogResult.OK) return;
-                scintillaEditor.GoToLine(gotoLineDialog.LineNumber); 
+                scintillaEditor.GoToLine(gotoLineDialog.LineNumber);
+                scintillaEditor.SelectCurrentLine();
             }
         }
 

@@ -13,6 +13,17 @@ namespace AGS.Editor
         public GotoLineDialog()
         {
             InitializeComponent();
+            (this.upDownLineNumber.Controls[1] as TextBox).Enter += upDownLineNumber_Controls1_Enter;
+        }
+
+        private delegate void Action();
+
+        private void upDownLineNumber_Controls1_Enter(object sender, EventArgs e)
+        {
+            BeginInvoke((Action)(() =>
+            {
+                (this.upDownLineNumber.Controls[1] as TextBox).SelectAll();
+            }));
         }
 
         public int LineNumber

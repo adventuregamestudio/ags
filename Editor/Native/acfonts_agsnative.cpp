@@ -9,9 +9,6 @@
 #endif
 #include "util/wgt2allg.h"
 #include "ac/gamesetupstruct.h"
-#include "util/filestream.h"
-
-using AGS::Common::Stream;
 
 //=============================================================================
 // AGS.Native-specific implementation split out of acfonts.cpp
@@ -34,15 +31,4 @@ void set_our_eip(int eip)
 int get_our_eip()
 {
   return 0;
-}
-
-Stream *fopen_shared(char *filnamm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
-{
-  return Common::File::OpenFile(filnamm, open_mode, work_mode);
-}
-
-int flength_shared(Stream *ffi)
-{
-  // in the editor, we don't read from clib, only from disk
-  return ffi->GetLength();
 }

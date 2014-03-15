@@ -16,28 +16,22 @@
 #define USE_ALFONT
 #endif
 
-#include <stdio.h>
 #include "alfont.h"
 #include "ac/common.h"
+#include "core/assetmanager.h"
 #include "font/fonts.h"
-#include "font/wfnfont.h"
 #include "font/wfnfontrenderer.h"
-#include "util/stream.h"
-#include "util/file.h"
-#include "util/bbop.h"
 #include "gfx/allegrobitmap.h"
-#include "util/wgt2allg.h"
+#include "util/file.h"
+#include "util/stream.h"
+#include "util/string.h"
 
+using AGS::Common::AssetManager;
 using AGS::Common::Bitmap;
 using AGS::Common::Stream;
-using namespace AGS; // FIXME later
+using AGS::Common::String;
 
-extern Stream *fopen_shared(char *,
-                                 Common::FileOpenMode open_mode = Common::kFile_Open,
-                                 Common::FileWorkMode work_mode = Common::kFile_Read);
-extern int flength_shared(Stream *ffi);
 WFNFontRenderer wfnRenderer;
-
 
 void WFNFontRenderer::AdjustYCoordinateForFont(int *ycoord, int fontNumber)
 {
@@ -46,129 +40,111 @@ void WFNFontRenderer::AdjustYCoordinateForFont(int *ycoord, int fontNumber)
 
 void WFNFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 {
-  WFNFont *font = (WFNFont*)fonts[fontNumber];
+  const WFNFont *font = (WFNFont*)fonts[fontNumber];
   // replace any extended characters with question marks
-  while (text[0]!=0) {
-    if ((unsigned char)text[0] >= font->CharCount) 
+  for (; *text; ++text)
+  {
+    if ((unsigned char)*text >= font->GetCharCount()) 
     {
-      text[0] = '?';
+      *text = '?';
     }
-    text++;
   }
 }
 
-int WFNFontRenderer::GetTextWidth(const char *texx, int fontNumber)
+int WFNFontRenderer::GetTextWidth(const char *text, int fontNumber)
 {
-  WFNFont *foon = (WFNFont*)fonts[fontNumber];
+  const WFNFont *font = (WFNFont*)fonts[fontNumber];
+  int text_width = 0;
 
-  int totlen = 0;
-  unsigned int dd;
-
-  unsigned char thisCharacter;
-  for (dd = 0; dd < strlen(texx); dd++) 
+  for (; *text; ++text)
   {
-    thisCharacter = texx[dd];
-    if (thisCharacter >= foon->CharCount) thisCharacter = '?';
-
-    WFNFont::WFNChar &wfn_char = foon->Chars[thisCharacter];
-    totlen += wfn_char.Width;
+    const WFNFont::WFNChar &wfn_char = font->GetChar(GetCharCode(*text, font));
+    text_width += wfn_char.Width;
   }
-  return totlen * wtext_multiply;
+  return text_width * wtext_multiply;
 }
 
-int WFNFontRenderer::GetTextHeight(const char *texx, int fontNumber)
+int WFNFontRenderer::GetTextHeight(const char *text, int fontNumber)
 {
-  int highest = 0;
-  unsigned int dd;
-  WFNFont *foon = (WFNFont*)fonts[fontNumber];
+  const WFNFont *font = (WFNFont*)fonts[fontNumber];
+  int max_height = 0;
 
-  unsigned char thisCharacter;
-  for (dd = 0; dd < strlen(texx); dd++) 
+  for (; *text; ++text) 
   {
-    thisCharacter = texx[dd];
-    if (thisCharacter >= foon->CharCount) thisCharacter = '?';
-
-    WFNFont::WFNChar &wfn_char = foon->Chars[thisCharacter];
-    int charHeight = wfn_char.Height;
-
-    if (charHeight > highest)
-      highest = charHeight;
+    const WFNFont::WFNChar &wfn_char = font->GetChar(GetCharCode(*text, font));
+    const uint16_t height = wfn_char.Height;
+    if (height > max_height)
+      max_height = height;
   }
-  return highest * wtext_multiply;
+  return max_height * wtext_multiply;
 }
 
 Common::Bitmap render_wrapper;
 void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
-  unsigned int ee;
-
   int oldeip = get_our_eip();
   set_our_eip(415);
 
+  const WFNFont *font = (WFNFont*)fonts[fontNumber];
   render_wrapper.WrapAllegroBitmap(destination, true);
 
-  for (ee = 0; ee < strlen(text); ee++)
-    x += printchar(&render_wrapper, x, y, (WFNFont*)fonts[fontNumber], colour, (unsigned char)text[ee]);
+  for (; *text; ++text)
+    x += RenderChar(&render_wrapper, x, y, font->GetChar(GetCharCode(*text, font)), colour);
 
   set_our_eip(oldeip);
 }
 
-int WFNFontRenderer::printchar(Common::Bitmap *ds, int xxx, int yyy, WFNFont *foo, color_t text_color, int charr)
+int WFNFontRenderer::RenderChar(Common::Bitmap *ds, const int at_x, const int at_y, const WFNFont::WFNChar &wfn_char, const color_t text_color)
 {
-  unsigned char *actdata;
-  int tt, ss, bytewid, orixp = xxx;
+  const int width = wfn_char.Width;
+  const int height = wfn_char.Height;
+  const unsigned char *actdata = wfn_char.Data;
+  const int bytewid = wfn_char.GetRowByteCount();
 
-  if (charr >= foo->CharCount)
-    charr = '?';
-
-  WFNFont::WFNChar &wfn_char = foo->Chars[charr];
-  int charWidth = wfn_char.Width;
-  int charHeight = wfn_char.Height;
-
-  actdata = wfn_char.Data;
-  bytewid = ((charWidth - 1) / 8) + 1;
-
-  // MACPORT FIX: switch now using charWidth and charHeight
-  color_t draw_color = text_color;
-  for (tt = 0; tt < charHeight; tt++) {
-    for (ss = 0; ss < charWidth; ss++) {
-      if (((actdata[tt * bytewid + (ss / 8)] & (0x80 >> (ss % 8))) != 0)) {
-        if (wtext_multiply > 1) {
-          ds->FillRect(Rect(xxx + ss, yyy + tt, xxx + ss + (wtext_multiply - 1),
-              yyy + tt + (wtext_multiply - 1)), draw_color);
+  int x = at_x;
+  int y = at_y;
+  for (int h = 0; h < height; ++h)
+  {
+    for (int w = 0; w < width; ++w)
+    {
+      if (((actdata[h * bytewid + (w / 8)] & (0x80 >> (w % 8))) != 0)) {
+        if (wtext_multiply > 1)
+        {
+          ds->FillRect(Rect(x + w, y + h, x + w + (wtext_multiply - 1),
+              y + h + (wtext_multiply - 1)), text_color);
         } 
         else
         {
-            ds->PutPixel(xxx + ss, yyy + tt, draw_color);
+          ds->PutPixel(x + w, y + h, text_color);
         }
       }
 
-      xxx += wtext_multiply - 1;
+      x += wtext_multiply - 1;
     }
-    yyy += wtext_multiply - 1;
-    xxx = orixp;
+    y += wtext_multiply - 1;
+    x = at_x;
   }
-  return charWidth * wtext_multiply;
+  return width * wtext_multiply;
 }
 
 bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 {
-  char filnm[20];
+  String file_name;
   Stream *ffi = NULL;
 
-  sprintf(filnm, "agsfnt%d.wfn", fontNumber);
-  ffi = fopen_shared(filnm);
+  file_name.Format("agsfnt%d.wfn", fontNumber);
+  ffi = AssetManager::OpenAsset(file_name);
   if (ffi == NULL)
   {
     // actual font not found, try font 0 instead
-    strcpy(filnm, "agsfnt0.wfn");
-    ffi = fopen_shared(filnm);
+    file_name = "agsfnt0.wfn";
+    ffi = AssetManager::OpenAsset(file_name);
     if (ffi == NULL)
       return false;
   }
 
   WFNFont *font = new WFNFont();
-  bool result = font->ReadFromFile(ffi, flength_shared(ffi));
+  bool result = font->ReadFromFile(ffi, AssetManager::GetLastAssetSize());
   delete ffi;
   if (!result)
   {
@@ -187,6 +163,6 @@ void WFNFontRenderer::FreeMemory(int fontNumber)
 
 bool WFNFontRenderer::SupportsExtendedCharacters(int fontNumber)
 {
-  WFNFont *font = (WFNFont*)fonts[fontNumber];
-  return font->CharCount > 128;
+  const WFNFont *font = (WFNFont*)fonts[fontNumber];
+  return font->GetCharCount() > 128;
 }

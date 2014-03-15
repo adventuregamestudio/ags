@@ -28,25 +28,34 @@ WFNFont::WFNChar::WFNChar()
 {
 }
 
+WFNFont::WFNChar WFNFont::_emptyChar;
+
 WFNFont::WFNFont()
-    : CharCount(0)
-    , Chars(NULL)
-    , CharData(NULL)
+    : _charCount(0)
+    , _chars(NULL)
+    , _charData(NULL)
 {
 }
 
 WFNFont::~WFNFont()
 {
-    delete [] Chars;
-    delete [] CharData;
+    Clear();
+}
+
+void WFNFont::Clear()
+{
+    delete [] _chars;
+    delete [] _charData;
 }
 
 bool WFNFont::ReadFromFile(Stream *in, const size_t data_size)
 {
+    Clear();
+
     const size_t used_data_size = data_size > 0 ? data_size : in->GetLength();
 
     char sig[WFN_FILE_SIG_LENGTH];
-    in->ReadArray(sig, WFN_FILE_SIG_LENGTH, 1);
+    in->Read(sig, WFN_FILE_SIG_LENGTH);
     if (strncmp(sig, WFN_FILE_SIGNATURE, WFN_FILE_SIG_LENGTH) != 0)
         return false; // bad format
 
@@ -55,23 +64,23 @@ bool WFNFont::ReadFromFile(Stream *in, const size_t data_size)
         return false; // bad table address
 
     const size_t offset_table_size = used_data_size - table_addr; // size of offset table
-    CharCount = offset_table_size / sizeof(uint16_t);
+    _charCount = offset_table_size / sizeof(uint16_t);
     const size_t total_char_data = used_data_size - offset_table_size - WFN_FILE_SIG_LENGTH - sizeof(int16_t);
-    const size_t char_pixel_data_size = total_char_data - sizeof(uint16_t) * 2 * CharCount;
+    const size_t char_pixel_data_size = total_char_data - sizeof(uint16_t) * 2 * _charCount;
 
     // Read characters array
-    Chars = new WFNChar[CharCount];
-    CharData = new uint8_t[char_pixel_data_size];
-    WFNChar *char_ptr = Chars;
-    uint8_t *char_data_ptr = CharData;
-    for (size_t i = 0; i < CharCount; ++i, ++char_ptr)
+    _chars = new WFNChar[_charCount];
+    _charData = new uint8_t[char_pixel_data_size];
+    WFNChar *char_ptr = _chars;
+    uint8_t *char_data_ptr = _charData;
+    for (size_t i = 0; i < _charCount; ++i, ++char_ptr)
     {
         char_ptr->Width = in->ReadInt16();
         char_ptr->Height = in->ReadInt16();
         if (char_ptr->Width == 0 || char_ptr->Height == 0)
             continue;
         char_ptr->Data = char_data_ptr;
-        const size_t char_data_size = ((char_ptr->Width - 1) / 8 + 1) * char_ptr->Height;
+        const size_t char_data_size = char_ptr->GetRequiredDataSize();
         in->Read(char_data_ptr, char_data_size);
         char_data_ptr += char_data_size;
     }

@@ -19,27 +19,17 @@
 #include <stdio.h>
 #include "alfont.h"
 #include "ac/gamestructdefines.h" //FONT_OUTLINE_AUTO
+#include "core/assetmanager.h"
 #include "font/ttffontrenderer.h"
 #include "util/stream.h"
-#include "gfx/bitmap.h"
-#include "core/assetmanager.h"
-#include "util/wgt2allg.h"
+#include "util/string.h"
 
-using AGS::Common::Bitmap;
+using AGS::Common::AssetManager;
 using AGS::Common::Stream;
+using AGS::Common::String;
 
 // project-specific implementation
 extern bool ShouldAntiAliasText();
-
-#if !defined (WINDOWS_VERSION)
-#include <sys/stat.h>
-#define _fileno fileno
-off_t _filelength(int fd) {
-	struct stat st;
-	fstat(fd, &st);
-	return st.st_size;
-}
-#endif
 
 // Defined in the engine or editor (currently needed only for non-windows versions)
 extern void set_font_outline(int font_number, int outline_type);
@@ -95,23 +85,14 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
 
 bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 {
-  char filnm[20];
-  sprintf(filnm, "agsfnt%d.ttf", fontNumber);
-
-  // we read the font in manually to make it load from library file
-  Stream *reader = Common::AssetManager::OpenAsset(filnm);
+  String file_name = String::FromFormat("agsfnt%d.ttf", fontNumber);
+  Stream *reader = AssetManager::OpenAsset(file_name);
   char *membuffer;
 
   if (reader == NULL)
     return false;
 
-  long lenof = Common::AssetManager::GetAssetSize(filnm);
-
-  // if not in the library, get size manually
-  if (lenof < 1)
-  {
-	  lenof = reader->GetLength();
-  }
+  long lenof = AssetManager::GetLastAssetSize();
 
   membuffer = (char *)malloc(lenof);
   reader->ReadArray(membuffer, lenof, 1);
@@ -123,6 +104,7 @@ bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   if (alfptr == NULL)
     return false;
 
+  // TODO: move this somewhere, should not be right here
 #if !defined(WINDOWS_VERSION)
   // Check for the LucasFan font since it comes with an outline font that
   // is drawn incorrectly with Freetype versions > 2.1.3.
@@ -140,7 +122,6 @@ bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   strcpy((char *)tempalloc, "TTF");
   memcpy(&((char *)tempalloc)[4], &alfptr, sizeof(alfptr));
   fonts[fontNumber] = tempalloc;
-
   return true;
 }
 

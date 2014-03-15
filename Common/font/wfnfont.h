@@ -42,24 +42,47 @@ class WFNFont
 public:
     struct WFNChar
     {
-        uint16_t  Width;
-        uint16_t  Height;
-        uint8_t  *Data;
+        uint16_t       Width;
+        uint16_t       Height;
+        const uint8_t *Data;
 
         WFNChar();
+        inline size_t GetRowByteCount() const
+        {
+            return ((Width - 1) / 8 + 1);
+        }
+        inline size_t GetRequiredDataSize() const
+        {
+            return GetRowByteCount() * Height;
+        }
     };
 
 public:
     WFNFont();
     ~WFNFont();
 
+    inline uint16_t GetCharCount() const
+    {
+        return _charCount;
+    }
+
+    // Get WFN character for the given code; if the character is missing, returns empty character
+    inline const WFNChar &GetChar(uint8_t code) const
+    {
+        return code < _charCount ? _chars[code] : _emptyChar;
+    }
+
+    void Clear();
     // Reads WFNFont object, using data_size bytes from stream; if data_size = 0,
     // the available stream's length is used instead. Returns false on error.
-    bool ReadFromFile(AGS::Common::Stream *in, const size_t data_size);
+    bool ReadFromFile(AGS::Common::Stream *in, const size_t data_size = 0);
 
-    uint16_t  CharCount;
-    WFNChar  *Chars;
-    uint8_t  *CharData;
+protected:
+    uint16_t  _charCount;
+    WFNChar  *_chars;
+    uint8_t  *_charData;
+
+    static WFNChar _emptyChar;
 };
 
 #endif // __AGS_CN_FONT__WFNFONT_H

@@ -1444,6 +1444,7 @@ namespace AGS.Editor
 				SetFolderListDropHighlight(target);
 				if (target != null)
 				{
+					target.Expand();
 					e.Effect = DragDropEffects.Move;
 				}
 				else

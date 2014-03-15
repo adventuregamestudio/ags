@@ -67,6 +67,7 @@ namespace AGS.Editor
 		private string _lastImportedFileName = null;
         private SpriteUsageChecker _spriteUsageChecker = new SpriteUsageChecker();
         private Timer _timer;
+        private TreeNode _dropHighlight;
 
         public SpriteSelector()
         {
@@ -1435,9 +1436,13 @@ namespace AGS.Editor
 
 		private void folderList_DragOver(object sender, DragEventArgs e)
 		{
+			TreeNode target;
+
 			if (e.Data.GetDataPresent(typeof(SpriteManagerDragDropData)))
 			{
-				if (GetMouseOverFolder(e.X, e.Y) != null)
+				target = GetMouseOverTreeNode(e.X, e.Y);
+				SetFolderListDropHighlight(target);
+				if (target != null)
 				{
 					e.Effect = DragDropEffects.Move;
 				}
@@ -1445,6 +1450,28 @@ namespace AGS.Editor
 				{
 					e.Effect = DragDropEffects.None;
 				}
+			}
+		}
+
+		private void SetFolderListDropHighlight(TreeNode target)
+		{
+			if (_dropHighlight != target)
+			{
+				if (_dropHighlight != null)
+				{
+					_dropHighlight.BackColor = Color.Empty;
+					_dropHighlight.ForeColor = Color.Empty;
+				}
+				if (target != null)
+				{
+					folderList.HideSelection = target == folderList.SelectedNode;
+					target.BackColor = SystemColors.Highlight;
+					target.ForeColor = SystemColors.HighlightText;
+				}
+				else
+					if (_dropHighlight == folderList.SelectedNode)
+						folderList.HideSelection = false;
+				_dropHighlight = target;
 			}
 		}
 
@@ -1465,13 +1492,25 @@ namespace AGS.Editor
 			{
 				draggedInto.Sprites.Add(draggedSprite);
 			}
+			SetFolderListDropHighlight(null);
 			RefreshSpriteDisplay();
+		}
+
+		private void folderList_DragLeave(object sender, EventArgs e)
+		{
+			SetFolderListDropHighlight(null);
+		}
+
+		private TreeNode GetMouseOverTreeNode(int screenX, int screenY)
+		{
+			Point locationInControl = folderList.PointToClient(new Point(screenX, screenY));
+
+			return folderList.HitTest(locationInControl).Node;
 		}
 
 		private SpriteFolder GetMouseOverFolder(int screenX, int screenY)
 		{
-			Point locationInControl = folderList.PointToClient(new Point(screenX, screenY));
-			TreeNode draggedIntoFolder = folderList.HitTest(locationInControl).Node;
+			TreeNode draggedIntoFolder = GetMouseOverTreeNode(screenX, screenY);
 			if (draggedIntoFolder == null)
 			{
 				return null;

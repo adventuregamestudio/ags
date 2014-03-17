@@ -238,6 +238,7 @@
     <Compile Include="AGSColor.cs" />
     <Compile Include="AudioClipType.cs" />
     <Compile Include="BaseFolderCollection.cs" />
+    <Compile Include="Enums\BuildConfiguration.cs" />
     <Compile Include="Enums\SpriteAlphaStyle.cs" />
     <Compile Include="HelperTypes\BindingListWithRemoving.cs" />
     <Compile Include="CharacterFolder.cs" />

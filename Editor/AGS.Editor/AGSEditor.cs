@@ -1104,6 +1104,23 @@ namespace AGS.Editor
 			throw new AGSEditorException("Unable to find drive for game path: " + _game.DirectoryPath);
 		}
 
+		public bool NeedsRebuildForDebugMode()
+		{
+			bool result;
+			BuildConfiguration pending;
+
+			pending = this._game.Settings.DebugMode ? BuildConfiguration.Debug : BuildConfiguration.Release;
+			if (this._game.Settings.LastBuildConfiguration != pending)
+			{
+				result = true;
+				this._game.Settings.LastBuildConfiguration = pending;
+			}
+			else
+				result = false;
+
+			return result;
+		}
+
 		public CompileMessages CompileGame(bool forceRebuild, bool createMiniExeForDebug)
         {
             Factory.GUIController.ClearOutputPanel();

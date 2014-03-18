@@ -71,8 +71,10 @@ bool WFNFont::ReadFromFile(Stream *in, const size_t data_size)
     // Read characters array
     _chars = new WFNChar[_charCount];
     _charData = new uint8_t[char_pixel_data_size];
+
     WFNChar *char_ptr = _chars;
     uint8_t *char_data_ptr = _charData;
+    const uint8_t *char_data_end = _charData + char_pixel_data_size;
     for (size_t i = 0; i < _charCount; ++i, ++char_ptr)
     {
         char_ptr->Width = in->ReadInt16();
@@ -81,6 +83,9 @@ bool WFNFont::ReadFromFile(Stream *in, const size_t data_size)
             continue;
         char_ptr->Data = char_data_ptr;
         const size_t char_data_size = char_ptr->GetRequiredDataSize();
+        // detect bad format: required character data exceeds available stream length
+        if (char_data_ptr + char_data_size > char_data_end)
+            return false;
         in->Read(char_data_ptr, char_data_size);
         char_data_ptr += char_data_size;
     }

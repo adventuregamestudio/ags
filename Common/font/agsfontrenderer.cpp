@@ -20,4 +20,4 @@
 #include "font/agsfontrenderer.h"
 
 IAGSFontRenderer* fontRenderers[MAX_FONTS];
-wgtfont fonts[MAX_FONTS];
+IFont *fonts[MAX_FONTS];

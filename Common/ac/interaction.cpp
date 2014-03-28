@@ -195,6 +195,8 @@ void NewInteraction::ReadFromFile(Stream *in)
     // it's all ints! <- JJS: No, it's not! There are pointer too.
 
   numEvents = in->ReadInt32();
+  if (numEvents > MAX_NEWINTERACTION_EVENTS)
+      quit("Error: can't deserialize interaction: too many events");
   in->ReadArray(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS);
   in->ReadArray(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS);
 
@@ -288,7 +290,7 @@ NewInteraction *deserialize_new_interaction (Stream *in) {
   nitemp = new NewInteraction;
   nitemp->numEvents = in->ReadInt32();
   if (nitemp->numEvents > MAX_NEWINTERACTION_EVENTS) {
-    quit("Error: this interaction was saved with a newer version of AGS");
+    quit("Error: can't deserialize interaction: too many events");
     return NULL;
   }
   in->ReadArrayOfInt32 (&nitemp->eventTypes[0], nitemp->numEvents);

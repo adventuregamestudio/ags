@@ -177,7 +177,7 @@ void NewInteraction::copy_timesrun_from (NewInteraction *nifrom) {
     memcpy (&timesRun[0], &nifrom->timesRun[0], sizeof(int) * MAX_NEWINTERACTION_EVENTS);
 }
 void NewInteraction::reset() {
-    for (int i = 0; i < numEvents; i++) {
+    for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++) {
         if (response[i] != NULL) {
             response[i]->reset();
             delete response[i];
@@ -196,7 +196,7 @@ void NewInteraction::ReadFromFile(Stream *in)
 
   numEvents = in->ReadInt32();
   if (numEvents > MAX_NEWINTERACTION_EVENTS)
-      quit("Error: can't deserialize interaction: too many events");
+      quit("Can't deserialize interaction: too many events");
   in->ReadArray(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS);
   in->ReadArray(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS);
 
@@ -227,10 +227,11 @@ void NewInteraction::WriteToFile(Stream *out)
 
 InteractionScripts::InteractionScripts() {
     numEvents = 0;
+    memset(scriptFuncNames, 0, sizeof(scriptFuncNames));
 }
 
 InteractionScripts::~InteractionScripts() {
-    for (int i = 0; i < numEvents; i++)
+    for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
         delete[] scriptFuncNames[i];
 }
 
@@ -290,7 +291,7 @@ NewInteraction *deserialize_new_interaction (Stream *in) {
   nitemp = new NewInteraction;
   nitemp->numEvents = in->ReadInt32();
   if (nitemp->numEvents > MAX_NEWINTERACTION_EVENTS) {
-    quit("Error: can't deserialize interaction: too many events");
+    quit("Can't deserialize interaction: too many events");
     return NULL;
   }
   in->ReadArrayOfInt32 (&nitemp->eventTypes[0], nitemp->numEvents);
@@ -312,7 +313,7 @@ void deserialize_interaction_scripts(Stream *in, InteractionScripts *scripts)
 {
   int numEvents = in->ReadInt32();
   if (numEvents > MAX_NEWINTERACTION_EVENTS)
-    quit("Too many interaction script events");
+    quit("Can't deserialize interaction scripts: too many events");
   scripts->numEvents = numEvents;
 
   String buffer;

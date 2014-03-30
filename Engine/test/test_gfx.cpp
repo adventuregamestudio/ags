@@ -23,11 +23,12 @@ void Test_Gfx()
 {
     // Test that every transparency which is a multiple of 10 is converted
     // forth and back without loosing precision
-    const int trans100[11] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
-    int trans255[11] = {0};
-    int trans100_back[11] = {0};
+    const size_t arr_sz = 11;
+    const int trans100[arr_sz] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+    int trans255[arr_sz] = {0};
+    int trans100_back[arr_sz] = {0};
 
-    for (int i = 0; i < 7; ++i)
+    for (int i = 0; i < arr_sz; ++i)
     {
         trans255[i] = GfxUtil::Trans100ToLegacyTrans255(trans100[i]);
         trans100_back[i] = GfxUtil::LegacyTrans255ToTrans100(trans255[i]);

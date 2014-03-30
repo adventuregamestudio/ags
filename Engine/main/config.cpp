@@ -324,6 +324,7 @@ void read_config_file(char *argv0) {
         {
             usetup.override_script_os = eOS_Mac;
         }
+        usetup.override_upscale = INIreadint("override", "upscale") > 0;
 
         // NOTE: at the moment AGS provide little means to determine whether an
         // option was overriden by command line, and since command line args

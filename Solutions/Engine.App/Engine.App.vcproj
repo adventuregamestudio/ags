@@ -1057,6 +1057,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\test\test_gfx.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\test\test_sprintf.cpp"
 					>
 				</File>

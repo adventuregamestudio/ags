@@ -532,14 +532,18 @@ AssetError AssetManager::ReadSingleFileAssetLib(MultiFileLib * mfl, Stream *ci_s
         return kAssetErrLibAssetCount; // too many files in clib, return error code
     }
 
+    const size_t crypt_length = 13;
+
     char clbuff[20];
-    ci_s->Read(clbuff, 13);  // skip password dooberry
+    ci_s->Read(clbuff, crypt_length);  // skip password dooberry
     // read information on contents
     for (int i = 0; i < mfl->num_files; i++)
     {
-        ci_s->Read(&mfl->filenames[i][0], 13); // CHECKME, is it really 13?
-        for (int j = 0; j < (int)strlen(mfl->filenames[i]); j++)
-            mfl->filenames[i][j] -= passwmodifier;
+        char *filename = mfl->filenames[i];
+        ci_s->Read(filename, crypt_length);
+        filename[crypt_length] = 0;
+        for (char *c = filename; *c; ++c)
+            *c -= passwmodifier;
     }
     ci_s->ReadArrayOfInt32(&mfl->length[0], mfl->num_files);
     ci_s->Seek(Common::kSeekCurrent, 2 * mfl->num_files);  // skip flags & ratio

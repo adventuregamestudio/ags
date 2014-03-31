@@ -896,12 +896,9 @@ void display_gfx_mode_error()
 
     platform->DisplayAlert("There was a problem initializing graphics mode %d x %d (%d-bit).\n"
         "(Problem: '%s')\n"
-        "Try to correct the problem, or seek help from the AGS homepage.\n"
-        "\nPossible causes:\n* your graphics card drivers do not support this resolution. "
-        "Run the game setup program and try the other resolution.\n"
-        "* the graphics driver you have selected does not work. Try switching between Direct3D and DirectDraw.\n"
-        "* the graphics filter you have selected does not work. Try another filter.",
-        initasx, initasy, firstDepth, get_allegro_error());
+        "Try to correct the problem, or seek help from the AGS homepage."
+        "%s",
+        initasx, initasy, firstDepth, get_allegro_error(), platform->GetGraphicsTroubleshootingText());
 }
 
 int graphics_mode_init()

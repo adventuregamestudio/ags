@@ -75,6 +75,17 @@ struct Size
         Height = height;
     }
 
+    inline bool IsNull() const
+    {
+        return Width <= 0 || Height <= 0;
+    }
+
+    // Indicates if current size exceeds other size by any metric
+    inline bool ExceedsByAny(const Size size) const
+    {
+        return Width > size.Width || Height > size.Height;
+    }
+
     inline bool operator==(const Size size) const
     {
         return Width == size.Width && Height == size.Height;
@@ -83,6 +94,30 @@ struct Size
     inline bool operator!=(const Size size) const
     {
         return Width != size.Width || Height != size.Height;
+    }
+
+    inline Size operator *(int x) const
+    {
+        return Size(Width * x, Height * x);
+    }
+
+    inline Size operator /(int x) const
+    {
+        return Size(Width / x, Height / x);
+    }
+
+    inline Size &operator *=(int x)
+    {
+        Width *= x;
+        Height *= x;
+        return *this;
+    }
+
+    inline Size &operator /=(int x)
+    {
+        Width *= x;
+        Height *= x;
+        return *this;
     }
 };
 

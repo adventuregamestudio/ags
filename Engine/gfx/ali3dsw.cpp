@@ -180,6 +180,7 @@ public:
   virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual IGfxModeList *GetSupportedModeList(int color_depth);
+  virtual DisplayResolution GetResolution();
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _callback = callback; }
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
   virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
@@ -220,6 +221,7 @@ public:
 private:
   volatile int* _loopTimer;
   int _screenWidth, _screenHeight;
+  int actualInitWid, actualInitHit;
   int _colorDepth;
   bool _windowed;
   bool _autoVsync;
@@ -303,6 +305,11 @@ IGfxModeList *ALSoftwareGraphicsDriver::GetSupportedModeList(int color_depth)
   return new ALSoftwareGfxModeList(_gfxModeList);
 }
 
+DisplayResolution ALSoftwareGraphicsDriver::GetResolution()
+{
+    return DisplayResolution(actualInitWid, actualInitHit, _colorDepth);
+}
+
 int ALSoftwareGraphicsDriver::GetAllegroGfxDriverID(bool windowed)
 {
 #ifdef _WIN32
@@ -330,23 +337,23 @@ void ALSoftwareGraphicsDriver::SetTintMethod(TintMethod method)
   // TODO: support new D3D-style tint method
 }
 
-bool ALSoftwareGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer)
-{
-  throw Ali3DException("this overload is not supported, you must use the normal Init method");
-}
-
 bool ALSoftwareGraphicsDriver::Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer)
 {
-  _screenWidth = width;
-  _screenHeight = height;
+    return Init(width, height, width ,height, colourDepth, windowed, loopTimer);
+}
+
+bool ALSoftwareGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer)
+{
+  _screenWidth = virtualWidth;
+  _screenHeight = virtualHeight;
   _colorDepth = colourDepth;
   _windowed = windowed;
   _loopTimer = loopTimer;
   int driver = GetAllegroGfxDriverID(windowed);
 
   set_color_depth(colourDepth);
-  int actualInitWid = width, actualInitHit = height;
-  _filter->GetRealResolution(&actualInitWid, &actualInitHit);
+  actualInitWid = realWidth, actualInitHit = realHeight;
+  //_filter->GetRealResolution(&actualInitWid, &actualInitHit);
 
   if (_initGfxCallback != NULL)
     _initGfxCallback(NULL);
@@ -362,7 +369,7 @@ bool ALSoftwareGraphicsDriver::Init(int width, int height, int colourDepth, bool
     BitmapHelper::SetScreenBitmap( _allegroScreenWrapper );
 
     BitmapHelper::GetScreenBitmap()->Clear();
-    BitmapHelper::SetScreenBitmap( _filter->ScreenInitialized(BitmapHelper::GetScreenBitmap(), width, height) );
+    BitmapHelper::SetScreenBitmap( _filter->ScreenInitialized(BitmapHelper::GetScreenBitmap(), _screenWidth, _screenHeight) );
 
     // [IKM] 2012-09-07
     // At this point the wrapper we created is saved by filter for future reference,

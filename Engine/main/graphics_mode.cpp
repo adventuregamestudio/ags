@@ -59,7 +59,7 @@ extern int force_letterbox;
 extern AGSPlatformDriver *platform;
 extern int force_16bit;
 extern IGraphicsDriver *gfxDriver;
-extern int final_scrn_wid,final_scrn_hit,final_col_dep;
+extern int final_scrn_wid,final_scrn_hit,final_col_dep, game_frame_y_offset, game_frame_borders;
 extern volatile int timerloop;
 extern IDriverDependantBitmap *blankImage;
 extern IDriverDependantBitmap *blankSidebarImage;
@@ -199,34 +199,53 @@ void engine_init_screen_settings()
         if (game.default_resolution >= 6)
         {
             // 1024x768
-            usetup.base_width = 512;
-            usetup.base_height = 384;
+            //usetup.base_width = 512;
+            //usetup.base_height = 384;
+            scrnwid = 1024;
+            scrnhit = 768;
         }
         else
         {
             // 800x600
-            usetup.base_width = 400;
-            usetup.base_height = 300;
+            //usetup.base_width = 400;
+            //usetup.base_height = 300;
+            scrnwid = 800;
+            scrnhit = 600;
         }
         // don't allow letterbox mode
-        game.options[OPT_LETTERBOX] = 0;
-        force_letterbox = 0;
-        scrnwid = usetup.base_width * 2;
-        scrnhit = usetup.base_height * 2;
+        //game.options[OPT_LETTERBOX] = 0;
+        //scrnwid = usetup.base_width * 2;
+        //scrnhit = usetup.base_height * 2;
         wtext_multiply = 2;
     }
     else if ((game.default_resolution == 4) ||
         (game.default_resolution == 3))
     {
-        scrnwid = 640;
-        scrnhit = 400;
+        if (game.default_resolution == 4)
+        {
+            scrnwid = 640;
+            scrnhit = 480;
+        }
+        else
+        {
+            scrnwid = 640;
+            scrnhit = 400;
+        }
         wtext_multiply = 2;
     }
     else if ((game.default_resolution == 2) ||
         (game.default_resolution == 1))
     {
-        scrnwid = 320;
-        scrnhit = 200;
+        if ((game.default_resolution == 2))
+        {
+            scrnwid = 320;
+            scrnhit = 240;
+        }
+        else
+        {
+            scrnwid = 320;
+            scrnhit = 200;
+        }
         wtext_multiply = 1;
     }
     else
@@ -234,6 +253,17 @@ void engine_init_screen_settings()
         scrnwid = usetup.base_width;
         scrnhit = usetup.base_height;
         wtext_multiply = 1;
+    }
+
+    if (game.default_resolution > 2)
+    {
+        usetup.base_width = scrnwid / 2;
+        usetup.base_height = scrnhit / 2;
+    }
+    else
+    {
+        usetup.base_width = scrnwid;
+        usetup.base_height = scrnhit;
     }
 
     usetup.textheight = wgetfontheight(0) + 1;
@@ -250,7 +280,7 @@ void engine_init_screen_settings()
     }
 
     // save this setting so we only do 640x480 full-screen if they want it
-    usetup.want_letterbox = game.options[OPT_LETTERBOX];
+    //usetup.want_letterbox = game.options[OPT_LETTERBOX];
 
     if (force_letterbox > 0)
         game.options[OPT_LETTERBOX] = 1;
@@ -903,6 +933,9 @@ bool init_gfx_mode(const Size &game_size, const Size &screen_size, int cdep)
     final_scrn_wid = game_size.Width;
     final_scrn_hit = game_size.Height;
     final_col_dep = cdep;
+    game_frame_borders = final_scrn_hit - scrnhit;
+    game_frame_y_offset = game_frame_borders / 2;
+    usetup.want_letterbox = (final_scrn_hit > scrnhit) ? 1 : 0;
 
     if (game.color_depth == 1) {
         final_col_dep = 8;

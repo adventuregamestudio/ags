@@ -76,7 +76,7 @@ extern GameSetupStruct game;
 extern GameState play;
 extern int current_screen_resolution_multiplier;
 extern int scrnwid,scrnhit;
-extern int final_scrn_wid,final_scrn_hit,final_col_dep;
+extern int final_scrn_wid,final_scrn_hit,final_col_dep, game_frame_y_offset;
 extern ScriptSystem scsystem;
 extern AGSPlatformDriver *platform;
 extern roomstruct thisroom;
@@ -689,7 +689,7 @@ void mark_current_background_dirty()
 int get_screen_y_adjustment(Bitmap *checkFor) {
 
 	if ((BitmapHelper::GetScreenBitmap() == _sub_screen) && (checkFor->GetHeight() < final_scrn_hit))
-        return get_fixed_pixel_size(20);
+        return game_frame_y_offset;
 
     return 0;
 }
@@ -775,8 +775,8 @@ void clear_letterbox_borders() {
 
     if (multiply_up_coordinate(thisroom.height) < final_scrn_hit) {
         // blank out any traces in borders left by a full-screen room
-        gfxDriver->ClearRectangle(0, 0, _old_screen->GetWidth() - 1, get_fixed_pixel_size(20) - 1, NULL);
-        gfxDriver->ClearRectangle(0, final_scrn_hit - get_fixed_pixel_size(20), _old_screen->GetWidth() - 1, final_scrn_hit - 1, NULL);
+        gfxDriver->ClearRectangle(0, 0, _old_screen->GetWidth() - 1, game_frame_y_offset - 1, NULL);
+        gfxDriver->ClearRectangle(0, final_scrn_hit - game_frame_y_offset, _old_screen->GetWidth() - 1, final_scrn_hit - 1, NULL);
     }
 
 }

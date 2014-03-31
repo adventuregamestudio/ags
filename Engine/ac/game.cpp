@@ -1619,7 +1619,8 @@ int restore_game_header(Stream *in)
 
 int restore_game_head_dynamic_values(Stream *in, int &sg_cur_mode, int &sg_cur_cursor)
 {
-    int gamescrnhit = in->ReadInt32();
+    /*int gamescrnhit =*/ in->ReadInt32(); // gamescrnhit
+    /*
     // a 320x240 game, they saved in a 320x200 room but try to restore
     // from within a 320x240 room, make it work
     if (final_scrn_hit == (gamescrnhit * 12) / 10)
@@ -1634,6 +1635,7 @@ int restore_game_head_dynamic_values(Stream *in, int &sg_cur_mode, int &sg_cur_c
             "resolution. It cannot be restored.");
         return -6;
     }
+    */
 
     if (in->ReadInt32() != final_col_dep) {
         Display("This game was saved with the engine running at a different colour depth. It cannot be restored.");

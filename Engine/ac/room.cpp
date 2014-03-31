@@ -504,7 +504,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         int newScreenHeight = final_scrn_hit;
         if (multiply_up_coordinate(thisroom.height) < final_scrn_hit) {
             clear_letterbox_borders();
-            newScreenHeight = get_fixed_pixel_size(200);
+            newScreenHeight = thisroom.height;
         }
 
         if (newScreenHeight == _sub_screen->GetHeight())

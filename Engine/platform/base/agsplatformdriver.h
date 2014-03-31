@@ -46,6 +46,7 @@ struct AGSPlatformDriver
     virtual const char *GetAllUsersDataDirectory() { return NULL; }
     // Get default directory for program output (logs)
     virtual const char *GetAppOutputDirectory() { return "."; }
+    virtual const char *GetGraphicsTroubleshootingText() { return ""; }
     virtual unsigned long GetDiskFreeSpaceMB() = 0;
     virtual const char* GetNoMouseErrorString() = 0;
     virtual const char* GetAllegroFailUserHint();

@@ -502,7 +502,7 @@ void init_and_register_fonts()
         if (fontsize == 0)
             fontsize = 8;
 
-        if ((game.options[OPT_NOSCALEFNT] == 0) && (game.default_resolution > 2))
+        if ((game.options[OPT_NOSCALEFNT] == 0) && game.IsHiRes())
             fontsize *= 2;
 
         if (!wloadfont_size(ee, fontsize))
@@ -615,10 +615,10 @@ int load_game_file() {
     // resolutions, such as 320x200 and 320x240.
     if (usetup.override_upscale)
     {
-        if (game.default_resolution == 1)
-            game.default_resolution = 3;
-        else if (game.default_resolution == 2)
-            game.default_resolution = 4;
+        if (game.default_resolution == kGameResolution_320x200)
+            game.default_resolution = kGameResolution_640x400;
+        else if (game.default_resolution == kGameResolution_320x240)
+            game.default_resolution = kGameResolution_640x480;
     }
 
     if (filever < kGameVersion_312)

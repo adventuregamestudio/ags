@@ -131,7 +131,7 @@ void adjust_sizes_for_resolution(int filever)
     }
 
     if ((filever >= 37) && (game.options[OPT_NATIVECOORDINATES] == 0) &&
-        (game.default_resolution > 2))
+        game.IsHiRes())
     {
         // New 3.1 format game file, but with Use Native Coordinates off
 
@@ -195,69 +195,45 @@ void engine_init_screen_settings()
     usetup.base_width = 320;
     usetup.base_height = 200;
 
-    if (game.default_resolution >= 5)
+    switch (game.default_resolution)
     {
-        if (game.default_resolution >= 6)
-        {
-            // 1024x768
-            scrnwid = 1024;
-            scrnhit = 768;
-        }
-        else
-        {
-            // 800x600
-            scrnwid = 800;
-            scrnhit = 600;
-        }
-        // don't allow letterbox mode
-        wtext_multiply = 2;
-    }
-    else if ((game.default_resolution == 4) ||
-        (game.default_resolution == 3))
-    {
-        if (game.default_resolution == 4)
-        {
-            scrnwid = 640;
-            scrnhit = 480;
-        }
-        else
-        {
-            scrnwid = 640;
-            scrnhit = 400;
-        }
-        wtext_multiply = 2;
-    }
-    else if ((game.default_resolution == 2) ||
-        (game.default_resolution == 1))
-    {
-        if ((game.default_resolution == 2))
-        {
-            scrnwid = 320;
-            scrnhit = 240;
-        }
-        else
-        {
-            scrnwid = 320;
-            scrnhit = 200;
-        }
-        wtext_multiply = 1;
-    }
-    else
-    {
-        scrnwid = usetup.base_width;
-        scrnhit = usetup.base_height;
-        wtext_multiply = 1;
+    case kGameResolution_320x200:
+        scrnwid = 320;
+        scrnhit = 200;
+        break;
+    case kGameResolution_320x240:
+        scrnwid = 320;
+        scrnhit = 240;
+        break;
+    case kGameResolution_640x400:
+        scrnwid = 640;
+        scrnhit = 400;
+        break;
+    case kGameResolution_640x480:
+        scrnwid = 640;
+        scrnhit = 480;
+        break;
+    case kGameResolution_800x600:
+        scrnwid = 800;
+        scrnhit = 600;
+        break;
+    case kGameResolution_1024x768:
+        scrnwid = 1024;
+        scrnhit = 768;
+        break;
     }
 
-    if (game.default_resolution > 2)
+    if (game.IsHiRes())
     {
         usetup.base_width = scrnwid / 2;
         usetup.base_height = scrnhit / 2;
+        wtext_multiply = 2;
     }
     else
     {
         usetup.base_width = scrnwid;
         usetup.base_height = scrnhit;
+        wtext_multiply = 1;
     }
 
     usetup.textheight = wgetfontheight(0) + 1;
@@ -265,7 +241,7 @@ void engine_init_screen_settings()
     vesa_xres=scrnwid; vesa_yres=scrnhit;
     current_screen_resolution_multiplier = scrnwid / BASEWIDTH;
 
-    if ((game.default_resolution > 2) &&
+    if (game.IsHiRes() &&
         (game.options[OPT_NATIVECOORDINATES]))
     {
         usetup.base_width *= 2;

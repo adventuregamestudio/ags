@@ -106,4 +106,24 @@
 
 #define MAX_DIALOG        500
 
+enum GameResolutionType
+{
+    kGameResolution_Undefined   = 0,
+    kGameResolution_320x200     = 1,
+    kGameResolution_320x240     = 2,
+    kGameResolution_640x400     = 3,
+    kGameResolution_640x480     = 4,
+    kGameResolution_800x600     = 5,
+    kGameResolution_1024x768    = 6,
+    kNumGameResolutions,
+
+    kGameResolution_LastLoRes   = kGameResolution_320x240,
+    kGameResolution_FirstHiRes  = kGameResolution_640x400
+};
+
+inline bool IsHiRes(GameResolutionType resolution)
+{
+    return resolution > kGameResolution_LastLoRes;
+}
+
 #endif // __AGS_CN_AC__GAMESTRUCTDEFINES_H

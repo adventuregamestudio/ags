@@ -57,7 +57,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in)
     uniqueid = in->ReadInt32();
     numgui = in->ReadInt32();
     numcursors = in->ReadInt32();
-    default_resolution = in->ReadInt32();
+    default_resolution = (GameResolutionType)in->ReadInt32();
     default_lipsync_frame = in->ReadInt32();
     invhotdotsprite = in->ReadInt32();
     in->ReadArrayOfInt32(reserved, 17);

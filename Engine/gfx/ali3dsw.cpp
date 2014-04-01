@@ -353,7 +353,6 @@ bool ALSoftwareGraphicsDriver::Init(int virtualWidth, int virtualHeight, int rea
 
   set_color_depth(colourDepth);
   actualInitWid = realWidth, actualInitHit = realHeight;
-  //_filter->GetRealResolution(&actualInitWid, &actualInitHit);
 
   if (_initGfxCallback != NULL)
     _initGfxCallback(NULL);

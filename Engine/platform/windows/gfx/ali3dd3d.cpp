@@ -1050,8 +1050,6 @@ bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
   _newmode_windowed = windowed;
   _loopTimer = loopTimer;
 
-  //_filter->GetRealResolution(&_newmode_screen_width, &_newmode_screen_height);
-
   try
   {
     this->initD3DDLL();

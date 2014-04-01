@@ -848,8 +848,6 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
     _render_to_texture = false;
   }
 
-  //_filter->GetRealResolution(&_newmode_screen_width, &_newmode_screen_height);
-
   try
   {
     int i = 0;

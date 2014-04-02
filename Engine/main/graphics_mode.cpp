@@ -195,33 +195,9 @@ void engine_init_screen_settings()
     usetup.base_width = 320;
     usetup.base_height = 200;
 
-    switch (game.default_resolution)
-    {
-    case kGameResolution_320x200:
-        scrnwid = 320;
-        scrnhit = 200;
-        break;
-    case kGameResolution_320x240:
-        scrnwid = 320;
-        scrnhit = 240;
-        break;
-    case kGameResolution_640x400:
-        scrnwid = 640;
-        scrnhit = 400;
-        break;
-    case kGameResolution_640x480:
-        scrnwid = 640;
-        scrnhit = 480;
-        break;
-    case kGameResolution_800x600:
-        scrnwid = 800;
-        scrnhit = 600;
-        break;
-    case kGameResolution_1024x768:
-        scrnwid = 1024;
-        scrnhit = 768;
-        break;
-    }
+    Size res_size = ResolutionTypeToSize(game.default_resolution);
+    scrnwid = res_size.Width;
+    scrnhit = res_size.Height;
 
     if (game.IsHiRes())
     {

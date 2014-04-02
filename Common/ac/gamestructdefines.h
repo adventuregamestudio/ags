@@ -18,6 +18,8 @@
 #ifndef __AGS_CN_AC__GAMESTRUCTDEFINES_H
 #define __AGS_CN_AC__GAMESTRUCTDEFINES_H
 
+#include "util/geometry.h"
+
 #define POPUP_NONE      0
 #define POPUP_MOUSEY    1
 #define POPUP_SCRIPT    2
@@ -125,5 +127,7 @@ inline bool IsHiRes(GameResolutionType resolution)
 {
     return resolution > kGameResolution_LastLoRes;
 }
+
+Size ResolutionTypeToSize(GameResolutionType resolution);
 
 #endif // __AGS_CN_AC__GAMESTRUCTDEFINES_H

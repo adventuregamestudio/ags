@@ -57,7 +57,9 @@ int is_part_of_symbol(char thischar, char startchar) {
     // ==, >=, <=, !=, etc
     if (thischar == '=') {
         if ((startchar == '=') || (startchar == '<') || (startchar == '>')
-            || (startchar == '!') || (startchar == '+') || (startchar=='-'))
+            || (startchar == '!') || (startchar == '+') || (startchar == '-')
+            || (startchar == '*') || (startchar == '/')
+            || (startchar == '&') || (startchar == '|') || (startchar == '^'))
             return 1;
     }
     // && and ||, ++ and --
@@ -2813,9 +2815,7 @@ int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expe
         if (read_variable_into_ax(lilen,&vnlist[0],scrip, 1))
             return -1;
 
-        int cpuOp = SCMD_SUB;
-        if (sym.ssize[asstype] == 1)
-            cpuOp = SCMD_ADD;
+        int cpuOp = sym.ssize[asstype];
 
         if (check_operator_valid_for_type(&cpuOp, scrip->ax_val_type, 0))
             return -1;
@@ -2843,9 +2843,7 @@ int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expe
         if (check_type_mismatch(varTypeRHS, scrip->ax_val_type, 1))
             return -1;
 
-        int cpuOp = SCMD_SUBREG;
-        if (sym.ssize[asstype] == 1)
-            cpuOp = SCMD_ADDREG;
+        int cpuOp = sym.ssize[asstype];
 
         if (check_operator_valid_for_type(&cpuOp, varTypeRHS, scrip->ax_val_type))
             return -1;

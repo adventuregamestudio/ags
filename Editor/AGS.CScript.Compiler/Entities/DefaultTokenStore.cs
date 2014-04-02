@@ -51,8 +51,15 @@ namespace AGS.CScript.Compiler
 				_DefaultTokens.Add(new KeywordToken(".", PredefinedSymbol.Dot));
 				_DefaultTokens.Add(new KeywordToken("+=", PredefinedSymbol.PlusEquals, true));
 				_DefaultTokens.Add(new KeywordToken("-=", PredefinedSymbol.MinusEquals, true));
-                _DefaultTokens.Add(new KeywordToken("++", PredefinedSymbol.PlusPlus, true));
-                _DefaultTokens.Add(new KeywordToken("--", PredefinedSymbol.MinusMinus, true));
+				_DefaultTokens.Add(new KeywordToken("*=", PredefinedSymbol.TimesEquals, true));
+				_DefaultTokens.Add(new KeywordToken("/=", PredefinedSymbol.OverEquals, true));
+				_DefaultTokens.Add(new KeywordToken("&=", PredefinedSymbol.AndEquals, true));
+				_DefaultTokens.Add(new KeywordToken("|=", PredefinedSymbol.OrEquals, true));
+				_DefaultTokens.Add(new KeywordToken("^=", PredefinedSymbol.XorEquals, true));
+				_DefaultTokens.Add(new KeywordToken("<<=", PredefinedSymbol.ShiftLeftEquals, true));
+				_DefaultTokens.Add(new KeywordToken(">>=", PredefinedSymbol.ShiftRightEquals, true));
+				_DefaultTokens.Add(new KeywordToken("++", PredefinedSymbol.PlusPlus, true));
+				_DefaultTokens.Add(new KeywordToken("--", PredefinedSymbol.MinusMinus, true));
 				_DefaultTokens.Add(new KeywordToken("if", PredefinedSymbol.If));
 				_DefaultTokens.Add(new KeywordToken("else", PredefinedSymbol.Else));
 				_DefaultTokens.Add(new KeywordToken("while", PredefinedSymbol.While));

@@ -236,35 +236,59 @@ namespace AGS.Types
 
         public bool MoveFolderUp(TFolder folder)
         {
+            bool skipNotification = ShouldSkipChangeNotifications;
+            ShouldSkipChangeNotifications = true;
             int folderIndex = _subFolders.IndexOf(folder);
             if (folderIndex == -1)
             {
                 foreach (TFolder subFolder in _subFolders)
                 {
-                    if (subFolder.MoveFolderUp(folder)) return true;
+                    if (subFolder.MoveFolderUp(folder))
+                    {
+                        ShouldSkipChangeNotifications = skipNotification;
+                        return true;
+                    }
                 }
+                ShouldSkipChangeNotifications = skipNotification;
                 return false;
             }
-            if (folderIndex == 0) return true;
+            if (folderIndex == 0)
+            {
+                ShouldSkipChangeNotifications = skipNotification;
+                return true;
+            }
             _subFolders.RemoveAt(folderIndex);
             _subFolders.Insert(folderIndex - 1, folder);
+            ShouldSkipChangeNotifications = skipNotification;
             return true;
         }
 
         public bool MoveFolderDown(TFolder folder)
         {
+            bool skipNotification = ShouldSkipChangeNotifications;
+            ShouldSkipChangeNotifications = true;
             int folderIndex = _subFolders.IndexOf(folder);
             if (folderIndex == -1)
             {
                 foreach (TFolder subFolder in _subFolders)
                 {
-                    if (subFolder.MoveFolderDown(folder)) return true;
+                    if (subFolder.MoveFolderDown(folder))
+                    {
+                        ShouldSkipChangeNotifications = skipNotification;
+                        return true;
+                    }
                 }
+                ShouldSkipChangeNotifications = skipNotification;
                 return false;
             }
-            if (folderIndex == _subFolders.Count - 1) return true;
+            if (folderIndex == _subFolders.Count - 1)
+            {
+                ShouldSkipChangeNotifications = skipNotification;
+                return true;
+            }
             _subFolders.RemoveAt(folderIndex);
             _subFolders.Insert(folderIndex + 1, folder);
+            ShouldSkipChangeNotifications = skipNotification;
             return true;
         }
 

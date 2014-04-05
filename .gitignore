@@ -19,15 +19,13 @@ Solutions/.lib/
 Solutions/Common.Lib/Debug/
 Solutions/Engine.App/Debug/
 
-Solutions/Common.Shared.Lib/Debug
-Solutions/Common.Shared.Lib/Release
 Solutions/Engine.App/Release
+Solutions/Engine.App/Release_NoMP3
 Editor/AGS.Native/Release
-Solutions/Engine.Shared.Lib/Debug
-Solutions/Engine.Shared.Lib/Release
 Solutions/Compiler.Lib/Debug
 Solutions/Compiler.Lib/Release
 Solutions/Common.Lib/Release
+Solutions/Common.Lib/Release_NoMP3
 *.csproj.user
 *.idc
 Engine/resource/version.aps

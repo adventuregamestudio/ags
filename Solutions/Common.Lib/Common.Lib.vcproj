@@ -147,7 +147,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release_NoMP3|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)\.lib\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"

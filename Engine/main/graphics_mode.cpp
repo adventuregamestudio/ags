@@ -70,6 +70,7 @@ extern int _places_r, _places_g, _places_b;
 const int MaxScalingFactor = 8; // we support up to x8 scaling now
 
 int firstDepth, secondDepth;
+String GfxFilterRequest;
 
 int debug_15bit_mode = 0, debug_24bit_mode = 0;
 int convert_16bit_bgr = 0;
@@ -697,16 +698,17 @@ int try_find_max_supported_uniform_scaling(const Size &base_size, Size &found_si
 int engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color_depth)
 {
     Out::FPrint("Initializing gfx filters");
-    const Size base_size = game_size;
-    String gfxfilter;
+    if (force_gfxfilter[0])
+        GfxFilterRequest = force_gfxfilter;
+    else
+        GfxFilterRequest = usetup.gfxFilterID;
+    Out::FPrint("Requested gfx filter: %s", GfxFilterRequest.GetCStr());
 
-    if (force_gfxfilter[0]) {
-        gfxfilter = force_gfxfilter;
-    }
-    else if (!usetup.gfxFilterID.IsEmpty() && stricmp(usetup.gfxFilterID, "max") != 0) {
-        gfxfilter = usetup.gfxFilterID;
-    }
+    String gfxfilter;
+    if (GfxFilterRequest.CompareNoCase("max") != 0)
+        gfxfilter = GfxFilterRequest;
     
+    const Size base_size = game_size;
     const bool windowed = usetup.windowed != 0;
     const bool enable_sideborders = usetup.enable_side_borders != 0;
     const bool force_letterbox = game.options[OPT_LETTERBOX] != 0;
@@ -714,7 +716,6 @@ int engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color_
     int scaling_factor = 0;
     if (!gfxfilter.IsEmpty())
     {
-        Out::FPrint("Requested gfx filter: %s", gfxfilter.GetCStr());
         scaling_factor = get_scaling_from_filter_name(gfxfilter);
         Size found_screen_size;
         if (try_find_nearest_supported_mode(base_size, scaling_factor, found_screen_size, color_depth,
@@ -992,14 +993,22 @@ void display_gfx_mode_error(const Size &game_size, const Size &screen_size)
     proper_exit=1;
     platform->FinishedUsingGraphicsMode();
 
-    platform->DisplayAlert("There was a problem initializing graphics mode %d x %d (%d-bit) with game size %d x %d and filter '%s'.\n"
-        "(Problem: '%s')\n"
-        "Try to correct the problem, or seek help from the AGS homepage.\n"
-        "\nPossible causes:\n* your graphics card drivers do not support this resolution. "
-        "Run the game setup program and try the other resolution.\n"
-        "* the graphics driver you have selected does not work. Try switching between Direct3D and DirectDraw.\n"
-        "* the graphics filter you have selected does not work. Try another filter.",
-        screen_size.Width, screen_size.Height, firstDepth, game_size.Width, game_size.Height, filter ? filter->GetFilterID() : "Undefined", get_allegro_error());
+    String main_error;
+    if (screen_size.IsNull())
+        main_error.Format("There was a problem finding appropriate graphics mode for game size %d x %d (%d-bit) and requested filter '%s'.",
+            game_size.Width, game_size.Height, firstDepth, GfxFilterRequest.IsEmpty() ? "Undefined" : GfxFilterRequest);
+    else
+        main_error.Format("There was a problem initializing graphics mode %d x %d (%d-bit) with game size %d x %d and filter '%s'.",
+            screen_size.Width, screen_size.Height, firstDepth, game_size.Width, game_size.Height, filter ? filter->GetFilterID() : "Undefined");
+
+    platform->DisplayAlert("%s\n"
+            "(Problem: '%s')\n"
+            "Try to correct the problem, or seek help from the AGS homepage.\n"
+            "\nPossible causes:\n* your graphics card drivers do not support this resolution. "
+            "Run the game setup program and try the other resolution.\n"
+            "* the graphics driver you have selected does not work. Try switching between Direct3D and DirectDraw.\n"
+            "* the graphics filter you have selected does not work. Try another filter.",
+            main_error.GetCStr(), get_allegro_error());
 }
 
 int graphics_mode_init()

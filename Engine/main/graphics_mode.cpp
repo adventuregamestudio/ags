@@ -224,8 +224,7 @@ void engine_init_screen_settings()
         usetup.base_height *= 2;
     }
 
-    if (force_letterbox > 0)
-        game.options[OPT_LETTERBOX] = 1;
+    game.options[OPT_LETTERBOX] = force_letterbox > 0 ? 1 : 0;
 
     // don't allow them to force a 256-col game to hi-color
     if (game.color_depth < 2)

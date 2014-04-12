@@ -106,16 +106,6 @@ namespace AGS.Editor
             {
                 ResizeAllGUIs(oldResolution, newResolution);
             }
-
-            if ((newResolution == GameResolutions.R320x240) ||
-                (newResolution == GameResolutions.R640x480))
-            {
-                Factory.AGSEditor.CurrentGame.Settings.LetterboxMode = true;
-            }
-            else
-            {
-                Factory.AGSEditor.CurrentGame.Settings.LetterboxMode = false;
-            }
             Factory.Events.OnGameSettingsChanged();
         }
 

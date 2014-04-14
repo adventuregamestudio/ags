@@ -197,23 +197,19 @@ resolution for some reason.
 They can also select to run the game in a window on the desktop rather than full-screen.
 This will take a performance hit though, so it's always preferable to run full-screen.
 
-The "Use 85 Hz display" option sets the monitor refresh rate to 85 Hz to run the game, which
-eliminates flicker. However, this does not work on all monitors, and not at all on flat
-panel displays, which is why it is disabled by default.
-
-The "Force alternate letterbox resolution" option is only available for 320x200 and 640x400
-modes, and tells AGS to actually run at 320x240 or 640x480 instead, with black 'letterbox'
-borders at the top and bottom of the screen. This is useful because some computers no longer
-support the 320x200 or 640x400 resolutions, but do support the letterboxed versions.
+"Enable side-borders" and "Enable top & bottom borders" options allow the game to choose from wider range of resolutions, including the ones which display game surrounded by horizontal and/or vertical borders (the so-called "letterboxed" and "pillarboxed" modes).
 
 "Smooth scaled sprites" will apply anti-aliasing to scaled characters, in order to
 give a smoother look to the resizing. This can slow down the game though, so it is off
 by default.
 
-Finally, the "Downgrade 32-bit graphics to 16-bit" option is only available for 32-bit games.
+The "Downgrade 32-bit graphics to 16-bit" option is only available for 32-bit games.
 It allows people with slower PCs to choose to play the game at 16-bit instead, in order
 to boost performance. If they use this, the graphical quality will reduce, but it should at
 least allow them to play the game at a decent speed.
+
+Finally, the "Use 85 Hz display" option sets the monitor refresh rate to 85 Hz to run the game, which eliminates flicker. However, this does not work on all monitors, and not at all on flat
+panel displays, which is why it is disabled by default.
 
 
 \chapter{Tutorial}%
@@ -903,11 +899,6 @@ so don't have a main character, then selecting this option allows you to
 use the Walk mode for other things. If selected, then "Character stands on
 hotspot" events are instead triggered by clicking the Walk cursor on the
 hotspot.
-\item \bf{Use letterbox (320x240 / 640x480) resolution} - this option is only available if your
-game is 320x200 or 640x400, and it will tell AGS to run the game at 320x240 or
- 640x480 instead. The screen will be "letter-boxed" - that is,
-there will be a black border top and bottom. You may want to use this option
-if you need a square pixel aspect ratio for your graphics.
 \item \bf{Don't use inventory graphics as cursors} - normally, when you select an inventory
 item the mouse cursor is changed into that item. However, if you want to
 create a Lucasarts-style game (where the inventory cursor is always a
@@ -10837,7 +10828,7 @@ listed below:
 }\end{tabular}
 
 The game settings which are not listed here either have a separate command to change them
-(such as Speech.Style), or simply cannot be changed at run-time (such as Letterbox Mode).
+(such as Speech.Style), or simply cannot be changed at run-time.
 
 This command returns the old value of the setting.
 

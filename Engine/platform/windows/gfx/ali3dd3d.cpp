@@ -289,6 +289,7 @@ public:
   virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual IGfxModeList *GetSupportedModeList(int color_depth);
+  virtual DisplayResolution GetResolution();
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
   virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
@@ -1049,8 +1050,6 @@ bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
   _newmode_windowed = windowed;
   _loopTimer = loopTimer;
 
-  _filter->GetRealResolution(&_newmode_screen_width, &_newmode_screen_height);
-
   try
   {
     this->initD3DDLL();
@@ -1075,6 +1074,11 @@ IGfxModeList *D3DGraphicsDriver::GetSupportedModeList(int color_depth)
     return false;
 
   return new D3DGfxModeList(direct3d, color_depth_to_d3d_format(color_depth, false));
+}
+
+DisplayResolution D3DGraphicsDriver::GetResolution()
+{
+    return DisplayResolution(_newmode_screen_width, _newmode_screen_height, _newmode_depth);
 }
 
 void D3DGraphicsDriver::UnInit() 

@@ -138,16 +138,14 @@ BEGIN
     COMBOBOX        IDC_COMBO2,68,150,118,70,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_TABSTOP
     CONTROL         "Use voice pack if available",IDC_SPEECHPACK,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,13,169,160,9
     GROUPBOX        "Graphics options",IDC_STATIC,198,121,154,89
-    CONTROL         "Use 85 &Hz display (CRT monitors only)",IDC_REFRESH,
-                    "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,136,138,8
-    CONTROL         "Side borders on widescreen monitors",IDC_SIDEBORDERS,
-                    "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,150,135,9
+    CONTROL         "Enable side borders",IDC_SIDEBORDERS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,136,135,9
+    CONTROL         "Enable top && bottom borders",IDC_LETTERBOX,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,150,132,9
     CONTROL         "S&mooth scaled sprites (fast CPUs only)",IDC_ANTIALIAS,
-                    "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,165,138,8
+                    "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,164,138,9
     CONTROL         "Downgra&de 32-bit graphics to 16-bit",IDC_REDUCESPR,
-                    "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,179,135,9
-    CONTROL         "Force alternate &letterbox resolution",IDC_LETTERBOX,
-                    "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,194,132,9
+                    "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,178,135,9
+    CONTROL         "Use 85 &Hz display (CRT monitors only)",IDC_REFRESH,
+                    "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,192,138,9
     GROUPBOX        "Sprite cache",IDC_STATICADV,7,212,345,55,NOT WS_VISIBLE
     LTEXT           "Maximum size:",IDC_STATICADV3,15,225,50,10,NOT WS_VISIBLE
     COMBOBOX        IDC_COMBO4,68,223,108,100,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP

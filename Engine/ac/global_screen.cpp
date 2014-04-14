@@ -45,17 +45,14 @@ int scrnwid,scrnhit;
 int current_screen_resolution_multiplier = 1;
 int force_letterbox = 0;
 
-int final_scrn_wid=0,final_scrn_hit=0,final_col_dep=0;
+int final_scrn_wid=0,final_scrn_hit=0,final_col_dep=0, game_frame_y_offset = 0, game_frame_borders = 0;
 int screen_reset = 0;
 
 int GetMaxScreenHeight () {
     int maxhit = BASEHEIGHT;
-    if ((maxhit == 200) || (maxhit == 400))
-    {
-        // uh ... BASEHEIGHT depends on Native Coordinates setting so be careful
-        if ((usetup.want_letterbox) && (thisroom.height > maxhit)) 
-            maxhit = divide_down_coordinate(multiply_up_coordinate(maxhit) + get_fixed_pixel_size(40));
-    }
+    // uh ... BASEHEIGHT depends on Native Coordinates setting so be careful
+    if ((usetup.want_letterbox) && (thisroom.height > maxhit)) 
+        maxhit = divide_down_coordinate(multiply_up_coordinate(maxhit) + game_frame_y_offset);
     return maxhit;
 }
 

@@ -423,14 +423,14 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // load the room from disk
     our_eip=200;
     thisroom.gameId = NO_GAME_ID_IN_ROOM_FILE;
-    load_room(room_filename, &thisroom, (game.default_resolution > 2));
+    load_room(room_filename, &thisroom, game.IsHiRes());
 
     if ((thisroom.gameId != NO_GAME_ID_IN_ROOM_FILE) &&
         (thisroom.gameId != game.uniqueid)) {
             quitprintf("!Unable to load '%s'. This room file is assigned to a different game.", room_filename.GetCStr());
     }
 
-    if ((game.default_resolution > 2) && (game.options[OPT_NATIVECOORDINATES] == 0))
+    if (game.IsHiRes() && (game.options[OPT_NATIVECOORDINATES] == 0))
     {
         convert_room_coordinates_to_low_res(&thisroom);
     }
@@ -502,9 +502,10 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         else if (ds==virtual_screen) abscreen=2;
         // if this is a 640x480 room and we're in letterbox mode, full-screen it
         int newScreenHeight = final_scrn_hit;
-        if (multiply_up_coordinate(thisroom.height) < final_scrn_hit) {
+        const int real_room_height = multiply_up_coordinate(thisroom.height);
+        if (real_room_height < final_scrn_hit) {
             clear_letterbox_borders();
-            newScreenHeight = get_fixed_pixel_size(200);
+            newScreenHeight = real_room_height;
         }
 
         if (newScreenHeight == _sub_screen->GetHeight())

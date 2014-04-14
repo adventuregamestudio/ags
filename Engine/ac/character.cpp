@@ -615,12 +615,12 @@ void Character_LockViewFrame(CharacterInfo *chaa, int view, int loop, int frame)
 void Character_LockViewOffset(CharacterInfo *chap, int vii, int xoffs, int yoffs) {
     Character_LockView(chap, vii);
 
-    if ((current_screen_resolution_multiplier == 1) && (game.default_resolution >= 3)) {
+    if ((current_screen_resolution_multiplier == 1) && (game.IsHiRes())) {
         // running a 640x400 game at 320x200, adjust
         xoffs /= 2;
         yoffs /= 2;
     }
-    else if ((current_screen_resolution_multiplier > 1) && (game.default_resolution <= 2)) {
+    else if ((current_screen_resolution_multiplier > 1) && (!game.IsHiRes())) {
         // running a 320x200 game at 640x400, adjust
         xoffs *= 2;
         yoffs *= 2;
@@ -1563,7 +1563,7 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
         mls[mslot].direct = ignwal;
 
         if ((game.options[OPT_NATIVECOORDINATES] != 0) &&
-            (game.default_resolution > 2))
+            game.IsHiRes())
         {
             convert_move_path_to_high_res(&mls[mslot]);
         }

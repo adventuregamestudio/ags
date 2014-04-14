@@ -209,12 +209,12 @@ void RawDrawImageTrans(int xx, int yy, int slot, int alpha) {
 
 void RawDrawImageOffset(int xx, int yy, int slot) {
 
-    if ((current_screen_resolution_multiplier == 1) && (game.default_resolution >= 3)) {
+    if ((current_screen_resolution_multiplier == 1) && game.IsHiRes()) {
         // running a 640x400 game at 320x200, adjust
         xx /= 2;
         yy /= 2;
     }
-    else if ((current_screen_resolution_multiplier > 1) && (game.default_resolution <= 2)) {
+    else if ((current_screen_resolution_multiplier > 1) && !game.IsHiRes()) {
         // running a 320x200 game at 640x400, adjust
         xx *= 2;
         yy *= 2;

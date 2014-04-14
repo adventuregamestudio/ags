@@ -49,7 +49,7 @@ struct GameSetupStructBase {
     int32             uniqueid;    // random key identifying the game
     int32             numgui;
     int32             numcursors;
-    int32             default_resolution; // 0=undefined, 1=320x200, 2=320x240, 3=640x400 etc
+    GameResolutionType default_resolution;
     int32             default_lipsync_frame; // used for unknown chars
     int32             invhotdotsprite;
     int32             reserved[17];
@@ -71,6 +71,11 @@ struct GameSetupStructBase {
     virtual ~GameSetupStructBase();
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);
+
+    inline bool IsHiRes() const
+    {
+        return ::IsHiRes(default_resolution);
+    }
 };
 
 #endif // __AGS_CN_AC__GAMESETUPSTRUCTBASE_H

@@ -57,7 +57,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in)
     uniqueid = in->ReadInt32();
     numgui = in->ReadInt32();
     numcursors = in->ReadInt32();
-    default_resolution = in->ReadInt32();
+    default_resolution = (GameResolutionType)in->ReadInt32();
     default_lipsync_frame = in->ReadInt32();
     invhotdotsprite = in->ReadInt32();
     in->ReadArrayOfInt32(reserved, 17);
@@ -107,4 +107,24 @@ void GameSetupStructBase::WriteToFile(Stream *out)
     out->WriteInt32(0); // globalscript
     out->WriteInt32(0); // chars
     out->WriteInt32(compiled_script ? 1 : 0);
+}
+
+Size ResolutionTypeToSize(GameResolutionType resolution)
+{
+    switch (resolution)
+    {
+    case kGameResolution_320x200:
+        return Size(320, 200);
+    case kGameResolution_320x240:
+        return Size(320, 240);
+    case kGameResolution_640x400:
+        return Size(640, 400);
+    case kGameResolution_640x480:
+        return Size(640, 480);
+    case kGameResolution_800x600:
+        return Size(800, 600);
+    case kGameResolution_1024x768:
+        return Size(1024, 768);
+    }
+    return Size();
 }

@@ -17,6 +17,7 @@
 #include <io.h>
 #include <stdlib.h>
 #include "resource/resource.h"
+#include "ac/gamestructdefines.h"
 #include "gfx/gfxfilter.h"
 #include "util/filestream.h"
 
@@ -41,7 +42,8 @@ extern void fgetstring_limit (char *, Stream *, int);
 extern char* ac_config_file;
 const char*setupstring, *enginever;
 int curscrn=-1,csendto,curdigi=0,curmidi=0,windowed=0,useletterbox = 0,vsync = 0;
-int defaultRes = -1, mustBeLetterbox = 0, gameColDep = 0;
+GameResolutionType defaultRes = kGameResolution_Undefined;
+int gameColDep = 0;
 int refresh = 0, antialias = 0, reduce32to16 = 0;
 int sideBorders = 1;
 char curtranslation[200] = "";
@@ -84,39 +86,10 @@ const char *get_filter_id(int list_index)
 }
 
 void update_resolution_texts(HWND hDlg) {
-  int resx, resy;
-  if (defaultRes >= 6) {
-    resx = 1024;
-    resy = 768;
-  }
-  else if (defaultRes == 5) {
-    resx = 800;
-    resy = 600;
-  }
-  else if ((SendDlgItemMessage(hDlg,IDC_LETTERBOX,BM_GETCHECK,0,0) == BST_CHECKED) ||
-      (mustBeLetterbox != 0)) 
-  {
-    if (defaultRes >= 3)
-    {
-      resx = 640;
-      resy = 480;
-    }
-    else
-    {
-      resx = 320;
-      resy = 240;
-    }
-  }
-  else if (defaultRes >= 3)
-  {
-    resx = 640;
-    resy = 400;
-  }
-  else 
-  {
-    resx = 320;
-    resy = 200;
-  }
+  
+  Size res_size = ResolutionTypeToSize(defaultRes);
+  int resx = res_size.Width;
+  int resy = res_size.Height;
   
   int selectedFilter = SendDlgItemMessage(hDlg, IDC_GFXFILTER, CB_GETCURSEL, 0, 0);
 
@@ -317,9 +290,6 @@ void InitializeDialog(HWND hDlg) {
 
   if (useletterbox > 0)
     SendDlgItemMessage(hDlg, IDC_LETTERBOX,BM_SETCHECK,BST_CHECKED,0);
-  // If the game is 320x240, don't let them un-tick it
-  if (mustBeLetterbox)
-    EnableWindow (GetDlgItem (hDlg, IDC_LETTERBOX), FALSE);
 
   // If the game isn't 32-bit, disable it
   if (gameColDep < 32)
@@ -410,7 +380,7 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
 
           csendto = 0;
 
-          if (defaultRes > 2) 
+          if (IsHiRes(defaultRes)) 
           {
             csendto = 1;
           }
@@ -505,9 +475,7 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
           else
             WritePrivateProfileString("misc","refresh","0",ac_config_file);
 
-          if (mustBeLetterbox) ;
-            // don't modify the Force Letterbox setting while it doesn't apply
-          else if (SendDlgItemMessage(hDlg,IDC_LETTERBOX,BM_GETCHECK,0,0) == BST_CHECKED)
+          if (SendDlgItemMessage(hDlg,IDC_LETTERBOX,BM_GETCHECK,0,0) == BST_CHECKED)
             WritePrivateProfileString ("misc", "forceletterbox", "1", ac_config_file);
           else
             WritePrivateProfileString ("misc", "forceletterbox", NULL, ac_config_file);
@@ -543,9 +511,9 @@ int acwsetup(const char*vername, const char*enbuild) {
     curscrn=INIreadint("misc","screenres");
     if (curscrn > 1)
       curscrn = 1;
-    defaultRes = INIreadint ("misc", "defaultres");
+    defaultRes = (GameResolutionType)INIreadint ("misc", "defaultres");
     if (defaultRes < 1)
-      defaultRes = -1;
+      defaultRes = kGameResolution_Undefined;
 
     curdigi=INIreadint("sound","digiwinindx");
     curmidi=INIreadint("sound","midiwinindx");
@@ -559,11 +527,6 @@ int acwsetup(const char*vername, const char*enbuild) {
     useletterbox = INIreadint("misc","forceletterbox");
     reduce32to16 = INIreadint("misc","notruecolor");
     gameColDep = INIreadint("misc", "gamecolordepth");
-
-    if ((defaultRes == 2) || (defaultRes == 4)) {
-      useletterbox = 1;
-      mustBeLetterbox = 1;
-    }
 
     refresh = INIreadint("misc","refresh");
     antialias = INIreadint("misc","antialias");

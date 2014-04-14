@@ -45,6 +45,18 @@ namespace GfxUtil
         return 100 - ((alpha * 100) / 255);
     }
 
+    // Special formulae to reduce precision loss and support flawless forth &
+    // reverse conversion for multiplies of 10%
+    inline int Trans100ToAlpha250(int transparency)
+    {
+        return ((100 - transparency) * 25) / 10;
+    }
+
+    inline int Alpha250ToTrans100(int alpha)
+    {
+        return 100 - ((alpha * 10) / 25);
+    }
+
     // Convert correct 100-ranged transparency into legacy 255-ranged
     // transparency; legacy inconsistent transparency value range:
     // 0   = opaque,
@@ -61,7 +73,7 @@ namespace GfxUtil
             return 255; // this means invisible
         }
         // the rest of the range works as alpha
-        return Trans100ToAlpha255(transparency);
+        return Trans100ToAlpha250(transparency);
     }
 
     inline int LegacyTrans255ToTrans100(int legacy_transparency)
@@ -75,7 +87,7 @@ namespace GfxUtil
             return 100; // this means invisible
         }
         // the rest of the range works as alpha
-        return Alpha255ToTrans100(legacy_transparency);
+        return Alpha250ToTrans100(legacy_transparency);
     }
 
     // Convert legacy 100-ranged transparency into proper 255-ranged alpha

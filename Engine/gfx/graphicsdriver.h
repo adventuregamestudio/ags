@@ -70,6 +70,7 @@ public:
   virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync) = 0;
   virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync) = 0;
   virtual IGfxModeList *GetSupportedModeList(int color_depth) = 0;
+  virtual DisplayResolution GetResolution() = 0;
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) = 0;
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) = 0;
   virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) = 0;

@@ -117,7 +117,7 @@ ScriptDrawingSurface::ScriptDrawingSurface()
     highResCoordinates = 0;
 
     if ((game.options[OPT_NATIVECOORDINATES] != 0) &&
-        (game.default_resolution > 2))
+        (game.IsHiRes()))
     {
         highResCoordinates = 1;
     }

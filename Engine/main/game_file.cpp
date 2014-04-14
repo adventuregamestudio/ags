@@ -45,6 +45,7 @@
 #include "ac/statobj/agsstaticobject.h"
 #include "ac/statobj/staticarray.h"
 #include "util/alignedstream.h"
+#include "ac/gamesetup.h"
 
 using AGS::Common::AlignedStream;
 using AGS::Common::Bitmap;
@@ -502,7 +503,7 @@ void init_and_register_fonts()
         if (fontsize == 0)
             fontsize = 8;
 
-        if ((game.options[OPT_NOSCALEFNT] == 0) && (game.default_resolution > 2))
+        if ((game.options[OPT_NOSCALEFNT] == 0) && game.IsHiRes())
             fontsize *= 2;
 
         if (!wloadfont_size(ee, fontsize))
@@ -603,6 +604,23 @@ int load_game_file() {
     memset(&game.spriteflags[0], 0, MAX_SPRITES);
 
     ReadGameSetupStructBase_Aligned(in);
+
+    // The earlier versions of AGS provided support for "upscaling" low-res
+    // games (320x200 and 320x240) to hi-res (640x400 and 640x480
+    // respectively). The script API has means for detecting if the game is
+    // running upscaled, and game developer could use this opportunity to setup
+    // game accordingly (e.g. assign hi-res fonts, etc).
+    // This feature is officially deprecated since 3.1.0, however the engine
+    // itself still supports it, technically.
+    // This overriding option re-enables "upscaling". It works ONLY for low-res
+    // resolutions, such as 320x200 and 320x240.
+    if (usetup.override_upscale)
+    {
+        if (game.default_resolution == kGameResolution_320x200)
+            game.default_resolution = kGameResolution_640x400;
+        else if (game.default_resolution == kGameResolution_320x240)
+            game.default_resolution = kGameResolution_640x480;
+    }
 
     if (filever < kGameVersion_312)
     {

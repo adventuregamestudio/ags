@@ -15,5 +15,6 @@
 #ifdef _DEBUG
 
 void Test_DoAllTests();
+void Test_Gfx();
 
 #endif // _DEBUG

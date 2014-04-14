@@ -18,6 +18,8 @@
 #ifndef __AGS_CN_AC__GAMESTRUCTDEFINES_H
 #define __AGS_CN_AC__GAMESTRUCTDEFINES_H
 
+#include "util/geometry.h"
+
 #define POPUP_NONE      0
 #define POPUP_MOUSEY    1
 #define POPUP_SCRIPT    2
@@ -107,5 +109,27 @@
 #define MAX_SG_FOLDER_LEN 50
 
 #define MAX_DIALOG        500
+
+enum GameResolutionType
+{
+    kGameResolution_Undefined   = 0,
+    kGameResolution_320x200     = 1,
+    kGameResolution_320x240     = 2,
+    kGameResolution_640x400     = 3,
+    kGameResolution_640x480     = 4,
+    kGameResolution_800x600     = 5,
+    kGameResolution_1024x768    = 6,
+    kNumGameResolutions,
+
+    kGameResolution_LastLoRes   = kGameResolution_320x240,
+    kGameResolution_FirstHiRes  = kGameResolution_640x400
+};
+
+inline bool IsHiRes(GameResolutionType resolution)
+{
+    return resolution > kGameResolution_LastLoRes;
+}
+
+Size ResolutionTypeToSize(GameResolutionType resolution);
 
 #endif // __AGS_CN_AC__GAMESTRUCTDEFINES_H

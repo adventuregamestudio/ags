@@ -43,7 +43,10 @@ struct GameSetup {
     AGS::Common::String gfxDriverID;
     int   override_script_os;
     char  override_multitasking;
+    bool  override_upscale;
     GameSetup();
 };
+
+extern GameSetup usetup;
 
 #endif // __AC_GAMESETUP_H

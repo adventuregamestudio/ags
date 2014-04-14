@@ -176,6 +176,89 @@
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
+		<Configuration
+			Name="Release_NoMP3|Win32"
+			OutputDirectory="$(SolutionDir)\.build\$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="2"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\..\Common&quot;;&quot;$(SolutionDir)\..\Common\libinclude&quot;;&quot;$(SolutionDir)\..\Engine&quot;;&quot;$(SolutionDir)\..\Plugins&quot;;&quot;$(SolutionDir)\..\Windows\include&quot;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;ALLEGRO_NO_ASM;AGS_HAS_CD_AUDIO;NO_MP3_PLAYER"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				DebugInformationFormat="3"
+				DisableSpecificWarnings="4996"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="Common.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib"
+				OutputFile="$(OutDir)\acwin.exe"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="$(SolutionDir)\.lib\$(ConfigurationName)"
+				IgnoreDefaultLibraryNames="LIBC,LIBCD,msvcrt"
+				GenerateDebugInformation="true"
+				GenerateMapFile="true"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="0"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
 	</Configurations>
 	<References>
 	</References>
@@ -1054,6 +1137,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\test\test_file.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_gfx.cpp"
 					>
 				</File>
 				<File

@@ -351,7 +351,7 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
         mls[mslot].direct = ignwal;
 
         if ((game.options[OPT_NATIVECOORDINATES] != 0) &&
-            (game.default_resolution > 2))
+            game.IsHiRes())
         {
             convert_move_path_to_high_res(&mls[mslot]);
         }

@@ -389,6 +389,7 @@ public:
   virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
   virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
   virtual IGfxModeList *GetSupportedModeList(int color_depth);
+  virtual DisplayResolution GetResolution();
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
   virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
@@ -847,8 +848,6 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
     _render_to_texture = false;
   }
 
-  _filter->GetRealResolution(&_newmode_screen_width, &_newmode_screen_height);
-
   try
   {
     int i = 0;
@@ -939,6 +938,11 @@ IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int color_depth)
 {
     // TODO!!
     return NULL;
+}
+
+DisplayResolution OGLGraphicsDriver::GetResolution()
+{
+    return DisplayResolution(_newmode_screen_width, _newmode_screen_height, _newmode_depth);
 }
 
 void OGLGraphicsDriver::UnInit() 

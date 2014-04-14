@@ -29,4 +29,7 @@ GameSetup::GameSetup()
     enable_side_borders = 1;
     base_width = 320;
     base_height = 200;
+    override_script_os = -1;
+    override_multitasking = -1;
+    override_upscale = false;
 }

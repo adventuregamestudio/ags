@@ -502,10 +502,9 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         else if (ds==virtual_screen) abscreen=2;
         // if this is a 640x480 room and we're in letterbox mode, full-screen it
         int newScreenHeight = final_scrn_hit;
-        const int real_room_height = multiply_up_coordinate(thisroom.height);
-        if (real_room_height < final_scrn_hit) {
+        if (scrnhit < final_scrn_hit) {
             clear_letterbox_borders();
-            newScreenHeight = real_room_height;
+            newScreenHeight = scrnhit;
         }
 
         if (newScreenHeight == _sub_screen->GetHeight())

@@ -59,7 +59,6 @@ extern int force_letterbox;
 extern AGSPlatformDriver *platform;
 extern int force_16bit;
 extern IGraphicsDriver *gfxDriver;
-extern int final_scrn_wid,final_scrn_hit,final_col_dep, game_frame_y_offset, game_frame_borders;
 extern volatile int timerloop;
 extern IDriverDependantBitmap *blankImage;
 extern IDriverDependantBitmap *blankSidebarImage;
@@ -69,6 +68,7 @@ extern int _places_r, _places_g, _places_b;
 
 const int MaxScalingFactor = 8; // we support up to x8 scaling now
 
+Size GameSize;
 int firstDepth, secondDepth;
 String GfxFilterRequest;
 
@@ -195,9 +195,9 @@ void engine_init_screen_settings()
     usetup.base_width = 320;
     usetup.base_height = 200;
 
-    Size res_size = ResolutionTypeToSize(game.default_resolution);
-    scrnwid = res_size.Width;
-    scrnhit = res_size.Height;
+    GameSize = ResolutionTypeToSize(game.default_resolution);
+    scrnwid = GameSize.Width;
+    scrnhit = GameSize.Height;
 
     if (game.IsHiRes())
     {
@@ -731,8 +731,7 @@ bool init_gfx_mode(const Size &game_size, const Size &screen_size, int cdep)
     final_scrn_wid = game_size.Width;
     final_scrn_hit = game_size.Height;
     final_col_dep = cdep;
-    game_frame_borders = final_scrn_hit - scrnhit;
-    game_frame_y_offset = game_frame_borders / 2;
+    game_frame_y_offset = (final_scrn_hit - scrnhit) / 2;
     usetup.want_letterbox = (final_scrn_hit > scrnhit) ? 1 : 0;
 
     if (game.color_depth == 1) {

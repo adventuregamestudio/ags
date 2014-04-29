@@ -509,7 +509,9 @@ bool try_find_nearest_supported_mode(const Size &base_size, const int scaling_fa
     }
     const Size wanted_size = base_size * scaling_factor;
     // Windowed mode
-    if (windowed)
+    if (windowed ||
+        // Temporary hack for incomplete OpenGL driver (permit any resolution)
+        stricmp(gfxDriver->GetDriverID(), "OGL") == 0)
     {
         // Do not try to create windowed mode larger than current desktop resolution
         if (!wanted_size.ExceedsByAny(desktop_size))
@@ -585,7 +587,9 @@ int try_find_max_supported_uniform_scaling(const Size &base_size, Size &found_si
     }
     int multiplier = 0;
     // Windowed mode
-    if (windowed)
+    if (windowed ||
+        // Temporary hack for incomplete OpenGL driver (permit any resolution)
+        stricmp(gfxDriver->GetDriverID(), "OGL") == 0)
     {
         // Do not try to create windowed mode larger than current desktop resolution
         const int xratio = desktop_size.Width / base_size.Width;
@@ -674,9 +678,9 @@ int engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color_
             screen_size = found_screen_size;
     }
 
-#if defined (WINDOWS_VERSION) || defined (LINUX_VERSION)
     if (screen_size.IsNull())
     {
+#if defined (WINDOWS_VERSION) || defined (LINUX_VERSION)
         Size found_screen_size;
         scaling_factor = try_find_max_supported_uniform_scaling(base_size, found_screen_size, color_depth,
                             windowed, enable_sideborders, force_letterbox);
@@ -685,8 +689,12 @@ int engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color_
             screen_size = found_screen_size;
             gfxfilter.Format(scaling_factor > 1 ? "StdScale%d" : "None", scaling_factor);
         }
-    }
+#else
+        gfxfilter = "None";
+        screen_size = game_size;
+        scaling_factor = 1;
 #endif
+    }
 
     if (gfxfilter.IsEmpty())
     {
@@ -921,7 +929,7 @@ int create_gfx_driver_and_init_mode(const String &gfx_driver_id, Size &game_size
     create_gfx_driver(gfx_driver_id);
     engine_init_screen_settings();
 
-    game_size = Size(scrnwid, scrnhit);
+    game_size = GameSize;
     screen_size = Size(0, 0);
 
     int res = engine_init_gfx_filters(game_size, screen_size, firstDepth);

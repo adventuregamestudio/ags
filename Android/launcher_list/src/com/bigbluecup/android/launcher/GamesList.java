@@ -36,6 +36,7 @@ public class GamesList extends ListActivity
 	private PEHelper pe;
 
 	String filename = null;
+	@SuppressWarnings("unused")
 	private ProgressDialog dialog;
 
 	private ArrayList<String> folderList;

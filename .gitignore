@@ -33,3 +33,15 @@ Engine/resource/version.aps
 *.d
 common.a
 ags
+Android/launcher_list/.classpath
+Android/launcher_list/.settings/
+Android/launcher_list/bin/
+Android/launcher_list/gen/
+Android/library/.settings/
+Android/library/bin/
+Android/library/gen/
+Android/library/libs/
+Android/library/obj/
+Android/library/default.properties
+Android/library/project.properties
+Android/library/.classpath

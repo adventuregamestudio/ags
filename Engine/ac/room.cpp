@@ -61,11 +61,14 @@
 #include "core/assetmanager.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "gfx/bitmap.h"
+#include "util/math.h"
+#include "main/graphics_mode.h"
 
 using AGS::Common::Bitmap;
 using AGS::Common::Stream;
 using AGS::Common::String;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
+namespace Math = AGS::Common::Math;
 namespace Out = AGS::Common::Out;
 
 #if !defined (WINDOWS_VERSION)
@@ -493,19 +496,26 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
 
     our_eip=202;
-    if (usetup.want_letterbox) {
+    const int real_room_height = multiply_up_coordinate(thisroom.height);
+    // Frame size is updated when letterbox mode is on, or when room's size is smaller than game's size.
+    if (usetup.want_letterbox ||
+            real_room_height < GameSize.Height || scrnhit < GameSize.Height) {
         int abscreen=0;
 
         Bitmap *ds = GetVirtualScreen();
         if (ds==BitmapHelper::GetScreenBitmap()) abscreen=1;
         else if (ds==virtual_screen) abscreen=2;
-        // if this is a 640x480 room and we're in letterbox mode, full-screen it
         int newScreenHeight = final_scrn_hit;
-        const int real_room_height = multiply_up_coordinate(thisroom.height);
-        if (real_room_height < final_scrn_hit) {
+        const int viewport_height = Math::Min(real_room_height, GameSize.Height);
+        if (viewport_height < final_scrn_hit) {
             clear_letterbox_borders();
-            newScreenHeight = real_room_height;
+            newScreenHeight = viewport_height;
         }
+
+        // If the game is run not in letterbox mode, but there's a random room smaller than the game size,
+        // then the sub_screen does not exist at this point; so we create it here.
+        if (!_sub_screen)
+            _sub_screen = BitmapHelper::CreateSubBitmap(_old_screen, RectWH(final_scrn_wid / 2 - scrnwid / 2, final_scrn_hit / 2-newScreenHeight/2, scrnwid, newScreenHeight));
 
         if (newScreenHeight == _sub_screen->GetHeight())
         {
@@ -525,6 +535,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
 		scrnhit = BitmapHelper::GetScreenBitmap()->GetHeight();
         vesa_yres = scrnhit;
+        game_frame_y_offset = (final_scrn_hit - scrnhit) / 2;
 
         filter->SetMouseArea(0,0, scrnwid-1, vesa_yres-1);
 

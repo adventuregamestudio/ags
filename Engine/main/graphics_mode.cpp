@@ -59,7 +59,6 @@ extern int force_letterbox;
 extern AGSPlatformDriver *platform;
 extern int force_16bit;
 extern IGraphicsDriver *gfxDriver;
-extern int final_scrn_wid,final_scrn_hit,final_col_dep, game_frame_y_offset, game_frame_borders;
 extern volatile int timerloop;
 extern IDriverDependantBitmap *blankImage;
 extern IDriverDependantBitmap *blankSidebarImage;
@@ -69,6 +68,7 @@ extern int _places_r, _places_g, _places_b;
 
 const int MaxScalingFactor = 8; // we support up to x8 scaling now
 
+Size GameSize;
 int firstDepth, secondDepth;
 String GfxFilterRequest;
 
@@ -195,9 +195,9 @@ void engine_init_screen_settings()
     usetup.base_width = 320;
     usetup.base_height = 200;
 
-    Size res_size = ResolutionTypeToSize(game.default_resolution);
-    scrnwid = res_size.Width;
-    scrnhit = res_size.Height;
+    GameSize = ResolutionTypeToSize(game.default_resolution);
+    scrnwid = GameSize.Width;
+    scrnhit = GameSize.Height;
 
     if (game.IsHiRes())
     {
@@ -509,7 +509,9 @@ bool try_find_nearest_supported_mode(const Size &base_size, const int scaling_fa
     }
     const Size wanted_size = base_size * scaling_factor;
     // Windowed mode
-    if (windowed)
+    if (windowed ||
+        // Temporary hack for incomplete OpenGL driver (permit any resolution)
+        stricmp(gfxDriver->GetDriverID(), "OGL") == 0)
     {
         // Do not try to create windowed mode larger than current desktop resolution
         if (!wanted_size.ExceedsByAny(desktop_size))
@@ -585,7 +587,9 @@ int try_find_max_supported_uniform_scaling(const Size &base_size, Size &found_si
     }
     int multiplier = 0;
     // Windowed mode
-    if (windowed)
+    if (windowed ||
+        // Temporary hack for incomplete OpenGL driver (permit any resolution)
+        stricmp(gfxDriver->GetDriverID(), "OGL") == 0)
     {
         // Do not try to create windowed mode larger than current desktop resolution
         const int xratio = desktop_size.Width / base_size.Width;
@@ -674,9 +678,9 @@ int engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color_
             screen_size = found_screen_size;
     }
 
-#if defined (WINDOWS_VERSION) || defined (LINUX_VERSION)
     if (screen_size.IsNull())
     {
+#if defined (WINDOWS_VERSION) || defined (LINUX_VERSION)
         Size found_screen_size;
         scaling_factor = try_find_max_supported_uniform_scaling(base_size, found_screen_size, color_depth,
                             windowed, enable_sideborders, force_letterbox);
@@ -685,8 +689,12 @@ int engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color_
             screen_size = found_screen_size;
             gfxfilter.Format(scaling_factor > 1 ? "StdScale%d" : "None", scaling_factor);
         }
-    }
+#else
+        gfxfilter = "None";
+        screen_size = game_size;
+        scaling_factor = 1;
 #endif
+    }
 
     if (gfxfilter.IsEmpty())
     {
@@ -731,8 +739,7 @@ bool init_gfx_mode(const Size &game_size, const Size &screen_size, int cdep)
     final_scrn_wid = game_size.Width;
     final_scrn_hit = game_size.Height;
     final_col_dep = cdep;
-    game_frame_borders = final_scrn_hit - scrnhit;
-    game_frame_y_offset = game_frame_borders / 2;
+    game_frame_y_offset = (final_scrn_hit - scrnhit) / 2;
     usetup.want_letterbox = (final_scrn_hit > scrnhit) ? 1 : 0;
 
     if (game.color_depth == 1) {
@@ -922,7 +929,7 @@ int create_gfx_driver_and_init_mode(const String &gfx_driver_id, Size &game_size
     create_gfx_driver(gfx_driver_id);
     engine_init_screen_settings();
 
-    game_size = Size(scrnwid, scrnhit);
+    game_size = GameSize;
     screen_size = Size(0, 0);
 
     int res = engine_init_gfx_filters(game_size, screen_size, firstDepth);
@@ -947,7 +954,7 @@ void display_gfx_mode_error(const Size &game_size, const Size &screen_size)
     String main_error;
     if (screen_size.IsNull())
         main_error.Format("There was a problem finding appropriate graphics mode for game size %d x %d (%d-bit) and requested filter '%s'.",
-            game_size.Width, game_size.Height, firstDepth, GfxFilterRequest.IsEmpty() ? "Undefined" : GfxFilterRequest);
+            game_size.Width, game_size.Height, firstDepth, GfxFilterRequest.IsEmpty() ? "Undefined" : GfxFilterRequest.GetCStr());
     else
         main_error.Format("There was a problem initializing graphics mode %d x %d (%d-bit) with game size %d x %d and filter '%s'.",
             screen_size.Width, screen_size.Height, firstDepth, game_size.Width, game_size.Height, filter ? filter->GetFilterID() : "Undefined");

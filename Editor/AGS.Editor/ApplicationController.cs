@@ -115,6 +115,7 @@ namespace AGS.Editor
 			_componentController.AddComponent(new SourceControlComponent(_guiController, _agsEditor));
 			_componentController.AddComponent(new WelcomeComponent(_guiController, _agsEditor));
             _componentController.AddComponent(new StatisticsSenderComponent(_guiController, _agsEditor));
+            _componentController.AddComponent(new BuildLinuxComponent(_guiController, _agsEditor));
         }
 
         public void StartGUI(string[] commandLineArguments)

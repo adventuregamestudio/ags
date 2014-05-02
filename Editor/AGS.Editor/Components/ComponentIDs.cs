@@ -31,5 +31,6 @@ namespace AGS.Editor
         public const string Speech = "MusicAndSpeech";
         public const string Rooms = "Rooms";
         public const string StatisticsSender = "StatisticsSender";
+        public const string BuildLinux = "BuildLinux";
     }
 }

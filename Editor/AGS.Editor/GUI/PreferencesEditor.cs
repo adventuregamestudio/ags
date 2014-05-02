@@ -45,6 +45,7 @@ namespace AGS.Editor
             udBackupInterval.Enabled = chkBackupReminders.Checked;
             chkRemapBgImport.Checked = _preferences.RemapPalettizedBackgrounds;
             chkKeepHelpOnTop.Checked = _preferences.KeepHelpOnTop;
+            chkBuildForAllPorts.Checked = _preferences.BuildForAllPorts;
             Utilities.CheckLabelWidthsOnForm(this);
 		}
 
@@ -81,6 +82,7 @@ namespace AGS.Editor
             _preferences.BackupWarningInterval = (chkBackupReminders.Checked ? (int)udBackupInterval.Value : 0);
             _preferences.RemapPalettizedBackgrounds = chkRemapBgImport.Checked;
             _preferences.KeepHelpOnTop = chkKeepHelpOnTop.Checked;
+            _preferences.BuildForAllPorts = chkBuildForAllPorts.Checked;
 		}
 
 		private void radFolderPath_CheckedChanged(object sender, EventArgs e)

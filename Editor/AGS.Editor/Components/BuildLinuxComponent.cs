@@ -9,13 +9,18 @@ namespace AGS.Editor.Components
     {
         private AGSEditor _editor;
         private string[] libs;
-        private string lib32Dir;
-        private string lib64Dir;
-        private string linuxDir;
-        private string linuxDataDir;
-        private string linuxDataLib32Dir;
-        private string linuxDataLib64Dir;
-        private string compiledDir;
+        private string editorLinuxDir = null;
+        private string editorAGS32Path = null;
+        private string editorAGS64Path = null;
+        private string editorLib32Dir = null;
+        private string editorLib64Dir = null;
+        private string gameLinuxDir = null;
+        private string gameLinuxAGS32Path = null;
+        private string gameLinuxAGS64Path = null;
+        private string gameLinuxDataDir = null;
+        private string gameLinuxDataLib32Dir = null;
+        private string gameLinuxDataLib64Dir = null;
+        private string gameCompiledDir = null;
         private static BuildLinuxComponent _instance;
 
         public static BuildLinuxComponent Instance
@@ -46,13 +51,19 @@ namespace AGS.Editor.Components
 
         void InitPaths()
         {
-            lib32Dir = Path.Combine(_editor.EditorDirectory, "lib32");
-            lib64Dir = Path.Combine(_editor.EditorDirectory, "lib64");
-            linuxDir = Path.Combine(_editor.CurrentGame.DirectoryPath, "Linux");
-            linuxDataDir = Path.Combine(linuxDir, "data");
-            linuxDataLib32Dir = Path.Combine(linuxDataDir, "lib32");
-            linuxDataLib64Dir = Path.Combine(linuxDataDir, "lib64");
-            compiledDir = Path.Combine(_editor.CurrentGame.DirectoryPath, "Compiled");
+            if (editorLinuxDir != null) return; // paths already set
+            editorLinuxDir = Path.Combine(_editor.EditorDirectory, "linux");
+            editorAGS32Path = Path.Combine(editorLinuxDir, "ags32");
+            editorAGS64Path = Path.Combine(editorLinuxDir, "ags64");
+            editorLib32Dir = Path.Combine(editorLinuxDir, "lib32");
+            editorLib64Dir = Path.Combine(editorLinuxDir, "lib64");
+            gameLinuxDir = Path.Combine(_editor.CurrentGame.DirectoryPath, "linux");
+            gameLinuxDataDir = Path.Combine(gameLinuxDir, "data");
+            gameLinuxAGS32Path = Path.Combine(gameLinuxDataDir, "ags32");
+            gameLinuxAGS64Path = Path.Combine(gameLinuxDataDir, "ags64");
+            gameLinuxDataLib32Dir = Path.Combine(gameLinuxDataDir, "lib32");
+            gameLinuxDataLib64Dir = Path.Combine(gameLinuxDataDir, "lib64");
+            gameCompiledDir = Path.Combine(_editor.CurrentGame.DirectoryPath, "Compiled");
         }
 
         public void BuildForLinux()
@@ -121,46 +132,34 @@ namespace AGS.Editor.Components
         {
             foreach (string lib in libs)
             {
-                if (!File.Exists(Path.Combine(lib32Dir, lib)))
+                if (!File.Exists(Path.Combine(editorLib32Dir, lib)))
                     return new MissingLibOrPlugin(MissingLibOrPlugin.ArchType.Arch32, MissingLibOrPlugin.LibOrPlugin.Lib, lib);
-                if (!File.Exists(Path.Combine(lib64Dir, lib)))
+                if (!File.Exists(Path.Combine(editorLib64Dir, lib)))
                     return new MissingLibOrPlugin(MissingLibOrPlugin.ArchType.Arch64, MissingLibOrPlugin.LibOrPlugin.Lib, lib);
             }
-            if (!File.Exists(Path.Combine(_editor.EditorDirectory, "ags32")))
+            if (!File.Exists(editorAGS32Path))
                 return new MissingLibOrPlugin(MissingLibOrPlugin.ArchType.Arch32, MissingLibOrPlugin.LibOrPlugin.Engine, "ags32");
-            if (!File.Exists(Path.Combine(_editor.EditorDirectory, "ags64")))
+            if (!File.Exists(editorAGS64Path))
                 return new MissingLibOrPlugin(MissingLibOrPlugin.ArchType.Arch64, MissingLibOrPlugin.LibOrPlugin.Engine, "ags64");
             return MissingLibOrPlugin.Empty;
+        }
+
+        private string GetPluginSOName(AGS.Types.Plugin plugin)
+        {
+            return "lib" + plugin.FileName.Substring(0, plugin.FileName.Length - 3) + "so";
         }
 
         private MissingLibOrPlugin EnsurePluginsExist()
         {
             foreach (AGS.Types.Plugin plugin in _editor.CurrentGame.Plugins)
             {
-                string soName = "lib" + plugin.FileName.Substring(0, plugin.FileName.Length - 3) + "so";
-                if (!File.Exists(Path.Combine(lib32Dir, soName)))
+                string soName = GetPluginSOName(plugin);
+                if (!File.Exists(Path.Combine(editorLib32Dir, soName)))
                     return new MissingLibOrPlugin(MissingLibOrPlugin.ArchType.Arch32, MissingLibOrPlugin.LibOrPlugin.Plugin, soName);
-                if (!File.Exists(Path.Combine(lib64Dir, soName)))
+                if (!File.Exists(Path.Combine(editorLib64Dir, soName)))
                     return new MissingLibOrPlugin(MissingLibOrPlugin.ArchType.Arch64, MissingLibOrPlugin.LibOrPlugin.Plugin, soName);
             }
             return MissingLibOrPlugin.Empty;
-        }
-
-        private string GetUnlinkScriptForEachPlugin()
-        {
-            string results = "";
-            foreach (AGS.Types.Plugin plugin in _editor.CurrentGame.Plugins)
-            {
-                string pluginName = "lib" + plugin.FileName.Substring(0, plugin.FileName.Length - 3) + "so";
-                results +=
-@"
-if [ -f """ + pluginName + @""" ]
-  then
-    rm """ + pluginName + @"""
-fi
-";
-            }
-            return results;
         }
 
         private string GetLibSymLinkScriptForEachPlugin(bool is64)
@@ -168,70 +167,58 @@ fi
             string results = "";
             foreach (AGS.Types.Plugin plugin in _editor.CurrentGame.Plugins)
             {
-                string pluginName = "lib" + plugin.FileName.Substring(0, plugin.FileName.Length - 3) + "so";
+                string soName = GetPluginSOName(plugin);
                 results +=
 @"
-    ln -s ""$SCRIPTPATH/data/lib" + (is64 ? "64" : "32") + @"/" + pluginName + @""" """ + pluginName + @"""";
+    ln -f -s ""$SCRIPTPATH/data/lib" + (is64 ? "64" : "32") + @"/" + soName + @""" """ + soName + @"""";
             }
             return results;
         }
 
+        private void CopyFilesFromDir(string inDir, string outDir)
+        {
+            // inDir and outDir must be validated first
+            foreach (string file in Directory.GetFiles(inDir))
+            {
+                string fileName = Path.GetFileName(file);
+                if (fileName.StartsWith("libags", StringComparison.OrdinalIgnoreCase))
+                {
+                    bool found = false;
+                    foreach (AGS.Types.Plugin plugin in _editor.CurrentGame.Plugins)
+                    {
+                        string soName = GetPluginSOName(plugin);
+                        if (soName.Equals(fileName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) continue;
+                }
+                File.Copy(file, Path.Combine(outDir, fileName), true);
+            }
+        }
+
         private void CopyFilesFromCompiledDir()
         {
-            if (!Directory.Exists(linuxDir)) Directory.CreateDirectory(linuxDir);
-            if (!Directory.Exists(linuxDataDir)) Directory.CreateDirectory(linuxDataDir);
-            if (!Directory.Exists(linuxDataLib32Dir)) Directory.CreateDirectory(linuxDataLib32Dir);
-            if (!Directory.Exists(linuxDataLib64Dir)) Directory.CreateDirectory(linuxDataLib64Dir);
-            string[] compiledFiles = Directory.GetFiles(compiledDir);
+            if (!Directory.Exists(gameLinuxDir)) Directory.CreateDirectory(gameLinuxDir);
+            if (!Directory.Exists(gameLinuxDataDir)) Directory.CreateDirectory(gameLinuxDataDir);
+            if (!Directory.Exists(gameLinuxDataLib32Dir)) Directory.CreateDirectory(gameLinuxDataLib32Dir);
+            if (!Directory.Exists(gameLinuxDataLib64Dir)) Directory.CreateDirectory(gameLinuxDataLib64Dir);
+            string[] compiledFiles = Directory.GetFiles(gameCompiledDir);
             foreach (string file in compiledFiles)
             {
-                if ((!file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) && (!file.Equals("winsetup.exe", StringComparison.OrdinalIgnoreCase))) File.Copy(file, Path.Combine(linuxDataDir, Path.GetFileName(file)), true);
+                if ((!file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) && (!Path.GetFileName(file).Equals("winsetup.exe", StringComparison.OrdinalIgnoreCase))) File.Copy(file, Path.Combine(gameLinuxDataDir, Path.GetFileName(file)), true);
             }
-            foreach (string file in Directory.GetFiles(lib32Dir))
-            {
-                string fileName = Path.GetFileName(file);
-                if (fileName.StartsWith("libags", StringComparison.OrdinalIgnoreCase))
-                {
-                    bool found = false;
-                    foreach (AGS.Types.Plugin plugin in _editor.CurrentGame.Plugins)
-                    {
-                        string pluginFileName = "lib" + plugin.FileName.Substring(0, plugin.FileName.Length - 3) + "so";
-                        if (pluginFileName.Equals(fileName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found) continue;
-                }
-                File.Copy(file, Path.Combine(linuxDataLib32Dir, fileName), true);
-            }
-            foreach (string file in Directory.GetFiles(lib64Dir))
-            {
-                string fileName = Path.GetFileName(file);
-                if (fileName.StartsWith("libags", StringComparison.OrdinalIgnoreCase))
-                {
-                    bool found = false;
-                    foreach (AGS.Types.Plugin plugin in _editor.CurrentGame.Plugins)
-                    {
-                        string pluginFileName = "lib" + plugin.FileName.Substring(0, plugin.FileName.Length - 3) + "so";
-                        if (pluginFileName.Equals(fileName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found) continue;
-                }
-                File.Copy(file, Path.Combine(linuxDataLib64Dir, fileName), true);
-            }
-            File.Copy(Path.Combine(_editor.EditorDirectory, "ags32"), Path.Combine(linuxDataDir, "ags32"), true);
-            File.Copy(Path.Combine(_editor.EditorDirectory, "ags64"), Path.Combine(linuxDataDir, "ags64"), true);
-            string gamePathName = Path.Combine(_editor.CurrentGame.DirectoryPath, Path.PathSeparator.ToString());
-            gamePathName = Path.GetDirectoryName(gamePathName);
-            gamePathName = Path.GetFileName(gamePathName);
-            gamePathName = gamePathName.Replace(" ", "");
-            FileStream script = File.Create(Path.Combine(linuxDir, gamePathName));
+            CopyFilesFromDir(editorLib32Dir, gameLinuxDataLib32Dir);
+            CopyFilesFromDir(editorLib64Dir, gameLinuxDataLib64Dir);
+            File.Copy(editorAGS32Path, Path.Combine(gameLinuxDataDir, "ags32"), true);
+            File.Copy(editorAGS64Path, Path.Combine(gameLinuxDataDir, "ags64"), true);
+            string gamePathName = Path.Combine(_editor.CurrentGame.DirectoryPath, Path.PathSeparator.ToString()); // make sure string ends with path separator so GetDirectoryName returns the correct path
+            gamePathName = Path.GetDirectoryName(gamePathName); // strips the trailing path separator
+            gamePathName = Path.GetFileName(gamePathName); // returns the name of the last directory in the path (e.g., the game directory)
+            gamePathName = gamePathName.Replace(" ", ""); // strips whitespace
+            FileStream script = File.Create(Path.Combine(gameLinuxDir, gamePathName));
             string scriptContents =
 @"#!/bin/sh
 SCRIPTPATH=""$(dirname ""$(readlink -f $0)"")""
@@ -241,8 +228,7 @@ if test ""x$@"" = ""x-h"" -o ""x$@"" = ""x--help""
     echo ""Usage:"" ""$(basename ""$(readlink -f $0)"")"" ""[<ags options>]""
     echo """"
 fi
-" + GetUnlinkScriptForEachPlugin() +
-@"
+
 if test $(uname -m) = x86_64
   then" + GetLibSymLinkScriptForEachPlugin(true) +
 @"

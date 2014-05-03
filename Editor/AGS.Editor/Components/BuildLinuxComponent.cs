@@ -238,7 +238,9 @@ if test $(uname -m) = x86_64
     ALLEGRO_MODULES=""$SCRIPTPATH/data/lib32"" ""$SCRIPTPATH/data/ags32"" ""$@"" ""$SCRIPTPATH/data/""
 fi
 ";
-            script.Write(Encoding.ASCII.GetBytes(scriptContents), 0, scriptContents.Length);
+            scriptContents = scriptContents.Replace("\r\n", "\n"); // make sure script has UNIX line endings
+            byte[] bytes = Encoding.UTF8.GetBytes(scriptContents);
+            script.Write(bytes, 0, bytes.Length);
             script.Close();
         }
     }

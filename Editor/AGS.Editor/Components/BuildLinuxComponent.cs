@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Windows.Forms;
 
 namespace AGS.Editor.Components
 {
     class BuildLinuxComponent : BaseComponent
     {
-        private AGSEditor _editor;
+        private AGSEditor editor;
         private string[] libs;
         private string editorLinuxDir = null;
         private string editorAGS32Path = null;
@@ -21,17 +21,17 @@ namespace AGS.Editor.Components
         private string gameLinuxDataLib32Dir = null;
         private string gameLinuxDataLib64Dir = null;
         private string gameCompiledDir = null;
-        private static BuildLinuxComponent _instance;
+        private static BuildLinuxComponent instance;
 
         public static BuildLinuxComponent Instance
         {
-            get { return _instance; }
+            get { return instance; }
         }
 
         public BuildLinuxComponent(GUIController guiController, AGSEditor agsEditor) : base(guiController, agsEditor)
         {
-            _instance = this;
-            _editor = agsEditor;
+            instance = this;
+            editor = agsEditor;
             libs = new string[]
             {
                 "alleg-alsadigi.so",
@@ -46,31 +46,31 @@ namespace AGS.Editor.Components
                 "libvorbisfile.so.3",
                 "modules.lst"
             };
-            _editor.Preferences.BuildForAllPorts = _editor.Preferences.BuildForAllPorts; // to initialize the event!
+            editor.Preferences.BuildForAllPorts = editor.Preferences.BuildForAllPorts; // to initialize the ExtraOutputCreationStep event handler!
         }
 
         void InitPaths()
         {
             if (editorLinuxDir != null) return; // paths already set
-            editorLinuxDir = Path.Combine(_editor.EditorDirectory, "linux");
+            editorLinuxDir = Path.Combine(editor.EditorDirectory, "linux");
             editorAGS32Path = Path.Combine(editorLinuxDir, "ags32");
             editorAGS64Path = Path.Combine(editorLinuxDir, "ags64");
             editorLib32Dir = Path.Combine(editorLinuxDir, "lib32");
             editorLib64Dir = Path.Combine(editorLinuxDir, "lib64");
-            gameLinuxDir = Path.Combine(_editor.CurrentGame.DirectoryPath, "linux");
+            gameLinuxDir = Path.Combine(editor.CurrentGame.DirectoryPath, "linux");
             gameLinuxDataDir = Path.Combine(gameLinuxDir, "data");
             gameLinuxAGS32Path = Path.Combine(gameLinuxDataDir, "ags32");
             gameLinuxAGS64Path = Path.Combine(gameLinuxDataDir, "ags64");
             gameLinuxDataLib32Dir = Path.Combine(gameLinuxDataDir, "lib32");
             gameLinuxDataLib64Dir = Path.Combine(gameLinuxDataDir, "lib64");
-            gameCompiledDir = Path.Combine(_editor.CurrentGame.DirectoryPath, "Compiled");
+            gameCompiledDir = Path.Combine(editor.CurrentGame.DirectoryPath, "Compiled");
         }
 
         public void BuildForLinux()
         {
             InitPaths();
-            if (EnsureLibsExist().RaiseWarning() != System.Windows.Forms.DialogResult.Yes) return;
-            if (EnsurePluginsExist().RaiseWarning() != System.Windows.Forms.DialogResult.Yes) return;
+            if (EnsureLibsExist().RaiseWarning() != DialogResult.Yes) return;
+            if (EnsurePluginsExist().RaiseWarning() != DialogResult.Yes) return;
             CopyFilesFromCompiledDir();
         }
 
@@ -117,15 +117,15 @@ namespace AGS.Editor.Components
                 Name = name;
             }
 
-            public System.Windows.Forms.DialogResult RaiseWarning()
+            public DialogResult RaiseWarning()
             {
-                if (this == Empty) return System.Windows.Forms.DialogResult.Yes;
-                return System.Windows.Forms.MessageBox.Show(
+                if (this == None) return DialogResult.Yes;
+                return MessageBox.Show(
                     "Could not find " + Which.ToString().ToLower() + " '" + Name + "' (" + (Architecture == ArchType.Arch32 ? "32" : "64") + "-bit). Your game may not run properly without this file. Do you wish to continue building for Linux without it?",
-                    "Warning!", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Warning);
+                    "Warning!", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             }
 
-            public static readonly MissingLibOrPlugin Empty = new MissingLibOrPlugin(ArchType.Unknown, LibOrPlugin.Unknown, string.Empty);
+            public static readonly MissingLibOrPlugin None = new MissingLibOrPlugin(ArchType.Unknown, LibOrPlugin.Unknown, string.Empty);
         };
 
         private MissingLibOrPlugin EnsureLibsExist()
@@ -141,7 +141,7 @@ namespace AGS.Editor.Components
                 return new MissingLibOrPlugin(MissingLibOrPlugin.ArchType.Arch32, MissingLibOrPlugin.LibOrPlugin.Engine, "ags32");
             if (!File.Exists(editorAGS64Path))
                 return new MissingLibOrPlugin(MissingLibOrPlugin.ArchType.Arch64, MissingLibOrPlugin.LibOrPlugin.Engine, "ags64");
-            return MissingLibOrPlugin.Empty;
+            return MissingLibOrPlugin.None;
         }
 
         private string GetPluginSOName(AGS.Types.Plugin plugin)
@@ -151,7 +151,7 @@ namespace AGS.Editor.Components
 
         private MissingLibOrPlugin EnsurePluginsExist()
         {
-            foreach (AGS.Types.Plugin plugin in _editor.CurrentGame.Plugins)
+            foreach (AGS.Types.Plugin plugin in editor.CurrentGame.Plugins)
             {
                 string soName = GetPluginSOName(plugin);
                 if (!File.Exists(Path.Combine(editorLib32Dir, soName)))
@@ -159,19 +159,23 @@ namespace AGS.Editor.Components
                 if (!File.Exists(Path.Combine(editorLib64Dir, soName)))
                     return new MissingLibOrPlugin(MissingLibOrPlugin.ArchType.Arch64, MissingLibOrPlugin.LibOrPlugin.Plugin, soName);
             }
-            return MissingLibOrPlugin.Empty;
+            return MissingLibOrPlugin.None;
         }
 
         private string GetLibSymLinkScriptForEachPlugin(bool is64)
         {
             string results = "";
-            foreach (AGS.Types.Plugin plugin in _editor.CurrentGame.Plugins)
+            string bit = (is64 ? "64" : "32");
+            foreach (AGS.Types.Plugin plugin in editor.CurrentGame.Plugins)
             {
                 string soName = GetPluginSOName(plugin);
                 results +=
 @"
-    ln -f -s ""$SCRIPTPATH/data/lib" + (is64 ? "64" : "32") + @"/" + soName + @""" """ + soName + @"""";
+    ln -f -s ""$SCRIPTPATH/data/lib" + bit + @"/" + soName + @""" """ + soName + @"""";
             }
+            results +=
+@"
+    ALLEGRO_MODULES=""$SCRIPTPATH/data/lib" + bit + @""" ""$SCRIPTPATH/data/ags" + bit + @""" ""$@"" ""$SCRIPTPATH/data/""";
             return results;
         }
 
@@ -184,7 +188,7 @@ namespace AGS.Editor.Components
                 if (fileName.StartsWith("libags", StringComparison.OrdinalIgnoreCase))
                 {
                     bool found = false;
-                    foreach (AGS.Types.Plugin plugin in _editor.CurrentGame.Plugins)
+                    foreach (AGS.Types.Plugin plugin in editor.CurrentGame.Plugins)
                     {
                         string soName = GetPluginSOName(plugin);
                         if (soName.Equals(fileName, StringComparison.OrdinalIgnoreCase))
@@ -214,7 +218,7 @@ namespace AGS.Editor.Components
             CopyFilesFromDir(editorLib64Dir, gameLinuxDataLib64Dir);
             File.Copy(editorAGS32Path, Path.Combine(gameLinuxDataDir, "ags32"), true);
             File.Copy(editorAGS64Path, Path.Combine(gameLinuxDataDir, "ags64"), true);
-            string gamePathName = Path.Combine(_editor.CurrentGame.DirectoryPath, Path.PathSeparator.ToString()); // make sure string ends with path separator so GetDirectoryName returns the correct path
+            string gamePathName = Path.Combine(editor.CurrentGame.DirectoryPath, Path.PathSeparator.ToString()); // make sure string ends with path separator so GetDirectoryName returns the correct path
             gamePathName = Path.GetDirectoryName(gamePathName); // strips the trailing path separator
             gamePathName = Path.GetFileName(gamePathName); // returns the name of the last directory in the path (e.g., the game directory)
             gamePathName = gamePathName.Replace(" ", ""); // strips whitespace
@@ -232,10 +236,8 @@ fi
 if test $(uname -m) = x86_64
   then" + GetLibSymLinkScriptForEachPlugin(true) +
 @"
-    ALLEGRO_MODULES=""$SCRIPTPATH/data/lib64"" ""$SCRIPTPATH/data/ags64"" ""$@"" ""$SCRIPTPATH/data/""
   else" + GetLibSymLinkScriptForEachPlugin(false) +
 @"
-    ALLEGRO_MODULES=""$SCRIPTPATH/data/lib32"" ""$SCRIPTPATH/data/ags32"" ""$@"" ""$SCRIPTPATH/data/""
 fi
 ";
             scriptContents = scriptContents.Replace("\r\n", "\n"); // make sure script has UNIX line endings

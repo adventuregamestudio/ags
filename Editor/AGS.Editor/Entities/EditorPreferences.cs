@@ -268,7 +268,15 @@ namespace AGS.Editor
             set
             {
                 if (value) AGSEditor.Instance.ExtraOutputCreationStep += new AGSEditor.ExtraOutputCreationStepHandler(AGS.Editor.Components.BuildLinuxComponent.Instance.BuildForLinux);
-                else AGSEditor.Instance.ExtraOutputCreationStep -= new AGSEditor.ExtraOutputCreationStepHandler(AGS.Editor.Components.BuildLinuxComponent.Instance.BuildForLinux);
+                else
+                {
+                    AGSEditor.Instance.ExtraOutputCreationStep -= new AGSEditor.ExtraOutputCreationStepHandler(AGS.Editor.Components.BuildLinuxComponent.Instance.BuildForLinux);
+                    string dataDir = AGS.Editor.Components.BuildLinuxComponent.Instance.LinuxDataDirectory;
+                    if (dataDir != null) // dir will be null when first opening editor
+                    {
+                        Utilities.DeleteFileIfExists(System.IO.Path.Combine(dataDir, AGSEditor.Instance.BaseGameFileName + ".exe"));
+                    }
+                }
                 _buildForAllPorts = value;
             }
         }

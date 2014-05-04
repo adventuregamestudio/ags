@@ -7,6 +7,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
 using System.Windows.Forms;
 
@@ -400,6 +402,30 @@ namespace AGS.Editor
             DestroyIcon(UnmanagedIconHandle);
 
             return icon;
+        }
+
+        [DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
+        private static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
+
+        public static bool CreateHardLink(string destFileName, string sourceFileName)
+        {
+            DeleteFileIfExists(destFileName); // CreateHardLink does not overwrite
+            bool result = CreateHardLink(destFileName, sourceFileName, IntPtr.Zero);
+            if (result)
+            {
+                // by default the new hard link will be accessible to the current user only
+                // instead, we'll change it to be accessible to the entire "Users" group
+                FileSecurity fsec = File.GetAccessControl(destFileName);
+                fsec.AddAccessRule(
+                    new FileSystemAccessRule(
+                        new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null),
+                        FileSystemRights.Modify,
+                        AccessControlType.Allow
+                        )
+                        );
+                File.SetAccessControl(destFileName, fsec);
+            }
+            return result;
         }
     }
 }

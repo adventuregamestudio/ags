@@ -28,6 +28,16 @@ namespace AGS.Editor.Components
             get { return instance; }
         }
 
+        public string LinuxOutputDirectory
+        {
+            get { return gameLinuxDir; }
+        }
+
+        public string LinuxDataDirectory
+        {
+            get { return gameLinuxDataDir; }
+        }
+
         public BuildLinuxComponent(GUIController guiController, AGSEditor agsEditor) : base(guiController, agsEditor)
         {
             instance = this;
@@ -212,7 +222,12 @@ namespace AGS.Editor.Components
             string[] compiledFiles = Directory.GetFiles(gameCompiledDir);
             foreach (string file in compiledFiles)
             {
-                if ((!file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) && (!Path.GetFileName(file).Equals("winsetup.exe", StringComparison.OrdinalIgnoreCase))) File.Copy(file, Path.Combine(gameLinuxDataDir, Path.GetFileName(file)), true);
+                if ((!file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) &&
+                    (!Path.GetFileName(file).Equals("winsetup.exe", StringComparison.OrdinalIgnoreCase)))
+                {
+                    Utilities.CreateHardLink(Path.Combine(gameLinuxDataDir, Path.GetFileName(file)), file);
+                    //File.Copy(file, Path.Combine(gameLinuxDataDir, Path.GetFileName(file)), true);
+                }
             }
             CopyFilesFromDir(editorLib32Dir, gameLinuxDataLib32Dir);
             CopyFilesFromDir(editorLib64Dir, gameLinuxDataLib64Dir);

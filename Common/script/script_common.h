@@ -19,8 +19,8 @@
 #ifndef __CS_COMMON_H
 #define __CS_COMMON_H
 
-#define SCOM_VERSION 89
-#define SCOM_VERSIONSTR "0.89"
+#define SCOM_VERSION 90
+#define SCOM_VERSIONSTR "0.90"
 
 // virtual CPU registers
 #define SREG_SP           1     // stack pointer

@@ -232,10 +232,7 @@ namespace AGS.Editor.Components
             CopyFilesFromDir(editorLib64Dir, gameLinuxDataLib64Dir);
             File.Copy(editorAGS32Path, Path.Combine(gameLinuxDataDir, "ags32"), true);
             File.Copy(editorAGS64Path, Path.Combine(gameLinuxDataDir, "ags64"), true);
-            string gamePathName = Path.Combine(editor.CurrentGame.DirectoryPath, Path.PathSeparator.ToString()); // make sure string ends with path separator so GetDirectoryName returns the correct path
-            gamePathName = Path.GetDirectoryName(gamePathName); // strips the trailing path separator
-            gamePathName = Path.GetFileName(gamePathName); // returns the name of the last directory in the path (e.g., the game directory)
-            gamePathName = gamePathName.Replace(" ", ""); // strips whitespace
+            string gamePathName = editor.BaseGameFileName.Replace(" ", ""); // strip whitespace
             FileStream script = File.Create(Path.Combine(gameLinuxDir, gamePathName));
             string scriptContents =
 @"#!/bin/sh

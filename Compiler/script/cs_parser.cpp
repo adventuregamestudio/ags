@@ -190,7 +190,7 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
             if (bracedepth <= 0)
                 in_struct_declr = -1;
         }
-        else if ((sym.stype[towrite] == 0) && (in_struct_declr >= 0) &&
+        else if ((sym.stype[towrite] == 0 || sym.stype[towrite] == SYM_FUNCTION) && (in_struct_declr >= 0) &&
             (parenthesisdepth == 0) && (bracedepth > 0)) {
                 // change the name of structure members so that the same member name
                 // can be used in multiple structs
@@ -207,7 +207,8 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
                     (towrite != in_struct_declr)) {
                         const char *new_name = get_member_full_name(in_struct_declr, towrite);
                         //      printf("changed '%s' to '%s'\n",sym.get_name(towrite),new_name);
-                        towrite = sym.add((char*)new_name);
+                        towrite = sym.find((char *) new_name);
+                        if (towrite < 0) towrite = sym.add((char *) new_name);
                 }
         }
 

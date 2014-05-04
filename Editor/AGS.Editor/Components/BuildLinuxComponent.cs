@@ -225,8 +225,7 @@ namespace AGS.Editor.Components
                 if ((!file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) &&
                     (!Path.GetFileName(file).Equals("winsetup.exe", StringComparison.OrdinalIgnoreCase)))
                 {
-                    Utilities.CreateHardLink(Path.Combine(gameLinuxDataDir, Path.GetFileName(file)), file);
-                    //File.Copy(file, Path.Combine(gameLinuxDataDir, Path.GetFileName(file)), true);
+                    Utilities.CreateHardLink(Path.Combine(gameLinuxDataDir, Path.GetFileName(file)), file, true);
                 }
             }
             CopyFilesFromDir(editorLib32Dir, gameLinuxDataLib32Dir);

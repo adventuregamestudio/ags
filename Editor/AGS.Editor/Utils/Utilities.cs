@@ -409,7 +409,16 @@ namespace AGS.Editor
 
         public static bool CreateHardLink(string destFileName, string sourceFileName)
         {
-            DeleteFileIfExists(destFileName); // CreateHardLink does not overwrite
+            return CreateHardLink(destFileName, sourceFileName, false);
+        }
+        
+        public static bool CreateHardLink(string destFileName, string sourceFileName, bool overwrite)
+        {
+            if (File.Exists(destFileName))
+            {
+                if (overwrite) File.Delete(destFileName);
+                else return false;
+            }
             bool result = CreateHardLink(destFileName, sourceFileName, IntPtr.Zero);
             if (result)
             {

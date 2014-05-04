@@ -15,7 +15,7 @@
 
 extern int currentline;
 
-char ccCopyright[]="ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones";
+char ccCopyright[]="ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2014 others";
 static char scriptNameBuffer[256];
 
 int is_part_of_symbol(char thischar, char startchar) {

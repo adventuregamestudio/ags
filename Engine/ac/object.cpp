@@ -218,6 +218,15 @@ const char* Object_GetName_New(ScriptObject *objj) {
     return CreateNewScriptString(get_translation(thisroom.objectnames[objj->id]));
 }
 
+bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood) {
+
+    play.check_interaction_only = 1;
+    RunObjectInteraction(oobj->id, mood);
+    int ciwas = play.check_interaction_only;
+    play.check_interaction_only = 0;
+    return (ciwas == 2);
+}
+
 void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int direct) {
     if ((direct == ANYWHERE) || (direct == 1))
         direct = 1;
@@ -506,6 +515,11 @@ RuntimeScriptValue Sc_Object_MergeIntoBackground(void *self, const RuntimeScript
     API_OBJCALL_VOID(ScriptObject, Object_MergeIntoBackground);
 }
 
+RuntimeScriptValue Sc_Object_IsInteractionAvailable(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_PINT(ScriptObject, Object_IsInteractionAvailable);
+}
+
 // void (ScriptObject *objj, int x, int y, int speed, int blocking, int direct)
 RuntimeScriptValue Sc_Object_Move(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -756,6 +770,7 @@ void RegisterObjectAPI()
     ccAddExternalObjectFunction("Object::GetProperty^1",            Sc_Object_GetProperty);
     ccAddExternalObjectFunction("Object::GetPropertyText^2",        Sc_Object_GetPropertyText);
     ccAddExternalObjectFunction("Object::GetTextProperty^1",        Sc_Object_GetTextProperty);
+    ccAddExternalObjectFunction("Object::IsInteractionAvailable^1", Sc_Object_IsInteractionAvailable);
     ccAddExternalObjectFunction("Object::MergeIntoBackground^0",    Sc_Object_MergeIntoBackground);
     ccAddExternalObjectFunction("Object::Move^5",                   Sc_Object_Move);
     ccAddExternalObjectFunction("Object::RemoveTint^0",             Sc_Object_RemoveTint);

@@ -749,7 +749,7 @@ bool init_gfx_mode(const Size &game_size, const Size &screen_size, int cdep)
         set_color_depth(cdep);
     }
 
-    const bool result = gfxDriver->Init(game_size.Width, game_size.Height, screen_size.Width, screen_size.Height, final_col_dep, usetup.windowed > 0, &timerloop);
+    const bool result = gfxDriver->Init(game_size.Width, game_size.Height, screen_size.Width, screen_size.Height, final_col_dep, usetup.windowed > 0, &timerloop, usetup.vsync != 0);
 
     if (result)
     {
@@ -961,12 +961,9 @@ void display_gfx_mode_error(const Size &game_size, const Size &screen_size)
 
     platform->DisplayAlert("%s\n"
             "(Problem: '%s')\n"
-            "Try to correct the problem, or seek help from the AGS homepage.\n"
-            "\nPossible causes:\n* your graphics card drivers do not support this resolution. "
-            "Run the game setup program and try the other resolution.\n"
-            "* the graphics driver you have selected does not work. Try switching between Direct3D and DirectDraw.\n"
-            "* the graphics filter you have selected does not work. Try another filter.",
-            main_error.GetCStr(), get_allegro_error());
+            "Try to correct the problem, or seek help from the AGS homepage."
+            "%s",
+            main_error.GetCStr(), get_allegro_error(), platform->GetGraphicsTroubleshootingText());
 }
 
 int graphics_mode_init()

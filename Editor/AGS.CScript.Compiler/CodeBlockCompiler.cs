@@ -188,6 +188,18 @@ namespace AGS.CScript.Compiler
 
                 ProcessCodeBlock();
             }
+            else if (keyword == PredefinedSymbol.For)
+            {
+                // TODO: Handle for loops
+            }
+            else if (keyword == PredefinedSymbol.Break)
+            {
+                // TODO: Handle break
+            }
+            else if (keyword == PredefinedSymbol.Continue)
+            {
+                // TODO: Handle continue
+            }
             else if (keyword == PredefinedSymbol.Return)
             {
                 Expression resultToReturn = ReadExpression(true, PredefinedSymbol.Semicolon);

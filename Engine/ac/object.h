@@ -56,6 +56,7 @@ void    Object_SetX(ScriptObject *objj, int xx);
 void    Object_SetY(ScriptObject *objj, int yy);
 void    Object_GetName(ScriptObject *objj, char *buffer);
 const char* Object_GetName_New(ScriptObject *objj);
+bool    Object_IsInteractionAvailable(ScriptObject *oobj, int mood);
 void    Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int direct);
 void    Object_SetClickable(ScriptObject *objj, int clik);
 int     Object_GetClickable(ScriptObject *objj);

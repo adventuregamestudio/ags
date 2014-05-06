@@ -17,7 +17,7 @@
 
 #include "ac/gamestructdefines.h"
 
-typedef unsigned char* wgtfont;
+typedef unsigned char IFont;
 struct BITMAP;
 
 // WARNING: this interface is exposed for plugins and declared for the second time in agsplugin.h
@@ -29,8 +29,8 @@ public:
   virtual int GetTextWidth(const char *text, int fontNumber) = 0;
   virtual int GetTextHeight(const char *text, int fontNumber) = 0;
   // [IKM] An important note: the AGS font renderers do not use 'destination' parameter at all, probably
-  // for simplicity (although that cause confusion): the parameter passed is always a global 'abuf'
-  // pointer therefore renderers address 'abuf' directly.
+  // for simplicity (although that causes confusion): the parameter passed is always a global 'virtual screen'
+  // pointer therefore renderers address 'virtual screen' directly.
   // Plugins, on other reason, act differently, since they are not aware of 'abuf'.
   virtual void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) = 0;
   virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber) = 0;
@@ -38,6 +38,6 @@ public:
 };
 
 extern IAGSFontRenderer* fontRenderers[MAX_FONTS];
-extern wgtfont fonts[MAX_FONTS];
+extern IFont *fonts[MAX_FONTS];
 
 #endif // __AC_AGSFONTRENDERER_H

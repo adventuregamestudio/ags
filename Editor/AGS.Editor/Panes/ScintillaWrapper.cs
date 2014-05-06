@@ -323,8 +323,9 @@ namespace AGS.Editor
 
 		public void SelectCurrentLine()
 		{
-			int curLine = this.CurrentLine;
-			scintillaControl1.SetSel(scintillaControl1.PositionFromLine(curLine), scintillaControl1.PositionFromLine(curLine + 1) - 1);
+			scintillaControl1.GotoPos(scintillaControl1.PositionFromLine(this.CurrentLine));
+			scintillaControl1.LineEndExtend();
+			scintillaControl1.LineScroll(0 - scintillaControl1.GetSelText().Length, 0);
 		}
 
         public void AddBreakpoint(int lineNumber)

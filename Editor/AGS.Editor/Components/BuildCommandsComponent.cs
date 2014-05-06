@@ -161,9 +161,12 @@ namespace AGS.Editor.Components
 
         private void TestGame(bool withDebugger)
         {
+            bool forceRebuild;
+
+            forceRebuild = _agsEditor.NeedsRebuildForDebugMode();
             if (_agsEditor.SaveGameFiles())
             {
-                if (!_agsEditor.CompileGame(false, true).HasErrors)
+                if (!_agsEditor.CompileGame(forceRebuild, true).HasErrors)
                 {
                     _testGameInProgress = true;
                     _guiController.InteractiveTasks.TestGame(withDebugger);
@@ -231,6 +234,7 @@ namespace AGS.Editor.Components
 
 		private void CompileGame(bool forceRebuild)
 		{
+			forceRebuild = _agsEditor.NeedsRebuildForDebugMode() || forceRebuild;
 			if (_agsEditor.SaveGameFiles())
 			{
 				if (_agsEditor.CompileGame(forceRebuild, false).Count == 0)

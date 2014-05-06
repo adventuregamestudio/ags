@@ -53,20 +53,6 @@ namespace AGS.Editor.Components
             UpdateScriptWindowTitle(sendingPane);
         }
 
-        protected void ScriptEditor_DockStateChanged_Hack(object sender, EventArgs e)
-        {
-            ScriptEditor editor = (ScriptEditor)sender;
-            ReInitializeScriptEditor(editor); 
-        }
-
-        protected void ScriptEditor_DockStateChanged(object sender, EventArgs e)
-        {
-            DockingContainer container = (DockingContainer)sender;
-            ScriptEditor editor = (ScriptEditor)container.Panel;
-            if (container.DockState == DockingState.Hidden) return;            
-            container.InitScriptIfNeeded<ScriptEditor>(ReInitializeScriptEditor, editor);            
-        }
-
         protected void UpdateScriptWindowTitle(ScriptEditor editor)
         {
             string newTitle = editor.Script.FileName + (editor.IsModified ? " *" : "");
@@ -77,25 +63,6 @@ namespace AGS.Editor.Components
                 document.Control.DockingContainer.Text = newTitle;
                 _guiController.DocumentTitlesChanged();
             }            
-        }
-        
-        protected virtual void ReInitializeScriptEditor(ScriptEditor editor)
-        {
-            Script script = editor.Script;
-            string modifiedText = editor.ModifiedText;
-            if (modifiedText != null && 
-                modifiedText.Equals(script.Text))
-            {
-                modifiedText = null;
-            }
-            editor.Clear();
-            editor.Init(script);
-            editor.ActivateWindow();
-            if (modifiedText != null)
-            {
-                editor.ModifiedText = modifiedText;
-            }
-            UpdateScriptWindowTitle(editor);
-        }
+        }                
     }
 }

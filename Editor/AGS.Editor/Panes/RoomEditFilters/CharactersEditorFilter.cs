@@ -303,6 +303,11 @@ namespace AGS.Editor
             int xPos = AdjustXCoordinateForWindowScroll(character.StartX, state);// character.StartX* scale;
             int yPos = AdjustYCoordinateForWindowScroll(character.StartY, state);// character.StartY* scale;
 
+            if (view == null || view.Loops.Count == 0)
+            {
+                return new Rectangle(xPos - 5, yPos - 5, 10, 10);
+            }
+
             int spriteNum = 0;
             if (view.Loops[0].Frames.Count > 0)
                 spriteNum = _game.FindViewByID(character.NormalView).Loops[0].Frames[0].Image;

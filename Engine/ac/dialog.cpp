@@ -338,7 +338,7 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
 
 int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, int numdisp, int mouseison, int areawid,
     int bullet_wid, int usingfont, DialogTopic*dtop, char*disporder, short*dispyp,
-    int txthit, int utextcol) {
+    int txthit, int utextcol, int padding) {
   int ww;
 
   color_t text_color;
@@ -360,7 +360,7 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
       else text_color = ds->GetCompatibleColor(utextcol);
     }
 
-    break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[ww]]));
+    break_up_text_into_lines(areawid-(2*padding+2+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[ww]]));
     dispyp[ww]=curyp;
     if (game.dialog_bullet > 0)
     {
@@ -391,7 +391,7 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
 #define GET_OPTIONS_HEIGHT {\
   needheight = 0;\
   for (ww=0;ww<numdisp;ww++) {\
-    break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[ww]]));\
+    break_up_text_into_lines(areawid-(2*padding+2+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[ww]]));\
     needheight += (numlines * txthit) + multiply_up_coordinate(game.options[OPT_DIALOGGAP]);\
   }\
   if (parserInput) needheight += parserInput->hit + multiply_up_coordinate(game.options[OPT_DIALOGGAP]);\
@@ -433,6 +433,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
   int usingfont=FONT_NORMAL;
   int txthit = wgetfontheight(usingfont);
   int curswas=cur_cursor;
+  int padding;
   int bullet_wid = 0, needheight;
   IDriverDependantBitmap *ddb = NULL;
   Bitmap *subBitmap = NULL;
@@ -494,7 +495,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
   if ((numdisp > 1) || (parserInput != NULL) || (play.show_single_dialog_option)) {
     draw_color = ds->GetCompatibleColor(0); //ds->FillRect(Rect(0,dlgyp-1,scrnwid-1,dlgyp+numdisp*txthit+1);
     int areawid, is_textwindow = 0;
-    int forecol = 14, savedwid;
+    int forecol = play.dialog_options_highlight_color, savedwid;
 
     int mouseison=-1,curyp;
     int mousewason=-10;
@@ -532,6 +533,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         dialog_abs_x = guib->x;
 
         areawid=guib->wid - 5;
+        padding = TEXTWINDOW_PADDING_DEFAULT;
 
         GET_OPTIONS_HEIGHT
 
@@ -545,6 +547,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
     else {
       //dlgyp=(scrnhit-numdisp*txthit)-1;
       areawid=scrnwid-5;
+      padding = TEXTWINDOW_PADDING_DEFAULT;
       GET_OPTIONS_HEIGHT
       dlgyp = scrnhit - needheight;
 
@@ -616,13 +619,14 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       // text window behind the options
       areawid = multiply_up_coordinate(play.max_dialogoption_width);
       int biggest = 0;
+      padding = guis[game.options[OPT_DIALOGIFACE]].padding;
       for (ww=0;ww<numdisp;ww++) {
-        break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[ww]]));
+        break_up_text_into_lines(areawid-((2*padding+2)+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[ww]]));
         if (longestline > biggest)
           biggest = longestline;
       }
-      if (biggest < areawid - (12+bullet_wid))
-        areawid = biggest + (12+bullet_wid);
+      if (biggest < areawid - ((2*padding+6)+bullet_wid))
+        areawid = biggest + ((2*padding+6)+bullet_wid);
 
       if (areawid < multiply_up_coordinate(play.min_dialogoption_width)) {
         areawid = multiply_up_coordinate(play.min_dialogoption_width);
@@ -633,7 +637,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       GET_OPTIONS_HEIGHT
 
       savedwid = areawid;
-      int txoffs=0,tyoffs=0,yspos = scrnhit/2-needheight/2;
+      int txoffs=0,tyoffs=0,yspos = scrnhit/2-(2*padding+needheight)/2;
       int xspos = scrnwid/2 - areawid/2;
       // shift window to the right if QG4-style full-screen pic
       if ((game.options[OPT_SPEECHTYPE] == 3) && (said_text > 0))
@@ -662,7 +666,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       txoffs += xspos;
       tyoffs += yspos;
       dlgyp = tyoffs;
-      curyp = write_dialog_options(ds, options_surface_has_alpha, txoffs,tyoffs,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol);
+      curyp = write_dialog_options(ds, options_surface_has_alpha, txoffs,tyoffs,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol,padding);
       if (parserInput)
         parserInput->x = txoffs;
     }
@@ -711,7 +715,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
       //curyp = dlgyp + 1;
       curyp = dlgyp;
-      curyp = write_dialog_options(ds, options_surface_has_alpha, dlgxp,curyp,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol);
+      curyp = write_dialog_options(ds, options_surface_has_alpha, dlgxp,curyp,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol,padding);
 
       /*if (curyp > scrnhit) {
         dlgyp = scrnhit - (curyp - dlgyp);

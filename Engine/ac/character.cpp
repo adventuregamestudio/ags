@@ -24,6 +24,7 @@
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/event.h"
+#include "ac/game.h"
 #include "ac/global_audio.h"
 #include "ac/global_character.h"
 #include "ac/global_game.h"
@@ -67,9 +68,6 @@ extern GameSetupStruct game;
 extern int displayed_room,starting_room;
 extern roomstruct thisroom;
 extern MoveList *mls;
-extern int new_room_pos;
-extern int new_room_x, new_room_y;
-extern GameState play;
 extern ViewStruct*views;
 extern RoomObject*objs;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -239,18 +237,23 @@ void Character_ChangeRoomAutoPosition(CharacterInfo *chaa, int room, int newPos)
 }
 
 void Character_ChangeRoom(CharacterInfo *chaa, int room, int x, int y) {
+    Character_ChangeRoomSetLoop(chaa, room, x, y, SCR_NO_VALUE);
+}
+
+void Character_ChangeRoomSetLoop(CharacterInfo *chaa, int room, int x, int y, int direction) {
 
     if (chaa->index_id != game.playercharacter) {
         // NewRoomNPC
         if ((x != SCR_NO_VALUE) && (y != SCR_NO_VALUE)) {
             chaa->x = x;
             chaa->y = y;
+			if (direction != SCR_NO_VALUE && direction>=0) chaa->loop = direction;
         }
         chaa->prevroom = chaa->room;
         chaa->room = room;
 
-        DEBUG_CONSOLE("%s moved to room %d, location %d,%d",
-            chaa->scrname, room, chaa->x, chaa->y);
+		DEBUG_CONSOLE("%s moved to room %d, location %d,%d, loop %d",
+			chaa->scrname, room, chaa->x, chaa->y, chaa->loop);
 
         return;
     }
@@ -270,6 +273,7 @@ void Character_ChangeRoom(CharacterInfo *chaa, int room, int x, int y) {
             // walk-in animation if they want
             new_room_x = x;
             new_room_y = y;
+			if (direction != SCR_NO_VALUE) new_room_loop = direction;
         }
     }
 
@@ -539,6 +543,15 @@ int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
 
     }
     return 0;
+}
+
+bool Character_IsInteractionAvailable(CharacterInfo *cchar, int mood) {
+
+    play.check_interaction_only = 1;
+    RunCharacterInteraction(cchar->index_id, mood);
+    int ciwas = play.check_interaction_only;
+    play.check_interaction_only = 0;
+    return (ciwas == 2);
 }
 
 void Character_LockView(CharacterInfo *chap, int vii) {
@@ -2390,17 +2403,21 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                 if (game.options[OPT_PORTRAITSIDE] == PORTRAIT_XPOSITION) {
                     // Portrait side based on character X-positions
                     if (play.swap_portrait_lastchar < 0) {
-                        // no previous character been spoken to
-                        // therefore, find another character in this room
-                        // that it could be
-                        for (int ce = 0; ce < game.numcharacters; ce++) {
-                            if ((game.chars[ce].room == speakingChar->room) &&
-                                (game.chars[ce].on == 1) &&
-                                (ce != aschar)) {
-                                    play.swap_portrait_lastchar = ce;
-                                    break;
+                        // No previous character been spoken to
+                        // therefore, assume it's the player
+                        if(game.playercharacter != aschar && game.chars[game.playercharacter].room == speakingChar->room && game.chars[game.playercharacter].on == 1)
+                            play.swap_portrait_lastchar = game.playercharacter;
+                        else
+                            // The player's not here. Find another character in this room
+                            // that it could be
+                            for (int ce = 0; ce < game.numcharacters; ce++) {
+                                if ((game.chars[ce].room == speakingChar->room) &&
+                                    (game.chars[ce].on == 1) &&
+                                    (ce != aschar)) {
+                                        play.swap_portrait_lastchar = ce;
+                                        break;
+                                }
                             }
-                        }
                     }
 
                     if (play.swap_portrait_lastchar >= 0) {
@@ -2412,9 +2429,18 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                             play.swap_portrait_side = 0;
                     }
                 }
-
+                play.swap_portrait_lastlastchar = play.swap_portrait_lastchar;
                 play.swap_portrait_lastchar = aschar;
             }
+            else
+                // If the portrait side is based on the character's X position and the same character is
+                // speaking, compare against the previous *previous* character to see where the speech should be
+                if (game.options[OPT_PORTRAITSIDE] == PORTRAIT_XPOSITION && play.swap_portrait_lastlastchar >= 0) {
+                    if (speakingChar->x > game.chars[play.swap_portrait_lastlastchar].x)
+                        play.swap_portrait_side = -1;
+                    else
+                        play.swap_portrait_side = 0;
+                }
 
             // Determine whether to display the portrait on the left or right
             int portrait_on_right = 0;
@@ -2764,6 +2790,11 @@ RuntimeScriptValue Sc_Character_ChangeRoom(void *self, const RuntimeScriptValue 
     API_OBJCALL_VOID_PINT3(CharacterInfo, Character_ChangeRoom);
 }
 
+RuntimeScriptValue Sc_Character_ChangeRoomSetLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT4(CharacterInfo, Character_ChangeRoomSetLoop);
+}
+
 // void | CharacterInfo *chaa, int room, int newPos
 RuntimeScriptValue Sc_Character_ChangeRoomAutoPosition(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2834,6 +2865,11 @@ RuntimeScriptValue Sc_Character_IsCollidingWithChar(void *self, const RuntimeScr
 RuntimeScriptValue Sc_Character_IsCollidingWithObject(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT_POBJ(CharacterInfo, Character_IsCollidingWithObject, ScriptObject);
+}
+
+RuntimeScriptValue Sc_Character_IsInteractionAvailable(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL_PINT(CharacterInfo, Character_IsInteractionAvailable);
 }
 
 // void (CharacterInfo *chap, int vii)
@@ -3466,6 +3502,7 @@ void RegisterCharacterAPI()
 	ccAddExternalObjectFunction("Character::AddWaypoint^2",             Sc_Character_AddWaypoint);
 	ccAddExternalObjectFunction("Character::Animate^5",                 Sc_Character_Animate);
 	ccAddExternalObjectFunction("Character::ChangeRoom^3",              Sc_Character_ChangeRoom);
+    ccAddExternalObjectFunction("Character::ChangeRoom^4",              Sc_Character_ChangeRoomSetLoop);
 	ccAddExternalObjectFunction("Character::ChangeRoomAutoPosition^2",  Sc_Character_ChangeRoomAutoPosition);
 	ccAddExternalObjectFunction("Character::ChangeView^1",              Sc_Character_ChangeView);
 	ccAddExternalObjectFunction("Character::FaceCharacter^2",           Sc_Character_FaceCharacter);
@@ -3478,6 +3515,7 @@ void RegisterCharacterAPI()
 	ccAddExternalObjectFunction("Character::HasInventory^1",            Sc_Character_HasInventory);
 	ccAddExternalObjectFunction("Character::IsCollidingWithChar^1",     Sc_Character_IsCollidingWithChar);
 	ccAddExternalObjectFunction("Character::IsCollidingWithObject^1",   Sc_Character_IsCollidingWithObject);
+    ccAddExternalObjectFunction("Character::IsInteractionAvailable^1",  Sc_Character_IsInteractionAvailable);
 	ccAddExternalObjectFunction("Character::LockView^1",                Sc_Character_LockView);
 	ccAddExternalObjectFunction("Character::LockViewAligned^3",         Sc_Character_LockViewAligned);
 	ccAddExternalObjectFunction("Character::LockViewFrame^3",           Sc_Character_LockViewFrame);

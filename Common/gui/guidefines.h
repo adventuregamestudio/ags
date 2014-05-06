@@ -42,6 +42,7 @@
 // 2.7.2.???? (115): Added GUI Control z-order support.
 //
 // 3.3.0.1132 (116): Added GUIF_TRANSLATED flag.
+// 3.3.1.???? (117): Added padding variable for text window GUIs.
 //
 //=============================================================================
 
@@ -67,7 +68,8 @@ enum GuiVersion
     kGuiVersion_272e        = 115,
     
     kGuiVersion_330         = 116,
-    kGuiVersion_Current     = kGuiVersion_330,
+    kGuiVersion_331         = 117,
+    kGuiVersion_Current     = kGuiVersion_331,
     kGuiVersion_ForwardCompatible = kGuiVersion_272e
 };
 

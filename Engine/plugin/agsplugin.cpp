@@ -1009,3 +1009,16 @@ void pl_read_plugins_from_disk (Stream *in) {
     }
 
 }
+
+bool pl_is_plugin_loaded(const char *pl_name)
+{
+    if (!pl_name)
+        return false;
+
+    for (int i = 0; i < numPlugins; ++i)
+    {
+        if (stricmp(pl_name, plugins[i].filename) == 0)
+            return plugins[i].available;
+    }
+    return false;
+}

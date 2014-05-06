@@ -19,7 +19,6 @@ namespace AGS.Editor
     public partial class ScriptEditor : EditorContentPanel, IScriptEditor
     {
         public event EventHandler IsModifiedChanged;
-        public event EventHandler DockStateChanged_Hack;
         public delegate void AttemptToEditScriptHandler(ref bool allowEdit);
         public static event AttemptToEditScriptHandler AttemptToEditScript;
 
@@ -63,8 +62,7 @@ namespace AGS.Editor
         private bool _fileChangedExternally = false;
         // we need this bool because it's not necessarily the same as scintilla.Modified
         private bool _editorTextModifiedSinceLastCopy = false;
-        private int _firstVisibleLine;
-        private string _lastKnownScriptText;        
+        private int _firstVisibleLine;        
 
         public ScriptEditor(Script scriptToEdit, AGSEditor agsEditor, Action<Script> showMatchingScript)
         {
@@ -126,12 +124,11 @@ namespace AGS.Editor
             _extraMenu.Commands.Add(new MenuCommand(SHOW_AUTOCOMPLETE_COMMAND, "Show Autocomplete", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Space, "ShowAutocompleteMenuIcon"));
             _extraMenu.Commands.Add(new MenuCommand(TOGGLE_BREAKPOINT_COMMAND, "Toggle Breakpoint", System.Windows.Forms.Keys.F9, "ToggleBreakpointMenuIcon"));
             _extraMenu.Commands.Add(new MenuCommand(MATCH_BRACE_COMMAND, "Match Brace", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.B));
-            _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Goto Line", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G));
+            _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Go to Line...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G));
             _extraMenu.Commands.Add(new MenuCommand(SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND, "Switch to Matching Script or Header", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.M));
 
             this.Resize += new EventHandler(ScriptEditor_Resize);
             this.Script = scriptToEdit;
-
             InitScintilla();            
         }
         
@@ -145,8 +142,7 @@ namespace AGS.Editor
                     null : scintilla.GetText(); 
             }
             set 
-            {
-                _lastKnownScriptText = value;
+            {                
                 scintilla.SetTextModified(value); 
             }
         }
@@ -474,7 +470,7 @@ namespace AGS.Editor
 
 		public void GoToLine(int lineNumber)
 		{
-			GoToLine(lineNumber, true, false);
+			GoToLine(lineNumber, false, false);
 		}
 
         public void GoToLine(int lineNumber, bool selectLine, bool goToLineAfterOpeningBrace)
@@ -622,9 +618,9 @@ namespace AGS.Editor
             {
                 GotoLineDialog gotoLineDialog = new GotoLineDialog
                 {
-                    Minimum = 0,
+                    Minimum = 1,
                     Maximum = scintilla.LineCount,
-                    LineNumber = scintilla.CurrentLine
+                    LineNumber = scintilla.CurrentLine + 1
                 };
                 if (gotoLineDialog.ShowDialog() != DialogResult.OK) return;
                 GoToLine(gotoLineDialog.LineNumber);
@@ -723,24 +719,6 @@ namespace AGS.Editor
 
         private void scintilla_IsModifiedChanged(object sender, EventArgs e)
         {   
-            //UGLY HACK due to a bug in DockPanel suite, where the DockStateChanged event is not
-            //fired in the scenario where a document was moved from the documents tab to the bottom of
-            //that same document tab
-            //===================================
-            if (_lastKnownScriptText == null)
-            {
-                _lastKnownScriptText = _script.Text;
-            }
-            string newText = scintilla.GetText();
-            if (_lastKnownScriptText == newText)
-            {
-                if (DockStateChanged_Hack != null)
-                    DockStateChanged_Hack(this, e);                                
-            }
-            _lastKnownScriptText = newText;
-            //END OF UGLY HACK
-            //===================================
-
             if (IsModifiedChanged != null)
             {
                 IsModifiedChanged(this, e);

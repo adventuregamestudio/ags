@@ -154,4 +154,10 @@ void get_message_text (int msnum, char *buffer, char giveErr = 1);
 InteractionVariable *get_interaction_variable (int varindx);
 InteractionVariable *FindGraphicalVariable(const char *varName);
 
+void register_audio_script_objects();
+bool unserialize_audio_script_object(int index, const char *objectType, const char *serializedData, int dataSize);
+
+extern int new_room_pos;
+extern int new_room_x, new_room_y, new_room_loop;
+
 #endif // __AGS_EE_AC__GAME_H

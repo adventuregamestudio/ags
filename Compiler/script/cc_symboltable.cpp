@@ -66,10 +66,17 @@ void symbolTable::reset() {
     add_ex(")",SYM_CLOSEPARENTHESIS,0);
     add_ex("{",SYM_OPENBRACE,0);
     add_ex("}",SYM_CLOSEBRACE,0);
-    add_ex("+=",SYM_MASSIGN,1);
-    add_ex("-=",SYM_MASSIGN,2);
-    add_ex("++",SYM_SASSIGN,1);
-    add_ex("--",SYM_SASSIGN,2);
+    add_ex("+=",SYM_MASSIGN,SCMD_ADDREG);
+    add_ex("-=",SYM_MASSIGN,SCMD_SUBREG);
+    add_ex("*=",SYM_MASSIGN,SCMD_MULREG);
+    add_ex("/=",SYM_MASSIGN,SCMD_DIVREG);
+    add_ex("&=",SYM_MASSIGN,SCMD_BITAND);
+    add_ex("|=",SYM_MASSIGN,SCMD_BITOR);
+    add_ex("^=",SYM_MASSIGN,SCMD_XORREG);
+    add_ex("<<=",SYM_MASSIGN,SCMD_SHIFTLEFT);
+    add_ex(">>=",SYM_MASSIGN,SCMD_SHIFTRIGHT);
+    add_ex("++",SYM_SASSIGN,SCMD_ADD);
+    add_ex("--",SYM_SASSIGN,SCMD_SUB);
     // the second argument to the operators is their precedence: 1 is highest
     add_operator("!",1, SCMD_NOTREG);
     add_operator("*",2, SCMD_MULREG);
@@ -97,6 +104,9 @@ void symbolTable::reset() {
     add_ex("if",SYM_IF,0);
     add_ex("else",SYM_ELSE,0);
     add_ex("while",SYM_WHILE,0);
+    add_ex("for",SYM_FOR,0);
+    add_ex("break",SYM_BREAK,0);
+    add_ex("continue",SYM_CONTINUE,0);
     add_ex("...",SYM_VARARGS,0);
     add_ex("struct",SYM_STRUCT,0);
     add_ex("import",SYM_IMPORT,0);

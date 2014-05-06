@@ -16,20 +16,25 @@
 #define __AC_WFNFONTRENDERER_H
 
 #include "font/agsfontrenderer.h"
+#include "font/wfnfont.h"
 
 class WFNFontRenderer : public IAGSFontRenderer {
 public:
   virtual bool LoadFromDisk(int fontNumber, int fontSize);
   virtual void FreeMemory(int fontNumber);
-  virtual bool SupportsExtendedCharacters(int fontNumber) { return false; }
+  virtual bool SupportsExtendedCharacters(int fontNumber);
   virtual int GetTextWidth(const char *text, int fontNumber);
   virtual int GetTextHeight(const char *text, int fontNumber);
-  virtual void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) ;
+  virtual void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour);
   virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber);
   virtual void EnsureTextValidForFont(char *text, int fontNumber);
 
 private:
-    int printchar(Common::Bitmap *ds, int xxx, int yyy, wgtfont foo, color_t text_color, int charr);
+  inline unsigned char GetCharCode(unsigned char wanted_code, const WFNFont *font) const
+  {
+    return wanted_code < font->GetCharCount() ? wanted_code : '?';
+  }
+  int RenderChar(Common::Bitmap *ds, const int at_x, const int at_y, const WFNFont::WFNChar &wfn_char, const color_t text_color);
 };
 
 extern WFNFontRenderer wfnRenderer;

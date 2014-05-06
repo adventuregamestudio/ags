@@ -15,7 +15,7 @@
 
 extern int currentline;
 
-char ccCopyright[]="ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones";
+char ccCopyright[]="ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2014 others";
 static char scriptNameBuffer[256];
 
 int is_part_of_symbol(char thischar, char startchar) {
@@ -57,7 +57,9 @@ int is_part_of_symbol(char thischar, char startchar) {
     // ==, >=, <=, !=, etc
     if (thischar == '=') {
         if ((startchar == '=') || (startchar == '<') || (startchar == '>')
-            || (startchar == '!') || (startchar == '+') || (startchar=='-'))
+            || (startchar == '!') || (startchar == '+') || (startchar == '-')
+            || (startchar == '*') || (startchar == '/')
+            || (startchar == '&') || (startchar == '|') || (startchar == '^'))
             return 1;
     }
     // && and ||, ++ and --
@@ -188,7 +190,7 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
             if (bracedepth <= 0)
                 in_struct_declr = -1;
         }
-        else if ((sym.stype[towrite] == 0) && (in_struct_declr >= 0) &&
+        else if ((sym.stype[towrite] == 0 || sym.stype[towrite] == SYM_FUNCTION) && (in_struct_declr >= 0) &&
             (parenthesisdepth == 0) && (bracedepth > 0)) {
                 // change the name of structure members so that the same member name
                 // can be used in multiple structs
@@ -205,7 +207,8 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
                     (towrite != in_struct_declr)) {
                         const char *new_name = get_member_full_name(in_struct_declr, towrite);
                         //      printf("changed '%s' to '%s'\n",sym.get_name(towrite),new_name);
-                        towrite = sym.add((char*)new_name);
+                        towrite = sym.find((char *) new_name);
+                        if (towrite < 0) towrite = sym.add((char *) new_name);
                 }
         }
 
@@ -331,7 +334,8 @@ int remove_locals(int from_level, int just_count, ccCompiledScript *scrip) {
 }
 
 int deal_with_end_of_ifelse (char*nested_type,long*nested_info,long*nested_start,
-                             ccCompiledScript*scrip,ccInternalList*targ,int*nestlevel) {
+                             ccCompiledScript*scrip,ccInternalList*targ,int*nestlevel, intptr_t **nested_chunk, intptr_t *nested_chunk_size,
+                             int *nested_fixup_start, int *nested_fixup_stop, int32_t *nested_assign_addr) {
      int nested_level = nestlevel[0];
      int is_else=0;
      if (nested_type[nested_level] == NEST_ELSESINGLE) ;
@@ -342,9 +346,12 @@ int deal_with_end_of_ifelse (char*nested_type,long*nested_info,long*nested_start
          is_else=1;
      }
      if (nested_start[nested_level]) {
-         // it's a while loop, so write a jump back to the check again
          scrip->flush_line_numbers();
-         scrip->write_cmd1(SCMD_JMP,-((scrip->codesize+2) - nested_start[nested_level]) );
+         // if it's a for loop, drop the yanked chunk (loop increment) back in
+         if(nested_chunk_size[nested_level] > 0)
+            scrip->write_chunk(nested_chunk, nested_level, nested_chunk_size[nested_level], true, nested_fixup_start[nested_level], nested_fixup_stop[nested_level], scrip->codesize - nested_assign_addr[nested_level]);
+         // it's a while loop, so write a jump back to the check again
+        scrip->write_cmd1(SCMD_JMP,-((scrip->codesize+2) - nested_start[nested_level]) );
      }
      // write the correct relative jump location
      scrip->code[nested_info[nested_level]] =
@@ -478,18 +485,26 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
   char functionName[MAX_SYM_LEN];
   strcpy(functionName, sym.get_name(funcsym));
 
-  if (strcmp(sym.get_name(targ.peeknext()), "this") == 0)
+  if (strcmp(sym.get_name(targ.peeknext()), "this") == 0 || sym.get_type(targ.peeknext()) == SYM_STATIC)
   {
+    if(sym.get_type(targ.peeknext()) == SYM_STATIC)
+      func_is_static = 1;
     // extender function, eg.  function GoAway(this Character *someone)
     targ.getnext();
 	  if (sym.get_type(targ.peeknext()) != SYM_VARTYPE)
 	  {
-	    cc_error("'this' must be followed by a struct name");
+	    if(func_is_static)
+	      cc_error("'static' must be followed by a struct name");
+	    else
+	      cc_error("'this' must be followed by a struct name");
 	    return -1;
 	  }
 	  if ((sym.flags[targ.peeknext()] & SFLG_STRUCTTYPE) == 0)
 	  {
-	    cc_error("'this' cannot be used with primitive types");
+	    if(func_is_static)
+	      cc_error("'static' cannot be used with primitive types");
+	    else
+	      cc_error("'this' cannot be used with primitive types");
 	    return -1;
 	  }
 	  if (strchr(functionName, ':') != NULL) 
@@ -522,18 +537,23 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
 	    return -1;
 	  }
 	  sym.flags[funcsym] = SFLG_STRUCTMEMBER;
+	  if(func_is_static)
+	    sym.flags[funcsym] |= SFLG_STATIC;
   	
 	  targ.getnext();
-	  if (strcmp(sym.get_name(targ.getnext()), "*") != 0) 
+	  if (!func_is_static && strcmp(sym.get_name(targ.getnext()), "*") != 0) 
 	  {
-	    cc_error("extender function must be pointer");
+	    cc_error("instance extender function must be pointer");
 	    return -1;
 	  }
 
 	  if ((sym.get_type(targ.peeknext()) != SYM_COMMA) &&
 	      (sym.get_type(targ.peeknext()) != SYM_CLOSEPARENTHESIS))
 	  {
-	    cc_error("parameter name cannot be defined for extender type");
+	    if(strcmp(sym.get_name(targ.getnext()), "*") == 0)
+	      cc_error("static extender function cannot be pointer");
+	    else
+	      cc_error("parameter name cannot be defined for extender type");
 	    return -1;
 	  }
 
@@ -1350,7 +1370,8 @@ int get_readcmd_for_size(int sizz, int writeinstead) {
   }
 
 
-int  evaluate_expression(ccInternalList*,ccCompiledScript*,int);
+int  evaluate_expression(ccInternalList*,ccCompiledScript*,int,bool insideBracketedDeclaration);
+int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, long lilen, long *vnlist, bool insideBracketedDeclaration);
 int  parse_sub_expr(long*,int,ccCompiledScript*);
 long extract_variable_name(int, ccInternalList*,long*, int*);
 int  check_type_mismatch(int typeIs, int typeWantsToBe, int orderMatters);
@@ -2664,7 +2685,20 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
 // returns 0 on success or -1 if compile error
 // leaves targ pointing to last token in expression, so do getnext() to
 // get the following ; or whatever
-int evaluate_expression(ccInternalList*targ,ccCompiledScript*scrip,int countbrackets) {
+// --
+// insideBracketedDeclaration is a special flag used to denote an expression that
+// starts inside a declaration that contains more than one evaluatable chunk in brackets
+// and expects the closing bracket to terminate the declaration. The while() loop relies
+// on the fact that a while loop's bracket completely surrounds its expression. With a
+// for loop, we need to break that up into segments:
+// for(a = 0; a < 10; a++)
+//     |seg1| seg 2 |seg3|
+// So segment 3 is an expression that looks like this:
+// ; a++)
+// For this to work properly, we can't just increment the initial brackdepth. We need
+// to parse the expression in a slightly different way so that the final bracket is not
+// consumed as part of evaluating the expression.
+int evaluate_expression(ccInternalList*targ,ccCompiledScript*scrip,int countbrackets, bool insideBracketedDeclaration) {
   ccInternalList ours;
   int j,ourlen=0,brackdepth=0;
   int hadMetaOnly = 1;
@@ -2678,7 +2712,7 @@ int evaluate_expression(ccInternalList*targ,ccCompiledScript*scrip,int countbrac
 
     if (sym.get_type(targ->script[j]) == SYM_OPENPARENTHESIS)
       brackdepth++;
-    else if (sym.get_type(targ->script[j]) == SYM_CLOSEPARENTHESIS) {
+    else if (sym.get_type(targ->script[j]) == SYM_CLOSEPARENTHESIS && (brackdepth > 0 || !insideBracketedDeclaration)) {
       brackdepth--;
       continue;
     }
@@ -2691,7 +2725,8 @@ int evaluate_expression(ccInternalList*targ,ccCompiledScript*scrip,int countbrac
       lastWasNew = false;
     }
     else if (((!isPartOfExpression(targ, j)) && (brackdepth == 0))
-          || ((brackdepth == 0) && (countbrackets!=0))) {
+          || ((brackdepth == 0) && (countbrackets!=0))
+          || sym.get_type(targ->script[j]) == SYM_CLOSEPARENTHESIS) {
       ourlen = j - targ->pos;
       if ((ourlen < 1) || (hadMetaOnly == 1)) {
         cc_error("PE01: Parse error at '%s'",sym.get_name(targ->script[j]));
@@ -2733,6 +2768,124 @@ int evaluate_expression(ccInternalList*targ,ccCompiledScript*scrip,int countbrac
   ours.script = NULL;
   return retcode;
   }
+
+int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, long lilen, long *vnlist, bool insideBracketedDeclaration) {
+    if (!sym.is_loadable_variable(cursym)) {
+        // allow through static properties
+        if ((sym.get_type(cursym) == SYM_VARTYPE) && (lilen > 2) &&
+            (sym.flags[vnlist[2]] & SFLG_STATIC))
+        { }
+        else {
+            cc_error("variable required on left of assignment %s ", sym.get_name(cursym));
+            return -1;
+        }
+    }
+    bool isAccessingDynamicArray = false;
+
+    if (((sym.flags[cursym] & SFLG_DYNAMICARRAY) != 0) && (lilen < 2))
+    {
+        if (sym.get_type(targ->peeknext()) != SYM_ASSIGN)
+        {
+            cc_error("invalid use of operator with array");
+            return -1;
+        }
+        isAccessingDynamicArray = true;
+    }
+    else if (((sym.flags[cursym] & SFLG_ARRAY) != 0) && (lilen < 2))
+    {
+        cc_error("cannot assign value to entire array");
+        return -1;
+    }
+    if (sym.flags[cursym] & SFLG_ISSTRING) {
+        cc_error ("cannot assign to string; use Str* functions instead");
+        return -1;
+    }
+    /*
+    if (sym.flags[cursym] & SFLG_READONLY) {
+    cc_error("variable '%s' is read-only", sym.get_name(cursym));
+    return -1;
+    }
+    */
+    int MARIntactAssumption = 0;
+    int asstype = targ->getnext();
+    if (sym.get_type(asstype) == SYM_SASSIGN) {
+
+        // ++ or --
+        readonly_cannot_cause_error = 0;
+
+        if (read_variable_into_ax(lilen,&vnlist[0],scrip, 1))
+            return -1;
+
+        int cpuOp = sym.ssize[asstype];
+
+        if (check_operator_valid_for_type(&cpuOp, scrip->ax_val_type, 0))
+            return -1;
+
+        scrip->write_cmd2(cpuOp, SREG_AX, 1);
+
+        if (!readonly_cannot_cause_error) {
+            MARIntactAssumption = 1;
+            // since the MAR won't have changed, we can directly write
+            // the value back to it without re-calculating the offset
+            scrip->write_cmd1(get_readcmd_for_size(readcmd_lastcalledwith,1),SREG_AX);
+        }
+    }
+    // not ++ or --, so we need to evaluate the RHS
+    else if (evaluate_expression(targ,scrip,0,insideBracketedDeclaration) < 0)
+        return -1;
+
+    if (sym.get_type(asstype) == SYM_MASSIGN) {
+        // it's a += or -=, so read in and adjust the result
+        scrip->push_reg(SREG_AX);
+        int varTypeRHS = scrip->ax_val_type;
+
+        if (read_variable_into_ax(lilen,&vnlist[0],scrip))
+            return -1;
+        if (check_type_mismatch(varTypeRHS, scrip->ax_val_type, 1))
+            return -1;
+
+        int cpuOp = sym.ssize[asstype];
+
+        if (check_operator_valid_for_type(&cpuOp, varTypeRHS, scrip->ax_val_type))
+            return -1;
+
+        scrip->pop_reg(SREG_BX);
+        scrip->write_cmd2(cpuOp, SREG_AX, SREG_BX);
+    }
+
+    if (sym.get_type(asstype) == SYM_ASSIGN) {
+        // Convert normal literal string into String object
+        int finalPartOfLHS = lilen - 1;
+        if (sym.get_type(vnlist[lilen - 1]) == SYM_CLOSEBRACKET) {
+            // deal with  a[1] = b
+            finalPartOfLHS = findOpeningBracketOffs(lilen - 1, vnlist) - 1;
+            if (finalPartOfLHS < 0) {
+                cc_error("No [ for ] to match");
+                return -1;
+            }
+        }
+        PerformStringConversionInAX(scrip, &scrip->ax_val_type, sym.vartype[vnlist[finalPartOfLHS]]);
+    }
+
+    if (MARIntactAssumption) ;
+    // so copy the result (currently in AX) into the variable
+    else if (write_ax_to_variable(lilen,&vnlist[0],scrip))
+        return -1;
+
+    if(expectCloseBracket) {
+        if (sym.get_type(targ->getnext()) != SYM_CLOSEPARENTHESIS) {
+            cc_error("Expected ')'");
+            return -1;
+        }
+    }
+    else
+        if (sym.get_type(targ->getnext()) != SYM_SEMICOLON) {
+            cc_error("Expected ';'");
+            return -1;
+        }
+
+    return 0;
+}
 
 int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     int varsize,ccCompiledScript*scrip,ccInternalList*targ, int vtwas,
@@ -2917,7 +3070,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     }
     else {
 
-      if (evaluate_expression(targ,scrip,0))
+      if (evaluate_expression(targ,scrip,0,false))
         return -1;
 
       PerformStringConversionInAX(scrip, &scrip->ax_val_type, actualVarType);
@@ -3004,6 +3157,11 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
     char nested_type[MAX_NESTED_LEVEL];
     long nested_info[MAX_NESTED_LEVEL];
     long nested_start[MAX_NESTED_LEVEL];
+    intptr_t *nested_chunk[MAX_NESTED_LEVEL];
+    intptr_t nested_chunk_size[MAX_NESTED_LEVEL];
+    int nested_fixup_start[MAX_NESTED_LEVEL];
+    int nested_fixup_stop[MAX_NESTED_LEVEL];
+    int32_t nested_assign_addr[MAX_NESTED_LEVEL];
     char next_is_import = 0, next_is_readonly = 0;
     char next_is_managed = 0, next_is_static = 0;
     char next_is_protected = 0, next_is_stringstruct = 0;
@@ -3154,14 +3312,14 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             else if ((nested_type[nested_level+1] == NEST_IF) ||
                 (nested_type[nested_level+1] == NEST_ELSE)) {
                     INC_NESTED_LEVEL;
-                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level))
+                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
                         continue;
             }
             while ((nested_type[nested_level] == NEST_IFSINGLE) ||
                 (nested_type[nested_level] == NEST_ELSESINGLE)) {
                     // loop round doing all the end of elses, but break once an IF
                     // has been turned into an ELSE
-                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level))
+                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
                         break;
             }
         }
@@ -3367,6 +3525,10 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
 
                     if (sym.get_type(targ.peeknext()) == SYM_OPENPARENTHESIS) {
                         // member function
+                        if (!member_is_import) {
+                            cc_error("function in a struct requires the import keyword");
+                            return -1;
+                        }
                         if (member_is_writeprotected) {
                             cc_error("'writeprotected' does not apply to functions");
                             return -1;
@@ -3940,7 +4102,7 @@ startvarbit:
 
                 targ.pos --;
 
-                if (evaluate_expression(&targ,scrip,0) < 0)
+                if (evaluate_expression(&targ,scrip,0,false) < 0)
                     return -1;
 
                 if (sym.get_type(targ.getnext()) != SYM_SEMICOLON) {
@@ -3953,116 +4115,8 @@ startvarbit:
                 (sym.get_type(targ.peeknext()) == SYM_MASSIGN) ||
                 (sym.get_type(targ.peeknext()) == SYM_SASSIGN)) {
                     // it's an assignment = or += -=
-                    if (!sym.is_loadable_variable(cursym)) {
-                        // allow through static properties
-                        if ((sym.get_type(cursym) == SYM_VARTYPE) && (lilen > 2) &&
-                            (sym.flags[vnlist[2]] & SFLG_STATIC))
-                        { }
-                        else {
-                            cc_error("variable required on left of assignment");
-                            return -1;
-                        }
-                    }
-                    bool isAccessingDynamicArray = false;
-
-                    if (((sym.flags[cursym] & SFLG_DYNAMICARRAY) != 0) && (lilen < 2))
-                    {
-                        if (sym.get_type(targ.peeknext()) != SYM_ASSIGN)
-                        {
-                            cc_error("invalid use of operator with array");
-                            return -1;
-                        }
-                        isAccessingDynamicArray = true;
-                    }
-                    else if (((sym.flags[cursym] & SFLG_ARRAY) != 0) && (lilen < 2))
-                    {
-                        cc_error("cannot assign value to entire array");
+                    if (evaluate_assignment(&targ, scrip, false, cursym, lilen, vnlist, false))
                         return -1;
-                    }
-                    if (sym.flags[cursym] & SFLG_ISSTRING) {
-                        cc_error ("cannot assign to string; use Str* functions instead");
-                        return -1;
-                    }
-                    /*
-                    if (sym.flags[cursym] & SFLG_READONLY) {
-                    cc_error("variable '%s' is read-only", sym.get_name(cursym));
-                    return -1;
-                    }
-                    */
-                    int MARIntactAssumption = 0;
-                    int asstype = targ.getnext();
-                    if (sym.get_type(asstype) == SYM_SASSIGN) {
-
-                        // ++ or --
-                        readonly_cannot_cause_error = 0;
-
-                        if (read_variable_into_ax(lilen,&vnlist[0],scrip, 1))
-                            return -1;
-
-                        int cpuOp = SCMD_SUB;
-                        if (sym.ssize[asstype] == 1)
-                            cpuOp = SCMD_ADD;
-
-                        if (check_operator_valid_for_type(&cpuOp, scrip->ax_val_type, 0))
-                            return -1;
-
-                        scrip->write_cmd2(cpuOp, SREG_AX, 1);
-
-                        if (!readonly_cannot_cause_error) {
-                            MARIntactAssumption = 1;
-                            // since the MAR won't have changed, we can directly write
-                            // the value back to it without re-calculating the offset
-                            scrip->write_cmd1(get_readcmd_for_size(readcmd_lastcalledwith,1),SREG_AX);
-                        }
-                    }
-                    // not ++ or --, so we need to evaluate the RHS
-                    else if (evaluate_expression(&targ,scrip,0) < 0)
-                        return -1;
-
-                    if (sym.get_type(asstype) == SYM_MASSIGN) {
-                        // it's a += or -=, so read in and adjust the result
-                        scrip->push_reg(SREG_AX);
-                        int varTypeRHS = scrip->ax_val_type;
-
-                        if (read_variable_into_ax(lilen,&vnlist[0],scrip))
-                            return -1;
-                        if (check_type_mismatch(varTypeRHS, scrip->ax_val_type, 1))
-                            return -1;
-
-                        int cpuOp = SCMD_SUBREG;
-                        if (sym.ssize[asstype] == 1)
-                            cpuOp = SCMD_ADDREG;
-
-                        if (check_operator_valid_for_type(&cpuOp, varTypeRHS, scrip->ax_val_type))
-                            return -1;
-
-                        scrip->pop_reg(SREG_BX);
-                        scrip->write_cmd2(cpuOp, SREG_AX, SREG_BX);
-                    }
-
-                    if (sym.get_type(asstype) == SYM_ASSIGN) {
-                        // Convert normal literal string into String object
-                        int finalPartOfLHS = lilen - 1;
-                        if (sym.get_type(vnlist[lilen - 1]) == SYM_CLOSEBRACKET) {
-                            // deal with  a[1] = b
-                            finalPartOfLHS = findOpeningBracketOffs(lilen - 1, vnlist) - 1;
-                            if (finalPartOfLHS < 0) {
-                                cc_error("No [ for ] to match");
-                                return -1;
-                            }
-                        }
-                        PerformStringConversionInAX(scrip, &scrip->ax_val_type, sym.vartype[vnlist[finalPartOfLHS]]);
-                    }
-
-                    if (MARIntactAssumption) ;
-                    // so copy the result (currently in AX) into the variable
-                    else if (write_ax_to_variable(lilen,&vnlist[0],scrip))
-                        return -1;
-
-                    if (sym.get_type(targ.getnext()) != SYM_SEMICOLON) {
-                        cc_error("Expected ';'");
-                        return -1;
-                    }
 
             }
             else if (sym.get_type(cursym) == SYM_RETURN) {
@@ -4076,7 +4130,7 @@ startvarbit:
                     }
 
                     // parse what is being returned
-                    if (evaluate_expression(&targ,scrip,0) < 0)
+                    if (evaluate_expression(&targ,scrip,0,false) < 0)
                         return -1;
                     // convert into String if appropriate
                     PerformStringConversionInAX(scrip, &scrip->ax_val_type, functionReturnType);
@@ -4121,7 +4175,7 @@ startvarbit:
                     }
                     long oriaddr = scrip->codesize;
 
-                    if (evaluate_expression(&targ,scrip,1))
+                    if (evaluate_expression(&targ,scrip,1,false))
                         return -1;
                     // since AX will hold the result of the check, we can use JZ
                     // to determine whether to jump or not (0 means test failed, so
@@ -4129,6 +4183,8 @@ startvarbit:
                     scrip->write_cmd1(SCMD_JZ,0);
                     // the 0 will be fixed to a proper offset later
                     INC_NESTED_LEVEL;
+                    nested_chunk_size[nested_level] = 0;
+
                     if (sym.get_type(targ.peeknext()) == SYM_OPENBRACE) {
                         targ.getnext();
                         if (iswhile)
@@ -4147,6 +4203,117 @@ startvarbit:
                         nested_start[nested_level] = oriaddr;
                     continue;
             }
+            else if (sym.get_type(cursym) == SYM_FOR) {
+                if (sym.get_type(targ.peeknext()) != SYM_OPENPARENTHESIS) {
+                    cc_error("expected '('");
+                    return -1;
+                }
+                targ.getnext(); // Skip the (
+                cursym = targ.getnext();
+                if (sym.get_type(cursym) != SYM_SEMICOLON) {
+                    if(sym.get_type(cursym) == SYM_CLOSEPARENTHESIS) {
+                        cc_error("Missing ';' inside for loop declaration");
+                        return -1;
+                    }
+                    lilen = extract_variable_name(cursym, &targ, &vnlist[0], &funcAtOffs);
+                    if (lilen < 0)
+                        return -1;
+                    if (evaluate_assignment(&targ, scrip, false, cursym, lilen, vnlist, false))
+                        return -1;
+                }
+                long oriaddr = scrip->codesize;
+                bool hasLimitCheck;
+                if (sym.get_type(targ.peeknext()) != SYM_SEMICOLON) {
+                    if(sym.get_type(targ.peeknext()) == SYM_CLOSEPARENTHESIS) {
+                        cc_error("Missing ';' inside for loop declaration");
+                        return -1;
+                    }
+                    hasLimitCheck = true;
+                    if (evaluate_expression(&targ,scrip,0,false))
+                        return -1;
+                    if (sym.get_type(targ.peeknext()) != SYM_SEMICOLON) {
+                        cc_error("expected ';'");
+                        return -1;
+                    }
+                }
+                else
+                    hasLimitCheck = false; // Allow for loops without limit checks
+                long assignaddr = scrip->codesize;
+                int pre_fixup_count = scrip->numfixups;
+                targ.getnext(); // Skip the ;
+                cursym = targ.getnext();
+                if (sym.get_type(cursym) != SYM_CLOSEPARENTHESIS) {
+                    lilen = extract_variable_name(cursym, &targ, &vnlist[0], &funcAtOffs);
+                    if (lilen < 0)
+                        return -1;
+                    if (evaluate_assignment(&targ, scrip, true, cursym, lilen, vnlist, true))
+                        return -1;
+                } // Allow for loops without increments
+                INC_NESTED_LEVEL;
+                nested_chunk_size[nested_level] = scrip->yank_chunk((int32_t) assignaddr, nested_chunk, nested_level);
+                nested_fixup_start[nested_level] = pre_fixup_count;
+                nested_fixup_stop[nested_level] = scrip->numfixups;
+                nested_assign_addr[nested_level] = assignaddr;
+                if(!hasLimitCheck)
+                    scrip->write_cmd2(SCMD_LITTOREG,SREG_AX,1); // Fake out the AX register so that jump works correctly
+                //nested_chunk_size[nested_level] = 0;
+                // since AX will hold the result of the check, we can use JZ
+                // to determine whether to jump or not (0 means test failed, so
+                // skip content of "if" block)
+                scrip->write_cmd1(SCMD_JZ,0);
+                // the 0 will be fixed to a proper offset later
+                if (sym.get_type(targ.peeknext()) == SYM_OPENBRACE) {
+                    targ.getnext();
+                    nested_type[nested_level] = NEST_ELSE;
+                }
+                else
+                    nested_type[nested_level] = NEST_ELSESINGLE;
+                nested_info[nested_level] = scrip->codesize-1;
+                nested_start[nested_level] = oriaddr;
+                continue;
+            }
+            else if (sym.get_type(cursym) == SYM_BREAK) {
+                int loop_level;
+                loop_level = nested_level;
+                while(loop_level > 0 && nested_start[loop_level] == 0)
+                    loop_level--;
+                if (loop_level > 0) {
+                    if (sym.get_type(targ.getnext()) != SYM_SEMICOLON) {
+                        cc_error("expected ';'");
+                        return -1;
+                    }
+                    scrip->flush_line_numbers();
+                    scrip->write_cmd2(SCMD_LITTOREG,SREG_AX,0); // Clear out the AX register so that the jump works correctly
+                    scrip->write_cmd1(SCMD_JMP, -((scrip->codesize+2) - nested_info[loop_level] + 1)); // Jump to the known break point
+                }
+                else {
+                    cc_error("Break not valid outside a loop");
+                    return -1;
+                }
+            }
+            else if (sym.get_type(cursym) == SYM_CONTINUE) {
+                int loop_level;
+                loop_level = nested_level;
+                while(loop_level > 0 && nested_start[loop_level] == 0)
+                    loop_level--;
+                if (loop_level > 0) {
+                    if (sym.get_type(targ.getnext()) != SYM_SEMICOLON) {
+                        cc_error("expected ';'");
+                        return -1;
+                    }
+                    // if it's a for loop, drop the yanked chunk (loop increment) back in
+                    if(nested_chunk_size[loop_level] > 0)
+                    {
+                        scrip->write_chunk(nested_chunk, loop_level, nested_chunk_size[loop_level], false, nested_fixup_start[nested_level], nested_fixup_stop[nested_level], scrip->codesize - nested_assign_addr[nested_level]);
+                    }
+                    scrip->flush_line_numbers();
+                    scrip->write_cmd1(SCMD_JMP, -((scrip->codesize+2) - nested_start[loop_level])); // Jump to the start of the loop
+                }
+                else {
+                    cc_error("Continue not valid outside a loop");
+                    return -1;
+                }
+            }
             else {
                 cc_error("PE04: parse error at '%s'",sym.get_name(cursym));
                 return -1;
@@ -4154,7 +4321,7 @@ startvarbit:
             // sort out jumps when a single-line if or else has finished
             while ((nested_type[nested_level] == NEST_IFSINGLE) ||
                 (nested_type[nested_level] == NEST_ELSESINGLE)) {
-                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level))
+                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
                         break;
             }
         }

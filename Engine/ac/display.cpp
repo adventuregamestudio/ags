@@ -75,9 +75,22 @@ int texthit;
 // pass blocking=2 to create permanent overlay
 int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,int asspch, int isThought, int allowShrink, bool overlayPositionFixed) 
 {
+    const bool use_speech_textwindow = (asspch < 0) && (game.options[OPT_SPEECHTYPE] >= 2);
+    const bool use_thought_gui = (isThought) && (game.options[OPT_THOUGHTGUI] > 0);
+
     bool alphaChannel = false;
+    int usingGui = -1;
+    if (use_speech_textwindow)
+	    usingGui = play.speech_textwindow_gui;
+    else if (use_thought_gui)
+	    usingGui = game.options[OPT_THOUGHTGUI];
+
+    int padding = get_textwindow_padding(usingGui);
+    int paddingScaled = get_fixed_pixel_size(padding);
+    int paddingDoubledScaled = get_fixed_pixel_size(padding * 2); // Just in case screen size does is not neatly divisible by 320x200
+
     ensure_text_valid_for_font(todis, usingfont);
-    break_up_text_into_lines(wii-6,usingfont,todis);
+    break_up_text_into_lines(wii-2*padding,usingfont,todis);
     texthit = wgetfontheight(usingfont);
 
     // AGS 2.x: If the screen is faded out, fade in again when displaying a message box.
@@ -113,7 +126,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
 
     if (xx == OVR_AUTOPLACE) ;
     // centre text in middle of screen
-    else if (yy<0) yy=(scrnhit/2-(numlines*texthit)/2)-3;
+    else if (yy<0) yy=(scrnhit/2-(numlines*texthit)/2)-padding;
     // speech, so it wants to be above the character's head
     else if (asspch > 0) {
         yy-=numlines*texthit;
@@ -121,13 +134,13 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
         yy = adjust_y_for_guis (yy);
     }
 
-    if (longestline < wii - get_fixed_pixel_size(6)) {
+    if (longestline < wii - paddingDoubledScaled) {
         // shrink the width of the dialog box to fit the text
         int oldWid = wii;
         //if ((asspch >= 0) || (allowShrink > 0))
         // If it's not speech, or a shrink is allowed, then shrink it
         if ((asspch == 0) || (allowShrink > 0))
-            wii = longestline + get_fixed_pixel_size(6);
+            wii = longestline + paddingDoubledScaled;
 
         // shift the dialog box right to align it, if necessary
         if ((allowShrink == 2) && (xx >= 0))
@@ -146,7 +159,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
     }
     else if (xx<0) xx=scrnwid/2-wii/2;
 
-    int ee, extraHeight = get_fixed_pixel_size(6);
+    int ee, extraHeight = paddingDoubledScaled;
     Bitmap *ds = GetVirtualScreen();
     color_t text_color = ds->GetCompatibleColor(15);
     if (blocking < 2)
@@ -161,15 +174,13 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
     if ((strlen (todis) < 1) || (strcmp (todis, "  ") == 0) || (wii == 0)) ;
     // if it's an empty speech line, don't draw anything
     else if (asspch) { //text_color = ds->GetCompatibleColor(12);
-        int ttxleft = 0, ttxtop = get_fixed_pixel_size(3), oriwid = wii - 6;
-        int usingGui = -1, drawBackground = 0;
+        int ttxleft = 0, ttxtop = paddingScaled, oriwid = wii - padding * 2;
+        int drawBackground = 0;
 
-        if ((asspch < 0) && (game.options[OPT_SPEECHTYPE] >= 2)) {
-            usingGui = play.speech_textwindow_gui;
+        if (use_speech_textwindow) {
             drawBackground = 1;
         }
-        else if ((isThought) && (game.options[OPT_THOUGHTGUI] > 0)) {
-            usingGui = game.options[OPT_THOUGHTGUI];
+        else if (use_thought_gui) {
             // make it treat it as drawing inside a window now
             if (asspch > 0)
                 asspch = -asspch;
@@ -209,7 +220,8 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
         }
     }
     else {
-        int xoffs,yoffs, oriwid = wii - 6;
+		
+        int xoffs,yoffs, oriwid = wii - padding * 2;
         draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &xoffs,&yoffs,&xx,&yy,&wii,&text_color);
 
         if (game.options[OPT_TWCUSTOM] > 0)
@@ -608,6 +620,21 @@ int get_textwindow_top_border_height (int twgui) {
     return spriteheight[get_but_pic(&guis[twgui], 6)];
 }
 
+// Get the padding for a text window
+// -1 for the game's custom text window
+int get_textwindow_padding(int ifnum) {
+    int result;
+
+    if (ifnum < 0)
+        ifnum = game.options[OPT_TWCUSTOM];
+    if (ifnum > 0 && ifnum < game.numgui)
+        result = guis[ifnum].padding;
+    else
+        result = TEXTWINDOW_PADDING_DEFAULT;
+
+    return result;
+}
+
 void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
                       int*xins,int*yins,int*xx,int*yy,int*wii, color_t *set_text_color, int ovrheight, int ifnum) {
 
@@ -640,14 +667,15 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
 
         if (should_free_ds)
             delete *text_window_ds;
-        *text_window_ds = BitmapHelper::CreateTransparentBitmap(wii[0],ovrheight+6+spriteheight[tbnum]*2,final_col_dep);
+        int padding = get_textwindow_padding(ifnum);
+        *text_window_ds = BitmapHelper::CreateTransparentBitmap(wii[0],ovrheight+(padding*2)+spriteheight[tbnum]*2,final_col_dep);
         ds = SetVirtualScreen(*text_window_ds);
         int xoffs=spritewidth[tbnum],yoffs=spriteheight[tbnum];
         draw_button_background(ds, xoffs,yoffs,(ds->GetWidth() - xoffs) - 1,(ds->GetHeight() - yoffs) - 1,&guis[ifnum]);
         if (set_text_color)
             *set_text_color = ds->GetCompatibleColor(guis[ifnum].fgcol);
-        xins[0]=xoffs+3;
-        yins[0]=yoffs+3;
+        xins[0]=xoffs+padding;
+        yins[0]=yoffs+padding;
     }
 
 }

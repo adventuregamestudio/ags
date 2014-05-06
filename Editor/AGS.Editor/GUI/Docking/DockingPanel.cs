@@ -17,6 +17,8 @@ namespace AGS.Editor
 
         public DockPanel DockPanel { get { return _dockPanel; } }
 
+        public IDockingPane ActivePane { get { return new DockingPane(_dockPanel.ActivePane); } }
+
         #region IDockingPanel Members
 
         public event EventHandler ActiveContentChanged

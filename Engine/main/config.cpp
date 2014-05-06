@@ -126,10 +126,10 @@ char *INIreaditem(const char *sectn, const char *entry) {
     return NULL;
 }
 
-int INIreadint (const char *sectn, const char *item, int errornosect = 1) {
+int INIreadint (const char *sectn, const char *item, int def_value = 0) {
     char *tempstr = INIreaditem (sectn, item);
     if (tempstr == NULL)
-        return -1;
+        return def_value;
 
     int toret = atoi(tempstr);
     free (tempstr);
@@ -193,10 +193,10 @@ void read_config_file(char *argv0) {
     if (Common::File::TestReadFile(ac_config_file)) {
         strcpy(filetouse,ac_config_file);
 #ifndef WINDOWS_VERSION
-        usetup.digicard=INIreadint("sound","digiid");
-        usetup.midicard=INIreadint("sound","midiid");
+        usetup.digicard=INIreadint("sound","digiid", DIGI_AUTODETECT);
+        usetup.midicard=INIreadint("sound","midiid", MIDI_AUTODETECT);
 #else
-        int idx = INIreadint("sound","digiwinindx", 0);
+        int idx = INIreadint("sound","digiwinindx", -1);
         if (idx == 0)
             idx = DIGI_DIRECTAMX(0);
         else if (idx == 1)
@@ -209,7 +209,7 @@ void read_config_file(char *argv0) {
             idx = DIGI_AUTODETECT;
         usetup.digicard = idx;
 
-        idx = INIreadint("sound","midiwinindx", 0);
+        idx = INIreadint("sound","midiwinindx", -1);
         if (idx == 1)
             idx = MIDI_NONE;
         else if (idx == 2)
@@ -217,41 +217,25 @@ void read_config_file(char *argv0) {
         else
             idx = MIDI_AUTODETECT;
         usetup.midicard = idx;
-
-        if (usetup.digicard < 0)
-            usetup.digicard = DIGI_AUTODETECT;
-        if (usetup.midicard < 0)
-            usetup.midicard = MIDI_AUTODETECT;
 #endif
-        int threaded_audio = INIreadint("sound", "threaded");
-        if (threaded_audio >= 0)
-            psp_audio_multithreaded = threaded_audio;
+        int threaded_audio = INIreadint("sound", "threaded", psp_audio_multithreaded);
 
         usetup.windowed = INIreadint("misc","windowed");
-        if (usetup.windowed < 0)
-            usetup.windowed = 0;
-
-        usetup.refresh = INIreadint ("misc", "refresh", 0);
-        usetup.enable_antialiasing = INIreadint ("misc", "antialias", 0);
-        usetup.force_hicolor_mode = INIreadint("misc", "notruecolor", 0);
-        usetup.enable_side_borders = INIreadint("misc", "sideborders", 0);
+        usetup.refresh = INIreadint ("misc", "refresh");
+        usetup.enable_antialiasing = INIreadint ("misc", "antialias");
+        usetup.force_hicolor_mode = INIreadint("misc", "notruecolor");
+        usetup.enable_side_borders = INIreadint("misc", "sideborders", 1);
+        usetup.vsync = INIreadint("misc", "vsync");
 
 #if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
         // PSP: Letterboxing is not useful on the PSP.
         force_letterbox = 0;
 #else
-        force_letterbox = INIreadint ("misc", "forceletterbox", 0);
+        force_letterbox = INIreadint ("misc", "forceletterbox");
 #endif
 
-        if (usetup.enable_antialiasing < 0)
-            usetup.enable_antialiasing = 0;
-        if (usetup.force_hicolor_mode < 0)
-            usetup.force_hicolor_mode = 0;
-        if (usetup.enable_side_borders < 0)
-            usetup.enable_side_borders = 1;
-
         // This option is backwards (usevox is 0 if no_speech_pack)
-        usetup.no_speech_pack = INIreadint ("sound", "usespeech", 0);
+        usetup.no_speech_pack = INIreadint ("sound", "usespeech", 1);
         if (usetup.no_speech_pack == 0)
             usetup.no_speech_pack = 1;
         else
@@ -291,9 +275,7 @@ void read_config_file(char *argv0) {
 
 #if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
         // PSP: Don't let the setup determine the cache size as it is always too big.
-        int tempint = INIreadint ("misc", "cachemax");
-        if (tempint > 0)
-            spriteset.maxCacheSize = tempint * 1024;
+        spriteset.maxCacheSize = INIreadint ("misc", "cachemax", 20) * 1024;
 #endif
 
         char *repfile = INIreaditem ("misc", "replay");
@@ -305,7 +287,7 @@ void read_config_file(char *argv0) {
         else
             play.playback = 0;
 
-        usetup.override_multitasking = INIreadint("override", "multitasking");
+        usetup.override_multitasking = INIreadint("override", "multitasking", -1);
         String override_os = INIreadstring("override", "os");
         usetup.override_script_os = -1;
         if (override_os.CompareNoCase("dos") == 0)
@@ -332,9 +314,7 @@ void read_config_file(char *argv0) {
         // default before applying value from config file.
         if (!enable_log_file && !disable_log_file)
         {
-            int log_value = INIreadint ("misc", "log");
-            if (log_value >= 0)
-                enable_log_file = log_value > 0;
+            enable_log_file = INIreadint ("misc", "log") != 0;
         }
     }
 

@@ -1117,6 +1117,7 @@ void init_game_settings() {
     play.bad_parsed_word[0] = 0;
     play.swap_portrait_side = 0;
     play.swap_portrait_lastchar = -1;
+    play.swap_portrait_lastlastchar = -1;
     play.in_conversation = 0;
     play.skip_display = 3;
     play.no_multiloop_repeat = 0;
@@ -1165,6 +1166,7 @@ void init_game_settings() {
     play.speech_portrait_x = 0;
     play.speech_portrait_y = 0;
     play.speech_display_post_time_ms = 0;
+    play.dialog_options_highlight_color = DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT;
     play.speech_in_post_state = false;
     play.narrator_speech = game.playercharacter;
     play.crossfading_out_channel = 0;
@@ -1231,6 +1233,8 @@ void engine_init_game_shit()
 
     if (usetup.windowed)
         scsystem.windowed = 1;
+    if (usetup.vsync)
+        scsystem.vsync = 1;
 
 #if defined (DOS_VERSION)
     filter->SetMouseArea(0,0,BASEWIDTH-1,BASEHEIGHT-1);

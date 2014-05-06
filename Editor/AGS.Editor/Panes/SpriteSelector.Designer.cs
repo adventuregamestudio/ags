@@ -74,6 +74,7 @@ namespace AGS.Editor
 			this.folderList.DragDrop += new System.Windows.Forms.DragEventHandler(this.folderList_DragDrop);
 			this.folderList.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.folderList_AfterSelect);
 			this.folderList.DragOver += new System.Windows.Forms.DragEventHandler(this.folderList_DragOver);
+			this.folderList.DragLeave += new System.EventHandler(this.folderList_DragLeave);
 			// 
 			// spriteList
 			// 

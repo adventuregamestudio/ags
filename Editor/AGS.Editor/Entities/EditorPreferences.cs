@@ -26,7 +26,6 @@ namespace AGS.Editor
         private bool _remapPalettizedBackgrounds = true;
         private List<string> _previousSearches = new List<string>();
         private bool _keepHelpOnTop = true;
-        private bool _buildForAllPorts = true;
 
         private string _registryKey;
 
@@ -54,7 +53,6 @@ namespace AGS.Editor
                 _lastBackupWarning = ReadDateFromRegistry(key, "LastBackupWarning", _lastBackupWarning);
                 _remapPalettizedBackgrounds = Convert.ToInt32(key.GetValue("RemapPaletteBackgrounds", _remapPalettizedBackgrounds)) != 0;
                 _keepHelpOnTop = Convert.ToInt32(key.GetValue("KeepHelpOnTop", _keepHelpOnTop)) != 0;
-                _buildForAllPorts = Convert.ToInt32(key.GetValue("BuildForAllPorts", _buildForAllPorts)) != 0;
                 ReadRecentSearchesList(key);
                 key.Close();
 
@@ -129,7 +127,6 @@ namespace AGS.Editor
                 key.SetValue("LastBackupWarning", _lastBackupWarning.ToString("u"));
                 key.SetValue("RemapPaletteBackgrounds", _remapPalettizedBackgrounds ? "1" : "0");
                 key.SetValue("KeepHelpOnTop", _keepHelpOnTop ? "1" : "0");
-                key.SetValue("BuildForAllPorts", _buildForAllPorts ? "1" : "0");
                 WriteRecentSearchesList(key);
                 key.Close();
             }
@@ -256,29 +253,6 @@ namespace AGS.Editor
         {
             get { return _keepHelpOnTop; }
             set { _keepHelpOnTop = value; }
-        }
-
-        public bool BuildForAllPorts
-        {
-            get
-            {
-                return _buildForAllPorts;
-            }
-
-            set
-            {
-                if (value) AGSEditor.Instance.ExtraOutputCreationStep += new AGSEditor.ExtraOutputCreationStepHandler(AGS.Editor.Components.BuildLinuxComponent.Instance.BuildForLinux);
-                else
-                {
-                    AGSEditor.Instance.ExtraOutputCreationStep -= new AGSEditor.ExtraOutputCreationStepHandler(AGS.Editor.Components.BuildLinuxComponent.Instance.BuildForLinux);
-                    string dataDir = AGS.Editor.Components.BuildLinuxComponent.Instance.LinuxDataDirectory;
-                    if (dataDir != null) // dir will be null when first opening editor
-                    {
-                        Utilities.DeleteFileIfExists(System.IO.Path.Combine(dataDir, AGSEditor.Instance.BaseGameFileName + ".exe"));
-                    }
-                }
-                _buildForAllPorts = value;
-            }
         }
     }
 }

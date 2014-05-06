@@ -45,7 +45,6 @@ namespace AGS.Editor.Components
             instance = this;
             editor = agsEditor;
             libs = AGS.Types.Targets.GetPlatformRequiredLibraryNames(AGS.Types.Targets.Platforms.Linux);
-            editor.Preferences.BuildForAllPorts = editor.Preferences.BuildForAllPorts; // to initialize the ExtraOutputCreationStep event handler!
         }
 
         void InitPaths()

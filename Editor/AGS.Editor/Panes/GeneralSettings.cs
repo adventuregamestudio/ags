@@ -138,6 +138,21 @@ namespace AGS.Editor
             {
 				Factory.Events.OnGameSettingsChanged();
             }
+            else if (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_TARGET_PLATFORMS)
+            {
+                Dictionary<Targets.Platforms, AGSEditor.ExtraOutputCreationStepHandler> platforms = new Dictionary<Targets.Platforms, AGSEditor.ExtraOutputCreationStepHandler>();
+                platforms.Add(Targets.Platforms.Linux, Components.BuildLinuxComponent.Instance.BuildForLinux);
+                // add other platforms as they are included
+                Targets.Platforms newValue = (e.ChangedItem.Value as Targets.Platforms?) ?? Targets.Platforms.Windows;
+                foreach (Targets.Platforms platform in Enum.GetValues(typeof(Targets.Platforms)))
+                {
+                    if (platforms.ContainsKey(platform))
+                    {
+                        if ((newValue | platform) != 0) Factory.AGSEditor.ExtraOutputCreationStep += platforms[platform];
+                        else Factory.AGSEditor.ExtraOutputCreationStep -= platforms[platform];
+                    }
+                }
+            }
         }
 
     }

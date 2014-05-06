@@ -77,8 +77,6 @@ namespace AGS.Editor
             this.chkBackupReminders = new System.Windows.Forms.CheckBox();
             this.groupBox9 = new System.Windows.Forms.GroupBox();
             this.chkRemapBgImport = new System.Windows.Forms.CheckBox();
-            this.groupBox10 = new System.Windows.Forms.GroupBox();
-            this.chkBuildForAllPorts = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.udTabWidth)).BeginInit();
@@ -90,13 +88,12 @@ namespace AGS.Editor
             this.groupBox8.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.udBackupInterval)).BeginInit();
             this.groupBox9.SuspendLayout();
-            this.groupBox10.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnOK
             // 
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOK.Location = new System.Drawing.Point(20, 516);
+            this.btnOK.Location = new System.Drawing.Point(12, 464);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(98, 27);
             this.btnOK.TabIndex = 0;
@@ -107,7 +104,7 @@ namespace AGS.Editor
             // btnCancel
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(127, 516);
+            this.btnCancel.Location = new System.Drawing.Point(116, 464);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(100, 27);
             this.btnCancel.TabIndex = 1;
@@ -662,36 +659,13 @@ namespace AGS.Editor
                 "games only)";
             this.chkRemapBgImport.UseVisualStyleBackColor = true;
             // 
-            // groupBox10
-            // 
-            this.groupBox10.Controls.Add(this.chkBuildForAllPorts);
-            this.groupBox10.Location = new System.Drawing.Point(7, 464);
-            this.groupBox10.Name = "groupBox10";
-            this.groupBox10.Size = new System.Drawing.Size(365, 46);
-            this.groupBox10.TabIndex = 11;
-            this.groupBox10.TabStop = false;
-            this.groupBox10.Text = "Porting";
-            // 
-            // chkBuildForAllPorts
-            // 
-            this.chkBuildForAllPorts.AutoSize = true;
-            this.chkBuildForAllPorts.Checked = true;
-            this.chkBuildForAllPorts.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkBuildForAllPorts.Location = new System.Drawing.Point(14, 21);
-            this.chkBuildForAllPorts.Name = "chkBuildForAllPorts";
-            this.chkBuildForAllPorts.Size = new System.Drawing.Size(218, 17);
-            this.chkBuildForAllPorts.TabIndex = 0;
-            this.chkBuildForAllPorts.Text = "Automatically build for all available ports";
-            this.chkBuildForAllPorts.UseVisualStyleBackColor = true;
-            // 
             // PreferencesEditor
             // 
             this.AcceptButton = this.btnOK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(751, 553);
-            this.Controls.Add(this.groupBox10);
+            this.ClientSize = new System.Drawing.Size(751, 502);
             this.Controls.Add(this.groupBox9);
             this.Controls.Add(this.groupBox8);
             this.Controls.Add(this.groupBox7);
@@ -729,8 +703,6 @@ namespace AGS.Editor
             this.groupBox8.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.udBackupInterval)).EndInit();
             this.groupBox9.ResumeLayout(false);
-            this.groupBox10.ResumeLayout(false);
-            this.groupBox10.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -786,7 +758,5 @@ namespace AGS.Editor
         private System.Windows.Forms.GroupBox groupBox9;
         private System.Windows.Forms.CheckBox chkRemapBgImport;
         private System.Windows.Forms.CheckBox chkKeepHelpOnTop;
-        private System.Windows.Forms.GroupBox groupBox10;
-        private System.Windows.Forms.CheckBox chkBuildForAllPorts;
     }
 }

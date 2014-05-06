@@ -91,6 +91,7 @@ namespace AGS.Types
 		private bool _enhancedSaveGames = false;
         private string _saveGamesFolderName = string.Empty;
         private int _audioIndexer = 0;
+        private Targets.Platforms _targetPlatform = Targets.GetAvailablePlatforms();
 
 		public void GenerateNewGameID()
 		{
@@ -840,6 +841,16 @@ namespace AGS.Types
             set { _audioIndexer = value; }
         }
 
+        [DisplayName("Target platform")]
+        [Description("Sets the platforms to compile your game for when selecing \"Build All\".")]
+        [Category("Compiler")]
+        [Editor(typeof(PlatformsEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public Targets.Platforms TargetPlatform
+        {
+            get { return _targetPlatform; }
+            set { _targetPlatform = value; }
+        }
+
         public void ToXml(XmlTextWriter writer)
         {
             SerializeUtils.SerializeToXML(this, writer);
@@ -869,6 +880,7 @@ namespace AGS.Types
             _useLowResCoordinatesInScript = true;
             _audioIndexer = 0;
             _enforceNewAudio = false;
+            _targetPlatform = Targets.GetAvailablePlatforms();
 
             SerializeUtils.DeserializeFromXML(this, node);
 

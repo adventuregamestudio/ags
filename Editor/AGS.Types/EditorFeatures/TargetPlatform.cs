@@ -44,7 +44,6 @@ namespace AGS.Types
         public static bool IsPlatformAvailable(Enum platform)
         {
             if (platform.GetType() != typeof(Targets.Platforms)) return false;
-            //System.Windows.Forms.MessageBox.Show("Checking platform " + ((Targets.Platforms)platform).ToString());
             return IsPlatformAvailable((Targets.Platforms)platform);
         }
 

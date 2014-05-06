@@ -714,6 +714,21 @@ namespace AGS.Editor
             }
         }
 
+        public void RefreshBuildPlatforms(Targets.Platforms platforms)
+        {
+            Dictionary<Targets.Platforms, EditorEvents.ParameterlessDelegate> buildCommands = new Dictionary<Targets.Platforms, EditorEvents.ParameterlessDelegate>();
+            buildCommands.Add(Targets.Platforms.Linux, Components.BuildLinuxComponent.Instance.BuildForLinux);
+            // add other platforms as they are included
+            foreach (Targets.Platforms platform in Enum.GetValues(typeof(Targets.Platforms)))
+            {
+                if (buildCommands.ContainsKey(platform))
+                {
+                    if ((platforms & platform) != 0) Factory.Events.BuildAllPlatforms += buildCommands[platform];
+                    else Factory.Events.BuildAllPlatforms -= buildCommands[platform];
+                }
+            }
+        }
+
         private void CloseLockFile()
         {
             if (_lockFile != null)

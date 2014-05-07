@@ -425,13 +425,15 @@ namespace AGS.Editor
                 // by default the new hard link will be accessible to the current user only
                 // instead, we'll change it to be accessible to the entire "Users" group
                 FileSecurity fsec = File.GetAccessControl(destFileName);
-                fsec.AddAccessRule(
-                    new FileSystemAccessRule(
+                fsec.AddAccessRule
+                (
+                    new FileSystemAccessRule
+                    (
                         new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null),
                         FileSystemRights.Modify,
                         AccessControlType.Allow
-                        )
-                        );
+                    )
+                );
                 File.SetAccessControl(destFileName, fsec);
             }
             return result;

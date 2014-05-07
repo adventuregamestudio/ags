@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
 using System.Windows.Forms;
 
@@ -16,9 +18,9 @@ namespace AGS.Editor.Components
         private string editorLinuxLib64Dir = null;
         private string editorLinuxLicensesDir = null;
         private string gameLinuxDir = null;
-        private string gameLinuxAGS32Path = null;
-        private string gameLinuxAGS64Path = null;
         private string gameLinuxDataDir = null;
+        private string gameLinuxDataAGS32Path = null;
+        private string gameLinuxDataAGS64Path = null;
         private string gameLinuxDataLib32Dir = null;
         private string gameLinuxDataLib64Dir = null;
         private string gameLinuxDataLicensesDir = null;
@@ -58,8 +60,8 @@ namespace AGS.Editor.Components
             editorLinuxLicensesDir = Path.Combine(editorLinuxDir, "licenses");
             gameLinuxDir = Path.Combine(editor.CurrentGame.DirectoryPath, "linux");
             gameLinuxDataDir = Path.Combine(gameLinuxDir, "data");
-            gameLinuxAGS32Path = Path.Combine(gameLinuxDataDir, "ags32");
-            gameLinuxAGS64Path = Path.Combine(gameLinuxDataDir, "ags64");
+            gameLinuxDataAGS32Path = Path.Combine(gameLinuxDataDir, "ags32");
+            gameLinuxDataAGS64Path = Path.Combine(gameLinuxDataDir, "ags64");
             gameLinuxDataLib32Dir = Path.Combine(gameLinuxDataDir, "lib32");
             gameLinuxDataLib64Dir = Path.Combine(gameLinuxDataDir, "lib64");
             gameLinuxDataLicensesDir = Path.Combine(gameLinuxDataDir, "licenses");
@@ -203,6 +205,25 @@ namespace AGS.Editor.Components
             }
         }
 
+        private void SetFilePermissions(string fileName)
+        {
+            FileSecurity fsec = File.GetAccessControl(fileName);
+            fsec.AddAccessRule
+            (
+                new FileSystemAccessRule
+                (
+                    new SecurityIdentifier
+                    (
+                        WellKnownSidType.BuiltinUsersSid,
+                        null
+                    ),
+                    FileSystemRights.Modify,
+                    AccessControlType.Allow
+                )
+            );
+            File.SetAccessControl(fileName, fsec);
+        }
+
         private void CopyFilesFromCompiledDir()
         {
             if (!Directory.Exists(gameLinuxDir)) Directory.CreateDirectory(gameLinuxDir);
@@ -213,7 +234,12 @@ namespace AGS.Editor.Components
             string[] compiledFiles = Directory.GetFiles(gameCompiledDir);
             foreach (string file in compiledFiles)
             {
-                if ((!file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) &&
+                if (Path.GetFileName(file).Equals("acsetup.cfg", StringComparison.OrdinalIgnoreCase))
+                {
+                    string acsetupPath = Path.Combine(gameLinuxDataDir, "acsetup.cfg");
+                    if (!File.Exists(acsetupPath)) File.Copy(file, acsetupPath);
+                }
+                else if ((!file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) &&
                     (!Path.GetFileName(file).Equals("winsetup.exe", StringComparison.OrdinalIgnoreCase)))
                 {
                     Utilities.CreateHardLink(Path.Combine(gameLinuxDataDir, Path.GetFileName(file)), file, true);
@@ -222,10 +248,13 @@ namespace AGS.Editor.Components
             CopyFilesFromDir(editorLinuxLib32Dir, gameLinuxDataLib32Dir);
             CopyFilesFromDir(editorLinuxLib64Dir, gameLinuxDataLib64Dir);
             CopyFilesFromDir(editorLinuxLicensesDir, gameLinuxDataLicensesDir);
-            File.Copy(editorLinuxAGS32Path, Path.Combine(gameLinuxDataDir, "ags32"), true);
-            File.Copy(editorLinuxAGS64Path, Path.Combine(gameLinuxDataDir, "ags64"), true);
+            File.Copy(editorLinuxAGS32Path, gameLinuxDataAGS32Path, true);
+            SetFilePermissions(gameLinuxDataAGS32Path);
+            File.Copy(editorLinuxAGS64Path, gameLinuxDataAGS64Path, true);
+            SetFilePermissions(gameLinuxDataAGS64Path);
             string gamePathName = editor.BaseGameFileName.Replace(" ", ""); // strip whitespace
-            FileStream script = File.Create(Path.Combine(gameLinuxDir, gamePathName));
+            string script = Path.Combine(gameLinuxDataDir, gamePathName);
+            FileStream stream = File.Create(script);
             string scriptContents =
 @"#!/bin/sh
 SCRIPTPATH=""$(dirname ""$(readlink -f $0)"")""
@@ -245,8 +274,9 @@ fi
 ";
             scriptContents = scriptContents.Replace("\r\n", "\n"); // make sure script has UNIX line endings
             byte[] bytes = Encoding.UTF8.GetBytes(scriptContents);
-            script.Write(bytes, 0, bytes.Length);
-            script.Close();
+            stream.Write(bytes, 0, bytes.Length);
+            stream.Close();
+            SetFilePermissions(script);
         }
     }
 }

@@ -18,6 +18,13 @@ extern int currentline;
 char ccCopyright[]="ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2014 others";
 static char scriptNameBuffer[256];
 
+int  evaluate_expression(ccInternalList*,ccCompiledScript*,int,bool insideBracketedDeclaration);
+int  evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, long lilen, long *vnlist, bool insideBracketedDeclaration);
+int  parse_sub_expr(long*,int,ccCompiledScript*);
+long extract_variable_name(int, ccInternalList*,long*, int*);
+int  check_type_mismatch(int typeIs, int typeWantsToBe, int orderMatters);
+int  check_operator_valid_for_type(int *vcpuOp, int type1, int type2);
+
 int is_part_of_symbol(char thischar, char startchar) {
     // workaround for strings
     static int sayno_next_char = 0;
@@ -370,6 +377,38 @@ int deal_with_end_of_ifelse (char*nested_type,long*nested_info,long*nested_start
      else
          nestlevel[0]--;
      return 0;
+}
+
+int deal_with_end_of_do (long *nested_info, long *nested_start, ccCompiledScript *scrip, ccInternalList *targ, int *nestlevel) {
+    int cursym;
+    int nested_level;
+
+    cursym = targ->getnext();
+    nested_level = nestlevel[0];
+    scrip->flush_line_numbers();
+    if (sym.get_type(cursym) != SYM_WHILE) {
+        cc_error("Do without while");
+        return -1;
+    }
+    if (sym.get_type(targ->peeknext()) != SYM_OPENPARENTHESIS) {
+        cc_error("expected '('");
+        return -1;
+    }
+    scrip->flush_line_numbers();
+    if (evaluate_expression(targ, scrip, 1, false))
+        return -1;
+    if (sym.get_type(targ->peeknext()) != SYM_SEMICOLON) {
+        cc_error("expected ';'");
+        return -1;
+    }
+    targ->getnext();
+    // Jump back to the start of the loop while the condition is true
+    scrip->write_cmd1(SCMD_JNZ, -((scrip->codesize + 2) - nested_start[nested_level]));
+    // Write the correct location for the end of the loop
+    scrip->code[nested_info[nested_level]] = (scrip->codesize - nested_info[nested_level]) - 1;
+    nestlevel[0]--;
+
+    return 0;
 }
 
 int find_member_sym(int structSym, long *memSym, int allowProtected) {
@@ -1368,15 +1407,6 @@ int get_readcmd_for_size(int sizz, int writeinstead) {
     readcmd_lastcalledwith = sizz;
   return readcmd;
   }
-
-
-int  evaluate_expression(ccInternalList*,ccCompiledScript*,int,bool insideBracketedDeclaration);
-int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, long lilen, long *vnlist, bool insideBracketedDeclaration);
-int  parse_sub_expr(long*,int,ccCompiledScript*);
-long extract_variable_name(int, ccInternalList*,long*, int*);
-int  check_type_mismatch(int typeIs, int typeWantsToBe, int orderMatters);
-int  check_operator_valid_for_type(int *vcpuOp, int type1, int type2);
-
 
 
 int get_array_index_into_ax(ccCompiledScript *scrip, long *symlist, int openBracketOffs, int closeBracketOffs, bool checkBounds, bool multiplySize) {
@@ -3218,7 +3248,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 return -1;
             }
             if ((nested_type[nested_level] == NEST_IFSINGLE) ||
-                (nested_type[nested_level] == NEST_ELSESINGLE)) {
+                (nested_type[nested_level] == NEST_ELSESINGLE) ||
+                (nested_type[nested_level] == NEST_DOSINGLE)) {
                     cc_error("Internal compiler error in openbrace");
                     return -1;
             }
@@ -3280,7 +3311,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
         else if (symType == SYM_CLOSEBRACE) {
             // it's a single-line if statement
             if ((nested_type[nested_level] == NEST_IFSINGLE) ||
-                (nested_type[nested_level] == NEST_ELSESINGLE)) {
+                (nested_type[nested_level] == NEST_ELSESINGLE) ||
+                (nested_type[nested_level] == NEST_DOSINGLE)) {
                     cc_error("Unexpected '}'");
                     return -1;
             }
@@ -3310,17 +3342,31 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 scrip->cur_sp -= 4;  // return address removed from stack
             }
             else if ((nested_type[nested_level+1] == NEST_IF) ||
-                (nested_type[nested_level+1] == NEST_ELSE)) {
+                (nested_type[nested_level+1] == NEST_ELSE) ||
+                (nested_type[nested_level+1] == NEST_DO)) {
                     INC_NESTED_LEVEL;
-                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
-                        continue;
+                    if (nested_type[nested_level] == NEST_DO)
+                    {
+                        if (deal_with_end_of_do(nested_info,nested_start,scrip,&targ,&nested_level))
+                            return -1;
+                    }
+                    else
+                        if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
+                            continue;
             }
             while ((nested_type[nested_level] == NEST_IFSINGLE) ||
-                (nested_type[nested_level] == NEST_ELSESINGLE)) {
+                (nested_type[nested_level] == NEST_ELSESINGLE) ||
+                (nested_type[nested_level] == NEST_DOSINGLE)) {
                     // loop round doing all the end of elses, but break once an IF
                     // has been turned into an ELSE
-                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
-                        break;
+                    if (nested_type[nested_level] == NEST_DOSINGLE)
+                    {
+                        if (deal_with_end_of_do(nested_info,nested_start,scrip,&targ,&nested_level))
+                            return -1;
+                    }
+                    else
+                        if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
+                            break;
             }
         }
         else if (symType == SYM_STRUCT) {
@@ -3888,7 +3934,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             int varsize = sym.ssize[cursym];
             int vtwas = cursym;
             if ((nested_type[nested_level] == NEST_IFSINGLE) ||
-                (nested_type[nested_level] == NEST_ELSESINGLE)) {
+                (nested_type[nested_level] == NEST_ELSESINGLE) ||
+                (nested_type[nested_level] == NEST_DOSINGLE)) {
                     cc_error("Unexpected '%s'",sym.get_name(cursym));
                     return -1;
             }
@@ -4203,6 +4250,24 @@ startvarbit:
                         nested_start[nested_level] = oriaddr;
                     continue;
             }
+            else if (sym.get_type(cursym) == SYM_DO) {
+                // We need a jump at a known location for the break command to work:
+                scrip->write_cmd1(SCMD_JMP, 2); // Jump past the next jump :D
+                scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to the end of the loop
+                INC_NESTED_LEVEL;
+                nested_chunk_size[nested_level] = 0;
+
+                if (sym.get_type(targ.peeknext()) == SYM_OPENBRACE) {
+                    targ.getnext();
+                    nested_type[nested_level] = NEST_DO;
+                }
+                else
+                    nested_type[nested_level] = NEST_DOSINGLE;
+
+                nested_start[nested_level] = scrip->codesize;
+                nested_info[nested_level] = scrip->codesize - 1; // This is where we need to put the real address of the end of the loop
+                continue;
+            }
             else if (sym.get_type(cursym) == SYM_FOR) {
                 if (sym.get_type(targ.peeknext()) != SYM_OPENPARENTHESIS) {
                     cc_error("expected '('");
@@ -4320,9 +4385,16 @@ startvarbit:
             }
             // sort out jumps when a single-line if or else has finished
             while ((nested_type[nested_level] == NEST_IFSINGLE) ||
-                (nested_type[nested_level] == NEST_ELSESINGLE)) {
-                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
-                        break;
+                (nested_type[nested_level] == NEST_ELSESINGLE) ||
+                (nested_type[nested_level] == NEST_DOSINGLE)) {
+                    if (nested_type[nested_level] == NEST_DOSINGLE)
+                    {
+                        if (deal_with_end_of_do(nested_info,nested_start,scrip,&targ,&nested_level))
+                            return -1;
+                    }
+                    else
+                        if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
+                            break;
             }
         }
     }

@@ -130,11 +130,23 @@ namespace AGS.Editor
             get { return Path.GetFileName(this.GameDirectory); }
         }
 
+        private string CompiledFolderName
+        {
+            get
+            {
+                if (_game.Settings.TargetPlatforms != Targets.Platforms.Windows)
+                {
+                    return Path.Combine(OUTPUT_DIRECTORY, "Windows");
+                }
+                return OUTPUT_DIRECTORY;
+            }
+        }
+
 		private string CompiledEXEFileName
 		{
 			get
 			{
-				return Path.Combine(OUTPUT_DIRECTORY, this.BaseGameFileName + ".exe");
+				return Path.Combine(CompiledFolderName, this.BaseGameFileName + ".exe");
 			}
 		}
 

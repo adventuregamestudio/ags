@@ -92,7 +92,7 @@ namespace AGS.Types
 		private bool _enhancedSaveGames = false;
         private string _saveGamesFolderName = string.Empty;
         private int _audioIndexer = 0;
-        private Targets.Platforms _targetPlatforms = Targets.GetAvailablePlatforms();
+        private Targets.Platforms _targetPlatforms = Targets.Platforms.Windows;
 
 		public void GenerateNewGameID()
 		{
@@ -843,7 +843,8 @@ namespace AGS.Types
         }
 
         [DisplayName(PROPERTY_TARGET_PLATFORMS)]
-        [Description("Sets the platforms to compile your game for when selecting \"Build All\".")]
+        [DefaultValue(Targets.Platforms.Windows)]
+        [Description("Sets the platforms to compile your game for when selecting \"Build all platforms\".")]
         [Category("Compiler")]
         [Editor(typeof(PlatformsEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public Targets.Platforms TargetPlatforms

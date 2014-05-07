@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AGS.Types;
+using System;
 using System.IO;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -17,6 +18,7 @@ namespace AGS.Editor.Components
         private string editorLinuxLib32Dir = null;
         private string editorLinuxLib64Dir = null;
         private string editorLinuxLicensesDir = null;
+        private string gameCompiledDir = null;
         private string gameLinuxDir = null;
         private string gameLinuxDataDir = null;
         private string gameLinuxDataAGS32Path = null;
@@ -24,7 +26,6 @@ namespace AGS.Editor.Components
         private string gameLinuxDataLib32Dir = null;
         private string gameLinuxDataLib64Dir = null;
         private string gameLinuxDataLicensesDir = null;
-        private string gameCompiledDir = null;
         private static BuildLinuxComponent instance;
 
         public static BuildLinuxComponent Instance
@@ -46,7 +47,7 @@ namespace AGS.Editor.Components
         {
             instance = this;
             editor = agsEditor;
-            libs = AGS.Types.Targets.GetPlatformRequiredLibraryNames(AGS.Types.Targets.Platforms.Linux);
+            libs = Targets.GetPlatformRequiredLibraryNames(Targets.Platforms.Linux);
         }
 
         void InitPaths()
@@ -58,14 +59,14 @@ namespace AGS.Editor.Components
             editorLinuxLib32Dir = Path.Combine(editorLinuxDir, "lib32");
             editorLinuxLib64Dir = Path.Combine(editorLinuxDir, "lib64");
             editorLinuxLicensesDir = Path.Combine(editorLinuxDir, "licenses");
-            gameLinuxDir = Path.Combine(editor.CurrentGame.DirectoryPath, "linux");
+            gameCompiledDir = Path.Combine(editor.CurrentGame.DirectoryPath, "Compiled");
+            gameLinuxDir = Path.Combine(gameCompiledDir, "Linux");
             gameLinuxDataDir = Path.Combine(gameLinuxDir, "data");
             gameLinuxDataAGS32Path = Path.Combine(gameLinuxDataDir, "ags32");
             gameLinuxDataAGS64Path = Path.Combine(gameLinuxDataDir, "ags64");
             gameLinuxDataLib32Dir = Path.Combine(gameLinuxDataDir, "lib32");
             gameLinuxDataLib64Dir = Path.Combine(gameLinuxDataDir, "lib64");
             gameLinuxDataLicensesDir = Path.Combine(gameLinuxDataDir, "licenses");
-            gameCompiledDir = Path.Combine(editor.CurrentGame.DirectoryPath, "Compiled");
         }
 
         public void BuildForLinux()
@@ -146,14 +147,14 @@ namespace AGS.Editor.Components
             return MissingLibOrPlugin.None;
         }
 
-        private string GetPluginSOName(AGS.Types.Plugin plugin)
+        private string GetPluginSOName(Plugin plugin)
         {
             return "lib" + plugin.FileName.Substring(0, plugin.FileName.Length - 3) + "so";
         }
 
         private MissingLibOrPlugin EnsurePluginsExist()
         {
-            foreach (AGS.Types.Plugin plugin in editor.CurrentGame.Plugins)
+            foreach (Plugin plugin in editor.CurrentGame.Plugins)
             {
                 string soName = GetPluginSOName(plugin);
                 if (!File.Exists(Path.Combine(editorLinuxLib32Dir, soName)))
@@ -168,7 +169,7 @@ namespace AGS.Editor.Components
         {
             string results = "";
             string bit = (is64 ? "64" : "32");
-            foreach (AGS.Types.Plugin plugin in editor.CurrentGame.Plugins)
+            foreach (Plugin plugin in editor.CurrentGame.Plugins)
             {
                 string soName = GetPluginSOName(plugin);
                 results +=
@@ -190,7 +191,7 @@ namespace AGS.Editor.Components
                 if (fileName.StartsWith("libags", StringComparison.OrdinalIgnoreCase))
                 {
                     bool found = false;
-                    foreach (AGS.Types.Plugin plugin in editor.CurrentGame.Plugins)
+                    foreach (Plugin plugin in editor.CurrentGame.Plugins)
                     {
                         string soName = GetPluginSOName(plugin);
                         if (soName.Equals(fileName, StringComparison.OrdinalIgnoreCase))

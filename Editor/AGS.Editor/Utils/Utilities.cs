@@ -95,6 +95,32 @@ namespace AGS.Editor
             }
         }
 
+        public static void EnsurePlatformSubFoldersExist(Targets.Platforms platforms)
+        {
+            EnsurePlatformSubFoldersExist(platforms, true);
+        }
+
+        public static void EnsurePlatformSubFoldersExist(Targets.Platforms platforms, bool removeOthers)
+        {
+            foreach (Targets.Platforms platform in Enum.GetValues(typeof(Targets.Platforms)))
+            {
+                string platformFolder = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, platform.ToString());
+                // if platform is NOT only Windows, then create all necessary platform folders
+                // otherwise, don't create any platform folders
+                if (((platform & platforms) != 0) && (platforms != Targets.Platforms.Windows))
+                {
+                    if (!Directory.Exists(platformFolder))
+                    {
+                        Directory.CreateDirectory(platformFolder);
+                    }
+                }
+                else if ((Directory.Exists(platformFolder)) && (removeOthers))
+                {
+                    Directory.Delete(platformFolder, true);
+                }
+            }
+        }
+
         public static void AddAllMatchingFiles(IList<string> list, string fileMask)
         {
             AddAllMatchingFiles(list, fileMask, false);

@@ -142,6 +142,7 @@ namespace AGS.Editor
             {
                 Targets.Platforms newValue = (e.ChangedItem.Value as Targets.Platforms?) ?? Targets.Platforms.Windows;
                 Factory.AGSEditor.RefreshBuildPlatforms(newValue);
+                Utilities.EnsurePlatformSubFoldersExist(newValue);
             }
         }
 

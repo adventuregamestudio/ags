@@ -11,6 +11,8 @@
 #define NEST_ELSE       5
 #define NEST_ELSESINGLE 6
 #define NEST_STRUCT     7
+#define NEST_DO         8 // Do statement (to be followed by a while)
+#define NEST_DOSINGLE   9 // Single Do statement
 #define MAX_FUNCTIONS 2000
 #define MAXSYMBOLS 10000
 #define MAX_FUNCTION_PARAMETERS 15
@@ -67,6 +69,7 @@
 #define SYM_FOR        54
 #define SYM_BREAK      55
 #define SYM_CONTINUE   56
+#define SYM_DO         57
 
 #define SFLG_PARAMETER  1
 #define SFLG_ARRAY      2

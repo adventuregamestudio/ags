@@ -1281,6 +1281,24 @@ int Character_GetMoving(CharacterInfo *chaa) {
     return 0;
 }
 
+int Character_GetDestinationX(CharacterInfo *chaa) {
+    if (chaa->walking) {
+        MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
+        return cmls->pos[cmls->numstage - 1] >> 16;
+    }
+    else
+        return chaa->x;
+}
+
+int Character_GetDestinationY(CharacterInfo *chaa) {
+    if (chaa->walking) {
+        MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
+        return cmls->pos[cmls->numstage - 1] & 0x00ff;
+    }
+    else
+        return chaa->y;
+}
+
 const char* Character_GetName(CharacterInfo *chaa) {
     return CreateNewScriptString(chaa->name);
 }
@@ -3254,6 +3272,18 @@ RuntimeScriptValue Sc_Character_GetMoving(void *self, const RuntimeScriptValue *
     API_OBJCALL_INT(CharacterInfo, Character_GetMoving);
 }
 
+// int (CharacterInfo *chaa)
+RuntimeScriptValue Sc_Character_GetDestinationX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetDestinationX);
+}
+
+// int (CharacterInfo *chaa)
+RuntimeScriptValue Sc_Character_GetDestinationY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetDestinationY);
+}
+
 // const char* (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetName(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -3560,6 +3590,8 @@ void RegisterCharacterAPI()
 	ccAddExternalObjectFunction("Character::set_BlockingWidth",         Sc_Character_SetBlockingWidth);
 	ccAddExternalObjectFunction("Character::get_Clickable",             Sc_Character_GetClickable);
 	ccAddExternalObjectFunction("Character::set_Clickable",             Sc_Character_SetClickable);
+	ccAddExternalObjectFunction("Character::get_DestinationX",          Sc_Character_GetDestinationX);
+	ccAddExternalObjectFunction("Character::get_DestinationY",          Sc_Character_GetDestinationY);
 	ccAddExternalObjectFunction("Character::get_DiagonalLoops",         Sc_Character_GetDiagonalWalking);
 	ccAddExternalObjectFunction("Character::set_DiagonalLoops",         Sc_Character_SetDiagonalWalking);
 	ccAddExternalObjectFunction("Character::get_Frame",                 Sc_Character_GetFrame);
@@ -3685,6 +3717,8 @@ void RegisterCharacterAPI()
     ccAddExternalFunctionForPlugin("Character::set_BlockingWidth",         (void*)Character_SetBlockingWidth);
     ccAddExternalFunctionForPlugin("Character::get_Clickable",             (void*)Character_GetClickable);
     ccAddExternalFunctionForPlugin("Character::set_Clickable",             (void*)Character_SetClickable);
+    ccAddExternalFunctionForPlugin("Character::get_DestinationX",          (void*)Character_GetDestinationX);
+    ccAddExternalFunctionForPlugin("Character::get_DestinationY",          (void*)Character_GetDestinationY);
     ccAddExternalFunctionForPlugin("Character::get_DiagonalLoops",         (void*)Character_GetDiagonalWalking);
     ccAddExternalFunctionForPlugin("Character::set_DiagonalLoops",         (void*)Character_SetDiagonalWalking);
     ccAddExternalFunctionForPlugin("Character::get_Frame",                 (void*)Character_GetFrame);

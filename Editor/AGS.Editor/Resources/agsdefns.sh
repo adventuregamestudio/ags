@@ -1994,6 +1994,10 @@ managed struct Character {
   import attribute int  BlockingWidth;
   /// Gets/sets whether the mouse can be clicked on the character, or whether it passes straight through.
   import attribute bool Clickable;
+  /// Gets the X position this character is currently moving towards.
+  readonly import attribute int DestinationX;
+  /// Gets the Y position this character is currently moving towards.
+  readonly import attribute int DestinationY;
   /// Gets/sets whether this character has an 8-loop walking view with diagonal loops.
   import attribute bool DiagonalLoops;
   /// Gets/sets the character's current frame number within its current view.

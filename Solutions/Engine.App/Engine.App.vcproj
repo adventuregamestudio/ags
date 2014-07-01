@@ -767,6 +767,10 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptuserobject.cpp"
+						>
+					</File>
+					<File
 						RelativePath="..\..\Engine\ac\dynobj\scriptviewframe.cpp"
 						>
 					</File>
@@ -1694,6 +1698,10 @@
 					</File>
 					<File
 						RelativePath="..\..\Engine\ac\dynobj\scriptsystem.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptuserobject.h"
 						>
 					</File>
 					<File

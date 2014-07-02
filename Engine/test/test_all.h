@@ -15,6 +15,13 @@
 #ifdef _DEBUG
 
 void Test_DoAllTests();
+// File tests
+void Test_File();
+// Graphics tests
 void Test_Gfx();
+// String tests
+void Test_ScriptSprintf();
+void Test_String();
+void Test_Version();
 
 #endif // _DEBUG

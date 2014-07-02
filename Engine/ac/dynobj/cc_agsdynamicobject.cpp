@@ -35,7 +35,7 @@ void AGSCCDynamicObject::SerializeInt(int val) {
     int *iptr = (int*)chptr;
     *iptr = val;
 #if defined (AGS_BIG_ENDIAN)
-    AGS::Common::BitByteOperations::SwapBytesInt32(*iptr);
+    *iptr = AGS::Common::BitByteOperations::SwapBytesInt32(*iptr);
 #endif
     bytesSoFar += 4;
 }
@@ -58,7 +58,7 @@ int AGSCCDynamicObject::UnserializeInt() {
     bytesSoFar += 4;
     int value = *((int*)chptr);
 #if defined (AGS_BIG_ENDIAN)
-    AGS::Common::BitByteOperations::SwapBytesInt32(value);
+    value = AGS::Common::BitByteOperations::SwapBytesInt32(value);
 #endif
     return value;
 }

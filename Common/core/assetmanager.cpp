@@ -806,7 +806,7 @@ int32_t AssetManager::ReadEncInt32(Stream *ci_s)
     int numberRead;
     ReadEncArray(&numberRead, 4, 1, ci_s);
 #if defined(AGS_BIG_ENDIAN)
-    AGS::Common::BitByteOperations::SwapBytesInt32(numberRead);
+    numberRead = AGS::Common::BitByteOperations::SwapBytesInt32(numberRead);
 #endif
     return numberRead;
 }

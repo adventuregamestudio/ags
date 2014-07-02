@@ -100,16 +100,16 @@ void Test_File()
         tricky_data_out.final = 38;
 #if defined (TEST_BIGENDIAN)
         TTrickyAlignedData bigend_data = tricky_data_out;
-        AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.b);
-        AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.c);
+        bigend_data.b = AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.b);
+        bigend_data.c = AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.c);
         for (int i = 0; i < 3; ++i)
         {
-            AGS::Common::BitByteOperations::SwapBytesInt16(bigend_data.d[i]);
+            bigend_data.d[i] = AGS::Common::BitByteOperations::SwapBytesInt16(bigend_data.d[i]);
         }
-        AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.e);
+        bigend_data.e = AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.e);
         for (int i = 0; i < 4; ++i)
         {
-            AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.g[i]);
+            bigend_data.g[i] = AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.g[i]);
         }
         out->Write(&bigend_data, sizeof(TTrickyAlignedData));
 #else

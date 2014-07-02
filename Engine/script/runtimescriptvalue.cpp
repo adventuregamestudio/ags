@@ -59,7 +59,7 @@ int16_t RuntimeScriptValue::ReadInt16()
         {
             int16_t temp = *(int16_t*)(RValue->GetPtrWithOffset() + this->IValue);
 #if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt16(temp);
+            temp = AGS::Common::BitByteOperations::SwapBytesInt16(temp);
 #endif
             return temp;
         }
@@ -106,7 +106,7 @@ int32_t RuntimeScriptValue::ReadInt32()
 #endif
 
 #if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+            temp = AGS::Common::BitByteOperations::SwapBytesInt32(temp);
 #endif
             return temp;
         }
@@ -157,7 +157,7 @@ RuntimeScriptValue RuntimeScriptValue::ReadValue()
 #endif
 
 #if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+            temp = AGS::Common::BitByteOperations::SwapBytesInt32(temp);
 #endif
             rval.SetInt32(temp);
         }
@@ -228,7 +228,7 @@ bool RuntimeScriptValue::WriteInt16(int16_t val)
         if (RValue->Type == kScValData)
         {
 #if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt16(val);
+            val = AGS::Common::BitByteOperations::SwapBytesInt16(val);
 #endif
             *(int16_t*)(RValue->GetPtrWithOffset() + this->IValue) = val;
         }
@@ -270,7 +270,7 @@ bool RuntimeScriptValue::WriteInt32(int32_t val)
         if (RValue->Type == kScValData)
         {
 #if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(val);
+            val = AGS::Common::BitByteOperations::SwapBytesInt32(val);
 #endif
 
 #if defined(AGS_STRICT_ALIGNMENT)
@@ -336,7 +336,7 @@ bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
         {
             int32_t val = rval.IValue;
 #if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(val);
+            val = AGS::Common::BitByteOperations::SwapBytesInt32(val);
 #endif
 
 #if defined(AGS_STRICT_ALIGNMENT)

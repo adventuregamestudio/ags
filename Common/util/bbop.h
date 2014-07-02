@@ -38,19 +38,19 @@ enum DataEndianess
 
 namespace BitByteOperations
 {
-    inline void SwapBytesInt16(int16_t &val)
+    inline int16_t SwapBytesInt16(const int16_t val)
     {
-        val = ((val >> 8) & 0xFF) | ((val << 8) & 0xFF00);
+        return ((val >> 8) & 0xFF) | ((val << 8) & 0xFF00);
     }
 
-    inline void SwapBytesInt32(int32_t &val)
+    inline int32_t SwapBytesInt32(const int32_t val)
     {
-        val = ((val >> 24) & 0xFF) | ((val >> 8) & 0xFF00) | ((val << 8) & 0xFF0000) | ((val << 24) & 0xFF000000);
+        return ((val >> 24) & 0xFF) | ((val >> 8) & 0xFF00) | ((val << 8) & 0xFF0000) | ((val << 24) & 0xFF000000);
     }
 
-    inline void SwapBytesInt64(int64_t &val)
+    inline int64_t SwapBytesInt64(const int64_t val)
     {
-        val = ((val >> 56) & 0xFF) | ((val >> 40) & 0xFF00) | ((val >> 24) & 0xFF0000) |
+        return ((val >> 56) & 0xFF) | ((val >> 40) & 0xFF00) | ((val >> 24) & 0xFF0000) |
               ((val >> 8) & 0xFF000000) | ((val << 8) & 0xFF00000000LL) |
               ((val << 24) & 0xFF0000000000LL) | ((val << 40) & 0xFF000000000000LL) | ((val << 56) & 0xFF00000000000000LL);
     }

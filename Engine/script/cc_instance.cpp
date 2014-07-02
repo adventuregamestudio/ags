@@ -1830,7 +1830,7 @@ bool ccInstance::CreateGlobalVars(ccScript * scri)
             glvar.ScAddress = scri->fixups[i];
             int32_t data_addr = *(int32_t*)&globaldata[glvar.ScAddress];
 #if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(data_addr);
+            data_addr = AGS::Common::BitByteOperations::SwapBytesInt32(data_addr);
 #endif // AGS_BIG_ENDIAN
             if (glvar.ScAddress - data_addr != 200 /* size of old AGS string */)
             {

@@ -1148,6 +1148,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\test\test_memory.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\test\test_sprintf.cpp"
 					>
 				</File>

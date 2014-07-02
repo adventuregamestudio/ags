@@ -14,16 +14,20 @@
 
 #ifdef _DEBUG
 
-void Test_DoAllTests();
-// File tests
-void Test_File();
-// Graphics tests
-void Test_Gfx();
-// Memory / bit-byte operations
-void Test_Memory();
-// String tests
-void Test_ScriptSprintf();
-void Test_String();
-void Test_Version();
+#include "util/bbop.h"
+#include "debug/assert.h"
+
+using namespace AGS::Common;
+
+void Test_Memory()
+{
+    int16_t i16 = (int16_t)0xABCD;
+    int32_t i32 = (int32_t)0xABCDEF12;
+    int64_t i64 = (int64_t)0xABCDEF1234567890;
+
+    assert(BBOp::SwapBytesInt16(i16) == (int16_t)0xCDAB);
+    assert(BBOp::SwapBytesInt32(i32) == (int32_t)0x12EFCDABu);
+    assert(BBOp::SwapBytesInt64(i64) == (int64_t)0x9078563412EFCDABul);
+}
 
 #endif // _DEBUG

@@ -114,15 +114,15 @@ protected:
 
     inline void ConvertInt16(int16_t &val)
     {
-        if (MustSwapBytes()) BBOp::SwapBytesInt16(val);
+        if (MustSwapBytes()) val = BBOp::SwapBytesInt16(val);
     }
     inline void ConvertInt32(int32_t &val)
     {
-        if (MustSwapBytes()) BBOp::SwapBytesInt32(val);
+        if (MustSwapBytes()) val = BBOp::SwapBytesInt32(val);
     }
     inline void ConvertInt64(int64_t &val)
     {
-        if (MustSwapBytes()) BBOp::SwapBytesInt64(val);
+        if (MustSwapBytes()) val = BBOp::SwapBytesInt64(val);
     }
 };
 

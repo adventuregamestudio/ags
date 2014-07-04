@@ -185,7 +185,7 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
             // If placeholder was not valid, just copy stored format buffer as it is
             else
             {
-                size_t copy_len = Math::Min(Math::Min(fmt_bufptr - fmtbuf, fmtbuf_size - 1), avail_outbuf);
+                size_t copy_len = Math::Min(Math::Min<ptrdiff_t>(fmt_bufptr - fmtbuf, fmtbuf_size - 1), avail_outbuf);
                 memcpy(out_ptr, fmtbuf, copy_len);
                 out_ptr += copy_len;
             }
@@ -340,7 +340,7 @@ const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *format, 
             // If placeholder was not valid, just copy stored format buffer as it is
             else
             {
-                size_t copy_len = Math::Min(Math::Min(fmt_bufptr - fmtbuf, fmtbuf_size - 1), avail_outbuf);
+                size_t copy_len = Math::Min(Math::Min<ptrdiff_t>(fmt_bufptr - fmtbuf, fmtbuf_size - 1), avail_outbuf);
                 memcpy(out_ptr, fmtbuf, copy_len);
                 out_ptr += copy_len;
             }

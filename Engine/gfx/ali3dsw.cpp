@@ -219,6 +219,7 @@ void ALSoftwareGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RG
 
 ALSoftwareGraphicsDriver::~ALSoftwareGraphicsDriver()
 {
+  UnInit();
 }
 
 void ALSoftwareGraphicsDriver::UnInit()
@@ -252,8 +253,8 @@ void ALSoftwareGraphicsDriver::UnInit()
   // original internally created allegro bitmap which will be destroyed by Allegro).
   BitmapHelper::SetScreenBitmap(NULL);
 
-  // don't do anything else -- the main app may
-  // already have called allegro_exit
+  // Tell Allegro that we are no longer in graphics mode
+  set_gfx_mode(GFX_TEXT, 0, 0, 0, 0);
 }
 
 bool ALSoftwareGraphicsDriver::SupportsGammaControl() 

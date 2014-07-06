@@ -1050,15 +1050,6 @@ int graphics_mode_init()
 
 void graphics_mode_shutdown()
 {
-    // Release the display mode (and anything dependant on the window)
-    if (gfxDriver != NULL)
-    {
-        gfxDriver->UnInit();
-    }
-
-    // Tell Allegro that we are no longer in graphics mode
-    set_gfx_mode(GFX_TEXT, 0, 0, 0, 0);
-
     delete gfxDriver;
     gfxDriver = NULL;
 

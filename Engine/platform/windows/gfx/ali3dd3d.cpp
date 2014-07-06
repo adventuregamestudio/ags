@@ -19,6 +19,7 @@
 #include <allegro.h>
 #include <allegro/platform/aintwin.h>
 #include <stdio.h>
+#include "debug/assert.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/gfxfilter_d3d.h"
 #include "main/main_allegro.h"
@@ -174,47 +175,12 @@ GFX_DRIVER gfx_direct3d_full =
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_NORMAL|D3DFVF_TEX1)
 
 static int wnd_create_device();
-static D3DGraphicsDriver *_d3d_driver = NULL;
-//
-// IMPORTANT NOTE: since the Direct3d9 device is created with
-// D3DCREATE_MULTITHREADED behavior flag, once it is created the d3d9.dll may
-// only be unloaded after window is destroyed, as noted in the MSDN's article
-// on "D3DCREATE"
-// (http://msdn.microsoft.com/en-us/library/windows/desktop/bb172527.aspx).
-// Otherwise window becomes either destroyed prematurely or broken (details
-// are unclear), which causes errors during Allegro deinitialization.
-//
-// Curiously, this problem was only confirmed under WinXP so far.
-//
-// For the purpose of avoiding this problem, we have a global library wrapper
-// that unloads library only at the very program exit (except cases of device
-// creation failure).
-// 
-static Library D3D9Library;
 
-IGraphicsDriver* GetD3DGraphicsDriver(GfxFilter *filter)
+D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d) 
 {
-  D3DGfxFilter* d3dfilter = (D3DGfxFilter*)filter;
-  if (_d3d_driver == NULL)
-  {
-    _d3d_driver = new D3DGraphicsDriver(d3dfilter);
-  }
-  else if (_d3d_driver->_filter != filter)
-  {
-    _d3d_driver->_filter = d3dfilter;
-  }
-
-  if (!_d3d_driver->CreateDriver())
-  {
-      delete _d3d_driver;
-      return NULL;
-  }
-  return _d3d_driver;
-}
-
-D3DGraphicsDriver::D3DGraphicsDriver(D3DGfxFilter *filter) 
-{
-  direct3d = NULL;
+  direct3d = d3d;
+  if (direct3d)
+      direct3d->AddRef();
   direct3ddevice = NULL;
   vertexbuffer = NULL;
   numToDraw = 0;
@@ -229,7 +195,7 @@ D3DGraphicsDriver::D3DGraphicsDriver(D3DGfxFilter *filter)
   _global_y_offset = 0;
   _newmode_screen_width = 0;
   _newmode_screen_height = 0;
-  _filter = filter;
+  _filter = NULL;
   _screenTintLayer = NULL;
   _screenTintLayerDDB = NULL;
   _screenTintSprite.skip = true;
@@ -281,54 +247,13 @@ void D3DGraphicsDriver::set_up_default_vertices()
   defaultVertices[3].tv=1.0;
 }
 
-bool D3DGraphicsDriver::CreateDriver()
-{
-   return EnsureDirect3D9IsCreated();
-}
-
 void D3DGraphicsDriver::Vsync() 
 {
   // do nothing on D3D
 }
 
-bool D3DGraphicsDriver::EnsureDirect3D9IsCreated() 
-{
-   if (direct3d != NULL)
-     return true;
-
-   IDirect3D9 * (WINAPI * lpDirect3DCreate9)(UINT);
-
-   if (!D3D9Library.Load("d3d9"))
-   {
-     set_allegro_error("Direct3D is not installed");
-     return false;
-   }
-
-   lpDirect3DCreate9 = (IDirect3D9 * (WINAPI *)(UINT))D3D9Library.GetFunctionAddress("Direct3DCreate9");
-   if (lpDirect3DCreate9 == NULL) 
-   {
-     D3D9Library.Unload();
-     set_allegro_error("Entry point not found in d3d9.dll");
-     return false;
-   }
-
-   direct3d = lpDirect3DCreate9( D3D_SDK_VERSION );
-   if (direct3d == NULL) {
-     D3D9Library.Unload();
-     set_allegro_error("Direct3DCreate failed!");
-     return false;
-   }
-
-   return true;
-}
-
 void D3DGraphicsDriver::initD3DDLL() 
 {
-   if (!EnsureDirect3D9IsCreated())
-   {
-     throw Ali3DException(get_allegro_error());
-   }
-
    if (!IsModeSupported(_newmode_screen_width, _newmode_screen_height, _newmode_depth))
    {
      throw Ali3DException(get_allegro_error());
@@ -341,7 +266,6 @@ void D3DGraphicsDriver::initD3DDLL()
      _exit_critical();
      direct3d->Release();
      direct3d = NULL;
-     D3D9Library.Unload();
      throw Ali3DException(get_allegro_error());
    }
 
@@ -495,12 +419,12 @@ void D3DGraphicsDriver::SetGamma(int newGamma)
  */
 static int wnd_create_device()
 {
-  return _d3d_driver->_initDLLCallback();
+  return D3DGraphicsFactory::GetD3DDriver()->_initDLLCallback();
 }
 
 static int wnd_reset_device()
 {
-  return _d3d_driver->_resetDeviceIfNecessary();
+  return D3DGraphicsFactory::GetD3DDriver()->_resetDeviceIfNecessary();
 }
 
 // The D3DX library does this for us, but it's an external DLL that
@@ -859,9 +783,6 @@ bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
 
 IGfxModeList *D3DGraphicsDriver::GetSupportedModeList(int color_depth)
 {
-  if (!EnsureDirect3D9IsCreated())
-    return false;
-
   return new D3DGfxModeList(direct3d, color_depth_to_d3d_format(color_depth, false));
 }
 
@@ -1840,6 +1761,78 @@ void D3DGraphicsDriver::SetScreenTint(int red, int green, int blue)
 
     _screenTintSprite.skip = ((red == 0) && (green == 0) && (blue == 0));
   }
+}
+
+
+D3DGraphicsFactory *D3DGraphicsFactory::_factory = NULL;
+
+D3DGraphicsFactory::~D3DGraphicsFactory()
+{
+    _direct3d->Release();
+    _factory = NULL;
+}
+
+/* static */ D3DGraphicsFactory *D3DGraphicsFactory::GetFactory()
+{
+    if (!_factory)
+    {
+        _factory = new D3DGraphicsFactory();
+        if (!_factory->Init())
+        {
+            delete _factory;
+            _factory = NULL;
+        }
+    }
+    return _factory;
+}
+
+/* static */ D3DGraphicsDriver *D3DGraphicsFactory::GetD3DDriver()
+{
+    if (!_factory)
+        _factory = GetFactory();
+    if (_factory)
+        return _factory->EnsureDriverCreated();
+    return NULL;
+}
+
+D3DGraphicsFactory::D3DGraphicsFactory()
+    : _direct3d(NULL)
+{
+}
+
+D3DGraphicsDriver *D3DGraphicsFactory::EnsureDriverCreated()
+{
+    if (!_driver)
+        _driver = new D3DGraphicsDriver(_factory->_direct3d);
+    return _driver;
+}
+
+bool D3DGraphicsFactory::Init()
+{
+    assert(_direct3d == NULL);
+    if (_direct3d)
+        return true;
+
+    if (!_library.Load("d3d9"))
+    {
+        set_allegro_error("Direct3D is not installed");
+        return false;
+    }
+
+    typedef IDirect3D9 * WINAPI D3D9CreateFn(UINT);
+    D3D9CreateFn *lpDirect3DCreate9 = (D3D9CreateFn*)_library.GetFunctionAddress("Direct3DCreate9");
+    if (!lpDirect3DCreate9)
+    {
+        set_allegro_error("Entry point not found in d3d9.dll");
+        return false;
+    }
+    _direct3d = lpDirect3DCreate9(D3D_SDK_VERSION);
+    if (!_direct3d)
+    {
+        set_allegro_error("Direct3DCreate failed!");
+        return false;
+    }
+    return true;
 }
 
 } // namespace D3D

@@ -27,6 +27,7 @@
 
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
+#include "gfx/gfxdriverfactorybase.h"
 #include "gfx/graphicsdriver.h"
 
 namespace AGS
@@ -121,8 +122,8 @@ private:
 class ALSoftwareGraphicsDriver : public IGraphicsDriver
 {
 public:
-    ALSoftwareGraphicsDriver(AllegroGfxFilter *filter) { 
-        _filter = filter; 
+    ALSoftwareGraphicsDriver() { 
+        _filter = NULL; 
         _callback = NULL; 
         _drawScreenCallback = NULL;
         _nullSpriteCallback = NULL;
@@ -225,6 +226,20 @@ private:
     void __fade_out_range(int speed, int from, int to, int targetColourRed, int targetColourGreen, int targetColourBlue) ;
     bool IsModeSupported(int driver, int width, int height, int colDepth);
     int  GetAllegroGfxDriverID(bool windowed);
+};
+
+
+class ALSWGraphicsFactory : public GfxDriverFactoryBase<ALSoftwareGraphicsDriver>
+{
+public:
+    virtual ~ALSWGraphicsFactory();
+
+    static  ALSWGraphicsFactory *GetFactory();
+
+private:
+    virtual ALSoftwareGraphicsDriver *EnsureDriverCreated();
+
+    static ALSWGraphicsFactory *_factory;
 };
 
 } // namespace ALSW

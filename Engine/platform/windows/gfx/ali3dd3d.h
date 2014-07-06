@@ -29,6 +29,8 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/gfxdriverfactorybase.h"
+#include "util/library.h"
 #include "util/string.h"
 
 struct D3DGfxFilter;
@@ -201,21 +203,19 @@ public:
     virtual void SetMemoryBackBuffer(Bitmap *backBuffer) {  }
     virtual void SetScreenTint(int red, int green, int blue);
 
-    bool CreateDriver();
-
     // Internal
     int _initDLLCallback();
     int _resetDeviceIfNecessary();
     void _render(GlobalFlipType flip, bool clearDrawListAfterwards);
     void _reDrawLastFrame();
-    D3DGraphicsDriver(D3DGfxFilter *filter);
+    D3DGraphicsDriver(IDirect3D9 *d3d);
     virtual ~D3DGraphicsDriver();
 
     D3DGfxFilter *_filter;
 
 private:
+    IDirect3D9 *direct3d;
     D3DPRESENT_PARAMETERS d3dpp;
-    IDirect3D9* direct3d;
     IDirect3DDevice9* direct3ddevice;
     D3DGAMMARAMP defaultgammaramp;
     D3DGAMMARAMP currentgammaramp;
@@ -252,7 +252,6 @@ private:
 
     LONG _allegroOriginalWindowStyle;
 
-    bool EnsureDirect3D9IsCreated();
     void initD3DDLL();
     void InitializeD3DState();
     void set_up_default_vertices();
@@ -264,6 +263,37 @@ private:
     bool IsModeSupported(int width, int height, int colDepth);
     void create_screen_tint_bitmap();
     void _renderSprite(SpriteDrawListEntry *entry, bool globalLeftRightFlip, bool globalTopBottomFlip);
+};
+
+
+class D3DGraphicsFactory : public GfxDriverFactoryBase<D3DGraphicsDriver>
+{
+public:
+    virtual ~D3DGraphicsFactory();
+
+    static D3DGraphicsFactory *GetFactory();
+    static D3DGraphicsDriver  *GetD3DDriver();
+
+private:
+    D3DGraphicsFactory();
+
+    virtual D3DGraphicsDriver *EnsureDriverCreated();
+
+    bool Init();
+
+    static D3DGraphicsFactory *_factory;
+    //
+    // IMPORTANT NOTE: since the Direct3d9 device is created with
+    // D3DCREATE_MULTITHREADED behavior flag, once it is created the d3d9.dll may
+    // only be unloaded after window is destroyed, as noted in the MSDN's article
+    // on "D3DCREATE"
+    // (http://msdn.microsoft.com/en-us/library/windows/desktop/bb172527.aspx).
+    // Otherwise window becomes either destroyed prematurely or broken (details
+    // are unclear), which causes errors during Allegro deinitialization.
+    //
+    // Curiously, this problem was only confirmed under WinXP so far.
+    Library             _library;
+    IDirect3D9         *_direct3d;
 };
 
 } // namespace D3D

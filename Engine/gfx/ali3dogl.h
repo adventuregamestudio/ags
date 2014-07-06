@@ -22,6 +22,7 @@
 #include <allegro.h>
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
+#include "gfx/gfxdriverfactorybase.h"
 #include "gfx/graphicsdriver.h"
 #include "util/string.h"
 
@@ -224,11 +225,9 @@ public:
     virtual void SetScreenTint(int red, int green, int blue);
 
     // Internal
-    int _initDLLCallback();
-    int _resetDeviceIfNecessary();
     void _render(GlobalFlipType flip, bool clearDrawListAfterwards);
     void _reDrawLastFrame();
-    OGLGraphicsDriver(D3D::D3DGfxFilter *filter);
+    OGLGraphicsDriver();
     virtual ~OGLGraphicsDriver();
 
     D3D::D3DGfxFilter *_filter;
@@ -274,7 +273,6 @@ private:
     int numToDrawLastTime;
     GlobalFlipType flipTypeLastTime;
 
-    bool EnsureDirect3D9IsCreated();
     void InitOpenGl();
     void set_up_default_vertices();
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
@@ -284,6 +282,20 @@ private:
     void create_screen_tint_bitmap();
     void _renderSprite(SpriteDrawListEntry *entry, bool globalLeftRightFlip, bool globalTopBottomFlip);
     void create_backbuffer_arrays();
+};
+
+
+class OGLGraphicsFactory : public GfxDriverFactoryBase<OGLGraphicsDriver>
+{
+public:
+    virtual ~OGLGraphicsFactory();
+
+    static OGLGraphicsFactory *GetFactory();
+
+private:
+    virtual OGLGraphicsDriver *EnsureDriverCreated();
+
+    static OGLGraphicsFactory *_factory;
 };
 
 } // namespace OGL

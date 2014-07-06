@@ -816,6 +816,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\gfx\gfxdriverfactory.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\gfx\gfxfilter.cpp"
 					>
 				</File>
@@ -1767,6 +1771,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\gfx\gfx_util.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxdriverfactory.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxdriverfactorybase.h"
 					>
 				</File>
 				<File

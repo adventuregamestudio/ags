@@ -33,6 +33,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/bitmap.h"
+#include "gfx/gfxdriverfactory.h"
 #include "gfx/graphicsdriver.h"
 #include "main/main_allegro.h"
 #include "util/geometry.h"
@@ -63,6 +64,7 @@ extern Bitmap *_sub_screen;
 extern int _places_r, _places_g, _places_b;
 
 const int MaxScalingFactor = 8; // we support up to x8 scaling now
+IGfxDriverFactory *GfxFactory = NULL;
 
 Size GameSize;
 int firstDepth, secondDepth;
@@ -302,33 +304,19 @@ int initialize_graphics_filter(const char *filterID, int width, int height, int 
 
 bool pre_create_gfx_driver(const String &gfx_driver_id)
 {
-#ifdef WINDOWS_VERSION
-    if (gfx_driver_id.CompareNoCase("D3D9") == 0 && (game.color_depth != 1))
+    GfxFactory = GetGfxDriverFactory(gfx_driver_id);
+    if (!GfxFactory)
     {
-        gfxDriver = D3D::GetD3DGraphicsDriver(NULL);
-        if (!gfxDriver)
-        {
-            Out::FPrint("Failed to initialize D3D9 driver: %s", get_allegro_error());
-        }
+        Out::FPrint("Failed to initialize %s driver factory: %s", gfx_driver_id, get_allegro_error());
+        // If hardware driver was requested, try software instead
+        // TODO: use default driver id
+        if (gfx_driver_id.CompareNoCase("DX5") != 0)
+            GfxFactory = GetGfxDriverFactory("DX5");
     }
-    else
-#endif
-#if defined (IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
-    if (gfx_driver_id.CompareNoCase("DX5") != 0 && (psp_gfx_renderer > 0) && (game.color_depth != 1))
+    if (GfxFactory)
     {
-        gfxDriver = OGL::GetOGLGraphicsDriver(NULL);
-        if (!gfxDriver)
-        {
-            Out::FPrint("Failed to initialize OGL driver: %s", get_allegro_error());
-        }
+        gfxDriver = GfxFactory->GetDriver();
     }
-#endif
-
-    if (!gfxDriver)
-    {
-        gfxDriver = ALSW::GetSoftwareGraphicsDriver(NULL);
-    }
-
     if (gfxDriver)
     {
         Out::FPrint("Created graphics driver: %s", gfxDriver->GetDriverName());
@@ -1051,7 +1039,9 @@ int graphics_mode_init()
 
 void graphics_mode_shutdown()
 {
-    delete gfxDriver;
+    if (GfxFactory)
+        GfxFactory->Shutdown();
+    GfxFactory = NULL;
     gfxDriver = NULL;
 
     delete filter;

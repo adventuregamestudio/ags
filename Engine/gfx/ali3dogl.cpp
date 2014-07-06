@@ -243,24 +243,7 @@ void OGLBitmap::Dispose()
     }
 }
 
-static OGLGraphicsDriver *_ogl_driver = NULL;
-
-IGraphicsDriver* GetOGLGraphicsDriver(GfxFilter *filter)
-{
-  D3D::D3DGfxFilter* d3dfilter = (D3D::D3DGfxFilter*)filter;
-  if (_ogl_driver == NULL)
-  {
-    _ogl_driver = new OGLGraphicsDriver(d3dfilter);
-  }
-  else if (_ogl_driver->_filter != filter)
-  {
-    _ogl_driver->_filter = d3dfilter;
-  }
-
-  return _ogl_driver;
-}
-
-OGLGraphicsDriver::OGLGraphicsDriver(D3D::D3DGfxFilter *filter) 
+OGLGraphicsDriver::OGLGraphicsDriver() 
 {
   numToDraw = 0;
   numToDrawLastTime = 0;
@@ -274,7 +257,7 @@ OGLGraphicsDriver::OGLGraphicsDriver(D3D::D3DGfxFilter *filter)
   _global_y_offset = 0;
   _newmode_screen_width = 0;
   _newmode_screen_height = 0;
-  _filter = filter;
+  _filter = NULL;
   _screenTintLayer = NULL;
   _screenTintLayerDDB = NULL;
   _screenTintSprite.skip = true;
@@ -1570,6 +1553,28 @@ void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
 
     _screenTintSprite.skip = ((red == 0) && (green == 0) && (blue == 0));
   }
+}
+
+
+OGLGraphicsFactory *OGLGraphicsFactory::_factory = NULL;
+
+OGLGraphicsFactory::~OGLGraphicsFactory()
+{
+    _factory = NULL;
+}
+
+/* static */ OGLGraphicsFactory *OGLGraphicsFactory::GetFactory()
+{
+    if (!_factory)
+        _factory = new OGLGraphicsFactory();
+    return _factory;
+}
+
+OGLGraphicsDriver *OGLGraphicsFactory::EnsureDriverCreated()
+{
+    if (!_driver)
+        _driver = new OGLGraphicsDriver();
+    return _driver;
 }
 
 } // namespace OGL

@@ -644,23 +644,25 @@ unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned 
 }
 
 
-static ALSoftwareGraphicsDriver *_alsoftware_driver = NULL;
+ALSWGraphicsFactory *ALSWGraphicsFactory::_factory = NULL;
 
-IGraphicsDriver* GetSoftwareGraphicsDriver(GfxFilter *filter)
+ALSWGraphicsFactory::~ALSWGraphicsFactory()
 {
-    AllegroGfxFilter* allegroFilter = (AllegroGfxFilter*)filter;
+    _factory = NULL;
+}
 
-    if (_alsoftware_driver == NULL)
-    {
-        _alsoftware_driver = new ALSoftwareGraphicsDriver(allegroFilter);
-    }
-    else if (_alsoftware_driver->_filter != filter)
-    {
-        delete _alsoftware_driver;
-        _alsoftware_driver = new ALSoftwareGraphicsDriver(allegroFilter);
-    }
+/* static */ ALSWGraphicsFactory *ALSWGraphicsFactory::GetFactory()
+{
+    if (!_factory)
+        _factory = new ALSWGraphicsFactory();
+    return _factory;
+}
 
-    return _alsoftware_driver;
+ALSoftwareGraphicsDriver *ALSWGraphicsFactory::EnsureDriverCreated()
+{
+    if (!_driver)
+        _driver = new ALSoftwareGraphicsDriver();
+    return _driver;
 }
 
 } // namespace ALSW

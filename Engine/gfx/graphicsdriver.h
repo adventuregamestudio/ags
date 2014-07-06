@@ -101,19 +101,6 @@ public:
   virtual ~IGraphicsDriver() { }
 };
 
-namespace OGL
-{
-extern IGraphicsDriver* GetOGLGraphicsDriver(GfxFilter *);
-}
-namespace D3D
-{
-extern IGraphicsDriver* GetD3DGraphicsDriver(GfxFilter *);
-}
-namespace ALSW
-{
-extern IGraphicsDriver* GetSoftwareGraphicsDriver(GfxFilter *);
-}
-
 } // namespace Engine
 } // namespace AGS
 

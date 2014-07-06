@@ -289,7 +289,7 @@ int initialize_graphics_filter(const char *filterID, int width, int height, int 
     return 0;
 }
 
-void pre_create_gfx_driver(const String &gfx_driver_id)
+bool pre_create_gfx_driver(const String &gfx_driver_id)
 {
 #ifdef WINDOWS_VERSION
     if (gfx_driver_id.CompareNoCase("D3D9") == 0 && (game.color_depth != 1))
@@ -318,7 +318,12 @@ void pre_create_gfx_driver(const String &gfx_driver_id)
         gfxDriver = GetSoftwareGraphicsDriver(NULL);
     }
 
-    Out::FPrint("Created graphics driver: %s", gfxDriver->GetDriverName());
+    if (gfxDriver)
+    {
+        Out::FPrint("Created graphics driver: %s", gfxDriver->GetDriverName());
+        return true;
+    }
+    return false;
 }
 
 // Determines if scaling from base_size to gfx mode is supported by the engine
@@ -480,7 +485,7 @@ int find_max_supported_uniform_scaling(const Size &base_size, Size &found_size, 
 
 int get_scaling_from_filter_name(const String &filter_id)
 {
-    int scaling = 1;
+    int scaling = 0;
     if (filter_id.CompareLeftNoCase("StdScale") == 0)
     {
         scaling = filter_id.Mid(8).ToInt();
@@ -493,7 +498,7 @@ int get_scaling_from_filter_name(const String &filter_id)
     {
         scaling = filter_id.Mid(3).ToInt();
     }
-    return scaling;
+    return scaling > 0 ? scaling : 1;
 }
 
 // Finds any supported graphics mode that can fit requested game frame size;
@@ -687,13 +692,14 @@ int engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color_
         if (scaling_factor > 0)
         {
             screen_size = found_screen_size;
-            gfxfilter.Format(scaling_factor > 1 ? "StdScale%d" : "None", scaling_factor);
         }
-#else
-        gfxfilter = "None";
-        screen_size = game_size;
-        scaling_factor = 1;
+        else
 #endif
+        {
+            screen_size = game_size;
+            scaling_factor = 1;
+        }
+        gfxfilter.Format(scaling_factor > 1 ? "StdScale%d" : "None", scaling_factor);
     }
 
     if (gfxfilter.IsEmpty())
@@ -712,14 +718,16 @@ int engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color_
     return RETURN_CONTINUE;
 }
 
-void create_gfx_driver(const String &gfx_driver_id)
+bool create_gfx_driver(const String &gfx_driver_id)
 {
     Out::FPrint("Init gfx driver");
-    pre_create_gfx_driver(gfx_driver_id);
-    usetup.gfxDriverID = gfxDriver->GetDriverID();
+    if (!pre_create_gfx_driver(gfx_driver_id))
+        return false;
 
+    usetup.gfxDriverID = gfxDriver->GetDriverID();
     gfxDriver->SetCallbackOnInit(GfxDriverOnInitCallback);
     gfxDriver->SetTintMethod(TintReColourise);
+    return true;
 }
 
 bool init_gfx_mode(const Size &game_size, const Size &screen_size, int cdep)
@@ -926,7 +934,8 @@ void engine_set_color_conversions()
 
 int create_gfx_driver_and_init_mode(const String &gfx_driver_id, Size &game_size, Size &screen_size)
 {
-    create_gfx_driver(gfx_driver_id);
+    if (!create_gfx_driver(gfx_driver_id))
+        return EXIT_NORMAL;
     engine_init_screen_settings();
 
     game_size = GameSize;

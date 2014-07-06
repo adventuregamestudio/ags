@@ -1746,7 +1746,19 @@
 				Name="gfx"
 				>
 				<File
-					RelativePath="..\..\Engine\gfx\ali3d.h"
+					RelativePath="..\..\Engine\platform\windows\gfx\ali3dd3d.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\ali3dexception.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\ali3dogl.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\ali3dsw.h"
 					>
 				</File>
 				<File

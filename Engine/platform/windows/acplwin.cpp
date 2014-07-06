@@ -20,7 +20,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
@@ -38,9 +37,8 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 
-using AGS::Common::Stream;
-using AGS::Common::String;
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern GameSetup usetup;

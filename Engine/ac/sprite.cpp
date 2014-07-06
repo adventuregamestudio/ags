@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"            // USE_15BIT_FIX
 #include "ac/gamesetupstruct.h"
@@ -23,8 +22,8 @@
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern int scrnwid,scrnhit;

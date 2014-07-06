@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "video.h"
-#include "gfx/ali3d.h"
 #include "apeg.h"
 #include "ac/common.h"
 #include "ac/draw.h"
@@ -30,8 +29,8 @@
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 
 extern GameSetupStruct game;

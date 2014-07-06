@@ -15,7 +15,6 @@
 #define USE_CLIB
 #include <stdio.h>
 #include "ac/global_video.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
@@ -34,6 +33,7 @@
 #include "core/assetmanager.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;

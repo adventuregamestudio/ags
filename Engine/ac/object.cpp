@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/object.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/draw.h"

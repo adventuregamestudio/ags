@@ -17,7 +17,6 @@
 //
 
 #include "main/mainheader.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
@@ -60,12 +59,8 @@
 #include "main/game_file.h"
 #include "debug/out.h"
 
-using AGS::Common::String;
-using AGS::Common::Stream;
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
-namespace Path = AGS::Common::Path;
-namespace Out = AGS::Common::Out;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern char check_dynamic_sprites_at_exit;
 extern int our_eip;

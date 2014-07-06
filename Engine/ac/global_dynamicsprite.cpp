@@ -14,7 +14,6 @@
 
 #include "ac/global_dynamicsprite.h"
 #include "util/wgt2allg.h" // Allegro RGB, PALETTE
-#include "gfx/ali3d.h"
 #include "ac/dynamicsprite.h"
 #include "ac/file.h"
 #include "ac/spritecache.h"
@@ -22,8 +21,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern SpriteCache spriteset;
 extern IGraphicsDriver *gfxDriver;

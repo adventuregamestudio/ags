@@ -41,9 +41,8 @@
 #include "test/test_all.h"
 #endif
 
-namespace Directory = AGS::Common::Directory;
-namespace Out       = AGS::Common::Out;
-namespace Path      = AGS::Common::Path;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 char appDirectory[512]; // Needed for library loading
 

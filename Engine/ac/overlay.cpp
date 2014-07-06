@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include <stdio.h>
-#include "gfx/ali3d.h"
 #include "ac/overlay.h"
 #include "ac/common.h"
 #include "ac/view.h"
@@ -29,7 +28,8 @@
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
 
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern int scrnwid,scrnhit;

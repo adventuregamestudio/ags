@@ -29,12 +29,14 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "gfx/ali3dexception.h"
 #include "main/mainheader.h"
 #include "main/game_run.h"
 #include "main/game_start.h"
 #include "script/script.h"
 
-namespace Out = AGS::Common::Out;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern int our_eip, displayed_room;
 extern const char *load_game_errors[9];

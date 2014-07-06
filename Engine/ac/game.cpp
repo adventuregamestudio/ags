@@ -65,9 +65,9 @@
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "font/fonts.h"
-#include "gfx/ali3d.h"
 #include "gui/animatingguibutton.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/gfxfilter.h"
 #include "gui/guidialog.h"
 #include "main/game_file.h"
 #include "main/main.h"
@@ -83,6 +83,7 @@
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern int time_between_timers;

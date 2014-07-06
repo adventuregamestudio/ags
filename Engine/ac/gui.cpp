@@ -14,7 +14,6 @@
 
 #include <stdio.h>
 #include "ac/gui.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
@@ -41,8 +40,8 @@
 #include "ac/dynobj/cc_guiobject.h"
 #include "script/runtimescriptvalue.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 
 extern GameSetup usetup;

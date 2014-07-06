@@ -14,7 +14,6 @@
 
 #define USE_CLIB
 #include "util/string_utils.h" //strlwr()
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "media/audio/audiodefines.h"
 #include "ac/charactercache.h"
@@ -61,15 +60,13 @@
 #include "core/assetmanager.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "gfx/bitmap.h"
+#include "gfx/gfxfilter.h"
 #include "util/math.h"
 #include "main/graphics_mode.h"
 
-using AGS::Common::Bitmap;
-using AGS::Common::Stream;
-using AGS::Common::String;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 namespace Math = AGS::Common::Math;
-namespace Out = AGS::Common::Out;
 
 #if !defined (WINDOWS_VERSION)
 // for toupper

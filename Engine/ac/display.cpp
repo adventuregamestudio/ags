@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/display.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"

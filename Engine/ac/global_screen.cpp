@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/draw.h"
@@ -29,8 +28,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetup usetup;
 extern GameState play;

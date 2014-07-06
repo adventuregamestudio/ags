@@ -17,7 +17,6 @@
 //
 
 #include "main/mainheader.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
@@ -32,17 +31,15 @@
 #include "gui/guimain.h"
 #include "main/graphics_mode.h"
 #include "platform/base/agsplatformdriver.h"
-#include "gfx/graphicsdriver.h"
+#include "gfx/ali3dexception.h"
 #include "gfx/bitmap.h"
+#include "gfx/graphicsdriver.h"
 #include "main/main_allegro.h"
 #include "util/geometry.h"
 #include "util/math.h"
 
-using AGS::Common::Bitmap;
-using AGS::Common::String;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
-namespace Math = AGS::Common::Math;
-namespace Out = AGS::Common::Out;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
@@ -307,7 +304,7 @@ bool pre_create_gfx_driver(const String &gfx_driver_id)
 #ifdef WINDOWS_VERSION
     if (gfx_driver_id.CompareNoCase("D3D9") == 0 && (game.color_depth != 1))
     {
-        gfxDriver = GetD3DGraphicsDriver(NULL);
+        gfxDriver = D3D::GetD3DGraphicsDriver(NULL);
         if (!gfxDriver)
         {
             Out::FPrint("Failed to initialize D3D9 driver: %s", get_allegro_error());
@@ -318,7 +315,7 @@ bool pre_create_gfx_driver(const String &gfx_driver_id)
 #if defined (IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
     if (gfx_driver_id.CompareNoCase("DX5") != 0 && (psp_gfx_renderer > 0) && (game.color_depth != 1))
     {
-        gfxDriver = GetOGLGraphicsDriver(NULL);
+        gfxDriver = OGL::GetOGLGraphicsDriver(NULL);
         if (!gfxDriver)
         {
             Out::FPrint("Failed to initialize OGL driver: %s", get_allegro_error());
@@ -328,7 +325,7 @@ bool pre_create_gfx_driver(const String &gfx_driver_id)
 
     if (!gfxDriver)
     {
-        gfxDriver = GetSoftwareGraphicsDriver(NULL);
+        gfxDriver = ALSW::GetSoftwareGraphicsDriver(NULL);
     }
 
     if (gfxDriver)

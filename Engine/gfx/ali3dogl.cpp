@@ -14,31 +14,13 @@
 
 #if defined(WINDOWS_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
 
-#include <stdio.h>
-#include <allegro.h>
-#include "gfx/ali3d.h"
-#include "gfx/bitmap.h"
-#include "gfx/ddb.h"
-#include "gfx/graphicsdriver.h"
+#include "gfx/ali3dexception.h"
+#include "gfx/ali3dogl.h"
+#include "gfx/gfxfilter_d3d.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
-#include "util/string.h"
-
-using AGS::Common::Bitmap;
-using AGS::Common::String;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #if defined(WINDOWS_VERSION)
-#include <winalleg.h>
-#include <allegro/platform/aintwin.h>
-#include <GL/gl.h>
-
-// Allegro and glext.h define these
-#undef int32_t
-#undef int64_t
-#undef uint64_t
-
-#include <GL/glext.h>
 
 int psp_gfx_smoothing = 1;
 int psp_gfx_scaling = 1;
@@ -65,18 +47,6 @@ PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2DEXT = 0;
 PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT = 0;
 
 #elif defined(ANDROID_VERSION)
-#include <GLES/gl.h>
-
-#ifndef GL_GLEXT_PROTOTYPES
-#define GL_GLEXT_PROTOTYPES
-#endif
-
-#include <GLES/glext.h>
-
-#define HDC void*
-#define HGLRC void*
-#define HWND void*
-#define HINSTANCE void*
 
 #define glOrtho glOrthof
 #define GL_CLAMP GL_CLAMP_TO_EDGE
@@ -129,13 +99,6 @@ const char* fbo_extension_string = "GL_OES_framebuffer_object";
 #define GL_COLOR_ATTACHMENT0_EXT GL_COLOR_ATTACHMENT0_OES
 
 #elif defined(IOS_VERSION)
-#include <OpenGLES/ES1/gl.h>
-
-#ifndef GL_GLEXT_PROTOTYPES
-#define GL_GLEXT_PROTOTYPES
-#endif
-
-#include <OpenGLES/ES1/glext.h>
 
 extern "C" 
 {
@@ -144,11 +107,6 @@ extern "C"
   void ios_create_screen();
   void ios_mouse_setup(int left, int right, int top, int bottom, float scaling_x, float scaling_y);  
 }
-
-#define HDC void*
-#define HGLRC void*
-#define HWND void*
-#define HINSTANCE void*
 
 #define glOrtho glOrthof
 #define GL_CLAMP GL_CLAMP_TO_EDGE
@@ -192,6 +150,14 @@ const char* fbo_extension_string = "GL_OES_framebuffer_object";
 
 #endif
 
+namespace AGS
+{
+namespace Engine
+{
+namespace OGL
+{
+
+using namespace AGS::Common;
 
 GLfloat backbuffer_vertices[] =
 {
@@ -207,29 +173,9 @@ GLfloat backbuffer_texture_coordinates[] =
    320.0f / 512.0f, 0,
    0, 200.0f / 256.0f,
    320.0f / 512.0f, 200.0f / 256.0f
-};   
-
-
-
-void ogl_dummy_vsync() { }
-
-
-typedef struct _OGLVECTOR {
-    float x;
-    float y;
-} OGLVECTOR2D;
-
-
-struct OGLCUSTOMVERTEX
-{
-    OGLVECTOR2D position;
-    float tu;
-    float tv;
 };
 
-
-
-#define MAX_DRAW_LIST_SIZE 200
+void ogl_dummy_vsync() { }
 
 #define algetr32(xx) ((xx >> _rgb_r_shift_32) & 0xFF)
 #define algetg32(xx) ((xx >> _rgb_g_shift_32) & 0xFF)
@@ -279,212 +225,23 @@ GFX_DRIVER gfx_opengl =
    TRUE                         // int windowed;
 };
 
-
-struct TextureTile
+void OGLBitmap::Dispose()
 {
-  int x, y;
-  int width, height;
-  unsigned int texture;
-};
-
-class OGLBitmap : public IDriverDependantBitmap
-{
-public:
-  // Transparency is a bit counter-intuitive
-  // 0=not transparent, 255=invisible, 1..254 barely visible .. mostly visible
-  virtual void SetTransparency(int transparency) { _transparency = transparency; }
-  virtual void SetFlippedLeftRight(bool isFlipped) { _flipped = isFlipped; }
-  virtual void SetStretch(int width, int height) 
-  {
-    _stretchToWidth = width;
-    _stretchToHeight = height;
-  }
-  virtual int GetWidth() { return _width; }
-  virtual int GetHeight() { return _height; }
-  virtual int GetColorDepth() { return _colDepth; }
-  virtual void SetLightLevel(int lightLevel)  { _lightLevel = lightLevel; }
-  virtual void SetTint(int red, int green, int blue, int tintSaturation) 
-  {
-    _red = red;
-    _green = green;
-    _blue = blue;
-    _tintSaturation = tintSaturation;
-  }
-
-  int _width, _height;
-  int _colDepth;
-  bool _flipped;
-  int _stretchToWidth, _stretchToHeight;
-  int _red, _green, _blue;
-  int _tintSaturation;
-  int _lightLevel;
-  bool _opaque;
-  bool _hasAlpha;
-  int _transparency;
-  OGLCUSTOMVERTEX* _vertex;
-  TextureTile *_tiles;
-  int _numTiles;
-
-  OGLBitmap(int width, int height, int colDepth, bool opaque)
-  {
-    _width = width;
-    _height = height;
-    _colDepth = colDepth;
-    _flipped = false;
-    _hasAlpha = false;
-    _stretchToWidth = 0;
-    _stretchToHeight = 0;
-    _tintSaturation = 0;
-    _lightLevel = 0;
-    _transparency = 0;
-    _opaque = opaque;
-    _vertex = NULL;
-    _tiles = NULL;
-    _numTiles = 0;
-  }
-
-  int GetWidthToRender() { return (_stretchToWidth > 0) ? _stretchToWidth : _width; }
-  int GetHeightToRender() { return (_stretchToHeight > 0) ? _stretchToHeight : _height; }
-
-  void Dispose()
-  {
     if (_tiles != NULL)
     {
-      for (int i = 0; i < _numTiles; i++)
-        glDeleteTextures(1, &(_tiles[i].texture));
+        for (int i = 0; i < _numTiles; i++)
+            glDeleteTextures(1, &(_tiles[i].texture));
 
-      free(_tiles);
-      _tiles = NULL;
-      _numTiles = 0;
+        free(_tiles);
+        _tiles = NULL;
+        _numTiles = 0;
     }
     if (_vertex != NULL)
     {
-      free(_vertex);
-      _vertex = NULL;
+        free(_vertex);
+        _vertex = NULL;
     }
-  }
-
-  ~OGLBitmap()
-  {
-    Dispose();
-  }
-};
-
-struct SpriteDrawListEntry
-{
-  OGLBitmap *bitmap;
-  int x, y;
-  bool skip;
-};
-
-#include "gfx/gfxfilter_d3d.h"
-
-class OGLGraphicsDriver : public IGraphicsDriver
-{
-public:
-  virtual const char*GetDriverName() { return "OpenGL"; }
-  virtual const char*GetDriverID() { return "OGL"; }
-  virtual void SetGraphicsFilter(GFXFilter *filter);
-  virtual void SetTintMethod(TintMethod method);
-  virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
-  virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
-  virtual IGfxModeList *GetSupportedModeList(int color_depth);
-  virtual DisplayResolution GetResolution();
-  virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
-  virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
-  virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
-  virtual void SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) { _nullSpriteCallback = callback; }
-  virtual void UnInit();
-  virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
-  virtual Bitmap *ConvertBitmapToSupportedColourDepth(Bitmap *bitmap);
-  virtual IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque);
-  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha);
-  virtual void DestroyDDB(IDriverDependantBitmap* bitmap);
-  virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap);
-  virtual void ClearDrawList();
-  virtual void RenderToBackBuffer();
-  virtual void Render();
-  virtual void Render(GlobalFlipType flip);
-  virtual void SetRenderOffset(int x, int y);
-  virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination);
-  virtual void EnableVsyncBeforeRender(bool enabled) { }
-  virtual void Vsync();
-  virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-  virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue);
-  virtual void BoxOutEffect(bool blackingOut, int speed, int delay);
-  virtual bool PlayVideo(const char *filename, bool useSound, VideoSkipType skipType, bool stretchToFullScreen);
-  virtual bool SupportsGammaControl();
-  virtual void SetGamma(int newGamma);
-  virtual void UseSmoothScaling(bool enabled) { _smoothScaling = enabled; }
-  virtual bool RequiresFullRedrawEachFrame() { return true; }
-  virtual bool HasAcceleratedStretchAndFlip() { return true; }
-  virtual bool UsesMemoryBackBuffer() { return false; }
-  virtual Bitmap *GetMemoryBackBuffer() { return NULL; }
-  virtual void SetMemoryBackBuffer(Bitmap *backBuffer) {  }
-  virtual void SetScreenTint(int red, int green, int blue);
-
-  // Internal
-  int _initDLLCallback();
-  int _resetDeviceIfNecessary();
-  void _render(GlobalFlipType flip, bool clearDrawListAfterwards);
-  void _reDrawLastFrame();
-  OGLGraphicsDriver(D3DGFXFilter *filter);
-  virtual ~OGLGraphicsDriver();
-
-  D3DGFXFilter *_filter;
-
-private:
-  HDC _hDC;
-  HGLRC _hRC;
-  HWND _hWnd;
-  HINSTANCE _hInstance;
-  int _newmode_width, _newmode_height;
-  int _newmode_screen_width, _newmode_screen_height;
-  int _newmode_depth, _newmode_refresh;
-  bool _newmode_windowed;
-  int _global_x_offset, _global_y_offset;
-  unsigned int availableVideoMemory;
-  GFXDRV_CLIENTCALLBACK _pollingCallback;
-  GFXDRV_CLIENTCALLBACK _drawScreenCallback;
-  GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
-  GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
-  int _tint_red, _tint_green, _tint_blue;
-  OGLCUSTOMVERTEX defaultVertices[4];
-  String previousError;
-  bool _smoothScaling;
-  bool _legacyPixelShader;
-  float _pixelRenderOffset;
-  volatile int *_loopTimer;
-  Bitmap *_screenTintLayer;
-  OGLBitmap* _screenTintLayerDDB;
-  SpriteDrawListEntry _screenTintSprite;
-
-  float _scale_width;
-  float _scale_height;
-  int _super_sampling;
-  unsigned int _backbuffer;
-  unsigned int _fbo;
-  int _backbuffer_texture_width;
-  int _backbuffer_texture_height;
-  bool _render_to_texture;
-
-  SpriteDrawListEntry drawList[MAX_DRAW_LIST_SIZE];
-  int numToDraw;
-  SpriteDrawListEntry drawListLastTime[MAX_DRAW_LIST_SIZE];
-  int numToDrawLastTime;
-  GlobalFlipType flipTypeLastTime;
-
-  bool EnsureDirect3D9IsCreated();
-  void InitOpenGl();
-  void set_up_default_vertices();
-  void AdjustSizeToNearestSupportedByCard(int *width, int *height);
-  void UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha);
-  void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-  bool IsModeSupported(int width, int height, int colDepth);
-  void create_screen_tint_bitmap();
-  void _renderSprite(SpriteDrawListEntry *entry, bool globalLeftRightFlip, bool globalTopBottomFlip);
-  void create_backbuffer_arrays();
-};
+}
 
 static OGLGraphicsDriver *_ogl_driver = NULL;
 
@@ -573,9 +330,6 @@ void OGLGraphicsDriver::SetGamma(int newGamma)
 {
 }
 
-
-
-
 void OGLGraphicsDriver::SetRenderOffset(int x, int y)
 {
   _global_x_offset = x;
@@ -591,9 +345,6 @@ void OGLGraphicsDriver::SetTintMethod(TintMethod method)
 {
   _legacyPixelShader = (method == TintReColourise);
 }
-
-
-
 
 void OGLGraphicsDriver::create_backbuffer_arrays()
 {
@@ -672,9 +423,6 @@ void OGLGraphicsDriver::create_backbuffer_arrays()
    backbuffer_texture_coordinates[5] = backbuffer_texture_coordinates[7] = (float)_newmode_height * _super_sampling / (float)_backbuffer_texture_height;
    backbuffer_texture_coordinates[2] = backbuffer_texture_coordinates[6] = (float)_newmode_width * _super_sampling / (float)_backbuffer_texture_width;
 }
-
-
-
 
 void OGLGraphicsDriver::InitOpenGl()
 {
@@ -1319,8 +1067,6 @@ __inline void get_pixel_if_not_transparent32(unsigned int *pixel, unsigned int *
   }
 }
 
-
-
 #define D3DCOLOR_RGBA(r,g,b,a) \
   (((((a)&0xff)<<24)|(((b)&0xff)<<16)|(((g)&0xff)<<8)|((r)&0xff)))
 
@@ -1825,5 +1571,9 @@ void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
     _screenTintSprite.skip = ((red == 0) && (green == 0) && (blue == 0));
   }
 }
+
+} // namespace OGL
+} // namespace Engine
+} // namespace AGS
 
 #endif // only on Windows, Android and iOS

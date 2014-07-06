@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/common.h"
-#include "gfx/ali3d.h"
 #include "media/audio/audiodefines.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
@@ -27,6 +26,8 @@
 #include "media/audio/soundclip.h"
 #include "gfx/graphicsdriver.h"
 #include "ac/dynobj/cc_audiochannel.h"
+
+using namespace AGS::Engine;
 
 extern GameSetup usetup;
 extern GameState play;

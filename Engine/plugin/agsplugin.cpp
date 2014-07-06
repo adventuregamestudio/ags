@@ -14,7 +14,6 @@
 
 #include "util/wgt2allg.h"
 #include "plugin/agsplugin.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/roomstruct.h"
 #include "ac/view.h"
@@ -48,13 +47,15 @@
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
 #include "util/stream.h"
-#include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/gfxfilter.h"
 #include "script/runtimescriptvalue.h"
 #include "debug/out.h"
 #include "ac/dynobj/scriptstring.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 
 #if defined(BUILTIN_PLUGINS)

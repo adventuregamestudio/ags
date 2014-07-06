@@ -49,6 +49,7 @@
 #include "ac/gamesetup.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
 

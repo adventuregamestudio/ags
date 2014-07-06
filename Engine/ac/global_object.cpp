@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include <stdio.h>
-#include "gfx/ali3d.h"
 #include "ac/global_object.h"
 #include "ac/common.h"
 #include "ac/object.h"

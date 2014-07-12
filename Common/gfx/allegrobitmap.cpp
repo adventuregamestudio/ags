@@ -76,14 +76,12 @@ bool Bitmap::Create(int width, int height, int color_depth)
 
 bool Bitmap::CreateTransparent(int width, int height, int color_depth)
 {
-    Destroy();
-    _alBitmap = create_bitmap_ex(color_depth, width, height);
-    if (_alBitmap)
+    if (Create(width, height, color_depth))
     {
         clear_to_color(_alBitmap, bitmap_mask_color(_alBitmap));
+        return true;
     }
-    _isDataOwner = true;
-    return _alBitmap != NULL;
+    return false;
 }
 
 bool Bitmap::CreateSubBitmap(Bitmap *src, const Rect &rc)
@@ -96,22 +94,12 @@ bool Bitmap::CreateSubBitmap(Bitmap *src, const Rect &rc)
 
 bool Bitmap::CreateCopy(Bitmap *src, int color_depth)
 {
-    Destroy();
-    if (color_depth)
-    {
-        _alBitmap = create_bitmap_ex(color_depth, src->_alBitmap->w, src->_alBitmap->h);
-    }
-    else
-    {
-        _alBitmap = create_bitmap_ex(bitmap_color_depth(src->_alBitmap), src->_alBitmap->w, src->_alBitmap->h);
-    }
-
-    if (_alBitmap)
+    if (Create(src->_alBitmap->w, src->_alBitmap->h, color_depth ? color_depth : bitmap_color_depth(src->_alBitmap)))
     {
         blit(src->_alBitmap, _alBitmap, 0, 0, 0, 0, _alBitmap->w, _alBitmap->h);
+        return true;
     }
-    _isDataOwner = true;
-    return _alBitmap != NULL;
+    return false;
 }
 
 bool Bitmap::WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data)

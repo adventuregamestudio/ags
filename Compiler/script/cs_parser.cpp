@@ -3683,22 +3683,29 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                             int nextt = targ.getnext();
                             int array_size;
 
-                            if (get_literal_value(nextt, &array_size, "Array size must be constant value"))
-                                return -1;
-
-                            if (array_size < 1) {
-                                cc_error("array size cannot be less than 1");
-                                return -1;
+                            if (sym.get_type(nextt) == SYM_CLOSEBRACKET) {
+                                sym.flags[vname] |= SFLG_DYNAMICARRAY;
+                                array_size = 0;
+                                size_so_far += 4;
                             }
+                            else {
+                                if (get_literal_value(nextt, &array_size, "Array size must be constant value"))
+                                    return -1;
 
+                                if (array_size < 1) {
+                                    cc_error("array size cannot be less than 1");
+                                    return -1;
+                                }
+
+                                size_so_far += array_size * sym.ssize[vname];
+
+                                if (sym.get_type(targ.getnext()) != SYM_CLOSEBRACKET) {
+                                    cc_error("expected ']'");
+                                    return -1;
+                                }
+                            }
                             sym.flags[vname] |= SFLG_ARRAY;
                             sym.arrsize[vname] = array_size;
-                            size_so_far += array_size * sym.ssize[vname];
-
-                            if (sym.get_type(targ.getnext()) != SYM_CLOSEBRACKET) {
-                                cc_error("expected ']'");
-                                return -1;
-                            }
                         }
                         else
                             size_so_far += sym.ssize[vname];

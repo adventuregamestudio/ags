@@ -34,6 +34,7 @@
 #include "util/misc.h"
 #include "util/textstreamwriter.h"
 #include "ac/dynobj/scriptstring.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "ac/statobj/agsstaticobject.h"
 #include "ac/statobj/staticarray.h"
 #include "util/string_utils.h" // linux strnicmp definition
@@ -156,6 +157,7 @@ const ScriptCommandInfo sccmd_info[CC_NUM_SCCMDS] =
     ScriptCommandInfo( SCMD_JNZ             , "jnz"               , 1, kScOpNoArgIsReg ),
     ScriptCommandInfo( SCMD_DYNAMICBOUNDS   , "dynamicbounds"     , 1, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_NEWARRAY        , "newarray"          , 3, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_NEWUSEROBJECT   , "newuserobject"     , 2, kScOpOneArgIsReg ),
 };
 
 const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
@@ -1258,6 +1260,18 @@ int ccInstance::Run(int32_t curpc)
               }
               int32_t handle = globalDynamicArray.Create(numElements, arg2.IValue, arg3.GetAsBool());
               reg1.SetDynamicObject((void*)ccGetObjectAddressFromHandle(handle), &globalDynamicArray);
+              break;
+          }
+      case SCMD_NEWUSEROBJECT:
+          {
+              const int32_t size = arg2.IValue;
+              if (size < 0)
+              {
+                  cc_error("Invalid size for user object; requested: %u (or %d), range: 0..%d", (uint32_t)size, size, INT_MAX);
+                  return -1;
+              }
+              ScriptUserObject *suo = ScriptUserObject::CreateManaged(size);
+              reg1.SetDynamicObject(suo, suo);
               break;
           }
       case SCMD_FADD:

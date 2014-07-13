@@ -128,6 +128,7 @@ void symbolTable::reset() {
     add_ex("internalstring", SYM_STRINGSTRUCT, 0);
     add_ex("autoptr", SYM_AUTOPTR, 0);
     add_ex("noloopcheck", SYM_LOOPCHECKOFF, 0);
+    add_ex("builtin", SYM_BUILTIN, 0);
 }
 int symbolTable::operatorToVCPUCmd(int opprec) {
     //return ssize[opprec] + 8;

@@ -2301,6 +2301,11 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       }
       else
       {
+          if(sym.flags[symlist[oploc + 1]] & SFLG_BUILTIN)
+          {
+            cc_error("Built-in type '%s' cannot be instantiated directly", sym.get_name(symlist[oploc + 1]));
+            return -1;
+          }
           const size_t size = sym.ssize[symlist[oploc + 1]];
           scrip->write_cmd2(SCMD_NEWUSEROBJECT, SREG_AX, size);
           scrip->ax_val_type = symlist[oploc + 1] | STYPE_POINTER;
@@ -3196,6 +3201,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
     char next_is_managed = 0, next_is_static = 0;
     char next_is_protected = 0, next_is_stringstruct = 0;
     char next_is_autoptr = 0, next_is_noloopcheck = 0;
+    char next_is_builtin = 0;
     nested_type[0]=NEST_NOTHING;
 
     // *** now we have the program as a list of symbols in targ
@@ -3401,6 +3407,11 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 next_is_managed = 0;
             }
 
+            if (next_is_builtin) {
+                sym.flags[stname] |= SFLG_BUILTIN;
+                next_is_builtin = 0;
+            }
+
             if (next_is_autoptr) {
                 sym.flags[stname] |= SFLG_AUTOPTR;
                 next_is_autoptr = 0;
@@ -3420,6 +3431,18 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 }
                 if ((sym.flags[extendsWhat] & SFLG_STRUCTTYPE) == 0) {
                     cc_error("Must extend a struct type");
+                    return -1;
+                }
+                if ((sym.flags[extendsWhat] & SFLG_MANAGED) == 0 && (sym.flags[stname] & SFLG_MANAGED)) {
+                    cc_error("Incompatible types. Managed struct cannot extend unmanaged struct '%s'", sym.get_name(extendsWhat));
+                    return -1;
+                }
+                if ((sym.flags[extendsWhat] & SFLG_MANAGED) && (sym.flags[stname] & SFLG_MANAGED) == 0) {
+                    cc_error("Incompatible types. Unmanaged struct cannot extend managed struct '%s'", sym.get_name(extendsWhat));
+                    return -1;
+                }
+                if ((sym.flags[extendsWhat] & SFLG_BUILTIN) && (sym.flags[stname] & SFLG_BUILTIN) == 0) {
+                    cc_error("The built-in type '%s' cannot be extended by a concrete struct. Use extender methods instead", sym.get_name(extendsWhat));
                     return -1;
                 }
                 size_so_far = sym.ssize[extendsWhat];
@@ -3813,6 +3836,13 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             }
 
         }
+        else if (symType == SYM_BUILTIN) {
+            next_is_builtin = 1;
+            if (sym.get_type(targ.peeknext()) != SYM_MANAGED && sym.get_type(targ.peeknext()) != SYM_STRUCT) {
+                cc_error("Invalid use of 'builtin'");
+                return -1;
+            }
+        }
         else if (symType == SYM_MANAGED) {
             next_is_managed = 1;
             if (sym.get_type(targ.peeknext()) != SYM_STRUCT) {
@@ -3822,7 +3852,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
         }
         else if (symType == SYM_AUTOPTR) {
             next_is_autoptr = 1;
-            if (sym.get_type(targ.peeknext()) != SYM_MANAGED) {
+            if (sym.get_type(targ.peeknext()) != SYM_MANAGED && sym.get_type(targ.peeknext()) != SYM_BUILTIN) {
                 cc_error("Invalid use of 'autoptr'");
                 return -1;
             }

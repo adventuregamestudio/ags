@@ -208,6 +208,8 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
                 if ((sym.stype[last_time] != SYM_PROPERTY) &&
                     (sym.stype[last_time] != SYM_IMPORT) &&
                     (sym.stype[last_time] != SYM_STATIC) &&
+                    (sym.stype[last_time] != SYM_PROTECTED) &&
+                    (sym.stype[last_time] != SYM_WRITEPROTECTED) &&
                     (sym.stype[last_time] != SYM_SEMICOLON) &&
                     (sym.stype[last_time] != SYM_OPENBRACE) &&
                     (sym.stype[last_time] != SYM_OPENBRACKET) &&
@@ -2259,53 +2261,51 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
     // The operator is the first thing in the expression
     if (sym.get_type(symlist[oploc]) == SYM_NEW) 
     {
-      if (listlen < 5)
-      {
-        cc_error("parse error after 'new'");
-        return -1;
-      }
-      if (sym.get_type(symlist[oploc + 1]) != SYM_VARTYPE)
+      if (listlen < 2 || sym.get_type(symlist[oploc + 1]) != SYM_VARTYPE)
       {
         cc_error("expected type after 'new'");
         return -1;
       }
 
-      int arrayType = symlist[oploc + 1];
-
-      if ((sym.get_type(symlist[oploc + 2]) != SYM_OPENBRACKET) ||
-          (sym.get_type(symlist[listlen - 1]) != SYM_CLOSEBRACKET))
+      if(listlen > 3 && sym.get_type(symlist[oploc + 2]) == SYM_OPENBRACKET && sym.get_type(symlist[listlen - 1]) == SYM_CLOSEBRACKET)
       {
-        cc_error("'new' can only be used to create arrays");
-        return -1;
+          int arrayType = symlist[oploc + 1];
+
+          if (parse_sub_expr(&symlist[oploc + 3], listlen - 4, scrip))
+            return -1;
+
+          if (scrip->ax_val_type != sym.normalIntSym)
+          {
+            cc_error("array size must be an int");
+            return -1;
+          }
+
+          bool isManagedType = false;
+          int size = sym.ssize[arrayType];
+          if (sym.flags[arrayType] & SFLG_MANAGED)
+          {
+            isManagedType = true;
+            size = 4;
+          }   
+          else if (sym.flags[arrayType] & SFLG_STRUCTTYPE)
+          {
+            cc_error("cannot create dynamic array of unmanaged struct");
+            return -1;
+          }
+
+          scrip->write_cmd3(SCMD_NEWARRAY, SREG_AX, size, isManagedType);
+          scrip->ax_val_type = arrayType | STYPE_DYNARRAY;
+
+          if (isManagedType)
+            scrip->ax_val_type |= STYPE_POINTER;
+      }
+      else
+      {
+          const size_t size = sym.ssize[symlist[oploc + 1]];
+          scrip->write_cmd2(SCMD_NEWUSEROBJECT, SREG_AX, size);
+          scrip->ax_val_type = symlist[oploc + 1] | STYPE_POINTER;
       }
 
-      if (parse_sub_expr(&symlist[oploc + 3], listlen - 4, scrip))
-        return -1;
-
-      if (scrip->ax_val_type != sym.normalIntSym)
-      {
-        cc_error("array size must be an int");
-        return -1;
-      }
-
-      bool isManagedType = false;
-      int size = sym.ssize[arrayType];
-      if (sym.flags[arrayType] & SFLG_MANAGED)
-      {
-        isManagedType = true;
-        size = 4;
-      }   
-      else if (sym.flags[arrayType] & SFLG_STRUCTTYPE)
-      {
-        cc_error("cannot create dynamic array of unmanaged struct");
-        return -1;
-      }
-
-      scrip->write_cmd3(SCMD_NEWARRAY, SREG_AX, size, isManagedType);
-      scrip->ax_val_type = arrayType | STYPE_DYNARRAY;
-
-      if (isManagedType)
-        scrip->ax_val_type |= STYPE_POINTER;
       return 0;
     }
     else if (sym.operatorToVCPUCmd(symlist[oploc]) == SCMD_SUBREG) {

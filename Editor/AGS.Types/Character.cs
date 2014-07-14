@@ -253,7 +253,7 @@ namespace AGS.Types
             set { _clickable = value; }
         }
 
-        [Description("Whether the character should be effected by walkable area scaling")]
+        [Description("Whether the character should be affected by walkable area scaling")]
         [Category("Appearance")]
         public bool UseRoomAreaScaling
         {
@@ -261,7 +261,7 @@ namespace AGS.Types
             set { _useRoomAreaScaling = value; }
         }
 
-        [Description("Whether the character should be effected by walkable area lighting")]
+        [Description("Whether the character should be affected by walkable area lighting")]
         [Category("Appearance")]
         public bool UseRoomAreaLighting
         {

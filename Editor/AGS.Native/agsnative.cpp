@@ -4331,6 +4331,148 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
         if (thisroom.wasversion <= kRoomVersion_300a)
             obj->StartY += GetSpriteHeight(thisroom.sprs[i].sprnum);
         obj->Visible = (thisroom.sprs[i].on != 0);
+        obj->Clickable = ((thisroom.objectFlags[i] & OBJF_NOINTERACT) == 0);
+        obj->Baseline = thisroom.objbaseline[i];
+        obj->Name = gcnew String(jibbledScriptName);
+        obj->Description = gcnew String(thisroom.objectnames[i]);
+        obj->UseRoomAreaScaling = ((thisroom.objectFlags[i] & OBJF_USEROOMSCALING) != 0);
+        obj->UseRoomAreaLighting = ((thisroom.objectFlags[i] & OBJF_USEREGIONTINTS) != 0);
+        ConvertCustomProperties(obj->Properties, &thisroom.objProps[i]);
+
+        if (thisroom.wasversion < kRoomVersion_300a)
+        {
+            char scriptFuncPrefix[100];
+            sprintf(scriptFuncPrefix, "object%d_", i);
+            ConvertInteractions(obj->Interactions, thisroom.intrObject[i], gcnew String(scriptFuncPrefix), nullptr, 2);
+        }
+        else 
+        {
+            CopyInteractions(obj->Interactions, thisroom.objectScripts[i]);
+        }
+
+        room->Objects->Add(obj);
+    }
+
+    for (i = 0; i < thisroom.numhotspots; i++) 
+    {
+        RoomHotspot ^hotspot = room->Hotspots[i];
+        hotspot->ID = i;
+        hotspot->Description = gcnew String(thisroom.hotspotnames[i]);
+        hotspot->Name = (gcnew String(thisroom.hotspotScriptNames[i]))->Trim();
+        hotspot->WalkToPoint = Point(thisroom.hswalkto[i].x, thisroom.hswalkto[i].y);
+        ConvertCustomProperties(hotspot->Properties, &thisroom.hsProps[i]);
+
+        if (thisroom.wasversion < kRoomVersion_300a)
+        {
+            char scriptFuncPrefix[100];
+            sprintf(scriptFuncPrefix, "hotspot%d_", i);
+            ConvertInteractions(hotspot->Interactions, thisroom.intrHotspot[i], gcnew String(scriptFuncPrefix), nullptr, 1);
+        }
+        else 
+        {
+            CopyInteractions(hotspot->Interactions, thisroom.hotspotScripts[i]);
+        }
+    }
+
+    for (i = 0; i <= MAX_WALK_AREAS; i++) 
+    {
+        RoomWalkableArea ^area = room->WalkableAreas[i];
+        area->ID = i;
+        area->AreaSpecificView = thisroom.shadinginfo[i];
+        area->UseContinuousScaling = !(thisroom.walk_area_zoom2[i] == NOT_VECTOR_SCALED);
+        area->ScalingLevel = thisroom.walk_area_zoom[i] + 100;
+        area->MinScalingLevel = thisroom.walk_area_zoom[i] + 100;
+        if (area->UseContinuousScaling) 
+        {
+            area->MaxScalingLevel = thisroom.walk_area_zoom2[i] + 100;
+        }
+        else
+        {
+            area->MaxScalingLevel = area->MinScalingLevel;
+        }
+    }
+
+    for (i = 0; i < MAX_OBJ; i++) 
+    {
+        RoomWalkBehind ^area = room->WalkBehinds[i];
+        area->ID = i;
+        area->Baseline = thisroom.objyval[i];
+    }
+
+    for (i = 0; i < MAX_REGIONS; i++) 
+    {
+        RoomRegion ^area = room->Regions[i];
+        area->ID = i;
+        area->UseColourTint = ((thisroom.regionTintLevel[i] & TINT_IS_ENABLED) != 0);
+        area->LightLevel = thisroom.regionLightLevel[i] + 100;
+        area->BlueTint = (thisroom.regionTintLevel[i] >> 16) & 0x00ff;
+        area->GreenTint = (thisroom.regionTintLevel[i] >> 8) & 0x00ff;
+        area->RedTint = thisroom.regionTintLevel[i] & 0x00ff;
+        area->TintSaturation = (thisroom.regionLightLevel[i] > 0) ? thisroom.regionLightLevel[i] : 50;
+
+        if (thisroom.wasversion < kRoomVersion_300a)
+        {
+            char scriptFuncPrefix[100];
+            sprintf(scriptFuncPrefix, "region%d_", i);
+            ConvertInteractions(area->Interactions, thisroom.intrRegion[i], gcnew String(scriptFuncPrefix), nullptr, 0);
+        }
+        else 
+        {
+            CopyInteractions(area->Interactions, thisroom.regionScripts[i]);
+        }
+    }
+    /*
+    if (thisroom.scripts != NULL) 
+    {
+    room->Script->Text = gcnew String(thisroom.scripts);
+    }
+    */
+    room->_roomStructPtr = (IntPtr)&thisroom;
+
+    int i;
+    for (i = 0; i < thisroom.numLocalVars; i++)
+    {
+        OldInteractionVariable ^intVar;
+        intVar = gcnew OldInteractionVariable(gcnew String(thisroom.localvars[i].name), thisroom.localvars[i].value);
+        room->OldInteractionVariables->Add(intVar);
+    }
+
+    for (i = 0; i < thisroom.nummes; i++) 
+    {
+        RoomMessage ^newMessage = gcnew RoomMessage(i);
+        newMessage->Text = gcnew String(thisroom.message[i]);
+        newMessage->ShowAsSpeech = (thisroom.msgi[i].displayas > 0);
+        newMessage->CharacterID = (thisroom.msgi[i].displayas - 1);
+        newMessage->DisplayNextMessageAfter = ((thisroom.msgi[i].flags & MSG_DISPLAYNEXT) != 0);
+        newMessage->AutoRemoveAfterTime = ((thisroom.msgi[i].flags & MSG_TIMELIMIT) != 0);
+        room->Messages->Add(newMessage);
+    }
+
+    for (i = 0; i < thisroom.numsprs; i++) 
+    {
+        char jibbledScriptName[50] = "\0";
+        if (strlen(thisroom.objectscriptnames[i]) > 0) 
+        {
+            if (thisroom.wasversion < kRoomVersion_300a)
+            {
+                sprintf(jibbledScriptName, "o%s", thisroom.objectscriptnames[i]);
+                strlwr(jibbledScriptName);
+                jibbledScriptName[1] = toupper(jibbledScriptName[1]);
+            }
+            else 
+            {			
+                strcpy(jibbledScriptName, thisroom.objectscriptnames[i]);
+            }
+        }
+
+        RoomObject ^obj = gcnew RoomObject(room);
+        obj->ID = i;
+        obj->Image = thisroom.sprs[i].sprnum;
+        obj->StartX = thisroom.sprs[i].x;
+        obj->StartY = thisroom.sprs[i].y;
+        if (thisroom.wasversion <= kRoomVersion_300a)
+            obj->StartY += GetSpriteHeight(thisroom.sprs[i].sprnum);
+        obj->Visible = (thisroom.sprs[i].on != 0);
         obj->Baseline = thisroom.objbaseline[i];
         obj->Name = gcnew String(jibbledScriptName);
         obj->Description = gcnew String(thisroom.objectnames[i]);
@@ -4500,6 +4642,7 @@ void save_crm_file(Room ^room)
         thisroom.objectFlags[i] = 0;
         if (obj->UseRoomAreaScaling) thisroom.objectFlags[i] |= OBJF_USEROOMSCALING;
         if (obj->UseRoomAreaLighting) thisroom.objectFlags[i] |= OBJF_USEREGIONTINTS;
+        if (!obj->Clickable) thisroom.objectFlags[i] |= OBJF_NOINTERACT;
         CompileCustomProperties(obj->Properties, &thisroom.objProps[i]);
     }
 

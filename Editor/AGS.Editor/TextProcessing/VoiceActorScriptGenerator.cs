@@ -6,33 +6,33 @@ using System.Text;
 
 namespace AGS.Editor
 {
-	public class VoiceActorScriptGenerator : BaseTextProcess
-	{
-		private Dictionary<int, Dictionary<string, string>> _linesByCharacter;
-		private List<GameTextLine> _linesInOrder;
+    public class VoiceActorScriptGenerator : BaseTextProcess
+    {
+        private Dictionary<int, Dictionary<string, string>> _linesByCharacter;
+        private List<GameTextLine> _linesInOrder;
 
-		public Dictionary<int, Dictionary<string, string>> LinesByCharacter
-		{
-			get { return _linesByCharacter; }
-		}
+        public Dictionary<int, Dictionary<string, string>> LinesByCharacter
+        {
+            get { return _linesByCharacter; }
+        }
 
-		public List<GameTextLine> LinesInOrder
-		{
-			get { return _linesInOrder; }
-		}
+        public List<GameTextLine> LinesInOrder
+        {
+            get { return _linesInOrder; }
+        }
 
-		public CompileMessages CreateVoiceActingScript(Game game)
-		{
-			CompileMessages errors = new CompileMessages();
+        public CompileMessages CreateVoiceActingScript(Game game)
+        {
+            CompileMessages errors = new CompileMessages();
 
-			VoiceActorScriptProcessor processor = new VoiceActorScriptProcessor(game, errors, GetFunctionCallsToProcessForSpeech(true));
+            VoiceActorScriptProcessor processor = new VoiceActorScriptProcessor(game, errors, GetFunctionCallsToProcessForSpeech(true));
 
-			TextProcessingHelper.ProcessAllGameText(processor, game, errors);
+            TextProcessingHelper.ProcessAllGameText(processor, game, errors);
 
-			_linesByCharacter = processor.LinesByCharacter;
-			_linesInOrder = processor.LinesInOrder;
+            _linesByCharacter = processor.LinesByCharacter;
+            _linesInOrder = processor.LinesInOrder;
 
-			return errors;
-		}
-	}
+            return errors;
+        }
+    }
 }

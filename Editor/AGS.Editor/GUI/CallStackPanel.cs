@@ -16,13 +16,13 @@ namespace AGS.Editor
 
         public CallStackPanel()
         {
-            InitializeComponent();            
+            InitializeComponent();
         }
 
-		public void SetImageList(ImageList list)
-		{
-			lvwResults.SmallImageList = list;
-		}
+        public void SetImageList(ImageList list)
+        {
+            lvwResults.SmallImageList = list;
+        }
 
         public DebugCallStack CallStack
         {
@@ -60,30 +60,30 @@ namespace AGS.Editor
 
         private void lvwResults_ItemActivate(object sender, EventArgs e)
         {
-			if (lvwResults.SelectedItems.Count > 0)
-			{
-				ListViewItem selectedItem = lvwResults.SelectedItems[0];
-				if (selectedItem.SubItems.Count > 1)
-				{
-					Factory.GUIController.ZoomToFile(selectedItem.SubItems[0].Text, Convert.ToInt32(selectedItem.SubItems[1].Text), true, _callStack.ErrorMessage);
-				}
-			}
+            if (lvwResults.SelectedItems.Count > 0)
+            {
+                ListViewItem selectedItem = lvwResults.SelectedItems[0];
+                if (selectedItem.SubItems.Count > 1)
+                {
+                    Factory.GUIController.ZoomToFile(selectedItem.SubItems[0].Text, Convert.ToInt32(selectedItem.SubItems[1].Text), true, _callStack.ErrorMessage);
+                }
+            }
         }
 
-		private void lvwResults_Click(object sender, EventArgs e)
-		{
-		}
+        private void lvwResults_Click(object sender, EventArgs e)
+        {
+        }
 
-		private void ShowContextMenu(Point menuPosition)
-		{
-		}
+        private void ShowContextMenu(Point menuPosition)
+        {
+        }
 
-		private void lvwResults_MouseUp(object sender, MouseEventArgs e)
-		{
-			if (e.Button == MouseButtons.Right)
-			{
-				ShowContextMenu(e.Location);
-			}
-		}
+        private void lvwResults_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                ShowContextMenu(e.Location);
+            }
+        }
     }
 }

@@ -6,9 +6,9 @@ using System.Text;
 namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
-	public class RoomObject : IComparable<RoomObject>, IChangeNotification, ICustomTypeDescriptor
+    public class RoomObject : IComparable<RoomObject>, IChangeNotification, ICustomTypeDescriptor
     {
-		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
+        public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
         private const int MAX_NAME_LENGTH = 19;
 
         private static InteractionSchema _interactionSchema;
@@ -27,7 +27,7 @@ namespace AGS.Types
         private bool _useRoomAreaLighting;
         private CustomProperties _properties = new CustomProperties();
         private Interactions _interactions = new Interactions(_interactionSchema);
-		private IChangeNotification _notifyOfModification;
+        private IChangeNotification _notifyOfModification;
 
         static RoomObject()
         {
@@ -38,10 +38,10 @@ namespace AGS.Types
                 new string[] { "Look", "Interact", "Talk", "UseInv", "AnyClick", "PickUp", "Mode8", "Mode9" });
         }
 
-		public RoomObject(IChangeNotification changeNotifier)
-		{
-			_notifyOfModification = changeNotifier;
-		}
+        public RoomObject(IChangeNotification changeNotifier)
+        {
+            _notifyOfModification = changeNotifier;
+        }
 
         [Description("The ID number of the object")]
         [Category("Design")]
@@ -51,7 +51,7 @@ namespace AGS.Types
             get { return _id; }
             set { _id = value; }
         }
-        
+
         [Description("Sprite used to display the object")]
         [Category("Appearance")]
         [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
@@ -85,24 +85,24 @@ namespace AGS.Types
             set { _clickable = value; }
         }
 
-		[Description("Allows you to manually specify this object's position in the front-to-back z-order, rather than the default behaviour of using its Y co-ordinate.")]
-		[Category("Design")]
-		[RefreshProperties(RefreshProperties.All)]
-		public bool BaselineOverridden
-		{
-			get { return _baseline > 0; }
-			set
-			{
-				if ((value) && (_baseline < 1))
-				{
-					_baseline = 1;
-				}
-				if ((!value) && (_baseline > 0))
-				{
-					_baseline = 0;
-				}
-			}
-		}
+        [Description("Allows you to manually specify this object's position in the front-to-back z-order, rather than the default behaviour of using its Y co-ordinate.")]
+        [Category("Design")]
+        [RefreshProperties(RefreshProperties.All)]
+        public bool BaselineOverridden
+        {
+            get { return _baseline > 0; }
+            set
+            {
+                if ((value) && (_baseline < 1))
+                {
+                    _baseline = 1;
+                }
+                if ((!value) && (_baseline > 0))
+                {
+                    _baseline = 0;
+                }
+            }
+        }
 
         [Browsable(false)]
         public int EffectiveBaseline
@@ -135,7 +135,7 @@ namespace AGS.Types
             set { _description = value; }
         }
 
-		[DisplayName(PROPERTY_NAME_SCRIPT_NAME)]
+        [DisplayName(PROPERTY_NAME_SCRIPT_NAME)]
         [Description("The script name of the object")]
         [Category("Design")]
         public string Name
@@ -188,93 +188,93 @@ namespace AGS.Types
             return this.EffectiveBaseline.CompareTo(other.EffectiveBaseline);
         }
 
-		void IChangeNotification.ItemModified()
-		{
-			_notifyOfModification.ItemModified();
-		}
+        void IChangeNotification.ItemModified()
+        {
+            _notifyOfModification.ItemModified();
+        }
 
 
-		#region ICustomTypeDescriptor Members
+        #region ICustomTypeDescriptor Members
 
-		public AttributeCollection GetAttributes()
-		{
-			return TypeDescriptor.GetAttributes(this, true);
-		}
+        public AttributeCollection GetAttributes()
+        {
+            return TypeDescriptor.GetAttributes(this, true);
+        }
 
-		public string GetClassName()
-		{
-			return TypeDescriptor.GetClassName(this, true);
-		}
+        public string GetClassName()
+        {
+            return TypeDescriptor.GetClassName(this, true);
+        }
 
-		public string GetComponentName()
-		{
-			return TypeDescriptor.GetComponentName(this, true);
-		}
+        public string GetComponentName()
+        {
+            return TypeDescriptor.GetComponentName(this, true);
+        }
 
-		public TypeConverter GetConverter()
-		{
-			return TypeDescriptor.GetConverter(this, true);
-		}
+        public TypeConverter GetConverter()
+        {
+            return TypeDescriptor.GetConverter(this, true);
+        }
 
-		public EventDescriptor GetDefaultEvent()
-		{
-			return TypeDescriptor.GetDefaultEvent(this, true);
-		}
+        public EventDescriptor GetDefaultEvent()
+        {
+            return TypeDescriptor.GetDefaultEvent(this, true);
+        }
 
-		public PropertyDescriptor GetDefaultProperty()
-		{
-			return TypeDescriptor.GetDefaultProperty(this, true);
-		}
+        public PropertyDescriptor GetDefaultProperty()
+        {
+            return TypeDescriptor.GetDefaultProperty(this, true);
+        }
 
-		public object GetEditor(Type editorBaseType)
-		{
-			return TypeDescriptor.GetEditor(this, editorBaseType, true);
-		}
+        public object GetEditor(Type editorBaseType)
+        {
+            return TypeDescriptor.GetEditor(this, editorBaseType, true);
+        }
 
-		public EventDescriptorCollection GetEvents(Attribute[] attributes)
-		{
-			return TypeDescriptor.GetEvents(this, attributes, true);
-		}
+        public EventDescriptorCollection GetEvents(Attribute[] attributes)
+        {
+            return TypeDescriptor.GetEvents(this, attributes, true);
+        }
 
-		public EventDescriptorCollection GetEvents()
-		{
-			return TypeDescriptor.GetEvents(this, true);
-		}
+        public EventDescriptorCollection GetEvents()
+        {
+            return TypeDescriptor.GetEvents(this, true);
+        }
 
-		public PropertyDescriptorCollection GetProperties(Attribute[] attributes)
-		{
-			// We want to hide the X & Y movement speed properties if they aren't
-			// using Uniform Movement, and hide the standard movement speed property
-			// if they are.
-			PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(this, attributes, true);
-			List<PropertyDescriptor> wantProperties = new List<PropertyDescriptor>();
-			foreach (PropertyDescriptor property in properties)
-			{
-				bool wantThisProperty = true;
-				if ((!this.BaselineOverridden) && (property.Name == "Baseline"))
-				{
-					wantThisProperty = false;
-				}
+        public PropertyDescriptorCollection GetProperties(Attribute[] attributes)
+        {
+            // We want to hide the X & Y movement speed properties if they aren't
+            // using Uniform Movement, and hide the standard movement speed property
+            // if they are.
+            PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(this, attributes, true);
+            List<PropertyDescriptor> wantProperties = new List<PropertyDescriptor>();
+            foreach (PropertyDescriptor property in properties)
+            {
+                bool wantThisProperty = true;
+                if ((!this.BaselineOverridden) && (property.Name == "Baseline"))
+                {
+                    wantThisProperty = false;
+                }
 
-				if (wantThisProperty)
-				{
-					wantProperties.Add(property);
-				}
-			}
-			return new PropertyDescriptorCollection(wantProperties.ToArray());
-		}
+                if (wantThisProperty)
+                {
+                    wantProperties.Add(property);
+                }
+            }
+            return new PropertyDescriptorCollection(wantProperties.ToArray());
+        }
 
-		public PropertyDescriptorCollection GetProperties()
-		{
-			PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(this, true);
-			return properties;
-		}
+        public PropertyDescriptorCollection GetProperties()
+        {
+            PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(this, true);
+            return properties;
+        }
 
-		public object GetPropertyOwner(PropertyDescriptor pd)
-		{
-			return this;
-		}
+        public object GetPropertyOwner(PropertyDescriptor pd)
+        {
+            return this;
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

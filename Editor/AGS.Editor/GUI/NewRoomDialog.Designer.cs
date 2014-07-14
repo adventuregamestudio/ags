@@ -1,33 +1,33 @@
 namespace AGS.Editor
 {
-	partial class NewRoomDialog
-	{
-		/// <summary>
-		/// Required designer variable.
-		/// </summary>
-		private System.ComponentModel.IContainer components = null;
+    partial class NewRoomDialog
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
 
-		/// <summary>
-		/// Clean up any resources being used.
-		/// </summary>
-		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing && (components != null))
-			{
-				components.Dispose();
-			}
-			base.Dispose(disposing);
-		}
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
 
-		#region Windows Form Designer generated code
+        #region Windows Form Designer generated code
 
-		/// <summary>
-		/// Required method for Designer support - do not modify
-		/// the contents of this method with the code editor.
-		/// </summary>
-		private void InitializeComponent()
-		{
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
             this.lstRoomTemplates = new System.Windows.Forms.ListView();
             this.btnOk = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
@@ -148,17 +148,17 @@ namespace AGS.Editor
             this.ResumeLayout(false);
             this.PerformLayout();
 
-		}
+        }
 
-		#endregion
+        #endregion
 
-		private System.Windows.Forms.ListView lstRoomTemplates;
-		private System.Windows.Forms.Button btnOk;
-		private System.Windows.Forms.Button btnCancel;
-		private System.Windows.Forms.Label label1;
-		private System.Windows.Forms.CheckBox chkNonStateSaving;
-		private System.Windows.Forms.Label label2;
-		private System.Windows.Forms.NumericUpDown udRoomNumber;
-		private System.Windows.Forms.Label label3;
-	}
+        private System.Windows.Forms.ListView lstRoomTemplates;
+        private System.Windows.Forms.Button btnOk;
+        private System.Windows.Forms.Button btnCancel;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.CheckBox chkNonStateSaving;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.NumericUpDown udRoomNumber;
+        private System.Windows.Forms.Label label3;
+    }
 }

@@ -40,8 +40,8 @@ TTFFontRenderer ttfRenderer;
 ALFONT_FONT *tempttffnt;
 ALFONT_FONT *get_ttf_block(IFont *fontptr)
 {
-  memcpy(&tempttffnt, &fontptr[4], sizeof(tempttffnt));
-  return tempttffnt;
+    memcpy(&tempttffnt, &fontptr[4], sizeof(tempttffnt));
+    return tempttffnt;
 }
 #endif // USE_ALFONT
 
@@ -51,85 +51,85 @@ ALFONT_FONT *get_ttf_block(IFont *fontptr)
 
 void TTFFontRenderer::AdjustYCoordinateForFont(int *ycoord, int fontNumber)
 {
-  // TTF fonts already have space at the top, so try to remove the gap
-  ycoord[0]--;
+    // TTF fonts already have space at the top, so try to remove the gap
+    ycoord[0]--;
 }
 
 void TTFFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 {
-  // do nothing, TTF can handle all characters
+    // do nothing, TTF can handle all characters
 }
 
 int TTFFontRenderer::GetTextWidth(const char *text, int fontNumber)
 {
-  return alfont_text_length(get_ttf_block(fonts[fontNumber]), text);
+    return alfont_text_length(get_ttf_block(fonts[fontNumber]), text);
 }
 
 int TTFFontRenderer::GetTextHeight(const char *text, int fontNumber)
 {
-  return alfont_text_height(get_ttf_block(fonts[fontNumber]));
+    return alfont_text_height(get_ttf_block(fonts[fontNumber]));
 }
 
 void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
-  if (y > destination->cb)  // optimisation
-    return;
+    if (y > destination->cb)  // optimisation
+        return;
 
-  ALFONT_FONT *alfpt = get_ttf_block(fonts[fontNumber]);
-  // Y - 1 because it seems to get drawn down a bit
-  if ((ShouldAntiAliasText()) && (bitmap_color_depth(destination) > 8))
-    alfont_textout_aa(destination, alfpt, text, x, y - 1, colour);
-  else
-    alfont_textout(destination, alfpt, text, x, y - 1, colour);
+    ALFONT_FONT *alfpt = get_ttf_block(fonts[fontNumber]);
+    // Y - 1 because it seems to get drawn down a bit
+    if ((ShouldAntiAliasText()) && (bitmap_color_depth(destination) > 8))
+        alfont_textout_aa(destination, alfpt, text, x, y - 1, colour);
+    else
+        alfont_textout(destination, alfpt, text, x, y - 1, colour);
 }
 
 bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 {
-  String file_name = String::FromFormat("agsfnt%d.ttf", fontNumber);
-  Stream *reader = AssetManager::OpenAsset(file_name);
-  char *membuffer;
+    String file_name = String::FromFormat("agsfnt%d.ttf", fontNumber);
+    Stream *reader = AssetManager::OpenAsset(file_name);
+    char *membuffer;
 
-  if (reader == NULL)
-    return false;
+    if (reader == NULL)
+        return false;
 
-  long lenof = AssetManager::GetLastAssetSize();
+    long lenof = AssetManager::GetLastAssetSize();
 
-  membuffer = (char *)malloc(lenof);
-  reader->ReadArray(membuffer, lenof, 1);
-  delete reader;
+    membuffer = (char *)malloc(lenof);
+    reader->ReadArray(membuffer, lenof, 1);
+    delete reader;
 
-  ALFONT_FONT *alfptr = alfont_load_font_from_mem(membuffer, lenof);
-  free(membuffer);
+    ALFONT_FONT *alfptr = alfont_load_font_from_mem(membuffer, lenof);
+    free(membuffer);
 
-  if (alfptr == NULL)
-    return false;
+    if (alfptr == NULL)
+        return false;
 
-  // TODO: move this somewhere, should not be right here
+    // TODO: move this somewhere, should not be right here
 #if !defined(WINDOWS_VERSION)
-  // Check for the LucasFan font since it comes with an outline font that
-  // is drawn incorrectly with Freetype versions > 2.1.3.
-  // A simple workaround is to disable outline fonts for it and use
-  // automatic outline drawing.
-  if (strcmp(alfont_get_name(alfptr), "LucasFan-Font") == 0)
-      //game.fontoutline[fontNumber] = FONT_OUTLINE_AUTO;
-      set_font_outline(fontNumber, FONT_OUTLINE_AUTO);
+    // Check for the LucasFan font since it comes with an outline font that
+    // is drawn incorrectly with Freetype versions > 2.1.3.
+    // A simple workaround is to disable outline fonts for it and use
+    // automatic outline drawing.
+    if (strcmp(alfont_get_name(alfptr), "LucasFan-Font") == 0)
+        //game.fontoutline[fontNumber] = FONT_OUTLINE_AUTO;
+        set_font_outline(fontNumber, FONT_OUTLINE_AUTO);
 #endif
 
-  if (fontSize > 0)
-    alfont_set_font_size(alfptr, fontSize);
+    if (fontSize > 0)
+        alfont_set_font_size(alfptr, fontSize);
 
-  IFont *tempalloc = (IFont*) malloc(20);
-  strcpy((char *)tempalloc, "TTF");
-  memcpy(&((char *)tempalloc)[4], &alfptr, sizeof(alfptr));
-  fonts[fontNumber] = tempalloc;
-  return true;
+    IFont *tempalloc = (IFont*) malloc(20);
+    strcpy((char *)tempalloc, "TTF");
+    memcpy(&((char *)tempalloc)[4], &alfptr, sizeof(alfptr));
+    fonts[fontNumber] = tempalloc;
+    return true;
 }
 
 void TTFFontRenderer::FreeMemory(int fontNumber)
 {
-  alfont_destroy_font(get_ttf_block(fonts[fontNumber]));
-  free(fonts[fontNumber]);
-  fonts[fontNumber] = NULL;
+    alfont_destroy_font(get_ttf_block(fonts[fontNumber]));
+    free(fonts[fontNumber]);
+    fonts[fontNumber] = NULL;
 }
 
 #endif   // USE_ALFONT

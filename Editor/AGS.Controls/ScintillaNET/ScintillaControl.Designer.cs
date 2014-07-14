@@ -29,7 +29,7 @@ namespace Scintilla
                 Message destroyMessage = new Message();
                 destroyMessage.Msg = WinAPI.WM_DESTROY;
                 destroyMessage.HWnd = Handle;
-                base.DefWndProc(ref destroyMessage);                
+                base.DefWndProc(ref destroyMessage);
             }
 
             base.Dispose(disposing);

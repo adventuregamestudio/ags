@@ -139,22 +139,22 @@ namespace AGS.Types
         [Category("Design")]
         public string ScriptID
         {
-			get
-			{
-				string cursorName = string.Empty;
-				for (int i = 0; i < _name.Length; i++)
-				{
-					if (Char.IsLetterOrDigit(_name[i]))
-					{
-						cursorName += _name[i];
-					}
-				}
-				if (cursorName.Length > 0)
-				{
-					cursorName = "eMode" + cursorName;
-				}
-				return cursorName;
-			}
+            get
+            {
+                string cursorName = string.Empty;
+                for (int i = 0; i < _name.Length; i++)
+                {
+                    if (Char.IsLetterOrDigit(_name[i]))
+                    {
+                        cursorName += _name[i];
+                    }
+                }
+                if (cursorName.Length > 0)
+                {
+                    cursorName = "eMode" + cursorName;
+                }
+                return cursorName;
+            }
         }
 
         public MouseCursor(XmlNode node)

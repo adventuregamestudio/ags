@@ -60,7 +60,7 @@ void AllegroGFXFilter::RenderScreenFlipped(Bitmap *toRender, int x, int y, int f
         return;
 
     if (flipType == SCR_HFLIP)
-		realScreen->FlipBlt(toRender, 0, 0, Common::kBitmap_HFlip);
+        realScreen->FlipBlt(toRender, 0, 0, Common::kBitmap_HFlip);
     else if (flipType == SCR_VFLIP)
         realScreen->FlipBlt(toRender, 0, 0, Common::kBitmap_VFlip);
     else if (flipType == SCR_VHFLIP)

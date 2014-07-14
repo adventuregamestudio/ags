@@ -11,12 +11,12 @@ namespace AGS.Editor
 {
     public partial class AssignToView : Form
     {
-		private const int DEFAULT_LOOPS_IN_VIEW = 8;
+        private const int DEFAULT_LOOPS_IN_VIEW = 8;
 
         private static int _LastViewNumber = 0;
         private static int _LastLoopNumber = 0;
 
-		private int _viewNumber = 1;
+        private int _viewNumber = 1;
         private int _loopNumber;
         private bool _addFramesToExistingLoop;
         private bool _continueIntoNextLoop;
@@ -89,7 +89,7 @@ namespace AGS.Editor
             _continueIntoNextLoop = radOverwriteNextLoop.Checked;
             _flipFrames = chkFlipped.Checked;
             _reverseFrames = chkReverse.Checked;
-			_LastViewNumber = _viewNumber;
+            _LastViewNumber = _viewNumber;
             _LastLoopNumber = _loopNumber;
             this.DialogResult = DialogResult.OK;
             this.Close();
@@ -103,12 +103,12 @@ namespace AGS.Editor
 
         private void PopulateLoopList(int selectedLoopNumber)
         {
-			int numLoops = DEFAULT_LOOPS_IN_VIEW;
-			AGS.Types.View selectedView = Factory.AGSEditor.CurrentGame.FindViewByID(_viewNumber);
-			if (selectedView != null)
-			{
-				numLoops = Math.Max(selectedView.Loops.Count, numLoops);
-			}
+            int numLoops = DEFAULT_LOOPS_IN_VIEW;
+            AGS.Types.View selectedView = Factory.AGSEditor.CurrentGame.FindViewByID(_viewNumber);
+            if (selectedView != null)
+            {
+                numLoops = Math.Max(selectedView.Loops.Count, numLoops);
+            }
 
             cmbLoop.Items.Clear();
             for (int i = 0; i < numLoops; i++)
@@ -133,7 +133,7 @@ namespace AGS.Editor
 
         private void udView_ValueChanged(object sender, EventArgs e)
         {
-			_viewNumber = (int)udView.Value;
+            _viewNumber = (int)udView.Value;
 
             PopulateLoopList(cmbLoop.SelectedIndex);
         }

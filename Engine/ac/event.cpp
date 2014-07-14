@@ -250,7 +250,7 @@ void process_event(EventHappened*evp) {
             theTransition = FADE_NORMAL;
         }
 
-		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
+        Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
 
         if ((theTransition == FADE_INSTANT) || (play.screen_tint >= 0))
             set_palette_range(palette, 0, 255, 0);
@@ -271,7 +271,7 @@ void process_event(EventHappened*evp) {
             {
                 set_palette_range(palette, 0, 255, 0);
                 gfxDriver->RenderToBackBuffer();
-				gfxDriver->SetMemoryBackBuffer(screen_bmp);
+                gfxDriver->SetMemoryBackBuffer(screen_bmp);
                 screen_bmp->Clear();
                 render_to_screen(screen_bmp, 0, 0);
 
@@ -287,7 +287,7 @@ void process_event(EventHappened*evp) {
                         boxwid, boxhit);
                     render_to_screen(screen_bmp, 0, 0);
                     update_mp3();
-                        while (timerloop == 0) ;
+                    while (timerloop == 0) ;
                 }
                 gfxDriver->SetMemoryBackBuffer(virtual_screen);
             }
@@ -315,7 +315,7 @@ void process_event(EventHappened*evp) {
                     // draw the old screen on top
                     gfxDriver->DrawSprite(0, -(temp_virtual->GetHeight() - virtual_screen->GetHeight()), ddb);
                 }
-				render_to_screen(screen_bmp, 0, 0);
+                render_to_screen(screen_bmp, 0, 0);
                 update_polled_stuff_if_runtime();
                 while (timerloop == 0) ;
                 transparency -= 16;
@@ -353,7 +353,7 @@ void process_event(EventHappened*evp) {
                 invalidate_screen();
                 draw_screen_callback();
                 gfxDriver->DrawSprite(0, -(temp_virtual->GetHeight() - virtual_screen->GetHeight()), ddb);
-				render_to_screen(screen_bmp, 0, 0);
+                render_to_screen(screen_bmp, 0, 0);
                 update_polled_stuff_if_runtime();
                 while (timerloop == 0) ;
             }

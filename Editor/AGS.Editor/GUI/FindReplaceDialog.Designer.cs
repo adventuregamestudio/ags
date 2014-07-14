@@ -192,8 +192,8 @@ namespace AGS.Editor
         private System.Windows.Forms.Label lblReplaceWith;
         private System.Windows.Forms.Button btnOK;
         private System.Windows.Forms.Button btnCancel;
-		private System.Windows.Forms.Button cmdToggleReplace;
-		private System.Windows.Forms.Button btnReplace;
+        private System.Windows.Forms.Button cmdToggleReplace;
+        private System.Windows.Forms.Button btnReplace;
         private System.Windows.Forms.CheckBox chkCaseSensitive;
         private System.Windows.Forms.ComboBox cmbFind;
         private System.Windows.Forms.ComboBox cmbLookIn;

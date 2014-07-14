@@ -67,7 +67,7 @@ namespace AGS.Editor
         private void EditOrAddItem(CustomPropertySchemaItem schemaItem)
         {
             bool isNewItem = false;
-            if (schemaItem == null) 
+            if (schemaItem == null)
             {
                 schemaItem = new CustomPropertySchemaItem();
                 schemaItem.Type = CustomPropertyType.Boolean;

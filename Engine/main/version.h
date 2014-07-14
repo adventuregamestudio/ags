@@ -22,86 +22,86 @@
 
 namespace AGS
 {
-namespace Engine
-{
-
-using Common::String;
-
-struct Version
-{
-    int32_t Major;
-    int32_t Minor;
-    int32_t Release;
-    int32_t Revision;
-    String  Special;
-    String  BuildInfo;
-
-    String  LongString;
-    String  ShortString;
-    String  BackwardCompatibleString;
-
-    // Last engine version, using different version format than AGS Editor (3.22.1120 / 3.2.2.1120)
-    static const Version LastOldFormatVersion;
-
-    Version();
-    Version(int32_t major, int32_t minor, int32_t release);
-    Version(int32_t major, int32_t minor, int32_t release, int32_t revision);
-    Version(int32_t major, int32_t minor, int32_t release, int32_t revision, const String &special);
-    Version(int32_t major, int32_t minor, int32_t release, int32_t revision, const String &special, const String &build_info);
-    Version(const String &version_string);
-
-    inline int32_t AsNumber() const
+    namespace Engine
     {
-        return Major * 10000 + Minor * 100 + Release;
-    }
 
-    inline int64_t AsLongNumber() const
-    {
-        return (int64_t)Major * 100000000L + (int64_t)Minor * 1000000L + (int64_t)Release * 10000L + Revision;
-    }
+        using Common::String;
 
-    inline int32_t AsSmallNumber() const
-    {
-        return Major * 100 + Minor;
-    }
+        struct Version
+        {
+            int32_t Major;
+            int32_t Minor;
+            int32_t Release;
+            int32_t Revision;
+            String  Special;
+            String  BuildInfo;
 
-    void SetFromString(const String &version_string);
+            String  LongString;
+            String  ShortString;
+            String  BackwardCompatibleString;
 
-    inline bool operator < (const Version &other) const
-    {
-        return AsLongNumber() < other.AsLongNumber();
-    }
+            // Last engine version, using different version format than AGS Editor (3.22.1120 / 3.2.2.1120)
+            static const Version LastOldFormatVersion;
 
-    inline bool operator <= (const Version &other) const
-    {
-        return AsLongNumber() <= other.AsLongNumber();
-    }
+            Version();
+            Version(int32_t major, int32_t minor, int32_t release);
+            Version(int32_t major, int32_t minor, int32_t release, int32_t revision);
+            Version(int32_t major, int32_t minor, int32_t release, int32_t revision, const String &special);
+            Version(int32_t major, int32_t minor, int32_t release, int32_t revision, const String &special, const String &build_info);
+            Version(const String &version_string);
 
-    inline bool operator > (const Version &other) const
-    {
-        return AsLongNumber() > other.AsLongNumber();
-    }
+            inline int32_t AsNumber() const
+            {
+                return Major * 10000 + Minor * 100 + Release;
+            }
 
-    inline bool operator >= (const Version &other) const
-    {
-        return AsLongNumber() >= other.AsLongNumber();
-    }
+            inline int64_t AsLongNumber() const
+            {
+                return (int64_t)Major * 100000000L + (int64_t)Minor * 1000000L + (int64_t)Release * 10000L + Revision;
+            }
 
-    inline bool operator == (const Version &other) const
-    {
-        return AsLongNumber() == other.AsLongNumber();
-    }
+            inline int32_t AsSmallNumber() const
+            {
+                return Major * 100 + Minor;
+            }
 
-    inline bool operator != (const Version &other) const
-    {
-        return AsLongNumber() != other.AsLongNumber();
-    }
+            void SetFromString(const String &version_string);
 
-private:
-    void MakeString();
-};
+            inline bool operator < (const Version &other) const
+            {
+                return AsLongNumber() < other.AsLongNumber();
+            }
 
-} // namespace Engine
+            inline bool operator <= (const Version &other) const
+            {
+                return AsLongNumber() <= other.AsLongNumber();
+            }
+
+            inline bool operator > (const Version &other) const
+            {
+                return AsLongNumber() > other.AsLongNumber();
+            }
+
+            inline bool operator >= (const Version &other) const
+            {
+                return AsLongNumber() >= other.AsLongNumber();
+            }
+
+            inline bool operator == (const Version &other) const
+            {
+                return AsLongNumber() == other.AsLongNumber();
+            }
+
+            inline bool operator != (const Version &other) const
+            {
+                return AsLongNumber() != other.AsLongNumber();
+            }
+
+        private:
+            void MakeString();
+        };
+
+    } // namespace Engine
 } // namespace AGS
 
 #endif // __AGS_EE_MAIN__VERSION_H

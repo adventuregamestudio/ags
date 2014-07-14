@@ -1,33 +1,33 @@
 namespace AGS.Editor
 {
-	partial class ExceptionDialog
-	{
-		/// <summary>
-		/// Required designer variable.
-		/// </summary>
-		private System.ComponentModel.IContainer components = null;
+    partial class ExceptionDialog
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
 
-		/// <summary>
-		/// Clean up any resources being used.
-		/// </summary>
-		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing && (components != null))
-			{
-				components.Dispose();
-			}
-			base.Dispose(disposing);
-		}
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
 
-		#region Windows Form Designer generated code
+        #region Windows Form Designer generated code
 
-		/// <summary>
-		/// Required method for Designer support - do not modify
-		/// the contents of this method with the code editor.
-		/// </summary>
-		private void InitializeComponent()
-		{
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ExceptionDialog));
             this.errorIcon = new System.Windows.Forms.PictureBox();
             this.lblError = new System.Windows.Forms.Label();
@@ -123,15 +123,15 @@ namespace AGS.Editor
             this.ResumeLayout(false);
             this.PerformLayout();
 
-		}
+        }
 
-		#endregion
+        #endregion
 
-		private System.Windows.Forms.PictureBox errorIcon;
-		private System.Windows.Forms.Label lblError;
-		private System.Windows.Forms.TextBox txtErrorDetails;
-		private System.Windows.Forms.Button btnOK;
+        private System.Windows.Forms.PictureBox errorIcon;
+        private System.Windows.Forms.Label lblError;
+        private System.Windows.Forms.TextBox txtErrorDetails;
+        private System.Windows.Forms.Button btnOK;
         private System.Windows.Forms.Button btnSendErrorReport;
         private System.Windows.Forms.Label lblReportSucceeded;
-	}
+    }
 }

@@ -4,10 +4,10 @@ using System.Text;
 
 namespace AGS.Types
 {
-	public enum MessageBoxIconType
-	{
-		Information,
-		Warning,
-		Error
-	}
+    public enum MessageBoxIconType
+    {
+        Information,
+        Warning,
+        Error
+    }
 }

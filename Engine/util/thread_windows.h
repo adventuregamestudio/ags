@@ -23,97 +23,97 @@
 
 namespace AGS
 {
-namespace Engine
-{
-
-
-class WindowsThread : public BaseThread
-{
-public:
-  WindowsThread()
-  {
-    _thread = NULL;
-    _running = false;
-  }
-
-  ~WindowsThread()
-  {
-    Stop();
-  }
-
-  inline bool Create(AGSThreadEntry entryPoint, bool looping)
-  {
-    _looping = looping;
-    _entry = entryPoint;
-    _thread = CreateThread(NULL, 0, _thread_start, this, CREATE_SUSPENDED, NULL);
-
-    return (_thread != NULL);
-  }
-
-  inline bool Start()
-  {
-    if ((_thread != NULL) && (!_running))
+    namespace Engine
     {
-      DWORD result = ResumeThread(_thread);
-
-      _running = (result != (DWORD) - 1);
-      return _running;
-    }
-    else
-    {
-      return false;
-    }
-  }
-
-  bool Stop()
-  {
-    if ((_thread != NULL) && (_running))
-    {
-      if (_looping)
-      {
-        _looping = false;
-        WaitForSingleObject(_thread, INFINITE);
-      }
-
-      CloseHandle(_thread);
-
-      _running = false;
-      _thread = NULL;
-      return true;
-    }
-    else
-    {
-      return false;
-    }
-  }
-
-private:
-  HANDLE _thread;
-  bool   _running;
-  bool   _looping;
-
-  AGSThreadEntry _entry;
-
-  static DWORD __stdcall _thread_start(LPVOID lpParam)
-  {
-    AGSThreadEntry entry = ((WindowsThread *)lpParam)->_entry;
-    bool *looping = &((WindowsThread *)lpParam)->_looping;
-
-    do
-    {
-      entry();
-    }
-    while (*looping);
-
-    return 0;
-  }
-};
 
 
-typedef WindowsThread Thread;
+        class WindowsThread : public BaseThread
+        {
+        public:
+            WindowsThread()
+            {
+                _thread = NULL;
+                _running = false;
+            }
+
+            ~WindowsThread()
+            {
+                Stop();
+            }
+
+            inline bool Create(AGSThreadEntry entryPoint, bool looping)
+            {
+                _looping = looping;
+                _entry = entryPoint;
+                _thread = CreateThread(NULL, 0, _thread_start, this, CREATE_SUSPENDED, NULL);
+
+                return (_thread != NULL);
+            }
+
+            inline bool Start()
+            {
+                if ((_thread != NULL) && (!_running))
+                {
+                    DWORD result = ResumeThread(_thread);
+
+                    _running = (result != (DWORD) - 1);
+                    return _running;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            bool Stop()
+            {
+                if ((_thread != NULL) && (_running))
+                {
+                    if (_looping)
+                    {
+                        _looping = false;
+                        WaitForSingleObject(_thread, INFINITE);
+                    }
+
+                    CloseHandle(_thread);
+
+                    _running = false;
+                    _thread = NULL;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+        private:
+            HANDLE _thread;
+            bool   _running;
+            bool   _looping;
+
+            AGSThreadEntry _entry;
+
+            static DWORD __stdcall _thread_start(LPVOID lpParam)
+            {
+                AGSThreadEntry entry = ((WindowsThread *)lpParam)->_entry;
+                bool *looping = &((WindowsThread *)lpParam)->_looping;
+
+                do
+                {
+                    entry();
+                }
+                while (*looping);
+
+                return 0;
+            }
+        };
 
 
-} // namespace Engine
+        typedef WindowsThread Thread;
+
+
+    } // namespace Engine
 } // namespace AGS
 
 #endif // __AGS_EE_PLATFORM__THREAD_WINDOWS_H

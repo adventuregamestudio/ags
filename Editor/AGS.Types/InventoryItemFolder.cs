@@ -23,7 +23,7 @@ namespace AGS.Types
 
         public InventoryItemFolder() : this("Default") { }
 
-        public InventoryItemFolder(XmlNode node, XmlNode parentNodeForBackwardsCompatability) : 
+        public InventoryItemFolder(XmlNode node, XmlNode parentNodeForBackwardsCompatability) :
             base(node, parentNodeForBackwardsCompatability) { }
 
         private InventoryItemFolder(XmlNode node) : base(node) { }

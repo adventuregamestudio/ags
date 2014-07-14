@@ -180,15 +180,15 @@ BITMAP *IAGSEngine::GetScreen ()
     if (!gfxDriver->UsesMemoryBackBuffer())
         quit("!This plugin is not compatible with the Direct3D driver.");
 
-	return (BITMAP*)BitmapHelper::GetScreenBitmap()->GetAllegroBitmap();
+    return (BITMAP*)BitmapHelper::GetScreenBitmap()->GetAllegroBitmap();
 }
 BITMAP *IAGSEngine::GetVirtualScreen () 
 {
     if (!gfxDriver->UsesMemoryBackBuffer())
         quit("!This plugin is not compatible with the Direct3D driver.");
 
-	// [IKM] Aaahh... this is very dangerous, but what can we do?
-	return (BITMAP*)gfxDriver->GetMemoryBackBuffer()->GetAllegroBitmap();
+    // [IKM] Aaahh... this is very dangerous, but what can we do?
+    return (BITMAP*)gfxDriver->GetMemoryBackBuffer()->GetAllegroBitmap();
 }
 void IAGSEngine::RequestEventHook (int32 event) {
     if (event >= AGSE_TOOHIGH) 
@@ -255,7 +255,7 @@ unsigned char ** IAGSEngine::GetRawBitmapSurface (BITMAP *bmp) {
         quit("!IAGSEngine::GetRawBitmapSurface: invalid bitmap for access to surface");
     acquire_bitmap (bmp);
 
-	if (bmp == virtual_screen->GetAllegroBitmap())
+    if (bmp == virtual_screen->GetAllegroBitmap())
         plugins[this->pluginId].invalidatedRegion = 0;
 
     return bmp->line;
@@ -263,7 +263,7 @@ unsigned char ** IAGSEngine::GetRawBitmapSurface (BITMAP *bmp) {
 void IAGSEngine::ReleaseBitmapSurface (BITMAP *bmp) {
     release_bitmap (bmp);
 
-	if (bmp == virtual_screen->GetAllegroBitmap()) {
+    if (bmp == virtual_screen->GetAllegroBitmap()) {
         // plugin does not manaually invalidate stuff, so
         // we must invalidate the whole screen to be safe
         if (!plugins[this->pluginId].invalidatedRegion)
@@ -317,7 +317,7 @@ void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int
         draw_and_invalidate_text(ds, xx, yy + texthit*i, font, text_color, lines[i]);
 }
 void IAGSEngine::SetVirtualScreen (BITMAP *bmp) {
-	// [IKM] Very, very dangerous :'(
+    // [IKM] Very, very dangerous :'(
     SetVirtualScreenRaw (bmp);
 }
 int IAGSEngine::LookupParserWord (const char *word) {
@@ -331,7 +331,7 @@ void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 tran
     set_trans_blender(0, 0, 0, trans);
     Common::Bitmap *ds = ::GetVirtualScreen();
     // FIXME: call corresponding Graphics Blit
-	draw_trans_sprite(ds->GetAllegroBitmap(), bmp, x, y);
+    draw_trans_sprite(ds->GetAllegroBitmap(), bmp, x, y);
 }
 void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle) {
     Common::Bitmap *ds = ::GetVirtualScreen();
@@ -401,9 +401,9 @@ AGSObject *IAGSEngine::GetObject (int32 num) {
     return (AGSObject*)&croom->obj[num];
 }
 BITMAP *IAGSEngine::CreateBlankBitmap (int32 width, int32 height, int32 coldep) {
-	// [IKM] We should not create Bitmap object here, because
-	// a) we are returning raw allegro bitmap and therefore loosing control over it
-	// b) plugin won't use Bitmap anyway
+    // [IKM] We should not create Bitmap object here, because
+    // a) we are returning raw allegro bitmap and therefore loosing control over it
+    // b) plugin won't use Bitmap anyway
     BITMAP *tempb = create_bitmap_ex(coldep, width, height);
     clear_to_color(tempb, bitmap_mask_color(tempb));
     return tempb;
@@ -809,7 +809,7 @@ void pl_stop_plugins() {
                 plugins[a].savedata = NULL;
             }
             if (!plugins[a].builtin) {
-              plugins[a].library.Unload();
+                plugins[a].library.Unload();
             }
         }
     }
@@ -963,37 +963,37 @@ void pl_read_plugins_from_disk (Stream *in) {
 
         if (apl->library.Load(apl->filename))
         {
-          AGS::Common::Out::FPrint("Plugin loading succeeded, resolving imports...");
+            AGS::Common::Out::FPrint("Plugin loading succeeded, resolving imports...");
 
-          if (apl->library.GetFunctionAddress("AGS_PluginV2") == NULL) {
-              sprintf(buffer, "Plugin '%s' is an old incompatible version.", apl->filename);
-              quit(buffer);
-          }
-          apl->engineStartup = (void(*)(IAGSEngine*))apl->library.GetFunctionAddress("AGS_EngineStartup");
-          apl->engineShutdown = (void(*)())apl->library.GetFunctionAddress("AGS_EngineShutdown");
+            if (apl->library.GetFunctionAddress("AGS_PluginV2") == NULL) {
+                sprintf(buffer, "Plugin '%s' is an old incompatible version.", apl->filename);
+                quit(buffer);
+            }
+            apl->engineStartup = (void(*)(IAGSEngine*))apl->library.GetFunctionAddress("AGS_EngineStartup");
+            apl->engineShutdown = (void(*)())apl->library.GetFunctionAddress("AGS_EngineShutdown");
 
-          if (apl->engineStartup == NULL) {
-              sprintf(buffer, "Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename);
-              quit(buffer);
-          }
-          apl->onEvent = (int(*)(int,int))apl->library.GetFunctionAddress("AGS_EngineOnEvent");
-          apl->debugHook = (int(*)(const char*,int,int))apl->library.GetFunctionAddress("AGS_EngineDebugHook");
-          apl->initGfxHook = (void(*)(const char*, void*))apl->library.GetFunctionAddress("AGS_EngineInitGfx");
+            if (apl->engineStartup == NULL) {
+                sprintf(buffer, "Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename);
+                quit(buffer);
+            }
+            apl->onEvent = (int(*)(int,int))apl->library.GetFunctionAddress("AGS_EngineOnEvent");
+            apl->debugHook = (int(*)(const char*,int,int))apl->library.GetFunctionAddress("AGS_EngineDebugHook");
+            apl->initGfxHook = (void(*)(const char*, void*))apl->library.GetFunctionAddress("AGS_EngineInitGfx");
         }
         else
         {
-          AGS::Common::Out::FPrint("Plugin loading failed, trying built-in plugins...");
-          strlwr(apl->filename);
-          if (!pl_use_builtin_plugin(apl))
-          {
-            // Plugin loading has failed at this point, try using built-in plugin function stubs
-            if (RegisterPluginStubs((const char*)apl->filename))
-              AGS::Common::Out::FPrint("Placeholder functions for the plugin found.");
-            else
-              AGS::Common::Out::FPrint("No placeholder functions for the plugin found. The game might fail to load.");
+            AGS::Common::Out::FPrint("Plugin loading failed, trying built-in plugins...");
+            strlwr(apl->filename);
+            if (!pl_use_builtin_plugin(apl))
+            {
+                // Plugin loading has failed at this point, try using built-in plugin function stubs
+                if (RegisterPluginStubs((const char*)apl->filename))
+                    AGS::Common::Out::FPrint("Placeholder functions for the plugin found.");
+                else
+                    AGS::Common::Out::FPrint("No placeholder functions for the plugin found. The game might fail to load.");
 
-            continue;
-          }
+                continue;
+            }
         }
 
         if (datasize > 0) {

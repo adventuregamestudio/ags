@@ -752,14 +752,14 @@ int SaveScreenShot(const char*namm) {
         Bitmap *buffer = BitmapHelper::CreateBitmap(scrnwid, scrnhit, 32);
         gfxDriver->GetCopyOfScreenIntoBitmap(buffer);
 
-		if (!buffer->SaveToFile(fileName, palette)!=0)
+        if (!buffer->SaveToFile(fileName, palette)!=0)
         {
             delete buffer;
             return 0;
         }
         delete buffer;
     }
-	else if (!virtual_screen->SaveToFile(fileName, palette)!=0)
+    else if (!virtual_screen->SaveToFile(fileName, palette)!=0)
         return 0; // failed
 
     return 1;  // successful

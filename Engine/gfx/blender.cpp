@@ -203,7 +203,7 @@ unsigned long _argb2argb_alpha_blender(unsigned long src_col, unsigned long dst_
     dst_g   = (((src_col & 0x00FF00) - (dst_g   & 0x00FF00)) * src_alpha / 256 + dst_g)   & 0x00FF00;
     // res_rb now contains the red & blue hues of the pre-final color
     dst_col = (((src_col & 0xFF00FF) - (dst_col & 0xFF00FF)) * src_alpha / 256 + dst_col) & 0xFF00FF;
-    
+
     // dst_alpha now contains the final alpha
     // we assume that final alpha will never be zero (see note above)
     dst_alpha   = src_alpha + (dst_alpha * (256 - src_alpha) / 256);
@@ -211,7 +211,7 @@ unsigned long _argb2argb_alpha_blender(unsigned long src_col, unsigned long dst_
     // instead of divided by: this makes it possible to use it in faster
     // calculation below
     src_alpha  = /* 256 * 256 == */ 0x10000 / dst_alpha;
-    
+
     // setting up final color hues
     dst_g   = (dst_g   * src_alpha / 256) & 0x00FF00;
     dst_col = (dst_col * src_alpha / 256) & 0xFF00FF;

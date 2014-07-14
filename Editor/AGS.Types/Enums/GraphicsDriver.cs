@@ -5,11 +5,11 @@ using System.Text;
 
 namespace AGS.Types
 {
-	public enum GraphicsDriver
-	{
-		[Description("DirectDraw 5 (default)")]
-		DX5,
-		[Description("Direct3D 9 hardware acceleration")]
-		D3D9
-	}
+    public enum GraphicsDriver
+    {
+        [Description("DirectDraw 5 (default)")]
+        DX5,
+        [Description("Direct3D 9 hardware acceleration")]
+        D3D9
+    }
 }

@@ -12,7 +12,7 @@ namespace AGS.Editor.Components
     {
         private const string TOP_LEVEL_COMMAND_ID = "Palette";
         private const string ICON_KEY = "PaletteIcon";
-        
+
         private PaletteEditor _palEditor;
         private ContentDocument _document;
 
@@ -27,7 +27,7 @@ namespace AGS.Editor.Components
         private void Init()
         {
             _palEditor = new PaletteEditor();
-            RecreateDocument();            
+            RecreateDocument();
         }
 
         private void RecreateDocument()
@@ -50,8 +50,8 @@ namespace AGS.Editor.Components
             _document.TreeNodeID = controlID;
             _guiController.AddOrShowPane(_document);
             _palEditor.OnShow();
-			_guiController.ShowCuppit("The Colours window allows you to find out the AGS Colour Number for a colour, and also to set up your palette in 256-colour games.", "Colours introduction");
-		}
+            _guiController.ShowCuppit("The Colours window allows you to find out the AGS Colour Number for a colour, and also to set up your palette in 256-colour games.", "Colours introduction");
+        }
 
         public override void PropertyChanged(string propertyName, object oldValue)
         {

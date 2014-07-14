@@ -4,9 +4,9 @@ using System.Text;
 
 namespace AGS.Types
 {
-	public class CompileError : CompileMessage
-	{
-		public CompileError(string message, string scriptName, int lineNumber)
+    public class CompileError : CompileMessage
+    {
+        public CompileError(string message, string scriptName, int lineNumber)
             : base(message, scriptName, lineNumber)
         {
         }
@@ -21,10 +21,10 @@ namespace AGS.Types
         {
         }
 
-		// Copy constructor required by BusyDialog
-		public CompileError(CompileError cloneFrom)
-			: base(cloneFrom)
-		{
-		}
-	}
+        // Copy constructor required by BusyDialog
+        public CompileError(CompileError cloneFrom)
+            : base(cloneFrom)
+        {
+        }
+    }
 }

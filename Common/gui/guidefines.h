@@ -66,7 +66,7 @@ enum GuiVersion
     kGuiVersion_272c        = 113,
     kGuiVersion_272d        = 114,
     kGuiVersion_272e        = 115,
-    
+
     kGuiVersion_330         = 116,
     kGuiVersion_331         = 117,
     kGuiVersion_Current     = kGuiVersion_331,

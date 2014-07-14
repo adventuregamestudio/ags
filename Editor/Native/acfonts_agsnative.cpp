@@ -18,17 +18,17 @@ extern GameSetupStruct thisgame;
 
 void check_font(int *fontnum)
 {
-  // Stop roomedit crashing if they specify an invalid font number
-  if (fontnum[0] >= thisgame.numfonts)
-    fontnum[0] = 0;
+    // Stop roomedit crashing if they specify an invalid font number
+    if (fontnum[0] >= thisgame.numfonts)
+        fontnum[0] = 0;
 }
 
 void set_our_eip(int eip)
 {
-  // do nothing
+    // do nothing
 }
 
 int get_our_eip()
 {
-  return 0;
+    return 0;
 }

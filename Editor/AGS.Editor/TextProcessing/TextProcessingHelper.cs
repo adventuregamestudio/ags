@@ -20,13 +20,13 @@ namespace AGS.Editor
             }
 
             foreach (ScriptAndHeader script in game.RootScriptFolder.AllItemsFlat)
-            {                                
+            {
                 string newScript = processor.ProcessText(script.Script.Text, GameTextType.Script);
                 if (newScript != script.Script.Text)
                 {
                     // Only cause it to flag Modified if we changed it
                     script.Script.Text = newScript;
-                }                
+                }
             }
 
             foreach (GUI gui in game.RootGUIFolder.AllItemsFlat)
@@ -59,10 +59,10 @@ namespace AGS.Editor
                 item.Description = processor.ProcessText(item.Description, GameTextType.ItemDescription);
             }
 
-			for (int i = 0; i < game.GlobalMessages.Length; i++)
-			{
-				game.GlobalMessages[i] = processor.ProcessText(game.GlobalMessages[i], GameTextType.Message);
-			}
+            for (int i = 0; i < game.GlobalMessages.Length; i++)
+            {
+                game.GlobalMessages[i] = processor.ProcessText(game.GlobalMessages[i], GameTextType.Message);
+            }
 
             Factory.AGSEditor.RunProcessAllGameTextsEvent(processor, errors);
         }

@@ -20,7 +20,8 @@ namespace AGS.Types
             _itemWidth = 30;
         }
 
-        public GUIInventory(XmlNode node) : base(node)
+        public GUIInventory(XmlNode node)
+            : base(node)
         {
         }
 

@@ -118,7 +118,7 @@ namespace AGS.Editor
                     index++;
                     while (index < script.Length - 1)
                     {
-                        if ((script[index] == firstChar) && 
+                        if ((script[index] == firstChar) &&
                             ((script[index - 1] != '\\') || (script[index - 2] == '\\')))
                         {
                             break;
@@ -248,7 +248,7 @@ namespace AGS.Editor
                     List<ScriptFunction> functionList = functions;
                     bool isStaticExtender = script.StartsWith("static ");
                     bool isExtenderMethod = isStaticExtender || script.StartsWith("this ");
-                    if(isExtenderMethod)
+                    if (isExtenderMethod)
                         AdjustFunctionListForExtenderFunction(structs, ref functionList, ref script);
                     if (AddFunctionDeclaration(functionList, ref script, thisWord, state, isExtenderMethod, isStaticExtender, isStaticExtender))
                     {
@@ -256,82 +256,82 @@ namespace AGS.Editor
                     }
                     state.ClearPreviousWords();
                 }
-				else if ((thisWord == "[") && (PeekNextWord(script) == "]"))
-				{
-					GetNextWord(ref script);
-					state.DynamicArrayDefinition = true;
-					state.AddNextWord("[]");
-				}
-				else if ((thisWord == "=") || (thisWord == ";") ||
-						 (thisWord == ",") || (thisWord == "["))
-				{
-					if (state.InsideEnumDefinition != null)
-					{
-						AddEnumValue(state.InsideEnumDefinition, script, state.LastWord);
+                else if ((thisWord == "[") && (PeekNextWord(script) == "]"))
+                {
+                    GetNextWord(ref script);
+                    state.DynamicArrayDefinition = true;
+                    state.AddNextWord("[]");
+                }
+                else if ((thisWord == "=") || (thisWord == ";") ||
+                         (thisWord == ",") || (thisWord == "["))
+                {
+                    if (state.InsideEnumDefinition != null)
+                    {
+                        AddEnumValue(state.InsideEnumDefinition, script, state.LastWord);
 
                         if (thisWord == "=")
                         {
                             // skip whatever the value of the enum is
                             GetNextWord(ref script);
                         }
-					}
-					else
-					{
-						AddVariableDeclaration(variables, ref script, thisWord, state);
-						if (thisWord == "=")
-						{
-							while ((thisWord != ";") && (thisWord != ",") && (script.Length > 0))
-							{
-								thisWord = GetNextWord(ref script);
-							}
-						}
-						if (thisWord == ",")
-						{
-							// eg. "int x,y"; ensure "y" gets recorded next time round
-							state.UndoLastWord();
-							continue;
-						}
-						if (thisWord == "[")
-						{
-							// eg. "int a[10], b[10], c[10];"
-							SkipWhitespace(ref script);
-							if (script.StartsWith(","))
-							{
-								GetNextWord(ref script);
-								state.UndoLastWord();
-								continue;
-							}
-						}
-					}
-					state.ClearPreviousWords();
-					state.DynamicArrayDefinition = false;
-				}
-				else if ((thisWord == "}") && (state.InsideEnumDefinition != null))
-				{
+                    }
+                    else
+                    {
+                        AddVariableDeclaration(variables, ref script, thisWord, state);
+                        if (thisWord == "=")
+                        {
+                            while ((thisWord != ";") && (thisWord != ",") && (script.Length > 0))
+                            {
+                                thisWord = GetNextWord(ref script);
+                            }
+                        }
+                        if (thisWord == ",")
+                        {
+                            // eg. "int x,y"; ensure "y" gets recorded next time round
+                            state.UndoLastWord();
+                            continue;
+                        }
+                        if (thisWord == "[")
+                        {
+                            // eg. "int a[10], b[10], c[10];"
+                            SkipWhitespace(ref script);
+                            if (script.StartsWith(","))
+                            {
+                                GetNextWord(ref script);
+                                state.UndoLastWord();
+                                continue;
+                            }
+                        }
+                    }
+                    state.ClearPreviousWords();
+                    state.DynamicArrayDefinition = false;
+                }
+                else if ((thisWord == "}") && (state.InsideEnumDefinition != null))
+                {
                     // add the last value (unless it's an empty enum)
                     if (state.LastWord != "{")
                     {
                         AddEnumValue(state.InsideEnumDefinition, script, state.LastWord);
                     }
-					enums.Add(state.InsideEnumDefinition);
-					state.InsideEnumDefinition = null;
+                    enums.Add(state.InsideEnumDefinition);
+                    state.InsideEnumDefinition = null;
                     state.ClearPreviousWords();
-				}
-				else if ((thisWord == "}") && (state.InsideStructDefinition != null))
-				{
-					structs.Add(state.InsideStructDefinition);
-					functions = newCache.Functions;
-					variables = newCache.Variables;
+                }
+                else if ((thisWord == "}") && (state.InsideStructDefinition != null))
+                {
+                    structs.Add(state.InsideStructDefinition);
+                    functions = newCache.Functions;
+                    variables = newCache.Variables;
                     state.InsideStructDefinition = null;
                     state.ClearPreviousWords();
-				}
-				else
-				{
-					state.AddNextWord(thisWord);
-				}
+                }
+                else
+                {
+                    state.AddNextWord(thisWord);
+                }
             }
             scriptToCache.AutoCompleteData.CopyFrom(newCache);
-			scriptToCache.AutoCompleteData.Populated = true;
+            scriptToCache.AutoCompleteData.Populated = true;
         }
 
         private static void AdjustFunctionListForExtenderFunction(List<ScriptStruct> structs, ref List<ScriptFunction> functionList, ref FastString script)
@@ -481,11 +481,11 @@ namespace AGS.Editor
                         isPointer = true;
                         type = state.WordBeforeWordBeforeLast;
                     }
-					if (state.DynamicArrayDefinition)
-					{
-						// get the type name and the []
-						type = state.WordBeforeWordBeforeLast + state.WordBeforeLast;
-					}
+                    if (state.DynamicArrayDefinition)
+                    {
+                        // get the type name and the []
+                        type = state.WordBeforeWordBeforeLast + state.WordBeforeLast;
+                    }
                     if (state.IsWordInPreviousList("static"))
                     {
                         isStatic = true;
@@ -517,7 +517,7 @@ namespace AGS.Editor
                         functions.Add(newFunc);
                         succeeded = true;
                     }
-					state.DynamicArrayDefinition = false;
+                    state.DynamicArrayDefinition = false;
                 }
             }
 
@@ -534,18 +534,18 @@ namespace AGS.Editor
                     bool isStatic = false, isStaticOnly = false;
                     bool isNoInherit = false, isProtected = false;
                     string type = state.WordBeforeLast;
-					string varName = state.LastWord;
+                    string varName = state.LastWord;
                     if (thisWord == "[")
                     {
                         while ((script.Length > 0) && (GetNextWord(ref script) != "]")) ;
                         isArray = true;
                     }
-					else if (state.DynamicArrayDefinition)
-					{
-						varName = state.WordBeforeLast;
-						type = state.WordBeforeWordBeforeLast;
-						isArray = true;
-					}
+                    else if (state.DynamicArrayDefinition)
+                    {
+                        varName = state.WordBeforeLast;
+                        type = state.WordBeforeWordBeforeLast;
+                        isArray = true;
+                    }
                     if (type == "*")
                     {
                         isPointer = true;
@@ -589,8 +589,8 @@ namespace AGS.Editor
                         variables.Add(newVar);
                     }
                 }
-				state.DynamicArrayDefinition = false;
-			}
+                state.DynamicArrayDefinition = false;
+            }
         }
 
         private static void GoToNextLine(ref FastString script)
@@ -608,13 +608,13 @@ namespace AGS.Editor
 
         private static void SkipWhitespace(ref FastString script)
         {
-			if (script.Length == 0)
-			{
-				return;
-			}
+            if (script.Length == 0)
+            {
+                return;
+            }
 
-			int index = 0;
-			while ((script[index] == ' ') || (script[index] == '\t')
+            int index = 0;
+            while ((script[index] == ' ') || (script[index] == '\t')
                 || (script[index] == '\r') || (script[index] == '\n'))
             {
                 index++;
@@ -630,11 +630,11 @@ namespace AGS.Editor
             }
         }
 
-		private static string PeekNextWord(FastString script)
-		{
-			FastString tester = script;
-			return GetNextWord(ref tester);
-		}
+        private static string PeekNextWord(FastString script)
+        {
+            FastString tester = script;
+            return GetNextWord(ref tester);
+        }
 
         private static string GetNextWord(ref FastString script)
         {
@@ -686,7 +686,7 @@ namespace AGS.Editor
                     if ((lastWord.Length > 0) && (script.Length > 0))
                     {
                         bool isPointer = false;
-                        if (nextWord == "*") 
+                        if (nextWord == "*")
                         {
                             isPointer = true;
                             nextWord = GetNextWord(ref script);
@@ -699,17 +699,17 @@ namespace AGS.Editor
                         string variableName = nextWord;
                         nextWord = GetNextWord(ref script);
                         bool isArray = false;
-                        if (nextWord == "[") 
+                        if (nextWord == "[")
                         {
                             isArray = true;
                             while ((script.Length > 0) && (GetNextWord(ref script) != "]")) ;
-							nextWord = GetNextWord(ref script);
+                            nextWord = GetNextWord(ref script);
                         }
 
                         if (((nextWord == "=") || (nextWord == ";") || (nextWord == ",")) &&
                             (lastWord != "return") && (lastWord != "else"))
                         {
-							variables.Add(new ScriptVariable(variableName, lastWord, isArray, isPointer, null, null, false, false, false, false, (scriptToParse.Length - script.Length) + relativeCharacterIndex));
+                            variables.Add(new ScriptVariable(variableName, lastWord, isArray, isPointer, null, null, false, false, false, false, (scriptToParse.Length - script.Length) + relativeCharacterIndex));
                         }
                         if (nextWord != ",")
                         {

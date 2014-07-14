@@ -22,26 +22,26 @@
 
 namespace AGS
 {
-namespace Common
-{
+    namespace Common
+    {
 
-// Mask option for blitting one bitmap on another
-enum BitmapMaskOption
-{
-	// Plain copies bitmap pixels
-	kBitmap_Copy,
-	// Consider mask color fully transparent and do not copy pixels having it
-	kBitmap_Transparency
-};
+        // Mask option for blitting one bitmap on another
+        enum BitmapMaskOption
+        {
+            // Plain copies bitmap pixels
+            kBitmap_Copy,
+            // Consider mask color fully transparent and do not copy pixels having it
+            kBitmap_Transparency
+        };
 
-enum BitmapFlip
-{
-	kBitmap_HFlip,
-	kBitmap_VFlip,
-	kBitmap_HVFlip
-};
+        enum BitmapFlip
+        {
+            kBitmap_HFlip,
+            kBitmap_VFlip,
+            kBitmap_HVFlip
+        };
 
-} // namespace Common
+    } // namespace Common
 } // namespace AGS
 
 
@@ -50,32 +50,32 @@ enum BitmapFlip
 
 namespace AGS
 {
-namespace Common
-{
+    namespace Common
+    {
 
-class Bitmap;
+        class Bitmap;
 
-// TODO: revise this construction later
-namespace BitmapHelper
-{
-    // Helper functions, that delete faulty bitmaps automatically, and return
-    // NULL if bitmap could not be created.
-    Bitmap *CreateBitmap(int width, int height, int color_depth = 0);
-    Bitmap *CreateTransparentBitmap(int width, int height, int color_depth = 0);
-	Bitmap *CreateSubBitmap(Bitmap *src, const Rect &rc);
-    Bitmap *CreateBitmapCopy(Bitmap *src, int color_depth = 0);
-	Bitmap *LoadFromFile(const char *filename);
+        // TODO: revise this construction later
+        namespace BitmapHelper
+        {
+            // Helper functions, that delete faulty bitmaps automatically, and return
+            // NULL if bitmap could not be created.
+            Bitmap *CreateBitmap(int width, int height, int color_depth = 0);
+            Bitmap *CreateTransparentBitmap(int width, int height, int color_depth = 0);
+            Bitmap *CreateSubBitmap(Bitmap *src, const Rect &rc);
+            Bitmap *CreateBitmapCopy(Bitmap *src, int color_depth = 0);
+            Bitmap *LoadFromFile(const char *filename);
 
-	// TODO: revise this later
-	// Getters and setters for screen bitmap
-	// Unfortunately some of the allegro functions require "screen" allegro bitmap,
-	// therefore we must set that pointer to something every time we assign an Bitmap
-	// to screen.
-	Bitmap	*GetScreenBitmap();
-	void	SetScreenBitmap(Bitmap *bitmap);
-} // namespace BitmapHelper
+            // TODO: revise this later
+            // Getters and setters for screen bitmap
+            // Unfortunately some of the allegro functions require "screen" allegro bitmap,
+            // therefore we must set that pointer to something every time we assign an Bitmap
+            // to screen.
+            Bitmap	*GetScreenBitmap();
+            void	SetScreenBitmap(Bitmap *bitmap);
+        } // namespace BitmapHelper
 
-} // namespace Common
+    } // namespace Common
 } // namespace AGS
 
 #endif // __AGS_CN_GFX__BITMAP_H

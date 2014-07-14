@@ -11,24 +11,24 @@ using System.Windows.Forms;
 
 namespace AGS.Editor
 {
-	public partial class ExceptionDialog : Form
-	{
+    public partial class ExceptionDialog : Form
+    {
         private Bitmap _screenShot;
         private Exception _exception;
 
-		public ExceptionDialog(Exception ex, Bitmap screenShot)
-		{
-			InitializeComponent();
+        public ExceptionDialog(Exception ex, Bitmap screenShot)
+        {
+            InitializeComponent();
 
             _exception = ex;
             _screenShot = screenShot;
 
-			txtErrorDetails.Text = "Error: " + ex.Message + Environment.NewLine +
-				"Version: AGS " + AGS.Types.Version.AGS_EDITOR_VERSION + Environment.NewLine +
-				Environment.NewLine + ex.ToString();
-			txtErrorDetails.SelectionLength = 0;
-			txtErrorDetails.SelectionStart = 0;
-		}
+            txtErrorDetails.Text = "Error: " + ex.Message + Environment.NewLine +
+                "Version: AGS " + AGS.Types.Version.AGS_EDITOR_VERSION + Environment.NewLine +
+                Environment.NewLine + ex.ToString();
+            txtErrorDetails.SelectionLength = 0;
+            txtErrorDetails.SelectionStart = 0;
+        }
 
         private void btnSendErrorReport_Click(object sender, EventArgs e)
         {
@@ -85,5 +85,5 @@ namespace AGS.Editor
             this.DialogResult = DialogResult.OK;
             this.Close();
         }
-	}
+    }
 }

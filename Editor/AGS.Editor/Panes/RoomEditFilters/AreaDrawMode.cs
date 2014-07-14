@@ -5,7 +5,7 @@ namespace AGS.Editor
         Select = 0,
         Line = 1,
         Freehand = 2,
-		Rectangle = 3,
+        Rectangle = 3,
         Fill = 4
     }
 }

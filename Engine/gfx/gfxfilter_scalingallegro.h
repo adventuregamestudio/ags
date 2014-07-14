@@ -34,17 +34,17 @@ public:
 
     ScalingAllegroGFXFilter(int multiplier, bool justCheckingForSetup);
 
-      virtual Common::Bitmap *ScreenInitialized(Common::Bitmap *screen, int fakeWidth, int fakeHeight);
+    virtual Common::Bitmap *ScreenInitialized(Common::Bitmap *screen, int fakeWidth, int fakeHeight);
 
-      virtual Common::Bitmap *ShutdownAndReturnRealScreen(Common::Bitmap *currentScreen);
+    virtual Common::Bitmap *ShutdownAndReturnRealScreen(Common::Bitmap *currentScreen);
 
-      virtual void RenderScreen(Common::Bitmap *toRender, int x, int y);
+    virtual void RenderScreen(Common::Bitmap *toRender, int x, int y);
 
-      virtual void RenderScreenFlipped(Common::Bitmap *toRender, int x, int y, int flipType);
+    virtual void RenderScreenFlipped(Common::Bitmap *toRender, int x, int y, int flipType);
 
-      virtual void ClearRect(int x1, int y1, int x2, int y2, int color);
-      virtual void GetCopyOfScreenIntoBitmap(Common::Bitmap *copyBitmap);
-      virtual void GetCopyOfScreenIntoBitmap(Common::Bitmap *copyBitmap, bool copyWithYOffset);
+    virtual void ClearRect(int x1, int y1, int x2, int y2, int color);
+    virtual void GetCopyOfScreenIntoBitmap(Common::Bitmap *copyBitmap);
+    virtual void GetCopyOfScreenIntoBitmap(Common::Bitmap *copyBitmap, bool copyWithYOffset);
 
 };
 

@@ -14,7 +14,7 @@ namespace AGS.Editor.Components
         public const string GLOBAL_VARS_HEADER_FILE_NAME = "_GlobalVariables.ash";
         private const string GLOBAL_VARS_SCRIPT_FILE_NAME = "_GlobalVariables.asc";
         private const string ICON_KEY = "GlobalVarsIcon";
-        
+
         private GlobalVariablesEditor _editor;
         private ContentDocument _document;
         private Script _scriptModule;
@@ -62,7 +62,7 @@ namespace AGS.Editor.Components
             {
                 string declaration = variable.Type + " " + variable.Name;
                 if (((variable.Type == "int") ||
-                     (variable.Type == "bool") || 
+                     (variable.Type == "bool") ||
                      (variable.Type == "float")) &&
                     (!string.IsNullOrEmpty(variable.DefaultValue)))
                 {
@@ -125,7 +125,7 @@ namespace AGS.Editor.Components
         public override void CommandClick(string controlID)
         {
             ShowGlobalVariablesPane(controlID);
-		}
+        }
 
         private void ShowGlobalVariablesPane(string controlID)
         {

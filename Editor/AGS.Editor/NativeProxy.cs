@@ -19,14 +19,14 @@ namespace AGS.Editor
         public static extern bool SetForegroundWindow(IntPtr hWnd);
         [DllImport("User32.dll")]
         private static extern short GetAsyncKeyState(int keyCode);
-		[DllImport("kernel32.dll")]
-		public static extern long WritePrivateProfileString(string section, string key, string val, string filePath);
-		[DllImport("kernel32.dll")]
-		public static extern int GetPrivateProfileString(string section, string key, string def, System.Text.StringBuilder retVal, int size, string filePath);
+        [DllImport("kernel32.dll")]
+        public static extern long WritePrivateProfileString(string section, string key, string val, string filePath);
+        [DllImport("kernel32.dll")]
+        public static extern int GetPrivateProfileString(string section, string key, string def, System.Text.StringBuilder retVal, int size, string filePath);
 
         public const uint WM_MOUSEACTIVATE = 0x21;
         public const uint MA_ACTIVATE = 1;
-        public const uint MA_ACTIVATEANDEAT = 2; 
+        public const uint MA_ACTIVATEANDEAT = 2;
 
         private const int VK_SHIFT = 0x10;
         private const int VK_CONTROL = 0x11;
@@ -51,13 +51,13 @@ namespace AGS.Editor
 
         private NativeMethods _native;
 
-		// The sprite set lock is used to prevent a crash if the window
-		// thread tries to redraw while the game is being saved/loaded
-		private object _spriteSetLock = new object();
+        // The sprite set lock is used to prevent a crash if the window
+        // thread tries to redraw while the game is being saved/loaded
+        private object _spriteSetLock = new object();
 
         private NativeProxy()
         {
-			_native = new NativeMethods(AGS.Types.Version.AGS_EDITOR_VERSION);
+            _native = new NativeMethods(AGS.Types.Version.AGS_EDITOR_VERSION);
             _native.Initialize();
         }
 
@@ -78,10 +78,10 @@ namespace AGS.Editor
 
         public void SaveGame(Game game)
         {
-			lock (_spriteSetLock)
-			{
-				_native.SaveGame(game);
-			}
+            lock (_spriteSetLock)
+            {
+                _native.SaveGame(game);
+            }
         }
 
         public void DrawGUI(IntPtr hdc, int x, int y, GUI gui, int scaleFactor, int selectedControl)
@@ -91,18 +91,18 @@ namespace AGS.Editor
 
         public void DrawSprite(IntPtr hdc, int x, int y, int spriteNum)
         {
-			lock (_spriteSetLock)
-			{
-				_native.DrawSprite((int)hdc, x, y, spriteNum, false);
-			}
+            lock (_spriteSetLock)
+            {
+                _native.DrawSprite((int)hdc, x, y, spriteNum, false);
+            }
         }
 
         public void DrawSprite(IntPtr hdc, int x, int y, int spriteNum, bool flipImage)
         {
-			lock (_spriteSetLock)
-			{
-				_native.DrawSprite((int)hdc, x, y, spriteNum, flipImage);
-			}
+            lock (_spriteSetLock)
+            {
+                _native.DrawSprite((int)hdc, x, y, spriteNum, flipImage);
+            }
         }
 
         public void DrawFont(IntPtr hdc, int x, int y, int fontNum)
@@ -112,10 +112,10 @@ namespace AGS.Editor
 
         public void DrawSprite(IntPtr hdc, int x, int y, int width, int height, int spriteNum)
         {
-			lock (_spriteSetLock)
-			{
-				_native.DrawSprite((int)hdc, x, y, width, height, spriteNum);
-			}
+            lock (_spriteSetLock)
+            {
+                _native.DrawSprite((int)hdc, x, y, width, height, spriteNum);
+            }
         }
 
         public void DrawBlockOfColour(IntPtr hdc, int x, int y, int width, int height, int colourNum)
@@ -125,10 +125,10 @@ namespace AGS.Editor
 
         public void DrawViewLoop(IntPtr hdc, ViewLoop loop, int x, int y, int sizeInPixels, int selectedFrame)
         {
-			lock (_spriteSetLock)
-			{
-				_native.DrawViewLoop((int)hdc, loop, x, y, sizeInPixels, selectedFrame);
-			}
+            lock (_spriteSetLock)
+            {
+                _native.DrawViewLoop((int)hdc, loop, x, y, sizeInPixels, selectedFrame);
+            }
         }
         /*
         public Sprite CreateSpriteFromBitmap(Bitmap bmp)
@@ -155,10 +155,10 @@ namespace AGS.Editor
 
         public bool DoesSpriteExist(int spriteNumber)
         {
-			lock (_spriteSetLock)
-			{
-				return _native.DoesSpriteExist(spriteNumber);
-			}
+            lock (_spriteSetLock)
+            {
+                return _native.DoesSpriteExist(spriteNumber);
+            }
         }
 
         public void ChangeSpriteNumber(Sprite sprite, int newNumber)
@@ -173,26 +173,26 @@ namespace AGS.Editor
 
         public Bitmap GetBitmapForSprite(int spriteSlot, int width, int height)
         {
-			lock (_spriteSetLock)
-			{
-				return _native.GetBitmapForSprite(spriteSlot, width, height);
-			}
+            lock (_spriteSetLock)
+            {
+                return _native.GetBitmapForSprite(spriteSlot, width, height);
+            }
         }
 
         public Bitmap GetBitmapForSprite(int spriteSlot)
         {
-			lock (_spriteSetLock)
-			{
-				return _native.GetBitmapForSpritePreserveColDepth(spriteSlot);
-			}
+            lock (_spriteSetLock)
+            {
+                return _native.GetBitmapForSpritePreserveColDepth(spriteSlot);
+            }
         }
 
         public void DeleteSprite(Sprite sprite)
         {
-			lock (_spriteSetLock)
-			{
-				_native.DeleteSprite(sprite.Number);
-			}
+            lock (_spriteSetLock)
+            {
+                _native.DeleteSprite(sprite.Number);
+            }
         }
 
         public Game ImportOldGame(string fileName)
@@ -217,10 +217,10 @@ namespace AGS.Editor
 
         public void LoadNewSpriteFile()
         {
-			lock (_spriteSetLock)
-			{
-				_native.LoadNewSpriteFile();
-			}
+            lock (_spriteSetLock)
+            {
+                _native.LoadNewSpriteFile();
+            }
         }
 
         /// <summary>
@@ -250,18 +250,18 @@ namespace AGS.Editor
 
         public int GetRelativeSpriteWidth(int spriteSlot)
         {
-			lock (_spriteSetLock)
-			{
-				return _native.GetRelativeSpriteWidth(spriteSlot);
-			}
+            lock (_spriteSetLock)
+            {
+                return _native.GetRelativeSpriteWidth(spriteSlot);
+            }
         }
 
         public int GetRelativeSpriteHeight(int spriteSlot)
         {
-			lock (_spriteSetLock)
-			{
-				return _native.GetRelativeSpriteHeight(spriteSlot);
-			}
+            lock (_spriteSetLock)
+            {
+                return _native.GetRelativeSpriteHeight(spriteSlot);
+            }
         }
 
         public Room LoadRoom(UnloadedRoom roomToLoad)
@@ -314,10 +314,10 @@ namespace AGS.Editor
             _native.DrawLineOntoMask(room, mask, x1, y1, x2, y2, color);
         }
 
-		public void DrawFilledRectOntoMask(Room room, RoomAreaMaskType mask, int x1, int y1, int x2, int y2, int color)
-		{
-			_native.DrawFilledRectOntoMask(room, mask, x1, y1, x2, y2, color);
-		}
+        public void DrawFilledRectOntoMask(Room room, RoomAreaMaskType mask, int x1, int y1, int x2, int y2, int color)
+        {
+            _native.DrawFilledRectOntoMask(room, mask, x1, y1, x2, y2, color);
+        }
 
         public void DrawFillOntoMask(Room room, RoomAreaMaskType mask, int x1, int y1, int color)
         {
@@ -329,10 +329,10 @@ namespace AGS.Editor
             _native.CopyWalkableMaskToRegions(room);
         }
 
-		public bool GreyOutNonSelectedMasks
-		{
-			set { _native.SetGreyedOutMasksEnabled(value); }
-		}
+        public bool GreyOutNonSelectedMasks
+        {
+            set { _native.SetGreyedOutMasksEnabled(value); }
+        }
 
         public int GetAreaMaskPixel(Room room, RoomAreaMaskType mask, int x, int y)
         {
@@ -410,40 +410,40 @@ namespace AGS.Editor
             return _native.LoadTemplateFile(fileName);
         }
 
-		public RoomTemplate LoadRoomTemplateFile(string fileName)
-		{
-			return _native.LoadRoomTemplateFile(fileName);
-		}
+        public RoomTemplate LoadRoomTemplateFile(string fileName)
+        {
+            return _native.LoadRoomTemplateFile(fileName);
+        }
 
         public void ExtractTemplateFiles(string templateFileName)
         {
             _native.ExtractTemplateFiles(templateFileName);
         }
 
-		public void ExtractRoomTemplateFiles(string templateFileName, int newRoomNumber)
-		{
-			_native.ExtractRoomTemplateFiles(templateFileName, newRoomNumber);
-		}
+        public void ExtractRoomTemplateFiles(string templateFileName, int newRoomNumber)
+        {
+            _native.ExtractRoomTemplateFiles(templateFileName, newRoomNumber);
+        }
 
         public void UpdateFileIcon(string fileToUpdate, string newIconToUse)
         {
             _native.UpdateFileIcon(fileToUpdate, newIconToUse);
         }
 
-		public void UpdateGameExplorerXML(string fileToUpdate, byte[] newData)
-		{
-			_native.UpdateGameExplorerXML(fileToUpdate, newData);
-		}
+        public void UpdateGameExplorerXML(string fileToUpdate, byte[] newData)
+        {
+            _native.UpdateGameExplorerXML(fileToUpdate, newData);
+        }
 
-		public void UpdateGameExplorerThumbnail(string fileToUpdate, byte[] newData)
-		{
-			_native.UpdateGameExplorerThumbnail(fileToUpdate, newData);
-		}
+        public void UpdateGameExplorerThumbnail(string fileToUpdate, byte[] newData)
+        {
+            _native.UpdateGameExplorerThumbnail(fileToUpdate, newData);
+        }
 
         public void UpdateFileVersionInfo(string fileToUpdate, string authorName, string gameName)
         {
-            _native.UpdateFileVersionInfo(fileToUpdate, 
-                System.Text.Encoding.Unicode.GetBytes(authorName.PadRight(AUTHOR_NAME_LEN, ' ')), 
+            _native.UpdateFileVersionInfo(fileToUpdate,
+                System.Text.Encoding.Unicode.GetBytes(authorName.PadRight(AUTHOR_NAME_LEN, ' ')),
                 System.Text.Encoding.Unicode.GetBytes(gameName.PadRight(FILE_DESCRIPTION_LEN, ' ')));
         }
 
@@ -456,7 +456,7 @@ namespace AGS.Editor
         {
             return _native.TransformStringToBytes(text);
         }
-        
+
         /*/// <summary>
         /// Obsolete: Use Utilities.IsShiftPressed instead
         /// </summary>

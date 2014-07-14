@@ -108,17 +108,17 @@ void play_flc_file(int numb,int playflags) {
     if (fli_buffer==NULL) quit("Not enough memory to play animation");
     fli_buffer->Clear();
 
-	Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
+    Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
 
     if (clearScreenAtStart) {
-		screen_bmp->Clear();
+        screen_bmp->Clear();
         render_to_screen(screen_bmp, 0, 0);
     }
 
     fli_target = BitmapHelper::CreateBitmap(screen_bmp->GetWidth(), screen_bmp->GetHeight(), final_col_dep);
     fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
 
-	if (play_fli(flicnam,(BITMAP*)fli_buffer->GetAllegroBitmap(),0,fli_callback)==FLI_ERROR)
+    if (play_fli(flicnam,(BITMAP*)fli_buffer->GetAllegroBitmap(),0,fli_callback)==FLI_ERROR)
     {
         // This is not a fatal error that should prevent the game from continuing
         //quit("FLI/FLC animation play error");
@@ -126,7 +126,7 @@ void play_flc_file(int numb,int playflags) {
     }
 
     delete fli_buffer;
-	screen_bmp->Clear();
+    screen_bmp->Clear();
     set_palette_range(oldpal, 0, 255, 0);
     render_to_screen(screen_bmp, 0, 0);
 
@@ -134,7 +134,7 @@ void play_flc_file(int numb,int playflags) {
     gfxDriver->DestroyDDB(fli_ddb);
     fli_ddb = NULL;
 
-    
+
     delete hicol_buf;
     hicol_buf=NULL;
     //  SetVirtualScreen(screen); wputblock(0,0,backbuffer,0);

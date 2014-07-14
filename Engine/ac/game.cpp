@@ -311,7 +311,7 @@ int Game_GetMODPattern() {
 
 int Game_GetDialogCount()
 {
-  return game.numdialog;
+    return game.numdialog;
 }
 
 void set_game_speed(int fps) {
@@ -377,7 +377,7 @@ int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
     strcat(newFolderTempFile, "agstmp.tmp");
 
     if (!Common::File::TestCreateFile(newFolderTempFile))
-	{
+    {
         return 0;
     }
 
@@ -386,7 +386,7 @@ int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
     sprintf(restartGamePath, "%s""agssave.%d%s", saveGameDirectory, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix);
     Stream *restartGameFile = Common::File::OpenFileRead(restartGamePath);
     if (restartGameFile != NULL)
-	{
+    {
         long fileSize = restartGameFile->GetLength();
         char *mbuffer = (char*)malloc(fileSize);
         restartGameFile->Read(mbuffer, fileSize);
@@ -405,7 +405,7 @@ int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
 
 int Game_SetSaveGameDirectory(const char *newFolder)
 {
-	return SetSaveGameDirectoryPath(newFolder, false);
+    return SetSaveGameDirectoryPath(newFolder, false);
 }
 
 
@@ -971,21 +971,21 @@ void serialize_bitmap(Common::Bitmap *thispic, Stream *out) {
         out->WriteInt32(thispic->GetColorDepth());
         for (int cc=0;cc<thispic->GetHeight();cc++)
         {
-          switch (thispic->GetColorDepth())
-          {
-          case 8:
-          // CHECKME: originally, AGS does not use real BPP here, but simply divides color depth by 8;
-          // therefore 15-bit bitmaps are saved only partially? is this a bug? or?
-          case 15:
-            out->WriteArray(&thispic->GetScanLine(cc)[0], thispic->GetWidth(), 1);
-            break;
-          case 16:
-            out->WriteArrayOfInt16((const int16_t*)&thispic->GetScanLine(cc)[0], thispic->GetWidth());
-            break;
-          case 32:
-            out->WriteArrayOfInt32((const int32_t*)&thispic->GetScanLine(cc)[0], thispic->GetWidth());
-            break;
-          }
+            switch (thispic->GetColorDepth())
+            {
+            case 8:
+                // CHECKME: originally, AGS does not use real BPP here, but simply divides color depth by 8;
+                // therefore 15-bit bitmaps are saved only partially? is this a bug? or?
+            case 15:
+                out->WriteArray(&thispic->GetScanLine(cc)[0], thispic->GetWidth(), 1);
+                break;
+            case 16:
+                out->WriteArrayOfInt16((const int16_t*)&thispic->GetScanLine(cc)[0], thispic->GetWidth());
+                break;
+            case 32:
+                out->WriteArrayOfInt32((const int32_t*)&thispic->GetScanLine(cc)[0], thispic->GetWidth());
+                break;
+            }
         }
     }
 }
@@ -1040,20 +1040,20 @@ Bitmap *read_serialized_bitmap(Stream *in) {
         return NULL;
     for (int vv=0; vv < pichit; vv++)
     {
-      switch (piccoldep)
-      {
-      case 8:
-      // CHECKME: originally, AGS does not use real BPP here, but simply divides color depth by 8
-      case 15:
-        in->ReadArray(thispic->GetScanLineForWriting(vv), picwid, 1);
-        break;
-      case 16:
-        in->ReadArrayOfInt16((int16_t*)thispic->GetScanLineForWriting(vv), picwid);
-        break;
-      case 32:
-        in->ReadArrayOfInt32((int32_t*)thispic->GetScanLineForWriting(vv), picwid);
-        break;
-      }
+        switch (piccoldep)
+        {
+        case 8:
+            // CHECKME: originally, AGS does not use real BPP here, but simply divides color depth by 8
+        case 15:
+            in->ReadArray(thispic->GetScanLineForWriting(vv), picwid, 1);
+            break;
+        case 16:
+            in->ReadArrayOfInt16((int16_t*)thispic->GetScanLineForWriting(vv), picwid);
+            break;
+        case 32:
+            in->ReadArrayOfInt32((int32_t*)thispic->GetScanLineForWriting(vv), picwid);
+            break;
+        }
     }
 
     return thispic;
@@ -1065,7 +1065,7 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
     char tempFileName[MAX_PATH];
     sprintf(tempFileName, "%s""_tmpscht.bmp", saveGameDirectory);
 
-	screenshot->SaveToFile(tempFileName, palette);
+    screenshot->SaveToFile(tempFileName, palette);
 
     update_polled_stuff_if_runtime();
 
@@ -1488,8 +1488,8 @@ void create_savegame_screenshot(Bitmap *&screenShot)
         {
             screenShot = BitmapHelper::CreateBitmap(usewid, usehit, virtual_screen->GetColorDepth());
             screenShot->StretchBlt(virtual_screen,
-				RectWH(0, 0, virtual_screen->GetWidth(), virtual_screen->GetHeight()),
-				RectWH(0, 0, screenShot->GetWidth(), screenShot->GetHeight()));
+                RectWH(0, 0, virtual_screen->GetWidth(), virtual_screen->GetHeight()),
+                RectWH(0, 0, screenShot->GetWidth(), screenShot->GetHeight()));
         }
         else
         {
@@ -1503,8 +1503,8 @@ void create_savegame_screenshot(Bitmap *&screenShot)
 
             screenShot = BitmapHelper::CreateBitmap(usewid, usehit, color_depth);
             screenShot->StretchBlt(tempBlock,
-				RectWH(0, 0, tempBlock->GetWidth(), tempBlock->GetHeight()),
-				RectWH(0, 0, screenShot->GetWidth(), screenShot->GetHeight()));
+                RectWH(0, 0, tempBlock->GetWidth(), tempBlock->GetHeight()),
+                RectWH(0, 0, screenShot->GetWidth(), screenShot->GetHeight()));
 
             delete tempBlock;
         }
@@ -1632,7 +1632,7 @@ int restore_game_head_dynamic_values(Stream *in, int &sg_cur_mode, int &sg_cur_c
 {
     in->ReadInt32(); // gamescrnhit, was used to check display resolution
 
-	// CHECKME: is this still essential? if yes, is there possible workaround?
+    // CHECKME: is this still essential? if yes, is there possible workaround?
     if (in->ReadInt32() != final_col_dep) {
         Display("This game was saved with the engine running at a different colour depth. It cannot be restored.");
         return -7;
@@ -3285,9 +3285,9 @@ void RegisterGameAPI()
 void RegisterStaticObjects()
 {
     ccAddExternalStaticObject("game",&play, &GlobalStaticManager);
-	ccAddExternalStaticObject("gs_globals",&play.globalvars[0], &GlobalStaticManager);
-	ccAddExternalStaticObject("mouse",&scmouse, &GlobalStaticManager);
-	ccAddExternalStaticObject("palette",&palette[0], &GlobalStaticManager);
-	ccAddExternalStaticObject("system",&scsystem, &GlobalStaticManager);
-	ccAddExternalStaticObject("savegameindex",&play.filenumbers[0], &GlobalStaticManager);
+    ccAddExternalStaticObject("gs_globals",&play.globalvars[0], &GlobalStaticManager);
+    ccAddExternalStaticObject("mouse",&scmouse, &GlobalStaticManager);
+    ccAddExternalStaticObject("palette",&palette[0], &GlobalStaticManager);
+    ccAddExternalStaticObject("system",&scsystem, &GlobalStaticManager);
+    ccAddExternalStaticObject("savegameindex",&play.filenumbers[0], &GlobalStaticManager);
 }

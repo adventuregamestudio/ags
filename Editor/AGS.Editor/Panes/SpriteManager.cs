@@ -14,7 +14,7 @@ namespace AGS.Editor
         private Sprite[] _selectedSprites = null;
         private SpriteFolder.SpritesUpdatedHandler _spriteUpdateHandler;
         private SpriteFolder _attachedToFolder = null;
-		private bool _pendingRefreshes = false;
+        private bool _pendingRefreshes = false;
 
         public SpriteManager()
         {
@@ -31,21 +31,21 @@ namespace AGS.Editor
             return "Importing your own sprite graphics";
         }
 
-		protected override void OnWindowActivated()
-		{
-			if (_pendingRefreshes)
-			{
-				RefreshSprites();
-				_pendingRefreshes = false;
-			}
-		}
+        protected override void OnWindowActivated()
+        {
+            if (_pendingRefreshes)
+            {
+                RefreshSprites();
+                _pendingRefreshes = false;
+            }
+        }
 
-		private void RefreshSprites()
-		{
-			spriteSelector.SetDataSource(_attachedToFolder);
-		}
+        private void RefreshSprites()
+        {
+            spriteSelector.SetDataSource(_attachedToFolder);
+        }
 
-		private void spriteSelector_OnSelectionChanged(Sprite[] newSelection)
+        private void spriteSelector_OnSelectionChanged(Sprite[] newSelection)
         {
             _selectedSprites = newSelection;
 
@@ -84,13 +84,13 @@ namespace AGS.Editor
             }
         }
 
-		protected override void OnKeyPressed(Keys keyData)
-		{
-			if (keyData == Keys.Delete)
-			{
-				spriteSelector.DeleteKeyPressed();
-			}
-		}
+        protected override void OnKeyPressed(Keys keyData)
+        {
+            if (keyData == Keys.Delete)
+            {
+                spriteSelector.DeleteKeyPressed();
+            }
+        }
 
         public void PopulatePropertyGrid()
         {
@@ -108,7 +108,7 @@ namespace AGS.Editor
 
         public void GameChanged()
         {
-            if (_attachedToFolder != null) 
+            if (_attachedToFolder != null)
             {
                 _attachedToFolder.SpritesUpdated -= _spriteUpdateHandler;
             }
@@ -120,17 +120,17 @@ namespace AGS.Editor
 
         private void RootSpriteFolder_SpritesUpdated()
         {
-			// Refreshing the sprite list is quite slow, so only do
-			// it if this pane is active
-			if ((Factory.GUIController.ActivePane != null) &&
-				(Factory.GUIController.ActivePane.Control == this))
-			{
-				RefreshSprites();
-			}
-			else
-			{
-				_pendingRefreshes = true;
-			}
+            // Refreshing the sprite list is quite slow, so only do
+            // it if this pane is active
+            if ((Factory.GUIController.ActivePane != null) &&
+                (Factory.GUIController.ActivePane.Control == this))
+            {
+                RefreshSprites();
+            }
+            else
+            {
+                _pendingRefreshes = true;
+            }
         }
     }
 }

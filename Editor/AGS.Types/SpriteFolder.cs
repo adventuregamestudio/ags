@@ -46,64 +46,64 @@ namespace AGS.Types
         public IList<Sprite> Sprites
         {
             get { return _sprites; }
-			set { _sprites = value; }
+            set { _sprites = value; }
         }
 
-		/// <summary>
-		/// Finds the Sprite object for the specified sprite number.
-		/// Returns null if the sprite is not found.
-		/// </summary>
-		/// <param name="spriteNumber">Sprite number to look for</param>
-		/// <param name="recursive">Whether to also search sub-folders</param>
-		public Sprite FindSpriteByID(int spriteNumber, bool recursive)
-		{
-			foreach (Sprite sprite in _sprites)
-			{
-				if (sprite.Number == spriteNumber)
-				{
-					return sprite;
-				}
-			}
+        /// <summary>
+        /// Finds the Sprite object for the specified sprite number.
+        /// Returns null if the sprite is not found.
+        /// </summary>
+        /// <param name="spriteNumber">Sprite number to look for</param>
+        /// <param name="recursive">Whether to also search sub-folders</param>
+        public Sprite FindSpriteByID(int spriteNumber, bool recursive)
+        {
+            foreach (Sprite sprite in _sprites)
+            {
+                if (sprite.Number == spriteNumber)
+                {
+                    return sprite;
+                }
+            }
 
-			if (recursive)
-			{
-				foreach (SpriteFolder subFolder in this.SubFolders)
-				{
-					Sprite found = subFolder.FindSpriteByID(spriteNumber, recursive);
-					if (found != null)
-					{
-						return found;
-					}
-				}
-			}
-			return null;
-		}
+            if (recursive)
+            {
+                foreach (SpriteFolder subFolder in this.SubFolders)
+                {
+                    Sprite found = subFolder.FindSpriteByID(spriteNumber, recursive);
+                    if (found != null)
+                    {
+                        return found;
+                    }
+                }
+            }
+            return null;
+        }
 
-		/// <summary>
-		/// Finds the SpriteFolder object for the folder that contains the sprite.
-		/// Returns null if the sprite is not found.
-		/// </summary>
-		/// <param name="spriteNumber">Sprite number to look for</param>
-		public SpriteFolder FindFolderThatContainsSprite(int spriteNumber)
-		{
-			foreach (Sprite sprite in _sprites)
-			{
-				if (sprite.Number == spriteNumber)
-				{
-					return this;
-				}
-			}
+        /// <summary>
+        /// Finds the SpriteFolder object for the folder that contains the sprite.
+        /// Returns null if the sprite is not found.
+        /// </summary>
+        /// <param name="spriteNumber">Sprite number to look for</param>
+        public SpriteFolder FindFolderThatContainsSprite(int spriteNumber)
+        {
+            foreach (Sprite sprite in _sprites)
+            {
+                if (sprite.Number == spriteNumber)
+                {
+                    return this;
+                }
+            }
 
-			foreach (SpriteFolder subFolder in this.SubFolders)
-			{
-				SpriteFolder found = subFolder.FindFolderThatContainsSprite(spriteNumber);
-				if (found != null)
-				{
-					return found;
-				}
-			}
-			return null;
-		}
+            foreach (SpriteFolder subFolder in this.SubFolders)
+            {
+                SpriteFolder found = subFolder.FindFolderThatContainsSprite(spriteNumber);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+            return null;
+        }
 
         /// <summary>
         /// Causes the SpritesUpdated event to be fired. You should call this

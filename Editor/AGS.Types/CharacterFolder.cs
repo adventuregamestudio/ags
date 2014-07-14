@@ -23,7 +23,7 @@ namespace AGS.Types
 
         public CharacterFolder() : this("Default") { }
 
-        public CharacterFolder(XmlNode node, XmlNode parentNodeForBackwardsCompatability) : 
+        public CharacterFolder(XmlNode node, XmlNode parentNodeForBackwardsCompatability) :
             base(node, parentNodeForBackwardsCompatability) { }
 
         private CharacterFolder(XmlNode node) : base(node) { }
@@ -44,7 +44,7 @@ namespace AGS.Types
             foreach (XmlNode invNode in SerializeUtils.GetChildNodes(parentNodeForBackwardsCompatability, "Characters"))
             {
                 _items.Add(CreateItem(invNode));
-            }           
+            }
         }
 
         protected override CharacterFolder CreateFolder(XmlNode node)

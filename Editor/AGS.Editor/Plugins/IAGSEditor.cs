@@ -15,13 +15,13 @@ namespace AGS.Editor
         public const int VTABLE_BYTE_OFFSET = 12;
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-		public delegate IntPtr GetEditorHandleDelegate(IAGSEditorForNativePlugins instance);
+        public delegate IntPtr GetEditorHandleDelegate(IAGSEditorForNativePlugins instance);
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-		public delegate IntPtr GetWindowHandleDelegate(IAGSEditorForNativePlugins instance);
+        public delegate IntPtr GetWindowHandleDelegate(IAGSEditorForNativePlugins instance);
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-		public delegate void RegisterScriptHeaderDelegate(IAGSEditorForNativePlugins instance, string headerText);
+        public delegate void RegisterScriptHeaderDelegate(IAGSEditorForNativePlugins instance, string headerText);
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-		public delegate void UnRegisterScriptHeaderDelegate(IAGSEditorForNativePlugins instance, string headerText);
+        public delegate void UnRegisterScriptHeaderDelegate(IAGSEditorForNativePlugins instance, string headerText);
 
         [FieldOffset(0)]
         public IntPtr vtablePtr;

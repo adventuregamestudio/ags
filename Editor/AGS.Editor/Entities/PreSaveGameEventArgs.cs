@@ -5,18 +5,18 @@ using System.Text;
 
 namespace AGS.Editor
 {
-	public class PreSaveGameEventArgs
-	{
-		private bool _saveSucceeded = true;
+    public class PreSaveGameEventArgs
+    {
+        private bool _saveSucceeded = true;
 
-		public PreSaveGameEventArgs()
-		{
-		}
+        public PreSaveGameEventArgs()
+        {
+        }
 
-		public bool SaveSucceeded
-		{
-			get { return _saveSucceeded; }
-			set { _saveSucceeded = value; }
-		}
-	}
+        public bool SaveSucceeded
+        {
+            get { return _saveSucceeded; }
+            set { _saveSucceeded = value; }
+        }
+    }
 }

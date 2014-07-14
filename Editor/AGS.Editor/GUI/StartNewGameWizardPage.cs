@@ -19,7 +19,7 @@ namespace AGS.Editor
             InitializeComponent();
             _templates = templates;
             _imageList.ImageSize = new Size(32, 32);
-			_imageList.Images.Add("_default", Resources.ResourceManager.GetIcon("template_noicon.ico"));
+            _imageList.Images.Add("_default", Resources.ResourceManager.GetIcon("template_noicon.ico"));
 
             foreach (GameTemplate template in _templates)
             {

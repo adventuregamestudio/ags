@@ -100,10 +100,10 @@ namespace AGS.Editor
         public bool MouseMove(int x, int y, RoomEditorState state)
         {
             if (!_movingCharacterWithMouse) return false;
-            
+
             int newX = (x + state.ScrollOffsetX) / state.ScaleFactor - _mouseOffsetX;
             int newY = (y + state.ScrollOffsetY) / state.ScaleFactor - _mouseOffsetY;
-            return MoveCharacter(newX, newY);                     
+            return MoveCharacter(newX, newY);
         }
 
         private bool MoveCharacter(int newX, int newY)
@@ -361,20 +361,20 @@ namespace AGS.Editor
             get { return RoomAreaMaskType.None; }
         }
 
-		public int SelectedArea
-		{
-			get { return 0; }
-		}
+        public int SelectedArea
+        {
+            get { return 0; }
+        }
 
-		public bool ShowTransparencySlider
-		{
-			get { return false; }
-		}
+        public bool ShowTransparencySlider
+        {
+            get { return false; }
+        }
 
-		public string HelpKeyword
-		{
-			get { return string.Empty; }
-		}
+        public string HelpKeyword
+        {
+            get { return string.Empty; }
+        }
 
         public void DoubleClick(RoomEditorState state)
         {

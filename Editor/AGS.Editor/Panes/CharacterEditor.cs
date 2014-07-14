@@ -36,7 +36,7 @@ namespace AGS.Editor
         {
             return "Characters";
         }
-        
+
         private void UpdateViewPreview()
         {
             viewPreview1.ViewToPreview = Factory.AGSEditor.CurrentGame.FindViewByID(_character.NormalView);

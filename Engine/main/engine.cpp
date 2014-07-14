@@ -147,9 +147,9 @@ int engine_init_allegro()
 }
 
 void winclosehook() {
-  want_exit = 1;
-  abort_engine = 1;
-  check_dynamic_sprites_at_exit = 0;
+    want_exit = 1;
+    abort_engine = 1;
+    check_dynamic_sprites_at_exit = 0;
 }
 
 void engine_setup_window()
@@ -447,7 +447,7 @@ int engine_init_mouse()
     }
 #endif // DEBUG
 
-	return RETURN_CONTINUE;
+    return RETURN_CONTINUE;
 }
 
 int engine_check_memory()
@@ -793,39 +793,39 @@ extern char android_base_directory[256];
 
 int check_write_access() {
 
-  if (platform->GetDiskFreeSpaceMB() < 2)
-    return 0;
+    if (platform->GetDiskFreeSpaceMB() < 2)
+        return 0;
 
-  our_eip = -1895;
+    our_eip = -1895;
 
-  // The Save Game Dir is the only place that we should write to
-  char tempPath[MAX_PATH];
-  sprintf(tempPath, "%s""tmptest.tmp", saveGameDirectory);
-  Stream *temp_s = Common::File::CreateFile(tempPath);
-  if (!temp_s)
+    // The Save Game Dir is the only place that we should write to
+    char tempPath[MAX_PATH];
+    sprintf(tempPath, "%s""tmptest.tmp", saveGameDirectory);
+    Stream *temp_s = Common::File::CreateFile(tempPath);
+    if (!temp_s)
 #if defined(ANDROID_VERSION)
-  {
-	  put_backslash(android_base_directory);
-	  sprintf(tempPath, "%s""tmptest.tmp", android_base_directory);
-	  temp_s = Common::File::CreateFile(tempPath);
-	  if (temp_s == NULL) return 0;
-	  else SetSaveGameDirectoryPath(android_base_directory, true);
-  }
+    {
+        put_backslash(android_base_directory);
+        sprintf(tempPath, "%s""tmptest.tmp", android_base_directory);
+        temp_s = Common::File::CreateFile(tempPath);
+        if (temp_s == NULL) return 0;
+        else SetSaveGameDirectoryPath(android_base_directory, true);
+    }
 #else
-    return 0;
+        return 0;
 #endif // ANDROID_VERSION
 
-  our_eip = -1896;
+    our_eip = -1896;
 
-  temp_s->Write("just to test the drive free space", 30);
-  delete temp_s;
+    temp_s->Write("just to test the drive free space", 30);
+    delete temp_s;
 
-  our_eip = -1897;
+    our_eip = -1897;
 
-  if (unlink(tempPath))
-    return 0;
+    if (unlink(tempPath))
+        return 0;
 
-  return 1;
+    return 1;
 }
 
 int engine_check_disk_space()
@@ -884,14 +884,14 @@ void engine_init_modxm_player()
 void show_preload () {
     // ** Do the preload graphic if available
     color temppal[256];
-	Bitmap *splashsc = BitmapHelper::CreateRawBitmapOwner( load_pcx("preload.pcx",temppal) );
+    Bitmap *splashsc = BitmapHelper::CreateRawBitmapOwner( load_pcx("preload.pcx",temppal) );
     if (splashsc != NULL) {
         if (splashsc->GetColorDepth() == 8)
             set_palette_range(temppal, 0, 255, 0);
-		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
+        Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
         Bitmap *tsc = BitmapHelper::CreateBitmapCopy(splashsc, screen_bmp->GetColorDepth());
 
-		screen_bmp->Fill(0);
+        screen_bmp->Fill(0);
         screen_bmp->StretchBlt(tsc, RectWH(0, 0, scrnwid,scrnhit), Common::kBitmap_Transparency);
 
         gfxDriver->ClearDrawList();
@@ -904,7 +904,7 @@ void show_preload () {
             gfxDriver->DestroyDDB(ddb);
         }
         else
-			render_to_screen(screen_bmp, 0, 0);
+            render_to_screen(screen_bmp, 0, 0);
 
         delete splashsc;
         delete tsc;
@@ -1249,32 +1249,32 @@ void engine_init_game_shit()
 
 void engine_update_mp3_thread()
 {
-  update_mp3_thread();
-  platform->Delay(50);
+    update_mp3_thread();
+    platform->Delay(50);
 }
 
 void engine_start_multithreaded_audio()
 {
-  // PSP: Initialize the sound cache.
-  clear_sound_cache();
+    // PSP: Initialize the sound cache.
+    clear_sound_cache();
 
-  // Create sound update thread. This is a workaround for sound stuttering.
-  if (psp_audio_multithreaded)
-  {
-    if (!audioThread.CreateAndStart(engine_update_mp3_thread, true))
+    // Create sound update thread. This is a workaround for sound stuttering.
+    if (psp_audio_multithreaded)
     {
-      Out::FPrint("Failed to start audio thread, audio will be processed on the main thread");
-      psp_audio_multithreaded = 0;
+        if (!audioThread.CreateAndStart(engine_update_mp3_thread, true))
+        {
+            Out::FPrint("Failed to start audio thread, audio will be processed on the main thread");
+            psp_audio_multithreaded = 0;
+        }
+        else
+        {
+            Out::FPrint("Audio thread started");
+        }
     }
     else
     {
-      Out::FPrint("Audio thread started");
+        Out::FPrint("Audio is processed on the main thread");
     }
-  }
-  else
-  {
-    Out::FPrint("Audio is processed on the main thread");
-  }
 }
 
 void engine_prepare_to_start_game()
@@ -1295,9 +1295,9 @@ Bitmap *test_allegro_bitmap;
 IDriverDependantBitmap *test_allegro_ddb;
 void allegro_bitmap_test_init()
 {
-	test_allegro_bitmap = NULL;
-	// Switched the test off for now
-	//test_allegro_bitmap = AllegroBitmap::CreateBitmap(320,200,32);
+    test_allegro_bitmap = NULL;
+    // Switched the test off for now
+    //test_allegro_bitmap = AllegroBitmap::CreateBitmap(320,200,32);
 }
 
 int initialize_engine(int argc,char*argv[])
@@ -1337,7 +1337,7 @@ int initialize_engine(int argc,char*argv[])
     our_eip = -188;
 
     res = engine_init_mouse();
-	if (res != RETURN_CONTINUE) {
+    if (res != RETURN_CONTINUE) {
         return res;
     }
 
@@ -1351,14 +1351,14 @@ int initialize_engine(int argc,char*argv[])
     engine_init_rooms();
 
     our_eip = -186;
-    
+
     res = engine_init_speech();
     if (res != RETURN_CONTINUE) {
         return res;
     }
 
     our_eip = -185;
-    
+
     res = engine_init_music();
     if (res != RETURN_CONTINUE) {
         return res;
@@ -1406,7 +1406,7 @@ int initialize_engine(int argc,char*argv[])
     if (res != RETURN_CONTINUE) {
         return res;
     }
-    
+
     res = engine_check_register_game();
     if (res != RETURN_CONTINUE) {
         return res;
@@ -1456,7 +1456,7 @@ int initialize_engine(int argc,char*argv[])
 
     engine_prepare_to_start_game();
 
-	allegro_bitmap_test_init();
+    allegro_bitmap_test_init();
 
     initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
 

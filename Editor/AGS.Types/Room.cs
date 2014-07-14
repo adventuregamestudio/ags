@@ -70,7 +70,8 @@ namespace AGS.Types
                     "FirstLoad", EVENT_SUFFIX_ROOM_LOAD, "RepExec", "AfterFadeIn", "Leave" });
         }
 
-        public Room(int roomNumber) : base(roomNumber)
+        public Room(int roomNumber)
+            : base(roomNumber)
         {
             _script = new Script("room" + roomNumber + ".asc", "// Room script file", false);
 
@@ -109,7 +110,7 @@ namespace AGS.Types
         public bool Modified
         {
             get { return _modified; }
-            set 
+            set
             {
                 if (value != _modified)
                 {
@@ -344,9 +345,9 @@ namespace AGS.Types
             get { return _interactions; }
         }
 
-		void IChangeNotification.ItemModified()
-		{
-			this.Modified = true;
-		}
-	}
+        void IChangeNotification.ItemModified()
+        {
+            this.Modified = true;
+        }
+    }
 }

@@ -10,6 +10,6 @@ namespace AGS.Editor
         string ProcessText(string text, GameTextType textType);
         string ProcessText(string text, GameTextType textType, int characterID);
         // Whether the client needs to use the return value from ProcessText
-        bool MakesChanges { get; } 
+        bool MakesChanges { get; }
     }
 }

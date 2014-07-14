@@ -16,7 +16,7 @@ namespace AGS.Editor.TextProcessing
         Script _script;
         List<ScriptTokenReference> _results;
 
-        public FindAllUsages(ScintillaWrapper scintilla, ScriptEditor editor, 
+        public FindAllUsages(ScintillaWrapper scintilla, ScriptEditor editor,
             Script script, AGSEditor agsEditor)
         {
             this._scriptEditor = editor;
@@ -39,15 +39,15 @@ namespace AGS.Editor.TextProcessing
             foreach (IScript script in scriptsToSearch)
             {
                 if (script == null) continue;
-                _scintilla = new ScintillaWrapper();                
-                _scintilla.SetText(script.Text);            
+                _scintilla = new ScintillaWrapper();
+                _scintilla.SetText(script.Text);
                 FindAllUsagesInScript(token, startSearchAtLineIndex, endSearchAtLineIndex, script);
             }
 
             ShowResults();
         }
 
-        private void AddToResultsIfNeeded(IScript script, string line, 
+        private void AddToResultsIfNeeded(IScript script, string line,
             int characterIndex, int lineIndex, string token)
         {
             if (!_scintilla.InsideStringOrComment(false, characterIndex))
@@ -83,7 +83,7 @@ namespace AGS.Editor.TextProcessing
                     endSearchAtLineIndex = _scintilla.FindLineNumberForCharacterIndex(function.EndsAtCharacterIndex);
                 }
             }
-            
+
             if (scriptsToSearch == null)
             {
                 ScriptStruct scriptStruct = null;
@@ -102,19 +102,19 @@ namespace AGS.Editor.TextProcessing
             }
             return scriptsToSearch;
         }
-        
+
         private void ShowResults()
         {
             if (_results.Count == 0)
             {
-                Factory.GUIController.ShowMessage("No usages were found!", MessageBoxIcon.Information);                
+                Factory.GUIController.ShowMessage("No usages were found!", MessageBoxIcon.Information);
             }
             else if (_results.Count == 1)
             {
                 Factory.GUIController.ZoomToFile(_results[0].Script.FileName, ZoomToFileZoomType.ZoomToCharacterPosition,
                     _results[0].CharacterIndex);
-                Factory.GUIController.ShowMessage("This is the only usage!", MessageBoxIcon.Information);  
-            }                            
+                Factory.GUIController.ShowMessage("This is the only usage!", MessageBoxIcon.Information);
+            }
             else
             {
                 Factory.GUIController.ShowFindSymbolResults(_results);
@@ -122,7 +122,7 @@ namespace AGS.Editor.TextProcessing
         }
 
         private void FindAllUsagesInScript(string token, int? startSearchAtLineIndex, int? endSearchAtLineIndex, IScript script)
-        {            
+        {
             string[] lines = script.Text.Split('\n');
             int startLineCharacterIndex = 0;
             int startSearchAtLine = startSearchAtLineIndex.HasValue ?
@@ -157,7 +157,7 @@ namespace AGS.Editor.TextProcessing
             return char.IsLetterOrDigit(c) || c == '_';
         }
 
-        private bool AddTokenIfAloneInLine(string[] splitLine, IScript script, 
+        private bool AddTokenIfAloneInLine(string[] splitLine, IScript script,
             string line, int startLineCharacterIndex, int lineIndex, string token)
         {
             if (splitLine == null || splitLine.Length == 0)
@@ -169,7 +169,7 @@ namespace AGS.Editor.TextProcessing
             return false;
         }
 
-        private bool AddTokenIfFirstInLine(string[] splitLine,IScript script, 
+        private bool AddTokenIfFirstInLine(string[] splitLine, IScript script,
             string line, int startLineCharacterIndex, int lineIndex, string token)
         {
             if (line.StartsWith(token) && !string.IsNullOrEmpty(splitLine[0])
@@ -182,7 +182,7 @@ namespace AGS.Editor.TextProcessing
             return false;
         }
 
-        private bool AddTokenIfLastInLine(string[] splitLine, IScript script, 
+        private bool AddTokenIfLastInLine(string[] splitLine, IScript script,
             string line, int startLineCharacterIndex, int lineIndex, string token)
         {
             string beforeLastToken = splitLine[splitLine.Length - 1];
@@ -197,7 +197,7 @@ namespace AGS.Editor.TextProcessing
             return false;
         }
 
-        private void AddTokenIfMiddleInLine(string[] splitLine, IScript script, 
+        private void AddTokenIfMiddleInLine(string[] splitLine, IScript script,
             string line, int startLineCharacterIndex, int lineIndex, string token)
         {
             int length = 0;
@@ -218,6 +218,6 @@ namespace AGS.Editor.TextProcessing
                 }
                 length += token.Length;
             }
-        }        
+        }
     }
 }

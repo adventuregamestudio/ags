@@ -365,23 +365,23 @@ RuntimeScriptValue Sc_Button_SetTextColor(void *self, const RuntimeScriptValue *
 void RegisterButtonAPI()
 {
     ccAddExternalObjectFunction("Button::Animate^4",            Sc_Button_Animate);
-	ccAddExternalObjectFunction("Button::GetText^1",            Sc_Button_GetText);
-	ccAddExternalObjectFunction("Button::SetText^1",            Sc_Button_SetText);
-	ccAddExternalObjectFunction("Button::get_ClipImage",        Sc_Button_GetClipImage);
-	ccAddExternalObjectFunction("Button::set_ClipImage",        Sc_Button_SetClipImage);
-	ccAddExternalObjectFunction("Button::get_Font",             Sc_Button_GetFont);
-	ccAddExternalObjectFunction("Button::set_Font",             Sc_Button_SetFont);
-	ccAddExternalObjectFunction("Button::get_Graphic",          Sc_Button_GetGraphic);
-	ccAddExternalObjectFunction("Button::get_MouseOverGraphic", Sc_Button_GetMouseOverGraphic);
-	ccAddExternalObjectFunction("Button::set_MouseOverGraphic", Sc_Button_SetMouseOverGraphic);
-	ccAddExternalObjectFunction("Button::get_NormalGraphic",    Sc_Button_GetNormalGraphic);
-	ccAddExternalObjectFunction("Button::set_NormalGraphic",    Sc_Button_SetNormalGraphic);
-	ccAddExternalObjectFunction("Button::get_PushedGraphic",    Sc_Button_GetPushedGraphic);
-	ccAddExternalObjectFunction("Button::set_PushedGraphic",    Sc_Button_SetPushedGraphic);
-	ccAddExternalObjectFunction("Button::get_Text",             Sc_Button_GetText_New);
-	ccAddExternalObjectFunction("Button::set_Text",             Sc_Button_SetText);
-	ccAddExternalObjectFunction("Button::get_TextColor",        Sc_Button_GetTextColor);
-	ccAddExternalObjectFunction("Button::set_TextColor",        Sc_Button_SetTextColor);
+    ccAddExternalObjectFunction("Button::GetText^1",            Sc_Button_GetText);
+    ccAddExternalObjectFunction("Button::SetText^1",            Sc_Button_SetText);
+    ccAddExternalObjectFunction("Button::get_ClipImage",        Sc_Button_GetClipImage);
+    ccAddExternalObjectFunction("Button::set_ClipImage",        Sc_Button_SetClipImage);
+    ccAddExternalObjectFunction("Button::get_Font",             Sc_Button_GetFont);
+    ccAddExternalObjectFunction("Button::set_Font",             Sc_Button_SetFont);
+    ccAddExternalObjectFunction("Button::get_Graphic",          Sc_Button_GetGraphic);
+    ccAddExternalObjectFunction("Button::get_MouseOverGraphic", Sc_Button_GetMouseOverGraphic);
+    ccAddExternalObjectFunction("Button::set_MouseOverGraphic", Sc_Button_SetMouseOverGraphic);
+    ccAddExternalObjectFunction("Button::get_NormalGraphic",    Sc_Button_GetNormalGraphic);
+    ccAddExternalObjectFunction("Button::set_NormalGraphic",    Sc_Button_SetNormalGraphic);
+    ccAddExternalObjectFunction("Button::get_PushedGraphic",    Sc_Button_GetPushedGraphic);
+    ccAddExternalObjectFunction("Button::set_PushedGraphic",    Sc_Button_SetPushedGraphic);
+    ccAddExternalObjectFunction("Button::get_Text",             Sc_Button_GetText_New);
+    ccAddExternalObjectFunction("Button::set_Text",             Sc_Button_SetText);
+    ccAddExternalObjectFunction("Button::get_TextColor",        Sc_Button_GetTextColor);
+    ccAddExternalObjectFunction("Button::set_TextColor",        Sc_Button_SetTextColor);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

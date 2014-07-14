@@ -22,18 +22,18 @@ const char   *WFN_FILE_SIGNATURE = "WGT Font File  ";
 const size_t  WFN_FILE_SIG_LENGTH = 15;
 
 WFNFont::WFNChar::WFNChar()
-    : Width(0)
-    , Height(0)
-    , Data(NULL)
+: Width(0)
+, Height(0)
+, Data(NULL)
 {
 }
 
 WFNFont::WFNChar WFNFont::_emptyChar;
 
 WFNFont::WFNFont()
-    : _charCount(0)
-    , _chars(NULL)
-    , _charData(NULL)
+: _charCount(0)
+, _chars(NULL)
+, _charData(NULL)
 {
 }
 

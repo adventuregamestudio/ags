@@ -4,134 +4,134 @@
 
 namespace AGS
 {
-namespace Engine
-{
-
-const Version Version::LastOldFormatVersion(3, 2, 2, 1120);
-
-Version::Version()
-    : Major(0)
-    , Minor(0)
-    , Release(0)
-    , Revision(0)
-{
-    MakeString();
-}
-
-Version::Version(int32_t major, int32_t minor, int32_t release)
-    : Major(major)
-    , Minor(minor)
-    , Release(release)
-    , Revision(0)
-{
-    MakeString();
-}
-
-Version::Version(int32_t major, int32_t minor, int32_t release, int32_t revision)
-    : Major(major)
-    , Minor(minor)
-    , Release(release)
-    , Revision(revision)
-{
-    MakeString();
-}
-
-Version::Version(int32_t major, int32_t minor, int32_t release, int32_t revision, const String &special)
-    : Major(major)
-    , Minor(minor)
-    , Release(release)
-    , Revision(revision)
-    , Special(special)
-{
-    MakeString();
-}
-
-Version::Version(int32_t major, int32_t minor, int32_t release, int32_t revision, const String &special, const String &build_info)
-    : Major(major)
-    , Minor(minor)
-    , Release(release)
-    , Revision(revision)
-    , Special(special)
-    , BuildInfo(build_info)
-{
-    MakeString();
-}
-
-Version::Version(const String &version_string)
-    : Major(0)
-    , Minor(0)
-    , Release(0)
-    , Revision(0)
-{
-    SetFromString(version_string);
-}
-
-void Version::SetFromString(const String &version_string)
-{
-    Major = version_string.LeftSection('.').ToInt();
-    String second_section = version_string.Section('.', 1, 2);
-    Minor = second_section.ToInt();
-    String third_section = version_string.Section('.', 2, 3);
-    String fourth_section = version_string.Section('.', 3, 4);
-    String revision_section;
-
-    bool old_version_format = Major < 3 || fourth_section.IsEmpty();
-    if (old_version_format)
+    namespace Engine
     {
-        if (second_section.GetLength() > 1)
+
+        const Version Version::LastOldFormatVersion(3, 2, 2, 1120);
+
+        Version::Version()
+            : Major(0)
+            , Minor(0)
+            , Release(0)
+            , Revision(0)
         {
-            Release = Minor % 10;
-            Minor /= 10;
+            MakeString();
         }
-        else
-        {
-            Release = 0;
-        }
-        revision_section = third_section;
-    }
-    else
-    {
-        Release = third_section.ToInt();
-        revision_section = fourth_section;
-    }
 
-    int revision_length = 0;
-    if (!revision_section.IsEmpty())
-    {
-        const char *seek_ptr = revision_section.GetCStr();
-        const char *end_ptr = revision_section.GetCStr() + revision_section.GetLength();
-        while (seek_ptr != end_ptr)
+        Version::Version(int32_t major, int32_t minor, int32_t release)
+            : Major(major)
+            , Minor(minor)
+            , Release(release)
+            , Revision(0)
         {
-            if (!isdigit(*seek_ptr))
+            MakeString();
+        }
+
+        Version::Version(int32_t major, int32_t minor, int32_t release, int32_t revision)
+            : Major(major)
+            , Minor(minor)
+            , Release(release)
+            , Revision(revision)
+        {
+            MakeString();
+        }
+
+        Version::Version(int32_t major, int32_t minor, int32_t release, int32_t revision, const String &special)
+            : Major(major)
+            , Minor(minor)
+            , Release(release)
+            , Revision(revision)
+            , Special(special)
+        {
+            MakeString();
+        }
+
+        Version::Version(int32_t major, int32_t minor, int32_t release, int32_t revision, const String &special, const String &build_info)
+            : Major(major)
+            , Minor(minor)
+            , Release(release)
+            , Revision(revision)
+            , Special(special)
+            , BuildInfo(build_info)
+        {
+            MakeString();
+        }
+
+        Version::Version(const String &version_string)
+            : Major(0)
+            , Minor(0)
+            , Release(0)
+            , Revision(0)
+        {
+            SetFromString(version_string);
+        }
+
+        void Version::SetFromString(const String &version_string)
+        {
+            Major = version_string.LeftSection('.').ToInt();
+            String second_section = version_string.Section('.', 1, 2);
+            Minor = second_section.ToInt();
+            String third_section = version_string.Section('.', 2, 3);
+            String fourth_section = version_string.Section('.', 3, 4);
+            String revision_section;
+
+            bool old_version_format = Major < 3 || fourth_section.IsEmpty();
+            if (old_version_format)
             {
-                break;
+                if (second_section.GetLength() > 1)
+                {
+                    Release = Minor % 10;
+                    Minor /= 10;
+                }
+                else
+                {
+                    Release = 0;
+                }
+                revision_section = third_section;
             }
-            revision_length++;
-            seek_ptr++;
+            else
+            {
+                Release = third_section.ToInt();
+                revision_section = fourth_section;
+            }
+
+            int revision_length = 0;
+            if (!revision_section.IsEmpty())
+            {
+                const char *seek_ptr = revision_section.GetCStr();
+                const char *end_ptr = revision_section.GetCStr() + revision_section.GetLength();
+                while (seek_ptr != end_ptr)
+                {
+                    if (!isdigit(*seek_ptr))
+                    {
+                        break;
+                    }
+                    revision_length++;
+                    seek_ptr++;
+                }
+            }
+
+            Revision = revision_section.Left(revision_length).ToInt();
+            // In old version format a special tag was added right after revision digits.
+            // In new version format a special tag is separated from revision digits with single space char.
+            Special = revision_section.Mid(revision_length + (old_version_format ? 0 : 1));
+
+            MakeString();
         }
-    }
-    
-    Revision = revision_section.Left(revision_length).ToInt();
-    // In old version format a special tag was added right after revision digits.
-    // In new version format a special tag is separated from revision digits with single space char.
-    Special = revision_section.Mid(revision_length + (old_version_format ? 0 : 1));
-    
-    MakeString();
-}
 
-void Version::MakeString()
-{
-    if (Special.IsEmpty())
-    {
-        LongString.Format("%d.%d.%d.%d", Major, Minor, Release, Revision);
-    }
-    else
-    {
-        LongString.Format("%d.%d.%d.%d %s", Major, Minor, Release, Revision, Special.GetCStr());
-    }
-    BackwardCompatibleString.Format("%d.%02d.%d%s", Major, Minor * 10 + Release, Revision, Special.GetCStr());
-    ShortString.Format("%d.%d", Major, Minor);
-}
+        void Version::MakeString()
+        {
+            if (Special.IsEmpty())
+            {
+                LongString.Format("%d.%d.%d.%d", Major, Minor, Release, Revision);
+            }
+            else
+            {
+                LongString.Format("%d.%d.%d.%d %s", Major, Minor, Release, Revision, Special.GetCStr());
+            }
+            BackwardCompatibleString.Format("%d.%02d.%d%s", Major, Minor * 10 + Release, Revision, Special.GetCStr());
+            ShortString.Format("%d.%d", Major, Minor);
+        }
 
-} // namespace Engine
+    } // namespace Engine
 } // namespace AGS

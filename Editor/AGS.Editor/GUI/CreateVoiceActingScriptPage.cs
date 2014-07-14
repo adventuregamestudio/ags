@@ -12,16 +12,16 @@ namespace AGS.Editor
 {
     public partial class CreateVoiceActingScriptPage : WizardPage
     {
-		public CreateVoiceActingScriptPage()
+        public CreateVoiceActingScriptPage()
         {
             InitializeComponent();
         }
 
-		public string SelectedFilePath
-		{
-			get { return txtFilePath.Text; }
-			set { txtFilePath.Text = value; }
-		}
+        public string SelectedFilePath
+        {
+            get { return txtFilePath.Text; }
+            set { txtFilePath.Text = value; }
+        }
 
         public override string TitleText
         {
@@ -33,17 +33,17 @@ namespace AGS.Editor
 
         public override bool NextButtonPressed()
         {
-			return true;
+            return true;
         }
 
-		private void btnBrowse_Click(object sender, EventArgs e)
-		{
-			string selectedPath = Factory.GUIController.ShowSaveFileDialog("Select output file", "Text files (*.txt)|*.txt");
-			if (selectedPath != null)
-			{
-				txtFilePath.Text = selectedPath;
-			}
-		}
+        private void btnBrowse_Click(object sender, EventArgs e)
+        {
+            string selectedPath = Factory.GUIController.ShowSaveFileDialog("Select output file", "Text files (*.txt)|*.txt");
+            if (selectedPath != null)
+            {
+                txtFilePath.Text = selectedPath;
+            }
+        }
 
     }
 }

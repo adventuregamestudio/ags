@@ -55,22 +55,22 @@ int InventoryItem_GetID(ScriptInvItem *scii) {
 }
 
 ScriptInvItem *GetInvAtLocation(int xx, int yy) {
-  int hsnum = GetInvAt(xx, yy);
-  if (hsnum <= 0)
-    return NULL;
-  return &scrInv[hsnum];
+    int hsnum = GetInvAt(xx, yy);
+    if (hsnum <= 0)
+        return NULL;
+    return &scrInv[hsnum];
 }
 
 void InventoryItem_GetName(ScriptInvItem *iitem, char *buff) {
-  GetInvName(iitem->id, buff);
+    GetInvName(iitem->id, buff);
 }
 
 const char* InventoryItem_GetName_New(ScriptInvItem *invitem) {
-  return CreateNewScriptString(get_translation(game.invinfo[invitem->id].name));
+    return CreateNewScriptString(get_translation(game.invinfo[invitem->id].name));
 }
 
 int InventoryItem_GetGraphic(ScriptInvItem *iitem) {
-  return game.invinfo[iitem->id].pic;
+    return game.invinfo[iitem->id].pic;
 }
 
 void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood) {
@@ -78,7 +78,7 @@ void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood) {
 }
 
 int InventoryItem_CheckInteractionAvailable(ScriptInvItem *iitem, int mood) {
-  return IsInventoryInteractionAvailable(iitem->id, mood);
+    return IsInventoryInteractionAvailable(iitem->id, mood);
 }
 
 int InventoryItem_GetProperty(ScriptInvItem *scii, const char *property) {

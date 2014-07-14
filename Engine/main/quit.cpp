@@ -108,9 +108,9 @@ void quit_shutdown_platform(char *qmsg)
     quit_check_dynamic_sprites(qmsg);    
 
     // allegro_exit assumes screen is correct
-	if (_old_screen) {
-		BitmapHelper::SetScreenBitmap( _old_screen );
-	}
+    if (_old_screen) {
+        BitmapHelper::SetScreenBitmap( _old_screen );
+    }
 
     platform->FinishedUsingGraphicsMode();
 
@@ -175,7 +175,7 @@ void quit_destroy_subscreen()
 {
     // close graphics mode (Win) or return to text mode (DOS)
     delete _sub_screen;
-	_sub_screen = NULL;
+    _sub_screen = NULL;
 }
 
 void quit_message_on_exit(char *qmsg, char *alertis)
@@ -237,9 +237,9 @@ extern Bitmap *test_allegro_bitmap;
 extern IDriverDependantBitmap *test_allegro_ddb;
 void allegro_bitmap_test_release()
 {
-	delete test_allegro_bitmap;
-	if (test_allegro_ddb)
-		gfxDriver->DestroyDDB(test_allegro_ddb);
+    delete test_allegro_bitmap;
+    if (test_allegro_ddb)
+        gfxDriver->DestroyDDB(test_allegro_ddb);
 }
 
 char return_to_roomedit[30] = "\0";
@@ -260,7 +260,7 @@ void quit(const char *quitmsg) {
     qmsgbufr[STD_BUFFER_SIZE - 1] = 0;
     char *qmsg = &qmsgbufr[0];
 
-	allegro_bitmap_test_release();
+    allegro_bitmap_test_release();
 
     handledErrorInEditor = false;
 
@@ -281,7 +281,7 @@ void quit(const char *quitmsg) {
     our_eip = 9019;
 
     quit_shutdown_audio();
-    
+
     our_eip = 9901;
 
     char alertis[1500]="\0";

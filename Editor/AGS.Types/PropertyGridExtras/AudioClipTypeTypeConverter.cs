@@ -38,5 +38,5 @@ namespace AGS.Types
             }
         }
 
-   }
+    }
 }

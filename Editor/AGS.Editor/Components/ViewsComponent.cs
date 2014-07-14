@@ -13,10 +13,10 @@ namespace AGS.Editor.Components
     {
         private const string COMMAND_NEW_VIEW = "NewView";
         private const string COMMAND_RENAME = "RenameView";
-		private const string COMMAND_DELETE = "DeleteView";
+        private const string COMMAND_DELETE = "DeleteView";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
         private const string ICON_KEY = "ViewsIcon";
-        
+
         private Dictionary<View, ContentDocument> _documents;
         private Game.ViewListUpdatedHandler _viewsUpdatedHandler;
         private Game _eventHookedToGame = null;
@@ -29,8 +29,8 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon(ICON_KEY, ResourceManager.GetIcon("view.ico"));
             _guiController.RegisterIcon("ViewIcon", ResourceManager.GetIcon("view-item.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Views", ICON_KEY);
-			_guiController.ProjectTree.OnAfterLabelEdit += new ProjectTree.AfterLabelEditHandler(ProjectTree_OnAfterLabelEdit);
-			RefreshDataFromGame();
+            _guiController.ProjectTree.OnAfterLabelEdit += new ProjectTree.AfterLabelEditHandler(ProjectTree_OnAfterLabelEdit);
+            RefreshDataFromGame();
         }
 
         public override string ComponentID
@@ -40,22 +40,22 @@ namespace AGS.Editor.Components
 
         protected override void ItemCommandClick(string controlID)
         {
-			if (controlID == COMMAND_DELETE)
-			{
-				View viewToDelete = _items[_rightClickedID];
-				if (_guiController.ShowQuestion("Are you sure you want to delete view '" + viewToDelete.Name + "'?" + Environment.NewLine + Environment.NewLine + "If it is used as an animation anywhere it could cause crashes in the game.") == System.Windows.Forms.DialogResult.Yes)
-				{
-					string usage = GetViewUsageReport(viewToDelete.ID);
-					if (usage != null)
-					{
-						_guiController.ShowMessage(usage, MessageBoxIconType.Warning);
-					}
-					else
-					{
-                        DeleteSingleItem(viewToDelete);                        
+            if (controlID == COMMAND_DELETE)
+            {
+                View viewToDelete = _items[_rightClickedID];
+                if (_guiController.ShowQuestion("Are you sure you want to delete view '" + viewToDelete.Name + "'?" + Environment.NewLine + Environment.NewLine + "If it is used as an animation anywhere it could cause crashes in the game.") == System.Windows.Forms.DialogResult.Yes)
+                {
+                    string usage = GetViewUsageReport(viewToDelete.ID);
+                    if (usage != null)
+                    {
+                        _guiController.ShowMessage(usage, MessageBoxIconType.Warning);
                     }
-				}
-			}
+                    else
+                    {
+                        DeleteSingleItem(viewToDelete);
+                    }
+                }
+            }
             else if (controlID == COMMAND_FIND_ALL_USAGES)
             {
                 FindAllUsages findAllUsages = new FindAllUsages(null, null, null, _agsEditor);
@@ -84,63 +84,63 @@ namespace AGS.Editor.Components
             }
         }
 
-		private void MarkViewAsDeleted(View viewToDelete)
-		{
-			_agsEditor.CurrentGame.ViewDeleted(viewToDelete.ID);
+        private void MarkViewAsDeleted(View viewToDelete)
+        {
+            _agsEditor.CurrentGame.ViewDeleted(viewToDelete.ID);
 
-			if (_documents.ContainsKey(viewToDelete))
-			{
-				_guiController.RemovePaneIfExists(_documents[viewToDelete]);
-				_documents.Remove(viewToDelete);
-			}
-		}
+            if (_documents.ContainsKey(viewToDelete))
+            {
+                _guiController.RemovePaneIfExists(_documents[viewToDelete]);
+                _documents.Remove(viewToDelete);
+            }
+        }
 
-		private string CheckIfAnyViewsInFolderTreeAreUsed(ViewFolder startFromFolder)
-		{
-			foreach (View view in startFromFolder.Views)
-			{
-				string result = GetViewUsageReport(view.ID);
-				if (result != null)
-				{
-					return result;
-				}
-			}
+        private string CheckIfAnyViewsInFolderTreeAreUsed(ViewFolder startFromFolder)
+        {
+            foreach (View view in startFromFolder.Views)
+            {
+                string result = GetViewUsageReport(view.ID);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
 
-			foreach (ViewFolder subFolder in startFromFolder.SubFolders)
-			{
-				string result = CheckIfAnyViewsInFolderTreeAreUsed(subFolder);
-				if (result != null)
-				{
-					return result;
-				}
-			}
+            foreach (ViewFolder subFolder in startFromFolder.SubFolders)
+            {
+                string result = CheckIfAnyViewsInFolderTreeAreUsed(subFolder);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
 
-			return null;
-		}
+            return null;
+        }
 
-		private void ShowOrAddPane(View chosenItem)
-		{
+        private void ShowOrAddPane(View chosenItem)
+        {
             ContentDocument document;
-			if (!_documents.TryGetValue(chosenItem, out document)
+            if (!_documents.TryGetValue(chosenItem, out document)
                 || document.Control.IsDisposed)
-			{
+            {
                 document = new ContentDocument(new ViewEditor(chosenItem), chosenItem.WindowTitle, this,
                     ICON_KEY, null);
                 _documents[chosenItem] = document;
                 document.SelectedPropertyGridObject = chosenItem;
-			}
+            }
             document.TreeNodeID = GetNodeIDForView(chosenItem);
             _guiController.AddOrShowPane(document);
-			_guiController.ShowCuppit("Views are how you set up animations in AGS. Each View contains a set of related animations, each of which is a Loop consisting of several Frames.\nFor character walking animations, a view consists of one loop for each direction.", "Views introduction");
-		}
+            _guiController.ShowCuppit("Views are how you set up animations in AGS. Each View contains a set of related animations, each of which is a Loop consisting of several Frames.\nFor character walking animations, a view consists of one loop for each direction.", "Views introduction");
+        }
 
-		private void UpdateOpenWindowTitles()
-		{
-			foreach (ContentDocument doc in _documents.Values)
-			{
-				doc.Name = ((ViewEditor)doc.Control).ViewToEdit.WindowTitle;
-			}
-		}
+        private void UpdateOpenWindowTitles()
+        {
+            foreach (ContentDocument doc in _documents.Values)
+            {
+                doc.Name = ((ViewEditor)doc.Control).ViewToEdit.WindowTitle;
+            }
+        }
 
         private void ProjectTree_OnAfterLabelEdit(string commandID, ProjectTreeItem treeItem)
         {
@@ -184,12 +184,12 @@ namespace AGS.Editor.Components
         public override IList<MenuCommand> GetContextMenu(string controlID)
         {
             IList<MenuCommand> menu = base.GetContextMenu(controlID);
-            
+
             if ((controlID.StartsWith(ITEM_COMMAND_PREFIX)) &&
                 (!IsFolderNode(controlID)))
             {
                 menu.Add(new MenuCommand(COMMAND_RENAME, "Rename", null));
-				menu.Add(new MenuCommand(COMMAND_DELETE, "Delete", null));
+                menu.Add(new MenuCommand(COMMAND_DELETE, "Delete", null));
                 View view = _items[_rightClickedID];
                 menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find all usages of " + view.Name, null));
             }
@@ -221,53 +221,53 @@ namespace AGS.Editor.Components
             RePopulateTreeView();
         }
 
-		private string GetViewUsageReport(int viewNumber)
-		{
-			StringBuilder usageReport = new StringBuilder(5000);
-			Game game = Factory.AGSEditor.CurrentGame;
+        private string GetViewUsageReport(int viewNumber)
+        {
+            StringBuilder usageReport = new StringBuilder(5000);
+            Game game = Factory.AGSEditor.CurrentGame;
 
             foreach (Character character in game.RootCharacterFolder.AllItemsFlat)
-			{
-				string charText = "character " + character.ID + " (" + character.RealName + ")";
+            {
+                string charText = "character " + character.ID + " (" + character.RealName + ")";
 
-				if (character.BlinkingView == viewNumber)
-				{
-					usageReport.AppendLine("Blinking view for " + charText);
-				}
-				if (character.NormalView == viewNumber)
-				{
-					usageReport.AppendLine("Normal view for " + charText);
-				}
-				if (character.IdleView == viewNumber)
-				{
-					usageReport.AppendLine("Idle view for " + charText);
-				}
-				if (character.ThinkingView == viewNumber)
-				{
-					usageReport.AppendLine("Thinking view for " + charText);
-				}
-				if (character.SpeechView == viewNumber)
-				{
-					usageReport.AppendLine("Speech view for " + charText);
-				}
-			}
+                if (character.BlinkingView == viewNumber)
+                {
+                    usageReport.AppendLine("Blinking view for " + charText);
+                }
+                if (character.NormalView == viewNumber)
+                {
+                    usageReport.AppendLine("Normal view for " + charText);
+                }
+                if (character.IdleView == viewNumber)
+                {
+                    usageReport.AppendLine("Idle view for " + charText);
+                }
+                if (character.ThinkingView == viewNumber)
+                {
+                    usageReport.AppendLine("Thinking view for " + charText);
+                }
+                if (character.SpeechView == viewNumber)
+                {
+                    usageReport.AppendLine("Speech view for " + charText);
+                }
+            }
 
-			foreach (MouseCursor item in game.Cursors)
-			{
-				if (item.View == viewNumber)
-				{
-					usageReport.AppendLine("Mouse cursor " + item.ID + " (" + item.Name + ")");
-				}
-			}
+            foreach (MouseCursor item in game.Cursors)
+            {
+                if (item.View == viewNumber)
+                {
+                    usageReport.AppendLine("Mouse cursor " + item.ID + " (" + item.Name + ")");
+                }
+            }
 
-			if (usageReport.Length > 0)
-			{
-				string resultText = "View " + viewNumber + " is used in the following places. It may also be used in animations controlled by script commands; we cannot detect those uses automatically.";
-				resultText += Environment.NewLine + Environment.NewLine + usageReport.ToString();
-				return resultText;
-			}
-			return null;
-		}
+            if (usageReport.Length > 0)
+            {
+                string resultText = "View " + viewNumber + " is used in the following places. It may also be used in animations controlled by script commands; we cannot detect those uses automatically.";
+                resultText += Environment.NewLine + Environment.NewLine + usageReport.ToString();
+                return resultText;
+            }
+            return null;
+        }
 
         private string GetNodeIDForView(View item)
         {

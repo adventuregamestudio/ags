@@ -40,7 +40,7 @@ namespace AGS.Types
             get { return _name; }
             set { _name = value; _fileName = _name + TRANSLATION_SOURCE_FILE_EXTENSION; }
         }
-        
+
         public string FileName
         {
             get { return _fileName; }
@@ -143,11 +143,11 @@ namespace AGS.Types
                     {
                         break;
                     }
-					// Silently ignore any duplicates, as we can't report warnings here
-					if (!_translatedLines.ContainsKey(originalText))
-					{
-						_translatedLines.Add(originalText, translatedText);
-					}
+                    // Silently ignore any duplicates, as we can't report warnings here
+                    if (!_translatedLines.ContainsKey(originalText))
+                    {
+                        _translatedLines.Add(originalText, translatedText);
+                    }
                 }
             }
         }

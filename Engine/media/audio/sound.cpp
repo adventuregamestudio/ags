@@ -65,8 +65,8 @@ SOUNDCLIP *my_load_wave(const char *filename, int voll, int loop)
     SAMPLE *new_sample = NULL;
     PACKFILE* wavin = pack_fopen(filename, "rb");
     if (wavin != NULL) {
-      new_sample = load_wav_pf(wavin);
-      pack_fclose(wavin);
+        new_sample = load_wav_pf(wavin);
+        pack_fclose(wavin);
     }
 #else
     // Load via soundcache.
@@ -118,7 +118,7 @@ SOUNDCLIP *my_load_mp3(const char *filname, int voll)
 
     AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     thistune->stream = almp3_create_mp3stream(tmpbuffer, thistune->chunksize, (mp3in->todo < 1));
-	_lockMp3.Release();
+    _lockMp3.Release();
 
     if (thistune->stream == NULL) {
         free(tmpbuffer);
@@ -153,7 +153,7 @@ SOUNDCLIP *my_load_static_mp3(const char *filname, int voll, bool loop)
 
     AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     thismp3->tune = almp3_create_mp3(mp3buffer, muslen);
-	_lockMp3.Release();
+    _lockMp3.Release();
     thismp3->done = 0;
     thismp3->ready = true;
 

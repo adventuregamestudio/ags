@@ -5,7 +5,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    public class GUIFolders : FolderListHybrid<GUI, GUIFolder> 
+    public class GUIFolders : FolderListHybrid<GUI, GUIFolder>
     {
         public GUIFolders() : base(new GUIFolder()) { }
 
@@ -23,7 +23,7 @@ namespace AGS.Types
 
         public GUIFolder() : this("Default") { }
 
-        public GUIFolder(XmlNode node, XmlNode parentNodeForBackwardsCompatability) : 
+        public GUIFolder(XmlNode node, XmlNode parentNodeForBackwardsCompatability) :
             base(node, parentNodeForBackwardsCompatability) { }
 
         private GUIFolder(XmlNode node) : base(node) { }
@@ -60,12 +60,12 @@ namespace AGS.Types
         }
 
         protected override GUI CreateItem(XmlNode node)
-        {            
+        {
             if (node.FirstChild.Name == NormalGUI.XML_ELEMENT_NAME)
                 return new NormalGUI(node);
-            else return new TextWindowGUI(node);                    
+            else return new TextWindowGUI(node);
         }
-         
+
         private bool IsItem(GUI GUI, int GUIID)
         {
             return GUI.ID == GUIID;

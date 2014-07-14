@@ -29,97 +29,97 @@ int numguilabels = 0;
 
 void GUILabel::WriteToFile(Stream *out)
 {
-  GUIObject::WriteToFile(out);
-  // MACPORT FIXES: swap
-  //->WriteArray(&text[0], sizeof(char), 200);
-  out->WriteInt32((int)strlen(text) + 1);
-  out->Write(&text[0], strlen(text) + 1);
-  out->WriteArrayOfInt32(&font, 3);
+    GUIObject::WriteToFile(out);
+    // MACPORT FIXES: swap
+    //->WriteArray(&text[0], sizeof(char), 200);
+    out->WriteInt32((int)strlen(text) + 1);
+    out->Write(&text[0], strlen(text) + 1);
+    out->WriteArrayOfInt32(&font, 3);
 }
 
 void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-  GUIObject::ReadFromFile(in, gui_version);
+    GUIObject::ReadFromFile(in, gui_version);
 
-  if (textBufferLen > 0)
-    free(text);
+    if (textBufferLen > 0)
+        free(text);
 
-  if (gui_version < kGuiVersion_272c) {
-    textBufferLen = 200;
-  }
-  else {
-    textBufferLen = in->ReadInt32();
-  }
+    if (gui_version < kGuiVersion_272c) {
+        textBufferLen = 200;
+    }
+    else {
+        textBufferLen = in->ReadInt32();
+    }
 
-  text = (char*)malloc(textBufferLen);
-  in->Read(&text[0], textBufferLen);
+    text = (char*)malloc(textBufferLen);
+    in->Read(&text[0], textBufferLen);
 
-  in->ReadArrayOfInt32(&font, 3);
-  if (textcol == 0)
-    textcol = 16;
+    in->ReadArrayOfInt32(&font, 3);
+    if (textcol == 0)
+        textcol = 16;
 
-  // All labels are translated at the moment
-  flags |= GUIF_TRANSLATED;
+    // All labels are translated at the moment
+    flags |= GUIF_TRANSLATED;
 }
 
 void GUILabel::SetText(const char *newText) {
 
-  if ((int)strlen(newText) < textBufferLen) {
+    if ((int)strlen(newText) < textBufferLen) {
+        strcpy(this->text, newText);
+        return;
+    }
+
+    if (textBufferLen > 0)
+        free(this->text);
+
+    textBufferLen = (int)strlen(newText) + 1;
+
+    this->text = (char*)malloc(textBufferLen);
     strcpy(this->text, newText);
-    return;
-  }
 
-  if (textBufferLen > 0)
-    free(this->text);
-
-  textBufferLen = (int)strlen(newText) + 1;
-
-  this->text = (char*)malloc(textBufferLen);
-  strcpy(this->text, newText);
-
-  // restrict to this length
-  if (textBufferLen >= MAX_GUILABEL_TEXT_LEN)
-    this->text[MAX_GUILABEL_TEXT_LEN - 1] = 0;
+    // restrict to this length
+    if (textBufferLen >= MAX_GUILABEL_TEXT_LEN)
+        this->text[MAX_GUILABEL_TEXT_LEN - 1] = 0;
 }
 
 const char *GUILabel::GetText() {
-  return text;
+    return text;
 }
 
 void GUILabel::printtext_align(Common::Bitmap *ds, int yy, color_t text_color, char *teptr)
 {
-  int outxp = x;
-  if (align == GALIGN_CENTRE)
-    outxp += wid / 2 - wgettextwidth(teptr, font) / 2;
-  else if (align == GALIGN_RIGHT)
-    outxp += wid - wgettextwidth(teptr, font);
+    int outxp = x;
+    if (align == GALIGN_CENTRE)
+        outxp += wid / 2 - wgettextwidth(teptr, font) / 2;
+    else if (align == GALIGN_RIGHT)
+        outxp += wid - wgettextwidth(teptr, font);
 
-  wouttext_outline(ds, outxp, yy, font, text_color, teptr);
+    wouttext_outline(ds, outxp, yy, font, text_color, teptr);
 }
 
 void GUILabel::Draw(Common::Bitmap *ds)
 {
-  int cyp = y, TEXT_HT;
-  char oritext[MAX_GUILABEL_TEXT_LEN], *teptr;
+    int cyp = y, TEXT_HT;
+    char oritext[MAX_GUILABEL_TEXT_LEN], *teptr;
 
-  check_font(&font);
+    check_font(&font);
 
-  Draw_replace_macro_tokens(oritext, text);
+    Draw_replace_macro_tokens(oritext, text);
 
-  teptr = &oritext[0];
-  TEXT_HT = wgettextheight("ZhypjIHQFb", font) + 1;
+    teptr = &oritext[0];
+    TEXT_HT = wgettextheight("ZhypjIHQFb", font) + 1;
 
-  color_t text_color = ds->GetCompatibleColor(textcol);
+    color_t text_color = ds->GetCompatibleColor(textcol);
 
-  Draw_split_lines(teptr, wid, font, numlines);
+    Draw_split_lines(teptr, wid, font, numlines);
 
-  // < 2.72 labels did not limit vertical size of text
-  const bool limit_by_label_frame = loaded_game_file_version >= kGameVersion_272;
-  for (int aa = 0; aa < numlines; aa++) {
-    printtext_align(ds, cyp, text_color, lines[aa]);
-    cyp += TEXT_HT;
-    if (limit_by_label_frame && cyp > y + hit)
-      break;
-  }
+    // < 2.72 labels did not limit vertical size of text
+    const bool limit_by_label_frame = loaded_game_file_version >= kGameVersion_272;
+    for (int aa = 0; aa < numlines; aa++) {
+        printtext_align(ds, cyp, text_color, lines[aa]);
+        cyp += TEXT_HT;
+        if (limit_by_label_frame && cyp > y + hit)
+            break;
+    }
 
 }

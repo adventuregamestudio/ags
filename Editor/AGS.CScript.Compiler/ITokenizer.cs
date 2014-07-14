@@ -4,8 +4,8 @@ using System.Text;
 
 namespace AGS.CScript.Compiler
 {
-	internal interface ITokenizer
-	{
-		TokenizedScript TokenizeScript(string script);
-	}
+    internal interface ITokenizer
+    {
+        TokenizedScript TokenizeScript(string script);
+    }
 }

@@ -38,58 +38,58 @@ struct GameSetupStruct;
 
 struct GUIMain
 {
-  char vtext[4];                // for compatibility
-  char name[16];                // the name of the GUI
-  char clickEventHandler[20];
-  int x, y, wid, hit;
-  int focus;                    // which object has the focus
-  int numobjs;                  // number of objects on gui
-  int popup;                    // when it pops up (POPUP_NONE, POPUP_MOUSEY, POPUP_SCRIPT)
-  int popupyp;                  // popup when mousey < this
-  int bgcol, bgpic, fgcol;
-  int mouseover, mousewasx, mousewasy;
-  int mousedownon;
-  int highlightobj;
-  int flags;
-  int transparency;
-  int zorder;
-  int guiId;
-  int padding;                  // padding surrounding a GUI text window
-  int reserved[5];
-  int on;
-  GUIObject *objs[MAX_OBJS_ON_GUI];
-  int objrefptr[MAX_OBJS_ON_GUI];       // for re-building objs array
-  short drawOrder[MAX_OBJS_ON_GUI];
+    char vtext[4];                // for compatibility
+    char name[16];                // the name of the GUI
+    char clickEventHandler[20];
+    int x, y, wid, hit;
+    int focus;                    // which object has the focus
+    int numobjs;                  // number of objects on gui
+    int popup;                    // when it pops up (POPUP_NONE, POPUP_MOUSEY, POPUP_SCRIPT)
+    int popupyp;                  // popup when mousey < this
+    int bgcol, bgpic, fgcol;
+    int mouseover, mousewasx, mousewasy;
+    int mousedownon;
+    int highlightobj;
+    int flags;
+    int transparency;
+    int zorder;
+    int guiId;
+    int padding;                  // padding surrounding a GUI text window
+    int reserved[5];
+    int on;
+    GUIObject *objs[MAX_OBJS_ON_GUI];
+    int objrefptr[MAX_OBJS_ON_GUI];       // for re-building objs array
+    short drawOrder[MAX_OBJS_ON_GUI];
 
-  static char oNameBuffer[20];
+    static char oNameBuffer[20];
 
-  GUIMain();
-  void init();
-  void rebuild_array();
-  void resort_zorder();
-  int  get_control_type(int);
-  int  is_mouse_on_gui();
-  void draw_blob(Common::Bitmap *ds, int xp, int yp, color_t draw_color);
-  void draw_at(Common::Bitmap *ds, int xx, int yy);
-  void draw(Common::Bitmap *ds);
-  int  find_object_under_mouse();
-  // this version allows some extra leeway in the Editor so that
-  // the user can grab tiny controls
-  int  find_object_under_mouse(int);
-  int  find_object_under_mouse(int leeway, bool mustBeClickable);
-  void poll();
-  void mouse_but_down();
-  void mouse_but_up();
-  int  is_textwindow();
-  bool send_to_back(int objNum);
-  bool bring_to_front(int objNum);
-  void control_positions_changed();
-  bool is_alpha();
+    GUIMain();
+    void init();
+    void rebuild_array();
+    void resort_zorder();
+    int  get_control_type(int);
+    int  is_mouse_on_gui();
+    void draw_blob(Common::Bitmap *ds, int xp, int yp, color_t draw_color);
+    void draw_at(Common::Bitmap *ds, int xx, int yy);
+    void draw(Common::Bitmap *ds);
+    int  find_object_under_mouse();
+    // this version allows some extra leeway in the Editor so that
+    // the user can grab tiny controls
+    int  find_object_under_mouse(int);
+    int  find_object_under_mouse(int leeway, bool mustBeClickable);
+    void poll();
+    void mouse_but_down();
+    void mouse_but_up();
+    int  is_textwindow();
+    bool send_to_back(int objNum);
+    bool bring_to_front(int objNum);
+    void control_positions_changed();
+    bool is_alpha();
 
-  void FixupGuiName(char* name);
-  void SetTransparencyAsPercentage(int percent);
-  void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  void WriteToFile(Common::Stream *out);
+    void FixupGuiName(char* name);
+    void SetTransparencyAsPercentage(int percent);
+    void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+    void WriteToFile(Common::Stream *out);
 
 };
 

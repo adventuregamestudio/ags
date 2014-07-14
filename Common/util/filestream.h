@@ -24,56 +24,56 @@
 
 namespace AGS
 {
-namespace Common
-{
-
-class FileStream : public DataStream
-{
-public:
-    FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
-        DataEndianess stream_endianess = kLittleEndian);
-    virtual ~FileStream();
-
-    virtual void    Close();
-    virtual bool    Flush();
-
-    // TODO
-    // Temporary solution for cases when the code can't live without
-    // having direct access to FILE pointer
-    inline FILE     *GetHandle() const
+    namespace Common
     {
-        return _file;
-    }
 
-    // Is stream valid (underlying data initialized properly)
-    virtual bool    IsValid() const;
-    // Is end of stream
-    virtual bool    EOS() const;
-    // Total length of stream (if known)
-    virtual size_t  GetLength() const;
-    // Current position (if known)
-    virtual size_t  GetPosition() const;
-    virtual bool    CanRead() const;
-    virtual bool    CanWrite() const;
-    virtual bool    CanSeek() const;
+        class FileStream : public DataStream
+        {
+        public:
+            FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
+                DataEndianess stream_endianess = kLittleEndian);
+            virtual ~FileStream();
 
-    virtual size_t  Read(void *buffer, size_t size);
-    virtual int32_t ReadByte();
-    virtual size_t  Write(const void *buffer, size_t size);
-    virtual int32_t WriteByte(uint8_t b);
+            virtual void    Close();
+            virtual bool    Flush();
 
-    virtual size_t  Seek(StreamSeek seek, int pos);
+            // TODO
+            // Temporary solution for cases when the code can't live without
+            // having direct access to FILE pointer
+            inline FILE     *GetHandle() const
+            {
+                return _file;
+            }
 
-protected:
-    void            Open(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode);
+            // Is stream valid (underlying data initialized properly)
+            virtual bool    IsValid() const;
+            // Is end of stream
+            virtual bool    EOS() const;
+            // Total length of stream (if known)
+            virtual size_t  GetLength() const;
+            // Current position (if known)
+            virtual size_t  GetPosition() const;
+            virtual bool    CanRead() const;
+            virtual bool    CanWrite() const;
+            virtual bool    CanSeek() const;
 
-private:
-    FILE                *_file;
-    const FileOpenMode  _openMode;
-    const FileWorkMode  _workMode;
-};
+            virtual size_t  Read(void *buffer, size_t size);
+            virtual int32_t ReadByte();
+            virtual size_t  Write(const void *buffer, size_t size);
+            virtual int32_t WriteByte(uint8_t b);
 
-} // namespace Common
+            virtual size_t  Seek(StreamSeek seek, int pos);
+
+        protected:
+            void            Open(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode);
+
+        private:
+            FILE                *_file;
+            const FileOpenMode  _openMode;
+            const FileWorkMode  _workMode;
+        };
+
+    } // namespace Common
 } // namespace AGS
 
 #endif // __AGS_CN_UTIL__FILESTREAM_H

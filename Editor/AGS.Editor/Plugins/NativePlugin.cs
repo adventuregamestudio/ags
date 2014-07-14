@@ -16,12 +16,12 @@ namespace AGS.Editor
         private const int MAX_PLUGIN_DATA_SIZE = 5120;
 
         // the return type of GetPluginName must be IntPtr and not string
-		// because if we use string the CLR will try to free it using CoFreeMem
-		// but it hasn't been allocated
-		[UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-		private delegate IntPtr AGS_GetPluginName();
+        // because if we use string the CLR will try to free it using CoFreeMem
+        // but it hasn't been allocated
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-		private delegate int AGS_EditorStartup(IAGSEditorForNativePlugins editor);
+        private delegate IntPtr AGS_GetPluginName();
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private delegate int AGS_EditorStartup(IAGSEditorForNativePlugins editor);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private delegate void AGS_EditorShutdown();
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
@@ -35,7 +35,7 @@ namespace AGS.Editor
         internal static Dictionary<int, NativePlugin> PluginLookup = new Dictionary<int, NativePlugin>();
 
         private IntPtr _dllHandle = IntPtr.Zero;
-		private IAGSEditorForNativePlugins _editorInterface = new IAGSEditorForNativePlugins();
+        private IAGSEditorForNativePlugins _editorInterface = new IAGSEditorForNativePlugins();
         private GCHandle _pinnedHandle;
         private AGS_GetPluginName _getPluginName;
         private AGS_EditorStartup _editorStartup;
@@ -71,7 +71,7 @@ namespace AGS.Editor
             _editorSaveGame = (AGS_EditorSaveGame)GetManagedDelegateForFunction("AGS_EditorSaveGame", typeof(AGS_EditorSaveGame), false);
             _editorLoadGame = (AGS_EditorLoadGame)GetManagedDelegateForFunction("AGS_EditorLoadGame", typeof(AGS_EditorLoadGame), false);
 
-			_pluginName = Marshal.PtrToStringAnsi(_getPluginName());
+            _pluginName = Marshal.PtrToStringAnsi(_getPluginName());
             _fileName = fileName;
             PluginLookup.Add(_editorInterface.pluginID, this);
         }
@@ -89,7 +89,7 @@ namespace AGS.Editor
         public bool Enabled
         {
             get { return _enabled; }
-            set 
+            set
             {
                 if ((value == true) && (_enabled == false))
                 {
@@ -171,7 +171,7 @@ namespace AGS.Editor
         private void StartPlugin()
         {
             _pinnedHandle = GCHandle.Alloc(_editorInterface, GCHandleType.Pinned);
-			_editorInterface.vtablePtr = new IntPtr(_pinnedHandle.AddrOfPinnedObject().ToInt32() + IAGSEditorForNativePlugins.VTABLE_BYTE_OFFSET);
+            _editorInterface.vtablePtr = new IntPtr(_pinnedHandle.AddrOfPinnedObject().ToInt32() + IAGSEditorForNativePlugins.VTABLE_BYTE_OFFSET);
             int retVal = _editorStartup(_editorInterface);
             if (retVal != 0)
             {

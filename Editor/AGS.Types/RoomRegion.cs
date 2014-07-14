@@ -160,7 +160,7 @@ namespace AGS.Types
             {
                 bool wantThisProperty = true;
                 if ((!_useTint) &&
-                    ((property.Name == "RedTint") || 
+                    ((property.Name == "RedTint") ||
                     (property.Name == "GreenTint") ||
                     (property.Name == "BlueTint") ||
                     (property.Name == "TintSaturation")))

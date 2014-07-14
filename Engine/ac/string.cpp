@@ -487,7 +487,7 @@ RuntimeScriptValue Sc_String_GetChars(void *self, const RuntimeScriptValue *para
 RuntimeScriptValue Sc_strlen(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     ASSERT_SELF(strlen)
-    return RuntimeScriptValue().SetInt32(strlen((const char*)self));
+        return RuntimeScriptValue().SetInt32(strlen((const char*)self));
 }
 
 //=============================================================================

@@ -21,7 +21,8 @@ namespace AGS.Types
             _value = 0;
         }
 
-        public GUISlider(XmlNode node) : base(node)
+        public GUISlider(XmlNode node)
+            : base(node)
         {
         }
 
@@ -76,8 +77,8 @@ namespace AGS.Types
 
         [Description("Tile this image as the background for the slider")]
         [Category("Appearance")]
-		[EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
-		public int BackgroundImage
+        [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public int BackgroundImage
         {
             get { return _backgroundImage; }
             set { _backgroundImage = value; }
@@ -118,7 +119,7 @@ namespace AGS.Types
         public int Value
         {
             get { return _value; }
-            set 
+            set
             {
                 _value = value;
                 if (_value < _min)

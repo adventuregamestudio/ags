@@ -4,7 +4,7 @@ using System.Text;
 
 namespace AGS.CScript.Compiler
 {
-    internal class Pair<T,U>
+    internal class Pair<T, U>
     {
         T _t;
         U _u;

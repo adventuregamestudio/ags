@@ -25,52 +25,52 @@
 
 namespace AGS
 {
-namespace Engine
-{
+    namespace Engine
+    {
 
 
-class WindowsMutex : public BaseMutex
-{
-public:
-  WindowsMutex()
-  {
-    _mutex = CreateMutex(NULL, FALSE, NULL);
+        class WindowsMutex : public BaseMutex
+        {
+        public:
+            WindowsMutex()
+            {
+                _mutex = CreateMutex(NULL, FALSE, NULL);
 
-    _ASSERT(_mutex != NULL);
-  }
+                _ASSERT(_mutex != NULL);
+            }
 
-  ~WindowsMutex()
-  {
-    Unlock();
+            ~WindowsMutex()
+            {
+                Unlock();
 
-    _ASSERT(_mutex != NULL);
+                _ASSERT(_mutex != NULL);
 
-    CloseHandle(_mutex);
-  }
+                CloseHandle(_mutex);
+            }
 
-  inline void Lock()
-  {
-    _ASSERT(_mutex != NULL);
+            inline void Lock()
+            {
+                _ASSERT(_mutex != NULL);
 
-    WaitForSingleObject(_mutex, INFINITE);
-  }
+                WaitForSingleObject(_mutex, INFINITE);
+            }
 
-  inline void Unlock()
-  {
-    _ASSERT(_mutex != NULL);
+            inline void Unlock()
+            {
+                _ASSERT(_mutex != NULL);
 
-    ReleaseMutex(_mutex);
-  }
+                ReleaseMutex(_mutex);
+            }
 
-private:
-  HANDLE _mutex;
-};
-
-
-typedef WindowsMutex Mutex;
+        private:
+            HANDLE _mutex;
+        };
 
 
-} // namespace Engine
+        typedef WindowsMutex Mutex;
+
+
+    } // namespace Engine
 } // namespace AGS
 
 #endif // __AGS_EE_UTIL__WINDOWS_MUTEX_H

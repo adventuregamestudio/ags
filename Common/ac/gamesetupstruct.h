@@ -122,7 +122,7 @@ struct GameSetupStruct: public GameSetupStructBase {
 
     // Functions for reading and writing appropriate data from/to save game
     void ReadFromSaveGame_v321(Common::Stream *in, char* gswas, ccScript* compsc, CharacterInfo* chwas,
-                                   WordsDictionary *olddict, char** mesbk);
+        WordsDictionary *olddict, char** mesbk);
     void WriteForSaveGame_v321(Common::Stream *out);
 };
 

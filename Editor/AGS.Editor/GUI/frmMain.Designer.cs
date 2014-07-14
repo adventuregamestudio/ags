@@ -80,17 +80,17 @@ namespace AGS.Editor
             this.Controls.Add(this.mainContainer);
             this.Controls.Add(this.toolStrip);
             this.Controls.Add(this.mainMenu);
-            this.Controls.Add(this.statusStrip);            
+            this.Controls.Add(this.statusStrip);
             // 
             // mainContainer
             //             
             this.mainContainer.ActiveAutoHideContent = null;
             this.mainContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.mainContainer.DockBackColor = System.Drawing.SystemColors.Control;            
+            this.mainContainer.DockBackColor = System.Drawing.SystemColors.Control;
             this.mainContainer.Location = new System.Drawing.Point(0, 51);
             this.mainContainer.Name = "mainContainer";
             this.mainContainer.DocumentStyle = WeifenLuo.WinFormsUI.Docking.DocumentStyle.DockingMdi;
-            this.mainContainer.Size = new System.Drawing.Size(761, 441);            
+            this.mainContainer.Size = new System.Drawing.Size(761, 441);
             dockPanelGradient1.EndColor = System.Drawing.SystemColors.ControlLight;
             dockPanelGradient1.StartColor = System.Drawing.SystemColors.ControlLight;
             autoHideStripSkin1.DockStripGradient = dockPanelGradient1;
@@ -112,7 +112,7 @@ namespace AGS.Editor
             tabGradient3.TextColor = System.Drawing.SystemColors.ControlText;
             dockPaneStripGradient1.InactiveTabGradient = tabGradient3;
             dockPaneStripSkin1.DocumentGradient = dockPaneStripGradient1;
-            dockPaneStripSkin1.TextFont = new System.Drawing.Font("Tahoma", 8.400001F);            
+            dockPaneStripSkin1.TextFont = new System.Drawing.Font("Tahoma", 8.400001F);
             tabGradient4.EndColor = System.Drawing.SystemColors.ActiveCaption;
             tabGradient4.LinearGradientMode = System.Drawing.Drawing2D.LinearGradientMode.Vertical;
             tabGradient4.StartColor = System.Drawing.SystemColors.GradientActiveCaption;
@@ -135,9 +135,9 @@ namespace AGS.Editor
             tabGradient7.TextColor = System.Drawing.SystemColors.ControlDarkDark;
             dockPaneStripToolWindowGradient1.InactiveTabGradient = tabGradient7;
             dockPaneStripSkin1.ToolWindowGradient = dockPaneStripToolWindowGradient1;
-            dockPanelSkin1.DockPaneStripSkin = dockPaneStripSkin1;            
+            dockPanelSkin1.DockPaneStripSkin = dockPaneStripSkin1;
             this.mainContainer.Skin = dockPanelSkin1;
-            this.mainContainer.TabIndex = 0;             
+            this.mainContainer.TabIndex = 0;
             // 
             // pnlCallStack
             // 

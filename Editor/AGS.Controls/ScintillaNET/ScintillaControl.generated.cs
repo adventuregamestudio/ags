@@ -4,7 +4,7 @@ namespace Scintilla
     using System.Collections;
     using System.Windows.Forms;
     using System.ComponentModel;
-    
+
     // Function void AddStyledText(int,cells) skipped.
     // Function int GetStyledText(,textrange) skipped.
     // Function position FindText(int,findtext) skipped.

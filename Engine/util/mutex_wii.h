@@ -19,43 +19,43 @@
 
 namespace AGS
 {
-namespace Engine
-{
+    namespace Engine
+    {
 
 
-class WiiMutex : public BaseMutex
-{
-public:
-  inline WiiMutex()
-  {
-    LWP_MutexInit(&_mutex, 0);
-  }
+        class WiiMutex : public BaseMutex
+        {
+        public:
+            inline WiiMutex()
+            {
+                LWP_MutexInit(&_mutex, 0);
+            }
 
-  inline ~WiiMutex()
-  {
-    Unlock();
-    LWP_MutexDestroy(_mutex);
-  }
+            inline ~WiiMutex()
+            {
+                Unlock();
+                LWP_MutexDestroy(_mutex);
+            }
 
-  inline void Lock()
-  {
-    LWP_MutexLock(_mutex);
-  }
+            inline void Lock()
+            {
+                LWP_MutexLock(_mutex);
+            }
 
-  inline void Unlock()
-  {
-    LWP_MutexUnlock(_mutex);
-  }
+            inline void Unlock()
+            {
+                LWP_MutexUnlock(_mutex);
+            }
 
-private:
-  mutex_t _mutex;
-};
-
-
-typedef WiiMutex Mutex;
+        private:
+            mutex_t _mutex;
+        };
 
 
-} // namespace Engine
+        typedef WiiMutex Mutex;
+
+
+    } // namespace Engine
 } // namespace AGS
 
 #endif // __AGS_EE_UTIL__WII_MUTEX_H

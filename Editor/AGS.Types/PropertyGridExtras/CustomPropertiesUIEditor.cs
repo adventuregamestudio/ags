@@ -31,10 +31,10 @@ namespace AGS.Types
             {
                 CustomPropertiesGUI(properties, context.Instance);
 
-				if (context.Instance is IChangeNotification)
-				{
-					((IChangeNotification)context.Instance).ItemModified();
-				}
+                if (context.Instance is IChangeNotification)
+                {
+                    ((IChangeNotification)context.Instance).ItemModified();
+                }
             }
 
             return properties;

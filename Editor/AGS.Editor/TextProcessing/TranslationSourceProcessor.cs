@@ -10,7 +10,7 @@ namespace AGS.Editor
     {
         private Dictionary<string, string> _linesProcessed;
 
-        public TranslationSourceProcessor(Game game, CompileMessages errors) 
+        public TranslationSourceProcessor(Game game, CompileMessages errors)
             : base(game, errors, false, true)
         {
             _linesProcessed = new Dictionary<string, string>();

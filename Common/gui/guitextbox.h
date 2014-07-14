@@ -21,47 +21,47 @@
 #define GTF_NOBORDER  1
 struct GUITextBox:public GUIObject
 {
-  char text[200];
-  int font, textcol, exflags;
+    char text[200];
+    int font, textcol, exflags;
 
-  virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  virtual void Draw(Common::Bitmap *ds);
-  void KeyPress(int);
+    virtual void WriteToFile(Common::Stream *out);
+    virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+    virtual void Draw(Common::Bitmap *ds);
+    void KeyPress(int);
 
-  void MouseMove(int x, int y)
-  {
-  }
+    void MouseMove(int x, int y)
+    {
+    }
 
-  void MouseOver()
-  {
-  }
+    void MouseOver()
+    {
+    }
 
-  void MouseLeave()
-  {
-  }
+    void MouseLeave()
+    {
+    }
 
-  void MouseUp()
-  {
-  }
+    void MouseUp()
+    {
+    }
 
-  void reset()
-  {
-    GUIObject::init();
-    font = 0;
-    textcol = 0;
-    text[0] = 0;
-    numSupportedEvents = 1;
-    supportedEvents[0] = "Activate";
-    supportedEventArgs[0] = "GUIControl *control";
-  }
+    void reset()
+    {
+        GUIObject::init();
+        font = 0;
+        textcol = 0;
+        text[0] = 0;
+        numSupportedEvents = 1;
+        supportedEvents[0] = "Activate";
+        supportedEventArgs[0] = "GUIControl *control";
+    }
 
-  GUITextBox() {
-    reset();
-  }
+    GUITextBox() {
+        reset();
+    }
 
 private:
-  void Draw_text_box_contents(Common::Bitmap *ds, color_t text_color);
+    void Draw_text_box_contents(Common::Bitmap *ds, color_t text_color);
 };
 
 extern DynamicArray<GUITextBox> guitext;

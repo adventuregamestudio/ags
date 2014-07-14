@@ -1,7 +1,7 @@
 /*
-  The SCC API was formerly under NDA, but now it's on MSDN:
-  http://msdn.microsoft.com/en-us/library/bb165429(v=vs.80).aspx
-  so it must be de-classified!
+The SCC API was formerly under NDA, but now it's on MSDN:
+http://msdn.microsoft.com/en-us/library/bb165429(v=vs.80).aspx
+so it must be de-classified!
 */
 /* AGS Source Control Integration
 Adventure Game Studio Editor Source Code
@@ -87,12 +87,12 @@ LONG sccCaps, sccCheckoutCommentLen, sccCommentLen;
 bool projectOpen = false;
 
 typedef long __cdecl SccInitializeTypedef(LPVOID * ppContext, HWND hWnd, LPCSTR lpCallerName, LPSTR lpSccName, 
-                        LPLONG lpSccCaps, LPSTR lpAuxPathLabel, LPLONG pnCheckoutCommentLen, LPLONG pnCommentLen);
+                                          LPLONG lpSccCaps, LPSTR lpAuxPathLabel, LPLONG pnCheckoutCommentLen, LPLONG pnCommentLen);
 typedef long __cdecl SccUnInitializeTypedef(LPVOID pContext);
 typedef long __cdecl SccGetProjPathTypedef(LPVOID pvContext, HWND hWnd, LPSTR lpUser, LPSTR lpProjName,
-						LPSTR lpLocalPath, LPSTR lpAuxProjPath, BOOL bAllowChangePath, LPBOOL pbNew);
+                                           LPSTR lpLocalPath, LPSTR lpAuxProjPath, BOOL bAllowChangePath, LPBOOL pbNew);
 typedef long __cdecl SccOpenProjectTypedef(LPVOID pContext, HWND hWnd, LPSTR lpUser, LPSTR lpProjName,
-                        LPCSTR lpLocalProjPath, LPSTR lpAuxProjPath, LPCSTR lpComment, LPTEXTOUTPROC lpTextOutProc, LONG dwFlags);
+                                           LPCSTR lpLocalProjPath, LPSTR lpAuxProjPath, LPCSTR lpComment, LPTEXTOUTPROC lpTextOutProc, LONG dwFlags);
 typedef long __cdecl SccCloseProjectTypedef(LPVOID pContext);
 typedef long __cdecl SccQueryInfoTypedef(LPVOID pContext, LONG nFiles, LPCSTR* lpFileNames, LPLONG lpStatus);
 typedef long __cdecl SccAddTypedef(LPVOID pvContext, HWND hWnd, LONG nFiles, LPCSTR* lpFileNames, LPCSTR lpComment, LONG* pfOptions, LPCMDOPTS pvOptions);
@@ -118,254 +118,254 @@ void *SccContext;
 
 namespace AGS
 {
-	namespace Native
-	{
-		SourceCodeControl::SourceCodeControl(void)
-		{
-		}
+    namespace Native
+    {
+        SourceCodeControl::SourceCodeControl(void)
+        {
+        }
 
-		bool SourceCodeControl::Initialize(System::String^ dllName, int mainWindowHwnd)
-		{
-			mainAppHwnd = (HWND)mainWindowHwnd;
-			ConvertFileNameToCharArray(dllName, sourceControlDllName);
-			sourceControlDllHandle = LoadLibrary(sourceControlDllName);
-			if (sourceControlDllHandle == NULL)
-			{
-				throw gcnew FileNotFoundException(String::Format("The DLL file {0} could not be loaded.", dllName));
-			}
-			SccGetVersion = (long (__cdecl *)())GetProcAddress(sourceControlDllHandle, "SccGetVersion");
-			SccInitialize = (SccInitializeTypedef*)GetProcAddress(sourceControlDllHandle, "SccInitialize");
-			SccUnInitialize = (SccUnInitializeTypedef*)GetProcAddress(sourceControlDllHandle, "SccUninitialize");
-			SccGetProjPath = (SccGetProjPathTypedef*)GetProcAddress(sourceControlDllHandle, "SccGetProjPath");
-			SccOpenProject = (SccOpenProjectTypedef*)GetProcAddress(sourceControlDllHandle, "SccOpenProject");
-			SccCloseProject = (SccCloseProjectTypedef*)GetProcAddress(sourceControlDllHandle, "SccCloseProject");
-			SccQueryInfo = (SccQueryInfoTypedef*)GetProcAddress(sourceControlDllHandle, "SccQueryInfo");
-			SccAdd = (SccAddTypedef*)GetProcAddress(sourceControlDllHandle, "SccAdd");
-			SccCheckin = (SccCheckinTypedef*)GetProcAddress(sourceControlDllHandle, "SccCheckin");
-			SccCheckout = (SccCheckoutTypedef*)GetProcAddress(sourceControlDllHandle, "SccCheckout");
-			SccRename = (SccRenameTypedef*)GetProcAddress(sourceControlDllHandle, "SccRename");
-			SccRemove = (SccRemoveTypedef*)GetProcAddress(sourceControlDllHandle, "SccRemove");
-			LONG version = SccGetVersion();
-			if (version < 0x00010001)
-			{
-				FreeLibrary(sourceControlDllHandle);
-				sourceControlDllHandle = 0;
-				return false;
-			}
-			if (SccInitialize(&SccContext, mainAppHwnd, "Adventure Game Studio", 
-				sourceControlProviderDescription, &sccCaps, sourceControlAuxPathBuffer,
-				&sccCheckoutCommentLen, &sccCommentLen) != SCC_OK)
-			{
-				FreeLibrary(sourceControlDllHandle);
-				sourceControlDllHandle = 0;
-				return false;
-			}
-			return true;
-		}
+        bool SourceCodeControl::Initialize(System::String^ dllName, int mainWindowHwnd)
+        {
+            mainAppHwnd = (HWND)mainWindowHwnd;
+            ConvertFileNameToCharArray(dllName, sourceControlDllName);
+            sourceControlDllHandle = LoadLibrary(sourceControlDllName);
+            if (sourceControlDllHandle == NULL)
+            {
+                throw gcnew FileNotFoundException(String::Format("The DLL file {0} could not be loaded.", dllName));
+            }
+            SccGetVersion = (long (__cdecl *)())GetProcAddress(sourceControlDllHandle, "SccGetVersion");
+            SccInitialize = (SccInitializeTypedef*)GetProcAddress(sourceControlDllHandle, "SccInitialize");
+            SccUnInitialize = (SccUnInitializeTypedef*)GetProcAddress(sourceControlDllHandle, "SccUninitialize");
+            SccGetProjPath = (SccGetProjPathTypedef*)GetProcAddress(sourceControlDllHandle, "SccGetProjPath");
+            SccOpenProject = (SccOpenProjectTypedef*)GetProcAddress(sourceControlDllHandle, "SccOpenProject");
+            SccCloseProject = (SccCloseProjectTypedef*)GetProcAddress(sourceControlDllHandle, "SccCloseProject");
+            SccQueryInfo = (SccQueryInfoTypedef*)GetProcAddress(sourceControlDllHandle, "SccQueryInfo");
+            SccAdd = (SccAddTypedef*)GetProcAddress(sourceControlDllHandle, "SccAdd");
+            SccCheckin = (SccCheckinTypedef*)GetProcAddress(sourceControlDllHandle, "SccCheckin");
+            SccCheckout = (SccCheckoutTypedef*)GetProcAddress(sourceControlDllHandle, "SccCheckout");
+            SccRename = (SccRenameTypedef*)GetProcAddress(sourceControlDllHandle, "SccRename");
+            SccRemove = (SccRemoveTypedef*)GetProcAddress(sourceControlDllHandle, "SccRemove");
+            LONG version = SccGetVersion();
+            if (version < 0x00010001)
+            {
+                FreeLibrary(sourceControlDllHandle);
+                sourceControlDllHandle = 0;
+                return false;
+            }
+            if (SccInitialize(&SccContext, mainAppHwnd, "Adventure Game Studio", 
+                sourceControlProviderDescription, &sccCaps, sourceControlAuxPathBuffer,
+                &sccCheckoutCommentLen, &sccCommentLen) != SCC_OK)
+            {
+                FreeLibrary(sourceControlDllHandle);
+                sourceControlDllHandle = 0;
+                return false;
+            }
+            return true;
+        }
 
-		void SourceCodeControl::Shutdown()
-		{
-			if (projectOpen)
-			{
-				projectOpen = false;
-				SccCloseProject(SccContext);
-			}
-			SccUnInitialize(SccContext);
-			FreeLibrary(sourceControlDllHandle);
-			sourceControlDllHandle = 0;
-		}
+        void SourceCodeControl::Shutdown()
+        {
+            if (projectOpen)
+            {
+                projectOpen = false;
+                SccCloseProject(SccContext);
+            }
+            SccUnInitialize(SccContext);
+            FreeLibrary(sourceControlDllHandle);
+            sourceControlDllHandle = 0;
+        }
 
-		SourceControlProject^ SourceCodeControl::AddToSourceControl()
-		{
-			_getcwd(sourceControlLocalPath, MAX_PATH);
-			BOOL allowCreateNewProject = TRUE;
-			if (SccGetProjPath(SccContext, mainAppHwnd, sourceControlUserName,
-							sourceControlProjectName, sourceControlLocalPath,
-							sourceControlAuxPath, FALSE, &allowCreateNewProject) == SCC_OK)
-			{
-				return gcnew SourceControlProject(gcnew System::String(sourceControlAuxPath), gcnew System::String(sourceControlProjectName));
-			}
-			return nullptr;
-		}
+        SourceControlProject^ SourceCodeControl::AddToSourceControl()
+        {
+            _getcwd(sourceControlLocalPath, MAX_PATH);
+            BOOL allowCreateNewProject = TRUE;
+            if (SccGetProjPath(SccContext, mainAppHwnd, sourceControlUserName,
+                sourceControlProjectName, sourceControlLocalPath,
+                sourceControlAuxPath, FALSE, &allowCreateNewProject) == SCC_OK)
+            {
+                return gcnew SourceControlProject(gcnew System::String(sourceControlAuxPath), gcnew System::String(sourceControlProjectName));
+            }
+            return nullptr;
+        }
 
-		void SourceCodeControl::CloseProject()
-		{
-			if (projectOpen) 
-			{
-				SccCloseProject(SccContext);
-				projectOpen = false;
-			}
-		}
+        void SourceCodeControl::CloseProject()
+        {
+            if (projectOpen) 
+            {
+                SccCloseProject(SccContext);
+                projectOpen = false;
+            }
+        }
 
-		bool SourceCodeControl::OpenProject(SourceControlProject^ project)
-		{
-			this->CloseProject();
+        bool SourceCodeControl::OpenProject(SourceControlProject^ project)
+        {
+            this->CloseProject();
 
-			_getcwd(sourceControlLocalPath, MAX_PATH);
-			ConvertStringToCharArray(project->AuxPath, sourceControlAuxPath);
-			ConvertStringToCharArray(project->ProjectName, sourceControlProjectName);
+            _getcwd(sourceControlLocalPath, MAX_PATH);
+            ConvertStringToCharArray(project->AuxPath, sourceControlAuxPath);
+            ConvertStringToCharArray(project->ProjectName, sourceControlProjectName);
 
-			if (SccOpenProject(SccContext, mainAppHwnd, sourceControlUserName,
-							sourceControlProjectName, sourceControlLocalPath,
-							sourceControlAuxPath, "", NULL, 0) == SCC_OK)
-			{
-				project->AuxPath = gcnew String(sourceControlAuxPath);
-				projectOpen = true;
-				return true;
-			}
-			return false;
-		}
+            if (SccOpenProject(SccContext, mainAppHwnd, sourceControlUserName,
+                sourceControlProjectName, sourceControlLocalPath,
+                sourceControlAuxPath, "", NULL, 0) == SCC_OK)
+            {
+                project->AuxPath = gcnew String(sourceControlAuxPath);
+                projectOpen = true;
+                return true;
+            }
+            return false;
+        }
 
-		cli::array<AGS::Types::SourceControlFileStatus>^ SourceCodeControl::GetFileStatuses(cli::array<System::String^> ^fileNames)
-		{
-			LPCSTR *fileNameList = new LPCSTR[fileNames->Length];
-			LONG *statusCodes = new LONG[fileNames->Length];
-			for (int i = 0; i < fileNames->Length; i++) 
-			{
-				fileNameList[i] = new char[fileNames[i]->Length + 1];
-        ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i]);
-			}
+        cli::array<AGS::Types::SourceControlFileStatus>^ SourceCodeControl::GetFileStatuses(cli::array<System::String^> ^fileNames)
+        {
+            LPCSTR *fileNameList = new LPCSTR[fileNames->Length];
+            LONG *statusCodes = new LONG[fileNames->Length];
+            for (int i = 0; i < fileNames->Length; i++) 
+            {
+                fileNameList[i] = new char[fileNames[i]->Length + 1];
+                ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i]);
+            }
 
-      int errorCode;
-			if ((errorCode = SccQueryInfo(SccContext, fileNames->Length, fileNameList, statusCodes)) != SCC_OK) 
-			{
-        throw gcnew AGS::Types::SourceControlException(errorCode, "SccQueryInfo");
-			}
+            int errorCode;
+            if ((errorCode = SccQueryInfo(SccContext, fileNames->Length, fileNameList, statusCodes)) != SCC_OK) 
+            {
+                throw gcnew AGS::Types::SourceControlException(errorCode, "SccQueryInfo");
+            }
 
-			cli::array<AGS::Types::SourceControlFileStatus> ^statuses = gcnew cli::array<AGS::Types::SourceControlFileStatus>(fileNames->Length);
-			for (int i = 0; i < fileNames->Length; i++) 
-			{
-				statuses[i] = (AGS::Types::SourceControlFileStatus)statusCodes[i];
-				delete fileNameList[i];
-			}
-			delete fileNameList;
-			delete statusCodes;
-			return statuses;
-		}
+            cli::array<AGS::Types::SourceControlFileStatus> ^statuses = gcnew cli::array<AGS::Types::SourceControlFileStatus>(fileNames->Length);
+            for (int i = 0; i < fileNames->Length; i++) 
+            {
+                statuses[i] = (AGS::Types::SourceControlFileStatus)statusCodes[i];
+                delete fileNameList[i];
+            }
+            delete fileNameList;
+            delete statusCodes;
+            return statuses;
+        }
 
-		void SourceCodeControl::AddFilesToSourceControl(cli::array<System::String^> ^fileNames, System::String ^comment)
-		{
-			LPCSTR commentAsLpcstr = new char[comment->Length + 1];
-			LPCSTR *fileNameList = new LPCSTR[fileNames->Length];
-			LONG *options = new LONG[fileNames->Length];
-			for (int i = 0; i < fileNames->Length; i++) 
-			{
-				options[i] = SCC_FILETYPE_AUTO;
-				fileNameList[i] = new char[fileNames[i]->Length + 1];
-        ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i]);
-			}
-			ConvertStringToCharArray(comment, (char*)commentAsLpcstr);
+        void SourceCodeControl::AddFilesToSourceControl(cli::array<System::String^> ^fileNames, System::String ^comment)
+        {
+            LPCSTR commentAsLpcstr = new char[comment->Length + 1];
+            LPCSTR *fileNameList = new LPCSTR[fileNames->Length];
+            LONG *options = new LONG[fileNames->Length];
+            for (int i = 0; i < fileNames->Length; i++) 
+            {
+                options[i] = SCC_FILETYPE_AUTO;
+                fileNameList[i] = new char[fileNames[i]->Length + 1];
+                ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i]);
+            }
+            ConvertStringToCharArray(comment, (char*)commentAsLpcstr);
 
-      int errorCode;
-			if ((errorCode = SccAdd(SccContext, mainAppHwnd, fileNames->Length, fileNameList, commentAsLpcstr, options, 0)) != SCC_OK) 
-			{
-        throw gcnew AGS::Types::SourceControlException(errorCode, "SccAdd");
-			}
+            int errorCode;
+            if ((errorCode = SccAdd(SccContext, mainAppHwnd, fileNames->Length, fileNameList, commentAsLpcstr, options, 0)) != SCC_OK) 
+            {
+                throw gcnew AGS::Types::SourceControlException(errorCode, "SccAdd");
+            }
 
-			for (int i = 0; i < fileNames->Length; i++) 
-			{
-				delete fileNameList[i];
-			}
-			delete fileNameList;
-			delete options;
-			delete commentAsLpcstr;
-		}
+            for (int i = 0; i < fileNames->Length; i++) 
+            {
+                delete fileNameList[i];
+            }
+            delete fileNameList;
+            delete options;
+            delete commentAsLpcstr;
+        }
 
-		void SourceCodeControl::CheckInFiles(cli::array<System::String^> ^fileNames, System::String ^comment)
-		{
-			LPCSTR commentAsLpcstr = new char[comment->Length + 1];
-			LPSTR *fileNameList = new LPSTR[fileNames->Length];
-			for (int i = 0; i < fileNames->Length; i++) 
-			{
-				fileNameList[i] = new char[fileNames[i]->Length + 1];
-        ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i]);
-			}
-			ConvertStringToCharArray(comment, (char*)commentAsLpcstr);
+        void SourceCodeControl::CheckInFiles(cli::array<System::String^> ^fileNames, System::String ^comment)
+        {
+            LPCSTR commentAsLpcstr = new char[comment->Length + 1];
+            LPSTR *fileNameList = new LPSTR[fileNames->Length];
+            for (int i = 0; i < fileNames->Length; i++) 
+            {
+                fileNameList[i] = new char[fileNames[i]->Length + 1];
+                ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i]);
+            }
+            ConvertStringToCharArray(comment, (char*)commentAsLpcstr);
 
-      int errorCode = SccCheckin(SccContext, mainAppHwnd, fileNames->Length, fileNameList, commentAsLpcstr, 0, 0);
-			if (errorCode != SCC_OK) 
-			{
-        throw gcnew AGS::Types::SourceControlException(errorCode, "SccCheckin");
-			}
+            int errorCode = SccCheckin(SccContext, mainAppHwnd, fileNames->Length, fileNameList, commentAsLpcstr, 0, 0);
+            if (errorCode != SCC_OK) 
+            {
+                throw gcnew AGS::Types::SourceControlException(errorCode, "SccCheckin");
+            }
 
-			for (int i = 0; i < fileNames->Length; i++) 
-			{
-				delete fileNameList[i];
-			}
-			delete fileNameList;
-			delete commentAsLpcstr;
-		}
+            for (int i = 0; i < fileNames->Length; i++) 
+            {
+                delete fileNameList[i];
+            }
+            delete fileNameList;
+            delete commentAsLpcstr;
+        }
 
-		void SourceCodeControl::CheckOutFiles(cli::array<System::String^> ^fileNames, System::String ^comment)
-		{
-			LPCSTR commentAsLpcstr = new char[comment->Length + 1];
-			LPCSTR *fileNameList = new LPCSTR[fileNames->Length];
-			for (int i = 0; i < fileNames->Length; i++) 
-			{
-				fileNameList[i] = new char[fileNames[i]->Length + 1];
-        ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i]);
-			}
-			ConvertStringToCharArray(comment, (char*)commentAsLpcstr);
+        void SourceCodeControl::CheckOutFiles(cli::array<System::String^> ^fileNames, System::String ^comment)
+        {
+            LPCSTR commentAsLpcstr = new char[comment->Length + 1];
+            LPCSTR *fileNameList = new LPCSTR[fileNames->Length];
+            for (int i = 0; i < fileNames->Length; i++) 
+            {
+                fileNameList[i] = new char[fileNames[i]->Length + 1];
+                ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i]);
+            }
+            ConvertStringToCharArray(comment, (char*)commentAsLpcstr);
 
-      int errorCode = SccCheckout(SccContext, mainAppHwnd, fileNames->Length, fileNameList, commentAsLpcstr, 0, 0);
-			if (errorCode != SCC_OK) 
-			{
-        throw gcnew AGS::Types::SourceControlException(errorCode, "SccCheckout");
-			}
+            int errorCode = SccCheckout(SccContext, mainAppHwnd, fileNames->Length, fileNameList, commentAsLpcstr, 0, 0);
+            if (errorCode != SCC_OK) 
+            {
+                throw gcnew AGS::Types::SourceControlException(errorCode, "SccCheckout");
+            }
 
-			for (int i = 0; i < fileNames->Length; i++) 
-			{
-				delete fileNameList[i];
-			}
-			delete fileNameList;
-			delete commentAsLpcstr;
-		}
+            for (int i = 0; i < fileNames->Length; i++) 
+            {
+                delete fileNameList[i];
+            }
+            delete fileNameList;
+            delete commentAsLpcstr;
+        }
 
-		void SourceCodeControl::RenameFile(System::String^ currentPath, System::String ^newPath)
-		{
-			if ((sccCaps & SCC_CAP_RENAME) == 0)
-			{
-				throw gcnew AGS::Types::AGSEditorException("The source control provider does not support renaming files");
-			}
+        void SourceCodeControl::RenameFile(System::String^ currentPath, System::String ^newPath)
+        {
+            if ((sccCaps & SCC_CAP_RENAME) == 0)
+            {
+                throw gcnew AGS::Types::AGSEditorException("The source control provider does not support renaming files");
+            }
 
-			char currentName[MAX_PATH];
-			char newName[MAX_PATH];
-      ConvertFileNameToCharArray(currentPath, currentName);
-			ConvertFileNameToCharArray(newPath, newName);
+            char currentName[MAX_PATH];
+            char newName[MAX_PATH];
+            ConvertFileNameToCharArray(currentPath, currentName);
+            ConvertFileNameToCharArray(newPath, newName);
 
-      int errorCode = SccRename(SccContext, mainAppHwnd, currentName, newName);
-			if (errorCode != SCC_OK) 
-			{
-        throw gcnew AGS::Types::SourceControlException(errorCode, "SccRename");
-			}
+            int errorCode = SccRename(SccContext, mainAppHwnd, currentName, newName);
+            if (errorCode != SCC_OK) 
+            {
+                throw gcnew AGS::Types::SourceControlException(errorCode, "SccRename");
+            }
 
-		}
+        }
 
-		void SourceCodeControl::DeleteFiles(cli::array<System::String^> ^fileNames, System::String ^comment)
-		{
-			LPCSTR commentAsLpcstr = new char[comment->Length + 1];
-			LPCSTR *fileNameList = new LPCSTR[fileNames->Length];
-			for (int i = 0; i < fileNames->Length; i++) 
-			{
-				fileNameList[i] = new char[fileNames[i]->Length + 1];
-				ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i]);
-			}
-			ConvertStringToCharArray(comment, (char*)commentAsLpcstr);
+        void SourceCodeControl::DeleteFiles(cli::array<System::String^> ^fileNames, System::String ^comment)
+        {
+            LPCSTR commentAsLpcstr = new char[comment->Length + 1];
+            LPCSTR *fileNameList = new LPCSTR[fileNames->Length];
+            for (int i = 0; i < fileNames->Length; i++) 
+            {
+                fileNameList[i] = new char[fileNames[i]->Length + 1];
+                ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i]);
+            }
+            ConvertStringToCharArray(comment, (char*)commentAsLpcstr);
 
-      int errorCode = SccRemove(SccContext, mainAppHwnd, fileNames->Length, fileNameList, commentAsLpcstr, 0, 0);
-			if (errorCode != SCC_OK) 
-			{
-        throw gcnew AGS::Types::SourceControlException(errorCode, "SccRemove");
-			}
+            int errorCode = SccRemove(SccContext, mainAppHwnd, fileNames->Length, fileNameList, commentAsLpcstr, 0, 0);
+            if (errorCode != SCC_OK) 
+            {
+                throw gcnew AGS::Types::SourceControlException(errorCode, "SccRemove");
+            }
 
-			for (int i = 0; i < fileNames->Length; i++) 
-			{
-				delete fileNameList[i];
-			}
-			delete fileNameList;
-			delete commentAsLpcstr;
-		}
+            for (int i = 0; i < fileNames->Length; i++) 
+            {
+                delete fileNameList[i];
+            }
+            delete fileNameList;
+            delete commentAsLpcstr;
+        }
 
-	}
+    }
 
 }

@@ -17,7 +17,7 @@ namespace AGS.Editor
             List<DockContent> startupPanes)
         {
             _dockPanel = dockPanel;
-            _startupPanes = startupPanes;            
+            _startupPanes = startupPanes;
         }
 
         public void SaveLayout()
@@ -34,7 +34,7 @@ namespace AGS.Editor
             string configFile = GetLayoutFile();
             if (File.Exists(configFile))
             {
-                DetachExistingPanes();            
+                DetachExistingPanes();
                 _dockPanel.LoadFromXml(configFile, new
                     DeserializeDockContent(DeserializeContents));
                 return true;

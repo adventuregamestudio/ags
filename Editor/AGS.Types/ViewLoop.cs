@@ -8,7 +8,7 @@ namespace AGS.Types
 {
     public class ViewLoop
     {
-        public static readonly string[] DirectionNames = new string[]{"down", "left", "right", "up", "down-right", "up-right", "down-left", "up-left"};
+        public static readonly string[] DirectionNames = new string[] { "down", "left", "right", "up", "down-right", "up-right", "down-left", "up-left" };
 
         private int _id;
         private bool _runNextLoop;
@@ -18,10 +18,10 @@ namespace AGS.Types
         {
         }
 
-		public ViewLoop(int id)
-		{
-			_id = id;
-		}
+        public ViewLoop(int id)
+        {
+            _id = id;
+        }
 
         [Description("The ID number of the loop")]
         [Category("Design")]
@@ -39,11 +39,11 @@ namespace AGS.Types
             get { return _runNextLoop; }
             set { _runNextLoop = value; }
         }
-		
-		/// <summary>
-		/// This is pretty much obsolete now, it used to be Full if the
-		/// Max Frames Per Loop was reached, but now there isn't one.
-		/// </summary>
+
+        /// <summary>
+        /// This is pretty much obsolete now, it used to be Full if the
+        /// Max Frames Per Loop was reached, but now there isn't one.
+        /// </summary>
         [Browsable(false)]
         public bool Full
         {
@@ -102,7 +102,7 @@ namespace AGS.Types
 
         public ViewLoop Clone(bool flipped)
         {
-            ViewLoop clone = new ViewLoop 
+            ViewLoop clone = new ViewLoop
             {
                 _frames = new List<ViewFrame>(),
                 _runNextLoop = RunNextLoop
@@ -123,7 +123,7 @@ namespace AGS.Types
             foreach (ViewFrame frame in _frames)
             {
                 target.Frames.Add(frame.Clone(flipped));
-            } 
+            }
         }
     }
 }

@@ -273,17 +273,17 @@ void ccInstance::AbortAndDestroy()
 
 #define ASSERT_STACK_SPACE_AVAILABLE(N) \
     if (registers[SREG_SP].RValue + N - &stack[0] >= CC_STACK_SIZE) \
-    { \
-        cc_error("stack overflow"); \
-        return -1; \
-    }
+{ \
+    cc_error("stack overflow"); \
+    return -1; \
+}
 
 #define ASSERT_STACK_SIZE(N) \
     if (registers[SREG_SP].RValue - N < &stack[0]) \
-    { \
-        cc_error("stack underflow"); \
-        return -1; \
-    }
+{ \
+    cc_error("stack underflow"); \
+    return -1; \
+}
 
 int ccInstance::CallScriptFunction(char *funcname, int32_t numargs, RuntimeScriptValue *params)
 {
@@ -354,48 +354,48 @@ int ccInstance::CallScriptFunction(char *funcname, int32_t numargs, RuntimeScrip
     stackdata_ptr = stackdata;
     // NOTE: Pushing parameters to stack in reverse order
     ASSERT_STACK_SPACE_AVAILABLE(numargs + 1 /* return address */)
-    for (int i = numargs - 1; i >= 0; --i)
-    {
-        PushValueToStack(params[i]);
-    }
-    PushValueToStack(RuntimeScriptValue().SetInt32(0)); // return address on stack
-    if (ccError)
-    {
-        return -1;
-    }
-    runningInst = this;
+        for (int i = numargs - 1; i >= 0; --i)
+        {
+            PushValueToStack(params[i]);
+        }
+        PushValueToStack(RuntimeScriptValue().SetInt32(0)); // return address on stack
+        if (ccError)
+        {
+            return -1;
+        }
+        runningInst = this;
 
-    int reterr = Run(startat);
-    ASSERT_STACK_SIZE(numargs);
-    PopValuesFromStack(numargs);
-    pc = 0;
-    current_instance = currentInstanceWas;
+        int reterr = Run(startat);
+        ASSERT_STACK_SIZE(numargs);
+        PopValuesFromStack(numargs);
+        pc = 0;
+        current_instance = currentInstanceWas;
 
-    // NOTE that if proper multithreading is added this will need
-    // to be reconsidered, since the GC could be run in the middle 
-    // of a RET from a function or something where there is an 
-    // object with ref count 0 that is in use
-    pool.RunGarbageCollectionIfAppropriate();
+        // NOTE that if proper multithreading is added this will need
+        // to be reconsidered, since the GC could be run in the middle 
+        // of a RET from a function or something where there is an 
+        // object with ref count 0 that is in use
+        pool.RunGarbageCollectionIfAppropriate();
 
-    if (new_line_hook)
-        new_line_hook(NULL, 0);
+        if (new_line_hook)
+            new_line_hook(NULL, 0);
 
-    if (reterr)
-        return -6;
+        if (reterr)
+            return -6;
 
-    if (flags & INSTF_ABORTED) {
-        flags &= ~INSTF_ABORTED;
+        if (flags & INSTF_ABORTED) {
+            flags &= ~INSTF_ABORTED;
 
-        if (flags & INSTF_FREE)
-            Free();
-        return 100;
-    }
+            if (flags & INSTF_FREE)
+                Free();
+            return 100;
+        }
 
-    if (registers[SREG_SP].RValue != &stack[0]) {
-        cc_error("stack pointer was not zero at completion of script");
-        return -5;
-    }
-    return ccError;
+        if (registers[SREG_SP].RValue != &stack[0]) {
+            cc_error("stack pointer was not zero at completion of script");
+            return -5;
+        }
+        return ccError;
 }
 
 void ccInstance::DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool *hasTheFunc) {
@@ -510,16 +510,16 @@ int ccInstance::Run(int32_t curpc)
     current_instance = this;
     ccInstance *codeInst = runningInst;
     int write_debug_dump = ccGetOption(SCOPT_DEBUGRUN);
-	ScriptOperation codeOp;
+    ScriptOperation codeOp;
 
     FunctionCallStack func_callstack;
 
     while (1) {
 
         /*
-		if (!codeInst->ReadOperation(codeOp, pc))
+        if (!codeInst->ReadOperation(codeOp, pc))
         {
-            return -1;
+        return -1;
         }
         */
         /* ReadOperation */
@@ -546,7 +546,7 @@ int ccInstance::Run(int32_t curpc)
                 /*
                 if (!FixupArgument(code[pc], fixup, codeOp.Args[i]))
                 {
-                    return -1;
+                return -1;
                 }
                 */
                 /* FixupArgument */
@@ -619,742 +619,742 @@ int ccInstance::Run(int32_t curpc)
         }
 
         switch (codeOp.Instruction.Code) {
-      case SCMD_LINENUM:
-          line_number = arg1.IValue;
-          currentline = arg1.IValue;
-          if (new_line_hook)
-              new_line_hook(this, currentline);
-          break;
-      case SCMD_ADD:
-          // If the the register is SREG_SP, we are allocating new variable on the stack
-          if (arg1.IValue == SREG_SP)
-          {
-            // Only allocate new data if current stack entry is invalid;
-            // in some cases this may be advancing over value that was written by MEMWRITE*
-            ASSERT_STACK_SPACE_AVAILABLE(1);
-            if (reg1.RValue->IsValid())
-            {
-              // TODO: perhaps should add a flag here to ensure this happens only after MEMWRITE-ing to stack
-              registers[SREG_SP].RValue++;
-            }
-            else
-            {
-              PushDataToStack(arg2.IValue);
-              if (ccError)
-              {
-                  return -1;
-              }
-            }
-          }
-          else
-          {
-            reg1.IValue += arg2.IValue;
-          }
-          break;
-      case SCMD_SUB:
-          if (reg1.Type == kScValStackPtr)
-          {
-            // If this is SREG_SP, this is stack pop, which frees local variables;
-            // Other than SREG_SP this may be AGS 2.x method to offset stack in SREG_MAR;
-            // quote JJS:
-            // // AGS 2.x games also perform relative stack access by copying SREG_SP to SREG_MAR
-            // // and then subtracting from that.
-            if (arg1.IValue == SREG_SP)
-            {
-                PopDataFromStack(arg2.IValue);
-            }
-            else
-            {
-                // This is practically LOADSPOFFS
-                reg1 = GetStackPtrOffsetRw(arg2.IValue);
-            }
+case SCMD_LINENUM:
+    line_number = arg1.IValue;
+    currentline = arg1.IValue;
+    if (new_line_hook)
+        new_line_hook(this, currentline);
+    break;
+case SCMD_ADD:
+    // If the the register is SREG_SP, we are allocating new variable on the stack
+    if (arg1.IValue == SREG_SP)
+    {
+        // Only allocate new data if current stack entry is invalid;
+        // in some cases this may be advancing over value that was written by MEMWRITE*
+        ASSERT_STACK_SPACE_AVAILABLE(1);
+        if (reg1.RValue->IsValid())
+        {
+            // TODO: perhaps should add a flag here to ensure this happens only after MEMWRITE-ing to stack
+            registers[SREG_SP].RValue++;
+        }
+        else
+        {
+            PushDataToStack(arg2.IValue);
             if (ccError)
             {
                 return -1;
             }
-          }
-          else
-          {
-            reg1.IValue -= arg2.IValue;
-          }
-          break;
-      case SCMD_REGTOREG:
-          reg2 = reg1;
-          break;
-      case SCMD_WRITELIT:
-          // Take the data address from reg[MAR] and copy there arg1 bytes from arg2 address
-          //
-          // NOTE: since it reads directly from arg2 (which originally was
-          // long, or rather int32 due x32 build), written value may normally
-          // be only up to 4 bytes large;
-          // I guess that's an obsolete way to do WRITE, WRITEW and WRITEB
-          switch (arg1.IValue)
-          {
-          case sizeof(char):
-              registers[SREG_MAR].WriteByte(arg2.IValue);
-              break;
-          case sizeof(int16_t):
-              registers[SREG_MAR].WriteInt16(arg2.IValue);
-              break;
-          case sizeof(int32_t):
-              // We do not know if this is math integer or some pointer, etc
-              registers[SREG_MAR].WriteValue(arg2);
-              break;
-          default:
-              cc_error("unexpected data size for WRITELIT op: %d", arg1.IValue);
-              break;
-          }
-          break;
-      case SCMD_RET:
-          {
-          if (loopIterationCheckDisabled > 0)
-              loopIterationCheckDisabled--;
+        }
+    }
+    else
+    {
+        reg1.IValue += arg2.IValue;
+    }
+    break;
+case SCMD_SUB:
+    if (reg1.Type == kScValStackPtr)
+    {
+        // If this is SREG_SP, this is stack pop, which frees local variables;
+        // Other than SREG_SP this may be AGS 2.x method to offset stack in SREG_MAR;
+        // quote JJS:
+        // // AGS 2.x games also perform relative stack access by copying SREG_SP to SREG_MAR
+        // // and then subtracting from that.
+        if (arg1.IValue == SREG_SP)
+        {
+            PopDataFromStack(arg2.IValue);
+        }
+        else
+        {
+            // This is practically LOADSPOFFS
+            reg1 = GetStackPtrOffsetRw(arg2.IValue);
+        }
+        if (ccError)
+        {
+            return -1;
+        }
+    }
+    else
+    {
+        reg1.IValue -= arg2.IValue;
+    }
+    break;
+case SCMD_REGTOREG:
+    reg2 = reg1;
+    break;
+case SCMD_WRITELIT:
+    // Take the data address from reg[MAR] and copy there arg1 bytes from arg2 address
+    //
+    // NOTE: since it reads directly from arg2 (which originally was
+    // long, or rather int32 due x32 build), written value may normally
+    // be only up to 4 bytes large;
+    // I guess that's an obsolete way to do WRITE, WRITEW and WRITEB
+    switch (arg1.IValue)
+    {
+    case sizeof(char):
+        registers[SREG_MAR].WriteByte(arg2.IValue);
+        break;
+    case sizeof(int16_t):
+        registers[SREG_MAR].WriteInt16(arg2.IValue);
+        break;
+    case sizeof(int32_t):
+        // We do not know if this is math integer or some pointer, etc
+        registers[SREG_MAR].WriteValue(arg2);
+        break;
+    default:
+        cc_error("unexpected data size for WRITELIT op: %d", arg1.IValue);
+        break;
+    }
+    break;
+case SCMD_RET:
+    {
+        if (loopIterationCheckDisabled > 0)
+            loopIterationCheckDisabled--;
 
-          ASSERT_STACK_SIZE(1);
-          RuntimeScriptValue rval = PopValueFromStack();
-          curnest--;
-          pc = rval.IValue;
-          if (pc == 0)
-          {
-              returnValue = registers[SREG_AX].IValue;
-              return 0;
-          }
-          current_instance = this;
-          POP_CALL_STACK;
-          continue; // continue so that the PC doesn't get overwritten
-          }
-      case SCMD_LITTOREG:
-          reg1 = arg2;
-          break;
-      case SCMD_MEMREAD:
-          // Take the data address from reg[MAR] and copy int32_t to reg[arg1]
-          reg1 = registers[SREG_MAR].ReadValue();
-          break;
-      case SCMD_MEMWRITE:
-          // Take the data address from reg[MAR] and copy there int32_t from reg[arg1]
-          registers[SREG_MAR].WriteValue(reg1);
-          break;
-      case SCMD_LOADSPOFFS:
-          registers[SREG_MAR] = GetStackPtrOffsetRw(arg1.IValue);
-          if (ccError)
-          {
-              return -1;
-          }
-          break;
+        ASSERT_STACK_SIZE(1);
+        RuntimeScriptValue rval = PopValueFromStack();
+        curnest--;
+        pc = rval.IValue;
+        if (pc == 0)
+        {
+            returnValue = registers[SREG_AX].IValue;
+            return 0;
+        }
+        current_instance = this;
+        POP_CALL_STACK;
+        continue; // continue so that the PC doesn't get overwritten
+    }
+case SCMD_LITTOREG:
+    reg1 = arg2;
+    break;
+case SCMD_MEMREAD:
+    // Take the data address from reg[MAR] and copy int32_t to reg[arg1]
+    reg1 = registers[SREG_MAR].ReadValue();
+    break;
+case SCMD_MEMWRITE:
+    // Take the data address from reg[MAR] and copy there int32_t from reg[arg1]
+    registers[SREG_MAR].WriteValue(reg1);
+    break;
+case SCMD_LOADSPOFFS:
+    registers[SREG_MAR] = GetStackPtrOffsetRw(arg1.IValue);
+    if (ccError)
+    {
+        return -1;
+    }
+    break;
 
-          // 64 bit: Force 32 bit math
-      case SCMD_MULREG:
-          reg1.SetInt32(reg1.IValue * reg2.IValue);
-          break;
-      case SCMD_DIVREG:
-          if (reg2.IValue == 0) {
-              cc_error("!Integer divide by zero");
-              return -1;
-          } 
-          reg1.SetInt32(reg1.IValue / reg2.IValue);
-          break;
-      case SCMD_ADDREG:
-          // This may be pointer arithmetics, in which case IValue stores offset from base pointer
-          reg1.IValue += reg2.IValue;
-          break;
-      case SCMD_SUBREG:
-          // This may be pointer arithmetics, in which case IValue stores offset from base pointer
-          reg1.IValue -= reg2.IValue;
-          break;
-      case SCMD_BITAND:
-          reg1.SetInt32(reg1.IValue & reg2.IValue);
-          break;
-      case SCMD_BITOR:
-          reg1.SetInt32(reg1.IValue | reg2.IValue);
-          break;
-      case SCMD_ISEQUAL:
-          reg1.SetInt32AsBool(reg1 == reg2);
-          break;
-      case SCMD_NOTEQUAL:
-          reg1.SetInt32AsBool(reg1 != reg2);
-          break;
-      case SCMD_GREATER:
-          reg1.SetInt32AsBool(reg1.IValue > reg2.IValue);
-          break;
-      case SCMD_LESSTHAN:
-          reg1.SetInt32AsBool(reg1.IValue < reg2.IValue);
-          break;
-      case SCMD_GTE:
-          reg1.SetInt32AsBool(reg1.IValue >= reg2.IValue);
-          break;
-      case SCMD_LTE:
-          reg1.SetInt32AsBool(reg1.IValue <= reg2.IValue);
-          break;
-      case SCMD_AND:
-          reg1.SetInt32AsBool(reg1.IValue && reg2.IValue);
-          break;
-      case SCMD_OR:
-          reg1.SetInt32AsBool(reg1.IValue || reg2.IValue);
-          break;
-      case SCMD_XORREG:
-          reg1.SetInt32(reg1.IValue ^ reg2.IValue);
-          break;
-      case SCMD_MODREG:
-          if (reg2.IValue == 0) {
-              cc_error("!Integer divide by zero");
-              return -1;
-          } 
-          reg1.SetInt32(reg1.IValue % reg2.IValue);
-          break;
-      case SCMD_NOTREG:
-          reg1 = !(reg1);
-          break;
-      case SCMD_CALL:
-          // CallScriptFunction another function within same script, just save PC
-          // and continue from there
-          if (curnest >= MAXNEST - 1) {
-              cc_error("!call stack overflow, recursive call problem?");
-              return -1;
-          }
+    // 64 bit: Force 32 bit math
+case SCMD_MULREG:
+    reg1.SetInt32(reg1.IValue * reg2.IValue);
+    break;
+case SCMD_DIVREG:
+    if (reg2.IValue == 0) {
+        cc_error("!Integer divide by zero");
+        return -1;
+    } 
+    reg1.SetInt32(reg1.IValue / reg2.IValue);
+    break;
+case SCMD_ADDREG:
+    // This may be pointer arithmetics, in which case IValue stores offset from base pointer
+    reg1.IValue += reg2.IValue;
+    break;
+case SCMD_SUBREG:
+    // This may be pointer arithmetics, in which case IValue stores offset from base pointer
+    reg1.IValue -= reg2.IValue;
+    break;
+case SCMD_BITAND:
+    reg1.SetInt32(reg1.IValue & reg2.IValue);
+    break;
+case SCMD_BITOR:
+    reg1.SetInt32(reg1.IValue | reg2.IValue);
+    break;
+case SCMD_ISEQUAL:
+    reg1.SetInt32AsBool(reg1 == reg2);
+    break;
+case SCMD_NOTEQUAL:
+    reg1.SetInt32AsBool(reg1 != reg2);
+    break;
+case SCMD_GREATER:
+    reg1.SetInt32AsBool(reg1.IValue > reg2.IValue);
+    break;
+case SCMD_LESSTHAN:
+    reg1.SetInt32AsBool(reg1.IValue < reg2.IValue);
+    break;
+case SCMD_GTE:
+    reg1.SetInt32AsBool(reg1.IValue >= reg2.IValue);
+    break;
+case SCMD_LTE:
+    reg1.SetInt32AsBool(reg1.IValue <= reg2.IValue);
+    break;
+case SCMD_AND:
+    reg1.SetInt32AsBool(reg1.IValue && reg2.IValue);
+    break;
+case SCMD_OR:
+    reg1.SetInt32AsBool(reg1.IValue || reg2.IValue);
+    break;
+case SCMD_XORREG:
+    reg1.SetInt32(reg1.IValue ^ reg2.IValue);
+    break;
+case SCMD_MODREG:
+    if (reg2.IValue == 0) {
+        cc_error("!Integer divide by zero");
+        return -1;
+    } 
+    reg1.SetInt32(reg1.IValue % reg2.IValue);
+    break;
+case SCMD_NOTREG:
+    reg1 = !(reg1);
+    break;
+case SCMD_CALL:
+    // CallScriptFunction another function within same script, just save PC
+    // and continue from there
+    if (curnest >= MAXNEST - 1) {
+        cc_error("!call stack overflow, recursive call problem?");
+        return -1;
+    }
 
-          PUSH_CALL_STACK;
+    PUSH_CALL_STACK;
 
-          ASSERT_STACK_SPACE_AVAILABLE(1);
-          PushValueToStack(RuntimeScriptValue().SetInt32(pc + sccmd_info[codeOp.Instruction.Code].ArgCount + 1));
-          if (ccError)
-          {
-              return -1;
-          }
+    ASSERT_STACK_SPACE_AVAILABLE(1);
+    PushValueToStack(RuntimeScriptValue().SetInt32(pc + sccmd_info[codeOp.Instruction.Code].ArgCount + 1));
+    if (ccError)
+    {
+        return -1;
+    }
 
-          if (thisbase[curnest] == 0)
-              pc = reg1.IValue;
-          else {
-              pc = funcstart[curnest];
-              pc += (reg1.IValue - thisbase[curnest]);
-          }
+    if (thisbase[curnest] == 0)
+        pc = reg1.IValue;
+    else {
+        pc = funcstart[curnest];
+        pc += (reg1.IValue - thisbase[curnest]);
+    }
 
-          next_call_needs_object = 0;
+    next_call_needs_object = 0;
 
-          if (loopIterationCheckDisabled)
-              loopIterationCheckDisabled++;
+    if (loopIterationCheckDisabled)
+        loopIterationCheckDisabled++;
 
-          curnest++;
-          thisbase[curnest] = 0;
-          funcstart[curnest] = pc;
-          continue; // continue so that the PC doesn't get overwritten
-      case SCMD_MEMREADB:
-          // Take the data address from reg[MAR] and copy byte to reg[arg1]
-          reg1.SetUInt8(registers[SREG_MAR].ReadByte());
-          break;
-      case SCMD_MEMREADW:
-          // Take the data address from reg[MAR] and copy int16_t to reg[arg1]
-          reg1.SetInt16(registers[SREG_MAR].ReadInt16());
-          break;
-      case SCMD_MEMWRITEB:
-          // Take the data address from reg[MAR] and copy there byte from reg[arg1]
-          registers[SREG_MAR].WriteByte(reg1.IValue);
-          break;
-      case SCMD_MEMWRITEW:
-          // Take the data address from reg[MAR] and copy there int16_t from reg[arg1]
-          registers[SREG_MAR].WriteInt16(reg1.IValue);
-          break;
-      case SCMD_JZ:
-          if (registers[SREG_AX].IsNull())
-              pc += arg1.IValue;
-          break;
-      case SCMD_JNZ:
-          if (!registers[SREG_AX].IsNull())
-              pc += arg1.IValue;
-          break;
-      case SCMD_PUSHREG:
-          // Script code analysis shows that statistically there's a moderate
-          // chance (10-30% depending on game) that a PUSHREG instruction will be
-          // immediately followed by POPREG.
-          // This runtime fixup serves the purpose of slightly increasing
-          // execution speed by skipping two stack operations.
-          // Practically, this is identical to REGTOREG instruction.
-          if (codeInst->code[pc + 2] == SCMD_POPREG)
-          {
-              registers[codeInst->code[pc + 3]] = reg1;
-              pc += 2;
-              break;
-          }
-          // Push reg[arg1] value to the stack
-          ASSERT_STACK_SPACE_AVAILABLE(1);
-          PushValueToStack(reg1);
-          if (ccError)
-          {
-              return -1;
-          }
-          break;
-      case SCMD_POPREG:
-          ASSERT_STACK_SIZE(1);
-          reg1 = PopValueFromStack();
-          break;
-      case SCMD_JMP:
-          pc += arg1.IValue;
+    curnest++;
+    thisbase[curnest] = 0;
+    funcstart[curnest] = pc;
+    continue; // continue so that the PC doesn't get overwritten
+case SCMD_MEMREADB:
+    // Take the data address from reg[MAR] and copy byte to reg[arg1]
+    reg1.SetUInt8(registers[SREG_MAR].ReadByte());
+    break;
+case SCMD_MEMREADW:
+    // Take the data address from reg[MAR] and copy int16_t to reg[arg1]
+    reg1.SetInt16(registers[SREG_MAR].ReadInt16());
+    break;
+case SCMD_MEMWRITEB:
+    // Take the data address from reg[MAR] and copy there byte from reg[arg1]
+    registers[SREG_MAR].WriteByte(reg1.IValue);
+    break;
+case SCMD_MEMWRITEW:
+    // Take the data address from reg[MAR] and copy there int16_t from reg[arg1]
+    registers[SREG_MAR].WriteInt16(reg1.IValue);
+    break;
+case SCMD_JZ:
+    if (registers[SREG_AX].IsNull())
+        pc += arg1.IValue;
+    break;
+case SCMD_JNZ:
+    if (!registers[SREG_AX].IsNull())
+        pc += arg1.IValue;
+    break;
+case SCMD_PUSHREG:
+    // Script code analysis shows that statistically there's a moderate
+    // chance (10-30% depending on game) that a PUSHREG instruction will be
+    // immediately followed by POPREG.
+    // This runtime fixup serves the purpose of slightly increasing
+    // execution speed by skipping two stack operations.
+    // Practically, this is identical to REGTOREG instruction.
+    if (codeInst->code[pc + 2] == SCMD_POPREG)
+    {
+        registers[codeInst->code[pc + 3]] = reg1;
+        pc += 2;
+        break;
+    }
+    // Push reg[arg1] value to the stack
+    ASSERT_STACK_SPACE_AVAILABLE(1);
+    PushValueToStack(reg1);
+    if (ccError)
+    {
+        return -1;
+    }
+    break;
+case SCMD_POPREG:
+    ASSERT_STACK_SIZE(1);
+    reg1 = PopValueFromStack();
+    break;
+case SCMD_JMP:
+    pc += arg1.IValue;
 
-          if ((arg1.IValue < 0) && (maxWhileLoops > 0) && (loopIterationCheckDisabled == 0)) {
-              // Make sure it's not stuck in a While loop
-              loopIterations ++;
-              if (flags & INSTF_RUNNING) {
-                  loopIterations = 0;
-                  flags &= ~INSTF_RUNNING;
-              }
-              else if (loopIterations > maxWhileLoops) {
-                  cc_error("!Script appears to be hung (a while loop ran %d times). The problem may be in a calling function; check the call stack.", loopIterations);
-                  return -1;
-              }
-          }
-          break;
-      case SCMD_MUL:
-          reg1.IValue *= arg2.IValue;
-          break;
-      case SCMD_CHECKBOUNDS:
-          if ((reg1.IValue < 0) ||
-              (reg1.IValue >= arg2.IValue)) {
-                  cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue, arg2.IValue - 1);
-                  return -1;
-          }
-          break;
-      case SCMD_DYNAMICBOUNDS:
-          {
-              // TODO: test reg[MAR] type here;
-              // That might be dynamic object, but also a non-managed dynamic array, "allocated"
-              // on global or local memspace (buffer)
-              int32_t upperBoundInBytes = *((int32_t *)(registers[SREG_MAR].GetPtrWithOffset() - 4));
-              if ((reg1.IValue < 0) ||
-                  (reg1.IValue >= upperBoundInBytes)) {
-                      int32_t upperBound = *((int32_t *)(registers[SREG_MAR].GetPtrWithOffset() - 8)) & (~ARRAY_MANAGED_TYPE_FLAG);
-                      int elementSize = (upperBoundInBytes / upperBound);
-                      cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue / elementSize, upperBound - 1);
-                      return -1;
-              }
-              break;
-          }
+    if ((arg1.IValue < 0) && (maxWhileLoops > 0) && (loopIterationCheckDisabled == 0)) {
+        // Make sure it's not stuck in a While loop
+        loopIterations ++;
+        if (flags & INSTF_RUNNING) {
+            loopIterations = 0;
+            flags &= ~INSTF_RUNNING;
+        }
+        else if (loopIterations > maxWhileLoops) {
+            cc_error("!Script appears to be hung (a while loop ran %d times). The problem may be in a calling function; check the call stack.", loopIterations);
+            return -1;
+        }
+    }
+    break;
+case SCMD_MUL:
+    reg1.IValue *= arg2.IValue;
+    break;
+case SCMD_CHECKBOUNDS:
+    if ((reg1.IValue < 0) ||
+        (reg1.IValue >= arg2.IValue)) {
+            cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue, arg2.IValue - 1);
+            return -1;
+    }
+    break;
+case SCMD_DYNAMICBOUNDS:
+    {
+        // TODO: test reg[MAR] type here;
+        // That might be dynamic object, but also a non-managed dynamic array, "allocated"
+        // on global or local memspace (buffer)
+        int32_t upperBoundInBytes = *((int32_t *)(registers[SREG_MAR].GetPtrWithOffset() - 4));
+        if ((reg1.IValue < 0) ||
+            (reg1.IValue >= upperBoundInBytes)) {
+                int32_t upperBound = *((int32_t *)(registers[SREG_MAR].GetPtrWithOffset() - 8)) & (~ARRAY_MANAGED_TYPE_FLAG);
+                int elementSize = (upperBoundInBytes / upperBound);
+                cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue / elementSize, upperBound - 1);
+                return -1;
+        }
+        break;
+    }
 
-          // 64 bit: Handles are always 32 bit values. They are not C pointer.
+    // 64 bit: Handles are always 32 bit values. They are not C pointer.
 
-      case SCMD_MEMREADPTR: {
-          ccError = 0;
+case SCMD_MEMREADPTR: {
+    ccError = 0;
 
-          int32_t handle = registers[SREG_MAR].ReadInt32();
-          void *object;
-          ICCDynamicObject *manager;
-          ScriptValueType obj_type = ccGetObjectAddressAndManagerFromHandle(handle, object, manager);
-          if (obj_type == kScValPluginObject)
-          {
-              reg1.SetPluginObject( object, manager );
-          }
-          else
-          {
-              reg1.SetDynamicObject( object, manager );
-          }
+    int32_t handle = registers[SREG_MAR].ReadInt32();
+    void *object;
+    ICCDynamicObject *manager;
+    ScriptValueType obj_type = ccGetObjectAddressAndManagerFromHandle(handle, object, manager);
+    if (obj_type == kScValPluginObject)
+    {
+        reg1.SetPluginObject( object, manager );
+    }
+    else
+    {
+        reg1.SetDynamicObject( object, manager );
+    }
 
-          // if error occurred, cc_error will have been set
-          if (ccError)
-              return -1;
-          break; }
-      case SCMD_MEMWRITEPTR: {
+    // if error occurred, cc_error will have been set
+    if (ccError)
+        return -1;
+    break; }
+case SCMD_MEMWRITEPTR: {
 
-          int32_t handle = registers[SREG_MAR].ReadInt32();
-          char *address = NULL;
+    int32_t handle = registers[SREG_MAR].ReadInt32();
+    char *address = NULL;
 
-          if (reg1.Type == kScValStaticArray && reg1.StcArr->GetDynamicManager())
-          {
-              address = (char*)reg1.StcArr->GetElementPtr(reg1.Ptr, reg1.IValue);
-          }
-          else if (reg1.Type == kScValDynamicObject ||
-              reg1.Type == kScValPluginObject)
-          {
-              address = reg1.Ptr;
-          }
-          else if (reg1.Type == kScValPluginArg)
-          {
-              address = (char*)reg1.IValue;
-          }
-          // There's one possible case when the reg1 is 0, which means writing nullptr
-          else if (!reg1.IsNull())
-          {
-              cc_error("internal error: MEMWRITEPTR argument is not dynamic object");
-              return -1;
-          }
+    if (reg1.Type == kScValStaticArray && reg1.StcArr->GetDynamicManager())
+    {
+        address = (char*)reg1.StcArr->GetElementPtr(reg1.Ptr, reg1.IValue);
+    }
+    else if (reg1.Type == kScValDynamicObject ||
+        reg1.Type == kScValPluginObject)
+    {
+        address = reg1.Ptr;
+    }
+    else if (reg1.Type == kScValPluginArg)
+    {
+        address = (char*)reg1.IValue;
+    }
+    // There's one possible case when the reg1 is 0, which means writing nullptr
+    else if (!reg1.IsNull())
+    {
+        cc_error("internal error: MEMWRITEPTR argument is not dynamic object");
+        return -1;
+    }
 
-          int32_t newHandle = ccGetObjectHandleFromAddress(address);
-          if (newHandle == -1)
-              return -1;
+    int32_t newHandle = ccGetObjectHandleFromAddress(address);
+    if (newHandle == -1)
+        return -1;
 
-          if (handle != newHandle) {
-              ccReleaseObjectReference(handle);
-              ccAddObjectReference(newHandle);
-              registers[SREG_MAR].WriteInt32(newHandle);
-          }
-          break;
-                             }
-      case SCMD_MEMINITPTR: { 
-          char *address = NULL;
-
-          if (reg1.Type == kScValStaticArray && reg1.StcArr->GetDynamicManager())
-          {
-              address = (char*)reg1.StcArr->GetElementPtr(reg1.Ptr, reg1.IValue);
-          }
-          else if (reg1.Type == kScValDynamicObject ||
-              reg1.Type == kScValPluginObject)
-          {
-              address = reg1.Ptr;
-          }
-          else if (reg1.Type == kScValPluginArg)
-          {
-              address = (char*)reg1.IValue;
-          }
-          // There's one possible case when the reg1 is 0, which means writing nullptr
-          else if (!reg1.IsNull())
-          {
-              cc_error("internal error: SCMD_MEMINITPTR argument is not dynamic object");
-              return -1;
-          }
-          // like memwriteptr, but doesn't attempt to free the old one
-          int32_t newHandle = ccGetObjectHandleFromAddress(address);
-          if (newHandle == -1)
-              return -1;
-
-          ccAddObjectReference(newHandle);
-          registers[SREG_MAR].WriteInt32(newHandle);
-          break;
-                            }
-      case SCMD_MEMZEROPTR: {
-          int32_t handle = registers[SREG_MAR].ReadInt32();
-          ccReleaseObjectReference(handle);
-          registers[SREG_MAR].WriteInt32(0);
-          break;
-                            }
-      case SCMD_MEMZEROPTRND: {
-          int32_t handle = registers[SREG_MAR].ReadInt32();
-
-          // don't do the Dispose check for the object being returned -- this is
-          // for returning a String (or other pointer) from a custom function.
-          // Note: we might be freeing a dynamic array which contains the DisableDispose
-          // object, that will be handled inside the recursive call to SubRef.
-          // CHECKME!! what type of data may reg1 point to?
-          pool.disableDisposeForObject = (const char*)registers[SREG_AX].Ptr;
-          ccReleaseObjectReference(handle);
-          pool.disableDisposeForObject = NULL;
-          registers[SREG_MAR].WriteInt32(0);
-          break;
-                              }
-      case SCMD_CHECKNULL:
-          if (registers[SREG_MAR].IsNull()) {
-              cc_error("!Null pointer referenced");
-              return -1;
-          }
-          break;
-      case SCMD_CHECKNULLREG:
-          if (reg1.IsNull()) {
-              cc_error("!Null string referenced");
-              return -1;
-          }
-          break;
-      case SCMD_NUMFUNCARGS:
-          num_args_to_func = arg1.IValue;
-          break;
-      case SCMD_CALLAS:{
-          PUSH_CALL_STACK;
-
-          // CallScriptFunction to a function in another script
-
-          // If there are nested CALLAS calls, the stack might
-          // contain 2 calls worth of parameters, so only
-          // push args for this call
-          if (num_args_to_func < 0)
-          {
-              num_args_to_func = func_callstack.Count;
-          }
-          ASSERT_STACK_SPACE_AVAILABLE(num_args_to_func + 1 /* return address */);
-          for (const RuntimeScriptValue *prval = func_callstack.GetHead() + num_args_to_func;
-               prval > func_callstack.GetHead(); --prval)
-          {
-              PushValueToStack(*prval);
-          }
-
-          // 0, so that the cc_run_code returns
-          RuntimeScriptValue oldstack = registers[SREG_SP];
-          PushValueToStack(RuntimeScriptValue().SetInt32(0));
-          if (ccError)
-          {
-              return -1;
-          }
-
-          int oldpc = pc;
-          ccInstance *wasRunning = runningInst;
-
-          // extract the instance ID
-          int32_t instId = codeOp.Instruction.InstanceId;
-          // determine the offset into the code of the instance we want
-          runningInst = loadedInstances[instId];
-          intptr_t callAddr = reg1.Ptr - (char*)&runningInst->code[0];
-          if (callAddr % sizeof(intptr_t) != 0) {
-              cc_error("call address not aligned");
-              return -1;
-          }
-          callAddr /= sizeof(intptr_t); // size of ccScript::code elements
-
-          if (Run((int32_t)callAddr))
-              return -1;
-
-          runningInst = wasRunning;
-
-          if (flags & INSTF_ABORTED)
-              return 0;
-
-          if (oldstack != registers[SREG_SP]) {
-              cc_error("stack corrupt after function call");
-              return -1;
-          }
-
-          next_call_needs_object = 0;
-
-          pc = oldpc;
-          was_just_callas = func_callstack.Count;
-          num_args_to_func = -1;
-          POP_CALL_STACK;
-          break;
+    if (handle != newHandle) {
+        ccReleaseObjectReference(handle);
+        ccAddObjectReference(newHandle);
+        registers[SREG_MAR].WriteInt32(newHandle);
+    }
+    break;
                        }
-      case SCMD_CALLEXT: {
-          // CallScriptFunction to a real 'C' code function
-          was_just_callas = -1;
-          if (num_args_to_func < 0)
-          {
-            num_args_to_func = func_callstack.Count;
-          }
+case SCMD_MEMINITPTR: { 
+    char *address = NULL;
 
-          // Convert pointer arguments to simple types
-          for (RuntimeScriptValue *prval = func_callstack.GetHead() + num_args_to_func;
-              prval > func_callstack.GetHead(); --prval)
-          {
-              prval->DirectPtr();
-          }
+    if (reg1.Type == kScValStaticArray && reg1.StcArr->GetDynamicManager())
+    {
+        address = (char*)reg1.StcArr->GetElementPtr(reg1.Ptr, reg1.IValue);
+    }
+    else if (reg1.Type == kScValDynamicObject ||
+        reg1.Type == kScValPluginObject)
+    {
+        address = reg1.Ptr;
+    }
+    else if (reg1.Type == kScValPluginArg)
+    {
+        address = (char*)reg1.IValue;
+    }
+    // There's one possible case when the reg1 is 0, which means writing nullptr
+    else if (!reg1.IsNull())
+    {
+        cc_error("internal error: SCMD_MEMINITPTR argument is not dynamic object");
+        return -1;
+    }
+    // like memwriteptr, but doesn't attempt to free the old one
+    int32_t newHandle = ccGetObjectHandleFromAddress(address);
+    if (newHandle == -1)
+        return -1;
 
-          RuntimeScriptValue return_value;
+    ccAddObjectReference(newHandle);
+    registers[SREG_MAR].WriteInt32(newHandle);
+    break;
+                      }
+case SCMD_MEMZEROPTR: {
+    int32_t handle = registers[SREG_MAR].ReadInt32();
+    ccReleaseObjectReference(handle);
+    registers[SREG_MAR].WriteInt32(0);
+    break;
+                      }
+case SCMD_MEMZEROPTRND: {
+    int32_t handle = registers[SREG_MAR].ReadInt32();
 
-          if (reg1.Type == kScValPluginFunction)
-          {
-              GlobalReturnValue.Invalidate();
-              int32_t int_ret_val;
-              if (next_call_needs_object)
-              {
-                  RuntimeScriptValue obj_rval = registers[SREG_OP];
-                  obj_rval.DirectPtr();
-                  int_ret_val = call_function((intptr_t)reg1.Ptr, &obj_rval, num_args_to_func, func_callstack.GetHead() + 1);
-              }
-              else
-              {
-                  int_ret_val = call_function((intptr_t)reg1.Ptr, NULL, num_args_to_func, func_callstack.GetHead() + 1);
-              }
+    // don't do the Dispose check for the object being returned -- this is
+    // for returning a String (or other pointer) from a custom function.
+    // Note: we might be freeing a dynamic array which contains the DisableDispose
+    // object, that will be handled inside the recursive call to SubRef.
+    // CHECKME!! what type of data may reg1 point to?
+    pool.disableDisposeForObject = (const char*)registers[SREG_AX].Ptr;
+    ccReleaseObjectReference(handle);
+    pool.disableDisposeForObject = NULL;
+    registers[SREG_MAR].WriteInt32(0);
+    break;
+                        }
+case SCMD_CHECKNULL:
+    if (registers[SREG_MAR].IsNull()) {
+        cc_error("!Null pointer referenced");
+        return -1;
+    }
+    break;
+case SCMD_CHECKNULLREG:
+    if (reg1.IsNull()) {
+        cc_error("!Null string referenced");
+        return -1;
+    }
+    break;
+case SCMD_NUMFUNCARGS:
+    num_args_to_func = arg1.IValue;
+    break;
+case SCMD_CALLAS:{
+    PUSH_CALL_STACK;
 
-              if (GlobalReturnValue.IsValid())
-              {
-                  return_value = GlobalReturnValue;
-              }
-              else
-              {
-                  return_value.SetPluginArgument(int_ret_val);
-              }
-          }
-          else if (next_call_needs_object)
-          {
-            // member function call
-            if (reg1.Type == kScValObjectFunction)
-            {
-              RuntimeScriptValue obj_rval = registers[SREG_OP];
-              obj_rval.DirectPtr();
-              return_value = reg1.ObjPfn(obj_rval.Ptr, func_callstack.GetHead() + 1, num_args_to_func);
-            }
-            else
-            {
-              cc_error("invalid pointer type for object function call: %d", reg1.Type);
-            }
-          }
-          else if (reg1.Type == kScValStaticFunction)
-          {
-            return_value = reg1.SPfn(func_callstack.GetHead() + 1, num_args_to_func);
-          }
-          else if (reg1.Type == kScValObjectFunction)
-          {
-            cc_error("unexpected object function pointer on SCMD_CALLEXT");
-          }
-          else
-          {
-            cc_error("invalid pointer type for function call: %d", reg1.Type);
-          }
+    // CallScriptFunction to a function in another script
 
-          if (ccError)
-          {
+    // If there are nested CALLAS calls, the stack might
+    // contain 2 calls worth of parameters, so only
+    // push args for this call
+    if (num_args_to_func < 0)
+    {
+        num_args_to_func = func_callstack.Count;
+    }
+    ASSERT_STACK_SPACE_AVAILABLE(num_args_to_func + 1 /* return address */);
+    for (const RuntimeScriptValue *prval = func_callstack.GetHead() + num_args_to_func;
+        prval > func_callstack.GetHead(); --prval)
+    {
+        PushValueToStack(*prval);
+    }
+
+    // 0, so that the cc_run_code returns
+    RuntimeScriptValue oldstack = registers[SREG_SP];
+    PushValueToStack(RuntimeScriptValue().SetInt32(0));
+    if (ccError)
+    {
+        return -1;
+    }
+
+    int oldpc = pc;
+    ccInstance *wasRunning = runningInst;
+
+    // extract the instance ID
+    int32_t instId = codeOp.Instruction.InstanceId;
+    // determine the offset into the code of the instance we want
+    runningInst = loadedInstances[instId];
+    intptr_t callAddr = reg1.Ptr - (char*)&runningInst->code[0];
+    if (callAddr % sizeof(intptr_t) != 0) {
+        cc_error("call address not aligned");
+        return -1;
+    }
+    callAddr /= sizeof(intptr_t); // size of ccScript::code elements
+
+    if (Run((int32_t)callAddr))
+        return -1;
+
+    runningInst = wasRunning;
+
+    if (flags & INSTF_ABORTED)
+        return 0;
+
+    if (oldstack != registers[SREG_SP]) {
+        cc_error("stack corrupt after function call");
+        return -1;
+    }
+
+    next_call_needs_object = 0;
+
+    pc = oldpc;
+    was_just_callas = func_callstack.Count;
+    num_args_to_func = -1;
+    POP_CALL_STACK;
+    break;
+                 }
+case SCMD_CALLEXT: {
+    // CallScriptFunction to a real 'C' code function
+    was_just_callas = -1;
+    if (num_args_to_func < 0)
+    {
+        num_args_to_func = func_callstack.Count;
+    }
+
+    // Convert pointer arguments to simple types
+    for (RuntimeScriptValue *prval = func_callstack.GetHead() + num_args_to_func;
+        prval > func_callstack.GetHead(); --prval)
+    {
+        prval->DirectPtr();
+    }
+
+    RuntimeScriptValue return_value;
+
+    if (reg1.Type == kScValPluginFunction)
+    {
+        GlobalReturnValue.Invalidate();
+        int32_t int_ret_val;
+        if (next_call_needs_object)
+        {
+            RuntimeScriptValue obj_rval = registers[SREG_OP];
+            obj_rval.DirectPtr();
+            int_ret_val = call_function((intptr_t)reg1.Ptr, &obj_rval, num_args_to_func, func_callstack.GetHead() + 1);
+        }
+        else
+        {
+            int_ret_val = call_function((intptr_t)reg1.Ptr, NULL, num_args_to_func, func_callstack.GetHead() + 1);
+        }
+
+        if (GlobalReturnValue.IsValid())
+        {
+            return_value = GlobalReturnValue;
+        }
+        else
+        {
+            return_value.SetPluginArgument(int_ret_val);
+        }
+    }
+    else if (next_call_needs_object)
+    {
+        // member function call
+        if (reg1.Type == kScValObjectFunction)
+        {
+            RuntimeScriptValue obj_rval = registers[SREG_OP];
+            obj_rval.DirectPtr();
+            return_value = reg1.ObjPfn(obj_rval.Ptr, func_callstack.GetHead() + 1, num_args_to_func);
+        }
+        else
+        {
+            cc_error("invalid pointer type for object function call: %d", reg1.Type);
+        }
+    }
+    else if (reg1.Type == kScValStaticFunction)
+    {
+        return_value = reg1.SPfn(func_callstack.GetHead() + 1, num_args_to_func);
+    }
+    else if (reg1.Type == kScValObjectFunction)
+    {
+        cc_error("unexpected object function pointer on SCMD_CALLEXT");
+    }
+    else
+    {
+        cc_error("invalid pointer type for function call: %d", reg1.Type);
+    }
+
+    if (ccError)
+    {
+        return -1;
+    }
+
+    registers[SREG_AX] = return_value;
+    current_instance = this;
+    next_call_needs_object = 0;
+    num_args_to_func = -1;
+    break;
+                   }
+case SCMD_PUSHREAL:
+    PushToFuncCallStack(func_callstack, reg1);
+    break;
+case SCMD_SUBREALSTACK:
+    PopFromFuncCallStack(func_callstack, arg1.IValue);
+    if (was_just_callas >= 0)
+    {
+        ASSERT_STACK_SIZE(arg1.IValue);
+        PopValuesFromStack(arg1.IValue);
+        was_just_callas = -1;
+    }
+    break;
+case SCMD_CALLOBJ:
+    // set the OP register
+    if (reg1.IsNull()) {
+        cc_error("!Null pointer referenced");
+        return -1;
+    }
+    switch (reg1.Type)
+    {
+        // This might be a static object, passed to the user-defined extender function
+    case kScValStaticObject:
+    case kScValDynamicObject:
+    case kScValPluginObject:
+        // This might be an object of USER-DEFINED type, calling its MEMBER-FUNCTION.
+        // Note, that this is the only case known when such object is written into reg[SREG_OP];
+        // in any other case that would count as error. 
+    case kScValGlobalVar:
+    case kScValStackPtr:
+        registers[SREG_OP] = reg1;
+        break;
+    case kScValStaticArray:
+        if (reg1.StcArr->GetDynamicManager())
+        {
+            registers[SREG_OP].SetDynamicObject(
+                (char*)reg1.StcArr->GetElementPtr(reg1.Ptr, reg1.IValue),
+                reg1.StcArr->GetDynamicManager());
+            break;
+        }
+        // fall-through intended
+    default:
+        cc_error("internal error: SCMD_CALLOBJ argument is not an object of built-in or user-defined type");
+        return -1;
+    }
+    next_call_needs_object = 1;
+    break;
+case SCMD_SHIFTLEFT:
+    reg1.SetInt32(reg1.IValue << reg2.IValue);
+    break;
+case SCMD_SHIFTRIGHT:
+    reg1.SetInt32(reg1.IValue >> reg2.IValue);
+    break;
+case SCMD_THISBASE:
+    thisbase[curnest] = arg1.IValue;
+    break;
+case SCMD_NEWARRAY:
+    {
+        int numElements = reg1.IValue;
+        if ((numElements < 1) || (numElements > 1000000))
+        {
+            cc_error("invalid size for dynamic array; requested: %d, range: 1..1000000", numElements);
             return -1;
-          }
-
-          registers[SREG_AX] = return_value;
-          current_instance = this;
-          next_call_needs_object = 0;
-          num_args_to_func = -1;
-          break;
-                         }
-      case SCMD_PUSHREAL:
-          PushToFuncCallStack(func_callstack, reg1);
-          break;
-      case SCMD_SUBREALSTACK:
-          PopFromFuncCallStack(func_callstack, arg1.IValue);
-          if (was_just_callas >= 0)
-          {
-              ASSERT_STACK_SIZE(arg1.IValue);
-              PopValuesFromStack(arg1.IValue);
-              was_just_callas = -1;
-          }
-          break;
-      case SCMD_CALLOBJ:
-          // set the OP register
-          if (reg1.IsNull()) {
-              cc_error("!Null pointer referenced");
-              return -1;
-          }
-          switch (reg1.Type)
-          {
-          // This might be a static object, passed to the user-defined extender function
-          case kScValStaticObject:
-          case kScValDynamicObject:
-          case kScValPluginObject:
-          // This might be an object of USER-DEFINED type, calling its MEMBER-FUNCTION.
-          // Note, that this is the only case known when such object is written into reg[SREG_OP];
-          // in any other case that would count as error. 
-          case kScValGlobalVar:
-          case kScValStackPtr:
-              registers[SREG_OP] = reg1;
-              break;
-          case kScValStaticArray:
-              if (reg1.StcArr->GetDynamicManager())
-              {
-                  registers[SREG_OP].SetDynamicObject(
-                      (char*)reg1.StcArr->GetElementPtr(reg1.Ptr, reg1.IValue),
-                      reg1.StcArr->GetDynamicManager());
-                  break;
-              }
-              // fall-through intended
-          default:
-              cc_error("internal error: SCMD_CALLOBJ argument is not an object of built-in or user-defined type");
-              return -1;
-          }
-          next_call_needs_object = 1;
-          break;
-      case SCMD_SHIFTLEFT:
-          reg1.SetInt32(reg1.IValue << reg2.IValue);
-          break;
-      case SCMD_SHIFTRIGHT:
-          reg1.SetInt32(reg1.IValue >> reg2.IValue);
-          break;
-      case SCMD_THISBASE:
-          thisbase[curnest] = arg1.IValue;
-          break;
-      case SCMD_NEWARRAY:
-          {
-              int numElements = reg1.IValue;
-              if ((numElements < 1) || (numElements > 1000000))
-              {
-                  cc_error("invalid size for dynamic array; requested: %d, range: 1..1000000", numElements);
-                  return -1;
-              }
-              int32_t handle = globalDynamicArray.Create(numElements, arg2.IValue, arg3.GetAsBool());
-              reg1.SetDynamicObject((void*)ccGetObjectAddressFromHandle(handle), &globalDynamicArray);
-              break;
-          }
-      case SCMD_FADD:
-          reg1.SetFloat(reg1.FValue + arg2.IValue); // arg2 was used as int here originally
-          break;
-      case SCMD_FSUB:
-          reg1.SetFloat(reg1.FValue - arg2.IValue); // arg2 was used as int here originally
-          break;
-      case SCMD_FMULREG:
-          reg1.SetFloat(reg1.FValue * reg2.FValue);
-          break;
-      case SCMD_FDIVREG:
-          if (reg2.FValue == 0.0) {
-              cc_error("!Floating point divide by zero");
-              return -1;
-          } 
-          reg1.SetFloat(reg1.FValue / reg2.FValue);
-          break;
-      case SCMD_FADDREG:
-          reg1.SetFloat(reg1.FValue + reg2.FValue);
-          break;
-      case SCMD_FSUBREG:
-          reg1.SetFloat(reg1.FValue - reg2.FValue);
-          break;
-      case SCMD_FGREATER:
-          reg1.SetFloatAsBool(reg1.FValue > reg2.FValue);
-          break;
-      case SCMD_FLESSTHAN:
-          reg1.SetFloatAsBool(reg1.FValue < reg2.FValue);
-          break;
-      case SCMD_FGTE:
-          reg1.SetFloatAsBool(reg1.FValue >= reg2.FValue);
-          break;
-      case SCMD_FLTE:
-          reg1.SetFloatAsBool(reg1.FValue <= reg2.FValue);
-          break;
-      case SCMD_ZEROMEMORY:
-          // Check if we are zeroing at stack tail
-          if (registers[SREG_MAR] == registers[SREG_SP]) {
-              // creating a local variable -- check the stack to ensure no mem overrun
-              int currentStackSize = registers[SREG_SP].RValue - &stack[0];
-              int currentDataSize = stackdata_ptr - stackdata;
-              if (currentStackSize + 1 >= CC_STACK_SIZE ||
-                  currentDataSize + arg1.IValue >= CC_STACK_DATA_SIZE)
-              {
-                  cc_error("stack overflow, attempted grow to %d bytes", currentDataSize + arg1.IValue);
-                  return -1;
-              }
-              // NOTE: according to compiler's logic, this is always followed
-              // by SCMD_ADD, and that is where the data is "allocated", here we
-              // just clean the place.
-              // CHECKME -- since we zero memory in PushDataToStack anyway, this is not needed at all?
-              memset(stackdata_ptr, 0, arg1.IValue);
-          }
-          else
-          {
-            cc_error("internal error: stack tail address expected on SCMD_ZEROMEMORY instruction, reg[MAR] type is %d",
-				registers[SREG_MAR].Type);
+        }
+        int32_t handle = globalDynamicArray.Create(numElements, arg2.IValue, arg3.GetAsBool());
+        reg1.SetDynamicObject((void*)ccGetObjectAddressFromHandle(handle), &globalDynamicArray);
+        break;
+    }
+case SCMD_FADD:
+    reg1.SetFloat(reg1.FValue + arg2.IValue); // arg2 was used as int here originally
+    break;
+case SCMD_FSUB:
+    reg1.SetFloat(reg1.FValue - arg2.IValue); // arg2 was used as int here originally
+    break;
+case SCMD_FMULREG:
+    reg1.SetFloat(reg1.FValue * reg2.FValue);
+    break;
+case SCMD_FDIVREG:
+    if (reg2.FValue == 0.0) {
+        cc_error("!Floating point divide by zero");
+        return -1;
+    } 
+    reg1.SetFloat(reg1.FValue / reg2.FValue);
+    break;
+case SCMD_FADDREG:
+    reg1.SetFloat(reg1.FValue + reg2.FValue);
+    break;
+case SCMD_FSUBREG:
+    reg1.SetFloat(reg1.FValue - reg2.FValue);
+    break;
+case SCMD_FGREATER:
+    reg1.SetFloatAsBool(reg1.FValue > reg2.FValue);
+    break;
+case SCMD_FLESSTHAN:
+    reg1.SetFloatAsBool(reg1.FValue < reg2.FValue);
+    break;
+case SCMD_FGTE:
+    reg1.SetFloatAsBool(reg1.FValue >= reg2.FValue);
+    break;
+case SCMD_FLTE:
+    reg1.SetFloatAsBool(reg1.FValue <= reg2.FValue);
+    break;
+case SCMD_ZEROMEMORY:
+    // Check if we are zeroing at stack tail
+    if (registers[SREG_MAR] == registers[SREG_SP]) {
+        // creating a local variable -- check the stack to ensure no mem overrun
+        int currentStackSize = registers[SREG_SP].RValue - &stack[0];
+        int currentDataSize = stackdata_ptr - stackdata;
+        if (currentStackSize + 1 >= CC_STACK_SIZE ||
+            currentDataSize + arg1.IValue >= CC_STACK_DATA_SIZE)
+        {
+            cc_error("stack overflow, attempted grow to %d bytes", currentDataSize + arg1.IValue);
             return -1;
-          }
-          break;
-      case SCMD_CREATESTRING:
-          if (stringClassImpl == NULL) {
-              cc_error("No string class implementation set, but opcode was used");
-              return -1;
-          }
-          direct_ptr1 = (const char*)reg1.GetDirectPtr();
-          reg1.SetDynamicObject(
-              (void*)stringClassImpl->CreateString(direct_ptr1),
-              &myScriptStringImpl);
-          break;
-      case SCMD_STRINGSEQUAL:
-          if ((reg1.IsNull()) || (reg2.IsNull())) {
-              cc_error("!Null pointer referenced");
-              return -1;
-          }
-          direct_ptr1 = (const char*)reg1.GetDirectPtr();
-          direct_ptr2 = (const char*)reg2.GetDirectPtr();
-          reg1.SetInt32AsBool(strcmp(direct_ptr1, direct_ptr2) == 0);
-          
-          break;
-      case SCMD_STRINGSNOTEQ:
-          if ((reg1.IsNull()) || (reg2.IsNull())) {
-              cc_error("!Null pointer referenced");
-              return -1;
-          }
-          direct_ptr1 = (const char*)reg1.GetDirectPtr();
-          direct_ptr2 = (const char*)reg2.GetDirectPtr();
-          reg1.SetInt32AsBool(strcmp(direct_ptr1, direct_ptr2) != 0 );
-          break;
-      case SCMD_LOOPCHECKOFF:
-          if (loopIterationCheckDisabled == 0)
-              loopIterationCheckDisabled++;
-          break;
-      default:
-          cc_error("invalid instruction %d found in code stream", codeOp.Instruction.Code);
-          return -1;
+        }
+        // NOTE: according to compiler's logic, this is always followed
+        // by SCMD_ADD, and that is where the data is "allocated", here we
+        // just clean the place.
+        // CHECKME -- since we zero memory in PushDataToStack anyway, this is not needed at all?
+        memset(stackdata_ptr, 0, arg1.IValue);
+    }
+    else
+    {
+        cc_error("internal error: stack tail address expected on SCMD_ZEROMEMORY instruction, reg[MAR] type is %d",
+            registers[SREG_MAR].Type);
+        return -1;
+    }
+    break;
+case SCMD_CREATESTRING:
+    if (stringClassImpl == NULL) {
+        cc_error("No string class implementation set, but opcode was used");
+        return -1;
+    }
+    direct_ptr1 = (const char*)reg1.GetDirectPtr();
+    reg1.SetDynamicObject(
+        (void*)stringClassImpl->CreateString(direct_ptr1),
+        &myScriptStringImpl);
+    break;
+case SCMD_STRINGSEQUAL:
+    if ((reg1.IsNull()) || (reg2.IsNull())) {
+        cc_error("!Null pointer referenced");
+        return -1;
+    }
+    direct_ptr1 = (const char*)reg1.GetDirectPtr();
+    direct_ptr2 = (const char*)reg2.GetDirectPtr();
+    reg1.SetInt32AsBool(strcmp(direct_ptr1, direct_ptr2) == 0);
+
+    break;
+case SCMD_STRINGSNOTEQ:
+    if ((reg1.IsNull()) || (reg2.IsNull())) {
+        cc_error("!Null pointer referenced");
+        return -1;
+    }
+    direct_ptr1 = (const char*)reg1.GetDirectPtr();
+    direct_ptr2 = (const char*)reg2.GetDirectPtr();
+    reg1.SetInt32AsBool(strcmp(direct_ptr1, direct_ptr2) != 0 );
+    break;
+case SCMD_LOOPCHECKOFF:
+    if (loopIterationCheckDisabled == 0)
+        loopIterationCheckDisabled++;
+    break;
+default:
+    cc_error("invalid instruction %d found in code stream", codeOp.Instruction.Code);
+    return -1;
         }
 
         if (flags & INSTF_ABORTED)
@@ -1811,21 +1811,21 @@ bool ccInstance::CreateGlobalVars(ccScript * scri)
             break;
         case FIXUP_DATADATA:
             {
-            // DATADATA fixup takes relative address of global data element from fixups array;
-            // this is the address of element, which stores address of actual data
-            glvar.ScAddress = scri->fixups[i];
-            int32_t data_addr = *(int32_t*)&globaldata[glvar.ScAddress];
+                // DATADATA fixup takes relative address of global data element from fixups array;
+                // this is the address of element, which stores address of actual data
+                glvar.ScAddress = scri->fixups[i];
+                int32_t data_addr = *(int32_t*)&globaldata[glvar.ScAddress];
 #if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(data_addr);
+                AGS::Common::BitByteOperations::SwapBytesInt32(data_addr);
 #endif // AGS_BIG_ENDIAN
-            if (glvar.ScAddress - data_addr != 200 /* size of old AGS string */)
-            {
-                // CHECKME: probably replace with mere warning in the log?
-                cc_error("unexpected old-style string's alignment");
-                return false;
-            }
-            // TODO: register this explicitly as a string instead (can do this later)
-            glvar.RValue.SetStaticObject(globaldata + data_addr, &GlobalStaticManager);
+                if (glvar.ScAddress - data_addr != 200 /* size of old AGS string */)
+                {
+                    // CHECKME: probably replace with mere warning in the log?
+                    cc_error("unexpected old-style string's alignment");
+                    return false;
+                }
+                // TODO: register this explicitly as a string instead (can do this later)
+                glvar.RValue.SetStaticObject(globaldata + data_addr, &GlobalStaticManager);
             }
             break;
         default:
@@ -2011,82 +2011,82 @@ bool ccInstance::CreateRuntimeCodeFixups(ccScript * scri)
 /*
 bool ccInstance::ReadOperation(ScriptOperation &op, int32_t at_pc)
 {
-	op.Instruction.Code			= code[at_pc];
-	op.Instruction.InstanceId	= (op.Instruction.Code >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
-	op.Instruction.Code		   &= INSTANCE_ID_REMOVEMASK; // now this is pure instruction code
+op.Instruction.Code			= code[at_pc];
+op.Instruction.InstanceId	= (op.Instruction.Code >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
+op.Instruction.Code		   &= INSTANCE_ID_REMOVEMASK; // now this is pure instruction code
 
-    int want_args = sccmd_info[op.Instruction.Code].ArgCount;
-    if (at_pc + want_args >= codesize)
-    {
-        cc_error("unexpected end of code data at %d", at_pc + want_args);
-        return false;
-    }
-    op.ArgCount = want_args;
+int want_args = sccmd_info[op.Instruction.Code].ArgCount;
+if (at_pc + want_args >= codesize)
+{
+cc_error("unexpected end of code data at %d", at_pc + want_args);
+return false;
+}
+op.ArgCount = want_args;
 
-    at_pc++;
-    for (int i = 0; i < op.ArgCount; ++i, ++at_pc)
-    {
-        char fixup = code_fixups[at_pc];
-        if (fixup > 0)
-        {
-            // could be relative pointer or import address
-            if (!FixupArgument(code[at_pc], fixup, op.Args[i]))
-            {
-                return false;
-            }
-        }
-        else
-        {
-            // should be a numeric literal (int32 or float)
-            op.Args[i].SetInt32( (int32_t)code[at_pc] );
-        }
-    }
+at_pc++;
+for (int i = 0; i < op.ArgCount; ++i, ++at_pc)
+{
+char fixup = code_fixups[at_pc];
+if (fixup > 0)
+{
+// could be relative pointer or import address
+if (!FixupArgument(code[at_pc], fixup, op.Args[i]))
+{
+return false;
+}
+}
+else
+{
+// should be a numeric literal (int32 or float)
+op.Args[i].SetInt32( (int32_t)code[at_pc] );
+}
+}
 
-    return true;
+return true;
 }
 */
 /*
 bool ccInstance::FixupArgument(intptr_t code_value, char fixup_type, RuntimeScriptValue &argument)
 {
-    switch (fixup_type)
-    {
-    case FIXUP_GLOBALDATA:
-        {
-            ScriptVariable *gl_var = (ScriptVariable*)code_value;
-            argument.SetGlobalVar(&gl_var->RValue);
-        }
-        break;
-    case FIXUP_FUNCTION:
-        // originally commented -- CHECKME: could this be used in very old versions of AGS?
-        //      code[fixup] += (long)&code[0];
-        // This is a program counter value, presumably will be used as SCMD_CALL argument
-        argument.SetInt32((int32_t)code_value);
-        break;
-    case FIXUP_STRING:
-        argument.SetStringLiteral(&strings[0] + code_value);
-        break;
-    case FIXUP_IMPORT:
-        {
-            const ScriptImport *import = simp.getByIndex((int32_t)code_value);
-            if (import)
-            {
-                argument = import->Value;
-            }
-            else
-            {
-                cc_error("cannot resolve import, key = %ld", code_value);
-                return false;
-            }
-        }
-        break;
-    case FIXUP_STACK:
-        argument = GetStackPtrOffsetFw((int32_t)code_value);
-        break;
-    default:
-        cc_error("internal fixup type error: %d", fixup_type);
-        return false;;
-    }
-    return true;
+switch (fixup_type)
+{
+case FIXUP_GLOBALDATA:
+{
+ScriptVariable *gl_var = (ScriptVariable*)code_value;
+argument.SetGlobalVar(&gl_var->RValue);
+}
+break;
+case FIXUP_FUNCTION:
+// originally commented -- CHECKME: could this be used in very old versions of AGS?
+//      code[fixup] += (long)&code[0];
+// This is a program counter value, presumably will be used as SCMD_CALL argument
+argument.SetInt32((int32_t)code_value);
+break;
+case FIXUP_STRING:
+argument.SetStringLiteral(&strings[0] + code_value);
+break;
+case FIXUP_IMPORT:
+{
+const ScriptImport *import = simp.getByIndex((int32_t)code_value);
+if (import)
+{
+argument = import->Value;
+}
+else
+{
+cc_error("cannot resolve import, key = %ld", code_value);
+return false;
+}
+}
+break;
+case FIXUP_STACK:
+argument = GetStackPtrOffsetFw((int32_t)code_value);
+break;
+default:
+cc_error("internal fixup type error: %d", fixup_type);
+return false;;
+}
+return true;
 }
 */
 //-----------------------------------------------------------------------------

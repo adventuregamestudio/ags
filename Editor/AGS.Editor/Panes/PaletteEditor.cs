@@ -35,7 +35,7 @@ namespace AGS.Editor
         {
             return "Palette setup";
         }
-        
+
         public void GameChanged()
         {
             if (Factory.AGSEditor.CurrentGame.Settings.ColorDepth == GameColorDepth.Palette)
@@ -56,7 +56,7 @@ namespace AGS.Editor
                 }
                 tabControl.SelectedTab = tabControl.TabPages[1];
             }
-            
+
             palettePanel.Invalidate();
         }
 
@@ -97,23 +97,23 @@ namespace AGS.Editor
                 trackBarRed.Value = (newVal >> 11) * 8;
                 trackBarGreen.Value = ((newVal >> 5) & 0x003f) * 4;
                 trackBarBlue.Value = (newVal & 0x001f) * 8;
-				lblFixedColorsWarning.Visible = ((newVal >= 1) && (newVal <= 31));
-				ColourSlidersUpdated();
+                lblFixedColorsWarning.Visible = ((newVal >= 1) && (newVal <= 31));
+                ColourSlidersUpdated();
             }
         }
 
-		private void ColourSlidersUpdated()
-		{
-			lblRedVal.Text = trackBarRed.Value.ToString();
-			lblGreenVal.Text = trackBarGreen.Value.ToString();
-			lblBlueVal.Text = trackBarBlue.Value.ToString();
-			blockOfColour.Invalidate();
-		}
+        private void ColourSlidersUpdated()
+        {
+            lblRedVal.Text = trackBarRed.Value.ToString();
+            lblGreenVal.Text = trackBarGreen.Value.ToString();
+            lblBlueVal.Text = trackBarBlue.Value.ToString();
+            blockOfColour.Invalidate();
+        }
 
         private void UpdateNumberFromScrollBars()
         {
             _noUpdates = true;
-			int greenValue = trackBarGreen.Value / 4;
+            int greenValue = trackBarGreen.Value / 4;
             int newValue = (trackBarBlue.Value / 8) + (greenValue << 5) + ((trackBarRed.Value / 8) << 11);
             txtColourNumber.Text = newValue.ToString();
             _noUpdates = false;
@@ -154,16 +154,16 @@ namespace AGS.Editor
                 {
                     Color thisColor = game.Palette[i].Colour;
                     e.Graphics.FillRectangle(new SolidBrush(thisColor), x, y, 20, 20);
-/*
-                    if (game.Palette[i].ColourType == PaletteColourType.Locked)
-                    {
-                        Brush textCol = Brushes.White;
-                        if ((thisColor.R > 200) || (thisColor.G > 200) || (thisColor.B > 200))
-                        {
-                            textCol = Brushes.Black;
-                        }
-                        e.Graphics.DrawString("L", boldFont, textCol, x + 5, y + 3);
-                    }*/
+                    /*
+                                        if (game.Palette[i].ColourType == PaletteColourType.Locked)
+                                        {
+                                            Brush textCol = Brushes.White;
+                                            if ((thisColor.R > 200) || (thisColor.G > 200) || (thisColor.B > 200))
+                                            {
+                                                textCol = Brushes.Black;
+                                            }
+                                            e.Graphics.DrawString("L", boldFont, textCol, x + 5, y + 3);
+                                        }*/
                 }
                 if (_selectedIndexes.Contains(i))
                 {
@@ -361,21 +361,21 @@ namespace AGS.Editor
             Factory.GUIController.OnPropertyObjectChanged -= new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
         }
 
-		private void btnColorDialog_Click(object sender, EventArgs e)
-		{
-			ColorDialog dialog = new ColorDialog();
-			dialog.Color = Color.FromArgb(trackBarRed.Value, trackBarGreen.Value, trackBarBlue.Value);
-			dialog.AnyColor = true;
-			dialog.FullOpen = true;
-			if (dialog.ShowDialog() == DialogResult.OK)
-			{
-				trackBarRed.Value = dialog.Color.R;
-				trackBarGreen.Value = dialog.Color.G;
-				trackBarBlue.Value = dialog.Color.B;
-				ColourSlidersUpdated();
-				UpdateNumberFromScrollBars();
-			}
-			dialog.Dispose();
-		}
+        private void btnColorDialog_Click(object sender, EventArgs e)
+        {
+            ColorDialog dialog = new ColorDialog();
+            dialog.Color = Color.FromArgb(trackBarRed.Value, trackBarGreen.Value, trackBarBlue.Value);
+            dialog.AnyColor = true;
+            dialog.FullOpen = true;
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                trackBarRed.Value = dialog.Color.R;
+                trackBarGreen.Value = dialog.Color.G;
+                trackBarBlue.Value = dialog.Color.B;
+                ColourSlidersUpdated();
+                UpdateNumberFromScrollBars();
+            }
+            dialog.Dispose();
+        }
     }
 }

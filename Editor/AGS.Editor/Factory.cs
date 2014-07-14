@@ -16,15 +16,15 @@ namespace AGS.Editor
             get { return AGSEditor.Instance; }
         }
 
-		internal static ComponentController ComponentController
-		{
-			get { return ComponentController.Instance; }
-		}
+        internal static ComponentController ComponentController
+        {
+            get { return ComponentController.Instance; }
+        }
 
-		internal static EditorEvents Events
-		{
-			get { return EditorEvents.Instance; }
-		}
+        internal static EditorEvents Events
+        {
+            get { return EditorEvents.Instance; }
+        }
 
         internal static ToolBarManager ToolBarManager
         {

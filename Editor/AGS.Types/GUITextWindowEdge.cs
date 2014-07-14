@@ -55,14 +55,14 @@ namespace AGS.Types
             }
         }
 
-		protected override void GetSpritesForControl(List<int> list)
-		{
-			if (_image > 0) list.Add(_image);
-		}
+        protected override void GetSpritesForControl(List<int> list)
+        {
+            if (_image > 0) list.Add(_image);
+        }
 
-		public override void UpdateSpritesWithMapping(Dictionary<int, int> spriteMapping)
-		{
-			if (_image > 0) _image = spriteMapping[_image];
-		}
-	}
+        public override void UpdateSpritesWithMapping(Dictionary<int, int> spriteMapping)
+        {
+            if (_image > 0) _image = spriteMapping[_image];
+        }
+    }
 }

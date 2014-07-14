@@ -48,7 +48,7 @@ namespace AGS.Types
             Init(MAIN_UNLOADED_ROOM_FOLDER_NAME);
             foreach (XmlNode unloadedRoomNode in SerializeUtils.GetChildNodes(parentNodeForBackwardsCompatability, "Rooms"))
             {
-                _items.Add(new UnloadedRoom(unloadedRoomNode));                
+                _items.Add(new UnloadedRoom(unloadedRoomNode));
             }
         }
 
@@ -59,7 +59,7 @@ namespace AGS.Types
 
         protected override IRoom CreateItem(XmlNode node)
         {
-            return new UnloadedRoom(node);            
+            return new UnloadedRoom(node);
         }
 
         private bool IsItem(IRoom unloadedRoom, int unloadedRoomNumber)

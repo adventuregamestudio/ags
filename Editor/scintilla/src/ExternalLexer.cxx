@@ -1,7 +1,7 @@
 // Scintilla source code edit control
 /** @file ExternalLexer.cxx
- ** Support external lexers in DLLs.
- **/
+** Support external lexers in DLLs.
+**/
 // Copyright 2001 Simon Steele <ss@pnotepad.org>, portions copyright Neil Hodgson.
 // The License.txt file describes the conditions under which this software may be distributed.
 
@@ -30,76 +30,76 @@ LexerManager *LexerManager::theInstance = NULL;
 //------------------------------------------
 
 char **WordListsToStrings(WordList *val[]) {
-	int dim = 0;
-	while (val[dim])
-		dim++;
-	char **wls = new char * [dim + 1];
-	for (int i = 0;i < dim;i++) {
-		SString words;
-		words = "";
-		for (int n = 0; n < val[i]->len; n++) {
-			words += val[i]->words[n];
-			if (n != val[i]->len - 1)
-				words += " ";
-		}
-		wls[i] = new char[words.length() + 1];
-		strcpy(wls[i], words.c_str());
-	}
-	wls[dim] = 0;
-	return wls;
+    int dim = 0;
+    while (val[dim])
+        dim++;
+    char **wls = new char * [dim + 1];
+    for (int i = 0;i < dim;i++) {
+        SString words;
+        words = "";
+        for (int n = 0; n < val[i]->len; n++) {
+            words += val[i]->words[n];
+            if (n != val[i]->len - 1)
+                words += " ";
+        }
+        wls[i] = new char[words.length() + 1];
+        strcpy(wls[i], words.c_str());
+    }
+    wls[dim] = 0;
+    return wls;
 }
 
 void DeleteWLStrings(char *strs[]) {
-	int dim = 0;
-	while (strs[dim]) {
-		delete strs[dim];
-		dim++;
-	}
-	delete [] strs;
+    int dim = 0;
+    while (strs[dim]) {
+        delete strs[dim];
+        dim++;
+    }
+    delete [] strs;
 }
 
 void ExternalLexerModule::Lex(unsigned int startPos, int lengthDoc, int initStyle,
                               WordList *keywordlists[], Accessor &styler) const {
-	if (!fneLexer)
-		return ;
+                                  if (!fneLexer)
+                                      return ;
 
-	char **kwds = WordListsToStrings(keywordlists);
-	char *ps = styler.GetProperties();
+                                  char **kwds = WordListsToStrings(keywordlists);
+                                  char *ps = styler.GetProperties();
 
-	// The accessor passed in is always a DocumentAccessor so this cast and the subsequent
-	// access will work. Can not use the stricter dynamic_cast as that requires RTTI.
-	DocumentAccessor &da = static_cast<DocumentAccessor &>(styler);
-	WindowID wID = da.GetWindow();
+                                  // The accessor passed in is always a DocumentAccessor so this cast and the subsequent
+                                  // access will work. Can not use the stricter dynamic_cast as that requires RTTI.
+                                  DocumentAccessor &da = static_cast<DocumentAccessor &>(styler);
+                                  WindowID wID = da.GetWindow();
 
-	fneLexer(externalLanguage, startPos, lengthDoc, initStyle, kwds, wID, ps);
+                                  fneLexer(externalLanguage, startPos, lengthDoc, initStyle, kwds, wID, ps);
 
-	delete ps;
-	DeleteWLStrings(kwds);
+                                  delete ps;
+                                  DeleteWLStrings(kwds);
 }
 
 void ExternalLexerModule::Fold(unsigned int startPos, int lengthDoc, int initStyle,
                                WordList *keywordlists[], Accessor &styler) const {
-	if (!fneFolder)
-		return ;
+                                   if (!fneFolder)
+                                       return ;
 
-	char **kwds = WordListsToStrings(keywordlists);
-	char *ps = styler.GetProperties();
+                                   char **kwds = WordListsToStrings(keywordlists);
+                                   char *ps = styler.GetProperties();
 
-	// The accessor passed in is always a DocumentAccessor so this cast and the subsequent
-	// access will work. Can not use the stricter dynamic_cast as that requires RTTI.
-	DocumentAccessor &da = static_cast<DocumentAccessor &>(styler);
-	WindowID wID = da.GetWindow();
+                                   // The accessor passed in is always a DocumentAccessor so this cast and the subsequent
+                                   // access will work. Can not use the stricter dynamic_cast as that requires RTTI.
+                                   DocumentAccessor &da = static_cast<DocumentAccessor &>(styler);
+                                   WindowID wID = da.GetWindow();
 
-	fneFolder(externalLanguage, startPos, lengthDoc, initStyle, kwds, wID, ps);
+                                   fneFolder(externalLanguage, startPos, lengthDoc, initStyle, kwds, wID, ps);
 
-	delete ps;
-	DeleteWLStrings(kwds);
+                                   delete ps;
+                                   DeleteWLStrings(kwds);
 }
 
 void ExternalLexerModule::SetExternal(ExtLexerFunction fLexer, ExtFoldFunction fFolder, int index) {
-	fneLexer = fLexer;
-	fneFolder = fFolder;
-	externalLanguage = index;
+    fneLexer = fLexer;
+    fneFolder = fFolder;
+    externalLanguage = index;
 }
 
 //------------------------------------------
@@ -109,76 +109,76 @@ void ExternalLexerModule::SetExternal(ExtLexerFunction fLexer, ExtFoldFunction f
 //------------------------------------------
 
 LexerLibrary::LexerLibrary(const char* ModuleName) {
-	// Initialise some members...
-	first = NULL;
-	last = NULL;
+    // Initialise some members...
+    first = NULL;
+    last = NULL;
 
-	// Load the DLL
-	lib = DynamicLibrary::Load(ModuleName);
-	if (lib->IsValid()) {
-		m_sModuleName = ModuleName;
-		//Cannot use reinterpret_cast because: ANSI C++ forbids casting between pointers to functions and objects
-		GetLexerCountFn GetLexerCount = (GetLexerCountFn)(sptr_t)lib->FindFunction("GetLexerCount");
+    // Load the DLL
+    lib = DynamicLibrary::Load(ModuleName);
+    if (lib->IsValid()) {
+        m_sModuleName = ModuleName;
+        //Cannot use reinterpret_cast because: ANSI C++ forbids casting between pointers to functions and objects
+        GetLexerCountFn GetLexerCount = (GetLexerCountFn)(sptr_t)lib->FindFunction("GetLexerCount");
 
-		if (GetLexerCount) {
-			ExternalLexerModule *lex;
-			LexerMinder *lm;
+        if (GetLexerCount) {
+            ExternalLexerModule *lex;
+            LexerMinder *lm;
 
-			// Find functions in the DLL
-			GetLexerNameFn GetLexerName = (GetLexerNameFn)(sptr_t)lib->FindFunction("GetLexerName");
-			ExtLexerFunction Lexer = (ExtLexerFunction)(sptr_t)lib->FindFunction("Lex");
-			ExtFoldFunction Folder = (ExtFoldFunction)(sptr_t)lib->FindFunction("Fold");
+            // Find functions in the DLL
+            GetLexerNameFn GetLexerName = (GetLexerNameFn)(sptr_t)lib->FindFunction("GetLexerName");
+            ExtLexerFunction Lexer = (ExtLexerFunction)(sptr_t)lib->FindFunction("Lex");
+            ExtFoldFunction Folder = (ExtFoldFunction)(sptr_t)lib->FindFunction("Fold");
 
-			// Assign a buffer for the lexer name.
-			char lexname[100];
-			strcpy(lexname, "");
+            // Assign a buffer for the lexer name.
+            char lexname[100];
+            strcpy(lexname, "");
 
-			int nl = GetLexerCount();
+            int nl = GetLexerCount();
 
-			for (int i = 0; i < nl; i++) {
-				GetLexerName(i, lexname, 100);
-				lex = new ExternalLexerModule(SCLEX_AUTOMATIC, NULL, lexname, NULL);
+            for (int i = 0; i < nl; i++) {
+                GetLexerName(i, lexname, 100);
+                lex = new ExternalLexerModule(SCLEX_AUTOMATIC, NULL, lexname, NULL);
 
-				// Create a LexerMinder so we don't leak the ExternalLexerModule...
-				lm = new LexerMinder;
-				lm->self = lex;
-				lm->next = NULL;
-				if (first != NULL) {
-					last->next = lm;
-					last = lm;
-				} else {
-					first = lm;
-					last = lm;
-				}
+                // Create a LexerMinder so we don't leak the ExternalLexerModule...
+                lm = new LexerMinder;
+                lm->self = lex;
+                lm->next = NULL;
+                if (first != NULL) {
+                    last->next = lm;
+                    last = lm;
+                } else {
+                    first = lm;
+                    last = lm;
+                }
 
-				// The external lexer needs to know how to call into its DLL to
-				// do its lexing and folding, we tell it here. Folder may be null.
-				lex->SetExternal(Lexer, Folder, i);
-			}
-		}
-	}
-	next = NULL;
+                // The external lexer needs to know how to call into its DLL to
+                // do its lexing and folding, we tell it here. Folder may be null.
+                lex->SetExternal(Lexer, Folder, i);
+            }
+        }
+    }
+    next = NULL;
 }
 
 LexerLibrary::~LexerLibrary() {
-	Release();
-	delete lib;
+    Release();
+    delete lib;
 }
 
 void LexerLibrary::Release() {
-	//TODO maintain a list of lexers created, and delete them!
-	LexerMinder *lm;
-	LexerMinder *next;
-	lm = first;
-	while (NULL != lm) {
-		next = lm->next;
-		delete lm->self;
-		delete lm;
-		lm = next;
-	}
+    //TODO maintain a list of lexers created, and delete them!
+    LexerMinder *lm;
+    LexerMinder *next;
+    lm = first;
+    while (NULL != lm) {
+        next = lm->next;
+        delete lm->self;
+        delete lm;
+        lm = next;
+    }
 
-	first = NULL;
-	last = NULL;
+    first = NULL;
+    last = NULL;
 }
 
 //------------------------------------------
@@ -189,60 +189,60 @@ void LexerLibrary::Release() {
 
 /// Return the single LexerManager instance...
 LexerManager *LexerManager::GetInstance() {
-	if(!theInstance)
-		theInstance = new LexerManager;
-	return theInstance;
+    if(!theInstance)
+        theInstance = new LexerManager;
+    return theInstance;
 }
 
 /// Delete any LexerManager instance...
 void LexerManager::DeleteInstance()
 {
-	if(theInstance) {
-		delete theInstance;
-		theInstance = NULL;
-	}
+    if(theInstance) {
+        delete theInstance;
+        theInstance = NULL;
+    }
 }
 
 /// protected constructor - this is a singleton...
 LexerManager::LexerManager() {
-	first = NULL;
-	last = NULL;
+    first = NULL;
+    last = NULL;
 }
 
 LexerManager::~LexerManager() {
-	Clear();
+    Clear();
 }
 
 void LexerManager::Load(const char* path)
 {
-	LoadLexerLibrary(path);
+    LoadLexerLibrary(path);
 }
 
 void LexerManager::LoadLexerLibrary(const char* module)
 {
-	LexerLibrary *lib = new LexerLibrary(module);
-	if (NULL != first) {
-		last->next = lib;
-		last = lib;
-	} else {
-		first = lib;
-		last = lib;
-	}
+    LexerLibrary *lib = new LexerLibrary(module);
+    if (NULL != first) {
+        last->next = lib;
+        last = lib;
+    } else {
+        first = lib;
+        last = lib;
+    }
 }
 
 void LexerManager::Clear()
 {
-	if (NULL != first) {
-		LexerLibrary *cur = first;
-		LexerLibrary *next;
-		while (cur) {
-			next = cur->next;
-			delete cur;
-			cur = next;
-		}
-		first = NULL;
-		last = NULL;
-	}
+    if (NULL != first) {
+        LexerLibrary *cur = first;
+        LexerLibrary *next;
+        while (cur) {
+            next = cur->next;
+            delete cur;
+            cur = next;
+        }
+        first = NULL;
+        last = NULL;
+    }
 }
 
 //------------------------------------------
@@ -253,7 +253,7 @@ void LexerManager::Clear()
 
 LMMinder::~LMMinder()
 {
-	LexerManager::DeleteInstance();
+    LexerManager::DeleteInstance();
 }
 
 LMMinder minder;

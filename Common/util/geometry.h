@@ -25,37 +25,37 @@
 
 struct Line
 {
-	int X1;
-	int Y1;
-	int X2;
-	int Y2;
+    int X1;
+    int Y1;
+    int X2;
+    int Y2;
 
-	Line()
-	{
-		X1 = 0;
-		Y1 = 0;
-		X2 = 0;
-		Y2 = 0;
-	}
+    Line()
+    {
+        X1 = 0;
+        Y1 = 0;
+        X2 = 0;
+        Y2 = 0;
+    }
 
-	Line(int x1, int y1, int x2, int y2)
-	{
-		X1 = x1;
-		Y1 = y1;
-		X2 = x2;
-		Y2 = y2;
-	}
+    Line(int x1, int y1, int x2, int y2)
+    {
+        X1 = x1;
+        Y1 = y1;
+        X2 = x2;
+        Y2 = y2;
+    }
 };
 
 // Helper factory functions
 inline Line HLine(int x1, int x2, int y)
 {
-	return Line(x1, y, x2, y);
+    return Line(x1, y, x2, y);
 }
 
 inline Line VLine(int x, int y1, int y2)
 {
-	return Line(x, y1, x, y2);
+    return Line(x, y1, x, y2);
 }
 
 struct Size
@@ -123,93 +123,93 @@ struct Size
 
 struct Rect
 {
-	int Left;
-	int Top;
-	int Right;
-	int Bottom;
+    int Left;
+    int Top;
+    int Right;
+    int Bottom;
 
-	Rect()
-	{
-		Left	= 0;
-		Top		= 0;
-		Right	= 0;
-		Bottom	= 0;
-	}
+    Rect()
+    {
+        Left	= 0;
+        Top		= 0;
+        Right	= 0;
+        Bottom	= 0;
+    }
 
-	Rect(int l, int t, int r, int b)
-	{
-		Left	= l;
-		Top		= t;
-		Right	= r;
-		Bottom	= b;
-	}
+    Rect(int l, int t, int r, int b)
+    {
+        Left	= l;
+        Top		= t;
+        Right	= r;
+        Bottom	= b;
+    }
 
-	inline int GetWidth() const
-	{
-		return Right - Left + 1;
-	}
+    inline int GetWidth() const
+    {
+        return Right - Left + 1;
+    }
 
-	inline int GetHeight() const
-	{
-		return Bottom - Top + 1;
-	}
+    inline int GetHeight() const
+    {
+        return Bottom - Top + 1;
+    }
 };
 
 // Helper factory function
 inline Rect RectWH(int x, int y, int width, int height)
 {
-	return Rect(x, y, x + width - 1, y + height - 1);
+    return Rect(x, y, x + width - 1, y + height - 1);
 }
 
 struct Triangle
 {
-	int X1;
-	int Y1;
-	int X2;
-	int Y2;
-	int X3;
-	int Y3;
+    int X1;
+    int Y1;
+    int X2;
+    int Y2;
+    int X3;
+    int Y3;
 
-	Triangle()
-	{
-		X1 = 0;
-		Y1 = 0;
-		X2 = 0;
-		Y2 = 0;
-		X3 = 0;
-		Y3 = 0;
-	}
+    Triangle()
+    {
+        X1 = 0;
+        Y1 = 0;
+        X2 = 0;
+        Y2 = 0;
+        X3 = 0;
+        Y3 = 0;
+    }
 
-	Triangle(int x1, int y1, int x2, int y2, int x3, int y3)
-	{
-		X1 = x1;
-		Y1 = y1;
-		X2 = x2;
-		Y2 = y2;
-		X3 = x3;
-		Y3 = y3;
-	}
+    Triangle(int x1, int y1, int x2, int y2, int x3, int y3)
+    {
+        X1 = x1;
+        Y1 = y1;
+        X2 = x2;
+        Y2 = y2;
+        X3 = x3;
+        Y3 = y3;
+    }
 };
 
 struct Circle
 {
-	int X;
-	int Y;
-	int Radius;
+    int X;
+    int Y;
+    int Radius;
 
-	Circle()
-	{
-		X = 0;
-		Y = 0;
-		Radius = 0;
-	}
+    Circle()
+    {
+        X = 0;
+        Y = 0;
+        Radius = 0;
+    }
 
-	Circle(int x, int y, int radius)
-	{
-		X = x;
-		Y = y;
-		Radius = radius;
-	}
+    Circle(int x, int y, int radius)
+    {
+        X = x;
+        Y = y;
+        Radius = radius;
+    }
 
 };
 

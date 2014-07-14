@@ -18,13 +18,13 @@
 using AGS::Common::Stream;
 
 GameSetupStructBase::GameSetupStructBase()
-    : dict(NULL)
-    , globalscript(NULL)
-    , chars(NULL)
-    , compiled_script(NULL)
-    , load_messages(NULL)
-    , load_dictionary(false)
-    , load_compiled_script(false)
+: dict(NULL)
+, globalscript(NULL)
+, chars(NULL)
+, compiled_script(NULL)
+, load_messages(NULL)
+, load_dictionary(false)
+, load_compiled_script(false)
 {
     memset(messages, 0, sizeof(messages));
 }

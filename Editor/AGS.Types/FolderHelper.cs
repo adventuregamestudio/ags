@@ -33,25 +33,25 @@ namespace AGS.Types
         }
 
         // Copied from AGS.Native
-        public static int CountViews(IViewFolder folder) 
+        public static int CountViews(IViewFolder folder)
         {
-	        int highestViewNumber = 0;
-	        foreach (ViewFolder subFolder in folder.SubFolders)
-	        {
-		        int folderView = CountViews(subFolder);
-		        if (folderView > highestViewNumber) 
-		        {
-			        highestViewNumber = folderView;
-		        }
-	        }
-	        foreach (View view in folder.Views)
-	        {
-		        if (view.ID > highestViewNumber)
-		        {
-			        highestViewNumber = view.ID;
-		        }
-	        }
-	        return highestViewNumber;
+            int highestViewNumber = 0;
+            foreach (ViewFolder subFolder in folder.SubFolders)
+            {
+                int folderView = CountViews(subFolder);
+                if (folderView > highestViewNumber)
+                {
+                    highestViewNumber = folderView;
+                }
+            }
+            foreach (View view in folder.Views)
+            {
+                if (view.ID > highestViewNumber)
+                {
+                    highestViewNumber = view.ID;
+                }
+            }
+            return highestViewNumber;
         }
 
         public delegate void ViewFolderProcessing(IViewFolder folder, Game game);
@@ -59,9 +59,9 @@ namespace AGS.Types
         public static void ForEachViewFolder(IViewFolder parentFolder, Game game, ViewFolderProcessing proc)
         {
             foreach (ViewFolder subFolder in parentFolder.SubFolders)
-	        {
+            {
                 proc(subFolder, game);
-	        }
+            }
         }
     }
 }

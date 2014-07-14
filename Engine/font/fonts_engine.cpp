@@ -37,12 +37,12 @@ extern GameSetupStruct game;
 
 void set_our_eip(int eip)
 {
-  our_eip = eip;
+    our_eip = eip;
 }
 
 int get_our_eip()
 {
-  return our_eip;
+    return our_eip;
 }
 
 void set_font_outline(int font_number, int outline_type)

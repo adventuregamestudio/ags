@@ -19,15 +19,15 @@ namespace AGS.Editor.Components
         private const string MENU_COMMAND_IMPORT = "ImportScript";
         private const string MENU_COMMAND_EXPORT = "ExportScript";
         private const string ICON_KEY = "ScriptIcon";
-        
-		private const string COMMAND_OPEN_GLOBAL_SCRIPT = "GoToGlobalScript";
-		private const string COMMAND_OPEN_GLOBAL_HEADER = "GoToGlobalScriptHeader";
+
+        private const string COMMAND_OPEN_GLOBAL_SCRIPT = "GoToGlobalScript";
+        private const string COMMAND_OPEN_GLOBAL_HEADER = "GoToGlobalScriptHeader";
 
         private const string SCRIPT_MODULE_FILE_FILTER = "AGS script modules (*.scm)|*.scm";
 
         private delegate void CloseScriptEditor();
 
-        private Dictionary<Script,ContentDocument> _editors;
+        private Dictionary<Script, ContentDocument> _editors;
         private ScriptEditor _lastActivated;
         private Timer _timer;
         private bool _timerActivateWindow = true;
@@ -135,24 +135,24 @@ namespace AGS.Editor.Components
                 newHeader.SaveToDisk();
                 ScriptAndHeader scripts = new ScriptAndHeader(newHeader, newScript);
                 string newNodeID = AddSingleItem(scripts);
-				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
+                _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
                 RePopulateTreeView(GetNodeID(newScript));
                 _guiController.ProjectTree.BeginLabelEdit(this, ITEM_COMMAND_PREFIX + newScript.NameForLabelEdit);
             }
-			else if (controlID == COMMAND_OPEN_GLOBAL_HEADER)
-			{
-				CreateOrShowEditorForScript(Script.GLOBAL_HEADER_FILE_NAME);
-			}
-			else if (controlID == COMMAND_OPEN_GLOBAL_SCRIPT)
-			{
-				CreateOrShowEditorForScript(Script.GLOBAL_SCRIPT_FILE_NAME);
-			}
+            else if (controlID == COMMAND_OPEN_GLOBAL_HEADER)
+            {
+                CreateOrShowEditorForScript(Script.GLOBAL_HEADER_FILE_NAME);
+            }
+            else if (controlID == COMMAND_OPEN_GLOBAL_SCRIPT)
+            {
+                CreateOrShowEditorForScript(Script.GLOBAL_SCRIPT_FILE_NAME);
+            }
             else if ((!controlID.StartsWith(NODE_ID_PREFIX_FOLDER)) &&
                      (controlID != TOP_LEVEL_COMMAND_ID))
-			{
+            {
                 string scriptName = controlID.Substring(ITEM_COMMAND_PREFIX.Length);
-				CreateOrShowEditorForScript(scriptName);
-			}
+                CreateOrShowEditorForScript(scriptName);
+            }
         }
 
         protected override void DeleteResourcesUsedByItem(ScriptAndHeader item)
@@ -274,7 +274,7 @@ namespace AGS.Editor.Components
             }
             return newEditor;
         }
-        
+
         private ScriptEditor GetScriptEditor(string fileName, out Script script)
         {
             script = _agsEditor.CurrentGame.RootScriptFolder.GetScriptByFileName(fileName, true);
@@ -287,12 +287,12 @@ namespace AGS.Editor.Components
             }
             return (ScriptEditor)_editors[script].Control;
         }
-        
+
         private ScriptEditor CreateOrShowEditorForScript(string scriptName)
         {
             return CreateOrShowEditorForScript(scriptName, true);
         }
-        
+
         private ScriptEditor CreateOrShowEditorForScript(string scriptName, bool activateEditor)
         {
             Script chosenItem;
@@ -308,11 +308,11 @@ namespace AGS.Editor.Components
             _guiController.AddOrShowPane(document);
             if (activateEditor)
             {
-            // Hideous hack -- we need to allow the current message to
-            // finish processing before setting the focus to the
-            // script window, or it will fail
-            _timerActivateWindow = true;
-            _timer.Start();
+                // Hideous hack -- we need to allow the current message to
+                // finish processing before setting the focus to the
+                // script window, or it will fail
+                _timerActivateWindow = true;
+                _timer.Start();
             }
             return _lastActivated;
         }
@@ -332,11 +332,11 @@ namespace AGS.Editor.Components
                 RemoveExecutionPointFromAllScripts();
             }
 
-			if (evArgs.FileName == Tasks.AUTO_GENERATED_HEADER_NAME)
-			{
-				_guiController.ShowMessage("The error was within an automatically generated script file, so you cannot edit the script. The most likely cause of errors here is that two things in your game have the same name. For example, two characters or two fonts with the same script name could cause this error. Please consult the error message for more clues.", MessageBoxIcon.Warning);
-				return;
-			}
+            if (evArgs.FileName == Tasks.AUTO_GENERATED_HEADER_NAME)
+            {
+                _guiController.ShowMessage("The error was within an automatically generated script file, so you cannot edit the script. The most likely cause of errors here is that two things in your game have the same name. For example, two characters or two fonts with the same script name could cause this error. Please consult the error message for more clues.", MessageBoxIcon.Warning);
+                return;
+            }
 
             ScriptEditor editor = CreateOrShowEditorForScript(evArgs.FileName, evArgs.ActivateEditor);
             ZoomToCorrectPositionInScript(editor, evArgs);
@@ -427,7 +427,7 @@ namespace AGS.Editor.Components
                     }
                 }
             }
-            
+
             return contextMenu;
         }
 
@@ -443,9 +443,9 @@ namespace AGS.Editor.Components
         {
             // The Script_PanelClosed event will get called as we remove each
             // one, so we need to be careful with the enumerator
-            while (_editors.Values.Count > 0) 
+            while (_editors.Values.Count > 0)
             {
-                Dictionary<Script,ContentDocument>.ValueCollection.Enumerator enumerator = _editors.Values.GetEnumerator();
+                Dictionary<Script, ContentDocument>.ValueCollection.Enumerator enumerator = _editors.Values.GetEnumerator();
                 enumerator.MoveNext();
                 _guiController.RemovePaneIfExists(enumerator.Current);
             }
@@ -472,7 +472,7 @@ namespace AGS.Editor.Components
                     break;
                 }
             }
-            
+
         }
 
         private void ProjectTree_OnAfterLabelEdit(string commandID, ProjectTreeItem treeItem)
@@ -530,7 +530,7 @@ namespace AGS.Editor.Components
                 RePopulateTreeView(GetNodeID(renamedScript));
                 return;
             }
-            
+
             Script associatedScript = GetAssociatedScriptOrHeader(renamedScript, oldScriptName);
             if (associatedScript == null)
             {
@@ -549,8 +549,8 @@ namespace AGS.Editor.Components
             else
             {
                 _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(oldScriptName, renamedScript.FileName);
-				_agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(associatedScript.FileName, newNameForAssociatedScript);
-				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
+                _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(associatedScript.FileName, newNameForAssociatedScript);
+                _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
                 associatedScript.FileName = newNameForAssociatedScript;
             }
 
@@ -569,7 +569,7 @@ namespace AGS.Editor.Components
 
         protected override ProjectTreeItem CreateTreeItemForItem(ScriptAndHeader item)
         {
-            ProjectTree treeController = _guiController.ProjectTree;            
+            ProjectTree treeController = _guiController.ProjectTree;
             ProjectTreeItem newItem = (ProjectTreeItem)treeController.AddTreeBranch(this, GetNodeID(item), item.Name, ICON_KEY);
             newItem.AllowDoubleClickWhenExpanding = true;
 
@@ -587,7 +587,7 @@ namespace AGS.Editor.Components
             else
             {
                 treeController.AddTreeLeaf(this, GetNodeID(item.Header), editHeaderText, "MenuIconGlobalHeader");
-                treeController.AddTreeLeaf(this, GetNodeID(item.Script), editScriptText, "MenuIconGlobalScript");                    
+                treeController.AddTreeLeaf(this, GetNodeID(item.Script), editScriptText, "MenuIconGlobalScript");
             }
 
             return newItem;
@@ -605,7 +605,7 @@ namespace AGS.Editor.Components
 
         protected override bool CanFolderBeDeleted(ScriptFolder folder)
         {
-            return folder.GetScriptByFileName(Script.GLOBAL_HEADER_FILE_NAME, true) == null;            
+            return folder.GetScriptByFileName(Script.GLOBAL_HEADER_FILE_NAME, true) == null;
         }
 
         protected override string GetFolderDeleteConfirmationText()

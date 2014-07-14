@@ -25,12 +25,12 @@ namespace AGS.Editor
             Factory.GUIController.SetPropertyGridObject(_room.WalkableAreas[areaNumber]);
         }
 
-		protected override void FilterActivated()
-		{
-			Factory.GUIController.ShowCuppit("Walkable areas tell AGS where the player is allowed to go within the room. You can also set up scaling so that the player gets smaller or bigger as he walks around different areas.", "Walkable areas introduction");
-		}
+        protected override void FilterActivated()
+        {
+            Factory.GUIController.ShowCuppit("Walkable areas tell AGS where the player is allowed to go within the room. You can also set up scaling so that the player gets smaller or bigger as he walks around different areas.", "Walkable areas introduction");
+        }
 
-		protected override void SetPropertyGridList()
+        protected override void SetPropertyGridList()
         {
             Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
             defaultPropertyObjectList.Add(_room.PropertyGridTitle, _room);

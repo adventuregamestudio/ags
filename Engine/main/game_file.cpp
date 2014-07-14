@@ -129,19 +129,19 @@ String game_file_name;
 
 Stream * game_file_open()
 {
-	Stream*in = Common::AssetManager::OpenAsset("game28.dta"); // 3.x data file name
+    Stream*in = Common::AssetManager::OpenAsset("game28.dta"); // 3.x data file name
     if (in==NULL) {
         in = Common::AssetManager::OpenAsset("ac2game.dta"); // 2.x data file name
     }
 
-	return in;
+    return in;
 }
 
 int game_file_read_version(Stream *in)
 {
-	char teststr[31];
+    char teststr[31];
 
-	teststr[30]=0;
+    teststr[30]=0;
     in->Read(&teststr[0],30);
     filever=(GameDataVersion)in->ReadInt32();
 
@@ -155,7 +155,7 @@ int game_file_read_version(Stream *in)
         psp_is_old_datafile = 1;
     }
 
-	int engineverlen = in->ReadInt32();
+    int engineverlen = in->ReadInt32();
     String version_string = String::FromStreamCount(in, engineverlen);
     AGS::Engine::Version requested_engine_version(version_string);
 
@@ -172,12 +172,12 @@ int game_file_read_version(Stream *in)
 
     loaded_game_file_version = filever;
 
-	return RETURN_CONTINUE;
+    return RETURN_CONTINUE;
 }
 
 void game_file_read_dialog_script(Stream *in)
 {
-	if (filever > kGameVersion_310) // 3.1.1+ dialog script
+    if (filever > kGameVersion_310) // 3.1.1+ dialog script
     {
         dialogScriptsScript = ccScript::CreateFromStream(in);
         if (dialogScriptsScript == NULL)
@@ -191,7 +191,7 @@ void game_file_read_dialog_script(Stream *in)
 
 void game_file_read_script_modules(Stream *in)
 {
-	if (filever >= kGameVersion_270) // 2.7.0+ script modules
+    if (filever >= kGameVersion_270) // 2.7.0+ script modules
     {
         numScriptModules = in->ReadInt32();
         if (numScriptModules > MAX_SCRIPT_MODULES)
@@ -224,7 +224,7 @@ void ReadViewStruct272_Aligned(ViewStruct272* oldv, Stream *in)
 
 void game_file_read_views(Stream *in)
 {
-	if (filever > kGameVersion_272) // 3.x views
+    if (filever > kGameVersion_272) // 3.x views
     {
         for (int iteratorCount = 0; iteratorCount < game.numviews; ++iteratorCount)
         {
@@ -266,7 +266,7 @@ void game_file_set_default_glmsg()
 
 void game_file_read_dialogs(Stream *in)
 {
-	dialog=(DialogTopic*)malloc(sizeof(DialogTopic)*game.numdialog+5);
+    dialog=(DialogTopic*)malloc(sizeof(DialogTopic)*game.numdialog+5);
 
     for (int iteratorCount = 0; iteratorCount < game.numdialog; ++iteratorCount)
     {
@@ -352,7 +352,7 @@ void game_file_read_dialogs(Stream *in)
 
 void game_file_read_gui(Stream *in)
 {
-	read_gui(in,guis,&game, &guis);
+    read_gui(in,guis,&game, &guis);
 
     for (int bb = 0; bb < numguilabels; bb++) {
         // labels are not clickable by default
@@ -382,7 +382,7 @@ void game_file_set_score_sound(GameSetupStruct::GAME_STRUCT_READ_DATA &read_data
 
 void init_and_register_characters()
 {
-	characterScriptObjNames = (char**)malloc(sizeof(char*) * game.numcharacters);
+    characterScriptObjNames = (char**)malloc(sizeof(char*) * game.numcharacters);
 
     for (int ee=0;ee<game.numcharacters;ee++) {
         game.chars[ee].walking = 0;
@@ -410,7 +410,7 @@ void init_and_register_characters()
 
 void init_and_register_hotspots()
 {
-	for (int ee = 0; ee < MAX_HOTSPOTS; ee++) {
+    for (int ee = 0; ee < MAX_HOTSPOTS; ee++) {
         scrHotspot[ee].id = ee;
         scrHotspot[ee].reserved = 0;
 
@@ -420,7 +420,7 @@ void init_and_register_hotspots()
 
 void init_and_register_regions()
 {
-	for (int ee = 0; ee < MAX_REGIONS; ee++) {
+    for (int ee = 0; ee < MAX_REGIONS; ee++) {
         scrRegion[ee].id = ee;
         scrRegion[ee].reserved = 0;
 
@@ -430,7 +430,7 @@ void init_and_register_regions()
 
 void init_and_register_invitems()
 {
-	for (int ee = 0; ee < MAX_INV; ee++) {
+    for (int ee = 0; ee < MAX_INV; ee++) {
         scrInv[ee].id = ee;
         scrInv[ee].reserved = 0;
 
@@ -443,7 +443,7 @@ void init_and_register_invitems()
 
 void init_and_register_dialogs()
 {
-	for (int ee = 0; ee < game.numdialog; ee++) {
+    for (int ee = 0; ee < game.numdialog; ee++) {
         scrDialog[ee].id = ee;
         scrDialog[ee].reserved = 0;
 
@@ -456,9 +456,9 @@ void init_and_register_dialogs()
 
 void init_and_register_guis()
 {
-	int ee;
+    int ee;
 
-	scrGui = (ScriptGUI*)malloc(sizeof(ScriptGUI) * game.numgui);
+    scrGui = (ScriptGUI*)malloc(sizeof(ScriptGUI) * game.numgui);
     for (ee = 0; ee < game.numgui; ee++) {
         // 64 bit: Using the id instead
         // scrGui[ee].gui = NULL;
@@ -496,7 +496,7 @@ void init_and_register_guis()
 
 void init_and_register_fonts()
 {
-	our_eip=-22;
+    our_eip=-22;
     for (int ee=0;ee<game.numfonts;ee++) 
     {
         int fontsize = game.fontflags[ee] & FFLG_SIZEMASK;
@@ -513,12 +513,12 @@ void init_and_register_fonts()
 
 void init_and_register_game_objects()
 {
-	init_and_register_characters();
-	init_and_register_hotspots();
-	init_and_register_regions();
-	init_and_register_invitems();
-	init_and_register_dialogs();
-	init_and_register_guis();
+    init_and_register_characters();
+    init_and_register_hotspots();
+    init_and_register_regions();
+    init_and_register_invitems();
+    init_and_register_dialogs();
+    init_and_register_guis();
     init_and_register_fonts();    
 
     play.fade_effect=game.options[OPT_FADETYPE];
@@ -575,18 +575,18 @@ void WriteGameSetupStructBase_Aligned(Stream *out)
 
 int load_game_file() {
 
-	int res;    
+    int res;    
 
     game_paused = 0;  // reset the game paused flag
     ifacepopped = -1;
 
-	//-----------------------------------------------------------
-	// Start reading from file
-	//-----------------------------------------------------------
+    //-----------------------------------------------------------
+    // Start reading from file
+    //-----------------------------------------------------------
 
     Stream *in = game_file_open();
-	if (in==NULL)
-		return -1;
+    if (in==NULL)
+        return -1;
 
     our_eip=-18;
 
@@ -594,10 +594,10 @@ int load_game_file() {
 
     our_eip=-16;
 
-	res = game_file_read_version(in);
-	if (res != RETURN_CONTINUE) {
-		return res;
-	}
+    res = game_file_read_version(in);
+    if (res != RETURN_CONTINUE) {
+        return res;
+    }
 
     game.charScripts = NULL;
     game.invScripts = NULL;
@@ -625,7 +625,7 @@ int load_game_file() {
     if (filever < kGameVersion_312)
     {
         // Fix animation speed for old formats
-		game.options[OPT_GLOBALTALKANIMSPD] = 5;
+        game.options[OPT_GLOBALTALKANIMSPD] = 5;
     }
     else if (filever < kGameVersion_330)
     {
@@ -655,7 +655,7 @@ int load_game_file() {
 
     game_file_read_dialog_script(in);
 
-	game_file_read_script_modules(in);
+    game_file_read_script_modules(in);
 
     our_eip=-15;
 
@@ -672,7 +672,7 @@ int load_game_file() {
     allocate_memory_for_views(game.numviews);
     int iteratorCount = 0;
 
-	game_file_read_views(in);
+    game_file_read_views(in);
 
     our_eip=-14;
 
@@ -688,12 +688,12 @@ int load_game_file() {
     //-----------------------------------------------------
 
     game_file_set_default_glmsg();
-    
+
     our_eip=-13;
 
-	game_file_read_dialogs(in);
+    game_file_read_dialogs(in);
 
-	game_file_read_gui(in);
+    game_file_read_gui(in);
 
     if (filever >= kGameVersion_260) // >= 2.60
     {
@@ -706,11 +706,11 @@ int load_game_file() {
 
     game_file_set_score_sound(read_data);
 
-	delete in;
+    delete in;
 
-	//-----------------------------------------------------------
-	// Reading from file is finished here
-	//-----------------------------------------------------------
+    //-----------------------------------------------------------
+    // Reading from file is finished here
+    //-----------------------------------------------------------
 
     update_gui_zorder();
 
@@ -719,7 +719,7 @@ int load_game_file() {
 
     our_eip=-11;
 
-	init_and_register_game_objects();    
+    init_and_register_game_objects();    
 
     our_eip = -23;
 

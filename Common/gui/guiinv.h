@@ -20,60 +20,60 @@
 
 struct GUIInv:public GUIObject
 {
-  int isover;
-  int charId;   // whose inventory (-1 = current player)
-  int itemWidth, itemHeight;
-  int topIndex;
+    int isover;
+    int charId;   // whose inventory (-1 = current player)
+    int itemWidth, itemHeight;
+    int topIndex;
 
-  int itemsPerLine, numLines;  // not persisted
+    int itemsPerLine, numLines;  // not persisted
 
-  virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+    virtual void WriteToFile(Common::Stream *out);
+    virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
 
-  void CalculateNumCells();
+    void CalculateNumCells();
 
-  virtual void Resized() {
-    CalculateNumCells();
-  }
+    virtual void Resized() {
+        CalculateNumCells();
+    }
 
-  int CharToDisplay();
+    int CharToDisplay();
 
-  // This function has distinct implementations in Engine and Editor
-  virtual void Draw(Common::Bitmap *ds);
+    // This function has distinct implementations in Engine and Editor
+    virtual void Draw(Common::Bitmap *ds);
 
-  void MouseMove(int x, int y)
-  {
-  }
+    void MouseMove(int x, int y)
+    {
+    }
 
-  void MouseOver()
-  {
-    isover = 1;
-  }
+    void MouseOver()
+    {
+        isover = 1;
+    }
 
-  void MouseLeave()
-  {
-    isover = 0;
-  }
+    void MouseLeave()
+    {
+        isover = 0;
+    }
 
-  void MouseUp()
-  {
-    if (isover)
-      activated = 1;
-  }
+    void MouseUp()
+    {
+        if (isover)
+            activated = 1;
+    }
 
-  void KeyPress(int kp)
-  {
-  }
+    void KeyPress(int kp)
+    {
+    }
 
-  GUIInv() {
-    isover = 0;
-    numSupportedEvents = 0;
-    charId = -1;
-    itemWidth = 40;
-    itemHeight = 22;
-    topIndex = 0;
-    CalculateNumCells();
-  }
+    GUIInv() {
+        isover = 0;
+        numSupportedEvents = 0;
+        charId = -1;
+        itemWidth = 40;
+        itemHeight = 22;
+        topIndex = 0;
+        CalculateNumCells();
+    }
 };
 
 extern DynamicArray<GUIInv> guiinv;

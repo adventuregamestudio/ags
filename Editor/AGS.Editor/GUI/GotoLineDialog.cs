@@ -35,8 +35,8 @@ namespace AGS.Editor
         public int Minimum
         {
             get { return (int)upDownLineNumber.Minimum; }
-            set 
-            { 
+            set
+            {
                 upDownLineNumber.Minimum = value;
                 SetLabelText();
             }

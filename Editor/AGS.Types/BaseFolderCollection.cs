@@ -23,7 +23,7 @@ namespace AGS.Types
         protected abstract TFolderItem CreateItem(XmlNode node);
         protected virtual void ToXmlExtend(XmlTextWriter writer) { }
 
-        protected delegate bool EqualsDelegate<TId>(TFolderItem folderItem, TId id);        
+        protected delegate bool EqualsDelegate<TId>(TFolderItem folderItem, TId id);
 
         private string _name;
         protected BindingListWithRemoving<TFolder> _subFolders;
@@ -33,7 +33,7 @@ namespace AGS.Types
 
         public BaseFolderCollection(string name)
         {
-            Init(name);            
+            Init(name);
         }
 
         [AGSNoSerialize]
@@ -81,11 +81,11 @@ namespace AGS.Types
                         yield return item;
                     }
                 }
- 
+
                 foreach (TFolderItem item in _items)
                 {
                     yield return item;
-                }               
+                }
             }
         }
 
@@ -102,10 +102,10 @@ namespace AGS.Types
         }
 
         private string XmlFolderNodeName
-        { 
-            get { return typeof(TFolder).Name; } 
+        {
+            get { return typeof(TFolder).Name; }
         }
-        
+
         private string XmlItemListNodeName
         {
             get { return OverrideXmlItemListNodeName() ?? _xmlItemListNodeName; }
@@ -129,7 +129,7 @@ namespace AGS.Types
         {
             if (node == null || node.Name != this.XmlFolderNodeName)
             {
-                FromXmlBackwardsCompatability(parentNodeForBackwardsCompatability);                
+                FromXmlBackwardsCompatability(parentNodeForBackwardsCompatability);
             }
             else FromXml(node);
         }
@@ -179,11 +179,11 @@ namespace AGS.Types
             TFolder folder = e.FolderItem;
             switch (e.FolderChange)
             {
-                case FolderChange.ItemRemoved:                    
+                case FolderChange.ItemRemoved:
                     folder.BeforeRemoving();
                     folder.OnFolderChange -= folder_OnFolderChange;
                     break;
-                case FolderChange.ItemAdded:                    
+                case FolderChange.ItemAdded:
                     folder.OnFolderChange += folder_OnFolderChange;
                     break;
             }
@@ -204,18 +204,18 @@ namespace AGS.Types
             foreach (TFolderItem folderItem in _items)
             {
                 FireFolderChange(this, new FolderChangeEventArgs<TFolderItem>(folderItem,
-                    FolderChange.ItemRemoved));                    
+                    FolderChange.ItemRemoved));
             }
         }
 
         private void _items_BeforeChanging(object sender, FolderChangeEventArgs<TFolderItem> e)
         {
-            FireFolderChange(this, e);            
+            FireFolderChange(this, e);
         }
 
         private void FromXml(XmlNode node)
         {
-            Init(node.Attributes["Name"].InnerText);            
+            Init(node.Attributes["Name"].InnerText);
 
             foreach (XmlNode childNode in SerializeUtils.GetChildNodes(node, "SubFolders"))
             {
@@ -347,16 +347,16 @@ namespace AGS.Types
             {
                 foreach (TFolder subFolder in _subFolders)
                 {
-                    subFolder.Sort(recursive); 
+                    subFolder.Sort(recursive);
                 }
             }
         }
-        
+
         protected TFolderItem FindItem<TId>(EqualsDelegate<TId> isItem, TId id, bool recursive)
         {
             foreach (TFolderItem item in _items)
             {
-                if (isItem(item, id))                
+                if (isItem(item, id))
                 {
                     return item;
                 }
@@ -378,10 +378,10 @@ namespace AGS.Types
 
         public void RunActionOnAllFolderItems(Action<TFolderItem> action)
         {
-            foreach (TFolderItem item in AllItemsFlat)            
+            foreach (TFolderItem item in AllItemsFlat)
             {
                 action(item);
-            }            
+            }
         }
     }
 }

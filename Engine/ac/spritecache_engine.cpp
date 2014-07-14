@@ -37,15 +37,15 @@ extern int spritewidth[], spriteheight[];
 
 void SpriteCache::initFile_adjustBuffers(short numspri)
 {
-  // adjust the buffers to the sprite file size
-  changeMaxSize(numspri + 1);
+    // adjust the buffers to the sprite file size
+    changeMaxSize(numspri + 1);
 }
 
 void SpriteCache::initFile_initNullSpriteParams(int vv)
 {
-  // make it a blue cup, to avoid crashes
-  spritewidth[vv] = spritewidth[0];
-  spriteheight[vv] = spriteheight[0];
-  offsets[vv] = offsets[0];
-  flags[vv] = SPRCACHEFLAG_DOESNOTEXIST;
+    // make it a blue cup, to avoid crashes
+    spritewidth[vv] = spritewidth[0];
+    spriteheight[vv] = spriteheight[0];
+    offsets[vv] = offsets[0];
+    flags[vv] = SPRCACHEFLAG_DOESNOTEXIST;
 }

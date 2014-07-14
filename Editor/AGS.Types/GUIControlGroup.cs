@@ -7,7 +7,7 @@ namespace AGS.Types
     [Serializable]
     public class GUIControlGroup : List<GUIControl>
     {
-        public void AddToGroup (GUIControl gc)
+        public void AddToGroup(GUIControl gc)
         {
             if (!Contains(gc))
             {

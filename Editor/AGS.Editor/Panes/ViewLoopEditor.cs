@@ -14,7 +14,7 @@ namespace AGS.Editor
         private const int FRAME_DISPLAY_SIZE_96DPI = 50;
         private int FRAME_DISPLAY_SIZE;
         private const string MENU_ITEM_DELETE_FRAME = "DeleteFrame";
-		private const string MENU_ITEM_FLIP_FRAME = "FlipFrame";
+        private const string MENU_ITEM_FLIP_FRAME = "FlipFrame";
         private const string MENU_ITEM_INSERT_BEFORE = "InsertBefore";
         private const string MENU_ITEM_INSERT_AFTER = "InsertAfter";
         private const string MENU_ITEM_CUT_LOOP = "CutLoop";
@@ -27,10 +27,10 @@ namespace AGS.Editor
         public delegate void SelectedFrameChangedHandler(ViewLoop loop, int newSelectedFrame);
         public event SelectedFrameChangedHandler SelectedFrameChanged;
 
-		public delegate void NewFrameAddedHandler(ViewLoop loop, int newFrameIndex);
-		public event NewFrameAddedHandler NewFrameAdded;
+        public delegate void NewFrameAddedHandler(ViewLoop loop, int newFrameIndex);
+        public event NewFrameAddedHandler NewFrameAdded;
 
-		private static int _LastSelectedSprite = 0;
+        private static int _LastSelectedSprite = 0;
         private static ViewLoop _copiedLoop;
 
         private ViewLoop _loop;
@@ -72,8 +72,8 @@ namespace AGS.Editor
         public bool IsLastLoop
         {
             get { return _isLastLoop; }
-            set 
-            { 
+            set
+            {
                 _isLastLoop = value;
                 if (_isLastLoop)
                 {
@@ -84,16 +84,16 @@ namespace AGS.Editor
             }
         }
 
-		public void FlipSelectedFrame()
-		{
-			if ((_selectedFrame >= 0) && (_selectedFrame < _loop.Frames.Count))
-			{
-				ViewFrame frame = _loop.Frames[_selectedFrame];
-				frame.Flipped = !frame.Flipped;
-				this.Invalidate();
-				OnSelectedFrameChanged();
-			}
-		}
+        public void FlipSelectedFrame()
+        {
+            if ((_selectedFrame >= 0) && (_selectedFrame < _loop.Frames.Count))
+            {
+                ViewFrame frame = _loop.Frames[_selectedFrame];
+                frame.Flipped = !frame.Flipped;
+                this.Invalidate();
+                OnSelectedFrameChanged();
+            }
+        }
 
         public void DeleteSelectedFrame()
         {
@@ -130,16 +130,16 @@ namespace AGS.Editor
             Factory.NativeProxy.DrawViewLoop(hdc, _loop, 0, _loopDisplayY, FRAME_DISPLAY_SIZE, _selectedFrame);
             e.Graphics.ReleaseHdc();
 
-			for (int i = 0; i < _loop.Frames.Count; i++)
-			{
-				string delayString = "DLY:" + _loop.Frames[i].Delay;
-				int textWidth = (int)e.Graphics.MeasureString(delayString, this.Font).Width;
-				Point textPos = new Point(i * FRAME_DISPLAY_SIZE + FRAME_DISPLAY_SIZE / 2 - (textWidth / 2), btnNewFrame.Bottom + 2);
-				e.Graphics.DrawString(delayString, this.Font, Brushes.Black, textPos);
-			}
+            for (int i = 0; i < _loop.Frames.Count; i++)
+            {
+                string delayString = "DLY:" + _loop.Frames[i].Delay;
+                int textWidth = (int)e.Graphics.MeasureString(delayString, this.Font).Width;
+                Point textPos = new Point(i * FRAME_DISPLAY_SIZE + FRAME_DISPLAY_SIZE / 2 - (textWidth / 2), btnNewFrame.Bottom + 2);
+                e.Graphics.DrawString(delayString, this.Font, Brushes.Black, textPos);
+            }
         }
 
-		private void InsertNewFrame(int afterIndex)
+        private void InsertNewFrame(int afterIndex)
         {
             if (afterIndex < 0) afterIndex = -1;
             if (afterIndex >= _loop.Frames.Count) afterIndex = _loop.Frames.Count - 1;
@@ -157,12 +157,12 @@ namespace AGS.Editor
 
             UpdateControlWidth();
 
-			if (NewFrameAdded != null)
-			{
-				NewFrameAdded(_loop, newFrame.ID);
-			}
+            if (NewFrameAdded != null)
+            {
+                NewFrameAdded(_loop, newFrame.ID);
+            }
 
-			ChangeSelectedFrame(newFrame.ID);
+            ChangeSelectedFrame(newFrame.ID);
         }
 
         private void btnNewFrame_Click(object sender, EventArgs e)
@@ -180,20 +180,20 @@ namespace AGS.Editor
             return -1;
         }
 
-		private void ChangeSelectedFrame(int newSelection)
-		{
-			_selectedFrame = newSelection;
-			this.Invalidate();
+        private void ChangeSelectedFrame(int newSelection)
+        {
+            _selectedFrame = newSelection;
+            this.Invalidate();
 
-			OnSelectedFrameChanged();
-		}
+            OnSelectedFrameChanged();
+        }
 
         private void ViewLoopEditor_MouseUp(object sender, MouseEventArgs e)
         {
             int clickedOnFrame = GetFrameAtLocation(e.X, e.Y);
-            if (clickedOnFrame >= 0) 
+            if (clickedOnFrame >= 0)
             {
-				ChangeSelectedFrame(clickedOnFrame);
+                ChangeSelectedFrame(clickedOnFrame);
             }
 
             if (e.Button == MouseButtons.Right)
@@ -217,11 +217,11 @@ namespace AGS.Editor
             {
                 DeleteSelectedFrame();
             }
-			else if (item.Name == MENU_ITEM_FLIP_FRAME)
-			{
-				FlipSelectedFrame();
-			}
-			else if (item.Name == MENU_ITEM_INSERT_AFTER)
+            else if (item.Name == MENU_ITEM_FLIP_FRAME)
+            {
+                FlipSelectedFrame();
+            }
+            else if (item.Name == MENU_ITEM_INSERT_AFTER)
             {
                 InsertNewFrame(_selectedFrame);
             }
@@ -267,28 +267,28 @@ namespace AGS.Editor
             int clickedFrame = GetFrameAtLocation(e.X, e.Y);
             if (clickedFrame >= 0)
             {
-				int initialSprite = _loop.Frames[clickedFrame].Image;
-				if ((initialSprite == 0) && (clickedFrame > 0))
-				{
-					initialSprite = _loop.Frames[clickedFrame - 1].Image;
-				}
-				if (initialSprite == 0)
-				{
-					initialSprite = _LastSelectedSprite;
-				}
+                int initialSprite = _loop.Frames[clickedFrame].Image;
+                if ((initialSprite == 0) && (clickedFrame > 0))
+                {
+                    initialSprite = _loop.Frames[clickedFrame - 1].Image;
+                }
+                if (initialSprite == 0)
+                {
+                    initialSprite = _LastSelectedSprite;
+                }
 
                 Sprite chosen = SpriteChooser.ShowSpriteChooser(initialSprite);
                 if (chosen != null)
                 {
                     _loop.Frames[clickedFrame].Image = chosen.Number;
-					_LastSelectedSprite = chosen.Number;
+                    _LastSelectedSprite = chosen.Number;
                 }
             }
         }
 
         private void copyLoop()
         {
-            _copiedLoop = _loop.Clone();            
+            _copiedLoop = _loop.Clone();
         }
 
         private void onCopyLoopClicked(object sender, EventArgs e)
@@ -319,7 +319,7 @@ namespace AGS.Editor
             //int loopId = _loop.ID;
             //_loop = _copiedLoop.Clone(flipped);
             //_loop.ID = loopId;
-            _copiedLoop.Clone(_loop, flipped);            
+            _copiedLoop.Clone(_loop, flipped);
             UpdateControlWidth();
             this.Invalidate();
         }
@@ -335,7 +335,7 @@ namespace AGS.Editor
         }
 
         private void onFlipAllClicked(object sender, EventArgs e)
-        {            
+        {
             _loop.Frames.ForEach(c => c.Flipped = !c.Flipped);
             this.Invalidate();
         }
@@ -355,8 +355,8 @@ namespace AGS.Editor
                             _loop.Frames.Add(new ViewFrame
                             {
                                 ID = _loop.Frames.Count,
-                                Image = parent.Sprites[i].Number,                                
-                            });                            
+                                Image = parent.Sprites[i].Number,
+                            });
                         }
                     }
 
@@ -364,6 +364,6 @@ namespace AGS.Editor
                     this.Invalidate();
                 }
             }
-        }                
+        }
     }
 }

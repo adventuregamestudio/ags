@@ -45,124 +45,124 @@
 
 namespace AGS
 {
-namespace Common
-{
+    namespace Common
+    {
 
-class Stream;
-struct MultiFileLib;
-struct AssetLibInfo;
-struct AssetInfo;
+        class Stream;
+        struct MultiFileLib;
+        struct AssetLibInfo;
+        struct AssetInfo;
 
-enum AssetSearchPriority
-{
-    // TODO: rename this to something more obvious
-    kAssetPriorityUndefined,
-    kAssetPriorityLib,
-    kAssetPriorityDir
-};
+        enum AssetSearchPriority
+        {
+            // TODO: rename this to something more obvious
+            kAssetPriorityUndefined,
+            kAssetPriorityLib,
+            kAssetPriorityDir
+        };
 
-enum AssetError
-{
-    kAssetNoError           =  0,
-    kAssetErrNoLibFile      = -1, // library file not found or can't be read
-    kAssetErrNoLibSig       = -2, // library signature does not match
-    kAssetErrLibVersion     = -3, // library version unsupported
-    kAssetErrNoLibBase      = -4, // file is not library base (head)
-    kAssetErrLibAssetCount  = -5, // too many assets in library
-    kAssetErrNoManager      = -6, // asset manager not initialized
-};
+        enum AssetError
+        {
+            kAssetNoError           =  0,
+            kAssetErrNoLibFile      = -1, // library file not found or can't be read
+            kAssetErrNoLibSig       = -2, // library signature does not match
+            kAssetErrLibVersion     = -3, // library version unsupported
+            kAssetErrNoLibBase      = -4, // file is not library base (head)
+            kAssetErrLibAssetCount  = -5, // too many assets in library
+            kAssetErrNoManager      = -6, // asset manager not initialized
+        };
 
-class AssetManager
-{
-public:
-    static bool     CreateInstance();
-    static void     DestroyInstance();
-    ~AssetManager();
+        class AssetManager
+        {
+        public:
+            static bool     CreateInstance();
+            static void     DestroyInstance();
+            ~AssetManager();
 
-    static bool     SetSearchPriority(AssetSearchPriority priority);
-    static AssetSearchPriority GetSearchPriority();
+            static bool     SetSearchPriority(AssetSearchPriority priority);
+            static AssetSearchPriority GetSearchPriority();
 
-    static bool         IsDataFile(const String &data_file);
+            static bool         IsDataFile(const String &data_file);
 
-    // NOTE: this group of methods are only temporarily public
-    static AssetError   SetDataFile(const String &data_file);
-    static String       GetLibraryBaseFile();
-    static int          GetAssetCount();
-    static String       GetLibraryForAsset(const String &asset_name);
-    static String       GetAssetFileByIndex(int index);
-    static long         GetAssetOffset(const String &asset_name);
-    static long         GetAssetSize(const String &asset_name);
-    static long         GetLastAssetSize();    
-    
-    static void         InitPseudoRand(int seed);
-    static int          GetNextPseudoRand();
+            // NOTE: this group of methods are only temporarily public
+            static AssetError   SetDataFile(const String &data_file);
+            static String       GetLibraryBaseFile();
+            static int          GetAssetCount();
+            static String       GetLibraryForAsset(const String &asset_name);
+            static String       GetAssetFileByIndex(int index);
+            static long         GetAssetOffset(const String &asset_name);
+            static long         GetAssetSize(const String &asset_name);
+            static long         GetLastAssetSize();    
+
+            static void         InitPseudoRand(int seed);
+            static int          GetNextPseudoRand();
 
 
-    static bool         DoesAssetExist(const String &asset_name);
-    static Stream       *OpenAsset(const String &asset_name,
-                                   FileOpenMode open_mode = kFile_Open,
-                                   FileWorkMode work_mode = kFile_Read);
-    static Stream       *OpenAsset(const String &data_file, const String &asset_name,
-                                   FileOpenMode open_mode = kFile_Open,
-                                   FileWorkMode work_mode = kFile_Read);
+            static bool         DoesAssetExist(const String &asset_name);
+            static Stream       *OpenAsset(const String &asset_name,
+                FileOpenMode open_mode = kFile_Open,
+                FileWorkMode work_mode = kFile_Read);
+            static Stream       *OpenAsset(const String &data_file, const String &asset_name,
+                FileOpenMode open_mode = kFile_Open,
+                FileWorkMode work_mode = kFile_Read);
 
-private:
-    AssetManager();
+        private:
+            AssetManager();
 
-    bool        _SetSearchPriority(AssetSearchPriority priority);
-    AssetSearchPriority _GetSearchPriority();
-    bool        _IsDataFile(const String &data_file);
-    AssetError  _SetDataFile(const String &data_file);
-    String      _GetLibraryBaseFile();
-    int         _GetAssetCount();    
-    String      _GetLibraryForAsset(const String &asset_name);
-    String      _GetAssetFileByIndex(int index);
-    long        _GetAssetOffset(const String &asset_name);
-    long        _GetAssetSize(const String &asset_name);
-    long        _GetLastAssetSize();
-    
-    void        _InitPseudoRand(int seed);
-    int         _GetNextPseudoRand();
+            bool        _SetSearchPriority(AssetSearchPriority priority);
+            AssetSearchPriority _GetSearchPriority();
+            bool        _IsDataFile(const String &data_file);
+            AssetError  _SetDataFile(const String &data_file);
+            String      _GetLibraryBaseFile();
+            int         _GetAssetCount();    
+            String      _GetLibraryForAsset(const String &asset_name);
+            String      _GetAssetFileByIndex(int index);
+            long        _GetAssetOffset(const String &asset_name);
+            long        _GetAssetSize(const String &asset_name);
+            long        _GetLastAssetSize();
 
-    AssetError  RegisterAssetLib(const String &data_file, const String &password);
+            void        _InitPseudoRand(int seed);
+            int         _GetNextPseudoRand();
 
-    AssetError  ReadSingleFileAssetLib(MultiFileLib * mfl, Stream *ci_s, int lib_version);
-    AssetError  ReadMultiFileAssetLib(MultiFileLib * mfl, Stream *ci_s, int lib_version);
-    AssetError  ReadAssetLibV10(MultiFileLib * mfl, Stream *ci_s, int lib_version);
-    AssetError  ReadAssetLibV20(MultiFileLib * mfl, Stream *ci_s, int lib_version);
-    AssetError  ReadAssetLibV21(MultiFileLib * mfl, Stream *ci_s, int lib_version);
+            AssetError  RegisterAssetLib(const String &data_file, const String &password);
 
-    bool        _DoesAssetExist(const String &asset_name);
-    Stream      *_OpenAsset(const String &asset_name,
-        FileOpenMode open_mode = kFile_Open,
-        FileWorkMode work_mode = kFile_Read);
+            AssetError  ReadSingleFileAssetLib(MultiFileLib * mfl, Stream *ci_s, int lib_version);
+            AssetError  ReadMultiFileAssetLib(MultiFileLib * mfl, Stream *ci_s, int lib_version);
+            AssetError  ReadAssetLibV10(MultiFileLib * mfl, Stream *ci_s, int lib_version);
+            AssetError  ReadAssetLibV20(MultiFileLib * mfl, Stream *ci_s, int lib_version);
+            AssetError  ReadAssetLibV21(MultiFileLib * mfl, Stream *ci_s, int lib_version);
 
-    AssetInfo   *FindAssetByFileName(const String &asset_name);
-    String      MakeLibraryFileNameForAsset(const AssetInfo *asset);
-    Stream      *OpenAssetFromLib(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
-    Stream      *OpenAssetFromDir(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
-    Stream      *OpenAssetByPriority(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+            bool        _DoesAssetExist(const String &asset_name);
+            Stream      *_OpenAsset(const String &asset_name,
+                FileOpenMode open_mode = kFile_Open,
+                FileWorkMode work_mode = kFile_Read);
 
-    // Decryption routines
-    void        ReadEncArray(void *data, int dataSize, int dataCount, Stream *ci_s);
-    int32_t     ReadEncInt32(Stream *ci_s);
-    void        ReadEncString(char *buffer, int maxLength, Stream *ci_s);
-    void        DecryptText(char *text, int length);
+            AssetInfo   *FindAssetByFileName(const String &asset_name);
+            String      MakeLibraryFileNameForAsset(const AssetInfo *asset);
+            Stream      *OpenAssetFromLib(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+            Stream      *OpenAssetFromDir(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+            Stream      *OpenAssetByPriority(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
 
-    static AssetManager     *_theAssetManager;
-    AssetSearchPriority     _searchPriority;
+            // Decryption routines
+            void        ReadEncArray(void *data, int dataSize, int dataCount, Stream *ci_s);
+            int32_t     ReadEncInt32(Stream *ci_s);
+            void        ReadEncString(char *buffer, int maxLength, Stream *ci_s);
+            void        DecryptText(char *text, int length);
 
-    AssetLibInfo            &_assetLib;
-    long                    _lastAssetSize;     // size of asset that was opened last time
+            static AssetManager     *_theAssetManager;
+            AssetSearchPriority     _searchPriority;
 
-    static const String     _libHeadSig;
-    static const String     _libTailSig;
-    static const int        _encryptionRandSeed;
-    static const String     _encryptionString;
-    int                     _lastRandValue;     // to remember last used random number during decryption
-};
+            AssetLibInfo            &_assetLib;
+            long                    _lastAssetSize;     // size of asset that was opened last time
 
-} // namespace Common
+            static const String     _libHeadSig;
+            static const String     _libTailSig;
+            static const int        _encryptionRandSeed;
+            static const String     _encryptionString;
+            int                     _lastRandValue;     // to remember last used random number during decryption
+        };
+
+    } // namespace Common
 } // namespace AGS
 
 #endif // __AGS_CN_CORE__ASSETMANAGER_H

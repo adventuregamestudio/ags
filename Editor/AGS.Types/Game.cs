@@ -11,7 +11,7 @@ namespace AGS.Types
 {
     public class Game : IGame
     {
-		private readonly string[] RESERVED_SCRIPT_NAMES = { "inventory", "character", 
+        private readonly string[] RESERVED_SCRIPT_NAMES = { "inventory", "character", 
 			"views", "player", "object", "mouse", "system", "game", "palette",
 			"hotspot", "region", "dialog", "gui", "GUI"};
         private const int PALETTE_SIZE = 256;
@@ -60,10 +60,10 @@ namespace AGS.Types
         private GlobalVariables _globalVariables;
         private IList<AudioClip> _cachedAudioClipListForCompile;
         private Dictionary<int, int> _cachedAudioClipIndexMapping;
-		private string _directoryPath;
-		private bool _roomsAddedOrRemoved = false;
-		private Dictionary<int, object> _deletedViewIDs;
-		private string _savedXmlVersion = null;
+        private string _directoryPath;
+        private bool _roomsAddedOrRemoved = false;
+        private Dictionary<int, object> _deletedViewIDs;
+        private string _savedXmlVersion = null;
         private int? _savedXmlVersionIndex = null;
         private string _savedXmlEditorVersion = null;
 
@@ -90,13 +90,13 @@ namespace AGS.Types
             _propertySchema = new CustomPropertySchema();
             _globalVariables = new GlobalVariables();
             _globalMessages = new string[NUMBER_OF_GLOBAL_MESSAGES];
-			_deletedViewIDs = new Dictionary<int, object>();
+            _deletedViewIDs = new Dictionary<int, object>();
             _scripts = new ScriptFolders(ScriptFolder.MAIN_SCRIPT_FOLDER_NAME);
             _scriptsToCompile = new ScriptsAndHeaders();
             ScriptAndHeader globalScript = new ScriptAndHeader(
                 new Script(Script.GLOBAL_HEADER_FILE_NAME, "// script header\r\n", true),
                 new Script(Script.GLOBAL_SCRIPT_FILE_NAME, "// global script\r\n", false));
-            ((IList<ScriptAndHeader>)_scripts).Add(globalScript);            
+            ((IList<ScriptAndHeader>)_scripts).Add(globalScript);
             _playerCharacter = null;
 
             for (int i = 0; i < _globalMessages.Length; i++)
@@ -129,7 +129,7 @@ namespace AGS.Types
 
         public IList<Dialog> Dialogs
         {
-            get { return _dialogs; }            
+            get { return _dialogs; }
         }
 
         public IList<MouseCursor> Cursors
@@ -247,7 +247,7 @@ namespace AGS.Types
 
         public Scripts Scripts
         {
-            get 
+            get
             {
                 Scripts scripts = new Scripts(_scripts);
                 return scripts;
@@ -280,25 +280,25 @@ namespace AGS.Types
             get { return _globalVariables; }
         }
 
-		IViewFolder IGame.Views
-		{
-			get { return _views.RootFolder; }
-		}
+        IViewFolder IGame.Views
+        {
+            get { return _views.RootFolder; }
+        }
 
         ISpriteFolder IGame.Sprites
         {
             get { return _sprites; }
         }
 
-		/// <summary>
-		/// The version of the Game.agf file that was loaded from disk.
-		/// This is null if the game has not yet been saved.
-		/// </summary>
-		public string SavedXmlVersion
-		{
-			get { return _savedXmlVersion; }
-			set { _savedXmlVersion = value; }
-		}
+        /// <summary>
+        /// The version of the Game.agf file that was loaded from disk.
+        /// This is null if the game has not yet been saved.
+        /// </summary>
+        public string SavedXmlVersion
+        {
+            get { return _savedXmlVersion; }
+            set { _savedXmlVersion = value; }
+        }
 
         /// <summary>
         /// The editor version read from the Game.agf file that was loaded from disk.
@@ -320,24 +320,24 @@ namespace AGS.Types
             set { _savedXmlVersionIndex = value; }
         }
 
-		/// <summary>
-		/// Full path to the directory where the game is located
-		/// </summary>
-		public string DirectoryPath
-		{
-			get { return _directoryPath; }
-			set { _directoryPath = value; }
-		}
+        /// <summary>
+        /// Full path to the directory where the game is located
+        /// </summary>
+        public string DirectoryPath
+        {
+            get { return _directoryPath; }
+            set { _directoryPath = value; }
+        }
 
-		/// <summary>
-		/// If this is set, then the editor is more forceful about making
-		/// the user save the game on exit.
-		/// </summary>
-		public bool FilesAddedOrRemoved
-		{
-			get { return _roomsAddedOrRemoved; }
-			set { _roomsAddedOrRemoved = value; }
-		}
+        /// <summary>
+        /// If this is set, then the editor is more forceful about making
+        /// the user save the game on exit.
+        /// </summary>
+        public bool FilesAddedOrRemoved
+        {
+            get { return _roomsAddedOrRemoved; }
+            set { _roomsAddedOrRemoved = value; }
+        }
 
         /// <summary>
         /// Causes the ViewListUpdated event to be fired. You should call this
@@ -368,10 +368,10 @@ namespace AGS.Types
             }
         }
 
-		/// <summary>
-		/// Returns the minimum height of the room background
-		/// for the current game resolution.
-		/// </summary>
+        /// <summary>
+        /// Returns the minimum height of the room background
+        /// for the current game resolution.
+        /// </summary>
         public int MinRoomHeight
         {
             get
@@ -380,10 +380,10 @@ namespace AGS.Types
             }
         }
 
-		/// <summary>
-		/// Returns the minimum width of the room background
-		/// for the current game resolution.
-		/// </summary>
+        /// <summary>
+        /// Returns the minimum width of the room background
+        /// for the current game resolution.
+        /// </summary>
         public int MinRoomWidth
         {
             get
@@ -392,9 +392,9 @@ namespace AGS.Types
             }
         }
 
-		/// <summary>
-		/// Returns the highest numbered View in the game
-		/// </summary>
+        /// <summary>
+        /// Returns the highest numbered View in the game
+        /// </summary>
         public int ViewCount
         {
             get
@@ -403,41 +403,41 @@ namespace AGS.Types
             }
         }
 
-		/// <summary>
-		/// Marks the view as deleted and available for re-creation
-		/// </summary>
-		public void ViewDeleted(int viewNumber)
-		{
-			_deletedViewIDs.Add(viewNumber, null);
-		}
-
-		public View CreateNewView(IViewFolder createInFolder)
-		{
-			if (createInFolder == null)
-			{
-				createInFolder = _views.RootFolder;
-			}
-			View newView = new View();
-			newView.ID = FindAndAllocateAvailableViewID();
-			newView.Name = "View" + newView.ID;
-			createInFolder.Views.Add(newView);
-			NotifyClientsViewsUpdated();
-			return newView;
-		}
-
-		/// <summary>
-		/// Returns an unused View ID and allocates it as in use
-		/// </summary>
-		public int FindAndAllocateAvailableViewID()
+        /// <summary>
+        /// Marks the view as deleted and available for re-creation
+        /// </summary>
+        public void ViewDeleted(int viewNumber)
         {
-			if (_deletedViewIDs.Count > 0)
-			{
-				foreach (int availableID in _deletedViewIDs.Keys)
-				{
-					_deletedViewIDs.Remove(availableID);
-					return availableID;
-				}
-			}
+            _deletedViewIDs.Add(viewNumber, null);
+        }
+
+        public View CreateNewView(IViewFolder createInFolder)
+        {
+            if (createInFolder == null)
+            {
+                createInFolder = _views.RootFolder;
+            }
+            View newView = new View();
+            newView.ID = FindAndAllocateAvailableViewID();
+            newView.Name = "View" + newView.ID;
+            createInFolder.Views.Add(newView);
+            NotifyClientsViewsUpdated();
+            return newView;
+        }
+
+        /// <summary>
+        /// Returns an unused View ID and allocates it as in use
+        /// </summary>
+        public int FindAndAllocateAvailableViewID()
+        {
+            if (_deletedViewIDs.Count > 0)
+            {
+                foreach (int availableID in _deletedViewIDs.Keys)
+                {
+                    _deletedViewIDs.Remove(availableID);
+                    return availableID;
+                }
+            }
             return FindHighestViewNumber(_views.RootFolder) + 1;
         }
 
@@ -458,38 +458,38 @@ namespace AGS.Types
             return highest;
         }
 
-		/// <summary>
-		/// Returns the View object associated with the supplied ID
-		/// </summary>
-		public View FindViewByID(int viewNumber)
-        {           
+        /// <summary>
+        /// Returns the View object associated with the supplied ID
+        /// </summary>
+        public View FindViewByID(int viewNumber)
+        {
             return this.RootViewFolder.FindViewByID(viewNumber, true);
         }
 
-		public Character FindCharacterByID(int charID)
-		{
-            return _characters.RootFolder.FindCharacterByID(charID, true);			
-		}
+        public Character FindCharacterByID(int charID)
+        {
+            return _characters.RootFolder.FindCharacterByID(charID, true);
+        }
 
-		public UnloadedRoom FindRoomByID(int roomNumber)
+        public UnloadedRoom FindRoomByID(int roomNumber)
         {
             return (UnloadedRoom)_rooms.RootFolder.FindUnloadedRoomByID(roomNumber, true);
         }
 
-		public bool DoesRoomNumberAlreadyExist(int roomNumber)
-		{
-			return (FindRoomByID(roomNumber) != null);
-		}
+        public bool DoesRoomNumberAlreadyExist(int roomNumber)
+        {
+            return (FindRoomByID(roomNumber) != null);
+        }
 
-		public int FindFirstAvailableRoomNumber(int startingFromNumber)
-		{
-			do
-			{
-				startingFromNumber++;
-			}
-			while (DoesRoomNumberAlreadyExist(startingFromNumber));
-			return startingFromNumber;
-		}
+        public int FindFirstAvailableRoomNumber(int startingFromNumber)
+        {
+            do
+            {
+                startingFromNumber++;
+            }
+            while (DoesRoomNumberAlreadyExist(startingFromNumber));
+            return startingFromNumber;
+        }
 
         public AudioClip FindAudioClipForOldSoundNumber(IList<AudioClip> allAudio, int soundNumber)
         {
@@ -614,20 +614,20 @@ namespace AGS.Types
             }
             writer.WriteEndElement();
 
-			// We need to serialize the interaction variables in case
-			// they don't upgrade a room until later, and it might
-			// use the global interaction variables
-			writer.WriteStartElement("OldInteractionVariables");
-			foreach (OldInteractionVariable var in _oldInteractionVariables)
-			{
-				writer.WriteStartElement("Variable");
-				writer.WriteAttributeString("Name", var.Name);
-				writer.WriteAttributeString("Value", var.Value.ToString());
-				writer.WriteEndElement();
-			}
-			writer.WriteEndElement();
+            // We need to serialize the interaction variables in case
+            // they don't upgrade a room until later, and it might
+            // use the global interaction variables
+            writer.WriteStartElement("OldInteractionVariables");
+            foreach (OldInteractionVariable var in _oldInteractionVariables)
+            {
+                writer.WriteStartElement("Variable");
+                writer.WriteAttributeString("Name", var.Name);
+                writer.WriteAttributeString("Value", var.Value.ToString());
+                writer.WriteEndElement();
+            }
+            writer.WriteEndElement();
 
-			writer.WriteStartElement("Plugins");
+            writer.WriteStartElement("Plugins");
             foreach (Plugin plugin in _plugins)
             {
                 plugin.ToXml(writer);
@@ -643,7 +643,7 @@ namespace AGS.Types
             writer.WriteEndElement();
 
             writer.WriteStartElement("InventoryItems");
-            _inventoryItems.ToXml(writer);            
+            _inventoryItems.ToXml(writer);
             writer.WriteEndElement();
 
             writer.WriteStartElement("TextParser");
@@ -657,7 +657,7 @@ namespace AGS.Types
             writer.WriteElementString("PlayerCharacter", (_playerCharacter == null) ? string.Empty : _playerCharacter.ID.ToString());
 
             writer.WriteStartElement("Dialogs");
-            _dialogs.ToXml(writer);            
+            _dialogs.ToXml(writer);
             writer.WriteEndElement();
 
             writer.WriteStartElement("Cursors");
@@ -688,12 +688,12 @@ namespace AGS.Types
             _views.ToXml(writer);
             writer.WriteEndElement();
 
-			writer.WriteStartElement("DeletedViews");
-			foreach (int viewID in _deletedViewIDs.Keys)
-			{
-				writer.WriteElementString("ViewID", viewID.ToString());
-			}
-			writer.WriteEndElement();
+            writer.WriteStartElement("DeletedViews");
+            foreach (int viewID in _deletedViewIDs.Keys)
+            {
+                writer.WriteElementString("ViewID", viewID.ToString());
+            }
+            writer.WriteEndElement();
 
             writer.WriteStartElement("Scripts");
             _scripts.ToXml(writer);
@@ -714,7 +714,7 @@ namespace AGS.Types
             foreach (Translation translation in _translations)
             {
                 translation.ToXml(writer);
-            }            
+            }
             writer.WriteEndElement();
 
             writer.WriteEndElement();
@@ -748,14 +748,14 @@ namespace AGS.Types
             }
 
             _rooms = new UnloadedRoomFolders(node.SelectSingleNode("Rooms").FirstChild, node);
-            
-            _guis = new GUIFolders(node.SelectSingleNode("GUIs").FirstChild, node);            
 
-            _inventoryItems = new InventoryItemFolders(node.SelectSingleNode("InventoryItems").FirstChild, node);            
+            _guis = new GUIFolders(node.SelectSingleNode("GUIs").FirstChild, node);
+
+            _inventoryItems = new InventoryItemFolders(node.SelectSingleNode("InventoryItems").FirstChild, node);
 
             _textParser = new TextParser(node.SelectSingleNode("TextParser"));
 
-            _characters = new CharacterFolders(node.SelectSingleNode("Characters").FirstChild, node);            
+            _characters = new CharacterFolders(node.SelectSingleNode("Characters").FirstChild, node);
 
             _playerCharacter = null;
             string playerCharText = SerializeUtils.GetElementString(node, "PlayerCharacter");
@@ -772,7 +772,7 @@ namespace AGS.Types
                 }
             }
 
-            _dialogs = new DialogFolders(node.SelectSingleNode("Dialogs").FirstChild, node);                                    
+            _dialogs = new DialogFolders(node.SelectSingleNode("Dialogs").FirstChild, node);
 
             _cursors.Clear();
             foreach (XmlNode cursNode in SerializeUtils.GetChildNodes(node, "Cursors"))
@@ -793,13 +793,13 @@ namespace AGS.Types
             _views = new ViewFolders(node.SelectSingleNode("Views").FirstChild);
 
             _deletedViewIDs.Clear();
-			if (node.SelectSingleNode("DeletedViews") != null)
-			{
-				foreach (XmlNode transNode in SerializeUtils.GetChildNodes(node, "DeletedViews"))
-				{
-					_deletedViewIDs.Add(Convert.ToInt32(transNode.InnerText), null);
-				}
-			}
+            if (node.SelectSingleNode("DeletedViews") != null)
+            {
+                foreach (XmlNode transNode in SerializeUtils.GetChildNodes(node, "DeletedViews"))
+                {
+                    _deletedViewIDs.Add(Convert.ToInt32(transNode.InnerText), null);
+                }
+            }
 
             _scripts = new ScriptFolders(node.SelectSingleNode("Scripts").FirstChild, node);
 
@@ -842,14 +842,14 @@ namespace AGS.Types
                 _globalVariables = new GlobalVariables();
             }
 
-			_oldInteractionVariables.Clear();
-			if (node.SelectSingleNode("OldInteractionVariables") != null)
-			{
-				foreach (XmlNode varNode in SerializeUtils.GetChildNodes(node, "OldInteractionVariables"))
-				{
-					_oldInteractionVariables.Add(new OldInteractionVariable(SerializeUtils.GetAttributeString(varNode, "Name"), SerializeUtils.GetAttributeInt(varNode, "Value")));
-				}
-			}
+            _oldInteractionVariables.Clear();
+            if (node.SelectSingleNode("OldInteractionVariables") != null)
+            {
+                foreach (XmlNode varNode in SerializeUtils.GetChildNodes(node, "OldInteractionVariables"))
+                {
+                    _oldInteractionVariables.Add(new OldInteractionVariable(SerializeUtils.GetAttributeString(varNode, "Name"), SerializeUtils.GetAttributeInt(varNode, "Value")));
+                }
+            }
 
             if (_savedXmlVersionIndex == null)
             {
@@ -865,13 +865,13 @@ namespace AGS.Types
                 return false;
             }
 
-			foreach (string name in RESERVED_SCRIPT_NAMES)
-			{
-				if (tryName == name)
-				{
-					return true;
-				}
-			}
+            foreach (string name in RESERVED_SCRIPT_NAMES)
+            {
+                if (tryName == name)
+                {
+                    return true;
+                }
+            }
 
             foreach (GUI gui in this.RootGUIFolder.AllItemsFlat)
             {
@@ -1093,7 +1093,7 @@ namespace AGS.Types
             {
                 NormalGUI normalGui = gui as NormalGUI;
                 if (normalGui != null)
-                {                    
+                {
                     normalGui.Left *= MULTIPLY_FACTOR;
                     normalGui.Top *= MULTIPLY_FACTOR;
                     normalGui.Width *= MULTIPLY_FACTOR;

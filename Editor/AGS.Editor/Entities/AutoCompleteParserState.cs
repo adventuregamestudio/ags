@@ -75,7 +75,7 @@ namespace AGS.Editor
         public ScriptStruct InsideStructDefinition = null;
         public ScriptFunction InsideFunctionBody = null;
         public int CurrentScriptCharacterIndex;
-		public bool DynamicArrayDefinition = false;
+        public bool DynamicArrayDefinition = false;
         public string PreviousComment = null;
     }
 }

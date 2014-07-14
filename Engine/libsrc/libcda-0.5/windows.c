@@ -1,10 +1,10 @@
 /* libcda; Windows component.
- *
- * Using the string interface is probably slightly slower, but damned
- * if I'm going to code using the message interface.
- *
- * Peter Wang <tjaden@users.sf.net> 
- */
+*
+* Using the string interface is probably slightly slower, but damned
+* if I'm going to code using the message interface.
+*
+* Peter Wang <tjaden@users.sf.net> 
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,14 +34,14 @@ static int command(char *fmt, ...)
     char buf[256];
     va_list ap;
     DWORD err;
-    
+
     va_start(ap, fmt);
     vsprintf(buf, fmt, ap);
     va_end(ap);
 
     err = mciSendString(buf, ret, sizeof ret, 0);
     if (err) 
-	mciGetErrorString(err, _cd_error, sizeof _cd_error);
+        mciGetErrorString(err, _cd_error, sizeof _cd_error);
     return err ? -1 : 0;
 }
 
@@ -52,7 +52,7 @@ int cd_init(void)
 
     err = command("open cdaudio wait");
     if (!err) 
-	err = command("set cdaudio time format tmsf");
+        err = command("set cdaudio time format tmsf");
 
     paused = 0;
     return err;
@@ -103,11 +103,11 @@ int cd_play_from(int track)
 int cd_current_track(void)
 {
     if ((command("status cdaudio mode") != 0) || 
-	(strcmp(ret, "playing") != 0))
-	return 0;
-	
+        (strcmp(ret, "playing") != 0))
+        return 0;
+
     if (command("status cdaudio current track") != 0)
-	return 0;
+        return 0;
     return atoi(ret);
 }
 
@@ -115,8 +115,8 @@ int cd_current_track(void)
 void cd_pause(void)
 {
     /* `pause cdaudio' works like `stop' with the MCICDA driver.
-     * Therefore we hack around it.
-     */
+    * Therefore we hack around it.
+    */
     mciSendString("status cdaudio position", paused_pos, sizeof paused_pos, 0);
     command("pause cdaudio");
     paused = 1;
@@ -126,12 +126,12 @@ void cd_pause(void)
 void cd_resume(void)
 {
     if (!paused)
-	return;
+        return;
 
     if (end_pos[0])
-	command("play cdaudio from %s to %s", paused_pos, end_pos);
+        command("play cdaudio from %s to %s", paused_pos, end_pos);
     else
-	command("play cdaudio from %s", paused_pos);
+        command("play cdaudio from %s", paused_pos);
     paused = 0;
 }
 
@@ -152,15 +152,15 @@ void cd_stop(void)
 int cd_get_tracks(int *first, int *last)
 {
     int i;
-    
+
     if (command("status cdaudio number of tracks") != 0)
-	return -1;
+        return -1;
 
     i = atoi(ret);
-    
+
     if (first) *first = 1;
     if (last) *last = i;
-    
+
     return (i) ? 0 : -1;
 }
 
@@ -168,7 +168,7 @@ int cd_get_tracks(int *first, int *last)
 int cd_is_audio(int track)
 {
     if (command("status cdaudio type track %u", track) != 0)
-	return -1;
+        return -1;
     return (strcmp(ret, "audio") == 0) ? 1 : 0;
 }
 

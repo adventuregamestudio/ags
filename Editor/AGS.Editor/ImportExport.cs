@@ -13,9 +13,9 @@ namespace AGS.Editor
     public class ImportExport
     {
         private const string MODULE_FILE_SIGNATURE = "AGSScriptModule\0";
-		private const uint MODULE_FILE_TRAILER = 0xb4f76a65;
+        private const uint MODULE_FILE_TRAILER = 0xb4f76a65;
         private const string CHARACTER_FILE_SIGNATURE = "AGSCharacter";
-		private const string SINGLE_RUN_SCRIPT_TAG = "$$SINGLE_RUN_SCRIPT$$";
+        private const string SINGLE_RUN_SCRIPT_TAG = "$$SINGLE_RUN_SCRIPT$$";
 
         private const string GUI_XML_ROOT_NODE = "ExportedGUI";
         private const string GUI_XML_VERSION_ATTRIBUTE = "Version";
@@ -145,29 +145,29 @@ namespace AGS.Editor
                 if ((interactions.ImportedScripts[i] != null) &&
                     (interactions.ImportedScripts[i].Length > 0))
                 {
-					if (interactions.ImportedScripts[i].IndexOf(SINGLE_RUN_SCRIPT_TAG) >= 0)
-					{
-						// just a single Run Script -- don't wrap it in an outer
-						// function since there's no need to
-						interactions.ScriptFunctionNames[i] = interactions.ImportedScripts[i].Replace(SINGLE_RUN_SCRIPT_TAG, string.Empty).Replace("();", string.Empty).Trim();
-						convertedSome = true;
-					}
-					else
-					{
-						string funcName = itemName + "_" + interactions.FunctionSuffixes[i];
-						string funcScriptLine = "function " + funcName + "()";
-						interactions.ScriptFunctionNames[i] = funcName;
-						if (script.Text.IndexOf(funcScriptLine) >= 0)
-						{
-							errors.Add(new CompileWarning("Function " + funcName + " already exists in script and could not be created"));
-						}
-						else
-						{
-							script.Text += Environment.NewLine + funcScriptLine + Environment.NewLine;
-							script.Text += "{" + Environment.NewLine + interactions.ImportedScripts[i] + "}" + Environment.NewLine;
-							convertedSome = true;
-						}
-					}
+                    if (interactions.ImportedScripts[i].IndexOf(SINGLE_RUN_SCRIPT_TAG) >= 0)
+                    {
+                        // just a single Run Script -- don't wrap it in an outer
+                        // function since there's no need to
+                        interactions.ScriptFunctionNames[i] = interactions.ImportedScripts[i].Replace(SINGLE_RUN_SCRIPT_TAG, string.Empty).Replace("();", string.Empty).Trim();
+                        convertedSome = true;
+                    }
+                    else
+                    {
+                        string funcName = itemName + "_" + interactions.FunctionSuffixes[i];
+                        string funcScriptLine = "function " + funcName + "()";
+                        interactions.ScriptFunctionNames[i] = funcName;
+                        if (script.Text.IndexOf(funcScriptLine) >= 0)
+                        {
+                            errors.Add(new CompileWarning("Function " + funcName + " already exists in script and could not be created"));
+                        }
+                        else
+                        {
+                            script.Text += Environment.NewLine + funcScriptLine + Environment.NewLine;
+                            script.Text += "{" + Environment.NewLine + interactions.ImportedScripts[i] + "}" + Environment.NewLine;
+                            convertedSome = true;
+                        }
+                    }
                     interactions.ImportedScripts[i] = null;
                 }
             }
@@ -182,17 +182,17 @@ namespace AGS.Editor
             {
                 if (item.Name.Length < 1)
                 {
-					item.Name = "iInventory" + item.ID;
+                    item.Name = "iInventory" + item.ID;
                 }
-				CreateScriptsForInteraction(item.Name, theScript, item.Interactions, errors);
+                CreateScriptsForInteraction(item.Name, theScript, item.Interactions, errors);
             }
             foreach (Character character in game.RootCharacterFolder.AllItemsFlat)
             {
                 if (character.ScriptName.Length < 1)
                 {
-					character.ScriptName = "cCharacter" + character.ID;
+                    character.ScriptName = "cCharacter" + character.ID;
                 }
-				CreateScriptsForInteraction(character.ScriptName, theScript, character.Interactions, errors);
+                CreateScriptsForInteraction(character.ScriptName, theScript, character.Interactions, errors);
             }
         }
 
@@ -203,7 +203,7 @@ namespace AGS.Editor
 
             foreach (RoomHotspot hotspot in room.Hotspots)
             {
-				if (hotspot.Name.Length < 1)
+                if (hotspot.Name.Length < 1)
                 {
                     hotspot.Name = "hHotspot" + hotspot.ID;
                 }
@@ -213,9 +213,9 @@ namespace AGS.Editor
             {
                 if (obj.Name.Length < 1)
                 {
-					obj.Name = "oObject" + obj.ID;
+                    obj.Name = "oObject" + obj.ID;
                 }
-				convertedSome |= CreateScriptsForInteraction(obj.Name, theScript, obj.Interactions, errors);
+                convertedSome |= CreateScriptsForInteraction(obj.Name, theScript, obj.Interactions, errors);
             }
             foreach (RoomRegion region in room.Regions)
             {
@@ -281,7 +281,7 @@ namespace AGS.Editor
                 int weAreOwner = reader.ReadInt32();
             }
 
-            game.RootScriptFolder.Items.Add(new ScriptAndHeader(scriptHeader, globalScript));            
+            game.RootScriptFolder.Items.Add(new ScriptAndHeader(scriptHeader, globalScript));
 
             // Ensure that all .asc/.ash files are saved
             foreach (Script script in game.RootScriptFolder.AllScriptsFlat)
@@ -337,7 +337,7 @@ namespace AGS.Editor
             scriptsImported.Add(header);
             scriptsImported.Add(mainScript);
 
-			AutoComplete.ConstructCache(header);
+            AutoComplete.ConstructCache(header);
             return scriptsImported;
         }
 
@@ -359,9 +359,9 @@ namespace AGS.Editor
             WriteNullTerminatedString(header.Text, writer);
 
             writer.Write((int)script.UniqueKey);
-			writer.Write((int)0);  // Permissions
-			writer.Write((int)0);  // We are owner
-			writer.Write((uint)MODULE_FILE_TRAILER);
+            writer.Write((int)0);  // Permissions
+            writer.Write((int)0);  // We are owner
+            writer.Write((uint)MODULE_FILE_TRAILER);
             writer.Close();
         }
 
@@ -392,52 +392,52 @@ namespace AGS.Editor
 
         private static string ReadNullTerminatedString(BinaryReader reader)
         {
-			return ReadNullTerminatedString(reader, 0);
+            return ReadNullTerminatedString(reader, 0);
         }
 
-		private static string ReadNullTerminatedString(BinaryReader reader, int fixedLength)
-		{
-			StringBuilder sb = new StringBuilder(100);
-			int bytesToRead = fixedLength;
-			byte thisChar;
-			while ((thisChar = reader.ReadByte()) != 0)
-			{
-				sb.Append((char)thisChar);
-				bytesToRead--;
+        private static string ReadNullTerminatedString(BinaryReader reader, int fixedLength)
+        {
+            StringBuilder sb = new StringBuilder(100);
+            int bytesToRead = fixedLength;
+            byte thisChar;
+            while ((thisChar = reader.ReadByte()) != 0)
+            {
+                sb.Append((char)thisChar);
+                bytesToRead--;
 
-				if ((fixedLength > 0) && (bytesToRead < 1))
-				{
-					break;
-				}
-			}
-			if (bytesToRead > 0)
-			{
-				reader.ReadBytes(bytesToRead - 1);
-			}
-			return sb.ToString();
-		}
+                if ((fixedLength > 0) && (bytesToRead < 1))
+                {
+                    break;
+                }
+            }
+            if (bytesToRead > 0)
+            {
+                reader.ReadBytes(bytesToRead - 1);
+            }
+            return sb.ToString();
+        }
 
-		private static void WriteNullTerminatedString(string text, BinaryWriter writer)
+        private static void WriteNullTerminatedString(string text, BinaryWriter writer)
         {
             writer.Write(Encoding.Default.GetBytes(text));
             writer.Write((byte)0);
         }
 
-		private static int GetRoomNumberFromFileName(string fileName)
-		{
-			string roomFile = fileName.Substring(4);
-			roomFile = roomFile.Substring(0, roomFile.IndexOf("."));
-			int roomNumber = -1;
-			if (Int32.TryParse(roomFile, out roomNumber))
-			{
-				roomFile = "room" + roomNumber + ".crm";
-				if (string.Compare(roomFile, fileName, true) == 0)
-				{
-					return roomNumber;
-				}
-			}
-			return -1;
-		}
+        private static int GetRoomNumberFromFileName(string fileName)
+        {
+            string roomFile = fileName.Substring(4);
+            roomFile = roomFile.Substring(0, roomFile.IndexOf("."));
+            int roomNumber = -1;
+            if (Int32.TryParse(roomFile, out roomNumber))
+            {
+                roomFile = "room" + roomNumber + ".crm";
+                if (string.Compare(roomFile, fileName, true) == 0)
+                {
+                    return roomNumber;
+                }
+            }
+            return -1;
+        }
 
         private static void ImportRoomList(Game game, BinaryReader reader, string fullPathToGameFiles, CompileMessages importErrors)
         {
@@ -446,7 +446,7 @@ namespace AGS.Editor
             {
                 int roomNumber = GetRoomNumberFromFileName(Path.GetFileName(roomFileFullPath));
 
-				if (roomNumber >= 0)
+                if (roomNumber >= 0)
                 {
                     try
                     {
@@ -486,7 +486,7 @@ namespace AGS.Editor
             }
         }
 
-        private static SpriteFolder ImportSpriteFolders(BinaryReader reader, Dictionary<int,Sprite> spriteList, CompileMessages importErrors)
+        private static SpriteFolder ImportSpriteFolders(BinaryReader reader, Dictionary<int, Sprite> spriteList, CompileMessages importErrors)
         {
             const string DUMMY_FOLDER_NAME = "$$TEMPNAME";
             Dictionary<int, SpriteFolder> spriteFolders = new Dictionary<int, SpriteFolder>();
@@ -526,7 +526,7 @@ namespace AGS.Editor
                     }
                     spriteFolders[parentFolder].SubFolders.Add(spriteFolders[i]);
                 }
-				string folderName = ReadNullTerminatedString(reader, 30);
+                string folderName = ReadNullTerminatedString(reader, 30);
                 if (folderName.Contains("\0"))
                 {
                     folderName = folderName.TrimEnd('\0');
@@ -599,7 +599,7 @@ namespace AGS.Editor
                 WriteNewStyleView(writer, game.FindViewByID(character.BlinkingView), spritesWritten);
                 writer.WriteEndElement();
             }
-            
+
             writer.WriteEndElement();
 
             game.WritePaletteToXML(writer);
@@ -777,7 +777,7 @@ namespace AGS.Editor
                 throw new AGS.Types.InvalidDataException("This character file is not supported by this version of AGS.");
             }
 
-            Color []palette = new Color[256];
+            Color[] palette = new Color[256];
             for (int i = 0; i < 256; i++)
             {
                 int r = reader.ReadByte();
@@ -810,8 +810,8 @@ namespace AGS.Editor
             character.MovementSpeed = reader.ReadInt16();
             character.AnimationDelay = reader.ReadInt16();
             reader.ReadBytes(606);
-			character.RealName = ReadNullTerminatedString(reader, 40);
-			character.ScriptName = ReadNullTerminatedString(reader, 20);
+            character.RealName = ReadNullTerminatedString(reader, 40);
+            character.ScriptName = ReadNullTerminatedString(reader, 20);
             if (character.ScriptName.Length > 0)
             {
                 character.ScriptName = "c" + Char.ToUpper(character.ScriptName[0]) + character.ScriptName.Substring(1).ToLower();
@@ -901,16 +901,16 @@ namespace AGS.Editor
                 }
             }
 
-			short loopCount = Math.Min((short)view.Loops.Count, (short)16);
+            short loopCount = Math.Min((short)view.Loops.Count, (short)16);
             writer.Write(loopCount);
             foreach (ViewLoop loop in view.Loops)
             {
-				short frameCount = (short)loop.Frames.Count;
-				if (loop.RunNextLoop)
-				{
-					frameCount++;
-				}
-				frameCount = Math.Min(frameCount, (short)20);
+                short frameCount = (short)loop.Frames.Count;
+                if (loop.RunNextLoop)
+                {
+                    frameCount++;
+                }
+                frameCount = Math.Min(frameCount, (short)20);
                 writer.Write(frameCount);
             }
             WriteZeros(writer, (16 - view.Loops.Count) * 2);
@@ -931,23 +931,23 @@ namespace AGS.Editor
                         writer.Write(frame.Sound);
                         WriteZeros(writer, 8);
                     }
-					else if ((i < view.Loops.Count) &&
-							 (j == view.Loops[i].Frames.Count) &&
-							 (view.Loops[i].RunNextLoop))
-					{
-						// Write the "Run Next Loop" flag
-						writer.Write((int)-1);
-						writer.Write((int)0);
-						writer.Write((short)0);
-						WriteZeros(writer, 2);
-						writer.Write(0);
-						writer.Write(0);
-						WriteZeros(writer, 8);
-					}
-					else
-					{
-						WriteZeros(writer, 28);
-					}
+                    else if ((i < view.Loops.Count) &&
+                             (j == view.Loops[i].Frames.Count) &&
+                             (view.Loops[i].RunNextLoop))
+                    {
+                        // Write the "Run Next Loop" flag
+                        writer.Write((int)-1);
+                        writer.Write((int)0);
+                        writer.Write((short)0);
+                        WriteZeros(writer, 2);
+                        writer.Write(0);
+                        writer.Write(0);
+                        WriteZeros(writer, 8);
+                    }
+                    else
+                    {
+                        WriteZeros(writer, 28);
+                    }
                 }
             }
 
@@ -958,10 +958,10 @@ namespace AGS.Editor
                     WriteOldStyleViewFrame(writer, frame);
                 }
 
-				if (loop.RunNextLoop)
-				{
-					writer.Write((int)200);
-				}
+                if (loop.RunNextLoop)
+                {
+                    writer.Write((int)200);
+                }
             }
         }
 
@@ -987,7 +987,7 @@ namespace AGS.Editor
 
         private static void EnsureViewNameIsUnique(View view, Game game)
         {
-            string scriptNameBase = view.Name; 
+            string scriptNameBase = view.Name;
             int suffix = 0;
             while (game.IsScriptNameAlreadyUsed(view.Name.ToUpper(), view))
             {
@@ -1048,16 +1048,16 @@ namespace AGS.Editor
 
             foreach (ViewLoop loop in view.Loops)
             {
-				foreach (ViewFrame frame in loop.Frames)
-				{
-					Sprite newSprite = ReadOldStyleViewFrame(reader, loop, frame, palette);
-					if (newSprite == null)
-					{
-						break;
-					}
-					folder.Sprites.Add(newSprite);
-					frame.Image = newSprite.Number;
-				}
+                foreach (ViewFrame frame in loop.Frames)
+                {
+                    Sprite newSprite = ReadOldStyleViewFrame(reader, loop, frame, palette);
+                    if (newSprite == null)
+                    {
+                        break;
+                    }
+                    folder.Sprites.Add(newSprite);
+                    frame.Image = newSprite.Number;
+                }
             }
             return view;
         }
@@ -1115,7 +1115,7 @@ namespace AGS.Editor
 
         private static PixelFormat GetPixelFormatForColorDepth(int depth)
         {
-            switch (depth) 
+            switch (depth)
             {
                 case 8:
                     return PixelFormat.Format8bppIndexed;
@@ -1220,8 +1220,8 @@ namespace AGS.Editor
                 File.Delete(fileName);
             }
             XmlTextWriter writer = new XmlTextWriter(fileName, Encoding.Default);
-			writer.WriteProcessingInstruction("xml", "version=\"1.0\" encoding=\"" + Encoding.Default.WebName + "\"");
-			writer.WriteComment("AGS Exported GUI file. DO NOT EDIT THIS FILE BY HAND, IT IS GENERATED AUTOMATICALLY BY THE AGS EDITOR.");
+            writer.WriteProcessingInstruction("xml", "version=\"1.0\" encoding=\"" + Encoding.Default.WebName + "\"");
+            writer.WriteComment("AGS Exported GUI file. DO NOT EDIT THIS FILE BY HAND, IT IS GENERATED AUTOMATICALLY BY THE AGS EDITOR.");
             writer.WriteStartElement(GUI_XML_ROOT_NODE);
             writer.WriteAttributeString(GUI_XML_VERSION_ATTRIBUTE, GUI_XML_CURRENT_VERSION);
 
@@ -1253,7 +1253,7 @@ namespace AGS.Editor
                     }
                 }
             }
-            
+
         }
 
         private static void WriteSpriteToXML(int spriteNumber, XmlTextWriter writer)
@@ -1353,7 +1353,7 @@ namespace AGS.Editor
                     int width = SerializeUtils.GetAttributeInt(childNode, GUI_XML_SPRITE_WIDTH);
                     int height = SerializeUtils.GetAttributeInt(childNode, GUI_XML_SPRITE_HEIGHT);
                     SpriteImportResolution resolution = (SpriteImportResolution)Enum.Parse(typeof(SpriteImportResolution), SerializeUtils.GetAttributeString(childNode, GUI_XML_SPRITE_RESOLUTION));
-                    byte[]spriteData = Convert.FromBase64String(childNode.InnerText);
+                    byte[] spriteData = Convert.FromBase64String(childNode.InnerText);
 
                     Sprite newSprite = ImportSpriteFromRawData(colDepth, width, height, hasAlphaChannel, spriteData, palette);
                     newSprite.Resolution = resolution;

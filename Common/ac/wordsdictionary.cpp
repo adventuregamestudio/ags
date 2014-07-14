@@ -82,79 +82,79 @@ int WordsDictionary::find_index (const char*wrem) {
 char *passwencstring = "Avis Durgan";
 
 void decrypt_text(char*toenc) {
-  int adx = 0;
+    int adx = 0;
 
-  while (1) {
-    toenc[0] -= passwencstring[adx];
-    if (toenc[0] == 0)
-      break;
+    while (1) {
+        toenc[0] -= passwencstring[adx];
+        if (toenc[0] == 0)
+            break;
 
-    adx++;
-    toenc++;
+        adx++;
+        toenc++;
 
-    if (adx > 10)
-      adx = 0;
-  }
+        if (adx > 10)
+            adx = 0;
+    }
 }
 
 void read_string_decrypt(Stream *in, char *sss) {
-  int newlen = in->ReadInt32();
-  if ((newlen < 0) || (newlen > 5000000))
-    quit("ReadString: file is corrupt");
+    int newlen = in->ReadInt32();
+    if ((newlen < 0) || (newlen > 5000000))
+        quit("ReadString: file is corrupt");
 
-  // MACPORT FIX: swap as usual
-  in->Read(sss, newlen);
-  sss[newlen] = 0;
-  decrypt_text(sss);
+    // MACPORT FIX: swap as usual
+    in->Read(sss, newlen);
+    sss[newlen] = 0;
+    decrypt_text(sss);
 }
 
 void read_dictionary (WordsDictionary *dict, Stream *out) {
-  int ii;
+    int ii;
 
-  dict->allocate_memory(out->ReadInt32());
-  for (ii = 0; ii < dict->num_words; ii++) {
-    read_string_decrypt (out, dict->word[ii]);
-    dict->wordnum[ii] = out->ReadInt16();
-  }
+    dict->allocate_memory(out->ReadInt32());
+    for (ii = 0; ii < dict->num_words; ii++) {
+        read_string_decrypt (out, dict->word[ii]);
+        dict->wordnum[ii] = out->ReadInt16();
+    }
 }
 
 void freadmissout(short *pptr, Stream *in) {
-  in->ReadArrayOfInt16(&pptr[0], 5);
-  in->ReadArrayOfInt16(&pptr[7], NUM_CONDIT - 7);
-  pptr[5] = pptr[6] = 0;
+    in->ReadArrayOfInt16(&pptr[0], 5);
+    in->ReadArrayOfInt16(&pptr[7], NUM_CONDIT - 7);
+    pptr[5] = pptr[6] = 0;
 }
 
 void encrypt_text(char *toenc) {
-  int adx = 0, tobreak = 0;
+    int adx = 0, tobreak = 0;
 
-  while (tobreak == 0) {
-    if (toenc[0] == 0)
-      tobreak = 1;
+    while (tobreak == 0) {
+        if (toenc[0] == 0)
+            tobreak = 1;
 
-    toenc[0] += passwencstring[adx];
-    adx++;
-    toenc++;
+        toenc[0] += passwencstring[adx];
+        adx++;
+        toenc++;
 
-    if (adx > 10)
-      adx = 0;
-  }
+        if (adx > 10)
+            adx = 0;
+    }
 }
 
 void write_string_encrypt(Stream *out, char *sss) {
-  int stlent = (int)strlen(sss) + 1;
+    int stlent = (int)strlen(sss) + 1;
 
-  out->WriteInt32(stlent);
-  encrypt_text(sss);
-  out->WriteArray(sss, stlent, 1);
-  decrypt_text(sss);
+    out->WriteInt32(stlent);
+    encrypt_text(sss);
+    out->WriteArray(sss, stlent, 1);
+    decrypt_text(sss);
 }
 
 void write_dictionary (WordsDictionary *dict, Stream *out) {
-  int ii;
+    int ii;
 
-  out->WriteInt32(dict->num_words);
-  for (ii = 0; ii < dict->num_words; ii++) {
-    write_string_encrypt (out, dict->word[ii]);
-    out->WriteInt16(dict->wordnum[ii]);//__putshort__lilendian(dict->wordnum[ii], writeto);
-  }
+    out->WriteInt32(dict->num_words);
+    for (ii = 0; ii < dict->num_words; ii++) {
+        write_string_encrypt (out, dict->word[ii]);
+        out->WriteInt16(dict->wordnum[ii]);//__putshort__lilendian(dict->wordnum[ii], writeto);
+    }
 }

@@ -43,7 +43,7 @@ namespace AGS.Types
 
         [AGSNoSerialize]
         private GUIControlGroup _memberOf;
-        
+
         [Browsable(false)]
         [AGSNoSerialize]
         public GUIControlGroup MemberOf

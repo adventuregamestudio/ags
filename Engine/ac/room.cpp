@@ -499,63 +499,63 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     const int real_room_height = multiply_up_coordinate(thisroom.height);
     // Frame size is updated when letterbox mode is on, or when room's size is smaller than game's size.
     if (usetup.want_letterbox ||
-            real_room_height < GameSize.Height || scrnhit < GameSize.Height) {
-        int abscreen=0;
+        real_room_height < GameSize.Height || scrnhit < GameSize.Height) {
+            int abscreen=0;
 
-        Bitmap *ds = GetVirtualScreen();
-        if (ds==BitmapHelper::GetScreenBitmap()) abscreen=1;
-        else if (ds==virtual_screen) abscreen=2;
-        int newScreenHeight = final_scrn_hit;
-        const int viewport_height = Math::Min(real_room_height, GameSize.Height);
-        if (viewport_height < final_scrn_hit) {
-            clear_letterbox_borders();
-            newScreenHeight = viewport_height;
-        }
+            Bitmap *ds = GetVirtualScreen();
+            if (ds==BitmapHelper::GetScreenBitmap()) abscreen=1;
+            else if (ds==virtual_screen) abscreen=2;
+            int newScreenHeight = final_scrn_hit;
+            const int viewport_height = Math::Min(real_room_height, GameSize.Height);
+            if (viewport_height < final_scrn_hit) {
+                clear_letterbox_borders();
+                newScreenHeight = viewport_height;
+            }
 
-        // If the game is run not in letterbox mode, but there's a random room smaller than the game size,
-        // then the sub_screen does not exist at this point; so we create it here.
-        if (!_sub_screen)
-            _sub_screen = BitmapHelper::CreateSubBitmap(_old_screen, RectWH(final_scrn_wid / 2 - scrnwid / 2, final_scrn_hit / 2-newScreenHeight/2, scrnwid, newScreenHeight));
+            // If the game is run not in letterbox mode, but there's a random room smaller than the game size,
+            // then the sub_screen does not exist at this point; so we create it here.
+            if (!_sub_screen)
+                _sub_screen = BitmapHelper::CreateSubBitmap(_old_screen, RectWH(final_scrn_wid / 2 - scrnwid / 2, final_scrn_hit / 2-newScreenHeight/2, scrnwid, newScreenHeight));
 
-        if (newScreenHeight == _sub_screen->GetHeight())
-        {
-			BitmapHelper::SetScreenBitmap( _sub_screen );
-        }
-        else if (_sub_screen->GetWidth() != final_scrn_wid)
-        {
-            int subBitmapWidth = _sub_screen->GetWidth();
-            delete _sub_screen;
-            _sub_screen = BitmapHelper::CreateSubBitmap(_old_screen, RectWH(_old_screen->GetWidth() / 2 - subBitmapWidth / 2, _old_screen->GetHeight() / 2 - newScreenHeight / 2, subBitmapWidth, newScreenHeight));
-            BitmapHelper::SetScreenBitmap( _sub_screen );
-        }
-        else
-        {
-            BitmapHelper::SetScreenBitmap( _old_screen );
-        }
+            if (newScreenHeight == _sub_screen->GetHeight())
+            {
+                BitmapHelper::SetScreenBitmap( _sub_screen );
+            }
+            else if (_sub_screen->GetWidth() != final_scrn_wid)
+            {
+                int subBitmapWidth = _sub_screen->GetWidth();
+                delete _sub_screen;
+                _sub_screen = BitmapHelper::CreateSubBitmap(_old_screen, RectWH(_old_screen->GetWidth() / 2 - subBitmapWidth / 2, _old_screen->GetHeight() / 2 - newScreenHeight / 2, subBitmapWidth, newScreenHeight));
+                BitmapHelper::SetScreenBitmap( _sub_screen );
+            }
+            else
+            {
+                BitmapHelper::SetScreenBitmap( _old_screen );
+            }
 
-		scrnhit = BitmapHelper::GetScreenBitmap()->GetHeight();
-        vesa_yres = scrnhit;
-        game_frame_y_offset = (final_scrn_hit - scrnhit) / 2;
+            scrnhit = BitmapHelper::GetScreenBitmap()->GetHeight();
+            vesa_yres = scrnhit;
+            game_frame_y_offset = (final_scrn_hit - scrnhit) / 2;
 
-        filter->SetMouseArea(0,0, scrnwid-1, vesa_yres-1);
+            filter->SetMouseArea(0,0, scrnwid-1, vesa_yres-1);
 
-        if (virtual_screen->GetHeight() != scrnhit) {
-            int cdepth=virtual_screen->GetColorDepth();
-            delete virtual_screen;
-            virtual_screen=BitmapHelper::CreateBitmap(scrnwid,scrnhit,cdepth);
-            virtual_screen->Clear();
-            gfxDriver->SetMemoryBackBuffer(virtual_screen);
-            //      ignore_mouseoff_bitmap = virtual_screen;
-        }
+            if (virtual_screen->GetHeight() != scrnhit) {
+                int cdepth=virtual_screen->GetColorDepth();
+                delete virtual_screen;
+                virtual_screen=BitmapHelper::CreateBitmap(scrnwid,scrnhit,cdepth);
+                virtual_screen->Clear();
+                gfxDriver->SetMemoryBackBuffer(virtual_screen);
+                //      ignore_mouseoff_bitmap = virtual_screen;
+            }
 
-        gfxDriver->SetRenderOffset(get_screen_x_adjustment(virtual_screen), get_screen_y_adjustment(virtual_screen));
+            gfxDriver->SetRenderOffset(get_screen_x_adjustment(virtual_screen), get_screen_y_adjustment(virtual_screen));
 
-		if (abscreen==1) //abuf=BitmapHelper::GetScreenBitmap();
-            SetVirtualScreen( BitmapHelper::GetScreenBitmap() );
-        else if (abscreen==2) //abuf=virtual_screen;
-            SetVirtualScreen( virtual_screen );
+            if (abscreen==1) //abuf=BitmapHelper::GetScreenBitmap();
+                SetVirtualScreen( BitmapHelper::GetScreenBitmap() );
+            else if (abscreen==2) //abuf=virtual_screen;
+                SetVirtualScreen( virtual_screen );
 
-        update_polled_stuff_if_runtime();
+            update_polled_stuff_if_runtime();
     }
     // update the script viewport height
     scsystem.viewport_height = divide_down_coordinate(scrnhit);
@@ -811,11 +811,11 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         forchar->x = new_room_x;
         forchar->y = new_room_y;
 
-		if (new_room_loop != SCR_NO_VALUE)
-			forchar->loop = new_room_loop;
+        if (new_room_loop != SCR_NO_VALUE)
+            forchar->loop = new_room_loop;
     }
     new_room_x = SCR_NO_VALUE;
-	new_room_loop = SCR_NO_VALUE;
+    new_room_loop = SCR_NO_VALUE;
 
     if ((new_room_pos>0) & (forchar!=NULL)) {
         if (new_room_pos>=4000) {

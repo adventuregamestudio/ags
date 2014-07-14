@@ -81,9 +81,9 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
     bool alphaChannel = false;
     int usingGui = -1;
     if (use_speech_textwindow)
-	    usingGui = play.speech_textwindow_gui;
+        usingGui = play.speech_textwindow_gui;
     else if (use_thought_gui)
-	    usingGui = game.options[OPT_THOUGHTGUI];
+        usingGui = game.options[OPT_THOUGHTGUI];
 
     int padding = get_textwindow_padding(usingGui);
     int paddingScaled = get_fixed_pixel_size(padding);
@@ -220,7 +220,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
         }
     }
     else {
-		
+
         int xoffs,yoffs, oriwid = wii - padding * 2;
         draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &xoffs,&yoffs,&xx,&yy,&wii,&text_color);
 
@@ -425,7 +425,7 @@ bool ShouldAntiAliasText() {
 }
 
 void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, char*texx) {
-    
+
     color_t outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
     if (game.fontoutline[usingfont] >= 0) {
         // MACPORT FIX 9/6/5: cast
@@ -635,83 +635,83 @@ int get_textwindow_padding(int ifnum) {
 void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
                       int*xins,int*yins,int*xx,int*yy,int*wii, color_t *set_text_color, int ovrheight, int ifnum) {
 
-    Bitmap *ds = *text_window_ds;
-    if (ifnum < 0)
-        ifnum = game.options[OPT_TWCUSTOM];
+                          Bitmap *ds = *text_window_ds;
+                          if (ifnum < 0)
+                              ifnum = game.options[OPT_TWCUSTOM];
 
-    if (ifnum <= 0) {
-        if (ovrheight)
-            quit("!Cannot use QFG4 style options without custom text window");
-        draw_button_background(ds, 0,0,ds->GetWidth() - 1,ds->GetHeight() - 1,NULL);
-        if (set_text_color)
-            *set_text_color = ds->GetCompatibleColor(16);
-        xins[0]=3;
-        yins[0]=3;
-    }
-    else {
-        if (ifnum >= game.numgui)
-            quitprintf("!Invalid GUI %d specified as text window (total GUIs: %d)", ifnum, game.numgui);
-        if (!guis[ifnum].is_textwindow())
-            quit("!GUI set as text window but is not actually a text window GUI");
+                          if (ifnum <= 0) {
+                              if (ovrheight)
+                                  quit("!Cannot use QFG4 style options without custom text window");
+                              draw_button_background(ds, 0,0,ds->GetWidth() - 1,ds->GetHeight() - 1,NULL);
+                              if (set_text_color)
+                                  *set_text_color = ds->GetCompatibleColor(16);
+                              xins[0]=3;
+                              yins[0]=3;
+                          }
+                          else {
+                              if (ifnum >= game.numgui)
+                                  quitprintf("!Invalid GUI %d specified as text window (total GUIs: %d)", ifnum, game.numgui);
+                              if (!guis[ifnum].is_textwindow())
+                                  quit("!GUI set as text window but is not actually a text window GUI");
 
-        int tbnum = get_but_pic(&guis[ifnum], 0);
+                              int tbnum = get_but_pic(&guis[ifnum], 0);
 
-        wii[0] += get_textwindow_border_width (ifnum);
-        xx[0]-=spritewidth[tbnum];
-        yy[0]-=spriteheight[tbnum];
-        if (ovrheight == 0)
-            ovrheight = numlines*texthit;
+                              wii[0] += get_textwindow_border_width (ifnum);
+                              xx[0]-=spritewidth[tbnum];
+                              yy[0]-=spriteheight[tbnum];
+                              if (ovrheight == 0)
+                                  ovrheight = numlines*texthit;
 
-        if (should_free_ds)
-            delete *text_window_ds;
-        int padding = get_textwindow_padding(ifnum);
-        *text_window_ds = BitmapHelper::CreateTransparentBitmap(wii[0],ovrheight+(padding*2)+spriteheight[tbnum]*2,final_col_dep);
-        ds = SetVirtualScreen(*text_window_ds);
-        int xoffs=spritewidth[tbnum],yoffs=spriteheight[tbnum];
-        draw_button_background(ds, xoffs,yoffs,(ds->GetWidth() - xoffs) - 1,(ds->GetHeight() - yoffs) - 1,&guis[ifnum]);
-        if (set_text_color)
-            *set_text_color = ds->GetCompatibleColor(guis[ifnum].fgcol);
-        xins[0]=xoffs+padding;
-        yins[0]=yoffs+padding;
-    }
+                              if (should_free_ds)
+                                  delete *text_window_ds;
+                              int padding = get_textwindow_padding(ifnum);
+                              *text_window_ds = BitmapHelper::CreateTransparentBitmap(wii[0],ovrheight+(padding*2)+spriteheight[tbnum]*2,final_col_dep);
+                              ds = SetVirtualScreen(*text_window_ds);
+                              int xoffs=spritewidth[tbnum],yoffs=spriteheight[tbnum];
+                              draw_button_background(ds, xoffs,yoffs,(ds->GetWidth() - xoffs) - 1,(ds->GetHeight() - yoffs) - 1,&guis[ifnum]);
+                              if (set_text_color)
+                                  *set_text_color = ds->GetCompatibleColor(guis[ifnum].fgcol);
+                              xins[0]=xoffs+padding;
+                              yins[0]=yoffs+padding;
+                          }
 
 }
 
 void draw_text_window_and_bar(Bitmap **text_window_ds, bool should_free_ds,
                               int*xins,int*yins,int*xx,int*yy,int*wii,color_t *set_text_color,int ovrheight, int ifnum) {
 
-    draw_text_window(text_window_ds, should_free_ds, xins, yins, xx, yy, wii, set_text_color, ovrheight, ifnum);
+                                  draw_text_window(text_window_ds, should_free_ds, xins, yins, xx, yy, wii, set_text_color, ovrheight, ifnum);
 
-    if ((topBar.wantIt) && (text_window_ds && *text_window_ds)) {
-        // top bar on the dialog window with character's name
-        // create an enlarged window, then free the old one
-        Bitmap *ds = *text_window_ds;
-        Bitmap *newScreenop = BitmapHelper::CreateBitmap(ds->GetWidth(), ds->GetHeight() + topBar.height, final_col_dep);
-        newScreenop->Blit(ds, 0, 0, 0, topBar.height, ds->GetWidth(), ds->GetHeight());
-        delete *text_window_ds;
-        *text_window_ds = newScreenop;
-        ds = SetVirtualScreen(*text_window_ds);
+                                  if ((topBar.wantIt) && (text_window_ds && *text_window_ds)) {
+                                      // top bar on the dialog window with character's name
+                                      // create an enlarged window, then free the old one
+                                      Bitmap *ds = *text_window_ds;
+                                      Bitmap *newScreenop = BitmapHelper::CreateBitmap(ds->GetWidth(), ds->GetHeight() + topBar.height, final_col_dep);
+                                      newScreenop->Blit(ds, 0, 0, 0, topBar.height, ds->GetWidth(), ds->GetHeight());
+                                      delete *text_window_ds;
+                                      *text_window_ds = newScreenop;
+                                      ds = SetVirtualScreen(*text_window_ds);
 
-        // draw the top bar
-        color_t draw_color = ds->GetCompatibleColor(play.top_bar_backcolor);
-        ds->FillRect(Rect(0, 0, ds->GetWidth() - 1, topBar.height - 1), draw_color);
-        if (play.top_bar_backcolor != play.top_bar_bordercolor) {
-            // draw the border
-            draw_color = ds->GetCompatibleColor(play.top_bar_bordercolor);
-            for (int j = 0; j < multiply_up_coordinate(play.top_bar_borderwidth); j++)
-                ds->DrawRect(Rect(j, j, ds->GetWidth() - (j + 1), topBar.height - (j + 1)), draw_color);
-        }
+                                      // draw the top bar
+                                      color_t draw_color = ds->GetCompatibleColor(play.top_bar_backcolor);
+                                      ds->FillRect(Rect(0, 0, ds->GetWidth() - 1, topBar.height - 1), draw_color);
+                                      if (play.top_bar_backcolor != play.top_bar_bordercolor) {
+                                          // draw the border
+                                          draw_color = ds->GetCompatibleColor(play.top_bar_bordercolor);
+                                          for (int j = 0; j < multiply_up_coordinate(play.top_bar_borderwidth); j++)
+                                              ds->DrawRect(Rect(j, j, ds->GetWidth() - (j + 1), topBar.height - (j + 1)), draw_color);
+                                      }
 
-        // draw the text
-        int textx = (ds->GetWidth() / 2) - wgettextwidth_compensate(topBar.text, topBar.font) / 2;
-        color_t text_color = ds->GetCompatibleColor(play.top_bar_textcolor);
-        wouttext_outline(ds, textx, play.top_bar_borderwidth + get_fixed_pixel_size(1), topBar.font, text_color, topBar.text);
+                                      // draw the text
+                                      int textx = (ds->GetWidth() / 2) - wgettextwidth_compensate(topBar.text, topBar.font) / 2;
+                                      color_t text_color = ds->GetCompatibleColor(play.top_bar_textcolor);
+                                      wouttext_outline(ds, textx, play.top_bar_borderwidth + get_fixed_pixel_size(1), topBar.font, text_color, topBar.text);
 
-        // don't draw it next time
-        topBar.wantIt = 0;
-        // adjust the text Y position
-        yins[0] += topBar.height;
-    }
-    else if (topBar.wantIt)
-        topBar.wantIt = 0;
+                                      // don't draw it next time
+                                      topBar.wantIt = 0;
+                                      // adjust the text Y position
+                                      yins[0] += topBar.height;
+                                  }
+                                  else if (topBar.wantIt)
+                                      topBar.wantIt = 0;
 }

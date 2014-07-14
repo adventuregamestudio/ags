@@ -26,7 +26,8 @@ namespace AGS.Types
             _translated = true;
         }
 
-        public GUIListBox(XmlNode node) : base(node)
+        public GUIListBox(XmlNode node)
+            : base(node)
         {
         }
 

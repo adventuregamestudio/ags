@@ -22,27 +22,27 @@
 
 namespace AGS
 {
-namespace Engine
-{
-
-namespace Out
-{
-    class ConsoleOutputTarget : public AGS::Common::Out::IOutputTarget
+    namespace Engine
     {
-    public:
-        ConsoleOutputTarget();
-        virtual ~ConsoleOutputTarget();
 
-        virtual void Out(const char *sz_fullmsg);
+        namespace Out
+        {
+            class ConsoleOutputTarget : public AGS::Common::Out::IOutputTarget
+            {
+            public:
+                ConsoleOutputTarget();
+                virtual ~ConsoleOutputTarget();
 
-    protected:
+                virtual void Out(const char *sz_fullmsg);
 
-    private:
-    };
+            protected:
 
-}   // namespace Out
+            private:
+            };
 
-}   // namespace Engine
+        }   // namespace Out
+
+    }   // namespace Engine
 }   // namespace AGS
 
 #endif // __AGS_EE_DEBUG__CONSOLEOUTPUTTARGET_H

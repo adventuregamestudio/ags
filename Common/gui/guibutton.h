@@ -30,78 +30,78 @@
 
 struct GUIButton:public GUIObject
 {
-  char text[50];
-  int pic, overpic, pushedpic;
-  int usepic, ispushed, isover;
-  int font, textcol;
-  int leftclick, rightclick;
-  int lclickdata, rclickdata;
-  int textAlignment, reserved1;
+    char text[50];
+    int pic, overpic, pushedpic;
+    int usepic, ispushed, isover;
+    int font, textcol;
+    int leftclick, rightclick;
+    int lclickdata, rclickdata;
+    int textAlignment, reserved1;
 
-  virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  virtual void Draw(Common::Bitmap *ds);
-  void MouseUp();
+    virtual void WriteToFile(Common::Stream *out);
+    virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+    virtual void Draw(Common::Bitmap *ds);
+    void MouseUp();
 
-  void MouseMove(int x, int y)
-  {
-  }
+    void MouseMove(int x, int y)
+    {
+    }
 
-  void MouseOver()
-  {
-    if (ispushed)
-      usepic = pushedpic;
-    else
-      usepic = overpic;
+    void MouseOver()
+    {
+        if (ispushed)
+            usepic = pushedpic;
+        else
+            usepic = overpic;
 
-    isover = 1;
-  }
+        isover = 1;
+    }
 
-  void MouseLeave()
-  {
-    usepic = pic;
-    isover = 0;
-  }
+    void MouseLeave()
+    {
+        usepic = pic;
+        isover = 0;
+    }
 
-  virtual int MouseDown()
-  {
-    if (pushedpic > 0)
-      usepic = pushedpic;
+    virtual int MouseDown()
+    {
+        if (pushedpic > 0)
+            usepic = pushedpic;
 
-    ispushed = 1;
-    return 0;
-  }
+        ispushed = 1;
+        return 0;
+    }
 
-  void KeyPress(int keycode)
-  {
-  }
+    void KeyPress(int keycode)
+    {
+    }
 
-  void reset()
-  {
-    GUIObject::init();
-    usepic = -1;
-    pic = -1;
-    overpic = -1;
-    pushedpic = -1;
-    ispushed = 0;
-    isover = 0;
-    text[0] = 0;
-    font = 0;
-    textcol = 0;
-    leftclick = 2;
-    rightclick = 0;
-    activated = 0;
-    numSupportedEvents = 1;
-    supportedEvents[0] = "Click";
-    supportedEventArgs[0] = "GUIControl *control, MouseButton button";
-  }
+    void reset()
+    {
+        GUIObject::init();
+        usepic = -1;
+        pic = -1;
+        overpic = -1;
+        pushedpic = -1;
+        ispushed = 0;
+        isover = 0;
+        text[0] = 0;
+        font = 0;
+        textcol = 0;
+        leftclick = 2;
+        rightclick = 0;
+        activated = 0;
+        numSupportedEvents = 1;
+        supportedEvents[0] = "Click";
+        supportedEventArgs[0] = "GUIControl *control, MouseButton button";
+    }
 
-  GUIButton() {
-    reset();
-  }
+    GUIButton() {
+        reset();
+    }
 
 private:
-  void Draw_set_oritext(char *oritext, const char *text);
+    void Draw_set_oritext(char *oritext, const char *text);
 };
 
 extern DynamicArray<GUIButton> guibuts;

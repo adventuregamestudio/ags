@@ -34,85 +34,85 @@ int wtext_multiply = 1;
 void init_font_renderer()
 {
 #ifdef USE_ALFONT
-  alfont_init();
-  alfont_text_mode(-1);
+    alfont_init();
+    alfont_text_mode(-1);
 #endif
 
-  for (int i = 0; i < MAX_FONTS; i++)
-    fontRenderers[i] = NULL;
+    for (int i = 0; i < MAX_FONTS; i++)
+        fontRenderers[i] = NULL;
 }
 
 void shutdown_font_renderer()
 {
 #ifdef USE_ALFONT
-  set_our_eip(9919);
-  alfont_exit();
+    set_our_eip(9919);
+    alfont_exit();
 #endif
 }
 
 void adjust_y_coordinate_for_text(int* ypos, int fontnum)
 {
-  fontRenderers[fontnum]->AdjustYCoordinateForFont(ypos, fontnum);
+    fontRenderers[fontnum]->AdjustYCoordinateForFont(ypos, fontnum);
 }
 
 void ensure_text_valid_for_font(char *text, int fontnum)
 {
-  fontRenderers[fontnum]->EnsureTextValidForFont(text, fontnum);
+    fontRenderers[fontnum]->EnsureTextValidForFont(text, fontnum);
 }
 
 int wgettextwidth(const char *texx, int fontNumber)
 {
-  return fontRenderers[fontNumber]->GetTextWidth(texx, fontNumber);
+    return fontRenderers[fontNumber]->GetTextWidth(texx, fontNumber);
 }
 
 int wgettextheight(const char *text, int fontNumber)
 {
-  return fontRenderers[fontNumber]->GetTextHeight(text, fontNumber);
+    return fontRenderers[fontNumber]->GetTextHeight(text, fontNumber);
 }
 
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t text_color, const char *texx)
 {
-  if (yyy > ds->GetClip().Bottom)
-    return;                   // each char is clipped but this speeds it up
+    if (yyy > ds->GetClip().Bottom)
+        return;                   // each char is clipped but this speeds it up
 
-  if (fontRenderers[fontNumber] != NULL)
-  {
-    fontRenderers[fontNumber]->RenderText(texx, fontNumber, (BITMAP*)ds->GetAllegroBitmap(), xxx, yyy, text_color);
-  }
+    if (fontRenderers[fontNumber] != NULL)
+    {
+        fontRenderers[fontNumber]->RenderText(texx, fontNumber, (BITMAP*)ds->GetAllegroBitmap(), xxx, yyy, text_color);
+    }
 }
 
 // Loads a font from disk
 bool wloadfont_size(int fontNumber, int fsize)
 {
-  if (ttfRenderer.LoadFromDisk(fontNumber, fsize))
-  {
-    fontRenderers[fontNumber] = &ttfRenderer;
-    return true;
-  }
-  else if (wfnRenderer.LoadFromDisk(fontNumber, fsize))
-  {
-    fontRenderers[fontNumber] = &wfnRenderer;
-    return true;
-  }
+    if (ttfRenderer.LoadFromDisk(fontNumber, fsize))
+    {
+        fontRenderers[fontNumber] = &ttfRenderer;
+        return true;
+    }
+    else if (wfnRenderer.LoadFromDisk(fontNumber, fsize))
+    {
+        fontRenderers[fontNumber] = &wfnRenderer;
+        return true;
+    }
 
-  return false;
+    return false;
 }
 
 void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t text_color, char *fmt, ...)
 {
-  char tbuffer[2000];
-  va_list ap;
+    char tbuffer[2000];
+    va_list ap;
 
-  va_start(ap, fmt);
-  vsprintf(tbuffer, fmt, ap);
-  va_end(ap);
-  wouttextxy(ds, xxx, yyy, fontNumber, text_color, tbuffer);
+    va_start(ap, fmt);
+    vsprintf(tbuffer, fmt, ap);
+    va_end(ap);
+    wouttextxy(ds, xxx, yyy, fontNumber, text_color, tbuffer);
 }
 
 void wfreefont(int fontNumber)
 {
-  if (fontRenderers[fontNumber] != NULL)
-    fontRenderers[fontNumber]->FreeMemory(fontNumber);
+    if (fontRenderers[fontNumber] != NULL)
+        fontRenderers[fontNumber]->FreeMemory(fontNumber);
 
-  fontRenderers[fontNumber] = NULL;
+    fontRenderers[fontNumber] = NULL;
 }

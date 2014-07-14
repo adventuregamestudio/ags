@@ -140,12 +140,12 @@ namespace AGS.Editor.Components
 
         public override void FromXml(XmlNode node)
         {
-			bool isUnderControl = false;
-			if (node != null) 
-			{
-				isUnderControl = Convert.ToBoolean(node.SelectSingleNode(XML_ELEMENT_USING_SCC).InnerXml);
-			}
-			
+            bool isUnderControl = false;
+            if (node != null)
+            {
+                isUnderControl = Convert.ToBoolean(node.SelectSingleNode(XML_ELEMENT_USING_SCC).InnerXml);
+            }
+
             if (_sourceControl.Available)
             {
                 _sourceControl.CloseProject();
@@ -154,17 +154,17 @@ namespace AGS.Editor.Components
                     OpenProjectFromSourceControl(node);
                 }
             }
-			else if (isUnderControl)
-			{
-				_guiController.ShowMessage("This project is under source control, but AGS was not able to initialize any source control provider. If you save the game now, it will be disconnected from source control.", MessageBoxIcon.Warning);
-			}
+            else if (isUnderControl)
+            {
+                _guiController.ShowMessage("This project is under source control, but AGS was not able to initialize any source control provider. If you save the game now, it will be disconnected from source control.", MessageBoxIcon.Warning);
+            }
 
             _sourceControlPathLoadedFromUserData = null;
             _sourceControlProjectLoadedFromUserData = null;
         }
 
-		private void OpenProjectFromSourceControl(XmlNode node)
-		{
+        private void OpenProjectFromSourceControl(XmlNode node)
+        {
             if (_sourceControlPathLoadedFromUserData == null)
             {
                 XmlNode pathNode = node.SelectSingleNode(XML_ELEMENT_PATH);
@@ -180,7 +180,7 @@ namespace AGS.Editor.Components
                 }
             }
 
-			string sourceControlProject = node.SelectSingleNode(XML_ELEMENT_PROJECT_NAME).InnerText;
+            string sourceControlProject = node.SelectSingleNode(XML_ELEMENT_PROJECT_NAME).InnerText;
 
             if ((_sourceControlProjectLoadedFromUserData != null) &&
                 (_sourceControlProjectLoadedFromUserData != sourceControlProject))
@@ -199,11 +199,11 @@ namespace AGS.Editor.Components
                 return;
             }
 
-			if (!_sourceControl.OpenProject(_sourceControlPathLoadedFromUserData, sourceControlProject))
-			{
-				_guiController.ShowMessage("AGS was unable to connect to the project in source control. If you save the game, it will be disconnected from source control.", MessageBoxIcon.Warning);
-			}
-		}
+            if (!_sourceControl.OpenProject(_sourceControlPathLoadedFromUserData, sourceControlProject))
+            {
+                _guiController.ShowMessage("AGS was unable to connect to the project in source control. If you save the game, it will be disconnected from source control.", MessageBoxIcon.Warning);
+            }
+        }
 
         void IPersistUserData.Serialize(XmlTextWriter writer)
         {

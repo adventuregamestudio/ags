@@ -70,36 +70,36 @@ namespace Scintilla
         public int y;					// SCN_DWELLSTART, SCN_DWELLEND
     }
 
-	/// <summary>
-	/// Expresses a position within the Editor by Line # of Column Offset.
-	/// Use ScintillaControl.LineColumnFromPosition and 
-	/// ScintillaControl.PositionFromLineColumn to converto to/from a Position
-	/// (absolute position within the editor)
-	/// </summary>
-	public struct LineColumn
-	{
-		public int Line;
-		public int Column;
+    /// <summary>
+    /// Expresses a position within the Editor by Line # of Column Offset.
+    /// Use ScintillaControl.LineColumnFromPosition and 
+    /// ScintillaControl.PositionFromLineColumn to converto to/from a Position
+    /// (absolute position within the editor)
+    /// </summary>
+    public struct LineColumn
+    {
+        public int Line;
+        public int Column;
 
-		public LineColumn(int line, int column)
-		{
-			Line	= line;
-			Column	= column;
-		}
-	}
+        public LineColumn(int line, int column)
+        {
+            Line = line;
+            Column = column;
+        }
+    }
 
-	/// <summary>
-	/// A range within the editor. Start and End are both Positions.
-	/// </summary>
-	public struct Range
-	{
-		public int Start;
-		public int End;
+    /// <summary>
+    /// A range within the editor. Start and End are both Positions.
+    /// </summary>
+    public struct Range
+    {
+        public int Start;
+        public int End;
 
-		public Range(int start, int end)
-		{
-			Start	= start;
-			End		= end;
-		}
-	}
+        public Range(int start, int end)
+        {
+            Start = start;
+            End = end;
+        }
+    }
 }

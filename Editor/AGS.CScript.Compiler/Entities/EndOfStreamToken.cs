@@ -4,11 +4,11 @@ using System.Text;
 
 namespace AGS.CScript.Compiler
 {
-	internal class EndOfStreamToken : Token
-	{
-		public EndOfStreamToken()
-			: base(null, true)
-		{
-		}
-	}
+    internal class EndOfStreamToken : Token
+    {
+        public EndOfStreamToken()
+            : base(null, true)
+        {
+        }
+    }
 }

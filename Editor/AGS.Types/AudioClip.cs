@@ -34,7 +34,7 @@ namespace AGS.Types
         [Browsable(false)]
         public string CacheFileName
         {
-            get { return Path.Combine(AUDIO_CACHE_DIRECTORY, this.CacheFileNameWithoutPath) ; }
+            get { return Path.Combine(AUDIO_CACHE_DIRECTORY, this.CacheFileNameWithoutPath); }
         }
 
         [AGSNoSerialize]

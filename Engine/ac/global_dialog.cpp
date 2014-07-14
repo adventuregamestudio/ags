@@ -38,7 +38,7 @@ void RunDialog(int tum) {
             play.stop_dialog_at_end = DIALOG_NEWTOPIC + tum;
         else
             quitprintf("!RunDialog: two NewRoom/RunDialog/StopDialog requests within dialog; last was called in \"%s\", line %d",
-                        last_in_dialog_request_script_pos.Section.GetCStr(), last_in_dialog_request_script_pos.Line);
+            last_in_dialog_request_script_pos.Section.GetCStr(), last_in_dialog_request_script_pos.Line);
         return;
     }
 
@@ -52,39 +52,39 @@ void RunDialog(int tum) {
 
 
 void StopDialog() {
-  if (play.stop_dialog_at_end == DIALOG_NONE) {
-    debug_log("StopDialog called, but was not in a dialog");
-    DEBUG_CONSOLE("StopDialog called but no dialog");
-    return;
-  }
-  get_script_position(last_in_dialog_request_script_pos);
-  play.stop_dialog_at_end = DIALOG_STOP;
+    if (play.stop_dialog_at_end == DIALOG_NONE) {
+        debug_log("StopDialog called, but was not in a dialog");
+        DEBUG_CONSOLE("StopDialog called but no dialog");
+        return;
+    }
+    get_script_position(last_in_dialog_request_script_pos);
+    play.stop_dialog_at_end = DIALOG_STOP;
 }
 
 void SetDialogOption(int dlg,int opt,int onoroff) {
-  if ((dlg<0) | (dlg>=game.numdialog))
-    quit("!SetDialogOption: Invalid topic number specified");
-  if ((opt<1) | (opt>dialog[dlg].numoptions))
-    quit("!SetDialogOption: Invalid option number specified");
-  opt--;
+    if ((dlg<0) | (dlg>=game.numdialog))
+        quit("!SetDialogOption: Invalid topic number specified");
+    if ((opt<1) | (opt>dialog[dlg].numoptions))
+        quit("!SetDialogOption: Invalid option number specified");
+    opt--;
 
-  dialog[dlg].optionflags[opt]&=~DFLG_ON;
-  if ((onoroff==1) & ((dialog[dlg].optionflags[opt] & DFLG_OFFPERM)==0))
-    dialog[dlg].optionflags[opt]|=DFLG_ON;
-  else if (onoroff==2)
-    dialog[dlg].optionflags[opt]|=DFLG_OFFPERM;
+    dialog[dlg].optionflags[opt]&=~DFLG_ON;
+    if ((onoroff==1) & ((dialog[dlg].optionflags[opt] & DFLG_OFFPERM)==0))
+        dialog[dlg].optionflags[opt]|=DFLG_ON;
+    else if (onoroff==2)
+        dialog[dlg].optionflags[opt]|=DFLG_OFFPERM;
 }
 
 int GetDialogOption (int dlg, int opt) {
-  if ((dlg<0) | (dlg>=game.numdialog))
-    quit("!GetDialogOption: Invalid topic number specified");
-  if ((opt<1) | (opt>dialog[dlg].numoptions))
-    quit("!GetDialogOption: Invalid option number specified");
-  opt--;
+    if ((dlg<0) | (dlg>=game.numdialog))
+        quit("!GetDialogOption: Invalid topic number specified");
+    if ((opt<1) | (opt>dialog[dlg].numoptions))
+        quit("!GetDialogOption: Invalid option number specified");
+    opt--;
 
-  if (dialog[dlg].optionflags[opt] & DFLG_OFFPERM)
-    return 2;
-  if (dialog[dlg].optionflags[opt] & DFLG_ON)
-    return 1;
-  return 0;
+    if (dialog[dlg].optionflags[opt] & DFLG_OFFPERM)
+        return 2;
+    if (dialog[dlg].optionflags[opt] & DFLG_ON)
+        return 1;
+    return 0;
 }

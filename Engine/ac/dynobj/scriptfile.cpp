@@ -17,9 +17,9 @@
 
 // CHECKME: actually NULLs here will be equal to kFile_Open & kFile_Read
 const Common::FileOpenMode sc_File::fopenModes[] = 
-    {Common::kFile_Open/*CHECKME, was undefined*/, Common::kFile_Open, Common::kFile_CreateAlways, Common::kFile_Create};
+{Common::kFile_Open/*CHECKME, was undefined*/, Common::kFile_Open, Common::kFile_CreateAlways, Common::kFile_Create};
 const Common::FileWorkMode sc_File::fworkModes[] = 
-    {Common::kFile_Read/*CHECKME, was undefined*/, Common::kFile_Read, Common::kFile_Write, Common::kFile_Write};
+{Common::kFile_Read/*CHECKME, was undefined*/, Common::kFile_Read, Common::kFile_Write, Common::kFile_Write};
 
 int sc_File::Dispose(const char *address, bool force) {
     Close();
@@ -37,17 +37,17 @@ int sc_File::Serialize(const char *address, char *buffer, int bufsize) {
 }
 
 int sc_File::OpenFile(const char *filename, int mode) {
-  handle = FileOpen(filename, fopenModes[mode], fworkModes[mode]);
-  if (handle <= 0)
-      return 0;
-  return 1;
+    handle = FileOpen(filename, fopenModes[mode], fworkModes[mode]);
+    if (handle <= 0)
+        return 0;
+    return 1;
 }
 
 void sc_File::Close() {
-  if (handle > 0) {
-    FileClose(handle);
-    handle = 0;
-  }
+    if (handle > 0) {
+        FileClose(handle);
+        handle = 0;
+    }
 }
 
 sc_File::sc_File() {

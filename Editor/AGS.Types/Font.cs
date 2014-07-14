@@ -13,7 +13,7 @@ namespace AGS.Types
         private int _pointSize;
         private int _outlineFont;
         private FontOutlineStyle _outlineStyle;
-		private string _sourceFilename = string.Empty;
+        private string _sourceFilename = string.Empty;
 
         public Font()
         {
@@ -55,27 +55,27 @@ namespace AGS.Types
             set { _name = value; }
         }
 
-		[Description("The name with which the script will access this font")]
-		[Category("Design")]
-		public string ScriptID
-		{
-			get
-			{
-				if (Name.Length < 1)
-				{
-					return string.Empty;
-				}
-				string scriptName = "eFont" + Name;
-				for (int i = 0; i < scriptName.Length; i++)
-				{
-					if (!Char.IsLetterOrDigit(scriptName[i]))
-					{
-						scriptName = scriptName.Replace(scriptName[i].ToString(), string.Empty);
-					}
-				}
-				return scriptName;
-			}
-		}
+        [Description("The name with which the script will access this font")]
+        [Category("Design")]
+        public string ScriptID
+        {
+            get
+            {
+                if (Name.Length < 1)
+                {
+                    return string.Empty;
+                }
+                string scriptName = "eFont" + Name;
+                for (int i = 0; i < scriptName.Length; i++)
+                {
+                    if (!Char.IsLetterOrDigit(scriptName[i]))
+                    {
+                        scriptName = scriptName.Replace(scriptName[i].ToString(), string.Empty);
+                    }
+                }
+                return scriptName;
+            }
+        }
 
         [Browsable(false)]
         public string WindowTitle
@@ -99,26 +99,26 @@ namespace AGS.Types
             set { _outlineStyle = value; }
         }
 
-		[Description("The file path that this font was imported from")]
-		[Category("Design")]
-		[ReadOnly(true)]
-		public string SourceFilename
-		{
-			get { return _sourceFilename; }
-			set { _sourceFilename = value; }
-		}
+        [Description("The file path that this font was imported from")]
+        [Category("Design")]
+        [ReadOnly(true)]
+        public string SourceFilename
+        {
+            get { return _sourceFilename; }
+            set { _sourceFilename = value; }
+        }
 
-		[Browsable(false)]
-		public string WFNFileName
-		{
-			get { return "agsfnt" + _id + ".wfn"; }
-		}
+        [Browsable(false)]
+        public string WFNFileName
+        {
+            get { return "agsfnt" + _id + ".wfn"; }
+        }
 
-		[Browsable(false)]
-		public string TTFFileName
-		{
-			get { return "agsfnt" + _id + ".ttf"; }
-		}
+        [Browsable(false)]
+        public string TTFFileName
+        {
+            get { return "agsfnt" + _id + ".ttf"; }
+        }
 
         public Font(XmlNode node)
         {

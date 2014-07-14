@@ -26,7 +26,7 @@ namespace AGS.Editor.Components
         private const int TRANSLATION_BLOCK_OPTIONS = 3;
         private const int TRANSLATION_BLOCK_END_OF_FILE = -1;
 
-//        private Dictionary<AGS.Types.Font, ContentDocument> _documents;
+        //        private Dictionary<AGS.Types.Font, ContentDocument> _documents;
         private Translation _itemRightClicked = null;
         private string _commandIDRightClicked = null;
         private Timer _timer = new Timer();
@@ -79,7 +79,7 @@ namespace AGS.Editor.Components
                     string compiledPath = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, translation.CompiledFileName);
 
                     if ((evArgs.ForceRebuild) ||
-						(Utilities.DoesFileNeedRecompile(translation.FileName, compiledPath)))
+                        (Utilities.DoesFileNeedRecompile(translation.FileName, compiledPath)))
                     {
                         CompileTranslation(translation, evArgs.Errors);
                     }
@@ -239,7 +239,7 @@ namespace AGS.Editor.Components
             CompileMessages errors = TextImporter.ReplaceAllGameText(_agsEditor.CurrentGame, translation);
             // Make a copy of the dictionary, otherwise it can get overwritten
             // while updating its translation
-            Dictionary<string,string> textChanges = new Dictionary<string,string>();
+            Dictionary<string, string> textChanges = new Dictionary<string, string>();
             foreach (string key in translation.TranslatedLines.Keys)
             {
                 textChanges.Add(key, translation.TranslatedLines[key]);
@@ -267,12 +267,12 @@ namespace AGS.Editor.Components
             {
                 return;
             }
-            
+
             translation.LoadData();
             CompileMessages errors = (CompileMessages)BusyDialog.Show("Please wait while the game text is replaced...", new BusyDialog.ProcessingHandler(ReplaceGameTextWithTranslationProcess), translation);
             _guiController.ShowOutputPanel(errors);
             Factory.Events.OnRefreshAllComponentsFromGame();
-            _agsEditor.SaveGameFiles(); 
+            _agsEditor.SaveGameFiles();
             _guiController.ShowMessage("Game text replaced with the translation text.", MessageBoxIcon.Information);
         }
 
@@ -297,12 +297,12 @@ namespace AGS.Editor.Components
                 StreamWriter sw = new StreamWriter(newItem.FileName);
                 sw.Close();
                 newItem.LoadData();
-                
+
                 string newNodeID = "Trl" + (items.Count - 1);
                 _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
                 AddTreeLeafForTranslation(newNodeID, newItem);
                 _guiController.ProjectTree.SelectNode(this, newNodeID);
-				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
+                _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
 
                 StartRename(newItem, newNodeID);
             }
@@ -351,11 +351,11 @@ namespace AGS.Editor.Components
                                             _documents.Remove(_itemRightClicked);
                                         }*/
                     _agsEditor.CurrentGame.Translations.Remove(_itemRightClicked);
-					_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
+                    _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
 
                     if (File.Exists(_itemRightClicked.FileName))
                     {
-						_agsEditor.DeleteFileOnDiskAndSourceControl(_itemRightClicked.FileName);
+                        _agsEditor.DeleteFileOnDiskAndSourceControl(_itemRightClicked.FileName);
                     }
                     RePopulateTreeView();
                 }
@@ -419,11 +419,11 @@ namespace AGS.Editor.Components
                 menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete", null));
                 menu.Add(MenuCommand.Separator);
                 menu.Add(new MenuCommand(COMMAND_MAKE_DEFAULT, "Make default language", null));
-/*                if (fontID < BUILT_IN_FONTS)
-                {
-                    // can't delete built-in fonts
-                    menu[menu.Count - 1].Enabled = false;
-                }*/
+                /*                if (fontID < BUILT_IN_FONTS)
+                                {
+                                    // can't delete built-in fonts
+                                    menu[menu.Count - 1].Enabled = false;
+                                }*/
             }
             return menu;
         }
@@ -463,7 +463,7 @@ namespace AGS.Editor.Components
                 }
 
                 File.Move(sourcePath, destPath);
-				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
+                _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
 
                 if ((translation.TranslatedLines == null) || (translation.TranslatedLines.Count == 0))
                 {

@@ -8,9 +8,9 @@ namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
     public class RoomHotspot : IChangeNotification
-	{
-		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
-		private const int MAX_NAME_LENGTH = 19;
+    {
+        public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
+        private const int MAX_NAME_LENGTH = 19;
 
         private static InteractionSchema _interactionSchema;
 
@@ -20,7 +20,7 @@ namespace AGS.Types
         private Point _walkToPoint;
         private CustomProperties _properties = new CustomProperties();
         private Interactions _interactions = new Interactions(_interactionSchema);
-		private IChangeNotification _notifyOfModification;
+        private IChangeNotification _notifyOfModification;
 
         static RoomHotspot()
         {
@@ -31,10 +31,10 @@ namespace AGS.Types
                 new string[] { "WalkOn", "Look", "Interact", "UseInv", "Talk", "AnyClick", "MouseMove", "PickUp", "Mode8", "Mode9" });
         }
 
-		public RoomHotspot(IChangeNotification changeNotifier)
-		{
-			_notifyOfModification = changeNotifier;
-		}
+        public RoomHotspot(IChangeNotification changeNotifier)
+        {
+            _notifyOfModification = changeNotifier;
+        }
 
         [Description("The ID number of the hotspot")]
         [Category("Design")]
@@ -53,8 +53,8 @@ namespace AGS.Types
             set { _description = value; }
         }
 
-		[DisplayName(PROPERTY_NAME_SCRIPT_NAME)]
-		[Description("The script name of the hotspot")]
+        [DisplayName(PROPERTY_NAME_SCRIPT_NAME)]
+        [Description("The script name of the hotspot")]
         [Category("Design")]
         public string Name
         {
@@ -93,9 +93,9 @@ namespace AGS.Types
             get { return _interactions; }
         }
 
-		void IChangeNotification.ItemModified()
-		{
-			_notifyOfModification.ItemModified();
-		}
-	}
+        void IChangeNotification.ItemModified()
+        {
+            _notifyOfModification.ItemModified();
+        }
+    }
 }

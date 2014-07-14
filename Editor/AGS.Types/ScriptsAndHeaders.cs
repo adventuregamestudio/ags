@@ -49,7 +49,7 @@ namespace AGS.Types
 
         public int Count
         {
-            get { return _scripts.Count;  }
+            get { return _scripts.Count; }
         }
 
         public ScriptAndHeader this[int index]

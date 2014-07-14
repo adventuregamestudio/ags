@@ -72,7 +72,7 @@ bool GUIMain::is_alpha()
 
 int GUIObject::IsClickable()
 {
-  return !(flags & GUIF_NOCLICKS);
+    return !(flags & GUIF_NOCLICKS);
 }
 
 void check_font(int *fontnum)
@@ -86,69 +86,69 @@ void check_font(int *fontnum)
 
 int get_adjusted_spritewidth(int spr)
 {
-  return spriteset[spr]->GetWidth();
+    return spriteset[spr]->GetWidth();
 }
 
 int get_adjusted_spriteheight(int spr)
 {
-  return spriteset[spr]->GetHeight();
+    return spriteset[spr]->GetHeight();
 }
 
 bool is_sprite_alpha(int spr)
 {
-  return ((game.spriteflags[spr] & SPF_ALPHACHANNEL) != 0);
+    return ((game.spriteflags[spr] & SPF_ALPHACHANNEL) != 0);
 }
 
 void set_eip_guiobj(int eip)
 {
-  eip_guiobj = eip;
+    eip_guiobj = eip;
 }
 
 int get_eip_guiobj()
 {
-  return eip_guiobj;
+    return eip_guiobj;
 }
 
 bool outlineGuiObjects = false;
 
 void GUILabel::Draw_replace_macro_tokens(char *oritext, char *text)
 {
-  replace_macro_tokens(flags & GUIF_TRANSLATED ? get_translation(text) : text, oritext);
-  ensure_text_valid_for_font(oritext, font);
+    replace_macro_tokens(flags & GUIF_TRANSLATED ? get_translation(text) : text, oritext);
+    ensure_text_valid_for_font(oritext, font);
 }
 
 void GUILabel::Draw_split_lines(char *teptr, int wid, int font, int &numlines)
 {
-  // Use the engine's word wrap tool, to have hebrew-style writing
-  // and other features
+    // Use the engine's word wrap tool, to have hebrew-style writing
+    // and other features
 
-  break_up_text_into_lines (wid, font, teptr);
+    break_up_text_into_lines (wid, font, teptr);
 
-  // [IKM] numlines not used in engine's implementation
+    // [IKM] numlines not used in engine's implementation
 }
 
 void GUITextBox::Draw_text_box_contents(Bitmap *ds, color_t text_color)
 {
-  int startx, starty;
+    int startx, starty;
 
-  wouttext_outline(ds, x + 1 + get_fixed_pixel_size(1), y + 1 + get_fixed_pixel_size(1), font, text_color, text);
-  
-  if (!IsDisabled()) {
-    // draw a cursor
-    startx = wgettextwidth(text, font) + x + 3;
-    starty = y + 1 + wgettextheight("BigyjTEXT", font);
-    ds->DrawRect(Rect(startx, starty, startx + get_fixed_pixel_size(5), starty + (get_fixed_pixel_size(1) - 1)), text_color);
-  }
+    wouttext_outline(ds, x + 1 + get_fixed_pixel_size(1), y + 1 + get_fixed_pixel_size(1), font, text_color, text);
+
+    if (!IsDisabled()) {
+        // draw a cursor
+        startx = wgettextwidth(text, font) + x + 3;
+        starty = y + 1 + wgettextheight("BigyjTEXT", font);
+        ds->DrawRect(Rect(startx, starty, startx + get_fixed_pixel_size(5), starty + (get_fixed_pixel_size(1) - 1)), text_color);
+    }
 }
 
 void GUIListBox::Draw_items_fix()
 {
-  // do nothing
+    // do nothing
 }
 
 void GUIListBox::Draw_items_unfix()
 {
-  // do nothing
+    // do nothing
 }
 
 void GUIListBox::Draw_set_oritext(char *oritext, const char *text)
@@ -169,7 +169,7 @@ void GUIListBox::Draw_set_oritext(char *oritext, const char *text)
 
 void GUIButton::Draw_set_oritext(char *oritext, const char *text)
 {
-  // Allow it to change the string to unicode if it's TTF
+    // Allow it to change the string to unicode if it's TTF
     if (flags & GUIF_TRANSLATED)
     {
         strcpy(oritext, get_translation(text));
@@ -180,5 +180,5 @@ void GUIButton::Draw_set_oritext(char *oritext, const char *text)
     }
     ensure_text_valid_for_font(oritext, font);
 
-  // oritext is assumed to be made long enough by caller function
+    // oritext is assumed to be made long enough by caller function
 }

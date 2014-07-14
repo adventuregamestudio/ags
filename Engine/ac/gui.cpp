@@ -73,150 +73,150 @@ int eip_guinum, eip_guiobj;
 
 
 void GUI_SetVisible(ScriptGUI *tehgui, int isvisible) {
-  if (isvisible)
-    InterfaceOn(tehgui->id);
-  else
-    InterfaceOff(tehgui->id);
+    if (isvisible)
+        InterfaceOn(tehgui->id);
+    else
+        InterfaceOff(tehgui->id);
 }
 
 int GUI_GetVisible(ScriptGUI *tehgui) {
-  // GUI_GetVisible is slightly different from IsGUIOn, because
-  // with a mouse ypos gui it returns 1 if the GUI is enabled,
-  // whereas IsGUIOn actually checks if it is displayed
-  if (guis[tehgui->id].on != 0)
-    return 1;
-  return 0;
+    // GUI_GetVisible is slightly different from IsGUIOn, because
+    // with a mouse ypos gui it returns 1 if the GUI is enabled,
+    // whereas IsGUIOn actually checks if it is displayed
+    if (guis[tehgui->id].on != 0)
+        return 1;
+    return 0;
 }
 
 int GUI_GetX(ScriptGUI *tehgui) {
-  return divide_down_coordinate(guis[tehgui->id].x);
+    return divide_down_coordinate(guis[tehgui->id].x);
 }
 
 void GUI_SetX(ScriptGUI *tehgui, int xx) {
-  if (xx >= thisroom.width)
-    quit("!GUI.X: co-ordinates specified are out of range.");
+    if (xx >= thisroom.width)
+        quit("!GUI.X: co-ordinates specified are out of range.");
 
-  guis[tehgui->id].x = multiply_up_coordinate(xx);
+    guis[tehgui->id].x = multiply_up_coordinate(xx);
 }
 
 int GUI_GetY(ScriptGUI *tehgui) {
-  return divide_down_coordinate(guis[tehgui->id].y);
+    return divide_down_coordinate(guis[tehgui->id].y);
 }
 
 void GUI_SetY(ScriptGUI *tehgui, int yy) {
-  if (yy >= thisroom.height)
-    quit("!GUI.Y: co-ordinates specified are out of range.");
+    if (yy >= thisroom.height)
+        quit("!GUI.Y: co-ordinates specified are out of range.");
 
-  guis[tehgui->id].y = multiply_up_coordinate(yy);
+    guis[tehgui->id].y = multiply_up_coordinate(yy);
 }
 
 void GUI_SetPosition(ScriptGUI *tehgui, int xx, int yy) {
-  GUI_SetX(tehgui, xx);
-  GUI_SetY(tehgui, yy);
+    GUI_SetX(tehgui, xx);
+    GUI_SetY(tehgui, yy);
 }
 
 void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
-  if ((widd < 1) || (hitt < 1) || (widd > BASEWIDTH) || (hitt > GetMaxScreenHeight()))
-    quitprintf("!SetGUISize: invalid dimensions (tried to set to %d x %d)", widd, hitt);
+    if ((widd < 1) || (hitt < 1) || (widd > BASEWIDTH) || (hitt > GetMaxScreenHeight()))
+        quitprintf("!SetGUISize: invalid dimensions (tried to set to %d x %d)", widd, hitt);
 
-  GUIMain *tehgui = &guis[sgui->id];
-  multiply_up_coordinates(&widd, &hitt);
+    GUIMain *tehgui = &guis[sgui->id];
+    multiply_up_coordinates(&widd, &hitt);
 
-  if ((tehgui->wid == widd) && (tehgui->hit == hitt))
-    return;
-  
-  tehgui->wid = widd;
-  tehgui->hit = hitt;
-  
-  recreate_guibg_image(tehgui);
+    if ((tehgui->wid == widd) && (tehgui->hit == hitt))
+        return;
 
-  guis_need_update = 1;
+    tehgui->wid = widd;
+    tehgui->hit = hitt;
+
+    recreate_guibg_image(tehgui);
+
+    guis_need_update = 1;
 }
 
 int GUI_GetWidth(ScriptGUI *sgui) {
-  return divide_down_coordinate(guis[sgui->id].wid);
+    return divide_down_coordinate(guis[sgui->id].wid);
 }
 
 int GUI_GetHeight(ScriptGUI *sgui) {
-  return divide_down_coordinate(guis[sgui->id].hit);
+    return divide_down_coordinate(guis[sgui->id].hit);
 }
 
 void GUI_SetWidth(ScriptGUI *sgui, int newwid) {
-  GUI_SetSize(sgui, newwid, GUI_GetHeight(sgui));
+    GUI_SetSize(sgui, newwid, GUI_GetHeight(sgui));
 }
 
 void GUI_SetHeight(ScriptGUI *sgui, int newhit) {
-  GUI_SetSize(sgui, GUI_GetWidth(sgui), newhit);
+    GUI_SetSize(sgui, GUI_GetWidth(sgui), newhit);
 }
 
 void GUI_SetZOrder(ScriptGUI *tehgui, int z) {
-  guis[tehgui->id].zorder = z;
-  update_gui_zorder();
+    guis[tehgui->id].zorder = z;
+    update_gui_zorder();
 }
 
 int GUI_GetZOrder(ScriptGUI *tehgui) {
-  return guis[tehgui->id].zorder;
+    return guis[tehgui->id].zorder;
 }
 
 void GUI_SetClickable(ScriptGUI *tehgui, int clickable) {
-  guis[tehgui->id].flags &= ~GUIF_NOCLICK;
-  if (clickable == 0)
-    guis[tehgui->id].flags |= GUIF_NOCLICK;
+    guis[tehgui->id].flags &= ~GUIF_NOCLICK;
+    if (clickable == 0)
+        guis[tehgui->id].flags |= GUIF_NOCLICK;
 }
 
 int GUI_GetClickable(ScriptGUI *tehgui) {
-  if (guis[tehgui->id].flags & GUIF_NOCLICK)
-    return 0;
-  return 1;
+    if (guis[tehgui->id].flags & GUIF_NOCLICK)
+        return 0;
+    return 1;
 }
 
 int GUI_GetID(ScriptGUI *tehgui) {
-  return tehgui->id;
+    return tehgui->id;
 }
 
 GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
-  if ((idx < 0) || (idx >= guis[tehgui->id].numobjs))
-    return NULL;
-  return guis[tehgui->id].objs[idx];
+    if ((idx < 0) || (idx >= guis[tehgui->id].numobjs))
+        return NULL;
+    return guis[tehgui->id].objs[idx];
 }
 
 int GUI_GetControlCount(ScriptGUI *tehgui) {
-  return guis[tehgui->id].numobjs;
+    return guis[tehgui->id].numobjs;
 }
 
 void GUI_SetTransparency(ScriptGUI *tehgui, int trans) {
-  if ((trans < 0) | (trans > 100))
-    quit("!SetGUITransparency: transparency value must be between 0 and 100");
+    if ((trans < 0) | (trans > 100))
+        quit("!SetGUITransparency: transparency value must be between 0 and 100");
 
-  guis[tehgui->id].SetTransparencyAsPercentage(trans);
+    guis[tehgui->id].SetTransparencyAsPercentage(trans);
 }
 
 int GUI_GetTransparency(ScriptGUI *tehgui) {
-  if (guis[tehgui->id].transparency == 0)
-    return 0;
-  if (guis[tehgui->id].transparency == 255)
-    return 100;
+    if (guis[tehgui->id].transparency == 0)
+        return 0;
+    if (guis[tehgui->id].transparency == 255)
+        return 100;
 
-  return 100 - ((guis[tehgui->id].transparency * 10) / 25);
+    return 100 - ((guis[tehgui->id].transparency * 10) / 25);
 }
 
 void GUI_Centre(ScriptGUI *sgui) {
-  GUIMain *tehgui = &guis[sgui->id];
-  tehgui->x = scrnwid / 2 - tehgui->wid / 2;
-  tehgui->y = scrnhit / 2 - tehgui->hit / 2;
+    GUIMain *tehgui = &guis[sgui->id];
+    tehgui->x = scrnwid / 2 - tehgui->wid / 2;
+    tehgui->y = scrnhit / 2 - tehgui->hit / 2;
 }
 
 void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn) {
-  if (guis[tehgui->id].bgpic != slotn) {
-    guis[tehgui->id].bgpic = slotn;
-    guis_need_update = 1;
-  }
+    if (guis[tehgui->id].bgpic != slotn) {
+        guis[tehgui->id].bgpic = slotn;
+        guis_need_update = 1;
+    }
 }
 
 int GUI_GetBackgroundGraphic(ScriptGUI *tehgui) {
-  if (guis[tehgui->id].bgpic < 1)
-    return 0;
-  return guis[tehgui->id].bgpic;
+    if (guis[tehgui->id].bgpic < 1)
+        return 0;
+    return guis[tehgui->id].bgpic;
 }
 
 ScriptGUI *GetGUIAtLocation(int xx, int yy) {
@@ -277,16 +277,16 @@ void process_interface_click(int ifce, int btn, int mbut) {
                 // control-specific event handler
                 if (strchr(theObj->GetEventArgs(0), ',') != NULL)
                     gameinst->RunTextScript2IParam(theObj->eventHandlers[0],
-                        RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject),
-                        RuntimeScriptValue().SetInt32(mbut));
+                    RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject),
+                    RuntimeScriptValue().SetInt32(mbut));
                 else
                     gameinst->RunTextScriptIParam(theObj->eventHandlers[0],
-                        RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject));
+                    RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject));
         }
         else
             gameinst->RunTextScript2IParam("interface_click",
-                RuntimeScriptValue().SetInt32(ifce),
-                RuntimeScriptValue().SetInt32(btn));
+            RuntimeScriptValue().SetInt32(ifce),
+            RuntimeScriptValue().SetInt32(btn));
     }
 }
 
@@ -480,18 +480,18 @@ int adjust_y_for_guis ( int yy) {
 
 void recreate_guibg_image(GUIMain *tehgui)
 {
-  int ifn = tehgui->guiId;
-  delete guibg[ifn];
-  guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->wid, tehgui->hit, final_col_dep);
-  if (guibg[ifn] == NULL)
-    quit("SetGUISize: internal error: unable to reallocate gui cache");
-  guibg[ifn] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[ifn]);
+    int ifn = tehgui->guiId;
+    delete guibg[ifn];
+    guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->wid, tehgui->hit, final_col_dep);
+    if (guibg[ifn] == NULL)
+        quit("SetGUISize: internal error: unable to reallocate gui cache");
+    guibg[ifn] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[ifn]);
 
-  if (guibgbmp[ifn] != NULL)
-  {
-    gfxDriver->DestroyDDB(guibgbmp[ifn]);
-    guibgbmp[ifn] = NULL;
-  }
+    if (guibgbmp[ifn] != NULL)
+    {
+        gfxDriver->DestroyDDB(guibgbmp[ifn]);
+        guibgbmp[ifn] = NULL;
+    }
 }
 
 //=============================================================================

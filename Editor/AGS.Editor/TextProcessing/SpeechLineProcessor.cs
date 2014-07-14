@@ -16,9 +16,9 @@ namespace AGS.Editor
         private int? _characterID;
         private StreamWriter _referenceFile;
 
-        public SpeechLineProcessor(Game game, bool includeNarrator, bool combineIdenticalLines, 
+        public SpeechLineProcessor(Game game, bool includeNarrator, bool combineIdenticalLines,
             bool removeNumbering, int? characterID,
-            Dictionary<string, FunctionCallType> speechableFunctionCalls, 
+            Dictionary<string, FunctionCallType> speechableFunctionCalls,
             CompileMessages errors, StreamWriter referenceFile) :
             base(game, errors, true, false, speechableFunctionCalls)
         {
@@ -94,8 +94,8 @@ namespace AGS.Editor
                 lineWithNewToken = string.Format("&{0} {1}", _speechLineCount[speakingCharacter], text);
             }
 
-            string charName = (speakingCharacter == Character.NARRATOR_CHARACTER_ID) ? 
-                                    NARRATOR_NAME : 
+            string charName = (speakingCharacter == Character.NARRATOR_CHARACTER_ID) ?
+                                    NARRATOR_NAME :
                                     _game.RootCharacterFolder.FindCharacterByID(speakingCharacter, true).ScriptName;
             _referenceFile.WriteLine(charName + ": " + lineWithNewToken);
 

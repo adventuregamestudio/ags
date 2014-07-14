@@ -7,7 +7,7 @@ namespace AGS.Types
 {
     public class CustomProperties
     {
-        private Dictionary<string,CustomProperty> _properties = new Dictionary<string,CustomProperty>();
+        private Dictionary<string, CustomProperty> _properties = new Dictionary<string, CustomProperty>();
 
         public CustomProperties()
         {

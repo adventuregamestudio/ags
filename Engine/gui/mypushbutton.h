@@ -22,11 +22,11 @@
 #endif
 struct MyPushButton:public NewControl
 {
-  char text[50];
-  MyPushButton(int xx, int yy, int wi, int hi, char *tex);
-  void draw(Common::Bitmap *ds);
-  int pressedon();
-  int processmessage(int mcode, int wParam, long lParam);
+    char text[50];
+    MyPushButton(int xx, int yy, int wi, int hi, char *tex);
+    void draw(Common::Bitmap *ds);
+    int pressedon();
+    int processmessage(int mcode, int wParam, long lParam);
 };
 #ifdef DJGPP
 #pragma warn +inl

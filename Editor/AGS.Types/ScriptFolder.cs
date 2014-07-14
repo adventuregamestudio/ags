@@ -139,7 +139,7 @@ namespace AGS.Types
                     _items.Add(new ScriptAndHeader(header, script));
                     header = null;
                     script = null;
-                }                
+                }
             }
         }
 

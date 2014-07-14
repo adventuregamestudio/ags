@@ -72,7 +72,7 @@ namespace AGS.Editor.Components
         private void RecreateDocument()
         {
             _editor = new AudioEditor();
-            _document = new ContentDocument(_editor, "Audio", this, AUDIO_CLIP_TYPE_ICON);             
+            _document = new ContentDocument(_editor, "Audio", this, AUDIO_CLIP_TYPE_ICON);
         }
 
         public override string ComponentID
@@ -99,7 +99,7 @@ namespace AGS.Editor.Components
                 AudioClip clipToDelete = _items[_rightClickedID];
                 if (_guiController.ShowQuestion("Are you sure you want to delete audio '" + clipToDelete.ScriptName + "'?") == System.Windows.Forms.DialogResult.Yes)
                 {
-                    DeleteSingleItem(clipToDelete);                    
+                    DeleteSingleItem(clipToDelete);
                 }
             }
             else if (controlID == SPEECH_NODE_ID)
@@ -709,7 +709,7 @@ namespace AGS.Editor.Components
         protected override void DeleteResourcesUsedByItem(AudioClip item)
         {
             DeleteResourcesForAudioClip(item);
-            AudioClipTypeConverter.SetAudioClipList(_agsEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders());                    
+            AudioClipTypeConverter.SetAudioClipList(_agsEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders());
         }
 
         private void DeleteResourcesForAudioClip(AudioClip clipToDelete)

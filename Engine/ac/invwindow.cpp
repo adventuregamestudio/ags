@@ -59,86 +59,86 @@ int in_inv_screen = 0, inv_screen_newroom = -1;
 // *** INV WINDOW FUNCTIONS
 
 void InvWindow_SetCharacterToUse(GUIInv *guii, CharacterInfo *chaa) {
-  if (chaa == NULL)
-    guii->charId = -1;
-  else
-    guii->charId = chaa->index_id;
-  // reset to top of list
-  guii->topIndex = 0;
+    if (chaa == NULL)
+        guii->charId = -1;
+    else
+        guii->charId = chaa->index_id;
+    // reset to top of list
+    guii->topIndex = 0;
 
-  guis_need_update = 1;
+    guis_need_update = 1;
 }
 
 CharacterInfo* InvWindow_GetCharacterToUse(GUIInv *guii) {
-  if (guii->charId < 0)
-    return NULL;
+    if (guii->charId < 0)
+        return NULL;
 
-  return &game.chars[guii->charId];
+    return &game.chars[guii->charId];
 }
 
 void InvWindow_SetItemWidth(GUIInv *guii, int newwidth) {
-  guii->itemWidth = newwidth;
-  guii->Resized();
+    guii->itemWidth = newwidth;
+    guii->Resized();
 }
 
 int InvWindow_GetItemWidth(GUIInv *guii) {
-  return guii->itemWidth;
+    return guii->itemWidth;
 }
 
 void InvWindow_SetItemHeight(GUIInv *guii, int newhit) {
-  guii->itemHeight = newhit;
-  guii->Resized();
+    guii->itemHeight = newhit;
+    guii->Resized();
 }
 
 int InvWindow_GetItemHeight(GUIInv *guii) {
-  return guii->itemHeight;
+    return guii->itemHeight;
 }
 
 void InvWindow_SetTopItem(GUIInv *guii, int topitem) {
-  if (guii->topIndex != topitem) {
-    guii->topIndex = topitem;
-    guis_need_update = 1;
-  }
+    if (guii->topIndex != topitem) {
+        guii->topIndex = topitem;
+        guis_need_update = 1;
+    }
 }
 
 int InvWindow_GetTopItem(GUIInv *guii) {
-  return guii->topIndex;
+    return guii->topIndex;
 }
 
 int InvWindow_GetItemsPerRow(GUIInv *guii) {
-  return guii->itemsPerLine;
+    return guii->itemsPerLine;
 }
 
 int InvWindow_GetItemCount(GUIInv *guii) {
-  return charextra[guii->CharToDisplay()].invorder_count;
+    return charextra[guii->CharToDisplay()].invorder_count;
 }
 
 int InvWindow_GetRowCount(GUIInv *guii) {
-  return guii->numLines;
+    return guii->numLines;
 }
 
 void InvWindow_ScrollDown(GUIInv *guii) {
-  if ((charextra[guii->CharToDisplay()].invorder_count) >
-      (guii->topIndex + (guii->itemsPerLine * guii->numLines))) { 
-    guii->topIndex += guii->itemsPerLine;
-    guis_need_update = 1;
-  }
+    if ((charextra[guii->CharToDisplay()].invorder_count) >
+        (guii->topIndex + (guii->itemsPerLine * guii->numLines))) { 
+            guii->topIndex += guii->itemsPerLine;
+            guis_need_update = 1;
+    }
 }
 
 void InvWindow_ScrollUp(GUIInv *guii) {
-  if (guii->topIndex > 0) {
-    guii->topIndex -= guii->itemsPerLine;
-    if (guii->topIndex < 0)
-      guii->topIndex = 0;
+    if (guii->topIndex > 0) {
+        guii->topIndex -= guii->itemsPerLine;
+        if (guii->topIndex < 0)
+            guii->topIndex = 0;
 
-    guis_need_update = 1;
-  }
+        guis_need_update = 1;
+    }
 }
 
 ScriptInvItem* InvWindow_GetItemAtIndex(GUIInv *guii, int index) {
-  if ((index < 0) || (index >= charextra[guii->CharToDisplay()].invorder_count))
-    return NULL;
-  return &scrInv[charextra[guii->CharToDisplay()].invorder[index]];
+    if ((index < 0) || (index >= charextra[guii->CharToDisplay()].invorder_count))
+        return NULL;
+    return &scrInv[charextra[guii->CharToDisplay()].invorder[index]];
 }
 
 //=============================================================================
@@ -299,7 +299,7 @@ int InventoryScreen::Redraw()
     arrowblock->DrawLine(Line(ARROWBUTTONWID/2, 2, ARROWBUTTONWID-2, 9), draw_color);
     arrowblock->DrawLine(Line(ARROWBUTTONWID/2, 2, 2, 9), draw_color);
     arrowblock->DrawLine(Line(2, 9, ARROWBUTTONWID-2, 9), draw_color);
-	arrowblock->FloodFill(ARROWBUTTONWID/2, 4, draw_color);
+    arrowblock->FloodFill(ARROWBUTTONWID/2, 4, draw_color);
 
     if (top_item > 0)
         wputblock(ds, windowxp+windowwid-ARROWBUTTONWID, buttonyp + get_fixed_pixel_size(2), arrowblock, 1);
@@ -321,133 +321,133 @@ bool InventoryScreen::Run()
         return false; // end inventory screen loop
     }
 
-        timerloop = 0;
-        NEXT_ITERATION();
-        domouse(0);
-        update_polled_audio_and_crossfade();
-        write_screen();
+    timerloop = 0;
+    NEXT_ITERATION();
+    domouse(0);
+    update_polled_audio_and_crossfade();
+    write_screen();
 
-        int isonitem=((mousey-bartop)/highest)*ICONSPERLINE+(mousex-barxp)/widest;
-        if (mousey<=bartop) isonitem=-1;
-        else if (isonitem >= 0) isonitem += top_item;
-        if ((isonitem<0) | (isonitem>=numitems) | (isonitem >= top_item + num_visible_items))
-            isonitem=-1;
+    int isonitem=((mousey-bartop)/highest)*ICONSPERLINE+(mousex-barxp)/widest;
+    if (mousey<=bartop) isonitem=-1;
+    else if (isonitem >= 0) isonitem += top_item;
+    if ((isonitem<0) | (isonitem>=numitems) | (isonitem >= top_item + num_visible_items))
+        isonitem=-1;
 
-        int mclick = mgetbutton();
-        if (mclick == LEFT) {
-            if ((mousey<windowyp) | (mousey>windowyp+windowhit) | (mousex<windowxp) | (mousex>windowxp+windowwid))
-                return true; // continue inventory screen loop
-            if (mousey<buttonyp) {
-                int clickedon=isonitem;
-                if (clickedon<0) return true; // continue inventory screen loop
-                evblocknum=dii[clickedon].num;
-                play.used_inv_on = dii[clickedon].num;
+    int mclick = mgetbutton();
+    if (mclick == LEFT) {
+        if ((mousey<windowyp) | (mousey>windowyp+windowhit) | (mousex<windowxp) | (mousex>windowxp+windowwid))
+            return true; // continue inventory screen loop
+        if (mousey<buttonyp) {
+            int clickedon=isonitem;
+            if (clickedon<0) return true; // continue inventory screen loop
+            evblocknum=dii[clickedon].num;
+            play.used_inv_on = dii[clickedon].num;
 
-                if (cmode==MODE_LOOK) {
-                    domouse(2);
-                    run_event_block_inv(dii[clickedon].num, 0); 
-                    // in case the script did anything to the screen, redraw it
-                    UpdateGameOnce();
+            if (cmode==MODE_LOOK) {
+                domouse(2);
+                run_event_block_inv(dii[clickedon].num, 0); 
+                // in case the script did anything to the screen, redraw it
+                UpdateGameOnce();
 
-                    break_code = Redraw();
-                    return break_code == 0;
-                }
-                else if (cmode==MODE_USE) {
-                    // use objects on each other
-                    play.usedinv=toret;
-
-                    // set the activeinv so the script can check it
-                    int activeinvwas = playerchar->activeinv;
-                    playerchar->activeinv = toret;
-
-                    domouse(2);
-                    run_event_block_inv(dii[clickedon].num, 3);
-
-                    // if the script didn't change it, then put it back
-                    if (playerchar->activeinv == toret)
-                        playerchar->activeinv = activeinvwas;
-
-                    // in case the script did anything to the screen, redraw it
-                    UpdateGameOnce();
-
-                    // They used the active item and lost it
-                    if (playerchar->inv[toret] < 1) {
-                        cmode = CURS_ARROW;
-                        set_mouse_cursor(cmode);
-                        toret = -1;
-                    }
-
-                    break_code = Redraw();
-                    return break_code == 0;
-                }
-                toret=dii[clickedon].num;
-                //        int plusng=play.using; play.using=toret;
-                update_inv_cursor(toret);
-                set_mouse_cursor(MODE_USE);
-                cmode=MODE_USE;
-                //        play.using=plusng;
-                //        break;
-                return true; // continue inventory screen loop
+                break_code = Redraw();
+                return break_code == 0;
             }
-            else {
-                if (mousex >= windowxp+windowwid-ARROWBUTTONWID) {
-                    if (mousey < buttonyp + get_fixed_pixel_size(2) + ARROWBUTTONWID) {
-                        if (top_item > 0) {
-                            top_item -= ICONSPERLINE;
-                            domouse(2);
+            else if (cmode==MODE_USE) {
+                // use objects on each other
+                play.usedinv=toret;
 
-                            break_code = Redraw();
-                            return break_code == 0;
-                        }
-                    }
-                    else if ((mousey < buttonyp + get_fixed_pixel_size(4) + ARROWBUTTONWID*2) && (top_item + num_visible_items < numitems)) {
-                        top_item += ICONSPERLINE;
+                // set the activeinv so the script can check it
+                int activeinvwas = playerchar->activeinv;
+                playerchar->activeinv = toret;
+
+                domouse(2);
+                run_event_block_inv(dii[clickedon].num, 3);
+
+                // if the script didn't change it, then put it back
+                if (playerchar->activeinv == toret)
+                    playerchar->activeinv = activeinvwas;
+
+                // in case the script did anything to the screen, redraw it
+                UpdateGameOnce();
+
+                // They used the active item and lost it
+                if (playerchar->inv[toret] < 1) {
+                    cmode = CURS_ARROW;
+                    set_mouse_cursor(cmode);
+                    toret = -1;
+                }
+
+                break_code = Redraw();
+                return break_code == 0;
+            }
+            toret=dii[clickedon].num;
+            //        int plusng=play.using; play.using=toret;
+            update_inv_cursor(toret);
+            set_mouse_cursor(MODE_USE);
+            cmode=MODE_USE;
+            //        play.using=plusng;
+            //        break;
+            return true; // continue inventory screen loop
+        }
+        else {
+            if (mousex >= windowxp+windowwid-ARROWBUTTONWID) {
+                if (mousey < buttonyp + get_fixed_pixel_size(2) + ARROWBUTTONWID) {
+                    if (top_item > 0) {
+                        top_item -= ICONSPERLINE;
                         domouse(2);
-                        
+
                         break_code = Redraw();
                         return break_code == 0;
                     }
-                    return true; // continue inventory screen loop
                 }
+                else if ((mousey < buttonyp + get_fixed_pixel_size(4) + ARROWBUTTONWID*2) && (top_item + num_visible_items < numitems)) {
+                    top_item += ICONSPERLINE;
+                    domouse(2);
 
-                int buton=(mousex-windowxp)-2;
-                if (buton<0) return true; // continue inventory screen loop
-                buton/=BUTTONWID;
-                if (buton>=3) return true; // continue inventory screen loop
-                if (buton==0) { toret=-1; cmode=MODE_LOOK; }
-                else if (buton==1) { cmode=CURS_ARROW; toret=-1; }
-                else
-                {
-                    return false; // end inventory screen loop
+                    break_code = Redraw();
+                    return break_code == 0;
                 }
-                set_mouse_cursor(cmode);
+                return true; // continue inventory screen loop
             }
-        }
-        else if (mclick == RIGHT) {
-            if (cmode == CURS_ARROW)
-                cmode = MODE_LOOK;
+
+            int buton=(mousex-windowxp)-2;
+            if (buton<0) return true; // continue inventory screen loop
+            buton/=BUTTONWID;
+            if (buton>=3) return true; // continue inventory screen loop
+            if (buton==0) { toret=-1; cmode=MODE_LOOK; }
+            else if (buton==1) { cmode=CURS_ARROW; toret=-1; }
             else
-                cmode = CURS_ARROW;
-            toret = -1;
+            {
+                return false; // end inventory screen loop
+            }
             set_mouse_cursor(cmode);
         }
-        else if (isonitem!=wasonitem) { domouse(2);
-        int rectxp=barxp+1+(wasonitem%4)*widest;
-        int rectyp=bartop+1+((wasonitem - top_item)/4)*highest;
-        Bitmap *ds = SetVirtualScreen(virtual_screen);
-        if (wasonitem>=0) {
-            color_t draw_color = ds->GetCompatibleColor(0);
-            ds->DrawRect(Rect(rectxp,rectyp,rectxp+widest-1,rectyp+highest-1), draw_color);
-        }
-        if (isonitem>=0) { color_t draw_color = ds->GetCompatibleColor(14);//opts.invrectcol);
-        rectxp=barxp+1+(isonitem%4)*widest;
-        rectyp=bartop+1+((isonitem - top_item)/4)*highest;
+    }
+    else if (mclick == RIGHT) {
+        if (cmode == CURS_ARROW)
+            cmode = MODE_LOOK;
+        else
+            cmode = CURS_ARROW;
+        toret = -1;
+        set_mouse_cursor(cmode);
+    }
+    else if (isonitem!=wasonitem) { domouse(2);
+    int rectxp=barxp+1+(wasonitem%4)*widest;
+    int rectyp=bartop+1+((wasonitem - top_item)/4)*highest;
+    Bitmap *ds = SetVirtualScreen(virtual_screen);
+    if (wasonitem>=0) {
+        color_t draw_color = ds->GetCompatibleColor(0);
         ds->DrawRect(Rect(rectxp,rectyp,rectxp+widest-1,rectyp+highest-1), draw_color);
-        }
-        domouse(1);
-        }
-        wasonitem=isonitem;
-        PollUntilNextFrame();
+    }
+    if (isonitem>=0) { color_t draw_color = ds->GetCompatibleColor(14);//opts.invrectcol);
+    rectxp=barxp+1+(isonitem%4)*widest;
+    rectyp=bartop+1+((isonitem - top_item)/4)*highest;
+    ds->DrawRect(Rect(rectxp,rectyp,rectxp+widest-1,rectyp+highest-1), draw_color);
+    }
+    domouse(1);
+    }
+    wasonitem=isonitem;
+    PollUntilNextFrame();
 
     return true; // continue inventory screen loop
 }

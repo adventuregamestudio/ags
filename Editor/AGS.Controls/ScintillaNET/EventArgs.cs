@@ -459,7 +459,7 @@ namespace Scintilla
 
         public UndoRedoFlags(int modificationType)
         {
-            IsLastStep = (modificationType & (int)Scintilla.Enums.ModificationFlags.StepInUndoRedo ) > 0;
+            IsLastStep = (modificationType & (int)Scintilla.Enums.ModificationFlags.StepInUndoRedo) > 0;
             /** FIXME : 
              * GENERATION ISSUE -- The Scintilla.iface breaks the pattern with the following three flags:
              *  val SC_MULTISTEPUNDOREDO=0x80
@@ -507,9 +507,9 @@ namespace Scintilla
             set { _text = value; }
         }
 
-        public AutoCSelectionEventArgs (SCNotification eventSource)
+        public AutoCSelectionEventArgs(SCNotification eventSource)
         {
-            _text = Utilities.PtrToStringUtf8( eventSource.text , eventSource.length );
+            _text = Utilities.PtrToStringUtf8(eventSource.text, eventSource.length);
         }
 
     }

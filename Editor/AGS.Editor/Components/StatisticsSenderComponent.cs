@@ -15,7 +15,7 @@ namespace AGS.Editor.Components
         private Timer _timer;
         private int _screenWidth;
         private int _screenHeight;
-        
+
         public StatisticsSenderComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
         {

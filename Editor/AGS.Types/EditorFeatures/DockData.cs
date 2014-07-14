@@ -14,6 +14,6 @@ namespace AGS.Types
         }
 
         public DockingState DockState { get; private set; }
-        public Rectangle Location { get; private set; }        
+        public Rectangle Location { get; private set; }
     }
 }

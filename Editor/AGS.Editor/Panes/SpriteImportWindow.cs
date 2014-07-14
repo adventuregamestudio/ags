@@ -11,7 +11,7 @@ namespace AGS.Editor
 {
     public partial class SpriteImportWindow : Form
     {
-		private readonly string[] TRANSPARENCY_MODE_DESCRIPTIONS = new string[]{
+        private readonly string[] TRANSPARENCY_MODE_DESCRIPTIONS = new string[]{
 			"Pixels of index 0 will be transparent (256-colour games only)",
 			"The top-left pixel will be the transparent colour for this sprite",
 			"The bottom-left pixel will be the transparent colour for this sprite",
@@ -20,25 +20,25 @@ namespace AGS.Editor
 			"AGS will leave the sprite's pixels as they are. Any pixels that match the AGS Transparent Colour will be invisible.",
 			"AGS will remove all transparent pixels by changing them to a very similar non-transparent colour"
 		};
-		private static bool _initialized = false;
-		private static SpriteImportMethod _spriteImportMethod;
+        private static bool _initialized = false;
+        private static SpriteImportMethod _spriteImportMethod;
 
-		public static SpriteImportMethod SpriteImportMethod
-		{
-			get 
-			{
-				if (!_initialized)
-				{
-					_initialized = true;
-					_spriteImportMethod = Factory.AGSEditor.Preferences.DefaultSpriteImportTransparency;
-				}
-				return _spriteImportMethod; 
-			}
-			set { _spriteImportMethod = value; }
-		}
+        public static SpriteImportMethod SpriteImportMethod
+        {
+            get
+            {
+                if (!_initialized)
+                {
+                    _initialized = true;
+                    _spriteImportMethod = Factory.AGSEditor.Preferences.DefaultSpriteImportTransparency;
+                }
+                return _spriteImportMethod;
+            }
+            set { _spriteImportMethod = value; }
+        }
 
-		private static int _SelectionWidth = 0;
-		private static int _SelectionHeight = 0;
+        private static int _SelectionWidth = 0;
+        private static int _SelectionHeight = 0;
 
         private Bitmap _image;
         private int _startDraggingX;
@@ -53,7 +53,7 @@ namespace AGS.Editor
         private int _framesVertical;
         private int _zoomLevel = 1;
         private List<Bitmap> _selectedBitmaps = new List<Bitmap>();
-		private ToolTip _tooltip = new ToolTip();
+        private ToolTip _tooltip = new ToolTip();
 
         public List<Bitmap> SelectedBitmaps
         {
@@ -78,12 +78,12 @@ namespace AGS.Editor
             lblImageSize.Text = "Image size: " + _image.Width + " x " + _image.Height;
             cmbTransparentCol.SelectedIndex = (int)SpriteImportMethod;
 
-			if ((_SelectionWidth > _image.Width) ||
-				(_SelectionHeight > _image.Height))
-			{
-				_SelectionWidth = 0;
-				_SelectionHeight = 0;
-			}
+            if ((_SelectionWidth > _image.Width) ||
+                (_SelectionHeight > _image.Height))
+            {
+                _SelectionWidth = 0;
+                _SelectionHeight = 0;
+            }
 
             chkRoomBackground.Visible = (Factory.AGSEditor.CurrentGame.Settings.ColorDepth == AGS.Types.GameColorDepth.Palette);
             chkRemapCols.Visible = (Factory.AGSEditor.CurrentGame.Settings.ColorDepth == AGS.Types.GameColorDepth.Palette);
@@ -178,18 +178,18 @@ namespace AGS.Editor
             }
         }
 
-		private void ConvertMousePositionToNearestPixel(MouseEventArgs e, ref int mouseX, ref int mouseY)
-		{
-			mouseX = (e.X + previewPanel.HorizontalScroll.Value) / _zoomLevel;
-			mouseY = (e.Y + previewPanel.VerticalScroll.Value) / _zoomLevel;
-			lblMousePos.Text = "Mouse location: " + mouseX + ", " + mouseY;
-			mouseX = (mouseX * _zoomLevel) - previewPanel.HorizontalScroll.Value;
-			mouseY = (mouseY * _zoomLevel) - previewPanel.VerticalScroll.Value;
-		}
+        private void ConvertMousePositionToNearestPixel(MouseEventArgs e, ref int mouseX, ref int mouseY)
+        {
+            mouseX = (e.X + previewPanel.HorizontalScroll.Value) / _zoomLevel;
+            mouseY = (e.Y + previewPanel.VerticalScroll.Value) / _zoomLevel;
+            lblMousePos.Text = "Mouse location: " + mouseX + ", " + mouseY;
+            mouseX = (mouseX * _zoomLevel) - previewPanel.HorizontalScroll.Value;
+            mouseY = (mouseY * _zoomLevel) - previewPanel.VerticalScroll.Value;
+        }
 
         private void previewPanel_MouseMove(object sender, MouseEventArgs e)
         {
-			ConvertMousePositionToNearestPixel(e, ref _mouseX, ref _mouseY);
+            ConvertMousePositionToNearestPixel(e, ref _mouseX, ref _mouseY);
 
             if ((_draggingRectangle) || (_SelectionWidth > 0))
             {
@@ -199,50 +199,50 @@ namespace AGS.Editor
 
         private void DoImport(Bitmap bmp)
         {
-			if (VerifySpriteImportMethod())
-			{
-				SpriteImportMethod = (SpriteImportMethod)cmbTransparentCol.SelectedIndex;
-				if (bmp != null)
-				{
-					_selectedBitmaps.Add(bmp);
-				}
-				this.DialogResult = DialogResult.OK;
-				this.Close();
-			}
+            if (VerifySpriteImportMethod())
+            {
+                SpriteImportMethod = (SpriteImportMethod)cmbTransparentCol.SelectedIndex;
+                if (bmp != null)
+                {
+                    _selectedBitmaps.Add(bmp);
+                }
+                this.DialogResult = DialogResult.OK;
+                this.Close();
+            }
         }
 
-		private bool VerifySpriteImportMethod()
-		{
-			if ((Factory.AGSEditor.CurrentGame.Settings.ColorDepth != AGS.Types.GameColorDepth.Palette) &&
-				(cmbTransparentCol.SelectedIndex == 0))
-			{
-				MessageBox.Show("You cannot use the 'Index 0' transparency with hi-colour games.", "Transparency selection", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-				return false;
-			}
-			return true;
-		}
+        private bool VerifySpriteImportMethod()
+        {
+            if ((Factory.AGSEditor.CurrentGame.Settings.ColorDepth != AGS.Types.GameColorDepth.Palette) &&
+                (cmbTransparentCol.SelectedIndex == 0))
+            {
+                MessageBox.Show("You cannot use the 'Index 0' transparency with hi-colour games.", "Transparency selection", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+            return true;
+        }
 
-		private void btnImportWholeImage_Click(object sender, EventArgs e)
-		{
-			DoImport(_image);
-		}
+        private void btnImportWholeImage_Click(object sender, EventArgs e)
+        {
+            DoImport(_image);
+        }
 
         private void previewPanel_MouseDown(object sender, MouseEventArgs e)
         {
             if ((e.Button == MouseButtons.Right) && (!_doingTiledImport))
             {
-				ConvertMousePositionToNearestPixel(e, ref _startDraggingX, ref _startDraggingY);
+                ConvertMousePositionToNearestPixel(e, ref _startDraggingX, ref _startDraggingY);
                 _draggingRectangle = true;
             }
             else if ((e.Button == MouseButtons.Left) && (_doingTiledImport))
             {
-				for (int y = 0; y < _framesVertical; y++)
+                for (int y = 0; y < _framesVertical; y++)
                 {
-					for (int x = 0; x < _framesHorizontal; x++)
-					{
+                    for (int x = 0; x < _framesHorizontal; x++)
+                    {
                         int xp = x * _SelectionWidth + _firstFrameX;
-						int yp = y * _SelectionHeight + _firstFrameY;
-						Bitmap subBitmap = _image.Clone(new Rectangle(xp, yp, _SelectionWidth, _SelectionHeight), _image.PixelFormat);
+                        int yp = y * _SelectionHeight + _firstFrameY;
+                        Bitmap subBitmap = _image.Clone(new Rectangle(xp, yp, _SelectionWidth, _SelectionHeight), _image.PixelFormat);
                         _selectedBitmaps.Add(subBitmap);
                     }
                 }
@@ -250,7 +250,7 @@ namespace AGS.Editor
             }
             else if ((e.Button == MouseButtons.Left) && (!_draggingRectangle))
             {
-				if ((_SelectionWidth < 1) || (_SelectionHeight < 1))
+                if ((_SelectionWidth < 1) || (_SelectionHeight < 1))
                 {
                     MessageBox.Show("You must right-drag to set the selection rectangle size before importing.", "Import error", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -273,12 +273,12 @@ namespace AGS.Editor
                         else
                         {
                             int width = _SelectionWidth;
-							int height = _SelectionHeight;
+                            int height = _SelectionHeight;
                             if (x + _SelectionWidth > _image.Width)
                             {
                                 width = _image.Width - x;
                             }
-							if (y + _SelectionHeight > _image.Height)
+                            if (y + _SelectionHeight > _image.Height)
                             {
                                 height = _image.Height - y;
                             }
@@ -296,7 +296,7 @@ namespace AGS.Editor
             {
                 _draggingRectangle = false;
                 _SelectionWidth = Math.Abs(_mouseX - _startDraggingX) / _zoomLevel;
-				_SelectionHeight = Math.Abs(_mouseY - _startDraggingY) / _zoomLevel;
+                _SelectionHeight = Math.Abs(_mouseY - _startDraggingY) / _zoomLevel;
 
                 Point cursorPos = Cursor.Position;
                 if (_mouseX > _startDraggingX)
@@ -322,13 +322,13 @@ namespace AGS.Editor
             this.Close();
         }
 
-		private void cmbTransparentCol_SelectedIndexChanged(object sender, EventArgs e)
-		{
-			if (_tooltip.Active)
-			{
-				_tooltip.Hide(this);
-			}
-			_tooltip.Show(TRANSPARENCY_MODE_DESCRIPTIONS[cmbTransparentCol.SelectedIndex], this, cmbTransparentCol.Left + 20, cmbTransparentCol.Top, 5000);
-		}
+        private void cmbTransparentCol_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (_tooltip.Active)
+            {
+                _tooltip.Hide(this);
+            }
+            _tooltip.Show(TRANSPARENCY_MODE_DESCRIPTIONS[cmbTransparentCol.SelectedIndex], this, cmbTransparentCol.Left + 20, cmbTransparentCol.Top, 5000);
+        }
     }
 }

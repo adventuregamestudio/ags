@@ -62,7 +62,7 @@ namespace AGS.Types
                     throw new NotSupportedException(string.Format("{0} is not supported!", e.FolderChange));
             }
         }
-        
+
         #region IList<TFolderItem> Members
 
         int IList<TFolderItem>.IndexOf(TFolderItem item)
@@ -77,7 +77,7 @@ namespace AGS.Types
             _folder.Items.Add(item);
             RegisterFolderChange();
         }
-        
+
         void IList<TFolderItem>.RemoveAt(int index)
         {
             TFolderItem item = _items[index];

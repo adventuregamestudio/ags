@@ -68,24 +68,24 @@ namespace AGS.Editor
         public SplashScreen()
         {
             InitializeComponent();
-			if ((DateTime.Now.Month == 2) && (DateTime.Now.Day == 14))
-			{
-				this.BackgroundImage = Resources.ResourceManager.GetBitmap("splash-valentine-2.jpg");
-				lblTagLine.Text = "Happy Valentine's Day!";
-				lblTagLine.ForeColor = Color.Yellow;
-			}
-			else if ((DateTime.Now.Month == 12) && (DateTime.Now.Day == 25))
-			{
-				this.BackgroundImage = Resources.ResourceManager.GetBitmap("splash-xmas.jpg");
-				lblTagLine.Text = "Happy Christmas!";
-				lblTagLine.ForeColor = Color.LightGreen;
-			}
-			else
-			{
-				this.BackgroundImage = Resources.ResourceManager.GetBitmap("splash.bmp");
-				int tickCount = Math.Abs(Environment.TickCount);
-				lblTagLine.Text = TagLines[(tickCount / 1000) % TagLines.Length];
-			}
+            if ((DateTime.Now.Month == 2) && (DateTime.Now.Day == 14))
+            {
+                this.BackgroundImage = Resources.ResourceManager.GetBitmap("splash-valentine-2.jpg");
+                lblTagLine.Text = "Happy Valentine's Day!";
+                lblTagLine.ForeColor = Color.Yellow;
+            }
+            else if ((DateTime.Now.Month == 12) && (DateTime.Now.Day == 25))
+            {
+                this.BackgroundImage = Resources.ResourceManager.GetBitmap("splash-xmas.jpg");
+                lblTagLine.Text = "Happy Christmas!";
+                lblTagLine.ForeColor = Color.LightGreen;
+            }
+            else
+            {
+                this.BackgroundImage = Resources.ResourceManager.GetBitmap("splash.bmp");
+                int tickCount = Math.Abs(Environment.TickCount);
+                lblTagLine.Text = TagLines[(tickCount / 1000) % TagLines.Length];
+            }
         }
 
         private void SplashScreen_Load(object sender, EventArgs e)

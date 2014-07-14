@@ -29,62 +29,62 @@
 
 namespace AGS
 {
-namespace Common
-{
+    namespace Common
+    {
 
-enum StreamSeek
-{
-   kSeekBegin,
-   kSeekEnd,
-   kSeekCurrent
-};
+        enum StreamSeek
+        {
+            kSeekBegin,
+            kSeekEnd,
+            kSeekCurrent
+        };
 
-class IAGSStream
-{
-public:
-    virtual ~IAGSStream(){}
+        class IAGSStream
+        {
+        public:
+            virtual ~IAGSStream(){}
 
-    virtual void        Close() = 0;
+            virtual void        Close() = 0;
 
-    virtual bool        IsValid() const = 0;
-    virtual bool        EOS() const = 0;
-    virtual size_t      GetLength() const = 0;
-    virtual size_t      GetPosition() const = 0;
-    virtual bool        CanRead() const = 0;
-    virtual bool        CanWrite() const = 0;
-    virtual bool        CanSeek() const = 0;
+            virtual bool        IsValid() const = 0;
+            virtual bool        EOS() const = 0;
+            virtual size_t      GetLength() const = 0;
+            virtual size_t      GetPosition() const = 0;
+            virtual bool        CanRead() const = 0;
+            virtual bool        CanWrite() const = 0;
+            virtual bool        CanSeek() const = 0;
 
-    virtual size_t      Read(void *buffer, size_t size) = 0;
-    virtual int32_t     ReadByte() = 0;
-    virtual size_t      Write(const void *buffer, size_t size) = 0;
-    virtual int32_t     WriteByte(uint8_t b) = 0;
+            virtual size_t      Read(void *buffer, size_t size) = 0;
+            virtual int32_t     ReadByte() = 0;
+            virtual size_t      Write(const void *buffer, size_t size) = 0;
+            virtual int32_t     WriteByte(uint8_t b) = 0;
 
-    virtual int8_t      ReadInt8() = 0;
-    virtual int16_t     ReadInt16() = 0;
-    virtual int32_t     ReadInt32() = 0;
-    virtual int64_t     ReadInt64() = 0;
-    virtual bool        ReadBool() = 0;
-    virtual size_t      ReadArray(void *buffer, size_t elem_size, size_t count) = 0;
-    virtual size_t      ReadArrayOfInt8(int8_t *buffer, size_t count) = 0;
-    virtual size_t      ReadArrayOfInt16(int16_t *buffer, size_t count) = 0;
-    virtual size_t      ReadArrayOfInt32(int32_t *buffer, size_t count) = 0;
-    virtual size_t      ReadArrayOfInt64(int64_t *buffer, size_t count) = 0;
+            virtual int8_t      ReadInt8() = 0;
+            virtual int16_t     ReadInt16() = 0;
+            virtual int32_t     ReadInt32() = 0;
+            virtual int64_t     ReadInt64() = 0;
+            virtual bool        ReadBool() = 0;
+            virtual size_t      ReadArray(void *buffer, size_t elem_size, size_t count) = 0;
+            virtual size_t      ReadArrayOfInt8(int8_t *buffer, size_t count) = 0;
+            virtual size_t      ReadArrayOfInt16(int16_t *buffer, size_t count) = 0;
+            virtual size_t      ReadArrayOfInt32(int32_t *buffer, size_t count) = 0;
+            virtual size_t      ReadArrayOfInt64(int64_t *buffer, size_t count) = 0;
 
-    virtual size_t      WriteInt8(int8_t val) = 0;;
-    virtual size_t      WriteInt16(int16_t val) = 0;
-    virtual size_t      WriteInt32(int32_t val) = 0;
-    virtual size_t      WriteInt64(int64_t val) = 0;
-    virtual size_t      WriteBool(bool val) = 0;
-    virtual size_t      WriteArray(const void *buffer, size_t elem_size, size_t count) = 0;
-    virtual size_t      WriteArrayOfInt8(const int8_t *buffer, size_t count) = 0;
-    virtual size_t      WriteArrayOfInt16(const int16_t *buffer, size_t count) = 0;
-    virtual size_t      WriteArrayOfInt32(const int32_t *buffer, size_t count) = 0;
-    virtual size_t      WriteArrayOfInt64(const int64_t *buffer, size_t count) = 0;
+            virtual size_t      WriteInt8(int8_t val) = 0;;
+            virtual size_t      WriteInt16(int16_t val) = 0;
+            virtual size_t      WriteInt32(int32_t val) = 0;
+            virtual size_t      WriteInt64(int64_t val) = 0;
+            virtual size_t      WriteBool(bool val) = 0;
+            virtual size_t      WriteArray(const void *buffer, size_t elem_size, size_t count) = 0;
+            virtual size_t      WriteArrayOfInt8(const int8_t *buffer, size_t count) = 0;
+            virtual size_t      WriteArrayOfInt16(const int16_t *buffer, size_t count) = 0;
+            virtual size_t      WriteArrayOfInt32(const int32_t *buffer, size_t count) = 0;
+            virtual size_t      WriteArrayOfInt64(const int64_t *buffer, size_t count) = 0;
 
-    virtual size_t      Seek(StreamSeek seek, int pos) = 0;
-};
+            virtual size_t      Seek(StreamSeek seek, int pos) = 0;
+        };
 
-} // namespace Common
+    } // namespace Common
 } // namespace AGS
 
 #endif // __AGS_CN_API__IAGSSTREAM_H

@@ -67,7 +67,7 @@ namespace AGS.Editor
         public PropertyDescriptorCollection GetProperties(Attribute[] attributes)
         {
             List<PropertyDescriptor> descriptors = new List<PropertyDescriptor>();
-            foreach (CustomPropertySchemaItem item in _schema.PropertyDefinitions) 
+            foreach (CustomPropertySchemaItem item in _schema.PropertyDefinitions)
             {
                 if (((_showPropertiesThatApplyTo == CustomPropertyAppliesTo.Characters) && (item.AppliesToCharacters)) ||
                     ((_showPropertiesThatApplyTo == CustomPropertyAppliesTo.Hotspots) && (item.AppliesToHotspots)) ||

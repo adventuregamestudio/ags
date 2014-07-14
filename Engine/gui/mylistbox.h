@@ -25,16 +25,16 @@
 #endif
 struct MyListBox:public NewControl
 {
-  int items, topitem, numonscreen, selected;
-  char *itemnames[MAXLISTITEM];
-  MyListBox(int xx, int yy, int wii, int hii);
-  void clearlist();
-  ~MyListBox();
+    int items, topitem, numonscreen, selected;
+    char *itemnames[MAXLISTITEM];
+    MyListBox(int xx, int yy, int wii, int hii);
+    void clearlist();
+    ~MyListBox();
 
-  void draw(Common::Bitmap *ds);
-  int pressedon();
-  void additem(char *texx);
-  int processmessage(int mcode, int wParam, long lParam);
+    void draw(Common::Bitmap *ds);
+    int pressedon();
+    void additem(char *texx);
+    int processmessage(int mcode, int wParam, long lParam);
 };
 #ifdef DJGPP
 #pragma warn +inl

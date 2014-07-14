@@ -37,7 +37,7 @@ namespace AGS.Editor
             return chosenView;
         }
 
-        private void AddFolderToTree(ViewFolder folder, TreeNodeCollection parentNodeList) 
+        private void AddFolderToTree(ViewFolder folder, TreeNodeCollection parentNodeList)
         {
             foreach (ViewFolder subFolder in folder.SubFolders)
             {

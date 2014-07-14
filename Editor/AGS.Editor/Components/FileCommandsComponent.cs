@@ -17,7 +17,7 @@ namespace AGS.Editor.Components
         private const string JUMP_TO_EVENTS_TAB_COMMAND = "JumpToEventsTab";
         private const string MAKE_TEMPLATE_COMMAND = "CreateTemplate";
         private const string AUTO_NUMBER_SPEECH_COMMAND = "AutoNumberSpeech";
-		private const string CREATE_VOICE_ACTING_SCRIPT_COMMAND = "CreateVoiceActingScript";
+        private const string CREATE_VOICE_ACTING_SCRIPT_COMMAND = "CreateVoiceActingScript";
         private const string REMOVE_GLOBAL_MESSAGES_COMMAND = "RemoveGlobalMessages";
         private const string SHOW_PREFERENCES_COMMAND = "ShowPreferences";
         private const string EXIT_COMMAND = "Exit";
@@ -51,20 +51,20 @@ namespace AGS.Editor.Components
             commands.Commands.Add(new MenuCommand(JUMP_TO_EVENTS_TAB_COMMAND, "&Go to Events grid", Keys.F4, "MenuIconGoToEventsGrid"));
             _guiController.AddMenuItems(this, commands);
 
-			commands = new MenuCommands(GUIController.FILE_MENU_ID, 100);
-			commands.Commands.Add(new MenuCommand(MAKE_TEMPLATE_COMMAND, "&Make template from this game...", "MenuIconMakeTemplate"));
+            commands = new MenuCommands(GUIController.FILE_MENU_ID, 100);
+            commands.Commands.Add(new MenuCommand(MAKE_TEMPLATE_COMMAND, "&Make template from this game...", "MenuIconMakeTemplate"));
             commands.Commands.Add(new MenuCommand(AUTO_NUMBER_SPEECH_COMMAND, "&Auto-number speech lines...", "MenuIconAutoNumber"));
-			commands.Commands.Add(new MenuCommand(CREATE_VOICE_ACTING_SCRIPT_COMMAND, "Create &voice acting script...", "MenuIconVoiceActingScript"));
+            commands.Commands.Add(new MenuCommand(CREATE_VOICE_ACTING_SCRIPT_COMMAND, "Create &voice acting script...", "MenuIconVoiceActingScript"));
             commands.Commands.Add(new MenuCommand(REMOVE_GLOBAL_MESSAGES_COMMAND, "&Remove Global Messages"));
             _guiController.AddMenuItems(this, commands);
 
-			commands = new MenuCommands(GUIController.FILE_MENU_ID, 400);
-			commands.Commands.Add(new MenuCommand(SHOW_PREFERENCES_COMMAND, "&Preferences...", "MenuIconPreferences"));
-			_guiController.AddMenuItems(this, commands);
+            commands = new MenuCommands(GUIController.FILE_MENU_ID, 400);
+            commands.Commands.Add(new MenuCommand(SHOW_PREFERENCES_COMMAND, "&Preferences...", "MenuIconPreferences"));
+            _guiController.AddMenuItems(this, commands);
 
-			commands = new MenuCommands(GUIController.FILE_MENU_ID, 9999);
-			commands.Commands.Add(new MenuCommand(EXIT_COMMAND, "E&xit", Keys.Control | Keys.Q, "MenuIconExit"));
-			_guiController.AddMenuItems(this, commands);
+            commands = new MenuCommands(GUIController.FILE_MENU_ID, 9999);
+            commands.Commands.Add(new MenuCommand(EXIT_COMMAND, "E&xit", Keys.Control | Keys.Q, "MenuIconExit"));
+            _guiController.AddMenuItems(this, commands);
 
             MenuCommand openIcon = new MenuCommand(OPEN_GAME_COMMAND, "Open game (Ctrl+L)", "OpenIcon");
             MenuCommand saveIcon = new MenuCommand(SAVE_GAME_COMMAND, "Save game (Ctrl+S)", "SaveIcon");
@@ -82,10 +82,10 @@ namespace AGS.Editor.Components
         {
             if (controlID == OPEN_GAME_COMMAND)
             {
-				if (_guiController.QueryWhetherToSaveGameBeforeContinuing("Do you want to save the current game before loading a different one?"))
-				{
-					_guiController.InteractiveTasks.BrowseForAndLoadGame();
-				}
+                if (_guiController.QueryWhetherToSaveGameBeforeContinuing("Do you want to save the current game before loading a different one?"))
+                {
+                    _guiController.InteractiveTasks.BrowseForAndLoadGame();
+                }
             }
             else if (controlID == SAVE_GAME_COMMAND)
             {

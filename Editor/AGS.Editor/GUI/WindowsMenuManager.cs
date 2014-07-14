@@ -27,7 +27,7 @@ namespace AGS.Editor
             {
                 ToolStripMenuItem menuItem = new ToolStripMenuItem(dockContent.Text);
                 menuItem.CheckOnClick = true;
-                UpdateMenuItemChecked(menuItem, dockContent);  
+                UpdateMenuItemChecked(menuItem, dockContent);
                 menuItem.Tag = dockContent;
                 menuItem.CheckedChanged += StartupWindow_CheckedChanged;
                 dockContent.DockStateChanged += StartupWindow_DockStateChanged;
@@ -42,7 +42,7 @@ namespace AGS.Editor
             if (dockContent != null)
             {
                 ToolStripMenuItem menuItem = GetMenuItem(dockContent);
-                UpdateMenuItemChecked(menuItem, dockContent);                
+                UpdateMenuItemChecked(menuItem, dockContent);
             }
         }
 
@@ -53,7 +53,7 @@ namespace AGS.Editor
                 menuItem.Checked = (dockContent.DockState != DockState.Hidden);
             }
         }
-        
+
         private ToolStripMenuItem GetMenuItem(DockContent dockContent)
         {
             foreach (ToolStripItem item in _windowsMenu.DropDownItems)

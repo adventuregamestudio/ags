@@ -18,21 +18,21 @@
 
 namespace AGS
 {
-namespace Common
-{
+    namespace Common
+    {
 
 
-class BaseMutex
-{
-public:
-  BaseMutex() = 0;
-  virtual ~BaseMutex() = 0;
-  virtual void Lock() = 0;
-  virtual void Unlock() = 0;
-};
+        class BaseMutex
+        {
+        public:
+            BaseMutex() = 0;
+            virtual ~BaseMutex() = 0;
+            virtual void Lock() = 0;
+            virtual void Unlock() = 0;
+        };
 
 
-} // namespace Common
+    } // namespace Common
 } // namespace AGS
 
 #endif // __AGS_EE_PLATFORM__MUTEX_BASE_H

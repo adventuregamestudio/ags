@@ -39,8 +39,8 @@ typedef float D3DVALUE, *LPD3DVALUE;
 // *** Workarounds to get this to work in VC 6
 #undef DEFINE_GUID
 #define DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
-        EXTERN_C const GUID name \
-                = { l, w1, w2, { b1, b2,  b3,  b4,  b5,  b6,  b7,  b8 } }
+    EXTERN_C const GUID name \
+    = { l, w1, w2, { b1, b2,  b3,  b4,  b5,  b6,  b7,  b8 } }
 DEFINE_GUID(IID_IVMRAspectRatioControl9,0xd96c29,0xbbde,0x4efc,0x99,0x1,0xbb,0x50,0x36,0x39,0x21,0x46);
 DEFINE_GUID(IID_IVMRDeinterlaceControl9,0xa215fb8d,0x13c2,0x4f7f,0x99,0x3c,0,0x3d,0x62,0x71,0xa4,0x59);
 DEFINE_GUID(IID_IVMRFilterConfig9,0x5a804648,0x4f66,0x4867,0x9c,0x43,0x4f,0x5c,0x82,0x2c,0xf1,0xb8);
@@ -63,30 +63,30 @@ GUID CLSID_VideoMixingRenderer9  = {0x51b4abf3, 0x748f, 0x4e3b, 0xa2,
 #endif // VS2005
 
 #ifndef _DEBUG
-	#define USES_CONVERSION int _convert; _convert; UINT _acp = CP_ACP; _acp; LPCWSTR _lpw; _lpw; LPCSTR _lpa; _lpa
+#define USES_CONVERSION int _convert; _convert; UINT _acp = CP_ACP; _acp; LPCWSTR _lpw; _lpw; LPCSTR _lpa; _lpa
 #else
-	#define USES_CONVERSION int _convert = 0; _convert; UINT _acp = CP_ACP; _acp; LPCWSTR _lpw = NULL; _lpw; LPCSTR _lpa = NULL; _lpa
+#define USES_CONVERSION int _convert = 0; _convert; UINT _acp = CP_ACP; _acp; LPCWSTR _lpw = NULL; _lpw; LPCSTR _lpa = NULL; _lpa
 #endif
 
 inline LPWSTR WINAPI AtlA2WHelper(LPWSTR lpw, LPCSTR lpa, int nChars, UINT acp)
 {
-	// verify that no illegal character present
-	// since lpw was allocated based on the size of lpa
-	// don't worry about the number of chars
-	lpw[0] = '\0';
-	MultiByteToWideChar(acp, 0, lpa, -1, lpw, nChars);
-	return lpw;
+    // verify that no illegal character present
+    // since lpw was allocated based on the size of lpa
+    // don't worry about the number of chars
+    lpw[0] = '\0';
+    MultiByteToWideChar(acp, 0, lpa, -1, lpw, nChars);
+    return lpw;
 }
 inline LPWSTR WINAPI AtlA2WHelper(LPWSTR lpw, LPCSTR lpa, int nChars)
 {
-	return AtlA2WHelper(lpw, lpa, nChars, CP_ACP);
+    return AtlA2WHelper(lpw, lpa, nChars, CP_ACP);
 }
 #define ATLA2WHELPER AtlA2WHelper
 
-	#define A2W(lpa) (\
-		((_lpa = lpa) == NULL) ? NULL : (\
-			_convert = (lstrlenA(_lpa)+1),\
-			ATLA2WHELPER((LPWSTR) alloca(_convert*2), _lpa, _convert)))
+#define A2W(lpa) (\
+    ((_lpa = lpa) == NULL) ? NULL : (\
+    _convert = (lstrlenA(_lpa)+1),\
+    ATLA2WHELPER((LPWSTR) alloca(_convert*2), _lpa, _convert)))
 
 
 // Interface from main game
@@ -103,72 +103,72 @@ CVMR9Graph *graph = NULL;
 
 void dxmedia_shutdown_3d()
 {
-  if (graph != NULL)
-  {
-    delete graph;
-    graph = NULL;
-  }
+    if (graph != NULL)
+    {
+        delete graph;
+        graph = NULL;
+    }
 }
 
 int dxmedia_play_video_3d(const char* filename, IDirect3DDevice9 *device, bool useAVISound, int canskip, int stretch) 
 {
-  HWND gameWindow = win_get_window();
+    HWND gameWindow = win_get_window();
 
-  if (graph == NULL)
-  {
-    graph = new CVMR9Graph(gameWindow, device);
-  }
-
-  if (!useAVISound)
-    update_polled_audio_and_crossfade();
-
-  if (!graph->SetMediaFile(filename, useAVISound))
-  {
-    dxmedia_shutdown_3d();
-    return -1;
-  }
-  graph->SetLayerZOrder(0, 0);
-
-  if (!useAVISound)
-    update_polled_audio_and_crossfade();
-
-  if (!graph->PlayGraph())
-  {
-    dxmedia_shutdown_3d();
-    return -1;
-  }
-
-  OAFilterState filterState = State_Running;
-  while ((filterState != State_Stopped) && (!want_exit))
-  {
-    while (timerloop == 0)
-      platform->Delay(1);
-    timerloop = 0;
+    if (graph == NULL)
+    {
+        graph = new CVMR9Graph(gameWindow, device);
+    }
 
     if (!useAVISound)
-      update_polled_audio_and_crossfade();
+        update_polled_audio_and_crossfade();
 
-    NextIteration();
-    filterState = graph->GetState();
-
-    if (rec_kbhit()) {
-      int key = rec_getch();
-      
-      if ((canskip == 1) && (key == 27))
-        break;
-      if (canskip >= 2)
-        break;
+    if (!graph->SetMediaFile(filename, useAVISound))
+    {
+        dxmedia_shutdown_3d();
+        return -1;
     }
-    if ((rec_mgetbutton() >= 0) && (canskip == 3))
-      break;
+    graph->SetLayerZOrder(0, 0);
 
-    //device->Present(NULL, NULL, 0, NULL);
-	}
+    if (!useAVISound)
+        update_polled_audio_and_crossfade();
 
-  graph->StopGraph();
+    if (!graph->PlayGraph())
+    {
+        dxmedia_shutdown_3d();
+        return -1;
+    }
 
-  dxmedia_shutdown_3d();
-  return 0;
+    OAFilterState filterState = State_Running;
+    while ((filterState != State_Stopped) && (!want_exit))
+    {
+        while (timerloop == 0)
+            platform->Delay(1);
+        timerloop = 0;
+
+        if (!useAVISound)
+            update_polled_audio_and_crossfade();
+
+        NextIteration();
+        filterState = graph->GetState();
+
+        if (rec_kbhit()) {
+            int key = rec_getch();
+
+            if ((canskip == 1) && (key == 27))
+                break;
+            if (canskip >= 2)
+                break;
+        }
+        if ((rec_mgetbutton() >= 0) && (canskip == 3))
+            break;
+
+        //device->Present(NULL, NULL, 0, NULL);
+    }
+
+    graph->StopGraph();
+
+    dxmedia_shutdown_3d();
+    return 0;
 }
 
 
@@ -194,7 +194,7 @@ static char THIS_FILE[]=__FILE__;
 // Return type		: 
 CVMR9Graph::CVMR9Graph()
 {
-	InitDefaultValues();
+    InitDefaultValues();
 }
 
 
@@ -205,19 +205,19 @@ CVMR9Graph::CVMR9Graph()
 // Argument         : int NumberOfStream
 CVMR9Graph::CVMR9Graph(HWND MediaWindow, IDirect3DDevice9 *device, int NumberOfStream)
 {
-	InitDefaultValues();
-	
-	if (MediaWindow != NULL) 
-  {
-		m_hMediaWindow = MediaWindow;
-	}
+    InitDefaultValues();
 
-	if (NumberOfStream > 0 && NumberOfStream < 11) {
-		m_nNumberOfStream = NumberOfStream;
-	}
+    if (MediaWindow != NULL) 
+    {
+        m_hMediaWindow = MediaWindow;
+    }
 
-  //m_pD3DDevice = device;
-  m_oldWndProc = GetWindowLong(m_hMediaWindow, GWL_WNDPROC);
+    if (NumberOfStream > 0 && NumberOfStream < 11) {
+        m_nNumberOfStream = NumberOfStream;
+    }
+
+    //m_pD3DDevice = device;
+    m_oldWndProc = GetWindowLong(m_hMediaWindow, GWL_WNDPROC);
 }
 
 // Function name	: CVMR9Graph::~CVMR9Graph
@@ -225,8 +225,8 @@ CVMR9Graph::CVMR9Graph(HWND MediaWindow, IDirect3DDevice9 *device, int NumberOfS
 // Return type		: 
 CVMR9Graph::~CVMR9Graph()
 {
-	ReleaseAllInterfaces();
-  long newProc = GetWindowLong(m_hMediaWindow, GWL_WNDPROC);
+    ReleaseAllInterfaces();
+    long newProc = GetWindowLong(m_hMediaWindow, GWL_WNDPROC);
 }
 
 
@@ -235,34 +235,34 @@ CVMR9Graph::~CVMR9Graph()
 // Return type		: void 
 void CVMR9Graph::InitDefaultValues()
 {
-	ZeroMemory(m_pszErrorDescription, 1024);
-	m_dwRotId				= -1;
-	m_nNumberOfStream		= 4;		// default VMR9 config
-	m_hMediaWindow			= NULL;
-	// SRC interfaces
-	for (int i=0; i<10; i++) {
-		m_srcFilterArray[i] = NULL;
-	}
-	// SOUND interface
-	m_pDirectSoundFilter	= NULL;
-	// GRAPH interfaces
-	m_pGraphUnknown			= NULL;
-	m_pGraphBuilder			= NULL;
-	m_pFilterGraph			= NULL;
-	m_pFilterGraph2			= NULL;
-	m_pMediaControl			= NULL;
-  m_pMediaSeeking = NULL;
-	//m_pMediaEvent			= NULL;
-	m_pMediaEventEx			= NULL;
-	// VMR9 interfaces
-	m_pVMRBaseFilter		= NULL;
-	m_pVMRFilterConfig		= NULL;
-	m_pVMRMixerBitmap		= NULL;
-	m_pVMRMixerControl		= NULL;
-	m_pVMRMonitorConfig		= NULL;
-	m_pVMRWindowlessControl	= NULL;
-	// DIRECT3D interfaces
-	m_pD3DSurface			= NULL;
+    ZeroMemory(m_pszErrorDescription, 1024);
+    m_dwRotId				= -1;
+    m_nNumberOfStream		= 4;		// default VMR9 config
+    m_hMediaWindow			= NULL;
+    // SRC interfaces
+    for (int i=0; i<10; i++) {
+        m_srcFilterArray[i] = NULL;
+    }
+    // SOUND interface
+    m_pDirectSoundFilter	= NULL;
+    // GRAPH interfaces
+    m_pGraphUnknown			= NULL;
+    m_pGraphBuilder			= NULL;
+    m_pFilterGraph			= NULL;
+    m_pFilterGraph2			= NULL;
+    m_pMediaControl			= NULL;
+    m_pMediaSeeking = NULL;
+    //m_pMediaEvent			= NULL;
+    m_pMediaEventEx			= NULL;
+    // VMR9 interfaces
+    m_pVMRBaseFilter		= NULL;
+    m_pVMRFilterConfig		= NULL;
+    m_pVMRMixerBitmap		= NULL;
+    m_pVMRMixerControl		= NULL;
+    m_pVMRMonitorConfig		= NULL;
+    m_pVMRWindowlessControl	= NULL;
+    // DIRECT3D interfaces
+    m_pD3DSurface			= NULL;
 }
 
 // Function name	: CVMR9Graph::ReleaseAllInterfaces
@@ -270,86 +270,86 @@ void CVMR9Graph::InitDefaultValues()
 // Return type		: void 
 void CVMR9Graph::ReleaseAllInterfaces()
 {
-	// CALLBACK handle
-	/*if (m_pMediaEventEx != NULL) {
-		m_pMediaEventEx->SetNotifyWindow(NULL, WM_MEDIA_NOTIF, NULL);
-	}*/
-	// SRC interfaces
-	for (int i=0; i<10; i++) {
-		IBaseFilter* pSrcFilter = m_srcFilterArray[i];
-		if (pSrcFilter != NULL) {
-			pSrcFilter->Release();
-			m_srcFilterArray[i] = NULL;
-		}
-	}
-	// SOUND interfaces
-	if (m_pDirectSoundFilter != NULL) {
-		m_pDirectSoundFilter->Release();
-		m_pDirectSoundFilter = NULL;
-	}
-	// VMR9 interfaces
-	if (m_pVMRFilterConfig != NULL) {
-		m_pVMRFilterConfig->Release();
-		m_pVMRFilterConfig = NULL;
-	}
-	if (m_pVMRMixerBitmap != NULL) {
-		m_pVMRMixerBitmap->Release();
-		m_pVMRMixerBitmap = NULL;
-	}
-	if (m_pVMRMixerControl != NULL) {
-		m_pVMRMixerControl->Release();
-		m_pVMRMixerControl = NULL;
-	}
-	if (m_pVMRMonitorConfig != NULL) {
-		m_pVMRMonitorConfig->Release();
-		m_pVMRMonitorConfig = NULL;
-	}
-	if (m_pVMRWindowlessControl != NULL) {
-		m_pVMRWindowlessControl->Release();
-		m_pVMRWindowlessControl = NULL;
-	}
-	if (m_pVMRBaseFilter != NULL) {
-		m_pVMRBaseFilter->Release();
-		m_pVMRBaseFilter = NULL;
-	}
-	// GRAPH interfaces
-	if (m_pGraphBuilder != NULL) {
-		m_pGraphBuilder->Release();
-		m_pGraphBuilder = NULL;
-	}
-	if (m_pFilterGraph != NULL) {
-		m_pFilterGraph->Release();
-		m_pFilterGraph = NULL;
-	}
-	if (m_pFilterGraph2 != NULL) {
-		m_pFilterGraph2->Release();
-		m_pFilterGraph2 = NULL;
-	}
-	if (m_pMediaControl != NULL) {
-		m_pMediaControl->Release();
-		m_pMediaControl = NULL;
-	}
-  if (m_pMediaSeeking!= NULL) {
-		m_pMediaSeeking->Release();
-		m_pMediaSeeking = NULL;
-	}
-	/*if (m_pMediaEvent != NULL) {
-		m_pMediaEvent->Release();
-		m_pMediaEvent = NULL;
-	}*/
-	/*if (m_pMediaEventEx != NULL) {
-		m_pMediaEventEx->Release();
-		m_pMediaEventEx = NULL;
-	}*/
-	if (m_pGraphUnknown != NULL) {
-		m_pGraphUnknown->Release();
-		m_pGraphUnknown = NULL;
-	}
-	// DIRECT3D interfaces
-	if (m_pD3DSurface != NULL) {
-		m_pD3DSurface->Release();
-		m_pD3DSurface = NULL;
-	}
+    // CALLBACK handle
+    /*if (m_pMediaEventEx != NULL) {
+    m_pMediaEventEx->SetNotifyWindow(NULL, WM_MEDIA_NOTIF, NULL);
+    }*/
+    // SRC interfaces
+    for (int i=0; i<10; i++) {
+        IBaseFilter* pSrcFilter = m_srcFilterArray[i];
+        if (pSrcFilter != NULL) {
+            pSrcFilter->Release();
+            m_srcFilterArray[i] = NULL;
+        }
+    }
+    // SOUND interfaces
+    if (m_pDirectSoundFilter != NULL) {
+        m_pDirectSoundFilter->Release();
+        m_pDirectSoundFilter = NULL;
+    }
+    // VMR9 interfaces
+    if (m_pVMRFilterConfig != NULL) {
+        m_pVMRFilterConfig->Release();
+        m_pVMRFilterConfig = NULL;
+    }
+    if (m_pVMRMixerBitmap != NULL) {
+        m_pVMRMixerBitmap->Release();
+        m_pVMRMixerBitmap = NULL;
+    }
+    if (m_pVMRMixerControl != NULL) {
+        m_pVMRMixerControl->Release();
+        m_pVMRMixerControl = NULL;
+    }
+    if (m_pVMRMonitorConfig != NULL) {
+        m_pVMRMonitorConfig->Release();
+        m_pVMRMonitorConfig = NULL;
+    }
+    if (m_pVMRWindowlessControl != NULL) {
+        m_pVMRWindowlessControl->Release();
+        m_pVMRWindowlessControl = NULL;
+    }
+    if (m_pVMRBaseFilter != NULL) {
+        m_pVMRBaseFilter->Release();
+        m_pVMRBaseFilter = NULL;
+    }
+    // GRAPH interfaces
+    if (m_pGraphBuilder != NULL) {
+        m_pGraphBuilder->Release();
+        m_pGraphBuilder = NULL;
+    }
+    if (m_pFilterGraph != NULL) {
+        m_pFilterGraph->Release();
+        m_pFilterGraph = NULL;
+    }
+    if (m_pFilterGraph2 != NULL) {
+        m_pFilterGraph2->Release();
+        m_pFilterGraph2 = NULL;
+    }
+    if (m_pMediaControl != NULL) {
+        m_pMediaControl->Release();
+        m_pMediaControl = NULL;
+    }
+    if (m_pMediaSeeking!= NULL) {
+        m_pMediaSeeking->Release();
+        m_pMediaSeeking = NULL;
+    }
+    /*if (m_pMediaEvent != NULL) {
+    m_pMediaEvent->Release();
+    m_pMediaEvent = NULL;
+    }*/
+    /*if (m_pMediaEventEx != NULL) {
+    m_pMediaEventEx->Release();
+    m_pMediaEventEx = NULL;
+    }*/
+    if (m_pGraphUnknown != NULL) {
+        m_pGraphUnknown->Release();
+        m_pGraphUnknown = NULL;
+    }
+    // DIRECT3D interfaces
+    if (m_pD3DSurface != NULL) {
+        m_pD3DSurface->Release();
+        m_pD3DSurface = NULL;
+    }
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -362,7 +362,7 @@ void CVMR9Graph::ReleaseAllInterfaces()
 // Return type		: LPCTSTR 
 LPCTSTR CVMR9Graph::GetLastError()
 {
-	return (const char*)m_pszErrorDescription;
+    return (const char*)m_pszErrorDescription;
 }
 
 
@@ -373,9 +373,9 @@ LPCTSTR CVMR9Graph::GetLastError()
 // Argument         : DWORD *pdwRegister
 HRESULT CVMR9Graph::AddToRot(IUnknown *pUnkGraph) 
 {
-	if (pUnkGraph == NULL) {
-		return E_INVALIDARG;
-	}
+    if (pUnkGraph == NULL) {
+        return E_INVALIDARG;
+    }
 
     IMoniker * pMoniker;
     IRunningObjectTable *pROT;
@@ -400,14 +400,14 @@ HRESULT CVMR9Graph::AddToRot(IUnknown *pUnkGraph)
 // Return type		: void 
 void CVMR9Graph::RemoveFromRot()
 {
-	if (m_dwRotId != -1) {
-		IRunningObjectTable *pROT;
-		if (SUCCEEDED(GetRunningObjectTable(0, &pROT))) {
-			pROT->Revoke(m_dwRotId);
-			m_dwRotId = -1;
-			pROT->Release();
-		}
-	}
+    if (m_dwRotId != -1) {
+        IRunningObjectTable *pROT;
+        if (SUCCEEDED(GetRunningObjectTable(0, &pROT))) {
+            pROT->Revoke(m_dwRotId);
+            m_dwRotId = -1;
+            pROT->Release();
+        }
+    }
 }
 
 
@@ -435,8 +435,8 @@ IPin* CVMR9Graph::GetPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir)
             }
             else  // Unconnected, this is the pin we want.
             {
-              bFound = true;
-              break;
+                bFound = true;
+                break;
             }
         }
         pPin->Release();
@@ -454,15 +454,15 @@ IPin* CVMR9Graph::GetPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir)
 // Argument         : HRESULT hrCode
 void CVMR9Graph::ReportError(const char* pszError, HRESULT hrCode)
 {
-	TCHAR szErr[MAX_ERROR_TEXT_LEN];
-	DWORD res = AMGetErrorText(hrCode, szErr, MAX_ERROR_TEXT_LEN);
-	if (res != 0) {
- 		sprintf(m_pszErrorDescription, "[ERROR in %s, line %d] %s : COM Error 0x%x, %s", __FILE__, __LINE__, pszError, hrCode, szErr);
-	} else {
-		sprintf(m_pszErrorDescription, "[ERROR in %s, line %d] %s : COM Error 0x%x", __FILE__, __LINE__, pszError, hrCode);
-	}
-  strcpy(lastError, m_pszErrorDescription);
-	//TRACE("%s \r\n", m_pszErrorDescription);
+    TCHAR szErr[MAX_ERROR_TEXT_LEN];
+    DWORD res = AMGetErrorText(hrCode, szErr, MAX_ERROR_TEXT_LEN);
+    if (res != 0) {
+        sprintf(m_pszErrorDescription, "[ERROR in %s, line %d] %s : COM Error 0x%x, %s", __FILE__, __LINE__, pszError, hrCode, szErr);
+    } else {
+        sprintf(m_pszErrorDescription, "[ERROR in %s, line %d] %s : COM Error 0x%x", __FILE__, __LINE__, pszError, hrCode);
+    }
+    strcpy(lastError, m_pszErrorDescription);
+    //TRACE("%s \r\n", m_pszErrorDescription);
 }
 
 
@@ -527,19 +527,19 @@ HRESULT CVMR9Graph::GetNextFilter(IBaseFilter *pFilter, PIN_DIRECTION Dir, IBase
 // Argument         : IBaseFilter* pStopFilter
 BOOL CVMR9Graph::RemoveFilterChain(IBaseFilter* pFilter, IBaseFilter* pStopFilter)
 {
-	HRESULT hr;
+    HRESULT hr;
 
-	IBaseFilter* pFilterFound = NULL;
-	
-	hr = GetNextFilter(pFilter, PINDIR_OUTPUT, &pFilterFound);
-	if (SUCCEEDED(hr) && pFilterFound != pStopFilter) {
-		RemoveFilterChain(pFilterFound, pStopFilter);
-		pFilterFound->Release();
-	}
+    IBaseFilter* pFilterFound = NULL;
 
-	m_pFilterGraph->RemoveFilter(pFilter);
+    hr = GetNextFilter(pFilter, PINDIR_OUTPUT, &pFilterFound);
+    if (SUCCEEDED(hr) && pFilterFound != pStopFilter) {
+        RemoveFilterChain(pFilterFound, pStopFilter);
+        pFilterFound->Release();
+    }
 
-	return TRUE;
+    m_pFilterGraph->RemoveFilter(pFilter);
+
+    return TRUE;
 }
 
 
@@ -573,13 +573,13 @@ HRESULT CVMR9Graph::AddFilterByClsid(IGraphBuilder *pGraph, LPCWSTR wszName, con
 // Argument         : int nLayer
 BOOL CVMR9Graph::IsValidLayer(int nLayer)
 {
-	if (nLayer > 9 || nLayer < 0) return FALSE;
-	
-	IBaseFilter* pBaseFilter = m_srcFilterArray[nLayer];
-	if (pBaseFilter == NULL) 
-		return FALSE;
-	else
-		return TRUE;
+    if (nLayer > 9 || nLayer < 0) return FALSE;
+
+    IBaseFilter* pBaseFilter = m_srcFilterArray[nLayer];
+    if (pBaseFilter == NULL) 
+        return FALSE;
+    else
+        return TRUE;
 }
 
 
@@ -593,63 +593,63 @@ BOOL CVMR9Graph::IsValidLayer(int nLayer)
 // on the D3D thread
 static int wndproc_build_filter_graph()
 {
-  return graph->BuildAndRenderGraph(graph->UseAVISound);
+    return graph->BuildAndRenderGraph(graph->UseAVISound);
 }
 
 BOOL CVMR9Graph::BuildAndRenderGraph(bool withSound)
 {
-	USES_CONVERSION;
+    USES_CONVERSION;
 
-  int nLayer = 0;
-  HRESULT hr;
+    int nLayer = 0;
+    HRESULT hr;
 
-	// ENSURE that a valid graph builder is available
-	if (m_pGraphBuilder == NULL) {
-		BOOL bRet = BuildFilterGraph(withSound);
-		if (!bRet) return bRet;
-	}
+    // ENSURE that a valid graph builder is available
+    if (m_pGraphBuilder == NULL) {
+        BOOL bRet = BuildFilterGraph(withSound);
+        if (!bRet) return bRet;
+    }
 
-  // ENSURE that the filter graph is in a stop state
-	OAFilterState filterState;
-	m_pMediaControl->GetState(500, &filterState);
-	if (filterState != State_Stopped) {
-		m_pMediaControl->Stop();
-	}
+    // ENSURE that the filter graph is in a stop state
+    OAFilterState filterState;
+    m_pMediaControl->GetState(500, &filterState);
+    if (filterState != State_Stopped) {
+        m_pMediaControl->Stop();
+    }
 
-  	// CHECK a source filter availaibility for the layer
-	if (m_srcFilterArray[nLayer] == NULL) {
-		char pszFilterName[10];
-		sprintf(pszFilterName, "SRC%02d", nLayer);
-		IBaseFilter* pBaseFilter = NULL;
-		hr = m_pGraphBuilder->AddSourceFilter(A2W(m_pszFileName), A2W(pszFilterName), &pBaseFilter);
-		if (FAILED(hr)) {
-			ReportError("Could not find a source filter for this file", hr);
-			return FALSE;
-		}
-		m_srcFilterArray[nLayer] = pBaseFilter;
-	} else {
-		// suppress the old src filter
-		IBaseFilter* pBaseFilter = m_srcFilterArray[nLayer];
-		RemoveFilterChain(pBaseFilter, m_pVMRBaseFilter);
-		pBaseFilter->Release();
-		m_srcFilterArray[nLayer] = NULL;
-		// create a new src filter
-		char pszFilterName[10];
-		sprintf(pszFilterName, "SRC%02d", nLayer);
-		hr = m_pGraphBuilder->AddSourceFilter(A2W(m_pszFileName), A2W(pszFilterName), &pBaseFilter);
-		m_srcFilterArray[nLayer] = pBaseFilter;
-		if (FAILED(hr)) {
-			m_srcFilterArray[nLayer] = NULL;
-			ReportError("Could not load the file", hr);
-			return FALSE;
-		}
-	}
+    // CHECK a source filter availaibility for the layer
+    if (m_srcFilterArray[nLayer] == NULL) {
+        char pszFilterName[10];
+        sprintf(pszFilterName, "SRC%02d", nLayer);
+        IBaseFilter* pBaseFilter = NULL;
+        hr = m_pGraphBuilder->AddSourceFilter(A2W(m_pszFileName), A2W(pszFilterName), &pBaseFilter);
+        if (FAILED(hr)) {
+            ReportError("Could not find a source filter for this file", hr);
+            return FALSE;
+        }
+        m_srcFilterArray[nLayer] = pBaseFilter;
+    } else {
+        // suppress the old src filter
+        IBaseFilter* pBaseFilter = m_srcFilterArray[nLayer];
+        RemoveFilterChain(pBaseFilter, m_pVMRBaseFilter);
+        pBaseFilter->Release();
+        m_srcFilterArray[nLayer] = NULL;
+        // create a new src filter
+        char pszFilterName[10];
+        sprintf(pszFilterName, "SRC%02d", nLayer);
+        hr = m_pGraphBuilder->AddSourceFilter(A2W(m_pszFileName), A2W(pszFilterName), &pBaseFilter);
+        m_srcFilterArray[nLayer] = pBaseFilter;
+        if (FAILED(hr)) {
+            m_srcFilterArray[nLayer] = NULL;
+            ReportError("Could not load the file", hr);
+            return FALSE;
+        }
+    }
 
-	// RENDER the graph
-	BOOL bRet = RenderGraph();
-	if (!bRet) return bRet;
+    // RENDER the graph
+    BOOL bRet = RenderGraph();
+    if (!bRet) return bRet;
 
-  return TRUE;
+    return TRUE;
 }
 
 // Function name	: CVMR9Graph::SetMediaFile
@@ -660,19 +660,19 @@ BOOL CVMR9Graph::BuildAndRenderGraph(bool withSound)
 BOOL CVMR9Graph::SetMediaFile(const char* pszFileName, bool withSound, int nLayer)
 {
 
-	if (pszFileName == NULL) {
-		ReportError("Could not load a file with an empty file name", E_INVALIDARG);
-		return FALSE;
-	}
+    if (pszFileName == NULL) {
+        ReportError("Could not load a file with an empty file name", E_INVALIDARG);
+        return FALSE;
+    }
 
-  UseAVISound = withSound;
-  m_pszFileName = pszFileName;
+    UseAVISound = withSound;
+    m_pszFileName = pszFileName;
 
-  if (!wnd_call_proc(wndproc_build_filter_graph))
-    return FALSE;
+    if (!wnd_call_proc(wndproc_build_filter_graph))
+        return FALSE;
 
 
-	return TRUE;
+    return TRUE;
 }
 
 // Function name	: CVMR9Graph::BuildFilterGraph
@@ -680,40 +680,40 @@ BOOL CVMR9Graph::SetMediaFile(const char* pszFileName, bool withSound, int nLaye
 // Return type		: BOOL 
 BOOL CVMR9Graph::BuildFilterGraph(bool withSound)
 {
-	HRESULT hr;
+    HRESULT hr;
 
-	ReleaseAllInterfaces();
-	RemoveFromRot();
-	
-	// BUILD the filter graph
-	hr = CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC, IID_IUnknown, (void**) &m_pGraphUnknown);
-	if (FAILED(hr)) {
-		ReportError("Could not build the graph", hr);
-		return FALSE;
-	}
-	// QUERY the filter graph interfaces
-	hr = m_pGraphUnknown->QueryInterface(IID_IGraphBuilder, (void**) &m_pGraphBuilder);
-	hr = m_pGraphUnknown->QueryInterface(IID_IFilterGraph, (void**) &m_pFilterGraph);
-	hr = m_pGraphUnknown->QueryInterface(IID_IFilterGraph2, (void**) &m_pFilterGraph2);
-	hr = m_pGraphUnknown->QueryInterface(IID_IMediaControl, (void**) & m_pMediaControl);
-  hr = m_pGraphUnknown->QueryInterface(IID_IMediaSeeking, (void**) & m_pMediaSeeking);
-	//hr = m_pGraphUnknown->QueryInterface(IID_IMediaEvent, (void**) &m_pMediaEvent);
-	//hr = m_pGraphUnknown->QueryInterface(IID_IMediaEventEx, (void**) &m_pMediaEventEx);
+    ReleaseAllInterfaces();
+    RemoveFromRot();
 
-/*	// SET the graph state window callback
-	if (m_pMediaEventEx != NULL) {
-		m_pMediaEventEx->SetNotifyWindow((OAHWND)m_hMediaWindow, WM_MEDIA_NOTIF, NULL);
+    // BUILD the filter graph
+    hr = CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC, IID_IUnknown, (void**) &m_pGraphUnknown);
+    if (FAILED(hr)) {
+        ReportError("Could not build the graph", hr);
+        return FALSE;
+    }
+    // QUERY the filter graph interfaces
+    hr = m_pGraphUnknown->QueryInterface(IID_IGraphBuilder, (void**) &m_pGraphBuilder);
+    hr = m_pGraphUnknown->QueryInterface(IID_IFilterGraph, (void**) &m_pFilterGraph);
+    hr = m_pGraphUnknown->QueryInterface(IID_IFilterGraph2, (void**) &m_pFilterGraph2);
+    hr = m_pGraphUnknown->QueryInterface(IID_IMediaControl, (void**) & m_pMediaControl);
+    hr = m_pGraphUnknown->QueryInterface(IID_IMediaSeeking, (void**) & m_pMediaSeeking);
+    //hr = m_pGraphUnknown->QueryInterface(IID_IMediaEvent, (void**) &m_pMediaEvent);
+    //hr = m_pGraphUnknown->QueryInterface(IID_IMediaEventEx, (void**) &m_pMediaEventEx);
+
+    /*	// SET the graph state window callback
+    if (m_pMediaEventEx != NULL) {
+    m_pMediaEventEx->SetNotifyWindow((OAHWND)m_hMediaWindow, WM_MEDIA_NOTIF, NULL);
     //m_pMediaEventEx->SetNotifyWindow(NULL, NULL, NULL);
-	}*/
+    }*/
 
-  if (withSound)
-	  BuildSoundRenderer();
+    if (withSound)
+        BuildSoundRenderer();
 
-// Don't known what's wrong... but RenderEx crash when playing whith graphedit build 021204 ...
-  //do we need this??
-	//AddToRot(m_pGraphUnknown);
+    // Don't known what's wrong... but RenderEx crash when playing whith graphedit build 021204 ...
+    //do we need this??
+    //AddToRot(m_pGraphUnknown);
 
-	return BuildVMR();
+    return BuildVMR();
 }
 
 
@@ -722,56 +722,56 @@ BOOL CVMR9Graph::BuildFilterGraph(bool withSound)
 // Return type		: BOOL 
 BOOL CVMR9Graph::BuildVMR()
 {
-	HRESULT hr;
+    HRESULT hr;
 
-	if (m_hMediaWindow == NULL) {
-		ReportError("Could not operate without a Window", E_FAIL);
-		return FALSE;
-	}
+    if (m_hMediaWindow == NULL) {
+        ReportError("Could not operate without a Window", E_FAIL);
+        return FALSE;
+    }
 
-	if (m_pGraphBuilder == NULL) {
-		ReportError("Could not build the VMR, the graph isn't valid", E_FAIL);
-		return FALSE;
-	}
+    if (m_pGraphBuilder == NULL) {
+        ReportError("Could not build the VMR, the graph isn't valid", E_FAIL);
+        return FALSE;
+    }
 
-	// BUILD the VMR9
-	IBaseFilter *pVmr = NULL;
-	hr = CoCreateInstance(CLSID_VideoMixingRenderer9, 0, CLSCTX_INPROC_SERVER, IID_IBaseFilter, (void**) &m_pVMRBaseFilter);
-	if (FAILED(hr)) {
-		ReportError("Could not create an instance ofthe VMR9", hr);
-		return FALSE;
-	}
+    // BUILD the VMR9
+    IBaseFilter *pVmr = NULL;
+    hr = CoCreateInstance(CLSID_VideoMixingRenderer9, 0, CLSCTX_INPROC_SERVER, IID_IBaseFilter, (void**) &m_pVMRBaseFilter);
+    if (FAILED(hr)) {
+        ReportError("Could not create an instance ofthe VMR9", hr);
+        return FALSE;
+    }
 
-	// ADD the VMR9 to the graph
-	hr = m_pGraphBuilder->AddFilter(m_pVMRBaseFilter, L"VMR9");
-	if (FAILED(hr)) {
-		ReportError("Could not add the VMR9 to the Graph", hr);
-		return FALSE;
-	}
+    // ADD the VMR9 to the graph
+    hr = m_pGraphBuilder->AddFilter(m_pVMRBaseFilter, L"VMR9");
+    if (FAILED(hr)) {
+        ReportError("Could not add the VMR9 to the Graph", hr);
+        return FALSE;
+    }
 
-	// DIRECT3D
-	//BOOL bD3D = BuildDirect3d();
+    // DIRECT3D
+    //BOOL bD3D = BuildDirect3d();
 
-	// QUERY the VMR9 interfaces
-	hr = m_pVMRBaseFilter->QueryInterface(IID_IVMRFilterConfig9, (void**) &m_pVMRFilterConfig);
-	if (SUCCEEDED(hr)) {
-		// CONFIGURE the VMR9
-		m_pVMRFilterConfig->SetRenderingMode(VMR9Mode_Windowless);
-		m_pVMRFilterConfig->SetNumberOfStreams(m_nNumberOfStream);
-	}
+    // QUERY the VMR9 interfaces
+    hr = m_pVMRBaseFilter->QueryInterface(IID_IVMRFilterConfig9, (void**) &m_pVMRFilterConfig);
+    if (SUCCEEDED(hr)) {
+        // CONFIGURE the VMR9
+        m_pVMRFilterConfig->SetRenderingMode(VMR9Mode_Windowless);
+        m_pVMRFilterConfig->SetNumberOfStreams(m_nNumberOfStream);
+    }
 
-	hr = m_pVMRBaseFilter->QueryInterface(IID_IVMRWindowlessControl9, (void**) &m_pVMRWindowlessControl);
-	if (SUCCEEDED(hr)) {
-		// CONFIGURE the VMR9
-		m_pVMRWindowlessControl->SetVideoClippingWindow(m_hMediaWindow);
-		m_pVMRWindowlessControl->SetAspectRatioMode(VMR9ARMode_LetterBox);
-	}
+    hr = m_pVMRBaseFilter->QueryInterface(IID_IVMRWindowlessControl9, (void**) &m_pVMRWindowlessControl);
+    if (SUCCEEDED(hr)) {
+        // CONFIGURE the VMR9
+        m_pVMRWindowlessControl->SetVideoClippingWindow(m_hMediaWindow);
+        m_pVMRWindowlessControl->SetAspectRatioMode(VMR9ARMode_LetterBox);
+    }
 
-	hr = m_pVMRBaseFilter->QueryInterface(IID_IVMRMixerBitmap9, (void**) &m_pVMRMixerBitmap);
-	hr = m_pVMRBaseFilter->QueryInterface(IID_IVMRMixerControl9, (void**) &m_pVMRMixerControl);
-	hr = m_pVMRBaseFilter->QueryInterface(IID_IVMRMonitorConfig9, (void**) &m_pVMRMonitorConfig);
+    hr = m_pVMRBaseFilter->QueryInterface(IID_IVMRMixerBitmap9, (void**) &m_pVMRMixerBitmap);
+    hr = m_pVMRBaseFilter->QueryInterface(IID_IVMRMixerControl9, (void**) &m_pVMRMixerControl);
+    hr = m_pVMRBaseFilter->QueryInterface(IID_IVMRMonitorConfig9, (void**) &m_pVMRMonitorConfig);
 
-	return TRUE;
+    return TRUE;
 }
 
 
@@ -780,14 +780,14 @@ BOOL CVMR9Graph::BuildVMR()
 // Return type		: BOOL 
 BOOL CVMR9Graph::BuildSoundRenderer()
 {
-	HRESULT hr;
+    HRESULT hr;
 
-	hr = AddFilterByClsid(m_pGraphBuilder, L"DirectSound", CLSID_DSoundRender, &m_pDirectSoundFilter);
-	if (FAILED(hr)) {
-		ReportError("Could not add the DirectSoundRenderer", hr);
-		return FALSE;
-	}
-	return TRUE;
+    hr = AddFilterByClsid(m_pGraphBuilder, L"DirectSound", CLSID_DSoundRender, &m_pDirectSoundFilter);
+    if (FAILED(hr)) {
+        ReportError("Could not add the DirectSoundRenderer", hr);
+        return FALSE;
+    }
+    return TRUE;
 }
 
 // Function name	: CVMR9Graph::RenderGraph
@@ -795,29 +795,29 @@ BOOL CVMR9Graph::BuildSoundRenderer()
 // Return type		: BOOL 
 BOOL CVMR9Graph::RenderGraph()
 {
-	HRESULT hr;
+    HRESULT hr;
 
-	if (m_pFilterGraph2 == NULL) {
-		ReportError("Could not render the graph because it is not fully constructed", E_FAIL);
-		return FALSE;
-	}
+    if (m_pFilterGraph2 == NULL) {
+        ReportError("Could not render the graph because it is not fully constructed", E_FAIL);
+        return FALSE;
+    }
 
-	for (int i=0; i<10; i++) {
-		IBaseFilter* pBaseFilter = m_srcFilterArray[i];
-		if (pBaseFilter != NULL) {
-			IPin* pPin;
-      while ((pPin = GetPin(pBaseFilter, PINDIR_OUTPUT)) != NULL)
-      {
-        hr = m_pFilterGraph2->RenderEx(pPin, AM_RENDEREX_RENDERTOEXISTINGRENDERERS, NULL);
-        if (FAILED(hr))
-        {
-          ReportError("Unable to render the pin", hr);
-          return FALSE;
+    for (int i=0; i<10; i++) {
+        IBaseFilter* pBaseFilter = m_srcFilterArray[i];
+        if (pBaseFilter != NULL) {
+            IPin* pPin;
+            while ((pPin = GetPin(pBaseFilter, PINDIR_OUTPUT)) != NULL)
+            {
+                hr = m_pFilterGraph2->RenderEx(pPin, AM_RENDEREX_RENDERTOEXISTINGRENDERERS, NULL);
+                if (FAILED(hr))
+                {
+                    ReportError("Unable to render the pin", hr);
+                    return FALSE;
+                }
+            }
         }
-      }
-		}
-	}
-	return TRUE;
+    }
+    return TRUE;
 }
 
 
@@ -827,17 +827,17 @@ BOOL CVMR9Graph::RenderGraph()
 // Argument         : BOOL bPreserve
 BOOL CVMR9Graph::PreserveAspectRatio(BOOL bPreserve)
 {
-	if (m_pVMRWindowlessControl == NULL) {
-		ReportError("Can't set aspect ratio, no VMR", E_FAIL);
-		return FALSE;
-	}
+    if (m_pVMRWindowlessControl == NULL) {
+        ReportError("Can't set aspect ratio, no VMR", E_FAIL);
+        return FALSE;
+    }
 
-	if (bPreserve)
-		m_pVMRWindowlessControl->SetAspectRatioMode(VMR9ARMode_LetterBox);
-	else
-		m_pVMRWindowlessControl->SetAspectRatioMode(VMR9ARMode_None);
+    if (bPreserve)
+        m_pVMRWindowlessControl->SetAspectRatioMode(VMR9ARMode_LetterBox);
+    else
+        m_pVMRWindowlessControl->SetAspectRatioMode(VMR9ARMode_None);
 
-	return TRUE;
+    return TRUE;
 }
 
 
@@ -848,24 +848,24 @@ BOOL CVMR9Graph::PreserveAspectRatio(BOOL bPreserve)
 // Argument         : const GUID& clsid
 IBaseFilter* CVMR9Graph::AddFilter(const char* pszName, const GUID& clsid)
 {
-	USES_CONVERSION;
+    USES_CONVERSION;
 
-	HRESULT hr;
+    HRESULT hr;
 
-	IBaseFilter* pBaseFilter = NULL;
+    IBaseFilter* pBaseFilter = NULL;
 
-	if (pszName == NULL) {
-		ReportError("Can't add filter, no valid name", E_INVALIDARG);
-		return NULL;
-	}
+    if (pszName == NULL) {
+        ReportError("Can't add filter, no valid name", E_INVALIDARG);
+        return NULL;
+    }
 
-	hr = AddFilterByClsid(m_pGraphBuilder, A2W(pszName), clsid, &pBaseFilter);
-	if (FAILED(hr)) {
-		ReportError("Can't add filter", hr);
-		return NULL;
-	}
+    hr = AddFilterByClsid(m_pGraphBuilder, A2W(pszName), clsid, &pBaseFilter);
+    if (FAILED(hr)) {
+        ReportError("Can't add filter", hr);
+        return NULL;
+    }
 
-	return pBaseFilter;
+    return pBaseFilter;
 }
 
 // Function name	: CVMR9Graph::PlayGraph
@@ -873,37 +873,37 @@ IBaseFilter* CVMR9Graph::AddFilter(const char* pszName, const GUID& clsid)
 // Return type		: BOOL 
 BOOL CVMR9Graph::PlayGraph()
 {
-	if (m_pMediaControl == NULL) {
-		ReportError("Can't play, no graph", E_FAIL);
-		return FALSE;
-	}
-	if (m_pVMRWindowlessControl == NULL) {
-		ReportError("Can't play, no VMR", E_FAIL);
-		return FALSE;
-	}
+    if (m_pMediaControl == NULL) {
+        ReportError("Can't play, no graph", E_FAIL);
+        return FALSE;
+    }
+    if (m_pVMRWindowlessControl == NULL) {
+        ReportError("Can't play, no VMR", E_FAIL);
+        return FALSE;
+    }
 
-	// MEDIA SIZE
-	LONG  Width;
-	LONG  Height;
-	LONG  ARWidth;
-	LONG  ARHeight;
-	m_pVMRWindowlessControl->GetNativeVideoSize(&Width, &Height, &ARWidth, &ARHeight);
+    // MEDIA SIZE
+    LONG  Width;
+    LONG  Height;
+    LONG  ARWidth;
+    LONG  ARHeight;
+    m_pVMRWindowlessControl->GetNativeVideoSize(&Width, &Height, &ARWidth, &ARHeight);
 
-	RECT mediaRect;
-	mediaRect.left = 0;
-	mediaRect.top = 0;
-	mediaRect.right = Width;
-	mediaRect.bottom = Height;
+    RECT mediaRect;
+    mediaRect.left = 0;
+    mediaRect.top = 0;
+    mediaRect.right = Width;
+    mediaRect.bottom = Height;
 
-	RECT wndRect;
-	GetClientRect(m_hMediaWindow, &wndRect);
+    RECT wndRect;
+    GetClientRect(m_hMediaWindow, &wndRect);
 
-	m_pVMRWindowlessControl->SetVideoPosition(&mediaRect, &wndRect);
+    m_pVMRWindowlessControl->SetVideoPosition(&mediaRect, &wndRect);
 
-	// RUN
-	m_pMediaControl->Run();
+    // RUN
+    m_pMediaControl->Run();
 
-	return TRUE;
+    return TRUE;
 }
 
 
@@ -912,34 +912,34 @@ BOOL CVMR9Graph::PlayGraph()
 // Return type		: BOOL 
 BOOL CVMR9Graph::StopGraph()
 {
-	if (m_pMediaControl == NULL) {
-		ReportError("Can't stop, no graph", E_FAIL);
-		return FALSE;
-	}
+    if (m_pMediaControl == NULL) {
+        ReportError("Can't stop, no graph", E_FAIL);
+        return FALSE;
+    }
 
-	m_pMediaControl->Stop();
+    m_pMediaControl->Stop();
 
-	return TRUE;
+    return TRUE;
 }
 
 OAFilterState CVMR9Graph::GetState()
 {
-  OAFilterState filterState;
-  m_pMediaControl->GetState(500, &filterState);
-  if (filterState == State_Running)
-  {
-    LONGLONG curPos;
-    m_pMediaSeeking->GetCurrentPosition(&curPos);
-    LONGLONG length;
-    m_pMediaSeeking->GetDuration(&length);
-
-    if (curPos >= length)
+    OAFilterState filterState;
+    m_pMediaControl->GetState(500, &filterState);
+    if (filterState == State_Running)
     {
-      filterState = State_Stopped;
-    }
-  }
+        LONGLONG curPos;
+        m_pMediaSeeking->GetCurrentPosition(&curPos);
+        LONGLONG length;
+        m_pMediaSeeking->GetDuration(&length);
 
-  return filterState;
+        if (curPos >= length)
+        {
+            filterState = State_Stopped;
+        }
+    }
+
+    return filterState;
 }
 
 
@@ -948,19 +948,19 @@ OAFilterState CVMR9Graph::GetState()
 // Return type		: BOOL 
 BOOL CVMR9Graph::ResetGraph()
 {
-	// STOP the graph
-	if (m_pMediaControl != NULL) {
-		m_pMediaControl->Stop();
-	}
+    // STOP the graph
+    if (m_pMediaControl != NULL) {
+        m_pMediaControl->Stop();
+    }
 
-	try {
-		ReleaseAllInterfaces();
-	} catch(...) {
-		ReportError("Can't reset graph, we have serious bugs...", E_FAIL);
-		return FALSE;
-	}
+    try {
+        ReleaseAllInterfaces();
+    } catch(...) {
+        ReportError("Can't reset graph, we have serious bugs...", E_FAIL);
+        return FALSE;
+    }
 
-	return TRUE;
+    return TRUE;
 }
 
 
@@ -971,25 +971,25 @@ BOOL CVMR9Graph::ResetGraph()
 // Argument         : DWORD dwZOrder	: bigger is away
 BOOL CVMR9Graph::SetLayerZOrder(int nLayer, DWORD dwZOrder)
 {
-	HRESULT hr;
+    HRESULT hr;
 
-	if (!IsValidLayer(nLayer)) {
-		ReportError("Can't set order, incorect layer", E_INVALIDARG);
-		return FALSE;
-	}
+    if (!IsValidLayer(nLayer)) {
+        ReportError("Can't set order, incorect layer", E_INVALIDARG);
+        return FALSE;
+    }
 
-	if (m_pVMRMixerControl == NULL) {
-		ReportError("Can't set order, no VMR", E_FAIL);
-		return FALSE;
-	}
+    if (m_pVMRMixerControl == NULL) {
+        ReportError("Can't set order, no VMR", E_FAIL);
+        return FALSE;
+    }
 
-	hr = m_pVMRMixerControl->SetZOrder(nLayer, dwZOrder);
-	if (FAILED(hr)) {
-		ReportError("Can't set ZOrder", hr);
-		return FALSE;
-	}
+    hr = m_pVMRMixerControl->SetZOrder(nLayer, dwZOrder);
+    if (FAILED(hr)) {
+        ReportError("Can't set ZOrder", hr);
+        return FALSE;
+    }
 
-	return TRUE;
+    return TRUE;
 }
 
 

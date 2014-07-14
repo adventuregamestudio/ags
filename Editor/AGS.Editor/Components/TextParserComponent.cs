@@ -12,7 +12,7 @@ namespace AGS.Editor.Components
     {
         private const string TOP_LEVEL_COMMAND_ID = "TextParser";
         private const string ICON_KEY = "TextParserIcon";
-        
+
         private TextParserEditor _editor;
         private ContentDocument _document;
 
@@ -47,8 +47,8 @@ namespace AGS.Editor.Components
             }
             _document.TreeNodeID = controlID;
             _guiController.AddOrShowPane(_document);
-			_guiController.ShowCuppit("Use the Text Parser if you want to have the player type commands in to the game. This is fairly advanced stuff, so I'd recommend you start off with a point-and-click interface.", "Text Parser introduction");
-		}
+            _guiController.ShowCuppit("Use the Text Parser if you want to have the player type commands in to the game. This is fairly advanced stuff, so I'd recommend you start off with a point-and-click interface.", "Text Parser introduction");
+        }
 
         public override void RefreshDataFromGame()
         {

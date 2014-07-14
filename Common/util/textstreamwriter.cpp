@@ -19,106 +19,106 @@
 
 namespace AGS
 {
-namespace Common
-{
-
-TextStreamWriter::TextStreamWriter(Stream *stream)
-    : _stream(stream)
-{
-}
-
-TextStreamWriter::~TextStreamWriter()
-{
-    // TODO use shared ptr
-    delete _stream;
-}
-
-bool TextStreamWriter::IsValid() const
-{
-    return _stream && _stream->CanWrite();
-}
-
-const Stream *TextStreamWriter::GetStream() const
-{
-    return _stream;
-}
-
-void TextStreamWriter::ReleaseStream()
-{
-    _stream = NULL;
-}
-
-bool TextStreamWriter::EOS() const
-{
-    return _stream ? _stream->EOS() : true;
-}
-
-void TextStreamWriter::WriteChar(char c)
-{
-    // Substitute line-feed character with platform-specific line break
-    if (c == '\n')
+    namespace Common
     {
-        WriteLineBreak();
-        return;
-    }
 
-    if (_stream)
-    {
-        _stream->WriteByte(c);
-    }
-}
+        TextStreamWriter::TextStreamWriter(Stream *stream)
+            : _stream(stream)
+        {
+        }
 
-void TextStreamWriter::WriteString(const String &str)
-{
-    if (_stream)
-    {
-        // TODO: replace line-feed characters in string with platform-specific line break
-        _stream->Write(str.GetCStr(), str.GetLength());
-    }
-}
+        TextStreamWriter::~TextStreamWriter()
+        {
+            // TODO use shared ptr
+            delete _stream;
+        }
 
-void TextStreamWriter::WriteLine(const String &str)
-{
-    if (!_stream)
-    {
-        return;
-    }
+        bool TextStreamWriter::IsValid() const
+        {
+            return _stream && _stream->CanWrite();
+        }
 
-    // TODO: replace line-feed characters in string with platform-specific line break
-    _stream->Write(str.GetCStr(), str.GetLength());
-    WriteLineBreak();
-}
+        const Stream *TextStreamWriter::GetStream() const
+        {
+            return _stream;
+        }
 
-void TextStreamWriter::WriteFormat(const char *fmt, ...)
-{
-    if (!_stream)
-    {
-        return;
-    }
+        void TextStreamWriter::ReleaseStream()
+        {
+            _stream = NULL;
+        }
 
-    // TODO: replace line-feed characters in format string with platform-specific line break
+        bool TextStreamWriter::EOS() const
+        {
+            return _stream ? _stream->EOS() : true;
+        }
 
-    va_list argptr;
-    va_start(argptr, fmt);
-    int need_length = vsnprintf(NULL, 0, fmt, argptr);
-    va_start(argptr, fmt); // Reset argptr
-    char *buffer    = new char[need_length + 1];
-    vsprintf(buffer, fmt, argptr);
-    va_end(argptr);
+        void TextStreamWriter::WriteChar(char c)
+        {
+            // Substitute line-feed character with platform-specific line break
+            if (c == '\n')
+            {
+                WriteLineBreak();
+                return;
+            }
 
-    _stream->Write(buffer, need_length);
-    delete [] buffer;
-}
+            if (_stream)
+            {
+                _stream->WriteByte(c);
+            }
+        }
 
-void TextStreamWriter::WriteLineBreak()
-{
-    if (_stream)
-    {
-        // CHECKME: should this be platform-dependant?
-        // carriage-return & line-feed
-        _stream->Write("\r\n", 2);
-    }
-}
+        void TextStreamWriter::WriteString(const String &str)
+        {
+            if (_stream)
+            {
+                // TODO: replace line-feed characters in string with platform-specific line break
+                _stream->Write(str.GetCStr(), str.GetLength());
+            }
+        }
 
-} // namespace Common
+        void TextStreamWriter::WriteLine(const String &str)
+        {
+            if (!_stream)
+            {
+                return;
+            }
+
+            // TODO: replace line-feed characters in string with platform-specific line break
+            _stream->Write(str.GetCStr(), str.GetLength());
+            WriteLineBreak();
+        }
+
+        void TextStreamWriter::WriteFormat(const char *fmt, ...)
+        {
+            if (!_stream)
+            {
+                return;
+            }
+
+            // TODO: replace line-feed characters in format string with platform-specific line break
+
+            va_list argptr;
+            va_start(argptr, fmt);
+            int need_length = vsnprintf(NULL, 0, fmt, argptr);
+            va_start(argptr, fmt); // Reset argptr
+            char *buffer    = new char[need_length + 1];
+            vsprintf(buffer, fmt, argptr);
+            va_end(argptr);
+
+            _stream->Write(buffer, need_length);
+            delete [] buffer;
+        }
+
+        void TextStreamWriter::WriteLineBreak()
+        {
+            if (_stream)
+            {
+                // CHECKME: should this be platform-dependant?
+                // carriage-return & line-feed
+                _stream->Write("\r\n", 2);
+            }
+        }
+
+    } // namespace Common
 } // namespace AGS

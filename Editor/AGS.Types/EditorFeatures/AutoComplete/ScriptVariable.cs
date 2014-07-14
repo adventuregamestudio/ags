@@ -18,7 +18,7 @@ namespace AGS.Types.AutoComplete
             IsStaticOnly = isStaticOnly;
             NoInherit = noInherit;
             IsProtected = isProtected;
-			StartsAtCharacterIndex = scriptCharacterIndex;
+            StartsAtCharacterIndex = scriptCharacterIndex;
         }
 
         public string VariableName;

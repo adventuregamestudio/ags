@@ -30,65 +30,65 @@
 
 namespace AGS
 {
-namespace Common
-{
-
-namespace Out
-{
-    struct OutputTargetSlot
+    namespace Common
     {
-    public:
-        IOutputTarget   *DelegateObject;
-        // target-specific verbosity setting
-        OutputVerbosity Verbosity;
-        // TODO: use safer technique instead of remembering that ptr is shared
-        bool            IsShared;
-        bool            IsSuppressed;
 
-        OutputTargetSlot(IOutputTarget *output_target, OutputVerbosity verbosity, bool shared_object)
+        namespace Out
         {
-            DelegateObject  = output_target;
-            Verbosity       = verbosity;
-            IsShared        = shared_object;
-            IsSuppressed    = false;
-        }
+            struct OutputTargetSlot
+            {
+            public:
+                IOutputTarget   *DelegateObject;
+                // target-specific verbosity setting
+                OutputVerbosity Verbosity;
+                // TODO: use safer technique instead of remembering that ptr is shared
+                bool            IsShared;
+                bool            IsSuppressed;
 
-        ~OutputTargetSlot()
-        {
-            if (!IsShared) {
-                delete DelegateObject;
-            }
-        }
-    };
+                OutputTargetSlot(IOutputTarget *output_target, OutputVerbosity verbosity, bool shared_object)
+                {
+                    DelegateObject  = output_target;
+                    Verbosity       = verbosity;
+                    IsShared        = shared_object;
+                    IsSuppressed    = false;
+                }
 
-    struct InternalData
-    {
-    public:
-        // general verbosity setting
-        OutputVerbosity     Verbosity;
-        OutputTargetSlot    *Targets[MAX_TARGETS];
+                ~OutputTargetSlot()
+                {
+                    if (!IsShared) {
+                        delete DelegateObject;
+                    }
+                }
+            };
 
-        InternalData()
-        {
-            Verbosity = kVerbose_Never;
-            memset(Targets, 0, sizeof(Targets));
-        }
-    };
+            struct InternalData
+            {
+            public:
+                // general verbosity setting
+                OutputVerbosity     Verbosity;
+                OutputTargetSlot    *Targets[MAX_TARGETS];
 
-    // Internal va_list version of Out()
-    void VOut  (OutputVerbosity reason, const char *sz_msg, va_list argptr);
-    // Internal va_list wrapper over print()
-    void VPrint(OutputVerbosity reason, const char *sz_msg, va_list argptr);
-    // Does actual print
-    void Print (OutputVerbosity reason, const char *sz_msg);
+                InternalData()
+                {
+                    Verbosity = kVerbose_Never;
+                    memset(Targets, 0, sizeof(Targets));
+                }
+            };
 
-    // Check verbosity settings to check if it is permitted to
-    // print a message for given reason
-    inline bool GetOutputPermission (OutputVerbosity verbosity, OutputVerbosity reason = kVerbose_Always);
+            // Internal va_list version of Out()
+            void VOut  (OutputVerbosity reason, const char *sz_msg, va_list argptr);
+            // Internal va_list wrapper over print()
+            void VPrint(OutputVerbosity reason, const char *sz_msg, va_list argptr);
+            // Does actual print
+            void Print (OutputVerbosity reason, const char *sz_msg);
 
-}   // namespace Out
+            // Check verbosity settings to check if it is permitted to
+            // print a message for given reason
+            inline bool GetOutputPermission (OutputVerbosity verbosity, OutputVerbosity reason = kVerbose_Always);
 
-}   // namespace Common
+        }   // namespace Out
+
+    }   // namespace Common
 }   // namespace AGS
 
 namespace Out = AGS::Common::Out;

@@ -13,7 +13,7 @@ namespace AGS.Editor
     {
         public PropertiesPanel()
         {
-            InitializeComponent();                          
+            InitializeComponent();
         }
 
         public event PropertyValueChangedEventHandler PropertyValueChanged

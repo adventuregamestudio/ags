@@ -91,7 +91,7 @@ void sound_cache_free(char* buffer, bool is_wave)
 
 char* get_cached_sound(const char* filename, bool is_wave, long* size)
 {
-	AGS::Engine::MutexLock _lock(_sound_cache_mutex);
+    AGS::Engine::MutexLock _lock(_sound_cache_mutex);
 
 #ifdef SOUND_CACHE_DEBUG
     printf("get_cached_sound(%s %d)\n", filename, (unsigned int)is_wave);
@@ -211,8 +211,8 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
                 destroy_sample((SAMPLE*)sound_cache_entries[i].data);
             else
                 free(sound_cache_entries[i].data);
-	}
-	
+        }
+
         sound_cache_entries[i].size = *size;
         sound_cache_entries[i].data = newdata;
 

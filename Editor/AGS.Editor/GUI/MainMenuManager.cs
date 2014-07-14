@@ -14,7 +14,7 @@ namespace AGS.Editor
         private MenuStrip _mainMenu;
         private EventHandler _onClick;
         private ToolStripMenuItem _currentPaneMenu = null;
-		private Dictionary<string, List<MenuCommands>> _menuCommandGroups = new Dictionary<string, List<MenuCommands>>();
+        private Dictionary<string, List<MenuCommands>> _menuCommandGroups = new Dictionary<string, List<MenuCommands>>();
         private WindowsMenuManager _windowsMenuManager;
 
         internal MainMenuManager(MenuStrip mainMenu, WindowsMenuManager windowsMenuManager)
@@ -26,15 +26,15 @@ namespace AGS.Editor
 
         public void AddMenu(string id, string title)
         {
-			AddMenu(id, title, null);
+            AddMenu(id, title, null);
         }
 
-		public void AddMenu(string id, string title, string insertAfterMenuID)
-		{
-			ToolStripMenuItem newMenu = new ToolStripMenuItem(title);
-			newMenu.Name = id;
-			AddOrInsertMenu(newMenu, insertAfterMenuID);
-		}
+        public void AddMenu(string id, string title, string insertAfterMenuID)
+        {
+            ToolStripMenuItem newMenu = new ToolStripMenuItem(title);
+            newMenu.Name = id;
+            AddOrInsertMenu(newMenu, insertAfterMenuID);
+        }
 
         private ToolStripItem AddMenuItem(string menu, string id, string name, Keys shortcutKeys, string iconKey, bool enabled)
         {
@@ -58,69 +58,69 @@ namespace AGS.Editor
                 {
                     newItem.Image = Factory.GUIController.ImageList.Images[iconKey];
                 }
-				newItem.Enabled = enabled;
+                newItem.Enabled = enabled;
             }
             topMenu.DropDownItems.Add(newItem);
-			return newItem;
+            return newItem;
         }
 
-		private void RefreshMenu(string menuName)
-		{
-			if (!_menuCommandGroups.ContainsKey(menuName))
-			{
-				throw new AGSEditorException("Attempted to refresh non existant menu: " + menuName);
-			}
+        private void RefreshMenu(string menuName)
+        {
+            if (!_menuCommandGroups.ContainsKey(menuName))
+            {
+                throw new AGSEditorException("Attempted to refresh non existant menu: " + menuName);
+            }
 
-			ToolStripItem[] results = _mainMenu.Items.Find(menuName, false);
-			if (results.Length == 0)
-			{
-				throw new AGSEditorException("Menu " + menuName + " not found");
-			}
-			ToolStripMenuItem topMenu = (ToolStripMenuItem)results[0];
-			topMenu.DropDownItems.Clear();
+            ToolStripItem[] results = _mainMenu.Items.Find(menuName, false);
+            if (results.Length == 0)
+            {
+                throw new AGSEditorException("Menu " + menuName + " not found");
+            }
+            ToolStripMenuItem topMenu = (ToolStripMenuItem)results[0];
+            topMenu.DropDownItems.Clear();
 
-			foreach (MenuCommands commandGroup in _menuCommandGroups[menuName])
-			{
-				if (topMenu.DropDownItems.Count > 0)
-				{
-					topMenu.DropDownItems.Add(new ToolStripSeparator());
-				}
-				foreach (MenuCommand command in commandGroup.Commands)
-				{
-					ToolStripItem newItem = AddMenuItem(menuName, command.ID, command.Name, command.ShortcutKey, command.IconKey, command.Enabled);
-					newItem.Tag = command;
-				}
-			}
-		}
+            foreach (MenuCommands commandGroup in _menuCommandGroups[menuName])
+            {
+                if (topMenu.DropDownItems.Count > 0)
+                {
+                    topMenu.DropDownItems.Add(new ToolStripSeparator());
+                }
+                foreach (MenuCommand command in commandGroup.Commands)
+                {
+                    ToolStripItem newItem = AddMenuItem(menuName, command.ID, command.Name, command.ShortcutKey, command.IconKey, command.Enabled);
+                    newItem.Tag = command;
+                }
+            }
+        }
 
         public void RefreshWindowsMenu(List<ContentDocument> documents,
             ContentDocument activeDocument)
         {
-            _windowsMenuManager.Refresh(documents, activeDocument); 
+            _windowsMenuManager.Refresh(documents, activeDocument);
         }
 
-		public void AddMenuCommandGroup(MenuCommands commands)
-		{
-			if (!_menuCommandGroups.ContainsKey(commands.MenuName))
-			{
-				_menuCommandGroups.Add(commands.MenuName, new List<MenuCommands>());
-			}
-			_menuCommandGroups[commands.MenuName].Add(commands);
-			_menuCommandGroups[commands.MenuName].Sort();
+        public void AddMenuCommandGroup(MenuCommands commands)
+        {
+            if (!_menuCommandGroups.ContainsKey(commands.MenuName))
+            {
+                _menuCommandGroups.Add(commands.MenuName, new List<MenuCommands>());
+            }
+            _menuCommandGroups[commands.MenuName].Add(commands);
+            _menuCommandGroups[commands.MenuName].Sort();
 
-			RefreshMenu(commands.MenuName);
-		}
+            RefreshMenu(commands.MenuName);
+        }
 
         public void RemoveMenuCommandGroup(MenuCommands commands)
         {
-			if (_menuCommandGroups.ContainsKey(commands.MenuName))
-			{
-				if (_menuCommandGroups[commands.MenuName].Contains(commands))
-				{
-					_menuCommandGroups[commands.MenuName].Remove(commands);
-					RefreshMenu(commands.MenuName);
-				}
-			}
+            if (_menuCommandGroups.ContainsKey(commands.MenuName))
+            {
+                if (_menuCommandGroups[commands.MenuName].Contains(commands))
+                {
+                    _menuCommandGroups[commands.MenuName].Remove(commands);
+                    RefreshMenu(commands.MenuName);
+                }
+            }
         }
 
         public void SetMenuItemEnabled(string id, bool enabled)
@@ -132,10 +132,10 @@ namespace AGS.Editor
             }
             results[0].Enabled = enabled;
 
-			if (results[0].Tag is MenuCommand)
-			{
-				((MenuCommand)results[0].Tag).Enabled = enabled;
-			}
+            if (results[0].Tag is MenuCommand)
+            {
+                ((MenuCommand)results[0].Tag).Enabled = enabled;
+            }
         }
 
         public void RefreshCurrentPane()
@@ -174,37 +174,37 @@ namespace AGS.Editor
                 }
             }
 
-			AddOrInsertMenu(newMenu, doc.MainMenu.InsertAfterMenu);
+            AddOrInsertMenu(newMenu, doc.MainMenu.InsertAfterMenu);
 
             _currentPaneMenu = newMenu;
         }
 
-		private void AddOrInsertMenu(ToolStripMenuItem newMenu, string insertAfterMenu)
-		{
-			if (insertAfterMenu != null)
-			{
-				ToolStripMenuItem nextToMenu = null;
-				int nextToIndex = 0;
-				foreach (ToolStripMenuItem menu in _mainMenu.Items)
-				{
-					if (menu.Name == insertAfterMenu)
-					{
-						nextToMenu = menu;
-						break;
-					}
-					nextToIndex++;
-				}
-				if (nextToMenu == null)
-				{
-					throw new AGSEditorException("Menu not found: " + insertAfterMenu);
-				}
-				_mainMenu.Items.Insert(nextToIndex + 1, newMenu);
-			}
-			else
-			{
-				_mainMenu.Items.Add(newMenu);
-			}
-		}
+        private void AddOrInsertMenu(ToolStripMenuItem newMenu, string insertAfterMenu)
+        {
+            if (insertAfterMenu != null)
+            {
+                ToolStripMenuItem nextToMenu = null;
+                int nextToIndex = 0;
+                foreach (ToolStripMenuItem menu in _mainMenu.Items)
+                {
+                    if (menu.Name == insertAfterMenu)
+                    {
+                        nextToMenu = menu;
+                        break;
+                    }
+                    nextToIndex++;
+                }
+                if (nextToMenu == null)
+                {
+                    throw new AGSEditorException("Menu not found: " + insertAfterMenu);
+                }
+                _mainMenu.Items.Insert(nextToIndex + 1, newMenu);
+            }
+            else
+            {
+                _mainMenu.Items.Add(newMenu);
+            }
+        }
 
         private void RemoveItemsFromLastPane()
         {

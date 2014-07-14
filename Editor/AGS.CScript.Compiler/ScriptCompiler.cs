@@ -5,77 +5,77 @@ using System.Text;
 
 namespace AGS.CScript.Compiler
 {
-	internal class ScriptCompiler : IScriptCompiler
-	{
-		private string _scriptName;
-		private CompileResults _results = new CompileResults();
-		private ScriptReader _source;
+    internal class ScriptCompiler : IScriptCompiler
+    {
+        private string _scriptName;
+        private CompileResults _results = new CompileResults();
+        private ScriptReader _source;
         private TokenizedScript _tokenizedScript;
-		private CompilerState _state = new CompilerState();
+        private CompilerState _state = new CompilerState();
         private CompiledScript _output;
 
-		public CompileResults CompileScript(string script)
-		{
-			ITokenizer tokenizer = CompilerFactory.CreateTokenizer();
+        public CompileResults CompileScript(string script)
+        {
+            ITokenizer tokenizer = CompilerFactory.CreateTokenizer();
             _tokenizedScript = tokenizer.TokenizeScript(script);
-			_source = new ScriptReader(_tokenizedScript);
-			_output = new CompiledScript();
+            _source = new ScriptReader(_tokenizedScript);
+            _output = new CompiledScript();
 
-			while (true)
-			{
-				Token thisToken = _source.ReadNextToken();
+            while (true)
+            {
+                Token thisToken = _source.ReadNextToken();
 
-				if (thisToken is EndOfStreamToken)
-				{
-					break;
-				}
-
-				try
-				{
-					ProcessTokenAtTopLevel(thisToken);
-				}
-				catch (CompilerMessage error)
-				{
-					RecordError(error.Code, error.Message);
+                if (thisToken is EndOfStreamToken)
+                {
                     break;
-				}
-			}
+                }
 
-			return _results;
-		}
+                try
+                {
+                    ProcessTokenAtTopLevel(thisToken);
+                }
+                catch (CompilerMessage error)
+                {
+                    RecordError(error.Code, error.Message);
+                    break;
+                }
+            }
 
-		private void ProcessTokenAtTopLevel(Token thisToken)
-		{
-			if (thisToken is ModifierToken)
-			{
-				_state.NextTokenModifiers.Add((ModifierToken)thisToken);
-			}
-			else if (thisToken.IsVariableType)
-			{
+            return _results;
+        }
+
+        private void ProcessTokenAtTopLevel(Token thisToken)
+        {
+            if (thisToken is ModifierToken)
+            {
+                _state.NextTokenModifiers.Add((ModifierToken)thisToken);
+            }
+            else if (thisToken.IsVariableType)
+            {
                 bool wasFunction = false;
-				do
-				{
-					wasFunction = ParseAndAddGlobalVariableOrFunction(thisToken);
-				}
-				while ((!wasFunction) && (_source.NextIsKeyword(PredefinedSymbol.Comma)));
+                do
+                {
+                    wasFunction = ParseAndAddGlobalVariableOrFunction(thisToken);
+                }
+                while ((!wasFunction) && (_source.NextIsKeyword(PredefinedSymbol.Comma)));
 
                 if (!wasFunction)
                 {
                     _source.ExpectKeyword(PredefinedSymbol.Semicolon);
                 }
-				_state.NextTokenModifiers.Clear();
-			}
-			else if (thisToken is KeywordToken)
-			{
-				PredefinedSymbol keyword = ((KeywordToken)thisToken).SymbolType;
-				if (keyword == PredefinedSymbol.StructDefinition)
-				{
-					_output.AddStruct(ProcessStructDeclaration());
-				}
-				else if (keyword == PredefinedSymbol.Enum)
-				{
-					ProcessEnumDeclaration();
-				}
+                _state.NextTokenModifiers.Clear();
+            }
+            else if (thisToken is KeywordToken)
+            {
+                PredefinedSymbol keyword = ((KeywordToken)thisToken).SymbolType;
+                if (keyword == PredefinedSymbol.StructDefinition)
+                {
+                    _output.AddStruct(ProcessStructDeclaration());
+                }
+                else if (keyword == PredefinedSymbol.Enum)
+                {
+                    ProcessEnumDeclaration();
+                }
                 else if (keyword == PredefinedSymbol.Export)
                 {
                     ProcessExportCommand();
@@ -84,16 +84,16 @@ namespace AGS.CScript.Compiler
                 {
                     RecordError(ErrorCode.InvalidUseOfKeyword, "Invalid use of '" + thisToken.Name + "'");
                 }
-			}
+            }
             else if (thisToken.Name.StartsWith(Constants.NEW_SCRIPT_MARKER))
-			{
+            {
                 _scriptName = thisToken.Name.Substring(Constants.NEW_SCRIPT_MARKER.Length, thisToken.Name.Length - Constants.NEW_SCRIPT_MARKER.Length - 1);
-			}
-			else
-			{
-				RecordError(ErrorCode.UnexpectedToken, "Unexpected '" + thisToken.Name + "'");
-			}
-		}
+            }
+            else
+            {
+                RecordError(ErrorCode.UnexpectedToken, "Unexpected '" + thisToken.Name + "'");
+            }
+        }
 
         private void ProcessExportCommand()
         {
@@ -120,11 +120,11 @@ namespace AGS.CScript.Compiler
         }
 
         private ScriptStruct ProcessStructDeclaration()
-		{
-			VerifyModifiersAgainstType(ModifierTargets.Struct);
+        {
+            VerifyModifiersAgainstType(ModifierTargets.Struct);
 
             Modifiers prototypeModifiers = null;
-			Token structName = _source.ReadNextToken();
+            Token structName = _source.ReadNextToken();
             if (structName.Defined)
             {
                 if ((structName.Type == TokenType.StructType) &&
@@ -138,10 +138,10 @@ namespace AGS.CScript.Compiler
                 }
             }
 
-			ScriptStruct structDefinition = new ScriptStruct(structName.Name);
+            ScriptStruct structDefinition = new ScriptStruct(structName.Name);
             structDefinition.Modifiers = _state.NextTokenModifiers;
-			structName.Define(TokenType.StructType, structDefinition);
-			structName.IsVariableType = true;
+            structName.Define(TokenType.StructType, structDefinition);
+            structName.IsVariableType = true;
 
             if (_state.IsModifierPresent(PredefinedSymbol.Managed))
             {
@@ -165,60 +165,60 @@ namespace AGS.CScript.Compiler
             }
 
             if (_source.NextIsKeyword(PredefinedSymbol.Extends))
-			{
-				Token structToExtend = _source.ReadNextAsVariableType();
-				if (structToExtend.Type != TokenType.StructType)
-				{
-					RecordError(ErrorCode.StructNameExpected, "Struct name expected at '" + structToExtend.Name + "'");
-				}
-				else
-				{
-					ScriptStruct baseStructDefinition = ((ScriptStruct)structToExtend.Value);
+            {
+                Token structToExtend = _source.ReadNextAsVariableType();
+                if (structToExtend.Type != TokenType.StructType)
+                {
+                    RecordError(ErrorCode.StructNameExpected, "Struct name expected at '" + structToExtend.Name + "'");
+                }
+                else
+                {
+                    ScriptStruct baseStructDefinition = ((ScriptStruct)structToExtend.Value);
                     if (baseStructDefinition.PrototypeOnly)
                     {
                         RecordError(ErrorCode.CannotExtendPrototypeStruct, "Cannot extend struct '" + baseStructDefinition.Name + "' because it is only a prototype");
                     }
-					structDefinition.Extends = baseStructDefinition;
+                    structDefinition.Extends = baseStructDefinition;
                     structDefinition.SizeInBytes = baseStructDefinition.SizeInBytes;
-					structDefinition.Members.AddRange(baseStructDefinition.Members);
+                    structDefinition.Members.AddRange(baseStructDefinition.Members);
 
                     if (!structDefinition.Modifiers.HasSameModifiers(baseStructDefinition.Modifiers))
                     {
                         RecordError(ErrorCode.DifferentModifierInPrototype, "This struct has different modifiers to the base type");
                     }
-				}
-			}
+                }
+            }
 
-			_source.ExpectKeyword(PredefinedSymbol.OpenBrace);
+            _source.ExpectKeyword(PredefinedSymbol.OpenBrace);
 
-			while (!_source.NextIsKeyword(PredefinedSymbol.CloseBrace))
-			{
-				Token token = _source.ReadNextToken();
-				if (token is ModifierToken)
-				{
-					_state.NextTokenModifiers.Add((ModifierToken)token);
-				}
-				else if (token.IsVariableType)
-				{
-					do
-					{
-						ParseAndAddMemberToStruct(token, structName, structDefinition, structName);
-					}
-					while (_source.NextIsKeyword(PredefinedSymbol.Comma));
+            while (!_source.NextIsKeyword(PredefinedSymbol.CloseBrace))
+            {
+                Token token = _source.ReadNextToken();
+                if (token is ModifierToken)
+                {
+                    _state.NextTokenModifiers.Add((ModifierToken)token);
+                }
+                else if (token.IsVariableType)
+                {
+                    do
+                    {
+                        ParseAndAddMemberToStruct(token, structName, structDefinition, structName);
+                    }
+                    while (_source.NextIsKeyword(PredefinedSymbol.Comma));
 
-					_source.ExpectKeyword(PredefinedSymbol.Semicolon);
-					_state.NextTokenModifiers.Clear();
-				}
-				else
-				{
-					RecordError(ErrorCode.UnexpectedToken, "Unexpected " + token.Name);
-				}
-			}
+                    _source.ExpectKeyword(PredefinedSymbol.Semicolon);
+                    _state.NextTokenModifiers.Clear();
+                }
+                else
+                {
+                    RecordError(ErrorCode.UnexpectedToken, "Unexpected " + token.Name);
+                }
+            }
 
-			_source.ExpectKeyword(PredefinedSymbol.Semicolon);
+            _source.ExpectKeyword(PredefinedSymbol.Semicolon);
 
             return structDefinition;
-		}
+        }
 
         private void ParseFunctionParameterList(ScriptFunction func)
         {
@@ -266,7 +266,7 @@ namespace AGS.CScript.Compiler
                 {
                     parameter.DefaultValue = _source.ReadNextAsConstInt();
                 }
-                
+
                 if (_source.NextIsKeyword(PredefinedSymbol.CloseParenthesis))
                 {
                     atEndOfParameterList = true;
@@ -307,10 +307,10 @@ namespace AGS.CScript.Compiler
             return CompilerUtils.GetTokenForStructMember(_tokenizedScript, structName, memberName, out mangledName);
         }
 
-		private void ParseAndAddMemberToStruct(Token variableType, Token structName, ScriptStruct structDefinition, Token parentStruct)
-		{
+        private void ParseAndAddMemberToStruct(Token variableType, Token structName, ScriptStruct structDefinition, Token parentStruct)
+        {
             _source.IgnoreAsteriskIfPresent();
-			Token memberName = _source.ReadNextToken();
+            Token memberName = _source.ReadNextToken();
             if ((memberName is KeywordToken) || (memberName is OperatorToken) ||
                 (memberName is ModifierToken))
             {
@@ -319,18 +319,18 @@ namespace AGS.CScript.Compiler
 
             string mangledName;
             memberName = GetTokenForStructMember(structName, memberName, out mangledName);
-			if (memberName != null)
-			{
-				throw new CompilerMessage(ErrorCode.TokenAlreadyDefined, "Member '" + mangledName + "' already exists");
-			}
-			memberName = new Token(mangledName, true);
-			// TODO: Set necessary fields on new token for this struct member
-			_tokenizedScript.AddToken(memberName);
+            if (memberName != null)
+            {
+                throw new CompilerMessage(ErrorCode.TokenAlreadyDefined, "Member '" + mangledName + "' already exists");
+            }
+            memberName = new Token(mangledName, true);
+            // TODO: Set necessary fields on new token for this struct member
+            _tokenizedScript.AddToken(memberName);
 
-			CompilerUtils.SetArrayPropertiesOnTokenFromStream(_source, memberName);
+            CompilerUtils.SetArrayPropertiesOnTokenFromStream(_source, memberName);
 
-			if (_source.NextIsKeyword(PredefinedSymbol.OpenParenthesis))
-			{
+            if (_source.NextIsKeyword(PredefinedSymbol.OpenParenthesis))
+            {
                 VerifyModifiersAgainstType(ModifierTargets.MemberFunction);
                 VerifyReturnTypeValidForFunction(variableType);
 
@@ -339,12 +339,12 @@ namespace AGS.CScript.Compiler
 
                 func.IsPrototypeOnly = true;
             }
-			else
-			{
+            else
+            {
                 VerifyModifiersAgainstType(ModifierTargets.MemberVariable);
                 ProcessVariableDeclaration(variableType, structDefinition, parentStruct, _state.NextTokenModifiers);
-			}
-		}
+            }
+        }
 
         private FixedOffsetVariable ProcessVariableDeclaration(Token variableType, DataGroup container, Token parent, Modifiers modifiers)
         {
@@ -505,8 +505,8 @@ namespace AGS.CScript.Compiler
             }
         }
 
-		private bool ParseAndAddGlobalVariableOrFunction(Token variableType)
-		{
+        private bool ParseAndAddGlobalVariableOrFunction(Token variableType)
+        {
             bool isMemberFunctionBody = false;
 
             _source.IgnoreAsteriskIfPresent();
@@ -524,60 +524,60 @@ namespace AGS.CScript.Compiler
                 ReadNameOfNewGlobalVariableOrFunction(variableName, out isMemberFunctionBody);
             }
 
-			if (_source.NextIsKeyword(PredefinedSymbol.OpenParenthesis))
-			{
+            if (_source.NextIsKeyword(PredefinedSymbol.OpenParenthesis))
+            {
                 ParseAndAddFunctionDefinition(variableType, variableName, isMemberFunctionBody);
                 return true;
-			}
-			else
-			{
+            }
+            else
+            {
                 CompilerUtils.SetArrayPropertiesOnTokenFromStream(_source, variableName);
                 ParseAndAddGlobalVariableDefinition(variableType, variableName, importedVersion);
-			}
+            }
 
             return false;
-		}
+        }
 
-		private void ProcessEnumDeclaration()
-		{
-			Token enumName = _source.ReadNextTokenAndThrowIfAlreadyDefined();
-			ScriptEnum enumDefinition = new ScriptEnum(enumName.Name);
-			enumName.Define(TokenType.EnumType, enumDefinition);
-			enumName.IsVariableType = true;
+        private void ProcessEnumDeclaration()
+        {
+            Token enumName = _source.ReadNextTokenAndThrowIfAlreadyDefined();
+            ScriptEnum enumDefinition = new ScriptEnum(enumName.Name);
+            enumName.Define(TokenType.EnumType, enumDefinition);
+            enumName.IsVariableType = true;
 
-			_source.ExpectKeyword(PredefinedSymbol.OpenBrace);
-			int nextEnumValue = 0;
+            _source.ExpectKeyword(PredefinedSymbol.OpenBrace);
+            int nextEnumValue = 0;
 
-			while (!_source.NextIsKeyword(PredefinedSymbol.CloseBrace))
-			{
-				Token enumEntry = _source.ReadNextTokenAndThrowIfAlreadyDefined();
-				KeywordToken nextToken = _source.ReadNextAsKeyword();
-				if (nextToken.SymbolType == PredefinedSymbol.SetEqual)
-				{
+            while (!_source.NextIsKeyword(PredefinedSymbol.CloseBrace))
+            {
+                Token enumEntry = _source.ReadNextTokenAndThrowIfAlreadyDefined();
+                KeywordToken nextToken = _source.ReadNextAsKeyword();
+                if (nextToken.SymbolType == PredefinedSymbol.SetEqual)
+                {
                     nextEnumValue = _source.ReadNextAsConstInt();
-					nextToken = _source.ReadNextAsKeyword();
-				}
+                    nextToken = _source.ReadNextAsKeyword();
+                }
 
-				enumDefinition.Values.Add(enumEntry.Name, nextEnumValue);
-				enumEntry.Define(TokenType.Constant, nextEnumValue);
-				nextEnumValue++;
+                enumDefinition.Values.Add(enumEntry.Name, nextEnumValue);
+                enumEntry.Define(TokenType.Constant, nextEnumValue);
+                nextEnumValue++;
 
-				if (nextToken.SymbolType == PredefinedSymbol.CloseBrace)
-				{
-					break;
-				}
-				else if (nextToken.SymbolType != PredefinedSymbol.Comma)
-				{
-					throw new CompilerMessage(ErrorCode.UnexpectedToken, "Expected comma at '" + nextToken.Name + "'");
-				}
-			}
+                if (nextToken.SymbolType == PredefinedSymbol.CloseBrace)
+                {
+                    break;
+                }
+                else if (nextToken.SymbolType != PredefinedSymbol.Comma)
+                {
+                    throw new CompilerMessage(ErrorCode.UnexpectedToken, "Expected comma at '" + nextToken.Name + "'");
+                }
+            }
 
-			_source.ExpectKeyword(PredefinedSymbol.Semicolon);
-		}
+            _source.ExpectKeyword(PredefinedSymbol.Semicolon);
+        }
 
-		private void RecordError(ErrorCode errorCode, string message)
-		{
-			_results.Add(new Error(errorCode, message, _source.LineNumber, _scriptName));
-		}
-	}
+        private void RecordError(ErrorCode errorCode, string message)
+        {
+            _results.Add(new Error(errorCode, message, _source.LineNumber, _scriptName));
+        }
+    }
 }

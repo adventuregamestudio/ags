@@ -29,57 +29,57 @@ namespace AGS.Editor
         /// </summary>
         private void InitializeComponent()
         {
-			this.scintilla = new AGS.Editor.ScintillaWrapper();
-			this.panel1 = new System.Windows.Forms.Panel();
-			this.cmbFunctions = new System.Windows.Forms.ComboBox();
-			this.panel1.SuspendLayout();
-			this.SuspendLayout();
-			// 
-			// scintilla
-			// 
-			this.scintilla.AutoCompleteEnabled = true;
-			this.scintilla.AutoSpaceAfterComma = true;
-			this.scintilla.CallTipsEnabled = true;
-			this.scintilla.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.scintilla.Location = new System.Drawing.Point(0, 31);
-			this.scintilla.Name = "scintilla";
-			this.scintilla.Size = new System.Drawing.Size(574, 285);
-			this.scintilla.TabIndex = 0;
-			// 
-			// panel1
-			// 
-			this.panel1.Controls.Add(this.cmbFunctions);
-			this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
-			this.panel1.Location = new System.Drawing.Point(0, 0);
-			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(574, 31);
-			this.panel1.TabIndex = 1;
-			// 
-			// cmbFunctions
-			// 
-			this.cmbFunctions.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			this.cmbFunctions.FormattingEnabled = true;
-			this.cmbFunctions.Location = new System.Drawing.Point(5, 5);
-			this.cmbFunctions.MaxDropDownItems = 20;
-			this.cmbFunctions.Name = "cmbFunctions";
-			this.cmbFunctions.Size = new System.Drawing.Size(285, 21);
-			this.cmbFunctions.TabIndex = 0;
-			this.cmbFunctions.SelectedIndexChanged += new System.EventHandler(this.cmbFunctions_SelectedIndexChanged);
+            this.scintilla = new AGS.Editor.ScintillaWrapper();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.cmbFunctions = new System.Windows.Forms.ComboBox();
+            this.panel1.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // scintilla
+            // 
+            this.scintilla.AutoCompleteEnabled = true;
+            this.scintilla.AutoSpaceAfterComma = true;
+            this.scintilla.CallTipsEnabled = true;
+            this.scintilla.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.scintilla.Location = new System.Drawing.Point(0, 31);
+            this.scintilla.Name = "scintilla";
+            this.scintilla.Size = new System.Drawing.Size(574, 285);
+            this.scintilla.TabIndex = 0;
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.cmbFunctions);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panel1.Location = new System.Drawing.Point(0, 0);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(574, 31);
+            this.panel1.TabIndex = 1;
+            // 
+            // cmbFunctions
+            // 
+            this.cmbFunctions.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbFunctions.FormattingEnabled = true;
+            this.cmbFunctions.Location = new System.Drawing.Point(5, 5);
+            this.cmbFunctions.MaxDropDownItems = 20;
+            this.cmbFunctions.Name = "cmbFunctions";
+            this.cmbFunctions.Size = new System.Drawing.Size(285, 21);
+            this.cmbFunctions.TabIndex = 0;
+            this.cmbFunctions.SelectedIndexChanged += new System.EventHandler(this.cmbFunctions_SelectedIndexChanged);
             this.cmbFunctions.MouseEnter += new System.EventHandler(this.cmbFunctions_MouseEnter);
             this.cmbFunctions.MouseLeave += new System.EventHandler(this.cmbFunctions_MouseLeave);
-			// 
-			// ScriptEditor
-			//
+            // 
+            // ScriptEditor
+            //
             this.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.Controls.Add(this.scintilla);
-			this.Controls.Add(this.panel1);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.scintilla);
+            this.Controls.Add(this.panel1);
             this.HandleCreated += new System.EventHandler(ScriptEditor_HandleCreated);
-			this.Name = "ScriptEditor";
-			this.Size = new System.Drawing.Size(574, 316);
-			this.panel1.ResumeLayout(false);
-			this.ResumeLayout(false);
+            this.Name = "ScriptEditor";
+            this.Size = new System.Drawing.Size(574, 316);
+            this.panel1.ResumeLayout(false);
+            this.ResumeLayout(false);
 
         }
 

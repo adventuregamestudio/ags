@@ -280,7 +280,7 @@ int Object_GetIgnoreScaling(ScriptObject *objj) {
 void Object_SetSolid(ScriptObject *objj, int solid) {
     objs[objj->id].flags &= ~OBJF_SOLID;
     if (solid)
-      objs[objj->id].flags |= OBJF_SOLID;
+        objs[objj->id].flags |= OBJF_SOLID;
 }
 
 int Object_GetSolid(ScriptObject *objj) {

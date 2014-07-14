@@ -55,7 +55,7 @@ namespace AGS.Editor
                 {
                     GUIButton button = control as GUIButton;
                     if (button != null)
-                    {                        
+                    {
                         if ((button.Image == spriteNumber) ||
                             (button.MouseoverImage == spriteNumber) ||
                             (button.PushedImage == spriteNumber))

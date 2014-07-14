@@ -4,11 +4,11 @@ using System.Text;
 
 namespace AGS.Editor
 {
-	public enum ZoomToFileZoomType
-	{
-		ZoomToLineNumber,
-		ZoomToCharacterPosition,
-		ZoomToText,
+    public enum ZoomToFileZoomType
+    {
+        ZoomToLineNumber,
+        ZoomToCharacterPosition,
+        ZoomToText,
         DoNotMoveCursor
-	}
+    }
 }

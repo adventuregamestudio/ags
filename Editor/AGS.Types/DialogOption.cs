@@ -50,7 +50,7 @@ namespace AGS.Types
             get { return _say; }
             set { _say = value; }
         }
-        
+
         // Pre-3.1.1 wrote this into the Game.agf XML, so we have to
         // keep this dummy property to allow it to deserialise
         [AGSNoSerialize]

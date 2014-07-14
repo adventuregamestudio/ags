@@ -31,11 +31,11 @@ namespace AGS.Types
             {
                 ShowRoomMessagesEditor(messages);
 
-				if (context.Instance is IChangeNotification)
-				{
-					((IChangeNotification)context.Instance).ItemModified();
-				}
-			}
+                if (context.Instance is IChangeNotification)
+                {
+                    ((IChangeNotification)context.Instance).ItemModified();
+                }
+            }
 
             return messages;
         }

@@ -42,10 +42,10 @@ namespace AGS.Editor.Components
         public override void RefreshDataFromGame()
         {
             // Game has just been loaded
-			if (_agsEditor.Preferences.StartupPane == EditorStartupPane.StartPage)
-			{
-				_guiController.AddOrShowPane(_document);
-			}
+            if (_agsEditor.Preferences.StartupPane == EditorStartupPane.StartPage)
+            {
+                _guiController.AddOrShowPane(_document);
+            }
         }
     }
 }

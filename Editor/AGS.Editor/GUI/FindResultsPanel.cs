@@ -14,17 +14,17 @@ namespace AGS.Editor
     public partial class FindResultsPanel : DockContent
     {
         private List<ScriptTokenReference> _results;
-        
+
 
         public FindResultsPanel()
         {
-            InitializeComponent();            
+            InitializeComponent();
         }
 
-		public void SetImageList(ImageList list)
-		{
-			lvwResults.SmallImageList = list;
-		}
+        public void SetImageList(ImageList list)
+        {
+            lvwResults.SmallImageList = list;
+        }
 
         public List<ScriptTokenReference> Results
         {
@@ -43,7 +43,7 @@ namespace AGS.Editor
                 {
                     lvwResults.Items[0].Selected = true;
                 }
-                
+
                 Text = string.Format("Find Symbol Results - {0} matches found", Results.Count);
             }
         }
@@ -68,11 +68,11 @@ namespace AGS.Editor
 
         private void lvwResults_ItemActivate(object sender, EventArgs e)
         {
-			if (lvwResults.SelectedItems.Count > 0)
-			{
-				ListViewItem selectedItem = lvwResults.SelectedItems[0];
-				if (selectedItem.SubItems.Count > 1)
-				{                                                       
+            if (lvwResults.SelectedItems.Count > 0)
+            {
+                ListViewItem selectedItem = lvwResults.SelectedItems[0];
+                if (selectedItem.SubItems.Count > 1)
+                {
                     //Factory.GUIController.ZoomToFile(selectedItem.SubItems[0].Text, 
                     //    Convert.ToInt32(selectedItem.SubItems[1].Text));
 
@@ -89,25 +89,25 @@ namespace AGS.Editor
                             Results[lvwResults.SelectedIndices[0]];                        
                         Scintilla.SetSelection(scriptTokenReference.CharacterIndex,
                             scriptTokenReference.Token.Length);
-                    }     */               
-				}
-			}
+                    }     */
+                }
+            }
         }
 
-		private void lvwResults_Click(object sender, EventArgs e)
-		{
-		}
+        private void lvwResults_Click(object sender, EventArgs e)
+        {
+        }
 
-		private void ShowContextMenu(Point menuPosition)
-		{
-		}
+        private void ShowContextMenu(Point menuPosition)
+        {
+        }
 
-		private void lvwResults_MouseUp(object sender, MouseEventArgs e)
-		{
-			if (e.Button == MouseButtons.Right)
-			{
-				ShowContextMenu(e.Location);
-			}
-		}
+        private void lvwResults_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                ShowContextMenu(e.Location);
+            }
+        }
     }
 }

@@ -25,16 +25,16 @@ using AGS::Common::Stream;
 
 void ManagedObjectPool::ManagedObject::init(int32_t theHandle, const char *theAddress,
                                             ICCDynamicObject *theCallback, ScriptValueType objType) {
-    obj_type = objType;
-    handle = theHandle;
-    addr = theAddress;
-    callback = theCallback;
-    refCount = 0;
+                                                obj_type = objType;
+                                                handle = theHandle;
+                                                addr = theAddress;
+                                                callback = theCallback;
+                                                refCount = 0;
 
 #ifdef DEBUG_MANAGED_OBJECTS
-    char bufff[200];
-    sprintf(bufff,"Allocated managed object handle=%d, type=%s", theHandle, theCallback->GetType());
-    write_log(bufff);
+                                                char bufff[200];
+                                                sprintf(bufff,"Allocated managed object handle=%d, type=%s", theHandle, theCallback->GetType());
+                                                write_log(bufff);
 #endif
 }
 
@@ -98,7 +98,7 @@ void ManagedObjectPool::ManagedObject::SubRefNoDispose() {
 }
 
 int32_t ManagedObjectPool::AddRef(int32_t handle) {
-        return objects[handle].AddRef();
+    return objects[handle].AddRef();
 }
 
 int ManagedObjectPool::CheckDispose(int32_t handle) {

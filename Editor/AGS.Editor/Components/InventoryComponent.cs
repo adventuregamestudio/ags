@@ -16,7 +16,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_DELETE_ITEM = "DeleteInventory";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
         private const string ICON_KEY = "InventorysIcon";
-        
+
         private Dictionary<InventoryItem, ContentDocument> _documents;
         private InventoryItem _itemRightClicked = null;
 
@@ -49,14 +49,14 @@ namespace AGS.Editor.Components
                 newItem.Name = _agsEditor.GetFirstAvailableScriptName("iInvItem");
                 newItem.Description = "New inventory item";
                 string newNodeID = AddSingleItem(newItem);
-                _guiController.ProjectTree.SelectNode(this, newNodeID);                
-				ShowOrAddPane(newItem);
+                _guiController.ProjectTree.SelectNode(this, newNodeID);
+                ShowOrAddPane(newItem);
             }
             else if (controlID == COMMAND_DELETE_ITEM)
             {
                 if (MessageBox.Show("Are you sure you want to delete this inventory item? Doing so could break any scripts that refer to inventory items by number.", "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    DeleteSingleItem(_itemRightClicked);                    
+                    DeleteSingleItem(_itemRightClicked);
                 }
             }
             else if (controlID == COMMAND_FIND_ALL_USAGES)
@@ -95,22 +95,22 @@ namespace AGS.Editor.Components
             DeleteInventoryItem(item);
         }
 
-		private void ShowOrAddPane(InventoryItem chosenItem)
-		{
+        private void ShowOrAddPane(InventoryItem chosenItem)
+        {
             ContentDocument document;
-			if (!_documents.TryGetValue(chosenItem, out document)
+            if (!_documents.TryGetValue(chosenItem, out document)
                 || document.Control.IsDisposed)
-			{
+            {
                 document = new ContentDocument(new InventoryEditor(chosenItem),
                     chosenItem.WindowTitle, this, ICON_KEY,
                     ConstructPropertyObjectList(chosenItem));
-				_documents[chosenItem] = document;
+                _documents[chosenItem] = document;
                 document.SelectedPropertyGridObject = chosenItem;
-			}
+            }
             document.TreeNodeID = GetNodeID(chosenItem);
             _guiController.AddOrShowPane(document);
-			_guiController.ShowCuppit("Inventory items are things that characters can carry around with them. You can set up this inventory item using the property grid on the right.", "Inventory introduction");
-		}
+            _guiController.ShowCuppit("Inventory items are things that characters can carry around with them. You can set up this inventory item using the property grid on the right.", "Inventory introduction");
+        }
 
         public override void PropertyChanged(string propertyName, object oldValue)
         {
@@ -189,9 +189,9 @@ namespace AGS.Editor.Components
 
         private string GetNodeID(InventoryItem item)
         {
-            return ITEM_COMMAND_PREFIX + item.ID; 
+            return ITEM_COMMAND_PREFIX + item.ID;
         }
-        
+
         private Dictionary<string, object> ConstructPropertyObjectList(InventoryItem item)
         {
             Dictionary<string, object> list = new Dictionary<string, object>();

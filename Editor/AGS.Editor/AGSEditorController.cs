@@ -6,27 +6,27 @@ using System.Text;
 
 namespace AGS.Editor
 {
-	/// <summary>
-	/// Used by plugins to access AGS Editor features
-	/// </summary>
-	public class AGSEditorController : IAGSEditor
-	{
-		private AGSEditor _agsEditor;
-		private GUIController _guiController;
-		private ComponentController _componentController;
-		private IRoomController _roomController = null;
+    /// <summary>
+    /// Used by plugins to access AGS Editor features
+    /// </summary>
+    public class AGSEditorController : IAGSEditor
+    {
+        private AGSEditor _agsEditor;
+        private GUIController _guiController;
+        private ComponentController _componentController;
+        private IRoomController _roomController = null;
 
-		public AGSEditorController(ComponentController componentController, AGSEditor agsEditor, GUIController guiController)
-		{
-			_componentController = componentController;
-			_agsEditor = agsEditor;
-			_guiController = guiController;
-		}
+        public AGSEditorController(ComponentController componentController, AGSEditor agsEditor, GUIController guiController)
+        {
+            _componentController = componentController;
+            _agsEditor = agsEditor;
+            _guiController = guiController;
+        }
 
-		void IAGSEditor.AddComponent(IEditorComponent component)
-		{
-			_componentController.AddComponent(component);
-		}
+        void IAGSEditor.AddComponent(IEditorComponent component)
+        {
+            _componentController.AddComponent(component);
+        }
 
         IList<IEditorComponent> IAGSEditor.Components
         {
@@ -36,41 +36,41 @@ namespace AGS.Editor
             }
         }
 
-		IGUIController IAGSEditor.GUIController
-		{
-			get { return _guiController; }
-		}
+        IGUIController IAGSEditor.GUIController
+        {
+            get { return _guiController; }
+        }
 
-		IGame IAGSEditor.CurrentGame
-		{
-			get { return _agsEditor.CurrentGame; }
-		}
+        IGame IAGSEditor.CurrentGame
+        {
+            get { return _agsEditor.CurrentGame; }
+        }
 
-		string IAGSEditor.Version
-		{
-			get { return AGS.Types.Version.AGS_EDITOR_VERSION; }
-		}
+        string IAGSEditor.Version
+        {
+            get { return AGS.Types.Version.AGS_EDITOR_VERSION; }
+        }
 
-		event GetScriptHeaderListHandler IAGSEditor.GetScriptHeaderList
-		{
-			add { _agsEditor.GetScriptHeaderList += value; }
-			remove { _agsEditor.GetScriptHeaderList -= value; }
-		}
+        event GetScriptHeaderListHandler IAGSEditor.GetScriptHeaderList
+        {
+            add { _agsEditor.GetScriptHeaderList += value; }
+            remove { _agsEditor.GetScriptHeaderList -= value; }
+        }
 
-		void IAGSEditor.RebuildAutocompleteCache(Script script)
-		{
-			AutoComplete.ConstructCache(script);
-		}
+        void IAGSEditor.RebuildAutocompleteCache(Script script)
+        {
+            AutoComplete.ConstructCache(script);
+        }
 
-		IList<Script> IAGSEditor.GetAllScriptHeaders()
-		{
-			return _agsEditor.GetAllScriptHeaders();
-		}
+        IList<Script> IAGSEditor.GetAllScriptHeaders()
+        {
+            return _agsEditor.GetAllScriptHeaders();
+        }
 
-		Bitmap IAGSEditor.GetSpriteImage(int spriteNumber)
-		{
-			return Factory.NativeProxy.GetBitmapForSprite(spriteNumber);
-		}
+        Bitmap IAGSEditor.GetSpriteImage(int spriteNumber)
+        {
+            return Factory.NativeProxy.GetBitmapForSprite(spriteNumber);
+        }
 
         void IAGSEditor.ChangeSpriteImage(int spriteNumber, Bitmap newImage, SpriteImportTransparency transparencyType, bool useAlphaChannel)
         {
@@ -118,22 +118,22 @@ namespace AGS.Editor
             _agsEditor.CurrentGame.RootSpriteFolder.NotifyClientsOfUpdate();
         }
 
-		ISourceControlIntegration IAGSEditor.SourceControl
-		{
-			get { return _agsEditor; }
-		}
+        ISourceControlIntegration IAGSEditor.SourceControl
+        {
+            get { return _agsEditor; }
+        }
 
-		IRoomController IAGSEditor.RoomController
-		{
-			get
-			{
-				if (_roomController == null)
-				{
-					_roomController = (IRoomController)_componentController.FindComponentThatImplementsInterface(typeof(IRoomController));
-				}
-				return _roomController;
-			}
-		}
+        IRoomController IAGSEditor.RoomController
+        {
+            get
+            {
+                if (_roomController == null)
+                {
+                    _roomController = (IRoomController)_componentController.FindComponentThatImplementsInterface(typeof(IRoomController));
+                }
+                return _roomController;
+            }
+        }
 
         ISourceControlProvider IAGSEditor.SourceControlProvider
         {
@@ -142,5 +142,5 @@ namespace AGS.Editor
                 _agsEditor.SourceControlProvider = value;
             }
         }
-	}
+    }
 }

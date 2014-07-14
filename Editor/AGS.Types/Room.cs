@@ -109,7 +109,7 @@ namespace AGS.Types
         public bool Modified
         {
             get { return _modified; }
-            set 
+            set
             {
                 if (value != _modified)
                 {
@@ -344,9 +344,9 @@ namespace AGS.Types
             get { return _interactions; }
         }
 
-		void IChangeNotification.ItemModified()
-		{
-			this.Modified = true;
-		}
-	}
+        void IChangeNotification.ItemModified()
+        {
+            this.Modified = true;
+        }
+    }
 }

@@ -25,12 +25,12 @@ namespace AGS.Editor
             Factory.GUIController.SetPropertyGridObject(_room.Regions[areaNumber]);
         }
 
-		protected override void FilterActivated()
-		{
-			Factory.GUIController.ShowCuppit("Regions define what happens when the player walks around different parts of the room. You can set up lighting and scripts to run as the player walks onto different regions.", "Regions introduction");
-		}
+        protected override void FilterActivated()
+        {
+            Factory.GUIController.ShowCuppit("Regions define what happens when the player walks around different parts of the room. You can set up lighting and scripts to run as the player walks onto different regions.", "Regions introduction");
+        }
 
-		protected override void SetPropertyGridList()
+        protected override void SetPropertyGridList()
         {
             Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
             defaultPropertyObjectList.Add(_room.PropertyGridTitle, _room);

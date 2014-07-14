@@ -26,12 +26,12 @@
 
 int MYMP3::poll()
 {
-	AGS::Engine::MutexLock _lock(_mutex);
+    AGS::Engine::MutexLock _lock(_mutex);
 
     if (!done && _destroyThis)
     {
-      internal_destroy();
-      _destroyThis = false;
+        internal_destroy();
+        _destroyThis = false;
     }
 
     if (done)
@@ -45,9 +45,9 @@ int MYMP3::poll()
 
     if (!done) {
         // update the buffer
-		AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+        AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
         char *tempbuf = (char *)almp3_get_mp3stream_buffer(stream);
-		_lockMp3.Release(); // forced release
+        _lockMp3.Release(); // forced release
 
         if (tempbuf != NULL) {
             int free_val = -1;
@@ -57,15 +57,15 @@ int MYMP3::poll()
             }
             pack_fread(tempbuf, chunksize, in);
 
-			_lockMp3.Acquire(_mp3_mutex);
+            _lockMp3.Acquire(_mp3_mutex);
             almp3_free_mp3stream_buffer(stream, free_val);
-			_lockMp3.Release(); // forced release
+            _lockMp3.Release(); // forced release
         }
     }
 
-	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     int result = almp3_poll_mp3stream(stream);
-	_lockMp3.Release();
+    _lockMp3.Release();
 
     if (result == ALMP3_POLL_PLAYJUSTFINISHED)
     {
@@ -88,20 +88,20 @@ void MYMP3::set_volume(int newvol)
     newvol += volModifier + directionalVolModifier;
     if (newvol < 0) newvol = 0;
 
-	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     almp3_adjust_mp3stream(stream, newvol, panning, 1000);
 }
 
 void MYMP3::internal_destroy()
 {
-	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-		
-	if (!done)
-		almp3_stop_mp3stream(stream);
-		
-	almp3_destroy_mp3stream(stream);
+    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
 
-	_lockMp3.Release(); // this would happen anyway, just force it to release NOW
+    if (!done)
+        almp3_stop_mp3stream(stream);
+
+    almp3_destroy_mp3stream(stream);
+
+    _lockMp3.Release(); // this would happen anyway, just force it to release NOW
 
     stream = NULL;
 
@@ -117,17 +117,17 @@ void MYMP3::internal_destroy()
 
 void MYMP3::destroy()
 {
-	AGS::Engine::MutexLock _lock(_mutex);
+    AGS::Engine::MutexLock _lock(_mutex);
 
     if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
-      _destroyThis = true;
+        _destroyThis = true;
     else
-      internal_destroy();
+        internal_destroy();
 
-	_lock.Release();
+    _lock.Release();
 
     while (!done)
-      AGSPlatformDriver::GetDriver()->YieldCPU();
+        AGSPlatformDriver::GetDriver()->YieldCPU();
 }
 
 void MYMP3::seek(int pos)
@@ -143,13 +143,13 @@ int MYMP3::get_pos()
 
 int MYMP3::get_pos_ms()
 {
-	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     return almp3_get_pos_msecs_mp3stream(stream);
 }
 
 int MYMP3::get_length_ms()
 {
-	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     return almp3_get_length_msecs_mp3stream(stream, filesize);
 }
 
@@ -157,20 +157,20 @@ void MYMP3::restart()
 {
     if (stream != NULL) {
         // need to reset file pointer for this to work
-		AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+        AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
         almp3_play_mp3stream(stream, MP3CHUNKSIZE, vol, panning);
-		_lockMp3.Release();
+        _lockMp3.Release();
         done = 0;
         paused = 0;
 
         if (!psp_audio_multithreaded)
-          poll();
+            poll();
     }
 }
 
 int MYMP3::get_voice()
 {
-	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     AUDIOSTREAM *ast = almp3_get_audiostream_mp3stream(stream);
     return (ast != NULL ? ast->voice : -1);
 }
@@ -180,12 +180,12 @@ int MYMP3::get_sound_type() {
 }
 
 int MYMP3::play() {
-	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     almp3_play_mp3stream(stream, chunksize, (vol > 230) ? vol : vol + 20, panning);
-	_lockMp3.Release();
+    _lockMp3.Release();
 
     if (!psp_audio_multithreaded)
-      poll();
+        poll();
 
     _playing = true;
 

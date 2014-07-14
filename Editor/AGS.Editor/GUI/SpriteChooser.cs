@@ -11,10 +11,10 @@ namespace AGS.Editor
 {
     public partial class SpriteChooser : Form
     {
-		private const int NO_SPRITE_ID = 0;
+        private const int NO_SPRITE_ID = 0;
 
-		private static int WindowWidth = 0, WindowHeight = 0;
-		private static bool WindowMaximised = false;
+        private static int WindowWidth = 0, WindowHeight = 0;
+        private static bool WindowMaximised = false;
 
         private Sprite _selectedSprite;
         private int _startingSpriteNumber;
@@ -22,13 +22,13 @@ namespace AGS.Editor
         public SpriteChooser(int existingSprite)
         {
             InitializeComponent();
-			this.Icon = Factory.GUIController.StandardEditorIcon;
+            this.Icon = Factory.GUIController.StandardEditorIcon;
 
             btnOK.Enabled = false;
             spriteSelector1.SetDataSource(Factory.AGSEditor.CurrentGame.RootSpriteFolder);
             spriteSelector1.ShowUseThisSpriteOption = true;
-			spriteSelector1.SendUpdateNotifications = true;
-            if (existingSprite > 0) 
+            spriteSelector1.SendUpdateNotifications = true;
+            if (existingSprite > 0)
             {
                 spriteSelector1.OpenFolderForSprite(existingSprite);
             }
@@ -78,28 +78,28 @@ namespace AGS.Editor
             btnOK_Click(null, null);
         }
 
-		private void SaveWindowSizeAndClose()
-		{
-			if (this.WindowState == FormWindowState.Maximized)
-			{
-				WindowMaximised = true;
-			}
-			else
-			{
-				WindowMaximised = false;
-				WindowWidth = this.Width;
-				WindowHeight = this.Height;
-			}
-			this.DialogResult = DialogResult.OK;
-			this.Close();
-		}
+        private void SaveWindowSizeAndClose()
+        {
+            if (this.WindowState == FormWindowState.Maximized)
+            {
+                WindowMaximised = true;
+            }
+            else
+            {
+                WindowMaximised = false;
+                WindowWidth = this.Width;
+                WindowHeight = this.Height;
+            }
+            this.DialogResult = DialogResult.OK;
+            this.Close();
+        }
 
         private void btnOK_Click(object sender, EventArgs e)
         {
             _selectedSprite = spriteSelector1.SelectedSprite;
             if (_selectedSprite != null)
             {
-				SaveWindowSizeAndClose();
+                SaveWindowSizeAndClose();
             }
         }
 
@@ -123,41 +123,41 @@ namespace AGS.Editor
 
         private void SpriteChooser_Load(object sender, EventArgs e)
         {
-			if (WindowWidth > 0)
-			{
-				this.Size = new Size(WindowWidth, WindowHeight);
-				this.CenterToParent();
-			}
-			if (WindowMaximised)
-			{
-				this.WindowState = FormWindowState.Maximized;
-			}
+            if (WindowWidth > 0)
+            {
+                this.Size = new Size(WindowWidth, WindowHeight);
+                this.CenterToParent();
+            }
+            if (WindowMaximised)
+            {
+                this.WindowState = FormWindowState.Maximized;
+            }
 
-			Cursor.Current = Cursors.WaitCursor;
+            Cursor.Current = Cursors.WaitCursor;
 
             spriteSelector1.SelectSprite(_startingSpriteNumber);
 
-			Cursor.Current = Cursors.Default;
-		}
+            Cursor.Current = Cursors.Default;
+        }
 
-		private void btnUseNoSprite_Click(object sender, EventArgs e)
-		{
-			_selectedSprite = Factory.AGSEditor.CurrentGame.RootSpriteFolder.FindSpriteByID(NO_SPRITE_ID, true);
-			SaveWindowSizeAndClose();
-		}
+        private void btnUseNoSprite_Click(object sender, EventArgs e)
+        {
+            _selectedSprite = Factory.AGSEditor.CurrentGame.RootSpriteFolder.FindSpriteByID(NO_SPRITE_ID, true);
+            SaveWindowSizeAndClose();
+        }
 
-		private void SpriteChooser_Resize(object sender, EventArgs e)
-		{
-			spriteSelector1.Height = btnOK.Top - 10;
+        private void SpriteChooser_Resize(object sender, EventArgs e)
+        {
+            spriteSelector1.Height = btnOK.Top - 10;
 
-			if (this.Height < 300)
-			{
-				this.Height = 300;
-			}
-			if (this.Width < 300)
-			{
-				this.Width = 300;
-			}
-		}
+            if (this.Height < 300)
+            {
+                this.Height = 300;
+            }
+            if (this.Width < 300)
+            {
+                this.Width = 300;
+            }
+        }
     }
 }

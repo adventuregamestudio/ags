@@ -68,34 +68,34 @@ void SetInvItemName(int invi, const char *newName) {
 }
 
 int GetInvAt (int xxx, int yyy) {
-  int ongui = GetGUIAt (xxx, yyy);
-  if (ongui >= 0) {
-    int mxwas = mousex, mywas = mousey;
-    mousex = multiply_up_coordinate(xxx) - guis[ongui].x;
-    mousey = multiply_up_coordinate(yyy) - guis[ongui].y;
-    int onobj = guis[ongui].find_object_under_mouse();
-    if (onobj>=0) {
-      mouse_ifacebut_xoffs = mousex-(guis[ongui].objs[onobj]->x);
-      mouse_ifacebut_yoffs = mousey-(guis[ongui].objs[onobj]->y);
+    int ongui = GetGUIAt (xxx, yyy);
+    if (ongui >= 0) {
+        int mxwas = mousex, mywas = mousey;
+        mousex = multiply_up_coordinate(xxx) - guis[ongui].x;
+        mousey = multiply_up_coordinate(yyy) - guis[ongui].y;
+        int onobj = guis[ongui].find_object_under_mouse();
+        if (onobj>=0) {
+            mouse_ifacebut_xoffs = mousex-(guis[ongui].objs[onobj]->x);
+            mouse_ifacebut_yoffs = mousey-(guis[ongui].objs[onobj]->y);
+        }
+        mousex = mxwas;
+        mousey = mywas;
+        if ((onobj>=0) && ((guis[ongui].objrefptr[onobj] >> 16)==GOBJ_INVENTORY))
+            return offset_over_inv((GUIInv*)guis[ongui].objs[onobj]);
     }
-    mousex = mxwas;
-    mousey = mywas;
-    if ((onobj>=0) && ((guis[ongui].objrefptr[onobj] >> 16)==GOBJ_INVENTORY))
-      return offset_over_inv((GUIInv*)guis[ongui].objs[onobj]);
-  }
-  return -1;
+    return -1;
 }
 
 void GetInvName(int indx,char*buff) {
-  VALIDATE_STRING(buff);
-  if ((indx<0) | (indx>=game.numinvitems)) quit("!GetInvName: invalid inventory item specified");
-  strcpy(buff,get_translation(game.invinfo[indx].name));
+    VALIDATE_STRING(buff);
+    if ((indx<0) | (indx>=game.numinvitems)) quit("!GetInvName: invalid inventory item specified");
+    strcpy(buff,get_translation(game.invinfo[indx].name));
 }
 
 int GetInvGraphic(int indx) {
-  if ((indx<0) | (indx>=game.numinvitems)) quit("!GetInvGraphic: invalid inventory item specified");
+    if ((indx<0) | (indx>=game.numinvitems)) quit("!GetInvGraphic: invalid inventory item specified");
 
-  return game.invinfo[indx].pic;
+    return game.invinfo[indx].pic;
 }
 
 void RunInventoryInteraction (int iit, int modd) {
@@ -118,20 +118,20 @@ void RunInventoryInteraction (int iit, int modd) {
 }
 
 int IsInventoryInteractionAvailable (int item, int mood) {
-  if ((item < 0) || (item >= MAX_INV))
-    quit("!IsInventoryInteractionAvailable: invalid inventory number");
+    if ((item < 0) || (item >= MAX_INV))
+        quit("!IsInventoryInteractionAvailable: invalid inventory number");
 
-  play.check_interaction_only = 1;
+    play.check_interaction_only = 1;
 
-  RunInventoryInteraction(item, mood);
+    RunInventoryInteraction(item, mood);
 
-  int ciwas = play.check_interaction_only;
-  play.check_interaction_only = 0;
+    int ciwas = play.check_interaction_only;
+    play.check_interaction_only = 0;
 
-  if (ciwas == 2)
-    return 1;
+    if (ciwas == 2)
+        return 1;
 
-  return 0;
+    return 0;
 }
 
 int GetInvProperty (int item, const char *property) {

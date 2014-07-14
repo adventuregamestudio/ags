@@ -18,10 +18,10 @@ namespace AGS.Types
         {
         }
 
-		public ViewFrame(int id)
-		{
-			_id = id;
-		}
+        public ViewFrame(int id)
+        {
+            _id = id;
+        }
 
         [Description("The ID number of the frame")]
         [Category("Design")]
@@ -83,7 +83,7 @@ namespace AGS.Types
 
         public ViewFrame Clone(bool flip)
         {
-            return new ViewFrame 
+            return new ViewFrame
             {
                 ID = ID,
                 Image = Image,

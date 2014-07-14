@@ -24,10 +24,10 @@ namespace AGS.Editor
             _communicator.MessageReceived += new MessageReceivedHandler(_communicator_MessageReceived);
         }
 
-		public bool CanUseDebugger
-		{
-			get { return _communicator.SupportedOnCurrentSystem; }
-		}
+        public bool CanUseDebugger
+        {
+            get { return _communicator.SupportedOnCurrentSystem; }
+        }
 
         /// <summary>
         /// Allows more than one instance of the AGS Editor to run simulatenously
@@ -70,7 +70,7 @@ namespace AGS.Editor
             }
             else if (command == "EXIT")
             {
-				EngineHasExited();
+                EngineHasExited();
             }
         }
 
@@ -118,12 +118,12 @@ namespace AGS.Editor
             _communicator.SendMessage("<Engine Command=\"READY\" EditorWindow=\"" + editorHwnd + "\" />");
         }
 
-		public void EngineHasExited()
-		{
+        public void EngineHasExited()
+        {
             _communicator.ClientHasExited();
             ChangeDebugState(DebugState.NotRunning);
-			ClearCurrentLineMarker();
-		}
+            ClearCurrentLineMarker();
+        }
 
         public void AddedBreakpoint(Script script, int lineNumber)
         {

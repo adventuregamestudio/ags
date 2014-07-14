@@ -21,7 +21,7 @@ namespace AGS.CScript.Compiler
                 {
                     bool thisOneIsOk = true;
 
-                    if ((member is FixedOffsetVariable) && 
+                    if ((member is FixedOffsetVariable) &&
                         (((FixedOffsetVariable)member).IsAttributeProperty))
                     {
                         thisOneIsOk = false;

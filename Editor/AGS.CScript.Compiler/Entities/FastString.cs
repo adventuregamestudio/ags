@@ -42,10 +42,10 @@ namespace AGS.CScript.Compiler
 
         public bool StartsWith(string text)
         {
-			if (_offset >= _data.Length)
-			{
-				return false;
-			}
+            if (_offset >= _data.Length)
+            {
+                return false;
+            }
             return (_data[_offset] == text[0]) && (_data.Substring(_offset).StartsWith(text));
         }
 

@@ -138,8 +138,8 @@ namespace AGS.Types
         public int PushedImage
         {
             get { return _pushedImage; }
-            set 
-            { 
+            set
+            {
                 _pushedImage = value;
                 if (_pushedImage < 0) _pushedImage = 0;
             }
@@ -151,8 +151,8 @@ namespace AGS.Types
         public int MouseoverImage
         {
             get { return _mouseoverImage; }
-            set 
-            { 
+            set
+            {
                 _mouseoverImage = value;
                 if (_mouseoverImage < 0) _mouseoverImage = 0;
             }
@@ -164,8 +164,8 @@ namespace AGS.Types
         public int Image
         {
             get { return _image; }
-            set 
-            { 
+            set
+            {
                 _image = value;
                 if (_image < 0) _image = 0;
             }
@@ -192,7 +192,7 @@ namespace AGS.Types
         public string Text
         {
             get { return _text; }
-            set 
+            set
             {
                 if (value.Length > MAX_TEXT_LENGTH)
                 {

@@ -376,7 +376,7 @@ void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int fo
     va_start(ap,texx);
     vsprintf(displbuf, get_translation(texx), ap);
     va_end(ap);
-    
+
     sds->MultiplyCoordinates(&xx, &yy);
     Bitmap *ds = sds->StartDrawing();
     // don't use wtextcolor because it will do a 16->32 conversion

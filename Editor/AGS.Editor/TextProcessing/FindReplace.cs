@@ -40,9 +40,9 @@ namespace AGS.Editor.TextProcessing
                 _dialog.Close();
             }
         }
-        
+
         public bool PerformFindReplace()
-        {            
+        {
             bool showDialog = true;
             int currentScript = 0;
             bool foundOneReference = false;
@@ -72,8 +72,8 @@ namespace AGS.Editor.TextProcessing
                 for (; currentScript < scriptsForFindReplace.Count; currentScript++)
                 {
                     _script = scriptsForFindReplace[currentScript];
-                    if (!FindReplaceInScript(showAll, ref currentScript, 
-                        ref foundOneReference, jumpToStart, 
+                    if (!FindReplaceInScript(showAll, ref currentScript,
+                        ref foundOneReference, jumpToStart,
                         scriptsForFindReplace, results))
                     {
                         if (showAll || foundOneReference)
@@ -83,7 +83,7 @@ namespace AGS.Editor.TextProcessing
                     }
                 }
 
-                showDialog = ShowResults(showAll, showDialog, 
+                showDialog = ShowResults(showAll, showDialog,
                     foundOneReference, results);
             }
             else
@@ -127,7 +127,7 @@ namespace AGS.Editor.TextProcessing
             List<IScript> tmpScripts = new List<IScript>(scripts);
             scripts.Clear();
             int currentScriptIndex = tmpScripts.FindIndex(c => c.FileName == _script.FileName);
-            
+
             for (int i = currentScriptIndex; i < tmpScripts.Count; i++)
             {
                 scripts.Add(tmpScripts[i]);
@@ -148,7 +148,7 @@ namespace AGS.Editor.TextProcessing
                 _dialog.ShowingReplaceDialog = showReplace;
                 _dialog.ShowingAllDialog = showAll;
                 _dialog.CaseSensitive = _lastCaseSensitive;
-            }            
+            }
         }
 
         private bool IsUserRegrets(bool replace, bool showAll)
@@ -168,8 +168,8 @@ namespace AGS.Editor.TextProcessing
         {
             scriptEditorControl.ResetSelection();
         }
-        
-        private bool ShowResults(bool showAll, bool showDialog, 
+
+        private bool ShowResults(bool showAll, bool showDialog,
             bool foundOneReference, List<ScriptTokenReference> results)
         {
             if (!foundOneReference)
@@ -194,13 +194,13 @@ namespace AGS.Editor.TextProcessing
             return showDialog;
         }
 
-        private bool FindReplaceInScript(bool showAll, ref int currentScript, 
-            ref bool foundOneReference, bool jumpToStart, 
-            List<IScript> scriptsForFindReplace, 
+        private bool FindReplaceInScript(bool showAll, ref int currentScript,
+            ref bool foundOneReference, bool jumpToStart,
+            List<IScript> scriptsForFindReplace,
             List<ScriptTokenReference> results)
         {
             IScript script = scriptsForFindReplace[currentScript];
-            
+
             IScriptEditorControl scriptEditorControl = Factory.GUIController.GetScriptEditorControl(script.FileName, false);
 
             if (scriptEditorControl != null)
@@ -238,8 +238,8 @@ namespace AGS.Editor.TextProcessing
             return true;
         }
 
-        private static int JumpToFirstScriptIfNeeded(int currentScript, 
-            List<IScript> scriptsForFindReplace, 
+        private static int JumpToFirstScriptIfNeeded(int currentScript,
+            List<IScript> scriptsForFindReplace,
             ScriptTokenReference scriptTokenReference)
         {
             if (scriptTokenReference == null &&
@@ -250,9 +250,9 @@ namespace AGS.Editor.TextProcessing
             return currentScript;
         }
 
-        private ScriptTokenReference FindReplaceNextOccurence(bool showAll, 
-            ref bool foundOneReference, bool jumpToStart, 
-            List<ScriptTokenReference> results, IScript script, 
+        private ScriptTokenReference FindReplaceNextOccurence(bool showAll,
+            ref bool foundOneReference, bool jumpToStart,
+            List<ScriptTokenReference> results, IScript script,
             ref IScriptEditorControl scriptEditorControl)
         {
             ScriptTokenReference scriptTokenReference;
@@ -276,7 +276,7 @@ namespace AGS.Editor.TextProcessing
             {
                 foundOneReference = true;
 
-                ZoomToFileIfNeeded(script, ref scriptEditorControl, 
+                ZoomToFileIfNeeded(script, ref scriptEditorControl,
                     scriptTokenReference, showAll);
                 ReplaceTextIfNeeded(script, scriptEditorControl);
 
@@ -308,7 +308,7 @@ namespace AGS.Editor.TextProcessing
             return (scriptEditorControl.SelectedText.ToLower() == _dialog.TextToFind.ToLower());
         }
 
-        private void ZoomToFileIfNeeded(IScript script, 
+        private void ZoomToFileIfNeeded(IScript script,
             ref IScriptEditorControl scriptEditorControl,
             ScriptTokenReference scriptTokenReference, bool showAll)
         {
@@ -319,17 +319,17 @@ namespace AGS.Editor.TextProcessing
                 Factory.GUIController.ZoomToFile(script.FileName, ZoomToFileZoomType.ZoomToCharacterPosition,
                     startPos, false, false, null, false);
                 scriptEditorControl = Factory.GUIController.GetScriptEditorControl(script.FileName, false);
-                scriptEditorControl.SetSelection(startPos, _dialog.TextToFind.Length);                
+                scriptEditorControl.SetSelection(startPos, _dialog.TextToFind.Length);
                 scriptEditorControl.ActivateTextEditor();
                 _dialog.Activate();
             }
         }
 
-        private void ReplaceTextIfNeeded(IScript script, 
+        private void ReplaceTextIfNeeded(IScript script,
             IScriptEditorControl scriptEditorControl)
         {
             if (_dialog.IsReplace && TextToFindIsCurrentlySelected(scriptEditorControl))
-                scriptEditorControl.ReplaceSelectedText(_dialog.TextToReplaceWith);            
+                scriptEditorControl.ReplaceSelectedText(_dialog.TextToReplaceWith);
         }
     }
 }

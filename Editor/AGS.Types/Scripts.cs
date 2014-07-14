@@ -16,13 +16,13 @@ namespace AGS.Types
         }
 
         public Scripts()
-            :this(new ScriptsAndHeaders())
+            : this(new ScriptsAndHeaders())
         {
 
         }
 
         public Scripts(ScriptFolders scriptFolders)
-            :this(new ScriptsAndHeaders(scriptFolders))
+            : this(new ScriptsAndHeaders(scriptFolders))
         {
         }
 
@@ -67,7 +67,7 @@ namespace AGS.Types
                 {
                     // Header found, script does not exist and trying to add a script, so add it as its pair.
                     // Note that ScriptAndHeader is immutable so we remove the existing one and add a new one
-                    _scripts.AddAt(new ScriptAndHeader(scriptAndHeaderExisting.Header, newScript), indexExisting);                    _scripts.Remove(scriptAndHeaderExisting);
+                    _scripts.AddAt(new ScriptAndHeader(scriptAndHeaderExisting.Header, newScript), indexExisting); _scripts.Remove(scriptAndHeaderExisting);
                 }
                 else if (scriptAndHeaderExisting.Header == null
                          && scriptAndHeaderExisting.Script != null

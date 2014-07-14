@@ -23,7 +23,7 @@ namespace Scintilla
         public const string DEFAULT_DLL_NAME = "SciLexer.dll";
         private static readonly object _nativeEventKey = new object();
         private bool _isDialog = false;
-        
+
 
         private List<String> _keywords;
 
@@ -33,7 +33,7 @@ namespace Scintilla
             set { _keywords = value; }
         }
 
-     
+
         public bool IsDialog
         {
             get { return _isDialog; }
@@ -51,12 +51,12 @@ namespace Scintilla
             this.SendMessageDirect(Constants.SCI_SETPROPERTY, "fold.compact", "0");
             this.SendMessageDirect(Constants.SCI_SETPROPERTY, "fold.comment", "1");
             this.SendMessageDirect(Constants.SCI_SETPROPERTY, "fold.preprocessor", "1");
-     
+
             this.SendMessageDirect(Constants.SCI_SETMARGINWIDTHN, 2, 16);
             this.SendMessageDirect(Constants.SCI_SETMARGINTYPEN, 2, (int)Constants.SC_MARGIN_SYMBOL);
             this.SendMessageDirect(Constants.SCI_SETMARGINMASKN, 2, (int)Constants.SC_MASK_FOLDERS);
-      
-            
+
+
             this.SendMessageDirect(Constants.SCI_MARKERDEFINE, Constants.SC_MARKNUM_FOLDER, (int)Constants.SC_MARK_PLUS);
             this.SendMessageDirect(Constants.SCI_MARKERDEFINE, Constants.SC_MARKNUM_FOLDEROPEN, (int)Constants.SC_MARK_MINUS);
             this.SendMessageDirect(Constants.SCI_MARKERDEFINE, Constants.SC_MARKNUM_FOLDEREND, (int)Constants.SC_MARK_EMPTY);
@@ -70,7 +70,7 @@ namespace Scintilla
             SetMarginSensitivity(2, 1);
 
 
-            
+
 
         }
 
@@ -91,13 +91,13 @@ namespace Scintilla
 
         private bool isOperator(char token)
         {
-             return (token == '(' ||
-             token == ')' ||
-             token == '{' ||
-             token == '}' ||
-             token == '+' ||
-             token == '=' ||
-             token == '*');
+            return (token == '(' ||
+            token == ')' ||
+            token == '{' ||
+            token == '}' ||
+            token == '+' ||
+            token == '=' ||
+            token == '*');
 
         }
 
@@ -105,11 +105,11 @@ namespace Scintilla
         {
             from--;
             StringBuilder word = new StringBuilder();
-            
+
             while (Char.IsLetterOrDigit((char)GetCharAt(from)) && from > 0)
             {
-                word.Insert(0,(char)GetCharAt(from));
-                from --;
+                word.Insert(0, (char)GetCharAt(from));
+                from--;
             }
 
 
@@ -119,16 +119,16 @@ namespace Scintilla
         public void SetMarginSensitivity(int margin, int flag)
         {
             this.SendMessageDirect(Constants.SCI_SETMARGINSENSITIVEN, margin, flag);
-            
+
         }
 
         private void Style(int linenum, int end)
         {
-            
+
             int line_length = SendMessageDirect(Constants.SCI_LINELENGTH, linenum);
             int start_pos = SendMessageDirect(Constants.SCI_POSITIONFROMLINE, linenum);
             int laststyle = start_pos;
-            
+
             Cpp stylingMode;
             if (start_pos > 0) stylingMode = (Cpp)GetStyleAt(start_pos - 1);
             else stylingMode = Cpp.Default;
@@ -137,11 +137,11 @@ namespace Scintilla
             int i;
             SendMessageDirect(Constants.SCI_STARTSTYLING, start_pos, 0x1f);
 
-            for (i = start_pos; i <= end; i ++){
+            for (i = start_pos; i <= end; i++) {
 
                 char c = (char)GetCharAt(i);
 
-                if (!Char.IsLetterOrDigit(c) && (stylingMode != Cpp.Comment || stylingMode != Cpp.CommentLine|| stylingMode != Cpp.String))
+                if (!Char.IsLetterOrDigit(c) && (stylingMode != Cpp.Comment || stylingMode != Cpp.CommentLine || stylingMode != Cpp.String))
                 {
                     string lastword = previousWordFrom(i);
                     if (lastword.Length != 0)
@@ -181,7 +181,7 @@ namespace Scintilla
                 }
 
                 if (onNewLine) {
-                    
+
                     if (c == ' ') {
 
                         onScriptLine = true;
@@ -206,7 +206,7 @@ namespace Scintilla
                             laststyle = i + 1;
                         }
                     }
-                    
+
                     else if (isNumeric(c))
                     {
                         if (stylingMode != Cpp.String && stylingMode != Cpp.Comment && stylingMode != Cpp.CommentLine)
@@ -240,7 +240,7 @@ namespace Scintilla
                         laststyle = i;
                     }
                     if (c == ':' && stylingMode != Cpp.Comment && stylingMode != Cpp.CommentLine) {
-                        
+
                         SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle + 1, (int)stylingMode);
                         laststyle = i + 1;
                         stylingMode = Cpp.Number;
@@ -264,7 +264,7 @@ namespace Scintilla
                         SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle + 1, (int)stylingMode);
                         stylingMode = Cpp.Default;
                         laststyle = i + 1;
-                        
+
                     }
                     else if (GetCharAt(i + 1) == '*' && onScriptLine)
                     {
@@ -287,11 +287,11 @@ namespace Scintilla
 
             }
 
-         
+
 
             SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
-          
-            
+
+
         }
 
         public void StyleDialog(SCNotification notify) //THIS NEED REFACTORING OUT OF THIS CLASS
@@ -300,12 +300,12 @@ namespace Scintilla
 
             int line_number = SendMessageDirect(Constants.SCI_LINEFROMPOSITION, SendMessageDirect(Constants.SCI_GETENDSTYLED));
             int end_pos = notify.position;
-                             
+
             Style(line_number, end_pos);
 
 
-                        
-    
+
+
 
         }
 
@@ -350,12 +350,12 @@ namespace Scintilla
             return false;
         }
 
-        public void SetLineIndentation(int line, int indentation) 
+        public void SetLineIndentation(int line, int indentation)
         {
             this.SendMessageDirect(2126, line, indentation);
         }
 
-        public int GetLineIndentation(int line) 
+        public int GetLineIndentation(int line)
         {
             return this.SendMessageDirect(2127, line);
         }
@@ -460,7 +460,7 @@ namespace Scintilla
             this.SendMessageDirect(4001, (int)lexer);
         }
 
-   
+
 
         public void SetKeyWords(string keywords)
         {
@@ -475,10 +475,10 @@ namespace Scintilla
             }
         }
 
-		public void SetClassListHighlightedWords(string keywords)
-		{
-			this.SendMessageDirect(4005, 1, keywords);
-		}
+        public void SetClassListHighlightedWords(string keywords)
+        {
+            this.SendMessageDirect(4005, 1, keywords);
+        }
 
         /// <summary>
         /// Retrieve the contents of a line. Returns the length of the line. 
@@ -506,7 +506,7 @@ namespace Scintilla
         {
             this.SendMessageDirect(2029, (int)eolMode);
         }
-        
+
         protected override CreateParams CreateParams
         {
             get
@@ -532,7 +532,7 @@ namespace Scintilla
                 CreateParams cp = base.CreateParams;
                 cp.ClassName = "Scintilla";
                 return cp;
-                
+
 
             }
         }
@@ -545,16 +545,16 @@ namespace Scintilla
 
                 case Scintilla.Enums.Events.StyleNeeded:
 
-                        
-                        StyleDialog(notification);
-                       
+
+                    StyleDialog(notification);
+
 
                     break;
-                    
+
                 case Scintilla.Enums.Events.MarginClick:
 
-                    int lineNumber = SendMessageDirect(Constants.SCI_LINEFROMPOSITION, notification.position, 0);                                   
-                      MarginClick(this, new MarginClickEventArgs(notification, lineNumber));
+                    int lineNumber = SendMessageDirect(Constants.SCI_LINEFROMPOSITION, notification.position, 0);
+                    MarginClick(this, new MarginClickEventArgs(notification, lineNumber));
                     break;
                 case Scintilla.Enums.Events.AutoCSelection:
                     if (Events[Scintilla.Enums.Events.AutoCSelection] != null)
@@ -637,9 +637,9 @@ namespace Scintilla
         #endregion
 
         #region Event Dispatch Mechanism
-        
+
         protected override void WndProc(ref Message m)
-        {            
+        {
             //	If we get a destroy message we make this window
             //	a message-only window so that it doesn't actually
             //	get destroyed, causing Scintilla to wipe out all
@@ -677,7 +677,7 @@ namespace Scintilla
             base.WndProc(ref m);
 
         }
-        
+
         protected event EventHandler<NativeScintillaEventArgs> NativeScintillaEvent
         {
             add { Events.AddHandler(_nativeEventKey, value); }
@@ -685,7 +685,7 @@ namespace Scintilla
         }
         #endregion
 
-        #region SendMessageDirect 
+        #region SendMessageDirect
 
         /// <summary>
         /// This is the primary Native communication method with Scintilla
@@ -766,7 +766,7 @@ namespace Scintilla
             return (int)SendMessageDirect(msg, IntPtr.Zero, (IntPtr)lParam);
         }
 
-        
+
         /// <summary>
         /// Handles Scintilla Call Style:
         ///    (bool,int)    
@@ -889,7 +889,7 @@ namespace Scintilla
         }
 
 
-        
+
         /// <summary>
         /// Handles Scintilla Call Style:
         ///    (int,string)    
@@ -942,9 +942,9 @@ namespace Scintilla
         }
 
 
-     
 
-        
+
+
         /// <summary>
         /// Handles Scintilla Call Style:
         ///    (string,string)    
@@ -995,7 +995,7 @@ namespace Scintilla
 
             return (int)ret;
         }
-   
+
         /// <summary>
         /// Handles Scintilla Call Style:
         ///    (string,int)    

@@ -11,7 +11,7 @@ namespace AGS.Editor
         BottomLeft,
         TopRight,
         BottomRight,
-		LeaveAsIs,
-		NoTransparency
+        LeaveAsIs,
+        NoTransparency
     }
 }

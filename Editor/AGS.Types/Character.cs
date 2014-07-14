@@ -48,7 +48,7 @@ namespace AGS.Types
             _interactionSchema = new InteractionSchema(new string[] {"$$01 character",
                 "$$02 character","$$03 character","Use inventory on character",
                 "Any click on character", "$$05 character","$$08 character", 
-                "$$09 character"}, 
+                "$$09 character"},
                 new string[] { "Look", "Interact", "Talk", "UseInv", "AnyClick", "PickUp", "Mode8", "Mode9" });
         }
 
@@ -159,8 +159,8 @@ namespace AGS.Types
         public bool UniformMovementSpeed
         {
             get { return _uniformMovementSpeed; }
-            set 
-            { 
+            set
+            {
                 _uniformMovementSpeed = value;
                 if ((!_uniformMovementSpeed) && (_movementSpeedX == 0))
                 {

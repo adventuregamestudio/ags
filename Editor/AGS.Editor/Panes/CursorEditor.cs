@@ -35,7 +35,7 @@ namespace AGS.Editor
         {
             return "Cursors";
         }
-        
+
         public void SaveData()
         {
         }
@@ -51,11 +51,11 @@ namespace AGS.Editor
                 IMAGE_SCALE_FACTOR = Factory.AGSEditor.CurrentGame.GUIScaleFactor;
 
                 if (_item.Image > 0)
-				{
-					IntPtr hdc = e.Graphics.GetHdc();
-					Factory.NativeProxy.DrawSprite(hdc, 0, 0, _item.Image);
-					e.Graphics.ReleaseHdc();
-				}
+                {
+                    IntPtr hdc = e.Graphics.GetHdc();
+                    Factory.NativeProxy.DrawSprite(hdc, 0, 0, _item.Image);
+                    e.Graphics.ReleaseHdc();
+                }
                 if ((_item.HotspotX >= 0) && (_item.HotspotY >= 0))
                 {
                     e.Graphics.DrawLine(Pens.LightGreen, (_item.HotspotX - 2) * IMAGE_SCALE_FACTOR, _item.HotspotY * IMAGE_SCALE_FACTOR, (_item.HotspotX + 2) * IMAGE_SCALE_FACTOR, _item.HotspotY * IMAGE_SCALE_FACTOR);
@@ -74,7 +74,7 @@ namespace AGS.Editor
                 IMAGE_SCALE_FACTOR = Factory.AGSEditor.CurrentGame.GUIScaleFactor;
                 int newHotspotX = e.X / IMAGE_SCALE_FACTOR;
                 int newHotspotY = e.Y / IMAGE_SCALE_FACTOR;
-                if ((newHotspotX >= 0) && (newHotspotY >= 0) && 
+                if ((newHotspotX >= 0) && (newHotspotY >= 0) &&
                     (newHotspotX < spriteWidth) && (newHotspotY < spriteHeight))
                 {
                     _item.HotspotX = newHotspotX;

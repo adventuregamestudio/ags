@@ -71,7 +71,7 @@ struct GameState {
     int  ambient_sounds_persist;
     int  lipsync_speed;
     int  close_mouth_speech_time; // stop speech animation at (messagetime - close_mouth_speech_time)
-                                  // (this is designed to work in text-only mode)
+    // (this is designed to work in text-only mode)
     int  disable_antialiasing;
     int  text_speed_modifier;
     int  text_align;
@@ -103,7 +103,7 @@ struct GameState {
     int  speech_portrait_x; // a speech portrait x offset from corresponding screen side
     int  speech_portrait_y; // a speech portrait y offset 
     int  speech_display_post_time_ms; // keep speech text/portrait on screen after text/voice has finished playing;
-                                      // no speech animation is supposed to be played at this time
+    // no speech animation is supposed to be played at this time
     int  dialog_options_highlight_color; // The colour used for highlighted (hovered over) text in dialog options
     int  reserved[GAME_STATE_RESERVED_INTS];  // make sure if a future version adds a var, it doesn't mess anything up
     // ** up to here is referenced in the script "game." object

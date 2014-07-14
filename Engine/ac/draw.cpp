@@ -120,11 +120,11 @@ extern int bg_just_changed;
 // How is this actually used??
 // We need COLOR_DEPTH_24 to allow it to load the preload PCX in hi-col
 BEGIN_COLOR_DEPTH_LIST
-    COLOR_DEPTH_8
-    COLOR_DEPTH_15
-    COLOR_DEPTH_16
-    COLOR_DEPTH_24
-    COLOR_DEPTH_32
+COLOR_DEPTH_8
+COLOR_DEPTH_15
+COLOR_DEPTH_16
+COLOR_DEPTH_24
+COLOR_DEPTH_32
 END_COLOR_DEPTH_LIST
 
 
@@ -186,12 +186,12 @@ extern Bitmap *test_allegro_bitmap;
 extern IDriverDependantBitmap *test_allegro_ddb;
 void allegro_bitmap_test_draw()
 {
-	if (test_allegro_bitmap)
-	{
+    if (test_allegro_bitmap)
+    {
         test_allegro_bitmap->FillTransparent();
-		test_allegro_bitmap->FillRect(Rect(50,50,150,150), 15);
+        test_allegro_bitmap->FillRect(Rect(50,50,150,150), 15);
 
-		if (test_allegro_ddb == NULL) 
+        if (test_allegro_ddb == NULL) 
         {
             test_allegro_ddb = gfxDriver->CreateDDBFromBitmap(test_allegro_bitmap, false, true);
         }
@@ -200,7 +200,7 @@ void allegro_bitmap_test_draw()
             gfxDriver->UpdateDDBFromBitmap(test_allegro_ddb, test_allegro_bitmap, false);
         }
         gfxDriver->DrawSprite(-offsetx, -offsety, test_allegro_ddb);
-	}
+    }
 }
 
 void setpal() {
@@ -232,7 +232,7 @@ Bitmap *convert_16_to_15(Bitmap *iii) {
             quit("unable to get 24-bit bitmap vtable");
         }
 
-		// TODO
+        // TODO
         ((BITMAP*)tempbl->GetAllegroBitmap())->vtable = vtable;
 
         for (y=0; y < tempbl->GetHeight(); y++) {
@@ -261,7 +261,7 @@ Bitmap *convert_16_to_15(Bitmap *iii) {
         quit("unable to get 15-bit bitmap vtable");
     }
 
-	// TODO
+    // TODO
     ((BITMAP*)tempbl->GetAllegroBitmap())->vtable = vtable;
 
     for (y=0; y < tempbl->GetHeight(); y++) {
@@ -688,7 +688,7 @@ void mark_current_background_dirty()
 
 int get_screen_y_adjustment(Bitmap *checkFor) {
 
-	if ((BitmapHelper::GetScreenBitmap() == _sub_screen) && (checkFor->GetHeight() < final_scrn_hit))
+    if ((BitmapHelper::GetScreenBitmap() == _sub_screen) && (checkFor->GetHeight() < final_scrn_hit))
         return game_frame_y_offset;
 
     return 0;
@@ -696,7 +696,7 @@ int get_screen_y_adjustment(Bitmap *checkFor) {
 
 int get_screen_x_adjustment(Bitmap *checkFor) {
 
-	if ((BitmapHelper::GetScreenBitmap() == _sub_screen) && (checkFor->GetWidth() < final_scrn_wid))
+    if ((BitmapHelper::GetScreenBitmap() == _sub_screen) && (checkFor->GetWidth() < final_scrn_wid))
         return (final_scrn_wid - checkFor->GetWidth()) / 2;
 
     return 0;
@@ -852,7 +852,7 @@ void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos
         (use_new_sprite_alpha_blending || alpha == 0xFF))
     {
         if (use_new_sprite_alpha_blending)
-           set_argb2argb_alpha_blender(alpha);
+            set_argb2argb_alpha_blender(alpha);
         else
             set_alpha_blender();
         ds->TransBlendBlt(image, xpos, ypos);
@@ -1216,7 +1216,7 @@ Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit, bool make_tra
     if (bimp != NULL) {
         // same colour depth, width and height -> reuse
         if ((bimp->GetColorDepth() == coldep) && (bimp->GetWidth() == wid)
-                && (bimp->GetHeight() == hit))
+            && (bimp->GetHeight() == hit))
         {
             if (make_transparent)
             {
@@ -1242,77 +1242,77 @@ void get_local_tint(int xpp, int ypp, int nolight,
                     int *tint_b, int *tint_lit,
                     int *light_lev) {
 
-    int tint_level = 0, light_level = 0;
-    int tint_amount = 0;
-    int tint_red = 0;
-    int tint_green = 0;
-    int tint_blue = 0;
-    int tint_light = 255;
+                        int tint_level = 0, light_level = 0;
+                        int tint_amount = 0;
+                        int tint_red = 0;
+                        int tint_green = 0;
+                        int tint_blue = 0;
+                        int tint_light = 255;
 
-    if (nolight == 0) {
+                        if (nolight == 0) {
 
-        int onRegion = 0;
+                            int onRegion = 0;
 
-        if ((play.ground_level_areas_disabled & GLED_EFFECTS) == 0) {
-            // check if the player is on a region, to find its
-            // light/tint level
-            onRegion = GetRegionAt (xpp, ypp);
-            if (onRegion == 0) {
-                // when walking, he might just be off a walkable area
-                onRegion = GetRegionAt (xpp - 3, ypp);
-                if (onRegion == 0)
-                    onRegion = GetRegionAt (xpp + 3, ypp);
-                if (onRegion == 0)
-                    onRegion = GetRegionAt (xpp, ypp - 3);
-                if (onRegion == 0)
-                    onRegion = GetRegionAt (xpp, ypp + 3);
-            }
-        }
+                            if ((play.ground_level_areas_disabled & GLED_EFFECTS) == 0) {
+                                // check if the player is on a region, to find its
+                                // light/tint level
+                                onRegion = GetRegionAt (xpp, ypp);
+                                if (onRegion == 0) {
+                                    // when walking, he might just be off a walkable area
+                                    onRegion = GetRegionAt (xpp - 3, ypp);
+                                    if (onRegion == 0)
+                                        onRegion = GetRegionAt (xpp + 3, ypp);
+                                    if (onRegion == 0)
+                                        onRegion = GetRegionAt (xpp, ypp - 3);
+                                    if (onRegion == 0)
+                                        onRegion = GetRegionAt (xpp, ypp + 3);
+                                }
+                            }
 
-        if ((onRegion > 0) && (onRegion <= MAX_REGIONS)) {
-            light_level = thisroom.regionLightLevel[onRegion];
-            tint_level = thisroom.regionTintLevel[onRegion];
-        }
-        else if (onRegion <= 0) {
-            light_level = thisroom.regionLightLevel[0];
-            tint_level = thisroom.regionTintLevel[0];
-        }
-        if ((game.color_depth == 1) || ((tint_level & 0x00ffffff) == 0) ||
-            ((tint_level & TINT_IS_ENABLED) == 0))
-            tint_level = 0;
+                            if ((onRegion > 0) && (onRegion <= MAX_REGIONS)) {
+                                light_level = thisroom.regionLightLevel[onRegion];
+                                tint_level = thisroom.regionTintLevel[onRegion];
+                            }
+                            else if (onRegion <= 0) {
+                                light_level = thisroom.regionLightLevel[0];
+                                tint_level = thisroom.regionTintLevel[0];
+                            }
+                            if ((game.color_depth == 1) || ((tint_level & 0x00ffffff) == 0) ||
+                                ((tint_level & TINT_IS_ENABLED) == 0))
+                                tint_level = 0;
 
-        if (tint_level) {
-            tint_red = (unsigned char)(tint_level & 0x000ff);
-            tint_green = (unsigned char)((tint_level >> 8) & 0x000ff);
-            tint_blue = (unsigned char)((tint_level >> 16) & 0x000ff);
-            tint_amount = light_level;
-            // older versions of the editor had a bug - work around it
-            if (tint_amount < 0)
-                tint_amount = 50;
-            /*red = ((red + 100) * 25) / 20;
-            grn = ((grn + 100) * 25) / 20;
-            blu = ((blu + 100) * 25) / 20;*/
-        }
+                            if (tint_level) {
+                                tint_red = (unsigned char)(tint_level & 0x000ff);
+                                tint_green = (unsigned char)((tint_level >> 8) & 0x000ff);
+                                tint_blue = (unsigned char)((tint_level >> 16) & 0x000ff);
+                                tint_amount = light_level;
+                                // older versions of the editor had a bug - work around it
+                                if (tint_amount < 0)
+                                    tint_amount = 50;
+                                /*red = ((red + 100) * 25) / 20;
+                                grn = ((grn + 100) * 25) / 20;
+                                blu = ((blu + 100) * 25) / 20;*/
+                            }
 
-        if (play.rtint_level > 0) {
-            // override with room tint
-            tint_level = 1;
-            tint_red = play.rtint_red;
-            tint_green = play.rtint_green;
-            tint_blue = play.rtint_blue;
-            tint_amount = play.rtint_level;
-            tint_light = play.rtint_light;
-        }
-    }
+                            if (play.rtint_level > 0) {
+                                // override with room tint
+                                tint_level = 1;
+                                tint_red = play.rtint_red;
+                                tint_green = play.rtint_green;
+                                tint_blue = play.rtint_blue;
+                                tint_amount = play.rtint_level;
+                                tint_light = play.rtint_light;
+                            }
+                        }
 
-    // copy to output parameters
-    *tint_amnt = tint_amount;
-    *tint_r = tint_red;
-    *tint_g = tint_green;
-    *tint_b = tint_blue;
-    *tint_lit = tint_light;
-    if (light_lev)
-        *light_lev = light_level;
+                        // copy to output parameters
+                        *tint_amnt = tint_amount;
+                        *tint_r = tint_red;
+                        *tint_g = tint_green;
+                        *tint_b = tint_blue;
+                        *tint_lit = tint_light;
+                        if (light_lev)
+                            *light_lev = light_level;
 }
 
 
@@ -1325,65 +1325,65 @@ void apply_tint_or_light(int actspsindex, int light_level,
                          int tint_blue, int tint_light, int coldept,
                          Bitmap *blitFrom) {
 
- // In a 256-colour game, we cannot do tinting or lightening
- // (but we can do darkening, if light_level < 0)
- if (game.color_depth == 1) {
-     if ((light_level > 0) || (tint_amount != 0))
-         return;
- }
+                             // In a 256-colour game, we cannot do tinting or lightening
+                             // (but we can do darkening, if light_level < 0)
+                             if (game.color_depth == 1) {
+                                 if ((light_level > 0) || (tint_amount != 0))
+                                     return;
+                             }
 
- // we can only do tint/light if the colour depths match
- if (final_col_dep == actsps[actspsindex]->GetColorDepth()) {
-     Bitmap *oldwas;
-     // if the caller supplied a source bitmap, ->Blit from it
-     // (used as a speed optimisation where possible)
-     if (blitFrom) 
-         oldwas = blitFrom;
-     // otherwise, make a new target bmp
-     else {
-         oldwas = actsps[actspsindex];
-         actsps[actspsindex] = BitmapHelper::CreateBitmap(oldwas->GetWidth(), oldwas->GetHeight(), coldept);
-     }
-     Bitmap *active_spr = actsps[actspsindex];
+                             // we can only do tint/light if the colour depths match
+                             if (final_col_dep == actsps[actspsindex]->GetColorDepth()) {
+                                 Bitmap *oldwas;
+                                 // if the caller supplied a source bitmap, ->Blit from it
+                                 // (used as a speed optimisation where possible)
+                                 if (blitFrom) 
+                                     oldwas = blitFrom;
+                                 // otherwise, make a new target bmp
+                                 else {
+                                     oldwas = actsps[actspsindex];
+                                     actsps[actspsindex] = BitmapHelper::CreateBitmap(oldwas->GetWidth(), oldwas->GetHeight(), coldept);
+                                 }
+                                 Bitmap *active_spr = actsps[actspsindex];
 
-     if (tint_amount) {
-         // It is an RGB tint
-         tint_image (active_spr, oldwas, tint_red, tint_green, tint_blue, tint_amount, tint_light);
-     }
-     else {
-         // the RGB values passed to set_trans_blender decide whether it will darken
-         // or lighten sprites ( <128=darken, >128=lighten). The parameter passed
-         // to LitBlendBlt defines how much it will be darkened/lightened by.
-         
-         int lit_amnt;
-         active_spr->FillTransparent();
-         // It's a light level, not a tint
-         if (game.color_depth == 1) {
-             // 256-col
-             lit_amnt = (250 - ((-light_level) * 5)/2);
-         }
-         else {
-             // hi-color
-             if (light_level < 0)
-                 set_my_trans_blender(8,8,8,0);
-             else
-                 set_my_trans_blender(248,248,248,0);
-             lit_amnt = abs(light_level) * 2;
-         }
+                                 if (tint_amount) {
+                                     // It is an RGB tint
+                                     tint_image (active_spr, oldwas, tint_red, tint_green, tint_blue, tint_amount, tint_light);
+                                 }
+                                 else {
+                                     // the RGB values passed to set_trans_blender decide whether it will darken
+                                     // or lighten sprites ( <128=darken, >128=lighten). The parameter passed
+                                     // to LitBlendBlt defines how much it will be darkened/lightened by.
 
-         active_spr->LitBlendBlt(oldwas, 0, 0, lit_amnt);
-     }
+                                     int lit_amnt;
+                                     active_spr->FillTransparent();
+                                     // It's a light level, not a tint
+                                     if (game.color_depth == 1) {
+                                         // 256-col
+                                         lit_amnt = (250 - ((-light_level) * 5)/2);
+                                     }
+                                     else {
+                                         // hi-color
+                                         if (light_level < 0)
+                                             set_my_trans_blender(8,8,8,0);
+                                         else
+                                             set_my_trans_blender(248,248,248,0);
+                                         lit_amnt = abs(light_level) * 2;
+                                     }
 
-     if (oldwas != blitFrom)
-         delete oldwas;
+                                     active_spr->LitBlendBlt(oldwas, 0, 0, lit_amnt);
+                                 }
 
- }
- else if (blitFrom) {
-     // sprite colour depth != game colour depth, so don't try and tint
-     // but we do need to do something, so copy the source
-     Bitmap *active_spr = actsps[actspsindex];
-     active_spr->Blit(blitFrom, 0, 0, 0, 0, active_spr->GetWidth(), active_spr->GetHeight());
- }
+                                 if (oldwas != blitFrom)
+                                     delete oldwas;
+
+                             }
+                             else if (blitFrom) {
+                                 // sprite colour depth != game colour depth, so don't try and tint
+                                 // but we do need to do something, so copy the source
+                                 Bitmap *active_spr = actsps[actspsindex];
+                                 active_spr->Blit(blitFrom, 0, 0, 0, 0, active_spr->GetWidth(), active_spr->GetHeight());
+                             }
 
 }
 
@@ -1395,76 +1395,76 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
                           int sppic, int newwidth, int newheight,
                           int isMirrored) {
 
-  int actsps_used = 1;
+                              int actsps_used = 1;
 
-  // create and blank out the new sprite
-  actsps[useindx] = recycle_bitmap(actsps[useindx], coldept, newwidth, newheight, true);
-  Bitmap *active_spr = actsps[useindx];
+                              // create and blank out the new sprite
+                              actsps[useindx] = recycle_bitmap(actsps[useindx], coldept, newwidth, newheight, true);
+                              Bitmap *active_spr = actsps[useindx];
 
-  if (zoom_level != 100) {
-      // Scaled character
+                              if (zoom_level != 100) {
+                                  // Scaled character
 
-      our_eip = 334;
+                                  our_eip = 334;
 
-      // Ensure that anti-aliasing routines have a palette to
-      // use for mapping while faded out
-      if (in_new_room)
-          select_palette (palette);
+                                  // Ensure that anti-aliasing routines have a palette to
+                                  // use for mapping while faded out
+                                  if (in_new_room)
+                                      select_palette (palette);
 
 
-      if (isMirrored) {
-          Bitmap *tempspr = BitmapHelper::CreateBitmap(newwidth, newheight,coldept);
-          tempspr->Fill (actsps[useindx]->GetMaskColor());
-          if ((IS_ANTIALIAS_SPRITES) && ((game.spriteflags[sppic] & SPF_ALPHACHANNEL) == 0))
-              tempspr->AAStretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
-          else
-              tempspr->StretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
-          active_spr->FlipBlt(tempspr, 0, 0, Common::kBitmap_HFlip);
-          delete tempspr;
-      }
-      else if ((IS_ANTIALIAS_SPRITES) && ((game.spriteflags[sppic] & SPF_ALPHACHANNEL) == 0))
-          active_spr->AAStretchBlt(spriteset[sppic],RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
-      else
-          active_spr->StretchBlt(spriteset[sppic],RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
+                                  if (isMirrored) {
+                                      Bitmap *tempspr = BitmapHelper::CreateBitmap(newwidth, newheight,coldept);
+                                      tempspr->Fill (actsps[useindx]->GetMaskColor());
+                                      if ((IS_ANTIALIAS_SPRITES) && ((game.spriteflags[sppic] & SPF_ALPHACHANNEL) == 0))
+                                          tempspr->AAStretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
+                                      else
+                                          tempspr->StretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
+                                      active_spr->FlipBlt(tempspr, 0, 0, Common::kBitmap_HFlip);
+                                      delete tempspr;
+                                  }
+                                  else if ((IS_ANTIALIAS_SPRITES) && ((game.spriteflags[sppic] & SPF_ALPHACHANNEL) == 0))
+                                      active_spr->AAStretchBlt(spriteset[sppic],RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
+                                  else
+                                      active_spr->StretchBlt(spriteset[sppic],RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
 
-      /*  AASTR2 version of code (doesn't work properly, gives black borders)
-      if (IS_ANTIALIAS_SPRITES) {
-      int aa_mode = AA_MASKED; 
-      if (game.spriteflags[sppic] & SPF_ALPHACHANNEL)
-      aa_mode |= AA_ALPHA | AA_RAW_ALPHA;
-      if (isMirrored)
-      aa_mode |= AA_HFLIP;
+                                  /*  AASTR2 version of code (doesn't work properly, gives black borders)
+                                  if (IS_ANTIALIAS_SPRITES) {
+                                  int aa_mode = AA_MASKED; 
+                                  if (game.spriteflags[sppic] & SPF_ALPHACHANNEL)
+                                  aa_mode |= AA_ALPHA | AA_RAW_ALPHA;
+                                  if (isMirrored)
+                                  aa_mode |= AA_HFLIP;
 
-      aa_set_mode(aa_mode);
-      ->AAStretchBlt(actsps[useindx],spriteset[sppic],0,0,newwidth,newheight);
-      }
-      else if (isMirrored) {
-      Bitmap *tempspr = BitmapHelper::CreateBitmap_ (coldept, newwidth, newheight);
-      ->Clear (tempspr, ->GetMaskColor(actsps[useindx]));
-      ->StretchBlt (tempspr, spriteset[sppic], 0, 0, newwidth, newheight);
-      ->FlipBlt(Common::kBitmap_HFlip, (actsps[useindx], tempspr, 0, 0);
-      wfreeblock (tempspr);
-      }
-      else
-      ->StretchBlt(actsps[useindx],spriteset[sppic],0,0,newwidth,newheight);
-      */
-      if (in_new_room)
-          unselect_palette();
+                                  aa_set_mode(aa_mode);
+                                  ->AAStretchBlt(actsps[useindx],spriteset[sppic],0,0,newwidth,newheight);
+                                  }
+                                  else if (isMirrored) {
+                                  Bitmap *tempspr = BitmapHelper::CreateBitmap_ (coldept, newwidth, newheight);
+                                  ->Clear (tempspr, ->GetMaskColor(actsps[useindx]));
+                                  ->StretchBlt (tempspr, spriteset[sppic], 0, 0, newwidth, newheight);
+                                  ->FlipBlt(Common::kBitmap_HFlip, (actsps[useindx], tempspr, 0, 0);
+                                  wfreeblock (tempspr);
+                                  }
+                                  else
+                                  ->StretchBlt(actsps[useindx],spriteset[sppic],0,0,newwidth,newheight);
+                                  */
+                                  if (in_new_room)
+                                      unselect_palette();
 
-  } 
-  else {
-      // Not a scaled character, draw at normal size
+                              } 
+                              else {
+                                  // Not a scaled character, draw at normal size
 
-      our_eip = 339;
+                                  our_eip = 339;
 
-      if (isMirrored)
-          active_spr->FlipBlt(spriteset[sppic], 0, 0, Common::kBitmap_HFlip);
-      else
-          actsps_used = 0;
-      //->Blit (spriteset[sppic], actsps[useindx], 0, 0, 0, 0, actsps[useindx]->GetWidth(), actsps[useindx]->GetHeight());
-  }
+                                  if (isMirrored)
+                                      active_spr->FlipBlt(spriteset[sppic], 0, 0, Common::kBitmap_HFlip);
+                                  else
+                                      actsps_used = 0;
+                                  //->Blit (spriteset[sppic], actsps[useindx], 0, 0, 0, 0, actsps[useindx]->GetWidth(), actsps[useindx]->GetHeight());
+                              }
 
-  return actsps_used;
+                              return actsps_used;
 }
 
 
@@ -2127,7 +2127,7 @@ void draw_screen_background(Bitmap *ds) {
     }
     our_eip=36;
 
-	allegro_bitmap_test_draw();
+    allegro_bitmap_test_draw();
 }
 
 
@@ -2554,7 +2554,7 @@ void construct_virtual_screen(bool fullRedraw)
 
     // make sure that the mp3 is always playing smoothly
     update_mp3();
-        our_eip=4;
+    our_eip=4;
     draw_screen_overlay();
     put_sprite_list_on_screen();
     draw_misc_info();

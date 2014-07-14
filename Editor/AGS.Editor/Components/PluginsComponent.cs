@@ -17,14 +17,14 @@ namespace AGS.Editor.Components
         private const string PLUGIN_SEARCH_MASK = "ags*.dll";
 
         private List<NativePlugin> _plugins = new List<NativePlugin>();
-		private List<EditorPlugin> _editorPlugins = new List<EditorPlugin>();
+        private List<EditorPlugin> _editorPlugins = new List<EditorPlugin>();
         private NativePlugin _rightClickedPlugin;
-		private AGSEditorController _pluginEditorController;
+        private AGSEditorController _pluginEditorController;
 
         public PluginsComponent(GUIController guiController, AGSEditor agsEditor, AGSEditorController pluginEditorController)
             : base(guiController, agsEditor)
         {
-			_pluginEditorController = pluginEditorController;
+            _pluginEditorController = pluginEditorController;
 
             foreach (string fullFileName in Utilities.GetDirectoryFileList(_agsEditor.EditorDirectory, PLUGIN_SEARCH_MASK))
             {
@@ -34,10 +34,10 @@ namespace AGS.Editor.Components
                 {
                     LoadRuntimePluginIntoMemory(fileName);
                 }
-				else if (fileName.StartsWith("ags.plugin."))
-				{
-					LoadEditorPluginIntoMemory(fileName);
-				}
+                else if (fileName.StartsWith("ags.plugin."))
+                {
+                    LoadEditorPluginIntoMemory(fileName);
+                }
             }
 
             _guiController.RegisterIcon("PluginIcon", Resources.ResourceManager.GetIcon("plugin.ico"));
@@ -48,20 +48,20 @@ namespace AGS.Editor.Components
             _agsEditor.GetScriptHeaderList += new GetScriptHeaderListHandler(AGSEditor_GetScriptHeaderList);
             _agsEditor.Tasks.GetFilesForInclusionInTemplate += new Tasks.GetFilesForInclusionInTemplateHandler(AGSEditor_GetFilesForInclusionInTemplate);
             _agsEditor.Tasks.NewGameFilesExtracted += new Tasks.NewGameFilesExtractedHandler(AGSEditor_NewGameFilesExtracted);
-			Factory.Events.GetAboutDialogText += new EditorEvents.GetAboutDialogTextHandler(Events_GetAboutDialogText);
+            Factory.Events.GetAboutDialogText += new EditorEvents.GetAboutDialogTextHandler(Events_GetAboutDialogText);
         }
 
-		private void Events_GetAboutDialogText(GetAboutDialogTextEventArgs evArgs)
-		{
-			if (_editorPlugins.Count > 0)
-			{
-				evArgs.Text += "Editor plugins loaded:" + Environment.NewLine;
-				foreach (EditorPlugin plugin in _editorPlugins)
-				{
-					evArgs.Text += "* " + plugin.FileName + Environment.NewLine;
-				}
-			}
-		}
+        private void Events_GetAboutDialogText(GetAboutDialogTextEventArgs evArgs)
+        {
+            if (_editorPlugins.Count > 0)
+            {
+                evArgs.Text += "Editor plugins loaded:" + Environment.NewLine;
+                foreach (EditorPlugin plugin in _editorPlugins)
+                {
+                    evArgs.Text += "* " + plugin.FileName + Environment.NewLine;
+                }
+            }
+        }
 
         private void LoadRuntimePluginIntoMemory(string fileName)
         {
@@ -80,37 +80,37 @@ namespace AGS.Editor.Components
             }
         }
 
-		private void LoadEditorPluginIntoMemory(string fileName)
-		{
-			try
-			{
-				EditorPlugin plugin = new EditorPlugin(fileName, _pluginEditorController);
-				_editorPlugins.Add(plugin);
-			}
-			catch (AGSEditorException ex)
-			{
-				_guiController.ShowMessage("There was an error loading plugin '" + fileName + "'." + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
-			}
-			catch (Exception ex)
-			{
-				_guiController.ShowMessage("There was an error loading plugin '" + fileName + "'." + Environment.NewLine + Environment.NewLine + ex.ToString(), MessageBoxIcon.Warning);
-			}
-		}
+        private void LoadEditorPluginIntoMemory(string fileName)
+        {
+            try
+            {
+                EditorPlugin plugin = new EditorPlugin(fileName, _pluginEditorController);
+                _editorPlugins.Add(plugin);
+            }
+            catch (AGSEditorException ex)
+            {
+                _guiController.ShowMessage("There was an error loading plugin '" + fileName + "'." + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                _guiController.ShowMessage("There was an error loading plugin '" + fileName + "'." + Environment.NewLine + Environment.NewLine + ex.ToString(), MessageBoxIcon.Warning);
+            }
+        }
 
         public override void EditorShutdown()
         {
-			foreach (EditorPlugin plugin in _editorPlugins)
-			{
-				plugin.Dispose();
-			}
-
-			foreach (NativePlugin plugin in _plugins)
+            foreach (EditorPlugin plugin in _editorPlugins)
             {
                 plugin.Dispose();
             }
 
-			_editorPlugins.Clear();
-			_plugins.Clear();
+            foreach (NativePlugin plugin in _plugins)
+            {
+                plugin.Dispose();
+            }
+
+            _editorPlugins.Clear();
+            _plugins.Clear();
         }
 
         public override string ComponentID
@@ -172,7 +172,7 @@ namespace AGS.Editor.Components
         public override void RefreshDataFromGame()
         {
             // Disable all plugins before loading the game
-            foreach (NativePlugin nativePlugin in _plugins) 
+            foreach (NativePlugin nativePlugin in _plugins)
             {
                 nativePlugin.Enabled = false;
             }
@@ -224,10 +224,10 @@ namespace AGS.Editor.Components
         {
             foreach (NativePlugin plugin in _plugins)
             {
-				foreach (Script header in plugin.ScriptHeaders)
-				{
-					evArgs.ScriptHeaders.Add(header);
-				}
+                foreach (Script header in plugin.ScriptHeaders)
+                {
+                    evArgs.ScriptHeaders.Add(header);
+                }
             }
         }
 
@@ -259,7 +259,7 @@ namespace AGS.Editor.Components
                     File.Move(filePathName, destinationPath);
 
                     Directory.SetCurrentDirectory(_agsEditor.EditorDirectory);
-					LoadRuntimePluginIntoMemory(fileName);
+                    LoadRuntimePluginIntoMemory(fileName);
                     Directory.SetCurrentDirectory(gameDirectory);
                 }
             }

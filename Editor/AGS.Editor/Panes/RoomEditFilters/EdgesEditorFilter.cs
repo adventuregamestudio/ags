@@ -38,15 +38,15 @@ namespace AGS.Editor
             get { return RoomAreaMaskType.None; }
         }
 
-		public int SelectedArea
-		{
-			get { return 0; }
-		}
+        public int SelectedArea
+        {
+            get { return 0; }
+        }
 
-		public bool ShowTransparencySlider
-		{
-			get { return false; }
-		}
+        public bool ShowTransparencySlider
+        {
+            get { return false; }
+        }
 
         private void DrawDoubleWidthVerticalLine(Graphics graphics, int x, int scaleFactor)
         {
@@ -64,8 +64,8 @@ namespace AGS.Editor
         {
         }
 
-		public bool KeyPressed(Keys key)
-		{
+        public bool KeyPressed(Keys key)
+        {
             switch (key)
             {
                 case Keys.Right:
@@ -78,7 +78,7 @@ namespace AGS.Editor
                     return MoveEdgeWithKeyboard(0, -1);
             }
             return false;
-		}
+        }
 
         public void Paint(Graphics graphics, RoomEditorState state)
         {
@@ -121,9 +121,9 @@ namespace AGS.Editor
             _selectedEdge = SelectedEdge.None;
         }
 
-		public void DoubleClick(RoomEditorState state)
-		{
-		}
+        public void DoubleClick(RoomEditorState state)
+        {
+        }
 
         public bool MouseMove(int x, int y, RoomEditorState state)
         {
@@ -186,7 +186,7 @@ namespace AGS.Editor
 
         public void FilterOn()
         {
-			Factory.GUIController.ShowCuppit("The room edges set the point at which the Player Walks Off Edge events will be triggered, and are the normal way to go from one room to another. They also act as limits to where AGS will automatically move the character.", "Edges introduction");
+            Factory.GUIController.ShowCuppit("The room edges set the point at which the Player Walks Off Edge events will be triggered, and are the normal way to go from one room to another. They also act as limits to where AGS will automatically move the character.", "Edges introduction");
         }
 
         public void FilterOff()
@@ -197,10 +197,10 @@ namespace AGS.Editor
             }
         }
 
-		public string HelpKeyword
-		{
-			get { return string.Empty; }
-		}
+        public string HelpKeyword
+        {
+            get { return string.Empty; }
+        }
 
         private bool MoveEdgeWithKeyboard(int offsetX, int offsetY)
         {
@@ -251,14 +251,14 @@ namespace AGS.Editor
         {
             x = Math.Min(x, _room.RightEdgeX - 1);
             x = Math.Max(x, 0);
-            _room.LeftEdgeX = x; 
+            _room.LeftEdgeX = x;
         }
 
         private void MoveRightEdge(int x)
         {
             x = Math.Max(x, _room.LeftEdgeX + 1);
             x = Math.Min(x, _room.Width - 1);
-            _room.RightEdgeX = x; 
+            _room.RightEdgeX = x;
         }
 
         private void MoveTopEdge(int y)

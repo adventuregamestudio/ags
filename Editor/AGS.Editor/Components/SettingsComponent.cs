@@ -32,17 +32,17 @@ namespace AGS.Editor.Components
         {
             _document.TreeNodeID = controlID;
             _guiController.AddOrShowPane(_document);
-			_guiController.ShowCuppit("This is the Game Settings window. It's where you set various options for your game, such as the name, resolution and dialog type.", "Game Settings introduction");
+            _guiController.ShowCuppit("This is the Game Settings window. It's where you set various options for your game, such as the name, resolution and dialog type.", "Game Settings introduction");
         }
 
         public override void RefreshDataFromGame()
         {
             _settingsPane.RefreshData();
 
-			if (_agsEditor.Preferences.StartupPane == EditorStartupPane.GeneralSettings)
-			{
-				_guiController.AddOrShowPane(_document);
-			}
+            if (_agsEditor.Preferences.StartupPane == EditorStartupPane.GeneralSettings)
+            {
+                _guiController.AddOrShowPane(_document);
+            }
         }
 
     }

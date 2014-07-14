@@ -35,134 +35,134 @@ WFNFontRenderer wfnRenderer;
 
 void WFNFontRenderer::AdjustYCoordinateForFont(int *ycoord, int fontNumber)
 {
-  // Do nothing
+    // Do nothing
 }
 
 void WFNFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 {
-  const WFNFont *font = (WFNFont*)fonts[fontNumber];
-  // replace any extended characters with question marks
-  for (; *text; ++text)
-  {
-    if ((unsigned char)*text >= font->GetCharCount()) 
+    const WFNFont *font = (WFNFont*)fonts[fontNumber];
+    // replace any extended characters with question marks
+    for (; *text; ++text)
     {
-      *text = '?';
+        if ((unsigned char)*text >= font->GetCharCount()) 
+        {
+            *text = '?';
+        }
     }
-  }
 }
 
 int WFNFontRenderer::GetTextWidth(const char *text, int fontNumber)
 {
-  const WFNFont *font = (WFNFont*)fonts[fontNumber];
-  int text_width = 0;
+    const WFNFont *font = (WFNFont*)fonts[fontNumber];
+    int text_width = 0;
 
-  for (; *text; ++text)
-  {
-    const WFNFont::WFNChar &wfn_char = font->GetChar(GetCharCode(*text, font));
-    text_width += wfn_char.Width;
-  }
-  return text_width * wtext_multiply;
+    for (; *text; ++text)
+    {
+        const WFNFont::WFNChar &wfn_char = font->GetChar(GetCharCode(*text, font));
+        text_width += wfn_char.Width;
+    }
+    return text_width * wtext_multiply;
 }
 
 int WFNFontRenderer::GetTextHeight(const char *text, int fontNumber)
 {
-  const WFNFont *font = (WFNFont*)fonts[fontNumber];
-  int max_height = 0;
+    const WFNFont *font = (WFNFont*)fonts[fontNumber];
+    int max_height = 0;
 
-  for (; *text; ++text) 
-  {
-    const WFNFont::WFNChar &wfn_char = font->GetChar(GetCharCode(*text, font));
-    const uint16_t height = wfn_char.Height;
-    if (height > max_height)
-      max_height = height;
-  }
-  return max_height * wtext_multiply;
+    for (; *text; ++text) 
+    {
+        const WFNFont::WFNChar &wfn_char = font->GetChar(GetCharCode(*text, font));
+        const uint16_t height = wfn_char.Height;
+        if (height > max_height)
+            max_height = height;
+    }
+    return max_height * wtext_multiply;
 }
 
 Common::Bitmap render_wrapper;
 void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
-  int oldeip = get_our_eip();
-  set_our_eip(415);
+    int oldeip = get_our_eip();
+    set_our_eip(415);
 
-  const WFNFont *font = (WFNFont*)fonts[fontNumber];
-  render_wrapper.WrapAllegroBitmap(destination, true);
+    const WFNFont *font = (WFNFont*)fonts[fontNumber];
+    render_wrapper.WrapAllegroBitmap(destination, true);
 
-  for (; *text; ++text)
-    x += RenderChar(&render_wrapper, x, y, font->GetChar(GetCharCode(*text, font)), colour);
+    for (; *text; ++text)
+        x += RenderChar(&render_wrapper, x, y, font->GetChar(GetCharCode(*text, font)), colour);
 
-  set_our_eip(oldeip);
+    set_our_eip(oldeip);
 }
 
 int WFNFontRenderer::RenderChar(Common::Bitmap *ds, const int at_x, const int at_y, const WFNFont::WFNChar &wfn_char, const color_t text_color)
 {
-  const int width = wfn_char.Width;
-  const int height = wfn_char.Height;
-  const unsigned char *actdata = wfn_char.Data;
-  const int bytewid = wfn_char.GetRowByteCount();
+    const int width = wfn_char.Width;
+    const int height = wfn_char.Height;
+    const unsigned char *actdata = wfn_char.Data;
+    const int bytewid = wfn_char.GetRowByteCount();
 
-  int x = at_x;
-  int y = at_y;
-  for (int h = 0; h < height; ++h)
-  {
-    for (int w = 0; w < width; ++w)
+    int x = at_x;
+    int y = at_y;
+    for (int h = 0; h < height; ++h)
     {
-      if (((actdata[h * bytewid + (w / 8)] & (0x80 >> (w % 8))) != 0)) {
-        if (wtext_multiply > 1)
+        for (int w = 0; w < width; ++w)
         {
-          ds->FillRect(Rect(x + w, y + h, x + w + (wtext_multiply - 1),
-              y + h + (wtext_multiply - 1)), text_color);
-        } 
-        else
-        {
-          ds->PutPixel(x + w, y + h, text_color);
-        }
-      }
+            if (((actdata[h * bytewid + (w / 8)] & (0x80 >> (w % 8))) != 0)) {
+                if (wtext_multiply > 1)
+                {
+                    ds->FillRect(Rect(x + w, y + h, x + w + (wtext_multiply - 1),
+                        y + h + (wtext_multiply - 1)), text_color);
+                } 
+                else
+                {
+                    ds->PutPixel(x + w, y + h, text_color);
+                }
+            }
 
-      x += wtext_multiply - 1;
+            x += wtext_multiply - 1;
+        }
+        y += wtext_multiply - 1;
+        x = at_x;
     }
-    y += wtext_multiply - 1;
-    x = at_x;
-  }
-  return width * wtext_multiply;
+    return width * wtext_multiply;
 }
 
 bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 {
-  String file_name;
-  Stream *ffi = NULL;
+    String file_name;
+    Stream *ffi = NULL;
 
-  file_name.Format("agsfnt%d.wfn", fontNumber);
-  ffi = AssetManager::OpenAsset(file_name);
-  if (ffi == NULL)
-  {
-    // actual font not found, try font 0 instead
-    file_name = "agsfnt0.wfn";
+    file_name.Format("agsfnt%d.wfn", fontNumber);
     ffi = AssetManager::OpenAsset(file_name);
     if (ffi == NULL)
-      return false;
-  }
+    {
+        // actual font not found, try font 0 instead
+        file_name = "agsfnt0.wfn";
+        ffi = AssetManager::OpenAsset(file_name);
+        if (ffi == NULL)
+            return false;
+    }
 
-  WFNFont *font = new WFNFont();
-  bool result = font->ReadFromFile(ffi, AssetManager::GetLastAssetSize());
-  delete ffi;
-  if (!result)
-  {
-      delete font;
-      return false;
-  }
-  fonts[fontNumber] = (IFont*)font;
-  return true;
+    WFNFont *font = new WFNFont();
+    bool result = font->ReadFromFile(ffi, AssetManager::GetLastAssetSize());
+    delete ffi;
+    if (!result)
+    {
+        delete font;
+        return false;
+    }
+    fonts[fontNumber] = (IFont*)font;
+    return true;
 }
 
 void WFNFontRenderer::FreeMemory(int fontNumber)
 {
-  delete (WFNFont*)fonts[fontNumber];
-  fonts[fontNumber] = NULL;
+    delete (WFNFont*)fonts[fontNumber];
+    fonts[fontNumber] = NULL;
 }
 
 bool WFNFontRenderer::SupportsExtendedCharacters(int fontNumber)
 {
-  const WFNFont *font = (WFNFont*)fonts[fontNumber];
-  return font->GetCharCount() > 128;
+    const WFNFont *font = (WFNFont*)fonts[fontNumber];
+    return font->GetCharCount() > 128;
 }

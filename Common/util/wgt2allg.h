@@ -65,7 +65,7 @@ extern "C"
     extern int vesa_xres, vesa_yres;
     //extern Common::Bitmap *abuf;
 
-    
+
     extern void wsetrgb(int coll, int r, int g, int b, color * pall);
     extern void wcolrotate(unsigned char start, unsigned char finish, int dir, color * pall);
 
@@ -74,8 +74,8 @@ extern "C"
     extern int wloadsprites(color * pall, char *filnam, Common::Bitmap ** sarray, int strt, int eend);
 
     extern void wputblock(Common::Bitmap *ds, int xx, int yy, Common::Bitmap *bll, int xray);
-	// CHECKME: temporary solution for plugin system
-	extern void wputblock_raw(Common::Bitmap *ds, int xx, int yy, BITMAP *bll, int xray);
+    // CHECKME: temporary solution for plugin system
+    extern void wputblock_raw(Common::Bitmap *ds, int xx, int yy, BITMAP *bll, int xray);
     extern const int col_lookups[32];
 
     //extern void wsetcolor(int nval);

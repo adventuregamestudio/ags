@@ -47,87 +47,87 @@ using namespace AGS; // FIXME later
 #define MAX_GUIOBJ_EVENTHANDLER_LEN 30
 struct GUIObject
 {
-  int guin, objn;    // gui and object number of this object
-  unsigned int flags;
-  int x, y;
-  int wid, hit;
-  int zorder;
-  int activated;
-  char scriptName[MAX_GUIOBJ_SCRIPTNAME_LEN + 1];
-  char eventHandlers[MAX_GUIOBJ_EVENTS][MAX_GUIOBJ_EVENTHANDLER_LEN + 1];
+    int guin, objn;    // gui and object number of this object
+    unsigned int flags;
+    int x, y;
+    int wid, hit;
+    int zorder;
+    int activated;
+    char scriptName[MAX_GUIOBJ_SCRIPTNAME_LEN + 1];
+    char eventHandlers[MAX_GUIOBJ_EVENTS][MAX_GUIOBJ_EVENTHANDLER_LEN + 1];
 
-  virtual void MouseMove(int, int) = 0; // x,y relative to gui
-  virtual void MouseOver() = 0; // mouse moves onto object
-  virtual void MouseLeave() = 0;        // mouse moves off object
-  virtual int  MouseDown() { // button down - return 1 to lock focus
-    return 0;
-  }
-  virtual void MouseUp() = 0;   // button up
-  virtual void KeyPress(int) = 0;
-  virtual void Draw(Common::Bitmap *ds) = 0;
-  // overridable routine to determine whether the mouse is over
-  // the control
-  virtual int  IsOverControl(int p_x, int p_y, int p_extra) {
-    if ((p_x >= x) && (p_y >= y) && (p_x < x + wid + p_extra) && (p_y < y + hit + p_extra))
-      return 1;
-    return 0;
-  }
-  virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  // called when the control is resized
-  virtual void Resized() { }
-  virtual int  GetNumEvents() {
-    return numSupportedEvents;
-  }
-  virtual const char *GetEventName(int idx) {
-    if ((idx < 0) || (idx >= numSupportedEvents))
-      return NULL;
-    return supportedEvents[idx];
-  }
-  virtual const char *GetEventArgs(int idx) {
-    if ((idx < 0) || (idx >= numSupportedEvents))
-      return NULL;
-    return supportedEventArgs[idx];
-  }
-  void init();
+    virtual void MouseMove(int, int) = 0; // x,y relative to gui
+    virtual void MouseOver() = 0; // mouse moves onto object
+    virtual void MouseLeave() = 0;        // mouse moves off object
+    virtual int  MouseDown() { // button down - return 1 to lock focus
+        return 0;
+    }
+    virtual void MouseUp() = 0;   // button up
+    virtual void KeyPress(int) = 0;
+    virtual void Draw(Common::Bitmap *ds) = 0;
+    // overridable routine to determine whether the mouse is over
+    // the control
+    virtual int  IsOverControl(int p_x, int p_y, int p_extra) {
+        if ((p_x >= x) && (p_y >= y) && (p_x < x + wid + p_extra) && (p_y < y + hit + p_extra))
+            return 1;
+        return 0;
+    }
+    virtual void WriteToFile(Common::Stream *out);
+    virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+    // called when the control is resized
+    virtual void Resized() { }
+    virtual int  GetNumEvents() {
+        return numSupportedEvents;
+    }
+    virtual const char *GetEventName(int idx) {
+        if ((idx < 0) || (idx >= numSupportedEvents))
+            return NULL;
+        return supportedEvents[idx];
+    }
+    virtual const char *GetEventArgs(int idx) {
+        if ((idx < 0) || (idx >= numSupportedEvents))
+            return NULL;
+        return supportedEventArgs[idx];
+    }
+    void init();
 
-  int IsDeleted() {
-    return flags & GUIF_DELETED;
-  }
-  int IsDisabled();
-  void Enable() {
-    flags &= ~GUIF_DISABLED;
-  }
-  void Disable() {
-    flags |= GUIF_DISABLED;
-  }
-  int IsVisible() {
-    if (flags & GUIF_INVISIBLE)
-      return 0;
-    return 1;
-  }
-  void Show() {
-    flags &= ~GUIF_INVISIBLE;
-  }
-  void Hide() {
-    flags |= GUIF_INVISIBLE;
-  }
-  int IsClickable();
-  void SetClickable(bool newValue) {
-    flags &= ~GUIF_NOCLICKS;
-    if (!newValue)
-      flags |= GUIF_NOCLICKS;
-  }
+    int IsDeleted() {
+        return flags & GUIF_DELETED;
+    }
+    int IsDisabled();
+    void Enable() {
+        flags &= ~GUIF_DISABLED;
+    }
+    void Disable() {
+        flags |= GUIF_DISABLED;
+    }
+    int IsVisible() {
+        if (flags & GUIF_INVISIBLE)
+            return 0;
+        return 1;
+    }
+    void Show() {
+        flags &= ~GUIF_INVISIBLE;
+    }
+    void Hide() {
+        flags |= GUIF_INVISIBLE;
+    }
+    int IsClickable();
+    void SetClickable(bool newValue) {
+        flags &= ~GUIF_NOCLICKS;
+        if (!newValue)
+            flags |= GUIF_NOCLICKS;
+    }
 
-  inline bool IsTranslated() const
-  {
-     return (flags & GUIF_TRANSLATED) != 0;
-  }
+    inline bool IsTranslated() const
+    {
+        return (flags & GUIF_TRANSLATED) != 0;
+    }
 
 protected:
-  const char *supportedEvents[MAX_GUIOBJ_EVENTS];
-  const char *supportedEventArgs[MAX_GUIOBJ_EVENTS];
-  int numSupportedEvents;
+    const char *supportedEvents[MAX_GUIOBJ_EVENTS];
+    const char *supportedEventArgs[MAX_GUIOBJ_EVENTS];
+    int numSupportedEvents;
 };
 
 #endif // __AC_GUIOBJECT_H

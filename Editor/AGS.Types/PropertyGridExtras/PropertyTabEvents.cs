@@ -11,7 +11,7 @@ namespace AGS.Types
     public class PropertyTabEvents : PropertyTab
     {
         private static Bitmap _image;
-        
+
         public PropertyTabEvents()
         {
             if (_image == null)
@@ -43,7 +43,7 @@ namespace AGS.Types
 
         public override PropertyDescriptorCollection GetProperties(ITypeDescriptorContext context, object component, Attribute[] attrs)
         {
-            return TypeDescriptor.GetProperties(component, new Attribute[]{new AGSEventPropertyAttribute()});
+            return TypeDescriptor.GetProperties(component, new Attribute[] { new AGSEventPropertyAttribute() });
         }
 
     }

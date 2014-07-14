@@ -33,8 +33,8 @@ namespace AGS.Editor
                 Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
                 AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
-				string filePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-				Directory.SetCurrentDirectory(Path.GetDirectoryName(filePath));
+                string filePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                Directory.SetCurrentDirectory(Path.GetDirectoryName(filePath));
 
 #if BIBLE_EDITION
                 Application.Run(new SelectReligion());
@@ -89,7 +89,7 @@ namespace AGS.Editor
 
         private static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
         {
-			HandleException(e.Exception);
+            HandleException(e.Exception);
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -97,14 +97,14 @@ namespace AGS.Editor
             HandleException((Exception)e.ExceptionObject);
         }
 
-		private static void HandleException(Exception ex)
-		{
-			if (_application != null)
-			{
-				_application.UnhandledErrorHandler(ex);
-			}
-			else
-			{
+        private static void HandleException(Exception ex)
+        {
+            if (_application != null)
+            {
+                _application.UnhandledErrorHandler(ex);
+            }
+            else
+            {
                 string error = ex.Message;
                 try
                 {
@@ -116,8 +116,8 @@ namespace AGS.Editor
                         sehException.ErrorCode, error);
                 }
                 MessageBox.Show("An unexpected error occurred trying to start up the AGS Editor. Please consult the details below and post the error to the AGS Technical Forum.\n\n" + error, "Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
-			}
-		}
+            }
+        }
 
     }
 }

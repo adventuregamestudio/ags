@@ -4,13 +4,13 @@ using System.Text;
 
 namespace AGS.CScript.Compiler
 {
-	internal class PreprocessorState
-	{
-		private Macros _macros = new Macros();
+    internal class PreprocessorState
+    {
+        private Macros _macros = new Macros();
 
-		public Macros Macros
-		{
-			get { return _macros; }
-		}
-	}
+        public Macros Macros
+        {
+            get { return _macros; }
+        }
+    }
 }

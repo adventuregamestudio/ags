@@ -98,9 +98,9 @@ void GameSetupStruct::ReadFromFile_Part1(Common::Stream *in, GAME_STRUCT_READ_DA
 
 void GameSetupStruct::ReadFromFile_Part2(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-   read_characters(in, read_data);
-   read_lipsync(in, read_data);
-   read_messages(in, read_data);
+    read_characters(in, read_data);
+    read_lipsync(in, read_data);
+    read_messages(in, read_data);
 }
 
 void GameSetupStruct::ReadFromFile_Part3(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
@@ -399,7 +399,7 @@ void GameSetupStruct::read_audio(Common::Stream *in, GAME_STRUCT_READ_DATA &read
         audioClipCount = in->ReadInt32();
         audioClips = (ScriptAudioClip*)malloc(audioClipCount * sizeof(ScriptAudioClip));
         ReadAudioClips_Aligned(in);
-        
+
         //play.score_sound = in->ReadInt32();
         read_data.score_sound = in->ReadInt32();
     }
@@ -474,7 +474,7 @@ void GameSetupStruct::ReadAudioClips_Aligned(Common::Stream *in)
 }
 
 void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* compsc, CharacterInfo* chwas,
-                                       WordsDictionary *olddict, char** mesbk)
+                                            WordsDictionary *olddict, char** mesbk)
 {
     int bb;
 
@@ -509,11 +509,11 @@ void GameSetupStruct::WriteForSaveGame_v321(Stream *out)
 
     if (invScripts == NULL)
     {
-      int bb;
-      for (bb = 0; bb < numinvitems; bb++)
-        out->WriteArrayOfInt32 (&intrInv[bb]->timesRun[0], MAX_NEWINTERACTION_EVENTS);
-      for (bb = 0; bb < numcharacters; bb++)
-        out->WriteArrayOfInt32 (&intrChar[bb]->timesRun[0], MAX_NEWINTERACTION_EVENTS); 
+        int bb;
+        for (bb = 0; bb < numinvitems; bb++)
+            out->WriteArrayOfInt32 (&intrInv[bb]->timesRun[0], MAX_NEWINTERACTION_EVENTS);
+        for (bb = 0; bb < numcharacters; bb++)
+            out->WriteArrayOfInt32 (&intrChar[bb]->timesRun[0], MAX_NEWINTERACTION_EVENTS); 
     }
 
     out->WriteArrayOfInt32 (&options[0], OPT_HIGHESTOPTION_321 + 1);

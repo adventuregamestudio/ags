@@ -6,6 +6,6 @@ namespace AGS.Types
 {
     public interface IScriptEditor
     {
-        IScriptEditorControl ScriptEditorControl { get; } 
+        IScriptEditorControl ScriptEditorControl { get; }
     }
 }

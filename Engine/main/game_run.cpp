@@ -857,22 +857,22 @@ void SetupLoopParameters(int untilwhat,long udata,int mousestuff) {
 // This function is called from lot of various functions
 // in the game core, character, room object etc
 void GameLoopUntilEvent(int untilwhat,long daaa) {
-  // blocking cutscene - end skipping
-  EndSkippingUntilCharStops();
+    // blocking cutscene - end skipping
+    EndSkippingUntilCharStops();
 
-  // this function can get called in a nested context, so
-  // remember the state of these vars in case a higher level
-  // call needs them
-  int cached_restrict_until = restrict_until;
-  int cached_user_disabled_data = user_disabled_data;
-  int cached_user_disabled_for = user_disabled_for;
+    // this function can get called in a nested context, so
+    // remember the state of these vars in case a higher level
+    // call needs them
+    int cached_restrict_until = restrict_until;
+    int cached_user_disabled_data = user_disabled_data;
+    int cached_user_disabled_for = user_disabled_for;
 
-  SetupLoopParameters(untilwhat,daaa,0);
-  while (GameTick()==0) ;
+    SetupLoopParameters(untilwhat,daaa,0);
+    while (GameTick()==0) ;
 
-  restrict_until = cached_restrict_until;
-  user_disabled_data = cached_user_disabled_data;
-  user_disabled_for = cached_user_disabled_for;
+    restrict_until = cached_restrict_until;
+    user_disabled_data = cached_user_disabled_data;
+    user_disabled_for = cached_user_disabled_for;
 }
 
 // for external modules to call

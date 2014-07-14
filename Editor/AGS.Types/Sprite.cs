@@ -17,8 +17,8 @@ namespace AGS.Types
         private int _colorDepth;
         private SpriteImportResolution _resolution;
         private bool _alphaChannel;
-		private string _sourceFile = string.Empty;
-		private int? _coloursLockedToRoom = null;
+        private string _sourceFile = string.Empty;
+        private int? _coloursLockedToRoom = null;
 
         public Sprite(int number, int width, int height, int colorDepth, SpriteImportResolution importRes, bool alphaChannel)
         {
@@ -30,23 +30,23 @@ namespace AGS.Types
             _alphaChannel = alphaChannel;
         }
 
-		/// <summary>
-		/// Basic constructor when you just want to pass simple sprite details
-		/// around and use this as an entity.
-		/// </summary>
-		public Sprite(int number, int width, int height)
-			: this(number, width, height, 0, SpriteImportResolution.LowRes, false)
-		{
-		}
+        /// <summary>
+        /// Basic constructor when you just want to pass simple sprite details
+        /// around and use this as an entity.
+        /// </summary>
+        public Sprite(int number, int width, int height)
+            : this(number, width, height, 0, SpriteImportResolution.LowRes, false)
+        {
+        }
 
         [Description("The sprite slot number for this sprite")]
         [Category("Design")]
         [ReadOnly(true)]
         [DisplayName(PROPERTY_SPRITE_NUMBER)]
-        public int Number 
-        { 
-            get { return _number; } 
-            set { _number = value; } 
+        public int Number
+        {
+            get { return _number; }
+            set { _number = value; }
         }
 
         [Description("Native resolution of the sprite. It will be scaled up or down as appropriate at other resolutions.")]
@@ -102,29 +102,29 @@ namespace AGS.Types
             set { _alphaChannel = value; }
         }
 
-		[Description("The file location that this sprite was imported from")]
-		[ReadOnly(true)]
-		[Category("Design")]
-		public string SourceFile
-		{
-			get { return _sourceFile; }
-			set { _sourceFile = value; }
-		}
+        [Description("The file location that this sprite was imported from")]
+        [ReadOnly(true)]
+        [Category("Design")]
+        public string SourceFile
+        {
+            get { return _sourceFile; }
+            set { _sourceFile = value; }
+        }
 
-		[Browsable(false)]
-		public int? ColoursLockedToRoom
-		{
-			get { return _coloursLockedToRoom; }
-			set { _coloursLockedToRoom = value; }
-		}
+        [Browsable(false)]
+        public int? ColoursLockedToRoom
+        {
+            get { return _coloursLockedToRoom; }
+            set { _coloursLockedToRoom = value; }
+        }
 
-		[Description("The room number that this sprite's palette is locked against. It will look wrong if used in other rooms.")]
-		[Category("Design")]
-		[DisplayName("PaletteLockedToRoom")]
-		public string ColoursLockedToRoomDescription
-		{
-			get { return (_coloursLockedToRoom.HasValue) ? _coloursLockedToRoom.Value.ToString() : "(None)"; }
-		}
+        [Description("The room number that this sprite's palette is locked against. It will look wrong if used in other rooms.")]
+        [Category("Design")]
+        [DisplayName("PaletteLockedToRoom")]
+        public string ColoursLockedToRoomDescription
+        {
+            get { return (_coloursLockedToRoom.HasValue) ? _coloursLockedToRoom.Value.ToString() : "(None)"; }
+        }
 
         public Sprite(XmlNode node)
         {
@@ -136,16 +136,16 @@ namespace AGS.Types
             {
                 _alphaChannel = Convert.ToBoolean(node.Attributes["AlphaChannel"].InnerText);
             }
-			if (node.SelectSingleNode("Source") != null)
-			{
-				XmlNode sourceNode = node.SelectSingleNode("Source");
-				_sourceFile = SerializeUtils.GetElementString(sourceNode, "FileName");
-			}
-			if (node.Attributes["ColoursLockedToRoom"] != null)
-			{
-				_coloursLockedToRoom = Convert.ToInt32(node.Attributes["ColoursLockedToRoom"].InnerText);
-			}
-			_resolution = (SpriteImportResolution)Enum.Parse(typeof(SpriteImportResolution), node.Attributes["Resolution"].InnerText);
+            if (node.SelectSingleNode("Source") != null)
+            {
+                XmlNode sourceNode = node.SelectSingleNode("Source");
+                _sourceFile = SerializeUtils.GetElementString(sourceNode, "FileName");
+            }
+            if (node.Attributes["ColoursLockedToRoom"] != null)
+            {
+                _coloursLockedToRoom = Convert.ToInt32(node.Attributes["ColoursLockedToRoom"].InnerText);
+            }
+            _resolution = (SpriteImportResolution)Enum.Parse(typeof(SpriteImportResolution), node.Attributes["Resolution"].InnerText);
         }
 
         public void ToXml(XmlTextWriter writer)
@@ -157,26 +157,26 @@ namespace AGS.Types
             writer.WriteAttributeString("ColorDepth", _colorDepth.ToString());
             writer.WriteAttributeString("Resolution", _resolution.ToString());
             writer.WriteAttributeString("AlphaChannel", _alphaChannel.ToString());
-			if (_coloursLockedToRoom.HasValue)
-			{
-				writer.WriteAttributeString("ColoursLockedToRoom", _coloursLockedToRoom.Value.ToString());
-			}
-			if (!string.IsNullOrEmpty(_sourceFile))
-			{
-				writer.WriteStartElement("Source");
-				writer.WriteElementString("FileName", _sourceFile);
-				writer.WriteEndElement();
-			}
-			writer.WriteEndElement();
+            if (_coloursLockedToRoom.HasValue)
+            {
+                writer.WriteAttributeString("ColoursLockedToRoom", _coloursLockedToRoom.Value.ToString());
+            }
+            if (!string.IsNullOrEmpty(_sourceFile))
+            {
+                writer.WriteStartElement("Source");
+                writer.WriteElementString("FileName", _sourceFile);
+                writer.WriteEndElement();
+            }
+            writer.WriteEndElement();
         }
 
-		#region IComparable<Sprite> Members
+        #region IComparable<Sprite> Members
 
-		public int CompareTo(Sprite other)
-		{
-			return this.Number - other.Number;
-		}
+        public int CompareTo(Sprite other)
+        {
+            return this.Number - other.Number;
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

@@ -34,8 +34,8 @@ int MYOGG::poll()
 
     if (!done && _destroyThis)
     {
-      internal_destroy();
-      _destroyThis = false;
+        internal_destroy();
+        _destroyThis = false;
     }
 
     if (done)
@@ -103,17 +103,17 @@ void MYOGG::internal_destroy()
 
 void MYOGG::destroy()
 {
-	AGS::Engine::MutexLock _lock(_mutex);
+    AGS::Engine::MutexLock _lock(_mutex);
 
     if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
-      _destroyThis = true;
+        _destroyThis = true;
     else
-      internal_destroy();
+        internal_destroy();
 
-	_lock.Release();
+    _lock.Release();
 
     while (!done)
-      AGSPlatformDriver::GetDriver()->YieldCPU();
+        AGSPlatformDriver::GetDriver()->YieldCPU();
 }
 
 void MYOGG::seek(int pos)
@@ -188,9 +188,9 @@ void MYOGG::restart()
         alogg_play_oggstream(stream, MP3CHUNKSIZE, vol, panning);
         done = 0;
         paused = 0;
-        
+
         if (!psp_audio_multithreaded)
-          poll();
+            poll();
     }
 }
 
@@ -210,7 +210,7 @@ int MYOGG::play() {
     alogg_play_oggstream(stream, MP3CHUNKSIZE, (vol > 230) ? vol : vol + 20, panning);
 
     if (!psp_audio_multithreaded)
-      poll();
+        poll();
 
     _playing = true;
 

@@ -17,43 +17,43 @@
 
 namespace AGS
 {
-namespace Engine
-{
-
-
-class BaseThread
-{
-public:
-  typedef void(* AGSThreadEntry)();
-
-  BaseThread()
-  {
-  };
-
-  virtual ~BaseThread()
-  {
-  };
-
-  virtual bool Create(AGSThreadEntry entryPoint, bool looping) = 0;
-  virtual bool Start() = 0;
-  virtual bool Stop() = 0;
-
-  inline bool CreateAndStart(AGSThreadEntry entryPoint, bool looping)
-  {
-    if (Create(entryPoint, looping))
+    namespace Engine
     {
-      if (Start())
-      {
-        return true;
-      }
-    }
-
-    return false;
-  }
-};
 
 
-} // namespace Engine
+        class BaseThread
+        {
+        public:
+            typedef void(* AGSThreadEntry)();
+
+            BaseThread()
+            {
+            };
+
+            virtual ~BaseThread()
+            {
+            };
+
+            virtual bool Create(AGSThreadEntry entryPoint, bool looping) = 0;
+            virtual bool Start() = 0;
+            virtual bool Stop() = 0;
+
+            inline bool CreateAndStart(AGSThreadEntry entryPoint, bool looping)
+            {
+                if (Create(entryPoint, looping))
+                {
+                    if (Start())
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        };
+
+
+    } // namespace Engine
 } // namespace AGS
 
 
@@ -67,9 +67,9 @@ public:
 #include "thread_wii.h"
 
 #elif defined(LINUX_VERSION) \
-   || defined(MAC_VERSION) \
-   || defined(IOS_VERSION) \
-   || defined(ANDROID_VERSION)
+    || defined(MAC_VERSION) \
+    || defined(IOS_VERSION) \
+    || defined(ANDROID_VERSION)
 #include "thread_pthread.h"
 
 #endif

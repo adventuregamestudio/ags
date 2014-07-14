@@ -22,14 +22,14 @@
 #endif
 struct MyLabel:public NewControl
 {
-  char text[150];
-  MyLabel(int xx, int yy, int wii, char *tee);
+    char text[150];
+    MyLabel(int xx, int yy, int wii, char *tee);
 
-  void draw(Common::Bitmap *ds);
+    void draw(Common::Bitmap *ds);
 
-  int pressedon();
+    int pressedon();
 
-  int processmessage(int mcode, int wParam, long lParam);
+    int processmessage(int mcode, int wParam, long lParam);
 };
 #ifdef DJGPP
 #pragma warn +inl

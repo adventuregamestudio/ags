@@ -8,7 +8,7 @@ namespace AGS.Types
 {
     public class LipSync
     {
-		public const int MAX_LIP_SYNC_FRAMES = 20;
+        public const int MAX_LIP_SYNC_FRAMES = 20;
 
         private LipSyncType _type;
         private int _defaultFrame;

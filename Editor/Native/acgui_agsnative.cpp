@@ -34,13 +34,13 @@ bool GUIMain::is_alpha()
 
 int GUIObject::IsClickable()
 {
-  // make sure the button can be selected in the editor
-  return 1;
+    // make sure the button can be selected in the editor
+    return 1;
 }
 
 void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, char *texx)
 {
-  wouttextxy(ds, xxp, yyp, usingfont, text_color, texx);
+    wouttextxy(ds, xxp, yyp, usingfont, text_color, texx);
 }
 
 //=============================================================================
@@ -51,67 +51,67 @@ int final_col_dep = 32;
 
 bool is_sprite_alpha(int spr)
 {
-  return false;
+    return false;
 }
 
 void set_eip_guiobj(int eip)
 {
-  // do nothing
+    // do nothing
 }
 
 int get_eip_guiobj()
 {
-  return 0;
+    return 0;
 }
 
 int wgettextwidth_compensate(const char *tex, int font)
 {
-  return wgettextwidth(tex, font);
+    return wgettextwidth(tex, font);
 }
 
 void GUILabel::Draw_replace_macro_tokens(char *oritext, char *text)
 {
-  strcpy(oritext, text);
+    strcpy(oritext, text);
 }
 
 //-----------------------------------------------------------------------------
 
 void GUILabel::Draw_split_lines(char *teptr, int wid, int font, int &numlines)
 {
-  numlines=0;
-  split_lines_leftright(teptr, wid, font);
+    numlines=0;
+    split_lines_leftright(teptr, wid, font);
 }
 
 void GUITextBox::Draw_text_box_contents(Common::Bitmap *ds, color_t text_color)
 {
-  // print something fake so we can see what it looks like
-  wouttext_outline(ds, x + 2, y + 2, font, text_color, "Text Box Contents");
+    // print something fake so we can see what it looks like
+    wouttext_outline(ds, x + 2, y + 2, font, text_color, "Text Box Contents");
 }
 
 void GUIListBox::Draw_items_fix()
 {
-  numItemsTemp = numItems;
-  numItems = 2;
-  items[0] = "Sample selected";
-  items[1] = "Sample item";
+    numItemsTemp = numItems;
+    numItems = 2;
+    items[0] = "Sample selected";
+    items[1] = "Sample item";
 }
 
 void GUIListBox::Draw_items_unfix()
 {
-  numItems = numItemsTemp;
+    numItems = numItemsTemp;
 }
 
 void GUIListBox::Draw_set_oritext(char *oritext, const char *text)
 {
-  strcpy(oritext, text);
+    strcpy(oritext, text);
 }
 
 void GUIButton::Draw_set_oritext(char *oritext, const char *text)
 {
-  strcpy(oritext, text);
+    strcpy(oritext, text);
 
-  // original code was:
-  //      oritext = text; 
-  // it seems though the 'text' variable is assumed to be a null-terminated string
-  // oritext is assumed to be made long enough by caller function
+    // original code was:
+    //      oritext = text; 
+    // it seems though the 'text' variable is assumed to be a null-terminated string
+    // oritext is assumed to be made long enough by caller function
 }

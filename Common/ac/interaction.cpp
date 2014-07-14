@@ -130,19 +130,19 @@ NewInteractionCommandList::NewInteractionCommandList () {
 }
 
 void NewInteractionCommandList::reset () {
-  int j;
-  for (j = 0; j < numCommands; j++) {
-    if (command[j].children != NULL) {
-      // using this Reset crashes it for some reason
-      //command[j].reset ();
-      command[j].get_child_list()->reset();
-      delete command[j].children;
-      command[j].children = NULL;
+    int j;
+    for (j = 0; j < numCommands; j++) {
+        if (command[j].children != NULL) {
+            // using this Reset crashes it for some reason
+            //command[j].reset ();
+            command[j].get_child_list()->reset();
+            delete command[j].children;
+            command[j].children = NULL;
+        }
+        command[j].remove();
     }
-    command[j].remove();
-  }
-  numCommands = 0;
-  timesRun = 0;
+    numCommands = 0;
+    timesRun = 0;
 }
 
 void NewInteractionCommandList::ReadInteractionCommands_Aligned(Stream *in)
@@ -194,34 +194,34 @@ void NewInteraction::ReadFromFile(Stream *in)
 {
     // it's all ints! <- JJS: No, it's not! There are pointer too.
 
-  numEvents = in->ReadInt32();
-  if (numEvents > MAX_NEWINTERACTION_EVENTS)
-      quit("Can't deserialize interaction: too many events");
-  in->ReadArray(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS);
-  in->ReadArray(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS);
+    numEvents = in->ReadInt32();
+    if (numEvents > MAX_NEWINTERACTION_EVENTS)
+        quit("Can't deserialize interaction: too many events");
+    in->ReadArray(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS);
+    in->ReadArray(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS);
 
-  // This function is called only when reading RoomStatus from savedgame,
-  // and the following response pointer values are never really used anywhere
-  // (and apparently are always NULL). The real full item deserialization is
-  // made by calling deserialize_new_interaction().
-  memset(response, 0, sizeof(response));
-  for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
-  {
-    in->ReadInt32(); // response[i] 32-bit pointer;
-  }
+    // This function is called only when reading RoomStatus from savedgame,
+    // and the following response pointer values are never really used anywhere
+    // (and apparently are always NULL). The real full item deserialization is
+    // made by calling deserialize_new_interaction().
+    memset(response, 0, sizeof(response));
+    for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
+    {
+        in->ReadInt32(); // response[i] 32-bit pointer;
+    }
 
-//    in->ReadArray(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int));
+    //    in->ReadArray(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int));
 }
 void NewInteraction::WriteToFile(Stream *out)
 {
-  out->WriteInt32(numEvents);
-  out->WriteArray(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS);
-  out->WriteArray(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS);
+    out->WriteInt32(numEvents);
+    out->WriteArray(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS);
+    out->WriteArray(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS);
 
-  for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
-    out->WriteInt32((int)(response[i] != NULL));
+    for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
+        out->WriteInt32((int)(response[i] != NULL));
 
-//    fwrite(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int), fp);
+    //    fwrite(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int), fp);
 }
 
 
@@ -236,91 +236,91 @@ InteractionScripts::~InteractionScripts() {
 }
 
 void serialize_command_list (NewInteractionCommandList *nicl, Stream *out) {
-  if (nicl == NULL)
-    return;
-  out->WriteInt32 (nicl->numCommands);
-  out->WriteInt32 (nicl->timesRun);
+    if (nicl == NULL)
+        return;
+    out->WriteInt32 (nicl->numCommands);
+    out->WriteInt32 (nicl->timesRun);
 
-  nicl->WriteInteractionCommands_Aligned(out);
+    nicl->WriteInteractionCommands_Aligned(out);
 
-  for (int k = 0; k < nicl->numCommands; k++) {
-    if (nicl->command[k].children != NULL)
-      serialize_command_list (nicl->command[k].get_child_list(), out);
-  }
+    for (int k = 0; k < nicl->numCommands; k++) {
+        if (nicl->command[k].children != NULL)
+            serialize_command_list (nicl->command[k].get_child_list(), out);
+    }
 }
 
 void serialize_new_interaction (NewInteraction *nint, Stream *out) {
-  int a;
+    int a;
 
-  out->WriteInt32 (1);  // Version
-  out->WriteInt32 (nint->numEvents);
-  out->WriteArrayOfInt32 (&nint->eventTypes[0], nint->numEvents);
+    out->WriteInt32 (1);  // Version
+    out->WriteInt32 (nint->numEvents);
+    out->WriteArrayOfInt32 (&nint->eventTypes[0], nint->numEvents);
 
-  // 64 bit: The pointer is only checked against NULL to determine whether the event exists
-  for (a = 0; a < nint->numEvents; a++)
-    out->WriteInt32 ((long)nint->response[a]);
+    // 64 bit: The pointer is only checked against NULL to determine whether the event exists
+    for (a = 0; a < nint->numEvents; a++)
+        out->WriteInt32 ((long)nint->response[a]);
 
-  for (a = 0; a < nint->numEvents; a++) {
-    if (nint->response[a] != NULL)
-      serialize_command_list (nint->response[a], out);
-  }
+    for (a = 0; a < nint->numEvents; a++) {
+        if (nint->response[a] != NULL)
+            serialize_command_list (nint->response[a], out);
+    }
 }
 
 NewInteractionCommandList *deserialize_command_list (Stream *in) {
-  NewInteractionCommandList *nicl = new NewInteractionCommandList;
-  nicl->numCommands = in->ReadInt32();
-  nicl->timesRun = in->ReadInt32();
+    NewInteractionCommandList *nicl = new NewInteractionCommandList;
+    nicl->numCommands = in->ReadInt32();
+    nicl->timesRun = in->ReadInt32();
 
-  nicl->ReadInteractionCommands_Aligned(in);
+    nicl->ReadInteractionCommands_Aligned(in);
 
-  for (int k = 0; k < nicl->numCommands; k++) {
-    if (nicl->command[k].children != NULL) {
-      nicl->command[k].children = deserialize_command_list (in);
+    for (int k = 0; k < nicl->numCommands; k++) {
+        if (nicl->command[k].children != NULL) {
+            nicl->command[k].children = deserialize_command_list (in);
+        }
+        nicl->command[k].parent = nicl;
     }
-    nicl->command[k].parent = nicl;
-  }
-  return nicl;
+    return nicl;
 }
 
 NewInteraction *nitemp;
 NewInteraction *deserialize_new_interaction (Stream *in) {
-  int a;
+    int a;
 
-  if (in->ReadInt32() != 1)
-    return NULL;
-  nitemp = new NewInteraction;
-  nitemp->numEvents = in->ReadInt32();
-  if (nitemp->numEvents > MAX_NEWINTERACTION_EVENTS) {
-    quit("Can't deserialize interaction: too many events");
-    return NULL;
-  }
-  in->ReadArrayOfInt32 (&nitemp->eventTypes[0], nitemp->numEvents);
+    if (in->ReadInt32() != 1)
+        return NULL;
+    nitemp = new NewInteraction;
+    nitemp->numEvents = in->ReadInt32();
+    if (nitemp->numEvents > MAX_NEWINTERACTION_EVENTS) {
+        quit("Can't deserialize interaction: too many events");
+        return NULL;
+    }
+    in->ReadArrayOfInt32 (&nitemp->eventTypes[0], nitemp->numEvents);
 
-  bool load_response[MAX_NEWINTERACTION_EVENTS];
-  for (a = 0; a < nitemp->numEvents; a++)
-    load_response[a] = in->ReadInt32() != 0;
+    bool load_response[MAX_NEWINTERACTION_EVENTS];
+    for (a = 0; a < nitemp->numEvents; a++)
+        load_response[a] = in->ReadInt32() != 0;
 
-  memset(nitemp->response, 0, sizeof(nitemp->response));
-  for (a = 0; a < nitemp->numEvents; a++) {
-    if (load_response[a])
-      nitemp->response[a] = deserialize_command_list (in);
-    nitemp->timesRun[a] = 0;
-  }
-  return nitemp;
+    memset(nitemp->response, 0, sizeof(nitemp->response));
+    for (a = 0; a < nitemp->numEvents; a++) {
+        if (load_response[a])
+            nitemp->response[a] = deserialize_command_list (in);
+        nitemp->timesRun[a] = 0;
+    }
+    return nitemp;
 }
 
 void deserialize_interaction_scripts(Stream *in, InteractionScripts *scripts)
 {
-  int numEvents = in->ReadInt32();
-  if (numEvents > MAX_NEWINTERACTION_EVENTS)
-    quit("Can't deserialize interaction scripts: too many events");
-  scripts->numEvents = numEvents;
+    int numEvents = in->ReadInt32();
+    if (numEvents > MAX_NEWINTERACTION_EVENTS)
+        quit("Can't deserialize interaction scripts: too many events");
+    scripts->numEvents = numEvents;
 
-  String buffer;
-  for (int i = 0; i < numEvents; i++)
-  {
-    buffer.Read(in, 200);
-    scripts->scriptFuncNames[i] = new char[buffer.GetLength() + 1];
-    strcpy(scripts->scriptFuncNames[i], buffer);
-  }
+    String buffer;
+    for (int i = 0; i < numEvents; i++)
+    {
+        buffer.Read(in, 200);
+        scripts->scriptFuncNames[i] = new char[buffer.GetLength() + 1];
+        strcpy(scripts->scriptFuncNames[i], buffer);
+    }
 }

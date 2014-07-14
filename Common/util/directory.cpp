@@ -9,28 +9,28 @@
 
 namespace AGS
 {
-namespace Common
-{
+    namespace Common
+    {
 
-namespace Directory
-{
+        namespace Directory
+        {
 
-String SetCurrentDirectory(const String &path)
-{
-    chdir(path);
-    return GetCurrentDirectory();
-}
+            String SetCurrentDirectory(const String &path)
+            {
+                chdir(path);
+                return GetCurrentDirectory();
+            }
 
-String GetCurrentDirectory()
-{
-    char buf[512];
-    getcwd(buf, 512);
-    String str(buf);
-    Path::FixupPath(str);
-    return str;
-}
+            String GetCurrentDirectory()
+            {
+                char buf[512];
+                getcwd(buf, 512);
+                String str(buf);
+                Path::FixupPath(str);
+                return str;
+            }
 
-} // namespace Directory
+        } // namespace Directory
 
-} // namespace Common
+    } // namespace Common
 } // namespace AGS

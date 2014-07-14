@@ -4,7 +4,7 @@ namespace Scintilla.Lexers
     using System.Collections;
     using System.Windows.Forms;
     using System.Runtime.InteropServices;
-    
+
     public enum Python
     {
         Default = 0,

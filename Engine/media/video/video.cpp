@@ -101,7 +101,7 @@ extern "C" int fli_callback() {
 Bitmap gl_TheoraBuffer;
 int theora_playing_callback(BITMAP *theoraBuffer)
 {
-	if (theoraBuffer == NULL)
+    if (theoraBuffer == NULL)
     {
         // No video, only sound
         return check_if_user_input_should_cancel_video();
@@ -187,7 +187,7 @@ void calculate_destination_size_maintain_aspect_ratio(int vidWidth, int vidHeigh
 
 void play_theora_video(const char *name, int skip, int flags)
 {
-	apeg_set_display_depth(BitmapHelper::GetScreenBitmap()->GetColorDepth());
+    apeg_set_display_depth(BitmapHelper::GetScreenBitmap()->GetColorDepth());
     // we must disable length detection, otherwise it takes ages to start
     // playing if the file is large because it seeks through the whole thing
     apeg_disable_length_detection(TRUE);

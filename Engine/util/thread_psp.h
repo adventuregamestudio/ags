@@ -21,93 +21,93 @@
 
 namespace AGS
 {
-namespace Engine
-{
-
-
-class PSPThread : public BaseThread
-{
-public:
-  PSPThread()
-  {
-    _thread = -1;
-    _running = false;
-  }
-
-  ~PSPThread()
-  {
-    Stop();
-  }
-
-  inline bool Create(AGSThreadEntry entryPoint, bool looping)
-  {
-    _looping = looping;
-    _entry = entryPoint;
-    _thread = sceKernelCreateThread("ags", _thread_start, 0x20, 0x10000, THREAD_ATTR_USER, 0);
-
-    return (_thread > -1);
-  }
-
-  inline bool Start()
-  {
-    if ((_thread > -1) && (!_running))
+    namespace Engine
     {
-      PSPThread* thisPointer = this;
-      SceUID result = sceKernelStartThread(_thread, sizeof(this), &thisPointer);
-
-      _running = (result > -1);
-      return _running;
-    }
-    else
-    {
-      return false;
-    }
-  }
-
-  bool Stop()
-  {
-    if ((_thread > -1) && (_running))
-    {
-      if (_looping)
-      {
-        _looping = false;
-        sceKernelWaitThreadEnd(_thread, 0);
-      }
-
-      _running = false;
-      return (sceKernelTerminateDeleteThread(_thread) > -1);
-    }
-    else
-    {
-      return false;
-    }
-  }
-
-private:
-  SceUID _thread;
-  bool   _running;
-  bool   _looping;
-
-  AGSThreadEntry _entry;
-
-  static int _thread_start(SceSize args, void *argp)
-  {
-    AGSThreadEntry entry = (*(PSPThread **)argp)->_entry;
-    bool *looping = &(*(PSPThread **)argp)->_looping;
-
-    do
-    {
-      entry();
-    }
-    while (*looping);
-  }
-};
 
 
-typedef PSPThread Thread;
+        class PSPThread : public BaseThread
+        {
+        public:
+            PSPThread()
+            {
+                _thread = -1;
+                _running = false;
+            }
+
+            ~PSPThread()
+            {
+                Stop();
+            }
+
+            inline bool Create(AGSThreadEntry entryPoint, bool looping)
+            {
+                _looping = looping;
+                _entry = entryPoint;
+                _thread = sceKernelCreateThread("ags", _thread_start, 0x20, 0x10000, THREAD_ATTR_USER, 0);
+
+                return (_thread > -1);
+            }
+
+            inline bool Start()
+            {
+                if ((_thread > -1) && (!_running))
+                {
+                    PSPThread* thisPointer = this;
+                    SceUID result = sceKernelStartThread(_thread, sizeof(this), &thisPointer);
+
+                    _running = (result > -1);
+                    return _running;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            bool Stop()
+            {
+                if ((_thread > -1) && (_running))
+                {
+                    if (_looping)
+                    {
+                        _looping = false;
+                        sceKernelWaitThreadEnd(_thread, 0);
+                    }
+
+                    _running = false;
+                    return (sceKernelTerminateDeleteThread(_thread) > -1);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+        private:
+            SceUID _thread;
+            bool   _running;
+            bool   _looping;
+
+            AGSThreadEntry _entry;
+
+            static int _thread_start(SceSize args, void *argp)
+            {
+                AGSThreadEntry entry = (*(PSPThread **)argp)->_entry;
+                bool *looping = &(*(PSPThread **)argp)->_looping;
+
+                do
+                {
+                    entry();
+                }
+                while (*looping);
+            }
+        };
 
 
-} // namespace Engine
+        typedef PSPThread Thread;
+
+
+    } // namespace Engine
 } // namespace AGS
 
 #endif // __AGS_EE_UTIL__PSP_THREAD_H

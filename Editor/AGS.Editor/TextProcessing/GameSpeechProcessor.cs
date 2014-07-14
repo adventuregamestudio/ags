@@ -53,7 +53,7 @@ namespace AGS.Editor
                 return text;
             }
 
-            switch (textType) 
+            switch (textType)
             {
                 case GameTextType.DialogOption:
                 case GameTextType.Message:
@@ -107,46 +107,46 @@ namespace AGS.Editor
             return script.Substring(previousCodeStart, (startingFromIndex - previousCodeStart) + 1);
         }
 
-		/// <summary>
-		/// Skip comments in the script that might have speech marks
-		/// in them, which could confuse the parser.
-		/// </summary>
-		private int SkipComments(string script, int index)
-		{
-			if ((index < script.Length - 1) &&
-			    (script[index] == '/') && (script[index + 1] == '/'))
-			{
-				while ((index < script.Length) &&
-					(script[index] != 10) &&
-					(script[index] != 13))
-				{
-					index++;
-				}
-			}
-			if ((index < script.Length - 1) &&
-				(script[index] == '/') && (script[index + 1] == '*'))
-			{
-				index += 2;
-				while (index < script.Length - 1)
-				{
-					if ((script[index] == '*') && (script[index + 1] == '/'))
-					{
-						break;
-					}
-					index++;
-				}
-			}
-			return index;
-		}
+        /// <summary>
+        /// Skip comments in the script that might have speech marks
+        /// in them, which could confuse the parser.
+        /// </summary>
+        private int SkipComments(string script, int index)
+        {
+            if ((index < script.Length - 1) &&
+                (script[index] == '/') && (script[index + 1] == '/'))
+            {
+                while ((index < script.Length) &&
+                    (script[index] != 10) &&
+                    (script[index] != 13))
+                {
+                    index++;
+                }
+            }
+            if ((index < script.Length - 1) &&
+                (script[index] == '/') && (script[index + 1] == '*'))
+            {
+                index += 2;
+                while (index < script.Length - 1)
+                {
+                    if ((script[index] == '*') && (script[index + 1] == '/'))
+                    {
+                        break;
+                    }
+                    index++;
+                }
+            }
+            return index;
+        }
 
         private string ProcessScript(string script)
         {
             int index = 0;
             while (index < script.Length)
             {
-				index = SkipComments(script, index);
+                index = SkipComments(script, index);
 
-                if ((index < script.Length) && 
+                if ((index < script.Length) &&
                     ((script[index] == '"') || (script[index] == '\'')))
                 {
                     char stringTerminator = script[index];
@@ -196,7 +196,7 @@ namespace AGS.Editor
             while ((thisLine = sr.ReadLine()) != null)
             {
                 originalLine = thisLine;
-				thisLine = thisLine.Trim();
+                thisLine = thisLine.Trim();
 
                 if (DialogScriptConverter.IsRealScriptLineInDialog(originalLine))
                 {

@@ -117,101 +117,101 @@ void ccScript::Write(Stream *out) {
 
 bool ccScript::Read(Stream *in)
 {
-  instances = 0;
-  int n;
-  char gotsig[5];
-  currentline = -1;
-  // MACPORT FIX: swap 'size' and 'nmemb'
-  in->Read(gotsig, 4);
-  gotsig[4] = 0;
-
-  int fileVer = in->ReadInt32();
-
-  if ((strcmp(gotsig, scfilesig) != 0) || (fileVer > SCOM_VERSION)) {
-    cc_error("file was not written by ccScript::Write or seek position is incorrect");
-    return false;
-  }
-
-  globaldatasize = in->ReadInt32();
-  codesize = in->ReadInt32();
-  stringssize = in->ReadInt32();
-
-  if (globaldatasize > 0) {
-    globaldata = (char *)malloc(globaldatasize);
-    // MACPORT FIX: swap
-    in->Read(globaldata, globaldatasize);
-  }
-  else
-    globaldata = NULL;
-
-  if (codesize > 0) {
-    code = (intptr_t *)malloc(codesize * sizeof(intptr_t));
-    // MACPORT FIX: swap
-
-    // 64 bit: Read code into 8 byte array, necessary for being able to perform
-    // relocations on the references.
-    in->ReadArrayOfIntPtr32(code, codesize);
-  }
-  else
-    code = NULL;
-
-  if (stringssize > 0) {
-    strings = (char *)malloc(stringssize);
-    // MACPORT FIX: swap
-    in->Read(strings, stringssize);
-  } 
-  else
-    strings = NULL;
-
-  numfixups = in->ReadInt32();
-  if (numfixups > 0) {
-    fixuptypes = (char *)malloc(numfixups);
-    fixups = (int32_t *)malloc(numfixups * sizeof(int32_t));
+    instances = 0;
+    int n;
+    char gotsig[5];
+    currentline = -1;
     // MACPORT FIX: swap 'size' and 'nmemb'
-    in->Read(fixuptypes, numfixups);
-    in->ReadArrayOfInt32(fixups, numfixups);
-  }
-  else {
-    fixups = NULL;
-    fixuptypes = NULL;
-  }
+    in->Read(gotsig, 4);
+    gotsig[4] = 0;
 
-  numimports = in->ReadInt32();
+    int fileVer = in->ReadInt32();
 
-  imports = (char**)malloc(sizeof(char*) * numimports);
-  for (n = 0; n < numimports; n++)
-    freadstring(&imports[n], in);
-
-  numexports = in->ReadInt32();
-  exports = (char**)malloc(sizeof(char*) * numexports);
-  export_addr = (int32_t*)malloc(sizeof(int32_t) * numexports);
-  for (n = 0; n < numexports; n++) {
-    freadstring(&exports[n], in);
-    export_addr[n] = in->ReadInt32();
-  }
-
-  if (fileVer >= 83) {
-    // read in the Sections
-    numSections = in->ReadInt32();
-    sectionNames = (char**)malloc(numSections * sizeof(char*));
-    sectionOffsets = (int32_t*)malloc(numSections * sizeof(int32_t));
-    for (n = 0; n < numSections; n++) {
-      freadstring(&sectionNames[n], in);
-      sectionOffsets[n] = in->ReadInt32();
+    if ((strcmp(gotsig, scfilesig) != 0) || (fileVer > SCOM_VERSION)) {
+        cc_error("file was not written by ccScript::Write or seek position is incorrect");
+        return false;
     }
-  }
-  else
-  {
-    numSections = 0;
-    sectionNames = NULL;
-    sectionOffsets = NULL;
-  }
 
-  if (in->ReadInt32() != ENDFILESIG) {
-    cc_error("internal error rebuilding script");
-    return false;
-  }
-  return true;
+    globaldatasize = in->ReadInt32();
+    codesize = in->ReadInt32();
+    stringssize = in->ReadInt32();
+
+    if (globaldatasize > 0) {
+        globaldata = (char *)malloc(globaldatasize);
+        // MACPORT FIX: swap
+        in->Read(globaldata, globaldatasize);
+    }
+    else
+        globaldata = NULL;
+
+    if (codesize > 0) {
+        code = (intptr_t *)malloc(codesize * sizeof(intptr_t));
+        // MACPORT FIX: swap
+
+        // 64 bit: Read code into 8 byte array, necessary for being able to perform
+        // relocations on the references.
+        in->ReadArrayOfIntPtr32(code, codesize);
+    }
+    else
+        code = NULL;
+
+    if (stringssize > 0) {
+        strings = (char *)malloc(stringssize);
+        // MACPORT FIX: swap
+        in->Read(strings, stringssize);
+    } 
+    else
+        strings = NULL;
+
+    numfixups = in->ReadInt32();
+    if (numfixups > 0) {
+        fixuptypes = (char *)malloc(numfixups);
+        fixups = (int32_t *)malloc(numfixups * sizeof(int32_t));
+        // MACPORT FIX: swap 'size' and 'nmemb'
+        in->Read(fixuptypes, numfixups);
+        in->ReadArrayOfInt32(fixups, numfixups);
+    }
+    else {
+        fixups = NULL;
+        fixuptypes = NULL;
+    }
+
+    numimports = in->ReadInt32();
+
+    imports = (char**)malloc(sizeof(char*) * numimports);
+    for (n = 0; n < numimports; n++)
+        freadstring(&imports[n], in);
+
+    numexports = in->ReadInt32();
+    exports = (char**)malloc(sizeof(char*) * numexports);
+    export_addr = (int32_t*)malloc(sizeof(int32_t) * numexports);
+    for (n = 0; n < numexports; n++) {
+        freadstring(&exports[n], in);
+        export_addr[n] = in->ReadInt32();
+    }
+
+    if (fileVer >= 83) {
+        // read in the Sections
+        numSections = in->ReadInt32();
+        sectionNames = (char**)malloc(numSections * sizeof(char*));
+        sectionOffsets = (int32_t*)malloc(numSections * sizeof(int32_t));
+        for (n = 0; n < numSections; n++) {
+            freadstring(&sectionNames[n], in);
+            sectionOffsets[n] = in->ReadInt32();
+        }
+    }
+    else
+    {
+        numSections = 0;
+        sectionNames = NULL;
+        sectionOffsets = NULL;
+    }
+
+    if (in->ReadInt32() != ENDFILESIG) {
+        cc_error("internal error rebuilding script");
+        return false;
+    }
+    return true;
 }
 
 void ccScript::Free()

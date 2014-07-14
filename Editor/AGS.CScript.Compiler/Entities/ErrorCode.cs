@@ -4,28 +4,28 @@ using System.Text;
 
 namespace AGS.CScript.Compiler
 {
-	public enum ErrorCode
-	{
-		MacroNameMissing = 1,
-		MacroDoesNotExist,
-		MacroAlreadyExists,
+    public enum ErrorCode
+    {
+        MacroNameMissing = 1,
+        MacroDoesNotExist,
+        MacroAlreadyExists,
         MacroNameInvalid,
-		LineTooLong,
-		UnknownPreprocessorDirective,
-		UserDefinedError,
-		EndIfWithoutIf,
-		IfWithoutEndIf,
-		InvalidVersionNumber,
-		UnexpectedToken = 100,
-		InvalidUseOfKeyword,
-		TokenAlreadyDefined,
-		VariableTypeExpected,
+        LineTooLong,
+        UnknownPreprocessorDirective,
+        UserDefinedError,
+        EndIfWithoutIf,
+        IfWithoutEndIf,
+        InvalidVersionNumber,
+        UnexpectedToken = 100,
+        InvalidUseOfKeyword,
+        TokenAlreadyDefined,
+        VariableTypeExpected,
         GlobalVariableExpected,
-		StructNameExpected,
-		CircularReference,
-		StructInsideItself,
-		CannotUseTypeInStruct,
-		ArraySizeNotInteger,
+        StructNameExpected,
+        CircularReference,
+        StructInsideItself,
+        CannotUseTypeInStruct,
+        ArraySizeNotInteger,
         InternalError,
         CannotReturnStructFromFunction,
         CannotPassStructToFunction,
@@ -45,5 +45,5 @@ namespace AGS.CScript.Compiler
         MemberFunctionNotDefined,
         ParentIsNotAStruct,
         InvalidUseOfStruct
-	}
+    }
 }

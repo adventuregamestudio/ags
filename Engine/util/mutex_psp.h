@@ -21,43 +21,43 @@
 
 namespace AGS
 {
-namespace Engine
-{
+    namespace Engine
+    {
 
 
-class PSPMutex : public BaseMutex
-{
-public:
-  PSPMutex()
-  {
-    _mutex = sceKernelCreateSema("", 0, 1, 1, 0);
-  }
+        class PSPMutex : public BaseMutex
+        {
+        public:
+            PSPMutex()
+            {
+                _mutex = sceKernelCreateSema("", 0, 1, 1, 0);
+            }
 
-  ~PSPMutex()
-  {
-    Unlock();
-    sceKernelDeleteSema(_mutex);
-  }
+            ~PSPMutex()
+            {
+                Unlock();
+                sceKernelDeleteSema(_mutex);
+            }
 
-  inline void Lock()
-  {
-    sceKernelWaitSema(_mutex, 1, 0);
-  }
+            inline void Lock()
+            {
+                sceKernelWaitSema(_mutex, 1, 0);
+            }
 
-  inline void Unlock()
-  {
-    sceKernelSignalSema(_mutex, 1);
-  }
+            inline void Unlock()
+            {
+                sceKernelSignalSema(_mutex, 1);
+            }
 
-private:
-  SceUID _mutex;
-};
-
-
-typedef PSPMutex Mutex;
+        private:
+            SceUID _mutex;
+        };
 
 
-} // namespace Engine
+        typedef PSPMutex Mutex;
+
+
+    } // namespace Engine
 } // namespace AGS
 
 #endif // __AGS_EE_UTIL__PSP_MUTEX_H

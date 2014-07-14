@@ -22,39 +22,39 @@
 
 namespace AGS
 {
-namespace Common
-{
+    namespace Common
+    {
 
-class Stream;
+        class Stream;
 
-class TextStreamReader : public TextReader
-{
-public:
-    // TODO: use shared ptr
-    TextStreamReader(Stream *stream);
-    virtual ~TextStreamReader();
+        class TextStreamReader : public TextReader
+        {
+        public:
+            // TODO: use shared ptr
+            TextStreamReader(Stream *stream);
+            virtual ~TextStreamReader();
 
-    virtual bool    IsValid() const;
-    const Stream   *GetStream() const;
-    // TODO: use shared ptr instead
-    void            ReleaseStream();
+            virtual bool    IsValid() const;
+            const Stream   *GetStream() const;
+            // TODO: use shared ptr instead
+            void            ReleaseStream();
 
-    bool            EOS() const;
+            bool            EOS() const;
 
-    // Read single character
-    virtual char    ReadChar();
-    // Read defined number of characters
-    virtual String ReadString(int length);
-    // Read till line break
-    virtual String ReadLine();
-    // Read till end of available data
-    virtual String ReadAll();
+            // Read single character
+            virtual char    ReadChar();
+            // Read defined number of characters
+            virtual String ReadString(int length);
+            // Read till line break
+            virtual String ReadLine();
+            // Read till end of available data
+            virtual String ReadAll();
 
-private:
-    Stream *_stream;
-};
+        private:
+            Stream *_stream;
+        };
 
-} // namespace Common
+    } // namespace Common
 } // namespace AGS
 
 #endif // __AGS_CN_UTIL__TEXTSTREAM_H

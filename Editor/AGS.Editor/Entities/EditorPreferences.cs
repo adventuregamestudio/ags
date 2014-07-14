@@ -10,15 +10,15 @@ namespace AGS.Editor
     {
         private TestGameWindowStyle _testGameScreen = TestGameWindowStyle.Windowed;
         private int _tabSize = 2;
-		private EditorStartupPane _editorStartupPane = EditorStartupPane.StartPage;
-		private string _defaultImportPath = string.Empty;
-		private bool _projectTreeOnRight = true;
-		private MessageBoxOnCompile _messageBoxOnCompileErrors = MessageBoxOnCompile.WarningsAndErrors;
-		private bool _indentUseTabs = false;
-		private bool _showViewPreviewByDefault = false;
-		private string _paintProgramPath = string.Empty;
-		private SpriteImportMethod _defaultSpriteImportTransparency = SpriteImportMethod.TopLeft;
-		private string _defaultNewGamePath = string.Empty;
+        private EditorStartupPane _editorStartupPane = EditorStartupPane.StartPage;
+        private string _defaultImportPath = string.Empty;
+        private bool _projectTreeOnRight = true;
+        private MessageBoxOnCompile _messageBoxOnCompileErrors = MessageBoxOnCompile.WarningsAndErrors;
+        private bool _indentUseTabs = false;
+        private bool _showViewPreviewByDefault = false;
+        private string _paintProgramPath = string.Empty;
+        private SpriteImportMethod _defaultSpriteImportTransparency = SpriteImportMethod.TopLeft;
+        private string _defaultNewGamePath = string.Empty;
         private bool _sendAnonymousStats = true;
         private DateTime _statsLastSent = DateTime.MinValue;
         private int _backupWarningInterval = 7;
@@ -38,15 +38,15 @@ namespace AGS.Editor
             {
                 _tabSize = Convert.ToInt32(key.GetValue("ScEdTabWidth", _tabSize));
                 _testGameScreen = (TestGameWindowStyle)Convert.ToInt32(key.GetValue("TestGameStyle", _testGameScreen));
-				_editorStartupPane = (EditorStartupPane)Convert.ToInt32(key.GetValue("StartupPane", _editorStartupPane));
-				_defaultImportPath = Convert.ToString(key.GetValue("DefaultImportPath", string.Empty));
-				_projectTreeOnRight = Convert.ToInt32(key.GetValue("ProjectTreeOnRight", _projectTreeOnRight)) != 0;
-				_messageBoxOnCompileErrors = (MessageBoxOnCompile)Convert.ToInt32(key.GetValue("MessageBoxOnCompileErrors", _messageBoxOnCompileErrors));
-				_indentUseTabs = Convert.ToInt32(key.GetValue("IndentUsingTabs", _indentUseTabs)) != 0;
-				_showViewPreviewByDefault = Convert.ToInt32(key.GetValue("ShowViewPreviewByDefault", _showViewPreviewByDefault)) != 0;
-				_paintProgramPath = Convert.ToString(key.GetValue("PaintProgramPath", string.Empty));
-				_defaultSpriteImportTransparency = (SpriteImportMethod)Convert.ToInt32(key.GetValue("SpriteImportTransparency", _defaultSpriteImportTransparency));
-				_defaultNewGamePath = Convert.ToString(key.GetValue("NewGamePath", _defaultNewGamePath));
+                _editorStartupPane = (EditorStartupPane)Convert.ToInt32(key.GetValue("StartupPane", _editorStartupPane));
+                _defaultImportPath = Convert.ToString(key.GetValue("DefaultImportPath", string.Empty));
+                _projectTreeOnRight = Convert.ToInt32(key.GetValue("ProjectTreeOnRight", _projectTreeOnRight)) != 0;
+                _messageBoxOnCompileErrors = (MessageBoxOnCompile)Convert.ToInt32(key.GetValue("MessageBoxOnCompileErrors", _messageBoxOnCompileErrors));
+                _indentUseTabs = Convert.ToInt32(key.GetValue("IndentUsingTabs", _indentUseTabs)) != 0;
+                _showViewPreviewByDefault = Convert.ToInt32(key.GetValue("ShowViewPreviewByDefault", _showViewPreviewByDefault)) != 0;
+                _paintProgramPath = Convert.ToString(key.GetValue("PaintProgramPath", string.Empty));
+                _defaultSpriteImportTransparency = (SpriteImportMethod)Convert.ToInt32(key.GetValue("SpriteImportTransparency", _defaultSpriteImportTransparency));
+                _defaultNewGamePath = Convert.ToString(key.GetValue("NewGamePath", _defaultNewGamePath));
                 _sendAnonymousStats = Convert.ToInt32(key.GetValue("SendAnonymousStats", _sendAnonymousStats)) != 0;
                 _statsLastSent = ReadDateFromRegistry(key, "StatsLastSent", _statsLastSent);
                 _backupWarningInterval = Convert.ToInt32(key.GetValue("BackupWarningInterval", _backupWarningInterval));
@@ -56,17 +56,17 @@ namespace AGS.Editor
                 ReadRecentSearchesList(key);
                 key.Close();
 
-				if ((_defaultImportPath.Length > 0) &&
-					(!System.IO.Directory.Exists(_defaultImportPath)))
-				{
-					_defaultImportPath = string.Empty;
-				}
+                if ((_defaultImportPath.Length > 0) &&
+                    (!System.IO.Directory.Exists(_defaultImportPath)))
+                {
+                    _defaultImportPath = string.Empty;
+                }
 
-				if ((_paintProgramPath.Length > 0) &&
-					(!System.IO.File.Exists(_paintProgramPath)))
-				{
-					_paintProgramPath = string.Empty;
-				}
+                if ((_paintProgramPath.Length > 0) &&
+                    (!System.IO.File.Exists(_paintProgramPath)))
+                {
+                    _paintProgramPath = string.Empty;
+                }
             }
         }
 
@@ -112,15 +112,15 @@ namespace AGS.Editor
             {
                 key.SetValue("ScEdTabWidth", _tabSize.ToString());
                 key.SetValue("TestGameStyle", ((int)_testGameScreen).ToString());
-				key.SetValue("StartupPane", ((int)_editorStartupPane).ToString());
-				key.SetValue("DefaultImportPath", _defaultImportPath);
-				key.SetValue("ProjectTreeOnRight", _projectTreeOnRight ? "1" : "0");
-				key.SetValue("MessageBoxOnCompileErrors", ((int)_messageBoxOnCompileErrors).ToString());
-				key.SetValue("IndentUsingTabs", _indentUseTabs ? "1" : "0");
-				key.SetValue("ShowViewPreviewByDefault", _showViewPreviewByDefault ? "1" : "0");
-				key.SetValue("PaintProgramPath", _paintProgramPath);
-				key.SetValue("SpriteImportTransparency", ((int)_defaultSpriteImportTransparency).ToString());
-				key.SetValue("NewGamePath", _defaultNewGamePath);
+                key.SetValue("StartupPane", ((int)_editorStartupPane).ToString());
+                key.SetValue("DefaultImportPath", _defaultImportPath);
+                key.SetValue("ProjectTreeOnRight", _projectTreeOnRight ? "1" : "0");
+                key.SetValue("MessageBoxOnCompileErrors", ((int)_messageBoxOnCompileErrors).ToString());
+                key.SetValue("IndentUsingTabs", _indentUseTabs ? "1" : "0");
+                key.SetValue("ShowViewPreviewByDefault", _showViewPreviewByDefault ? "1" : "0");
+                key.SetValue("PaintProgramPath", _paintProgramPath);
+                key.SetValue("SpriteImportTransparency", ((int)_defaultSpriteImportTransparency).ToString());
+                key.SetValue("NewGamePath", _defaultNewGamePath);
                 key.SetValue("SendAnonymousStats", _sendAnonymousStats ? "1" : "0");
                 key.SetValue("StatsLastSent", _statsLastSent.ToString("u"));
                 key.SetValue("BackupWarningInterval", _backupWarningInterval.ToString());
@@ -144,75 +144,75 @@ namespace AGS.Editor
             set { _testGameScreen = value; }
         }
 
-		public EditorStartupPane StartupPane
-		{
-			get { return _editorStartupPane; }
-			set { _editorStartupPane = value; }
-		}
+        public EditorStartupPane StartupPane
+        {
+            get { return _editorStartupPane; }
+            set { _editorStartupPane = value; }
+        }
 
-		public string DefaultImportPath
-		{
-			get { return _defaultImportPath; }
-			set { _defaultImportPath = value; }
-		}
+        public string DefaultImportPath
+        {
+            get { return _defaultImportPath; }
+            set { _defaultImportPath = value; }
+        }
 
         [Obsolete]
-		public bool ProjectTreeOnRight
-		{
-			get { return _projectTreeOnRight; }
-			set { _projectTreeOnRight = value; }
-		}
+        public bool ProjectTreeOnRight
+        {
+            get { return _projectTreeOnRight; }
+            set { _projectTreeOnRight = value; }
+        }
 
-		public MessageBoxOnCompile MessageBoxOnCompileErrors
-		{
-			get { return _messageBoxOnCompileErrors; }
-			set { _messageBoxOnCompileErrors = value; }
-		}
+        public MessageBoxOnCompile MessageBoxOnCompileErrors
+        {
+            get { return _messageBoxOnCompileErrors; }
+            set { _messageBoxOnCompileErrors = value; }
+        }
 
-		public bool IndentUsingTabs
-		{
-			get { return _indentUseTabs; }
-			set { _indentUseTabs = value; }
-		}
+        public bool IndentUsingTabs
+        {
+            get { return _indentUseTabs; }
+            set { _indentUseTabs = value; }
+        }
 
-		public bool ShowViewPreviewByDefault
-		{
-			get { return _showViewPreviewByDefault; }
-			set { _showViewPreviewByDefault = value; }
-		}
+        public bool ShowViewPreviewByDefault
+        {
+            get { return _showViewPreviewByDefault; }
+            set { _showViewPreviewByDefault = value; }
+        }
 
-		public string PaintProgramPath
-		{
-			get { return _paintProgramPath; }
-			set { _paintProgramPath = value; }
-		}
+        public string PaintProgramPath
+        {
+            get { return _paintProgramPath; }
+            set { _paintProgramPath = value; }
+        }
 
-		public SpriteImportMethod DefaultSpriteImportTransparency
-		{
-			get { return _defaultSpriteImportTransparency; }
-			set { _defaultSpriteImportTransparency = value; }
-		}
+        public SpriteImportMethod DefaultSpriteImportTransparency
+        {
+            get { return _defaultSpriteImportTransparency; }
+            set { _defaultSpriteImportTransparency = value; }
+        }
 
-		public string ExplicitNewGamePath
-		{
-			get { return _defaultNewGamePath; }
-			set { _defaultNewGamePath = value; }
-		}
+        public string ExplicitNewGamePath
+        {
+            get { return _defaultNewGamePath; }
+            set { _defaultNewGamePath = value; }
+        }
 
-		public string NewGamePath
-		{
-			get
-			{
-				if (!string.IsNullOrEmpty(_defaultNewGamePath))
-				{
-					return _defaultNewGamePath;
-				}
-				else
-				{
-					return Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-				}
-			}
-		}
+        public string NewGamePath
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(_defaultNewGamePath))
+                {
+                    return _defaultNewGamePath;
+                }
+                else
+                {
+                    return Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                }
+            }
+        }
 
         public bool SendAnonymousStats
         {

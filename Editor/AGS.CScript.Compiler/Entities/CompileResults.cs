@@ -4,7 +4,7 @@ using System.Text;
 
 namespace AGS.CScript.Compiler
 {
-	public class CompileResults : List<CompilerMessage>
-	{
-	}
+    public class CompileResults : List<CompilerMessage>
+    {
+    }
 }

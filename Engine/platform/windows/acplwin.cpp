@@ -66,11 +66,11 @@ extern Bitmap *virtual_screen;
 #endif
 
 typedef struct BMP_EXTRA_INFO {
-   LPDIRECTDRAWSURFACE2 surf;
-   struct BMP_EXTRA_INFO *next;
-   struct BMP_EXTRA_INFO *prev;
-   int flags;
-   int lock_nesting;
+    LPDIRECTDRAWSURFACE2 surf;
+    struct BMP_EXTRA_INFO *next;
+    struct BMP_EXTRA_INFO *prev;
+    int flags;
+    int lock_nesting;
 } BMP_EXTRA_INFO;
 
 // from Allegro DDraw driver
@@ -94,62 +94,62 @@ extern int acwsetup(const char*, const char*);
 extern void set_icon();
 
 struct AGSWin32 : AGSPlatformDriver {
-  AGSWin32();
+    AGSWin32();
 
-  virtual void AboutToQuitGame();
-  virtual int  CDPlayerCommand(int cmdd, int datt);
-  virtual void Delay(int millis);
-  virtual void DisplayAlert(const char*, ...);
-  virtual const char *GetAllUsersDataDirectory();
-  virtual const char *GetAppOutputDirectory();
-  virtual const char *GetGraphicsTroubleshootingText();
-  virtual unsigned long GetDiskFreeSpaceMB();
-  virtual const char* GetNoMouseErrorString();
-  virtual eScriptSystemOSID GetSystemOSID();
-  virtual int  InitializeCDPlayer();
-  virtual void PlayVideo(const char* name, int skip, int flags);
-  virtual void PostAllegroInit(bool windowed);
-  virtual void PostAllegroExit();
-  virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize);
-  virtual int  RunSetup();
-  virtual void SetGameWindowIcon();
-  virtual void ShutdownCDPlayer();
-  virtual void WriteConsole(const char*, ...);
-  virtual void WriteDebugString(const char*, ...);
-  virtual void DisplaySwitchOut() ;
-  virtual void DisplaySwitchIn() ;
-  virtual void RegisterGameWithGameExplorer();
-  virtual void UnRegisterGameWithGameExplorer();
-  virtual int  ConvertKeycodeToScanCode(int keyCode);
+    virtual void AboutToQuitGame();
+    virtual int  CDPlayerCommand(int cmdd, int datt);
+    virtual void Delay(int millis);
+    virtual void DisplayAlert(const char*, ...);
+    virtual const char *GetAllUsersDataDirectory();
+    virtual const char *GetAppOutputDirectory();
+    virtual const char *GetGraphicsTroubleshootingText();
+    virtual unsigned long GetDiskFreeSpaceMB();
+    virtual const char* GetNoMouseErrorString();
+    virtual eScriptSystemOSID GetSystemOSID();
+    virtual int  InitializeCDPlayer();
+    virtual void PlayVideo(const char* name, int skip, int flags);
+    virtual void PostAllegroInit(bool windowed);
+    virtual void PostAllegroExit();
+    virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize);
+    virtual int  RunSetup();
+    virtual void SetGameWindowIcon();
+    virtual void ShutdownCDPlayer();
+    virtual void WriteConsole(const char*, ...);
+    virtual void WriteDebugString(const char*, ...);
+    virtual void DisplaySwitchOut() ;
+    virtual void DisplaySwitchIn() ;
+    virtual void RegisterGameWithGameExplorer();
+    virtual void UnRegisterGameWithGameExplorer();
+    virtual int  ConvertKeycodeToScanCode(int keyCode);
 
 private:
-  void add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
-  void remove_game_from_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
-  void add_tasks_for_game(const char *guidAsText, const char *gameEXE, const char *workingFolder, bool allUsers);
-  void get_tasks_directory(char *directoryNameBuffer, const char *guidAsText, bool allUsers);
-  void update_game_explorer(bool add);
-  void create_shortcut(const char *pathToEXE, const char *workingFolder, const char *arguments, const char *shortcutPath);
-  void register_file_extension(const char *exePath);
-  void unregister_file_extension();
+    void add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
+    void remove_game_from_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
+    void add_tasks_for_game(const char *guidAsText, const char *gameEXE, const char *workingFolder, bool allUsers);
+    void get_tasks_directory(char *directoryNameBuffer, const char *guidAsText, bool allUsers);
+    void update_game_explorer(bool add);
+    void create_shortcut(const char *pathToEXE, const char *workingFolder, const char *arguments, const char *shortcutPath);
+    void register_file_extension(const char *exePath);
+    void unregister_file_extension();
 };
 
 AGSWin32::AGSWin32() {
-  allegro_wnd = NULL;
+    allegro_wnd = NULL;
 }
 
 void check_parental_controls() {
-  /* this doesn't work, it always just returns access depedning
-     on whether unrated games are allowed because of digital signature
-  BOOL bHasAccess = FALSE;
-  IGameExplorer* pFwGameExplorer = NULL;
+    /* this doesn't work, it always just returns access depedning
+    on whether unrated games are allowed because of digital signature
+    BOOL bHasAccess = FALSE;
+    IGameExplorer* pFwGameExplorer = NULL;
 
-  CoInitialize(NULL);
-  // Create an instance of the Game Explorer Interface
-  HRESULT hr = CoCreateInstance( __uuidof(GameExplorer), NULL, CLSCTX_INPROC_SERVER, __uuidof(IGameExplorer), (void**)&pFwGameExplorer);
-  if( FAILED(hr) || pFwGameExplorer == NULL ) {
+    CoInitialize(NULL);
+    // Create an instance of the Game Explorer Interface
+    HRESULT hr = CoCreateInstance( __uuidof(GameExplorer), NULL, CLSCTX_INPROC_SERVER, __uuidof(IGameExplorer), (void**)&pFwGameExplorer);
+    if( FAILED(hr) || pFwGameExplorer == NULL ) {
     // not Vista, do nothing
-  }
-  else {
+    }
+    else {
     char theexename[MAX_PATH] = "e:\\code\\ags\\acwin\\release\\acwin.exe";
     WCHAR wstrBinPath[MAX_PATH] = {0};
     MultiByteToWideChar(CP_ACP, 0, theexename, MAX_PATH, wstrBinPath, MAX_PATH);
@@ -159,363 +159,363 @@ void check_parental_controls() {
     SysFreeString(bstrGDFBinPath);
 
     if( FAILED(hr) || !bHasAccess ) {
-      char buff[300];
-      sprintf(buff, "Parental controls block: %X  b: %d", hr, bHasAccess);
-      quit(buff);
+    char buff[300];
+    sprintf(buff, "Parental controls block: %X  b: %d", hr, bHasAccess);
+    quit(buff);
     }
     else {
-      platform->DisplayAlert("Parental controls: Access granted.");
+    platform->DisplayAlert("Parental controls: Access granted.");
     }
 
-  }
+    }
 
-  if( pFwGameExplorer ) pFwGameExplorer->Release();
-  CoUninitialize();
-  */
+    if( pFwGameExplorer ) pFwGameExplorer->Release();
+    CoUninitialize();
+    */
 }
 
 void AGSWin32::create_shortcut(const char *pathToEXE, const char *workingFolder, const char *arguments, const char *shortcutPath)
 {
-  IShellLink* pShellLink = NULL;
-  HRESULT hr = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (void**)&pShellLink);
+    IShellLink* pShellLink = NULL;
+    HRESULT hr = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (void**)&pShellLink);
 
-  if ((SUCCEEDED(hr)) && (pShellLink != NULL))
-  {
-    IPersistFile *pPersistFile = NULL;
-    if (FAILED(pShellLink->QueryInterface(IID_IPersistFile, (void**)&pPersistFile)))
+    if ((SUCCEEDED(hr)) && (pShellLink != NULL))
     {
-      this->DisplayAlert("Unable to add game tasks: QueryInterface for IPersistFile failed");
-      pShellLink->Release();
-      return;
+        IPersistFile *pPersistFile = NULL;
+        if (FAILED(pShellLink->QueryInterface(IID_IPersistFile, (void**)&pPersistFile)))
+        {
+            this->DisplayAlert("Unable to add game tasks: QueryInterface for IPersistFile failed");
+            pShellLink->Release();
+            return;
+        }
+
+        // Set the path to the shortcut target and add the description
+        if (FAILED(pShellLink->SetPath(pathToEXE)))
+        {
+            this->DisplayAlert("Unable to add game tasks: SetPath failed");
+        }
+        else if (FAILED(pShellLink->SetWorkingDirectory(workingFolder)))
+        {
+            this->DisplayAlert("Unable to add game tasks: SetWorkingDirectory failed");
+        }
+        else if ((arguments != NULL) && (FAILED(pShellLink->SetArguments(arguments))))
+        {
+            this->DisplayAlert("Unable to add game tasks: SetArguments failed");
+        }
+        else
+        {
+            WCHAR wstrTemp[MAX_PATH] = {0};
+            MultiByteToWideChar(CP_ACP, 0, shortcutPath, -1, wstrTemp, MAX_PATH);
+
+            if (FAILED(pPersistFile->Save(wstrTemp, TRUE)))
+            {
+                this->DisplayAlert("Unable to add game tasks: IPersistFile::Save failed");
+            }
+        }
+
+        pPersistFile->Release();
     }
 
-    // Set the path to the shortcut target and add the description
-    if (FAILED(pShellLink->SetPath(pathToEXE)))
-    {
-      this->DisplayAlert("Unable to add game tasks: SetPath failed");
-    }
-    else if (FAILED(pShellLink->SetWorkingDirectory(workingFolder)))
-    {
-      this->DisplayAlert("Unable to add game tasks: SetWorkingDirectory failed");
-    }
-    else if ((arguments != NULL) && (FAILED(pShellLink->SetArguments(arguments))))
-    {
-      this->DisplayAlert("Unable to add game tasks: SetArguments failed");
-    }
-    else
-    {
-      WCHAR wstrTemp[MAX_PATH] = {0};
-      MultiByteToWideChar(CP_ACP, 0, shortcutPath, -1, wstrTemp, MAX_PATH);
-
-      if (FAILED(pPersistFile->Save(wstrTemp, TRUE)))
-      {
-        this->DisplayAlert("Unable to add game tasks: IPersistFile::Save failed");
-      }
-    }
-
-    pPersistFile->Release();
-  }
-
-  if (pShellLink) pShellLink->Release();
+    if (pShellLink) pShellLink->Release();
 }
 
 void CopyStringAndRemoveInvalidFilenameChars(const char *source, char *destinationBuffer)
 {
-  int destIdx = 0;
-  for (int i = 0; i < (int)strlen(source); i++)
-  {
-    if ((source[i] != '/') &&
-        (source[i] != '\\') &&
-        (source[i] != ':') &&
-        (source[i] != '*') &&
-        (source[i] != '?') &&
-        (source[i] != '"') &&
-        (source[i] != '<') &&
-        (source[i] != '>') &&
-        (source[i] != '|') &&
-        (source[i] >= 32))
+    int destIdx = 0;
+    for (int i = 0; i < (int)strlen(source); i++)
     {
-      destinationBuffer[destIdx] = source[i];
-      destIdx++;
+        if ((source[i] != '/') &&
+            (source[i] != '\\') &&
+            (source[i] != ':') &&
+            (source[i] != '*') &&
+            (source[i] != '?') &&
+            (source[i] != '"') &&
+            (source[i] != '<') &&
+            (source[i] != '>') &&
+            (source[i] != '|') &&
+            (source[i] >= 32))
+        {
+            destinationBuffer[destIdx] = source[i];
+            destIdx++;
+        }
     }
-  }
-  destinationBuffer[destIdx] = 0;
+    destinationBuffer[destIdx] = 0;
 }
 
 void AGSWin32::get_tasks_directory(char *pathBuffer, const char *guidAsText, bool allUsers)
 {
-  if (SHGetSpecialFolderPath(NULL, pathBuffer, allUsers ? CSIDL_COMMON_APPDATA : CSIDL_LOCAL_APPDATA, FALSE) == FALSE)
-  {
-    this->DisplayAlert("Unable to register game: SHGetSpecialFolderPath failed");
-    return;
-  }
+    if (SHGetSpecialFolderPath(NULL, pathBuffer, allUsers ? CSIDL_COMMON_APPDATA : CSIDL_LOCAL_APPDATA, FALSE) == FALSE)
+    {
+        this->DisplayAlert("Unable to register game: SHGetSpecialFolderPath failed");
+        return;
+    }
 
-  if (pathBuffer[strlen(pathBuffer) - 1] != '\\')
-  {
+    if (pathBuffer[strlen(pathBuffer) - 1] != '\\')
+    {
+        strcat(pathBuffer, "\\");
+    }
+
+    strcat(pathBuffer, "Microsoft\\Windows\\GameExplorer\\");
+    strcat(pathBuffer, guidAsText);
+    mkdir(pathBuffer);
     strcat(pathBuffer, "\\");
-  }
-
-  strcat(pathBuffer, "Microsoft\\Windows\\GameExplorer\\");
-  strcat(pathBuffer, guidAsText);
-  mkdir(pathBuffer);
-  strcat(pathBuffer, "\\");
-  strcat(pathBuffer, "PlayTasks");
-  mkdir(pathBuffer);
+    strcat(pathBuffer, "PlayTasks");
+    mkdir(pathBuffer);
 }
 
 void AGSWin32::add_tasks_for_game(const char *guidAsText, const char *gameEXE, const char *workingFolder, bool allUsers)
 {
-  char pathBuffer[MAX_PATH];
-  get_tasks_directory(pathBuffer, guidAsText, allUsers);
-  strcat(pathBuffer, "\\");
-  strcat(pathBuffer, "0");
-  mkdir(pathBuffer);
+    char pathBuffer[MAX_PATH];
+    get_tasks_directory(pathBuffer, guidAsText, allUsers);
+    strcat(pathBuffer, "\\");
+    strcat(pathBuffer, "0");
+    mkdir(pathBuffer);
 
-  // Remove any existing "Play.lnk" from a previous version
-  char shortcutLocation[MAX_PATH];
-  sprintf(shortcutLocation, "%s\\Play.lnk", pathBuffer);
-  unlink(shortcutLocation);
+    // Remove any existing "Play.lnk" from a previous version
+    char shortcutLocation[MAX_PATH];
+    sprintf(shortcutLocation, "%s\\Play.lnk", pathBuffer);
+    unlink(shortcutLocation);
 
-  // Generate the shortcut file name (because it can appear on
-  // the start menu's Recent area)
-  char sanitisedGameName[MAX_PATH];
-  CopyStringAndRemoveInvalidFilenameChars(game.gamename, sanitisedGameName);
-  if (sanitisedGameName[0] == 0)
-    strcpy(sanitisedGameName, "Play");
-  sprintf(shortcutLocation, "%s\\%s.lnk", pathBuffer, sanitisedGameName);
+    // Generate the shortcut file name (because it can appear on
+    // the start menu's Recent area)
+    char sanitisedGameName[MAX_PATH];
+    CopyStringAndRemoveInvalidFilenameChars(game.gamename, sanitisedGameName);
+    if (sanitisedGameName[0] == 0)
+        strcpy(sanitisedGameName, "Play");
+    sprintf(shortcutLocation, "%s\\%s.lnk", pathBuffer, sanitisedGameName);
 
-  create_shortcut(gameEXE, workingFolder, NULL, shortcutLocation);
+    create_shortcut(gameEXE, workingFolder, NULL, shortcutLocation);
 
-  pathBuffer[strlen(pathBuffer) - 1] = '1';
-  mkdir(pathBuffer);
+    pathBuffer[strlen(pathBuffer) - 1] = '1';
+    mkdir(pathBuffer);
 
-  sprintf(shortcutLocation, "%s\\Setup game.lnk", pathBuffer);
-  create_shortcut(gameEXE, workingFolder, "--setup", shortcutLocation);
+    sprintf(shortcutLocation, "%s\\Setup game.lnk", pathBuffer);
+    create_shortcut(gameEXE, workingFolder, "--setup", shortcutLocation);
 }
 
 void AGSWin32::add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers)
 {
-  WCHAR wstrTemp[MAX_PATH] = {0};
-  bool hadError = false;
+    WCHAR wstrTemp[MAX_PATH] = {0};
+    bool hadError = false;
 
-  char theexename[MAX_PATH];
-  GetModuleFileName(NULL, theexename, MAX_PATH);
+    char theexename[MAX_PATH];
+    GetModuleFileName(NULL, theexename, MAX_PATH);
 
-  MultiByteToWideChar(CP_ACP, 0, theexename, MAX_PATH, wstrTemp, MAX_PATH);
-  BSTR bstrGDFBinPath = SysAllocString(wstrTemp);
+    MultiByteToWideChar(CP_ACP, 0, theexename, MAX_PATH, wstrTemp, MAX_PATH);
+    BSTR bstrGDFBinPath = SysAllocString(wstrTemp);
 
-  char gameDirectory[MAX_PATH];
-  strcpy(gameDirectory, theexename);
-  strrchr(gameDirectory, '\\')[0] = 0;
+    char gameDirectory[MAX_PATH];
+    strcpy(gameDirectory, theexename);
+    strrchr(gameDirectory, '\\')[0] = 0;
 
-  MultiByteToWideChar(CP_ACP, 0, gameDirectory, MAX_PATH, wstrTemp, MAX_PATH);
-  BSTR bstrGameDirectory = SysAllocString(wstrTemp);
+    MultiByteToWideChar(CP_ACP, 0, gameDirectory, MAX_PATH, wstrTemp, MAX_PATH);
+    BSTR bstrGameDirectory = SysAllocString(wstrTemp);
 
-  HRESULT hr = pFwGameExplorer->AddGame(bstrGDFBinPath, bstrGameDirectory, allUsers ? GIS_ALL_USERS : GIS_CURRENT_USER, guid);
-  if ((FAILED(hr)) || (hr == S_FALSE))
-  {
-		if (hr == 0x80070715)
-		{
-      // No GDF XML -- do nothing. This means the game was compiled
-      // without Game Explorer support.
-			hadError = true;
-		}
-		else
-		{
-			// Game already exists or error
-			HRESULT updateHr = pFwGameExplorer->UpdateGame(*guid);
-			if (FAILED(updateHr))
-			{
-			  this->DisplayAlert("Failed to add the game to the game explorer: %08X, %08X", hr, updateHr);
-        hadError = true;
-			}
-		}
-  }
-  else
-  {
-    add_tasks_for_game(guidAsText, theexename, gameDirectory, allUsers);
-  }
+    HRESULT hr = pFwGameExplorer->AddGame(bstrGDFBinPath, bstrGameDirectory, allUsers ? GIS_ALL_USERS : GIS_CURRENT_USER, guid);
+    if ((FAILED(hr)) || (hr == S_FALSE))
+    {
+        if (hr == 0x80070715)
+        {
+            // No GDF XML -- do nothing. This means the game was compiled
+            // without Game Explorer support.
+            hadError = true;
+        }
+        else
+        {
+            // Game already exists or error
+            HRESULT updateHr = pFwGameExplorer->UpdateGame(*guid);
+            if (FAILED(updateHr))
+            {
+                this->DisplayAlert("Failed to add the game to the game explorer: %08X, %08X", hr, updateHr);
+                hadError = true;
+            }
+        }
+    }
+    else
+    {
+        add_tasks_for_game(guidAsText, theexename, gameDirectory, allUsers);
+    }
 
-  BOOL bHasAccess = FALSE;
-  hr = pFwGameExplorer->VerifyAccess( bstrGDFBinPath, &bHasAccess );
+    BOOL bHasAccess = FALSE;
+    hr = pFwGameExplorer->VerifyAccess( bstrGDFBinPath, &bHasAccess );
 
-  if (( FAILED(hr) || !bHasAccess ) && (!hadError))
-  {
-    this->DisplayAlert("Windows Parental Controls will not allow you to run this game.");
-  }
+    if (( FAILED(hr) || !bHasAccess ) && (!hadError))
+    {
+        this->DisplayAlert("Windows Parental Controls will not allow you to run this game.");
+    }
 
-  SysFreeString(bstrGDFBinPath);
-  SysFreeString(bstrGameDirectory);
+    SysFreeString(bstrGDFBinPath);
+    SysFreeString(bstrGameDirectory);
 }
 
 #define FA_SEARCH -1
 void delete_files_in_directory(const char *directoryName, const char *fileMask)
 {
-  char srchBuffer[MAX_PATH];
-  sprintf(srchBuffer, "%s\\%s", directoryName, fileMask);
-  al_ffblk dfb;
-  int	dun = al_findfirst(srchBuffer, &dfb, FA_SEARCH);
-  while (!dun) {
-    unlink(dfb.name);
-    dun = al_findnext(&dfb);
-  }
-  al_findclose(&dfb);
+    char srchBuffer[MAX_PATH];
+    sprintf(srchBuffer, "%s\\%s", directoryName, fileMask);
+    al_ffblk dfb;
+    int	dun = al_findfirst(srchBuffer, &dfb, FA_SEARCH);
+    while (!dun) {
+        unlink(dfb.name);
+        dun = al_findnext(&dfb);
+    }
+    al_findclose(&dfb);
 }
 
 void AGSWin32::remove_game_from_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers)
 {
-  HRESULT hr = pFwGameExplorer->RemoveGame(*guid);
-  if (FAILED(hr))
-  {
-    this->DisplayAlert("Failed to un-register game: 0x%08X", hr);
-  }
+    HRESULT hr = pFwGameExplorer->RemoveGame(*guid);
+    if (FAILED(hr))
+    {
+        this->DisplayAlert("Failed to un-register game: 0x%08X", hr);
+    }
 }
 
 void AGSWin32::update_game_explorer(bool add)
 {
-  IGameExplorer* pFwGameExplorer = NULL;
+    IGameExplorer* pFwGameExplorer = NULL;
 
-  CoInitialize(NULL);
-  // Create an instance of the Game Explorer Interface
-  HRESULT hr = CoCreateInstance( __uuidof(GameExplorer), NULL, CLSCTX_INPROC_SERVER, __uuidof(IGameExplorer), (void**)&pFwGameExplorer);
-  if( FAILED(hr) || pFwGameExplorer == NULL ) 
-  {
-    OutputDebugString("AGS: Game Explorer not found to register game, Windows Vista required");
-  }
-  else 
-  {
-    strupr(game.guid);
-    WCHAR wstrTemp[MAX_PATH] = {0};
-    GUID guid = GUID_NULL;
-    MultiByteToWideChar(CP_ACP, 0, game.guid, MAX_GUID_LENGTH, wstrTemp, MAX_GUID_LENGTH);
-    if (IIDFromString(wstrTemp, &guid) != S_OK)
+    CoInitialize(NULL);
+    // Create an instance of the Game Explorer Interface
+    HRESULT hr = CoCreateInstance( __uuidof(GameExplorer), NULL, CLSCTX_INPROC_SERVER, __uuidof(IGameExplorer), (void**)&pFwGameExplorer);
+    if( FAILED(hr) || pFwGameExplorer == NULL ) 
     {
-      this->DisplayAlert("Failed to register game: IIDFromString failed");
+        OutputDebugString("AGS: Game Explorer not found to register game, Windows Vista required");
     }
-    else if (add)
+    else 
     {
-      add_game_to_game_explorer(pFwGameExplorer, &guid, game.guid, true);
+        strupr(game.guid);
+        WCHAR wstrTemp[MAX_PATH] = {0};
+        GUID guid = GUID_NULL;
+        MultiByteToWideChar(CP_ACP, 0, game.guid, MAX_GUID_LENGTH, wstrTemp, MAX_GUID_LENGTH);
+        if (IIDFromString(wstrTemp, &guid) != S_OK)
+        {
+            this->DisplayAlert("Failed to register game: IIDFromString failed");
+        }
+        else if (add)
+        {
+            add_game_to_game_explorer(pFwGameExplorer, &guid, game.guid, true);
+        }
+        else
+        {
+            remove_game_from_game_explorer(pFwGameExplorer, &guid, game.guid, true);
+        }
     }
-    else
-    {
-      remove_game_from_game_explorer(pFwGameExplorer, &guid, game.guid, true);
-    }
-  }
 
-  if( pFwGameExplorer ) pFwGameExplorer->Release();
-  CoUninitialize();
+    if( pFwGameExplorer ) pFwGameExplorer->Release();
+    CoUninitialize();
 }
 
 void AGSWin32::unregister_file_extension()
 {
-  char keyname[MAX_PATH];
-  sprintf(keyname, ".%s", game.saveGameFileExtension);
-  if (SHDeleteKey(HKEY_CLASSES_ROOT, keyname) != ERROR_SUCCESS)
-  {
-    this->DisplayAlert("Unable to un-register the file extension. Make sure you are running this with admin rights.");
-    return;
-  }
+    char keyname[MAX_PATH];
+    sprintf(keyname, ".%s", game.saveGameFileExtension);
+    if (SHDeleteKey(HKEY_CLASSES_ROOT, keyname) != ERROR_SUCCESS)
+    {
+        this->DisplayAlert("Unable to un-register the file extension. Make sure you are running this with admin rights.");
+        return;
+    }
 
-  sprintf(keyname, "AGS.SaveGames.%s", game.saveGameFileExtension);
-  SHDeleteKey(HKEY_CLASSES_ROOT, keyname);
+    sprintf(keyname, "AGS.SaveGames.%s", game.saveGameFileExtension);
+    SHDeleteKey(HKEY_CLASSES_ROOT, keyname);
 
-  sprintf(keyname, "Software\\Microsoft\\Windows\\CurrentVersion\\PropertySystem\\PropertyHandlers\\.%s", game.saveGameFileExtension);
-  SHDeleteKey(HKEY_LOCAL_MACHINE, keyname);
+    sprintf(keyname, "Software\\Microsoft\\Windows\\CurrentVersion\\PropertySystem\\PropertyHandlers\\.%s", game.saveGameFileExtension);
+    SHDeleteKey(HKEY_LOCAL_MACHINE, keyname);
 
-  // Tell Explorer to refresh its file association data
-  SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
+    // Tell Explorer to refresh its file association data
+    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
 }
 
 void AGSWin32::register_file_extension(const char *exePath)
 {
-  DWORD valType, valBufLen = MAX_PATH;
-  valType = REG_SZ;
-  char valBuf[MAX_PATH], keyname[MAX_PATH];
-  char saveGameRegistryType[MAX_PATH];
-  sprintf(saveGameRegistryType, "AGS.SaveGames.%s", game.saveGameFileExtension);
+    DWORD valType, valBufLen = MAX_PATH;
+    valType = REG_SZ;
+    char valBuf[MAX_PATH], keyname[MAX_PATH];
+    char saveGameRegistryType[MAX_PATH];
+    sprintf(saveGameRegistryType, "AGS.SaveGames.%s", game.saveGameFileExtension);
 
-  // write HKEY_CLASSES_ROOT\.Extension = AGS.SaveGames.Extension
-  strcpy(valBuf, saveGameRegistryType);
-  sprintf(keyname, ".%s", game.saveGameFileExtension);
-  if (RegSetValue(HKEY_CLASSES_ROOT, keyname, valType, valBuf, valBufLen))
-  {
-    this->DisplayAlert("Unable to register file type. Make sure you are running this with Administrator rights.");
-    return;
-  }
+    // write HKEY_CLASSES_ROOT\.Extension = AGS.SaveGames.Extension
+    strcpy(valBuf, saveGameRegistryType);
+    sprintf(keyname, ".%s", game.saveGameFileExtension);
+    if (RegSetValue(HKEY_CLASSES_ROOT, keyname, valType, valBuf, valBufLen))
+    {
+        this->DisplayAlert("Unable to register file type. Make sure you are running this with Administrator rights.");
+        return;
+    }
 
-  // create HKEY_CLASSES_ROOT\AGS.SaveGames.Extension
-  strcpy(keyname, saveGameRegistryType);
-  sprintf(valBuf, "%s Saved Game", game.gamename);
-  RegSetValue (HKEY_CLASSES_ROOT, keyname, REG_SZ, valBuf, strlen(valBuf));
+    // create HKEY_CLASSES_ROOT\AGS.SaveGames.Extension
+    strcpy(keyname, saveGameRegistryType);
+    sprintf(valBuf, "%s Saved Game", game.gamename);
+    RegSetValue (HKEY_CLASSES_ROOT, keyname, REG_SZ, valBuf, strlen(valBuf));
 
-  // write HKEY_CLASSES_ROOT\AGS.SaveGames.Extension\DefaultIcon
-  sprintf(keyname, "%s\\DefaultIcon", saveGameRegistryType);
-  sprintf(valBuf, "\"%s\", 0", exePath);
-  RegSetValue (HKEY_CLASSES_ROOT, keyname, REG_SZ, valBuf, strlen(valBuf));
+    // write HKEY_CLASSES_ROOT\AGS.SaveGames.Extension\DefaultIcon
+    sprintf(keyname, "%s\\DefaultIcon", saveGameRegistryType);
+    sprintf(valBuf, "\"%s\", 0", exePath);
+    RegSetValue (HKEY_CLASSES_ROOT, keyname, REG_SZ, valBuf, strlen(valBuf));
 
-  // write HKEY_CLASSES_ROOT\AGS.SaveGames.Extension\Shell\Open\Command
-  sprintf(keyname, "%s\\Shell\\Open\\Command", saveGameRegistryType);
-  sprintf(valBuf, "\"%s\" -loadSavedGame \"%%1\"", exePath);
-  RegSetValue (HKEY_CLASSES_ROOT, keyname, REG_SZ, valBuf, strlen(valBuf));
+    // write HKEY_CLASSES_ROOT\AGS.SaveGames.Extension\Shell\Open\Command
+    sprintf(keyname, "%s\\Shell\\Open\\Command", saveGameRegistryType);
+    sprintf(valBuf, "\"%s\" -loadSavedGame \"%%1\"", exePath);
+    RegSetValue (HKEY_CLASSES_ROOT, keyname, REG_SZ, valBuf, strlen(valBuf));
 
-  // ** BELOW IS VISTA-ONLY
+    // ** BELOW IS VISTA-ONLY
 
-  // write HKEY_CLASSES_ROOT\AGS.SaveGames.Extension, PreviewTitle
-  strcpy(keyname, saveGameRegistryType);
-  strcpy(valBuf, "prop:System.Game.RichSaveName;System.Game.RichApplicationName");
-  SHSetValue(HKEY_CLASSES_ROOT, keyname, "PreviewTitle", REG_SZ, valBuf, strlen(valBuf));
+    // write HKEY_CLASSES_ROOT\AGS.SaveGames.Extension, PreviewTitle
+    strcpy(keyname, saveGameRegistryType);
+    strcpy(valBuf, "prop:System.Game.RichSaveName;System.Game.RichApplicationName");
+    SHSetValue(HKEY_CLASSES_ROOT, keyname, "PreviewTitle", REG_SZ, valBuf, strlen(valBuf));
 
-  // write HKEY_CLASSES_ROOT\AGS.SaveGames.Extension, PreviewDetails
-  strcpy(keyname, saveGameRegistryType);
-  strcpy(valBuf, "prop:System.Game.RichLevel;System.DateChanged;System.Game.RichComment;System.DisplayName;System.DisplayType");
-  SHSetValue(HKEY_CLASSES_ROOT, keyname, "PreviewDetails", REG_SZ, valBuf, strlen(valBuf));
+    // write HKEY_CLASSES_ROOT\AGS.SaveGames.Extension, PreviewDetails
+    strcpy(keyname, saveGameRegistryType);
+    strcpy(valBuf, "prop:System.Game.RichLevel;System.DateChanged;System.Game.RichComment;System.DisplayName;System.DisplayType");
+    SHSetValue(HKEY_CLASSES_ROOT, keyname, "PreviewDetails", REG_SZ, valBuf, strlen(valBuf));
 
-  // write HKEY_CLASSES_ROOT\.Extension\ShellEx\{BB2E617C-0920-11D1-9A0B-00C04FC2D6C1}
-  sprintf(keyname, ".%s\\ShellEx\\{BB2E617C-0920-11D1-9A0B-00C04FC2D6C1}", game.saveGameFileExtension);
-  strcpy(valBuf, "{4E5BFBF8-F59A-4E87-9805-1F9B42CC254A}");
-  RegSetValue (HKEY_CLASSES_ROOT, keyname, REG_SZ, valBuf, strlen(valBuf));
+    // write HKEY_CLASSES_ROOT\.Extension\ShellEx\{BB2E617C-0920-11D1-9A0B-00C04FC2D6C1}
+    sprintf(keyname, ".%s\\ShellEx\\{BB2E617C-0920-11D1-9A0B-00C04FC2D6C1}", game.saveGameFileExtension);
+    strcpy(valBuf, "{4E5BFBF8-F59A-4E87-9805-1F9B42CC254A}");
+    RegSetValue (HKEY_CLASSES_ROOT, keyname, REG_SZ, valBuf, strlen(valBuf));
 
-  // write HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\PropertySystem\PropertyHandlers\.Extension
-  sprintf(keyname, "Software\\Microsoft\\Windows\\CurrentVersion\\PropertySystem\\PropertyHandlers\\.%s", game.saveGameFileExtension);
-  strcpy(valBuf, "{ECDD6472-2B9B-4B4B-AE36-F316DF3C8D60}");
-  RegSetValue (HKEY_LOCAL_MACHINE, keyname, REG_SZ, valBuf, strlen(valBuf));
+    // write HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\PropertySystem\PropertyHandlers\.Extension
+    sprintf(keyname, "Software\\Microsoft\\Windows\\CurrentVersion\\PropertySystem\\PropertyHandlers\\.%s", game.saveGameFileExtension);
+    strcpy(valBuf, "{ECDD6472-2B9B-4B4B-AE36-F316DF3C8D60}");
+    RegSetValue (HKEY_LOCAL_MACHINE, keyname, REG_SZ, valBuf, strlen(valBuf));
 
-  // Tell Explorer to refresh its file association data
-  SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
+    // Tell Explorer to refresh its file association data
+    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
 }
 
 void AGSWin32::RegisterGameWithGameExplorer() 
 {
-  update_game_explorer(true);
+    update_game_explorer(true);
 
-  if (game.saveGameFileExtension[0] != 0)
-  {
-    char theexename[MAX_PATH];
-    GetModuleFileName(NULL, theexename, MAX_PATH);
+    if (game.saveGameFileExtension[0] != 0)
+    {
+        char theexename[MAX_PATH];
+        GetModuleFileName(NULL, theexename, MAX_PATH);
 
-    register_file_extension(theexename);
-  }
+        register_file_extension(theexename);
+    }
 }
 
 void AGSWin32::UnRegisterGameWithGameExplorer() 
 {
-  update_game_explorer(false);
+    update_game_explorer(false);
 
-  if (game.saveGameFileExtension[0] != 0)
-  {
-    unregister_file_extension();
-  }
+    if (game.saveGameFileExtension[0] != 0)
+    {
+        unregister_file_extension();
+    }
 }
 
 void AGSWin32::PostAllegroInit(bool windowed) 
 {
-  check_parental_controls();
+    check_parental_controls();
 
-  // Set the Windows timer resolution to 1 ms so that calls to
-  // Sleep() don't take more time than specified
-  MMRESULT result = timeBeginPeriod(win32TimerPeriod);
-  if (result != TIMERR_NOERROR)
-    platform->WriteDebugString("Failed to set the timer resolution to %d ms", win32TimerPeriod);
+    // Set the Windows timer resolution to 1 ms so that calls to
+    // Sleep() don't take more time than specified
+    MMRESULT result = timeBeginPeriod(win32TimerPeriod);
+    if (result != TIMERR_NOERROR)
+        platform->WriteDebugString("Failed to set the timer resolution to %d ms", win32TimerPeriod);
 }
 
 typedef UINT (CALLBACK* Dynamic_SHGetKnownFolderPathType) (GUID& rfid, DWORD dwFlags, HANDLE hToken, PWSTR *ppszPath); 
@@ -523,311 +523,311 @@ GUID FOLDERID_SAVEDGAMES = {0x4C5C32FF, 0xBB9D, 0x43b0, {0xB5, 0xB4, 0x2D, 0x72,
 
 void determine_app_data_folder()
 {
-  if (win32AppDataDirectory[0] != 0) 
-  {
-    //already worked it out
-    return;
-  }
+    if (win32AppDataDirectory[0] != 0) 
+    {
+        //already worked it out
+        return;
+    }
 
-  WCHAR unicodePath[MAX_PATH];
-  WCHAR unicodeShortPath[MAX_PATH];
-  SHGetSpecialFolderPathW(NULL, unicodePath, CSIDL_COMMON_APPDATA, FALSE);
-  if (GetShortPathNameW(unicodePath, unicodeShortPath, MAX_PATH) == 0)
-  {
-    platform->DisplayAlert("Unable to get App Data dir: GetShortPathNameW failed");
-    return;
-  }
-  WideCharToMultiByte(CP_ACP, 0, unicodeShortPath, -1, win32AppDataDirectory, MAX_PATH, NULL, NULL);
+    WCHAR unicodePath[MAX_PATH];
+    WCHAR unicodeShortPath[MAX_PATH];
+    SHGetSpecialFolderPathW(NULL, unicodePath, CSIDL_COMMON_APPDATA, FALSE);
+    if (GetShortPathNameW(unicodePath, unicodeShortPath, MAX_PATH) == 0)
+    {
+        platform->DisplayAlert("Unable to get App Data dir: GetShortPathNameW failed");
+        return;
+    }
+    WideCharToMultiByte(CP_ACP, 0, unicodeShortPath, -1, win32AppDataDirectory, MAX_PATH, NULL, NULL);
 
-  strcat(win32AppDataDirectory, "\\Adventure Game Studio");
-  mkdir(win32AppDataDirectory);
+    strcat(win32AppDataDirectory, "\\Adventure Game Studio");
+    mkdir(win32AppDataDirectory);
 }
 
 void determine_saved_games_folder()
 {
-  if (win32SavedGamesDirectory[0] != 0)
-  {
-    // already loaded
-    return;
-  }
-
-  // Default to My Documents in case it's not Vista
-  WCHAR unicodeSaveGameDir[MAX_PATH];
-  WCHAR unicodeShortSaveGameDir[MAX_PATH];
-  // workaround for case where My Documents path has unicode chars (eg.
-  // with Russian Windows) -- so use Short File Name instead
-  SHGetSpecialFolderPathW(NULL, unicodeSaveGameDir, CSIDL_PERSONAL, FALSE);
-  if (GetShortPathNameW(unicodeSaveGameDir, unicodeShortSaveGameDir, MAX_PATH) == 0)
-  {
-    platform->DisplayAlert("Unable to get My Documents dir: GetShortPathNameW failed");
-    return;
-  }
-  WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, win32SavedGamesDirectory, MAX_PATH, NULL, NULL);
-  strcat(win32SavedGamesDirectory, "\\My Saved Games");
-
-  // Now see if we have a Vista "My Saved Games" folder
-  HINSTANCE hShellDLL = NULL;
-  Dynamic_SHGetKnownFolderPathType Dynamic_SHGetKnownFolderPath = NULL;
-
-  hShellDLL = LoadLibrary("shell32.dll"); 
-
-  Dynamic_SHGetKnownFolderPath = (Dynamic_SHGetKnownFolderPathType)GetProcAddress(hShellDLL, "SHGetKnownFolderPath");
-
-  if (Dynamic_SHGetKnownFolderPath != NULL) 
-  { 
-    PWSTR path = NULL; 
-
-    if (SUCCEEDED(Dynamic_SHGetKnownFolderPath(FOLDERID_SAVEDGAMES, 0, NULL, &path))) 
-    { 
-      GetShortPathNameW(path, unicodeShortSaveGameDir, MAX_PATH);
-      WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, win32SavedGamesDirectory, MAX_PATH, NULL, NULL ); 
-
-      CoTaskMemFree(path);
+    if (win32SavedGamesDirectory[0] != 0)
+    {
+        // already loaded
+        return;
     }
-  }
 
-  FreeLibrary(hShellDLL);
-  // in case it's on XP My Documents\My Saved Games, create this part of the path
-  mkdir(win32SavedGamesDirectory);
+    // Default to My Documents in case it's not Vista
+    WCHAR unicodeSaveGameDir[MAX_PATH];
+    WCHAR unicodeShortSaveGameDir[MAX_PATH];
+    // workaround for case where My Documents path has unicode chars (eg.
+    // with Russian Windows) -- so use Short File Name instead
+    SHGetSpecialFolderPathW(NULL, unicodeSaveGameDir, CSIDL_PERSONAL, FALSE);
+    if (GetShortPathNameW(unicodeSaveGameDir, unicodeShortSaveGameDir, MAX_PATH) == 0)
+    {
+        platform->DisplayAlert("Unable to get My Documents dir: GetShortPathNameW failed");
+        return;
+    }
+    WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, win32SavedGamesDirectory, MAX_PATH, NULL, NULL);
+    strcat(win32SavedGamesDirectory, "\\My Saved Games");
+
+    // Now see if we have a Vista "My Saved Games" folder
+    HINSTANCE hShellDLL = NULL;
+    Dynamic_SHGetKnownFolderPathType Dynamic_SHGetKnownFolderPath = NULL;
+
+    hShellDLL = LoadLibrary("shell32.dll"); 
+
+    Dynamic_SHGetKnownFolderPath = (Dynamic_SHGetKnownFolderPathType)GetProcAddress(hShellDLL, "SHGetKnownFolderPath");
+
+    if (Dynamic_SHGetKnownFolderPath != NULL) 
+    { 
+        PWSTR path = NULL; 
+
+        if (SUCCEEDED(Dynamic_SHGetKnownFolderPath(FOLDERID_SAVEDGAMES, 0, NULL, &path))) 
+        { 
+            GetShortPathNameW(path, unicodeShortSaveGameDir, MAX_PATH);
+            WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, win32SavedGamesDirectory, MAX_PATH, NULL, NULL ); 
+
+            CoTaskMemFree(path);
+        }
+    }
+
+    FreeLibrary(hShellDLL);
+    // in case it's on XP My Documents\My Saved Games, create this part of the path
+    mkdir(win32SavedGamesDirectory);
 }
 
 void DetermineAppOutputDirectory()
 {
-  if (!win32OutputDirectory.IsEmpty())
-  {
-    return;
-  }
+    if (!win32OutputDirectory.IsEmpty())
+    {
+        return;
+    }
 
-  determine_saved_games_folder();
-  bool log_to_saves_dir = false;
-  if (win32SavedGamesDirectory[0])
-  {
-    win32OutputDirectory = win32SavedGamesDirectory;
-    win32OutputDirectory.Append("\\.ags");
-    log_to_saves_dir = mkdir(win32OutputDirectory) == 0 || errno == EEXIST;
-  }
+    determine_saved_games_folder();
+    bool log_to_saves_dir = false;
+    if (win32SavedGamesDirectory[0])
+    {
+        win32OutputDirectory = win32SavedGamesDirectory;
+        win32OutputDirectory.Append("\\.ags");
+        log_to_saves_dir = mkdir(win32OutputDirectory) == 0 || errno == EEXIST;
+    }
 
-  if (!log_to_saves_dir)
-  {
-    char theexename[MAX_PATH + 1] = {0};
-    GetModuleFileName(NULL, theexename, MAX_PATH);
-    PathRemoveFileSpec(theexename);
-    win32OutputDirectory = theexename;
-  }
+    if (!log_to_saves_dir)
+    {
+        char theexename[MAX_PATH + 1] = {0};
+        GetModuleFileName(NULL, theexename, MAX_PATH);
+        PathRemoveFileSpec(theexename);
+        win32OutputDirectory = theexename;
+    }
 }
 
 void AGSWin32::ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize) {
 
-  if (strnicmp(sourcePath, "$MYDOCS$", 8) == 0) 
-  {
-    determine_saved_games_folder();
-    snprintf(destPath, destSize, "%s%s", win32SavedGamesDirectory, sourcePath + 8);
-  }
-  else if (strnicmp(sourcePath, "$APPDATADIR$", 12) == 0) 
-  {
-    determine_app_data_folder();
-    snprintf(destPath, destSize, "%s%s", win32AppDataDirectory, sourcePath + 12);
-  }
-  else
-  {
-    snprintf(destPath, destSize, "%s", sourcePath);
-  }
+    if (strnicmp(sourcePath, "$MYDOCS$", 8) == 0) 
+    {
+        determine_saved_games_folder();
+        snprintf(destPath, destSize, "%s%s", win32SavedGamesDirectory, sourcePath + 8);
+    }
+    else if (strnicmp(sourcePath, "$APPDATADIR$", 12) == 0) 
+    {
+        determine_app_data_folder();
+        snprintf(destPath, destSize, "%s%s", win32AppDataDirectory, sourcePath + 12);
+    }
+    else
+    {
+        snprintf(destPath, destSize, "%s", sourcePath);
+    }
 }
 
 const char* AGSWin32::GetAllUsersDataDirectory() 
 {
-  determine_app_data_folder();
-  return &win32AppDataDirectory[0];
+    determine_app_data_folder();
+    return &win32AppDataDirectory[0];
 }
 
 const char *AGSWin32::GetAppOutputDirectory()
 {
-  DetermineAppOutputDirectory();
-  return win32OutputDirectory;
+    DetermineAppOutputDirectory();
+    return win32OutputDirectory;
 }
 
 const char *AGSWin32::GetGraphicsTroubleshootingText()
 {
-  return "\n\nPossible causes:\n"
-    "* your graphics card drivers do not support this resolution. "
-    "Run the game setup program and try another resolution.\n"
-    "* the graphics driver you have selected does not work. Try switching between Direct3D and DirectDraw.\n"
-    "* the graphics filter you have selected does not work. Try another filter.\n"
-    "* your graphics card drivers are out of date. "
-    "Try downloading updated graphics card drivers from your manufacturer's website.\n"
-    "* there is a problem with your graphics card driver configuration. "
-    "Run DXDiag using the Run command (Start->Run, type \"dxdiag.exe\") and correct any problems reported there.";
+    return "\n\nPossible causes:\n"
+        "* your graphics card drivers do not support this resolution. "
+        "Run the game setup program and try another resolution.\n"
+        "* the graphics driver you have selected does not work. Try switching between Direct3D and DirectDraw.\n"
+        "* the graphics filter you have selected does not work. Try another filter.\n"
+        "* your graphics card drivers are out of date. "
+        "Try downloading updated graphics card drivers from your manufacturer's website.\n"
+        "* there is a problem with your graphics card driver configuration. "
+        "Run DXDiag using the Run command (Start->Run, type \"dxdiag.exe\") and correct any problems reported there.";
 }
 
 void AGSWin32::DisplaySwitchOut() {
-  dxmedia_pause_video();
+    dxmedia_pause_video();
 }
 
 void AGSWin32::DisplaySwitchIn() {
-  dxmedia_resume_video();
+    dxmedia_resume_video();
 }
 
 int AGSWin32::CDPlayerCommand(int cmdd, int datt) {
 #if defined (AGS_HAS_CD_AUDIO)
-  return cd_player_control(cmdd, datt);
+    return cd_player_control(cmdd, datt);
 #else
-  return -1;
+    return -1;
 #endif
 }
 
 void AGSWin32::DisplayAlert(const char *text, ...) {
-  char displbuf[2500];
-  va_list ap;
-  va_start(ap, text);
-  vsprintf(displbuf, text, ap);
-  va_end(ap);
-  MessageBox(allegro_wnd, displbuf, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);
+    char displbuf[2500];
+    va_list ap;
+    va_start(ap, text);
+    vsprintf(displbuf, text, ap);
+    va_end(ap);
+    MessageBox(allegro_wnd, displbuf, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);
 }
 
 void AGSWin32::Delay(int millis) 
 {
-  while (millis >= 5)
-  {
-    Sleep(5);
-    millis -= 5;
-    // don't allow it to check for debug messages, since this Delay()
-    // call might be from within a debugger polling loop
-    update_polled_mp3();
-  }
+    while (millis >= 5)
+    {
+        Sleep(5);
+        millis -= 5;
+        // don't allow it to check for debug messages, since this Delay()
+        // call might be from within a debugger polling loop
+        update_polled_mp3();
+    }
 
-  if (millis > 0)
-    Sleep(millis);
+    if (millis > 0)
+        Sleep(millis);
 }
 
 unsigned long AGSWin32::GetDiskFreeSpaceMB() {
-  DWORD returnMb = 0;
-  BOOL fResult;
-  our_eip = -1891;
+    DWORD returnMb = 0;
+    BOOL fResult;
+    our_eip = -1891;
 
-  // On Win9x, the last 3 params cannot be null, so need to supply values for all
-  __int64 i64FreeBytesToCaller, i64Unused1, i64Unused2;
+    // On Win9x, the last 3 params cannot be null, so need to supply values for all
+    __int64 i64FreeBytesToCaller, i64Unused1, i64Unused2;
 
-  // Win95 OSR2 or higher - use GetDiskFreeSpaceEx, since the
-  // normal GetDiskFreeSpace returns erroneous values if the
-  // free space is > 2 GB
-  fResult = GetDiskFreeSpaceEx(NULL,
-             (PULARGE_INTEGER)&i64FreeBytesToCaller,
-             (PULARGE_INTEGER)&i64Unused1,
-             (PULARGE_INTEGER)&i64Unused2);
+    // Win95 OSR2 or higher - use GetDiskFreeSpaceEx, since the
+    // normal GetDiskFreeSpace returns erroneous values if the
+    // free space is > 2 GB
+    fResult = GetDiskFreeSpaceEx(NULL,
+        (PULARGE_INTEGER)&i64FreeBytesToCaller,
+        (PULARGE_INTEGER)&i64Unused1,
+        (PULARGE_INTEGER)&i64Unused2);
 
-  our_eip = -1893;
+    our_eip = -1893;
 
-  // convert down to MB so we can fit it in a 32-bit long
-  i64FreeBytesToCaller /= 1000000;
-  returnMb = i64FreeBytesToCaller;
+    // convert down to MB so we can fit it in a 32-bit long
+    i64FreeBytesToCaller /= 1000000;
+    returnMb = i64FreeBytesToCaller;
 
-  return returnMb;
+    return returnMb;
 }
 
 const char* AGSWin32::GetNoMouseErrorString() {
-  return "No mouse was detected on your system, or your mouse is not configured to work with DirectInput. You must have a mouse to play this game.";
+    return "No mouse was detected on your system, or your mouse is not configured to work with DirectInput. You must have a mouse to play this game.";
 }
 
 eScriptSystemOSID AGSWin32::GetSystemOSID() {
-  return eOS_Win;
+    return eOS_Win;
 }
 
 int AGSWin32::InitializeCDPlayer() {
 #if defined (AGS_HAS_CD_AUDIO)
-  return cd_player_init();
+    return cd_player_init();
 #else
-  return -1;
+    return -1;
 #endif
 }
 
 void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
 
-  char useloc[250];
-  sprintf(useloc,"%s\\%s",usetup.data_files_dir.GetCStr(), name);
+    char useloc[250];
+    sprintf(useloc,"%s\\%s",usetup.data_files_dir.GetCStr(), name);
 
-  bool useSound = true;
-  if (flags >= 10) {
-    flags -= 10;
-    useSound = false;
-  }
-  else {
-    // for some reason DirectSound can't be shared, so uninstall
-    // allegro sound before playing the video
-    shutdown_sound();
-  }
+    bool useSound = true;
+    if (flags >= 10) {
+        flags -= 10;
+        useSound = false;
+    }
+    else {
+        // for some reason DirectSound can't be shared, so uninstall
+        // allegro sound before playing the video
+        shutdown_sound();
+    }
 
-  bool isError = false;
-  if (Common::File::TestReadFile(useloc))
-  {
-    isError = (gfxDriver->PlayVideo(useloc, useSound, (VideoSkipType)skip, (flags > 0)) == 0);
-  }
-  else
-  {
-    isError = true;
-    sprintf(lastError, "File not found: %s", useloc);
-  }
-  
-  if (isError) {
-    // turn "Always display as speech" off, to make sure error
-    // gets displayed correctly
-    int oldalways = game.options[OPT_ALWAYSSPCH];
-    game.options[OPT_ALWAYSSPCH] = 0;
-    Display("Video playing error: %s", lastError);
-    game.options[OPT_ALWAYSSPCH] = oldalways;
-  }
+    bool isError = false;
+    if (Common::File::TestReadFile(useloc))
+    {
+        isError = (gfxDriver->PlayVideo(useloc, useSound, (VideoSkipType)skip, (flags > 0)) == 0);
+    }
+    else
+    {
+        isError = true;
+        sprintf(lastError, "File not found: %s", useloc);
+    }
 
-  if (useSound)
-  {
-    if (opts.mod_player)
-      reserve_voices(NUM_DIGI_VOICES, -1);
-    install_sound(usetup.digicard,usetup.midicard,NULL);
-    if (opts.mod_player)
-      init_mod_player(NUM_MOD_DIGI_VOICES);
-  }
+    if (isError) {
+        // turn "Always display as speech" off, to make sure error
+        // gets displayed correctly
+        int oldalways = game.options[OPT_ALWAYSSPCH];
+        game.options[OPT_ALWAYSSPCH] = 0;
+        Display("Video playing error: %s", lastError);
+        game.options[OPT_ALWAYSSPCH] = oldalways;
+    }
 
-  set_palette_range(palette, 0, 255, 0);
+    if (useSound)
+    {
+        if (opts.mod_player)
+            reserve_voices(NUM_DIGI_VOICES, -1);
+        install_sound(usetup.digicard,usetup.midicard,NULL);
+        if (opts.mod_player)
+            init_mod_player(NUM_MOD_DIGI_VOICES);
+    }
+
+    set_palette_range(palette, 0, 255, 0);
 }
 
 void AGSWin32::AboutToQuitGame() 
 {
-  dxmedia_abort_video();
+    dxmedia_abort_video();
 }
 
 void AGSWin32::PostAllegroExit() {
-  allegro_wnd = NULL;
+    allegro_wnd = NULL;
 
-  // Release the timer setting
-  timeEndPeriod(win32TimerPeriod);
+    // Release the timer setting
+    timeEndPeriod(win32TimerPeriod);
 }
 
 int AGSWin32::RunSetup() {
-  const char *engineVersion = get_engine_version();
-  char titleBuffer[200];
-  sprintf(titleBuffer, "Adventure Game Studio v%s setup", engineVersion);
-  return acwsetup(titleBuffer, engineVersion);
+    const char *engineVersion = get_engine_version();
+    char titleBuffer[200];
+    sprintf(titleBuffer, "Adventure Game Studio v%s setup", engineVersion);
+    return acwsetup(titleBuffer, engineVersion);
 }
 
 void AGSWin32::SetGameWindowIcon() {
-  set_icon();
+    set_icon();
 }
 
 void AGSWin32::WriteConsole(const char *text, ...) {
-  // Do nothing (Windows GUI app)
+    // Do nothing (Windows GUI app)
 }
 
 void AGSWin32::WriteDebugString(const char* texx, ...) {
-  char displbuf[STD_BUFFER_SIZE] = "AGS: ";
-  va_list ap;
-  va_start(ap,texx);
-  vsprintf(&displbuf[5],texx,ap);
-  va_end(ap);
-  strcat(displbuf, "\n");
+    char displbuf[STD_BUFFER_SIZE] = "AGS: ";
+    va_list ap;
+    va_start(ap,texx);
+    vsprintf(&displbuf[5],texx,ap);
+    va_end(ap);
+    strcat(displbuf, "\n");
 
-  OutputDebugString(displbuf);
+    OutputDebugString(displbuf);
 }
 
 void AGSWin32::ShutdownCDPlayer() {
-  cd_exit();
+    cd_exit();
 }
 
 extern "C" const unsigned char hw_to_mycode[256];
@@ -837,57 +837,57 @@ extern "C" const unsigned char hw_to_mycode[256];
 
 int AGSWin32::ConvertKeycodeToScanCode(int keycode)
 {
-  // ** HIDEOUS HACK TO WORK AROUND ALLEGRO BUG
-  // the key[] array is hardcoded to qwerty keyboards, so we
-  // have to re-map it to make it work on other keyboard layouts
-  keycode += ('a' - 'A');
-  int vkey = VkKeyScan(keycode);
-  int scancode = MapVirtualKey(vkey, MAPVK_VK_TO_VSC);
-  if ((scancode >= 0) && (scancode < 256))
-    keycode = hw_to_mycode[scancode];
-  return keycode;
+    // ** HIDEOUS HACK TO WORK AROUND ALLEGRO BUG
+    // the key[] array is hardcoded to qwerty keyboards, so we
+    // have to re-map it to make it work on other keyboard layouts
+    keycode += ('a' - 'A');
+    int vkey = VkKeyScan(keycode);
+    int scancode = MapVirtualKey(vkey, MAPVK_VK_TO_VSC);
+    if ((scancode >= 0) && (scancode < 256))
+        keycode = hw_to_mycode[scancode];
+    return keycode;
 }
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
-  if (instance == NULL)
-    instance = new AGSWin32();
-  return instance;
+    if (instance == NULL)
+        instance = new AGSWin32();
+    return instance;
 }
 
 
 // *********** WINDOWS-SPECIFIC PLUGIN API FUNCTIONS *************
 
 HWND IAGSEngine::GetWindowHandle () {
-  return allegro_wnd;
+    return allegro_wnd;
 }
 LPDIRECTDRAW2 IAGSEngine::GetDirectDraw2 () {
-  if (directdraw == NULL)
-    quit("!This plugin is not compatible with the Direct3D driver.");
+    if (directdraw == NULL)
+        quit("!This plugin is not compatible with the Direct3D driver.");
 
-  return directdraw;
+    return directdraw;
 }
 LPDIRECTDRAWSURFACE2 IAGSEngine::GetBitmapSurface (BITMAP *bmp) 
 {
-  if (directdraw == NULL)
-    quit("!This plugin is not compatible with the Direct3D driver.");
+    if (directdraw == NULL)
+        quit("!This plugin is not compatible with the Direct3D driver.");
 
-  BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)bmp->extra;
+    BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)bmp->extra;
 
-  if (bmp == virtual_screen->GetAllegroBitmap())
-    invalidate_screen();
+    if (bmp == virtual_screen->GetAllegroBitmap())
+        invalidate_screen();
 
-  return bei->surf;
-  //return get_bitmap_surface2 (bmp);
+    return bei->surf;
+    //return get_bitmap_surface2 (bmp);
 }
 
 LPDIRECTSOUND IAGSEngine::GetDirectSound() {
-  return directsound;
+    return directsound;
 }
 
 LPDIRECTINPUTDEVICE IAGSEngine::GetDirectInputKeyboard() {
-  return key_dinput_device;
+    return key_dinput_device;
 }
 
 LPDIRECTINPUTDEVICE IAGSEngine::GetDirectInputMouse() {
-  return mouse_dinput_device;
+    return mouse_dinput_device;
 }

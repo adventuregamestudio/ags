@@ -12,7 +12,7 @@ namespace AGS.Types
     public class BindingListWithRemoving<T> : BindingList<T>
     {
         public event FolderChangeEventHandler<T> BeforeChanging;
-        public event EventHandler BeforeClearing;        
+        public event EventHandler BeforeClearing;
 
         protected void OnChange(FolderChangeEventArgs<T> e)
         {

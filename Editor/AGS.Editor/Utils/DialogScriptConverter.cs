@@ -182,7 +182,7 @@ namespace AGS.Editor
                 // the old dialog script compiler allowed semicolons,
                 // so just strip them out
                 dlgScriptCommand = dlgScriptCommand.ToLower().Replace(";", "");
-                
+
                 if (dlgScriptCommand == "return")
                 {
                     convertedScriptLine = "return RUN_DIALOG_RETURN; }";

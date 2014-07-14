@@ -17,7 +17,7 @@ namespace AGS.Types
         public static string GetElementString(XmlNode node, string elementName)
         {
             XmlNode foundNode = node.SelectSingleNode(elementName);
-            if (foundNode == null) 
+            if (foundNode == null)
             {
                 throw new InvalidDataException("Missing XML element: " + elementName);
             }
@@ -92,7 +92,7 @@ namespace AGS.Types
                         if (prop.PropertyType == typeof(string))
                         {
                             writer.WriteStartElement(prop.Name);
-							string propValue = prop.GetValue(obj, null).ToString();
+                            string propValue = prop.GetValue(obj, null).ToString();
                             if (propValue.IndexOf(' ') >= 0)
                             {
                                 writer.WriteAttributeString("xml", "space", null, "preserve");
@@ -100,14 +100,14 @@ namespace AGS.Types
                             writer.WriteString(propValue);
                             writer.WriteEndElement();
                         }
-						else if (prop.PropertyType == typeof(DateTime))
-						{
-							writer.WriteElementString(prop.Name, ((DateTime)prop.GetValue(obj, null)).ToString("yyyy-MM-dd"));
-						}
-						else
-						{
-							writer.WriteElementString(prop.Name, prop.GetValue(obj, null).ToString());
-						}
+                        else if (prop.PropertyType == typeof(DateTime))
+                        {
+                            writer.WriteElementString(prop.Name, ((DateTime)prop.GetValue(obj, null)).ToString("yyyy-MM-dd"));
+                        }
+                        else
+                        {
+                            writer.WriteElementString(prop.Name, prop.GetValue(obj, null).ToString());
+                        }
                     }
                 }
             }
@@ -162,13 +162,13 @@ namespace AGS.Types
                 {
                     prop.SetValue(obj, elementValue, null);
                 }
-				else if (prop.PropertyType == typeof(DateTime))
-				{
+                else if (prop.PropertyType == typeof(DateTime))
+                {
                     // Must use CultureInfo.InvariantCulture otherwise DateTime.Parse
                     // crashes if the system regional settings short date format has
                     // spaces in it (.NET bug)
-					prop.SetValue(obj, DateTime.Parse(elementValue, CultureInfo.InvariantCulture), null);
-				}
+                    prop.SetValue(obj, DateTime.Parse(elementValue, CultureInfo.InvariantCulture), null);
+                }
                 else if (prop.PropertyType.IsEnum)
                 {
                     prop.SetValue(obj, Enum.Parse(prop.PropertyType, elementValue), null);

@@ -24,11 +24,11 @@ namespace AGS.Editor
         private Dialog _dialog;
         private List<DialogOptionEditor> _optionPanes = new List<DialogOptionEditor>();
         private MenuCommands _extraMenu = new MenuCommands("&Edit", GUIController.FILE_MENU_ID);
-        
+
         private string _lastSearchText = string.Empty;
         private bool _lastCaseSensitive = false;
         private AGSEditor _agsEditor;
-        private string _lastKnownScriptText;        
+        private string _lastKnownScriptText;
 
         public DialogEditor(Dialog dialogToEdit, AGSEditor agsEditor)
         {
@@ -106,7 +106,7 @@ namespace AGS.Editor
             }
             _lastKnownScriptText = newText;
         }
-        
+
         void DockingContainer_DockStateChanged(object sender, EventArgs e)
         {
             DockingContainer container = (DockingContainer)DockingContainer;
@@ -138,7 +138,7 @@ namespace AGS.Editor
             scintillaEditor.SetClassNamesList(BuildCharacterKeywords());
             scintillaEditor.SetAutoCompleteKeyWords(Constants.SCRIPT_KEY_WORDS);
             scintillaEditor.SetAutoCompleteSource(_dialog);
-            scintillaEditor.SetText(_dialog.Script);            
+            scintillaEditor.SetText(_dialog.Script);
         }
 
         public ScintillaWrapper ScriptEditor
@@ -168,7 +168,7 @@ namespace AGS.Editor
         {
             return "Dialogs";
         }
-        
+
         protected override void OnCommandClick(string command)
         {
             base.OnCommandClick(command);
@@ -192,7 +192,7 @@ namespace AGS.Editor
             }
             else if (command == GOTO_LINE_COMMAND)
             {
-                GotoLineDialog gotoLineDialog = new GotoLineDialog 
+                GotoLineDialog gotoLineDialog = new GotoLineDialog
                 {
                     Minimum = 1,
                     Maximum = scintillaEditor.LineCount,
@@ -219,17 +219,17 @@ namespace AGS.Editor
             _dialog.Script = scintillaEditor.GetText();
         }
 
-		public void GoToScriptLine(ZoomToFileEventArgs evArgs)
-		{
+        public void GoToScriptLine(ZoomToFileEventArgs evArgs)
+        {
             if (evArgs.ZoomType == ZoomToFileZoomType.ZoomToCharacterPosition)
             {
                 scintillaEditor.GoToPosition(evArgs.ZoomPosition);
             }
             else if (evArgs.ZoomType == ZoomToFileZoomType.ZoomToLineNumber)
             {
-			    scintillaEditor.GoToLine(evArgs.ZoomPosition);
+                scintillaEditor.GoToLine(evArgs.ZoomPosition);
             }
-			scintillaEditor.Focus();
+            scintillaEditor.Focus();
 
             if (evArgs.IsDebugExecutionPoint)
             {
@@ -239,7 +239,7 @@ namespace AGS.Editor
                     scintillaEditor.ShowErrorMessagePopup(evArgs.ErrorMessage);
                 }
             }
-		}
+        }
 
         public void RemoveExecutionPointMarker()
         {
@@ -279,17 +279,17 @@ namespace AGS.Editor
         {
             DialogOption newOption = new DialogOption();
             newOption.ID = _dialog.Options.Count + 1;
-			if (_dialog.Options.Count > 0)
-			{
-				// Copy Show & Say settings from previous option
-				newOption.Say = _dialog.Options[_dialog.Options.Count - 1].Say;
-				newOption.Show = _dialog.Options[_dialog.Options.Count - 1].Show;
-			}
-			else
-			{
-				newOption.Say = true;
-				newOption.Show = true;
-			}
+            if (_dialog.Options.Count > 0)
+            {
+                // Copy Show & Say settings from previous option
+                newOption.Say = _dialog.Options[_dialog.Options.Count - 1].Say;
+                newOption.Show = _dialog.Options[_dialog.Options.Count - 1].Show;
+            }
+            else
+            {
+                newOption.Say = true;
+                newOption.Show = true;
+            }
             _dialog.Options.Add(newOption);
             DialogOptionEditor newEditor = new DialogOptionEditor(newOption);
             _optionPanes.Add(newEditor);

@@ -18,7 +18,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_EXPORT = "ExportCharacter";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
         private const string ICON_KEY = "CharactersIcon";
-        
+
         private const string CHARACTER_EXPORT_FILE_FILTER = "AGS 3.1+ exported characters (*.chr)|*.chr|AGS 2.72/3.0 exported characters (*.cha)|*.cha";
         private const string CHARACTER_IMPORT_FILE_FILTER = "AGS exported characters (*.chr; *.cha)|*.chr;*.cha|AGS 3.1+ exported characters (*.chr)|*.chr|AGS 2.72/3.0 exported characters (*.cha)|*.cha";
         private const string NEW_CHARACTER_FILE_EXTENSION = ".chr";
@@ -44,7 +44,7 @@ namespace AGS.Editor.Components
         protected override void ItemCommandClick(string controlID)
         {
             if (controlID == COMMAND_NEW_ITEM)
-            {                
+            {
                 Character newItem = new Character();
                 newItem.ID = _agsEditor.CurrentGame.RootCharacterFolder.GetAllItemsCount();
                 newItem.ScriptName = _agsEditor.GetFirstAvailableScriptName("cChar");
@@ -52,7 +52,7 @@ namespace AGS.Editor.Components
                 newItem.StartingRoom = -1;
                 string newNodeID = AddSingleItem(newItem);
                 _guiController.ProjectTree.SelectNode(this, newNodeID);
-				ShowOrAddPane(newItem);
+                ShowOrAddPane(newItem);
             }
             else if (controlID == COMMAND_IMPORT)
             {
@@ -87,7 +87,7 @@ namespace AGS.Editor.Components
             {
                 Character chosenItem = _items[controlID];
                 ShowOrAddPane(chosenItem);
-            }            
+            }
         }
 
         private void DeleteCharacter(Character character)
@@ -106,25 +106,25 @@ namespace AGS.Editor.Components
             {
                 _guiController.RemovePaneIfExists(document);
                 _documents.Remove(character);
-            }            
+            }
         }
 
-		private void ShowOrAddPane(Character chosenItem)
-		{
+        private void ShowOrAddPane(Character chosenItem)
+        {
             ContentDocument document;
-			if (!_documents.TryGetValue(chosenItem, out document)
+            if (!_documents.TryGetValue(chosenItem, out document)
                 || document.Control.IsDisposed)
-			{
+            {
                 document = new ContentDocument(new CharacterEditor(chosenItem),
                     chosenItem.WindowTitle, this, ICON_KEY,
                     ConstructPropertyObjectList(chosenItem));
-				_documents[chosenItem] = document;
-				document.SelectedPropertyGridObject = chosenItem;
-			}
+                _documents[chosenItem] = document;
+                document.SelectedPropertyGridObject = chosenItem;
+            }
             document.TreeNodeID = GetNodeID(chosenItem);
-			_guiController.AddOrShowPane(document);
-			_guiController.ShowCuppit("Characters can move around from room to room within the game, and can take part in conversations. The Player Character is the one that the player is controlling.", "Characters introduction");
-		}
+            _guiController.AddOrShowPane(document);
+            _guiController.ShowCuppit("Characters can move around from room to room within the game, and can take part in conversations. The Player Character is the one that the player is controlling.", "Characters introduction");
+        }
 
         public override void PropertyChanged(string propertyName, object oldValue)
         {
@@ -225,7 +225,7 @@ namespace AGS.Editor.Components
                 _guiController.ShowMessage("An error occurred importing the character file. The error was: " + Environment.NewLine + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
             }
             RePopulateTreeView();
-        }        
+        }
 
         private Dictionary<string, object> ConstructPropertyObjectList(Character item)
         {
@@ -242,7 +242,7 @@ namespace AGS.Editor.Components
         protected override ProjectTreeItem CreateTreeItemForItem(Character item)
         {
             ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf
-                (this, GetNodeID(item), item.ID.ToString() + ": " + item.ScriptName, "CharacterIcon");            
+                (this, GetNodeID(item), item.ID.ToString() + ": " + item.ScriptName, "CharacterIcon");
             return treeItem;
         }
 
@@ -254,7 +254,7 @@ namespace AGS.Editor.Components
         protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
             menu.Add(new MenuCommand(COMMAND_NEW_ITEM, "New character", null));
-            menu.Add(new MenuCommand(COMMAND_IMPORT, "Import character...", null));  
+            menu.Add(new MenuCommand(COMMAND_IMPORT, "Import character...", null));
         }
 
         protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)

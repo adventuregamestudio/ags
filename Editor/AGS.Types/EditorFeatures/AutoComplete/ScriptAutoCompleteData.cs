@@ -7,7 +7,7 @@ namespace AGS.Types
 {
     public class ScriptAutoCompleteData
     {
-		private bool _populated = false;
+        private bool _populated = false;
         private List<ScriptVariable> _variables = new List<ScriptVariable>();
         private List<ScriptFunction> _functions = new List<ScriptFunction>();
         private List<ScriptDefine> _defines = new List<ScriptDefine>();
@@ -21,7 +21,7 @@ namespace AGS.Types
             this._defines = other.Defines;
             this._enums = other.Enums;
             this._structs = other.Structs;
-			this._populated = other.Populated;
+            this._populated = other.Populated;
         }
 
         public ScriptFunction FindFunction(string name)
@@ -36,31 +36,31 @@ namespace AGS.Types
             return null;
         }
 
-		public ScriptVariable FindVariable(string name)
-		{
-			foreach (ScriptVariable variable in _variables)
-			{
-				if (variable.VariableName == name)
-				{
-					return variable;
-				}
-			}
-			return null;
-		}
+        public ScriptVariable FindVariable(string name)
+        {
+            foreach (ScriptVariable variable in _variables)
+            {
+                if (variable.VariableName == name)
+                {
+                    return variable;
+                }
+            }
+            return null;
+        }
 
-		public ScriptStruct FindStruct(string name)
-		{
-			foreach (ScriptStruct struc in _structs)
-			{
-				if (struc.Name == name)
-				{
-					return struc;
-				}
-			}
-			return null;
-		}
+        public ScriptStruct FindStruct(string name)
+        {
+            foreach (ScriptStruct struc in _structs)
+            {
+                if (struc.Name == name)
+                {
+                    return struc;
+                }
+            }
+            return null;
+        }
 
-		public List<ScriptVariable> Variables
+        public List<ScriptVariable> Variables
         {
             get { return _variables; }
         }
@@ -85,13 +85,13 @@ namespace AGS.Types
             get { return _structs; }
         }
 
-		/// <summary>
-		/// Whether this autocomplete data has been populated
-		/// </summary>
-		public bool Populated
-		{
-			get { return _populated; }
-			set { _populated = value; }
-		}
+        /// <summary>
+        /// Whether this autocomplete data has been populated
+        /// </summary>
+        public bool Populated
+        {
+            get { return _populated; }
+            set { _populated = value; }
+        }
     }
 }

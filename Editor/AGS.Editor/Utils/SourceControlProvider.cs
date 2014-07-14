@@ -168,32 +168,32 @@ namespace AGS.Editor
             _scc.CheckOutFiles(fileNames, comment);
         }
 
-		public void RenameFileOnDiskAndInSourceControl(string currentName, string newName)
-		{
-			string sourcePath = Path.GetFullPath(currentName);
-			string destPath = Path.GetFullPath(newName);
+        public void RenameFileOnDiskAndInSourceControl(string currentName, string newName)
+        {
+            string sourcePath = Path.GetFullPath(currentName);
+            string destPath = Path.GetFullPath(newName);
 
-			if (this.IsFileUnderSourceControl(sourcePath))
-			{
-				this.RenameFile(sourcePath, destPath);
-			}
+            if (this.IsFileUnderSourceControl(sourcePath))
+            {
+                this.RenameFile(sourcePath, destPath);
+            }
 
-			File.Move(sourcePath, destPath);
-		}
+            File.Move(sourcePath, destPath);
+        }
 
-		public void RemoveFiles(string[] fileNames)
-		{
-			if (_projectAuxPath == null)
-			{
-				throw new AGSEditorException("No source control project is open");
-			}
-			_scc.DeleteFiles(fileNames, string.Empty);
-		}
+        public void RemoveFiles(string[] fileNames)
+        {
+            if (_projectAuxPath == null)
+            {
+                throw new AGSEditorException("No source control project is open");
+            }
+            _scc.DeleteFiles(fileNames, string.Empty);
+        }
 
-		/// <summary>
-		/// Renames a file in source control. The supplied filenames must
-		/// be fully qualified paths.
-		/// </summary>
+        /// <summary>
+        /// Renames a file in source control. The supplied filenames must
+        /// be fully qualified paths.
+        /// </summary>
         public void RenameFile(string currentPath, string newPath)
         {
             if (_projectAuxPath == null)

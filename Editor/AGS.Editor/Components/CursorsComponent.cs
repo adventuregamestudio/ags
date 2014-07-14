@@ -51,7 +51,7 @@ namespace AGS.Editor.Components
                 _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
                 _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), newItem.ID.ToString() + ": " + newItem.Name, "CursorIcon");
                 _guiController.ProjectTree.SelectNode(this, GetNodeID(newItem));
-				ShowOrAddPane(newItem);
+                ShowOrAddPane(newItem);
             }
             else if (controlID == COMMAND_DELETE_ITEM)
             {
@@ -77,27 +77,27 @@ namespace AGS.Editor.Components
             else if (controlID != TOP_LEVEL_COMMAND_ID)
             {
                 MouseCursor chosenCursor = _agsEditor.CurrentGame.Cursors[Convert.ToInt32(controlID.Substring(3))];
-				ShowOrAddPane(chosenCursor);
-			}
+                ShowOrAddPane(chosenCursor);
+            }
         }
 
-		private void ShowOrAddPane(MouseCursor chosenCursor)
-		{
+        private void ShowOrAddPane(MouseCursor chosenCursor)
+        {
             ContentDocument document;
-			if (!_documents.TryGetValue(chosenCursor, out document)
+            if (!_documents.TryGetValue(chosenCursor, out document)
                 || document.Control.IsDisposed)
-			{
+            {
                 document = new ContentDocument(new CursorEditor(chosenCursor),
-                    chosenCursor.WindowTitle, this, ICON_KEY, 
+                    chosenCursor.WindowTitle, this, ICON_KEY,
                     ConstructPropertyObjectList(chosenCursor));
-                
+
                 _documents[chosenCursor] = document;
                 document.SelectedPropertyGridObject = chosenCursor;
-			}
+            }
             document.TreeNodeID = GetNodeID(chosenCursor);
             _guiController.AddOrShowPane(document);
-			_guiController.ShowCuppit("The Cursor Editor allows you to set up the various mouse cursors used in the game. You can probably just leave the default ones for now, unless you want some specialist cursor modes.", "Cursors introduction");
-		}
+            _guiController.ShowCuppit("The Cursor Editor allows you to set up the various mouse cursors used in the game. You can probably just leave the default ones for now, unless you want some specialist cursor modes.", "Cursors introduction");
+        }
 
         public override void PropertyChanged(string propertyName, object oldValue)
         {

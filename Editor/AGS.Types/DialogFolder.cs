@@ -17,13 +17,13 @@ namespace AGS.Types
 
     public class DialogFolder : BaseFolderCollection<Dialog, DialogFolder>
     {
-        public const string MAIN_DIALOG_FOLDER_NAME = "Main";        
+        public const string MAIN_DIALOG_FOLDER_NAME = "Main";
 
         public DialogFolder(string name) : base(name) { }
 
         public DialogFolder() : this("Default") { }
 
-        public DialogFolder(XmlNode node, XmlNode parentNodeForBackwardsCompatability) : 
+        public DialogFolder(XmlNode node, XmlNode parentNodeForBackwardsCompatability) :
             base(node, parentNodeForBackwardsCompatability) { }
 
         private DialogFolder(XmlNode node) : base(node) { }

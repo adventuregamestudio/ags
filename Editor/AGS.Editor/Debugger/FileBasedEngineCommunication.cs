@@ -20,7 +20,7 @@ namespace AGS.Editor
 
         private FileSystemWatcher _watcher;
 
-        public FileBasedEngineCommunication() 
+        public FileBasedEngineCommunication()
         {
         }
 
@@ -29,14 +29,14 @@ namespace AGS.Editor
             get { return "None"; }
         }
 
-		public bool SupportedOnCurrentSystem
-		{
-			get
-			{
-				// The FileSystemWatcher doesn't work on Win9x
-				return (System.Environment.OSVersion.Platform == PlatformID.Win32NT);
-			}
-		}
+        public bool SupportedOnCurrentSystem
+        {
+            get
+            {
+                // The FileSystemWatcher doesn't work on Win9x
+                return (System.Environment.OSVersion.Platform == PlatformID.Win32NT);
+            }
+        }
 
         public void ResetWithCurrentPath()
         {
@@ -64,7 +64,7 @@ namespace AGS.Editor
 
         private void _watcher_Changed(object sender, FileSystemEventArgs e)
         {
-			string data = null;
+            string data = null;
             bool succeeded = false;
             XmlDocument doc = null;
             bool xmlFailedAlready = false;

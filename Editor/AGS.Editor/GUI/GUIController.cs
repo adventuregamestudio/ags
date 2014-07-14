@@ -21,8 +21,8 @@ namespace AGS.Editor
         public const string HELP_MENU_ID = "HelpMenu";
         private const string CONTROL_ID_SPLIT = "^!^";
         private const string TEMPLATE_INTRO_FILE = "template.txt";
-		private const string ROOM_TEMPLATE_ID_FILE = "rtemplate.dat";
-		private const int ROOM_TEMPLATE_ID_FILE_SIGNATURE = 0x74673812;
+        private const string ROOM_TEMPLATE_ID_FILE = "rtemplate.dat";
+        private const int ROOM_TEMPLATE_ID_FILE_SIGNATURE = 0x74673812;
 
         public delegate void PropertyObjectChangedHandler(object newPropertyObject);
         public event PropertyObjectChangedHandler OnPropertyObjectChanged;
@@ -58,13 +58,13 @@ namespace AGS.Editor
         private AGSEditor _agsEditor;
         private InteractiveTasks _interactiveTasks;
         private bool _exitFromWelcomeScreen = false;
-		private bool _batchProcessShutdown = false;
-		private int _lastSelectedSprite = 0;
-		private string _lastImportDirectory = null;
-		private string[] _commandLineArgs;
-		private bool _messageLoopStarted = false;
+        private bool _batchProcessShutdown = false;
+        private int _lastSelectedSprite = 0;
+        private string _lastImportDirectory = null;
+        private string[] _commandLineArgs;
+        private bool _messageLoopStarted = false;
         private int _systemDpi = 0;
-		//private HelpPopup _cuppit;
+        //private HelpPopup _cuppit;
 
         private string _timerScriptName;
         private string _timerSearchForText;
@@ -93,22 +93,22 @@ namespace AGS.Editor
             get { return _mainForm.Handle; }
         }
 
-		public Icon StandardEditorIcon
-		{
-			get { return _mainForm.Icon; }
-		}
+        public Icon StandardEditorIcon
+        {
+            get { return _mainForm.Icon; }
+        }
 
         public ProjectTree ProjectTree
         {
             get { return _treeManager; }
         }
 
-		IProjectTree IGUIController.ProjectTree
-		{
-			get { return _treeManager; }
-		}
+        IProjectTree IGUIController.ProjectTree
+        {
+            get { return _treeManager; }
+        }
 
-		public InteractiveTasks InteractiveTasks
+        public InteractiveTasks InteractiveTasks
         {
             get { return _interactiveTasks; }
         }
@@ -128,29 +128,29 @@ namespace AGS.Editor
             get { return _imageList; }
         }
 
-		public string FileMenuID
-		{
-			get { return FILE_MENU_ID; }
-		}
+        public string FileMenuID
+        {
+            get { return FILE_MENU_ID; }
+        }
 
         public Icon MainIcon
         {
             get { return _mainForm.Icon; }
         }
 
-		public void ShowMessage(string message, MessageBoxIconType icon)
-		{
-			MessageBoxIcon windowsFormsIcon = MessageBoxIcon.Information;
-			if (icon == MessageBoxIconType.Warning)
-			{
-				windowsFormsIcon = MessageBoxIcon.Warning;
-			}
-			else if (icon == MessageBoxIconType.Error)
-			{
-				windowsFormsIcon = MessageBoxIcon.Error;
-			}
-			ShowMessage(message, windowsFormsIcon);
-		}
+        public void ShowMessage(string message, MessageBoxIconType icon)
+        {
+            MessageBoxIcon windowsFormsIcon = MessageBoxIcon.Information;
+            if (icon == MessageBoxIconType.Warning)
+            {
+                windowsFormsIcon = MessageBoxIcon.Warning;
+            }
+            else if (icon == MessageBoxIconType.Error)
+            {
+                windowsFormsIcon = MessageBoxIcon.Error;
+            }
+            ShowMessage(message, windowsFormsIcon);
+        }
 
         public void ShowMessage(string message, MessageBoxIcon icon)
         {
@@ -229,12 +229,12 @@ namespace AGS.Editor
             _menuManager.AddMenu(id, title);
         }
 
-		public void AddMenu(IEditorComponent plugin, string id, string title, string insertAfterMenu)
-		{
-			_menuManager.AddMenu(id, title, insertAfterMenu);
-		}
+        public void AddMenu(IEditorComponent plugin, string id, string title, string insertAfterMenu)
+        {
+            _menuManager.AddMenu(id, title, insertAfterMenu);
+        }
 
-		public void AddMenuItems(IEditorComponent plugin, MenuCommands commands)
+        public void AddMenuItems(IEditorComponent plugin, MenuCommands commands)
         {
             if (commands.Commands.Count > 0)
             {
@@ -246,40 +246,40 @@ namespace AGS.Editor
                     }
                     command.IDPrefix = plugin.ComponentID + CONTROL_ID_SPLIT;
                 }
-				_menuManager.AddMenuCommandGroup(commands);
+                _menuManager.AddMenuCommandGroup(commands);
             }
         }
 
-		public IScriptEditorControl CreateScriptEditor(Point position, Size size)
-		{
-			if (!_messageLoopStarted)
-			{
-				// This is because the splash screen uses a different message loop,
-				// the scintilla control gets reset when the new message loop starts
-				// if it has already been created.
-				throw new AGSEditorException("A script editor cannot be created from within a component constructor because the GUI system is not yet initialized. You should do a just-in-time creation of your ContentPane rather than creating it at component construction.");
-			}
-			ScintillaWrapper scintilla = new ScintillaWrapper();
-			scintilla.Location = position;
-			scintilla.Size = size;
-			scintilla.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
-			scintilla.SetFillupKeys(Constants.AUTOCOMPLETE_ACCEPT_KEYS);
-			scintilla.AutoCompleteEnabled = true;
-			scintilla.AutoSpaceAfterComma = true;
-			scintilla.CallTipsEnabled = true;
-			return scintilla;
-		}
+        public IScriptEditorControl CreateScriptEditor(Point position, Size size)
+        {
+            if (!_messageLoopStarted)
+            {
+                // This is because the splash screen uses a different message loop,
+                // the scintilla control gets reset when the new message loop starts
+                // if it has already been created.
+                throw new AGSEditorException("A script editor cannot be created from within a component constructor because the GUI system is not yet initialized. You should do a just-in-time creation of your ContentPane rather than creating it at component construction.");
+            }
+            ScintillaWrapper scintilla = new ScintillaWrapper();
+            scintilla.Location = position;
+            scintilla.Size = size;
+            scintilla.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
+            scintilla.SetFillupKeys(Constants.AUTOCOMPLETE_ACCEPT_KEYS);
+            scintilla.AutoCompleteEnabled = true;
+            scintilla.AutoSpaceAfterComma = true;
+            scintilla.CallTipsEnabled = true;
+            return scintilla;
+        }
 
-		public MenuCommand CreateMenuCommand(IEditorComponent component, string commandID, string commandName)
-		{
-			MenuCommand newCommand = new MenuCommand(commandID, commandName);
-			newCommand.ID = RegisterMenuCommand(commandID, component);
-			return newCommand;
-		}
+        public MenuCommand CreateMenuCommand(IEditorComponent component, string commandID, string commandName)
+        {
+            MenuCommand newCommand = new MenuCommand(commandID, commandName);
+            newCommand.ID = RegisterMenuCommand(commandID, component);
+            return newCommand;
+        }
 
         public void RemoveMenuItems(MenuCommands commands)
         {
-			_menuManager.RemoveMenuCommandGroup(commands);
+            _menuManager.RemoveMenuCommandGroup(commands);
         }
 
         public void RegisterIcon(string key, Icon icon)
@@ -331,7 +331,7 @@ namespace AGS.Editor
             }
 
             _mainForm.pnlCallStack.CallStack = callStack;
-            _mainForm.pnlCallStack.Show();            
+            _mainForm.pnlCallStack.Show();
         }
 
         public void HideCallStack()
@@ -340,7 +340,7 @@ namespace AGS.Editor
         }
 
         public void ShowFindSymbolResults(List<ScriptTokenReference> results)
-        {            
+        {
             if (_mainForm.pnlFindResults.InvokeRequired)
             {
                 _mainForm.pnlFindResults.Invoke(new ShowFindSymbolResultsDelegate(ShowFindSymbolResults), results);
@@ -348,7 +348,7 @@ namespace AGS.Editor
             }
 
             _mainForm.pnlFindResults.Results = results;
-            _mainForm.pnlFindResults.Show();           
+            _mainForm.pnlFindResults.Show();
         }
 
         public void HideFindSymbolResults()
@@ -369,15 +369,15 @@ namespace AGS.Editor
             }
         }
 
-		void IGUIController.ShowHelpFile(string keyword)
-		{
-			LaunchHelpForKeyword(keyword);
-		}
+        void IGUIController.ShowHelpFile(string keyword)
+        {
+            LaunchHelpForKeyword(keyword);
+        }
 
-		void IGUIController.OpenEditorForScript(string fileName, int lineNumber)
-		{
-			ZoomToFile(fileName, lineNumber);
-		}
+        void IGUIController.OpenEditorForScript(string fileName, int lineNumber)
+        {
+            ZoomToFile(fileName, lineNumber);
+        }
 
         public void ZoomToFile(string fileName)
         {
@@ -390,19 +390,19 @@ namespace AGS.Editor
         }
 
         public void ZoomToFile(string fileName, ZoomToFileZoomType zoomType, int zoomToPosition)
-		{
-			ZoomToFile(fileName, zoomType, zoomToPosition, false);
-		}
+        {
+            ZoomToFile(fileName, zoomType, zoomToPosition, false);
+        }
 
-		public void ZoomToFile(string fileName, int lineNumber, bool isDebugExecutionPoint, string errorMessage)
-		{
-			ZoomToFile(fileName, ZoomToFileZoomType.ZoomToLineNumber, lineNumber, isDebugExecutionPoint, false, errorMessage, true);
-		}
+        public void ZoomToFile(string fileName, int lineNumber, bool isDebugExecutionPoint, string errorMessage)
+        {
+            ZoomToFile(fileName, ZoomToFileZoomType.ZoomToLineNumber, lineNumber, isDebugExecutionPoint, false, errorMessage, true);
+        }
 
-		public void ZoomToFile(string fileName, ZoomToFileZoomType zoomType, int zoomPosition, bool isDebugExecutionPoint)
-		{
-			ZoomToFile(fileName, zoomType, zoomPosition, isDebugExecutionPoint, true, null, true);
-		}
+        public void ZoomToFile(string fileName, ZoomToFileZoomType zoomType, int zoomPosition, bool isDebugExecutionPoint)
+        {
+            ZoomToFile(fileName, zoomType, zoomPosition, isDebugExecutionPoint, true, null, true);
+        }
 
         public void ZoomToFile(string fileName, ZoomToFileZoomType zoomType, int zoomPosition, bool isDebugExecutionPoint, bool selectWholeLine, string errorMessage, bool activateEditor)
         {
@@ -410,13 +410,13 @@ namespace AGS.Editor
             {
                 if (this.InvokeRequired)
                 {
-					this.Invoke(new ZoomToFileDelegate(ZoomToFile), fileName, zoomType, zoomPosition, isDebugExecutionPoint, selectWholeLine, errorMessage, activateEditor);
+                    this.Invoke(new ZoomToFileDelegate(ZoomToFile), fileName, zoomType, zoomPosition, isDebugExecutionPoint, selectWholeLine, errorMessage, activateEditor);
                 }
                 else
                 {
-					ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(fileName, zoomType, zoomPosition, null, isDebugExecutionPoint, errorMessage, activateEditor);
-					evArgs.SelectLine = selectWholeLine;
-					OnZoomToFile(evArgs);
+                    ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(fileName, zoomType, zoomPosition, null, isDebugExecutionPoint, errorMessage, activateEditor);
+                    evArgs.SelectLine = selectWholeLine;
+                    OnZoomToFile(evArgs);
                 }
             }
         }
@@ -425,8 +425,8 @@ namespace AGS.Editor
         {
             if (OnZoomToFile != null)
             {
-				ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(fileName, ZoomToFileZoomType.ZoomToText, 0, "function " + function + "(", false, null, true);
-				evArgs.SelectLine = false;
+                ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(fileName, ZoomToFileZoomType.ZoomToText, 0, "function " + function + "(", false, null, true);
+                evArgs.SelectLine = false;
                 evArgs.ZoomToLineAfterOpeningBrace = true;
                 OnZoomToFile(evArgs);
             }
@@ -521,43 +521,43 @@ namespace AGS.Editor
             return null;
         }
 
-		public string ShowOpenFileDialog(string title, string fileFilter)
-		{
-			return ShowOpenFileDialog(title, fileFilter, true);
-		}
+        public string ShowOpenFileDialog(string title, string fileFilter)
+        {
+            return ShowOpenFileDialog(title, fileFilter, true);
+        }
 
-		private void EnsureLastImportDirectoryIsSet(bool useFileImportPath)
-		{
-			if (_lastImportDirectory == null)
-			{
-				if ((useFileImportPath) &&
-					(_agsEditor.Preferences.DefaultImportPath.Length > 0))
-				{
-					_lastImportDirectory = _agsEditor.Preferences.DefaultImportPath;
-				}
-				else
-				{
-					_lastImportDirectory = System.IO.Directory.GetCurrentDirectory();
-				}
-			}
-		}
+        private void EnsureLastImportDirectoryIsSet(bool useFileImportPath)
+        {
+            if (_lastImportDirectory == null)
+            {
+                if ((useFileImportPath) &&
+                    (_agsEditor.Preferences.DefaultImportPath.Length > 0))
+                {
+                    _lastImportDirectory = _agsEditor.Preferences.DefaultImportPath;
+                }
+                else
+                {
+                    _lastImportDirectory = System.IO.Directory.GetCurrentDirectory();
+                }
+            }
+        }
 
         public string ShowOpenFileDialog(string title, string fileFilter, bool useFileImportPath)
         {
-			EnsureLastImportDirectoryIsSet(useFileImportPath);
+            EnsureLastImportDirectoryIsSet(useFileImportPath);
 
-			OpenFileDialog dialog = new OpenFileDialog();
-			dialog.Title = title;
-			dialog.RestoreDirectory = true;
-			dialog.CheckFileExists = true;
-			dialog.CheckPathExists = true;
-			dialog.InitialDirectory = _lastImportDirectory;
-			dialog.ValidateNames = true;
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Title = title;
+            dialog.RestoreDirectory = true;
+            dialog.CheckFileExists = true;
+            dialog.CheckPathExists = true;
+            dialog.InitialDirectory = _lastImportDirectory;
+            dialog.ValidateNames = true;
             dialog.Filter = fileFilter;
 
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-				_lastImportDirectory = Path.GetDirectoryName(dialog.FileName);
+                _lastImportDirectory = Path.GetDirectoryName(dialog.FileName);
                 return dialog.FileName;
             }
             return null;
@@ -565,7 +565,7 @@ namespace AGS.Editor
 
         public string[] ShowOpenFileDialogMultipleFiles(string title, string fileFilter)
         {
-			EnsureLastImportDirectoryIsSet(true);
+            EnsureLastImportDirectoryIsSet(true);
 
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Title = title;
@@ -578,7 +578,7 @@ namespace AGS.Editor
             dialog.Multiselect = true;
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-				_lastImportDirectory = Path.GetDirectoryName(dialog.FileNames[0]);
+                _lastImportDirectory = Path.GetDirectoryName(dialog.FileNames[0]);
                 return dialog.FileNames;
             }
             return new string[0];
@@ -638,16 +638,16 @@ namespace AGS.Editor
             dialog.ShowDialog();
             if (dialog.SelectedFiles != null)
             {
-				try
-				{
-					_agsEditor.SourceControlProvider.CheckOutFiles(dialog.SelectedFiles, dialog.Comments);
-					checkedOut = (dialog.SelectedFiles.Length == fileNames.Count);
-				}
-				catch (SourceControlException ex)
-				{
-					this.ShowMessage("Checkout failed: " + ex.SccErrorMessage, MessageBoxIcon.Warning);
-					checkedOut = false;
-				}
+                try
+                {
+                    _agsEditor.SourceControlProvider.CheckOutFiles(dialog.SelectedFiles, dialog.Comments);
+                    checkedOut = (dialog.SelectedFiles.Length == fileNames.Count);
+                }
+                catch (SourceControlException ex)
+                {
+                    this.ShowMessage("Checkout failed: " + ex.SccErrorMessage, MessageBoxIcon.Warning);
+                    checkedOut = false;
+                }
             }
             dialog.Dispose();
             return checkedOut;
@@ -656,7 +656,7 @@ namespace AGS.Editor
         public void ShowPendingCheckinsDialog()
         {
             List<string> fileNamesToShow = new List<string>();
-			string[] files = _agsEditor.GetFilesThatCanBePutUnderSourceControl();
+            string[] files = _agsEditor.GetFilesThatCanBePutUnderSourceControl();
             SourceControlFileStatus[] fileStatuses = _agsEditor.SourceControlProvider.GetFileStatuses(files);
             for (int i = 0; i < files.Length; i++)
             {
@@ -701,21 +701,21 @@ namespace AGS.Editor
                 }
             }
 
-			try
-			{
-				if (filesToAdd.Count > 0)
-				{
-					_agsEditor.SourceControlProvider.AddFilesToSourceControl(filesToAdd.ToArray(), checkinComments);
-				}
-				if (filesToCheckin.Count > 0)
-				{
-					_agsEditor.SourceControlProvider.CheckInFiles(filesToCheckin.ToArray(), checkinComments);
-				}
-			}
-			catch (SourceControlException ex)
-			{
-				this.ShowMessage("Check-in failed: " + ex.SccErrorMessage, MessageBoxIcon.Warning);
-			}
+            try
+            {
+                if (filesToAdd.Count > 0)
+                {
+                    _agsEditor.SourceControlProvider.AddFilesToSourceControl(filesToAdd.ToArray(), checkinComments);
+                }
+                if (filesToCheckin.Count > 0)
+                {
+                    _agsEditor.SourceControlProvider.CheckInFiles(filesToCheckin.ToArray(), checkinComments);
+                }
+            }
+            catch (SourceControlException ex)
+            {
+                this.ShowMessage("Check-in failed: " + ex.SccErrorMessage, MessageBoxIcon.Warning);
+            }
         }
 
         public void Initialize(AGSEditor agsEditor)
@@ -729,7 +729,7 @@ namespace AGS.Editor
                 _treeManager = new ProjectTree(_mainForm.projectPanel.projectTree);
                 _treeManager.OnContextMenuClick += new ProjectTree.MenuClickHandler(_mainForm_OnMenuClick);
                 _toolBarManager = new ToolBarManager(_mainForm.toolStrip);
-                WindowsMenuManager windowsMenuManager = new WindowsMenuManager(_mainForm.windowsToolStripMenuItem, 
+                WindowsMenuManager windowsMenuManager = new WindowsMenuManager(_mainForm.windowsToolStripMenuItem,
                     _mainForm.GetStartupPanes(), _mainForm.mainContainer);
                 _menuManager = new MainMenuManager(_mainForm.mainMenu, windowsMenuManager);
                 _mainForm.OnEditorShutdown += new frmMain.EditorShutdownHandler(_mainForm_OnEditorShutdown);
@@ -739,15 +739,15 @@ namespace AGS.Editor
                 _mainForm.OnMainWindowActivated += new EventHandler(_mainForm_OnMainWindowActivated);
                 _menuManager.OnMenuClick += new MainMenuManager.MenuClickHandler(_mainForm_OnMenuClick);
                 AutoComplete.BackgroundCacheUpdateStatusChanged += new AutoComplete.BackgroundCacheUpdateStatusChangedHandler(AutoComplete_BackgroundCacheUpdateStatusChanged);
-				SystemEvents.DisplaySettingsChanged += new EventHandler(SystemEvents_DisplaySettingsChanging);
+                SystemEvents.DisplaySettingsChanged += new EventHandler(SystemEvents_DisplaySettingsChanging);
 
                 RegisterIcon("GameIcon", Resources.ResourceManager.GetIcon("game.ico"));
-				RegisterIcon("CompileErrorIcon", Resources.ResourceManager.GetIcon("eventlogError.ico"));
-				RegisterIcon("CompileWarningIcon", Resources.ResourceManager.GetIcon("eventlogWarn.ico"));
-				_mainForm.SetTreeImageList(_imageList);
+                RegisterIcon("CompileErrorIcon", Resources.ResourceManager.GetIcon("eventlogError.ico"));
+                RegisterIcon("CompileWarningIcon", Resources.ResourceManager.GetIcon("eventlogWarn.ico"));
+                _mainForm.SetTreeImageList(_imageList);
                 _mainForm.mainMenu.ImageList = _imageList;
-				_mainForm.pnlOutput.SetImageList(_imageList);
-				//_mainForm.SetProjectTreeLocation(_agsEditor.Preferences.ProjectTreeOnRight);
+                _mainForm.pnlOutput.SetImageList(_imageList);
+                //_mainForm.SetProjectTreeLocation(_agsEditor.Preferences.ProjectTreeOnRight);
 
                 ViewUIEditor.ViewSelectionGUI = new ViewUIEditor.ViewSelectionGUIType(ShowViewChooserFromPropertyGrid);
                 SpriteSelectUIEditor.SpriteSelectionGUI = new SpriteSelectUIEditor.SpriteSelectionGUIType(ShowSpriteChooserFromPropertyGrid);
@@ -767,85 +767,85 @@ namespace AGS.Editor
             }
         }
 
-		private void SystemEvents_DisplaySettingsChanging(object sender, EventArgs e)
-		{
-			_mainForm.SetDrawingSuspended(SystemInformation.PrimaryMonitorSize.Width < 800);
-		}
+        private void SystemEvents_DisplaySettingsChanging(object sender, EventArgs e)
+        {
+            _mainForm.SetDrawingSuspended(SystemInformation.PrimaryMonitorSize.Width < 800);
+        }
 
         public void ExitApplication()
         {
             _mainForm.Close();
         }
 
-		public void ShowCuppit(string helpText, string helpTextID)
-		{
-			ShowCuppit(helpText, helpTextID, false);
-		}
+        public void ShowCuppit(string helpText, string helpTextID)
+        {
+            ShowCuppit(helpText, helpTextID, false);
+        }
 
-		public void ShowCuppit(string helpText, string helpTextID, bool modal)
-		{
-/*          Disabled for now, Cuppit was not too popular!!
-            if (_cuppit == null)
-			{
-				_cuppit = new HelpPopup();
-			}
+        public void ShowCuppit(string helpText, string helpTextID, bool modal)
+        {
+            /*          Disabled for now, Cuppit was not too popular!!
+                        if (_cuppit == null)
+                        {
+                            _cuppit = new HelpPopup();
+                        }
 
-			if (_cuppit.ShouldShow(helpTextID, modal))
-			{
-				_cuppit.Location = new Point(_mainForm.Left + 20, _mainForm.Bottom - 300);
-				_cuppit.SetHelpText(helpText);
+                        if (_cuppit.ShouldShow(helpTextID, modal))
+                        {
+                            _cuppit.Location = new Point(_mainForm.Left + 20, _mainForm.Bottom - 300);
+                            _cuppit.SetHelpText(helpText);
 
-				if (modal)
-				{
-					_cuppit.ShowDialog(_mainForm);
-				}
-				else
-				{
-					_cuppit.Show(_mainForm);
-				}
-			}*/
-		}
+                            if (modal)
+                            {
+                                _cuppit.ShowDialog(_mainForm);
+                            }
+                            else
+                            {
+                                _cuppit.Show(_mainForm);
+                            }
+                        }*/
+        }
 
-		private bool ProcessCommandLineArgumentsAndReturnWhetherToShowWelcomeScreen()
-		{
-			bool compileAndExit = false;
-			bool forceRebuild;
+        private bool ProcessCommandLineArgumentsAndReturnWhetherToShowWelcomeScreen()
+        {
+            bool compileAndExit = false;
+            bool forceRebuild;
 
-			foreach (string arg in _commandLineArgs)
-			{
-				if (arg.ToLower() == "/compile")
-				{
-					compileAndExit = true;
-				}
-				else if (arg.StartsWith("/") || arg.StartsWith("-"))
-				{
-					this.ShowMessage("Invalid command line argument " + arg, MessageBoxIcon.Warning);
-				}
-				else
-				{
-					if (!File.Exists(arg))
-					{
-						this.ShowMessage("Unable to load the game '" + arg + "' because it does not exist", MessageBoxIcon.Warning);
-					}
-					else if (_interactiveTasks.LoadGameFromDisk(arg))
-					{
-						if (compileAndExit)
-						{
-							forceRebuild = _agsEditor.NeedsRebuildForDebugMode();
-							if (forceRebuild)
-								_agsEditor.SaveGameFiles();
-							if (!_agsEditor.CompileGame(forceRebuild, false).HasErrors)
-							{
-								_batchProcessShutdown = true;
-								this.ExitApplication();
-							}
-						}
-						return false;
-					}
-				}
-			}
-			return true;
-		}
+            foreach (string arg in _commandLineArgs)
+            {
+                if (arg.ToLower() == "/compile")
+                {
+                    compileAndExit = true;
+                }
+                else if (arg.StartsWith("/") || arg.StartsWith("-"))
+                {
+                    this.ShowMessage("Invalid command line argument " + arg, MessageBoxIcon.Warning);
+                }
+                else
+                {
+                    if (!File.Exists(arg))
+                    {
+                        this.ShowMessage("Unable to load the game '" + arg + "' because it does not exist", MessageBoxIcon.Warning);
+                    }
+                    else if (_interactiveTasks.LoadGameFromDisk(arg))
+                    {
+                        if (compileAndExit)
+                        {
+                            forceRebuild = _agsEditor.NeedsRebuildForDebugMode();
+                            if (forceRebuild)
+                                _agsEditor.SaveGameFiles();
+                            if (!_agsEditor.CompileGame(forceRebuild, false).HasErrors)
+                            {
+                                _batchProcessShutdown = true;
+                                this.ExitApplication();
+                            }
+                        }
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
 
         public bool VerifyTemplatesDirectoryExists()
         {
@@ -867,9 +867,9 @@ namespace AGS.Editor
         public bool ShowWelcomeScreen()
         {
             if (System.Environment.OSVersion.Platform != PlatformID.Win32NT)
-			{
-				this.ShowMessage("You are running AGS on a computer with Windows 98 or Windows ME. AGS is no longer supported on these operating systems. You are STRONGLY ADVISED to run the AGS Editor on Windows 2000, XP or Vista.", MessageBoxIcon.Warning);
-			}
+            {
+                this.ShowMessage("You are running AGS on a computer with Windows 98 or Windows ME. AGS is no longer supported on these operating systems. You are STRONGLY ADVISED to run the AGS Editor on Windows 2000, XP or Vista.", MessageBoxIcon.Warning);
+            }
 
             if (!VerifyTemplatesDirectoryExists())
             {
@@ -878,13 +878,13 @@ namespace AGS.Editor
                 return true;
             }
 
-			bool showWelcomeScreen = ProcessCommandLineArgumentsAndReturnWhetherToShowWelcomeScreen();
+            bool showWelcomeScreen = ProcessCommandLineArgumentsAndReturnWhetherToShowWelcomeScreen();
 
             while (showWelcomeScreen)
             {
-				Directory.SetCurrentDirectory(_agsEditor.EditorDirectory);
+                Directory.SetCurrentDirectory(_agsEditor.EditorDirectory);
                 WelcomeScreen welcomeScreen = new WelcomeScreen(_agsEditor.RecentGames);
-				DialogResult result = welcomeScreen.ShowDialog();
+                DialogResult result = welcomeScreen.ShowDialog();
                 WelcomeScreenSelection selection = welcomeScreen.SelectedOption;
                 showWelcomeScreen = false;
 
@@ -928,7 +928,7 @@ namespace AGS.Editor
 
                 welcomeScreen.Dispose();
             }
-			return _exitFromWelcomeScreen;
+            return _exitFromWelcomeScreen;
         }
 
         private bool ShowNewGameWizard()
@@ -949,7 +949,7 @@ namespace AGS.Editor
             StartNewGameWizardPage2 gameNameSelectPage = new StartNewGameWizardPage2(_agsEditor.Preferences.NewGamePath);
             pages.Add(templateSelectPage);
             pages.Add(gameNameSelectPage);
-            
+
             WizardDialog dialog = new WizardDialog("Start New Game", "This wizard will guide you through the process of creating a new game.", pages);
             DialogResult result = dialog.ShowDialog();
 
@@ -1022,57 +1022,57 @@ namespace AGS.Editor
             return createdSuccessfully;
         }
 
-		private string[] ConstructRoomTemplateFileList(UnloadedRoom room)
-		{
-			List<string> files = new List<string>();
-			Utilities.AddAllMatchingFiles(files, Path.ChangeExtension(room.FileName, ".ico"));
-			Utilities.AddAllMatchingFiles(files, ROOM_TEMPLATE_ID_FILE);
-			Utilities.AddAllMatchingFiles(files, room.FileName);
-			Utilities.AddAllMatchingFiles(files, room.ScriptFileName);
-			return files.ToArray();
-		}
+        private string[] ConstructRoomTemplateFileList(UnloadedRoom room)
+        {
+            List<string> files = new List<string>();
+            Utilities.AddAllMatchingFiles(files, Path.ChangeExtension(room.FileName, ".ico"));
+            Utilities.AddAllMatchingFiles(files, ROOM_TEMPLATE_ID_FILE);
+            Utilities.AddAllMatchingFiles(files, room.FileName);
+            Utilities.AddAllMatchingFiles(files, room.ScriptFileName);
+            return files.ToArray();
+        }
 
-		public void ShowCreateRoomTemplateWizard(UnloadedRoom room)
-		{
-			List<WizardPage> pages = new List<WizardPage>();
-			MakeTemplateWizardPage templateCreationPage = new MakeTemplateWizardPage(_agsEditor.TemplatesDirectory, ".art");
-			pages.Add(templateCreationPage);
+        public void ShowCreateRoomTemplateWizard(UnloadedRoom room)
+        {
+            List<WizardPage> pages = new List<WizardPage>();
+            MakeTemplateWizardPage templateCreationPage = new MakeTemplateWizardPage(_agsEditor.TemplatesDirectory, ".art");
+            pages.Add(templateCreationPage);
 
-			WizardDialog dialog = new WizardDialog("Room Template", "This wizard will guide you through the process of creating a room template. A room template allows you to easily create new rooms based off an existing one.", pages);
-			DialogResult result = dialog.ShowDialog();
+            WizardDialog dialog = new WizardDialog("Room Template", "This wizard will guide you through the process of creating a room template. A room template allows you to easily create new rooms based off an existing one.", pages);
+            DialogResult result = dialog.ShowDialog();
 
-			if (result == DialogResult.OK)
-			{
-				string templateFileName = templateCreationPage.GetFullPath();
-				try
-				{
-					if (File.Exists(templateFileName))
-					{
-						File.Delete(templateFileName);
-					}
-					BinaryWriter writer = new BinaryWriter(new FileStream(ROOM_TEMPLATE_ID_FILE, FileMode.Create, FileAccess.Write));
-					writer.Write(ROOM_TEMPLATE_ID_FILE_SIGNATURE);
-					writer.Write(room.Number);
-					writer.Close();
+            if (result == DialogResult.OK)
+            {
+                string templateFileName = templateCreationPage.GetFullPath();
+                try
+                {
+                    if (File.Exists(templateFileName))
+                    {
+                        File.Delete(templateFileName);
+                    }
+                    BinaryWriter writer = new BinaryWriter(new FileStream(ROOM_TEMPLATE_ID_FILE, FileMode.Create, FileAccess.Write));
+                    writer.Write(ROOM_TEMPLATE_ID_FILE_SIGNATURE);
+                    writer.Write(room.Number);
+                    writer.Close();
 
-					Factory.NativeProxy.CreateTemplateFile(templateFileName, ConstructRoomTemplateFileList(room));
+                    Factory.NativeProxy.CreateTemplateFile(templateFileName, ConstructRoomTemplateFileList(room));
 
-					File.Delete(ROOM_TEMPLATE_ID_FILE);
+                    File.Delete(ROOM_TEMPLATE_ID_FILE);
 
-					Factory.GUIController.ShowMessage("Template created successfully. To try it out, create a new room.", MessageBoxIcon.Information);
-				}
-				catch (AGSEditorException ex)
-				{
-					Factory.GUIController.ShowMessage("There was an error creating your template: " + ex.Message, MessageBoxIcon.Warning);
-				}
-				catch (Exception ex)
-				{
-					Factory.GUIController.ShowMessage("There was an error creating your template. The error was: " + ex.Message + Environment.NewLine + Environment.NewLine + "Error details: " + ex.ToString(), MessageBoxIcon.Warning);
-				}
-			}
+                    Factory.GUIController.ShowMessage("Template created successfully. To try it out, create a new room.", MessageBoxIcon.Information);
+                }
+                catch (AGSEditorException ex)
+                {
+                    Factory.GUIController.ShowMessage("There was an error creating your template: " + ex.Message, MessageBoxIcon.Warning);
+                }
+                catch (Exception ex)
+                {
+                    Factory.GUIController.ShowMessage("There was an error creating your template. The error was: " + ex.Message + Environment.NewLine + Environment.NewLine + "Error details: " + ex.ToString(), MessageBoxIcon.Warning);
+                }
+            }
 
-			dialog.Dispose();
-		}
+            dialog.Dispose();
+        }
 
         public void ShowCreateTemplateWizard()
         {
@@ -1100,11 +1100,11 @@ namespace AGS.Editor
                     InteractiveTasks.CreateTemplateFromCurrentGame(templateName);
                     Factory.GUIController.ShowMessage("Template created successfully. To try it out, close AGS, start it up again, and select the 'Start New Game' option.", MessageBoxIcon.Information);
                 }
-				catch (AGSEditorException ex)
-				{
-					Factory.GUIController.ShowMessage("There was an error creating your template:" + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
-				}
-				catch (Exception ex)
+                catch (AGSEditorException ex)
+                {
+                    Factory.GUIController.ShowMessage("There was an error creating your template:" + Environment.NewLine + ex.Message, MessageBoxIcon.Warning);
+                }
+                catch (Exception ex)
                 {
                     Factory.GUIController.ShowMessage("There was an error creating your template. The error was: " + ex.Message + Environment.NewLine + Environment.NewLine + "Error details: " + ex.ToString(), MessageBoxIcon.Warning);
                 }
@@ -1113,40 +1113,40 @@ namespace AGS.Editor
             dialog.Dispose();
         }
 
-		public void ShowCreateVoiceActingScriptWizard()
-		{
-			List<WizardPage> pages = new List<WizardPage>();
-			CreateVoiceActingScriptPage mainPage = new CreateVoiceActingScriptPage();
-			mainPage.SelectedFilePath = Path.Combine(_agsEditor.CurrentGame.DirectoryPath, "VoiceSpeech.txt");
-			pages.Add(mainPage);
+        public void ShowCreateVoiceActingScriptWizard()
+        {
+            List<WizardPage> pages = new List<WizardPage>();
+            CreateVoiceActingScriptPage mainPage = new CreateVoiceActingScriptPage();
+            mainPage.SelectedFilePath = Path.Combine(_agsEditor.CurrentGame.DirectoryPath, "VoiceSpeech.txt");
+            pages.Add(mainPage);
 
-			WizardDialog dialog = new WizardDialog("Voice Acting Script", "This wizard will guide you through creating a voice acting script. This script is a text file that you can supply to your voice actors containing a list of lines that they need to record.", pages);
-			DialogResult result = dialog.ShowDialog();
+            WizardDialog dialog = new WizardDialog("Voice Acting Script", "This wizard will guide you through creating a voice acting script. This script is a text file that you can supply to your voice actors containing a list of lines that they need to record.", pages);
+            DialogResult result = dialog.ShowDialog();
 
-			if (result == DialogResult.OK)
-			{
-				try
-				{
-					_agsEditor.SaveGameFiles();
-					CompileMessages results = (CompileMessages)BusyDialog.Show("Please wait while your script is created...", new BusyDialog.ProcessingHandler(CreateVoiceActingScriptProcess), mainPage.SelectedFilePath);
-					Factory.GUIController.ShowOutputPanel(results);
-					if (results.HasErrors)
-					{
-						Factory.GUIController.ShowMessage("There were errors creating the voice acting script. See the output window for details.", MessageBoxIcon.Warning);
-					}
-					else
-					{
-						Factory.GUIController.ShowMessage("Voice acting script created successfully.", MessageBoxIcon.Information);
-					}
-				}
-				catch (Exception ex)
-				{
-					Factory.GUIController.ShowMessage("There was an error creating the voice acting script. The error was: " + ex.Message + Environment.NewLine + Environment.NewLine + "Error details: " + ex.ToString(), MessageBoxIcon.Warning);
-				}
-			}
+            if (result == DialogResult.OK)
+            {
+                try
+                {
+                    _agsEditor.SaveGameFiles();
+                    CompileMessages results = (CompileMessages)BusyDialog.Show("Please wait while your script is created...", new BusyDialog.ProcessingHandler(CreateVoiceActingScriptProcess), mainPage.SelectedFilePath);
+                    Factory.GUIController.ShowOutputPanel(results);
+                    if (results.HasErrors)
+                    {
+                        Factory.GUIController.ShowMessage("There were errors creating the voice acting script. See the output window for details.", MessageBoxIcon.Warning);
+                    }
+                    else
+                    {
+                        Factory.GUIController.ShowMessage("Voice acting script created successfully.", MessageBoxIcon.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Factory.GUIController.ShowMessage("There was an error creating the voice acting script. The error was: " + ex.Message + Environment.NewLine + Environment.NewLine + "Error details: " + ex.ToString(), MessageBoxIcon.Warning);
+                }
+            }
 
-			dialog.Dispose();
-		}
+            dialog.Dispose();
+        }
 
         public void ShowAutoNumberSpeechWizard()
         {
@@ -1168,14 +1168,14 @@ namespace AGS.Editor
                 AutoNumberSpeechData data = new AutoNumberSpeechData();
                 data.Options = options;
                 data.CharacterID = advancedOptions.SelectedCharacterID;
-                
+
                 try
                 {
                     _agsEditor.SaveGameFiles();
                     CompileMessages results = (CompileMessages)BusyDialog.Show("Please wait while your speech lines are numbered...", new BusyDialog.ProcessingHandler(AutoNumberSpeechLinesProcess), data);
                     Factory.GUIController.ShowOutputPanel(results);
                     Factory.Events.OnRefreshAllComponentsFromGame();
-                    _agsEditor.SaveGameFiles(); 
+                    _agsEditor.SaveGameFiles();
                     Factory.GUIController.ShowMessage("Speech lines numbered successfully.", MessageBoxIcon.Information);
                 }
                 catch (Exception ex)
@@ -1196,79 +1196,79 @@ namespace AGS.Editor
             return new SpeechLinesNumbering().NumberSpeechLines(_agsEditor.CurrentGame, doNarrator, combineIdenticalLines, removeNumbering, data.CharacterID);
         }
 
-		private object CreateVoiceActingScriptProcess(object parameter)
-		{
-			string outputFile = (string)parameter;
-			VoiceActorScriptGenerator generator = new VoiceActorScriptGenerator();
-			CompileMessages results = generator.CreateVoiceActingScript(_agsEditor.CurrentGame);
-			if (!results.HasErrors)
-			{
-				if (_agsEditor.AttemptToGetWriteAccess(outputFile))
-				{
-					using (StreamWriter sw = new StreamWriter(outputFile, false))
-					{
-						foreach (int charID in generator.LinesByCharacter.Keys)
-						{
-							WriteLinesForCharacter(charID, sw, generator.LinesByCharacter[charID]);
-						}
+        private object CreateVoiceActingScriptProcess(object parameter)
+        {
+            string outputFile = (string)parameter;
+            VoiceActorScriptGenerator generator = new VoiceActorScriptGenerator();
+            CompileMessages results = generator.CreateVoiceActingScript(_agsEditor.CurrentGame);
+            if (!results.HasErrors)
+            {
+                if (_agsEditor.AttemptToGetWriteAccess(outputFile))
+                {
+                    using (StreamWriter sw = new StreamWriter(outputFile, false))
+                    {
+                        foreach (int charID in generator.LinesByCharacter.Keys)
+                        {
+                            WriteLinesForCharacter(charID, sw, generator.LinesByCharacter[charID]);
+                        }
 
-						sw.WriteLine();
-						sw.WriteLine("*** All text lines, in order of appearance in the scripts ***");
-						sw.WriteLine();
+                        sw.WriteLine();
+                        sw.WriteLine("*** All text lines, in order of appearance in the scripts ***");
+                        sw.WriteLine();
 
-						foreach (GameTextLine line in generator.LinesInOrder)
-						{
-							Character character = _agsEditor.CurrentGame.FindCharacterByID(line.CharacterID);
-							string characterName = "NARRATOR";
-							if (character != null)
-							{
-								characterName = character.ScriptName;
-							}
-							WriteLineIfItHasVoiceFile(characterName, line.Text, sw);
-						}
-					}
-				}
-			}
-			return results;
-		}
+                        foreach (GameTextLine line in generator.LinesInOrder)
+                        {
+                            Character character = _agsEditor.CurrentGame.FindCharacterByID(line.CharacterID);
+                            string characterName = "NARRATOR";
+                            if (character != null)
+                            {
+                                characterName = character.ScriptName;
+                            }
+                            WriteLineIfItHasVoiceFile(characterName, line.Text, sw);
+                        }
+                    }
+                }
+            }
+            return results;
+        }
 
-		private void WriteLinesForCharacter(int charID, StreamWriter sw, Dictionary<string,string> lines)
-		{
-			Character character = _agsEditor.CurrentGame.FindCharacterByID(charID);
-			if (character != null)
-			{
-				sw.WriteLine();
-				sw.WriteLine("*** Lines for character " + character.RealName + " (ID " + charID + ") ***");
-				sw.WriteLine();
-			}
-			else
-			{
-				sw.WriteLine();
-				sw.WriteLine("*** Lines for narrator ***");
-				sw.WriteLine();
-			}
+        private void WriteLinesForCharacter(int charID, StreamWriter sw, Dictionary<string, string> lines)
+        {
+            Character character = _agsEditor.CurrentGame.FindCharacterByID(charID);
+            if (character != null)
+            {
+                sw.WriteLine();
+                sw.WriteLine("*** Lines for character " + character.RealName + " (ID " + charID + ") ***");
+                sw.WriteLine();
+            }
+            else
+            {
+                sw.WriteLine();
+                sw.WriteLine("*** Lines for narrator ***");
+                sw.WriteLine();
+            }
 
-			foreach (string line in lines.Keys)
-			{
-				WriteLineIfItHasVoiceFile(string.Empty, line, sw);
-			}
-		}
+            foreach (string line in lines.Keys)
+            {
+                WriteLineIfItHasVoiceFile(string.Empty, line, sw);
+            }
+        }
 
-		private void WriteLineIfItHasVoiceFile(string prefix, string line, StreamWriter sw)
-		{
-			if (line.StartsWith("&"))
-			{
-				sw.WriteLine(prefix + ((prefix.Length > 0) ? ": " : string.Empty) + line);
-			}
-		}
+        private void WriteLineIfItHasVoiceFile(string prefix, string line, StreamWriter sw)
+        {
+            if (line.StartsWith("&"))
+            {
+                sw.WriteLine(prefix + ((prefix.Length > 0) ? ": " : string.Empty) + line);
+            }
+        }
 
-		public void ShowPreferencesEditor()
+        public void ShowPreferencesEditor()
         {
             PreferencesEditor prefsEditor = new PreferencesEditor(_agsEditor.Preferences);
             if (prefsEditor.ShowDialog() == DialogResult.OK)
             {
                 _agsEditor.Preferences.SaveToRegistry();
-				//_mainForm.SetProjectTreeLocation(_agsEditor.Preferences.ProjectTreeOnRight);
+                //_mainForm.SetProjectTreeLocation(_agsEditor.Preferences.ProjectTreeOnRight);
             }
             prefsEditor.Dispose();
         }
@@ -1324,9 +1324,9 @@ namespace AGS.Editor
             ((Timer)sender).Stop();
             ((Timer)sender).Dispose();
             ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(_timerScriptName, ZoomToFileZoomType.ZoomToText, 0, _timerSearchForText, false, null, true);
-			evArgs.SelectLine = false;
+            evArgs.SelectLine = false;
             evArgs.ZoomToLineAfterOpeningBrace = true;
-			OnZoomToFile(evArgs);
+            OnZoomToFile(evArgs);
         }
 
         private string PropertyTabInteractions_UpdateEventName(string eventName)
@@ -1377,17 +1377,17 @@ namespace AGS.Editor
 
         private int ShowSpriteChooserFromPropertyGrid(int currentSprite)
         {
-			int defaultSpriteInDialog = currentSprite;
-			if (defaultSpriteInDialog == 0)
-			{
-				defaultSpriteInDialog = _lastSelectedSprite;
-			}
+            int defaultSpriteInDialog = currentSprite;
+            if (defaultSpriteInDialog == 0)
+            {
+                defaultSpriteInDialog = _lastSelectedSprite;
+            }
             Sprite chosenSprite = SpriteChooser.ShowSpriteChooser(defaultSpriteInDialog);
             if (chosenSprite == null)
             {
                 return currentSprite;
             }
-			_lastSelectedSprite = chosenSprite.Number;
+            _lastSelectedSprite = chosenSprite.Number;
             return chosenSprite.Number;
         }
 
@@ -1403,8 +1403,8 @@ namespace AGS.Editor
 
         public void StartGUI(string[] commandLineArguments)
         {
-			_commandLineArgs = commandLineArguments;
-			_messageLoopStarted = true;
+            _commandLineArgs = commandLineArguments;
+            _messageLoopStarted = true;
             Application.Run(_mainForm);
         }
 
@@ -1425,7 +1425,7 @@ namespace AGS.Editor
         void _mainForm_OnPropertyChanged(string propertyName, object oldValue)
         {
             if (ActivePane != null)
-            {               
+            {
                 ActivePane.Owner.PropertyChanged(propertyName, oldValue);
                 ActivePane.Control.PropertyChanged(propertyName, oldValue);
                 DocumentTitlesChanged();
@@ -1438,10 +1438,10 @@ namespace AGS.Editor
             _menuItems[menuItemID].CommandClick(results[1]);
         }
 
-		public bool CanFindComponentFromMenuItemID(string menuItemID)
-		{
-			return menuItemID.Contains(CONTROL_ID_SPLIT);
-		}
+        public bool CanFindComponentFromMenuItemID(string menuItemID)
+        {
+            return menuItemID.Contains(CONTROL_ID_SPLIT);
+        }
 
         private void _mainForm_OnActiveDocumentChanged()
         {
@@ -1481,25 +1481,25 @@ namespace AGS.Editor
             return id;
         }
 
-		public bool QueryWhetherToSaveGameBeforeContinuing(string message)
-		{
-			bool proceed = true;
-			DialogResult result = MessageBox.Show(message, "Save changes?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
-			if (result == DialogResult.Cancel)
-			{
-				proceed = false;
-			}
-			else
-			{
-				if ((result == DialogResult.No) && (_agsEditor.CurrentGame.FilesAddedOrRemoved))
-				{
-					result = MessageBox.Show("Files have been added, removed or renamed. If you don't save the game now, you may not be able to successfully open this game next time. Do you want to save your changes?", "Save changes?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-				}
+        public bool QueryWhetherToSaveGameBeforeContinuing(string message)
+        {
+            bool proceed = true;
+            DialogResult result = MessageBox.Show(message, "Save changes?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+            if (result == DialogResult.Cancel)
+            {
+                proceed = false;
+            }
+            else
+            {
+                if ((result == DialogResult.No) && (_agsEditor.CurrentGame.FilesAddedOrRemoved))
+                {
+                    result = MessageBox.Show("Files have been added, removed or renamed. If you don't save the game now, you may not be able to successfully open this game next time. Do you want to save your changes?", "Save changes?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                }
 
-				if (result == DialogResult.Yes)
-				{
-					_agsEditor.SaveGameFiles();
-				}
+                if (result == DialogResult.Yes)
+                {
+                    _agsEditor.SaveGameFiles();
+                }
 
                 if ((_agsEditor.Preferences.BackupWarningInterval > 0) &&
                     (DateTime.Now.Subtract(_agsEditor.Preferences.LastBackupWarning).TotalDays > _agsEditor.Preferences.BackupWarningInterval))
@@ -1508,9 +1508,9 @@ namespace AGS.Editor
                     _agsEditor.Preferences.SaveToRegistry();
                     this.ShowMessage("Have you backed up your game recently? Remember, power failures and blue screens happen when you least expect them. Make a backup copy of your game now!", MessageBoxIcon.Warning);
                 }
-			}
-			return proceed;
-		}
+            }
+            return proceed;
+        }
 
         private bool _mainForm_OnEditorShutdown()
         {
@@ -1518,34 +1518,34 @@ namespace AGS.Editor
 
             bool canShutDown = true;
 
-			if (_batchProcessShutdown)
-			{
-				if (OnEditorShutdown != null)
-				{
-					OnEditorShutdown();
-				}
-			}
-			else if (!_exitFromWelcomeScreen)
-			{
-				canShutDown = QueryWhetherToSaveGameBeforeContinuing("Do you want to save the game before exiting?");
-				if (canShutDown)
-				{
-					if (QueryEditorShutdown != null)
-					{
-						canShutDown = QueryEditorShutdown();
-					}
-					if ((canShutDown) && (OnEditorShutdown != null))
-					{
-						OnEditorShutdown();
-					}
-				}
-			}
+            if (_batchProcessShutdown)
+            {
+                if (OnEditorShutdown != null)
+                {
+                    OnEditorShutdown();
+                }
+            }
+            else if (!_exitFromWelcomeScreen)
+            {
+                canShutDown = QueryWhetherToSaveGameBeforeContinuing("Do you want to save the game before exiting?");
+                if (canShutDown)
+                {
+                    if (QueryEditorShutdown != null)
+                    {
+                        canShutDown = QueryEditorShutdown();
+                    }
+                    if ((canShutDown) && (OnEditorShutdown != null))
+                    {
+                        OnEditorShutdown();
+                    }
+                }
+            }
 
-			if (canShutDown)
-			{
-				SystemEvents.DisplaySettingsChanged -= new EventHandler(SystemEvents_DisplaySettingsChanging);
+            if (canShutDown)
+            {
+                SystemEvents.DisplaySettingsChanged -= new EventHandler(SystemEvents_DisplaySettingsChanging);
                 _agsEditor.Dispose();
-			}
+            }
 
             return canShutDown;
         }
@@ -1597,7 +1597,7 @@ namespace AGS.Editor
         private void AutoComplete_BackgroundCacheUpdateStatusChanged(BackgroundAutoCompleteStatus status, Exception errorDetails)
         {
             string statusText = string.Empty;
-            switch (status) 
+            switch (status)
             {
                 case BackgroundAutoCompleteStatus.Processing:
                     statusText = "Updating autocomplete cache...";
@@ -1670,14 +1670,14 @@ namespace AGS.Editor
             }
         }
 
-		void IGUIController.DrawSprite(Graphics g, int spriteNumber, int x, int y, int width, int height, bool centreHorizontally)
-		{
-			int spriteWidth = Factory.NativeProxy.GetRelativeSpriteWidth(spriteNumber) * 2;
-			int spriteHeight = Factory.NativeProxy.GetRelativeSpriteHeight(spriteNumber) * 2;
-			Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNumber, spriteWidth, spriteHeight), width, height, centreHorizontally, false, SystemColors.Control);
-			g.DrawImage(bmp, x, y);
-			bmp.Dispose();
-		}
+        void IGUIController.DrawSprite(Graphics g, int spriteNumber, int x, int y, int width, int height, bool centreHorizontally)
+        {
+            int spriteWidth = Factory.NativeProxy.GetRelativeSpriteWidth(spriteNumber) * 2;
+            int spriteHeight = Factory.NativeProxy.GetRelativeSpriteHeight(spriteNumber) * 2;
+            Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNumber, spriteWidth, spriteHeight), width, height, centreHorizontally, false, SystemColors.Control);
+            g.DrawImage(bmp, x, y);
+            bmp.Dispose();
+        }
 
         private struct AutoNumberSpeechData
         {

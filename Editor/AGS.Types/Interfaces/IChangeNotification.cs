@@ -4,8 +4,8 @@ using System.Text;
 
 namespace AGS.Types
 {
-	public interface IChangeNotification
-	{
-		void ItemModified();
-	}
+    public interface IChangeNotification
+    {
+        void ItemModified();
+    }
 }

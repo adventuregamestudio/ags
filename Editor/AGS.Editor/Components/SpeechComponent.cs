@@ -18,7 +18,7 @@ namespace AGS.Editor.Components
         private static readonly string SPEECH_VOX_FILE_NAME = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, "speech.vox");
 
         private Dictionary<string, DateTime> _speechVoxStatus = new Dictionary<string, DateTime>();
-		private Dictionary<string, DateTime> _pamFileStatus = new Dictionary<string, DateTime>();
+        private Dictionary<string, DateTime> _pamFileStatus = new Dictionary<string, DateTime>();
 
         public SpeechComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
@@ -41,14 +41,14 @@ namespace AGS.Editor.Components
 
         private void _agsEditor_ExtraCompilationStep(CompileMessages errors)
         {
-			string[] pamFileList = ConstructFileListForSyncData();
+            string[] pamFileList = ConstructFileListForSyncData();
 
-			if (DoesTargetFileNeedRebuild(LIP_SYNC_DATA_OUTPUT, pamFileList, _pamFileStatus))
-			{
-				CompilePAMFiles(errors);
+            if (DoesTargetFileNeedRebuild(LIP_SYNC_DATA_OUTPUT, pamFileList, _pamFileStatus))
+            {
+                CompilePAMFiles(errors);
 
-				UpdateVOXFileStatusWithCurrentFileTimes(pamFileList, _pamFileStatus);
-			}
+                UpdateVOXFileStatusWithCurrentFileTimes(pamFileList, _pamFileStatus);
+            }
         }
 
         private void _agsEditor_ExtraOutputCreationStep()
@@ -163,23 +163,23 @@ namespace AGS.Editor.Components
 
                 foreach (SpeechLipSyncLine line in lipSyncDataLines)
                 {
-					bw.Write((short)line.Phenomes.Count);
+                    bw.Write((short)line.Phenomes.Count);
 
-					byte[] fileNameBytes = Encoding.Default.GetBytes(line.FileName);
-					byte[] paddedFileNameBytes = new byte[14];
-					Array.Copy(fileNameBytes, paddedFileNameBytes, fileNameBytes.Length);
-					paddedFileNameBytes[fileNameBytes.Length] = 0;
-					bw.Write(paddedFileNameBytes);
+                    byte[] fileNameBytes = Encoding.Default.GetBytes(line.FileName);
+                    byte[] paddedFileNameBytes = new byte[14];
+                    Array.Copy(fileNameBytes, paddedFileNameBytes, fileNameBytes.Length);
+                    paddedFileNameBytes[fileNameBytes.Length] = 0;
+                    bw.Write(paddedFileNameBytes);
 
                     for (int i = 0; i < line.Phenomes.Count; i++)
                     {
-						bw.Write((int)line.Phenomes[i].EndTimeOffset);
+                        bw.Write((int)line.Phenomes[i].EndTimeOffset);
                     }
-					for (int i = 0; i < line.Phenomes.Count; i++)
-					{
-						bw.Write((short)line.Phenomes[i].Frame);
-					}
-				}
+                    for (int i = 0; i < line.Phenomes.Count; i++)
+                    {
+                        bw.Write((short)line.Phenomes[i].Frame);
+                    }
+                }
 
                 bw.Close();
             }
@@ -206,19 +206,19 @@ namespace AGS.Editor.Components
             return files.ToArray();
         }
 
-		private string[] ConstructFileListForSyncData()
-		{
-			List<string> files = new List<string>();
-			Utilities.AddAllMatchingFiles(files, PAM_FILE_FILTER);
-			return files.ToArray();
-		}
-
-		private bool DoesTargetFileNeedRebuild(string targetFile, string[] filesOnDisk, Dictionary<string, DateTime> fileStatuses)
+        private string[] ConstructFileListForSyncData()
         {
-			if (!File.Exists(targetFile))
-			{
-				return true;
-			}
+            List<string> files = new List<string>();
+            Utilities.AddAllMatchingFiles(files, PAM_FILE_FILTER);
+            return files.ToArray();
+        }
+
+        private bool DoesTargetFileNeedRebuild(string targetFile, string[] filesOnDisk, Dictionary<string, DateTime> fileStatuses)
+        {
+            if (!File.Exists(targetFile))
+            {
+                return true;
+            }
 
             bool needsRebuild = false;
             foreach (string file in filesOnDisk)
@@ -249,36 +249,36 @@ namespace AGS.Editor.Components
             }
         }
 
-		private void RebuildVOXFileIfRequired(string voxFileName, string[] filesOnDisk, Dictionary<string,DateTime> sourceFileTimes)
-		{
-			if (DoesTargetFileNeedRebuild(voxFileName, filesOnDisk, sourceFileTimes))
-			{
-				if (File.Exists(voxFileName))
-				{
-					File.Delete(voxFileName);
-				}
-				if (filesOnDisk.Length > 0)
-				{
-					Factory.NativeProxy.CreateVOXFile(voxFileName, filesOnDisk);
-				}
-				UpdateVOXFileStatusWithCurrentFileTimes(filesOnDisk, sourceFileTimes);
-			}
+        private void RebuildVOXFileIfRequired(string voxFileName, string[] filesOnDisk, Dictionary<string, DateTime> sourceFileTimes)
+        {
+            if (DoesTargetFileNeedRebuild(voxFileName, filesOnDisk, sourceFileTimes))
+            {
+                if (File.Exists(voxFileName))
+                {
+                    File.Delete(voxFileName);
+                }
+                if (filesOnDisk.Length > 0)
+                {
+                    Factory.NativeProxy.CreateVOXFile(voxFileName, filesOnDisk);
+                }
+                UpdateVOXFileStatusWithCurrentFileTimes(filesOnDisk, sourceFileTimes);
+            }
 
-		}
+        }
 
         public override void FromXml(XmlNode node)
         {
             if (node != null)
             {
                 ReadFileTimes(node, "SpeechVoxFiles", _speechVoxStatus);
-				ReadFileTimes(node, "PamFiles", _pamFileStatus);
+                ReadFileTimes(node, "PamFiles", _pamFileStatus);
             }
         }
 
         public override void ToXml(XmlTextWriter writer)
         {
             WriteFileTimes(writer, "SpeechVoxFiles", _speechVoxStatus);
-			WriteFileTimes(writer, "PamFiles", _pamFileStatus);
+            WriteFileTimes(writer, "PamFiles", _pamFileStatus);
         }
 
         private void ReadFileTimes(XmlNode node, string elementName, Dictionary<string, DateTime> fileStatuses)
@@ -290,8 +290,8 @@ namespace AGS.Editor.Components
             {
                 foreach (XmlNode child in mainNode.ChildNodes)
                 {
-					string timeString = SerializeUtils.GetAttributeString(child, "FileTime");
-					DateTime fileTime = DateTime.Parse(timeString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
+                    string timeString = SerializeUtils.GetAttributeString(child, "FileTime");
+                    DateTime fileTime = DateTime.Parse(timeString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
                     fileStatuses.Add(SerializeUtils.GetAttributeString(child, "Name"), fileTime);
                 }
             }

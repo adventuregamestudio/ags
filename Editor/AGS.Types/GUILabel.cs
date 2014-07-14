@@ -25,7 +25,7 @@ namespace AGS.Types
         {
         }
 
-        public GUILabel() { } 
+        public GUILabel() { }
 
         private string _text;
         private int _font;

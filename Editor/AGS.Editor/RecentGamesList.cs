@@ -15,12 +15,12 @@ namespace AGS.Editor
             RegistryKey key = Registry.CurrentUser.OpenSubKey(AGSEditor.AGS_REGISTRY_KEY);
             if (key != null)
             {
-				string usePrefix = "RecentPath";
-				if (key.GetValue("RecentPath0", string.Empty).ToString() == string.Empty)
-				{
-					// if no 2.8 recent games, read the 2.72 list instead
-					usePrefix = "Recent";
-				}
+                string usePrefix = "RecentPath";
+                if (key.GetValue("RecentPath0", string.Empty).ToString() == string.Empty)
+                {
+                    // if no 2.8 recent games, read the 2.72 list instead
+                    usePrefix = "Recent";
+                }
                 int i = 0;
                 string recentPath;
                 string recentGameName;

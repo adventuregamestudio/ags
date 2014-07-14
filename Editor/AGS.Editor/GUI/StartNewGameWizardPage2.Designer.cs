@@ -157,8 +157,8 @@ namespace AGS.Editor
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox txtFileName;
         private System.Windows.Forms.Label lblFilePath;
-		private System.Windows.Forms.TextBox txtCreateInFolder;
-		private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox txtCreateInFolder;
+        private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Button btnCreateInBrowse;
     }
 }

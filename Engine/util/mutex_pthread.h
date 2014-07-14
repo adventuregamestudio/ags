@@ -19,42 +19,42 @@
 
 namespace AGS
 {
-namespace Engine
-{
+    namespace Engine
+    {
 
 
-class PThreadMutex : public BaseMutex
-{
-public:
-  inline PThreadMutex()
-  {
-    pthread_mutex_init(&_mutex, NULL);
-  }
+        class PThreadMutex : public BaseMutex
+        {
+        public:
+            inline PThreadMutex()
+            {
+                pthread_mutex_init(&_mutex, NULL);
+            }
 
-  inline ~PThreadMutex()
-  {
-    Unlock();
-    pthread_mutex_destroy(&_mutex);
-  }
+            inline ~PThreadMutex()
+            {
+                Unlock();
+                pthread_mutex_destroy(&_mutex);
+            }
 
-  inline void Lock()
-  {
-    pthread_mutex_lock(&_mutex);
-  }
+            inline void Lock()
+            {
+                pthread_mutex_lock(&_mutex);
+            }
 
-  inline void Unlock()
-  {
-    pthread_mutex_unlock(&_mutex);
-  }
+            inline void Unlock()
+            {
+                pthread_mutex_unlock(&_mutex);
+            }
 
-private:
-  pthread_mutex_t _mutex;
-};
+        private:
+            pthread_mutex_t _mutex;
+        };
 
-typedef PThreadMutex Mutex;
+        typedef PThreadMutex Mutex;
 
 
-} // namespace Engine
+    } // namespace Engine
 } // namespace AGS
 
 #endif // __AGS_EE_UTIL__MUTEX_PTHREAD_H

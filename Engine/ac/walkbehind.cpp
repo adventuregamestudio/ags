@@ -42,105 +42,105 @@ int walk_behind_baselines_changed = 0;
 
 void update_walk_behind_images()
 {
-  int ee, rr;
-  int bpp = (thisroom.ebscene[play.bg_frame]->GetColorDepth() + 7) / 8;
-  Bitmap *wbbmp;
-  for (ee = 1; ee < MAX_OBJ; ee++)
-  {
-    update_polled_stuff_if_runtime();
-    
-    if (walkBehindRight[ee] > 0)
+    int ee, rr;
+    int bpp = (thisroom.ebscene[play.bg_frame]->GetColorDepth() + 7) / 8;
+    Bitmap *wbbmp;
+    for (ee = 1; ee < MAX_OBJ; ee++)
     {
-      wbbmp = BitmapHelper::CreateTransparentBitmap( 
-                               (walkBehindRight[ee] - walkBehindLeft[ee]) + 1,
-                               (walkBehindBottom[ee] - walkBehindTop[ee]) + 1,
-							   thisroom.ebscene[play.bg_frame]->GetColorDepth());
-      int yy, startX = walkBehindLeft[ee], startY = walkBehindTop[ee];
-      for (rr = startX; rr <= walkBehindRight[ee]; rr++)
-      {
-        for (yy = startY; yy <= walkBehindBottom[ee]; yy++)
+        update_polled_stuff_if_runtime();
+
+        if (walkBehindRight[ee] > 0)
         {
-          if (thisroom.object->GetScanLine(yy)[rr] == ee)
-          {
-            for (int ii = 0; ii < bpp; ii++)
-              wbbmp->GetScanLineForWriting(yy - startY)[(rr - startX) * bpp + ii] = thisroom.ebscene[play.bg_frame]->GetScanLine(yy)[rr * bpp + ii];
-          }
+            wbbmp = BitmapHelper::CreateTransparentBitmap( 
+                (walkBehindRight[ee] - walkBehindLeft[ee]) + 1,
+                (walkBehindBottom[ee] - walkBehindTop[ee]) + 1,
+                thisroom.ebscene[play.bg_frame]->GetColorDepth());
+            int yy, startX = walkBehindLeft[ee], startY = walkBehindTop[ee];
+            for (rr = startX; rr <= walkBehindRight[ee]; rr++)
+            {
+                for (yy = startY; yy <= walkBehindBottom[ee]; yy++)
+                {
+                    if (thisroom.object->GetScanLine(yy)[rr] == ee)
+                    {
+                        for (int ii = 0; ii < bpp; ii++)
+                            wbbmp->GetScanLineForWriting(yy - startY)[(rr - startX) * bpp + ii] = thisroom.ebscene[play.bg_frame]->GetScanLine(yy)[rr * bpp + ii];
+                    }
+                }
+            }
+
+            update_polled_stuff_if_runtime();
+
+            if (walkBehindBitmap[ee] != NULL)
+            {
+                gfxDriver->DestroyDDB(walkBehindBitmap[ee]);
+            }
+            walkBehindBitmap[ee] = gfxDriver->CreateDDBFromBitmap(wbbmp, false);
+            delete wbbmp;
         }
-      }
-
-      update_polled_stuff_if_runtime();
-
-      if (walkBehindBitmap[ee] != NULL)
-      {
-        gfxDriver->DestroyDDB(walkBehindBitmap[ee]);
-      }
-      walkBehindBitmap[ee] = gfxDriver->CreateDDBFromBitmap(wbbmp, false);
-      delete wbbmp;
     }
-  }
 
-  walkBehindsCachedForBgNum = play.bg_frame;
+    walkBehindsCachedForBgNum = play.bg_frame;
 }
 
 
 void recache_walk_behinds () {
-  if (walkBehindExists) {
-    free (walkBehindExists);
-    free (walkBehindStartY);
-    free (walkBehindEndY);
-  }
+    if (walkBehindExists) {
+        free (walkBehindExists);
+        free (walkBehindStartY);
+        free (walkBehindEndY);
+    }
 
-  walkBehindExists = (char*)malloc (thisroom.object->GetWidth());
-  walkBehindStartY = (int*)malloc (thisroom.object->GetWidth() * sizeof(int));
-  walkBehindEndY = (int*)malloc (thisroom.object->GetWidth() * sizeof(int));
-  noWalkBehindsAtAll = 1;
+    walkBehindExists = (char*)malloc (thisroom.object->GetWidth());
+    walkBehindStartY = (int*)malloc (thisroom.object->GetWidth() * sizeof(int));
+    walkBehindEndY = (int*)malloc (thisroom.object->GetWidth() * sizeof(int));
+    noWalkBehindsAtAll = 1;
 
-  int ee,rr,tmm;
-  const int NO_WALK_BEHIND = 100000;
-  for (ee = 0; ee < MAX_OBJ; ee++)
-  {
-    walkBehindLeft[ee] = NO_WALK_BEHIND;
-    walkBehindTop[ee] = NO_WALK_BEHIND;
-    walkBehindRight[ee] = 0;
-    walkBehindBottom[ee] = 0;
-
-    if (walkBehindBitmap[ee] != NULL)
+    int ee,rr,tmm;
+    const int NO_WALK_BEHIND = 100000;
+    for (ee = 0; ee < MAX_OBJ; ee++)
     {
-      gfxDriver->DestroyDDB(walkBehindBitmap[ee]);
-      walkBehindBitmap[ee] = NULL;
-    }
-  }
+        walkBehindLeft[ee] = NO_WALK_BEHIND;
+        walkBehindTop[ee] = NO_WALK_BEHIND;
+        walkBehindRight[ee] = 0;
+        walkBehindBottom[ee] = 0;
 
-  update_polled_stuff_if_runtime();
-
-  // since this is an 8-bit memory bitmap, we can just use direct 
-  // memory access
-  if ((!thisroom.object->IsLinearBitmap()) || (thisroom.object->GetColorDepth() != 8))
-    quit("Walk behinds bitmap not linear");
-
-  for (ee=0;ee<thisroom.object->GetWidth();ee++) {
-    walkBehindExists[ee] = 0;
-    for (rr=0;rr<thisroom.object->GetHeight();rr++) {
-      tmm = thisroom.object->GetScanLine(rr)[ee];
-      //tmm = _getpixel(thisroom.object,ee,rr);
-      if ((tmm >= 1) && (tmm < MAX_OBJ)) {
-        if (!walkBehindExists[ee]) {
-          walkBehindStartY[ee] = rr;
-          walkBehindExists[ee] = tmm;
-          noWalkBehindsAtAll = 0;
+        if (walkBehindBitmap[ee] != NULL)
+        {
+            gfxDriver->DestroyDDB(walkBehindBitmap[ee]);
+            walkBehindBitmap[ee] = NULL;
         }
-        walkBehindEndY[ee] = rr + 1;  // +1 to allow bottom line of screen to work
-
-        if (ee < walkBehindLeft[tmm]) walkBehindLeft[tmm] = ee;
-        if (rr < walkBehindTop[tmm]) walkBehindTop[tmm] = rr;
-        if (ee > walkBehindRight[tmm]) walkBehindRight[tmm] = ee;
-        if (rr > walkBehindBottom[tmm]) walkBehindBottom[tmm] = rr;
-      }
     }
-  }
 
-  if (walkBehindMethod == DrawAsSeparateSprite)
-  {
-    update_walk_behind_images();
-  }
+    update_polled_stuff_if_runtime();
+
+    // since this is an 8-bit memory bitmap, we can just use direct 
+    // memory access
+    if ((!thisroom.object->IsLinearBitmap()) || (thisroom.object->GetColorDepth() != 8))
+        quit("Walk behinds bitmap not linear");
+
+    for (ee=0;ee<thisroom.object->GetWidth();ee++) {
+        walkBehindExists[ee] = 0;
+        for (rr=0;rr<thisroom.object->GetHeight();rr++) {
+            tmm = thisroom.object->GetScanLine(rr)[ee];
+            //tmm = _getpixel(thisroom.object,ee,rr);
+            if ((tmm >= 1) && (tmm < MAX_OBJ)) {
+                if (!walkBehindExists[ee]) {
+                    walkBehindStartY[ee] = rr;
+                    walkBehindExists[ee] = tmm;
+                    noWalkBehindsAtAll = 0;
+                }
+                walkBehindEndY[ee] = rr + 1;  // +1 to allow bottom line of screen to work
+
+                if (ee < walkBehindLeft[tmm]) walkBehindLeft[tmm] = ee;
+                if (rr < walkBehindTop[tmm]) walkBehindTop[tmm] = rr;
+                if (ee > walkBehindRight[tmm]) walkBehindRight[tmm] = ee;
+                if (rr > walkBehindBottom[tmm]) walkBehindBottom[tmm] = rr;
+            }
+        }
+    }
+
+    if (walkBehindMethod == DrawAsSeparateSprite)
+    {
+        update_walk_behind_images();
+    }
 }

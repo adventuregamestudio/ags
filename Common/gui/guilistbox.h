@@ -24,85 +24,85 @@
 
 struct GUIListBox:public GUIObject
 {
-  char *items[MAX_LISTBOX_ITEMS];
-  short saveGameIndex[MAX_LISTBOX_ITEMS];
-  int numItems, selected, topItem, mousexp, mouseyp;
-  int rowheight, num_items_fit;
-  int font, textcol, backcol, exflags;
-  int selectedbgcol;
-  int alignment, reserved1;
-  virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  int  AddItem(const char *toadd);
-  int  InsertItem(int index, const char *toadd);
-  void SetItemText(int index, const char *newtext);
-  void RemoveItem(int index);
-  void Clear();
-  virtual void Draw(Common::Bitmap *ds);
-  int  IsInRightMargin(int x);
-  int  GetIndexFromCoordinates(int x, int y);
-  void ChangeFont(int newFont);
-  virtual int MouseDown();
-  
-  void MouseMove(int nx, int ny)
-  {
-    mousexp = nx - x;
-    mouseyp = ny - y;
-  }
+    char *items[MAX_LISTBOX_ITEMS];
+    short saveGameIndex[MAX_LISTBOX_ITEMS];
+    int numItems, selected, topItem, mousexp, mouseyp;
+    int rowheight, num_items_fit;
+    int font, textcol, backcol, exflags;
+    int selectedbgcol;
+    int alignment, reserved1;
+    virtual void WriteToFile(Common::Stream *out);
+    virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+    int  AddItem(const char *toadd);
+    int  InsertItem(int index, const char *toadd);
+    void SetItemText(int index, const char *newtext);
+    void RemoveItem(int index);
+    void Clear();
+    virtual void Draw(Common::Bitmap *ds);
+    int  IsInRightMargin(int x);
+    int  GetIndexFromCoordinates(int x, int y);
+    void ChangeFont(int newFont);
+    virtual int MouseDown();
 
-  void MouseOver()
-  {
-  }
+    void MouseMove(int nx, int ny)
+    {
+        mousexp = nx - x;
+        mouseyp = ny - y;
+    }
 
-  void MouseLeave()
-  {
-  }
+    void MouseOver()
+    {
+    }
 
-  void MouseUp()
-  {
-  }
+    void MouseLeave()
+    {
+    }
 
-  void KeyPress(int kp)
-  {
-  }
+    void MouseUp()
+    {
+    }
 
-  virtual void Resized();
+    void KeyPress(int kp)
+    {
+    }
 
-  void reset()
-  {
-    GUIObject::init();
-    mousexp = 0;
-    mouseyp = 0;
-    activated = 0;
-    numItems = 0;
-    topItem = 0;
-    selected = 0;
-    font = 0;
-    textcol = 0;
-    selectedbgcol = 16;
-    backcol = 7;
-    exflags = 0;
-    numSupportedEvents = 1;
-    supportedEvents[0] = "SelectionChanged";
-    supportedEventArgs[0] = "GUIControl *control";
-  }
+    virtual void Resized();
 
-  GUIListBox() {
-    reset();
-  }
+    void reset()
+    {
+        GUIObject::init();
+        mousexp = 0;
+        mouseyp = 0;
+        activated = 0;
+        numItems = 0;
+        topItem = 0;
+        selected = 0;
+        font = 0;
+        textcol = 0;
+        selectedbgcol = 16;
+        backcol = 7;
+        exflags = 0;
+        numSupportedEvents = 1;
+        supportedEvents[0] = "SelectionChanged";
+        supportedEventArgs[0] = "GUIControl *control";
+    }
 
-  virtual ~GUIListBox()
-  {
-    for (int i = 0; i < numItems; i++)
-      free(items[i]);
-  }
+    GUIListBox() {
+        reset();
+    }
+
+    virtual ~GUIListBox()
+    {
+        for (int i = 0; i < numItems; i++)
+            free(items[i]);
+    }
 
 private:
-  int numItemsTemp;
+    int numItemsTemp;
 
-  void Draw_items_fix();
-  void Draw_items_unfix();
-  void Draw_set_oritext(char *oritext, const char *text);
+    void Draw_items_fix();
+    void Draw_items_unfix();
+    void Draw_set_oritext(char *oritext, const char *text);
 };
 
 extern DynamicArray<GUIListBox> guilist;

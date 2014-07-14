@@ -9,9 +9,9 @@ using System.Windows.Forms;
 
 namespace AGS.Editor.Components
 {
-    public abstract class BaseComponentWithFolders<ItemType,FolderType> : BaseComponent, IRePopulatableComponent
+    public abstract class BaseComponentWithFolders<ItemType, FolderType> : BaseComponent, IRePopulatableComponent
         where ItemType : IToXml
-        where FolderType : BaseFolderCollection<ItemType,FolderType>
+        where FolderType : BaseFolderCollection<ItemType, FolderType>
     {
         protected abstract FolderType GetRootFolder();
         protected abstract ProjectTreeItem CreateTreeItemForItem(ItemType item);
@@ -30,7 +30,7 @@ namespace AGS.Editor.Components
             }
             foreach (FolderType subFolder in folder.SubFolders)
             {
-                DeleteResourcesUsedByFolder(subFolder); 
+                DeleteResourcesUsedByFolder(subFolder);
             }
         }
 
@@ -44,7 +44,7 @@ namespace AGS.Editor.Components
         private readonly string COMMAND_DELETE_FOLDER;
         private readonly string COMMAND_MOVE_UP_FOLDER;
         private readonly string COMMAND_MOVE_DOWN_FOLDER;
-        protected readonly string ITEM_COMMAND_PREFIX;        
+        protected readonly string ITEM_COMMAND_PREFIX;
 
         protected Dictionary<string, FolderType> _folders = new Dictionary<string, FolderType>();
         protected Dictionary<string, ItemType> _items = new Dictionary<string, ItemType>();
@@ -153,7 +153,7 @@ namespace AGS.Editor.Components
             string newNodeID = AddTreeNodeForItem(item);
             return newNodeID;
         }
-                       
+
         protected void CreateSubFolder(string parentNodeID, FolderType parentFolder)
         {
             _guiController.ProjectTree.StartFromNode(this, parentNodeID);
@@ -168,7 +168,7 @@ namespace AGS.Editor.Components
         {
             return parentFolder.CreateChildFolder(name);
         }
-        
+
         public override IList<MenuCommand> GetContextMenu(string controlID)
         {
             _rightClickedID = controlID;
@@ -209,7 +209,7 @@ namespace AGS.Editor.Components
             newItem.AllowDragging = true;
             newItem.ExpandOnDragHover = true;
             newItem.CanDropHere = new ProjectTreeItem.CanDropHereDelegate(ProjectTreeItem_CanDropHere);
-            newItem.DropHere = new ProjectTreeItem.DropHereDelegate(ProjectTreeItem_DropHere);            
+            newItem.DropHere = new ProjectTreeItem.DropHereDelegate(ProjectTreeItem_DropHere);
 
             return nodeID;
         }
@@ -262,10 +262,10 @@ namespace AGS.Editor.Components
             if (sourceFolder != null && targetFolder == null) return false;
             if (sourceFolder != null && !IsValidFolderMove(sourceFolder, targetFolder)) return false;
             if (sourceItem != null && targetItem != null && sourceItem.Equals(targetItem)) return false;
-                        
+
             return true;
         }
-        
+
         private bool IsValidFolderMove(FolderType source, FolderType target)
         {
             foreach (FolderType subFolder in source.SubFolders)
@@ -299,7 +299,7 @@ namespace AGS.Editor.Components
         }
 
         private void ProjectTreeItem_DropHere(ProjectTreeItem source, ProjectTreeItem target)
-        {            
+        {
             FolderType targetFolder;
             ItemType targetItem;
             GetDropItemOrFolder(target, out targetFolder, out targetItem);
@@ -315,7 +315,7 @@ namespace AGS.Editor.Components
                     _guiController.ShowMessage("You cannot move a folder to be before a file.", MessageBoxIconType.Warning);
                     return;
                 }
-                if (!DropFolderToFolder(sourceFolder, targetFolder)) return;                
+                if (!DropFolderToFolder(sourceFolder, targetFolder)) return;
             }
             else
             {
@@ -366,7 +366,7 @@ namespace AGS.Editor.Components
             }
 
             PerformActionWithoutNotification(sourceFolder, folder => folder.Items.Remove(itemToMove));
-            PerformActionWithoutNotification(targetFolder, folder => folder.Items.Insert(targetIndex, itemToMove));            
+            PerformActionWithoutNotification(targetFolder, folder => folder.Items.Insert(targetIndex, itemToMove));
         }
 
         private void DragItemToFolder(ItemType itemToMove, FolderType targetFolder)
@@ -378,7 +378,7 @@ namespace AGS.Editor.Components
             }
 
             PerformActionWithoutNotification(sourceFolder, folder => folder.Items.Remove(itemToMove));
-            PerformActionWithoutNotification(targetFolder, folder => folder.Items.Add(itemToMove));            
+            PerformActionWithoutNotification(targetFolder, folder => folder.Items.Add(itemToMove));
         }
 
         private bool DropFolderToFolder(FolderType folderToMove, FolderType targetFolder)
@@ -401,7 +401,7 @@ namespace AGS.Editor.Components
             }
 
             PerformActionWithoutNotification(parentOfSource, folder => folder.SubFolders.Remove(folderToMove));
-            PerformActionWithoutNotification(targetFolder, folder => folder.SubFolders.Add(folderToMove));            
+            PerformActionWithoutNotification(targetFolder, folder => folder.SubFolders.Add(folderToMove));
             return true;
         }
 
@@ -462,7 +462,7 @@ namespace AGS.Editor.Components
         }
 
         public void RePopulateTreeView()
-        {            
+        {
             _items.Clear();
             _folders.Clear();
             _folders.Add(TOP_LEVEL_COMMAND_ID, this.GetRootFolder());

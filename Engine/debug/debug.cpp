@@ -100,7 +100,7 @@ void initialize_output_subsystem()
     Out::AddOutputTarget(TARGET_FILE, DebugLogFile, Out::kVerbose_NoDebug, true);
     Out::AddOutputTarget(TARGET_SYSTEMDEBUGGER, AGSPlatformDriver::GetDriver(),
         Out::kVerbose_WarnErrors, true);
-	Out::AddOutputTarget(TARGET_GAMECONSOLE, new AGS::Engine::Out::ConsoleOutputTarget(),
+    Out::AddOutputTarget(TARGET_GAMECONSOLE, new AGS::Engine::Out::ConsoleOutputTarget(),
         Out::kVerbose_Always, false);
 }
 
@@ -444,7 +444,7 @@ bool send_exception_to_editor(char *qmsg)
     while ((check_for_messages_from_editor() == 0) && (want_exit == 0))
     {
         update_mp3();
-            platform->Delay(10);
+        platform->Delay(10);
     }
 #endif
     return true;

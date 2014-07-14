@@ -164,7 +164,7 @@ namespace AGS.Editor.Components
             try
             {
                 string dataDownload = (string)BusyDialog.Show("Please wait while we check for updates...", new BusyDialog.ProcessingHandler(DownloadUpdateStatusThread), null);
-                
+
                 XmlDocument doc = new XmlDocument();
                 doc.LoadXml(dataDownload);
                 string newVersionName;
@@ -223,7 +223,7 @@ namespace AGS.Editor.Components
         private VersionCheckStatus CompareSoftwareVersions(string serverVersionText)
         {
             string[] serverVersion = serverVersionText.Split('.');
-			string[] thisVersion = AGS.Types.Version.AGS_EDITOR_VERSION.Split('.');
+            string[] thisVersion = AGS.Types.Version.AGS_EDITOR_VERSION.Split('.');
             VersionCheckStatus status = VersionCheckStatus.Equal;
 
             for (int i = 0; i < serverVersion.Length; i++)

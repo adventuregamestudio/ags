@@ -14,8 +14,8 @@ namespace AGS.Editor
         private AGS.Types.View _view;
         private string _title;
         private Timer _animationTimer;
-		private bool _dynamicUpdates = false;
-		private int _thisFrameDelay = 0;
+        private bool _dynamicUpdates = false;
+        private int _thisFrameDelay = 0;
 
         private const int MILLISECONDS_IN_SECOND = 1000;
         private const int DEFUALT_FRAME_RATE = 40;
@@ -34,7 +34,7 @@ namespace AGS.Editor
         public AGS.Types.View ViewToPreview
         {
             get { return _view; }
-            set { _view = value; UpdateFromView(_view);  }
+            set { _view = value; UpdateFromView(_view); }
         }
 
         public bool IsCharacterView
@@ -43,34 +43,34 @@ namespace AGS.Editor
             set { chkCentrePivot.Checked = value; }
         }
 
-		public bool DynamicUpdates
-		{
-			get { return _dynamicUpdates; }
-			set { _dynamicUpdates = value; }
-		}
+        public bool DynamicUpdates
+        {
+            get { return _dynamicUpdates; }
+            set { _dynamicUpdates = value; }
+        }
 
-		public void ReleaseResources()
-		{
-			StopTimer();
-			chkAnimate.Checked = false;
-		}
+        public void ReleaseResources()
+        {
+            StopTimer();
+            chkAnimate.Checked = false;
+        }
 
-		public void ViewUpdated()
-		{
-			UpdateFromView(_view);
-		}
+        public void ViewUpdated()
+        {
+            UpdateFromView(_view);
+        }
 
-		protected override void OnEnter(EventArgs e)
-		{
-			base.OnEnter(e);
+        protected override void OnEnter(EventArgs e)
+        {
+            base.OnEnter(e);
 
-			if (_dynamicUpdates)
-			{
-				ViewUpdated();
-			}
-		}
+            if (_dynamicUpdates)
+            {
+                ViewUpdated();
+            }
+        }
 
-		private void UpdateFromView(AGS.Types.View view)
+        private void UpdateFromView(AGS.Types.View view)
         {
             if (view == null)
             {
@@ -111,16 +111,16 @@ namespace AGS.Editor
                 {
                     x = previewPanel.ClientSize.Width / 2 - spriteWidth / 2;
                 }
-				if ((spriteWidth <= previewPanel.ClientSize.Width) &&
-					(spriteHeight <= previewPanel.ClientSize.Height))
-				{
-					IntPtr hdc = e.Graphics.GetHdc();
-					Factory.NativeProxy.DrawSprite(hdc, x, y, spriteNum, thisFrame.Flipped);
-					e.Graphics.ReleaseHdc();
-				}
-				else
-				{
-					Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNum, spriteWidth, spriteHeight), previewPanel.ClientSize.Width, previewPanel.ClientSize.Height, chkCentrePivot.Checked, false, SystemColors.Control);
+                if ((spriteWidth <= previewPanel.ClientSize.Width) &&
+                    (spriteHeight <= previewPanel.ClientSize.Height))
+                {
+                    IntPtr hdc = e.Graphics.GetHdc();
+                    Factory.NativeProxy.DrawSprite(hdc, x, y, spriteNum, thisFrame.Flipped);
+                    e.Graphics.ReleaseHdc();
+                }
+                else
+                {
+                    Bitmap bmp = Utilities.GetBitmapForSpriteResizedKeepingAspectRatio(new Sprite(spriteNum, spriteWidth, spriteHeight), previewPanel.ClientSize.Width, previewPanel.ClientSize.Height, chkCentrePivot.Checked, false, SystemColors.Control);
 
                     if (thisFrame.Flipped)
                     {
@@ -135,8 +135,8 @@ namespace AGS.Editor
                         e.Graphics.DrawImage(bmp, 1, 1);
                     }
 
-					bmp.Dispose();
-				}
+                    bmp.Dispose();
+                }
             }
         }
 
@@ -171,19 +171,19 @@ namespace AGS.Editor
             }
         }
 
-		private void UpdateDelayForThisFrame()
-		{
-			_thisFrameDelay = (int)udDelay.Value;
+        private void UpdateDelayForThisFrame()
+        {
+            _thisFrameDelay = (int)udDelay.Value;
 
-			int loop = (int)udLoop.Value;
-			int frame = (int)udFrame.Value;
-			if ((loop < _view.Loops.Count) &&
-				(frame < _view.Loops[loop].Frames.Count))
-			{
-				ViewFrame thisFrame = _view.Loops[loop].Frames[frame];
-				_thisFrameDelay += thisFrame.Delay;
-			}
-		}
+            int loop = (int)udLoop.Value;
+            int frame = (int)udFrame.Value;
+            if ((loop < _view.Loops.Count) &&
+                (frame < _view.Loops[loop].Frames.Count))
+            {
+                ViewFrame thisFrame = _view.Loops[loop].Frames[frame];
+                _thisFrameDelay += thisFrame.Delay;
+            }
+        }
 
         private void chkAnimate_CheckedChanged(object sender, EventArgs e)
         {
@@ -193,9 +193,9 @@ namespace AGS.Editor
                 {
                     _animationTimer = new Timer();
                     _animationTimer.Tick += new EventHandler(_animationTimer_Tick);
-		            _animationTimer.Interval = MILLISECONDS_IN_SECOND / DEFUALT_FRAME_RATE;
+                    _animationTimer.Interval = MILLISECONDS_IN_SECOND / DEFUALT_FRAME_RATE;
                 }
-				UpdateDelayForThisFrame();
+                UpdateDelayForThisFrame();
                 _animationTimer.Start();
             }
             else
@@ -206,16 +206,16 @@ namespace AGS.Editor
 
         private void _animationTimer_Tick(object sender, EventArgs e)
         {
-			if (_thisFrameDelay > 0)
-			{
-				_thisFrameDelay--;
-				return;
-			}
+            if (_thisFrameDelay > 0)
+            {
+                _thisFrameDelay--;
+                return;
+            }
 
-			if (_dynamicUpdates)
-			{
-				ViewUpdated();
-			}
+            if (_dynamicUpdates)
+            {
+                ViewUpdated();
+            }
 
             if (udFrame.Value < udFrame.Maximum)
             {
@@ -229,7 +229,7 @@ namespace AGS.Editor
             {
                 udFrame.Value = 0;
             }
-			UpdateDelayForThisFrame();
+            UpdateDelayForThisFrame();
         }
 
         private void udDelay_ValueChanged(object sender, EventArgs e)

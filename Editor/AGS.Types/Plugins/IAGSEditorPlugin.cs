@@ -4,7 +4,7 @@ using System.Text;
 
 namespace AGS.Types
 {
-	public interface IAGSEditorPlugin : IDisposable
-	{
-	}
+    public interface IAGSEditorPlugin : IDisposable
+    {
+    }
 }

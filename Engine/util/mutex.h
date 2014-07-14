@@ -17,28 +17,28 @@
 
 namespace AGS
 {
-namespace Engine
-{
+    namespace Engine
+    {
 
 
-class BaseMutex
-{
-public:
-  BaseMutex()
-  {
-  };
+        class BaseMutex
+        {
+        public:
+            BaseMutex()
+            {
+            };
 
-  virtual ~BaseMutex()
-  {
-  };
+            virtual ~BaseMutex()
+            {
+            };
 
-  virtual void Lock() = 0;
+            virtual void Lock() = 0;
 
-  virtual void Unlock() = 0;
-};
+            virtual void Unlock() = 0;
+        };
 
 
-} // namespace Engine
+    } // namespace Engine
 } // namespace AGS
 
 
@@ -52,9 +52,9 @@ public:
 #include "mutex_wii.h"
 
 #elif defined(LINUX_VERSION) \
-   || defined(MAC_VERSION) \
-   || defined(IOS_VERSION) \
-   || defined(ANDROID_VERSION)
+    || defined(MAC_VERSION) \
+    || defined(IOS_VERSION) \
+    || defined(ANDROID_VERSION)
 #include "mutex_pthread.h"
 
 #endif

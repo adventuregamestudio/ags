@@ -14,9 +14,9 @@ namespace AGS.Types
         private const string HEADER_NODE = "ScriptAndHeader_Header";
 
         public ScriptAndHeader(XmlNode node)
-        {                        
+        {
             _header = new Script(node.SelectSingleNode(HEADER_NODE).FirstChild);
-            _script = new Script(node.SelectSingleNode(SCRIPT_NODE).FirstChild);                       
+            _script = new Script(node.SelectSingleNode(SCRIPT_NODE).FirstChild);
         }
 
         public ScriptAndHeader(Script header, Script script)

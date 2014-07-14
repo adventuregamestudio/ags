@@ -859,31 +859,31 @@ namespace AGS.Editor
 			return Read() | (Read() << 8);
 		}
 
-		/**
-		 * Resets frame state for reading next image.
-		 */
-		protected void ResetFrame() 
-		{
-			lastDispose = dispose;
-			lastRect = new Rectangle(ix, iy, iw, ih);
-			lastImage = frames[frames.Count - 1];
-			lastBgColor = bgColor;
-			//		int dispose = 0;
-			transparency = false;
-			delay = 0;
-			lct = null;
-		}
+        /**
+         * Resets frame state for reading next image.
+         */
+        protected void ResetFrame()
+        {
+            lastDispose = dispose;
+            lastRect = new Rectangle(ix, iy, iw, ih);
+            lastImage = frames[frames.Count - 1];
+            lastBgColor = bgColor;
+            //		int dispose = 0;
+            transparency = false;
+            delay = 0;
+            lct = null;
+        }
 
-		/**
-		 * Skips variable length blocks up to and including
-		 * next zero length block.
-		 */
-		protected void Skip() 
-		{
-			do 
-			{
-				ReadBlock();
-			} while ((blockSize > 0) && !Error());
-		}
-	}
+        /**
+         * Skips variable length blocks up to and including
+         * next zero length block.
+         */
+        protected void Skip()
+        {
+            do
+            {
+                ReadBlock();
+            } while ((blockSize > 0) && !Error());
+        }
+    }
 }

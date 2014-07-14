@@ -24,45 +24,45 @@ namespace AGS.Editor
             btnCheckin.Text = okButtonText;
             _files = filesToCheckOut;
 
-			EnsureFileExtensionsAreInitialized();
+            EnsureFileExtensionsAreInitialized();
         }
 
-		private static void EnsureFileExtensionsAreInitialized()
-		{
-			if (_iconsForFileExtensions == null)
-			{
-				_iconsForFileExtensions = new Dictionary<string, string>();
-				_iconsForFileExtensions.Add(".asc", "ScriptIcon");
-				_iconsForFileExtensions.Add(".ash", "ScriptIcon");
-				_iconsForFileExtensions.Add(".crm", "RoomIcon");
-				_iconsForFileExtensions.Add(".agf", "GameIcon");
-				_iconsForFileExtensions.Add(".trs", "TranslationIcon");
-				_iconsForFileExtensions.Add(".wfn", "FontIcon");
-				_iconsForFileExtensions.Add(".ttf", "FontIcon");
+        private static void EnsureFileExtensionsAreInitialized()
+        {
+            if (_iconsForFileExtensions == null)
+            {
+                _iconsForFileExtensions = new Dictionary<string, string>();
+                _iconsForFileExtensions.Add(".asc", "ScriptIcon");
+                _iconsForFileExtensions.Add(".ash", "ScriptIcon");
+                _iconsForFileExtensions.Add(".crm", "RoomIcon");
+                _iconsForFileExtensions.Add(".agf", "GameIcon");
+                _iconsForFileExtensions.Add(".trs", "TranslationIcon");
+                _iconsForFileExtensions.Add(".wfn", "FontIcon");
+                _iconsForFileExtensions.Add(".ttf", "FontIcon");
                 _iconsForFileExtensions.Add(".spr", "SpriteManagerIcon");
-			}
-		}
+            }
+        }
 
-		public static void RegisterFileIcon(string extension, string iconKey)
-		{
-			if (!extension.StartsWith("."))
-			{
-				throw new ArgumentException("File extension must be in format:  .ext", "extension");
-			}
+        public static void RegisterFileIcon(string extension, string iconKey)
+        {
+            if (!extension.StartsWith("."))
+            {
+                throw new ArgumentException("File extension must be in format:  .ext", "extension");
+            }
 
-			EnsureFileExtensionsAreInitialized();
+            EnsureFileExtensionsAreInitialized();
 
-			extension = extension.ToLower();
+            extension = extension.ToLower();
 
-			if (_iconsForFileExtensions.ContainsKey(extension))
-			{
-				_iconsForFileExtensions.Add(extension, iconKey);
-			}
-			else
-			{
-				_iconsForFileExtensions[extension] = iconKey;
-			}
-		}
+            if (_iconsForFileExtensions.ContainsKey(extension))
+            {
+                _iconsForFileExtensions.Add(extension, iconKey);
+            }
+            else
+            {
+                _iconsForFileExtensions[extension] = iconKey;
+            }
+        }
 
         public string[] SelectedFiles
         {
@@ -82,23 +82,23 @@ namespace AGS.Editor
 
             for (int i = 0; i < _files.Length; i++)
             {
-				string extension = Path.GetExtension(_files[i]).ToLower();
-				string iconKey = null;
-				string shortFileName = _files[i];
+                string extension = Path.GetExtension(_files[i]).ToLower();
+                string iconKey = null;
+                string shortFileName = _files[i];
 
-				if (_iconsForFileExtensions.ContainsKey(extension))
-				{
-					iconKey = _iconsForFileExtensions[extension];
-				}
+                if (_iconsForFileExtensions.ContainsKey(extension))
+                {
+                    iconKey = _iconsForFileExtensions[extension];
+                }
 
-				if (!_files[i].ToLower().StartsWith(rootPath))
-				{
-					Factory.GUIController.ShowMessage("Invalid file name '" + _files[i] + "' (all files in source control file list must include full paths)", MessageBoxIcon.Warning);
-				}
-				else
-				{
-					shortFileName = _files[i].Substring(rootPath.Length + 1);
-				}
+                if (!_files[i].ToLower().StartsWith(rootPath))
+                {
+                    Factory.GUIController.ShowMessage("Invalid file name '" + _files[i] + "' (all files in source control file list must include full paths)", MessageBoxIcon.Warning);
+                }
+                else
+                {
+                    shortFileName = _files[i].Substring(rootPath.Length + 1);
+                }
                 TreeNode newNode = fileList.Nodes.Add(i.ToString(), shortFileName, iconKey, iconKey);
                 newNode.Checked = true;
             }

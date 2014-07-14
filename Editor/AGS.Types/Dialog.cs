@@ -21,7 +21,7 @@ namespace AGS.Types
 
         public Dialog()
         {
-            _script = "// Dialog script file" + Environment.NewLine + 
+            _script = "// Dialog script file" + Environment.NewLine +
                 "@S  // Dialog startup entry point" + Environment.NewLine +
                 "return" + Environment.NewLine;
             _cachedConvertedScript = null;
@@ -63,13 +63,13 @@ namespace AGS.Types
         public string Script
         {
             get { return _script; }
-            set 
+            set
             {
                 if (_script != value)
                 {
                     _scriptChangedSinceLastCompile = true;
                 }
-                _script = value; 
+                _script = value;
             }
         }
 

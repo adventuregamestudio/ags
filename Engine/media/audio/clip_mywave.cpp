@@ -28,8 +28,8 @@ int MYWAVE::poll()
 
     if (!done && _destroyThis)
     {
-      internal_destroy();
-      _destroyThis = false;
+        internal_destroy();
+        _destroyThis = false;
     }
 
     if (wave == NULL)
@@ -85,14 +85,14 @@ void MYWAVE::destroy()
     AGS::Engine::MutexLock _lock(_mutex);
 
     if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
-      _destroyThis = true;
+        _destroyThis = true;
     else
-      internal_destroy();
+        internal_destroy();
 
-	_lock.Release();
+    _lock.Release();
 
     while (!done)
-      AGSPlatformDriver::GetDriver()->YieldCPU();
+        AGSPlatformDriver::GetDriver()->YieldCPU();
 }
 
 void MYWAVE::seek(int pos)

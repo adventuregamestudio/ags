@@ -331,9 +331,9 @@ void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat)
         play.new_music_queue[play.new_music_queue_size].cachedClip = cachedClip;
         play.new_music_queue_size++;
     }
-    
+
     if (!psp_audio_multithreaded)
-      update_polled_mp3();
+        update_polled_mp3();
 }
 
 ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *soundfx)
@@ -827,39 +827,39 @@ extern int frames_per_second;
 
 void update_mp3_thread()
 {
-	while (switching_away_from_game) { }
-	AGS::Engine::MutexLock _lock(_audio_mutex);
-	for (musicPollIterator = 0; musicPollIterator <= MAX_SOUND_CHANNELS; ++musicPollIterator)
-	{
-		if ((channels[musicPollIterator] != NULL) && (channels[musicPollIterator]->done == 0))
-			channels[musicPollIterator]->poll();
-	}
+    while (switching_away_from_game) { }
+    AGS::Engine::MutexLock _lock(_audio_mutex);
+    for (musicPollIterator = 0; musicPollIterator <= MAX_SOUND_CHANNELS; ++musicPollIterator)
+    {
+        if ((channels[musicPollIterator] != NULL) && (channels[musicPollIterator]->done == 0))
+            channels[musicPollIterator]->poll();
+    }
 }
 
 void update_mp3()
 {
-	if (!psp_audio_multithreaded) update_mp3_thread();
+    if (!psp_audio_multithreaded) update_mp3_thread();
 }
 
 void update_polled_mp3() {
     update_mp3();
 
-        if (mvolcounter > update_music_at) {
-            update_music_volume();
-            apply_volume_drop_modifier(false);
-            update_music_at = 0;
-            mvolcounter = 0;
-            update_ambient_sound_vol();
-        }
+    if (mvolcounter > update_music_at) {
+        update_music_volume();
+        apply_volume_drop_modifier(false);
+        update_music_at = 0;
+        mvolcounter = 0;
+        update_ambient_sound_vol();
+    }
 }
 
 // Update the music, and advance the crossfade on a step
 // (this should only be called once per game loop)
 void update_polled_audio_and_crossfade ()
 {
-	update_polled_stuff_if_runtime ();
+    update_polled_stuff_if_runtime ();
 
-	AGS::Engine::MutexLock _lock(_audio_mutex);
+    AGS::Engine::MutexLock _lock(_audio_mutex);
 
     _audio_doing_crossfade = true;
 

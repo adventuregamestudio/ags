@@ -28,18 +28,18 @@
 
 namespace AGS
 {
-namespace Common
-{
+    namespace Common
+    {
 
-namespace Directory
-{
-    // Sets current working directory, returns the resulting path
-    String SetCurrentDirectory(const String &path);
-    // Gets current working directory
-    String GetCurrentDirectory();
-} // namespace Directory
+        namespace Directory
+        {
+            // Sets current working directory, returns the resulting path
+            String SetCurrentDirectory(const String &path);
+            // Gets current working directory
+            String GetCurrentDirectory();
+        } // namespace Directory
 
-} // namespace Common
+    } // namespace Common
 } // namespace AGS
 
 #endif // __AGS_CN_UTIL__DIRECTORY_H

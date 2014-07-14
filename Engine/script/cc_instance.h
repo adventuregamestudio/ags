@@ -58,14 +58,14 @@ struct ScriptInstruction
 
 struct ScriptOperation
 {
-	ScriptOperation()
-	{
-		ArgCount = 0;
-	}
+    ScriptOperation()
+    {
+        ArgCount = 0;
+    }
 
-	ScriptInstruction   Instruction;
-	RuntimeScriptValue	Args[MAX_SCMD_ARGS];
-	int				    ArgCount;
+    ScriptInstruction   Instruction;
+    RuntimeScriptValue	Args[MAX_SCMD_ARGS];
+    int				    ArgCount;
 };
 
 struct ScriptVariable
@@ -76,7 +76,7 @@ struct ScriptVariable
     }
 
     int32_t             ScAddress;  // original 32-bit relative data address, written in compiled script;
-                                    // if we are to use Map or HashMap, this could be used as Key
+    // if we are to use Map or HashMap, this could be used as Key
     RuntimeScriptValue  RValue;
 };
 
@@ -156,7 +156,7 @@ public:
     void    Abort();
     // aborts instance, then frees the memory later when it is done with
     void    AbortAndDestroy();
-    
+
     // call an exported function in the script (2nd arg is number of params)
     int     CallScriptFunction(char *funcname, int32_t num_params, RuntimeScriptValue *params);
     void    DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool *hasTheFunc);
@@ -166,7 +166,7 @@ public:
     int     RunTextScript(char*tsname);
     int     RunTextScriptIParam(char*tsname, RuntimeScriptValue &iparam);
     int     RunTextScript2IParam(char*tsname,RuntimeScriptValue &iparam, RuntimeScriptValue &param2);
-    
+
     void    GetCallStack(char *buffer, int maxLines);
     void    GetScriptName(char *curScrName);
     void    GetScriptPosition(ScriptPosition &script_pos);
@@ -185,7 +185,7 @@ protected:
     ScriptVariable *FindGlobalVar(int32_t var_addr, int *pindex = NULL);
     void    AddGlobalVar(const ScriptVariable &glvar, int at_index);
     bool    CreateRuntimeCodeFixups(ccScript * scri);
-	//bool    ReadOperation(ScriptOperation &op, int32_t at_pc);
+    //bool    ReadOperation(ScriptOperation &op, int32_t at_pc);
 
     // Runtime fixups
     //bool    FixupArgument(intptr_t code_value, char fixup_type, RuntimeScriptValue &argument);

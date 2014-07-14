@@ -32,50 +32,50 @@ using namespace AGS; // FIXME later
 class SpriteCache
 {
 public:
-  SpriteCache(int32_t maxElements);
+    SpriteCache(int32_t maxElements);
 
-  int  initFile(const char *);
-  int  loadSprite(int);
-  void seekToSprite(int index);
-  void precache(int);           // preloads and locks in memory
-  void set(int, Common::Bitmap *);
-  void setNonDiscardable(int, Common::Bitmap *);
-  void removeSprite(int, bool);
-  void removeOldest();
-  void reset();                 // wipes all data 
-  void init();
-  void changeMaxSize(int32_t);
-  int  enlargeTo(int32_t);
-  void removeAll();             // removes all items from the cache
-  int  findFreeSlot();
-  int  saveToFile(const char *, int lastElement, bool compressOutput);
-  int  doesSpriteExist(int index);
-  void detachFile();
-  int  attachFile(const char *);
+    int  initFile(const char *);
+    int  loadSprite(int);
+    void seekToSprite(int index);
+    void precache(int);           // preloads and locks in memory
+    void set(int, Common::Bitmap *);
+    void setNonDiscardable(int, Common::Bitmap *);
+    void removeSprite(int, bool);
+    void removeOldest();
+    void reset();                 // wipes all data 
+    void init();
+    void changeMaxSize(int32_t);
+    int  enlargeTo(int32_t);
+    void removeAll();             // removes all items from the cache
+    int  findFreeSlot();
+    int  saveToFile(const char *, int lastElement, bool compressOutput);
+    int  doesSpriteExist(int index);
+    void detachFile();
+    int  attachFile(const char *);
 
-  Common::Bitmap *operator[] (int index);
+    Common::Bitmap *operator[] (int index);
 
-  int32_t *offsets;
-  int32_t sprite0InitialOffset;
-  int32_t elements;                // size of offsets/images arrays
-  Common::Bitmap **images;
-  int *sizes;
-  unsigned char *flags;
-  Common::Stream *cache_stream;
-  bool spritesAreCompressed;
-  int32_t cachesize;               // size in bytes of currently cached images
-  int *mrulist, *mrubacklink;
-  int liststart, listend;
-  int lastLoad;
-  int32_t maxCacheSize;
-  int32_t lockedSize;              // size in bytes of currently locked images
+    int32_t *offsets;
+    int32_t sprite0InitialOffset;
+    int32_t elements;                // size of offsets/images arrays
+    Common::Bitmap **images;
+    int *sizes;
+    unsigned char *flags;
+    Common::Stream *cache_stream;
+    bool spritesAreCompressed;
+    int32_t cachesize;               // size in bytes of currently cached images
+    int *mrulist, *mrubacklink;
+    int liststart, listend;
+    int lastLoad;
+    int32_t maxCacheSize;
+    int32_t lockedSize;              // size in bytes of currently locked images
 
 private:
     void compressSprite(Common::Bitmap *sprite, Common::Stream *out);
-  bool loadSpriteIndexFile(int expectedFileID, int32_t spr_initial_offs, short numspri);
+    bool loadSpriteIndexFile(int expectedFileID, int32_t spr_initial_offs, short numspri);
 
-  void initFile_adjustBuffers(short numspri);
-  void initFile_initNullSpriteParams(int vv);
+    void initFile_adjustBuffers(short numspri);
+    void initFile_initNullSpriteParams(int vv);
 };
 
 extern SpriteCache spriteset;

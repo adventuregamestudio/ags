@@ -45,9 +45,9 @@ struct RoomObject {
     int get_height();
     int get_baseline();
 
-	void UpdateCyclingView();
-	void update_cycle_view_forwards();
-	void update_cycle_view_backwards();
+    void UpdateCyclingView();
+    void update_cycle_view_forwards();
+    void update_cycle_view_backwards();
 
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);

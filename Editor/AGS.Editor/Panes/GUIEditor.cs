@@ -30,7 +30,7 @@ namespace AGS.Editor
         private int _addingControlX, _addingControlY;
         private int _currentMouseX, _currentMouseY;
         private int _mouseXOffset, _mouseYOffset;
-        
+
         private int _snappedx = -1;
         private int _snappedy = -1;
         private Pen _drawRectanglePen = new Pen(Color.Yellow, 2);
@@ -44,16 +44,16 @@ namespace AGS.Editor
         private List<GUIControlGroup> _groups;
 
 
-        public GUIEditor(GUI guiToEdit, List<MenuCommand> toolbarIcons) : this() 
+        public GUIEditor(GUI guiToEdit, List<MenuCommand> toolbarIcons) : this()
         {
             _gui = guiToEdit;
             _selected = new List<GUIControl>();
             _groups = new List<GUIControlGroup>();
 
             _toolbarIcons = toolbarIcons;
-            
+
             PreviewKeyDown += new PreviewKeyDownEventHandler(GUIEditor_PreviewKeyDown);
-            
+
             _drawSnapPen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
         }
 
@@ -140,20 +140,20 @@ namespace AGS.Editor
                     RaiseOnGuiNameChanged();
                 }
             }
-			else if (propertyName == "Image")
-			{
-				if ((_selectedControl != null) && (_selectedControl is GUIButton))
-				{
-					GUIButton selectedButton = (GUIButton)_selectedControl;
-					if (selectedButton.Image > 0)
-					{
+            else if (propertyName == "Image")
+            {
+                if ((_selectedControl != null) && (_selectedControl is GUIButton))
+                {
+                    GUIButton selectedButton = (GUIButton)_selectedControl;
+                    if (selectedButton.Image > 0)
+                    {
                         int newWidth, newHeight;
                         Utilities.GetSizeSpriteWillBeRenderedInGame(selectedButton.Image, out newWidth, out newHeight);
                         selectedButton.Width = newWidth;
                         selectedButton.Height = newHeight;
-					}
-				}
-			}
+                    }
+                }
+            }
         }
 
         public GUI GuiToEdit
@@ -190,7 +190,7 @@ namespace AGS.Editor
         {
             _toolbarIcons[(int)_controlAddMode].Checked = false;
 
-            switch (command) 
+            switch (command)
             {
                 case Components.GuiComponent.MODE_SELECT_CONTROLS:
                     _controlAddMode = GUIAddType.None;
@@ -227,7 +227,7 @@ namespace AGS.Editor
                 //Factory.NativeProxy.DrawGUI(hdc, 0, 0, _gui, Factory.AGSEditor.CurrentGame.GUIScaleFactor, (_selectedControl == null) ? -1 : _selectedControl.ID);
                 Factory.NativeProxy.DrawGUI(hdc, 0, 0, _gui, Factory.AGSEditor.CurrentGame.GUIScaleFactor, -1);
                 e.Graphics.ReleaseHdc(hdc);
-                
+
                 if (_addingControl)
                 {
                     DrawSelectionRectangle(e.Graphics);
@@ -239,7 +239,7 @@ namespace AGS.Editor
                                                            _selectionRect.Y * Factory.AGSEditor.CurrentGame.GUIScaleFactor,
                                                            _selectionRect.Width * Factory.AGSEditor.CurrentGame.GUIScaleFactor,
                                                            _selectionRect.Height * Factory.AGSEditor.CurrentGame.GUIScaleFactor);
-                    
+
                     e.Graphics.DrawRectangle(_drawRectanglePen, _rectToDraw);
 
                 }
@@ -269,7 +269,7 @@ namespace AGS.Editor
 
                             e.Graphics.DrawLine(_pen, center.X - 3, center.Y - 3, center.X + 3, center.Y + 3);
                             e.Graphics.DrawLine(_pen, center.X - 3, center.Y + 3, center.X + 3, center.Y - 3);
-                            
+
                         }
 
                     }
@@ -319,7 +319,7 @@ namespace AGS.Editor
 
         private void bgPanel_MouseDown(object sender, MouseEventArgs e)
         {
-			this.Focus();
+            this.Focus();
             int mouseX, mouseY;
             GetCoordinatesAtGameResolution(e, out mouseX, out mouseY);
 
@@ -329,11 +329,11 @@ namespace AGS.Editor
             }
             else if (AboutToAddControl())
             {
-				if (_gui.Controls.Count >= GUI.MAX_CONTROLS_PER_GUI)
-				{
-					Factory.GUIController.ShowMessage("You already have the maximum number of controls on this GUI, and cannot add any more.", MessageBoxIcon.Warning);
-					return;
-				}
+                if (_gui.Controls.Count >= GUI.MAX_CONTROLS_PER_GUI)
+                {
+                    Factory.GUIController.ShowMessage("You already have the maximum number of controls on this GUI, and cannot add any more.", MessageBoxIcon.Warning);
+                    return;
+                }
 
                 _addingControl = true;
                 _addingControlX = e.X;
@@ -361,8 +361,8 @@ namespace AGS.Editor
                     _selectionRect = new Rectangle(mouseX, mouseY, 1, 1);
                     _selectionBoxX = mouseX;
                     _selectionBoxY = mouseY;
+                }
             }
-        }
 
         }
 
@@ -467,7 +467,7 @@ namespace AGS.Editor
                     _selectionRect.Y = mouseY;
                     _selectionRect.Height = _selectionBoxY - mouseY;
                 }
-                
+
                 bgPanel.Invalidate();
             }
             else if ((_resizingControl) && (_selectedControl != null))
@@ -477,7 +477,7 @@ namespace AGS.Editor
                     _selectedControl.Width = (mouseX - _selectedControl.Left) + _mouseXOffset;
                     _selectedControl.Height = (mouseY - _selectedControl.Top) + _mouseYOffset;
                 }
-                catch (ArgumentException) {}
+                catch (ArgumentException) { }
 
                 bgPanel.Invalidate();
             }
@@ -631,10 +631,10 @@ namespace AGS.Editor
                 _groups[i].Update();
                 if (_groups[i].Count == 0) _groups.RemoveAt(i);
             }
-            
+
         }
 
-      
+
         private void LockControl(object sender, EventArgs e)
         {
             foreach (GUIControl _gc in _selected)
@@ -831,8 +831,8 @@ namespace AGS.Editor
                 ContextMenuStrip menu = new ContextMenuStrip();
                 if (control != null)
                 {
-                menu.Items.Add(new ToolStripMenuItem("Bring to Front", null, new EventHandler(BringToFrontClick), "BringToFront"));
-                menu.Items.Add(new ToolStripMenuItem("Send to Back", null, new EventHandler(SendToBackClick), "SendToBack"));
+                    menu.Items.Add(new ToolStripMenuItem("Bring to Front", null, new EventHandler(BringToFrontClick), "BringToFront"));
+                    menu.Items.Add(new ToolStripMenuItem("Send to Back", null, new EventHandler(SendToBackClick), "SendToBack"));
 
 
 
@@ -860,14 +860,14 @@ namespace AGS.Editor
                         {
                             menu.Items.Add(new ToolStripMenuItem("Lock", null, new EventHandler(LockControl), "LockControl"));
                         }
-                       
+
 
                     }
-                menu.Items.Add(new ToolStripSeparator());
+                    menu.Items.Add(new ToolStripSeparator());
 
 
                     menu.Items.Add(new ToolStripMenuItem("Copy", null, new EventHandler(CopyControlClick), Keys.Control & Keys.C));
-                menu.Items.Add(new ToolStripMenuItem("Delete", null, new EventHandler(DeleteControlClick), Keys.Delete));
+                    menu.Items.Add(new ToolStripMenuItem("Delete", null, new EventHandler(DeleteControlClick), Keys.Delete));
                 }
 
                 if (GUIControl.AvailableOnClipboard()) menu.Items.Add(new ToolStripMenuItem("Paste", null, new EventHandler(PasteControlClick), Keys.Control & Keys.V));
@@ -912,13 +912,13 @@ namespace AGS.Editor
             }
             else if (_drawingSelectionBox)
             {
-               _drawingSelectionBox = false;
-               foreach (GUIControl _gc in _gui.Controls)
-               {
-                   if (_selectionRect.Contains(_gc.GetRectangle()) && !_selected.Contains(_gc)) _selected.Add(_gc);
-               }
-               if (_selected.Count > 0) _selectedControl = _selected[_selected.Count - 1];
-               bgPanel.Invalidate();
+                _drawingSelectionBox = false;
+                foreach (GUIControl _gc in _gui.Controls)
+                {
+                    if (_selectionRect.Contains(_gc.GetRectangle()) && !_selected.Contains(_gc)) _selected.Add(_gc);
+                }
+                if (_selected.Count > 0) _selectedControl = _selected[_selected.Count - 1];
+                bgPanel.Invalidate();
             }
             else
             {
@@ -956,7 +956,7 @@ namespace AGS.Editor
             {
                 bgPanel.Cursor = Cursors.SizeNWSE;
             }
-            else 
+            else
             {
                 bgPanel.Cursor = Cursors.Default;
             }
@@ -1054,9 +1054,9 @@ namespace AGS.Editor
             if (_selectedControl != null && (this.Focused))
             {
                 switch (keyData)
-            {
+                {
                     case Keys.Delete:
-                DeleteControlClick(null, null);
+                        DeleteControlClick(null, null);
                         break;
 
                     case Keys.Left:
@@ -1070,7 +1070,7 @@ namespace AGS.Editor
                         foreach (GUIControl _gc in _selected)
                         {
                             _gc.Left++;
-            }
+                        }
                         break;
 
 
@@ -1110,46 +1110,46 @@ namespace AGS.Editor
                 if (property.GetCustomAttributes(typeof(AGSEventPropertyAttribute), true).Length > 0)
                 {
                     string eventHandler = (string)property.GetValue(objectToCheck, null);
-					if (eventHandler.Length > 0)
-					{
-						Factory.GUIController.ZoomToFile(Script.GLOBAL_SCRIPT_FILE_NAME, eventHandler);
-					}
-					else 
-					{
-						CreateScriptFunctionForGUIItem(eventHandler, objectToCheck, property);
-					}
+                    if (eventHandler.Length > 0)
+                    {
+                        Factory.GUIController.ZoomToFile(Script.GLOBAL_SCRIPT_FILE_NAME, eventHandler);
+                    }
+                    else
+                    {
+                        CreateScriptFunctionForGUIItem(eventHandler, objectToCheck, property);
+                    }
                     break;
                 }
             }
         }
 
-		private void CreateScriptFunctionForGUIItem(string eventHandler, object objectToCheck, PropertyInfo property)
-		{
-			string itemName;
-			int maxLength;
-			if (objectToCheck is GUI)
-			{
-				itemName = ((GUI)objectToCheck).Name;
-				maxLength = NormalGUI.MAX_EVENT_HANDLER_LENGTH;
-			}
-			else
-			{
-				itemName = ((GUIControl)objectToCheck).Name;
-				maxLength = GUIControl.MAX_EVENT_HANDLER_LENGTH;
-			}
+        private void CreateScriptFunctionForGUIItem(string eventHandler, object objectToCheck, PropertyInfo property)
+        {
+            string itemName;
+            int maxLength;
+            if (objectToCheck is GUI)
+            {
+                itemName = ((GUI)objectToCheck).Name;
+                maxLength = NormalGUI.MAX_EVENT_HANDLER_LENGTH;
+            }
+            else
+            {
+                itemName = ((GUIControl)objectToCheck).Name;
+                maxLength = GUIControl.MAX_EVENT_HANDLER_LENGTH;
+            }
 
-			if (string.IsNullOrEmpty(itemName))
-			{
-				Factory.GUIController.ShowMessage("You need to give this a name before you can create a script for it. Set the Name property in the properties grid to the right.", MessageBoxIcon.Warning);
-				return;
-			}
+            if (string.IsNullOrEmpty(itemName))
+            {
+                Factory.GUIController.ShowMessage("You need to give this a name before you can create a script for it. Set the Name property in the properties grid to the right.", MessageBoxIcon.Warning);
+                return;
+            }
 
-			object[] paramsAttribute = property.GetCustomAttributes(typeof(ScriptFunctionParametersAttribute), true);
-			if (paramsAttribute.Length > 0)
-			{
-				property.SetValue(objectToCheck, ScriptFunctionUIEditor.CreateOrOpenScriptFunction(eventHandler, itemName, property.Name, (ScriptFunctionParametersAttribute)paramsAttribute[0], true, maxLength), null);
-			}
-		}
+            object[] paramsAttribute = property.GetCustomAttributes(typeof(ScriptFunctionParametersAttribute), true);
+            if (paramsAttribute.Length > 0)
+            {
+                property.SetValue(objectToCheck, ScriptFunctionUIEditor.CreateOrOpenScriptFunction(eventHandler, itemName, property.Name, (ScriptFunctionParametersAttribute)paramsAttribute[0], true, maxLength), null);
+            }
+        }
 
     }
 }

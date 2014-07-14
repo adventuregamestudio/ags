@@ -9,15 +9,15 @@ namespace AGS.Editor
 {
     public class EmptyEditorFilter : IRoomEditorFilter
     {
-		private const string MENU_ITEM_COPY_COORDS = "CopyCoordinatesToClipboard";
+        private const string MENU_ITEM_COPY_COORDS = "CopyCoordinatesToClipboard";
 
-		private int _menuClickX, _menuClickY;
-		private Panel _panel;
+        private int _menuClickX, _menuClickY;
+        private Panel _panel;
         private Room _room;
 
-		public EmptyEditorFilter(Panel displayPanel, Room room)
+        public EmptyEditorFilter(Panel displayPanel, Room room)
         {
-			_panel = displayPanel;
+            _panel = displayPanel;
             _room = room;
         }
 
@@ -26,20 +26,20 @@ namespace AGS.Editor
             get { return RoomAreaMaskType.None; }
         }
 
-		public int SelectedArea
-		{
-			get { return 0; }
-		}
+        public int SelectedArea
+        {
+            get { return 0; }
+        }
 
-		public bool ShowTransparencySlider
-		{
-			get { return false; }
-		}
+        public bool ShowTransparencySlider
+        {
+            get { return false; }
+        }
 
-		public string HelpKeyword
-		{
-			get { return string.Empty; }
-		}
+        public string HelpKeyword
+        {
+            get { return string.Empty; }
+        }
 
         public void PaintToHDC(IntPtr hDC, RoomEditorState state)
         {
@@ -55,30 +55,30 @@ namespace AGS.Editor
 
         public void MouseUp(MouseEventArgs e, RoomEditorState state)
         {
-			if (e.Button == MouseButtons.Middle)
-			{
-				ShowCoordMenu(e, state);
-			}
+            if (e.Button == MouseButtons.Middle)
+            {
+                ShowCoordMenu(e, state);
+            }
         }
 
-		public void DoubleClick(RoomEditorState state)
-		{
-		}
+        public void DoubleClick(RoomEditorState state)
+        {
+        }
 
-		private void CoordMenuEventHandler(object sender, EventArgs e)
-		{
-			string textToCopy = _menuClickX.ToString() + ", " + _menuClickY.ToString();
+        private void CoordMenuEventHandler(object sender, EventArgs e)
+        {
+            string textToCopy = _menuClickX.ToString() + ", " + _menuClickY.ToString();
             Utilities.CopyTextToClipboard(textToCopy);
-		}
+        }
 
-		private void ShowCoordMenu(MouseEventArgs e, RoomEditorState state)
-		{
-			EventHandler onClick = new EventHandler(CoordMenuEventHandler);
-			ContextMenuStrip menu = new ContextMenuStrip();
-			menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
+        private void ShowCoordMenu(MouseEventArgs e, RoomEditorState state)
+        {
+            EventHandler onClick = new EventHandler(CoordMenuEventHandler);
+            ContextMenuStrip menu = new ContextMenuStrip();
+            menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
 
-			_menuClickX = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
-			_menuClickY = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+            _menuClickX = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
+            _menuClickY = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
 
             if ((Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript) &&
                 (_room.Resolution == RoomResolution.HighRes))
@@ -87,8 +87,8 @@ namespace AGS.Editor
                 _menuClickY /= 2;
             }
 
-			menu.Show(_panel, e.X, e.Y);
-		}
+            menu.Show(_panel, e.X, e.Y);
+        }
 
         public bool MouseMove(int x, int y, RoomEditorState state)
         {

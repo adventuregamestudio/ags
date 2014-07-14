@@ -7,13 +7,13 @@ namespace AGS.Types
 {
     public class GlobalVariables
     {
-        private Dictionary<string, GlobalVariable> _variables = new Dictionary<string,GlobalVariable>();
+        private Dictionary<string, GlobalVariable> _variables = new Dictionary<string, GlobalVariable>();
 
         public GlobalVariables() { }
 
         public GlobalVariable this[string varName]
         {
-            get 
+            get
             {
                 if (_variables.ContainsKey(varName))
                 {

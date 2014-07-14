@@ -13,12 +13,12 @@ namespace AGS.Editor
         private EditorContentPanel _panel;
         private bool _isShowing;
         private bool _movedFromDocument;
-        
+
         public DockingContainer(EditorContentPanel panel)
         {
-            _panel = panel;                        
+            _panel = panel;
             Controls.Add(panel);
-            panel.Dock = DockStyle.Fill;            
+            panel.Dock = DockStyle.Fill;
         }
 
         public EditorContentPanel Panel { get { return _panel; } }
@@ -42,16 +42,16 @@ namespace AGS.Editor
             {
                 _movedFromDocument = false;
                 action(state);
-            }            
+            }
         }
 
-        public new IDockingPane FloatPane 
-        { 
-            get 
+        public new IDockingPane FloatPane
+        {
+            get
             {
                 if (base.FloatPane == null) return null;
                 return new DockingPane(base.FloatPane);
-            } 
+            }
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)

@@ -34,8 +34,8 @@ namespace AGS.Editor
 
         public IDockingContent ActiveContent
         {
-            get 
-            { 
+            get
+            {
                 DockingContainer container = _dockPanel.ActiveContent as DockingContainer;
                 if (container == null) return null;
                 return container.Panel;

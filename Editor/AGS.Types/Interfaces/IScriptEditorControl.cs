@@ -6,16 +6,16 @@ using AGS.Types.AutoComplete;
 
 namespace AGS.Types
 {
-	public interface IScriptEditorControl : IDisposable
-	{
-		void ActivateTextEditor();
-		void SetKeyWords(string spaceDelimitedListOfKeywords);
-		void ShowLineNumbers();
-		bool AutoCompleteEnabled { get; set; }
-		bool AutoSpaceAfterComma { get; set; }
-		bool CallTipsEnabled { get; set; }
-		Control Control { get; }
-		string Text { get; set; }
+    public interface IScriptEditorControl : IDisposable
+    {
+        void ActivateTextEditor();
+        void SetKeyWords(string spaceDelimitedListOfKeywords);
+        void ShowLineNumbers();
+        bool AutoCompleteEnabled { get; set; }
+        bool AutoSpaceAfterComma { get; set; }
+        bool CallTipsEnabled { get; set; }
+        Control Control { get; }
+        string Text { get; set; }
 
         /// <summary>
         /// Replaces the selected text with the supplied text.
@@ -80,5 +80,5 @@ namespace AGS.Types
         /// RequiredAGSVersion: 3.2.1.106
         /// </summary>        
         void SetSelection(int pos, int length);
-	}
+    }
 }

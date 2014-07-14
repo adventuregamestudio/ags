@@ -15,12 +15,12 @@ namespace AGS.Editor
         public event MenuClickHandler OnContextMenuClick;
         public delegate void AfterLabelEditHandler(string commandID, ProjectTreeItem treeItem);
         public event AfterLabelEditHandler OnAfterLabelEdit;
-		public event BeforeShowContextMenuHandler BeforeShowContextMenu;
+        public event BeforeShowContextMenuHandler BeforeShowContextMenu;
 
         private Dictionary<string, IEditorComponent> _treeNodes;
         private TreeView _projectTree;
         private TreeNode _lastAddedNode = null;
-		private DateTime _expandedAtTime = DateTime.MinValue;
+        private DateTime _expandedAtTime = DateTime.MinValue;
         private string _selectedNode;
         private Color? _treeNodesBackgroundColor;
         private TreeNode _dropHoveredNode;
@@ -43,27 +43,27 @@ namespace AGS.Editor
             _projectTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.projectTree_AfterSelect);
             _projectTree.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.projectTree_KeyPress);
             _projectTree.BeforeLabelEdit += new System.Windows.Forms.NodeLabelEditEventHandler(this.projectTree_BeforeLabelEdit);
-			_projectTree.BeforeExpand += new TreeViewCancelEventHandler(_projectTree_BeforeExpand);
-			_projectTree.BeforeCollapse += new TreeViewCancelEventHandler(_projectTree_BeforeCollapse);
-			_projectTree.ItemDrag += new ItemDragEventHandler(projectTree_ItemDrag);
-			_projectTree.DragOver += new DragEventHandler(projectTree_DragOver);
-			_projectTree.DragDrop += new DragEventHandler(projectTree_DragDrop);
-		}
+            _projectTree.BeforeExpand += new TreeViewCancelEventHandler(_projectTree_BeforeExpand);
+            _projectTree.BeforeCollapse += new TreeViewCancelEventHandler(_projectTree_BeforeCollapse);
+            _projectTree.ItemDrag += new ItemDragEventHandler(projectTree_ItemDrag);
+            _projectTree.DragOver += new DragEventHandler(projectTree_DragOver);
+            _projectTree.DragDrop += new DragEventHandler(projectTree_DragDrop);
+        }
 
-		private void _projectTree_BeforeCollapse(object sender, TreeViewCancelEventArgs e)
-		{
+        private void _projectTree_BeforeCollapse(object sender, TreeViewCancelEventArgs e)
+        {
             _expandedAtTime = DateTime.Now;
-		}
+        }
 
-		private void _projectTree_BeforeExpand(object sender, TreeViewCancelEventArgs e)
-		{
+        private void _projectTree_BeforeExpand(object sender, TreeViewCancelEventArgs e)
+        {
             _expandedAtTime = DateTime.Now;
-		}
-        
-		public void CollapseAll()
-		{
-			_projectTree.CollapseAll();
-		}
+        }
+
+        public void CollapseAll()
+        {
+            _projectTree.CollapseAll();
+        }
 
         public IProjectTreeItem AddTreeLeaf(IEditorComponent plugin, string id, string name, string iconKey)
         {
@@ -263,24 +263,24 @@ namespace AGS.Editor
             menu.Show(_projectTree, e.Location);
         }
 
-		private void AllowPluginsToModifyContextMenu(string nodeID, IList<MenuCommand> commands, IEditorComponent component)
-		{
-			if (BeforeShowContextMenu != null)
-			{
-				MenuCommands menuCommands = new MenuCommands(commands);
-				BeforeShowContextMenu(new BeforeShowContextMenuEventArgs(nodeID, component, menuCommands));
-				foreach (MenuCommand command in commands)
-				{
-					if (!command.IsSeparator)
-					{
-						if (!Factory.GUIController.CanFindComponentFromMenuItemID(command.ID))
-						{
-							throw new AGSEditorException("A plugin or event handler has not used GUIController.CreateMenuCommand to create its menu command (ID '" + command.ID + "')");
-						}
-					}
-				}
-			}
-		}
+        private void AllowPluginsToModifyContextMenu(string nodeID, IList<MenuCommand> commands, IEditorComponent component)
+        {
+            if (BeforeShowContextMenu != null)
+            {
+                MenuCommands menuCommands = new MenuCommands(commands);
+                BeforeShowContextMenu(new BeforeShowContextMenuEventArgs(nodeID, component, menuCommands));
+                foreach (MenuCommand command in commands)
+                {
+                    if (!command.IsSeparator)
+                    {
+                        if (!Factory.GUIController.CanFindComponentFromMenuItemID(command.ID))
+                        {
+                            throw new AGSEditorException("A plugin or event handler has not used GUIController.CreateMenuCommand to create its menu command (ID '" + command.ID + "')");
+                        }
+                    }
+                }
+            }
+        }
 
         private IList<MenuCommand> ProcessClickOnNode(string nodeID, MouseButtons button)
         {
@@ -292,8 +292,8 @@ namespace AGS.Editor
                     IList<MenuCommand> commands = plugin.GetContextMenu(nodeID);
                     if (commands != null)
                     {
-						Factory.GUIController.RegisterContextMenuCommands(commands, plugin);
-						AllowPluginsToModifyContextMenu(nodeID, commands, plugin);
+                        Factory.GUIController.RegisterContextMenuCommands(commands, plugin);
+                        AllowPluginsToModifyContextMenu(nodeID, commands, plugin);
                     }
 
                     return commands;
@@ -324,10 +324,10 @@ namespace AGS.Editor
             }
         }
 
-		private bool HasANodeJustBeenExpanded()
-		{
-			return DateTime.Now.Subtract(_expandedAtTime) <= TimeSpan.FromMilliseconds(200);
-		}
+        private bool HasANodeJustBeenExpanded()
+        {
+            return DateTime.Now.Subtract(_expandedAtTime) <= TimeSpan.FromMilliseconds(200);
+        }
 
         private bool HasANodeBeenHoveredEnoughForExpanding()
         {
@@ -338,10 +338,10 @@ namespace AGS.Editor
         {
             ProjectTreeItem treeItem = e.Node.Tag as ProjectTreeItem;
             bool acceptDoubleClickWhenExpanding = (treeItem != null && treeItem.AllowDoubleClickWhenExpanding);
-			if (acceptDoubleClickWhenExpanding || !HasANodeJustBeenExpanded())
-			{
-				ProcessClickOnNode(e.Node.Name, MouseButtons.Left);
-			}
+            if (acceptDoubleClickWhenExpanding || !HasANodeJustBeenExpanded())
+            {
+                ProcessClickOnNode(e.Node.Name, MouseButtons.Left);
+            }
         }
 
         private void projectTree_KeyPress(object sender, KeyPressEventArgs e)
@@ -375,51 +375,51 @@ namespace AGS.Editor
             if ((e.Node.Tag != null) && (e.CancelEdit == false) && (e.Label != null))
             {
                 ProjectTreeItem treeItem = (ProjectTreeItem)e.Node.Tag;
-				try
-				{
-					treeItem.LabelTextProperty.SetValue(treeItem.LabelTextDataSource, e.Label, null);
-					if (treeItem.LabelTextDescriptionProperty != null)
-					{
-						// This hack is so that if the user types "New view", the
-						// code can change it to "5: New view" for display in the tree
-						string newValue = (string)treeItem.LabelTextDescriptionProperty.GetValue(treeItem.LabelTextDataSource, null);
-						// cancel the user's entered text, and instead set it to our modified version
-						e.CancelEdit = true;
-						e.Node.Text = newValue;
-					}
-					if (OnAfterLabelEdit != null)
-					{
-						OnAfterLabelEdit(treeItem.ID, treeItem);
-					}
-				}
-				catch (Exception ex)
-				{
-					if ((ex.InnerException != null) &&
-						(ex.InnerException is InvalidDataException))
-					{
-						Factory.GUIController.ShowMessage(ex.InnerException.Message, MessageBoxIcon.Warning);
-					}
-					else
-					{
-						throw new Exception(ex.Message, ex);
-					}
-					e.CancelEdit = true;
-				}
+                try
+                {
+                    treeItem.LabelTextProperty.SetValue(treeItem.LabelTextDataSource, e.Label, null);
+                    if (treeItem.LabelTextDescriptionProperty != null)
+                    {
+                        // This hack is so that if the user types "New view", the
+                        // code can change it to "5: New view" for display in the tree
+                        string newValue = (string)treeItem.LabelTextDescriptionProperty.GetValue(treeItem.LabelTextDataSource, null);
+                        // cancel the user's entered text, and instead set it to our modified version
+                        e.CancelEdit = true;
+                        e.Node.Text = newValue;
+                    }
+                    if (OnAfterLabelEdit != null)
+                    {
+                        OnAfterLabelEdit(treeItem.ID, treeItem);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if ((ex.InnerException != null) &&
+                        (ex.InnerException is InvalidDataException))
+                    {
+                        Factory.GUIController.ShowMessage(ex.InnerException.Message, MessageBoxIcon.Warning);
+                    }
+                    else
+                    {
+                        throw new Exception(ex.Message, ex);
+                    }
+                    e.CancelEdit = true;
+                }
             }
         }
 
-		private void projectTree_ItemDrag(object sender, ItemDragEventArgs e)
-		{
-			TreeNode itemDragged = (TreeNode)e.Item;
-			if (itemDragged.Tag != null)
-			{
-				ProjectTreeItem treeItem = (ProjectTreeItem)itemDragged.Tag;
-				if (treeItem.AllowDragging)
-				{
-					_projectTree.DoDragDrop(treeItem, DragDropEffects.Move);
-				}
-			}
-		}
+        private void projectTree_ItemDrag(object sender, ItemDragEventArgs e)
+        {
+            TreeNode itemDragged = (TreeNode)e.Item;
+            if (itemDragged.Tag != null)
+            {
+                ProjectTreeItem treeItem = (ProjectTreeItem)itemDragged.Tag;
+                if (treeItem.AllowDragging)
+                {
+                    _projectTree.DoDragDrop(treeItem, DragDropEffects.Move);
+                }
+            }
+        }
 
         private void HighlightNodeAndExpandIfNeeded(ProjectTreeItem item)
         {
@@ -451,63 +451,63 @@ namespace AGS.Editor
             }
         }
 
-		private void projectTree_DragOver(object sender, DragEventArgs e)
-		{
-			e.Effect = DragDropEffects.None;
+        private void projectTree_DragOver(object sender, DragEventArgs e)
+        {
+            e.Effect = DragDropEffects.None;
 
-			if (e.Data.GetDataPresent(typeof(ProjectTreeItem)))
-			{
-				ProjectTreeItem source = (ProjectTreeItem)e.Data.GetData(typeof(ProjectTreeItem));
-				Point locationInControl = _projectTree.PointToClient(new Point(e.X, e.Y));
-				TreeNode dragTarget = _projectTree.HitTest(locationInControl).Node;
-				if (dragTarget != null)
-				{
-					ProjectTreeItem target = (ProjectTreeItem)dragTarget.Tag;
-					if (source.CanDropHere == null)
-					{
-						throw new AGSEditorException("Node has not populated CanDropHere handler for draggable node");
-					}
+            if (e.Data.GetDataPresent(typeof(ProjectTreeItem)))
+            {
+                ProjectTreeItem source = (ProjectTreeItem)e.Data.GetData(typeof(ProjectTreeItem));
+                Point locationInControl = _projectTree.PointToClient(new Point(e.X, e.Y));
+                TreeNode dragTarget = _projectTree.HitTest(locationInControl).Node;
+                if (dragTarget != null)
+                {
+                    ProjectTreeItem target = (ProjectTreeItem)dragTarget.Tag;
+                    if (source.CanDropHere == null)
+                    {
+                        throw new AGSEditorException("Node has not populated CanDropHere handler for draggable node");
+                    }
                     if (source.CanDropHere(source, target))
                     {
                         HighlightNodeAndExpandIfNeeded(target);
                         e.Effect = DragDropEffects.Move;
                     }
                     else ClearHighlightNode();
-                    
-					// auto-scroll the tree when move the mouse to top/bottom
-					if (locationInControl.Y < 30)
-					{
-						if (dragTarget.PrevVisibleNode != null)
-						{
-							dragTarget.PrevVisibleNode.EnsureVisible();
-						}
-					}
-					else if (locationInControl.Y > _projectTree.Height - 30)
-					{
-						if (dragTarget.NextVisibleNode != null)
-						{
-							dragTarget.NextVisibleNode.EnsureVisible();
-						}
-					}
-				}
-			}
-		}
 
-		private void projectTree_DragDrop(object sender, DragEventArgs e)
-		{
+                    // auto-scroll the tree when move the mouse to top/bottom
+                    if (locationInControl.Y < 30)
+                    {
+                        if (dragTarget.PrevVisibleNode != null)
+                        {
+                            dragTarget.PrevVisibleNode.EnsureVisible();
+                        }
+                    }
+                    else if (locationInControl.Y > _projectTree.Height - 30)
+                    {
+                        if (dragTarget.NextVisibleNode != null)
+                        {
+                            dragTarget.NextVisibleNode.EnsureVisible();
+                        }
+                    }
+                }
+            }
+        }
+
+        private void projectTree_DragDrop(object sender, DragEventArgs e)
+        {
             ClearHighlightNode();
-			ProjectTreeItem source = (ProjectTreeItem)e.Data.GetData(typeof(ProjectTreeItem));
-			Point locationInControl = _projectTree.PointToClient(new Point(e.X, e.Y));
-			TreeNode dragTarget = _projectTree.HitTest(locationInControl).Node;
-			ProjectTreeItem target = (ProjectTreeItem)dragTarget.Tag;
+            ProjectTreeItem source = (ProjectTreeItem)e.Data.GetData(typeof(ProjectTreeItem));
+            Point locationInControl = _projectTree.PointToClient(new Point(e.X, e.Y));
+            TreeNode dragTarget = _projectTree.HitTest(locationInControl).Node;
+            ProjectTreeItem target = (ProjectTreeItem)dragTarget.Tag;
 
-			if (source.DropHere == null)
-			{
-				throw new AGSEditorException("Node has not populated DropHere handler for draggable node");
-			}
+            if (source.DropHere == null)
+            {
+                throw new AGSEditorException("Node has not populated DropHere handler for draggable node");
+            }
 
-			source.DropHere(source, target);
-		}
+            source.DropHere(source, target);
+        }
 
-	}
+    }
 }

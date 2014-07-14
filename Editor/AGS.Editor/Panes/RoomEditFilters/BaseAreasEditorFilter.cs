@@ -13,25 +13,25 @@ namespace AGS.Editor
         protected const string SELECT_AREA_COMMAND = "SelectArea";
         protected const string DRAW_LINE_COMMAND = "DrawLine";
         protected const string DRAW_FREEHAND_COMMAND = "DrawFreehand";
-		protected const string DRAW_RECTANGLE_COMMAND = "DrawRectangle";
-		protected const string DRAW_FILL_COMMAND = "DrawFill";
+        protected const string DRAW_RECTANGLE_COMMAND = "DrawRectangle";
+        protected const string DRAW_FILL_COMMAND = "DrawFill";
         protected const string COPY_WALKABLE_AREA_MASK_COMMAND = "CopyWalkableMaskToRegions";
         protected const string IMPORT_MASK_COMMAND = "ImportAreaMask";
         protected const string UNDO_COMMAND = "UndoAreaDraw";
-		protected const string GREYED_OUT_MASKS_COMMAND = "GreyOutMasks";
+        protected const string GREYED_OUT_MASKS_COMMAND = "GreyOutMasks";
 
         protected const int TOOLBAR_INDEX_UNDO = 5;
-		protected const int TOOLBAR_INDEX_GREY_OUT_MASKS = 8;
+        protected const int TOOLBAR_INDEX_GREY_OUT_MASKS = 8;
 
         private const string MENU_ITEM_COPY_COORDS = "CopyCoordinates";
         private int _menuClickX, _menuClickY;
 
-		private readonly Brush[] _brushesForAreas = new Brush[]{Brushes.Black, Brushes.DarkBlue,
+        private readonly Brush[] _brushesForAreas = new Brush[]{Brushes.Black, Brushes.DarkBlue,
 			Brushes.DarkGreen, Brushes.DarkCyan, Brushes.DarkRed, Brushes.DarkMagenta, 
 			Brushes.Brown, Brushes.Red, Brushes.Red, Brushes.Blue,
 			Brushes.LightGreen, Brushes.Cyan, Brushes.Red, Brushes.Pink,
 			Brushes.Yellow, Brushes.White};
-		private readonly Pen[] _pensForAreas = new Pen[]{Pens.Black, Pens.DarkBlue,
+        private readonly Pen[] _pensForAreas = new Pen[]{Pens.Black, Pens.DarkBlue,
 			Pens.DarkGreen, Pens.DarkCyan, Pens.DarkRed, Pens.DarkMagenta, 
 			Pens.Brown, Pens.Red, Pens.Red, Pens.Blue,
 			Pens.LightGreen, Pens.Cyan, Pens.Red, Pens.Pink,
@@ -41,8 +41,8 @@ namespace AGS.Editor
         protected Room _room;
         protected Panel _panel;
         protected int _selectedArea = 1;
-		protected ToolTip _tooltip;
-		private int _drawingWithArea;
+        protected ToolTip _tooltip;
+        private int _drawingWithArea;
         private bool _mouseDown = false;
         private int _mouseDownX, _mouseDownY;
         private int _currentMouseX, _currentMouseY;
@@ -52,7 +52,7 @@ namespace AGS.Editor
         private static List<MenuCommand> _toolbarIcons = null;
         private static bool _registeredIcons = false;
         private static Cursor _selectCursor;
-		private static bool _greyedOutMasks = true;
+        private static bool _greyedOutMasks = true;
 
         public BaseAreasEditorFilter(Panel displayPanel, Room room, bool highResMask)
         {
@@ -61,12 +61,12 @@ namespace AGS.Editor
                 Factory.GUIController.RegisterIcon("SelectAreaIcon", Resources.ResourceManager.GetIcon("findarea.ico"));
                 Factory.GUIController.RegisterIcon("DrawLineIcon", Resources.ResourceManager.GetIcon("drawline.ico"));
                 Factory.GUIController.RegisterIcon("DrawFreehandIcon", Resources.ResourceManager.GetIcon("drawfree.ico"));
-				Factory.GUIController.RegisterIcon("DrawRectIcon", Resources.ResourceManager.GetIcon("drawrect.ico"));
-				Factory.GUIController.RegisterIcon("DrawFillIcon", Resources.ResourceManager.GetIcon("drawfill.ico"));
+                Factory.GUIController.RegisterIcon("DrawRectIcon", Resources.ResourceManager.GetIcon("drawrect.ico"));
+                Factory.GUIController.RegisterIcon("DrawFillIcon", Resources.ResourceManager.GetIcon("drawfill.ico"));
                 Factory.GUIController.RegisterIcon("ImportMaskIcon", Resources.ResourceManager.GetIcon("importmask.ico"));
                 Factory.GUIController.RegisterIcon("CopyWalkableAreaMaskIcon", Resources.ResourceManager.GetIcon("copymask.ico"));
-				Factory.GUIController.RegisterIcon("GreyedOutMasksIcon", Resources.ResourceManager.GetIcon("greymasks.ico"));
-				_selectCursor = Resources.ResourceManager.GetCursor("findarea.cur");
+                Factory.GUIController.RegisterIcon("GreyedOutMasksIcon", Resources.ResourceManager.GetIcon("greymasks.ico"));
+                _selectCursor = Resources.ResourceManager.GetCursor("findarea.cur");
                 _registeredIcons = true;
             }
 
@@ -77,14 +77,14 @@ namespace AGS.Editor
             _toolbarIcons.Add(new MenuCommand(SELECT_AREA_COMMAND, "Select area (Ctrl+C)", "SelectAreaIcon"));
             _toolbarIcons.Add(new MenuCommand(DRAW_LINE_COMMAND, "Line tool (Ctrl+N)", "DrawLineIcon"));
             _toolbarIcons.Add(new MenuCommand(DRAW_FREEHAND_COMMAND, "Freehand tool (Ctrl+D)", "DrawFreehandIcon"));
-			_toolbarIcons.Add(new MenuCommand(DRAW_RECTANGLE_COMMAND, "Rectangle tool (Ctrl+E)", "DrawRectIcon"));
-			_toolbarIcons.Add(new MenuCommand(DRAW_FILL_COMMAND, "Fill area (Ctrl+F)", "DrawFillIcon"));
+            _toolbarIcons.Add(new MenuCommand(DRAW_RECTANGLE_COMMAND, "Rectangle tool (Ctrl+E)", "DrawRectIcon"));
+            _toolbarIcons.Add(new MenuCommand(DRAW_FILL_COMMAND, "Fill area (Ctrl+F)", "DrawFillIcon"));
             _toolbarIcons.Add(new MenuCommand(UNDO_COMMAND, "Undo (Ctrl+Z)", "UndoIcon"));
-			_toolbarIcons.Add(new MenuCommand(IMPORT_MASK_COMMAND, "Import mask from file", "ImportMaskIcon"));
+            _toolbarIcons.Add(new MenuCommand(IMPORT_MASK_COMMAND, "Import mask from file", "ImportMaskIcon"));
             _toolbarIcons.Add(new MenuCommand(COPY_WALKABLE_AREA_MASK_COMMAND, "Copy walkable area mask to regions", "CopyWalkableAreaMaskIcon"));
-			_toolbarIcons.Add(new MenuCommand(GREYED_OUT_MASKS_COMMAND, "Show non-selected masks greyed out", "GreyedOutMasksIcon"));
-			_toolbarIcons[(int)_drawMode].Checked = true;
-			_toolbarIcons[TOOLBAR_INDEX_GREY_OUT_MASKS].Checked = _greyedOutMasks;
+            _toolbarIcons.Add(new MenuCommand(GREYED_OUT_MASKS_COMMAND, "Show non-selected masks greyed out", "GreyedOutMasksIcon"));
+            _toolbarIcons[(int)_drawMode].Checked = true;
+            _toolbarIcons[TOOLBAR_INDEX_GREY_OUT_MASKS].Checked = _greyedOutMasks;
 
             _room = room;
             _panel = displayPanel;
@@ -97,24 +97,24 @@ namespace AGS.Editor
             get;
         }
 
-		public int SelectedArea
-		{
-			get { return _selectedArea; }
-		}
+        public int SelectedArea
+        {
+            get { return _selectedArea; }
+        }
 
-		public string HelpKeyword
-		{
-			get { return string.Empty; }
-		}
+        public string HelpKeyword
+        {
+            get { return string.Empty; }
+        }
 
-		public bool ShowTransparencySlider
-		{
-			get { return true; }
-		}
+        public bool ShowTransparencySlider
+        {
+            get { return true; }
+        }
 
-		protected virtual void FilterActivated()
-		{
-		}
+        protected virtual void FilterActivated()
+        {
+        }
 
         public void PaintToHDC(IntPtr hDC, RoomEditorState state)
         {
@@ -128,54 +128,54 @@ namespace AGS.Editor
                 int extraOffset = penWidth / 2;
                 Pen pen = GetPenForArea(_drawingWithArea);
                 pen = new Pen(pen.Color, penWidth);
-                graphics.DrawLine(pen, GameToScreenX(_mouseDownX, state) + extraOffset, 
-                    GameToScreenY(_mouseDownY, state) + extraOffset, 
-                    GameToScreenX(_currentMouseX, state) + extraOffset, 
+                graphics.DrawLine(pen, GameToScreenX(_mouseDownX, state) + extraOffset,
+                    GameToScreenY(_mouseDownY, state) + extraOffset,
+                    GameToScreenX(_currentMouseX, state) + extraOffset,
                     GameToScreenY(_currentMouseY, state) + extraOffset);
                 pen.Dispose();
             }
-			else if ((_mouseDown) && (_drawMode == AreaDrawMode.Rectangle))
-			{
-				int mousePressedAtX = GameToScreenX(_mouseDownX, state);
-				int mousePressedAtY = GameToScreenY(_mouseDownY, state);
-				int mouseNowAtX = GameToScreenX(_currentMouseX, state);
-				int mouseNowAtY = GameToScreenY(_currentMouseY, state);
-				EnsureSmallestNumberIsFirst(ref mousePressedAtX, ref mouseNowAtX);
-				EnsureSmallestNumberIsFirst(ref mousePressedAtY, ref mouseNowAtY);
+            else if ((_mouseDown) && (_drawMode == AreaDrawMode.Rectangle))
+            {
+                int mousePressedAtX = GameToScreenX(_mouseDownX, state);
+                int mousePressedAtY = GameToScreenY(_mouseDownY, state);
+                int mouseNowAtX = GameToScreenX(_currentMouseX, state);
+                int mouseNowAtY = GameToScreenY(_currentMouseY, state);
+                EnsureSmallestNumberIsFirst(ref mousePressedAtX, ref mouseNowAtX);
+                EnsureSmallestNumberIsFirst(ref mousePressedAtY, ref mouseNowAtY);
                 mouseNowAtX += GetScaleFactor(state) - 1;
                 mouseNowAtY += GetScaleFactor(state) - 1;
 
-				graphics.FillRectangle(GetBrushForArea(_drawingWithArea), mousePressedAtX, mousePressedAtY, mouseNowAtX - mousePressedAtX + 1, mouseNowAtY - mousePressedAtY + 1);
-			}
-		}
+                graphics.FillRectangle(GetBrushForArea(_drawingWithArea), mousePressedAtX, mousePressedAtY, mouseNowAtX - mousePressedAtX + 1, mouseNowAtY - mousePressedAtY + 1);
+            }
+        }
 
-		private void EnsureSmallestNumberIsFirst(ref int int1, ref int int2)
-		{
-			if (int1 > int2)
-			{
-				int temp = int1;
-				int1 = int2;
-				int2 = temp;
-			}
-		}
+        private void EnsureSmallestNumberIsFirst(ref int int1, ref int int2)
+        {
+            if (int1 > int2)
+            {
+                int temp = int1;
+                int1 = int2;
+                int2 = temp;
+            }
+        }
 
-		private Brush GetBrushForArea(int area)
-		{
-			if (area < _brushesForAreas.Length)
-			{
-				return _brushesForAreas[area];
-			}
-			return Brushes.Red;
-		}
+        private Brush GetBrushForArea(int area)
+        {
+            if (area < _brushesForAreas.Length)
+            {
+                return _brushesForAreas[area];
+            }
+            return Brushes.Red;
+        }
 
-		protected Pen GetPenForArea(int area)
-		{
-			if (area < _pensForAreas.Length)
-			{
-				return _pensForAreas[area];
-			}
-			return Pens.Red;
-		}
+        protected Pen GetPenForArea(int area)
+        {
+            if (area < _pensForAreas.Length)
+            {
+                return _pensForAreas[area];
+            }
+            return Pens.Red;
+        }
 
         private int GetScaleFactor(RoomEditorState state)
         {
@@ -233,16 +233,16 @@ namespace AGS.Editor
                 Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
             }
 
-			_drawingWithArea = _selectedArea;
+            _drawingWithArea = _selectedArea;
 
-			if (e.Button == MouseButtons.Right)
-			{
-				_drawingWithArea = 0;
-			}
+            if (e.Button == MouseButtons.Right)
+            {
+                _drawingWithArea = 0;
+            }
 
             if ((_drawMode == AreaDrawMode.Line) ||
-				(_drawMode == AreaDrawMode.Freehand) ||
-				(_drawMode == AreaDrawMode.Rectangle))
+                (_drawMode == AreaDrawMode.Freehand) ||
+                (_drawMode == AreaDrawMode.Rectangle))
             {
                 if (_selectedArea == 0)
                 {
@@ -281,18 +281,18 @@ namespace AGS.Editor
                 _panel.Invalidate();
                 UpdateUndoButtonEnabledState();
             }
-			else if (_drawMode == AreaDrawMode.Rectangle)
-			{
-				Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
-				Factory.NativeProxy.DrawFilledRectOntoMask(_room, this.MaskToDraw, _mouseDownX, _mouseDownY, _currentMouseX, _currentMouseY, _drawingWithArea);
-				_panel.Invalidate();
-				UpdateUndoButtonEnabledState();
-			}
+            else if (_drawMode == AreaDrawMode.Rectangle)
+            {
+                Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
+                Factory.NativeProxy.DrawFilledRectOntoMask(_room, this.MaskToDraw, _mouseDownX, _mouseDownY, _currentMouseX, _currentMouseY, _drawingWithArea);
+                _panel.Invalidate();
+                UpdateUndoButtonEnabledState();
+            }
         }
 
-		public virtual void DoubleClick(RoomEditorState state)
-		{
-		}
+        public virtual void DoubleClick(RoomEditorState state)
+        {
+        }
 
         private void CoordMenuEventHandler(object sender, EventArgs e)
         {
@@ -340,7 +340,7 @@ namespace AGS.Editor
             {
                 if (_drawMode == AreaDrawMode.Freehand)
                 {
-					Factory.NativeProxy.DrawLineOntoMask(_room, this.MaskToDraw, _mouseDownX, _mouseDownY, _currentMouseX, _currentMouseY, _drawingWithArea);
+                    Factory.NativeProxy.DrawLineOntoMask(_room, this.MaskToDraw, _mouseDownX, _mouseDownY, _currentMouseX, _currentMouseY, _drawingWithArea);
                     _mouseDownX = _currentMouseX;
                     _mouseDownY = _currentMouseY;
                     UpdateUndoButtonEnabledState();
@@ -352,43 +352,43 @@ namespace AGS.Editor
             return false;
         }
 
-		public bool KeyPressed(Keys key)
-		{
-			if ((key == (Keys.Control | Keys.Z)) && (_toolbarIcons[TOOLBAR_INDEX_UNDO].Enabled))
-			{
-				CommandClick(UNDO_COMMAND);
-			}
-			else if ((key == (Keys.Control | Keys.N)) && (!_mouseDown))
-			{
-				CommandClick(DRAW_LINE_COMMAND);
-			}
-			else if ((key == (Keys.Control | Keys.D)) && (!_mouseDown))
-			{
-				CommandClick(DRAW_FREEHAND_COMMAND);
-			}
-			else if ((key == (Keys.Control | Keys.F)) && (!_mouseDown))
-			{
-				CommandClick(DRAW_FILL_COMMAND);
-			}
-			else if ((key == (Keys.Control | Keys.E)) && (!_mouseDown))
-			{
-				CommandClick(DRAW_RECTANGLE_COMMAND);
-			}
-			else if ((key == (Keys.Control | Keys.C)) && (!_mouseDown))
-			{
-				CommandClick(SELECT_AREA_COMMAND);
-			}
+        public bool KeyPressed(Keys key)
+        {
+            if ((key == (Keys.Control | Keys.Z)) && (_toolbarIcons[TOOLBAR_INDEX_UNDO].Enabled))
+            {
+                CommandClick(UNDO_COMMAND);
+            }
+            else if ((key == (Keys.Control | Keys.N)) && (!_mouseDown))
+            {
+                CommandClick(DRAW_LINE_COMMAND);
+            }
+            else if ((key == (Keys.Control | Keys.D)) && (!_mouseDown))
+            {
+                CommandClick(DRAW_FREEHAND_COMMAND);
+            }
+            else if ((key == (Keys.Control | Keys.F)) && (!_mouseDown))
+            {
+                CommandClick(DRAW_FILL_COMMAND);
+            }
+            else if ((key == (Keys.Control | Keys.E)) && (!_mouseDown))
+            {
+                CommandClick(DRAW_RECTANGLE_COMMAND);
+            }
+            else if ((key == (Keys.Control | Keys.C)) && (!_mouseDown))
+            {
+                CommandClick(SELECT_AREA_COMMAND);
+            }
             return false;
-		}
+        }
 
         public virtual void CommandClick(string command)
         {
             foreach (MenuCommand menuCommand in _toolbarIcons)
             {
-				if (menuCommand.ID != GREYED_OUT_MASKS_COMMAND)
-				{
-					menuCommand.Checked = false;
-				}
+                if (menuCommand.ID != GREYED_OUT_MASKS_COMMAND)
+                {
+                    menuCommand.Checked = false;
+                }
             }
 
             if (command == SELECT_AREA_COMMAND)
@@ -403,46 +403,46 @@ namespace AGS.Editor
             {
                 _drawMode = AreaDrawMode.Freehand;
             }
-			else if (command == DRAW_RECTANGLE_COMMAND)
-			{
-				_drawMode = AreaDrawMode.Rectangle;
-			}
-			else if (command == DRAW_FILL_COMMAND)
-			{
-				_drawMode = AreaDrawMode.Fill;
-			}
-			else if (command == UNDO_COMMAND)
-			{
-				Factory.NativeProxy.RestoreFromUndoBuffer(_room, this.MaskToDraw);
-				Factory.NativeProxy.ClearUndoBuffer();
-				_room.Modified = true;
-				_panel.Invalidate();
-				UpdateUndoButtonEnabledState();
-			}
-			else if (command == IMPORT_MASK_COMMAND)
-			{
-				string fileName = Factory.GUIController.ShowOpenFileDialog("Select mask to import...", GUIController.IMAGE_FILE_FILTER);
-				if (fileName != null)
-				{
-					ImportMaskFromFile(fileName);
-				}
-			}
-			else if (command == COPY_WALKABLE_AREA_MASK_COMMAND)
-			{
-				if (Factory.GUIController.ShowQuestion("This will overwrite your Regions mask with a copy of your Walkable Areas mask. Are you sure you want to do this?") == DialogResult.Yes)
-				{
-					Factory.NativeProxy.CopyWalkableAreaMaskToRegions(_room);
-					_room.Modified = true;
-					_panel.Invalidate();
-				}
-			}
-			else if (command == GREYED_OUT_MASKS_COMMAND)
-			{
-				_greyedOutMasks = !_greyedOutMasks;
-				_toolbarIcons[TOOLBAR_INDEX_GREY_OUT_MASKS].Checked = _greyedOutMasks;
-				Factory.NativeProxy.GreyOutNonSelectedMasks = _greyedOutMasks;
-				_panel.Invalidate();
-			}
+            else if (command == DRAW_RECTANGLE_COMMAND)
+            {
+                _drawMode = AreaDrawMode.Rectangle;
+            }
+            else if (command == DRAW_FILL_COMMAND)
+            {
+                _drawMode = AreaDrawMode.Fill;
+            }
+            else if (command == UNDO_COMMAND)
+            {
+                Factory.NativeProxy.RestoreFromUndoBuffer(_room, this.MaskToDraw);
+                Factory.NativeProxy.ClearUndoBuffer();
+                _room.Modified = true;
+                _panel.Invalidate();
+                UpdateUndoButtonEnabledState();
+            }
+            else if (command == IMPORT_MASK_COMMAND)
+            {
+                string fileName = Factory.GUIController.ShowOpenFileDialog("Select mask to import...", GUIController.IMAGE_FILE_FILTER);
+                if (fileName != null)
+                {
+                    ImportMaskFromFile(fileName);
+                }
+            }
+            else if (command == COPY_WALKABLE_AREA_MASK_COMMAND)
+            {
+                if (Factory.GUIController.ShowQuestion("This will overwrite your Regions mask with a copy of your Walkable Areas mask. Are you sure you want to do this?") == DialogResult.Yes)
+                {
+                    Factory.NativeProxy.CopyWalkableAreaMaskToRegions(_room);
+                    _room.Modified = true;
+                    _panel.Invalidate();
+                }
+            }
+            else if (command == GREYED_OUT_MASKS_COMMAND)
+            {
+                _greyedOutMasks = !_greyedOutMasks;
+                _toolbarIcons[TOOLBAR_INDEX_GREY_OUT_MASKS].Checked = _greyedOutMasks;
+                Factory.NativeProxy.GreyOutNonSelectedMasks = _greyedOutMasks;
+                _panel.Invalidate();
+            }
 
             _toolbarIcons[(int)_drawMode].Checked = true;
             Factory.ToolBarManager.RefreshCurrentPane();
@@ -503,7 +503,7 @@ namespace AGS.Editor
             SelectedAreaChanged(_selectedArea);
             Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
 
-			FilterActivated();
+            FilterActivated();
         }
 
         public void FilterOff()

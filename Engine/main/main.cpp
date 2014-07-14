@@ -183,23 +183,23 @@ extern char return_to_room[150];
 
 void main_print_help() {
     printf("Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
-           "Options:\n"
-           "  --windowed                   Force display mode to windowed\n"
-           "  --fullscreen                 Force display mode to fullscreen\n"
-           "  --hicolor                    Downmix 32bit colors to 16bit\n"
-           "  --letterbox                  Enable letterbox mode\n"
-           "  --gfxfilter <filter>         Enable graphics filter. Available options:\n"
-           "                                 StdScale2, StdScale3, StdScale4, Hq2x or Hq3x\n"
-           "  --log                        Enable program output to the log file\n"
-           "  --no-log                     Disable program output to the log file,\n"
-           "                                 overriding configuration file setting\n"
-           "  --help                       Print this help message\n"
-           "\n"
-           "Gamefile options:\n"
-           "  /dir/path/game/              Launch the game in specified directory\n"
-           "  /dir/path/game/penguin.exe   Launch penguin.exe\n"
-           "  [nothing]                    Launch the game in the current directory\n"
-    );
+        "Options:\n"
+        "  --windowed                   Force display mode to windowed\n"
+        "  --fullscreen                 Force display mode to fullscreen\n"
+        "  --hicolor                    Downmix 32bit colors to 16bit\n"
+        "  --letterbox                  Enable letterbox mode\n"
+        "  --gfxfilter <filter>         Enable graphics filter. Available options:\n"
+        "                                 StdScale2, StdScale3, StdScale4, Hq2x or Hq3x\n"
+        "  --log                        Enable program output to the log file\n"
+        "  --no-log                     Disable program output to the log file,\n"
+        "                                 overriding configuration file setting\n"
+        "  --help                       Print this help message\n"
+        "\n"
+        "Gamefile options:\n"
+        "  /dir/path/game/              Launch the game in specified directory\n"
+        "  /dir/path/game/penguin.exe   Launch penguin.exe\n"
+        "  [nothing]                    Launch the game in the current directory\n"
+        );
 }
 
 int main_process_cmdline(int argc,char*argv[])
@@ -418,12 +418,12 @@ char tempmsg[100];
 char*printfworkingspace;
 int malloc_fail_handler(size_t amountwanted) {
 #ifndef _DEBUG
-  CreateMiniDump(NULL);
+    CreateMiniDump(NULL);
 #endif
-  free(printfworkingspace);
-  sprintf(tempmsg,"Out of memory: failed to allocate %ld bytes (at PP=%d)",amountwanted, our_eip);
-  quit(tempmsg);
-  return 0;
+    free(printfworkingspace);
+    sprintf(tempmsg,"Out of memory: failed to allocate %ld bytes (at PP=%d)",amountwanted, our_eip);
+    quit(tempmsg);
+    return 0;
 }
 #endif
 
@@ -432,10 +432,10 @@ int main(int argc,char*argv[]) {
 #ifdef _DEBUG
     Test_DoAllTests();
 #endif
-    
+
     int res;
     main_init();
-    
+
     res = main_preprocess_cmdline(argc, argv);
     if (res != RETURN_CONTINUE) {
         return res;
@@ -444,12 +444,12 @@ int main(int argc,char*argv[]) {
     initialize_debug_system();
 
     Out::FPrint("Adventure Game Studio v%s Interpreter\n"
-           "Copyright (c) 1999-2011 Chris Jones and 2011-2014 others\n"
+        "Copyright (c) 1999-2011 Chris Jones and 2011-2014 others\n"
 #ifdef BUILD_STR
-           "ACI version %s (Build: %s)\n",
-           EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr(), EngineVersion.BuildInfo.GetCStr());
+        "ACI version %s (Build: %s)\n",
+        EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr(), EngineVersion.BuildInfo.GetCStr());
 #else
-           "ACI version %s\n", EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr());
+        "ACI version %s\n", EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr());
 #endif
 
     if ((argc>1) && (stricmp(argv[1],"--help") == 0 || argv[1][1]=='?')) {

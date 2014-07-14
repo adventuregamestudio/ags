@@ -31,8 +31,8 @@ void Test_ScriptSprintf()
     // Correct format, extra placeholder
     const char *result = 
         ScriptSprintf(ScSfBuffer, 3000,
-                      "testing ScriptSprintf:\nThis is int: %10d\nThis is float: %.4f\nThis is string: '%s'\nThis placeholder will be ignored: %d",
-                      params, 3);
+        "testing ScriptSprintf:\nThis is int: %10d\nThis is float: %.4f\nThis is string: '%s'\nThis placeholder will be ignored: %d",
+        params, 3);
     assert(strcmp(result, "testing ScriptSprintf:\nThis is int:        123\nThis is float: 0.4560\nThis is string: 'string literal'\nThis placeholder will be ignored: %d") == 0);
     // Literal percent sign
     result = ScriptSprintf(ScSfBuffer, 3000, "aaa%%aaa", params, 3);

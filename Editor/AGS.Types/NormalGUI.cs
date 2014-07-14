@@ -18,8 +18,8 @@ namespace AGS.Types
             _height = 200;
             _x = 0;
             _y = 0;
-			_bordercol = 2;
-		}
+            _bordercol = 2;
+        }
 
         private int _width;
         private int _height;
@@ -29,9 +29,9 @@ namespace AGS.Types
         private GUIVisibility _visibility;
         private int _popupYPos;
         private int _zorder;
-		private int _bordercol;
+        private int _bordercol;
         private int _transparency = 0;
-		private string _clickEventHandler = string.Empty;
+        private string _clickEventHandler = string.Empty;
 
         [Description("Script function to run when the GUI is clicked")]
         [Category("Events")]
@@ -60,13 +60,13 @@ namespace AGS.Types
         public int Height
         {
             get { return _height; }
-            set 
+            set
             {
                 if (value < 1)
                 {
                     throw new ArgumentException("GUI Height must be greater than zero.");
                 }
-                _height = value; 
+                _height = value;
             }
         }
 
@@ -134,18 +134,18 @@ namespace AGS.Types
             set { _zorder = value; }
         }
 
-		[Description("AGS Colour Number of the GUI border")]
-		[Category("Appearance")]
+        [Description("AGS Colour Number of the GUI border")]
+        [Category("Appearance")]
         [DisplayName("BorderColourNumber")]
         [RefreshProperties(RefreshProperties.All)]
         public int BorderColor
-		{
-			get { return _bordercol; }
-			set { _bordercol = value; }
-		}
+        {
+            get { return _bordercol; }
+            set { _bordercol = value; }
+        }
 
- 		[Description("Colour of the GUI border")]
-		[Category("Appearance")]
+        [Description("Colour of the GUI border")]
+        [Category("Appearance")]
         [DisplayName("BorderColor")]
         [RefreshProperties(RefreshProperties.All)]
         [AGSNoSerialize]

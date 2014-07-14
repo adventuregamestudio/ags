@@ -247,13 +247,13 @@ void Character_ChangeRoomSetLoop(CharacterInfo *chaa, int room, int x, int y, in
         if ((x != SCR_NO_VALUE) && (y != SCR_NO_VALUE)) {
             chaa->x = x;
             chaa->y = y;
-			if (direction != SCR_NO_VALUE && direction>=0) chaa->loop = direction;
+            if (direction != SCR_NO_VALUE && direction>=0) chaa->loop = direction;
         }
         chaa->prevroom = chaa->room;
         chaa->room = room;
 
-		DEBUG_CONSOLE("%s moved to room %d, location %d,%d, loop %d",
-			chaa->scrname, room, chaa->x, chaa->y, chaa->loop);
+        DEBUG_CONSOLE("%s moved to room %d, location %d,%d, loop %d",
+            chaa->scrname, room, chaa->x, chaa->y, chaa->loop);
 
         return;
     }
@@ -273,7 +273,7 @@ void Character_ChangeRoomSetLoop(CharacterInfo *chaa, int room, int x, int y, in
             // walk-in animation if they want
             new_room_x = x;
             new_room_y = y;
-			if (direction != SCR_NO_VALUE) new_room_loop = direction;
+            if (direction != SCR_NO_VALUE) new_room_loop = direction;
         }
     }
 
@@ -338,9 +338,9 @@ DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, int x_diff, int y_diff
     const bool has_up_loop    = ((chview.numLoops > kDirLoop_Up)    && (chview.loops[kDirLoop_Up].numFrames > 0));
     // NOTE: 3.+ games required left & right loops to be present at all times
     const bool has_left_loop  = new_version ||
-                                ((chview.numLoops > kDirLoop_Left)  && (chview.loops[kDirLoop_Left].numFrames > 0));
+        ((chview.numLoops > kDirLoop_Left)  && (chview.loops[kDirLoop_Left].numFrames > 0));
     const bool has_right_loop = new_version ||
-                                ((chview.numLoops > kDirLoop_Right) && (chview.loops[kDirLoop_Right].numFrames > 0));
+        ((chview.numLoops > kDirLoop_Right) && (chview.loops[kDirLoop_Right].numFrames > 0));
     const bool has_diagonal_loops = useDiagonal(chinfo) == 0; // NOTE: useDiagonal returns 0 for "true"
 
     const bool want_horizontal = (abs(y_diff) < abs(x_diff)) ||
@@ -1402,7 +1402,7 @@ void Character_SetSpeechColor(CharacterInfo *chaa, int ncol) {
 
 void Character_SetSpeechAnimationDelay(CharacterInfo *chaa, int newDelay)
 {
-	if (game.options[OPT_GLOBALTALKANIMSPD] != 0)
+    if (game.options[OPT_GLOBALTALKANIMSPD] != 0)
         quit("!Character.SpeechAnimationDelay cannot be set when global speech animation speed is enabled");
 
     chaa->speech_anim_speed = newDelay;
@@ -2169,8 +2169,8 @@ int my_getpixel(Bitmap *blk, int x, int y) {
         return -1;
 
     // strip the alpha channel
-	// TODO: is there a way to do this vtable thing with Bitmap?
-	BITMAP *al_bmp = (BITMAP*)blk->GetAllegroBitmap();
+    // TODO: is there a way to do this vtable thing with Bitmap?
+    BITMAP *al_bmp = (BITMAP*)blk->GetAllegroBitmap();
     return al_bmp->vtable->getpixel(al_bmp, x, y) & 0x00ffffff;
 }
 
@@ -2460,154 +2460,154 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                         play.swap_portrait_side = 0;
                 }
 
-            // Determine whether to display the portrait on the left or right
-            int portrait_on_right = 0;
+                // Determine whether to display the portrait on the left or right
+                int portrait_on_right = 0;
 
-            if (game.options[OPT_SPEECHTYPE] == 3) 
-            { }  // always on left with QFG-style speech
-            else if ((play.swap_portrait_side == 1) ||
-                (play.swap_portrait_side == -1) ||
-                (game.options[OPT_PORTRAITSIDE] == PORTRAIT_RIGHT))
-                portrait_on_right = 1;
+                if (game.options[OPT_SPEECHTYPE] == 3) 
+                { }  // always on left with QFG-style speech
+                else if ((play.swap_portrait_side == 1) ||
+                    (play.swap_portrait_side == -1) ||
+                    (game.options[OPT_PORTRAITSIDE] == PORTRAIT_RIGHT))
+                    portrait_on_right = 1;
 
 
-            int bigx=0,bigy=0,kk;
-            ViewStruct*viptr=&views[useview];
-            for (kk = 0; kk < viptr->loops[0].numFrames; kk++) 
-            {
-                int tw = spritewidth[viptr->loops[0].frames[kk].pic];
-                if (tw > bigx) bigx=tw;
-                tw = spriteheight[viptr->loops[0].frames[kk].pic];
-                if (tw > bigy) bigy=tw;
-            }
-
-            // if they accidentally used a large full-screen image as the sierra-style
-            // talk view, correct it
-            if ((game.options[OPT_SPEECHTYPE] != 3) && (bigx > scrnwid - get_fixed_pixel_size(50)))
-                bigx = scrnwid - get_fixed_pixel_size(50);
-
-            if (widd > 0)
-                bwidth = widd - bigx;
-
-            our_eip=153;
-            int ovr_yp = get_fixed_pixel_size(20);
-            int view_frame_x = 0;
-            int view_frame_y = 0;
-            facetalk_qfg4_override_placement_x = false;
-            facetalk_qfg4_override_placement_y = false;
-
-            if (game.options[OPT_SPEECHTYPE] == 3) {
-                // QFG4-style whole screen picture
-                closeupface = BitmapHelper::CreateBitmap(scrnwid, scrnhit, spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
-                closeupface->Clear(0);
-                if (xx < 0 && play.speech_portrait_placement)
+                int bigx=0,bigy=0,kk;
+                ViewStruct*viptr=&views[useview];
+                for (kk = 0; kk < viptr->loops[0].numFrames; kk++) 
                 {
-                    facetalk_qfg4_override_placement_x = true;
-                    view_frame_x = play.speech_portrait_x;
-                }
-                if (yy < 0 && play.speech_portrait_placement)
-                {
-                    facetalk_qfg4_override_placement_y = true;
-                    view_frame_y = play.speech_portrait_y;
-                }
-                else
-                {
-                    view_frame_y = scrnhit/2 - spriteheight[viptr->loops[0].frames[0].pic]/2;
-                }
-                bigx = scrnwid/2 - get_fixed_pixel_size(20);
-                ovr_type = OVER_COMPLETE;
-                ovr_yp = 0;
-                tdyp = -1;  // center vertically
-            }
-            else {
-                // KQ6-style close-up face picture
-                if (yy < 0 && play.speech_portrait_placement)
-                {
-                    ovr_yp = play.speech_portrait_y;
-                }
-                else if (yy < 0)
-                    ovr_yp = adjust_y_for_guis (ovr_yp);
-                else
-                    ovr_yp = yy;
-
-                closeupface = BitmapHelper::CreateTransparentBitmap(bigx+1,bigy+1,spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
-                ovr_type = OVER_PICTURE;
-
-                if (yy < 0)
-                    tdyp = ovr_yp + get_textwindow_top_border_height(play.speech_textwindow_gui);
-            }
-            const ViewFrame *vf = &viptr->loops[0].frames[0];
-            const bool closeupface_has_alpha = (game.spriteflags[vf->pic] & SPF_ALPHACHANNEL) != 0;
-            DrawViewFrame(closeupface, vf, view_frame_x, view_frame_y);
-
-            int overlay_x = get_fixed_pixel_size(10);
-            if (xx < 0) {
-                tdxp = bigx + get_textwindow_border_width(play.speech_textwindow_gui) / 2;
-                if (play.speech_portrait_placement)
-                {
-                    overlay_x = play.speech_portrait_x;
-                    tdxp += overlay_x + get_fixed_pixel_size(6);
-                }
-                else
-                {
-                    tdxp += get_fixed_pixel_size(16);
+                    int tw = spritewidth[viptr->loops[0].frames[kk].pic];
+                    if (tw > bigx) bigx=tw;
+                    tw = spriteheight[viptr->loops[0].frames[kk].pic];
+                    if (tw > bigy) bigy=tw;
                 }
 
-                int maxWidth = (scrnwid - tdxp) - get_fixed_pixel_size(5) - 
-                    get_textwindow_border_width (play.speech_textwindow_gui) / 2;
+                // if they accidentally used a large full-screen image as the sierra-style
+                // talk view, correct it
+                if ((game.options[OPT_SPEECHTYPE] != 3) && (bigx > scrnwid - get_fixed_pixel_size(50)))
+                    bigx = scrnwid - get_fixed_pixel_size(50);
 
-                if (bwidth > maxWidth)
-                    bwidth = maxWidth;
-            }
-            else {
-                tdxp = xx + bigx + get_fixed_pixel_size(8);
-                overlay_x = xx;
-            }
+                if (widd > 0)
+                    bwidth = widd - bigx;
 
-            // allow the text box to be shrunk to fit the text
-            allowShrink = 1;
+                our_eip=153;
+                int ovr_yp = get_fixed_pixel_size(20);
+                int view_frame_x = 0;
+                int view_frame_y = 0;
+                facetalk_qfg4_override_placement_x = false;
+                facetalk_qfg4_override_placement_y = false;
 
-            // if the portrait's on the right, swap it round
-            if (portrait_on_right) {
-                if ((xx < 0) || (widd < 0)) {
-                    tdxp = get_fixed_pixel_size(9);
-                    if (play.speech_portrait_placement)
+                if (game.options[OPT_SPEECHTYPE] == 3) {
+                    // QFG4-style whole screen picture
+                    closeupface = BitmapHelper::CreateBitmap(scrnwid, scrnhit, spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
+                    closeupface->Clear(0);
+                    if (xx < 0 && play.speech_portrait_placement)
                     {
-                        overlay_x = (scrnwid - bigx) - play.speech_portrait_x;
-                        int maxWidth = overlay_x - tdxp - get_fixed_pixel_size(9) - 
-                            get_textwindow_border_width (play.speech_textwindow_gui) / 2;
-                        if (bwidth > maxWidth)
-                            bwidth = maxWidth;
+                        facetalk_qfg4_override_placement_x = true;
+                        view_frame_x = play.speech_portrait_x;
+                    }
+                    if (yy < 0 && play.speech_portrait_placement)
+                    {
+                        facetalk_qfg4_override_placement_y = true;
+                        view_frame_y = play.speech_portrait_y;
                     }
                     else
                     {
-                        overlay_x = (scrnwid - bigx) - get_fixed_pixel_size(5);
+                        view_frame_y = scrnhit/2 - spriteheight[viptr->loops[0].frames[0].pic]/2;
                     }
+                    bigx = scrnwid/2 - get_fixed_pixel_size(20);
+                    ovr_type = OVER_COMPLETE;
+                    ovr_yp = 0;
+                    tdyp = -1;  // center vertically
                 }
                 else {
-                    overlay_x = (xx + widd - bigx) - get_fixed_pixel_size(5);
-                    tdxp = xx;
+                    // KQ6-style close-up face picture
+                    if (yy < 0 && play.speech_portrait_placement)
+                    {
+                        ovr_yp = play.speech_portrait_y;
+                    }
+                    else if (yy < 0)
+                        ovr_yp = adjust_y_for_guis (ovr_yp);
+                    else
+                        ovr_yp = yy;
+
+                    closeupface = BitmapHelper::CreateTransparentBitmap(bigx+1,bigy+1,spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
+                    ovr_type = OVER_PICTURE;
+
+                    if (yy < 0)
+                        tdyp = ovr_yp + get_textwindow_top_border_height(play.speech_textwindow_gui);
                 }
-                tdxp += get_textwindow_border_width(play.speech_textwindow_gui) / 2;
-                allowShrink = 2;
-            }
-            if (game.options[OPT_SPEECHTYPE] == 3)
-                overlay_x = 0;
-            face_talking=add_screen_overlay(overlay_x,ovr_yp,ovr_type,closeupface, closeupface_has_alpha);
-            facetalkframe = 0;
-            facetalkwait = viptr->loops[0].frames[0].speed + GetCharacterSpeechAnimationDelay(speakingChar);
-            facetalkloop = 0;
-            facetalkview = useview;
-            facetalkrepeat = (isThought) ? 0 : 1;
-            facetalkBlinkLoop = 0;
-            facetalkAllowBlink = 1;
-            if ((isThought) && (speakingChar->flags & CHF_NOBLINKANDTHINK))
-                facetalkAllowBlink = 0;
-            facetalkchar = &game.chars[aschar];
-            if (facetalkchar->blinktimer < 0)
-                facetalkchar->blinktimer = facetalkchar->blinkinterval;
-            textcol=-textcol;
-            overlayPositionFixed = true;
+                const ViewFrame *vf = &viptr->loops[0].frames[0];
+                const bool closeupface_has_alpha = (game.spriteflags[vf->pic] & SPF_ALPHACHANNEL) != 0;
+                DrawViewFrame(closeupface, vf, view_frame_x, view_frame_y);
+
+                int overlay_x = get_fixed_pixel_size(10);
+                if (xx < 0) {
+                    tdxp = bigx + get_textwindow_border_width(play.speech_textwindow_gui) / 2;
+                    if (play.speech_portrait_placement)
+                    {
+                        overlay_x = play.speech_portrait_x;
+                        tdxp += overlay_x + get_fixed_pixel_size(6);
+                    }
+                    else
+                    {
+                        tdxp += get_fixed_pixel_size(16);
+                    }
+
+                    int maxWidth = (scrnwid - tdxp) - get_fixed_pixel_size(5) - 
+                        get_textwindow_border_width (play.speech_textwindow_gui) / 2;
+
+                    if (bwidth > maxWidth)
+                        bwidth = maxWidth;
+                }
+                else {
+                    tdxp = xx + bigx + get_fixed_pixel_size(8);
+                    overlay_x = xx;
+                }
+
+                // allow the text box to be shrunk to fit the text
+                allowShrink = 1;
+
+                // if the portrait's on the right, swap it round
+                if (portrait_on_right) {
+                    if ((xx < 0) || (widd < 0)) {
+                        tdxp = get_fixed_pixel_size(9);
+                        if (play.speech_portrait_placement)
+                        {
+                            overlay_x = (scrnwid - bigx) - play.speech_portrait_x;
+                            int maxWidth = overlay_x - tdxp - get_fixed_pixel_size(9) - 
+                                get_textwindow_border_width (play.speech_textwindow_gui) / 2;
+                            if (bwidth > maxWidth)
+                                bwidth = maxWidth;
+                        }
+                        else
+                        {
+                            overlay_x = (scrnwid - bigx) - get_fixed_pixel_size(5);
+                        }
+                    }
+                    else {
+                        overlay_x = (xx + widd - bigx) - get_fixed_pixel_size(5);
+                        tdxp = xx;
+                    }
+                    tdxp += get_textwindow_border_width(play.speech_textwindow_gui) / 2;
+                    allowShrink = 2;
+                }
+                if (game.options[OPT_SPEECHTYPE] == 3)
+                    overlay_x = 0;
+                face_talking=add_screen_overlay(overlay_x,ovr_yp,ovr_type,closeupface, closeupface_has_alpha);
+                facetalkframe = 0;
+                facetalkwait = viptr->loops[0].frames[0].speed + GetCharacterSpeechAnimationDelay(speakingChar);
+                facetalkloop = 0;
+                facetalkview = useview;
+                facetalkrepeat = (isThought) ? 0 : 1;
+                facetalkBlinkLoop = 0;
+                facetalkAllowBlink = 1;
+                if ((isThought) && (speakingChar->flags & CHF_NOBLINKANDTHINK))
+                    facetalkAllowBlink = 0;
+                facetalkchar = &game.chars[aschar];
+                if (facetalkchar->blinktimer < 0)
+                    facetalkchar->blinktimer = facetalkchar->blinkinterval;
+                textcol=-textcol;
+                overlayPositionFixed = true;
         }
         else if (useview >= 0) {
             // Lucasarts-style speech
@@ -3529,133 +3529,133 @@ void ScPl_Character_Think(CharacterInfo *chaa, const char *texx, ...)
 void RegisterCharacterAPI()
 {
     ccAddExternalObjectFunction("Character::AddInventory^2",            Sc_Character_AddInventory);
-	ccAddExternalObjectFunction("Character::AddWaypoint^2",             Sc_Character_AddWaypoint);
-	ccAddExternalObjectFunction("Character::Animate^5",                 Sc_Character_Animate);
-	ccAddExternalObjectFunction("Character::ChangeRoom^3",              Sc_Character_ChangeRoom);
+    ccAddExternalObjectFunction("Character::AddWaypoint^2",             Sc_Character_AddWaypoint);
+    ccAddExternalObjectFunction("Character::Animate^5",                 Sc_Character_Animate);
+    ccAddExternalObjectFunction("Character::ChangeRoom^3",              Sc_Character_ChangeRoom);
     ccAddExternalObjectFunction("Character::ChangeRoom^4",              Sc_Character_ChangeRoomSetLoop);
-	ccAddExternalObjectFunction("Character::ChangeRoomAutoPosition^2",  Sc_Character_ChangeRoomAutoPosition);
-	ccAddExternalObjectFunction("Character::ChangeView^1",              Sc_Character_ChangeView);
-	ccAddExternalObjectFunction("Character::FaceCharacter^2",           Sc_Character_FaceCharacter);
-	ccAddExternalObjectFunction("Character::FaceLocation^3",            Sc_Character_FaceLocation);
-	ccAddExternalObjectFunction("Character::FaceObject^2",              Sc_Character_FaceObject);
-	ccAddExternalObjectFunction("Character::FollowCharacter^3",         Sc_Character_FollowCharacter);
-	ccAddExternalObjectFunction("Character::GetProperty^1",             Sc_Character_GetProperty);
-	ccAddExternalObjectFunction("Character::GetPropertyText^2",         Sc_Character_GetPropertyText);
-	ccAddExternalObjectFunction("Character::GetTextProperty^1",         Sc_Character_GetTextProperty);
-	ccAddExternalObjectFunction("Character::HasInventory^1",            Sc_Character_HasInventory);
-	ccAddExternalObjectFunction("Character::IsCollidingWithChar^1",     Sc_Character_IsCollidingWithChar);
-	ccAddExternalObjectFunction("Character::IsCollidingWithObject^1",   Sc_Character_IsCollidingWithObject);
+    ccAddExternalObjectFunction("Character::ChangeRoomAutoPosition^2",  Sc_Character_ChangeRoomAutoPosition);
+    ccAddExternalObjectFunction("Character::ChangeView^1",              Sc_Character_ChangeView);
+    ccAddExternalObjectFunction("Character::FaceCharacter^2",           Sc_Character_FaceCharacter);
+    ccAddExternalObjectFunction("Character::FaceLocation^3",            Sc_Character_FaceLocation);
+    ccAddExternalObjectFunction("Character::FaceObject^2",              Sc_Character_FaceObject);
+    ccAddExternalObjectFunction("Character::FollowCharacter^3",         Sc_Character_FollowCharacter);
+    ccAddExternalObjectFunction("Character::GetProperty^1",             Sc_Character_GetProperty);
+    ccAddExternalObjectFunction("Character::GetPropertyText^2",         Sc_Character_GetPropertyText);
+    ccAddExternalObjectFunction("Character::GetTextProperty^1",         Sc_Character_GetTextProperty);
+    ccAddExternalObjectFunction("Character::HasInventory^1",            Sc_Character_HasInventory);
+    ccAddExternalObjectFunction("Character::IsCollidingWithChar^1",     Sc_Character_IsCollidingWithChar);
+    ccAddExternalObjectFunction("Character::IsCollidingWithObject^1",   Sc_Character_IsCollidingWithObject);
     ccAddExternalObjectFunction("Character::IsInteractionAvailable^1",  Sc_Character_IsInteractionAvailable);
-	ccAddExternalObjectFunction("Character::LockView^1",                Sc_Character_LockView);
-	ccAddExternalObjectFunction("Character::LockViewAligned^3",         Sc_Character_LockViewAligned);
-	ccAddExternalObjectFunction("Character::LockViewFrame^3",           Sc_Character_LockViewFrame);
-	ccAddExternalObjectFunction("Character::LockViewOffset^3",          Sc_Character_LockViewOffset);
-	ccAddExternalObjectFunction("Character::LoseInventory^1",           Sc_Character_LoseInventory);
-	ccAddExternalObjectFunction("Character::Move^4",                    Sc_Character_Move);
-	ccAddExternalObjectFunction("Character::PlaceOnWalkableArea^0",     Sc_Character_PlaceOnWalkableArea);
-	ccAddExternalObjectFunction("Character::RemoveTint^0",              Sc_Character_RemoveTint);
-	ccAddExternalObjectFunction("Character::RunInteraction^1",          Sc_Character_RunInteraction);
-	ccAddExternalObjectFunction("Character::Say^101",                   Sc_Character_Say);
-	ccAddExternalObjectFunction("Character::SayAt^4",                   Sc_Character_SayAt);
-	ccAddExternalObjectFunction("Character::SayBackground^1",           Sc_Character_SayBackground);
-	ccAddExternalObjectFunction("Character::SetAsPlayer^0",             Sc_Character_SetAsPlayer);
-	ccAddExternalObjectFunction("Character::SetIdleView^2",             Sc_Character_SetIdleView);
-	//ccAddExternalObjectFunction("Character::SetOption^2",             Sc_Character_SetOption);
-	ccAddExternalObjectFunction("Character::SetWalkSpeed^2",            Sc_Character_SetSpeed);
-	ccAddExternalObjectFunction("Character::StopMoving^0",              Sc_Character_StopMoving);
-	ccAddExternalObjectFunction("Character::Think^101",                 Sc_Character_Think);
-	ccAddExternalObjectFunction("Character::Tint^5",                    Sc_Character_Tint);
-	ccAddExternalObjectFunction("Character::UnlockView^0",              Sc_Character_UnlockView);
-	ccAddExternalObjectFunction("Character::Walk^4",                    Sc_Character_Walk);
-	ccAddExternalObjectFunction("Character::WalkStraight^3",            Sc_Character_WalkStraight);
+    ccAddExternalObjectFunction("Character::LockView^1",                Sc_Character_LockView);
+    ccAddExternalObjectFunction("Character::LockViewAligned^3",         Sc_Character_LockViewAligned);
+    ccAddExternalObjectFunction("Character::LockViewFrame^3",           Sc_Character_LockViewFrame);
+    ccAddExternalObjectFunction("Character::LockViewOffset^3",          Sc_Character_LockViewOffset);
+    ccAddExternalObjectFunction("Character::LoseInventory^1",           Sc_Character_LoseInventory);
+    ccAddExternalObjectFunction("Character::Move^4",                    Sc_Character_Move);
+    ccAddExternalObjectFunction("Character::PlaceOnWalkableArea^0",     Sc_Character_PlaceOnWalkableArea);
+    ccAddExternalObjectFunction("Character::RemoveTint^0",              Sc_Character_RemoveTint);
+    ccAddExternalObjectFunction("Character::RunInteraction^1",          Sc_Character_RunInteraction);
+    ccAddExternalObjectFunction("Character::Say^101",                   Sc_Character_Say);
+    ccAddExternalObjectFunction("Character::SayAt^4",                   Sc_Character_SayAt);
+    ccAddExternalObjectFunction("Character::SayBackground^1",           Sc_Character_SayBackground);
+    ccAddExternalObjectFunction("Character::SetAsPlayer^0",             Sc_Character_SetAsPlayer);
+    ccAddExternalObjectFunction("Character::SetIdleView^2",             Sc_Character_SetIdleView);
+    //ccAddExternalObjectFunction("Character::SetOption^2",             Sc_Character_SetOption);
+    ccAddExternalObjectFunction("Character::SetWalkSpeed^2",            Sc_Character_SetSpeed);
+    ccAddExternalObjectFunction("Character::StopMoving^0",              Sc_Character_StopMoving);
+    ccAddExternalObjectFunction("Character::Think^101",                 Sc_Character_Think);
+    ccAddExternalObjectFunction("Character::Tint^5",                    Sc_Character_Tint);
+    ccAddExternalObjectFunction("Character::UnlockView^0",              Sc_Character_UnlockView);
+    ccAddExternalObjectFunction("Character::Walk^4",                    Sc_Character_Walk);
+    ccAddExternalObjectFunction("Character::WalkStraight^3",            Sc_Character_WalkStraight);
 
-	ccAddExternalStaticFunction("Character::GetAtScreenXY^2",           Sc_GetCharacterAtLocation);
+    ccAddExternalStaticFunction("Character::GetAtScreenXY^2",           Sc_GetCharacterAtLocation);
 
-	ccAddExternalObjectFunction("Character::get_ActiveInventory",       Sc_Character_GetActiveInventory);
-	ccAddExternalObjectFunction("Character::set_ActiveInventory",       Sc_Character_SetActiveInventory);
-	ccAddExternalObjectFunction("Character::get_Animating",             Sc_Character_GetAnimating);
-	ccAddExternalObjectFunction("Character::get_AnimationSpeed",        Sc_Character_GetAnimationSpeed);
-	ccAddExternalObjectFunction("Character::set_AnimationSpeed",        Sc_Character_SetAnimationSpeed);
-	ccAddExternalObjectFunction("Character::get_Baseline",              Sc_Character_GetBaseline);
-	ccAddExternalObjectFunction("Character::set_Baseline",              Sc_Character_SetBaseline);
-	ccAddExternalObjectFunction("Character::get_BlinkInterval",         Sc_Character_GetBlinkInterval);
-	ccAddExternalObjectFunction("Character::set_BlinkInterval",         Sc_Character_SetBlinkInterval);
-	ccAddExternalObjectFunction("Character::get_BlinkView",             Sc_Character_GetBlinkView);
-	ccAddExternalObjectFunction("Character::set_BlinkView",             Sc_Character_SetBlinkView);
-	ccAddExternalObjectFunction("Character::get_BlinkWhileThinking",    Sc_Character_GetBlinkWhileThinking);
-	ccAddExternalObjectFunction("Character::set_BlinkWhileThinking",    Sc_Character_SetBlinkWhileThinking);
-	ccAddExternalObjectFunction("Character::get_BlockingHeight",        Sc_Character_GetBlockingHeight);
-	ccAddExternalObjectFunction("Character::set_BlockingHeight",        Sc_Character_SetBlockingHeight);
-	ccAddExternalObjectFunction("Character::get_BlockingWidth",         Sc_Character_GetBlockingWidth);
-	ccAddExternalObjectFunction("Character::set_BlockingWidth",         Sc_Character_SetBlockingWidth);
-	ccAddExternalObjectFunction("Character::get_Clickable",             Sc_Character_GetClickable);
-	ccAddExternalObjectFunction("Character::set_Clickable",             Sc_Character_SetClickable);
-	ccAddExternalObjectFunction("Character::get_DestinationX",          Sc_Character_GetDestinationX);
-	ccAddExternalObjectFunction("Character::get_DestinationY",          Sc_Character_GetDestinationY);
-	ccAddExternalObjectFunction("Character::get_DiagonalLoops",         Sc_Character_GetDiagonalWalking);
-	ccAddExternalObjectFunction("Character::set_DiagonalLoops",         Sc_Character_SetDiagonalWalking);
-	ccAddExternalObjectFunction("Character::get_Frame",                 Sc_Character_GetFrame);
-	ccAddExternalObjectFunction("Character::set_Frame",                 Sc_Character_SetFrame);
-	ccAddExternalObjectFunction("Character::get_HasExplicitTint",       Sc_Character_GetHasExplicitTint);
-	ccAddExternalObjectFunction("Character::get_ID",                    Sc_Character_GetID);
-	ccAddExternalObjectFunction("Character::get_IdleView",              Sc_Character_GetIdleView);
-	ccAddExternalObjectFunction("Character::geti_InventoryQuantity",    Sc_Character_GetIInventoryQuantity);
-	ccAddExternalObjectFunction("Character::seti_InventoryQuantity",    Sc_Character_SetIInventoryQuantity);
-	ccAddExternalObjectFunction("Character::get_IgnoreLighting",        Sc_Character_GetIgnoreLighting);
-	ccAddExternalObjectFunction("Character::set_IgnoreLighting",        Sc_Character_SetIgnoreLighting);
-	ccAddExternalObjectFunction("Character::get_IgnoreScaling",         Sc_Character_GetIgnoreScaling);
-	ccAddExternalObjectFunction("Character::set_IgnoreScaling",         Sc_Character_SetIgnoreScaling);
-	ccAddExternalObjectFunction("Character::get_IgnoreWalkbehinds",     Sc_Character_GetIgnoreWalkbehinds);
-	ccAddExternalObjectFunction("Character::set_IgnoreWalkbehinds",     Sc_Character_SetIgnoreWalkbehinds);
-	ccAddExternalObjectFunction("Character::get_Loop",                  Sc_Character_GetLoop);
-	ccAddExternalObjectFunction("Character::set_Loop",                  Sc_Character_SetLoop);
-	ccAddExternalObjectFunction("Character::get_ManualScaling",         Sc_Character_GetIgnoreScaling);
-	ccAddExternalObjectFunction("Character::set_ManualScaling",         Sc_Character_SetManualScaling);
-	ccAddExternalObjectFunction("Character::get_MovementLinkedToAnimation",Sc_Character_GetMovementLinkedToAnimation);
-	ccAddExternalObjectFunction("Character::set_MovementLinkedToAnimation",Sc_Character_SetMovementLinkedToAnimation);
-	ccAddExternalObjectFunction("Character::get_Moving",                Sc_Character_GetMoving);
-	ccAddExternalObjectFunction("Character::get_Name",                  Sc_Character_GetName);
-	ccAddExternalObjectFunction("Character::set_Name",                  Sc_Character_SetName);
-	ccAddExternalObjectFunction("Character::get_NormalView",            Sc_Character_GetNormalView);
-	ccAddExternalObjectFunction("Character::get_PreviousRoom",          Sc_Character_GetPreviousRoom);
-	ccAddExternalObjectFunction("Character::get_Room",                  Sc_Character_GetRoom);
-	ccAddExternalObjectFunction("Character::get_ScaleMoveSpeed",        Sc_Character_GetScaleMoveSpeed);
-	ccAddExternalObjectFunction("Character::set_ScaleMoveSpeed",        Sc_Character_SetScaleMoveSpeed);
-	ccAddExternalObjectFunction("Character::get_ScaleVolume",           Sc_Character_GetScaleVolume);
-	ccAddExternalObjectFunction("Character::set_ScaleVolume",           Sc_Character_SetScaleVolume);
-	ccAddExternalObjectFunction("Character::get_Scaling",               Sc_Character_GetScaling);
-	ccAddExternalObjectFunction("Character::set_Scaling",               Sc_Character_SetScaling);
-	ccAddExternalObjectFunction("Character::get_Solid",                 Sc_Character_GetSolid);
-	ccAddExternalObjectFunction("Character::set_Solid",                 Sc_Character_SetSolid);
-	ccAddExternalObjectFunction("Character::get_Speaking",              Sc_Character_GetSpeaking);
-	ccAddExternalObjectFunction("Character::get_SpeakingFrame",         Sc_Character_GetSpeakingFrame);
-	ccAddExternalObjectFunction("Character::get_SpeechAnimationDelay",  Sc_GetCharacterSpeechAnimationDelay);
-	ccAddExternalObjectFunction("Character::set_SpeechAnimationDelay",  Sc_Character_SetSpeechAnimationDelay);
-	ccAddExternalObjectFunction("Character::get_SpeechColor",           Sc_Character_GetSpeechColor);
-	ccAddExternalObjectFunction("Character::set_SpeechColor",           Sc_Character_SetSpeechColor);
-	ccAddExternalObjectFunction("Character::get_SpeechView",            Sc_Character_GetSpeechView);
-	ccAddExternalObjectFunction("Character::set_SpeechView",            Sc_Character_SetSpeechView);
-	ccAddExternalObjectFunction("Character::get_ThinkView",             Sc_Character_GetThinkView);
-	ccAddExternalObjectFunction("Character::set_ThinkView",             Sc_Character_SetThinkView);
-	ccAddExternalObjectFunction("Character::get_Transparency",          Sc_Character_GetTransparency);
-	ccAddExternalObjectFunction("Character::set_Transparency",          Sc_Character_SetTransparency);
-	ccAddExternalObjectFunction("Character::get_TurnBeforeWalking",     Sc_Character_GetTurnBeforeWalking);
-	ccAddExternalObjectFunction("Character::set_TurnBeforeWalking",     Sc_Character_SetTurnBeforeWalking);
-	ccAddExternalObjectFunction("Character::get_View",                  Sc_Character_GetView);
-	ccAddExternalObjectFunction("Character::get_WalkSpeedX",            Sc_Character_GetWalkSpeedX);
-	ccAddExternalObjectFunction("Character::get_WalkSpeedY",            Sc_Character_GetWalkSpeedY);
-	ccAddExternalObjectFunction("Character::get_X",                     Sc_Character_GetX);
-	ccAddExternalObjectFunction("Character::set_X",                     Sc_Character_SetX);
-	ccAddExternalObjectFunction("Character::get_x",                     Sc_Character_GetX);
-	ccAddExternalObjectFunction("Character::set_x",                     Sc_Character_SetX);
-	ccAddExternalObjectFunction("Character::get_Y",                     Sc_Character_GetY);
-	ccAddExternalObjectFunction("Character::set_Y",                     Sc_Character_SetY);
-	ccAddExternalObjectFunction("Character::get_y",                     Sc_Character_GetY);
-	ccAddExternalObjectFunction("Character::set_y",                     Sc_Character_SetY);
-	ccAddExternalObjectFunction("Character::get_Z",                     Sc_Character_GetZ);
-	ccAddExternalObjectFunction("Character::set_Z",                     Sc_Character_SetZ);
-	ccAddExternalObjectFunction("Character::get_z",                     Sc_Character_GetZ);
-	ccAddExternalObjectFunction("Character::set_z",                     Sc_Character_SetZ);
+    ccAddExternalObjectFunction("Character::get_ActiveInventory",       Sc_Character_GetActiveInventory);
+    ccAddExternalObjectFunction("Character::set_ActiveInventory",       Sc_Character_SetActiveInventory);
+    ccAddExternalObjectFunction("Character::get_Animating",             Sc_Character_GetAnimating);
+    ccAddExternalObjectFunction("Character::get_AnimationSpeed",        Sc_Character_GetAnimationSpeed);
+    ccAddExternalObjectFunction("Character::set_AnimationSpeed",        Sc_Character_SetAnimationSpeed);
+    ccAddExternalObjectFunction("Character::get_Baseline",              Sc_Character_GetBaseline);
+    ccAddExternalObjectFunction("Character::set_Baseline",              Sc_Character_SetBaseline);
+    ccAddExternalObjectFunction("Character::get_BlinkInterval",         Sc_Character_GetBlinkInterval);
+    ccAddExternalObjectFunction("Character::set_BlinkInterval",         Sc_Character_SetBlinkInterval);
+    ccAddExternalObjectFunction("Character::get_BlinkView",             Sc_Character_GetBlinkView);
+    ccAddExternalObjectFunction("Character::set_BlinkView",             Sc_Character_SetBlinkView);
+    ccAddExternalObjectFunction("Character::get_BlinkWhileThinking",    Sc_Character_GetBlinkWhileThinking);
+    ccAddExternalObjectFunction("Character::set_BlinkWhileThinking",    Sc_Character_SetBlinkWhileThinking);
+    ccAddExternalObjectFunction("Character::get_BlockingHeight",        Sc_Character_GetBlockingHeight);
+    ccAddExternalObjectFunction("Character::set_BlockingHeight",        Sc_Character_SetBlockingHeight);
+    ccAddExternalObjectFunction("Character::get_BlockingWidth",         Sc_Character_GetBlockingWidth);
+    ccAddExternalObjectFunction("Character::set_BlockingWidth",         Sc_Character_SetBlockingWidth);
+    ccAddExternalObjectFunction("Character::get_Clickable",             Sc_Character_GetClickable);
+    ccAddExternalObjectFunction("Character::set_Clickable",             Sc_Character_SetClickable);
+    ccAddExternalObjectFunction("Character::get_DestinationX",          Sc_Character_GetDestinationX);
+    ccAddExternalObjectFunction("Character::get_DestinationY",          Sc_Character_GetDestinationY);
+    ccAddExternalObjectFunction("Character::get_DiagonalLoops",         Sc_Character_GetDiagonalWalking);
+    ccAddExternalObjectFunction("Character::set_DiagonalLoops",         Sc_Character_SetDiagonalWalking);
+    ccAddExternalObjectFunction("Character::get_Frame",                 Sc_Character_GetFrame);
+    ccAddExternalObjectFunction("Character::set_Frame",                 Sc_Character_SetFrame);
+    ccAddExternalObjectFunction("Character::get_HasExplicitTint",       Sc_Character_GetHasExplicitTint);
+    ccAddExternalObjectFunction("Character::get_ID",                    Sc_Character_GetID);
+    ccAddExternalObjectFunction("Character::get_IdleView",              Sc_Character_GetIdleView);
+    ccAddExternalObjectFunction("Character::geti_InventoryQuantity",    Sc_Character_GetIInventoryQuantity);
+    ccAddExternalObjectFunction("Character::seti_InventoryQuantity",    Sc_Character_SetIInventoryQuantity);
+    ccAddExternalObjectFunction("Character::get_IgnoreLighting",        Sc_Character_GetIgnoreLighting);
+    ccAddExternalObjectFunction("Character::set_IgnoreLighting",        Sc_Character_SetIgnoreLighting);
+    ccAddExternalObjectFunction("Character::get_IgnoreScaling",         Sc_Character_GetIgnoreScaling);
+    ccAddExternalObjectFunction("Character::set_IgnoreScaling",         Sc_Character_SetIgnoreScaling);
+    ccAddExternalObjectFunction("Character::get_IgnoreWalkbehinds",     Sc_Character_GetIgnoreWalkbehinds);
+    ccAddExternalObjectFunction("Character::set_IgnoreWalkbehinds",     Sc_Character_SetIgnoreWalkbehinds);
+    ccAddExternalObjectFunction("Character::get_Loop",                  Sc_Character_GetLoop);
+    ccAddExternalObjectFunction("Character::set_Loop",                  Sc_Character_SetLoop);
+    ccAddExternalObjectFunction("Character::get_ManualScaling",         Sc_Character_GetIgnoreScaling);
+    ccAddExternalObjectFunction("Character::set_ManualScaling",         Sc_Character_SetManualScaling);
+    ccAddExternalObjectFunction("Character::get_MovementLinkedToAnimation",Sc_Character_GetMovementLinkedToAnimation);
+    ccAddExternalObjectFunction("Character::set_MovementLinkedToAnimation",Sc_Character_SetMovementLinkedToAnimation);
+    ccAddExternalObjectFunction("Character::get_Moving",                Sc_Character_GetMoving);
+    ccAddExternalObjectFunction("Character::get_Name",                  Sc_Character_GetName);
+    ccAddExternalObjectFunction("Character::set_Name",                  Sc_Character_SetName);
+    ccAddExternalObjectFunction("Character::get_NormalView",            Sc_Character_GetNormalView);
+    ccAddExternalObjectFunction("Character::get_PreviousRoom",          Sc_Character_GetPreviousRoom);
+    ccAddExternalObjectFunction("Character::get_Room",                  Sc_Character_GetRoom);
+    ccAddExternalObjectFunction("Character::get_ScaleMoveSpeed",        Sc_Character_GetScaleMoveSpeed);
+    ccAddExternalObjectFunction("Character::set_ScaleMoveSpeed",        Sc_Character_SetScaleMoveSpeed);
+    ccAddExternalObjectFunction("Character::get_ScaleVolume",           Sc_Character_GetScaleVolume);
+    ccAddExternalObjectFunction("Character::set_ScaleVolume",           Sc_Character_SetScaleVolume);
+    ccAddExternalObjectFunction("Character::get_Scaling",               Sc_Character_GetScaling);
+    ccAddExternalObjectFunction("Character::set_Scaling",               Sc_Character_SetScaling);
+    ccAddExternalObjectFunction("Character::get_Solid",                 Sc_Character_GetSolid);
+    ccAddExternalObjectFunction("Character::set_Solid",                 Sc_Character_SetSolid);
+    ccAddExternalObjectFunction("Character::get_Speaking",              Sc_Character_GetSpeaking);
+    ccAddExternalObjectFunction("Character::get_SpeakingFrame",         Sc_Character_GetSpeakingFrame);
+    ccAddExternalObjectFunction("Character::get_SpeechAnimationDelay",  Sc_GetCharacterSpeechAnimationDelay);
+    ccAddExternalObjectFunction("Character::set_SpeechAnimationDelay",  Sc_Character_SetSpeechAnimationDelay);
+    ccAddExternalObjectFunction("Character::get_SpeechColor",           Sc_Character_GetSpeechColor);
+    ccAddExternalObjectFunction("Character::set_SpeechColor",           Sc_Character_SetSpeechColor);
+    ccAddExternalObjectFunction("Character::get_SpeechView",            Sc_Character_GetSpeechView);
+    ccAddExternalObjectFunction("Character::set_SpeechView",            Sc_Character_SetSpeechView);
+    ccAddExternalObjectFunction("Character::get_ThinkView",             Sc_Character_GetThinkView);
+    ccAddExternalObjectFunction("Character::set_ThinkView",             Sc_Character_SetThinkView);
+    ccAddExternalObjectFunction("Character::get_Transparency",          Sc_Character_GetTransparency);
+    ccAddExternalObjectFunction("Character::set_Transparency",          Sc_Character_SetTransparency);
+    ccAddExternalObjectFunction("Character::get_TurnBeforeWalking",     Sc_Character_GetTurnBeforeWalking);
+    ccAddExternalObjectFunction("Character::set_TurnBeforeWalking",     Sc_Character_SetTurnBeforeWalking);
+    ccAddExternalObjectFunction("Character::get_View",                  Sc_Character_GetView);
+    ccAddExternalObjectFunction("Character::get_WalkSpeedX",            Sc_Character_GetWalkSpeedX);
+    ccAddExternalObjectFunction("Character::get_WalkSpeedY",            Sc_Character_GetWalkSpeedY);
+    ccAddExternalObjectFunction("Character::get_X",                     Sc_Character_GetX);
+    ccAddExternalObjectFunction("Character::set_X",                     Sc_Character_SetX);
+    ccAddExternalObjectFunction("Character::get_x",                     Sc_Character_GetX);
+    ccAddExternalObjectFunction("Character::set_x",                     Sc_Character_SetX);
+    ccAddExternalObjectFunction("Character::get_Y",                     Sc_Character_GetY);
+    ccAddExternalObjectFunction("Character::set_Y",                     Sc_Character_SetY);
+    ccAddExternalObjectFunction("Character::get_y",                     Sc_Character_GetY);
+    ccAddExternalObjectFunction("Character::set_y",                     Sc_Character_SetY);
+    ccAddExternalObjectFunction("Character::get_Z",                     Sc_Character_GetZ);
+    ccAddExternalObjectFunction("Character::set_Z",                     Sc_Character_SetZ);
+    ccAddExternalObjectFunction("Character::get_z",                     Sc_Character_GetZ);
+    ccAddExternalObjectFunction("Character::set_z",                     Sc_Character_SetZ);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

@@ -16,17 +16,17 @@ namespace AGS.Editor
             if (disposing && (components != null))
             {
                 components.Dispose();
-			}
+            }
 
-			if (disposing)
-			{
-				_tooltip.Dispose();
+            if (disposing)
+            {
+                _tooltip.Dispose();
                 foreach (System.Drawing.Bitmap bmp in _selectedBitmaps)
                 {
-					if (bmp != _image)
-					{
-						bmp.Dispose();
-					}
+                    if (bmp != _image)
+                    {
+                        bmp.Dispose();
+                    }
                 }
             }
 

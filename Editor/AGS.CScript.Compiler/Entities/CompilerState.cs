@@ -4,16 +4,16 @@ using System.Text;
 
 namespace AGS.CScript.Compiler
 {
-	internal class CompilerState
-	{
-		private Modifiers _nextTokenModifiers = new Modifiers();
+    internal class CompilerState
+    {
+        private Modifiers _nextTokenModifiers = new Modifiers();
         private Stack<LocalScope> _scope = new Stack<LocalScope>();
 
-		public Modifiers NextTokenModifiers
-		{
-			get { return _nextTokenModifiers; }
+        public Modifiers NextTokenModifiers
+        {
+            get { return _nextTokenModifiers; }
             set { _nextTokenModifiers = value; }
-		}
+        }
 
         public LocalScope CurrentScope
         {
@@ -35,16 +35,16 @@ namespace AGS.CScript.Compiler
             _scope.Pop();
         }
 
-		public bool IsModifierPresent(PredefinedSymbol symbol)
-		{
-			foreach (ModifierToken token in _nextTokenModifiers)
-			{
-				if (token.Symbol == symbol)
-				{
-					return true;
-				}
-			}
-			return false;
-		}
-	}
+        public bool IsModifierPresent(PredefinedSymbol symbol)
+        {
+            foreach (ModifierToken token in _nextTokenModifiers)
+            {
+                if (token.Symbol == symbol)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 }

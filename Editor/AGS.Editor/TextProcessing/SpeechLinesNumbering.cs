@@ -21,7 +21,7 @@ namespace AGS.Editor
 
         public CompileMessages NumberSpeechLines(Game game, bool includeNarrator, bool combineIdenticalLines, bool removeNumbering, int? characterID)
         {
-			_speechableFunctionCalls = GetFunctionCallsToProcessForSpeech(includeNarrator);
+            _speechableFunctionCalls = GetFunctionCallsToProcessForSpeech(includeNarrator);
 
             _errors = new CompileMessages();
             _game = game;
@@ -66,13 +66,13 @@ namespace AGS.Editor
 
             foreach (ScriptAndHeader script in game.RootScriptFolder.AllItemsFlat)
             {
-                script.Script.Text = processor.ProcessText(script.Script.Text, GameTextType.Script);                
+                script.Script.Text = processor.ProcessText(script.Script.Text, GameTextType.Script);
             }
 
-			for (int i = 0; i < game.GlobalMessages.Length; i++)
-			{
-				game.GlobalMessages[i] = processor.ProcessText(game.GlobalMessages[i], GameTextType.Message, Character.NARRATOR_CHARACTER_ID);
-			}
+            for (int i = 0; i < game.GlobalMessages.Length; i++)
+            {
+                game.GlobalMessages[i] = processor.ProcessText(game.GlobalMessages[i], GameTextType.Message, Character.NARRATOR_CHARACTER_ID);
+            }
 
             Factory.AGSEditor.RunProcessAllGameTextsEvent(processor, _errors);
         }

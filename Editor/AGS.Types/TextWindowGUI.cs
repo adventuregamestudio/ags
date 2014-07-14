@@ -8,34 +8,34 @@ namespace AGS.Types
 {
     public class TextWindowGUI : GUI
     {
-		private int _textColor;
-		private int _padding = 3;
+        private int _textColor;
+        private int _padding = 3;
 
-		[Description("Colour of the text when drawn on this text window")]
-		[Category("Appearance")]
-		public int TextColor
-		{
-			get { return _textColor; }
-			set { _textColor = value; }
-		}
+        [Description("Colour of the text when drawn on this text window")]
+        [Category("Appearance")]
+        public int TextColor
+        {
+            get { return _textColor; }
+            set { _textColor = value; }
+        }
 
-		[Description("The amount of padding, in pixels, surrounding the text in this text window")]
-		[Category("Appearance")]
-		public int Padding
-		{
-			get { return _padding; }
-			set { _padding = value; }
-		}
+        [Description("The amount of padding, in pixels, surrounding the text in this text window")]
+        [Category("Appearance")]
+        public int Padding
+        {
+            get { return _padding; }
+            set { _padding = value; }
+        }
 
-		// For backwards compatibility, before 3.0.0.19 stored
-		// it as "BorderColor"
-		[Browsable(false)]
-		[AGSNoSerialize]
-		public int BorderColor
-		{
-			get { return _textColor; }
-			set { _textColor = value; }
-		}
+        // For backwards compatibility, before 3.0.0.19 stored
+        // it as "BorderColor"
+        [Browsable(false)]
+        [AGSNoSerialize]
+        public int BorderColor
+        {
+            get { return _textColor; }
+            set { _textColor = value; }
+        }
 
         public TextWindowGUI() : base()
         {
@@ -48,7 +48,7 @@ namespace AGS.Types
             _controls.Add(new GUITextWindowEdge(40, 0, 6));
             _controls.Add(new GUITextWindowEdge(40, 90, 7));
         }
-        
+
         public TextWindowGUI(XmlNode rootGuiNode) : base(rootGuiNode)
         {
         }

@@ -22,21 +22,21 @@ namespace AGS.Editor
                 txtInfo.Text += " ** BETA VERSION **";
             }
             txtInfo.Text += Environment.NewLine +
-				"v" + AGS.Types.Version.AGS_EDITOR_FRIENDLY_VERSION + ", " + AGS.Types.Version.AGS_EDITOR_DATE +
+                "v" + AGS.Types.Version.AGS_EDITOR_FRIENDLY_VERSION + ", " + AGS.Types.Version.AGS_EDITOR_DATE +
                 Environment.NewLine +
                 AGS.Types.Version.AGS_EDITOR_COPYRIGHT + Environment.NewLine +
-				"Scintilla (c) 1998-2003 Neil Hodgson, all rights reserved" +
-				Environment.NewLine +
+                "Scintilla (c) 1998-2003 Neil Hodgson, all rights reserved" +
+                Environment.NewLine +
                 "DockPanel Suite (c) 2007 Weifen Luo" +
                 Environment.NewLine +
-				"See the DOCS folder for copyrights of used libraries." +
-				Environment.NewLine + 
-				"System: " + GetOperatingSystemName() + 
-				Environment.NewLine;
+                "See the DOCS folder for copyrights of used libraries." +
+                Environment.NewLine +
+                "System: " + GetOperatingSystemName() +
+                Environment.NewLine;
 
-			GetAboutDialogTextEventArgs evArgs = new GetAboutDialogTextEventArgs(string.Empty);
-			Factory.Events.OnGetAboutDialogText(evArgs);
-			txtInfo.Text += evArgs.Text;
+            GetAboutDialogTextEventArgs evArgs = new GetAboutDialogTextEventArgs(string.Empty);
+            Factory.Events.OnGetAboutDialogText(evArgs);
+            txtInfo.Text += evArgs.Text;
         }
 
         private string GetOperatingSystemName()
@@ -73,15 +73,15 @@ namespace AGS.Editor
             return osName + " " + Environment.OSVersion.ServicePack;
         }
 
-		private void btnOK_Click(object sender, EventArgs e)
-		{
-			if (Utilities.IsShiftPressed())
-			{
-				pictureBox.Image = Resources.ResourceManager.GetBitmap("splash-mittens.bmp");
-				this.Text = "The cast and crew of Mittens 2007 Canada";
-				txtInfo.Text = "Greetings from the cast of Mittens VI. One Fop to rule them all ... One Fop to find them, One Fop to come to them all and in darkness be drowned by them.";
-				this.DialogResult = DialogResult.None;
-			}
-		}
+        private void btnOK_Click(object sender, EventArgs e)
+        {
+            if (Utilities.IsShiftPressed())
+            {
+                pictureBox.Image = Resources.ResourceManager.GetBitmap("splash-mittens.bmp");
+                this.Text = "The cast and crew of Mittens 2007 Canada";
+                txtInfo.Text = "Greetings from the cast of Mittens VI. One Fop to rule them all ... One Fop to find them, One Fop to come to them all and in darkness be drowned by them.";
+                this.DialogResult = DialogResult.None;
+            }
+        }
     }
 }

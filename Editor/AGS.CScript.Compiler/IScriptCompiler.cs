@@ -4,8 +4,8 @@ using System.Text;
 
 namespace AGS.CScript.Compiler
 {
-	public interface IScriptCompiler
-	{
-		CompileResults CompileScript(string script);
-	}
+    public interface IScriptCompiler
+    {
+        CompileResults CompileScript(string script);
+    }
 }

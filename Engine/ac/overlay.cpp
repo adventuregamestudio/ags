@@ -292,7 +292,7 @@ RuntimeScriptValue Sc_Overlay_CreateTextual(const RuntimeScriptValue *params, in
 {
     API_SCALL_SCRIPT_SPRINTF(Overlay_CreateTextual, 6);
     ScriptOverlay *overlay = Overlay_CreateTextual(params[0].IValue, params[1].IValue, params[2].IValue,
-                                                   params[3].IValue, params[4].IValue, "%s", scsf_buffer);
+        params[3].IValue, params[4].IValue, "%s", scsf_buffer);
     return RuntimeScriptValue().SetDynamicObject(overlay, overlay);
 }
 

@@ -15,12 +15,12 @@ namespace AGS.Editor
         public StartNewGameWizardPage2(string baseDirectory)
         {
             InitializeComponent();
-			txtCreateInFolder.Text = baseDirectory;
+            txtCreateInFolder.Text = baseDirectory;
         }
 
         public string NewGameName
         {
-            get { return txtFriendlyName.Text; } 
+            get { return txtFriendlyName.Text; }
         }
 
         public string GetFullPath()
@@ -35,48 +35,48 @@ namespace AGS.Editor
             }
         }
 
-		private bool VerifyPathContainsValidCharacters()
-		{
-			foreach (char c in GetFullPath())
-			{
-				foreach (char invalidChar in Path.GetInvalidPathChars())
-				{
-					if (invalidChar == c)
-					{
-						return false;
-					}
-				}
-			}
-			if (!txtCreateInFolder.Text.Contains(@"\"))
-			{
-				// Path must contain at least one \
-				return false;
-			}
-			if (!txtCreateInFolder.Text.Contains(":"))
-			{
-				// Path must contain at least one :
-				return false;
-			}
-			return true;
-		}
+        private bool VerifyPathContainsValidCharacters()
+        {
+            foreach (char c in GetFullPath())
+            {
+                foreach (char invalidChar in Path.GetInvalidPathChars())
+                {
+                    if (invalidChar == c)
+                    {
+                        return false;
+                    }
+                }
+            }
+            if (!txtCreateInFolder.Text.Contains(@"\"))
+            {
+                // Path must contain at least one \
+                return false;
+            }
+            if (!txtCreateInFolder.Text.Contains(":"))
+            {
+                // Path must contain at least one :
+                return false;
+            }
+            return true;
+        }
 
         public override bool NextButtonPressed()
         {
-            if ((txtFileName.Text.Length > 0) && 
-				(txtFriendlyName.Text.Length > 0) &&
-				(txtCreateInFolder.Text.Length > 0))
+            if ((txtFileName.Text.Length > 0) &&
+                (txtFriendlyName.Text.Length > 0) &&
+                (txtCreateInFolder.Text.Length > 0))
             {
                 if (!Utilities.DoesFileNameContainOnlyValidCharacters(txtFileName.Text))
                 {
                     Factory.GUIController.ShowMessage("The file name you have specified includes some invalid characters. Please use just letters and numbers.", MessageBoxIcon.Warning);
                     return false;
                 }
-				if (!VerifyPathContainsValidCharacters())
-				{
-					Factory.GUIController.ShowMessage("The folder name you have specified includes some invalid characters. Please use just letters and numbers.", MessageBoxIcon.Warning);
-					return false;
-				}
-				if (Directory.Exists(GetFullPath()))
+                if (!VerifyPathContainsValidCharacters())
+                {
+                    Factory.GUIController.ShowMessage("The folder name you have specified includes some invalid characters. Please use just letters and numbers.", MessageBoxIcon.Warning);
+                    return false;
+                }
+                if (Directory.Exists(GetFullPath()))
                 {
                     Factory.GUIController.ShowMessage("The directory '" + GetFullPath() + "', already exists. Please choose another file name.", MessageBoxIcon.Warning);
                     return false;
@@ -112,10 +112,10 @@ namespace AGS.Editor
             }
         }
 
-		private void txtCreateInFolder_TextChanged(object sender, EventArgs e)
-		{
-			txtFileName_TextChanged(sender, e);
-		}
+        private void txtCreateInFolder_TextChanged(object sender, EventArgs e)
+        {
+            txtFileName_TextChanged(sender, e);
+        }
 
         private void btnCreateInBrowse_Click(object sender, EventArgs e)
         {

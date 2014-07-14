@@ -13,22 +13,22 @@ namespace AGS.Types
         public const string PROPERTY_COLOUR_DEPTH = "Colour depth";
         public const string PROPERTY_RESOLUTION = "Resolution";
         public const string PROPERTY_SCALE_FONTS = "Fonts designed for 640x480";
-		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
+        public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_LETTERBOX_MODE = "Enable letterbox mode";
-		public const string REGEX_FOUR_PART_VERSION = @"^(\d+)\.(\d+)\.(\d+)\.(\d+)$";
+        public const string REGEX_FOUR_PART_VERSION = @"^(\d+)\.(\d+)\.(\d+)\.(\d+)$";
 
-		private const string DEFAULT_GENRE = "Adventure";
+        private const string DEFAULT_GENRE = "Adventure";
         private const string DEFAULT_VERSION = "1.0.0.0";
 
         public Settings()
         {
-			GenerateNewGameID();
+            GenerateNewGameID();
         }
 
         private string _gameName = "New game";
         private GameResolutions _resolution = GameResolutions.R320x200;
         private GameColorDepth _colorDepth = GameColorDepth.HighColor;
-		private GraphicsDriver _graphicsDriver = GraphicsDriver.DX5;
+        private GraphicsDriver _graphicsDriver = GraphicsDriver.DX5;
         private bool _debugMode = true;
         private BuildConfiguration _lastBuildConfiguration = BuildConfiguration.Unknown;
         private bool _antiGlideMode = true;
@@ -69,7 +69,7 @@ namespace AGS.Types
         private int _thoughtGUI = 0;
         private bool _backwardsText = false;
         private int _uniqueID;
-		private Guid _guid;
+        private Guid _guid;
         private bool _hasMODMusic = false;
         private int _totalScore = 0;
         private bool _binaryFilesInSourceControl = false;
@@ -79,26 +79,26 @@ namespace AGS.Types
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
         private bool _useLowResCoordinatesInScript = true;
         // Vista game explorer fields
-		private bool _enableGameExplorer = false;
-		private string _description = string.Empty;
-		private DateTime _releaseDate = DateTime.Now;
-		private string _genre = DEFAULT_GENRE;
-		private string _version = DEFAULT_VERSION;
-		private int _windowsExperienceIndex = 1;
-		private string _developerName = string.Empty;
-		private string _developerURL = string.Empty;
-		private string _saveGameExtension = string.Empty;
-		private bool _enhancedSaveGames = false;
+        private bool _enableGameExplorer = false;
+        private string _description = string.Empty;
+        private DateTime _releaseDate = DateTime.Now;
+        private string _genre = DEFAULT_GENRE;
+        private string _version = DEFAULT_VERSION;
+        private int _windowsExperienceIndex = 1;
+        private string _developerName = string.Empty;
+        private string _developerURL = string.Empty;
+        private string _saveGameExtension = string.Empty;
+        private bool _enhancedSaveGames = false;
         private string _saveGamesFolderName = string.Empty;
         private int _audioIndexer = 0;
 
-		public void GenerateNewGameID()
-		{
-			_uniqueID = Environment.TickCount;
-			_guid = Guid.NewGuid();
-		}
+        public void GenerateNewGameID()
+        {
+            _uniqueID = Environment.TickCount;
+            _guid = Guid.NewGuid();
+        }
 
-		[DisplayName(PROPERTY_GAME_NAME)]
+        [DisplayName(PROPERTY_GAME_NAME)]
         [Description("The game's name (for display in the title bar)")]
         [Category("(Setup)")]
         public string GameName
@@ -114,20 +114,20 @@ namespace AGS.Types
             set { _uniqueID = value; }
         }
 
-		[Browsable(false)]
-		[AGSNoSerialize]
-		public Guid GUID
-		{
-			get { return _guid; }
-			set { _guid = value; }
-		}
+        [Browsable(false)]
+        [AGSNoSerialize]
+        public Guid GUID
+        {
+            get { return _guid; }
+            set { _guid = value; }
+        }
 
-		[Browsable(false)]
-		public string GUIDAsString
-		{
-			get { return _guid.ToString("B"); }
-			set { _guid = new Guid(value); }
-		}
+        [Browsable(false)]
+        public string GUIDAsString
+        {
+            get { return _guid.ToString("B"); }
+            set { _guid = new Guid(value); }
+        }
 
         [DisplayName(PROPERTY_COLOUR_DEPTH)]
         [Description("The colour depth of the game (higher gives better colour quality, but slower performance)")]
@@ -150,15 +150,15 @@ namespace AGS.Types
             set { _resolution = value; }
         }
 
-		[DisplayName("Default graphics driver")]
-		[Description("The default graphics driver that your game will use. Direct3D allows fast high-resolution alpha-blended sprites, but DirectDraw is better at RawDrawing.")]
-		[Category("(Setup)")]
-		[TypeConverter(typeof(EnumTypeConverter))]
-		public GraphicsDriver GraphicsDriver
-		{
-			get { return _graphicsDriver; }
-			set { _graphicsDriver = value; }
-		}
+        [DisplayName("Default graphics driver")]
+        [Description("The default graphics driver that your game will use. Direct3D allows fast high-resolution alpha-blended sprites, but DirectDraw is better at RawDrawing.")]
+        [Category("(Setup)")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public GraphicsDriver GraphicsDriver
+        {
+            get { return _graphicsDriver; }
+            set { _graphicsDriver = value; }
+        }
 
         [DisplayName("Compress the sprite file")]
         [Description("Compress the sprite file to reduce its size, at the expense of performance")]
@@ -249,7 +249,7 @@ namespace AGS.Types
         public bool LetterboxMode
         {
             get { return false; }
-            set {  }
+            set { }
         }
 
         [DisplayName("Automatically move the player in Walk mode")]
@@ -276,8 +276,8 @@ namespace AGS.Types
         [Description("When the player interface is disabled (eg. during a cutscene), GUIs on screen will take this action")]
         [DefaultValue(InterfaceDisabledAction.GreyOut)]
         [Category("Visual")]
-		[TypeConverter(typeof(EnumTypeConverter))]
-		public InterfaceDisabledAction WhenInterfaceDisabled
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public InterfaceDisabledAction WhenInterfaceDisabled
         {
             get { return _whenInterfaceDisabled; }
             set { _whenInterfaceDisabled = value; }
@@ -374,10 +374,10 @@ namespace AGS.Types
 
         [Browsable(false)]
         public bool AntiGlideMode
-	    {
-		    get { return _antiGlideMode;}
-		    set { _antiGlideMode = value;}
-	    }
+        {
+            get { return _antiGlideMode; }
+            set { _antiGlideMode = value; }
+        }
 
         [DisplayName("Enable Debug Mode")]
         [Description("Enable various debugging keys that help you while developing your game")]
@@ -680,119 +680,119 @@ namespace AGS.Types
             set { _hasMODMusic = value; }
         }
 
-		[DisplayName("Enable Game Explorer integration")]
-		[Description("Whether or not this game can be added to the Vista Game Explorer")]
-		[Category("Windows Vista Game Explorer")]
-		public bool GameExplorerEnabled
-		{
-			get { return _enableGameExplorer; }
-			set { _enableGameExplorer = value; }
-		}
+        [DisplayName("Enable Game Explorer integration")]
+        [Description("Whether or not this game can be added to the Vista Game Explorer")]
+        [Category("Windows Vista Game Explorer")]
+        public bool GameExplorerEnabled
+        {
+            get { return _enableGameExplorer; }
+            set { _enableGameExplorer = value; }
+        }
 
-		[DisplayName("Game description")]
-		[Description("The Description displayed in the Game Explorer")]
-		[Category("Windows Vista Game Explorer")]
-		public string Description
-		{
-			get { return _description; }
-			set { _description = value; }
-		}
+        [DisplayName("Game description")]
+        [Description("The Description displayed in the Game Explorer")]
+        [Category("Windows Vista Game Explorer")]
+        public string Description
+        {
+            get { return _description; }
+            set { _description = value; }
+        }
 
-		[DisplayName("Release date")]
-		[Description("Date on which this game is first released")]
-		[Category("Windows Vista Game Explorer")]
-		public DateTime ReleaseDate
-		{
-			get { return _releaseDate; }
-			set { _releaseDate = value; }
-		}
+        [DisplayName("Release date")]
+        [Description("Date on which this game is first released")]
+        [Category("Windows Vista Game Explorer")]
+        public DateTime ReleaseDate
+        {
+            get { return _releaseDate; }
+            set { _releaseDate = value; }
+        }
 
-		[DisplayName("Genre")]
-		[Description("The Genre displayed in the Game Explorer")]
-		[Category("Windows Vista Game Explorer")]
-		public string Genre
-		{
-			get { return _genre; }
-			set { _genre = value; }
-		}
+        [DisplayName("Genre")]
+        [Description("The Genre displayed in the Game Explorer")]
+        [Category("Windows Vista Game Explorer")]
+        public string Genre
+        {
+            get { return _genre; }
+            set { _genre = value; }
+        }
 
-		[DisplayName("Version")]
-		[Description("The Version displayed in the Game Explorer")]
-		[Category("Windows Vista Game Explorer")]
-		public string Version
-		{
-			get { return _version; }
-			set 
+        [DisplayName("Version")]
+        [Description("The Version displayed in the Game Explorer")]
+        [Category("Windows Vista Game Explorer")]
+        public string Version
+        {
+            get { return _version; }
+            set
             {
                 // The GDF Schema requires this type of version number
-				if (!Regex.IsMatch(value, REGEX_FOUR_PART_VERSION))
+                if (!Regex.IsMatch(value, REGEX_FOUR_PART_VERSION))
                 {
                     throw new ArgumentException("Version must be of form  a.b.c.d");
                 }
-                _version = value; 
+                _version = value;
             }
-		}
+        }
 
-		[DisplayName("Windows Experience Index")]
-		[Description("The minimum Vista Experience Index necessary to play the game")]
-		[Category("Windows Vista Game Explorer")]
-		public int WindowsExperienceIndex
-		{
-			get { return _windowsExperienceIndex; }
-			set { _windowsExperienceIndex = value; }
-		}
+        [DisplayName("Windows Experience Index")]
+        [Description("The minimum Vista Experience Index necessary to play the game")]
+        [Category("Windows Vista Game Explorer")]
+        public int WindowsExperienceIndex
+        {
+            get { return _windowsExperienceIndex; }
+            set { _windowsExperienceIndex = value; }
+        }
 
-		[DisplayName("Developer name")]
-		[Description("The name of the game developer (you!). Displayed on the game EXE in Explorer, and in the Vista Game Explorer.")]
+        [DisplayName("Developer name")]
+        [Description("The name of the game developer (you!). Displayed on the game EXE in Explorer, and in the Vista Game Explorer.")]
         [Category("(Setup)")]
-		public string DeveloperName
-		{
-			get { return _developerName; }
-			set { _developerName = value; }
-		}
+        public string DeveloperName
+        {
+            get { return _developerName; }
+            set { _developerName = value; }
+        }
 
-		[DisplayName("Developer website")]
-		[Description("URL of game developer's website")]
-		[Category("Windows Vista Game Explorer")]
-		public string DeveloperURL
-		{
-			get { return _developerURL; }
-			set { _developerURL = value; }
-		}
+        [DisplayName("Developer website")]
+        [Description("URL of game developer's website")]
+        [Category("Windows Vista Game Explorer")]
+        public string DeveloperURL
+        {
+            get { return _developerURL; }
+            set { _developerURL = value; }
+        }
 
-		[DisplayName("Enhanced save games")]
-		[Description("Whether to enable enhanced save games, where the user can double-click on one in Explorer to start the game and load it. If enabled, you must set the Save Game File Extension. Please see the manual for important information.")]
-		[Category("Saved Games")]
-		public bool EnhancedSaveGames
-		{
-			get { return _enhancedSaveGames; }
-			set { _enhancedSaveGames = value; }
-		}
+        [DisplayName("Enhanced save games")]
+        [Description("Whether to enable enhanced save games, where the user can double-click on one in Explorer to start the game and load it. If enabled, you must set the Save Game File Extension. Please see the manual for important information.")]
+        [Category("Saved Games")]
+        public bool EnhancedSaveGames
+        {
+            get { return _enhancedSaveGames; }
+            set { _enhancedSaveGames = value; }
+        }
 
-		[DisplayName("Save game file extension")]
-		[Description("The file extension to give save game files (if Enhanced Save Games are enabled)")]
-		[Category("Saved Games")]
-		public string SaveGameFileExtension
-		{
-			get { return _saveGameExtension; }
-			set 
-			{
-				// Limit what they can set it to
-				if ((value.Length > 0) && (!Regex.IsMatch(value, @"^([a-zA-Z0-9]+)$")))
-				{
-					throw new ArgumentException("Save game extension can only contain letters and numbers");
-				}
-				if (value.Length > 19)
-				{
-					throw new ArgumentException("Save game extension cannot be longer than 15 letters");
-				}
-				if ((value.Length > 0) && (value.Length < 5))
-				{
-					throw new ArgumentException("Save game extension must be at least 5 letters long");
-				}
-				_saveGameExtension = value; 
-			}
-		}
+        [DisplayName("Save game file extension")]
+        [Description("The file extension to give save game files (if Enhanced Save Games are enabled)")]
+        [Category("Saved Games")]
+        public string SaveGameFileExtension
+        {
+            get { return _saveGameExtension; }
+            set
+            {
+                // Limit what they can set it to
+                if ((value.Length > 0) && (!Regex.IsMatch(value, @"^([a-zA-Z0-9]+)$")))
+                {
+                    throw new ArgumentException("Save game extension can only contain letters and numbers");
+                }
+                if (value.Length > 19)
+                {
+                    throw new ArgumentException("Save game extension cannot be longer than 15 letters");
+                }
+                if ((value.Length > 0) && (value.Length < 5))
+                {
+                    throw new ArgumentException("Save game extension must be at least 5 letters long");
+                }
+                _saveGameExtension = value;
+            }
+        }
 
         [DisplayName("Save games folder name")]
         [Description("If set, creates a folder of this name inside the user's Saved Games folder in Vista (or My Documents in XP) to store the save games in.")]
@@ -847,19 +847,19 @@ namespace AGS.Types
 
         public void FromXml(XmlNode node)
         {
-			_graphicsDriver = GraphicsDriver.DX5;
+            _graphicsDriver = GraphicsDriver.DX5;
             _totalScore = 0;
-			_guid = Guid.Empty;
-			_enableGameExplorer = false;
-			_description = string.Empty;
-			_releaseDate = DateTime.Now;
-			_genre = DEFAULT_GENRE;
-			_version = DEFAULT_VERSION;
-			_windowsExperienceIndex = 1;
-			_developerName = string.Empty;
-			_developerURL = string.Empty;
-			_enhancedSaveGames = false;
-			_saveGameExtension = string.Empty;
+            _guid = Guid.Empty;
+            _enableGameExplorer = false;
+            _description = string.Empty;
+            _releaseDate = DateTime.Now;
+            _genre = DEFAULT_GENRE;
+            _version = DEFAULT_VERSION;
+            _windowsExperienceIndex = 1;
+            _developerName = string.Empty;
+            _developerURL = string.Empty;
+            _enhancedSaveGames = false;
+            _saveGameExtension = string.Empty;
             _saveGamesFolderName = null;
             _binaryFilesInSourceControl = false;
             _guiAlphaStyle = GUIAlphaStyle.Classic;
@@ -872,10 +872,10 @@ namespace AGS.Types
 
             SerializeUtils.DeserializeFromXML(this, node);
 
-			if (_guid == Guid.Empty)
-			{
-				_guid = Guid.NewGuid();
-			}
+            if (_guid == Guid.Empty)
+            {
+                _guid = Guid.NewGuid();
+            }
             if (_saveGamesFolderName == null)
             {
                 this.SaveGameFolderName = _gameName;

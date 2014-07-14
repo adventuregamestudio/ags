@@ -13,12 +13,12 @@ namespace AGS.Editor
     public partial class MakeTemplateWizardPage : WizardPage
     {
         private string _createInDirectory;
-		private string _templateFileExtension;
+        private string _templateFileExtension;
 
         public MakeTemplateWizardPage(string createInDirectory, string templateFileExtension)
         {
             _createInDirectory = createInDirectory;
-			_templateFileExtension = templateFileExtension;
+            _templateFileExtension = templateFileExtension;
             InitializeComponent();
         }
 

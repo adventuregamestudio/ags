@@ -4,18 +4,18 @@ using System.Text;
 
 namespace AGS.Types
 {
-	public class GetScriptHeaderListEventArgs
-	{
-		IList<Script> _scripts;
+    public class GetScriptHeaderListEventArgs
+    {
+        IList<Script> _scripts;
 
-		public GetScriptHeaderListEventArgs(IList<Script> scriptHeaders)
-		{
-			_scripts = scriptHeaders;
-		}
+        public GetScriptHeaderListEventArgs(IList<Script> scriptHeaders)
+        {
+            _scripts = scriptHeaders;
+        }
 
-		public IList<Script> ScriptHeaders
-		{
-			get { return _scripts; }
-		}
-	}
+        public IList<Script> ScriptHeaders
+        {
+            get { return _scripts; }
+        }
+    }
 }

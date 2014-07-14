@@ -47,22 +47,22 @@ int RoomObject::get_baseline() {
 
 void RoomObject::UpdateCyclingView()
 {
-	if (on != 1) return;
+    if (on != 1) return;
     if (moving>0) {
-      do_movelist_move(&moving,&x,&y);
-      }
+        do_movelist_move(&moving,&x,&y);
+    }
     if (cycling==0) return;
     if (view<0) return;
     if (wait>0) { wait--; return; }
 
     if (cycling >= ANIM_BACKWARDS) {
 
-      update_cycle_view_backwards();
+        update_cycle_view_backwards();
 
     }
     else {  // Animate forwards
-      
-	  update_cycle_view_forwards();
+
+        update_cycle_view_forwards();
 
     }  // end if forwards
 
@@ -70,7 +70,7 @@ void RoomObject::UpdateCyclingView()
     num = vfptr->pic;
 
     if (cycling == 0)
-      return;
+        return;
 
     wait=vfptr->speed+overall_speed;
     CheckViewFrame (view, loop, frame);
@@ -79,55 +79,55 @@ void RoomObject::UpdateCyclingView()
 
 void RoomObject::update_cycle_view_forwards()
 {
-	frame++;
-      if (frame >= views[view].loops[loop].numFrames) {
+    frame++;
+    if (frame >= views[view].loops[loop].numFrames) {
         // go to next loop thing
         if (views[view].loops[loop].RunNextLoop()) {
-          if (loop+1 >= views[view].numLoops)
-            quit("!Last loop in a view requested to move to next loop");
-          loop++;
-          frame=0;
+            if (loop+1 >= views[view].numLoops)
+                quit("!Last loop in a view requested to move to next loop");
+            loop++;
+            frame=0;
         }
         else if (cycling % ANIM_BACKWARDS == ANIM_ONCE) {
-          // leave it on the last frame
-          cycling=0;
-          frame--;
-          }
-        else {
-          if (play.no_multiloop_repeat == 0) {
-            // multi-loop anims, go back to start of it
-            while ((loop > 0) && 
-              (views[view].loops[loop - 1].RunNextLoop()))
-              loop --;
-          }
-          if (cycling % ANIM_BACKWARDS == ANIM_ONCERESET)
+            // leave it on the last frame
             cycling=0;
-          frame=0;
+            frame--;
         }
-      }
+        else {
+            if (play.no_multiloop_repeat == 0) {
+                // multi-loop anims, go back to start of it
+                while ((loop > 0) && 
+                    (views[view].loops[loop - 1].RunNextLoop()))
+                    loop --;
+            }
+            if (cycling % ANIM_BACKWARDS == ANIM_ONCERESET)
+                cycling=0;
+            frame=0;
+        }
+    }
 }
 
 void RoomObject::update_cycle_view_backwards()
 {
-	// animate backwards
-      frame--;
-      if (frame < 0) {
+    // animate backwards
+    frame--;
+    if (frame < 0) {
         if ((loop > 0) && 
-           (views[view].loops[loop - 1].RunNextLoop())) 
+            (views[view].loops[loop - 1].RunNextLoop())) 
         {
-          // If it's a Go-to-next-loop on the previous one, then go back
-          loop --;
-          frame = views[view].loops[loop].numFrames - 1;
+            // If it's a Go-to-next-loop on the previous one, then go back
+            loop --;
+            frame = views[view].loops[loop].numFrames - 1;
         }
         else if (cycling % ANIM_BACKWARDS == ANIM_ONCE) {
-          // leave it on the first frame
-          cycling = 0;
-          frame = 0;
+            // leave it on the first frame
+            cycling = 0;
+            frame = 0;
         }
         else { // repeating animation
-          frame = views[view].loops[loop].numFrames - 1;
+            frame = views[view].loops[loop].numFrames - 1;
         }
-      }
+    }
 }
 
 void RoomObject::ReadFromFile(Stream *in)

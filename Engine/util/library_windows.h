@@ -21,69 +21,69 @@
 
 namespace AGS
 {
-namespace Engine
-{
-
-
-class WindowsLibrary : BaseLibrary
-{
-public:
-  WindowsLibrary()
-    : _library(NULL)
-  {
-  };
-
-  virtual ~WindowsLibrary()
-  {
-    Unload();
-  };
-
-  AGS::Common::String BuildPath(AGS::Common::String libraryName)
-  {
-    AGS::Common::String platformLibraryName = libraryName;
-    platformLibraryName.Append(".dll");
-
-    AGS::Common::Out::FPrint("Built library path: %s", platformLibraryName.GetCStr());
-
-    return platformLibraryName;
-  }
-
-  bool Load(AGS::Common::String libraryName)
-  {
-    Unload();
-
-    _library = LoadLibrary(BuildPath(libraryName).GetCStr());
-
-    return (_library != NULL);
-  }
-
-  bool Unload()
-  {
-    if (_library)
+    namespace Engine
     {
-      return (FreeLibrary(_library) != 0);
-    }
-    else
-    {
-      return true;
-    }
-  }
-
-  void *GetFunctionAddress(AGS::Common::String functionName)
-  {
-    return GetProcAddress(_library, functionName.GetCStr());
-  }
-
-private:
-  HANDLE _library;
-};
 
 
-typedef WindowsLibrary Library;
+        class WindowsLibrary : BaseLibrary
+        {
+        public:
+            WindowsLibrary()
+                : _library(NULL)
+            {
+            };
+
+            virtual ~WindowsLibrary()
+            {
+                Unload();
+            };
+
+            AGS::Common::String BuildPath(AGS::Common::String libraryName)
+            {
+                AGS::Common::String platformLibraryName = libraryName;
+                platformLibraryName.Append(".dll");
+
+                AGS::Common::Out::FPrint("Built library path: %s", platformLibraryName.GetCStr());
+
+                return platformLibraryName;
+            }
+
+            bool Load(AGS::Common::String libraryName)
+            {
+                Unload();
+
+                _library = LoadLibrary(BuildPath(libraryName).GetCStr());
+
+                return (_library != NULL);
+            }
+
+            bool Unload()
+            {
+                if (_library)
+                {
+                    return (FreeLibrary(_library) != 0);
+                }
+                else
+                {
+                    return true;
+                }
+            }
+
+            void *GetFunctionAddress(AGS::Common::String functionName)
+            {
+                return GetProcAddress(_library, functionName.GetCStr());
+            }
+
+        private:
+            HANDLE _library;
+        };
+
+
+        typedef WindowsLibrary Library;
 
 
 
-} // namespace Engine
+    } // namespace Engine
 } // namespace AGS
 
 

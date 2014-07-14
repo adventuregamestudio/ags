@@ -87,7 +87,7 @@ namespace AGS.Types
             childFolder.DefaultType = DefaultType;
             childFolder.DefaultBundlingType = DefaultBundlingType;
             return childFolder;
-        }        
+        }
 
         private void AddAllClipsFromThisAndSubFoldersToList(List<AudioClip> clipList)
         {

@@ -21,62 +21,62 @@
 struct GUILabel:public GUIObject
 {
 private:
-  char *text;
-  int textBufferLen;
+    char *text;
+    int textBufferLen;
 public:
-  int font, textcol, align;
+    int font, textcol, align;
 
-  virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  virtual void Draw(Common::Bitmap *ds);
-  void printtext_align(Common::Bitmap *g, int yy, color_t text_color, char *teptr);
-  void SetText(const char *newText);
-  const char *GetText();
+    virtual void WriteToFile(Common::Stream *out);
+    virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+    virtual void Draw(Common::Bitmap *ds);
+    void printtext_align(Common::Bitmap *g, int yy, color_t text_color, char *teptr);
+    void SetText(const char *newText);
+    const char *GetText();
 
-  void MouseMove(int x, int y)
-  {
-  }
+    void MouseMove(int x, int y)
+    {
+    }
 
-  void MouseOver()
-  {
-  }
+    void MouseOver()
+    {
+    }
 
-  void MouseLeave()
-  {
-  }
+    void MouseLeave()
+    {
+    }
 
-  void MouseUp()
-  {
-  }
+    void MouseUp()
+    {
+    }
 
-  void KeyPress(int kp)
-  {
-  }
+    void KeyPress(int kp)
+    {
+    }
 
-  void reset()
-  {
-    GUIObject::init();
-    align = GALIGN_LEFT;
-    font = 0;
-    textcol = 0;
-    numSupportedEvents = 0;
-    text = "";
-    textBufferLen = 0;
-  }
+    void reset()
+    {
+        GUIObject::init();
+        align = GALIGN_LEFT;
+        font = 0;
+        textcol = 0;
+        numSupportedEvents = 0;
+        text = "";
+        textBufferLen = 0;
+    }
 
-  GUILabel() {
-    reset();
-  }
+    GUILabel() {
+        reset();
+    }
 
-  virtual ~GUILabel()
-  {
-    if (textBufferLen > 0)
-      free(text);
-  }
+    virtual ~GUILabel()
+    {
+        if (textBufferLen > 0)
+            free(text);
+    }
 
 private:
-  void Draw_replace_macro_tokens(char *oritext, char *text);
-  void Draw_split_lines(char *teptr, int wid, int font, int &numlines);
+    void Draw_replace_macro_tokens(char *oritext, char *text);
+    void Draw_split_lines(char *teptr, int wid, int font, int &numlines);
 };
 
 extern DynamicArray<GUILabel> guilabels;

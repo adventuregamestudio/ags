@@ -57,7 +57,7 @@ namespace AGS.Editor
         {
             return "Global variables";
         }
-        
+
         protected override void OnPropertyChanged(string propertyName, object oldValue)
         {
             if (lvwWords.SelectedItems.Count > 0)
@@ -65,7 +65,7 @@ namespace AGS.Editor
                 UpdateListItemFromVariableObject(lvwWords.SelectedItems[0]);
             }
         }
-        
+
         private ListViewItem CreateListItemFromVariable(GlobalVariable variable)
         {
             ListViewItem newItem = new ListViewItem(new string[] { variable.Name, variable.Type, variable.DefaultValue });
@@ -86,7 +86,7 @@ namespace AGS.Editor
                 GlobalVariableChanged();
             }
         }
-        
+
         private void TextParserEditor_SizeChanged(object sender, EventArgs e)
         {
             if (this.ClientSize.Height > mainFrame.Top + 40)

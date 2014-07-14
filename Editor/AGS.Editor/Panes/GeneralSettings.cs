@@ -71,7 +71,7 @@ namespace AGS.Editor
             {
                 NormalGUI theGui = gui as NormalGUI;
                 if (theGui != null)
-                {                    
+                {
                     theGui.Width = Math.Max((theGui.Width * newWidth) / oldWidth, 1);
                     theGui.Height = Math.Max((theGui.Height * newHeight) / oldHeight, 1);
                     theGui.Left = (theGui.Left * newWidth) / oldWidth;
@@ -134,9 +134,9 @@ namespace AGS.Editor
                 HandleGameResolutionChange((GameResolutions)e.OldValue, Factory.AGSEditor.CurrentGame.Settings.Resolution);
             }
             else if ((e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_SCALE_FONTS) ||
-					 (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_ANTI_ALIAS_FONTS))
+                     (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_ANTI_ALIAS_FONTS))
             {
-				Factory.Events.OnGameSettingsChanged();
+                Factory.Events.OnGameSettingsChanged();
             }
         }
 

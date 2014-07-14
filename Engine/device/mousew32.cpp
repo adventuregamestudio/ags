@@ -85,202 +85,202 @@ extern color palette[256];
 IMouseGetPosCallback *callback = NULL;
 
 void msetcallback(IMouseGetPosCallback *gpCallback) {
-  callback = gpCallback;
+    callback = gpCallback;
 }
 
 void mgraphconfine(int x1, int y1, int x2, int y2)
 {
-  set_mouse_range(x1, y1, x2, y2);
+    set_mouse_range(x1, y1, x2, y2);
 }
 
 void mgetgraphpos()
 {
-  poll_mouse();
-  if (!disable_mgetgraphpos) {
-    mousex = mouse_x;
-    mousey = mouse_y;
-  }
-
-  if (!ignore_bounds) {
-
-    if (mousex < boundx1) {
-      mousex = boundx1;
-      msetgraphpos(mousex, mousey);
-    }
-    if (mousey < boundy1) {
-      mousey = boundy1;
-      msetgraphpos(mousex, mousey);
-    }
-    if (mousex > boundx2) {
-      mousex = boundx2;
-      msetgraphpos(mousex, mousey);
-    }
-    if (mousey > boundy2) {
-      mousey = boundy2;
-      msetgraphpos(mousex, mousey);
+    poll_mouse();
+    if (!disable_mgetgraphpos) {
+        mousex = mouse_x;
+        mousey = mouse_y;
     }
 
-  }
+    if (!ignore_bounds) {
 
-  if ((callback) && (!disable_mgetgraphpos))
-    callback->AdjustPosition(&mousex, &mousey);
+        if (mousex < boundx1) {
+            mousex = boundx1;
+            msetgraphpos(mousex, mousey);
+        }
+        if (mousey < boundy1) {
+            mousey = boundy1;
+            msetgraphpos(mousex, mousey);
+        }
+        if (mousex > boundx2) {
+            mousex = boundx2;
+            msetgraphpos(mousex, mousey);
+        }
+        if (mousey > boundy2) {
+            mousey = boundy2;
+            msetgraphpos(mousex, mousey);
+        }
+
+    }
+
+    if ((callback) && (!disable_mgetgraphpos))
+        callback->AdjustPosition(&mousex, &mousey);
 }
 
 void msetcursorlimit(int x1, int y1, int x2, int y2)
 {
-  // like graphconfine, but don't actually pass it to the driver
-  // - stops the Windows cursor showing when out of the area
-  boundx1 = x1;
-  boundy1 = y1;
-  boundx2 = x2;
-  boundy2 = y2;
+    // like graphconfine, but don't actually pass it to the driver
+    // - stops the Windows cursor showing when out of the area
+    boundx1 = x1;
+    boundy1 = y1;
+    boundx2 = x2;
+    boundy2 = y2;
 }
 
 void drawCursor(Bitmap *ds) {
-  if (alpha_blend_cursor) {
-    set_alpha_blender();
-    ds->TransBlendBlt(mousecurs[currentcursor], mousex, mousey);
-  }
-  else
-    AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, mousecurs[currentcursor], mousex, mousey);
+    if (alpha_blend_cursor) {
+        set_alpha_blender();
+        ds->TransBlendBlt(mousecurs[currentcursor], mousex, mousey);
+    }
+    else
+        AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, mousecurs[currentcursor], mousex, mousey);
 }
 
 int hotxwas = 0, hotywas = 0;
 void domouse(int str)
 {
-  /*
-     TO USE THIS ROUTINE YOU MUST LOAD A MOUSE CURSOR USING mloadcursor.
-     YOU MUST ALSO REMEMBER TO CALL mfreemem AT THE END OF THE PROGRAM.
-  */
-  int poow = mousecurs[currentcursor]->GetWidth();
-  int pooh = mousecurs[currentcursor]->GetHeight();
-  int smx = mousex - hotxwas, smy = mousey - hotywas;
+    /*
+    TO USE THIS ROUTINE YOU MUST LOAD A MOUSE CURSOR USING mloadcursor.
+    YOU MUST ALSO REMEMBER TO CALL mfreemem AT THE END OF THE PROGRAM.
+    */
+    int poow = mousecurs[currentcursor]->GetWidth();
+    int pooh = mousecurs[currentcursor]->GetHeight();
+    int smx = mousex - hotxwas, smy = mousey - hotywas;
 
-  mgetgraphpos();
-  mousex -= hotx;
-  mousey -= hoty;
+    mgetgraphpos();
+    mousex -= hotx;
+    mousey -= hoty;
 
-  if (mousex + poow >= vesa_xres)
-    poow = vesa_xres - mousex;
+    if (mousex + poow >= vesa_xres)
+        poow = vesa_xres - mousex;
 
-  if (mousey + pooh >= vesa_yres)
-    pooh = vesa_yres - mousey;
+    if (mousey + pooh >= vesa_yres)
+        pooh = vesa_yres - mousey;
 
-  Bitmap *ds = GetVirtualScreen();
+    Bitmap *ds = GetVirtualScreen();
 
-  ds->SetClip(Rect(0, 0, vesa_xres - 1, vesa_yres - 1));
-  if ((str == 0) & (mouseturnedon == TRUE)) {
-    if ((mousex != smx) | (mousey != smy)) {    // the mouse has moved
-      wputblock(ds, smx, smy, savebk, 0);
-      delete savebk;
-      savebk = wnewblock(ds, mousex, mousey, mousex + poow, mousey + pooh);
-      drawCursor(ds);
+    ds->SetClip(Rect(0, 0, vesa_xres - 1, vesa_yres - 1));
+    if ((str == 0) & (mouseturnedon == TRUE)) {
+        if ((mousex != smx) | (mousey != smy)) {    // the mouse has moved
+            wputblock(ds, smx, smy, savebk, 0);
+            delete savebk;
+            savebk = wnewblock(ds, mousex, mousey, mousex + poow, mousey + pooh);
+            drawCursor(ds);
+        }
     }
-  }
-  else if ((str == 1) & (mouseturnedon == FALSE)) {
-    // the mouse is just being turned on
-    savebk = wnewblock(ds, mousex, mousey, mousex + poow, mousey + pooh);
-    drawCursor(ds);
-    mouseturnedon = TRUE;
-  }
-  else if ((str == 2) & (mouseturnedon == TRUE)) {    // the mouse is being turned off
-    if (savebk != NULL) {
-      wputblock(ds, smx, smy, savebk, 0);
-      delete savebk;
+    else if ((str == 1) & (mouseturnedon == FALSE)) {
+        // the mouse is just being turned on
+        savebk = wnewblock(ds, mousex, mousey, mousex + poow, mousey + pooh);
+        drawCursor(ds);
+        mouseturnedon = TRUE;
+    }
+    else if ((str == 2) & (mouseturnedon == TRUE)) {    // the mouse is being turned off
+        if (savebk != NULL) {
+            wputblock(ds, smx, smy, savebk, 0);
+            delete savebk;
+        }
+
+        savebk = NULL;
+        mouseturnedon = FALSE;
     }
 
-    savebk = NULL;
-    mouseturnedon = FALSE;
-  }
-
-  mousex += hotx;
-  mousey += hoty;
-  hotxwas = hotx;
-  hotywas = hoty;
+    mousex += hotx;
+    mousey += hoty;
+    hotxwas = hotx;
+    hotywas = hoty;
 }
 
 int ismouseinbox(int lf, int tp, int rt, int bt)
 {
-  if ((mousex >= lf) & (mousex <= rt) & (mousey >= tp) & (mousey <= bt))
-    return TRUE;
-  else
-    return FALSE;
+    if ((mousex >= lf) & (mousex <= rt) & (mousey >= tp) & (mousey <= bt))
+        return TRUE;
+    else
+        return FALSE;
 }
 
 void mfreemem()
 {
-  for (int re = 0; re < numcurso; re++) {
-    delete mousecurs[re];
-  }
+    for (int re = 0; re < numcurso; re++) {
+        delete mousecurs[re];
+    }
 }
 
 void mnewcursor(char cursno)
 {
-  domouse(2);
-  currentcursor = cursno;
-  domouse(1);
+    domouse(2);
+    currentcursor = cursno;
+    domouse(1);
 }
 
 
 void mloadwcursor(char *namm)
 {
-  color dummypal[256];
-  if (wloadsprites(&dummypal[0], namm, mousecurs, 0, MAXCURSORS)) {
-    //printf("C_Load_wCursor: Error reading mouse cursor file\n"); 
-    exit(1);
-  }
+    color dummypal[256];
+    if (wloadsprites(&dummypal[0], namm, mousecurs, 0, MAXCURSORS)) {
+        //printf("C_Load_wCursor: Error reading mouse cursor file\n"); 
+        exit(1);
+    }
 }
 
 int butwas = 0;
 int mgetbutton()
 {
-  int toret = NONE;
-  poll_mouse();
-  int butis = mouse_b;
+    int toret = NONE;
+    poll_mouse();
+    int butis = mouse_b;
 
-  if ((butis > 0) & (butwas > 0))
-    return NONE;  // don't allow holding button down
+    if ((butis > 0) & (butwas > 0))
+        return NONE;  // don't allow holding button down
 
-  if (butis & 1)
-    toret = LEFT;
-  else if (butis & 2)
-    toret = RIGHT;
-  else if (butis & 4)
-    toret = MIDDLE;
+    if (butis & 1)
+        toret = LEFT;
+    else if (butis & 2)
+        toret = RIGHT;
+    else if (butis & 4)
+        toret = MIDDLE;
 
-  butwas = butis;
-  return toret;
+    butwas = butis;
+    return toret;
 }
 
 const int MB_ARRAY[3] = { 1, 2, 4 };
 int misbuttondown(int buno)
 {
-  poll_mouse();
-  if (mouse_b & MB_ARRAY[buno])
-    return TRUE;
-  return FALSE;
+    poll_mouse();
+    if (mouse_b & MB_ARRAY[buno])
+        return TRUE;
+    return FALSE;
 }
 
 void msetgraphpos(int xa, int ya)
 { 
-  position_mouse(xa, ya); // xa -= hotx; ya -= hoty;
+    position_mouse(xa, ya); // xa -= hotx; ya -= hoty;
 }
 
 void msethotspot(int xx, int yy)
 {
-  hotx = xx;  // mousex -= hotx; mousey -= hoty;
-  hoty = yy;  // mousex += hotx; mousey += hoty;
+    hotx = xx;  // mousex -= hotx; mousey -= hoty;
+    hoty = yy;  // mousex += hotx; mousey += hoty;
 }
 
 int minstalled()
 {
-  int nbuts;
-  if ((nbuts = install_mouse()) < 1)
-    return 0;
+    int nbuts;
+    if ((nbuts = install_mouse()) < 1)
+        return 0;
 
-  mgraphconfine(0, 0, 319, 199);  // use 320x200 co-ord system
-  if (nbuts < 2)
-    nbuts = 2;
+    mgraphconfine(0, 0, 319, 199);  // use 320x200 co-ord system
+    if (nbuts < 2)
+        nbuts = 2;
 
-  return nbuts;
+    return nbuts;
 }

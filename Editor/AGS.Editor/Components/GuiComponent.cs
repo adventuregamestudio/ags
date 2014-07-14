@@ -21,7 +21,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_EXPORT_GUI = "ExportGUI";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
         private const string ICON_KEY = "GUIsIcon";
-        
+
         internal const string MODE_SELECT_CONTROLS = "SelectControls";
         internal const string MODE_ADD_BUTTON = "AddButton";
         internal const string MODE_ADD_LABEL = "AddLabel";
@@ -148,42 +148,42 @@ namespace AGS.Editor.Components
             DeleteGUI(item);
         }
 
-		private void ShowOrAddPane(GUI chosenGui)
-		{
+        private void ShowOrAddPane(GUI chosenGui)
+        {
             ContentDocument document;
-			if (!_documents.TryGetValue(chosenGui, out document) 
+            if (!_documents.TryGetValue(chosenGui, out document)
                 || document.Control.IsDisposed)
-			{
-				List<MenuCommand> toolbarIcons = CreateToolbarIcons();
-				GUIEditor editor = new GUIEditor(chosenGui, toolbarIcons);
-				editor.OnControlsChanged += new GUIEditor.ControlsChanged(_guiEditor_OnControlsChanged);
-				editor.OnGuiNameChanged += new GUIEditor.GuiNameChanged(_guiEditor_OnGuiNameChanged);
+            {
+                List<MenuCommand> toolbarIcons = CreateToolbarIcons();
+                GUIEditor editor = new GUIEditor(chosenGui, toolbarIcons);
+                editor.OnControlsChanged += new GUIEditor.ControlsChanged(_guiEditor_OnControlsChanged);
+                editor.OnGuiNameChanged += new GUIEditor.GuiNameChanged(_guiEditor_OnGuiNameChanged);
                 document = new ContentDocument(editor, chosenGui.WindowTitle,
                     this, ICON_KEY, ConstructPropertyObjectList(chosenGui));
                 _documents[chosenGui] = document;
                 document.SelectedPropertyGridObject = chosenGui;
-				if (chosenGui is NormalGUI)
-				{
+                if (chosenGui is NormalGUI)
+                {
                     document.ToolbarCommands = toolbarIcons;
-				}
-			}
+                }
+            }
             document.TreeNodeID = GetNodeID(chosenGui);
             _guiController.AddOrShowPane(document);
-			_guiController.ShowCuppit("The GUI Editor is where you set up the GUIs in your game. Use the buttons in the toolbar to add controls, and the property grid on the right to edit the selected control's properties.", "GUI Editor introduction");
-		}
+            _guiController.ShowCuppit("The GUI Editor is where you set up the GUIs in your game. Use the buttons in the toolbar to add controls, and the property grid on the right to edit the selected control's properties.", "GUI Editor introduction");
+        }
 
         public override void PropertyChanged(string propertyName, object oldValue)
         {
             GUIEditor editor = (GUIEditor)_guiController.ActivePane.Control;
             _guiEditor_OnControlsChanged(editor.GuiToEdit);
 
-			if (propertyName == "Name")
-			{
-				foreach (ContentDocument doc in _documents.Values)
-				{
-					doc.Name = ((GUIEditor)doc.Control).GuiToEdit.WindowTitle;
-				}
-			}
+            if (propertyName == "Name")
+            {
+                foreach (ContentDocument doc in _documents.Values)
+                {
+                    doc.Name = ((GUIEditor)doc.Control).GuiToEdit.WindowTitle;
+                }
+            }
         }
 
         protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
@@ -249,14 +249,14 @@ namespace AGS.Editor.Components
         }
 
         private void AddNewGUI(GUI newGui)
-        {            
+        {
             newGui.ID = _agsEditor.CurrentGame.RootGUIFolder.GetAllItemsCount();
             newGui.Name = _agsEditor.GetFirstAvailableScriptName("gGui");
             string newNodeId = AddSingleItem(newGui);
             _guiController.ProjectTree.SelectNode(this, newNodeId);
-			ShowOrAddPane(newGui);
+            ShowOrAddPane(newGui);
         }
-        
+
         private Dictionary<string, object> ConstructPropertyObjectList(GUI forGui)
         {
             Dictionary<string, object> list = new Dictionary<string, object>();

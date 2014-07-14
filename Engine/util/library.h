@@ -19,30 +19,30 @@
 
 namespace AGS
 {
-namespace Engine
-{
+    namespace Engine
+    {
 
 
-class BaseLibrary
-{
-public:
-  BaseLibrary()
-  {
-  };
+        class BaseLibrary
+        {
+        public:
+            BaseLibrary()
+            {
+            };
 
-  virtual ~BaseLibrary()
-  {
-  };
+            virtual ~BaseLibrary()
+            {
+            };
 
-  virtual bool Load(AGS::Common::String libraryName) = 0;
+            virtual bool Load(AGS::Common::String libraryName) = 0;
 
-  virtual bool Unload() = 0;
+            virtual bool Unload() = 0;
 
-  virtual void *GetFunctionAddress(AGS::Common::String functionName) = 0;
-};
+            virtual void *GetFunctionAddress(AGS::Common::String functionName) = 0;
+        };
 
 
-} // namespace Engine
+    } // namespace Engine
 } // namespace AGS
 
 
@@ -53,12 +53,12 @@ public:
 #include "library_psp.h"
 
 #elif defined(LINUX_VERSION) \
-   || defined(MAC_VERSION) \
-   || defined(ANDROID_VERSION)
+    || defined(MAC_VERSION) \
+    || defined(ANDROID_VERSION)
 #include "library_posix.h"
 
 #elif defined(IOS_VERSION) \
-   || defined(WII_VERSION)
+    || defined(WII_VERSION)
 #include "library_dummy.h"
 
 #endif

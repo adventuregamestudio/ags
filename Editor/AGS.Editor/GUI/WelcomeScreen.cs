@@ -22,7 +22,7 @@ namespace AGS.Editor
         public WelcomeScreen(RecentGamesList recentGames)
         {
             InitializeComponent();
-			this.Shown += new EventHandler(WelcomeScreen_Shown);
+            this.Shown += new EventHandler(WelcomeScreen_Shown);
             _recentGames = recentGames.RecentGames;
 
             if (_recentGames.Count == 0)
@@ -41,12 +41,12 @@ namespace AGS.Editor
                 lstRecentGames.SelectedIndices.Add(0);
             }
 
-		}
+        }
 
-		private void WelcomeScreen_Shown(object sender, EventArgs e)
-		{
-			Factory.GUIController.ShowCuppit("Welcome to AGS! I'm Cuppit, here to help you out along the way. As you're new, you'll probably want to choose the Start New Game option.\nIf you press the Stop Bugging Me button, I won't tell you this hint again.", "Welcome text");
-		}
+        private void WelcomeScreen_Shown(object sender, EventArgs e)
+        {
+            Factory.GUIController.ShowCuppit("Welcome to AGS! I'm Cuppit, here to help you out along the way. As you're new, you'll probably want to choose the Start New Game option.\nIf you press the Stop Bugging Me button, I won't tell you this hint again.", "Welcome text");
+        }
 
         public RecentlyEditedGame SelectedRecentGame
         {

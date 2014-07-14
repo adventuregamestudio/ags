@@ -31,12 +31,12 @@ extern int use_extra_sound_offset;  // defined in ac.cpp
 
 int MYSTATICOGG::poll()
 {
-	AGS::Engine::MutexLock _lock(_mutex);
+    AGS::Engine::MutexLock _lock(_mutex);
 
     if (tune && !done && _destroyThis)
     {
-      internal_destroy();
-      _destroyThis = false;
+        internal_destroy();
+        _destroyThis = false;
     }
 
     if ((tune == NULL) || (!ready))
@@ -85,27 +85,27 @@ void MYSTATICOGG::internal_destroy()
 
 void MYSTATICOGG::destroy()
 {
-	AGS::Engine::MutexLock _lock(_mutex);
+    AGS::Engine::MutexLock _lock(_mutex);
 
     if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
-      _destroyThis = true;
+        _destroyThis = true;
     else
-      internal_destroy();
+        internal_destroy();
 
-	_lock.Release();
+    _lock.Release();
 
     while (!done)
-      AGSPlatformDriver::GetDriver()->YieldCPU();
+        AGSPlatformDriver::GetDriver()->YieldCPU();
 
     // Allow the last poll cycle to finish.
-	_lock.Acquire(_mutex);
+    _lock.Acquire(_mutex);
 }
 
 void MYSTATICOGG::seek(int pos)
 {
-	AGS::Engine::MutexLock _lock;
+    AGS::Engine::MutexLock _lock;
     if (psp_audio_multithreaded)
-		_lock.Acquire(_mutex);
+        _lock.Acquire(_mutex);
     // we stop and restart it because otherwise the buffer finishes
     // playing first and the seek isn't quite accurate
     alogg_stop_ogg(tune);
@@ -183,7 +183,7 @@ void MYSTATICOGG::restart()
         done = 0;
 
         if (!psp_audio_multithreaded)
-          poll();
+            poll();
     }
 }
 
@@ -220,7 +220,7 @@ int MYSTATICOGG::play_from(int position)
         alogg_seek_abs_msecs_ogg(tune, position);
 
     if (!psp_audio_multithreaded)
-      poll();
+        poll();
 
     return 1;
 }

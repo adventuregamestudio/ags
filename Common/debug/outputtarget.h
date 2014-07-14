@@ -20,22 +20,22 @@
 
 namespace AGS
 {
-namespace Common
-{
-
-namespace Out
-{
-    class IOutputTarget
+    namespace Common
     {
-    public:
-        virtual ~IOutputTarget() {}
 
-        virtual void Out(const char *sz_fullmsg) = 0;
-    };
+        namespace Out
+        {
+            class IOutputTarget
+            {
+            public:
+                virtual ~IOutputTarget() {}
 
-}   // namespace out
+                virtual void Out(const char *sz_fullmsg) = 0;
+            };
 
-}   // namespace Common
+        }   // namespace out
+
+    }   // namespace Common
 }   // namespace AGS
 
 #endif // __AGS_CN_DEBUG__OUTPUTTARGET_H

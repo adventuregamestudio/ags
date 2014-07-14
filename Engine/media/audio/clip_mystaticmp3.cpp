@@ -35,30 +35,30 @@ int MYSTATICMP3::poll()
 
     if (tune && !done && _destroyThis)
     {
-      internal_destroy();
-      _destroyThis = false;
+        internal_destroy();
+        _destroyThis = false;
     }
 
     int oldeip = our_eip;
     our_eip = 5997;
-    
+
     if ((tune == NULL) || (!ready))
         ;
     else 
     {
-      AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-      int result = almp3_poll_mp3(tune);
-	  _lockMp3.Release();
+        AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+        int result = almp3_poll_mp3(tune);
+        _lockMp3.Release();
 
-      if (result == ALMP3_POLL_PLAYJUSTFINISHED)
-      {
-        if (!repeat)
+        if (result == ALMP3_POLL_PLAYJUSTFINISHED)
         {
-            done = 1;
-            if (psp_audio_multithreaded)
-                internal_destroy();
+            if (!repeat)
+            {
+                done = 1;
+                if (psp_audio_multithreaded)
+                    internal_destroy();
+            }
         }
-      }
     }
     our_eip = oldeip;
 
@@ -80,38 +80,38 @@ void MYSTATICMP3::set_volume(int newvol)
 
 void MYSTATICMP3::internal_destroy()
 {
-  if (tune != NULL) {
-      AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-      almp3_stop_mp3(tune);
-      almp3_destroy_mp3(tune);
-	  _lockMp3.Release();
-      tune = NULL;
-  }
-  if (mp3buffer != NULL) {
-      sound_cache_free(mp3buffer, false);
-      mp3buffer = NULL;
-  }
+    if (tune != NULL) {
+        AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+        almp3_stop_mp3(tune);
+        almp3_destroy_mp3(tune);
+        _lockMp3.Release();
+        tune = NULL;
+    }
+    if (mp3buffer != NULL) {
+        sound_cache_free(mp3buffer, false);
+        mp3buffer = NULL;
+    }
 
-  _destroyThis = false;
-  done = 1;
+    _destroyThis = false;
+    done = 1;
 }
 
 void MYSTATICMP3::destroy()
 {
-	AGS::Engine::MutexLock _lock(_mutex);
+    AGS::Engine::MutexLock _lock(_mutex);
 
     if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
-      _destroyThis = true;
+        _destroyThis = true;
     else
-      internal_destroy();
+        internal_destroy();
 
-	_lock.Release();
+    _lock.Release();
 
     while (!done)
-      AGSPlatformDriver::GetDriver()->YieldCPU();
+        AGSPlatformDriver::GetDriver()->YieldCPU();
 
     // Allow the last poll cycle to finish.
-	_lock.Acquire(_mutex);
+    _lock.Acquire(_mutex);
 }
 
 void MYSTATICMP3::seek(int pos)
@@ -145,19 +145,19 @@ void MYSTATICMP3::restart()
         almp3_stop_mp3(tune);
         almp3_rewind_mp3(tune);
         almp3_play_mp3(tune, 16384, vol, panning);
-		_lockMp3.Release();
+        _lockMp3.Release();
         done = 0;
 
         if (!psp_audio_multithreaded)
-          poll();
+            poll();
     }
 }
 
 int MYSTATICMP3::get_voice()
 {
-	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     AUDIOSTREAM *ast = almp3_get_audiostream_mp3(tune);
-	return (ast != NULL ? ast->voice : -1);
+    return (ast != NULL ? ast->voice : -1);
 }
 
 int MYSTATICMP3::get_sound_type() {
@@ -167,7 +167,7 @@ int MYSTATICMP3::get_sound_type() {
 int MYSTATICMP3::play() {
     AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
     int result = almp3_play_ex_mp3(tune, 16384, vol, panning, 1000, repeat);
-	_lockMp3.Release();
+    _lockMp3.Release();
 
     if (result != ALMP3_OK) {
         destroy();
@@ -176,7 +176,7 @@ int MYSTATICMP3::play() {
     }
 
     if (!psp_audio_multithreaded)
-      poll();
+        poll();
 
     _playing = true;
     return 1;

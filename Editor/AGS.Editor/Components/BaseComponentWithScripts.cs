@@ -56,13 +56,13 @@ namespace AGS.Editor.Components
         protected void UpdateScriptWindowTitle(ScriptEditor editor)
         {
             string newTitle = editor.Script.FileName + (editor.IsModified ? " *" : "");
-            ContentDocument document = GetDocument(editor);            
+            ContentDocument document = GetDocument(editor);
             if (document != null && document.Name != newTitle)
             {
                 document.Name = newTitle;
                 document.Control.DockingContainer.Text = newTitle;
                 _guiController.DocumentTitlesChanged();
-            }            
-        }                
+            }
+        }
     }
 }

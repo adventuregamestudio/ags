@@ -16,7 +16,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_DELETE_ITEM = "DeleteDialog";
         private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
         private const string ICON_KEY = "DialogsIcon";
-        
+
         private Dictionary<Dialog, ContentDocument> _documents;
         private Dialog _itemRightClicked = null;
 
@@ -27,9 +27,9 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("dialog.ico"));
             _guiController.RegisterIcon("DialogIcon", Resources.ResourceManager.GetIcon("dialog-item.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Dialogs", ICON_KEY);
-			_guiController.OnZoomToFile += new GUIController.ZoomToFileHandler(GUIController_OnZoomToFile);
+            _guiController.OnZoomToFile += new GUIController.ZoomToFileHandler(GUIController_OnZoomToFile);
             _guiController.OnGetScriptEditorControl += new GUIController.GetScriptEditorControlHandler(_guiController_OnGetScriptEditorControl);
-			RePopulateTreeView();
+            RePopulateTreeView();
         }
 
         private void _guiController_OnGetScriptEditorControl(GetScriptEditorControlEventArgs evArgs)
@@ -62,7 +62,7 @@ namespace AGS.Editor.Components
                 newItem.Name = _agsEditor.GetFirstAvailableScriptName("dDialog");
                 string newNodeID = AddSingleItem(newItem);
                 _guiController.ProjectTree.SelectNode(this, newNodeID);
-				ShowPaneForDialog(newItem);
+                ShowPaneForDialog(newItem);
             }
             else if (controlID == COMMAND_DELETE_ITEM)
             {
@@ -160,7 +160,7 @@ namespace AGS.Editor.Components
         {
             IList<MenuCommand> menu = base.GetContextMenu(controlID);
             if ((controlID.StartsWith(ITEM_COMMAND_PREFIX)) &&
-                (!IsFolderNode(controlID)))            
+                (!IsFolderNode(controlID)))
             {
                 int dialogID = Convert.ToInt32(controlID.Substring(ITEM_COMMAND_PREFIX.Length));
                 _itemRightClicked = _agsEditor.CurrentGame.RootDialogFolder.FindDialogByID(dialogID, true);
@@ -212,11 +212,11 @@ namespace AGS.Editor.Components
             }
         }
 
-		private DialogEditor ShowPaneForDialog(int dialogNumber)
-		{
+        private DialogEditor ShowPaneForDialog(int dialogNumber)
+        {
             Dialog chosenItem = _agsEditor.CurrentGame.RootDialogFolder.FindDialogByID(dialogNumber, true);
             return ShowPaneForDialog(chosenItem);
-		}
+        }
 
         private DialogEditor ShowPaneForDialog(Dialog chosenItem)
         {
@@ -242,7 +242,7 @@ namespace AGS.Editor.Components
             if (dialogNumber < 0) return null;
             Dialog dialog = _agsEditor.CurrentGame.RootDialogFolder.FindDialogByID(dialogNumber, true);
 
-            return dialog;	
+            return dialog;
         }
 
         private void RemoveExecutionPointFromAllScripts()
@@ -254,7 +254,7 @@ namespace AGS.Editor.Components
         }
 
         private void GUIController_OnZoomToFile(ZoomToFileEventArgs evArgs)
-		{
+        {
             if (evArgs.IsDebugExecutionPoint)
             {
                 RemoveExecutionPointFromAllScripts();
@@ -264,8 +264,8 @@ namespace AGS.Editor.Components
             if (dialog != null)
             {
                 ShowPaneForDialog(dialog).GoToScriptLine(evArgs);
-            }         
-		}
+            }
+        }
 
         private string GetNodeID(Dialog item)
         {
@@ -278,7 +278,7 @@ namespace AGS.Editor.Components
                 (this, GetNodeID(item), item.ID.ToString() + ": " + item.Name, "DialogIcon");
             return treeItem;
         }
-        
+
         private Dictionary<string, object> ConstructPropertyObjectList(Dialog item)
         {
             Dictionary<string, object> list = new Dictionary<string, object>();

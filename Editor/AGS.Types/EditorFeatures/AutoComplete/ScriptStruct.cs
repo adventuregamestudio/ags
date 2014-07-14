@@ -12,7 +12,7 @@ namespace AGS.Types.AutoComplete
             IfDefOnly = ifDefOnly;
             IfNDefOnly = ifNDefOnly;
             FullDefinition = true;
-			StartsAtCharacterIndex = scriptCharacterIndex;
+            StartsAtCharacterIndex = scriptCharacterIndex;
         }
 
         public ScriptStruct(string name)

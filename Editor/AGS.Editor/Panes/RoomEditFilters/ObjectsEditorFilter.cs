@@ -18,7 +18,7 @@ namespace AGS.Editor
 
         private GUIController.PropertyObjectChangedHandler _propertyObjectChangedDelegate;
         private RoomObject _selectedObject;
-		private RoomObject _lastSelectedObject;
+        private RoomObject _lastSelectedObject;
         private bool _movingObjectWithMouse;
         private int _mouseOffsetX, _mouseOffsetY;
         private int _menuClickX, _menuClickY;
@@ -37,38 +37,38 @@ namespace AGS.Editor
             get { return RoomAreaMaskType.None; }
         }
 
-		public int SelectedArea
-		{
-			get { return 0; }
-		}
+        public int SelectedArea
+        {
+            get { return 0; }
+        }
 
-		public bool ShowTransparencySlider
-		{
-			get { return false; }
-		}
+        public bool ShowTransparencySlider
+        {
+            get { return false; }
+        }
 
-		public string HelpKeyword
-		{
-			get { return string.Empty; }
-		}
+        public string HelpKeyword
+        {
+            get { return string.Empty; }
+        }
 
-		public bool KeyPressed(Keys key)
-		{
+        public bool KeyPressed(Keys key)
+        {
             if (_selectedObject == null) return false;
             int step = GetArrowMoveStepSize();
             switch (key)
             {
                 case Keys.Right:
-                    return MoveObject(_selectedObject.StartX + step, _selectedObject.StartY);                    
+                    return MoveObject(_selectedObject.StartX + step, _selectedObject.StartY);
                 case Keys.Left:
-                    return MoveObject(_selectedObject.StartX - step, _selectedObject.StartY);                    
+                    return MoveObject(_selectedObject.StartX - step, _selectedObject.StartY);
                 case Keys.Down:
                     return MoveObject(_selectedObject.StartX, _selectedObject.StartY + step);
                 case Keys.Up:
-                    return MoveObject(_selectedObject.StartX, _selectedObject.StartY - step);                    
+                    return MoveObject(_selectedObject.StartX, _selectedObject.StartY - step);
             }
             return false;
-		}
+        }
 
         public virtual void PaintToHDC(IntPtr hDC, RoomEditorState state)
         {
@@ -91,9 +91,9 @@ namespace AGS.Editor
             {
                 int height = GetSpriteHeightForGameResolution(obj.Image);
                 int ypos = AdjustYCoordinateForWindowScroll(obj.StartY, state) - (height * state.ScaleFactor);
-				Factory.NativeProxy.DrawSpriteToBuffer(obj.Image, AdjustXCoordinateForWindowScroll(obj.StartX, state), ypos, state.ScaleFactor);
+                Factory.NativeProxy.DrawSpriteToBuffer(obj.Image, AdjustXCoordinateForWindowScroll(obj.StartX, state), ypos, state.ScaleFactor);
             }
-            
+
         }
 
         private int GetSpriteHeightForGameResolution(int spriteSlot)
@@ -131,9 +131,9 @@ namespace AGS.Editor
             if (_selectedObject != null)
             {
                 int width = GetSpriteWidthForGameResolution(_selectedObject.Image);
-				int height = GetSpriteHeightForGameResolution(_selectedObject.Image);
-				int xPos = AdjustXCoordinateForWindowScroll(_selectedObject.StartX, state);
-				int yPos = AdjustYCoordinateForWindowScroll(_selectedObject.StartY, state) - (height * state.ScaleFactor);
+                int height = GetSpriteHeightForGameResolution(_selectedObject.Image);
+                int xPos = AdjustXCoordinateForWindowScroll(_selectedObject.StartX, state);
+                int yPos = AdjustYCoordinateForWindowScroll(_selectedObject.StartY, state) - (height * state.ScaleFactor);
                 Pen pen = new Pen(Color.Goldenrod);
                 pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
                 graphics.DrawRectangle(pen, xPos, yPos, width * state.ScaleFactor, height * state.ScaleFactor);
@@ -153,22 +153,22 @@ namespace AGS.Editor
             }
         }
 
-		private int AdjustXCoordinateForWindowScroll(int x, RoomEditorState state)
-		{
-			return (x - (state.ScrollOffsetX / state.ScaleFactor)) * state.ScaleFactor;
-		}
+        private int AdjustXCoordinateForWindowScroll(int x, RoomEditorState state)
+        {
+            return (x - (state.ScrollOffsetX / state.ScaleFactor)) * state.ScaleFactor;
+        }
 
-		private int AdjustYCoordinateForWindowScroll(int y, RoomEditorState state)
-		{
-			return (y - (state.ScrollOffsetY / state.ScaleFactor)) * state.ScaleFactor;
-		}
+        private int AdjustYCoordinateForWindowScroll(int y, RoomEditorState state)
+        {
+            return (y - (state.ScrollOffsetY / state.ScaleFactor)) * state.ScaleFactor;
+        }
 
         public virtual void MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             int x = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
             int y = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
             _selectedObject = null;
-            
+
             for (int i = _objectBaselines.Count - 1; i >= 0; i--)
             {
                 RoomObject obj = _objectBaselines[i];
@@ -276,7 +276,7 @@ namespace AGS.Editor
                 int tempy = _selectedObject.StartY;
 
                 if ((Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript) &&
-                	(_room.Resolution == RoomResolution.HighRes))
+                    (_room.Resolution == RoomResolution.HighRes))
                 {
                     tempx = tempx / 2;
                     tempy = tempy / 2;
@@ -310,7 +310,7 @@ namespace AGS.Editor
         public virtual void MouseUp(MouseEventArgs e, RoomEditorState state)
         {
             _movingObjectWithMouse = false;
-			_lastSelectedObject = _selectedObject;
+            _lastSelectedObject = _selectedObject;
 
             if (e.Button == MouseButtons.Middle)
             {
@@ -318,17 +318,17 @@ namespace AGS.Editor
             }
         }
 
-		public void DoubleClick(RoomEditorState state)
-		{
-			if (_lastSelectedObject != null)
-			{
-				Sprite chosenSprite = SpriteChooser.ShowSpriteChooser(_lastSelectedObject.Image);
-				if (chosenSprite != null)
-				{
-					_lastSelectedObject.Image = chosenSprite.Number;
-				}
-			}
-		}
+        public void DoubleClick(RoomEditorState state)
+        {
+            if (_lastSelectedObject != null)
+            {
+                Sprite chosenSprite = SpriteChooser.ShowSpriteChooser(_lastSelectedObject.Image);
+                if (chosenSprite != null)
+                {
+                    _lastSelectedObject.Image = chosenSprite.Number;
+                }
+            }
+        }
 
         public virtual bool MouseMove(int x, int y, RoomEditorState state)
         {
@@ -347,7 +347,7 @@ namespace AGS.Editor
         }
 
         private bool MoveObject(int newX, int newY)
-        {            
+        {
             if (_selectedObject == null)
             {
                 _movingObjectWithMouse = false;
@@ -362,7 +362,7 @@ namespace AGS.Editor
                     _room.Modified = true;
                 }
             }
-            return true;            
+            return true;
         }
 
         private bool IsHighResGameWithLowResScript()
@@ -391,8 +391,8 @@ namespace AGS.Editor
         {
             SetPropertyGridList();
             Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
-			Factory.GUIController.ShowCuppit("The Objects view allows you to place and manage room objects. These are items that can move around, be turned on and off and animated, but they have to stay within this room.\nRight-click in the room to add one.", "Objects introduction");
-		}
+            Factory.GUIController.ShowCuppit("The Objects view allows you to place and manage room objects. These are items that can move around, be turned on and off and animated, but they have to stay within this room.\nRight-click in the room to add one.", "Objects introduction");
+        }
 
         public void FilterOff()
         {

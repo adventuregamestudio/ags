@@ -1,6 +1,6 @@
 namespace AGS.Editor
 {
-	partial class CreateVoiceActingScriptPage
+    partial class CreateVoiceActingScriptPage
     {
         /// <summary> 
         /// Required designer variable.
@@ -89,9 +89,9 @@ namespace AGS.Editor
 
         #endregion
 
-		private System.Windows.Forms.GroupBox groupBox1;
-		private System.Windows.Forms.Button btnBrowse;
-		private System.Windows.Forms.Label label1;
-		private System.Windows.Forms.TextBox txtFilePath;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Button btnBrowse;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox txtFilePath;
     }
 }

@@ -21,7 +21,8 @@ namespace AGS.Types
             _value = 0;
         }
 
-        public GUISlider(XmlNode node) : base(node)
+        public GUISlider(XmlNode node)
+            : base(node)
         {
         }
 

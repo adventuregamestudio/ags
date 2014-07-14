@@ -70,7 +70,8 @@ namespace AGS.Types
                     "FirstLoad", EVENT_SUFFIX_ROOM_LOAD, "RepExec", "AfterFadeIn", "Leave" });
         }
 
-        public Room(int roomNumber) : base(roomNumber)
+        public Room(int roomNumber)
+            : base(roomNumber)
         {
             _script = new Script("room" + roomNumber + ".asc", "// Room script file", false);
 

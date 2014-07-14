@@ -37,7 +37,8 @@ namespace AGS.Types
             set { _textColor = value; }
         }
 
-        public TextWindowGUI() : base()
+        public TextWindowGUI()
+            : base()
         {
             _controls.Add(new GUITextWindowEdge(0, 0, 0));
             _controls.Add(new GUITextWindowEdge(0, 90, 1));
@@ -49,7 +50,8 @@ namespace AGS.Types
             _controls.Add(new GUITextWindowEdge(40, 90, 7));
         }
 
-        public TextWindowGUI(XmlNode rootGuiNode) : base(rootGuiNode)
+        public TextWindowGUI(XmlNode rootGuiNode)
+            : base(rootGuiNode)
         {
         }
 

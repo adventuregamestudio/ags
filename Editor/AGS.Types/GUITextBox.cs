@@ -23,7 +23,8 @@ namespace AGS.Types
             _font = 0;
         }
 
-        public GUITextBox(XmlNode node) : base(node)
+        public GUITextBox(XmlNode node)
+            : base(node)
         {
         }
 

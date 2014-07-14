@@ -21,7 +21,8 @@ namespace AGS.Types
             _textAlign = LabelTextAlignment.TopLeft;
         }
 
-        public GUILabel(XmlNode node) : base(node)
+        public GUILabel(XmlNode node)
+            : base(node)
         {
         }
 

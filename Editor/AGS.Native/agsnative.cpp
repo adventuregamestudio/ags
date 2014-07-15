@@ -3257,6 +3257,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
     gui->flags = 0;
 	gui->popup = POPUP_SCRIPT;
 	gui->vtext[0] = GUI_TEXTWINDOW;
+	gui->padding = twGui->Padding;
   gui->fgcol = twGui->TextColor;
   }
   gui->bgcol = guiObj->BackgroundColor;
@@ -4330,6 +4331,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
     if (thisroom.wasversion <= kRoomVersion_300a)
       obj->StartY += GetSpriteHeight(thisroom.sprs[i].sprnum);
 		obj->Visible = (thisroom.sprs[i].on != 0);
+		obj->Clickable = ((thisroom.objectFlags[i] & OBJF_NOINTERACT) == 0);
 		obj->Baseline = thisroom.objbaseline[i];
 		obj->Name = gcnew String(jibbledScriptName);
 		obj->Description = gcnew String(thisroom.objectnames[i]);
@@ -4499,6 +4501,7 @@ void save_crm_file(Room ^room)
 		thisroom.objectFlags[i] = 0;
 		if (obj->UseRoomAreaScaling) thisroom.objectFlags[i] |= OBJF_USEROOMSCALING;
 		if (obj->UseRoomAreaLighting) thisroom.objectFlags[i] |= OBJF_USEREGIONTINTS;
+		if (!obj->Clickable) thisroom.objectFlags[i] |= OBJF_NOINTERACT;
 		CompileCustomProperties(obj->Properties, &thisroom.objProps[i]);
 	}
 

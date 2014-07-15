@@ -637,8 +637,25 @@ namespace Scintilla
         #endregion
 
         #region Event Dispatch Mechanism
+        
         protected override void WndProc(ref Message m)
-        {
+        {            
+            //	If we get a destroy message we make this window
+            //	a message-only window so that it doesn't actually
+            //	get destroyed, causing Scintilla to wipe out all
+            //	its settings associated with this window handle.
+            //	We do send a WM_DESTROY message to Scintilla in the
+            //	Dispose() method so that it does clean up its 
+            //	resources when this control is actually done with.
+            //	Solution was taken from QuickSharp.
+            if (m.Msg == WinAPI.WM_DESTROY)
+            {
+                if (this.IsHandleCreated)
+                {
+                    WinAPI.SetParent(this.Handle, WinAPI.HWND_MESSAGE);
+                    return;
+                }
+            }
             //	Uh-oh. Code based on undocumented unsupported .NET behavior coming up!
             //	Windows Forms Sends Notify messages back to the originating
             //	control ORed with 0x2000. This is way cool becuase we can listen for

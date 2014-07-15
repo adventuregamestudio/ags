@@ -77,6 +77,9 @@ Audio clips
 43 : 3.3.0
 Added few more game options.
 
+44 : 3.3.1
+Added custom dialog option highlight colour.
+
 */
 
 enum GameDataVersion
@@ -102,8 +105,9 @@ enum GameDataVersion
     kGameVersion_312            = 40,
     kGameVersion_320            = 41,
     kGameVersion_321            = 42,
-    kGameVersion_330,
-    kGameVersion_Current        = kGameVersion_330
+    kGameVersion_330            = 43,
+    kGameVersion_331,
+    kGameVersion_Current        = kGameVersion_331
 };
 
 extern GameDataVersion loaded_game_file_version;

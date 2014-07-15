@@ -921,7 +921,7 @@ void scrWait(int nloops) {
 
     play.wait_counter = nloops;
     play.key_skip_wait = 0;
-    do_main_cycle(UNTIL_MOVEEND,(long)&play.wait_counter);
+    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&play.wait_counter);
 }
 
 int WaitKey(int nloops) {
@@ -930,7 +930,7 @@ int WaitKey(int nloops) {
 
     play.wait_counter = nloops;
     play.key_skip_wait = 1;
-    do_main_cycle(UNTIL_MOVEEND,(long)&play.wait_counter);
+    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&play.wait_counter);
     if (play.wait_counter < 0)
         return 1;
     return 0;
@@ -942,7 +942,7 @@ int WaitMouseKey(int nloops) {
 
     play.wait_counter = nloops;
     play.key_skip_wait = 3;
-    do_main_cycle(UNTIL_MOVEEND,(long)&play.wait_counter);
+    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&play.wait_counter);
     if (play.wait_counter < 0)
         return 1;
     return 0;

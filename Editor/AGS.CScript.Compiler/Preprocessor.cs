@@ -91,8 +91,12 @@ namespace AGS.CScript.Compiler
 				return string.Empty;
 			}
 
+			Stack<StringBuilder> previousOutput = new Stack<StringBuilder>();
+			Stack<FastString> previousLine = new Stack<FastString>();
+			Stack<List<String>> previousIgnore = new Stack<List<String>>();
 			StringBuilder output = new StringBuilder(lineToProcess.Length);
 			FastString line = new FastString(lineToProcess);
+			List<String> ignore = new List<String>();
 			while (line.Length > 0)
 			{
 				int i = 0;
@@ -126,15 +130,29 @@ namespace AGS.CScript.Compiler
 				string theWord = GetNextWord(ref realStringLine, false, false);
 				line = realStringLine;
 
-				if ((!precededByDot) && (_state.Macros.Contains(theWord)))
+				if ((!precededByDot) && (!ignore.Contains(theWord)) && (_state.Macros.Contains(theWord)))
 				{
-					output.Append(_state.Macros[theWord]);
+					previousIgnore.Push(ignore);
+					previousLine.Push(line);
+					previousOutput.Push(output);
+					ignore = new List<String>(ignore);
+					ignore.Add(theWord);
+					line = new FastString(_state.Macros[theWord]);
+					output = new StringBuilder(line.Length);
 				}
 				else
 				{
 					output.Append(theWord);
 				}
 
+				while (line.Length == 0 && previousOutput.Count > 0)
+				{
+					String result = output.ToString();
+					output = previousOutput.Pop();
+					line = previousLine.Pop();
+					ignore = previousIgnore.Pop();
+					output.Append(result);
+				}
 			}
 
 			return output.ToString();
@@ -288,6 +306,10 @@ namespace AGS.CScript.Compiler
 			else if ((directive == "sectionstart") || (directive == "sectionend"))
 			{
 				// do nothing -- 2.72 put these as markers in the script
+			}
+			else if ((directive == "region") || (directive == "endregion"))
+			{
+				// do nothing -- scintilla can fold it, so it can be used to organize the code
 			}
 			else
 			{

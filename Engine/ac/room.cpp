@@ -99,8 +99,6 @@ extern ScriptObject scrObj[MAX_INIT_SPR];
 extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int in_new_room, new_room_was;  // 1 in new room, 2 first time in new room, 3 loading saved game
-extern int new_room_pos;
-extern int new_room_x, new_room_y;
 extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
 extern int guis_need_update;
 extern int in_leaves_screen;
@@ -305,6 +303,7 @@ void unload_old_room() {
     }
 
     play.swap_portrait_lastchar = -1;
+    play.swap_portrait_lastlastchar = -1;
 
     for (ff = 0; ff < croom->numobj; ff++) {
         // un-export the object's script object
@@ -811,8 +810,12 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     {
         forchar->x = new_room_x;
         forchar->y = new_room_y;
+
+		if (new_room_loop != SCR_NO_VALUE)
+			forchar->loop = new_room_loop;
     }
     new_room_x = SCR_NO_VALUE;
+	new_room_loop = SCR_NO_VALUE;
 
     if ((new_room_pos>0) & (forchar!=NULL)) {
         if (new_room_pos>=4000) {

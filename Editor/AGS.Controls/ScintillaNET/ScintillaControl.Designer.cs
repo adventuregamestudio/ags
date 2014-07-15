@@ -1,3 +1,5 @@
+using System.Windows.Forms;
+using System.ComponentModel;
 namespace Scintilla
 {
     partial class ScintillaControl
@@ -17,6 +19,19 @@ namespace Scintilla
             {
                 components.Dispose();
             }
+
+            // Fix taken from ScintillaNet code: https://scintillanet.codeplex.com/SourceControl/changeset/36876#Branches/2.0/ScintillaNET/Scintilla.cs
+            if (disposing && IsHandleCreated)
+            {
+                //	Since we eat the destroy message in WndProc
+                //	we have to manually let Scintilla know to
+                //	clean up its resources.
+                Message destroyMessage = new Message();
+                destroyMessage.Msg = WinAPI.WM_DESTROY;
+                destroyMessage.HWnd = Handle;
+                base.DefWndProc(ref destroyMessage);                
+            }
+
             base.Dispose(disposing);
         }
 

@@ -174,7 +174,7 @@ void DisplayAtY (int ypos, const char *texx) {
         if (screen_is_dirty) {
             // erase any previous DisplaySpeech
             play.disabled_user_interface ++;
-            mainloop();
+            UpdateGameOnce();
             play.disabled_user_interface --;
         }
 

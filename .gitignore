@@ -45,3 +45,4 @@ Android/library/obj/
 Android/library/default.properties
 Android/library/project.properties
 Android/library/.classpath
+Editor/References/AGS.Native.dll

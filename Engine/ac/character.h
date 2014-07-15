@@ -31,6 +31,7 @@ void    Character_AddWaypoint(CharacterInfo *chaa, int x, int y);
 void    Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction);
 void    Character_ChangeRoomAutoPosition(CharacterInfo *chaa, int room, int newPos);
 void    Character_ChangeRoom(CharacterInfo *chaa, int room, int x, int y);
+void    Character_ChangeRoomSetLoop(CharacterInfo *chaa, int room, int x, int y, int direction);
 void    Character_ChangeView(CharacterInfo *chap, int vii);
 void    Character_FaceCharacter(CharacterInfo *char1, CharacterInfo *char2, int blockingStyle);
 void    Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingStyle);
@@ -38,6 +39,7 @@ void    Character_FaceObject(CharacterInfo *char1, ScriptObject *obj, int blocki
 void    Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int distaway, int eagerness);
 int     Character_IsCollidingWithChar(CharacterInfo *char1, CharacterInfo *char2);
 int     Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid);
+bool    Character_IsInteractionAvailable(CharacterInfo *cchar, int mood);
 void    Character_LockView(CharacterInfo *chap, int vii);
 void    Character_LockViewAligned(CharacterInfo *chap, int vii, int loop, int align);
 void    Character_LockViewFrame(CharacterInfo *chaa, int view, int loop, int frame);

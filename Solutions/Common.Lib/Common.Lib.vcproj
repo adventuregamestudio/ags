@@ -299,6 +299,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\font\wfnfont.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\font\wfnfont.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\font\wfnfontrenderer.cpp"
 					>
 				</File>

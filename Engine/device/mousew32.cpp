@@ -39,6 +39,7 @@
 #include "device/mousew32.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_util.h"
+#include "main/graphics_mode.h"
 
 using AGS::Common::Bitmap;
 
@@ -81,11 +82,9 @@ Bitmap *savebk = NULL, *mousecurs[MAXCURSORS];
 extern int vesa_xres, vesa_yres;
 extern color palette[256];
 
-
-IMouseGetPosCallback *callback = NULL;
-
-void msetcallback(IMouseGetPosCallback *gpCallback) {
-  callback = gpCallback;
+namespace Mouse
+{
+    void AdjustPosition(int &x, int &y);
 }
 
 void mgraphconfine(int x1, int y1, int x2, int y2)
@@ -122,8 +121,8 @@ void mgetgraphpos()
 
   }
 
-  if ((callback) && (!disable_mgetgraphpos))
-    callback->AdjustPosition(&mousex, &mousey);
+  if (!disable_mgetgraphpos)
+    Mouse::AdjustPosition(mousex, mousey);
 }
 
 void msetcursorlimit(int x1, int y1, int x2, int y2)
@@ -283,4 +282,27 @@ int minstalled()
     nbuts = 2;
 
   return nbuts;
+}
+
+void Mouse::AdjustPosition(int &x, int &y)
+{
+    x = GameScaling.X.UnScalePt(x);
+    y = GameScaling.Y.UnScalePt(y);
+}
+
+void Mouse::SetGraphicArea(const Rect r)
+{
+    Rect dst_r = GameScaling.ScaleRange(r);
+    mgraphconfine(dst_r.Left, dst_r.Top, dst_r.Right, dst_r.Bottom);
+}
+
+void Mouse::SetMoveLimit(const Rect r)
+{
+    Rect dst_r = GameScaling.ScaleRange(r);
+    msetcursorlimit(dst_r.Left, dst_r.Top, dst_r.Right, dst_r.Bottom);
+}
+
+void Mouse::SetPosition(const Point p)
+{
+    msetgraphpos(GameScaling.X.ScalePt(p.X), GameScaling.X.ScalePt(p.Y));
 }

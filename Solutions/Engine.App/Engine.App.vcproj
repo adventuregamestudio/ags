@@ -1822,10 +1822,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\gfx\gfxfilterhelpers.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\gfx\gfxmodelist.h"
 					>
 				</File>
@@ -2175,6 +2171,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\util\mutex_windows.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\util\scaling.h"
 					>
 				</File>
 				<File

@@ -23,13 +23,12 @@
 
 #define MAXCURSORS 20
 
+#include "util/geometry.h"
+
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
 
-struct IMouseGetPosCallback;
-
 void msetgraphpos(int,int);
-void msetcallback(IMouseGetPosCallback *gpCallback);
 void mgraphconfine(int x1, int y1, int x2, int y2);
 void mgetgraphpos();
 void msetcursorlimit(int x1, int y1, int x2, int y2);
@@ -44,6 +43,20 @@ int misbuttondown(int buno);
 void msetgraphpos(int xa, int ya);
 void msethotspot(int xx, int yy);
 int minstalled();
+
+
+namespace Mouse
+{
+    // Limits the area inside which the standard OS cursor is not shown;
+    // applies virtual->real coordinates transformation
+    void SetGraphicArea(const Rect r);
+    // Limits the area where the game cursor can move on virtual screen;
+    // applies virtual->real coordinates transformation
+    void SetMoveLimit(const Rect r);
+    // Set actual OS cursor position on screen; applies virtual->real
+    // coordinates transformation
+    void SetPosition(const Point p);
+}
 
 
 extern int mousex, mousey;

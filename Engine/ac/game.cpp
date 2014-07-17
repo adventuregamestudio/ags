@@ -64,6 +64,7 @@
 #include "ac/dynobj/cc_audioclip.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
+#include "device/mousew32.h"
 #include "font/fonts.h"
 #include "gui/animatingguibutton.h"
 #include "gfx/graphicsdriver.h"
@@ -2300,7 +2301,7 @@ int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_v
     // it with SetMusicVolume)
     thisroom.options[ST_VOLUME] = newRoomVol;
 
-    filter->SetMouseLimit(oldx1,oldy1,oldx2,oldy2);
+    Mouse::SetMoveLimit(Rect(oldx1, oldy1, oldx2, oldy2));
 
     set_cursor_mode(sg_cur_mode);
     set_mouse_cursor(sg_cur_cursor);

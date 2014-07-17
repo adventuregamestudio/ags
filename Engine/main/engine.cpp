@@ -1225,7 +1225,7 @@ void engine_init_game_shit()
     if (usetup.vsync)
         scsystem.vsync = 1;
 
-    filter->SetMouseArea(0, 0, scrnwid-1, scrnhit-1);
+    Mouse::SetGraphicArea(Rect(0, 0, scrnwid-1, scrnhit-1));
     //  mloadwcursor("mouse.spr");
     //mousecurs[0]=spriteset[2054];
     currentcursor=0;

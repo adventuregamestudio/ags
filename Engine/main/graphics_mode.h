@@ -18,10 +18,13 @@
 #ifndef __AGS_EE_MAIN__GRAPHICSMODE_H
 #define __AGS_EE_MAIN__GRAPHICSMODE_H
 
+#include "util/scaling.h"
+
 int  graphics_mode_init();
 void graphics_mode_shutdown();
 
 extern Size GameSize;
 extern int final_scrn_wid, final_scrn_hit, final_col_dep, game_frame_y_offset;
+extern AGS::Engine::PlaneScaling GameScaling;
 
 #endif // __AGS_EE_MAIN__GRAPHICSMODE_H

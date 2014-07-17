@@ -212,7 +212,7 @@ int rec_mgetbutton() {
             replay_last_second += 40;
         }
         if ((recordbuffer[recsize] == play.gamestep) && (recordbuffer[recsize + 1] == REC_MOUSECLICK)) {
-            filter->SetMousePosition(recordbuffer[recsize+3], recordbuffer[recsize+4]);
+            Mouse::SetPosition(Point(recordbuffer[recsize+3], recordbuffer[recsize+4]));
             disable_mgetgraphpos = 0;
             mgetgraphpos ();
             disable_mgetgraphpos = 1;
@@ -272,7 +272,7 @@ void rec_domouse (int what) {
     }
     else if ((play.playback) && (recordbuffer != NULL)) {
         if ((recordbuffer[recsize] == play.gamestep) && (recordbuffer[recsize + 1] == REC_MOUSEMOVE)) {
-            filter->SetMousePosition(recordbuffer[recsize+2], recordbuffer[recsize+3]);
+            Mouse::SetPosition(Point(recordbuffer[recsize+2], recordbuffer[recsize+3]));
             disable_mgetgraphpos = 0;
             if (what == DOMOUSE_NOCURSOR)
                 mgetgraphpos();

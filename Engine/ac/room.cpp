@@ -49,6 +49,7 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "device/mousew32.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
@@ -534,7 +535,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         vesa_yres = scrnhit;
         game_frame_y_offset = (final_scrn_hit - scrnhit) / 2;
 
-        filter->SetMouseArea(0,0, scrnwid-1, vesa_yres-1);
+        Mouse::SetGraphicArea(Rect(0, 0, scrnwid-1, vesa_yres-1));
 
         if (virtual_screen->GetHeight() != scrnhit) {
             int cdepth=virtual_screen->GetColorDepth();

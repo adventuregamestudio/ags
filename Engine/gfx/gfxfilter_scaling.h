@@ -26,26 +26,12 @@ namespace AGS
 namespace Engine
 {
 
-struct MouseGetPosCallbackImpl;
-
 class ScalingGfxFilter : public GfxFilter
 {
-public:
-    virtual ~ScalingGfxFilter();
-
-    virtual bool Initialize(const int color_depth, String &err_str);
-    virtual void UnInitialize();
-    virtual void GetRealResolution(int *width, int *height);
-    virtual void SetMouseArea(int x1, int y1, int x2, int y2);
-    virtual void SetMouseLimit(int x1, int y1, int x2, int y2);
-    virtual void SetMousePosition(int x, int y);
-    virtual void AdjustPosition(int *x, int *y);
-
 protected:
     ScalingGfxFilter(int multiplier);
 
     int MULTIPLIER;
-    MouseGetPosCallbackImpl *mouseCallbackPtr;
 };
 
 } // namespace Engine

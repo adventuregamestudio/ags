@@ -67,4 +67,11 @@
 #define fixed_t int32_t // fixed point type
 #define color_t int32_t
 
+// TODO: use distinct fixed point class
+enum
+{
+    kShift    = 10,
+    kUnit     = 1 << kShift
+};
+
 #endif // __AGS_CN_CORE__TYPES_H

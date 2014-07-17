@@ -47,12 +47,6 @@ public:
 
     virtual bool Initialize(const int color_depth, String &err_str);
     virtual void UnInitialize();
-    virtual void GetRealResolution(int *width, int *height);
-    virtual void SetMousePosition(int x, int y);
-    // SetMouseArea shows the standard Windows cursor when the mouse moves outside
-    // of it in windowed mode; SetMouseLimit does not
-    virtual void SetMouseArea(int x1, int y1, int x2, int y2);
-    virtual void SetMouseLimit(int x1, int y1, int x2, int y2);
 };
 
 } // namespace Engine

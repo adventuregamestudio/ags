@@ -38,6 +38,7 @@
 #include "util/string_utils.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "device/mousew32.h"
 #include "gui/guidefines.h"
 #include "main/engine.h"
 #include "media/audio/audio.h"
@@ -742,7 +743,7 @@ int IAGSEngine::DecrementManagedObjectRefCount(const char *address) {
 }
 
 void IAGSEngine::SetMousePosition(int32 x, int32 y) {
-    filter->SetMousePosition(x, y);
+    Mouse::SetPosition(Point(x, y));
     RefreshMouse();
 }
 

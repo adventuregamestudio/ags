@@ -69,6 +69,7 @@ IGfxDriverFactory *GfxFactory = NULL;
 Size GameSize;
 int firstDepth, secondDepth;
 String GfxFilterRequest;
+PlaneScaling GameScaling;
 
 int debug_15bit_mode = 0, debug_24bit_mode = 0;
 int convert_16bit_bgr = 0;
@@ -958,6 +959,9 @@ int create_gfx_driver_and_init_mode(const String &gfx_driver_id, Size &game_size
     {
         return res;
     }
+
+    // init game scaling transformation
+    GameScaling.Init(game_size, RectWH(0, 0, screen_size.Width, screen_size.Height));
     return RETURN_CONTINUE;
 }
 

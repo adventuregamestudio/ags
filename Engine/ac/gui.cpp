@@ -29,6 +29,7 @@
 #include "ac/dynobj/scriptgui.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
+#include "device/mousew32.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
@@ -231,7 +232,7 @@ void remove_popup_interface(int ifacenum) {
     ifacepopped=-1; UnPauseGame();
     guis[ifacenum].on=0;
     if (mousey<=guis[ifacenum].popupyp)
-        filter->SetMousePosition(mousex, guis[ifacenum].popupyp+2);
+        Mouse::SetPosition(Point(mousex, guis[ifacenum].popupyp+2));
     if ((!IsInterfaceEnabled()) && (cur_cursor == cur_mode))
         // Only change the mouse cursor if it hasn't been specifically changed first
         set_mouse_cursor(CURS_WAIT);

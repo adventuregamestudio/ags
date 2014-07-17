@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "gfx/gfxfilter.h"
-#include "device/mousew32.h"
 
 // Standard do-nothing filter
 
@@ -48,27 +47,7 @@ void GfxFilter::UnInitialize()
     // do nothing
 }
 
-void GfxFilter::GetRealResolution(int *width, int *height)
-{
-    // no change
-}
-
-void GfxFilter::SetMouseArea(int x1, int y1, int x2, int y2)
-{
-    mgraphconfine(x1, y1, x2, y2);
-}
-
-void GfxFilter::SetMouseLimit(int x1, int y1, int x2, int y2)
-{
-    msetcursorlimit(x1, y1, x2, y2);
-}
-
-void GfxFilter::SetMousePosition(int x, int y)
-{
-    msetgraphpos(x, y);
-}
-
 } // namespace Engine
 } // namespace AGS
 
-Engine::GfxFilter *filter;
+AGS::Engine::GfxFilter *filter;

@@ -66,5 +66,4 @@ int find_next_enabled_cursor(int startwith);
 
 extern ScriptMouse scmouse;
 
-
 #endif // __AGS_EE_AC__MOUSE_H

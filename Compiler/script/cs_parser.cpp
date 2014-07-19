@@ -3542,11 +3542,11 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     cc_error("Member variable cannot be struct");
                     return -1;
                 }
-                /*if ((member_is_pointer) && (!member_is_import)) {
-                cc_error("Member variable cannot be pointer");
-                return -1;
+                if ((member_is_pointer) && (sym.flags[stname] & SFLG_MANAGED) && (!member_is_import)) {
+                    cc_error("Member variable of managed struct cannot be pointer");
+                    return -1;
                 }
-                else*/ if ((sym.flags[cursym] & SFLG_MANAGED) && (!member_is_pointer)) {
+                else if ((sym.flags[cursym] & SFLG_MANAGED) && (!member_is_pointer)) {
                     cc_error("Cannot declare non-pointer of managed type");
                     return -1; 
                 }

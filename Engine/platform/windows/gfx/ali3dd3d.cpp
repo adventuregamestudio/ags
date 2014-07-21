@@ -28,10 +28,6 @@
 #include "platform/windows/gfx/ali3dd3d.h"
 #include "util/library.h"
 
-#ifndef WINVER
-#define WINVER 0x0500  // for GetWindowInfo
-#endif
-
 extern int dxmedia_play_video_3d(const char*filename, IDirect3DDevice9 *device, bool useAVISound, int canskip, int stretch);
 extern void dxmedia_shutdown_3d();
 
@@ -648,8 +644,8 @@ void D3DGraphicsDriver::InitializeD3DState()
   OutputDebugString("AGS -- InitializeD3DState()");
 
   D3DMATRIX matOrtho = {
-    (2.0 / (float)_srcRect.GetWidth()), 0.0, 0.0, 0.0,
-    0.0, (2.0 / (float)_srcRect.GetHeight()), 0.0, 0.0,
+   (2.0 / (float)_mode.Width), 0.0, 0.0, 0.0,
+    0.0, (2.0 / (float)_mode.Height), 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 1.0
   };
@@ -725,7 +721,23 @@ void D3DGraphicsDriver::InitializeD3DState()
   direct3ddevice->LightEnable(0, TRUE);
 
   // See "Directly Mapping Texels to Pixels" MSDN article for why this is necessary
-  _pixelRenderOffset = ((float)_srcRect.GetWidth() / (float)_mode.Width) / 2.0f;
+  // http://msdn.microsoft.com/en-us/library/windows/desktop/bb219690.aspx
+  _pixelRenderXOffset = ((float)_srcRect.GetWidth() / (float)_mode.Width) / 2.0f;
+  _pixelRenderYOffset = ((float)_srcRect.GetHeight() / (float)_mode.Height) / 2.0f;
+
+  // Clear the screen before setting a viewport.
+  ClearRectangle(0, 0, _mode.Width, _mode.Height, 0);
+
+  // Set Viewport.
+  D3DVIEWPORT9 d3dViewport;
+  ZeroMemory(&d3dViewport, sizeof(D3DVIEWPORT9));
+  d3dViewport.X = _dstRect.Left;
+  d3dViewport.Y = _dstRect.Top;
+  d3dViewport.Width = _dstRect.GetWidth();
+  d3dViewport.Height = _dstRect.GetHeight();
+  d3dViewport.MinZ = 0.0f;
+  d3dViewport.MaxZ = 1.0f;
+  direct3ddevice->SetViewport(&d3dViewport);
 }
 
 void D3DGraphicsDriver::SetGraphicsFilter(D3DGfxFilter *filter)
@@ -761,7 +773,7 @@ bool D3DGraphicsDriver::Init(const DisplayMode &mode, const Size src_size, const
   }
   // create dummy screen bitmap
   BitmapHelper::SetScreenBitmap(
-	  ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(src_size.Width, src_size.Height, mode.ColorDepth))
+      ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(src_size.Width, src_size.Height, mode.ColorDepth))
 	  );
   return true;
 }
@@ -860,37 +872,24 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
       _pollingCallback();
 
     Bitmap *retrieveInto = destination;
-
-    if ((_srcRect.GetWidth() != _mode.Width) ||
-        (_srcRect.GetHeight() != _mode.Height))
+    if ((_srcRect.GetWidth() != _dstRect.GetWidth()) ||
+        (_srcRect.GetHeight() != _dstRect.GetHeight()))
     {
-      // in letterbox mode the screen is 640x480 but destination might only be 320x200
-      // therefore calculate the size like this
-      retrieveInto = BitmapHelper::CreateBitmap(destination->GetWidth() * _mode.Width / _srcRect.GetWidth(), 
-                                          destination->GetHeight() * _mode.Height / _srcRect.GetHeight(),
-										  _mode.ColorDepth);
+        retrieveInto = BitmapHelper::CreateBitmap(_dstRect.GetWidth(), _dstRect.GetHeight(), _mode.ColorDepth);
     }
 
     D3DLOCKED_RECT lockedRect;
-    if (surface->LockRect(&lockedRect, NULL, D3DLOCK_READONLY ) != D3D_OK)
+    RECT viewport_rect;
+    viewport_rect.left   = _dstRect.Left;
+    viewport_rect.right  = _dstRect.Right + 1;
+    viewport_rect.top    = _dstRect.Top;
+    viewport_rect.bottom = _dstRect.Bottom + 1;
+    if (surface->LockRect(&lockedRect, &viewport_rect, D3DLOCK_READONLY ) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::LockRect failed");
     }
 
-    unsigned char *surfaceData = (unsigned char*)lockedRect.pBits;
-    int xOffset = 0;
-    if (destination->GetHeight() < _srcRect.GetHeight())
-    {
-      // nasty hack for letterbox
-      surfaceData += (lockedRect.Pitch * ((_srcRect.GetHeight() - destination->GetHeight()) / 2)) * _mode.Height / _srcRect.GetHeight();
-    }
-    if (destination->GetWidth() < _srcRect.GetWidth())
-    {
-      // hack for side borders
-      xOffset += ((_srcRect.GetWidth() - destination->GetWidth()) / 2) * _mode.Width / _srcRect.GetWidth();
-    }
-
-    BitmapHelper::ReadPixelsFromMemory(retrieveInto, surfaceData, lockedRect.Pitch, xOffset);
+    BitmapHelper::ReadPixelsFromMemory(retrieveInto, (uint8_t*)lockedRect.pBits, lockedRect.Pitch);
 
     surface->UnlockRect();
     surface->Release();
@@ -1046,17 +1045,19 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
 
   float width = bmpToDraw->GetWidthToRender();
   float height = bmpToDraw->GetHeightToRender();
-  float xProportion = (float)width / (float)bmpToDraw->_width;
-  float yProportion = (float)height / (float)bmpToDraw->_height;
+  float xProportion = width / (float)bmpToDraw->_width;
+  float yProportion = height / (float)bmpToDraw->_height;
+  float xFrameProportion = (float)_mode.Width / _srcRect.GetWidth();
+  float yFrameProportion = (float)_mode.Height / _srcRect.GetHeight();
 
-  bool flipLeftToRight = globalLeftRightFlip ^ bmpToDraw->_flipped;
-  int drawAtX = drawListEntry->x + _global_x_offset;
-  int drawAtY = drawListEntry->y + _global_y_offset;
+  bool  flipLeftToRight = globalLeftRightFlip ^ bmpToDraw->_flipped;
+  float drawAtX = (drawListEntry->x + _global_x_offset) * xFrameProportion;
+  float drawAtY = (drawListEntry->y + _global_y_offset) * yFrameProportion;
 
   for (int ti = 0; ti < bmpToDraw->_numTiles; ti++)
   {
-    width = bmpToDraw->_tiles[ti].width * xProportion;
-    height = bmpToDraw->_tiles[ti].height * yProportion;
+    width = bmpToDraw->_tiles[ti].width * xProportion * xFrameProportion;
+    height = bmpToDraw->_tiles[ti].height * yProportion * yFrameProportion;
     float xOffs;
     float yOffs = bmpToDraw->_tiles[ti].y * yProportion;
     if (flipLeftToRight != globalLeftRightFlip)
@@ -1067,21 +1068,20 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
     {
       xOffs = bmpToDraw->_tiles[ti].x * xProportion;
     }
-    int thisX = drawAtX + xOffs;
-    int thisY = drawAtY + yOffs;
+    float thisX = drawAtX + xOffs;
+    float thisY = drawAtY + yOffs;
 
     if (globalLeftRightFlip)
     {
-      thisX = (_srcRect.GetWidth() - thisX) - width;
+      thisX = (_mode.Width - thisX) - width;
     }
     if (globalTopBottomFlip) 
     {
-      thisY = (_srcRect.GetHeight() - thisY) - height;
+      thisY = (_mode.Height - thisY) - height;
     }
 
-    thisX = (-(_srcRect.GetWidth() / 2)) + thisX;
-    thisY = (_srcRect.GetHeight() / 2) - thisY;
-
+    thisX = (-(_mode.Width / 2)) + thisX;
+    thisY = (_mode.Height / 2) - thisY;
 
     //Setup translation and scaling matrices
     float widthToScale = (float)width;
@@ -1100,7 +1100,7 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
       thisY -= height;
     }
 
-    make_translated_scaling_matrix(&matTransform, (float)thisX - _pixelRenderOffset, (float)thisY + _pixelRenderOffset, widthToScale, heightToScale);
+    make_translated_scaling_matrix(&matTransform, (float)thisX - _pixelRenderXOffset, (float)thisY + _pixelRenderYOffset, widthToScale, heightToScale);
 
     if ((_smoothScaling) && (bmpToDraw->_stretchToHeight > 0) &&
         ((bmpToDraw->_stretchToHeight != bmpToDraw->_height) ||

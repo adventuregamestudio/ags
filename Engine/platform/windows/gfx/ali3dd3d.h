@@ -231,7 +231,8 @@ private:
     IDirect3DPixelShader9* pixelShader;
     bool _smoothScaling;
     bool _legacyPixelShader;
-    float _pixelRenderOffset;
+    float _pixelRenderXOffset;
+    float _pixelRenderYOffset;
     Bitmap *_screenTintLayer;
     D3DBitmap* _screenTintLayerDDB;
     SpriteDrawListEntry _screenTintSprite;

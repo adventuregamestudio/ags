@@ -253,10 +253,6 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _tint_red = 0;
   _tint_green = 0;
   _tint_blue = 0;
-  _global_x_offset = 0;
-  _global_y_offset = 0;
-  _newmode_screen_width = 0;
-  _newmode_screen_height = 0;
   _filter = NULL;
   _screenTintLayer = NULL;
   _screenTintLayerDDB = NULL;
@@ -299,8 +295,13 @@ void OGLGraphicsDriver::Vsync()
   // do nothing on D3D
 }
 
-bool OGLGraphicsDriver::IsModeSupported(int width, int height, int colDepth)
+bool OGLGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 {
+  if (mode.Width <= 0 || mode.Height <= 0 || mode.ColorDepth <= 0)
+  {
+    set_allegro_error("Invalid resolution parameters: %d x %d x %d", mode.Width, mode.Height, mode.ColorDepth);
+    return false;
+  }
   return true;
 }
 
@@ -311,12 +312,6 @@ bool OGLGraphicsDriver::SupportsGammaControl()
 
 void OGLGraphicsDriver::SetGamma(int newGamma)
 {
-}
-
-void OGLGraphicsDriver::SetRenderOffset(int x, int y)
-{
-  _global_x_offset = x;
-  _global_y_offset = y;
 }
 
 void OGLGraphicsDriver::SetGraphicsFilter(OGLGfxFilter *filter)
@@ -331,7 +326,7 @@ void OGLGraphicsDriver::SetTintMethod(TintMethod method)
 
 void OGLGraphicsDriver::create_backbuffer_arrays()
 {
-  float android_screen_ar = (float)_newmode_width / (float)_newmode_height;
+  float android_screen_ar = (float)_srcRect.GetWidth() / (float)_srcRect.GetHeight();
   float android_device_ar = (float)device_screen_physical_width / (float)device_screen_physical_height;
 
   if (psp_gfx_scaling == 1)
@@ -340,7 +335,7 @@ void OGLGraphicsDriver::create_backbuffer_arrays()
     if (android_device_ar <= android_screen_ar)
     {
       backbuffer_vertices[2] = backbuffer_vertices[6] = device_screen_physical_width - 1;
-      backbuffer_vertices[5] = backbuffer_vertices[7] = device_screen_physical_width * ((float)_newmode_height / (float)_newmode_width);
+      backbuffer_vertices[5] = backbuffer_vertices[7] = device_screen_physical_width * ((float)_srcRect.GetHeight() / (float)_srcRect.GetWidth());
 
 #if defined(ANDROID_VERSION) || defined(IOS_VERSION)
       device_mouse_setup(
@@ -348,13 +343,13 @@ void OGLGraphicsDriver::create_backbuffer_arrays()
         device_screen_physical_width - 1, 
         (device_screen_physical_height - backbuffer_vertices[5]) / 2, 
         device_screen_physical_height - ((device_screen_physical_height - backbuffer_vertices[5]) / 2), 
-        (float)_newmode_width / (float)device_screen_physical_width, 
-        (float)_newmode_height / backbuffer_vertices[5]);
+        (float)_srcRect.GetWidth() / (float)device_screen_physical_width, 
+        (float)_srcRect.GetHeight() / backbuffer_vertices[5]);
 #endif
     }
     else
     {
-      backbuffer_vertices[2] = backbuffer_vertices[6] = device_screen_physical_height * ((float)_newmode_width / (float)_newmode_height);
+      backbuffer_vertices[2] = backbuffer_vertices[6] = device_screen_physical_height * ((float)_srcRect.GetWidth() / (float)_srcRect.GetHeight());
       backbuffer_vertices[5] = backbuffer_vertices[7] = device_screen_physical_height - 1;
 
 #if defined(ANDROID_VERSION) || defined(IOS_VERSION)
@@ -363,8 +358,8 @@ void OGLGraphicsDriver::create_backbuffer_arrays()
         device_screen_physical_width - ((device_screen_physical_width - backbuffer_vertices[2]) / 2),
         0,
         device_screen_physical_height - 1,
-        (float)_newmode_width / backbuffer_vertices[2], 
-        (float)_newmode_height / (float)device_screen_physical_height);
+        (float)_srcRect.GetWidth() / backbuffer_vertices[2], 
+        (float)_srcRect.GetHeight() / (float)device_screen_physical_height);
 #endif
     }
   }
@@ -380,31 +375,31 @@ void OGLGraphicsDriver::create_backbuffer_arrays()
       device_screen_physical_width - 1, 
       0, 
       device_screen_physical_width - 1, 
-      (float)_newmode_width / (float)device_screen_physical_width, 
-      (float)_newmode_height / (float)device_screen_physical_height);
+      (float)_srcRect.GetWidth() / (float)device_screen_physical_width, 
+      (float)_srcRect.GetHeight() / (float)device_screen_physical_height);
 #endif
   }
   else
   {
     // No scaling
-    backbuffer_vertices[0] = backbuffer_vertices[4] = _newmode_width * (-0.5f);
-    backbuffer_vertices[2] = backbuffer_vertices[6] = _newmode_width * 0.5f;
-    backbuffer_vertices[5] = backbuffer_vertices[7] = _newmode_height * 0.5f;
-    backbuffer_vertices[1] = backbuffer_vertices[3] = _newmode_height * (-0.5f);
+    backbuffer_vertices[0] = backbuffer_vertices[4] = _srcRect.GetWidth() * (-0.5f);
+    backbuffer_vertices[2] = backbuffer_vertices[6] = _srcRect.GetWidth() * 0.5f;
+    backbuffer_vertices[5] = backbuffer_vertices[7] = _srcRect.GetHeight() * 0.5f;
+    backbuffer_vertices[1] = backbuffer_vertices[3] = _srcRect.GetHeight() * (-0.5f);
 
 #if defined(ANDROID_VERSION) || defined(IOS_VERSION)
     device_mouse_setup(
-      (device_screen_physical_width - _newmode_width) / 2,
-      device_screen_physical_width - ((device_screen_physical_width - _newmode_width) / 2),
-      (device_screen_physical_height - _newmode_height) / 2, 
-      device_screen_physical_height - ((device_screen_physical_height - _newmode_height) / 2), 
+      (device_screen_physical_width - _srcRect.GetWidth()) / 2,
+      device_screen_physical_width - ((device_screen_physical_width - _srcRect.GetWidth()) / 2),
+      (device_screen_physical_height - _srcRect.GetHeight()) / 2, 
+      device_screen_physical_height - ((device_screen_physical_height - _srcRect.GetHeight()) / 2), 
       1.0f,
       1.0f);
 #endif
   }
 
-   backbuffer_texture_coordinates[5] = backbuffer_texture_coordinates[7] = (float)_newmode_height * _super_sampling / (float)_backbuffer_texture_height;
-   backbuffer_texture_coordinates[2] = backbuffer_texture_coordinates[6] = (float)_newmode_width * _super_sampling / (float)_backbuffer_texture_width;
+   backbuffer_texture_coordinates[5] = backbuffer_texture_coordinates[7] = (float)_srcRect.GetHeight() * _super_sampling / (float)_backbuffer_texture_height;
+   backbuffer_texture_coordinates[2] = backbuffer_texture_coordinates[6] = (float)_srcRect.GetWidth() * _super_sampling / (float)_backbuffer_texture_width;
 }
 
 void OGLGraphicsDriver::InitOpenGl()
@@ -435,7 +430,7 @@ void OGLGraphicsDriver::InitOpenGl()
       {
         int max = 1024;
         glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
-        if ((max < _newmode_width * 2) || (max < _newmode_height * 2))
+        if ((max < _srcRect.GetWidth() * 2) || (max < _srcRect.GetHeight() * 2))
           _super_sampling = 1;
       }
     }
@@ -475,24 +470,24 @@ void OGLGraphicsDriver::InitOpenGl()
   {
     if (psp_gfx_scaling == 1)
     {
-      float android_screen_ar = (float)_newmode_width / (float)_newmode_height;
+      float android_screen_ar = (float)_srcRect.GetWidth() / (float)_srcRect.GetHeight();
       float android_device_ar = (float)device_screen_physical_width / (float)device_screen_physical_height;
 
       if (android_device_ar <= android_screen_ar)
       {
-        _scale_width = (float)device_screen_physical_width / (float)_newmode_width;
+        _scale_width = (float)device_screen_physical_width / (float)_srcRect.GetWidth();
         _scale_height = _scale_width;
       }
       else
       {
-        _scale_height = (float)device_screen_physical_height / (float)_newmode_height;
+        _scale_height = (float)device_screen_physical_height / (float)_srcRect.GetHeight();
         _scale_width = _scale_height;
       }
     }
     else
     {
-      _scale_width = (float)device_screen_physical_width / (float)_newmode_width;
-      _scale_height = (float)device_screen_physical_height / (float)_newmode_height;
+      _scale_width = (float)device_screen_physical_width / (float)_srcRect.GetWidth();
+      _scale_height = (float)device_screen_physical_height / (float)_srcRect.GetHeight();
     }
   }
   else
@@ -502,8 +497,8 @@ void OGLGraphicsDriver::InitOpenGl()
 
   if (_render_to_texture)
   {
-    _backbuffer_texture_width = _newmode_width * _super_sampling;
-    _backbuffer_texture_height = _newmode_height * _super_sampling;
+    _backbuffer_texture_width = _srcRect.GetWidth() * _super_sampling;
+    _backbuffer_texture_height = _srcRect.GetHeight() * _super_sampling;
     AdjustSizeToNearestSupportedByCard(&_backbuffer_texture_width, &_backbuffer_texture_height);
 
     glGenTextures(1, &_backbuffer);
@@ -534,39 +529,28 @@ void OGLGraphicsDriver::InitOpenGl()
   else
   {
     glEnable(GL_SCISSOR_TEST);
-    glScissor((int)(((float)device_screen_physical_width - _scale_width * (float)_newmode_width) / 2.0f + 1.0f), (int)(((float)device_screen_physical_height - _scale_height * (float)_newmode_height) / 2.0f), (int)(_scale_width * (float)_newmode_width), (int)(_scale_height * (float)_newmode_height));
+    glScissor((int)(((float)device_screen_physical_width - _scale_width * (float)_srcRect.GetWidth()) / 2.0f + 1.0f), (int)(((float)device_screen_physical_height - _scale_height * (float)_srcRect.GetHeight()) / 2.0f), (int)(_scale_width * (float)_srcRect.GetWidth()), (int)(_scale_height * (float)_srcRect.GetHeight()));
   }
 
   create_backbuffer_arrays();
 }
 
-bool OGLGraphicsDriver::Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync) 
-{
-  return this->Init(width, height, width, height, colourDepth, windowed, loopTimer, vsync);
-}
-
-bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync)
+bool OGLGraphicsDriver::Init(const DisplayMode &mode, const Size src_size, const Rect dst_rect, volatile int *loopTimer)
 {
 #if defined(ANDROID_VERSION)
-  android_create_screen(realWidth, realHeight, colourDepth);
+  android_create_screen(mode.Width, mode.Height, mode.ColorDepth);
 #elif defined(IOS_VERSION)
   ios_create_screen();
 #endif
 
-  if (colourDepth < 15)
+  if (mode.ColorDepth < 15)
   {
     set_allegro_error("OpenGL driver does not support 256-colour games");
     return false;
   }
 
-  _newmode_width = virtualWidth;
-  _newmode_height = virtualHeight;
-  _newmode_screen_width = realWidth;
-  _newmode_screen_height = realHeight;
-  _newmode_depth = colourDepth;
-  _newmode_refresh = 0;
-  _newmode_windowed = true; //windowed;
-  _loopTimer = loopTimer;
+  _Init(mode, src_size, dst_rect, loopTimer);
+  _mode.Windowed = true;
 
   if (psp_gfx_renderer == 2)
   {
@@ -586,7 +570,7 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
 #if defined(WINDOWS_VERSION)
     HWND allegro_wnd = _hWnd = win_get_window();
 
-    if (!_newmode_windowed)
+    if (!mode.Windowed)
     {
       // Remove the border in full-screen mode, otherwise if the player
       // clicks near the edge of the screen it goes back to Windows
@@ -598,7 +582,7 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
     gfx_driver = &gfx_opengl;
 
 #if defined(WINDOWS_VERSION)
-    if (_newmode_windowed)
+    if (_mode.Windowed)
     {
       if (adjust_window(device_screen_physical_width, device_screen_physical_height) != 0) 
       {
@@ -618,7 +602,7 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
        1,
        PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
        PFD_TYPE_RGBA,
-       colourDepth,
+       mode.ColorDepth,
        0, 0, 0, 0, 0, 0,
        0,
        0,
@@ -660,7 +644,7 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
     return false;
   }
   // create dummy screen bitmap
-  BitmapHelper::SetScreenBitmap( ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(virtualWidth, virtualHeight, colourDepth)) );
+  BitmapHelper::SetScreenBitmap( ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(src_size.Width, src_size.Height, mode.ColorDepth)) );
 
   return true;
 }
@@ -671,13 +655,15 @@ IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int color_depth)
     return NULL;
 }
 
-DisplayResolution OGLGraphicsDriver::GetResolution()
+GfxFilter *OGLGraphicsDriver::GetGraphicsFilter() const
 {
-    return DisplayResolution(_newmode_screen_width, _newmode_screen_height, _newmode_depth);
+    return _filter;
 }
 
 void OGLGraphicsDriver::UnInit() 
 {
+  _UnInit();
+
   if (_screenTintLayerDDB != NULL) 
   {
     this->DestroyDDB(_screenTintLayerDDB);
@@ -803,15 +789,15 @@ void OGLGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
 
     if (globalLeftRightFlip)
     {
-      thisX = (_newmode_width - thisX) - width;
+      thisX = (_srcRect.GetWidth() - thisX) - width;
     }
     if (globalTopBottomFlip) 
     {
-      thisY = (_newmode_height - thisY) - height;
+      thisY = (_srcRect.GetHeight() - thisY) - height;
     }
 
-    thisX = (-(_newmode_width / 2)) + thisX;
-    thisY = (_newmode_height / 2) - thisY;
+    thisX = (-(_srcRect.GetWidth() / 2)) + thisX;
+    thisY = (_srcRect.GetHeight() / 2) - thisY;
 
 
     //Setup translation and scaling matrices
@@ -840,7 +826,7 @@ void OGLGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
       glColor4f(1.0f, 1.0f, 1.0f, ((float)bmpToDraw->_transparency / 255.0f));
 
     if (_render_to_texture)
-      glTranslatef(_newmode_width * _super_sampling / 2.0f, _newmode_height * _super_sampling / 2.0f, 0.0f);
+      glTranslatef(_srcRect.GetWidth() * _super_sampling / 2.0f, _srcRect.GetHeight() * _super_sampling / 2.0f, 0.0f);
     else
       glTranslatef(device_screen_physical_width / 2.0f, device_screen_physical_height / 2.0f, 0.0f);
 
@@ -903,10 +889,10 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glViewport(0, 0, _newmode_width * _super_sampling, _newmode_height * _super_sampling);
+    glViewport(0, 0, _srcRect.GetWidth() * _super_sampling, _srcRect.GetHeight() * _super_sampling);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, _newmode_width * _super_sampling - 1, 0, _newmode_height * _super_sampling - 1, 0, 1);
+    glOrtho(0, _srcRect.GetWidth() * _super_sampling - 1, 0, _srcRect.GetHeight() * _super_sampling - 1, 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
   }
@@ -1425,7 +1411,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
 
-  d3db->SetStretch(_newmode_width, _newmode_height);
+  d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
   this->DrawSprite(-_global_x_offset, -_global_y_offset, d3db);
 
   if (speed <= 0) speed = 16;
@@ -1480,7 +1466,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
 
-  d3db->SetStretch(_newmode_width, _newmode_height);
+  d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
   this->DrawSprite(0, 0, d3db);
   if (!blackingOut)
   {
@@ -1491,27 +1477,27 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
     this->DrawSprite(0, 0, d3db);
   }
 
-  int yspeed = _newmode_height / (_newmode_width / speed);
+  int yspeed = _srcRect.GetHeight() / (_srcRect.GetWidth() / speed);
   int boxWidth = speed;
   int boxHeight = yspeed;
 
-  while (boxWidth < _newmode_width)
+  while (boxWidth < _srcRect.GetWidth())
   {
     boxWidth += speed;
     boxHeight += yspeed;
     if (blackingOut)
     {
-      this->drawList[this->numToDraw - 1].x = _newmode_width / 2- boxWidth / 2;
-      this->drawList[this->numToDraw - 1].y = _newmode_height / 2 - boxHeight / 2;
+      this->drawList[this->numToDraw - 1].x = _srcRect.GetWidth() / 2- boxWidth / 2;
+      this->drawList[this->numToDraw - 1].y = _srcRect.GetHeight() / 2 - boxHeight / 2;
       d3db->SetStretch(boxWidth, boxHeight);
     }
     else
     {
-      this->drawList[this->numToDraw - 4].x = _newmode_width / 2 - boxWidth / 2 - _newmode_width;
-      this->drawList[this->numToDraw - 3].y = _newmode_height / 2 - boxHeight / 2 - _newmode_height;
-      this->drawList[this->numToDraw - 2].x = _newmode_width / 2 + boxWidth / 2;
-      this->drawList[this->numToDraw - 1].y = _newmode_height / 2 + boxHeight / 2;
-      d3db->SetStretch(_newmode_width, _newmode_height);
+      this->drawList[this->numToDraw - 4].x = _srcRect.GetWidth() / 2 - boxWidth / 2 - _srcRect.GetWidth();
+      this->drawList[this->numToDraw - 3].y = _srcRect.GetHeight() / 2 - boxHeight / 2 - _srcRect.GetHeight();
+      this->drawList[this->numToDraw - 2].x = _srcRect.GetWidth() / 2 + boxWidth / 2;
+      this->drawList[this->numToDraw - 1].y = _srcRect.GetHeight() / 2 + boxHeight / 2;
+      d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
     }
     
     this->_render(flipTypeLastTime, false);
@@ -1532,7 +1518,7 @@ bool OGLGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoS
 
 void OGLGraphicsDriver::create_screen_tint_bitmap() 
 {
-	_screenTintLayer = BitmapHelper::CreateBitmap(16, 16, this->_newmode_depth);
+	_screenTintLayer = BitmapHelper::CreateBitmap(16, 16, _mode.ColorDepth);
   _screenTintLayer = this->ConvertBitmapToSupportedColourDepth(_screenTintLayer);
   _screenTintLayerDDB = (OGLBitmap*)this->CreateDDBFromBitmap(_screenTintLayer, false, false);
   _screenTintSprite.bitmap = _screenTintLayerDDB;
@@ -1548,7 +1534,7 @@ void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
 
     _screenTintLayer->Clear(makecol_depth(_screenTintLayer->GetColorDepth(), red, green, blue));
     this->UpdateDDBFromBitmap(_screenTintLayerDDB, _screenTintLayer, false);
-    _screenTintLayerDDB->SetStretch(_newmode_width, _newmode_height);
+    _screenTintLayerDDB->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
     _screenTintLayerDDB->SetTransparency(128);
 
     _screenTintSprite.skip = ((red == 0) && (green == 0) && (blue == 0));

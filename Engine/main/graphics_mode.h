@@ -27,4 +27,7 @@ extern Size GameSize;
 extern int final_scrn_wid, final_scrn_hit, final_col_dep, game_frame_y_offset;
 extern AGS::Engine::PlaneScaling GameScaling;
 
+namespace AGS { namespace Engine { class GfxFilter; } }
+extern AGS::Engine::GfxFilter *filter;
+
 #endif // __AGS_EE_MAIN__GRAPHICSMODE_H

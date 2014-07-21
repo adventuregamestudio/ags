@@ -49,5 +49,3 @@ void GfxFilter::UnInitialize()
 
 } // namespace Engine
 } // namespace AGS
-
-AGS::Engine::GfxFilter *filter;

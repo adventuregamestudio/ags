@@ -28,6 +28,27 @@ enum GlobalFlipType
     kFlip_Both
 };
 
+struct GraphicResolution
+{
+    int32_t Width;
+    int32_t Height;
+    int32_t ColorDepth;
+
+    GraphicResolution()
+        : Width(0)
+        , Height(0)
+        , ColorDepth(0)
+    {
+    }
+
+    GraphicResolution(int32_t width, int32_t height, int32_t color_depth)
+    {
+        Width = width;
+        Height = height;
+        ColorDepth = color_depth;
+    }
+};
+
 } // namespace Engine
 } // namespace AGS
 

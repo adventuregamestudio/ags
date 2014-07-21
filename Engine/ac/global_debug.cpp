@@ -39,6 +39,7 @@
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
+#include "main/graphics_mode.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -71,7 +72,7 @@ void script_debug(int cmdd,int dataa) {
     }
     else if (cmdd==1) {
         char toDisplay[STD_BUFFER_SIZE];
-        DisplayResolution mode = gfxDriver->GetResolution();
+        DisplayMode mode = gfxDriver->GetDisplayMode();
         sprintf(toDisplay,"Adventure Game Studio run-time engine[ACI version %s"
             "[Running %d x %d at %d-bit, game frame is %d x %d %s[GFX: %s[%s[" "Sprite cache size: %d KB (limit %d KB; %d locked)",
             EngineVersion.LongString.GetCStr(), mode.Width, mode.Height, final_col_dep, final_scrn_wid, final_scrn_hit, (convert_16bit_bgr) ? "BGR" : "",

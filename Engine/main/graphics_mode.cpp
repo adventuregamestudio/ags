@@ -65,6 +65,7 @@ extern int _places_r, _places_g, _places_b;
 
 const int MaxScalingFactor = 8; // we support up to x8 scaling now
 IGfxDriverFactory *GfxFactory = NULL;
+GfxFilter *filter;
 
 Size GameSize;
 int firstDepth, secondDepth;
@@ -304,7 +305,7 @@ bool pre_create_gfx_driver(const String &gfx_driver_id)
 }
 
 // Determines if scaling from base_size to gfx mode is supported by the engine
-inline bool is_scaling_supported(const Size &base_size, const DisplayResolution &mode, const int fixed_scaling, int &scaling_factor)
+inline bool is_scaling_supported(const Size &base_size, const GraphicResolution &mode, const int fixed_scaling, int &scaling_factor)
 {
     const int xratio = mode.Width / base_size.Width;
     const int yratio = mode.Height / base_size.Height;
@@ -341,7 +342,7 @@ bool find_nearest_supported_mode(const Size &base_size, const int scaling_factor
     int nearest_width_diff = 0;
     int nearest_height_diff = 0;
     int mode_count = modes->GetModeCount();
-    DisplayResolution mode;
+    DisplayMode mode;
     for (int i = 0; i < mode_count; ++i)
     {
         if (!modes->GetMode(i, mode))
@@ -421,7 +422,7 @@ int find_max_supported_uniform_scaling(const Size &base_size, Size &found_size, 
 
     int least_supported_scaling = 0;
     int mode_count = modes->GetModeCount();
-    DisplayResolution mode;
+    DisplayMode mode;
     for (int i = 0; i < mode_count; ++i)
     {
         if (!modes->GetMode(i, mode))
@@ -733,7 +734,9 @@ bool init_gfx_mode(const Size &game_size, const Size &screen_size, int cdep)
         set_color_depth(cdep);
     }
 
-    const bool result = gfxDriver->Init(game_size.Width, game_size.Height, screen_size.Width, screen_size.Height, final_col_dep, usetup.windowed, &timerloop, usetup.vsync != 0);
+    const DisplayMode mode = DisplayMode(GraphicResolution(screen_size.Width, screen_size.Height, final_col_dep),
+        usetup.windowed, usetup.refresh, usetup.vsync != 0);
+    const bool result = gfxDriver->Init(mode, game_size, RectWH(0, 0, screen_size.Width, screen_size.Height), &timerloop);
 
     if (result)
     {
@@ -917,7 +920,7 @@ void log_out_driver_modes(const int color_depth)
         return;
     }
     const int mode_count = modes->GetModeCount();
-    DisplayResolution mode;
+    DisplayMode mode;
     String mode_str;
     for (int i = 0, in_str = 0; i < mode_count; ++i)
     {
@@ -961,7 +964,7 @@ int create_gfx_driver_and_init_mode(const String &gfx_driver_id, Size &game_size
     }
 
     // init game scaling transformation
-    GameScaling.Init(game_size, RectWH(0, 0, screen_size.Width, screen_size.Height));
+    GameScaling.Init(game_size, gfxDriver->GetRenderDestination());
     return RETURN_CONTINUE;
 }
 

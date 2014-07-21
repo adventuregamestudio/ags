@@ -25,32 +25,31 @@ namespace AGS
 namespace Engine
 {
 
-struct DisplayResolution
+struct DisplayMode : public GraphicResolution
 {
-    int32_t Width;
-    int32_t Height;
-    int32_t ColorDepth;
+    int32_t RefreshRate;
+    bool    Vsync;
+    bool    Windowed;
 
-    DisplayResolution()
-        : Width(0)
-        , Height(0)
-        , ColorDepth(0)
-    {
-    }
+    DisplayMode()
+        : RefreshRate(0)
+        , Vsync(false)
+        , Windowed(false)
+    {}
 
-    DisplayResolution(int32_t width, int32_t height, int32_t color_depth)
-    {
-        Width = width;
-        Height = height;
-        ColorDepth = color_depth;
-    }
+    DisplayMode(const GraphicResolution &res, bool windowed, int32_t refresh, bool vsync)
+        : GraphicResolution(res)
+        , RefreshRate(refresh)
+        , Vsync(vsync)
+        , Windowed(windowed)
+    {}
 };
 
 class IGfxModeList
 {
 public:
     virtual int  GetModeCount() = 0;
-    virtual bool GetMode(int index, DisplayResolution &resolution) = 0;
+    virtual bool GetMode(int index, DisplayMode &resolution) = 0;
 };
 
 } // namespace Engine

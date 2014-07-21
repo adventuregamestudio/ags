@@ -171,6 +171,11 @@ struct Rect
 	{
 		return Bottom - Top + 1;
 	}
+
+    inline Size GetSize() const
+    {
+        return Size(GetWidth(), GetHeight());
+    }
 };
 
 // Helper factory function

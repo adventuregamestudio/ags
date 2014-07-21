@@ -23,7 +23,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactorybase.h"
-#include "gfx/graphicsdriver.h"
+#include "gfx/gfxdriverbase.h"
 #include "util/string.h"
 
 #if defined(WINDOWS_VERSION)
@@ -180,16 +180,16 @@ struct SpriteDrawListEntry
 
 class OGLGfxFilter;
 
-class OGLGraphicsDriver : public IGraphicsDriver
+class OGLGraphicsDriver : public GraphicsDriverBase
 {
 public:
     virtual const char*GetDriverName() { return "OpenGL"; }
     virtual const char*GetDriverID() { return "OGL"; }
     virtual void SetTintMethod(TintMethod method);
-    virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
-    virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
+    virtual bool Init(const DisplayMode &mode, const Size src_size, const Rect dst_rect, volatile int *loopTimer);
     virtual IGfxModeList *GetSupportedModeList(int color_depth);
-    virtual DisplayResolution GetResolution();
+    virtual bool IsModeSupported(const DisplayMode &mode);
+    virtual GfxFilter *GetGraphicsFilter() const;
     virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
     virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
     virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
@@ -205,7 +205,6 @@ public:
     virtual void RenderToBackBuffer();
     virtual void Render();
     virtual void Render(GlobalFlipType flip);
-    virtual void SetRenderOffset(int x, int y);
     virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination);
     virtual void EnableVsyncBeforeRender(bool enabled) { }
     virtual void Vsync();
@@ -238,11 +237,6 @@ private:
     HGLRC _hRC;
     HWND _hWnd;
     HINSTANCE _hInstance;
-    int _newmode_width, _newmode_height;
-    int _newmode_screen_width, _newmode_screen_height;
-    int _newmode_depth, _newmode_refresh;
-    bool _newmode_windowed;
-    int _global_x_offset, _global_y_offset;
     unsigned int availableVideoMemory;
     GFXDRV_CLIENTCALLBACK _pollingCallback;
     GFXDRV_CLIENTCALLBACK _drawScreenCallback;
@@ -279,7 +273,6 @@ private:
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
     void UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha);
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-    bool IsModeSupported(int width, int height, int colDepth);
     void create_screen_tint_bitmap();
     void _renderSprite(SpriteDrawListEntry *entry, bool globalLeftRightFlip, bool globalTopBottomFlip);
     void create_backbuffer_arrays();

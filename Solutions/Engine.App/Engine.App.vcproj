@@ -816,6 +816,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\gfx\gfxdriverbase.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\gfx\gfxdriverfactory.cpp"
 					>
 				</File>
@@ -1778,6 +1782,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\gfx\gfxdefines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxdriverbase.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\gfx\gfxdriverfactory.h"
 					>
 				</File>
@@ -1815,10 +1827,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\gfx\gfxfilter_scaling.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\gfxfilterdefines.h"
 					>
 				</File>
 				<File

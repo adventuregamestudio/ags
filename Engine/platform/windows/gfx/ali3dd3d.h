@@ -28,8 +28,8 @@
 #include <d3d9.h>
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
-#include "gfx/graphicsdriver.h"
 #include "gfx/gfxdriverfactorybase.h"
+#include "gfx/gfxdriverbase.h"
 #include "util/library.h"
 #include "util/string.h"
 
@@ -133,7 +133,7 @@ public:
         return _modeCount;
     }
 
-    virtual bool GetMode(int index, DisplayResolution &resolution);
+    virtual bool GetMode(int index, DisplayMode &mode);
 
 private:
     IDirect3D9 *_direct3d;
@@ -158,16 +158,16 @@ struct SpriteDrawListEntry
     bool skip;
 };
 
-class D3DGraphicsDriver : public IGraphicsDriver
+class D3DGraphicsDriver : public GraphicsDriverBase
 {
 public:
     virtual const char*GetDriverName() { return "Direct3D 9"; }
     virtual const char*GetDriverID() { return "D3D9"; }
     virtual void SetTintMethod(TintMethod method);
-    virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
-    virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
+    virtual bool Init(const DisplayMode &mode, const Size src_size, const Rect dst_rect, volatile int *loopTimer);
     virtual IGfxModeList *GetSupportedModeList(int color_depth);
-    virtual DisplayResolution GetResolution();
+    virtual bool IsModeSupported(const DisplayMode &mode);
+    virtual GfxFilter *GetGraphicsFilter() const;
     virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
     virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
     virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
@@ -183,7 +183,6 @@ public:
     virtual void RenderToBackBuffer();
     virtual void Render();
     virtual void Render(GlobalFlipType flip);
-    virtual void SetRenderOffset(int x, int y);
     virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination);
     virtual void EnableVsyncBeforeRender(bool enabled) { }
     virtual void Vsync();
@@ -221,12 +220,6 @@ private:
     D3DGAMMARAMP currentgammaramp;
     D3DCAPS9 direct3ddevicecaps;
     IDirect3DVertexBuffer9* vertexbuffer;
-    int _newmode_width, _newmode_height;
-    int _newmode_screen_width, _newmode_screen_height;
-    int _newmode_depth, _newmode_refresh;
-    bool _newmode_windowed;
-    bool _newmode_vsync;
-    int _global_x_offset, _global_y_offset;
     UINT availableVideoMemory;
     GFXDRV_CLIENTCALLBACK _pollingCallback;
     GFXDRV_CLIENTCALLBACK _drawScreenCallback;
@@ -239,7 +232,6 @@ private:
     bool _smoothScaling;
     bool _legacyPixelShader;
     float _pixelRenderOffset;
-    volatile int *_loopTimer;
     Bitmap *_screenTintLayer;
     D3DBitmap* _screenTintLayerDDB;
     SpriteDrawListEntry _screenTintSprite;
@@ -260,7 +252,6 @@ private:
     void UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, D3DBitmap *target, bool hasAlpha);
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     bool IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat );
-    bool IsModeSupported(int width, int height, int colDepth);
     void create_screen_tint_bitmap();
     void _renderSprite(SpriteDrawListEntry *entry, bool globalLeftRightFlip, bool globalTopBottomFlip);
 };

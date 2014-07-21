@@ -66,16 +66,17 @@ void D3DBitmap::Dispose()
 static D3DFORMAT color_depth_to_d3d_format(int color_depth, bool wantAlpha);
 static int d3d_format_to_color_depth(D3DFORMAT format, bool secondary);
 
-bool D3DGfxModeList::GetMode(int index, DisplayResolution &resolution)
+bool D3DGfxModeList::GetMode(int index, DisplayMode &mode)
 {
     if (_direct3d && index >= 0 && index < _modeCount)
     {
-        D3DDISPLAYMODE displayMode;
-        if (SUCCEEDED(_direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, _pixelFormat, index, &displayMode)))
+        D3DDISPLAYMODE d3d_mode;
+        if (SUCCEEDED(_direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, _pixelFormat, index, &d3d_mode)))
         {
-            resolution.Width = displayMode.Width;
-            resolution.Height = displayMode.Height;
-            resolution.ColorDepth = d3d_format_to_color_depth(displayMode.Format, false);
+            mode.Width = d3d_mode.Width;
+            mode.Height = d3d_mode.Height;
+            mode.ColorDepth = d3d_format_to_color_depth(d3d_mode.Format, false);
+            mode.RefreshRate = d3d_mode.RefreshRate;
             return true;
         }
     }
@@ -192,10 +193,6 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _tint_red = 0;
   _tint_green = 0;
   _tint_blue = 0;
-  _global_x_offset = 0;
-  _global_y_offset = 0;
-  _newmode_screen_width = 0;
-  _newmode_screen_height = 0;
   _filter = NULL;
   _screenTintLayer = NULL;
   _screenTintLayerDDB = NULL;
@@ -255,7 +252,7 @@ void D3DGraphicsDriver::Vsync()
 
 void D3DGraphicsDriver::initD3DDLL() 
 {
-   if (!IsModeSupported(_newmode_screen_width, _newmode_screen_height, _newmode_depth))
+   if (!IsModeSupported(_mode))
    {
      throw Ali3DException(get_allegro_error());
    }
@@ -274,10 +271,10 @@ void D3DGraphicsDriver::initD3DDLL()
    // final refresh rate that we are using
    D3DDISPLAYMODE final_display_mode;
    if (direct3ddevice->GetDisplayMode(0, &final_display_mode) == D3D_OK) {
-     _newmode_refresh = final_display_mode.RefreshRate;
+     _mode.RefreshRate = final_display_mode.RefreshRate;
    }
    else {
-     _newmode_refresh = 0;
+     _mode.RefreshRate = 0;
    }
 
    availableVideoMemory = direct3ddevice->GetAvailableTextureMem();
@@ -286,7 +283,7 @@ void D3DGraphicsDriver::initD3DDLL()
 
    // Set up a fake allegro gfx driver so that things like
    // the allegro mouse handler still work
-   if (_newmode_windowed)
+   if (_mode.Windowed)
      gfx_driver = &gfx_direct3d_win;
    else
      gfx_driver = &gfx_direct3d_full;
@@ -359,26 +356,32 @@ static int d3d_format_to_color_depth(D3DFORMAT format, bool secondary)
   return 0;
 }
 
-bool D3DGraphicsDriver::IsModeSupported(int width, int height, int colDepth)
+bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 {
-  if (_newmode_windowed)
+  if (mode.Width <= 0 || mode.Height <= 0 || mode.ColorDepth <= 0)
+  {
+    set_allegro_error("Invalid resolution parameters: %d x %d x %d", mode.Width, mode.Height, mode.ColorDepth);
+    return false;
+  }
+
+  if (mode.Windowed)
   {
     return true;
   }
 
-  D3DFORMAT pixelFormat = color_depth_to_d3d_format(colDepth, false);
-  D3DDISPLAYMODE displayMode;
+  D3DFORMAT pixelFormat = color_depth_to_d3d_format(mode.ColorDepth, false);
+  D3DDISPLAYMODE d3d_mode;
 
-  int modeCount = direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, pixelFormat);
-  for (int i = 0; i < modeCount; i++)
+  int mode_count = direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, pixelFormat);
+  for (int i = 0; i < mode_count; i++)
   {
-    if (FAILED(direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, pixelFormat, i, &displayMode)))
+    if (FAILED(direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, pixelFormat, i, &d3d_mode)))
     {
       set_allegro_error("IDirect3D9::EnumAdapterModes failed");
       return false;
     }
 
-    if ((displayMode.Width == width) && (displayMode.Height == height))
+    if ((d3d_mode.Width == mode.Width) && (d3d_mode.Height == mode.Height))
     {
       return true;
     }
@@ -393,7 +396,7 @@ bool D3DGraphicsDriver::SupportsGammaControl()
   if ((direct3ddevicecaps.Caps2 & D3DCAPS2_FULLSCREENGAMMA) == 0)
     return false;
 
-  if (_newmode_windowed)
+  if (_mode.Windowed)
     return false;
 
   return true;
@@ -488,7 +491,7 @@ int D3DGraphicsDriver::_initDLLCallback()
 
   HWND allegro_wnd = win_get_window();
 
-  if (!_newmode_windowed)
+  if (!_mode.Windowed)
   {
     // Remove the border in full-screen mode, otherwise if the player
     // clicks near the edge of the screen it goes back to Windows
@@ -501,25 +504,25 @@ int D3DGraphicsDriver::_initDLLCallback()
   }
 
   memset( &d3dpp, 0, sizeof(d3dpp) );
-  d3dpp.BackBufferWidth = _newmode_screen_width;
-  d3dpp.BackBufferHeight = _newmode_screen_height;
-  d3dpp.BackBufferFormat = color_depth_to_d3d_format(_newmode_depth, false);
+  d3dpp.BackBufferWidth = _mode.Width;
+  d3dpp.BackBufferHeight = _mode.Height;
+  d3dpp.BackBufferFormat = color_depth_to_d3d_format(_mode.ColorDepth, false);
   d3dpp.BackBufferCount = 1;
   d3dpp.MultiSampleType = D3DMULTISAMPLE_NONE;
   // THIS MUST BE SWAPEFFECT_COPY FOR PlayVideo TO WORK
   d3dpp.SwapEffect = D3DSWAPEFFECT_COPY; //D3DSWAPEFFECT_DISCARD; 
   d3dpp.hDeviceWindow = allegro_wnd;
-  d3dpp.Windowed = _newmode_windowed;
+  d3dpp.Windowed = _mode.Windowed;
   d3dpp.EnableAutoDepthStencil = FALSE;
   d3dpp.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER; // we need this flag to access the backbuffer with lockrect
   d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
-  if(_newmode_vsync)
+  if(_mode.Vsync)
     d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
   else
     d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
   /* If full screen, specify the refresh rate */
-  if ((d3dpp.Windowed == FALSE) && (_newmode_refresh > 0))
-    d3dpp.FullScreen_RefreshRateInHz = _newmode_refresh;
+  if ((d3dpp.Windowed == FALSE) && (_mode.RefreshRate > 0))
+    d3dpp.FullScreen_RefreshRateInHz = _mode.RefreshRate;
 
   if (_initGfxCallback != NULL)
     _initGfxCallback(&d3dpp);
@@ -536,9 +539,9 @@ int D3DGraphicsDriver::_initDLLCallback()
     return -1;
   }
 
-  if (_newmode_windowed)
+  if (_mode.Windowed)
   {
-    if (adjust_window(_newmode_screen_width, _newmode_screen_height) != 0) 
+    if (adjust_window(_mode.Width, _mode.Height) != 0) 
     {
       direct3ddevice->Release();
       direct3ddevice = NULL;
@@ -645,8 +648,8 @@ void D3DGraphicsDriver::InitializeD3DState()
   OutputDebugString("AGS -- InitializeD3DState()");
 
   D3DMATRIX matOrtho = {
-    (2.0 / (float)_newmode_width), 0.0, 0.0, 0.0,
-    0.0, (2.0 / (float)_newmode_height), 0.0, 0.0,
+    (2.0 / (float)_srcRect.GetWidth()), 0.0, 0.0, 0.0,
+    0.0, (2.0 / (float)_srcRect.GetHeight()), 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 1.0
   };
@@ -722,13 +725,7 @@ void D3DGraphicsDriver::InitializeD3DState()
   direct3ddevice->LightEnable(0, TRUE);
 
   // See "Directly Mapping Texels to Pixels" MSDN article for why this is necessary
-  _pixelRenderOffset = ((float)_newmode_width / (float)_newmode_screen_width) / 2.0f;
-}
-
-void D3DGraphicsDriver::SetRenderOffset(int x, int y)
-{
-  _global_x_offset = x;
-  _global_y_offset = y;
+  _pixelRenderOffset = ((float)_srcRect.GetWidth() / (float)_mode.Width) / 2.0f;
 }
 
 void D3DGraphicsDriver::SetGraphicsFilter(D3DGfxFilter *filter)
@@ -741,28 +738,15 @@ void D3DGraphicsDriver::SetTintMethod(TintMethod method)
   _legacyPixelShader = (method == TintReColourise);
 }
 
-bool D3DGraphicsDriver::Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync)
+bool D3DGraphicsDriver::Init(const DisplayMode &mode, const Size src_size, const Rect dst_rect, volatile int *loopTimer)
 {
-  return this->Init(width, height, width, height, colourDepth, windowed, loopTimer, vsync);
-}
-
-bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync)
-{
-  if (colourDepth < 15)
+  if (mode.ColorDepth < 15)
   {
     set_allegro_error("Direct3D driver does not support 256-colour games");
     return false;
   }
 
-  _newmode_width = virtualWidth;
-  _newmode_height = virtualHeight;
-  _newmode_screen_width = realWidth;
-  _newmode_screen_height = realHeight;
-  _newmode_depth = colourDepth;
-  _newmode_refresh = 0;
-  _newmode_windowed = windowed;
-  _newmode_vsync = vsync;
-  _loopTimer = loopTimer;
+  _Init(mode, src_size, dst_rect, loopTimer);
 
   try
   {
@@ -777,7 +761,7 @@ bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
   }
   // create dummy screen bitmap
   BitmapHelper::SetScreenBitmap(
-	  ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(virtualWidth, virtualHeight, colourDepth))
+	  ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(src_size.Width, src_size.Height, mode.ColorDepth))
 	  );
   return true;
 }
@@ -787,13 +771,15 @@ IGfxModeList *D3DGraphicsDriver::GetSupportedModeList(int color_depth)
   return new D3DGfxModeList(direct3d, color_depth_to_d3d_format(color_depth, false));
 }
 
-DisplayResolution D3DGraphicsDriver::GetResolution()
+GfxFilter *D3DGraphicsDriver::GetGraphicsFilter() const
 {
-    return DisplayResolution(_newmode_screen_width, _newmode_screen_height, _newmode_depth);
+    return _filter;
 }
 
 void D3DGraphicsDriver::UnInit() 
 {
+  _UnInit();
+
   if (_screenTintLayerDDB != NULL) 
   {
     this->DestroyDDB(_screenTintLayerDDB);
@@ -875,14 +861,14 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
 
     Bitmap *retrieveInto = destination;
 
-    if ((_newmode_width != _newmode_screen_width) ||
-        (_newmode_height != _newmode_screen_height))
+    if ((_srcRect.GetWidth() != _mode.Width) ||
+        (_srcRect.GetHeight() != _mode.Height))
     {
       // in letterbox mode the screen is 640x480 but destination might only be 320x200
       // therefore calculate the size like this
-      retrieveInto = BitmapHelper::CreateBitmap(destination->GetWidth() * _newmode_screen_width / _newmode_width, 
-                                          destination->GetHeight() * _newmode_screen_height / _newmode_height,
-										  _newmode_depth);
+      retrieveInto = BitmapHelper::CreateBitmap(destination->GetWidth() * _mode.Width / _srcRect.GetWidth(), 
+                                          destination->GetHeight() * _mode.Height / _srcRect.GetHeight(),
+										  _mode.ColorDepth);
     }
 
     D3DLOCKED_RECT lockedRect;
@@ -893,15 +879,15 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
 
     unsigned char *surfaceData = (unsigned char*)lockedRect.pBits;
     int xOffset = 0;
-    if (destination->GetHeight() < _newmode_height)
+    if (destination->GetHeight() < _srcRect.GetHeight())
     {
       // nasty hack for letterbox
-      surfaceData += (lockedRect.Pitch * ((_newmode_height - destination->GetHeight()) / 2)) * _newmode_screen_height / _newmode_height;
+      surfaceData += (lockedRect.Pitch * ((_srcRect.GetHeight() - destination->GetHeight()) / 2)) * _mode.Height / _srcRect.GetHeight();
     }
-    if (destination->GetWidth() < _newmode_width)
+    if (destination->GetWidth() < _srcRect.GetWidth())
     {
       // hack for side borders
-      xOffset += ((_newmode_width - destination->GetWidth()) / 2) * _newmode_screen_width / _newmode_width;
+      xOffset += ((_srcRect.GetWidth() - destination->GetWidth()) / 2) * _mode.Width / _srcRect.GetWidth();
     }
 
     BitmapHelper::ReadPixelsFromMemory(retrieveInto, surfaceData, lockedRect.Pitch, xOffset);
@@ -1086,15 +1072,15 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
 
     if (globalLeftRightFlip)
     {
-      thisX = (_newmode_width - thisX) - width;
+      thisX = (_srcRect.GetWidth() - thisX) - width;
     }
     if (globalTopBottomFlip) 
     {
-      thisY = (_newmode_height - thisY) - height;
+      thisY = (_srcRect.GetHeight() - thisY) - height;
     }
 
-    thisX = (-(_newmode_width / 2)) + thisX;
-    thisY = (_newmode_height / 2) - thisY;
+    thisX = (-(_srcRect.GetWidth() / 2)) + thisX;
+    thisY = (_srcRect.GetHeight() / 2) - thisY;
 
 
     //Setup translation and scaling matrices
@@ -1631,7 +1617,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
 
-  d3db->SetStretch(_newmode_width, _newmode_height);
+  d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
   this->DrawSprite(-_global_x_offset, -_global_y_offset, d3db);
 
   if (speed <= 0) speed = 16;
@@ -1686,7 +1672,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
 
-  d3db->SetStretch(_newmode_width, _newmode_height);
+  d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
   this->DrawSprite(0, 0, d3db);
   if (!blackingOut)
   {
@@ -1697,27 +1683,27 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
     this->DrawSprite(0, 0, d3db);
   }
 
-  int yspeed = _newmode_height / (_newmode_width / speed);
+  int yspeed = _srcRect.GetHeight() / (_srcRect.GetWidth() / speed);
   int boxWidth = speed;
   int boxHeight = yspeed;
 
-  while (boxWidth < _newmode_width)
+  while (boxWidth < _srcRect.GetWidth())
   {
     boxWidth += speed;
     boxHeight += yspeed;
     if (blackingOut)
     {
-      this->drawList[this->numToDraw - 1].x = _newmode_width / 2- boxWidth / 2;
-      this->drawList[this->numToDraw - 1].y = _newmode_height / 2 - boxHeight / 2;
+      this->drawList[this->numToDraw - 1].x = _srcRect.GetWidth() / 2- boxWidth / 2;
+      this->drawList[this->numToDraw - 1].y = _srcRect.GetHeight() / 2 - boxHeight / 2;
       d3db->SetStretch(boxWidth, boxHeight);
     }
     else
     {
-      this->drawList[this->numToDraw - 4].x = _newmode_width / 2 - boxWidth / 2 - _newmode_width;
-      this->drawList[this->numToDraw - 3].y = _newmode_height / 2 - boxHeight / 2 - _newmode_height;
-      this->drawList[this->numToDraw - 2].x = _newmode_width / 2 + boxWidth / 2;
-      this->drawList[this->numToDraw - 1].y = _newmode_height / 2 + boxHeight / 2;
-      d3db->SetStretch(_newmode_width, _newmode_height);
+      this->drawList[this->numToDraw - 4].x = _srcRect.GetWidth() / 2 - boxWidth / 2 - _srcRect.GetWidth();
+      this->drawList[this->numToDraw - 3].y = _srcRect.GetHeight() / 2 - boxHeight / 2 - _srcRect.GetHeight();
+      this->drawList[this->numToDraw - 2].x = _srcRect.GetWidth() / 2 + boxWidth / 2;
+      this->drawList[this->numToDraw - 1].y = _srcRect.GetHeight() / 2 + boxHeight / 2;
+      d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
     }
     
     this->_render(flipTypeLastTime, false);
@@ -1741,7 +1727,7 @@ bool D3DGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoS
 
 void D3DGraphicsDriver::create_screen_tint_bitmap() 
 {
-  _screenTintLayer = BitmapHelper::CreateBitmap(16, 16, this->_newmode_depth);
+  _screenTintLayer = BitmapHelper::CreateBitmap(16, 16, this->_mode.ColorDepth);
   _screenTintLayer = this->ConvertBitmapToSupportedColourDepth(_screenTintLayer);
   _screenTintLayerDDB = (D3DBitmap*)this->CreateDDBFromBitmap(_screenTintLayer, false, false);
   _screenTintSprite.bitmap = _screenTintLayerDDB;
@@ -1757,7 +1743,7 @@ void D3DGraphicsDriver::SetScreenTint(int red, int green, int blue)
 
     _screenTintLayer->Clear(makecol_depth(_screenTintLayer->GetColorDepth(), red, green, blue));
     this->UpdateDDBFromBitmap(_screenTintLayerDDB, _screenTintLayer, false);
-    _screenTintLayerDDB->SetStretch(_newmode_width, _newmode_height);
+    _screenTintLayerDDB->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
     _screenTintLayerDDB->SetTransparency(128);
 
     _screenTintSprite.skip = ((red == 0) && (green == 0) && (blue == 0));

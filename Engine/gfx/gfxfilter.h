@@ -52,6 +52,4 @@ public:
 } // namespace Engine
 } // namespace AGS
 
-extern AGS::Engine::GfxFilter *filter;
-
 #endif // __AGS_EE_GFX__GFXFILTER_H

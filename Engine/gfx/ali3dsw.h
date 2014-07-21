@@ -28,7 +28,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactorybase.h"
-#include "gfx/graphicsdriver.h"
+#include "gfx/gfxdriverbase.h"
 
 namespace AGS
 {
@@ -110,7 +110,7 @@ public:
         return _gfxModeList ? _gfxModeList->num_modes : 0;
     }
 
-    virtual bool GetMode(int index, DisplayResolution &resolution);
+    virtual bool GetMode(int index, DisplayMode &mode);
 
 private:
     GFX_MODE_LIST *_gfxModeList;
@@ -119,7 +119,7 @@ private:
 
 #define MAX_DRAW_LIST_SIZE 200
 
-class ALSoftwareGraphicsDriver : public IGraphicsDriver
+class ALSoftwareGraphicsDriver : public GraphicsDriverBase
 {
 public:
     ALSoftwareGraphicsDriver() { 
@@ -128,8 +128,6 @@ public:
         _drawScreenCallback = NULL;
         _nullSpriteCallback = NULL;
         _initGfxCallback = NULL;
-        _global_x_offset = 0;
-        _global_y_offset = 0;
         _tint_red = 0;
         _tint_green = 0;
         _tint_blue = 0;
@@ -146,10 +144,10 @@ public:
     virtual const char*GetDriverName() { return "Allegro/DX5"; }
     virtual const char*GetDriverID() { return "DX5"; }
     virtual void SetTintMethod(TintMethod method);
-    virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
-    virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
+    virtual bool Init(const DisplayMode &mode, const Size src_size, const Rect dst_rect, volatile int *loopTimer);
+    virtual bool IsModeSupported(const DisplayMode &mode);
     virtual IGfxModeList *GetSupportedModeList(int color_depth);
-    virtual DisplayResolution GetResolution();
+    virtual GfxFilter *GetGraphicsFilter() const;
     virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _callback = callback; }
     virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
     virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
@@ -162,7 +160,6 @@ public:
     virtual void DestroyDDB(IDriverDependantBitmap* bitmap);
     virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap);
     virtual void ClearDrawList();
-    virtual void SetRenderOffset(int x, int y);
     virtual void RenderToBackBuffer();
     virtual void Render();
     virtual void Render(GlobalFlipType flip);
@@ -190,11 +187,6 @@ public:
     AllegroGfxFilter *_filter;
 
 private:
-    volatile int* _loopTimer;
-    int _screenWidth, _screenHeight;
-    int actualInitWid, actualInitHit;
-    int _colorDepth;
-    bool _windowed;
     bool _autoVsync;
     Bitmap *_allegroScreenWrapper;
     Bitmap *virtualScreen;
@@ -204,7 +196,6 @@ private:
     GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
     GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
     int _tint_red, _tint_green, _tint_blue;
-    int _global_x_offset, _global_y_offset;
 
     ALSoftwareBitmap* drawlist[MAX_DRAW_LIST_SIZE];
     int drawx[MAX_DRAW_LIST_SIZE], drawy[MAX_DRAW_LIST_SIZE];
@@ -225,7 +216,6 @@ private:
     void highcolor_fade_in(Bitmap *bmp_orig, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void __fade_from_range(PALLETE source, PALLETE dest, int speed, int from, int to) ;
     void __fade_out_range(int speed, int from, int to, int targetColourRed, int targetColourGreen, int targetColourBlue) ;
-    bool IsModeSupported(int driver, int width, int height, int colDepth);
     int  GetAllegroGfxDriverID(bool windowed);
 };
 

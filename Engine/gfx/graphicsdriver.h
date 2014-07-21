@@ -21,6 +21,7 @@
 
 #include "gfx/gfxdefines.h"
 #include "gfx/gfxmodelist.h"
+#include "util/geometry.h"
 
 namespace AGS
 {
@@ -58,10 +59,12 @@ public:
   virtual const char*GetDriverName() = 0;
   virtual const char*GetDriverID() = 0;
   virtual void SetTintMethod(TintMethod method) = 0;
-  virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync) = 0;
-  virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync) = 0;
+  virtual bool Init(const DisplayMode &mode, const Size src_size, const Rect dst_rect, volatile int *loopTimer) = 0;
   virtual IGfxModeList *GetSupportedModeList(int color_depth) = 0;
-  virtual DisplayResolution GetResolution() = 0;
+  virtual bool IsModeSupported(const DisplayMode &mode) = 0;
+  virtual DisplayMode GetDisplayMode() const = 0;
+  virtual GfxFilter *GetGraphicsFilter() const = 0;
+  virtual Rect GetRenderDestination() const = 0;
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) = 0;
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) = 0;
   virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) = 0;

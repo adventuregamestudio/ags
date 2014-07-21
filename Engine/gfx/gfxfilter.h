@@ -28,10 +28,22 @@ namespace Engine
 
 using Common::String;
 
+struct GfxFilterInfo
+{
+    String   Id;
+    String   Name;
+    uint32_t FixedScale;
+
+    GfxFilterInfo();
+    GfxFilterInfo(String id, String name, uint32_t fixed_scale = 0);
+};
+
 class GfxFilter
 {
 public:
     virtual ~GfxFilter();
+
+    virtual const GfxFilterInfo &GetInfo() const = 0;
 
     virtual bool Initialize(const int color_depth, String &err_str);
     virtual void UnInitialize();
@@ -41,20 +53,11 @@ public:
     // of it in windowed mode; SetMouseLimit does not
     virtual void SetMouseArea(int x1, int y1, int x2, int y2);
     virtual void SetMouseLimit(int x1, int y1, int x2, int y2);
-    virtual const char *GetVersionBoxText();
-    virtual const char *GetFilterID();
 };
 
 } // namespace Engine
 } // namespace AGS
 
-
-AGS::Engine::GfxFilter **get_allegro_gfx_filter_list();
-AGS::Engine::GfxFilter **get_d3d_gfx_filter_list();
-
 extern AGS::Engine::GfxFilter *filter;
-
-extern AGS::Engine::GfxFilter *gfxFilterList[11];
-extern AGS::Engine::GfxFilter *gfxFilterListD3D[16];
 
 #endif // __AGS_EE_GFX__GFXFILTER_H

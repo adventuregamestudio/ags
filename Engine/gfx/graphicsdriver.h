@@ -57,7 +57,6 @@ class IGraphicsDriver
 public:
   virtual const char*GetDriverName() = 0;
   virtual const char*GetDriverID() = 0;
-  virtual void SetGraphicsFilter(GfxFilter *filter) = 0;
   virtual void SetTintMethod(TintMethod method) = 0;
   virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync) = 0;
   virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync) = 0;

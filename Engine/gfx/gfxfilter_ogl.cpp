@@ -11,38 +11,28 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-// Standard 3D-accelerated filter
-//
-//=============================================================================
 
-#ifndef __AGS_EE_GFX__D3DGFXFILTER_H
-#define __AGS_EE_GFX__D3DGFXFILTER_H
-
-#include "gfx/gfxfilter_scaling.h"
+#include "gfx/gfxfilter_ogl.h"
 
 namespace AGS
 {
 namespace Engine
 {
-namespace D3D
+namespace OGL
 {
 
-class D3DGfxFilter : public ScalingGfxFilter
+const GfxFilterInfo OGLGfxFilter::FilterInfo = GfxFilterInfo("", "None");
+
+const GfxFilterInfo &OGLGfxFilter::GetInfo() const
 {
-public:
-    D3DGfxFilter(int multiplier = 1);
+    return FilterInfo;
+}
 
-    virtual const GfxFilterInfo &GetInfo() const;
+OGLGfxFilter::OGLGfxFilter()
+    : ScalingGfxFilter(1)
+{
+}
 
-    virtual void SetSamplerStateForStandardSprite(void *direct3ddevice9);
-    virtual bool NeedToColourEdgeLines();
-
-    static const GfxFilterInfo FilterInfo;
-};
-
-} // namespace D3D
+} // namespace OGL
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__D3DGFXFILTER_H

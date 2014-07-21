@@ -31,13 +31,15 @@ namespace ALSW
 class Hq2xGfxFilter : public AllegroGfxFilter
 {
 public:
-    Hq2xGfxFilter() : AllegroGfxFilter(2) { }
+    Hq2xGfxFilter();
+
+    virtual const GfxFilterInfo &GetInfo() const;
 
     virtual bool Initialize(const int color_depth, String &err_str);
     virtual Bitmap *InitVirtualScreen(Bitmap *screen, int virtual_width, int virtual_height);
     virtual Bitmap *ShutdownAndReturnRealScreen(Bitmap *currentScreen);
-    virtual const char *GetVersionBoxText();
-    virtual const char *GetFilterID();
+
+    static const GfxFilterInfo FilterInfo;
 
 protected:
     virtual Bitmap *PreRenderPass(Bitmap *toRender);

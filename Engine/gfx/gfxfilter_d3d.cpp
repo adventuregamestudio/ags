@@ -25,18 +25,16 @@ namespace Engine
 namespace D3D
 {
 
-D3DGfxFilter::D3DGfxFilter(int multiplier) : ScalingGfxFilter(multiplier)
+const GfxFilterInfo D3DGfxFilter::FilterInfo = GfxFilterInfo("StdScale", "Nearest-neighbour");
+
+D3DGfxFilter::D3DGfxFilter(int multiplier)
+    : ScalingGfxFilter(multiplier)
 {
-    if (multiplier == 1)
-    {
-        sprintf(filterName, "");
-        sprintf(filterID, "None");
-    }
-    else
-    {
-        sprintf(filterName, "%d" "x nearest-neighbour filter[", multiplier);
-        sprintf(filterID, "StdScale%d", multiplier);
-    }
+}
+
+const GfxFilterInfo &D3DGfxFilter::GetInfo() const
+{
+    return FilterInfo;
 }
 
 void D3DGfxFilter::SetSamplerStateForStandardSprite(void *direct3ddevice9)

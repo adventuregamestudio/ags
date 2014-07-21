@@ -32,6 +32,8 @@ namespace Engine
 
 using Common::String;
 class IGraphicsDriver;
+class GfxFilter;
+struct GfxFilterInfo;
 
 class IGfxDriverFactory
 {
@@ -47,6 +49,11 @@ public:
     // Destroy graphics driver associated with this factory; does nothing
     // if one was not created yet, 
     virtual void                 DestroyDriver() = 0;
+
+    virtual size_t               GetFilterCount() const = 0;
+    virtual const GfxFilterInfo *GetFilterInfo(size_t index) const = 0;
+
+    virtual GfxFilter *          SetFilter(const String &id) = 0;
 };
 
 // Acquire the graphics factory singleton object by its id

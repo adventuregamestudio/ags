@@ -844,6 +844,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_ogl.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\gfx\gfxfilter_scaling.cpp"
 					>
 				</File>
@@ -1803,6 +1807,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\gfx\gfxfilter_hq3x.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_ogl.h"
 					>
 				</File>
 				<File

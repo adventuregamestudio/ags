@@ -15,13 +15,15 @@
 // Base implementation of IGfxDriverFactory
 //
 // GfxDriverFactoryBase is a template implementation of basic driver factory
-// functionality, such as creating and destruction of graphics driver.
+// functionality, such as creating and destruction of graphics driver, and
+// managing graphic filters.
 //
 //=============================================================================
 
 #ifndef __AGS_EE_GFX__GFXDRIVERFACTORYBASE_H
 #define __AGS_EE_GFX__GFXDRIVERFACTORYBASE_H
 
+#include <vector>
 #include "gfx/gfxdriverfactory.h"
 #include "gfx/gfxfilter.h"
 
@@ -30,7 +32,7 @@ namespace AGS
 namespace Engine
 {
 
-template <class TGfxDriverClass>
+template <class TGfxDriverClass, class TGfxFilterClass>
 class GfxDriverFactoryBase : public IGfxDriverFactory
 {
 public:
@@ -57,6 +59,18 @@ public:
         _driver = NULL;
     }
 
+    virtual GfxFilter *SetFilter(const String &id)
+    {
+        TGfxDriverClass *driver = EnsureDriverCreated();
+        if (!driver)
+            return NULL;
+
+        TGfxFilterClass *filter = CreateFilter(id);
+        if (filter)
+            driver->SetGraphicsFilter(filter);
+        return filter;
+    }
+
 protected:
     GfxDriverFactoryBase()
         : _driver(NULL)
@@ -64,6 +78,7 @@ protected:
     }
 
     virtual TGfxDriverClass *EnsureDriverCreated() = 0;
+    virtual TGfxFilterClass *CreateFilter(const String &id) = 0;
 
     TGfxDriverClass         *_driver;
 };

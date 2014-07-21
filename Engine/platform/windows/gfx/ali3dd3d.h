@@ -33,8 +33,6 @@
 #include "util/library.h"
 #include "util/string.h"
 
-struct D3DGfxFilter;
-
 namespace AGS
 {
 namespace Engine
@@ -44,6 +42,7 @@ namespace D3D
 
 using AGS::Common::Bitmap;
 using AGS::Common::String;
+class D3DGfxFilter;
 
 struct TextureTile
 {
@@ -164,7 +163,6 @@ class D3DGraphicsDriver : public IGraphicsDriver
 public:
     virtual const char*GetDriverName() { return "Direct3D 9"; }
     virtual const char*GetDriverID() { return "D3D9"; }
-    virtual void SetGraphicsFilter(GfxFilter *filter);
     virtual void SetTintMethod(TintMethod method);
     virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
     virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
@@ -202,6 +200,8 @@ public:
     virtual Bitmap* GetMemoryBackBuffer() { return NULL; }
     virtual void SetMemoryBackBuffer(Bitmap *backBuffer) {  }
     virtual void SetScreenTint(int red, int green, int blue);
+
+    void SetGraphicsFilter(D3DGfxFilter *filter);
 
     // Internal
     int _initDLLCallback();
@@ -266,18 +266,22 @@ private:
 };
 
 
-class D3DGraphicsFactory : public GfxDriverFactoryBase<D3DGraphicsDriver>
+class D3DGraphicsFactory : public GfxDriverFactoryBase<D3DGraphicsDriver, D3DGfxFilter>
 {
 public:
     virtual ~D3DGraphicsFactory();
 
-    static D3DGraphicsFactory *GetFactory();
-    static D3DGraphicsDriver  *GetD3DDriver();
+    virtual size_t               GetFilterCount() const;
+    virtual const GfxFilterInfo *GetFilterInfo(size_t index) const;
+
+    static D3DGraphicsFactory   *GetFactory();
+    static D3DGraphicsDriver    *GetD3DDriver();
 
 private:
     D3DGraphicsFactory();
 
-    virtual D3DGraphicsDriver *EnsureDriverCreated();
+    virtual D3DGraphicsDriver   *EnsureDriverCreated();
+    virtual D3DGfxFilter        *CreateFilter(const String &id);
 
     bool Init();
 

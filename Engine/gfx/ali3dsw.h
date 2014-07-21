@@ -145,7 +145,6 @@ public:
 
     virtual const char*GetDriverName() { return "Allegro/DX5"; }
     virtual const char*GetDriverID() { return "DX5"; }
-    virtual void SetGraphicsFilter(GfxFilter *filter);
     virtual void SetTintMethod(TintMethod method);
     virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
     virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
@@ -185,6 +184,8 @@ public:
     virtual void SetScreenTint(int red, int green, int blue) { 
         _tint_red = red; _tint_green = green; _tint_blue = blue; }
     virtual ~ALSoftwareGraphicsDriver();
+
+    void SetGraphicsFilter(AllegroGfxFilter *filter);
 
     AllegroGfxFilter *_filter;
 
@@ -229,15 +230,19 @@ private:
 };
 
 
-class ALSWGraphicsFactory : public GfxDriverFactoryBase<ALSoftwareGraphicsDriver>
+class ALSWGraphicsFactory : public GfxDriverFactoryBase<ALSoftwareGraphicsDriver, AllegroGfxFilter>
 {
 public:
     virtual ~ALSWGraphicsFactory();
+
+    virtual size_t               GetFilterCount() const;
+    virtual const GfxFilterInfo *GetFilterInfo(size_t index) const;
 
     static  ALSWGraphicsFactory *GetFactory();
 
 private:
     virtual ALSoftwareGraphicsDriver *EnsureDriverCreated();
+    virtual AllegroGfxFilter         *CreateFilter(const String &id);
 
     static ALSWGraphicsFactory *_factory;
 };

@@ -78,17 +78,7 @@ void ScalingGfxFilter::AdjustPosition(int *x, int *y)
     *y /= MULTIPLIER;
 }
 
-const char *ScalingGfxFilter::GetVersionBoxText()
-{
-    return filterName;
-}
-
-const char *ScalingGfxFilter::GetFilterID()
-{
-    return filterID;
-}
-
-ScalingGfxFilter::ScalingGfxFilter(int multiplier) : GfxFilter()
+ScalingGfxFilter::ScalingGfxFilter(int multiplier)
 {
     MULTIPLIER = multiplier;
     mouseCallbackPtr = NULL;

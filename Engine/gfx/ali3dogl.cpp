@@ -16,7 +16,7 @@
 
 #include "gfx/ali3dexception.h"
 #include "gfx/ali3dogl.h"
-#include "gfx/gfxfilter_d3d.h"
+#include "gfx/gfxfilter_ogl.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
 
@@ -319,9 +319,9 @@ void OGLGraphicsDriver::SetRenderOffset(int x, int y)
   _global_y_offset = y;
 }
 
-void OGLGraphicsDriver::SetGraphicsFilter(GfxFilter *filter)
+void OGLGraphicsDriver::SetGraphicsFilter(OGLGfxFilter *filter)
 {
-  _filter = (D3D::D3DGfxFilter*)filter;
+  _filter = filter;
 }
 
 void OGLGraphicsDriver::SetTintMethod(TintMethod method) 
@@ -1563,6 +1563,16 @@ OGLGraphicsFactory::~OGLGraphicsFactory()
     _factory = NULL;
 }
 
+size_t OGLGraphicsFactory::GetFilterCount() const
+{
+    return 1;
+}
+
+const GfxFilterInfo *OGLGraphicsFactory::GetFilterInfo(size_t index) const
+{
+    return index == 0 ? &OGLGfxFilter::FilterInfo : NULL;
+}
+
 /* static */ OGLGraphicsFactory *OGLGraphicsFactory::GetFactory()
 {
     if (!_factory)
@@ -1575,6 +1585,13 @@ OGLGraphicsDriver *OGLGraphicsFactory::EnsureDriverCreated()
     if (!_driver)
         _driver = new OGLGraphicsDriver();
     return _driver;
+}
+
+OGLGfxFilter *OGLGraphicsFactory::CreateFilter(const String &id)
+{
+    if (OGLGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
+        return new OGLGfxFilter();
+    return NULL;
 }
 
 } // namespace OGL

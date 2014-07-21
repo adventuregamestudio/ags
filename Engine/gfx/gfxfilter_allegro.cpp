@@ -24,6 +24,8 @@ namespace ALSW
 
 using namespace Common;
 
+const GfxFilterInfo AllegroGfxFilter::FilterInfo = GfxFilterInfo("StdScale", "Nearest-neighbour");
+
 AllegroGfxFilter::AllegroGfxFilter(int multiplier)
     : ScalingGfxFilter(multiplier)
     , realScreen(NULL)
@@ -33,16 +35,11 @@ AllegroGfxFilter::AllegroGfxFilter(int multiplier)
     , lastBlitX(0)
     , lastBlitY(0)
 {
-    if (multiplier == 1)
-    {
-        sprintf(filterName, "");
-        sprintf(filterID, "None");
-    }
-    else
-    {
-        sprintf(filterName, "%d" "x nearest-neighbour filter[", multiplier);
-        sprintf(filterID, "StdScale%d", multiplier);
-    }
+}
+
+const GfxFilterInfo &AllegroGfxFilter::GetInfo() const
+{
+    return FilterInfo;
 }
 
 Bitmap* AllegroGfxFilter::InitVirtualScreen(Bitmap *screen, int virtual_width, int virtual_height)

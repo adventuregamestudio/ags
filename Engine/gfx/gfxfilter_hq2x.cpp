@@ -25,6 +25,18 @@ namespace ALSW
 
 using namespace Common;
 
+const GfxFilterInfo Hq2xGfxFilter::FilterInfo = GfxFilterInfo("Hq2x", "Hq2x", 2);
+
+Hq2xGfxFilter::Hq2xGfxFilter()
+    : AllegroGfxFilter(2)
+{
+}
+
+const GfxFilterInfo &Hq2xGfxFilter::GetInfo() const
+{
+    return FilterInfo;
+}
+
 bool Hq2xGfxFilter::Initialize(const int color_depth, String &err_str)
 {
     if (color_depth < 32)
@@ -59,16 +71,6 @@ Bitmap *Hq2xGfxFilter::PreRenderPass(Bitmap *toRender)
         toRender->GetWidth(), toRender->GetHeight(), _hq2xScalingBuffer->GetLineLength());
     _hq2xScalingBuffer->Release();
     return _hq2xScalingBuffer;
-}
-
-const char *Hq2xGfxFilter::GetVersionBoxText()
-{
-    return "Hq2x filter (32-bit only)[";
-}
-
-const char *Hq2xGfxFilter::GetFilterID()
-{
-    return "Hq2x";
 }
 
 } // namespace ALSW

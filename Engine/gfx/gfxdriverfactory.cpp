@@ -15,9 +15,12 @@
 #include "gfx/gfxdriverfactory.h"
 #ifdef WINDOWS_VERSION
 #include "platform/windows/gfx/ali3dd3d.h"
+#include "gfx/gfxfilter_d3d.h"
 #endif
 #include "gfx/ali3dsw.h"
 #include "gfx/ali3dogl.h"
+#include "gfx/gfxfilter_allegro.h"
+#include "gfx/gfxfilter_ogl.h"
 
 extern int psp_gfx_renderer;
 

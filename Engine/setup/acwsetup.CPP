@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include "resource/resource.h"
 #include "ac/gamestructdefines.h"
+#include "gfx/gfxdriverfactory.h"
 #include "gfx/gfxfilter.h"
 #include "util/filestream.h"
 
@@ -54,7 +55,7 @@ char gameNameForTitleBar[200] = "";
 int curmaxcache = 1024 * 20, curusespeech = 1;
 int wwidth, wheight;
 int base_height;
-GfxFilter **filterList = NULL;
+const AGS::Engine::GfxFilterInfo **filterList = NULL;
 const int specialFilterListIndex = 1;
 const char *specialFilterName = "Max nearest-neighbour filter";
 const char *specialFilterID = "max";
@@ -82,7 +83,7 @@ const char *get_filter_id(int list_index)
     }
 
     int real_index = get_filter_real_index(list_index);
-    return real_index >= 0 ? filterList[real_index]->GetFilterID() : specialFilterID;
+    return real_index >= 0 ? filterList[real_index]->Id : specialFilterID;
 }
 
 void update_resolution_texts(HWND hDlg) {
@@ -102,7 +103,7 @@ void update_resolution_texts(HWND hDlg) {
   selectedFilter = get_filter_real_index(selectedFilter);
   if (selectedFilter >= 0)
   {
-    filterList[selectedFilter]->GetRealResolution(&thisx, &thisy);
+    //filterList[selectedFilter]->GetRealResolution(&thisx, &thisy);
   }
   sprintf(buffer, "Resolution: %d""x%d", thisx, thisy);
   SendDlgItemMessage (hDlg, IDC_RESOLUTION, WM_SETTEXT, 0, (LPARAM)buffer);
@@ -110,22 +111,22 @@ void update_resolution_texts(HWND hDlg) {
 
 void retrieve_filter_list(bool isD3D)
 {
-  if (filterList != NULL)
-  {
-    for (int i = 0; filterList[i] != NULL; i++)
-    {
-      delete filterList[i];
-    }
-  }
+  delete [] filterList;
 
+  IGfxDriverFactory *factory;
   if (isD3D)
   {
-    filterList = get_d3d_gfx_filter_list();
+    factory = GetGfxDriverFactory("D3D9");
   }
   else
   {
-    filterList = get_allegro_gfx_filter_list();
+    factory = GetGfxDriverFactory("DX5");
   }
+
+  const int count = factory->GetFilterCount();
+  filterList = new const GfxFilterInfo*[count];
+  for (int i = 0; i < count; ++i)
+      filterList[i] = factory->GetFilterInfo(i);
 }
 
 void populate_drop_down_with_filters(HWND hDlg)
@@ -133,11 +134,11 @@ void populate_drop_down_with_filters(HWND hDlg)
   SendDlgItemMessage(hDlg, IDC_GFXFILTER, CB_RESETCONTENT, 0, 0);
 
   int idx = 0;
-  GfxFilter *thisFilter = filterList[idx];
+  const GfxFilterInfo *thisFilter = filterList[idx];
   int selected_filter = 0;
   while (thisFilter != NULL) {
 
-    if ((idx != 0) && (INIreadint("disabled", thisFilter->GetFilterID()) == 1)) {
+    if ((idx != 0) && (INIreadint("disabled", thisFilter->Id) == 1)) {
       // this filter is disabled
       delete thisFilter;
       // remove from list of filters
@@ -148,22 +149,17 @@ void populate_drop_down_with_filters(HWND hDlg)
       continue;
     }
 
-    const char *filterName = thisFilter->GetVersionBoxText();
+    const char *filterName = thisFilter->Name;
     char filterNameBuffer[100];
 
-    if ((filterName == NULL) || (filterName[0] == 0)) {
+    if ((filterName == NULL) || (filterName[0] == 0))
       strcpy(filterNameBuffer, "None");
-    }
-    else {
+    else
       strcpy(filterNameBuffer, filterName);
-      // strip trailing [
-      if (filterNameBuffer[strlen(filterNameBuffer) - 1] == '[')
-        filterNameBuffer[strlen(filterNameBuffer) - 1] = 0;
-    }
 
     SendDlgItemMessage(hDlg, IDC_GFXFILTER, CB_ADDSTRING, 0, (LPARAM)filterNameBuffer);
 
-    if (strcmp(curFilter, thisFilter->GetFilterID()) == 0)
+    if (strcmp(curFilter, thisFilter->Id) == 0)
     {
       selected_filter = idx;
     }

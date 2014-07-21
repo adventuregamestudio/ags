@@ -26,10 +26,16 @@ namespace Engine
 namespace D3D
 {
 
-AAD3DGfxFilter::AAD3DGfxFilter(int multiplier) : D3DGfxFilter(multiplier)
+const GfxFilterInfo AAD3DGfxFilter::FilterInfo = GfxFilterInfo("Linear", "Linear interpolation");
+
+AAD3DGfxFilter::AAD3DGfxFilter(int multiplier)
+    : D3DGfxFilter(multiplier)
 {
-    sprintf(filterName, "%d" "x anti-aliasing filter[", multiplier);
-    sprintf(filterID, "AAx%d", multiplier);
+}
+
+const GfxFilterInfo &AAD3DGfxFilter::GetInfo() const
+{
+    return FilterInfo;
 }
 
 void AAD3DGfxFilter::SetSamplerStateForStandardSprite(void *direct3ddevice9)

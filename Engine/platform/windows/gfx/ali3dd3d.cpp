@@ -22,6 +22,7 @@
 #include "debug/assert.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/gfxfilter_d3d.h"
+#include "gfx/gfxfilter_aad3d.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/windows/gfx/ali3dd3d.h"
@@ -730,9 +731,9 @@ void D3DGraphicsDriver::SetRenderOffset(int x, int y)
   _global_y_offset = y;
 }
 
-void D3DGraphicsDriver::SetGraphicsFilter(GfxFilter *filter)
+void D3DGraphicsDriver::SetGraphicsFilter(D3DGfxFilter *filter)
 {
-  _filter = (D3DGfxFilter*)filter;
+  _filter = filter;
 }
 
 void D3DGraphicsDriver::SetTintMethod(TintMethod method) 
@@ -1772,6 +1773,24 @@ D3DGraphicsFactory::~D3DGraphicsFactory()
     _factory = NULL;
 }
 
+size_t D3DGraphicsFactory::GetFilterCount() const
+{
+    return 2;
+}
+
+const GfxFilterInfo *D3DGraphicsFactory::GetFilterInfo(size_t index) const
+{
+    switch (index)
+    {
+    case 0:
+        return &D3DGfxFilter::FilterInfo;
+    case 1:
+        return &AAD3DGfxFilter::FilterInfo;
+    default:
+        return NULL;
+    }
+}
+
 /* static */ D3DGraphicsFactory *D3DGraphicsFactory::GetFactory()
 {
     if (!_factory)
@@ -1795,6 +1814,7 @@ D3DGraphicsFactory::~D3DGraphicsFactory()
     return NULL;
 }
 
+
 D3DGraphicsFactory::D3DGraphicsFactory()
     : _direct3d(NULL)
 {
@@ -1805,6 +1825,15 @@ D3DGraphicsDriver *D3DGraphicsFactory::EnsureDriverCreated()
     if (!_driver)
         _driver = new D3DGraphicsDriver(_factory->_direct3d);
     return _driver;
+}
+
+D3DGfxFilter *D3DGraphicsFactory::CreateFilter(const String &id)
+{
+    if (D3DGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
+        return new D3DGfxFilter();
+    else if (AAD3DGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
+        return new AAD3DGfxFilter();
+    return NULL;
 }
 
 bool D3DGraphicsFactory::Init()

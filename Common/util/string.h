@@ -260,13 +260,17 @@ public:
     {
         return GetAt(index);
     }
-    inline bool operator==(const char *cstr)
+    inline bool operator==(const char *cstr) const
     {
         return Compare(cstr) == 0;
     }
-    inline bool operator!=(const char *cstr)
+    inline bool operator!=(const char *cstr) const
     {
         return Compare(cstr) != 0;
+    }
+    inline bool operator <(const char *cstr) const
+    {
+        return Compare(cstr) < 0;
     }
 
 private:

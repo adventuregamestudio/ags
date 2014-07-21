@@ -40,17 +40,12 @@ public:
     virtual void SetMouseLimit(int x1, int y1, int x2, int y2);
     virtual void SetMousePosition(int x, int y);
     virtual void AdjustPosition(int *x, int *y);
-    virtual const char *GetVersionBoxText();
-    virtual const char *GetFilterID();
 
 protected:
     ScalingGfxFilter(int multiplier);
 
     int MULTIPLIER;
     MouseGetPosCallbackImpl *mouseCallbackPtr;
-
-    char filterName[100];
-    char filterID[15];
 };
 
 } // namespace Engine

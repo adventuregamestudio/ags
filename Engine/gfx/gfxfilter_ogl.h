@@ -12,12 +12,12 @@
 //
 //=============================================================================
 //
-// Standard 3D-accelerated filter
+// Dummy OpenGL filter; does nothing useful at the moment
 //
 //=============================================================================
 
-#ifndef __AGS_EE_GFX__D3DGFXFILTER_H
-#define __AGS_EE_GFX__D3DGFXFILTER_H
+#ifndef __AGS_EE_GFX__OGLGFXFILTER_H
+#define __AGS_EE_GFX__OGLGFXFILTER_H
 
 #include "gfx/gfxfilter_scaling.h"
 
@@ -25,18 +25,15 @@ namespace AGS
 {
 namespace Engine
 {
-namespace D3D
+namespace OGL
 {
 
-class D3DGfxFilter : public ScalingGfxFilter
+class OGLGfxFilter : public ScalingGfxFilter
 {
 public:
-    D3DGfxFilter(int multiplier = 1);
+    OGLGfxFilter();
 
     virtual const GfxFilterInfo &GetInfo() const;
-
-    virtual void SetSamplerStateForStandardSprite(void *direct3ddevice9);
-    virtual bool NeedToColourEdgeLines();
 
     static const GfxFilterInfo FilterInfo;
 };
@@ -45,4 +42,4 @@ public:
 } // namespace Engine
 } // namespace AGS
 
-#endif // __AGS_EE_GFX__D3DGFXFILTER_H
+#endif // __AGS_EE_GFX__OGLGFXFILTER_H

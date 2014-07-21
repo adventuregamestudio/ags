@@ -258,48 +258,25 @@ void engine_init_screen_settings(Size &game_size, Size &screen_size)
     adjust_sizes_for_resolution(loaded_game_file_version);
 }
 
-int initialize_graphics_filter(const char *filterID, int width, int height, int colDepth)
+bool initialize_graphics_filter(const char *filterID, int width, int height, int colDepth)
 {
-    int idx = 0;
-    GfxFilter **filterList;
-
-    if (usetup.gfxDriverID.CompareNoCase("D3D9") == 0)
+    filter = GfxFactory->SetFilter(filterID);
+    if (!filter)
     {
-        filterList = get_d3d_gfx_filter_list();
-    }
-    else
-    {
-        filterList = get_allegro_gfx_filter_list();
+        Out::FPrint("Unable to create filter: %s", filterID);
+        return false;
     }
 
-    // by default, select No Filter
-    filter = filterList[0];
-
-    GfxFilter *thisFilter = filterList[idx];
-    while (thisFilter != NULL) {
-
-        if ((filterID != NULL) &&
-            (strcmp(thisFilter->GetFilterID(), filterID) == 0))
-            filter = thisFilter;
-        else if (idx > 0)
-            delete thisFilter;
-
-        idx++;
-        thisFilter = filterList[idx];
-    }
-
-    Out::FPrint("Applying scaling filter: %s", filter->GetFilterID());
+    Out::FPrint("Applying scaling filter: %s", filter->GetInfo().Id.GetCStr());
 
     String filter_error;
     if (!filter->Initialize(colDepth, filter_error))
     {
         proper_exit = 1;
         platform->DisplayAlert("Unable to initialize the graphics filter. It returned the following error:\n'%s'\n\nTry running Setup and selecting a different graphics filter.", filter_error.GetCStr());
-        return -1;
+        return false;
     }
-
-    gfxDriver->SetGraphicsFilter(filter);
-    return 0;
+    return true;
 }
 
 bool pre_create_gfx_driver(const String &gfx_driver_id)
@@ -707,9 +684,11 @@ int engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color_
     game_size.Height = screen_size.Height / scaling_factor;
     Out::FPrint("Chosen gfx resolution: %d x %d (%d bit), game frame: %d x %d",
         screen_size.Width, screen_size.Height, color_depth, game_size.Width, game_size.Height);
-    if (initialize_graphics_filter(gfxfilter, base_size.Width, base_size.Height, color_depth))
+    if (!initialize_graphics_filter(gfxfilter, base_size.Width, base_size.Height, color_depth))
     {
-        return EXIT_NORMAL;
+        Out::FPrint("Failed to apply gfx filter: %s; will try to use standard filter instead", gfxfilter.GetCStr());
+        if (!initialize_graphics_filter("StdScale", base_size.Width, base_size.Height, color_depth))
+            return EXIT_NORMAL;
     }
     return RETURN_CONTINUE;
 }
@@ -735,7 +714,7 @@ bool init_gfx_mode(const Size &game_size, const Size &screen_size, int cdep)
 
     Out::FPrint("Attempt to switch gfx mode to %d x %d (%d-bit) %s, game frame %d x %d, gfx filter: %s",
         screen_size.Width, screen_size.Height, cdep, usetup.windowed ? "windowed" : "fullscreen",
-        game_size.Width, game_size.Height, filter->GetFilterID());
+        game_size.Width, game_size.Height, filter->GetInfo().Id.GetCStr());
 
     if (usetup.refresh >= 50)
         request_refresh_rate(usetup.refresh);
@@ -759,7 +738,7 @@ bool init_gfx_mode(const Size &game_size, const Size &screen_size, int cdep)
     {
         Out::FPrint("Succeeded. Using gfx mode %d x %d (%d-bit) %s, game frame %d x %d, gfx filter: %s",
             screen_size.Width, screen_size.Height, final_col_dep, usetup.windowed ? "windowed" : "fullscreen",
-            game_size.Width, game_size.Height, filter->GetFilterID());
+            game_size.Width, game_size.Height, filter->GetInfo().Id.GetCStr());
         return true;
     }
     else
@@ -993,7 +972,7 @@ void display_gfx_mode_error(const Size &game_size, const Size &screen_size)
             game_size.Width, game_size.Height, firstDepth, GfxFilterRequest.IsEmpty() ? "Undefined" : GfxFilterRequest.GetCStr());
     else
         main_error.Format("There was a problem initializing graphics mode %d x %d (%d-bit) with game size %d x %d and filter '%s'.",
-            screen_size.Width, screen_size.Height, firstDepth, game_size.Width, game_size.Height, filter ? filter->GetFilterID() : "Undefined");
+            screen_size.Width, screen_size.Height, firstDepth, game_size.Width, game_size.Height, filter ? filter->GetInfo().Id.GetCStr() : "Undefined");
 
     platform->DisplayAlert("%s\n"
             "(Problem: '%s')\n"

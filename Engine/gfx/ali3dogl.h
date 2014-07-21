@@ -75,8 +75,6 @@ namespace AGS
 namespace Engine
 {
 
-namespace D3D { class D3DGfxFilter; }
-
 namespace OGL
 {
 
@@ -180,12 +178,13 @@ struct SpriteDrawListEntry
     bool skip;
 };
 
+class OGLGfxFilter;
+
 class OGLGraphicsDriver : public IGraphicsDriver
 {
 public:
     virtual const char*GetDriverName() { return "OpenGL"; }
     virtual const char*GetDriverID() { return "OGL"; }
-    virtual void SetGraphicsFilter(GfxFilter *filter);
     virtual void SetTintMethod(TintMethod method);
     virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
     virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
@@ -224,13 +223,15 @@ public:
     virtual void SetMemoryBackBuffer(Bitmap *backBuffer) {  }
     virtual void SetScreenTint(int red, int green, int blue);
 
+    void SetGraphicsFilter(OGLGfxFilter *filter);
+
     // Internal
     void _render(GlobalFlipType flip, bool clearDrawListAfterwards);
     void _reDrawLastFrame();
     OGLGraphicsDriver();
     virtual ~OGLGraphicsDriver();
 
-    D3D::D3DGfxFilter *_filter;
+    OGLGfxFilter *_filter;
 
 private:
     HDC _hDC;
@@ -285,15 +286,19 @@ private:
 };
 
 
-class OGLGraphicsFactory : public GfxDriverFactoryBase<OGLGraphicsDriver>
+class OGLGraphicsFactory : public GfxDriverFactoryBase<OGLGraphicsDriver, OGLGfxFilter>
 {
 public:
     virtual ~OGLGraphicsFactory();
 
-    static OGLGraphicsFactory *GetFactory();
+    virtual size_t               GetFilterCount() const;
+    virtual const GfxFilterInfo *GetFilterInfo(size_t index) const;
+
+    static OGLGraphicsFactory   *GetFactory();
 
 private:
-    virtual OGLGraphicsDriver *EnsureDriverCreated();
+    virtual OGLGraphicsDriver   *EnsureDriverCreated();
+    virtual OGLGfxFilter        *CreateFilter(const String &id);
 
     static OGLGraphicsFactory *_factory;
 };

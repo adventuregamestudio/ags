@@ -37,6 +37,8 @@ class AllegroGfxFilter : public ScalingGfxFilter
 public:
     AllegroGfxFilter(int multiplier = 1);
 
+    virtual const GfxFilterInfo &GetInfo() const;
+    
     virtual Bitmap *InitVirtualScreen(Bitmap *screen, int virtual_width, int virtual_height);
     virtual Bitmap *ShutdownAndReturnRealScreen(Bitmap *currentScreen);
     virtual void RenderScreen(Bitmap *toRender, int x, int y);
@@ -44,6 +46,8 @@ public:
     virtual void ClearRect(int x1, int y1, int x2, int y2, int color);
     virtual void GetCopyOfScreenIntoBitmap(Bitmap *copyBitmap);
     virtual void GetCopyOfScreenIntoBitmap(Bitmap *copyBitmap, bool copy_with_yoffset);
+
+    static const GfxFilterInfo FilterInfo;
 
 protected:
     virtual Bitmap *PreRenderPass(Bitmap *toRender);

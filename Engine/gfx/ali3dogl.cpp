@@ -655,7 +655,7 @@ IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int color_depth)
     return NULL;
 }
 
-GfxFilter *OGLGraphicsDriver::GetGraphicsFilter() const
+IGfxFilter *OGLGraphicsDriver::GetGraphicsFilter() const
 {
     return _filter;
 }

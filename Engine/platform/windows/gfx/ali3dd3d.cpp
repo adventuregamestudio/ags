@@ -771,7 +771,7 @@ IGfxModeList *D3DGraphicsDriver::GetSupportedModeList(int color_depth)
   return new D3DGfxModeList(direct3d, color_depth_to_d3d_format(color_depth, false));
 }
 
-GfxFilter *D3DGraphicsDriver::GetGraphicsFilter() const
+IGfxFilter *D3DGraphicsDriver::GetGraphicsFilter() const
 {
     return _filter;
 }

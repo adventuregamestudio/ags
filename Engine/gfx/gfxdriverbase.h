@@ -42,6 +42,7 @@ protected:
     DisplayMode         _mode;          // display mode settings
     Rect                _srcRect;       // rendering source rect
     Rect                _dstRect;       // rendering destination rect
+    Rect                _filterRect;    // filter scaling destination rect (before final scaling)
     PlaneScaling        _scaling;
     int                 _global_x_offset;
     int                 _global_y_offset;

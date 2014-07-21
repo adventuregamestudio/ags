@@ -124,7 +124,7 @@ IGfxModeList *ALSoftwareGraphicsDriver::GetSupportedModeList(int color_depth)
   return new ALSoftwareGfxModeList(_gfxModeList);
 }
 
-GfxFilter *ALSoftwareGraphicsDriver::GetGraphicsFilter() const
+IGfxFilter *ALSoftwareGraphicsDriver::GetGraphicsFilter() const
 {
     return _filter;
 }
@@ -177,7 +177,7 @@ bool ALSoftwareGraphicsDriver::Init(const DisplayMode &mode, const Size src_size
     BitmapHelper::SetScreenBitmap( _allegroScreenWrapper );
 
     BitmapHelper::GetScreenBitmap()->Clear();
-    BitmapHelper::SetScreenBitmap( _filter->InitVirtualScreen(BitmapHelper::GetScreenBitmap(), src_size.Width, src_size.Height) );
+    BitmapHelper::SetScreenBitmap( _filter->InitVirtualScreen(BitmapHelper::GetScreenBitmap(), src_size, dst_rect) );
 
     // [IKM] 2012-09-07
     // At this point the wrapper we created is saved by filter for future reference,

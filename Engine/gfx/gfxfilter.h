@@ -12,13 +12,14 @@
 //
 //=============================================================================
 //
-// Graphics filter base class; does no processing
+// Graphics filter interface
 //
 //=============================================================================
 
 #ifndef __AGS_EE_GFX__GFXFILTER_H
 #define __AGS_EE_GFX__GFXFILTER_H
 
+#include "util/geometry.h"
 #include "util/string.h"
 
 namespace AGS
@@ -34,19 +35,29 @@ struct GfxFilterInfo
     String   Name;
     uint32_t FixedScale;
 
-    GfxFilterInfo();
-    GfxFilterInfo(String id, String name, uint32_t fixed_scale = 0);
+    GfxFilterInfo()
+    {}
+    GfxFilterInfo(String id, String name, uint32_t fixed_scale = 0)
+        : Id(id)
+        , Name(name)
+        , FixedScale(fixed_scale)
+    {}
 };
 
-class GfxFilter
+class IGfxFilter
 {
 public:
-    virtual ~GfxFilter();
+    virtual ~IGfxFilter(){}
 
     virtual const GfxFilterInfo &GetInfo() const = 0;
 
-    virtual bool Initialize(const int color_depth, String &err_str);
-    virtual void UnInitialize();
+    // Init filter for the specified color depth
+    virtual bool Initialize(const int color_depth, String &err_str) = 0;
+    virtual void UnInitialize() = 0;
+    // Try to set rendering translation; returns actual supported destination rect
+    virtual Rect SetTranslation(const Size src_size, const Rect dst_rect) = 0;
+    // Get defined destination rect for this filter
+    virtual Rect GetDestination() const = 0;
 };
 
 } // namespace Engine

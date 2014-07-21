@@ -28,11 +28,6 @@ namespace D3D
 
 const GfxFilterInfo AAD3DGfxFilter::FilterInfo = GfxFilterInfo("Linear", "Linear interpolation");
 
-AAD3DGfxFilter::AAD3DGfxFilter(int multiplier)
-    : D3DGfxFilter(multiplier)
-{
-}
-
 const GfxFilterInfo &AAD3DGfxFilter::GetInfo() const
 {
     return FilterInfo;

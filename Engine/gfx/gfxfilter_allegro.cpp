@@ -26,9 +26,8 @@ using namespace Common;
 
 const GfxFilterInfo AllegroGfxFilter::FilterInfo = GfxFilterInfo("StdScale", "Nearest-neighbour");
 
-AllegroGfxFilter::AllegroGfxFilter(int multiplier)
-    : ScalingGfxFilter(multiplier)
-    , realScreen(NULL)
+AllegroGfxFilter::AllegroGfxFilter()
+    : realScreen(NULL)
     , virtualScreen(NULL)
     , realScreenSizedBuffer(NULL)
     , lastBlitFrom(NULL)
@@ -42,10 +41,12 @@ const GfxFilterInfo &AllegroGfxFilter::GetInfo() const
     return FilterInfo;
 }
 
-Bitmap* AllegroGfxFilter::InitVirtualScreen(Bitmap *screen, int virtual_width, int virtual_height)
+Bitmap* AllegroGfxFilter::InitVirtualScreen(Bitmap *screen, const Size src_size, const Rect dst_rect)
 {
     realScreen = screen;
-    if (MULTIPLIER == 1)
+    SetTranslation(src_size, dst_rect);
+
+    if (src_size == dst_rect.GetSize() && dst_rect.Top == 0 && dst_rect.Left == 0)
     {
         // Speed up software rendering if no scaling is performed
         realScreenSizedBuffer = NULL;
@@ -54,7 +55,7 @@ Bitmap* AllegroGfxFilter::InitVirtualScreen(Bitmap *screen, int virtual_width, i
     else
     {
         realScreenSizedBuffer = BitmapHelper::CreateBitmap(screen->GetWidth(), screen->GetHeight(), screen->GetColorDepth());
-        virtualScreen = BitmapHelper::CreateBitmap(virtual_width, virtual_height, screen->GetColorDepth());
+        virtualScreen = BitmapHelper::CreateBitmap(src_size.Width, src_size.Height, screen->GetColorDepth());
     }
     return virtualScreen;
 }
@@ -73,17 +74,21 @@ void AllegroGfxFilter::RenderScreen(Bitmap *toRender, int x, int y) {
 
     if (toRender != realScreen)
     {
-        x *= MULTIPLIER;
-        y *= MULTIPLIER;
+        x = _scaling.X.ScalePt(x);
+        y = _scaling.Y.ScalePt(y);
+        const int width = _scaling.X.ScaleDistance(toRender->GetWidth());
+        const int height = _scaling.Y.ScaleDistance(toRender->GetHeight());
         Bitmap *render_src = PreRenderPass(toRender);
-        if (MULTIPLIER == 1)
-            realScreen->Blit(render_src, x, y);
+        if (render_src->GetSize() == _dstRect.GetSize())
+            realScreen->Blit(render_src, 0, 0, x, y, width, height);
         else
-            realScreen->StretchBlt(render_src, RectWH(x, y, toRender->GetWidth() * MULTIPLIER, toRender->GetHeight() * MULTIPLIER));
+        {
+            realScreen->StretchBlt(render_src, RectWH(x, y, width, height));
+        }
     }
+    lastBlitFrom = toRender;
     lastBlitX = x;
     lastBlitY = y;
-    lastBlitFrom = toRender;
 }
 
 void AllegroGfxFilter::RenderScreenFlipped(Bitmap *toRender, int x, int y, GlobalFlipType flipType) {
@@ -112,11 +117,8 @@ void AllegroGfxFilter::RenderScreenFlipped(Bitmap *toRender, int x, int y, Globa
 
 void AllegroGfxFilter::ClearRect(int x1, int y1, int x2, int y2, int color)
 {
-    x1 *= MULTIPLIER;
-    y1 *= MULTIPLIER;
-    x2 = x2 * MULTIPLIER + (MULTIPLIER - 1);
-    y2 = y2 * MULTIPLIER + (MULTIPLIER - 1);
-    realScreen->FillRect(Rect(x1, y1, x2, y2), color);
+    Rect r = _scaling.ScaleRange(Rect(x1, y1, x2, y2));
+    realScreen->FillRect(r, color);
 }
 
 void AllegroGfxFilter::GetCopyOfScreenIntoBitmap(Bitmap *copyBitmap) 
@@ -131,31 +133,33 @@ void AllegroGfxFilter::GetCopyOfScreenIntoBitmap(Bitmap *copyBitmap, bool copy_w
 
     if (!copy_with_yoffset)
     {
-        if (MULTIPLIER == 1)
-            copyBitmap->Blit(realScreen, 0, 0, 0, 0, copyBitmap->GetWidth(), copyBitmap->GetHeight());
+        if (copyBitmap->GetSize() == _dstRect.GetSize())
+            copyBitmap->Blit(realScreen, _dstRect.Left, _dstRect.Top, 0, 0, _dstRect.GetWidth(), _dstRect.GetHeight());
         else
         {
             // Can't stretch_blit from Video Memory to normal memory,
             // so copy the screen to a buffer first.
-            realScreenSizedBuffer->Blit(realScreen, 0, 0, 0, 0, realScreen->GetWidth(), realScreen->GetHeight());
+            realScreenSizedBuffer->Blit(realScreen, 0, 0);
             copyBitmap->StretchBlt(realScreenSizedBuffer,
-                RectWH(0, 0, realScreenSizedBuffer->GetWidth(), realScreenSizedBuffer->GetHeight()), 
+                _dstRect, 
                 RectWH(0, 0, copyBitmap->GetWidth(), copyBitmap->GetHeight()));
         }
     }
     else if (!lastBlitFrom)
         copyBitmap->Fill(0);
-    else if (MULTIPLIER == 1)
+    else if (copyBitmap->GetSize() == _dstRect.GetSize())
         copyBitmap->Blit(realScreen, lastBlitX, lastBlitY, 0, 0, copyBitmap->GetWidth(), copyBitmap->GetHeight());
     else
+    {
         copyBitmap->StretchBlt(lastBlitFrom,
             RectWH(0, 0, lastBlitFrom->GetWidth(), lastBlitFrom->GetHeight()), 
             RectWH(0, 0, copyBitmap->GetWidth(), copyBitmap->GetHeight()));
+    }
 }
 
 Bitmap *AllegroGfxFilter::PreRenderPass(Bitmap *toRender)
 {
-    // do nothing
+    // do nothing by default
     return toRender;
 }
 

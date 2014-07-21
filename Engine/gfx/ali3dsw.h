@@ -147,7 +147,7 @@ public:
     virtual bool Init(const DisplayMode &mode, const Size src_size, const Rect dst_rect, volatile int *loopTimer);
     virtual bool IsModeSupported(const DisplayMode &mode);
     virtual IGfxModeList *GetSupportedModeList(int color_depth);
-    virtual GfxFilter *GetGraphicsFilter() const;
+    virtual IGfxFilter *GetGraphicsFilter() const;
     virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _callback = callback; }
     virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
     virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }

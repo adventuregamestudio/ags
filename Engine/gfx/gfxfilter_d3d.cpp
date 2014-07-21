@@ -27,11 +27,6 @@ namespace D3D
 
 const GfxFilterInfo D3DGfxFilter::FilterInfo = GfxFilterInfo("StdScale", "Nearest-neighbour");
 
-D3DGfxFilter::D3DGfxFilter(int multiplier)
-    : ScalingGfxFilter(multiplier)
-{
-}
-
 const GfxFilterInfo &D3DGfxFilter::GetInfo() const
 {
     return FilterInfo;

@@ -28,11 +28,6 @@ const GfxFilterInfo &OGLGfxFilter::GetInfo() const
     return FilterInfo;
 }
 
-OGLGfxFilter::OGLGfxFilter()
-    : ScalingGfxFilter(1)
-{
-}
-
 } // namespace OGL
 } // namespace Engine
 } // namespace AGS

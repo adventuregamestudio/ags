@@ -33,7 +33,7 @@ namespace Engine
 
 // Forward declaration
 class IDriverDependantBitmap;
-class GfxFilter;
+class IGfxFilter;
 
 enum TintMethod
 {
@@ -63,7 +63,7 @@ public:
   virtual IGfxModeList *GetSupportedModeList(int color_depth) = 0;
   virtual bool IsModeSupported(const DisplayMode &mode) = 0;
   virtual DisplayMode GetDisplayMode() const = 0;
-  virtual GfxFilter *GetGraphicsFilter() const = 0;
+  virtual IGfxFilter *GetGraphicsFilter() const = 0;
   virtual Rect GetRenderDestination() const = 0;
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) = 0;
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) = 0;

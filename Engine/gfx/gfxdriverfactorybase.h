@@ -59,7 +59,7 @@ public:
         _driver = NULL;
     }
 
-    virtual GfxFilter *SetFilter(const String &id)
+    virtual IGfxFilter *SetFilter(const String &id)
     {
         TGfxDriverClass *driver = EnsureDriverCreated();
         if (!driver)

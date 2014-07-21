@@ -32,7 +32,7 @@ namespace Engine
 
 using Common::String;
 class IGraphicsDriver;
-class GfxFilter;
+class IGfxFilter;
 struct GfxFilterInfo;
 
 class IGfxDriverFactory
@@ -53,7 +53,7 @@ public:
     virtual size_t               GetFilterCount() const = 0;
     virtual const GfxFilterInfo *GetFilterInfo(size_t index) const = 0;
 
-    virtual GfxFilter *          SetFilter(const String &id) = 0;
+    virtual IGfxFilter *         SetFilter(const String &id) = 0;
 };
 
 // Acquire the graphics factory singleton object by its id

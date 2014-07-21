@@ -20,18 +20,24 @@
 #define __AGS_EE_GFX__SCALINGGFXFILTER_H
 
 #include "gfx/gfxfilter.h"
+#include "util/scaling.h"
 
 namespace AGS
 {
 namespace Engine
 {
 
-class ScalingGfxFilter : public GfxFilter
+class ScalingGfxFilter : public IGfxFilter
 {
-protected:
-    ScalingGfxFilter(int multiplier);
+public:
+    virtual bool Initialize(const int color_depth, String &err_str);
+    virtual void UnInitialize();
+    virtual Rect SetTranslation(const Size src_size, const Rect dst_rect);
+    virtual Rect GetDestination() const;
 
-    int MULTIPLIER;
+protected:
+    Rect            _dstRect;
+    PlaneScaling    _scaling;
 };
 
 } // namespace Engine

@@ -51,6 +51,7 @@ void GraphicsDriverBase::_Init(const DisplayMode &mode, const Size src_size, con
     _srcRect = RectWH(0, 0, src_size.Width, src_size.Height);
     _dstRect = dst_rect;
     _loopTimer = loopTimer;
+    _filterRect = GetGraphicsFilter()->SetTranslation(src_size, dst_rect);
     _scaling.Init(src_size, dst_rect);
 }
 

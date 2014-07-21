@@ -35,11 +35,11 @@ using Common::Bitmap;
 class AllegroGfxFilter : public ScalingGfxFilter
 {
 public:
-    AllegroGfxFilter(int multiplier = 1);
+    AllegroGfxFilter();
 
     virtual const GfxFilterInfo &GetInfo() const;
     
-    virtual Bitmap *InitVirtualScreen(Bitmap *screen, int virtual_width, int virtual_height);
+    virtual Bitmap *InitVirtualScreen(Bitmap *screen, const Size src_size, const Rect dst_rect);
     virtual Bitmap *ShutdownAndReturnRealScreen(Bitmap *currentScreen);
     virtual void RenderScreen(Bitmap *toRender, int x, int y);
     virtual void RenderScreenFlipped(Bitmap *toRender, int x, int y, GlobalFlipType flipType);
@@ -54,15 +54,14 @@ protected:
 
     // pointer to real screen bitmap
     Bitmap *realScreen;
-    int lastBlitX;
-    int lastBlitY;
-
     // bitmap the size of game resolution
     Bitmap *virtualScreen;
     // buffer for making a copy of video memory before stretching
     // for screen capture
     Bitmap *realScreenSizedBuffer;
     Bitmap *lastBlitFrom;
+    int     lastBlitX;
+    int     lastBlitY;
 };
 
 } // namespace ALSW

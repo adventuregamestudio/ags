@@ -31,8 +31,6 @@ namespace OGL
 class OGLGfxFilter : public ScalingGfxFilter
 {
 public:
-    OGLGfxFilter();
-
     virtual const GfxFilterInfo &GetInfo() const;
 
     static const GfxFilterInfo FilterInfo;

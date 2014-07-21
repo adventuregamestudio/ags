@@ -27,11 +27,6 @@ using namespace Common;
 
 const GfxFilterInfo Hq2xGfxFilter::FilterInfo = GfxFilterInfo("Hq2x", "Hq2x", 2);
 
-Hq2xGfxFilter::Hq2xGfxFilter()
-    : AllegroGfxFilter(2)
-{
-}
-
 const GfxFilterInfo &Hq2xGfxFilter::GetInfo() const
 {
     return FilterInfo;
@@ -47,10 +42,10 @@ bool Hq2xGfxFilter::Initialize(const int color_depth, String &err_str)
     return AllegroGfxFilter::Initialize(color_depth, err_str);
 }
 
-Bitmap* Hq2xGfxFilter::InitVirtualScreen(Bitmap *screen, int virtual_width, int virtual_height)
+Bitmap* Hq2xGfxFilter::InitVirtualScreen(Bitmap *screen, const Size src_size, const Rect dst_rect)
 {
-    Bitmap *virtual_screen = AllegroGfxFilter::InitVirtualScreen(screen, virtual_width, virtual_height);
-    _hq2xScalingBuffer = BitmapHelper::CreateBitmap(screen->GetWidth(), screen->GetHeight());
+    Bitmap *virtual_screen = AllegroGfxFilter::InitVirtualScreen(screen, src_size, dst_rect);
+    _hq2xScalingBuffer = BitmapHelper::CreateBitmap(src_size.Width * 2, src_size.Height * 2);
 
     InitLUTs();
     return virtual_screen;

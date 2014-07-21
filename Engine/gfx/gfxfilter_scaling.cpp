@@ -13,17 +13,34 @@
 //=============================================================================
 
 #include "gfx/gfxfilter_scaling.h"
-#include "util/wgt2allg.h"
-#include "device/mousew32.h"
 
 namespace AGS
 {
 namespace Engine
 {
 
-ScalingGfxFilter::ScalingGfxFilter(int multiplier)
+bool ScalingGfxFilter::Initialize(const int color_depth, String &err_str)
 {
-    MULTIPLIER = multiplier;
+    // succeed by default
+    return true;
+}
+
+void ScalingGfxFilter::UnInitialize()
+{
+    // do nothing by default
+}
+
+Rect ScalingGfxFilter::SetTranslation(const Size src_size, const Rect dst_rect)
+{
+    // do not restrict scaling by default
+    _dstRect = dst_rect;
+    _scaling.Init(src_size, dst_rect);
+    return _dstRect;
+}
+
+Rect ScalingGfxFilter::GetDestination() const
+{
+    return _dstRect;
 }
 
 } // namespace Engine

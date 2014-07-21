@@ -65,7 +65,7 @@ extern int _places_r, _places_g, _places_b;
 
 const int MaxScalingFactor = 8; // we support up to x8 scaling now
 IGfxDriverFactory *GfxFactory = NULL;
-GfxFilter *filter;
+IGfxFilter *filter;
 
 Size GameSize;
 int firstDepth, secondDepth;

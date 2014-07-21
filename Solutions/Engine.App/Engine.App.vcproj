@@ -824,10 +824,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\gfx\gfxfilter.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\gfx\gfxfilter_aad3d.cpp"
 					>
 				</File>

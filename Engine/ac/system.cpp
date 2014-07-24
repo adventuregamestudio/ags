@@ -26,6 +26,7 @@
 #include "media/audio/soundclip.h"
 #include "gfx/graphicsdriver.h"
 #include "ac/dynobj/cc_audiochannel.h"
+#include "main/graphics_mode.h"
 
 using namespace AGS::Engine;
 
@@ -33,15 +34,13 @@ extern GameSetup usetup;
 extern GameState play;
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
-extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern ScriptSystem scsystem;
-extern int scrnwid,scrnhit;
 extern IGraphicsDriver *gfxDriver;
 extern CCAudioChannel ccDynamicAudio;
 
 
 int System_GetColorDepth() {
-    return final_col_dep;
+    return ScreenResolution.ColorDepth;
 }
 
 int System_GetOS() {
@@ -49,19 +48,19 @@ int System_GetOS() {
 }
 
 int System_GetScreenWidth() {
-    return final_scrn_wid;
+    return ScreenResolution.Width;
 }
 
 int System_GetScreenHeight() {
-    return final_scrn_hit;
+    return ScreenResolution.Height;
 }
 
 int System_GetViewportHeight() {
-    return divide_down_coordinate(scrnhit);
+    return divide_down_coordinate(play.viewport.GetHeight());
 }
 
 int System_GetViewportWidth() {
-    return divide_down_coordinate(scrnwid);
+    return divide_down_coordinate(play.viewport.GetWidth());
 }
 
 const char *System_GetVersion() {

@@ -18,7 +18,6 @@
 #ifndef __AGS_EE_AC__GLOBALSCREEN_H
 #define __AGS_EE_AC__GLOBALSCREEN_H
 
-int  GetMaxScreenHeight ();
 void FlipScreen(int amount);
 void ShakeScreen(int severe);
 void ShakeScreenBackground (int delay, int amount, int length);

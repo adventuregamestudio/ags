@@ -30,6 +30,7 @@
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxfilter.h"
+#include "main/graphics_mode.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -270,8 +271,8 @@ void SetMousePosition (int newx, int newy) {
         newy = 0;
     if (newx >= BASEWIDTH)
         newx = BASEWIDTH - 1;
-    if (newy >= GetMaxScreenHeight())
-        newy = GetMaxScreenHeight() - 1;
+    if (newy >= BASEHEIGHT)
+        newy = BASEHEIGHT - 1;
 
     multiply_up_coordinates(&newx, &newy);
     Mouse::SetPosition(Point(newx, newy));
@@ -342,7 +343,7 @@ void set_new_cursor_graphic (int spriteslot) {
     {
         if (blank_mouse_cursor == NULL)
         {
-            blank_mouse_cursor = BitmapHelper::CreateTransparentBitmap(1, 1, final_col_dep);
+            blank_mouse_cursor = BitmapHelper::CreateTransparentBitmap(1, 1, ScreenResolution.ColorDepth);
         }
         mousecurs[0] = blank_mouse_cursor;
     }

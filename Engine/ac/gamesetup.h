@@ -27,11 +27,8 @@ struct GameSetup {
     int mod_player;
     int textheight;
     int mp3_player;
-    bool want_letterbox; // defines whether game is displayed in letterboxed mode
     bool windowed;
     int vsync;
-    int base_width;
-    int base_height;
     short refresh;
     bool  no_speech_pack;
     bool  enable_antialiasing;

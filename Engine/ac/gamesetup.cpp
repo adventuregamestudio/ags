@@ -21,7 +21,6 @@ GameSetup::GameSetup()
     midicard=MIDI_AUTODETECT;
     mod_player=1;
     mp3_player=1;
-    want_letterbox = false;
     windowed = false;
     vsync = 0;
     no_speech_pack = false;
@@ -31,8 +30,6 @@ GameSetup::GameSetup()
     disable_exception_handling = false;
     prefer_sideborders = true;
     prefer_letterbox = true;
-    base_width = 320;
-    base_height = 200;
     override_script_os = -1;
     override_multitasking = -1;
     override_upscale = false;

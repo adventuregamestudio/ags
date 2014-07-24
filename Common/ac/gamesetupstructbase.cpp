@@ -34,6 +34,16 @@ GameSetupStructBase::~GameSetupStructBase()
     delete [] load_messages;
 }
 
+void GameSetupStructBase::SetDefaultResolution(GameResolutionType resolution_type)
+{
+    default_resolution = resolution_type;
+    // The letterbox-by-design game property requests that game frame must
+    // include black horizontal borders of fixed height.
+    // If the letterbox option is disabled, then the game frame size will be
+    // equal to native game size.
+    size = ResolutionTypeToSize(default_resolution, options[OPT_LETTERBOX] != 0);
+}
+
 void GameSetupStructBase::ReadFromFile(Stream *in)
 {
     in->Read(&gamename[0], 50);
@@ -57,7 +67,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in)
     uniqueid = in->ReadInt32();
     numgui = in->ReadInt32();
     numcursors = in->ReadInt32();
-    default_resolution = (GameResolutionType)in->ReadInt32();
+    SetDefaultResolution((GameResolutionType)in->ReadInt32());
     default_lipsync_frame = in->ReadInt32();
     invhotdotsprite = in->ReadInt32();
     in->ReadArrayOfInt32(reserved, 17);

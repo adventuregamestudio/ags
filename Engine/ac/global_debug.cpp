@@ -57,8 +57,6 @@ extern TreeMap *transtree;
 extern int offsetx, offsety;
 extern int displayed_room, starting_room;
 extern MoveList *mls;
-extern int final_scrn_wid,final_scrn_hit,final_col_dep;
-extern int scrnwid,scrnhit;
 extern char transFileName[MAX_PATH];
 
 void script_debug(int cmdd,int dataa) {
@@ -75,7 +73,7 @@ void script_debug(int cmdd,int dataa) {
         DisplayMode mode = gfxDriver->GetDisplayMode();
         sprintf(toDisplay,"Adventure Game Studio run-time engine[ACI version %s"
             "[Running %d x %d at %d-bit, game frame is %d x %d %s[GFX: %s[%s[" "Sprite cache size: %d KB (limit %d KB; %d locked)",
-            EngineVersion.LongString.GetCStr(), mode.Width, mode.Height, final_col_dep, final_scrn_wid, final_scrn_hit, (convert_16bit_bgr) ? "BGR" : "",
+            EngineVersion.LongString.GetCStr(), mode.Width, mode.Height, ScreenResolution.ColorDepth, ScreenResolution.Width, ScreenResolution.Height, (convert_16bit_bgr) ? "BGR" : "",
             gfxDriver->GetDriverName(), filter->GetInfo().Name.GetCStr(),
             spriteset.cachesize / 1024, spriteset.maxCacheSize / 1024, spriteset.lockedSize / 1024);
         if (play.separate_music_lib)
@@ -97,7 +95,7 @@ void script_debug(int cmdd,int dataa) {
     {  // show walkable areas from here
         Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
         tempw->Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
-        Bitmap *stretched = BitmapHelper::CreateBitmap(scrnwid, scrnhit);
+        Bitmap *stretched = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight());
         stretched->StretchBlt(tempw,
 			RectWH(-offsetx, -offsety, get_fixed_pixel_size(tempw->GetWidth()), get_fixed_pixel_size(tempw->GetHeight())),
 			Common::kBitmap_Transparency);

@@ -50,7 +50,6 @@ extern int psp_gfx_renderer; // defined in ali3dogl
 extern WalkBehindMethodEnum walkBehindMethod;
 extern DynamicArray<GUIInv> guiinv;
 extern int numguiinv;
-extern int scrnwid,scrnhit;
 extern int current_screen_resolution_multiplier;
 extern char force_gfxfilter[50];
 extern AGSPlatformDriver *platform;
@@ -67,10 +66,12 @@ const int MaxScalingFactor = 8; // we support up to x8 scaling now
 IGfxDriverFactory *GfxFactory = NULL;
 IGfxFilter *filter;
 
-Size GameSize;
 int firstDepth, secondDepth;
+
+GraphicResolution ScreenResolution;
+PlaneScaling      GameScaling;
+
 String GfxFilterRequest;
-PlaneScaling GameScaling;
 
 int debug_15bit_mode = 0, debug_24bit_mode = 0;
 int convert_16bit_bgr = 0;
@@ -192,36 +193,29 @@ void engine_init_screen_settings(Size &game_size, Size &screen_size)
     _rgb_b_shift_15 = 0;
 #endif
 
-    GameSize = ResolutionTypeToSize(game.default_resolution);
-    if (GameSize.IsNull())
-        quit("Unable to define native game resolution, could be unsupported game format.");
-
-    scrnwid = GameSize.Width;
-    scrnhit = GameSize.Height;
+    play.SetViewport(game.size);
 
     if (game.IsHiRes())
     {
-        usetup.base_width = scrnwid / 2;
-        usetup.base_height = scrnhit / 2;
+        play.native_size.Width = game.size.Width / 2;
+        play.native_size.Height = game.size.Height / 2;
         wtext_multiply = 2;
     }
     else
     {
-        usetup.base_width = scrnwid;
-        usetup.base_height = scrnhit;
+        play.native_size.Width = game.size.Width;
+        play.native_size.Height = game.size.Height;
         wtext_multiply = 1;
     }
 
     usetup.textheight = wgetfontheight(0) + 1;
-
-    vesa_xres=scrnwid; vesa_yres=scrnhit;
-    current_screen_resolution_multiplier = scrnwid / BASEWIDTH;
+    current_screen_resolution_multiplier = game.size.Width / play.native_size.Width;
 
     if (game.IsHiRes() &&
         (game.options[OPT_NATIVECOORDINATES]))
     {
-        usetup.base_width *= 2;
-        usetup.base_height *= 2;
+        play.native_size.Width *= 2;
+        play.native_size.Height *= 2;
     }
 
     // don't allow them to force a 256-col game to hi-color
@@ -238,11 +232,7 @@ void engine_init_screen_settings(Size &game_size, Size &screen_size)
         secondDepth = 24;
     }
 
-    // The letterbox-by-design game property requests that game frame must
-    // include black horizontal borders of fixed height.
-    // If the letterbox option is disabled, then the game frame size will be
-    // equal to native game size.
-    game_size = ResolutionTypeToSize(game.default_resolution, game.options[OPT_LETTERBOX] != 0);
+    game_size = game.size;
     screen_size = Size(0, 0);
 
     // Log out display information
@@ -252,7 +242,7 @@ void engine_init_screen_settings(Size &game_size, Size &screen_size)
     else
         Out::FPrint("Unable to obtain device resolution");
 
-    Out::FPrint("Game native resolution: %d x %d (%d bit)%s", scrnwid, scrnhit, firstDepth,
+    Out::FPrint("Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, firstDepth,
         game.options[OPT_LETTERBOX] == 0 ? "": " letterbox-by-design");
     Out::FPrint("Game settings: letterbox %s, side borders %s",
         usetup.prefer_letterbox ? "acceptable" : "undesirable", usetup.prefer_sideborders ? "acceptable" : "undesirable");
@@ -721,27 +711,24 @@ bool init_gfx_mode(const Size &game_size, const Size &screen_size, int cdep)
     if (usetup.refresh >= 50)
         request_refresh_rate(usetup.refresh);
 
-    final_scrn_wid = game_size.Width;
-    final_scrn_hit = game_size.Height;
-    final_col_dep = cdep;
-    game_frame_y_offset = (final_scrn_hit - scrnhit) / 2;
-    usetup.want_letterbox = final_scrn_hit > scrnhit;
+    ScreenResolution.Width = screen_size.Width;
+    ScreenResolution.Height = screen_size.Height;
+    ScreenResolution.ColorDepth = cdep;
 
     if (game.color_depth == 1) {
-        final_col_dep = 8;
+        ScreenResolution.ColorDepth = 8;
     }
     else {
         set_color_depth(cdep);
     }
 
-    const DisplayMode mode = DisplayMode(GraphicResolution(screen_size.Width, screen_size.Height, final_col_dep),
-        usetup.windowed, usetup.refresh, usetup.vsync != 0);
+    const DisplayMode mode = DisplayMode(ScreenResolution, usetup.windowed, usetup.refresh, usetup.vsync != 0);
     const bool result = gfxDriver->Init(mode, game_size, RectWH(0, 0, screen_size.Width, screen_size.Height), &timerloop);
 
     if (result)
     {
         Out::FPrint("Succeeded. Using gfx mode %d x %d (%d-bit) %s, game frame %d x %d, gfx filter: %s",
-            screen_size.Width, screen_size.Height, final_col_dep, usetup.windowed ? "windowed" : "fullscreen",
+            screen_size.Width, screen_size.Height, ScreenResolution.ColorDepth, usetup.windowed ? "windowed" : "fullscreen",
             game_size.Width, game_size.Height, filter->GetInfo().Id.GetCStr());
         return true;
     }
@@ -782,7 +769,7 @@ void CreateBlankImage()
     // so it's the most likey place for a crash
     try
     {
-        Bitmap *blank = BitmapHelper::CreateBitmap(16, 16, final_col_dep);
+        Bitmap *blank = BitmapHelper::CreateBitmap(16, 16, ScreenResolution.ColorDepth);
         blank = gfxDriver->ConvertBitmapToSupportedColourDepth(blank);
         blank->Clear();
         blankImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
@@ -812,25 +799,9 @@ void engine_prepare_screen()
 {
     Out::FPrint("Preparing graphics mode screen");
 
-    if ((final_scrn_hit != scrnhit) || (final_scrn_wid != scrnwid)) {
-        _old_screen->Clear();
-		BitmapHelper::SetScreenBitmap(
-			BitmapHelper::CreateSubBitmap(_old_screen, RectWH(final_scrn_wid / 2 - scrnwid / 2, final_scrn_hit/2-scrnhit/2, scrnwid, scrnhit))
-			);
-		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
-        _sub_screen=screen_bmp;
-
-        scrnhit = screen_bmp->GetHeight();
-        vesa_yres = screen_bmp->GetHeight();
-        scrnwid = screen_bmp->GetWidth();
-        vesa_xres = screen_bmp->GetWidth();
-		gfxDriver->SetMemoryBackBuffer(screen_bmp);
-    }
-
-
     // Most cards do 5-6-5 RGB, which is the format the files are saved in
     // Some do 5-6-5 BGR, or  6-5-5 RGB, in which case convert the gfx
-    if ((final_col_dep == 16) && ((_rgb_b_shift_16 != 0) || (_rgb_r_shift_16 != 11))) {
+    if ((ScreenResolution.ColorDepth == 16) && ((_rgb_b_shift_16 != 0) || (_rgb_r_shift_16 != 11))) {
         convert_16bit_bgr = 1;
         if (_rgb_r_shift_16 == 10) {
             // some very old graphics cards lie about being 16-bit when they
@@ -839,7 +810,7 @@ void engine_prepare_screen()
             _places_g = 3;
         }
     }
-    if (final_col_dep > 16) {
+    if (ScreenResolution.ColorDepth > 16) {
         // when we're using 32-bit colour, it converts hi-color images
         // the wrong way round - so fix that
 
@@ -861,7 +832,7 @@ void engine_prepare_screen()
         _rgb_b_shift_16 = 0;
 #endif
     }
-    else if (final_col_dep == 16) {
+    else if (ScreenResolution.ColorDepth == 16) {
         // ensure that any 32-bit graphics displayed are converted
         // properly to the current depth
 #if defined(PSP_VERSION)
@@ -878,7 +849,7 @@ void engine_prepare_screen()
         _rgb_b_shift_32 = 0;
 #endif
     }
-    else if (final_col_dep < 16) {
+    else if (ScreenResolution.ColorDepth < 16) {
         // ensure that any 32-bit graphics displayed are converted
         // properly to the current depth
 #if defined (WINDOWS_VERSION)

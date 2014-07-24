@@ -20,6 +20,15 @@
 using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
 
+extern GameSetupStruct game;
+
+void GameState::SetViewport(const Size viewport_size)
+{
+    viewport = RectWH((game.size.Width - viewport_size.Width) / 2,
+                      (game.size.Height - viewport_size.Height) / 2,
+                       viewport_size.Width, viewport_size.Height);
+}
+
 //
 // [IKM] What must be kept in mind: in previous versions of AGS
 // this struct was read and written as-is (read/write-ing object)
@@ -29,8 +38,6 @@ using AGS::Common::Stream;
 // On other hand we should read/write even pointers to arrays
 // (or at least emulate that), although that could make no sense.
 //
-
-extern GameSetupStruct game;
 
 void GameState::ReadFromFile_v321(Stream *in)
 {

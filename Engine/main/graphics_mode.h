@@ -18,13 +18,15 @@
 #ifndef __AGS_EE_MAIN__GRAPHICSMODE_H
 #define __AGS_EE_MAIN__GRAPHICSMODE_H
 
+#include "gfx/gfxdefines.h"
 #include "util/scaling.h"
 
 int  graphics_mode_init();
 void graphics_mode_shutdown();
 
-extern Size GameSize;
-extern int final_scrn_wid, final_scrn_hit, final_col_dep, game_frame_y_offset;
+// The actual game screen resolution
+extern AGS::Engine::GraphicResolution ScreenResolution;
+// The game-to-screen transformation
 extern AGS::Engine::PlaneScaling GameScaling;
 
 namespace AGS { namespace Engine { class IGfxFilter; } }

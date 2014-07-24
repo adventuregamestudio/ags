@@ -610,6 +610,9 @@ int load_game_file() {
 
     ReadGameSetupStructBase_Aligned(in);
 
+    if (game.size.IsNull())
+        quit("Unable to define native game resolution, could be unsupported game format.");
+
     // The earlier versions of AGS provided support for "upscaling" low-res
     // games (320x200 and 320x240) to hi-res (640x400 and 640x480
     // respectively). The script API has means for detecting if the game is
@@ -621,10 +624,10 @@ int load_game_file() {
     // resolutions, such as 320x200 and 320x240.
     if (usetup.override_upscale)
     {
-        if (game.default_resolution == kGameResolution_320x200)
-            game.default_resolution = kGameResolution_640x400;
-        else if (game.default_resolution == kGameResolution_320x240)
-            game.default_resolution = kGameResolution_640x480;
+        if (game.GetDefaultResolution() == kGameResolution_320x200)
+            game.SetDefaultResolution(kGameResolution_640x400);
+        else if (game.GetDefaultResolution() == kGameResolution_320x240)
+            game.SetDefaultResolution(kGameResolution_640x480);
     }
 
     if (filever < kGameVersion_312)

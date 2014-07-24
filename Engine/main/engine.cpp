@@ -83,9 +83,7 @@ extern int eip_guiobj;
 extern const char *replayTempFile;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhenome;
-extern int scrnwid,scrnhit;
 extern ScriptSystem scsystem;
-extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap *virtual_screen;
 extern Bitmap **actsps;
@@ -887,7 +885,7 @@ void show_preload () {
         Bitmap *tsc = BitmapHelper::CreateBitmapCopy(splashsc, screen_bmp->GetColorDepth());
 
 		screen_bmp->Fill(0);
-        screen_bmp->StretchBlt(tsc, RectWH(0, 0, scrnwid,scrnhit), Common::kBitmap_Transparency);
+        screen_bmp->StretchBlt(tsc, RectWH(0, 0, play.viewport.GetWidth(),play.viewport.GetHeight()), Common::kBitmap_Transparency);
 
         gfxDriver->ClearDrawList();
 
@@ -936,7 +934,7 @@ void engine_setup_screen()
 {
     Out::FPrint("Set up screen");
 
-    virtual_screen=BitmapHelper::CreateBitmap(scrnwid,scrnhit,final_col_dep);
+    virtual_screen=BitmapHelper::CreateBitmap(play.viewport.GetWidth(),play.viewport.GetHeight(),ScreenResolution.ColorDepth);
     virtual_screen->Clear();
     gfxDriver->SetMemoryBackBuffer(virtual_screen);
     //  ignore_mouseoff_bitmap = virtual_screen;
@@ -1202,13 +1200,13 @@ void engine_init_game_settings()
 
 void engine_init_game_shit()
 {
-    scsystem.width = final_scrn_wid;
-    scsystem.height = final_scrn_hit;
-    scsystem.coldepth = final_col_dep;
+    scsystem.width = ScreenResolution.Width;
+    scsystem.height = ScreenResolution.Height;
+    scsystem.coldepth = ScreenResolution.ColorDepth;
     scsystem.windowed = 0;
     scsystem.vsync = 0;
-    scsystem.viewport_width = divide_down_coordinate(scrnwid);
-    scsystem.viewport_height = divide_down_coordinate(scrnhit);
+    scsystem.viewport_width = divide_down_coordinate(play.viewport.GetWidth());
+    scsystem.viewport_height = divide_down_coordinate(play.viewport.GetHeight());
     // ScriptSystem::aci_version is only 10 chars long
     strncpy(scsystem.aci_version, EngineVersion.LongString, 10);
     if (usetup.override_script_os >= 0)
@@ -1225,17 +1223,17 @@ void engine_init_game_shit()
     if (usetup.vsync)
         scsystem.vsync = 1;
 
-    Mouse::SetGraphicArea(Rect(0, 0, scrnwid-1, scrnhit-1));
+    Mouse::SetGraphicArea(play.viewport);
     //  mloadwcursor("mouse.spr");
     //mousecurs[0]=spriteset[2054];
     currentcursor=0;
     our_eip=-4;
     mousey=100;  // stop icon bar popping up
-    init_invalid_regions(final_scrn_hit);
+    init_invalid_regions(game.size.Height);
     SetVirtualScreen(virtual_screen);
     our_eip = -41;
 
-    gfxDriver->SetRenderOffset(get_screen_x_adjustment(virtual_screen), get_screen_y_adjustment(virtual_screen));
+    gfxDriver->SetRenderOffset(play.viewport.Left, play.viewport.Top);
 }
 
 void engine_update_mp3_thread()

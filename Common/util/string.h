@@ -133,6 +133,18 @@ public:
 
     int     FindChar(char c, int from = 0) const;
     int     FindCharReverse(char c, int from = -1) const;
+
+    // Section methods treat string as a sequence of 'fields', separated by
+    // special character. They search for a substring consisting of all such
+    // 'fields' from the 'first' to the 'last', inclusive; the bounding
+    // separators are optionally included too.
+    // Section indexes are zero-based. The first (0th) section is always
+    // located before the first separator and the last section is always
+    // located after the last separator, meaning that if the outermost
+    // character in string is separator char, there's still an empty trailing
+    // field beyond that.
+    // This also means that there's always at least one section in any string,
+    // even if there are no separating chars.
     bool    FindSection(char separator, int first, int last, bool exclude_first_sep, bool exclude_last_sep,
                         int &from, int &to) const;
 

@@ -228,46 +228,49 @@ bool String::FindSection(char separator, int first, int last, bool exclude_first
     {
         return false;
     }
+    if (first > last)
+    {
+        return false;
+    }
 
-    int slice_from = -1;
-    int slice_to = _meta->Length;
+    int this_field = 0;
+    int slice_from = 0;
+    int slice_to = 0;
     int slice_at = -1;
-    int sep_count = 0;
     do
     {
         slice_at = FindChar(separator, slice_at + 1);
         if (slice_at < 0)
+            slice_at = _meta->Length;
+        // found where previous field ends
+        if (this_field == last)
         {
-            break;
+            // if previous field is the last one to be included,
+            // then set the section tail
+            slice_to = exclude_last_sep ? slice_at : slice_at + 1;
         }
-        sep_count++;
-        if (sep_count == first)
+        if (slice_at != _meta->Length)
         {
-            slice_from = exclude_first_sep ? slice_at + 1 : slice_at;
-            if (slice_to < _meta->Length)
+            this_field++;
+            if (this_field == first)
             {
-                break;
-            }
-        }
-        if (sep_count == last)
-        {
-            slice_to = exclude_last_sep ? slice_at - 1 : slice_at;
-            if (slice_from >= 0)
-            {
-                break;
+                // if the new field is the first one to be included,
+                // then set the section head
+                slice_from = exclude_first_sep ? slice_at + 1 : slice_at;
             }
         }
     }
-    while (slice_at < _meta->Length);
+    while (slice_at < _meta->Length && this_field <= last);
 
-    from = slice_from;
-    to = slice_to;
-
-    if ((slice_from >= 0 || slice_to < _meta->Length) &&
-        slice_from <= slice_to && first <= last)
+    // the search is a success if at least the first field was found
+    if (this_field >= first)
     {
-        slice_from = slice_from >= 0 ? slice_from : 0;
-        slice_to = slice_to < _meta->Length ? slice_to : _meta->Length - 1;
+        // correct the indices to stay in the [0; length] range
+        from = slice_from;
+        to = slice_to;
+        assert(from <= to);
+        Math::Clamp(0, _meta->Length, from);
+        Math::Clamp(0, _meta->Length, to);
         return true;
     }
     return false;
@@ -371,7 +374,7 @@ String String::Section(char separator, int first, int last,
     if (FindSection(separator, first, last, exclude_first_sep, exclude_last_sep,
         slice_from, slice_to))
     {
-        return Mid(slice_from, slice_to - slice_from + 1);
+        return Mid(slice_from, slice_to - slice_from);
     }
     return String();
 }
@@ -520,7 +523,7 @@ void String::ClipSection(char separator, int first, int last,
     if (FindSection(separator, first, last, !include_first_sep, !include_last_sep,
         slice_from, slice_to))
     {
-        ClipMid(slice_from, slice_to - slice_from + 1);
+        ClipMid(slice_from, slice_to - slice_from);
     }
 }
 
@@ -800,7 +803,7 @@ void String::TruncateToSection(char separator, int first, int last,
     if (FindSection(separator, first, last, exclude_first_sep, exclude_last_sep,
         slice_from, slice_to))
     {
-        TruncateToMid(slice_from, slice_to - slice_from + 1);
+        TruncateToMid(slice_from, slice_to - slice_from);
     }
     else
     {

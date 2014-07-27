@@ -282,7 +282,7 @@ enum eKeyCode
 };
 
 #define CHARID int  // $AUTOCOMPLETEIGNORE$
-struct ColorType {
+builtin struct ColorType {
   char r,g,b;
   char filler;  // $AUTOCOMPLETEIGNORE$
   };
@@ -321,7 +321,7 @@ enum CharacterDirection {
   eDirectionUpLeft
 };
 
-internalstring autoptr managed struct String {
+internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
   import static String Format(const string format, ...);    // $AUTOCOMPLETESTATICONLY$
   /// Checks whether the supplied string is null or empty.
@@ -363,9 +363,9 @@ internalstring autoptr managed struct String {
   readonly import attribute int Length;
 };
 
-managed struct AudioClip;
+builtin managed struct AudioClip;
 
-managed struct ViewFrame {
+builtin managed struct ViewFrame {
   /// Gets whether this frame is flipped.
   readonly import attribute bool Flipped;
   /// Gets the frame number of this frame.
@@ -384,7 +384,7 @@ managed struct ViewFrame {
   readonly import attribute int View;
 };
 
-managed struct DrawingSurface {
+builtin managed struct DrawingSurface {
   /// Clears the surface to the specified colour, or transparent if you do not specify a colour.
   import void Clear(int colour=-SCR_NO_VALUE);
   /// Creates a copy of the surface.
@@ -423,7 +423,7 @@ managed struct DrawingSurface {
   readonly import attribute int Width;
 };
 
-managed struct Room {
+builtin managed struct Room {
   /// Gets a Custom Property associated with this room.
   import static String GetTextProperty(const string property);
   /// Gets a drawing surface that allows you to manipulate the room background.
@@ -450,7 +450,7 @@ managed struct Room {
   readonly import static attribute int Width;
 };
 
-managed struct Game {
+builtin managed struct Game {
   /// Changes the active translation.
   import static bool   ChangeTranslation(const string newTranslationFileName);
   /// Returns true the first time this command is called with this token.
@@ -539,7 +539,7 @@ managed struct Game {
   readonly import static attribute AudioClip *AudioClips[];
 };
 
-managed struct Parser {
+builtin managed struct Parser {
   /// Returns the parser dictionary word ID for the specified word
   import static int    FindWordID(const string wordToFind);
   /// Stores the supplied user text for later use with Said
@@ -990,7 +990,7 @@ enum FileMode {
   eFileWrite = 2,
   eFileAppend = 3
 };
-managed struct File {
+builtin managed struct File {
   /// Delets the specified file from the disk.
   import static bool Delete(const string filename);   // $AUTOCOMPLETESTATICONLY$
   /// Checks if the specified file exists on the disk.
@@ -1028,7 +1028,7 @@ managed struct File {
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
-managed struct InventoryItem {
+builtin managed struct InventoryItem {
   /// Returns the inventory item at the specified location.
   import static InventoryItem* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
   /// Gets an integer custom property for this item.
@@ -1055,7 +1055,7 @@ managed struct InventoryItem {
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
-managed struct Overlay {
+builtin managed struct Overlay {
   /// Creates an overlay that displays a sprite.
   import static Overlay* CreateGraphical(int x, int y, int slot, bool transparent);  // $AUTOCOMPLETESTATICONLY$
   /// Creates an overlay that displays some text.
@@ -1072,7 +1072,7 @@ managed struct Overlay {
   import attribute int Y;
 };
 
-managed struct DynamicSprite {
+builtin managed struct DynamicSprite {
   /// Creates a blank dynamic sprite of the specified size.
   import static DynamicSprite* Create(int width, int height, bool hasAlphaChannel=false);    // $AUTOCOMPLETESTATICONLY$
   /// Creates a dynamic sprite as a copy of a room background.
@@ -1329,16 +1329,16 @@ enum EventType {
 };
 
 // forward-declare these so that they can be returned by GUIControl class
-managed struct GUI;
-managed struct Label;
-managed struct Button;
-managed struct Slider;
-managed struct TextBox;
-managed struct InvWindow;
-managed struct ListBox;
-managed struct Character;
+builtin managed struct GUI;
+builtin managed struct Label;
+builtin managed struct Button;
+builtin managed struct Slider;
+builtin managed struct TextBox;
+builtin managed struct InvWindow;
+builtin managed struct ListBox;
+builtin managed struct Character;
 
-managed struct GUIControl {
+builtin managed struct GUIControl {
   /// Brings this control to the front of the z-order, in front of all other controls.
   import void BringToFront();
   /// Gets the GUI Control that is visible at the specified location on the screen, or null.
@@ -1381,7 +1381,7 @@ managed struct GUIControl {
   import attribute int  Y;
 };
 
-managed struct Label extends GUIControl {
+builtin managed struct Label extends GUIControl {
 #ifndef STRICT_STRINGS
   import void GetText(string buffer);
   import void SetText(const string text);
@@ -1394,7 +1394,7 @@ managed struct Label extends GUIControl {
   import attribute int  TextColor;
 };
 
-managed struct Button extends GUIControl {
+builtin managed struct Button extends GUIControl {
   /// Animates the button graphic using the specified view loop.
   import void Animate(int view, int loop, int delay, RepeatStyle);
 #ifndef STRICT_STRINGS
@@ -1419,7 +1419,7 @@ managed struct Button extends GUIControl {
   import attribute String Text;
 };
 
-managed struct Slider extends GUIControl {
+builtin managed struct Slider extends GUIControl {
   /// Gets/sets the image that is tiled to make up the background of the slider.
   import attribute int  BackgroundGraphic;
   /// Gets/sets the image used for the 'handle' that represents the current slider position.
@@ -1434,7 +1434,7 @@ managed struct Slider extends GUIControl {
   import attribute int  Value;
 };
 
-managed struct TextBox extends GUIControl {
+builtin managed struct TextBox extends GUIControl {
 #ifndef STRICT_STRINGS
   import void GetText(string buffer);
   import void SetText(const string text);
@@ -1447,7 +1447,7 @@ managed struct TextBox extends GUIControl {
   import attribute int TextColor;
 };
 
-managed struct InvWindow extends GUIControl {
+builtin managed struct InvWindow extends GUIControl {
   /// Scrolls the inventory window down one row.
   import void ScrollDown();
   /// Scrolls the inventory window up one row.
@@ -1470,7 +1470,7 @@ managed struct InvWindow extends GUIControl {
   readonly import attribute int RowCount;
 };
 
-managed struct ListBox extends GUIControl {
+builtin managed struct ListBox extends GUIControl {
 	/// Adds a new item to the bottom of the list with the specified text.
 	import bool AddItem(const string text);
 	/// Removes all the items from the list.
@@ -1513,7 +1513,7 @@ managed struct ListBox extends GUIControl {
 	import attribute int  TopItem;
 };
 
-managed struct GUI {
+builtin managed struct GUI {
   /// Moves the GUI to be centred on the screen.
   import void Centre();
   /// Gets the topmost GUI visible on the screen at the specified co-ordinates.
@@ -1549,7 +1549,7 @@ managed struct GUI {
   int   reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
-managed struct Hotspot {
+builtin managed struct Hotspot {
   /// Gets the hotspot that is at the specified position on the screen.
   import static Hotspot* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
 #ifndef STRICT_STRINGS
@@ -1577,7 +1577,7 @@ managed struct Hotspot {
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
-managed struct Region {
+builtin managed struct Region {
   /// Gets the region at the specified location within this room.
   import static Region* GetAtRoomXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
   /// Runs the event handler for the specified event for this region.
@@ -1603,7 +1603,7 @@ managed struct Region {
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
-managed struct Dialog {
+builtin managed struct Dialog {
   /// Displays the options for this dialog and returns which one the player selected.
   import int DisplayOptions(DialogOptionSayStyle = eSayUseOptionSetting);
   /// Gets the enabled state for the specified option in this dialog.
@@ -1631,7 +1631,7 @@ managed struct Dialog {
 #define IsSpeechVoxAvailable IsVoxAvailable
 //import int IsSpeechVoxAvailable();  // make autocomplete recognise
 
-managed struct Maths {
+builtin struct Maths {
   /// Calculates the Arc Cosine of the specified value.
   import static float ArcCos(float value);
   /// Calculates the Arc Sine of the specified value.
@@ -1670,7 +1670,7 @@ managed struct Maths {
   readonly import static attribute float Pi;
 };
 
-managed struct DateTime {
+builtin managed struct DateTime {
   /// Gets the current date and time on the player's system.
   readonly import static attribute DateTime* Now;   // $AUTOCOMPLETESTATICONLY$
   /// Gets the Year component of the date.
@@ -1689,7 +1689,7 @@ managed struct DateTime {
   readonly import attribute int RawTime;
 };
 
-managed struct DialogOptionsRenderingInfo {
+builtin managed struct DialogOptionsRenderingInfo {
   /// The option that the mouse is currently positioned over
   import attribute int ActiveOptionID;
   /// The dialog that is to have its options rendered
@@ -1714,7 +1714,7 @@ managed struct DialogOptionsRenderingInfo {
   import attribute bool HasAlphaChannel;
 };
 
-managed struct AudioChannel {
+builtin managed struct AudioChannel {
   /// Changes playback to continue from the specified position into the sound.
   import void Seek(int position);
   /// Sets the audio to have its location at (x,y); it will get quieter the further away the player is.
@@ -1739,7 +1739,7 @@ managed struct AudioChannel {
   import attribute int Volume;
 };
 
-managed struct AudioClip {
+builtin managed struct AudioClip {
   /// Plays this audio clip.
   import AudioChannel* Play(AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
   /// Plays this audio clip, starting from the specified offset.
@@ -1756,7 +1756,7 @@ managed struct AudioClip {
   readonly import attribute AudioType Type;
 };
 
-struct System {
+builtin struct System {
   readonly int  screen_width,screen_height;
   readonly int  color_depth;
   readonly int  os;
@@ -1817,7 +1817,7 @@ enum WalkWhere {
   eWalkableAreas = 305
 };
 
-managed struct Object {
+builtin managed struct Object {
   /// Animates the object using its current view.
   import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards);
   /// Gets the object that is on the screen at the specified co-ordinates.
@@ -1894,7 +1894,7 @@ managed struct Object {
   int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
 
-managed struct Character {
+builtin managed struct Character {
   /// Adds the specified item to the character's inventory.
   import function AddInventory(InventoryItem *item, int addAtIndex=SCR_NO_VALUE);
   /// Manually adds a waypoint to the character's movement path.
@@ -2104,7 +2104,7 @@ managed struct Character {
 #endif
   };
 
-struct GameState {
+builtin struct GameState {
   int  score;
   int  used_mode;
   int  disabled_user_interface;
@@ -2217,7 +2217,7 @@ enum SkipSpeechStyle {
   eSkipMouse        = 6
 };
   
-managed struct Speech {
+builtin struct Speech {
   /// Stop speech animation this number of game loops before speech ends (text mode only).
   import static attribute int             AnimationStopTimeMargin;
   /// Enables/disables the custom speech portrait placement.

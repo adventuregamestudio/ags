@@ -140,7 +140,11 @@ int ccCompiledScript::remove_any_import (char*namm, SymbolDef *oldSym) {
         oldSym->flags = sym.flags[sidx] & ~SFLG_IMPORTED;
         oldSym->stype = sym.stype[sidx];
         oldSym->sscope = sym.sscope[sidx];
-        oldSym->ssize = sym.ssize[sidx];
+        // Return size may have been unknown at the time of forward declaration. Check the actual return type for those cases.
+        if(sym.ssize[sidx] == 0)
+            oldSym->ssize = sym.ssize[sym.funcparamtypes[sidx][0]];
+        else
+            oldSym->ssize = sym.ssize[sidx];
         oldSym->arrsize = sym.arrsize[sidx];
         if (sym.stype[sidx] == SYM_FUNCTION) {
             // <= because of return type

@@ -208,6 +208,8 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
                 if ((sym.stype[last_time] != SYM_PROPERTY) &&
                     (sym.stype[last_time] != SYM_IMPORT) &&
                     (sym.stype[last_time] != SYM_STATIC) &&
+                    (sym.stype[last_time] != SYM_PROTECTED) &&
+                    (sym.stype[last_time] != SYM_WRITEPROTECTED) &&
                     (sym.stype[last_time] != SYM_SEMICOLON) &&
                     (sym.stype[last_time] != SYM_OPENBRACE) &&
                     (sym.stype[last_time] != SYM_OPENBRACKET) &&
@@ -2259,53 +2261,56 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
     // The operator is the first thing in the expression
     if (sym.get_type(symlist[oploc]) == SYM_NEW) 
     {
-      if (listlen < 5)
-      {
-        cc_error("parse error after 'new'");
-        return -1;
-      }
-      if (sym.get_type(symlist[oploc + 1]) != SYM_VARTYPE)
+      if (listlen < 2 || sym.get_type(symlist[oploc + 1]) != SYM_VARTYPE)
       {
         cc_error("expected type after 'new'");
         return -1;
       }
 
-      int arrayType = symlist[oploc + 1];
-
-      if ((sym.get_type(symlist[oploc + 2]) != SYM_OPENBRACKET) ||
-          (sym.get_type(symlist[listlen - 1]) != SYM_CLOSEBRACKET))
+      if(listlen > 3 && sym.get_type(symlist[oploc + 2]) == SYM_OPENBRACKET && sym.get_type(symlist[listlen - 1]) == SYM_CLOSEBRACKET)
       {
-        cc_error("'new' can only be used to create arrays");
-        return -1;
+          int arrayType = symlist[oploc + 1];
+
+          if (parse_sub_expr(&symlist[oploc + 3], listlen - 4, scrip))
+            return -1;
+
+          if (scrip->ax_val_type != sym.normalIntSym)
+          {
+            cc_error("array size must be an int");
+            return -1;
+          }
+
+          bool isManagedType = false;
+          int size = sym.ssize[arrayType];
+          if (sym.flags[arrayType] & SFLG_MANAGED)
+          {
+            isManagedType = true;
+            size = 4;
+          }   
+          else if (sym.flags[arrayType] & SFLG_STRUCTTYPE)
+          {
+            cc_error("cannot create dynamic array of unmanaged struct");
+            return -1;
+          }
+
+          scrip->write_cmd3(SCMD_NEWARRAY, SREG_AX, size, isManagedType);
+          scrip->ax_val_type = arrayType | STYPE_DYNARRAY;
+
+          if (isManagedType)
+            scrip->ax_val_type |= STYPE_POINTER;
+      }
+      else
+      {
+          if(sym.flags[symlist[oploc + 1]] & SFLG_BUILTIN)
+          {
+            cc_error("Built-in type '%s' cannot be instantiated directly", sym.get_name(symlist[oploc + 1]));
+            return -1;
+          }
+          const size_t size = sym.ssize[symlist[oploc + 1]];
+          scrip->write_cmd2(SCMD_NEWUSEROBJECT, SREG_AX, size);
+          scrip->ax_val_type = symlist[oploc + 1] | STYPE_POINTER;
       }
 
-      if (parse_sub_expr(&symlist[oploc + 3], listlen - 4, scrip))
-        return -1;
-
-      if (scrip->ax_val_type != sym.normalIntSym)
-      {
-        cc_error("array size must be an int");
-        return -1;
-      }
-
-      bool isManagedType = false;
-      int size = sym.ssize[arrayType];
-      if (sym.flags[arrayType] & SFLG_MANAGED)
-      {
-        isManagedType = true;
-        size = 4;
-      }   
-      else if (sym.flags[arrayType] & SFLG_STRUCTTYPE)
-      {
-        cc_error("cannot create dynamic array of unmanaged struct");
-        return -1;
-      }
-
-      scrip->write_cmd3(SCMD_NEWARRAY, SREG_AX, size, isManagedType);
-      scrip->ax_val_type = arrayType | STYPE_DYNARRAY;
-
-      if (isManagedType)
-        scrip->ax_val_type |= STYPE_POINTER;
       return 0;
     }
     else if (sym.operatorToVCPUCmd(symlist[oploc]) == SCMD_SUBREG) {
@@ -3196,6 +3201,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
     char next_is_managed = 0, next_is_static = 0;
     char next_is_protected = 0, next_is_stringstruct = 0;
     char next_is_autoptr = 0, next_is_noloopcheck = 0;
+    char next_is_builtin = 0;
     nested_type[0]=NEST_NOTHING;
 
     // *** now we have the program as a list of symbols in targ
@@ -3401,6 +3407,11 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 next_is_managed = 0;
             }
 
+            if (next_is_builtin) {
+                sym.flags[stname] |= SFLG_BUILTIN;
+                next_is_builtin = 0;
+            }
+
             if (next_is_autoptr) {
                 sym.flags[stname] |= SFLG_AUTOPTR;
                 next_is_autoptr = 0;
@@ -3420,6 +3431,18 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 }
                 if ((sym.flags[extendsWhat] & SFLG_STRUCTTYPE) == 0) {
                     cc_error("Must extend a struct type");
+                    return -1;
+                }
+                if ((sym.flags[extendsWhat] & SFLG_MANAGED) == 0 && (sym.flags[stname] & SFLG_MANAGED)) {
+                    cc_error("Incompatible types. Managed struct cannot extend unmanaged struct '%s'", sym.get_name(extendsWhat));
+                    return -1;
+                }
+                if ((sym.flags[extendsWhat] & SFLG_MANAGED) && (sym.flags[stname] & SFLG_MANAGED) == 0) {
+                    cc_error("Incompatible types. Unmanaged struct cannot extend managed struct '%s'", sym.get_name(extendsWhat));
+                    return -1;
+                }
+                if ((sym.flags[extendsWhat] & SFLG_BUILTIN) && (sym.flags[stname] & SFLG_BUILTIN) == 0) {
+                    cc_error("The built-in type '%s' cannot be extended by a concrete struct. Use extender methods instead", sym.get_name(extendsWhat));
                     return -1;
                 }
                 size_so_far = sym.ssize[extendsWhat];
@@ -3519,11 +3542,11 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     cc_error("Member variable cannot be struct");
                     return -1;
                 }
-                /*if ((member_is_pointer) && (!member_is_import)) {
-                cc_error("Member variable cannot be pointer");
-                return -1;
+                if ((member_is_pointer) && (sym.flags[stname] & SFLG_MANAGED) && (!member_is_import)) {
+                    cc_error("Member variable of managed struct cannot be pointer");
+                    return -1;
                 }
-                else*/ if ((sym.flags[cursym] & SFLG_MANAGED) && (!member_is_pointer)) {
+                else if ((sym.flags[cursym] & SFLG_MANAGED) && (!member_is_pointer)) {
                     cc_error("Cannot declare non-pointer of managed type");
                     return -1; 
                 }
@@ -3820,6 +3843,13 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             }
 
         }
+        else if (symType == SYM_BUILTIN) {
+            next_is_builtin = 1;
+            if (sym.get_type(targ.peeknext()) != SYM_MANAGED && sym.get_type(targ.peeknext()) != SYM_STRUCT) {
+                cc_error("Invalid use of 'builtin'");
+                return -1;
+            }
+        }
         else if (symType == SYM_MANAGED) {
             next_is_managed = 1;
             if (sym.get_type(targ.peeknext()) != SYM_STRUCT) {
@@ -3829,7 +3859,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
         }
         else if (symType == SYM_AUTOPTR) {
             next_is_autoptr = 1;
-            if (sym.get_type(targ.peeknext()) != SYM_MANAGED) {
+            if (sym.get_type(targ.peeknext()) != SYM_MANAGED && sym.get_type(targ.peeknext()) != SYM_BUILTIN) {
                 cc_error("Invalid use of 'autoptr'");
                 return -1;
             }

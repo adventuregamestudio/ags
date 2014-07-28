@@ -21,8 +21,8 @@ using AGS::Common::Stream;
 #define STD_BUFFER_SIZE 3000
 
 void removeBackslashBracket(char *lbuffer) {
-    char *slashoffs;
-    while ((slashoffs = strstr(lbuffer, "\\[")) != NULL) {
+    char *slashoffs = lbuffer;
+    while ((slashoffs = strstr(slashoffs, "\\[")) != NULL) {
         // remove the backslash
         memmove(slashoffs, slashoffs + 1, strlen(slashoffs));
     }

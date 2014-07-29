@@ -1,0 +1,3396 @@
+REVISION HISTORY
+================
+VERSION 3.3.0 hotfix-3, July 2014
+
+Bug Fixes:
+- Provided error handling for several exceptional cases on graphics mode initialization (program
+  should at least close normally, showing comprehensible error message).
+- Fixed crash in legacy built-in inventory screen.
+- Fixed screen size was incorrectly calculated in letterbox mode when the scrolling room is loaded
+  (this could cause some GUIs or Overlays refuse to take requested position, and also slightly
+  affected "box in/out" translation effect).
+
+
+VERSION 3.3.0 update-1, May 2014
+
+Features:
+- Reimplemented alternate display modes, now side-borders and top/bottom borders work properly for
+  all game resolutions.
+
+
+VERSION 3.3.0 hotfix-2, April 2014
+
+Features:
+- Added config option to run pre-3.1.0 lo-res games in hi-res mode.
+
+Bug Fixes:
+- Fixed error in game compilation after user moves item folders up or down in the project tree.
+- Fixed bug which could make Character.Transparency and Object.Transparency proeprties return
+  slightly incorrect values.
+- Fixed bug that could let user to load corrupted savedgame, which in turn could cause more trouble.
+
+
+VERSION 3.3.0 hotfix-1, March 2014
+
+Bug Fixes:
+- Fixed Editor crashing when user types "#define" in script.
+
+
+VERSION 3.3.0, February 2014:
+
+This release is a product of collaborative work of the following people
+(in alphabetic order):
+  Bernhard Rosenkraenzer
+  Cristian Morales Vega
+  Gilad Shaham
+  Ivan Mogilko
+  Francesco Ariis
+  Janet Gilbert
+  Jochen Schleu
+  Michael Rittenhouse
+  Paul Wilkinson
+  Piotr Wieczorek
+  rofl0r
+  Scott Baker
+  Shawn R. Walker
+  Steve McCrea
+  Steven Poulton
+  Sunit Das
+  Tobias Hansen
+  Tom Vandepoele
+  Tzach Shabtay
+
+AGS Engine underwent significant rewrite, with primary aims being better multi-platform
+compatibility and backwards-compatibility. Complete list of related changes is too vast
+to cite them here, a detailed documentation is provided in the form of the git log at
+this repository: https://github.com/adventuregamestudio/ags
+
+Engine Ports:
+- Android port.
+- iOS port.
+- Linux port.
+- PSP port.
+
+Features:
+- Increased maximal Font number from 15 to 30.
+- Added "Translated" property to ListBox gui control, which forces engine to translate
+  ListBox items.
+- Proper alpha blender for blending two 32-bit sprites with alpha channels.
+  Added new option for gui alpha blending setting which turns the proper blender on.
+  Added new setting for the use of the blender in general cases (such as DrawImage function).
+- Added Dialog.SetHasOptionBeenChosen() method.
+- Added DialogOptionsRenderingInfo.HasAlphaChannel property.
+- Added eKeyNone constant to eKeyCode enumeration.
+- Added two more options for the Skip Speech style: "skip by key only" and "skip by mouse only".
+- Added SkipSpeechStyle enumeration.
+- Added Speech script class which members substitute number of global functions and variables.
+- The backward-compatible "Old-style game-wide speech animation speed" game setting is replaced
+  with two active options that allow to turn game-wide speech delay on and off and specify its
+  value.
+- SetMusicMasterVolume() legacy script function now accepts volume values between -210 and 100
+  (was between 0 and 100); large negative values may be used to mute the music completely.
+- Added a "Browse" button to the "Create in folder" field in the Start New Game wizard.
+- Added "Reload sprite from source" command to Sprite Manager's context menu.
+- Sprite Import window is now resizable.
+- Engine can now run games of older versions, starting from 2.50. The level of
+  compatibility varies.
+- Improved character walking smoothness at 60%-80% scaling.
+- Game.ChangeTranslation() script function no longer causes game to quit if the translation file
+  belongs to different game or has unknown format.
+- The game automatically fallbacks to software graphics driver if the hardware one could not run
+  or initialize gfx mode for any reason.
+- Added support for x5-x8 graphic scaling filters.
+- Added config option to find maximal supported scaling automatically.
+- Added optional threaded audio support.
+- Added config option to override System.OperatingSystem value.
+- Added config option to override multitasking mode.
+- Added optional log file support to the engine.
+- Added support for GNU-style long command line arguments.
+- Windows version writes crash dump on "out of memory" error.
+
+Editor Plugin API:
+- Added property for getting playable character.
+- Added property for getting ScriptsAndHeaders collection.
+- Added methods for refreshing project's tree.
+- Added method for refreshing property grid.
+- Added methods for controlling output panel.
+
+Bug Fixes:
+- Editor no longer allows to create more game items than engine supports.
+- Fixed "savegameindex[]" array was declared with incorrect size in script.
+- Fixed incorrect selection of a new sprite, imported while the "Select sprite" dialog is open.
+- Fixed sprite lookup in folders, differing only by name case.
+- Fixed the autocomplete list displaying obsolete information in some cases.
+- Fixed false notifications of the script had been changed externally after being saved in
+  the editor.
+- Fixed overlapping labels in the Editor Preferences dialog.
+- Fixed inventory items and cursor crosshair with alpha channel not being drawn properly.
+- Fixed crash that occured when ListBox.GetItemAtLocation() is called from
+  repeatedly_execute_always() just before the list box is about to be drawn on screen for the
+  first time.
+- Fixed custom dialog options clickable area by correcting its horizontal coordinate range.
+- Fixed error that caused audio volume to reset to default during cutscenes.
+- Fixed AudioChannel.Volume returning incorrect value when called from skipped cutscene.
+- Stopped play.close_mouth_end_speech_time variable from making effect in voice mode and
+  Sierra-style speech.
+- Fixed return value of the AudioChannel.PositionMs for MOD/XM clips.
+- Fixed OGG and MP3 speech ending prematurely if the audio file size is a multiple of 32 KB.
+- Fixed error which took place when user restored a game saved with background music playing,
+  in case the music is not found in resources anymore.
+- Fixed division by zero which occured if there was a 1px tall walkable area with vector scaling.
+- Fixed side-borders that were not applied properly at larger widescreen resolutions.
+
+
+VERSION 3.2.2 Beta, July 2012:
+
+Following changes made by Tzach Shabtay, unless noted otherwise.
+
+Features:
+- Added docking panels and Window menu to control all the windows.
+- Added folders for characters, dialogs, inventory items, guis, rooms, scripts and views.
+- Added new menu items for all folders to move up/down.
+- Added the ability to drag/drop files to be before other files.
+- Added highlights for drag&drop and auto-expand folders on hover during drag&drop.
+- Script and header files are now combined into one and can be expanded/collapsed, similar to
+  room settings & script.
+- Removed the context menu commands to move script modules up/down, this can now be done with
+  drag/drop (and not only for scripts). The script dependency rule remains the same
+  (lower scripts can import symbols from upper ones, but not vice versa).
+- Removed the "exclude script" option.
+- The "Sort room by number" now sorts within folders.
+- Added a menu item to find all usages for characters, dialogs, views,inventory items and
+  global variables.
+- Added a menu item for almost all document tabs, to navigate to their node on the project tree.
+- Added "Goto line" dialog from script editor via shortcut Ctrl+G (and changed existing
+  shortcuts to open global script & header to Ctrl+Shift+G/H).
+- Added keyboard shortcut (Ctrl+M) to switch between header and source.
+- Objects, characters and edges can now be moved with the arrows in the room editor.
+
+Editor Plugin API:
+- ISourceControlProvider interface for editor plugins to define your own source control provider
+  (Michael Rittenhouse).
+
+Mono Support:
+- Partially disabled some features only when running with Mono, since I couldn't see a way to
+  code them without the
+  Win API:
+   - Breaking in debug will not automatically set the editor to the foreground, the user might
+     have to click on the window.
+   - Notifying the user on file changes externally if the editor is in focus will not happen.
+     It will happen when the window is activated, so I hope it won't be too annoying.
+
+Bug Fixes:
+- Fixed crash clicking in margin of dialog editor (Chris Jones).
+- Fixed RGB colour picker not working in 256-col games with colour numbers > 32 (Chris Jones).
+- Fix for: when moving an object after zooming in and out, the floating co-ordinates no longer
+  appear next to the object.
+- Fixed "Go-to definition" on global variables in script editor didn't do anything. It will now
+  open the global variables editor and select the global variable.
+
+
+VERSION 3.2.1, March 2011
+ - Added Find/Replace In All Files capability (Tzach Shabtay)
+ - Added GUI control snapping, alignment, grouping and locking to GUI editor (Steven
+   Poulton)
+ - Added loop cut/copy/paste, Flip All Frames and Import From Sprite Folder options to
+   Views in editor, to access this right-click to the right of the loop (Tzach Shabtay)
+ - Added RGB colour selector to the various colour properties (ProgZmax)
+ - Added Characters option to room editor to show all characters set to start in that
+   room (ProgZmax)
+ - Added Find All Usages right-click option to script editor (Tzach Shabtay)
+ - Added current co-ordinates display while dragging objects/characters in room
+   editor (Steven Poulton)
+ - Added syntax colouring to dialog scripts (Steven Poulton)
+ - Added Dialog.ShowTextParser script property (CJ)
+ - Upgraded to latest version of LEC template (abstauber)
+ - Middle mouse button now activates the "Copy co-ordinates to clipboard" option in all
+   the room editor modes (ProgZmax)
+ - Fixed D3D tints not working properly (3.2 regression) (Nefasto)
+ - Fixed crash drawing GUIs with no background (3.2 regression) (CJ)
+ - Fixed crash restoring/restarting depending on state of crossfading (CJ)
+ - Fixed intermittent crash moving objects and using the Ctrl+A debug option (CJ)
+ - Fixed "crossfade buffer null attempting transition" if you restored a save game that
+   had a different current transition type to the current game position (CJ)
+ - Fixed script editor tooltips getting stuck if they appeared over the tab bar at the
+   top of the editor (Tzach Shabtay)
+ - Fixed editor error if you deleted a room that a character was set to start in (CJ)
+ - Fixed co-ordinates displayed in room editor not reflecting Low-Res Co-ordinates
+   setting (ProgZmax)
+
+
+VERSION 3.2, June 2010
+ - Rewrote audio system. The old number-based sound and music are gone, replaced with
+   new named audio clips. Added AudioClip.*, AudioChannel.*, Game.IsAudioPlaying,
+   Game.SetAudioTypeVolume, Game.StopAudio, System.AudioChannels, System.AudioChannelCount,
+   System.Volume, ViewFrame.LinkedAudio script commands.
+ - Added Game.IgnoreUserInputAfterTextTimeoutMs, Maths.Exp, Maths.Log, Maths.Log10,
+   Maths.Cosh, Maths.Sinh, Maths.Tanh
+ - Added option to automatically add side borders when running 4:3 games on widescreen
+   monitors
+ - The generated EXE version information is now set to your Game Name and Developer Name
+   instead of "Adventure Game Studio" and "Chris Jones"
+ - Added new LEC-style template by abstauber
+ - Added Applies To feature to custom properties, so that you can have properties that
+   only apply to Rooms or Characters, for example
+ - Added menu option to remove old Global Messages from the game, to stop them coming
+   out in translation sources
+ - Added support for anti-aliased TTF fonts in all situations where they weren't
+   previously supported.
+ - Added $APPDATADIR$ support to File.Open to allow you to write files to an accessible
+   folder that is not the Save Games folder
+ - Added eMouseMiddleInv support to on_mouse_click
+ - Added editor plugin API methods IGUIController.ActivePane, IRoomController.PreSaveRoom
+ - Added plugin API events AGSE_PRESAVEGAME and AGSE_POSTRESTOREGAME
+ - Improved graphics mode detection so that the screen doesn't keep flickering when
+   trying to start up a low-res game full screen
+ - Improved colour quality of mini-sprites displayed in sprite manager
+ - Improved the user-friendliness of some error messages, thanks to Error Reporting
+ - Improved editor robustness to recover if the Game.agf.user file was corrupt
+ - Winsetup now displays the game name in the title bar instead of "Adventure Game Studio"
+ - Disabled editor option to save changes whilst the game was running, since doing so 
+   could cause sprite file corruption
+ - Editor property grid now displays a drop-down list instead of a text box when
+   selecting a font or room
+ - Changed the pathfinder so that the character cannot get stuck if he ends up outside
+   one of the room edges
+ - Removed limit on number of text parser words
+ - Renamed the "handle inventory clicks in script" general setting to better reflect
+   what it does
+ - Removed room properties Play Music On Load, Music Volume and Save/Load Enabled since
+   they are now obsolete
+ - Mouse.IsButtonDown now works with eMouseMiddle
+ - "Export all sprites in folder" command now exports 32-bit sprites as PNGs to prevent
+   losing the alpha channel
+ - Improved error handling if you passed an int to a string argument in String.Format
+ - The Restart Point save file (AGSSAVE.999) is no longer deleted when you quit the game, 
+   to fix a problem where RestartGame didn't work if you started the game by double-clicking
+   an Enhanced Save Game file in explorer
+ - Disallowed accented characters like й in script names in the editor, because they
+   wouldn't compile
+ - Dynamic sprite deletion warning is now only displayed on exit if Debug Mode is turned on
+ - Fixed sprite entry getting duplicated if you dragged a sprite to the end of the list
+ - Fixed crash with Hq2x and Hq3x graphics filters (3.1.2 regression)
+ - Fixed character/object tints and light levels in D3D not matching DX5
+ - Fixed TintScreen in D3D so that it looks the same as DX5
+ - Fixed Sierra-style speech box moving if the room was scrolled while it was displayed
+ - Fixed error running game and problems with save games if there were unicode
+   characters in the folder path
+ - Fixed GUI controls not updating properly if the control moved under the mouse, but
+   the mouse didn't move
+ - Fixed theora video being permanently muted after you played one video with muted audio
+ - Fixed Dynamic Sprites causing memory corruption if a mouse cursor was set to sprite 0
+ - Fixed Compress Sprites setting not taking effect until you next edited some sprites
+ - Fixed GUI AdditiveOpacity mode not working properly if you tried to have a non-alpha
+   sprite on an alpha GUI
+ - Fixed light levels >100% not working with Direct3D driver
+ - Fixed Object.MergeIntoBackground not working with Direct3D driver
+ - Fixed IsKeyPressed not working with the following keys: [ ] \ ; ' , . /
+ - Fixed struct member functions with more than 9 parameters giving run-time error
+ - Fixed File commands looking in the wrong directory if you launched the game by
+   double-clicking a save game in explorer
+ - Fixed SetBackgroundFrame in Player Enters Screen event causing old frame to flash up
+   briefly with D3D driver
+ - Fixed Make Default Language command crashing if two different source lines mapped to
+   the same translated line
+ - Fixed run-time error if you returned a string from a function that was a member of a
+   local dynamic array
+ - Fixed sprite cache corruption if you had a single sprite larger than 20 MB
+ - Fixed Room.GetDrawingSurfaceForBackground and Character.PlaceOnWalkableArea to give
+   error message instead of crash if you called them from game_start
+ - Fixed GUI label text not being anti-aliased if there was a background image but the
+   BGColor was set to 0
+ - Fixed editor crash creating new game if your Windows username had unicode characters
+   in it
+ - Fixed Views tree collapsing after renaming or drag-dropping a view
+ - Fixed editor crash on startup if you made the editor window very small before closing
+   it down last time
+ - Fixed editor crash if you set an object's image to -1
+ - Fixed character gliding if he bumped into another solid character and the character's
+   MovementLinkedToAnimation property was false
+ - Fixed DynamicSprite.Rotate cropping 1 pixel off the left side when rotating an image
+   with an odd width/height
+ - Fixed ShakeScreenBackground not clearing letterbox borders properly if you switched
+   from a large to a small shake
+ - Fixed "Internal compiler error: table overflow" if there were a lot of imported
+   functions/variables
+ - Fixed when importing an 8-bit image, if there was another palette slot in the image
+   with the same colour as the transparent slot it got changed to black
+ - Fixed Game.SpriteWidth/SpriteHeight returning the size of the blue cup instead of 0 if
+   you supplied an invalid sprite number
+ - Fixed script editor issue if you typed some text, switched to another tab, then came
+   back and did Undo
+ - Fixed autocomplete editor crash if there was a line break inside an array indexer
+ - Fixed compiler crash if a dialog script just had a @ on a line on its own
+ - Fixed editor crash if you tried to use a non-icon file as TEMPLATE.ICO
+ - Fixed sprite import window crash if you right-clicked in the second stage of tiled import
+ - Fixed mouse cursor being drawn in dialog options in DX5 mode even when Mouse.Visible was
+   set to false
+ - Fixed no line number provided when DynamicSprite.CreateFromDrawingSurface threw an error
+ - Fixed script editor crash if you saved the script while the final function was missing
+   its closing brace
+ - Fixed the editor Preferences window only allowing you to type 5 characters in if you
+   wanted to manually enter a path for the New Game Directory or Import Directory
+ - Fixed "Close all other tabs" crashing if a room editor with unsaved changes was one
+   of the other tabs
+ - Fixed changing a walk-behind baseline not marking the room as modified
+ - Fixed editor crash XmlException: An error occurred while parsing EntityName.
+ - Fixed compilation errors if you named a character with only numeric digits, eg "c500"
+
+
+VERSION 3.1.2 SP1, February 2009
+ - The Editor will now not allow you to open the same game in two different copies of the editor
+ - Fixed translations and \[ tag not working on GUIs (regression from 3.1.1)
+ - Fixed crash with custom dialog options if you saved the game before running any dialogs
+ - Fixed editor crash with tiled sprite import if you dragged out an invisible selection area
+ - Fixed editor crash if the Game.agf.user file was read-only
+ - Fixed auto-number speech lines to not number "..." lines
+ - Fixed TintScreen not working properly in some situations with DX5 driver
+
+VERSION 3.1.2, February 2009
+ - Added support for using Transparency properties with alpha-channel sprites
+ - Added inventory item CursorImage property to allow you to set a different image for
+   the mouse cursor to the inventory window
+ - Added F4 hotkey to jump straight to the Events grid to edit interactions
+ - Added Character.SpeechAnimationDelay property which replaces the old game.talkanim_speed
+   setting and also works with Sierra-style speech. A new General Settings option is
+   provided to enable/disable backwards compatibility.
+ - Added Game.TextReadingSpeed and Game.MinimumTextDisplayTime properties; obsoleted
+   game.text_speed
+ - Editor now remembers which item in the property grid was selected as you switch
+   between tabs
+ - Added plugin API event AGS_EngineInitGfx and methods GetDirectInputKeyboard,
+   GetDirectInputMouse and ReplaceFontRenderer.
+ - Added Error Reporting feature to editor, to send error information to AGS website if
+   the editor crashes
+ - Added eKey* enum for use with on_key_press and IsKeyPressed, to make script more readable
+ - Added Show Start Page option to Help menu to allow you to access Tips if you have the
+   start page disabled at startup
+ - When changing the game resolution, the editor will now offer to automatically resize
+   all your GUIs to compensate.
+ - Improved performance of Theora video playing
+ - Templates are now stored in a "Templates" sub-folder to satisfy Vista permissions
+ - "Letterbox Mode" option in General Settings is now only shown if the game resolution
+   is 320x200 or 640x400
+ - Moved the character SpeechColor property from the Movement to the Appearance section
+   in the editor, where it belongs!
+ - Moved the "You are currently using the eraser" tooltip further away from the cursor 
+   so it doesn't obscure what you're doing
+ - Improved rendering of View Editor at 120 DPI
+ - DynamicSprite.Resize now won't allow new image to be over 25 MB to help spot
+   mistakes in size calculations
+ - Mouse.ChangeModeGraphic now won't allow you to change the graphic of the Inventory 
+   cursor if "Use selected inventory graphic for cursor" is enabled
+ - Translations are now automatically recompiled if you change the game name, to ensure
+   that they still work
+ - Made some stability improvements to how the editor handles the sprite file
+ - Improved the editor error message if the game folder had unicode characters in it
+ - Fixed editor crash in Vista creating a new game
+ - Fixed dynamic sprites sometimes being discarded by the sprite cache
+ - Fixed option-off-forever being treated as option-off (introduced by 3.1.1)
+ - Fixed compile error if you created a Bool in the Global Variables editor with default
+   value set to upper case "TRUE" or "FALSE"
+ - Fixed Vista Game Explorer integration appearing as "Play" in the start menu recent list
+ - Fixed save games not persisting the walking state of the highest-numbered character
+ - Fixed editor's room area undo buffer not being cleared when a different room was loaded
+ - Fixed custom dialog options not working properly when using transparent background
+ - Fixed Dialog.GetOptionText returning original English text when a translation was in use
+ - Fixed button ClipImage property clipping 1 pixel too many in high-res games
+ - Fixed PlayVideo not working properly when DX5 graphics filter was in use
+ - Fixed PlayAmbientSound screwing up audio if it was used on a channel where a normal
+   PlaySound command was still playing
+ - Fixed DX5 driver problem switching a GUI background graphic from one with to one
+   without an alpha channel
+ - Fixed DisplayAtY, GUI.SetSize and Mouse.SetPosition not checking Y co-ordinate
+   correctly in 320x240 and 640x480 games when using native co-ordinates
+ - Fixed colour corruption if you imported an 8-bit sprite into a hi-color game and
+   palette slot 0 of the sprite was not black
+ - Fixed dialog script compiler bug if you used "this" in a string within a normal
+   scripting command
+ - Fixed script editor crash if you deleted a block of code, then hovered the mouse over
+   a script variable.
+ - Fixed GUI button being set to wrong size if you changed its image in the editor to a
+   low-res sprite in a hi-res game
+ - Fixed problem with ChangeRoomAutoPosition in hi-res games with hi-res co-ordinates
+ - Fixed game.screenshot_height not allowing 240/480 in games of those resolutions
+ - Fixed potential crash on fadeout with DX5 Nearest Neighbour filters
+ - Fixed object positions getting messed up when importing a hi-res game from AGS 2.72
+ - Fixed intermittent editor crash that could occur when shutting down the game
+ - Fixed editor crash if you dragged a GUI control to the edge of the GUI then deselected
+   it with the property grid
+ - Fixed editor crashing if you tried to import a dodgy font
+ - Fixed editor not allowing you to rename a script to a different capitalization of the
+   same name
+ - Fixed editor crash if you tried to rename a script file to contain \ or :
+   
+
+VERSION 3.1.1, December 2008
+ - Added support for running normal scripts as part of dialog scripts, 
+   and thus obsoleted the run-script, dialog_request business
+ - Added OGG Theora video support to PlayVideo, and enabled theora videos
+   to be compiled into the game EXE
+ - Added right-click "Find Sprite By Number" option to Sprite Manager
+ - Added Dialog.HasOptionBeenChosen script function.
+ - Added basic save and load GUIs to the Default Game template
+ - Replaced Anti-Glide mode with a per-character setting MovementLinkedToAnimation.
+ - Improved auto-dedent of } in script editor to make it more useful and less annoying
+ - Improved performance of pathfinder when calculating a route.
+ - Added list of editor keyboard shortcuts to manual
+ - When changing between room area mask types, the current tool will be set back
+   to the Select tool to assist the most common workflow
+ - Cursor mode now sets back to Select after adding a GUI control
+ - Discontinued support for Windows 98 due to upgrading compiler from VC6 to VC2008.
+ - Improved editor error messages if an error occurred reading/writing the sprite file
+ - Workaround for Windows error getting file list on Linux network shares
+ - Assign To View dialog now remembers the loop assigned to last time as well as view
+ - Improved editor error handling if it was unable to start the game for testing
+ - Fixed GetLocationName/GetLocationType not returning anything if the mouse cursor was
+   over a GUI, but a different X/Y was being checked
+ - Fixed GetLocationName returning a space if a nameless object was at the location
+ - Fixed clicking in the corner of the screen taking you back to the desktop when
+   using D3D driver
+ - Fixed D3D driver drawing an extra game loop before the room faded out
+ - Fixed transparent sprites not rendering correctly with D3D driver
+ - Fixed object "ignore walk-behinds" setting not working with D3D driver
+ - Fixed PlayVideo failing to play some WMV files with D3D driver
+ - Fixed editor crash debugging if the call stack had more than 6 lines
+ - Fixed call stack window not appearing if the project tree was on the left hand side
+ - Fixed crash if you manually set Character.Loop and the current Frame was invalid for
+   the new loop
+ - Fixed crash in DisplayAt/SayAt if you passed the width in as 0
+ - Fixed text box stealing up/down arrow key presses (AGS 3.1 regression)
+ - Fixed debug console showing low-res co-ordinates for Character.Walk
+ - Fixed autocomplete not always correctly selecting entries containing an underscore
+ - Fixed a couple of potential crashes if characters had an invalid view/loop/frame
+ - Fixed potential crash displaying text in voice-only mode
+ 
+
+VERSION 3.1, October 2008
+ - Added option to use native hi-res co-ordinates.
+ - Added option to continue running game loops while dialog options are displayed
+ - Added support for 1024x768 resolution.
+ - Added support for custom rendering of dialog options
+ - Added graphics filters to D3D driver, to allow 320x200 games to easily be run
+   in a larger window.
+ - Added 4x Nearest Neighbour filter to allow 320x200 games to easily be run on
+   widescreen monitors at 1280x800
+ - Added "Go to sprite" context menu option to script editor when right-clicking
+   on a number
+ - Added Character.HasInventory, Character.HasExplicitTint, Character.Move,
+   Character.SpeakingFrame, String.Replace, String.StartsWith, String.EndsWith,
+   Game.ChangeTranslation, Game.UseNativeCoordinates, Dialog.ID, TextBox.TextColor,
+   Slider.HandleGraphic, Slider.HandleOffset, Slider.BackgroundGraphic and
+   Parser.FindWordID script functions.
+ - Added pop-up calltip when hovering the mouse over a function/property in the script.
+ - Added separate Replace menu option to go straight to the Replace dialog
+ - Added previous searches list and Case Sensitive option to the Find dialog
+ - Added Preferences option to configure whether Help window stays on top or not.
+ - Room objects editor now draws alpha-channel sprites correctly
+ - When the engine aborts with an error, the editor will now automatically zoom to
+   the line in the script where the error occurred
+ - Editor now shows the call stack to the current position in the script when debugging
+ - Improved autocomplete to work better when adding code to existing functions
+ - Rewrote debugger to use a different method of communicating with the engine (Named
+   pipes instead of Files) which should hopefully resolve some stability issues some
+   people have been having with it
+ - Added support for calltip help text if you put a comment starting with /// on
+   the line before the import declaration. 
+ - Added feature for editor to send anonymous system information to AGS website
+ - Added editor plugin API IScriptEditorControl methods: SelectionStart, SelectionEnd,
+   SelectedText, CursorPosition, GetLineNumberForPosition, GetTextForLine and
+   GetTypeNameAtCursor
+ - Added new GUI Visibility option to have a normal GUI but initially switched off.
+ - Added ability to set initial GUI Transparency in the editor.
+ - Added Tip of the Day section to the Start Page.
+ - Added new file format for exported characters to enable characters with more than
+   20 frames in a loop or 16 loops in a view to be exported; this also fixes some
+   character settings not being preserved in the old file format.
+ - Added Preferences option to allow you to do Exact Palette background imports in
+   8-bit games, like you could in AGS 2.x
+ - Added warning message when you use the Import New Background option in a room, to
+   help newbies who are using it by accident instead of the Change button.
+ - Added option for AGS Editor to pop up a message every X days reminding you to back
+   up your game
+ - GUI Text Box now allows the user to type in extended chars like йнс when the
+   textbox is using a TTF font
+ - D3D driver now automatically tries 640x400 if your monitor doesn't support 320x200,
+   like the DX5 driver already did
+ - Removed Setup option to use the "wrong" resolution.
+ - Changed winsetup so that it doesn't pop up the Administrator prompt on Vista.
+ - RunAGSGame now shows an error if you try and use it while running with the debugger,
+   since it doesn't work in this situation
+ - Moved the inventory hotspot marker settings from the inventory panes to the
+   General Settings area since it makes more sense there and should reduce confusion
+ - Removed the room height limit of 1400 pixels.
+ - Removed the 30 character limit on hotspot descriptions
+ - Obsoleted InventoryScreen command, which is no longer supported.
+ - Editor now prompts you if you modify a script file in an external application
+   while it is open in the editor
+ - On Windows XP and earlier, AGS will now create a "My Saved Games" folder in My
+   Documents and then create individual game folders underneath, to avoid clutter
+ - When clicking the "..." button to go to an event script, AGS will now zoom to the
+   line after the { rather than the "function" line itself
+ - Renamed String.Contains to String.IndexOf to reduce confusion with other
+   languages such as Java and C#. String.Contains will continue to work as well for
+   the foreseeable future
+ - Removed obsolete InventoryScreen usage from the Default & Empty Game templates
+ - Improved import of 2.72 games to ensure that unhandled_event is called with Use
+   Inventory interactions
+ - Changed Default and Empty Game templates to 16-bit colour by default
+ - Changed error message when unable to initialise graphics mode to say the real
+   resolution rather than game resolution when using a graphics filter
+ - Editor now gives error if speech file number > 9999 rather than leading to
+   in-game File Not Found errors
+ - Fixed alpha-transparent dynamic sprites losing their alpha channel when you
+   restored a save game
+ - Fixed object image not being refreshed properly if it had a dynamic sprite which
+   you deleted at the same time as making the object invisible
+ - Fixed autocomplete popping up when it shouldn't do if you pressed space after
+   typing a member property/function
+ - Fixed problem with Mouse.SaveCursorUntilItLeaves if the original mode was now
+   disabled when it tried to restore it
+ - Fixed error starting up editor if you closed it while minimized
+ - Fixed dialog options text window edges with transparent parts not drawing
+   correctly with D3D driver
+ - Fixed crash restoring save game if there was an active dynamic drawing surface
+   created by CreateCopy
+ - Fixed Mouse.DisableMode crashing if cursor mode 4 (UseInv) was set as a Standard
+   mode
+ - Fixed some music skipping problems when using ShakeScreen and during room
+   transitions
+ - Fixed translations not working on script lines that had embedded speech marks
+ - Fixed GUI editor to not draw the background colour outside the actual GUI size
+ - Fixed error trying to save a game to a network share
+ - Fixed sound numbers over 999 not playing
+ - Fixed D3D driver smoothing all sprites, not just scaled ones, when "Smooth scaled
+   sprites" was selected
+ - Fixed problem where if you closed a window and chose not to save changes, when
+   you opened the window again the changes were still there
+ - Fixed script changes being lost if you opened a room script, made some changes,
+   didn't save them, then opened the room itself, then created an event handler
+ - Fixed sprite import colours messing up if there were index-0 pixels on the image
+   but index 0 was not being imported as the transparent colour
+ - Fixed Display() not working if the game had no GUIs
+ - Fixed changes to blink interval not always being applied immediately
+ - Fixed crash in Character.Say if the character's talking view had been set to an
+   invalid view number
+ - Fixed PlayVideo restarting the music after the video finished, even if it was set
+   to play game music
+ - Fixed the debug console being drawn behind characters and objects
+ - Fixed duplicate entries in autocomplete if you set an enum value to equal another
+   enum value
+ - Fixed ListBox.RowCount always returning 0 until the GUI had been drawn for the
+   first time
+ - Fixed Characters pane chopping off bottom of view preview when run at 120 DPI
+
+
+VERSION 3.0.2 SP1, June 2008
+ - Editor now gives friendlier error message if a hotspot description is too long
+ - Fix to workaround .NET error importing a portion of a sprite
+ - Fixed editor allowing you to name a gui or character such that its legacy macro
+   name led to a compile error (eg. "gGui" or "cGui")
+ - Fixed No Transparency sprite import not working properly if the sprite colour
+   depth had to be converted
+
+VERSION 3.0.2, June 2008
+ - Added Global Variables pane to editor, to allow you to easily declare global
+   variables for the script instead of having to do all the import/export rubbish
+ - Added script functions Dialog.GetOptionText, Dialog.DisplayOptions,
+   Dialog.OptionCount, Game.DialogCount, DynamicSprite.CreateFromDrawingSurface
+ - Added plugin API functions IsRunningUnderDebugger, BreakIntoDebugger and
+   GetPathToFileInCompiledFolder
+ - Added editor plugin API methods ShowSpriteSelector, SetStatusBarText,
+   Game.Sprites, CreateNewSprite, ChangeSpriteImage, GetSpriteUsageReport,
+   DeleteSprite
+ - Improved responsiveness of room Edges editor under Windows Vista
+ - Improved look of various dialogs when run at 120 DPI
+ - Improved parsing of function list in script editor when the script contains
+   comments and strings
+ - Editor now makes sure that you don't name a View the same as a character
+ - When importing alpha channel images, alpha-transparent pixels are now recognised
+   as transparent pixels
+ - New GUI alpha channel method (in General Settings) to allow more intuitive
+   rendering of alpha channels on GUI controls
+ - Alpha-transparent background and borders are now supported for textwindow GUIs
+ - Added option to put sprite and sound files under source control
+ - Modified source control integration not to check in the username, which was
+   happening in some cases
+ - Updated to v1.6.0 of Verb Coin template (thanks Electroshokker!)
+ - Room editor now shows "?" for mouse position when the cursor is outside the
+   room area
+ - Improved editor behaviour on startup if registry entries have been corrupted
+ - Fixed demo game not compiling
+ - Fixed editor error loading games if your regional settings had a space in the
+   short date format
+ - Fixed excluded room files still being compiled into the game EXE
+ - Fixed potential managed object pool corruption if you used SayBackground a lot
+ - Fixed some TTF fonts being incorrectly positioned in the editor GUI previewer
+ - Fixed hotspot sometimes getting corrupted when importing a new background
+ - Fixed exported GUIs not having the sprite resolutions exported correctly
+ - Fixed line and rectangle tools sometimes being slightly out from where the area
+   actually appeared
+ - Fixed alpha channel not working on graphical Overlays
+ - Fixed 8-bit rooms from 2.72 not being displayed correctly in the editor if
+   they used gamewide colours
+ - Fixed DrawingSurface.GetPixel sometimes returning invalid values in 32-bit games
+ - Fixed translation file generation failing if a script included a speech mark
+   inside quotes ('"')
+ - Fixed Game.TranslationFilename property returning a path when the game is run
+   under the debugger
+ - Fixed crash if you tried to crop edges on a completely transparent sprite
+ - Fixed Mouse.ChangeModeView crashing if you passed a View of -1
+ - Fixed Voice Actor Script generation giving error if you used "Narrator" (with
+   a capital N) in a dialog script
+ - Fixed speech.vox being generated even if you had no speech
+ - Fixed transparency being lost when importing an 8-bit character into a hi-colour
+   game
+ - Fixed the last imported image file being locked by the editor
+ - Fixed template generation failing if the template had speech or translations
+ - Fixed template generation saying it was successful even when it failed
+ - Fixed Create New Game not putting music/sound files in the sub-folders
+ - Fixed dynamic arrays not working if you had Left-to-right Precedence turned off
+ - Fixed view preview not flipping frames if they were being scaled down
+ - Fixed view preview not being updated if you changed the currently displayed
+   sprite's Flipped setting
+ - Fixed script editor function list not including extender functions
+ - Fixed editor crash if you deleted a GUI control whilst in the middle of dragging
+   it around
+ - Fixed editor crash if you deleted the Compiled folder while it was running
+ - Fixed editor crash if you selected a whole line of script and then pressed F1
+ - Fixed error generating voice acting script if there was a player.Say line in the
+   script with no indentation
+ - Fixed crash in sprite import window when zooming out and in of the bottom right
+   corner
+ - Fixed intermittent error after closing game when using debugger
+
+
+VERSION 3.0.1, April 2008
+ - Added zooming and mask transparency to the room areas editor
+ - Added ability to drag and drop sprites to other sprite folders, like in 2.72
+ - Added ability to drag and drop views between view folders
+ - Added ability to delete views and view folders
+ - Added "Go To Definition" right-click option in script editor, and fixed
+   cut/copy/paste context menu options not always being enabled correctly
+ - Added Create Voice Acting Script option, to generate a file containing all
+   voice speech lines for each character
+ - Added draggable baseline to the Walk-behinds Editor to make it more user friendly
+ - Added "New sprite using last sprite" and "Replace sprite using last sprite"
+   options to sprite manager, to allow you to quickly grab multiple frames off
+   a single source image
+ - Added "Sort sprites by number" option to sprite manager
+ - Added "Sort by number" option to room list
+ - Added File.Exists, File.Delete, String.IsNullOrEmpty, DrawingSurface.GetPixel,
+   DrawingSurface.DrawStringWrapped, Game.InSkippableCutscene,
+   Game.SkippingCutscene, System.NumLock, System.CapsLock, System.ScrollLock
+   commands.
+ - Added back Match Brace feature in script editor
+ - Added new room template dialog for creating new rooms.
+ - Added back Ctrl+G/Ctrl+H as shortcuts to get to the global script and script
+   header
+ - Added PaletteLockedToRoom property on sprites to allow you to easily remember
+   if the sprite was imported against a specific room (8-bit only)
+ - ListBox.FillDirList now supports $SAVEGAMEDIR$
+ - Changed the Ctrl+X debug option in-game to make it more user friendly
+ - View Preview now scales down large sprites to fit inside the preview window
+ - Removed limit on number of phenomes per file with PAM voice speech
+ - Increased max script modules to 50
+ - Double-clicking a room object now opens the sprite selector
+ - Editor will now remember the file path that you import fonts from, and display
+   it as a property on the font
+ - When adding a new frame to a view, the editor is now more intelligent about
+   the default sprite that it chooses for the new frame
+ - Attempting to display messages with extended characters in SCI font will
+   now render those characters as a ? rather than aborting the game.
+ - Editor now prevents you from deleting sprite folder if sprites in it are
+   still in use
+ - Editor plugin API: Added new OpenEditorForScript, ShowHelpFile, GetSpriteImage
+   and DrawSprite methods; added RoomController and SourceControl operations;
+   added Views property to Game object
+ - Added AGSE_PRERENDER plugin event to allow characters/objects to be modified
+   just before they are rendered
+ - When you double-click a script error message or use the drop-down function
+   list, the script editor now does a better job of highlighting the relevant
+   line.
+ - Increased size of function list drop-down in script editor
+ - Improved pathfinder dealing with narrow winding walkable areas
+ - Added right-click Flip option and shortcut key 'F' to flip frames in view editor
+ - Added preferences option to set the default directory where new games
+   are created
+ - Assign To View window now remembers the last view number used
+ - Editor now prompts you to save the current game before loading a different one
+ - Editor now remembers the position of the main two splitters when you quit
+ - Made some improvements to reduce music stuttering in some complex rooms
+ - New engine command line parameter -noexceptionhandler to disable the AGS
+   exception handler (for plugin developers)
+ - Object properties now show "BaselineOverridden" as a separate setting to
+   clarify the baseline behaviour
+ - Improved the way some editor dialogs look when run with Large Fonts (> 96 DPI)
+ - Removed left/right loops compile warning, and instead a single frame in the
+   left/right loops is automatically created
+ - Harmonised speed of fade-in/fade-out between D3D and DX5 drivers
+ - Fixed FadeIn not showing characters/objects if you changed the game state
+   since FadeOut
+ - Fixed Quick Import Multiple Sprites not remembering the import directory
+ - Fixed intermittent crash if a view preview was active when you saved the game
+ - Fixed speech colour being random if you used SierraWithBackground speech
+   without a custom text window GUI
+ - Fixed plugin API screen drawing events, and implemented support for them
+   with D3D driver
+ - Fixed intermittent crash starting engine with debugging enabled
+ - Fixed built-in save/load/quit dialogs having transparent borders in 8-bit games
+ - Fixed mouse wiping away dialog options background in 8-bit games
+ - Fixed some issues importing 8-bit sprites locked to a room background
+ - Fixed FadeIn not dealing with letterbox borders correctly if SetFadeColour
+   had been used
+ - Fixed room editing pane being closed when you built the game after editing
+   the room script
+ - Fixed ChangeRoom moving the character before fading out with some transitions
+   and the D3D driver
+ - Fixed crash importing characters with Run Next Loop flag set on a view; and
+   fixed invalid character export files being generated for characters with Run
+   Next Loop flag set.
+ - Fixed engine crash on startup with D3D driver on some graphics cards in
+   16-bit games
+ - Fixed GetViewportX/Y not working properly in room Before Fadein event
+ - Fixed compile error with custom icons that have all 13 Vista icon formats
+ - Fixed IsKeyPressed not working properly with A-Z keys on non-qwerty keyboards
+ - Fixed script editor not to do a matching bracket check when you close a
+   bracket inside a comment or string
+ - Fixed bug in editor when replacing a room background with one of the same
+   size but with the game now running at a different resolution
+ - Fixed Object.Animate not working with RepeatStyle=2
+ - Fixed crash loading game into editor if a translation file contained a
+   duplicate line
+ - Fixed editor crash if you had an misplaced square bracket near the end of
+   a script header
+ - Fixed room background import to ignore source image DPI
+ - Fixed GUI import/export if one of the GUI controls had an extended character
+   in its text
+ - Fixed RunAGSGame using wrong current directory when under debugger
+ - Fixed multi-loop speech animations crashing if a blinking view was used
+ - Fixed spurious "Unable to display speech" error if a character had just been
+   animating before displaying speech.
+ - Fixed "downgrade 32-bit to 16-bit" checkbox in Setup not working
+ - Fixed voice lip sync falling behind if a very low game speed was used
+ - Fixed voice lip sync looking in game folder rather than Speech folder for 
+   PAM files; and fixed compile error if PAM files had the [Preferences] section
+ - Fixed GUIs getting an erroneous alpha channel if the BackgroundImage was
+   set to -1.
+ - Fixed animated GIFs not importing correctly if they used incremental frames.
+ - Fixed black areas of 8-bit backgrounds turning blue (you will need to
+   re-import any affected backgrounds)
+ - Fixed erroneous error message importing an image into an 8-bit game if it
+   was smaller than the screen size.
+ - Fixed error attempting to directly restore a saved game from explorer if
+   the screen transition was Crossfade or Dissolve
+ - Fixed function calltips not working if you put a space between the function
+   name and the opening bracket
+ - Fixed crash which could occur if a character was in the middle of an animation
+   loop when a Say command was run
+ - Fixed legacy global messages not getting included in Auto Number Speech Lines
+   numbering
+ - Fixed exported script modules giving error when importing into 2.72
+ - Fixed crash importing a game from 2.72 if there was a room with an almost
+   valid file name (eg. "room06.crm")
+
+
+VERSION 3.0, January 2008
+ - Rewritten editor from scratch; includes various new features such as
+   ability to have more than one script open at a time
+ - Hardware accelerated graphics driver in game engine, which speeds up
+   rooms with lots of sprites, alpha blended objects, and more.
+ - Full support for 256-character ASCII, so European languages like French
+   and Spanish are now supported if you use a TTF font.
+ - Added script debugger
+ - Added integration with Windows Vista's Game Explorer and Enhanced Save Games
+ - Added support for script extender functions.
+ - Added support for dynamic arrays in script
+ - Added source control integration
+ - Added crash dump file when engine crashes, to enable faster fixing of bugs
+ - New .NET-based editor plugin API.
+ - Added Game.DoOnceOnly, Character.ChangeRoomAutoPosition, Game.FontCount, 
+   Game.MouseCursorCount, DynamicSprite.GetDrawingSurface, DrawingSurface.*,
+   DynamicSprite.Create script functions/properties.
+ - Added syntax highlighting for struct types
+ - Overhaul of RawDrawing functions, including ability to draw onto dynamic
+   sprites and various new features.
+ - Removed limit on number of views, GUIs and characters
+ - Removed limits on number of frames per loop and loops per view
+ - Increased max objects per room to 40 and max hotspots to 50.
+ - Fonts have a script enum eFontXXX rather than having to use a number.
+ - Engine will now automatically try 640x400 for 320x200 games if the
+   player's PC doesn't support 320x200 (since this is becoming more common)
+ - Improved performance of Character.PlaceOnWalkableArea in large rooms.
+ - Workaround for teleportation problem in scrolling rooms with right
+   edge incorrectly set.
+ - Fixed String.Format crashing if the string length was more than 1200 characters.
+ - Fixed engine crashing on startup if it was unable to load a plugin.
+ - Fixed issue when combining CreateXXXOverlay and Overlay.CreateXXXX
+ - Fixed changes to ViewFrame.Graphic not always being persisted in save games
+ - Improved script garbage collection, so that calling String.Append in rep_exec
+   doesn't keep eating up more and more memory until you save the game.
+
+VERSION 2.72, July 2006
+ - Added ability to use any size/resolution of icon, if you save your
+   game with Windows 2000/XP.
+ - Added support for graphic filters, and added a standard 2x and 3x
+   scaler, along with Hq2x and Hq3x filters.
+ - Added plugin API AGSE_ONSPRITELOAD function to allow plugins to modify
+   sprites as they are loaded into memory.
+ - Added new plugin API functions IncrementManagedObjectRefCount,
+   DecrementManagedObjectRefCount, SetMousePosition, SimulateMouseClick,
+   GetMovementPathWaypointCount, GetMovementPathLastWaypoint,
+   GetMovementPathWaypointLocation, GetMovementPathWaypointSpeed.
+ - Added ListBox.ScrollDown, ScrollUp, RowCount, HideBorder and
+   HideScrollArrows. Added "Hide scroll arrows" setting to listboxes
+   in GUI editor.
+ - Added System.Gamma and SupportsGammaControl; and replaced old system.*
+   variables with new System. properties.
+ - Added Room.Width, Height, ColorDepth, LeftEdge, RightEdge, BottomEdge,
+   TopEdge and MusicOnLoad properties.
+ - Added ability to use movement speeds slower than 1 (-2 is now 1/2,
+   -3 is 1/3, etc)
+ - Added ability to name dialog topics, and ported RunDialog/etc to
+   OO-style functions. Additionally, dialog scripts can now use the topic
+   names with goto-dialog rather than using the number.
+ - Added GUI Control z-order support (right-click Bring To Front / Send
+   To Back options in editor, as well as BringToFront/SendToBack script
+   commands).
+ - Added Game.SetSaveGameDirectory command, including support for My
+   Documents folder.
+ - Added option to export animated background frames, and added a
+   confirmation message to the Delete Frame button.
+ - Added Game.SpeechFont and Game.NormalFont properties to replace
+   SetSpeechFont/SetNormalFont but also provide a way for you to get
+   the current setting.
+ - Added Game.Name, Game.FileName, Object.Loop and Object.Frame properties.
+ - Added Button.Font property, and added Text Alignment property to GUI
+   buttons and list boxes in the editor.
+ - Added Mouse.GetModeGraphic to allow you to get the sprite slot of
+   the cursor.
+ - Added String.AsFloat property to convert strings to floats.
+ - Added Game.StopSound function, to allow you to easily stop all
+   sound effects.
+ - Added writable ViewFrame.Graphic property, which allows you to change
+   view graphics at run-time.
+ - Added Region.TintRed, TintGreen, TintBlue, TintEnabled and TintSaturation
+   properties to allow you to get the current region setting.
+ - Added game.read_dialog_option_color to allow you to set a different
+   colour for dialog options which the player has already selected.
+ - Added Ctrl+S option to script editor, to save changes so far.
+ - Increased sound channels from 6 to 8, and you can now have more than
+   1 simultaneous ambient sound.
+ - ListBox.AddItem and ListBox.InsertItemAt now return false rather than
+   quitting the game, if you try to add too many items to the list.
+ - Disabled text boxes now do not draw the cursor.
+ - Obsoleted GetGameParameter and added new functions and properties to
+   replace it (see GetGameParameter in the help to redirect you to the
+   new functions).
+ - Obsoleted SetFrameSound and made the ViewFrame.Sound property writable
+   instead.
+ - Obsoleted savegameindex[] array, and added ListBox.SaveGameSlots[]
+   array instead. Additionally, raised the max save games from 20 to 50.
+ - Increased permitted length of GUI label text from 200 to 2048
+   characters.
+ - PlayMusicQueued now preloads the next track to provide a seamless
+   transition between tracks.
+ - Added DirectSound Hardware Mixer option to Setup.
+ - Increased script editor line length limit from 300 to 500 characters.
+ - Editor now uses "Sound" sub-folder to store sound files, like the way
+   it currently works with Music and Speech.
+ - Editor view preview window will now play frame-linked sounds if they
+   are in .WAV format.
+ - Added shortcut keys Ctrl+1 through Ctrl+9 and Module Scripts sub-menus
+   for easy access to module scripts and headers.
+ - Autocomplete now warns if you use an array index to access properties
+   on a non-array, and vice versa.
+ - Added option to Assign Sprites To View dialog to allow you to add the
+   sprites in reverse order.
+ - Editor now shows each character's talking view as well as normal view
+   in the Characters pane.
+ - Mouse.SetBounds now actually locks the cursor within the bounds,
+   rather than it moving invisibly within the locked out area.
+ - Added game.keep_screen_during_instant_transition option for 8-bit
+   colour modes.
+ - Changed the default restart point to be just before the first room is
+   loaded, in order to avoid problems with the restart point not working
+   properly in some games.
+ - The game can now be closed with the X button or Alt+X while a PlayVideo
+   is playing.
+ - Moved GUI Clickable setting from the checkbox into the Properties window,
+   since it more intuitively belongs there.
+ - "Enforce new-style strings" now disables old-style string functions.
+ - Old split resource files now get deleted if you disable splitting or
+   reduce the number of split files.
+ - PlayVideo now pauses the video if the player alt+tabs away from the game
+   while it is playing.
+ - player.ChangeRoom in game_start is now allowed, and will change the
+   room that the game starts in.
+ - Increased editor performance when importing tiled sprites.
+ - Debug console now also writes its output to the Windows Debugger (which
+   you can read with an application like DebugView); useful if the debug
+   console normally flies past too quickly to be useful.
+ - View preview window now cycles through whole of multi-loop animations.
+ - Fixed crash if you used Restore or Restart within a script module
+   event handler.
+ - Fixed template creation to work with Music and Speech sub-folders.
+ - Fixed agsedit.log timestamp having the wrong month.
+ - Fixed character blinking not working properly once they had finished
+   talking.
+ - Fixed translation source not including strings from script modules.
+ - Fixed a backwards compatibility issue with game.num_inv_items.
+ - Fixed characters with only left/right loops sometimes using the wrong
+   loop when moving.
+ - Fixed game erroring out if you used Character.ChangeView to change
+   from a 4-directional to a 2-directional view.
+ - Fixed GUI Labels to be not clickable by default.
+ - Fixed "Refresh list" option not working in the Room List if no room
+   was selected.
+ - Fixed calltips not picking up member functions if you put a space
+   before the opening bracket.
+ - Fixed text parser not handling an optional choice of words properly.
+ - Fixed text parser not handling a choice of words with spaces properly
+   in Said().
+ - Fixed Global Messages pane not updating after Importing Dumped Text.
+ - Fixed FaceLocation not working properly if the character's current loop
+   was not one of the normal walking loops.
+ - Fixed Mouse.SetPosition clipping the Y to 200, even in 320x240 games.
+ - Fixed sierra-style speech screwing up if you used RemoveOverlay or
+   SetTextOverlay in repeatedly_execute_always while the speech was displayed.
+ - Fixed Tiled Sprite Import allowing you to import over the edge of the
+   image when zoomed in.
+ - Fixed ShakeScreen leaving artefacts in the black borders when running
+   in letterbox mode.
+ - _blank.crm is now included when you make a template.
+ - _blank.crm will be checked for in editor folder if not found in game folder.
+ - Fixed editor crashing if a very large template.txt file was used when
+   starting a game from a template.
+ - Fixed block comment parsing sometimes not working properly if /* was the
+   last thing on a line.
+ - Fixed String.Contains not working properly with strings >200 characters.
+ - Fixed PlayMusic not working if it was called whilst an old track was
+   fading out but crossfading was now disabled
+ - Fixed "too many events posted" error if several commands like Walk
+   were used in quick succession.
+
+VERSION 2.71, December 2005
+ - Added friendly string support, and modified various built-in
+   functions to return a String rather than requiring a buffer.
+ - Added option to compress the sprite file to reduce disk usage.
+ - Added editor sprite caching, to improve performance and reduce memory
+   usage of the editor with large games.
+ - Increased max speech files per game to 10000.
+ - Added == and != operator support for strings.
+ - Added support for having pointer variables in structs.
+ - Added Clickable property to GUI controls to allow you to disable
+   a control without affecting its appearance.
+ - Added new Dynamic Sprite features: CreateFromExistingSprite,
+   CreateFromBackground, Crop, Resize, Rotate, Flip and SaveToFile
+   functions; and ColorDepth, Width and Height properties.
+ - Added Game.GetMODPattern, ListBox.InsertItemAt and Maths.ArcTan2
+   script functions.
+ - Added Slider.Min and Slider.Max to allow the script to access
+   these slider properties.
+ - Added Object.IgnoreScaling and Character.Scaling properties;
+   renamed Character.IgnoreScaling to ManualScaling.
+ - Added const string support to prevent accidentally passing the
+   parameters the wrong way round to functions like StrCopy.
+ - Added option to PlayFlic not to clear the screen before starting
+   playback.
+ - Added "Adjust volume with scaling" character option and equivalent
+   Character.ScaleVolume property.
+ - Editor now uses "Speech" and "Music" sub-folders to store speech
+   and music files in to reduce the clutter in the main game folder.
+ - Added "New Run Script Action" to the right-click menu in the
+   interaction editor, to allow you to quickly create a Run Script
+   interaction without having to go through the interaction dialog.
+ - Added "noloopcheck" keyword to allow you to bypass the script loop
+   checks.
+ - Added GP_ISFRAMEFLIPPED option to GetGameParameter.
+ - Editor now forces all background imports to the game's colour depth.
+ - Game now attempts to mute audio when alt+tabbing away to another
+   application.
+ - Implemented lazy evaluation for && and || operators.
+ - Improved script compiler speed.
+ - Arrays and structs are now officially supported, and are documented
+   in the manual.
+ - Ambient sound volume is now dropped along with the music volume
+   while speech is being played.
+ - Added menu option to rebuild only the music or only the speech vox,
+   since in large games rebuilding both could take a long time.
+ - If Sound is disabled in the game Setup, then it no longer plays
+   in PlayVideo either.
+ - Insert and Delete keys now have allocated keycodes and are officially
+   supported.
+ - Narrator speech now closes the Display() window when the voice
+   finishes, if play.skip_display is set to auto-remove after time.
+ - Compiler now does type checking on return values from custom functions.
+ - Display command now obeys the SetVoiceMode setting.
+ - Pamela lip-sync now allows multiple phenomes per frame.
+ - "void" is now properly supported as a function return type.
+ - PgDn, PgUp, Home and End are now mapped to the ASCII codes of their
+   equivalents on the numeric keypad, rather than duplicating arrow keys.
+ - Underscores can now be used in GUI and view names, and invalid names
+   pasted into the box are now rejected.
+ - The hi-color Palette pane now displays the current colour number in
+   a text box so that it can be copy & pasted easily, and allows you
+   to type in a colour number and find out the RGB.
+ - Renamed the setup.exe in the AGS distribution to setup.dat to
+   prevent unzip programs from trying to "install" it.
+ - Renamed "Player Enters Screen" events to "Player Enters Room" to use
+   consistent terminology.
+ - If a dynamic sprite attached to an object is deleted, the engine 
+   now prints an error message rather than crashing.
+ - Setting game.close_mouth_end_speech_time to 0 now continues sierra-
+   style speech animation indefinately, like it does with lucasarts speech.
+ - Removed "Target DOS" option from the menu, since the DOS engine is
+   no longer available.
+ - Fixed compiler bug allowing enums to be redefined.
+ - Fixed compiler crash when declaring a large struct.
+ - Fixed engine error if Turn Before Walking was enabled and a character
+   only had left/right loops.
+ - Fixed walk-to point getting randomly moved if you alt+tabbed back
+   into AGS from another application.
+ - Fixed the Import Dumped Text option truncating dialog options to 70
+   characters.
+ - Fixed memory leak in GUI.SetSize/Width/Height methods.
+ - Fixed volume jump if a track was fading out and you changed rooms
+   to a room with a louder volume setting.
+ - Fixed Overlay.X/Y properties returning wrong value for SayBackground
+   overlays.
+ - Fixed editor crash when deleting sprite folders.
+ - Fixed editor crash when selecting a sprite for a GUI control.
+ - Fixed editor crash on Characters pane if the character's normal view
+   had no frames in loop 0.
+ - Fixed crash rather than error message if script exceeded stack limit.
+ - Fixed Single GUI Import not updating GUI images properly, and
+   allowing duplicate GUI control names to be imported.
+ - Fixed editor crash if you manually removed a #sectionend and then
+   tried to edit that script function.
+ - Fixed colours in GUI editor showing up wrong in 32-bit colour games.
+ - Fixed SetCharacterIdle skipping the current frame if called while
+   the character was moving or animating.
+ - Fixed + having a higher precedence than - and thus 5 - 3 + 2 giving
+   0 rather than 4.
+ - Fixed only one edge interaction being run if the player walked off
+   two overlapping room edges.
+ - Fixed GIF import crash with some gif images.
+ - Fixed "out of memory" crash in game if you accidentally used a
+   full-screen image as the talking view for sierra-style speech.
+ - Fixed CyclePalette not updating the screen when cycling backwards.
+ - Fixed compiler allowing built-in types to be used in struct
+   definitions.
+ - Fixed Auto-Number Speech Lines starting from NARR0 rather than NARR1
+   for the narrator.
+ - Fixed GUI control event handler function names being incorrectly
+   truncated.
+ - Fixed compiler to not allow a struct to be a member of itself.
+ - Fixed compiler not giving an error if you forgot a semicolon after
+   an object method call.
+ - Fixed editor crash if you typed a string longer than 200 characters
+   into a text property.
+ - Fixed character disappearing if it was tinted/lit and used an 8-bit
+   sprite in a hi-color game.
+ - Fixed music not resuming after PlayVideo if crossfading was enabled.
+ - Fixed the player character's PreviousRoom property starting off as
+   the first room number, rather than -1 as it said in the manual.
+ - Fixed static methods in plugin headers not being picked up by
+   autocomplete.
+ - Fixed IsKeyPressed not working with backspace (ASCII code 8).
+ - Fixed voice speech not being played if a SkipUntilCharacterStops
+   command was in effect when the speech was displayed.
+ - Fixed Restore Game occasionally corrupting the managed object pool.
+ - Fixed some usability issues in the Import Sprite dialog, where moving
+   the mouse off the side of the image while right-dragging would cause
+   the cursor to jump around.
+ - Fixed WAV music files not being picked up from MUSIC.VOX
+ - Fixed region light level picking up tint amount if you switched it
+   from tint to light and then selected a different region.
+ - Fixed Out of Memory crash if you had a character off the bottom of
+   the screen and a walkable area with continuous scaling touched the
+   bottom of the screen.
+
+VERSION 2.7, May 2005
+ - Added object-based functions for Characters, Objects, Hotspots,
+   Regions, Inventory Items, GUIs, Overlays, Files and the mouse.
+   This also indirectly adds some new functions, since there is now a
+   way to do GetTransparency, GetBaseline, etc.
+ - Added named pointers to each character, eg. "cEgo", "cBman", etc.
+   This allows you to do "cEgo.Walk" rather than "character[EGO].Walk"
+ - Added struct member function support, including static member
+   functions.
+ - Added script array bounds checking.
+ - Added script module support, so that you don't have to cram
+   everything into the global script. This also allows you to easily
+   share code with other people by exporting the module.
+ - Added icons to script editor autocomplete.
+ - Added script Property support, to make the various interfaces more
+   intuitive.
+ - Added support for optional parameters to text script.
+ - Added support for enums to script, including autocomplete support
+   when calling a function that uses them.
+ - Added plugin API functions NotifySpriteUpdated,
+   SetSpriteAlphaBlended, QueueGameScriptFunction,
+   RegisterManagedObject, AddManagedObjectReader and
+   RegisterUnserializedObject.
+ - Added simple inheritance support to structs, allowing you to create
+   derived classes.
+ - Added support for protected member variables/functions and
+   write-protected member variables.
+ - Added left-to-right operator precedence option.
+ - Added float data type, along with related conversion functions
+   and trigonometric functions such as cos, sin and tan.
+ - Added "Enforce object-based scripting" option, which means that
+   old-style commands (such as MoveCharacter) no longer work.
+ - Added sprite file indexing to speed up load time for games with a
+   large number of sprites.
+ - Added Solid, BlockingWidth and BlockingHeight properties to Objects.
+ - Autocomplete now lists structure members.
+ - Added Crop Sprite Edges Symmetric option, to leave the central
+   pivot point of the sprite unchanged.
+ - Added AbortGame function to allow script modules to perform checks
+   on their parameters and easily give an error.
+ - Added #ifdef, #ifndef, #endif, #undef and #error preprocessor
+   directives to the script language.
+ - Added DEBUG and STRICT pre-defined macros when in debug mode
+   and strict scripting mode, respectively.
+ - Added script call stack when an error occurs, rather than just the
+   current line number.
+ - Added script editor Preferences dialog, allowing you to control
+   which automatic editing features are enabled.
+ - Added Character.BlockingWidth/BlockingHeight to allow you to
+   customize the blocking size of a character.
+ - The "player" variable is now kept updated to reflect the current
+   player character, so it's now perfectly safe to use  player.Walk
+   rather than  character[GetPlayerCharacter()].Walk
+ - Added GUI OnClick handler to provide a more intuitive way to handle
+   clicks on the GUI background.
+ - Added export/import single GUI function.
+ - Added ClipImage option to GUI buttons.
+ - Added option to select the transparency and palette settings for
+   the Quick Import options.
+ - Improved the custom inventory window, so that it can display
+   inventory for a specific character; and also it now has object-based
+   methods to manipulate it, rather than messing around with variables
+   like game.top_inv_item.
+ - Improved script type checking -- it will now catch far more errors
+   if you try to do things like assign a string to an int, or pass
+   character[EGO] to a function where EGO was wanted.
+ - Local variables are now automatically initialized to 0.
+ - Improved function calltips so that it highlights the current
+   parameter.
+ - Added support for multi-word words in text parser.
+ - Removed various buttons on the Room Settings and GUI panes, and
+   moved them to new Room and GUI menus, respectively.
+ - Script compiler now checks that the "import" declaration of
+   variables in the script header matches the real definition in
+   the global script.
+ - Added confirmation prompt in script editor if you choose "Discard
+   and exit"; and added shortcut keys for the exit options.
+ - Increased max sprites to 30000.
+ - Increased max overlays from 10 to 20.
+ - Improved game startup speed and room loading speed.
+ - Changed MOD music player from JGMOD to DUMB, and consequently:
+   Fixed some previously unsupported S3M's music files not playing.
+   IT Impluse Tracker format mod files are now supported (music*.it)
+ - Removed limits on the total number of GUI controls you can have.
+ - If two room-changing functions are called in one script, an error
+   now occurs (eg. using RestoreGame followed by NewRoom).
+ - Added the game name to the script editor title bar (useful if you're
+   alt-tabbing between multiple games).
+ - Added ability to use a sprite as the inventory cursor hotspot dot.
+ - Dynamic sprites are now persisted in save games.
+ - Changed Test Game behaviour to hopefully fix problems with it hanging.
+ - SaveGameSlot/SaveGameDialog are now delayed-response functions, just
+   like the RestoreGame ones. This means the game won't actually be
+   saved until the script function finishes.
+ - Improved character 'skipping' sometimes at move speed 1.
+ - Increased max custom properties from 20 to 30.
+ - Changing an object's name now marks the room as dirty.
+ - RawDrawImage and MergeObject now draw alpha-blended images properly.
+ - Sprite Usage report now tells you which GUI a GUI button is on.
+ - Added \[ to Display/Say/etc, to enable you to display the [ character
+   rather than it doing a line break.
+ - Significantly improved script compile speed.
+ - Ctrl+Space now allows you to pop up the autocomplete list at any
+   time, like in Visual Studio.
+ - If Split Resources Files is checked, the sprites are now put into the
+   .001 resource file to stop the EXE getting too big (since it could
+   cause performance problems due to anti-virus software).
+ - Added editor warning message if you Save Room As to a filename that's
+   not roomX.crm or intro.crm
+ - Renamed "No interaction" character checkbox to "Clickable" (and thus
+   reversed its behaviour) to make it consistent with the script.
+ - Renamed GUI "Foreground color" property to "Border color" since
+   that's all it does.
+ - Importing a new background with a different size to the old one
+   now gives you an opportunity to cancel.
+ - Improved accuracy of GetMP3PosMillis and voice lip-sync with OGG
+   sound files.
+ - goto-previous dialog command now stops the dialog if there is no
+   previous topic, rather than aborting the game.
+ - StrCopy now works with copying into char buffers less than 200 bytes
+   (USE WITH CARE, there is no buffer overrun protection)
+ - Enabled Quick Import sprite options in 256-colour games.
+ - Added an option to Auto-number Speech Lines to number Display() lines
+   for the narrator.
+ - PlaySound now returns the channel number that the sound is playing on.
+ - Renamed intro.crm to room0.crm, to stop it causing confusion.
+ - Renamed the manual to "ags-help.chm" to make it more obvious what
+   it is when accessing it externally from the editor.
+ - Changed shortcut key for Freehand tool in Room Areas to Ctrl+D to
+   stop it conflicting with Edit Script (Ctrl+E).
+ - Changing a character's script name now forces a re-compile of the
+   dialog scripts.
+ - DisplaySpeech no longer changes the mouse cursor if the cursor mode
+   is already the Wait mode.
+ - Auto-number speech lines now tells you which room the error was in,
+   if there is a compile error when re-compiling.
+ - Script names can now contain the digit 0-9 after the first character.
+ - Fixed interactions getting disconnected and other problems after
+   deleting an object.
+ - Fixed function calltip not appearing if you used the ( key to
+   autocomplete the function name.
+ - Fixed "unknown interaction" crash if the room changed within an
+   interaction.
+ - Fixed crash which could happen when an inventory cursor was in use.
+ - Fixed erroneous type mismatch error sometimes when using char arrays
+   as strings.
+ - Fixed animated GIF import if the transparent color had the same RGB
+   value as one of the real colors.
+ - Fixed PlayMusicQueued skipping some tracks if crossfading was enabled.
+ - Fixed script editor not re-opening properly if you closed it while
+   it was minimized.
+ - Fixed problems creating a template with a filename longer than 15
+   characters (now truncates to 15 instead).
+ - Fixed Assign To View not always flipping the first frame when you
+   asked it to.
+ - Fixed editor crash sometimes if you had been editing a room with no
+   code in its room script.
+ - Fixed editor crash if you deleted a sprite folder whilst editing
+   its name.
+ - Fixed #defined names so that they are not replaced if preceded by
+   a dot.
+ - Fixed script compiler allowing array.member with no index specified.
+ - Fixed text parser not allowing 1-letter words.
+ - Fixed SetCharacterSpeechView not allowing -1 to turn it off.
+ - Fixed crash importing GIF files with comments (thanks to "Hard Rock"
+   for the fix).
+ - Fixed slider background image not being exported as part of GUI.
+ - Fixed Paste From Clipboard sprites getting given an alpha channel
+   if you previously imported an alpha-channel sprite from a file.
+ - Fixed FollowCharacter not working on two NPC's if Hide Player
+   Character was ticked in the room.
+ - Fixed free disk space crash on game startup on some Win9x systems.
+ - Fixed pixel-perfect click detection not always working properly
+   with flipped sprites.
+ - Fixed compiler crash if a single array or struct was bigger than
+   32KB.
+ - Fixed line numbers being missing from a couple of compiler error
+   messages.
+ - Fixed SetChannelVolume not working properly with the ambient sound
+   channel.
+ - Fixed occasional animation glitch if the previous loop in the view
+   had no frames.
+ - Fixed compile error if you had more than 500 functions in the global
+   script.
+ - Fixed speech animation not playing if DisplayMessage was used with a
+   room message set to display as character speech.
+ - Fixed RunAGSGame crashing if called from a custom script function.
+ - Fixed IsKeyPressed(13) not working with the numeric keypad Enter key.
+ - Fixed GUI editor not allowing you to set a label text longer than
+   25 characters.
+ - Fixed clickable z-order of GUI controls to be the same as the visual
+   z-order.
+ - Fixed Mouse Moves Over Hotspot not being run if the mouse was still
+   but the room scrolled around it.
+ - Fixed translation files to be read from the datadir in acsetup.cfg,
+   if specified.
+ - Fixed rare crash which could occur with MoveObject.
+ - Fixed GUI Editor allowing you to add controls to a text window GUI.
+ - Fixed MoveCharacter error messages if a character was following
+   another character and neither were in the current room.
+ - Fixed the Player Enters Screen After Fadein running before fadein
+   in the new room if ChangeRoom was called from Player Enters Screen
+   Before Fadein.
+ - Fixed GetTime returning the wrong year.
+
+VERSION 2.62, November 2004
+ - Added AddInventoryToCharacter, FileWriteRawChar, GetButtonPic,
+   GetHotspotName, GetObjectName, LoseInventoryFromCharacter,
+   NewRoomNPC, RemoveObjectTint, SetFadeColor, SetNextScreenTransition,
+   SetObjectTint text script functions.
+ - Added COM Plugin API access to Characters, GlobalMessages,
+   Script #defines, GameDirectory, SaveGame and QuitGame.
+ - Added GIF image import, and Quick Import GIF Frames option.
+ - Added ability to get current year to GetTime.
+ - Added characters[].idleview variable to provide read access to
+   the character idle view (still use SetCharacterIdle to change it).
+ - Increased max sprites displayed at once from 39 to 50, and improved
+   user-friendliness of the error message if it is exceeded.
+ - Pixel-perfect click detection now works with scaled sprites.
+ - Increased max hotspots to 30.
+ - Increased max characters to 300.
+ - Increased max views to 600.
+ - Increased max GUIs to 50 and max GUI Buttons to 250.
+ - Added option for objects to use region tint and light levels, and
+   an option for objects to use walkable area scaling.
+ - Added ability to get the number of characters, objects and GUIs
+   to GetGameParameter.
+ - Added missing characters to default font 0 (#, $, &, etc)
+ - Added warning if you called FollowCharacter on a character which
+   was doing a looped animation.
+ - Added automatic de-denting to the script editor, so that }
+   characters get automatically pulled back to line up with
+   the corresponding {
+ - In the Walk-behind editor, only the baseline for the currently
+   selected area is now displayed, for clarity.
+ - Changed room area editor so that only the selected area is displayed
+   bright, and the other areas are all greyed out.
+ - Added Script Modified indicator (*) to script editor title bar.
+ - Added Sierra Portrait Position game option, to allow you to specify
+   the portrait to be on the left, right or alternate. This supersedes
+   and obsoletes the old game.swap_portrait variable.
+ - Added game.skipping_cutscene variable so that you can find out when
+   your code is being skipped over.
+ - Added game.abort_key, to allow you to customize the Abort Key to be
+   something other than Alt+X.
+ - Read-only variables such as mouse.x are now enforced as such.
+ - Display("") now does nothing, rather than pausing the game.
+ - View preview window now displays current frame number.
+ - DisplaySpeechBackground now removes any existing background speech
+   for the character before displaying the new speech.
+ - Fixed bug in 2.61 which was resetting all character movement and
+   animation speeds if you upgraded a game from a pre-2.55 version.
+ - Fixed WAV music not getting included in the MUSIC.VOX
+ - Fixed recursive function calls to give error rather than crashing.
+ - Fixed movement 'snapping' to destination when using move speed 1.
+ - Fixed crash if there were no frames in one of a character's main
+   loops, by providing an error message instead.
+ - Fixed GetRegionAt to return the nearest region if the co-ordinates
+   are off the edge of the screen.
+ - Fixed plugin API AbortGame function crashing.
+ - Fixed attempting to skip a cutscene hanging if No Auto Remove text
+   was being used.
+ - Fixed SetCharacterIdle not kicking in straight away when delay was 0.
+ - Fixed IsKeyPressed not supporting the + - = keys.
+ - Fixed FaceLocation problem with characters that had less than 4 loops.
+ - Fixed SetObjectTransparency and SetCharacterTransparency so that a
+   transparency of 100 means the sprite is completely invisible, even
+   with 256-colour and alpha-blended sprites.
+ - Fixed StopMoving resetting the character's current frame to 0, even
+   if they weren't moving.
+ - Fixed problems using NewRoom inside a region interaction whilst
+   moving to a hotspot walk-to point.
+ - Fixed walk-behind area 15 not working.
+ - Fixed SetMusicVolume changes not being persisted in save games.
+ - Fixed error message about repeatedly_execute_always popping up if
+   you used a blocking function in Enters Screen Before Fadein (which
+   you shouldn't do anyway).
+ - Fixed object baselines not being sorted out properly when you deleted
+   an object.
+ - Fixed crash if you used NewRoom from within a Player Leaves Screen
+   script.
+ - Fixed SetCharacterIgnoreWalkbehinds placing the character behind all
+   other sprites.
+ - Fixed text windows getting a black background if colour 0 was
+   specified, rather than being transparent.
+ - Fixed view preview window not stretching properly with 320x200 games.
+ - Fixed view preview window aligning sprites to top rather than bottom.
+ - Fixed view preview window not blanking out display if you selected a
+   loop with no frames.
+ - Fixed view preview window not remembering its location on the screen
+   for next time.
+ - Fixed AnimateCharacterEx not working properly when playing a multi-loop
+   animation backwards.
+ - Fixed DisplayThought to shrink the thought bubble to fit the text when
+   a short amount of text is displayed.
+ - Fixed mouse cursor staying as Pointer (mode 6) when a dialog is STOPped.
+ - Fixed nested array indexes not working properly when used with a
+   struct in the form  a[i].b[c[k].d];
+ - Fixed text box accepting keypresses when disabled.
+ - Fixed SetObjectPosition giving erroneous line numbers if you passed an
+   invalid object to it.
+ - Fixed "Use exact palette" being ignored if "Share palette" was
+   ticked in 256-colour animated backgrounds.
+ - Fixed "repeatedly_execute" option on the Script menu sometimes
+   selecting repeatedly_execute_always instead.
+ - Fixed script editor crashing if you created a variable name longer
+   than 60 characters.
+ - Fixed parse error if a string longer than 255 characters was used in
+   the script.
+ - Fixed SetGlobalString not being safe if you passed a string longer
+   than 200 characters to it.
+ - Fixed Wait(0) to give error message rather than cause strange in-game
+   results.
+ - Fixed SetPlayerCharacter to do nothing at all if you pass the current
+   player character to it (previously it was resetting the inventory layout)
+ - Fixed ChangeCharacterView giving a warning message if the character's
+   idle animation was playing.
+ - Fixed issue with Sierra-style speech if the first frame in the speech
+   view was flipped.
+ - Fixed crash if you closed the script editor while the message telling
+   you to do so was still displayed.
+ - Fixed FaceLocation hanging if the character was set as hidden.
+ - Fixed #defines working on words inside 'single quotes'.
+ - Fixed "you need to select an item first" message box when trying to
+   set the Inventory Hotspot Dot.
+ - Fixed problem when SetPlayerCharacter was used in a room which
+   had "Hide Player Character" ticked.
+ - Fixed DisplayThought positioning if character was not in current room.
+ - Fixed PlayMP3File error if filename was longer than 25 characters.
+ - Fixed interaction editor Text Script Equivalent code for Conditional
+   If Variable Equals Value
+
+VERSION 2.61, May 2004
+ - Added AreThingsOverlapping, DisableGroundLevelAreas,
+   EnableGroundLevelAreas, FileIsError, HasPlayerBeenInRoom,
+   RawDrawImageResized, RawDrawImageTransparent,
+   SaveCursorForLocationChange, SetCharacterFrame, SetGraphicalVariable,
+   SetGUIObjectEnabled, SetInvItemName, SkipUntilCharacterStops script
+   functions.
+ - Added operators % ! ^ << >> to scripting engine (remainder, Not,
+   XOR, LeftShift, RightShift).
+ - Added repeatedly_execute_always script event function, which is
+   called every game loop, even when a blocking function is running.
+   Supported in both the global script and room scripts.
+ - Added character[].z variable, to allow you to make a character levitate
+   into the air whilst still using the baseline, light levels and
+   interactions of its Y co-ordinate.
+ - Added OLE Automation support to editor, to allow plugins to interact
+   with the editor, add menu options, new panes, and so forth. This
+   includes support for editor-only plugins which are not included
+   with the game at run-time.
+ - Added plugin API engine functions BlitSpriteRotated,
+   BlitSpriteTranslucent, CanRunScriptFunctionNow, CallGameScriptFunction,
+   DisableSound, GetDirectSound and UnrequestEventHook; events
+   AGSE_SCRIPTDEBUG and AGSE_AUDIODECODE; and new entry point
+   AGS_EngineShutdown.
+ - Added view preview window to let you quickly test loop animations.
+ - Added ability to get a view frame's speed and sprite number from
+   GetGameParameter.
+ - Added game.speech_text_align variable to control the alignment
+   of lucasarts-style speech.
+ - Added game.auto_use_walkto_points variable to allow you to stop
+   the engine automatically moving the player to walk-to points.
+ - Added game.inventory_greys_out variable to enable inventory controls
+   to grey out with the rest of the GUI when disabled.
+ - Added game.skip_speech_specific_key variable, which allows you
+   to set that only one particular key can skip speech (eg '.' in
+   old lucasarts games).
+ - Added system.viewport_width, system.viewport_height, system.version
+   text script variables.
+ - Added "Mouse click only" skip speech style, which only allows
+   speech to be skipped with a mouse click, not a key press.
+ - Added "Change colour depth" option to Game menu, to make it more
+   intuitive than just being on the Palette pane.
+ - Implemented Match Brace feature in script editor.
+ - Changed text window background image positioning and clipping such
+   that you can now have transparent edges on the outside of the border
+   graphics whilst using a background image.
+ - Newly added GUI Buttons are now set to Run Script by default.
+ - Added ability to set a tiled background image for GUI sliders.
+ - Enabled sliders to be grabbed by the entire width of the handle, not
+   just the width of the main slider bar.
+ - Added "Handle offset" option to sliders, to allow you to manually
+   shift the handle across if the graphic doesn't line up properly.
+ - Added Cancel button to the InputBox (and the Debug Ctrl+X box).
+ - Editor welcome dialog now displays game folder name before
+   complete path in Recent Games list.
+ - Stopped autocomplete list popping up when inside strings and
+   comments in the script editor.
+ - Increased max dialog messages to 3000.
+ - Increased max speech files from 2000 to 3000.
+ - Changed the Object Pos display in the Objects pane of the editor to
+   display the lower-left co-ordinate, as used in the game engine, rather
+   than the top-left.
+ - Renamed "Blank game" to "Default game", and added "Empty game"
+   template (courtesy of AGA) which has no default sprites at all.
+ - The Dump Text feature now also dumps the script header if "Text
+   scripts" is selected.
+ - Changed goto-previous to save a nested history of previous topics
+   so that it can be used to retreat up the dialog tree.
+ - Ambient sound is now restored properly after a PlayVideo.
+ - Added low disk space check when saving a save game slot.
+ - Added option to script editor Find dialog to start search from current
+   location, rather than start of script.
+ - Lucasarts-style speech now abides by the setting of
+   game.close_mouth_end_speech_time.
+ - Encrypted strings in compiled files, to prevent the player loading
+   the exe into notepad to cheat.
+ - Mouseover GUI button pics no longer work while in a blocking cutscene.
+ - While moving a GUI object, the X/Y co-ordinates update dynamically
+   in the properties window.
+ - When using FOLLOW_EXACTLY, the following character is now drawn
+   in front of the followed character; an extra option to
+   FollowCharacterEx allows you to reverse this behaviour if you wish.
+ - Editor now remembers the settings of "Lock sprite to current room"
+   and "Remap colours to game palette" between imports.
+ - Prevent the user restoring a save game if views have been added
+   to the game since it was saved. This prevents later problems with
+   the SetCharacterView and SetObjectView functions.
+ - Removed close button from Edit Action window in the interaction
+   editor, to fix the problem where a script could get disconnected
+   from its interaction.
+ - Removed the "Don't automatically lose inventory" option - it's now
+   always on (not having it checked was a debugging nightmare).
+ - PlayAmbientSound now does not reset the sound if you play an ambient
+   sound that is already playing.
+ - CyclePalette now supports rotating the colours in both directions.
+ - FaceCharacter(EGO,EGO) now does nothing rather than facing left.
+ - Default hotspot names (eg "Hotspot 1") are no longer output in the
+   translation source file.
+ - Keypresses are now discarded rather than queued if a blocking script
+   is running when you press the key.
+ - Skipping cutscene will now skip text boxes if No Auto Remove text is
+   set, rather than hanging the game.
+ - Fixed character walking on the spot at the end of a move occasionally.
+ - Fixed Talk cursor flashing up briefly before dialog options
+   turn back on during a conversation.
+ - Fixed MoveToWalkableArea not working if the character was off the
+   screen.
+ - Fixed QFG4-style speech not working.
+ - Fixed crash in DisplayTopBar.
+ - Fixed Sierra-style speech not supporting flipped view frames.
+ - Fixed lockup which could occur with some nested interactions.
+ - Fixed bug where characters could get stuck when using Adjust Speed
+   with Scaling.
+ - Fixed Setup program not working if it was run from the command line.
+ - Fixed font wierdness and crashing the first time you run a new game
+   made from a template.
+ - Fixed "Mouse moves over hotspot" running even if the mouse was
+   actually moving over a GUI on top of the hotspot.
+ - Fixed GUIs sometimes not re-enabling themselves until the mouse
+   moved over them.
+ - Fixed continuous idle loops not starting immediately after
+   speech finished.
+ - Fixed character view not always getting set back to normal view
+   after talking but before dialog options are displayed.
+ - Fixed script compiler allowing local strings to be returned from
+   functions.
+ - Fixed crash in SetGlobalString if you passed a very long string
+   to it - now truncates to 200 characters instead.
+ - Fixed translation output including text from deleted GUI buttons
+   and labels.
+ - Fixed auto-timeout text not working with DisplayTopBar.
+ - Fixed editor having problems with finding the right script
+   function to edit if you made a mistake with { } placement.
+ - Fixed character being moved to non-walkable area if you left a
+   room that it was moving in.
+ - Fixed editor wiping most of the currently loaded room when
+   you loaded a different game in.
+ - Fixed editor problem editing script functions if the function
+   was called before it was used
+ - Fixed DisplaySpeech resetting the character's frame to 0 after
+   they finished talking.
+ - Fixed compile error if a string ended in a backslash.
+ - Fixed problem with #define if tabs were used rather than spaces.
+ - Fixed commented out #define statements so that they are properly
+   ignored by the compiler.
+ - Fixed 100% CPU usage while a text box was displayed.
+ - Fixed character portrait remaining on screen when the parser-in-
+   dialog was used.
+ - Fixed digital speech and music files not being used if the current
+   directory was not the game's directory when the game was run.
+ - Fixed IsKeyPressed not working with shift, ctrl and alt.
+ - Fixed idle animation not always kicking in straight away after 
+   the character stopped moving.
+ - Fixed '@' character not being displayed in GUI labels.
+ - Fixed region tint problem if the amount was set to 50%
+ - Fixed error message if you set the game to start in room -1.
+ - Fixed inventory hotspot colours >32000 not working
+ - Fixed GUI Properties window appearing on the taskbar.
+ - Fixed GUI button text not being drawn backwards when Backwards
+   Text was enabled.
+ - Fixed config file "datadir" setting not working with root
+   directories.
+ - Fixed editor crash if you pressed Alt+F4 while the GUI Properties
+   window was selected.
+ - Fixed editor crash if you closed the Interaction Editor while the
+   script editor window was open.
+
+VERSION 2.6 Service Pack 1, January 2004:
+ - Fixed editor importing of some 16 and 32-bit BMP files which
+   didn't work previously.
+ - Fixed crash on game startup if you deleted the default mouse
+   cursor sprite.
+ - Fixed cropping sprites not marking them as dirty (and thus
+   the changes were not saved to disk).
+ - Fixed Player Enters Screen (After Fadein) not getting run if
+   there was a blocking command in First Time Enters Screen.
+ - Fixed crash in 800x600 games if a background smaller than
+   800x600 was imported.
+ - Fixed crash if you used new-room dialog script command inside
+   a dialog run by a room interaction command.
+ - Fixed crash with continuous scaling areas if the min was set
+   to the same as the max.
+ - Fixed rare editor crash after changing colour depth.
+ - Fixed problem with downgrading 32-bit alpha sprites to 16-bit
+   after the game had been running for a while.
+ - Fixed FadeIn not being skipped when skipping a cutscene.
+ - Editor now checks for invalid colours in imported walk-behind
+   masks since they could cause strange effects in-game.
+ - Changed editor's Test Game code to try and fix problems some
+   people are having with it.
+
+VERSION 2.6, December 2003:
+ - Added AnimateButton, ClaimEvent, DeleteSprite, DisplayTopBar,
+   GetInvGraphic, GetTextHeight, GetTextWidth, LoadImageFile,
+   LoadSaveSlotScreenshot, PlayMusicQueued, RawDrawFrameTransparent,
+   RawSetColorRGB, SetAmbientTint, SetAreaScaling,
+   SetCharacterSpeedEx, SetCharacterViewOffset, SetGUIClickable,
+   SetGUIObjectSize, SetGUIZOrder, SetTextBoxFont, StopObjectMoving
+   text script functions.
+ - Added plugin API functions MarkRegionDirty, GetMouseCursor,
+   GetRawColorComponents, MakeRawColorPixel, GetFontType,
+   CreateDynamicSprite, DeleteDynamicSprite, and new plugin API
+   hooks AGSE_FINALSCREENDRAW and AGSE_TRANSLATETEXT.
+ - Added 24/32-bit colour support.
+ - Added alpha channel support for 32-bit sprites.
+ - Added room script support for on_key_press and on_mouse_click, so
+   that the current room can handle the input rather than having it
+   all done by the global script.
+ - Speed enhancement for rooms with relatively few objects.
+ - Added ability to import PNG and TGA files in the Sprite Manager.
+ - Added option to automatically outline fonts.
+ - Added support for saving screenshots into save games.
+ - Added GUI Z-order support, so that you can choose which order
+   overlapping GUIs are drawn in.
+ - Added Crop Sprite Edges option to sprite manager, to crop the
+   edges off a group of sprites down to the size needed by the
+   largest of them.
+ - Added ability to specify character X and Y walking speeds
+   seperately.
+ - Added Quick Import Multiple Sprites and Export All Sprites
+   In Folder options for sprite folders.
+ - Added ability to re-order sprites within a folder by dragging
+   them around.
+ - Added "Assign to view" right click option in Sprite Manager,
+   to allow a group of sprites to easily be added to a view.
+ - Added script names for views, working similarly to GUI and
+   character script names.
+ - Added editor option to show outline of all GUI objects, to allow
+   you to find blank or transparent controls.
+ - Added FOLLOW_EXACTLY feature to FollowCharacterEx, to allow you to
+   easily keep a sprite on top of a character.
+ - Added Show Usage option for sprites, to find out where they are
+   used in the game; and tied this into the Delete Sprite option.
+ - Added ability to have only left/right walking frames for
+   characters (just delete all frames in loop 0).
+ - Increased max GUIs to 40, max GUI buttons to 200.
+ - Increased max views to 400.
+ - Increases max objects to 20 per room.
+ - Added auto-complete for plugin functions and functions defined
+   in the script header.
+ - Added ability to manually set X and Y position of GUI
+   controls.
+ - GUI Editor and Font Editor now show full detail in 640x400
+   games rather than a scaled down version.
+ - Rearranged options on the main Game Settings tab to make
+   the order more logical.
+ - Made only the options area of the dialog editor scrollable, to
+   improve its usability.
+ - Added system.vsync script option to smooth full screen scrolling.
+   Note that enabling this will cap your game frame rate at the
+   screen refresh rate.
+ - Built-in inv window now sets player.activeinv while using an item
+   on another (to make it consistent with custom inventory).
+ - Disabled deleting sprites while selecting a sprite for something,
+   to prevent crash if you deleted the old active sprite.
+ - Made the tabbing order of the controls in Setup more logical.
+ - IsSpeechVoxAvailable and IsMusicVoxAvailable now return 0 if
+   the user has no sound card or sound is disabled.
+ - Stopped the user loading in a different room while editing the
+   room script.
+ - Loading a new room now properly resets the Room Areas undo buffer.
+ - Disabled anti-aliasing on text drawn on transparent GUIs, to
+   fix the pink effect.
+ - Improved alignment of portrait with text window when using
+   Sierra-style speech.
+ - Increased text script stack size to 4 KB.
+ - Fixed large memory leak which could cause slow loading and Out
+   of Memory errors in games that used TTF fonts.
+ - Potentially fixed game hanging on exit on some computers.
+ - Fixed editor crash if you used return without a semicolon.
+ - Fixed script editor not properly parsing functions where there
+   was a { character in a string.
+ - Fixed script errors if you declared a variable in a room script
+   with the same name as one which was in the script header.
+ - Fixed positioning issue with some TTF fonts at 640x400.
+ - Fixed objects 10 and above not being able to move.
+ - Fixed changing room settings not marking room dirty.
+ - Fixed mouse cursor not changing back to arrow pointer in dialog
+   windows.
+ - Fixed music not always being restored correctly when restoring a
+   save game.
+ - Fixed narrator speech not being cancelled when the user skipped
+   a text window.
+ - Fixed GUI textboxes to not allow the cursor to extend beyond
+   the end of the text box.
+ - Fixed crash clicking scroll bars in save dialog when no save games.
+ - Fixed rare random crash with small GUI labels.
+ - Fixed lockup using NewRoom from within the default inventory window.
+ - Fixed editor not to allow Test Game feature with DOS-compiled games.
+ - Fixed @overhotspot@ not removing item name if you moved the mouse
+   off of all inventory items but within the inventory GUI.
+ - Fixed GUI not detecting clicks when it first appears until the
+   mouse moved.
+ - Fixed GUI buttons being greyed out on Persistent GUIs when
+   "GUIs turn off when interface disabled" was set.
+ - Fixed parser-in-dialog to use the same font as the dialog
+   options.
+ - Fixed parser-in-dialog text not being erased when you pressed
+   backspace with the default dialog options display.
+ - Fixed problem creating GUI controls if you dragged the
+   rectangle up-left.
+ - Fixed idle animations using loops 4-7 of view, even if
+   "No diagonal loops" was set for the character.
+ - Fixed following characters so that if you leave a room, then
+   quickly come back, the following character is still there.
+ - Fixed converting a GUI to a text window sometimes corrupting
+   other GUIs.
+ - Fixed compiler allowing assignment to string in declaration.
+ - Fixed crash if game.text_speed was zero (now error out instead).
+ - Fixed keyboard focus in editor being lost when selecting the GUI
+   editor from the left hand tree.
+ - Fixed editor crash compiling a script with no right hand side of
+   an operator.
+ - Fixed crash using nested imported function calls in script.
+ - Fixed black palette entries getting remapped to dark grey in
+   256-colour sprites.
+ - Fixed import rectangle changing size when switching import images
+   if the importer was zoomed in.
+ - Fixed editor crash if you deleted the last selected sprite.
+ - Fixed system.screen_height returning 200 even when it was
+   actually running at 240.
+ - Fixed speech positioning problem with GUIs Turn Off When Disabled
+   setting.
+ - Fixed crash loading a room if anti-alias sprites was enabled
+   and the room palette was corrupt somehow.
+ - Fixed fade-in problem with 256-colour animated backgrounds in
+   a hi-color game.
+
+VERSION 2.56b, August 2003:
+ - Added GetScalingAt text script function.
+ - Fixed Lucasarts-style speech being wrongly offset when character
+   is near to the edge of the screen.
+ - Fixed editor crash if you pressed Find Next while auto-complete
+   was displayed.
+
+VERSION 2.56a, August 2003:
+ - Changed the way region tints work, to make them more useful.
+ - Added RawDrawRectangle text script function.
+ - Added game.anim_background_speed to allow you to modify the
+   speed at which the animated backgrounds rotate.
+ - DisplaySpeechAt with Sierra-style speech doesn't shrink text box.
+ - FaceLocation with "turn to face" now works in Enters Screen event.
+ - Increased max fonts to 15.
+ - Fixed region tint in 15-bit colour.
+ - Fixed crash if the player typed [ or ] into the text parser.
+ - Fixed region tints not being saved in save games.
+ - Fixed region light levels messing up in editor.
+ - Documented custom properties.
+
+VERSION 2.56, August 2003
+ - Added GetCharacterProperty, GetCharacterPropertyText,
+   GetHotspotProperty, GetHotspotPropertyText, GetInvProperty,
+   GetInvPropertyText, GetObjectProperty, GetObjectPropertyText,
+   GetRoomProperty, GetRoomPropertyText, ListBoxRemove,
+   SetCharacterBlinkView, SetGUIObjectPosition, SetGUISize,
+   SetRegionTint and StrContains script functions.
+ - Added Custom Properties to allow you to easily specify options
+   for hotspots, characters, rooms, objects and inventory.
+ - Added option for characters speed to be adjusted in line with
+   their scaling level.
+ - Added option to display multiple inventory items multiple times.
+ - Added option to have the text parser with dialog options, so that
+   the player can either select an option or type something in.
+ - Added RGB tint option for regions as an alternative to light level.
+ - Added "Quick Import FLC frames" to import all frames from a FLC
+   file in one go to the current sprite folder.
+ - Implemented multiple select for dragging and deleting sprites in
+   the sprite manager.
+ - Added "Update translation file" option, to add new lines from the
+   game to the translation source, whilst leaving currently translated
+   bits intact.
+ - Added options to translation files, to allow changing font and 
+   text direction on a per-translation basis.
+ - Added preliminary support for right-to-left text writing.
+ - Added ability to delete sprite folders (USE WITH CARE!!)
+ - Added "Lock objects in position" checkbox to the GUI editor, to
+   stop you accidentally moving objects when trying to select them.
+ - Added extra "Blinking" view to draw an extra animation on top of
+   the character's speech animation intermittently while they are
+   talking. Currently Sierra-style speech only.
+ - Added 'goto-previous' dialog script command to return to previous
+   topic, and 'lose-inv' command to lose the player inventory.
+ - Added new "Box out" and "Crossfade" screen transitions.
+ - Added option for characters to turn to face their new direction
+   when using FaceLocation/FaceCharacter.
+ - Added "Persistent" GUI display option, to not remove it during
+   a cutscene with "GUIs turn off when disabled".
+ - Added "Auto number speech lines" to automatically give a number 
+   to all speech lines in the game.
+ - Added feature to detect hung scripts and abort the game (for
+   example, scripts like  while (1) { }  )
+ - Added ability to export/import the text parser word list.
+ - Added MIDI controller event support, so that MIDI commands such as
+   sustain will now work.
+ - Sierra-style speech now shrinks the width of the text window if
+   the text is narrower than the screen width.
+ - Text parser now accepts ' and - characters, and automatically
+   accepts plurals of all words (ie. an 's' on the end).
+ - Added ability to change sprite numbers in the Sprite Manager.
+ - Increased max sprite folders to 500.
+ - Increased max sprites to 15000.
+ - Increased max dialog topics to 500.
+ - Increased max cursors to 20 (though the new ones will only activate
+   the Any Click event at present).
+ - Script editor is no longer a modal window (but only if it's not
+   opened from the interaction editor).
+ - Changing a hotspot name now correctly marks the room as modified.
+ - Sprite manager now remembers which folder you were in before
+   when selecting new item graphics.
+ - SetPlayerCharacter now changes the mouse cursor if an inventory
+   item of the old character was active.
+ - Disabled auto-complete in the dialog script editor.
+ - Fixed Enters Screen Before Fadein not being run if the NewRoom was
+   launched from an inventory interaction.
+ - Fixed normal mouse cursor flashing up in between messages
+   when Always Display As Speech was being used.
+ - Fixed Sierra-style speech box overrunning the face if it had
+   wide borders.
+ - Fixed set-speech-view dialog command not working.
+ - Fixed buttons in default inventory screen being drawn without
+   transparency.
+ - Fixed dialog bullet getting set even if you pressed ESC.
+ - Fixed animated backgrounds sharing the palette, even when you told
+   them not to. You'll need to re-import the main background in any
+   problem rooms for this fix to take effect.
+ - Fixed thinking view not being exported with character.
+ - Fixed RunAGSGame not resetting game paused flags.
+ - Fixed RunAGSGame not working if mode was passed as 1.
+ - Fixed Rebuild VOX Files to delete the music.vox if there were
+   previously music files, but no longer are any.
+ - Fixed SetSoundVolume not taking effect with footstep sounds.
+ - Fixed editor crash if "function" was the last word in a script.
+ - Fixed "player.inv[index]--;" also decrementing inv[index+1]
+ - Fixed SetPlayerCharacter crashing if called from game_start.
+ - Fixed dialog options moving across the screen in non-GUI mode.
+ - Fixed editor crash typing >200 characters into a label.
+ - Fixed text window GUI being used for dialog options instead of
+   the specified Dialog Options GUI.
+ - Fixed GUI button text not being translated if the button also
+   had an image.
+ - Fixed HideMouseCursor not hiding cursor while message displayed.
+ - Fixed FollowCharacter crash when stopping char from following.
+ - Fixed problem with translations where \" had been used in a string.
+ - Fixed dividing by zero in the script causing a fatal exception.
+ - You are now always prompted to save changes to a room when loading
+   another one - the Preferences setting only affects the prompt when
+   you choose the "Save Room" option on the menu.
+
+VERSION 2.55, May 2003
+ - GUIs can now be named, and those names used in the text script,
+   much the same way as it works with characters.
+   GUIs can also now be deleted, which is safe so long as you use
+   their names rather than numbers to reference them in your scripts.
+ - Optimization to speed up screens with large objects, and to
+   speed up rendering of characters.
+ - Added "regions" as a new room area mask type. These take over
+   light levels from walkable areas, and also add 'Player Walks Onto'
+   and 'Player Walks Off' interactions.
+ - Added support for New Game Templates, to enable the user to choose
+   between a new game Sierra-style, Lucasarts-style, and so forth.
+   The default blank game also now includes a simple custom inventory
+   window.
+ - Added DisableRegion, DisplayThought, EnableRegion, GetGameOption,
+   GetGameParameter, GetRegionAt, IsInventoryInteractionAvailable,
+   RunRegionInteraction, SetCharacterViewEx and ShakeScreenBackground
+   text script functions.
+ - Added plugin API functions GetSpriteWidth, GetSpriteHeight,
+   GetTextExtent, PrintDebugConsole, PlaySoundChannel, IsChannelPlaying
+ - Increased max objects per room from 10 to 15.
+ - Added "Quick Save" editor option, which saves your changes but
+   doesn't compile the game files. This is useful when you just
+   want to quickly save your work but not test the game.
+ - Added drag and drop support to sprite manager for moving sprites.
+ - Added game.text_align variable to allow you to centre text within
+   message boxes.
+ - Added ability to use custom image as GUI Slider tracker.
+ - Added option for 256-colour animating backgrounds to share the
+   main background's palette, to eliminate flicker effect on
+   backgrounds with more subtle changes.
+ - Added basic CallTips to script editor.
+ - Mirrored view frames now work with objects.
+ - Editor now checks whether the starting room exists before
+   saving the game, which should hopefully help newbies.
+ - Added "Conditional - If mouse cursor mode is" and "Conditional - 
+   If player has been to room" interaction commands.
+ - If you have no mod/xm music, the player is now not loaded and
+   therefore you can use all 6 sound channels simultaneously.
+ - SetButtonPic now updates the button size to the size of the new
+   graphic, when changing the Normal graphic.
+ - Editor now prompts you to rebuild the vox files if music or speech
+   has been added to the game folder.
+ - Tiled sprite import now goes from left to right in rows, rather
+   than top to bottom in columns - more logical this way.
+ - Allow FileOpen to open files in sub-directories if FILE_READ.
+ - Tinkered with avi playback code a bit to try and make it more stable.
+ - Fixed spurious engine crash "no such function in script" when nesting
+   scripts inside interactions.
+ - Fixed walk-behind mask granularity not being updated if a background
+   of a different resolution but same relative size was imported.
+ - Fixed editor crash sometimes when changing GUI background image.
+ - Fixed crash trying to load a game saved in a 320x240 room when
+   the current room was a 320x200 room.
+ - Fixed crash when characters went off the top of the screen.
+ - Fixed crash passing empty string to Display/DisplaySpeech.
+ - Fixed SetGUIPosition giving error message at 800x600.
+ - Fixed SetMusicVolume not allowing volume less than Normal.
+ - Fixed character light levels to use region 0 settings if off-screen,
+   to make the character be correctly lit as they walk from off-screen.
+ - Fixed black on some sprites turning to transparent when ignoring
+   walk behinds.
+ - Fixed replay playback sync error with 640x400-res games.
+ - Fixed game crash if you had an unterminated GUI label macro.
+ - Fixed crash drawing small (eg. 4x4) sprites.
+ - Fixed editor crash dumping game text in long path names.
+ - Fixed crash in Win9x when trying to drag sprites in the sprite manager.
+ - Fixed crash entering a very long global message in the editor.
+ - Fixed music crossfading while playing FLC animation.
+ - Fixed anti-aliased 256-col sprites being black during fade-in.
+ - Fixed on_event(ADD_INVENTORY) not running if the player already
+   had one of the item.
+ - Fixed Undo wiping entire script if selected when editor opens.
+ - Fixed dumping game text where there was no blank line at the
+   end of a dialog script.
+ - Fixed anti-aliased fonts causing problems with dialog options.
+ - Renamed "Always on" and "Script only" GUI types to make more sense.
+
+VERSION 2.54, March 2003
+ - Added lip-sync text reading for speech lines.
+ - Added option to anti-alias TTF fonts.
+ - New Linux version of the AGS Engine, thanks to Shawn Walker. This is
+   available seperately for download from the AGS website.
+ - Added CentreGUI, GetGlobalString, GetHotspotPointX, GetHotspotPointY,
+   HideMouseCursor, SetButtonText, SetGlobalString, SetGUITransparency,
+   SetMousePosition and ShowMouseCursor text script functions.
+ - Added "Conditional - If player character is" and "Character - Change
+   Character View" interaction commands.
+ - Added checks to stop characters walking through each other, and
+   a related "Can be walked through" character option in the editor.
+ - Added option to Setup to anti-alias scaled characters, thanks to
+   Michael Bukin.
+ - Added "GUIs turn off" option for when the player interface is disabled.
+ - Added game.dialog_options_x and game.dialog_options_y to allow you
+   to set an offset if your dialog options GUI has a border.
+ - Added game.narrator_speech to allow you to set which filename prefix is
+   used for voice speech within the narrator-style Display() messages.
+ - Added game.ambient_sounds_persist to allow ambient sounds to continue
+   playing on room changes.
+ - Added unofficial debug display console (press the ` key, like in Quake)
+   which might help you track down problems with your game.
+ - View frame sounds now don't play if all sound channels are in use.
+ - Improved hi-colour fade out/in speed, thanks to Matthew Leverton.
+ - Increased max sprite folders to 100.
+ - Unhandled_event is now run if you use an inventory item on an
+   interaction which does not handle that item.
+ - Allow 240-height GUIs in 320x240 and 640x480 mode.
+ - StopMusic now fades out the old track if crossfading is enabled.
+ - Fixed hotspot walk-to points being randomly moved in the editor
+   when the cursor left the top of the background area.
+ - Fixed sound looping glitch disabling crossfading during a fade-out.
+ - Fixed crossfading music not working while PlayVideo was playing.
+ - Fixed speech positioning error with transparent GUIs.
+ - Fixed RunAGSGame crashing if the old game used plugins.
+ - Fixed SetFrameSound changes not being saved in save games.
+ - Fixed editor crash drawing horizontal line in continuous scaling area.
+ - Fixed crash in StopMusic/PlayMusic when using crossfader.
+ - Fixed bottom row of pixels in a walk-behind area not working.
+ - Fixed SetInvItemPic failing with inventory item 1.
+ - Fixed crash right-clicking in bottom of main tree pane.
+ - Fixed @overhotspot@ text popping up briefly between display lines.
+ - Fixed sprite importer scrolling back to top when using right drag.
+ - Fixed minor change to TTF font sizes.
+ - Fixed DisplaySpeech text not staying long enough when using %s.
+ - Fixed character stopping on wrong frame if the pathfinder failed.
+ - Fixed problem with PlayMP3File and music crossfading.
+ - Fixed dialog startup script not getting played when switching topics.
+ - Fixed hotspot 0's walk-to point not being visible.
+ - Fixed IsInteractionAvailable with hotspots with walk-to points.
+ - Fixed crash in SetSoundVolume when multiple sounds were playing.
+ - Fixed movement jumping when doing slow horizontal and vertical moves.
+ - Fixed music glitching when the engine exits with an error.
+ - Fixed horizontal scroll bar in sprite import window being missing.
+ - Fixed crash displaying messages longer than 1000 characters.
+ - Fixed UpdatePalette while skipping a cutscene.
+
+VERSION 2.53, January 2003
+ - Added GetDialogOption, GetGraphicalVariable, IsChannelPlaying,
+   IsOverlayValid, PlaySoundEx, RunAGSGame, SetChannelVolume,
+   SetCharacterSpeechView, SetDigitalMasterVolume, SetGameOption,
+   SetMultitaskingMode and StopChannel text script functions.
+ - Changed the way resolution selection works in the editor to make it much
+   more intuitive and friendly to newbies
+ - Added 800x600 resolution support.
+ - Added IAGSEngine::GetViewFrame, GetWalkbehindBaseline, GetAreaScaling,
+   GetScriptFunctionAddress, GetTransparentColor, GetRawPixelColor and
+   IsGamePaused plugin API functions.
+ - Added "Rebuild all room files" option to Game menu in editor.
+ - Added Alt+R as a hotkey to start recording a replay mid-game.
+ - Added "New room" option to File menu in editor.
+ - Added "Stop running more commands", "Character - Face Location" and
+   "Game - Pause command processor" interaction commands.
+ - Added room variables to interaction editor.
+ - Added multiple sound channel support.
+ - Added crossfading option for background music.
+ - Added exact palette import option for sprites in 256-colour games.
+ - Added Script menu to editor, with options to jump straight to commonly
+   edited global script functions.
+ - Script compiler now detects mismatch of string/int in function calls,
+   and multiple declarations of the same variable.
+ - 640x400-res sprites are no longer stretched in the Characters pane.
+ - DisplaySpeechBackground now returns the overlay number it uses.
+ - Upgraded TTF font renderer, leading to much faster TTF rendering.
+ - Decreased save game size.
+ - Editor now warns you rather than crashing if the game files are read-only.
+ - Changed maximum frame rate from 100 to 1000 FPS to help speed tests.
+ - Room messages displayed as speech now use the SetSkipSpeech setting
+   and ignore the "Auto remove after a time" checkbox.
+ - Removed "(most detailed)" from 960x600 in Setup to try and stop inexperienced
+   players from choosing it.
+ - Repeatedly_execute is now not called before Player Enters Screen in a room.
+ - Screen edges are now disabled while the game is paused.
+ - Increased max parameters for script functions from 10 to 15.
+ - Increased max GlobalInts from 300 to 500.
+ - Sprite importer now displays pixel size of selection rectangle.
+ - If a character view has 8 loops, but loops 4-7 only have one frame each,
+   then the diagonal frames are only used when turning round, not when walking.
+ - Allow 15 characters in game folder name instead of 8.
+ - Fixed lockup if you tried to skip a cutscene while the icon bar was up.
+ - Fixed editor minimizing after using external text editor.
+ - Fixed interaction variables not getting saved in save games.
+ - Fixed rare condition where game could freeze up.
+ - Fixed room areas and GUI editor buttons being opaque.
+ - Fixed DisplaySpeechAt not using translations and text not staying long enough.
+ - Fixed rare text script string corruption after restoring save game.
+ - Fixed crash when restoring game in games which used the text parser.
+ - Fixed speech getting hidden behind tall thin GUIs.
+ - Fixed bug restoring a game saved in a 320x200 room when in a 320x240 room.
+ - Fixed viewport co-ordinates not being restored from save game.
+ - Fixed DisplayAtY when "Always display as speech" was checked.
+ - Fixed possible issue with IsMusicPlaying when the user had no sound card.
+ - Fixed Raw changes to animated background frames not being saved in save game.
+ - Fixed double-clicking an event in the interaction editor not creating a
+   new action if it had previously had one which had since been deleted.
+ - Fixed editor allowing you to create two variables with the same name.
+ - Fixed interaction editor arguments sticking on Boolean sometimes
+   even once you changed it to a different command.
+ - Changed internal compiled game file format slightly.
+ - Upgraded editor wxWindows version - hopefully will correct WinXP glitches.
+
+VERSION 2.52, November 2002
+ - Added AnimateCharacterEx, AnimateObjectEx, DeleteSaveSlot, GetInvAt, 
+   GetRawTime, IsObjectOn, RawDrawCircle text script functions.
+ - Added RESTORE_GAME event to on_event in order to let your game know when its
+   just been loaded from a save game file.
+ - Added game.score_sound to allow dynamic changing of the score sound.
+ - Implemented speed optimisation which should boost performance in all rooms that
+   have walk-behind areas, especially those with large objects.
+ - Added ability to run animations backwards; see the new Animate*Ex script
+   functions for more information.
+ - Added 'datafile' option to config file to allow playing game off CD; PlayVideo
+   now uses the data directory rather than the EXE directory.
+ - Added 'Cancel' option to prompt when closing script editor.
+ - Added mouse wheel support to replay recording/playback.
+ - Fixed the infamous "Not enough memory to load masks" error and related Illegal
+   Exception on startup, that occured to some people on Windows XP.
+ - Added IAGSEngine::GetRoomMask plugin API function.
+ - Increased max GUIs from 20 to 30.
+ - The current zoom level is now displayed in the editor in Walkable Area mode.
+ - The return key now works in the initial "Welcome to AGS" dialog.
+ - VOX files are now removed on the rebuild if you remove all the music
+   or speech source files from the game folder.
+ - "Add Action After This" now inserts where you click rather than adding at end;
+   added "Add Action Before This" option as well.
+ - Fixed MoveCharacter functions resetting character frame to 0 if they were
+   already moving.
+ - Fixed error if you tried to export more than 140 functions from the global
+   script.
+ - Fixed GetLocationName/ProcessClick not obeying the SetObjectIgnoreWalkbehinds
+   and SetCharacterIgnoreWalkbehinds settings; and priority problem with
+   objects over walkbehinds.
+ - Fixed Winsetup.exe not working with paths with spaces in.
+ - Fixed IsSoundPlaying while skipping cutscene.
+ - Fixed crash importing old rooms with old-style animations.
+ - Fixed an error in the script header bringing up the global script when you
+   clicked Yes to fix it.
+ - Fixed unhandled_event not working with type 4 (No Hotspot)
+ - Fixed crash when creating a room message longer than 3000 characters.
+ - Fixed crash when Alt+Tabbing in windowed mode in Windows 2000.
+ - Fixed "out of sync" error after playing back a replay for 10-15 mins.
+ - Fixed rare crash after loading a save game.
+
+VERSION 2.51a, October 2002
+ - Fixed error loading wave files.
+ - Fixed walk-behind area 15 not being able to set a baseline.
+ - Trying alternate method for Save & Run to work around Windows cache bugs.
+
+VERSION 2.51, October 2002
+ - Added support for plugins to allow people to extend AGS.
+ - Added sprite mirroring support to views.
+ - Added smooth scaling for walkable areas.
+ - Added DisplaySpeechAt, IsInteractionAvailable, SetLabelColor and
+   SetTextWindowGUI text script functions; game.room_width and
+   game.room_height variables.
+ - Added give-score dialog script command.
+ - Added replay recording and playback (currently unsupported).
+ - Added 'Number dialog options' and 'Dialog options go upwards on GUI' game
+   settings.
+ - Speeded up room loading times.
+ - Added skip type 3 (key or mouse) to PlayVideo.
+ - Added 'Hide Border' option for text and list boxes.
+ - ListBoxSetSelected now scrolls the list if necessary to show the
+   selected item.
+ - Added option to Setup to force letterbox mode, for people where 320x200
+   doesn't work.
+ - Made Load Room the default action for the room list.
+ - Increased max sprite folders from 60 to 80.
+ - If Sierra-style speech and No Auto Remove, stops portrait animating once
+   the default time has elapsed.
+ - Allow negative co-ordinates in SetGUIPosition, to allow you to slide the
+   GUI on from off-screen.
+ - Fixed new-room dialog script not stopping screen edges from taking effect
+   before fadein.
+ - Fixed colour problems when importing some 256-col animating backgrounds.
+ - Fixed palette flicker when changing between 256-col anim backgrounds.
+ - Fixed editor crash with dialog scripts >200 lines.
+ - Fixed MouseOver pic not being used when GUI is switched on.
+ - Fixed small OGG speech files erroneously repeating.
+ - Fixed Skip Cutscene not working during voice speech.
+ - Fixed hit-testing order when characters were behind objects and so on.
+ - Fixed IsSoundPlaying not working properly with MP3 and OGG sounds.
+ - Fixed bug with Rebuild VOX Files and OGG speech.
+ - Fixed rare crash when clicking dialog option.
+ - Fixed erroneous "Colour depth doesn't match" error importing animated
+   backgrounds.
+ - Fixed "been in no rooms" error if game started in room >300.
+ - Fixed problem saving game while a mouse-y popup GUI was displayed.
+ - Fixed script blocks not getting removed when Clear All Actions was used.
+ - Fixed characters occasionally getting stuck if movement was stopped halfway
+   into a move.
+ - Fixed editor getting minimized after testing the game.
+ - Fixed Setup Game option from editor not saving settings to the right place.
+ - Fixed @overhotspot@ not blanking out over empty areas.
+ - Fixed Voice Only mode displaying blank text box with Sierra-style speech.
+ - Fixed issue with area-specific character views messing up along the edge.
+ - Fixed save games not working properly if saved in an extended room ( > 300)
+ - Fixed script editor window losing focus when you switch away.
+ - Missing speech files now write to log rather than exiting game.
+ - Engine now quits gracefully rather than crashing if you use invalid
+   walkable areas.
+ - Fixed rare crash when saving a room.
+ - Fixed Setup saving settings not then being used by the engine that run.
+ - Upgraded allegro version, to hopefully fix black screen issues.
+
+VERSION 2.5b, September 2002
+ - Added StrSetCharAt text script function.
+ - Added ability to use number keys 1-9 as shortcut to select dialog options.
+ - Added ability to have text and image on GUI buttons. Note currently
+   the text will always be in the top-middle of the button.
+ - Fixed issue with AreCharObjColliding in 640x400.
+ - Fixed rare random crash bug when a script function ended.
+ - Fixed DisplayAtY and RawPrintMessageWrapped not working properly
+   at 640x400.
+ - Fixed "symbol table overflow" with very large global scripts.
+
+VERSION 2.5a, September 2002
+ - Fixed problem with hi-res walkbehinds in newly created rooms.
+ - Fixed crash bug when importing characters.
+ - Fixed crash bug occasionally when exporting GUIs.
+
+VERSION 2.5, September 2002
+NOTE: Graphical scripts and Animations have been removed completely from
+this version - the engine can no longer run old rooms that used them.
+NOTE: It is now IMPOSSIBLE for your game to be de-compiled - even by me.
+Take special care to backup more in future.
+NOTE: Back up your game before using this version, as many changes have
+been made and it's possible that the upgrade may cause problems.
+ - Totally re-written interaction editor, which now combines the old
+   graphical scripts into the main interaction window.
+ - Optimised drawing of large objects to improve frame rate.
+ - New built-in script editor, with syntax highlighting, auto-complete
+   and more!
+ - Added OGG Vorbis support for music, speech and sound effects.
+ - Added DisplayMessageAtY, FileIsEOF, GetMessageText, GetTranslationName,
+   GetWalkableAreaAt, ListBoxSetTopItem, PlayMP3File,
+   RawPrintMessageWrapped, RunInventoryInteraction and SetFrameSound text
+   script functions.
+ - Walk-behinds for 640x400 rooms are now 640x400 res, allowing proper
+   walk-behind effects in hi-res. Note currently since there's no zoom
+   feature it's very difficult to do this in the editor - best idea is
+   to use the Import Mask feature.
+ - Added option to set a sound effect for a view frame - should be useful
+   for doing footstep sounds and so forth.
+ - Added "player" alias to dialog script meaning current player character
+ - Increased maximum characters in a game from 50 to 150.
+ - Increased maximum frames per loop to 20 and loops per view to 16.
+ - Increased maximum options per dialog topic from 15 to 30.
+ - Increased maximum inventory items from 99 to 300.
+ - Increased GUI button/label limit from 80 to 150.
+ - Using "..." as text to DisplaySpeech or in a dialog script pauses the
+   conversation briefly as if the characters are stopping to think.
+ - In 256-color games, animating backgrounds now each get a different
+   palette, so they don't all have to use similar colours to the first.
+ - Added mouse wheel and middle button support.
+ - Added "Save and Run" button to Setup.
+ - Added 'Handle inventory clicks in script' option to game settings
+   to enable you to handle clicks on inventory items in your script.
+ - Added "set-globalint" dialog script command.
+ - Made running at 85 Hz an option in Setup rather than forcing it,
+   since TFT monitors / laptops can't do it.
+ - Save games now save the changes made by Raw functions.
+ - Added support for passing error message and line number to external editor.
+ - Renamed IsVoxAvailable to IsSpeechVoxAvailable to avoid confusion.
+ - "Revert to default fonts" now sets back fonts 0-2 to defaults.
+ - GUI editor now only resizes a GUI button when you change its image.
+ - Added right-click Copy Co-ordinates to main room display window.
+ - SetNormalFont now affects built-in dialogs (quit/save/etc).
+ - Transition from preload screen to first room now uses your preference
+   rather than a forced fade-out.
+ - Fixed end of MP3 speech getting cut off.
+ - Fixed EXE icon not being applied to game window.
+ - Fixed speech text positioning with tall GUIs.
+ - Fixed editor scroll bars not updating when importing large background.
+ - Fixed character talking colour having to be below 256.
+ - Fixed translations of global messages 984-999 not working.
+ - Fixed bug with AreCharObjColliding, and made it pixel-perfect.
+ - Fixed translations of GUI buttons not working.
+ - Fixed "Stack pointer not 0" error using arrays as local variables.
+ - Fixed crash on finish of importing text dump.
+ - Fixed Sierra-style speech appearing under large top GUIs.
+ - Fixed issue with animated backgrounds with odd widths and heights.
+ - Fixed "character[CHARID.animating" crashing compiler
+ - Fixed MOD music getting disabled after playing AVI/MPG.
+ - Fixed SetAreaLightLevel crash with using area 15.
+ - Fixed Add Inventory interaction using Data instead of VAL for the value.
+ - Fixed outline fonts not working for dialog options.
+ - Fixed glitching sometimes when mp3 music looped.
+ - Fixed text dump import resetting room options.
+ - Fixed very rare crash bug when changing rooms.
+ - Fixed game.bgspeech_game_speed to work properly.
+ - Fixed GetMIDIPosition and GetMP3PosMillis during a skipped cutscene.
+ - Fixed DisplaySpeech when character talking colour was 0.
+ - Fixed "No MIDI music" setting playing music anyway.
+ - Fixed false AnimateObject error message when using AnimateCharacter.
+ - Fixed bug where speed of first frame of speech animation was wrong.
+ - Fixed following character problem if you changed room before the
+   follower got to the current one.
+ - Minor editor bug fixes.
+ - Changed MP3 decoder from Xing to mpg123 for licensing reasons.
+
+VERSION 2.4b, July 2002
+ - Added IsMusicVoxAvailable text script function.
+ - Editor now checks whether a sprite is part of a view before letting you
+   delete it.
+ - Editor makes backup copy of old game file and sprite file before saving.
+ - Un-checking the external editor now keeps the file name for future use.
+ - Fixed crash with messages longer than 350 characters.
+ - Fixed walking onto screen from off-edge if NewRoomEx was used.
+ - Fixed editor crash if a character had no normal view.
+ - Fixed crash on RunDialog use inside dialog_request - error msg instead.
+ - Fixed strange behaviour if SetViewport was called from repeatedly_execute.
+
+VERSION 2.4a, July 2002
+ - Implemented fade in with hi-color games.
+ - Screen edges are now ignored during Player Enters Screen, which allows
+   you to move the character in from beyond the edge without it changing
+   rooms afterwards.
+ - Editor now warns if you rename a game directory to >8 characters.
+ - Fonts now drawn smaller in editor if Don't Scale Up is selected.
+ - Fixed SetSkipSpeech style 3 not being skipped in cutscenes.
+ - Fixed editor crash if GUI width/height was set to 0.
+
+VERSION 2.4, July 2002
+NOTE: Graphical scripts have been removed from this version. You will
+need to re-do them as text scripts. Sorry. Rooms with graphical scripts
+will continue to work until you modify the room in the Windows editor at
+which point the graphical scripts will be removed.
+ - NEW! Windows-based IDE.
+ - Added TTF font support.
+ - Added support for game translations.
+ - Added support for MP3 speech files and sound effects.
+ - Added support for AVI and MPG video (Windows engine only).
+ - Added sprite caching system to decrease engine memory use.
+ - Added ability for player to skip cutscenes; see StartCutscene for info.
+ - Removed old-style translations, and moved remaining built-in messages
+   to global message slots 984-995.
+ - Added CallRoomScript, EndCutscene, GetMP3PosMillis, GetTranslation,
+   IsTranslationAvailable, MoveCharacterPath, PlayAmbientSound, 
+   PlayVideo, SeekMP3PosMillis, SetCharacterProperty, SetLabelFont,
+   SetMouseBounds, SetNextCursorMode, StartCutscene, StopAmbientSound,
+   StrGetCharAt, StrToLowerCase, StrToUpperCase, and WaitMouseKey text
+   script functions.
+ - Increase limit to 6000 sprite slots, 300 views.
+ - Changed names of functions InterfaceOff and InterfaceOn to GUIOff and
+   GUIOn, since a lot of AGSers now weren't around when Interfaces were
+   used, and so are getting confused with these function names.
+   The old InterfaceOff and On will still work for the time being so you
+   don't have to change any code, just try to use GUIOn/Off from now on.
+ - Added a few new Windows engine Setup options.
+ - Added option to draw inventory cursor hotspot dots.
+ - Added [optional] words to Said parser.
+ - Added (INVSHR) to draw small items at actual size rather than stretching.
+ - Added missing "Pick up character" event, and added User Mode 8 & 9 events
+   to character, object and hotspot interactions.
+ - Music file load failure now lets you know via the debug log.
+ - Added Alt+X as the new engine break key, to replace Ctrl+alt+end.
+ - Added %d/%s support to DisplaySpeech.
+ - @overhotspot@ now displays nothing while the wait cursor is in effect.
+ - Changed name of AC2GAME.DAT to AC2GAME.AGS to work with explorer better.
+ - Go To Screen now makes sure character is placed within screen edges on
+   new screen.
+ - Walkable area 0's zoom level is now used if a character walks through
+   it with MoveCharacterDirect.
+ - Fixed AnimateObject flashing up frame 0 of loop 0.
+ - Fixed flickering and mouse cursor problems while displaying dialog
+   options in Windows engine.
+ - Fixed SetButtonPic not updating if cursor was over button at the time.
+ - Fixed problem when walking off left of scrolling rooms.
+ - Fixed text staying on screen too long sometimes with voice speech.
+ - Fixed crash when walkable area 15 was used.
+ - Fixed walkable area 15's zoom and light levels not working.
+ - Fixed inverted colours on some graphics cards at 16-bit.
+ - Fixed skipping cutscene with blocking Display() and talkie games.
+ - Fixed character walking on the spot at end of movement sometimes.
+ - Fixed crash when moving with certain walkable area configurations.
+ - Fixed mouse cursor moving to right when clicking top of icon bar.
+ - Fixed idle animation not releasing properly if speech started in the
+   middle of it.
+ - Fixed rare "error -2" crash when changing rooms.
+ - Fixed strings overwriting each other in text script nested function calls.
+ - Fixed mouse moving problem with windowed-mode Win engine.
+ - Fixed speech text appearing under GUI when near top of screen.
+ - Fixed Windows engine crashing when close button was clicked.
+ - Fixed Dissolve screen transition.
+ - Fixed messed up colours on some systems in 15-bit.
+ - Fixed SetObjectIgnoreWalkbehinds going behind all objects.
+ - Fixed AreCharObjColliding returning 1 when object was off.
+ - Fixed GetSaveSlotDescription and ListBoxSaveGameList returning
+   "Invalid Slot" after being run a few times.
+ - Fixed "GUI unchanged when disabled" greying out text buttons.
+ - Fixed being able to activate inventory items out of sight in custom
+   inventory window.
+ - Fixed walkable area 15's light and zoom settings not being saved.
+ - Fixed various issues with sound in Windows engine.
+ - Fixed crash when playing some 640x400 games at 320x200.
+ - Fixed room loading crash bug if a message was longer than 300 characters.
+ - Fixed compiler crash if you did  Display("Text",);  now prints an error
+ - Fixed crash bug if pressed a key during a complex cutscene
+ - Fixed MP3 glitching at very low frame rates (<10 fps)
+ - Fixed positioning of QFG4-style dialog options box if DisplaySpeech
+   text script function used instead of dialog script.
+
+VERSION 2.31, March 2002
+ - Added ChangeCursorHotspot, DisplayAtY, FileWriteRawLine,
+   IsInterfaceEnabled, IsObjectMoving and UpdateInventory text script
+   functions.
+ - Added [ as line break character to GUI labels.
+ - Added game.skip_display script variable.
+ - Background speech text is now removed when a character starts talking
+   properly.
+ - The engine now attempts to spot you using an int as a buffer by accident.
+ - GUIs are now drawn on top of all screen overlays.
+ - character[].animating is no longer 1 while idle animation is playing.
+ - Screen edges now only take effect while the game is not in Wait mode.
+ - Fixed unhandled_event happening when an Any Click event was used.
+ - Fixed StopDialog not working at all.
+ - Fixed parse error using ',' inside array index.
+ - Fixed activating an interaction just before character leaves the screen.
+ - Fixed dialog options GUI being too wide when short options.
+ - Fixed mouseover picture on GUI buttons flashing up on InterfaceOn.
+ - Fixed SetCharacterIdle if an idle animation was already playing.
+ - Fixed glitch with pixel-perfect click detection at edges of sprites.
+ - Fixed idle animations with following characters.
+ - Fixed text colors when running at 15-bit.
+ - Fixed lack of border around standard text window.
+ - Fixed idle animations kicking in when they shouldn't.
+ - Fixed Any Click response scripts overriding earlier interaction scripts.
+ - Fixed DOS engine leaving artifacts when moving from 320x240 to 320x200.
+ - Fixed some issues with extra animations playing after ReleaseCharView.
+ - Fixed MP3 music skipping in ShakeScreen and during room loading.
+ - Fixed repeating multi-loop animations jumping back to wrong frame.
+ - Fixed clicking at current location stopping idle animation.
+ - Fixed wait cursor not appearing when clicking option in dialog.
+ - Fixed various pathfinder issues.
+ - Fixed text in normal dialog box being transparent.
+ - Fixed LEC inventory not updating when scrolling up/down in list.
+ - Fixed users typing [ into text boxes.
+ - Fixed SetCharacterWalkBehinds going in front of characters.
+ - Fixed SetCharacterIdle not kicking in for a second.
+ - Fixed "Error initializing sound" when "No sound" selected.
+ - Fixed speech being left on screen if followed by normal textbox.
+ - Fixed backspace not working in input boxes.
+ - Moved dialog options window across to right when using full-screen pics.
+ - Restricted FileOpen to only allow access to files in game directory.
+ - Disabled F1 in roomedit because it could crash the program.
+
+VERSION 2.3, January 2002
+NOTE: This version of AGS has undergone major changes, and so the engine can
+no longer run old games. You need to load and save your game in RoomEdit to
+update it.
+ - New pathfinder, which should generate better routes.
+ - Added ability to call global script functions directly from local scripts,
+   and script header file. See section 4.4.2 in the manual for information.
+ - Added basic text parser, works similarly to the AGI one. See section 4.6
+   in the manual for more information.
+ - Added List Box GUI control.
+ - Added ChangeCursorGraphic, GetCharacterAt, GetGUIAt, GetGUIObjectAt,
+   IsGUIOn, IsKeyPressed, ListBoxAdd, ListBoxClear, ListBoxDirList,
+   ListBoxGetItemText, ListBoxGetNumItems, ListBoxGetSelected,
+   ListBoxSaveGameList, ListBoxSetSelected, MoveToWalkableArea, ParseText,
+   RawClearScreen, RawDrawImage, RawDrawLine, RawDrawTriangle, RawPrint,
+   RawRestoreScreen, RawSaveScreen, RawSetColor, RunCharacterInteraction,
+   RunHotspotInteraction, RunObjectInteraction, Said, SaidUnknownWord,
+   SetCharacterBaseline, SetCharacterIgnoreLight,
+   SetCharacterIgnoreWalkbehinds, SetObjectClickable,
+   SetObjectIgnoreWalkbehinds, StopMusic and TintScreen text script
+   functions.
+   Removed CallGlobalScript, CaptureScreen, CapturedPrint and EndCapture as
+   they are now obsolete.
+ - Optimised GUI drawing to eliminate LEC-style slowdown.
+ - Added on_event text script event function, to let you have a common script
+   to be run whenever the player enters a new room, and so on. Manual 4.4.1.
+ - Added option to make characters turn to face the new direction before
+   starting to walk.
+ - All background music MP3 files can now be put into a special MUSIC.VOX file,
+   similar to the way SPEECH.VOX works.
+ - Finally fixed the sound selection list boxes in AGSWin setup.
+ - Sierra-style inventory now scrolls if there are too many items to fit, and
+   right mouse button cycles between Select and Look modes.
+ - Added QFG4-style speech (black screen with talking view on left hand side).
+ - Added "ignore lighting" and "no turning" character options to roomedit.
+ - FaceLocation/FaceCharacter now use diagonal loops where available.
+ - AGSWin now integrates itsself into explorer so you can double-click .AGS
+   files to run them. This means you can rename AC2GAME.DAT to YOURNAME.AGS
+   and double-click it to run the game.
+ - Added (INVNS) which does the same as (INV) except that it does not stretch
+   the item picture.
+ - Added inventory interactions to unhandled_event.
+ - Added game.total_score text script variable.
+ - Edges of text windows can now be transparent.
+ - If the mouse cursor has been changed from the default for the current mode,
+   the wait cursor will not show when Wait() is called.
+ - Save games can now be loaded if the VOX file has been added/deleted since
+   the position was saved.
+ - Upped limit to 19 hotspots (sorry, quick fix, more later).
+ - Roomedit now allows cycling through all skip speech modes.
+ - Pressing key does not now skip speech text if the icon bar is popped up.
+ - Idle loops are no longer chosen at random - instead, the character's
+   current loop number is used.
+ - Added script header file, which is included into all scripts to prevent
+   having to manually import functions into every room.
+ - Added new-room dialog script command.
+ - Fixed script problem with importing strings and using arrays.
+ - Character export/import now deals with idle views.
+ - Added "top-right" and "bottom-right" transparent corner for sprite import.
+ - QFG4-style speech window now shrinks text window to fit text.
+ - Speech text uses GUI fgcol instead of character talk color if a background
+   text window is used for speech.
+ - Changed the way Test Game works, to help with bugs when return to roomedit.
+ - Fixed hi-colour PRELOAD.PCX not being shown.
+ - Fixed "Object 9 can't move".
+ - Fixed MP3 volume not being altered if the track is currently playing.
+ - Fixed demo game using LEC interface for dialog options.
+ - Fixed GetMIDIPosition returning -1 when a song was playing.
+ - Disabled Ctrl-V while speech text is displayed.
+ - Fixed text color problem in 15-bit colour.
+ - Fixed SetGUIPosition in large (>320x200) rooms.
+ - Fixed SetObject/CharacterTransparent with full transparency level.
+ - Fixed AnimateCharacter if an idle loop was running at the time, and other
+   idle animation problems.
+ - Fixed transparent edges for text windows.
+ - Fixed nasty crash on startup in Win engine.
+ - Fixed problem going to 640x400 from 640x480 full screen room.
+ - Internal info: upgraded both engines to Allegro 4.0 (from 3.1 DOS & 3.9.37
+   Win) and switched to using ALMP3 v1.5 MP3 player.
+
+VERSION 2.22, December 2001
+ - Added GetMIDIPosition, IsButtonDown, SeekMIDIPosition, SetObjectBaseline,
+   SetNormalFont, SetSpeechVolume, SetSpeechFont and SetSpeechStyle text
+   script functions.
+ - Added add-inv, set-speech-view dialog script functions.
+ - Added Text Box GUI control.
+ - Added text dumper to roomedit, to allow easy game translation and
+   spell-checking.
+ - Added option for QFG4-like dialog options display (ie. in text window).
+ - Added option to draw text box behind sierra-style speech, aka KQ6.
+ - Added ability to set hotspot for inventory mouse cursors.
+ - Added "Jump to view" button to Visual, Views tab in roomedit.
+ - Added buttons to change zoom level by +/- 1 as well as +/- 5.
+ - Added safety checks to file I/O functions to stop engine crashing
+   if invalid data is supplied.
+ - Added game.following_room_timer, game.speech_text_gui, game.swap_portrait
+   and game.text_shadow_color script variables.
+ - Added F12 to take screenshot in roomedit.
+ - Added option to PlayFlic to turn off stretching to full screen.
+ - Added system.windowed script variable.
+ - Added datadir section to acsetup.cfg to allow data files to be loaded
+   from alternate directory (eg. CD-ROM, etc).
+ - Upped GlobalInts to 300.
+ - Upped vox file limit to 2000 files.
+ - Upped to 20 SetTimers for the script.
+ - Jibbled following characters a bit so if you don't join on a screen edge,
+   they will appear where the player entered a few seconds later.
+ - Text window background is now used when specifying it for dialog options.
+ - Changed music search order to MP3, WAV, MID, MOD, XM.
+ - Split resource files (.001, .002, etc) are placed in parent folder.
+ - Windows engine will now continue anyway if it can't init sound.
+ - Disabled Ctrl+V during Wait() statements cos it could desync the music.
+ - Colour 0 for dialog options GUI now does transparent.
+ - Fixed SetCharacterClickable.
+ - Fixed cursor staying on old item after combining items.
+ - Fixed S3M's not being included in EXE.
+ - Fixed SetScreenTransition's effect only lasting for one transition.
+ - Fixed mouse cursor animate only over hotspot problem in 640x400.
+ - Fixed graphic overlay positioning at different resolutions.
+ - Fixed mp3 skipping when mouse button held down in save/restore dialog.
+ - Fixed SetAreaLightLevel adjustments not being saved in save games.
+ - Fixed mouse cursor not skipping speech text if over GUI.
+ - Fixed random idle loop being chosen if it is a continued long animation.
+ - Fixed cursor changing back to arrow after looking at item in Sierra inv.
+ - Fixed pressing extended keys (eg F1-F10) when message displayed and
+   while room loading.
+ - Fixed message editor being all caps (in 2.22 beta)
+ - Fixed SetObjectBaseline (from 2.22 beta4)
+ - Fixed the Debug Give All Inv function giving you item 0.
+ - Fixed "table overflow" when having over 200 functions in global script.
+
+VERSION 2.21, August 2001
+ - Added Debug option to display FPS during game.
+ - Added windowed option for Windows engine
+ - Added GetObjectGraphic, IsTimerExpired, IsVoxAvailable, SetAreaLightLevel,
+   SetInvDimensions, SetRestartPoint, SetTimer and WaitKey text script
+   functions.
+ - Added ability to delete GUI objects.
+ - Inventory items are listed in the order the player picked them up.
+ - Changed display initialization to hopefully fix colour problems.
+ - Less severe errors (eg. "sound not found") are now logged to a WARNINGS.LOG
+   file in the game directory, rather than quitting the engine.
+ - Rewrote a lot of code to avoid slowdowns in 15-bit colour mode.
+ - Made SetPlayerCharacter not change room if the new character is in the
+   current room.
+ - Added "no timeout; only on mouse-click" option to SetSkipSpeech.
+ - Added "press any key or click mouse to skip" option to FLIC player.
+ - Re-instated NewRoom in dialog_request.
+ - The music volume is now decreased while speech is played.
+ - If there is a compile error, it cancels the quit in roomedit
+ - Changed SetSoundVolume to not affect MP3/XM files.
+ - Made save game slots >=100 not appear in save list.
+ - Fixed game instability when rooms over 600 height were used
+ - Fixed sound issues with restoring a save game.
+ - Fixed problem with character[].name in text script.
+ - Fixed character scaling as he walks off the screen.
+ - Fixed MP3 not playing during FLIC animation.
+ - Fixed script problem with character names in strings.
+ - Fixed PRELOAD.PCX looking all messed up.
+ - Fixed multi-loop object animations not cycling back to first loop.
+ - Fixed scaling when character walks into non-walkable area.
+ - Fixed script not allowing negative initial values for variables.
+ - Fixed "No save/load" room setting to now block the save and restore.
+ - Fixed music volume spiking in between two speech lines.
+
+VERSION 2.2, May 2001
+NOTE: There have been major under-the-hood changes to AGS this version, so
+unfortunately you'll need to upgrade all your room files. To do this, load
+each one into RoomEdit and save it again. Sorry.
+ - Completely re-written text script compiler and interpreter. Let me know
+   if you have any problems with scripts that worked before.
+ - Added option to split up resource files.
+ - Added DisplaySpeechBackground, IsMusicPlaying, IsObjectAnimating,
+   MergeObject, SetCharacterTransparency, SetInvItemPic, SetScreenTransition
+   and UpdatePalette text script functions; removed SetPalette and GetPalette.
+ - Corrected GetObjectAt (and consequently the built-in hit-testing) behaviour
+   when there are two objects on top of each other - now it should always
+   pick the one that's visible on top.
+ - Added "Dissolve" screen transition.
+ - Increased sprite limit from 1900 to 5000.
+ - Overlays are now correctly restored when loading a save game position.
+ - Added option to make a GUI non-clickable for transparent overlay GUIs.
+ - Added unhandled_event type code 4, which occurs when the player clicks
+   on nothing (ie. no object, character or hotspot at the location).
+ - Added "Cancel" option to roomedit's "save changes?" dialog, and also
+   made it appear if you load a new room in.
+ - Added option to export sprite slot graphics.
+ - Added SCI palette importing.
+ - Fixed bug with tiled sprite imports.
+ - Fixed crash when adding 50 buttons to the GUI, and upped limit to 80.
+ - Fixed positioning of dialog topic options when not locked to GUI position.
+ - Fixed VOX corruption with >200 files.
+ - Fixed GUI transparent background pictures coming out pink, and offset of
+   background images being wrong.
+ - Fixed mouse area bug in Windows engine at full-screen 320x240.
+ - Fixed SetButtonPic not updating until mouse moves over it.
+ - Improvements to Windows engine, including it now cleans up its temp files.
+
+VERSION 2.15 SR-3, March 2001
+ - Added GetGameSpeed, MoveCharacterBlocking, SetWalkBehindBase text script
+   functions.
+ - Added option to have bullet-point graphic for dialog options.
+ - Auto-speech now works with standard Display() command (uses player
+   character's voice).
+ - Fixed Windows engine page fault on startup, and fixed mouse detection.
+ - Fixed DisplayMessage error with inventory events.
+ - Fixed '[' being displayed sometimes instead of forcing new line.
+ - Fixed multi-loop talking view getting stuck on last loop.
+ - Fixed interaction window going wrong colour.
+
+VERSION 2.15 SR-2, March 2001
+ - Added SetCharacterClickable, StopDialog text script functions.
+ - Added game.sierra_inv_color text script variable.
+ - Now any room >= 640x480 will be full-screened in letter-box mode, allowing
+   full-screen scrolling 640x480-res rooms.
+ - RoomEdit now displays the room co-ordinates at all times in the bottom-
+   right hand corner, so you don't need to use Ask Position.
+ - Made NewRoom give an error message instead of crashing if called from
+   the dialog_request function.
+ - Speeded up room loading a bit.
+ - Fixed bug where clicking and dragging off pop-up GUI button paused game.
+ - Fixed GUI "Set Mode 4" to work correctly when the player has no inventory.
+ - Fixed character frames being reset on restore game.
+ - Fixed talking views to allow having one loop only for all directions.
+ - Fixed go-to-next-loop to work in sierra-style speech windows.
+ - Fixed losing first and last character on the line when using '[' symbol.
+ - Fixed sierra-style speech text coming up at random positions.
+ - Fixed NewRoom in game_start loading first room twice.
+
+VERSION 2.15 SR-1, February 2001
+ - Added MP3 support to Windows engine, thanks to Javier Gonzalez.
+ - Added option to stop current sound effect: call PlaySound(-1);
+ - Added text script functions GetHotspotAt and GetObjectAt.
+ - Finally fixed walking speed 1. I think.
+ - Fixed it so clicking the hotspot 0 (the background) doesn't trigger
+   unhandled_event.
+ - Fixed audio CD continue playing after exit.
+ - Fixed speech going off the top of the screen.
+ - Fixed memory leak in room-switching code.
+
+VERSION 2.15, February 2001
+ - Added auto-speech support (see section 4.1.1 in the docs).
+ - Added support for transparent objects (hi-color only at present).
+ - Added FollowCharacterEx, SetObjectTransparency, SetSkipSpeech and
+   SetVoiceMode text script commands.
+ - Added MOD/XM support to Windows engine.
+ - Added feature so that in letter-box mode, 640x480 scenes are full-screen.
+ - Added a way to link loops together to create animations with more frames.
+ - Changed positioning of speech text so it's always above the character.
+ - Removed dithering feature from RoomEdit graphic importing.
+ - Fixed prevroom text script variable for following characters.
+ - Fixed "DisplayMessage: data column..." error with graphical scripts.
+ - Fixed rare crash when restoring save game.
+
+VERSION 2.14 SR-5, February 2001
+ - Stopped SetCharacterView/SetObjectView changing the loop number to 0.
+ - Made ReleaseCharacterView fix the loop number if it would turn into a cup.
+ - Added option to import exact palette slots for scenes (no remapping).
+ - Fixed color screwup when importing 256-colour sprites into hi-col game.
+ - Fixed Characters scroll bar in roomedit.
+ - Fixed bug with 15 folders in sprite manager.
+ - Fixed "First time enters screen" happening before the fade-in.
+ - Fixed pixel-perfect click detection in hi-color.
+
+VERSION 2.14 SR-4, February 2001
+ - Added option for mouse cursor to animate only when over a hotspot.
+ - Added text script functions GetObjectX/Y, GetViewportX/Y.
+ - Fixed problem with walking speed 1 jumping to destination.
+ - Fixed problem with scripts in Player Enters Screen.
+ - Fixed restore game problem.
+
+VERSION 2.14 SR-3, February 2001
+ - Added FollowCharacter and SetCharacterIdle text script commands.
+ - Added idle animation support.
+ - Increased max views from 100 to 200.
+ - Fixed bug with room change in repeatedly_execute.
+ - Fixed problem with non-blank first frames in FLC files.
+
+VERSION 2.14 SR-2, February 2001
+ - Added "Player leaves screen" room event.
+ - Added "Other click on inventory" inventory item event.
+ - Added SetActiveInventory text script function.
+ - Fixed problem with screen being visible on "Player enters screen" event
+   in hi-colour.
+ - Increased max dialog messages from 900 to 2000.
+ - Roomedit creates a backup of your sprite file in case there is a problem
+   loading the new one.
+ - Fixed MIDI music.
+
+VERSION 2.14 SR-1, January 2001
+ - Added text script function IsSoundPlaying.
+ - Added "GUI unchanged when disabled" option, which doesn't grey out
+   or remove any buttons when the user input is disabled.
+ - RoomEdit now generates a custom SETUP.BAT, replacing the old "AC.EXE"
+   calls with your game's EXE name. This should make it a lot less confusing.
+ - MP3 music now takes priority over MIDI music, so you can include MP3 files
+   in a seperate zip file which users can optionally download and hear better
+   quality music.
+ - Fixed Text Window checkbox missing in GUI Setup.
+ - Fixed problem with MoveCharacterDirect and off-screen co-ordinates.
+
+VERSION 2.14, January 2001
+ - Added slider control type to GUIs (see section 4.2.5 in the manual).
+ - Added text script functions GetSaveSlotDescription, GetSliderValue,
+   MoveCharacterStraight, ReleaseViewport, ResetRoom, RestoreGameSlot,
+   SaveGameSlot, SetSliderValue and SetViewport.
+ - Added ability to set light levels for walkable areas - see section 3.3.6
+   in the docs for info.
+ - Increased max overlays to 8 at a time instead of 3.
+ - Outline fonts on GUIs now work.
+ - Added ability to use custom icon for Windows EXE file - see section 4.3.1
+   in the docs for info.
+ - The "you are carrying nothing" message is now taken from global message 996
+   rather than from the language file, which allows you to customize it.
+ - Fixed character carrying on moving when talking if no talking view.
+ - Added ability to specify character in Data column for global messages.
+ - Added control panel to demo game, and fixed lockup with the slime.
+ - Roomedit now remembers which folder you were in for each different type
+   of file, so you don't save a room file to your scene folder by accident.
+ - The GUI editor now displays the control type in the properties box.
+ - Changed the "Load_Room: File not found" message to be more descriptive.
+
+VERSION 2.13 SR-3, December 2000
+ - Fixed MoveObjectDirect not working.
+ - Fixed "INI_Lib" error message problem.
+ - Fixed inventory window messing up after combining two items.
+ - Fixed sierra-style speech window staying up after finished talking.
+ - Fixed crash when deleting some room script functions.
+ - Fixed importing walkable area mask bitmap in hi-colour games.
+ - Fixed arrow keys and F11/F12 in Windows engine.
+ - Fixed problem with mouse cursor staying as pointer when over GUIs.
+
+VERSION 2.13 SR-2, December 2000
+ - Added option not to use diagonal frames for characters.
+ - Fixed FLC playing problem in hi-colour.
+ - Fixed restore & restart game bug.
+ - Removed ability to use local messages in global interactions, since they
+   weren't supposed to work anyway.
+
+VERSION 2.13 SR-1, November 2000
+ - The Windows engine now uses your game's name instead of "Adventure Game
+   Studio" in the title bar.
+ - Fixed problem with the wrong walking loops being chosen.
+ - Fixed problem with Windows engine not playing sound effects.
+ - Fixed problem with FLC player.
+ - Fixed roomedit returning from Test Game mode.
+
+VERSION 2.13, November 2000
+ - Windows engine is finally complete!
+ - Increased local message limit to 100 per room.
+ - Removed inventory item 0 since it didn't work.
+ - Added text script functions CreateGraphicOverlay, GetBackgroundFrame,
+   MoveObjectDirect, SetTextOverlay, FileReadRawChar, FileReadRawInt,
+   SetGUIPosition.
+ - Roomedit now converts all imported sprites to the game's color depth,
+   and also keeps 256-colour sprites looking good when imported into a hi-
+   color game.
+ - Added diagonal walking animation support for characters. See section 3.2.7
+   in the manual for which loop means which direction.
+ - Added ability to specify game data file on command line.
+ - Added ability to display current inventory item on GUI button.
+ - Added option to not scale up fonts in high resolutions.
+ - The current MOD track is now saved in the save games.
+ - Fixed problem with walk-behinds in animating background rooms.
+ - Fixed crash in roomedit with Edges and Ask Position.
+ - Fixed save game bug where current frame of background wans't saved.
+ - Fixed dialog positioning problem when roomedit runs in hi-resolution.
+ - Fixed animation editor Set object view problem with main character.
+ - Fixed crash when clicking in empty list box in Save Game dialog.
+
+VERSION 2.12, August 2000
+ - Added text script functions GetTime, SetButtonPic, StringToInt,
+   CreateTextOverlay, MoveOverlay, RemoveOverlay.
+ - Added "narrator" as a character name to dialog script, to enable you to
+   have lines of dialog in the pop-up box rather than as speech text.
+ - Roomedit now makes a backup of your sprite set before saving, so you don't
+   lose much if it (very rarely) crashes.
+ - Roomedit now tries more screen resolutions, should avoid "cannot setup
+   display mode" error.
+ - The currently playing music is now saved in the save games.
+ - Fade Out now works in hi-colour (fade in doesn't yet though).
+ - Fixed black covering background when using Undo.
+ - Fixed icon bar popping-up briefly at start of game.
+ - Fixed transparent Sierra-style text windows in hi-colour.
+ - Fixed mouse bounding at bottom of screen in roomedit in hi-colour.
+ - Fixed "goto-dialog 0" not working.
+ - Fixed pink background of hi-colour objects in inventory.
+ - Fixed bug in AreCharactersColliding with hi-res mode.
+ - Fixed bug where 640x400-sized 320x200-res scrolling rooms didn't scroll.
+ - Fixed bug where mouse cursor wasn't reset after using last of inventory.
+
+VERSION 2.11 SR-2, July 2000
+ - Fixed non-transparency when using hi-colour frames for character.
+
+VERSION 2.11 SR-1, July 2000
+ - Allowed numerical digits in game name as well as letters.
+ - Fixed mouse cursor disappear after testing game in hi-color.
+ - Removed floppy drives from Open dialog box, to stop Win2k slowdown.
+
+VERSION 2.11, July 2000
+ - RoomEdit now runs at your game's color depth, so you can see what all
+   the graphics look like properly.
+ - You can now use any color (not just the first 16) for GUI colours: take
+   a look at the Palette screen and you can find out the number for a custom
+   colour of your own.
+ - Fixed import GUI and character bug with hi-colour graphics.
+ - Fixed bug with importing animating hi-colour backgrounds.
+ - Added Bulgarian translation by Alexander Alexandrov.
+ - Added Slovenian translation by Janez Kranjc.
+
+VERSION 2.1, July 2000
+ - New text script functions SetCharacterSpeed, SetTalkingColor,
+   AreCharactersColliding, DisableHotspot, EnableHotspot, StrFormat,
+   FlipScreen, SeekMODPattern, InputBox, GetLocationType, CallGlobalScript
+ - Added hi-color (16-bit colour) support - see section 3.2.11 in the manual
+   for information.
+ - Added room interaction event "Any click on object".
+ - Added "pick up" as an extra normal mode - you can, of course, use it
+   to mean whatever you want. Cursor mode 5 ("DENIED") represents it (mode 5
+   is no longer used by the engine so it's spare for this use).
+ - Added special tokens for use in global and room messages, which allow
+   you to insert variable values into the message. See section 3.2.4 in the
+   manual for how to use these.
+ - Added "don't automatically lose inventory" option, which turns off the
+   default behaviour of losing the item when a "Use inventory" event happens.
+ - The unhandled_event function is now called when the player uses an
+   unhandled inventory item on a hotspot/object (previously it was only
+   called if there was no "Use inventory" response defined).
+ - Added ability to import tiled sprites from a source bitmap file. See
+   section 3.2.3 in the manual for how to use this feature.
+ - Added "Test game" button to Game, Main tab of roomedit, which shells AGS
+   and runs your game without you leaving the editor.
+ - A Lucasarts-style GUI is now included in the AGS distribution - just import
+   the LUCASART.GUI file to use it. Thanks to Jeremie Lumbroso.
+ - New game has 1 dialog topic by default (stops bug where if you didn't
+   create a topic, but added options then saved it was lost).
+ - Fixed bug where hi-res sprites in GUI editor showed up double size.
+ - Fixed crash in Characters tab when displaying views with >4 loops.
+ - Random now returns number from 0 to MAX instead of (MAX-1).
+ - Added Polish translation by Jakub Offierski.
+ BUG FIXES SINCE v2.1 PREVIEW RELEASE:
+ - Fixed walk-behinds in hi-colour rooms.
+ - Fixed import/export GUI and import/export character with hi-color graphics,
+   plus it now exports the GUI script as well as layout.
+ - The pink background is not shown in roomedit with hi-color room objects.
+ - Fixed cursors tab in roomedit with hi-color cursor.
+
+VERSION 2.07 SR-4, May 2000
+ - Fixed object drawn behind walk-behinds when it shouldn't be.
+ - Fixed NewRoomEx (actually fixed this time) with invalid exits.
+ - Fixed InterfaceOff screwing the game up if the interface was already off.
+ - Fixed screw up with save/load when using different player character.
+
+VERSION 2.07 SR-3, May 2000
+ - Fixed object drawn behind walk-behinds when it shouldn't be.
+
+VERSION 2.07 SR-2, May 2000
+ - Added "unhandled_event" text script event, allows processing of events
+   which the Interaction window doesn't handle.
+ - Fixed problem with New Game, where the interface script wasn't set up
+   properly.
+ - Fixed NewRoomEx, to allow co-ordinates above 320x200 on scrolling rooms.
+ - Fixed sprite import in hi-res screwing up palette.
+ - Fixed "Add new font" crashing roomedit.
+
+VERSION 2.07 SR-1, May 2000
+ - Added text script functions ShakeScreen, SetMusicMasterVolume and
+   SetSoundVolume, RemoveWalkableArea, RestoreWalkableArea
+ - Added option to dialogs for the character to not say the option clicked.
+ - Added option to not change inventory cursor to the item's graphic.
+ - Right-clicking an inventory item in the lucasarts-style inventory now
+   simulates a left-click in Look mode.
+ - Slightly modified speech display, so it's always above the character's
+   head instead of on top of it.
+ - In dialog, if the character's speech colour is the same as the highlited
+   option colour, the highlight colour will be changed to purple.
+ - Fixed bug with running text scripts for inventory items.
+ - Fixed bug where "Buttons off when disabled" didn't work.
+
+VERSION 2.07, April 2000
+ - Completely re-written interface system - now called the GUI system instead.
+   You may need to make some changes for your game to continue working with
+   this version - see section 4.2.5 in the manual for what's changed.
+ - Added text script functions GetCurrentMusic, SetMusicRepeat,
+   SetMusicVolume, MoveCharacterDirect, ChangeCharacterView, PauseGame,
+   UnPauseGame, LoseInventory, SetLabelText, FileWriteInt and FileReadInt.
+ - Fixed bug where forward frame was displayed breifly whenever you walked
+   anywhere.
+ - Fixed bug with hit-testing on scaled characters.
+ - Fixed bug with "import new" and 640x400 sprites in roomedit.
+ - Fixed the "room data segment size has changed" bug.
+ - Roomedit now gives error message instead of quitting if a background
+   import fails.
+ - Fixed bug where character kept on moving while in talking view for speech.
+ - Fixed bug where DisableInterface/EnableInterface didn't work.
+ - Slightly improved room loading time.
+ - Stopped the engine printing "File not found" when exiting game.
+ - Added S3M music support.
+ - Added technical info, for the programmer types out there. (techinfo.txt)
+ - AGS now has a domain name: www.adventuregamestudio.co.uk
+ - Removed the Windows version until I can sort out the bugs in it.
+
+VERSION 2.06 SR-1, March 2000
+ - Added support for importing JASC (Paint Shop Pro) palette files.
+ - Fixed bug where roomedit crashed if your game contained more than 80 files.
+
+VERSION 2.06, March 2000
+ - Added character numbers, so that characters can be moved/animated using
+   the Animation Editor. Just use the character's number +100 as the object
+   number. For example, use "Move To 100,50" with Object as 102 will move
+   character 2. The Character Editor shows the character numbers.
+ - Finally fixed the text size in high-resolution modes.
+ - Added scroll bar to character editor, so you can now have up to 50 instead
+   of 15 characters.
+ - Added "Enters screen after fade-in" event, which works like the "Player
+   enters screen" event except that it occurs after the screen has faded in.
+ - Added text script functions AreCharObjColliding, Wait, DisableInterface,
+   EnableInterface, SetBackgroundFrame, SetGlobalInt, GetGlobalInt.
+ - Added option for instant-change between rooms instead of fading.
+ - RoomEdit now remembers the last directory you were in with the file
+   selector, instead of always resetting to the game directory.
+ - Added 320x240 and 640x480 letterbox-mode option.
+ - Added WAV background music support.
+ - Fixed bug with CDAudio that was causing crashes.
+ - Fixed bug which crashed sometimes when speech was displayed.
+ - Fixed bug which gave screenful of cups in sprite manager (I think...)
+ - Removed the "delete sprite" option because it was causing too many
+   problems. To delete a sprite, simply import a 1x1 sprite on top of it.
+
+VERSION 2.05 SR-2, February 2000
+ - Fixed bug in roomedit with animating backgrounds
+ - Allowed to get back into roomedit if error with dialog script; however,
+   you must fix the error before you can save the game.
+ - Fixed bug with animating background scenes in usergame.exe
+
+VERSION 2.05 SR-1, February 2000
+ - Added Undo feature to roomedit.
+ - Added option to import/export dialogs to roomedit.
+ - Fixed bug with full-screen preview in roomedit at 640x400 resolution.
+
+VERSION 2.05, February 2000
+ - Added animating background support! See section 3.3.5 in the docs.
+ - RoomEdit now uses a crosshair mouse cursor when drawing walk-behinds and
+   hotspots, to enable you to better see what's under the cursor.
+ - Added support for importing a BMP/PCX file as the mask for hotspot/walk-
+   behind/etc. See section 3.3.4 in the manual for information.
+ - Added support for export/import of characters, which allows you to share
+   characters between games and with others on the internet. The end of
+   section 3.2.7 in the manual describes this.
+ - Added support for importing JPGs as background scene.
+ - RoomEdit now allows scrolling up/down the inventory list, so you can have
+   more than 15 inventory items (max 99 now).
+ - Customizable text speech speed - see the  game.text_speed  global variable
+   description (section 6.4 of the docs).
+ - Fixed bug where Sierra-style inventory window messed up in various
+   circumstances.
+ - Improved the room loading speed.
+ - Added text script functions SetObjectPosition and AreObjectsColliding.
+ - Added GetPalette and SetPalette text script functions, to allow you to
+   do things to the entire palette. New variable type "palette", which you
+   use with these functions.
+ - Added Italian translation by Mario.
+ - Removed the room password option: it was a left-over from AC v1, and now
+   that you can build an exe file of your game, it's not really needed.
+ - NOTE: The Windows version has not been updated to 2.05 - the included
+   acwin.exe is still the v2.04 version. This is due to time constraints and
+   pressure to release 2.05 as soon as possible; the Win version still has
+   the room changing bug, so it's not worth including until I work on that.
+
+VERSION 2.04, January 2000
+ - Added Sierra-style close-up-face option for speech display in conversations.
+ - Added object naming, so that moving the mouse over objects in a Lucasarts
+   interface displays a proper name, instead of "OBJECT 0".
+ - Added option to make a character invisible to the hit-testing, so that the
+   main character can't be interacted with (like the Lucasarts games).
+ - Added pixel-perfect click detection option, so that clicking a transparent
+   pixel of an object/character doesn't trigger the interaction.
+ - Added option to use top-left pixel of sprite as transparent colour instead
+   of just colour index 0.
+ - Added support for using a background picture for text windows. To use this,
+   just go to your text-window interface in the Interface Editor, then right-
+   click the background, choose Properties, then click the "COL/PIC" button
+   and type the slot number you want to use. The picture will NOT be tiled
+   or stretched (but it will be clipped to fit the window), so you should make
+   sure it is large enough for the biggest text windows (about 250x100 should
+   be enough).
+ - Added ability to delete sprites in the Sprite Manager.
+ - Added SaveScreenShot text script function.
+ - Added option to treat Walk mode as a normal mode, so that the character
+   isn't automatically moved but instead a normal event is triggered when
+   you click to move.
+ - Modified RoomEdit so that when you click a "Display Message" interaction
+   command, it provides a list of messages in the room to choose from, instead
+   of prompting you for the message number. If there are no messages it will
+   ask for the number, just like before (this means you can still set up the
+   interactions before actually typing the messages in, if you want to).
+ - Fixed bug where the player lost the inventory item when Data 99 was used.
+ - Made some improvements to the beta of the Windows version.
+
+VERSION 2.03, November 1999
+IMPORTANT: Your game, and all your room files, need to be upgraded to use the
+latest version. To upgrade, simply load and save in the Room Editor. You must
+do this for EVERY ROOM in your game. Sorry, but it's to support the upcoming
+Windows version.
+ - Allowed creation of very wide (eg. 700x200) lo-res scrolling rooms.
+ - New text script functions MoveCharacterToHotspot, DisplaySpeech, NewRoomEx.
+ - Lucasarts-style inventory window.
+ - Changed background importing - now, it just asks what resolution the
+   drawing is supposed to be, instead of trying to work it out. This allows
+   scrolling rooms of any size in any resolution.
+ - Changed the way the Room Editor works with games - instead of running it
+   from the directory which the game is in, it creates each game a
+   sub-directory below the main RoomEdit/AGS directory. This makes it much
+   easier to edit the demo game, and should solve problems with files not
+   being found and so on. What this means for you is that if you are working
+   on a game with its files in the RoomEdit directory, create a sub-directory
+   and copy all your game files (*.crm, ac2game.*, etc) into it.
+   Another result of this is that the usergame.exe is now called by the game
+   directory's name, and placed in the main AGS directory.
+ - Non-player objects can now be moved with the animation command "Move to",
+   and also with a new text script command MoveObject.
+ - Added graphical script command "Run dialog" (it's under "Remove object" if
+   you can't find it).
+ - Added "Save room" as well as "Save room as" to Room Editor. This option
+   saves back to the same file you loaded from, which is quicker than having
+   to select the right file to save to every time.
+ - Slightly modified the background scene remapper: it now puts the background
+   colours starting from the end of the palette and working backwards; this
+   makes it easier if you want to increase the number of sprite colours part
+   way through making a game. Otherwise this change is transparent to you.
+ - Added ability to "lock" objects in the Room Editor. While an object is
+   locked, it cannot be moved around the screen. Useful if you keep getting the
+   wrong object when you're trying to move a different one.
+ - Increased a few limits: now 100 views, 200 dialog topic, 900 dialog messages.
+ - Fixed bug where "music0.mp3 not found" flashed on the screen breifly.
+ - Fixed the interface text @overhotspot@ to include object & character names.
+ - Included beta version of Windows port! See AGSWIN.TXT for information.
+
+VERSION 2.02, September 1999
+ - Fixed bug where you were unable to save the game.
+ - Character names can use lower case
+ - New option "Player can't skip speech" prevents the player clicking away
+   conversation text, like the way the Lucasarts games won't let you.
+ - Character walks to the walk-to point of a hotspot in Walk mode (as well
+   as use/speak mode). This makes it more like the Lucasarts interface.
+ - Fixed SCI font importing bug, and added an Auto-Recover feature so that if
+   it does crash in future, then it won't permanently disable the Fonts tab.
+ - Added sprite import support for 640x400-resolution object graphics.
+ - Added crash protection to the StrCat function, so that it won't add text
+   past the maximum string length instead of crashing the system.
+ - New MIDI driver: Software wavetable synth, uses the digital sound driver
+   to play MIDI music using General MIDI patch set. By using this driver, your
+   MIDI music can sound the same on ALL sound cards. See section 2.2.1 in the
+   docs for information.
+ - Changed the way that the mouse cursor hotspot setting works - it's clearer
+   what's going on now.
+ - Added engine debugging options. See the TECHDBG.TXT file for information.
+
+VERSION 2.01, September 1999
+NOTE: You will need to upgrade your game to use the new engine. To do this,
+simply load the game into the Room Editor and then save it again.
+ - Characters can now have a Talking view, which allows animation in dialogs
+ - Fixed bug in dialogs where various messages screwed up
+ - Fixed bug where interface text color was always black
+ - Dialog options can now wrap to more than one line
+ - Hotspot names can be longer and use lowercase
+ - Fixed scaling bug where he sometimes popped up full-size briefly
+ - Fixed crash if you pressed a key while in a conversation
+ - Fixed background importing bug where colour index 0 screwed up
+ - Added custom font support; but currently, you can only import SCI fonts.
+ - Added graphical script command "If inventory %d was used"; allows you to
+   use graphical scripts with Data-99 inventory events.
+ - Documented RunDialog text script function
+ - In View Editor, setting graphic for new frame zooms to previous frame's
+   graphic in sprite list
+ - User-defined gap between display of options in conversations
+ - Interface button properties has "..." button to link to script editor if
+   the left-click action is set to Run Script.
+ - You can export the palette to PCX as well as PAL file.
+ - When saving game, RoomEdit also checks for AC.EXE in the roomedit.exe
+   directory as well as the current directory. So editing the demo by typing
+   ..\roomedit will allow it to compile properly.
+ - Fixed game loading bug where the graphical script timer wasn't restored
+ - Allowed 320-width sprite import in room editor (if you drag the rectangle
+   to screen width, it imports what's under the rectangle border as well as
+   what's inside).
+
+VERSION 2.00, September 1999
+Complete re-write of both the Room Editor and the engine. Some of the new
+features are:
+ - Character scaling: man can get smaller as he walks away from the screen.
+ - Customizable interface: you're not stuck with the Sierra one any more.
+ - Non-player characters supported - this allows you to have other characters
+   roaming the world and keep track of where they are.
+ - Animating mouse cursors supported.
+ - Scrolling rooms.
+ - Conversations, like in Lucasarts games, with easy-to-use Dialog Editor.
+ - Conditions for clicking on player character - you no longer have to display
+   a message.
+ - Much more powerful text script: you can do a lot more with it.
+ - Increased max loops per view to 8 instead of 4.
+ - Customizable walking speed for main character.
+ - Baselines for objects, useful for objects lying flat on the ground, so that
+   the man doesn't walk behind them.
+ - You can change the icon bar graphics.
+ - You can build a single EXE file for your game. This goes one step further
+   than the data file you could build in the last version.
+ - Improved remapping of scenes and sprites, solves most of the palette
+   problems people were having with importing their graphics.
+ - Clarified LICENSE.TXT. You should read the new license agreement.
+
+VERSION 1.14a, May 1999
+ - Fixed bug with Lose Game where the LOSE.PCX wasn't being shown, and it
+   called it an "internal error".
+ - Fixed bug where the engine refused to run if you didn't have a sound card.
+ - Added German and Dutch translations by Erix Designs, Spanish translation by
+   Ernesto Couso Artiles, and French translation by Pierre-Marc Jobin.
+ - The introduction messages are now translated.
+ - Fixed graphical script bug, where the flags weren't always initialized to
+   the CLEAR state.
+ - Fixed "sound2.voc not found" in the Showoff demo game.
+
+VERSION 1.14, April 1999
+NOTE: You will need to re-compile games made with previous versions.
+NOTE: Old save game positions cannot be loaded.
+ - Complete overhaul of the text script system. If you were using text
+   scripts, see section 3.8.5 for how to upgrade. Many new commands and
+   built-ins are available, see section 4.4 in the docs for a complete list.
+ - You can now change the main character's graphics within different areas
+   of the same screen. Section 3.13.1 in the docs describes this.
+ - You can customize the score sound and the red-X sound. See ScoreSoundCustom
+   and ErrorSoundCustom in section 4.1 of the docs.
+ - Added support for customizable borders for the text windows. Section 4.1.1
+   in the docs explains how to use this feature.
+ - Added option to move man as close as possible to destination instead of
+   displaying red X. See "MoveNearest" in section 4.1 of the docs for info.
+ - Added XM music support. See section 3.2 of the docs.
+ - The intro system has been changed. Now, the games starts in INTRO.CRM if
+   it exists rather than displaying PIC1.PCX. See section 3.15 in the docs.
+   The demo game intro now has two screens.
+ - You can now change music volume on a per-room basis. This allows you to
+   have, for example, quieter music outside a building than when the player
+   enters it (like with the shops in the arcade in SQ4).
+ - New graphical script commands: "Start timer", "when timer expires" and "move
+   man to object". See section 4.6 in the docs.
+ - New animation command "place object" allows you to instantly move an object
+   to another position (see section 4.5 in the docs).
+ - Added Swedish translation by Arn.
+ - Fixed bug where man would 'moonwalk' when he reached destination (I think -
+   still waiting for confirmation that this is fixed).
+ - Mod musics are now included in your data file (sorry about that!).
+ - Objects are now drawn behind the status bar if they are that high up.
+ - Fixed bug causing mouse droppings to be left on the screen when the player
+   scored points.
+ - Fixed bug where you had to click twice to make the man walk off the left
+   and bottom of the screen.
+ - Fixed bug in RoomMake where the load/save room dialogs could 'disappear'.
+ - Fixed lsl3-type score ticking (it works now!)
+ - Fixed text colour problem in restore/save/quit dialogs.
+ - Fixed spelling of "perhaps" on the second screen of the demo. At last!
+
+VERSION 1.13, March 1999
+NOTE: You will need to re-compile any games made with previous versions.
+NOTE: You cannot load old save game positions saved before this version.
+ - Added "every time player enters screen" and "repeatedly execute" events. See
+   section 4.3 in the docs for information.
+ - Added "move to, ignoring walls" animation command, allows you to give the
+   effect of the character walking through a door otherwise blocked, etc.
+   Also, you can now set a repeating animation in the Animation Editor. See
+   section 4.5 in the docs for info.
+ - New Sierra-style inventory window! See section 4.1.3 in the docs for how to
+   implement this.
+ - Added graphical script commands "If player has inventory item", "Lose
+   inventory item", "Every x loops" and "Random chance". See section 4.6 in
+   the documentation for more info.
+ - You can now use your own custom mouse cursors. See "Cursor" in section 4.1
+   of the documentation.
+ - Different cursor now used in dialog boxes and the like, allows for a proper
+   walk cursor which isn't used everywhere else.
+ - NEW: Windows version of the Project Manager.
+ - The route-finder is now much quicker at working out whether you can get
+   to the destination, so clicking on walls no longer pauses the game for ages.
+ - New: MOD support for background music. You can now use mod files as well
+   as midi files. See section 3.2 in the docs.
+ - The "Go to screen" command is finally implemented in graphical scripts.
+ - New: Global flags in graphical scripts. The demo game now demonstrates
+   this (the cigarette appears on the bin screen once you've given the key
+   to the man).
+ - Choice of two fonts for the speech text - the original one or now an SQ4
+   type speech font as well. See "SpeechFont" in section 4.1 of the docs.
+ - The status bar is now fully (well, almost!) customizable. Section 4.1.2 in
+   the docs describes how to do this.
+ - You can change the colour and style of the message boxes. See section 4.1.1
+   in the docs for info.
+ - You can set messages to be removed after a time if the player has not
+   clicked the mouse - useful for intros/animations/etc. See the end of
+   section 2.5 in the docs for info.
+ - The Sprite Manager can now scroll up/down if you have more sprites than fit
+   on the screen. The maximum is now 500 imported sprites.
+ - When the character dies, you can now have a "Restore or quit" dialog rather
+   than exiting the game.
+ - You can now draw double-thickness walls in the Room Editor. This saves a lot
+   of time so you don't have to draw walls twice.
+ - Speech text is now centred horizontally on the screen.
+ - The score is not displayed in the status bar if TotalScore is set to 0.
+   This allows for some games where you don't want to use the scoring system.
+ - You can now set the icon bar to display on top of the status bar, instead
+   of below it. See IconBarAbsTop in section 4.1 of the docs for info.
+ - You can change the animation speed of the main character. Useful if you are
+   using custom character graphics. See ManAnimSpeed in sect 4.1 in the docs.
+ - The up/down facing view is now used when the character is going more
+   vertically than horizontally, instead of only when going North or South.
+ - Using foreign characters in save game descriptions no longer crashes.
+ - The icon bar is now not displayed while the status bar is disabled.
+ - Added Green speech text colour option. Oh yes!
+ - In the demo game, once the door is unlocked you can now go through it by
+   using the hand cursor.
+ - A couple of people reported that their graphics cards couldn't do 640x400.
+   Now, if RoomMake can't use 640x400 it will use a 640x480 mode with black
+   borders at the top and bottom.
+ - Added teleport-to-room command in debug mode lets you test things without
+   having to play your whole game through.
+ - The main character's colours have been slightly changed. He doesn't look as
+   good now, but it stops the problems which were happening to some scenes.
+ - The Room Editor can no longer save old format room files :-(  But I don't
+   think you really want to go back to v1.00 now, do you?
+ - Fixed bug causing colours 190 and 191 to be overridden (thanks Arn!).
+ - Fixed bug where changing screen the main character would temporarily change
+   to the standard front view.
+ - Fixed bug where objects positions weren't saved if they were turned off.
+ - Fixed bug in save games with some text scripts.
+ - Fixed room loading bug which showed up occasionally on graphical scripts.
+ - Fixed crash which happened when pressing the down arrow key in the Restore
+   game dialog when there were no save games (yes, arcane but true! try it on
+   an older version and see!)
+
+VERSION 1.12a, February 1999
+NOTE: You cannot load old save game positions saved before this version.
+ - You can now move non-player objects with the "Move object" animation
+   command.
+ - Non-player objects are now drawn correctly when in walk-behind areas.
+ - Fixed the bug where objects sometimes weren't being removed from the screen
+   properly, like the poster in the demo game.
+ - Better screen-changing routine which fades in with the objects on, so you
+   don't get that sudden change effect.
+ - Changing the man's graphics now actually works.
+ - The current MIDI track and position are now saved in the save games. Woohoo!
+
+VERSION 1.12, February 1999
+NOTE: You will need to re-compile any games made with versions before this.
+NOTE: You cannot load old save game positions saved before this version.
+ - Added ability to change main character's graphic. See section 3.10 in the
+   documentation for more information.
+ - Added FLI/FLC animation support
+ - Added simple animation support, so you can have, for example, a door
+   actually opening. See section 3.11 in the documentation for info.
+ - You can use Data column values in graphical script
+ - New response "Turn object on" allows you to put back an object you removed
+   with "Remove object".
+ - You can now disable the main character in a room - this allows you to do
+   things like close-ups of a control panel. This is now demonstrated in the
+   demo game, and described in section 3.12.
+ - You can now set an object to initally off in RoomMake, which you can turn
+   on later using "Turn object on".
+ - Added Finnish translation by Teemu Eramaa and Norwegian translation by
+   Martin Seterstoen.
+ - You can now import a portion of a PCX/BMP for object graphics. This allows
+   you to draw several frames in one file, and then import each frame from the
+   same graphic.
+ - New option in the Sprite Manager allows you to use full 256-colour palette
+   for imports if the graphic will only be used in one room. (This prevents
+   the mapping to greyscale).
+ - The Sprite Manager importer now preserves colour 0 (transparent) pixels in
+   the imported image.
+ - You can change the background music through a command as well as with the
+   room option.
+ - Improved message editor allows you to edit existing messages without having
+   to re-type the whole thing and also allows longer messages.
+ - Tweaked the auto-route finder: removed the bug where he would sometimes
+   walk further than you asked, and shortened the time the routefinder is
+   allowed before giving up. This means that it is quicker realizing that you
+   can't get somewhere, but it may not be able to work out a path round
+   complex obstacles.
+ - Pressing 'N' in object editor now uses Sprite manager to select graphic
+   instead of cycling through all available graphs.
+ - Fixed a silly bug with the Go-to-screen data column value where he would
+   appear on the wrong side.
+ - The walk and hand icons have now been replaced.
+ - Slowed down the animation speed of the main character, so he looks more
+   like he's walking.
+ - F1 now works in the Sprite Manager! Oh yes!
+ - Fixed bug in RoomMake which crashed when you moved the mouse to the bottom
+   of the screen.
+
+VERSION 1.1, January 1999
+NOTE: You will need to re-compile any games made with versions before this
+version. If you do not, you will not be able to run the game with this version.
+NOTE: The files needed to distribute your games have changed. Please see
+section 6.2 of the docs for information.
+ - Added SVGA support. Background scenes can now be up to 640x400 256-colour!
+   Please read section 3.9 in AC.DOC for notes on this new feature.
+ - Added background music support, using MIDI files (see section 3.2 of AC.DOC
+   for information).
+ - Added sound effect support (see section 4.2 in AC.DOC for info).
+ - Character movement by mouse added: click on the destination and he will
+   walk there, as in Sierra's VGA games.
+ - New compression algorithm for room files, leading to smaller files. In fact,
+   the room file is now sometimes smaller than the imported scene's PCX file!
+ - Foreign language support added.
+ - Portuguese translation by Nuno Costa.
+ - You can now import your own PCX/BMP files as graphics for objects.
+ - Support for animating background sprites added. SUPPORT is the key word
+   here, because currently I've only drawn one animating sprite.
+ - The first screen of the demo has been changed to show off SVGA and
+   animating sprites. And it looks better like this.
+ - Expanded text script to make it more powerful. It still doesn't rival AGI
+   for power, but you can now print out variable values and do crude intro
+   sequences. See section 4.4 in the documentation for information.
+ - New, much better icons for the top icon bar.
+ - Slowed down the time-of-day to a fixed rate (on fast systems it was
+   changing from day to night to day far too quickly).
+ - Keypad 5 now stops the character walking properly.
+ - Ported the run-time engine to DJGPP (a 32-bit DOS system).
+ - You can now remove the status bar. Wow!
+
+SERVICE RELEASE 1, December 1998
+NOTE: Save games created by this release are not readable with previous
+versions; and this version cannot load old save games. Sorry. If you try to
+load an old game, you'll get Oops error 600. This is the price of progress :-)
+You CAN, however, still use old rooms (so you haven't lost anything - phew!)
+ - Added graphical script editor to RoomMake. This allows easy advanced
+   scripting without using the .SCR file. See the AC.DOC file for more info.
+ - RoomMake has been ported to DPMI. No more memory problems running RoomMake!
+ - RoomMake now has an improved user interface:
+    * a new file selector which allows changing directory and is easier to use
+    * improved other dialogs, such as the "Are you sure you want to Quit"
+      dialog and the "enter password" dialog.
+    * supports long filenames if run under Windows 95, 98, or LFNDOS.
+    * better palette remapping when reading in a PCX file.
+    * supports importing BMP files as a background scene
+ - The old screen now fades out and the new one in when changing screens.
+ - Corrected the bug which caused a crash if you used an object with certain
+   graphics.
+ - Corrected the crash which occured if the script file was newer than the
+   compiled file (thanks Luke!)
+ - One extra screen has been added to the demo game, and it now ends
+   gracefully instead of with a Load_Room error.
+
+REVISION 10.07.97
+NOTE: You will need to re-compile any games you made with any versions
+before revision 10.07.97.A.
+ - added StartPos option to INI file, to define where the man starts on
+   the first screen. Also fixed the jump which happened when he first moved
+   from the beginning.
+ - removed the 'please register' nag screen, since I've decided that the
+   Adventure Creator is now swap-ware (see LICENSE.TXT for info).
+
+VERSION 1.00, FEBRUARY 1997
+Original release.

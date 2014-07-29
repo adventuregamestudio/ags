@@ -18,6 +18,8 @@
 #include "ac/common.h"               // quit()
 #include "util/bbop.h"
 
+using namespace AGS::Common;
+
 // *** The script serialization routines for built-in types
 
 int AGSCCDynamicObject::Dispose(const char *address, bool force) {
@@ -33,10 +35,7 @@ void AGSCCDynamicObject::StartSerialize(char *sbuffer) {
 void AGSCCDynamicObject::SerializeInt(int val) {
     char *chptr = &serbuffer[bytesSoFar];
     int *iptr = (int*)chptr;
-    *iptr = val;
-#if defined (AGS_BIG_ENDIAN)
-    *iptr = AGS::Common::BitByteOperations::SwapBytesInt32(*iptr);
-#endif
+    *iptr = BBOp::Int32FromLE(val);
     bytesSoFar += 4;
 }
 
@@ -56,11 +55,7 @@ int AGSCCDynamicObject::UnserializeInt() {
 
     char *chptr = &serbuffer[bytesSoFar];
     bytesSoFar += 4;
-    int value = *((int*)chptr);
-#if defined (AGS_BIG_ENDIAN)
-    value = AGS::Common::BitByteOperations::SwapBytesInt32(value);
-#endif
-    return value;
+    return BBOp::Int32FromLE(*((int*)chptr));
 }
 
 void AGSCCDynamicObject::Read(const char *address, intptr_t offset, void *dest, int size)

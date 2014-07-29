@@ -28,6 +28,24 @@ void Test_Memory()
     assert(BBOp::SwapBytesInt16(i16) == (int16_t)0xCDAB);
     assert(BBOp::SwapBytesInt32(i32) == (int32_t)0x12EFCDABu);
     assert(BBOp::SwapBytesInt64(i64) == (int64_t)0x9078563412EFCDABul);
+
+#if defined (BITBYTE_BIG_ENDIAN)
+    assert(BBOp::Int16FromLE(i16) == (int16_t)0xCDAB);
+    assert(BBOp::Int32FromLE(i32) == (int32_t)0x12EFCDABu);
+    assert(BBOp::Int64FromLE(i64) == (int64_t)0x9078563412EFCDABul);
+
+    assert(BBOp::Int16FromBE(i16) == (int16_t)0xABCD);
+    assert(BBOp::Int32FromBE(i32) == (int32_t)0xABCDEF12);
+    assert(BBOp::Int64FromBE(i64) == (int64_t)0xABCDEF1234567890);
+#else
+    assert(BBOp::Int16FromLE(i16) == (int16_t)0xABCD);
+    assert(BBOp::Int32FromLE(i32) == (int32_t)0xABCDEF12);
+    assert(BBOp::Int64FromLE(i64) == (int64_t)0xABCDEF1234567890);
+
+    assert(BBOp::Int16FromBE(i16) == (int16_t)0xCDAB);
+    assert(BBOp::Int32FromBE(i32) == (int32_t)0x12EFCDABu);
+    assert(BBOp::Int64FromBE(i64) == (int64_t)0x9078563412EFCDABul);
+#endif
 }
 
 #endif // _DEBUG

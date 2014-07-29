@@ -39,8 +39,7 @@
 #include "ac/statobj/staticarray.h"
 #include "util/string_utils.h" // linux strnicmp definition
 
-using AGS::Common::Stream;
-using AGS::Common::TextStreamWriter;
+using namespace AGS::Common;
 
 extern ccInstance *loadedInstances[MAX_LOADED_INSTANCES]; // in script/script_runtime
 extern int gameHasBeenRestored; // in ac/game
@@ -1828,10 +1827,7 @@ bool ccInstance::CreateGlobalVars(ccScript * scri)
             // DATADATA fixup takes relative address of global data element from fixups array;
             // this is the address of element, which stores address of actual data
             glvar.ScAddress = scri->fixups[i];
-            int32_t data_addr = *(int32_t*)&globaldata[glvar.ScAddress];
-#if defined(AGS_BIG_ENDIAN)
-            data_addr = AGS::Common::BitByteOperations::SwapBytesInt32(data_addr);
-#endif // AGS_BIG_ENDIAN
+            int32_t data_addr = BBOp::Int32FromLE(*(int32_t*)&globaldata[glvar.ScAddress]);
             if (glvar.ScAddress - data_addr != 200 /* size of old AGS string */)
             {
                 // CHECKME: probably replace with mere warning in the log?

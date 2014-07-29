@@ -22,9 +22,9 @@ namespace AGS.Types
 	public class Version
 	{
 		public static readonly bool IS_BETA_VERSION = true;
-		public const string AGS_EDITOR_DATE = "May 2014";
+		public const string AGS_EDITOR_DATE = "August 2014";
 		public const string AGS_EDITOR_FRIENDLY_VERSION = "3.3.1";
-        public const string AGS_EDITOR_VERSION = "3.3.1.1163";
+        public const string AGS_EDITOR_VERSION = "3.3.1.1165";
         public const string AGS_EDITOR_COPYRIGHT = "Copyright © 2006-2011 Chris Jones and 2011-2014 others.";
 	}
 }

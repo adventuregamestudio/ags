@@ -52,7 +52,7 @@ int GetMaxScreenHeight () {
     int maxhit = BASEHEIGHT;
     // uh ... BASEHEIGHT depends on Native Coordinates setting so be careful
     if ((usetup.want_letterbox) && (thisroom.height > maxhit)) 
-        maxhit = divide_down_coordinate(multiply_up_coordinate(maxhit) + game_frame_y_offset);
+        maxhit = divide_down_coordinate(multiply_up_coordinate(maxhit) + game_frame_y_offset * 2);
     return maxhit;
 }
 

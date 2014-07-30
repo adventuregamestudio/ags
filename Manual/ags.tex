@@ -237,23 +237,17 @@ create a simple game.
 The tutorial has now been updated for AGS 3.0. Follow the links below
 to run through it.
 
-\urlref{Tutorial Part 1 - Creating the game}{acintro1.htm}
-
-\urlref{Tutorial Part 2 - Creating your first room}{acintro2.htm}
-
-\urlref{Tutorial Part 3 - Hotspots and events}{acintro3.htm}
-
-\urlref{Tutorial Part 4 - Objects}{acintro4.htm}
-
-\urlref{Tutorial Part 5 - Managing inventory}{acintro5.htm}
-
-\urlref{Tutorial Part 6 - Using your own graphics}{acintro6.htm}
-
-\urlref{Tutorial Part 7 - Animations and cutscenes}{acintro7.htm}
-
-\urlref{Tutorial Part 8 - Conversations}{acintro8.htm}
-
-\urlref{Tutorial Part 9 - Cursors and fonts}{acintro9.htm}
+\begin{itemize}
+\item \urlref{Tutorial Part 1 - Creating the game}{acintro1.htm}
+\item \urlref{Tutorial Part 2 - Creating your first room}{acintro2.htm}
+\item \urlref{Tutorial Part 3 - Hotspots and events}{acintro3.htm}
+\item \urlref{Tutorial Part 4 - Objects}{acintro4.htm}
+\item \urlref{Tutorial Part 5 - Managing inventory}{acintro5.htm}
+\item \urlref{Tutorial Part 6 - Using your own graphics}{acintro6.htm}
+\item \urlref{Tutorial Part 7 - Animations and cutscenes}{acintro7.htm}
+\item \urlref{Tutorial Part 8 - Conversations}{acintro8.htm}
+\item \urlref{Tutorial Part 9 - Cursors and fonts}{acintro9.htm}
+\end{itemize}
 
 For the latest version of the tutorials, always check the AGS website.
 
@@ -566,16 +560,16 @@ create a view in the \helpref{View Editor}{Views}, and this
 view must have either 4 or 8 loops. If you use 4 loops, then when walking
 diagonally the closest straight direction is used for the graphics. Each loop
 is used for the character walking in one direction, as follows:
-\begin{verbatim}
- Loop 0 - walking down (towards screen)
- Loop 1 - walking left
- Loop 2 - walking right
- Loop 3 - walking up (away from screen)
- Loop 4 - walking diagonally down-right
- Loop 5 - walking diagonally up-right
- Loop 6 - walking diagonally down-left
- Loop 7 - walking diagonally up-left
-\end{verbatim}
+\begin{itemize}
+\item \it{Loop 0} -- walking down (towards screen)
+\item \it{Loop 1} -- walking left
+\item \it{Loop 2} -- walking right
+\item \it{Loop 3} -- walking up (away from screen)
+\item \it{Loop 4} -- walking diagonally down-right
+\item \it{Loop 5} -- walking diagonally up-right
+\item \it{Loop 6} -- walking diagonally down-left
+\item \it{Loop 7} -- walking diagonally up-left
+\end{itemize}
 To change the rate at which the character animates, change the Animation Speed box.
 Here, a smaller number means faster animation. Note that this does NOT
 effect the speed at which the character actually moves when walking.
@@ -1501,14 +1495,14 @@ text automatically wraps round to fit inside the rectangle you drew.
 As well as typing normal text into the label, you can add some special markers
 which allow the text to change during the game. The following tokens will be
 replaced with the relevant values in the game:
-\begin{verbatim}
- @GAMENAME@    The game's name, specified on the Game Settings pane
- @OVERHOTSPOT@ Name of the hotspot which the cursor is over
- @SCORE@       The player's current score
- @SCORETEXT@   The text "Score: X of XX" with the relevant numbers filled in.
- @TOTALSCORE@  The maximum possible score, specified on the Game Settings pane
-\end{verbatim}
-Example: You have @SCORE@ out of @TOTALSCORE@ points.
+\begin{itemize}
+\item \it{@GAMENAME@} -- The game's name, specified on the Game Settings pane
+\item \it{@OVERHOTSPOT@} -- Name of the hotspot which the cursor is over
+\item \it{@SCORE@} -- The player's current score
+\item \it{@SCORETEXT@} --  The text "Score: X of XX" with the relevant numbers filled in.
+\item \it{@TOTALSCORE@} -- The maximum possible score, specified on the Game Settings pane
+\end{itemize}
+Example: You have \it{@SCORE@} out of \it{@TOTALSCORE@} points.
 
 The Properties window also allows you to align the text to left, right or
 centre, as well as change its font and colour.
@@ -1959,17 +1953,18 @@ characters, objects, and so on.
 
 To access the properties from the script, there are various script functions. See
 their descriptions for how they work:
-
-\helprefn{Character.GetProperty}{Character.GetProperty},
-\helprefn{Character.GetTextProperty}{Character.GetTextProperty} ILBRK
-\helprefn{Hotspot.GetProperty}{Hotspot.GetProperty},
-\helprefn{Hotspot.GetTextProperty}{Hotspot.GetTextProperty} ILBRK
-\helprefn{InventoryItem.GetProperty}{InventoryItem.GetProperty},
-\helprefn{InventoryItem.GetTextProperty}{InventoryItem.GetTextProperty} ILBRK
-\helprefn{Object.GetProperty}{Object.GetProperty},
-\helprefn{Object.GetTextProperty}{Object.GetTextProperty} ILBRK
-\helprefn{GetRoomProperty}{GetRoomProperty},
-\helprefn{Room.GetTextProperty}{Room.GetTextProperty}
+\begin{itemize}
+\item \helprefn{Character.GetProperty}{Character.GetProperty},
+\item \helprefn{Character.GetTextProperty}{Character.GetTextProperty},
+\item \helprefn{Hotspot.GetProperty}{Hotspot.GetProperty},
+\item \helprefn{Hotspot.GetTextProperty}{Hotspot.GetTextProperty},
+\item \helprefn{InventoryItem.GetProperty}{InventoryItem.GetProperty},
+\item \helprefn{InventoryItem.GetTextProperty}{InventoryItem.GetTextProperty},
+\item \helprefn{Object.GetProperty}{Object.GetProperty},
+\item \helprefn{Object.GetTextProperty}{Object.GetTextProperty},
+\item \helprefn{GetRoomProperty}{GetRoomProperty}, and
+\item \helprefn{Room.GetTextProperty}{Room.GetTextProperty}.
+\end{itemize}
 
 Custom property values cannot currently be set from within the game script - they are read-only
 at runtime.
@@ -2132,12 +2127,12 @@ When you run the game using the Run (F5) option, the game will be started with t
 This allows you to pause your game and follow it through one line at a time.
 
 There are two main ways to use this feature:
-
-* Press SCROLL LOCK while playing the game. This will break out when the next line of script is run.
-
-* Place a breakpoint in your script. You do this by clicking on a line of code
-in the script editor, then pressing F9. Then, when the game arrives at this
-line of code, it will stop running.
+\begin{itemize}
+\item Press SCROLL LOCK while playing the game. This will break out when the next line of script is run.
+\item Place a breakpoint in your script. You do this by clicking on a line of code
+  in the script editor, then pressing F9. Then, when the game arrives at this
+  line of code, it will stop running.
+\end{itemize}
 
 \bf{NOTE:} The editor will allow you to place a breakpoint on any line of script.
 However, in order for it to work, it must be placed on a line that has some code on it.
@@ -2378,15 +2373,11 @@ and sprites by changing the setting in the General Settings pane.
 The AGS scripting system allows you to write a mini-program, giving you great
 control over your game.
 
-\section{Scripting tutorial part 1}%
-
-The Scripting Tutorial is online here:
-\urlref{http://www.bigbluecup.com/actutor.htm}{http://www.bigbluecup.com/actutor.htm}
-
-\section{Scripting tutorial part 2}%
-
-The Scripting Tutorial Part 2 is online here:
-\urlref{http://www.bigbluecup.com/actutor2.htm}{http://www.bigbluecup.com/actutor2.htm}
+The Scripting Tutorials are online here:
+\begin{itemize}
+\item \urlref{http://www.bigbluecup.com/actutor.htm}{http://www.bigbluecup.com/actutor.htm}
+\item \urlref{http://www.bigbluecup.com/actutor2.htm}{http://www.bigbluecup.com/actutor2.htm}
+\end{itemize}
 
 \section{Upgrading to AGS 2.7}\label{UpgradingTo27}%
 
@@ -3179,71 +3170,66 @@ function is called when a particular event happens. There are also some
 other events which you can add if you want to.
 
 The available event functions are:
-\begin{description}
-\item [dialog_request (int parameter)]
-  Called when a dialog script line "run-script" is processed. PARAMETER is
+\begin{itemize}
+\item \it{dialog_request (int parameter)} -- Called when a dialog script line
+  "run-script" is processed. PARAMETER is
   the value of the number following the "run-script" on that line of the
   dialog script.
-\item [game_start ()]
-  Called at the start of the game, before the first room is loaded. You can
+\item \it{game_start ()} -- Called at the start of the game, before the first
+  room is loaded. You can
   use this to set up the initial positions of characters, and to turn
   GUIs on and off. \bf{You cannot run animations or do anything else
   which relies on a room being loaded}.
-\item [interface_click (int interface, int button)]
-  \bf{(Now Obsolete)} Called when the player clicks on a button on a GUI which has its
+\item \it{interface_click (int interface, int button)} -- \bf{(Now Obsolete)}
+  Called when the player clicks on a button on a GUI which has its
   action set as "Run script". INTERFACE is the number of the GUI which they
   clicked on. BUTTON is the object number of the button within this GUI.
-\item [on_event (EventType event, int data)]
-  Called whenever certain game events happen. The value of DATA depends on
+\item \it{on_event (EventType event, int data)} -- Called whenever certain game
+  events happen. The value of DATA depends on
   which event has occurred. This allows you to perform checks or update things
   every time the player does something, regardless of which room it is in.
-  The possible values of event are:\begin{verbatim}
-eEventEnterRoomBeforeFadein
-      called just before room Player Enters Room event is run.
-      DATA = new room number
-eEventLeaveRoom
-      called just after room Player Leaves Room event is run.
-      DATA = room number they are leaving
-eEventGotScore
-      called whenever the player's score changes
-      DATA = number of points they got
-eEventGUIMouseDown
-      called when a mouse button is pressed down over a GUI
-      DATA = GUI number
-eEventGUIMouseUp
-      called when a mouse button is released over a GUI
-      DATA = GUI number
-eEventAddInventory
-      the player just got a new inventory item
-      DATA = inventory item number that was added
-eEventLoseInventory
-      the player just lost an inventory item
-      DATA = inventory item number that was lost
-eEventRestoreGame
-      tells your game that it has just been restored from a save game
-      DATA = save slot number\end{verbatim}
-\item [on_key_press (eKeyCode keycode)]
-  Called whenever a key is pressed on the keyboard. KEYCODE holds the ASCII
+  The possible values of event are:
+  \begin{itemize}
+  \item \it{eEventEnterRoomBeforeFadein} -- called just before room Player Enters Room event is run,
+      DATA = new room number.
+  \item \it{eEventLeaveRoom} -- called just after room Player Leaves Room event is run,
+      DATA = room number they are leaving.
+  \item \it{eEventGotScore} -- called whenever the player's score changes,
+      DATA = number of points they got.
+  \item \it{eEventGUIMouseDown} -- called when a mouse button is pressed down over a GUI,
+      DATA = GUI number.
+  \item \it{eEventGUIMouseUp} -- called when a mouse button is released over a GUI,
+      DATA = GUI number.
+  \item \it{eEventAddInventory} -- the player just got a new inventory item,
+      DATA = inventory item number that was added.
+  \item \it{eEventLoseInventory} -- the player just lost an inventory item,
+      DATA = inventory item number that was lost.
+  \item \it{eEventRestoreGame} -- tells your game that it has just been restored from a save game,
+      DATA = save slot number.
+  \end{itemize}
+\item \it{on_key_press (eKeyCode keycode)} -- Called whenever a key is pressed
+  on the keyboard. KEYCODE holds the ASCII
   value of the key. A list of these values is in \helpref{this section}{ASCIIcodes}.
-\item [on_mouse_click (MouseButton button)]
-  Called when the player clicks a mouse button. BUTTON is either LEFT,
+\item \it{on_mouse_click (MouseButton button)} -- Called when the player clicks
+  a mouse button. BUTTON is either LEFT,
   RIGHT or MIDDLE, depending on which button was clicked. The "mouse.x" and "mouse.y"
-  global variables contain the mouse's position. ILBRK
+  global variables contain the mouse's position.
+
   If 'Handle inventory clicks in script' is enabled in the game options, this
   function can also be called with eMouseLeftInv, eMouseMiddleInv or eMouseRightInv, which
-  indicate a left, middle or right click on an inventory item, respectively. ILBRK
+  indicate a left, middle or right click on an inventory item, respectively.
+
   If 'Enable mouse wheel support' is enabled, this function can also be called with
   eMouseWheelNorth or eMouseWheelSouth, which indicate the user moving the mouse wheel north or
   south, respectively.
-\item [repeatedly_execute()]
-  Called every game cycle (normally 40 times per second).
+\item \it{repeatedly_execute()} -- Called every game cycle (normally 40 times per second).
   See \helprefn{this help page}{RepExec} for more information.
-\item [repeatedly_execute_always()]
-  Called every game cycle, even when a blocking routine (eg. speech/cutscene) is in
+\item \it{repeatedly_execute_always()} -- Called every game cycle, even when a
+  blocking routine (eg. speech/cutscene) is in
   progress. You \bf{cannot} call any blocking functions from this event handler.
   See \helprefn{this help page}{RepExec} for more information.
-\item [unhandled_event (int what, int type)]
-  Called when an event occurs, but no handler is set up in the Events list.
+\item \it{unhandled_event (int what, int type)} -- Called when an event occurs,
+  but no handler is set up in the Events list.
   This could be used to display a default "I can't do that" type of message.
   The values of WHAT and TYPE tell you what the player did. ILBRK
   The possible values are listed below:\begin{verbatim}
@@ -3282,7 +3268,7 @@ eEventRestoreGame
   function, and it will not be triggered if there is an "Any click" event defined.
 
   This function is \bf{not} triggered if the player clicks on nothing (hotspot 0).
-\end{description}
+\end{itemize}
 
 The \it{on_key_press} and \it{on_mouse_click} events can also be handled by
 individual room scripts. If you add their function definitions to your room script
@@ -7338,15 +7324,12 @@ OPTION is the option number within the dialog, from 1 to whatever the
 highest option is for that topic.
 
 The return value can have the following values:
-\begin{verbatim}
-eOptionOff
-  The option is disabled - the player will not see it
-eOptionOn
-  The option is enabled - the player can now see and use it
-eOptionOffForever
-  The option is permanently disabled - no other command can ever turn
+\begin{itemize}
+\item \it{eOptionOff} -- The option is disabled, the player will not see it.
+\item \it{eOptionOn} -- The option is enabled, the player can now see and use it.
+\item \it{eOptionOffForever} -- The option is permanently disabled, no other command can ever turn
   it back on again.
-\end{verbatim}
+\end{itemize}
 These are the same as the options passed to Dialog.SetOptionState.
 
 \fcol{red}{Example:}
@@ -7490,15 +7473,12 @@ highest option is for that topic.
 
 The DialogOptionState controls what happens to this option. It can have the following
 values:
-\begin{verbatim}
-eOptionOff
-  The option is disabled - the player will not see it
-eOptionOn
-  The option is enabled - the player can now see and use it
-eOptionOffForever
-  The option is permanently disabled - no other command can ever turn
+\begin{itemize}
+\item \it{eOptionOff} -- The option is disabled, the player will not see it.
+\item \it{eOptionOn} -- The option is enabled, the player can now see and use it.
+\item \it{eOptionOffForever} -- The option is permanently disabled, no other command can ever turn
   it back on again.
-\end{verbatim}
+\end{itemize}
 These are equivalent to the option-off, option-on, and option-off-forever
 dialog commands.
 
@@ -9743,24 +9723,24 @@ to turn off debug mode in the AGS Editor.
 The DATA parameter depends on the command - pass 0 if it is not used.
 All the valid values for the COMMAND parameter are listed below along with
 what they do:
-\begin{verbatim}
-0   All inventory - gives the current player character one of every
+\begin{itemize}
+\item \it{0: All inventory} -- gives the current player character one of every
     inventory item. This is useful for testing so that you don't have to
     go and pick up items every time you test part of the game where they
     are required.
-1   Display interpreter version - the engine will display its version
+\item \it{1: Display interpreter version} -- the engine will display its version
     number and build date.
-2   Walkable from here - fills in the parts of the screen where the player
+\item \it{2: Walkable from here} -- fills in the parts of the screen where the player
     can walk from their current location. This is useful if you think the
     path-finder is not working properly. All walkable areas are drawn in
     their respective colours, but with blocking areas at characters feet
     removed.
-3   Teleport - displays a dialog box asking for what room you want to go
+\item \it{3: Teleport} -- displays a dialog box asking for what room you want to go
     to, and then calls ChangeRoom to teleport you there. Useful for skipping
     parts of the game or going to a specific point to test something.
-4   Show FPS - toggles whether the current frames per second is displayed
+\item \it{4: Show FPS} -- toggles whether the current frames per second is displayed
     on the screen. Pass DATA as 1 to turn this on, 0 to turn it off.
-\end{verbatim}
+\end{itemize}
 
 \it{See Also:} \helprefn{Debugging features}{Debuggingfeatures}
 
@@ -10070,12 +10050,12 @@ process a mouse click differently depending on what the player clicks on.
 description of GetLocationName for more info.
 
 The value returned is one of the following:
-\begin{verbatim}
-eLocationNothing    nothing, GUI or inventory
-eLocationHotspot    a hotspot
-eLocationCharacter  a character
-eLocationObject     an object
-\end{verbatim}
+\begin{itemize}
+\item \it{eLocationNothing} -- Nothing, GUI or inventory.
+\item \it{eLocationHotspot} -- A hotspot.
+\item \it{eLocationCharacter} -- A character.
+\item \it{eLocationObject} -- An object.
+\end{itemize}
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -10677,10 +10657,10 @@ or AC2GAME.AGS file, and it must be in the current directory.
 
 MODE specifies various options about how you want to run the game. Currently the supported
 values are:
-\begin{verbatim}
-0   Current game is completely exited, new game runs as if it had been launched separately
-1   GlobalInt values are preserved and are not set to 0 for the new game.
-\end{verbatim}
+\begin{itemize}
+\item \it{0} -- Current game is completely exited, new game runs as if it had been launched separately
+\item \it{1} -- GlobalInt values are preserved and are not set to 0 for the new game.
+\end{itemize}
 
 DATA allows you to pass an integer through to the next game. The value you pass here
 will be accessible to the loaded game by it reading the  game.previous_game_data  variable.
@@ -11115,18 +11095,13 @@ things like introduction sequences, where you want the player to be able to skip
 over an intro that they've seen before.
 
 The CutsceneSkipType determines how they can skip the cutscene:
-\begin{verbatim}
-eSkipESCOnly
-  by pressing ESC only
-eSkipAnyKey
-  by pressing any key
-eSkipMouseClick
-  by clicking a mouse button
-eSkipAnyKeyOrMouseClick
-  by pressing any key or clicking a mouse button
-eSkipESCOrRightButton
-  by pressing ESC or clicking the right mouse button
-\end{verbatim}
+\begin{itemize}
+\item \it{eSkipESCOnly} -- By pressing ESC only.
+\item \it{eSkipAnyKey} -- By pressing any key.
+\item \it{eSkipMouseClick} -- By clicking a mouse button.
+\item \it{eSkipAnyKeyOrMouseClick} -- By pressing any key or clicking a mouse button.
+\item \it{eSkipESCOrRightButton} -- By pressing ESC or clicking the right mouse button.
+\end{itemize}
 You need to mark the end of the cutscene with the EndCutscene command.
 
 Be \bf{very careful} with where you place the corresponding EndCutscene command.
@@ -15027,30 +15002,30 @@ it is not needed for the particular function you are calling, pass zero
 instead.
 
 The tasks performed are as follows depending on the COMMAND parameter:
-\begin{verbatim}
-eCDIsDriverPresent - checks if there is a CD-ROM driver available on
+\begin{itemize}
+\item \it{eCDIsDriverPresent} -- checks if there is a CD-ROM driver available on
    the system. Returns 1 if there is, and 0 if there is not.
-eCDGetPlayingStatus - checks whether the CD drive is currently playing
+\item \it{eCDGetPlayingStatus} -- checks whether the CD drive is currently playing
    an audio track. Returns 1 if it is, and 0 if it is not.
-eCDPlayTrack - starts playback from track PARAM on the CD. If the track
+\item \it{eCDPlayTrack} -- starts playback from track PARAM on the CD. If the track
    does not exist, or if it is a data track, nothing happens.
-eCDPausePlayback - pauses the currently playing audio track.
-eCDResumePlayback - continues from where the track was paused.
-eCDGetNumTracks - returns the number of tracks on the CD
+\item \it{eCDPausePlayback} -- pauses the currently playing audio track.
+\item \it{eCDResumePlayback} -- continues from where the track was paused.
+\item \it{eCDGetNumTracks} -- returns the number of tracks on the CD
    currently in the drive. If the drive is empty, returns 0.
-eCDEject - ejects the drive tray if the drive has the ability. This is
+\item \it{eCDEject} -- ejects the drive tray if the drive has the ability. This is
    a feature you'll play with to start off because it's neat, and then
    realize that it has no real use in your game.
    Your script does not continue until the drive is fully ejected.
-eCDCloseTray - the reverse of Eject. This will pull the drive tray back
+\item \it{eCDCloseTray} -- the reverse of Eject. This will pull the drive tray back
    in again. Your script does not continue until the drive has been
    fully closed.
-eCDGetCDDriveCount - returns the number of CD drives in the
+\item \it{eCDGetCDDriveCount} -- returns the number of CD drives in the
    system, normally 1.
-eCDSelectActiveCDDrive - changes the current CD drive to PARAM,
+\item \it{eCDSelectActiveCDDrive} -- changes the current CD drive to PARAM,
    where PARAM ranges from 1 to (number of CD drives). All the other
    CD Audio functions operate on the current CD drive.
-\end{verbatim}
+\end{itemize}
 NOTE: These CD Audio functions are slow compared to all the other script
 functions. This will not be noticeable if you call them from most scripts,
 but using CDAudio in a repeatedly_execute script will noticeably slow down
@@ -15131,13 +15106,13 @@ Plays a FLI or FLC animation. The game checks for FLICx.FLC and FLICx.FLI
 (where X is FLIC_NUMBER) and if it finds one, plays it.
 
 OPTIONS has these meanings:
-\begin{verbatim}
-0  player can't skip animation
-1  player can press ESC to skip animation
-2  player can press any key or click mouse to skip animation
-+10 (ie.10,11,12) do not stretch to full-screen, just play at flc size
-+100 do not clear the screen before starting playback
-\end{verbatim}
+\begin{itemize}
+\item \it{0} -- Player can't skip animation.
+\item \it{1} -- Player can press ESC to skip animation.
+\item \it{2} -- Player can press any key or click mouse to skip animation.
+\item \it{+10 (ie.10,11,12)} -- Do not stretch to full-screen, just play at flc size.
+\item \it{+100} -- Do not clear the screen before starting playback.
+\end{itemize}
 The game is paused while the animation plays.
 
 \fcol{red}{Example:}
@@ -15170,21 +15145,21 @@ Plays an AVI, MPG or OGG Theora file, or any other file type supported by Media 
 The game is paused while the video plays.
 
 \it{VideoSkipStyle} defines how the player can skip the video:
-\begin{verbatim}
-eVideoSkipNotAllowed     player can't skip video
-eVideoSkipEscKey         player can press ESC to skip video
-eVideoSkipAnyKey         player can press any key to skip video
-eVideoSkipAnyKeyOrMouse  player can press any key or click mouse to skip
-\end{verbatim}
+\begin{itemize}
+\item \it{eVideoSkipNotAllowed} -- Player can't skip video.
+\item \it{eVideoSkipEscKey} -- Player can press ESC to skip video.
+\item \it{eVideoSkipAnyKey} -- Player can press any key to skip video.
+\item \it{eVideoSkipAnyKeyOrMouse} -- Player can press any key or click mouse to skip.
+\end{itemize}
 
 FLAGS can be one of the following:
-\begin{verbatim}
-0: the video will be played at original size, with AVI audio
-1: the video will be stretched to full screen, with appropriate
+\begin{itemize}
+\item \it{0} -- The video will be played at original size, with AVI audio.
+\item \it{1} -- The video will be stretched to full screen, with appropriate
    black borders to maintain its aspect ratio and AVI audio.
-10: original size, with game audio continuing (AVI audio muted)
-11: stretched to full screen, with game audio continuing (AVI audio muted)
-\end{verbatim}
+\item \it{10} -- Original size, with game audio continuing (AVI audio muted).
+\item \it{11} -- Stretched to full screen, with game audio continuing (AVI audio muted).
+\end{itemize}
 
 There are two distinct type of videos that the PlayVideo function can play.
 
@@ -15260,11 +15235,11 @@ change the volume of all audio clips of a particular type, so that you can
 easily control sound and music volume separately, for example.
 
 Possible values for \it{ChangeVolumeType} are:
-\begin{verbatim}
-eVolChangeExisting      change the volume of currently playing audio clips
-eVolSetFutureDefault    change the default volume for clips of this type
-eVolExistingAndFuture   change both currently playing and future audio
-\end{verbatim}
+\begin{itemize}
+\item \it{eVolChangeExisting} -- Change the volume of currently playing audio clips.
+\item \it{eVolSetFutureDefault} -- Change the default volume for clips of this type.
+\item \it{eVolExistingAndFuture} -- Change both currently playing and future audio.
+\end{itemize}
 
 If you use the \it{eVolSetFutureDefault} or \it{eVolExistingAndFuture}, then
 the DefaultVolume property for all audio clips of this type will be overridden.
@@ -16605,10 +16580,11 @@ Runs the event handler as if the EVENT for the region had been activated.
 
 \bf{NOTE:} Unlike the other RunInteraction commands, this one does not take a cursor mode.
 Instead, it uses an event type as follows:
-
-0  While player stands on region ILBRK
-1  Player walks onto region ILBRK
-2  Player walks off region
+\begin{itemize}
+\item \it{0} -- While player stands on region.
+\item \it{1} -- Player walks onto region.
+\item \it{2} -- Player walks off region.
+\end{itemize}
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -17614,12 +17590,12 @@ This function is for special effects only - all co-ordinates remain the
 same and it doesn't effect any other script functions.
 
 The value of WAY selects:
-\begin{verbatim}
-0  normal
-1  horizontal-flip (upside-down)
-2  vertical-flip  (left-to-right)
-3  both (upside-down and backwards)
-\end{verbatim}
+\begin{itemize}
+\item \it{0} -- Normal.
+\item \it{1} -- Horizontal-flip (upside-down).
+\item \it{2} -- Vertical-flip  (left-to-right).
+\item \it{3} -- Both (upside-down and backwards).
+\end{itemize}
 \bf{NOTE}: This function is still a bit buggy - black parts of the screen may
 show up wrong, and and pop-up messages will flip the screen back to normal.
 
@@ -17681,13 +17657,13 @@ SeeAlso: \helprefn{SetScreenTransition}{SetScreenTransition}
 SetScreenTransition(TransitionStyle)
 \end{verbatim}
 Changes the default screen transition. TransitionStyle can be one of the following:
-\begin{verbatim}
-eTransitionFade
-eTransitionInstant
-eTransitionDissolve
-eTransitionBoxout
-eTransitionCrossfade
-\end{verbatim}
+\begin{itemize}
+\item \it{eTransitionFade}
+\item \it{eTransitionInstant}
+\item \it{eTransitionDissolve}
+\item \it{eTransitionBoxout}
+\item \it{eTransitionCrossfade}
+\end{itemize}
 All future transitions will be done as specified until you call this
 function again.
 
@@ -17928,15 +17904,15 @@ static SkipSpeechStyle Speech.SkipStyle
 Gets/sets how the player can skip speech lines.
 
 The accepted values are
-\begin{verbatim}
-eSkipKeyMouseTime  player can skip text by clicking mouse or pressing key
-eSkipKeyTime       player can skip text by pressing key only, not by clicking mouse
-eSkipTime          player cannot skip text with mouse or keyboard
-eSkipKeyMouse      text does not time-out; player must click mouse or press key each time
-eSkipMouseTime     player can skip text by clicking mouse only, not by pressing key
-eSkipKey           text does not time-out; player can skip text by pressing key only
-eSkipMouse         text does not time-out; player can skip text by clicking mouse only
-\end{verbatim}
+\begin{itemize}
+\item \it{eSkipKeyMouseTime} - Player can skip text by clicking mouse or pressing key.
+\item \it{eSkipKeyTime} - Player can skip text by pressing key only, not by clicking mouse.
+\item \it{eSkipTime} - Player cannot skip text with mouse or keyboard.
+\item \it{eSkipKeyMouse} - Text does not time-out; player must click mouse or press key each time.
+\item \it{eSkipMouseTime} - Player can skip text by clicking mouse only, not by pressing key.
+\item \it{eSkipKey} - Text does not time-out; player can skip text by pressing key only.
+\item \it{eSkipMouse} - Text does not time-out; player can skip text by clicking mouse only.
+\end{itemize}
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -17959,16 +17935,12 @@ static eSpeechStyle Speech.Style
 
 Gets/sets theway in which speech text is displayed. This modifies the setting
 originally set in the editor. SpeechStyle can be:
-\begin{verbatim}
-eSpeechLucasarts
-  speech text over character's head
-eSpeechSierra
-  close-up portrait of character
-eSpeechSierraWithBackground
-  close-up portrait + background window for text
-eSpeechFullScreen
-  QFG4-style full screen dialog pictures
-\end{verbatim}
+\begin{itemize}
+\item \it{eSpeechLucasarts} -- Speech text over character's head.
+\item \it{eSpeechSierra} -- Close-up portrait of character.
+\item \it{eSpeechSierraWithBackground} -- Close-up portrait + background window for text.
+\item \it{eSpeechFullScreen} -- QFG4-style full screen dialog pictures.
+\end{itemize}
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -17988,12 +17960,12 @@ static Alignment Speech.TextAlignment
 Sets how text in Lucasarts-style speech is aligned.
 
 The accepted values are
-\begin{verbatim}
-eAlignLeft
-eAlignCentre
-eAlignRight
-\end{verbatim}
-The default is eAlignCentre.
+\begin{itemize}
+\item \it{eAlignLeft}
+\item \it{eAlignCentre}
+\item \it{eAlignRight}
+\end{itemize}
+The default is \it{eAlignCentre}.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -18034,11 +18006,11 @@ static eVoiceMode Speech.VoiceMode
 Gets/sets whether voice and/or text captions are used in the game.
 
 Valid values for VoiceMode are:
-\begin{verbatim}
-eSpeechTextOnly      no voice, text only
-eSpeechVoiceAndText  both voice and text
-eSpeechVoiceOnly     voice only, no text
-\end{verbatim}
+\begin{itemize}
+\item \it{eSpeechTextOnly} -- No voice, text only.
+\item \it{eSpeechVoiceAndText} -- Both voice and text.
+\item \it{eSpeechVoiceOnly} -- Voice only, no text.
+\end{itemize}
 The default is \it{eSpeechVoiceAndText} if in-game speech is enabled, and \it{eSpeechTextOnly} if it
 is not. Changing this setting changes the behaviour of all \helprefn{Say}{Character.Say} and
 \helprefn{Display}{Display} commands which have a speech file assigned to them.
@@ -18726,12 +18698,12 @@ readonly static eOperatingSystem System.OperatingSystem;
 \end{verbatim}
 Returns which operating system the game is currently running under. It can be one of
 the following values:
-\begin{verbatim}
-eOSDOS
-eOSWindows
-eOSLinux
-eOSMacOS
-\end{verbatim}
+\begin{itemize}
+\item \it{eOSDOS}
+\item \it{eOSWindows}
+\item \it{eOSLinux}
+\item \it{eOSMacOS}
+\end{itemize}
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -19132,11 +19104,13 @@ last time.
 There are a couple of game variables available which can further customize the look of
 the bar. You can change these before calling DisplayTopBar.
 
-\bf{game.top_bar_bordercolor} sets the colour used for the bar's border (set to the same
-colour as the backcolor if you don't want a border) ILBRK
-\bf{game.top_bar_borderwidth} sets the width of the bar's border, in pixels (default 1) ILBRK
-\bf{game.top_bar_font} sets the font to use for the top bar. The default is -1, which means
+\begin{itemize}
+\item \it{game.top_bar_bordercolor} -- sets the colour used for the bar's border (set to the same
+colour as the backcolor if you don't want a border)
+\item \it{game.top_bar_borderwidth} -- sets the width of the bar's border, in pixels (default 1)
+\item \it{game.top_bar_font} -- sets the font to use for the top bar. The default is -1, which means
 that the current Normal font is used. Set it to a specific number to use that font instead.
+\end{itemize}
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -19628,56 +19602,56 @@ The following events are available in the "Events" section of the Properties Win
 
 \subsection{Hotspot events}%
 
-\begin{description}
-\item [Player stands on hotspot] occurs repeatedly while the player character
+\begin{itemize}
+\item \it{Player stands on hotspot} -- Occurs repeatedly while the player character
 is standing on the hotspot.
-\item [Look at hotspot] occurs when the player clicks on the hotspot while in
+\item \it{Look at hotspot} -- Occurs when the player clicks on the hotspot while in
 the "Look" mode (cursor mode 1).
-\item [Interact with hotspot] occurs when the player clicks on the hotspot while
+\item \it{Interact with hotspot} -- Occurs when the player clicks on the hotspot while
 in the "Interact" mode (cursor mode 2).
-\item [Use inventory on hotspot] occurs when the player clicks on the hotspot
+\item \it{Use inventory on hotspot} -- Occurs when the player clicks on the hotspot
 while in the "Use inventory" mode (cursor mode 4). You can use the
 \helprefn{player.ActiveInventory}{Character.ActiveInventory} property to distinguish
 which item they used. ILBRK
-\item [Speak to hotspot] occurs when the player clicks on the hotspot while in
+\item \it{Speak to hotspot} -- Occurs when the player clicks on the hotspot while in
 the "Talk" mode (cursor mode 3).
-\item [Any click on hotspot] occurs when the player clicks on the hotspot in
+\item \it{Any click on hotspot} -- Occurs when the player clicks on the hotspot in
 any cursor mode (except Walk). This allows you to add extra modes like
 smell, taste, push, pull, and so on. This event also occurs as well as
 the other event for the Look, Interact and Talk modes.
-\item [Mouse moves over hotspot] occurs repeatedly while the mouse cursor is
+\item \it{Mouse moves over hotspot} -- Occurs repeatedly while the mouse cursor is
 over the hotspot. You can use this to highlight the cursor, and for other
 various effects.
-\end{description}
+\end{itemize}
 
 \subsection{Object events}%
 
-\begin{description}
-\item [Look at object] occurs when the player clicks on the object while in
+\begin{itemize}
+\item \it{Look at object} -- Occurs when the player clicks on the object while in
 the "Look" mode (cursor mode 1).
-\item [Interact with object] occurs when the player clicks on the object in
+\item \it{Interact with object} -- Occurs when the player clicks on the object in
 the "Interact" mode (cursor mode 2).
-\item [Speak to object] occurs when the player clicks on the object in the
+\item \it{Speak to object} -- Occurs when the player clicks on the object in the
 "Talk" mode (cursor mode 3).
-\item [Use inventory on object] works like "Use inventory on hotspot" - see
+\item \it{Use inventory on object} -- Works like "Use inventory on hotspot" - see
 that description (above) for more information.
-\end{description}
+\end{itemize}
 
 \subsection{Room events}%
 
-\begin{description}
-\item [Walk off left] occurs when the player character walks off the left edge
+\begin{itemize}
+\item \it{Walk off left} -- Occurs when the player character walks off the left edge
 of the screen.
-\item [Walk off right] occurs when the player walks off the right edge of the
+\item \it{Walk off right} -- Occurs when the player walks off the right edge of the
 screen.
-\item [Walk off bottom] occurs when the player character walks off the bottom
+\item \it{Walk off bottom} -- Occurs when the player character walks off the bottom
 edge of the screen.
-\item [Walk off top] occurs when the player character walks off the top edge
+\item \it{Walk off top} -- Occurs when the player character walks off the top edge
 of the screen.
-\item [First time enters room] occurs the first time the player enters the
+\item \it{First time enters room} -- Occurs the first time the player enters the
 room. This event occurs AFTER the screen has faded in, so it allows you to
 display a message describing the scene.
-\item [Player enters room (before fadein)] occurs just after the room is loaded into memory.
+\item \it{Player enters room (before fadein)} -- Occurs just after the room is loaded into memory.
 This event occurs every time the player enters the screen, and it happens
 BEFORE the screen has faded in, which allows you to change object graphics
 and do other things to the screen which the player won't notice.
@@ -19685,59 +19659,59 @@ and do other things to the screen which the player won't notice.
 \it{NOTE: This event is ONLY meant for adjusting things such as object and
 character placement. Do NOT use this event for any sort of automated intro
 to the room - use the "Enters Room After Fade In" event for that instead.}
-\item [Repeatedly execute] occurs repeatedly on every interpreter cycle. The
+\item \it{Repeatedly execute} -- Occurs repeatedly on every interpreter cycle. The
 normal game speed is 40 cycles per second, so this event occurs about
 every 25 milliseconds.
-\item [Player enters room (after fadein)] occurs every time the player enters the
+\item \it{Player enters room (after fadein)} -- Occurs every time the player enters the
 room, AFTER the screen has faded-in. Suitable for displaying text
 descriptions and so on, that you want the player to see.
-\item [Player leaves room] occurs when the player leaves the screen, just
+\item \it{Player leaves room} -- Occurs when the player leaves the screen, just
 before the screen fades out.
-\end{description}
+\end{itemize}
 
 \subsection{Inventory item events}%
 
-\begin{description}
-\item [Look at inventory] occurs when the player clicks on the inventory item
+\begin{itemize}
+\item \it{Look at inventory} -- Occurs when the player clicks on the inventory item
 while in the "look" mode.
-\item [Interact with inventory] currently, because the Interact mode selects the
+\item \it{Interact with inventory} -- Currently, because the Interact mode selects the
 inventory item, this event can only be triggered by manually calling
 the InventoryItem.RunInteraction script function (ie. you have to use the Handle
 Inv Clicks in Script option).
-\item [Speak to inventory] only applies to the Lucasarts-style inventory,
+\item \it{Speak to inventory} -- Only applies to the Lucasarts-style inventory,
 occurs when the player clicks the Talk icon on the inventory item.
-\item [Use inventory on inv] occurs when the player uses another inventory
+\item \it{Use inventory on inv} -- Occurs when the player uses another inventory
 object on this one. You can use the \helprefn{player.ActiveInventory}{Character.ActiveInventory}
 property to distinguish which item they used. ILBRK
 This event allows the player to combine items, and so on. For example, if they had
 picked up a laptop computer and a battery separately, then you could use this to
 allow them to insert the battery into the computer.
-\item [Other click on inventory] only applies to the Lucasarts-style inventory,
+\item \it{Other click on inventory} -- Only applies to the Lucasarts-style inventory,
 occurs when the player clicks any other cursor mode (apart from look, talk
 and use_inv) on the item.
-\end{description}
+\end{itemize}
 
 \subsection{Character events}%
 
-\begin{description}
-\item [Look at character] occurs when the player clicks on a character while in the "look" mode.
-\item [Interact with character] occurs when the player clicks on a character while in the "interact" mode.
-\item [Speak to character] occurs when the player clicks on a character while in the "talk" mode.
-\item [Use inventory on character] occurs when the player uses an inventory
+\begin{itemize}
+\item \it{Look at character} -- Occurs when the player clicks on a character while in the "look" mode.
+\item \it{Interact with character} -- Occurs when the player clicks on a character while in the "interact" mode.
+\item \it{Speak to character} -- Occurs when the player clicks on a character while in the "talk" mode.
+\item \it{Use inventory on character} -- Occurs when the player uses an inventory
 object on a character.  This event could be used to allow the player to give items to characters.
-\item [Any click on character] occurs when the player clicks any other cursor mode
+\item \it{Any click on character} -- Occurs when the player clicks any other cursor mode
 (apart from look, talk and use_inv) on the character.
-\end{description}
+\end{itemize}
 
 \subsection{Region events}%
 
-\begin{description}
-\item [While player stands on region] occurs repeatedly while the player character stands on this region
-\item [Player walks onto region] occurs when the player moves from another region onto this one. Will
+\begin{itemize}
+\item \it{While player stands on region} -- Occurs repeatedly while the player character stands on this region.
+\item \it{Player walks onto region} -- Occurs when the player moves from another region onto this one. Will
   also activate on whichever region they start on when they enter the screen.
-\item [Player walks off region] occurs when the player leaves the current region. Does not occur
+\item \it{Player walks off region} -- Occurs when the player leaves the current region. Does not occur
   if they go to a different room.
-\end{description}
+\end{itemize}
 
 
 

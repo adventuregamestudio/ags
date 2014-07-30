@@ -745,25 +745,18 @@ rather than a dialog scripting command.
 
 The dialog commands available are:
 \begin{itemize}\itemsep=10pt
-\item \bf{goto-dialog X} ILBRK
-  Switches the current topic to Topic X, and displays the current list of
+\item \it{goto-dialog X} -- Switches the current topic to Topic X, and displays the current list of
   choices for that topic.
-\item \bf{goto-previous} ILBRK
-  Returns to the previous topic that this one was called from. If the dialog
+\item \it{goto-previous} -- Returns to the previous topic that this one was called from. If the dialog
   started on this topic, then the dialog will be stopped.
-\item \bf{option-off X} ILBRK
-  Turns option X for the current topic off, meaning it won't be displayed in
+\item \it{option-off X} -- Turns option X for the current topic off, meaning it won't be displayed in
   the list of choices next time.
-\item \bf{option-off-forever X} ILBRK
-  Turns option X off permanently. It will never again be displayed, not even
+\item \it{option-off-forever X} -- Turns option X off permanently. It will never again be displayed, not even
   if an "option-on" command is used.
-\item \bf{option-on X} ILBRK
-  Turns option X for the current topic on, including it in the list of choices
+\item \it{option-on X} -- Turns option X for the current topic on, including it in the list of choices
   to the player next time they are displayed.
-\item \bf{return}ILBRK
-  Stops the script and returns to the list of choices.
-\item \bf{stop} ILBRK
-  Stops the conversation and returns the player to the game.
+\item \it{return} -- Stops the script and returns to the list of choices.
+\item \it{stop} -- Stops the conversation and returns the player to the game.
 \end{itemize}
 For an example of a dialog script, load the demo game into the editor and
 look at the script for its topic 0.
@@ -832,52 +825,52 @@ later.
 
 Most of these options can be changed at runtime with the script command SetGameOption.
 \begin{itemize}
-\item \bf{Debug Mode} - whether the debug keys are active. When debug mode is on,
+\item \it{Debug Mode} -- whether the debug keys are active. When debug mode is on,
 you can press Ctrl-X to teleport to any room, Ctrl-S to give all inventory
 items, Ctrl-A to display walkable areas on the screen, and Ctrl-D to display
 statistics about the current room. When debug mode is off, these do nothing.
 See the \helprefn{Debugging features}{Debuggingfeatures} section for more.
-\item \bf{Play sound on score} - controls whether a sound effect is played when
+\item \it{Play sound on score} -- controls whether a sound effect is played when
 the player scores points. If so, you can set the sound number, which will
 play SOUNDx.WAV (or SOUNDx.MP3), where X is the number you set.
-\item \bf{Walk to hotspot in Look mode} - controls whether the player will walk
+\item \it{Walk to hotspot in Look mode} -- controls whether the player will walk
 to "walk-to" spots when the player looks at the hotspot. Normally he only
 walks on use, speak and use-inv.
-\item \bf{Dialog options on GUI} - controls where the player's options for dialog are
+\item \it{Dialog options on GUI} -- controls where the player's options for dialog are
 displayed. If this option is not checked, then in a conversation, the options
 will be displayed at the bottom of the screen. If you check this box, then
 instead the options will be displayed on the GUI you specify.
-\item \bf{Use "anti-glide" mode} - you may notice that, as the character walks, it
+\item \it{Use "anti-glide" mode} -- you may notice that, as the character walks, it
 can seem as if he is gliding, especially if you have a slow animation speed
 setting. When anti-glide mode is on, the man's position is only updated
 when the frame of animation changes. You will need to increase each
 character's walking speed if you use this option.
-\item \bf{Text windows use GUI} - allows you to customize the standard text window
+\item \it{Text windows use GUI} -- allows you to customize the standard text window
 appearance in the game, using the specified interface element. See \helpref{here}{TextWin}
 for more information.
-\item \bf{Pixel gap between options} - defines the gap between the options displayed
+\item \it{Pixel gap between options} -- defines the gap between the options displayed
 to the player in a conversation. Normally this is 0, which means the
 options are right below each other. Changing it to 1 or 2 can make the
 option display look less cluttered; it's a matter of personal preference.
-\item \bf{Skip Speech} - determines how and whether the player can skip speech
+\item \it{Skip Speech} -- determines how and whether the player can skip speech
 in-game. This can be set to allow the mouse and/or keyboard, or neither, to
 skip speech in the game.
-\item \bf{When interface disabled} - determines what happens to buttons on your
+\item \it{When interface disabled} -- determines what happens to buttons on your
 GUIs while the game interface is disabled (eg. during a cutscene).
-\item \bf{GUI alpha rendering style} - determines which rendering method to use in
+\item \it{GUI alpha rendering style} -- determines which rendering method to use in
 32-bit games when a GUI Control is drawn over GUI. The "Proper alpha belnding"
 choice is meant for full alpha blending support, other options exist for
 compatibility with older versions of AGS only.
-\item \bf{Sprite alpha rendering style} - determines which rendering method to use
+\item \it{Sprite alpha rendering style} -- determines which rendering method to use
 in 32-bit games when an image is drawn over \helpref{drawing surface}{DrawingSurfaceFunctions}.
 The "Proper alpha belnding" choice is meant for full alpha blending support,
 "Classic" style exists for  compatibility with older versions of AGS only.
-\item \bf{Always display text as speech} - if you select this option, then all normal
+\item \it{Always display text as speech} -- if you select this option, then all normal
 text in the game will be displayed above the main character's head as speech
 text, much like the way the Lucasarts games worked. If this option is not
 checked, then normal text appears in a pop-up message box, like the way that
 the Sierra games worked.
-\item \bf{Speech style} - in the default Lucasarts-style speech, when a character talks, the
+\item \it{Speech style} -- in the default Lucasarts-style speech, when a character talks, the
 speech text is displayed above their head in the game, and the character's
 talking view is used to animate the actual character. ILBRK
 However, if you set this option to Sierra-style then the talking view is used to display an
@@ -887,65 +880,65 @@ later Sierra games worked. You can also cycle to another option, "Sierra-
 style with background", which is the same except a text window is drawn
 behind the speech text to make it easier to read. ILBRK
 "Whole Screen" uses a full-screen character portrait, like the way that QFG4 worked.
-\item \bf{Speech portrait side} - if you're using Sierra-style speech, then this
+\item \it{Speech portrait side} -- if you're using Sierra-style speech, then this
 determines whether the portrait appears on the left or the right of the screen. The "alternate"
 setting means it swaps sides whenever a different person talks, and the "Based on X position"
 setting means that the side of the screen is chosen depending on where the characters are
 standing.
-\item \bf{Room transition style} - defines what type of screen transition is used when
+\item \it{Room transition style} -- defines what type of screen transition is used when
 moving from one room to another. Various options are available.
-\item \bf{Save screenshots in save games} - Saves a mini-screenshot of the player's current
+\item \it{Save screenshots in save games} -- Saves a mini-screenshot of the player's current
 position into the save game file. This will create larger save game files, but it will
 mean that you can use a save game thumbnails GUI to make the save/load interface
 more professional.
-\item \bf{Enforce object-based scripting} - Puts the script compiler into strict mode,
+\item \it{Enforce object-based scripting} -- Puts the script compiler into strict mode,
 where it will not accept the old-style (pre-AGS 2.7) script commands. This should
 preferably be ticked, since you should no longer be using the old commands.
-\item \bf{Left-to-right operator precedence} - if this is ticked, then operators of
+\item \it{Left-to-right operator precedence} -- if this is ticked, then operators of
 equal precedence in the script will be evaluated left to right. For example,
 5 - 4 - 3 could be interpreted as  (5 - 4) - 3  or as  5 - (4 - 3), thus giving
 different results. You should always use parenthesis to clarify expressions like this,
 so that the operator precedence doesn't affect the result.
-\item \bf{Pixel-perfect click detection} - normally, when the player clicks the
+\item \it{Pixel-perfect click detection} -- normally, when the player clicks the
 mouse, AGS just checks to see if the cursor is within the rectangular area
 of each character and object on the screen. However, if this option is
 checked, then it will further check whether the player clicked on an actual
 pixel of the object graphic, or whether it was a transparent part of the
 graphic. If this option is enabled and they click on a transparent pixel,
 then the hotspot behind the object will be activated instead.
-\item \bf{Don't automatically move character in Walk mode} - normally, when you click the mouse in
+\item \it{Don't automatically move character in Walk mode} -- normally, when you click the mouse in
 the Walk mode, the main character will move to where you clicked. However,
 if you want to create a game all viewed from a 1st-person perspective, and
 so don't have a main character, then selecting this option allows you to
 use the Walk mode for other things. If selected, then "Character stands on
 hotspot" events are instead triggered by clicking the Walk cursor on the
 hotspot.
-\item \bf{Don't use inventory graphics as cursors} - normally, when you select an inventory
+\item \it{Don't use inventory graphics as cursors} -- normally, when you select an inventory
 item the mouse cursor is changed into that item. However, if you want to
 create a Lucasarts-style game (where the inventory cursor is always a
 cross-hair), check this option and it won't be changed.
-\item \bf{Don't scale up fonts at 640x400} - normally, if the player chooses 640x400, then
+\item \it{Don't scale up fonts at 640x400} -- normally, if the player chooses 640x400, then
 the fonts will be scaled up to match. However, if you have drawn your fonts
 for the 640x400 resolution, use this option to stop them being stretched.
-\item \bf{Resources split every Mb} - see \helpref{here}{SplitRes} for information.
-\item \bf{Characters turn before walking} - specifies that when a character starts
+\item \it{Resources split every Mb} -- see \helpref{here}{SplitRes} for information.
+\item \it{Characters turn before walking} -- specifies that when a character starts
 to walk somewhere, it will first turn round to face the correct direction
 using available animation frames, rather than just suddenly switching to
 face the right way.
-\item \bf{Override built-in inventory window click handling} - AGS has some built-in processing
+\item \it{Override built-in inventory window click handling} -- AGS has some built-in processing
 of Inventory Window GUI controls, whereby a right-click will Look at the item, and a left click
 will select it if the cursor mode is Interact. However, if you enable this
 option, then clicking on an inventory item in an Inventory Window will call your \verb$on_mouse_click$
 function  with eMouseLeftInv, eMouseMiddleInv or eMouseRightInv, and you then need to process it
 yourself. You can use the \verb$game.inv_activated$ variable to find out what they clicked on.
-\item \bf{Enable mouse wheel support} - if enabled, on_mouse_click can be called with
+\item \it{Enable mouse wheel support} -- if enabled, on_mouse_click can be called with
 the values eMouseWheelNorth and eMouseWheelSouth, which signify the user scrolling their mouse
 wheel north or south, respectively.
 
 \bf{NOTE:} Not all mice have mouse wheels, and the DOS engine does not support the
 mouse wheel at all. Therefore, your game should never require the mouse wheel in order to
 be playable - it should only be used as a handy extra.
-\item \bf{Number dialog options} - adds an index number before each dialog option when
+\item \it{Number dialog options} -- adds an index number before each dialog option when
 they are displayed to the player. For example,
 \begin{verbatim}
 1. Hello there!
@@ -953,37 +946,37 @@ they are displayed to the player. For example,
 \end{verbatim}
 This allows you to visually show the player which option the shortcut keys will choose,
 as well as seperating the options if you don't use a bullet point.
-\item \bf{Dialog options go upwards on GUI} - Normally, if you select a non-textwindow GUI
+\item \it{Dialog options go upwards on GUI} -- Normally, if you select a non-textwindow GUI
 for the dialog options, they will be printed from the top down. However, if you select this
 option they will go from the bottom of the GUI upwards.
-\item \bf{Crossfade music tracks} - This allows you to tell AGS to crossfade between your
+\item \it{Crossfade music tracks} -- This allows you to tell AGS to crossfade between your
 background music tracks. Crossfading means fading out the old track while fading in the
 new one when the music changes. You can select a crossfade speed from the drop-down list.
 There are some disadvantages to using this option - firstly, it's fairly slow, since AGS
 has to decode two music files at once. Secondly, it only works with OGG, MP3 and WAV music.
 You cannot crossfade MIDI, XM, MOD, S3M or IT music.
-\item \bf{Anti-alias TTF fonts} - If enabled, any TTF fonts you have in your game will
+\item \it{Anti-alias TTF fonts} -- If enabled, any TTF fonts you have in your game will
 be rendered to the screen anti-aliased. This can make them look a lot better, but it has
 two drawbacks - firstly, anti-aliasing is significantly slower than normal rendering, so
 you might want an option to allow the player to turn it off. Second, anti-aliasing only
 works in hi-color games (in 256-colour games, the output will look blurred and unreadable).
 \bf{NOTE} that anti-aliasing is not currently done on lucasarts-style speech due to
 technical reasons.
-\item \bf{Thought uses bubble GUI} - Determines which text window GUI is used for displaying
+\item \it{Thought uses bubble GUI} -- Determines which text window GUI is used for displaying
 thoughts with \helprefn{Think}{Character.Think}.
-\item \bf{Characters turn to face direction} - if set, then when a character turns round
+\item \it{Characters turn to face direction} -- if set, then when a character turns round
 with the \helprefn{Character.FaceLocation}{Character.FaceLocation} or
 \helprefn{Character.FaceCharacter}{Character.FaceCharacter}
 script commands, they will visibly turn around using their available loops.
 If this option is not set, they will immediately appear facing their new direction.
-\item \bf{Write game text backwards} - in-game text will be written right-to-left, ie. line
+\item \it{Write game text backwards} -- in-game text will be written right-to-left, ie. line
 breaks are worked out from the end of the sentence going backwards, and the last words
 are displayed first. This is used by languages such as Arabic and Hebrew.
-\item \bf{Display multiple inventory items multiple times} - normally, if the player has
+\item \it{Display multiple inventory items multiple times} -- normally, if the player has
 two of an inventory item, the item will still only be shown once in the Inventory window.
 If you check this option, however, then all the copies of the item that the player has
 will be displayed. Useful for RPG-style inventories.
-\item \bf{Save games folder name} - if this is blank, then the player's saved games will
+\item \it{Save games folder name} -- if this is blank, then the player's saved games will
 be saved to the folder where the game is installed. This is not a good idea, because it
 forces different users on the same machine to share save games, and Windows Vista and later versions discourage
 games from writing to the Program Files folder. Instead, if you supply a folder name here,
@@ -1016,12 +1009,12 @@ animates while the player is moving it around.
 
 Three of the cursor modes are hard-coded special meanings into AGS:
 \begin{itemize}
-\item \bf{Mode 4 (Use Inventory)}. This is special because the game decides whether to
+\item \it{Mode 4 (Use Inventory)} -- This is special because the game decides whether to
 allow its use or not, depending on whether the player has an active inventory item
 selected.
-\item \bf{Mode 6 (Pointer)}. This cursor is used whenever a modal dialog is displayed
+\item \it{Mode 6 (Pointer)} -- This cursor is used whenever a modal dialog is displayed
 (ie. a GUI that pauses the game). Normally this is a standard arrow pointer.
-\item \bf{Mode 7 (Wait)}. This cursor is used whenever the player cannot control the
+\item \it{Mode 7 (Wait)} -- This cursor is used whenever the player cannot control the
 action, for example during a scripted cutscene. For a lucasarts-style game where the cursor
 disappears completely in this state, simply import a blank graphic over the wait cursor.
 \end{itemize}
@@ -1698,17 +1691,17 @@ your game development. But which files should you back up?
 When taking a backup, make sure you copy \bf{ALL} the files listed below:
 
 \begin{itemize}
-\item \bf{GAME.AGF} - this is the main data file for your game and contains almost
+\item \it{GAME.AGF} -- this is the main data file for your game and contains almost
 all of the game settings. Without it, your game is lost.
-\item \bf{ACSPRSET.SPR} - this is your game's sprite file, containing all the sprites
+\item \it{ACSPRSET.SPR} -- this is your game's sprite file, containing all the sprites
 from the sprite manager.
-\item \bf{ROOM*.CRM} - all the ROOM*.CRM files are your room files, and obviously without
+\item \it{ROOM*.CRM} -- all the ROOM*.CRM files are your room files, and obviously without
 one of them you wouldn't be able to go into that room any longer.
-\item \bf{*.ASC, *.ASH} - these are your script files, and contain all of your
+\item \it{*.ASC, *.ASH} -- these are your script files, and contain all of your
 scripting handywork.
-\item \bf{*.TRS} - translation source files. They contain any translations that you've
+\item \it{*.TRS} -- translation source files. They contain any translations that you've
 had done.
-\item \bf{AGSFNT*.TTF, AGSFNT*.WFN} - these files contain any fonts you have imported.
+\item \it{AGSFNT*.TTF, AGSFNT*.WFN} -- these files contain any fonts you have imported.
 \end{itemize}
 
 Also remember to back up any sound, music and video files you are using.
@@ -1942,14 +1935,14 @@ presented with an empty list box, so right-click in it and choose "Add property"
 
 In the "Add Property" window you can set various options about the new property:
 \begin{itemize}
-\item \bf{Name} - this is the name by which you will access the property from the script.
+\item \it{Name} -- this is the name by which you will access the property from the script.
 This cannot be changed after the property has been created.
-\item \bf{Description} - this is the user-friendly description which will be displayed
+\item \it{Description} -- this is the user-friendly description which will be displayed
 in the custom property editor when you are setting the property.
-\item \bf{Type} - this specifies what type of property you want. "Boolean" gives you
+\item \it{Type} -- this specifies what type of property you want. "Boolean" gives you
 a checkbox (which will return 0 or 1 to the script), "Number" gives you a text box which
 you can type numbers into, and "Text" gives you a larger text box which can store a string.
-\item \bf{Default value} - this specifies what the default value of the property will be
+\item \it{Default value} -- this specifies what the default value of the property will be
 for objects where you have not set it specifically.
 \end{itemize}
 
@@ -4387,10 +4380,10 @@ Seeks the audio clip that is currently playing on this channel to \it{position}.
 
 What \it{position} represents depends on the FileType of the audio clip:
 \begin{itemize}
-\item \bf{MIDI} - the beat number
-\item \bf{MOD/XM/S3M} - the pattern number
-\item \bf{WAV/VOC} - the sample number (eg. in a 22050 Hz sound, 22050 = 1 second)
-\item \bf{OGG/MP3} - milliseconds offset
+\item \it{MIDI} -- the beat number
+\item \it{MOD/XM/S3M} -- the pattern number
+\item \it{WAV/VOC} -- the sample number (eg. in a 22050 Hz sound, 22050 = 1 second)
+\item \it{OGG/MP3} -- milliseconds offset
 \end{itemize}
 
 \fcol{red}{Example:}
@@ -4594,10 +4587,10 @@ Gets the current position of the audio playing on this channel.
 
 What \it{position} represents depends on the FileType of the audio clip:
 \begin{itemize}
-\item \bf{MIDI} - the beat number
-\item \bf{MOD/XM/S3M} - the pattern number
-\item \bf{WAV/VOC} - the sample number (eg. in a 22050 Hz sound, 22050 = 1 second)
-\item \bf{OGG/MP3} - milliseconds offset
+\item \it{MIDI} -- the beat number
+\item \it{MOD/XM/S3M} -- the pattern number
+\item \it{WAV/VOC} -- the sample number (eg. in a 22050 Hz sound, 22050 = 1 second)
+\item \it{OGG/MP3} -- milliseconds offset
 \end{itemize}
 
 This property is read-only. If you want to change the current playback position within the audio file,
@@ -20417,7 +20410,8 @@ Forums. Linked off the main AGS website, it's where the AGS community
 meets and you will find answers to many questions there.
 
 If you think you've found a bug, if you need help or can't get it to work,
-please check the following:\begin{itemize}
+please check the following:%
+\begin{itemize}
 \item That your question is not already answered in this manual. AGS has been
 painstakingly documented, so PLEASE read this manual through before asking
 me a question.

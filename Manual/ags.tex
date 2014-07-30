@@ -503,7 +503,8 @@ the longer the frame stays (ie. the slower it is). When the animation is run,
 an overall animation speed will be set, so the actual speed of the frame
 will be:  overall_speed + frame_speed  . Note that you can use negative
 numbers for the frame delay to make it particularly fast, for example setting
-it to -3 means that the frame will stay for hardly any time at all. ILBRK
+it to -3 means that the frame will stay for hardly any time at all.
+
 Animation speed is specified in Game Loops (ie. animation speed 4 will show the
 frame for 4 game loops - at 40fps, that would be 0.1 seconds).
 
@@ -619,7 +620,8 @@ animations while the character is talking. You may want to use this for effects
 such as blinking (hence the name).  If you set a view here, it will play intermittently
 while the character talks (it is drawn on top of the normal talking view). The default
 time between it playing is 3-4 seconds, but you can change this with the Character.BlinkInterval
-script property.ILBRK
+script property.
+
 \bf{NOTE}: the blinking view is currently only supported with sierra-style speech.
 
 "UseRoomAreaLighting" allows you to tell AGS whether this character will be
@@ -855,12 +857,12 @@ Most of these options can be changed at runtime with the script command SetGameO
 \item \it{When interface disabled} -- determines what happens to buttons on your
   GUIs while the game interface is disabled (eg. during a cutscene).
 \item \it{GUI alpha rendering style} -- determines which rendering method to use in
-  32-bit games when a GUI Control is drawn over GUI. The "Proper alpha belnding"
+  32-bit games when a GUI Control is drawn over GUI. The "Proper alpha blending"
   choice is meant for full alpha blending support, other options exist for
   compatibility with older versions of AGS only.
 \item \it{Sprite alpha rendering style} -- determines which rendering method to use
   in 32-bit games when an image is drawn over \helpref{drawing surface}{DrawingSurfaceFunctions}.
-  The "Proper alpha belnding" choice is meant for full alpha blending support,
+  The "Proper alpha blending" choice is meant for full alpha blending support,
   "Classic" style exists for  compatibility with older versions of AGS only.
 \item \it{Always display text as speech} -- if you select this option, then all normal
   text in the game will be displayed above the main character's head as speech

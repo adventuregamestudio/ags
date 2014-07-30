@@ -160,7 +160,7 @@ in your start menu. If you're looking for the files, they're located in the
 All Users Application Data folder (this is for compatibility with the security
 filters in Windows Vista and later versions).
 
-\bf{NOTE:} The demo game is currently under development. It has various unfinished
+\it{NOTE:} The demo game is currently under development. It has various unfinished
 or unimplemented areas.
 
 
@@ -287,9 +287,9 @@ If you want, you can assign more or less colours to the backgrounds. To toggle
 the background assignment on/off, click on the slot, then check the
 "This colour is room-dependant" box to swap the slot's status.
 
-\bf{IMPORTANT NOTE:} \it{You must set up the palette as you want it before you start
+\bf{IMPORTANT:} You must set up the palette as you want it before you start
 making your game - if you change it later, you will have to re-import all the
-sprites and background scenes.}
+sprites and background scenes.
 
 You can select multiple colour slots by clicking on the first slot, then
 shift-clicking on the last slot in the range you want to select. You can then
@@ -329,10 +329,10 @@ the "Events" button (the lightning bolt button at the top of the property grid),
 which brings up a list which works identically to the hotspot events.
 The available events are described in the reference section.
 
-\it{NOTE: Each character in the game carries their own set of inventory items.
+\it{NOTE:} Each character in the game carries their own set of inventory items.
 This means, if you want to create a game like Day of the Tentacle, where the
 player can control three different characters, each character will have a
-separate inventory.}
+separate inventory.
 
 You have two choices about how the inventory is displayed to the player -- a
 built-in inventory window to get you started, and support for custom inventory
@@ -385,7 +385,7 @@ image, which will produce a yellow rectangle showing the selection. Once you are
 happy with it, left-click to import.
 Alternatively, you can import the entire image with the "Import whole image" button.
 
-\it{NOTE (256-colour only):
+\it{NOTE (256-colour only):}
 You may well find that the colours on your graphic look slightly strange in
 the AGS Editor. This is because the sprites are only allocated, by default,
 the first 41 of the palette colours (see the \helpref{palette section}{PalSetup}), so
@@ -400,9 +400,9 @@ the palette of the room currently loaded, giving much better results. Note,
 however, that if you do this, and then try and use the sprite on another
 screen, its colours will most likely be screwed up. To use the room palette,
 check the "use bkgrnd pal" check-box. Make sure to un-check this box before
-you import any other sprites.}
+you import any other sprites.
 
-NOTE: The transparent colour used by AGS is palette index 0 (for 256-colour
+\it{NOTE:} The transparent colour used by AGS is palette index 0 (for 256-colour
 sprites) and RGB (255,0,255) for hi-colour. Any pixels you draw on imported
 sprites in these colours will be transparent.
 
@@ -415,11 +415,11 @@ tree to rename it or make a sub-folder.
 You can delete a folder by right-clicking on it and selecting the "Delete"
 option; beware though that \bf{this will also delete all the sprites in the folder}.
 
-* \it{NOTE: A few people have experienced problems when importing from clipboard,
+\it{NOTE:} A few people have experienced problems when importing from clipboard,
 in that the image colours get reversed (red becomes blue, blue becomes red, and so on)
 when they are running Windows at 24-bit or 32-bit colour. If this happens to you, there
 are two solutions: (a) turn down your desktop colour depth to 16-bit to run the AGS Editor,
-or (b) import your sprites from files rather than the clipboard.}
+or (b) import your sprites from files rather than the clipboard.
 
 \subsubsection*{Tiled sprite import}
 
@@ -448,7 +448,7 @@ the game if it is used for a character, object, mouse cursor or GUI.
 Note that if you use alpha blending, any overall transparency that you set (such
 as Character.Transparency, Object.Transparency, GUI.Transparency) will be ignored.
 
-\bf{NOTE:} Currently, alpha blended sprites cannot be antialiased, so if you have
+\it{NOTE:} Currently, alpha blended sprites cannot be antialiased, so if you have
 the Anti Alias Sprites option turned on in Setup, it will not be applied to alpha-blended
 characters.
 
@@ -462,9 +462,9 @@ Normally, the game will start in room 1. This is defined by the starting room
 number of the player character. To change it, open up the player character's
 Character pane, and change the StartingRoom number in the property grid.
 
-\it{TIP: The starting room facility is also useful when testing your game - you
+\it{TIP:} The starting room facility is also useful when testing your game - you
 can make the game start in any room, at the point where you are testing it,
-rather than having to keep playing the game through to get there.}
+rather than having to keep playing the game through to get there.
 
 Cutscenes are created using the normal animation script commands, such as
 Character.Walk, Object.SetView, and so forth. I would suggest you leave this
@@ -577,7 +577,7 @@ To change the rate at which the character animates, change the Animation Speed b
 Here, a smaller number means faster animation. Note that this does NOT
 effect the speed at which the character actually moves when walking.
 
-\bf{NOTE:} The first frame in each loop is the standing still frame. When walking, the
+\it{NOTE:} The first frame in each loop is the standing still frame. When walking, the
 game will cycle through the rest of the frames in the loop.
 
 The "MovementSpeed" option allows you to control how fast the character moves when
@@ -622,7 +622,7 @@ while the character talks (it is drawn on top of the normal talking view). The d
 time between it playing is 3-4 seconds, but you can change this with the Character.BlinkInterval
 script property.
 
-\bf{NOTE}: the blinking view is currently only supported with sierra-style speech.
+\it{NOTE}: the blinking view is currently only supported with sierra-style speech.
 
 "UseRoomAreaLighting" allows you to tell AGS whether this character will be
 affected by light and tint levels set on room regions.
@@ -654,8 +654,8 @@ To import the character into a different game, load it up, right-click the "Char
 node and choose "Import Character". The file selector appears, where you find the CHA file which
 you exported earlier. A new character slot will be created and all the settings imported.
 
-\it{NOTE: Because importing always creates a new slot, you cannot use it to
-overwrite an existing character.}
+\it{NOTE:} Because importing always creates a new slot, you cannot use it to
+overwrite an existing character.
 
 \subsection{Conversations}\index{Dialogs}\index{run-script}\index{add-inv}\index{goto-dialog}\index{new-room}\index{option-off}\index{option-on}\index{option-off-forever}\index{play-sound}\index{return}%
 
@@ -738,7 +738,7 @@ If you use "stop" instead of return, then the conversation is ended. Alternative
 you can use "goto-dialog" or "goto-previous", which abort the current dialog script
 and transfer control to the new dialog.
 
-\bf{NOTE:} Do \bf{NOT} indent these lines with spaces or tabs. Indented lines
+\it{NOTE:} Do \bf{NOT} indent these lines with spaces or tabs. Indented lines
 signify that AGS should interpret the line as a normal scripting command
 rather than a dialog scripting command.
 
@@ -936,7 +936,7 @@ Most of these options can be changed at runtime with the script command SetGameO
   the values eMouseWheelNorth and eMouseWheelSouth, which signify the user scrolling their mouse
   wheel north or south, respectively.
 
-  \bf{NOTE:} Not all mice have mouse wheels, and the DOS engine does not support the
+  \it{NOTE:} Not all mice have mouse wheels, and the DOS engine does not support the
   mouse wheel at all. Therefore, your game should never require the mouse wheel in order to
   be playable - it should only be used as a handy extra.
 \item \it{Number dialog options} -- adds an index number before each dialog option when
@@ -962,7 +962,7 @@ Most of these options can be changed at runtime with the script command SetGameO
   you might want an option to allow the player to turn it off. Second, anti-aliasing only
   works in hi-colour games (in 256-colour games, the output will look blurred and unreadable).
 
-  \bf{NOTE} that anti-aliasing is not currently done on lucasarts-style speech due to
+  \it{NOTE} that anti-aliasing is not currently done on lucasarts-style speech due to
   technical reasons.
 \item \it{Thought uses bubble GUI} -- Determines which text window GUI is used for displaying
   thoughts with \helprefn{Think}{Character.Think}.
@@ -1056,12 +1056,12 @@ un-readable. To outline a font, either set the OutlineStyle to "Automatic" to
 have AGS do it for you, or you can use a specific font slot as the outline font
 (it will be drawn in black behind the main font when the main font is used).
 
-\bf{NOTE:} If you go to your Windows Fonts folder, you will not be able to select
+\it{NOTE:} If you go to your Windows Fonts folder, you will not be able to select
 any fonts to import, since double-clicking them will open them up in the Windows Font
 Viewer. Unfortunately there is nothing I can do about this, you must either type the
 filename in manually, or copy the font to another folder and import it from there.
 
-\bf{NOTE:} Font 0 is used as the normal text font, and font 1 is used as the
+\it{NOTE:} Font 0 is used as the normal text font, and font 1 is used as the
 speech font. To use any additional fonts, you can set the Game.NormalFont
 and Game.SpeechFont properties in your script.
 
@@ -1187,15 +1187,15 @@ can enter Red, Green and Blue values as numbers from 0-255, which reflect the co
 you want the area to be tinted to. The Amount setting determines to what extent
 characters will be tinted, and is from 0-100.
 
-\bf{NOTE:} Light levels only work when the character's graphic is at the same
+\it{NOTE:} Light levels only work when the character's graphic is at the same
 colour depth as the background (ie. a 256-colour character in a hi-colour
 game won't get lightened).
 
-\bf{NOTE:} In a 256-colour game, only darkening areas (light level < \verb$100%$) will work.
+\it{NOTE:} In a 256-colour game, only darkening areas (light level < \verb$100%$) will work.
 Also, depending on the room palette the quality of the darkening will vary
 in 256-colour games.
 
-\bf{NOTE:} Light levels affect characters and objects, depending on
+\it{NOTE:} Light levels affect characters and objects, depending on
 the "UseRoomAreaLighting" setting for each one.
 They do not affect overlays or the background scene.
 
@@ -1378,9 +1378,9 @@ cEgo.Say("&10 Hi! How are you?");
 cDavid.Say("&7 I'm fine.");
 \end{verbatim}
 
-\bf{NOTE:} WAV, OGG and MP3 format files can be used for speech.
+\it{NOTE:} WAV, OGG and MP3 format files can be used for speech.
 
-\bf{NOTE:} You cannot use speech file numbers above 9999. That is, you can
+\it{NOTE:} You cannot use speech file numbers above 9999. That is, you can
 have EGO1.OGG all the way up to EGO9999.OGG, but not EGO10000.OGG or higher.
 
 Speech is compiled into a file called SPEECH.VOX and is separate
@@ -1617,18 +1617,18 @@ have several files named "game.001", "game.002", and so forth.
 So, when you want to upload your game to the internet, just zip up the files in
 the Compiled folder, and there you go!
 
-\it{NOTE: It is not possible to load the exe file back into the AGS Editor. This
+\it{NOTE:} It is not possible to load the exe file back into the AGS Editor. This
 means two things when only the EXE file is available: (1) other people can't
 edit your game's data, and (2) you can't either. Always keep a backup of the
 other files produced (*.CRM, GAME.AGF, etc) as they are what the Editor
-needs to be able to load your game for editing.}
+needs to be able to load your game for editing.
 
 \it{TIP:} You can make a "Loading..." style splash screen to be displayed while your game starts
 up. To do so, simply save the image as  PRELOAD.PCX (must be the same resolution and colour depth
 as the game) in the game folder, and build the game. It should then display while the game is loading.
 
-\it{NOTE: Due to the licenses of code used by AGS, your documentation should acknowledge the
-following:}
+\it{NOTE:} Due to the licenses of code used by AGS, your documentation should acknowledge the
+following:
 
 TrueType font display uses ALFont by Javier Gonzalez and the Freetype project. Distributed
 under the terms of the FreeType project license.
@@ -1645,7 +1645,7 @@ You should also include all the license_* files from the DOCS directory with you
 it is imperative that you read the Legal Information page on the AGS website, currently
 at http://www.bigbluecup.com/aclegal.htm
 
-\bf{NOTE:} The AUDIO.VOX file contains audio clips that you have marked as "InSeperateVOX"
+\it{NOTE:} The AUDIO.VOX file contains audio clips that you have marked as "InSeperateVOX"
 in the editor. This allows you to have an optional audio download, if your game uses lots
 of sound files but you don't want the player to have to download them.
 
@@ -1660,9 +1660,9 @@ AGS is only able to build your custom icon if you are running the editor on
 Windows 2000 and later. If you're using Windows 98 then your game will be
 built with the standard AGS icon.
 
-\it{NOTE: The icon \bf{must} be a proper Windows .ICO file, \bf{not} just a renamed
+\it{NOTE:} The icon \bf{must} be a proper Windows .ICO file, \bf{not} just a renamed
 BMP file. Icon editors, such as AX-Icons from http://www.axialis.com, will convert
-it for you.}
+it for you.
 
 You can also have a custom icon for the Setup program generated. To do so, create
 your icon as above but name it \bf{setup.ico} in the game folder.
@@ -1835,10 +1835,10 @@ Compiled folder, which can be used with the game engine.
 Run the game Setup program, and select the translation from the drop-down box.
 Then, run the game, and all the text should be translated.
 
-\it{NOTE: With SCI fonts, only 128 characters are available, so many of the extended
+\it{NOTE:} With SCI fonts, only 128 characters are available, so many of the extended
 characters needed for non-english translations are not available. You may need to use
 substitute characters, or consider using TTF fonts for international applications. However,
-bear in mind that TTF rendering slows down the engine.}
+bear in mind that TTF rendering slows down the engine.
 
 While most in-game text is translated automatically, there are a few instances when
 this is not possible. These are when a script uses functions like Append to build
@@ -2039,10 +2039,10 @@ when a character not listed in any of the text boxes is encountered.
 AGS supports lip syncing voice speech to the talking animation. If you enable this
 feature, you cannot use the standard lip-sync for non-voice lines.
 
-\bf{NOTE: This is an unofficial feature and is not currently supported. Use at
-your own risk}
+\it{NOTE:} This is an unofficial feature and is not currently supported. Use at
+your own risk.
 
-\bf{NOTE:} The voice sync feature only supports Sierra-style speech.
+\it{NOTE:} The voice sync feature only supports Sierra-style speech.
 
 In order to do this, you need to download the third-party PAMELA application from
 \verb$http://www-personal.monash.edu.au/~myless/catnap/pamela/$ .
@@ -2066,7 +2066,7 @@ in your game's Speech folder.
 When you build the game, this pam file is compiled into the speech.vox and will be used
 to sync the animation of the talking frames during the game.
 
-\bf{NOTE:} Voice lip sync does not work well with MP3 files. It is strongly recommended
+\it{NOTE:} Voice lip sync does not work well with MP3 files. It is strongly recommended
 that you use OGG or WAV for speech.
 
 
@@ -2111,7 +2111,7 @@ template. You could use this to explain briefly about any key aspects of the tem
 it could tell them to read your README.TXT file. This file should be quite small - its entire
 contents need to fit into a standard message box.
 
-\bf{NOTE:} Do not simply make a template out of a half-finished game. If you want to make
+\it{NOTE:} Do not simply make a template out of a half-finished game. If you want to make
 a template, you should start a game from scratch and make your changes - the user probably
 doesn't want to already have a semi-completed game when they use your template.
 
@@ -2144,13 +2144,13 @@ There are two main ways to use this feature:
   line of code, it will stop running.
 \end{itemize}
 
-\bf{NOTE:} The editor will allow you to place a breakpoint on any line of script.
+\it{NOTE:} The editor will allow you to place a breakpoint on any line of script.
 However, in order for it to work, it must be placed on a line that has some code on it.
 
 Once the script has stopped, you can use the "Step Into" button (F11) to step through
 the lines of code, one by one. To allow the game to continue running normally, use the Run (F5) button.
 
-\bf{NOTE:} The Script Debugger is not supported on Windows 98 or Windows ME systems.
+\it{NOTE:} The Script Debugger is not supported on Windows 98 or Windows ME systems.
 If you're still using Windows 98, please upgrade to Windows XP or higher to take advantage
 of this feature.
 
@@ -2328,7 +2328,7 @@ on Windows XP and earlier versions.
 For un-installing, run the game EXE again but with a  \verb$-unregistergame$  parameter.
 This will cause AGS to remove the game from the Game Explorer's list.
 
-\bf{NOTE:} If you have both Enhanced Save Games and Game Explorer Integration enabled,
+\it{NOTE:} If you have both Enhanced Save Games and Game Explorer Integration enabled,
 then the \verb$-registergame$ and \verb$-unregistergame$ commands will register/unregister
 both.
 
@@ -2754,7 +2754,7 @@ String buttonValue = btnOK.Text;
 \end{verbatim}
 and so on.
 
-\bf{NOTE:} Some of the new functions are provided on the Game object -- for example, the new
+\it{NOTE:} Some of the new functions are provided on the Game object -- for example, the new
 GetSaveSlotDescription function needs to be called like this:
 \begin{verbatim}
 String description = Game.GetSaveSlotDescription(10);
@@ -3417,7 +3417,7 @@ As of AGS 3.1, if neither of these methods suit you (for example, because you wa
 use picture-based dialog options, or you want to add scroll arrows), you can now implement
 the dialog options display yourself in the script.
 
-\bf{NOTE:} This topic involves some advanced scripting. If you're just starting out with AGS,
+\it{NOTE:} This topic involves some advanced scripting. If you're just starting out with AGS,
 please just use one of the built-in dialog option styles for now, and come back to this later
 when you're comfortable with scripting.
 
@@ -4150,7 +4150,7 @@ import function TestFunction(int stuff, int things = 5);
 that declares a function with a mandatory \it{stuff} parameter, and an optional \it{things}
 parameter. If the caller does not supply the second parameter, it will default to 5.
 
-\bf{NOTE:} To use optional parameters, you need to have an "import" declaration for the function
+\it{NOTE:} To use optional parameters, you need to have an "import" declaration for the function
 in the script header. The default values cannot be specified in the actual function declaration
 itself.
 
@@ -4317,11 +4317,11 @@ statements into the script header so that all rooms can benefit from them.
 In order to import the variable, it must have been exported from the global script
 with the \helprefn{export keyword}{exportkeyword}.
 
-\bf{NOTE:} You \bf{MUST} import external variables with the correct type. If \verb$counter$
+\it{NOTE:} You \bf{MUST} import external variables with the correct type. If \verb$counter$
 was declared as a \bf{short} in the global script, you MUST import it as a short, otherwise
 your game may crash.
 
-\bf{NOTE:} You cannot import old-style \verb$string$ variables (this does not
+\it{NOTE:} You cannot import old-style \verb$string$ variables (this does not
 apply to new-style \verb$String$ variables).
 
 
@@ -4357,12 +4357,12 @@ However, there are some rare situations in which you need a loop to run several 
 times (for example, when initialising a very large array). In this case, the \it{noloopcheck}
 keyword can be used to stop AGS aborting your script.
 
-\bf{NOTE:} The \it{noloopcheck} keyword must be placed between "function" and the function's name.
+\it{NOTE:} The \it{noloopcheck} keyword must be placed between "function" and the function's name.
 
 If you import the function into the script header, you \bf{do not} include the "noloopcheck" keyword
 in the import declaration -- it is only included in the actual function body.
 
-\bf{NOTE:} If AGS gives you a script iterations error, \bf{DO NOT} just automatically
+\it{NOTE:} If AGS gives you a script iterations error, \bf{DO NOT} just automatically
 add this keyword as a way to fix the problem -- more often than not, it is a fault in
 your scripting and using this keyword will mean that the game will hang rather than abort.
 
@@ -4556,7 +4556,7 @@ Panning allows you to adjust the stereo balance of the audio. The default is 0, 
 centred and will play at the same volume on both speakers. However you can adjust this
 between -100 (fully left) to 100 (fully right) to adjust the balance between the speakers.
 
-\bf{NOTE:} MIDI music files do not support panning.
+\it{NOTE:} MIDI music files do not support panning.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -4684,11 +4684,11 @@ adjust the volume of a playing sound.
 This command adjusts the volume of this channel relative to the other channels.
 It is still constrained within the overall volume, set by the System.Volume property.
 
-\bf{NOTE:} This command only affects the current sound being played on the channel.
+\it{NOTE:} This command only affects the current sound being played on the channel.
 When a new audio clip starts playing on this channel, the volume will be set to the
 DefaultVolume of the new audio clip.
 
-\bf{NOTE:} The volume returned by this property is the channel's base volume, ie. it does
+\it{NOTE:} The volume returned by this property is the channel's base volume, ie. it does
 not include the effects of any directional audio set with SetRoomLocation, or any temporary
 volume drop while speech is playing.
 
@@ -4742,7 +4742,7 @@ will not be played.
 This command returns the AudioChannel instance that the new sound is playing on, or
 \it{null} if it did not play for any reason.
 
-\bf{NOTE:} AGS can only play one MIDI file at a time.
+\it{NOTE:} AGS can only play one MIDI file at a time.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -5094,7 +5094,7 @@ running). This means that you should not use any other commands which rely
 on the new room (object positions, and so on) after this command within
 the same function.
 
-\bf{NOTE:} This command can only be used with the player character.
+\it{NOTE:} This command can only be used with the player character.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -5120,7 +5120,7 @@ Changes the normal view number of the character to \it{view}. This is
 useful if, for example, you want the character to change the clothes
 they are wearing, and so permanently alter their view number.
 
-\bf{NOTE:} This command is \bf{not} intended to change the view temporarily to
+\it{NOTE:} This command is \bf{not} intended to change the view temporarily to
 perform an animation. If you want to do that, use the LockView command instead. This
 ChangeView command permanently changes the character's normal walking view.
 
@@ -5303,7 +5303,7 @@ Checks if there is a character at SCREEN co-ordinates (X,Y).
 Returns the character if there is, or null if there is not.
 See the description of GetLocationName for more on screen co-ordinates.
 
-NOTE: Any characters with the "Clickable" property set to false will not be seen
+\it{NOTE:} Any characters with the "Clickable" property set to false will not be seen
 by this function.
 
 \fcol{red}{Example:}
@@ -5468,7 +5468,7 @@ Sets the character's view to VIEW. This can be used to perform animations
 with characters, for example bending down to pick something up, which don't
 use the default view.
 
-\bf{NOTE:} This function locks the character's view to the specified view, so
+\it{NOTE:} This function locks the character's view to the specified view, so
 that it can only be changed by other script commands (ie. it won't
 automatically be changed by AGS on walkable areas, screen changes,
 etc). When you are done with the animation, call UnlockView to allow AGS to
@@ -5526,7 +5526,7 @@ Note that this only aligns the first frame of the animation, so to get the full 
 all your frames in the animation loop should be the same width. All following frames will
 be shifted by the same amount, until UnlockView is called.
 
-\bf{NOTE:} This function locks the character's view to the specified view, so
+\it{NOTE:} This function locks the character's view to the specified view, so
 that it can only be changed by other script commands (ie. it won't
 automatically be changed by the program on regions, screen changes,
 etc). When you are done with the animation, call UnlockView to
@@ -5598,16 +5598,16 @@ don't quite line up with the standing frame, assuming all the frames of the anim
 the same size. Note that LockViewAligned is easier to use if your frames will align at
 the left or right hand side.
 
-\bf{NOTE:} You should only use this command for minor adjustments, since the offsets do not
+\it{NOTE:} You should only use this command for minor adjustments, since the offsets do not
 affect the clickable area of the character, what walkable area he is in, and so forth. You
 should limit the use of this command to in-game cutscenes where the player has no control.
 
-\bf{NOTE:} This is the only command in AGS which uses actual game-resolution co-ordinates.
+\it{NOTE:} This is the only command in AGS which uses actual game-resolution co-ordinates.
 Therefore, specifying an x offset of 1 will actually move 1 pixel in a 640x400 game, and will
 not be multiplied up to 2 (they will be automatically adjusted though if the player chooses
 to play the game at another resolution).
 
-\bf{NOTE:} This function locks the character's view to the specified view, so
+\it{NOTE:} This function locks the character's view to the specified view, so
 that it can only be changed by other script commands (ie. it won't
 automatically be changed by AGS on walkable areas, screen changes, etc). When
 you are done with the animation, call UnlockView to allow AGS to take control back.
@@ -5796,7 +5796,7 @@ left corner at (X,Y), in an area WIDTH wide.
 You can use this function to write the character's speech text anywhere you like, and
 AGS will still play the character's talking animation and so on if appropriate.
 
-\bf{NOTE:} This function does not support Whole-Screen speech.
+\it{NOTE:} This function does not support Whole-Screen speech.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -5891,11 +5891,11 @@ is swimming and they need to tread water when idle.
 
 Pass IDLEVIEW as -1 to disable the idle view completely.
 
-\bf{NOTE:} The DELAY is actually relative to the game speed. Setting this to 1 means
+\it{NOTE:} The DELAY is actually relative to the game speed. Setting this to 1 means
 a one second delay at the default 40 fps, but if you have adjusted the game speed then
 the delay will be adjusted accordingly.
 
-\bf{NOTE:} Due to a quirk in AGS, you cannot set the Idle View to view 1. In the unlikely event that you
+\it{NOTE:} Due to a quirk in AGS, you cannot set the Idle View to view 1. In the unlikely event that you
 created your idle view in View 1, you'll need to move it to another view number.
 
 \fcol{red}{Example:}
@@ -5924,7 +5924,7 @@ identical to those set in the AGS Editor for walking speed.
 X_SPEED and Y_SPEED can be identical, in which case the character moves with the same
 speed in any direction. (the editor calls this "Uniform movement speed")
 
-\bf{NOTE:} This function CANNOT be called while the character is moving, so
+\it{NOTE:} This function CANNOT be called while the character is moving, so
 you must stop him first.
 
 \fcol{red}{Example:}
@@ -6031,7 +6031,7 @@ ensures that no tint is applied to the character (even if an ambient tint is set
 To remove the tint set by this function and return to using the ambient tint for this
 character, call \helprefn{RemoveTint}{Character.RemoveTint}.
 
-\bf{NOTE:} This function only works in hi-colour games and with hi-colour sprites.
+\it{NOTE:} This function only works in hi-colour games and with hi-colour sprites.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -6099,9 +6099,9 @@ current location to (X,Y), ignoring the room walkable areas.
 If you don't want the character's walking animation to play, you can use the
 \helprefn{Move}{Character.Move} command instead.
 
-\bf{NOTE:} this function only works with characters which are on the current screen.
+\it{NOTE:} this function only works with characters which are on the current screen.
 
-\bf{NOTE:} if you need to find out when the character has reached its destination,
+\it{NOTE:} if you need to find out when the character has reached its destination,
 use the \helprefn{Moving}{Character.Moving} property.
 
 \fcol{red}{Example:}
@@ -6343,7 +6343,7 @@ high.
 You can manually change the setting by entering a blocking height in pixels, which is the
 size of walkable area that the character effectively removes by standing on it.
 
-\bf{NOTE:} This property has no effect unless the \helprefn{Solid}{Character.Solid} property
+\it{NOTE:} This property has no effect unless the \helprefn{Solid}{Character.Solid} property
 is set to \it{true}.
 
 \fcol{red}{Example:}
@@ -6371,7 +6371,7 @@ high.
 You can manually change the setting by entering a blocking width in pixels, which is the
 size of walkable area that the character effectively removes by standing on it.
 
-\bf{NOTE:} This property has no effect unless the \helprefn{Solid}{Character.Solid} property
+\it{NOTE:} This property has no effect unless the \helprefn{Solid}{Character.Solid} property
 is set to \it{true}.
 
 \fcol{red}{Example:}
@@ -6556,7 +6556,7 @@ Passing \it{true} means that the character will never be placed behind a walk-be
 area. This is useful if for example you want to use the character as an
 overlay to display rain or snow onto a scene.
 
-\bf{NOTE:} enabling this property does not currently work properly when using
+\it{NOTE:} enabling this property does not currently work properly when using
 the Direct3D driver.
 
 \fcol{red}{Example:}
@@ -6972,9 +6972,9 @@ int Character.SpeechAnimationDelay;
 Gets/sets the character's speech animation delay, as set in the editor. This specifies
 how many game loops each frame of the character's speech animation is shown for.
 
-\bf{NOTE:} This property is ignored if lip sync is enabled.
+\it{NOTE:} This property is ignored if lip sync is enabled.
 
-\bf{NOTE:} This property \bf{cannot} be used if the Speech.UseGlobalSpeechAnimationDelay is set to \bf{true}.
+\it{NOTE:} This property \bf{cannot} be used if the Speech.UseGlobalSpeechAnimationDelay is set to \it{true}.
 In that case, the Speech.GlobalSpeechAnimationDelay property value is used instead.
 
 \fcol{red}{Example:}
@@ -7077,9 +7077,9 @@ Gets/sets the character's transparency. This is specified as a percentage, from 
 100 means fully transparent (ie. invisible), and 0 is totally opaque (fully visible). Numbers
 in between represent varying levels of transparency.
 
-\bf{NOTE:} Transparency only works in 16-bit and 32-bit colour games.
+\it{NOTE:} Transparency only works in 16-bit and 32-bit colour games.
 
-\bf{NOTE:} When using the DirectX 5 driver, a large transparent character can significantly slow
+\it{NOTE:} When using the DirectX 5 driver, a large transparent character can significantly slow
 down AGS.
 
 Some rounding is done internally when the transparency is stored -- therefore, if you get
@@ -7200,7 +7200,7 @@ int Character.x;
 Gets/sets the character's current X co-ordinate. This is expressed in normal room
 co-ordinates, and specifies the centre-bottom of the character's sprite.
 
-\bf{NOTE:} Do \bf{NOT} change this property while the character is moving. Make
+\it{NOTE:} Do \bf{NOT} change this property while the character is moving. Make
 sure the character is standing still before changing his co-ordinates.
 
 \fcol{red}{Example:}
@@ -7222,7 +7222,7 @@ int Character.y;
 Gets/sets the character's current Y co-ordinate. This is expressed in normal room
 co-ordinates, and specifies the centre-bottom of the character's sprite.
 
-\bf{NOTE:} Do \bf{NOT} change this property while the character is moving. Make
+\it{NOTE:} Do \bf{NOT} change this property while the character is moving. Make
 sure the character is standing still before changing his co-ordinates.
 
 \fcol{red}{Example:}
@@ -7386,7 +7386,7 @@ While this value is not useful in itself, you can use it to calculate time diffe
 by getting the value at the start of the game, for example, and then getting the value
 later on, and the difference between the two is how much time has elapsed.
 
-\bf{NOTE:} Because this accesses the real-time clock on the users' system, it is not
+\it{NOTE:} Because this accesses the real-time clock on the users' system, it is not
 a good idea to use this for long term timing tasks, since if the user saves the game and
 then restores it later, the Time value returned by this function will obviously include
 the difference when they were not playing.
@@ -7443,7 +7443,7 @@ int Dialog.DisplayOptions(optional DialogOptionSayStyle)
 Presents the options for this dialog to the user and waits until they select
 one of them. The selected option number is returned.
 
-\bf{NOTE:} This command does not run any dialog scripts, it simply displays
+\it{NOTE:} This command does not run any dialog scripts, it simply displays
 the options and waits for the player to choose one.  To run the dialog normally,
 use the \helprefn{Dialog.Start}{Dialog.Start} command instead.
 
@@ -7702,7 +7702,7 @@ Dialog.Start()
 \end{verbatim}
 Starts a conversation from the specified topic.
 
-NOTE: The conversation will not start immediately; instead, it will be run
+\it{NOTE:} The conversation will not start immediately; instead, it will be run
 when the current script function finishes executing.
 
 If you use this command from within the dialog_request function, it will
@@ -8181,12 +8181,12 @@ using 0 means it will not be transparent.
 You can also resize the image as you draw it. In order to do this, simply specify
 a \it{width} and \it{height} that you wish to resize the image to when it is drawn.
 
-\bf{NOTE:} This command only works if the image to be drawn is the same colour
+\it{NOTE:} This command only works if the image to be drawn is the same colour
 depth as the surface that you are drawing onto.
 
-\bf{NOTE:} Transparency does not work in 256-colour games, or with 256-colour sprites.
+\it{NOTE:} Transparency does not work in 256-colour games, or with 256-colour sprites.
 
-\bf{NOTE:} The X and Y co-ordinates given are ROOM co-ordinates, not SCREEN co-ordinates.
+\it{NOTE:} The X and Y co-ordinates given are ROOM co-ordinates, not SCREEN co-ordinates.
 This means that in a scrolling room you can draw outside the current visible area.
 
 \fcol{red}{Example:}
@@ -8219,7 +8219,7 @@ Draws a line from (FROM_X, FROM_Y) to (TO_X, TO_Y) in the surface's current draw
 
 The \it{thickness} parameter allows you to specify how thick the line is, the default being 1 pixel.
 
-\bf{NOTE:} The X and Y co-ordinates given are ROOM co-ordinates, not SCREEN co-ordinates.
+\it{NOTE:} The X and Y co-ordinates given are ROOM co-ordinates, not SCREEN co-ordinates.
 This means that in a scrolling room you can draw outside the current visible area.
 
 \fcol{red}{Example:}
@@ -8279,7 +8279,7 @@ Draws a single pixel onto the surface at (X,Y) in the current colour. The pixel
 thickness respects the \helprefn{UseHighResCoordinates}{DrawingSurface.UseHighResCoordinates}
 property.
 
-\bf{NOTE:} This command is not fast enough to use repeatedly to build up an image. Only
+\it{NOTE:} This command is not fast enough to use repeatedly to build up an image. Only
 use it for single pixel adjustments.
 
 \fcol{red}{Example:}
@@ -8309,7 +8309,7 @@ DrawingSurface.DrawRectangle(int x1, int y1, int x2, int y2)
 Draws a filled rectangle in the current colour with its top-left corner
 at (x1,y1) and its bottom right corner at (x2, y2)
 
-\bf{NOTE:} The X and Y co-ordinates given are ROOM co-ordinates, not SCREEN co-ordinates.
+\it{NOTE:} The X and Y co-ordinates given are ROOM co-ordinates, not SCREEN co-ordinates.
 This means that in a scrolling room you can draw outside the current visible area.
 
 \fcol{red}{Example:}
@@ -8400,11 +8400,11 @@ percent transparency.
 
 This allows you to perform day-to-night fading and other special effects.
 
-\bf{NOTE:} You cannot use the \it{transparency} parameter with 256-colour surfaces.
+\it{NOTE:} You cannot use the \it{transparency} parameter with 256-colour surfaces.
 
-\bf{NOTE:} This command can be a bit on the slow side, so don't call it from repeatedly_execute.
+\it{NOTE:} This command can be a bit on the slow side, so don't call it from repeatedly_execute.
 
-\bf{TIP:} If you want to gradually fade in a second background, create a copy of
+\it{TIP:} If you want to gradually fade in a second background, create a copy of
 the original surface and then restore it after each iteration, otherwise the backgrounds
 will converge too quickly.
 
@@ -8446,7 +8446,7 @@ surface.Release();
 will draw a triangle with corners at the points (0,0),(160,100),(0,200).
 
 \it{See Also:} \helprefn{DrawingSurface.DrawImage}{DrawingSurface.DrawImage},
- \helprefn{DrawingSurface.DrawLine}{DrawingSurface.DrawLine},
+\helprefn{DrawingSurface.DrawLine}{DrawingSurface.DrawLine},
 \helprefn{DrawingSurface.DrawRectangle}{DrawingSurface.DrawRectangle}
 
 
@@ -8517,13 +8517,13 @@ int DrawingSurface.GetPixel(int x, int y)
 \end{verbatim}
 Returns the AGS Colour Number of the pixel at (X,Y) on the surface.
 
-\bf{NOTE:} In high-colour games, the first 32 colour numbers have a special meaning
+\it{NOTE:} In high-colour games, the first 32 colour numbers have a special meaning
 due to an AGS feature which maintains compatibility with 8-bit games. Therefore, if
 you draw onto the surface using a blue colour number 0-31 you will get a different number
 when you GetPixel -- and in fact the colour drawn may not be what you expect.
 To get around this, add 1 Red or Green component to adjust the colour number out of this range.
 
-\bf{NOTE:} This command is relatively slow. Don't use it to try and process an entire image.
+\it{NOTE:} This command is relatively slow. Don't use it to try and process an entire image.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -8717,7 +8717,7 @@ Creates a new dynamic sprite containing a copy of the specified portion of
 the drawing surface. This allows you to easily create new sprites from portions
 of other sprites.
 
-\bf{NOTE:} The \it{x}, \it{y}, \it{width} and \it{height} parameters respect
+\it{NOTE:} The \it{x}, \it{y}, \it{width} and \it{height} parameters respect
 the DrawingSurface's \helprefn{UseHighResCoordinates}{DrawingSurface.UseHighResCoordinates}
 setting, so make sure that the type of co-ordinates that you are using match
 up with what the drawing surface expects.
@@ -8905,7 +8905,7 @@ sized sprite will be created.
 This command can be useful if you're creating a save game screenshots GUI, in order to
 display the current game position as well as the saved slot positions.
 
-\bf{NOTE:} This command can be slow when using the Direct3D graphics driver.
+\it{NOTE:} This command can be slow when using the Direct3D graphics driver.
 
 \bf{IMPORTANT:} This command loads an extra sprite into memory which is not controlled
 by the normal AGS sprite cache and will not be automatically disposed of. Therefore, when
@@ -8986,7 +8986,7 @@ inspecting each pixel of the image, so it's not recommended that you use it ofte
 
 The source sprite must be the same size and colour depth as the dynamic sprite.
 
-\bf{NOTE:} This command makes all pixels that are transparent in the source sprite
+\it{NOTE:} This command makes all pixels that are transparent in the source sprite
 also transparent in the dynamic sprite. It does not make opaque pixels from the
 source sprite into opaque pixels on the dynamic sprite (because it wouldn't know
 what colour to make them).
@@ -9140,7 +9140,7 @@ Resizes an existing dynamic sprite to WIDTH x HEIGHT pixels.
 
 The width and height are specified in 320x200-resolution units, as usual.
 
-\bf{NOTE:} Resizing is a relatively slow operation, so do not attempt to resize sprites
+\it{NOTE:} Resizing is a relatively slow operation, so do not attempt to resize sprites
 every game loop; only do it when necessary.
 
 \fcol{red}{Example:}
@@ -9178,7 +9178,7 @@ you can override this by passing the parameters in.
 Note that specifying a width/height does not stretch the image, it just allows you
 to set the image dimensions to crop the rotation.
 
-\bf{NOTE:} Rotating is a relatively slow operation, so do not attempt to rotate sprites
+\it{NOTE:} Rotating is a relatively slow operation, so do not attempt to rotate sprites
 every game loop; only do it when necessary.
 
 \fcol{red}{Example:}
@@ -9237,7 +9237,7 @@ The tint set by this function is permanent for the dynamic sprite -- after the t
 has been set, it is not possible to remove it. If you call Tint again with different
 parameters, it will apply the new tint to the already tinted sprite from the first call.
 
-\bf{NOTE:} This function only works with hi-colour sprites.
+\it{NOTE:} This function only works with hi-colour sprites.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -9371,7 +9371,7 @@ This function returns a File object, which you use to perform operations on the
 file. \it{null} is returned if there was a problem (eg. file not existing when MODE
 is eFileRead).
 
-\bf{NOTE:} You \bf{MUST} close the file with the Close function when you have finished
+\it{NOTE:} You \bf{MUST} close the file with the Close function when you have finished
 using it. There are only a limited number of file handles, and forgetting to
 close the file can lead to problems later on.
 
@@ -9392,7 +9392,7 @@ it may not be able to write files into the game's installation directory. To be 
 that your game won't have problems, \bf{always} write files to the Save Game Folder
 or the App Data Folder using the special tags. An example is below.
 
-\bf{NOTE:} Open file pointers are not persisted across save games. That is, if you open
+\it{NOTE:} Open file pointers are not persisted across save games. That is, if you open
 a file, then save the game; then when you restore the game, the File will not be usable
 and you'll have to open it again to continue any I/O. The safest practice is not to
 declare any global File variables.
@@ -9454,7 +9454,7 @@ The only exception to this rule is the special tag \verb^$SAVEGAMEDIR$^, which a
 you to access files in the save game directory. This is especially important with
 the move to Windows Vista or later versions, in which you may not have access to the main game folder.
 
-\bf{NOTE:} This is a static function, therefore you don't need an open File pointer
+\it{NOTE:} This is a static function, therefore you don't need an open File pointer
 to use it. See the example below.
 
 \fcol{red}{Example:}
@@ -9479,7 +9479,7 @@ This command supports the special tag \verb^$SAVEGAMEDIR$^, which allows
 you to access files in the save game directory. This is especially important with
 the move to Windows Vista or later versions, in which you may not have access to the main game folder.
 
-\bf{NOTE:} This is a static function, therefore you don't need an open File pointer
+\it{NOTE:} This is a static function, therefore you don't need an open File pointer
 to use it. See the example below.
 
 \fcol{red}{Example:}
@@ -9584,7 +9584,7 @@ String File.ReadRawLineBack()
 Reads a line of text back in from the file and returns it. This enables you to
 read in lines from text files and use them in your game.
 
-\bf{NOTE:} this command can only read back plain text lines from text files. If you
+\it{NOTE:} this command can only read back plain text lines from text files. If you
 attempt to use it with binary files or files written with commands like WriteString,
 WriteInt, etc then the results are unpredictable.
 
@@ -9885,7 +9885,7 @@ the current translation will be switched off and the game will revert to the def
 Returns \it{true} if the translation was changed successfully, or \it{false} if there was a
 problem (for example, you specified an invalid translation).
 
-\bf{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
+\it{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
 the example below.
 
 \fcol{red}{Example:}
@@ -9988,7 +9988,7 @@ DeleteSaveSlot (int slot)
 \end{verbatim}
 Deletes the save game in save slot number SLOT.
 
-NOTE: if you specify one of the standard slots (1-50), then AGS will rearrange the other
+\it{NOTE:} if you specify one of the standard slots (1-50), then AGS will rearrange the other
 save games to make sure there is a sequence of slots from 1 upwards. Therefore, you will
 need to refresh any save game lists you have after calling this function.
 
@@ -10011,7 +10011,7 @@ while an animation is running: the mouse cursor is changed to the Wait
 cursor, and mouse clicks will not be sent through to the "on_mouse_click"
 function. Also, all interface buttons will be disabled.
 
-\bf{NOTE:} AGS keeps a count of the number of times DisableInterface is called. Every
+\it{NOTE:} AGS keeps a count of the number of times DisableInterface is called. Every
 call to DisableInterface must be matched by a later call to EnableInterface, otherwise
 the interface will get permanently disabled.
 
@@ -10039,7 +10039,7 @@ that \bf{you do not use the same token string in two different places in your ga
 
 Returns \it{true} the first time that it is called with this token, and \it{false} thereafter.
 
-\bf{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
+\it{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
 the example below.
 
 \fcol{red}{Example:}
@@ -10102,7 +10102,7 @@ to the Colour Finder in the editor.
 This command is slow in 256-colour games, since the palette has to be scanned to find the
 nearest matching colour.
 
-\bf{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
+\it{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
 the example below.
 
 \fcol{red}{Example:}
@@ -10128,7 +10128,7 @@ static int Game.GetFrameCountForLoop(int view, int loop)
 \end{verbatim}
 Returns the number of frames in the specified loop of the specified view.
 
-\bf{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
+\it{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
 the example for more.
 
 \fcol{red}{Example:}
@@ -10181,7 +10181,7 @@ It has been replaced with the following functions and properties:
 \item \helprefn{Game.GUICount}{Game.GUICount} (was GP_NUMGUIS)
 \item \helprefn{Room.ObjectCount}{Room.ObjectCount} (was GP_NUMOBJECTS)
 \item \helprefn{Game.CharacterCount}{Game.CharacterCount} (was GP_NUMCHARACTERS)
-\item \helprefn{Game.InventoryItemCount}{Game.InventoryItemCount}(was GP_NUMINVITEMS)
+\item \helprefn{Game.InventoryItemCount}{Game.InventoryItemCount} (was GP_NUMINVITEMS)
 \end{itemize}
 
 \subsection{GetGameSpeed}\label{GetGameSpeed}%
@@ -10209,7 +10209,7 @@ GetGlobalInt (int index)
 \end{verbatim}
 Returns the value of global int INDEX.
 
-\bf{NOTE:} GlobalInts are now considered obsolete. Consider using
+\it{NOTE:} GlobalInts are now considered obsolete. Consider using
 \helprefn{global variables}{GlobalVariables} instead, which allow you to name
 the variables.
 
@@ -10233,7 +10233,7 @@ GetGraphicalVariable (string variable_name);
 Returns the value of the interaction editor VARIABLE_NAME variable. This allows your
 script to access the values of variables set in the interaction editor.
 
-\bf{NOTE:} This command is obsolete, and is only provided for backwards compatibility
+\it{NOTE:} This command is obsolete, and is only provided for backwards compatibility
 with AGS 2.x. When writing new code, use \helprefn{global variables}{GlobalVariables}
 instead.
 
@@ -10260,10 +10260,10 @@ Returns the name of whatever is on the screen at (X,Y). This allows you to
 create the Lucasarts-style status lines reading "Look at xxx" as the player
 moves the cursor over them.
 
-\bf{NOTE:} Unlike ProcessClick, this function actually works on what the player can
+\it{NOTE:} Unlike ProcessClick, this function actually works on what the player can
 see on the screen - therefore, if the co-ordinates are on a GUI, a blank string is returned.
 
-\bf{NOTE:} The co-ordinates are SCREEN co-ordinates, NOT ROOM co-ordinates. This
+\it{NOTE:} The co-ordinates are SCREEN co-ordinates, NOT ROOM co-ordinates. This
 means that with a scrolling room, the co-ordinates you pass are relative to
 the screen's current position, and NOT absolute room co-ordinates. This
 means that this function is suitable for use with the mouse cursor position
@@ -10288,7 +10288,7 @@ Returns what type of thing is at location (X,Y); whether it is a character,
 object, hotspot or nothing at all. This may be useful if you want to
 process a mouse click differently depending on what the player clicks on.
 
-\bf{NOTE:} The co-ordinates are screen co-ordinates, NOT room co-ordinates. See
+\it{NOTE:} The co-ordinates are screen co-ordinates, NOT room co-ordinates. See
 description of GetLocationName for more info.
 
 The value returned is one of the following:
@@ -10322,7 +10322,7 @@ static int Game.GetLoopCountForView(int view)
 \end{verbatim}
 Returns the number of loops in the specified view.
 
-\bf{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
+\it{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
 the example for more.
 
 \fcol{red}{Example:}
@@ -10347,7 +10347,7 @@ static bool Game.GetRunNextSettingForLoop(int view, int loop)
 \end{verbatim}
 Returns whether the specified loop in the specified view has the "Run the next loop after this one" option checked.
 
-\bf{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
+\it{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
 the example for more.
 
 \fcol{red}{Example:}
@@ -10478,7 +10478,7 @@ Returns a \it{ViewFrame} instance for the specified frame in the specified loop 
 This instance allows you to query properties of the frame itself, such as its graphic, its frame-linked
 sound setting, and so forth.
 
-\bf{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
+\it{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
 the example for more.
 
 \fcol{red}{Example:}
@@ -10532,7 +10532,7 @@ characters can be typed in.
 The recommended way to obtain user input is to create your own GUI with a text
 box on it, which allows you full customization of the look of the window.
 
-\bf{TIP:} If you add a '!' character to the start of the prompt, then a Cancel button will be
+\it{TIP:} If you add a '!' character to the start of the prompt, then a Cancel button will be
 available in the input box. If the player presses this Cancel button (or the ESC key),
 a blank string is returned.
 
@@ -10640,7 +10640,7 @@ use some extra codes which are listed at the bottom of the section.
 
 Returns 1 if the key is currently pressed, 0 if not.
 
-\bf{NOTE:} The numeric keypad can have inconsistent keycodes between IsKeyPressed
+\it{NOTE:} The numeric keypad can have inconsistent keycodes between IsKeyPressed
 and on_key_press. With IsKeyPressed, the numeric keypad always uses keycodes in the 370-381
 range. on_key_press, however, passes different values if Num Lock is on since the key
 presses are interpreted as the number key rather than the arrow key.
@@ -10750,11 +10750,11 @@ Stops AGS processing character movement and animations. This has the same
 effect on the game as happens when a modal GUI is popped up. Game processing
 will not resume until you call the UnPauseGame function.
 
-\bf{NOTE:} When the game is paused, game cycles will continue to run but
+\it{NOTE:} When the game is paused, game cycles will continue to run but
 no animations or movement will be performed, and timers will not count down. Apart
 from that, your scripts will continue to run as normal.
 
-\bf{NOTE:} GUI button animations will not be paused by this command, so that
+\it{NOTE:} GUI button animations will not be paused by this command, so that
 you can run animations on a pop-up GUI while the rest of the game is paused.
 
 \fcol{red}{Example:}
@@ -10778,7 +10778,7 @@ ProcessClick (100, 50, eModeLookat);
 \end{verbatim}
 will simulate clicking the mouse on co-ordinates (100,50) in the Look mode.
 
-\bf{NOTE:} This function ignores all interfaces and acts as though the point is
+\it{NOTE:} This function ignores all interfaces and acts as though the point is
 directly visible. In other words, if the co-ordinates you pass happen to
 lie on a button on an interface, what actually happens will be as if the
 user clicked behind the interface onto the actual screen.
@@ -10824,7 +10824,7 @@ Random (int max)
 Returns a random number between 0 and MAX. This could be useful to do
 various effects in your game.
 
-\bf{NOTE:} The range returned is inclusive - ie. if you do  Random(3);  then it
+\it{NOTE:} The range returned is inclusive - ie. if you do  Random(3);  then it
 can return 0, 1, 2 or 3.
 
 \fcol{red}{Example:}
@@ -10886,7 +10886,7 @@ number does not exist, an error message is displayed to the player but the
 game continues. To avoid the error, use the GetSaveSlotDescription function
 to see if the position exists before restoring it.
 
-\bf{NOTE:} The game will not be restored immediately; instead, it will be
+\it{NOTE:} The game will not be restored immediately; instead, it will be
 restored when the script function finishes executing.
 
 \fcol{red}{Example:}
@@ -10923,13 +10923,13 @@ was saved in the other game, it will automatically be loaded.
 Bear in mind that because the games must be in the same folder, they will also share
 the audio.vox, speech.vox and so forth. This is a limitation of this command.
 
-\bf{NOTE:} The game you run will be loaded at the same resolution and colour depth as the
+\it{NOTE:} The game you run will be loaded at the same resolution and colour depth as the
 current game; if you mismatch colour depths some nasty results will occur.
 
-\bf{NOTE:} Make sure that the game you want to run has a filename of 8 characters or less,
+\it{NOTE:} Make sure that the game you want to run has a filename of 8 characters or less,
 or this command will fail in the DOS engine.
 
-\bf{NOTE:} The game you want to launch must have been created with the same point-version
+\it{NOTE:} The game you want to launch must have been created with the same point-version
 of AGS as the one you are launching it from. (version 2.xy - the X must be the same version
 between the two games).
 
@@ -10948,7 +10948,7 @@ SaveGameDialog ()
 Displays the save game dialog, where the player can save their current
 game position. If they select to save, then the game position will be saved.
 
-\bf{NOTE:} The dialog will not be displayed immediately; instead, it will be
+\it{NOTE:} The dialog will not be displayed immediately; instead, it will be
 shown when the script function finishes executing.
 
 \fcol{red}{Example:}
@@ -10974,7 +10974,7 @@ The SaveGameDialog function uses slots numbered from 1 to 20, so if you
 don't want to interfere with the player's saves, I would recommend saving
 to slot numbers of 100 and above.
 
-\bf{NOTE:} The game will not be saved immediately; instead, it will be
+\it{NOTE:} The game will not be saved immediately; instead, it will be
 saved when the script function finishes executing.
 
 \fcol{red}{Example:}
@@ -10996,9 +10996,9 @@ either ".BMP" or ".PCX", as those are the types of files which can be saved.
 Returns 1 if the shot was successfully saved, or 0 if an invalid file
 extension was provided.
 
-\bf{NOTE:} The screenshot will be saved to the Saved Games folder.
+\it{NOTE:} The screenshot will be saved to the Saved Games folder.
 
-\bf{NOTE:} This command can be slow when using the Direct3D graphics driver.
+\it{NOTE:} This command can be slow when using the Direct3D graphics driver.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -11034,9 +11034,9 @@ numbers will darken the images accordingly, right down to 0 which will draw ever
 The tint applied by this function is global. To turn it off, call this command again but
 pass the saturation as 0.
 
-\bf{NOTE:} This function only works in hi-colour games and with hi-colour sprites.
+\it{NOTE:} This function only works in hi-colour games and with hi-colour sprites.
 
-\bf{NOTE:} This function overrides any specific region light levels or tints on the screen.
+\it{NOTE:} This function overrides any specific region light levels or tints on the screen.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -11118,11 +11118,11 @@ to 10 or 1000. Note that if you set a speed which the player's computer cannot
 handle (for example, a 486 will not be able to manage 80 fps), then it will
 go as fast as possible.
 
-NOTE: Because the mouse cursor is repainted at the game frame rate, at very
+\it{NOTE:} Because the mouse cursor is repainted at the game frame rate, at very
 low speeds, like 10 to 20 fps, the mouse will appear to be jumpy and not
 very responsive.
 
-NOTE: If you set the \helprefn{System.VSync}{System.VSync} property to \it{true}, the game speed will be capped
+\it{NOTE:} If you set the \helprefn{System.VSync}{System.VSync} property to \it{true}, the game speed will be capped
 at the screen's refresh rate, so you will be unable to set it higher than 60-85 (depending
 on the player's screen refresh).
 
@@ -11145,7 +11145,7 @@ from any other script using GetGlobalInt.
 
 There are 500 available global variables, from index 0 to 499.
 
-\bf{NOTE:} GlobalInts are now considered obsolete. Consider using
+\it{NOTE:} GlobalInts are now considered obsolete. Consider using
 \helprefn{global variables}{GlobalVariables} instead, which allow you to name
 the variables.
 
@@ -11166,7 +11166,7 @@ SetGraphicalVariable(string variable_name, int value);
 Sets the interaction editor VARIABLE_NAME variable to VALUE. This allows your
 script to change the values of variables set in the interaction editor.
 
-\bf{NOTE:} This command is obsolete, and is only provided for backwards compatibility
+\it{NOTE:} This command is obsolete, and is only provided for backwards compatibility
 with AGS 2.x. When writing new code, use \helprefn{global variables}{GlobalVariables}
 instead.
 
@@ -11224,7 +11224,7 @@ here.
 This function is useful if the default restart point doesn't work properly
 in your game - just use this function to move it.
 
-\bf{NOTE:} The restart point cannot be set while a script is running -- therefore,
+\it{NOTE:} The restart point cannot be set while a script is running -- therefore,
 when you call this it will actually set the restart point at the next game
 loop where there is not a blocking script running in the background.
 
@@ -11253,7 +11253,7 @@ Therefore, only two types of path are supported:
 
 Returns \it{true} if the save game directory has been changed successfully; \it{false} if not.
 
-\bf{NOTE:} It is recommended that you do not use this function. Instead, set the "Save games
+\it{NOTE:} It is recommended that you do not use this function. Instead, set the "Save games
 folder name" property in the General Settings of the editor, which allows the save games to be
 detected by Windows Game Explorer, and avoids problems writing to the Program Files folder.
 
@@ -11299,7 +11299,7 @@ Pass TIMEOUT as 0 to disable a currently running timer.
 
 There are 20 available timers, with TIMER_IDs from 1 to 20.
 
-\bf{NOTE:} the timer will not tick while the game is paused.
+\it{NOTE:} the timer will not tick while the game is paused.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -11553,7 +11553,7 @@ message numbers from 500 to 999.
 If an invalid message number is supplied, \it{null} will be returned. Otherwise, the
 message contents will be returned.
 
-\bf{NOTE:} Global Messages were a feature of AGS 2.x and are now obsolete. You will not
+\it{NOTE:} Global Messages were a feature of AGS 2.x and are now obsolete. You will not
 need to use this property in new games.
 
 \fcol{red}{Example:}
@@ -11653,7 +11653,7 @@ but any blocking commands are run through without the usual game cycle delays. T
 should never normally need to use this property since cutscenes should all be handled automatically,
 but it could be useful for script modules.
 
-\bf{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
+\it{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
 the example below.
 
 \fcol{red}{Example:}
@@ -11701,7 +11701,7 @@ but for very short statements like "Hi!", you might want the text to remain for 
 
 This property is specified in milliseconds (1000 = 1 second), and is set to 1000 by default.
 
-\bf{NOTE:} This property is ignored if lip-sync is enabled, or if the General Settings
+\it{NOTE:} This property is ignored if lip-sync is enabled, or if the General Settings
 are set not to allow text to be automatically removed.
 
 \fcol{red}{Example:}
@@ -11797,7 +11797,7 @@ Although cutscene skipping is handled automatically by AGS, you can use this pro
 the process by bypassing any lengthy blocks of code that don't need to be run if the cutscene is
 being skipped over.
 
-\bf{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
+\it{NOTE:} This is a static function, and thus need to be called with \verb$Game.$ in front of it. See
 the example below.
 
 \fcol{red}{Example:}
@@ -11905,7 +11905,7 @@ text being removed more quickly.
 It is useful to link this setting to a GUI Slider on some sort of Control Panel GUI
 so that the player can adjust it depending on their reading speed.
 
-\bf{NOTE:} This property is ignored if lip-sync is enabled, or if the General Settings
+\it{NOTE:} This property is ignored if lip-sync is enabled, or if the General Settings
 are set not to allow text to be automatically removed.
 
 \fcol{red}{Example:}
@@ -12042,7 +12042,7 @@ If there is not currently a displayed, clickable GUI at the location then
 \it{null} is returned. If null is returned, do NOT attempt to call any methods
 or use any properties of the GUI (since it does not actually exist).
 
-\bf{NOTE:} This command will not find any GUIs that are set as Non-Clickable (ie.
+\it{NOTE:} This command will not find any GUIs that are set as Non-Clickable (ie.
 the "Clickable" checkbox not checked).
 
 \fcol{red}{Example:}
@@ -12276,9 +12276,9 @@ Setting this to 100 means the GUI is totally invisible, and lower values
 represent varying levels of translucency. Set it to 0 to stop the
 GUI being translucent.
 
-\bf{NOTE:} Transparency only works in 16-bit and 32-bit colour games.
+\it{NOTE:} Transparency only works in 16-bit and 32-bit colour games.
 
-\bf{NOTE:} When using the DirectX 5 driver, a large transparent GUI can significantly slow
+\it{NOTE:} When using the DirectX 5 driver, a large transparent GUI can significantly slow
 down AGS.
 
 Some rounding is done internally when the transparency is stored -- therefore, if you get
@@ -12880,11 +12880,11 @@ with the last frame showing (eOnce or eRepeat are the possible values).
 You can abort an animation at any time by setting the button's NormalGraphic property, or
 starting a new animation on the same button.
 
-\bf{NOTE:} This command destroys the button's normal, pushed and mouseover images. If you
+\it{NOTE:} This command destroys the button's normal, pushed and mouseover images. If you
 want to return the button to normal usage after playing an animation, you will have to set
 the Graphic properties to restore the images.
 
-\bf{NOTE:} This command does not support flipped view frames. Any frames marked as "Flipped"
+\it{NOTE:} This command does not support flipped view frames. Any frames marked as "Flipped"
 will in fact be drawn normally when on a button.
 
 \fcol{red}{Example:}
@@ -13447,7 +13447,7 @@ ListBox.AddItem(string newitem)
 Adds NEWITEM to the specified list box. The item will be appended to
 the end of the list.
 
-\bf{NOTE:} List boxes have a limit of 200 items. If you try to add more than that,
+\it{NOTE:} List boxes have a limit of 200 items. If you try to add more than that,
 this function will return \it{false} and the item will not be added.
 
 \fcol{red}{Example:}
@@ -13533,7 +13533,7 @@ contain the save game slot number for each index in the list, so that you can do
 int index = lstSaveGames.SelectedIndex;
 RestoreGameSlot(lstSaveGames.SaveGameSlots[index]);
 \end{verbatim}
-\bf{NOTE:} The save game list can only hold 50 save games. If ListBox.ItemCount
+\it{NOTE:} The save game list can only hold 50 save games. If ListBox.ItemCount
 returns 50 and you are doing a Save dialog box, you may want to make the
 user replace an existing file rather than saving a new one.
 
@@ -13587,7 +13587,7 @@ the specified index.
 Listbox indexes go from 0 (the first item) to ItemCount - 1 (the last item). The new
 item will be inserted before the index you specify.
 
-\bf{NOTE:} List boxes have a limit of 200 items. If you try to add more than that,
+\it{NOTE:} List boxes have a limit of 200 items. If you try to add more than that,
 this function will return \it{false} and the item will not be added.
 
 \fcol{red}{Example:}
@@ -13617,7 +13617,7 @@ remove, starting with 0 for the top item.
 If you want to remove all items from the list, then use \helprefn{ListBox.Clear}{ListBox.Clear}
 instead.
 
-\bf{NOTE:} Calling this function causes other items in the list to get re-numbered, so
+\it{NOTE:} Calling this function causes other items in the list to get re-numbered, so
 make sure you don't keep around any references from ListBox.SelectedIndex and related functions
 while using this command.
 
@@ -13709,7 +13709,7 @@ Gets/sets whether the built-in up/down scroll arrows are hidden.
 Because the appearance of the scroll arrows is not customizable, you may wish to use
 this to hide them and provide your own arrows using GUI Button controls.
 
-\bf{NOTE:} If the list box's "Hide Border" setting is enabled, then the scroll arrows will
+\it{NOTE:} If the list box's "Hide Border" setting is enabled, then the scroll arrows will
 also be hidden, since "Hide Border" supersedes "Hide Scroll Arrows". You only need to
 use this HideScrollArrows property if you want the border to be shown but the arrows hidden.
 
@@ -13809,7 +13809,7 @@ This is necessary because the FillSaveGameList command sorts the list
 of save games to put the most recent first. Therefore, you can use this
 array to map the list box indexes back to the corresponding save game slot.
 
-\bf{NOTE:} You must use the FillSaveGameList command in order to populate
+\it{NOTE:} You must use the FillSaveGameList command in order to populate
 this array.
 
 \fcol{red}{Example:}
@@ -14132,7 +14132,7 @@ Returns the hotspot at SCREEN co-ordinates (X,Y).
 If there is no hotspot there, or if invalid co-ordinates are specified,
 the Hotspot* representing hotspot 0 will be returned.
 
-\bf{NOTE:} The co-ordinates are SCREEN co-ordinates, NOT ROOM co-ordinates. This
+\it{NOTE:} The co-ordinates are SCREEN co-ordinates, NOT ROOM co-ordinates. This
 means that with a scrolling room, the co-ordinates you pass are relative to
 the screen's current position, and NOT absolute room co-ordinates. This
 means that this function is suitable for use with the mouse cursor position
@@ -14364,7 +14364,7 @@ this function is called), and is intended to allow you to do Verb Coin style GUI
 If there is no inventory item there, or if invalid co-ordinates are specified,
 returns null.
 
-\bf{NOTE:} The co-ordinates are SCREEN co-ordinates, NOT ROOM co-ordinates. This
+\it{NOTE:} The co-ordinates are SCREEN co-ordinates, NOT ROOM co-ordinates. This
 means that with a scrolling room, the co-ordinates you pass are relative to
 the screen's current position, and NOT absolute room co-ordinates. This
 means that this function is suitable for use with the mouse cursor position
@@ -14499,7 +14499,7 @@ int InventoryItem.CursorGraphic
 Gets/sets the sprite slot number of the inventory item's mouse cursor. This is
 the sprite used as the mouse cursor when this inventory item is selected.
 
-\bf{NOTE:} This property is only used if the "Use selected inventory graphic for cursor"
+\it{NOTE:} This property is only used if the "Use selected inventory graphic for cursor"
 setting in General Settings is turned on.
 
 \fcol{red}{Example:}
@@ -14527,7 +14527,7 @@ Gets/sets the sprite slot number of the inventory item. You could use this
 with the Object.Graphic property as a means of the player 'dropping' an inventory item, or
 it may be useful if you want to do a Raw Drawn inventory window.
 
-\bf{NOTE:} For backwards compatibility, if you change this property and the CursorGraphic
+\it{NOTE:} For backwards compatibility, if you change this property and the CursorGraphic
 currently has the same sprite as the main Graphic, then the CursorGraphic will be changed
 too.
 
@@ -15021,7 +15021,7 @@ Mouse.ChangeModeGraphic(CursorMode, int slot)
 Changes the specified mouse cursor mode's cursor graphic to SLOT.
 This allows you to dynamically change what a mouse cursor looks like.
 
-\bf{NOTE:} To change what the Use Inventory cursor looks like, you should change
+\it{NOTE:} To change what the Use Inventory cursor looks like, you should change
 the active inventory item's \helprefn{CursorGraphic}{InventoryItem.CursorGraphic} property
 instead of using this function.
 
@@ -15199,7 +15199,7 @@ object or character.
 This allows you to temporarily change the mouse cursor when the mouse moves over a hotspot,
 and have it automatically change back to the old cursor when the player moves the mouse away.
 
-\bf{NOTE:} You must call this \bf{BEFORE} you change to your new temporary cursor, or the
+\it{NOTE:} You must call this \bf{BEFORE} you change to your new temporary cursor, or the
 new cursor will be saved by this command.
 
 \fcol{red}{Example:}
@@ -15271,7 +15271,7 @@ Moves the mouse pointer to screen co-ordinates (X,Y). They are
 in the usual range (0,0) - (320,200/240). The mouse.x and mouse.y variables will be
 updated to reflect the new position.
 
-\bf{NOTE:} Only use this command when absolutely necessary. Moving the mouse cursor
+\it{NOTE:} Only use this command when absolutely necessary. Moving the mouse cursor
 for the player is a sure way to irritate them if you do it too often during the game.
 
 \fcol{red}{Example:}
@@ -15446,7 +15446,7 @@ The tasks performed are as follows depending on the COMMAND parameter:
    where PARAM ranges from 1 to (number of CD drives). All the other
    CD Audio functions operate on the current CD drive.
 \end{itemize}
-NOTE: These CD Audio functions are slow compared to all the other script
+\it{NOTE:} These CD Audio functions are slow compared to all the other script
 functions. This will not be noticeable if you call them from most scripts,
 but using CDAudio in a repeatedly_execute script will noticeably slow down
 the game.
@@ -15515,7 +15515,7 @@ if (IsSpeechVoxAvailable()==0)
 \end{verbatim}
 will display a message if the voice pack is not available.
 
-\bf{NOTE:} This function used to be called IsVoxAvailable, but has now been renamed to avoid confusion.
+\it{NOTE:} This function used to be called IsVoxAvailable, but has now been renamed to avoid confusion.
 
 \it{See Also:} \helprefn{AudioClip.IsAvailable}{AudioClip.IsAvailable}
 
@@ -15599,7 +15599,7 @@ if you create your video with the XVid codec, the player will need to have XVid 
 to be able to view it. These types of video cannot be included into the game EXE,
 so you will have to place them separately in the Compiled folder for them to work.
 
-\bf{NOTE:} In 256-colour games, PlayVideo is not supported. Please use a FLC/FLI video
+\it{NOTE:} In 256-colour games, PlayVideo is not supported. Please use a FLC/FLI video
 with the \helprefn{PlayFlic}{PlayFlic} command instead.
 
 \subsubsection*{Cross-Platform Support}
@@ -15876,7 +15876,7 @@ bool Object.IsCollidingWithObject(Object* obj2)
 Checks if the specified object and OBJ2 are touching each other. Returns \it{true} if they
 are, and \it{false} if they are not.
 
-\bf{NOTE:} This function only performs a rectangular check, even when pixel-perfect
+\it{NOTE:} This function only performs a rectangular check, even when pixel-perfect
 click detection is turned on.
 
 \fcol{red}{Example:}
@@ -15907,10 +15907,10 @@ been merged, it cannot be changed back and the state of the room is
 permanently altered. Therefore you should only use this function if a game
 event has occurred that means the room is permanently changed.
 
-\bf{NOTE:} after calling this function, you cannot use the object any more and
+\it{NOTE:} after calling this function, you cannot use the object any more and
 it is permanently removed from the game.
 
-\bf{NOTE:} objects can only be merged if the object graphic was imported at
+\it{NOTE:} objects can only be merged if the object graphic was imported at
 the same colour depth as the background graphic.
 
 \fcol{red}{Example:}
@@ -16019,7 +16019,7 @@ hand corner of the object.
 This command is equivalent to setting the object.X and object.Y separately, but provides a
 more convenient way of doing so.
 
-\bf{NOTE:} This command cannot be used while the object is moving.
+\it{NOTE:} This command cannot be used while the object is moving.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -16124,7 +16124,7 @@ ensures that no tint is applied to the object (even if an ambient tint is set).
 To remove the tint set by this function and return to using the ambient tint for this
 object, call \helprefn{RemoveTint}{Object.RemoveTint}.
 
-\bf{NOTE:} This function only works in hi-colour games and with hi-colour sprites.
+\it{NOTE:} This function only works in hi-colour games and with hi-colour sprites.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -16216,7 +16216,7 @@ high.
 You can manually change the setting by entering a blocking height in pixels, which is the
 size of walkable area that the object effectively removes by being there.
 
-\bf{NOTE:} This property has no effect unless the \helprefn{Solid}{Object.Solid} property
+\it{NOTE:} This property has no effect unless the \helprefn{Solid}{Object.Solid} property
 is set to \it{true}.
 
 \fcol{red}{Example:}
@@ -16244,7 +16244,7 @@ high.
 You can manually change the setting by entering a blocking width in pixels, which is the
 size of walkable area that the object effectively removes by being there.
 
-\bf{NOTE:} This property has no effect unless the \helprefn{Solid}{Object.Solid} property
+\it{NOTE:} This property has no effect unless the \helprefn{Solid}{Object.Solid} property
 is set to \it{true}.
 
 \fcol{red}{Example:}
@@ -16385,7 +16385,7 @@ area. This is useful if for example you want an object to be a picture on
 a wall, and the wall can be walked behind - but you also want it to act
 correctly in relation to characters, so changing its baseline wouldn't work.
 
-\bf{NOTE:} enabling this property does not currently work properly when using
+\it{NOTE:} enabling this property does not currently work properly when using
 the Direct3D driver.
 
 \fcol{red}{Example:}
@@ -16481,7 +16481,7 @@ If this is set to true, then the object is solid and will block the path of soli
 characters. If this is set to false, then the object can be walked through by
 characters.
 
-\bf{NOTE:} solid objects only block characters, they don't block other objects from
+\it{NOTE:} solid objects only block characters, they don't block other objects from
 moving through them.
 
 \fcol{red}{Example:}
@@ -16508,9 +16508,9 @@ Gets/sets the object's transparency level.
 If this is set to 100, it means that the object is totally invisible, and lower values
 represent varying levels of transparency. Set this to 0 to stop the object being transparent.
 
-\bf{NOTE:} Transparency only works in 16-bit and 32-bit colour games.
+\it{NOTE:} Transparency only works in 16-bit and 32-bit colour games.
 
-\bf{NOTE:} When using the DirectX 5 driver, a large transparent object can significantly slow
+\it{NOTE:} When using the DirectX 5 driver, a large transparent object can significantly slow
 down AGS.
 
 Some rounding is done internally when the transparency is stored -- therefore, if you get
@@ -16592,7 +16592,7 @@ int Object.X
 \end{verbatim}
 Gets/sets the X co-ordinate of the object.
 
-\bf{NOTE:} This property cannot be changed while the object is moving.
+\it{NOTE:} This property cannot be changed while the object is moving.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -16615,9 +16615,9 @@ int Object.Y
 \end{verbatim}
 Gets/sets the Y co-ordinate of the object, which is the bottom of the object's image.
 
-\bf{NOTE:} This property cannot be changed while the object is moving.
+\it{NOTE:} This property cannot be changed while the object is moving.
 
-\bf{NOTE:} If you try to use this co-ordinate with Object.GetAtScreenXY, you will find that
+\it{NOTE:} If you try to use this co-ordinate with Object.GetAtScreenXY, you will find that
 the object does not get picked up. The object's sprite is drawn from the Y co-ordinate
 at (Object.Y - Height) to (Object.Y - 1).
 
@@ -16697,14 +16697,14 @@ and remove the overlay.
 You can insert the value of variables into the message. For more information,
 see the \helprefn{string formatting}{StringFormats} section.
 
-\bf{NOTE:} large overlays, in the same way as objects, can impact performance
+\it{NOTE:} large overlays, in the same way as objects, can impact performance
 while displayed.
 
-\bf{NOTE:} there is currently a maximum of 10 overlays displayed at any one time. Some other
+\it{NOTE:} there is currently a maximum of 10 overlays displayed at any one time. Some other
 commands such as Say and SayBackground create overlays internally,
 so don't rely on being able to create 10 with CreateTextual.
 
-\bf{NOTE:} if the Overlay object goes out of scope, the overlay will be removed. Hence,
+\it{NOTE:} if the Overlay object goes out of scope, the overlay will be removed. Hence,
 if you want the overlay to last on-screen outside of the script function where it
 was created, the \verb$Overlay*$ variable declaration needs to be at the top of
 the script and outside any script functions.
@@ -16874,7 +16874,7 @@ By default, the colours rotate leftwards through the palette. If you pass
 the arguments the other way round (ie. START being larger than END) then
 the colours will rotate in the opposite direction.
 
-\bf{NOTE:} This command only works in 256-colour games.
+\it{NOTE:} This command only works in 256-colour games.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -16900,7 +16900,7 @@ the player changes screen, when the palette is changed to the new room's
 palette. If SLOT is not a background slot, the effect of this function is
 permanent.
 
-NOTE: This function will allow you to change the colours which are "locked"
+\it{NOTE:} This function will allow you to change the colours which are "locked"
 in the AGS Editor. However, you should not normally do this as it can
 cause strange colours in the game.
 
@@ -17052,7 +17052,7 @@ Returns the region at ROOM co-ordinates (X,Y).
 If there is no region there, or if invalid co-ordinates are specified,
 the Region* representing region 0 will be returned.
 
-\bf{NOTE:} Unlike GetHotspotAtLocation, the co-ordinates specified are ROOM co-ordinates. This
+\it{NOTE:} Unlike GetHotspotAtLocation, the co-ordinates specified are ROOM co-ordinates. This
 means that if you want to use the mouse cursor location, you have to add the
 screen offset to make it work in scrolling rooms.
 
@@ -17076,7 +17076,7 @@ Region.RunInteraction(int event)
 \end{verbatim}
 Runs the event handler as if the EVENT for the region had been activated.
 
-\bf{NOTE:} Unlike the other RunInteraction commands, this one does not take a cursor mode.
+\it{NOTE:} Unlike the other RunInteraction commands, this one does not take a cursor mode.
 Instead, it uses an event type as follows:
 \begin{itemize}
 \item \it{0} -- While player stands on region.
@@ -17116,7 +17116,7 @@ figure. 100\verb$%$ will completely colourize characters in that area to the spe
 so you need to use it in Player Enters Room if you want a permanent
 change.
 
-\bf{NOTE:} This function only works in hi-colour games.
+\it{NOTE:} This function only works in hi-colour games.
 
 \bf{NOTE}: To remove the region tint, set the LightLevel property to 0.
 
@@ -17243,7 +17243,7 @@ Gets the \it{Blue} setting for the region's current tint.
 
 This property is read-only; to change it, use the \helprefn{Region.Tint}{Region.Tint} command.
 
-\bf{NOTE:} If the \helprefn{Region.TintEnabled}{Region.TintEnabled} property is false, then
+\it{NOTE:} If the \helprefn{Region.TintEnabled}{Region.TintEnabled} property is false, then
 this value is meaningless.
 
 \fcol{red}{Example:}
@@ -17269,7 +17269,7 @@ Gets the \it{Green} setting for the region's current tint.
 
 This property is read-only; to change it, use the \helprefn{Region.Tint}{Region.Tint} command.
 
-\bf{NOTE:} If the \helprefn{Region.TintEnabled}{Region.TintEnabled} property is false, then
+\it{NOTE:} If the \helprefn{Region.TintEnabled}{Region.TintEnabled} property is false, then
 this value is meaningless.
 
 \fcol{red}{Example:}
@@ -17295,7 +17295,7 @@ Gets the \it{Red} setting for the region's current tint.
 
 This property is read-only; to change it, use the \helprefn{Region.Tint}{Region.Tint} command.
 
-\bf{NOTE:} If the \helprefn{Region.TintEnabled}{Region.TintEnabled} property is false, then
+\it{NOTE:} If the \helprefn{Region.TintEnabled}{Region.TintEnabled} property is false, then
 this value is meaningless.
 
 \fcol{red}{Example:}
@@ -17321,7 +17321,7 @@ Gets the \it{saturation} setting for the region's current tint.
 
 This property is read-only; to change it, use the \helprefn{Region.Tint}{Region.Tint} command.
 
-\bf{NOTE:} If the \helprefn{Region.TintEnabled}{Region.TintEnabled} property is false, then
+\it{NOTE:} If the \helprefn{Region.TintEnabled}{Region.TintEnabled} property is false, then
 this value is meaningless.
 
 \fcol{red}{Example:}
@@ -17459,7 +17459,7 @@ which point they will be lost. If you need to make long-lasting changes, you
 can either use this method in the Player Enters Room event, or consider using
 an alternate background frame for the changed image.
 
-\bf{NOTE:} Drawing onto the room background can be slow, especially when using the Direct3D
+\it{NOTE:} Drawing onto the room background can be slow, especially when using the Direct3D
 driver. Do not use this command in repeatedly_execute; make sure you only use this command
 when absolutely necessary.
 
@@ -17620,7 +17620,7 @@ Returns the number of the walkable area at SCREEN co-ordinates (X,Y).
 If there is no walkable area there, or if invalid co-ordinates are specified,
 returns 0.
 
-NOTE: The co-ordinates are SCREEN co-ordinates, NOT ROOM co-ordinates. This
+\it{NOTE:} The co-ordinates are SCREEN co-ordinates, NOT ROOM co-ordinates. This
 means that with a scrolling room, the co-ordinates you pass are relative to
 the screen's current position, and NOT absolute room co-ordinates. This
 means that this function is suitable for use with the mouse cursor position
@@ -17695,7 +17695,7 @@ RemoveWalkableArea (int areanum)
 Removes the walkable areas in colour AREANUM from the current room. You can
 put the area back with RestoreWalkableArea.
 
-NOTE: When the player leaves the screen, all the walkable areas are reset.
+\it{NOTE:} When the player leaves the screen, all the walkable areas are reset.
 Therefore, if you want an area to remain off when they leave the screen,
 you will need to set a flag, then run the RemoveWalkableArea command in
 the "Player enters room" event when they return.
@@ -17725,7 +17725,7 @@ This function is useful if you want to have a "View intro" option to allow
 the player to watch an intro again - this function can reset all the
 objects in the intro rooms to their starting positions.
 
-NOTE: You cannot reset the current room (ie. the room that the player is in).
+\it{NOTE:} You cannot reset the current room (ie. the room that the player is in).
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -17818,10 +17818,10 @@ or to have the screen follow a non-player character.
 The lock is released when you either call ReleaseViewport or the player
 changes rooms.
 
-\bf{NOTE:} The co-ordinates supplied are 320x200-scale co-ordinates, and will
+\it{NOTE:} The co-ordinates supplied are 320x200-scale co-ordinates, and will
 be automatically multiplied up by the engine.
 
-\bf{NOTE:} This function has no effect if the current room isn't a scrolling room.
+\it{NOTE:} This function has no effect if the current room isn't a scrolling room.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -18060,7 +18060,7 @@ FadeIn (int speed)
 Fades in from a black screen to the current palette. This is used to restore
 the screen after a FadeOut call. SPEED is from 1 (slowest) to 64 (fastest).
 
-\it{NOTE: This is a blocking function.}
+\it{NOTE:} This is a blocking function.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -18082,7 +18082,7 @@ FadeOut (int speed)
 Fades the screen out to black. SPEED is the speed of the fade, from 1
 (slowest) to 64 (instant). You can restore the screen with FadeIn.
 
-\it{NOTE: This is a blocking function.}
+\it{NOTE:} This is a blocking function.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -18253,11 +18253,11 @@ For historical reasons, the tint works by applying a 50\verb$%$-transparent laye
 of the specified colour to the screen after everything else has been drawn.
 Therefore, it may not lead to the sort of results you might expect.
 
-\bf{NOTE:} This command is currently experimental, since it causes a massive
+\it{NOTE:} This command is currently experimental, since it causes a massive
 slowdown in the engine, especially at high resolutions. If you use it, you
 should provide an option for the player to turn it off.
 
-\bf{NOTE:} This feature does not work in 256-colour games.
+\it{NOTE:} This feature does not work in 256-colour games.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -18281,7 +18281,7 @@ static int Speech.AnimationStopTimeMargin
 Gets/sets the time margin at which the character talking animation should stop before before speech time ends.
 This property is specified in \bf{game loops} and is set to 10 by default.
 
-\bf{NOTE:} This property only affects the animation if voice mode is disabled.
+\it{NOTE:} This property only affects the animation if voice mode is disabled.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -18298,13 +18298,13 @@ will stop talking animation 40 game loops (1 second with the default game speed)
 static bool Speech.CustomPortraitPlacement
 \end{verbatim}
 
-Enables/disables the custom speech portrait placement. When set to \bf{true} the
+Enables/disables the custom speech portrait placement. When set to \it{true} the
 character portraits are positioned at screen coordinates defined by
 \helprefn{Speech.PortraitXOffset}{Speech.PortraitXOffset} and
-\helprefn{Speech.PortraitY}{Speech.PortraitY}. When set to \bf{false} the
+\helprefn{Speech.PortraitY}{Speech.PortraitY}. When set to \it{false} the
 portraits will be automatically aligned again.
 
-\bf{NOTE:} This property has no effect if the Lucas-Arts speech style is used.
+\it{NOTE:} This property has no effect if the Lucas-Arts speech style is used.
 
 \it{Compatibility:} Supported by \bf{AGS 3.3.0} and later versions.
 
@@ -18345,10 +18345,10 @@ static int Speech.GlobalSpeechAnimationDelay
 Gets/sets global speech animation delay which affects every character in game.
 This property is specified in \bf{game loops} and is set to 5 by default.
 
-\bf{NOTE:} This property is ignored if lip sync is enabled.
+\it{NOTE:} This property is ignored if lip sync is enabled.
 
-\bf{NOTE:} The property is only used when the \bf{Speech.UseGlobalSpeechAnimationDelay}
-is set to \bf{true}. This property \bf{cannot} be used if the global speech animation
+\it{NOTE:} The property is only used when the \bf{Speech.UseGlobalSpeechAnimationDelay}
+is set to \it{true}. This property \bf{cannot} be used if the global speech animation
 delay is disabled. In that case, the individual character's animation delay is used instead.
 
 \it{See Also:} \helprefn{Character.SpeechAnimationDelay}{Character.SpeechAnimationDelay},
@@ -18366,7 +18366,7 @@ The actual x coordinate of the portrait is calculated based on whether portrait
 is to be displayed at the left or right side of the screen. This property
 specifies the distance between the screen side and respected portrait's border.
 
-\bf{NOTE:}The property is only used when the \bf{Speech.CustomPortraitPlacement} is set to \bf{true}.
+\it{NOTE:}The property is only used when the \bf{Speech.CustomPortraitPlacement} is set to \it{true}.
 
 \it{Compatibility:} Supported by \bf{AGS 3.3.0} and later versions.
 
@@ -18382,7 +18382,7 @@ static int Speech.PortraitY
 
 Gets/sets the character's speech portrait \bf{y} coordinate on screen.
 
-\bf{NOTE:}The property is only used when the \bf{Speech.CustomPortraitPlacement} is set to \bf{true}.
+\it{NOTE:}The property is only used when the \bf{Speech.CustomPortraitPlacement} is set to \it{true}.
 
 \it{Compatibility:} Supported by \bf{AGS 3.3.0} and later versions.
 
@@ -18404,7 +18404,7 @@ Gets/sets special key which can skip speech text. This makes all other keys igno
 when speech is displayed on screen, unless eKeyNone is assigned, in which case
 any key can be used again.
 
-\bf{NOTE:}The specified key will only skip speech if the appropriate speech skip style is enabled.
+\it{NOTE:} The specified key will only skip speech if the appropriate speech skip style is enabled.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -18642,7 +18642,7 @@ are equivalent; case sensitivity is off by default.
 Returns 0 if the strings match, a number less than 0 if this string is earlier in the alphabet than STR2,
 and a number greater than 0 if this string is later in the alphabet than STR2.
 
-\bf{TIP:} To do a case-sensitive comparison of two strings, it's easier to just use the == operator.
+\it{TIP:} To do a case-sensitive comparison of two strings, it's easier to just use the == operator.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -18726,7 +18726,7 @@ instead of displaying it on the screen, returns the result as a new string.
 You can insert the value of variables into the message. For more information,
 see the \helprefn{string formatting}{StringFormats} section.
 
-\bf{NOTE:} This function is static, which means you do not call it on
+\it{NOTE:} This function is static, which means you do not call it on
 an existing string variable, but use \verb$String.Format()$ instead.
 
 \fcol{red}{Example:}
@@ -18782,7 +18782,7 @@ if ((stringToCheck == null) || (stringToCheck == ""))
 \end{verbatim}
 in other words, you can easily use this to check whether a string has any text in it or not.
 
-\bf{NOTE:} This function is static, which means you do not call it on an existing
+\it{NOTE:} This function is static, which means you do not call it on an existing
 string variable, but use \verb$String.IsNullOrEmpty()$ instead. See the example.
 
 \fcol{red}{Example:}
@@ -18809,7 +18809,7 @@ String.LowerCase()
 \end{verbatim}
 Returns a lower case version of the specified string.
 
-\bf{NOTE:} The new string is returned from this function; it
+\it{NOTE:} The new string is returned from this function; it
 does \bf{NOT} modify the original string.
 
 \fcol{red}{Example:}
@@ -18835,7 +18835,7 @@ with the \it{replaceWithText}.
 \it{caseSensitive} is \it{false} by default, but you can set it to true so that only
 case-sensitive matches of the \it{lookForText} will be replaced.
 
-\bf{NOTE:} The new string is returned from this function; it
+\it{NOTE:} The new string is returned from this function; it
 does \bf{NOT} modify the original string.
 
 \fcol{red}{Example:}
@@ -18865,7 +18865,7 @@ Changes the character at INDEX in the string to NEWCHAR.
 INDEX is the character index into the string (where 0 is the first character,
 and the last allowable value is the string's Length minus 1).
 
-\bf{NOTE:} The new string is returned from this function; it
+\it{NOTE:} The new string is returned from this function; it
 does \bf{NOT} modify the original string.
 
 \fcol{red}{Example:}
@@ -18936,7 +18936,7 @@ String.Truncate(int length)
 Returns a version of the string that has been truncated down to \it{length}
 characters.
 
-\bf{NOTE:} The new string is returned from this function; it
+\it{NOTE:} The new string is returned from this function; it
 does \bf{NOT} modify the original string.
 
 \fcol{red}{Example:}
@@ -18961,7 +18961,7 @@ String.UpperCase()
 \end{verbatim}
 Returns an upper case version of the specified string.
 
-\bf{NOTE:} The new string is returned from this function; it
+\it{NOTE:} The new string is returned from this function; it
 does \bf{NOT} modify the original string.
 
 \fcol{red}{Example:}
@@ -18995,7 +18995,7 @@ number2 = text2.AsFloat;
 will set number1 value to 57.362 and number2 value to 0.0
 This function is useful for processing strings input from the user.
 
-\bf{NOTE:} To convert a float to a string, you can use the \helprefn{String.Format}{String.Format}
+\it{NOTE:} To convert a float to a string, you can use the \helprefn{String.Format}{String.Format}
 command.
 
 \it{See Also:} \helprefn{Game.InputBox}{Game.InputBox},
@@ -19027,7 +19027,7 @@ number2 = text2.AsInt;
 will set number1 value to 53 and number2 value to 0.
 This function is useful for processing strings input from the user.
 
-\bf{NOTE:} To convert an integer to a string, you can use the \helprefn{String.Format}{String.Format}
+\it{NOTE:} To convert an integer to a string, you can use the \helprefn{String.Format}{String.Format}
 command.
 
 \it{See Also:} \helprefn{Game.InputBox}{Game.InputBox}, \helprefn{String.AsFloat}{String.AsFloat},
@@ -19050,7 +19050,7 @@ allowable value is the Length minus 1).
 
 If POSITION is outside the string, this function returns 0.
 
-\bf{NOTE:} The \it{Chars} array is read-only. If you want to change one of the characters
+\it{NOTE:} The \it{Chars} array is read-only. If you want to change one of the characters
 in the string, use \helprefn{String.ReplaceCharAt}{String.ReplaceCharAt}.
 
 \fcol{red}{Example:}
@@ -19297,7 +19297,7 @@ use, the resolution returned will be that before any stretching by the filter ha
 applied. If letterbox borders are enabled, the screen size reported will include the size
 of these borders.
 
-\bf{NOTE:} Do \bf{NOT} use this to calculate the centre of the screen when working
+\it{NOTE:} Do \bf{NOT} use this to calculate the centre of the screen when working
 with co-ordinates. Co-ordinates are relative to the viewport, so you should
 use \helprefn{System.ViewportHeight}{System.ViewportHeight} instead. Use the ScreenHeight
 property only for reporting purposes.
@@ -19328,7 +19328,7 @@ use, the resolution returned will be that before any stretching by the filter ha
 applied. If widescreen side borders are enabled, the screen width reported will include
 the size of these borders.
 
-\bf{NOTE:} Do \bf{NOT} use this to calculate the centre of the screen when working
+\it{NOTE:} Do \bf{NOT} use this to calculate the centre of the screen when working
 with co-ordinates. Co-ordinates are relative to the viewport, so you should
 use \helprefn{System.ViewportWidth}{System.ViewportWidth} instead. Use the ScreenWidth
 property only for reporting purposes.
@@ -19511,7 +19511,7 @@ get when the screen scrolls. However, doing so will lock the game frame rate to
 the monitor's refresh rate, which will mean you cannot reliably set a game speed higher
 than 60 fps.
 
-\bf{NOTE:} This property has no effect with the Direct3D driver.
+\it{NOTE:} This property has no effect with the Direct3D driver.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -19565,7 +19565,7 @@ Display ("The counter is currently set to %d.", my_counter);
 \end{verbatim}
 will replace the '\verb$%d$' with the value of the variable "my_counter".
 
-NOTE: Display is a blocking function - that is, control will not return
+\it{NOTE:} Display is a blocking function - that is, control will not return
 to the script until the player has removed the text window (by pressing a
 key or clicking the mouse). While the window is displayed, all other
 processing, like animations and interface display, are disabled. This is
@@ -19897,7 +19897,7 @@ static SCUMM_VERBCOIN_GUI.Deselect()
 \end{verbatim}
 Deselect an item if it is active or quit the inventory. Used for keyboard support.
 
-\bf{NOTE:} This function is part of the Verb Coin template and is only available if
+\it{NOTE:} This function is part of the Verb Coin template and is only available if
 you used this template to create your game.
 
 \it{See Also:} \helprefn{SCUMM_VERBCOIN_GUI.RunInteraction}{SCUMM_VERBCOIN_GUI.RunInteraction},
@@ -19912,7 +19912,7 @@ static SCUMM_VERBCOIN_GUI.DisableVerbCoinGUI(bool disabled)
 Activates/deactivates the SCUMM Verbcoin GUI system. This can be used to turn the SCUMM
 VerbCoin system on and off at runtime.
 
-\bf{NOTE:} This function is part of the Verb Coin template and is only available if
+\it{NOTE:} This function is part of the Verb Coin template and is only available if
 you used this template to create your game.
 
 \fcol{red}{Example:}
@@ -19931,7 +19931,7 @@ static SCUMM_VERBCOIN_GUI.DoubleClickSpeed(int speed)
 Sets the time frame in which a double-click can be registered. Increase this value
 for slower double-clicks, decrease this value for quicker double-clicks.
 
-\bf{NOTE:} This function is part of the Verb Coin template and is only available if
+\it{NOTE:} This function is part of the Verb Coin template and is only available if
 you used this template to create your game.
 
 \fcol{red}{Example:}
@@ -19951,7 +19951,7 @@ static SCUMM_VERBCOIN_GUI.GoInventory()
 \end{verbatim}
 This function opens and closes your inventory.
 
-\bf{NOTE:} This function is part of the Verb Coin template and is only available if
+\it{NOTE:} This function is part of the Verb Coin template and is only available if
 you used this template to create your game.
 
 
@@ -19964,7 +19964,7 @@ Sets the number of items that inventory scrolling will use to position to the ne
 
 This value should equal the amount of items that fit in your inventory window.
 
-\bf{NOTE:} This function is part of the Verb Coin template and is only available if
+\it{NOTE:} This function is part of the Verb Coin template and is only available if
 you used this template to create your game.
 
 \fcol{red}{Example:}
@@ -19985,7 +19985,7 @@ static SCUMM_VERBCOIN_GUI.InvScroll_Left()
 \end{verbatim}
 Scrolls the inventory to the left, by the number of items set with Item_Count.
 
-\bf{NOTE:} This function is part of the Verb Coin template and is only available if
+\it{NOTE:} This function is part of the Verb Coin template and is only available if
 you used this template to create your game.
 
 
@@ -20000,7 +20000,7 @@ static SCUMM_VERBCOIN_GUI.InvScroll_Right()
 \end{verbatim}
 Scrolls the inventory to the right, by the number of items set with Item_Count.
 
-\bf{NOTE:} This function is part of the Verb Coin template and is only available if
+\it{NOTE:} This function is part of the Verb Coin template and is only available if
 you used this template to create your game.
 
 
@@ -20017,7 +20017,7 @@ Sets which inventory exit borders are active.
 
 Inventory exit borders determine where the inventory will exit when moving over a line.
 
-\bf{NOTE:} This function is part of the Verb Coin template and is only available if
+\it{NOTE:} This function is part of the Verb Coin template and is only available if
 you used this template to create your game.
 
 \fcol{red}{Example:}
@@ -20040,7 +20040,7 @@ Sets the inventory exit border positions.
 
 Inventory exit borders determine where the inventory will exit when moving over a line.
 
-\bf{NOTE:} This function is part of the Verb Coin template and is only available if
+\it{NOTE:} This function is part of the Verb Coin template and is only available if
 you used this template to create your game.
 
 \fcol{red}{Example:}
@@ -20074,7 +20074,7 @@ and the gui buttons.
 If your game does not use alpha-blended GUI buttons, leave the underlay inventory
 empty. (use sprite 0 for its background)
 
-\bf{NOTE:} This function is part of the Verb Coin template and is only available if
+\it{NOTE:} This function is part of the Verb Coin template and is only available if
 you used this template to create your game.
 
 \fcol{red}{Example:}
@@ -20092,7 +20092,7 @@ static SCUMM_VERBCOIN_GUI.RunInteraction(CursorMode)
 \end{verbatim}
 Runs the event of choice. Used for keyboard support.
 
-\bf{NOTE:} This function is part of the Verb Coin template and is only available if
+\it{NOTE:} This function is part of the Verb Coin template and is only available if
 you used this template to create your game.
 
 \fcol{red}{Example:}
@@ -20111,7 +20111,7 @@ static SCUMM_VERBCOIN_GUI.Select()
 \end{verbatim}
 Selects an item, or if an item is active tries to use it. Used for keyboard support.
 
-\bf{NOTE:} This function is part of the Verb Coin template and is only available if
+\it{NOTE:} This function is part of the Verb Coin template and is only available if
 you used this template to create your game.
 
 \it{See Also:} \helprefn{SCUMM_VERBCOIN_GUI.Deselect}{SCUMM_VERBCOIN_GUI.Deselect},
@@ -20128,7 +20128,7 @@ Sets the verbcoin gui ID, so the module will know which GUI is your verbcoin GUI
 This is particularly useful if you have a game with multiple playable characters,
 where you could have a different verbcoin for each character.
 
-\bf{NOTE:} This function is part of the Verb Coin template and is only available if
+\it{NOTE:} This function is part of the Verb Coin template and is only available if
 you used this template to create your game.
 
 \fcol{red}{Example:}
@@ -20150,7 +20150,7 @@ moving over the button.
 The only exception is the 'bIdle' button, which is not a button but the default
 verbcoin graphic with no buttons active.
 
-\bf{NOTE:} This function is part of the Verb Coin template and is only available if
+\it{NOTE:} This function is part of the Verb Coin template and is only available if
 you used this template to create your game.
 
 \fcol{red}{Example:}
@@ -20168,7 +20168,7 @@ global bool doubleclick
 \end{verbatim}
 Used to determine when a double-click has occurred.
 
-\bf{NOTE:} This variable is part of the Verb Coin template and is only available if
+\it{NOTE:} This variable is part of the Verb Coin template and is only available if
 you used this template to create your game.
 
 \fcol{red}{Example:}
@@ -20257,9 +20257,9 @@ The following events are available in the "Events" section of the Properties Win
   BEFORE the screen has faded in, which allows you to change object graphics
   and do other things to the screen which the player won't notice.
 
-  \it{NOTE: This event is ONLY meant for adjusting things such as object and
+  \it{NOTE:} This event is ONLY meant for adjusting things such as object and
   character placement. Do NOT use this event for any sort of automated intro
-  to the room - use the "Enters Room After Fade In" event for that instead.}
+  to the room - use the "Enters Room After Fade In" event for that instead.
 \item \it{Repeatedly execute} -- Occurs repeatedly on every interpreter cycle. The
   normal game speed is 40 cycles per second, so this event occurs about
   every 25 milliseconds.
@@ -20653,7 +20653,7 @@ full-screen there's the "Run without debugger" option (Ctrl+F5) to do so.
 Use the "Build EXE" command (F7) when you want to create all the compiled files
 to distribute your game.
 
-\bf{NOTE:} When you use the Run command, your game EXE file does \bf{NOT} get built.
+\it{NOTE:} When you use the Run command, your game EXE file does \bf{NOT} get built.
 AGS 3's Run command is much faster than the old Test Game command because
 it directly loads the files from the game folder instead. If you want to
 build your game EXE, you need to use the "Build EXE" command to do so.
@@ -20933,7 +20933,7 @@ These settings are accompanied by two respective properties in the Speech class.
 In the previous versions of AGS the ListBox items were never translated. A new "Translated" property
 has been added to ListBox class, which forces engine to translate ListBox items. Default value is True
 but it is recommended to set it to False if you are using ListBox for listing savedgames.
-\bf{NOTE:} when older projects are imported, it is set to False automatically.
+\it{NOTE:} when older projects are imported, it is set to False automatically.
 
 
 \chapter{Anonymous usage information}\label{AnonymousUsageInfo}%

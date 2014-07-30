@@ -76,7 +76,7 @@ MP3 player is almp3 v2.0.4, by Javier Gonzalez and the MPG123 team. It uses the 
 and again is distributed under the terms of the GNU Lesser General Public License version 2.1.
 
 Copyright information on the various other modules AGS uses can be found in the
-\helpref{credits}{Credits} section. 
+\helpref{credits}{Credits} section.
 
 Pentium is a trademark of Intel corporation.
 Windows is a trademark or registered trademark of Microsoft corp.
@@ -91,7 +91,7 @@ Welcome to AGS!
 
 Adventure Game Studio allows you to create your own point-and-click adventure
 games like the old Sierra and Lucasarts classics, but with modern features
-such as digital music and alpha blending. 
+such as digital music and alpha blending.
 
 AGS is based around an easy-to-use IDE, where you can set up all the parts of
 your game, and then add some script to process game events. Making a game
@@ -288,7 +288,7 @@ fixed colours allow things like the main character graphics, which must be
 displayed on more than one screen, to work.
 
 If you want, you can assign more or less colours to the backgrounds. To toggle
-the background assignment on/off, click on the slot, then check the 
+the background assignment on/off, click on the slot, then check the
 "This colour is room-dependant" box to swap the slot's status.
 
 \bf{IMPORTANT NOTE:} \it{You must set up the palette as you want it before you start
@@ -299,9 +299,9 @@ You can select multiple colour slots by clicking on the first slot, then
 shift-clicking on the last slot in the range you want to select. You can then
 toggle the background status of all the selected slots at once.
 
-You can right-click in the palette grid to export the entire palette to 
-a .PAL or PCX file which you can then use to read back into the Editor in 
-a different game. 
+You can right-click in the palette grid to export the entire palette to
+a .PAL or PCX file which you can then use to read back into the Editor in
+a different game.
 If you choose to export to a pcx file, then a screen shot of the Palette Editor will
 be saved as the picture. This way you can see all the game-wide colours in
 the file.
@@ -329,8 +329,8 @@ button.
 
 The last thing to do with the inventory items is to define their events:
 what happens when the player manipulates them in the inventory window. Click
-the "Events" button (the lightning bolt button at the top of the property grid), 
-which brings up a list which works identically to the hotspot events. 
+the "Events" button (the lightning bolt button at the top of the property grid),
+which brings up a list which works identically to the hotspot events.
 The available events are described in the reference section.
 
 \it{NOTE: Each character in the game carries their own set of inventory items.
@@ -343,7 +343,7 @@ built-in inventory window to get you started, and support for custom inventory
 windows when you're ready to make your own.
 
 The default option is the Sierra-style pop-up inventory window, which is
-popped up by clicking on the Inventory icon on the icon bar. You can also have 
+popped up by clicking on the Inventory icon on the icon bar. You can also have
 the current inventory item displayed in its own button on the icon bar by creating
 a button on the GUI and setting its text to  (INV)  which stretches the item
 picture to the button size, or  (INVNS)  which draws the inventory item
@@ -356,9 +356,9 @@ While you are starting off with AGS, it is recommended to use the supplied
 standard Sierra-style inventory window.
 
 Finally, you may have noticed a "Hotspot Marker Settings" frame at the top of the
-Inventory pane. This allows you to switch on an option so that when the 
+Inventory pane. This allows you to switch on an option so that when the
 selects an inventory item, the mouse cursor for it will have a dot and mini-crosshair
-drawn on it, to show the player where the hotspot is. 
+drawn on it, to show the player where the hotspot is.
 You can enter the colour for the centre dot and also for the surrounding 4 pixels.
 
 \subsection{Importing your own sprite graphics}\index{Alpha blended sprites}%
@@ -377,7 +377,7 @@ To overwrite an existing sprite, right-click the sprite and select "Replace spri
 from file". To import a new slot, right-click on the background to the window
 and choose "Import new sprite".
 
-The graphic you choose to import must be at the same colour depth as your game 
+The graphic you choose to import must be at the same colour depth as your game
 (ie. if you are using hi-colour backgrounds, your sprites must be hi-colour,
 and vice versa). AGS will attempt to convert the image if possible, but if
 your game is 256-colour then the results of downgrading a hi-colour image
@@ -486,7 +486,7 @@ Animations in AGS are managed using Views. A "view" is a set of one or more
 "loops". A loop is a set of frames which, when put together, give the effect
 of movement. Each frame in the view can be set a graphic and a speed.
 
-Go to the editor's "Views" node, right-click it and select the "New view" 
+Go to the editor's "Views" node, right-click it and select the "New view"
 option to create us a new, empty view. Double-click the new view to open it.
 Each loop is displayed horizontally with its number at the left hand side,
 frames going out to the right. To add a frame, click the grey "New frame"
@@ -515,11 +515,11 @@ The "Sound" propery allows you to enter a sound number that will be played
 when this frame becomes visible on the screen.
 This is especially useful for footstep sounds.
 
-You run an animation by using the script animation commands, which will 
-be explained in detail later. Briefly, to animate an object, you first 
-of all need to set the object's view to the correct view number (use 
+You run an animation by using the script animation commands, which will
+be explained in detail later. Briefly, to animate an object, you first
+of all need to set the object's view to the correct view number (use
 the Object.SetView script command), and then use the Object.Animate
-script command to actually start the animation. 
+script command to actually start the animation.
 
 \subsection{Characters}\index{Idle animations}%
 
@@ -536,7 +536,7 @@ choose the "New character" option.
 You will see that there are a lot of options which you can set for each
 character. The most immediately obvious one is the "Make this the player character"
 button, which allows you to change which character the player will control
-at the start of the game. 
+at the start of the game.
 When the game starts, the first room loaded will be this character's
 starting room.
 
@@ -677,7 +677,7 @@ game, the first option is just "Hi". Once he has said this, however, a new
 option becomes available.
 
 The Dialog Editor is quite self-explanatory. Double-click a dialog topic
-to open up its window. You'll see the list of options for the topic on 
+to open up its window. You'll see the list of options for the topic on
 the left, and the dialog script on the right. Each option
 has a couple of checkboxes to its right:
 \begin{itemize}\itemsep=0pt
@@ -747,7 +747,7 @@ The dialog commands available are:
 \begin{itemize}\itemsep=10pt
 \item \bf{goto-dialog X} ILBRK
   Switches the current topic to Topic X, and displays the current list of
-  choices for that topic. 
+  choices for that topic.
 \item \bf{goto-previous} ILBRK
   Returns to the previous topic that this one was called from. If the dialog
   started on this topic, then the dialog will be stopped.
@@ -842,7 +842,7 @@ the player scores points. If so, you can set the sound number, which will
 play SOUNDx.WAV (or SOUNDx.MP3), where X is the number you set.
 \item \bf{Walk to hotspot in Look mode} - controls whether the player will walk
 to "walk-to" spots when the player looks at the hotspot. Normally he only
-walks on use, speak and use-inv. 
+walks on use, speak and use-inv.
 \item \bf{Dialog options on GUI} - controls where the player's options for dialog are
 displayed. If this option is not checked, then in a conversation, the options
 will be displayed at the bottom of the screen. If you check this box, then
@@ -935,7 +935,7 @@ face the right way.
 \item \bf{Override built-in inventory window click handling} - AGS has some built-in processing
 of Inventory Window GUI controls, whereby a right-click will Look at the item, and a left click
 will select it if the cursor mode is Interact. However, if you enable this
-option, then clicking on an inventory item in an Inventory Window will call your \verb$on_mouse_click$ 
+option, then clicking on an inventory item in an Inventory Window will call your \verb$on_mouse_click$
 function  with eMouseLeftInv, eMouseMiddleInv or eMouseRightInv, and you then need to process it
 yourself. You can use the \verb$game.inv_activated$ variable to find out what they clicked on.
 \item \bf{Enable mouse wheel support} - if enabled, on_mouse_click can be called with
@@ -1045,7 +1045,7 @@ available on the internet.
 \item Create your own font and save it in SCI Font format, using the
 \urlref{SCI Graphic Studio program}{http://scigraphicstudio.cjb.net}.
 \end{itemize}
-There are also some fonts available on the 
+There are also some fonts available on the
 \urlref{AGS website}{http://www.adventuregamestudio.co.uk/fonts}.
 
 Note that SCI fonts are faster to render than TTF fonts, and so may give your game
@@ -1098,7 +1098,7 @@ levels by setting its "UseRoomAreaScaling" option.
 If you set the "UseContinuousScaling" option, then rather than just specifying a
 zoom level for the whole walkable area, you specify a min and max zoom level. These
 specify the scaling at the top and bottom of the walkable area. When the game is run,
-AGS will interpolate these values to make the character smoothly scale down from 
+AGS will interpolate these values to make the character smoothly scale down from
 one value to another as he walks towards the back or front of the screen.
 
 \subsection{Scrolling}%
@@ -1130,7 +1130,7 @@ relevant mode of the Areas editor. There are some restrictions to how this
 file must be drawn: it must be the exact same size as the background scene,
 and it must be in 16-colour (4-bit) or 256-colour (8-bit). Then, colour 0
 on the bitmap signifies transparency and colours 1-15 are used as the
-respective hotspot/walk-behind/walkable area numbers. 
+respective hotspot/walk-behind/walkable area numbers.
 
 \bf{IMPORTANT:} Do NOT use any colour numbers above 15 on the mask bitmap. Use only
 palette indexes 0 to 15.
@@ -1160,9 +1160,9 @@ To import a second background for a room, load the room into the editor, pull
 down the "Main background" list box, and choose the "Import new background" option.
 Choose the file that's storing the background and you're done.
 
-To delete a background, select it then click the "Delete" button. 
+To delete a background, select it then click the "Delete" button.
 
-You define the speed at which the backgrounds will animate by setting the 
+You define the speed at which the backgrounds will animate by setting the
 "BackgroundAnimationDelay" option in the property grid for the room. The default
 is 5, which cycles background every 5 frames.
 
@@ -1231,7 +1231,7 @@ programs to encode your music to OGG, see http://www.vorbis.org/
 
 \bf{Audio in the Editor}
 
-Look under the "Audio" branch in the project tree. Here you'll find sub-nodes called 
+Look under the "Audio" branch in the project tree. Here you'll find sub-nodes called
 "Speech", "Types" and two default folders called "Music" and "Sounds".
 
 \bf{Speech}
@@ -1307,7 +1307,7 @@ aExplosion.Play(eAudioPriorityLow);
 So, how do you change a sound once it is playing? Well, there are no methods on the
 Audio Clip to do this, because you might be playing two copies of the same sound at
 once, and then AGS wouldn't know which one you wanted to access. That's where \bf{Audio
-Channels} come to the rescue. 
+Channels} come to the rescue.
 
 When you use the Play() command, AGS returns to you an AudioChannel* instance representing
 the channel on which the sound is playing. You can store this to a global variable and
@@ -1322,7 +1322,7 @@ This will start the \it{aExplosion} audio clip playing, and then change its volu
 
 \bf{Using Audio Channels}
 
-Supposing you want to start playing a sound now, and then change its volume or panning later on. 
+Supposing you want to start playing a sound now, and then change its volume or panning later on.
 How would you do that? Well, you'd need to keep the AudioChannel around, so that you can access
 it later. The easiest way to do that is to make it a Global Variable; if you open the Global Variables
 editor, you can create a new AudioChannel* variable (let's call it \it{longWindedSound}). Then when
@@ -1351,7 +1351,7 @@ player. All individual sound volumes work within the overall system volume.
 The new audio system in AGS gives you much more control over your game audio.
 Please see the following sections for a complete list of the supported commands:
 
-\helprefn{AudioClip reference}{AudioClipCommands}, 
+\helprefn{AudioClip reference}{AudioClipCommands},
 \helprefn{AudioChannel reference}{AudioChannelCommands}
 
 
@@ -1434,7 +1434,7 @@ The default interface is made up of two GUIs - the status line, and the
 icon bar.
 
 Go to the "GUIs" node in the main tree. Under this all the GUIs in the game
-are listed -- double-click one to edit it. To create a new one, right-click 
+are listed -- double-click one to edit it. To create a new one, right-click
 on the main "GUIs" node and choose "New GUI".
 
 Once you've opened up a GUI, you'll notice the GUI itself in the main window,
@@ -1455,7 +1455,7 @@ The "Mouse YPos" option means that the GUI only appears when the mouse vertical
 position moves above the y-coordinate set with the "Popup-YP" option.
 
 "Persistent" is like "Normal", except that this GUI will not be removed
-during a cutscene when the setting "GUIs turn off when disabled" is set in 
+during a cutscene when the setting "GUIs turn off when disabled" is set in
 the general settings. Useful if you want most of your GUIs to turn off, except
 a status line or whatever.
 
@@ -1466,7 +1466,7 @@ at the back to the highest numbered at the front.
 
 The "Clickable" setting allows you to set whether the GUI and buttons on it
 respond to mouse clicks. This is on by default, but if you turn it off and
-the player clicks on the GUI, the game will actually process the click as if 
+the player clicks on the GUI, the game will actually process the click as if
 they clicked behind the GUI onto the actual screen. Useful for transparent GUIs
 which are only used to display information.
 
@@ -1834,7 +1834,7 @@ ORIGINAL ENGLISH LINES WITH THE TRANSLATION)}. If a line is left blank, it will 
 not be translated.
 
 Once the translation is done, right-click the translation and choose "Compile".
-It will be converted into a compiled translation (\verb$.TRA$) file in the 
+It will be converted into a compiled translation (\verb$.TRA$) file in the
 Compiled folder, which can be used with the game engine.
 
 Run the game Setup program, and select the translation from the drop-down box.
@@ -1935,7 +1935,7 @@ to use the setting accordingly.
 You'll notice that characters, objects, hotspots, rooms and inventory items all have
 a "Properties" option in their property grids. Select it and click the "..." button.
 
-Since you don't yet have any custom properties, you'll get a blank window, so 
+Since you don't yet have any custom properties, you'll get a blank window, so
 click the "Edit Schema" button. This takes you to the Schema Editor, where you
 can create the various properties you want in your game. To begin with you are
 presented with an empty list box, so right-click in it and choose "Add property".
@@ -1989,7 +1989,7 @@ that AGS itself does not support.
 The plugin developer's guide is available from the Resources section of the AGS website.
 
 Plugins come as DLL files with the names  AGS*.DLL, for example  agscircle.dll  might be a
-plugin providing a DrawCircle script function. 
+plugin providing a DrawCircle script function.
 
 \bf{How to use a plugin}
 
@@ -2144,7 +2144,7 @@ There are two main ways to use this feature:
 
 * Place a breakpoint in your script. You do this by clicking on a line of code
 in the script editor, then pressing F9. Then, when the game arrives at this
-line of code, it will stop running. 
+line of code, it will stop running.
 
 \bf{NOTE:} The editor will allow you to place a breakpoint on any line of script.
 However, in order for it to work, it must be placed on a line that has some code on it.
@@ -2216,7 +2216,7 @@ file to directly launch the game and continue from where you left off.
 
 In order to enable this, open the General Settings pane, and look for the "Saved Games"
 section. Here, there is an option called "Enhanced Save Games". If you switch this on,
-then AGS will enable the integration with Windows Explorer. 
+then AGS will enable the integration with Windows Explorer.
 
 To make this work, you need to set the Save Game File Extension setting to a file extension.
 This is how Windows will identify the save game files, and you must supply an extension
@@ -2780,7 +2780,7 @@ new-style String can be passed to a function that expects a "const string" (whic
 that it will not be allowed to change the string's contents), but cannot be passed to a
 function that expects a "string" (since it could overwrite the string data and mess things up).
 
-So, you may find that any custom functions you have that take a string parameter stop 
+So, you may find that any custom functions you have that take a string parameter stop
 working. If this is the case, change the parameter from "string" to "const string" and
 that should fix it.
 
@@ -2796,7 +2796,7 @@ means that if you have a common script that you want to use in response to
 various different events during the game, you can call it from your room
 scripts rather than duplicating code.
 
-To use a global function, open up the main script header (GlobalScript.ash), 
+To use a global function, open up the main script header (GlobalScript.ash),
 and add a line similar to the following:
 \begin{verbatim}
 import function my_function_name (parameters);
@@ -2940,9 +2940,9 @@ Well, yes and no. They can contain the following functions, and they will
 be called at the appropriate times just before the global script's function is:
 \begin{itemize}
 \item function game_start()
-\item function on_event(EventType event, int data) 
-\item function on_key_press(eKeyCode keycode) 
-\item function on_mouse_click(MouseButton button) 
+\item function on_event(EventType event, int data)
+\item function on_key_press(eKeyCode keycode)
+\item function on_mouse_click(MouseButton button)
 \item function repeatedly_execute()
 \item function repeatedly_execute_always()
 \end{itemize}
@@ -3064,7 +3064,7 @@ of built-in types (String, Character, etc) but not of custom structs.
 
 \section{Extender functions}\label{ExtenderFunctions}%
 
-Suppose that you wanted to add a new function, "Scream", to characters which would make 
+Suppose that you wanted to add a new function, "Scream", to characters which would make
 them cry out "AARRRGGGHHH". Because the Character type is defined within AGS, it's not
 possible for you to just add a method to it.
 
@@ -3122,7 +3122,7 @@ All the following variables are \verb$int$ variables.
                               overriding the user's choice in Setup. Default 0. }
 }\row{ { game.following_room_timer}&{ How long to wait before following char emerges in
                            new room, default 150. (higher is longer).}
-}\row{ { game.keep_screen_during_instant_transition }&{ Normally the Instant transition blacks the screen in 8-bit 
+}\row{ { game.keep_screen_during_instant_transition }&{ Normally the Instant transition blacks the screen in 8-bit
   colour modes, to avoid strange palette effects. However you can set this to 1 to prevent it doing so. }
 }\row{ {\bf game.inv_activated    }&{ Inventory item that the player last clicked on. Useful for unhandled_event. }
 }\row{ { game.inventory_greys_out }&{ Set to 1 to make inventory controls grey out when GUI disabled is set to "GUIs Grey Out" }
@@ -3211,7 +3211,7 @@ eEventEnterRoomBeforeFadein
 eEventLeaveRoom
       called just after room Player Leaves Room event is run.
       DATA = room number they are leaving
-eEventGotScore  
+eEventGotScore
       called whenever the player's score changes
       DATA = number of points they got
 eEventGUIMouseDown
@@ -3247,7 +3247,7 @@ eEventRestoreGame
   See \helprefn{this help page}{RepExec} for more information.
 \item [repeatedly_execute_always()]
   Called every game cycle, even when a blocking routine (eg. speech/cutscene) is in
-  progress. You \bf{cannot} call any blocking functions from this event handler. 
+  progress. You \bf{cannot} call any blocking functions from this event handler.
   See \helprefn{this help page}{RepExec} for more information.
 \item [unhandled_event (int what, int type)]
   Called when an event occurs, but no handler is set up in the Events list.
@@ -3287,7 +3287,7 @@ eEventRestoreGame
 	 5    4   Other click on inventory\end{verbatim}
   Note that the "Character stands on hotspot" event does not trigger this
   function, and it will not be triggered if there is an "Any click" event defined.
-  
+
   This function is \bf{not} triggered if the player clicks on nothing (hotspot 0).
 \end{description}
 
@@ -3307,7 +3307,7 @@ For example, suppose that you want a bird to fly backwards and forwards across t
 in the background. You need a way of telling the bird to move in one direction, recognise
 when it has finished, and tell it to move back again.
 
-This is where \it{repeatedly_execute} and \it{repeatedly_execute_always} come in. 
+This is where \it{repeatedly_execute} and \it{repeatedly_execute_always} come in.
 
 \bf{What's the difference between them?}
 
@@ -3335,7 +3335,7 @@ a blocking animation, and you wouldn't want this to interrupt any specific cutsc
 repeatedly_execute would be the ideal place for it.
 
 On the other hand, in the case of our bird flying across the screen, because we don't want to
-block the game while the bird flies, and we just want it to happen in the background, 
+block the game while the bird flies, and we just want it to happen in the background,
 \it{repeatedly_execute_always} would be the place to put it.
 
 \bf{How do I create them?}
@@ -3376,7 +3376,7 @@ function repeatedly_execute()
   // increment our timer variable (we would have created this
   // in the Global Variables editor)
   hungerTimer++;
-  
+
   if (hungerTimer == 800)
   {
     Display("You are getting very hungry.");
@@ -3450,7 +3450,7 @@ as they may not behave correctly.
 
 \bf{Example}
 
-Below is a very simple implementation of a dialog options screen. 
+Below is a very simple implementation of a dialog options screen.
 
 \begin{verbatim}
 function dialog_options_get_dimensions(DialogOptionsRenderingInfo *info)
@@ -3480,7 +3480,7 @@ function dialog_options_render(DialogOptionsRenderingInfo *info)
     {
       if (info.ActiveOptionID == i) info.Surface.DrawingColor = 13;
       else info.Surface.DrawingColor = 4;
-      info.Surface.DrawStringWrapped(5, ypos, info.Width - 10, 
+      info.Surface.DrawStringWrapped(5, ypos, info.Width - 10,
                          eFontFont0, eAlignLeft, info.DialogToRender.GetOptionText(i));
       ypos += GetTextHeight(info.DialogToRender.GetOptionText(i), eFontFont0, info.Width - 10);
     }
@@ -3892,7 +3892,7 @@ For example:
 
 \verb$int my_variable;$
 
-declares a new 32-bit integer called  my_variable  
+declares a new 32-bit integer called  my_variable
 
 \bf{WARNING:} When using the \it{float} data type, you may find that the == and != operators
 don't seem to work properly. For example:
@@ -3931,22 +3931,22 @@ Operator  Description              Example
 \end{verbatim} }
 
 \begin{verbatim}
-  !    NOT                        if (!a) 
+  !    NOT                        if (!a)
   *    Multiply                   a = b * c;
   /    Divide                     a = b / c;
   %    Remainder                  a = b % c;
   +    Add                        a = b + c;
   -    Subtract                   a = b - c;
   <<   Bitwise Left Shift         a = b << c;
-       (advanced users only) 
+       (advanced users only)
   >>   Bitwise Right Shift        a = b >> c;
-       (advanced users only) 
+       (advanced users only)
   &    Bitwise AND                a = b & c;
-       (advanced users only) 
+       (advanced users only)
   |    Bitwise OR                 a = b | c;
-       (advanced users only) 
+       (advanced users only)
   ^    Bitwise XOR                a = b ^ c;
-       (advanced users only) 
+       (advanced users only)
   ==   Is equal to                if (a == b)
   !=   Is not equal to            if (a != b)
   >    Is greater than            if (a > b)
@@ -4262,7 +4262,7 @@ Suppose you had this in your script header:
 \begin{verbatim}
 struct MyStruct {
   int myValue;
-  
+
   import function MyMethod();
 };
 \end{verbatim}
@@ -4398,7 +4398,7 @@ What \it{position} represents depends on the FileType of the audio clip:
 AudioChannel *channel = aExplosion.Play();
 Wait(40);
 channel.Seek(0);
-\end{verbatim} 
+\end{verbatim}
 will start playing the \it{aExplosion} audio clip, wait for a second, then seek it back to the start.
 
 \it{Compatibility:} Supported by \bf{AGS 3.2.0} and later versions.
@@ -4429,7 +4429,7 @@ to playing at its normal volume.
 \begin{verbatim}
 AudioChannel *channel = aMachine.Play();
 channel.SetRoomLocation(oMachine.X, oMachine.Y);
-\end{verbatim} 
+\end{verbatim}
 will start playing the \it{aMachine} audio clip, and set it at the location of the \it{oMachine}
 room object.
 
@@ -4453,7 +4453,7 @@ Stops the sound that is currently playing on this audio channel.
 AudioChannel *channel = aExplosion.Play();
 Wait(40);
 channel.Stop();
-\end{verbatim} 
+\end{verbatim}
 will start playing the \it{aExplosion} audio clip, wait for a second, then stop it.
 
 \it{Compatibility:} Supported by \bf{AGS 3.2.0} and later versions.
@@ -4473,7 +4473,7 @@ but it can be used for inter-operating with legacy commands such as StopChannel.
 \begin{verbatim}
 AudioChannel *channel = aExplosion.Play();
 Display("Explosion playing on channel %d", channel.ID);
-\end{verbatim} 
+\end{verbatim}
 will start playing the \it{aExplosion} audio clip, and display which channel it is playing on.
 
 \it{Compatibility:} Supported by \bf{AGS 3.2.0} and later versions.
@@ -4494,7 +4494,7 @@ or \it{false} if it is not.
 AudioChannel *channel = aExplosion.Play();
 while (channel.IsPlaying) Wait(1);
 Display("Finished playing the explosion");
-\end{verbatim} 
+\end{verbatim}
 will start playing the \it{aExplosion} audio clip, and wait until it finishes.
 
 \it{Compatibility:} Supported by \bf{AGS 3.2.0} and later versions.
@@ -4517,7 +4517,7 @@ If this channel is not currently playing any audio, returns 0.
 \begin{verbatim}
 AudioChannel *channel = aExplosion.Play();
 Display("The Explosion sound is %d ms long.", channel.LengthMs);
-\end{verbatim} 
+\end{verbatim}
 will start playing the \it{aExplosion} audio clip, then display its length.
 
 \it{Compatibility:} Supported by \bf{AGS 3.2.0} and later versions.
@@ -4533,7 +4533,7 @@ int AudioChannel.Panning
 Gets/sets the panning of this audio channel.
 
 Panning allows you to adjust the stereo balance of the audio. The default is 0, which is
-centred and will play at the same volume on both speakers. However you can adjust this 
+centred and will play at the same volume on both speakers. However you can adjust this
 between -100 (fully left) to 100 (fully right) to adjust the balance between the speakers.
 
 \bf{NOTE:} MIDI music files do not support panning.
@@ -4542,7 +4542,7 @@ between -100 (fully left) to 100 (fully right) to adjust the balance between the
 \begin{verbatim}
 AudioChannel *channel = aExplosion.Play();
 channel.Panning = -100;
-\end{verbatim} 
+\end{verbatim}
 will start playing the \it{aExplosion} audio clip on the left speaker only.
 
 \it{Compatibility:} Supported by \bf{AGS 3.2.0} and later versions.
@@ -4569,11 +4569,11 @@ if (channel.PlayingClip == null)
 {
   Display("Nothing is playing on channel 2");
 }
-else 
+else
 {
   Display("Channel 2 is playing a clip of type %d", channel.PlayingClip.Type);
 }
-\end{verbatim} 
+\end{verbatim}
 will display what is currently playing on audio channel 2.
 
 \it{Compatibility:} Supported by \bf{AGS 3.2.0} and later versions.
@@ -4608,12 +4608,12 @@ use the \helprefn{AudioChannel.Seek}{AudioChannel.Seek} function.
 AudioChannel *channel = aExplosion.Play();
 Wait(40);
 channel.Seek(channel.Position + 1000);
-\end{verbatim} 
+\end{verbatim}
 will start playing the \it{aExplosion} audio clip, wait for a second, then seek it ahead one second (if it is OGG/MP3/WAV).
 
 \it{Compatibility:} Supported by \bf{AGS 3.2.0} and later versions.
 
-\it{See Also:} \helprefn{AudioChannel.PositionMs}{AudioChannel.PositionMs}, 
+\it{See Also:} \helprefn{AudioChannel.PositionMs}{AudioChannel.PositionMs},
 \helprefn{AudioChannel.Seek}{AudioChannel.Seek}
 
 
@@ -4635,7 +4635,7 @@ use the \helprefn{AudioChannel.Seek}{AudioChannel.Seek} function.
 AudioChannel *channel = aExplosion.Play();
 Wait(40);
 Display("After 1 second, offset is %d ms.", channel.PositionMs);
-\end{verbatim} 
+\end{verbatim}
 will start playing the \it{aExplosion} audio clip, wait for a second, then display its position.
 
 \it{Compatibility:} Supported by \bf{AGS 3.2.0} and later versions.
@@ -4671,7 +4671,7 @@ volume drop while speech is playing.
 AudioChannel *channel = aExplosion.Play();
 Wait(40);
 channel.Volume = 20;
-\end{verbatim} 
+\end{verbatim}
 will start playing the \it{aExplosion} audio clip, wait for a second, then reduce its volume.
 
 \it{Compatibility:} Supported by \bf{AGS 3.2.0} and later versions.
@@ -4732,7 +4732,7 @@ plays the \it{aExplosion} audio clip.
 \subsection{PlayFrom}\label{AudioClip.PlayFrom}\index{AudioClip.PlayFrom}%
 
 \begin{verbatim}
-AudioChannel* AudioClip.PlayFrom(int position, optional AudioPriority, 
+AudioChannel* AudioClip.PlayFrom(int position, optional AudioPriority,
                                  optional RepeatStyle)
 \end{verbatim}
 Plays the audio clip, starting from \it{position}. For the meaning of the position,
@@ -4877,7 +4877,7 @@ displays a message if the \it{aExplosion} clip is music.
 
 \it{Compatibility:} Supported by \bf{AGS 3.2.0} and later versions.
 
-\it{See Also:} \helprefn{AudioClip.Play}{AudioClip.Play}, 
+\it{See Also:} \helprefn{AudioClip.Play}{AudioClip.Play},
 \helprefn{Game.IsAudioPlaying}{Game.IsAudioPlaying}
 
 
@@ -4907,7 +4907,7 @@ numbered from 0, so to add the item at the start of the list, pass 0 as the seco
 \fcol{red}{Example:}
 \begin{verbatim}
 cEgo.AddInventory(iKey);
-\end{verbatim} 
+\end{verbatim}
 will give inventory item iKey to character EGO.
 
 \it{See Also:} \helprefn{Character.HasInventory}{Character.HasInventory},
@@ -5020,7 +5020,7 @@ co-ordinates in the new room.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-player.ChangeRoom(4, 100, 50); 
+player.ChangeRoom(4, 100, 50);
 \end{verbatim}
 will move the player character to room 4 and also place him at coordinates 100,50.
 This will also mean that the game moves into room 4.
@@ -5058,7 +5058,7 @@ the same function.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-player.ChangeRoomAutoPosition(4, 2100); 
+player.ChangeRoomAutoPosition(4, 2100);
 \end{verbatim}
 will move the player character to room 4 and place him half way down the right hand side of the screen.
 This will also mean that the game moves into room 4.
@@ -5228,7 +5228,7 @@ perhaps for a very energetic dog or something.
 There is also another special use for this command. You can pass the special
 value FOLLOW_EXACTLY as the DIST parameter rather than passing a number. If you
 do this, then CHARID will always remain at exactly the same X and Y co-ordinates
-as CHARTOFOLLOW. This might be useful for effects such as a temporary halo over 
+as CHARTOFOLLOW. This might be useful for effects such as a temporary halo over
 the character and so forth.
 
 If you use FOLLOW_EXACTLY, then EAGERNESS has another meaning. If you pass 0, CHARID
@@ -5335,7 +5335,7 @@ if (player.HasInventory(iKey))
 {
   Display("The player has the key!!");
 }
-\end{verbatim} 
+\end{verbatim}
 will display a message if the player has the key.
 
 \it{Compatibility:} Supported by \bf{AGS 3.1.0} and later versions.
@@ -5364,9 +5364,9 @@ Returns 1 if the characters feet are touching, 0 otherwise.
 if (cEgo.IsCollidingWithChar(cMan) == 1)
    { colliding code here }
 \end{verbatim}
-will execute the colliding code only if the characters EGO and MAN are colliding. 
+will execute the colliding code only if the characters EGO and MAN are colliding.
 
-\it{See Also:} \helprefn{Character.IsCollidingWithObject}{Character.IsCollidingWithObject}, 
+\it{See Also:} \helprefn{Character.IsCollidingWithObject}{Character.IsCollidingWithObject},
 \helprefn{Object.IsCollidingWithObject}{Object.IsCollidingWithObject},
 \helprefn{AreThingsOverlapping}{AreThingsOverlapping}
 
@@ -5389,9 +5389,9 @@ if (cEgo.IsCollidingWithObject(object[3]) == 1) {
   // colliding code here
 }
 \end{verbatim}
-will execute the colliding code only if the character EGO and the object number 3 are colliding. 
+will execute the colliding code only if the character EGO and the object number 3 are colliding.
 
-\it{See Also:} \helprefn{Character.IsCollidingWithChar}{Character.IsCollidingWithChar}, 
+\it{See Also:} \helprefn{Character.IsCollidingWithChar}{Character.IsCollidingWithChar},
 \helprefn{Object.IsCollidingWithObject}{Object.IsCollidingWithObject},
 \helprefn{AreThingsOverlapping}{AreThingsOverlapping}
 
@@ -5452,7 +5452,7 @@ effect when the animation starts.
 
 \begin{tabular}{|l|l|}
 \row{ {\bf align } & {\bf Description }
-}\row{{ eAlignLeft } & { Moves the new frame so that the left hand side is at exactly 
+}\row{{ eAlignLeft } & { Moves the new frame so that the left hand side is at exactly
                           the same X co-ordinate as the old one was. }
 }\row{{ eAlignCentre } & { Leaves the frames centred in the middle. This is the default
                           and using this is equivalent to just calling LockView. }
@@ -5588,7 +5588,7 @@ will make the character EGO lose the inventory item iKey from the inventory tab
 Character.Move(int x, int y, optional BlockingStyle,
                              optional WalkWhere);
 \end{verbatim}
-Starts the character moving from its current location to (X,Y), but does 
+Starts the character moving from its current location to (X,Y), but does
 not play the character's walking animation.
 
 The parameters to this command are identical to the \helprefn{Character.Walk}{Character.Walk}
@@ -5868,7 +5868,7 @@ Stops the character moving and sets its graphic to the standing frame of the cur
 
 \fcol{red}{Example:}
 \begin{verbatim}
-if (cEgo.x > 299) 
+if (cEgo.x > 299)
 {
   cEgo.StopMoving();
 }
@@ -6346,7 +6346,7 @@ displays EGO's current frame number within his view.
 \begin{verbatim}
 readonly bool Character.HasExplicitTint
 \end{verbatim}
-Returns \it{true} if the character has a tint set explicitly with the 
+Returns \it{true} if the character has a tint set explicitly with the
 \helprefn{Character.Tint}{Character.Tint} command.
 
 Returns \it{false} if the character has no explicit tint, but it may still be
@@ -6439,7 +6439,7 @@ area. This is useful if for example you want to use the character as an
 overlay to display rain or snow onto a scene.
 
 \bf{NOTE:} enabling this property does not currently work properly when using
-the Direct3D driver. 
+the Direct3D driver.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -6558,7 +6558,7 @@ then turn it back on again.
 
 \it{Compatibility:} Supported by \bf{AGS 3.1.1} and later versions.
 
-\it{See Also:} 
+\it{See Also:}
 \helprefn{Character.Move}{Character.Move},
 \helprefn{Character.Moving}{Character.Moving},
 \helprefn{Character.Walk}{Character.Walk}
@@ -6808,7 +6808,7 @@ This property is read-only. It is only accessible while the character is speakin
 if you attempt to call it when \helprefn{Character.Speaking}{Character.Speaking} is
 \it{false} then it will raise an error.
 
-Since speaking is a blocking command, this property will probably only be useful 
+Since speaking is a blocking command, this property will probably only be useful
 access from the repeatedly_execute_always handler.
 
 \fcol{red}{Example:}
@@ -6819,7 +6819,7 @@ if (cEgo.Speaking) {
   }
 }
 \end{verbatim}
-will move cMan to the right every time the talking animation loops back to Frame 0. 
+will move cMan to the right every time the talking animation loops back to Frame 0.
 
 \it{See Also:} \helprefn{Character.Say}{Character.Say},
 \helprefn{Character.Speaking}{Character.Speaking}
@@ -7531,7 +7531,7 @@ This property is initially set in the Dialog Editor.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-if (dFisherman.ShowTextParser) 
+if (dFisherman.ShowTextParser)
 {
   Display("dFisherman has a text box!");
 }
@@ -7667,7 +7667,7 @@ creates a 300x150 size area with alpha channel to draw the dialog options in.
 
 \it{Compatibility:} Supported by \bf{AGS 3.3.0} and later versions.
 
-\it{See Also:} 
+\it{See Also:}
 \helprefn{DialogOptionsRenderingInfo.Height}{DialogOptionsRenderingInfo.Height}
 \helprefn{DialogOptionsRenderingInfo.Width}{DialogOptionsRenderingInfo.Width}
 
@@ -7926,7 +7926,7 @@ copies of the image and upload it to video memory if appropriate.
 \begin{verbatim}
 DrawingSurface.Clear(optional int colour)
 \end{verbatim}
-Clears the surface to the specified COLOUR (this is a number you can find in 
+Clears the surface to the specified COLOUR (this is a number you can find in
 the Colours pane of the editor). The current contents of the surface will be lost.
 
 If you do not supply the COLOUR parameter, or use COLOR_TRANSPARENT, the surface
@@ -7937,7 +7937,7 @@ will be cleared to be fully transparent.
 DrawingSurface *surface = Room.GetDrawingSurfaceForBackground();
 surface.Clear(14);
 surface.DrawingColor = 13;
-surface.DrawCircle(160,100,50); 
+surface.DrawCircle(160,100,50);
 surface.Release();
 \end{verbatim}
 clears the room background to be fully yellow, then draws a pink circle in the middle of it.
@@ -7955,7 +7955,7 @@ DrawingSurface* DrawingSurface.CreateCopy()
 Makes a backup copy of the current surface, in order that it can be
 restored later. This could be useful to back up a background scene before
 writing over it, or to save a certain state of your drawing to restore
-later. 
+later.
 
 Unlike the obsolete RawSaveScreen command in previous versions of AGS, backup
 surfaces created with this command are not lost when the player changes room or
@@ -7993,7 +7993,7 @@ Draws a filled circle of radius RADIUS with its centre at (X,Y) in the current d
 \begin{verbatim}
 DrawingSurface *surface = Room.GetDrawingSurfaceForBackground();
 surface.DrawingColor = 14;
-surface.DrawCircle(160,100,50); 
+surface.DrawCircle(160,100,50);
 surface.Release();
 \end{verbatim}
 will draw a circle in the centre of the screen, of 50 pixels radius.
@@ -8038,8 +8038,8 @@ surface.Release();
 will draw the \it{oDoor} object's graphic onto the room background at (100, 100), at \verb$40%$
 transparency.
 
-\it{See Also:} 
-\helprefn{DrawingSurface.DrawLine}{DrawingSurface.DrawLine}, 
+\it{See Also:}
+\helprefn{DrawingSurface.DrawLine}{DrawingSurface.DrawLine},
 \helprefn{DrawingSurface.DrawString}{DrawingSurface.DrawString},
 \helprefn{DrawingSurface.DrawSurface}{DrawingSurface.DrawSurface},
 \helprefn{Room.ColorDepth}{Room.ColorDepth}
@@ -8051,7 +8051,7 @@ transparency.
 
 \begin{verbatim}
 DrawingSurface.DrawLine(int from_x, int from_y, int to_x, int to_y,
-                        optional int thickness) 
+                        optional int thickness)
 \end{verbatim}
 Draws a line from (FROM_X, FROM_Y) to (TO_X, TO_Y) in the surface's current drawing colour.
 
@@ -8069,9 +8069,9 @@ surface.Release();
 \end{verbatim}
 will draw a line from the left top of the screen (0,0) to the middle of the screen (160,100);
 
-\it{See Also:} \helprefn{DrawingSurface.DrawCircle}{DrawingSurface.DrawCircle}, 
+\it{See Also:} \helprefn{DrawingSurface.DrawCircle}{DrawingSurface.DrawCircle},
 \helprefn{DrawingSurface.DrawRectangle}{DrawingSurface.DrawRectangle},
-\helprefn{DrawingSurface.DrawTriangle}{DrawingSurface.DrawTriangle}, 
+\helprefn{DrawingSurface.DrawTriangle}{DrawingSurface.DrawTriangle},
 \helprefn{DrawingSurface.DrawingColor}{DrawingSurface.DrawingColor}
 
 
@@ -8096,12 +8096,12 @@ The text will be printed using the current drawing colour.
 \begin{verbatim}
 DrawingSurface *surface = Room.GetDrawingSurfaceForBackground();
 surface.DrawingColor = 14;
-surface.DrawMessageWrapped(80, 40, 160, Game.NormalFont, 10); 
+surface.DrawMessageWrapped(80, 40, 160, Game.NormalFont, 10);
 surface.Release();
 \end{verbatim}
 will display message 10 in the centre of the screen, starting from Y = 40.
 
-\it{See Also:} \helprefn{DrawingSurface.DrawString}{DrawingSurface.DrawString}, 
+\it{See Also:} \helprefn{DrawingSurface.DrawString}{DrawingSurface.DrawString},
 \helprefn{DrawingSurface.DrawingColor}{DrawingSurface.DrawingColor},
 \helprefn{DrawingSurface.DrawStringWrapped}{DrawingSurface.DrawStringWrapped}
 
@@ -8109,7 +8109,7 @@ will display message 10 in the centre of the screen, starting from Y = 40.
 \subsection{DrawPixel}\label{DrawingSurface.DrawPixel}\index{DrawingSurface.DrawPixel}%
 
 \begin{verbatim}
-DrawingSurface.DrawPixel(int x, int y) 
+DrawingSurface.DrawPixel(int x, int y)
 \end{verbatim}
 Draws a single pixel onto the surface at (X,Y) in the current colour. The pixel
 thickness respects the \helprefn{UseHighResCoordinates}{DrawingSurface.UseHighResCoordinates}
@@ -8128,7 +8128,7 @@ surface.Release();
 draws a yellow pixel in the top left of the room background
 
 \it{See Also:} \helprefn{DrawingSurface.DrawingColor}{DrawingSurface.DrawingColor},
-\helprefn{DrawingSurface.DrawLine}{DrawingSurface.DrawLine}, 
+\helprefn{DrawingSurface.DrawLine}{DrawingSurface.DrawLine},
 \helprefn{DrawingSurface.GetPixel}{DrawingSurface.GetPixel},
 \helprefn{DrawingSurface.UseHighResCoordinates}{DrawingSurface.UseHighResCoordinates}
 
@@ -8155,7 +8155,7 @@ surface.Release();
 \end{verbatim}
 will draw a rectangle over the top left hand quarter of the screen.
 
-\it{See Also:} \helprefn{DrawingSurface.DrawImage}{DrawingSurface.DrawImage}, 
+\it{See Also:} \helprefn{DrawingSurface.DrawImage}{DrawingSurface.DrawImage},
 \helprefn{DrawingSurface.DrawLine}{DrawingSurface.DrawLine}
 
 
@@ -8205,14 +8205,14 @@ The text will be printed using the current drawing colour.
 \begin{verbatim}
 DrawingSurface *surface = Room.GetDrawingSurfaceForBackground();
 surface.DrawingColor = 14;
-surface.DrawStringWrapped(80, 40, 160, Game.NormalFont, eAlignCentre, "Hello, my name is Bob."); 
+surface.DrawStringWrapped(80, 40, 160, Game.NormalFont, eAlignCentre, "Hello, my name is Bob.");
 surface.Release();
 \end{verbatim}
 will display the text in the centre of the screen, starting from Y = 40.
 
 \it{Compatibility:} Supported by \bf{AGS 3.0.1} and later versions.
 
-\it{See Also:} \helprefn{DrawingSurface.DrawString}{DrawingSurface.DrawString}, 
+\it{See Also:} \helprefn{DrawingSurface.DrawString}{DrawingSurface.DrawString},
 \helprefn{DrawingSurface.DrawingColor}{DrawingSurface.DrawingColor},
 \helprefn{DrawingSurface.DrawMessageWrapped}{DrawingSurface.DrawMessageWrapped}
 
@@ -8268,7 +8268,7 @@ Well, don't look at me, you might find it useful for something :-)
 \begin{verbatim}
 DrawingSurface *surface = Room.GetDrawingSurfaceForBackground();
 surface.DrawingColor = 14;
-surface.DrawTriangle(0,0,160,100,0,200); 
+surface.DrawTriangle(0,0,160,100,0,200);
 surface.Release();
 \end{verbatim}
 will draw a triangle with corners at the points (0,0),(160,100),(0,200).
@@ -8330,7 +8330,7 @@ surface.Release();
 will draw a yellow line from the left top of the screen (0,0) to the middle of the screen (160,100),
 and a white line from the bottom left to the middle.
 
-\it{See Also:} \helprefn{DrawingSurface.DrawCircle}{DrawingSurface.DrawCircle}, 
+\it{See Also:} \helprefn{DrawingSurface.DrawCircle}{DrawingSurface.DrawCircle},
 \helprefn{DrawingSurface.DrawLine}{DrawingSurface.DrawLine},
 \helprefn{DrawingSurface.DrawRectangle}{DrawingSurface.DrawRectangle},
 \helprefn{Game.GetColorFromRGB}{Game.GetColorFromRGB}
@@ -8339,12 +8339,12 @@ and a white line from the bottom left to the middle.
 \subsection{GetPixel}\label{DrawingSurface.GetPixel}\index{DrawingSurface.GetPixel}%
 
 \begin{verbatim}
-int DrawingSurface.GetPixel(int x, int y) 
+int DrawingSurface.GetPixel(int x, int y)
 \end{verbatim}
 Returns the AGS Colour Number of the pixel at (X,Y) on the surface.
 
 \bf{NOTE:} In high-colour games, the first 32 colour numbers have a special meaning
-due to an AGS feature which maintains compatibility with 8-bit games. Therefore, if 
+due to an AGS feature which maintains compatibility with 8-bit games. Therefore, if
 you draw onto the surface using a blue colour number 0-31 you will get a different number
 when you GetPixel -- and in fact the colour drawn may not be what you expect.
 To get around this, add 1 Red or Green component to adjust the colour number out of this range.
@@ -8362,7 +8362,7 @@ displays the pixel colour of the centre pixel on the screen.
 \it{Compatibility:} Supported by \bf{AGS 3.0.1} and later versions.
 
 \it{See Also:} \helprefn{DrawingSurface.DrawingColor}{DrawingSurface.DrawingColor},
-\helprefn{DrawingSurface.DrawPixel}{DrawingSurface.DrawPixel}, 
+\helprefn{DrawingSurface.DrawPixel}{DrawingSurface.DrawPixel},
 \helprefn{DrawingSurface.UseHighResCoordinates}{DrawingSurface.UseHighResCoordinates}
 
 
@@ -8618,7 +8618,7 @@ sprite.Delete();
 creates a copy of object 0's current sprite, resizes it down to 20x20, and then draws
 the result onto the background.
 
-\it{See Also:} \helprefn{DynamicSprite.Delete}{DynamicSprite.Delete}, 
+\it{See Also:} \helprefn{DynamicSprite.Delete}{DynamicSprite.Delete},
 \helprefn{DynamicSprite.Resize}{DynamicSprite.Resize}
 
 
@@ -8663,7 +8663,7 @@ of the screen.
 
 Once the image is finished with, Delete should be called on it.
 
-\it{See Also:} \helprefn{DynamicSprite.Delete}{DynamicSprite.Delete}, 
+\it{See Also:} \helprefn{DynamicSprite.Delete}{DynamicSprite.Delete},
 \helprefn{DynamicSprite.CreateFromSaveGame}{DynamicSprite.CreateFromSaveGame}
 
 
@@ -8695,7 +8695,7 @@ until you are finished with it, and at that point call Delete.
 \fcol{red}{Example:}
 \begin{verbatim}
 // at top of script, outside event functions
-DynamicSprite *buttonSprite;  
+DynamicSprite *buttonSprite;
 
 // inside an event function
 buttonSprite = DynamicSprite.CreateFromSaveGame(1, 50, 50);
@@ -8708,7 +8708,7 @@ the btnScrnshot GUI button.
 
 Once the GUI is disposed of, Delete should be called on the sprite.
 
-\it{See Also:} \helprefn{DynamicSprite.Delete}{DynamicSprite.Delete}, 
+\it{See Also:} \helprefn{DynamicSprite.Delete}{DynamicSprite.Delete},
 \helprefn{Game.GetSaveSlotDescription}{Game.GetSaveSlotDescription},
 \helprefn{DynamicSprite.CreateFromFile}{DynamicSprite.CreateFromFile},
 \helprefn{DynamicSprite.CreateFromScreenShot}{DynamicSprite.CreateFromScreenShot}
@@ -8741,7 +8741,7 @@ until you are finished with it, and at that point call Delete.
 \fcol{red}{Example:}
 \begin{verbatim}
 // at top of script, outside event functions
-DynamicSprite *buttonSprite;  
+DynamicSprite *buttonSprite;
 
 // inside an event function
 buttonSprite = DynamicSprite.CreateFromScreenShot(80, 50);
@@ -8753,7 +8753,7 @@ places a screen grab of the current game session onto btnScrnshot.
 
 Once the GUI is disposed of, Delete should be called on the sprite.
 
-\it{See Also:} \helprefn{DynamicSprite.Delete}{DynamicSprite.Delete}, 
+\it{See Also:} \helprefn{DynamicSprite.Delete}{DynamicSprite.Delete},
 \helprefn{Game.GetSaveSlotDescription}{Game.GetSaveSlotDescription},
 \helprefn{DynamicSprite.CreateFromFile}{DynamicSprite.CreateFromFile},
 \helprefn{DynamicSprite.CreateFromSaveGame}{DynamicSprite.CreateFromSaveGame}
@@ -8941,12 +8941,12 @@ object[0].Graphic = sprite.Graphic;
 Wait(40);
 sprite.Delete();
 \end{verbatim}
-this creates a dynamic sprite as a copy of Object 0's existing sprite, draws 
+this creates a dynamic sprite as a copy of Object 0's existing sprite, draws
 a pink diagonal line across it, sets this new sprite onto the object for 1 second
 and then removes it.
 
 \it{See Also:} \helprefn{DynamicSprite.CreateFromExistingSprite}{DynamicSprite.CreateFromExistingSprite},
-\helprefn{DrawingSurface.DrawLine}{DrawingSurface.DrawLine}, 
+\helprefn{DrawingSurface.DrawLine}{DrawingSurface.DrawLine},
 \helprefn{DrawingSurface.Release}{DrawingSurface.Release}
 
 
@@ -9386,10 +9386,10 @@ will read a raw integer from file stats.txt and put it into the integer number.
 \begin{verbatim}
 String File.ReadRawLineBack()
 \end{verbatim}
-Reads a line of text back in from the file and returns it. This enables you to 
+Reads a line of text back in from the file and returns it. This enables you to
 read in lines from text files and use them in your game.
 
-\bf{NOTE:} this command can only read back plain text lines from text files. If you 
+\bf{NOTE:} this command can only read back plain text lines from text files. If you
 attempt to use it with binary files or files written with commands like WriteString,
 WriteInt, etc then the results are unpredictable.
 
@@ -9968,7 +9968,7 @@ It has been replaced with the following functions and properties:
 \helprefn{Game.GUICount}{Game.GUICount} (was GP_NUMGUIS) ILBRK
 \helprefn{Room.ObjectCount}{Room.ObjectCount} (was GP_NUMOBJECTS) ILBRK
 \helprefn{Game.CharacterCount}{Game.CharacterCount} (was GP_NUMCHARACTERS) ILBRK
-\helprefn{Game.InventoryItemCount}{Game.InventoryItemCount}(was GP_NUMINVITEMS) 
+\helprefn{Game.InventoryItemCount}{Game.InventoryItemCount}(was GP_NUMINVITEMS)
 
 
 \subsection{GetGameSpeed}\label{GetGameSpeed}%
@@ -9984,7 +9984,7 @@ if (GetGameSpeed() > 40) {
   SetGameSpeed(40);
 }
 \end{verbatim}
-will always keep the game speed at 40 cycles per second (in case the user has raised it )	
+will always keep the game speed at 40 cycles per second (in case the user has raised it )
 
 \it{See Also:} \helprefn{SetGameSpeed}{SetGameSpeed}
 
@@ -10088,7 +10088,7 @@ eLocationObject     an object
 \begin{verbatim}
 if (GetLocationType(mouse.x,mouse.y) == eLocationCharacter)
     mouse.Mode = eModeTalk;
-\end{verbatim}	
+\end{verbatim}
 will set the cursor mode to talk if the cursor is over a character.
 
 \it{See Also:} \helprefn{Hotspot.GetAtScreenXY}{Hotspot.GetAtScreenXY},
@@ -10201,7 +10201,7 @@ GetTextWidth(string text, FontType font)
 Returns the width on the screen that drawing TEXT in FONT on one line would take up.
 
 This could be useful if you manually need to centre or right-align some text, for
-example with the raw drawing routines. 
+example with the raw drawing routines.
 
 The width is returned in normal 320-resolution pixels, so it can be used with the
 screen display commands.
@@ -10327,7 +10327,7 @@ the NAME string will be blank.
 InventoryScreen ()
 \end{verbatim}
 
-This command is obsolete. 
+This command is obsolete.
 
 \bf{This command was used for displaying a default inventory window
 in previous versions of AGS, but is no longer supported.}
@@ -10487,7 +10487,7 @@ MoveCharacterToHotspot(EGO,6);
 \end{verbatim}
 will move the character EGO to the hotspot's 6 "walk to point".
 
-\it{See Also:} \helprefn{Hotspot.WalkToX}{Hotspot.WalkToX}, \helprefn{Hotspot.WalkToY}{Hotspot.WalkToY}, 
+\it{See Also:} \helprefn{Hotspot.WalkToX}{Hotspot.WalkToX}, \helprefn{Hotspot.WalkToY}{Hotspot.WalkToY},
 \helprefn{Character.Walk}{Character.Walk}, \helprefn{MoveCharacterToObject}{MoveCharacterToObject}
 
 
@@ -10500,7 +10500,7 @@ MoveCharacterToObject (CHARID, int object)
 \end{verbatim}
 Moves the character CHARID from its current location to a position just below
 the object OBJECT. This is useful for example, if you want the man to pick
-up an object. 
+up an object.
 This is a blocking call - control is not returned to the script until the
 character has reached its destination.
 
@@ -10621,7 +10621,7 @@ Restarts the game from the beginning.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-if (IsKeyPressed(365) == 1) RestartGame(); 
+if (IsKeyPressed(365) == 1) RestartGame();
 \end{verbatim}
 will restart the game if the player presses the F7 key.
 
@@ -11012,7 +11012,7 @@ loop where there is not a blocking script running in the background.
 static bool Game.SetSaveGameDirectory(string directory)
 \end{verbatim}
 Changes the directory where save game files are stored to the supplied \it{directory}.
-If the directory does not exist, AGS will attempt to create it. 
+If the directory does not exist, AGS will attempt to create it.
 
 You cannot use fully qualified directories with this command (eg. \verb$C:\Games\Cool\Saves$), because
 the player might have installed your game to any folder, and they might not be running Windows.
@@ -11076,7 +11076,7 @@ There are 20 available timers, with TIMER_IDs from 1 to 20.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-SetTimer(1,1000); 
+SetTimer(1,1000);
 \end{verbatim}
 will set the timer 1 to expire after 1000 game cycles.
 
@@ -12286,7 +12286,7 @@ will make the \it{btnSaveGame} button non-clickable.
 \begin{verbatim}
 bool GUIControl.Enabled
 \end{verbatim}
-Enables or disables a GUI control. 
+Enables or disables a GUI control.
 
 Normally, all your GUI controls (such as buttons, sliders, etc) are enabled at all times
 except during a cutscene, when they are disabled. This command allows you to explicitly
@@ -12671,7 +12671,7 @@ readonly int Button.Graphic;
 Gets the current image on a GUI button. If a value less than 1 is returned,
 then no image is currently displayed on the button.
 
-This property is read-only; in order to set the image, you must use one of the 
+This property is read-only; in order to set the image, you must use one of the
 \helprefn{NormalGraphic}{Button.NormalGraphic},
 \helprefn{MouseOverGraphic}{Button.MouseOverGraphic} or
 \helprefn{PushedGraphic}{Button.PushedGraphic} properties.
@@ -12785,7 +12785,7 @@ will display the old text, then change button btnController to read 'Enable jibb
 \begin{verbatim}
 int Button.TextColor;
 \end{verbatim}
-Gets/sets the text colour used to display the button's text. 
+Gets/sets the text colour used to display the button's text.
 
 If the button is displaying an image rather than text, then this property has no effect.
 
@@ -13101,7 +13101,7 @@ will display the name of the location the cursor is over on label 'lblStatus'
 \begin{verbatim}
 int Label.TextColor;
 \end{verbatim}
-Gets/sets the text colour used to display the label's text. 
+Gets/sets the text colour used to display the label's text.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -13396,7 +13396,7 @@ Because the appearance of the scroll arrows is not customizable, you may wish to
 this to hide them and provide your own arrows using GUI Button controls.
 
 \bf{NOTE:} If the list box's "Hide Border" setting is enabled, then the scroll arrows will
-also be hidden, since "Hide Border" supersedes "Hide Scroll Arrows". You only need to 
+also be hidden, since "Hide Border" supersedes "Hide Scroll Arrows". You only need to
 use this HideScrollArrows property if you want the border to be shown but the arrows hidden.
 
 \fcol{red}{Example:}
@@ -13490,7 +13490,7 @@ of save games to put the most recent first. Therefore, you can use this
 array to map the list box indexes back to the corresponding save game slot.
 
 \bf{NOTE:} You must use the FillSaveGameList command in order to populate
-this array. 
+this array.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -14428,7 +14428,7 @@ float Maths.Exp(float x)
 Returns the exponential value of the floating-point parameter, x
 
 The result is e to the power x, where e is the base of the natural logarithm.
-On overflow, the function returns infinite and on underflow, returns 0. 
+On overflow, the function returns infinite and on underflow, returns 0.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -15120,7 +15120,7 @@ Returns 1 if the speech files are available, 0 if not.
 \fcol{red}{Example:}
 \begin{verbatim}
 if (IsSpeechVoxAvailable()==0)
-    Display ("You don't have the voice pack"); 
+    Display ("You don't have the voice pack");
 \end{verbatim}
 will display a message if the voice pack is not available.
 
@@ -15205,7 +15205,7 @@ The second type of files that AGS can play is anything supported by Windows Medi
 Player. This includes AVI, MPG and more. However, in order for these to work on
 the player's system, they will need to have the correct codecs installed. For example,
 if you create your video with the XVid codec, the player will need to have XVid installed
-to be able to view it. These types of video cannot be included into the game EXE, 
+to be able to view it. These types of video cannot be included into the game EXE,
 so you will have to place them separately in the Compiled folder for them to work.
 
 \bf{NOTE:} In 256-colour games, PlayVideo is not supported. Please use a FLC/FLI video
@@ -15285,7 +15285,7 @@ will change the volume of all currently playing and future music to \verb$20%$.
 
 \it{Compatibility:} Supported by \bf{AGS 3.2.0} and later versions.
 
-\it{See Also:} \helprefn{SetSpeechVolume}{SetSpeechVolume}, \helprefn{AudioClip.Play}{AudioClip.Play}, 
+\it{See Also:} \helprefn{SetSpeechVolume}{SetSpeechVolume}, \helprefn{AudioClip.Play}{AudioClip.Play},
 \helprefn{System.Volume}{System.Volume}
 
 
@@ -15329,7 +15329,7 @@ will stop all currently playing audio.
 
 \it{Compatibility:} Supported by \bf{AGS 3.2.0} and later versions.
 
-\it{See Also:} \helprefn{Game.IsAudioPlaying}{Game.IsAudioPlaying}, \helprefn{AudioClip.Play}{AudioClip.Play}, 
+\it{See Also:} \helprefn{Game.IsAudioPlaying}{Game.IsAudioPlaying}, \helprefn{AudioClip.Play}{AudioClip.Play},
 \helprefn{AudioChannel.Stop}{AudioChannel.Stop}
 
 
@@ -15473,7 +15473,7 @@ click detection is turned on.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-if (object[2].IsCollidingWithObject(object[3])) 
+if (object[2].IsCollidingWithObject(object[3]))
 {
   Display("object 2 and 3 are colliding!");
 }
@@ -15545,7 +15545,7 @@ will move object 2 to 125,40 and return control to the player when the object ge
 \helprefn{Object.StopMoving}{Object.StopMoving}
 
 
-	
+
 \subsection{RemoveTint (object)}\label{Object.RemoveTint}\index{Object.RemoveTint}\index{RemoveObjectTint}%
 
 \it{(Formerly known as RemoveObjectTint, which is now obsolete)}
@@ -15940,7 +15940,7 @@ will tell the Door object not to be scaled on walkable areas.
 \begin{verbatim}
 bool Object.IgnoreWalkbehinds
 \end{verbatim}
-Sets whether the object is affected by walkbehind areas. Setting this to \it{false} 
+Sets whether the object is affected by walkbehind areas. Setting this to \it{false}
 (the default setting) means that the object will be placed behind walk-behind
 areas according to the relevant baselines.
 
@@ -16180,7 +16180,7 @@ Display("Object 1's Y co-ordinate is %d.", object[1].Y);
 will display the Y co-ordinate of object 1.
 
 \it{See Also:} \helprefn{Object.Animating}{Object.Animating},
-\helprefn{Object.Baseline}{Object.Baseline}, \helprefn{Object.X}{Object.X}, 
+\helprefn{Object.Baseline}{Object.Baseline}, \helprefn{Object.X}{Object.X},
 \helprefn{Object.SetPosition}{Object.SetPosition}
 
 
@@ -16254,7 +16254,7 @@ so don't rely on being able to create 10 with CreateTextual.
 
 \bf{NOTE:} if the Overlay object goes out of scope, the overlay will be removed. Hence,
 if you want the overlay to last on-screen outside of the script function where it
-was created, the \verb$Overlay*$ variable declaration needs to be at the top of 
+was created, the \verb$Overlay*$ variable declaration needs to be at the top of
 the script and outside any script functions.
 
 \fcol{red}{Example:}
@@ -16484,7 +16484,7 @@ Looks up \it{wordToFind} in the text parser dictionary, and returns the ID numbe
 If the word is not found, returns -1. ILBRK
 Otherwise, the Word Group number is returned, as seen in the Text Parser tab in the editor.
 
-You can determine if two words are synonyms by looking them both up and seeing if the 
+You can determine if two words are synonyms by looking them both up and seeing if the
 returned IDs are the same.
 
 Ignore words are returned as ID 0.
@@ -16603,7 +16603,7 @@ if (Region.GetAtRoomXY(player.x, player.y) == region[0])
 
 \subsection{RunInteraction (region)}\label{Region.RunInteraction}\index{Region.RunInteraction}\index{RunRegionInteraction}%
 
-\it{(Formerly known as RunRegionInteraction, which is now obsolete)} 
+\it{(Formerly known as RunRegionInteraction, which is now obsolete)}
 
 \begin{verbatim}
 Region.RunInteraction(int event)
@@ -16630,7 +16630,7 @@ for region 4.
 
 \subsection{Tint (region)}\label{Region.Tint}\index{Region.Tint}\index{SetRegionTint}%
 
-\it{(Formerly known as SetRegionTint, which is now obsolete)} 
+\it{(Formerly known as SetRegionTint, which is now obsolete)}
 
 \begin{verbatim}
 Region.Tint(int red, int green, int blue, int amount)
@@ -16653,7 +16653,7 @@ change.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-region[2].Tint(180, 20, 20, 50); 
+region[2].Tint(180, 20, 20, 50);
 \end{verbatim}
 will set region 2's RGB tint to (180, 20, 20) with 50\verb$%$ opacity.
 
@@ -16664,7 +16664,7 @@ will set region 2's RGB tint to (180, 20, 20) with 50\verb$%$ opacity.
 \subsection{Enabled property (region)}\label{Region.Enabled}\index{Region.Enabled}\index{DisableRegion}\index{EnableRegion}%
 
 \it{(Formerly known as DisableRegion, which is now obsolete)} ILBRK
-\it{(Formerly known as EnableRegion, which is now obsolete)} 
+\it{(Formerly known as EnableRegion, which is now obsolete)}
 
 \begin{verbatim}
 bool Region.Enabled
@@ -16706,7 +16706,7 @@ displays region 3's number (which will be 3).
 
 \subsection{LightLevel property}\label{Region.LightLevel}\index{Region.LightLevel}\index{SetAreaLightLevel}%
 
-\it{(Formerly known as SetAreaLightLevel, which is now obsolete)} 
+\it{(Formerly known as SetAreaLightLevel, which is now obsolete)}
 
 \begin{verbatim}
 int Region.LightLevel
@@ -16981,7 +16981,7 @@ want to modify a specific frame; otherwise, the current background's surface wil
 After calling this method, use the various \helprefn{DrawingSurface functions}{DrawingSurfaceFunctions} to modify the
 background, then call Release on the surface when you are finished.
 
-Any changes you make will only last until the player leaves the room, at 
+Any changes you make will only last until the player leaves the room, at
 which point they will be lost. If you need to make long-lasting changes, you
 can either use this method in the Player Enters Room event, or consider using
 an alternate background frame for the changed image.
@@ -17000,7 +17000,7 @@ surface.Release();
 draws a yellow diagonal line across the top-left of the current room background,
 then releases the image.
 
-\it{See Also:} \helprefn{DrawingSurface.DrawLine}{DrawingSurface.DrawLine}, 
+\it{See Also:} \helprefn{DrawingSurface.DrawLine}{DrawingSurface.DrawLine},
 \helprefn{DrawingSurface.Release}{DrawingSurface.Release}
 
 
@@ -17201,7 +17201,7 @@ scroll around following the player character as normal.
 int x;
 while (x<100) {
    SetViewport(x,0);
-   x++; 
+   x++;
    Wait(1);
 }
 ReleaseViewPort();
@@ -17227,7 +17227,7 @@ the "Player enters room" event when they return.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-RemoveWalkableArea(5); 
+RemoveWalkableArea(5);
 \end{verbatim}
 will make the walking area 5 unwalkable.
 
@@ -17254,7 +17254,7 @@ NOTE: You cannot reset the current room (ie. the room that the player is in).
 
 \fcol{red}{Example:}
 \begin{verbatim}
-ResetRoom(0); 
+ResetRoom(0);
 \end{verbatim}
 will reset the intro room so it can be played again if the player wants to.
 
@@ -17270,7 +17270,7 @@ Makes the area AREANUM walkable again.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-RestoreWalkableArea(4); 
+RestoreWalkableArea(4);
 \end{verbatim}
 will make the walking area 4 walkable again.
 
@@ -17282,7 +17282,7 @@ will make the walking area 4 walkable again.
 \begin{verbatim}
 SetAreaScaling(int area, int min, int max)
 \end{verbatim}
-Changes walkable area number AREA's scaling. 
+Changes walkable area number AREA's scaling.
 
 There are two ways to use this command: ILBRK
 1. Pass the same value for MIN and MAX. This will give the walkable area fixed
@@ -17322,7 +17322,7 @@ The frame lock is released when the game changes rooms.
 \fcol{red}{Example:}
 \begin{verbatim}
 if (GetGlobalInt(20)==1)
-    SetBackgroundFrame(4); 
+    SetBackgroundFrame(4);
 \end{verbatim}
 will change the current room's background frame to 4 if the global integer 20 is 1.
 
@@ -17380,7 +17380,7 @@ front of it, otherwise he will be drawn behind it.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-SetWalkBehindBase (3,0); 
+SetWalkBehindBase (3,0);
 \end{verbatim}
 will disable the walkbehind area number 3.
 
@@ -17581,7 +17581,7 @@ the screen after a FadeOut call. SPEED is from 1 (slowest) to 64 (fastest).
 \begin{verbatim}
 FadeOut(30);
 Wait(40);
-FadeIn(10); 
+FadeIn(10);
 \end{verbatim}
 will fade the screen to black, wait 1 sec (40 game cycles) and then fade in again.
 
@@ -17603,7 +17603,7 @@ Fades the screen out to black. SPEED is the speed of the fade, from 1
 \begin{verbatim}
 FadeOut(30);
 Wait(40);
-FadeIn(10); 
+FadeIn(10);
 \end{verbatim}
 will fade the screen to black, wait 1 sec (40 game cycles) and then fade in again.
 
@@ -17632,7 +17632,7 @@ show up wrong, and and pop-up messages will flip the screen back to normal.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-FlipScreen(1); 
+FlipScreen(1);
 \end{verbatim}
 will flip the screen upside down.
 
@@ -17700,7 +17700,7 @@ function again.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-SetScreenTransition(eTransitionFade); 
+SetScreenTransition(eTransitionFade);
 \end{verbatim}
 will change the room transitions to Fade.
 
@@ -17717,7 +17717,7 @@ how much the screen shakes: 1 is hardly anything, and 25 is a lot.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-ShakeScreen(5); 
+ShakeScreen(5);
 \end{verbatim}
 will shake the screen a little.
 
@@ -17746,7 +17746,7 @@ with the LENGTH parameter as zero.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-ShakeScreenBackground (4, 10, 80); 
+ShakeScreenBackground (4, 10, 80);
 \end{verbatim}
 will shake the screen a little for 2 seconds.
 
@@ -17759,7 +17759,7 @@ will shake the screen a little for 2 seconds.
 TintScreen (int red, int green, int blue)
 \end{verbatim}
 Tints the screen with the specified RGB values. RED, GREEN and BLUE range
-from 1 to 100. 
+from 1 to 100.
 
 Pass (0, 0, 0) to turn off the tinting and go back to how the screen
 normally looks.
@@ -17776,9 +17776,9 @@ should provide an option for the player to turn it off.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-TintScreen (100, 50, 50); 
+TintScreen (100, 50, 50);
 \end{verbatim}
-will tint a heavy dose of red. 
+will tint a heavy dose of red.
 
 
 \section{Speech functions and properties}\label{SpeechCommands}%
@@ -18057,8 +18057,8 @@ not understand what is going on.
 \fcol{red}{Example:}
 \begin{verbatim}
 if (IsSpeechVoxAvailable()==1)
-    SetVoiceMode(eSpeechVoiceAndText); 
-\end{verbatim} 
+    SetVoiceMode(eSpeechVoiceAndText);
+\end{verbatim}
 will set the voice mode to voice and text if the voice pack is available.
 
 
@@ -18080,7 +18080,7 @@ string from this command. The original string will \bf{NOT} be changed. For
 example, the following script will not do anything: ILBRK
 \verb$mytext.Append("World");$ ILBRK
 what you probably want instead is: ILBRK
-\verb$mytext = mytext.Append("World");$ 
+\verb$mytext = mytext.Append("World");$
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -18106,7 +18106,7 @@ The original string will \bf{NOT} be changed. For
 example, the following script will not do anything: ILBRK
 \verb$mytext.AppendChar('o');$ ILBRK
 what you probably want instead is: ILBRK
-\verb$mytext = mytext.AppendChar('o');$ 
+\verb$mytext = mytext.AppendChar('o');$
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -18357,7 +18357,7 @@ Display("Old: %s, new: %s", newstring, changed);
 \end{verbatim}
 will display "Old: Hello, new: Hemlo".
 
-\it{See Also:} \helprefn{String.Chars}{String.Chars}, 
+\it{See Also:} \helprefn{String.Chars}{String.Chars},
 \helprefn{String.Replace}{String.Replace}
 
 
@@ -18383,7 +18383,7 @@ will display the "Starts with hello!" message.
 
 \it{Compatibility:} Supported by \bf{AGS 3.1.0} and later versions.
 
-\it{See Also:} \helprefn{String.EndsWith}{String.EndsWith}, 
+\it{See Also:} \helprefn{String.EndsWith}{String.EndsWith},
 \helprefn{String.IndexOf}{String.IndexOf}
 
 
@@ -18945,7 +18945,7 @@ will set the overall output volume to 80.
 
 \it{Compatibility:} Supported by \bf{AGS 3.2.0} and later versions.
 
-\it{See Also:} \helprefn{AudioChannel.Volume}{AudioChannel.Volume}, 
+\it{See Also:} \helprefn{AudioChannel.Volume}{AudioChannel.Volume},
 \helprefn{Game.SetAudioTypeVolume}{Game.SetAudioTypeVolume}
 
 
@@ -19468,7 +19468,7 @@ will make the game exit the inventory when moving the mouse over either the top 
 \subsection{SCUMM_VERBCOIN_GUI Inv_Border_SetPos}\label{SCUMM_VERBCOIN_GUI.Inv_Border_SetPos}\index{SCUMM_VERBCOIN_GUI.Inv_Border_SetPos}%
 
 \begin{verbatim}
-static SCUMM_VERBCOIN_GUI.Inv_Border_SetPos(int top, int bottom, 
+static SCUMM_VERBCOIN_GUI.Inv_Border_SetPos(int top, int bottom,
                                             int left, int right)
 \end{verbatim}
 Sets the inventory exit border positions.
@@ -19483,7 +19483,7 @@ you used this template to create your game.
 SCUMM_VERBCOIN_GUI.Inv_Border_SetPos(20, 220, 20, 295);
 \end{verbatim}
 
-will set the top exit border to y-coordinate 20, the bottom border to y-coordinate 220, 
+will set the top exit border to y-coordinate 20, the bottom border to y-coordinate 220,
 the left border to x-coordinate 20 and the right border to x-coordinate 295
 
 \it{See Also:} \helprefn{SCUMM_VERBCOIN_GUI.Inv_Border_active}{SCUMM_VERBCOIN_GUI.Inv_Border_active}
@@ -19643,7 +19643,7 @@ the "Look" mode (cursor mode 1).
 \item [Interact with hotspot] occurs when the player clicks on the hotspot while
 in the "Interact" mode (cursor mode 2).
 \item [Use inventory on hotspot] occurs when the player clicks on the hotspot
-while in the "Use inventory" mode (cursor mode 4). You can use the 
+while in the "Use inventory" mode (cursor mode 4). You can use the
 \helprefn{player.ActiveInventory}{Character.ActiveInventory} property to distinguish
 which item they used. ILBRK
 \item [Speak to hotspot] occurs when the player clicks on the hotspot while in
@@ -19797,7 +19797,7 @@ F9       Toggle Breakpoint
 F11      Step Into
 
 Ctrl+A   Select All
-Ctrl+B   Match Brace 
+Ctrl+B   Match Brace
 Ctrl+C   Copy
 Ctrl+D   Duplicate line to next
 Ctrl+E   Replace
@@ -19833,7 +19833,7 @@ eKeyCtrlA         Ctrl+A        1
 eKeyCtrlB         Ctrl+B        2
 eKeyCtrlC         Ctrl+C        3
 eKeyCtrlD         Ctrl+D        4
-eKeyCtrlE         Ctrl+E        5      
+eKeyCtrlE         Ctrl+E        5
 eKeyCtrlF         Ctrl+F        6
 eKeyCtrlG         Ctrl+G        7
 eKeyCtrlH         Ctrl+H        8
@@ -20284,7 +20284,7 @@ to get and seek offsets more accurately.
 
 \bf{Has voice speech changed?}
 
-No, speech is still handled the same way as in previous versions of AGS. You still need 
+No, speech is still handled the same way as in previous versions of AGS. You still need
 the Speech folder within your game folder, and name the files within it using the same
 naming convention as you always have done.
 
@@ -20327,7 +20327,7 @@ The maximal number of Fonts has been increased from 15 to 30.
 
 \bf{New Speech class}
 
-There's now a new Speech script class that contains several speech-related properties. This renders a 
+There's now a new Speech script class that contains several speech-related properties. This renders a
 number of \helprefn{global functions}{GlobalCommands} obsolete, as well as some of the
 \helprefn{game variables}{Gamevariables}.
 If you are using any of them in your script you will likely get compilation errors. Simply replace

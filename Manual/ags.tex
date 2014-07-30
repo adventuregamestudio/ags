@@ -4354,9 +4354,11 @@ instance to check the status of playing sounds, and adjust them.
 
 \subsection{Seek}\label{AudioChannel.Seek}\index{AudioChannel.Seek}\index{SeekMODPattern}\index{SeekMP3PosMillis}\index{SeekMIDIPosition}%
 
-\it{(Formerly known as SeekMIDIPosition, which is now obsolete)} ILBRK
-\it{(Formerly known as SeekMODPattern, which is now obsolete)} ILBRK
-\it{(Formerly known as SeekMP3PosMillis, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SeekMIDIPosition, which is now obsolete)}
+\item \it{(Formerly known as SeekMODPattern, which is now obsolete)}
+\item \it{(Formerly known as SeekMP3PosMillis, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 AudioChannel.Seek(int position)
@@ -4386,7 +4388,9 @@ will start playing the \it{aExplosion} audio clip, wait for a second, then seek 
 
 \subsection{SetRoomLocation}\label{AudioChannel.SetRoomLocation}\index{AudioChannel.SetRoomLocation}%
 
-\it{(Formerly part of PlayAmbientSound, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of PlayAmbientSound, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 AudioChannel.SetRoomLocation(int x, int y)
@@ -4418,8 +4422,10 @@ room object.
 
 \subsection{Stop (audio channel)}\label{AudioChannel.Stop}\index{AudioChannel.Stop}\index{StopChannel}\index{StopAmbientSound}%
 
-\it{(Formerly known as StopAmbientSound, which is now obsolete)} ILBRK
-\it{(Formerly known as StopChannel, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as StopAmbientSound, which is now obsolete)}
+\item \it{(Formerly known as StopChannel, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 AudioChannel.Stop()
@@ -4459,7 +4465,9 @@ will start playing the \it{aExplosion} audio clip, and display which channel it 
 
 \subsection{IsPlaying property}\label{AudioChannel.IsPlaying}\index{AudioChannel.IsPlaying}\index{IsChannelPlaying}%
 
-\it{(Formerly known as IsChannelPlaying, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as IsChannelPlaying, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly bool AudioChannel.IsPlaying
@@ -4530,7 +4538,9 @@ will start playing the \it{aExplosion} audio clip on the left speaker only.
 
 \subsection{PlayingClip property}\label{AudioChannel.PlayingClip}\index{AudioChannel.PlayingClip}\index{GetCurrentMusic}%
 
-\it{(Formerly known as GetCurrentMusic, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetCurrentMusic, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly AudioClip* AudioChannel.PlayingClip
@@ -4561,9 +4571,11 @@ will display what is currently playing on audio channel 2.
 
 \subsection{Position property}\label{AudioChannel.Position}\index{AudioChannel.Position}\index{GetMODPattern}\index{GetMP3PosMillis}\index{GetMIDIPosition}%
 
-\it{(Formerly known as GetMIDIPosition, which is now obsolete)} ILBRK
-\it{(Formerly known as GetMODPattern, which is now obsolete)} ILBRK
-\it{(Formerly known as GetMP3PosMillis, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetMIDIPosition, which is now obsolete)}
+\item \it{(Formerly known as GetMODPattern, which is now obsolete)}
+\item \it{(Formerly known as GetMP3PosMillis, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int AudioChannel.Position
@@ -4624,8 +4636,10 @@ will start playing the \it{aExplosion} audio clip, wait for a second, then displ
 
 \subsection{Volume property (audio channel)}\label{AudioChannel.Volume}\index{AudioChannel.Volume}\index{SetChannelVolume}\index{SetMusicVolume}%
 
-\it{(Formerly known as SetChannelVolume, which is now obsolete)} ILBRK
-\it{(Formerly known as SetMusicVolume, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetChannelVolume, which is now obsolete)}
+\item \it{(Formerly known as SetMusicVolume, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int AudioChannel.Volume
@@ -4666,12 +4680,14 @@ section allow to play them.
 
 \subsection{Play}\label{AudioClip.Play}\index{AudioClip.Play}\index{PlaySound}\index{PlayAmbientSound}\index{PlaySoundEx}\index{PlayMusic}\index{PlayMP3File}\index{SetMusicRepeat}%
 
-\it{(Formerly known as PlayAmbientSound, which is now obsolete)} ILBRK
-\it{(Formerly known as PlayMP3File, which is now obsolete)} ILBRK
-\it{(Formerly known as PlayMusic, which is now obsolete)} ILBRK
-\it{(Formerly known as PlaySound, which is now obsolete)} ILBRK
-\it{(Formerly known as PlaySoundEx, which is now obsolete)} ILBRK
-\it{(Formerly known as SetMusicRepeat, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as PlayAmbientSound, which is now obsolete)}
+\item \it{(Formerly known as PlayMP3File, which is now obsolete)}
+\item \it{(Formerly known as PlayMusic, which is now obsolete)}
+\item \it{(Formerly known as PlaySound, which is now obsolete)}
+\item \it{(Formerly known as PlaySoundEx, which is now obsolete)}
+\item \it{(Formerly known as SetMusicRepeat, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 AudioChannel* AudioClip.Play(optional AudioPriority, optional RepeatStyle)
@@ -4732,7 +4748,9 @@ plays the \it{aExplosion} audio clip, starting from a 1 second offset (if it is 
 
 \subsection{PlayQueued}\label{AudioClip.PlayQueued}\index{AudioClip.PlayQueued}\index{PlayMusicQueued}%
 
-\it{(Formerly known as PlayMusicQueued, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as PlayMusicQueued, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 AudioChannel* AudioClip.PlayQueued(optional AudioPriority, optional RepeatStyle)
@@ -4808,7 +4826,9 @@ displays a message if aExplosion is a MIDI file
 
 \subsection{IsAvailable property (audio clip)}\label{AudioClip.IsAvailable}\index{AudioClip.IsAvailable}\index{IsMusicVoxAvailable}%
 
-\it{(Formerly known as IsMusicVoxAvailable, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as IsMusicVoxAvailable, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly bool AudioClip.IsAvailable;
@@ -4864,8 +4884,10 @@ displays a message if the \it{aExplosion} clip is music.
 
 \subsection{AddInventory}\label{Character.AddInventory}\index{Character.AddInventory}\index{AddInventory}\index{AddInventoryToCharacter}%
 
-\it{(Formerly known as global function AddInventory, which is now obsolete)} ILBRK
-\it{(Formerly known as global function AddInventoryToCharacter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function AddInventory, which is now obsolete)}
+\item \it{(Formerly known as global function AddInventoryToCharacter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.AddInventory(InventoryItem *item, optional int addAtIndex)
@@ -4895,7 +4917,9 @@ will give inventory item iKey to character EGO.
 
 \subsection{AddWaypoint}\label{Character.AddWaypoint}\index{Character.AddWaypoint}\index{MoveCharacterPath}%
 
-\it{(Formerly known as MoveCharacterPath, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as MoveCharacterPath, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.AddWaypoint(int x, int y)
@@ -4923,8 +4947,10 @@ walkable areas), then move to the bottom left corner and then top left corner af
 
 \subsection{Animate (character)}\label{Character.Animate}\index{Character.Animate}\index{AnimateCharacter}\index{AnimateCharacterEx}%
 
-\it{(Formerly known as AnimateCharacter, which is now obsolete)} ILBRK
-\it{(Formerly known as AnimateCharacterEx, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as AnimateCharacter, which is now obsolete)}
+\item \it{(Formerly known as AnimateCharacterEx, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.Animate(int loop, int delay, optional RepeatStyle,
@@ -4969,9 +4995,11 @@ wait until the animation finishes before returning.
 
 \subsection{ChangeRoom}\label{Character.ChangeRoom}\index{Character.ChangeRoom}\index{NewRoom}\index{NewRoomEx}\index{NewRoomNPC}%
 
-\it{(Formerly known as NewRoom, which is now obsolete)} ILBRK
-\it{(Formerly known as NewRoomEx, which is now obsolete)} ILBRK
-\it{(Formerly known as NewRoomNPC, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as NewRoom, which is now obsolete)}
+\item \it{(Formerly known as NewRoomEx, which is now obsolete)}
+\item \it{(Formerly known as NewRoomNPC, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.ChangeRoom(int room_number, optional int x, optional int y)
@@ -5047,7 +5075,9 @@ This will also mean that the game moves into room 4.
 
 \subsection{ChangeView}\label{Character.ChangeView}\index{Character.ChangeView}\index{ChangeCharacterView}%
 
-\it{(Formerly known as ChangeCharacterView, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as ChangeCharacterView, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.ChangeView(int view)
@@ -5072,7 +5102,9 @@ will make the EGO character use view number 5 as his walking view.
 
 \subsection{FaceCharacter}\label{Character.FaceCharacter}\index{Character.FaceCharacter}\index{FaceCharacter}%
 
-\it{(Formerly known as global function FaceCharacter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function FaceCharacter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.FaceCharacter(Character* toFace, optional BlockingStyle)
@@ -5106,7 +5138,9 @@ will make the character EGO face the character MAN
 
 \subsection{FaceLocation}\label{Character.FaceLocation}\index{Character.FaceLocation}\index{FaceLocation}%
 
-\it{(Formerly known as global function FaceLocation, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function FaceLocation, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.FaceLocation(int x, int y, optional BlockingStyle)
@@ -5169,8 +5203,10 @@ will make the player character face object 2.
 
 \subsection{FollowCharacter}\label{Character.FollowCharacter}\index{Character.FollowCharacter}\index{FollowCharacter}\index{FollowCharacterEx}%
 
-\it{(Formerly known as global function FollowCharacter, which is now obsolete)} ILBRK
-\it{(Formerly known as global function FollowCharacterEx, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function FollowCharacter, which is now obsolete)}
+\item \it{(Formerly known as global function FollowCharacterEx, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.FollowCharacter(Character* chartofollow, optional int dist,
@@ -5222,7 +5258,9 @@ him and waiting for a while before he makes his move.
 
 \subsection{GetAtScreenXY (character)}\label{Character.GetAtScreenXY}\index{Character.GetAtScreenXY}\index{GetCharacterAt}%
 
-\it{(Formerly known as global function GetCharacterAt, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function GetCharacterAt, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static Character* Character.GetAtScreenXY(int x, int y)
@@ -5249,7 +5287,9 @@ will display the message if the mouse cursor is over the EGO character
 
 \subsection{GetProperty (character)}\label{Character.GetProperty}\index{Character.GetProperty}\index{GetCharacterProperty}%
 
-\it{(Formerly known as GetCharacterProperty, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetCharacterProperty, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.GetProperty(string property)
@@ -5273,8 +5313,10 @@ will print the message if EGO has its "Value" property set to more than 200.
 
 \subsection{GetTextProperty (character)}\label{Character.GetTextProperty}\index{Character.GetTextProperty}\index{Character.GetPropertyText}\index{GetCharacterPropertyText}%
 
-\it{(Formerly known as GetCharacterPropertyText, which is now obsolete)} ILBRK
-\it{(Formerly known as Character.GetPropertyText, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetCharacterPropertyText, which is now obsolete)}
+\item \it{(Formerly known as Character.GetPropertyText, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String Character.GetTextProperty(string property)
@@ -5326,7 +5368,9 @@ will display a message if the player has the key.
 
 \subsection{IsCollidingWithChar}\label{Character.IsCollidingWithChar}\index{Character.IsCollidingWithChar}\index{AreCharactersColliding}%
 
-\it{(Formerly known as AreCharactersColliding, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as AreCharactersColliding, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.IsCollidingWithChar(Character* otherChar)
@@ -5351,7 +5395,9 @@ will execute the colliding code only if the characters EGO and MAN are colliding
 
 \subsection{IsCollidingWithObject (character)}\label{Character.IsCollidingWithObject}\index{Character.IsCollidingWithObject}\index{AreCharObjColliding}%
 
-\it{(Formerly known as AreCharObjColliding, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as AreCharObjColliding, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.IsCollidingWithObject(Object* obj)
@@ -5376,7 +5422,9 @@ will execute the colliding code only if the character EGO and the object number 
 
 \subsection{LockView}\label{Character.LockView}\index{Character.LockView}\index{SetCharacterView}%
 
-\it{(Formerly known as SetCharacterView, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetCharacterView, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.LockView(int view)
@@ -5411,7 +5459,9 @@ wait until the animation finishes and then return the character to his normal vi
 
 \subsection{LockViewAligned}\label{Character.LockViewAligned}\index{Character.LockViewAligned}\index{SetCharacterViewEx}%
 
-\it{(Formerly known as SetCharacterViewEx, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetCharacterViewEx, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.LockViewAligned(int view, int loop, Alignment)
@@ -5464,7 +5514,9 @@ wait until the animation finishes and then return the character to his normal vi
 
 \subsection{LockViewFrame}\label{Character.LockViewFrame}\index{Character.LockViewFrame}\index{SetCharacterFrame}%
 
-\it{(Formerly known as SetCharacterFrame, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetCharacterFrame, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.LockViewFrame(int view, int loop, int frame)
@@ -5491,7 +5543,9 @@ then return him to normal.
 
 \subsection{LockViewOffset}\label{Character.LockViewOffset}\index{Character.LockViewOffset}\index{SetCharacterViewOffset}%
 
-\it{(Formerly known as SetCharacterViewOffset, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetCharacterViewOffset, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.LockViewOffset(int view, int xOffset, int yOffset)
@@ -5540,8 +5594,10 @@ shifted 1 pixel right and 1 pixel up.
 
 \subsection{LoseInventory}\label{Character.LoseInventory}\index{Character.LoseInventory}\index{LoseInventory}\index{LoseInventoryFromCharacter}%
 
-\it{(Formerly known as global function LoseInventory, which is now obsolete)}ILBRK
-\it{(Formerly known as LoseInventoryFromCharacter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function LoseInventory, which is now obsolete)}
+\item \it{(Formerly known as LoseInventoryFromCharacter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.LoseInventory(InventoryItem *item)
@@ -5594,7 +5650,9 @@ The script will not continue until the character has reached his destination.
 
 \subsection{PlaceOnWalkableArea}\label{Character.PlaceOnWalkableArea}\index{Character.PlaceOnWalkableArea}\index{MoveToWalkableArea}%
 
-\it{(Formerly known as MoveToWalkableArea, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as MoveToWalkableArea, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.PlaceOnWalkableArea()
@@ -5638,7 +5696,9 @@ will tint the player character green for a second, then turn it back to normal.
 
 \subsection{RunInteraction (character)}\label{Character.RunInteraction}\index{Character.RunInteraction}\index{RunCharacterInteraction}%
 
-\it{(Formerly known as RunCharacterInteraction, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RunCharacterInteraction, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.RunInteraction(CursorMode)
@@ -5659,7 +5719,9 @@ will execute the code defined in the MAN's "TALK TO CHARACTER" event.
 
 \subsection{Say}\label{Character.Say}\index{Character.Say}\index{DisplaySpeech}%
 
-\it{(Formerly known as DisplaySpeech, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as DisplaySpeech, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.Say(string message)
@@ -5687,7 +5749,9 @@ whilst playing the character's talking animation.
 
 \subsection{SayAt}\label{Character.SayAt}\index{Character.SayAt}\index{DisplaySpeechAt}%
 
-\it{(Formerly known as DisplaySpeechAt, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as DisplaySpeechAt, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 SayAt(int x, int y, int width, string message)
@@ -5713,7 +5777,9 @@ character's talking animation.
 
 \subsection{SayBackground}\label{Character.SayBackground}\index{Character.SayBackground}\index{DisplaySpeechBackground}%
 
-\it{(Formerly known as DisplaySpeechBackground, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as DisplaySpeechBackground, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Overlay* Character.SayBackground(string message)
@@ -5746,7 +5812,9 @@ will display the message above character MAN's head without pausing the game.
 
 \subsection{SetAsPlayer}\label{Character.SetAsPlayer}\index{Character.SetAsPlayer}\index{SetPlayerCharacter}%
 
-\it{(Formerly known as SetPlayerCharacter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetPlayerCharacter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.SetAsPlayer()
@@ -5772,7 +5840,9 @@ that MAN is in, if he is not in the current room.
 
 \subsection{SetIdleView}\label{Character.SetIdleView}\index{Character.SetIdleView}\index{SetCharacterIdle}%
 
-\it{(Formerly known as SetCharacterIdle, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetCharacterIdle, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.SetIdleView(int idleview, int delay)
@@ -5804,8 +5874,10 @@ played if the character is idle for 30 seconds.
 
 \subsection{SetWalkSpeed}\label{Character.SetWalkSpeed}\index{Character.SetWalkSpeed}\index{SetCharacterSpeed}\index{SetCharacterSpeedEx}%
 
-\it{(Formerly known as SetCharacterSpeed, which is now obsolete)}ILBRK
-\it{(Formerly known as SetCharacterSpeedEx, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetCharacterSpeed, which is now obsolete)}
+\item \it{(Formerly known as SetCharacterSpeedEx, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.SetWalkSpeed(int x_speed, int y_speed)
@@ -5837,7 +5909,9 @@ will change the character EGO's speed to 10.
 
 \subsection{StopMoving (character)}\label{Character.StopMoving}\index{Character.StopMoving}\index{StopMoving}%
 
-\it{(Formerly known as global function StopMoving, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function StopMoving, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.StopMoving()
@@ -5858,7 +5932,9 @@ will stop the character when he reaches the coordinate x=300.
 
 \subsection{Think}\label{Character.Think}\index{Character.Think}\index{DisplayThought}%
 
-\it{(Formerly known as DisplayThought, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as DisplayThought, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.Think(string message, ...)
@@ -5936,7 +6012,9 @@ will tint the EGO character green.
 
 \subsection{UnlockView}\label{Character.UnlockView}\index{Character.UnlockView}\index{ReleaseCharacterView}%
 
-\it{(Formerly known as ReleaseCharacterView, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as ReleaseCharacterView, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.UnlockView()
@@ -5959,9 +6037,11 @@ will play an animation using loop 0 of view 12, then return the character to its
 
 \subsection{Walk}\label{Character.Walk}\index{Character.Walk}\index{MoveCharacter}\index{MoveCharacterBlocking}\index{MoveCharacterDirect}%
 
-\it{(Formerly known as MoveCharacter, which is now obsolete)}ILBRK
-\it{(Formerly known as MoveCharacterBlocking, which is now obsolete)}ILBRK
-\it{(Formerly known as MoveCharacterDirect, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as MoveCharacter, which is now obsolete)}
+\item \it{(Formerly known as MoveCharacterBlocking, which is now obsolete)}
+\item \it{(Formerly known as MoveCharacterDirect, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.Walk(int x, int y, optional BlockingStyle,
@@ -6007,7 +6087,9 @@ character has reached his destination.
 
 \subsection{WalkStraight}\label{Character.WalkStraight}\index{Character.WalkStraight}\index{MoveCharacterStraight}%
 
-\it{(Formerly known as MoveCharacterStraight, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as MoveCharacterStraight, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Character.WalkStraight(int x, int y, optional BlockingStyle);
@@ -6035,8 +6117,10 @@ hits a non walkable area.
 
 \subsection{ActiveInventory property}\label{Character.ActiveInventory}\index{Character.ActiveInventory}\index{SetActiveInventory}%
 
-\it{(Formerly known as SetActiveInventory, which is now obsolete)} ILBRK
-\it{(Formerly known as character[].activeinv, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetActiveInventory, which is now obsolete)}
+\item \it{(Formerly known as character[].activeinv, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 InventoryItem* Character.ActiveInventory
@@ -6059,7 +6143,9 @@ has the inventory item)
 
 \subsection{Animating property (character)}\label{Character.Animating}\index{Character.Animating}%
 
-\it{(Formerly known as character[].animating, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as character[].animating, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly bool Character.Animating
@@ -6087,7 +6173,9 @@ to do this.
 
 \subsection{AnimationSpeed property}\label{Character.AnimationSpeed}\index{Character.AnimationSpeed}%
 
-\it{(Formerly known as character[].animspeed, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as character[].animspeed, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Character.AnimationSpeed;
@@ -6107,7 +6195,9 @@ will change the player character's animation speed to 4.
 
 \subsection{Baseline property (character)}\label{Character.Baseline}\index{Character.Baseline}\index{SetCharacterBaseline}%
 
-\it{(Formerly known as SetCharacterBaseline, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetCharacterBaseline, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Character.Baseline
@@ -6132,7 +6222,9 @@ or for walk-behinds) to a line positioned at y coordinate = 120.
 
 \subsection{BlinkInterval property}\label{Character.BlinkInterval}\index{Character.BlinkInterval}\index{SetCharacterBlinkView}%
 
-\it{(Formerly part of SetCharacterBlinkView, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of SetCharacterBlinkView, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Character.BlinkInterval
@@ -6157,7 +6249,9 @@ will change the character EGO's blink view to view 10, and play the animation ev
 
 \subsection{BlinkView property}\label{Character.BlinkView}\index{Character.BlinkView}\index{SetCharacterBlinkView}%
 
-\it{(Formerly part of SetCharacterBlinkView, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of SetCharacterBlinkView, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Character.BlinkView
@@ -6256,7 +6350,9 @@ will make EGO block 50 pixels wide (25 pixels to the left of his X co-ordinate, 
 
 \subsection{Clickable property (character)}\label{Character.Clickable}\index{Character.Clickable}\index{SetCharacterClickable}%
 
-\it{(Formerly known as SetCharacterClickable, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetCharacterClickable, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 bool Character.Clickable
@@ -6281,7 +6377,9 @@ will make the game ignore clicks on the character MAN.
 
 \subsection{DiagonalLoops property}\label{Character.DiagonalLoops}\index{Character.DiagonalLoops}%
 
-\it{(Formerly part of SetCharacterProperty, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of SetCharacterProperty, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 bool Character.DiagonalLoops
@@ -6300,7 +6398,9 @@ will enable diagonal walking loops for character EGO.
 
 \subsection{Frame property (character)}\label{Character.Frame}\index{Character.Frame}%
 
-\it{(Formerly known as character[].frame, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as character[].frame, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Character.Frame
@@ -6383,7 +6483,9 @@ will display EGO's current idle view number.
 
 \subsection{IgnoreLighting property}\label{Character.IgnoreLighting}\index{Character.IgnoreLighting}\index{SetCharacterIgnoreLight}%
 
-\it{(Formerly known as SetCharacterIgnoreLight, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetCharacterIgnoreLight, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 bool Character.IgnoreLighting
@@ -6403,7 +6505,9 @@ different light levels.
 
 \subsection{IgnoreWalkbehinds property (character)}\label{Character.IgnoreWalkbehinds}\index{Character.IgnoreWalkbehinds}\index{SetCharacterIgnoreWalkbehinds}%
 
-\it{(Formerly known as SetCharacterIgnoreWalkbehinds, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetCharacterIgnoreWalkbehinds, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 bool Character.IgnoreWalkbehinds
@@ -6431,7 +6535,9 @@ will make the character EGO ignore walk-behinds.
 
 \subsection{InventoryQuantity property}\label{Character.InventoryQuantity}\index{Character.InventoryQuantity}%
 
-\it{(Formerly known as character[].inv, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as character[].inv, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Character.InventoryQuantity[]
@@ -6463,7 +6569,9 @@ will display how many inventory items of type iCash the player has.
 
 \subsection{Loop property (character)}\label{Character.Loop}\index{Character.Loop}%
 
-\it{(Formerly known as character[].loop, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as character[].loop, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Character.Loop
@@ -6484,8 +6592,10 @@ displays EGO's current loop number within his view.
 
 \subsection{ManualScaling property (character)}\label{Character.ManualScaling}\index{Character.ManualScaling}\index{Character.IgnoreScaling}\index{IgnoreScaling property (character)}%
 
-\it{(Formerly known as Character.IgnoreScaling, which is now obsolete)} ILBRK
-\it{(Formerly part of SetCharacterProperty, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as Character.IgnoreScaling, which is now obsolete)}
+\item \it{(Formerly part of SetCharacterProperty, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 bool Character.ManualScaling
@@ -6544,7 +6654,9 @@ then turn it back on again.
 
 \subsection{Moving property (character)}\label{Character.Moving}\index{Character.Moving}%
 
-\it{(Formerly known as character[].walking, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as character[].walking, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly bool Character.Moving
@@ -6570,7 +6682,9 @@ will move EGO to 125,40 and return control to the player when he gets there.
 
 \subsection{Name property (character)}\label{Character.Name}\index{Character.Name}%
 
-\it{(Formerly known as character[].name, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as character[].name, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String Character.Name
@@ -6590,7 +6704,9 @@ will display the name of the player character
 
 \subsection{NormalView property}\label{Character.NormalView}\index{Character.NormalView}%
 
-\it{(Formerly known as character[].defview, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as character[].defview, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int Character.NormalView
@@ -6614,7 +6730,9 @@ will display a message if EGO is currently displayed using his normal view.
 
 \subsection{PreviousRoom property}\label{Character.PreviousRoom}\index{Character.PreviousRoom}%
 
-\it{(Formerly known as character[].prevroom, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as character[].prevroom, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int Character.PreviousRoom
@@ -6634,7 +6752,9 @@ will display the EGO character's previous room.
 
 \subsection{Room property}\label{Character.Room}\index{Character.Room}%
 
-\it{(Formerly known as character[].room, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as character[].room, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int Character.Room
@@ -6652,7 +6772,9 @@ will display the EGO character's current room.
 
 \subsection{ScaleMoveSpeed property}\label{Character.ScaleMoveSpeed}\index{Character.ScaleMoveSpeed}%
 
-\it{(Formerly part of SetCharacterProperty, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of SetCharacterProperty, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 bool Character.ScaleMoveSpeed
@@ -6724,7 +6846,9 @@ will tell EGO to ignore walkable area scaling levels and be fixed to \verb$50%$ 
 
 \subsection{Solid property (character)}\label{Character.Solid}\index{Character.Solid}%
 
-\it{(Formerly part of SetCharacterProperty, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of SetCharacterProperty, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 bool Character.Solid
@@ -6834,7 +6958,9 @@ will change the player character's speech animation speed to 4.
 
 \subsection{SpeechColor property}\label{Character.SpeechColor}\index{Character.SpeechColor}\index{SetTalkingColor}%
 
-\it{(Formerly known as SetTalkingColor, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetTalkingColor, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Character.SpeechColor
@@ -6856,8 +6982,10 @@ will change the character's EGO talking color to yellow.
 
 \subsection{SpeechView property}\label{Character.SpeechView}\index{Character.SpeechView}\index{SetCharacterSpeechView}%
 
-\it{(Formerly known as SetCharacterSpeechView, which is now obsolete)}ILBRK
-\it{(Formerly known as character[].talkview, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetCharacterSpeechView, which is now obsolete)}
+\item \it{(Formerly known as character[].talkview, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Character.SpeechView
@@ -6881,7 +7009,9 @@ will change the character EGO's speech view to view 10.
 
 \subsection{ThinkView property}\label{Character.ThinkView}\index{Character.ThinkView}%
 
-\it{(Formerly known as character[].thinkview, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as character[].thinkview, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Character.ThinkView
@@ -6900,7 +7030,9 @@ will change the character EGO's thinking view to 14.
 
 \subsection{Transparency property (character)}\label{Character.Transparency}\index{Character.Transparency}\index{SetCharacterTransparency}%
 
-\it{(Formerly known as SetCharacterTransparency, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetCharacterTransparency, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Character.Transparency
@@ -6938,7 +7070,9 @@ invisible.
 
 \subsection{TurnBeforeWalking property}\label{Character.TurnBeforeWalking}\index{Character.TurnBeforeWalking}%
 
-\it{(Formerly part of SetCharacterProperty, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of SetCharacterProperty, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 bool Character.TurnBeforeWalking
@@ -7113,7 +7247,9 @@ SetCharacterProperty (CHARID, PROPERTY, int new_value)
 
 \subsection{Now property}\label{DateTime.Now}\index{DateTime.Now}\index{GetTime}%
 
-\it{(Formerly known as GetTime, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetTime, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static DateTime* DateTime.Now;
@@ -7202,7 +7338,9 @@ For an example, see \helprefn{DateTime.Now}{DateTime.Now}.
 
 \subsection{RawTime property}\label{DateTime.RawTime}\index{DateTime.RawTime}\index{GetRawTime}%
 
-\it{(Formerly known as GetRawTime, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetRawTime, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int DateTime.RawTime;
@@ -7311,7 +7449,9 @@ on what the player selected.
 
 \subsection{GetOptionState (dialog)}\label{Dialog.GetOptionState}\index{Dialog.GetOptionState}\index{GetDialogOption}%
 
-\it{(Formerly known as global function GetDialogOption, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function GetDialogOption, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Dialog.GetOptionState(int option)
@@ -7458,7 +7598,9 @@ will mark option 1 of dialog dDialog1 as "not chosen yet".
 
 \subsection{SetOptionState (dialog)}\label{Dialog.SetOptionState}\index{Dialog.SetOptionState}\index{SetDialogOption}%
 
-\it{(Formerly known as global function SetDialogOption, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function SetDialogOption, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Dialog.SetOptionState(int option, DialogOptionState)
@@ -7515,7 +7657,9 @@ will display a message if dFisherman has the option enabled
 
 \subsection{Start (dialog)}\label{Dialog.Start}\index{Dialog.Start}\index{RunDialog}%
 
-\it{(Formerly known as global function RunDialog, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function RunDialog, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Dialog.Start()
@@ -7893,7 +8037,9 @@ copies of the image and upload it to video memory if appropriate.
 
 \subsection{Clear (drawing surface)}\label{DrawingSurface.Clear}\index{DrawingSurface.Clear}\index{RawClearScreen}%
 
-\it{(Formerly known as RawClearScreen, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RawClearScreen, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 DrawingSurface.Clear(optional int colour)
@@ -7919,7 +8065,9 @@ clears the room background to be fully yellow, then draws a pink circle in the m
 
 \subsection{CreateCopy}\label{DrawingSurface.CreateCopy}\index{DrawingSurface.CreateCopy}\index{RawSaveScreen}%
 
-\it{(Formerly known as RawSaveScreen, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RawSaveScreen, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 DrawingSurface* DrawingSurface.CreateCopy()
@@ -7954,7 +8102,9 @@ a while and then restore the original background.
 
 \subsection{DrawCircle}\label{DrawingSurface.DrawCircle}\index{DrawingSurface.DrawCircle}\index{RawDrawCircle}%
 
-\it{(Formerly known as RawDrawCircle, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RawDrawCircle, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 DrawingSurface.DrawCircle(int x, int y, int radius)
@@ -7976,9 +8126,11 @@ will draw a circle in the centre of the screen, of 50 pixels radius.
 
 \subsection{DrawImage}\label{DrawingSurface.DrawImage}\index{DrawingSurface.DrawImage}\index{RawDrawImage}\index{RawDrawImageResized}\index{RawDrawImageTransparent}%
 
-\it{(Formerly known as RawDrawImage, which is now obsolete)} ILBRK
-\it{(Formerly known as RawDrawImageResized, which is now obsolete)} ILBRK
-\it{(Formerly known as RawDrawImageTransparent, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RawDrawImage, which is now obsolete)}
+\item \it{(Formerly known as RawDrawImageResized, which is now obsolete)}
+\item \it{(Formerly known as RawDrawImageTransparent, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 DrawingSurface.DrawImage(int x, int y, int slot, optional int transparency,
@@ -8019,7 +8171,9 @@ transparency.
 
 \subsection{DrawLine}\label{DrawingSurface.DrawLine}\index{DrawingSurface.DrawLine}\index{RawDrawLine}%
 
-\it{(Formerly known as RawDrawLine, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RawDrawLine, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 DrawingSurface.DrawLine(int from_x, int from_y, int to_x, int to_y,
@@ -8049,7 +8203,9 @@ will draw a line from the left top of the screen (0,0) to the middle of the scre
 
 \subsection{DrawMessageWrapped}\label{DrawingSurface.DrawMessageWrapped}\index{DrawingSurface.DrawMessageWrapped}\index{RawPrintMessageWrapped}%
 
-\it{(Formerly known as RawPrintMessageWrapped, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RawPrintMessageWrapped, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 DrawingSurface.DrawMessageWrapped(int x, int y, int width,
@@ -8107,7 +8263,9 @@ draws a yellow pixel in the top left of the room background
 
 \subsection{DrawRectangle}\label{DrawingSurface.DrawRectangle}\index{DrawingSurface.DrawRectangle}\index{RawDrawRectangle}%
 
-\it{(Formerly known as RawDrawRectangle, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RawDrawRectangle, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 DrawingSurface.DrawRectangle(int x1, int y1, int x2, int y2)
@@ -8133,7 +8291,9 @@ will draw a rectangle over the top left hand quarter of the screen.
 
 \subsection{DrawString}\label{DrawingSurface.DrawString}\index{DrawingSurface.DrawString}\index{RawPrint}%
 
-\it{(Formerly known as RawPrint, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RawPrint, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 DrawingSurface.DrawString(int x, int y, FontType font, string text, ...)
@@ -8191,8 +8351,10 @@ will display the text in the centre of the screen, starting from Y = 40.
 
 \subsection{DrawSurface}\label{DrawingSurface.DrawSurface}\index{DrawingSurface.DrawSurface}\index{RawDrawFrameTransparent}\index{RawRestoreScreen}%
 
-\it{(Formerly known as RawDrawFrameTransparent, which is now obsolete)} ILBRK
-\it{(Formerly known as RawRestoreScreen, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RawDrawFrameTransparent, which is now obsolete)}
+\item \it{(Formerly known as RawRestoreScreen, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 DrawingSurface.DrawSurface(DrawingSurface *source, optional int transparency)
@@ -8226,7 +8388,9 @@ this will draw background frame 1 onto frame 0 at 50\verb$%$ opacity.
 
 \subsection{DrawTriangle}\label{DrawingSurface.DrawTriangle}\index{DrawingSurface.DrawTriangle}\index{RawDrawTriangle}%
 
-\it{(Formerly known as RawDrawTriangle, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RawDrawTriangle, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 DrawingSurface.DrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3)
@@ -8277,7 +8441,9 @@ then releases the image.
 
 \subsection{DrawingColor property}\label{DrawingSurface.DrawingColor}\index{DrawingSurface.DrawingColor}\index{RawSetColor}%
 
-\it{(Formerly known as RawSetColor, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RawSetColor, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int DrawingSurface.DrawingColor
@@ -8596,7 +8762,9 @@ the result onto the background.
 
 \subsection{CreateFromFile}\label{DynamicSprite.CreateFromFile}\index{DynamicSprite.CreateFromFile}\index{LoadImageFile}%
 
-\it{(Formerly known as LoadImageFile, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as LoadImageFile, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static DynamicSprite* DynamicSprite.CreateFromFile(string filename)
@@ -8641,7 +8809,9 @@ Once the image is finished with, Delete should be called on it.
 
 \subsection{CreateFromSaveGame}\label{DynamicSprite.CreateFromSaveGame}\index{DynamicSprite.CreateFromSaveGame}\index{LoadSaveSlotScreenshot}%
 
-\it{(Formerly known as LoadSaveSlotScreenshot, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as LoadSaveSlotScreenshot, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static DynamicSprite* DynamicSprite.CreateFromSaveGame
@@ -8833,7 +9003,9 @@ draw it onto the room background at (100,100).
 
 \subsection{Delete (dynamic sprite)}\label{DynamicSprite.Delete}\index{DynamicSprite.Delete}\index{DeleteSprite}%
 
-\it{(Formerly known as DeleteSprite, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as DeleteSprite, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 DynamicSprite.Delete();
@@ -9140,7 +9312,9 @@ displays the size of the CustomAvatar.bmp image.
 
 \subsection{Open}\label{File.Open}\index{File.Open}\index{FileOpen}%
 
-\it{(Formerly known as FileOpen, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as FileOpen, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static File* File.Open(string filename, FileMode)
@@ -9205,7 +9379,9 @@ to the file and close it.
 
 \subsection{Close}\label{File.Close}\index{File.Close}\index{FileClose}%
 
-\it{(Formerly known as FileClose, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as FileClose, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 File.Close()
@@ -9285,7 +9461,9 @@ will create the file "temp.tmp" if it doesn't exist
 
 \subsection{ReadInt}\label{File.ReadInt}\index{File.ReadInt}\index{FileReadInt}%
 
-\it{(Formerly known as FileReadInt, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as FileReadInt, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 File.ReadInt()
@@ -9307,7 +9485,9 @@ will open the file stats.dat, read an integer into number and then close the fil
 
 \subsection{ReadRawChar}\label{File.ReadRawChar}\index{File.ReadRawChar}\index{FileReadRawChar}%
 
-\it{(Formerly known as FileReadRawChar, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as FileReadRawChar, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 File.ReadRawChar()
@@ -9330,7 +9510,9 @@ will read a raw character from file stats.txt and writes it to the string 'buffe
 
 \subsection{ReadRawInt}\label{File.ReadRawInt}\index{File.ReadRawInt}\index{FileReadRawInt}%
 
-\it{(Formerly known as FileReadRawInt, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as FileReadRawInt, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 File.ReadRawInt()
@@ -9353,7 +9535,9 @@ will read a raw integer from file stats.txt and put it into the integer number.
 
 \subsection{ReadRawLineBack}\label{File.ReadRawLineBack}\index{File.ReadRawLineBack}\index{File.ReadRawLine}%
 
-\it{(Formerly known as File.ReadRawLine, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as File.ReadRawLine, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String File.ReadRawLineBack()
@@ -9383,8 +9567,10 @@ will display the contents of the 'error.log' file, if it exists
 
 \subsection{ReadStringBack}\label{File.ReadStringBack}\index{File.ReadStringBack}\index{File.ReadString}\index{FileRead}%
 
-\it{(Formerly known as FileRead, which is now obsolete)} ILBRK
-\it{(Formerly known as File.ReadString, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as FileRead, which is now obsolete)}
+\item \it{(Formerly known as File.ReadString, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String File.ReadStringBack()
@@ -9407,7 +9593,9 @@ read a string into the buffer. Then close the file.
 
 \subsection{WriteInt}\label{File.WriteInt}\index{File.WriteInt}\index{FileWriteInt}%
 
-\it{(Formerly known as FileWriteInt, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as FileWriteInt, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 File.WriteInt(int value)
@@ -9430,7 +9618,9 @@ will open the file stats.dat and write the integer number in it.
 
 \subsection{WriteRawChar}\label{File.WriteRawChar}\index{File.WriteRawChar}\index{FileWriteRawChar}%
 
-\it{(Formerly known as FileWriteRawChar, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as FileWriteRawChar, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 File.WriteRawChar(int value)
@@ -9459,7 +9649,9 @@ will write the text "AB", followed by a carriage return character, to the file.
 
 \subsection{WriteRawLine}\label{File.WriteRawLine}\index{File.WriteRawLine}\index{FileWriteRawLine}%
 
-\it{(Formerly known as FileWriteRawLine, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as FileWriteRawLine, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 File.WriteRawLine(string text)
@@ -9484,7 +9676,9 @@ will write an error line in the file error.log.
 
 \subsection{WriteString}\label{File.WriteString}\index{File.WriteString}\index{FileWrite}%
 
-\it{(Formerly known as FileWrite, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as FileWrite, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 File.WriteString(string text)
@@ -9511,7 +9705,9 @@ an error message. Otherwise, it will write the string "test string" and close it
 
 \subsection{EOF property}\label{File.EOF}\index{File.EOF}\index{FileIsEOF}%
 
-\it{(Formerly known as FileIsEOF, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as FileIsEOF, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly bool File.EOF
@@ -9537,7 +9733,9 @@ will display every character in the file test.dat, one by one, to the screen.
 
 \subsection{Error property}\label{File.Error}\index{File.Error}\index{FileIsError}%
 
-\it{(Formerly known as FileIsError, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as FileIsError, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly bool File.Error
@@ -9851,7 +10049,9 @@ or 1 if they skipped it.
 
 \subsection{GetColorFromRGB}\label{Game.GetColorFromRGB}\index{Game.GetColorFromRGB}\index{RawSetColorRGB}%
 
-\it{(Formerly known as RawSetColorRGB, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RawSetColorRGB, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static int Game.GetColorFromRGB(int red, int green, int blue)
@@ -9880,7 +10080,9 @@ will draw a bright green line onto the room background
 
 \subsection{GetFrameCountForLoop}\label{Game.GetFrameCountForLoop}\index{Game.GetFrameCountForLoop}%
 
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static int Game.GetFrameCountForLoop(int view, int loop)
@@ -10008,7 +10210,9 @@ will execute the code only if interaction variable "climbed rock" is 1.
 
 \subsection{GetLocationName}\label{Game.GetLocationName}\index{Game.GetLocationName}%
 
-\it{(Formerly known as global function GetLocationName, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function GetLocationName, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static String Game.GetLocationName(int x, int y)
@@ -10070,7 +10274,9 @@ will set the cursor mode to talk if the cursor is over a character.
 
 \subsection{GetLoopCountForView}\label{Game.GetLoopCountForView}\index{Game.GetLoopCountForView}%
 
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static int Game.GetLoopCountForView(int view)
@@ -10093,7 +10299,9 @@ Display("The SWIMMING view (view %d) has %d loops.", SWIMMING, loops);
 
 \subsection{GetRunNextSettingForLoop}\label{Game.GetRunNextSettingForLoop}\index{Game.GetRunNextSettingForLoop}%
 
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static bool Game.GetRunNextSettingForLoop(int view, int loop)
@@ -10120,7 +10328,9 @@ else {
 
 \subsection{GetSaveSlotDescription}\label{Game.GetSaveSlotDescription}\index{Game.GetSaveSlotDescription}%
 
-\it{(Formerly known as global function GetSaveSlotDescription, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function GetSaveSlotDescription, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static String Game.GetSaveSlotDescription(int slot)
@@ -10217,7 +10427,9 @@ unchanged, so it is always safe to use this function.
 
 \subsection{GetViewFrame}\label{Game.GetViewFrame}\index{Game.GetViewFrame}%
 
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static ViewFrame* Game.GetViewFrame(int view, int loop, int frame)
@@ -10264,7 +10476,9 @@ will give 5 points to the player.
 
 \subsection{InputBox}\label{Game.InputBox}\index{Game.InputBox}%
 
-\it{(Formerly known as global function InputBox, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function InputBox, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static String Game.InputBox(string prompt)
@@ -11216,7 +11430,9 @@ clicks the mouse.
 
 \subsection{CharacterCount property}\label{Game.CharacterCount}\index{Game.CharacterCount}%
 
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static int Game.CharacterCount
@@ -11283,7 +11499,9 @@ Display("The game has %d fonts.", Game.FontCount);
 
 \subsection{GlobalMessages property}\label{Game.GlobalMessages}\index{Game.GlobalMessages}\index{GetMessageText}%
 
-\it{(Formerly known as global function GetMessageText, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function GetMessageText, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static String Game.GlobalMessages[int message]
@@ -11307,8 +11525,10 @@ will display global message 997.
 
 \subsection{GlobalStrings property}\label{Game.GlobalStrings}\index{Game.GlobalStrings}\index{GetGlobalString}\index{SetGlobalString}%
 
-\it{(Formerly known as GetGlobalString, which is now obsolete)} ILBRK
-\it{(Formerly known as SetGlobalString, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetGlobalString, which is now obsolete)}
+\item \it{(Formerly known as SetGlobalString, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static String Game.GlobalStrings[index]
@@ -11329,7 +11549,9 @@ will set global string 15 to contain "Joe".
 
 \subsection{GUICount property}\label{Game.GUICount}\index{Game.GUICount}%
 
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static int Game.GUICount
@@ -11375,7 +11597,9 @@ removed from the screen.
 
 \subsection{InSkippableCutscene property}\label{Game.InSkippableCutscene}\index{Game.InSkippableCutscene}%
 
-\it{(Formerly known as game.in_cutscene, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as game.in_cutscene, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static bool Game.InSkippableCutscene
@@ -11408,7 +11632,9 @@ will display a message if we are within a cutscene
 
 \subsection{InventoryItemCount property}\label{Game.InventoryItemCount}\index{Game.InventoryItemCount}%
 
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static int Game.InventoryItemCount
@@ -11484,7 +11710,9 @@ will display the game name.
 
 \subsection{NormalFont property}\label{Game.NormalFont}\index{Game.NormalFont}\index{SetNormalFont}%
 
-\it{(Formerly known as global function SetNormalFont, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function SetNormalFont, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static FontType Game.NormalFont
@@ -11513,7 +11741,9 @@ will change the normal font to the font "Special".
 
 \subsection{SkippingCutscene property}\label{Game.SkippingCutscene}\index{Game.SkippingCutscene}%
 
-\it{(Formerly known as game.skipping_cutscene, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as game.skipping_cutscene, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static bool Game.SkippingCutscene
@@ -11548,7 +11778,9 @@ will only attempt to play the music if the player is not skipping the cutscene.
 
 \subsection{SpeechFont property}\label{Game.SpeechFont}\index{Game.SpeechFont}\index{SetSpeechFont}%
 
-\it{(Formerly known as global function SetSpeechFont, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function SetSpeechFont, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static FontType Game.SpeechFont;
@@ -11569,7 +11801,9 @@ will change the speech font to "Standard".
 
 \subsection{SpriteHeight property}\label{Game.SpriteHeight}\index{Game.SpriteHeight}%
 
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static int Game.SpriteHeight[int slot]
@@ -11590,7 +11824,9 @@ Display("Object 0's sprite is sized %d x %d.", Game.SpriteWidth[object[0].Graphi
 
 \subsection{SpriteWidth property}\label{Game.SpriteWidth}\index{Game.SpriteWidth}%
 
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static int Game.SpriteWidth[int slot]
@@ -11611,7 +11847,9 @@ Display("Object 0's sprite is sized %d x %d.", Game.SpriteWidth[object[0].Graphi
 
 \subsection{TextReadingSpeed property}\label{Game.TextReadingSpeed}\index{Game.TextReadingSpeed}\index{game.text_speed}%
 
-\it{(Formerly known as game.text_speed, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as game.text_speed, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static int Game.TextReadingSpeed;
@@ -11645,7 +11883,9 @@ for twice as long as usual.
 
 \subsection{TranslationFilename property}\label{Game.TranslationFilename}\index{Game.TranslationFilename}\index{GetTranslationName}%
 
-\it{(Formerly known as GetTranslationName, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetTranslationName, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static String Game.TranslationFilename;
@@ -11700,7 +11940,9 @@ else
 
 \subsection{ViewCount property}\label{Game.ViewCount}\index{Game.ViewCount}%
 
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static int Game.ViewCount
@@ -11723,7 +11965,9 @@ Display("The game has %d views.", Game.ViewCount);
 
 \subsection{Centre}\label{GUI.Centre}\index{GUI.Centre}\index{CentreGUI}%
 
-\it{(Formerly known as CentreGUI, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as CentreGUI, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 GUI.Centre()
@@ -11742,7 +11986,9 @@ will centre the CONTROLPANEL GUI in the middle of the screen.
 
 \subsection{GetAtScreenXY (GUI)}\label{GUI.GetAtScreenXY}\index{GUI.GetAtScreenXY}\index{GetGUIAt}%
 
-\it{(Formerly known as GetGUIAt, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetGUIAt, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static GUI* GUI.GetAtScreenXY(int x, int y)
@@ -11779,7 +12025,9 @@ will display the number of the GUI that the mouse is over.
 
 \subsection{SetPosition (GUI)}\label{GUI.SetPosition}\index{GUI.SetPosition}\index{SetGUIPosition}%
 
-\it{(Formerly known as SetGUIPosition, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetGUIPosition, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 GUI.SetPosition(int x, int y)
@@ -11803,7 +12051,9 @@ will move the VERBCOIN GUI to the position where the cursor is.
 
 \subsection{SetSize (GUI)}\label{GUI.SetSize}\index{GUI.SetSize}\index{SetGUISize}%
 
-\it{(Formerly known as SetGUISize, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetGUISize, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 GUI.SetSize(int width, int height)
@@ -11832,7 +12082,9 @@ changes the ICONBAR GUI to be the size of half the screen
 
 \subsection{BackgroundGraphic property (GUI)}\label{GUI.BackgroundGraphic}\index{GUI.BackgroundGraphic}\index{SetGUIBackgroundPic}%
 
-\it{(Formerly known as SetGUIBackgroundPic, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetGUIBackgroundPic, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int GUI.BackgroundGraphic
@@ -11848,7 +12100,9 @@ You can set this to 0 to remove the background image from the GUI.
 
 \subsection{Clickable property (GUI)}\label{GUI.Clickable}\index{GUI.Clickable}\index{SetGUIClickable}%
 
-\it{(Formerly known as SetGUIClickable, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetGUIClickable, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 bool GUI.Clickable
@@ -11968,7 +12222,9 @@ and then uses the equivalent modern property to stop it being clickable.
 
 \subsection{Transparency property (GUI)}\label{GUI.Transparency}\index{GUI.Transparency}\index{SetGUITransparency}%
 
-\it{(Formerly known as SetGUITransparency, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetGUITransparency, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int GUI.Transparency
@@ -12007,11 +12263,13 @@ will gradually fade the INVENTORY GUI out until it is invisible.
 
 \subsection{Visible property (GUI)}\label{GUI.Visible}\index{GUI.Visible}\index{InterfaceOff}\index{InterfaceOn}\index{GUIOff}\index{GUIOn}\index{IsGUIOn}%
 
-\it{(Formerly known as GUIOff, which is now obsolete)}ILBRK
-\it{(Formerly known as GUIOn, which is now obsolete)}ILBRK
-\it{(Formerly known as InterfaceOff, which is now obsolete)}ILBRK
-\it{(Formerly known as InterfaceOn, which is now obsolete)}ILBRK
-\it{(Formerly known as IsGUIOn, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GUIOff, which is now obsolete)}
+\item \it{(Formerly known as GUIOn, which is now obsolete)}
+\item \it{(Formerly known as InterfaceOff, which is now obsolete)}
+\item \it{(Formerly known as InterfaceOn, which is now obsolete)}
+\item \it{(Formerly known as IsGUIOn, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 bool GUI.Visible
@@ -12106,7 +12364,9 @@ moves the VERBCOIN GUI down 5 pixels.
 
 \subsection{ZOrder property}\label{GUI.ZOrder}\index{GUI.ZOrder}\index{SetGUIZOrder}%
 
-\it{(Formerly known as SetGUIZOrder, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetGUIZOrder, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int GUI.ZOrder
@@ -12137,7 +12397,9 @@ Each individual control type (Button, ListBox, etc) also has its own specific se
 
 \subsection{GetAtScreenXY (GUI control)}\label{GUIControl.GetAtScreenXY}\index{GUIControl.GetAtScreenXY}\index{GetGUIObjectAt}%
 
-\it{(Formerly known as GetGUIObjectAt, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetGUIObjectAt, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static GUIControl* GUIControl.GetAtScreenXY(int x, int y)
@@ -12248,7 +12510,9 @@ will make the \it{btnSaveGame} button non-clickable.
 
 \subsection{Enabled property (GUI controls)}\label{GUIControl.Enabled}\index{Button.Enabled}\index{InvWindow.Enabled}\index{Label.Enabled}\index{ListBox.Enabled}\index{Slider.Enabled}\index{TextBox.Enabled}\index{SetGUIObjectEnabled}%
 
-\it{(Formerly known as SetGUIObjectEnabled, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetGUIObjectEnabled, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 bool GUIControl.Enabled
@@ -12379,7 +12643,9 @@ will move the \it{btnBigButton} button to be behind all other controls on the GU
 
 \subsection{SetPosition (GUI controls)}\label{GUIControl.SetPosition}\index{Button.SetPosition}\index{InvWindow.SetPosition}\index{Label.SetPosition}\index{ListBox.SetPosition}\index{Slider.SetPosition}\index{TextBox.SetPosition}\index{SetGUIObjectPosition}%
 
-\it{(Formerly known as SetGUIObjectPosition, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetGUIObjectPosition, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 GUIControl.SetPosition(int x, int y)
@@ -12408,7 +12674,9 @@ will move the \it{btnConfirm} button to be positioned at (40,10) within the GUI.
 
 \subsection{SetSize (GUI controls)}\label{GUIControl.SetSize}\index{Button.SetSize}\index{InvWindow.SetSize}\index{Label.SetSize}\index{ListBox.SetSize}\index{Slider.SetSize}\index{TextBox.SetSize}\index{SetGUIObjectSize}%
 
-\it{(Formerly known as SetGUIObjectSize, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetGUIObjectSize, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 GUIControl.SetSize(int width, int height)
@@ -12551,7 +12819,9 @@ will move the \it{btnConfirm} button to be positioned 20 pixels from the top of 
 
 \subsection{Animate (button)}\label{Button.Animate}\index{Button.Animate}\index{AnimateButton}%
 
-\it{(Formerly known as AnimateButton, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as AnimateButton, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Button.Animate(int view, int loop, int delay, RepeatStyle)
@@ -12630,7 +12900,9 @@ will change the \it{btnOK} button to use Font "Main".
 
 \subsection{Graphic property (button)}\label{Button.Graphic}\index{Button.Graphic}\index{GetButtonPic}%
 
-\it{(Formerly part of GetButtonPic, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetButtonPic, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int Button.Graphic;
@@ -12657,8 +12929,10 @@ will display btnPlay's current sprite number.
 
 \subsection{MouseOverGraphic property (button)}\label{Button.MouseOverGraphic}\index{Button.MouseOverGraphic}\index{GetButtonPic}\index{SetButtonPic}%
 
-\it{(Formerly part of GetButtonPic, which is now obsolete)} ILBRK
-\it{(Formerly part of SetButtonPic, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetButtonPic, which is now obsolete)}
+\item \it{(Formerly part of SetButtonPic, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Button.MouseOverGraphic;
@@ -12679,8 +12953,10 @@ will display btnPlay's mouse-over sprite number.
 
 \subsection{NormalGraphic property (button)}\label{Button.NormalGraphic}\index{Button.NormalGraphic}\index{GetButtonPic}\index{SetButtonPic}%
 
-\it{(Formerly part of GetButtonPic, which is now obsolete)} ILBRK
-\it{(Formerly part of SetButtonPic, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetButtonPic, which is now obsolete)}
+\item \it{(Formerly part of SetButtonPic, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Button.NormalGraphic;
@@ -12705,8 +12981,10 @@ will display btnPlay's normal sprite number.
 
 \subsection{PushedGraphic property (button)}\label{Button.PushedGraphic}\index{Button.PushedGraphic}\index{GetButtonPic}\index{SetButtonPic}%
 
-\it{(Formerly part of GetButtonPic, which is now obsolete)} ILBRK
-\it{(Formerly part of SetButtonPic, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetButtonPic, which is now obsolete)}
+\item \it{(Formerly part of SetButtonPic, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Button.PushedGraphic;
@@ -12728,9 +13006,11 @@ will display btnPlay's pushed sprite number.
 
 \subsection{Text property (button)}\label{Button.Text}\index{Button.Text}\index{SetButtonText}\index{Button.SetText}\index{Button.GetText}%
 
-\it{(Formerly known as SetButtonText, which is now obsolete)} ILBRK
-\it{(Formerly known as Button.GetText, which is now obsolete)} ILBRK
-\it{(Formerly known as Button.SetText, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetButtonText, which is now obsolete)}
+\item \it{(Formerly known as Button.GetText, which is now obsolete)}
+\item \it{(Formerly known as Button.SetText, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String Button.Text;
@@ -12864,7 +13144,9 @@ will display the name of the first item displayed in the \it{invMain} inventory 
 
 \subsection{ItemCount property (inv window)}\label{InvWindow.ItemCount}\index{InvWindow.ItemCount}%
 
-\it{(Formerly known as game.num_inv_items, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as game.num_inv_items, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int InvWindow.ItemCount;
@@ -12890,7 +13172,9 @@ inventory items than will fit in the inventory window.
 
 \subsection{ItemHeight property}\label{InvWindow.ItemHeight}\index{InvWindow.ItemHeight}\index{SetInvDimensions}%
 
-\it{(Formerly known as SetInvDimensions, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetInvDimensions, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int InvWindow.ItemHeight;
@@ -12911,7 +13195,9 @@ sets the \it{invMain} inventory window to use item cells 50x30 large.
 
 \subsection{ItemWidth property}\label{InvWindow.ItemWidth}\index{InvWindow.ItemWidth}\index{SetInvDimensions}%
 
-\it{(Formerly known as SetInvDimensions, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetInvDimensions, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int InvWindow.ItemWidth;
@@ -12932,7 +13218,9 @@ sets the \it{invMain} inventory window to use item cells 50x30 large.
 
 \subsection{ItemsPerRow property}\label{InvWindow.ItemsPerRow}\index{InvWindow.ItemsPerRow}%
 
-\it{(Formerly known as game.items_per_line, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as game.items_per_line, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int InvWindow.ItemsPerRow;
@@ -12970,7 +13258,9 @@ displays how many items can be visible in the invMain window at once.
 
 \subsection{TopItem property (inv window)}\label{InvWindow.TopItem}\index{InvWindow.TopItem}%
 
-\it{(Formerly known as game.top_inv_item, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as game.top_inv_item, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int InvWindow.TopItem;
@@ -13016,7 +13306,9 @@ inventory list can be scrolled up.
 
 \subsection{Font property (label)}\label{Label.Font}\index{Label.Font}\index{SetLabelFont}%
 
-\it{(Formerly known as SetLabelFont, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetLabelFont, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 FontType Label.Font;
@@ -13040,9 +13332,11 @@ will change label 'lblStatus' to use font "Foreign" if a game translation is in 
 
 \subsection{Text property (label)}\label{Label.Text}\index{Label.Text}\index{SetLabelText}\index{Label.GetText}\index{Label.SetText}%
 
-\it{(Formerly known as SetLabelText, which is now obsolete)} ILBRK
-\it{(Formerly known as Label.GetText, which is now obsolete)} ILBRK
-\it{(Formerly known as Label.SetText, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetLabelText, which is now obsolete)}
+\item \it{(Formerly known as Label.GetText, which is now obsolete)}
+\item \it{(Formerly known as Label.SetText, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String Label.Text;
@@ -13063,7 +13357,9 @@ will display the name of the location the cursor is over on label 'lblStatus'
 
 \subsection{TextColor property (label)}\label{Label.TextColor}\index{Label.TextColor}\index{SetLabelColor}%
 
-\it{(Formerly known as SetLabelColor, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetLabelColor, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Label.TextColor;
@@ -13100,7 +13396,9 @@ will change label 'lblStatus' to have yellow text.
 
 \subsection{AddItem}\label{ListBox.AddItem}\index{ListBox.AddItem}\index{ListBoxAdd}%
 
-\it{(Formerly known as ListBoxAdd, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as ListBoxAdd, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 ListBox.AddItem(string newitem)
@@ -13127,7 +13425,9 @@ will take the input from the user and add it to the listbox.
 
 \subsection{Clear (list box)}\label{ListBox.Clear}\index{ListBox.Clear}\index{ListBoxClear}%
 
-\it{(Formerly known as ListBoxClear, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as ListBoxClear, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 ListBox.Clear()
@@ -13145,7 +13445,9 @@ will remove all the items from listbox \it{lstNoteBook}.
 
 \subsection{FillDirList}\label{ListBox.FillDirList}\index{ListBox.FillDirList}\index{ListBoxDirList}%
 
-\it{(Formerly known as ListBoxDirList, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as ListBoxDirList, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 ListBox.FillDirList(string filemask)
@@ -13174,7 +13476,9 @@ task you would use FillSaveGameList instead.
 
 \subsection{FillSaveGameList}\label{ListBox.FillSaveGameList}\index{ListBox.FillSaveGameList}\index{ListBoxSaveGameList}%
 
-\it{(Formerly known as ListBoxSaveGameList, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as ListBoxSaveGameList, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 ListBox.FillSaveGameList()
@@ -13259,7 +13563,9 @@ will insert the Third Item in between the First and Second items.
 
 \subsection{RemoveItem}\label{ListBox.RemoveItem}\index{ListBox.RemoveItem}\index{ListBoxRemove}%
 
-\it{(Formerly known as ListBoxRemove, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as ListBoxRemove, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 ListBox.RemoveItem(int item)
@@ -13377,7 +13683,9 @@ will hide the built-in scroll arrows on the list box.
 
 \subsection{ItemCount property (list box)}\label{ListBox.ItemCount}\index{ListBox.ItemCount}\index{ListBoxGetNumItems}%
 
-\it{(Formerly known as ListBoxGetNumItems, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as ListBoxGetNumItems, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int ListBox.ItemCount
@@ -13398,9 +13706,11 @@ will pass the number of saved games to the int saves.
 
 \subsection{Items property}\label{ListBox.Items}\index{ListBox.Items}\index{ListBoxGetItemText}\index{ListBox.GetItemText}\index{ListBox.SetItemText}%
 
-\it{(Formerly known as ListBoxGetItemText, which is now obsolete)} ILBRK
-\it{(Formerly known as ListBox.GetItemText, which is now obsolete)} ILBRK
-\it{(Formerly known as ListBox.SetItemText, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as ListBoxGetItemText, which is now obsolete)}
+\item \it{(Formerly known as ListBox.GetItemText, which is now obsolete)}
+\item \it{(Formerly known as ListBox.SetItemText, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String ListBox.Items[index]
@@ -13445,7 +13755,9 @@ will display the number of rows that the listbox can display.
 
 \subsection{SaveGameSlots property}\label{ListBox.SaveGameSlots}\index{ListBox.SaveGameSlots}\index{savegameindex}%
 
-\it{(Formerly known as global array savegameindex, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global array savegameindex, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int ListBox.SaveGameSlots[];
@@ -13473,8 +13785,10 @@ had been used previously.
 
 \subsection{SelectedIndex property}\label{ListBox.SelectedIndex}\index{ListBox.SelectedIndex}\index{ListBoxGetSelected}\index{ListBoxSetSelected}%
 
-\it{(Formerly known as ListBoxGetSelected, which is now obsolete)} ILBRK
-\it{(Formerly known as ListBoxSetSelected, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as ListBoxGetSelected, which is now obsolete)}
+\item \it{(Formerly known as ListBoxSetSelected, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int ListBox.SelectedIndex
@@ -13493,7 +13807,9 @@ will get the text of the selected item in the listbox.
 
 \subsection{TopItem property (list box)}\label{ListBox.TopItem}\index{ListBox.TopItem}\index{ListBoxSetTopItem}%
 
-\it{(Formerly known as ListBoxSetTopItem, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as ListBoxSetTopItem, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int ListBox.TopItem
@@ -13645,8 +13961,10 @@ sets the minimum value of the \it{sldHealth} slider to 0.
 
 \subsection{Value property}\label{Slider.Value}\index{Slider.Value}\index{GetSliderValue}\index{SetSliderValue}%
 
-\it{(Formerly known as GetSliderValue, which is now obsolete)} ILBRK
-\it{(Formerly known as SetSliderValue, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetSliderValue, which is now obsolete)}
+\item \it{(Formerly known as SetSliderValue, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Slider.Value;
@@ -13687,7 +14005,9 @@ will set the audio volume to the value of the slider \it{sldVolume}.
 
 \subsection{Font property (text box)}\label{TextBox.Font}\index{TextBox.Font}\index{SetTextBoxFont}%
 
-\it{(Formerly known as SetTextBoxFont, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetTextBoxFont, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 FontType TextBox.Font
@@ -13708,10 +14028,12 @@ will change the \it{txtUserInput} text box to use Font "Normal".
 
 \subsection{Text property (text box)}\label{TextBox.Text}\index{TextBox.Text}\index{SetTextBoxText}\index{TextBox.SetText}\index{TextBox.GetText}\index{GetTextBoxText}%
 
-\it{(Formerly known as GetTextBoxText, which is now obsolete)} ILBRK
-\it{(Formerly known as SetTextBoxText, which is now obsolete)} ILBRK
-\it{(Formerly known as TextBox.GetText, which is now obsolete)} ILBRK
-\it{(Formerly known as TextBox.SetText, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetTextBoxText, which is now obsolete)}
+\item \it{(Formerly known as SetTextBoxText, which is now obsolete)}
+\item \it{(Formerly known as TextBox.GetText, which is now obsolete)}
+\item \it{(Formerly known as TextBox.SetText, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String TextBox.Text;
@@ -13758,7 +14080,9 @@ will change text box 'txtInput' to have yellow text.
 
 \subsection{GetAtScreenXY (hotspot)}\label{Hotspot.GetAtScreenXY}\index{Hotspot.GetAtScreenXY}\index{GetHotspotAt}%
 
-\it{(Formerly known as global function GetHotspotAt, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function GetHotspotAt, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static Hotspot* Hotspot.GetAtScreenXY(int x, int y)
@@ -13789,7 +14113,9 @@ will display a message depending on what the mouse is on.
 
 \subsection{GetProperty (hotspot)}\label{Hotspot.GetProperty}\index{Hotspot.GetProperty}\index{GetHotspotProperty}%
 
-\it{(Formerly known as GetHotspotProperty, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetHotspotProperty, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Hotspot.GetProperty(string property)
@@ -13813,8 +14139,10 @@ will print the message if hotspot 1 has its "Value" property set to more than 20
 
 \subsection{GetTextProperty (hotspot)}\label{Hotspot.GetTextProperty}\index{Hotspot.GetTextProperty}\index{Hotspot.GetPropertyText}\index{GetHotspotPropertyText}%
 
-\it{(Formerly known as GetHotspotPropertyText, which is now obsolete)} ILBRK
-\it{(Formerly known as Hotspot.GetPropertyText, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetHotspotPropertyText, which is now obsolete)}
+\item \it{(Formerly known as Hotspot.GetPropertyText, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String Hotspot.GetTextProperty(string property)
@@ -13839,7 +14167,9 @@ will retrieve hotspot 2's "description" property and display it.
 
 \subsection{RunInteraction (hotspot)}\label{Hotspot.RunInteraction}\index{Hotspot.RunInteraction}\index{RunHotspotInteraction}%
 
-\it{(Formerly known as RunHotspotInteraction, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RunHotspotInteraction, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Hotspot.RunInteraction(CursorMode)
@@ -13860,8 +14190,10 @@ will run the code defined in the "LOOK AT HOTSPOT" event for hotspot hDoor.
 
 \subsection{Enabled property (hotspot)}\label{Hotspot.Enabled}\index{Hotspot.Enabled}\index{DisableHotspot}\index{EnableHotspot}%
 
-\it{(Formerly known as DisableHotspot, which is now obsolete)} ILBRK
-\it{(Formerly known as EnableHotspot, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as DisableHotspot, which is now obsolete)}
+\item \it{(Formerly known as EnableHotspot, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 bool Hotspot.Enabled
@@ -13906,8 +14238,10 @@ displays hDoor's hotspot number, and then displays hotspot 3's number (which wil
 
 \subsection{Name property (hotspot)}\label{Hotspot.Name}\index{Hotspot.Name}\index{Hotspot.GetName}\index{GetHotspotName}%
 
-\it{(Formerly known as GetHotspotName, which is now obsolete)} ILBRK
-\it{(Formerly known as Hotspot.GetName, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetHotspotName, which is now obsolete)}
+\item \it{(Formerly known as Hotspot.GetName, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly String Hotspot.Name;
@@ -13927,7 +14261,9 @@ will retrieve and then display hotspot 3's name.
 
 \subsection{WalkToX property}\label{Hotspot.WalkToX}\index{Hotspot.WalkToX}\index{GetHotspotPointX}%
 
-\it{(Formerly known as GetHotspotPointX, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetHotspotPointX, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int Hotspot.WalkToX
@@ -13947,7 +14283,9 @@ will move the character to hotspot hTable's walk-to point.
 
 \subsection{WalkToY property}\label{Hotspot.WalkToY}\index{Hotspot.WalkToY}\index{GetHotspotPointY}%
 
-\it{(Formerly known as GetHotspotPointY, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetHotspotPointY, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int Hotspot.WalkToY
@@ -13971,7 +14309,9 @@ will move the character to hotspot hTable's walk-to point.
 
 \subsection{GetAtScreenXY (inventory)}\label{InventoryItem.GetAtScreenXY}\index{InventoryItem.GetAtScreenXY}\index{GetInvAt}%
 
-\it{(Formerly known as global function GetInvAt, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function GetInvAt, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static InventoryItem* InventoryItem.GetAtScreenXY(int x, int y)
@@ -14007,7 +14347,9 @@ will display the number of the inv item that the mouse is over
 
 \subsection{GetProperty (inventory)}\label{InventoryItem.GetProperty}\index{InventoryItem.GetProperty}\index{GetInvProperty}%
 
-\it{(Formerly known as GetInvProperty, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetInvProperty, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 InventoryItem.GetProperty(string property)
@@ -14031,8 +14373,10 @@ will print the message if inventory item 1 has its "Value" property set to more 
 
 \subsection{GetTextProperty (inventory)}\label{InventoryItem.GetTextProperty}\index{InventoryItem.GetTextProperty}\index{InventoryItem.GetPropertyText}\index{GetInvPropertyText}%
 
-\it{(Formerly known as GetInvPropertyText, which is now obsolete)} ILBRK
-\it{(Formerly known as InventoryItem.GetPropertyText, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetInvPropertyText, which is now obsolete)}
+\item \it{(Formerly known as InventoryItem.GetPropertyText, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String InventoryItem.GetTextProperty(string property)
@@ -14056,7 +14400,9 @@ will retrieve inv item 2's "description" property and display it.
 
 \subsection{IsInteractionAvailable (inventory)}\label{InventoryItem.IsInteractionAvailable}\index{InventoryItem.IsInteractionAvailable}\index{IsInventoryInteractionAvailable}%
 
-\it{(Formerly known as IsInventoryInteractionAvailable, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as IsInventoryInteractionAvailable, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 InventoryItem.IsInteractionAvailable(CursorMode)
@@ -14082,7 +14428,9 @@ if (iKeyring.IsInteractionAvailable(eModeLookat) == 0)
 
 \subsection{RunInteraction (inventory)}\label{InventoryItem.RunInteraction}\index{InventoryItem.RunInteraction}\index{RunInventoryInteraction}%
 
-\it{(Formerly known as RunInventoryInteraction, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RunInventoryInteraction, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 InventoryItem.RunInteraction(CursorMode)
@@ -14126,8 +14474,10 @@ will display inventory item \it{iKey}'s cursor graphic.
 
 \subsection{Graphic property (inventory)}\label{InventoryItem.Graphic}\index{InventoryItem.Graphic}\index{SetInvItemPic}\index{GetInvGraphic}%
 
-\it{(Formerly known as GetInvGraphic, which is now obsolete)}ILBRK
-\it{(Formerly known as SetInvItemPic, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetInvGraphic, which is now obsolete)}
+\item \it{(Formerly known as SetInvItemPic, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int InventoryItem.Graphic
@@ -14172,10 +14522,12 @@ uses the obsolete AddInventory command to add the shovel to EGO's inventory
 
 \subsection{Name property (inventory)}\label{InventoryItem.Name}\index{InventoryItem.Name}\index{InventoryItem.GetName}\index{GetInvName}\index{InventoryItem.SetName}\index{SetInvItemName}%
 
-\it{(Formerly known as GetInvName, which is now obsolete)} ILBRK
-\it{(Formerly known as SetInvItemName, which is now obsolete)} ILBRK
-\it{(Formerly known as InventoryItem.GetName, which is now obsolete)} ILBRK
-\it{(Formerly known as InventoryItem.SetName, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetInvName, which is now obsolete)}
+\item \it{(Formerly known as SetInvItemName, which is now obsolete)}
+\item \it{(Formerly known as InventoryItem.GetName, which is now obsolete)}
+\item \it{(Formerly known as InventoryItem.SetName, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String InventoryItem.Name;
@@ -14618,7 +14970,9 @@ displays the value of Pi.
 
 \subsection{ChangeModeGraphic}\label{Mouse.ChangeModeGraphic}\index{Mouse.ChangeModeGraphic}\index{ChangeCursorGraphic}%
 
-\it{(Formerly known as ChangeCursorGraphic, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as ChangeCursorGraphic, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Mouse.ChangeModeGraphic(CursorMode, int slot)
@@ -14644,7 +14998,9 @@ will change the cursor's graphic for look mode to the image that's imported in t
 
 \subsection{ChangeModeHotspot}\label{Mouse.ChangeModeHotspot}\index{Mouse.ChangeModeHotspot}\index{ChangeCursorHotspot}%
 
-\it{(Formerly known as ChangeCursorHotspot, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as ChangeCursorHotspot, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Mouse.ChangeModeHotspot(CursorMode, int x, int y)
@@ -14687,7 +15043,9 @@ will change the Look cursor's view to ROLLEYES.
 
 \subsection{DisableMode}\label{Mouse.DisableMode}\index{Mouse.DisableMode}\index{DisableCursorMode}%
 
-\it{(Formerly known as DisableCursorMode, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as DisableCursorMode, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Mouse.DisableMode(int mode)
@@ -14711,7 +15069,9 @@ will make the walk mode unavailable until it's enabled again.
 
 \subsection{EnableMode}\label{Mouse.EnableMode}\index{Mouse.EnableMode}\index{EnableCursorMode}%
 
-\it{(Formerly known as EnableCursorMode, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as EnableCursorMode, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Mouse.EnableMode(int mode)
@@ -14749,7 +15109,9 @@ will display the sprite slot number of the current mouse cursor.
 
 \subsection{IsButtonDown}\label{Mouse.IsButtonDown}\index{Mouse.IsButtonDown}%
 
-\it{(Formerly known as global function IsButtonDown, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function IsButtonDown, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Mouse.IsButtonDown(MouseButton)
@@ -14783,7 +15145,9 @@ will display the message if the player presses the right button for 1 sec.
 
 \subsection{SaveCursorUntilItLeaves}\label{Mouse.SaveCursorUntilItLeaves}\index{Mouse.SaveCursorUntilItLeaves}\index{SaveCursorForLocationChange}%
 
-\it{(Formerly known as SaveCursorForLocationChange, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SaveCursorForLocationChange, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Mouse.SaveCursorUntilItLeaves()
@@ -14809,7 +15173,9 @@ will change the cursor mode to Talk for as long as the mouse is over the current
 
 \subsection{SelectNextMode}\label{Mouse.SelectNextMode}\index{Mouse.SelectNextMode}\index{SetNextCursorMode}%
 
-\it{(Formerly known as SetNextCursorMode, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetNextCursorMode, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Mouse.SelectNextMode()
@@ -14823,7 +15189,9 @@ will also use the Use Inventory mode if the player has an active inventory item.
 
 \subsection{SetBounds}\label{Mouse.SetBounds}\index{Mouse.SetBounds}\index{SetMouseBounds}%
 
-\it{(Formerly known as SetMouseBounds, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetMouseBounds, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Mouse.SetBounds(int left, int top, int right, int bottom)
@@ -14850,7 +15218,9 @@ will restrict the mouse cursor to the bottom-right quarter of the screen.
 
 \subsection{SetPosition (mouse)}\label{Mouse.SetPosition}\index{Mouse.SetPosition}\index{SetMousePosition}%
 
-\it{(Formerly known as SetMousePosition, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetMousePosition, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Mouse.SetPosition(int x, int y)
@@ -14874,7 +15244,9 @@ will place the mouse cursor in the centre of the screen.
 
 \subsection{Update}\label{Mouse.Update}\index{Mouse.Update}\index{RefreshMouse}%
 
-\it{(Formerly known as RefreshMouse, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RefreshMouse, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Mouse.Update();
@@ -14896,7 +15268,9 @@ will display the mouse position just before each dialog box is displayed
 
 \subsection{UseDefaultGraphic}\label{Mouse.UseDefaultGraphic}\index{Mouse.UseDefaultGraphic}\index{SetDefaultCursor}%
 
-\it{(Formerly known as SetDefaultCursor, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetDefaultCursor, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Mouse.UseDefaultGraphic()
@@ -14910,7 +15284,9 @@ with the UseModeGraphic function.
 
 \subsection{UseModeGraphic}\label{Mouse.UseModeGraphic}\index{Mouse.UseModeGraphic}\index{SetMouseCursor}%
 
-\it{(Formerly known as SetMouseCursor, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetMouseCursor, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Mouse.UseModeGraphic(CursorMode)
@@ -14931,8 +15307,10 @@ will change the mouse cursor to the cursor 'Wait' specified in the Cursors tab.
 
 \subsection{Mode property (mouse)}\label{Mouse.Mode}\index{Mouse.Mode}\index{GetCursorMode}\index{SetCursorMode}%
 
-\it{(Formerly known as GetCursorMode, which is now obsolete)}ILBRK
-\it{(Formerly known as SetCursorMode, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetCursorMode, which is now obsolete)}
+\item \it{(Formerly known as SetCursorMode, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Mouse.Mode;
@@ -14959,8 +15337,10 @@ will execute the code only if the current cursor mode is MODE 0 (WALK).
 
 \subsection{Visible property (mouse)}\label{Mouse.Visible}\index{Mouse.Visible}\index{HideMouseCursor}\index{ShowMouseCursor}%
 
-\it{(Formerly known as HideMouseCursor, which is now obsolete)}ILBRK
-\it{(Formerly known as ShowMouseCursor, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as HideMouseCursor, which is now obsolete)}
+\item \it{(Formerly known as ShowMouseCursor, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 bool Mouse.Visible;
@@ -15046,8 +15426,10 @@ will play track 3 of the CD that's in the CD ROM drive.
 
 \subsection{IsAudioPlaying}\label{Game.IsAudioPlaying}\index{Game.IsAudioPlaying}\index{IsMusicPlaying}\index{IsSoundPlaying}%
 
-\it{(Formerly known as IsMusicPlaying, which is now obsolete)} ILBRK
-\it{(Formerly known as IsSoundPlaying, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as IsMusicPlaying, which is now obsolete)}
+\item \it{(Formerly known as IsSoundPlaying, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static bool Game.IsAudioPlaying(optional AudioType)
@@ -15199,7 +15581,9 @@ before.
 
 \subsection{SetAudioTypeSpeechVolumeDrop}\label{Game.SetAudioTypeSpeechVolumeDrop}\index{Game.SetAudioTypeSpeechVolumeDrop}%
 
-\it{(Formerly known as game.speech_music_drop, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as game.speech_music_drop, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static Game.SetAudioTypeSpeechVolumeDrop(AudioType, int volumeReduction)
@@ -15224,7 +15608,9 @@ will reduce the volume of Music audio clips by 25 percentage points while speech
 
 \subsection{SetAudioTypeVolume}\label{Game.SetAudioTypeVolume}\index{Game.SetAudioTypeVolume}\index{SetSoundVolume}%
 
-\it{(Formerly known as SetSoundVolume, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetSoundVolume, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static Game.SetAudioTypeVolume(AudioType, int volume, ChangeVolumeType)
@@ -15276,8 +15662,10 @@ will set the speech volume to 200.
 
 \subsection{StopAudio}\label{Game.StopAudio}\index{Game.StopAudio}\index{Game.StopSound}\index{StopMusic}%
 
-\it{(Formerly known as Game.StopSound, which is now obsolete)} ILBRK
-\it{(Formerly known as StopMusic, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as Game.StopSound, which is now obsolete)}
+\item \it{(Formerly known as StopMusic, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static Game.StopAudio(optional AudioType)
@@ -15305,8 +15693,10 @@ will stop all currently playing audio.
 
 \subsection{Animate (object)}\label{Object.Animate}\index{Object.Animate}\index{AnimateObject}\index{AnimateObjectEx}%
 
-\it{(Formerly known as AnimateObject, which is now obsolete)} ILBRK
-\it{(Formerly known as AnimateObjectEx, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as AnimateObject, which is now obsolete)}
+\item \it{(Formerly known as AnimateObjectEx, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Object.Animate(int loop, int delay, optional RepeatStyle,
@@ -15354,7 +15744,9 @@ function won't return until the animation is finished.
 
 \subsection{GetAtScreenXY (object)}\label{Object.GetAtScreenXY}\index{Object.GetAtScreenXY}\index{GetObjectAt}%
 
-\it{(Formerly known as global function GetObjectAt, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function GetObjectAt, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static Object* Object.GetAtScreenXY(int x, int y)
@@ -15378,7 +15770,9 @@ will execute the code only if object oRock is on the screen coordinates 211,145.
 
 \subsection{GetProperty (object)}\label{Object.GetProperty}\index{Object.GetProperty}\index{GetObjectProperty}%
 
-\it{(Formerly known as GetObjectProperty, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetObjectProperty, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Object.GetProperty(string property)
@@ -15402,8 +15796,10 @@ will print the message if object 0 has its "Value" property set to more than 200
 
 \subsection{GetTextProperty (object)}\label{Object.GetTextProperty}\index{Object.GetTextProperty}\index{Object.GetPropertyText}\index{GetObjectPropertyText}%
 
-\it{(Formerly known as GetObjectPropertyText, which is now obsolete)} ILBRK
-\it{(Formerly known as Object.GetPropertyText, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetObjectPropertyText, which is now obsolete)}
+\item \it{(Formerly known as Object.GetPropertyText, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String Object.GetTextProperty(string property)
@@ -15427,7 +15823,9 @@ will retrieve Object 0's "description" property then display it.
 
 \subsection{IsCollidingWithObject (object)}\label{Object.IsCollidingWithObject}\index{Object.IsCollidingWithObject}\index{AreObjectsColliding}%
 
-\it{(Formerly known as AreObjectsColliding, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as AreObjectsColliding, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 bool Object.IsCollidingWithObject(Object* obj2)
@@ -15452,7 +15850,9 @@ will display the message if the objects 2 and 3 are colliding.
 
 \subsection{MergeIntoBackground}\label{Object.MergeIntoBackground}\index{Object.MergeIntoBackground}\index{MergeObject}%
 
-\it{(Formerly known as MergeObject, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as MergeObject, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Object.MergeIntoBackground()
@@ -15479,8 +15879,10 @@ will merge the object's image into the room's background image and make the obje
 
 \subsection{Move (object)}\label{Object.Move}\index{Object.Move}\index{MoveObject}\index{MoveObjectDirect}%
 
-\it{(Formerly known as MoveObject, which is now obsolete)} ILBRK
-\it{(Formerly known as MoveObjectDirect, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as MoveObject, which is now obsolete)}
+\item \it{(Formerly known as MoveObjectDirect, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Object.Move(int x, int y, int speed, optional BlockingStyle,
@@ -15515,7 +15917,9 @@ will move object 2 to 125,40 and return control to the player when the object ge
 
 \subsection{RemoveTint (object)}\label{Object.RemoveTint}\index{Object.RemoveTint}\index{RemoveObjectTint}%
 
-\it{(Formerly known as RemoveObjectTint, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RemoveObjectTint, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Object.RemoveTint()
@@ -15536,7 +15940,9 @@ will tint object 1 green for a second, then turn it back to normal.
 
 \subsection{RunInteraction (object)}\label{Object.RunInteraction}\index{Object.RunInteraction}\index{RunObjectInteraction}%
 
-\it{(Formerly known as RunObjectInteraction, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RunObjectInteraction, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Object.RunInteraction(CursorMode)
@@ -15557,7 +15963,9 @@ will execute the code defined in object 3's "Interact with object" event handler
 
 \subsection{SetPosition (object)}\label{Object.SetPosition}\index{Object.SetPosition}\index{SetObjectPosition}%
 
-\it{(Formerly known as SetObjectPosition, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetObjectPosition, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Object.SetPosition(int x, int y)
@@ -15581,8 +15989,10 @@ will change object's 2 position to 50,100.
 
 \subsection{SetView}\label{Object.SetView}\index{Object.SetView}\index{SetObjectView}\index{SetObjectFrame}%
 
-\it{(Formerly known as SetObjectFrame, which is now obsolete)} ILBRK
-\it{(Formerly known as SetObjectView, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetObjectFrame, which is now obsolete)}
+\item \it{(Formerly known as SetObjectView, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Object.SetView(int view, optional int loop, optional int frame)
@@ -15625,7 +16035,9 @@ will stop object 2 animating if it currently is doing so.
 
 \subsection{StopMoving (object)}\label{Object.StopMoving}\index{Object.StopMoving}\index{StopObjectMoving}%
 
-\it{(Formerly known as StopObjectMoving, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as StopObjectMoving, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Object.StopMoving()
@@ -15647,7 +16059,9 @@ will stop object 2 moving if it currently is doing so.
 
 \subsection{Tint (object)}\label{Object.Tint}\index{Object.Tint}\index{SetObjectTint}%
 
-\it{(Formerly known as SetObjectTint, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetObjectTint, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Object.Tint(int red, int green, int blue,
@@ -15682,7 +16096,9 @@ will tint object 1 green.
 
 \subsection{Animating property (object)}\label{Object.Animating}\index{Object.Animating}\index{IsObjectAnimating}%
 
-\it{(Formerly known as IsObjectAnimating, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as IsObjectAnimating, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly bool Object.Animating
@@ -15711,8 +16127,10 @@ to do this.
 
 \subsection{Baseline property (object)}\label{Object.Baseline}\index{Object.Baseline}\index{SetObjectBaseline}\index{GetObjectBaseline}%
 
-\it{(Formerly known as GetObjectBaseline, which is now obsolete)} ILBRK
-\it{(Formerly known as SetObjectBaseline, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetObjectBaseline, which is now obsolete)}
+\item \it{(Formerly known as SetObjectBaseline, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Object.Baseline
@@ -15796,7 +16214,9 @@ will make the Rock object block 50 pixels wide (25 pixels to the left of his cen
 
 \subsection{Clickable property (object)}\label{Object.Clickable}\index{Object.Clickable}\index{SetObjectClickable}%
 
-\it{(Formerly known as SetObjectClickable, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetObjectClickable, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 bool Object.Clickable
@@ -15844,8 +16264,10 @@ will display the oDoor object's current frame number
 
 \subsection{Graphic property (object)}\label{Object.Graphic}\index{Object.Graphic}\index{SetObjectGraphic}\index{GetObjectGraphic}%
 
-\it{(Formerly known as GetObjectGraphic, which is now obsolete)} ILBRK
-\it{(Formerly known as SetObjectGraphic, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetObjectGraphic, which is now obsolete)}
+\item \it{(Formerly known as SetObjectGraphic, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Object.Graphic
@@ -15902,7 +16324,9 @@ will tell the Door object not to be scaled on walkable areas.
 
 \subsection{IgnoreWalkbehinds property (object)}\label{Object.IgnoreWalkbehinds}\index{Object.IgnoreWalkbehinds}\index{SetObjectIgnoreWalkbehinds}%
 
-\it{(Formerly known as SetObjectIgnoreWalkbehinds, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetObjectIgnoreWalkbehinds, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 bool Object.IgnoreWalkbehinds
@@ -15954,7 +16378,9 @@ will display the oDoor object's current loop number
 
 \subsection{Moving property (object)}\label{Object.Moving}\index{Object.Moving}\index{IsObjectMoving}%
 
-\it{(Formerly known as IsObjectMoving, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as IsObjectMoving, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly bool Object.Moving
@@ -15977,8 +16403,10 @@ will move object 2 to 125,40 and return control to the player when the object ge
 
 \subsection{Name property (object)}\label{Object.Name}\index{Object.Name}\index{Object.GetName}\index{GetObjectName}%
 
-\it{(Formerly known as GetObjectName, which is now obsolete)} ILBRK
-\it{(Formerly known as Object.GetName, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetObjectName, which is now obsolete)}
+\item \it{(Formerly known as Object.GetName, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly String Object.Name;
@@ -16023,7 +16451,9 @@ will mean that the Smallrock object blocks the path of characters.
 
 \subsection{Transparency property (object)}\label{Object.Transparency}\index{Object.Transparency}\index{SetObjectTransparency}%
 
-\it{(Formerly known as SetObjectTransparency, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetObjectTransparency, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Object.Transparency
@@ -16086,9 +16516,11 @@ will display the oDoor object's current view number
 
 \subsection{Visible property (object)}\label{Object.Visible}\index{ObjectOff}\index{ObjectOn}\index{IsObjectOn}%
 
-\it{(Formerly known as IsObjectOn, which is now obsolete)} ILBRK
-\it{(Formerly known as ObjectOff, which is now obsolete)} ILBRK
-\it{(Formerly known as ObjectOn, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as IsObjectOn, which is now obsolete)}
+\item \it{(Formerly known as ObjectOff, which is now obsolete)}
+\item \it{(Formerly known as ObjectOn, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 bool Object.Visible
@@ -16106,7 +16538,9 @@ will make object number 5 in the current room disappear.
 
 \subsection{X property (object)}\label{Object.X}\index{Object.X}\index{GetObjectX}%
 
-\it{(Formerly known as GetObjectX, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetObjectX, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Object.X
@@ -16127,7 +16561,9 @@ will display the X co-ordinate of object 1.
 
 \subsection{Y property (object)}\label{Object.Y}\index{Object.Y}\index{GetObjectY}%
 
-\it{(Formerly known as GetObjectY, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as GetObjectY, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Object.Y
@@ -16158,7 +16594,9 @@ will display the Y co-ordinate of object 1.
 
 \subsection{CreateGraphical}\label{Overlay.CreateGraphical}\index{Overlay.CreateGraphical}\index{CreateGraphicOverlay}%
 
-\it{(Formerly known as CreateGraphicOverlay, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as CreateGraphicOverlay, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static Overlay* Overlay.CreateGraphical(int x, int y, int slot, bool transparent)
@@ -16188,7 +16626,9 @@ coordinates 100,100. It will display for 1 second, then remove it.
 
 \subsection{CreateTextual}\label{Overlay.CreateTextual}\index{Overlay.CreateTextual}\index{CreateTextOverlay}%
 
-\it{(Formerly known as CreateTextOverlay, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as CreateTextOverlay, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static Overlay* Overlay.CreateTextual(int x, int y, int width,
@@ -16240,7 +16680,9 @@ It will be displayed for 1 second, then removed.
 
 \subsection{Remove (overlay)}\label{Overlay.Remove}\index{Overlay.Remove}\index{RemoveOverlay}%
 
-\it{(Formerly known as RemoveOverlay, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RemoveOverlay, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Overlay.Remove()
@@ -16262,7 +16704,9 @@ remove the overlay from the screen.
 
 \subsection{SetText (overlay)}\label{Overlay.SetText}\index{Overlay.SetText}\index{SetTextOverlay}%
 
-\it{(Formerly known as SetTextOverlay, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetTextOverlay, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 Overlay.SetText(int width, FontType font, int color, string text, ...)
@@ -16288,7 +16732,9 @@ replace the overlay with another one.
 
 \subsection{Valid property (overlay)}\label{Overlay.Valid}\index{Overlay.Valid}\index{IsOverlayValid}%
 
-\it{(Formerly known as IsOverlayValid, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as IsOverlayValid, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly bool Overlay.Valid;
@@ -16313,7 +16759,9 @@ the overlay and prints Valid again (which will now be 0).
 
 \subsection{X property (overlay)}\label{Overlay.X}\index{Overlay.X}\index{MoveOverlay}%
 
-\it{(Formerly known as MoveOverlay, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as MoveOverlay, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Overlay.X;
@@ -16339,7 +16787,9 @@ creates a text overlay, then gradually slides it across the screen.
 
 \subsection{Y property (overlay)}\label{Overlay.Y}\index{Overlay.Y}\index{MoveOverlay}%
 
-\it{(Formerly known as MoveOverlay, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as MoveOverlay, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int Overlay.Y;
@@ -16546,7 +16996,9 @@ will display the message if the player types a word that's not in the vocabulary
 
 \subsection{GetAtRoomXY (region)}\label{Region.GetAtRoomXY}\index{Region.GetAtRoomXY}\index{GetRegionAt}%
 
-\it{(Formerly known as global function GetRegionAt, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function GetRegionAt, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static Region* Region.GetAtRoomXY(int x, int y)
@@ -16570,7 +17022,9 @@ if (Region.GetAtRoomXY(player.x, player.y) == region[0])
 
 \subsection{RunInteraction (region)}\label{Region.RunInteraction}\index{Region.RunInteraction}\index{RunRegionInteraction}%
 
-\it{(Formerly known as RunRegionInteraction, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as RunRegionInteraction, which is now obsolete)} 
+\end{itemize}
 
 \begin{verbatim}
 Region.RunInteraction(int event)
@@ -16598,7 +17052,9 @@ for region 4.
 
 \subsection{Tint (region)}\label{Region.Tint}\index{Region.Tint}\index{SetRegionTint}%
 
-\it{(Formerly known as SetRegionTint, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetRegionTint, which is now obsolete)} 
+\end{itemize}
 
 \begin{verbatim}
 Region.Tint(int red, int green, int blue, int amount)
@@ -16631,8 +17087,10 @@ will set region 2's RGB tint to (180, 20, 20) with 50\verb$%$ opacity.
 
 \subsection{Enabled property (region)}\label{Region.Enabled}\index{Region.Enabled}\index{DisableRegion}\index{EnableRegion}%
 
-\it{(Formerly known as DisableRegion, which is now obsolete)} ILBRK
-\it{(Formerly known as EnableRegion, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as DisableRegion, which is now obsolete)}
+\item \it{(Formerly known as EnableRegion, which is now obsolete)} 
+\end{itemize}
 
 \begin{verbatim}
 bool Region.Enabled
@@ -16674,7 +17132,9 @@ displays region 3's number (which will be 3).
 
 \subsection{LightLevel property}\label{Region.LightLevel}\index{Region.LightLevel}\index{SetAreaLightLevel}%
 
-\it{(Formerly known as SetAreaLightLevel, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetAreaLightLevel, which is now obsolete)} 
+\end{itemize}
 
 \begin{verbatim}
 int Region.LightLevel
@@ -17015,7 +17475,9 @@ will print the message if the current room has its "CanBeAttackedHere" box ticke
 
 \subsection{GetTextProperty (room)}\label{Room.GetTextProperty}\index{Room.GetTextProperty}\index{GetRoomPropertyText}%
 
-\it{(Formerly known as global function GetRoomPropertyText, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function GetRoomPropertyText, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static String Room.GetTextProperty(string property)
@@ -17391,7 +17853,9 @@ Display("The current room background is %d-bit colour.", Room.ColorDepth);
 
 \subsection{Height property (room)}\label{Room.Height}\index{Room.Height}%
 
-\it{(Formerly known as game.room_height, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as game.room_height, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static int Room.Height
@@ -17426,7 +17890,9 @@ Display("The current room's left edge is at %d.", Room.LeftEdge);
 
 \subsection{Messages property}\label{Room.Messages}\index{Room.Messages}\index{GetMessageText}%
 
-\it{(Formerly known as global function GetMessageText, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function GetMessageText, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static String Room.Messages[int message]
@@ -17466,7 +17932,9 @@ Display("The current room plays music %d when the player enters.", Room.MusicOnL
 
 \subsection{ObjectCount property}\label{Room.ObjectCount}\index{Room.ObjectCount}%
 
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static int Room.ObjectCount
@@ -17515,7 +17983,9 @@ Display("The current room's top edge is at %d.", Room.TopEdge);
 
 \subsection{Width property (room)}\label{Room.Width}\index{Room.Width}%
 
-\it{(Formerly known as game.room_width, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as game.room_width, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static int Room.Width
@@ -17753,7 +18223,9 @@ will tint a heavy dose of red.
 
 \subsection{AnimationStopTimeMargin}\label{Speech.AnimationStopTimeMargin}\index{Speech.AnimationStopTimeMargin}%
 
-\it{(Formerly known as game.close_mouth_end_speech_time, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as game.close_mouth_end_speech_time, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static int Speech.AnimationStopTimeMargin
@@ -17815,7 +18287,9 @@ This property is specified in \bf{milliseconds} and is set to zero by default.
 
 \subsection{GlobalSpeechAnimationDelay}\label{Speech.GlobalSpeechAnimationDelay}\index{Speech.GlobalSpeechAnimationDelay}%
 
-\it{(Formerly known as game.talkanim_speed, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as game.talkanim_speed, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static int Speech.GlobalSpeechAnimationDelay
@@ -17871,7 +18345,9 @@ Gets/sets the character's speech portrait \bf{y} coordinate on screen.
 
 \subsection{SkipKey}\label{Speech.SkipKey}\index{Speech.SkipKey}%
 
-\it{(Formerly known as game.skip_speech_specific_key, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as game.skip_speech_specific_key, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static eKeyCode Speech.SkipKey
@@ -17894,7 +18370,9 @@ will assign the "space" key to skip the speech.
 
 \subsection{SkipStyle}\label{Speech.SkipStyle}\index{Speech.SkipStyle}\index{SetSkipSpeech}%
 
-\it{(Formerly known as SetSkipSpeech, which is now obsolete)} ILBRK
+\begin{itemize}
+\item \it{(Formerly known as SetSkipSpeech, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static SkipSpeechStyle Speech.SkipStyle
@@ -17926,7 +18404,9 @@ will make the player unable to skip the text by pressing a mouse button or a key
 
 \subsection{Style}\label{Speech.Style}\index{Speech.Style}%
 
-\it{(Formerly known as SetSpeechStyle, which is now obsolete)} ILBRK
+\begin{itemize}
+\item \it{(Formerly known as SetSpeechStyle, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static eSpeechStyle Speech.Style
@@ -17950,7 +18430,9 @@ will change the speech style to a close up portrait of the character.
 
 \subsection{TextAlignment}\label{Speech.TextAlignment}\index{Speech.TextAlignment}%
 
-\it{(Formerly known as game.speech_text_align, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as game.speech_text_align, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static Alignment Speech.TextAlignment
@@ -17996,7 +18478,9 @@ will make the game use global speech animation delay.
 
 \subsection{VoiceMode}\label{Speech.VoiceMode}\index{Speech.VoiceMode}%
 
-\it{(Formerly known as SetVoiceMode, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetVoiceMode, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static eVoiceMode Speech.VoiceMode
@@ -18032,7 +18516,9 @@ will set the voice mode to voice and text if the voice pack is available.
 
 \subsection{Append}\label{String.Append}\index{String.Append}\index{StrCat}%
 
-\it{(Formerly known as global function StrCat, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function StrCat, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String.Append(string str2)
@@ -18085,8 +18571,10 @@ will display "Hello".
 
 \subsection{CompareTo}\label{String.CompareTo}\index{String.CompareTo}\index{StrComp}\index{StrCaseComp}%
 
-\it{(Formerly known as global function StrCaseComp, which is now obsolete)} ILBRK
-\it{(Formerly known as global function StrComp, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function StrCaseComp, which is now obsolete)}
+\item \it{(Formerly known as global function StrComp, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String.CompareTo(string str2, optional bool caseSensitive)
@@ -18121,7 +18609,9 @@ will display "Strings match with case sensitivity off!", and then "Strings don't
 
 \subsection{Copy}\label{String.Copy}\index{String.Copy}\index{StrCopy}%
 
-\it{(Formerly known as global function StrCopy, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function StrCopy, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String.Copy()
@@ -18166,7 +18656,9 @@ will display the "Ends with script!" message.
 
 \subsection{Format}\label{String.Format}\index{String.Format}\index{StrFormat}%
 
-\it{(Formerly known as global function StrFormat, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function StrFormat, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static String.Format(string fmt, ...)
@@ -18192,8 +18684,10 @@ will create a text string containing "10".
 
 \subsection{IndexOf}\label{String.IndexOf}\index{String.IndexOf}\index{String.Contains}\index{StrContains}%
 
-\it{(Formerly known as global function StrContains, which is now obsolete)} ILBRK
-\it{(Formerly known as String.Contains, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function StrContains, which is now obsolete)}
+\item \it{(Formerly known as String.Contains, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String.IndexOf(string needle)
@@ -18249,7 +18743,9 @@ will set the myString variable to "Some text" if it is null or empty (which it i
 
 \subsection{LowerCase}\label{String.LowerCase}\index{String.LowerCase}\index{StrToLowerCase}%
 
-\it{(Formerly known as global function StrToLowerCase, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function StrToLowerCase, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String.LowerCase()
@@ -18300,7 +18796,9 @@ will display "Old: Hello from the script!, new: goodbye from the script!".
 
 \subsection{ReplaceCharAt}\label{String.ReplaceCharAt}\index{String.ReplaceCharAt}\index{StrSetCharAt}%
 
-\it{(Formerly known as global function StrSetCharAt, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function StrSetCharAt, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String.ReplaceCharAt(int index, char newChar)
@@ -18397,7 +18895,9 @@ will display "Original: Hello World!, Truncated: Hell".
 
 \subsection{UpperCase}\label{String.UpperCase}\index{String.UpperCase}\index{StrToUpperCase}%
 
-\it{(Formerly known as global function StrToUpperCase, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function StrToUpperCase, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 String.UpperCase()
@@ -18448,7 +18948,9 @@ command.
 
 \subsection{AsInt property}\label{String.AsInt}\index{String.AsInt}\index{StringToInt}%
 
-\it{(Formerly known as global function StringToInt, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function StringToInt, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int String.AsInt;
@@ -18477,7 +18979,9 @@ command.
 
 \subsection{Chars property}\label{String.Chars}\index{String.Chars}\index{StrGetCharAt}%
 
-\it{(Formerly known as global function StrGetCharAt, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function StrGetCharAt, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly char String.Chars[position];
@@ -18505,7 +19009,9 @@ will display "The 4th character is: s".
 
 \subsection{Length property}\label{String.Length}\index{String.Length}\index{StrLen}%
 
-\it{(Formerly known as global function StrLen, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as global function StrLen, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int String.Length;
@@ -18592,7 +19098,9 @@ will display a message if Caps Lock is on.
 
 \subsection{ColorDepth property (system)}\label{System.ColorDepth}\index{System.ColorDepth}%
 
-\it{(Formerly known as system.color_depth, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as system.color_depth, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static int System.ColorDepth;
@@ -18690,7 +19198,9 @@ will display a message if Num Lock is on.
 
 \subsection{OperatingSystem property}\label{System.OperatingSystem}\index{System.OperatingSystem}%
 
-\it{(Formerly known as system.os, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as system.os, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static eOperatingSystem System.OperatingSystem;
@@ -18717,7 +19227,9 @@ else {
 
 \subsection{ScreenHeight property}\label{System.ScreenHeight}\index{System.ScreenHeight}%
 
-\it{(Formerly known as system.screen_height, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as system.screen_height, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static int System.ScreenHeight;
@@ -18746,7 +19258,9 @@ will display the current resolution and colour depth
 
 \subsection{ScreenWidth property}\label{System.ScreenWidth}\index{System.ScreenWidth}%
 
-\it{(Formerly known as system.screen_width, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as system.screen_width, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static int System.ScreenWidth;
@@ -18829,7 +19343,9 @@ will display a message if the system supports changing the gamma
 
 \subsection{Version property}\label{System.Version}\index{System.Version}%
 
-\it{(Formerly known as system.version, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as system.version, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static String System.Version;
@@ -18849,7 +19365,9 @@ will display the AGS version number
 
 \subsection{ViewportHeight property}\label{System.ViewportHeight}\index{System.ViewportHeight}%
 
-\it{(Formerly known as system.viewport_height, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as system.viewport_height, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static int System.ViewportHeight;
@@ -18870,7 +19388,9 @@ will display the current viewport size
 
 \subsection{ViewportWidth property}\label{System.ViewportWidth}\index{System.ViewportWidth}%
 
-\it{(Formerly known as system.viewport_width, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as system.viewport_width, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static int System.ViewportWidth;
@@ -18891,8 +19411,10 @@ will display the current viewport size
 
 \subsection{Volume property (system)}\label{System.Volume}\index{System.Volume}\index{SetDigitalMasterVolume}\index{SetMusicMasterVolume}%
 
-\it{(Formerly known as SetDigitalMasterVolume, which is now obsolete)} ILBRK
-\it{(Formerly known as SetMusicMasterVolume, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as SetDigitalMasterVolume, which is now obsolete)}
+\item \it{(Formerly known as SetMusicMasterVolume, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static int System.Volume;
@@ -18915,7 +19437,9 @@ will set the overall output volume to 80.
 
 \subsection{VSync property}\label{System.VSync}\index{System.VSync}%
 
-\it{(Formerly known as system.vsync, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as system.vsync, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 static bool System.VSync;
@@ -18941,7 +19465,9 @@ will display a message if vsync is on
 
 \subsection{Windowed property}\label{System.Windowed}\index{System.Windowed}%
 
-\it{(Formerly known as system.windowed, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as system.windowed, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly static bool System.Windowed;
@@ -19127,7 +19653,9 @@ gray background.
 
 \subsection{Flipped property}\label{ViewFrame.Flipped}\index{ViewFrame.Flipped}%
 
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly bool ViewFrame.Flipped
@@ -19151,7 +19679,9 @@ else {
 
 \subsection{Frame property (view frame)}\label{ViewFrame.Frame}\index{ViewFrame.Frame}%
 
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int ViewFrame.Frame
@@ -19172,7 +19702,9 @@ Display("This ViewFrame is view %d, loop %d, frame %d",
 
 \subsection{Graphic property (view frame)}\label{ViewFrame.Graphic}\index{ViewFrame.Graphic}%
 
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 int ViewFrame.Graphic
@@ -19190,9 +19722,11 @@ Display("This frame uses sprite %d", frame.Graphic);
 
 \subsection{LinkedAudio property (view frame)}\label{ViewFrame.LinkedAudio}\index{ViewFrame.LinkedAudio}\index{ViewFrame.Sound}\index{SetFrameSound}%
 
-\it{(Formerly known as ViewFrame.Sound, which is now obsolete)} ILBRK
-\it{(Formerly known as SetFrameSound, which is now obsolete)} ILBRK
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly known as ViewFrame.Sound, which is now obsolete)}
+\item \it{(Formerly known as SetFrameSound, which is now obsolete)}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 AudioClip* ViewFrame.LinkedAudio
@@ -19222,7 +19756,9 @@ checks view WALKING to see if frame 4 in loop 2 has a linked audio clip; if so, 
 
 \subsection{Loop property (view frame)}\label{ViewFrame.Loop}\index{ViewFrame.Loop}%
 
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int ViewFrame.Loop
@@ -19243,7 +19779,9 @@ Display("This ViewFrame is view %d, loop %d, frame %d",
 
 \subsection{Speed property (view frame)}\label{ViewFrame.Speed}\index{ViewFrame.Speed}%
 
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int ViewFrame.Speed
@@ -19262,7 +19800,9 @@ Display("This frame has speed %d.", frame.Speed);
 
 \subsection{View property (view frame)}\label{ViewFrame.View}\index{ViewFrame.View}%
 
-\it{(Formerly part of GetGameParameter, which is now obsolete)}
+\begin{itemize}
+\item \it{(Formerly part of GetGameParameter, which is now obsolete)}
+\end{itemize}
 
 \begin{verbatim}
 readonly int ViewFrame.View

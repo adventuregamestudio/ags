@@ -186,9 +186,11 @@ on their PC.
 
 \subsection*{System Requirements}
 
-\bf{DirectDraw}: any Windows-based PC with DirectX 5 or later installed ILBRK
-\bf{Direct3D}: any Windows-based PC with DirectX 9.0 installed and a graphics card designed
-for DirectX 8.1 or later (most cards manufactured from 2003 onwards).
+\begin{itemize}
+\item \it{DirectDraw}: any Windows-based PC with DirectX 5 or later installed.
+\item \it{Direct3D}: any Windows-based PC with DirectX 9.0 installed and a graphics card designed
+  for DirectX 8.1 or later (most cards manufactured from 2003 onwards).
+\end{itemize}
 
 If you get the error message "Graphics card does not support Pixel Shader 1.4" on startup,
 this indicates that your graphics card is too old to run with the Direct3D driver. You
@@ -2243,12 +2245,12 @@ For un-installing, run the game EXE again but with a  \verb$-unregistergame$  pa
 This will cause AGS to remove the associations from the player's system.
 
 \subsubsection*{Cross-Platform Support}
-
-Windows: \bf{ Yes }ILBRK
-MS-DOS: \bf{ No }ILBRK
-Linux: \bf{ No }ILBRK
-MacOS: \bf{ No }
-
+\begin{itemize}
+\item Windows: \bf{Yes}
+\item MS-DOS: \bf{No}
+\item Linux: \bf{No}
+\item MacOS: \bf{No}
+\end{itemize}
 
 \subsection{Windows Game Explorer}\label{GameExplorer}\index{Windows Game Explorer}\index{Game Explorer}%
 
@@ -2324,11 +2326,12 @@ then the \verb$-registergame$ and \verb$-unregistergame$ commands will register/
 both.
 
 \subsubsection*{Cross-Platform Support}
-
-Windows: \bf{ Vista and later }ILBRK
-MS-DOS: \bf{ No }ILBRK
-Linux: \bf{ No }ILBRK
-MacOS: \bf{ No }
+\begin{itemize}
+\item Windows: \bf{Vista and later}
+\item MS-DOS: \bf{No}
+\item Linux: \bf{No}
+\item MacOS: \bf{No}
+\end{itemize}
 
 
 \section{Source Control integration}\label{SourceControl}%
@@ -11158,12 +11161,12 @@ Note that mode 1 does not work with some graphics cards in full-screen mode, so 
 should only rely on it working when your game is run in windowed mode.
 
 \subsubsection*{Cross-Platform Support}
-
-Windows: \bf{ Yes }ILBRK
-MS-DOS: \bf{ No }ILBRK
-Linux: \bf{ Yes }ILBRK
-MacOS: \bf{ Yes }
-
+\begin{itemize}
+\item Windows: \bf{Yes}
+\item MS-DOS: \bf{No}
+\item Linux: \bf{Yes}
+\item MacOS: \bf{Yes}
+\end{itemize}
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -15410,11 +15413,12 @@ but using CDAudio in a repeatedly_execute script will noticeably slow down
 the game.
 
 \subsection*{Cross-Platform Support}
-
-Windows: \bf{ Yes, but supports 1 CD-ROM drive only }ILBRK
-MS-DOS: \bf{ Yes, if CD-ROM device driver loaded }ILBRK
-Linux: \bf{ Yes, but supports 1 CD-ROM drive only }ILBRK
-MacOS: \bf{ No }
+\begin{itemize}
+\item Windows: \bf{Yes, but supports 1 CD-ROM drive only}
+\item MS-DOS: \bf{Yes, if CD-ROM device driver loaded}
+\item Linux: \bf{Yes, but supports 1 CD-ROM drive only}
+\item MacOS: \bf{No}
+\end{itemize}
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -15560,11 +15564,12 @@ so you will have to place them separately in the Compiled folder for them to wor
 with the \helprefn{PlayFlic}{PlayFlic} command instead.
 
 \subsubsection*{Cross-Platform Support}
-
-Windows: \bf{ Yes }ILBRK
-MS-DOS: \bf{ No }ILBRK
-Linux: \bf{ No }ILBRK
-MacOS: \bf{ Yes }
+\begin{itemize}
+\item Windows: \bf{Yes}
+\item MS-DOS: \bf{No}
+\item Linux: \bf{No}
+\item MacOS: \bf{Yes}
+\end{itemize}
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -19153,11 +19158,12 @@ the case then RawDrawing is likely to be slower, but alpha blending and large sp
 likely to be faster, than when the non-accelerated driver is used.
 
 \subsubsection*{Cross-Platform Support}
-
-Windows: \bf{ Direct3D driver }ILBRK
-MS-DOS: \bf{ No }ILBRK
-Linux: \bf{ No }ILBRK
-MacOS: \bf{ No }
+\begin{itemize}
+\item Windows: \bf{Direct3D driver}
+\item MS-DOS: \bf{No}
+\item Linux: \bf{No}
+\item MacOS: \bf{No}
+\end{itemize}
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -19323,11 +19329,12 @@ This must return \it{true} before you try and change the \helprefn{System.Gamma}
 The situations in which this will be supported are listed below.
 
 \subsubsection*{Cross-Platform Support}
-
-Windows: \bf{ Full-screen only }ILBRK
-MS-DOS: \bf{ No }ILBRK
-Linux: \bf{ No }ILBRK
-MacOS: \bf{ No }
+\begin{itemize}
+\item Windows: \bf{Full-screen only}
+\item MS-DOS: \bf{No}
+\item Linux: \bf{No}
+\item MacOS: \bf{No}
+\end{itemize}
 
 \fcol{red}{Example:}
 \begin{verbatim}

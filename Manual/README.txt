@@ -21,3 +21,8 @@ Ultra short manual for Sphinx:
 
 - I kept all existing files here to not disturb the currently working solution.
   Obviously, most of them are obsolete if you use Sphinx instead.
+
+
+- The 'process.py' file is a custom Python 3 script to convert the ags.tex file
+  to the *.rst files. It works almost completely, the final changes are listed in
+  all_changes.patch .

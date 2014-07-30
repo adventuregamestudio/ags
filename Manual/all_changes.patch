@@ -1,0 +1,220 @@
+--- other-features.rst	2014-07-30 21:08:46.077779102 +0200
++++ other-features.rst	2014-07-30 21:11:50.764427104 +0200
+@@ -490,7 +490,7 @@
+ *NOTE:* It is not possible to load the exe file back into the AGS Editor. This
+ means two things when only the EXE file is available: (1) other people can't
+ edit your game's data, and (2) you can't either. Always keep a backup of the
+-other files produced (*.CRM, GAME.AGF, etc) as they are what the Editor
++other files produced (\*.CRM, GAME.AGF, etc) as they are what the Editor
+ needs to be able to load your game for editing.
+ 
+ *TIP:* You can make a "Loading..." style splash screen to be displayed while your game starts
+@@ -576,13 +576,13 @@
+   all of the game settings. Without it, your game is lost.
+ * *ACSPRSET.SPR* -- this is your game's sprite file, containing all the sprites
+   from the sprite manager.
+-* *ROOM*.CRM* -- all the ROOM*.CRM files are your room files, and obviously without
++* *ROOM\*.CRM* -- all the ROOM*.CRM files are your room files, and obviously without
+   one of them you wouldn't be able to go into that room any longer.
+-* * *.ASC, *.ASH* -- these are your script files, and contain all of your
++* *\*.ASC, \*.ASH* -- these are your script files, and contain all of your
+   scripting handywork.
+-* * *.TRS* -- translation source files. They contain any translations that you've
++* *\*.TRS* -- translation source files. They contain any translations that you've
+   had done.
+-* *AGSFNT*.TTF, AGSFNT*.WFN* -- these files contain any fonts you have imported.
++* *AGSFNT\*.TTF, AGSFNT\*.WFN* -- these files contain any fonts you have imported.
+ 
+ 
+ Also remember to back up any sound, music and video files you are using.
+@@ -1012,7 +1012,7 @@
+ 
+ The template game takes the following files from your game folder:
+ Core game files (GAME.AGF, ACSPRSET.SPR), all script and room files, all sound and music
+-files, all fonts, game icons, and *.TXT (to allow you to include a README.TXT or whatever).
++files, all fonts, game icons, and \*.TXT (to allow you to include a README.TXT or whatever).
+ 
+ If you include a  **template.ico** file in your game folder when you make the template,
+ then it will be used as the icon in the Start New Game dialog box. Otherwise, the icon will
+--- scripting.rst	2014-07-30 21:08:46.073779240 +0200
++++ scripting.rst	2014-07-30 21:11:50.767427001 +0200
+@@ -6,8 +6,8 @@
+ 
+ The Scripting Tutorials are online here:
+ 
+-* :ref:`http://www.bigbluecup.com/actutor.htm <http://www.bigbluecup.com/actutor.htm>`
+-* :ref:`http://www.bigbluecup.com/actutor2.htm <http://www.bigbluecup.com/actutor2.htm>`
++* http://www.bigbluecup.com/actutor.htm
++* http://www.bigbluecup.com/actutor2.htm
+ 
+ 
+ .. _UpgradingTo27:
+@@ -889,24 +889,24 @@
+   which event has occurred. This allows you to perform checks or update things
+   every time the player does something, regardless of which room it is in.
+   The possible values of event are:
+-  \begin{itemize}
+-  \item *eEventEnterRoomBeforeFadein* -- called just before room Player Enters Room event is run,
+-      DATA = new room number.
+-  \item *eEventLeaveRoom* -- called just after room Player Leaves Room event is run,
+-      DATA = room number they are leaving.
+-  \item *eEventGotScore* -- called whenever the player's score changes,
+-      DATA = number of points they got.
+-  \item *eEventGUIMouseDown* -- called when a mouse button is pressed down over a GUI,
+-      DATA = GUI number.
+-  \item *eEventGUIMouseUp* -- called when a mouse button is released over a GUI,
+-      DATA = GUI number.
+-  \item *eEventAddInventory* -- the player just got a new inventory item,
+-      DATA = inventory item number that was added.
+-  \item *eEventLoseInventory* -- the player just lost an inventory item,
+-      DATA = inventory item number that was lost.
+-  \item *eEventRestoreGame* -- tells your game that it has just been restored from a save game,
+-      DATA = save slot number.
+-  \end{itemize}
++
++  * *eEventEnterRoomBeforeFadein* -- called just before room Player Enters Room event is run,
++    DATA = new room number.
++  * *eEventLeaveRoom* -- called just after room Player Leaves Room event is run,
++    DATA = room number they are leaving.
++  * *eEventGotScore* -- called whenever the player's score changes,
++    DATA = number of points they got.
++  * *eEventGUIMouseDown* -- called when a mouse button is pressed down over a GUI,
++    DATA = GUI number.
++  * *eEventGUIMouseUp* -- called when a mouse button is released over a GUI,
++    DATA = GUI number.
++  * *eEventAddInventory* -- the player just got a new inventory item,
++    DATA = inventory item number that was added.
++  * *eEventLoseInventory* -- the player just lost an inventory item,
++    DATA = inventory item number that was lost.
++  * *eEventRestoreGame* -- tells your game that it has just been restored from a save game,
++    DATA = save slot number.
++
+ * *on_key_press (eKeyCode keycode)* -- Called whenever a key is pressed
+   on the keyboard. KEYCODE holds the ASCII
+   value of the key. A list of these values is in :ref:`this section <ASCIIcodes>`.
+@@ -933,39 +933,42 @@
+   This could be used to display a default "I can't do that" type of message.
+   The values of WHAT and TYPE tell you what the player did,
+   the possible values are listed below:
+-  \begin{tabular}{|c|c|l|}
+-  \row{ {**WHAT**} & {**TYPE**} & {**Description**} }
+-  \row{ { 1 } & { 1 } & { Look at hotspot } }
+-  \row{ { 1 } & { 2 } & { Interact with hotspot } }
+-  \row{ { 1 } & { 3 } & { Use inventory on hotspot } }
+-  \row{ { 1 } & { 4 } & { Talk to hotspot } }
+-  \row{ { 1 } & { 7 } & { Pick up hotspot } }
+-  \row{ { 1 } & { 8 } & { Cursor Mode 8 on hotspot } }
+-  \row{ { 1 } & { 9 } & { Cursor Mode 9 on hotspot } }
+-  \row{ { 2 } & { 0 } & { Look at object } }
+-  \row{ { 2 } & { 1 } & { Interact with object } }
+-  \row{ { 2 } & { 2 } & { Talk to object } }
+-  \row{ { 2 } & { 3 } & { Use inventory on object } }
+-  \row{ { 2 } & { 5 } & { Pick up object } }
+-  \row{ { 2 } & { 6 } & { Cursor Mode 8 on object } }
+-  \row{ { 2 } & { 7 } & { Cursor Mode 9 on object } }
+-  \row{ { 3 } & { 0 } & { Look at character } }
+-  \row{ { 3 } & { 1 } & { Interact with character } }
+-  \row{ { 3 } & { 2 } & { Speak to character } }
+-  \row{ { 3 } & { 3 } & { Use inventory on character } }
+-  \row{ { 3 } & { 5 } & { Pick up character } }
+-  \row{ { 3 } & { 6 } & { Cursor Mode 8 on character } }
+-  \row{ { 3 } & { 7 } & { Cursor Mode 9 on character } }
+-  \row{ { 4 } & { 1 } & { Look at nothing (ie. no hotspot) } }
+-  \row{ { 4 } & { 2 } & { Interact with nothing } }
+-  \row{ { 4 } & { 3 } & { Use inventory with nothing } }
+-  \row{ { 4 } & { 4 } & { Talk to nothing } }
+-  \row{ { 5 } & { 0 } & { Look at inventory } }
+-  \row{ { 5 } & { 1 } & { Interact with inventory (currently not possible) } }
+-  \row{ { 5 } & { 2 } & { Speak to inventory } }
+-  \row{ { 5 } & { 3 } & { Use an inventory item on another } }
+-  \row{ { 5 } & { 4 } & { Other click on inventory } }
+-  \end{tabular}
++
++  ========  ========  ================================================
++  **WHAT**  **TYPE**  **Description**
++  ========  ========  ================================================
++     1         1      Look at hotspot
++     1         2      Interact with hotspot
++     1         3      Use inventory on hotspot
++     1         4      Talk to hotspot
++     1         7      Pick up hotspot
++     1         8      Cursor Mode 8 on hotspot
++     1         9      Cursor Mode 9 on hotspot
++     2         0      Look at object
++     2         1      Interact with object
++     2         2      Talk to object
++     2         3      Use inventory on object
++     2         5      Pick up object
++     2         6      Cursor Mode 8 on object
++     2         7      Cursor Mode 9 on object
++     3         0      Look at character
++     3         1      Interact with character
++     3         2      Speak to character
++     3         3      Use inventory on character
++     3         5      Pick up character
++     3         6      Cursor Mode 8 on character
++     3         7      Cursor Mode 9 on character
++     4         1      Look at nothing (ie. no hotspot)
++     4         2      Interact with nothing
++     4         3      Use inventory with nothing
++     4         4      Talk to nothing
++     5         0      Look at inventory
++     5         1      Interact with inventory (currently not possible)
++     5         2      Speak to inventory
++     5         3      Use an inventory item on another
++     5         4      Other click on inventory
++  ========  ========  ================================================
++
+   Note that the "Character stands on hotspot" event does not trigger this
+   function, and it will not be triggered if there is an "Any click" event defined.
+ 
+--- tutorial.rst	2014-07-30 21:08:46.075779172 +0200
++++ tutorial.rst	2014-07-30 21:34:16.188153435 +0200
+@@ -14,15 +14,15 @@
+ to run through it.
+ 
+ 
+-* :ref:`Tutorial Part 1 - Creating the game <http:acintro1.htm>`
+-* :ref:`Tutorial Part 2 - Creating your first room <http:acintro2.htm>`
+-* :ref:`Tutorial Part 3 - Hotspots and events <http:acintro3.htm>`
+-* :ref:`Tutorial Part 4 - Objects <http:acintro4.htm>`
+-* :ref:`Tutorial Part 5 - Managing inventory <http:acintro5.htm>`
+-* :ref:`Tutorial Part 6 - Using your own graphics <http:acintro6.htm>`
+-* :ref:`Tutorial Part 7 - Animations and cutscenes <http:acintro7.htm>`
+-* :ref:`Tutorial Part 8 - Conversations <http:acintro8.htm>`
+-* :ref:`Tutorial Part 9 - Cursors and fonts <http:acintro9.htm>`
++* :download:`Creating the game <htmlfiles/acintro1.htm>`
++* :download:`Creating your first room <htmlfiles/acintro2.htm>`
++* :download:`Hotspots and events <htmlfiles/acintro3.htm>`
++* :download:`Objects <htmlfiles/acintro4.htm>`
++* :download:`Managing inventory <htmlfiles/acintro5.htm>`
++* :download:`Using your own graphics <htmlfiles/acintro6.htm>`
++* :download:`Animations and cutscenes <htmlfiles/acintro7.htm>`
++* :download:`Conversations <htmlfiles/acintro8.htm>`
++* :download:`Cursors and fonts <htmlfiles/acintro9.htm>`
+ 
+ 
+ For the latest version of the tutorials, always check the AGS website.
+@@ -874,9 +874,9 @@
+ * Extract the font from a Sierra game, using the SCI Decoder program
+   available on the internet.
+ * Create your own font and save it in SCI Font format, using the
+-  :ref:`SCI Graphic Studio program <http://scigraphicstudio.cjb.net>`
++  `SCI Graphic Studio program <http://scigraphicstudio.cjb.net/>`_.
+ 
+-There are also some fonts available on the :ref:`AGS website <http://www.adventuregamestudio.co.uk/fonts>`
++There are also some fonts available on the `AGS website <http://www.adventuregamestudio.co.uk/fonts/>`_.
+ 
+ Note that SCI fonts are faster to render than TTF fonts, and so may give your game
+ a speed advantage. It's preferable to use a SCI font if you can.
+--- upgrading-to-ags-3_0.rst	2014-07-30 21:08:46.076779137 +0200
++++ upgrading-to-ags-3_0.rst	2014-07-30 21:11:50.768426967 +0200
+@@ -106,7 +106,7 @@
+ 1. ``new`` is now a reserved word. This means that if you had any variables
+    called "new" then your script will fail to compile. Just rename the variable
+    to something else.
+-2. Because of the removal of some system limits, some of the AGS_MAX_ constants
++2. Because of the removal of some system limits, some of the AGS_MAX\_ constants
+    have been removed (since there is no sensible value for them now that the limits
+    have gone). This will probably only affect module authors and is unlikely to
+    affect your game. Specifically, the following have been removed: AGS_MAX_GUIS,

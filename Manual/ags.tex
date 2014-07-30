@@ -31,8 +31,10 @@ help you get even more out of AGS. Enjoy!
 
 Copyright (c) 1999-2011 Chris Jones and 2011-2014 various contributors.
 
-The software is provided under Artistic License 2.0 (http://www.opensource.org/licenses/artistic-license-2.0.php).
-Adventure Game Studio is an open source software, its source code is available at https://github.com/adventuregamestudio/ags.
+The software is provided under Artistic License 2.0
+(http://www.opensource.org/licenses/artistic-license-2.0.php).
+Adventure Game Studio is an open source software, its source code is available
+at https://github.com/adventuregamestudio/ags.
 
 THE SOFTWARE IS PROVIDED 'AS-IS' AND WITHOUT WARRANTY OF ANY KIND, EXPRESS,
 IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY WARRANTY OF
@@ -48,9 +50,18 @@ NO MONEY WHATSOEVER MAY BE CHARGED FOR ADVENTURE GAME STUDIO UNLESS EXPRESS
 WRITTEN PERMISSION IS GIVEN BY THE AUTHORS. IF YOU PAID FOR THIS, THE SELLER
 IS BREACHING THE TERMS OF DISTRIBUTION OF THIS APPLICATION.
 
-AGS is an adventure game creation system. As such, it is provided to you in good faith by its authors. Neither Chris Jones nor any of the contributors can be held responsible for the contents of any works created with AGS, including but not limited to any which infringe on copyright, are libellous or contain offensive material. Please use AGS responsibly.
+AGS is an adventure game creation system. As such, it is provided to you in good
+faith by its authors. Neither Chris Jones nor any of the contributors can be held
+responsible for the contents of any works created with AGS, including but not
+limited to any which infringe on copyright, are libellous or contain offensive
+material. Please use AGS responsibly.
 
-AGS allows user-made "Plugins" to be incorporated into games created by the system. These Plugins can access all standard Windows functionality and are therefore not protected from system functions as the scripting language is. Neither Chris Jones nor any of the contributors can be held responsible for any Plugins for AGS which you use in your game. Any problems with the Plugin should be addressed to its author.
+AGS allows user-made "Plugins" to be incorporated into games created by the system.
+These Plugins can access all standard Windows functionality and are therefore
+not protected from system functions as the scripting language is. Neither
+Chris Jones nor any of the contributors can be held responsible for any Plugins
+for AGS which you use in your game. Any problems with the Plugin should be
+addressed to its author.
 
 TrueType font display uses ALFont by Javier Gonzalez and the Freetype project. Distributed
 under the terms of the Freetype Project license.
@@ -146,7 +157,8 @@ game will try to show you some of what AGS can do.
 
 To run the demo, choose the "Open the Demo Game" option from the AGS folder
 in your start menu. If you're looking for the files, they're located in the
-All Users Application Data folder (this is for compatibility with the security filters in Windows Vista and later versions).
+All Users Application Data folder (this is for compatibility with the security
+filters in Windows Vista and later versions).
 
 \bf{NOTE:} The demo game is currently under development. It has various unfinished
 or unimplemented areas.
@@ -197,7 +209,9 @@ resolution for some reason.
 They can also select to run the game in a window on the desktop rather than full-screen.
 This will take a performance hit though, so it's always preferable to run full-screen.
 
-"Enable side-borders" and "Enable top & bottom borders" options allow the game to choose from wider range of resolutions, including the ones which display game surrounded by horizontal and/or vertical borders (the so-called "letterboxed" and "pillarboxed" modes).
+"Enable side-borders" and "Enable top & bottom borders" options allow the game to
+choose from wider range of resolutions, including the ones which display game surrounded
+by horizontal and/or vertical borders (the so-called "letterboxed" and "pillarboxed" modes).
 
 "Smooth scaled sprites" will apply anti-aliasing to scaled characters, in order to
 give a smoother look to the resizing. This can slow down the game though, so it is off
@@ -208,7 +222,8 @@ It allows people with slower PCs to choose to play the game at 16-bit instead, i
 to boost performance. If they use this, the graphical quality will reduce, but it should at
 least allow them to play the game at a decent speed.
 
-Finally, the "Use 85 Hz display" option sets the monitor refresh rate to 85 Hz to run the game, which eliminates flicker. However, this does not work on all monitors, and not at all on flat
+Finally, the "Use 85 Hz display" option sets the monitor refresh rate to 85 Hz to run the game,
+which eliminates flicker. However, this does not work on all monitors, and not at all on flat
 panel displays, which is why it is disabled by default.
 
 
@@ -849,8 +864,14 @@ in-game. This can be set to allow the mouse and/or keyboard, or neither, to
 skip speech in the game.
 \item \bf{When interface disabled} - determines what happens to buttons on your
 GUIs while the game interface is disabled (eg. during a cutscene).
-\item \bf{GUI alpha rendering style} - determines which rendering method to use in 32-bit games when a GUI Control is drawn over GUI. The "Proper alpha belnding" choice is meant for full alpha blending support, other options exist for compatibility with older versions of AGS only.
-\item \bf{Sprite alpha rendering style} - determines which rendering method to use in 32-bit games when an image is drawn over \helpref{drawing surface}{DrawingSurfaceFunctions}.  The "Proper alpha belnding" choice is meant for full alpha blending support, "Classic" style exists for  compatibility with older versions of AGS only.
+\item \bf{GUI alpha rendering style} - determines which rendering method to use in
+32-bit games when a GUI Control is drawn over GUI. The "Proper alpha belnding"
+choice is meant for full alpha blending support, other options exist for
+compatibility with older versions of AGS only.
+\item \bf{Sprite alpha rendering style} - determines which rendering method to use
+in 32-bit games when an image is drawn over \helpref{drawing surface}{DrawingSurfaceFunctions}.
+The "Proper alpha belnding" choice is meant for full alpha blending support,
+"Classic" style exists for  compatibility with older versions of AGS only.
 \item \bf{Always display text as speech} - if you select this option, then all normal
 text in the game will be displayed above the main character's head as speech
 text, much like the way the Lucasarts games worked. If this option is not
@@ -951,7 +972,8 @@ technical reasons.
 \item \bf{Thought uses bubble GUI} - Determines which text window GUI is used for displaying
 thoughts with \helprefn{Think}{Character.Think}.
 \item \bf{Characters turn to face direction} - if set, then when a character turns round
-with the \helprefn{Character.FaceLocation}{Character.FaceLocation} or \helprefn{Character.FaceCharacter}{Character.FaceCharacter}
+with the \helprefn{Character.FaceLocation}{Character.FaceLocation} or
+\helprefn{Character.FaceCharacter}{Character.FaceCharacter}
 script commands, they will visibly turn around using their available loops.
 If this option is not set, they will immediately appear facing their new direction.
 \item \bf{Write game text backwards} - in-game text will be written right-to-left, ie. line
@@ -1582,7 +1604,8 @@ You use the ListBox script functions to manipulate the list box - for
 example, ListBox.AddItem to add an item, or ListBox.SelectedIndex to get the current
 selection.
 
-The ListBox.Translated property defines whether the translation will be applied to list items or not. It is recommended to disable translation for lists containing saved games.
+The ListBox.Translated property defines whether the translation will be applied
+to list items or not. It is recommended to disable translation for lists containing saved games.
 
 The OnSelectionChanged event is fired when the player clicks on an item in the list.
 You may wish to ignore this or to do something useful with it.
@@ -1944,11 +1967,16 @@ characters, objects, and so on.
 To access the properties from the script, there are various script functions. See
 their descriptions for how they work:
 
-\helprefn{Character.GetProperty}{Character.GetProperty}, \helprefn{Character.GetTextProperty}{Character.GetTextProperty} ILBRK
-\helprefn{Hotspot.GetProperty}{Hotspot.GetProperty}, \helprefn{Hotspot.GetTextProperty}{Hotspot.GetTextProperty} ILBRK
-\helprefn{InventoryItem.GetProperty}{InventoryItem.GetProperty}, \helprefn{InventoryItem.GetTextProperty}{InventoryItem.GetTextProperty} ILBRK
-\helprefn{Object.GetProperty}{Object.GetProperty}, \helprefn{Object.GetTextProperty}{Object.GetTextProperty} ILBRK
-\helprefn{GetRoomProperty}{GetRoomProperty}, \helprefn{Room.GetTextProperty}{Room.GetTextProperty}
+\helprefn{Character.GetProperty}{Character.GetProperty},
+\helprefn{Character.GetTextProperty}{Character.GetTextProperty} ILBRK
+\helprefn{Hotspot.GetProperty}{Hotspot.GetProperty},
+\helprefn{Hotspot.GetTextProperty}{Hotspot.GetTextProperty} ILBRK
+\helprefn{InventoryItem.GetProperty}{InventoryItem.GetProperty},
+\helprefn{InventoryItem.GetTextProperty}{InventoryItem.GetTextProperty} ILBRK
+\helprefn{Object.GetProperty}{Object.GetProperty},
+\helprefn{Object.GetTextProperty}{Object.GetTextProperty} ILBRK
+\helprefn{GetRoomProperty}{GetRoomProperty},
+\helprefn{Room.GetTextProperty}{Room.GetTextProperty}
 
 Custom property values cannot currently be set from within the game script - they are read-only
 at runtime.
@@ -3099,12 +3127,14 @@ All the following variables are \verb$int$ variables.
 }\row{ {\bf game.inv_activated    }&{ Inventory item that the player last clicked on. Useful for unhandled_event. }
 }\row{ { game.inventory_greys_out }&{ Set to 1 to make inventory controls grey out when GUI disabled is set to "GUIs Grey Out" }
 }\row{ { game.lipsync_speed }&{ Similar to Game.TextReadingSpeed, but this determines how quickly the text is 'read' out by the mouth moving.
-                           You should normally only set this faster than text_speed, otherwise the reading will get cut off when the text times out. Default 15. }
+                           You should normally only set this faster than text_speed,
+                           otherwise the reading will get cut off when the text times out. Default 15. }
 }\row{ { game.max_dialogoption_width  }&{ Maximum width of textwindow-based dialog options
                            box. Default 180. }
 }\row{ { game.min_dialogoption_width  }&{ Minimum width of textwindow-based dialog options
                            box. Default 0. }
-}\row{ { game.narrator_speech }&{ Which character ID to use for voice speech within Display() command. Default initial player character. You can also use NARRATOR which uses 'NARR' prefix - special narrator character. }
+}\row{ { game.narrator_speech }&{ Which character ID to use for voice speech within Display() command. Default initial player character.
+                           You can also use NARRATOR which uses 'NARR' prefix - special narrator character. }
 }\row{ { game.no_textbg_when_voice  }&{  Normally 0. If 1, and the Sierra-style With Background
                            speech style is in use, will change to the Sierra-style (No Bg) if
                            a voice speech line is present. }
@@ -3126,7 +3156,8 @@ All the following variables are \verb$int$ variables.
                            valid values are same as for Speech.SkipStyle (default 3).}
 }\row{ { game.skip_speech_specific_key }&{ Default 0. You can set it to a keycode, in which case only that key can skip speech text. }
 }\row{ { game.speech_bubble_width }&{ Maximum width of the thought bubble text window (default 100) }
-}\row{ { game.speech_text_align }&{ Sets how text in Lucasarts-style speech is aligned. Same possible values as game.text_align, default eAlignCentre }
+}\row{ { game.speech_text_align }&{ Sets how text in Lucasarts-style speech is aligned.
+                                    Same possible values as game.text_align, default eAlignCentre }
 }\row{ { game.speech_text_gui }&{   The textwindow GUI number used for sierra-style speech.}
 }\row{ { game.text_align }&{ Sets how text in message boxes and Sierra-style speech is aligned: ILBRK
  eAlignLeft:   text aligned to left within message box (default) ILBRK
@@ -6805,7 +6836,8 @@ how many game loops each frame of the character's speech animation is shown for.
 
 \bf{NOTE:} This property is ignored if lip sync is enabled.
 
-\bf{NOTE:} This property \bf{cannot} be used if the Speech.UseGlobalSpeechAnimationDelay is set to \bf{true}. In that case, the Speech.GlobalSpeechAnimationDelay property value is used instead.
+\bf{NOTE:} This property \bf{cannot} be used if the Speech.UseGlobalSpeechAnimationDelay is set to \bf{true}.
+In that case, the Speech.GlobalSpeechAnimationDelay property value is used instead.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -7429,7 +7461,10 @@ will display the number of options in the dFisherman dialog.
 \begin{verbatim}
 Dialog.SetHasOptionBeenChosen(int option, bool chosen)
 \end{verbatim}
-Changes whether an option in a conversation is marked as previously chosen by the player. The option is marked as chosen whenever player selects it during the conversation, and is usually highlighted with different text colour. This function lets you to reset the option state, or force it change at any random moment.
+Changes whether an option in a conversation is marked as previously chosen by the player.
+The option is marked as chosen whenever player selects it during the conversation,
+and is usually highlighted with different text colour. This function lets you to
+reset the option state, or force it change at any random moment.
 
 OPTION is the option number within the dialog, from 1 to whatever the
 highest option is for that topic.
@@ -16430,7 +16465,8 @@ with .r, .g and .b. The values range from 0 to 63.
 palette[16].r = 60;
 UpdatePalette();
 \end{verbatim}
-will make the black colour turn bright red. When you actually change the variable, nothing happens. Call this function to update the screen.
+will make the black colour turn bright red. When you actually change the variable,
+nothing happens. Call this function to update the screen.
 
 \it{See Also:} \helprefn{SetPalRGB}{SetPalRGB}
 
@@ -17170,7 +17206,8 @@ while (x<100) {
 }
 ReleaseViewPort();
 \end{verbatim}
-will scroll the room 100 pixels to the right and then return the screen to its original position and unlock the screen viewport.
+will scroll the room 100 pixels to the right and then return the screen to its
+original position and unlock the screen viewport.
 
 \it{See Also:} \helprefn{SetViewport}{SetViewport}
 
@@ -17774,7 +17811,11 @@ will stop talking animation 40 game loops (1 second with the default game speed)
 static bool Speech.CustomPortraitPlacement
 \end{verbatim}
 
-Enables/disables the custom speech portrait placement. When set to \bf{true} the character portraits are positioned at screen coordinates defined by \helprefn{Speech.PortraitXOffset}{Speech.PortraitXOffset} and \helprefn{Speech.PortraitY}{Speech.PortraitY}. When set to \bf{false} the portraits will be automatically aligned again.
+Enables/disables the custom speech portrait placement. When set to \bf{true} the
+character portraits are positioned at screen coordinates defined by
+\helprefn{Speech.PortraitXOffset}{Speech.PortraitXOffset} and
+\helprefn{Speech.PortraitY}{Speech.PortraitY}. When set to \bf{false} the
+portraits will be automatically aligned again.
 
 \bf{NOTE:} This property has no effect if the Lucas-Arts speech style is used.
 
@@ -17791,8 +17832,12 @@ static int Speech.DisplayPostTimeMs
 \end{verbatim}
 
 Gets/sets the extra time the speech will stay on screen after its base time runs out.
-Commonly the time the speech lines and portrait stay on screen is calculated based on the text length - if the text mode is on, or voice clip length - if the voice mode is on. This property prolongs the time the speech text and/or portrait is displayed.
-This property does not interfere with speech skipping by key or mouse click: players will still be able to skip speech any time they want (if appropriate skip mode is enabled).
+Commonly the time the speech lines and portrait stay on screen is calculated based
+on the text length - if the text mode is on, or voice clip length - if the voice
+mode is on. This property prolongs the time the speech text and/or portrait is displayed.
+This property does not interfere with speech skipping by key or mouse click:
+players will still be able to skip speech any time they want (if appropriate skip
+mode is enabled).
 This property is specified in \bf{milliseconds} and is set to zero by default.
 
 \it{Compatibility:} Supported by \bf{AGS 3.3.0} and later versions.
@@ -17813,7 +17858,9 @@ This property is specified in \bf{game loops} and is set to 5 by default.
 
 \bf{NOTE:} This property is ignored if lip sync is enabled.
 
-\bf{NOTE:} The property is only used when the \bf{Speech.UseGlobalSpeechAnimationDelay} is set to \bf{true}. This property \bf{cannot} be used if the global speech animation delay is disabled. In that case, the individual character's animation delay is used instead.
+\bf{NOTE:} The property is only used when the \bf{Speech.UseGlobalSpeechAnimationDelay}
+is set to \bf{true}. This property \bf{cannot} be used if the global speech animation
+delay is disabled. In that case, the individual character's animation delay is used instead.
 
 \it{See Also:} \helprefn{Character.SpeechAnimationDelay}{Character.SpeechAnimationDelay},
 \helprefn{Speech.UseGlobalSpeechAnimationDelay}{Speech.UseGlobalSpeechAnimationDelay}
@@ -17826,7 +17873,9 @@ static int Speech.PortraitXOffset
 \end{verbatim}
 
 Gets/sets the character's speech portrait \bf{horizontal} offset relative to screen side.
-The actual x coordinate of the portrait is calculated based on whether portrait is to be displayed at the left or right side of the screen. This property specifies the distance between the screen side and respected portrait's border.
+The actual x coordinate of the portrait is calculated based on whether portrait
+is to be displayed at the left or right side of the screen. This property
+specifies the distance between the screen side and respected portrait's border.
 
 \bf{NOTE:}The property is only used when the \bf{Speech.CustomPortraitPlacement} is set to \bf{true}.
 
@@ -17860,7 +17909,9 @@ Gets/sets the character's speech portrait \bf{y} coordinate on screen.
 static eKeyCode Speech.SkipKey
 \end{verbatim}
 
-Gets/sets special key which can skip speech text. This makes all other keys ignored when speech is displayed on screen, unless eKeyNone is assigned, in which case any key can be used again.
+Gets/sets special key which can skip speech text. This makes all other keys ignored
+when speech is displayed on screen, unless eKeyNone is assigned, in which case
+any key can be used again.
 
 \bf{NOTE:}The specified key will only skip speech if the appropriate speech skip style is enabled.
 
@@ -19681,7 +19732,8 @@ and use_inv) on the item.
 \item [Speak to character] occurs when the player clicks on a character while in the "talk" mode.
 \item [Use inventory on character] occurs when the player uses an inventory
 object on a character.  This event could be used to allow the player to give items to characters.
-\item [Any click on character] occurs when the player clicks any other cursor mode (apart from look, talk and use_inv) on the character.
+\item [Any click on character] occurs when the player clicks any other cursor mode
+(apart from look, talk and use_inv) on the character.
 \end{description}
 
 \subsection{Region events}%
@@ -20413,7 +20465,8 @@ The AGS forum:   http://www.adventuregamestudio.co.uk/forum/
 
 \begin{itemize}
 \item Adventure Game Studio was originally developed by Chris Jones.
-\item The latter versions and engine ports to various platforms are product of collaborative work of the following people (in alphabetic order):
+\item The latter versions and engine ports to various platforms are product of
+collaborative work of the following people (in alphabetic order):
 \begin{verbatim}
   Bernhard Rosenkraenzer
   Cristian Morales Vega
@@ -20461,8 +20514,8 @@ The AGS forum:   http://www.adventuregamestudio.co.uk/forum/
 from http://www.xiph.org/
 \item OGG Theora player is APEG by Chris Robinson, using the Ogg Theora decoder, which is available
 from http://www.xiph.org/
-\item Windows MOD/XM/S3M/IT player is DUMB, (C) 2001-2003 Ben Davis, Robert J Ohannessian and Julien Cugniere. You
-can get it from http://dumb.sf.net/
+\item Windows MOD/XM/S3M/IT player is DUMB, (C) 2001-2003 Ben Davis, Robert J Ohannessian
+and Julien Cugniere. You can get it from http://dumb.sf.net/
 \item DOS/Linux engine use JGMOD mod player by Guan Foo Wah. You can find it at
   http://surf.to/jgmod
 \item Executables compressed with UPX v1.22w (c) 1996-2002 by Laszlo Molnar & Markus F.X.J. Oberhumer

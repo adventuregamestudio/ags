@@ -403,7 +403,7 @@ check the "use bkgrnd pal" check-box. Make sure to un-check this box before
 you import any other sprites.}
 
 NOTE: The transparent colour used by AGS is palette index 0 (for 256-colour
-sprites) and RGB (255,0,255) for hi-color. Any pixels you draw on imported
+sprites) and RGB (255,0,255) for hi-colour. Any pixels you draw on imported
 sprites in these colours will be transparent.
 
 You can group imported sprites into folders. This prevents the main sprite
@@ -508,7 +508,7 @@ it to -3 means that the frame will stay for hardly any time at all.
 Animation speed is specified in Game Loops (ie. animation speed 4 will show the
 frame for 4 game loops - at 40fps, that would be 0.1 seconds).
 
-The "Sound" propery allows you to enter a sound number that will be played
+The "Sound" property allows you to enter a sound number that will be played
 when this frame becomes visible on the screen.
 This is especially useful for footstep sounds.
 
@@ -946,7 +946,7 @@ Most of these options can be changed at runtime with the script command SetGameO
   2. Goodbye
   \end{verbatim}
   This allows you to visually show the player which option the shortcut keys will choose,
-  as well as seperating the options if you don't use a bullet point.
+  as well as separating the options if you don't use a bullet point.
 \item \it{Dialog options go upwards on GUI} -- Normally, if you select a non-textwindow GUI
   for the dialog options, they will be printed from the top down. However, if you select this
   option they will go from the bottom of the GUI upwards.
@@ -960,7 +960,7 @@ Most of these options can be changed at runtime with the script command SetGameO
   be rendered to the screen anti-aliased. This can make them look a lot better, but it has
   two drawbacks - firstly, anti-aliasing is significantly slower than normal rendering, so
   you might want an option to allow the player to turn it off. Second, anti-aliasing only
-  works in hi-color games (in 256-colour games, the output will look blurred and unreadable).
+  works in hi-colour games (in 256-colour games, the output will look blurred and unreadable).
 
   \bf{NOTE} that anti-aliasing is not currently done on lucasarts-style speech due to
   technical reasons.
@@ -1215,7 +1215,7 @@ AGS is able to play the following types of audio file: OGG, MP3, MIDI, WAV (unco
 MOD, XM, IT, S3M and VOC.
 
 The only limitation to this is that AGS is only able to play one MIDI file at a time.
-If you attempt to play two simulataneous MIDI music files, the first one will be cut
+If you attempt to play two MIDI music files simultaneously, the first one will be cut
 off when the second one starts playing.
 
 If you haven't heard of OGG before, it's a digital music format, similar to MP3, but achieving
@@ -1290,7 +1290,7 @@ their containing folder).
 
 Sometimes you might not want the priority of the sound to be fixed in the editor -- you
 might want to decide it at run-time in the script. For this reason the \it{Play} command
-has an optional parameter which allows you to explicity specify the priority when you
+has an optional parameter which allows you to explicitly specify the priority when you
 play it, for example:
 \begin{verbatim}
 aExplosion.Play(eAudioPriorityLow);
@@ -1481,7 +1481,7 @@ the text "New button" on. Notice that the Properties window is now displaying
 properties for your new button rather than the GUI.
 
 Using the Properties window, you can set a picture for the button instead,
-and you can also set various other self-explanitory attributes.
+and you can also set various other self-explanatory attributes.
 You set what happens when the player clicks on the button by using the "Click
 Action" attribute. This can be set to "Run Script" (the default), and also "Set
 mode", which changes the cursor mode to the mode specified in the "New mode number"
@@ -1880,7 +1880,7 @@ replaced with this new Global Variables system instead.
 
 \subsection*{How do I use global variables?}
 
-The Global Variables Editor is pretty self-explanitory. To add a variable, right-click
+The Global Variables Editor is pretty self-explanatory. To add a variable, right-click
 and choose "Add". You can name the variable, and choose its type and initial value.
 Most of the time you'll probably be using the \it{int} and \it{String} types. Optionally,
 you can also set a default value for the variable.
@@ -2051,7 +2051,7 @@ Enter the Pamela phenomes into the text boxes to create the association
 between the pamela phenome code and the AGS frame number.
 
 For example, enter "AY0" into frame 0's box, "E" into frame 1, and so forth - corresponding
-to how it is set up in Pamela. For multiple phenomes to share the same frame, seperate them
+to how it is set up in Pamela. For multiple phenomes to share the same frame, separate them
 with forward slashes -- for example, "AY0/AY1" allows both of those phenomes to correspond
 to the specified frame.
 
@@ -2243,7 +2243,7 @@ associations in Explorer to get the feature working. If it is successful, it wil
 not display any messages.
 
 You can manually test this by creating a shortcut to your game EXE file, and modifying
-it to add \verb$-registergame$ to the end of the command line. Then, run the shorcut
+it to add \verb$-registergame$ to the end of the command line. Then, run the shortcut
 and the associations should be created for you.
 
 For un-installing, run the game EXE again but with a  \verb$-unregistergame$  parameter.
@@ -3843,7 +3843,7 @@ different script code to update each one. So instead, you can do this:
 int health[50];
 \end{verbatim}
 This example declares 50 int variables, all called \it{health}. ILBRK
-You access each seperate variable via its \bf{index} (the number in the brackets). Indexes
+You access each separate variable via its \bf{index} (the number in the brackets). Indexes
 start from 0, so in this case the \it{health} array can be accessed by indexes 0 to 49.
 If you attempt to access an invalid index, your game will exit with an error.
 
@@ -4399,7 +4399,7 @@ will start playing the \it{aExplosion} audio clip, wait for a second, then seek 
 \begin{verbatim}
 AudioChannel.SetRoomLocation(int x, int y)
 \end{verbatim}
-Sets the currently playing audio to be a directional sound, eminating from (x,y).
+Sets the currently playing audio to be a directional sound, emanating from (x,y).
 
 The volume of the channel will be dynamically adjusted depending on how close the player
 character is to the co-ordinates. Therefore, as the player walks closer the volume will
@@ -4736,7 +4736,7 @@ AudioChannel* AudioClip.PlayFrom(int position, optional AudioPriority,
 Plays the audio clip, starting from \it{position}. For the meaning of the position,
 see the \helprefn{AudioChannel.Seek}{AudioChannel.Seek} help page.
 
-Otherwise, this command behaves identially to \helprefn{AudioClip.Play}{AudioClip.Play}.
+Otherwise, this command behaves identically to \helprefn{AudioClip.Play}{AudioClip.Play}.
 Please see that help page for more information.
 
 \fcol{red}{Example:}
@@ -4761,7 +4761,7 @@ AudioChannel* AudioClip.PlayQueued(optional AudioPriority, optional RepeatStyle)
 \end{verbatim}
 Plays the audio clip, or queues it to be played later if it cannot be played now.
 
-This command behaves identially to \helprefn{AudioClip.Play}{AudioClip.Play},
+This command behaves identically to \helprefn{AudioClip.Play}{AudioClip.Play},
 except that if there are no available audio channels, it will queue this audio clip
 to be played when a channel becomes available.
 
@@ -5018,7 +5018,7 @@ room with them.
 will perform the actual room change once your script function has finished
 (This is to avoid problems with unloading the script while it is still
 running). This means that you should not use any other commands which rely
-on the new room (object positionings, and so on) after this command within
+on the new room (object positions, and so on) after this command within
 the same function.
 
 If you call this on a non-player character, then they are instantly transported
@@ -5052,7 +5052,7 @@ and previous versions. If \it{newPosition} is not specified or is 0, the charact
 placed on the opposite side of the new room, if he is within 10 pixels of a room edge in the
 current room.
 
-Altenatively, you can specify the position where he will get placed in the new room.
+Alternatively, you can specify the position where he will get placed in the new room.
 \it{newPosition} can be 1000 for the left edge, 2000 for the right edge, 3000 for the
 bottom edge and 4000 for the top edge. Then, add on the offset within that edge where
 you want to place the character, in normal room co-ordinates.
@@ -5061,7 +5061,7 @@ you want to place the character, in normal room co-ordinates.
 will perform the actual room change once your script function has finished
 (This is to avoid problems with unloading the script while it is still
 running). This means that you should not use any other commands which rely
-on the new room (object positionings, and so on) after this command within
+on the new room (object positions, and so on) after this command within
 the same function.
 
 \bf{NOTE:} This command can only be used with the player character.
@@ -5468,7 +5468,7 @@ wait until the animation finishes and then return the character to his normal vi
 \end{itemize}
 
 \begin{verbatim}
-Character.LockViewAligned(int view, int loop, Alignment)
+Character.LockViewAligned(int view, int loop, Alignment align)
 \end{verbatim}
 
 Sets the character's view to VIEW, and sets the character's current frame to
@@ -5480,7 +5480,7 @@ a specific animation - since characters have the central point as their 'axis', 
 you have a wider animation then it can be difficult to stop yourself getting a jumping
 effect when the animation starts.
 
-\it{Alignment} can have one of the following values:
+\it{ALIGN} can have one of the following values:
 
 \begin{tabular}{|l|l|}
 \row{ {\bf{align}} & {\bf{Description}}}
@@ -11998,7 +11998,7 @@ will centre the CONTROLPANEL GUI in the middle of the screen.
 static GUI* GUI.GetAtScreenXY(int x, int y)
 \end{verbatim}
 Checks whether there is currently a GUI at screen co-ordinates (X,Y). If
-there is, returns its GUI. If two GUIs overlap, the frontmost one will
+there is, returns its GUI. If two GUIs overlap, the front-most one will
 be returned - this can be changed with the GUI.ZOrder property.
 
 If there is not currently a displayed, clickable GUI at the location then
@@ -14811,7 +14811,7 @@ float Maths.RadiansToDegrees(float radians)
 \end{verbatim}
 Converts the supplied angle in radians, to the equivalent angle in degrees.
 
-Since the trigonometic functions such as Sin, Cos and Tan work in radians, this
+Since the trigonometry functions such as Sin, Cos and Tan work in radians, this
 function is handy to convert the results of one of those functions back to degrees.
 
 \fcol{red}{Example:}
@@ -18418,7 +18418,7 @@ will make the player unable to skip the text by pressing a mouse button or a key
 static eSpeechStyle Speech.Style
 \end{verbatim}
 
-Gets/sets theway in which speech text is displayed. This modifies the setting
+Gets/sets the way in which speech text is displayed. This modifies the setting
 originally set in the editor. SpeechStyle can be:
 \begin{itemize}
 \item \it{eSpeechLucasarts} -- Speech text over character's head.
@@ -20115,7 +20115,7 @@ will set the sprite for moving over the talk button to sprite 2
 \begin{verbatim}
 global bool doubleclick
 \end{verbatim}
-Used to determine when a double-click has occured.
+Used to determine when a double-click has occurred.
 
 \bf{NOTE:} This variable is part of the Verb Coin template and is only available if
 you used this template to create your game.
@@ -20491,7 +20491,7 @@ extensive and is updated regularly with all sorts of Q&A's.
 \section*{Q. What's the deal with the license? What does it mean in plain English?}
 
 A. Adventure Game Studio is pretty much freeware. That means you may use
-   it freely for non-commerical games, and you don't have to send me anything
+   it freely for non-commercial games, and you don't have to send me anything
    in return.
    There is one requirement - if you want to SELL a game you make, for profit,
    then you must contact me beforehand as there are some licensing issues
@@ -20784,7 +20784,7 @@ the \helprefn{Game.SetAudioTypeVolume}{Game.SetAudioTypeVolume} command.
 
 AGS uses two new concepts -- Audio Clips (which represent a particular sound file), and Audio Channels
 (which represent a currently playing piece of audio). The reason for this distinction is that you might
-have the same sound effect playing two or more times simultaneously, and having Audio Channels allows you to
+have the same sound effect simultaneously playing two or more times, and having Audio Channels allows you to
 control each one individually. The \helprefn{Audio page}{MusAndSound} describes this further.
 
 \section*{PlayAmbientSound is obsolete! How do I do ambient sounds?}

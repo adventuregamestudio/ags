@@ -2463,14 +2463,14 @@ can now be done like this:
 Currently, the following object-based things are available:
 
 \begin{tabular}{|l|l|}
-\row{ \bf{ Global array } & \bf{ O-Name example }
-}\row{{ character[] } & { cEgo }
-}\row{{ object[] } & { oDoor }
-}\row{{ hotspot[] } & { hTree }
-}\row{{ gui[] } & { gInventory }
-}\row{{ inventory[] } & { iPinkPoster }
-}\row{{ region[] } & { (none) }
-}\end{tabular}
+\row{{ \bf{ Global array } }&{ \bf{ O-Name example }}}
+\row{{ character[] } & { cEgo }}
+\row{{ object[] } & { oDoor }}
+\row{{ hotspot[] } & { hTree }}
+\row{{ gui[] } & { gInventory }}
+\row{{ inventory[] } & { iPinkPoster }}
+\row{{ region[] } & { (none) }}
+\end{tabular}
 
 GUI controls are handled slightly differently. They all have a script name,
 and are directly accessed via that. For example, if you set the script name of
@@ -2835,16 +2835,16 @@ actual variables that you want to display are then listed afterwards.
 
 The special codes you can use are as follows:
 \begin{tabular}{|l|l|}
-\row{ \bf{ Code } & \bf{ Description }
-}\row{{ \verb$%d$ } & { Integer (use to display value of int and short variables) }
-}\row{{ \verb$%0Xd$ } & { Integer left-padded with up to X zeros }
-}\row{{ \verb$%s$ } & { String (use to display string variables) }
-}\row{{ \verb$%c$ } & { Character (displays the ASCII character of the supplied value) }
-}\row{{ \verb$%f$ } & { Float (displays a float variable) }
-}\row{{ \verb$%.Xf$ } & { Float to X decimal places }
-}\row{{ \verb$%%$ } & { Display the percent character (ie. no variable) }
-}\row{{ \verb$[$ } & { Inserts a new line into the message }
-}\end{tabular}
+\row{{ \bf{ Code }} & {\bf{ Description }}}
+\row{{ \verb$%d$ } & { Integer (use to display value of int and short variables) }}
+\row{{ \verb$%0Xd$ } & { Integer left-padded with up to X zeros }}
+\row{{ \verb$%s$ } & { String (use to display string variables) }}
+\row{{ \verb$%c$ } & { Character (displays the ASCII character of the supplied value) }}
+\row{{ \verb$%f$ } & { Float (displays a float variable) }}
+\row{{ \verb$%.Xf$ } & { Float to X decimal places }}
+\row{{ \verb$%%$ } & { Display the percent character (ie. no variable) }}
+\row{{ \verb$[$ } & { Inserts a new line into the message }}
+\end{tabular}
 
 Some examples:
 \begin{verbatim}
@@ -3087,79 +3087,79 @@ Names in \bf{bold} are \bf{read-only variables} and should NOT be modified by th
 All the following variables are \verb$int$ variables.
 
 \begin{tabular}{|l|l|}
-\row{ { game.abort_key }&{ The keycode for Abort Game, which allows the you to quit even if your script is stuck. Default 324 (Alt+X). }
-}\row{ { game.ambient_sounds_persist  }&{  If 0 (default), ambient sounds are stopped on room change.
-                                      Set to 1 to tell AGS to leave ambient sounds playing when going to a new room. }
-}\row{ { game.anim_background_speed  }&{ The current room's animating background speed - same values as in editor. }
-}\row{ { game.auto_use_walkto_points  }&{ Default 1; set to 0 to stop AGS automatically using hotspot walk-to points. }
-}\row{ { game.bgspeech_game_speed    }&{ If 0 (default), background speech stays on the screen
+\row{ { game.abort_key }&{ The keycode for Abort Game, which allows the you to quit even if your script is stuck. Default 324 (Alt+X). }}
+\row{ { game.ambient_sounds_persist  }&{  If 0 (default), ambient sounds are stopped on room change.
+                                      Set to 1 to tell AGS to leave ambient sounds playing when going to a new room. }}
+\row{ { game.anim_background_speed  }&{ The current room's animating background speed - same values as in editor. }}
+\row{ { game.auto_use_walkto_points  }&{ Default 1; set to 0 to stop AGS automatically using hotspot walk-to points. }}
+\row{ { game.bgspeech_game_speed    }&{ If 0 (default), background speech stays on the screen
                            for the same amount of time, no matter what the game speed.
-                           If 1, the amount of time it stays is relative to the game speed. }
-}\row{ { game.bgspeech_stay_on_display    }&{ If 0 (default), background speech is removed when
-                           a Say command happens; if 1, it isn't.}
-}\row{ { game.close_mouth_end_speech_time }&{ At the end of speech text, the speech animation
-                           will stop for this number of game loops. Default 10. No affect in voice mode.}
-}\row{ { game.debug_mode    }&{     Whether we are in debug mode or not.}
-}\row{ { game.dialog_options_x    }&{ Offset into dialog options GUI to compensate for borders }
-}\row{ { game.dialog_options_y    }&{ Offset into dialog options GUI to compensate for borders }
-}\row{ { game.disable_antialiasing }&{ Set to 1 to disable smoothing of scaled characters,
-                              overriding the user's choice in Setup. Default 0. }
-}\row{ { game.following_room_timer}&{ How long to wait before following char emerges in
-                           new room, default 150. (higher is longer).}
-}\row{ { game.keep_screen_during_instant_transition }&{ Normally the Instant transition blacks the screen in 8-bit
-  colour modes, to avoid strange palette effects. However you can set this to 1 to prevent it doing so. }
-}\row{ {\bf game.inv_activated    }&{ Inventory item that the player last clicked on. Useful for unhandled_event. }
-}\row{ { game.inventory_greys_out }&{ Set to 1 to make inventory controls grey out when GUI disabled is set to "GUIs Grey Out" }
-}\row{ { game.lipsync_speed }&{ Similar to Game.TextReadingSpeed, but this determines how quickly the text is 'read' out by the mouth moving.
+                           If 1, the amount of time it stays is relative to the game speed. }}
+\row{ { game.bgspeech_stay_on_display    }&{ If 0 (default), background speech is removed when
+                           a Say command happens; if 1, it isn't.}}
+\row{ { game.close_mouth_end_speech_time }&{ At the end of speech text, the speech animation
+                           will stop for this number of game loops. Default 10. No affect in voice mode.}}
+\row{ { game.debug_mode    }&{     Whether we are in debug mode or not.}}
+\row{ { game.dialog_options_x    }&{ Offset into dialog options GUI to compensate for borders }}
+\row{ { game.dialog_options_y    }&{ Offset into dialog options GUI to compensate for borders }}
+\row{ { game.disable_antialiasing }&{ Set to 1 to disable smoothing of scaled characters,
+                              overriding the user's choice in Setup. Default 0. }}
+\row{ { game.following_room_timer}&{ How long to wait before following char emerges in
+                           new room, default 150. (higher is longer).}}
+\row{ { game.keep_screen_during_instant_transition }&{ Normally the Instant transition blacks the screen in 8-bit
+  colour modes, to avoid strange palette effects. However you can set this to 1 to prevent it doing so. }}
+\row{ {\bf game.inv_activated    }&{ Inventory item that the player last clicked on. Useful for unhandled_event. }}
+\row{ { game.inventory_greys_out }&{ Set to 1 to make inventory controls grey out when GUI disabled is set to "GUIs Grey Out" }}
+\row{ { game.lipsync_speed }&{ Similar to Game.TextReadingSpeed, but this determines how quickly the text is 'read' out by the mouth moving.
                            You should normally only set this faster than text_speed,
-                           otherwise the reading will get cut off when the text times out. Default 15. }
-}\row{ { game.max_dialogoption_width  }&{ Maximum width of textwindow-based dialog options
-                           box. Default 180. }
-}\row{ { game.min_dialogoption_width  }&{ Minimum width of textwindow-based dialog options
-                           box. Default 0. }
-}\row{ { game.narrator_speech }&{ Which character ID to use for voice speech within Display() command. Default initial player character.
-                           You can also use NARRATOR which uses 'NARR' prefix - special narrator character. }
-}\row{ { game.no_textbg_when_voice  }&{  Normally 0. If 1, and the Sierra-style With Background
+                           otherwise the reading will get cut off when the text times out. Default 15. }}
+\row{ { game.max_dialogoption_width  }&{ Maximum width of textwindow-based dialog options
+                                         box. Default 180. }}
+\row{ { game.min_dialogoption_width  }&{ Minimum width of textwindow-based dialog options
+                                         box. Default 0. }}
+\row{ { game.narrator_speech }&{ Which character ID to use for voice speech within Display() command. Default initial player character.
+                           You can also use NARRATOR which uses 'NARR' prefix - special narrator character. }}
+\row{ { game.no_textbg_when_voice  }&{  Normally 0. If 1, and the Sierra-style With Background
                            speech style is in use, will change to the Sierra-style (No Bg) if
-                           a voice speech line is present. }
-}\row{ { game.read_dialog_option_color  }&{  By default, -1. You can set this to a colour number, in which
-                case dialog options that the player has selected before will be displayed in this colour. }
-}\row{ { game.roomscript_finished }&{  The on_call function has completed executing. (See
-\helprefn{CallRoomScript}{CallRoomScript}) }
-}\row{ {\bf game.score          }&{    The player's score. To modify the score, use the
-  GiveScore script function.}
-}\row{ { game.score_sound    }&{    Sound effect to play when the player gets points, originally
-  set in the editor. }
-}\row{ { game.screenshot_height }&{  The height of screenshot images when saved into save games.
+                           a voice speech line is present. }}
+\row{ { game.read_dialog_option_color  }&{  By default, -1. You can set this to a colour number, in which
+                case dialog options that the player has selected before will be displayed in this colour. }}
+\row{ { game.roomscript_finished }&{  The on_call function has completed executing. (See
+\helprefn{CallRoomScript}{CallRoomScript}) }}
+\row{ {\bf game.score          }&{    The player's score. To modify the score, use the
+                                      GiveScore script function.}}
+\row{ { game.score_sound    }&{    Sound effect to play when the player gets points, originally
+                                   set in the editor. }}
+\row{ { game.screenshot_height }&{  The height of screenshot images when saved into save games.
      The largest you can have is the full screen size (320x200), which gives the highest
-     quality but the largest size save game files. The default is 160x100. }
-}\row{ { game.screenshot_width }&{  The width of screenshot images when saved into save games. }
-}\row{ { game.show_single_dialog_option }&{ If only a single dialog option is available, show it anyway (default=0) }
-}\row{ { game.sierra_inv_color }&{  The background color of the sierra-style inventory.}
-}\row{ { game.skip_display   }&{    Setting for how Display() messages are skipped;
-                           valid values are same as for Speech.SkipStyle (default 3).}
-}\row{ { game.skip_speech_specific_key }&{ Default 0. You can set it to a keycode, in which case only that key can skip speech text. }
-}\row{ { game.speech_bubble_width }&{ Maximum width of the thought bubble text window (default 100) }
-}\row{ { game.speech_text_align }&{ Sets how text in Lucasarts-style speech is aligned.
-                                    Same possible values as game.text_align, default eAlignCentre }
-}\row{ { game.speech_text_gui }&{   The textwindow GUI number used for sierra-style speech.}
-}\row{ { game.text_align }&{ Sets how text in message boxes and Sierra-style speech is aligned: ILBRK
+     quality but the largest size save game files. The default is 160x100. }}
+\row{ { game.screenshot_width }&{  The width of screenshot images when saved into save games. }}
+\row{ { game.show_single_dialog_option }&{ If only a single dialog option is available, show it anyway (default=0) }}
+\row{ { game.sierra_inv_color }&{  The background color of the sierra-style inventory.}}
+\row{ { game.skip_display   }&{    Setting for how Display() messages are skipped;
+                           valid values are same as for Speech.SkipStyle (default 3).}}
+\row{ { game.skip_speech_specific_key }&{ Default 0. You can set it to a keycode, in which case only that key can skip speech text. }}
+\row{ { game.speech_bubble_width }&{ Maximum width of the thought bubble text window (default 100) }}
+\row{ { game.speech_text_align }&{ Sets how text in Lucasarts-style speech is aligned.
+                                    Same possible values as game.text_align, default eAlignCentre }}
+\row{ { game.speech_text_gui }&{   The textwindow GUI number used for sierra-style speech.}}
+\row{ { game.text_align }&{ Sets how text in message boxes and Sierra-style speech is aligned: ILBRK
  eAlignLeft:   text aligned to left within message box (default) ILBRK
  eAlignCentre: text is centred within the message box ILBRK
  eAlignRight:  text is right-aligned within the message box ILBRK
- These options do not affect Lucasarts-style speech, which is always centred. }
-}\row{ { game.text_shadow_color}&{  Color used for speech text shadow (default 16).}
-}\row{ { game.top_bar_XXXX  }&{ Customizations for \helprefn{DisplayTopBar}{DisplayTopBar}, see link for details }
-}\row{ { game.total_score   }&{     Maximum possible score, initially set in the editor.}
-}\row{ { game.used_mode     }&{     Cursor mode used with last click (use with "any click"
-                           events to find out which mode was used)}
-}\row{ {\bf mouse.x         }&{       Mouse X co-ordinate when the last game loop was run (320-res)}
-}\row{ {\bf mouse.y          }&{      Mouse Y co-ordinate when the last game loop was run (320-res)}
-}\row{ { palette[SLOT].r }&{       The red component (0-63) of palette slot SLOT}
-}\row{ { palette[SLOT].g  }&{      The green component (0-63) of palette slot SLOT }
-}\row{ { palette[SLOT].b  }&{      The blue component (0-63) of palette slot SLOT}
-}\row{ { player.[x,y,name,...] }&{ Alias to the current player character. }
-}\end{tabular}
+ These options do not affect Lucasarts-style speech, which is always centred. }}
+\row{ { game.text_shadow_color}&{  Color used for speech text shadow (default 16).}}
+\row{ { game.top_bar_XXXX  }&{ Customizations for \helprefn{DisplayTopBar}{DisplayTopBar}, see link for details }}
+\row{ { game.total_score   }&{     Maximum possible score, initially set in the editor.}}
+\row{ { game.used_mode     }&{     Cursor mode used with last click (use with "any click"
+                           events to find out which mode was used)}}
+\row{ {\bf mouse.x         }&{       Mouse X co-ordinate when the last game loop was run (320-res)}}
+\row{ {\bf mouse.y          }&{      Mouse Y co-ordinate when the last game loop was run (320-res)}}
+\row{ { palette[SLOT].r }&{       The red component (0-63) of palette slot SLOT}}
+\row{ { palette[SLOT].g  }&{      The green component (0-63) of palette slot SLOT }}
+\row{ { palette[SLOT].b  }&{      The blue component (0-63) of palette slot SLOT}}
+\row{ { player.[x,y,name,...] }&{ Alias to the current player character. }}
+\end{tabular}
 
 
 \section{Predefined global script functions}\label{TextScriptEvents}\index{dialog_request}\index{game_start}\index{on_event}\index{interface_click}\index{on_key_press}\index{on_mouse_click}\index{unhandled_event}%
@@ -3231,39 +3231,41 @@ The available event functions are:
 \item \it{unhandled_event (int what, int type)} -- Called when an event occurs,
   but no handler is set up in the Events list.
   This could be used to display a default "I can't do that" type of message.
-  The values of WHAT and TYPE tell you what the player did. ILBRK
-  The possible values are listed below:\begin{verbatim}
-	WHAT TYPE Description
-	 1    1   Look at hotspot
-	 1    2   Interact with hotspot
-	 1    3   Use inventory on hotspot
-	 1    4   Talk to hotspot
-	 1    7   Pick up hotspot
-	 1    8   Cursor Mode 8 on hotspot
-	 1    9   Cursor Mode 9 on hotspot
-	 2    0   Look at object
-	 2    1   Interact with object
-	 2    2   Talk to object
-	 2    3   Use inventory on object
-	 2    5   Pick up object
-	 2    6   Cursor Mode 8 on object
-	 2    7   Cursor Mode 9 on object
-	 3    0   Look at character
-	 3    1   Interact with character
-	 3    2   Speak to character
-	 3    3   Use inventory on character
-	 3    5   Pick up character
-	 3    6   Cursor Mode 8 on character
-	 3    7   Cursor Mode 9 on character
-	 4    1   Look at nothing (ie. no hotspot)
-	 4    2   Interact with nothing
-	 4    3   Use inventory with nothing
-	 4    4   Talk to nothing
-	 5    0   Look at inventory
-	 5    1   Interact with inventory (currently not possible)
-	 5    2   Speak to inventory
-	 5    3   Use an inventory item on another
-	 5    4   Other click on inventory\end{verbatim}
+  The values of WHAT and TYPE tell you what the player did,
+  the possible values are listed below:
+  \begin{tabular}{|c|c|l|}
+  \row{ {\bf{WHAT}} & {\bf{TYPE}} & {\bf{Description}} }
+  \row{ { 1 } & { 1 } & { Look at hotspot } }
+  \row{ { 1 } & { 2 } & { Interact with hotspot } }
+  \row{ { 1 } & { 3 } & { Use inventory on hotspot } }
+  \row{ { 1 } & { 4 } & { Talk to hotspot } }
+  \row{ { 1 } & { 7 } & { Pick up hotspot } }
+  \row{ { 1 } & { 8 } & { Cursor Mode 8 on hotspot } }
+  \row{ { 1 } & { 9 } & { Cursor Mode 9 on hotspot } }
+  \row{ { 2 } & { 0 } & { Look at object } }
+  \row{ { 2 } & { 1 } & { Interact with object } }
+  \row{ { 2 } & { 2 } & { Talk to object } }
+  \row{ { 2 } & { 3 } & { Use inventory on object } }
+  \row{ { 2 } & { 5 } & { Pick up object } }
+  \row{ { 2 } & { 6 } & { Cursor Mode 8 on object } }
+  \row{ { 2 } & { 7 } & { Cursor Mode 9 on object } }
+  \row{ { 3 } & { 0 } & { Look at character } }
+  \row{ { 3 } & { 1 } & { Interact with character } }
+  \row{ { 3 } & { 2 } & { Speak to character } }
+  \row{ { 3 } & { 3 } & { Use inventory on character } }
+  \row{ { 3 } & { 5 } & { Pick up character } }
+  \row{ { 3 } & { 6 } & { Cursor Mode 8 on character } }
+  \row{ { 3 } & { 7 } & { Cursor Mode 9 on character } }
+  \row{ { 4 } & { 1 } & { Look at nothing (ie. no hotspot) } }
+  \row{ { 4 } & { 2 } & { Interact with nothing } }
+  \row{ { 4 } & { 3 } & { Use inventory with nothing } }
+  \row{ { 4 } & { 4 } & { Talk to nothing } }
+  \row{ { 5 } & { 0 } & { Look at inventory } }
+  \row{ { 5 } & { 1 } & { Interact with inventory (currently not possible) } }
+  \row{ { 5 } & { 2 } & { Speak to inventory } }
+  \row{ { 5 } & { 3 } & { Use an inventory item on another } }
+  \row{ { 5 } & { 4 } & { Other click on inventory } }
+  \end{tabular}
   Note that the "Character stands on hotspot" event does not trigger this
   function, and it will not be triggered if there is an "Any click" event defined.
 
@@ -3853,15 +3855,15 @@ See Also: \helprefn{Dynamic arrays}{DynamicArrays}
 \subsection{Data types}\label{Datatypes}\index{short}\index{char}\index{int}\index{string}\index{float}%
 
 \begin{tabular}{|l|l|}
-\row{ \bf{ Type } & \bf{ Description }
-}\row{{ char } & { Single byte data type, can store a single character or number 0 to 255 }
-}\row{{ short } & { 16-bit integer, can store numbers from �32,768 to 32,767 }
-}\row{{ int } & { 32-bit integer, can store from �2,147,483,648 to 2,147,483,647 }
-}\row{{ String } & { Stores a string of characters }
-}\row{{ float } & { A 32-bit floating point number. Accuracy normally about 6 decimal places,
-                    but varies depending on the size of the number being stored. }
-}\row{{ bool } & { a variable that stores either 'true' or 'false' }
-}\end{tabular}
+\row{{ \bf{ Type }} & {\bf{ Description } }}
+\row{{ char } & { Single byte data type, can store a single character or number 0 to 255 }}
+\row{{ short } & { 16-bit integer, can store numbers from -32,768 to 32,767 }}
+\row{{ int } & { 32-bit integer, can store from -2,147,483,648 to 2,147,483,647 }}
+\row{{ String } & { Stores a string of characters }}
+\row{{ float } & { A 32-bit floating point number. Accuracy normally about 6 decimal places,
+                    but varies depending on the size of the number being stored. }}
+\row{{ bool } & { a variable that stores either 'true' or 'false' }}
+\end{tabular}
 
 You will normally only need to use the \bf{int} and \bf{String} data types. The smaller types
 are only useful for conserving memory if you are creating a very large number of variables.
@@ -3905,36 +3907,33 @@ which is not what you might expect. Always use parenthesis to make it clear what
 The "Left-to-right operator precedence" option on the General Settings pane allows you to
 control this behaviour.
 
-\bf{\begin{verbatim}
-Operator  Description              Example
-\end{verbatim} }
-
-\begin{verbatim}
-  !    NOT                        if (!a)
-  *    Multiply                   a = b * c;
-  /    Divide                     a = b / c;
-  %    Remainder                  a = b % c;
-  +    Add                        a = b + c;
-  -    Subtract                   a = b - c;
-  <<   Bitwise Left Shift         a = b << c;
-       (advanced users only)
-  >>   Bitwise Right Shift        a = b >> c;
-       (advanced users only)
-  &    Bitwise AND                a = b & c;
-       (advanced users only)
-  |    Bitwise OR                 a = b | c;
-       (advanced users only)
-  ^    Bitwise XOR                a = b ^ c;
-       (advanced users only)
-  ==   Is equal to                if (a == b)
-  !=   Is not equal to            if (a != b)
-  >    Is greater than            if (a > b)
-  <    Is less than               if (a < b)
-  >=   Is greater than or equal   if (a >= b)
-  <=   Is less than or equal      if (a <= b)
-  &&   Logical AND                if (a && b)
-  ||   Logical OR                 if (a || b)
-\end{verbatim}
+\begin{tabular}{|c|l|l|}
+\row{ {\bf{Operator}} & {\bf{Description}} & {\bf{Example}} }
+\row{ {\verb$!$}  & {NOT}                      & {\verb$if (!a)$} }
+\row{ {\verb$*$}  & {Multiply}                 & {\verb$a = b * c;$} }
+\row{ {\verb$/$}  & {Divide}                   & {\verb$a = b / c;$} }
+\row{ {\verb$%$}  & {Remainder}                & {\verb$a = b % c;$} }
+\row{ {\verb$+$}  & {Add}                      & {\verb$a = b + c;$} }
+\row{ {\verb$-$}  & {Subtract}                 & {\verb$a = b - c;$} }
+\row{ {\verb$<<$} & {Bitwise Left Shift}       & {\verb$a = b << c;$} }
+\row{ { }         & {(advanced users only)}    & { } }
+\row{ {\verb$>>$} & {Bitwise Right Shift}      & {\verb$a = b >> c;$} }
+\row{ { }         & {(advanced users only)}    & { } }
+\row{ {\verb$&$}  & {Bitwise AND}              & {\verb$a = b & c;$} }
+\row{ { }         & {(advanced users only)}    & { } }
+\row{ {\verb$|$}  & {Bitwise OR}               & {\verb$a = b | c;$} }
+\row{ { }         & {(advanced users only)}    & { } }
+\row{ {\verb$^$}  & {Bitwise XOR}              & {\verb$a = b ^ c;$} }
+\row{ { }         & {(advanced users only)}    & { } }
+\row{ {\verb$==$} & {Is equal to}              & {\verb$if (a == b)$} }
+\row{ {\verb$!=$} & {Is not equal to}          & {\verb$if (a != b)$} }
+\row{ {\verb$>$}  & {Is greater than}          & {\verb$if (a > b)$} }
+\row{ {\verb$<$}  & {Is less than}             & {\verb$if (a < b)$} }
+\row{ {\verb$>=$} & {Is greater than or equal} & {\verb$if (a >= b)$} }
+\row{ {\verb$<=$} & {Is less than or equal}    & {\verb$if (a <= b)$} }
+\row{ {\verb$&&$} & {Logical AND}              & {\verb$if (a && b)$} }
+\row{ {\verb$||$} & {Logical OR}               & {\verb$if (a || b)$} }
+\end{tabular}
 
 This order of precedence allows expressions such as the following to evaluate as expected:
 
@@ -3954,20 +3953,20 @@ more readable to script the above expression like this:
 The following predefined macros are available in your scripts:
 
 \begin{tabular}{|l|l|}
-\row{ \bf{ Name } & \bf{ Description }
-}\row{{ DEBUG } & { Defined if the game is being compiled in debug mode, not defined otherwise }
-}\row{{ STRICT } & { Defined if "Enforce Object Based Scripting" is ticked, not defined otherwise }
-}\row{{ STRICT_STRINGS } & { Defined if "Enforce new-style strings" is ticked, not defined otherwise }
-}\row{{ STRICT_AUDIO } & { Defined if "Enforce new-style audio scripting" is ticked, not defined otherwise }
-}\row{{ LRPRECEDENCE } & { Defined if "Left-to-right operator precedence" is ticked, not defined otherwise }
-}\row{{ AGS_NEW_STRINGS } & { Defined if AGS 2.71 or later (with new-String support), not defined otherwise }
-}\row{{ AGS_SUPPORTS_IFVER } & { Defined if AGS 2.72 or later (with \verb$#ifver$ support), not defined otherwise }
-}\row{{ AGS_MAX_INV_ITEMS } & { The maximum number of inventory items }
-}\row{{ AGS_MAX_CONTROLS_PER_GUI } & { The maximum number of controls on a GUI }
-}\row{{ AGS_MAX_OBJECTS } & { The maximum objects per room }
-}\row{{ AGS_MAX_HOTSPOTS } & { The maximum hotspots per room }
-}\row{{ AGS_MAX_REGIONS } & { The maximum regions per room }
-}\end{tabular}
+\row{{ \bf{Name} } & { \bf{Description} }}
+\row{{ DEBUG } & { Defined if the game is being compiled in debug mode, not defined otherwise }}
+\row{{ STRICT } & { Defined if "Enforce Object Based Scripting" is ticked, not defined otherwise }}
+\row{{ STRICT_STRINGS } & { Defined if "Enforce new-style strings" is ticked, not defined otherwise }}
+\row{{ STRICT_AUDIO } & { Defined if "Enforce new-style audio scripting" is ticked, not defined otherwise }}
+\row{{ LRPRECEDENCE } & { Defined if "Left-to-right operator precedence" is ticked, not defined otherwise }}
+\row{{ AGS_NEW_STRINGS } & { Defined if AGS 2.71 or later (with new-String support), not defined otherwise }}
+\row{{ AGS_SUPPORTS_IFVER } & { Defined if AGS 2.72 or later (with \verb$#ifver$ support), not defined otherwise }}
+\row{{ AGS_MAX_INV_ITEMS } & { The maximum number of inventory items }}
+\row{{ AGS_MAX_CONTROLS_PER_GUI } & { The maximum number of controls on a GUI }}
+\row{{ AGS_MAX_OBJECTS } & { The maximum objects per room }}
+\row{{ AGS_MAX_HOTSPOTS } & { The maximum hotspots per room }}
+\row{{ AGS_MAX_REGIONS } & { The maximum regions per room }}
+\end{tabular}
 
 You can check for whether a macro is defined or not by using the \verb$#ifdef$ and
 \verb$#ifndef$ keywords:
@@ -5430,14 +5429,14 @@ effect when the animation starts.
 \it{Alignment} can have one of the following values:
 
 \begin{tabular}{|l|l|}
-\row{ {\bf align } & {\bf Description }
-}\row{{ eAlignLeft } & { Moves the new frame so that the left hand side is at exactly
-                          the same X co-ordinate as the old one was. }
-}\row{{ eAlignCentre } & { Leaves the frames centred in the middle. This is the default
-                          and using this is equivalent to just calling LockView. }
-}\row{{ eAlignRight } & { Moves the new frame so that the right hand side is at exactly
-                         the same X co-ordinate as the old one was. }
-}\end{tabular}
+\row{ {\bf{align}} & {\bf{Description}}}
+\row{{ eAlignLeft } & { Moves the new frame so that the left hand side is at exactly
+                          the same X co-ordinate as the old one was. }}
+\row{{ eAlignCentre } & { Leaves the frames centred in the middle. This is the default
+                          and using this is equivalent to just calling LockView. }}
+\row{{ eAlignRight } & { Moves the new frame so that the right hand side is at exactly
+                         the same X co-ordinate as the old one was. }}
+\end{tabular}
 
 Note that this only aligns the first frame of the animation, so to get the full benefit
 all your frames in the animation loop should be the same width. All following frames will
@@ -10809,31 +10808,31 @@ OPTION specifies which option to change, and VALUE is its new value. Valid OPTIO
 listed below:
 
 \begin{tabular}{|l|l|}
-\row{ \bf{ Option } & \bf{ Values }
-}\row{{ OPT_WALKONLOOK } & { Walk to hotspot in look mode (0 or 1) }
-}\row{{ OPT_DIALOGOPTIONSGUI } & { Dialog options on GUI (0=none, otherwise GUI name/number) }
-}\row{{ OPT_DIALOGOPTIONSGAP } & { Pixel gap between options (0=none, otherwise num pixels) }
-}\row{{ OPT_WHENGUIDISABLED } & { When GUI is disabled, 0=grey out, 1=go black, 2=unchanged, 3=turn off }
-}\row{{ OPT_ALWAYSSPEECH } & { Always display text as speech (0 or 1) }
-}\row{{ OPT_PIXELPERFECT } & { Pixel-perfect click detection (0 or 1) }
-}\row{{ OPT_NOWALKMODE } & { Don't automatically move character in Walk mode (0 or 1) }
-}\row{{ OPT_FIXEDINVCURSOR } & { Don't use inventory graphics as cursors (0 or 1) }
-}\row{{ OPT_DONTLOSEINV } & { Don't automatically lose inventory items (0 or 1) }
-}\row{{ OPT_TURNBEFOREWALK } & { Characters turn before walking (0 or 1) }
-}\row{{ OPT_HANDLEINVCLICKS } & { Handle inventory clicks in script (0 or 1) }
-}\row{{ OPT_MOUSEWHEEL } & { Enable mouse wheel support (0 or 1) }
-}\row{{ OPT_DIALOGNUMBERED } & { Number dialog options (0 or 1) }
-}\row{{ OPT_DIALOGUPWARDS } & { Dialog options go upwards on GUI (0 or 1) }
-}\row{{ OPT_CROSSFADEMUSIC } & { Crossfade music tracks (0=no, 1=slow, 2=slowish, 3=medium, 4=fast) }
-}\row{{ OPT_ANTIALIASFONTS } & { Anti-alias rendering of TTF fonts (0 or 1) }
-}\row{{ OPT_THOUGHTGUI } & { Thought uses bubble GUI (GUI name/number) }
-}\row{{ OPT_TURNWHENFACING } & { Characters turn to face direction (0 or 1) }
-}\row{{ OPT_LIPSYNCTEXT } & { Whether lip-sync text reading is enabled (0 or 1) }
-}\row{{ OPT_RIGHTTOLEFT } & { Right-to-left text writing (0 or 1) }
-}\row{{ OPT_MULTIPLEINV } & { Display multiple inv items multiple times (0 or 1) }
-}\row{{ OPT_SAVEGAMESCREENSHOTS } & { Save screenshots into save games (0 or 1) }
-}\row{{ OPT_PORTRAITPOSITION } & { Speech portrait side (0=left, 1=right, 2=alternate, 3=xpos) }
-}\end{tabular}
+\row{ {\bf{ Option }} & {\bf{ Values }}}
+\row{{ OPT_WALKONLOOK } & { Walk to hotspot in look mode (0 or 1) }}
+\row{{ OPT_DIALOGOPTIONSGUI } & { Dialog options on GUI (0=none, otherwise GUI name/number) }}
+\row{{ OPT_DIALOGOPTIONSGAP } & { Pixel gap between options (0=none, otherwise num pixels) }}
+\row{{ OPT_WHENGUIDISABLED } & { When GUI is disabled, 0=grey out, 1=go black, 2=unchanged, 3=turn off }}
+\row{{ OPT_ALWAYSSPEECH } & { Always display text as speech (0 or 1) }}
+\row{{ OPT_PIXELPERFECT } & { Pixel-perfect click detection (0 or 1) }}
+\row{{ OPT_NOWALKMODE } & { Don't automatically move character in Walk mode (0 or 1) }}
+\row{{ OPT_FIXEDINVCURSOR } & { Don't use inventory graphics as cursors (0 or 1) }}
+\row{{ OPT_DONTLOSEINV } & { Don't automatically lose inventory items (0 or 1) }}
+\row{{ OPT_TURNBEFOREWALK } & { Characters turn before walking (0 or 1) }}
+\row{{ OPT_HANDLEINVCLICKS } & { Handle inventory clicks in script (0 or 1) }}
+\row{{ OPT_MOUSEWHEEL } & { Enable mouse wheel support (0 or 1) }}
+\row{{ OPT_DIALOGNUMBERED } & { Number dialog options (0 or 1) }}
+\row{{ OPT_DIALOGUPWARDS } & { Dialog options go upwards on GUI (0 or 1) }}
+\row{{ OPT_CROSSFADEMUSIC } & { Crossfade music tracks (0=no, 1=slow, 2=slowish, 3=medium, 4=fast) }}
+\row{{ OPT_ANTIALIASFONTS } & { Anti-alias rendering of TTF fonts (0 or 1) }}
+\row{{ OPT_THOUGHTGUI } & { Thought uses bubble GUI (GUI name/number) }}
+\row{{ OPT_TURNWHENFACING } & { Characters turn to face direction (0 or 1) }}
+\row{{ OPT_LIPSYNCTEXT } & { Whether lip-sync text reading is enabled (0 or 1) }}
+\row{{ OPT_RIGHTTOLEFT } & { Right-to-left text writing (0 or 1) }}
+\row{{ OPT_MULTIPLEINV } & { Display multiple inv items multiple times (0 or 1) }}
+\row{{ OPT_SAVEGAMESCREENSHOTS } & { Save screenshots into save games (0 or 1) }}
+\row{{ OPT_PORTRAITPOSITION } & { Speech portrait side (0=left, 1=right, 2=alternate, 3=xpos) }}
+\end{tabular}
 
 The game settings which are not listed here either have a separate command to change them
 (such as Speech.Style), or simply cannot be changed at run-time.
@@ -19722,27 +19721,27 @@ have been wondering "How many rooms can I have?" or something similar,
 chances are this section will answer it.
 
 There are maximum...
-\begin{verbatim}
-      40  objects per room
-     299  state-saving rooms per game
-     300  inventory items
-   30000  imported sprites
-      30  controls on each GUI
-     500  dialog topics
-      30  options per dialog topic
-      20  screen overlays at a time
-       5  background frames per room
-      20  mouse cursors
-       8  audio channels
-     100  local messages per room (excluding script)
-      30  fonts
-unlimited words in the text parser dictionary
-unlimited characters
-unlimited views
-unlimited GUIs
-unlimited loops per view
-unlimited frames per loop
-\end{verbatim}
+\begin{tabular}{|r@{ }l|}
+\row{        {40} & {objects per room} }
+\row{       {299} & {state-saving rooms per game} }
+\row{       {300} & {inventory items} }
+\row{     {30000} & {imported sprites} }
+\row{        {30} & {controls on each GUI} }
+\row{       {500} & {dialog topics} }
+\row{        {30} & {options per dialog topic} }
+\row{        {20} & {screen overlays at a time} }
+\row{         {5} & {background frames per room} }
+\row{        {20} & {mouse cursors} }
+\row{         {8} & {audio channels} }
+\row{       {100} & {local messages per room (excluding script)} }
+\row{        {30} & {fonts} }
+\row{ {unlimited} & {words in the text parser dictionary} }
+\row{ {unlimited} & {characters} }
+\row{ {unlimited} & {views} }
+\row{ {unlimited} & {GUIs} }
+\row{ {unlimited} & {loops per view} }
+\row{ {unlimited} & {frames per loop} }
+\end{tabular}
 
 If you think any of these limits is a serious problem, contact me and I can
 probably increase it.
@@ -19752,167 +19751,167 @@ probably increase it.
 The AGS Editor provides various keyboard shortcuts to help you get your work done quickly.
 These are summarized below:
 
-\begin{verbatim}
-F1       Help
-F2       Game Statistics
-F3       Find Next
-Ctrl+F4  Close tab
-F5       Run with Debugger
-Ctrl+F5  Run without Debugger
-F7       Build EXE
-F9       Toggle Breakpoint
-F11      Step Into
-
-Ctrl+A   Select All
-Ctrl+B   Match Brace
-Ctrl+C   Copy
-Ctrl+D   Duplicate line to next
-Ctrl+E   Replace
-Ctrl+F   Find
-Ctrl+G   Open GlobalScript.asc
-Ctrl+H   Open GlobalScript.ash
-Ctrl+L   Open Game
-Ctrl+Q   Quit
-Ctrl+R   Save Room
-Ctrl+S   Save Game
-Ctrl+V   Paste
-Ctrl+W   Close Tab
-Ctrl+X   Cut
-Ctrl+Y   Redo
-Ctrl+Z   Undo
-
-Ctrl+Space      Show Autocomplete
-Ctrl+Tab        Next tab
-Ctrl+Shift+Tab  Previous tab
-
-Tab         Indent selected lines
-Shift+Tab   Un-indent selected lines
-\end{verbatim}
+\begin{tabular}{|l|l|}
+\row{ {F1}             & {Help} }
+\row{ {F2}             & {Game Statistics} }
+\row{ {F3}             & {Find Next} }
+\row{ {Ctrl+F4}        & {lose tab} }
+\row{ {F5}             & {Run with Debugger} }
+\row{ {Ctrl+F5}        & {un without Debugger} }
+\row{ {F7}             & {Build EXE} }
+\row{ {F9}             & {Toggle Breakpoint} }
+\row{ {F11}            & {Step Into} }
+\row{ {}               & {} }
+\row{ {Ctrl+A}         & {Select All} }
+\row{ {Ctrl+B}         & {Match Brace} }
+\row{ {Ctrl+C}         & {Copy} }
+\row{ {Ctrl+D}         & {Duplicate line to next} }
+\row{ {Ctrl+E}         & {Replace} }
+\row{ {Ctrl+F}         & {Find} }
+\row{ {Ctrl+G}         & {Open GlobalScript.asc} }
+\row{ {Ctrl+H}         & {Open GlobalScript.ash} }
+\row{ {Ctrl+L}         & {Open Game} }
+\row{ {Ctrl+Q}         & {Quit} }
+\row{ {Ctrl+R}         & {Save Room} }
+\row{ {Ctrl+S}         & {Save Game} }
+\row{ {Ctrl+V}         & {Paste} }
+\row{ {Ctrl+W}         & {Close Tab} }
+\row{ {Ctrl+X}         & {Cut} }
+\row{ {Ctrl+Y}         & {Redo} }
+\row{ {Ctrl+Z}         & {Undo} }
+\row{ {}               & {} }
+\row{ {Ctrl+Space}     & {Show Autocomplete} }
+\row{ {Ctrl+Tab}       & {Next tab} }
+\row{ {Ctrl+Shift+Tab} & {Previous tab} }
+\row{ {}               & {} }
+\row{ {Tab}            & {Indent selected lines} }
+\row{ {Shift+Tab}      & {Un-indent selected lines} }
+\end{tabular}
 
 \section{ASCII code table}\label{ASCIIcodes}%
 
 This section lists the key codes which can be passed to  on_key_press  and
 which keys they represent:
-\begin{verbatim}
-AGS KeyCode       Key         ASCII code
-eKeyNone          none          0
-eKeyCtrlA         Ctrl+A        1
-eKeyCtrlB         Ctrl+B        2
-eKeyCtrlC         Ctrl+C        3
-eKeyCtrlD         Ctrl+D        4
-eKeyCtrlE         Ctrl+E        5
-eKeyCtrlF         Ctrl+F        6
-eKeyCtrlG         Ctrl+G        7
-eKeyCtrlH         Ctrl+H        8
-eKeyCtrlI         Ctrl+I        9
-eKeyCtrlJ         Ctrl+J       10
-eKeyCtrlK         Ctrl+K       11
-eKeyCtrlL         Ctrl+L       12
-eKeyCtrlM         Ctrl+M       13
-eKeyCtrlN         Ctrl+N       14
-eKeyCtrlO         Ctrl+O       15
-eKeyCtrlP         Ctrl+P       16
-eKeyCtrlQ         Ctrl+Q       17
-eKeyCtrlR         Ctrl+R       18
-eKeyCtrlS         Ctrl+S       19
-eKeyCtrlT         Ctrl+T       20
-eKeyCtrlU         Ctrl+U       21
-eKeyCtrlV         Ctrl+V       22
-eKeyCtrlW         Ctrl+W       23
-eKeyCtrlX         Ctrl+X       24
-eKeyCtrlY         Ctrl+Y       25
-eKeyCtrlZ         Ctrl+Z       26
-eKey0             0            48
-eKey1             1            49
-eKey2             2            50
-eKey3             3            51
-eKey4             4            52
-eKey5             5            53
-eKey6             6            54
-eKey7             7            55
-eKey8             8            56
-eKey9             9            57
-eKeyA             A            65
-eKeyB             B            66
-eKeyC             C            67
-eKeyD             D            68
-eKeyE             E            69
-eKeyF             F            70
-eKeyG             G            71
-eKeyH             H            72
-eKeyI             I            73
-eKeyJ             J            74
-eKeyK             K            75
-eKeyL             L            76
-eKeyM             M            77
-eKeyN             N            78
-eKeyO             O            79
-eKeyP             P            80
-eKeyQ             Q            81
-eKeyR             R            82
-eKeyS             S            83
-eKeyT             T            84
-eKeyU             U            85
-eKeyV             V            86
-eKeyW             W            87
-eKeyX             X            88
-eKeyY             Y            89
-eKeyZ             Z            90
-eKeyAmpersand         &            38
-eKeyAsterisk          *            42
-eKeyAt                @            64
-eKeyBackSlash         \            92
-eKeyBackspace         Backspace     8
-eKeyCloseBracket      ]            93
-eKeyCloseParenthesis  )            41
-eKeyColon             :            58
-eKeyComma             ,            44
-eKeyDelete            Delete      383
-eKeyDollar            $            36
-eKeyDoubleQuote       "            34
-eKeyEquals            =            61
-eKeyEscape            ESC          27
-eKeyExclamationMark   !            33
-eKeyForwardSlash      /            47
-eKeyGreaterThan       >            62
-eKeyHash              #            35
-eKeyHyphen            -            45
-eKeyInsert            Insert      382
-eKeyLessThan          <            60
-eKeyOpenBracket       [            91
-eKeyOpenParenthesis   (            40
-eKeyPercent           %            37
-eKeyPeriod            .            46
-eKeyPlus              +            43
-eKeyQuestionMark      ?            63
-eKeyReturn            RETURN       13
-eKeySemiColon         ;            59
-eKeySingleQuote       '            39
-eKeySpace             SPACE        32
-eKeyTab               TAB           9
-eKeyUnderscore        _            95
-eKeyF1                F1          359
-eKeyF2                F2          360
-eKeyF3                F3          361
-eKeyF4                F4          362
-eKeyF5                F5          363
-eKeyF6                F6          364
-eKeyF7                F7          365
-eKeyF8                F8          366
-eKeyF9                F9          367
-eKeyF10               F10         368
-eKeyF11               F11         433
-eKeyF12               F12         434
-eKeyHome              Home        371
-eKeyUpArrow           UpArrow     372
-eKeyPageUp            PageUp      373
-eKeyLeftArrow         LeftArrow   375
-eKeyNumPad5           NumPad 5    376
-eKeyRightArrow        RightArrow  377
-eKeyEnd               End         379
-eKeyDownArrow         DownArrow   380
-eKeyPageDown          PageDown    381
-\end{verbatim}
+\begin{tabular}{|l|l|r|}
+\row{ {\bf{AGS KeyCode}}     & {\bf{Key}}          & {\bf{ASCII code}} }
+\row{ {eKeyNone}             & {\verb|none|}       &   {0} }
+\row{ {eKeyCtrlA}            & {\verb|Ctrl+A|}     &   {1} }
+\row{ {eKeyCtrlB}            & {\verb|Ctrl+B|}     &   {2} }
+\row{ {eKeyCtrlC}            & {\verb|Ctrl+C|}     &   {3} }
+\row{ {eKeyCtrlD}            & {\verb|Ctrl+D|}     &   {4} }
+\row{ {eKeyCtrlE}            & {\verb|Ctrl+E|}     &   {5} }
+\row{ {eKeyCtrlF}            & {\verb|Ctrl+F|}     &   {6} }
+\row{ {eKeyCtrlG}            & {\verb|Ctrl+G|}     &   {7} }
+\row{ {eKeyCtrlH}            & {\verb|Ctrl+H|}     &   {8} }
+\row{ {eKeyCtrlI}            & {\verb|Ctrl+I|}     &   {9} }
+\row{ {eKeyCtrlJ}            & {\verb|Ctrl+J|}     &  {10} }
+\row{ {eKeyCtrlK}            & {\verb|Ctrl+K|}     &  {11} }
+\row{ {eKeyCtrlL}            & {\verb|Ctrl+L|}     &  {12} }
+\row{ {eKeyCtrlM}            & {\verb|Ctrl+M|}     &  {13} }
+\row{ {eKeyCtrlN}            & {\verb|Ctrl+N|}     &  {14} }
+\row{ {eKeyCtrlO}            & {\verb|Ctrl+O|}     &  {15} }
+\row{ {eKeyCtrlP}            & {\verb|Ctrl+P|}     &  {16} }
+\row{ {eKeyCtrlQ}            & {\verb|Ctrl+Q|}     &  {17} }
+\row{ {eKeyCtrlR}            & {\verb|Ctrl+R|}     &  {18} }
+\row{ {eKeyCtrlS}            & {\verb|Ctrl+S|}     &  {19} }
+\row{ {eKeyCtrlT}            & {\verb|Ctrl+T|}     &  {20} }
+\row{ {eKeyCtrlU}            & {\verb|Ctrl+U|}     &  {21} }
+\row{ {eKeyCtrlV}            & {\verb|Ctrl+V|}     &  {22} }
+\row{ {eKeyCtrlW}            & {\verb|Ctrl+W|}     &  {23} }
+\row{ {eKeyCtrlX}            & {\verb|Ctrl+X|}     &  {24} }
+\row{ {eKeyCtrlY}            & {\verb|Ctrl+Y|}     &  {25} }
+\row{ {eKeyCtrlZ}            & {\verb|Ctrl+Z|}     &  {26} }
+\row{ {eKey0}                & {\verb|0|}          &  {48} }
+\row{ {eKey1}                & {\verb|1|}          &  {49} }
+\row{ {eKey2}                & {\verb|2|}          &  {50} }
+\row{ {eKey3}                & {\verb|3|}          &  {51} }
+\row{ {eKey4}                & {\verb|4|}          &  {52} }
+\row{ {eKey5}                & {\verb|5|}          &  {53} }
+\row{ {eKey6}                & {\verb|6|}          &  {54} }
+\row{ {eKey7}                & {\verb|7|}          &  {55} }
+\row{ {eKey8}                & {\verb|8|}          &  {56} }
+\row{ {eKey9}                & {\verb|9|}          &  {57} }
+\row{ {eKeyA}                & {\verb|A|}          &  {65} }
+\row{ {eKeyB}                & {\verb|B|}          &  {66} }
+\row{ {eKeyC}                & {\verb|C|}          &  {67} }
+\row{ {eKeyD}                & {\verb|D|}          &  {68} }
+\row{ {eKeyE}                & {\verb|E|}          &  {69} }
+\row{ {eKeyF}                & {\verb|F|}          &  {70} }
+\row{ {eKeyG}                & {\verb|G|}          &  {71} }
+\row{ {eKeyH}                & {\verb|H|}          &  {72} }
+\row{ {eKeyI}                & {\verb|I|}          &  {73} }
+\row{ {eKeyJ}                & {\verb|J|}          &  {74} }
+\row{ {eKeyK}                & {\verb|K|}          &  {75} }
+\row{ {eKeyL}                & {\verb|L|}          &  {76} }
+\row{ {eKeyM}                & {\verb|M|}          &  {77} }
+\row{ {eKeyN}                & {\verb|N|}          &  {78} }
+\row{ {eKeyO}                & {\verb|O|}          &  {79} }
+\row{ {eKeyP}                & {\verb|P|}          &  {80} }
+\row{ {eKeyQ}                & {\verb|Q|}          &  {81} }
+\row{ {eKeyR}                & {\verb|R|}          &  {82} }
+\row{ {eKeyS}                & {\verb|S|}          &  {83} }
+\row{ {eKeyT}                & {\verb|T|}          &  {84} }
+\row{ {eKeyU}                & {\verb|U|}          &  {85} }
+\row{ {eKeyV}                & {\verb|V|}          &  {86} }
+\row{ {eKeyW}                & {\verb|W|}          &  {87} }
+\row{ {eKeyX}                & {\verb|X|}          &  {88} }
+\row{ {eKeyY}                & {\verb|Y|}          &  {89} }
+\row{ {eKeyZ}                & {\verb|Z|}          &  {90} }
+\row{ {eKeyAmpersand}        & {\verb|&|}          &  {38} }
+\row{ {eKeyAsterisk}         & {\verb|*|}          &  {42} }
+\row{ {eKeyAt}               & {\verb|@|}          &  {64} }
+\row{ {eKeyBackSlash}        & {\verb|\|}          &  {92} }
+\row{ {eKeyBackspace}        & {\verb|Backspace|}  &   {8} }
+\row{ {eKeyCloseBracket}     & {\verb|]|}          &  {93} }
+\row{ {eKeyCloseParenthesis} & {\verb|)|}          &  {41} }
+\row{ {eKeyColon}            & {\verb|:|}          &  {58} }
+\row{ {eKeyComma}            & {\verb|,|}          &  {44} }
+\row{ {eKeyDelete}           & {\verb|Delete|}     & {383} }
+\row{ {eKeyDollar}           & {\verb|$|}          &  {36} }
+\row{ {eKeyDoubleQuote}      & {\verb|"|}          &  {34} }
+\row{ {eKeyEquals}           & {\verb|=|}          &  {61} }
+\row{ {eKeyEscape}           & {\verb|ESC|}        &  {27} }
+\row{ {eKeyExclamationMark}  & {\verb|!|}          &  {33} }
+\row{ {eKeyForwardSlash}     & {\verb|/|}          &  {47} }
+\row{ {eKeyGreaterThan}      & {\verb|>|}          &  {62} }
+\row{ {eKeyHash}             & {\verb|#|}          &  {35} }
+\row{ {eKeyHyphen}           & {\verb|-|}          &  {45} }
+\row{ {eKeyInsert}           & {\verb|Insert|}     & {382} }
+\row{ {eKeyLessThan}         & {\verb|<|}          &  {60} }
+\row{ {eKeyOpenBracket}      & {\verb|[|}          &  {91} }
+\row{ {eKeyOpenParenthesis}  & {\verb|(|}          &  {40} }
+\row{ {eKeyPercent}          & {\verb|%|}          &  {37} }
+\row{ {eKeyPeriod}           & {\verb|.|}          &  {46} }
+\row{ {eKeyPlus}             & {\verb|+|}          &  {43} }
+\row{ {eKeyQuestionMark}     & {\verb|?|}          &  {63} }
+\row{ {eKeyReturn}           & {\verb|RETURN|}     &  {13} }
+\row{ {eKeySemiColon}        & {\verb|;|}          &  {59} }
+\row{ {eKeySingleQuote}      & {\verb|'|}          &  {39} }
+\row{ {eKeySpace}            & {\verb|SPACE|}      &  {32} }
+\row{ {eKeyTab}              & {\verb|TAB|}        &   {9} }
+\row{ {eKeyUnderscore}       & {\verb|_|}          &  {95} }
+\row{ {eKeyF1}               & {\verb|F1|}         & {359} }
+\row{ {eKeyF2}               & {\verb|F2|}         & {360} }
+\row{ {eKeyF3}               & {\verb|F3|}         & {361} }
+\row{ {eKeyF4}               & {\verb|F4|}         & {362} }
+\row{ {eKeyF5}               & {\verb|F5|}         & {363} }
+\row{ {eKeyF6}               & {\verb|F6|}         & {364} }
+\row{ {eKeyF7}               & {\verb|F7|}         & {365} }
+\row{ {eKeyF8}               & {\verb|F8|}         & {366} }
+\row{ {eKeyF9}               & {\verb|F9|}         & {367} }
+\row{ {eKeyF10}              & {\verb|F10|}        & {368} }
+\row{ {eKeyF11}              & {\verb|F11|}        & {433} }
+\row{ {eKeyF12}              & {\verb|F12|}        & {434} }
+\row{ {eKeyHome}             & {\verb|Home|}       & {371} }
+\row{ {eKeyUpArrow}          & {\verb|UpArrow|}    & {372} }
+\row{ {eKeyPageUp}           & {\verb|PageUp|}     & {373} }
+\row{ {eKeyLeftArrow}        & {\verb|LeftArrow|}  & {375} }
+\row{ {eKeyNumPad5}          & {\verb|NumPad 5|}   & {376} }
+\row{ {eKeyRightArrow}       & {\verb|RightArrow|} & {377} }
+\row{ {eKeyEnd}              & {\verb|End|}        & {379} }
+\row{ {eKeyDownArrow}        & {\verb|DownArrow|}  & {380} }
+\row{ {eKeyPageDown}         & {\verb|PageDown|}   & {381} }
+\end{tabular}
 
 Use these key codes in your on_key_press function to process player input. For example:
 \begin{verbatim}
@@ -19922,13 +19921,14 @@ if (keycode == eKeyPlus) Display("You pressed the Plus key");
 
 The following extra codes can only be used with IsKeyPressed
 (ie. on_key_press is never called with these codes):
-\begin{verbatim}
- 403       Left shift
- 404       Right shift
- 405       Left ctrl
- 406       Right ctrl
- 407       Alt
-\end{verbatim}
+\begin{tabular}{|l|l|}
+\row{ {\bf{Code}} & {\bf{Key}} }
+\row{ {403} & {Left shift} }
+\row{ {404} & {Right shift} }
+\row{ {405} & {Left ctrl} }
+\row{ {406} & {Right ctrl} }
+\row{ {407} & {Alt} }
+\end{tabular}
 
 
 
@@ -20301,7 +20301,7 @@ If you are using any of them in your script you will likely get compilation erro
 them by the corresponding Speech properties, as shown in the table below:
 
 \begin{tabular}{|l|l|}
-\row{ {\bf obsolete function/variable }&{\bf replace with } }
+\row{ {\bf{obsolete function/variable}}&{\bf{replace with}} }
 \row{ { SetVoiceMode }&{ \helprefn{Speech.VoiceMode}{Speech.VoiceMode} }}
 \row{ { SetSkipSpeech }&{ \helprefn{Speech.SkipStyle}{Speech.SkipStyle} }}
 \row{ { SetSpeechStyle }&{ \helprefn{Speech.Style}{Speech.Style} }}

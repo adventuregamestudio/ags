@@ -1987,14 +1987,15 @@ plugin providing a DrawCircle script function.
 So, you've downloaded a plugin for AGS. What do you do with it?
 Well, firstly read any readme file that the plugin author has included. But to get
 any plugin to work you must do the following:
+\begin{enumerate}
+\item Place a copy of the plugin files in the AGSEDIT directory (not your game folder).
 
-1. Place a copy of the plugin files in the AGSEDIT directory (not your game folder).
-
-2. Start the AGS Editor up, and load your game. Go to the Plugins node in the main tree.
-Open it up, and you should see all available plugins listed. To use one in your game,
-right-click it and choose "Use plugin". The plugin developer should provide
-instructions on what to do next. Save your game to make sure that AGS remembers
+\item Start the AGS Editor up, and load your game. Go to the Plugins node in the main tree.
+  Open it up, and you should see all available plugins listed. To use one in your game,
+  right-click it and choose "Use plugin". The plugin developer should provide
+  instructions on what to do next. Save your game to make sure that AGS remembers
 that you want to use the plugin.
+\end{enumerate}
 
 \section{Lip sync}%
 
@@ -4231,38 +4232,35 @@ well without using them, but in some specific situations they're very handy.
 
 \subsection{this}\label{this}%
 
-There are two uses for the \verb$this$ keyword.
+There are two uses for the \verb$this$ keyword:
+\begin{enumerate}
+\item \it{Accessing members of the current struct} -- When you are creating
+  custom \helprefn{structs}{struct}, you use the "this" keyword inside member
+  functions to refer to the current struct. For example, suppose you had this
+  in your script header:
+  \begin{verbatim}
+  struct MyStruct {
+    int myValue;
 
-\bf{1. Accessing members of the current struct}
+    import function MyMethod();
+  };
+  \end{verbatim}
+  Then, in your main script, you could put this:
+  \begin{verbatim}
+  function MyStruct::MyMethod()
+  {
+    this.myValue = 5;
+  }
+  \end{verbatim}
+  The \verb$MyStruct::MyMethod$ tells AGS that you are defining the function \it{MyMethod}
+  which belongs to the struct \it{MyStruct} (the \verb$::$ operator means "belongs to").
 
-When you are creating custom \helprefn{structs}{struct}, you use the "this" keyword inside member
-functions to refer to the current struct. For example:
+  The code above will mean that when the MyMethod function is called, it sets
+  the \verb$myValue$ variable to 5.
 
-Suppose you had this in your script header:
-\begin{verbatim}
-struct MyStruct {
-  int myValue;
-
-  import function MyMethod();
-};
-\end{verbatim}
-Then, in your main script, you could put this:
-\begin{verbatim}
-function MyStruct::MyMethod()
-{
-  this.myValue = 5;
-}
-\end{verbatim}
-The \verb$MyStruct::MyMethod$ tells AGS that you are defining the function \it{MyMethod}
-which belongs to the struct \it{MyStruct} (the \verb$::$ operator means "belongs to").
-
-The code above will mean that when the MyMethod function is called, it sets
-the \verb$myValue$ variable to 5.
-
-\bf{2. Declaring extender functions}
-
-Please see the \helprefn{Extender functions}{ExtenderFunctions} page for details.
-
+\item \it{Declaring extender functions} -- Please see the
+  \helprefn{Extender functions}{ExtenderFunctions} page for details.
+\end{enumerate}
 
 \subsection{import}\label{importkeyword}%
 
@@ -20550,20 +20548,23 @@ The main changes are explained below:
 The Interaction Editor has been removed from AGS 3.0. When you import your game, AGS
 will attempt to convert all your interactions into scripts. These should mostly
 just work, however there are a couple of things you should be aware of:
+\begin{enumerate}
+\item \it{Concurrency issues} -- that is, while a blocking script was running in 2.72
+  it was still possible for interactions to run at the same time if they didn't
+  include any scripting. Now, that is no longer the case.
+\item \it{Blocking interactions} -- in 2.72, a "Run Dialog" interaction, for example,
+  waits until the dialog has finished before moving onto the next action. If you
+  had a Run Dialog followed by a Change Room, then the dialog would finish before
+  the room change happened.
 
-1. Concurrency issues -- that is, while a blocking script was running in 2.72
-it was still possible for interactions to run at the same time if they didn't
-include any scripting. Now, that is no longer the case. ILBRK
-2. Blocking interactions -- in 2.72, a "Run Dialog" interaction, for example,
-waits until the dialog has finished before moving onto the next action. If you
-had a Run Dialog followed by a Change Room, then the dialog would finish before
-the room change happened. ILBRK
-With scripting, you need to be careful because the dialog[x].Start() command
-does not block; instead, it waits until the event script has finished running
-before the dialog runs. This would mean that the room change would not
-necessarily happen after the dialog. ILBRK
-To mitigate these types of problems, you can use an alternate solution such
-as a \it{run-script} command at the end of the dialog to run the room change.
+  With scripting, you need to be careful because the dialog[x].Start() command
+  does not block; instead, it waits until the event script has finished running
+  before the dialog runs. This would mean that the room change would not
+  necessarily happen after the dialog.
+
+  To mitigate these types of problems, you can use an alternate solution such
+  as a \it{run-script} command at the end of the dialog to run the room change.
+\end{enumerate}
 
 \section*{Global Messages}
 
@@ -20625,16 +20626,17 @@ Scripting hasn't really changed in AGS 3. Two new features (extender functions
 and dynamic arrays) have been added, but you shouldn't need to change any
 existing code.
 
-The only breaking changes are as follows: ILBRK
-1. \verb$new$ is now a reserved word. This means that if you had any variables
-called "new" then your script will fail to compile. Just rename the variable
-to something else. ILBRK
-2. Because of the removal of some system limits, some of the AGS_MAX_ constants
+The only breaking changes are as follows:
+\begin{enumerate}
+\item \verb$new$ is now a reserved word. This means that if you had any variables
+  called "new" then your script will fail to compile. Just rename the variable
+  to something else.
+\item Because of the removal of some system limits, some of the AGS_MAX_ constants
 have been removed (since there is no sensible value for them now that the limits
 have gone). This will probably only affect module authors and is unlikely to
 affect your game. Specifically, the following have been removed: AGS_MAX_GUIS,
 AGS_MAX_CHARACTERS, AGS_MAX_VIEWS, AGS_MAX_LOOPS_PER_VIEW, AGS_MAX_FRAMES_PER_LOOP.
-
+\end{enumerate}
 
 \chapter{Upgrading to AGS 3.1}\label{UpgradeTo31}%
 

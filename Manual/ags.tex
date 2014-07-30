@@ -184,7 +184,7 @@ No matter which you choose as your default graphics driver, the player can alway
 run the Setup program and switch to using the other driver if they are having problems
 on their PC.
 
-\bf{System Requirements}
+\subsection*{System Requirements}
 
 \bf{DirectDraw}: any Windows-based PC with DirectX 5 or later installed ILBRK
 \bf{Direct3D}: any Windows-based PC with DirectX 9.0 installed and a graphics card designed
@@ -419,7 +419,7 @@ when they are running Windows at 24-bit or 32-bit colour. If this happens to you
 are two solutions: (a) turn down your desktop colour depth to 16-bit to run the AGS Editor,
 or (b) import your sprites from files rather than the clipboard.}
 
-\bf{Tiled sprite import}
+\subsubsection*{Tiled sprite import}
 
 You may have noticed a checkbox called "Tiled sprite import". Some people find
 this a useful way of importing many frames of a character's animation at once.
@@ -433,7 +433,7 @@ and now you can drag the mouse to define how many frames to import - they'll all
 be enclosed by selection rectangles. Once you have the correct number, click the left
 button again and they will all be imported.
 
-\bf{Alpha blended sprites}
+\subsubsection*{Alpha blended sprites}
 
 AGS supports alpha blended sprites if your game is 32-bit colour. In this case, you
 need to import a PNG image with an alpha channel (you cannot paste alpha-blended
@@ -682,7 +682,8 @@ says the option when the player clicks it. The default is on, but if you
 want options describing the player's actions rather than the actual words,
 you may want to turn this column off for that dialog.
 \end{itemize}
-\bf{Dialog scripts}
+
+\subsubsection*{Dialog scripts}
 
 You control what happens when the player chooses an option by editing
 the script on the right. This is called the \bf{dialog script}, and is a
@@ -755,7 +756,7 @@ The dialog commands available are:
 For an example of a dialog script, load the demo game into the editor and
 look at the script for its topic 0.
 
-\bf{Using scripting commands in dialogs}
+\subsubsection*{Using scripting commands in dialogs}
 
 Often the provided dialog scripting commands won't be enough for what you want
 to do in the dialog. You might want to give the player an inventory item or
@@ -795,7 +796,7 @@ otherman: "Here's a key for you."
 return
 \end{verbatim}
 
-\bf{Parser input}
+\subsubsection*f{Parser input}
 
 You'll notice in the dialog editor, the property grid has an option called "ShowTextParser".
 If you enable this, a text box will be displayed below the predefined options in the game,
@@ -1202,7 +1203,7 @@ This section describes AGS features that were not covered in the tutorial.
 Sound and music are an essential part of any gameplay experience, and AGS 3.2 and higher
 provides a re-written audio system giving you full control over your game audio.
 
-\bf{File formats}
+\subsection*{File formats}
 
 AGS is able to play the following types of audio file: OGG, MP3, MIDI, WAV (uncompressed),
 MOD, XM, IT, S3M and VOC.
@@ -1216,17 +1217,17 @@ better compression and higher quality. More importantly, it is a totally free fo
 so no royalty payments or licenses are required to use it. For more information and
 programs to encode your music to OGG, see http://www.vorbis.org/
 
-\bf{Audio in the Editor}
+\subsection*{Audio in the Editor}
 
 Look under the "Audio" branch in the project tree. Here you'll find sub-nodes called
 "Speech", "Types" and two default folders called "Music" and "Sounds".
 
-\bf{Speech}
+\subsection*{Speech}
 
 At the moment, voice speech files are not setup within the editor. See the \helprefn{Speech}{VoiceSpeech}
 help page to find out more about adding speech to your game.
 
-\bf{Audio Types}
+\subsection*{Audio Types}
 
 Audio Types allow you to group together similar types of audio files. The standard
 distinction here is between Sound and Music, whereby you usually only want one Music
@@ -1243,7 +1244,7 @@ music.
 You'll probably find that the default settings here are fine, and in many games you won't
 need to change them.
 
-\bf{Importing audio files}
+\subsection*{Importing audio files}
 
 Now let's get on to the important question -- how do you add sound and music to your game?
 Well, if you right-click on the "Sound" or "Music" folders (or any other folders that
@@ -1255,7 +1256,7 @@ want to import. Once imported, they'll be assigned script names automatically.
 Double-click an audio file in the project tree to open a window where you can preview
 it, as well as change its properties in the Property Grid.
 
-\bf{Playing audio in the game}
+\subsection*{Playing audio in the game}
 
 The script to play an audio clip in the game is very simple. For example:
 \begin{verbatim}
@@ -1263,7 +1264,7 @@ aExplosion.Play();
 \end{verbatim}
 plays the audio clip called \it{aExplosion}.
 
-\bf{Priorities and channels}
+\subsection*{Priorities and channels}
 
 AGS currently has an 8-channel audio system, which means that up to 8 sounds can be
 playing at the same time. With the default Audio Types settings, one channel is reserved
@@ -1289,7 +1290,7 @@ play it, for example:
 aExplosion.Play(eAudioPriorityLow);
 \end{verbatim}
 
-\bf{Seeking and changing volume}
+\subsection*{Seeking and changing volume}
 
 So, how do you change a sound once it is playing? Well, there are no methods on the
 Audio Clip to do this, because you might be playing two copies of the same sound at
@@ -1307,7 +1308,7 @@ chan.Volume = 20;
 
 This will start the \it{aExplosion} audio clip playing, and then change its volume to \verb$20%$.
 
-\bf{Using Audio Channels}
+\subsection*{Using Audio Channels}
 
 Supposing you want to start playing a sound now, and then change its volume or panning later on.
 How would you do that? Well, you'd need to keep the AudioChannel around, so that you can access
@@ -1327,13 +1328,13 @@ if (longWindedSound != null)
 Note the check for null here -- this makes sure that your game won't crash if the sound isn't
 playing (it might have finished, or not have been started yet).
 
-\bf{Overall system volume}
+\subsection*{Overall system volume}
 
 There is a property called \helprefn{System.Volume}{System.Volume} that controls the
 overall game volume, which you can use with some sort of volume control slider for the
 player. All individual sound volumes work within the overall system volume.
 
-\bf{Conclusion}
+\subsection*{Conclusion}
 
 The new audio system in AGS gives you much more control over your game audio.
 Please see the following sections for a complete list of the supported commands:
@@ -1854,7 +1855,7 @@ defining it in three different places, with import and export clauses in the
 appropriate locations. Now, this whole process is vastly simplified with the new
 Global Variables Editor.
 
-\bf{When should I use a global variable?}
+\subsection*{When should I use a global variable?}
 
 Use a global variable when you need to store some information that you need
 to access from different scripts. For example, if you want to store the player's
@@ -1865,13 +1866,13 @@ If you just need to store some information locally (for example, a "door opened"
 that only applies to one particular room) then you should declare the variable
 manually at the top of the room's script file instead.
 
-\bf{What about GlobalInts and Graphical Variables?}
+\subsection*{What about GlobalInts and Graphical Variables?}
 
 GlobalInts and Graphical Variables were ways in which previous versions of AGS
 provided global variable capabilities. They are now considered obsolete, and are
 replaced with this new Global Variables system instead.
 
-\bf{How do I use global variables?}
+\subsection*{How do I use global variables?}
 
 The Global Variables Editor is pretty self-explanitory. To add a variable, right-click
 and choose "Add". You can name the variable, and choose its type and initial value.
@@ -1904,7 +1905,7 @@ point to something before you use it.
 
 \section{Custom Properties}\index{Properties}%
 
-\bf{What are custom properties?}
+\subsection*{What are custom properties?}
 
 Suppose you're making a Lucasarts-style game, and you want all your hotspots to have
 a default event (so if the player right-clicks a window, for example, "Open" will be
@@ -1917,7 +1918,7 @@ This is where Custom Properties come to the rescue. You can create a custom prop
 for "Default event", for example, and then have some simple code in the global script
 to use the setting accordingly.
 
-\bf{How do I use them?}
+\subsection*{How do I use them?}
 
 You'll notice that characters, objects, hotspots, rooms and inventory items all have
 a "Properties" option in their property grids. Select it and click the "..." button.
@@ -1949,7 +1950,7 @@ All types of game item share the same schema. That is, if you create a "Jibble" 
 in the schema editor for a hotspot, it will also appear in the properties window for
 characters, objects, and so on.
 
-\bf{Getting values in the script}
+\subsection*{Getting values in the script}
 
 To access the properties from the script, there are various script functions. See
 their descriptions for how they work:
@@ -1979,7 +1980,7 @@ The plugin developer's guide is available from the Resources section of the AGS 
 Plugins come as DLL files with the names  AGS*.DLL, for example  agscircle.dll  might be a
 plugin providing a DrawCircle script function.
 
-\bf{How to use a plugin}
+\subsection*{How to use a plugin}
 
 So, you've downloaded a plugin for AGS. What do you do with it?
 Well, firstly read any readme file that the plugin author has included. But to get
@@ -2023,7 +2024,7 @@ The "Default frame for unlisted characters" box allows you to set which frame is
 when a character not listed in any of the text boxes is encountered.
 
 
-\bf{Voice speech lip sync}
+\subsection*{Voice speech lip sync}
 
 AGS supports lip syncing voice speech to the talking animation. If you enable this
 feature, you cannot use the standard lip-sync for non-voice lines.
@@ -2068,13 +2069,13 @@ box, a window appears with various templates that you can base your game off.
 
 AGS comes with a few standard templates, but you can create your own too.
 
-\bf{Using downloaded templates}
+\subsection*{Using downloaded templates}
 
 If you've downloaded a game template from the internet, you should find a file with
 a .AGT extension. This is the AGS Template File, and you just need to copy it into
 the "Templates" folder within the AGS Editor directory.
 
-\bf{Creating your own template}
+\subsection*{Creating your own template}
 
 A game template is basically just an archive containing all of the game source files,
 which are then extracted into the new folder when the user creates a new game. It is
@@ -2121,7 +2122,7 @@ only available when "Enable debug mode" is set in your Game Settings. So, just b
 release your game, set that option to False and compile the game again to make sure the
 player can't cheat using these features.
 
-\bf{1. The script debugger}
+\subsection*{The script debugger}
 
 When you run the game using the Run (F5) option, the game will be started with the debugger.
 This allows you to pause your game and follow it through one line at a time.
@@ -2144,7 +2145,7 @@ the lines of code, one by one. To allow the game to continue running normally, u
 If you're still using Windows 98, please upgrade to Windows XP or higher to take advantage
 of this feature.
 
-\bf{2. The Debug() command}
+\subsection*{The Debug() command}
 
 There is a scripting command, \helprefn{Debug}{Debug}, which you can use in your script
 to help you find problems. The default setup enables some hotkeys for the various features -
@@ -2157,7 +2158,7 @@ rooms).
 
 This command only works if Debug Mode is enabled in your Game Settings.
 
-\bf{3. Current room information}
+\subsection*{Current room information}
 
 Pressing Ctrl+D displays some information about the current room. It tells you what
 room number you are in, followed by the current status of all objects in the room. After that,
@@ -2200,7 +2201,7 @@ them; and secondly, in Windows Vista and later, AGS can integrate with the Game 
 Optionally, AGS can set up Windows Explorer so that you can double-click on a save game
 file to directly launch the game and continue from where you left off.
 
-\bf{Setting it up}
+\subsubsection*{Setting it up}
 
 In order to enable this, open the General Settings pane, and look for the "Saved Games"
 section. Here, there is an option called "Enhanced Save Games". If you switch this on,
@@ -2214,7 +2215,7 @@ extension for Demo Quest, for example).
 By changing these settings, your game's saved game filenames will change, and therefore
 you will lose access to any existing saved games.
 
-\bf{Extra features for Windows Vista and later}
+\subsubsection*{Extra features for Windows Vista and later}
 
 If the player is running Windows Vista or later versions, then this feature will also allow them to see
 the save game description and screenshot (if enabled) in the Explorer preview window:
@@ -2222,7 +2223,7 @@ the save game description and screenshot (if enabled) in the Explorer preview wi
 LTSSimg src="images/GameExplorer3.jpg" GTSS ILBRK
 \it{Save games with embedded screenshots on Vista and later versions}
 
-\bf{Enabling the integration}
+\subsubsection*{Enabling the integration}
 
 Once you've built the game, the integration won't be enabled immediately. If you want to
 use this feature, you'll need to distribute your game in an installer rather than a zip
@@ -2241,7 +2242,7 @@ and the associations should be created for you.
 For un-installing, run the game EXE again but with a  \verb$-unregistergame$  parameter.
 This will cause AGS to remove the associations from the player's system.
 
-\bf{Cross-Platform Support}
+\subsubsection*{Cross-Platform Support}
 
 Windows: \bf{ Yes }ILBRK
 MS-DOS: \bf{ No }ILBRK
@@ -2262,7 +2263,7 @@ zip file, since you need to tell AGS to add the game to the list at install-time
 LTSSimg src="images/GameExplorer1.jpg" GTSS ILBRK
 \it{The "Games" option launches the Game Explorer}
 
-\bf{Enabling Game Explorer support}
+\subsubsection*{Enabling Game Explorer support}
 
 Open the General Settings pane in the editor. If you scroll down to the bottom of the
 list, you'll find a section titled "Windows Game Explorer". The main setting
@@ -2270,7 +2271,7 @@ is called "Enable Game Explorer integration", and is disabled by default. Set th
 to True if you want to be able to add your game to the Game Explorer (it will
 have no effect on Windows XP and earlier versions).
 
-\bf{Game Explorer settings}
+\subsubsection*{Game Explorer settings}
 
 The rest of the settings here allow you to set up various fields that the Game Explorer
 can display. \bf{Developer Website} must be a URL starting with "http://" if you fill
@@ -2281,20 +2282,20 @@ on its game-playing prowess. 1 is the lowest score, and 5 is the highest at pres
 This field allows you to specify the minimum score required to play your game (this
 will usually be 1 for AGS games, unless you have high resolution and lots of animation).
 
-\bf{Save games}
+\subsubsection*{Save games}
 
 If you set the \it{Save games folder name} property in the Saved Games section, then
 the Game Explorer will provide a right-click option to go straight to the save game folder.
 This is only useful if you also enable Enhanced Save Games.
 
-\bf{Parental controls}
+\subsubsection*{Parental controls}
 
 AGS is not currently able to support the Windows Parental Controls, due to Windows requiring
 the game to be digitally signed for this to work. Digital signatures require you to buy
 a certificate from an authority such as Verisign, so at present they are not supported.
 Your game will be classed as "Unrated" by Windows.
 
-\bf{Boxart image}
+\subsubsection*{Boxart image}
 
 The Game Explorer can display a high-resolution alpha-blended image for your game, rather
 than the standard game icon. To utilise this, place a file called \verb$GameExplorer.png$
@@ -2304,7 +2305,7 @@ than 256 x 256 pixels:
 LTSSimg src="images/GameExplorer2.jpg" GTSS ILBRK
 \it{My game ("Chris Kwest") in the Game Explorer}
 
-\bf{Adding the game to the Game Explorer}
+\subsubsection*{Adding the game to the Game Explorer}
 
 In order to actually add the game to the Game Explorer's list, you need to run the
 game executable with the special parameter \verb$-registergame$  When you do this,
@@ -2322,7 +2323,7 @@ This will cause AGS to remove the game from the Game Explorer's list.
 then the \verb$-registergame$ and \verb$-unregistergame$ commands will register/unregister
 both.
 
-\bf{Cross-Platform Support}
+\subsubsection*{Cross-Platform Support}
 
 Windows: \bf{ Vista and later }ILBRK
 MS-DOS: \bf{ No }ILBRK
@@ -2334,7 +2335,7 @@ MacOS: \bf{ No }
 
 The AGS Editor supports integration with source control systems like SourceSafe and Perforce.
 
-\bf{What is source control?}
+\subsection*{What is source control?}
 
 Source Control allows you to easily keep copies of old versions of your files, so that
 if you break something you can easily look back and see what your script was like
@@ -2344,14 +2345,14 @@ AGS does not provide this functionality itself, but it is able to integrate with
 Source Control applications such as SourceSafe and Perforce in order to allow you
 to easily check things in and out.
 
-\bf{Which providers are supported?}
+\subsection*{Which providers are supported?}
 
 AGS supports any source control system that can integrate with Visual Studio
 (this is called the MSCCI interface). Most source control systems are quite
 heavyweight and designed for use by large teams, but there are smaller
 systems like SourceSafe available which work well on a standalone PC.
 
-\bf{How do I use it?}
+\subsection*{How do I use it?}
 
 If AGS detects an installed source control system, an extra option "Add to
 source control" will appear on the File menu. Use this to add your game to
@@ -2361,7 +2362,7 @@ will prompt you to check it out if necessary.
 You can check in files by using the "Show Pending Checkins" option that
 appears on the File menu once you've added your game to source control.
 
-\bf{Which files does AGS put under source control?}
+\subsection*{Which files does AGS put under source control?}
 
 AGS currently puts the main game file and your scripts, rooms, fonts and
 translations under source control. Optionally, you can also add sound, music
@@ -2408,13 +2409,13 @@ The script editor's autocomplete functionality has been significantly enhanced t
 in all this as well. You'll see as you start to experiment that autocomplete pops up more
 often and lists only the relevant commands thanks to object-based scripting.
 
-\bf{So does this mean I have to throw out all my scripts?}
+\subsection*{So does this mean I have to throw out all my scripts?}
 
 No, certainly not! The new version is fully backwards compatible, so all your existing
 scripts will continue to work just fine. However, for any new scripts that you write,
 it's strongly recommended that you use the new object-based commands.
 
-\bf{Ok, so uh... what's changed exactly?}
+\subsection*{Ok, so uh... what's changed exactly?}
 
 The script language syntax hasn't changed at all (that's the way you use semicolons, brackets,
 and so on). It's still just like it was before, but with some new additions. Most
@@ -2436,7 +2437,7 @@ Suppose you're wondering what commands you can call on a character. Previously i
 to tell, but now if you type  \verb$character[EGO].$  in the script editor, auto-complete will
 pop up and list all the valid functions and properties that you can access on the character.
 
-\bf{So I have to keep typing character[EGO] all the time? What a pain!}
+\subsection*{So I have to keep typing character[EGO] all the time? What a pain!}
 
 Not so fast! Most of the new object-based commands can be called in two ways -- either
 through the main array as we just saw, but also through what's called the character's
@@ -2458,7 +2459,7 @@ can now be done like this:
 
 \verb$player.StopMoving();$
 
-\bf{Hmm, I see... so what exactly has been object-ised?}
+\subsection*{Hmm, I see... so what exactly has been object-ised?}
 
 Currently, the following object-based things are available:
 
@@ -2477,19 +2478,19 @@ and are directly accessed via that. For example, if you set the script name of
 a list box to "lstSaves", then you would use "lstSaves." to access it. There is no
 global array of GUI controls.
 
-\bf{How do I find out the new equivalents of old functions?}
+\subsection*{How do I find out the new equivalents of old functions?}
 
 The help file's index has been set up to automatically redirect you to the new commands.
 Just open the help file, go to the index and type in the name of an old command, and
 it will bring you to the new object-based equivalent (if there is one).
 
-\bf{Which commands haven't been changed?}
+\subsection*{Which commands haven't been changed?}
 
 Commands which don't operate on anything in particular (and therefore wouldn't really
 benefit from being object-based) have been left alone. For example, SaveGameSlot, QuitGame
 and so on have all remained identical to how they were in previous versions.
 
-\bf{What's the deal with these "eBlock" type things?}
+\subsection*{What's the deal with these "eBlock" type things?}
 
 AGS now supports \bf{enumerated types}. Basically, in situations where you have to choose
 one from a list of possible options, an enumerated type (or \it{enum}) now steps in. In
@@ -2504,7 +2505,7 @@ auto-complete automatically pops up the list of options for you to choose from.
 
 See the \helprefn{enum keyword}{enum} description for information on how to create your own.
 
-\bf{So do I have to pass all these things like eBlock every time I call the function?}
+\subsection*{So do I have to pass all these things like eBlock every time I call the function?}
 
 Nope! Many functions now support \bf{optional parameters}, where the most common options
 are selected automatically. If you look at the help for a function such as the
@@ -2512,7 +2513,7 @@ are selected automatically. If you look at the help for a function such as the
 are defined as "optional". This means that you don't have to supply them; if you don't,
 the default option that will be chosen is described in the help for that command.
 
-\bf{So what else is new?}
+\subsection*{So what else is new?}
 
 Well, 2.7 introduces the \it{float} data type, so AGS now finally supports floating-point
 arithmetic in your scripts. Also, for more advanced scripters, you can create your own
@@ -2523,7 +2524,7 @@ Also, the script editor is now much better at checking your script for errors. Y
 well find that a script which compiled fine before no longer works on 2.7. Hopefully
 the error message should direct you towards fixing any problems.
 
-\bf{Is there anything else I should watch out for?}
+\subsection*{Is there anything else I should watch out for?}
 
 Because of the new additions, the script language has more reserved words than before. For
 example, words like "gui", "object" and "hotspot" are now reserved (since they are used
@@ -2534,7 +2535,7 @@ Also, the script language now supports \it{pointers}. Because they are a fairly
 complex topic, there's a \helprefn{separate page}{Pointers} devoted to explaining what
 they are.
 
-\bf{Blimey, that's a lot to take in. Where do I start?}
+\subsection*{Blimey, that's a lot to take in. Where do I start?}
 
 I'd recommend attempting to write your next section of script in the new way. Each time
 you're about to use an old-style command, simply look it up in the manual to find out
@@ -2549,8 +2550,6 @@ AGS Forums and we'll help you out as best we can!
 
 Have fun, ILBRK
 CJ
-
-\bf{Next:} \helprefn{Pointers in AGS}{Pointers}
 
 
 \section{Pointers in AGS}\label{Pointers}%
@@ -2756,7 +2755,7 @@ Note the \bf{text =} in that expression. Functions like Append will return a mod
 of the string, they won't actually change the original. Therefore, to update the \it{text}
 variable you need to assign the result to it.
 
-\bf{Backwards compatibility}
+\subsection*{Backwards compatibility}
 
 In order to maintain backwards compatibility, a new "const" keyword has been added. This
 applies only to old-style strings, and allows them to interoperate with the new ones. A
@@ -2917,7 +2916,7 @@ function AddNumbers(int a, int b) {
 \end{verbatim}
 That's the basic principle behind using multiple scripts!
 
-\bf{Special functions}
+\subsection*{Special functions}
 
 Can extra scripts use special functions like \verb$game_start$ and \verb$repeatedly_execute$?
 Well, yes and no. They can contain the following functions, and they will
@@ -3067,7 +3066,7 @@ character[EGO].Scream();
 \end{verbatim}
 and so on.
 
-\bf{Where do I put this code?}
+\subsection*{Where do I put this code?}
 
 In the script header, you'd put:
 
@@ -3290,7 +3289,7 @@ when it has finished, and tell it to move back again.
 
 This is where \it{repeatedly_execute} and \it{repeatedly_execute_always} come in.
 
-\bf{What's the difference between them?}
+\subsection*{What's the difference between them?}
 
 The \it{repeatedly_execute} event is run on every game loop (by default this is 40 times per
 second), but only when the game is not blocked. That means that it will run as long as there
@@ -3303,7 +3302,7 @@ run any blocking code within it. So if you try to script a \it{player.Walk()} co
 passes the \it{eBlock} parameter -- or even just try to use a \verb$Wait(1);$ command, these
 will fail within \it{repeatedly_execute_always}.
 
-\bf{What would I use each one for?}
+\subsection*{What would I use each one for?}
 
 You would usually use \it{repeatedly_execute} for doing things that affect the player character,
 and \it{repeatedly_execute_always} for doing background tasks that don't directly affect the
@@ -3319,7 +3318,7 @@ On the other hand, in the case of our bird flying across the screen, because we 
 block the game while the bird flies, and we just want it to happen in the background,
 \it{repeatedly_execute_always} would be the place to put it.
 
-\bf{How do I create them?}
+\subsection*{How do I create them?}
 
 In main game scripts, you create your \it{repeatedly_execute} script function by just pasting
 it into the script as follows. In the GlobalScript.asc it is already created for you:
@@ -3348,7 +3347,7 @@ function repeatedly_execute_always()
 Remember, of course, that RepExec or \it{repeatedly_execute_always} functions in a room script
 will only be run while the player is actually in that room!
 
-\bf{Can you show me an example?}
+\subsection*{Can you show me an example?}
 
 Let's implement the two things we just talked about. Here's our hunger checking code:
 \begin{verbatim}
@@ -3429,7 +3428,7 @@ dialog_options_mouse_click function has an extra parameter for the mouse button.
 that you should not make any blocking calls, such as Character.Say, Wait or Display within them,
 as they may not behave correctly.
 
-\bf{Example}
+\subsection*{Example}
 
 Below is a very simple implementation of a dialog options screen.
 
@@ -4109,7 +4108,7 @@ Generally, you place your functions in your global script. You then need to add
 an \helprefn{import}{importkeyword} line to your script header to allow the function to be called
 from room scripts.
 
-\bf{Optional parameters}
+\subsubsection*{Optional parameters}
 
 You can make \it{int} parameters optional if there is a default value that the user
 doesn't need to supply. To do this, change the script header \it{import} declaration like this:
@@ -4171,7 +4170,7 @@ structs are essential if you have complex data that you need to store in your sc
 
 \subsection{enum}\label{enum}%
 
-\bf{Recommended for advanced users only}
+\it{Note:} Recommended for advanced users only.
 
 \bf{enum} \it{name} \verb${$ ILBRK
   \it{option1} [ = \it{value1} ], ILBRK
@@ -11158,7 +11157,7 @@ music player with AGS).
 Note that mode 1 does not work with some graphics cards in full-screen mode, so you
 should only rely on it working when your game is run in windowed mode.
 
-\bf{Cross-Platform Support}
+\subsubsection*{Cross-Platform Support}
 
 Windows: \bf{ Yes }ILBRK
 MS-DOS: \bf{ No }ILBRK
@@ -12464,7 +12463,7 @@ GUIControl.BringToFront()
 Brings this control to the front of the Z-order. This allows you to rearrange the display order
 of controls within the GUI.
 
-\bf{Applies To}
+\subsubsection*{Applies To}
 
 Inherited by the Button, InvWindow, Label, ListBox, Slider and TextBox.
 
@@ -12495,7 +12494,7 @@ Also, bear in mind that if you set \it{Clickable} to false then any mouse clicks
 onto whatever is behind. On the other hand, if \it{Enabled} is set to false then the control "absorbs"
 the mouse click but does not do anything with it.
 
-\bf{Applies To}
+\subsubsection*{Applies To}
 
 Inherited by the Button, InvWindow, Label, ListBox, Slider and TextBox.
 
@@ -12532,7 +12531,7 @@ While a control is disabled, it will not respond to mouse clicks. If it is a but
 mouseover and pushed pictures will not be shown. The control will be drawn according to
 the game "When GUI Disabled" settings, as usual.
 
-\bf{Applies To}
+\subsubsection*{Applies To}
 
 Inherited by the Button, InvWindow, Label, ListBox, Slider and TextBox.
 
@@ -12554,7 +12553,7 @@ int GUIControl.Height;
 Gets/sets the height of the GUI control.  This allows you to dynamically
 resize GUI controls while the game is running.
 
-\bf{Applies To}
+\subsubsection*{Applies To}
 
 Inherited by the Button, InvWindow, Label, ListBox, Slider and TextBox.
 
@@ -12577,7 +12576,7 @@ Gets the GUI control's ID number. This is the control's object number from the G
 and is useful if you need to interoperate with legacy code that uses the control's number
 rather than object name.
 
-\bf{Applies To}
+\subsubsection*{Applies To}
 
 Inherited by the Button, InvWindow, Label, ListBox, Slider and TextBox.
 
@@ -12603,7 +12602,7 @@ Gets the GUI control's owning GUI, which is the GUI that contains the control.
 Returns a GUI, which allows you to use all the usual
 \helprefn{GUI functions and properties}{GUIFuncsAndProps}.
 
-\bf{Applies To}
+\subsubsection*{Applies To}
 
 Inherited by the Button, InvWindow, Label, ListBox, Slider and TextBox.
 
@@ -12628,7 +12627,7 @@ GUIControl.SendToBack()
 Sends this control to the back of the Z-order. This allows you to rearrange the display order
 of controls within the GUI.
 
-\bf{Applies To}
+\subsubsection*{Applies To}
 
 Inherited by the Button, InvWindow, Label, ListBox, Slider and TextBox.
 
@@ -12657,7 +12656,7 @@ This allows you to dynamically move GUI controls around on the screen while the
 game is running, and this may well be useful in conjunction with GUI.SetSize if you
 want to create dynamically resizable GUIs.
 
-\bf{Applies To}
+\subsubsection*{Applies To}
 
 Inherited by the Button, InvWindow, Label, ListBox, Slider and TextBox.
 
@@ -12687,7 +12686,7 @@ This allows you to dynamically resize GUI controls on the screen while the
 game is running, and this may well be useful in conjunction with GUI.SetSize and
 GUIControl.SetPosition if you want to create dynamically resizable GUIs.
 
-\bf{Applies To}
+\subsubsection*{Applies To}
 
 Inherited by the Button, InvWindow, Label, ListBox, Slider and TextBox.
 
@@ -12714,7 +12713,7 @@ can set it to \it{false} in order to temporarily remove the GUI control from the
 While the control is invisible, it will not be drawn on the screen, and will not register
 clicks or otherwise respond to any user input.
 
-\bf{Applies To}
+\subsubsection*{Applies To}
 
 Inherited by the Button, InvWindow, Label, ListBox, Slider and TextBox.
 
@@ -12735,7 +12734,7 @@ int GUIControl.Width;
 Gets/sets the width of the GUI control.  This allows you to dynamically
 resize GUI controls while the game is running.
 
-\bf{Applies To}
+\subsubsection*{Applies To}
 
 Inherited by the Button, InvWindow, Label, ListBox, Slider and TextBox.
 
@@ -12760,7 +12759,7 @@ relative to the GUI which contains the control.
 This allows you to dynamically move GUI controls around on their parent GUI while the
 game is running.
 
-\bf{Applies To}
+\subsubsection*{Applies To}
 
 Inherited by the Button, InvWindow, Label, ListBox, Slider and TextBox.
 
@@ -12785,7 +12784,7 @@ relative to the GUI which contains the control.
 This allows you to dynamically move GUI controls around on their parent GUI while the
 game is running.
 
-\bf{Applies To}
+\subsubsection*{Applies To}
 
 Inherited by the Button, InvWindow, Label, ListBox, Slider and TextBox.
 
@@ -15410,7 +15409,7 @@ functions. This will not be noticeable if you call them from most scripts,
 but using CDAudio in a repeatedly_execute script will noticeably slow down
 the game.
 
-\bf{Cross-Platform Support}
+\subsection*{Cross-Platform Support}
 
 Windows: \bf{ Yes, but supports 1 CD-ROM drive only }ILBRK
 MS-DOS: \bf{ Yes, if CD-ROM device driver loaded }ILBRK
@@ -15560,7 +15559,7 @@ so you will have to place them separately in the Compiled folder for them to wor
 \bf{NOTE:} In 256-colour games, PlayVideo is not supported. Please use a FLC/FLI video
 with the \helprefn{PlayFlic}{PlayFlic} command instead.
 
-\bf{Cross-Platform Support}
+\subsubsection*{Cross-Platform Support}
 
 Windows: \bf{ Yes }ILBRK
 MS-DOS: \bf{ No }ILBRK
@@ -19153,7 +19152,7 @@ Returns whether the game is running with hardware acceleration (eg. Direct3D). I
 the case then RawDrawing is likely to be slower, but alpha blending and large sprites are
 likely to be faster, than when the non-accelerated driver is used.
 
-\bf{Cross-Platform Support}
+\subsubsection*{Cross-Platform Support}
 
 Windows: \bf{ Direct3D driver }ILBRK
 MS-DOS: \bf{ No }ILBRK
@@ -19323,7 +19322,7 @@ Gets whether the player's PC supports changing the screen's gamma control settin
 This must return \it{true} before you try and change the \helprefn{System.Gamma}{System.Gamma} property.
 The situations in which this will be supported are listed below.
 
-\bf{Cross-Platform Support}
+\subsubsection*{Cross-Platform Support}
 
 Windows: \bf{ Full-screen only }ILBRK
 MS-DOS: \bf{ No }ILBRK
@@ -20479,7 +20478,7 @@ the AGS Forums on the website -- in particular, the Beginners Technical
 Forum has an excellent Beginners FAQ (the "BFAQ") which is much more
 extensive and is updated regularly with all sorts of Q&A's.
 
-\bf{Q. What's the deal with the license? What does it mean in plain English?}
+\section*{Q. What's the deal with the license? What does it mean in plain English?}
 
 A. Adventure Game Studio is pretty much freeware. That means you may use
    it freely for non-commerical games, and you don't have to send me anything
@@ -20490,19 +20489,19 @@ A. Adventure Game Studio is pretty much freeware. That means you may use
    When you finish your game, please do post it on the Announcements
    Forum and the Games Database so that everyone can give it a go.
 
-\bf{Q. Why the swapware license? Why aren't you charging for it?}
+\section*{Q. Why the swapware license? Why aren't you charging for it?}
 
 A. Because I don't want to. There's no need to be suspicious, the fact that it's
    free doesn't necessarily mean that it's rubbish.
 
-\bf{Q. On my screen, I can't move the main character. Wherever I click to move him,
+\section*{Q. On my screen, I can't move the main character. Wherever I click to move him,
    he just stands there.}
 
 A. If the main character isn't on a walkable area, he will not be able to move.
    Load the room in the editor, and check that the location where the
    character starts is on a walkable area.
 
-\bf{Q. When I enter a certain room, I just get a black screen.}
+\section*{Q. When I enter a certain room, I just get a black screen.}
 
 A. Make sure that you haven't used a Display Message command in the "Enters
    room before fade-in" event for that room. Remember that this event happens BEFORE
@@ -20513,12 +20512,12 @@ A. Make sure that you haven't used a Display Message command in the "Enters
    have happened. If this is the case, press Alt+X, which should exit the
    program and allow you to trace which line of script it has stopped on.
 
-\bf{Q. The character isn't drawn behind my walk-behind areas!}
+\section*{Q. The character isn't drawn behind my walk-behind areas!}
 
 A. You need to define the base line for the area, or he will always be drawn
    in front. See the tutorial for more information.
 
-\bf{Q. My game EXE file seems to have disappeared.}
+\section*{Q. My game EXE file seems to have disappeared.}
 
 A. Because this file is your entire game, including the room files, when you
    save a room in the Room Editor it will delete the exe file (because the
@@ -20539,7 +20538,7 @@ get a good feeling for how the editor works.
 
 The main changes are explained below:
 
-\bf{Interaction Editor}
+\section*{Interaction Editor}
 
 The Interaction Editor has been removed from AGS 3.0. When you import your game, AGS
 will attempt to convert all your interactions into scripts. These should mostly
@@ -20559,7 +20558,7 @@ necessarily happen after the dialog. ILBRK
 To mitigate these types of problems, you can use an alternate solution such
 as a \it{run-script} command at the end of the dialog to run the room change.
 
-\bf{Global Messages}
+\section*{Global Messages}
 
 Global Messages are no longer supported and should be considered obsolete --
 there's really no need for them now that the interaction editor has gone.
@@ -20571,7 +20570,7 @@ command.
 As of 3.0.2, there is now a Global Variables editor in which you can create global
 string variables, which provide all the functionality of Global Messages and more.
 
-\bf{Saving and testing your game}
+\section*{Saving and testing your game}
 
 AGS 3.0 works slightly differently to previous versions in the way that saving
 and testing games works. The Save option (Ctrl+S) is the equivalent of the old
@@ -20592,7 +20591,7 @@ AGS 3's Run command is much faster than the old Test Game command because
 it directly loads the files from the game folder instead. If you want to
 build your game EXE, you need to use the "Build EXE" command to do so.
 
-\bf{RawDraw scripting changes}
+\section*{RawDraw scripting changes}
 
 The RawDraw family of functions have finally been object-ised, and the old versions
 are now obsolete. Support has been added to allow you to RawDraw onto dynamic sprites
@@ -20613,7 +20612,7 @@ finished drawing onto it, which tells AGS to update the data in memory.
 For examples, see the \helprefn{DrawingSurface}{DrawingSurfaceFunctions} function
 help pages.
 
-\bf{Other script changes}
+\section*{Other script changes}
 
 Scripting hasn't really changed in AGS 3. Two new features (extender functions
 and dynamic arrays) have been added, but you shouldn't need to change any
@@ -20635,7 +20634,7 @@ AGS_MAX_CHARACTERS, AGS_MAX_VIEWS, AGS_MAX_LOOPS_PER_VIEW, AGS_MAX_FRAMES_PER_LO
 AGS 3.1 contains some major changes over previous versions. The main change
 is support for native hi-res co-ordinates.
 
-\bf{What are native hi-res co-ordinates?}
+\section*{What are native hi-res co-ordinates?}
 
 In previous versions of AGS, everything in the game was addressed in co-ordinates
 ranging from 0-319 for X values, and 0-199 (or 239) for Y values.
@@ -20644,7 +20643,7 @@ This made sense if your game was 320x200 or 320x240, but if your game was runnin
 at 640x480 or 800x600 this was a pain because you couldn't think in the co-ordinate
 system that your game was written for.
 
-\bf{Why was it like this?}
+\section*{Why was it like this?}
 
 When AGS was originally written it only supported 320x200, and extra resolutions
 were then "bolted-on" on top later. But the fundamental co-ordinate system underneath
@@ -20652,7 +20651,7 @@ was never changed. This had the advantage that Setup could provide the option to
 run a 320x200 game at 640x400 or vice versa, since it didn't make any difference
 to the way the game would run internally.
 
-\bf{Why change it?}
+\section*{Why change it?}
 
 One of the main problems with the 320x200 co-ordinate system was that if you were
 making a 640x480 game, you could only ever place objects and characters on even
@@ -20663,7 +20662,7 @@ to line up properly.
 Originally this was judged to be a minor annoyance, but over time as more and more
 people have started making hi-res games it has become a major limitation of AGS.
 
-\bf{What has changed?}
+\section*{What has changed?}
 
 If your game is 320x200 or 320x240, you will not notice any difference. Everything
 should continue working the same way as before.
@@ -20689,7 +20688,7 @@ Obviously converting all your scripts to use hi-res co-ordinates would be a mamm
 task, so you may well decide to continue using low-res co-ordinates for your current
 game, and then start your next game with native hi-res co-ordinates. It's up to you.
 
-\bf{Setup has changed, I can't select the resolution any more!}
+\section*{Setup has changed, I can't select the resolution any more!}
 
 Yes, as part of the support for native co-ordinates, you are no longer able to run
 a 320x200 game at 640x400, or vice versa.
@@ -20704,7 +20703,7 @@ similar result.
 AGS 3.2 contains some major changes, the main one being a completely new way of
 scripting the game audio.
 
-\bf{Why a new audio system?}
+\section*{Why a new audio system?}
 
 In previous versions of AGS, sound and music was a pain to use. Although it was
 very simple to script using commands like PlayMusic(5) and PlaySound(10), the
@@ -20714,7 +20713,7 @@ What is music 5? Which sound effect is Sound 10? How are you supposed to remembe
 It was all a bit chaotic and old-fashioned. Furthermore, controlling the volume
 involved several different commands, making it something of a black art.
 
-\bf{So what's changed?}
+\section*{So what's changed?}
 
 The old commands like PlayMusic and PlaySound have been obsoleted now, and replaced
 with a new object-based audio system. This means that audio files are now represented
@@ -20728,7 +20727,7 @@ Now, with AGS 3.2 you would do it like this instead:
 
 \verb$aExplosion.Play();$
 
-\bf{So how do I name my audio files?}
+\section*{So how do I name my audio files?}
 
 There is a new "Audio" item in the project tree, which you now use to manage your audio.
 By default, when you import your game from a previous version of AGS, it will create
@@ -20742,7 +20741,7 @@ the PlaySound(X) command to play a clip called "aSoundX".
 Otherwise, if you want to convert your scripts to the new audio system, you can simply
 right-click and rename these audio clips as you see fit.
 
-\bf{There is now an AudioCache folder, do I still need the Sound and Music folders?}
+\section*{There is now an AudioCache folder, do I still need the Sound and Music folders?}
 
 When you import an audio file into AGS, it makes a copy of it in the AudioCache folder,
 but it also remembers where the file came from originally. If the original file changes,
@@ -20756,7 +20755,7 @@ you always have done, and AGS will automatically pick up the changes.
 But going forward, as you import new audio files, there's no need to have them in the Sound
 or Music folders; import them from wherever you like.
 
-\bf{What about controlling the volume?}
+\section*{What about controlling the volume?}
 
 Glad you asked! Instead of all those old commands like SetMusicVolume, SetDigitalMasterVolume,
 etc, there is now simply one overall system volume (\helprefn{System.Volume}{System.Volume}), and
@@ -20767,14 +20766,14 @@ for details on this).
 Finally, you can update the volume of one particular type of audio (eg. sound, music) by using
 the \helprefn{Game.SetAudioTypeVolume}{Game.SetAudioTypeVolume} command.
 
-\bf{Wait, what's an audio channel?}
+\section*{Wait, what's an audio channel?}
 
 AGS uses two new concepts -- Audio Clips (which represent a particular sound file), and Audio Channels
 (which represent a currently playing piece of audio). The reason for this distinction is that you might
 have the same sound effect playing two or more times simultaneously, and having Audio Channels allows you to
 control each one individually. The \helprefn{Audio page}{MusAndSound} describes this further.
 
-\bf{PlayAmbientSound is obsolete! How do I do ambient sounds?}
+\section*{PlayAmbientSound is obsolete! How do I do ambient sounds?}
 
 Ambient Sounds were a bit of an oddity in AGS, caused by the fact that you couldn't tell a PlaySound
 command to loop the sound. With the new audio system, the \helprefn{Play command}{AudioClip.Play} has
@@ -20783,19 +20782,19 @@ an optional Repeat parameter, allowing you to specify whether it loops or not.
 The X/Y directional aspect of PlayAmbientSound is supported by the \helprefn{SetRoomLocation}{AudioChannel.SetRoomLocation}
 command on the audio channel.
 
-\bf{Is there any new cool stuff that I can do?}
+\section*{Is there any new cool stuff that I can do?}
 
 You can now adjust the left-right panning of audio, using the \helprefn{AudioChannel.Panning}{AudioChannel.Panning}
 property. You also have finer control over syncing up different pieces of audio, through the ability
 to get and seek offsets more accurately.
 
-\bf{Has voice speech changed?}
+\section*{Has voice speech changed?}
 
 No, speech is still handled the same way as in previous versions of AGS. You still need
 the Speech folder within your game folder, and name the files within it using the same
 naming convention as you always have done.
 
-\bf{Where should I look for more info?}
+\section*{Where should I look for more info?}
 
 See the \helprefn{Audio help}{MusAndSound} for more information.
 
@@ -20813,7 +20812,7 @@ The "Sort room by number" command now sorts within folders.
 
 Script and header files are now combined into one group item, similar to room settings and script.
 
-\bf{Proper alpha blending}
+\section*{Proper alpha blending}
 
 AGS now features proper alpha blending when drawing GUI Controls and using Drawing Surfaces.
 This feature is enabled by two separate options in the "Visual" section of the General Settings:
@@ -20828,11 +20827,11 @@ property has been added to DialogOptionsRenderingInfo class. This property must 
 \helprefn{dialog_options_get_dimensions}{CustomDialogOptions} function, the one where you
 normally define size and position of the drawing surface.
 
-\bf{System limits update}
+\section*{System limits update}
 
 The maximal number of Fonts has been increased from 15 to 30.
 
-\bf{New Speech class}
+\section*{New Speech class}
 
 There's now a new Speech script class that contains several speech-related properties. This renders a
 number of \helprefn{global functions}{GlobalCommands} obsolete, as well as some of the
@@ -20851,7 +20850,7 @@ them by the corresponding Speech properties, as shown in the table below:
 \row{ { game.talkanim_speed }&{ \helprefn{Speech.GlobalSpeechAnimationDelay}{Speech.GlobalSpeechAnimationDelay} }}
 \end{tabular}
 
-\bf{Game-wide speech animation delay}
+\section*{Game-wide speech animation delay}
 
 The "Old-style game-wide speech animation speed" general setting previously found in
 "Backwards compatibility" section was replaced with two settings in "Dialog" section:
@@ -20859,7 +20858,7 @@ The "Old-style game-wide speech animation speed" general setting previously foun
 use of the game-wide delay and the second specifies exact delay value.
 These settings are accompanied by two respective properties in the Speech class.
 
-\bf{Translated ListBox}
+\section*{Translated ListBox}
 
 In the previous versions of AGS the ListBox items were never translated. A new "Translated" property
 has been added to ListBox class, which forces engine to translate ListBox items. Default value is True
@@ -20872,7 +20871,7 @@ but it is recommended to set it to False if you are using ListBox for listing sa
 AGS contains an option to send anonymous usage information to the AGS website.
 But what is it all about and why would you want to do so?
 
-\bf{What information does it send?}
+\section*{What information does it send?}
 
 The following is the information that AGS currently sends to the server.
 
@@ -20886,7 +20885,7 @@ The following is the information that AGS currently sends to the server.
 That's it. Nothing else is sent, no personal details or scripts from your games
 or anything like that.
 
-\bf{Why should I enable this?}
+\section*{Why should I enable this?}
 
 By having a clearer picture of what types of system people are running, it
 allows us to make better decisions about future versions of AGS. Here are some
@@ -20907,11 +20906,11 @@ If you object to this very basic information being submitted to AGS, you can
 turn it off in the Preferences window. However, by doing so you may lose out in
 the long run if AGS features are developed that will not work on your system.
 
-\bf{When does it send this information?}
+\section*{When does it send this information?}
 
 The editor contacts the AGS website once a month and sends it these details.
 
-\bf{Will games that I make contact the AGS website?}
+\section*{Will games that I make contact the AGS website?}
 
 No, only the editor does this.
 
@@ -21029,7 +21028,7 @@ and Julien Cugniere. You can get it from http://dumb.sf.net/
 \item Executables compressed with UPX v1.22w (c) 1996-2002 by Laszlo Molnar & Markus F.X.J. Oberhumer
 \end{itemize}
 
-\bf{AGS Demo Game II Credits:}
+\section*{AGS Demo Game II Credits:}
 
 \begin{itemize}
 \item Written by Relight, cornjob, Chrille, Spyros and Dark Stalkey.

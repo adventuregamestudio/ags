@@ -1321,8 +1321,9 @@ How would you do that? Well, you'd need to keep the AudioChannel around, so that
 it later. The easiest way to do that is to make it a Global Variable; if you open the Global Variables
 editor, you can create a new AudioChannel* variable (let's call it \it{longWindedSound}). Then when
 you play the sound you set it like this:
-
-\verb$longWindedSound = aExplosion.Play();$
+\begin{verbatim}
+longWindedSound = aExplosion.Play();
+\end{verbatim}
 
 later on, elsewhere in the script, you can change the volume by doing:
 \begin{verbatim}
@@ -1467,9 +1468,9 @@ which are only used to display information.
 You'll notice that the GUIs have names. These can be used in the script in the
 same way as character names. For example, if a GUI is called "gIconBar", you can use
 scripts such as:
-
-\verb$gIconBar.Visible = true;$
-
+\begin{verbatim}
+gIconBar.Visible = true;
+\end{verbatim}
 
 \subsection{GUI buttons}\index{Buttons}%
 
@@ -1898,7 +1899,9 @@ if (myVariable == 3)
 
 or
 
-\verb$Display("myVariable: %d", myVariable);$
+\begin{verbatim}
+Display("myVariable: %d", myVariable);
+\end{verbatim}
 
 That's it! Just use it as you'd use any other variable declared in the script.
 
@@ -2041,9 +2044,8 @@ your own risk}
 
 \bf{NOTE:} The voice sync feature only supports Sierra-style speech.
 
-In order to do this, you need to download the third-party PAMELA application:
-
-\verb$http://www-personal.monash.edu.au/~myless/catnap/pamela/$
+In order to do this, you need to download the third-party PAMELA application from
+\verb$http://www-personal.monash.edu.au/~myless/catnap/pamela/$ .
 
 Set up the phenomes in Pamela so that there are only 10 (or as many talking frames as you have)
 available choices. Then, in the Lip Sync pane of AGS, change the Type property to "Voice".
@@ -2429,15 +2431,17 @@ The script language syntax hasn't changed at all (that's the way you use semicol
 and so on). It's still just like it was before, but with some new additions. Most
 significantly, most commands are now called \bf{on something}. For example, the old
 command:
-
-\verb$StopMoving(EGO);$
+\begin{verbatim}
+StopMoving(EGO);
+\end{verbatim}
 
 Just from looking at that, it's not at all obvious what StopMoving does. Does it stop
 a character moving, an object moving, or does it stop the screen moving? It's not intuitive.
 So now, rather than supplying the character as a parameter to the function, you actually
 call the function \bf{on} the character. So:
-
-\verb$character[EGO].StopMoving();$
+\begin{verbatim}
+character[EGO].StopMoving();
+\end{verbatim}
 
 Now it's perfectly clear that it's the character EGO that we want to stop moving.
 
@@ -2452,20 +2456,23 @@ through the main array as we just saw, but also through what's called the charac
 \bf{Script O-Name}. This is a shorthand that allows you to directly access things, and
 for characters it is the script name in sentence case, with a "c" added to the beginning.
 So, in this example it would be:
-
-\verb$cEgo.StopMoving();$
+\begin{verbatim}
+cEgo.StopMoving();
+\end{verbatim}
 
 This line has an identical effect to the one with character[EGO] that we used above.
 
 Furthermore, the \it{player} variable is now kept up to date with the current player
 character, so it is actually useful. In a multi-character game, what you previously had
 to write like this:
-
-\verb$StopMoving(GetPlayerCharacter());$
+\begin{verbatim}
+StopMoving(GetPlayerCharacter());
+\end{verbatim}
 
 can now be done like this:
-
-\verb$player.StopMoving();$
+\begin{verbatim}
+player.StopMoving();
+\end{verbatim}
 
 \subsection*{Hmm, I see... so what exactly has been object-ised?}
 
@@ -2724,11 +2731,12 @@ been a pain to use in AGS, but this is finally addressed by v2.71.
 There's a new String type (that's a capital 'S'). These new strings behave like Java/\verb$C#$
 strings in that you can easily assign to and manipulate them.
 
-For example, in 2.7 and previous versions, you had to do this: ILBRK
+For example, in 2.7 and previous versions, you had to do this:
 \begin{verbatim}
 string text;
 StrCopy(text, "This is my text");
 \end{verbatim}
+
 in 2.71, you can now do:
 \begin{verbatim}
 String text = "This is my text";
@@ -2747,8 +2755,10 @@ String buttonValue = btnOK.Text;
 and so on.
 
 \bf{NOTE:} Some of the new functions are provided on the Game object -- for example, the new
-GetSaveSlotDescription function needs to be called like this:ILBRK
-\verb$String description = Game.GetSaveSlotDescription(10);$ ILBRK
+GetSaveSlotDescription function needs to be called like this:
+\begin{verbatim}
+String description = Game.GetSaveSlotDescription(10);
+\end{verbatim}
 This is part of a move towards all built-in functions being object-based, but watch out for it
 as it could well cause some confusion. The manual will show you which functions require this.
 
@@ -2758,7 +2768,8 @@ directly on the strings:
 String text = "Hello";
 text = text.Append("World");
 \end{verbatim}
-will mean that \it{text} now contains "HelloWorld". ILBRK
+will mean that \it{text} now contains "HelloWorld".
+
 Note the \bf{text =} in that expression. Functions like Append will return a modified version
 of the string, they won't actually change the original. Therefore, to update the \it{text}
 variable you need to assign the result to it.
@@ -3033,14 +3044,16 @@ to use in their games. You need to store the Health for every character
 in the game, but you don't know how many characters there will be. What do you do?
 
 Dynamic Arrays are designed for just this purpose. You can declare an array like this:
-
-\verb$int characterHealth[];$
+\begin{verbatim}
+int characterHealth[];
+\end{verbatim}
 
 in your script file. This special notation tells AGS that you don't yet know how large
 you want the array to be. Now, before you use the array (so probably in game_start),
 you can do this:
-
-\verb$characterHealth = new int[Game.CharacterCount];$
+\begin{verbatim}
+characterHealth = new int[Game.CharacterCount];
+\end{verbatim}
 
 If you forget to do this \verb$new$ command, you'll get a Null Pointer Error if you try
 to access the array. You can change the size of an array by simply using another
@@ -3077,8 +3090,9 @@ and so on.
 \subsection*{Where do I put this code?}
 
 In the script header, you'd put:
-
-\verb$import function Scream(this Character*);$
+\begin{verbatim}
+import function Scream(this Character*);
+\end{verbatim}
 
 and then put the main function in the script file. This will then allow it to be used
 by other scripts.
@@ -3150,11 +3164,9 @@ All the following variables are \verb$int$ variables.
 \row{ { game.speech_text_align }&{ Sets how text in Lucasarts-style speech is aligned.
                                     Same possible values as game.text_align, default eAlignCentre }}
 \row{ { game.speech_text_gui }&{   The textwindow GUI number used for sierra-style speech.}}
-\row{ { game.text_align }&{ Sets how text in message boxes and Sierra-style speech is aligned: ILBRK
- eAlignLeft:   text aligned to left within message box (default) ILBRK
- eAlignCentre: text is centred within the message box ILBRK
- eAlignRight:  text is right-aligned within the message box ILBRK
- These options do not affect Lucasarts-style speech, which is always centred. }}
+\row{ { game.text_align }&{ Sets how text in message boxes and Sierra-style speech is aligned:
+                                See \helprefn{Speech.TextAlignment}{Speech.TextAlignment} for details.
+                                This does not affect Lucasarts-style speech, which is always centred. }}
 \row{ { game.text_shadow_color}&{  Color used for speech text shadow (default 16).}}
 \row{ { game.top_bar_XXXX  }&{ Customizations for \helprefn{DisplayTopBar}{DisplayTopBar}, see link for details }}
 \row{ { game.total_score   }&{     Maximum possible score, initially set in the editor.}}
@@ -3604,7 +3616,8 @@ enum MouseButton {
   eMouseWheelSouth
 };
 \end{verbatim}
-\it{Used by:} \helprefn{Mouse.IsButtonDown}{Mouse.IsButtonDown} ILBRK
+\it{Used by:} \helprefn{Mouse.IsButtonDown}{Mouse.IsButtonDown}
+
 \it{Passed into:} on_mouse_click
 
 \begin{verbatim}
@@ -3718,7 +3731,8 @@ enum CursorMode {
 \end{verbatim}
 The CursorMode enumeration is generated automatically based on your mouse cursors.
 The cursor mode name is taken, all its spaces are removed, and \it{eMode} is added
-to the front. ILBRK
+to the front.
+
 \it{Used by:} \helprefn{IsInteractionAvailable}{IsInteractionAvailable},
 \helprefn{ProcessClick}{ProcessClick},
 \helprefn{Mouse.ChangeModeGraphic}{Mouse.ChangeModeGraphic},
@@ -3742,7 +3756,8 @@ enum FontType {
 \end{verbatim}
 The FontType enumeration is generated automatically based on your fonts.
 The font name is taken, all its spaces are removed, and \it{eFont} is added
-to the front. ILBRK
+to the front.
+
 \it{Used by:} \helprefn{Button.Font}{Button.Font},
 \helprefn{DrawingSurface.DrawMessageWrapped}{DrawingSurface.DrawMessageWrapped},
 \helprefn{DrawingSurface.DrawString}{DrawingSurface.DrawString},
@@ -3842,7 +3857,8 @@ different script code to update each one. So instead, you can do this:
 \begin{verbatim}
 int health[50];
 \end{verbatim}
-This example declares 50 int variables, all called \it{health}. ILBRK
+This example declares 50 int variables, all called \it{health}.
+
 You access each separate variable via its \bf{index} (the number in the brackets). Indexes
 start from 0, so in this case the \it{health} array can be accessed by indexes 0 to 49.
 If you attempt to access an invalid index, your game will exit with an error.
@@ -3877,9 +3893,9 @@ are only useful for conserving memory if you are creating a very large number of
 
 To declare a variable, write the type followed by the variable name, then a semicolon.
 For example:
-
-\verb$int my_variable;$
-
+\begin{verbatim}
+int my_variable;
+\end{verbatim}
 declares a new 32-bit integer called  my_variable
 
 \bf{WARNING:} When using the \it{float} data type, you may find that the == and != operators
@@ -3910,7 +3926,8 @@ in order of precedence, with the most tightly bound at the top of the list.
 
 \bf{WARNING:} When using operators of equal precedence, AGS by default evaluates them
 right-to-left. So, the expression \verb$a = 5 - 4 - 2;$ evaluates as \verb$a = 5 - (4 - 2);$
-which is not what you might expect. Always use parenthesis to make it clear what you want. ILBRK
+which is not what you might expect. Always use parenthesis to make it clear what you want.
+
 The "Left-to-right operator precedence" option on the General Settings pane allows you to
 control this behaviour.
 
@@ -3943,16 +3960,16 @@ control this behaviour.
 \end{tabular}
 
 This order of precedence allows expressions such as the following to evaluate as expected:
-
-\verb$if (!a && b < 4)$
-
+\begin{verbatim}
+if (!a && b < 4)
+\end{verbatim}
 which will execute the 'if' block if \bf{a} is 0 and \bf{b} is less than 4.
 
 However, it is always good practice to use parenthesis to group expressions. It's much
 more readable to script the above expression like this:
-
-\verb$if ((!a) && (b < 4))$
-
+\begin{verbatim}
+if ((!a) && (b < 4))
+\end{verbatim}
 
 
 \subsection{Constants}\label{Constants}\index{Predefined constants}\index{#ifdef}\index{#ifndef}\index{#error}\index{DEBUG}\index{STRICT}\index{LRPRECEDENCE}\index{AGS_NEW_STRINGS}\index{AGS_MAX_* constants}%
@@ -4024,19 +4041,25 @@ Note that this ability was only added in 2.72, so you cannot use the \verb$#ifve
 if you want your module to work with earlier versions than this.
 
 
-\subsection{if, else statements}\label{ifelsestatements}\index{else statement}%
+\subsection{if, else statements}\label{ifelsestatements}\index{if statement}\index{else statement}%
 
-\bf{if (} \it{expression} \bf{)}  \verb${$ ILBRK
-  \it{statements1} ILBRK
-\verb$}$ ILBRK
-[ \bf{else}  \verb${$ ILBRK
-  \it{statements2} ILBRK
-\verb$}$ ]
+\begin{verbatim}
+if ( <expression> ) {
+  <statements1>
+}
+\end{verbatim}
+If \verb$<expression>$ is true, then \verb$<statements1>$ are run.
 
-If \it{expression} is true, then \it{statements1} are run.
-
-If \it{expression} is not true, and there is an \bf{else} clause present, then
-\it{statements2} are run instead.
+\begin{verbatim}
+if ( <expression> ) {
+  <statements1>
+}
+else {
+  <statements2>
+}
+\end{verbatim}
+If \verb$<expression>$ is true, then \verb$<statements1>$ are run like before.
+If \verb$<expression>$ is not true, \verb$<statements2>$ are run instead.
 
 For example:
 
@@ -4070,11 +4093,12 @@ else {
 
 \subsection{while}\label{whilestatement}%
 
-\bf{while (} \it{expression} \bf{)}  \verb${$ ILBRK
-  \it{statements} ILBRK
-\verb$}$
-
-Runs \it{statements} continuously, while \it{expression} is true.
+\begin{verbatim}
+while ( <expression> ) {
+  <statements>
+}
+\end{verbatim}
+Runs \verb$<statements>$ continuously, while \verb$<expression>$ is true.
 
 For example:
 
@@ -4135,7 +4159,8 @@ itself.
 
 \bf{struct} \it{name} \verb${$
 
-Declares a custom struct type in your script. ILBRK
+Declares a custom struct type in your script.
+
 Structs allow you to group together related variables in order to make your
 script more structured and readable. For example, suppose that wanted to store
 some information on weapons that the player could carry. You could declare
@@ -4180,14 +4205,16 @@ structs are essential if you have complex data that you need to store in your sc
 
 \it{Note:} Recommended for advanced users only.
 
-\bf{enum} \it{name} \verb${$ ILBRK
-  \it{option1} [ = \it{value1} ], ILBRK
-  \it{option2} [ = \it{value2} ], ILBRK
-  ... ILBRK
-\verb$};$
+\begin{verbatim}
+enum <name> {
+  <option1> [ = <value1> ],
+  <option2> [ = <value2> ],
+  ...
+};
+\end{verbatim}
 
 Declares an enumeration type. An enumeration allows you to group together a set of related
-options, where only one will be true at any one time -- a bit like the contents of a list box.
+options, where only one will be true at any one time, a bit like the contents of a list box.
 
 For example, if you have a script function, \it{doStuff}, that can perform 3 different
 operations, you could do this:
@@ -4224,8 +4251,10 @@ function doStuff(DoStuffOption param) {
 }
 \end{verbatim}
 
-and then the calling code looks like: ILBRK
-\verb$doStuff(BakeCake);$ ILBRK
+and then the calling code looks like:
+\begin{verbatim}
+doStuff(BakeCake);
+\end{verbatim}
 thus making it perfectly clear what the command will do.
 
 Normally, you would put the enum definition into the script header.
@@ -4328,7 +4357,8 @@ However, there are some rare situations in which you need a loop to run several 
 times (for example, when initialising a very large array). In this case, the \it{noloopcheck}
 keyword can be used to stop AGS aborting your script.
 
-\bf{NOTE:} The \it{noloopcheck} keyword must be placed between "function" and the function's name. ILBRK
+\bf{NOTE:} The \it{noloopcheck} keyword must be placed between "function" and the function's name.
+
 If you import the function into the script header, you \bf{do not} include the "noloopcheck" keyword
 in the import declaration -- it is only included in the actual function body.
 
@@ -6154,8 +6184,10 @@ has the inventory item)
 \begin{verbatim}
 readonly bool Character.Animating
 \end{verbatim}
-Returns 1 if the character is currently animating. ILBRK
-Returns 0 if the character has finished its animation.
+\begin{itemize}
+\item Returns 1 if the character is currently animating.
+\item Returns 0 if the character has finished its animation.
+\end{itemize}
 
 This property is read-only. To change character animation, use the
 \helprefn{Animate}{Character.Animate} command.
@@ -7234,16 +7266,16 @@ gradually levitates the character up to 20 pixels.
 SetCharacterProperty (CHARID, PROPERTY, int new_value)
 \end{verbatim}
 
-\bf{This command is now obsolete. It has been replaced by the following properties:}
-
-\helprefn{Clickable}{Character.Clickable} ILBRK
-\helprefn{DiagonalLoops}{Character.DiagonalLoops} ILBRK
-\helprefn{IgnoreLighting}{Character.IgnoreLighting} ILBRK
-\helprefn{ManualScaling}{Character.ManualScaling} ILBRK
-\helprefn{ScaleMoveSpeed}{Character.ScaleMoveSpeed} ILBRK
-\helprefn{Solid}{Character.Solid} ILBRK
-\helprefn{TurnBeforeWalking}{Character.TurnBeforeWalking}
-
+\bf{This command is now obsolete.} It has been replaced by the following properties:
+\begin{itemize}
+\item \helprefn{Clickable}{Character.Clickable}
+\item \helprefn{DiagonalLoops}{Character.DiagonalLoops}
+\item \helprefn{IgnoreLighting}{Character.IgnoreLighting}
+\item \helprefn{ManualScaling}{Character.ManualScaling}
+\item \helprefn{ScaleMoveSpeed}{Character.ScaleMoveSpeed}
+\item \helprefn{Solid}{Character.Solid}
+\item \helprefn{TurnBeforeWalking}{Character.TurnBeforeWalking}
+\end{itemize}
 
 
 \section{DateTime functions and properties}%
@@ -9045,10 +9077,11 @@ seconds, then change object 1 back to its old sprite 22 and free the new image.
 DynamicSprite.Flip(eFlipDirection);
 \end{verbatim}
 Flips the dynamic sprite according to the parameter:
-
-\it{eFlipLeftToRight} flips the image from left to right ILBRK
-\it{eFlipUpsideDown} flips the image from top to bottom ILBRK
-\it{eFlipBoth} flips the image from top to bottom and left to right
+\begin{itemize}
+\item \it{eFlipLeftToRight} -- Flips the image from left to right.
+\item \it{eFlipUpsideDown} -- Flips the image from top to bottom.
+\item \it{eFlipBoth} -- Flips the image from top to bottom and left to right.
+\end{itemize}
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -9347,10 +9380,12 @@ files in the game directory.
 You CANNOT use a path, so any filename with "\verb$\$" or "\verb$/$" in it will
 automatically be rejected, for security reasons.
 
-The only exceptions to this rule are the special tags: ILBRK
-\verb^$SAVEGAMEDIR$^, which allows you to access files in the save game directory. ILBRK
-\verb^$APPDATADIR$^, which allows you to write/read files to a folder on the system which
-is accessible by and shared by all users
+The only exceptions to this rule are the special tags:
+\begin{itemize}
+\item \verb^$SAVEGAMEDIR$^ -- Allows you to access files in the save game directory.
+\item \verb^$APPDATADIR$^ -- Allows you to write/read files to a folder on the system which
+  is accessible by and shared by all users
+\end{itemize}
 
 \bf{IMPORTANT}: On Windows Vista and later, if your game is installed to Program Files then
 it may not be able to write files into the game's installation directory. To be sure
@@ -10136,18 +10171,18 @@ if (GetGameOption(OPT_PIXELPERFECT) == 1) {
 The \it{GetGameParameter} function is now obsolete.
 
 It has been replaced with the following functions and properties:
-
-\helprefn{Game.SpriteWidth}{Game.SpriteWidth} (was GP_SPRITEWIDTH) ILBRK
-\helprefn{Game.SpriteHeight}{Game.SpriteHeight} (was GP_SPRITEHEIGHT) ILBRK
-\helprefn{Game.GetLoopCountForView}{Game.GetLoopCountForView} (was GP_NUMLOOPS) ILBRK
-\helprefn{Game.GetFrameCountForLoop}{Game.GetFrameCountForLoop} (was GP_NUMFRAMES) ILBRK
-\helprefn{Game.GetRunNextSettingForLoop}{Game.GetRunNextSettingForLoop} (was GP_ISRUNNEXTLOOP) ILBRK
-\helprefn{Game.GetViewFrame}{Game.GetViewFrame} (was GP_FRAMExxx, GP_ISFRAMEFLIPPED) ILBRK
-\helprefn{Game.GUICount}{Game.GUICount} (was GP_NUMGUIS) ILBRK
-\helprefn{Room.ObjectCount}{Room.ObjectCount} (was GP_NUMOBJECTS) ILBRK
-\helprefn{Game.CharacterCount}{Game.CharacterCount} (was GP_NUMCHARACTERS) ILBRK
-\helprefn{Game.InventoryItemCount}{Game.InventoryItemCount}(was GP_NUMINVITEMS)
-
+\begin{itemize}
+\item \helprefn{Game.SpriteWidth}{Game.SpriteWidth} (was GP_SPRITEWIDTH)
+\item \helprefn{Game.SpriteHeight}{Game.SpriteHeight} (was GP_SPRITEHEIGHT)
+\item \helprefn{Game.GetLoopCountForView}{Game.GetLoopCountForView} (was GP_NUMLOOPS)
+\item \helprefn{Game.GetFrameCountForLoop}{Game.GetFrameCountForLoop} (was GP_NUMFRAMES)
+\item \helprefn{Game.GetRunNextSettingForLoop}{Game.GetRunNextSettingForLoop} (was GP_ISRUNNEXTLOOP)
+\item \helprefn{Game.GetViewFrame}{Game.GetViewFrame} (was GP_FRAMExxx, GP_ISFRAMEFLIPPED)
+\item \helprefn{Game.GUICount}{Game.GUICount} (was GP_NUMGUIS)
+\item \helprefn{Room.ObjectCount}{Room.ObjectCount} (was GP_NUMOBJECTS)
+\item \helprefn{Game.CharacterCount}{Game.CharacterCount} (was GP_NUMCHARACTERS)
+\item \helprefn{Game.InventoryItemCount}{Game.InventoryItemCount}(was GP_NUMINVITEMS)
+\end{itemize}
 
 \subsection{GetGameSpeed}\label{GetGameSpeed}%
 
@@ -11207,12 +11242,14 @@ If the directory does not exist, AGS will attempt to create it.
 You cannot use fully qualified directories with this command (eg. \verb$C:\Games\Cool\Saves$), because
 the player might have installed your game to any folder, and they might not be running Windows.
 
-Therefore, only two types of path are supported: ILBRK
-1. Relative paths (eg. "Saves"). This will create a "Saves" folder inside your game folder ILBRK
-2. The special tag \verb!$MYDOCS$! which allows you to create a folder for your save games
-inside the user's documents folder. On Vista and later, this is the "Saved Games" folder;
-on Windows XP and earlier, this is "My Documents". On Mac and Linux, currently this just points
-to the game folder.
+Therefore, only two types of path are supported:
+\begin{enumerate}
+\item Relative paths (eg. "Saves"). This will create a "Saves" folder inside your game folder.
+\item The special tag \verb!$MYDOCS$! which allows you to create a folder for your save games
+  inside the user's documents folder. On Vista and later, this is the "Saved Games" folder;
+  on Windows XP and earlier, this is "My Documents". On Mac and Linux, currently this just points
+  to the game folder.
+\end{enumerate}
 
 Returns \it{true} if the save game directory has been changed successfully; \it{false} if not.
 
@@ -12805,21 +12842,21 @@ will move the \it{btnConfirm} button to be positioned 20 pixels from the top of 
 
 
 \section{GUI Button functions and properties}%
-
-\helprefn{BringToFront (inherited)}{GUIControl.BringToFront}ILBRK
-\helprefn{Clickable property (inherited)}{GUIControl.Clickable}ILBRK
-\helprefn{Enabled property (inherited)}{GUIControl.Enabled}ILBRK
-\helprefn{Height property (inherited)}{GUIControl.Height}ILBRK
-\helprefn{ID property (inherited)}{GUIControl.ID}ILBRK
-\helprefn{OwningGUI property (inherited)}{GUIControl.OwningGUI}ILBRK
-\helprefn{SendToBack (inherited)}{GUIControl.SendToBack}ILBRK
-\helprefn{SetPosition (inherited)}{GUIControl.SetPosition}ILBRK
-\helprefn{SetSize (inherited)}{GUIControl.SetSize}ILBRK
-\helprefn{Visible property (inherited)}{GUIControl.Visible}ILBRK
-\helprefn{Width property (inherited)}{GUIControl.Width}ILBRK
-\helprefn{X property (inherited)}{GUIControl.X}ILBRK
+\begin{itemize}
+\helprefn{BringToFront (inherited)}{GUIControl.BringToFront}
+\helprefn{Clickable property (inherited)}{GUIControl.Clickable}
+\helprefn{Enabled property (inherited)}{GUIControl.Enabled}
+\helprefn{Height property (inherited)}{GUIControl.Height}
+\helprefn{ID property (inherited)}{GUIControl.ID}
+\helprefn{OwningGUI property (inherited)}{GUIControl.OwningGUI}
+\helprefn{SendToBack (inherited)}{GUIControl.SendToBack}
+\helprefn{SetPosition (inherited)}{GUIControl.SetPosition}
+\helprefn{SetSize (inherited)}{GUIControl.SetSize}
+\helprefn{Visible property (inherited)}{GUIControl.Visible}
+\helprefn{Width property (inherited)}{GUIControl.Width}
+\helprefn{X property (inherited)}{GUIControl.X}
 \helprefn{Y property (inherited)}{GUIControl.Y}
-
+\end{itemize}
 
 \subsection{Animate (button)}\label{Button.Animate}\index{Button.Animate}\index{AnimateButton}%
 
@@ -13051,21 +13088,21 @@ will change button 'btnRestart' to have white text.
 
 
 \section{GUI InvWindow functions and properties}\label{GUIInvFuncs}%
-
-\helprefn{BringToFront (inherited)}{GUIControl.BringToFront}ILBRK
-\helprefn{Clickable property (inherited)}{GUIControl.Clickable}ILBRK
-\helprefn{Enabled property (inherited)}{GUIControl.Enabled}ILBRK
-\helprefn{Height property (inherited)}{GUIControl.Height}ILBRK
-\helprefn{ID property (inherited)}{GUIControl.ID}ILBRK
-\helprefn{OwningGUI property (inherited)}{GUIControl.OwningGUI}ILBRK
-\helprefn{SendToBack (inherited)}{GUIControl.SendToBack}ILBRK
-\helprefn{SetPosition (inherited)}{GUIControl.SetPosition}ILBRK
-\helprefn{SetSize (inherited)}{GUIControl.SetSize}ILBRK
-\helprefn{Visible property (inherited)}{GUIControl.Visible}ILBRK
-\helprefn{Width property (inherited)}{GUIControl.Width}ILBRK
-\helprefn{X property (inherited)}{GUIControl.X}ILBRK
+\begin{itemize}
+\helprefn{BringToFront (inherited)}{GUIControl.BringToFront}
+\helprefn{Clickable property (inherited)}{GUIControl.Clickable}
+\helprefn{Enabled property (inherited)}{GUIControl.Enabled}
+\helprefn{Height property (inherited)}{GUIControl.Height}
+\helprefn{ID property (inherited)}{GUIControl.ID}
+\helprefn{OwningGUI property (inherited)}{GUIControl.OwningGUI}
+\helprefn{SendToBack (inherited)}{GUIControl.SendToBack}
+\helprefn{SetPosition (inherited)}{GUIControl.SetPosition}
+\helprefn{SetSize (inherited)}{GUIControl.SetSize}
+\helprefn{Visible property (inherited)}{GUIControl.Visible}
+\helprefn{Width property (inherited)}{GUIControl.Width}
+\helprefn{X property (inherited)}{GUIControl.X}
 \helprefn{Y property (inherited)}{GUIControl.Y}
-
+\end{itemize}
 
 \subsection{ScrollDown (inv window)}\label{InvWindow.ScrollDown}\index{InvWindow.ScrollDown}%
 
@@ -13292,21 +13329,21 @@ inventory list can be scrolled up.
 
 
 \section{GUI Label functions and properties}%
-
-\helprefn{BringToFront (inherited)}{GUIControl.BringToFront}ILBRK
-\helprefn{Clickable property (inherited)}{GUIControl.Clickable}ILBRK
-\helprefn{Enabled property (inherited)}{GUIControl.Enabled}ILBRK
-\helprefn{Height property (inherited)}{GUIControl.Height}ILBRK
-\helprefn{ID property (inherited)}{GUIControl.ID}ILBRK
-\helprefn{OwningGUI property (inherited)}{GUIControl.OwningGUI}ILBRK
-\helprefn{SendToBack (inherited)}{GUIControl.SendToBack}ILBRK
-\helprefn{SetPosition (inherited)}{GUIControl.SetPosition}ILBRK
-\helprefn{SetSize (inherited)}{GUIControl.SetSize}ILBRK
-\helprefn{Visible property (inherited)}{GUIControl.Visible}ILBRK
-\helprefn{Width property (inherited)}{GUIControl.Width}ILBRK
-\helprefn{X property (inherited)}{GUIControl.X}ILBRK
+\begin{itemize}
+\helprefn{BringToFront (inherited)}{GUIControl.BringToFront}
+\helprefn{Clickable property (inherited)}{GUIControl.Clickable}
+\helprefn{Enabled property (inherited)}{GUIControl.Enabled}
+\helprefn{Height property (inherited)}{GUIControl.Height}
+\helprefn{ID property (inherited)}{GUIControl.ID}
+\helprefn{OwningGUI property (inherited)}{GUIControl.OwningGUI}
+\helprefn{SendToBack (inherited)}{GUIControl.SendToBack}
+\helprefn{SetPosition (inherited)}{GUIControl.SetPosition}
+\helprefn{SetSize (inherited)}{GUIControl.SetSize}
+\helprefn{Visible property (inherited)}{GUIControl.Visible}
+\helprefn{Width property (inherited)}{GUIControl.Width}
+\helprefn{X property (inherited)}{GUIControl.X}
 \helprefn{Y property (inherited)}{GUIControl.Y}
-
+\end{itemize}
 
 \subsection{Font property (label)}\label{Label.Font}\index{Label.Font}\index{SetLabelFont}%
 
@@ -13382,21 +13419,21 @@ will change label 'lblStatus' to have yellow text.
 
 
 \section{GUI List Box functions and properties}%
-
-\helprefn{BringToFront (inherited)}{GUIControl.BringToFront}ILBRK
-\helprefn{Clickable property (inherited)}{GUIControl.Clickable}ILBRK
-\helprefn{Enabled property (inherited)}{GUIControl.Enabled}ILBRK
-\helprefn{Height property (inherited)}{GUIControl.Height}ILBRK
-\helprefn{ID property (inherited)}{GUIControl.ID}ILBRK
-\helprefn{OwningGUI property (inherited)}{GUIControl.OwningGUI}ILBRK
-\helprefn{SendToBack (inherited)}{GUIControl.SendToBack}ILBRK
-\helprefn{SetPosition (inherited)}{GUIControl.SetPosition}ILBRK
-\helprefn{SetSize (inherited)}{GUIControl.SetSize}ILBRK
-\helprefn{Visible property (inherited)}{GUIControl.Visible}ILBRK
-\helprefn{Width property (inherited)}{GUIControl.Width}ILBRK
-\helprefn{X property (inherited)}{GUIControl.X}ILBRK
+\begin{itemize}
+\helprefn{BringToFront (inherited)}{GUIControl.BringToFront}
+\helprefn{Clickable property (inherited)}{GUIControl.Clickable}
+\helprefn{Enabled property (inherited)}{GUIControl.Enabled}
+\helprefn{Height property (inherited)}{GUIControl.Height}
+\helprefn{ID property (inherited)}{GUIControl.ID}
+\helprefn{OwningGUI property (inherited)}{GUIControl.OwningGUI}
+\helprefn{SendToBack (inherited)}{GUIControl.SendToBack}
+\helprefn{SetPosition (inherited)}{GUIControl.SetPosition}
+\helprefn{SetSize (inherited)}{GUIControl.SetSize}
+\helprefn{Visible property (inherited)}{GUIControl.Visible}
+\helprefn{Width property (inherited)}{GUIControl.Width}
+\helprefn{X property (inherited)}{GUIControl.X}
 \helprefn{Y property (inherited)}{GUIControl.Y}
-
+\end{itemize}
 
 \subsection{AddItem}\label{ListBox.AddItem}\index{ListBox.AddItem}\index{ListBoxAdd}%
 
@@ -13841,21 +13878,21 @@ Gets/sets whether the list box's items are translated to the selected game langu
 
 
 \section{GUI Slider properties}%
-
-\helprefn{BringToFront (inherited)}{GUIControl.BringToFront}ILBRK
-\helprefn{Clickable property (inherited)}{GUIControl.Clickable}ILBRK
-\helprefn{Enabled property (inherited)}{GUIControl.Enabled}ILBRK
-\helprefn{Height property (inherited)}{GUIControl.Height}ILBRK
-\helprefn{ID property (inherited)}{GUIControl.ID}ILBRK
-\helprefn{OwningGUI property (inherited)}{GUIControl.OwningGUI}ILBRK
-\helprefn{SendToBack (inherited)}{GUIControl.SendToBack}ILBRK
-\helprefn{SetPosition (inherited)}{GUIControl.SetPosition}ILBRK
-\helprefn{SetSize (inherited)}{GUIControl.SetSize}ILBRK
-\helprefn{Visible property (inherited)}{GUIControl.Visible}ILBRK
-\helprefn{Width property (inherited)}{GUIControl.Width}ILBRK
-\helprefn{X property (inherited)}{GUIControl.X}ILBRK
+\begin{itemize}
+\helprefn{BringToFront (inherited)}{GUIControl.BringToFront}
+\helprefn{Clickable property (inherited)}{GUIControl.Clickable}
+\helprefn{Enabled property (inherited)}{GUIControl.Enabled}
+\helprefn{Height property (inherited)}{GUIControl.Height}
+\helprefn{ID property (inherited)}{GUIControl.ID}
+\helprefn{OwningGUI property (inherited)}{GUIControl.OwningGUI}
+\helprefn{SendToBack (inherited)}{GUIControl.SendToBack}
+\helprefn{SetPosition (inherited)}{GUIControl.SetPosition}
+\helprefn{SetSize (inherited)}{GUIControl.SetSize}
+\helprefn{Visible property (inherited)}{GUIControl.Visible}
+\helprefn{Width property (inherited)}{GUIControl.Width}
+\helprefn{X property (inherited)}{GUIControl.X}
 \helprefn{Y property (inherited)}{GUIControl.Y}
-
+\end{itemize}
 
 \subsection{BackgroundGraphic property (slider)}\label{Slider.BackgroundGraphic}\index{Slider.BackgroundGraphic}%
 
@@ -13991,21 +14028,21 @@ will set the audio volume to the value of the slider \it{sldVolume}.
 
 
 \section{GUI Text Box functions and properties}%
-
-\helprefn{BringToFront (inherited)}{GUIControl.BringToFront}ILBRK
-\helprefn{Clickable property (inherited)}{GUIControl.Clickable}ILBRK
-\helprefn{Enabled property (inherited)}{GUIControl.Enabled}ILBRK
-\helprefn{Height property (inherited)}{GUIControl.Height}ILBRK
-\helprefn{ID property (inherited)}{GUIControl.ID}ILBRK
-\helprefn{OwningGUI property (inherited)}{GUIControl.OwningGUI}ILBRK
-\helprefn{SendToBack (inherited)}{GUIControl.SendToBack}ILBRK
-\helprefn{SetPosition (inherited)}{GUIControl.SetPosition}ILBRK
-\helprefn{SetSize (inherited)}{GUIControl.SetSize}ILBRK
-\helprefn{Visible property (inherited)}{GUIControl.Visible}ILBRK
-\helprefn{Width property (inherited)}{GUIControl.Width}ILBRK
-\helprefn{X property (inherited)}{GUIControl.X}ILBRK
+\begin{itemize}
+\helprefn{BringToFront (inherited)}{GUIControl.BringToFront}
+\helprefn{Clickable property (inherited)}{GUIControl.Clickable}
+\helprefn{Enabled property (inherited)}{GUIControl.Enabled}
+\helprefn{Height property (inherited)}{GUIControl.Height}
+\helprefn{ID property (inherited)}{GUIControl.ID}
+\helprefn{OwningGUI property (inherited)}{GUIControl.OwningGUI}
+\helprefn{SendToBack (inherited)}{GUIControl.SendToBack}
+\helprefn{SetPosition (inherited)}{GUIControl.SetPosition}
+\helprefn{SetSize (inherited)}{GUIControl.SetSize}
+\helprefn{Visible property (inherited)}{GUIControl.Visible}
+\helprefn{Width property (inherited)}{GUIControl.Width}
+\helprefn{X property (inherited)}{GUIControl.X}
 \helprefn{Y property (inherited)}{GUIControl.Y}
-
+\end{itemize}
 
 \subsection{Font property (text box)}\label{TextBox.Font}\index{TextBox.Font}\index{SetTextBoxFont}%
 
@@ -15141,7 +15178,7 @@ if (mouse.IsButtonDown(eMouseRight)) {
 \end{verbatim}
 will display the message if the player presses the right button for 1 sec.
 
-\it{Compatibility:} \it{eMouseMiddle} supported by \bf{AGS 3.2.0} and later versions. ILBRK
+\it{Compatibility:} \it{eMouseMiddle} supported by \bf{AGS 3.2.0} and later versions,
 \it{eMouseLeft} and \it{eMouseRight} supported by all versions.
 
 \it{See Also:} \helprefn{IsKeyPressed}{IsKeyPressed}
@@ -16109,8 +16146,10 @@ will tint object 1 green.
 \begin{verbatim}
 readonly bool Object.Animating
 \end{verbatim}
-Returns 1 if the specified object is currently animating. ILBRK
-Returns 0 if the object has finished its animation.
+\begin{itemize}
+\item Returns 1 if the specified object is currently animating.
+\item Returns 0 if the object has finished its animation.
+\end{itemize}
 
 This property is read-only. To change object animation, use the
 \helprefn{Animate}{Object.Animate} command.
@@ -16904,7 +16943,7 @@ static int Parser.FindWordID(string wordToFind)
 \end{verbatim}
 Looks up \it{wordToFind} in the text parser dictionary, and returns the ID number.
 
-If the word is not found, returns -1. ILBRK
+If the word is not found, returns -1.
 Otherwise, the Word Group number is returned, as seen in the Text Parser tab in the editor.
 
 You can determine if two words are synonyms by looking them both up and seeing if the
@@ -17443,7 +17482,7 @@ then releases the image.
 \begin{verbatim}
 GetPlayerCharacter ()
 \end{verbatim}
-\bf{THIS COMMAND IS NOW OBSOLETE.} ILBRK
+\bf{This command is now obsolete.}
 The recommended replacement is to use the player character's ID property, as follows:
 
 \fcol{red}{Example:}
@@ -17720,11 +17759,13 @@ SetAreaScaling(int area, int min, int max)
 \end{verbatim}
 Changes walkable area number AREA's scaling.
 
-There are two ways to use this command: ILBRK
-1. Pass the same value for MIN and MAX. This will give the walkable area fixed
-scaling (same as setting it in the editor with "Use continuous scaling" un-ticked). ILBRK
-2. Pass different values for MIN and MAX. In this case, continuous scaling is
-enabled for the walkable area, and will go from MIN at the top to MAX at the bottom.
+There are two ways to use this command:
+\begin{enumerate}
+\item \it{Use the same value for MIN and MAX} -- This will give the walkable area fixed
+  scaling (same as setting it in the editor with "Use continuous scaling" un-ticked).
+\item \it{Use different values for MIN and MAX} -- In this case, continuous scaling is
+  enabled for the walkable area, and will go from MIN at the top to MAX at the bottom.
+\end{enumerate}
 
 MIN and MAX have ranges from 5 to 200, the same as in the editor. Pass 100 for both values
 to revert to the normal zoom level (100\verb$%$) for that area.
@@ -18533,10 +18574,15 @@ Appends the string STR2 to the end of the specified string, and returns the resu
 
 \bf{IMPORTANT:} The result of joining the strings together is returned as a new
 string from this command. The original string will \bf{NOT} be changed. For
-example, the following script will not do anything: ILBRK
-\verb$mytext.Append("World");$ ILBRK
-what you probably want instead is: ILBRK
-\verb$mytext = mytext.Append("World");$
+example, the following script will not do anything:
+\begin{verbatim}
+mytext.Append("World");
+\end{verbatim}
+
+what you probably want instead is:
+\begin{verbatim}
+mytext = mytext.Append("World");
+\end{verbatim}
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -18559,10 +18605,15 @@ Appends a single character to the end of the specified string, and returns the r
 
 \bf{IMPORTANT:} The newly extended text is returned as a new string from this command.
 The original string will \bf{NOT} be changed. For
-example, the following script will not do anything: ILBRK
-\verb$mytext.AppendChar('o');$ ILBRK
-what you probably want instead is: ILBRK
-\verb$mytext = mytext.AppendChar('o');$
+example, the following script will not do anything:
+\begin{verbatim}
+mytext.AppendChar('o');
+\end{verbatim}
+
+what you probably want instead is:
+\begin{verbatim}
+mytext = mytext.AppendChar('o');
+\end{verbatim}
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -20159,7 +20210,10 @@ The following events are available in the "Events" section of the Properties Win
 \item \it{Use inventory on hotspot} -- Occurs when the player clicks on the hotspot
   while in the "Use inventory" mode (cursor mode 4). You can use the
   \helprefn{player.ActiveInventory}{Character.ActiveInventory} property to distinguish
-  which item they used. ILBRK
+  which item they used.
+\end{itemize}
+
+\begin{itemize}
 \item \it{Speak to hotspot} -- Occurs when the player clicks on the hotspot while in
   the "Talk" mode (cursor mode 3).
 \item \it{Any click on hotspot} -- Occurs when the player clicks on the hotspot in
@@ -20734,12 +20788,14 @@ with a new object-based audio system. This means that audio files are now repres
 by script instances in the game.
 
 For example, in AGS 3.1.2, you might have done this:
-
-\verb$PlaySound(10); // this is an explosion$
+\begin{verbatim}
+PlaySound(10); // this is an explosion
+\end{verbatim}
 
 Now, with AGS 3.2 you would do it like this instead:
-
-\verb$aExplosion.Play();$
+\begin{verbatim}
+aExplosion.Play();
+\end{verbatim}
 
 \section*{So how do I name my audio files?}
 

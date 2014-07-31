@@ -3707,6 +3707,10 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                             int array_size;
 
                             if (sym.get_type(nextt) == SYM_CLOSEBRACKET) {
+                                if ((sym.flags[stname] & SFLG_MANAGED)) {
+                                    cc_error("Member variable of managed struct cannot be dynamic array");
+                                    return -1;
+                                }
                                 sym.flags[vname] |= SFLG_DYNAMICARRAY;
                                 array_size = 0;
                                 size_so_far += 4;

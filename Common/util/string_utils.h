@@ -51,7 +51,7 @@ extern "C" char *strupr(char *s);
 
 #endif // !WINDOWS_VERSION
 
-void removeBackslashBracket(char *lbuffer);
+void unescape(char *buffer);
 // Break up the text into lines
 void split_lines(const char *todis, int wii, int fonnt);
 

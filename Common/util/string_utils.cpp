@@ -20,11 +20,24 @@ using AGS::Common::Stream;
 
 #define STD_BUFFER_SIZE 3000
 
-void removeBackslashBracket(char *lbuffer) {
-    char *slashoffs = lbuffer;
-    while ((slashoffs = strstr(slashoffs, "\\[")) != NULL) {
-        // remove the backslash
-        memmove(slashoffs, slashoffs + 1, strlen(slashoffs));
+// Turn [ into \n and turn \[ into [
+void unescape(char *buffer) {
+    char *offset;
+    // Handle the special case of the first char
+    if(buffer[0] == '[')
+    {
+        buffer[0] = '\n';
+        offset = buffer + 1;
+    }
+    else
+        offset = buffer;
+    // Replace all other occurrences as they're found
+    while((offset = strchr(offset, '[')) != NULL) {
+        if(offset[-1] != '\\')
+            offset[0] = '\n';
+        else
+            memmove(offset - 1, offset, strlen(offset) + 1);
+        offset++;
     }
 }
 
@@ -47,6 +60,7 @@ void split_lines(const char *todis, int wii, int fonnt) {
     char textCopyBuffer[STD_BUFFER_SIZE];
     strcpy(textCopyBuffer, todis);
     theline = textCopyBuffer;
+    unescape(theline);
 
     while (1) {
         splitAt = -1;
@@ -55,7 +69,6 @@ void split_lines(const char *todis, int wii, int fonnt) {
             // end of the text, add the last line if necessary
             if (i > 0) {
                 strcpy(lines[numlines], theline);
-                removeBackslashBracket(lines[numlines]);
                 numlines++;
             }
             break;
@@ -65,8 +78,8 @@ void split_lines(const char *todis, int wii, int fonnt) {
         nextCharWas = theline[i + 1];
         theline[i + 1] = 0;
 
-        // force end of line with the [ character (except if \[ )
-        if ((theline[i] == '[') && ((i == 0) || (theline[i - 1] != '\\')))
+        // force end of line with the \n character
+        if (theline[i] == '\n')
             splitAt = i;
         // otherwise, see if we are too wide
         else if (wgettextwidth_compensate(theline, fonnt) >= wii) {
@@ -89,7 +102,6 @@ void split_lines(const char *todis, int wii, int fonnt) {
             nextCharWas = theline[splitAt];
             theline[splitAt] = 0;
             strcpy(lines[numlines], theline);
-            removeBackslashBracket(lines[numlines]);
             numlines++;
             theline[splitAt] = nextCharWas;
             if (numlines >= MAXLINE) {
@@ -98,8 +110,8 @@ void split_lines(const char *todis, int wii, int fonnt) {
             }
             // the next line starts from here
             theline += splitAt;
-            // skip the space or bracket that caused the line break
-            if ((theline[0] == ' ') || (theline[0] == '['))
+            // skip the space or new line that caused the line break
+            if ((theline[0] == ' ') || (theline[0] == '\n'))
                 theline++;
             i = -1;
         }

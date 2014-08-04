@@ -34,8 +34,8 @@ int  numlines;
 // Project-dependent implementation
 extern int wgettextwidth_compensate(const char *tex, int font);
 
-// Break up the text into lines, using normal Western left-right style
-void split_lines_leftright(const char *todis, int wii, int fonnt) {
+// Break up the text into lines
+void split_lines(const char *todis, int wii, int fonnt) {
     // v2.56.636: rewrote this function because the old version
     // was crap and buggy
     int i = 0;

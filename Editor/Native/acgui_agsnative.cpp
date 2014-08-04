@@ -79,7 +79,7 @@ void GUILabel::Draw_replace_macro_tokens(char *oritext, char *text)
 void GUILabel::Draw_split_lines(char *teptr, int wid, int font, int &numlines)
 {
   numlines=0;
-  split_lines_leftright(teptr, wid, font);
+  split_lines(teptr, wid, font);
 }
 
 void GUITextBox::Draw_text_box_contents(Common::Bitmap *ds, color_t text_color)

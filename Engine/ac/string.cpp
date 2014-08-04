@@ -244,60 +244,18 @@ const char *CreateNewScriptString(const char *fromText, bool reAllocate) {
     return str->text;
 }
 
-void split_lines_rightleft (char *todis, int wii, int fonnt) {
-    // start on the last character
-    char *thisline = todis + strlen(todis) - 1;
-    char prevlwas, *prevline = NULL;
-    // work backwards
-    while (thisline >= todis) {
-
-        int needBreak = 0;
-        if (thisline <= todis) 
-            needBreak = 1;
-        // ignore \[ sequence
-        else if ((thisline > todis) && (thisline[-1] == '\\')) { }
-        else if (thisline[0] == '[') {
-            needBreak = 1;
-            thisline++;
-        }
-        else if (wgettextwidth_compensate(thisline, fonnt) >= wii) {
-            // go 'back' to the nearest word
-            while ((thisline[0] != ' ') && (thisline[0] != 0))
-                thisline++;
-
-            if (thisline[0] == 0)
-                quit("!Single word too wide for window");
-
-            thisline++;
-            needBreak = 1;
-        }
-
-        if (needBreak) {
-            strcpy(lines[numlines], thisline);
-            removeBackslashBracket(lines[numlines]);
-            numlines++;
-            if (prevline) {
-                prevline[0] = prevlwas;
-            }
-            thisline--;
-            prevline = thisline;
-            prevlwas = prevline[0];
-            prevline[0] = 0;
-        }
-
-        thisline--;
+void reverse_text(char *text) {
+    int length = strlen(text);
+    int index = length / 2;
+    int xedni;
+    char swap;
+    while(index > 0) {
+        xedni = length - index;
+        index--;
+        swap = text[xedni];
+        text[xedni] = text[index];
+        text[index] = swap;
     }
-    if (prevline)
-        prevline[0] = prevlwas;
-}
-
-char *reverse_text(const char *text) {
-    int stlen = strlen(text), rr;
-    char *backwards = (char*)malloc(stlen + 1);
-    for (rr = 0; rr < stlen; rr++)
-        backwards[rr] = text[(stlen - rr) - 1];
-    backwards[stlen] = 0;
-    return backwards;
 }
 
 void break_up_text_into_lines(int wii,int fonnt, const char*todis) {
@@ -317,23 +275,25 @@ void break_up_text_into_lines(int wii,int fonnt, const char*todis) {
         return;
 
     int rr;
+    int line_length;
 
-    if (game.options[OPT_RIGHTLEFTWRITE] == 0)
-    {
-        split_lines_leftright(todis, wii, fonnt);
-    }
-    else {
-        // Right-to-left just means reverse the text then
-        // write it as normal
-        char *backwards = reverse_text(todis);
-        split_lines_rightleft (backwards, wii, fonnt);
-        free(backwards);
-    }
+    split_lines(todis, wii, fonnt);
 
-    for (rr=0;rr<numlines;rr++) {
-        if (wgettextwidth_compensate(lines[rr],fonnt) > longestline)
-            longestline = wgettextwidth_compensate(lines[rr],fonnt);
-    }
+    // Right-to-left just means reverse the text then
+    // write it as normal
+    if (game.options[OPT_RIGHTLEFTWRITE])
+        for (rr = 0; rr < numlines; rr++) {
+            reverse_text(lines[rr]);
+            line_length = wgettextwidth_compensate(lines[rr], fonnt);
+            if (line_length > longestline)
+                longestline = line_length;
+        }
+    else
+        for (rr = 0; rr < numlines; rr++) {
+            line_length = wgettextwidth_compensate(lines[rr], fonnt);
+            if (line_length > longestline)
+                longestline = line_length;
+        }
 }
 
 int MAXSTRLEN = MAX_MAXSTRLEN;

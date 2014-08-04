@@ -31,7 +31,7 @@ void removeBackslashBracket(char *lbuffer) {
 char lines[MAXLINE][200];
 int  numlines;
 
-// Project-dependant implementation
+// Project-dependent implementation
 extern int wgettextwidth_compensate(const char *tex, int font);
 
 // Break up the text into lines, using normal Western left-right style

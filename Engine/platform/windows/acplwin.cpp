@@ -647,7 +647,7 @@ const char *AGSWin32::GetAppOutputDirectory()
 const char *AGSWin32::GetGraphicsTroubleshootingText()
 {
   return "\n\nPossible causes:\n"
-    "* your graphics card drivers do not support this resolution. "
+    "* your graphics card drivers do not support requested resolution. "
     "Run the game setup program and try another resolution.\n"
     "* the graphics driver you have selected does not work. Try switching between Direct3D and DirectDraw.\n"
     "* the graphics filter you have selected does not work. Try another filter.\n"

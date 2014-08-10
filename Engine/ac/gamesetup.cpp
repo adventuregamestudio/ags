@@ -28,9 +28,12 @@ GameSetup::GameSetup()
     enable_antialiasing = false;
     force_hicolor_mode = false;
     disable_exception_handling = false;
-    prefer_sideborders = true;
-    prefer_letterbox = true;
     override_script_os = -1;
     override_multitasking = -1;
     override_upscale = false;
+    filter_scaling_max_uniform = false;
+    filter_scaling_x = 1;
+    filter_scaling_y = 1;
+    match_device_ratio = false;
+    game_frame_placement = kPlaceStretchProportional;
 }

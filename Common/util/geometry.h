@@ -18,10 +18,22 @@
 #ifndef __AGS_CN_UTIL__GEOMETRY_H
 #define __AGS_CN_UTIL__GEOMETRY_H
 
+#include "util/math.h"
+
+namespace Math = AGS::Common::Math;
 //namespace AGS
 //{
 //namespace Common
 //{
+
+enum RectPlacement
+{
+    kPlaceOffset,
+    kPlaceCenter,
+    kPlaceStretch,
+    kPlaceStretchProportional,
+    kNumRectPlacement
+};
 
 struct Point
 {
@@ -96,6 +108,12 @@ struct Size
     inline bool IsNull() const
     {
         return Width <= 0 || Height <= 0;
+    }
+
+    inline void Clamp(const Size floor, const Size ceil)
+    {
+        Width = Math::Clamp(floor.Width, ceil.Width, Width);
+        Height = Math::Clamp(floor.Height, ceil.Height, Height);
     }
 
     // Indicates if current size exceeds other size by any metric
@@ -236,6 +254,8 @@ struct Circle
 
 };
 
+
+Rect PlaceInRect(const Rect &place, const Rect &item, const RectPlacement &placement);
 //} // namespace Common
 //} // namespace AGS
 

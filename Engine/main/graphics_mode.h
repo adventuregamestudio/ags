@@ -21,7 +21,7 @@
 #include "gfx/gfxdefines.h"
 #include "util/scaling.h"
 
-int  graphics_mode_init();
+bool graphics_mode_init();
 void graphics_mode_shutdown();
 
 // The actual game screen resolution

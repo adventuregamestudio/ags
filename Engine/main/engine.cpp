@@ -1425,10 +1425,8 @@ int initialize_engine(int argc,char*argv[])
 
     engine_init_modxm_player();
 
-    res = graphics_mode_init();
-    if (res != RETURN_CONTINUE) {
-        return res;
-    }
+    if (!graphics_mode_init())
+        return EXIT_NORMAL;
 
     SetMultitasking(0);
 

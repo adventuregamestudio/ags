@@ -71,10 +71,16 @@ void script_debug(int cmdd,int dataa) {
     else if (cmdd==1) {
         char toDisplay[STD_BUFFER_SIZE];
         DisplayMode mode = gfxDriver->GetDisplayMode();
+        Rect render_frame = gfxDriver->GetRenderDestination();
         sprintf(toDisplay,"Adventure Game Studio run-time engine[ACI version %s"
-            "[Running %d x %d at %d-bit, game frame is %d x %d %s[GFX: %s[%s[" "Sprite cache size: %d KB (limit %d KB; %d locked)",
-            EngineVersion.LongString.GetCStr(), mode.Width, mode.Height, ScreenResolution.ColorDepth, ScreenResolution.Width, ScreenResolution.Height, (convert_16bit_bgr) ? "BGR" : "",
+            "[Game resolution %d x %d"
+            "[Running %d x %d at %d-bit%s%s[GFX: %s; %s[Draw frame %d x %d["
+            "Sprite cache size: %d KB (limit %d KB; %d locked)",
+            EngineVersion.LongString.GetCStr(), game.size.Width, game.size.Height,
+            mode.Width, mode.Height, mode.ColorDepth, (convert_16bit_bgr) ? " BGR" : "",
+            mode.Windowed ? " W" : "",
             gfxDriver->GetDriverName(), filter->GetInfo().Name.GetCStr(),
+            render_frame.GetWidth(), render_frame.GetHeight(),
             spriteset.cachesize / 1024, spriteset.maxCacheSize / 1024, spriteset.lockedSize / 1024);
         if (play.separate_music_lib)
             strcat(toDisplay,"[AUDIO.VOX enabled");

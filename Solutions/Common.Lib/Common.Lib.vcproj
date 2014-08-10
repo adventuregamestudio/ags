@@ -371,6 +371,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\geometry.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\lzw.cpp"
 					>
 				</File>

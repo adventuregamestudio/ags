@@ -85,7 +85,6 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
 void clear_letterbox_borders();
 
 void draw_and_invalidate_text(Common::Bitmap *ds, int x1, int y1, int font, color_t text_color, const char *text);
-void wouttext_reverseifnecessary(Common::Bitmap *ds, int x, int y, int font, color_t text_color, char *text);
 
 void setpal();
 

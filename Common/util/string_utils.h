@@ -51,9 +51,9 @@ extern "C" char *strupr(char *s);
 
 #endif // !WINDOWS_VERSION
 
-void removeBackslashBracket(char *lbuffer);
-// Break up the text into lines, using normal Western left-right style
-void split_lines_leftright(const char *todis, int wii, int fonnt);
+void unescape(char *buffer);
+// Break up the text into lines
+void split_lines(const char *todis, int wii, int fonnt);
 
 //=============================================================================
 

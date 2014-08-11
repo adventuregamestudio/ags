@@ -97,17 +97,6 @@
 #define MAX_SPRITES         30000
 #define MAX_CURSOR          20
 
-
-//#ifdef DJGPP
-//#include <unistd.h>
-//#endif
-
-#ifdef DJGPP
-#define PCKD __attribute__((packed))
-#else
-#define PCKD
-#endif
-
 #ifndef int32
 #define int32 int
 #endif

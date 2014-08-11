@@ -1,27 +1,26 @@
 #ifndef __AC_SCRIPT_H
 #define __AC_SCRIPT_H
 
-#include "ac/common_defines.h"  // PCKD
 #include "script/cc_script.h"   // ccScript
 
 extern int in_interaction_editor;  // whether to remove script functions/etc
 
 #pragma pack(1)
 struct ScriptEvent {
-    long type     PCKD;   // eg. display message, or if is less
-    char sort     PCKD;
-    long _using   PCKD;   // ^var1
-    long with     PCKD;   // number 3 than 9
-    long data     PCKD;
-    long branchto PCKD;
-    long screeny  PCKD;
+    long type     ;   // eg. display message, or if is less
+    char sort     ;
+    long _using   ;   // ^var1
+    long with     ;   // number 3 than 9
+    long data     ;
+    long branchto ;
+    long screeny  ;
     void settype(long);
 };
 
 #define MAXINBLOCK 10
 struct ScriptBlock {
-    long        numevents           PCKD;
-    ScriptEvent events[MAXINBLOCK]  PCKD;
+    long        numevents           ;
+    ScriptEvent events[MAXINBLOCK]  ;
 };
 #pragma pack()
 

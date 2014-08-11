@@ -69,8 +69,6 @@ int check_if_user_input_should_cancel_video()
 
 #if defined(WINDOWS_VERSION)
 int __cdecl fli_callback() {
-#elif defined(DOS_VERSION)
-int fli_callback(...) {
 #else
 extern "C" int fli_callback() {
 #endif

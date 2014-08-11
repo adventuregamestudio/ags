@@ -495,6 +495,4 @@ int main(int argc,char*argv[]) {
     }
 }
 
-#if !defined (DOS_VERSION)
 END_OF_MAIN()
-#endif

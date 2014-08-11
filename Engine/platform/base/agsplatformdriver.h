@@ -25,10 +25,6 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-#ifdef DJGPP
-#define DOS_VERSION
-#endif
-
 enum eScriptSystemOSID {
     eOS_DOS = 1,
     eOS_Win = 2,

@@ -1230,11 +1230,7 @@ void engine_init_game_shit()
     if (usetup.vsync)
         scsystem.vsync = 1;
 
-#if defined (DOS_VERSION)
-    filter->SetMouseArea(0,0,BASEWIDTH-1,BASEHEIGHT-1);
-#else
     filter->SetMouseArea(0, 0, scrnwid-1, scrnhit-1);
-#endif
     //  mloadwcursor("mouse.spr");
     //mousecurs[0]=spriteset[2054];
     currentcursor=0;

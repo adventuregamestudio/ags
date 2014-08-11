@@ -801,7 +801,7 @@ int D3DGraphicsDriver::_initDLLCallback()
   d3dpp.hDeviceWindow = allegro_wnd;
   d3dpp.Windowed = _newmode_windowed;
   d3dpp.EnableAutoDepthStencil = FALSE;
-  d3dpp.Flags = 0;
+  d3dpp.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER; // we need this flag to access the backbuffer with lockrect
   d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
   if(_newmode_vsync)
     d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
@@ -1160,15 +1160,22 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
     if (_pollingCallback)
       _pollingCallback();
 
+    /*
     // This call is v. slow (known DX9 issue)
     if (direct3ddevice->GetFrontBufferData(0, surface) != D3D_OK)
     {
       throw Ali3DException("GetFrontBufferData failed");
     }
+    */
+    if ( direct3ddevice->GetBackBuffer(0,0,D3DBACKBUFFER_TYPE_MONO,&surface)!=D3D_OK)
+    {
+      throw Ali3DException("IDirect3DSurface9::GetBackBuffer failed");
+    }
 
     if (_pollingCallback)
       _pollingCallback();
 
+    /*
     WINDOWINFO windowInfo;
     RECT *areaToCapture = NULL;
 
@@ -1180,6 +1187,7 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
       GetWindowInfo(win_get_window(), &windowInfo);
       areaToCapture = &windowInfo.rcClient;
     }
+    */
 
     Bitmap *finalImage = NULL;
 
@@ -1202,7 +1210,7 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
     }
 
     D3DLOCKED_RECT lockedRect;
-    if (surface->LockRect(&lockedRect, areaToCapture, D3DLOCK_READONLY) != D3D_OK)
+    if (surface->LockRect(&lockedRect, NULL, D3DLOCK_READONLY ) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::LockRect failed");
     }

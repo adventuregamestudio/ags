@@ -103,8 +103,7 @@ public:
     // BPP: bytes per pixel
     inline int  GetBPP() const
     {
-        int color_depth = GetColorDepth();
-        return color_depth == 15 ? 2 : (color_depth >> 3);
+        return (GetColorDepth() + 1) / 8;
     }
 
     // CHECKME: probably should not be exposed, see comment to GetData()

@@ -87,6 +87,7 @@ extern IGraphicsDriver *gfxDriver;
 extern int scrnwid,scrnhit;
 extern color palette[256];
 extern Bitmap *virtual_screen;
+extern int psp_gfx_renderer;
 
 void GiveScore(int amnt) 
 {
@@ -749,7 +750,13 @@ int SaveScreenShot(const char*namm) {
 
     if (gfxDriver->RequiresFullRedrawEachFrame()) 
     {
-        Bitmap *buffer = BitmapHelper::CreateBitmap(scrnwid, scrnhit, 32);
+        // FIXME this weird stuff! (related to incomplete OpenGL renderer)
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
+        int color_depth = (psp_gfx_renderer > 0) ? 32 : final_col_dep;
+#else
+        int color_depth = final_col_dep;
+#endif
+        Bitmap *buffer = BitmapHelper::CreateBitmap(scrnwid, scrnhit, color_depth);
         gfxDriver->GetCopyOfScreenIntoBitmap(buffer);
 
 		if (!buffer->SaveToFile(fileName, palette)!=0)

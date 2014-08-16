@@ -814,6 +814,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\memory.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\misc.h"
 					>
 				</File>

@@ -242,6 +242,12 @@ void engine_init_screen_settings(Size &game_size, Size &screen_size)
     game_size = GameSize;
     screen_size = Size(0, 0);
 
+    // Log out display information
+    Size device_size;
+    if (get_desktop_resolution(&device_size.Width, &device_size.Height) == 0)
+        Out::FPrint("Device display resolution: %d x %d", device_size.Width, device_size.Height);
+    else
+        Out::FPrint("Unable to obtain device resolution");
     Out::FPrint("Game native resolution: %d x %d (%d bit), letterbox: %s, side borders: %s", scrnwid, scrnhit, firstDepth,
         usetup.prefer_letterbox ? "acceptable" : "undesirable", usetup.prefer_sideborders ? "acceptable" : "undesirable");
 
@@ -511,7 +517,7 @@ bool try_find_nearest_supported_mode(const Size &base_size, const int scaling_fa
     Size desktop_size;
     if (!get_desktop_size_for_mode(desktop_size, windowed))
     {
-        Out::FPrint("Failed to find acceptable supported gfx mode (unable to obtain desktop resolution)");
+        Out::FPrint("Failed to find acceptable supported gfx mode (unable to obtain device resolution)");
         return false;
     }
     const Size wanted_size = base_size * scaling_factor;
@@ -589,7 +595,7 @@ int try_find_max_supported_uniform_scaling(const Size &base_size, Size &found_si
     Size desktop_size;
     if (!get_desktop_size_for_mode(desktop_size, windowed))
     {
-        Out::FPrint("Failed to find max supported uniform scaling (unable to obtain desktop resolution)");
+        Out::FPrint("Failed to find max supported uniform scaling (unable to obtain device resolution)");
         return 0;
     }
     int multiplier = 0;
@@ -931,11 +937,47 @@ void engine_set_color_conversions()
     set_color_conversion(COLORCONV_MOST | COLORCONV_EXPAND_256 | COLORCONV_REDUCE_16_TO_15);
 }
 
+void log_out_driver_modes(const int color_depth)
+{
+    IGfxModeList *modes = gfxDriver->GetSupportedModeList(color_depth);
+    if (!modes)
+    {
+        Out::FPrint("Couldn't get a list of supported resolutions for color depth = %d", color_depth);
+        return;
+    }
+    const int mode_count = modes->GetModeCount();
+    DisplayResolution mode;
+    String mode_str;
+    for (int i = 0, in_str = 0; i < mode_count; ++i)
+    {
+        if (!modes->GetMode(i, mode) || mode.ColorDepth != color_depth)
+            continue;
+        mode_str.Append(String::FromFormat("%dx%d;", mode.Width, mode.Height));
+        if (++in_str % 8 == 0)
+            mode_str.Append("\n\t");
+    }
+    delete modes;
+
+    String out_str = String::FromFormat("Supported gfx modes (%d-bit): ", color_depth);
+    if (!mode_str.IsEmpty())
+    {
+        out_str.Append("\n\t");
+        out_str.Append(mode_str);
+    }
+    else
+        out_str.Append("none");
+    Out::FPrint(out_str);
+}
+
 int create_gfx_driver_and_init_mode(const String &gfx_driver_id, Size &game_size, Size &screen_size)
 {
     if (!create_gfx_driver(gfx_driver_id))
         return EXIT_NORMAL;
 
+    // Log out supported driver modes
+    log_out_driver_modes(firstDepth);
+    log_out_driver_modes(secondDepth);
+    
     int res = engine_init_gfx_filters(game_size, screen_size, firstDepth);
     if (res != RETURN_CONTINUE)
     {

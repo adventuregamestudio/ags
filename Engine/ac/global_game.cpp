@@ -775,7 +775,7 @@ void SetMultitasking (int mode) {
     }
 
     // Don't allow background running if full screen
-    if ((mode == 1) && (usetup.windowed == 0))
+    if ((mode == 1) && (!usetup.windowed))
         mode = 0;
 
     if (mode == 0) {

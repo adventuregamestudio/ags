@@ -457,9 +457,9 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
             WritePrivateProfileString("misc","antialias",NULL,ac_config_file);
 
           if (SendDlgItemMessage(hDlg, IDC_SIDEBORDERS, BM_GETCHECK,0,0) == BST_CHECKED)
-            WritePrivateProfileString("misc","sideborders",NULL,ac_config_file);
+            WritePrivateProfileString("misc","prefer_sideborders","1",ac_config_file);
           else
-            WritePrivateProfileString("misc","sideborders","0",ac_config_file);
+            WritePrivateProfileString("misc","prefer_sideborders","0",ac_config_file);
 
           if (SendDlgItemMessage(hDlg,IDC_REFRESH,BM_GETCHECK,0,0) == BST_CHECKED)
             WritePrivateProfileString("misc","refresh","85",ac_config_file);
@@ -467,9 +467,9 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
             WritePrivateProfileString("misc","refresh","0",ac_config_file);
 
           if (SendDlgItemMessage(hDlg,IDC_LETTERBOX,BM_GETCHECK,0,0) == BST_CHECKED)
-            WritePrivateProfileString ("misc", "forceletterbox", "1", ac_config_file);
+            WritePrivateProfileString ("misc", "prefer_letterbox", "1", ac_config_file);
           else
-            WritePrivateProfileString ("misc", "forceletterbox", NULL, ac_config_file);
+            WritePrivateProfileString ("misc", "prefer_letterbox", "0", ac_config_file);
 
           if (SendDlgItemMessage(hDlg, IDC_REDUCESPR, BM_GETCHECK,0,0) == BST_CHECKED)
             WritePrivateProfileString ("misc", "notruecolor", "1", ac_config_file);
@@ -514,7 +514,7 @@ int acwsetup(const char*vername, const char*enbuild) {
     if (curmidi < 0) curmidi=0;
 
     windowed = INIreadint("misc","windowed",0);
-    useletterbox = INIreadint("misc","forceletterbox",0);
+    useletterbox = INIreadint("misc","prefer_letterbox", 1) != 0;
 
     reduce32to16 = INIreadint("misc","notruecolor",0);
     if (reduce32to16 < 0)
@@ -531,9 +531,7 @@ int acwsetup(const char*vername, const char*enbuild) {
     if (antialias < 1)
       antialias = 0;
 
-    sideBorders = INIreadint("misc","sideborders",0);
-    if (sideBorders == -1)
-      sideBorders = 1;
+    sideBorders = INIreadint("misc","prefer_sideborders", 1) != 0;
 
     int cacheval = INIreadint ("misc", "cachemax", 0);
     if (cacheval > 0)

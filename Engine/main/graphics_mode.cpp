@@ -55,7 +55,6 @@ extern int numguiinv;
 extern int scrnwid,scrnhit;
 extern int current_screen_resolution_multiplier;
 extern char force_gfxfilter[50];
-extern int force_letterbox;
 extern AGSPlatformDriver *platform;
 extern int force_16bit;
 extern IGraphicsDriver *gfxDriver;
@@ -163,7 +162,7 @@ bool get_desktop_size_for_mode(Size &size, const bool windowed)
     return false;
 }
 
-void engine_init_screen_settings()
+void engine_init_screen_settings(Size &game_size, Size &screen_size)
 {
     Out::FPrint("Initializing screen settings");
 
@@ -224,11 +223,11 @@ void engine_init_screen_settings()
         usetup.base_height *= 2;
     }
 
-    game.options[OPT_LETTERBOX] = force_letterbox > 0 ? 1 : 0;
+    game.options[OPT_LETTERBOX] = usetup.prefer_letterbox ? 1 : 0;
 
     // don't allow them to force a 256-col game to hi-color
     if (game.color_depth < 2)
-        usetup.force_hicolor_mode = 0;
+        usetup.force_hicolor_mode = false;
 
     firstDepth = 8, secondDepth = 8;
     if ((game.color_depth == 2) || (force_16bit) || (usetup.force_hicolor_mode)) {
@@ -240,8 +239,11 @@ void engine_init_screen_settings()
         secondDepth = 24;
     }
 
-    Out::FPrint("Game native resolution: %d x %d (%d bit), letterbox %s, side borders %s", scrnwid, scrnhit, firstDepth,
-        game.options[OPT_LETTERBOX] == 0 ? "optional" : "forced", usetup.enable_side_borders != 0 ? "enabled" : "disabled");
+    game_size = GameSize;
+    screen_size = Size(0, 0);
+
+    Out::FPrint("Game native resolution: %d x %d (%d bit), letterbox: %s, side borders: %s", scrnwid, scrnhit, firstDepth,
+        usetup.prefer_letterbox ? "acceptable" : "undesirable", usetup.prefer_sideborders ? "acceptable" : "undesirable");
 
     adjust_sizes_for_resolution(loaded_game_file_version);
 }
@@ -504,7 +506,7 @@ int get_scaling_from_filter_name(const String &filter_id)
 // Finds any supported graphics mode that can fit requested game frame size;
 // returns true if found acceptable mode, sets found_size.
 bool try_find_nearest_supported_mode(const Size &base_size, const int scaling_factor, Size &found_size, const int color_depth,
-                                     const bool windowed, const bool enable_sideborders, const bool force_letterbox)
+                                     const bool windowed, const bool prefer_sideborders, const bool prefer_letterbox)
 {
     Size desktop_size;
     if (!get_desktop_size_for_mode(desktop_size, windowed))
@@ -531,10 +533,10 @@ bool try_find_nearest_supported_mode(const Size &base_size, const int scaling_fa
     // explicitly enabled, so that modes with borders could be tried later
     // anyway if "no borders" failed.
     bool found = false;
-    if (!enable_sideborders)
+    if (!prefer_sideborders)
     {
         // no sideborders
-        if (!force_letterbox) 
+        if (!prefer_letterbox) 
             // no letterboxing, perfect match only
             found = find_nearest_supported_mode(base_size, scaling_factor, found_size, color_depth, NULL, true, true);
 
@@ -552,7 +554,7 @@ bool try_find_nearest_supported_mode(const Size &base_size, const int scaling_fa
     if (!found)
     {
         // with sideborders
-        if (!force_letterbox) 
+        if (!prefer_letterbox) 
         {
             // no letterbox, sideborders only
             // try match desktop ratio
@@ -582,7 +584,7 @@ bool try_find_nearest_supported_mode(const Size &base_size, const int scaling_fa
 // Find maximal possible uniform integer scaling for the given game size, which can be handled by graphics driver;
 // returns found scaling factor, sets found_size.
 int try_find_max_supported_uniform_scaling(const Size &base_size, Size &found_size, const int color_depth,
-                                           const bool windowed, const bool enable_sideborders, const bool force_letterbox)
+                                           const bool windowed, const bool prefer_sideborders, const bool prefer_letterbox)
 {
     Size desktop_size;
     if (!get_desktop_size_for_mode(desktop_size, windowed))
@@ -607,10 +609,10 @@ int try_find_max_supported_uniform_scaling(const Size &base_size, Size &found_si
     // Fullscreen mode: always try strictly no borders first, unless they are
     // explicitly enabled, so that modes with borders could be tried later
     // anyway if "no borders" failed.
-    if (!enable_sideborders)
+    if (!prefer_sideborders)
     {
         // no sideborders
-        if (!force_letterbox) 
+        if (!prefer_letterbox) 
             // no letterboxing, perfect match only
             multiplier = find_max_supported_uniform_scaling(base_size, found_size, color_depth, NULL, true, true);
 
@@ -628,7 +630,7 @@ int try_find_max_supported_uniform_scaling(const Size &base_size, Size &found_si
     if (!multiplier)
     {
         // with sideborders
-        if (!force_letterbox) 
+        if (!prefer_letterbox) 
         {
             // no letterbox, sideborders only
             // try match desktop ratio
@@ -669,9 +671,6 @@ int engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color_
         gfxfilter = GfxFilterRequest;
     
     const Size base_size = game_size;
-    const bool windowed = usetup.windowed != 0;
-    const bool enable_sideborders = usetup.enable_side_borders != 0;
-    const bool force_letterbox = game.options[OPT_LETTERBOX] != 0;
 
     int scaling_factor = 0;
     if (!gfxfilter.IsEmpty())
@@ -679,7 +678,7 @@ int engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color_
         scaling_factor = get_scaling_from_filter_name(gfxfilter);
         Size found_screen_size;
         if (try_find_nearest_supported_mode(base_size, scaling_factor, found_screen_size, color_depth,
-                windowed, enable_sideborders, force_letterbox))
+                usetup.windowed, usetup.prefer_sideborders, usetup.prefer_letterbox))
             screen_size = found_screen_size;
     }
 
@@ -688,7 +687,7 @@ int engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color_
 #if defined (WINDOWS_VERSION) || defined (LINUX_VERSION)
         Size found_screen_size;
         scaling_factor = try_find_max_supported_uniform_scaling(base_size, found_screen_size, color_depth,
-                            windowed, enable_sideborders, force_letterbox);
+                            usetup.windowed, usetup.prefer_sideborders, usetup.prefer_letterbox);
         if (scaling_factor > 0)
         {
             screen_size = found_screen_size;
@@ -738,7 +737,7 @@ bool init_gfx_mode(const Size &game_size, const Size &screen_size, int cdep)
         cdep = 24;
 
     Out::FPrint("Attempt to switch gfx mode to %d x %d (%d-bit) %s, game frame %d x %d, gfx filter: %s",
-        screen_size.Width, screen_size.Height, cdep, usetup.windowed > 0 ? "windowed" : "fullscreen",
+        screen_size.Width, screen_size.Height, cdep, usetup.windowed ? "windowed" : "fullscreen",
         game_size.Width, game_size.Height, filter->GetFilterID());
 
     if (usetup.refresh >= 50)
@@ -748,7 +747,7 @@ bool init_gfx_mode(const Size &game_size, const Size &screen_size, int cdep)
     final_scrn_hit = game_size.Height;
     final_col_dep = cdep;
     game_frame_y_offset = (final_scrn_hit - scrnhit) / 2;
-    usetup.want_letterbox = (final_scrn_hit > scrnhit) ? 1 : 0;
+    usetup.want_letterbox = final_scrn_hit > scrnhit;
 
     if (game.color_depth == 1) {
         final_col_dep = 8;
@@ -757,12 +756,12 @@ bool init_gfx_mode(const Size &game_size, const Size &screen_size, int cdep)
         set_color_depth(cdep);
     }
 
-    const bool result = gfxDriver->Init(game_size.Width, game_size.Height, screen_size.Width, screen_size.Height, final_col_dep, usetup.windowed > 0, &timerloop);
+    const bool result = gfxDriver->Init(game_size.Width, game_size.Height, screen_size.Width, screen_size.Height, final_col_dep, usetup.windowed, &timerloop);
 
     if (result)
     {
         Out::FPrint("Succeeded. Using gfx mode %d x %d (%d-bit) %s, game frame %d x %d, gfx filter: %s",
-            screen_size.Width, screen_size.Height, final_col_dep, usetup.windowed > 0 ? "windowed" : "fullscreen",
+            screen_size.Width, screen_size.Height, final_col_dep, usetup.windowed ? "windowed" : "fullscreen",
             game_size.Width, game_size.Height, filter->GetFilterID());
         return true;
     }
@@ -936,10 +935,6 @@ int create_gfx_driver_and_init_mode(const String &gfx_driver_id, Size &game_size
 {
     if (!create_gfx_driver(gfx_driver_id))
         return EXIT_NORMAL;
-    engine_init_screen_settings();
-
-    game_size = GameSize;
-    screen_size = Size(0, 0);
 
     int res = engine_init_gfx_filters(game_size, screen_size, firstDepth);
     if (res != RETURN_CONTINUE)
@@ -982,10 +977,12 @@ int graphics_mode_init()
 {
     // Engine may try to change from windowed to fullscreen if the first failed;
     // here we keep the original windowed flag in case we'll have to restore it
-    int windowed = usetup.windowed;
+    const bool windowed = usetup.windowed;
 
     Size game_size;
     Size screen_size;
+
+    engine_init_screen_settings(game_size, screen_size);
 
     int res = create_gfx_driver_and_init_mode(usetup.gfxDriverID, game_size, screen_size);
     if (res != RETURN_CONTINUE)
@@ -1005,7 +1002,7 @@ int graphics_mode_init()
 
     engine_post_init_gfx_driver();
     engine_prepare_screen();
-    platform->PostAllegroInit((usetup.windowed > 0) ? true : false);
+    platform->PostAllegroInit(usetup.windowed);
     engine_set_gfx_driver_callbacks();
     engine_set_color_conversions();
     return RETURN_CONTINUE;

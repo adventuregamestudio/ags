@@ -87,7 +87,8 @@ const char *get_filter_id(int list_index)
 
 void update_resolution_texts(HWND hDlg) {
   
-  Size res_size = ResolutionTypeToSize(defaultRes);
+  bool letterbox_by_design = INIreadint("misc", "letterbox", 0) > 0;
+  Size res_size = ResolutionTypeToSize(defaultRes, letterbox_by_design);
   int resx = res_size.Width;
   int resy = res_size.Height;
   

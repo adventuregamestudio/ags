@@ -128,6 +128,6 @@ inline bool IsHiRes(GameResolutionType resolution)
     return resolution > kGameResolution_LastLoRes;
 }
 
-Size ResolutionTypeToSize(GameResolutionType resolution);
+Size ResolutionTypeToSize(GameResolutionType resolution, bool letterbox = false);
 
 #endif // __AGS_CN_AC__GAMESTRUCTDEFINES_H

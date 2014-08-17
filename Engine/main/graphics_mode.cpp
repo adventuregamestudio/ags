@@ -223,8 +223,6 @@ void engine_init_screen_settings(Size &game_size, Size &screen_size)
         usetup.base_height *= 2;
     }
 
-    game.options[OPT_LETTERBOX] = usetup.prefer_letterbox ? 1 : 0;
-
     // don't allow them to force a 256-col game to hi-color
     if (game.color_depth < 2)
         usetup.force_hicolor_mode = false;
@@ -239,7 +237,11 @@ void engine_init_screen_settings(Size &game_size, Size &screen_size)
         secondDepth = 24;
     }
 
-    game_size = GameSize;
+    // The letterbox-by-design game property requests that game frame must
+    // include black horizontal borders of fixed height.
+    // If the letterbox option is disabled, then the game frame size will be
+    // equal to native game size.
+    game_size = ResolutionTypeToSize(game.default_resolution, game.options[OPT_LETTERBOX] != 0);
     screen_size = Size(0, 0);
 
     // Log out display information
@@ -248,7 +250,10 @@ void engine_init_screen_settings(Size &game_size, Size &screen_size)
         Out::FPrint("Device display resolution: %d x %d", device_size.Width, device_size.Height);
     else
         Out::FPrint("Unable to obtain device resolution");
-    Out::FPrint("Game native resolution: %d x %d (%d bit), letterbox: %s, side borders: %s", scrnwid, scrnhit, firstDepth,
+
+    Out::FPrint("Game native resolution: %d x %d (%d bit)%s", scrnwid, scrnhit, firstDepth,
+        game.options[OPT_LETTERBOX] == 0 ? "": " letterbox-by-design");
+    Out::FPrint("Game settings: letterbox %s, side borders %s",
         usetup.prefer_letterbox ? "acceptable" : "undesirable", usetup.prefer_sideborders ? "acceptable" : "undesirable");
 
     adjust_sizes_for_resolution(loaded_game_file_version);
@@ -973,7 +978,6 @@ int create_gfx_driver_and_init_mode(const String &gfx_driver_id, Size &game_size
 {
     if (!create_gfx_driver(gfx_driver_id))
         return EXIT_NORMAL;
-
     // Log out supported driver modes
     log_out_driver_modes(firstDepth);
     log_out_driver_modes(secondDepth);

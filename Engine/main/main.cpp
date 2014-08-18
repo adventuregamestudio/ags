@@ -122,7 +122,7 @@ void main_create_platform_driver()
 #define ACI_VERSION_MAJOR               3
 #define ACI_VERSION_MINOR               3
 #define ACI_VERSION_RELEASE             1
-#define ACI_VERSION_REVISION            1163
+#define ACI_VERSION_REVISION            1165
 #ifdef NO_MP3_PLAYER
 #define SPECIAL_VERSION "NMP"
 #else
@@ -495,6 +495,4 @@ int main(int argc,char*argv[]) {
     }
 }
 
-#if !defined (DOS_VERSION)
 END_OF_MAIN()
-#endif

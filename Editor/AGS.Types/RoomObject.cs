@@ -17,6 +17,7 @@ namespace AGS.Types
         private int _image;
         private int _x;
         private int _y;
+        private bool _clickable = true;
         private bool _visible = true;
         private int _baseline;
         private int _effectiveBaseline;
@@ -74,6 +75,14 @@ namespace AGS.Types
         {
             get { return _baseline; }
             set { _baseline = value; }
+        }
+
+        [Description("Determines whether the object can be clicked on, or whether mouse clicks pass straight through it")]
+        [Category("Design")]
+        public bool Clickable
+        {
+            get { return _clickable; }
+            set { _clickable = value; }
         }
 
 		[Description("Allows you to manually specify this object's position in the front-to-back z-order, rather than the default behaviour of using its Y co-ordinate.")]
@@ -135,7 +144,7 @@ namespace AGS.Types
             set { _name = Utilities.ValidateScriptName(value, MAX_NAME_LENGTH); }
         }
 
-        [Description("Whether the object should be effected by walkable area scaling")]
+        [Description("Whether the object should be affected by walkable area scaling")]
         [Category("Appearance")]
         public bool UseRoomAreaScaling
         {
@@ -143,7 +152,7 @@ namespace AGS.Types
             set { _useRoomAreaScaling = value; }
         }
 
-        [Description("Whether the object should be effected by walkable area lighting")]
+        [Description("Whether the object should be affected by walkable area lighting")]
         [Category("Appearance")]
         public bool UseRoomAreaLighting
         {

@@ -15,8 +15,6 @@
 #ifndef __AC_MESSAGEINFO_H
 #define __AC_MESSAGEINFO_H
 
-#include "ac/common_defines.h" // PCKD
-
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
@@ -25,8 +23,8 @@ using namespace AGS; // FIXME later
 #define MSG_DISPLAYNEXT 1 // supercedes using alt-200 at end of message
 #define MSG_TIMELIMIT   2
 struct MessageInfo {
-    char  displayas  PCKD; // 0 = normal window, 1 = as speech
-    char  flags      PCKD; // combination of MSG_xxx flags
+    char  displayas  ; // 0 = normal window, 1 = as speech
+    char  flags      ; // combination of MSG_xxx flags
 
     void ReadFromFile(Common::Stream *in);
 };

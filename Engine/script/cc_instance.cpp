@@ -34,12 +34,12 @@
 #include "util/misc.h"
 #include "util/textstreamwriter.h"
 #include "ac/dynobj/scriptstring.h"
+#include "ac/dynobj/scriptuserobject.h"
 #include "ac/statobj/agsstaticobject.h"
 #include "ac/statobj/staticarray.h"
 #include "util/string_utils.h" // linux strnicmp definition
 
-using AGS::Common::Stream;
-using AGS::Common::TextStreamWriter;
+using namespace AGS::Common;
 
 extern ccInstance *loadedInstances[MAX_LOADED_INSTANCES]; // in script/script_runtime
 extern int gameHasBeenRestored; // in ac/game
@@ -156,6 +156,7 @@ const ScriptCommandInfo sccmd_info[CC_NUM_SCCMDS] =
     ScriptCommandInfo( SCMD_JNZ             , "jnz"               , 1, kScOpNoArgIsReg ),
     ScriptCommandInfo( SCMD_DYNAMICBOUNDS   , "dynamicbounds"     , 1, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_NEWARRAY        , "newarray"          , 3, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_NEWUSEROBJECT   , "newuserobject"     , 2, kScOpOneArgIsReg ),
 };
 
 const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
@@ -1260,6 +1261,18 @@ int ccInstance::Run(int32_t curpc)
               reg1.SetDynamicObject((void*)ccGetObjectAddressFromHandle(handle), &globalDynamicArray);
               break;
           }
+      case SCMD_NEWUSEROBJECT:
+          {
+              const int32_t size = arg2.IValue;
+              if (size < 0)
+              {
+                  cc_error("Invalid size for user object; requested: %u (or %d), range: 0..%d", (uint32_t)size, size, INT_MAX);
+                  return -1;
+              }
+              ScriptUserObject *suo = ScriptUserObject::CreateManaged(size);
+              reg1.SetDynamicObject(suo, suo);
+              break;
+          }
       case SCMD_FADD:
           reg1.SetFloat(reg1.FValue + arg2.IValue); // arg2 was used as int here originally
           break;
@@ -1814,10 +1827,7 @@ bool ccInstance::CreateGlobalVars(ccScript * scri)
             // DATADATA fixup takes relative address of global data element from fixups array;
             // this is the address of element, which stores address of actual data
             glvar.ScAddress = scri->fixups[i];
-            int32_t data_addr = *(int32_t*)&globaldata[glvar.ScAddress];
-#if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(data_addr);
-#endif // AGS_BIG_ENDIAN
+            int32_t data_addr = BBOp::Int32FromLE(*(int32_t*)&globaldata[glvar.ScAddress]);
             if (glvar.ScAddress - data_addr != 200 /* size of old AGS string */)
             {
                 // CHECKME: probably replace with mere warning in the log?

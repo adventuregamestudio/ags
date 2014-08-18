@@ -44,7 +44,7 @@ public:
     // some global color depth setting; not sure if this is OK to use for generic class,
     // revise this in future
     bool    Create(int width, int height, int color_depth = 0);
-    bool    CreateTransparent(int width, int height, int color_depth);
+    bool    CreateTransparent(int width, int height, int color_depth = 0);
     // Allow this object to share existing bitmap data
     bool    CreateSubBitmap(Bitmap *src, const Rect &rc);
     // Create a copy of given bitmap

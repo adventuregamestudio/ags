@@ -18,6 +18,13 @@ extern int currentline;
 char ccCopyright[]="ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones and 2011-2014 others";
 static char scriptNameBuffer[256];
 
+int  evaluate_expression(ccInternalList*,ccCompiledScript*,int,bool insideBracketedDeclaration);
+int  evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, long lilen, long *vnlist, bool insideBracketedDeclaration);
+int  parse_sub_expr(long*,int,ccCompiledScript*);
+long extract_variable_name(int, ccInternalList*,long*, int*);
+int  check_type_mismatch(int typeIs, int typeWantsToBe, int orderMatters);
+int  check_operator_valid_for_type(int *vcpuOp, int type1, int type2);
+
 int is_part_of_symbol(char thischar, char startchar) {
     // workaround for strings
     static int sayno_next_char = 0;
@@ -201,6 +208,8 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
                 if ((sym.stype[last_time] != SYM_PROPERTY) &&
                     (sym.stype[last_time] != SYM_IMPORT) &&
                     (sym.stype[last_time] != SYM_STATIC) &&
+                    (sym.stype[last_time] != SYM_PROTECTED) &&
+                    (sym.stype[last_time] != SYM_WRITEPROTECTED) &&
                     (sym.stype[last_time] != SYM_SEMICOLON) &&
                     (sym.stype[last_time] != SYM_OPENBRACE) &&
                     (sym.stype[last_time] != SYM_OPENBRACKET) &&
@@ -370,6 +379,38 @@ int deal_with_end_of_ifelse (char*nested_type,long*nested_info,long*nested_start
      else
          nestlevel[0]--;
      return 0;
+}
+
+int deal_with_end_of_do (long *nested_info, long *nested_start, ccCompiledScript *scrip, ccInternalList *targ, int *nestlevel) {
+    int cursym;
+    int nested_level;
+
+    cursym = targ->getnext();
+    nested_level = nestlevel[0];
+    scrip->flush_line_numbers();
+    if (sym.get_type(cursym) != SYM_WHILE) {
+        cc_error("Do without while");
+        return -1;
+    }
+    if (sym.get_type(targ->peeknext()) != SYM_OPENPARENTHESIS) {
+        cc_error("expected '('");
+        return -1;
+    }
+    scrip->flush_line_numbers();
+    if (evaluate_expression(targ, scrip, 1, false))
+        return -1;
+    if (sym.get_type(targ->peeknext()) != SYM_SEMICOLON) {
+        cc_error("expected ';'");
+        return -1;
+    }
+    targ->getnext();
+    // Jump back to the start of the loop while the condition is true
+    scrip->write_cmd1(SCMD_JNZ, -((scrip->codesize + 2) - nested_start[nested_level]));
+    // Write the correct location for the end of the loop
+    scrip->code[nested_info[nested_level]] = (scrip->codesize - nested_info[nested_level]) - 1;
+    nestlevel[0]--;
+
+    return 0;
 }
 
 int find_member_sym(int structSym, long *memSym, int allowProtected) {
@@ -1370,15 +1411,6 @@ int get_readcmd_for_size(int sizz, int writeinstead) {
   }
 
 
-int  evaluate_expression(ccInternalList*,ccCompiledScript*,int,bool insideBracketedDeclaration);
-int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, long lilen, long *vnlist, bool insideBracketedDeclaration);
-int  parse_sub_expr(long*,int,ccCompiledScript*);
-long extract_variable_name(int, ccInternalList*,long*, int*);
-int  check_type_mismatch(int typeIs, int typeWantsToBe, int orderMatters);
-int  check_operator_valid_for_type(int *vcpuOp, int type1, int type2);
-
-
-
 int get_array_index_into_ax(ccCompiledScript *scrip, long *symlist, int openBracketOffs, int closeBracketOffs, bool checkBounds, bool multiplySize) {
 
   // "push" the ax val type (because this is just an array index,
@@ -2229,53 +2261,56 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
     // The operator is the first thing in the expression
     if (sym.get_type(symlist[oploc]) == SYM_NEW) 
     {
-      if (listlen < 5)
-      {
-        cc_error("parse error after 'new'");
-        return -1;
-      }
-      if (sym.get_type(symlist[oploc + 1]) != SYM_VARTYPE)
+      if (listlen < 2 || sym.get_type(symlist[oploc + 1]) != SYM_VARTYPE)
       {
         cc_error("expected type after 'new'");
         return -1;
       }
 
-      int arrayType = symlist[oploc + 1];
-
-      if ((sym.get_type(symlist[oploc + 2]) != SYM_OPENBRACKET) ||
-          (sym.get_type(symlist[listlen - 1]) != SYM_CLOSEBRACKET))
+      if(listlen > 3 && sym.get_type(symlist[oploc + 2]) == SYM_OPENBRACKET && sym.get_type(symlist[listlen - 1]) == SYM_CLOSEBRACKET)
       {
-        cc_error("'new' can only be used to create arrays");
-        return -1;
+          int arrayType = symlist[oploc + 1];
+
+          if (parse_sub_expr(&symlist[oploc + 3], listlen - 4, scrip))
+            return -1;
+
+          if (scrip->ax_val_type != sym.normalIntSym)
+          {
+            cc_error("array size must be an int");
+            return -1;
+          }
+
+          bool isManagedType = false;
+          int size = sym.ssize[arrayType];
+          if (sym.flags[arrayType] & SFLG_MANAGED)
+          {
+            isManagedType = true;
+            size = 4;
+          }   
+          else if (sym.flags[arrayType] & SFLG_STRUCTTYPE)
+          {
+            cc_error("cannot create dynamic array of unmanaged struct");
+            return -1;
+          }
+
+          scrip->write_cmd3(SCMD_NEWARRAY, SREG_AX, size, isManagedType);
+          scrip->ax_val_type = arrayType | STYPE_DYNARRAY;
+
+          if (isManagedType)
+            scrip->ax_val_type |= STYPE_POINTER;
+      }
+      else
+      {
+          if(sym.flags[symlist[oploc + 1]] & SFLG_BUILTIN)
+          {
+            cc_error("Built-in type '%s' cannot be instantiated directly", sym.get_name(symlist[oploc + 1]));
+            return -1;
+          }
+          const size_t size = sym.ssize[symlist[oploc + 1]];
+          scrip->write_cmd2(SCMD_NEWUSEROBJECT, SREG_AX, size);
+          scrip->ax_val_type = symlist[oploc + 1] | STYPE_POINTER;
       }
 
-      if (parse_sub_expr(&symlist[oploc + 3], listlen - 4, scrip))
-        return -1;
-
-      if (scrip->ax_val_type != sym.normalIntSym)
-      {
-        cc_error("array size must be an int");
-        return -1;
-      }
-
-      bool isManagedType = false;
-      int size = sym.ssize[arrayType];
-      if (sym.flags[arrayType] & SFLG_MANAGED)
-      {
-        isManagedType = true;
-        size = 4;
-      }   
-      else if (sym.flags[arrayType] & SFLG_STRUCTTYPE)
-      {
-        cc_error("cannot create dynamic array of unmanaged struct");
-        return -1;
-      }
-
-      scrip->write_cmd3(SCMD_NEWARRAY, SREG_AX, size, isManagedType);
-      scrip->ax_val_type = arrayType | STYPE_DYNARRAY;
-
-      if (isManagedType)
-        scrip->ax_val_type |= STYPE_POINTER;
       return 0;
     }
     else if (sym.operatorToVCPUCmd(symlist[oploc]) == SCMD_SUBREG) {
@@ -3166,6 +3201,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
     char next_is_managed = 0, next_is_static = 0;
     char next_is_protected = 0, next_is_stringstruct = 0;
     char next_is_autoptr = 0, next_is_noloopcheck = 0;
+    char next_is_builtin = 0;
     nested_type[0]=NEST_NOTHING;
 
     // *** now we have the program as a list of symbols in targ
@@ -3218,7 +3254,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 return -1;
             }
             if ((nested_type[nested_level] == NEST_IFSINGLE) ||
-                (nested_type[nested_level] == NEST_ELSESINGLE)) {
+                (nested_type[nested_level] == NEST_ELSESINGLE) ||
+                (nested_type[nested_level] == NEST_DOSINGLE)) {
                     cc_error("Internal compiler error in openbrace");
                     return -1;
             }
@@ -3280,7 +3317,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
         else if (symType == SYM_CLOSEBRACE) {
             // it's a single-line if statement
             if ((nested_type[nested_level] == NEST_IFSINGLE) ||
-                (nested_type[nested_level] == NEST_ELSESINGLE)) {
+                (nested_type[nested_level] == NEST_ELSESINGLE) ||
+                (nested_type[nested_level] == NEST_DOSINGLE)) {
                     cc_error("Unexpected '}'");
                     return -1;
             }
@@ -3310,17 +3348,31 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 scrip->cur_sp -= 4;  // return address removed from stack
             }
             else if ((nested_type[nested_level+1] == NEST_IF) ||
-                (nested_type[nested_level+1] == NEST_ELSE)) {
+                (nested_type[nested_level+1] == NEST_ELSE) ||
+                (nested_type[nested_level+1] == NEST_DO)) {
                     INC_NESTED_LEVEL;
-                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
-                        continue;
+                    if (nested_type[nested_level] == NEST_DO)
+                    {
+                        if (deal_with_end_of_do(nested_info,nested_start,scrip,&targ,&nested_level))
+                            return -1;
+                    }
+                    else
+                        if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
+                            continue;
             }
             while ((nested_type[nested_level] == NEST_IFSINGLE) ||
-                (nested_type[nested_level] == NEST_ELSESINGLE)) {
+                (nested_type[nested_level] == NEST_ELSESINGLE) ||
+                (nested_type[nested_level] == NEST_DOSINGLE)) {
                     // loop round doing all the end of elses, but break once an IF
                     // has been turned into an ELSE
-                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
-                        break;
+                    if (nested_type[nested_level] == NEST_DOSINGLE)
+                    {
+                        if (deal_with_end_of_do(nested_info,nested_start,scrip,&targ,&nested_level))
+                            return -1;
+                    }
+                    else
+                        if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
+                            break;
             }
         }
         else if (symType == SYM_STRUCT) {
@@ -3355,6 +3407,11 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 next_is_managed = 0;
             }
 
+            if (next_is_builtin) {
+                sym.flags[stname] |= SFLG_BUILTIN;
+                next_is_builtin = 0;
+            }
+
             if (next_is_autoptr) {
                 sym.flags[stname] |= SFLG_AUTOPTR;
                 next_is_autoptr = 0;
@@ -3374,6 +3431,18 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 }
                 if ((sym.flags[extendsWhat] & SFLG_STRUCTTYPE) == 0) {
                     cc_error("Must extend a struct type");
+                    return -1;
+                }
+                if ((sym.flags[extendsWhat] & SFLG_MANAGED) == 0 && (sym.flags[stname] & SFLG_MANAGED)) {
+                    cc_error("Incompatible types. Managed struct cannot extend unmanaged struct '%s'", sym.get_name(extendsWhat));
+                    return -1;
+                }
+                if ((sym.flags[extendsWhat] & SFLG_MANAGED) && (sym.flags[stname] & SFLG_MANAGED) == 0) {
+                    cc_error("Incompatible types. Unmanaged struct cannot extend managed struct '%s'", sym.get_name(extendsWhat));
+                    return -1;
+                }
+                if ((sym.flags[extendsWhat] & SFLG_BUILTIN) && (sym.flags[stname] & SFLG_BUILTIN) == 0) {
+                    cc_error("The built-in type '%s' cannot be extended by a concrete struct. Use extender methods instead", sym.get_name(extendsWhat));
                     return -1;
                 }
                 size_so_far = sym.ssize[extendsWhat];
@@ -3473,11 +3542,11 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     cc_error("Member variable cannot be struct");
                     return -1;
                 }
-                /*if ((member_is_pointer) && (!member_is_import)) {
-                cc_error("Member variable cannot be pointer");
-                return -1;
+                if ((member_is_pointer) && (sym.flags[stname] & SFLG_MANAGED) && (!member_is_import)) {
+                    cc_error("Member variable of managed struct cannot be pointer");
+                    return -1;
                 }
-                else*/ if ((sym.flags[cursym] & SFLG_MANAGED) && (!member_is_pointer)) {
+                else if ((sym.flags[cursym] & SFLG_MANAGED) && (!member_is_pointer)) {
                     cc_error("Cannot declare non-pointer of managed type");
                     return -1; 
                 }
@@ -3637,22 +3706,33 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                             int nextt = targ.getnext();
                             int array_size;
 
-                            if (get_literal_value(nextt, &array_size, "Array size must be constant value"))
-                                return -1;
-
-                            if (array_size < 1) {
-                                cc_error("array size cannot be less than 1");
-                                return -1;
+                            if (sym.get_type(nextt) == SYM_CLOSEBRACKET) {
+                                if ((sym.flags[stname] & SFLG_MANAGED)) {
+                                    cc_error("Member variable of managed struct cannot be dynamic array");
+                                    return -1;
+                                }
+                                sym.flags[vname] |= SFLG_DYNAMICARRAY;
+                                array_size = 0;
+                                size_so_far += 4;
                             }
+                            else {
+                                if (get_literal_value(nextt, &array_size, "Array size must be constant value"))
+                                    return -1;
 
+                                if (array_size < 1) {
+                                    cc_error("array size cannot be less than 1");
+                                    return -1;
+                                }
+
+                                size_so_far += array_size * sym.ssize[vname];
+
+                                if (sym.get_type(targ.getnext()) != SYM_CLOSEBRACKET) {
+                                    cc_error("expected ']'");
+                                    return -1;
+                                }
+                            }
                             sym.flags[vname] |= SFLG_ARRAY;
                             sym.arrsize[vname] = array_size;
-                            size_so_far += array_size * sym.ssize[vname];
-
-                            if (sym.get_type(targ.getnext()) != SYM_CLOSEBRACKET) {
-                                cc_error("expected ']'");
-                                return -1;
-                            }
                         }
                         else
                             size_so_far += sym.ssize[vname];
@@ -3767,6 +3847,13 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             }
 
         }
+        else if (symType == SYM_BUILTIN) {
+            next_is_builtin = 1;
+            if (sym.get_type(targ.peeknext()) != SYM_MANAGED && sym.get_type(targ.peeknext()) != SYM_STRUCT) {
+                cc_error("Invalid use of 'builtin'");
+                return -1;
+            }
+        }
         else if (symType == SYM_MANAGED) {
             next_is_managed = 1;
             if (sym.get_type(targ.peeknext()) != SYM_STRUCT) {
@@ -3776,7 +3863,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
         }
         else if (symType == SYM_AUTOPTR) {
             next_is_autoptr = 1;
-            if (sym.get_type(targ.peeknext()) != SYM_MANAGED) {
+            if (sym.get_type(targ.peeknext()) != SYM_MANAGED && sym.get_type(targ.peeknext()) != SYM_BUILTIN) {
                 cc_error("Invalid use of 'autoptr'");
                 return -1;
             }
@@ -3888,7 +3975,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             int varsize = sym.ssize[cursym];
             int vtwas = cursym;
             if ((nested_type[nested_level] == NEST_IFSINGLE) ||
-                (nested_type[nested_level] == NEST_ELSESINGLE)) {
+                (nested_type[nested_level] == NEST_ELSESINGLE) ||
+                (nested_type[nested_level] == NEST_DOSINGLE)) {
                     cc_error("Unexpected '%s'",sym.get_name(cursym));
                     return -1;
             }
@@ -4203,6 +4291,24 @@ startvarbit:
                         nested_start[nested_level] = oriaddr;
                     continue;
             }
+            else if (sym.get_type(cursym) == SYM_DO) {
+                // We need a jump at a known location for the break command to work:
+                scrip->write_cmd1(SCMD_JMP, 2); // Jump past the next jump :D
+                scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to the end of the loop
+                INC_NESTED_LEVEL;
+                nested_chunk_size[nested_level] = 0;
+
+                if (sym.get_type(targ.peeknext()) == SYM_OPENBRACE) {
+                    targ.getnext();
+                    nested_type[nested_level] = NEST_DO;
+                }
+                else
+                    nested_type[nested_level] = NEST_DOSINGLE;
+
+                nested_start[nested_level] = scrip->codesize;
+                nested_info[nested_level] = scrip->codesize - 1; // This is where we need to put the real address of the end of the loop
+                continue;
+            }
             else if (sym.get_type(cursym) == SYM_FOR) {
                 if (sym.get_type(targ.peeknext()) != SYM_OPENPARENTHESIS) {
                     cc_error("expected '('");
@@ -4320,9 +4426,16 @@ startvarbit:
             }
             // sort out jumps when a single-line if or else has finished
             while ((nested_type[nested_level] == NEST_IFSINGLE) ||
-                (nested_type[nested_level] == NEST_ELSESINGLE)) {
-                    if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
-                        break;
+                (nested_type[nested_level] == NEST_ELSESINGLE) ||
+                (nested_type[nested_level] == NEST_DOSINGLE)) {
+                    if (nested_type[nested_level] == NEST_DOSINGLE)
+                    {
+                        if (deal_with_end_of_do(nested_info,nested_start,scrip,&targ,&nested_level))
+                            return -1;
+                    }
+                    else
+                        if (deal_with_end_of_ifelse(nested_type,nested_info,nested_start,scrip,&targ,&nested_level,nested_chunk,nested_chunk_size,nested_fixup_start,nested_fixup_stop,nested_assign_addr))
+                            break;
             }
         }
     }

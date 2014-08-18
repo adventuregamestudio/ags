@@ -82,7 +82,7 @@ size_t DataStream::ReadAndConvertArrayOfInt16(int16_t *buffer, size_t count)
     count = ReadArray(buffer, sizeof(int16_t), count);
     for (size_t i = 0; i < count; ++i, ++buffer)
     {
-        BBOp::SwapBytesInt16(*buffer);
+        *buffer = BBOp::SwapBytesInt16(*buffer);
     }
     return count;
 }
@@ -97,7 +97,7 @@ size_t DataStream::ReadAndConvertArrayOfInt32(int32_t *buffer, size_t count)
     count = ReadArray(buffer, sizeof(int32_t), count);
     for (size_t i = 0; i < count; ++i, ++buffer)
     {
-        BBOp::SwapBytesInt32(*buffer);
+        *buffer = BBOp::SwapBytesInt32(*buffer);
     }
     return count;
 }
@@ -112,7 +112,7 @@ size_t DataStream::ReadAndConvertArrayOfInt64(int64_t *buffer, size_t count)
     count = ReadArray(buffer, sizeof(int64_t), count);
     for (size_t i = 0; i < count; ++i, ++buffer)
     {
-        BBOp::SwapBytesInt64(*buffer);
+        *buffer = BBOp::SwapBytesInt64(*buffer);
     }
     return count;
 }

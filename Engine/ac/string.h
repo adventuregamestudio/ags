@@ -44,8 +44,7 @@ int StrContains (const char *s1, const char *s2);
 //=============================================================================
 
 const char* CreateNewScriptString(const char *fromText, bool reAllocate = true);
-void split_lines_rightleft (char *todis, int wii, int fonnt);
-char *reverse_text(const char *text);
+void reverse_text(char *text);
 void break_up_text_into_lines(int wii,int fonnt, const char*todis);
 void check_strlen(char*ptt);
 void my_strncpy(char *dest, const char *src, int len);

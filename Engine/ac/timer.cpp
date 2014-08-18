@@ -25,8 +25,6 @@ int time_between_timers=25;  // in milliseconds
 // our timer, used to keep game running at same speed on all systems
 #if defined(WINDOWS_VERSION)
 void __cdecl dj_timer_handler() {
-#elif defined(DOS_VERSION)
-void dj_timer_handler(...) {
 #else
 extern "C" void dj_timer_handler() {
 #endif

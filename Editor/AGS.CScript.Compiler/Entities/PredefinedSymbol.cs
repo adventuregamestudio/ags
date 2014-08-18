@@ -14,6 +14,7 @@ namespace AGS.CScript.Compiler
 		For,
 		Break,
 		Continue,
+		Do,
 		VariableArguments,
 		Return,
 		MemberOf,

@@ -392,8 +392,8 @@ long load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
   loptr = (int *)&membuffer[0];
   membuffer += 8;
 #if defined(AGS_BIG_ENDIAN)
-  AGS::Common::BBOp::SwapBytesInt32(loptr[0]);
-  AGS::Common::BBOp::SwapBytesInt32(loptr[1]);
+  loptr[0] = AGS::Common::BBOp::SwapBytesInt32(loptr[0]);
+  loptr[1] = AGS::Common::BBOp::SwapBytesInt32(loptr[1]);
   int bitmapNumPixels = loptr[0]*loptr[1]/_acroom_bpp;
   switch (_acroom_bpp) // bytes per pixel!
   {
@@ -407,7 +407,7 @@ long load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
       short *sp = (short *)membuffer;
       for (int i = 0; i < bitmapNumPixels; ++i)
       {
-        AGS::Common::BBOp::SwapBytesInt16(sp[i]);
+        sp[i] = AGS::Common::BBOp::SwapBytesInt16(sp[i]);
       }
       // all done
       break;
@@ -417,7 +417,7 @@ long load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
       int *ip = (int *)membuffer;
       for (int i = 0; i < bitmapNumPixels; ++i)
       {
-        AGS::Common::BBOp::SwapBytesInt32(ip[i]);
+        ip[i] = AGS::Common::BBOp::SwapBytesInt32(ip[i]);
       }
       // all done
       break;

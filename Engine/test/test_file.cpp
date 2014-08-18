@@ -20,10 +20,7 @@
 #include "util/filestream.h"
 #include "debug/assert.h"
 
-using AGS::Common::String;
-using AGS::Common::Stream;
-using AGS::Common::AlignedStream;
-namespace File = AGS::Common::File;
+using namespace AGS::Common;
 
 struct TTrickyAlignedData
 {
@@ -100,17 +97,33 @@ void Test_File()
         tricky_data_out.final = 38;
 #if defined (TEST_BIGENDIAN)
         TTrickyAlignedData bigend_data = tricky_data_out;
-        AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.b);
-        AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.c);
+        bigend_data.b =BBOp::SwapBytesInt32(bigend_data.b);
+        bigend_data.c = BBOp::SwapBytesInt32(bigend_data.c);
         for (int i = 0; i < 3; ++i)
         {
-            AGS::Common::BitByteOperations::SwapBytesInt16(bigend_data.d[i]);
+            bigend_data.d[i] = BBOp::SwapBytesInt16(bigend_data.d[i]);
         }
-        AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.e);
+        bigend_data.e = BBOp::SwapBytesInt32(bigend_data.e);
         for (int i = 0; i < 4; ++i)
         {
-            AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.g[i]);
+            bigend_data.g[i] = BBOp::SwapBytesInt32(bigend_data.g[i]);
         }
+        for (int i = 0; i < 13; ++i)
+        {
+            bigend_data.h[i] = BBOp::SwapBytesInt16(bigend_data.h[i]);
+        }
+        bigend_data.j = BBOp::SwapBytesInt16(bigend_data.j);
+        bigend_data.k = BBOp::SwapBytesInt32(bigend_data.k);
+        bigend_data.l = BBOp::SwapBytesInt16(bigend_data.l);
+        bigend_data.m = BBOp::SwapBytesInt16(bigend_data.m);
+        bigend_data.n = BBOp::SwapBytesInt32(bigend_data.n);
+        bigend_data.i64a = BBOp::SwapBytesInt64(bigend_data.i64a);
+        bigend_data.i64b = BBOp::SwapBytesInt64(bigend_data.i64b);
+        bigend_data.p = BBOp::SwapBytesInt16(bigend_data.p);
+        bigend_data.i64c = BBOp::SwapBytesInt64(bigend_data.i64c);
+        bigend_data.q = BBOp::SwapBytesInt16(bigend_data.q);
+        bigend_data.r = BBOp::SwapBytesInt16(bigend_data.r);
+        bigend_data.i64d = BBOp::SwapBytesInt64(bigend_data.i64d);
         out->Write(&bigend_data, sizeof(TTrickyAlignedData));
 #else
         out->Write(&tricky_data_out, sizeof(TTrickyAlignedData));

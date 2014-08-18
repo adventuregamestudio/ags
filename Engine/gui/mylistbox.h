@@ -20,9 +20,6 @@
 #define MAXLISTITEM 300
 #define ARROWWIDTH 8
 
-#ifdef DJGPP
-#pragma warn -inl
-#endif
 struct MyListBox:public NewControl
 {
   int items, topitem, numonscreen, selected;
@@ -36,8 +33,5 @@ struct MyListBox:public NewControl
   void additem(char *texx);
   int processmessage(int mcode, int wParam, long lParam);
 };
-#ifdef DJGPP
-#pragma warn +inl
-#endif
 
 #endif // __AC_MYLISTBOX_H

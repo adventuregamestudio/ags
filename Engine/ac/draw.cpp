@@ -660,20 +660,6 @@ void draw_and_invalidate_text(Bitmap *ds, int x1, int y1, int font, color_t text
     invalidate_rect(x1, y1, x1 + wgettextwidth_compensate(text, font), y1 + wgetfontheight(font) + get_fixed_pixel_size(1));
 }
 
-void wouttext_reverseifnecessary(Bitmap *ds, int x, int y, int font, color_t text_color, char *text) {
-    char *backwards = NULL;
-    char *otext = text;
-    if (game.options[OPT_RIGHTLEFTWRITE]) {
-        backwards = reverse_text(text);
-        otext = backwards;
-    }
-
-    wouttext_outline(ds, x, y, font, text_color, otext);
-
-    if (backwards)
-        free(backwards);
-}
-
 void invalidate_screen() {
     // mark the whole screen dirty
     numDirtyRegions = WHOLESCREENDIRTY;

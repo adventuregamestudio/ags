@@ -17,9 +17,6 @@
 
 #include "gui/newcontrol.h"
 
-#ifdef DJGPP
-#pragma warn -inl
-#endif
 struct MyLabel:public NewControl
 {
   char text[150];
@@ -31,8 +28,5 @@ struct MyLabel:public NewControl
 
   int processmessage(int mcode, int wParam, long lParam);
 };
-#ifdef DJGPP
-#pragma warn +inl
-#endif
 
 #endif // __AC_MYLABEL_H

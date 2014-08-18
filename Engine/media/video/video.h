@@ -24,8 +24,6 @@ void pause_sound_if_necessary_and_play_video(const char *name, int skip, int fla
 
 #if defined(WINDOWS_VERSION)
 int __cdecl fli_callback();
-#elif defined(DOS_VERSION)
-int fli_callback(...);
 #else
 extern "C" int fli_callback();
 #endif

@@ -15,7 +15,6 @@
 #ifndef __AC_ROOMSTRUCT_H
 #define __AC_ROOMSTRUCT_H
 
-#include "ac/common_defines.h"      // PCKD
 #include "ac/interaction.h"  // NewInteraction
 #include "ac/customproperties.h"
 #include "ac/messageinfo.h"
@@ -111,10 +110,10 @@ enum RoomVolumeAdjustment
 
 #pragma pack(1)
 struct sprstruc {
-    short sprnum  PCKD;   // number from array
-    short x,y     PCKD;   // x,y co-ords
-    short room    PCKD;   // room number
-    short on      PCKD;
+    short sprnum  ;   // number from array
+    short x,y     ;   // x,y co-ords
+    short room    ;   // room number
+    short on      ;
     sprstruc() { on = 0; }
 
     void ReadFromFile(Common::Stream *in);

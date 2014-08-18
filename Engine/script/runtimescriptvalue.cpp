@@ -3,9 +3,11 @@
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_dynamicobject.h"
 #include "ac/statobj/staticobject.h"
-#include "util/bbop.h"
+#include "util/memory.h"
 
 #include <string.h> // for memcpy()
+
+using namespace AGS::Common;
 
 //
 // NOTE to future optimizers: I am using 'this' ptr here to better
@@ -57,11 +59,7 @@ int16_t RuntimeScriptValue::ReadInt16()
     {
         if (RValue->Type == kScValData)
         {
-            int16_t temp = *(int16_t*)(RValue->GetPtrWithOffset() + this->IValue);
-#if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt16(temp);
-#endif
-            return temp;
+            return Memory::ReadInt16LE(RValue->GetPtrWithOffset() + this->IValue);
         }
         else
         {
@@ -96,19 +94,7 @@ int32_t RuntimeScriptValue::ReadInt32()
     {
         if (RValue->Type == kScValData)
         {
-            int32_t temp;
-
-#if defined(AGS_STRICT_ALIGNMENT)
-            char *source = RValue->GetPtrWithOffset() + this->IValue;
-            memcpy(&temp, source, sizeof(int32_t));
-#else
-            temp = *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue);
-#endif
-
-#if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-#endif
-            return temp;
+            return Memory::ReadInt32LE(RValue->GetPtrWithOffset() + this->IValue);
         }
         else
         {
@@ -147,19 +133,7 @@ RuntimeScriptValue RuntimeScriptValue::ReadValue()
     {
         if (RValue->Type == kScValData)
         {
-            int32_t temp;
-
-#if defined(AGS_STRICT_ALIGNMENT)
-            char *source = RValue->GetPtrWithOffset() + this->IValue;
-            memcpy(&temp, source, sizeof(int32_t));
-#else
-            temp = *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue);
-#endif
-
-#if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-#endif
-            rval.SetInt32(temp);
+            rval.SetInt32(Memory::ReadInt32LE(RValue->GetPtrWithOffset() + this->IValue));
         }
         else
         {
@@ -227,10 +201,7 @@ bool RuntimeScriptValue::WriteInt16(int16_t val)
     {
         if (RValue->Type == kScValData)
         {
-#if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt16(val);
-#endif
-            *(int16_t*)(RValue->GetPtrWithOffset() + this->IValue) = val;
+            Memory::WriteInt16LE(RValue->GetPtrWithOffset() + this->IValue, val);
         }
         else
         {
@@ -269,16 +240,7 @@ bool RuntimeScriptValue::WriteInt32(int32_t val)
     {
         if (RValue->Type == kScValData)
         {
-#if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(val);
-#endif
-
-#if defined(AGS_STRICT_ALIGNMENT)
-            char *destination = RValue->GetPtrWithOffset() + this->IValue;
-            memcpy(destination, &val, sizeof(int32_t));
-#else
-            *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue) = val;
-#endif
+            Memory::WriteInt32LE(RValue->GetPtrWithOffset() + this->IValue, val);
         }
         else
         {
@@ -334,17 +296,7 @@ bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
     {
         if (RValue->Type == kScValData)
         {
-            int32_t val = rval.IValue;
-#if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(val);
-#endif
-
-#if defined(AGS_STRICT_ALIGNMENT)
-            char *destination = RValue->GetPtrWithOffset() + this->IValue;
-            memcpy(destination, &val, sizeof(int32_t));
-#else
-            *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue) = val;
-#endif
+            Memory::WriteInt32LE(RValue->GetPtrWithOffset() + this->IValue, rval.IValue);
         }
         else
         {

@@ -15,11 +15,10 @@
 #ifdef _DEBUG
 
 #include "test/test_all.h"
-#include "test/test_string.h"
-#include "test/test_file.h"
 
 void Test_DoAllTests()
 {
+    Test_Memory();
     Test_ScriptSprintf();
     Test_String();
     Test_Version();

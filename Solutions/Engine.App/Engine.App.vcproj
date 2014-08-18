@@ -767,6 +767,10 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptuserobject.cpp"
+						>
+					</File>
+					<File
 						RelativePath="..\..\Engine\ac\dynobj\scriptviewframe.cpp"
 						>
 					</File>
@@ -1141,6 +1145,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\test\test_gfx.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_memory.cpp"
 					>
 				</File>
 				<File
@@ -1697,6 +1705,10 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptuserobject.h"
+						>
+					</File>
+					<File
 						RelativePath="..\..\Engine\ac\dynobj\scriptviewframe.h"
 						>
 					</File>
@@ -2103,14 +2115,6 @@
 				>
 				<File
 					RelativePath="..\..\Engine\test\test_all.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\test\test_file.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\test\test_string.h"
 					>
 				</File>
 			</Filter>

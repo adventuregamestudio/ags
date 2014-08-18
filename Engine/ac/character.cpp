@@ -203,7 +203,7 @@ void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat, int
     animate_character(chaa, loop, delay, repeat, 0, direction);
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        do_main_cycle(UNTIL_SHORTIS0,(long)&chaa->animating);
+        GameLoopUntilEvent(UNTIL_SHORTIS0,(long)&chaa->animating);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("!Character.Animate: Invalid BLOCKING parameter");
 }
@@ -409,11 +409,11 @@ void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingSt
             Character_StopMoving(char1);
             if (char1->on == 1) {
                 // only do the turning if the character is not hidden
-                // (otherwise do_main_cycle will never return)
+                // (otherwise GameLoopUntilEvent will never return)
                 start_character_turning (char1, useloop, no_diagonal);
 
                 if ((blockingStyle == BLOCKING) || (blockingStyle == 1))
-                    do_main_cycle(UNTIL_MOVEEND,(long)&char1->walking);
+                    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&char1->walking);
             }
             else
                 char1->loop = useloop;
@@ -969,7 +969,7 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
     walk_character(chaa->index_id, movetox, movetoy, 1, true);
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        do_main_cycle(UNTIL_MOVEEND,(long)&chaa->walking);
+        GameLoopUntilEvent(UNTIL_MOVEEND,(long)&chaa->walking);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGRUOND");
 
@@ -1279,6 +1279,24 @@ int Character_GetMoving(CharacterInfo *chaa) {
     if (chaa->walking)
         return 1;
     return 0;
+}
+
+int Character_GetDestinationX(CharacterInfo *chaa) {
+    if (chaa->walking) {
+        MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
+        return cmls->pos[cmls->numstage - 1] >> 16;
+    }
+    else
+        return chaa->x;
+}
+
+int Character_GetDestinationY(CharacterInfo *chaa) {
+    if (chaa->walking) {
+        MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
+        return cmls->pos[cmls->numstage - 1] & 0x00ff;
+    }
+    else
+        return chaa->y;
 }
 
 const char* Character_GetName(CharacterInfo *chaa) {
@@ -1877,7 +1895,7 @@ void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int
         quit("!Character.Walk: Direct must be ANYWHERE or WALKABLE_AREAS");
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        do_main_cycle(UNTIL_MOVEEND,(long)&chaa->walking);
+        GameLoopUntilEvent(UNTIL_MOVEEND,(long)&chaa->walking);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGRUOND");
 
@@ -2250,7 +2268,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
     if (isPause) {
         if (update_music_at > 0)
             update_music_at += play.messagetime;
-        do_main_cycle(UNTIL_INTISNEG,(long)&play.messagetime);
+        GameLoopUntilEvent(UNTIL_INTISNEG,(long)&play.messagetime);
         return;
     }
 
@@ -3254,6 +3272,18 @@ RuntimeScriptValue Sc_Character_GetMoving(void *self, const RuntimeScriptValue *
     API_OBJCALL_INT(CharacterInfo, Character_GetMoving);
 }
 
+// int (CharacterInfo *chaa)
+RuntimeScriptValue Sc_Character_GetDestinationX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetDestinationX);
+}
+
+// int (CharacterInfo *chaa)
+RuntimeScriptValue Sc_Character_GetDestinationY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetDestinationY);
+}
+
 // const char* (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetName(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -3560,6 +3590,8 @@ void RegisterCharacterAPI()
 	ccAddExternalObjectFunction("Character::set_BlockingWidth",         Sc_Character_SetBlockingWidth);
 	ccAddExternalObjectFunction("Character::get_Clickable",             Sc_Character_GetClickable);
 	ccAddExternalObjectFunction("Character::set_Clickable",             Sc_Character_SetClickable);
+	ccAddExternalObjectFunction("Character::get_DestinationX",          Sc_Character_GetDestinationX);
+	ccAddExternalObjectFunction("Character::get_DestinationY",          Sc_Character_GetDestinationY);
 	ccAddExternalObjectFunction("Character::get_DiagonalLoops",         Sc_Character_GetDiagonalWalking);
 	ccAddExternalObjectFunction("Character::set_DiagonalLoops",         Sc_Character_SetDiagonalWalking);
 	ccAddExternalObjectFunction("Character::get_Frame",                 Sc_Character_GetFrame);
@@ -3685,6 +3717,8 @@ void RegisterCharacterAPI()
     ccAddExternalFunctionForPlugin("Character::set_BlockingWidth",         (void*)Character_SetBlockingWidth);
     ccAddExternalFunctionForPlugin("Character::get_Clickable",             (void*)Character_GetClickable);
     ccAddExternalFunctionForPlugin("Character::set_Clickable",             (void*)Character_SetClickable);
+    ccAddExternalFunctionForPlugin("Character::get_DestinationX",          (void*)Character_GetDestinationX);
+    ccAddExternalFunctionForPlugin("Character::get_DestinationY",          (void*)Character_GetDestinationY);
     ccAddExternalFunctionForPlugin("Character::get_DiagonalLoops",         (void*)Character_GetDiagonalWalking);
     ccAddExternalFunctionForPlugin("Character::set_DiagonalLoops",         (void*)Character_SetDiagonalWalking);
     ccAddExternalFunctionForPlugin("Character::get_Frame",                 (void*)Character_GetFrame);

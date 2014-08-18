@@ -218,7 +218,7 @@ void read_config_file(char *argv0) {
             idx = MIDI_AUTODETECT;
         usetup.midicard = idx;
 #endif
-        int threaded_audio = INIreadint("sound", "threaded", psp_audio_multithreaded);
+        psp_audio_multithreaded = INIreadint("sound", "threaded", psp_audio_multithreaded);
 
         usetup.windowed = INIreadint("misc","windowed");
         usetup.refresh = INIreadint ("misc", "refresh");

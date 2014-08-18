@@ -107,6 +107,7 @@ void symbolTable::reset() {
     add_ex("for",SYM_FOR,0);
     add_ex("break",SYM_BREAK,0);
     add_ex("continue",SYM_CONTINUE,0);
+    add_ex("do",SYM_DO,0);
     add_ex("...",SYM_VARARGS,0);
     add_ex("struct",SYM_STRUCT,0);
     add_ex("import",SYM_IMPORT,0);
@@ -127,6 +128,7 @@ void symbolTable::reset() {
     add_ex("internalstring", SYM_STRINGSTRUCT, 0);
     add_ex("autoptr", SYM_AUTOPTR, 0);
     add_ex("noloopcheck", SYM_LOOPCHECKOFF, 0);
+    add_ex("builtin", SYM_BUILTIN, 0);
 }
 int symbolTable::operatorToVCPUCmd(int opprec) {
     //return ssize[opprec] + 8;

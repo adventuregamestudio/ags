@@ -11,6 +11,8 @@
 #define NEST_ELSE       5
 #define NEST_ELSESINGLE 6
 #define NEST_STRUCT     7
+#define NEST_DO         8 // Do statement (to be followed by a while)
+#define NEST_DOSINGLE   9 // Single Do statement
 #define MAX_FUNCTIONS 2000
 #define MAXSYMBOLS 10000
 #define MAX_FUNCTION_PARAMETERS 15
@@ -67,6 +69,8 @@
 #define SYM_FOR        54
 #define SYM_BREAK      55
 #define SYM_CONTINUE   56
+#define SYM_DO         57
+#define SYM_BUILTIN    58 // Used to indicate that a managed object can't be instantiated directly by the user
 
 #define SFLG_PARAMETER  1
 #define SFLG_ARRAY      2
@@ -87,6 +91,7 @@
 #define SFLG_CONST     0x10000  // const variable
 #define SFLG_AUTOPTR   0x20000  // automatically convert definition to pointer
 #define SFLG_DYNAMICARRAY 0x40000  // array allocated at runtime
+#define SFLG_BUILTIN   0x80000  // direct instantiation/extension not allowed
 #define PARAM_NO_DEFAULT_VALUE -32000
 #define TEMP_SYMLIST_LENGTH 100
 

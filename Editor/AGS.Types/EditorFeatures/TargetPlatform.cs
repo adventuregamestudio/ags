@@ -56,7 +56,7 @@ namespace AGS.Types
             string editorDir = Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
             if (platform == Targets.Platforms.Linux)
             {
-                string linuxDir = Path.Combine(editorDir, "linux");
+                string linuxDir = Path.Combine(editorDir, "Linux");
                 string linuxLib32Dir = Path.Combine(linuxDir, "lib32");
                 string linuxLib64Dir = Path.Combine(linuxDir, "lib64");
                 string linuxAGS32Path = Path.Combine(linuxDir, "ags32");

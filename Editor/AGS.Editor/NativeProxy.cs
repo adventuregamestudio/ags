@@ -387,7 +387,13 @@ namespace AGS.Editor
 
         public void CreateGameEXE(string[] fileList, Game game, string baseFileName)
         {
-            _native.CreateDataFile(fileList, game.Settings.SplitResources * 1000000, baseFileName, true);
+            CreateGameEXE(fileList, game, baseFileName, null);
+        }
+
+        public void CreateGameEXE(string[] fileList, Game game, string baseFileName, string compiledSubfolderForWindows)
+        {
+            if (string.IsNullOrEmpty(compiledSubfolderForWindows)) _native.CreateDataFile(fileList, game.Settings.SplitResources * 1000000, baseFileName, true);
+            else _native.CreateDataFile(fileList, game.Settings.SplitResources * 1000000, baseFileName, true, System.IO.Path.Combine("Compiled", compiledSubfolderForWindows));
         }
 
         public void CreateDebugMiniEXE(string[] fileList, string exeFileName)

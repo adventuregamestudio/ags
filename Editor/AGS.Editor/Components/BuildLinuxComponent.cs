@@ -254,7 +254,7 @@ namespace AGS.Editor.Components
             File.Copy(editorLinuxAGS64Path, gameLinuxDataAGS64Path, true);
             SetFilePermissions(gameLinuxDataAGS64Path);
             string gamePathName = editor.BaseGameFileName.Replace(" ", ""); // strip whitespace
-            string script = Path.Combine(gameLinuxDataDir, gamePathName);
+            string script = Path.Combine(gameLinuxDir, gamePathName);
             FileStream stream = File.Create(script);
             string scriptContents =
 @"#!/bin/sh

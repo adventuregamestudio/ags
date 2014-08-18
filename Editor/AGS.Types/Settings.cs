@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -850,7 +851,9 @@ namespace AGS.Types
         public Targets.Platforms TargetPlatforms
         {
             get { return _targetPlatforms; }
-            set { _targetPlatforms = value; }
+
+            set
+            { _targetPlatforms = value; }
         }
 
         public void ToXml(XmlTextWriter writer)

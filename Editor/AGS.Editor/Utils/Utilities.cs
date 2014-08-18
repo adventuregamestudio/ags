@@ -85,7 +85,16 @@ namespace AGS.Editor
 
         public static void EnsureStandardSubFoldersExist()
         {
-            string[] foldersToCreate = { "Speech", AudioClip.AUDIO_CACHE_DIRECTORY, "Compiled" };
+            List<string> foldersToCreate = new List<string> { "Speech", AudioClip.AUDIO_CACHE_DIRECTORY, "Compiled" };
+            if ((AGSEditor.Instance.CurrentGame != null) && (AGSEditor.Instance.CurrentGame.Settings.TargetPlatforms != Targets.Platforms.Windows))
+            {
+                Targets.Platforms platform = AGSEditor.Instance.CurrentGame.Settings.TargetPlatforms;
+                if ((platform & Targets.Platforms.Windows) != 0) foldersToCreate.Add(Path.Combine("Compiled", "Windows"));
+                if ((platform & Targets.Platforms.Linux) != 0) foldersToCreate.Add(Path.Combine("Compiled", "Linux"));
+                if ((platform & Targets.Platforms.OSX) != 0) foldersToCreate.Add(Path.Combine("Compiled", "OSX"));
+                if ((platform & Targets.Platforms.Android) != 0) foldersToCreate.Add(Path.Combine("Compiled", "Android"));
+                if ((platform & Targets.Platforms.iOS) != 0) foldersToCreate.Add(Path.Combine("Compiled", "iOS"));
+            }
             foreach (string folderName in foldersToCreate)
             {
                 if (!Directory.Exists(folderName))
@@ -104,7 +113,7 @@ namespace AGS.Editor
         {
             foreach (Targets.Platforms platform in Enum.GetValues(typeof(Targets.Platforms)))
             {
-                string platformFolder = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, platform.ToString());
+                string platformFolder = Path.Combine(AGSEditor.Instance.CompiledRootDirectory, platform.ToString());
                 // if platform is NOT only Windows, then create all necessary platform folders
                 // otherwise, don't create any platform folders
                 if (((platform & platforms) != 0) && (platforms != Targets.Platforms.Windows))

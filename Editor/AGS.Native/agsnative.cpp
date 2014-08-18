@@ -2445,7 +2445,7 @@ Stream* find_file_in_path(char *buffer, const char *fileName)
 	return iii;
 }
 
-const char* make_data_file(int numFiles, char * const*fileNames, long splitSize, const char *baseFileName, bool makeFileNameAssumptionsForEXE)
+const char* make_data_file(int numFiles, char * const*fileNames, long splitSize, const char *baseFileName, bool makeFileNameAssumptionsForEXE, char const *compiledDir)
 {
   int a,b;
   Stream*wout;
@@ -2511,7 +2511,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
 
   if (makeFileNameAssumptionsForEXE)
   {
-	  _mkdir("Compiled");
+	  _mkdir(compiledDir);
   }
 
   // First, set up the ourlib.data_filenames array with all the filenames
@@ -2556,7 +2556,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
   {
 	  if (makeFileNameAssumptionsForEXE) 
 	  {
-		  sprintf(outputFileName, "Compiled\\%s", ourlib.data_filenames[a]);
+		  sprintf(outputFileName, "%s\\%s", compiledDir, ourlib.data_filenames[a]);
 	  }
 	  else 
 	  {

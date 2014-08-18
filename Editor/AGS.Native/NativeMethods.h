@@ -82,6 +82,7 @@ namespace AGS
 			void CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game, bool isRoomScript);
 			void CompileGameToDTAFile(Game ^game, String^ fileName);
 			void CreateDataFile(cli::array<String^> ^fileList, long splitSize, String ^baseFileName, bool isGameEXE);
+            void CreateDataFile(cli::array<String^> ^fileList, long splitSize, String ^baseFileName, bool isGameEXE, String ^compiledDir);
 			void CreateVOXFile(String ^fileName, cli::array<String^> ^fileList);
 			GameTemplate^ LoadTemplateFile(String ^fileName);
       RoomTemplate^ LoadRoomTemplateFile(String ^fileName);

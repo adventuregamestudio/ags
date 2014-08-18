@@ -33,7 +33,7 @@ namespace AGS.Editor
 		public event GetSourceControlFileListHandler GetSourceControlFileList;
 
 		public const string BUILT_IN_HEADER_FILE_NAME = "_BuiltInScriptHeader.ash";
-        public const string OUTPUT_DIRECTORY = "Compiled";
+        private const string OUTPUT_DIRECTORY = "Compiled";
         public const string DEBUG_OUTPUT_DIRECTORY = "_Debug";
         //public const string DEBUG_EXE_FILE_NAME = "_debug.exe";
         public const string GAME_FILE_NAME = "Game.agf";
@@ -45,7 +45,7 @@ namespace AGS.Editor
         public const string SPRITE_INDEX_FILE_NAME = "sprindex.dat";
 		public const string LATEST_XML_VERSION = "3.0.3.2";
         public const int    LATEST_XML_VERSION_INDEX = 7;
-        public static readonly string AUDIO_VOX_FILE_NAME = OUTPUT_DIRECTORY + Path.DirectorySeparatorChar + "audio.vox";
+        public static readonly string AUDIO_VOX_FILE_NAME;
 
         private const string USER_DATA_FILE_NAME = GAME_FILE_NAME + USER_DATA_FILE_SUFFIX;
         private const string USER_DATA_FILE_SUFFIX = ".user";
@@ -80,6 +80,7 @@ namespace AGS.Editor
 		private bool _applicationStarted = false;
         private FileSystemWatcher _fileWatcher = null;
         private FileStream _lockFile = null;
+        private Targets.Platforms _lastBuiltPlatform = Targets.Platforms.Windows;
 
         private static AGSEditor _instance;
 
@@ -93,6 +94,11 @@ namespace AGS.Editor
                 }
                 return _instance;
             }
+        }
+
+        static AGSEditor()
+        {
+            AUDIO_VOX_FILE_NAME = Path.Combine(AGSEditor.Instance.CompiledWindowsDirectory, "audio.vox");
         }
 
         private AGSEditor()
@@ -130,11 +136,19 @@ namespace AGS.Editor
             get { return Path.GetFileName(this.GameDirectory); }
         }
 
-        private string CompiledFolderName
+        public string CompiledRootDirectory
         {
             get
             {
-                if (_game.Settings.TargetPlatforms != Targets.Platforms.Windows)
+                return OUTPUT_DIRECTORY;
+            }
+        }
+
+        public string CompiledWindowsDirectory
+        {
+            get
+            {
+                if ((_game != null) && (_game.Settings.TargetPlatforms != Targets.Platforms.Windows))
                 {
                     return Path.Combine(OUTPUT_DIRECTORY, "Windows");
                 }
@@ -146,7 +160,7 @@ namespace AGS.Editor
 		{
 			get
 			{
-				return Path.Combine(CompiledFolderName, this.BaseGameFileName + ".exe");
+				return Path.Combine(CompiledWindowsDirectory, this.BaseGameFileName + ".exe");
 			}
 		}
 
@@ -886,7 +900,7 @@ namespace AGS.Editor
 
         private void DeleteAnyExistingSplitResourceFiles()
         {
-            foreach (string fileName in Utilities.GetDirectoryFileList(OUTPUT_DIRECTORY, this.BaseGameFileName + ".0*"))
+            foreach (string fileName in Utilities.GetDirectoryFileList(CompiledWindowsDirectory, this.BaseGameFileName + ".0*"))
             {
                 File.Delete(fileName);
             }
@@ -925,6 +939,24 @@ namespace AGS.Editor
 
         private object CreateCompiledFiles(object parameter)
         {
+            if (_lastBuiltPlatform != _game.Settings.TargetPlatforms)
+            {
+                string compiledDir = Path.Combine(_game.DirectoryPath, OUTPUT_DIRECTORY);
+                string compiledWinDir = Path.Combine(compiledDir, "Windows");
+                if ((_lastBuiltPlatform == Targets.Platforms.Windows) && (_game.Settings.TargetPlatforms != Targets.Platforms.Windows))
+                {
+                    Directory.Move(compiledDir, compiledWinDir);
+                }
+                else if ((_lastBuiltPlatform != Targets.Platforms.Windows) && (_game.Settings.TargetPlatforms == Targets.Platforms.Windows))
+                {
+                    string temp = Path.Combine(_game.DirectoryPath, OUTPUT_DIRECTORY + "TEMP");
+                    if (Directory.Exists(temp)) Directory.Delete(temp, true);
+                    Directory.Move(compiledWinDir, temp);
+                    Directory.Delete(compiledDir, true);
+                    Directory.Move(temp, compiledDir);
+                }
+                _lastBuiltPlatform = _game.Settings.TargetPlatforms;
+            }
             bool forceRebuild = (bool)parameter;
             SetMODMusicFlag();
             DeleteAnyExistingSplitResourceFiles();
@@ -1308,7 +1340,7 @@ namespace AGS.Editor
 				File.Move(this.BaseGameFileName + ".exe", this.DebugEXEFileName);
 
                 // copy configuration from Compiled folder to use with Debugging
-                string cfgFilePath = Path.Combine(OUTPUT_DIRECTORY, CONFIG_FILE_NAME);
+                string cfgFilePath = Path.Combine(CompiledWindowsDirectory, CONFIG_FILE_NAME);
                 if (File.Exists(cfgFilePath))
                 {
                     File.Copy(cfgFilePath, Path.Combine(DEBUG_OUTPUT_DIRECTORY, CONFIG_FILE_NAME), true);
@@ -1366,7 +1398,7 @@ namespace AGS.Editor
 
                 foreach (Plugin plugin in _game.Plugins)
                 {
-                    File.Copy(Path.Combine(this.EditorDirectory, plugin.FileName), Path.Combine(OUTPUT_DIRECTORY, plugin.FileName), true);
+                    File.Copy(Path.Combine(this.EditorDirectory, plugin.FileName), Path.Combine(CompiledWindowsDirectory, plugin.FileName), true);
                 }
             }
             catch (Exception ex)
@@ -1377,7 +1409,7 @@ namespace AGS.Editor
 
         private void CreateCompiledSetupProgram()
         {
-            string setupFileName = Path.Combine(OUTPUT_DIRECTORY, COMPILED_SETUP_FILE_NAME);
+            string setupFileName = Path.Combine(CompiledWindowsDirectory, COMPILED_SETUP_FILE_NAME);
             Resources.ResourceManager.CopyFileFromResourcesToDisk(SETUP_PROGRAM_SOURCE_FILE, setupFileName);
 
             if (File.Exists(SETUP_ICON_FILE_NAME))
@@ -1539,7 +1571,7 @@ namespace AGS.Editor
 
 		private void WriteConfigFile()
 		{
-			string configFilePath = Path.Combine(OUTPUT_DIRECTORY, CONFIG_FILE_NAME);
+			string configFilePath = Path.Combine(CompiledWindowsDirectory, CONFIG_FILE_NAME);
 
 			if (!File.Exists(configFilePath))
 			{

@@ -1160,7 +1160,7 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
     // Get the back buffer surface
     if (direct3ddevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &surface) != D3D_OK)
     {
-      throw Ali3DException("IDirect3DSurface9::GetBackBuffer failed");
+      throw Ali3DException("IDirect3DDevice9::GetBackBuffer failed");
     }
 
     if (_pollingCallback)

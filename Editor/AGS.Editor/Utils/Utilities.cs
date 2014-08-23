@@ -401,5 +401,16 @@ namespace AGS.Editor
 
             return icon;
         }
+
+        public static string GetFullPathFromProjectRelative(string relativePath)
+        {
+            if (AGSEditor.Instance.CurrentGame == null) return relativePath;
+            return Path.Combine(AGSEditor.Instance.CurrentGame.DirectoryPath, relativePath);
+        }
+
+        public static string GetFullPathFromEditorRelative(string relativePath)
+        {
+            return Path.Combine(AGSEditor.Instance.EditorDirectory, relativePath);
+        }
     }
 }

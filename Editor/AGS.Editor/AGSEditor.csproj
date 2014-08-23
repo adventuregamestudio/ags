@@ -758,6 +758,10 @@
     <Compile Include="Audio\IAudioPreviewer.cs" />
     <Compile Include="Audio\IrrklangPlayer.cs" />
     <Compile Include="AutoComplete.cs" />
+    <Compile Include="BuildTargets\BuildTarget.cs" />
+    <Compile Include="BuildTargets\BuildTargetDataFileOnly.cs" />
+    <Compile Include="BuildTargets\BuildTargetLinux.cs" />
+    <Compile Include="BuildTargets\BuildTargetWindows.cs" />
     <Compile Include="ComponentController.cs" />
     <Compile Include="Components\AudioComponent.cs" />
     <Compile Include="Components\BaseComponent.cs" />

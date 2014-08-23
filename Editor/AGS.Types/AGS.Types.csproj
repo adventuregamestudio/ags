@@ -238,7 +238,9 @@
     <Compile Include="AGSColor.cs" />
     <Compile Include="AudioClipType.cs" />
     <Compile Include="BaseFolderCollection.cs" />
+    <Compile Include="BuildTargetInfo.cs" />
     <Compile Include="Enums\BuildConfiguration.cs" />
+    <Compile Include="Enums\BuildTargetPlatform.cs" />
     <Compile Include="Enums\SpriteAlphaStyle.cs" />
     <Compile Include="HelperTypes\BindingListWithRemoving.cs" />
     <Compile Include="CharacterFolder.cs" />
@@ -271,6 +273,7 @@
     <Compile Include="PropertyGridExtras\AudioClipTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\AudioClipTypeTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\BaseListSelectTypeConverter.cs" />
+    <Compile Include="PropertyGridExtras\BuildTargetUIEditor.cs" />
     <Compile Include="PropertyGridExtras\FlagsEditor.cs" />
     <Compile Include="PropertyGridExtras\FlagsEditorControl.cs">
       <SubType>UserControl</SubType>

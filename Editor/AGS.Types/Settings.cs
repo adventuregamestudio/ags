@@ -15,6 +15,7 @@ namespace AGS.Types
         public const string PROPERTY_SCALE_FONTS = "Fonts designed for 640x480";
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_LETTERBOX_MODE = "Enable letterbox mode";
+        public const string PROPERTY_BUILD_TARGETS = "Build target platforms";
 		public const string REGEX_FOUR_PART_VERSION = @"^(\d+)\.(\d+)\.(\d+)\.(\d+)$";
 
 		private const string DEFAULT_GENRE = "Adventure";
@@ -91,6 +92,7 @@ namespace AGS.Types
 		private bool _enhancedSaveGames = false;
         private string _saveGamesFolderName = string.Empty;
         private int _audioIndexer = 0;
+        private BuildTargetPlatform _buildTargets = BuildTargetPlatform.DataFileOnly | BuildTargetPlatform.Windows;
 
 		public void GenerateNewGameID()
 		{
@@ -838,6 +840,17 @@ namespace AGS.Types
         {
             get { return _audioIndexer; }
             set { _audioIndexer = value; }
+        }
+
+        [DisplayName(PROPERTY_BUILD_TARGETS)]
+        [DefaultValue(BuildTargetPlatform.DataFileOnly | BuildTargetPlatform.Windows)]
+        [Description("Sets the platforms to compile your game for when selecting \"Build all target platforms\".")]
+        [Category("Compiler")]
+        [Editor(typeof(BuildTargetUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public BuildTargetPlatform BuildTargets
+        {
+            get { return _buildTargets; }
+            set { _buildTargets = value; }
         }
 
         public void ToXml(XmlTextWriter writer)

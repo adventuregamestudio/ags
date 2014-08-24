@@ -241,7 +241,7 @@ void read_config_file(char *argv0) {
 #endif
 
         // This option is backwards (usevox is 0 if no_speech_pack)
-        usetup.no_speech_pack = INIreadint ("sound", "usespeech", 1) <= 0;
+        usetup.no_speech_pack = INIreadint ("sound", "usespeech", 1) == 0;
 
         usetup.data_files_dir = INIreadstring("misc","datadir");
         if (usetup.data_files_dir.IsEmpty())

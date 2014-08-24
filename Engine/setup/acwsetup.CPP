@@ -443,7 +443,7 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
           WritePrivateProfileString("misc","cachemax", toWrite,ac_config_file);
 
           if (SendDlgItemMessage(hDlg,IDC_SPEECHPACK,BM_GETCHECK,0,0) == BST_CHECKED)
-            WritePrivateProfileString ("sound", "usespeech", NULL, ac_config_file);
+            WritePrivateProfileString ("sound", "usespeech", "1", ac_config_file);
           else
             WritePrivateProfileString ("sound", "usespeech", "0", ac_config_file);
 

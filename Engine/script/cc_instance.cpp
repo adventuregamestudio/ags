@@ -1218,6 +1218,7 @@ int ccInstance::Run(int32_t curpc)
           case kScValStaticObject:
           case kScValDynamicObject:
           case kScValPluginObject:
+          case kScValPluginArg:
           // This might be an object of USER-DEFINED type, calling its MEMBER-FUNCTION.
           // Note, that this is the only case known when such object is written into reg[SREG_OP];
           // in any other case that would count as error. 

@@ -87,7 +87,8 @@ const char *get_filter_id(int list_index)
 
 void update_resolution_texts(HWND hDlg) {
   
-  Size res_size = ResolutionTypeToSize(defaultRes);
+  bool letterbox_by_design = INIreadint("misc", "letterbox", 0) > 0;
+  Size res_size = ResolutionTypeToSize(defaultRes, letterbox_by_design);
   int resx = res_size.Width;
   int resy = res_size.Height;
   
@@ -446,7 +447,7 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
           WritePrivateProfileString("misc","cachemax", toWrite,ac_config_file);
 
           if (SendDlgItemMessage(hDlg,IDC_SPEECHPACK,BM_GETCHECK,0,0) == BST_CHECKED)
-            WritePrivateProfileString ("sound", "usespeech", NULL, ac_config_file);
+            WritePrivateProfileString ("sound", "usespeech", "1", ac_config_file);
           else
             WritePrivateProfileString ("sound", "usespeech", "0", ac_config_file);
 
@@ -466,9 +467,9 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
             WritePrivateProfileString("misc","antialias",NULL,ac_config_file);
 
           if (SendDlgItemMessage(hDlg, IDC_SIDEBORDERS, BM_GETCHECK,0,0) == BST_CHECKED)
-            WritePrivateProfileString("misc","sideborders",NULL,ac_config_file);
+            WritePrivateProfileString("misc","prefer_sideborders","1",ac_config_file);
           else
-            WritePrivateProfileString("misc","sideborders","0",ac_config_file);
+            WritePrivateProfileString("misc","prefer_sideborders","0",ac_config_file);
 
           if (SendDlgItemMessage(hDlg,IDC_REFRESH,BM_GETCHECK,0,0) == BST_CHECKED)
             WritePrivateProfileString("misc","refresh","85",ac_config_file);
@@ -476,9 +477,9 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
             WritePrivateProfileString("misc","refresh","0",ac_config_file);
 
           if (SendDlgItemMessage(hDlg,IDC_LETTERBOX,BM_GETCHECK,0,0) == BST_CHECKED)
-            WritePrivateProfileString ("misc", "forceletterbox", "1", ac_config_file);
+            WritePrivateProfileString ("misc", "prefer_letterbox", "1", ac_config_file);
           else
-            WritePrivateProfileString ("misc", "forceletterbox", NULL, ac_config_file);
+            WritePrivateProfileString ("misc", "prefer_letterbox", "0", ac_config_file);
 
           if (SendDlgItemMessage(hDlg, IDC_REDUCESPR, BM_GETCHECK,0,0) == BST_CHECKED)
             WritePrivateProfileString ("misc", "notruecolor", "1", ac_config_file);
@@ -522,15 +523,26 @@ int acwsetup(const char*vername, const char*enbuild) {
     if (curdigi > 3) curdigi = 0;
     if (curmidi < 0) curmidi=0;
 
-    windowed = INIreadint("misc","windowed");
+    windowed = INIreadint("misc","windowed",0);
     vsync = INIreadint("misc","vsync");
-    useletterbox = INIreadint("misc","forceletterbox");
-    reduce32to16 = INIreadint("misc","notruecolor");
-    gameColDep = INIreadint("misc", "gamecolordepth");
+    useletterbox = INIreadint("misc","prefer_letterbox", 1) != 0;
 
-    refresh = INIreadint("misc","refresh");
-    antialias = INIreadint("misc","antialias");
-    sideBorders = INIreadint("misc","sideborders", 1);
+    reduce32to16 = INIreadint("misc","notruecolor",0);
+    if (reduce32to16 < 0)
+      reduce32to16 = 0;
+
+    gameColDep = INIreadint("misc", "gamecolordepth", 0);
+    if (gameColDep < 0)
+      gameColDep = 0;
+
+    refresh = INIreadint("misc","refresh",0);
+    if (refresh < 1)
+      refresh = 0;
+    antialias = INIreadint("misc","antialias",0);
+    if (antialias < 1)
+      antialias = 0;
+
+    sideBorders = INIreadint("misc","prefer_sideborders", 1) != 0;
 
     int cacheval = INIreadint ("misc", "cachemax");
     if (cacheval > 0)

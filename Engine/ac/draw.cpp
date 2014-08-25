@@ -730,7 +730,7 @@ void render_to_screen(Bitmap *toRender, int atx, int aty) {
 
     // only vsync in full screen mode, it makes things worse
     // in a window
-    gfxDriver->EnableVsyncBeforeRender((scsystem.vsync > 0) && (usetup.windowed == 0));
+    gfxDriver->EnableVsyncBeforeRender((scsystem.vsync > 0) && (!usetup.windowed));
 
     bool succeeded = false;
     while (!succeeded)

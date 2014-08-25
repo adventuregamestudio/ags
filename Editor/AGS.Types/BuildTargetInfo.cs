@@ -22,6 +22,8 @@ namespace AGS.Types
             Dictionary<string, string> paths = new Dictionary<string, string>();
             switch (platform)
             {
+                case BuildTargetPlatform.DataFileOnly:
+                    break;
                 case BuildTargetPlatform.Windows:
                     paths.Add("acwin.exe", Utilities.EditorDirectory);
                     break;
@@ -64,6 +66,7 @@ namespace AGS.Types
                     paths.Add("ags64", linuxDir);
                     break;
                 default:
+                    paths = null;
                     break;
             };
             return paths;
@@ -84,6 +87,7 @@ namespace AGS.Types
         public static bool IsBuildTargetAvailable(BuildTargetPlatform platform)
         {
             Dictionary<string, string> paths = GetRequiredLibraryPaths(platform);
+            if (paths == null) return false;
             foreach (KeyValuePair<string, string> pair in paths)
             {
                 string fullPath = pair.Value;
@@ -93,21 +97,29 @@ namespace AGS.Types
             return true;
         }
 
+        public static string GetCompiledPath(BuildTargetPlatform platform, params string[] parts)
+        {
+            return GetCompiledPath(platform, false, parts);
+        }
+
         /// <summary>
         /// Helper function to join parts of a path in the Compiled folder.
         /// </summary>
-        public static string GetCompiledPath(BuildTargetPlatform platform, params string[] parts)
+        public static string GetCompiledPath(BuildTargetPlatform platform, bool onlyTarget, params string[] parts)
         {
-            string platformDir = WINDOWS_DIR;
+            string platformDir = null;
             switch (platform)
             {
+                case BuildTargetPlatform.Windows:
+                    if (!onlyTarget) platformDir = WINDOWS_DIR;
+                    break;
                 case BuildTargetPlatform.Linux:
                     platformDir = LINUX_DIR;
                     break;
                 default:
                     break;
             };
-            StringBuilder sb = new StringBuilder(COMPILED_DIR);
+            StringBuilder sb = new StringBuilder(COMPILED_DIR + (platformDir == null ? "" : Path.DirectorySeparatorChar + platformDir));
             for (int i = 0; i < parts.Length; ++i)
             {
                 if (((i == 0) && (parts[0] == COMPILED_DIR)) ||
@@ -115,6 +127,30 @@ namespace AGS.Types
                 sb.Append(Path.DirectorySeparatorChar + parts[i]);
             }
             return sb.ToString();
+        }
+
+        public static string[] GetPlatformStandardSubfolders(BuildTargetPlatform platform)
+        {
+            return GetPlatformStandardSubfolders(platform, false);
+        }
+
+        public static string[] GetPlatformStandardSubfolders(BuildTargetPlatform platform, bool onlyTarget)
+        {
+            List<string> subfolders = new List<string>();
+            switch (platform)
+            {
+                case BuildTargetPlatform.Windows:
+                    subfolders.Add(GetCompiledPath(platform, onlyTarget));
+                    break;
+                case BuildTargetPlatform.Linux:
+                    subfolders.Add(GetCompiledPath(platform, onlyTarget, LINUX_LIB32_DIR));
+                    subfolders.Add(GetCompiledPath(platform, onlyTarget, LINUX_LIB64_DIR));
+                    subfolders.Add(GetCompiledPath(platform, onlyTarget, LINUX_LICENSES_DIR));
+                    break;
+                default:
+                    break;
+            };
+            return subfolders.ToArray();
         }
     }
 }

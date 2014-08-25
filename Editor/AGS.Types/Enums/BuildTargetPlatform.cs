@@ -10,11 +10,11 @@ namespace AGS.Types
     [Flags]
     public enum BuildTargetPlatform
     {
-        DataFileOnly = 1,
-        Windows      = 2,
-        Linux        = 4,
-        Android      = 8,
-        iOS          = 16,
-        OSX          = 32
+        DataFileOnly = 0x00,
+        Windows      = 0x02,
+        Linux        = 0x04,
+        Android      = 0x08,
+        iOS          = 0x10,
+        OSX          = 0x20
     };
 }

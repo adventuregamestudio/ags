@@ -801,7 +801,7 @@ int D3DGraphicsDriver::_initDLLCallback()
   d3dpp.hDeviceWindow = allegro_wnd;
   d3dpp.Windowed = _newmode_windowed;
   d3dpp.EnableAutoDepthStencil = FALSE;
-  d3dpp.Flags = 0;
+  d3dpp.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER; // we need this flag to access the backbuffer with lockrect
   d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
   if(_newmode_vsync)
     d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
@@ -1153,41 +1153,18 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
   direct3ddevice->GetDisplayMode(0, &displayMode);
 
   IDirect3DSurface9* surface = NULL;
-  if ((direct3ddevice->CreateOffscreenPlainSurface(displayMode.Width, displayMode.Height, 
-                       D3DFMT_A8R8G8B8, D3DPOOL_SCRATCH, &surface, NULL) == D3D_OK) &&
-      (surface != NULL))
   {
     if (_pollingCallback)
       _pollingCallback();
 
-    // This call is v. slow (known DX9 issue)
-    if (direct3ddevice->GetFrontBufferData(0, surface) != D3D_OK)
+    // Get the back buffer surface
+    if (direct3ddevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &surface) != D3D_OK)
     {
-      throw Ali3DException("GetFrontBufferData failed");
+      throw Ali3DException("IDirect3DDevice9::GetBackBuffer failed");
     }
 
     if (_pollingCallback)
       _pollingCallback();
-
-    WINDOWINFO windowInfo;
-    RECT *areaToCapture = NULL;
-
-    if (_newmode_windowed)
-    {
-      // Stupidly, D3D creates a screenshot of the entire
-      // desktop, so we have to manually extract the
-      // bit with our game's window on it
-      GetWindowInfo(win_get_window(), &windowInfo);
-      areaToCapture = &windowInfo.rcClient;
-    }
-
-    Bitmap *finalImage = NULL;
-
-    if (destination->GetColorDepth() != 32)
-    {
-      finalImage = destination;
-	  destination = BitmapHelper::CreateBitmap(destination->GetWidth(), destination->GetHeight(), 32);
-    }
 
     Bitmap *retrieveInto = destination;
 
@@ -1198,18 +1175,16 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
       // therefore calculate the size like this
       retrieveInto = BitmapHelper::CreateBitmap(destination->GetWidth() * _newmode_screen_width / _newmode_width, 
                                           destination->GetHeight() * _newmode_screen_height / _newmode_height,
-										  32);
+										  _newmode_depth);
     }
 
     D3DLOCKED_RECT lockedRect;
-    if (surface->LockRect(&lockedRect, areaToCapture, D3DLOCK_READONLY) != D3D_OK)
+    if (surface->LockRect(&lockedRect, NULL, D3DLOCK_READONLY ) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::LockRect failed");
     }
 
     unsigned char *surfaceData = (unsigned char*)lockedRect.pBits;
-    long *sourcePtr;
-    long *destPtr;
     int xOffset = 0;
     if (destination->GetHeight() < _newmode_height)
     {
@@ -1222,17 +1197,7 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
       xOffset += ((_newmode_width - destination->GetWidth()) / 2) * _newmode_screen_width / _newmode_width;
     }
 
-    for (int y = 0; y < retrieveInto->GetHeight(); y++)
-    {
-      sourcePtr = (long*)surfaceData;
-      destPtr = (long*)&retrieveInto->GetScanLine(y)[0];
-      for (int x = 0; x < retrieveInto->GetWidth(); x++)
-      {
-        //destPtr[x] = (sourcePtr[x] & 0x00ff00) | ((sourcePtr[x] & 0x0000ff) << 16) | ((sourcePtr[x] & 0xff0000) >> 16);
-        destPtr[x] = sourcePtr[x + xOffset];
-      }
-      surfaceData += lockedRect.Pitch;
-    }
+    BitmapHelper::ReadPixelsFromMemory(retrieveInto, surfaceData, lockedRect.Pitch, xOffset);
 
     surface->UnlockRect();
     surface->Release();
@@ -1249,18 +1214,7 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
       if (_pollingCallback)
         _pollingCallback();
     }
-
-    if (finalImage != NULL)
-    {
-      finalImage->Blit(destination, 0, 0, 0, 0, destination->GetWidth(), destination->GetHeight());
-      delete destination;
-    }
   }
-  else
-  {
-    throw Ali3DException("CreateOffscreenPlainSurface failed");
-  }
-
 }
 
 void D3DGraphicsDriver::RenderToBackBuffer()

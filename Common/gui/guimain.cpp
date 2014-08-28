@@ -30,10 +30,9 @@
 #include "ac/spritecache.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
+#include "util/math.h"
 
-using AGS::Common::Stream;
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
 
 char GUIMain::oNameBuffer[20];
 
@@ -149,42 +148,46 @@ void GUIMain::resort_zorder()
     drawOrder[ff] = controlArray[ff]->objn;
 }
 
-bool GUIMain::bring_to_front(int objNum) {
-  if (objNum < 0)
-    return false;
-
-  if (objs[objNum]->zorder < numobjs - 1) {
-    int oldOrder = objs[objNum]->zorder;
-    for (int ii = 0; ii < numobjs; ii++) {
-      if (objs[ii]->zorder > oldOrder)
-        objs[ii]->zorder--;
-    }
-    objs[objNum]->zorder = numobjs - 1;
-    resort_zorder();
-    control_positions_changed();
-    return true;
-  }
-
-  return false;
+bool GUIMain::bring_to_front(int objNum)
+{
+    return set_control_zorder(objNum, numobjs - 1);
 }
 
-bool GUIMain::send_to_back(int objNum) {
-  if (objNum < 0)
-    return false;
+bool GUIMain::send_to_back(int objNum)
+{
+    return set_control_zorder(objNum, 0);
+}
 
-  if (objs[objNum]->zorder > 0) {
-    int oldOrder = objs[objNum]->zorder;
-    for (int ii = 0; ii < numobjs; ii++) {
-      if (objs[ii]->zorder < oldOrder)
-        objs[ii]->zorder++;
+bool GUIMain::set_control_zorder(int objNum, int zorder)
+{
+    if (objNum < 0 || objNum >= numobjs)
+        return false; // no such control
+
+    Math::Clamp(0, numobjs - 1, zorder);
+    const int old_zorder = objs[objNum]->zorder;
+    if (old_zorder == zorder)
+        return false; // no change
+
+    const bool move_back = zorder < old_zorder; // back is at zero index
+    const int  left      = move_back ? zorder : old_zorder;
+    const int  right     = move_back ? old_zorder : zorder;
+    for (int i = 0; i < numobjs; ++i)
+    {
+        const int i_zorder = objs[i]->zorder;
+        if (i_zorder == old_zorder)
+            objs[i]->zorder = zorder; // the control we are moving
+        else if (i_zorder >= left && i_zorder <= right)
+        {
+            // controls in between old and new positions shift towards free place
+            if (move_back)
+                objs[i]->zorder++; // move to front
+            else
+                objs[i]->zorder--; // move to back
+        }
     }
-    objs[objNum]->zorder = 0;
     resort_zorder();
     control_positions_changed();
     return true;
-  }
-
-  return false;
 }
 
 void GUIMain::rebuild_array()

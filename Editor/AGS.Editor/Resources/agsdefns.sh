@@ -1379,6 +1379,8 @@ builtin managed struct GUIControl {
   import attribute int  X;
   /// Gets/sets the Y position of the control's top-left corner.
   import attribute int  Y;
+  /// Gets/sets the control's z-order relative to other controls within the same owning GUI.
+  import attribute int  ZOrder;
 };
 
 builtin managed struct Label extends GUIControl {

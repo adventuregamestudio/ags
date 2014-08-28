@@ -173,6 +173,17 @@ void GUIControl_SetY(GUIObject *guio, int yy) {
   guis_need_update = 1;
 }
 
+int GUIControl_GetZOrder(GUIObject *guio)
+{
+    return guio->zorder;
+}
+
+void GUIControl_SetZOrder(GUIObject *guio, int zorder)
+{
+    if (guis[guio->guin].set_control_zorder(guio->objn, zorder))
+        guis_need_update = 1;
+}
+
 void GUIControl_SetPosition(GUIObject *guio, int xx, int yy) {
   GUIControl_SetX(guio, xx);
   GUIControl_SetY(guio, yy);
@@ -392,6 +403,16 @@ RuntimeScriptValue Sc_GUIControl_SetY(void *self, const RuntimeScriptValue *para
     API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetY);
 }
 
+RuntimeScriptValue Sc_GUIControl_GetZOrder(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIObject, GUIControl_GetZOrder);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetZOrder(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetZOrder);
+}
+
 
 
 void RegisterGUIControlAPI()
@@ -423,6 +444,8 @@ void RegisterGUIControlAPI()
     ccAddExternalObjectFunction("GUIControl::set_X",            Sc_GUIControl_SetX);
     ccAddExternalObjectFunction("GUIControl::get_Y",            Sc_GUIControl_GetY);
     ccAddExternalObjectFunction("GUIControl::set_Y",            Sc_GUIControl_SetY);
+    ccAddExternalObjectFunction("GUIControl::get_ZOrder",       Sc_GUIControl_GetZOrder);
+    ccAddExternalObjectFunction("GUIControl::set_ZOrder",       Sc_GUIControl_SetZOrder);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

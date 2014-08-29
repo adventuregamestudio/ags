@@ -36,8 +36,10 @@ const char* File_ReadStringBack(sc_File *fil);
 int		File_ReadInt(sc_File *fil);
 int		File_ReadRawChar(sc_File *fil);
 int		File_ReadRawInt(sc_File *fil);
+int     File_Seek(sc_File *fil, int offset, int origin);
 int		File_GetEOF(sc_File *fil);
 int		File_GetError(sc_File *fil);
+int     File_GetPosition(sc_File *fil);
 
 void	get_current_dir_path(char* buffer, const char *fileName);
 bool	validate_user_file_path(const char *fnmm, char *output, bool currentDirOnly);

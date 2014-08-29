@@ -984,12 +984,20 @@ import void SetMultitaskingMode (int mode);
 import int  FloatToInt(float value, RoundDirection=eRoundDown);
 /// Converts an integer to a floating point number.
 import float IntToFloat(int value);
+
 // File I/O
 enum FileMode {
   eFileRead = 1,
   eFileWrite = 2,
   eFileAppend = 3
 };
+
+enum FileSeek {
+  eSeekBegin = 0,
+  eSeekCurrent = 1,
+  eSeekEnd = 2
+};
+
 builtin managed struct File {
   /// Delets the specified file from the disk.
   import static bool Delete(const string filename);   // $AUTOCOMPLETESTATICONLY$
@@ -1021,10 +1029,14 @@ builtin managed struct File {
   import void WriteRawLine(const string text);
   /// Writes a string to the file.
   import void WriteString(const string text);
+  /// Moves file cursor by specified offset, returns new position.
+  import int Seek(int offset, FileSeek origin = eSeekCurrent);
   /// Gets whether you have reached the end of the file.
   readonly import attribute bool EOF;
   /// Gets whether any errors occurred reading or writing the file.
   readonly import attribute bool Error;
+  /// Gets current cursor position inside the file.
+  readonly import attribute int Position;
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 

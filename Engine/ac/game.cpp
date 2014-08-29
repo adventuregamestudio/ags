@@ -82,11 +82,7 @@
 #include "util/filestream.h"
 #include "util/string_utils.h"
 
-using AGS::Common::AlignedStream;
-using AGS::Common::String;
-using AGS::Common::Stream;
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern int time_between_timers;
@@ -1586,9 +1582,9 @@ void save_game(int slotn, const char*descript) {
         update_polled_stuff_if_runtime();
 
         out = Common::File::OpenFile(nametouse, Common::kFile_Open, Common::kFile_ReadWrite);
-        out->Seek(Common::kSeekBegin, 12);
+        out->Seek(12, kSeekBegin);
         out->WriteInt32(screenShotOffset);
-        out->Seek(Common::kSeekCurrent, 4);
+        out->Seek(4);
         out->WriteInt32(screenShotSize);
     }
 

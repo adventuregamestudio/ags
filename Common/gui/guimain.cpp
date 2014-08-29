@@ -102,7 +102,7 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
   in->ReadArrayOfInt32(&x, 27);
 
   // array of 32-bit pointers; these values are unused
-  in->Seek(AGS::Common::kSeekCurrent, MAX_OBJS_ON_GUI * sizeof(int32_t));
+  in->Seek(MAX_OBJS_ON_GUI * sizeof(int32_t));
 
   in->ReadArrayOfInt32(objrefptr, MAX_OBJS_ON_GUI);
 }

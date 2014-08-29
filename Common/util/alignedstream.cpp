@@ -289,10 +289,10 @@ size_t AlignedStream::WriteArrayOfInt64(const int64_t *buffer, size_t count)
     return 0;
 }
 
-size_t AlignedStream::Seek(StreamSeek seek, int pos)
+size_t AlignedStream::Seek(int offset, StreamSeek origin)
 {
     // Not supported
-    return 0;
+    return GetPosition();
 }
 
 void AlignedStream::ReadPadding(size_t next_type)

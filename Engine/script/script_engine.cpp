@@ -28,7 +28,7 @@
 #include "script/cc_instance.h"
 #include "script/cc_error.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 char *scripteditruntimecopr = "Script Editor v1.2 run-time component. (c) 1998 Chris Jones";
 
@@ -61,7 +61,7 @@ void load_script_configuration(Stream *in)
     int numvarnames = in->ReadInt32();
     for (aa = 0; aa < numvarnames; aa++) {
         int lenoft = in->ReadByte();
-        in->Seek(Common::kSeekCurrent, lenoft);
+        in->Seek(lenoft);
     }
 }
 

@@ -31,9 +31,7 @@
 #include "util/filestream.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::Bitmap;
-using AGS::Common::Stream;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
 
 #ifndef __WGT4_H
 struct color
@@ -162,7 +160,7 @@ long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto)
 
   if (exto > 0) {
     outpt = ci_fopen(finam, Common::kFile_Create, Common::kFile_ReadWrite);
-    outpt->Seek(Common::kSeekBegin, exto);
+    outpt->Seek(exto, kSeekBegin);
   } 
   else
     outpt = ci_fopen(finam, Common::kFile_CreateAlways, Common::kFile_Write);
@@ -344,7 +342,7 @@ long save_lzw(char *fnn, Bitmap *bmpp, color *pall, long offe) {
   delete lz_temp_s;
 
   out = ci_fopen(fnn, Common::kFile_Open, Common::kFile_ReadWrite);
-  out->Seek(Common::kSeekBegin, offe);
+  out->Seek(offe, kSeekBegin);
 
   lz_temp_s = ci_fopen(lztempfnm);
   fll = lz_temp_s->GetLength();
@@ -356,7 +354,7 @@ long save_lzw(char *fnn, Bitmap *bmpp, color *pall, long offe) {
   out->WriteInt32(fll);
   lzwcompress(lz_temp_s, out);
   toret = out->GetPosition();
-  out->Seek(Common::kSeekBegin, gobacto);
+  out->Seek(gobacto, kSeekBegin);
   fll = (toret - gobacto) - 4;
   out->WriteInt32(fll);      // write compressed size
   delete lz_temp_s;
@@ -448,7 +446,7 @@ long load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
   free(membuffer-8);
 
   if (in->GetPosition() != uncompsiz)
-    in->Seek(Common::kSeekBegin, uncompsiz);
+    in->Seek(uncompsiz, kSeekBegin);
 
   update_polled_stuff_if_runtime();
 
@@ -490,7 +488,7 @@ long loadcompressed_allegro(Stream *in, Common::Bitmap **bimpp, color *pall, lon
       update_polled_stuff_if_runtime();
   }
 
-  in->Seek(Common::kSeekCurrent, 768);  // skip palette
+  in->Seek(768);  // skip palette
 
   return in->GetPosition();
 }

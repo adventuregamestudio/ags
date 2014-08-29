@@ -35,8 +35,8 @@ namespace Common
 enum StreamSeek
 {
    kSeekBegin,
-   kSeekEnd,
-   kSeekCurrent
+   kSeekCurrent,
+   kSeekEnd
 };
 
 class IAGSStream
@@ -81,7 +81,7 @@ public:
     virtual size_t      WriteArrayOfInt32(const int32_t *buffer, size_t count) = 0;
     virtual size_t      WriteArrayOfInt64(const int64_t *buffer, size_t count) = 0;
 
-    virtual size_t      Seek(StreamSeek seek, int pos) = 0;
+    virtual size_t      Seek(int offset, StreamSeek origin = kSeekCurrent) = 0;
 };
 
 } // namespace Common

@@ -47,10 +47,7 @@
 #include "util/alignedstream.h"
 #include "ac/gamesetup.h"
 
-using AGS::Common::AlignedStream;
-using AGS::Common::Bitmap;
-using AGS::Common::Stream;
-using AGS::Common::String;
+using namespace AGS::Common;
 
 extern char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
 
@@ -285,7 +282,7 @@ void game_file_read_dialogs(Stream *in)
 
             // Skip encrypted text script
             unsigned int script_size = in->ReadInt32();
-            in->Seek(Common::kSeekCurrent, script_size);
+            in->Seek(script_size);
         }
 
         // Read the dialog lines
@@ -311,7 +308,7 @@ void game_file_read_dialogs(Stream *in)
                     if ((unsigned char)*nextchar == 0xEF)
                     {
                         end_reached = true;
-                        in->Seek(Common::kSeekCurrent, -1);
+                        in->Seek(-1);
                         break;
                     }
 
@@ -334,7 +331,7 @@ void game_file_read_dialogs(Stream *in)
                 unsigned int newlen = in->ReadInt32();
                 if (newlen == 0xCAFEBEEF)  // GUI magic
                 {
-                    in->Seek(Common::kSeekCurrent, -4);
+                    in->Seek(-4);
                     break;
                 }
 
@@ -679,7 +676,7 @@ int load_game_file() {
     if (filever <= kGameVersion_251) // <= 2.1 skip unknown data
     {
         int count = in->ReadInt32();
-        in->Seek(Common::kSeekCurrent, count * 0x204);
+        in->Seek(count * 0x204);
     }
 
     charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);

@@ -22,10 +22,7 @@
 #include "core/assetmanager.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
-
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 Bitmap *backups[5];
 int _acroom_bpp = 1;  // bytes per pixel of currently loading room
@@ -427,7 +424,7 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
 
     if (rstruc->numanims > 0)
         // [IKM] CHECKME later: this will cause trouble if structure changes
-        in->Seek (Common::kSeekCurrent, sizeof(FullAnimation) * rstruc->numanims);
+        in->Seek (sizeof(FullAnimation) * rstruc->numanims);
 //      in->ReadArray(&rstruc->anims[0], sizeof(FullAnimation), rstruc->numanims);
   }
   else {
@@ -679,7 +676,7 @@ void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes) {
 
     // The GetPosition call below has caused crashes
     if (opty->GetPosition() != bloklen)
-        opty->Seek(Common::kSeekBegin, bloklen);
+        opty->Seek(bloklen, kSeekBegin);
   }
 
   // sync bpalettes[0] with room.pal

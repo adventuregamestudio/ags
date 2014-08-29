@@ -33,11 +33,7 @@
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 
-using AGS::Common::Stream;
-
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
-namespace Out = AGS::Common::Out;
+using namespace AGS::Common;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
@@ -91,7 +87,7 @@ void play_flc_file(int numb,int playflags) {
         debug_log("FLIC animation FLIC%d.FLC not found",numb);
         return;
     }
-    in->Seek(Common::kSeekCurrent,8);
+    in->Seek(8);
     fliwidth = in->ReadInt16();
     fliheight = in->ReadInt16();
     delete in;

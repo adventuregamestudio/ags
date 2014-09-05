@@ -32,6 +32,7 @@
 void Mouse_SetVisible(int isOn);
 int Mouse_GetVisible();
 int Mouse_GetModeGraphic(int curs);
+int Mouse_GetModeView(int curs);
 void Mouse_ChangeModeView(int curs, int newview);
 // The Mouse:: functions are static so the script doesn't pass
 // in an object parameter

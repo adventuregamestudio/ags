@@ -170,6 +170,13 @@ int Mouse_GetModeGraphic(int curs) {
     return game.mcurs[curs].pic;
 }
 
+int Mouse_GetModeView(int curs) {
+    if ((curs < 0) || (curs >= game.numcursors))
+        quit("!Mouse.GetModeView: invalid mouse cursor");
+
+    return game.mcurs[curs].view + 1;
+}
+
 void ChangeCursorHotspot (int curs, int x, int y) {
     if ((curs < 0) || (curs >= game.numcursors))
         quit("!ChangeCursorHotspot: invalid mouse cursor");
@@ -430,6 +437,12 @@ RuntimeScriptValue Sc_Mouse_GetModeGraphic(const RuntimeScriptValue *params, int
     API_SCALL_INT_PINT(Mouse_GetModeGraphic);
 }
 
+// int (int curs)
+RuntimeScriptValue Sc_Mouse_GetModeView(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Mouse_GetModeView);
+}
+
 // int (int which)
 RuntimeScriptValue Sc_IsButtonDown(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -511,6 +524,7 @@ void RegisterMouseAPI()
     ccAddExternalStaticFunction("Mouse::DisableMode^1",             Sc_disable_cursor_mode);
     ccAddExternalStaticFunction("Mouse::EnableMode^1",              Sc_enable_cursor_mode);
     ccAddExternalStaticFunction("Mouse::GetModeGraphic^1",          Sc_Mouse_GetModeGraphic);
+    ccAddExternalStaticFunction("Mouse::GetModeView^1",             Sc_Mouse_GetModeView);
     ccAddExternalStaticFunction("Mouse::IsButtonDown^1",            Sc_IsButtonDown);
     ccAddExternalStaticFunction("Mouse::SaveCursorUntilItLeaves^0", Sc_SaveCursorForLocationChange);
     ccAddExternalStaticFunction("Mouse::SelectNextMode^0",          Sc_SetNextCursor);
@@ -532,6 +546,7 @@ void RegisterMouseAPI()
     ccAddExternalFunctionForPlugin("Mouse::DisableMode^1",             (void*)disable_cursor_mode);
     ccAddExternalFunctionForPlugin("Mouse::EnableMode^1",              (void*)enable_cursor_mode);
     ccAddExternalFunctionForPlugin("Mouse::GetModeGraphic^1",          (void*)Mouse_GetModeGraphic);
+    ccAddExternalFunctionForPlugin("Mouse::GetModeView^1",             (void*)Mouse_GetModeView);
     ccAddExternalFunctionForPlugin("Mouse::IsButtonDown^1",            (void*)IsButtonDown);
     ccAddExternalFunctionForPlugin("Mouse::SaveCursorUntilItLeaves^0", (void*)SaveCursorForLocationChange);
     ccAddExternalFunctionForPlugin("Mouse::SelectNextMode^0",          (void*)SetNextCursor);

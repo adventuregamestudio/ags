@@ -646,7 +646,9 @@ struct Mouse {
   /// Re-enables the specified cursor mode.
   import static void EnableMode(CursorMode);
   /// Gets the sprite used for the specified mouse cursor.
-  import static int  GetModeGraphic(CursorMode);
+  import static int GetModeGraphic(CursorMode);
+  /// Gets the view used to animate the specified mouse cursor.
+  import static int GetModeView(CursorMode);
   /// Checks whether the specified mouse button is currently pressed.
   import static bool IsButtonDown(MouseButton);
   /// Remembers the current mouse cursor and restores it when the mouse leaves the current area.

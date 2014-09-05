@@ -2394,7 +2394,7 @@ void update_screen() {
     Bitmap *ds = GetVirtualScreen();
 
     // update animating mouse cursor
-    if (game.mcurs[cur_cursor].view>=0) {
+    if (game.mcurs[cur_cursor].view>=0 && (game.mcurs[cur_cursor].flags & MCF_ANIMATE)) {
         domouse (DOMOUSE_NOCURSOR);
         // only on mousemove, and it's not moving
         if (((game.mcurs[cur_cursor].flags & MCF_ANIMMOVE)!=0) &&

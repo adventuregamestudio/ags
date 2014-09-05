@@ -178,13 +178,23 @@ void GameSetupStruct::read_cursors(Common::Stream *in, GAME_STRUCT_READ_DATA &re
     if (read_data.filever <= kGameVersion_272) // 2.x
     {
         // Change cursor.view from 0 to -1 for non-animating cursors.
+        // Add the animation flag to everything to emulate old behaviour.
         int i;
         for (i = 0; i < numcursors; i++)
         {
             if (mcurs[i].view == 0)
                 mcurs[i].view = -1;
+            mcurs[i].flags |= MCF_ANIMATE;
         }
     }
+    else
+        if (read_data.filever <= kGameVersion_330)
+        {
+            // Add the animation flag to everything to emulate old behaviour.
+            int i;
+            for (i = 0; i < numcursors; i++)
+                mcurs[i].flags |= MCF_ANIMATE;
+        }
 }
 
 void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)

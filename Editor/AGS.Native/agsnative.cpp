@@ -5107,14 +5107,11 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 		thisgame.mcurs[i].flags = 0;
 		if (cursor->Animate) 
 		{
-			thisgame.mcurs[i].view = cursor->View - 1;
+			thisgame.mcurs[i].flags |= MCF_ANIMATE;
 			if (cursor->AnimateOnlyOnHotspots) thisgame.mcurs[i].flags |= MCF_HOTSPOT;
 			if (cursor->AnimateOnlyWhenMoving) thisgame.mcurs[i].flags |= MCF_ANIMMOVE;
 		}
-		else 
-		{
-			thisgame.mcurs[i].view = -1;
-		}
+		thisgame.mcurs[i].view = cursor->View - 1;
 		if (cursor->StandardMode) thisgame.mcurs[i].flags |= MCF_STANDARD;
 		thisgame.mcurs[i].pic = cursor->Image;
 		thisgame.mcurs[i].hotx = cursor->HotspotX;

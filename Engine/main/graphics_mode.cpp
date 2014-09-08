@@ -191,10 +191,10 @@ void engine_init_screen_settings(Size &game_size, Size &screen_size)
     _rgb_b_shift_15 = 0;
 #endif
 
-    usetup.base_width = 320;
-    usetup.base_height = 200;
-
     GameSize = ResolutionTypeToSize(game.default_resolution);
+    if (GameSize.IsNull())
+        quit("Unable to define native game resolution, could be unsupported game format.");
+
     scrnwid = GameSize.Width;
     scrnhit = GameSize.Height;
 

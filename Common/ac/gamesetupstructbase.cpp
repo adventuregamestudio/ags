@@ -113,6 +113,7 @@ Size ResolutionTypeToSize(GameResolutionType resolution, bool letterbox)
 {
     switch (resolution)
     {
+    case kGameResolution_Default:
     case kGameResolution_320x200:
         return letterbox ? Size(320, 240) : Size(320, 200);
     case kGameResolution_320x240:

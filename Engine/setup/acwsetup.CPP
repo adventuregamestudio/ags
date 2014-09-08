@@ -505,7 +505,7 @@ int acwsetup(const char*vername, const char*enbuild) {
       curscrn = 1;
     defaultRes = (GameResolutionType)INIreadint ("misc", "defaultres", 0);
     if (defaultRes < 1)
-      defaultRes = kGameResolution_Undefined;
+      defaultRes = kGameResolution_Default;
 
     curdigi=INIreadint("sound","digiwinindx");
     curmidi=INIreadint("sound","midiwinindx");

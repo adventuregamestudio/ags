@@ -92,10 +92,10 @@ extern int game_paused;
 extern AGSPlatformDriver *platform;
 extern ccScript* gamescript;
 extern ccScript* dialogScriptsScript;
-extern ccScript *scriptModules[MAX_SCRIPT_MODULES];
-extern ccInstance *moduleInst[MAX_SCRIPT_MODULES];
-extern ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
-extern RuntimeScriptValue moduleRepExecAddr[MAX_SCRIPT_MODULES];
+extern std::vector<ccScript *> scriptModules;
+extern std::vector<ccInstance *> moduleInst;
+extern std::vector<ccInstance *> moduleInstFork;
+extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 extern int numScriptModules;
 extern GameState play;
 extern char **characterScriptObjNames;
@@ -191,15 +191,19 @@ void game_file_read_script_modules(Stream *in)
 	if (filever >= kGameVersion_270) // 2.7.0+ script modules
     {
         numScriptModules = in->ReadInt32();
-        if (numScriptModules > MAX_SCRIPT_MODULES)
-            quit("too many script modules; need newer version?");
-
+        scriptModules.resize(numScriptModules);
+        moduleInst.resize(numScriptModules, NULL);
+        moduleInstFork.resize(numScriptModules, NULL);
+        moduleRepExecAddr.resize(numScriptModules);
+        repExecAlways.moduleHasFunction.resize(numScriptModules, true);
+        getDialogOptionsDimensionsFunc.moduleHasFunction.resize(numScriptModules, true);
+        renderDialogOptionsFunc.moduleHasFunction.resize(numScriptModules, true);
+        getDialogOptionUnderCursorFunc.moduleHasFunction.resize(numScriptModules, true);
+        runDialogOptionMouseClickHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
         for (int bb = 0; bb < numScriptModules; bb++) {
             scriptModules[bb] = ccScript::CreateFromStream(in);
             if (scriptModules[bb] == NULL)
                 quit("Script module load failure; need newer version?");
-            moduleInst[bb] = NULL;
-            moduleInstFork[bb] = NULL;
             moduleRepExecAddr[bb].Invalidate();
         }
     }

@@ -399,9 +399,9 @@ int ccInstance::CallScriptFunction(char *funcname, int32_t numargs, RuntimeScrip
     return ccError;
 }
 
-void ccInstance::DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool *hasTheFunc) {
-    if (!hasTheFunc[0])
-        return;
+bool ccInstance::DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool hasTheFunc) {
+    if (!hasTheFunc)
+        return(false);
 
     no_blocking_functions++;
     int result;
@@ -415,7 +415,7 @@ void ccInstance::DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, 
 
     if (result == -2) {
         // the function doens't exist, so don't try and run it again
-        hasTheFunc[0] = false;
+        hasTheFunc = false;
     }
     else if ((result != 0) && (result != 100)) {
         quit_with_script_error(funcToRun->functionName);
@@ -428,6 +428,7 @@ void ccInstance::DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, 
     ccErrorString[0] = 0;
     ccError = 0;
     no_blocking_functions--;
+    return(hasTheFunc);
 }
 
 char scfunctionname[MAX_FUNCTION_NAME_LEN+1];

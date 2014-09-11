@@ -578,6 +578,14 @@ void unload_game_file() {
         delete moduleInst[ee];
         delete scriptModules[ee];
     }
+    moduleInstFork.resize(0);
+    moduleInst.resize(0);
+    scriptModules.resize(0);
+    repExecAlways.moduleHasFunction.resize(0);
+    getDialogOptionsDimensionsFunc.moduleHasFunction.resize(0);
+    renderDialogOptionsFunc.moduleHasFunction.resize(0);
+    getDialogOptionUnderCursorFunc.moduleHasFunction.resize(0);
+    runDialogOptionMouseClickHandlerFunc.moduleHasFunction.resize(0);
     numScriptModules = 0;
 
     if (game.audioClipCount > 0)
@@ -1703,7 +1711,7 @@ void restore_game_clean_scripts()
 }
 
 void restore_game_scripts(Stream *in, int &gdatasize, char **newglobaldatabuffer,
-                          char **scriptModuleDataBuffers, int *scriptModuleDataSize)
+                          std::vector<char *> &scriptModuleDataBuffers, std::vector<int> &scriptModuleDataSize)
 {
     // read the global script data segment
     gdatasize = in->ReadInt32();
@@ -2114,8 +2122,10 @@ int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_v
 
     int gdatasize = 0;
     char*newglobaldatabuffer;
-    char *scriptModuleDataBuffers[MAX_SCRIPT_MODULES];
-    int scriptModuleDataSize[MAX_SCRIPT_MODULES];
+    std::vector<char *> scriptModuleDataBuffers;
+    std::vector<int> scriptModuleDataSize;
+    scriptModuleDataBuffers.resize(numScriptModules);
+    scriptModuleDataSize.resize(numScriptModules);
     restore_game_scripts(in, /*out*/ gdatasize,&newglobaldatabuffer, scriptModuleDataBuffers, scriptModuleDataSize);
     restore_game_room_state(in, nametouse);
 

@@ -31,6 +31,7 @@
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "debug/debug_log.h"
+#include "debug/out.h"
 #include "font/fonts.h"
 #include "gui/guilabel.h"
 #include "main/main.h"
@@ -46,10 +47,7 @@
 #include "util/alignedstream.h"
 #include "ac/gamesetup.h"
 
-using AGS::Common::AlignedStream;
-using AGS::Common::Bitmap;
-using AGS::Common::Stream;
-using AGS::Common::String;
+using namespace AGS::Common;
 
 extern char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
 
@@ -143,6 +141,7 @@ int game_file_read_version(Stream *in)
 	teststr[30]=0;
     in->Read(&teststr[0],30);
     filever=(GameDataVersion)in->ReadInt32();
+    Out::FPrint("Game data version: %d", filever);
 
     if (filever < kGameVersion_321) {
         // Allow loading of 2.x+ datafiles
@@ -157,6 +156,7 @@ int game_file_read_version(Stream *in)
 	int engineverlen = in->ReadInt32();
     String version_string = String::FromStreamCount(in, engineverlen);
     AGS::Engine::Version requested_engine_version(version_string);
+    Out::FPrint("Requested engine version: %s", requested_engine_version.LongString.GetCStr());
 
     if (filever > kGameVersion_Current) {
         platform->DisplayAlert("This game requires a newer version of AGS (%s). It cannot be run.",

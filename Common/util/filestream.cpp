@@ -93,8 +93,7 @@ size_t FileStream::GetPosition() const
 {
     if (IsValid())
     {
-        long pos = ftell(_file);
-        return pos > 0 ? (size_t)pos : -1;
+        return (size_t) ftell(_file);
     }
     return -1;
 }

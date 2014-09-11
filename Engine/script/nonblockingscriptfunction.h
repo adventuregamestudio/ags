@@ -21,6 +21,8 @@
 #include "ac/runtime_defines.h"
 #include "script/runtimescriptvalue.h"
 
+#include <vector>
+
 struct NonBlockingScriptFunction
 {
     const char* functionName;
@@ -30,7 +32,7 @@ struct NonBlockingScriptFunction
     RuntimeScriptValue params[2];
     bool roomHasFunction;
     bool globalScriptHasFunction;
-    bool moduleHasFunction[MAX_SCRIPT_MODULES];
+    std::vector<bool> moduleHasFunction;
     bool atLeastOneImplementationExists;
 
     NonBlockingScriptFunction(const char*funcName, int numParams)
@@ -40,11 +42,7 @@ struct NonBlockingScriptFunction
         atLeastOneImplementationExists = false;
         roomHasFunction = true;
         globalScriptHasFunction = true;
-
-        for (int i = 0; i < MAX_SCRIPT_MODULES; i++)
-        {
-            moduleHasFunction[i] = true;
-        }
+        moduleHasFunction.resize(numScriptModules);
     }
 };
 

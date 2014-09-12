@@ -159,7 +159,7 @@ public:
     
     // call an exported function in the script (2nd arg is number of params)
     int     CallScriptFunction(char *funcname, int32_t num_params, RuntimeScriptValue *params);
-    void    DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool *hasTheFunc);
+    bool    DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool hasTheFunc);
     int     PrepareTextScript(char**tsname);
     int     Run(int32_t curpc);
     int     RunScriptFunctionIfExists(char*tsname,int numParam, RuntimeScriptValue *params);

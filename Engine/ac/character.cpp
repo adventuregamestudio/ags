@@ -313,9 +313,9 @@ enum DirectionalLoop
     kDirLoop_DownLeft  = 6,
     kDirLoop_UpLeft    = 7,
 
-    kDirLoop_Default       = kDirLoop_Down,
-    kDirLoop_LastOrtogonal = kDirLoop_Up,
-    kDirLoop_Last          = kDirLoop_UpLeft,
+    kDirLoop_Default        = kDirLoop_Down,
+    kDirLoop_LastOrthogonal = kDirLoop_Up,
+    kDirLoop_Last           = kDirLoop_UpLeft,
 };
 
 // Internal direction-facing functions
@@ -383,7 +383,7 @@ void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
             (in_enters_screen == 0))
         {
             const int no_diagonal = useDiagonal (char1);
-            const int highestLoopForTurning = no_diagonal != 1 ? kDirLoop_Last : kDirLoop_LastOrtogonal;
+            const int highestLoopForTurning = no_diagonal != 1 ? kDirLoop_Last : kDirLoop_LastOrthogonal;
             if ((char1->loop <= highestLoopForTurning))
             {
                 // Turn to face new direction
@@ -1726,7 +1726,7 @@ void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
         chinf->loop = useloop;
         return;
     }
-    if ((chinf->loop > kDirLoop_LastOrtogonal) && ((chinf->flags & CHF_NODIAGONAL)!=0)) {
+    if ((chinf->loop > kDirLoop_LastOrthogonal) && ((chinf->flags & CHF_NODIAGONAL)!=0)) {
         // They've just been playing an animation with an extended loop number,
         // so don't try and rotate using it
         chinf->loop = useloop;

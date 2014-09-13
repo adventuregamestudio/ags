@@ -302,16 +302,6 @@ void Character_ChangeView(CharacterInfo *chap, int vii) {
     FindReasonableLoopForCharacter(chap);
 }
 
-void Character_FaceCharacter(CharacterInfo *char1, CharacterInfo *char2, int blockingStyle) {
-    if (char2 == NULL) 
-        quit("!FaceCharacter: invalid character specified");
-
-    if (char1->room != char2->room)
-        quit("!FaceCharacter: characters are in different rooms");
-
-    Character_FaceLocation(char1, char2->x, char2->y, blockingStyle);
-}
-
 enum DirectionalLoop
 {
     kDirLoop_Down      = 0,
@@ -327,6 +317,8 @@ enum DirectionalLoop
     kDirLoop_LastOrtogonal = kDirLoop_Up,
     kDirLoop_Last          = kDirLoop_UpLeft,
 };
+
+// Internal direction-facing functions
 
 DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, int x_diff, int y_diff)
 {
@@ -382,7 +374,44 @@ DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, int x_diff, int y_diff
     return next_loop;
 }
 
-void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingStyle) {
+void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
+{
+    // Change facing only if the desired direction is different
+    if (direction != char1->loop)
+    {
+        if ((game.options[OPT_TURNTOFACELOC] != 0) &&
+            (in_enters_screen == 0))
+        {
+            const int no_diagonal = useDiagonal (char1);
+            const int highestLoopForTurning = no_diagonal != 1 ? kDirLoop_Last : kDirLoop_LastOrtogonal;
+            if ((char1->loop <= highestLoopForTurning))
+            {
+                // Turn to face new direction
+                Character_StopMoving(char1);
+                if (char1->on == 1)
+                {
+                    // only do the turning if the character is not hidden
+                    // (otherwise GameLoopUntilEvent will never return)
+                    start_character_turning (char1, direction, no_diagonal);
+
+                    if ((blockingStyle == BLOCKING) || (blockingStyle == 1))
+                        GameLoopUntilEvent(UNTIL_MOVEEND, (long) &char1->walking);
+                }
+                else
+                    char1->loop = direction;
+            }
+            else
+                char1->loop = direction;
+        }
+        else
+            char1->loop = direction;
+    }
+
+    char1->frame = 0;
+}
+
+void FaceLocationXY(CharacterInfo *char1, int xx, int yy, int blockingStyle)
+{
     DEBUG_CONSOLE("%s: Face location %d,%d", char1->scrname, xx, yy);
 
     const int diffrx = xx - char1->x;
@@ -393,42 +422,34 @@ void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingSt
         return;
     }
 
-    const int useloop = GetDirectionalLoop(char1, diffrx, diffry);
+    FaceDirectionalLoop(char1, GetDirectionalLoop(char1, diffrx, diffry), blockingStyle);
+}
 
-    int highestLoopForTurning = kDirLoop_LastOrtogonal;
-    const int no_diagonal = useDiagonal (char1);
-    if (no_diagonal != 1) {
-        highestLoopForTurning = kDirLoop_Last;
-    }
+// External direction-facing functions with validation
 
-    if ((game.options[OPT_TURNTOFACELOC] != 0) &&
-        (useloop != char1->loop) &&
-        (char1->loop <= highestLoopForTurning) &&
-        (in_enters_screen == 0)) {
-            // Turn to face new direction
-            Character_StopMoving(char1);
-            if (char1->on == 1) {
-                // only do the turning if the character is not hidden
-                // (otherwise GameLoopUntilEvent will never return)
-                start_character_turning (char1, useloop, no_diagonal);
+void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingStyle)
+{
+    if (char1 == NULL)
+        quit("!FaceLocation: invalid character specified");
 
-                if ((blockingStyle == BLOCKING) || (blockingStyle == 1))
-                    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&char1->walking);
-            }
-            else
-                char1->loop = useloop;
-    }
-    else
-        char1->loop=useloop;
-
-    char1->frame=0;
+    FaceLocationXY(char1, xx, yy, blockingStyle);
 }
 
 void Character_FaceObject(CharacterInfo *char1, ScriptObject *obj, int blockingStyle) {
     if (obj == NULL) 
         quit("!FaceObject: invalid object specified");
 
-    Character_FaceLocation(char1, objs[obj->id].x, objs[obj->id].y, blockingStyle);
+    FaceLocationXY(char1, objs[obj->id].x, objs[obj->id].y, blockingStyle);
+}
+
+void Character_FaceCharacter(CharacterInfo *char1, CharacterInfo *char2, int blockingStyle) {
+    if (char2 == NULL) 
+        quit("!FaceCharacter: invalid character specified");
+
+    if (char1->room != char2->room)
+        quit("!FaceCharacter: characters are in different rooms");
+
+    FaceLocationXY(char1, char2->x, char2->y, blockingStyle);
 }
 
 void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int distaway, int eagerness) {

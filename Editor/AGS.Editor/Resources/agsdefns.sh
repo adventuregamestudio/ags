@@ -318,7 +318,8 @@ enum CharacterDirection {
   eDirectionDownRight,
   eDirectionUpRight,
   eDirectionDownLeft,
-  eDirectionUpLeft
+  eDirectionUpLeft,
+  eDirectionNone = SCR_NO_VALUE
 };
 
 internalstring autoptr builtin managed struct String {
@@ -1916,7 +1917,7 @@ builtin managed struct Character {
   /// Animates the character using its current locked view.
   import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards);
   /// Moves the character to another room. If this is the player character, the game will also switch to that room.
-  import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, CharacterDirection direction=SCR_NO_VALUE);
+  import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, CharacterDirection direction=eDirectionNone);
   /// Moves the character to another room, using the old-style position variable
   import function ChangeRoomAutoPosition(int room, int position=0);
   /// Changes the character's normal walking view.

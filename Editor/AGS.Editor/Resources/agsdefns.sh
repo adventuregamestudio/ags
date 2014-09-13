@@ -1926,6 +1926,8 @@ builtin managed struct Character {
   import function FaceCharacter(Character* , BlockingStyle=eBlock);
   /// Turns this character to face the specified location in the room.
   import function FaceLocation(int x, int y, BlockingStyle=eBlock);
+  /// Turns this character to face the specified direction.
+  import function FaceDirection(CharacterDirection direction, BlockingStyle=eBlock);
   /// Turns this character to face the specified object.
   import function FaceObject(Object* , BlockingStyle=eBlock);
   /// Starts this character following the other character.

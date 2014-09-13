@@ -427,6 +427,20 @@ void FaceLocationXY(CharacterInfo *char1, int xx, int yy, int blockingStyle)
 
 // External direction-facing functions with validation
 
+void Character_FaceDirection(CharacterInfo *char1, int direction, int blockingStyle)
+{
+    if (char1 == NULL)
+        quit("!FaceDirection: invalid character specified");
+
+    if (direction != SCR_NO_VALUE)
+    {
+        if (direction < 0 || direction > kDirLoop_Last)
+            quit("!FaceDirection: invalid direction specified");
+
+        FaceDirectionalLoop(char1, direction, blockingStyle);
+    }
+}
+
 void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingStyle)
 {
     if (char1 == NULL)
@@ -2852,6 +2866,12 @@ RuntimeScriptValue Sc_Character_FaceCharacter(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_POBJ_PINT(CharacterInfo, Character_FaceCharacter, CharacterInfo);
 }
 
+// void | CharacterInfo *char1, int direction, int blockingStyle
+RuntimeScriptValue Sc_Character_FaceDirection(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT2(CharacterInfo, Character_FaceDirection);
+}
+
 // void | CharacterInfo *char1, int xx, int yy, int blockingStyle
 RuntimeScriptValue Sc_Character_FaceLocation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -3557,6 +3577,7 @@ void RegisterCharacterAPI()
 	ccAddExternalObjectFunction("Character::ChangeRoomAutoPosition^2",  Sc_Character_ChangeRoomAutoPosition);
 	ccAddExternalObjectFunction("Character::ChangeView^1",              Sc_Character_ChangeView);
 	ccAddExternalObjectFunction("Character::FaceCharacter^2",           Sc_Character_FaceCharacter);
+	ccAddExternalObjectFunction("Character::FaceDirection^2",           Sc_Character_FaceDirection);
 	ccAddExternalObjectFunction("Character::FaceLocation^3",            Sc_Character_FaceLocation);
 	ccAddExternalObjectFunction("Character::FaceObject^2",              Sc_Character_FaceObject);
 	ccAddExternalObjectFunction("Character::FollowCharacter^3",         Sc_Character_FollowCharacter);
@@ -3687,6 +3708,7 @@ void RegisterCharacterAPI()
     ccAddExternalFunctionForPlugin("Character::ChangeRoomAutoPosition^2",  (void*)Character_ChangeRoomAutoPosition);
     ccAddExternalFunctionForPlugin("Character::ChangeView^1",              (void*)Character_ChangeView);
     ccAddExternalFunctionForPlugin("Character::FaceCharacter^2",           (void*)Character_FaceCharacter);
+    ccAddExternalFunctionForPlugin("Character::FaceDirection^2",           (void*)Character_FaceDirection);
     ccAddExternalFunctionForPlugin("Character::FaceLocation^3",            (void*)Character_FaceLocation);
     ccAddExternalFunctionForPlugin("Character::FaceObject^2",              (void*)Character_FaceObject);
     ccAddExternalFunctionForPlugin("Character::FollowCharacter^3",         (void*)Character_FollowCharacter);

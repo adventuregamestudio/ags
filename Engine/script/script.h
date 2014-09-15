@@ -18,6 +18,8 @@
 #ifndef __AGS_EE_SCRIPT__SCRIPT_H
 #define __AGS_EE_SCRIPT__SCRIPT_H
 
+#include <vector>
+
 #include "ac/interaction.h"
 #include "script/cc_instance.h"
 #include "script/executingscript.h"
@@ -69,10 +71,10 @@ extern NonBlockingScriptFunction runDialogOptionMouseClickHandlerFunc;
 
 extern ScriptSystem scsystem;
 
-extern ccScript *scriptModules[MAX_SCRIPT_MODULES];
-extern ccInstance *moduleInst[MAX_SCRIPT_MODULES];
-extern ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
-extern RuntimeScriptValue moduleRepExecAddr[MAX_SCRIPT_MODULES];
+extern std::vector<ccScript *> scriptModules;
+extern std::vector<ccInstance *> moduleInst;
+extern std::vector<ccInstance *> moduleInstFork;
+extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 extern int numScriptModules;
 
 extern char **characterScriptObjNames;

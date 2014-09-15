@@ -34,7 +34,7 @@ private:
   {
     return wanted_code < font->GetCharCount() ? wanted_code : '?';
   }
-  int RenderChar(Common::Bitmap *ds, const int at_x, const int at_y, const WFNFont::WFNChar &wfn_char, const color_t text_color);
+  int RenderChar(Common::Bitmap *ds, const int at_x, const int at_y, const WFNChar &wfn_char, const color_t text_color);
 };
 
 extern WFNFontRenderer wfnRenderer;

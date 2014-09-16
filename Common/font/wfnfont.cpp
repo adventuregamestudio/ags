@@ -47,16 +47,6 @@ void WFNFont::Clear()
     _pixelData.clear();
 }
 
-bool WFNCharOffsetEqual(const WFNChar &left, const WFNChar &right)
-{
-    return left.Data == right.Data;
-}
-
-bool WFNCharOffsetLess(const WFNChar &left, const WFNChar &right)
-{
-    return left.Data < right.Data;
-}
-
 WFNError WFNFont::ReadFromFile(Stream *in, const size_t data_size)
 {
     Clear();

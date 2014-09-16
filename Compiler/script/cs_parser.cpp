@@ -1351,7 +1351,7 @@ int extractPathIntoParts(VariableSymlist *variablePath, int slilen, long *syml) 
   int lastOffs = 0;
   int pp;
 
-  // Seperate out syml into a VariablePath for the clause
+  // Separate out syml into a VariablePath for the clause
   // between each dot. If it's just a simple variable access,
   // we will only create one.
   for (pp = 0; pp < slilen; pp++) {
@@ -1882,7 +1882,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
   if (!writing)
     set_ax_scope(scrip, syml[0]);
 
-  // seperate out the variable path, into a variablePath
+  // separate out the variable path, into a variablePath
   // for the bit between each dot
   VariableSymlist variablePath[MAX_VARIABLE_PATH];
 

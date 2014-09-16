@@ -1777,7 +1777,7 @@ void ReadGameState_Aligned(Stream *in)
 
 void restore_game_play(Stream *in)
 {
-    int speech_was = play.want_speech, musicvox = play.seperate_music_lib;
+    int speech_was = play.want_speech, musicvox = play.separate_music_lib;
     // preserve the replay settings
     int playback_was = play.playback, recording_was = play.recording;
     int gamestep_was = play.gamestep;
@@ -1795,7 +1795,7 @@ void restore_game_play(Stream *in)
         play.dialog_options_highlight_color = DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT;
 
     // Preserve whether the music vox is available
-    play.seperate_music_lib = musicvox;
+    play.separate_music_lib = musicvox;
     // If they had the vox when they saved it, but they don't now
     if ((speech_was < 0) && (play.want_speech >= 0))
         play.want_speech = (-play.want_speech) - 1;

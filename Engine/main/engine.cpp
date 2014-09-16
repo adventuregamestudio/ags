@@ -535,7 +535,7 @@ int engine_init_speech()
 
 int engine_init_music()
 {
-    play.seperate_music_lib = 0;
+    play.separate_music_lib = 0;
 
     /* Can't just use fopen here, since we need to change the filename
     so that pack functions, etc. will have the right case later */
@@ -566,7 +566,7 @@ int engine_init_music()
         }
         Common::AssetManager::SetDataFile(game_file_name);
         platform->WriteConsole("Audio vox found and initialized.\n");
-        play.seperate_music_lib = 1;
+        play.separate_music_lib = 1;
     }
 
     return RETURN_CONTINUE;
@@ -650,7 +650,7 @@ void engine_init_sound()
         // therefore the MIDI soundtrack will be used if present,
         // and the voice mode should not go to Voice Only
         play.want_speech = -2;
-        play.seperate_music_lib = 0;
+        play.separate_music_lib = 0;
     }
 }
 

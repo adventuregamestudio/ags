@@ -453,7 +453,7 @@ int IsVoxAvailable() {
 }
 
 int IsMusicVoxAvailable () {
-    return play.seperate_music_lib;
+    return play.separate_music_lib;
 }
 
 int play_speech(int charid,int sndid) {

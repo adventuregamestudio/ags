@@ -19,6 +19,7 @@
 #ifndef __CC_INSTANCE_H
 #define __CC_INSTANCE_H
 
+#include <unordered_map>
 #include "script/script_common.h"
 #include "script/cc_script.h"  // ccScript
 #include "script/nonblockingscriptfunction.h"
@@ -103,10 +104,12 @@ struct ScriptPosition
 struct ccInstance
 {
 public:
+    // TODO: change to std:: if moved to C++11
+    typedef std::tr1::unordered_map<int32_t, ScriptVariable> ScVarMap;
+    typedef std::tr1::shared_ptr<ScVarMap>                   PScVarMap;
+public:
     int32_t flags;
-    ScriptVariable *globalvars;
-    int num_globalvars;
-    int num_globalvar_slots;
+    PScVarMap globalvars;
     char *globaldata;
     int32_t globaldatasize;
     intptr_t *code;
@@ -181,9 +184,8 @@ protected:
 
     bool    ResolveScriptImports(ccScript * scri);
     bool    CreateGlobalVars(ccScript * scri);
-    bool    TryAddGlobalVar(const ScriptVariable &glvar);
-    ScriptVariable *FindGlobalVar(int32_t var_addr, int *pindex = NULL);
-    void    AddGlobalVar(const ScriptVariable &glvar, int at_index);
+    bool    AddGlobalVar(const ScriptVariable &glvar);
+    ScriptVariable *FindGlobalVar(int32_t var_addr);
     bool    CreateRuntimeCodeFixups(ccScript * scri);
 	//bool    ReadOperation(ScriptOperation &op, int32_t at_pc);
 

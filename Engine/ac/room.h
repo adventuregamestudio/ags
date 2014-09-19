@@ -33,6 +33,7 @@ int Room_GetTopEdge();
 int Room_GetBottomEdge();
 int Room_GetMusicOnLoad();
 const char* Room_GetTextProperty(const char *property);
+int Room_GetProperty(const char *property);
 const char* Room_GetMessages(int index);
 
 //=============================================================================

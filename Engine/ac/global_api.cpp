@@ -64,6 +64,7 @@
 #include "ac/mouse.h"
 #include "ac/parser.h"
 #include "ac/string.h"
+#include "ac/room.h"
 #include "media/audio/audio.h"
 #include "util/string_utils.h"
 
@@ -734,7 +735,7 @@ RuntimeScriptValue Sc_GetRegionAt(const RuntimeScriptValue *params, int32_t para
 // int  (const char *property)
 RuntimeScriptValue Sc_GetRoomProperty(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_POBJ(GetRoomProperty, const char);
+    API_SCALL_INT_POBJ(Room_GetProperty, const char);
 }
 
 // void  (const char *property, char *bufer)
@@ -2777,7 +2778,7 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("GetPlayerCharacter",       (void*)GetPlayerCharacter);
     ccAddExternalFunctionForPlugin("GetRawTime",               (void*)GetRawTime);
     ccAddExternalFunctionForPlugin("GetRegionAt",              (void*)GetRegionAt);
-    ccAddExternalFunctionForPlugin("GetRoomProperty",          (void*)GetRoomProperty);
+    ccAddExternalFunctionForPlugin("GetRoomProperty",          (void*)Room_GetProperty);
     ccAddExternalFunctionForPlugin("GetRoomPropertyText",      (void*)GetRoomPropertyText);
     ccAddExternalFunctionForPlugin("GetSaveSlotDescription",   (void*)GetSaveSlotDescription);
     ccAddExternalFunctionForPlugin("GetScalingAt",             (void*)GetScalingAt);

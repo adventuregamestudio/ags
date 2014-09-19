@@ -308,13 +308,20 @@ void InitializeDialog(HWND hDlg) {
   if (INIreadint("disabled", "filters", 0) == 1)
     EnableWindow (GetDlgItem(hDlg, IDC_GFXFILTER), FALSE);
 
-  RECT winsize;
-  GetWindowRect (hDlg, &winsize);
-  wwidth = winsize.right - winsize.left;
-  wheight = winsize.bottom - winsize.top;
+  RECT win_rect, client_rect;
+  GetWindowRect (hDlg, &win_rect);
+  wwidth = win_rect.right - win_rect.left;
+  wheight = win_rect.bottom - win_rect.top;
+  GetClientRect(hDlg, &client_rect);
+  const int cl_height_diff = wheight - (client_rect.bottom - client_rect.top);
 
-  base_height = MulDiv(112, HIWORD(GetDialogBaseUnits()), 8);
-  MoveWindow (hDlg, max(0, winsize.left), max(0, winsize.top + (wheight - base_height) / 2), wwidth, base_height, TRUE);
+  RECT closed_dlg_unit_rect;
+  ZeroMemory(&closed_dlg_unit_rect, sizeof(closed_dlg_unit_rect));
+  closed_dlg_unit_rect.bottom = 121;
+  MapDialogRect(hDlg, &closed_dlg_unit_rect);
+  base_height = closed_dlg_unit_rect.bottom - closed_dlg_unit_rect.top + cl_height_diff;
+
+  MoveWindow (hDlg, max(0, win_rect.left), max(0, win_rect.top + (wheight - base_height) / 2), wwidth, base_height, TRUE);
   update_resolution_texts (hDlg);
 
   SendMessage(hDlg, WM_SETTEXT, NULL, (LPARAM)gameNameForTitleBar);

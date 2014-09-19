@@ -70,6 +70,7 @@ namespace Out = AGS::Common::Out;
 extern char check_dynamic_sprites_at_exit;
 extern int our_eip;
 extern volatile char want_exit, abort_engine;
+extern bool justRunSetup;
 extern GameSetup usetup;
 extern GameSetupStruct game;
 extern int proper_exit;
@@ -181,8 +182,8 @@ int engine_check_run_setup(int argc,char*argv[])
 {
 #if defined (WINDOWS_VERSION)
     // check if Setup needs to be run instead
-    if (argc>1) {
-        if (stricmp(argv[1],"--setup")==0) { 
+    if (justRunSetup)
+    {
             Out::FPrint("Running Setup");
 
             if (!platform->RunSetup())
@@ -195,7 +196,6 @@ int engine_check_run_setup(int argc,char*argv[])
             sprintf (quotedpath, "\"%s\"", argv[0]);
             _spawnl (_P_OVERLAY, argv[0], quotedpath, NULL);
             //read_config_file(argv[0]);
-        }
     }
 #endif
 

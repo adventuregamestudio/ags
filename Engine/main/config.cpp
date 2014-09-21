@@ -27,10 +27,9 @@
 #include "util/filestream.h"
 #include "util/textstreamreader.h"
 #include "util/path.h"
+#include "util/string_utils.h"
 
-using AGS::Common::Stream;
-using AGS::Common::TextStreamReader;
-using AGS::Common::String;
+using namespace AGS::Common;
 
 extern GameSetup usetup;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -150,7 +149,7 @@ int parse_scaling_factor(const String &scaling_option)
 {
     if (scaling_option.CompareNoCase("max") == 0)
         return 0;
-    int gfx_scaling = scaling_option.ToInt();
+    int gfx_scaling = StrUtil::StringToInt(scaling_option);
     if (gfx_scaling >= 0)
         return gfx_scaling <<= kShift;
     else
@@ -256,23 +255,27 @@ void read_config_file(char *argv0) {
         // PSP: No graphic filters are available.
         usetup.gfxFilterID = "";
 #else
-        usetup.gfxFilterID = INIreadstring("graphics", "filter");
+        if (usetup.gfxFilterID.IsEmpty())
+        {
+            usetup.gfxFilterID = INIreadstring("graphics", "filter");
+            String gfx_scaling_both, gfx_scaling_x, gfx_scaling_y;
+            gfx_scaling_both = INIreadstring("graphics", "filter_scaling", "max");
+            if (gfx_scaling_both.CompareNoCase("max") == 0)
+            {
+                usetup.filter_scaling_max_uniform = true;
+                usetup.filter_scaling_x = 0;
+                usetup.filter_scaling_y = 0;
+            }
+            else
+            {
+                gfx_scaling_x = INIreadstring("graphics", "filter_scaling_x", gfx_scaling_both);
+                gfx_scaling_y = INIreadstring("graphics", "filter_scaling_y", gfx_scaling_both);
+                usetup.filter_scaling_x = parse_scaling_factor(gfx_scaling_x);
+                usetup.filter_scaling_y = parse_scaling_factor(gfx_scaling_y);
+            }
+        }
 #endif
-        String gfx_scaling_both, gfx_scaling_x, gfx_scaling_y;
-        gfx_scaling_both = INIreadstring("graphics", "filter_scaling", "max");
-        if (gfx_scaling_both.CompareNoCase("max") == 0)
-        {
-            usetup.filter_scaling_max_uniform = true;
-            usetup.filter_scaling_x = 0;
-            usetup.filter_scaling_y = 0;
-        }
-        else
-        {
-            gfx_scaling_x = INIreadstring("graphics", "filter_scaling_x", gfx_scaling_both);
-            gfx_scaling_y = INIreadstring("graphics", "filter_scaling_y", gfx_scaling_both);
-            usetup.filter_scaling_x = parse_scaling_factor(gfx_scaling_x);
-            usetup.filter_scaling_y = parse_scaling_factor(gfx_scaling_y);
-        }
+
         const char *game_frame_options[kNumRectPlacement] = { "offset", "center", "stretch", "proportional" };
         usetup.game_frame_placement = kPlaceStretchProportional;
         String game_frame_str = INIreadstring("graphics", "game_frame");
@@ -360,4 +363,14 @@ void read_config_file(char *argv0) {
     if (usetup.gfxDriverID.IsEmpty())
         usetup.gfxDriverID = "DX5";
 
+    // FIXME: this correction is needed at the moment because graphics driver
+    // implementation requires some filter to be created anyway
+    usetup.gfxFilterRequest = usetup.gfxFilterID;
+    if (usetup.gfxFilterID.IsEmpty() || usetup.gfxFilterID.CompareNoCase("none") == 0)
+    {
+        usetup.gfxFilterID = "StdScale";
+        usetup.filter_scaling_max_uniform = false;
+        usetup.filter_scaling_x = kUnit;
+        usetup.filter_scaling_y = kUnit;
+    }
 }

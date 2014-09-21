@@ -62,5 +62,34 @@ void fputstring(const char *sss, Common::Stream *out);
 void fgetstring_limit(char *sss, Common::Stream *in, int bufsize);
 void fgetstring(char *sss, Common::Stream *in);
 
+#include "util/string.h"
+
+namespace AGS
+{
+namespace Common
+{
+namespace StrUtil
+{
+    enum ConversionError
+    {
+        kNoError,   // conversion successful
+        kFailed,    // conversion failed (e.g. wrong format)
+        kOutOfRange // the resulting value is out of range
+    };
+
+    // Convert integer to string, by printing its value
+    String          IntToString(int val);
+    // Tries to convert whole string into integer value;
+    // returns def_val on failure
+    int             StringToInt(const String &s, int def_val = 0);
+    // Tries to convert whole string into integer value;
+    // Returns error code if any non-digit character was met or if value is out
+    // of range; the 'val' variable will be set with resulting integer, or
+    // def_val on failure
+    ConversionError StringToInt(const String &s, int &val, int def_val);
+}
+} // namespace Common
+} // namespace AGS
+
 
 #endif // __AGS_CN_UTIL__STRINGUTILS_H

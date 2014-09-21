@@ -51,7 +51,6 @@ extern WalkBehindMethodEnum walkBehindMethod;
 extern DynamicArray<GUIInv> guiinv;
 extern int numguiinv;
 extern int current_screen_resolution_multiplier;
-extern char force_gfxfilter[50];
 extern AGSPlatformDriver *platform;
 extern int force_16bit;
 extern IGraphicsDriver *gfxDriver;
@@ -73,8 +72,6 @@ struct ColorDepthOption
 
 GraphicResolution ScreenResolution;
 PlaneScaling      GameScaling;
-
-String GfxFilterRequest;
 
 int debug_15bit_mode = 0, debug_24bit_mode = 0;
 int convert_16bit_bgr = 0;
@@ -307,26 +304,10 @@ bool pre_create_gfx_driver(const String &gfx_driver_id)
 
 int engine_set_gfx_filter(const int color_depth)
 {
-    Out::FPrint("Initializing gfx filters");
-    // Assign user filter request, whether by command line, or config file
-    if (force_gfxfilter[0])
-        GfxFilterRequest = force_gfxfilter;
-    else
-        GfxFilterRequest = usetup.gfxFilterID;
-
-    Out::FPrint("Requested gfx filter: %s, filter scaling: %s", GfxFilterRequest.GetCStr(), make_scaling_factor_string().GetCStr());
-    String apply_filter = GfxFilterRequest;
-    if (apply_filter.IsEmpty() || apply_filter.CompareNoCase("none") == 0)
+    Out::FPrint("Requested gfx filter: %s, filter scaling: %s", usetup.gfxFilterRequest.GetCStr(), make_scaling_factor_string().GetCStr());
+    if (!initialize_graphics_filter(usetup.gfxFilterID, color_depth))
     {
-        apply_filter = "StdScale";
-        usetup.filter_scaling_max_uniform = false;
-        usetup.filter_scaling_x = kUnit;
-        usetup.filter_scaling_y = kUnit;
-    }
-
-    if (!initialize_graphics_filter(apply_filter, color_depth))
-    {
-        Out::FPrint("Failed to apply gfx filter: %s; will try to use standard filter instead", apply_filter.GetCStr());
+        Out::FPrint("Failed to apply gfx filter: %s; will try to use standard filter instead", usetup.gfxFilterRequest.GetCStr());
         if (!initialize_graphics_filter("StdScale", color_depth))
             return EXIT_NORMAL;
     }
@@ -804,7 +785,7 @@ void display_gfx_mode_error(const Size game_size, const int color_depth)
     Size screen_size(ScreenResolution.Width, ScreenResolution.Height);
     if (screen_size.IsNull())
         main_error.Format("There was a problem finding appropriate graphics mode for game size %d x %d (%d-bit) and requested filter '%s'.",
-            game_size.Width, game_size.Height, color_depth, GfxFilterRequest.IsEmpty() ? "Undefined" : GfxFilterRequest.GetCStr());
+            game_size.Width, game_size.Height, color_depth, usetup.gfxFilterRequest.IsEmpty() ? "Undefined" : usetup.gfxFilterRequest.GetCStr());
     else
         main_error.Format("There was a problem initializing graphics mode %d x %d (%d-bit) with game size %d x %d and filter '%s'.",
             screen_size.Width, screen_size.Height, color_depth, game_size.Width, game_size.Height, filter ? filter->GetInfo().Id.GetCStr() : "Undefined");

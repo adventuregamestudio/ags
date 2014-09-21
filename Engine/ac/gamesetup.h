@@ -54,6 +54,7 @@ struct GameSetup {
     bool filter_scaling_max_uniform;
     bool match_device_ratio;
     RectPlacement game_frame_placement;
+    AGS::Common::String gfxFilterRequest;
 
     GameSetup();
 };

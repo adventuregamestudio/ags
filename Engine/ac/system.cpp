@@ -16,6 +16,7 @@
 #include "media/audio/audiodefines.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/mouse.h"
 #include "ac/string.h"
@@ -30,6 +31,7 @@
 
 using namespace AGS::Engine;
 
+extern GameSetupStruct game;
 extern GameSetup usetup;
 extern GameState play;
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
@@ -47,12 +49,33 @@ int System_GetOS() {
     return scsystem.os;
 }
 
+// [IKM] 2014-09-21
+// IMPORTANT NOTE on System.ScreenWidth and System.ScreenHeight:
+// It appears that in AGS these properties were not defining actual window size
+// in pixels, but rather game frame size, which could include black borders,
+// in 'native' (unscaled) pixels. This was due the specifics of how graphics
+// modes were implemented in previous versions.
+// 
+// Quote from the old manual:
+// "Returns the actual screen width that the game is running at. If a graphic
+//  filter is in use, the resolution returned will be that before any
+//  stretching by the filter has been applied. If widescreen side borders are
+//  enabled, the screen width reported will include the size of these borders."
+//
+// The key words are "the resolution returned will be that BEFORE any
+// stretching by the filter has been applied".
+//
+// Since now the letterbox and pillarbox borders are handled by graphics
+// renderer and are not part of the game anymore, these properties should
+// return strictly native game size. This is required for backwards
+// compatibility.
+//
 int System_GetScreenWidth() {
-    return ScreenResolution.Width;
+    return game.size.Width;
 }
 
 int System_GetScreenHeight() {
-    return ScreenResolution.Height;
+    return game.size.Height;
 }
 
 int System_GetViewportHeight() {

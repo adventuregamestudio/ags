@@ -1200,8 +1200,8 @@ void engine_init_game_settings()
 
 void engine_init_game_shit()
 {
-    scsystem.width = ScreenResolution.Width;
-    scsystem.height = ScreenResolution.Height;
+    scsystem.width = game.size.Width;
+    scsystem.height = game.size.Height;
     scsystem.coldepth = ScreenResolution.ColorDepth;
     scsystem.windowed = 0;
     scsystem.vsync = 0;

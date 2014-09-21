@@ -22,7 +22,7 @@ GameSetup::GameSetup()
     mod_player=1;
     mp3_player=1;
     windowed = false;
-    vsync = 0;
+    vsync = false;
     no_speech_pack = false;
     refresh = 0;
     enable_antialiasing = false;
@@ -32,8 +32,8 @@ GameSetup::GameSetup()
     override_multitasking = -1;
     override_upscale = false;
     filter_scaling_max_uniform = false;
-    filter_scaling_x = 1;
-    filter_scaling_y = 1;
+    filter_scaling_x = kUnit;
+    filter_scaling_y = kUnit;
     match_device_ratio = false;
     game_frame_placement = kPlaceStretchProportional;
 }

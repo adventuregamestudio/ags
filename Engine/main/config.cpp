@@ -250,14 +250,14 @@ void read_config_file(char *argv0) {
             
         usetup.screen_size.Width = INIreadint("graphics", "screen_width");
         usetup.screen_size.Height = INIreadint("graphics", "screen_height");
-        usetup.match_device_ratio = INIreadint("graphics", "match_device_ratio") != 0;
+        usetup.match_device_ratio = INIreadint("graphics", "match_device_ratio", 1) != 0;
 #if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
         // PSP: No graphic filters are available.
         usetup.gfxFilterID = "";
 #else
         if (usetup.gfxFilterID.IsEmpty())
         {
-            usetup.gfxFilterID = INIreadstring("graphics", "filter");
+            usetup.gfxFilterID = INIreadstring("graphics", "filter", "StdScale");
             String gfx_scaling_both, gfx_scaling_x, gfx_scaling_y;
             gfx_scaling_both = INIreadstring("graphics", "filter_scaling", "max");
             if (gfx_scaling_both.CompareNoCase("max") == 0)
@@ -277,8 +277,8 @@ void read_config_file(char *argv0) {
 #endif
 
         const char *game_frame_options[kNumRectPlacement] = { "offset", "center", "stretch", "proportional" };
-        usetup.game_frame_placement = kPlaceStretchProportional;
-        String game_frame_str = INIreadstring("graphics", "game_frame");
+        usetup.game_frame_placement = kPlaceCenter;
+        String game_frame_str = INIreadstring("graphics", "game_frame", "center");
         for (int i = 0; i < kNumRectPlacement; ++i)
         {
             if (game_frame_str.CompareNoCase(game_frame_options[i]) == 0)

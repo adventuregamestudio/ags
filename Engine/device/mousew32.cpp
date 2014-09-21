@@ -286,23 +286,24 @@ int minstalled()
 
 void Mouse::AdjustPosition(int &x, int &y)
 {
-    x = GameScaling.X.UnScalePt(x);
-    y = GameScaling.Y.UnScalePt(y);
+    x = GameScaling.X.UnScalePt(x) - play.viewport.Left;
+    y = GameScaling.Y.UnScalePt(y) - play.viewport.Top;
 }
 
-void Mouse::SetGraphicArea(const Rect r)
+void Mouse::SetGraphicArea()
 {
-    Rect dst_r = GameScaling.ScaleRange(r);
+    Rect dst_r = GameScaling.ScaleRange(play.viewport);
     mgraphconfine(dst_r.Left, dst_r.Top, dst_r.Right, dst_r.Bottom);
 }
 
-void Mouse::SetMoveLimit(const Rect r)
+void Mouse::SetMoveLimit(const Rect &r)
 {
-    Rect dst_r = GameScaling.ScaleRange(r);
+    Rect src_r = OffsetRect(r, play.viewport.GetLT());
+    Rect dst_r = GameScaling.ScaleRange(src_r);
     msetcursorlimit(dst_r.Left, dst_r.Top, dst_r.Right, dst_r.Bottom);
 }
 
 void Mouse::SetPosition(const Point p)
 {
-    msetgraphpos(GameScaling.X.ScalePt(p.X), GameScaling.X.ScalePt(p.Y));
+    msetgraphpos(GameScaling.X.ScalePt(p.X + play.viewport.Left), GameScaling.X.ScalePt(p.Y + play.viewport.Top));
 }

@@ -49,10 +49,10 @@ namespace Mouse
 {
     // Limits the area inside which the standard OS cursor is not shown;
     // applies virtual->real coordinates transformation
-    void SetGraphicArea(const Rect r);
+    void SetGraphicArea();
     // Limits the area where the game cursor can move on virtual screen;
     // applies virtual->real coordinates transformation
-    void SetMoveLimit(const Rect r);
+    void SetMoveLimit(const Rect &r);
     // Set actual OS cursor position on screen; applies virtual->real
     // coordinates transformation
     void SetPosition(const Point p);

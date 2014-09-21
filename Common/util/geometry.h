@@ -180,6 +180,11 @@ struct Rect
 		Bottom	= b;
 	}
 
+    inline Point GetLT() const
+    {
+        return Point(Left, Top);
+    }
+
 	inline int GetWidth() const
 	{
 		return Right - Left + 1;
@@ -255,6 +260,7 @@ struct Circle
 };
 
 
+Rect OffsetRect(const Rect &r, const Point off);
 Rect PlaceInRect(const Rect &place, const Rect &item, const RectPlacement &placement);
 //} // namespace Common
 //} // namespace AGS

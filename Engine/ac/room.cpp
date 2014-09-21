@@ -537,7 +537,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
         // Update viewport and mouse area
         play.SetViewport(BitmapHelper::GetScreenBitmap()->GetSize());
-        Mouse::SetGraphicArea(play.viewport);
+        Mouse::SetGraphicArea();
 
         // Reset virtual_screen bitmap
         if (virtual_screen->GetHeight() != play.viewport.GetHeight()) {

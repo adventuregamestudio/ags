@@ -18,6 +18,11 @@
 //namespace Common
 //{
 
+Rect OffsetRect(const Rect &r, const Point off)
+{
+    return Rect(r.Left + off.X, r.Top + off.Y, r.Right + off.X, r.Bottom + off.Y);
+}
+
 Rect PlaceInRect(const Rect &place, const Rect &item, const RectPlacement &placement)
 {
     switch (placement)

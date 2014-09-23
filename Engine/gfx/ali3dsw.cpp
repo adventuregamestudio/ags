@@ -57,7 +57,7 @@ namespace ALSW
 
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-bool ALSoftwareGfxModeList::GetMode(int index, DisplayMode &mode)
+bool ALSoftwareGfxModeList::GetMode(int index, DisplayMode &mode) const
 {
     if (_gfxModeList && index >= 0 && index < _gfxModeList->num_modes)
     {

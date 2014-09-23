@@ -62,7 +62,7 @@ void D3DBitmap::Dispose()
 static D3DFORMAT color_depth_to_d3d_format(int color_depth, bool wantAlpha);
 static int d3d_format_to_color_depth(D3DFORMAT format, bool secondary);
 
-bool D3DGfxModeList::GetMode(int index, DisplayMode &mode)
+bool D3DGfxModeList::GetMode(int index, DisplayMode &mode) const
 {
     if (_direct3d && index >= 0 && index < _modeCount)
     {

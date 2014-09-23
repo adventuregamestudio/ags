@@ -11,47 +11,25 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+//
+// Built-in setup dialog for Windows version
+//
+//=============================================================================
 
-#ifndef __AGS_EE_GFX__GFXDEFINES_H
-#define __AGS_EE_GFX__GFXDEFINES_H
+#ifndef __AGS_EE_SETUP__WINSETUP_H
+#define __AGS_EE_SETUP__WINSETUP_H
 
-#include "core/types.h"
+#include "util/string.h"
 
 namespace AGS
 {
 namespace Engine
 {
 
-enum GlobalFlipType
-{
-    kFlip_None,
-    kFlip_Horizontal,
-    kFlip_Vertical,
-    kFlip_Both
-};
-
-struct GraphicResolution
-{
-    int32_t Width;
-    int32_t Height;
-    int32_t ColorDepth;
-
-    GraphicResolution()
-        : Width(0)
-        , Height(0)
-        , ColorDepth(0)
-    {
-    }
-
-    GraphicResolution(int32_t width, int32_t height, int32_t color_depth)
-    {
-        Width = width;
-        Height = height;
-        ColorDepth = color_depth;
-    }
-};
+void SetWinIcon();
+bool WinSetup(const Common::String &version_str);
 
 } // namespace Engine
 } // namespace AGS
 
-#endif // __AGS_EE_GFX__GFXDEFINES_H
+#endif // __AGS_EE_SETUP__WINSETUP_H

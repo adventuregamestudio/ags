@@ -105,12 +105,12 @@ public:
     {
     }
 
-    virtual int GetModeCount()
+    virtual int GetModeCount() const
     {
         return _gfxModeList ? _gfxModeList->num_modes : 0;
     }
 
-    virtual bool GetMode(int index, DisplayMode &mode);
+    virtual bool GetMode(int index, DisplayMode &mode) const;
 
 private:
     GFX_MODE_LIST *_gfxModeList;

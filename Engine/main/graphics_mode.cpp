@@ -322,7 +322,13 @@ bool find_nearest_supported_mode(Size &wanted_size, const int color_depth, const
         Out::FPrint("Couldn't get a list of supported resolutions");
         return false;
     }
+    bool result = find_nearest_supported_mode(*modes, wanted_size, NULL, color_depth, ratio_reference);
+    delete modes;
+    return result;
+}
 
+bool find_nearest_supported_mode(const IGfxModeList &modes, Size &wanted_size, int *mode_index, const int color_depth, const Size *ratio_reference)
+{
     int wanted_ratio = 0;
     if (ratio_reference)
     {
@@ -333,11 +339,12 @@ bool find_nearest_supported_mode(Size &wanted_size, const int color_depth, const
     int nearest_height = 0;
     int nearest_width_diff = 0;
     int nearest_height_diff = 0;
-    int mode_count = modes->GetModeCount();
+    int nearest_mode_index = -1;
+    int mode_count = modes.GetModeCount();
     DisplayMode mode;
     for (int i = 0; i < mode_count; ++i)
     {
-        if (!modes->GetMode(i, mode))
+        if (!modes.GetMode(i, mode))
         {
             continue;
         }
@@ -357,6 +364,7 @@ bool find_nearest_supported_mode(Size &wanted_size, const int color_depth, const
         {
             nearest_width = mode.Width;
             nearest_height = mode.Height;
+            nearest_mode_index = i;
             break;
         }
       
@@ -373,14 +381,16 @@ bool find_nearest_supported_mode(Size &wanted_size, const int color_depth, const
             nearest_width_diff = diff_w;
             nearest_height = mode.Height;
             nearest_height_diff = diff_h;
+            nearest_mode_index = i;
         }
     }
 
-    delete modes;
     if (nearest_width > 0 && nearest_height > 0)
     {
         wanted_size.Width = nearest_width;
         wanted_size.Height = nearest_height;
+        if (mode_index)
+            *mode_index = nearest_mode_index;
         return true;
     }
     return false;

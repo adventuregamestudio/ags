@@ -134,12 +134,12 @@ public:
             _direct3d->Release();
     }
 
-    virtual int GetModeCount()
+    virtual int GetModeCount() const
     {
         return _modeCount;
     }
 
-    virtual bool GetMode(int index, DisplayMode &mode);
+    virtual bool GetMode(int index, DisplayMode &mode) const;
 
 private:
     IDirect3D9 *_direct3d;

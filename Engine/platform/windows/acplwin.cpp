@@ -32,6 +32,7 @@
 #include "main/engine.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
+#include "platform/windows/setup/winsetup.h"
 #include "plugin/agsplugin.h"
 #include "util/file.h"
 #include "util/stream.h"
@@ -88,8 +89,6 @@ extern void dxmedia_abort_video();
 extern void dxmedia_pause_video();
 extern void dxmedia_resume_video();
 extern char lastError[200];
-extern int acwsetup(const char*, const char*);
-extern void set_icon();
 
 struct AGSWin32 : AGSPlatformDriver {
   AGSWin32();
@@ -799,14 +798,12 @@ void AGSWin32::PostAllegroExit() {
 }
 
 int AGSWin32::RunSetup() {
-  const char *engineVersion = get_engine_version();
-  char titleBuffer[200];
-  sprintf(titleBuffer, "Adventure Game Studio v%s setup", engineVersion);
-  return acwsetup(titleBuffer, engineVersion);
+  String version_str = String::FromFormat("Adventure Game Studio v%s setup", get_engine_version());
+  return AGS::Engine::WinSetup(version_str);
 }
 
 void AGSWin32::SetGameWindowIcon() {
-  set_icon();
+  SetWinIcon();
 }
 
 void AGSWin32::WriteConsole(const char *text, ...) {

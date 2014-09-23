@@ -1116,7 +1116,7 @@
 				Name="setup"
 				>
 				<File
-					RelativePath="..\..\Engine\setup\acwsetup.cpp"
+					RelativePath="..\..\Engine\platform\windows\setup\winsetup.cpp"
 					>
 				</File>
 			</Filter>
@@ -2198,6 +2198,14 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="setup"
+				>
+				<File
+					RelativePath="..\..\Engine\platform\windows\setup\winsetup.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -2210,6 +2218,10 @@
 			</File>
 			<File
 				RelativePath="..\..\Engine\resource\game-1.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Engine\resource\resource.h"
 				>
 			</File>
 			<File

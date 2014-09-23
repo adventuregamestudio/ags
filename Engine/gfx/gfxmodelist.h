@@ -48,6 +48,7 @@ struct DisplayMode : public GraphicResolution
 class IGfxModeList
 {
 public:
+    virtual ~IGfxModeList(){}
     virtual int  GetModeCount() = 0;
     virtual bool GetMode(int index, DisplayMode &resolution) = 0;
 };

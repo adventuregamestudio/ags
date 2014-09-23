@@ -177,8 +177,6 @@ static int wnd_create_device();
 D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d) 
 {
   direct3d = d3d;
-  if (direct3d)
-      direct3d->AddRef();
   direct3ddevice = NULL;
   vertexbuffer = NULL;
   numToDraw = 0;
@@ -780,6 +778,7 @@ bool D3DGraphicsDriver::Init(const DisplayMode &mode, const Size src_size, const
 
 IGfxModeList *D3DGraphicsDriver::GetSupportedModeList(int color_depth)
 {
+  direct3d->AddRef();
   return new D3DGfxModeList(direct3d, color_depth_to_d3d_format(color_depth, false));
 }
 
@@ -832,10 +831,7 @@ D3DGraphicsDriver::~D3DGraphicsDriver()
   UnInit();
 
   if (direct3d)
-  {
     direct3d->Release();
-    direct3d = NULL;
-  }
 }
 
 void D3DGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)
@@ -1755,7 +1751,10 @@ D3DGraphicsFactory *D3DGraphicsFactory::_factory = NULL;
 
 D3DGraphicsFactory::~D3DGraphicsFactory()
 {
-    _direct3d->Release();
+    DestroyDriver(); // driver must be destroyed before d3d library is disposed
+    ULONG ref_cnt = _direct3d->Release();
+    if (ref_cnt > 0)
+        Out::FPrint("WARNING: Not all of the Direct3D resources have been disposed; ID3D ref count: %d", ref_cnt);
     _factory = NULL;
 }
 
@@ -1809,7 +1808,10 @@ D3DGraphicsFactory::D3DGraphicsFactory()
 D3DGraphicsDriver *D3DGraphicsFactory::EnsureDriverCreated()
 {
     if (!_driver)
+    {
+        _factory->_direct3d->AddRef();
         _driver = new D3DGraphicsDriver(_factory->_direct3d);
+    }
     return _driver;
 }
 

@@ -128,6 +128,12 @@ public:
         _modeCount = _direct3d ? _direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, _pixelFormat) : 0;
     }
 
+    ~D3DGfxModeList()
+    {
+        if (_direct3d)
+            _direct3d->Release();
+    }
+
     virtual int GetModeCount()
     {
         return _modeCount;

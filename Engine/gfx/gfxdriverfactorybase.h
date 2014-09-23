@@ -35,12 +35,13 @@ namespace Engine
 template <class TGfxDriverClass, class TGfxFilterClass>
 class GfxDriverFactoryBase : public IGfxDriverFactory
 {
-public:
+protected:
     virtual ~GfxDriverFactoryBase()
     {
         delete _driver;
     }
 
+public:
     virtual void Shutdown()
     {
         delete this;

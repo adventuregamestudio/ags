@@ -70,6 +70,7 @@ namespace Out = AGS::Common::Out;
 extern char check_dynamic_sprites_at_exit;
 extern int our_eip;
 extern volatile char want_exit, abort_engine;
+extern bool justRunSetup;
 extern GameSetup usetup;
 extern GameSetupStruct game;
 extern int proper_exit;
@@ -175,8 +176,8 @@ int engine_check_run_setup(int argc,char*argv[])
 {
 #if defined (WINDOWS_VERSION)
     // check if Setup needs to be run instead
-    if (argc>1) {
-        if (stricmp(argv[1],"--setup")==0) { 
+    if (justRunSetup)
+    {
             Out::FPrint("Running Setup");
 
             if (!platform->RunSetup())
@@ -189,7 +190,6 @@ int engine_check_run_setup(int argc,char*argv[])
             sprintf (quotedpath, "\"%s\"", argv[0]);
             _spawnl (_P_OVERLAY, argv[0], quotedpath, NULL);
             //read_config_file(argv[0]);
-        }
     }
 #endif
 
@@ -200,9 +200,9 @@ void engine_force_window()
 {
     // Force to run in a window, override the config file
     if (force_window == 1)
-        usetup.windowed = 1;
+        usetup.windowed = true;
     else if (force_window == 2)
-        usetup.windowed = 0;
+        usetup.windowed = false;
 }
 
 void init_game_file_name_from_cmdline()
@@ -476,7 +476,7 @@ int engine_init_speech()
 {
     play.want_speech=-2;
 
-    if (usetup.no_speech_pack == 0) {
+    if (!usetup.no_speech_pack) {
         /* Can't just use fopen here, since we need to change the filename
         so that pack functions, etc. will have the right case later */
         speech_file = ci_find_file(usetup.data_files_dir, "speech.vox");

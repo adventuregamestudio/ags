@@ -30,6 +30,7 @@
 #include "ac/spritecache.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
+#include "debug/out.h"
 #include "util/math.h"
 
 using namespace AGS::Common;
@@ -471,6 +472,7 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
     quit("read_gui: file is corrupt");
 
   GameGuiVersion = (GuiVersion)in->ReadInt32();
+  Out::FPrint("Game GUI version: %d", GameGuiVersion);
   if (GameGuiVersion < kGuiVersion_214) {
     gss->numgui = (int)GameGuiVersion;
     GameGuiVersion = kGuiVersion_Initial;

@@ -1544,15 +1544,10 @@ namespace AGS.Editor
 					screenRes = 0;
 				}
 				NativeProxy.WritePrivateProfileString("misc", "screenres", screenRes.ToString(), configFilePath);
-
-				int letterbox = 0;
-				if ((_game.Settings.Resolution == GameResolutions.R320x240) ||
-					(_game.Settings.Resolution == GameResolutions.R640x480))
-				{
-					letterbox = 1;
-				}
-				NativeProxy.WritePrivateProfileString("misc", "letterbox", letterbox.ToString(), configFilePath);
 			}
+
+            int letterbox = _game.Settings.LetterboxMode ? 1 : 0;
+            NativeProxy.WritePrivateProfileString("misc", "letterbox", letterbox.ToString(), configFilePath);
 
 			NativeProxy.GetPrivateProfileString("misc", "defaultgfxdriver", "NULL", buffer, buffer.Capacity, configFilePath);
 			if (buffer.ToString() != _game.Settings.GraphicsDriver.ToString())

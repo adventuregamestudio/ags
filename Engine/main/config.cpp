@@ -45,7 +45,6 @@ extern int psp_audio_cachesize;
 extern char psp_game_file_name[];
 extern int psp_gfx_smooth_sprites;
 extern char psp_translation[];
-extern int force_letterbox;
 extern char replayfile[MAX_PATH];
 extern GameState play;
 
@@ -185,7 +184,7 @@ void read_config_file(char *argv0) {
     if (psp_ignore_acsetup_cfg_file)
     {
         usetup.gfxDriverID = "DX5";
-        usetup.enable_antialiasing = psp_gfx_smooth_sprites;
+        usetup.enable_antialiasing = psp_gfx_smooth_sprites != 0;
         usetup.translation = psp_translation;
         return;
     }
@@ -220,26 +219,23 @@ void read_config_file(char *argv0) {
 #endif
         psp_audio_multithreaded = INIreadint("sound", "threaded", psp_audio_multithreaded);
 
-        usetup.windowed = INIreadint("misc","windowed");
-        usetup.refresh = INIreadint ("misc", "refresh");
-        usetup.enable_antialiasing = INIreadint ("misc", "antialias");
-        usetup.force_hicolor_mode = INIreadint("misc", "notruecolor");
-        usetup.enable_side_borders = INIreadint("misc", "sideborders", 1);
+        usetup.windowed = INIreadint("misc", "windowed") > 0;
         usetup.vsync = INIreadint("misc", "vsync");
+
+        usetup.refresh = INIreadint ("misc", "refresh");
+        usetup.enable_antialiasing = INIreadint ("misc", "antialias") > 0;
+        usetup.force_hicolor_mode = INIreadint("misc", "notruecolor") > 0;
+        usetup.prefer_sideborders = INIreadint("misc", "prefer_sideborders", 1) != 0;
 
 #if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
         // PSP: Letterboxing is not useful on the PSP.
-        force_letterbox = 0;
+        usetup.prefer_letterbox = false;
 #else
-        force_letterbox = INIreadint ("misc", "forceletterbox");
+        usetup.prefer_letterbox = INIreadint ("misc", "prefer_letterbox", 1) != 0;
 #endif
 
         // This option is backwards (usevox is 0 if no_speech_pack)
-        usetup.no_speech_pack = INIreadint ("sound", "usespeech", 1);
-        if (usetup.no_speech_pack == 0)
-            usetup.no_speech_pack = 1;
-        else
-            usetup.no_speech_pack = 0;
+        usetup.no_speech_pack = INIreadint ("sound", "usespeech", 1) == 0;
 
         usetup.data_files_dir = INIreadstring("misc","datadir");
         if (usetup.data_files_dir.IsEmpty())

@@ -87,7 +87,8 @@ const char *get_filter_id(int list_index)
 
 void update_resolution_texts(HWND hDlg) {
   
-  Size res_size = ResolutionTypeToSize(defaultRes);
+  bool letterbox_by_design = INIreadint("misc", "letterbox", 0) > 0;
+  Size res_size = ResolutionTypeToSize(defaultRes, letterbox_by_design);
   int resx = res_size.Width;
   int resy = res_size.Height;
   
@@ -310,13 +311,20 @@ void InitializeDialog(HWND hDlg) {
   if (INIreadint("disabled", "filters") == 1)
     EnableWindow (GetDlgItem(hDlg, IDC_GFXFILTER), FALSE);
 
-  RECT winsize;
-  GetWindowRect (hDlg, &winsize);
-  wwidth = winsize.right - winsize.left;
-  wheight = winsize.bottom - winsize.top;
+  RECT win_rect, client_rect;
+  GetWindowRect (hDlg, &win_rect);
+  wwidth = win_rect.right - win_rect.left;
+  wheight = win_rect.bottom - win_rect.top;
+  GetClientRect(hDlg, &client_rect);
+  const int cl_height_diff = wheight - (client_rect.bottom - client_rect.top);
 
-  base_height = MulDiv(112, HIWORD(GetDialogBaseUnits()), 8);
-  MoveWindow (hDlg, max(0, winsize.left), max(0, winsize.top + (wheight - base_height) / 2), wwidth, base_height, TRUE);
+  RECT closed_dlg_unit_rect;
+  ZeroMemory(&closed_dlg_unit_rect, sizeof(closed_dlg_unit_rect));
+  closed_dlg_unit_rect.bottom = 121;
+  MapDialogRect(hDlg, &closed_dlg_unit_rect);
+  base_height = closed_dlg_unit_rect.bottom - closed_dlg_unit_rect.top + cl_height_diff;
+
+  MoveWindow (hDlg, max(0, win_rect.left), max(0, win_rect.top + (wheight - base_height) / 2), wwidth, base_height, TRUE);
   update_resolution_texts (hDlg);
 
   SendMessage(hDlg, WM_SETTEXT, NULL, (LPARAM)gameNameForTitleBar);
@@ -446,7 +454,7 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
           WritePrivateProfileString("misc","cachemax", toWrite,ac_config_file);
 
           if (SendDlgItemMessage(hDlg,IDC_SPEECHPACK,BM_GETCHECK,0,0) == BST_CHECKED)
-            WritePrivateProfileString ("sound", "usespeech", NULL, ac_config_file);
+            WritePrivateProfileString ("sound", "usespeech", "1", ac_config_file);
           else
             WritePrivateProfileString ("sound", "usespeech", "0", ac_config_file);
 
@@ -466,9 +474,9 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
             WritePrivateProfileString("misc","antialias",NULL,ac_config_file);
 
           if (SendDlgItemMessage(hDlg, IDC_SIDEBORDERS, BM_GETCHECK,0,0) == BST_CHECKED)
-            WritePrivateProfileString("misc","sideborders",NULL,ac_config_file);
+            WritePrivateProfileString("misc","prefer_sideborders","1",ac_config_file);
           else
-            WritePrivateProfileString("misc","sideborders","0",ac_config_file);
+            WritePrivateProfileString("misc","prefer_sideborders","0",ac_config_file);
 
           if (SendDlgItemMessage(hDlg,IDC_REFRESH,BM_GETCHECK,0,0) == BST_CHECKED)
             WritePrivateProfileString("misc","refresh","85",ac_config_file);
@@ -476,9 +484,9 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
             WritePrivateProfileString("misc","refresh","0",ac_config_file);
 
           if (SendDlgItemMessage(hDlg,IDC_LETTERBOX,BM_GETCHECK,0,0) == BST_CHECKED)
-            WritePrivateProfileString ("misc", "forceletterbox", "1", ac_config_file);
+            WritePrivateProfileString ("misc", "prefer_letterbox", "1", ac_config_file);
           else
-            WritePrivateProfileString ("misc", "forceletterbox", NULL, ac_config_file);
+            WritePrivateProfileString ("misc", "prefer_letterbox", "0", ac_config_file);
 
           if (SendDlgItemMessage(hDlg, IDC_REDUCESPR, BM_GETCHECK,0,0) == BST_CHECKED)
             WritePrivateProfileString ("misc", "notruecolor", "1", ac_config_file);
@@ -513,7 +521,7 @@ int acwsetup(const char*vername, const char*enbuild) {
       curscrn = 1;
     defaultRes = (GameResolutionType)INIreadint ("misc", "defaultres");
     if (defaultRes < 1)
-      defaultRes = kGameResolution_Undefined;
+      defaultRes = kGameResolution_Default;
 
     curdigi=INIreadint("sound","digiwinindx");
     curmidi=INIreadint("sound","midiwinindx");
@@ -524,13 +532,13 @@ int acwsetup(const char*vername, const char*enbuild) {
 
     windowed = INIreadint("misc","windowed");
     vsync = INIreadint("misc","vsync");
-    useletterbox = INIreadint("misc","forceletterbox");
+    useletterbox = INIreadint("misc","prefer_letterbox", 1) != 0;
     reduce32to16 = INIreadint("misc","notruecolor");
     gameColDep = INIreadint("misc", "gamecolordepth");
 
     refresh = INIreadint("misc","refresh");
     antialias = INIreadint("misc","antialias");
-    sideBorders = INIreadint("misc","sideborders", 1);
+    sideBorders = INIreadint("misc","prefer_sideborders", 1) != 0;
 
     int cacheval = INIreadint ("misc", "cachemax");
     if (cacheval > 0)

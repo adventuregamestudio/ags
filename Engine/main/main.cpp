@@ -72,7 +72,6 @@ extern GameState play;
 extern int our_eip;
 extern AGSPlatformDriver *platform;
 extern int debug_flags;
-extern int force_letterbox;
 extern int debug_15bit_mode, debug_24bit_mode;
 extern int convert_16bit_bgr;
 extern int display_fps;
@@ -85,6 +84,7 @@ extern char editor_debugger_instance_token[100];
 char force_gfxfilter[50];
 int datafile_argv=0, change_to_game_dir = 0, force_window = 0;
 int override_start_room = 0, force_16bit = 0;
+bool justRunSetup = false;
 bool justRegisterGame = false;
 bool justUnRegisterGame = false;
 const char *loadSaveGameOnStartup = NULL;
@@ -221,7 +221,7 @@ int main_process_cmdline(int argc,char*argv[])
         else if (stricmp(argv[ee],"-hicolor") == 0 || stricmp(argv[ee],"--hicolor") == 0)
             force_16bit = 1;
         else if (stricmp(argv[ee],"-letterbox") == 0 || stricmp(argv[ee],"--letterbox") == 0)
-            force_letterbox = 1;
+            usetup.prefer_letterbox = 1;
         else if (stricmp(argv[ee],"-record") == 0)
             play.recording = 1;
         else if (stricmp(argv[ee],"-playback") == 0)
@@ -254,8 +254,12 @@ int main_process_cmdline(int argc,char*argv[])
         else if (stricmp(argv[ee],"-nomusic")==0) debug_flags|=DBG_NOMUSIC;
         else if (stricmp(argv[ee],"-noscript")==0) debug_flags|=DBG_NOSCRIPT;
         else if (stricmp(argv[ee],"-novideo")==0) debug_flags|=DBG_NOVIDEO;
-        else if (stricmp(argv[ee],"-noexceptionhandler")==0) usetup.disable_exception_handling = 1;
+        else if (stricmp(argv[ee],"-noexceptionhandler")==0) usetup.disable_exception_handling = true;
         else if (stricmp(argv[ee],"-dbgscript")==0) debug_flags|=DBG_DBGSCRIPT;
+        else if (stricmp(argv[ee], "--setup") == 0)
+        {
+            justRunSetup = true;
+        }
         else if (stricmp(argv[ee],"-registergame") == 0)
         {
             justRegisterGame = true;
@@ -480,7 +484,7 @@ int main(int argc,char*argv[]) {
         exit(0);
 
 #ifndef USE_CUSTOM_EXCEPTION_HANDLER
-    usetup.disable_exception_handling = 1;
+    usetup.disable_exception_handling = true;
 #endif
 
     if (usetup.disable_exception_handling)

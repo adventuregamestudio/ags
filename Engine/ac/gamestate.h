@@ -136,7 +136,7 @@ struct GameState {
     char  key_skip_wait;
     int   swap_portrait_lastchar;
     int   swap_portrait_lastlastchar;
-    int   seperate_music_lib;
+    int   separate_music_lib;
     int   in_conversation;
     int   screen_tint;
     int   num_parsed_words;

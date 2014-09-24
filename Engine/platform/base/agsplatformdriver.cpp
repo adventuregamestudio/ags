@@ -96,7 +96,7 @@ void AGSPlatformDriver::ReadPluginsFromDisk(AGS::Common::Stream *iii) {
       // read the plugin name
       buffer = iii->ReadString();
       datasize = iii->ReadInt32();
-      iii->Seek (Common::kSeekCurrent, datasize);
+      iii->Seek (datasize);
   }
 #endif
 }

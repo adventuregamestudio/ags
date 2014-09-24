@@ -191,10 +191,10 @@ void engine_init_screen_settings(Size &game_size, Size &screen_size)
     _rgb_b_shift_15 = 0;
 #endif
 
-    usetup.base_width = 320;
-    usetup.base_height = 200;
-
     GameSize = ResolutionTypeToSize(game.default_resolution);
+    if (GameSize.IsNull())
+        quit("Unable to define native game resolution, could be unsupported game format.");
+
     scrnwid = GameSize.Width;
     scrnhit = GameSize.Height;
 
@@ -767,7 +767,7 @@ bool init_gfx_mode(const Size &game_size, const Size &screen_size, int cdep)
         set_color_depth(cdep);
     }
 
-    const bool result = gfxDriver->Init(game_size.Width, game_size.Height, screen_size.Width, screen_size.Height, final_col_dep, usetup.windowed > 0, &timerloop, usetup.vsync != 0);
+    const bool result = gfxDriver->Init(game_size.Width, game_size.Height, screen_size.Width, screen_size.Height, final_col_dep, usetup.windowed, &timerloop, usetup.vsync != 0);
 
     if (result)
     {

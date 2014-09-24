@@ -62,7 +62,7 @@ public:
     virtual size_t  Write(const void *buffer, size_t size);
     virtual int32_t WriteByte(uint8_t b);
 
-    virtual size_t  Seek(StreamSeek seek, int pos);
+    virtual size_t  Seek(int offset, StreamSeek origin);
 
 protected:
     void            Open(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode);

@@ -52,7 +52,7 @@ size_t ProxyStream::GetLength() const
 
 size_t ProxyStream::GetPosition() const
 {
-    return _stream ? _stream->GetPosition() : 0;
+    return _stream ? _stream->GetPosition() : -1;
 }
 
 bool ProxyStream::CanRead() const
@@ -160,9 +160,9 @@ size_t ProxyStream::WriteArrayOfInt64(const int64_t *buffer, size_t count)
     return _stream ? _stream->WriteArrayOfInt64(buffer, count) : 0;
 }
 
-size_t ProxyStream::Seek(StreamSeek seek, int pos)
+size_t ProxyStream::Seek(int offset, StreamSeek origin)
 {
-    return _stream ? _stream->Seek(seek, pos) : 0;
+    return _stream ? _stream->Seek(offset, origin) : -1;
 }
 
 } // namespace Common

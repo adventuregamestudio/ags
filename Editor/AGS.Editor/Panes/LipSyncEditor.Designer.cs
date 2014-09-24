@@ -49,7 +49,7 @@ namespace AGS.Editor
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(367, 26);
             this.label2.TabIndex = 1;
-            this.label2.Text = "In the text boxes, type the letters that will cause that frame to be shown. Seper" +
+            this.label2.Text = "In the text boxes, type the letters that will cause that frame to be shown. Separ" +
                 "ate multiple letters with slashes, eg.   C/D/G/K";
             // 
             // LipSyncEditor

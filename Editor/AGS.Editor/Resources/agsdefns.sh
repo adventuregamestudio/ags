@@ -318,7 +318,8 @@ enum CharacterDirection {
   eDirectionDownRight,
   eDirectionUpRight,
   eDirectionDownLeft,
-  eDirectionUpLeft
+  eDirectionUpLeft,
+  eDirectionNone = SCR_NO_VALUE
 };
 
 internalstring autoptr builtin managed struct String {
@@ -984,12 +985,20 @@ import void SetMultitaskingMode (int mode);
 import int  FloatToInt(float value, RoundDirection=eRoundDown);
 /// Converts an integer to a floating point number.
 import float IntToFloat(int value);
+
 // File I/O
 enum FileMode {
   eFileRead = 1,
   eFileWrite = 2,
   eFileAppend = 3
 };
+
+enum FileSeek {
+  eSeekBegin = 0,
+  eSeekCurrent = 1,
+  eSeekEnd = 2
+};
+
 builtin managed struct File {
   /// Delets the specified file from the disk.
   import static bool Delete(const string filename);   // $AUTOCOMPLETESTATICONLY$
@@ -1021,10 +1030,14 @@ builtin managed struct File {
   import void WriteRawLine(const string text);
   /// Writes a string to the file.
   import void WriteString(const string text);
+  /// Moves file cursor by specified offset, returns new position.
+  import int Seek(int offset, FileSeek origin = eSeekCurrent);
   /// Gets whether you have reached the end of the file.
   readonly import attribute bool EOF;
   /// Gets whether any errors occurred reading or writing the file.
   readonly import attribute bool Error;
+  /// Gets current cursor position inside the file.
+  readonly import attribute int Position;
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
@@ -1379,6 +1392,8 @@ builtin managed struct GUIControl {
   import attribute int  X;
   /// Gets/sets the Y position of the control's top-left corner.
   import attribute int  Y;
+  /// Gets/sets the control's z-order relative to other controls within the same owning GUI.
+  import attribute int  ZOrder;
 };
 
 builtin managed struct Label extends GUIControl {
@@ -1902,7 +1917,7 @@ builtin managed struct Character {
   /// Animates the character using its current locked view.
   import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards);
   /// Moves the character to another room. If this is the player character, the game will also switch to that room.
-  import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, CharacterDirection direction=SCR_NO_VALUE);
+  import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, CharacterDirection direction=eDirectionNone);
   /// Moves the character to another room, using the old-style position variable
   import function ChangeRoomAutoPosition(int room, int position=0);
   /// Changes the character's normal walking view.
@@ -1911,6 +1926,8 @@ builtin managed struct Character {
   import function FaceCharacter(Character* , BlockingStyle=eBlock);
   /// Turns this character to face the specified location in the room.
   import function FaceLocation(int x, int y, BlockingStyle=eBlock);
+  /// Turns this character to face the specified direction.
+  import function FaceDirection(CharacterDirection direction, BlockingStyle=eBlock);
   /// Turns this character to face the specified object.
   import function FaceObject(Object* , BlockingStyle=eBlock);
   /// Starts this character following the other character.

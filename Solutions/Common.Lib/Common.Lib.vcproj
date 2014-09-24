@@ -303,10 +303,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\font\wfnfont.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\font\wfnfontrenderer.cpp"
 					>
 				</File>
@@ -590,6 +586,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\font\ttffontrenderer.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\font\wfnfont.h"
 					>
 				</File>
 				<File

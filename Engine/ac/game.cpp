@@ -82,11 +82,7 @@
 #include "util/filestream.h"
 #include "util/string_utils.h"
 
-using AGS::Common::AlignedStream;
-using AGS::Common::String;
-using AGS::Common::Stream;
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern int time_between_timers;
@@ -582,6 +578,14 @@ void unload_game_file() {
         delete moduleInst[ee];
         delete scriptModules[ee];
     }
+    moduleInstFork.resize(0);
+    moduleInst.resize(0);
+    scriptModules.resize(0);
+    repExecAlways.moduleHasFunction.resize(0);
+    getDialogOptionsDimensionsFunc.moduleHasFunction.resize(0);
+    renderDialogOptionsFunc.moduleHasFunction.resize(0);
+    getDialogOptionUnderCursorFunc.moduleHasFunction.resize(0);
+    runDialogOptionMouseClickHandlerFunc.moduleHasFunction.resize(0);
     numScriptModules = 0;
 
     if (game.audioClipCount > 0)
@@ -1586,9 +1590,9 @@ void save_game(int slotn, const char*descript) {
         update_polled_stuff_if_runtime();
 
         out = Common::File::OpenFile(nametouse, Common::kFile_Open, Common::kFile_ReadWrite);
-        out->Seek(Common::kSeekBegin, 12);
+        out->Seek(12, kSeekBegin);
         out->WriteInt32(screenShotOffset);
-        out->Seek(Common::kSeekCurrent, 4);
+        out->Seek(4);
         out->WriteInt32(screenShotSize);
     }
 
@@ -1707,7 +1711,7 @@ void restore_game_clean_scripts()
 }
 
 void restore_game_scripts(Stream *in, int &gdatasize, char **newglobaldatabuffer,
-                          char **scriptModuleDataBuffers, int *scriptModuleDataSize)
+                          std::vector<char *> &scriptModuleDataBuffers, std::vector<int> &scriptModuleDataSize)
 {
     // read the global script data segment
     gdatasize = in->ReadInt32();
@@ -1773,7 +1777,7 @@ void ReadGameState_Aligned(Stream *in)
 
 void restore_game_play(Stream *in)
 {
-    int speech_was = play.want_speech, musicvox = play.seperate_music_lib;
+    int speech_was = play.want_speech, musicvox = play.separate_music_lib;
     // preserve the replay settings
     int playback_was = play.playback, recording_was = play.recording;
     int gamestep_was = play.gamestep;
@@ -1791,7 +1795,7 @@ void restore_game_play(Stream *in)
         play.dialog_options_highlight_color = DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT;
 
     // Preserve whether the music vox is available
-    play.seperate_music_lib = musicvox;
+    play.separate_music_lib = musicvox;
     // If they had the vox when they saved it, but they don't now
     if ((speech_was < 0) && (play.want_speech >= 0))
         play.want_speech = (-play.want_speech) - 1;
@@ -2118,8 +2122,10 @@ int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_v
 
     int gdatasize = 0;
     char*newglobaldatabuffer;
-    char *scriptModuleDataBuffers[MAX_SCRIPT_MODULES];
-    int scriptModuleDataSize[MAX_SCRIPT_MODULES];
+    std::vector<char *> scriptModuleDataBuffers;
+    std::vector<int> scriptModuleDataSize;
+    scriptModuleDataBuffers.resize(numScriptModules);
+    scriptModuleDataSize.resize(numScriptModules);
     restore_game_scripts(in, /*out*/ gdatasize,&newglobaldatabuffer, scriptModuleDataBuffers, scriptModuleDataSize);
     restore_game_room_state(in, nametouse);
 

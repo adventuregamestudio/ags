@@ -54,10 +54,7 @@
 #include "debug/out.h"
 #include "ac/dynobj/scriptstring.h"
 
-using AGS::Common::Stream;
-
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
 
 
 #if defined(BUILTIN_PLUGINS)
@@ -943,7 +940,7 @@ void pl_read_plugins_from_disk (Stream *in) {
 
         if (buffer[strlen(buffer) - 1] == '!') {
             // editor-only plugin, ignore it
-            in->Seek(Common::kSeekCurrent, datasize);
+            in->Seek(datasize);
             a--;
             numPlugins--;
             continue;

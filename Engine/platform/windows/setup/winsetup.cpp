@@ -403,9 +403,8 @@ private:
     HWND _hwnd;
     WinConfig _winCfg;
     // Window size
-    int _width;
-    int _height;
-    int _baseHeight;
+    Size _winSize;
+    Size _baseSize;
     // Driver descriptions
     DriverDesc _dx5;
     DriverDesc _d3d9;
@@ -583,16 +582,18 @@ INT_PTR WinSetupDialog::OnInitDialog()
     if (ReadPPInt("disabled", "filters", 0) != 0)
         EnableWindow(_hGfxFilterList, FALSE);
 
-    RECT win_rect, adv_rect, gfx_rect;
+    RECT win_rect, gfx_rect, adv_rect;
     GetWindowRect(_hwnd, &win_rect);
-    _width = win_rect.right - win_rect.left;
-    _height = win_rect.bottom - win_rect.top;
-    GetWindowRect(GetDlgItem(_hwnd, IDC_ADVANCED), &adv_rect);
     GetWindowRect(GetDlgItem(_hwnd, IDC_GFXOPTIONS), &gfx_rect);
-    int margin = gfx_rect.top - win_rect.top;
-    _baseHeight = adv_rect.bottom - win_rect.top + margin / 2;
+    _winSize.Width = win_rect.right - win_rect.left;
+    _winSize.Height = win_rect.bottom - win_rect.top;
+    GetWindowRect(_hAdvanced, &adv_rect);
+    _baseSize.Width = (adv_rect.right + (gfx_rect.left - win_rect.left)) - win_rect.left;
+    _baseSize.Height = win_rect.bottom - win_rect.top;
 
-    MoveWindow(_hwnd, max(0, win_rect.left), max(0, win_rect.top + (_height - _baseHeight) / 2), _width, _baseHeight, TRUE);
+    MoveWindow(_hwnd, max(0, win_rect.left + (_winSize.Width - _baseSize.Width) / 2),
+                      max(0, win_rect.top + (_winSize.Height - _baseSize.Height) / 2),
+                      _baseSize.Width, _baseSize.Height, TRUE);
     SetFocus(GetDlgItem(_hwnd, IDOK));
     return FALSE; // notify WinAPI that we set focus ourselves
 }
@@ -742,7 +743,9 @@ void WinSetupDialog::ShowAdvancedOptions()
 
     RECT win_rect;
     GetWindowRect(_hwnd, &win_rect);
-    MoveWindow(_hwnd, max(0, win_rect.left), max(0, win_rect.top - (_height - _baseHeight) / 2), _width, _height, TRUE);
+    MoveWindow(_hwnd, max(0, win_rect.left + (_baseSize.Width - _winSize.Width) / 2),
+                      max(0, win_rect.top + (_baseSize.Height - _winSize.Height) / 2),
+                      _winSize.Width, _winSize.Height, TRUE);
 }
 
 INT_PTR CALLBACK WinSetupDialog::DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)

@@ -543,7 +543,7 @@ int load_template_file(const char *fileName, char **iconDataBuffer, long *iconDa
 	    Stream *inpu = Common::AssetManager::OpenAsset((char*)old_editor_main_game_file);
 	    if (inpu != NULL) 
 	    {
-		    inpu->Seek(Common::kSeekCurrent, 30);
+		    inpu->Seek(30);
 		    int gameVersion = inpu->ReadInt32();
 		    delete inpu;
 		    if (gameVersion != 32)
@@ -973,7 +973,7 @@ const char* import_sci_font(const char*fnn,int fslot) {
     delete iii;
     return "Not a valid SCI font file";
   }
-  iii->Seek(Common::kSeekCurrent,3);
+  iii->Seek(3);
   if (iii->ReadInt16()!=0x80) {
     delete iii; 
 	  return "Invalid SCI font"; 
@@ -996,7 +996,7 @@ const char* import_sci_font(const char*fnn,int fslot) {
       unlink(wgtfontname);
       return "Invalid character found in file";
     }
-    iii->Seek(Common::kSeekBegin,theiroffs[aa]+2);
+    iii->Seek(theiroffs[aa]+2, Common::kSeekBegin);
     int wwi=iii->ReadByte()-1;
     int hhi=iii->ReadByte();
     coffsets[aa]=ooo->GetPosition();
@@ -1015,7 +1015,7 @@ const char* import_sci_font(const char*fnn,int fslot) {
   ooo->WriteArrayOfInt16(&coffsets[0],0x80);
   delete ooo;
   ooo=Common::File::OpenFile(wgtfontname,Common::kFile_Open,Common::kFile_ReadWrite);
-  ooo->Seek(Common::kSeekBegin,15);
+  ooo->Seek(15, Common::kSeekBegin);
   ooo->WriteInt16(tableat); 
   delete ooo;
   delete iii;
@@ -1580,7 +1580,7 @@ const char *load_dta_file_into_thisgame(const char *fileName)
 
   // skip required engine version
   int stlen = iii->ReadInt32();
-  iii->Seek(Common::kSeekCurrent, stlen);
+  iii->Seek(stlen);
 
   ReadGameSetupStructBase_Aligned(iii);
 
@@ -2120,9 +2120,9 @@ void save_room(const char *files, roomstruct rstruc) {
     opty = ci_fopen(files, Common::kFile_Open, Common::kFile_ReadWrite);
     lee = opty->GetLength()-7;
 
-    opty->Seek(Common::kSeekBegin, 3);
+    opty->Seek(3, Common::kSeekBegin);
     opty->WriteInt32(lee);
-    opty->Seek(Common::kSeekEnd, 0);
+    opty->Seek(0, Common::kSeekEnd);
 
     if (rstruc.scripts != NULL) {
       int hh;
@@ -2153,10 +2153,10 @@ void save_room(const char *files, roomstruct rstruc) {
       rstruc.compiled_script->Write(opty);
      
       wasat = opty->GetPosition();
-      opty->Seek(Common::kSeekBegin, leeat);
+      opty->Seek(leeat, Common::kSeekBegin);
       lee = (wasat - leeat) - 4;
       opty->WriteInt32(lee);
-      opty->Seek(Common::kSeekEnd, 0);
+      opty->Seek(0, Common::kSeekEnd);
     }
 
     if (rstruc.numsprs > 0) {
@@ -2196,9 +2196,9 @@ void save_room(const char *files, roomstruct rstruc) {
 
       opty = ci_fopen(const_cast<char*>(files), Common::kFile_Open, Common::kFile_ReadWrite);
       lenis = (curoffs - lenpos) - 4;
-      opty->Seek(Common::kSeekBegin, lenpos);
+      opty->Seek(lenpos, Common::kSeekBegin);
       opty->WriteInt32(lenis);
-      opty->Seek(Common::kSeekEnd, 0);
+      opty->Seek(0, Common::kSeekEnd);
     }
 
     // Write custom properties
@@ -2214,9 +2214,9 @@ void save_room(const char *files, roomstruct rstruc) {
       rstruc.objProps[gg].Serialize (opty);
 
     lenis = (opty->GetPosition() - lenpos) - 4;
-    opty->Seek(Common::kSeekBegin, lenpos);
+    opty->Seek(lenpos, Common::kSeekBegin);
     opty->WriteInt32(lenis);
-    opty->Seek(Common::kSeekEnd, 0);
+    opty->Seek(0, Common::kSeekEnd);
 
 
     // Write EOF block
@@ -2612,7 +2612,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
   }
 
   wout = Common::File::OpenFile(firstDataFileFullPath, Common::kFile_Open, Common::kFile_ReadWrite);
-  wout->Seek(Common::kSeekBegin, mainHeaderOffset);
+  wout->Seek(mainHeaderOffset, Common::kSeekBegin);
   write_clib_header(wout);
   delete wout;
   return NULL;
@@ -4234,7 +4234,7 @@ System::String ^load_room_script(System::String ^fileName)
 		}
 		else 
 		{
-			opty->Seek(Common::kSeekCurrent, blockLen);
+			opty->Seek(blockLen);
 		}
 	}
 
@@ -5240,7 +5240,7 @@ void load_script_configuration(Stream*iii) { int aa;
   int numvarnames=getlong(iii);
   for (aa=0;aa<numvarnames;aa++) {
     int lenoft=iii->ReadByte();
-    iii->Seek(Common::kSeekCurrent,lenoft);
+    iii->Seek(lenoft);
   }
 }
 
@@ -5262,7 +5262,7 @@ void load_graphical_scripts(Stream*iii,roomstruct*rst) {
     }
     // skip the data
     long lee = iii->ReadInt32();
-    iii->Seek (Common::kSeekCurrent, lee);
+    iii->Seek (lee);
   }
 }
 

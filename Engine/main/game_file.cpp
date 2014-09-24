@@ -32,6 +32,7 @@
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "debug/debug_log.h"
+#include "debug/out.h"
 #include "font/fonts.h"
 #include "gui/guilabel.h"
 #include "main/main.h"
@@ -47,10 +48,7 @@
 #include "util/alignedstream.h"
 #include "ac/gamesetup.h"
 
-using AGS::Common::AlignedStream;
-using AGS::Common::Bitmap;
-using AGS::Common::Stream;
-using AGS::Common::String;
+using namespace AGS::Common;
 
 extern char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
 
@@ -95,10 +93,10 @@ extern int game_paused;
 extern AGSPlatformDriver *platform;
 extern ccScript* gamescript;
 extern ccScript* dialogScriptsScript;
-extern ccScript *scriptModules[MAX_SCRIPT_MODULES];
-extern ccInstance *moduleInst[MAX_SCRIPT_MODULES];
-extern ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
-extern RuntimeScriptValue moduleRepExecAddr[MAX_SCRIPT_MODULES];
+extern std::vector<ccScript *> scriptModules;
+extern std::vector<ccInstance *> moduleInst;
+extern std::vector<ccInstance *> moduleInstFork;
+extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 extern int numScriptModules;
 extern GameState play;
 extern char **characterScriptObjNames;
@@ -144,6 +142,7 @@ int game_file_read_version(Stream *in)
 	teststr[30]=0;
     in->Read(&teststr[0],30);
     filever=(GameDataVersion)in->ReadInt32();
+    Out::FPrint("Game data version: %d", filever);
 
     if (filever < kGameVersion_321) {
         // Allow loading of 2.x+ datafiles
@@ -158,6 +157,7 @@ int game_file_read_version(Stream *in)
 	int engineverlen = in->ReadInt32();
     String version_string = String::FromStreamCount(in, engineverlen);
     AGS::Engine::Version requested_engine_version(version_string);
+    Out::FPrint("Requested engine version: %s", requested_engine_version.LongString.GetCStr());
 
     if (filever > kGameVersion_Current) {
         platform->DisplayAlert("This game requires a newer version of AGS (%s). It cannot be run.",
@@ -194,15 +194,19 @@ void game_file_read_script_modules(Stream *in)
 	if (filever >= kGameVersion_270) // 2.7.0+ script modules
     {
         numScriptModules = in->ReadInt32();
-        if (numScriptModules > MAX_SCRIPT_MODULES)
-            quit("too many script modules; need newer version?");
-
+        scriptModules.resize(numScriptModules);
+        moduleInst.resize(numScriptModules, NULL);
+        moduleInstFork.resize(numScriptModules, NULL);
+        moduleRepExecAddr.resize(numScriptModules);
+        repExecAlways.moduleHasFunction.resize(numScriptModules, true);
+        getDialogOptionsDimensionsFunc.moduleHasFunction.resize(numScriptModules, true);
+        renderDialogOptionsFunc.moduleHasFunction.resize(numScriptModules, true);
+        getDialogOptionUnderCursorFunc.moduleHasFunction.resize(numScriptModules, true);
+        runDialogOptionMouseClickHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
         for (int bb = 0; bb < numScriptModules; bb++) {
             scriptModules[bb] = ccScript::CreateFromStream(in);
             if (scriptModules[bb] == NULL)
                 quit("Script module load failure; need newer version?");
-            moduleInst[bb] = NULL;
-            moduleInstFork[bb] = NULL;
             moduleRepExecAddr[bb].Invalidate();
         }
     }
@@ -285,7 +289,7 @@ void game_file_read_dialogs(Stream *in)
 
             // Skip encrypted text script
             unsigned int script_size = in->ReadInt32();
-            in->Seek(Common::kSeekCurrent, script_size);
+            in->Seek(script_size);
         }
 
         // Read the dialog lines
@@ -311,7 +315,7 @@ void game_file_read_dialogs(Stream *in)
                     if ((unsigned char)*nextchar == 0xEF)
                     {
                         end_reached = true;
-                        in->Seek(Common::kSeekCurrent, -1);
+                        in->Seek(-1);
                         break;
                     }
 
@@ -334,7 +338,7 @@ void game_file_read_dialogs(Stream *in)
                 unsigned int newlen = in->ReadInt32();
                 if (newlen == 0xCAFEBEEF)  // GUI magic
                 {
-                    in->Seek(Common::kSeekCurrent, -4);
+                    in->Seek(-4);
                     break;
                 }
 
@@ -679,7 +683,7 @@ int load_game_file() {
     if (filever <= kGameVersion_251) // <= 2.1 skip unknown data
     {
         int count = in->ReadInt32();
-        in->Seek(Common::kSeekCurrent, count * 0x204);
+        in->Seek(count * 0x204);
     }
 
     charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);

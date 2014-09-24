@@ -93,10 +93,9 @@ size_t FileStream::GetPosition() const
 {
     if (IsValid())
     {
-        long pos = ftell(_file);
-        return pos > 0 ? (size_t)pos : 0;
+        return (size_t) ftell(_file);
     }
-    return 0;
+    return -1;
 }
 
 bool FileStream::CanRead() const
@@ -150,25 +149,25 @@ int32_t FileStream::WriteByte(uint8_t val)
     return -1;
 }
 
-size_t FileStream::Seek(StreamSeek seek, int pos)
+size_t FileStream::Seek(int offset, StreamSeek origin)
 {
     if (!_file)
     {
-        return 0;
+        return -1;
     }
 
-    int stdclib_seek;
-    switch (seek)
+    int stdclib_origin;
+    switch (origin)
     {
-    case kSeekBegin:    stdclib_seek = SEEK_SET; break;
-    case kSeekCurrent:  stdclib_seek = SEEK_CUR; break;
-    case kSeekEnd:      stdclib_seek = SEEK_END; break;
+    case kSeekBegin:    stdclib_origin = SEEK_SET; break;
+    case kSeekCurrent:  stdclib_origin = SEEK_CUR; break;
+    case kSeekEnd:      stdclib_origin = SEEK_END; break;
     default:
         // TODO: warning to the log
-        return 0;
+        return -1;
     }
 
-    fseek(_file, pos, stdclib_seek);
+    fseek(_file, offset, stdclib_origin);
     return GetPosition();
 }
 

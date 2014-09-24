@@ -37,7 +37,7 @@ namespace Math
 
     inline void Clamp(int floor, int ceil, int &val)
     {
-        val = Min(floor, Max(val, ceil));
+        val = Max(floor, Min(val, ceil));
     }
 
     inline void ClampLength(int floor, int height, int &from, int &length)

@@ -112,7 +112,9 @@
 
 enum GameResolutionType
 {
-    kGameResolution_Undefined   = 0,
+    kGameResolution_Undefined   = -1,
+    // definition of 320x200 in very old versions of the engine (somewhere pre-2.56)
+    kGameResolution_Default     = 0,
     kGameResolution_320x200     = 1,
     kGameResolution_320x240     = 2,
     kGameResolution_640x400     = 3,

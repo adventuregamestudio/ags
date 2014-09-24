@@ -1015,7 +1015,7 @@ namespace AGS.Editor
                     {
                         if ((sprite.Width != width) || (sprite.Height != height))
                         {
-                            Factory.GUIController.ShowMessage("All sprites to be cropped must have the same dimensions. If you want to crop unrelated sprites, do them seperately.", MessageBoxIcon.Warning);
+                            Factory.GUIController.ShowMessage("All sprites to be cropped must have the same dimensions. If you want to crop unrelated sprites, do them separately.", MessageBoxIcon.Warning);
                             return;
                         }
                     }

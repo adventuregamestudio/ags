@@ -43,7 +43,7 @@ extern GameSetupStruct game;
 extern GameState play;
 extern volatile int timerloop;
 extern const char *loadSaveGameOnStartup;
-extern ccInstance *moduleInst[MAX_SCRIPT_MODULES];
+extern std::vector<ccInstance *> moduleInst;
 extern int numScriptModules;
 extern CharacterInfo*playerchar;
 extern int convert_16bit_bgr;

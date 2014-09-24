@@ -83,6 +83,8 @@ struct GUIMain
   int  is_textwindow();
   bool send_to_back(int objNum);
   bool bring_to_front(int objNum);
+  // attempts to change control's zorder; returns if zorder changed
+  bool set_control_zorder(int objNum, int zorder);
   void control_positions_changed();
   bool is_alpha();
 

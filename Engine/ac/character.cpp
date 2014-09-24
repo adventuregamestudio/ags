@@ -302,16 +302,6 @@ void Character_ChangeView(CharacterInfo *chap, int vii) {
     FindReasonableLoopForCharacter(chap);
 }
 
-void Character_FaceCharacter(CharacterInfo *char1, CharacterInfo *char2, int blockingStyle) {
-    if (char2 == NULL) 
-        quit("!FaceCharacter: invalid character specified");
-
-    if (char1->room != char2->room)
-        quit("!FaceCharacter: characters are in different rooms");
-
-    Character_FaceLocation(char1, char2->x, char2->y, blockingStyle);
-}
-
 enum DirectionalLoop
 {
     kDirLoop_Down      = 0,
@@ -323,10 +313,12 @@ enum DirectionalLoop
     kDirLoop_DownLeft  = 6,
     kDirLoop_UpLeft    = 7,
 
-    kDirLoop_Default       = kDirLoop_Down,
-    kDirLoop_LastOrtogonal = kDirLoop_Up,
-    kDirLoop_Last          = kDirLoop_UpLeft,
+    kDirLoop_Default        = kDirLoop_Down,
+    kDirLoop_LastOrthogonal = kDirLoop_Up,
+    kDirLoop_Last           = kDirLoop_UpLeft,
 };
+
+// Internal direction-facing functions
 
 DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, int x_diff, int y_diff)
 {
@@ -382,7 +374,44 @@ DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, int x_diff, int y_diff
     return next_loop;
 }
 
-void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingStyle) {
+void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
+{
+    // Change facing only if the desired direction is different
+    if (direction != char1->loop)
+    {
+        if ((game.options[OPT_TURNTOFACELOC] != 0) &&
+            (in_enters_screen == 0))
+        {
+            const int no_diagonal = useDiagonal (char1);
+            const int highestLoopForTurning = no_diagonal != 1 ? kDirLoop_Last : kDirLoop_LastOrthogonal;
+            if ((char1->loop <= highestLoopForTurning))
+            {
+                // Turn to face new direction
+                Character_StopMoving(char1);
+                if (char1->on == 1)
+                {
+                    // only do the turning if the character is not hidden
+                    // (otherwise GameLoopUntilEvent will never return)
+                    start_character_turning (char1, direction, no_diagonal);
+
+                    if ((blockingStyle == BLOCKING) || (blockingStyle == 1))
+                        GameLoopUntilEvent(UNTIL_MOVEEND, (long) &char1->walking);
+                }
+                else
+                    char1->loop = direction;
+            }
+            else
+                char1->loop = direction;
+        }
+        else
+            char1->loop = direction;
+    }
+
+    char1->frame = 0;
+}
+
+void FaceLocationXY(CharacterInfo *char1, int xx, int yy, int blockingStyle)
+{
     DEBUG_CONSOLE("%s: Face location %d,%d", char1->scrname, xx, yy);
 
     const int diffrx = xx - char1->x;
@@ -393,42 +422,48 @@ void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingSt
         return;
     }
 
-    const int useloop = GetDirectionalLoop(char1, diffrx, diffry);
+    FaceDirectionalLoop(char1, GetDirectionalLoop(char1, diffrx, diffry), blockingStyle);
+}
 
-    int highestLoopForTurning = kDirLoop_LastOrtogonal;
-    const int no_diagonal = useDiagonal (char1);
-    if (no_diagonal != 1) {
-        highestLoopForTurning = kDirLoop_Last;
+// External direction-facing functions with validation
+
+void Character_FaceDirection(CharacterInfo *char1, int direction, int blockingStyle)
+{
+    if (char1 == NULL)
+        quit("!FaceDirection: invalid character specified");
+
+    if (direction != SCR_NO_VALUE)
+    {
+        if (direction < 0 || direction > kDirLoop_Last)
+            quit("!FaceDirection: invalid direction specified");
+
+        FaceDirectionalLoop(char1, direction, blockingStyle);
     }
+}
 
-    if ((game.options[OPT_TURNTOFACELOC] != 0) &&
-        (useloop != char1->loop) &&
-        (char1->loop <= highestLoopForTurning) &&
-        (in_enters_screen == 0)) {
-            // Turn to face new direction
-            Character_StopMoving(char1);
-            if (char1->on == 1) {
-                // only do the turning if the character is not hidden
-                // (otherwise GameLoopUntilEvent will never return)
-                start_character_turning (char1, useloop, no_diagonal);
+void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingStyle)
+{
+    if (char1 == NULL)
+        quit("!FaceLocation: invalid character specified");
 
-                if ((blockingStyle == BLOCKING) || (blockingStyle == 1))
-                    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&char1->walking);
-            }
-            else
-                char1->loop = useloop;
-    }
-    else
-        char1->loop=useloop;
-
-    char1->frame=0;
+    FaceLocationXY(char1, xx, yy, blockingStyle);
 }
 
 void Character_FaceObject(CharacterInfo *char1, ScriptObject *obj, int blockingStyle) {
     if (obj == NULL) 
         quit("!FaceObject: invalid object specified");
 
-    Character_FaceLocation(char1, objs[obj->id].x, objs[obj->id].y, blockingStyle);
+    FaceLocationXY(char1, objs[obj->id].x, objs[obj->id].y, blockingStyle);
+}
+
+void Character_FaceCharacter(CharacterInfo *char1, CharacterInfo *char2, int blockingStyle) {
+    if (char2 == NULL) 
+        quit("!FaceCharacter: invalid character specified");
+
+    if (char1->room != char2->room)
+        quit("!FaceCharacter: characters are in different rooms");
+
+    FaceLocationXY(char1, char2->x, char2->y, blockingStyle);
 }
 
 void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int distaway, int eagerness) {
@@ -1705,7 +1740,7 @@ void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
         chinf->loop = useloop;
         return;
     }
-    if ((chinf->loop > kDirLoop_LastOrtogonal) && ((chinf->flags & CHF_NODIAGONAL)!=0)) {
+    if ((chinf->loop > kDirLoop_LastOrthogonal) && ((chinf->flags & CHF_NODIAGONAL)!=0)) {
         // They've just been playing an animation with an extended loop number,
         // so don't try and rotate using it
         chinf->loop = useloop;
@@ -2831,6 +2866,12 @@ RuntimeScriptValue Sc_Character_FaceCharacter(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_POBJ_PINT(CharacterInfo, Character_FaceCharacter, CharacterInfo);
 }
 
+// void | CharacterInfo *char1, int direction, int blockingStyle
+RuntimeScriptValue Sc_Character_FaceDirection(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT2(CharacterInfo, Character_FaceDirection);
+}
+
 // void | CharacterInfo *char1, int xx, int yy, int blockingStyle
 RuntimeScriptValue Sc_Character_FaceLocation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -3536,6 +3577,7 @@ void RegisterCharacterAPI()
 	ccAddExternalObjectFunction("Character::ChangeRoomAutoPosition^2",  Sc_Character_ChangeRoomAutoPosition);
 	ccAddExternalObjectFunction("Character::ChangeView^1",              Sc_Character_ChangeView);
 	ccAddExternalObjectFunction("Character::FaceCharacter^2",           Sc_Character_FaceCharacter);
+	ccAddExternalObjectFunction("Character::FaceDirection^2",           Sc_Character_FaceDirection);
 	ccAddExternalObjectFunction("Character::FaceLocation^3",            Sc_Character_FaceLocation);
 	ccAddExternalObjectFunction("Character::FaceObject^2",              Sc_Character_FaceObject);
 	ccAddExternalObjectFunction("Character::FollowCharacter^3",         Sc_Character_FollowCharacter);
@@ -3666,6 +3708,7 @@ void RegisterCharacterAPI()
     ccAddExternalFunctionForPlugin("Character::ChangeRoomAutoPosition^2",  (void*)Character_ChangeRoomAutoPosition);
     ccAddExternalFunctionForPlugin("Character::ChangeView^1",              (void*)Character_ChangeView);
     ccAddExternalFunctionForPlugin("Character::FaceCharacter^2",           (void*)Character_FaceCharacter);
+    ccAddExternalFunctionForPlugin("Character::FaceDirection^2",           (void*)Character_FaceDirection);
     ccAddExternalFunctionForPlugin("Character::FaceLocation^3",            (void*)Character_FaceLocation);
     ccAddExternalFunctionForPlugin("Character::FaceObject^2",              (void*)Character_FaceObject);
     ccAddExternalFunctionForPlugin("Character::FollowCharacter^3",         (void*)Character_FollowCharacter);

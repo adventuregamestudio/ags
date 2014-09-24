@@ -7,7 +7,8 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
+#include <WinResrc.h>
+#define IDC_STATIC -1
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -119,22 +120,22 @@ BEGIN
     LTEXT           "Resolution: XXXX x XXXX",IDC_RESOLUTION,15,19,161,10
     CONTROL         "&Run in a window instead of full-screen",IDC_WINDOWED,
                     "Button",BS_AUTOCHECKBOX | BS_LEFT | BS_VCENTER | WS_TABSTOP,15,31,134,9
-    LTEXT           "Graphics driver:",IDC_STATIC,14,45,51,10
-    COMBOBOX        IDC_GFXDRIVER,68,43,118,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Graphics filter:",IDC_STATIC,14,61,51,10
-    COMBOBOX        IDC_GFXFILTER,68,59,118,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Driver:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,14,45,33,10
+    COMBOBOX        IDC_GFXDRIVER,50,43,136,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Filter:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,14,61,33,9
+    COMBOBOX        IDC_GFXFILTER,50,59,136,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Graphics filters can help you to get low-resolution games running well on high-resolution monitors.",IDC_STATIC,13,75,169,18
     GROUPBOX        "Gameplay settings",IDC_STATIC,198,7,154,88
-    LTEXT           "Game language:",IDC_STATIC,205,19,56,10
+    CONTROL         "Game language:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,205,19,56,10
     COMBOBOX        IDC_COMBO3,205,31,140,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     DEFPUSHBUTTON   "S&ave",IDOK,7,102,56,14
     PUSHBUTTON      "&Save and Run",IDOKRUN,67,102,56,14
     PUSHBUTTON      "Cancel",IDCANCEL,127,102,56,14
     PUSHBUTTON      "Ad&vanced  >>>",IDC_ADVANCED,282,101,70,15
     GROUPBOX        "Sound options",IDC_STATIC,7,121,185,102
-    LTEXT           "Digital Sound:",IDC_STATIC,13,136,46,9
+    CONTROL         "Digital Sound:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,13,136,46,9
     COMBOBOX        IDC_COMBO1,68,134,118,70,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_GROUP | WS_TABSTOP
-    LTEXT           "MIDI music:",IDC_STATIC,13,152,47,10
+    CONTROL         "MIDI music:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,13,152,47,10
     COMBOBOX        IDC_COMBO2,68,150,118,70,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_TABSTOP
     CONTROL         "Use voice pack if available",IDC_SPEECHPACK,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,13,169,160,9
     GROUPBOX        "Graphics options",IDC_STATIC,198,121,154,102
@@ -147,7 +148,7 @@ BEGIN
     CONTROL         "Use 85 &Hz display (CRT monitors only)",IDC_REFRESH,
                     "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,192,138,9
     CONTROL         "Vertical sync",IDC_VSYNC,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,206,132,9
-    GROUPBOX        "Sprite cache",IDC_STATICADV,7,226,345,55,NOT WS_VISIBLE
+    CONTROL         "Maximum size:",IDC_STATICADV3,"Static",SS_LEFTNOWORDWRAP | NOT WS_VISIBLE | WS_GROUP,15,225,50,10
     LTEXT           "Maximum size:",IDC_STATICADV3,15,239,50,10,NOT WS_VISIBLE
     COMBOBOX        IDC_COMBO4,68,237,108,100,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
     LTEXT           "You can limit the maximum amount of memory that the game will use for its sprite cache. Smaller values may make the game run slower but use less RAM; higher values may be faster but use more RAM. You should not normally need to adjust this.",IDC_STATICADV2,13,253,323,26,NOT WS_VISIBLE

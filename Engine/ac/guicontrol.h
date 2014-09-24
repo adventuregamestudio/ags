@@ -46,6 +46,8 @@ int			GUIControl_GetX(GUIObject *guio);
 void		GUIControl_SetX(GUIObject *guio, int xx);
 int			GUIControl_GetY(GUIObject *guio);
 void		GUIControl_SetY(GUIObject *guio, int yy);
+int         GUIControl_GetZOrder(GUIObject *guio);
+void        GUIControl_SetZOrder(GUIObject *guio, int zorder);
 void		GUIControl_SetPosition(GUIObject *guio, int xx, int yy);
 int			GUIControl_GetWidth(GUIObject *guio);
 void		GUIControl_SetWidth(GUIObject *guio, int newwid);

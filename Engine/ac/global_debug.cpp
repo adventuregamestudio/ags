@@ -79,7 +79,7 @@ void script_debug(int cmdd,int dataa) {
             EngineVersion.LongString.GetCStr(), mode.Width, mode.Height, final_col_dep, final_scrn_wid, final_scrn_hit, (convert_16bit_bgr) ? "BGR" : "",
             gfxDriver->GetDriverName(), filterName,
             spriteset.cachesize / 1024, spriteset.maxCacheSize / 1024, spriteset.lockedSize / 1024);
-        if (play.seperate_music_lib)
+        if (play.separate_music_lib)
             strcat(toDisplay,"[AUDIO.VOX enabled");
         if (play.want_speech >= 1)
             strcat(toDisplay,"[SPEECH.VOX enabled");

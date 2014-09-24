@@ -311,13 +311,20 @@ void InitializeDialog(HWND hDlg) {
   if (INIreadint("disabled", "filters") == 1)
     EnableWindow (GetDlgItem(hDlg, IDC_GFXFILTER), FALSE);
 
-  RECT winsize;
-  GetWindowRect (hDlg, &winsize);
-  wwidth = winsize.right - winsize.left;
-  wheight = winsize.bottom - winsize.top;
+  RECT win_rect, client_rect;
+  GetWindowRect (hDlg, &win_rect);
+  wwidth = win_rect.right - win_rect.left;
+  wheight = win_rect.bottom - win_rect.top;
+  GetClientRect(hDlg, &client_rect);
+  const int cl_height_diff = wheight - (client_rect.bottom - client_rect.top);
 
-  base_height = MulDiv(112, HIWORD(GetDialogBaseUnits()), 8);
-  MoveWindow (hDlg, max(0, winsize.left), max(0, winsize.top + (wheight - base_height) / 2), wwidth, base_height, TRUE);
+  RECT closed_dlg_unit_rect;
+  ZeroMemory(&closed_dlg_unit_rect, sizeof(closed_dlg_unit_rect));
+  closed_dlg_unit_rect.bottom = 121;
+  MapDialogRect(hDlg, &closed_dlg_unit_rect);
+  base_height = closed_dlg_unit_rect.bottom - closed_dlg_unit_rect.top + cl_height_diff;
+
+  MoveWindow (hDlg, max(0, win_rect.left), max(0, win_rect.top + (wheight - base_height) / 2), wwidth, base_height, TRUE);
   update_resolution_texts (hDlg);
 
   SendMessage(hDlg, WM_SETTEXT, NULL, (LPARAM)gameNameForTitleBar);
@@ -514,7 +521,7 @@ int acwsetup(const char*vername, const char*enbuild) {
       curscrn = 1;
     defaultRes = (GameResolutionType)INIreadint ("misc", "defaultres");
     if (defaultRes < 1)
-      defaultRes = kGameResolution_Undefined;
+      defaultRes = kGameResolution_Default;
 
     curdigi=INIreadint("sound","digiwinindx");
     curmidi=INIreadint("sound","midiwinindx");
@@ -523,25 +530,14 @@ int acwsetup(const char*vername, const char*enbuild) {
     if (curdigi > 3) curdigi = 0;
     if (curmidi < 0) curmidi=0;
 
-    windowed = INIreadint("misc","windowed",0);
+    windowed = INIreadint("misc","windowed");
     vsync = INIreadint("misc","vsync");
     useletterbox = INIreadint("misc","prefer_letterbox", 1) != 0;
+    reduce32to16 = INIreadint("misc","notruecolor");
+    gameColDep = INIreadint("misc", "gamecolordepth");
 
-    reduce32to16 = INIreadint("misc","notruecolor",0);
-    if (reduce32to16 < 0)
-      reduce32to16 = 0;
-
-    gameColDep = INIreadint("misc", "gamecolordepth", 0);
-    if (gameColDep < 0)
-      gameColDep = 0;
-
-    refresh = INIreadint("misc","refresh",0);
-    if (refresh < 1)
-      refresh = 0;
-    antialias = INIreadint("misc","antialias",0);
-    if (antialias < 1)
-      antialias = 0;
-
+    refresh = INIreadint("misc","refresh");
+    antialias = INIreadint("misc","antialias");
     sideBorders = INIreadint("misc","prefer_sideborders", 1) != 0;
 
     int cacheval = INIreadint ("misc", "cachemax");

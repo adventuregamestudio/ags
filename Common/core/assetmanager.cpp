@@ -311,7 +311,7 @@ bool AssetManager::_IsDataFile(const String &data_file)
     if (strncmp(clbuff, _libHeadSig /*"CLIB"*/, 4) != 0)
     {
         // signature not found, check signature at the end of file
-        ci_s->Seek(Common::kSeekEnd, -12);
+        ci_s->Seek(-12, kSeekEnd);
         ci_s->Read(&clbuff[0], 12);
         // signature not found, return error code
         if (strncmp(clbuff, _libTailSig, 12) != 0)
@@ -447,18 +447,18 @@ AssetError AssetManager::RegisterAssetLib(const String &data_file, const String 
     if (strncmp(clbuff, _libHeadSig /*"CLIB"*/, 4) != 0)
     {
         // signature not found, check signature at the end of file
-        ci_s->Seek(Common::kSeekEnd, -12);
+        ci_s->Seek(-12, kSeekEnd);
         ci_s->Read(&clbuff[0], 12);
         // signature not found, return error code
         if (strncmp(clbuff, _libTailSig, 12) != 0)
         {
             return kAssetErrNoLibSig;
         }
-        ci_s->Seek(Common::kSeekEnd, -16);  // it's an appended-to-end-of-exe thing
+        ci_s->Seek(-16, kSeekEnd);  // it's an appended-to-end-of-exe thing
         int debug_pos2 = ci_s->GetPosition();
         // read multifile lib offset value
         abs_offset = ci_s->ReadInt32();
-        ci_s->Seek(Common::kSeekBegin, abs_offset + 5);
+        ci_s->Seek(abs_offset + 5, kSeekBegin);
     }
 
     // read library header
@@ -546,7 +546,7 @@ AssetError AssetManager::ReadSingleFileAssetLib(MultiFileLib * mfl, Stream *ci_s
             *c -= passwmodifier;
     }
     ci_s->ReadArrayOfInt32(&mfl->length[0], mfl->num_files);
-    ci_s->Seek(Common::kSeekCurrent, 2 * mfl->num_files);  // skip flags & ratio
+    ci_s->Seek(2 * mfl->num_files);  // skip flags & ratio
     mfl->offset[0] = ci_s->GetPosition();
     // set offsets (assets are positioned in sequence)
     for (int i = 1; i < mfl->num_files; i++)
@@ -749,7 +749,7 @@ Stream *AssetManager::OpenAssetFromLib(const String &asset_name, Common::FileOpe
     if (lib_s)
     {
         // set stream ptr at the beginning of wanted section
-        lib_s->Seek(Common::kSeekBegin, asset->Offset);
+        lib_s->Seek(asset->Offset, kSeekBegin);
         // remember size of opened asset
         _lastAssetSize = asset->Size;
     }

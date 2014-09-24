@@ -19,10 +19,11 @@
 // WFN format:
 // - signature            ( 15 )
 // - offsets table offset (  2 )
-// - characters table (for X chars):
+// - characters table (for unknown number of char items):
 // -     width            (  2 )
 // -     height           (  2 )
 // -     pixel bits       ( (width / 8 + 1) * height )
+// -     any unknown data
 // - offsets table (for X chars):
 // -     character offset (  2 )
 //
@@ -35,54 +36,65 @@
 #ifndef __AGS_CN_FONT__WFNFONT_H
 #define __AGS_CN_FONT__WFNFONT_H
 
+#include <vector>
 #include "util/stream.h"
+
+enum WFNError
+{
+    kWFNErr_NoError,
+    kWFNErr_BadSignature,
+    kWFNErr_BadTableAddress,
+    kWFNErr_HasBadCharacters
+};
+
+struct WFNChar
+{
+    uint16_t       Width;
+    uint16_t       Height;
+    const uint8_t *Data;
+
+    WFNChar();
+
+    inline size_t GetRowByteCount() const
+    {
+        return (Width + 7) / 8;
+    }
+
+    inline size_t GetRequiredPixelSize() const
+    {
+        return GetRowByteCount() * Height;
+    }
+
+    // Ensure character's width & height fit in given number of pixel bytes
+    void RestrictToBytes(size_t bytes);
+};
+
 
 class WFNFont
 {
 public:
-    struct WFNChar
-    {
-        uint16_t       Width;
-        uint16_t       Height;
-        const uint8_t *Data;
-
-        WFNChar();
-        inline size_t GetRowByteCount() const
-        {
-            return ((Width - 1) / 8 + 1);
-        }
-        inline size_t GetRequiredDataSize() const
-        {
-            return GetRowByteCount() * Height;
-        }
-    };
-
-public:
-    WFNFont();
-    ~WFNFont();
-
     inline uint16_t GetCharCount() const
     {
-        return _charCount;
+        return _refs.size();
     }
 
     // Get WFN character for the given code; if the character is missing, returns empty character
     inline const WFNChar &GetChar(uint8_t code) const
     {
-        return code < _charCount ? _chars[code] : _emptyChar;
+        return code < _refs.size() ? *_refs[code] : _emptyChar;
     }
 
     void Clear();
     // Reads WFNFont object, using data_size bytes from stream; if data_size = 0,
-    // the available stream's length is used instead. Returns false on error.
-    bool ReadFromFile(AGS::Common::Stream *in, const size_t data_size = 0);
+    // the available stream's length is used instead. Returns error code.
+    WFNError ReadFromFile(AGS::Common::Stream *in, const size_t data_size = 0);
 
 protected:
-    uint16_t  _charCount;
-    WFNChar  *_chars;
-    uint8_t  *_charData;
+    std::vector<const WFNChar*> _refs;      // reference array, contains pointers to elements of _items
+    std::vector<WFNChar>        _items;     // actual character items
+    std::vector<uint8_t>        _pixelData; // pixel data array
 
-    static WFNChar _emptyChar;
+    static const WFNChar        _emptyChar; // a dummy character to substitute bad symbols
 };
 
 #endif // __AGS_CN_FONT__WFNFONT_H

@@ -70,6 +70,7 @@ namespace Out = AGS::Common::Out;
 extern char check_dynamic_sprites_at_exit;
 extern int our_eip;
 extern volatile char want_exit, abort_engine;
+extern bool justRunSetup;
 extern GameSetup usetup;
 extern GameSetupStruct game;
 extern int proper_exit;
@@ -175,8 +176,8 @@ int engine_check_run_setup(int argc,char*argv[])
 {
 #if defined (WINDOWS_VERSION)
     // check if Setup needs to be run instead
-    if (argc>1) {
-        if (stricmp(argv[1],"--setup")==0) { 
+    if (justRunSetup)
+    {
             Out::FPrint("Running Setup");
 
             if (!platform->RunSetup())
@@ -189,7 +190,6 @@ int engine_check_run_setup(int argc,char*argv[])
             sprintf (quotedpath, "\"%s\"", argv[0]);
             _spawnl (_P_OVERLAY, argv[0], quotedpath, NULL);
             //read_config_file(argv[0]);
-        }
     }
 #endif
 
@@ -535,7 +535,7 @@ int engine_init_speech()
 
 int engine_init_music()
 {
-    play.seperate_music_lib = 0;
+    play.separate_music_lib = 0;
 
     /* Can't just use fopen here, since we need to change the filename
     so that pack functions, etc. will have the right case later */
@@ -566,7 +566,7 @@ int engine_init_music()
         }
         Common::AssetManager::SetDataFile(game_file_name);
         platform->WriteConsole("Audio vox found and initialized.\n");
-        play.seperate_music_lib = 1;
+        play.separate_music_lib = 1;
     }
 
     return RETURN_CONTINUE;
@@ -650,7 +650,7 @@ void engine_init_sound()
         // therefore the MIDI soundtrack will be used if present,
         // and the voice mode should not go to Voice Only
         play.want_speech = -2;
-        play.seperate_music_lib = 0;
+        play.separate_music_lib = 0;
     }
 }
 

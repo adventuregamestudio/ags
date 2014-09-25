@@ -175,6 +175,8 @@ void WinConfig::Load()
     GameResType = (GameResolutionType)ReadPPInt("misc", "defaultres", GameResType);
     if (GameResType < kGameResolution_Undefined || GameResType >= kNumGameResolutions)
         GameResType = kGameResolution_Undefined;
+    GameResolution.Width = ReadPPInt("misc", "game_width", GameResolution.Width);
+    GameResolution.Height = ReadPPInt("misc", "game_height", GameResolution.Height);
     GameColourDepth = ReadPPInt("misc", "gamecolordepth", GameColourDepth);
     LetterboxByDesign = ReadPPInt("misc", "letterbox", 0) != 0;
 
@@ -497,7 +499,7 @@ INT_PTR WinSetupDialog::OnInitDialog()
         _winCfg.Load();
 
     if (_winCfg.GameResolution.IsNull() &&
-          (_winCfg.GameResType == kGameResolution_Undefined) ||
+          (_winCfg.GameResType == kGameResolution_Undefined || _winCfg.GameResType == kGameResolution_Custom) ||
           _winCfg.GameColourDepth == 0)
         MessageBox(_hwnd, "Essential information about the game is missing in the configuration file. Setup program may be unable to deduce graphic modes properly.", "Initialization error", MB_OK | MB_ICONWARNING);
 

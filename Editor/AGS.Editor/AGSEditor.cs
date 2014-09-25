@@ -1547,20 +1547,14 @@ namespace AGS.Editor
 				NativeProxy.WritePrivateProfileString("sound", "midiwinindx", "0", configFilePath);
 			}
 
+            NativeProxy.WritePrivateProfileString("misc", "game_width", _game.Settings.CustomResolution.Width.ToString(), configFilePath);
+            NativeProxy.WritePrivateProfileString("misc", "game_height", _game.Settings.CustomResolution.Height.ToString(), configFilePath);
 			NativeProxy.WritePrivateProfileString("misc", "gamecolordepth", (((int)_game.Settings.ColorDepth) * 8).ToString(), configFilePath);
-
-			int resolution = (int)_game.Settings.Resolution;
-			StringBuilder buffer = new StringBuilder(100);
-			NativeProxy.GetPrivateProfileString("misc", "defaultres", "NULL", buffer, buffer.Capacity, configFilePath);
-
-			if (buffer.ToString() != resolution.ToString())
-			{
-				NativeProxy.WritePrivateProfileString("misc", "defaultres", resolution.ToString(), configFilePath);
-			}
 
             int letterbox = _game.Settings.LetterboxMode ? 1 : 0;
             NativeProxy.WritePrivateProfileString("misc", "letterbox", letterbox.ToString(), configFilePath);
 
+            StringBuilder buffer = new StringBuilder(100);
             NativeProxy.GetPrivateProfileString("graphics", "driver", "NULL", buffer, buffer.Capacity, configFilePath);
             if (buffer.ToString() != _game.Settings.GraphicsDriver.ToString())
             {

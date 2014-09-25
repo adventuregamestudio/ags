@@ -6,44 +6,6 @@ namespace AGS.Types
 {
     public static class Utilities
     {
-        public static int GetGameResolutionWidth(GameResolutions resolution)
-        {
-            switch (resolution)
-            {
-                case GameResolutions.R320x200:
-                case GameResolutions.R320x240:
-                    return 320;
-                case GameResolutions.R640x400:
-                case GameResolutions.R640x480:
-                    return 640;
-                case GameResolutions.R800x600:
-                    return 800;
-                case GameResolutions.R1024x768:
-                    return 1024;
-            }
-            throw new InvalidDataException("Invalid game resolution: " + resolution.ToString());
-        }
-
-        public static int GetGameResolutionHeight(GameResolutions resolution)
-        {
-            switch (resolution)
-            {
-                case GameResolutions.R320x200:
-                    return 200;
-                case GameResolutions.R640x400:
-                    return 400;
-                case GameResolutions.R320x240:
-                    return 240;
-                case GameResolutions.R640x480:
-                    return 480;
-                case GameResolutions.R800x600:
-                    return 600;
-                case GameResolutions.R1024x768:
-                    return 768;
-            }
-            throw new InvalidDataException("Invalid game resolution: " + resolution.ToString());
-        }
-
         public static string RemoveInvalidCharactersFromScriptName(string name)
         {
             StringBuilder sb = new StringBuilder();

@@ -376,7 +376,7 @@ namespace AGS.Types
         {
             get
             {
-                return Utilities.GetGameResolutionHeight(_settings.Resolution);
+                return _settings.CustomResolution.Height;
             }
         }
 
@@ -388,7 +388,7 @@ namespace AGS.Types
         {
             get
             {
-                return Utilities.GetGameResolutionWidth(_settings.Resolution);
+                return _settings.CustomResolution.Width;
             }
         }
 
@@ -529,8 +529,7 @@ namespace AGS.Types
         {
             get
             {
-                if ((_settings.Resolution == GameResolutions.R320x200) ||
-                    (_settings.Resolution == GameResolutions.R320x240))
+                if (_settings.LowResolution)
                 {
                     return 2;
                 }
@@ -1080,8 +1079,7 @@ namespace AGS.Types
         /// </summary>
         public void ConvertCoordinatesToNativeResolution()
         {
-            if ((_settings.Resolution == GameResolutions.R320x200) ||
-                (_settings.Resolution == GameResolutions.R320x240))
+            if (_settings.LowResolution)
             {
                 // No conversion necessary -- already at native res
                 return;

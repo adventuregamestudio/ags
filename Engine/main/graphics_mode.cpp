@@ -546,7 +546,7 @@ bool try_init_gfx_mode(const Size game_size, const Size screen_size, const Size 
         // If windowed mode, make the resolution stay in the generally supported limits
         // TODO: platform/driver specific values?
         const Size minimal_size(128, 128);
-        if (!device_size.IsNull())
+        if (device_size.IsNull())
             device_size = screen_size;
 
         if (screen_size.ExceedsByAny(device_size) || minimal_size.ExceedsByAny(screen_size))

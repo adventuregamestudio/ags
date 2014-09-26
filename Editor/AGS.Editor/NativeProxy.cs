@@ -385,7 +385,7 @@ namespace AGS.Editor
             _native.CompileGameToDTAFile(game, fileName);
         }
 
-        public void CreateDataFileSharpImpl(string[] fileList, int splitSize, string baseFileName, bool isGameEXE)
+        public void CreateDataFile(string[] fileList, int splitSize, string baseFileName, bool isGameEXE)
         {
             string[] fileNames = new string[fileList.Length];
             for (int i = 0; i < fileList.Length; ++i)
@@ -397,12 +397,6 @@ namespace AGS.Editor
             {
                 throw new AGSEditorException(errorMsg);
             }
-        }
-
-        public void CreateDataFile(string[] fileList, int splitSize, string baseFileName, bool isGameEXE)
-        {
-            //_native.CreateDataFile(fileList, splitSize, baseFileName, isGameEXE);
-            CreateDataFileSharpImpl(fileList, splitSize, baseFileName, isGameEXE);
         }
 
         public void CreateGameEXE(string[] fileList, Game game, string baseFileName)

@@ -17,11 +17,11 @@ namespace AGS.Editor
             public class MultiFile
             {
                 public string Filename;
-                public int Offset;
-                public int Length;
+                public long Offset;
+                public long Length;
                 public byte Datafile;
 
-                public MultiFile(string fileName, byte dataFile, int length)
+                public MultiFile(string fileName, byte dataFile, long length)
                 {
                     Filename = fileName;
                     Datafile = dataFile;
@@ -156,11 +156,11 @@ namespace AGS.Editor
             }
             for (int i = 0; i < ourlib.Files.Count; ++i)
             {
-                FileWriteDataEncrypted(BitConverter.GetBytes(ourlib.Files[i].Offset), writer);
+                FileWriteDataEncrypted(BitConverter.GetBytes((int)ourlib.Files[i].Offset), writer);
             }
             for (int i = 0; i < ourlib.Files.Count; ++i)
             {
-                FileWriteDataEncrypted(BitConverter.GetBytes(ourlib.Files[i].Length), writer);
+                FileWriteDataEncrypted(BitConverter.GetBytes((int)ourlib.Files[i].Length), writer);
             }
             for (int i = 0; i < ourlib.Files.Count; ++i)
             {
@@ -254,7 +254,7 @@ namespace AGS.Editor
                 {
                     throw new AGS.Types.AGSEditorException("Filename too long: " + fileNames[i]);
                 }
-                ourlib.Files.Add(new MultiFileLibNew.MultiFile(fileNameSrc, (byte)currentDataFile, (int)thisFileSize));
+                ourlib.Files.Add(new MultiFileLibNew.MultiFile(fileNameSrc, (byte)currentDataFile, thisFileSize));
             }
             ourlib.DataFilenames.Capacity = currentDataFile + 1;
             long startOffset = 0;
@@ -303,9 +303,13 @@ namespace AGS.Editor
                 {
                     outputFileName = baseFileName;
                 }
-                if (i == 0) firstDataFileFullPath = outputFileName;
+                if (i == 0)
+                {
+                    firstDataFileFullPath = outputFileName;
+                    if (!File.Exists(outputFileName)) throw new AGS.Types.AGSEditorException("Output file ('" + outputFileName + "') does not exist!");
+                }
                 using (Stream wout = TryFileOpen(outputFileName,
-                    i == 0 ? FileMode.OpenOrCreate : FileMode.Create, FileAccess.Write))
+                    i == 0 ? FileMode.Append : FileMode.Create, FileAccess.Write))
                 {
                     if (wout == null) return "ERROR: unable to open file for writing";
                     BinaryWriter writer = new BinaryWriter(wout);
@@ -323,7 +327,7 @@ namespace AGS.Editor
                     {
                         if (ourlib.Files[j].Datafile == i)
                         {
-                            ourlib.Files[j].Offset = (int)(writer.BaseStream.Position - startOffset);
+                            ourlib.Files[j].Offset = (writer.BaseStream.Position - startOffset);
                             using (Stream stream = FindFileInPath(out buffer, ourlib.Files[j].Filename))
                             {
                                 if (stream == null)
@@ -346,7 +350,7 @@ namespace AGS.Editor
                     }
                     if (startOffset > 0)
                     {
-                        writer.Write(startOffset);
+                        writer.Write((int)startOffset);
                         writer.Write(CLIB_END_SIGNATURE.ToCharArray());
                     }
                 }

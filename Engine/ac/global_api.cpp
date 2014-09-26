@@ -64,6 +64,7 @@
 #include "ac/mouse.h"
 #include "ac/parser.h"
 #include "ac/string.h"
+#include "ac/room.h"
 #include "media/audio/audio.h"
 #include "util/string_utils.h"
 
@@ -729,12 +730,6 @@ RuntimeScriptValue Sc_GetRawTime(const RuntimeScriptValue *params, int32_t param
 RuntimeScriptValue Sc_GetRegionAt(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT2(GetRegionAt);
-}
-
-// int  (const char *property)
-RuntimeScriptValue Sc_GetRoomProperty(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_POBJ(GetRoomProperty, const char);
 }
 
 // void  (const char *property, char *bufer)
@@ -2410,7 +2405,7 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("GetPlayerCharacter",       Sc_GetPlayerCharacter);
 	ccAddExternalStaticFunction("GetRawTime",               Sc_GetRawTime);
 	ccAddExternalStaticFunction("GetRegionAt",              Sc_GetRegionAt);
-	ccAddExternalStaticFunction("GetRoomProperty",          Sc_GetRoomProperty);
+	ccAddExternalStaticFunction("GetRoomProperty",          Sc_Room_GetProperty);
 	ccAddExternalStaticFunction("GetRoomPropertyText",      Sc_GetRoomPropertyText);
 	ccAddExternalStaticFunction("GetSaveSlotDescription",   Sc_GetSaveSlotDescription);
 	ccAddExternalStaticFunction("GetScalingAt",             Sc_GetScalingAt);
@@ -2777,7 +2772,7 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("GetPlayerCharacter",       (void*)GetPlayerCharacter);
     ccAddExternalFunctionForPlugin("GetRawTime",               (void*)GetRawTime);
     ccAddExternalFunctionForPlugin("GetRegionAt",              (void*)GetRegionAt);
-    ccAddExternalFunctionForPlugin("GetRoomProperty",          (void*)GetRoomProperty);
+    ccAddExternalFunctionForPlugin("GetRoomProperty",          (void*)Room_GetProperty);
     ccAddExternalFunctionForPlugin("GetRoomPropertyText",      (void*)GetRoomPropertyText);
     ccAddExternalFunctionForPlugin("GetSaveSlotDescription",   (void*)GetSaveSlotDescription);
     ccAddExternalFunctionForPlugin("GetScalingAt",             (void*)GetScalingAt);

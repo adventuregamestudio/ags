@@ -426,6 +426,8 @@ builtin managed struct DrawingSurface {
 
 builtin managed struct Room {
   /// Gets a Custom Property associated with this room.
+  import static int GetProperty(const string property);
+  /// Gets a custom text property associated with this room.
   import static String GetTextProperty(const string property);
   /// Gets a drawing surface that allows you to manipulate the room background.
   import static DrawingSurface* GetDrawingSurfaceForBackground(int backgroundNumber=SCR_NO_VALUE);
@@ -614,8 +616,10 @@ import LocationType GetLocationType(int x, int y);
 import int  GetWalkableAreaAt(int screenX, int screenY);
 /// Returns the scaling level at the specified position within the room.
 import int  GetScalingAt (int x, int y);
+#ifndef STRICT
 /// Gets the specified Custom Property for the current room.
 import int  GetRoomProperty(const string property);
+#endif
 /// Locks the viewport to stop the screen scrolling automatically.
 import void SetViewport(int x, int y);
 /// Allows AGS to scroll the screen automatically to follow the player character.

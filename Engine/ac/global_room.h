@@ -26,7 +26,6 @@ void ResetRoom(int nrnum);
 int  HasPlayerBeenInRoom(int roomnum);
 void CallRoomScript (int value);
 int  HasBeenToRoom (int roomnum);
-int GetRoomProperty (const char *property);
 void GetRoomPropertyText (const char *property, char *bufer);
 
 void SetBackgroundFrame(int frnum);

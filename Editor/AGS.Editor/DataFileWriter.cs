@@ -5,29 +5,47 @@ using System.Text;
 
 namespace AGS.Editor
 {
-    class MakeDataFile
+    class DataFileWriter
     {
-        const string sprsetname = "acsprset.spr";
-        const int MAX_FILES = 10000;
         const int MAXMULTIFILES = 25;
-        const int MAX_FILENAME_LENGTH = 100;
-        const int MAX_DATAFILENAME_LENGTH = 50;
-        const int RAND_SEED_SALT = 9338638;
-        const int CHUNKSIZE = 256000;
-        const string clibendsig = "CLIB\x1\x2\x3\x4SIGE";
+        //const int MAX_DATAFILENAME_LENGTH = 50;
 
-        struct MultiFileLibNew
+        class MultiFileLibNew
         {
-            public string[] data_filenames = new string[MAXMULTIFILES];
-            public int num_data_files;
-            public string[] filenames = new string[MAX_FILES];
-            public long[] offset = new long[MAX_FILES];
-            public long[] length = new long[MAX_FILES];
-            public byte[] file_datafile = new byte[MAX_FILES];
-            public int num_files;
+            const int MAX_FILES = 10000;
+
+            public class MultiFile
+            {
+                public string Filename;
+                public int Offset;
+                public int Length;
+                public byte Datafile;
+
+                public MultiFile(string fileName, byte dataFile, int length)
+                {
+                    Filename = fileName;
+                    Datafile = dataFile;
+                    Length = length;
+                    Offset = 0;
+                }
+            };
+
+            public List<string> DataFilenames;
+            public List<MultiFile> Files;
+
+            public MultiFileLibNew()
+            {
+                DataFilenames = new List<string>();
+                Files = new List<MultiFile>();
+            }
         };
 
         static MultiFileLibNew ourlib;
+
+        static DataFileWriter()
+        {
+            ourlib = new MultiFileLibNew();
+        }
 
         static Stream TryFileOpen(string fileName, FileAccess access)
         {
@@ -39,7 +57,7 @@ namespace AGS.Editor
             Stream stream = null;
             try
             {
-                stream = File.Open(fileName, mode, access);
+                stream = File.Open(fileName, mode, access, FileShare.ReadWrite); // we're only reading, but don't disallow writing from other processes
             }
             catch
             {
@@ -47,7 +65,7 @@ namespace AGS.Editor
             return stream;
         }
 
-        static Stream find_file_in_path(out string buffer, string fileName)
+        static Stream FindFileInPath(out string buffer, string fileName)
         {
             string tomake = fileName;
             Stream stream = TryFileOpen(tomake, FileAccess.Read);
@@ -95,60 +113,64 @@ namespace AGS.Editor
 
             public int GetNextRand()
             {
-                return (((_lastRandValue = (int)(_lastRandValue * 214013L + 2531011L)) >> 16) & 0x7FFF);
+                _lastRandValue = (int)((_lastRandValue * 214013L) + 2531011L);
+                return (_lastRandValue >> 16) & 0x7FFF;
             }
         }
 
-        static void fwrite_data_enc(byte[] data, BinaryWriter writer)
+        static void FileWriteDataEncrypted(byte[] data, BinaryWriter writer)
         {
             for (int i = 0; i < data.Length; ++i)
             {
-                writer.Write((int)data[i] + PseudoRandInt.Instance.GetNextRand());
+                writer.Write((byte)((int)data[i] + PseudoRandInt.Instance.GetNextRand()));
             }
         }
 
-        static void fputstring_enc(string text, BinaryWriter writer)
+        static void FilePutStringEncrypted(string text, BinaryWriter writer)
         {
-            writer.Write(text.ToCharArray());
-            writer.Write((byte)0);
+            byte[] bytes = Encoding.ASCII.GetBytes(text);
+            FileWriteDataEncrypted(bytes, writer);
+            FileWriteDataEncrypted(new byte[] { (byte)0 }, writer);
         }
 
-        static void putw_enc(int numberToWrite, BinaryWriter writer)
+        static void FilePutIntEncrypted(int numberToWrite, BinaryWriter writer)
         {
-            fwrite_data_enc(BitConverter.GetBytes(numberToWrite), writer);
+            FileWriteDataEncrypted(BitConverter.GetBytes(numberToWrite), writer);
         }
 
-        static void write_clib_header(BinaryWriter writer)
+        static void WriteCLIBHeader(BinaryWriter writer)
         {
+            const int RAND_SEED_SALT = 9338638;
             int randSeed = (int)DateTime.Now.Ticks;
             writer.Write(randSeed - RAND_SEED_SALT);
             PseudoRandInt.InitializeInstance(randSeed);
-            putw_enc(ourlib.num_data_files, writer);
-            for (int i = 0; i < ourlib.num_data_files; ++i)
+            FilePutIntEncrypted(ourlib.DataFilenames.Count, writer);
+            for (int i = 0; i < ourlib.DataFilenames.Count; ++i)
             {
-                fputstring_enc(ourlib.data_filenames[i], writer);
+                FilePutStringEncrypted(ourlib.DataFilenames[i], writer);
             }
-            putw_enc(ourlib.num_data_files, writer);
-            for (int i = 0; i < ourlib.num_files; ++i)
+            FilePutIntEncrypted(ourlib.Files.Count, writer);
+            for (int i = 0; i < ourlib.Files.Count; ++i)
             {
-                fputstring_enc(ourlib.filenames[i], writer);
+                FilePutStringEncrypted(ourlib.Files[i].Filename, writer);
             }
-            for (int i = 0; i < ourlib.num_files; ++i)
+            for (int i = 0; i < ourlib.Files.Count; ++i)
             {
-                fwrite_data_enc(BitConverter.GetBytes((int)ourlib.offset[i]), writer);
+                FileWriteDataEncrypted(BitConverter.GetBytes(ourlib.Files[i].Offset), writer);
             }
-            for (int i = 0; i < ourlib.num_files; ++i)
+            for (int i = 0; i < ourlib.Files.Count; ++i)
             {
-                fwrite_data_enc(BitConverter.GetBytes((int)ourlib.length[i]), writer);
+                FileWriteDataEncrypted(BitConverter.GetBytes(ourlib.Files[i].Length), writer);
             }
-            for (int i = 0; i < ourlib.num_files; ++i)
+            for (int i = 0; i < ourlib.Files.Count; ++i)
             {
-                fwrite_data_enc(new byte[] { ourlib.file_datafile[i] }, writer);
+                FileWriteDataEncrypted(new byte[] { ourlib.Files[i].Datafile }, writer);
             }
         }
 
-        static int copy_file_across(Stream instream, Stream copystream, long leftforthis)
+        static int CopyFileAcross(Stream instream, Stream copystream, long leftforthis)
         {
+            const int CHUNKSIZE = 256000;
             int success = 1;
             byte[] diskbuffer = new byte[CHUNKSIZE + 10];
             while (leftforthis > 0)
@@ -192,19 +214,23 @@ namespace AGS.Editor
             return success;
         }
 
-        static string DoMakeDataFile(int numFiles, string[] fileNames, long splitSize, string baseFileName, bool makeFileNameAssumptionsForEXE)
+        public static string MakeDataFile(string[] fileNames, int splitSize, string baseFileName, bool makeFileNameAssumptionsForEXE)
         {
+            const string CLIB_END_SIGNATURE = "CLIB\x1\x2\x3\x4SIGE";
+            const int MAX_FILENAME_LENGTH = 100;
+            const string SPRSET_NAME = "acsprset.spr";
             Environment.CurrentDirectory = AGSEditor.Instance.CurrentGame.DirectoryPath;
-            ourlib.num_data_files = 0;
-            ourlib.num_files = numFiles;
+            ourlib.DataFilenames.Clear();
+            ourlib.Files.Clear();
+            ourlib.Files.Capacity = fileNames.Length;
             int currentDataFile = 0;
             long sizeSoFar = 0;
             bool doSplitting = false;
-            for (int i = 0; i < numFiles; ++i)
+            for (int i = 0; i < fileNames.Length; ++i)
             {
                 if (splitSize > 0)
                 {
-                    if (string.Compare(fileNames[i], sprsetname, true) == 0)
+                    if (string.Compare(fileNames[i], SPRSET_NAME, true) == 0)
                     {
                         // the sprite file's appearance signifies it's time to start splitting
                         doSplitting = true;
@@ -228,11 +254,9 @@ namespace AGS.Editor
                 {
                     throw new AGS.Types.AGSEditorException("Filename too long: " + fileNames[i]);
                 }
-                ourlib.filenames[i] = fileNameSrc;
-                ourlib.file_datafile[i] = (byte)currentDataFile;
-                ourlib.length[i] = thisFileSize;
+                ourlib.Files.Add(new MultiFileLibNew.MultiFile(fileNameSrc, (byte)currentDataFile, (int)thisFileSize));
             }
-            ourlib.num_data_files = currentDataFile + 1;
+            ourlib.DataFilenames.Capacity = currentDataFile + 1;
             long startOffset = 0;
             long mainHeaderOffset = 0;
             string outputFileName;
@@ -243,41 +267,37 @@ namespace AGS.Editor
             }
             // First, set up ourlib.data_filenames array with all the filenames
             // so that write_clib_header will write the correct amount of data
-            for (int i = 0; i < ourlib.num_data_files; ++i)
+            for (int i = 0, cap = ourlib.DataFilenames.Capacity; i < cap; ++i)
             {
                 if (makeFileNameAssumptionsForEXE)
                 {
-                    ourlib.data_filenames[i] = baseFileName + i.ToString("D3");
-                    if (i == 0)
-                    {
-                        ourlib.data_filenames[i] = ourlib.data_filenames[i].Remove(ourlib.data_filenames[i].Length - 3) + "exe";
-                    }
+                    ourlib.DataFilenames.Add(baseFileName + "." + (i == 0 ? "exe" : i.ToString("D3")));
                 }
                 else
                 {
-                    ourlib.data_filenames[i] = Path.GetFileName(baseFileName);
+                    ourlib.DataFilenames.Add(Path.GetFileName(baseFileName));
                 }
             }
             // adjust the file paths if necessary, so that write_clib_header will
             // write the correct amount of data
             string tomake;
-            for (int i = 0; i < ourlib.num_files; i++)
+            for (int i = 0; i < ourlib.Files.Count; ++i)
             {
-                using (Stream stream = find_file_in_path(out tomake, ourlib.filenames[i]))
+                using (Stream stream = FindFileInPath(out tomake, ourlib.Files[i].Filename))
                 {
                     if (stream != null)
                     {
                         stream.Close();
-                        if (!makeFileNameAssumptionsForEXE) ourlib.filenames[i] = tomake;
+                        if (!makeFileNameAssumptionsForEXE) ourlib.Files[i].Filename = tomake;
                     }
                 }
             }
             // now, create the actual files
-            for (int i = 0; i < ourlib.num_data_files; ++i)
+            for (int i = 0; i < ourlib.DataFilenames.Count; ++i)
             {
                 if (makeFileNameAssumptionsForEXE)
                 {
-                    outputFileName = Path.Combine("Compiled", ourlib.data_filenames[i]);
+                    outputFileName = Path.Combine("Compiled", ourlib.DataFilenames[i]);
                 }
                 else
                 {
@@ -296,14 +316,15 @@ namespace AGS.Editor
                     if (i == 0)
                     {
                         mainHeaderOffset = writer.BaseStream.Position;
-                        write_clib_header(writer);
+                        WriteCLIBHeader(writer);
                     }
                     string buffer;
-                    for (int j = 0; j < ourlib.num_files; ++j)
+                    for (int j = 0; j < ourlib.Files.Count; ++j)
                     {
-                        if (ourlib.file_datafile[j] == i)
+                        if (ourlib.Files[j].Datafile == i)
                         {
-                            using (Stream stream = find_file_in_path(out buffer, ourlib.filenames[j]))
+                            ourlib.Files[j].Offset = (int)(writer.BaseStream.Position - startOffset);
+                            using (Stream stream = FindFileInPath(out buffer, ourlib.Files[j].Filename))
                             {
                                 if (stream == null)
                                 {
@@ -314,9 +335,9 @@ namespace AGS.Editor
                                     catch
                                     {
                                     }
-                                    throw new AGS.Types.AGSEditorException("Unable to find file '" + ourlib.filenames[j] + "' for compilation. Do not remove files during the compilation process.");
+                                    throw new AGS.Types.AGSEditorException("Unable to find file '" + ourlib.Files[j].Filename + "' for compilation. Do not remove files during the compilation process." + Environment.NewLine + Directory.GetCurrentDirectory());
                                 }
-                                if (copy_file_across(stream, writer.BaseStream, ourlib.length[j]) < 1)
+                                if (CopyFileAcross(stream, writer.BaseStream, ourlib.Files[j].Length) < 1)
                                 {
                                     return "Error writing file: possibly disk full";
                                 }
@@ -326,14 +347,14 @@ namespace AGS.Editor
                     if (startOffset > 0)
                     {
                         writer.Write(startOffset);
-                        writer.Write(clibendsig.ToCharArray());
+                        writer.Write(CLIB_END_SIGNATURE.ToCharArray());
                     }
                 }
             }
             using (Stream wout = TryFileOpen(firstDataFileFullPath, FileMode.Open, FileAccess.ReadWrite))
             {
                 wout.Seek(mainHeaderOffset, SeekOrigin.Begin);
-                write_clib_header(new BinaryWriter(wout));
+                WriteCLIBHeader(new BinaryWriter(wout));
             }
             return null;
         }

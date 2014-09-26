@@ -808,7 +808,7 @@
     </Compile>
     <Compile Include="GUI\WindowsLayoutManager.cs" />
     <Compile Include="GUI\WindowsMenuManager.cs" />
-    <Compile Include="MakeDataFile.cs" />
+    <Compile Include="DataFileWriter.cs" />
     <Compile Include="Utils\ColorMapper.cs" />
     <Compile Include="Utils\DialogScriptConverter.cs" />
     <Compile Include="EditorEvents.cs" />

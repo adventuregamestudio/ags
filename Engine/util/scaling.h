@@ -18,6 +18,9 @@
 #ifndef __AGS_EE_UTIL__SCALING_H
 #define __AGS_EE_UTIL__SCALING_H
 
+#include "core/types.h"
+#include "util/geometry.h"
+
 namespace AGS
 {
 namespace Engine
@@ -27,15 +30,30 @@ class AxisScaling
 {
 public:
     AxisScaling()
-        : _scale(0)
+        : _scale(kUnit)
+        , _unscale(kUnit)
         , _offset(0)
     {
     }
 
     void Init(const uint32_t src_length, const uint32_t dst_length, const uint32_t offset = 0)
     {
-        _scale  = (dst_length << kShift) / src_length;
+        _scale = kUnit;
+        _unscale = kUnit;
         _offset = offset;
+
+        if (src_length != 0)
+        {
+            uint32_t scale = (dst_length << kShift) / src_length;
+            if (scale != 0)
+            {
+                _scale = scale;
+                _unscale = scale;
+                uint32_t scaled_val = ScaleDistance(src_length);
+                if (scaled_val < dst_length)
+                    _scale++;
+            }
+        }
     }
 
     inline int32_t ScalePt(int32_t x) const
@@ -48,15 +66,16 @@ public:
     }
     inline int32_t UnScalePt(int32_t x) const
     {
-        return ((x - _offset) << kShift) / _scale;
+        return ((x - _offset) << kShift) / _unscale;
     }
     inline int32_t UnScaleDistance(int32_t x) const
     {
-        return (x << kShift) / _scale;
+        return (x << kShift) / _unscale;
     }
 
 private:
     uint32_t _scale;
+    uint32_t _unscale;
     uint32_t _offset;
 };
 

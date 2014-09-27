@@ -145,7 +145,7 @@ String INIreadstring(const char *sectn, const char *entry, const char *def_value
     return str;
 }
 
-int parse_scaling_factor(const String &scaling_option)
+uint32_t parse_scaling_factor(const String &scaling_option)
 {
     if (scaling_option.CompareNoCase("max") == 0)
         return 0;

@@ -164,11 +164,11 @@ bool get_desktop_size_for_mode(Size &size, const bool windowed)
     return false;
 }
 
-String make_scaling_factor_string(int scaling)
+String make_scaling_factor_string(uint32_t scaling)
 {
     if (scaling == 0)
         return "max";
-    return String::FromFormat("%d", scaling >= kUnit ? (scaling >> kShift) : -kUnit / scaling);
+    return String::FromFormat("%d", scaling >= kUnit ? (scaling >> kShift) : -kUnit / (int32_t)scaling);
 }
 
 String make_scaling_factor_string()
@@ -329,7 +329,7 @@ bool find_nearest_supported_mode(Size &wanted_size, const int color_depth, const
 
 bool find_nearest_supported_mode(const IGfxModeList &modes, Size &wanted_size, int *mode_index, const int color_depth, const Size *ratio_reference)
 {
-    int wanted_ratio = 0;
+    uint32_t wanted_ratio = 0;
     if (ratio_reference)
     {
         wanted_ratio = (ratio_reference->Height << kShift) / ratio_reference->Width;
@@ -354,7 +354,7 @@ bool find_nearest_supported_mode(const IGfxModeList &modes, Size &wanted_size, i
         }
         if (wanted_ratio > 0)
         {
-            int mode_ratio = (mode.Height << kShift) / mode.Width;
+            uint32_t mode_ratio = (mode.Height << kShift) / mode.Width;
             if (mode_ratio != wanted_ratio)
             {
                 continue;
@@ -453,8 +453,8 @@ bool init_gfx_mode(const Size game_size, const Size screen_size, const Size fram
 void set_game_frame_after_screen_size(const Size game_size, const Size screen_size, Size &frame_size)
 {
     // Set game frame as native game resolution scaled by custom factor
-    const int max_scaling_x = (screen_size.Width / game_size.Width) << kShift;
-    const int max_scaling_y = (screen_size.Height / game_size.Height) << kShift;
+    const uint32_t max_scaling_x = (screen_size.Width / game_size.Width) << kShift;
+    const uint32_t max_scaling_y = (screen_size.Height / game_size.Height) << kShift;
     int scale_x, scale_y;
     if (filter->GetInfo().FixedScale != 0)
     {

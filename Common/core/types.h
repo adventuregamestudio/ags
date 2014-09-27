@@ -70,7 +70,7 @@
 // TODO: use distinct fixed point class
 enum
 {
-    kShift    = 10,
+    kShift    = 16,
     kUnit     = 1 << kShift
 };
 

@@ -49,8 +49,8 @@ struct GameSetup {
     bool  override_upscale;
     ScreenSizeDefinition screen_sz_def;
     Size  screen_size;
-    int filter_scaling_x;
-    int filter_scaling_y;
+    uint32_t filter_scaling_x;
+    uint32_t filter_scaling_y;
     bool filter_scaling_max_uniform;
     bool match_device_ratio;
     RectPlacement game_frame_placement;

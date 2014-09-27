@@ -26,7 +26,7 @@
 bool graphics_mode_init();
 void graphics_mode_shutdown();
 bool get_desktop_size_for_mode(Size &size, const bool windowed);
-AGS::Common::String make_scaling_factor_string(int scaling);
+AGS::Common::String make_scaling_factor_string(uint32_t scaling);
 
 namespace AGS { namespace Engine { class IGfxModeList; }}
 bool find_nearest_supported_mode(const AGS::Engine::IGfxModeList &modes, Size &wanted_size, int *mode_index,

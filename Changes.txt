@@ -1,5 +1,23 @@
 REVISION HISTORY
 ================
+VERSION 3.3.2, September 2014
+
+Bug Fixes:
+- Restored letterboxed-by-design game mode (broken in 3.3.0 update-1).
+- Fixed misinterpreted 320x200 resolution type when running very old games
+  (broken in 3.3.0 update-1).
+- Fixed bug in script interpreter that could cause misinterpretation of value provided by plugin.
+- Fixed "--setup" command line argument not working if it is not the first argument.
+- Fixed WinSetup dialog not sized properly when larger fonts (DPI) option is used in
+  Windows display settings.
+
+Log additions:
+- Write the game data version and the list of supported graphic modes to the log.
+
+Manual:
+- Fixed Speech.VoiceMode example.
+
+
 VERSION 3.3.0 hotfix-3, July 2014
 
 Bug Fixes:
@@ -25,7 +43,7 @@ Features:
 
 Bug Fixes:
 - Fixed error in game compilation after user moves item folders up or down in the project tree.
-- Fixed bug which could make Character.Transparency and Object.Transparency proeprties return
+- Fixed bug which could make Character.Transparency and Object.Transparency properties return
   slightly incorrect values.
 - Fixed bug that could let user to load corrupted savedgame, which in turn could cause more trouble.
 

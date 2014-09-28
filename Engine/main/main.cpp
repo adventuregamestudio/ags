@@ -121,8 +121,8 @@ void main_create_platform_driver()
 // Version and build numbers
 #define ACI_VERSION_MAJOR               3
 #define ACI_VERSION_MINOR               3
-#define ACI_VERSION_RELEASE             0
-#define ACI_VERSION_REVISION            1164
+#define ACI_VERSION_RELEASE             2
+#define ACI_VERSION_REVISION            0
 #ifdef NO_MP3_PLAYER
 #define SPECIAL_VERSION "NMP"
 #else

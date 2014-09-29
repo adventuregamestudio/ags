@@ -193,7 +193,10 @@ void engine_force_window()
 {
     // Force to run in a window, override the config file
     if (force_window == 1)
+    {
         usetup.windowed = true;
+        usetup.screen_sz_def = kScreenDef_ByGameScaling;
+    }
     else if (force_window == 2)
         usetup.windowed = false;
 }

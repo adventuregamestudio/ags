@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "debug/assert.h"
 #include "util/stream.h"
 #include "util/string.h"
 #include "util/string_utils.h"
@@ -66,7 +67,7 @@ String::String(char c, int count)
 
 String::~String()
 {
-    Release();
+    Free();
 }
 
 void String::Read(Stream *in, int max_chars, bool stop_at_limit)
@@ -116,7 +117,7 @@ void String::ReadCount(Stream *in, int count)
         ReserveAndShift(false, count);
         count = in->Read(_meta->CStr, count);
         _meta->CStr[count] = 0;
-        _meta->Length = count;
+        _meta->Length = strlen(_meta->CStr);
     }
 }
 
@@ -149,48 +150,44 @@ int String::CompareNoCase(const char *cstr) const
 
 int String::CompareLeft(const char *cstr, int count) const
 {
-    int cstr_len = cstr ? strlen(cstr) : 0;
-    count = count >= 0 ? count : cstr_len;
-    return strncmp(GetCStr(), cstr ? cstr : "", count);
+    cstr = cstr ? cstr : "";
+    return strncmp(GetCStr(), cstr, count >= 0 ? count : strlen(cstr));
 }
 
 int String::CompareLeftNoCase(const char *cstr, int count) const
 {
-    int cstr_len = cstr ? strlen(cstr) : 0;
-    count = count >= 0 ? count : cstr_len;
-    return strnicmp(GetCStr(), cstr ? cstr : "", count);
+    cstr = cstr ? cstr : "";
+    return strnicmp(GetCStr(), cstr, count >= 0 ? count : strlen(cstr));
 }
 
 int String::CompareMid(const char *cstr, int from, int count) const
 {
-    int cstr_len = cstr ? strlen(cstr) : 0;
-    count = count >= 0 ? count : cstr_len;
+    cstr = cstr ? cstr : "";
     from = Math::Min(from, GetLength());
-    return strncmp(GetCStr() + from, cstr ? cstr : "", count);
+    return strncmp(GetCStr() + from, cstr, count >= 0 ? count : strlen(cstr));
 }
 
 int String::CompareMidNoCase(const char *cstr, int from, int count) const
 {
-    int cstr_len = cstr ? strlen(cstr) : 0;
-    count = count >= 0 ? count : cstr_len;
+    cstr = cstr ? cstr : "";
     from = Math::Min(from, GetLength());
-    return strnicmp(GetCStr() + from, cstr ? cstr : "", count);
+    return strnicmp(GetCStr() + from, cstr, count >= 0 ? count : strlen(cstr));
 }
 
 int String::CompareRight(const char *cstr, int count) const
 {
-    int cstr_len = cstr ? strlen(cstr) : 0;
-    count = count >= 0 ? count : cstr_len;
+    cstr = cstr ? cstr : "";
+    count = count >= 0 ? count : strlen(cstr);
     int from = Math::Max(0, GetLength() - count);
-    return strncmp(GetCStr() + from, cstr ? cstr : "", count);
+    return strncmp(GetCStr() + from, cstr, count);
 }
 
 int String::CompareRightNoCase(const char *cstr, int count) const
 {
-    int cstr_len = cstr ? strlen(cstr) : 0;
-    count = count >= 0 ? count : cstr_len;
+    cstr = cstr ? cstr : "";
+    count = count >= 0 ? count : strlen(cstr);
     int from = Math::Max(0, GetLength() - count);
-    return strnicmp(GetCStr() + from, cstr ? cstr : "", count);
+    return strnicmp(GetCStr() + from, cstr, count);
 }
 
 int String::FindChar(char c, int from) const
@@ -274,16 +271,6 @@ bool String::FindSection(char separator, int first, int last, bool exclude_first
         return true;
     }
     return false;
-}
-
-char String::GetAt(int index) const
-{
-    return (index >= 0 && index < GetLength()) ? _meta->CStr[index] : 0;
-}
-
-char String::GetLast() const
-{
-    return (_meta && _meta->Length > 0) ? _meta->CStr[_meta->Length - 1] : 0;
 }
 
 int String::ToInt() const
@@ -573,6 +560,20 @@ void String::Format(const char *fcstr, ...)
     va_end(argptr);
 }
 
+void String::Free()
+{
+    if (_meta)
+    {
+        assert(_meta->RefCount > 0);
+        _meta->RefCount--;
+        if (!_meta->RefCount)
+        {
+            delete [] _data;
+        }
+    }
+    _data = NULL;
+}
+
 void String::MakeLower()
 {
     if (_meta)
@@ -811,7 +812,7 @@ String &String::operator=(const String& str)
 {
     if (_data != str._data)
     {
-        Release();
+        Free();
         if (str._data && str._meta->Length > 0)
         {
             _data = str._data;
@@ -853,7 +854,7 @@ void String::Copy(int max_length, int offset)
     memcpy(new_data, _data, sizeof(String::Header));
     int copy_length = Math::Min(_meta->Length, max_length);
     memcpy(cstr_head, _meta->CStr, copy_length);
-    Release();
+    Free();
     _data = new_data;
     _meta->RefCount = 1;
     _meta->Capacity = max_length;
@@ -867,19 +868,6 @@ void String::Align(int offset)
     char *cstr_head = _data + sizeof(String::Header) + offset;
     memmove(cstr_head, _meta->CStr, _meta->Length + 1);
     _meta->CStr = cstr_head;
-}
-
-void String::Release()
-{
-    if (_meta)
-    {
-        _meta->RefCount--;
-        if (!_meta->RefCount)
-        {
-            delete [] _data;
-        }
-    }
-    _data = NULL;
 }
 
 void String::BecomeUnique()

@@ -3558,9 +3558,15 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 // run through all variables declared on this line
                 do {
                     int vname = targ.getnext();
+                    bool isDynamicArray = false;
                     if (sym.get_type(vname) == SYM_COMMA)
                         vname = targ.getnext();
 
+                    if (sym.get_type(vname) == SYM_OPENBRACKET && sym.get_type(targ.peeknext()) == SYM_CLOSEBRACKET) {
+                        isDynamicArray = true;
+                        targ.getnext();
+                        vname = targ.getnext();
+                    }
                     if (sym.get_type(vname) != 0) {
                         cc_error("'%s' is already defined",sym.get_name(vname));
                         return -1;
@@ -3605,7 +3611,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
 
                         if (process_function_declaration(targ, scrip, &vname, cursym, in_func,
                             nested_level, member_is_readonly, member_is_import, stname,
-                            member_is_pointer, member_is_static, NULL, NULL, 0))
+                            member_is_pointer, member_is_static, NULL, NULL, isDynamicArray))
                             return -1;
 
                         if (member_is_protected)
@@ -3616,6 +3622,12 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                             return -1;
                         }
 
+                    }
+                    else if (isDynamicArray) {
+                        // Someone tried to declare the function syntax for a dynamic array
+                        // But there was no function declaration
+                        cc_error("expected '('");
+                        return -1;
                     }
                     else if ((member_is_import) && (!member_is_property)) {
                         // member variable cannot be an import

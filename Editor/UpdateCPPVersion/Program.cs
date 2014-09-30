@@ -16,7 +16,7 @@ namespace UpdateCPPVersion
 	{
 		private const string CPP_RESOURCE_FILE = @"..\..\..\AGS.Native\NativeDLL.rc";
 
-		static void Main(string[] args)
+		static void Process()
 		{
             string executingDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string rcFileName = Path.Combine(executingDir, CPP_RESOURCE_FILE);
@@ -45,5 +45,17 @@ namespace UpdateCPPVersion
 				Console.WriteLine("Version already " + typesVersion.ToString() + "; not updating");
 			}
 		}
+
+        static void Main(string[] args)
+        {
+            try
+            {
+                Process();
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("UpdateCPPVersion raised exception:\n" + ex.Message);
+            }
+        }
 	}
 }

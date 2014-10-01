@@ -39,6 +39,7 @@
 #define __AGS_CN_UTIL__STRING_H
 
 #include "core/types.h"
+#include "debug/assert.h"
 
 namespace AGS
 {
@@ -63,7 +64,7 @@ public:
     ~String();
 
     // Get underlying C-string for reading
-    const char   *GetCStr() const
+    inline const char *GetCStr() const
     {
         return _meta ? _meta->CStr : "";
     }
@@ -108,6 +109,7 @@ public:
     // terminator. This method is better fit for reading from text
     // streams, or when the length of string is known beforehand.
     void    ReadCount(Stream *in, int count);
+    // Write() puts the null-terminated string into the stream.
     void    Write(Stream *out) const;
 
     static void WriteString(const char *cstr, Stream *out);
@@ -131,11 +133,30 @@ public:
 
     int     FindChar(char c, int from = 0) const;
     int     FindCharReverse(char c, int from = -1) const;
+
+    // Section methods treat string as a sequence of 'fields', separated by
+    // special character. They search for a substring consisting of all such
+    // 'fields' from the 'first' to the 'last', inclusive; the bounding
+    // separators are optionally included too.
+    // Section indexes are zero-based. The first (0th) section is always
+    // located before the first separator and the last section is always
+    // located after the last separator, meaning that if the outermost
+    // character in string is separator char, there's still an empty trailing
+    // field beyond that.
+    // This also means that there's always at least one section in any string,
+    // even if there are no separating chars.
     bool    FindSection(char separator, int first, int last, bool exclude_first_sep, bool exclude_last_sep,
                         int &from, int &to) const;
 
-    char    GetAt(int index) const;
-    char    GetLast() const;
+    // Get Nth character with bounds check (as opposed to subscript operator)
+    inline char GetAt(int index) const
+    {
+        return (_meta && index >= 0 && index <= _meta->Length) ? _meta->CStr[index] : 0;
+    }
+    inline char GetLast() const
+    {
+        return (_meta && _meta->Length > 0) ? _meta->CStr[_meta->Length - 1] : 0;
+    }
 
     //-------------------------------------------------------------------------
     // Value cast methods
@@ -205,6 +226,11 @@ public:
     void    FillString(char c, int count);
     // Makes a new string by putting in parameters according to format string
     void    Format(const char *fcstr, ...);
+    // Decrement ref counter and deallocate data if must.
+    // Free() should be called only when buffer is not needed anymore;
+    // if string must be truncated to zero length, but retain the allocated
+    // memory, call Empty() instead.
+    void    Free();
     // Convert string to lowercase equivalent
     void    MakeLower();
     // Convert string to uppercase equivalent
@@ -258,13 +284,14 @@ public:
     String &operator=(const char *cstr);
     inline char operator[](int index) const
     {
-        return GetAt(index);
+        assert(_meta && index >= 0 && index <= _meta->Length);
+        return _meta->CStr[index];
     }
-    inline bool operator==(const char *cstr)
+    inline bool operator==(const char *cstr) const
     {
         return Compare(cstr) == 0;
     }
-    inline bool operator!=(const char *cstr)
+    inline bool operator!=(const char *cstr) const
     {
         return Compare(cstr) != 0;
     }
@@ -277,10 +304,6 @@ private:
     // Aligns data at given offset
     void    Align(int offset);
 
-    // Decrement ref counter and zero pointers, deallocate data if must.
-    // Release() should be called only when buffer is not needed anymore;
-    // if string must be truncated to zero length, call Empty() instead.
-    void    Release();
     // Ensure this string is a compact independent copy, with ref counter = 1
     void    BecomeUnique();
     // Ensure this string is independent, and there's enough space before

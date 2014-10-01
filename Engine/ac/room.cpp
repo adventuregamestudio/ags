@@ -194,6 +194,10 @@ const char* Room_GetTextProperty(const char *property) {
     return get_text_property_dynamic_string(&thisroom.roomProps, property);
 }
 
+int Room_GetProperty (const char *property) {
+    return get_int_property(&thisroom.roomProps, property);
+}
+
 const char* Room_GetMessages(int index) {
     if ((index < 0) || (index >= thisroom.nummes)) {
         return NULL;
@@ -1125,6 +1129,12 @@ RuntimeScriptValue Sc_Room_GetDrawingSurfaceForBackground(const RuntimeScriptVal
     API_SCALL_OBJAUTO_PINT(ScriptDrawingSurface, Room_GetDrawingSurfaceForBackground);
 }
 
+// int (const char *property)
+RuntimeScriptValue Sc_Room_GetProperty(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_POBJ(Room_GetProperty, const char);
+}
+
 // const char* (const char *property)
 RuntimeScriptValue Sc_Room_GetTextProperty(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1195,6 +1205,7 @@ RuntimeScriptValue Sc_Room_GetWidth(const RuntimeScriptValue *params, int32_t pa
 void RegisterRoomAPI()
 {
     ccAddExternalStaticFunction("Room::GetDrawingSurfaceForBackground^1",   Sc_Room_GetDrawingSurfaceForBackground);
+    ccAddExternalStaticFunction("Room::GetProperty^1",                      Sc_Room_GetProperty);
     ccAddExternalStaticFunction("Room::GetTextProperty^1",                  Sc_Room_GetTextProperty);
     ccAddExternalStaticFunction("Room::get_BottomEdge",                     Sc_Room_GetBottomEdge);
     ccAddExternalStaticFunction("Room::get_ColorDepth",                     Sc_Room_GetColorDepth);
@@ -1210,6 +1221,7 @@ void RegisterRoomAPI()
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
     ccAddExternalFunctionForPlugin("Room::GetDrawingSurfaceForBackground^1",   (void*)Room_GetDrawingSurfaceForBackground);
+    ccAddExternalFunctionForPlugin("Room::GetProperty^1",                      (void*)Room_GetProperty);
     ccAddExternalFunctionForPlugin("Room::GetTextProperty^1",                  (void*)Room_GetTextProperty);
     ccAddExternalFunctionForPlugin("Room::get_BottomEdge",                     (void*)Room_GetBottomEdge);
     ccAddExternalFunctionForPlugin("Room::get_ColorDepth",                     (void*)Room_GetColorDepth);

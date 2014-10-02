@@ -25,7 +25,7 @@
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 
-DynamicArray<GUIListBox> guilist;
+std::vector<GUIListBox> guilist;
 int numguilist = 0;
 
 void GUIListBox::ChangeFont(int newfont) {

@@ -15,8 +15,8 @@
 #ifndef __AC_GUIBUTTON_H
 #define __AC_GUIBUTTON_H
 
+#include <vector>
 #include "gui/guiobject.h"
-#include "gui/dynamicarray.h"
 
 #define GBUT_ALIGN_TOPMIDDLE    0
 #define GBUT_ALIGN_TOPLEFT      1
@@ -104,7 +104,7 @@ private:
   void Draw_set_oritext(char *oritext, const char *text);
 };
 
-extern DynamicArray<GUIButton> guibuts;
+extern std::vector<GUIButton> guibuts;
 extern int numguibuts;
 
 int UpdateAnimatingButton(int bu);

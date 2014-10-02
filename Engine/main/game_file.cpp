@@ -57,9 +57,6 @@ extern char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
 extern unsigned char** old_dialog_scripts; // defined in ac_conversation
 extern char** old_speech_lines;
 
-extern DynamicArray<GUILabel> guilabels; // defined in ac_guilabel
-extern int numguilabels;
-
 extern int ifacepopped;
 
 extern GameSetupStruct game;

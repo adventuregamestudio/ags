@@ -48,8 +48,6 @@ extern int proper_exit;
 extern GUIMain*guis;
 extern int psp_gfx_renderer; // defined in ali3dogl
 extern WalkBehindMethodEnum walkBehindMethod;
-extern DynamicArray<GUIInv> guiinv;
-extern int numguiinv;
 extern int current_screen_resolution_multiplier;
 extern AGSPlatformDriver *platform;
 extern int force_16bit;

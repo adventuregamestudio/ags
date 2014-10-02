@@ -60,7 +60,6 @@ extern int loops_per_character;
 extern IAGSFontRenderer* fontRenderers[MAX_FONTS];
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
-extern DynamicArray<GUIButton> guibuts;
 
 int display_message_aschar=0;
 char *heightTestString = "ZHwypgfjqhkilIK";

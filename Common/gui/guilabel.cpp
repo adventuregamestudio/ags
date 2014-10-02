@@ -24,7 +24,7 @@
 
 using AGS::Common::Stream;
 
-DynamicArray<GUILabel> guilabels;
+std::vector<GUILabel> guilabels;
 int numguilabels = 0;
 
 void GUILabel::WriteToFile(Stream *out)

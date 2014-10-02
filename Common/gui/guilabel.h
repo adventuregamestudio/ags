@@ -15,8 +15,8 @@
 #ifndef __AC_GUILABEL_H
 #define __AC_GUILABEL_H
 
+#include <vector>
 #include "gui/guiobject.h"
-#include "gui/dynamicarray.h"
 
 struct GUILabel:public GUIObject
 {
@@ -79,7 +79,7 @@ private:
   void Draw_split_lines(char *teptr, int wid, int font, int &numlines);
 };
 
-extern DynamicArray<GUILabel> guilabels;
+extern std::vector<GUILabel> guilabels;
 extern int numguilabels;
 
 #endif // __AC_GUILABEL_H

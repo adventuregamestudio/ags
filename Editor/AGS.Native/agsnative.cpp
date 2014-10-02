@@ -3278,6 +3278,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  AGS::Types::GUITextWindowEdge^ textwindowedge = dynamic_cast<AGS::Types::GUITextWindowEdge^>(control);
 	  if (button)
 	  {
+          guibuts.push_back(::GUIButton());
 		  guibuts[numguibuts].textcol = button->TextColor;
 		  guibuts[numguibuts].font = button->Font;
 		  guibuts[numguibuts].pic = button->Image;
@@ -3298,6 +3299,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  }
 	  else if (label)
 	  {
+          guilabels.push_back(::GUILabel());
 		  guilabels[numguilabels].textcol = label->TextColor;
 		  guilabels[numguilabels].font = label->Font;
 		  guilabels[numguilabels].align = (int)label->TextAlignment;
@@ -3313,6 +3315,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  }
 	  else if (textbox)
 	  {
+          guitext.push_back(::GUITextBox());
 		  guitext[numguitext].textcol = textbox->TextColor;
 		  guitext[numguitext].font = textbox->Font;
 		  guitext[numguitext].flags = 0;
@@ -3327,6 +3330,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  }
 	  else if (listbox)
 	  {
+          guilist.push_back(::GUIListBox());
 		  guilist[numguilist].textcol = listbox->TextColor;
 		  guilist[numguilist].font = listbox->Font;
 		  guilist[numguilist].backcol = listbox->SelectedTextColor;
@@ -3344,6 +3348,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  }
 	  else if (slider)
 	  {
+          guislider.push_back(::GUISlider());
 		  guislider[numguislider].min = slider->MinValue;
 		  guislider[numguislider].max = slider->MaxValue;
 		  guislider[numguislider].value = slider->Value;
@@ -3359,6 +3364,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  }
 	  else if (invwindow)
 	  {
+          guiinv.push_back(::GUIInv());
 		  guiinv[numguiinv].charId = invwindow->CharacterID;
 		  guiinv[numguiinv].itemWidth = invwindow->ItemWidth;
 		  guiinv[numguiinv].itemHeight = invwindow->ItemHeight;
@@ -3370,6 +3376,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  }
 	  else if (textwindowedge)
 	  {
+          guibuts.push_back(::GUIButton());
 		  guibuts[numguibuts].pic = textwindowedge->Image;
 		  guibuts[numguibuts].usepic = guibuts[numguibuts].pic;
 		  guibuts[numguibuts].flags = 0;
@@ -3402,6 +3409,12 @@ void drawGUI(int hdc, int x,int y, GUI^ guiObj, int scaleFactor, int selectedCon
   numguilist = 0;
   numguislider = 0;
   numguiinv = 0;
+  guibuts.resize(0);
+  guilabels.resize(0);
+  guitext.resize(0);
+  guilist.resize(0);
+  guislider.resize(0);
+  guiinv.resize(0);
 
   ConvertGUIToBinaryFormat(guiObj, &tempgui);
 
@@ -5191,6 +5204,12 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	numguilist = 0;
 	numguislider = 0;
 	numguiinv = 0;
+    guibuts.resize(0);
+    guilabels.resize(0);
+    guitext.resize(0);
+    guilist.resize(0);
+    guislider.resize(0);
+    guiinv.resize(0);
 
 	thisgame.numgui = game->GUIs->Count;
   guis = (GUIMain*)calloc(thisgame.numgui, sizeof(GUIMain));

@@ -56,6 +56,8 @@ struct GUIObject
   char scriptName[MAX_GUIOBJ_SCRIPTNAME_LEN + 1];
   char eventHandlers[MAX_GUIOBJ_EVENTS][MAX_GUIOBJ_EVENTHANDLER_LEN + 1];
 
+  GUIObject();
+  virtual ~GUIObject(){}
   virtual void MouseMove(int, int) = 0; // x,y relative to gui
   virtual void MouseOver() = 0; // mouse moves onto object
   virtual void MouseLeave() = 0;        // mouse moves off object

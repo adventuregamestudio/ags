@@ -15,8 +15,8 @@
 #ifndef __AC_GUILISTBOX_H
 #define __AC_GUILISTBOX_H
 
+#include <vector>
 #include "gui/guiobject.h"
-#include "gui/dynamicarray.h"
 
 #define GLF_NOBORDER     1
 #define GLF_NOARROWS     2
@@ -105,7 +105,7 @@ private:
   void Draw_set_oritext(char *oritext, const char *text);
 };
 
-extern DynamicArray<GUIListBox> guilist;
+extern std::vector<GUIListBox> guilist;
 extern int numguilist;
 
 #endif // __AC_GUILISTBOX_H

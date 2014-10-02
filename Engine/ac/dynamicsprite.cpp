@@ -27,7 +27,6 @@
 #include "ac/roomstatus.h"
 #include "ac/roomstruct.h"
 #include "debug/debug_log.h"
-#include "gui/dynamicarray.h"
 #include "gui/guibutton.h"
 #include "ac/spritecache.h"
 #include "platform/base/override_defines.h"
@@ -42,8 +41,6 @@ extern GameSetupStruct game;
 extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern roomstruct thisroom;
-extern DynamicArray<GUIButton> guibuts;
-extern int numguibuts;
 extern RoomObject*objs;
 extern RoomStatus*croom;
 extern CharacterCache *charcache;

@@ -21,8 +21,6 @@
 
 extern ExecutingScript*curscript;
 extern GameState play;
-extern DynamicArray<GUIInv> guiinv;
-extern int numguiinv;
 extern int guis_need_update;
 
 void sc_invscreen() {

@@ -517,21 +517,21 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
 
   // import the buttons
   numguibuts = in->ReadInt32();
-  guibuts.SetSizeTo(numguibuts);
+  guibuts.resize(numguibuts);
 
   for (ee = 0; ee < numguibuts; ee++)
     guibuts[ee].ReadFromFile(in, GameGuiVersion);
 
   // labels
   numguilabels = in->ReadInt32();
-  guilabels.SetSizeTo(numguilabels);
+  guilabels.resize(numguilabels);
 
   for (ee = 0; ee < numguilabels; ee++)
     guilabels[ee].ReadFromFile(in, GameGuiVersion);
 
   // inv controls
   numguiinv = in->ReadInt32();
-  guiinv.SetSizeTo(numguiinv);
+  guiinv.resize(numguiinv);
 
   for (ee = 0; ee < numguiinv; ee++)
     guiinv[ee].ReadFromFile(in, GameGuiVersion);
@@ -539,7 +539,7 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   if (GameGuiVersion >= kGuiVersion_214) {
     // sliders
     numguislider = in->ReadInt32();
-    guislider.SetSizeTo(numguislider);
+    guislider.resize(numguislider);
 
     for (ee = 0; ee < numguislider; ee++)
       guislider[ee].ReadFromFile(in, GameGuiVersion);
@@ -548,7 +548,7 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   if (GameGuiVersion >= kGuiVersion_222) {
     // text boxes
     numguitext = in->ReadInt32();
-    guitext.SetSizeTo(numguitext);
+    guitext.resize(numguitext);
 
     for (ee = 0; ee < numguitext; ee++)
       guitext[ee].ReadFromFile(in, GameGuiVersion);
@@ -557,7 +557,7 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   if (GameGuiVersion >= kGuiVersion_230) {
     // list boxes
     numguilist = in->ReadInt32();
-    guilist.SetSizeTo(numguilist);
+    guilist.resize(numguilist);
 
     for (ee = 0; ee < numguilist; ee++)
       guilist[ee].ReadFromFile(in, GameGuiVersion);

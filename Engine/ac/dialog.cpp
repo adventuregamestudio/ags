@@ -398,12 +398,12 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
 
 
 void draw_gui_for_dialog_options(Bitmap *ds, GUIMain *guib, int dlgxp, int dlgyp) {
-  if (guib->bgcol != 0) {
-    color_t draw_color = ds->GetCompatibleColor(guib->bgcol);
-    ds->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->wid, dlgyp + guib->hit), draw_color);
+  if (guib->BgColor != 0) {
+    color_t draw_color = ds->GetCompatibleColor(guib->BgColor);
+    ds->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->Width, dlgyp + guib->Height), draw_color);
   }
-  if (guib->bgpic > 0)
-      GfxUtil::DrawSpriteWithTransparency(ds, spriteset[guib->bgpic], dlgxp, dlgyp);
+  if (guib->BgImage > 0)
+      GfxUtil::DrawSpriteWithTransparency(ds, spriteset[guib->BgImage], dlgxp, dlgyp);
 }
 
 bool get_custom_dialog_options_dimensions(int dlgnum)
@@ -577,29 +577,29 @@ void DialogOptions::Show()
     else if (game.options[OPT_DIALOGIFACE] > 0)
     {
       GUIMain*guib=&guis[game.options[OPT_DIALOGIFACE]];
-      if (guib->is_textwindow()) {
+      if (guib->IsTextWindow()) {
         // text-window, so do the QFG4-style speech options
         is_textwindow = 1;
-        forecol = guib->fgcol;
+        forecol = guib->FgColor;
       }
       else {
-        dlgxp = guib->x;
-        dlgyp = guib->y;
+        dlgxp = guib->X;
+        dlgyp = guib->Y;
 
         dirtyx = dlgxp;
         dirtyy = dlgyp;
-        dirtywidth = guib->wid;
-        dirtyheight = guib->hit;
-        dialog_abs_x = guib->x;
+        dirtywidth = guib->Width;
+        dirtyheight = guib->Height;
+        dialog_abs_x = guib->X;
 
-        areawid=guib->wid - 5;
+        areawid=guib->Width - 5;
         padding = TEXTWINDOW_PADDING_DEFAULT;
 
         GET_OPTIONS_HEIGHT
 
         if (game.options[OPT_DIALOGUPWARDS]) {
           // They want the options upwards from the bottom
-          dlgyp = (guib->y + guib->hit) - needheight;
+          dlgyp = (guib->Y + guib->Height) - needheight;
         }
         
       }
@@ -686,7 +686,7 @@ void DialogOptions::Redraw()
       // text window behind the options
       areawid = multiply_up_coordinate(play.max_dialogoption_width);
       int biggest = 0;
-      padding = guis[game.options[OPT_DIALOGIFACE]].padding;
+      padding = guis[game.options[OPT_DIALOGIFACE]].Padding;
       for (int i = 0; i < numdisp; ++i) {
         break_up_text_into_lines(areawid-((2*padding+2)+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[i]]));
         if (longestline > biggest)
@@ -714,7 +714,7 @@ void DialogOptions::Redraw()
       push_screen(ds);
       Bitmap *text_window_ds = ds;
       draw_text_window(&text_window_ds, false, &txoffs,&tyoffs,&xspos,&yspos,&areawid,NULL,needheight, game.options[OPT_DIALOGIFACE]);
-      options_surface_has_alpha = guis[game.options[OPT_DIALOGIFACE]].is_alpha();
+      options_surface_has_alpha = guis[game.options[OPT_DIALOGIFACE]].HasAlphaChannel();
       ds = pop_screen();
       // snice draw_text_window incrases the width, restore it
       areawid = savedwid;
@@ -748,7 +748,7 @@ void DialogOptions::Redraw()
         }
         else {
           GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
-          if (!guib->is_textwindow())
+          if (!guib->IsTextWindow())
             draw_gui_for_dialog_options(ds, guib, dlgxp, dlgyp);
         }
       }
@@ -761,9 +761,9 @@ void DialogOptions::Redraw()
         // the whole GUI area should be marked dirty in order
         // to ensure it gets drawn
         GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
-        dirtyheight = guib->hit;
+        dirtyheight = guib->Height;
         dirtyy = dlgyp;
-        options_surface_has_alpha = guib->is_alpha();
+        options_surface_has_alpha = guib->HasAlphaChannel();
       }
       else
       {

@@ -469,19 +469,19 @@ void init_and_register_guis()
     guiScriptObjNames = (char**)malloc(sizeof(char*) * game.numgui);
 
     for (ee=0;ee<game.numgui;ee++) {
-        guis[ee].rebuild_array();
-        if ((guis[ee].popup == POPUP_NONE) || (guis[ee].popup == POPUP_NOAUTOREM))
-            guis[ee].on = 1;
+        guis[ee].RebuildArray();
+        if ((guis[ee].PopupStyle == POPUP_NONE) || (guis[ee].PopupStyle == POPUP_NOAUTOREM))
+            guis[ee].On = 1;
         else
-            guis[ee].on = 0;
+            guis[ee].On = 0;
 
         // export all the GUI's controls
         export_gui_controls(ee);
 
         // copy the script name to its own memory location
         // because ccAddExtSymbol only keeps a reference
-        guiScriptObjNames[ee] = (char*)malloc(21);
-        strcpy(guiScriptObjNames[ee], guis[ee].name);
+        guiScriptObjNames[ee] = (char*)malloc(21); // FIXME: remove name length limit
+        strncpy(guiScriptObjNames[ee], guis[ee].Name, 20);
 
         // 64 bit: Using the id instead
         // scrGui[ee].gui = &guis[ee];

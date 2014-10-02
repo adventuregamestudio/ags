@@ -189,7 +189,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
             draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &ttxleft, &ttxtop, &xx, &yy, &wii, &text_color, 0, usingGui);
             if (usingGui > 0)
             {
-                alphaChannel = guis[usingGui].is_alpha();
+                alphaChannel = guis[usingGui].HasAlphaChannel();
             }
         }
         else if ((ShouldAntiAliasText()) && (ScreenResolution.ColorDepth >= 24))
@@ -203,7 +203,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
             if (asspch < 0) {
                 if ((usingGui >= 0) && 
                     ((game.options[OPT_SPEECHTYPE] >= 2) || (isThought)))
-                    text_color = text_window_ds->GetCompatibleColor(guis[usingGui].fgcol);
+                    text_color = text_window_ds->GetCompatibleColor(guis[usingGui].FgColor);
                 else
                     text_color = text_window_ds->GetCompatibleColor(-asspch);
 
@@ -223,7 +223,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
 
         if (game.options[OPT_TWCUSTOM] > 0)
         {
-            alphaChannel = guis[game.options[OPT_TWCUSTOM]].is_alpha();
+            alphaChannel = guis[game.options[OPT_TWCUSTOM]].HasAlphaChannel();
         }
 
         adjust_y_coordinate_for_text(&yoffs, usingfont);
@@ -507,7 +507,7 @@ void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {
 }
 
 int get_but_pic(GUIMain*guo,int indx) {
-    return guibuts[guo->objrefptr[indx] & 0x000ffff].pic;
+    return guibuts[guo->CtrlRefs[indx] & 0x000ffff].pic;
 }
 
 void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
@@ -527,23 +527,23 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
             // From the changelog of 2.62:
             //  - Fixed text windows getting a black background if colour 0 was
             //    specified, rather than being transparent.
-            if (iep->bgcol == 0)
-                iep->bgcol = 16;
+            if (iep->BgColor == 0)
+                iep->BgColor = 16;
         }
 
-        if (iep->bgcol >= 0) draw_color = ds->GetCompatibleColor(iep->bgcol);
+        if (iep->BgColor >= 0) draw_color = ds->GetCompatibleColor(iep->BgColor);
         else draw_color = ds->GetCompatibleColor(0); // black backrgnd behind picture
 
-        if (iep->bgcol > 0)
+        if (iep->BgColor > 0)
             ds->FillRect(Rect(xx1,yy1,xx2,yy2), draw_color);
 
         int leftRightWidth = spritewidth[get_but_pic(iep,4)];
         int topBottomHeight = spriteheight[get_but_pic(iep,6)];
-        if (iep->bgpic>0) {
+        if (iep->BgImage>0) {
             if ((loaded_game_file_version <= kGameVersion_272) // 2.xx
-                && (spriteset[iep->bgpic]->GetWidth() == 1)
-                && (spriteset[iep->bgpic]->GetHeight() == 1) 
-                && (*((unsigned int*)spriteset[iep->bgpic]->GetData()) == 0x00FF00FF))
+                && (spriteset[iep->BgImage]->GetWidth() == 1)
+                && (spriteset[iep->BgImage]->GetHeight() == 1) 
+                && (*((unsigned int*)spriteset[iep->BgImage]->GetData()) == 0x00FF00FF))
             {
                 // Don't draw fully transparent dummy GUI backgrounds
             }
@@ -563,10 +563,10 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
                     bgoffsy = bgoffsyStart;
                     while (bgoffsy <= bgfinishy)
                     {
-                        draw_gui_sprite_v330(ds, iep->bgpic, bgoffsx, bgoffsy);
-                        bgoffsy += spriteheight[iep->bgpic];
+                        draw_gui_sprite_v330(ds, iep->BgImage, bgoffsx, bgoffsy);
+                        bgoffsy += spriteheight[iep->BgImage];
                     }
-                    bgoffsx += spritewidth[iep->bgpic];
+                    bgoffsx += spritewidth[iep->BgImage];
                 }
                 // return to normal clipping rectangle
                 ds->SetClip(Rect(0, 0, ds->GetWidth() - 1, ds->GetHeight() - 1));
@@ -594,7 +594,7 @@ int get_textwindow_border_width (int twgui) {
     if (twgui < 0)
         return 0;
 
-    if (!guis[twgui].is_textwindow())
+    if (!guis[twgui].IsTextWindow())
         quit("!GUI set as text window but is not actually a text window GUI");
 
     int borwid = spritewidth[get_but_pic(&guis[twgui], 4)] + 
@@ -608,7 +608,7 @@ int get_textwindow_top_border_height (int twgui) {
     if (twgui < 0)
         return 0;
 
-    if (!guis[twgui].is_textwindow())
+    if (!guis[twgui].IsTextWindow())
         quit("!GUI set as text window but is not actually a text window GUI");
 
     return spriteheight[get_but_pic(&guis[twgui], 6)];
@@ -622,7 +622,7 @@ int get_textwindow_padding(int ifnum) {
     if (ifnum < 0)
         ifnum = game.options[OPT_TWCUSTOM];
     if (ifnum > 0 && ifnum < game.numgui)
-        result = guis[ifnum].padding;
+        result = guis[ifnum].Padding;
     else
         result = TEXTWINDOW_PADDING_DEFAULT;
 
@@ -648,7 +648,7 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
     else {
         if (ifnum >= game.numgui)
             quitprintf("!Invalid GUI %d specified as text window (total GUIs: %d)", ifnum, game.numgui);
-        if (!guis[ifnum].is_textwindow())
+        if (!guis[ifnum].IsTextWindow())
             quit("!GUI set as text window but is not actually a text window GUI");
 
         int tbnum = get_but_pic(&guis[ifnum], 0);
@@ -667,7 +667,7 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
         int xoffs=spritewidth[tbnum],yoffs=spriteheight[tbnum];
         draw_button_background(ds, xoffs,yoffs,(ds->GetWidth() - xoffs) - 1,(ds->GetHeight() - yoffs) - 1,&guis[ifnum]);
         if (set_text_color)
-            *set_text_color = ds->GetCompatibleColor(guis[ifnum].fgcol);
+            *set_text_color = ds->GetCompatibleColor(guis[ifnum].FgColor);
         xins[0]=xoffs+padding;
         yins[0]=yoffs+padding;
     }

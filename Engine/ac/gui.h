@@ -19,6 +19,9 @@
 #define __AGS_EE_AC__GUI_H
 
 #include "ac/dynobj/scriptgui.h"
+#include "gui/guimain.h"
+
+using AGS::Common::GUIMain;
 
 void	GUI_SetVisible(ScriptGUI *tehgui, int isvisible);
 int		GUI_GetVisible(ScriptGUI *tehgui);

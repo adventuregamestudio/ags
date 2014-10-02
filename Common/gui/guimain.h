@@ -18,6 +18,8 @@
 #include <vector>
 #include "gui/guiobject.h"
 #include "ac/common_defines.h"       // AGS_INLINE
+#include "util/geometry.h"
+#include "util/string.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
@@ -37,74 +39,108 @@ struct GameSetupStruct;
 #define GUIF_NOCLICK    1
 #define MOVER_MOUSEDOWNLOCKED -4000
 
-struct GUIMain
+#define GUIMAIN_RESERVED_INTS       5
+#define GUIMAIN_NAME_LENGTH         16
+#define GUIMAIN_EVENTHANDLER_LENGTH 20
+
+namespace AGS
 {
-  char vtext[4];                // for compatibility
-  char name[16];                // the name of the GUI
-  char clickEventHandler[20];
-  int x, y, wid, hit;
-  int focus;                    // which object has the focus
-  int numobjs;                  // number of objects on gui
-  int popup;                    // when it pops up (POPUP_NONE, POPUP_MOUSEY, POPUP_SCRIPT)
-  int popupyp;                  // popup when mousey < this
-  int bgcol, bgpic, fgcol;
-  int mouseover, mousewasx, mousewasy;
-  int mousedownon;
-  int highlightobj;
-  int flags;
-  int transparency;
-  int zorder;
-  int guiId;
-  int padding;                  // padding surrounding a GUI text window
-  int reserved[5];
-  int on;
-  GUIObject *objs[MAX_OBJS_ON_GUI];
-  int objrefptr[MAX_OBJS_ON_GUI];       // for re-building objs array
-  short drawOrder[MAX_OBJS_ON_GUI];
+namespace Common
+{
 
-  static char oNameBuffer[20];
+class GUIMain
+{
+public:
+    static String FixupGUIName(const String &name);
 
-  GUIMain();
-  void init();
-  void rebuild_array();
-  void resort_zorder();
-  int  get_control_type(int);
-  int  is_mouse_on_gui();
-  void draw_blob(Common::Bitmap *ds, int xp, int yp, color_t draw_color);
-  void draw_at(Common::Bitmap *ds, int xx, int yy);
-  void draw(Common::Bitmap *ds);
-  int  find_object_under_mouse();
-  // this version allows some extra leeway in the Editor so that
-  // the user can grab tiny controls
-  int  find_object_under_mouse(int);
-  int  find_object_under_mouse(int leeway, bool mustBeClickable);
-  void poll();
-  void mouse_but_down();
-  void mouse_but_up();
-  int  is_textwindow();
-  bool send_to_back(int objNum);
-  bool bring_to_front(int objNum);
-  // attempts to change control's zorder; returns if zorder changed
-  bool set_control_zorder(int objNum, int zorder);
-  void control_positions_changed();
-  bool is_alpha();
+public:
+    GUIMain();
 
-  void FixupGuiName(char* name);
-  void SetTransparencyAsPercentage(int percent);
-  void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  void WriteToFile(Common::Stream *out) const;
+    void Init();
 
+    int32_t FindControlUnderMouse() const;
+    // this version allows some extra leeway in the Editor so that
+    // the user can grab tiny controls
+    int32_t FindControlUnderMouse(int leeway) const;
+    int32_t FindControlUnderMouse(int leeway, bool must_be_clickable) const;
+    int32_t GetControlType(int index) const;
+    bool    HasAlphaChannel() const;
+    bool    IsMouseOnGUI() const;
+    bool    IsTextWindow() const;
+
+    // Operations
+    bool    BringControlToFront(int index);
+    void    Draw(Bitmap *ds);
+    void    DrawAt(Bitmap *ds, int x, int y);
+    void    Poll();
+    void    RebuildArray();
+    void    ResortZOrder();
+    bool    SendControlToBack(int index);
+    // attempts to change control's zorder; returns if zorder changed
+    bool    SetControlZOrder(int index, int zorder);
+    void    SetTransparencyAsPercentage(int percent);
+
+    // Events
+    void    OnMouseButtonDown();
+    void    OnMouseButtonUp();
+    void    OnControlPositionChanged();
+  
+    // Serialization
+    void    ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+    void    WriteToFile(Common::Stream *out) const;
+
+private:
+    void    DrawBlob(Bitmap *ds, int x, int y, color_t draw_color);
+
+    // TODO: all members are currently public; hide them later
+public:
+    int32_t Id;             // GUI identifier
+    String  Name;           // the name of the GUI
+    int32_t Flags;          // style and behavior flags
+
+    int32_t X;
+    int32_t Y;
+    int32_t Width;
+    int32_t Height;
+    color_t BgColor;        // background color
+    int32_t BgImage;        // background sprite index
+    color_t FgColor;        // foreground color
+    int32_t On;             // combined visible / enabled flag
+    int32_t Padding;        // padding surrounding a GUI text window
+    int32_t PopupStyle;     // when it pops up (POPUP_NONE, POPUP_MOUSEY, POPUP_SCRIPT)
+    int32_t PopupAtMouseY;  // popup when mousey < this
+    int32_t Transparency;   // inverted alpha
+    int32_t ZOrder;
+
+    int32_t FocusCtrl;      // which control has the focus
+    int32_t HighlightCtrl;  // which control has the bounding selection rect
+    int32_t MouseOverCtrl;  // which control has the mouse cursor over it
+    int32_t MouseDownCtrl;  // which control has the mouse button pressed on it
+    Point   MouseWasAt;     // last mouse cursor position
+
+    String  OnClickHandler; // script function name
+
+    GUIObject *Controls[MAX_OBJS_ON_GUI]; // array of child controls
+    int32_t    CtrlRefs[MAX_OBJS_ON_GUI]; // for re-building controls array
+    int16_t    CtrlDrawOrder[MAX_OBJS_ON_GUI];
+
+    // TODO: remove these later
+    int32_t ControlCount;   // number of objects on gui
+    char    TextWindowFlag[4]; // tells if this is a text window
 };
 
+} // namespace Common
+} // namespace AGS
+
 extern GuiVersion GameGuiVersion;
-extern std::vector<GUIMain> guis;
+extern std::vector<Common::GUIMain> guis;
 extern int all_buttons_disabled, gui_inv_pic;
 extern int gui_disabled_style;
 extern char lines[MAXLINE][200];
 extern int  numlines;
 
-extern void read_gui(Common::Stream *in, std::vector<GUIMain> &guiread, GameSetupStruct * gss);
-extern void write_gui(Common::Stream *out, const std::vector<GUIMain> &guiwrite, GameSetupStruct * gss, bool savedgame);
+extern void read_gui(Common::Stream *in, std::vector<Common::GUIMain> &guiread, GameSetupStruct * gss);
+extern void write_gui(Common::Stream *out, const std::vector<Common::GUIMain> &guiwrite, GameSetupStruct * gss, bool savedgame);
 
 extern int mousex, mousey;
 

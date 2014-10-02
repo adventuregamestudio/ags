@@ -88,8 +88,8 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
             }
             for (tt = 0; tt < game.numgui; tt++) 
             {
-                if ((guis[tt].bgpic == sds->dynamicSpriteNumber) &&
-                    (guis[tt].on == 1))
+                if ((guis[tt].BgImage == sds->dynamicSpriteNumber) &&
+                    (guis[tt].On == 1))
                 {
                     guis_need_update = 1;
                     break;

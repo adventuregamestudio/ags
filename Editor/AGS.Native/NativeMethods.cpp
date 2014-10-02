@@ -110,6 +110,19 @@ void ConvertStringToNativeString(System::String^ clrString, AGS::Common::String 
     Marshal::FreeHGlobal(IntPtr(stringPointer));
 }
 
+void ConvertStringToNativeString(System::String^ clrString, AGS::Common::String &destStr, int maxLength)
+{
+    if (clrString->Length >= maxLength) 
+    {
+        throw gcnew AGSEditorException(String::Format("String is too long: {0} (max length={1})", clrString, maxLength - 1));
+    }
+    char* stringPointer = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(clrString).ToPointer();
+
+    destStr = stringPointer;
+
+    System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(stringPointer));
+}
+
 void ConvertStringToCharArray(System::String^ clrString, char *textBuffer, int maxLength)
 {
 	if (clrString->Length >= maxLength) 

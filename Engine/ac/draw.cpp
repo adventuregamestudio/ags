@@ -2177,7 +2177,7 @@ void draw_screen_overlay() {
             //Bitmap *abufwas = ds;
             guis_need_update = 0;
             for (aa=0;aa<game.numgui;aa++) {
-                if (guis[aa].on<1) continue;
+                if (guis[aa].On<1) continue;
 
                 if (guibg[aa] == NULL)
                     recreate_guibg_image(&guis[aa]);
@@ -2187,18 +2187,18 @@ void draw_screen_overlay() {
                 guibg[aa]->ClearTransparent();
                 //ds = guibg[aa];
                 our_eip = 372;
-                guis[aa].draw_at(guibg[aa], 0,0);
+                guis[aa].DrawAt(guibg[aa], 0,0);
                 our_eip = 373;
 
                 bool isAlpha = false;
-                if (guis[aa].is_alpha()) 
+                if (guis[aa].HasAlphaChannel()) 
                 {
                     isAlpha = true;
 
-                    if ((game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Classic) && (guis[aa].bgpic > 0))
+                    if ((game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Classic) && (guis[aa].BgImage > 0))
                     {
                         // old-style (pre-3.0.2) GUI alpha rendering
-                        repair_alpha_channel(guibg[aa], spriteset[guis[aa].bgpic]);
+                        repair_alpha_channel(guibg[aa], spriteset[guis[aa].BgImage]);
                     }
                 }
 
@@ -2218,20 +2218,20 @@ void draw_screen_overlay() {
         // Draw the GUIs
         for (gg = 0; gg < game.numgui; gg++) {
             aa = play.gui_draw_order[gg];
-            if (guis[aa].on < 1) continue;
+            if (guis[aa].On < 1) continue;
 
             // Don't draw GUI if "GUIs Turn Off When Disabled"
             if ((game.options[OPT_DISABLEOFF] == 3) &&
                 (all_buttons_disabled > 0) &&
-                (guis[aa].popup != POPUP_NOAUTOREM))
+                (guis[aa].PopupStyle != POPUP_NOAUTOREM))
                 continue;
 
-            add_thing_to_draw(guibgbmp[aa], guis[aa].x, guis[aa].y, guis[aa].transparency, guis[aa].is_alpha());
+            add_thing_to_draw(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].Transparency, guis[aa].HasAlphaChannel());
 
             // only poll if the interface is enabled (mouseovers should not
             // work while in Wait state)
             if (IsInterfaceEnabled())
-                guis[aa].poll();
+                guis[aa].Poll();
         }
     }
 

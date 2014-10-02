@@ -199,6 +199,38 @@ struct Rect
     {
         return Size(GetWidth(), GetHeight());
     }
+    
+    inline bool IsEmpty() const
+    {
+        return Right < Left || Bottom < Top;
+    }
+
+    inline bool IsInside(const Point &pt) const
+    {
+        return pt.X >= Left && pt.Y >= Top && (pt.X <= Right) && (pt.Y <= Bottom);
+    }
+
+    inline void MoveToX(int x)
+    {
+        Right += x - Left;
+        Left = x;
+    }
+
+    inline void MoveToY(int y)
+    {
+        Bottom += y - Top;
+        Top = y;
+    }
+
+    inline void SetWidth(int width)
+    {
+        Right = Left + width - 1;
+    }
+
+    inline void SetHeight(int height)
+    {
+        Bottom = Top + height - 1;
+    }
 };
 
 // Helper factory function

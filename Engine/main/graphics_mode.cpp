@@ -107,24 +107,24 @@ void adjust_sizes_for_resolution(int filever)
     for (ee = 0; ee < game.numgui; ee++) 
     {
         GUIMain*cgp=&guis[ee];
-        adjust_pixel_sizes_for_loaded_data(&cgp->x, &cgp->y, filever);
-        if (cgp->wid < 1)
-            cgp->wid = 1;
-        if (cgp->hit < 1)
-            cgp->hit = 1;
+        adjust_pixel_sizes_for_loaded_data(&cgp->X, &cgp->Y, filever);
+        if (cgp->Width < 1)
+            cgp->Width = 1;
+        if (cgp->Height < 1)
+            cgp->Height = 1;
         // Temp fix for older games
-        if (cgp->wid == BASEWIDTH - 1)
-            cgp->wid = BASEWIDTH;
+        if (cgp->Width == BASEWIDTH - 1)
+            cgp->Width = BASEWIDTH;
 
-        adjust_pixel_sizes_for_loaded_data(&cgp->wid, &cgp->hit, filever);
+        adjust_pixel_sizes_for_loaded_data(&cgp->Width, &cgp->Height, filever);
 
-        cgp->popupyp = adjust_pixel_size_for_loaded_data(cgp->popupyp, filever);
+        cgp->PopupAtMouseY = adjust_pixel_size_for_loaded_data(cgp->PopupAtMouseY, filever);
 
-        for (ff = 0; ff < cgp->numobjs; ff++) 
+        for (ff = 0; ff < cgp->ControlCount; ff++) 
         {
-            adjust_pixel_sizes_for_loaded_data(&cgp->objs[ff]->x, &cgp->objs[ff]->y, filever);
-            adjust_pixel_sizes_for_loaded_data(&cgp->objs[ff]->wid, &cgp->objs[ff]->hit, filever);
-            cgp->objs[ff]->activated=0;
+            adjust_pixel_sizes_for_loaded_data(&cgp->Controls[ff]->x, &cgp->Controls[ff]->y, filever);
+            adjust_pixel_sizes_for_loaded_data(&cgp->Controls[ff]->wid, &cgp->Controls[ff]->hit, filever);
+            cgp->Controls[ff]->activated=0;
         }
     }
 

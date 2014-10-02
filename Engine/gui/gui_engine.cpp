@@ -47,14 +47,14 @@ extern void ensure_text_valid_for_font(char *, int);
 extern SpriteCache spriteset; // in ac_runningame
 extern GameSetupStruct game;
 
-bool GUIMain::is_alpha() 
+bool AGS::Common::GUIMain::HasAlphaChannel() const
 {
-    if (this->bgpic > 0)
+    if (this->BgImage > 0)
     {
         // alpha state depends on background image
-        return is_sprite_alpha(this->bgpic);
+        return is_sprite_alpha(this->BgImage);
     }
-    if (this->bgcol > 0)
+    if (this->BgColor > 0)
     {
         // not alpha transparent if there is a background color
         return false;

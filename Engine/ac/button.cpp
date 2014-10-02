@@ -49,7 +49,7 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat) 
     if (numAnimButs >= MAX_ANIMATING_BUTTONS)
         quit("!AnimateButton: too many animating GUI buttons at once");
 
-    int buttonId = guis[guin].objrefptr[objn] & 0x000ffff;
+    int buttonId = guis[guin].CtrlRefs[objn] & 0x000ffff;
 
     guibuts[buttonId].pushedpic = 0;
     guibuts[buttonId].overpic = 0;

@@ -23,18 +23,18 @@ extern GameSetupStruct game;
 
 void SetSliderValue(int guin,int objn, int valn) {
     if ((guin<0) | (guin>=game.numgui)) quit("!SetSliderValue: invalid GUI number");
-    if (guis[guin].get_control_type(objn)!=GOBJ_SLIDER)
+    if (guis[guin].GetControlType(objn)!=GOBJ_SLIDER)
         quit("!SetSliderValue: specified control is not a slider");
 
-    GUISlider*guisl=(GUISlider*)guis[guin].objs[objn];
+    GUISlider*guisl=(GUISlider*)guis[guin].Controls[objn];
     Slider_SetValue(guisl, valn);
 }
 
 int GetSliderValue(int guin,int objn) {
     if ((guin<0) | (guin>=game.numgui)) quit("!GetSliderValue: invalid GUI number");
-    if (guis[guin].get_control_type(objn)!=GOBJ_SLIDER)
+    if (guis[guin].GetControlType(objn)!=GOBJ_SLIDER)
         quit("!GetSliderValue: specified control is not a slider");
 
-    GUISlider*guisl=(GUISlider*)guis[guin].objs[objn];
+    GUISlider*guisl=(GUISlider*)guis[guin].Controls[objn];
     return Slider_GetValue(guisl);
 }

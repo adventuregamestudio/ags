@@ -18,7 +18,6 @@
 #include "ac/runtime_defines.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
-#include "gui/dynamicarray.h"
 #include "debug/out.h"
 #include "debug/consoleoutputtarget.h"
 #include "debug/logfile.h"
@@ -267,7 +266,7 @@ struct Breakpoint
     int lineNumber;
 };
 
-DynamicArray<Breakpoint> breakpoints;
+std::vector<Breakpoint> breakpoints;
 int numBreakpoints = 0;
 
 bool send_message_to_editor(const char *msg, const char *errorMsg) 
@@ -385,16 +384,14 @@ int check_for_messages_from_editor()
                         (strcmp(breakpoints[i].scriptName, scriptNameBuf) == 0))
                     {
                         numBreakpoints--;
-                        for (int j = i; j < numBreakpoints; j++)
-                        {
-                            breakpoints[j] = breakpoints[j + 1];
-                        }
+                        breakpoints.erase(breakpoints.begin() + i);
                         break;
                     }
                 }
             }
             else 
             {
+                breakpoints.push_back(Breakpoint());
                 strcpy(breakpoints[numBreakpoints].scriptName, scriptNameBuf);
                 breakpoints[numBreakpoints].lineNumber = lineNumber;
                 numBreakpoints++;

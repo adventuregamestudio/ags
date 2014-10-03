@@ -51,7 +51,7 @@ struct EventHappened {
     int player;
 };
 
-int run_claimable_event(char *tsname, bool includeRoom, int numParams, RuntimeScriptValue *params, bool *eventWasClaimed);
+int run_claimable_event(const char *tsname, bool includeRoom, int numParams, RuntimeScriptValue *params, bool *eventWasClaimed);
 // runs the global script on_event fnuction
 void run_on_event (int evtype, RuntimeScriptValue &wparam);
 void run_room_event(int id);

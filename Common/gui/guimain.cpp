@@ -30,6 +30,8 @@
 
 using namespace AGS::Common;
 
+#define MOVER_MOUSEDOWNLOCKED -4000
+
 int guis_need_update = 1;
 int all_buttons_disabled = 0, gui_inv_pic = -1;
 int gui_disabled_style = 0;
@@ -66,7 +68,7 @@ void GUIMain::Init()
     FgColor       = 1;
     On            = 1;
     Padding       = TEXTWINDOW_PADDING_DEFAULT;
-    PopupStyle    = POPUP_NONE;
+    PopupStyle    = kGUIPopupNone;
     PopupAtMouseY = -1;
     Transparency  = 0;
     ZOrder        = -1;
@@ -124,18 +126,18 @@ int GUIMain::FindControlUnderMouse(int leeway) const
     return FindControlUnderMouse(leeway, true);
 }
 
-int GUIMain::GetControlType(int index) const
+GUIControlType GUIMain::GetControlType(int index) const
 {
     if (index < 0 || index >= ControlCount)
-        return -1;
-    return ((CtrlRefs[index] >> 16) & 0x0000ffff);
+        return kGUIControlUndefined;
+    return (GUIControlType)((CtrlRefs[index] >> 16) & 0x0000ffff);
 }
 
 bool GUIMain::IsMouseOnGUI() const
 {
     if (On < 1)
         return false;
-    if (Flags & GUIF_NOCLICK)
+    if (Flags & kGUIMain_NoClick)
         return false;
     if ((mousex >= X) & (mousey >= Y) & (mousex <= X + Width) & (mousey <= Y + Height))
         return true;
@@ -144,7 +146,7 @@ bool GUIMain::IsMouseOnGUI() const
 
 bool GUIMain::IsTextWindow() const
 {
-    return (Flags & GUIF_TEXTWINDOW) != 0;
+    return (Flags & kGUIMain_TextWindow) != 0;
 }
 
 bool GUIMain::BringControlToFront(int index)
@@ -301,17 +303,17 @@ void GUIMain::RebuildArray()
         if (thisnum < 0 || thisnum >= 2000)
             quit("GUIMain: rebuild array failed (invalid object index)");
 
-        if (thistype == GOBJ_BUTTON)
+        if (thistype == kGUIButton)
             Controls[i] = &guibuts[thisnum];
-        else if (thistype == GOBJ_LABEL)
+        else if (thistype == kGUILabel)
             Controls[i] = &guilabels[thisnum];
-        else if (thistype == GOBJ_INVENTORY)
+        else if (thistype == kGUIInvWindow)
             Controls[i] = &guiinv[thisnum];
-        else if (thistype == GOBJ_SLIDER)
+        else if (thistype == kGUISlider)
             Controls[i] = &guislider[thisnum];
-        else if (thistype == GOBJ_TEXTBOX)
+        else if (thistype == kGUITextBox)
             Controls[i] = &guitext[thisnum];
-        else if (thistype == GOBJ_LISTBOX)
+        else if (thistype == kGUIListBox)
             Controls[i] = &guilist[thisnum];
         else
             quit("guimain: unknown control type found On gui");
@@ -448,7 +450,7 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     Height        = in->ReadInt32();
     FocusCtrl     = in->ReadInt32();
     ControlCount  = in->ReadInt32();
-    PopupStyle    = in->ReadInt32();
+    PopupStyle    = (GUIPopupStyle)in->ReadInt32();
     PopupAtMouseY = in->ReadInt32();
     BgColor       = in->ReadInt32();
     BgImage       = in->ReadInt32();
@@ -459,9 +461,9 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     MouseDownCtrl = in->ReadInt32();
     HighlightCtrl = in->ReadInt32();
     Flags         = in->ReadInt32();
-    if (tw_flags[0] == GUI_LEGACYTEXTWINDOW)
+    if (tw_flags[0] == kGUIMain_LegacyTextWindow)
     {
-        Flags |= GUIF_TEXTWINDOW;
+        Flags |= kGUIMain_TextWindow;
     }
     Transparency  = in->ReadInt32();
     ZOrder        = in->ReadInt32();
@@ -478,8 +480,8 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 void GUIMain::WriteToFile(Stream *out) const
 {
     char tw_flags[GUIMAIN_LEGACY_TW_FLAGS_SIZE] = {0};
-    if (Flags & GUIF_TEXTWINDOW)
-        tw_flags[0] = GUI_LEGACYTEXTWINDOW;
+    if (Flags & kGUIMain_TextWindow)
+        tw_flags[0] = kGUIMain_LegacyTextWindow;
     out->Write(tw_flags, sizeof(tw_flags));
     Name.WriteCount(out, GUIMAIN_NAME_LENGTH);
     OnClickHandler.WriteCount(out, GUIMAIN_EVENTHANDLER_LENGTH);

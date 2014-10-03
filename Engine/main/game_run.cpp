@@ -53,6 +53,8 @@
 #include "script/script.h"
 #include "ac/spritecache.h"
 
+using namespace AGS::Common;
+
 extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 extern int numAnimButs;
 extern int mouse_on_iface;   // mouse cursor is over this interface
@@ -194,7 +196,7 @@ void check_controls() {
             aa = play.gui_draw_order[ll];
             if (guis[aa].IsMouseOnGUI()) mongu=aa;
 
-            if (guis[aa].PopupStyle!=POPUP_MOUSEY) continue;
+            if (guis[aa].PopupStyle!=kGUIPopupMouseY) continue;
             if (is_complete_overlay>0) break;  // interfaces disabled
             //    if (play.disabled_user_interface>0) break;
             if (ifacepopped==aa) continue;
@@ -221,7 +223,7 @@ void check_controls() {
     if ((wasbutdown>0) && (misbuttondown(wasbutdown-1))) {
         for (aa=0;aa<guis[wasongui].ControlCount;aa++) {
             if (guis[wasongui].Controls[aa]->activated<1) continue;
-            if (guis[wasongui].GetControlType(aa)!=GOBJ_SLIDER) continue;
+            if (guis[wasongui].GetControlType(aa)!=kGUISlider) continue;
             // GUI Slider repeatedly activates while being dragged
             guis[wasongui].Controls[aa]->activated=0;
             setevent(EV_IFACECLICK, wasongui, aa, wasbutdown);
@@ -239,10 +241,10 @@ void check_controls() {
             if (!IsInterfaceEnabled()) break;
 
             int cttype=guis[wasongui].GetControlType(aa);
-            if ((cttype == GOBJ_BUTTON) || (cttype == GOBJ_SLIDER) || (cttype == GOBJ_LISTBOX)) {
+            if ((cttype == kGUIButton) || (cttype == kGUISlider) || (cttype == kGUIListBox)) {
                 setevent(EV_IFACECLICK, wasongui, aa, whichbut);
             }
-            else if (cttype == GOBJ_INVENTORY) {
+            else if (cttype == kGUIInvWindow) {
                 mouse_ifacebut_xoffs=mousex-(guis[wasongui].Controls[aa]->x)-guis[wasongui].X;
                 mouse_ifacebut_yoffs=mousey-(guis[wasongui].Controls[aa]->y)-guis[wasongui].Y;
                 int iit=offset_over_inv((GUIInv*)guis[wasongui].Controls[aa]);
@@ -264,7 +266,7 @@ void check_controls() {
                 }
             }
             else quit("clicked on unknown control type");
-            if (guis[wasongui].PopupStyle==POPUP_MOUSEY)
+            if (guis[wasongui].PopupStyle==kGUIPopupMouseY)
                 remove_popup_interface(wasongui);
             break;
         }
@@ -446,7 +448,7 @@ void check_controls() {
                     if (guis[uu].On < 1) continue;
                     for (ww=0;ww<guis[uu].ControlCount;ww++) {
                         // not a text box, ignore it
-                        if ((guis[uu].CtrlRefs[ww] >> 16)!=GOBJ_TEXTBOX)
+                        if ((guis[uu].CtrlRefs[ww] >> 16)!=kGUITextBox)
                             continue;
                         GUITextBox*guitex=(GUITextBox*)guis[uu].Controls[ww];
                         // if the text box is disabled, it cannot except keypresses

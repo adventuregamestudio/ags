@@ -470,7 +470,7 @@ void init_and_register_guis()
 
     for (ee=0;ee<game.numgui;ee++) {
         guis[ee].RebuildArray();
-        if ((guis[ee].PopupStyle == POPUP_NONE) || (guis[ee].PopupStyle == POPUP_NOAUTOREM))
+        if ((guis[ee].PopupStyle == kGUIPopupNone) || (guis[ee].PopupStyle == kGUIPopupNoAutoRemove))
             guis[ee].On = 1;
         else
             guis[ee].On = 0;

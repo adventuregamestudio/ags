@@ -26,6 +26,8 @@
 #include "gui/guimain.h"
 #include "script/runtimescriptvalue.h"
 
+using namespace AGS::Common;
+
 extern GameSetupStruct game;
 extern ScriptGUI *scrGui;
 
@@ -62,8 +64,8 @@ void InterfaceOn(int ifn) {
   guis[ifn].On=1;
   DEBUG_CONSOLE("GUI %d turned on", ifn);
   // modal interface
-  if (guis[ifn].PopupStyle==POPUP_SCRIPT) PauseGame();
-  else if (guis[ifn].PopupStyle==POPUP_MOUSEY) guis[ifn].On=0;
+  if (guis[ifn].PopupStyle==kGUIPopupModal) PauseGame();
+  else if (guis[ifn].PopupStyle==kGUIPopupMouseY) guis[ifn].On=0;
   // clear the cached mouse position
   guis[ifn].OnControlPositionChanged();
   guis[ifn].Poll();
@@ -71,7 +73,7 @@ void InterfaceOn(int ifn) {
 
 void InterfaceOff(int ifn) {
   if ((ifn<0) | (ifn>=game.numgui)) quit("!GUIOff: invalid GUI specified");
-  if ((guis[ifn].On==0) && (guis[ifn].PopupStyle!=POPUP_MOUSEY)) {
+  if ((guis[ifn].On==0) && (guis[ifn].PopupStyle!=kGUIPopupMouseY)) {
     DEBUG_CONSOLE("GUIOff(%d) ignored (already off)", ifn);
     return;
   }
@@ -85,8 +87,8 @@ void InterfaceOff(int ifn) {
   guis[ifn].OnControlPositionChanged();
   guis_need_update = 1;
   // modal interface
-  if (guis[ifn].PopupStyle==POPUP_SCRIPT) UnPauseGame();
-  else if (guis[ifn].PopupStyle==POPUP_MOUSEY) guis[ifn].On=-1;
+  if (guis[ifn].PopupStyle==kGUIPopupModal) UnPauseGame();
+  else if (guis[ifn].PopupStyle==kGUIPopupMouseY) guis[ifn].On=-1;
 }
 
 void SetGUIObjectEnabled(int guin, int objn, int enabled) {
@@ -221,7 +223,7 @@ int GetGUIAt (int xx,int yy) {
     for (ll = game.numgui - 1; ll >= 0; ll--) {
         aa = play.gui_draw_order[ll];
         if (guis[aa].On<1) continue;
-        if (guis[aa].Flags & GUIF_NOCLICK) continue;
+        if (guis[aa].Flags & kGUIMain_NoClick) continue;
         if ((xx>=guis[aa].X) & (yy>=guis[aa].Y) &
             (xx<=guis[aa].X+guis[aa].Width) & (yy<=guis[aa].Y+guis[aa].Height))
             return aa;

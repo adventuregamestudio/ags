@@ -28,6 +28,8 @@
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guiobject.h"
 
+using namespace AGS::Common;
+
 extern ScriptGUI*scrGui;
 extern CCGUI ccDynamicGUI;
 extern CCGUIObject ccDynamicGUIObject;
@@ -111,42 +113,42 @@ ScriptGUI* GUIControl_GetOwningGUI(GUIObject *guio) {
 }
 
 GUIButton* GUIControl_GetAsButton(GUIObject *guio) {
-  if (guis[guio->guin].GetControlType(guio->objn) != GOBJ_BUTTON)
+  if (guis[guio->guin].GetControlType(guio->objn) != kGUIButton)
     return NULL;
 
   return (GUIButton*)guio;
 }
 
 GUIInv* GUIControl_GetAsInvWindow(GUIObject *guio) {
-  if (guis[guio->guin].GetControlType(guio->objn) != GOBJ_INVENTORY)
+  if (guis[guio->guin].GetControlType(guio->objn) != kGUIInvWindow)
     return NULL;
 
   return (GUIInv*)guio;
 }
 
 GUILabel* GUIControl_GetAsLabel(GUIObject *guio) {
-  if (guis[guio->guin].GetControlType(guio->objn) != GOBJ_LABEL)
+  if (guis[guio->guin].GetControlType(guio->objn) != kGUILabel)
     return NULL;
 
   return (GUILabel*)guio;
 }
 
 GUIListBox* GUIControl_GetAsListBox(GUIObject *guio) {
-  if (guis[guio->guin].GetControlType(guio->objn) != GOBJ_LISTBOX)
+  if (guis[guio->guin].GetControlType(guio->objn) != kGUIListBox)
     return NULL;
 
   return (GUIListBox*)guio;
 }
 
 GUISlider* GUIControl_GetAsSlider(GUIObject *guio) {
-  if (guis[guio->guin].GetControlType(guio->objn) != GOBJ_SLIDER)
+  if (guis[guio->guin].GetControlType(guio->objn) != kGUISlider)
     return NULL;
 
   return (GUISlider*)guio;
 }
 
 GUITextBox* GUIControl_GetAsTextBox(GUIObject *guio) {
-  if (guis[guio->guin].GetControlType(guio->objn) != GOBJ_TEXTBOX)
+  if (guis[guio->guin].GetControlType(guio->objn) != kGUITextBox)
     return NULL;
 
   return (GUITextBox*)guio;

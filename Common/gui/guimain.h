@@ -29,26 +29,55 @@ using namespace AGS; // FIXME later
 struct GameSetupStruct;
 
 #define MAX_OBJS_ON_GUI 30
-#define GOBJ_BUTTON     1
-#define GOBJ_LABEL      2
-#define GOBJ_INVENTORY  3
-#define GOBJ_SLIDER     4
-#define GOBJ_TEXTBOX    5
-#define GOBJ_LISTBOX    6
-#define GUI_LEGACYTEXTWINDOW  0x05
-#define GUIF_NOCLICK    1
-#define GUIF_TEXTWINDOW 2
-#define MOVER_MOUSEDOWNLOCKED -4000
 
 #define GUIMAIN_RESERVED_INTS       5
 #define GUIMAIN_NAME_LENGTH         16
 #define GUIMAIN_EVENTHANDLER_LENGTH 20
 #define GUIMAIN_LEGACY_TW_FLAGS_SIZE 4
 
+#define TEXTWINDOW_PADDING_DEFAULT  3
+
 namespace AGS
 {
 namespace Common
 {
+
+enum GUIControlType
+{
+    kGUIControlUndefined = -1,
+    kGUIButton      = 1,
+    kGUILabel       = 2,
+    kGUIInvWindow   = 3,
+    kGUISlider      = 4,
+    kGUITextBox     = 5,
+    kGUIListBox     = 6
+};
+
+enum GUIMainFlags
+{
+    kGUIMain_NoClick    = 0x01,
+    kGUIMain_TextWindow = 0x02
+};
+
+enum GUIMainLegacyFlags
+{
+    kGUIMain_LegacyTextWindow = 5
+};
+
+enum GUIPopupStyle
+{
+    // normal GUI, initally on
+    kGUIPopupNone             = 0,
+    // show when mouse moves to top of screen
+    kGUIPopupMouseY           = 1,
+    // pauses game when shown
+    kGUIPopupModal            = 2,
+    // initially on and not removed when interface is off
+    kGUIPopupNoAutoRemove     = 3,
+    // normal GUI, initially off
+    kGUIPopupNoneInitiallyOff = 4
+};
+
 
 class GUIMain
 {
@@ -65,7 +94,7 @@ public:
     // the user can grab tiny controls
     int32_t FindControlUnderMouse(int leeway) const;
     int32_t FindControlUnderMouse(int leeway, bool must_be_clickable) const;
-    int32_t GetControlType(int index) const;
+    GUIControlType GetControlType(int index) const;
     bool    HasAlphaChannel() const;
     bool    IsMouseOnGUI() const;
     bool    IsTextWindow() const;
@@ -109,7 +138,7 @@ public:
     color_t FgColor;        // foreground color
     int32_t On;             // combined visible / enabled flag
     int32_t Padding;        // padding surrounding a GUI text window
-    int32_t PopupStyle;     // when it pops up (POPUP_NONE, POPUP_MOUSEY, POPUP_SCRIPT)
+    GUIPopupStyle PopupStyle; // GUI popup behavior
     int32_t PopupAtMouseY;  // popup when mousey < this
     int32_t Transparency;   // inverted alpha
     int32_t ZOrder;

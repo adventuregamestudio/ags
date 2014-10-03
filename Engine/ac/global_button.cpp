@@ -20,6 +20,8 @@
 #include "gui/guimain.h"
 #include "gui/guibutton.h"
 
+using namespace AGS::Common;
+
 extern GameSetupStruct game;
 
 void SetButtonText(int guin,int objn, const char*newtx) {
@@ -28,7 +30,7 @@ void SetButtonText(int guin,int objn, const char*newtx) {
         quit("!SetButtonText: invalid GUI number");
     if ((objn<0) | (objn>=guis[guin].ControlCount))
         quit("!SetButtonText: invalid object number");
-    if (guis[guin].GetControlType(objn)!=GOBJ_BUTTON)
+    if (guis[guin].GetControlType(objn)!=kGUIButton)
         quit("!SetButtonText: specified control is not a button");
 
     GUIButton*guil=(GUIButton*)guis[guin].Controls[objn];
@@ -39,7 +41,7 @@ void SetButtonText(int guin,int objn, const char*newtx) {
 void AnimateButton(int guin, int objn, int view, int loop, int speed, int repeat) {
     if ((guin<0) | (guin>=game.numgui)) quit("!AnimateButton: invalid GUI number");
     if ((objn<0) | (objn>=guis[guin].ControlCount)) quit("!AnimateButton: invalid object number");
-    if (guis[guin].GetControlType(objn)!=GOBJ_BUTTON)
+    if (guis[guin].GetControlType(objn)!=kGUIButton)
         quit("!AnimateButton: specified control is not a button");
 
     Button_Animate((GUIButton*)guis[guin].Controls[objn], view, loop, speed, repeat);
@@ -49,7 +51,7 @@ void AnimateButton(int guin, int objn, int view, int loop, int speed, int repeat
 int GetButtonPic(int guin, int objn, int ptype) {
     if ((guin<0) | (guin>=game.numgui)) quit("!GetButtonPic: invalid GUI number");
     if ((objn<0) | (objn>=guis[guin].ControlCount)) quit("!GetButtonPic: invalid object number");
-    if (guis[guin].GetControlType(objn)!=GOBJ_BUTTON)
+    if (guis[guin].GetControlType(objn)!=kGUIButton)
         quit("!GetButtonPic: specified control is not a button");
     if ((ptype < 0) | (ptype > 3)) quit("!GetButtonPic: invalid pic type");
 
@@ -79,7 +81,7 @@ int GetButtonPic(int guin, int objn, int ptype) {
 void SetButtonPic(int guin,int objn,int ptype,int slotn) {
     if ((guin<0) | (guin>=game.numgui)) quit("!SetButtonPic: invalid GUI number");
     if ((objn<0) | (objn>=guis[guin].ControlCount)) quit("!SetButtonPic: invalid object number");
-    if (guis[guin].GetControlType(objn)!=GOBJ_BUTTON)
+    if (guis[guin].GetControlType(objn)!=kGUIButton)
         quit("!SetButtonPic: specified control is not a button");
     if ((ptype<1) | (ptype>3)) quit("!SetButtonPic: invalid pic type");
 

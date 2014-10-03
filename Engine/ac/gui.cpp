@@ -157,13 +157,13 @@ int GUI_GetZOrder(ScriptGUI *tehgui) {
 }
 
 void GUI_SetClickable(ScriptGUI *tehgui, int clickable) {
-  guis[tehgui->id].Flags &= ~GUIF_NOCLICK;
+  guis[tehgui->id].Flags &= ~kGUIMain_NoClick;
   if (clickable == 0)
-    guis[tehgui->id].Flags |= GUIF_NOCLICK;
+    guis[tehgui->id].Flags |= kGUIMain_NoClick;
 }
 
 int GUI_GetClickable(ScriptGUI *tehgui) {
-  if (guis[tehgui->id].Flags & GUIF_NOCLICK)
+  if (guis[tehgui->id].Flags & kGUIMain_NoClick)
     return 0;
   return 1;
 }
@@ -253,12 +253,12 @@ void process_interface_click(int ifce, int btn, int mbut) {
 
     int btype=(guis[ifce].CtrlRefs[btn] >> 16) & 0x000ffff;
     int rtype=0,rdata;
-    if (btype==GOBJ_BUTTON) {
+    if (btype==kGUIButton) {
         GUIButton*gbuto=(GUIButton*)guis[ifce].Controls[btn];
         rtype=gbuto->leftclick;
         rdata=gbuto->lclickdata;
     }
-    else if ((btype==GOBJ_SLIDER) || (btype == GOBJ_TEXTBOX) || (btype == GOBJ_LISTBOX))
+    else if ((btype==kGUISlider) || (btype == kGUITextBox) || (btype == kGUIListBox))
         rtype = IBACT_SCRIPT;
     else quit("unknown GUI object triggered process_interface");
 

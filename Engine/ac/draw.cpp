@@ -2223,7 +2223,7 @@ void draw_screen_overlay() {
             // Don't draw GUI if "GUIs Turn Off When Disabled"
             if ((game.options[OPT_DISABLEOFF] == 3) &&
                 (all_buttons_disabled > 0) &&
-                (guis[aa].PopupStyle != POPUP_NOAUTOREM))
+                (guis[aa].PopupStyle != kGUIPopupNoAutoRemove))
                 continue;
 
             add_thing_to_draw(guibgbmp[aa], guis[aa].X, guis[aa].Y, guis[aa].Transparency, guis[aa].HasAlphaChannel());

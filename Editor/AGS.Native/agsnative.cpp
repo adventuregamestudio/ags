@@ -3243,9 +3243,9 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	gui->Y = normalGui->Top;
 	gui->Width = normalGui->Width;
 	gui->Height = normalGui->Height;
-	gui->Flags = (normalGui->Clickable) ? 0 : GUIF_NOCLICK;
+    gui->Flags = (normalGui->Clickable) ? 0 : Common::kGUIMain_NoClick;
     gui->PopupAtMouseY = normalGui->PopupYPos;
-    gui->PopupStyle = (int)normalGui->Visibility;
+    gui->PopupStyle = (Common::GUIPopupStyle)normalGui->Visibility;
     gui->ZOrder = normalGui->ZOrder;
     gui->FgColor = normalGui->BorderColor;
     gui->SetTransparencyAsPercentage(normalGui->Transparency);
@@ -3255,8 +3255,8 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
     TextWindowGUI^ twGui = dynamic_cast<TextWindowGUI^>(guiObj);
 	gui->Width = 200;
 	gui->Height = 100;
-    gui->Flags = GUIF_TEXTWINDOW;
-	gui->PopupStyle = POPUP_SCRIPT;
+    gui->Flags = Common::kGUIMain_TextWindow;
+    gui->PopupStyle = Common::kGUIPopupModal;
 	gui->Padding = twGui->Padding;
     gui->FgColor = twGui->TextColor;
   }
@@ -3292,7 +3292,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  ConvertStringToCharArray(button->Text, guibuts[numguibuts].text, 50);
 		  ConvertStringToCharArray(button->OnClick, guibuts[numguibuts].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
 		  
-		  gui->CtrlRefs[gui->ControlCount] = (GOBJ_BUTTON << 16) | numguibuts;
+          gui->CtrlRefs[gui->ControlCount] = (Common::kGUIButton << 16) | numguibuts;
 		  gui->Controls[gui->ControlCount] = &guibuts[numguibuts];
 		  gui->ControlCount++;
 		  numguibuts++;
@@ -3308,7 +3308,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  ConvertStringToCharArray(label->Text, textBuffer, MAX_GUILABEL_TEXT_LEN);
 		  guilabels[numguilabels].SetText(textBuffer);
 
-		  gui->CtrlRefs[gui->ControlCount] = (GOBJ_LABEL << 16) | numguilabels;
+		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUILabel << 16) | numguilabels;
 		  gui->Controls[gui->ControlCount] = &guilabels[numguilabels];
 		  gui->ControlCount++;
 		  numguilabels++;
@@ -3323,7 +3323,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guitext[numguitext].text[0] = 0;
 		  ConvertStringToCharArray(textbox->OnActivate, guitext[numguitext].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
 
-		  gui->CtrlRefs[gui->ControlCount] = (GOBJ_TEXTBOX << 16) | numguitext;
+		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUITextBox << 16) | numguitext;
 		  gui->Controls[gui->ControlCount] = &guitext[numguitext];
 		  gui->ControlCount++;
 		  numguitext++;
@@ -3341,7 +3341,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guilist[numguilist].exflags |= (listbox->ShowScrollArrows) ? 0 : GLF_NOARROWS;
 		  ConvertStringToCharArray(listbox->OnSelectionChanged, guilist[numguilist].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
 
-		  gui->CtrlRefs[gui->ControlCount] = (GOBJ_LISTBOX << 16) | numguilist;
+		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIListBox << 16) | numguilist;
 		  gui->Controls[gui->ControlCount] = &guilist[numguilist];
 		  gui->ControlCount++;
 		  numguilist++;
@@ -3357,7 +3357,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guislider[numguislider].bgimage = slider->BackgroundImage;
 		  ConvertStringToCharArray(slider->OnChange, guislider[numguislider].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
 
-		  gui->CtrlRefs[gui->ControlCount] = (GOBJ_SLIDER << 16) | numguislider;
+		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUISlider << 16) | numguislider;
 		  gui->Controls[gui->ControlCount] = &guislider[numguislider];
 		  gui->ControlCount++;
 		  numguislider++;
@@ -3369,7 +3369,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guiinv[numguiinv].itemWidth = invwindow->ItemWidth;
 		  guiinv[numguiinv].itemHeight = invwindow->ItemHeight;
 
-		  gui->CtrlRefs[gui->ControlCount] = (GOBJ_INVENTORY << 16) | numguiinv;
+		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIInvWindow << 16) | numguiinv;
 		  gui->Controls[gui->ControlCount] = &guiinv[numguiinv];
 		  gui->ControlCount++;
 		  numguiinv++;
@@ -3382,7 +3382,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guibuts[numguibuts].flags = 0;
 		  guibuts[numguibuts].text[0] = 0;
 		  
-		  gui->CtrlRefs[gui->ControlCount] = (GOBJ_BUTTON << 16) | numguibuts;
+		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIButton << 16) | numguibuts;
 		  gui->Controls[gui->ControlCount] = &guibuts[numguibuts];
 		  gui->ControlCount++;
 		  numguibuts++;
@@ -4067,7 +4067,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 		else 
 		{
 			newGui = gcnew NormalGUI();
-			((NormalGUI^)newGui)->Clickable = ((guis[i].Flags & GUIF_NOCLICK) == 0);
+			((NormalGUI^)newGui)->Clickable = ((guis[i].Flags & Common::kGUIMain_NoClick) == 0);
 			((NormalGUI^)newGui)->Top = guis[i].Y;
 			((NormalGUI^)newGui)->Left = guis[i].X;
 			((NormalGUI^)newGui)->Width = (guis[i].Width > 0) ? guis[i].Width : 1;
@@ -4089,7 +4089,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 			GUIControl ^newControl = nullptr;
 			switch (guis[i].CtrlRefs[j] >> 16)
 			{
-			case GOBJ_BUTTON:
+			case Common::kGUIButton:
 				{
 				if (guis[i].IsTextWindow())
 				{
@@ -4117,7 +4117,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 				}
 				break;
 				}
-			case GOBJ_LABEL:
+			case Common::kGUILabel:
 				{
 				AGS::Types::GUILabel^ newLabel = gcnew AGS::Types::GUILabel();
 				::GUILabel *copyFrom = (::GUILabel*)curObj;
@@ -4128,7 +4128,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 				newLabel->Text = gcnew String(copyFrom->GetText());
 				break;
 				}
-			case GOBJ_TEXTBOX:
+			case Common::kGUITextBox:
 				{
 				  AGS::Types::GUITextBox^ newTextbox = gcnew AGS::Types::GUITextBox();
 				  ::GUITextBox *copyFrom = (::GUITextBox*)curObj;
@@ -4140,7 +4140,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 				  newTextbox->OnActivate = gcnew String(copyFrom->eventHandlers[0]);
 				  break;
 				}
-			case GOBJ_LISTBOX:
+			case Common::kGUIListBox:
 				{
 				  AGS::Types::GUIListBox^ newListbox = gcnew AGS::Types::GUIListBox();
 				  ::GUIListBox *copyFrom = (::GUIListBox*)curObj;
@@ -4156,7 +4156,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 				  newListbox->OnSelectionChanged = gcnew String(copyFrom->eventHandlers[0]);
 				  break;
 				}
-			case GOBJ_SLIDER:
+			case Common::kGUISlider:
 				{
 				  AGS::Types::GUISlider^ newSlider = gcnew AGS::Types::GUISlider();
 				  ::GUISlider *copyFrom = (::GUISlider*)curObj;
@@ -4170,7 +4170,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 				  newSlider->OnChange = gcnew String(copyFrom->eventHandlers[0]);
 				  break;
 				}
-			case GOBJ_INVENTORY:
+			case Common::kGUIInvWindow:
 				{
 					AGS::Types::GUIInventory^ invwindow = gcnew AGS::Types::GUIInventory();
 				    ::GUIInv *copyFrom = (::GUIInv*)curObj;

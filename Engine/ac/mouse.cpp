@@ -228,7 +228,7 @@ void enable_cursor_mode(int modd) {
 
     for (uu=0;uu<game.numgui;uu++) {
         for (ww=0;ww<guis[uu].ControlCount;ww++) {
-            if ((guis[uu].CtrlRefs[ww] >> 16)!=GOBJ_BUTTON) continue;
+            if ((guis[uu].CtrlRefs[ww] >> 16)!=kGUIButton) continue;
             GUIButton*gbpt=(GUIButton*)guis[uu].Controls[ww];
             if (gbpt->leftclick!=IBACT_SETMODE) continue;
             if (gbpt->lclickdata!=modd) continue;
@@ -245,7 +245,7 @@ void disable_cursor_mode(int modd) {
 
     for (uu=0;uu<game.numgui;uu++) {
         for (ww=0;ww<guis[uu].ControlCount;ww++) {
-            if ((guis[uu].CtrlRefs[ww] >> 16)!=GOBJ_BUTTON) continue;
+            if ((guis[uu].CtrlRefs[ww] >> 16)!=kGUIButton) continue;
             GUIButton*gbpt=(GUIButton*)guis[uu].Controls[ww];
             if (gbpt->leftclick!=IBACT_SETMODE) continue;
             if (gbpt->lclickdata!=modd) continue;

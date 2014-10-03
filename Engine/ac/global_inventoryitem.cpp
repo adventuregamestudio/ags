@@ -26,6 +26,8 @@
 #include "ac/event.h"
 #include "ac/gamestate.h"
 
+using namespace AGS::Common;
+
 extern GameSetupStruct game;
 extern GameState play;
 extern int mousex, mousey;
@@ -78,7 +80,7 @@ int GetInvAt (int xxx, int yyy) {
     }
     mousex = mxwas;
     mousey = mywas;
-    if ((onobj>=0) && ((guis[ongui].CtrlRefs[onobj] >> 16)==GOBJ_INVENTORY))
+    if ((onobj>=0) && ((guis[ongui].CtrlRefs[onobj] >> 16)==kGUIInvWindow))
       return offset_over_inv((GUIInv*)guis[ongui].Controls[onobj]);
   }
   return -1;

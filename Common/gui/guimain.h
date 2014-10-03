@@ -78,6 +78,13 @@ enum GUIPopupStyle
     kGUIPopupNoneInitiallyOff = 4
 };
 
+enum GUIVisibilityState
+{
+    kGUIVisibility_Concealed = -1, // gui is hidden by command
+    kGUIVisibility_Off       =  0, // gui is disabled (won't show up by command)
+    kGUIVisibility_On        =  1  // gui is shown by command
+};
+
 
 class GUIMain
 {
@@ -89,15 +96,25 @@ public:
 
     void Init();
 
+    // Tells if the gui background supports alpha channel
+    bool        HasAlphaChannel() const;
+    // Tells if gui is allowed to be displayed, but is currently hidden off-screen
+    inline bool IsConcealed() const { return _visibility == kGUIVisibility_Concealed; }
+    // Tells if mouse cursor is currently over gui
+    bool        IsMouseOnGUI() const;
+    // Tells if gui visibility is disabled
+    inline bool IsOff() const { return _visibility == kGUIVisibility_Off; }
+    // Tells if gui is a text window
+    bool        IsTextWindow() const;
+    // Tells if gui is allowed to be displayed on screen
+    inline bool IsVisible() const { return _visibility == kGUIVisibility_On; }
+
     int32_t FindControlUnderMouse() const;
     // this version allows some extra leeway in the Editor so that
     // the user can grab tiny controls
     int32_t FindControlUnderMouse(int leeway) const;
     int32_t FindControlUnderMouse(int leeway, bool must_be_clickable) const;
     GUIControlType GetControlType(int index) const;
-    bool    HasAlphaChannel() const;
-    bool    IsMouseOnGUI() const;
-    bool    IsTextWindow() const;
 
     // Operations
     bool    BringControlToFront(int index);
@@ -110,6 +127,7 @@ public:
     // attempts to change control's zorder; returns if zorder changed
     bool    SetControlZOrder(int index, int zorder);
     void    SetTransparencyAsPercentage(int percent);
+    void    SetVisibility(GUIVisibilityState visibility);
 
     // Events
     void    OnMouseButtonDown();
@@ -136,7 +154,6 @@ public:
     color_t BgColor;        // background color
     int32_t BgImage;        // background sprite index
     color_t FgColor;        // foreground color
-    int32_t On;             // combined visible / enabled flag
     int32_t Padding;        // padding surrounding a GUI text window
     GUIPopupStyle PopupStyle; // GUI popup behavior
     int32_t PopupAtMouseY;  // popup when mousey < this
@@ -157,6 +174,9 @@ public:
 
     // TODO: remove these later
     int32_t ControlCount;   // number of objects on gui
+
+private:
+    GUIVisibilityState _visibility;
 };
 
 } // namespace Common

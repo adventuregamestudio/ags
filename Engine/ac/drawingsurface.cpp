@@ -89,7 +89,7 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
             for (tt = 0; tt < game.numgui; tt++) 
             {
                 if ((guis[tt].BgImage == sds->dynamicSpriteNumber) &&
-                    (guis[tt].On == 1))
+                    (guis[tt].IsVisible()))
                 {
                     guis_need_update = 1;
                     break;

@@ -66,13 +66,13 @@ void GUIMain::Init()
     BgColor       = 8;
     BgImage       = 0;
     FgColor       = 1;
-    On            = 1;
     Padding       = TEXTWINDOW_PADDING_DEFAULT;
     PopupStyle    = kGUIPopupNone;
     PopupAtMouseY = -1;
     Transparency  = 0;
     ZOrder        = -1;
 
+    _visibility   = kGUIVisibility_On;
     FocusCtrl     = 0;
     HighlightCtrl = -1;
     MouseOverCtrl = -1;
@@ -135,7 +135,7 @@ GUIControlType GUIMain::GetControlType(int index) const
 
 bool GUIMain::IsMouseOnGUI() const
 {
-    if (On < 1)
+    if (!IsVisible())
         return false;
     if (Flags & kGUIMain_NoClick)
         return false;
@@ -396,6 +396,11 @@ void GUIMain::SetTransparencyAsPercentage(int percent)
         Transparency = ((100 - percent) * 25) / 10;
 }
 
+void GUIMain::SetVisibility(GUIVisibilityState visibility)
+{
+    _visibility = visibility;
+}
+
 void GUIMain::OnControlPositionChanged()
 {
     // force it to re-check for which control is under the mouse
@@ -470,7 +475,7 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     Id            = in->ReadInt32();
     Padding       = in->ReadInt32();
     in->Seek(sizeof(int32_t) * GUIMAIN_RESERVED_INTS);
-    On            = in->ReadInt32();
+    _visibility = (GUIVisibilityState)in->ReadInt32();
 
     // array of 32-bit pointers; these values are unused
     in->Seek(MAX_OBJS_ON_GUI * sizeof(int32_t));
@@ -508,7 +513,7 @@ void GUIMain::WriteToFile(Stream *out) const
     out->WriteInt32(Padding);
     int32_t reserved_ints[GUIMAIN_RESERVED_INTS] = {0};
     out->WriteArrayOfInt32(reserved_ints, GUIMAIN_RESERVED_INTS);
-    out->WriteInt32(On);
+    out->WriteInt32(_visibility);
 
     // array of dummy 32-bit pointers
     int32_t dummy_arr[MAX_OBJS_ON_GUI] = {0};

@@ -34,7 +34,7 @@ extern ScriptGUI *scrGui;
 int IsGUIOn (int guinum) {
     if ((guinum < 0) || (guinum >= game.numgui))
         quit("!IsGUIOn: invalid GUI number specified");
-    return (guis[guinum].On >= 1) ? 1 : 0;
+    return (guis[guinum].IsVisible()) ? 1 : 0;
 }
 
 // This is an internal script function, and is undocumented.
@@ -56,16 +56,16 @@ void InterfaceOn(int ifn) {
 
   EndSkippingUntilCharStops();
 
-  if (guis[ifn].On == 1) {
+  if (guis[ifn].IsVisible()) {
     DEBUG_CONSOLE("GUIOn(%d) ignored (already on)", ifn);
     return;
   }
   guis_need_update = 1;
-  guis[ifn].On=1;
+  guis[ifn].SetVisibility(kGUIVisibility_On);
   DEBUG_CONSOLE("GUI %d turned on", ifn);
   // modal interface
   if (guis[ifn].PopupStyle==kGUIPopupModal) PauseGame();
-  else if (guis[ifn].PopupStyle==kGUIPopupMouseY) guis[ifn].On=0;
+  else if (guis[ifn].PopupStyle==kGUIPopupMouseY) guis[ifn].SetVisibility(kGUIVisibility_Off);
   // clear the cached mouse position
   guis[ifn].OnControlPositionChanged();
   guis[ifn].Poll();
@@ -73,12 +73,12 @@ void InterfaceOn(int ifn) {
 
 void InterfaceOff(int ifn) {
   if ((ifn<0) | (ifn>=game.numgui)) quit("!GUIOff: invalid GUI specified");
-  if ((guis[ifn].On==0) && (guis[ifn].PopupStyle!=kGUIPopupMouseY)) {
+  if ((guis[ifn].IsOff()) && (guis[ifn].PopupStyle!=kGUIPopupMouseY)) {
     DEBUG_CONSOLE("GUIOff(%d) ignored (already off)", ifn);
     return;
   }
   DEBUG_CONSOLE("GUI %d turned off", ifn);
-  guis[ifn].On=0;
+  guis[ifn].SetVisibility(kGUIVisibility_Off);
   if (guis[ifn].MouseOverCtrl>=0) {
     // Make sure that the overpic is turned off when the GUI goes off
     guis[ifn].Controls[guis[ifn].MouseOverCtrl]->MouseLeave();
@@ -88,7 +88,7 @@ void InterfaceOff(int ifn) {
   guis_need_update = 1;
   // modal interface
   if (guis[ifn].PopupStyle==kGUIPopupModal) UnPauseGame();
-  else if (guis[ifn].PopupStyle==kGUIPopupMouseY) guis[ifn].On=-1;
+  else if (guis[ifn].PopupStyle==kGUIPopupMouseY) guis[ifn].SetVisibility(kGUIVisibility_Concealed);
 }
 
 void SetGUIObjectEnabled(int guin, int objn, int enabled) {
@@ -222,7 +222,7 @@ int GetGUIAt (int xx,int yy) {
     int aa, ll;
     for (ll = game.numgui - 1; ll >= 0; ll--) {
         aa = play.gui_draw_order[ll];
-        if (guis[aa].On<1) continue;
+        if (!guis[aa].IsVisible()) continue;
         if (guis[aa].Flags & kGUIMain_NoClick) continue;
         if ((xx>=guis[aa].X) & (yy>=guis[aa].Y) &
             (xx<=guis[aa].X+guis[aa].Width) & (yy<=guis[aa].Y+guis[aa].Height))

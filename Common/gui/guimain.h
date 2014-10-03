@@ -35,13 +35,15 @@ struct GameSetupStruct;
 #define GOBJ_SLIDER     4
 #define GOBJ_TEXTBOX    5
 #define GOBJ_LISTBOX    6
-#define GUI_TEXTWINDOW  0x05    // set vtext[0] to this to signify text window
+#define GUI_LEGACYTEXTWINDOW  0x05
 #define GUIF_NOCLICK    1
+#define GUIF_TEXTWINDOW 2
 #define MOVER_MOUSEDOWNLOCKED -4000
 
 #define GUIMAIN_RESERVED_INTS       5
 #define GUIMAIN_NAME_LENGTH         16
 #define GUIMAIN_EVENTHANDLER_LENGTH 20
+#define GUIMAIN_LEGACY_TW_FLAGS_SIZE 4
 
 namespace AGS
 {
@@ -126,7 +128,6 @@ public:
 
     // TODO: remove these later
     int32_t ControlCount;   // number of objects on gui
-    char    TextWindowFlag[4]; // tells if this is a text window
 };
 
 } // namespace Common

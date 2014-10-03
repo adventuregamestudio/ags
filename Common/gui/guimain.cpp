@@ -81,7 +81,6 @@ void GUIMain::Init()
     OnClickHandler.Empty();
 
     ControlCount  = 0;
-    TextWindowFlag[0] = 0;
 }
 
 int GUIMain::FindControlUnderMouse(int leeway, bool must_be_clickable) const
@@ -145,7 +144,7 @@ bool GUIMain::IsMouseOnGUI() const
 
 bool GUIMain::IsTextWindow() const
 {
-    return TextWindowFlag[0] == GUI_TEXTWINDOW;
+    return (Flags & GUIF_TEXTWINDOW) != 0;
 }
 
 bool GUIMain::BringControlToFront(int index)
@@ -439,7 +438,8 @@ void GUIMain::OnMouseButtonUp()
 
 void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-    in->Read(TextWindowFlag, sizeof(TextWindowFlag));
+    char tw_flags[GUIMAIN_LEGACY_TW_FLAGS_SIZE];
+    in->Read(tw_flags, sizeof(tw_flags));
     Name.ReadCount(in, GUIMAIN_NAME_LENGTH);
     OnClickHandler.ReadCount(in, GUIMAIN_EVENTHANDLER_LENGTH);
     X             = in->ReadInt32();
@@ -459,6 +459,10 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     MouseDownCtrl = in->ReadInt32();
     HighlightCtrl = in->ReadInt32();
     Flags         = in->ReadInt32();
+    if (tw_flags[0] == GUI_LEGACYTEXTWINDOW)
+    {
+        Flags |= GUIF_TEXTWINDOW;
+    }
     Transparency  = in->ReadInt32();
     ZOrder        = in->ReadInt32();
     Id            = in->ReadInt32();
@@ -473,7 +477,10 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 
 void GUIMain::WriteToFile(Stream *out) const
 {
-    out->Write(TextWindowFlag, sizeof(TextWindowFlag));
+    char tw_flags[GUIMAIN_LEGACY_TW_FLAGS_SIZE] = {0};
+    if (Flags & GUIF_TEXTWINDOW)
+        tw_flags[0] = GUI_LEGACYTEXTWINDOW;
+    out->Write(tw_flags, sizeof(tw_flags));
     Name.WriteCount(out, GUIMAIN_NAME_LENGTH);
     OnClickHandler.WriteCount(out, GUIMAIN_EVENTHANDLER_LENGTH);
     out->WriteInt32(X);

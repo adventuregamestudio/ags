@@ -3247,7 +3247,6 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
     gui->PopupAtMouseY = normalGui->PopupYPos;
     gui->PopupStyle = (int)normalGui->Visibility;
     gui->ZOrder = normalGui->ZOrder;
-	gui->TextWindowFlag[0] = 0;
     gui->FgColor = normalGui->BorderColor;
     gui->SetTransparencyAsPercentage(normalGui->Transparency);
   }
@@ -3256,9 +3255,8 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
     TextWindowGUI^ twGui = dynamic_cast<TextWindowGUI^>(guiObj);
 	gui->Width = 200;
 	gui->Height = 100;
-    gui->Flags = 0;
+    gui->Flags = GUIF_TEXTWINDOW;
 	gui->PopupStyle = POPUP_SCRIPT;
-	gui->TextWindowFlag[0] = GUI_TEXTWINDOW;
 	gui->Padding = twGui->Padding;
     gui->FgColor = twGui->TextColor;
   }

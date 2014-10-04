@@ -49,7 +49,6 @@ struct GameSetupStructBase {
     int32             uniqueid;    // random key identifying the game
     int32             numgui;
     int32             numcursors;
-    GameResolutionType default_resolution;
     int32             default_lipsync_frame; // used for unknown chars
     int32             invhotdotsprite;
     int32             reserved[17];
@@ -58,6 +57,7 @@ struct GameSetupStructBase {
     char             *globalscript;
     CharacterInfo    *chars;
     ccScript         *compiled_script;
+    Size              size;                 // native game size in pixels
 
     int32_t          *load_messages;
     bool             load_dictionary;
@@ -69,13 +69,21 @@ struct GameSetupStructBase {
 
     GameSetupStructBase();
     virtual ~GameSetupStructBase();
+    void SetDefaultResolution(GameResolutionType resolution_type);
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);
 
+    inline GameResolutionType GetDefaultResolution() const
+    {
+        return default_resolution;
+    }
     inline bool IsHiRes() const
     {
         return ::IsHiRes(default_resolution);
     }
+
+private:
+    GameResolutionType default_resolution; // game size identifier
 };
 
 #endif // __AGS_CN_AC__GAMESETUPSTRUCTBASE_H

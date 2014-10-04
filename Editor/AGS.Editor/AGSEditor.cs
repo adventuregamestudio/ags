@@ -1536,25 +1536,16 @@ namespace AGS.Editor
 			if (buffer.ToString() != resolution.ToString())
 			{
 				NativeProxy.WritePrivateProfileString("misc", "defaultres", resolution.ToString(), configFilePath);
-
-				int screenRes = 1;
-				if ((_game.Settings.Resolution == GameResolutions.R320x200) ||
-					(_game.Settings.Resolution == GameResolutions.R320x240)) 
-				{
-					screenRes = 0;
-				}
-				NativeProxy.WritePrivateProfileString("misc", "screenres", screenRes.ToString(), configFilePath);
 			}
 
             int letterbox = _game.Settings.LetterboxMode ? 1 : 0;
             NativeProxy.WritePrivateProfileString("misc", "letterbox", letterbox.ToString(), configFilePath);
 
-			NativeProxy.GetPrivateProfileString("misc", "defaultgfxdriver", "NULL", buffer, buffer.Capacity, configFilePath);
-			if (buffer.ToString() != _game.Settings.GraphicsDriver.ToString())
-			{
-				NativeProxy.WritePrivateProfileString("misc", "defaultgfxdriver", _game.Settings.GraphicsDriver.ToString(), configFilePath);
-				NativeProxy.WritePrivateProfileString("misc", "gfxdriver", _game.Settings.GraphicsDriver.ToString(), configFilePath);
-			}
+            NativeProxy.GetPrivateProfileString("graphics", "driver", "NULL", buffer, buffer.Capacity, configFilePath);
+            if (buffer.ToString() != _game.Settings.GraphicsDriver.ToString())
+            {
+                NativeProxy.WritePrivateProfileString("graphics", "driver", _game.Settings.GraphicsDriver.ToString(), configFilePath);
+            }
             NativeProxy.WritePrivateProfileString("misc", "titletext", _game.Settings.GameName + " Setup", configFilePath);
         }
 

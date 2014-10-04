@@ -14,7 +14,6 @@
 
 #include <stdio.h>
 #include "ac/gui.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
@@ -30,6 +29,7 @@
 #include "ac/dynobj/scriptgui.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
+#include "device/mousew32.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
@@ -40,21 +40,20 @@
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guiobject.h"
 #include "script/runtimescriptvalue.h"
+#include "main/graphics_mode.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 
 extern GameSetup usetup;
 extern roomstruct thisroom;
 extern GUIMain*guis;
-extern GFXFilter *filter;
 extern int cur_mode,cur_cursor;
 extern ccInstance *gameinst;
 extern ScriptGUI *scrGui;
 extern GameSetupStruct game;
 extern CCGUIObject ccDynamicGUIObject;
-extern int scrnwid,scrnhit;
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 extern IGraphicsDriver *gfxDriver;
@@ -116,7 +115,7 @@ void GUI_SetPosition(ScriptGUI *tehgui, int xx, int yy) {
 }
 
 void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
-  if ((widd < 1) || (hitt < 1) || (widd > BASEWIDTH) || (hitt > GetMaxScreenHeight()))
+  if ((widd < 1) || (hitt < 1) || (widd > BASEWIDTH) || (hitt > BASEHEIGHT))
     quitprintf("!SetGUISize: invalid dimensions (tried to set to %d x %d)", widd, hitt);
 
   GUIMain *tehgui = &guis[sgui->id];
@@ -202,8 +201,8 @@ int GUI_GetTransparency(ScriptGUI *tehgui) {
 
 void GUI_Centre(ScriptGUI *sgui) {
   GUIMain *tehgui = &guis[sgui->id];
-  tehgui->x = scrnwid / 2 - tehgui->wid / 2;
-  tehgui->y = scrnhit / 2 - tehgui->hit / 2;
+  tehgui->x = play.viewport.GetWidth() / 2 - tehgui->wid / 2;
+  tehgui->y = play.viewport.GetHeight() / 2 - tehgui->hit / 2;
 }
 
 void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn) {
@@ -233,7 +232,7 @@ void remove_popup_interface(int ifacenum) {
     ifacepopped=-1; UnPauseGame();
     guis[ifacenum].on=0;
     if (mousey<=guis[ifacenum].popupyp)
-        filter->SetMousePosition(mousex, guis[ifacenum].popupyp+2);
+        Mouse::SetPosition(Point(mousex, guis[ifacenum].popupyp+2));
     if ((!IsInterfaceEnabled()) && (cur_cursor == cur_mode))
         // Only change the mouse cursor if it hasn't been specifically changed first
         set_mouse_cursor(CURS_WAIT);
@@ -482,7 +481,7 @@ void recreate_guibg_image(GUIMain *tehgui)
 {
   int ifn = tehgui->guiId;
   delete guibg[ifn];
-  guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->wid, tehgui->hit, final_col_dep);
+  guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->wid, tehgui->hit, ScreenResolution.ColorDepth);
   if (guibg[ifn] == NULL)
     quit("SetGUISize: internal error: unable to reallocate gui cache");
   guibg[ifn] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[ifn]);

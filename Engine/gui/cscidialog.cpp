@@ -14,9 +14,9 @@
 
 #include <cctype>
 #include "util/wgt2allg.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
+#include "ac/gamestate.h"
 #include "ac/gui.h"
 #include "ac/mouse.h"
 #include "ac/record.h"

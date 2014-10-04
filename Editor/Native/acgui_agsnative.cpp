@@ -4,6 +4,7 @@
 
 #pragma unmanaged
 
+#include "ac/gamesetupstruct.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"
 #include "gui/guibutton.h"
@@ -11,6 +12,8 @@
 #include "gui/guilistbox.h"
 #include "gui/guitextbox.h"
 #include "util/string_utils.h"
+
+extern GameSetupStruct thisgame;
 
 bool GUIMain::is_alpha() 
 {
@@ -25,7 +28,7 @@ bool GUIMain::is_alpha()
         return false;
     }
     // transparent background, enable alpha blending
-    return final_col_dep >= 24;
+    return thisgame.color_depth * 8 >= 24;
 }
 
 //=============================================================================

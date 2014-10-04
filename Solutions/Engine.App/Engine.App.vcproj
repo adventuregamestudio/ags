@@ -816,7 +816,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\gfx\gfxfilter.cpp"
+					RelativePath="..\..\Engine\gfx\gfxdriverbase.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxdriverfactory.cpp"
 					>
 				</File>
 				<File
@@ -840,11 +844,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\gfx\gfxfilter_scaling.cpp"
+					RelativePath="..\..\Engine\gfx\gfxfilter_ogl.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\gfx\gfxfilter_scalingallegro.cpp"
+					RelativePath="..\..\Engine\gfx\gfxfilter_scaling.cpp"
 					>
 				</File>
 			</Filter>
@@ -1112,7 +1116,7 @@
 				Name="setup"
 				>
 				<File
-					RelativePath="..\..\Engine\setup\acwsetup.cpp"
+					RelativePath="..\..\Engine\platform\windows\setup\winsetup.cpp"
 					>
 				</File>
 			</Filter>
@@ -1145,6 +1149,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\test\test_gfx.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_math.cpp"
 					>
 				</File>
 				<File
@@ -1746,7 +1754,19 @@
 				Name="gfx"
 				>
 				<File
-					RelativePath="..\..\Engine\gfx\ali3d.h"
+					RelativePath="..\..\Engine\platform\windows\gfx\ali3dd3d.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\ali3dexception.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\ali3dogl.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\ali3dsw.h"
 					>
 				</File>
 				<File
@@ -1759,6 +1779,22 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\gfx\gfx_util.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxdefines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxdriverbase.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxdriverfactory.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxdriverfactorybase.h"
 					>
 				</File>
 				<File
@@ -1786,19 +1822,11 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_ogl.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\gfx\gfxfilter_scaling.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\gfxfilter_scalingallegro.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\gfxfilterdefines.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\gfxfilterhelpers.h"
 					>
 				</File>
 				<File
@@ -2154,6 +2182,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\util\scaling.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\util\thread.h"
 					>
 				</File>
@@ -2170,6 +2202,14 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="setup"
+				>
+				<File
+					RelativePath="..\..\Engine\platform\windows\setup\winsetup.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -2182,6 +2222,10 @@
 			</File>
 			<File
 				RelativePath="..\..\Engine\resource\game-1.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Engine\resource\resource.h"
 				>
 			</File>
 			<File

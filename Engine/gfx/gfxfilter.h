@@ -12,36 +12,55 @@
 //
 //=============================================================================
 //
-// AGS specific color blending routines for transparency and tinting effects
+// Graphics filter interface
 //
 //=============================================================================
 
-#ifndef __AC_GFXFILTER_H
-#define __AC_GFXFILTER_H
+#ifndef __AGS_EE_GFX__GFXFILTER_H
+#define __AGS_EE_GFX__GFXFILTER_H
 
-struct GFXFilter {
-public:
+#include "util/geometry.h"
+#include "util/string.h"
 
-    virtual const char *Initialize(int width, int height, int colDepth);
-    virtual void UnInitialize();
-    virtual void GetRealResolution(int *wid, int *hit);
-    virtual void SetMousePosition(int x, int y);
-    // SetMouseArea shows the standard Windows cursor when the mouse moves outside
-    // of it in windowed mode; SetMouseLimit does not
-    virtual void SetMouseArea(int x1, int y1, int x2, int y2);
-    virtual void SetMouseLimit(int x1, int y1, int x2, int y2);
-    virtual const char *GetVersionBoxText();
-    virtual const char *GetFilterID();
-    virtual ~GFXFilter();
+namespace AGS
+{
+namespace Engine
+{
+
+using Common::String;
+
+struct GfxFilterInfo
+{
+    String   Id;
+    String   Name;
+    uint32_t FixedScale;
+
+    GfxFilterInfo()
+    {}
+    GfxFilterInfo(String id, String name, uint32_t fixed_scale = 0)
+        : Id(id)
+        , Name(name)
+        , FixedScale(fixed_scale)
+    {}
 };
 
-GFXFilter **get_allegro_gfx_filter_list(bool checkingForSetup);
-GFXFilter **get_d3d_gfx_filter_list(bool checkingForSetup);
+class IGfxFilter
+{
+public:
+    virtual ~IGfxFilter(){}
 
+    virtual const GfxFilterInfo &GetInfo() const = 0;
 
-extern GFXFilter *filter;
+    // Init filter for the specified color depth
+    virtual bool Initialize(const int color_depth, String &err_str) = 0;
+    virtual void UnInitialize() = 0;
+    // Try to set rendering translation; returns actual supported destination rect
+    virtual Rect SetTranslation(const Size src_size, const Rect dst_rect) = 0;
+    // Get defined destination rect for this filter
+    virtual Rect GetDestination() const = 0;
+};
 
-extern GFXFilter *gfxFilterList[11];
-extern GFXFilter *gfxFilterListD3D[16];
+} // namespace Engine
+} // namespace AGS
 
-#endif // __AC_GFXFILTER_H
+#endif // __AGS_EE_GFX__GFXFILTER_H

@@ -18,6 +18,7 @@
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/overlay.h"
 #include "ac/runtime_defines.h"
@@ -25,13 +26,12 @@
 #include "ac/string.h"
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
+#include "main/graphics_mode.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
-extern int final_scrn_wid,final_scrn_hit,final_col_dep;
-extern int scrnwid,scrnhit;
 extern SpriteCache spriteset;
 extern GameSetupStruct game;
 extern Bitmap *virtual_screen;
@@ -48,7 +48,7 @@ void RemoveOverlay(int ovrid) {
 int CreateGraphicOverlay(int xx,int yy,int slott,int trans) {
     multiply_up_coordinates(&xx, &yy);
 
-    Bitmap *screeno=BitmapHelper::CreateTransparentBitmap(spritewidth[slott],spriteheight[slott], final_col_dep);
+    Bitmap *screeno=BitmapHelper::CreateTransparentBitmap(spritewidth[slott],spriteheight[slott], ScreenResolution.ColorDepth);
     Bitmap *ds = SetVirtualScreen(screeno);
     wputblock(ds, 0,0,spriteset[slott],trans);
 
@@ -60,8 +60,8 @@ int CreateGraphicOverlay(int xx,int yy,int slott,int trans) {
 }
 
 int CreateTextOverlayCore(int xx, int yy, int wii, int fontid, int clr, const char *tex, int allowShrink) {
-    if (wii<8) wii=scrnwid/2;
-    if (xx<0) xx=scrnwid/2-wii/2;
+    if (wii<8) wii=play.viewport.GetWidth()/2;
+    if (xx<0) xx=play.viewport.GetWidth()/2-wii/2;
     if (clr==0) clr=16;
     int blcode = crovr_id;
     crovr_id = 2;

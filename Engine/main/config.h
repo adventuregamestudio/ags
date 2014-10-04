@@ -18,6 +18,9 @@
 #ifndef __AGS_EE_MAIN__CONFIG_H
 #define __AGS_EE_MAIN__CONFIG_H
 
+#include "util/string.h"
+
 void read_config_file(char *argv0);
+uint32_t parse_scaling_factor(const AGS::Common::String &scaling_option);
 
 #endif // __AGS_EE_MAIN__CONFIG_H

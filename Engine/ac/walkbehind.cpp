@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/walkbehind.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/common_defines.h"
 #include "ac/roomstruct.h"
@@ -22,8 +21,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern roomstruct thisroom;
 extern GameState play;

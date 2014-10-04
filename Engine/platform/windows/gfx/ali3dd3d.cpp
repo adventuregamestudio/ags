@@ -16,33 +16,71 @@
 //
 //=============================================================================
 
-#define WINVER 0x0500  // for GetWindowInfo
-#include <stdio.h>
 #include <allegro.h>
-#include <winalleg.h>
 #include <allegro/platform/aintwin.h>
-#include <d3d9.h>
-#include "gfx/ali3d.h"
+#include <stdio.h>
+#include "debug/assert.h"
+#include "gfx/ali3dexception.h"
 #include "gfx/gfxfilter_d3d.h"
-#include "platform/base/agsplatformdriver.h"
-#include "gfx/bitmap.h"
-#include "gfx/ddb.h"
-#include "gfx/graphicsdriver.h"
+#include "gfx/gfxfilter_aad3d.h"
 #include "main/main_allegro.h"
+#include "platform/base/agsplatformdriver.h"
+#include "platform/windows/gfx/ali3dd3d.h"
 #include "util/library.h"
-#include "util/string.h"
-
-using AGS::Common::Bitmap;
-using AGS::Common::String;
-using AGS::Engine::Library;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
-using namespace AGS; // FIXME later
 
 extern int dxmedia_play_video_3d(const char*filename, IDirect3DDevice9 *device, bool useAVISound, int canskip, int stretch);
 extern void dxmedia_shutdown_3d();
-void dummy_vsync() { }
 
-#define MAX_DRAW_LIST_SIZE 200
+
+namespace AGS
+{
+namespace Engine
+{
+namespace D3D
+{
+
+using namespace Common;
+
+void D3DBitmap::Dispose()
+{
+    if (_tiles != NULL)
+    {
+        for (int i = 0; i < _numTiles; i++)
+            _tiles[i].texture->Release();
+
+        free(_tiles);
+        _tiles = NULL;
+        _numTiles = 0;
+    }
+    if (_vertex != NULL)
+    {
+        _vertex->Release();
+        _vertex = NULL;
+    }
+}
+
+static D3DFORMAT color_depth_to_d3d_format(int color_depth, bool wantAlpha);
+static int d3d_format_to_color_depth(D3DFORMAT format, bool secondary);
+
+bool D3DGfxModeList::GetMode(int index, DisplayMode &mode) const
+{
+    if (_direct3d && index >= 0 && index < _modeCount)
+    {
+        D3DDISPLAYMODE d3d_mode;
+        if (SUCCEEDED(_direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, _pixelFormat, index, &d3d_mode)))
+        {
+            mode.Width = d3d_mode.Width;
+            mode.Height = d3d_mode.Height;
+            mode.ColorDepth = d3d_format_to_color_depth(d3d_mode.Format, false);
+            mode.RefreshRate = d3d_mode.RefreshRate;
+            return true;
+        }
+    }
+    return false;
+}
+
+
+void dummy_vsync() { }
 
 #define algetr32(xx) ((xx >> _rgb_r_shift_32) & 0xFF)
 #define algetg32(xx) ((xx >> _rgb_g_shift_32) & 0xFF)
@@ -134,302 +172,11 @@ GFX_DRIVER gfx_direct3d_full =
 // The custom FVF, which describes the custom vertex structure.
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_NORMAL|D3DFVF_TEX1)
 
-struct CUSTOMVERTEX
-{
-    D3DVECTOR   position; // The position.
-    D3DVECTOR   normal;
-    FLOAT       tu, tv;   // The texture coordinates.
-};
-
-struct TextureTile
-{
-  int x, y;
-  int width, height;
-  IDirect3DTexture9* texture;
-};
-
-class D3DBitmap : public IDriverDependantBitmap
-{
-public:
-  // Transparency is a bit counter-intuitive
-  // 0=not transparent, 255=invisible, 1..254 barely visible .. mostly visible
-  virtual void SetTransparency(int transparency) { _transparency = transparency; }
-  virtual void SetFlippedLeftRight(bool isFlipped) { _flipped = isFlipped; }
-  virtual void SetStretch(int width, int height) 
-  {
-    _stretchToWidth = width;
-    _stretchToHeight = height;
-  }
-  virtual int GetWidth() { return _width; }
-  virtual int GetHeight() { return _height; }
-  virtual int GetColorDepth() { return _colDepth; }
-  virtual void SetLightLevel(int lightLevel)  { _lightLevel = lightLevel; }
-  virtual void SetTint(int red, int green, int blue, int tintSaturation) 
-  {
-    _red = red;
-    _green = green;
-    _blue = blue;
-    _tintSaturation = tintSaturation;
-  }
-
-  int _width, _height;
-  int _colDepth;
-  bool _flipped;
-  int _stretchToWidth, _stretchToHeight;
-  int _red, _green, _blue;
-  int _tintSaturation;
-  int _lightLevel;
-  bool _opaque;
-  bool _hasAlpha;
-  int _transparency;
-  IDirect3DVertexBuffer9* _vertex;
-  TextureTile *_tiles;
-  int _numTiles;
-
-  D3DBitmap(int width, int height, int colDepth, bool opaque)
-  {
-    _width = width;
-    _height = height;
-    _colDepth = colDepth;
-    _flipped = false;
-    _hasAlpha = false;
-    _stretchToWidth = 0;
-    _stretchToHeight = 0;
-    _tintSaturation = 0;
-    _lightLevel = 0;
-    _transparency = 0;
-    _opaque = opaque;
-    _vertex = NULL;
-    _tiles = NULL;
-    _numTiles = 0;
-  }
-
-  int GetWidthToRender() { return (_stretchToWidth > 0) ? _stretchToWidth : _width; }
-  int GetHeightToRender() { return (_stretchToHeight > 0) ? _stretchToHeight : _height; }
-
-  void Dispose()
-  {
-    if (_tiles != NULL)
-    {
-      for (int i = 0; i < _numTiles; i++)
-        _tiles[i].texture->Release();
-
-      free(_tiles);
-      _tiles = NULL;
-      _numTiles = 0;
-    }
-    if (_vertex != NULL)
-    {
-      _vertex->Release();
-      _vertex = NULL;
-    }
-  }
-
-  ~D3DBitmap()
-  {
-    Dispose();
-  }
-};
-
-static D3DFORMAT color_depth_to_d3d_format(int color_depth, bool wantAlpha);
-static int d3d_format_to_color_depth(D3DFORMAT format, bool secondary);
-
-class D3DGfxModeList : public IGfxModeList
-{
-public:
-    D3DGfxModeList(IDirect3D9 *direct3d, D3DFORMAT d3dformat)
-        : _direct3d(direct3d)
-        , _pixelFormat(d3dformat)
-    {
-        _modeCount = _direct3d ? _direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, _pixelFormat) : 0;
-    }
-  
-    virtual int GetModeCount()
-    {
-        return _modeCount;
-    }
-
-    virtual bool GetMode(int index, DisplayResolution &resolution)
-    {
-        if (_direct3d && index >= 0 && index < _modeCount)
-        {
-            D3DDISPLAYMODE displayMode;
-            if (SUCCEEDED(_direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, _pixelFormat, index, &displayMode)))
-            {
-                resolution.Width = displayMode.Width;
-                resolution.Height = displayMode.Height;
-                resolution.ColorDepth = d3d_format_to_color_depth(displayMode.Format, false);
-                return true;
-            }
-        }
-        return false;
-    }
-
-private:
-    IDirect3D9 *_direct3d;
-    D3DFORMAT   _pixelFormat;
-    int         _modeCount;
-};
-
-
-struct SpriteDrawListEntry
-{
-  D3DBitmap *bitmap;
-  int x, y;
-  bool skip;
-};
-
-class D3DGraphicsDriver : public IGraphicsDriver
-{
-public:
-  virtual const char*GetDriverName() { return "Direct3D 9"; }
-  virtual const char*GetDriverID() { return "D3D9"; }
-  virtual void SetGraphicsFilter(GFXFilter *filter);
-  virtual void SetTintMethod(TintMethod method);
-  virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
-  virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync);
-  virtual IGfxModeList *GetSupportedModeList(int color_depth);
-  virtual DisplayResolution GetResolution();
-  virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
-  virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
-  virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
-  virtual void SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) { _nullSpriteCallback = callback; }
-  virtual void UnInit();
-  virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
-  virtual Bitmap *ConvertBitmapToSupportedColourDepth(Bitmap *bitmap);
-  virtual IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque);
-  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha);
-  virtual void DestroyDDB(IDriverDependantBitmap* bitmap);
-  virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap);
-  virtual void ClearDrawList();
-  virtual void RenderToBackBuffer();
-  virtual void Render();
-  virtual void Render(GlobalFlipType flip);
-  virtual void SetRenderOffset(int x, int y);
-  virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination);
-  virtual void EnableVsyncBeforeRender(bool enabled) { }
-  virtual void Vsync();
-  virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-  virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue);
-  virtual void BoxOutEffect(bool blackingOut, int speed, int delay);
-  virtual bool PlayVideo(const char *filename, bool useSound, VideoSkipType skipType, bool stretchToFullScreen);
-  virtual bool SupportsGammaControl();
-  virtual void SetGamma(int newGamma);
-  virtual void UseSmoothScaling(bool enabled) { _smoothScaling = enabled; }
-  virtual bool RequiresFullRedrawEachFrame() { return true; }
-  virtual bool HasAcceleratedStretchAndFlip() { return true; }
-  virtual bool UsesMemoryBackBuffer() { return false; }
-  virtual Bitmap* GetMemoryBackBuffer() { return NULL; }
-  virtual void SetMemoryBackBuffer(Bitmap *backBuffer) {  }
-  virtual void SetScreenTint(int red, int green, int blue);
-
-  bool CreateDriver();
-
-  // Internal
-  int _initDLLCallback();
-  int _resetDeviceIfNecessary();
-  void _render(GlobalFlipType flip, bool clearDrawListAfterwards);
-  void _reDrawLastFrame();
-  D3DGraphicsDriver(D3DGFXFilter *filter);
-  virtual ~D3DGraphicsDriver();
-
-  D3DGFXFilter *_filter;
-
-private:
-  D3DPRESENT_PARAMETERS d3dpp;
-  IDirect3D9* direct3d;
-  IDirect3DDevice9* direct3ddevice;
-  D3DGAMMARAMP defaultgammaramp;
-  D3DGAMMARAMP currentgammaramp;
-  D3DCAPS9 direct3ddevicecaps;
-  IDirect3DVertexBuffer9* vertexbuffer;
-  int _newmode_width, _newmode_height;
-  int _newmode_screen_width, _newmode_screen_height;
-  int _newmode_depth, _newmode_refresh;
-  bool _newmode_windowed;
-  bool _newmode_vsync;
-  int _global_x_offset, _global_y_offset;
-  UINT availableVideoMemory;
-  GFXDRV_CLIENTCALLBACK _pollingCallback;
-  GFXDRV_CLIENTCALLBACK _drawScreenCallback;
-  GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
-  GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
-  int _tint_red, _tint_green, _tint_blue;
-  CUSTOMVERTEX defaultVertices[4];
-  String previousError;
-  IDirect3DPixelShader9* pixelShader;
-  bool _smoothScaling;
-  bool _legacyPixelShader;
-  float _pixelRenderOffset;
-  volatile int *_loopTimer;
-  Bitmap *_screenTintLayer;
-  D3DBitmap* _screenTintLayerDDB;
-  SpriteDrawListEntry _screenTintSprite;
-
-  SpriteDrawListEntry drawList[MAX_DRAW_LIST_SIZE];
-  int numToDraw;
-  SpriteDrawListEntry drawListLastTime[MAX_DRAW_LIST_SIZE];
-  int numToDrawLastTime;
-  GlobalFlipType flipTypeLastTime;
-
-  LONG _allegroOriginalWindowStyle;
-
-  bool EnsureDirect3D9IsCreated();
-  void initD3DDLL();
-  void InitializeD3DState();
-  void set_up_default_vertices();
-  void make_translated_scaling_matrix(D3DMATRIX *matrix, float x, float y, float xScale, float yScale);
-  void AdjustSizeToNearestSupportedByCard(int *width, int *height);
-  void UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, D3DBitmap *target, bool hasAlpha);
-  void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-  bool IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat );
-  bool IsModeSupported(int width, int height, int colDepth);
-  void create_screen_tint_bitmap();
-  void _renderSprite(SpriteDrawListEntry *entry, bool globalLeftRightFlip, bool globalTopBottomFlip);
-};
-
 static int wnd_create_device();
-static D3DGraphicsDriver *_d3d_driver = NULL;
-//
-// IMPORTANT NOTE: since the Direct3d9 device is created with
-// D3DCREATE_MULTITHREADED behavior flag, once it is created the d3d9.dll may
-// only be unloaded after window is destroyed, as noted in the MSDN's article
-// on "D3DCREATE"
-// (http://msdn.microsoft.com/en-us/library/windows/desktop/bb172527.aspx).
-// Otherwise window becomes either destroyed prematurely or broken (details
-// are unclear), which causes errors during Allegro deinitialization.
-//
-// Curiously, this problem was only confirmed under WinXP so far.
-//
-// For the purpose of avoiding this problem, we have a global library wrapper
-// that unloads library only at the very program exit (except cases of device
-// creation failure).
-// 
-static Library D3D9Library;
 
-IGraphicsDriver* GetD3DGraphicsDriver(GFXFilter *filter)
+D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d) 
 {
-  D3DGFXFilter* d3dfilter = (D3DGFXFilter*)filter;
-  if (_d3d_driver == NULL)
-  {
-    _d3d_driver = new D3DGraphicsDriver(d3dfilter);
-  }
-  else if (_d3d_driver->_filter != filter)
-  {
-    _d3d_driver->_filter = d3dfilter;
-  }
-
-  if (!_d3d_driver->CreateDriver())
-  {
-      delete _d3d_driver;
-      return NULL;
-  }
-  return _d3d_driver;
-}
-
-D3DGraphicsDriver::D3DGraphicsDriver(D3DGFXFilter *filter) 
-{
-  direct3d = NULL;
+  direct3d = d3d;
   direct3ddevice = NULL;
   vertexbuffer = NULL;
   numToDraw = 0;
@@ -440,11 +187,7 @@ D3DGraphicsDriver::D3DGraphicsDriver(D3DGFXFilter *filter)
   _tint_red = 0;
   _tint_green = 0;
   _tint_blue = 0;
-  _global_x_offset = 0;
-  _global_y_offset = 0;
-  _newmode_screen_width = 0;
-  _newmode_screen_height = 0;
-  _filter = filter;
+  _filter = NULL;
   _screenTintLayer = NULL;
   _screenTintLayerDDB = NULL;
   _screenTintSprite.skip = true;
@@ -496,55 +239,14 @@ void D3DGraphicsDriver::set_up_default_vertices()
   defaultVertices[3].tv=1.0;
 }
 
-bool D3DGraphicsDriver::CreateDriver()
-{
-   return EnsureDirect3D9IsCreated();
-}
-
 void D3DGraphicsDriver::Vsync() 
 {
   // do nothing on D3D
 }
 
-bool D3DGraphicsDriver::EnsureDirect3D9IsCreated() 
-{
-   if (direct3d != NULL)
-     return true;
-
-   IDirect3D9 * (WINAPI * lpDirect3DCreate9)(UINT);
-
-   if (!D3D9Library.Load("d3d9"))
-   {
-     set_allegro_error("Direct3D is not installed");
-     return false;
-   }
-
-   lpDirect3DCreate9 = (IDirect3D9 * (WINAPI *)(UINT))D3D9Library.GetFunctionAddress("Direct3DCreate9");
-   if (lpDirect3DCreate9 == NULL) 
-   {
-     D3D9Library.Unload();
-     set_allegro_error("Entry point not found in d3d9.dll");
-     return false;
-   }
-
-   direct3d = lpDirect3DCreate9( D3D_SDK_VERSION );
-   if (direct3d == NULL) {
-     D3D9Library.Unload();
-     set_allegro_error("Direct3DCreate failed!");
-     return false;
-   }
-
-   return true;
-}
-
 void D3DGraphicsDriver::initD3DDLL() 
 {
-   if (!EnsureDirect3D9IsCreated())
-   {
-     throw Ali3DException(get_allegro_error());
-   }
-
-   if (!IsModeSupported(_newmode_screen_width, _newmode_screen_height, _newmode_depth))
+   if (!IsModeSupported(_mode))
    {
      throw Ali3DException(get_allegro_error());
    }
@@ -556,7 +258,6 @@ void D3DGraphicsDriver::initD3DDLL()
      _exit_critical();
      direct3d->Release();
      direct3d = NULL;
-     D3D9Library.Unload();
      throw Ali3DException(get_allegro_error());
    }
 
@@ -564,10 +265,10 @@ void D3DGraphicsDriver::initD3DDLL()
    // final refresh rate that we are using
    D3DDISPLAYMODE final_display_mode;
    if (direct3ddevice->GetDisplayMode(0, &final_display_mode) == D3D_OK) {
-     _newmode_refresh = final_display_mode.RefreshRate;
+     _mode.RefreshRate = final_display_mode.RefreshRate;
    }
    else {
-     _newmode_refresh = 0;
+     _mode.RefreshRate = 0;
    }
 
    availableVideoMemory = direct3ddevice->GetAvailableTextureMem();
@@ -576,7 +277,7 @@ void D3DGraphicsDriver::initD3DDLL()
 
    // Set up a fake allegro gfx driver so that things like
    // the allegro mouse handler still work
-   if (_newmode_windowed)
+   if (_mode.Windowed)
      gfx_driver = &gfx_direct3d_win;
    else
      gfx_driver = &gfx_direct3d_full;
@@ -649,26 +350,32 @@ static int d3d_format_to_color_depth(D3DFORMAT format, bool secondary)
   return 0;
 }
 
-bool D3DGraphicsDriver::IsModeSupported(int width, int height, int colDepth)
+bool D3DGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 {
-  if (_newmode_windowed)
+  if (mode.Width <= 0 || mode.Height <= 0 || mode.ColorDepth <= 0)
+  {
+    set_allegro_error("Invalid resolution parameters: %d x %d x %d", mode.Width, mode.Height, mode.ColorDepth);
+    return false;
+  }
+
+  if (mode.Windowed)
   {
     return true;
   }
 
-  D3DFORMAT pixelFormat = color_depth_to_d3d_format(colDepth, false);
-  D3DDISPLAYMODE displayMode;
+  D3DFORMAT pixelFormat = color_depth_to_d3d_format(mode.ColorDepth, false);
+  D3DDISPLAYMODE d3d_mode;
 
-  int modeCount = direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, pixelFormat);
-  for (int i = 0; i < modeCount; i++)
+  int mode_count = direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, pixelFormat);
+  for (int i = 0; i < mode_count; i++)
   {
-    if (FAILED(direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, pixelFormat, i, &displayMode)))
+    if (FAILED(direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, pixelFormat, i, &d3d_mode)))
     {
       set_allegro_error("IDirect3D9::EnumAdapterModes failed");
       return false;
     }
 
-    if ((displayMode.Width == width) && (displayMode.Height == height))
+    if ((d3d_mode.Width == mode.Width) && (d3d_mode.Height == mode.Height))
     {
       return true;
     }
@@ -683,7 +390,7 @@ bool D3DGraphicsDriver::SupportsGammaControl()
   if ((direct3ddevicecaps.Caps2 & D3DCAPS2_FULLSCREENGAMMA) == 0)
     return false;
 
-  if (_newmode_windowed)
+  if (_mode.Windowed)
     return false;
 
   return true;
@@ -710,12 +417,12 @@ void D3DGraphicsDriver::SetGamma(int newGamma)
  */
 static int wnd_create_device()
 {
-  return _d3d_driver->_initDLLCallback();
+  return D3DGraphicsFactory::GetD3DDriver()->_initDLLCallback();
 }
 
 static int wnd_reset_device()
 {
-  return _d3d_driver->_resetDeviceIfNecessary();
+  return D3DGraphicsFactory::GetD3DDriver()->_resetDeviceIfNecessary();
 }
 
 // The D3DX library does this for us, but it's an external DLL that
@@ -778,7 +485,7 @@ int D3DGraphicsDriver::_initDLLCallback()
 
   HWND allegro_wnd = win_get_window();
 
-  if (!_newmode_windowed)
+  if (!_mode.Windowed)
   {
     // Remove the border in full-screen mode, otherwise if the player
     // clicks near the edge of the screen it goes back to Windows
@@ -791,25 +498,25 @@ int D3DGraphicsDriver::_initDLLCallback()
   }
 
   memset( &d3dpp, 0, sizeof(d3dpp) );
-  d3dpp.BackBufferWidth = _newmode_screen_width;
-  d3dpp.BackBufferHeight = _newmode_screen_height;
-  d3dpp.BackBufferFormat = color_depth_to_d3d_format(_newmode_depth, false);
+  d3dpp.BackBufferWidth = _mode.Width;
+  d3dpp.BackBufferHeight = _mode.Height;
+  d3dpp.BackBufferFormat = color_depth_to_d3d_format(_mode.ColorDepth, false);
   d3dpp.BackBufferCount = 1;
   d3dpp.MultiSampleType = D3DMULTISAMPLE_NONE;
   // THIS MUST BE SWAPEFFECT_COPY FOR PlayVideo TO WORK
   d3dpp.SwapEffect = D3DSWAPEFFECT_COPY; //D3DSWAPEFFECT_DISCARD; 
   d3dpp.hDeviceWindow = allegro_wnd;
-  d3dpp.Windowed = _newmode_windowed;
+  d3dpp.Windowed = _mode.Windowed;
   d3dpp.EnableAutoDepthStencil = FALSE;
   d3dpp.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER; // we need this flag to access the backbuffer with lockrect
   d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
-  if(_newmode_vsync)
+  if(_mode.Vsync)
     d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
   else
     d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
   /* If full screen, specify the refresh rate */
-  if ((d3dpp.Windowed == FALSE) && (_newmode_refresh > 0))
-    d3dpp.FullScreen_RefreshRateInHz = _newmode_refresh;
+  if ((d3dpp.Windowed == FALSE) && (_mode.RefreshRate > 0))
+    d3dpp.FullScreen_RefreshRateInHz = _mode.RefreshRate;
 
   if (_initGfxCallback != NULL)
     _initGfxCallback(&d3dpp);
@@ -826,9 +533,9 @@ int D3DGraphicsDriver::_initDLLCallback()
     return -1;
   }
 
-  if (_newmode_windowed)
+  if (_mode.Windowed)
   {
-    if (adjust_window(_newmode_screen_width, _newmode_screen_height) != 0) 
+    if (adjust_window(_mode.Width, _mode.Height) != 0) 
     {
       direct3ddevice->Release();
       direct3ddevice = NULL;
@@ -935,8 +642,8 @@ void D3DGraphicsDriver::InitializeD3DState()
   OutputDebugString("AGS -- InitializeD3DState()");
 
   D3DMATRIX matOrtho = {
-    (2.0 / (float)_newmode_width), 0.0, 0.0, 0.0,
-    0.0, (2.0 / (float)_newmode_height), 0.0, 0.0,
+   (2.0 / (float)_mode.Width), 0.0, 0.0, 0.0,
+    0.0, (2.0 / (float)_mode.Height), 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 1.0
   };
@@ -1012,18 +719,28 @@ void D3DGraphicsDriver::InitializeD3DState()
   direct3ddevice->LightEnable(0, TRUE);
 
   // See "Directly Mapping Texels to Pixels" MSDN article for why this is necessary
-  _pixelRenderOffset = ((float)_newmode_width / (float)_newmode_screen_width) / 2.0f;
+  // http://msdn.microsoft.com/en-us/library/windows/desktop/bb219690.aspx
+  _pixelRenderXOffset = ((float)_srcRect.GetWidth() / (float)_mode.Width) / 2.0f;
+  _pixelRenderYOffset = ((float)_srcRect.GetHeight() / (float)_mode.Height) / 2.0f;
+
+  // Clear the screen before setting a viewport.
+  ClearRectangle(0, 0, _mode.Width, _mode.Height, 0);
+
+  // Set Viewport.
+  D3DVIEWPORT9 d3dViewport;
+  ZeroMemory(&d3dViewport, sizeof(D3DVIEWPORT9));
+  d3dViewport.X = _dstRect.Left;
+  d3dViewport.Y = _dstRect.Top;
+  d3dViewport.Width = _dstRect.GetWidth();
+  d3dViewport.Height = _dstRect.GetHeight();
+  d3dViewport.MinZ = 0.0f;
+  d3dViewport.MaxZ = 1.0f;
+  direct3ddevice->SetViewport(&d3dViewport);
 }
 
-void D3DGraphicsDriver::SetRenderOffset(int x, int y)
+void D3DGraphicsDriver::SetGraphicsFilter(D3DGfxFilter *filter)
 {
-  _global_x_offset = x;
-  _global_y_offset = y;
-}
-
-void D3DGraphicsDriver::SetGraphicsFilter(GFXFilter *filter)
-{
-  _filter = (D3DGFXFilter*)filter;
+  _filter = filter;
 }
 
 void D3DGraphicsDriver::SetTintMethod(TintMethod method) 
@@ -1031,28 +748,15 @@ void D3DGraphicsDriver::SetTintMethod(TintMethod method)
   _legacyPixelShader = (method == TintReColourise);
 }
 
-bool D3DGraphicsDriver::Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync)
+bool D3DGraphicsDriver::Init(const DisplayMode &mode, const Size src_size, const Rect dst_rect, volatile int *loopTimer)
 {
-  return this->Init(width, height, width, height, colourDepth, windowed, loopTimer, vsync);
-}
-
-bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool vsync)
-{
-  if (colourDepth < 15)
+  if (mode.ColorDepth < 15)
   {
     set_allegro_error("Direct3D driver does not support 256-colour games");
     return false;
   }
 
-  _newmode_width = virtualWidth;
-  _newmode_height = virtualHeight;
-  _newmode_screen_width = realWidth;
-  _newmode_screen_height = realHeight;
-  _newmode_depth = colourDepth;
-  _newmode_refresh = 0;
-  _newmode_windowed = windowed;
-  _newmode_vsync = vsync;
-  _loopTimer = loopTimer;
+  _Init(mode, src_size, dst_rect, loopTimer);
 
   try
   {
@@ -1067,26 +771,26 @@ bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
   }
   // create dummy screen bitmap
   BitmapHelper::SetScreenBitmap(
-	  ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(virtualWidth, virtualHeight, colourDepth))
+      ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(src_size.Width, src_size.Height, mode.ColorDepth))
 	  );
   return true;
 }
 
 IGfxModeList *D3DGraphicsDriver::GetSupportedModeList(int color_depth)
 {
-  if (!EnsureDirect3D9IsCreated())
-    return false;
-
+  direct3d->AddRef();
   return new D3DGfxModeList(direct3d, color_depth_to_d3d_format(color_depth, false));
 }
 
-DisplayResolution D3DGraphicsDriver::GetResolution()
+IGfxFilter *D3DGraphicsDriver::GetGraphicsFilter() const
 {
-    return DisplayResolution(_newmode_screen_width, _newmode_screen_height, _newmode_depth);
+    return _filter;
 }
 
 void D3DGraphicsDriver::UnInit() 
 {
+  _UnInit();
+
   if (_screenTintLayerDDB != NULL) 
   {
     this->DestroyDDB(_screenTintLayerDDB);
@@ -1127,10 +831,7 @@ D3DGraphicsDriver::~D3DGraphicsDriver()
   UnInit();
 
   if (direct3d)
-  {
     direct3d->Release();
-    direct3d = NULL;
-  }
 }
 
 void D3DGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)
@@ -1167,37 +868,24 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
       _pollingCallback();
 
     Bitmap *retrieveInto = destination;
-
-    if ((_newmode_width != _newmode_screen_width) ||
-        (_newmode_height != _newmode_screen_height))
+    if ((_srcRect.GetWidth() != _dstRect.GetWidth()) ||
+        (_srcRect.GetHeight() != _dstRect.GetHeight()))
     {
-      // in letterbox mode the screen is 640x480 but destination might only be 320x200
-      // therefore calculate the size like this
-      retrieveInto = BitmapHelper::CreateBitmap(destination->GetWidth() * _newmode_screen_width / _newmode_width, 
-                                          destination->GetHeight() * _newmode_screen_height / _newmode_height,
-										  _newmode_depth);
+        retrieveInto = BitmapHelper::CreateBitmap(_dstRect.GetWidth(), _dstRect.GetHeight(), _mode.ColorDepth);
     }
 
     D3DLOCKED_RECT lockedRect;
-    if (surface->LockRect(&lockedRect, NULL, D3DLOCK_READONLY ) != D3D_OK)
+    RECT viewport_rect;
+    viewport_rect.left   = _dstRect.Left;
+    viewport_rect.right  = _dstRect.Right + 1;
+    viewport_rect.top    = _dstRect.Top;
+    viewport_rect.bottom = _dstRect.Bottom + 1;
+    if (surface->LockRect(&lockedRect, &viewport_rect, D3DLOCK_READONLY ) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::LockRect failed");
     }
 
-    unsigned char *surfaceData = (unsigned char*)lockedRect.pBits;
-    int xOffset = 0;
-    if (destination->GetHeight() < _newmode_height)
-    {
-      // nasty hack for letterbox
-      surfaceData += (lockedRect.Pitch * ((_newmode_height - destination->GetHeight()) / 2)) * _newmode_screen_height / _newmode_height;
-    }
-    if (destination->GetWidth() < _newmode_width)
-    {
-      // hack for side borders
-      xOffset += ((_newmode_width - destination->GetWidth()) / 2) * _newmode_screen_width / _newmode_width;
-    }
-
-    BitmapHelper::ReadPixelsFromMemory(retrieveInto, surfaceData, lockedRect.Pitch, xOffset);
+    BitmapHelper::ReadPixelsFromMemory(retrieveInto, (uint8_t*)lockedRect.pBits, lockedRect.Pitch);
 
     surface->UnlockRect();
     surface->Release();
@@ -1224,7 +912,7 @@ void D3DGraphicsDriver::RenderToBackBuffer()
 
 void D3DGraphicsDriver::Render()
 {
-  Render(None);
+  Render(kFlip_None);
 }
 
 void D3DGraphicsDriver::Render(GlobalFlipType flip)
@@ -1353,17 +1041,19 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
 
   float width = bmpToDraw->GetWidthToRender();
   float height = bmpToDraw->GetHeightToRender();
-  float xProportion = (float)width / (float)bmpToDraw->_width;
-  float yProportion = (float)height / (float)bmpToDraw->_height;
+  float xProportion = width / (float)bmpToDraw->_width;
+  float yProportion = height / (float)bmpToDraw->_height;
+  float xFrameProportion = (float)_mode.Width / _srcRect.GetWidth();
+  float yFrameProportion = (float)_mode.Height / _srcRect.GetHeight();
 
-  bool flipLeftToRight = globalLeftRightFlip ^ bmpToDraw->_flipped;
-  int drawAtX = drawListEntry->x + _global_x_offset;
-  int drawAtY = drawListEntry->y + _global_y_offset;
+  bool  flipLeftToRight = globalLeftRightFlip ^ bmpToDraw->_flipped;
+  float drawAtX = (drawListEntry->x + _global_x_offset) * xFrameProportion;
+  float drawAtY = (drawListEntry->y + _global_y_offset) * yFrameProportion;
 
   for (int ti = 0; ti < bmpToDraw->_numTiles; ti++)
   {
-    width = bmpToDraw->_tiles[ti].width * xProportion;
-    height = bmpToDraw->_tiles[ti].height * yProportion;
+    width = bmpToDraw->_tiles[ti].width * xProportion * xFrameProportion;
+    height = bmpToDraw->_tiles[ti].height * yProportion * yFrameProportion;
     float xOffs;
     float yOffs = bmpToDraw->_tiles[ti].y * yProportion;
     if (flipLeftToRight != globalLeftRightFlip)
@@ -1374,21 +1064,20 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
     {
       xOffs = bmpToDraw->_tiles[ti].x * xProportion;
     }
-    int thisX = drawAtX + xOffs;
-    int thisY = drawAtY + yOffs;
+    float thisX = drawAtX + xOffs;
+    float thisY = drawAtY + yOffs;
 
     if (globalLeftRightFlip)
     {
-      thisX = (_newmode_width - thisX) - width;
+      thisX = (_mode.Width - thisX) - width;
     }
     if (globalTopBottomFlip) 
     {
-      thisY = (_newmode_height - thisY) - height;
+      thisY = (_mode.Height - thisY) - height;
     }
 
-    thisX = (-(_newmode_width / 2)) + thisX;
-    thisY = (_newmode_height / 2) - thisY;
-
+    thisX = (-(_mode.Width / 2)) + thisX;
+    thisY = (_mode.Height / 2) - thisY;
 
     //Setup translation and scaling matrices
     float widthToScale = (float)width;
@@ -1407,7 +1096,7 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
       thisY -= height;
     }
 
-    make_translated_scaling_matrix(&matTransform, (float)thisX - _pixelRenderOffset, (float)thisY + _pixelRenderOffset, widthToScale, heightToScale);
+    make_translated_scaling_matrix(&matTransform, (float)thisX - _pixelRenderXOffset, (float)thisY + _pixelRenderYOffset, widthToScale, heightToScale);
 
     if ((_smoothScaling) && (bmpToDraw->_stretchToHeight > 0) &&
         ((bmpToDraw->_stretchToHeight != bmpToDraw->_height) ||
@@ -1438,8 +1127,8 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
   SpriteDrawListEntry *listToDraw = drawList;
   int listSize = numToDraw;
   HRESULT hr;
-  bool globalLeftRightFlip = (flip == Vertical) || (flip == Both);
-  bool globalTopBottomFlip = (flip == Horizontal) || (flip == Both);
+  bool globalLeftRightFlip = (flip == kFlip_Vertical) || (flip == kFlip_Both);
+  bool globalTopBottomFlip = (flip == kFlip_Horizontal) || (flip == kFlip_Both);
 
   direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 128), 0.5f, 0);
   hr = direct3ddevice->BeginScene();
@@ -1924,7 +1613,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
 
-  d3db->SetStretch(_newmode_width, _newmode_height);
+  d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
   this->DrawSprite(-_global_x_offset, -_global_y_offset, d3db);
 
   if (speed <= 0) speed = 16;
@@ -1979,7 +1668,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
 
-  d3db->SetStretch(_newmode_width, _newmode_height);
+  d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
   this->DrawSprite(0, 0, d3db);
   if (!blackingOut)
   {
@@ -1990,27 +1679,27 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
     this->DrawSprite(0, 0, d3db);
   }
 
-  int yspeed = _newmode_height / (_newmode_width / speed);
+  int yspeed = _srcRect.GetHeight() / (_srcRect.GetWidth() / speed);
   int boxWidth = speed;
   int boxHeight = yspeed;
 
-  while (boxWidth < _newmode_width)
+  while (boxWidth < _srcRect.GetWidth())
   {
     boxWidth += speed;
     boxHeight += yspeed;
     if (blackingOut)
     {
-      this->drawList[this->numToDraw - 1].x = _newmode_width / 2- boxWidth / 2;
-      this->drawList[this->numToDraw - 1].y = _newmode_height / 2 - boxHeight / 2;
+      this->drawList[this->numToDraw - 1].x = _srcRect.GetWidth() / 2- boxWidth / 2;
+      this->drawList[this->numToDraw - 1].y = _srcRect.GetHeight() / 2 - boxHeight / 2;
       d3db->SetStretch(boxWidth, boxHeight);
     }
     else
     {
-      this->drawList[this->numToDraw - 4].x = _newmode_width / 2 - boxWidth / 2 - _newmode_width;
-      this->drawList[this->numToDraw - 3].y = _newmode_height / 2 - boxHeight / 2 - _newmode_height;
-      this->drawList[this->numToDraw - 2].x = _newmode_width / 2 + boxWidth / 2;
-      this->drawList[this->numToDraw - 1].y = _newmode_height / 2 + boxHeight / 2;
-      d3db->SetStretch(_newmode_width, _newmode_height);
+      this->drawList[this->numToDraw - 4].x = _srcRect.GetWidth() / 2 - boxWidth / 2 - _srcRect.GetWidth();
+      this->drawList[this->numToDraw - 3].y = _srcRect.GetHeight() / 2 - boxHeight / 2 - _srcRect.GetHeight();
+      this->drawList[this->numToDraw - 2].x = _srcRect.GetWidth() / 2 + boxWidth / 2;
+      this->drawList[this->numToDraw - 1].y = _srcRect.GetHeight() / 2 + boxHeight / 2;
+      d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
     }
     
     this->_render(flipTypeLastTime, false);
@@ -2034,7 +1723,7 @@ bool D3DGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoS
 
 void D3DGraphicsDriver::create_screen_tint_bitmap() 
 {
-  _screenTintLayer = BitmapHelper::CreateBitmap(16, 16, this->_newmode_depth);
+  _screenTintLayer = BitmapHelper::CreateBitmap(16, 16, this->_mode.ColorDepth);
   _screenTintLayer = this->ConvertBitmapToSupportedColourDepth(_screenTintLayer);
   _screenTintLayerDDB = (D3DBitmap*)this->CreateDDBFromBitmap(_screenTintLayer, false, false);
   _screenTintSprite.bitmap = _screenTintLayerDDB;
@@ -2050,9 +1739,119 @@ void D3DGraphicsDriver::SetScreenTint(int red, int green, int blue)
 
     _screenTintLayer->Clear(makecol_depth(_screenTintLayer->GetColorDepth(), red, green, blue));
     this->UpdateDDBFromBitmap(_screenTintLayerDDB, _screenTintLayer, false);
-    _screenTintLayerDDB->SetStretch(_newmode_width, _newmode_height);
+    _screenTintLayerDDB->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
     _screenTintLayerDDB->SetTransparency(128);
 
     _screenTintSprite.skip = ((red == 0) && (green == 0) && (blue == 0));
   }
 }
+
+
+D3DGraphicsFactory *D3DGraphicsFactory::_factory = NULL;
+
+D3DGraphicsFactory::~D3DGraphicsFactory()
+{
+    DestroyDriver(); // driver must be destroyed before d3d library is disposed
+    ULONG ref_cnt = _direct3d->Release();
+    if (ref_cnt > 0)
+        Out::FPrint("WARNING: Not all of the Direct3D resources have been disposed; ID3D ref count: %d", ref_cnt);
+    _factory = NULL;
+}
+
+size_t D3DGraphicsFactory::GetFilterCount() const
+{
+    return 2;
+}
+
+const GfxFilterInfo *D3DGraphicsFactory::GetFilterInfo(size_t index) const
+{
+    switch (index)
+    {
+    case 0:
+        return &D3DGfxFilter::FilterInfo;
+    case 1:
+        return &AAD3DGfxFilter::FilterInfo;
+    default:
+        return NULL;
+    }
+}
+
+/* static */ D3DGraphicsFactory *D3DGraphicsFactory::GetFactory()
+{
+    if (!_factory)
+    {
+        _factory = new D3DGraphicsFactory();
+        if (!_factory->Init())
+        {
+            delete _factory;
+            _factory = NULL;
+        }
+    }
+    return _factory;
+}
+
+/* static */ D3DGraphicsDriver *D3DGraphicsFactory::GetD3DDriver()
+{
+    if (!_factory)
+        _factory = GetFactory();
+    if (_factory)
+        return _factory->EnsureDriverCreated();
+    return NULL;
+}
+
+
+D3DGraphicsFactory::D3DGraphicsFactory()
+    : _direct3d(NULL)
+{
+}
+
+D3DGraphicsDriver *D3DGraphicsFactory::EnsureDriverCreated()
+{
+    if (!_driver)
+    {
+        _factory->_direct3d->AddRef();
+        _driver = new D3DGraphicsDriver(_factory->_direct3d);
+    }
+    return _driver;
+}
+
+D3DGfxFilter *D3DGraphicsFactory::CreateFilter(const String &id)
+{
+    if (D3DGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
+        return new D3DGfxFilter();
+    else if (AAD3DGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
+        return new AAD3DGfxFilter();
+    return NULL;
+}
+
+bool D3DGraphicsFactory::Init()
+{
+    assert(_direct3d == NULL);
+    if (_direct3d)
+        return true;
+
+    if (!_library.Load("d3d9"))
+    {
+        set_allegro_error("Direct3D is not installed");
+        return false;
+    }
+
+    typedef IDirect3D9 * WINAPI D3D9CreateFn(UINT);
+    D3D9CreateFn *lpDirect3DCreate9 = (D3D9CreateFn*)_library.GetFunctionAddress("Direct3DCreate9");
+    if (!lpDirect3DCreate9)
+    {
+        set_allegro_error("Entry point not found in d3d9.dll");
+        return false;
+    }
+    _direct3d = lpDirect3DCreate9(D3D_SDK_VERSION);
+    if (!_direct3d)
+    {
+        set_allegro_error("Direct3DCreate failed!");
+        return false;
+    }
+    return true;
+}
+
+} // namespace D3D
+} // namespace Engine
+} // namespace AGS

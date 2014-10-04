@@ -12,6 +12,8 @@
 //
 //=============================================================================
 
+#include <errno.h>
+#include <stdlib.h>
 #include "gui/guidefines.h"
 #include "util/string_utils.h"
 #include "util/stream.h"
@@ -148,3 +150,47 @@ void fgetstring(char *sss, Common::Stream *in)
 {
     fgetstring_limit (sss, in, 50000000);
 }
+
+
+namespace AGS
+{
+namespace Common
+{
+
+String StrUtil::IntToString(int d)
+{
+    return String::FromFormat("%d", d);
+}
+
+int StrUtil::StringToInt(const String &s, int def_val)
+{
+    if (!s.GetCStr())
+        return StrUtil::kFailed;
+    char *stop_ptr;
+    int val = strtol(s.GetCStr(), &stop_ptr, 0);
+    return (stop_ptr == s.GetCStr() + s.GetLength()) ? val : def_val;
+}
+
+StrUtil::ConversionError StrUtil::StringToInt(const String &s, int &val, int def_val)
+{
+    if (!s.GetCStr())
+        return StrUtil::kFailed;
+    char *stop_ptr;
+    errno = 0;
+    long lval = strtol(s.GetCStr(), &stop_ptr, 0);
+    if (stop_ptr != s.GetCStr() + s.GetLength())
+    {
+        val = def_val;
+        return StrUtil::kFailed;
+    }
+    if (lval > INT_MAX || lval < INT_MIN || errno == ERANGE)
+    {
+        val = def_val;
+        return StrUtil::kOutOfRange;
+    }
+    val = (int)lval;
+    return StrUtil::kNoError;
+}
+
+} // namespace Common
+} // namespace AGS

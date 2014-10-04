@@ -2736,7 +2736,7 @@ void UpdateSpriteFlags(SpriteFolder ^folder)
 
 void GameUpdated(Game ^game) {
   thisgame.color_depth = (int)game->Settings->ColorDepth;
-  thisgame.default_resolution = (GameResolutionType)game->Settings->Resolution;
+  thisgame.SetDefaultResolution((GameResolutionType)game->Settings->Resolution);
 
   thisgame.options[OPT_NOSCALEFNT] = game->Settings->FontsForHiRes;
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
@@ -3764,7 +3764,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 	game->Settings->NumberDialogOptions = (thisgame.options[OPT_DIALOGNUMBERED] != 0);
 	game->Settings->PixelPerfect = (thisgame.options[OPT_PIXPERFECT] != 0);
 	game->Settings->PlaySoundOnScore = thisgame.options[OPT_SCORESOUND];
-	game->Settings->Resolution = (GameResolutions)thisgame.default_resolution;
+	game->Settings->Resolution = (GameResolutions)thisgame.GetDefaultResolution();
 	game->Settings->RoomTransition = (RoomTransitionStyle)thisgame.options[OPT_FADETYPE];
 	game->Settings->SaveScreenshots = (thisgame.options[OPT_SAVESCREENSHOT] != 0);
 	game->Settings->SkipSpeech = (SkipSpeechStyle)thisgame.options[OPT_NOSKIPTEXT];
@@ -4359,7 +4359,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		hotspot->ID = i;
 		hotspot->Description = gcnew String(thisroom.hotspotnames[i]);
 		hotspot->Name = (gcnew String(thisroom.hotspotScriptNames[i]))->Trim();
-		hotspot->WalkToPoint = Point(thisroom.hswalkto[i].x, thisroom.hswalkto[i].y);
+        hotspot->WalkToPoint = System::Drawing::Point(thisroom.hswalkto[i].x, thisroom.hswalkto[i].y);
 		ConvertCustomProperties(hotspot->Properties, &thisroom.hsProps[i]);
 
 		if (thisroom.wasversion < kRoomVersion_300a)
@@ -4878,7 +4878,7 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	thisgame.options[OPT_DIALOGNUMBERED] = game->Settings->NumberDialogOptions;
 	thisgame.options[OPT_PIXPERFECT] = game->Settings->PixelPerfect;
 	thisgame.options[OPT_SCORESOUND] = 0; // saved elsewhere now to make it 32-bit
-	thisgame.default_resolution = (GameResolutionType)game->Settings->Resolution;
+	thisgame.SetDefaultResolution((GameResolutionType)game->Settings->Resolution);
 	thisgame.options[OPT_FADETYPE] = (int)game->Settings->RoomTransition;
 	thisgame.options[OPT_RUNGAMEDLGOPTS] = game->Settings->RunGameLoopsWhileDialogOptionsDisplayed;
 	thisgame.options[OPT_SAVESCREENSHOT] = game->Settings->SaveScreenshots;

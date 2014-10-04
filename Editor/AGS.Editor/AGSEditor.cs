@@ -43,8 +43,28 @@ namespace AGS.Editor
         public const string AGS_REGISTRY_KEY = @"SOFTWARE\Adventure Game Studio\AGS Editor";
         public const string SPRITE_FILE_NAME = "acsprset.spr";
         public const string SPRITE_INDEX_FILE_NAME = "sprindex.dat";
-		public const string LATEST_XML_VERSION = "3.0.3.2";
-        public const int    LATEST_XML_VERSION_INDEX = 7;
+
+        /* 
+         * LATEST_XML_VERSION is the last version of the Editor that used 4-point-4-number string
+         * to identify the version of AGS that saved game project.
+         * DO NOT MODIFY THIS CONSTANT UNLESS YOU REALLY WANT TO CHANGE THE IDENTIFICATION METHOD.
+        */
+        public const string LATEST_XML_VERSION = "3.0.3.2";
+
+        /*
+         * LATEST_XML_VERSION_INDEX is the current project XML version.
+         * DO increase this number every time you add a new property to the main project's XML,
+         * otherwise people who are trying to open newer projects in older Editors will get
+         * confusing error messages, instead of clear "wrong version of AGS" message.
+        */
+        /*
+        {
+            AGS_321         = 6,
+            AGS_322         = 7,
+            AGS_331_1163    = 8
+        };
+        */
+        public const int    LATEST_XML_VERSION_INDEX = 8;
         public static readonly string AUDIO_VOX_FILE_NAME = OUTPUT_DIRECTORY + Path.DirectorySeparatorChar + "audio.vox";
 
         private const string USER_DATA_FILE_NAME = GAME_FILE_NAME + USER_DATA_FILE_SUFFIX;

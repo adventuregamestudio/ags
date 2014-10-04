@@ -38,9 +38,9 @@ namespace Math
     }
 
     template <class T>
-    inline void Clamp(const T &floor, const T &ceil, T &val)
+    inline const T &Clamp(const T &floor, const T &ceil, const T &val)
     {
-        val = Max<T>(floor, Min<T>(val, ceil));
+        return Max<T>(floor, Min<T>(val, ceil));
     }
 
     template <class T>

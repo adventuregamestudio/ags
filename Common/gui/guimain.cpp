@@ -164,7 +164,7 @@ bool GUIMain::set_control_zorder(int objNum, int zorder)
     if (objNum < 0 || objNum >= numobjs)
         return false; // no such control
 
-    Math::Clamp(0, numobjs - 1, zorder);
+    zorder = Math::Clamp(0, numobjs - 1, zorder);
     const int old_zorder = objs[objNum]->zorder;
     if (old_zorder == zorder)
         return false; // no change

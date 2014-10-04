@@ -266,11 +266,9 @@ bool String::FindSection(char separator, int first, int last, bool exclude_first
     if (this_field >= first)
     {
         // correct the indices to stay in the [0; length] range
-        from = slice_from;
-        to = slice_to;
-        assert(from <= to);
-        Math::Clamp(0, _meta->Length, from);
-        Math::Clamp(0, _meta->Length, to);
+        assert(slice_from <= slice_to);
+        from = Math::Clamp(0, _meta->Length, slice_from);
+        to   = Math::Clamp(0, _meta->Length, slice_to);
         return true;
     }
     return false;

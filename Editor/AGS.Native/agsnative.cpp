@@ -3266,6 +3266,8 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   ConvertStringToNativeString(guiObj->Name, gui->Name);
 
   gui->ControlCount = 0;
+  gui->CtrlRefs.resize(guiObj->Controls->Count);
+  gui->Controls.resize(guiObj->Controls->Count);
 
   for each (GUIControl^ control in guiObj->Controls)
   {

@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <algorithm>
 #include "gui/guimain.h"
 #include "ac/common.h"	// quit()
 #include "ac/gamesetupstruct.h"
@@ -295,6 +296,7 @@ void GUIMain::RebuildArray()
 {
     int thistype, thisnum;
 
+    Controls.resize(ControlCount);
     for (int i = 0; i < ControlCount; ++i)
     {
         thistype = (CtrlRefs[i] >> 16) & 0x000ffff;
@@ -325,26 +327,19 @@ void GUIMain::RebuildArray()
     ResortZOrder();
 }
 
-extern "C" int compare_guicontrolzorder(const void *elem1, const void *elem2) {
-    GUIObject *e1, *e2;
-    e1 = *((GUIObject**)elem1);
-    e2 = *((GUIObject**)elem2);
-
-    // returns >0 if e1 is lower down, <0 if higher, =0 if the same
-    return e1->zorder - e2->zorder;
+bool GUIControlZOrder(const GUIObject *e1, const GUIObject *e2)
+{
+    return e1->zorder < e2->zorder;
 }
 
 void GUIMain::ResortZOrder()
 {
-    GUIObject *control_arr[MAX_OBJS_ON_GUI];
+    std::vector<GUIObject*> ctrl_sort = Controls;
+    std::sort(ctrl_sort.begin(), ctrl_sort.end(), GUIControlZOrder);
 
+    CtrlDrawOrder.resize(ctrl_sort.size());
     for (int i = 0; i < ControlCount; ++i)
-        control_arr[i] = Controls[i];
-
-    qsort(&control_arr, ControlCount, sizeof(GUIObject*), compare_guicontrolzorder);
-
-    for (int i = 0; i < ControlCount; ++i)
-        CtrlDrawOrder[i] = control_arr[i]->objn;
+        CtrlDrawOrder[i] = ctrl_sort[i]->objn;
 }
 
 bool GUIMain::SendControlToBack(int index)
@@ -447,8 +442,16 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     char tw_flags[GUIMAIN_LEGACY_TW_FLAGS_SIZE];
     in->Read(tw_flags, sizeof(tw_flags));
-    Name.ReadCount(in, GUIMAIN_NAME_LENGTH);
-    OnClickHandler.ReadCount(in, GUIMAIN_EVENTHANDLER_LENGTH);
+    if (gui_version < kGuiVersion_340)
+    {
+        Name.ReadCount(in, GUIMAIN_NAME_LENGTH);
+        OnClickHandler.ReadCount(in, GUIMAIN_EVENTHANDLER_LENGTH);
+    }
+    else
+    {
+        Name.Read(in);
+        OnClickHandler.Read(in);
+    }
     X             = in->ReadInt32();
     Y             = in->ReadInt32();
     Width         = in->ReadInt32();
@@ -477,19 +480,37 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     in->Seek(sizeof(int32_t) * GUIMAIN_RESERVED_INTS);
     _visibility = (GUIVisibilityState)in->ReadInt32();
 
-    // array of 32-bit pointers; these values are unused
-    in->Seek(MAX_OBJS_ON_GUI * sizeof(int32_t));
-    in->ReadArrayOfInt32(CtrlRefs, MAX_OBJS_ON_GUI);
+    if (gui_version < kGuiVersion_340)
+    {
+        CtrlRefs.resize(LEGACY_MAX_OBJS_ON_GUI);
+        // array of 32-bit pointers; these values are unused
+        in->Seek(LEGACY_MAX_OBJS_ON_GUI * sizeof(int32_t));
+        in->ReadArrayOfInt32(&CtrlRefs.front(), LEGACY_MAX_OBJS_ON_GUI);
+    }
+    else
+    {
+        CtrlRefs.resize(ControlCount);
+        if (ControlCount > 0)
+            in->ReadArrayOfInt32(&CtrlRefs.front(), ControlCount);
+    }
 }
 
-void GUIMain::WriteToFile(Stream *out) const
+void GUIMain::WriteToFile(Stream *out, GuiVersion gui_version) const
 {
     char tw_flags[GUIMAIN_LEGACY_TW_FLAGS_SIZE] = {0};
     if (Flags & kGUIMain_TextWindow)
         tw_flags[0] = kGUIMain_LegacyTextWindow;
     out->Write(tw_flags, sizeof(tw_flags));
-    Name.WriteCount(out, GUIMAIN_NAME_LENGTH);
-    OnClickHandler.WriteCount(out, GUIMAIN_EVENTHANDLER_LENGTH);
+    if (gui_version < kGuiVersion_340)
+    {
+        Name.WriteCount(out, GUIMAIN_NAME_LENGTH);
+        OnClickHandler.WriteCount(out, GUIMAIN_EVENTHANDLER_LENGTH);
+    }
+    else
+    {
+        Name.Write(out);
+        OnClickHandler.Write(out);
+    }
     out->WriteInt32(X);
     out->WriteInt32(Y);
     out->WriteInt32(Width);
@@ -515,10 +536,17 @@ void GUIMain::WriteToFile(Stream *out) const
     out->WriteArrayOfInt32(reserved_ints, GUIMAIN_RESERVED_INTS);
     out->WriteInt32(_visibility);
 
-    // array of dummy 32-bit pointers
-    int32_t dummy_arr[MAX_OBJS_ON_GUI] = {0};
-    out->WriteArrayOfInt32(dummy_arr, MAX_OBJS_ON_GUI);
-    out->WriteArrayOfInt32((int32_t*)&CtrlRefs, MAX_OBJS_ON_GUI);
+    if (gui_version < kGuiVersion_340)
+    {
+        // array of dummy 32-bit pointers
+        int32_t dummy_arr[LEGACY_MAX_OBJS_ON_GUI] = {0};
+        out->WriteArrayOfInt32(dummy_arr, LEGACY_MAX_OBJS_ON_GUI);
+        out->WriteArrayOfInt32(&CtrlRefs.front(), LEGACY_MAX_OBJS_ON_GUI);
+    }
+    else if (ControlCount > 0)
+    {
+        out->WriteArrayOfInt32(&CtrlRefs.front(), ControlCount);
+    }
 }
 
 } // namespace Common
@@ -647,20 +675,18 @@ void write_gui(Stream *out, const std::vector<GUIMain> &guiwrite, GameSetupStruc
 
   out->WriteInt32(GUIMAGIC);
 
+  GuiVersion write_version;
   if (savedgame)
-  {
-    out->WriteInt32(GameGuiVersion > kGuiVersion_ForwardCompatible ? GameGuiVersion : kGuiVersion_ForwardCompatible);
-  }
+    write_version = GameGuiVersion > kGuiVersion_ForwardCompatible ? GameGuiVersion : kGuiVersion_ForwardCompatible;
   else
-  {
-    out->WriteInt32(kGuiVersion_Current);
-  }
-  
+    write_version = kGuiVersion_Current;
+
+  out->WriteInt32(write_version);
   out->WriteInt32(gss->numgui);
 
   for (int iteratorCount = 0; iteratorCount < gss->numgui; ++iteratorCount)
   {
-    guiwrite[iteratorCount].WriteToFile(out);
+    guiwrite[iteratorCount].WriteToFile(out, write_version);
   }
 
   out->WriteInt32(numguibuts);

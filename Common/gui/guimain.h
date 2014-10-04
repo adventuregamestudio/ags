@@ -28,7 +28,7 @@ using namespace AGS; // FIXME later
 // There were issues when including header caused conflicts
 struct GameSetupStruct;
 
-#define MAX_OBJS_ON_GUI 30
+#define LEGACY_MAX_OBJS_ON_GUI      30
 
 #define GUIMAIN_RESERVED_INTS       5
 #define GUIMAIN_NAME_LENGTH         16
@@ -136,7 +136,7 @@ public:
   
     // Serialization
     void    ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-    void    WriteToFile(Common::Stream *out) const;
+    void    WriteToFile(Common::Stream *out, GuiVersion gui_version) const;
 
 private:
     void    DrawBlob(Bitmap *ds, int x, int y, color_t draw_color);
@@ -168,9 +168,9 @@ public:
 
     String  OnClickHandler; // script function name
 
-    GUIObject *Controls[MAX_OBJS_ON_GUI]; // array of child controls
-    int32_t    CtrlRefs[MAX_OBJS_ON_GUI]; // for re-building controls array
-    int16_t    CtrlDrawOrder[MAX_OBJS_ON_GUI];
+    std::vector<GUIObject*> Controls; // array of child controls
+    std::vector<int32_t>    CtrlRefs; // for re-building controls array
+    std::vector<int16_t>    CtrlDrawOrder;
 
     // TODO: remove these later
     int32_t ControlCount;   // number of objects on gui

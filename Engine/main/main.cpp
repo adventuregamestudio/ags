@@ -119,13 +119,13 @@ void main_create_platform_driver()
 
 // Version and build numbers
 #define ACI_VERSION_MAJOR               3
-#define ACI_VERSION_MINOR               3
-#define ACI_VERSION_RELEASE             1
-#define ACI_VERSION_REVISION            1165
+#define ACI_VERSION_MINOR               4
+#define ACI_VERSION_RELEASE             0
+#define ACI_VERSION_REVISION            0
 #ifdef NO_MP3_PLAYER
 #define SPECIAL_VERSION "NMP"
 #else
-#define SPECIAL_VERSION ""
+#define SPECIAL_VERSION "TST"
 #endif
 
 // this needs to be updated if the "play" struct changes

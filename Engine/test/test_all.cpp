@@ -18,6 +18,7 @@
 
 void Test_DoAllTests()
 {
+    Test_Math();
     Test_Memory();
     Test_ScriptSprintf();
     Test_String();

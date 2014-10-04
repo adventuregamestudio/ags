@@ -18,10 +18,26 @@
 #ifndef __AGS_EE_MAIN__GRAPHICSMODE_H
 #define __AGS_EE_MAIN__GRAPHICSMODE_H
 
-int  graphics_mode_init();
-void graphics_mode_shutdown();
+#include "gfx/gfxdefines.h"
+#include "util/geometry.h"
+#include "util/scaling.h"
+#include "util/string.h"
 
-extern Size GameSize;
-extern int final_scrn_wid, final_scrn_hit, final_col_dep, game_frame_y_offset;
+bool graphics_mode_init();
+void graphics_mode_shutdown();
+bool get_desktop_size_for_mode(Size &size, const bool windowed);
+AGS::Common::String make_scaling_factor_string(uint32_t scaling);
+
+namespace AGS { namespace Engine { class IGfxModeList; }}
+bool find_nearest_supported_mode(const AGS::Engine::IGfxModeList &modes, Size &wanted_size, int *mode_index,
+                                 const int color_depth, const Size *ratio_reference = NULL);
+
+// The actual game screen resolution
+extern AGS::Engine::GraphicResolution ScreenResolution;
+// The game-to-screen transformation
+extern AGS::Engine::PlaneScaling GameScaling;
+
+namespace AGS { namespace Engine { class IGfxFilter; } }
+extern AGS::Engine::IGfxFilter *filter;
 
 #endif // __AGS_EE_MAIN__GRAPHICSMODE_H

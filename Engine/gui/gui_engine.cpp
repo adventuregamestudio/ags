@@ -32,6 +32,7 @@
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 #include "gfx/blender.h"
+#include "main/graphics_mode.h"
 
 using AGS::Common::Bitmap;
 
@@ -59,7 +60,7 @@ bool GUIMain::is_alpha()
         return false;
     }
     // transparent background, enable alpha blending
-    return final_col_dep >= 24 &&
+    return ScreenResolution.ColorDepth >= 24 &&
         // transparent background have alpha channel only since 3.2.0;
         // "classic" gui rendering mode historically had non-alpha transparent backgrounds
         // (3.2.0 broke the compatibility, now we restore it)

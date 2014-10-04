@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/mouse.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/characterinfo.h"
 #include "ac/draw.h"
@@ -30,9 +29,11 @@
 #include "device/mousew32.h"
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/gfxfilter.h"
+#include "main/graphics_mode.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
@@ -87,7 +88,7 @@ void SetMouseBounds (int x1, int y1, int x2, int y2) {
     play.mboundx2 = x2;
     play.mboundy1 = y1;
     play.mboundy2 = y2;
-    filter->SetMouseLimit(x1,y1,x2,y2);
+    Mouse::SetMoveLimit(Rect(x1, y1, x2, y2));
 }
 
 // mouse cursor functions:
@@ -270,11 +271,11 @@ void SetMousePosition (int newx, int newy) {
         newy = 0;
     if (newx >= BASEWIDTH)
         newx = BASEWIDTH - 1;
-    if (newy >= GetMaxScreenHeight())
-        newy = GetMaxScreenHeight() - 1;
+    if (newy >= BASEHEIGHT)
+        newy = BASEHEIGHT - 1;
 
     multiply_up_coordinates(&newx, &newy);
-    filter->SetMousePosition(newx, newy);
+    Mouse::SetPosition(Point(newx, newy));
     RefreshMouse();
 }
 
@@ -342,7 +343,7 @@ void set_new_cursor_graphic (int spriteslot) {
     {
         if (blank_mouse_cursor == NULL)
         {
-            blank_mouse_cursor = BitmapHelper::CreateTransparentBitmap(1, 1, final_col_dep);
+            blank_mouse_cursor = BitmapHelper::CreateTransparentBitmap(1, 1, ScreenResolution.ColorDepth);
         }
         mousecurs[0] = blank_mouse_cursor;
     }

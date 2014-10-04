@@ -36,9 +36,11 @@
 #define FALSE 0
 #endif
 
+#include "ac/gamestate.h"
 #include "device/mousew32.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_util.h"
+#include "main/graphics_mode.h"
 
 using AGS::Common::Bitmap;
 
@@ -78,14 +80,11 @@ int disable_mgetgraphpos = 0;
 char ignore_bounds = 0;
 extern char alpha_blend_cursor ;
 Bitmap *savebk = NULL, *mousecurs[MAXCURSORS];
-extern int vesa_xres, vesa_yres;
 extern color palette[256];
 
-
-IMouseGetPosCallback *callback = NULL;
-
-void msetcallback(IMouseGetPosCallback *gpCallback) {
-  callback = gpCallback;
+namespace Mouse
+{
+    void AdjustPosition(int &x, int &y);
 }
 
 void mgraphconfine(int x1, int y1, int x2, int y2)
@@ -122,8 +121,8 @@ void mgetgraphpos()
 
   }
 
-  if ((callback) && (!disable_mgetgraphpos))
-    callback->AdjustPosition(&mousex, &mousey);
+  if (!disable_mgetgraphpos)
+    Mouse::AdjustPosition(mousex, mousey);
 }
 
 void msetcursorlimit(int x1, int y1, int x2, int y2)
@@ -160,15 +159,15 @@ void domouse(int str)
   mousex -= hotx;
   mousey -= hoty;
 
-  if (mousex + poow >= vesa_xres)
-    poow = vesa_xres - mousex;
+  if (mousex + poow >= play.viewport.GetWidth())
+    poow = play.viewport.GetWidth() - mousex;
 
-  if (mousey + pooh >= vesa_yres)
-    pooh = vesa_yres - mousey;
+  if (mousey + pooh >= play.viewport.GetHeight())
+    pooh = play.viewport.GetHeight() - mousey;
 
   Bitmap *ds = GetVirtualScreen();
 
-  ds->SetClip(Rect(0, 0, vesa_xres - 1, vesa_yres - 1));
+  ds->SetClip(Rect(0, 0, play.viewport.GetWidth() - 1, play.viewport.GetHeight() - 1));
   if ((str == 0) & (mouseturnedon == TRUE)) {
     if ((mousex != smx) | (mousey != smy)) {    // the mouse has moved
       wputblock(ds, smx, smy, savebk, 0);
@@ -283,4 +282,28 @@ int minstalled()
     nbuts = 2;
 
   return nbuts;
+}
+
+void Mouse::AdjustPosition(int &x, int &y)
+{
+    x = GameScaling.X.UnScalePt(x) - play.viewport.Left;
+    y = GameScaling.Y.UnScalePt(y) - play.viewport.Top;
+}
+
+void Mouse::SetGraphicArea()
+{
+    Rect dst_r = GameScaling.ScaleRange(play.viewport);
+    mgraphconfine(dst_r.Left, dst_r.Top, dst_r.Right, dst_r.Bottom);
+}
+
+void Mouse::SetMoveLimit(const Rect &r)
+{
+    Rect src_r = OffsetRect(r, play.viewport.GetLT());
+    Rect dst_r = GameScaling.ScaleRange(src_r);
+    msetcursorlimit(dst_r.Left, dst_r.Top, dst_r.Right, dst_r.Bottom);
+}
+
+void Mouse::SetPosition(const Point p)
+{
+    msetgraphpos(GameScaling.X.ScalePt(p.X + play.viewport.Left), GameScaling.X.ScalePt(p.Y + play.viewport.Top));
 }

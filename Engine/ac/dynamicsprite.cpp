@@ -33,6 +33,7 @@
 #include "platform/base/override_defines.h"
 #include "gfx/graphicsdriver.h"
 #include "script/runtimescriptvalue.h"
+#include "main/graphics_mode.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -48,8 +49,6 @@ extern RoomStatus*croom;
 extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_INIT_SPR];
 
-extern int final_scrn_wid,final_scrn_hit,final_col_dep;
-extern int scrnwid,scrnhit;
 extern color palette[256];
 extern Bitmap *virtual_screen;
 extern AGS::Engine::IGraphicsDriver *gfxDriver;
@@ -369,14 +368,14 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
     if (!gfxDriver->UsesMemoryBackBuffer()) 
     {
         // D3D driver
-        Bitmap *scrndump = BitmapHelper::CreateBitmap(scrnwid, scrnhit, final_col_dep);
+        Bitmap *scrndump = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), ScreenResolution.ColorDepth);
         gfxDriver->GetCopyOfScreenIntoBitmap(scrndump);
 
         update_polled_stuff_if_runtime();
 
-        if ((scrnwid != width) || (scrnhit != height))
+        if ((play.viewport.GetWidth() != width) || (play.viewport.GetHeight() != height))
         {
-            newPic = BitmapHelper::CreateBitmap(width, height, final_col_dep);
+            newPic = BitmapHelper::CreateBitmap(width, height, ScreenResolution.ColorDepth);
             newPic->StretchBlt(scrndump,
                 RectWH(0, 0, scrndump->GetWidth(), scrndump->GetHeight()),
                 RectWH(0, 0, width, height));
@@ -462,11 +461,11 @@ ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChanne
     if (gotSlot <= 0)
         return NULL;
 
-    Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(width, height, final_col_dep);
+    Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(width, height, ScreenResolution.ColorDepth);
     if (newPic == NULL)
         return NULL;
 
-    if ((alphaChannel) && (final_col_dep < 32))
+    if ((alphaChannel) && (ScreenResolution.ColorDepth < 32))
         alphaChannel = false;
 
     add_dynamic_sprite(gotSlot, gfxDriver->ConvertBitmapToSupportedColourDepth(newPic), alphaChannel != 0);

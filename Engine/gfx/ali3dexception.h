@@ -12,43 +12,40 @@
 //
 //=============================================================================
 //
-// ALI3D -- Allegro Interface for 3D
+// Graphics driver exception class
 //
 //=============================================================================
 
-#ifndef __ALI3D_H
-#define __ALI3D_H
+#ifndef __AGS_EE_GFX__ALI3DEXCEPTION_H
+#define __AGS_EE_GFX__ALI3DEXCEPTION_H
 
-#include "gfx/blender.h"
-#include "gfx/gfxfilter.h"
-
-// Forward declaration
-namespace AGS { namespace Engine { class IGraphicsDriver; } }
-using namespace AGS::Engine; // FIXME later
+namespace AGS
+{
+namespace Engine
+{
 
 class Ali3DException
 {
 public:
-  Ali3DException(const char *message)
-  {
-    _message = message;
-  }
+    Ali3DException(const char *message)
+    {
+        _message = message;
+    }
 
-  const char *_message;
+    const char *_message;
 };
 
 class Ali3DFullscreenLostException : public Ali3DException
 {
 public:
-  Ali3DFullscreenLostException() : Ali3DException("User has switched away from application")
-  {
-  }
+    Ali3DFullscreenLostException() : Ali3DException("User has switched away from application")
+    {
+    }
 
-  const char *_message;
+    const char *_message;
 };
 
-extern IGraphicsDriver* GetOGLGraphicsDriver(GFXFilter *);
-extern IGraphicsDriver* GetD3DGraphicsDriver(GFXFilter *);
-extern IGraphicsDriver* GetSoftwareGraphicsDriver(GFXFilter *);
+} // namespace Engine
+} // namespace AGS
 
-#endif
+#endif // __AGS_EE_GFX__ALI3DEXCEPTION_H

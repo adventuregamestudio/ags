@@ -60,11 +60,6 @@ extern void __my_setcolor(int *ctset, int newcol, int wantColDep);
 extern "C"
 {
 #endif
-
-    //extern int currentcolor;
-    extern int vesa_xres, vesa_yres;
-    //extern Common::Bitmap *abuf;
-
     
     extern void wsetrgb(int coll, int r, int g, int b, color * pall);
     extern void wcolrotate(unsigned char start, unsigned char finish, int dir, color * pall);
@@ -90,11 +85,6 @@ extern "C"
 
 #define XRAY    1
 #define NORMAL  0
-
-struct IMouseGetPosCallback {
-public:
-    virtual void AdjustPosition(int *x, int *y) = 0;
-};
 
 // archive attributes to search for - al_findfirst breaks with 0
 #define FA_SEARCH -1

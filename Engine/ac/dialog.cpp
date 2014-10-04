@@ -48,6 +48,7 @@
 #include "gfx/ddb.h"
 #include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
+#include "main/graphics_mode.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -56,7 +57,6 @@ extern GameSetupStruct game;
 extern GameState play;
 extern ccInstance *dialogScriptsInst;
 extern int in_new_room;
-extern int scrnwid,scrnhit;
 extern CharacterInfo*playerchar;
 extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -513,7 +513,7 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
 
   update_polled_stuff_if_runtime();
 
-  tempScrn = BitmapHelper::CreateBitmap(BitmapHelper::GetScreenBitmap()->GetWidth(), BitmapHelper::GetScreenBitmap()->GetHeight(), final_col_dep);
+  tempScrn = BitmapHelper::CreateBitmap(BitmapHelper::GetScreenBitmap()->GetWidth(), BitmapHelper::GetScreenBitmap()->GetHeight(), ScreenResolution.ColorDepth);
 
   set_mouse_cursor(CURS_ARROW);
 
@@ -606,16 +606,16 @@ void DialogOptions::Show()
       }
     }
     else {
-      //dlgyp=(scrnhit-numdisp*txthit)-1;
-      areawid=scrnwid-5;
+      //dlgyp=(play.viewport.GetHeight()-numdisp*txthit)-1;
+      areawid=play.viewport.GetWidth()-5;
       padding = TEXTWINDOW_PADDING_DEFAULT;
       GET_OPTIONS_HEIGHT
-      dlgyp = scrnhit - needheight;
+      dlgyp = play.viewport.GetHeight() - needheight;
 
       dirtyx = 0;
       dirtyy = dlgyp - 1;
-      dirtywidth = scrnwid;
-      dirtyheight = scrnhit - dirtyy;
+      dirtywidth = play.viewport.GetWidth();
+      dirtyheight = play.viewport.GetHeight() - dirtyy;
       dialog_abs_x = 0;
     }
     if (!is_textwindow)
@@ -645,7 +645,7 @@ void DialogOptions::Redraw()
 
     if (usingCustomRendering)
     {
-      tempScrn = recycle_bitmap(tempScrn, final_col_dep, 
+      tempScrn = recycle_bitmap(tempScrn, ScreenResolution.ColorDepth, 
         multiply_up_coordinate(ccDialogOptionsRendering.width), 
         multiply_up_coordinate(ccDialogOptionsRendering.height));
     }
@@ -705,11 +705,11 @@ void DialogOptions::Redraw()
       GET_OPTIONS_HEIGHT
 
       int savedwid = areawid;
-      int txoffs=0,tyoffs=0,yspos = scrnhit/2-(2*padding+needheight)/2;
-      int xspos = scrnwid/2 - areawid/2;
+      int txoffs=0,tyoffs=0,yspos = play.viewport.GetHeight()/2-(2*padding+needheight)/2;
+      int xspos = play.viewport.GetWidth()/2 - areawid/2;
       // shift window to the right if QG4-style full-screen pic
       if ((game.options[OPT_SPEECHTYPE] == 3) && (said_text > 0))
-        xspos = (scrnwid - areawid) - get_fixed_pixel_size(10);
+        xspos = (play.viewport.GetWidth() - areawid) - get_fixed_pixel_size(10);
 
       // needs to draw the right text window, not the default
       push_screen(ds);
@@ -745,7 +745,7 @@ void DialogOptions::Redraw()
         // fonts don't re-alias themselves
         if (game.options[OPT_DIALOGIFACE] == 0) {
           color_t draw_color = ds->GetCompatibleColor(16);
-          ds->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1), draw_color);
+          ds->FillRect(Rect(0,dlgyp-1,play.viewport.GetWidth()-1,play.viewport.GetHeight()-1), draw_color);
         }
         else {
           GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
@@ -755,7 +755,7 @@ void DialogOptions::Redraw()
       }
 
       dirtyx = 0;
-      dirtywidth = scrnwid;
+      dirtywidth = play.viewport.GetWidth();
 
       if (game.options[OPT_DIALOGIFACE] > 0) 
       {
@@ -785,9 +785,9 @@ void DialogOptions::Redraw()
       curyp = dlgyp;
       curyp = write_dialog_options(ds, options_surface_has_alpha, dlgxp,curyp,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol,padding);
 
-      /*if (curyp > scrnhit) {
-        dlgyp = scrnhit - (curyp - dlgyp);
-        ds->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1);
+      /*if (curyp > play.viewport.GetHeight()) {
+        dlgyp = play.viewport.GetHeight() - (curyp - dlgyp);
+        ds->FillRect(Rect(0,dlgyp-1,play.viewport.GetWidth()-1,play.viewport.GetHeight()-1);
         goto redraw_options;
       }*/
       if (parserInput)

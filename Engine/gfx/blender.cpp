@@ -14,7 +14,6 @@
 
 #include "gfx/blender.h"
 #include "util/wgt2allg.h"
-#include "gfx/gfxfilterdefines.h"
 
 extern "C" {
     unsigned long _blender_trans16(unsigned long x, unsigned long y, unsigned long n);

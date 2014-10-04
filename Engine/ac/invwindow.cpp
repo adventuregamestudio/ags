@@ -42,7 +42,6 @@ extern GameState play;
 extern CharacterExtras *charextra;
 extern ScriptInvItem scrInv[MAX_INV];
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
-extern int scrnwid,scrnhit;
 extern Bitmap *virtual_screen;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
@@ -212,7 +211,7 @@ void InventoryScreen::Prepare()
     toret = -1;
     top_item = 0;
     num_visible_items = 0;
-    MAX_ITEMAREA_HEIGHT = ((scrnhit - BUTTONAREAHEIGHT) - get_fixed_pixel_size(20));
+    MAX_ITEMAREA_HEIGHT = ((play.viewport.GetHeight() - BUTTONAREAHEIGHT) - get_fixed_pixel_size(20));
     in_inv_screen++;
     inv_screen_newroom = -1;
 
@@ -266,8 +265,8 @@ int InventoryScreen::Redraw()
 
     windowwid = widest*ICONSPERLINE + get_fixed_pixel_size(4);
     if (windowwid < get_fixed_pixel_size(105)) windowwid = get_fixed_pixel_size(105);
-    windowxp=scrnwid/2-windowwid/2;
-    windowyp=scrnhit/2-windowhit/2;
+    windowxp=play.viewport.GetWidth()/2-windowwid/2;
+    windowyp=play.viewport.GetHeight()/2-windowhit/2;
     buttonyp=windowyp+windowhit-BUTTONAREAHEIGHT;
     color_t draw_color = ds->GetCompatibleColor(play.sierra_inv_color);
     ds->FillRect(Rect(windowxp,windowyp,windowxp+windowwid,windowyp+windowhit), draw_color);

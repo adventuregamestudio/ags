@@ -32,6 +32,8 @@ class FileStream : public DataStream
 public:
     FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
         DataEndianess stream_endianess = kLittleEndian);
+    FileStream(FILE *file, FileOpenMode openMode, FileWorkMode workMode,
+        DataEndianess streamEndianess = kLittleEndian);
     virtual ~FileStream();
 
     virtual void    Close();

@@ -45,6 +45,12 @@ FileStream::FileStream(const String &file_name, FileOpenMode open_mode, FileWork
     Open(file_name, open_mode, work_mode);
 }
 
+FileStream::FileStream(FILE *file, FileOpenMode openMode, FileWorkMode workMode,
+                       DataEndianess streamEndianess) :
+    DataStream(streamEndianess), _file(file), _openMode(openMode), _workMode(workMode)
+{
+}
+
 FileStream::~FileStream()
 {
     Close();

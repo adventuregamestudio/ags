@@ -20,7 +20,6 @@
 #include "gui/guimain.h"
 
 extern GameSetupStruct game;
-extern GUIMain*guis;
 
 void SetLabelColor(int guin,int objn, int colr) {
     if ((guin<0) | (guin>=game.numgui))

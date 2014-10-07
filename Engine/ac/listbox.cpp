@@ -24,10 +24,8 @@
 
 using namespace AGS::Common;
 
-extern int guis_need_update;
 extern char saveGameDirectory[260];
 extern GameState play;
-extern GUIMain*guis;
 extern GameSetupStruct game;
 
 // *** LIST BOX FUNCTIONS

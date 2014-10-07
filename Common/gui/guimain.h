@@ -15,6 +15,7 @@
 #ifndef __AC_GUIMAIN_H
 #define __AC_GUIMAIN_H
 
+#include <vector>
 #include "gui/guiobject.h"
 #include "ac/common_defines.h"       // AGS_INLINE
 
@@ -91,19 +92,19 @@ struct GUIMain
   void FixupGuiName(char* name);
   void SetTransparencyAsPercentage(int percent);
   void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  void WriteToFile(Common::Stream *out);
+  void WriteToFile(Common::Stream *out) const;
 
 };
 
 extern GuiVersion GameGuiVersion;
-extern int guis_need_update;
+extern std::vector<GUIMain> guis;
 extern int all_buttons_disabled, gui_inv_pic;
 extern int gui_disabled_style;
 extern char lines[MAXLINE][200];
 extern int  numlines;
 
-extern void read_gui(Common::Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate = NULL);
-extern void write_gui(Common::Stream *out, GUIMain * guiwrite, GameSetupStruct * gss, bool savedgame);
+extern void read_gui(Common::Stream *in, std::vector<GUIMain> &guiread, GameSetupStruct * gss);
+extern void write_gui(Common::Stream *out, const std::vector<GUIMain> &guiwrite, GameSetupStruct * gss, bool savedgame);
 
 extern int mousex, mousey;
 

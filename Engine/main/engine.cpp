@@ -76,7 +76,6 @@ extern SpriteCache spriteset;
 extern ObjectCache objcache[MAX_INIT_SPR];
 extern ScriptObject scrObj[MAX_INIT_SPR];
 extern ViewStruct*views;
-extern GUIMain*guis;
 extern int displayed_room;
 extern int eip_guinum;
 extern int eip_guiobj;

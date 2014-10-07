@@ -25,7 +25,6 @@
 
 extern GameSetupStruct game;
 extern ViewStruct*views;
-extern GUIMain*guis;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 
 // *** BUTTON FUNCTIONS

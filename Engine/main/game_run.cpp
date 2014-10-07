@@ -71,7 +71,6 @@ extern int inside_script,in_graph_script;
 extern int no_blocking_functions;
 extern CharacterInfo*playerchar;
 extern GameState play;
-extern GUIMain*guis;
 extern int is_complete_overlay;
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern int cur_mode;

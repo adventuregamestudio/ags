@@ -102,7 +102,6 @@ extern ObjectCache objcache[MAX_INIT_SPR];
 extern int displayed_room;
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
-extern GUIMain*guis;
 extern int eip_guinum;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;

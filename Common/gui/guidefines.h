@@ -73,4 +73,6 @@ enum GuiVersion
     kGuiVersion_ForwardCompatible = kGuiVersion_272e
 };
 
+extern int guis_need_update;
+
 #endif // __AC_GUIDEFINES_H

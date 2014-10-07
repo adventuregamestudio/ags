@@ -27,7 +27,6 @@
 #include "script/runtimescriptvalue.h"
 
 extern GameSetupStruct game;
-extern GUIMain*guis;
 extern ScriptGUI *scrGui;
 
 int IsGUIOn (int guinum) {

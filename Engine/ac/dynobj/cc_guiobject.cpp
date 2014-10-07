@@ -15,8 +15,6 @@
 #include "ac/dynobj/cc_guiobject.h"
 #include "ac/dynobj/scriptgui.h"
 
-extern GUIMain*guis;
-
 // return the type name of the object
 const char *CCGUIObject::GetType() {
     return "GUIObject";

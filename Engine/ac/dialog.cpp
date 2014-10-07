@@ -60,7 +60,6 @@ extern int in_new_room;
 extern CharacterInfo*playerchar;
 extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
-extern GUIMain*guis;
 extern volatile int timerloop;
 extern AGSPlatformDriver *platform;
 extern int cur_mode,cur_cursor;

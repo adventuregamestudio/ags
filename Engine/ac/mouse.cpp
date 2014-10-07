@@ -41,9 +41,7 @@ extern GameState play;
 extern Bitmap *mousecurs[MAXCURSORS];
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
-extern int guis_need_update;
 extern CharacterInfo*playerchar;
-extern GUIMain*guis;
 extern IGraphicsDriver *gfxDriver;
 
 ScriptMouse scmouse;

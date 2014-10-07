@@ -20,6 +20,7 @@
 #include "ac/roomstruct.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/managedobjectpool.h"
+#include "gui/guidefines.h"
 #include "script/cc_error.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
@@ -44,7 +45,6 @@ using namespace AGS::Common;
 extern ccInstance *loadedInstances[MAX_LOADED_INSTANCES]; // in script/script_runtime
 extern int gameHasBeenRestored; // in ac/game
 extern ExecutingScript*curscript; // in script/script
-extern int guis_need_update; // in gui/guimain
 extern int displayed_room; // in ac/game
 extern roomstruct thisroom; // ac/game
 extern int maxWhileLoops;

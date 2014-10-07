@@ -45,7 +45,6 @@ using namespace AGS::Engine;
 extern GameSetup usetup;
 extern GameSetupStruct game;
 extern int proper_exit;
-extern GUIMain*guis;
 extern int psp_gfx_renderer; // defined in ali3dogl
 extern WalkBehindMethodEnum walkBehindMethod;
 extern int current_screen_resolution_multiplier;

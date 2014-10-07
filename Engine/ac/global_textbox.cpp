@@ -21,7 +21,6 @@
 #include "gui/guitextbox.h"
 
 extern GameSetupStruct game;
-extern GUIMain*guis;
 
 void SetTextBoxFont(int guin,int objn, int fontnum) {
 

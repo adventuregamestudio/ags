@@ -45,6 +45,7 @@
 #include "ac/walkbehind.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scripthotspot.h"
+#include "gui/guidefines.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -96,7 +97,6 @@ extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int in_new_room, new_room_was;  // 1 in new room, 2 first time in new room, 3 loading saved game
 extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
-extern int guis_need_update;
 extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
 extern int starting_room;

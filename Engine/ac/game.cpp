@@ -160,7 +160,7 @@ int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 SpriteCache spriteset(1);
 int proper_exit=0,our_eip=0;
 
-GUIMain*guis=NULL;
+std::vector<GUIMain> guis;
 
 CCGUIObject ccDynamicGUIObject;
 CCCharacter ccDynamicCharacter;
@@ -653,8 +653,7 @@ void unload_game_file() {
 
     free(guiScriptObjNames);
     free(guibg);
-    free (guis);
-    guis = NULL;
+    guis.clear();
     free(scrGui);
 
     platform->ShutdownPlugins();

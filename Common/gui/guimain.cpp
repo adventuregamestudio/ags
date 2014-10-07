@@ -108,7 +108,7 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
   in->ReadArrayOfInt32(objrefptr, MAX_OBJS_ON_GUI);
 }
 
-void GUIMain::WriteToFile(Stream *out)
+void GUIMain::WriteToFile(Stream *out) const
 {
   out->Write(vtext, 40);
   out->WriteArrayOfInt32(&x, 27);
@@ -464,7 +464,7 @@ void GUIMain::mouse_but_up()
 }
 
 GuiVersion GameGuiVersion = kGuiVersion_Initial;
-void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate)
+void read_gui(Stream *in, std::vector<GUIMain> &guiread, GameSetupStruct * gss)
 {
   int ee;
 
@@ -485,11 +485,7 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   if ((gss->numgui < 0) || (gss->numgui > 1000))
     quit("read_gui: invalid number of GUIs, file corrupt?");
 
-  if (allocate != NULL)
-  {
-    *allocate = (GUIMain*)malloc(sizeof(GUIMain) * gss->numgui);
-    guiread = *allocate;
-  }
+  guiread.resize(gss->numgui);
 
   // import the main GUI elements
   for (int iteratorCount = 0; iteratorCount < gss->numgui; ++iteratorCount)
@@ -510,7 +506,7 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
       guiread[ee].padding = TEXTWINDOW_PADDING_DEFAULT;
 
     if (loaded_game_file_version <= kGameVersion_272) // Fix names for 2.x: "GUI" -> "gGui"
-        guiread->FixupGuiName(guiread[ee].name);
+        guiread[ee].FixupGuiName(guiread[ee].name);
 
     guiread[ee].guiId = ee;
   }
@@ -584,7 +580,7 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   guis_need_update = 1;
 }
 
-void write_gui(Stream *out, GUIMain * guiwrite, GameSetupStruct * gss, bool savedgame)
+void write_gui(Stream *out, const std::vector<GUIMain> &guiwrite, GameSetupStruct * gss, bool savedgame)
 {
   int ee;
 

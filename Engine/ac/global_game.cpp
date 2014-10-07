@@ -62,7 +62,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #define ALLEGRO_KEYBOARD_HANDLER
 
-extern int guis_need_update;
 extern GameState play;
 extern ExecutingScript*curscript;
 extern const char *load_game_errors[9];

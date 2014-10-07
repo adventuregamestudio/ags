@@ -28,7 +28,6 @@
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guiobject.h"
 
-extern GUIMain*guis;
 extern ScriptGUI*scrGui;
 extern CCGUI ccDynamicGUI;
 extern CCGUIObject ccDynamicGUIObject;

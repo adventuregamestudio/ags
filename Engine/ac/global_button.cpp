@@ -21,7 +21,6 @@
 #include "gui/guibutton.h"
 
 extern GameSetupStruct game;
-extern GUIMain*guis;
 
 void SetButtonText(int guin,int objn, const char*newtx) {
     VALIDATE_STRING(newtx);

@@ -52,7 +52,6 @@ extern int gameHasBeenRestored, displayed_room;
 extern unsigned int load_new_game;
 extern RoomObject*objs;
 extern int our_eip;
-extern int guis_need_update;
 extern CharacterInfo*playerchar;
 
 ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];

@@ -98,7 +98,7 @@ int numScriptModules;
 ScriptModule* scModules = NULL;
 DialogTopic *dialog;
 char*dlgscript[MAX_DIALOG];
-GUIMain *guis;
+std::vector<GUIMain> guis;
 ViewStruct272 *oldViews;
 ViewStruct *newViews;
 int numNewViews = 0;
@@ -1634,7 +1634,7 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   thisgame.load_messages = NULL;
 
   read_dialogs(iii, filever, true);
-  read_gui(iii,&guis[0],&thisgame, &guis);
+  read_gui(iii,guis,&thisgame);
   const char *pluginError = read_plugins_from_disk (iii);
   if (pluginError != NULL) return pluginError;
 
@@ -1754,7 +1754,7 @@ void free_old_game_data()
   free(thisgame.viewNames);
   free(oldViews);
   free(newViews);
-  free(guis);
+  guis.clear();
   free(thisgame.chars);
   thisgame.dict->free_memory();
   free(thisgame.dict);
@@ -4779,7 +4779,7 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
 	  free(buffer);
   }
   ooo->WriteArray(&dialog[0], sizeof(DialogTopic), thisgame.numdialog);
-  write_gui(ooo,&guis[0],&thisgame,false);
+  write_gui(ooo,guis,&thisgame,false);
   write_plugins_to_disk(ooo);
   // write the custom properties & schema
   thisgame.propSchema.Serialize(ooo);
@@ -5212,7 +5212,7 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
     guiinv.resize(0);
 
 	thisgame.numgui = game->GUIs->Count;
-  guis = (GUIMain*)calloc(thisgame.numgui, sizeof(GUIMain));
+  guis.resize(thisgame.numgui);
 	for (i = 0; i < thisgame.numgui; i++)
 	{
 		guis[i].init();

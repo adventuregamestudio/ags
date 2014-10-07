@@ -36,7 +36,6 @@
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern int guis_need_update;
 extern GameSetupStruct game;
 extern GameState play;
 extern CharacterExtras *charextra;

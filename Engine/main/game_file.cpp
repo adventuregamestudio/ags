@@ -62,7 +62,6 @@ extern int ifacepopped;
 extern GameSetupStruct game;
 extern ViewStruct*views;
 extern DialogTopic *dialog;
-extern GUIMain*guis;
 extern CharacterCache *charcache;
 extern MoveList *mls;
 
@@ -354,7 +353,7 @@ void game_file_read_dialogs(Stream *in)
 
 void game_file_read_gui(Stream *in)
 {
-	read_gui(in,guis,&game, &guis);
+	read_gui(in,guis,&game);
 
     for (int bb = 0; bb < numguilabels; bb++) {
         // labels are not clickable by default

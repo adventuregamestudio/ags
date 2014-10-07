@@ -20,7 +20,6 @@
 #include "gui/guislider.h"
 
 extern GameSetupStruct game;
-extern GUIMain*guis;
 
 void SetSliderValue(int guin,int objn, int valn) {
     if ((guin<0) | (guin>=game.numgui)) quit("!SetSliderValue: invalid GUI number");

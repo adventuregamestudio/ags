@@ -28,9 +28,7 @@
 
 extern GameSetupStruct game;
 extern GameState play;
-extern int guis_need_update;
 extern int mousex, mousey;
-extern GUIMain*guis;
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern char*evblockbasename;
 extern int evblocknum;

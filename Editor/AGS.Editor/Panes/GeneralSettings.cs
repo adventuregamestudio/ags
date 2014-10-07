@@ -104,9 +104,9 @@ namespace AGS.Editor
                 }
             }
 
-            string oldResolutionText = oldResolution.ToString();
-            string newResolutionText = newResolution.ToString();
-            if (Factory.GUIController.ShowQuestion(string.Format("You've changed your game resolution from {0} to {1}.{2}You will need to import a new background of the correct size for all your rooms.{2}{2}Would you like AGS to automatically resize all your GUIs to the new resolution?", oldResolutionText, newResolutionText, Environment.NewLine)) == DialogResult.Yes)
+            string oldResolutionText = Types.Utilities.ResolutionToUserString(oldResolution);
+            string newResolutionText = Types.Utilities.ResolutionToUserString(newResolution);
+            if (Factory.GUIController.ShowQuestion(string.Format("You've changed your game resolution from '{0}' to '{1}'.{2}You will need to import a new background of the correct size for all your rooms.{2}{2}Would you like AGS to automatically resize all your GUIs to the new resolution?", oldResolutionText, newResolutionText, Environment.NewLine)) == DialogResult.Yes)
             {
                 ResizeAllGUIs(oldResolution, newResolution);
             }

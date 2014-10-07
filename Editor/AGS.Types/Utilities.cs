@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
 using System.Text;
 
 namespace AGS.Types
@@ -54,6 +56,17 @@ namespace AGS.Types
         public static string ValidateScriptName(string name)
         {
             return ValidateScriptName(name, 99999);
+        }
+
+        public static Size UserStringToResolution(string s)
+        {
+            String[] parts = s.Split('x');
+            return new Size(Int32.Parse(parts[0]), Int32.Parse(parts[1]));
+        }
+
+        public static string ResolutionToUserString(Size size)
+        {
+            return String.Format("{0} x {1}", size.Width, size.Height);
         }
     }
 }

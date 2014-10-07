@@ -756,6 +756,7 @@ namespace AGS.Editor
                 ScriptFunctionUIEditor.OpenScriptEditor = new ScriptFunctionUIEditor.OpenScriptEditorHandler(ScriptFunctionUIEditor_OpenScriptEditor);
                 ScriptFunctionUIEditor.CreateScriptFunction = new ScriptFunctionUIEditor.CreateScriptFunctionHandler(ScriptFunctionUIEditor_CreateScriptFunction);
                 RoomMessagesUIEditor.ShowRoomMessagesEditor = new RoomMessagesUIEditor.RoomMessagesEditorType(ShowRoomMessageEditorFromPropertyGrid);
+                CustomResolutionUIEditor.CustomResolutionSetGUI = new CustomResolutionUIEditor.CustomResolutionGUIType(ShowCustomResolutionChooserFromPropertyGrid);
             }
         }
 
@@ -1337,6 +1338,11 @@ namespace AGS.Editor
                 eventName = eventName.Replace("$$0" + i, game.Cursors[i].Name);
             }
             return eventName;
+        }
+
+        private Size ShowCustomResolutionChooserFromPropertyGrid(Size currentSize)
+        {
+            return CustomResolutionDialog.Show(currentSize);
         }
 
         private void ShowPropertiesEditorFromPropertyGrid(CustomProperties props, object objectThatHasProperties)

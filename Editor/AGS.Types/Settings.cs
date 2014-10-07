@@ -141,6 +141,7 @@ namespace AGS.Types
             set { _colorDepth = value; }
         }
 
+        [AGSNoSerialize]
         [Browsable(false)]
         [Obsolete("Old Resolution property of Enum type is replaced by CustomResolution of Size type.")]
         public GameResolutions Resolution
@@ -173,7 +174,9 @@ namespace AGS.Types
         [DisplayName(PROPERTY_RESOLUTION)]
         [Description("The graphics resolution of the game (higher allows more detail, but slower performance and larger file size)")]
         [Category("(Setup)")]
-        [RefreshProperties(RefreshProperties.All)]
+        [EditorAttribute(typeof(CustomResolutionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomResolutionTypeConverter))]
+        [RefreshProperties(RefreshProperties.Repaint)]
         public Size CustomResolution
         {
             get { return _resolution; }

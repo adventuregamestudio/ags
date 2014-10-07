@@ -53,18 +53,18 @@ namespace AGS.Editor
 
         /*
          * LATEST_XML_VERSION_INDEX is the current project XML version.
-         * DO increase this number every time you add a new property to the main project's XML,
-         * otherwise people who are trying to open newer projects in older Editors will get
-         * confusing error messages, instead of clear "wrong version of AGS" message.
+         * DO increase this number for every new public release that introduces a new
+         * property in the main project's XML, otherwise people who are trying to open
+         * newer projects in older Editors will get confusing error messages, instead
+         * of clear "wrong version of AGS" message.
         */
         /*
-        {
-            AGS_321         = 6,
-            AGS_322         = 7,
-            AGS_331_1163    = 8
-        };
+         * 6: 3.2.1
+         * 7: 3.2.2
+         * 8: 3.3.1.1163 - Settings.LastBuildConfiguration;
+         * 9: 3.4.0.1    - Settings.CustomResolution
         */
-        public const int    LATEST_XML_VERSION_INDEX = 8;
+        public const int    LATEST_XML_VERSION_INDEX = 9;
         public static readonly string AUDIO_VOX_FILE_NAME = OUTPUT_DIRECTORY + Path.DirectorySeparatorChar + "audio.vox";
 
         private const string USER_DATA_FILE_NAME = GAME_FILE_NAME + USER_DATA_FILE_SUFFIX;

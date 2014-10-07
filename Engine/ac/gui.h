@@ -48,7 +48,7 @@ ScriptGUI *GetGUIAtLocation(int xx, int yy);
 
 void	remove_popup_interface(int ifacenum);
 void	process_interface_click(int ifce, int btn, int mbut);
-void	replace_macro_tokens(char*statusbarformat,char*cur_stb_text);
+void	replace_macro_tokens(const char*statusbarformat,char*cur_stb_text);
 void	update_gui_zorder();
 void	export_gui_controls(int ee);
 void	unexport_gui_controls(int ee);

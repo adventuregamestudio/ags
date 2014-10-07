@@ -38,7 +38,7 @@ using AGS::Common::Bitmap;
 
 // For engine these are defined in ac.cpp
 extern int eip_guiobj;
-extern void replace_macro_tokens(char*,char*);
+extern void replace_macro_tokens(const char*,char*);
 
 // For engine these are defined in acfonts.cpp
 extern void ensure_text_valid_for_font(char *, int);
@@ -112,7 +112,7 @@ int get_eip_guiobj()
 
 bool outlineGuiObjects = false;
 
-void GUILabel::Draw_replace_macro_tokens(char *oritext, char *text)
+void GUILabel::Draw_replace_macro_tokens(char *oritext, const char *text)
 {
   replace_macro_tokens(flags & GUIF_TRANSLATED ? get_translation(text) : text, oritext);
   ensure_text_valid_for_font(oritext, font);

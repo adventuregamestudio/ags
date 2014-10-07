@@ -290,10 +290,10 @@ void process_interface_click(int ifce, int btn, int mbut) {
 }
 
 
-void replace_macro_tokens(char*statusbarformat,char*cur_stb_text) {
-    char*curptr=&statusbarformat[0];
+void replace_macro_tokens(const char*statusbarformat,char*cur_stb_text) {
+    const char*curptr=&statusbarformat[0];
     char tmpm[3];
-    char*endat = curptr + strlen(statusbarformat);
+    const char*endat = curptr + strlen(statusbarformat);
     cur_stb_text[0]=0;
     char tempo[STD_BUFFER_SIZE];
 
@@ -301,7 +301,7 @@ void replace_macro_tokens(char*statusbarformat,char*cur_stb_text) {
         if (curptr[0]==0) break;
         if (curptr>=endat) break;
         if (curptr[0]=='@') {
-            char *curptrWasAt = curptr;
+            const char *curptrWasAt = curptr;
             char macroname[21]; int idd=0; curptr++;
             for (idd=0;idd<20;idd++) {
                 if (curptr[0]=='@') {

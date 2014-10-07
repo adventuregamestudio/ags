@@ -17,6 +17,7 @@
 
 #include <vector>
 #include "gui/guiobject.h"
+#include "util/string.h"
 
 #define GLF_NOBORDER     1
 #define GLF_NOARROWS     2
@@ -24,7 +25,7 @@
 
 struct GUIListBox:public GUIObject
 {
-  char *items[MAX_LISTBOX_ITEMS];
+  AGS::Common::String items[MAX_LISTBOX_ITEMS];
   short saveGameIndex[MAX_LISTBOX_ITEMS];
   int numItems, selected, topItem, mousexp, mouseyp;
   int rowheight, num_items_fit;
@@ -94,7 +95,7 @@ struct GUIListBox:public GUIObject
   virtual ~GUIListBox()
   {
     for (int i = 0; i < numItems; i++)
-      free(items[i]);
+      items[i].Free();
   }
 
 private:

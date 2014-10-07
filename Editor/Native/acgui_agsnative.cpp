@@ -72,7 +72,7 @@ int wgettextwidth_compensate(const char *tex, int font)
   return wgettextwidth(tex, font);
 }
 
-void GUILabel::Draw_replace_macro_tokens(char *oritext, char *text)
+void GUILabel::Draw_replace_macro_tokens(char *oritext, const char *text)
 {
   strcpy(oritext, text);
 }

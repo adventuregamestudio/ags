@@ -305,5 +305,5 @@ void Mouse::SetMoveLimit(const Rect &r)
 
 void Mouse::SetPosition(const Point p)
 {
-    msetgraphpos(GameScaling.X.ScalePt(p.X + play.viewport.Left), GameScaling.X.ScalePt(p.Y + play.viewport.Top));
+    msetgraphpos(GameScaling.X.ScalePt(p.X + play.viewport.Left), GameScaling.Y.ScalePt(p.Y + play.viewport.Top));
 }

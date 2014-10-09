@@ -352,7 +352,7 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
     if (index < 0 || index >= ControlCount)
         return false; // no such control
 
-    Math::Clamp(0, ControlCount - 1, zorder);
+    zorder = Math::Clamp(0, ControlCount - 1, zorder);
     const int old_zorder = Controls[index]->zorder;
     if (old_zorder == zorder)
         return false; // no change

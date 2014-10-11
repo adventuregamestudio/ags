@@ -110,7 +110,7 @@ namespace GfxUtil
 
     // Draws a bitmap over another one with given alpha level (0 - 255);
     // selects proper drawing method depending on respected color depths.
-    void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int alpha = 0xFF);
+    void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int alpha = 0xFF, int blendmode = 0);
 } // namespace GfxUtil
 
 } // namespace Engine

@@ -63,6 +63,13 @@ void ScriptDrawingSurface::FinishedDrawing()
     modified = 1;
 }
 
+void ScriptDrawingSurface::SetBlendMode(int mode)
+{
+	// TODO: alpha check for certain modes
+	blendMode = mode;
+}
+
+
 int ScriptDrawingSurface::Dispose(const char *address, bool force) {
 
     // dispose the drawing surface
@@ -86,6 +93,7 @@ int ScriptDrawingSurface::Serialize(const char *address, char *buffer, int bufsi
     SerializeInt(modified);
     SerializeInt(hasAlphaChannel);
     SerializeInt(isLinkedBitmapOnly ? 1 : 0);
+	SerializeInt(blendMode);
     return EndSerialize();
 }
 
@@ -100,6 +108,7 @@ void ScriptDrawingSurface::Unserialize(int index, const char *serializedData, in
     modified = UnserializeInt();
     hasAlphaChannel = UnserializeInt();
     isLinkedBitmapOnly = (UnserializeInt() != 0);
+	blendMode = UnserializeInt();
     ccRegisterUnserializedObject(index, this, this);
 }
 
@@ -115,6 +124,7 @@ ScriptDrawingSurface::ScriptDrawingSurface()
     modified = 0;
     hasAlphaChannel = 0;
     highResCoordinates = 0;
+	blendMode = 0;
 
     if ((game.options[OPT_NATIVECOORDINATES] != 0) &&
         (game.IsHiRes()))

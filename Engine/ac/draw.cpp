@@ -807,7 +807,7 @@ void putpixel_compensate (Bitmap *ds, int xx,int yy, int col) {
 
 
 
-void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, Bitmap *image, bool src_has_alpha, int alpha)
+void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, Bitmap *image, bool src_has_alpha, int alpha, int blendmode)
 {
     if (alpha <= 0)
     {
@@ -820,15 +820,24 @@ void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos
     if (src_has_alpha &&
         (use_new_sprite_alpha_blending || alpha == 0xFF))
     {
-        if (use_new_sprite_alpha_blending)
-           set_argb2argb_alpha_blender(alpha);
-        else
-            set_alpha_blender();
-        ds->TransBlendBlt(image, xpos, ypos);
+		if (blendmode == 1)
+		{
+			
+			set_additive_color_blender(alpha);
+		}
+		else if (use_new_sprite_alpha_blending)
+		{
+			set_argb2argb_alpha_blender(alpha);
+		}
+		else
+		{
+			set_alpha_blender();
+		}
+		ds->TransBlendBlt(image, xpos, ypos);
     }
     else
     {
-        GfxUtil::DrawSpriteWithTransparency(ds, image, xpos, ypos, alpha);
+		GfxUtil::DrawSpriteWithTransparency(ds, image, xpos, ypos, alpha, blendmode);
     }
 }
 

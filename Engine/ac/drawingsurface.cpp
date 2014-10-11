@@ -262,7 +262,7 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
     }
 
     draw_sprite_support_alpha(ds, sds->hasAlphaChannel != 0, xx, yy, sourcePic, (game.spriteflags[slot] & SPF_ALPHACHANNEL) != 0,
-        GfxUtil::Trans100ToAlpha255(trans));
+        GfxUtil::Trans100ToAlpha255(trans), sds->blendMode);
 
     sds->FinishedDrawing();
 
@@ -319,6 +319,16 @@ int DrawingSurface_GetWidth(ScriptDrawingSurface *sds)
     sds->FinishedDrawingReadOnly();
     sds->UnMultiplyThickness(&width);
     return width;
+}
+
+void DrawingSurface_SetBlendMode(ScriptDrawingSurface *sds, int mode)
+{
+	sds->SetBlendMode(mode);
+}
+
+int DrawingSurface_GetBlendMode(ScriptDrawingSurface *sds)
+{
+	return sds->blendMode;
 }
 
 void DrawingSurface_Clear(ScriptDrawingSurface *sds, int colour)
@@ -593,6 +603,18 @@ RuntimeScriptValue Sc_DrawingSurface_GetDrawingColor(void *self, const RuntimeSc
     API_OBJCALL_INT(ScriptDrawingSurface, DrawingSurface_GetDrawingColor);
 }
 
+// int (ScriptDrawingSurface *sds)
+RuntimeScriptValue Sc_DrawingSurface_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptDrawingSurface, DrawingSurface_GetBlendMode);
+}
+
+// void (ScriptDrawingSurface *sds, int blendMode)
+RuntimeScriptValue Sc_DrawingSurface_SetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptDrawingSurface, DrawingSurface_SetBlendMode);
+}
+
 // void (ScriptDrawingSurface *sds, int newColour)
 RuntimeScriptValue Sc_DrawingSurface_SetDrawingColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -661,6 +683,8 @@ void RegisterDrawingSurfaceAPI()
     ccAddExternalObjectFunction("DrawingSurface::get_UseHighResCoordinates", Sc_DrawingSurface_GetUseHighResCoordinates);
     ccAddExternalObjectFunction("DrawingSurface::set_UseHighResCoordinates", Sc_DrawingSurface_SetUseHighResCoordinates);
     ccAddExternalObjectFunction("DrawingSurface::get_Width",            Sc_DrawingSurface_GetWidth);
+	ccAddExternalObjectFunction("DrawingSurface::get_BlendMode",		Sc_DrawingSurface_GetBlendMode);
+    ccAddExternalObjectFunction("DrawingSurface::set_BlendMode",		Sc_DrawingSurface_SetBlendMode);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
@@ -684,4 +708,6 @@ void RegisterDrawingSurfaceAPI()
     ccAddExternalFunctionForPlugin("DrawingSurface::get_UseHighResCoordinates", (void*)DrawingSurface_GetUseHighResCoordinates);
     ccAddExternalFunctionForPlugin("DrawingSurface::set_UseHighResCoordinates", (void*)DrawingSurface_SetUseHighResCoordinates);
     ccAddExternalFunctionForPlugin("DrawingSurface::get_Width",            (void*)DrawingSurface_GetWidth);
+	ccAddExternalFunctionForPlugin("DrawingSurface::get_BlendMode",		   (void*)DrawingSurface_GetBlendMode);
+    ccAddExternalFunctionForPlugin("DrawingSurface::set_BlendMode",		   (void*)DrawingSurface_SetBlendMode);
 }

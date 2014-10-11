@@ -322,6 +322,11 @@ enum CharacterDirection {
   eDirectionNone = SCR_NO_VALUE
 };
 
+enum eBlendMode {
+  eBlendModeAlpha = 0,
+  eBlendModeAdditive = 1
+};
+
 internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
   import static String Format(const string format, ...);    // $AUTOCOMPLETESTATICONLY$
@@ -422,6 +427,8 @@ builtin managed struct DrawingSurface {
   import attribute bool UseHighResCoordinates;
   /// Gets the width of the surface.
   readonly import attribute int Width;
+  /// Gets/sets the current Blending mode that AGS will use when drawing sprites onto it.
+  import attribute eBlendMode BlendMode;
 };
 
 builtin managed struct Room {

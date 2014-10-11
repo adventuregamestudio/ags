@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include "gfx/gfx_util.h"
+#include "gfx/blender.h"
 
 // CHECKME: is this hack still relevant?
 #if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
@@ -27,7 +28,7 @@ namespace Engine
 namespace GfxUtil
 {
 
-void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int alpha)
+void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int alpha, int blendmode)
 {
     if (alpha <= 0)
     {
@@ -80,9 +81,16 @@ void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int al
     }
     else
     {
-        if (alpha < 0xFF && surface_depth > 8 && sprite_depth > 8) 
+        if ((alpha < 0xFF || blendmode > 0) && surface_depth > 8 && sprite_depth > 8) 
         {
-            set_trans_blender(0, 0, 0, alpha);
+			if (blendmode == 0) {
+				//set_trans_blender(0, 0, 0, alpha);
+				set_argb2argb_alpha_blender(alpha);
+			}
+			else if (blendmode == 1) {
+				set_additive_color_blender(alpha);
+			}
+			
             ds->TransBlendBlt(sprite, x, y);
         }
         else

@@ -30,6 +30,7 @@ struct ScriptDrawingSurface : AGSCCDynamicObject {
     int highResCoordinates;
     int modified;
     int hasAlphaChannel;
+	int blendMode;
     //Common::Bitmap* abufBackup;
 
     virtual int Dispose(const char *address, bool force);
@@ -43,6 +44,7 @@ struct ScriptDrawingSurface : AGSCCDynamicObject {
     void MultiplyCoordinates(int *xcoord, int *ycoord);
     void FinishedDrawing();
     void FinishedDrawingReadOnly();
+	void SetBlendMode(int mode);
 
     ScriptDrawingSurface();
 };

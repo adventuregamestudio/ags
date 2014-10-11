@@ -65,4 +65,6 @@ void set_additive_alpha_blender();
 // Opaque alpha blender plain copies src over, applying opaque alpha value.
 void set_opaque_alpha_blender();
 
+void set_additive_color_blender(int alpha);
+
 #endif // __AC_BLENDER_H

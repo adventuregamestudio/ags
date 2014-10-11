@@ -237,3 +237,28 @@ void set_opaque_alpha_blender()
 {
     set_blender_mode(NULL, NULL, _opaque_alpha_blender, 0, 0, 0, 0);
 }
+
+unsigned long _additive_color_blender_32(unsigned long x, unsigned long y, unsigned long n)
+{
+
+	int srcAlpha = geta32(x);
+
+	int r = getr32(y) + getr32(x) * n * srcAlpha / 256 / 256;
+	int g = getg32(y) + getg32(x) * n * srcAlpha / 256 / 256;
+	int b = getb32(y) + getb32(x) * n * srcAlpha / 256 / 256;
+	int a = geta32(y) + srcAlpha * n / 256;
+
+    r = MIN(r, 255);
+	g = MIN(g, 255);
+	b = MIN(b, 255);
+	a = MIN(a, 255);
+
+	return makeacol32(r, g, b, a);	
+
+}
+
+void set_additive_color_blender(int alpha)
+{
+	set_blender_mode(NULL, NULL, _additive_color_blender_32,0,0,0,alpha);
+}
+

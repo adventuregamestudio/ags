@@ -70,6 +70,7 @@ struct GameSetupStructBase {
     GameSetupStructBase();
     virtual ~GameSetupStructBase();
     void SetDefaultResolution(GameResolutionType resolution_type);
+    void SetCustomResolution(Size game_res);
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);
 
@@ -77,8 +78,11 @@ struct GameSetupStructBase {
     {
         return default_resolution;
     }
+
     inline bool IsHiRes() const
     {
+        if (default_resolution == kGameResolution_Custom)
+            return size.Width > 320 || size.Height > 240;
         return ::IsHiRes(default_resolution);
     }
 

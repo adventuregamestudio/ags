@@ -113,6 +113,8 @@ enum GameResolutionType
     kGameResolution_640x480     = 4,
     kGameResolution_800x600     = 5,
     kGameResolution_1024x768    = 6,
+    kGameResolution_1280x720    = 7,
+    kGameResolution_Custom      = 8,
     kNumGameResolutions,
 
     kGameResolution_LastLoRes   = kGameResolution_320x240,

@@ -30,6 +30,7 @@ int mousex, mousey;
 #include "gui/guilistbox.h"
 #include "gui/guislider.h"
 #include "util/compress.h"
+#include "util/geometry.h"
 #include "util/string_utils.h"    // fputstring, etc
 #include "util/alignedstream.h"
 #include "util/filestream.h"
@@ -2736,9 +2737,18 @@ void UpdateSpriteFlags(SpriteFolder ^folder)
 	}
 }
 
+void SetGameResolution(Game ^game)
+{
+    // For backwards compatibility, save letterbox-by-design games as having non-custom resolution
+    if (game->Settings->LegacyLetterboxAble && game->Settings->LetterboxMode)
+        thisgame.SetDefaultResolution((GameResolutionType)game->Settings->Resolution);
+    else
+        thisgame.SetCustomResolution(::Size(game->Settings->CustomResolution.Width, game->Settings->CustomResolution.Height));
+}
+
 void GameUpdated(Game ^game) {
   thisgame.color_depth = (int)game->Settings->ColorDepth;
-  thisgame.SetDefaultResolution((GameResolutionType)game->Settings->Resolution);
+  SetGameResolution(game);
 
   thisgame.options[OPT_NOSCALEFNT] = game->Settings->FontsForHiRes;
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
@@ -4893,7 +4903,7 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	thisgame.options[OPT_DIALOGNUMBERED] = game->Settings->NumberDialogOptions;
 	thisgame.options[OPT_PIXPERFECT] = game->Settings->PixelPerfect;
 	thisgame.options[OPT_SCORESOUND] = 0; // saved elsewhere now to make it 32-bit
-	thisgame.SetDefaultResolution((GameResolutionType)game->Settings->Resolution);
+    SetGameResolution(game);
 	thisgame.options[OPT_FADETYPE] = (int)game->Settings->RoomTransition;
 	thisgame.options[OPT_RUNGAMEDLGOPTS] = game->Settings->RunGameLoopsWhileDialogOptionsDisplayed;
 	thisgame.options[OPT_SAVESCREENSHOT] = game->Settings->SaveScreenshots;

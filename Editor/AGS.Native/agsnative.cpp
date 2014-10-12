@@ -30,6 +30,7 @@ int mousex, mousey;
 #include "gui/guilistbox.h"
 #include "gui/guislider.h"
 #include "util/compress.h"
+#include "util/geometry.h"
 #include "util/string_utils.h"    // fputstring, etc
 #include "util/alignedstream.h"
 #include "util/filestream.h"
@@ -39,6 +40,7 @@ int mousex, mousey;
 using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
+using AGS::Common::GUIMain;
 
 //-----------------------------------------------------------------------------
 // [IKM] 2012-09-07
@@ -98,7 +100,7 @@ int numScriptModules;
 ScriptModule* scModules = NULL;
 DialogTopic *dialog;
 char*dlgscript[MAX_DIALOG];
-GUIMain *guis;
+std::vector<GUIMain> guis;
 ViewStruct272 *oldViews;
 ViewStruct *newViews;
 int numNewViews = 0;
@@ -1287,7 +1289,7 @@ void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteN
 
 void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int scaleFactor) {
 
-  if ((tempgui.wid < 1) || (tempgui.hit < 1))
+  if ((tempgui.Width < 1) || (tempgui.Height < 1))
     return;
 
   //update_font_sizes();
@@ -1296,12 +1298,12 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int scaleFacto
     dsc_want_hires = 1;
   }
 
-  Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(tempgui.wid, tempgui.hit, thisgame.color_depth*8);
+  Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(tempgui.Width, tempgui.Height, thisgame.color_depth*8);
   tempblock->Clear(tempblock->GetMaskColor ());
   //Common::Bitmap *abufWas = abuf;
   //abuf = tempblock;
 
-  tempgui.draw_at (tempblock, 0, 0);
+  tempgui.DrawAt (tempblock, 0, 0);
 
   dsc_want_hires = 0;
 
@@ -1634,7 +1636,7 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   thisgame.load_messages = NULL;
 
   read_dialogs(iii, filever, true);
-  read_gui(iii,&guis[0],&thisgame, &guis);
+  read_gui(iii,guis,&thisgame);
   const char *pluginError = read_plugins_from_disk (iii);
   if (pluginError != NULL) return pluginError;
 
@@ -1671,7 +1673,7 @@ const char *load_dta_file_into_thisgame(const char *fileName)
 
   for (bb = 0; bb < thisgame.numgui; bb++)
   {
-	  guis[bb].rebuild_array();
+	  guis[bb].RebuildArray();
   }
 
   // reset colour 0, it's possible for it to get corrupted
@@ -1754,7 +1756,7 @@ void free_old_game_data()
   free(thisgame.viewNames);
   free(oldViews);
   free(newViews);
-  free(guis);
+  guis.clear();
   free(thisgame.chars);
   thisgame.dict->free_memory();
   free(thisgame.dict);
@@ -2640,6 +2642,7 @@ public:
 void ConvertStringToCharArray(System::String^ clrString, char *textBuffer);
 void ConvertStringToCharArray(System::String^ clrString, char *textBuffer, int maxLength);
 void ConvertStringToNativeString(System::String^ clrString, Common::String &destStr);
+void ConvertStringToNativeString(System::String^ clrString, Common::String &destStr, int maxLength);
 
 void ThrowManagedException(const char *message) 
 {
@@ -2734,9 +2737,18 @@ void UpdateSpriteFlags(SpriteFolder ^folder)
 	}
 }
 
+void SetGameResolution(Game ^game)
+{
+    // For backwards compatibility, save letterbox-by-design games as having non-custom resolution
+    if (game->Settings->LegacyLetterboxAble && game->Settings->LetterboxMode)
+        thisgame.SetDefaultResolution((GameResolutionType)game->Settings->Resolution);
+    else
+        thisgame.SetCustomResolution(::Size(game->Settings->CustomResolution.Width, game->Settings->CustomResolution.Height));
+}
+
 void GameUpdated(Game ^game) {
   thisgame.color_depth = (int)game->Settings->ColorDepth;
-  thisgame.default_resolution = (GameResolutionType)game->Settings->Resolution;
+  SetGameResolution(game);
 
   thisgame.options[OPT_NOSCALEFNT] = game->Settings->FontsForHiRes;
   thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
@@ -3236,36 +3248,36 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   NormalGUI^ normalGui = dynamic_cast<NormalGUI^>(guiObj);
   if (normalGui)
   {
-	ConvertStringToCharArray(normalGui->OnClick, gui->clickEventHandler, 20);
-	gui->x = normalGui->Left;
-	gui->y = normalGui->Top;
-	gui->wid = normalGui->Width;
-	gui->hit = normalGui->Height;
-	gui->flags = (normalGui->Clickable) ? 0 : GUIF_NOCLICK;
-    gui->popupyp = normalGui->PopupYPos;
-    gui->popup = (int)normalGui->Visibility;
-    gui->zorder = normalGui->ZOrder;
-	gui->vtext[0] = 0;
-    gui->fgcol = normalGui->BorderColor;
+	ConvertStringToNativeString(normalGui->OnClick, gui->OnClickHandler, GUIMAIN_EVENTHANDLER_LENGTH);
+	gui->X = normalGui->Left;
+	gui->Y = normalGui->Top;
+	gui->Width = normalGui->Width;
+	gui->Height = normalGui->Height;
+    gui->Flags = (normalGui->Clickable) ? 0 : Common::kGUIMain_NoClick;
+    gui->PopupAtMouseY = normalGui->PopupYPos;
+    gui->PopupStyle = (Common::GUIPopupStyle)normalGui->Visibility;
+    gui->ZOrder = normalGui->ZOrder;
+    gui->FgColor = normalGui->BorderColor;
     gui->SetTransparencyAsPercentage(normalGui->Transparency);
   }
   else
   {
     TextWindowGUI^ twGui = dynamic_cast<TextWindowGUI^>(guiObj);
-	gui->wid = 200;
-	gui->hit = 100;
-    gui->flags = 0;
-	gui->popup = POPUP_SCRIPT;
-	gui->vtext[0] = GUI_TEXTWINDOW;
-	gui->padding = twGui->Padding;
-  gui->fgcol = twGui->TextColor;
+	gui->Width = 200;
+	gui->Height = 100;
+    gui->Flags = Common::kGUIMain_TextWindow;
+    gui->PopupStyle = Common::kGUIPopupModal;
+	gui->Padding = twGui->Padding;
+    gui->FgColor = twGui->TextColor;
   }
-  gui->bgcol = guiObj->BackgroundColor;
-  gui->bgpic = guiObj->BackgroundImage;
+  gui->BgColor = guiObj->BackgroundColor;
+  gui->BgImage = guiObj->BackgroundImage;
   
-  ConvertStringToCharArray(guiObj->Name, gui->name);
+  ConvertStringToNativeString(guiObj->Name, gui->Name);
 
-  gui->numobjs = 0;
+  gui->ControlCount = 0;
+  gui->CtrlRefs.resize(guiObj->Controls->Count);
+  gui->Controls.resize(guiObj->Controls->Count);
 
   for each (GUIControl^ control in guiObj->Controls)
   {
@@ -3278,6 +3290,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  AGS::Types::GUITextWindowEdge^ textwindowedge = dynamic_cast<AGS::Types::GUITextWindowEdge^>(control);
 	  if (button)
 	  {
+          guibuts.push_back(::GUIButton());
 		  guibuts[numguibuts].textcol = button->TextColor;
 		  guibuts[numguibuts].font = button->Font;
 		  guibuts[numguibuts].pic = button->Image;
@@ -3291,13 +3304,14 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  ConvertStringToCharArray(button->Text, guibuts[numguibuts].text, 50);
 		  ConvertStringToCharArray(button->OnClick, guibuts[numguibuts].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
 		  
-		  gui->objrefptr[gui->numobjs] = (GOBJ_BUTTON << 16) | numguibuts;
-		  gui->objs[gui->numobjs] = &guibuts[numguibuts];
-		  gui->numobjs++;
+          gui->CtrlRefs[gui->ControlCount] = (Common::kGUIButton << 16) | numguibuts;
+		  gui->Controls[gui->ControlCount] = &guibuts[numguibuts];
+		  gui->ControlCount++;
 		  numguibuts++;
 	  }
 	  else if (label)
 	  {
+          guilabels.push_back(::GUILabel());
 		  guilabels[numguilabels].textcol = label->TextColor;
 		  guilabels[numguilabels].font = label->Font;
 		  guilabels[numguilabels].align = (int)label->TextAlignment;
@@ -3306,13 +3320,14 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  ConvertStringToCharArray(label->Text, textBuffer, MAX_GUILABEL_TEXT_LEN);
 		  guilabels[numguilabels].SetText(textBuffer);
 
-		  gui->objrefptr[gui->numobjs] = (GOBJ_LABEL << 16) | numguilabels;
-		  gui->objs[gui->numobjs] = &guilabels[numguilabels];
-		  gui->numobjs++;
+		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUILabel << 16) | numguilabels;
+		  gui->Controls[gui->ControlCount] = &guilabels[numguilabels];
+		  gui->ControlCount++;
 		  numguilabels++;
 	  }
 	  else if (textbox)
 	  {
+          guitext.push_back(::GUITextBox());
 		  guitext[numguitext].textcol = textbox->TextColor;
 		  guitext[numguitext].font = textbox->Font;
 		  guitext[numguitext].flags = 0;
@@ -3320,13 +3335,14 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guitext[numguitext].text[0] = 0;
 		  ConvertStringToCharArray(textbox->OnActivate, guitext[numguitext].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
 
-		  gui->objrefptr[gui->numobjs] = (GOBJ_TEXTBOX << 16) | numguitext;
-		  gui->objs[gui->numobjs] = &guitext[numguitext];
-		  gui->numobjs++;
+		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUITextBox << 16) | numguitext;
+		  gui->Controls[gui->ControlCount] = &guitext[numguitext];
+		  gui->ControlCount++;
 		  numguitext++;
 	  }
 	  else if (listbox)
 	  {
+          guilist.push_back(::GUIListBox());
 		  guilist[numguilist].textcol = listbox->TextColor;
 		  guilist[numguilist].font = listbox->Font;
 		  guilist[numguilist].backcol = listbox->SelectedTextColor;
@@ -3337,13 +3353,14 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guilist[numguilist].exflags |= (listbox->ShowScrollArrows) ? 0 : GLF_NOARROWS;
 		  ConvertStringToCharArray(listbox->OnSelectionChanged, guilist[numguilist].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
 
-		  gui->objrefptr[gui->numobjs] = (GOBJ_LISTBOX << 16) | numguilist;
-		  gui->objs[gui->numobjs] = &guilist[numguilist];
-		  gui->numobjs++;
+		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIListBox << 16) | numguilist;
+		  gui->Controls[gui->ControlCount] = &guilist[numguilist];
+		  gui->ControlCount++;
 		  numguilist++;
 	  }
 	  else if (slider)
 	  {
+          guislider.push_back(::GUISlider());
 		  guislider[numguislider].min = slider->MinValue;
 		  guislider[numguislider].max = slider->MaxValue;
 		  guislider[numguislider].value = slider->Value;
@@ -3352,36 +3369,38 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guislider[numguislider].bgimage = slider->BackgroundImage;
 		  ConvertStringToCharArray(slider->OnChange, guislider[numguislider].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
 
-		  gui->objrefptr[gui->numobjs] = (GOBJ_SLIDER << 16) | numguislider;
-		  gui->objs[gui->numobjs] = &guislider[numguislider];
-		  gui->numobjs++;
+		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUISlider << 16) | numguislider;
+		  gui->Controls[gui->ControlCount] = &guislider[numguislider];
+		  gui->ControlCount++;
 		  numguislider++;
 	  }
 	  else if (invwindow)
 	  {
+          guiinv.push_back(::GUIInv());
 		  guiinv[numguiinv].charId = invwindow->CharacterID;
 		  guiinv[numguiinv].itemWidth = invwindow->ItemWidth;
 		  guiinv[numguiinv].itemHeight = invwindow->ItemHeight;
 
-		  gui->objrefptr[gui->numobjs] = (GOBJ_INVENTORY << 16) | numguiinv;
-		  gui->objs[gui->numobjs] = &guiinv[numguiinv];
-		  gui->numobjs++;
+		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIInvWindow << 16) | numguiinv;
+		  gui->Controls[gui->ControlCount] = &guiinv[numguiinv];
+		  gui->ControlCount++;
 		  numguiinv++;
 	  }
 	  else if (textwindowedge)
 	  {
+          guibuts.push_back(::GUIButton());
 		  guibuts[numguibuts].pic = textwindowedge->Image;
 		  guibuts[numguibuts].usepic = guibuts[numguibuts].pic;
 		  guibuts[numguibuts].flags = 0;
 		  guibuts[numguibuts].text[0] = 0;
 		  
-		  gui->objrefptr[gui->numobjs] = (GOBJ_BUTTON << 16) | numguibuts;
-		  gui->objs[gui->numobjs] = &guibuts[numguibuts];
-		  gui->numobjs++;
+		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIButton << 16) | numguibuts;
+		  gui->Controls[gui->ControlCount] = &guibuts[numguibuts];
+		  gui->ControlCount++;
 		  numguibuts++;
 	  }
 
-	  GUIObject *newObj = gui->objs[gui->numobjs - 1];
+	  GUIObject *newObj = gui->Controls[gui->ControlCount - 1];
 	  newObj->x = control->Left;
 	  newObj->y = control->Top;
 	  newObj->wid = control->Width;
@@ -3391,8 +3410,8 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  ConvertStringToCharArray(control->Name, newObj->scriptName, MAX_GUIOBJ_SCRIPTNAME_LEN + 1);
   }
 
-  gui->rebuild_array();
-  gui->resort_zorder();
+  gui->RebuildArray();
+  gui->ResortZOrder();
 }
 
 void drawGUI(int hdc, int x,int y, GUI^ guiObj, int scaleFactor, int selectedControl) {
@@ -3402,10 +3421,16 @@ void drawGUI(int hdc, int x,int y, GUI^ guiObj, int scaleFactor, int selectedCon
   numguilist = 0;
   numguislider = 0;
   numguiinv = 0;
+  guibuts.resize(0);
+  guilabels.resize(0);
+  guitext.resize(0);
+  guilist.resize(0);
+  guislider.resize(0);
+  guiinv.resize(0);
 
   ConvertGUIToBinaryFormat(guiObj, &tempgui);
 
-  tempgui.highlightobj = selectedControl;
+  tempgui.HighlightCtrl = selectedControl;
 
   drawGUIAt(hdc, x, y, -1, -1, -1, -1, scaleFactor);
 }
@@ -3764,7 +3789,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 	game->Settings->NumberDialogOptions = (thisgame.options[OPT_DIALOGNUMBERED] != 0);
 	game->Settings->PixelPerfect = (thisgame.options[OPT_PIXPERFECT] != 0);
 	game->Settings->PlaySoundOnScore = thisgame.options[OPT_SCORESOUND];
-	game->Settings->Resolution = (GameResolutions)thisgame.default_resolution;
+	game->Settings->Resolution = (GameResolutions)thisgame.GetDefaultResolution();
 	game->Settings->RoomTransition = (RoomTransitionStyle)thisgame.options[OPT_FADETYPE];
 	game->Settings->SaveScreenshots = (thisgame.options[OPT_SAVESCREENSHOT] != 0);
 	game->Settings->SkipSpeech = (SkipSpeechStyle)thisgame.options[OPT_NOSKIPTEXT];
@@ -4041,44 +4066,44 @@ Game^ load_old_game_dta_file(const char *fileName)
 
 	for (i = 0; i < thisgame.numgui; i++)
 	{
-		guis[i].rebuild_array();
-	    guis[i].resort_zorder();
+		guis[i].RebuildArray();
+	    guis[i].ResortZOrder();
 
 		GUI^ newGui;
-		if (guis[i].is_textwindow()) 
+		if (guis[i].IsTextWindow()) 
 		{
 			newGui = gcnew TextWindowGUI();
 			newGui->Controls->Clear();  // we'll add our own edges
-      ((TextWindowGUI^)newGui)->TextColor = guis[i].fgcol;
+      ((TextWindowGUI^)newGui)->TextColor = guis[i].FgColor;
 		}
 		else 
 		{
 			newGui = gcnew NormalGUI();
-			((NormalGUI^)newGui)->Clickable = ((guis[i].flags & GUIF_NOCLICK) == 0);
-			((NormalGUI^)newGui)->Top = guis[i].y;
-			((NormalGUI^)newGui)->Left = guis[i].x;
-			((NormalGUI^)newGui)->Width = (guis[i].wid > 0) ? guis[i].wid : 1;
-			((NormalGUI^)newGui)->Height = (guis[i].hit > 0) ? guis[i].hit : 1;
-			((NormalGUI^)newGui)->PopupYPos = guis[i].popupyp;
-			((NormalGUI^)newGui)->Visibility = (GUIVisibility)guis[i].popup;
-			((NormalGUI^)newGui)->ZOrder = guis[i].zorder;
-			((NormalGUI^)newGui)->OnClick = gcnew String(guis[i].clickEventHandler);
-      ((NormalGUI^)newGui)->BorderColor = guis[i].fgcol;
+			((NormalGUI^)newGui)->Clickable = ((guis[i].Flags & Common::kGUIMain_NoClick) == 0);
+			((NormalGUI^)newGui)->Top = guis[i].Y;
+			((NormalGUI^)newGui)->Left = guis[i].X;
+			((NormalGUI^)newGui)->Width = (guis[i].Width > 0) ? guis[i].Width : 1;
+			((NormalGUI^)newGui)->Height = (guis[i].Height > 0) ? guis[i].Height : 1;
+			((NormalGUI^)newGui)->PopupYPos = guis[i].PopupAtMouseY;
+			((NormalGUI^)newGui)->Visibility = (GUIVisibility)guis[i].PopupStyle;
+			((NormalGUI^)newGui)->ZOrder = guis[i].ZOrder;
+			((NormalGUI^)newGui)->OnClick = gcnew String(guis[i].OnClickHandler);
+      ((NormalGUI^)newGui)->BorderColor = guis[i].FgColor;
 		}
-		newGui->BackgroundColor = guis[i].bgcol;
-		newGui->BackgroundImage = guis[i].bgpic;
+		newGui->BackgroundColor = guis[i].BgColor;
+		newGui->BackgroundImage = guis[i].BgImage;
 		newGui->ID = i;
-		newGui->Name = gcnew String(guis[i].name);
+		newGui->Name = gcnew String(guis[i].Name);
 
-		for (int j = 0; j < guis[i].numobjs; j++)
+		for (int j = 0; j < guis[i].ControlCount; j++)
 		{
-			GUIObject* curObj = guis[i].objs[j];
+			GUIObject* curObj = guis[i].Controls[j];
 			GUIControl ^newControl = nullptr;
-			switch (guis[i].objrefptr[j] >> 16)
+			switch (guis[i].CtrlRefs[j] >> 16)
 			{
-			case GOBJ_BUTTON:
+			case Common::kGUIButton:
 				{
-				if (guis[i].is_textwindow())
+				if (guis[i].IsTextWindow())
 				{
 					AGS::Types::GUITextWindowEdge^ edge = gcnew AGS::Types::GUITextWindowEdge();
 					::GUIButton *copyFrom = (::GUIButton*)curObj;
@@ -4104,7 +4129,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 				}
 				break;
 				}
-			case GOBJ_LABEL:
+			case Common::kGUILabel:
 				{
 				AGS::Types::GUILabel^ newLabel = gcnew AGS::Types::GUILabel();
 				::GUILabel *copyFrom = (::GUILabel*)curObj;
@@ -4115,7 +4140,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 				newLabel->Text = gcnew String(copyFrom->GetText());
 				break;
 				}
-			case GOBJ_TEXTBOX:
+			case Common::kGUITextBox:
 				{
 				  AGS::Types::GUITextBox^ newTextbox = gcnew AGS::Types::GUITextBox();
 				  ::GUITextBox *copyFrom = (::GUITextBox*)curObj;
@@ -4127,7 +4152,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 				  newTextbox->OnActivate = gcnew String(copyFrom->eventHandlers[0]);
 				  break;
 				}
-			case GOBJ_LISTBOX:
+			case Common::kGUIListBox:
 				{
 				  AGS::Types::GUIListBox^ newListbox = gcnew AGS::Types::GUIListBox();
 				  ::GUIListBox *copyFrom = (::GUIListBox*)curObj;
@@ -4143,7 +4168,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 				  newListbox->OnSelectionChanged = gcnew String(copyFrom->eventHandlers[0]);
 				  break;
 				}
-			case GOBJ_SLIDER:
+			case Common::kGUISlider:
 				{
 				  AGS::Types::GUISlider^ newSlider = gcnew AGS::Types::GUISlider();
 				  ::GUISlider *copyFrom = (::GUISlider*)curObj;
@@ -4157,7 +4182,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 				  newSlider->OnChange = gcnew String(copyFrom->eventHandlers[0]);
 				  break;
 				}
-			case GOBJ_INVENTORY:
+			case Common::kGUIInvWindow:
 				{
 					AGS::Types::GUIInventory^ invwindow = gcnew AGS::Types::GUIInventory();
 				    ::GUIInv *copyFrom = (::GUIInv*)curObj;
@@ -4168,7 +4193,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 					break;
 				}
 			default:
-				throw gcnew AGSEditorException("Unknown control type found: " + (guis[i].objrefptr[j] >> 16));
+				throw gcnew AGSEditorException("Unknown control type found: " + (guis[i].CtrlRefs[j] >> 16));
 			}
 			newControl->Width = (curObj->wid > 0) ? curObj->wid : 1;
 			newControl->Height = (curObj->hit > 0) ? curObj->hit : 1;
@@ -4359,7 +4384,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		hotspot->ID = i;
 		hotspot->Description = gcnew String(thisroom.hotspotnames[i]);
 		hotspot->Name = (gcnew String(thisroom.hotspotScriptNames[i]))->Trim();
-		hotspot->WalkToPoint = Point(thisroom.hswalkto[i].x, thisroom.hswalkto[i].y);
+        hotspot->WalkToPoint = System::Drawing::Point(thisroom.hswalkto[i].x, thisroom.hswalkto[i].y);
 		ConvertCustomProperties(hotspot->Properties, &thisroom.hsProps[i]);
 
 		if (thisroom.wasversion < kRoomVersion_300a)
@@ -4766,7 +4791,7 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
 	  free(buffer);
   }
   ooo->WriteArray(&dialog[0], sizeof(DialogTopic), thisgame.numdialog);
-  write_gui(ooo,&guis[0],&thisgame,false);
+  write_gui(ooo,guis,&thisgame,false);
   write_plugins_to_disk(ooo);
   // write the custom properties & schema
   thisgame.propSchema.Serialize(ooo);
@@ -4878,7 +4903,7 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	thisgame.options[OPT_DIALOGNUMBERED] = game->Settings->NumberDialogOptions;
 	thisgame.options[OPT_PIXPERFECT] = game->Settings->PixelPerfect;
 	thisgame.options[OPT_SCORESOUND] = 0; // saved elsewhere now to make it 32-bit
-	thisgame.default_resolution = (GameResolutionType)game->Settings->Resolution;
+    SetGameResolution(game);
 	thisgame.options[OPT_FADETYPE] = (int)game->Settings->RoomTransition;
 	thisgame.options[OPT_RUNGAMEDLGOPTS] = game->Settings->RunGameLoopsWhileDialogOptionsDisplayed;
 	thisgame.options[OPT_SAVESCREENSHOT] = game->Settings->SaveScreenshots;
@@ -5191,14 +5216,20 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	numguilist = 0;
 	numguislider = 0;
 	numguiinv = 0;
+    guibuts.resize(0);
+    guilabels.resize(0);
+    guitext.resize(0);
+    guilist.resize(0);
+    guislider.resize(0);
+    guiinv.resize(0);
 
 	thisgame.numgui = game->GUIs->Count;
-  guis = (GUIMain*)calloc(thisgame.numgui, sizeof(GUIMain));
+  guis.resize(thisgame.numgui);
 	for (i = 0; i < thisgame.numgui; i++)
 	{
-		guis[i].init();
+		guis[i].Init();
 		ConvertGUIToBinaryFormat(game->GUIs[i], &guis[i]);
-		guis[i].highlightobj = -1;
+		guis[i].HighlightCtrl = -1;
 	}
 
 	// this cannot be null, so set it randomly

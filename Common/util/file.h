@@ -46,6 +46,8 @@ namespace File
 {
     // Tests if file could be opened for reading
     bool        TestReadFile(const String &filename);
+    // Opens a file for writing or creates new one if it does not exist; deletes file if it was created during test
+    bool        TestWriteFile(const String &filename);
     // Create new empty file and deletes it; returns TRUE if was able to create file
     bool        TestCreateFile(const String &filename);
     // Deletes existing file; returns TRUE if was able to delete one

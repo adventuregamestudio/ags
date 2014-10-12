@@ -12,13 +12,22 @@
 //
 //=============================================================================
 
-#ifndef __AC_GFXFILTERDEFINES_H
-#define __AC_GFXFILTERDEFINES_H
+#include "gfx/gfxfilter_ogl.h"
 
-#define SCR_HFLIP  1
-#define SCR_VFLIP  2
-#define SCR_VHFLIP 3
+namespace AGS
+{
+namespace Engine
+{
+namespace OGL
+{
 
-#define BYTES_PER_PIXEL(bpp)     (((int)(bpp) + 7) / 8)
+const GfxFilterInfo OGLGfxFilter::FilterInfo = GfxFilterInfo("", "None");
 
-#endif // __AC_GFXFILTERDEFINES_H
+const GfxFilterInfo &OGLGfxFilter::GetInfo() const
+{
+    return FilterInfo;
+}
+
+} // namespace OGL
+} // namespace Engine
+} // namespace AGS

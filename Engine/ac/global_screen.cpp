@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/draw.h"
@@ -29,8 +28,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetup usetup;
 extern GameState play;
@@ -41,19 +40,9 @@ extern AGSPlatformDriver *platform;
 extern color palette[256];
 extern unsigned int loopcounter;
 
-int scrnwid,scrnhit;
 int current_screen_resolution_multiplier = 1;
 
-int final_scrn_wid=0,final_scrn_hit=0,final_col_dep=0, game_frame_y_offset = 0;
 int screen_reset = 0;
-
-int GetMaxScreenHeight () {
-    int maxhit = BASEHEIGHT;
-    // uh ... BASEHEIGHT depends on Native Coordinates setting so be careful
-    if ((usetup.want_letterbox) && (thisroom.height > maxhit)) 
-        maxhit = divide_down_coordinate(multiply_up_coordinate(maxhit) + game_frame_y_offset * 2);
-    return maxhit;
-}
 
 void FlipScreen(int amount) {
     if ((amount<0) | (amount>3)) quit("!FlipScreen: invalid argument (0-3)");
@@ -92,7 +81,7 @@ void ShakeScreen(int severe) {
     }
     else
     {
-        Bitmap *tty = BitmapHelper::CreateBitmap(scrnwid, scrnhit);
+        Bitmap *tty = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight());
         gfxDriver->GetCopyOfScreenIntoBitmap(tty);
         for (hh=0;hh<40;hh++) {
             platform->Delay(50);

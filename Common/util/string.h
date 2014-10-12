@@ -111,6 +111,9 @@ public:
     void    ReadCount(Stream *in, int count);
     // Write() puts the null-terminated string into the stream.
     void    Write(Stream *out) const;
+    // WriteCount() writes N characters to stream, filling the remaining
+    // space with null-terminators when needed.
+    void    WriteCount(Stream *out, int count) const;
 
     static void WriteString(const char *cstr, Stream *out);
 
@@ -173,6 +176,11 @@ public:
     static String FromStream(Stream *in, int max_chars = 5000000, bool stop_at_limit = false);
     // Reads up to N chars from stream
     static String FromStreamCount(Stream *in, int count);
+
+    // Creates a lowercased copy of the string
+    String  Lower() const;
+    // Creates an uppercased copy of the string
+    String  Upper() const;
 
     // Extract N leftmost characters as a new string
     String  Left(int count) const;
@@ -294,6 +302,10 @@ public:
     inline bool operator!=(const char *cstr) const
     {
         return Compare(cstr) != 0;
+    }
+    inline bool operator <(const char *cstr) const
+    {
+        return Compare(cstr) < 0;
     }
 
 private:

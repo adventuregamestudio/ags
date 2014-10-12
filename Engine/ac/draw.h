@@ -75,8 +75,6 @@ void write_screen();
 void GfxDriverOnInitCallback(void *data);
 bool GfxDriverNullSpriteCallback(int x, int y);
 void init_invalid_regions(int scrnHit);
-int get_screen_x_adjustment(Common::Bitmap *checkFor);
-int get_screen_y_adjustment(Common::Bitmap *checkFor);
 void putpixel_compensate (Common::Bitmap *g, int xx,int yy, int col);
 // create the actsps[aa] image with the object drawn correctly
 // returns 1 if nothing at all has changed and actsps is still

@@ -23,7 +23,7 @@
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 
-DynamicArray<GUISlider> guislider;
+std::vector<GUISlider> guislider;
 int numguislider = 0;
 
 void GUISlider::WriteToFile(Stream *out)

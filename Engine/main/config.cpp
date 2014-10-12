@@ -27,10 +27,9 @@
 #include "util/filestream.h"
 #include "util/textstreamreader.h"
 #include "util/path.h"
+#include "util/string_utils.h"
 
-using AGS::Common::Stream;
-using AGS::Common::TextStreamReader;
-using AGS::Common::String;
+using namespace AGS::Common;
 
 extern GameSetup usetup;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -135,15 +134,26 @@ int INIreadint (const char *sectn, const char *item, int def_value = 0) {
     return toret;
 }
 
-String INIreadstring(const char *sectn, const char *entry)
+String INIreadstring(const char *sectn, const char *entry, const char *def_value = "")
 {
     char *tempstr = INIreaditem(sectn, entry);
+    if (tempstr == NULL)
+        return def_value;
+
     String str = tempstr;
-    if (tempstr)
-    {
-        free(tempstr);
-    }
+    free(tempstr);
     return str;
+}
+
+uint32_t parse_scaling_factor(const String &scaling_option)
+{
+    if (scaling_option.CompareNoCase("max") == 0)
+        return 0;
+    int gfx_scaling = StrUtil::StringToInt(scaling_option);
+    if (gfx_scaling >= 0)
+        return gfx_scaling <<= kShift;
+    else
+        return kUnit / abs(gfx_scaling);
 }
 
 void read_config_file(char *argv0) {
@@ -219,20 +229,69 @@ void read_config_file(char *argv0) {
 #endif
         psp_audio_multithreaded = INIreadint("sound", "threaded", psp_audio_multithreaded);
 
-        usetup.windowed = INIreadint("misc", "windowed") > 0;
-        usetup.vsync = INIreadint("misc", "vsync");
+        // Graphics mode
+#if defined (WINDOWS_VERSION)
+        usetup.gfxDriverID = INIreadstring("graphics", "driver");
+#else
+        usetup.gfxDriverID = "DX5";
+#endif
+        usetup.windowed = INIreadint("graphics", "windowed") > 0;
+        const char *screen_sz_def_options[kNumScreenDef] = { "explicit", "scaling", "max" };
+        usetup.screen_sz_def = kScreenDef_MaxDisplay;
+        String screen_sz_def_str = INIreadstring("graphics", "screen_def");
+        for (int i = 0; i < kNumScreenDef; ++i)
+        {
+            if (screen_sz_def_str.CompareNoCase(screen_sz_def_options[i]) == 0)
+            {
+                usetup.screen_sz_def = (ScreenSizeDefinition)i;
+                break;
+            }
+        }
+            
+        usetup.screen_size.Width = INIreadint("graphics", "screen_width");
+        usetup.screen_size.Height = INIreadint("graphics", "screen_height");
+        usetup.match_device_ratio = INIreadint("graphics", "match_device_ratio", 1) != 0;
+#if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
+        // PSP: No graphic filters are available.
+        usetup.gfxFilterID = "";
+#else
+        if (usetup.gfxFilterID.IsEmpty())
+        {
+            usetup.gfxFilterID = INIreadstring("graphics", "filter", "StdScale");
+            String gfx_scaling_both, gfx_scaling_x, gfx_scaling_y;
+            gfx_scaling_both = INIreadstring("graphics", "filter_scaling", "max");
+            if (gfx_scaling_both.CompareNoCase("max") == 0)
+            {
+                usetup.filter_scaling_max_uniform = true;
+                usetup.filter_scaling_x = 0;
+                usetup.filter_scaling_y = 0;
+            }
+            else
+            {
+                gfx_scaling_x = INIreadstring("graphics", "filter_scaling_x", gfx_scaling_both);
+                gfx_scaling_y = INIreadstring("graphics", "filter_scaling_y", gfx_scaling_both);
+                usetup.filter_scaling_x = parse_scaling_factor(gfx_scaling_x);
+                usetup.filter_scaling_y = parse_scaling_factor(gfx_scaling_y);
+            }
+        }
+#endif
 
-        usetup.refresh = INIreadint ("misc", "refresh");
+        const char *game_frame_options[kNumRectPlacement] = { "offset", "center", "stretch", "proportional" };
+        usetup.game_frame_placement = kPlaceCenter;
+        String game_frame_str = INIreadstring("graphics", "game_frame", "center");
+        for (int i = 0; i < kNumRectPlacement; ++i)
+        {
+            if (game_frame_str.CompareNoCase(game_frame_options[i]) == 0)
+            {
+                usetup.game_frame_placement = (RectPlacement)i;
+                break;
+            }
+        }
+        usetup.refresh = INIreadint ("graphics", "refresh");
+        usetup.vsync = INIreadint("graphics", "vsync") > 0;
+
         usetup.enable_antialiasing = INIreadint ("misc", "antialias") > 0;
         usetup.force_hicolor_mode = INIreadint("misc", "notruecolor") > 0;
-        usetup.prefer_sideborders = INIreadint("misc", "prefer_sideborders", 1) != 0;
-
-#if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
-        // PSP: Letterboxing is not useful on the PSP.
-        usetup.prefer_letterbox = false;
-#else
-        usetup.prefer_letterbox = INIreadint ("misc", "prefer_letterbox", 1) != 0;
-#endif
 
         // This option is backwards (usevox is 0 if no_speech_pack)
         usetup.no_speech_pack = INIreadint ("sound", "usespeech", 1) == 0;
@@ -253,19 +312,6 @@ void read_config_file(char *argv0) {
         usetup.data_files_dir.TrimRight('/');
 #endif
         usetup.main_data_filename = INIreadstring ("misc", "datafile");
-
-#if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
-        // PSP: No graphic filters are available.
-        usetup.gfxFilterID = "";
-#else
-        usetup.gfxFilterID = INIreadstring("misc", "gfxfilter");
-#endif
-
-#if defined (WINDOWS_VERSION)
-        usetup.gfxDriverID = INIreadstring("misc", "gfxdriver");
-#else
-        usetup.gfxDriverID = "DX5";
-#endif
 
         usetup.translation = INIreaditem ("language", "translation");
 
@@ -317,4 +363,14 @@ void read_config_file(char *argv0) {
     if (usetup.gfxDriverID.IsEmpty())
         usetup.gfxDriverID = "DX5";
 
+    // FIXME: this correction is needed at the moment because graphics driver
+    // implementation requires some filter to be created anyway
+    usetup.gfxFilterRequest = usetup.gfxFilterID;
+    if (usetup.gfxFilterID.IsEmpty() || usetup.gfxFilterID.CompareNoCase("none") == 0)
+    {
+        usetup.gfxFilterID = "StdScale";
+        usetup.filter_scaling_max_uniform = false;
+        usetup.filter_scaling_x = kUnit;
+        usetup.filter_scaling_y = kUnit;
+    }
 }

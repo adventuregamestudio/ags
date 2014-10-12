@@ -28,7 +28,8 @@
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guiobject.h"
 
-extern GUIMain*guis;
+using namespace AGS::Common;
+
 extern ScriptGUI*scrGui;
 extern CCGUI ccDynamicGUI;
 extern CCGUIObject ccDynamicGUIObject;
@@ -41,15 +42,15 @@ GUIObject *GetGUIControlAtLocation(int xx, int yy) {
     multiply_up_coordinates(&xx, &yy);
 
     int oldmousex = mousex, oldmousey = mousey;
-    mousex = xx - guis[guinum].x;
-    mousey = yy - guis[guinum].y;
-    int toret = guis[guinum].find_object_under_mouse(0, false);
+    mousex = xx - guis[guinum].X;
+    mousey = yy - guis[guinum].Y;
+    int toret = guis[guinum].FindControlUnderMouse(0, false);
     mousex = oldmousex;
     mousey = oldmousey;
     if (toret < 0)
         return NULL;
 
-    return guis[guinum].objs[toret];
+    return guis[guinum].Controls[toret];
 }
 
 int GUIControl_GetVisible(GUIObject *guio) {
@@ -65,7 +66,7 @@ void GUIControl_SetVisible(GUIObject *guio, int visible)
     else
       guio->Hide();
 
-    guis[guio->guin].control_positions_changed();
+    guis[guio->guin].OnControlPositionChanged();
     guis_need_update = 1;
   }
 }
@@ -82,7 +83,7 @@ void GUIControl_SetClickable(GUIObject *guio, int enabled) {
   else
     guio->SetClickable(false);
 
-  guis[guio->guin].control_positions_changed();
+  guis[guio->guin].OnControlPositionChanged();
   guis_need_update = 1;
 }
 
@@ -98,7 +99,7 @@ void GUIControl_SetEnabled(GUIObject *guio, int enabled) {
   else
     guio->Disable();
 
-  guis[guio->guin].control_positions_changed();
+  guis[guio->guin].OnControlPositionChanged();
   guis_need_update = 1;
 }
 
@@ -112,42 +113,42 @@ ScriptGUI* GUIControl_GetOwningGUI(GUIObject *guio) {
 }
 
 GUIButton* GUIControl_GetAsButton(GUIObject *guio) {
-  if (guis[guio->guin].get_control_type(guio->objn) != GOBJ_BUTTON)
+  if (guis[guio->guin].GetControlType(guio->objn) != kGUIButton)
     return NULL;
 
   return (GUIButton*)guio;
 }
 
 GUIInv* GUIControl_GetAsInvWindow(GUIObject *guio) {
-  if (guis[guio->guin].get_control_type(guio->objn) != GOBJ_INVENTORY)
+  if (guis[guio->guin].GetControlType(guio->objn) != kGUIInvWindow)
     return NULL;
 
   return (GUIInv*)guio;
 }
 
 GUILabel* GUIControl_GetAsLabel(GUIObject *guio) {
-  if (guis[guio->guin].get_control_type(guio->objn) != GOBJ_LABEL)
+  if (guis[guio->guin].GetControlType(guio->objn) != kGUILabel)
     return NULL;
 
   return (GUILabel*)guio;
 }
 
 GUIListBox* GUIControl_GetAsListBox(GUIObject *guio) {
-  if (guis[guio->guin].get_control_type(guio->objn) != GOBJ_LISTBOX)
+  if (guis[guio->guin].GetControlType(guio->objn) != kGUIListBox)
     return NULL;
 
   return (GUIListBox*)guio;
 }
 
 GUISlider* GUIControl_GetAsSlider(GUIObject *guio) {
-  if (guis[guio->guin].get_control_type(guio->objn) != GOBJ_SLIDER)
+  if (guis[guio->guin].GetControlType(guio->objn) != kGUISlider)
     return NULL;
 
   return (GUISlider*)guio;
 }
 
 GUITextBox* GUIControl_GetAsTextBox(GUIObject *guio) {
-  if (guis[guio->guin].get_control_type(guio->objn) != GOBJ_TEXTBOX)
+  if (guis[guio->guin].GetControlType(guio->objn) != kGUITextBox)
     return NULL;
 
   return (GUITextBox*)guio;
@@ -159,7 +160,7 @@ int GUIControl_GetX(GUIObject *guio) {
 
 void GUIControl_SetX(GUIObject *guio, int xx) {
   guio->x = multiply_up_coordinate(xx);
-  guis[guio->guin].control_positions_changed();
+  guis[guio->guin].OnControlPositionChanged();
   guis_need_update = 1;
 }
 
@@ -169,7 +170,7 @@ int GUIControl_GetY(GUIObject *guio) {
 
 void GUIControl_SetY(GUIObject *guio, int yy) {
   guio->y = multiply_up_coordinate(yy);
-  guis[guio->guin].control_positions_changed();
+  guis[guio->guin].OnControlPositionChanged();
   guis_need_update = 1;
 }
 
@@ -180,7 +181,7 @@ int GUIControl_GetZOrder(GUIObject *guio)
 
 void GUIControl_SetZOrder(GUIObject *guio, int zorder)
 {
-    if (guis[guio->guin].set_control_zorder(guio->objn, zorder))
+    if (guis[guio->guin].SetControlZOrder(guio->objn, zorder))
         guis_need_update = 1;
 }
 
@@ -197,7 +198,7 @@ int GUIControl_GetWidth(GUIObject *guio) {
 void GUIControl_SetWidth(GUIObject *guio, int newwid) {
   guio->wid = multiply_up_coordinate(newwid);
   guio->Resized();
-  guis[guio->guin].control_positions_changed();
+  guis[guio->guin].OnControlPositionChanged();
   guis_need_update = 1;
 }
 
@@ -208,7 +209,7 @@ int GUIControl_GetHeight(GUIObject *guio) {
 void GUIControl_SetHeight(GUIObject *guio, int newhit) {
   guio->hit = multiply_up_coordinate(newhit);
   guio->Resized();
-  guis[guio->guin].control_positions_changed();
+  guis[guio->guin].OnControlPositionChanged();
   guis_need_update = 1;
 }
 
@@ -222,12 +223,12 @@ void GUIControl_SetSize(GUIObject *guio, int newwid, int newhit) {
 }
 
 void GUIControl_SendToBack(GUIObject *guio) {
-  if (guis[guio->guin].send_to_back(guio->objn))
+  if (guis[guio->guin].SendControlToBack(guio->objn))
     guis_need_update = 1;
 }
 
 void GUIControl_BringToFront(GUIObject *guio) {
-  if (guis[guio->guin].bring_to_front(guio->objn))
+  if (guis[guio->guin].BringControlToFront(guio->objn))
     guis_need_update = 1;
 }
 

@@ -22,7 +22,7 @@
 
 using AGS::Common::Stream;
 
-DynamicArray<GUIInv> guiinv;
+std::vector<GUIInv> guiinv;
 int numguiinv = 0;
 
 void GUIInv::WriteToFile(Stream *out)

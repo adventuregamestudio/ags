@@ -129,6 +129,19 @@ void String::Write(Stream *out) const
     }
 }
 
+void String::WriteCount(Stream *out, int count) const
+{
+    if (out)
+    {
+        int str_out_len = Math::Min(count - 1, GetLength());
+        if (str_out_len > 0)
+            out->Write(GetCStr(), str_out_len);
+        int null_out_len = count - str_out_len;
+        if (null_out_len > 0)
+            out->WriteByteCount(0, null_out_len);
+    }
+}
+
 /* static */ void String::WriteString(const char *cstr, Stream *out)
 {
     if (out)
@@ -266,11 +279,9 @@ bool String::FindSection(char separator, int first, int last, bool exclude_first
     if (this_field >= first)
     {
         // correct the indices to stay in the [0; length] range
-        from = slice_from;
-        to = slice_to;
-        assert(from <= to);
-        Math::Clamp(0, _meta->Length, from);
-        Math::Clamp(0, _meta->Length, to);
+        assert(slice_from <= slice_to);
+        from = Math::Clamp(0, _meta->Length, slice_from);
+        to   = Math::Clamp(0, _meta->Length, slice_to);
         return true;
     }
     return false;
@@ -308,6 +319,20 @@ int String::ToInt() const
 {
     String str;
     str.ReadCount(in, count);
+    return str;
+}
+
+String String::Lower() const
+{
+    String str = *this;
+    str.MakeLower();
+    return str;
+}
+
+String String::Upper() const
+{
+    String str = *this;
+    str.MakeUpper();
     return str;
 }
 

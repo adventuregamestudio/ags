@@ -22,7 +22,6 @@
 extern int offsetx, offsety;
 extern GameState play;
 extern roomstruct thisroom;
-extern int scrnwid,scrnhit;
 extern GameSetup usetup;
 extern CharacterInfo*playerchar;
 
@@ -33,10 +32,10 @@ void check_viewport_coords()
 
     int roomWidth = multiply_up_coordinate(thisroom.width);
     int roomHeight = multiply_up_coordinate(thisroom.height);
-    if (offsetx + scrnwid > roomWidth)
-        offsetx = roomWidth - scrnwid;
-    if (offsety + scrnhit > roomHeight)
-        offsety = roomHeight - scrnhit;
+    if (offsetx + play.viewport.GetWidth() > roomWidth)
+        offsetx = roomWidth - play.viewport.GetWidth();
+    if (offsety + play.viewport.GetHeight() > roomHeight)
+        offsety = roomHeight - play.viewport.GetHeight();
 }
 
 
@@ -44,8 +43,8 @@ void update_viewport()
 {
     if ((thisroom.width > BASEWIDTH) || (thisroom.height > BASEHEIGHT)) {
         if (play.offsets_locked == 0) {
-            offsetx = multiply_up_coordinate(playerchar->x) - scrnwid/2;
-            offsety = multiply_up_coordinate(playerchar->y) - scrnhit/2;
+            offsetx = multiply_up_coordinate(playerchar->x) - play.viewport.GetWidth()/2;
+            offsety = multiply_up_coordinate(playerchar->y) - play.viewport.GetHeight()/2;
         }
         check_viewport_coords();
     }

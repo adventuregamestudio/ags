@@ -52,5 +52,18 @@ size_t Stream::WriteArrayOfIntPtr32(const intptr_t *buffer, size_t count)
     return elem;
 }
 
+size_t Stream::WriteByteCount(uint8_t b, size_t count)
+{
+    if (!CanWrite())
+        return 0;
+    size_t size = 0;
+    for (; count > 0; --count, ++size)
+    {
+        if (WriteByte(b) < 0)
+            break;
+    }
+    return size;
+}
+
 } // namespace Common
 } // namespace AGS

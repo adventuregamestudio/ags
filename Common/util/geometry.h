@@ -18,10 +18,40 @@
 #ifndef __AGS_CN_UTIL__GEOMETRY_H
 #define __AGS_CN_UTIL__GEOMETRY_H
 
+#include "util/math.h"
+
+namespace Math = AGS::Common::Math;
 //namespace AGS
 //{
 //namespace Common
 //{
+
+enum RectPlacement
+{
+    kPlaceOffset,
+    kPlaceCenter,
+    kPlaceStretch,
+    kPlaceStretchProportional,
+    kNumRectPlacement
+};
+
+struct Point
+{
+    int X;
+    int Y;
+
+    Point()
+    {
+        X = 0;
+        Y = 0;
+    }
+
+    Point(int x, int y)
+    {
+        X = x;
+        Y = y;
+    }
+};
 
 struct Line
 {
@@ -78,6 +108,12 @@ struct Size
     inline bool IsNull() const
     {
         return Width <= 0 || Height <= 0;
+    }
+
+    inline void Clamp(const Size floor, const Size ceil)
+    {
+        Width = Math::Clamp(floor.Width, ceil.Width, Width);
+        Height = Math::Clamp(floor.Height, ceil.Height, Height);
     }
 
     // Indicates if current size exceeds other size by any metric
@@ -144,6 +180,11 @@ struct Rect
 		Bottom	= b;
 	}
 
+    inline Point GetLT() const
+    {
+        return Point(Left, Top);
+    }
+
 	inline int GetWidth() const
 	{
 		return Right - Left + 1;
@@ -153,6 +194,43 @@ struct Rect
 	{
 		return Bottom - Top + 1;
 	}
+
+    inline Size GetSize() const
+    {
+        return Size(GetWidth(), GetHeight());
+    }
+    
+    inline bool IsEmpty() const
+    {
+        return Right < Left || Bottom < Top;
+    }
+
+    inline bool IsInside(const Point &pt) const
+    {
+        return pt.X >= Left && pt.Y >= Top && (pt.X <= Right) && (pt.Y <= Bottom);
+    }
+
+    inline void MoveToX(int x)
+    {
+        Right += x - Left;
+        Left = x;
+    }
+
+    inline void MoveToY(int y)
+    {
+        Bottom += y - Top;
+        Top = y;
+    }
+
+    inline void SetWidth(int width)
+    {
+        Right = Left + width - 1;
+    }
+
+    inline void SetHeight(int height)
+    {
+        Bottom = Top + height - 1;
+    }
 };
 
 // Helper factory function
@@ -213,6 +291,9 @@ struct Circle
 
 };
 
+
+Rect OffsetRect(const Rect &r, const Point off);
+Rect PlaceInRect(const Rect &place, const Rect &item, const RectPlacement &placement);
 //} // namespace Common
 //} // namespace AGS
 

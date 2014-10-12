@@ -21,6 +21,17 @@
 
 using AGS::Common::Stream;
 
+GUIObject::GUIObject()
+{
+  guin = objn = 0;
+  flags = 0;
+  x = y = 0;
+  wid = hit = 0;
+  zorder = 0;
+  activated = 0;
+  init();
+}
+
 void GUIObject::init() {
   int jj;
   scriptName[0] = 0;

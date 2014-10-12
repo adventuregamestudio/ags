@@ -14,7 +14,6 @@
 
 #define USE_CLIB
 #include "util/string_utils.h" //strlwr()
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "media/audio/audiodefines.h"
 #include "ac/charactercache.h"
@@ -46,10 +45,12 @@
 #include "ac/walkbehind.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scripthotspot.h"
+#include "gui/guidefines.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "device/mousew32.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
@@ -61,15 +62,13 @@
 #include "core/assetmanager.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "gfx/bitmap.h"
+#include "gfx/gfxfilter.h"
 #include "util/math.h"
 #include "main/graphics_mode.h"
 
-using AGS::Common::Bitmap;
-using AGS::Common::Stream;
-using AGS::Common::String;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 namespace Math = AGS::Common::Math;
-namespace Out = AGS::Common::Out;
 
 #if !defined (WINDOWS_VERSION)
 // for toupper
@@ -92,15 +91,12 @@ extern ObjectCache objcache[MAX_INIT_SPR];
 extern CharacterExtras *charextra;
 extern int done_es_error;
 extern int our_eip;
-extern int final_scrn_wid,final_scrn_hit,final_col_dep;
-extern int scrnwid,scrnhit;
 extern Bitmap *walkareabackup, *walkable_areas_temp;
 extern ScriptObject scrObj[MAX_INIT_SPR];
 extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int in_new_room, new_room_was;  // 1 in new room, 2 first time in new room, 3 loading saved game
 extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
-extern int guis_need_update;
 extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
 extern int starting_room;
@@ -219,7 +215,7 @@ Bitmap *fix_bitmap_size(Bitmap *todubl) {
     if ((oldw == newWidth) && (oldh == newHeight))
         return todubl;
 
-    //  Bitmap *tempb=BitmapHelper::CreateBitmap(scrnwid,scrnhit);
+    //  Bitmap *tempb=BitmapHelper::CreateBitmap(play.viewport.GetWidth(),play.viewport.GetHeight());
     //todubl->SetClip(Rect(0,0,oldw-1,oldh-1)); // CHECKME! [IKM] Not sure this is needed here
     Bitmap *tempb=BitmapHelper::CreateBitmap(newWidth, newHeight, todubl->GetColorDepth());
     tempb->SetClip(Rect(0,0,tempb->GetWidth()-1,tempb->GetHeight()-1));
@@ -467,14 +463,14 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
 
     if ((thisroom.ebscene[0]->GetColorDepth() == 8) &&
-        (final_col_dep > 8))
+        (ScreenResolution.ColorDepth > 8))
         select_palette(palette);
 
     for (cc=0;cc<thisroom.num_bscenes;cc++) {
         update_polled_stuff_if_runtime();
 #ifdef USE_15BIT_FIX
         // convert down scenes from 16 to 15-bit if necessary
-        if ((final_col_dep != game.color_depth*8) &&
+        if ((ScreenResolution.ColorDepth != game.color_depth*8) &&
             (thisroom.ebscene[cc]->GetColorDepth() == game.color_depth * 8)) {
                 Bitmap *oldblock = thisroom.ebscene[cc];
                 thisroom.ebscene[cc] = convert_16_to_15(oldblock);
@@ -494,39 +490,44 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
 
     if ((thisroom.ebscene[0]->GetColorDepth() == 8) &&
-        (final_col_dep > 8))
+        (ScreenResolution.ColorDepth > 8))
         unselect_palette();
 
     update_polled_stuff_if_runtime();
 
     our_eip=202;
     const int real_room_height = multiply_up_coordinate(thisroom.height);
-    // Frame size is updated when letterbox mode is on, or when room's size is smaller than game's size.
-    if (usetup.want_letterbox ||
-            real_room_height < GameSize.Height || scrnhit < GameSize.Height) {
+    // Game viewport is updated when when room's size is smaller than game's size.
+    if (real_room_height < game.size.Height || play.viewport.GetHeight() < game.size.Height) {
         int abscreen=0;
 
+        // [IKM] Here we remember what was set as virtual screen: either real screen bitmap, or virtual_screen bitmap
         Bitmap *ds = GetVirtualScreen();
         if (ds==BitmapHelper::GetScreenBitmap()) abscreen=1;
         else if (ds==virtual_screen) abscreen=2;
-        int newScreenHeight = final_scrn_hit;
-        const int viewport_height = Math::Min(real_room_height, GameSize.Height);
-        if (viewport_height < final_scrn_hit) {
+
+        // Define what should be a new game viewport size
+        int newScreenHeight = game.size.Height;
+        const int viewport_height = Math::Min(real_room_height, game.size.Height);
+        if (viewport_height < game.size.Height) {
             clear_letterbox_borders();
             newScreenHeight = viewport_height;
         }
 
-        // If the game is run not in letterbox mode, but there's a random room smaller than the game size,
-        // then the sub_screen does not exist at this point; so we create it here.
+        // If this is the first time we got here, then the sub_screen does not exist at this point; so we create it here.
         if (!_sub_screen)
-            _sub_screen = BitmapHelper::CreateSubBitmap(_old_screen, RectWH(final_scrn_wid / 2 - scrnwid / 2, final_scrn_hit / 2-newScreenHeight/2, scrnwid, newScreenHeight));
+            _sub_screen = BitmapHelper::CreateSubBitmap(_old_screen, RectWH(game.size.Width / 2 - play.viewport.GetWidth() / 2, game.size.Height / 2-newScreenHeight/2, play.viewport.GetWidth(), newScreenHeight));
 
+        // Reset screen bitmap
         if (newScreenHeight == _sub_screen->GetHeight())
         {
+            // requested viewport height is the same as existing subscreen
 			BitmapHelper::SetScreenBitmap( _sub_screen );
         }
-        else if (_sub_screen->GetWidth() != final_scrn_wid)
+        // CHECKME: WTF is this for?
+        else if (_sub_screen->GetWidth() != game.size.Width)
         {
+            // the height has changed and the width is not equal with game width
             int subBitmapWidth = _sub_screen->GetWidth();
             delete _sub_screen;
             _sub_screen = BitmapHelper::CreateSubBitmap(_old_screen, RectWH(_old_screen->GetWidth() / 2 - subBitmapWidth / 2, _old_screen->GetHeight() / 2 - newScreenHeight / 2, subBitmapWidth, newScreenHeight));
@@ -534,35 +535,37 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         }
         else
         {
+            // the height and width are equal to game native size: restore original screen
             BitmapHelper::SetScreenBitmap( _old_screen );
         }
 
-		scrnhit = BitmapHelper::GetScreenBitmap()->GetHeight();
-        vesa_yres = scrnhit;
-        game_frame_y_offset = (final_scrn_hit - scrnhit) / 2;
+        // Update viewport and mouse area
+        play.SetViewport(BitmapHelper::GetScreenBitmap()->GetSize());
+        Mouse::SetGraphicArea();
 
-        filter->SetMouseArea(0,0, scrnwid-1, vesa_yres-1);
-
-        if (virtual_screen->GetHeight() != scrnhit) {
+        // Reset virtual_screen bitmap
+        if (virtual_screen->GetHeight() != play.viewport.GetHeight()) {
             int cdepth=virtual_screen->GetColorDepth();
             delete virtual_screen;
-            virtual_screen=BitmapHelper::CreateBitmap(scrnwid,scrnhit,cdepth);
+            virtual_screen=BitmapHelper::CreateBitmap(play.viewport.GetWidth(),play.viewport.GetHeight(),cdepth);
             virtual_screen->Clear();
             gfxDriver->SetMemoryBackBuffer(virtual_screen);
-            //      ignore_mouseoff_bitmap = virtual_screen;
         }
 
-        gfxDriver->SetRenderOffset(get_screen_x_adjustment(virtual_screen), get_screen_y_adjustment(virtual_screen));
+        // Adjust offsets for rendering sprites on virtual screen
+        gfxDriver->SetRenderOffset(play.viewport.Left, play.viewport.Top);
 
-		if (abscreen==1) //abuf=BitmapHelper::GetScreenBitmap();
+        // [IKM] Since both screen and virtual_screen bitmaps might have changed, we reset a virtual screen,
+        // with either first or second, depending on what was set as virtual screen before
+		if (abscreen==1) // it was a screen bitmap
             SetVirtualScreen( BitmapHelper::GetScreenBitmap() );
-        else if (abscreen==2) //abuf=virtual_screen;
+        else if (abscreen==2) // it was a virtual_screen bitmap
             SetVirtualScreen( virtual_screen );
 
         update_polled_stuff_if_runtime();
     }
     // update the script viewport height
-    scsystem.viewport_height = divide_down_coordinate(scrnhit);
+    scsystem.viewport_height = divide_down_coordinate(play.viewport.GetHeight());
 
     SetMouseBounds (0,0,0,0);
 
@@ -587,15 +590,15 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     thisroom.object = fix_bitmap_size(thisroom.object);
     update_polled_stuff_if_runtime();
 
-    set_color_depth(final_col_dep);
+    set_color_depth(ScreenResolution.ColorDepth);
     // convert backgrounds to current res
     if (thisroom.resolution != get_fixed_pixel_size(1)) {
         for (cc=0;cc<thisroom.num_bscenes;cc++)
             thisroom.ebscene[cc] = fix_bitmap_size(thisroom.ebscene[cc]);
     }
 
-    if ((thisroom.ebscene[0]->GetWidth() < scrnwid) ||
-        (thisroom.ebscene[0]->GetHeight() < scrnhit))
+    if ((thisroom.ebscene[0]->GetWidth() < play.viewport.GetWidth()) ||
+        (thisroom.ebscene[0]->GetHeight() < play.viewport.GetHeight()))
     {
         quitprintf("!The background scene for this room is smaller than the game resolution. If you have recently changed " 
             "the game resolution, you will need to re-import the background for this room. (Room: %d, BG Size: %d x %d)",

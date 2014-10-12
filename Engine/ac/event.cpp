@@ -14,7 +14,6 @@
 
 #include <stdio.h>
 #include "event.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
@@ -35,8 +34,8 @@
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = Common::BitmapHelper;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern roomstruct thisroom;
@@ -49,7 +48,6 @@ extern AGSPlatformDriver *platform;
 extern Bitmap *temp_virtual;
 extern Bitmap *virtual_screen;
 extern volatile int timerloop;
-extern int scrnwid,scrnhit;
 extern color old_palette[256];
 
 int in_enters_screen=0,done_es_error = 0;
@@ -66,7 +64,7 @@ int eventClaimed = EVENT_NONE;
 char*tsnames[4]={NULL, REP_EXEC_NAME, "on_key_press","on_mouse_click"};
 
 
-int run_claimable_event(char *tsname, bool includeRoom, int numParams, RuntimeScriptValue *params, bool *eventWasClaimed) {
+int run_claimable_event(const char *tsname, bool includeRoom, int numParams, RuntimeScriptValue *params, bool *eventWasClaimed) {
     *eventWasClaimed = true;
     // Run the room script function, and if it is not claimed,
     // then run the main one
@@ -276,12 +274,12 @@ void process_event(EventHappened*evp) {
                 render_to_screen(screen_bmp, 0, 0);
 
                 int boxwid = get_fixed_pixel_size(16);
-                int boxhit = multiply_up_coordinate(GetMaxScreenHeight() / 20);
+                int boxhit = multiply_up_coordinate(BASEHEIGHT / 20);
                 while (boxwid < screen_bmp->GetWidth()) {
                     timerloop = 0;
                     boxwid += get_fixed_pixel_size(16);
-                    boxhit += multiply_up_coordinate(GetMaxScreenHeight() / 20);
-                    int lxp = scrnwid / 2 - boxwid / 2, lyp = scrnhit / 2 - boxhit / 2;
+                    boxhit += multiply_up_coordinate(BASEHEIGHT / 20);
+                    int lxp = play.viewport.GetWidth() / 2 - boxwid / 2, lyp = play.viewport.GetHeight() / 2 - boxhit / 2;
                     gfxDriver->Vsync();
                     screen_bmp->Blit(virtual_screen, lxp, lyp, lxp, lyp,
                         boxwid, boxhit);
@@ -344,8 +342,8 @@ void process_event(EventHappened*evp) {
                 }
                 // do the dissolving
                 int maskCol = temp_virtual->GetMaskColor();
-                for (bb=0;bb<scrnwid;bb+=4) {
-                    for (cc=0;cc<scrnhit;cc+=4) {
+                for (bb=0;bb<play.viewport.GetWidth();bb+=4) {
+                    for (cc=0;cc<play.viewport.GetHeight();cc+=4) {
                         temp_virtual->PutPixel(bb+pattern[aa]/4, cc+pattern[aa]%4, maskCol);
                     }
                 }

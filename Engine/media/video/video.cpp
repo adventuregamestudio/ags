@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "video.h"
-#include "gfx/ali3d.h"
 #include "apeg.h"
 #include "ac/common.h"
 #include "ac/draw.h"
@@ -29,16 +28,15 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
+#include "main/graphics_mode.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 
 extern GameSetupStruct game;
 extern GameState play;
 extern IGraphicsDriver *gfxDriver;
-extern int final_scrn_wid,final_scrn_hit,final_col_dep;
-extern int scrnwid,scrnhit;
 extern Bitmap *virtual_screen;
 
 extern int psp_video_framedrop;
@@ -81,9 +79,9 @@ extern "C" int fli_callback() {
         usebuf=hicol_buf;
     }
     if (stretch_flc == 0)
-        fli_target->Blit(usebuf, 0,0,scrnwid/2-fliwidth/2,scrnhit/2-fliheight/2,scrnwid,scrnhit);
+        fli_target->Blit(usebuf, 0,0,play.viewport.GetWidth()/2-fliwidth/2,play.viewport.GetHeight()/2-fliheight/2,play.viewport.GetWidth(),play.viewport.GetHeight());
     else 
-        fli_target->StretchBlt(usebuf, RectWH(0,0,fliwidth,fliheight), RectWH(0,0,scrnwid,scrnhit));
+        fli_target->StretchBlt(usebuf, RectWH(0,0,fliwidth,fliheight), RectWH(0,0,play.viewport.GetWidth(),play.viewport.GetHeight()));
 
     gfxDriver->UpdateDDBFromBitmap(fli_ddb, fli_target, false);
     gfxDriver->DrawSprite(0, 0, fli_ddb);
@@ -114,8 +112,8 @@ int theora_playing_callback(BITMAP *theoraBuffer)
     }
     if (stretch_flc) 
     {
-        drawAtX = scrnwid / 2 - fliTargetWidth / 2;
-        drawAtY = scrnhit / 2 - fliTargetHeight / 2;
+        drawAtX = play.viewport.GetWidth() / 2 - fliTargetWidth / 2;
+        drawAtY = play.viewport.GetHeight() / 2 - fliTargetHeight / 2;
         if (!gfxDriver->HasAcceleratedStretchAndFlip())
         {
             fli_target->StretchBlt(&gl_TheoraBuffer, RectWH(0, 0, gl_TheoraBuffer.GetWidth(), gl_TheoraBuffer.GetHeight()), 
@@ -133,8 +131,8 @@ int theora_playing_callback(BITMAP *theoraBuffer)
     else
     {
         gfxDriver->UpdateDDBFromBitmap(fli_ddb, &gl_TheoraBuffer, false);
-        drawAtX = scrnwid / 2 - gl_TheoraBuffer.GetWidth() / 2;
-        drawAtY = scrnhit / 2 - gl_TheoraBuffer.GetHeight() / 2;
+        drawAtX = play.viewport.GetWidth() / 2 - gl_TheoraBuffer.GetWidth() / 2;
+        drawAtY = play.viewport.GetHeight() / 2 - gl_TheoraBuffer.GetHeight() / 2;
     }
 
     gfxDriver->DrawSprite(drawAtX, drawAtY, fli_ddb);
@@ -163,22 +161,22 @@ APEG_STREAM* get_theora_size(const char *fileName, int *width, int *height)
 void calculate_destination_size_maintain_aspect_ratio(int vidWidth, int vidHeight, int *targetWidth, int *targetHeight)
 {
     float aspectRatioVideo = (float)vidWidth / (float)vidHeight;
-    float aspectRatioScreen = (float)scrnwid / (float)scrnhit;
+    float aspectRatioScreen = (float)play.viewport.GetWidth() / (float)play.viewport.GetHeight();
 
     if (aspectRatioVideo == aspectRatioScreen)
     {
-        *targetWidth = scrnwid;
-        *targetHeight = scrnhit;
+        *targetWidth = play.viewport.GetWidth();
+        *targetHeight = play.viewport.GetHeight();
     }
     else if (aspectRatioVideo > aspectRatioScreen)
     {
-        *targetWidth = scrnwid;
-        *targetHeight = (int)(((float)scrnwid / aspectRatioVideo) + 0.5f);
+        *targetWidth = play.viewport.GetWidth();
+        *targetHeight = (int)(((float)play.viewport.GetWidth() / aspectRatioVideo) + 0.5f);
     }
     else
     {
-        *targetHeight = scrnhit;
-        *targetWidth = (float)scrnhit * aspectRatioVideo;
+        *targetHeight = play.viewport.GetHeight();
+        *targetWidth = (float)play.viewport.GetHeight() * aspectRatioVideo;
     }
 
 }
@@ -212,7 +210,7 @@ void play_theora_video(const char *name, int skip, int flags)
     }
 
     fli_target = NULL;
-    //fli_buffer = BitmapHelper::CreateBitmap_(final_col_dep, videoWidth, videoHeight);
+    //fli_buffer = BitmapHelper::CreateBitmap_(ScreenResolution.ColorDepth, videoWidth, videoHeight);
     calculate_destination_size_maintain_aspect_ratio(videoWidth, videoHeight, &fliTargetWidth, &fliTargetHeight);
 
     if ((fliTargetWidth == videoWidth) && (fliTargetHeight == videoHeight) && (stretch_flc))
@@ -223,7 +221,7 @@ void play_theora_video(const char *name, int skip, int flags)
 
     if ((stretch_flc) && (!gfxDriver->HasAcceleratedStretchAndFlip()))
     {
-        fli_target = BitmapHelper::CreateBitmap(scrnwid, scrnhit, final_col_dep);
+        fli_target = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), ScreenResolution.ColorDepth);
         fli_target->Clear();
         fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
     }

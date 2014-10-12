@@ -14,9 +14,7 @@
 
 #include "ac/dynobj/cc_guiobject.h"
 #include "ac/dynobj/scriptgui.h"
-
-extern GUIMain*guis;
-
+#include "gui/guimain.h"
 // return the type name of the object
 const char *CCGUIObject::GetType() {
     return "GUIObject";
@@ -36,5 +34,5 @@ void CCGUIObject::Unserialize(int index, const char *serializedData, int dataSiz
     StartUnserialize(serializedData, dataSize);
     int guinum = UnserializeInt();
     int objnum = UnserializeInt();
-    ccRegisterUnserializedObject(index, guis[guinum].objs[objnum], this);
+    ccRegisterUnserializedObject(index, guis[guinum].Controls[objnum], this);
 }

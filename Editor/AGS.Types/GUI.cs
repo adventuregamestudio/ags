@@ -11,8 +11,8 @@ namespace AGS.Types
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     public abstract class GUI : IToXml, IComparable<GUI>
     {
-        public const int MAX_CONTROLS_PER_GUI = 30;
-        protected const int MAX_NAME_LENGTH = 15;
+        public const int LEGACY_MAX_CONTROLS_PER_GUI = 30;
+        protected const int LEGACY_MAX_NAME_LENGTH = 15;
 
         public GUI()
         {
@@ -78,7 +78,7 @@ namespace AGS.Types
             get { return _name; }
             set
             {
-                _name = Utilities.ValidateScriptName(value, MAX_NAME_LENGTH);
+                _name = Utilities.ValidateScriptName(value);
             }
         }
 

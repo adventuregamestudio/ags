@@ -19,6 +19,9 @@
 #define __AGS_EE_AC__GUI_H
 
 #include "ac/dynobj/scriptgui.h"
+#include "gui/guimain.h"
+
+using AGS::Common::GUIMain;
 
 void	GUI_SetVisible(ScriptGUI *tehgui, int isvisible);
 int		GUI_GetVisible(ScriptGUI *tehgui);
@@ -48,7 +51,7 @@ ScriptGUI *GetGUIAtLocation(int xx, int yy);
 
 void	remove_popup_interface(int ifacenum);
 void	process_interface_click(int ifce, int btn, int mbut);
-void	replace_macro_tokens(char*statusbarformat,char*cur_stb_text);
+void	replace_macro_tokens(const char*statusbarformat,char*cur_stb_text);
 void	update_gui_zorder();
 void	export_gui_controls(int ee);
 void	unexport_gui_controls(int ee);

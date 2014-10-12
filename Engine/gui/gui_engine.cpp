@@ -32,12 +32,13 @@
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 #include "gfx/blender.h"
+#include "main/graphics_mode.h"
 
 using AGS::Common::Bitmap;
 
 // For engine these are defined in ac.cpp
 extern int eip_guiobj;
-extern void replace_macro_tokens(char*,char*);
+extern void replace_macro_tokens(const char*,char*);
 
 // For engine these are defined in acfonts.cpp
 extern void ensure_text_valid_for_font(char *, int);
@@ -46,20 +47,20 @@ extern void ensure_text_valid_for_font(char *, int);
 extern SpriteCache spriteset; // in ac_runningame
 extern GameSetupStruct game;
 
-bool GUIMain::is_alpha() 
+bool AGS::Common::GUIMain::HasAlphaChannel() const
 {
-    if (this->bgpic > 0)
+    if (this->BgImage > 0)
     {
         // alpha state depends on background image
-        return is_sprite_alpha(this->bgpic);
+        return is_sprite_alpha(this->BgImage);
     }
-    if (this->bgcol > 0)
+    if (this->BgColor > 0)
     {
         // not alpha transparent if there is a background color
         return false;
     }
     // transparent background, enable alpha blending
-    return final_col_dep >= 24 &&
+    return ScreenResolution.ColorDepth >= 24 &&
         // transparent background have alpha channel only since 3.2.0;
         // "classic" gui rendering mode historically had non-alpha transparent backgrounds
         // (3.2.0 broke the compatibility, now we restore it)
@@ -111,7 +112,7 @@ int get_eip_guiobj()
 
 bool outlineGuiObjects = false;
 
-void GUILabel::Draw_replace_macro_tokens(char *oritext, char *text)
+void GUILabel::Draw_replace_macro_tokens(char *oritext, const char *text)
 {
   replace_macro_tokens(flags & GUIF_TRANSLATED ? get_translation(text) : text, oritext);
   ensure_text_valid_for_font(oritext, font);

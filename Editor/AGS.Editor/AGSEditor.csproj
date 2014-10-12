@@ -574,6 +574,9 @@
     <EmbeddedResource Include="GUI\SelectReligion.resx">
       <DependentUpon>SelectReligion.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="GUI\CustomResolutionDialog.resx">
+      <DependentUpon>CustomResolutionDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="GUI\StartNewGameWizardPage2.resx">
       <DependentUpon>StartNewGameWizardPage2.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -802,6 +805,12 @@
     </Compile>
     <Compile Include="GUI\PropertiesPanel.Designer.cs">
       <DependentUpon>PropertiesPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\CustomResolutionDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\CustomResolutionDialog.Designer.cs">
+      <DependentUpon>CustomResolutionDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\ToolStripExtended.cs">
       <SubType>Component</SubType>

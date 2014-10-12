@@ -1,9 +1,6 @@
 //#include "cscomp.h"
 #include "script/cc_script.h"
-#include "Common/util/filestream.h"
-#include <io.h>
-#include <cstdio>
-#include <Fcntl.h>
+#include "script/script_common.h"
 
 namespace AGS
 {
@@ -36,36 +33,70 @@ namespace AGS
 				_compiledScript = NULL;
 			}
 
-            void Write(AGS::Common::Stream *out)
+            virtual void __clrcall Write(System::IO::FileStream ^ostream, System::String ^scriptFileName)
             {
-                Data->Write(out);
+                if (_compiledScript == NULL)
+                {
+                    throw gcnew AGS::Types::CompileError(gcnew System::String("Script has not been compiled: ") + scriptFileName);
+                }
+                System::IO::BinaryWriter ^writer = gcnew System::IO::BinaryWriter(ostream);
+                for (int i = 0; i < 4; ++i)
+                {
+                    writer->Write(scfilesig[i]);
+                }
+                writer->Write(SCOM_VERSION);
+                writer->Write(_compiledScript->globaldatasize);
+                writer->Write(_compiledScript->codesize);
+                writer->Write(_compiledScript->stringssize);
+                for (int i = 0; i < _compiledScript->globaldatasize; ++i)
+                {
+                    writer->Write(_compiledScript->globaldata[i]);
+                }
+                for (int i = 0; i < _compiledScript->codesize; ++i)
+                {
+                    writer->Write((int)_compiledScript->code[i]);
+                }
+                for (int i = 0; i < _compiledScript->stringssize; ++i)
+                {
+                    writer->Write(_compiledScript->strings[i]);
+                }
+                writer->Write(_compiledScript->numfixups);
+                for (int i = 0; i < _compiledScript->numfixups; ++i)
+                {
+                    writer->Write(_compiledScript->fixuptypes[i]);
+                }
+                for (int i = 0; i < _compiledScript->numfixups; ++i)
+                {
+                    writer->Write(_compiledScript->fixups[i]);
+                }
+                writer->Write(_compiledScript->numimports);
+                for (int i = 0; i < _compiledScript->numimports; ++i)
+                {
+                    for (int j = 0, len = strlen(_compiledScript->imports[i]); j <= len; ++j)
+                    {
+                        writer->Write(_compiledScript->imports[i][j]);
+                    }
+                }
+                writer->Write(_compiledScript->numexports);
+                for (int i = 0; i < _compiledScript->numexports; ++i)
+                {
+                    for (int j = 0, len = strlen(_compiledScript->exports[i]); j <= len; ++j)
+                    {
+                        writer->Write(_compiledScript->exports[i][j]);
+                    }
+                    writer->Write(_compiledScript->export_addr[i]);
+                }
+                writer->Write(_compiledScript->numSections);
+                for (int i = 0; i < _compiledScript->numSections; ++i)
+                {
+                    for (int j = 0, len = strlen(_compiledScript->sectionNames[i]); j <= len; ++j)
+                    {
+                        writer->Write(_compiledScript->sectionNames[i][j]);
+                    }
+                    writer->Write(_compiledScript->sectionOffsets[i]);
+                }
+                writer->Write(ENDFILESIG);
             }
-
-            virtual void __clrcall Write(System::IO::FileStream ^out)
-            {
-                // NOTE: This is a TEMPORARY hack to allow the managed code to call the native
-                // Data->Write method. Refactoring that method will require basically refactoring the
-                // entire compiler into managed code (which is partially done). -monkey0506
-                using namespace AGS::Common;
-                if (!out->CanWrite)
-                {
-                    throw gcnew AGS::Types::CompileError(gcnew System::String("Cannot write to file!"));
-                }
-                void *handle = out->SafeFileHandle->DangerousGetHandle().ToPointer();
-                int fd = _open_osfhandle((intptr_t)handle, _O_APPEND);
-                if (fd == -1)
-                {
-                    throw gcnew AGS::Types::CompileError(gcnew System::String("Cannot write to file!"));
-                }
-                FILE *fp = _fdopen(fd, "a+");
-                if (fp == NULL)
-                {
-                    throw gcnew AGS::Types::CompileError(gcnew System::String("Cannot write to file!"));
-                }
-                FileStream fs(fp, kFile_Create, kFile_Write);
-                Write(&fs);
-                System::GC::KeepAlive(out);
-            }
-		};
+        };
 	}
 }

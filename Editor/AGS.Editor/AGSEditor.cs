@@ -901,7 +901,8 @@ namespace AGS.Editor
             bool forceRebuild = (bool)parameter;
             SetMODMusicFlag();
             DeleteAnyExistingSplitResourceFiles();
-            Factory.NativeProxy.CompileGameToDTAFile(_game, COMPILED_DTA_FILE_NAME);
+            DataFileWriter.SaveThisGameToFile(COMPILED_DTA_FILE_NAME, _game);
+            //Factory.NativeProxy.CompileGameToDTAFile(_game, COMPILED_DTA_FILE_NAME);
             Factory.NativeProxy.CreateGameEXE(ConstructFileListForEXE(), _game, this.BaseGameFileName);
             File.Delete(COMPILED_DTA_FILE_NAME);
             CreateCompiledSetupProgram();

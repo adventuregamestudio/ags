@@ -1,8 +1,10 @@
 ﻿using AGS.Types;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace AGS.Editor
@@ -129,9 +131,12 @@ namespace AGS.Editor
 
         static void FilePutNullTerminatedString(string text, int maxLen, BinaryWriter writer)
         {
-            int len = text.IndexOf('\0') + 1;
-            text = text.Substring(0, Math.Min(len, maxLen - 1));
-            writer.Write(Encoding.ASCII.GetBytes(text));
+            if ((text != null) && (maxLen >= 2))
+            {
+                int len = text.IndexOf('\0');
+                text = text.Substring(0, Math.Min(len == -1 ? text.Length : len, maxLen - 1));
+                writer.Write(Encoding.ASCII.GetBytes(text));
+            }
             writer.Write(new byte[] { (byte)0 });
         }
 
@@ -369,22 +374,228 @@ namespace AGS.Editor
         }
 
         /*
+typedef struct RGB
+{
+   unsigned char r, g, b;
+   unsigned char filler; // ALIGNED
+} RGB; // 4 bytes
+         */
+        /*
+struct GameSetupStructBase {
+    static const int  MAX_OPTIONS = 100;
+
+    char              gamename[50]; // 50/4 = 12R2
+    char _padding1[2]; // aligned
+    int32             options[MAX_OPTIONS]; // aligned
+    unsigned char     paluses[256]; // 256/4 = 64R0, aligned
+    color             defpal[256]; // aligned
+    int32             numviews;
+    int32             numcharacters;
+    int32             playercharacter;
+    int32             totalscore;
+    short             numinvitems; // missing 2
+    char _padding2[2]; // aligned
+    int32             numdialog, numdlgmessage;
+    int32             numfonts;
+    int32             color_depth;          // in bytes per pixel (ie. 1 or 2)
+    int32             target_win;
+    int32             dialog_bullet;        // 0 for none, otherwise slot num of bullet point
+    unsigned short    hotdot, hotdotouter;  // inv cursor hotspot dot     // aligned
+    int32             uniqueid;    // random key identifying the game
+    int32             numgui;
+    int32             numcursors;
+    GameResolutionType default_resolution; // 4 bytes, aligned
+    int32             default_lipsync_frame; // used for unknown chars
+    int32             invhotdotsprite;
+    int32             reserved[17];
+    char             *messages[MAXGLOBALMES]; // char*, aligned
+    WordsDictionary  *dict; // pointer, aligned
+    char             *globalscript; // pointer, aligned
+    CharacterInfo    *chars; // pointer, aligned
+    ccScript         *compiled_script; // pointer, aligned
+
+    int32_t          *load_messages; // pointer, aligned
+    bool             load_dictionary;
+    bool             load_compiled_script;
+    // [IKM] 2013-03-30
+    // NOTE: it looks like nor 'globalscript', not 'compiled_script' are used
+    // to store actual script data anytime; 'ccScript* gamescript' global
+    // pointer is used for that instead.
+
+    GameSetupStructBase();
+    virtual ~GameSetupStructBase();
+    void ReadFromFile(Common::Stream *in);
+    void WriteToFile(Common::Stream *out);
+
+    inline bool IsHiRes() const
+    {
+        return ::IsHiRes(default_resolution);
+    }
+};
+         */
+        /*
          * void WriteGameSetupStructBase_Aligned(Stream *out)
 {
     GameSetupStructBase *gameBase = (GameSetupStructBase *)&thisgame;
     AlignedStream align_s(out, Common::kAligned_Write);
     gameBase->WriteToFile(&align_s);
 }*/
+        private enum GameOptions
+        {
+            OPT_DEBUGMODE = 0,
+            OPT_SCORESOUND = 1,
+            OPT_WALKONLOOK = 2,
+            OPT_DIALOGIFACE = 3,
+            OPT_ANTIGLIDE = 4,
+            OPT_TWCUSTOM = 5,
+            OPT_DIALOGGAP = 6,
+            OPT_NOSKIPTEXT = 7,
+            OPT_DISABLEOFF = 8,
+            OPT_ALWAYSSPCH = 9,
+            OPT_SPEECHTYPE = 10,
+            OPT_PIXPERFECT = 11,
+            OPT_NOWALKMODE = 12,
+            OPT_LETTERBOX = 13,
+            OPT_FIXEDINVCURSOR = 14,
+            OPT_NOLOSEINV = 15,
+            OPT_NOSCALEFNT = 16,
+            OPT_SPLITRESOURCES = 17,
+            OPT_ROTATECHARS = 18,
+            OPT_FADETYPE = 19,
+            OPT_HANDLEINVCLICKS = 20,
+            OPT_MOUSEWHEEL = 21,
+            OPT_DIALOGNUMBERED = 22,
+            OPT_DIALOGUPWARDS = 23,
+            OPT_CROSSFADEMUSIC = 24,
+            OPT_ANTIALIASFONTS = 25,
+            OPT_THOUGHTGUI = 26,
+            OPT_TURNTOFACELOC = 27,
+            OPT_RIGHTLEFTWRITE = 28,
+            OPT_DUPLICATEINV = 29,
+            OPT_SAVESCREENSHOT = 30,
+            OPT_PORTRAITSIDE = 31,
+            OPT_STRICTSCRIPTING = 32,
+            OPT_LEFTTORIGHTEVAL = 33,
+            OPT_COMPRESSSPRITES = 34,
+            OPT_STRICTSTRINGS = 35,
+            OPT_NEWGUIALPHA = 36,
+            OPT_RUNGAMEDLGOPTS = 37,
+            OPT_NATIVECOORDINATES = 38,
+            OPT_GLOBALTALKANIMSPD = 39,
+            OPT_SPRITEALPHA = 40,
+            OPT_NOMODMUSIC = 98,
+            OPT_LIPSYNCTEXT = 99
+        }
+
+        private static void WriteGameSetupStructBase_Aligned(BinaryWriter writer, Game game)
+        {
+            // assume stream is aligned at start
+            WriteString(SafeTruncate(game.Settings.GameName, 49), 50, writer);
+            writer.Write(new byte[2]); // alignment padding
+            int[] options = new int[100];
+            options[(int)GameOptions.OPT_ALWAYSSPCH] = (game.Settings.AlwaysDisplayTextAsSpeech ? 1 : 0);
+            options[(int)GameOptions.OPT_ANTIALIASFONTS] = (game.Settings.AntiAliasFonts ? 1 : 0);
+            options[(int)GameOptions.OPT_ANTIGLIDE] = (game.Settings.AntiGlideMode ? 1 : 0);
+            options[(int)GameOptions.OPT_NOWALKMODE] = (game.Settings.AutoMoveInWalkMode ? 0 : 1);
+            options[(int)GameOptions.OPT_RIGHTLEFTWRITE] = (game.Settings.BackwardsText ? 1 : 0);
+            options[(int)GameOptions.OPT_COMPRESSSPRITES] = (game.Settings.CompressSprites ? 1 : 0);
+            options[(int)GameOptions.OPT_DEBUGMODE] = (game.Settings.DebugMode ? 1 : 0);
+            options[(int)GameOptions.OPT_DIALOGUPWARDS] = (game.Settings.DialogOptionsBackwards ? 1 : 0);
+            options[(int)GameOptions.OPT_DIALOGGAP] = game.Settings.DialogOptionsGap;
+            options[(int)GameOptions.OPT_DIALOGIFACE] = game.Settings.DialogOptionsGUI;
+            options[(int)GameOptions.OPT_DUPLICATEINV] = (game.Settings.DisplayMultipleInventory ? 1 : 0);
+            options[(int)GameOptions.OPT_STRICTSTRINGS] = (game.Settings.EnforceNewStrings ? 1 : 0);
+            options[(int)GameOptions.OPT_STRICTSCRIPTING] = (game.Settings.EnforceObjectBasedScript ? 1 : 0);
+            options[(int)GameOptions.OPT_NOSCALEFNT] = (game.Settings.FontsForHiRes ? 1 : 0);
+            options[(int)GameOptions.OPT_NEWGUIALPHA] = (int)game.Settings.GUIAlphaStyle;
+            options[(int)GameOptions.OPT_SPRITEALPHA] = (int)game.Settings.SpriteAlphaStyle;
+            options[(int)GameOptions.OPT_HANDLEINVCLICKS] = (game.Settings.HandleInvClicksInScript ? 1 : 0);
+            options[(int)GameOptions.OPT_FIXEDINVCURSOR] = (game.Settings.InventoryCursors ? 0 : 1);
+            options[(int)GameOptions.OPT_GLOBALTALKANIMSPD] = (game.Settings.UseGlobalSpeechAnimationDelay ?
+                game.Settings.GlobalSpeechAnimationDelay : (-game.Settings.GlobalSpeechAnimationDelay - 1));
+            options[(int)GameOptions.OPT_LEFTTORIGHTEVAL] = (game.Settings.LeftToRightPrecedence ? 1 : 0);
+            options[(int)GameOptions.OPT_LETTERBOX] = (game.Settings.LetterboxMode ? 1 : 0);
+            options[(int)GameOptions.OPT_MOUSEWHEEL] = (game.Settings.MouseWheelEnabled ? 1 : 0);
+            options[(int)GameOptions.OPT_DIALOGNUMBERED] = (game.Settings.NumberDialogOptions ? 1 : 0);
+            options[(int)GameOptions.OPT_PIXPERFECT] = (game.Settings.PixelPerfect ? 1 : 0);
+            options[(int)GameOptions.OPT_FADETYPE] = (int)game.Settings.RoomTransition;
+            options[(int)GameOptions.OPT_RUNGAMEDLGOPTS] = (game.Settings.RunGameLoopsWhileDialogOptionsDisplayed ? 1 : 0);
+            options[(int)GameOptions.OPT_SAVESCREENSHOT] = (game.Settings.SaveScreenshots ? 1 : 0);
+            options[(int)GameOptions.OPT_NOSKIPTEXT] = (int)game.Settings.SkipSpeech;
+            options[(int)GameOptions.OPT_PORTRAITSIDE] = (int)game.Settings.SpeechPortraitSide;
+            options[(int)GameOptions.OPT_SPEECHTYPE] = (int)game.Settings.SpeechStyle;
+            options[(int)GameOptions.OPT_SPLITRESOURCES] = game.Settings.SplitResources;
+            options[(int)GameOptions.OPT_TWCUSTOM] = game.Settings.TextWindowGUI;
+            options[(int)GameOptions.OPT_THOUGHTGUI] = game.Settings.ThoughtGUI;
+            options[(int)GameOptions.OPT_TURNTOFACELOC] = (game.Settings.TurnBeforeFacing ? 1 : 0);
+            options[(int)GameOptions.OPT_ROTATECHARS] = (game.Settings.TurnBeforeWalking ? 1 : 0);
+            options[(int)GameOptions.OPT_NATIVECOORDINATES] = (game.Settings.UseLowResCoordinatesInScript ? 0 : 1);
+            options[(int)GameOptions.OPT_WALKONLOOK] = (game.Settings.WalkInLookMode ? 1 : 0);
+            options[(int)GameOptions.OPT_DISABLEOFF] = (int)game.Settings.WhenInterfaceDisabled;
+            for (int i = 0; i < options.Length; ++i) // writing only ints, alignment preserved
+            {
+                writer.Write(options[i]);
+            }
+            for (int i = 0; i < 256; ++i) // writing 256 bytes, alignment preserved
+            {
+                if (game.Palette[i].ColourType == PaletteColourType.Background)
+                {
+                    writer.Write((byte)2); // PAL_BACKGROUND
+                }
+                else writer.Write((byte)0); // PAL_GAMEWIDE
+            }
+            for (int i = 0; i < 256; ++i) // writing 256*4 bytes, alignment preserved
+            {
+                writer.Write((byte)(game.Palette[i].Colour.R / 4));
+                writer.Write((byte)(game.Palette[i].Colour.G / 4));
+                writer.Write((byte)(game.Palette[i].Colour.B / 4));
+                writer.Write((byte)0); // filler
+            }
+            writer.Write(game.ViewCount);
+            writer.Write(game.Characters.Count);
+            writer.Write(game.PlayerCharacter.ID);
+            writer.Write(game.Settings.MaximumScore);
+            writer.Write((short)game.InventoryItems.Count);
+            writer.Write(new byte[2]); // alignment padding
+            writer.Write(game.Dialogs.Count);
+            writer.Write(0); // numdlgmessage
+            writer.Write(game.Fonts.Count);
+            writer.Write((int)game.Settings.ColorDepth);
+            writer.Write(0); // target_win
+            writer.Write(game.Settings.DialogOptionsBullet); // aligned so far
+            writer.Write(game.Settings.InventoryHotspotMarker.Style != InventoryHotspotMarkerStyle.None ?
+                (short)game.Settings.InventoryHotspotMarker.DotColor : (short)0); // need 2 bytes for alignment
+            writer.Write((short)game.Settings.InventoryHotspotMarker.CrosshairColor); // aligned again
+            writer.Write(game.Settings.UniqueID);
+            writer.Write(game.GUIs.Count);
+            writer.Write(game.Cursors.Count);
+            writer.Write((int)game.Settings.Resolution);
+            writer.Write(game.LipSync.DefaultFrame);
+            writer.Write(game.Settings.InventoryHotspotMarker.Style == InventoryHotspotMarkerStyle.Sprite ?
+                game.Settings.InventoryHotspotMarker.Image : 0);
+            writer.Write(new byte[17 * sizeof(int)]); // reserved; 17 ints, alignment preserved
+            for (int i = 0; i < 500; ++i) // MAXGLOBALMES; write 500 ints, alignment preserved
+            {
+                writer.Write(game.GlobalMessages[i] != null ? 1 : 0);
+            }
+            // the rest are ints, alignment is correct
+            writer.Write(1); // dict != null
+            writer.Write(0); // globalscript != null
+            writer.Write(0); // chars != null
+            writer.Write(1); // compiled_script != null
+            // no final padding required
+        }
+
         [Flags]
         private enum SpriteFlags
         {
-            HighRes         = 1,
-            HighColor       = 2,
-            TrueColor       = 8,
-            AlphaChannel    = 0x10
+            HighRes = 1,
+            HighColor = 2,
+            TrueColor = 8,
+            AlphaChannel = 0x10
         }
 
-        private SpriteFlags GetSpriteFlags(Sprite sprite)
+        private static SpriteFlags GetSpriteFlags(Sprite sprite)
         {
             SpriteFlags flags = (SpriteFlags)0;
             if (sprite.Resolution == SpriteImportResolution.HighRes) flags |= SpriteFlags.HighRes;
@@ -394,7 +605,7 @@ namespace AGS.Editor
             return flags;
         }
 
-        private List<SpriteFlags> GetAllSpriteFlags(SpriteFolder rootFolder)
+        private static List<SpriteFlags> GetAllSpriteFlags(SpriteFolder rootFolder)
         {
             List<SpriteFlags> flags = new List<SpriteFlags>();
             foreach (Sprite sprite in rootFolder.Sprites)
@@ -450,18 +661,20 @@ namespace AGS.Editor
             public const int MAX_CUSTOM_PROPERTIES = 30;
             public const int MAX_CUSTOM_PROPERTY_NAME_LENGTH = 200;
             public const int MAX_CUSTOM_PROPERTY_VALUE_LENGTH = 500;
-            private IDictionary<string, string> _properties;
+            private List<string> _names;
+            private List<string> _values;
 
             public CompiledCustomProperties()
             {
-                _properties = new Dictionary<string, string>();
+                _names = new List<string>();
+                _values = new List<string>();
             }
 
             public string[] Names
             {
                 get
                 {
-                    return new List<string>(_properties.Keys).ToArray();
+                    return _names.ToArray();
                 }
             }
 
@@ -469,7 +682,7 @@ namespace AGS.Editor
             {
                 get
                 {
-                    return new List<string>(_properties.Values).ToArray();
+                    return _values.ToArray();
                 }
             }
 
@@ -477,7 +690,7 @@ namespace AGS.Editor
             {
                 get
                 {
-                    return _properties.Count;
+                    return _names.Count;
                 }
             }
 
@@ -485,41 +698,43 @@ namespace AGS.Editor
             {
                 get
                 {
-                    if (!_properties.ContainsKey(name)) return null;
-                    return _properties[name];
+                    int idx = _names.IndexOf(name);
+                    if (idx == -1) return null;
+                    return _values[idx];
                 }
             }
 
             public int IndexOfName(string name)
             {
-                return new List<string>(_properties.Keys).IndexOf(name);
+                return _names.IndexOf(name);
             }
 
             public int IndexOfValue(string value)
             {
-                return new List<string>(_properties.Values).IndexOf(value);
+                return _values.IndexOf(value);
             }
 
             public void Reset()
             {
-                _properties.Clear();
+                _names.Clear();
+                _values.Clear();
             }
 
             public void AddProperty(string name, string value)
             {
-                if (_properties.Count >= MAX_CUSTOM_PROPERTIES) return;
-                _properties.Add(SafeTruncate(name, MAX_CUSTOM_PROPERTY_NAME_LENGTH - 1),
-                    SafeTruncate(value, MAX_CUSTOM_PROPERTY_VALUE_LENGTH - 1));
+                if (PropertyCount >= MAX_CUSTOM_PROPERTIES) return;
+                _names.Add(SafeTruncate(name, MAX_CUSTOM_PROPERTY_NAME_LENGTH - 1));
+                _values.Add(SafeTruncate(value, MAX_CUSTOM_PROPERTY_VALUE_LENGTH - 1));
             }
 
-            void Serialize(BinaryWriter writer)
+            public void Serialize(BinaryWriter writer)
             {
                 writer.Write(1);
-                writer.Write(_properties.Count);
-                for (int i = 0; i < _properties.Count; ++i)
+                writer.Write(PropertyCount);
+                for (int i = 0; i < PropertyCount; ++i)
                 {
-                    WriteString(Names[i], MAX_CUSTOM_PROPERTY_NAME_LENGTH, writer);
-                    WriteString(Values[i], MAX_CUSTOM_PROPERTY_VALUE_LENGTH, writer);
+                    FilePutNullTerminatedString(Names[i], MAX_CUSTOM_PROPERTY_NAME_LENGTH, writer);
+                    FilePutNullTerminatedString(Values[i], MAX_CUSTOM_PROPERTY_VALUE_LENGTH, writer);
                 }
             }
 
@@ -531,13 +746,13 @@ namespace AGS.Editor
                 {
                     string name = ReadString(MAX_CUSTOM_PROPERTY_NAME_LENGTH, reader);
                     string value = ReadString(MAX_CUSTOM_PROPERTY_VALUE_LENGTH, reader);
-                    _properties.Add(name, value);
+                    AddProperty(name, value);
                 }
                 return 0;
             }
         }
 
-        private void CompileCustomProperties(CustomProperties convertFrom, CompiledCustomProperties compileInto)
+        private static void CompileCustomProperties(CustomProperties convertFrom, CompiledCustomProperties compileInto)
         {
             compileInto.Reset();
             foreach (string key in convertFrom.PropertyValues.Keys)
@@ -546,7 +761,7 @@ namespace AGS.Editor
             }
         }
 
-        void SerializeInteractionScripts(Interactions interactions, BinaryWriter writer)
+        static void SerializeInteractionScripts(Interactions interactions, BinaryWriter writer)
         {
             writer.Write(interactions.ScriptFunctionNames.Length);
             foreach (string funcName in interactions.ScriptFunctionNames)
@@ -563,7 +778,7 @@ namespace AGS.Editor
             }
         }
 
-        string EncryptText(string toEncrypt)
+        static string EncryptText(string toEncrypt)
         {
             const string PASSWORD_ENC_STRING = "Avis Durgan";
             StringBuilder sb = new StringBuilder(toEncrypt);
@@ -577,7 +792,7 @@ namespace AGS.Editor
             return sb.ToString();
         }
 
-        void WriteStringEncrypted(BinaryWriter writer, string text)
+        static void WriteStringEncrypted(BinaryWriter writer, string text)
         {
             int stlent = text.Length + 1;
             writer.Write(stlent);
@@ -585,13 +800,13 @@ namespace AGS.Editor
             WriteString(text, stlent, writer);
         }
 
-        void WriteCompiledScript(FileStream ostream, Script script)
+        static void WriteCompiledScript(FileStream ostream, Script script)
         {
             if (script.CompiledData == null)
             {
                 throw new CompileError(string.Format("Script has not been compiled: {0}", script.FileName));
             }
-            script.CompiledData.Write(ostream);
+            script.CompiledData.Write(ostream, script.FileName);
         }
 
         class ViewsWriter
@@ -916,8 +1131,10 @@ namespace AGS.Editor
                 writer.Write(GUIButtonsAndTextWindowEdges.Count);
                 foreach (GUIButtonOrTextWindowEdge ctrl in GUIButtonsAndTextWindowEdges)
                 {
-                    int flags = (ctrl.ClipImage ? (int)GUIFlags.GUIF_CLIP : 0);
-                    string[] events = (ctrl.OnClick == null ? new string[0] : new string[] { ctrl.OnClick });
+                    int flags;
+                    string[] events;
+                    flags = (ctrl.ClipImage ? (int)GUIFlags.GUIF_CLIP : 0);
+                    events = (ctrl.OnClick == null ? new string[0] : new string[] { ctrl.OnClick });
                     WriteGUIControl(ctrl, flags, events);
                     writer.Write(ctrl.Image); // pic
                     writer.Write(ctrl.MouseoverImage); // overpic
@@ -1142,7 +1359,7 @@ namespace AGS.Editor
                 writer.Write(0); // flags
                 writer.Write(0); // transparency
                 writer.Write(0); // zorder
-                writer.Write(0); // guiId, TODO: should this be gui.ID
+                writer.Write(0); // guiId, TODO: should this be gui.ID?
                 writer.Write(gui.Padding); // padding
                 writer.Write(new byte[5 * sizeof(int)]); // reserved
                 writer.Write(1); // on
@@ -1176,7 +1393,26 @@ namespace AGS.Editor
             }
         }
 
-        public void SaveThisGameToFile(string fileName, Game game)
+        private static void WritePluginsToDisk(BinaryWriter writer, Game game)
+        {
+            const int SAVEBUFFERSIZE = 5120;
+            writer.Write(1); // version
+            writer.Write(game.Plugins.Count);
+            foreach (Plugin plugin in game.Plugins)
+            {
+                FilePutNullTerminatedString(plugin.FileName, plugin.FileName.Length + 1, writer);
+                int savesize = plugin.SerializedData.Length;
+                if (savesize > SAVEBUFFERSIZE)
+                {
+                    System.Windows.Forms.MessageBox.Show("Plugin tried to write too much data to game file.");
+                    savesize = 0;
+                }
+                writer.Write(savesize);
+                if (savesize > 0) writer.Write(plugin.SerializedData);
+            }
+        }
+
+        public static void SaveThisGameToFile(string fileName, Game game)
         {
             const string GAME_FILE_SIG = "Adventure Creator Game File v2";
             const int GAME_DATA_VERSION_CURRENT = 44;
@@ -1209,6 +1445,7 @@ namespace AGS.Editor
             const int MAXLIPSYNCFRAMES = 20;
             const int MAXGLOBALMES = 500;
             const int MAXTOPICOPTIONS = 30;
+            const int MAX_CUSTOM_PROPERTIES = 30;
             const short UNIFORM_WALK_SPEED = 0;
             const string AGS_VERSION = AGS.Types.Version.AGS_EDITOR_VERSION;
             FileStream ostream = File.Create(fileName);
@@ -1221,7 +1458,7 @@ namespace AGS.Editor
             writer.Write(GAME_DATA_VERSION_CURRENT);
             writer.Write(AGS_VERSION.Length);
             WriteString(AGS_VERSION, AGS_VERSION.Length, writer);
-            // TODO: WriteGameSetupStructBase_Aligned(writer);
+            WriteGameSetupStructBase_Aligned(writer, game);
             WriteString(game.Settings.GUIDAsString, MAX_GUID_LENGTH, writer);
             WriteString(game.Settings.SaveGameFileExtension, MAX_SG_EXT_LENGTH, writer);
             WriteString(game.Settings.SaveGameFolderName, MAX_SG_FOLDER_LEN, writer);
@@ -1254,9 +1491,6 @@ namespace AGS.Editor
             {
                 writer.Write((int)flags);
             }
-            List<string> invScriptNames = new List<string>();
-            List<CompiledCustomProperties> invProperties = new List<CompiledCustomProperties>();
-            CompiledCustomProperties invItemProperties = new CompiledCustomProperties();
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {
                 WriteString(game.InventoryItems[i].Description, 24, writer);
@@ -1271,10 +1505,6 @@ namespace AGS.Editor
                 }
                 writer.Write(game.InventoryItems[i].PlayerStartsWithItem ? IFLG_STARTWITH : (char)0);
                 writer.Write(new byte[3]); // 3 bytes padding
-                invScriptNames.Add(SafeTruncate(game.InventoryItems[i].Name, MAX_SCRIPT_NAME_LEN));
-                CompileCustomProperties(game.InventoryItems[i].Properties, invItemProperties);
-                invProperties.Add(invItemProperties);
-                invItemProperties.Reset();
             }
             if (game.Cursors.Count > MAX_CURSOR)
             {
@@ -1420,17 +1650,25 @@ namespace AGS.Editor
             }
             foreach (Dialog curDialog in game.Dialogs)
             {
-                for (int i = 0; i < MAXTOPICOPTIONS; ++i)
+                for (int i = 0; (i < MAXTOPICOPTIONS) && (i < curDialog.Options.Count); ++i)
                 {
                     WriteString(curDialog.Options[i].Text, 150, writer); // optionnames
                 }
-                for (int i = 0; i < MAXTOPICOPTIONS; ++i)
+                for (int i = curDialog.Options.Count + 1; i < MAXTOPICOPTIONS; ++i)
+                {
+                    WriteString("", 150, writer);
+                }
+                for (int i = 0; (i < MAXTOPICOPTIONS) && (i < curDialog.Options.Count); ++i)
                 {
                     DialogOption option = curDialog.Options[i];
                     int flags = 0;
                     if (!option.Say) flags |= DFLG_NOREPEAT;
                     if (option.Show) flags |= DFLG_ON;
                     writer.Write(flags); // optionflags
+                }
+                for (int i = curDialog.Options.Count + 1; i < MAXTOPICOPTIONS; ++i)
+                {
+                    writer.Write(0);
                 }
                 writer.Write(new byte[4]); // optionscripts
                 writer.Write(new byte[MAXTOPICOPTIONS * sizeof(short)]); // entrypoints
@@ -1441,86 +1679,96 @@ namespace AGS.Editor
             }
             GUIsWriter guisWriter = new GUIsWriter(writer, game);
             guisWriter.WriteAllGUIs();
-        }
-        /*void save_thisgame_to_file(const char *fileName, Game ^game)
-        {
-          write_plugins_to_disk(ooo);
-          // write the custom properties & schema
-          thisgame.propSchema.Serialize(ooo);
-          for (bb = 0; bb < thisgame.numcharacters; bb++)
-            thisgame.charProps[bb].Serialize (ooo);
-          for (bb = 0; bb < thisgame.numinvitems; bb++)
-            thisgame.invProps[bb].Serialize (ooo);
-
-          for (bb = 0; bb < thisgame.numviews; bb++)
-            fputstring(thisgame.viewNames[bb], ooo);
-
-          for (bb = 0; bb < thisgame.numinvitems; bb++)
-            fputstring(thisgame.invScriptNames[bb], ooo);
-
-          for (bb = 0; bb < thisgame.numdialog; bb++)
-            fputstring(thisgame.dialogScriptNames[bb], ooo);
-
-
-          int audioClipTypeCount = game->AudioClipTypes->Count + 1;
-          ooo->WriteInt32(audioClipTypeCount);
-          ::AudioClipType *clipTypes = (::AudioClipType*)calloc(audioClipTypeCount, sizeof(::AudioClipType));
-          // hard-coded SPEECH audio type 0
-          clipTypes[0].id = 0;
-          clipTypes[0].reservedChannels = 1;
-          clipTypes[0].volume_reduction_while_speech_playing = 0;
-          clipTypes[0].crossfadeSpeed = 0;
-
-          for (bb = 1; bb < audioClipTypeCount; bb++)
-          {
-            clipTypes[bb].id = bb;
-            clipTypes[bb].reservedChannels = game->AudioClipTypes[bb - 1]->MaxChannels;
-            clipTypes[bb].volume_reduction_while_speech_playing = game->AudioClipTypes[bb - 1]->VolumeReductionWhileSpeechPlaying;
-            clipTypes[bb].crossfadeSpeed = (int)game->AudioClipTypes[bb - 1]->CrossfadeClips;
-          }
-          ooo->WriteArray(clipTypes, sizeof(::AudioClipType), audioClipTypeCount);
-          free(clipTypes);
-
-          IList<AudioClip^>^ allClips = game->CachedAudioClipListForCompile;
-          ooo->WriteInt32(allClips->Count);
-          ScriptAudioClip *compiledAudioClips = (ScriptAudioClip*)calloc(allClips->Count, sizeof(ScriptAudioClip));
-          for (int i = 0; i < allClips->Count; i++)
-          {
-            AudioClip^ clip = allClips[i];
-            ConvertStringToCharArray(clip->ScriptName, compiledAudioClips[i].scriptName, 30);
-              ConvertStringToCharArray(clip->CacheFileNameWithoutPath, compiledAudioClips[i].fileName, 15);
-            compiledAudioClips[i].bundlingType = (int)clip->BundlingType;
-            compiledAudioClips[i].defaultPriority = (int)clip->ActualPriority;
-            compiledAudioClips[i].defaultRepeat = (clip->ActualRepeat) ? 1 : 0;
-            compiledAudioClips[i].defaultVolume = clip->ActualVolume;
-            compiledAudioClips[i].fileType = (int)clip->FileType;
-            compiledAudioClips[i].type = clip->Type;
-          }
-          ooo->WriteArray(compiledAudioClips, sizeof(ScriptAudioClip), allClips->Count);
-          free(compiledAudioClips);
-          ooo->WriteInt32(game->GetAudioArrayIndexFromAudioClipIndex(game->Settings->PlaySoundOnScore));
-
-          if (game->Settings->DebugMode)
-          {
-            ooo->WriteInt32(game->Rooms->Count);
-            for (bb = 0; bb < game->Rooms->Count; bb++)
+            WritePluginsToDisk(writer, game);
+            if (game.PropertySchema.PropertyDefinitions.Count > MAX_CUSTOM_PROPERTIES)
             {
-              IRoom ^room = game->Rooms[bb];
-              ooo->WriteInt32(room->Number);
-              if (room->Description != nullptr)
-              {
-                ConvertStringToCharArray(room->Description, textBuffer, 500);
-              }
-              else
-              {
-                textBuffer[0] = 0;
-              }
-              fputstring(textBuffer, ooo);
+                throw new CompileError("Too many custom properties defined");
             }
-          }
-
-          delete ooo;
+            writer.Write(1); // properties schema version 1 at present
+            writer.Write(game.PropertySchema.PropertyDefinitions.Count);
+            foreach (CustomPropertySchemaItem schemaItem in game.PropertySchema.PropertyDefinitions)
+            {
+                FilePutNullTerminatedString(SafeTruncate(schemaItem.Name, 19), 20, writer);
+                FilePutNullTerminatedString(SafeTruncate(schemaItem.Description, 99), 100, writer);
+                FilePutNullTerminatedString(schemaItem.DefaultValue, schemaItem.DefaultValue.Length + 1, writer);
+                writer.Write((int)schemaItem.Type);
+            }
+            for (int i = 0; i < game.Characters.Count; ++i)
+            {
+                CompiledCustomProperties item = new CompiledCustomProperties();
+                CompileCustomProperties(game.Characters[i].Properties, item);
+                item.Serialize(writer);
+            }
+            for (int i = 0; i < game.InventoryItems.Count; ++i)
+            {
+                CompiledCustomProperties item = new CompiledCustomProperties();
+                CompileCustomProperties(game.InventoryItems[i].Properties, item);
+                item.Serialize(writer);
+            }
+            for (int i = 0; i < game.ViewCount; ++i)
+            {
+                View view = game.FindViewByID(i);
+                if (view != null) FilePutNullTerminatedString(view.Name, view.Name.Length + 1, writer);
+            }
+            for (int i = 0; i < game.InventoryItems.Count; ++i)
+            {
+                string buffer = game.InventoryItems[i].Name;
+                FilePutNullTerminatedString(buffer, buffer.Length + 1, writer);
+            }
+            for (int i = 0; i < game.Dialogs.Count; ++i)
+            {
+                string buffer = game.Dialogs[i].Name;
+                FilePutNullTerminatedString(buffer, buffer.Length + 1, writer);
+            }
+            writer.Write(game.AudioClipTypes.Count + 1);
+            // hard coded SPEECH audio type 0
+            writer.Write(0); // id
+            writer.Write(1); // reservedChannels
+            writer.Write(0); // volume_reduction_while_speech_playing
+            writer.Write(0); // crossfadeSpeed
+            writer.Write(0); // reservedForFuture
+            for (int i = 1; i < (game.AudioClipTypes.Count + 1); ++i)
+            {
+                writer.Write(i); // id
+                writer.Write(game.AudioClipTypes[i - 1].MaxChannels); // reservedChannels
+                writer.Write(game.AudioClipTypes[i - 1].VolumeReductionWhileSpeechPlaying); // volume_reduction_while_speech_playing
+                writer.Write((int)game.AudioClipTypes[i - 1].CrossfadeClips); // crossfadeSpeed
+                writer.Write(0);
+            }
+            IList<AudioClip> allClips = game.CachedAudioClipListForCompile;
+            writer.Write(allClips.Count);
+            for (int i = 0; i < allClips.Count; ++i)
+            {
+                AudioClip clip = allClips[i];
+                writer.Write(0); // id
+                WriteString(SafeTruncate(clip.ScriptName, 29), 30, writer); // scriptName
+                WriteString(SafeTruncate(clip.CacheFileNameWithoutPath, 14), 15, writer); // fileName
+                writer.Write((byte)clip.BundlingType); // bundlingType
+                writer.Write((byte)clip.Type); // type
+                writer.Write((byte)clip.FileType); // fileType
+                writer.Write(clip.ActualRepeat ? (byte)1 : (byte)0); // defaultRepeat
+                writer.Write(new byte[3]); // struct alignment padding
+                writer.Write((short)clip.ActualPriority); // defaultPriority
+                writer.Write((short)clip.ActualVolume); // defaultVolume
+                writer.Write(0); // reserved
+            }
+            writer.Write(game.GetAudioArrayIndexFromAudioClipIndex(game.Settings.PlaySoundOnScore));
+            if (game.Settings.DebugMode)
+            {
+                writer.Write(game.Rooms.Count);
+                for (int i = 0; i < game.Rooms.Count; ++i)
+                {
+                    IRoom room = game.Rooms[i];
+                    writer.Write(room.Number);
+                    if (room.Description != null)
+                    {
+                        FilePutNullTerminatedString(room.Description, 500, writer);
+                    }
+                    else writer.Write((byte)0);
+                }
+            }
+            writer.Close();
+            GC.Collect();
         }
-                 */
     }
 }

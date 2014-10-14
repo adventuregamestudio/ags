@@ -70,6 +70,7 @@ struct GUISlider:public GUIObject
 
   void reset()
   {
+      memset(this, 0, sizeof(GUISlider));
     GUIObject::init();
     min = 0;
     max = 10;

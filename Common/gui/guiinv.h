@@ -66,6 +66,7 @@ struct GUIInv:public GUIObject
   }
 
   GUIInv() {
+      memset(this, 0, sizeof(GUIInv));
     isover = 0;
     numSupportedEvents = 0;
     charId = -1;

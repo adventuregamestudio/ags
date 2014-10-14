@@ -90,6 +90,7 @@ protected:
     void            ReadPadding(size_t next_type);
     void            WritePadding(size_t next_type);
     void            FinalizeBlock();
+    void            ClearPaddingBuffer();
 
 private:
     static const size_t LargestPossibleType = sizeof(int64_t);

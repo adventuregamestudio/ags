@@ -42,7 +42,8 @@ namespace AGS
                 System::IO::BinaryWriter ^writer = gcnew System::IO::BinaryWriter(ostream);
                 for (int i = 0; i < 4; ++i)
                 {
-                    writer->Write(scfilesig[i]);
+                    // the BinaryWriter seems to be treating CHAR as a 4-byte type here?
+                    writer->Write((System::Byte)scfilesig[i]);
                 }
                 writer->Write(SCOM_VERSION);
                 writer->Write(_compiledScript->globaldatasize);
@@ -50,7 +51,7 @@ namespace AGS
                 writer->Write(_compiledScript->stringssize);
                 for (int i = 0; i < _compiledScript->globaldatasize; ++i)
                 {
-                    writer->Write(_compiledScript->globaldata[i]);
+                    writer->Write((System::Byte)_compiledScript->globaldata[i]);
                 }
                 for (int i = 0; i < _compiledScript->codesize; ++i)
                 {
@@ -58,12 +59,12 @@ namespace AGS
                 }
                 for (int i = 0; i < _compiledScript->stringssize; ++i)
                 {
-                    writer->Write(_compiledScript->strings[i]);
+                    writer->Write((System::Byte)_compiledScript->strings[i]);
                 }
                 writer->Write(_compiledScript->numfixups);
                 for (int i = 0; i < _compiledScript->numfixups; ++i)
                 {
-                    writer->Write(_compiledScript->fixuptypes[i]);
+                    writer->Write((System::Byte)_compiledScript->fixuptypes[i]);
                 }
                 for (int i = 0; i < _compiledScript->numfixups; ++i)
                 {
@@ -74,7 +75,7 @@ namespace AGS
                 {
                     for (int j = 0, len = strlen(_compiledScript->imports[i]); j <= len; ++j)
                     {
-                        writer->Write(_compiledScript->imports[i][j]);
+                        writer->Write((System::Byte)_compiledScript->imports[i][j]);
                     }
                 }
                 writer->Write(_compiledScript->numexports);
@@ -82,7 +83,7 @@ namespace AGS
                 {
                     for (int j = 0, len = strlen(_compiledScript->exports[i]); j <= len; ++j)
                     {
-                        writer->Write(_compiledScript->exports[i][j]);
+                        writer->Write((System::Byte)_compiledScript->exports[i][j]);
                     }
                     writer->Write(_compiledScript->export_addr[i]);
                 }
@@ -91,7 +92,7 @@ namespace AGS
                 {
                     for (int j = 0, len = strlen(_compiledScript->sectionNames[i]); j <= len; ++j)
                     {
-                        writer->Write(_compiledScript->sectionNames[i][j]);
+                        writer->Write((System::Byte)_compiledScript->sectionNames[i][j]);
                     }
                     writer->Write(_compiledScript->sectionOffsets[i]);
                 }

@@ -5084,6 +5084,7 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	thisgame.numdialog = game->Dialogs->Count;
 	thisgame.numdlgmessage = 0;
 	dialog = (DialogTopic*)malloc(sizeof(DialogTopic) * thisgame.numdialog);
+    memset(dialog, 0, sizeof(DialogTopic) * thisgame.numdialog);
 	for (i = 0; i < thisgame.numdialog; i++) 
 	{
 		Dialog ^curDialog = game->Dialogs[i];

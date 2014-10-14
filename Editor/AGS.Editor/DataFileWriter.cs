@@ -555,7 +555,7 @@ struct GameSetupStructBase {
             writer.Write(game.Characters.Count);
             writer.Write(game.PlayerCharacter.ID);
             writer.Write(game.Settings.MaximumScore);
-            writer.Write((short)game.InventoryItems.Count);
+            writer.Write((short)(game.InventoryItems.Count + 1));
             writer.Write(new byte[2]); // alignment padding
             writer.Write(game.Dialogs.Count);
             writer.Write(0); // numdlgmessage
@@ -569,14 +569,25 @@ struct GameSetupStructBase {
             writer.Write(game.Settings.UniqueID);
             writer.Write(game.GUIs.Count);
             writer.Write(game.Cursors.Count);
-            writer.Write((int)game.Settings.Resolution);
+            if ((game.Settings.LegacyLetterboxAble) && (game.Settings.LetterboxMode))
+            {
+#pragma warning disable 612, 618 // we know this is the old resolution member, don't warn about this usage
+                writer.Write((int)game.Settings.Resolution);
+#pragma warning restore 612, 618
+            }
+            else
+            {
+                writer.Write(Constants.GAME_RESOLUTION_CUSTOM);
+                writer.Write(game.Settings.CustomResolution.Width);
+                writer.Write(game.Settings.CustomResolution.Height);
+            }
             writer.Write(game.LipSync.DefaultFrame);
             writer.Write(game.Settings.InventoryHotspotMarker.Style == InventoryHotspotMarkerStyle.Sprite ?
                 game.Settings.InventoryHotspotMarker.Image : 0);
             writer.Write(new byte[17 * sizeof(int)]); // reserved; 17 ints, alignment preserved
             for (int i = 0; i < 500; ++i) // MAXGLOBALMES; write 500 ints, alignment preserved
             {
-                writer.Write(game.GlobalMessages[i] != null ? 1 : 0);
+                writer.Write(string.IsNullOrEmpty(game.GlobalMessages[i]) ? 0 : 1);
             }
             // the rest are ints, alignment is correct
             writer.Write(1); // dict != null
@@ -586,37 +597,20 @@ struct GameSetupStructBase {
             // no final padding required
         }
 
-        [Flags]
-        private enum SpriteFlags
+        private static void UpdateSpriteFlags(SpriteFolder folder, byte[] flags)
         {
-            HighRes = 1,
-            HighColor = 2,
-            TrueColor = 8,
-            AlphaChannel = 0x10
-        }
-
-        private static SpriteFlags GetSpriteFlags(Sprite sprite)
-        {
-            SpriteFlags flags = (SpriteFlags)0;
-            if (sprite.Resolution == SpriteImportResolution.HighRes) flags |= SpriteFlags.HighRes;
-            if (sprite.ColorDepth == 32) flags |= SpriteFlags.TrueColor;
-            else if (sprite.ColorDepth >= 15) flags |= SpriteFlags.HighColor;
-            if (sprite.AlphaChannel) flags |= SpriteFlags.AlphaChannel;
-            return flags;
-        }
-
-        private static List<SpriteFlags> GetAllSpriteFlags(SpriteFolder rootFolder)
-        {
-            List<SpriteFlags> flags = new List<SpriteFlags>();
-            foreach (Sprite sprite in rootFolder.Sprites)
+            const byte SPF_640x400 = (byte)1;
+            const byte SPF_ALPHACHANNEL = (byte)0x10;
+            foreach (Sprite sprite in folder.Sprites)
             {
-                flags.Add(GetSpriteFlags(sprite));
+                flags[sprite.Number] = 0;
+                if (sprite.Resolution == SpriteImportResolution.HighRes) flags[sprite.Number] |= SPF_640x400;
+                if (sprite.AlphaChannel) flags[sprite.Number] |= SPF_ALPHACHANNEL;
             }
-            foreach (SpriteFolder folder in rootFolder.SubFolders)
+            foreach (SpriteFolder subfolder in folder.SubFolders)
             {
-                flags.AddRange(GetAllSpriteFlags(folder));
+                UpdateSpriteFlags(subfolder, flags);
             }
-            return flags;
         }
 
         private static string SafeTruncate(string src, int maxLength)
@@ -797,7 +791,10 @@ struct GameSetupStructBase {
             int stlent = text.Length + 1;
             writer.Write(stlent);
             text = EncryptText(text);
-            WriteString(text, stlent, writer);
+            for (int i = 0; i < text.Length; ++i)
+            {
+                writer.Write((byte)text[i]);
+            }
         }
 
         static void WriteCompiledScript(FileStream ostream, Script script)
@@ -894,7 +891,8 @@ struct GameSetupStructBase {
                 Version272e = 115,
                 Version330 = 116,
                 Version331 = 117,
-                VersionCurrent = Version331,
+                Version340 = 118,
+                VersionCurrent = Version340,
                 VersionForwardCompatible = Version272e
             }
 
@@ -927,7 +925,8 @@ struct GameSetupStructBase {
                 GOBJ_INVENTORY = 3,
                 GOBJ_SLIDER = 4,
                 GOBJ_TEXTBOX = 5,
-                GOBJ_LISTBOX = 6
+                GOBJ_LISTBOX = 6,
+                TEXTWINDOW_PADDING_DEFAULT = 3
             }
 
             /// <summary>
@@ -1112,12 +1111,12 @@ struct GameSetupStructBase {
                 writer.Write(control.ZOrder);
                 writer.Write(0); // activated
                 string buffer = SafeTruncate(control.Name, (int)GUIFlags.MAX_GUIOBJ_SCRIPTNAME_LEN);
-                FilePutNullTerminatedString(buffer, buffer.Length, writer);
+                FilePutNullTerminatedString(buffer, buffer.Length + 1, writer);
                 writer.Write(events.Length); // numSupportedEvents
                 foreach (string sevent in events)
                 {
                     buffer = SafeTruncate(sevent, (int)GUIFlags.MAX_GUIOBJ_EVENTHANDLER_LEN);
-                    FilePutNullTerminatedString(buffer, buffer.Length, writer);
+                    FilePutNullTerminatedString(buffer, buffer.Length + 1, writer);
                 }
             }
 
@@ -1302,8 +1301,10 @@ struct GameSetupStructBase {
             private void WriteNormalGUI(NormalGUI gui)
             {
                 writer.Write(new byte[4]); // vtext
-                WriteString(SafeTruncate(gui.Name, 15), 16, writer); // name
-                WriteString(SafeTruncate(gui.OnClick, 19), 20, writer); // clickEventHandler
+                WriteString(gui.Name, gui.Name.Length + 1, writer); // name
+                WriteString(gui.OnClick, gui.OnClick.Length + 1, writer); // clickEventHandler
+                //WriteString(SafeTruncate(gui.Name, 15), 16, writer); // name
+                //WriteString(SafeTruncate(gui.OnClick, 19), 20, writer); // clickEventHandler
                 writer.Write(gui.Left); // x
                 writer.Write(gui.Top); // y
                 writer.Write(gui.Width); // wid
@@ -1328,18 +1329,19 @@ struct GameSetupStructBase {
                 writer.Write(transparency); // transparency
                 writer.Write(gui.ZOrder); // zorder
                 writer.Write(0); // guiId, TODO: should this be gui.ID?
-                writer.Write(0); // padding
+                writer.Write((int)GUIFlags.TEXTWINDOW_PADDING_DEFAULT); // padding
                 writer.Write(new byte[5 * sizeof(int)]); // reserved
                 writer.Write(1); // on
-                writer.Write(new byte[(int)GUIFlags.MAX_OBJS_ON_GUI * sizeof(int)]); // dummy 32-bit pointers
             }
 
             private void WriteTextWindowGUI(TextWindowGUI gui)
             {
                 writer.Write((byte)GUIFlags.GUI_TEXTWINDOW); // vtext...
                 writer.Write(new byte[3]); // ...vtext
-                WriteString(SafeTruncate(gui.Name, 15), 16, writer); // name
-                writer.Write(new byte[20]); // clickEventHandler
+                WriteString(gui.Name, gui.Name.Length + 1, writer); // name
+                writer.Write((byte)0); // clickEventHandler
+                //WriteString(SafeTruncate(gui.Name, 15), 16, writer); // name
+                //writer.Write(new byte[20]); // clickEventHandler
                 writer.Write(0); // x
                 writer.Write(0); // y
                 writer.Write(200); // wid
@@ -1363,7 +1365,6 @@ struct GameSetupStructBase {
                 writer.Write(gui.Padding); // padding
                 writer.Write(new byte[5 * sizeof(int)]); // reserved
                 writer.Write(1); // on
-                writer.Write(new byte[(int)GUIFlags.MAX_OBJS_ON_GUI * sizeof(int)]); // dummy 32-bit pointers
             }
 
             public void WriteAllGUIs()
@@ -1412,85 +1413,93 @@ struct GameSetupStructBase {
             }
         }
 
+        private class Constants
+        {
+            public const string GAME_FILE_SIG = "Adventure Creator Game File v2";
+            public const int GAME_DATA_VERSION_CURRENT = 45;
+            public const int MAX_GUID_LENGTH = 40;
+            public const int MAX_SG_EXT_LENGTH = 20;
+            public const int MAX_SG_FOLDER_LEN = 50;
+            public const int MAX_SCRIPT_NAME_LEN = 20;
+            public const int FFLG_SIZEMASK = 0x003F;
+            public const char IFLG_STARTWITH = (char)1;
+            public const char MCF_ANIMMOVE = (char)1;
+            public const char MCF_STANDARD = (char)4;
+            public const char MCF_HOTSPOT = (char)8; // only animate when over hotspot
+            public const int CHF_MANUALSCALING = 1;
+            public const int CHF_NOINTERACT = 4;
+            public const int CHF_NODIAGONAL = 8;
+            public const int CHF_NOLIGHTING = 0x20;
+            public const int CHF_NOTURNING = 0x40;
+            public const int CHF_NOBLOCKING = 0x200;
+            public const int CHF_SCALEMOVESPEED = 0x400;
+            public const int CHF_SCALEVOLUME = 0x1000;
+            public const int CHF_ANTIGLIDE = 0x20000;
+            public const int DFLG_ON = 1; // currently enabled
+            public const int DFLG_NOREPEAT = 4; // character doesn't repeat it when clicked
+            public const int DTFLG_SHOWPARSER = 1; // show parser in this topic
+            public const sbyte FONT_OUTLINE_AUTO = (sbyte)-10;
+            public const int MAX_FONTS = 30;
+            public const int MAX_SPRITES = 30000;
+            public const int MAX_CURSOR = 20;
+            public const int MAX_PARSER_WORD_LENGTH = 30;
+            public const int MAX_INV = 301;
+            public const int MAXLIPSYNCFRAMES = 20;
+            public const int MAXGLOBALMES = 500;
+            public const int MAXTOPICOPTIONS = 30;
+            public const int MAX_CUSTOM_PROPERTIES = 30;
+            public const short UNIFORM_WALK_SPEED = 0;
+            public const string AGS_VERSION = AGS.Types.Version.AGS_EDITOR_VERSION;
+            public const int GAME_RESOLUTION_CUSTOM = 8;
+        }
+
         public static void SaveThisGameToFile(string fileName, Game game)
         {
-            const string GAME_FILE_SIG = "Adventure Creator Game File v2";
-            const int GAME_DATA_VERSION_CURRENT = 44;
-            const int MAX_GUID_LENGTH = 40;
-            const int MAX_SG_EXT_LENGTH = 20;
-            const int MAX_SG_FOLDER_LEN = 50;
-            const int MAX_SCRIPT_NAME_LEN = 20;
-            const int FFLG_SIZEMASK = 0x003F;
-            const char IFLG_STARTWITH = (char)1;
-            const char MCF_ANIMMOVE = (char)1;
-            const char MCF_STANDARD = (char)4;
-            const char MCF_HOTSPOT = (char)8; // only animate when over hotspot
-            const int CHF_MANUALSCALING = 1;
-            const int CHF_NOINTERACT = 4;
-            const int CHF_NODIAGONAL = 8;
-            const int CHF_NOLIGHTING = 0x20;
-            const int CHF_NOTURNING = 0x40;
-            const int CHF_NOBLOCKING = 0x200;
-            const int CHF_SCALEMOVESPEED = 0x400;
-            const int CHF_SCALEVOLUME = 0x1000;
-            const int CHF_ANTIGLIDE = 0x20000;
-            const int DFLG_ON = 1; // currently enabled
-            const int DFLG_NOREPEAT = 4; // character doesn't repeat it when clicked
-            const int DTFLG_SHOWPARSER = 1; // show parser in this topic
-            const int FONT_OUTLINE_AUTO = -10;
-            const int MAX_SPRITES = 30000;
-            const int MAX_CURSOR = 20;
-            const int MAX_PARSER_WORD_LENGTH = 30;
-            const int MAX_INV = 301;
-            const int MAXLIPSYNCFRAMES = 20;
-            const int MAXGLOBALMES = 500;
-            const int MAXTOPICOPTIONS = 30;
-            const int MAX_CUSTOM_PROPERTIES = 30;
-            const short UNIFORM_WALK_SPEED = 0;
-            const string AGS_VERSION = AGS.Types.Version.AGS_EDITOR_VERSION;
             FileStream ostream = File.Create(fileName);
             if (ostream == null)
             {
                 throw new CompileError(string.Format("Cannot open file {0} for writing", fileName));
             }
             BinaryWriter writer = new BinaryWriter(ostream);
-            WriteString(GAME_FILE_SIG, GAME_FILE_SIG.Length, writer);
-            writer.Write(GAME_DATA_VERSION_CURRENT);
-            writer.Write(AGS_VERSION.Length);
-            WriteString(AGS_VERSION, AGS_VERSION.Length, writer);
+            WriteString(Constants.GAME_FILE_SIG, Constants.GAME_FILE_SIG.Length, writer);
+            writer.Write(Constants.GAME_DATA_VERSION_CURRENT);
+            writer.Write(Constants.AGS_VERSION.Length);
+            WriteString(Constants.AGS_VERSION, Constants.AGS_VERSION.Length, writer);
             WriteGameSetupStructBase_Aligned(writer, game);
-            WriteString(game.Settings.GUIDAsString, MAX_GUID_LENGTH, writer);
-            WriteString(game.Settings.SaveGameFileExtension, MAX_SG_EXT_LENGTH, writer);
-            WriteString(game.Settings.SaveGameFolderName, MAX_SG_FOLDER_LEN, writer);
+            WriteString(game.Settings.GUIDAsString, Constants.MAX_GUID_LENGTH, writer);
+            WriteString(game.Settings.SaveGameFileExtension, Constants.MAX_SG_EXT_LENGTH, writer);
+            WriteString(game.Settings.SaveGameFolderName, Constants.MAX_SG_FOLDER_LEN, writer);
+            if (game.Fonts.Count > Constants.MAX_FONTS)
+            {
+                throw new CompileError("Too many fonts");
+            }
             for (int i = 0; i < game.Fonts.Count; ++i)
             {
-                writer.Write(game.Fonts[i].PointSize & FFLG_SIZEMASK);
+                writer.Write((byte)(game.Fonts[i].PointSize & Constants.FFLG_SIZEMASK));
             }
             for (int i = 0; i < game.Fonts.Count; ++i)
             {
                 if (game.Fonts[i].OutlineStyle == FontOutlineStyle.None)
                 {
-                    writer.Write(-1);
+                    writer.Write((sbyte)-1);
                 }
                 else if (game.Fonts[i].OutlineStyle == FontOutlineStyle.Automatic)
                 {
-                    writer.Write(FONT_OUTLINE_AUTO);
+                    writer.Write(Constants.FONT_OUTLINE_AUTO);
                 }
                 else
                 {
-                    writer.Write(game.Fonts[i].OutlineFont);
+                    writer.Write((byte)game.Fonts[i].OutlineFont);
                 }
             }
-            writer.Write(MAX_SPRITES);
-            List<SpriteFlags> spriteFlags = GetAllSpriteFlags(game.RootSpriteFolder);
-            if (spriteFlags.Count > MAX_SPRITES)
+            writer.Write(Constants.MAX_SPRITES);
+            byte[] spriteFlags = new byte[Constants.MAX_SPRITES];
+            UpdateSpriteFlags(game.RootSpriteFolder, spriteFlags);
+            for (int i = 0; i < Constants.MAX_SPRITES; ++i)
             {
-                throw new CompileError("Too many sprites");
+                writer.Write(spriteFlags[i]);
             }
-            foreach (SpriteFlags flags in spriteFlags)
-            {
-                writer.Write((int)flags);
-            }
+            writer.Write(new byte[68]); // inventory item slot 0 is unused
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {
                 WriteString(game.InventoryItems[i].Description, 24, writer);
@@ -1503,10 +1512,10 @@ struct GameSetupStructBase {
                 {
                     writer.Write(0);
                 }
-                writer.Write(game.InventoryItems[i].PlayerStartsWithItem ? IFLG_STARTWITH : (char)0);
+                writer.Write(game.InventoryItems[i].PlayerStartsWithItem ? Constants.IFLG_STARTWITH : (char)0);
                 writer.Write(new byte[3]); // 3 bytes padding
             }
-            if (game.Cursors.Count > MAX_CURSOR)
+            if (game.Cursors.Count > Constants.MAX_CURSOR)
             {
                 throw new CompileError("Too many cursors");
             }
@@ -1515,20 +1524,17 @@ struct GameSetupStructBase {
                 char flags = (char)0;
                 writer.Write(game.Cursors[i].Image);
                 writer.Write((short)game.Cursors[i].HotspotX);
-                writer.Write(new byte[2]); // 2 bytes padding
                 writer.Write((short)game.Cursors[i].HotspotY);
-                writer.Write(new byte[2]); // 2 bytes padding
                 if (game.Cursors[i].Animate)
                 {
                     writer.Write((short)(game.Cursors[i].View - 1));
-                    if (game.Cursors[i].AnimateOnlyOnHotspots) flags |= MCF_HOTSPOT;
-                    if (game.Cursors[i].AnimateOnlyWhenMoving) flags |= MCF_ANIMMOVE;
+                    if (game.Cursors[i].AnimateOnlyOnHotspots) flags |= Constants.MCF_HOTSPOT;
+                    if (game.Cursors[i].AnimateOnlyWhenMoving) flags |= Constants.MCF_ANIMMOVE;
                 }
                 else writer.Write((short)-1);
-                writer.Write(new byte[2]); // 2 bytes padding
                 WriteString(game.Cursors[i].Name, 9, writer);
-                writer.Write(new byte[3]); // null terminator and 2 bytes padding
-                if (game.Cursors[i].StandardMode) flags |= MCF_STANDARD;
+                writer.Write((byte)0); // null terminator
+                if (game.Cursors[i].StandardMode) flags |= Constants.MCF_STANDARD;
                 writer.Write(flags);
                 writer.Write(new byte[3]); // 3 bytes padding
             }
@@ -1536,14 +1542,14 @@ struct GameSetupStructBase {
             {
                 SerializeInteractionScripts(game.Characters[i].Interactions, writer);
             }
-            for (int i = 0; i < game.InventoryItems.Count; ++i)
+            for (int i = 1; i <= game.InventoryItems.Count; ++i)
             {
-                SerializeInteractionScripts(game.InventoryItems[i].Interactions, writer);
+                SerializeInteractionScripts(game.InventoryItems[i - 1].Interactions, writer);
             }
             writer.Write(game.TextParser.Words.Count);
             for (int i = 0; i < game.TextParser.Words.Count; ++i)
             {
-                WriteStringEncrypted(writer, SafeTruncate(game.TextParser.Words[i].Word, MAX_PARSER_WORD_LENGTH));
+                WriteStringEncrypted(writer, SafeTruncate(game.TextParser.Words[i].Word, Constants.MAX_PARSER_WORD_LENGTH));
                 writer.Write((short)game.TextParser.Words[i].WordGroup);
             }
             WriteCompiledScript(ostream, game.ScriptsToCompile.GetScriptByFilename(Script.GLOBAL_SCRIPT_FILE_NAME));
@@ -1573,42 +1579,42 @@ struct GameSetupStructBase {
             foreach (Character character in game.Characters)
             {
                 int flags = 0;
-                if (character.AdjustSpeedWithScaling) flags |= CHF_SCALEMOVESPEED;
-                if (character.AdjustVolumeWithScaling) flags |= CHF_SCALEVOLUME;
-                if (!character.Clickable) flags |= CHF_NOINTERACT;
-                if (!character.DiagonalLoops) flags |= CHF_NODIAGONAL;
-                if (character.MovementLinkedToAnimation) flags |= CHF_ANTIGLIDE;
-                if (!character.Solid) flags |= CHF_NOBLOCKING;
-                if (!character.TurnBeforeWalking) flags |= CHF_NOTURNING;
-                if (!character.UseRoomAreaLighting) flags |= CHF_NOLIGHTING;
-                if (!character.UseRoomAreaScaling) flags |= CHF_MANUALSCALING;
+                if (character.AdjustSpeedWithScaling) flags |= Constants.CHF_SCALEMOVESPEED;
+                if (character.AdjustVolumeWithScaling) flags |= Constants.CHF_SCALEVOLUME;
+                if (!character.Clickable) flags |= Constants.CHF_NOINTERACT;
+                if (!character.DiagonalLoops) flags |= Constants.CHF_NODIAGONAL;
+                if (character.MovementLinkedToAnimation) flags |= Constants.CHF_ANTIGLIDE;
+                if (!character.Solid) flags |= Constants.CHF_NOBLOCKING;
+                if (!character.TurnBeforeWalking) flags |= Constants.CHF_NOTURNING;
+                if (!character.UseRoomAreaLighting) flags |= Constants.CHF_NOLIGHTING;
+                if (!character.UseRoomAreaScaling) flags |= Constants.CHF_MANUALSCALING;
                 writer.Write(character.NormalView - 1);             // defview
                 writer.Write(character.SpeechView - 1);             // talkview
                 writer.Write(character.NormalView - 1);             // view
                 writer.Write(character.StartingRoom);               // room
-                writer.Write(-1);                               // prevroom
+                writer.Write(0);                               // prevroom
                 writer.Write(character.StartX);                     // x
                 writer.Write(character.StartY);                     // y
                 writer.Write(0);                                // wait
                 writer.Write(flags);                            // flags
-                writer.Write((short)-1);                        // following
-                writer.Write((short)(97 | (10 << 8)));          // followinfo
+                writer.Write((short)0);                        // following
+                writer.Write((short)0);          // followinfo
                 writer.Write(character.IdleView - 1);               // idleview
-                writer.Write((short)20);                        // idletime
-                writer.Write((short)20);                        // idleleft
+                writer.Write((short)0);                        // idletime
+                writer.Write((short)0);                        // idleleft
                 writer.Write((short)0);                         // transparency
-                writer.Write((short)-1);                        // baseline
-                writer.Write(-1);                               // activeinv
+                writer.Write((short)0);                        // baseline
+                writer.Write(0);                               // activeinv
                 writer.Write(character.SpeechColor);                // talkcolor
                 writer.Write(character.ThinkingView - 1);           // thinkview
                 writer.Write((short)(character.BlinkingView - 1));  // blinkview
-                writer.Write((short)140);                       // blinkinterval
-                writer.Write((short)140);                       // blinktimer
+                writer.Write((short)0);                       // blinkinterval
+                writer.Write((short)0);                       // blinktimer
                 writer.Write((short)0);                         // blinkframe
-                writer.Write(character.UniformMovementSpeed ? UNIFORM_WALK_SPEED : (short)character.MovementSpeedY); // walkspeed_y
+                writer.Write(character.UniformMovementSpeed ? Constants.UNIFORM_WALK_SPEED : (short)character.MovementSpeedY); // walkspeed_y
                 writer.Write((short)0); // pic_yoffs
                 writer.Write(0); // z
-                writer.Write(-1); // walkwait
+                writer.Write(0); // walkwait
                 writer.Write((short)character.SpeechAnimationDelay); // speech_anim_speed
                 writer.Write((short)0); // reserved1
                 writer.Write((short)0); // blocking_width
@@ -1628,59 +1634,59 @@ struct GameSetupStructBase {
                     if ((isPlayer) && (invItem.PlayerStartsWithItem)) writer.Write((short)1);
                     else writer.Write((short)0);
                 }
-                if (game.InventoryItems.Count < MAX_INV)
+                if (game.InventoryItems.Count < Constants.MAX_INV)
                 {
-                    writer.Write(new byte[(MAX_INV - game.InventoryItems.Count) * sizeof(short)]);
+                    writer.Write(new byte[(Constants.MAX_INV - game.InventoryItems.Count) * sizeof(short)]);
                 }
                 writer.Write((short)0); // actx
                 writer.Write((short)0); // acty
                 WriteString(character.RealName, 40, writer); // name
-                WriteString(character.ScriptName, MAX_SCRIPT_NAME_LEN, writer); // scrname
+                WriteString(character.ScriptName, Constants.MAX_SCRIPT_NAME_LEN, writer); // scrname
                 writer.Write((char)1); // on
-                writer.Write(new byte[3]); // padding
+                writer.Write((byte)0); // alignment padding
             }
-            for (int i = 0; i < MAXLIPSYNCFRAMES; ++i)
+            for (int i = 0; i < Constants.MAXLIPSYNCFRAMES; ++i)
             {
                 WriteString(game.LipSync.CharactersPerFrame[i], 50, writer);
             }
-            for (int i = 0; i < MAXGLOBALMES; ++i)
+            for (int i = 0; i < Constants.MAXGLOBALMES; ++i)
             {
                 if (string.IsNullOrEmpty(game.GlobalMessages[i])) continue;
                 WriteStringEncrypted(writer, game.GlobalMessages[i]);
             }
             foreach (Dialog curDialog in game.Dialogs)
             {
-                for (int i = 0; (i < MAXTOPICOPTIONS) && (i < curDialog.Options.Count); ++i)
+                for (int i = 0; (i < Constants.MAXTOPICOPTIONS) && (i < curDialog.Options.Count); ++i)
                 {
                     WriteString(curDialog.Options[i].Text, 150, writer); // optionnames
                 }
-                for (int i = curDialog.Options.Count + 1; i < MAXTOPICOPTIONS; ++i)
+                for (int i = curDialog.Options.Count; i < Constants.MAXTOPICOPTIONS; ++i)
                 {
                     WriteString("", 150, writer);
                 }
-                for (int i = 0; (i < MAXTOPICOPTIONS) && (i < curDialog.Options.Count); ++i)
+                for (int i = 0; (i < Constants.MAXTOPICOPTIONS) && (i < curDialog.Options.Count); ++i)
                 {
                     DialogOption option = curDialog.Options[i];
                     int flags = 0;
-                    if (!option.Say) flags |= DFLG_NOREPEAT;
-                    if (option.Show) flags |= DFLG_ON;
+                    if (!option.Say) flags |= Constants.DFLG_NOREPEAT;
+                    if (option.Show) flags |= Constants.DFLG_ON;
                     writer.Write(flags); // optionflags
                 }
-                for (int i = curDialog.Options.Count + 1; i < MAXTOPICOPTIONS; ++i)
+                for (int i = curDialog.Options.Count; i < Constants.MAXTOPICOPTIONS; ++i)
                 {
                     writer.Write(0);
                 }
                 writer.Write(new byte[4]); // optionscripts
-                writer.Write(new byte[MAXTOPICOPTIONS * sizeof(short)]); // entrypoints
+                writer.Write(new byte[Constants.MAXTOPICOPTIONS * sizeof(short)]); // entrypoints
                 writer.Write((short)0); // startupentrypoint
                 writer.Write((short)0); // codesize
                 writer.Write(curDialog.Options.Count); // numoptions
-                writer.Write(curDialog.ShowTextParser ? 0 : DTFLG_SHOWPARSER); // topicflags
+                writer.Write(curDialog.ShowTextParser ? Constants.DTFLG_SHOWPARSER : 0); // topicflags
             }
             GUIsWriter guisWriter = new GUIsWriter(writer, game);
             guisWriter.WriteAllGUIs();
             WritePluginsToDisk(writer, game);
-            if (game.PropertySchema.PropertyDefinitions.Count > MAX_CUSTOM_PROPERTIES)
+            if (game.PropertySchema.PropertyDefinitions.Count > Constants.MAX_CUSTOM_PROPERTIES)
             {
                 throw new CompileError("Too many custom properties defined");
             }
@@ -1705,11 +1711,13 @@ struct GameSetupStructBase {
                 CompileCustomProperties(game.InventoryItems[i].Properties, item);
                 item.Serialize(writer);
             }
-            for (int i = 0; i < game.ViewCount; ++i)
+            new CompiledCustomProperties().Serialize(writer); // data file is writing 1 extra slot for inventory properties
+            for (int i = 0; i <= game.ViewCount; ++i) // ViewCount is highest numbered view
             {
                 View view = game.FindViewByID(i);
                 if (view != null) FilePutNullTerminatedString(view.Name, view.Name.Length + 1, writer);
             }
+            writer.Write((byte)0); // inventory slot 0 is unused, so its name is just a single NUL byte
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {
                 string buffer = game.InventoryItems[i].Name;

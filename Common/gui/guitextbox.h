@@ -47,6 +47,7 @@ struct GUITextBox:public GUIObject
 
   void reset()
   {
+      memset(this, 0, sizeof(GUITextBox));
     GUIObject::init();
     font = 0;
     textcol = 0;

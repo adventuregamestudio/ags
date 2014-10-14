@@ -51,6 +51,7 @@ namespace Common
 
 GUIMain::GUIMain()
 {
+    memset(this, 0, sizeof(GUIMain));
     Init();
 }
 

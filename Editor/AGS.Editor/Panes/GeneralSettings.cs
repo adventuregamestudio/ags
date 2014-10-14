@@ -95,15 +95,6 @@ namespace AGS.Editor
                 return;
             }
 
-            if (newResolution.Width >= 800 || newResolution.Height >= 600)
-            {
-                if (Factory.GUIController.ShowQuestion("Are you sure you need to use this resolution? High resolutions like 800x600 and 1024x768 increase the file size of your game and increase the system requirements needed to play it. Are your graphics really detailed enough to need this?") == DialogResult.No)
-                {
-                    Factory.AGSEditor.CurrentGame.Settings.CustomResolution = oldResolution;
-                    return;
-                }
-            }
-
             string oldResolutionText = Types.Utilities.ResolutionToUserString(oldResolution);
             string newResolutionText = Types.Utilities.ResolutionToUserString(newResolution);
             if (Factory.GUIController.ShowQuestion(string.Format("You've changed your game resolution from '{0}' to '{1}'.{2}You will need to import a new background of the correct size for all your rooms.{2}{2}Would you like AGS to automatically resize all your GUIs to the new resolution?", oldResolutionText, newResolutionText, Environment.NewLine)) == DialogResult.Yes)

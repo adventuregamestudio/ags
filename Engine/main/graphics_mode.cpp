@@ -980,7 +980,8 @@ int create_gfx_driver_and_init_mode(const String &gfx_driver_id, Size &game_size
         return EXIT_NORMAL;
     // Log out supported driver modes
     log_out_driver_modes(firstDepth);
-    log_out_driver_modes(secondDepth);
+    if (firstDepth != secondDepth)
+        log_out_driver_modes(secondDepth);
     
     int res = engine_init_gfx_filters(game_size, screen_size, firstDepth);
     if (res != RETURN_CONTINUE)

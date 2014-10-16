@@ -92,6 +92,7 @@ namespace AGS
       void UpdateFileVersionInfo(String ^fileToUpdate, cli::array<System::Byte> ^authorNameUnicode, cli::array<System::Byte> ^gameNameUnicode);
 			cli::array<unsigned char>^ TransformStringToBytes(String ^text);
 			bool HaveSpritesBeenModified();
+            Object^ GetNativeConstant(String ^name);
 		};
 
 		public ref class SourceCodeControl

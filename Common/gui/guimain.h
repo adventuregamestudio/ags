@@ -35,47 +35,16 @@ struct GameSetupStruct;
 #define GUIMAIN_EVENTHANDLER_LENGTH 20
 #define GUIMAIN_LEGACY_TW_FLAGS_SIZE 4
 
-#define TEXTWINDOW_PADDING_DEFAULT  3
+//#define TEXTWINDOW_PADDING_DEFAULT  3
 
 namespace AGS
 {
 namespace Common
 {
 
-enum GUIControlType
-{
-    kGUIControlUndefined = -1,
-    kGUIButton      = 1,
-    kGUILabel       = 2,
-    kGUIInvWindow   = 3,
-    kGUISlider      = 4,
-    kGUITextBox     = 5,
-    kGUIListBox     = 6
-};
-
-enum GUIMainFlags
-{
-    kGUIMain_NoClick    = 0x01,
-    kGUIMain_TextWindow = 0x02
-};
-
 enum GUIMainLegacyFlags
 {
     kGUIMain_LegacyTextWindow = 5
-};
-
-enum GUIPopupStyle
-{
-    // normal GUI, initally on
-    kGUIPopupNone             = 0,
-    // show when mouse moves to top of screen
-    kGUIPopupMouseY           = 1,
-    // pauses game when shown
-    kGUIPopupModal            = 2,
-    // initially on and not removed when interface is off
-    kGUIPopupNoAutoRemove     = 3,
-    // normal GUI, initially off
-    kGUIPopupNoneInitiallyOff = 4
 };
 
 enum GUIVisibilityState

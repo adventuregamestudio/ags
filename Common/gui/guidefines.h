@@ -18,6 +18,14 @@
 #define MAX_LISTBOX_ITEMS 200
 #define MAX_GUILABEL_TEXT_LEN 2048
 #define GUIMAGIC          0xcafebeef
+#define GUIF_CLIP       0x0020
+#define GUIF_TRANSLATED 0x0080 // 3.3.0.1132
+#define GLF_NOBORDER     1
+#define GLF_NOARROWS     2
+#define GTF_NOBORDER  1
+#define MAX_GUIOBJ_SCRIPTNAME_LEN 25
+#define MAX_GUIOBJ_EVENTHANDLER_LEN 30
+#define TEXTWINDOW_PADDING_DEFAULT  3
 //#define MAX_OBJ_EACH_TYPE 251
 
 #define MAXLINE 50
@@ -77,6 +85,45 @@ enum GuiVersion
     // then this value will be written to savedgame instead of current version.
     kGuiVersion_ForwardCompatible = kGuiVersion_272e
 };
+
+namespace AGS
+{
+namespace Common
+{
+
+enum GUIMainFlags
+{
+    kGUIMain_NoClick    = 0x01,
+    kGUIMain_TextWindow = 0x02
+};
+
+enum GUIPopupStyle
+{
+    // normal GUI, initally on
+    kGUIPopupNone             = 0,
+    // show when mouse moves to top of screen
+    kGUIPopupMouseY           = 1,
+    // pauses game when shown
+    kGUIPopupModal            = 2,
+    // initially on and not removed when interface is off
+    kGUIPopupNoAutoRemove     = 3,
+    // normal GUI, initially off
+    kGUIPopupNoneInitiallyOff = 4
+};
+
+enum GUIControlType
+{
+    kGUIControlUndefined = -1,
+    kGUIButton      = 1,
+    kGUILabel       = 2,
+    kGUIInvWindow   = 3,
+    kGUISlider      = 4,
+    kGUITextBox     = 5,
+    kGUIListBox     = 6
+};
+
+} // namespace Common
+} // namespace AGS
 
 extern int guis_need_update;
 

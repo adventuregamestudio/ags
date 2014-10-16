@@ -18,7 +18,7 @@
 #include <vector>
 #include "gui/guiobject.h"
 
-#define GTF_NOBORDER  1
+//#define GTF_NOBORDER  1
 struct GUITextBox:public GUIObject
 {
   char text[200];

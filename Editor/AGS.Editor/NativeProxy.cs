@@ -470,6 +470,11 @@ namespace AGS.Editor
         {
             return _native.TransformStringToBytes(text);
         }
+
+        public object GetNativeConstant(string name)
+        {
+            return _native.GetNativeConstant(name);
+        }
         
         /*/// <summary>
         /// Obsolete: Use Utilities.IsShiftPressed instead

@@ -9,14 +9,130 @@ using System.Text;
 
 namespace AGS.Editor
 {
-    class DataFileWriter
+    public class DataFileWriter
     {
-        const int MAXMULTIFILES = 25;
-
-        class MultiFileLibNew
+        private class NativeConstants
         {
-            const int MAX_FILES = 10000;
+            // NOTE: GetNativeConstant returns only int or string, so some additional casting may be required
+            public static readonly string GAME_FILE_SIG = (string)Factory.NativeProxy.GetNativeConstant("GAME_FILE_SIG");
+            public static readonly int GAME_DATA_VERSION_CURRENT = (int)Factory.NativeProxy.GetNativeConstant("GAME_DATA_VERSION_CURRENT");
+            public static readonly int MAX_GUID_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_GUID_LENGTH");
+            public static readonly int MAX_SG_EXT_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_SG_EXT_LENGTH");
+            public static readonly int MAX_SG_FOLDER_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_SG_FOLDER_LEN");
+            public static readonly int MAX_SCRIPT_NAME_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_SCRIPT_NAME_LEN");
+            public static readonly int FFLG_SIZEMASK = (int)Factory.NativeProxy.GetNativeConstant("FFLG_SIZEMASK");
+            public static readonly char IFLG_STARTWITH = (char)(int)Factory.NativeProxy.GetNativeConstant("IFLG_STARTWITH");
+            public static readonly char MCF_ANIMMOVE = (char)(int)Factory.NativeProxy.GetNativeConstant("MCF_ANIMMOVE");
+            public static readonly char MCF_STANDARD = (char)(int)Factory.NativeProxy.GetNativeConstant("MCF_STANDARD");
+            public static readonly char MCF_HOTSPOT = (char)(int)Factory.NativeProxy.GetNativeConstant("MCF_HOTSPOT");
+            public static readonly int CHF_MANUALSCALING = (int)Factory.NativeProxy.GetNativeConstant("CHF_MANUALSCALING");
+            public static readonly int CHF_NOINTERACT = (int)Factory.NativeProxy.GetNativeConstant("CHF_NOINTERACT");
+            public static readonly int CHF_NODIAGONAL = (int)Factory.NativeProxy.GetNativeConstant("CHF_NODIAGONAL");
+            public static readonly int CHF_NOLIGHTING = (int)Factory.NativeProxy.GetNativeConstant("CHF_NOLIGHTING");
+            public static readonly int CHF_NOTURNING = (int)Factory.NativeProxy.GetNativeConstant("CHF_NOTURNING");
+            public static readonly int CHF_NOBLOCKING = (int)Factory.NativeProxy.GetNativeConstant("CHF_NOBLOCKING");
+            public static readonly int CHF_SCALEMOVESPEED = (int)Factory.NativeProxy.GetNativeConstant("CHF_SCALEMOVESPEED");
+            public static readonly int CHF_SCALEVOLUME = (int)Factory.NativeProxy.GetNativeConstant("CHF_SCALEVOLUME");
+            public static readonly int CHF_ANTIGLIDE = (int)Factory.NativeProxy.GetNativeConstant("CHF_ANTIGLIDE");
+            public static readonly int DFLG_ON = (int)Factory.NativeProxy.GetNativeConstant("DFLG_ON");
+            public static readonly int DFLG_NOREPEAT = (int)Factory.NativeProxy.GetNativeConstant("DFLG_NOREPEAT");
+            public static readonly int DTFLG_SHOWPARSER = (int)Factory.NativeProxy.GetNativeConstant("DTFLG_SHOWPARSER");
+            public static readonly sbyte FONT_OUTLINE_AUTO = (sbyte)(int)Factory.NativeProxy.GetNativeConstant("FONT_OUTLINE_AUTO");
+            public static readonly int MAX_FONTS = (int)Factory.NativeProxy.GetNativeConstant("MAX_FONTS");
+            public static readonly int MAX_SPRITES = (int)Factory.NativeProxy.GetNativeConstant("MAX_SPRITES");
+            public static readonly int MAX_CURSOR = (int)Factory.NativeProxy.GetNativeConstant("MAX_CURSOR");
+            public static readonly int MAX_PARSER_WORD_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_PARSER_WORD_LENGTH");
+            public static readonly int MAX_INV = (int)Factory.NativeProxy.GetNativeConstant("MAX_INV");
+            public static readonly int MAXLIPSYNCFRAMES = (int)Factory.NativeProxy.GetNativeConstant("MAXLIPSYNCFRAMES");
+            public static readonly int MAXGLOBALMES = (int)Factory.NativeProxy.GetNativeConstant("MAXGLOBALMES");
+            public static readonly int MAXTOPICOPTIONS = (int)Factory.NativeProxy.GetNativeConstant("MAXTOPICOPTIONS");
+            public static readonly short UNIFORM_WALK_SPEED = (short)(int)Factory.NativeProxy.GetNativeConstant("UNIFORM_WALK_SPEED");
+            public static readonly int GAME_RESOLUTION_CUSTOM = (int)Factory.NativeProxy.GetNativeConstant("GAME_RESOLUTION_CUSTOM");
+            public static readonly int MAXMULTIFILES = (int)Factory.NativeProxy.GetNativeConstant("MAXMULTIFILES");
+            public static readonly int RAND_SEED_SALT = (int)Factory.NativeProxy.GetNativeConstant("RAND_SEED_SALT");
+            public static readonly int CHUNKSIZE = (int)Factory.NativeProxy.GetNativeConstant("CHUNKSIZE");
+            public static readonly string CLIB_END_SIGNATURE = (string)Factory.NativeProxy.GetNativeConstant("CLIB_END_SIGNATURE");
+            public static readonly int MAX_FILENAME_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_FILENAME_LENGTH");
+            public static readonly string SPRSET_NAME = (string)Factory.NativeProxy.GetNativeConstant("SPRSET_NAME");
+            public static readonly byte SPF_640x400 = (byte)(int)Factory.NativeProxy.GetNativeConstant("SPF_640x400");
+            public static readonly byte SPF_ALPHACHANNEL = (byte)(int)Factory.NativeProxy.GetNativeConstant("SPF_ALPHACHANNEL");
+            public static readonly int MAX_CUSTOM_PROPERTIES = (int)Factory.NativeProxy.GetNativeConstant("MAX_CUSTOM_PROPERTIES");
+            public static readonly int MAX_CUSTOM_PROPERTY_NAME_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_CUSTOM_PROPERTY_NAME_LENGTH");
+            public static readonly int MAX_CUSTOM_PROPERTY_VALUE_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_CUSTOM_PROPERTY_VALUE_LENGTH");
+            public static readonly string PASSWORD_ENC_STRING = (string)Factory.NativeProxy.GetNativeConstant("PASSWORD_ENC_STRING");
+            public static readonly int LOOPFLAG_RUNNEXTLOOP = (int)Factory.NativeProxy.GetNativeConstant("LOOPFLAG_RUNNEXTLOOP");
+            public static readonly int VFLG_FLIPSPRITE = (int)Factory.NativeProxy.GetNativeConstant("VFLG_FLIPSPRITE");
+            public static readonly uint GUIMAGIC = (uint)Factory.NativeProxy.GetNativeConstant("GUIMAGIC");
+            public static readonly int SAVEBUFFERSIZE = (int)Factory.NativeProxy.GetNativeConstant("SAVEBUFFERSIZE");
+            public static readonly int GUIMAIN_NOCLICK = (int)Factory.NativeProxy.GetNativeConstant("GUIMAIN_NOCLICK");
+            public static readonly int GUIF_CLIP = (int)Factory.NativeProxy.GetNativeConstant("GUIF_CLIP");
+            public static readonly int GUIF_TRANSLATED = (int)Factory.NativeProxy.GetNativeConstant("GUIF_TRANSLATED");
+            public static readonly int GLF_NOBORDER = (int)Factory.NativeProxy.GetNativeConstant("GLF_NOBORDER");
+            public static readonly int GLF_NOARROWS = (int)Factory.NativeProxy.GetNativeConstant("GLF_NOARROWS");
+            public static readonly int GUI_POPUP_MODAL = (int)Factory.NativeProxy.GetNativeConstant("GUI_POPUP_MODAL");
+            public static readonly byte GUIMAIN_TEXTWINDOW = (byte)(int)Factory.NativeProxy.GetNativeConstant("GUIMAIN_TEXTWINDOW");
+            public static readonly int GTF_NOBORDER = (int)Factory.NativeProxy.GetNativeConstant("GTF_NOBORDER");
+            public static readonly int MAX_GUILABEL_TEXT_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_GUILABEL_TEXT_LEN");
+            public static readonly int MAX_GUIOBJ_SCRIPTNAME_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_GUIOBJ_SCRIPTNAME_LEN");
+            public static readonly int MAX_GUIOBJ_EVENTHANDLER_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_GUIOBJ_EVENTHANDLER_LEN");
+            public static readonly int GOBJ_BUTTON = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_BUTTON");
+            public static readonly int GOBJ_LABEL = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_LABEL");
+            public static readonly int GOBJ_INVENTORY = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_INVENTORY");
+            public static readonly int GOBJ_SLIDER = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_SLIDER");
+            public static readonly int GOBJ_TEXTBOX = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_TEXTBOX");
+            public static readonly int GOBJ_LISTBOX = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_LISTBOX");
+            public static readonly int TEXTWINDOW_PADDING_DEFAULT = (int)Factory.NativeProxy.GetNativeConstant("TEXTWINDOW_PADDING_DEFAULT");
 
+            public class GUIVersion
+            {
+                public static readonly int Current = (int)Factory.NativeProxy.GetNativeConstant("GUI_VERSION_CURRENT");
+            }
+
+            public class GameOptions
+            {
+                public static readonly int OPT_DEBUGMODE = (int)Factory.NativeProxy.GetNativeConstant("OPT_DEBUGMODE");
+                public static readonly int OPT_WALKONLOOK = (int)Factory.NativeProxy.GetNativeConstant("OPT_WALKONLOOK");
+                public static readonly int OPT_DIALOGIFACE = (int)Factory.NativeProxy.GetNativeConstant("OPT_DIALOGIFACE");
+                public static readonly int OPT_ANTIGLIDE = (int)Factory.NativeProxy.GetNativeConstant("OPT_ANTIGLIDE");
+                public static readonly int OPT_TWCUSTOM = (int)Factory.NativeProxy.GetNativeConstant("OPT_TWCUSTOM");
+                public static readonly int OPT_DIALOGGAP = (int)Factory.NativeProxy.GetNativeConstant("OPT_DIALOGGAP");
+                public static readonly int OPT_NOSKIPTEXT = (int)Factory.NativeProxy.GetNativeConstant("OPT_NOSKIPTEXT");
+                public static readonly int OPT_DISABLEOFF = (int)Factory.NativeProxy.GetNativeConstant("OPT_DISABLEOFF");
+                public static readonly int OPT_ALWAYSSPCH = (int)Factory.NativeProxy.GetNativeConstant("OPT_ALWAYSSPCH");
+                public static readonly int OPT_SPEECHTYPE = (int)Factory.NativeProxy.GetNativeConstant("OPT_SPEECHTYPE");
+                public static readonly int OPT_PIXPERFECT = (int)Factory.NativeProxy.GetNativeConstant("OPT_PIXPERFECT");
+                public static readonly int OPT_NOWALKMODE = (int)Factory.NativeProxy.GetNativeConstant("OPT_NOWALKMODE");
+                public static readonly int OPT_LETTERBOX = (int)Factory.NativeProxy.GetNativeConstant("OPT_LETTERBOX");
+                public static readonly int OPT_FIXEDINVCURSOR = (int)Factory.NativeProxy.GetNativeConstant("OPT_FIXEDINVCURSOR");
+                public static readonly int OPT_NOSCALEFNT = (int)Factory.NativeProxy.GetNativeConstant("OPT_NOSCALEFNT");
+                public static readonly int OPT_SPLITRESOURCES = (int)Factory.NativeProxy.GetNativeConstant("OPT_SPLITRESOURCES");
+                public static readonly int OPT_ROTATECHARS = (int)Factory.NativeProxy.GetNativeConstant("OPT_ROTATECHARS");
+                public static readonly int OPT_FADETYPE = (int)Factory.NativeProxy.GetNativeConstant("OPT_FADETYPE");
+                public static readonly int OPT_HANDLEINVCLICKS = (int)Factory.NativeProxy.GetNativeConstant("OPT_HANDLEINVCLICKS");
+                public static readonly int OPT_MOUSEWHEEL = (int)Factory.NativeProxy.GetNativeConstant("OPT_MOUSEWHEEL");
+                public static readonly int OPT_DIALOGNUMBERED = (int)Factory.NativeProxy.GetNativeConstant("OPT_DIALOGNUMBERED");
+                public static readonly int OPT_DIALOGUPWARDS = (int)Factory.NativeProxy.GetNativeConstant("OPT_DIALOGUPWARDS");
+                public static readonly int OPT_ANTIALIASFONTS = (int)Factory.NativeProxy.GetNativeConstant("OPT_ANTIALIASFONTS");
+                public static readonly int OPT_THOUGHTGUI = (int)Factory.NativeProxy.GetNativeConstant("OPT_THOUGHTGUI");
+                public static readonly int OPT_TURNTOFACELOC = (int)Factory.NativeProxy.GetNativeConstant("OPT_TURNTOFACELOC");
+                public static readonly int OPT_RIGHTLEFTWRITE = (int)Factory.NativeProxy.GetNativeConstant("OPT_RIGHTLEFTWRITE");
+                public static readonly int OPT_DUPLICATEINV = (int)Factory.NativeProxy.GetNativeConstant("OPT_DUPLICATEINV");
+                public static readonly int OPT_SAVESCREENSHOT = (int)Factory.NativeProxy.GetNativeConstant("OPT_SAVESCREENSHOT");
+                public static readonly int OPT_PORTRAITSIDE = (int)Factory.NativeProxy.GetNativeConstant("OPT_PORTRAITSIDE");
+                public static readonly int OPT_STRICTSCRIPTING = (int)Factory.NativeProxy.GetNativeConstant("OPT_STRICTSCRIPTING");
+                public static readonly int OPT_LEFTTORIGHTEVAL = (int)Factory.NativeProxy.GetNativeConstant("OPT_LEFTTORIGHTEVAL");
+                public static readonly int OPT_COMPRESSSPRITES = (int)Factory.NativeProxy.GetNativeConstant("OPT_COMPRESSSPRITES");
+                public static readonly int OPT_STRICTSTRINGS = (int)Factory.NativeProxy.GetNativeConstant("OPT_STRICTSTRINGS");
+                public static readonly int OPT_NEWGUIALPHA = (int)Factory.NativeProxy.GetNativeConstant("OPT_NEWGUIALPHA");
+                public static readonly int OPT_RUNGAMEDLGOPTS = (int)Factory.NativeProxy.GetNativeConstant("OPT_RUNGAMEDLGOPTS");
+                public static readonly int OPT_NATIVECOORDINATES = (int)Factory.NativeProxy.GetNativeConstant("OPT_NATIVECOORDINATES");
+                public static readonly int OPT_GLOBALTALKANIMSPD = (int)Factory.NativeProxy.GetNativeConstant("OPT_GLOBALTALKANIMSPD");
+                public static readonly int OPT_SPRITEALPHA = (int)Factory.NativeProxy.GetNativeConstant("OPT_SPRITEALPHA");
+            }
+        }
+
+        private class MultiFileLibNew
+        {
             public class MultiFile
             {
                 public string Filename;
@@ -154,9 +270,8 @@ namespace AGS.Editor
 
         static void WriteCLIBHeader(BinaryWriter writer)
         {
-            const int RAND_SEED_SALT = 9338638;
             int randSeed = (int)DateTime.Now.Ticks;
-            writer.Write(randSeed - RAND_SEED_SALT);
+            writer.Write(randSeed - NativeConstants.RAND_SEED_SALT);
             PseudoRandInt.InitializeInstance(randSeed);
             FilePutIntEncrypted(ourlib.DataFilenames.Count, writer);
             for (int i = 0; i < ourlib.DataFilenames.Count; ++i)
@@ -184,17 +299,16 @@ namespace AGS.Editor
 
         static int CopyFileAcross(Stream instream, Stream copystream, long leftforthis)
         {
-            const int CHUNKSIZE = 256000;
             int success = 1;
-            byte[] diskbuffer = new byte[CHUNKSIZE + 10];
+            byte[] diskbuffer = new byte[NativeConstants.CHUNKSIZE + 10];
             while (leftforthis > 0)
             {
-                if (leftforthis > CHUNKSIZE)
+                if (leftforthis > NativeConstants.CHUNKSIZE)
                 {
-                    instream.Read(diskbuffer, 0, CHUNKSIZE);
+                    instream.Read(diskbuffer, 0, NativeConstants.CHUNKSIZE);
                     try
                     {
-                        copystream.Write(diskbuffer, 0, CHUNKSIZE);
+                        copystream.Write(diskbuffer, 0, NativeConstants.CHUNKSIZE);
                     }
                     catch
                     {
@@ -204,7 +318,7 @@ namespace AGS.Editor
                     {
                         success = 1;
                     }
-                    leftforthis -= CHUNKSIZE;
+                    leftforthis -= NativeConstants.CHUNKSIZE;
                 }
                 else
                 {
@@ -230,9 +344,6 @@ namespace AGS.Editor
 
         public static string MakeDataFile(string[] fileNames, int splitSize, string baseFileName, bool makeFileNameAssumptionsForEXE)
         {
-            const string CLIB_END_SIGNATURE = "CLIB\x1\x2\x3\x4SIGE";
-            const int MAX_FILENAME_LENGTH = 100;
-            const string SPRSET_NAME = "acsprset.spr";
             Environment.CurrentDirectory = AGSEditor.Instance.CurrentGame.DirectoryPath;
             ourlib.DataFilenames.Clear();
             ourlib.Files.Clear();
@@ -244,14 +355,14 @@ namespace AGS.Editor
             {
                 if (splitSize > 0)
                 {
-                    if (string.Compare(fileNames[i], SPRSET_NAME, true) == 0)
+                    if (string.Compare(fileNames[i], NativeConstants.SPRSET_NAME, true) == 0)
                     {
                         // the sprite file's appearance signifies it's time to start splitting
                         doSplitting = true;
                         currentDataFile++;
                         sizeSoFar = 0;
                     }
-                    else if ((sizeSoFar > splitSize) && (doSplitting) && (currentDataFile < (MAXMULTIFILES - 1)))
+                    else if ((sizeSoFar > splitSize) && (doSplitting) && (currentDataFile < (NativeConstants.MAXMULTIFILES - 1)))
                     {
                         currentDataFile++;
                         sizeSoFar = 0;
@@ -264,7 +375,7 @@ namespace AGS.Editor
                 }
                 sizeSoFar += thisFileSize;
                 string fileNameSrc = Path.GetFileName(fileNames[i]);
-                if (fileNameSrc.Length >= MAX_FILENAME_LENGTH)
+                if (fileNameSrc.Length >= NativeConstants.MAX_FILENAME_LENGTH)
                 {
                     throw new AGSEditorException("Filename too long: " + fileNames[i]);
                 }
@@ -361,7 +472,7 @@ namespace AGS.Editor
                     if (startOffset > 0)
                     {
                         writer.Write((int)startOffset);
-                        writer.Write(CLIB_END_SIGNATURE.ToCharArray());
+                        writer.Write(NativeConstants.CLIB_END_SIGNATURE.ToCharArray());
                     }
                 }
             }
@@ -373,165 +484,51 @@ namespace AGS.Editor
             return null;
         }
 
-        /*
-typedef struct RGB
-{
-   unsigned char r, g, b;
-   unsigned char filler; // ALIGNED
-} RGB; // 4 bytes
-         */
-        /*
-struct GameSetupStructBase {
-    static const int  MAX_OPTIONS = 100;
-
-    char              gamename[50]; // 50/4 = 12R2
-    char _padding1[2]; // aligned
-    int32             options[MAX_OPTIONS]; // aligned
-    unsigned char     paluses[256]; // 256/4 = 64R0, aligned
-    color             defpal[256]; // aligned
-    int32             numviews;
-    int32             numcharacters;
-    int32             playercharacter;
-    int32             totalscore;
-    short             numinvitems; // missing 2
-    char _padding2[2]; // aligned
-    int32             numdialog, numdlgmessage;
-    int32             numfonts;
-    int32             color_depth;          // in bytes per pixel (ie. 1 or 2)
-    int32             target_win;
-    int32             dialog_bullet;        // 0 for none, otherwise slot num of bullet point
-    unsigned short    hotdot, hotdotouter;  // inv cursor hotspot dot     // aligned
-    int32             uniqueid;    // random key identifying the game
-    int32             numgui;
-    int32             numcursors;
-    GameResolutionType default_resolution; // 4 bytes, aligned
-    int32             default_lipsync_frame; // used for unknown chars
-    int32             invhotdotsprite;
-    int32             reserved[17];
-    char             *messages[MAXGLOBALMES]; // char*, aligned
-    WordsDictionary  *dict; // pointer, aligned
-    char             *globalscript; // pointer, aligned
-    CharacterInfo    *chars; // pointer, aligned
-    ccScript         *compiled_script; // pointer, aligned
-
-    int32_t          *load_messages; // pointer, aligned
-    bool             load_dictionary;
-    bool             load_compiled_script;
-    // [IKM] 2013-03-30
-    // NOTE: it looks like nor 'globalscript', not 'compiled_script' are used
-    // to store actual script data anytime; 'ccScript* gamescript' global
-    // pointer is used for that instead.
-
-    GameSetupStructBase();
-    virtual ~GameSetupStructBase();
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
-
-    inline bool IsHiRes() const
-    {
-        return ::IsHiRes(default_resolution);
-    }
-};
-         */
-        /*
-         * void WriteGameSetupStructBase_Aligned(Stream *out)
-{
-    GameSetupStructBase *gameBase = (GameSetupStructBase *)&thisgame;
-    AlignedStream align_s(out, Common::kAligned_Write);
-    gameBase->WriteToFile(&align_s);
-}*/
-        private enum GameOptions
-        {
-            OPT_DEBUGMODE = 0,
-            OPT_SCORESOUND = 1,
-            OPT_WALKONLOOK = 2,
-            OPT_DIALOGIFACE = 3,
-            OPT_ANTIGLIDE = 4,
-            OPT_TWCUSTOM = 5,
-            OPT_DIALOGGAP = 6,
-            OPT_NOSKIPTEXT = 7,
-            OPT_DISABLEOFF = 8,
-            OPT_ALWAYSSPCH = 9,
-            OPT_SPEECHTYPE = 10,
-            OPT_PIXPERFECT = 11,
-            OPT_NOWALKMODE = 12,
-            OPT_LETTERBOX = 13,
-            OPT_FIXEDINVCURSOR = 14,
-            OPT_NOLOSEINV = 15,
-            OPT_NOSCALEFNT = 16,
-            OPT_SPLITRESOURCES = 17,
-            OPT_ROTATECHARS = 18,
-            OPT_FADETYPE = 19,
-            OPT_HANDLEINVCLICKS = 20,
-            OPT_MOUSEWHEEL = 21,
-            OPT_DIALOGNUMBERED = 22,
-            OPT_DIALOGUPWARDS = 23,
-            OPT_CROSSFADEMUSIC = 24,
-            OPT_ANTIALIASFONTS = 25,
-            OPT_THOUGHTGUI = 26,
-            OPT_TURNTOFACELOC = 27,
-            OPT_RIGHTLEFTWRITE = 28,
-            OPT_DUPLICATEINV = 29,
-            OPT_SAVESCREENSHOT = 30,
-            OPT_PORTRAITSIDE = 31,
-            OPT_STRICTSCRIPTING = 32,
-            OPT_LEFTTORIGHTEVAL = 33,
-            OPT_COMPRESSSPRITES = 34,
-            OPT_STRICTSTRINGS = 35,
-            OPT_NEWGUIALPHA = 36,
-            OPT_RUNGAMEDLGOPTS = 37,
-            OPT_NATIVECOORDINATES = 38,
-            OPT_GLOBALTALKANIMSPD = 39,
-            OPT_SPRITEALPHA = 40,
-            OPT_NOMODMUSIC = 98,
-            OPT_LIPSYNCTEXT = 99
-        }
-
         private static void WriteGameSetupStructBase_Aligned(BinaryWriter writer, Game game)
         {
             // assume stream is aligned at start
             WriteString(SafeTruncate(game.Settings.GameName, 49), 50, writer);
             writer.Write(new byte[2]); // alignment padding
             int[] options = new int[100];
-            options[(int)GameOptions.OPT_ALWAYSSPCH] = (game.Settings.AlwaysDisplayTextAsSpeech ? 1 : 0);
-            options[(int)GameOptions.OPT_ANTIALIASFONTS] = (game.Settings.AntiAliasFonts ? 1 : 0);
-            options[(int)GameOptions.OPT_ANTIGLIDE] = (game.Settings.AntiGlideMode ? 1 : 0);
-            options[(int)GameOptions.OPT_NOWALKMODE] = (game.Settings.AutoMoveInWalkMode ? 0 : 1);
-            options[(int)GameOptions.OPT_RIGHTLEFTWRITE] = (game.Settings.BackwardsText ? 1 : 0);
-            options[(int)GameOptions.OPT_COMPRESSSPRITES] = (game.Settings.CompressSprites ? 1 : 0);
-            options[(int)GameOptions.OPT_DEBUGMODE] = (game.Settings.DebugMode ? 1 : 0);
-            options[(int)GameOptions.OPT_DIALOGUPWARDS] = (game.Settings.DialogOptionsBackwards ? 1 : 0);
-            options[(int)GameOptions.OPT_DIALOGGAP] = game.Settings.DialogOptionsGap;
-            options[(int)GameOptions.OPT_DIALOGIFACE] = game.Settings.DialogOptionsGUI;
-            options[(int)GameOptions.OPT_DUPLICATEINV] = (game.Settings.DisplayMultipleInventory ? 1 : 0);
-            options[(int)GameOptions.OPT_STRICTSTRINGS] = (game.Settings.EnforceNewStrings ? 1 : 0);
-            options[(int)GameOptions.OPT_STRICTSCRIPTING] = (game.Settings.EnforceObjectBasedScript ? 1 : 0);
-            options[(int)GameOptions.OPT_NOSCALEFNT] = (game.Settings.FontsForHiRes ? 1 : 0);
-            options[(int)GameOptions.OPT_NEWGUIALPHA] = (int)game.Settings.GUIAlphaStyle;
-            options[(int)GameOptions.OPT_SPRITEALPHA] = (int)game.Settings.SpriteAlphaStyle;
-            options[(int)GameOptions.OPT_HANDLEINVCLICKS] = (game.Settings.HandleInvClicksInScript ? 1 : 0);
-            options[(int)GameOptions.OPT_FIXEDINVCURSOR] = (game.Settings.InventoryCursors ? 0 : 1);
-            options[(int)GameOptions.OPT_GLOBALTALKANIMSPD] = (game.Settings.UseGlobalSpeechAnimationDelay ?
+            options[NativeConstants.GameOptions.OPT_ALWAYSSPCH] = (game.Settings.AlwaysDisplayTextAsSpeech ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_ANTIALIASFONTS] = (game.Settings.AntiAliasFonts ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_ANTIGLIDE] = (game.Settings.AntiGlideMode ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_NOWALKMODE] = (game.Settings.AutoMoveInWalkMode ? 0 : 1);
+            options[NativeConstants.GameOptions.OPT_RIGHTLEFTWRITE] = (game.Settings.BackwardsText ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_COMPRESSSPRITES] = (game.Settings.CompressSprites ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_DEBUGMODE] = (game.Settings.DebugMode ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_DIALOGUPWARDS] = (game.Settings.DialogOptionsBackwards ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_DIALOGGAP] = game.Settings.DialogOptionsGap;
+            options[NativeConstants.GameOptions.OPT_DIALOGIFACE] = game.Settings.DialogOptionsGUI;
+            options[NativeConstants.GameOptions.OPT_DUPLICATEINV] = (game.Settings.DisplayMultipleInventory ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_STRICTSTRINGS] = (game.Settings.EnforceNewStrings ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_STRICTSCRIPTING] = (game.Settings.EnforceObjectBasedScript ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_NOSCALEFNT] = (game.Settings.FontsForHiRes ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_NEWGUIALPHA] = (int)game.Settings.GUIAlphaStyle;
+            options[NativeConstants.GameOptions.OPT_SPRITEALPHA] = (int)game.Settings.SpriteAlphaStyle;
+            options[NativeConstants.GameOptions.OPT_HANDLEINVCLICKS] = (game.Settings.HandleInvClicksInScript ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_FIXEDINVCURSOR] = (game.Settings.InventoryCursors ? 0 : 1);
+            options[NativeConstants.GameOptions.OPT_GLOBALTALKANIMSPD] = (game.Settings.UseGlobalSpeechAnimationDelay ?
                 game.Settings.GlobalSpeechAnimationDelay : (-game.Settings.GlobalSpeechAnimationDelay - 1));
-            options[(int)GameOptions.OPT_LEFTTORIGHTEVAL] = (game.Settings.LeftToRightPrecedence ? 1 : 0);
-            options[(int)GameOptions.OPT_LETTERBOX] = (game.Settings.LetterboxMode ? 1 : 0);
-            options[(int)GameOptions.OPT_MOUSEWHEEL] = (game.Settings.MouseWheelEnabled ? 1 : 0);
-            options[(int)GameOptions.OPT_DIALOGNUMBERED] = (game.Settings.NumberDialogOptions ? 1 : 0);
-            options[(int)GameOptions.OPT_PIXPERFECT] = (game.Settings.PixelPerfect ? 1 : 0);
-            options[(int)GameOptions.OPT_FADETYPE] = (int)game.Settings.RoomTransition;
-            options[(int)GameOptions.OPT_RUNGAMEDLGOPTS] = (game.Settings.RunGameLoopsWhileDialogOptionsDisplayed ? 1 : 0);
-            options[(int)GameOptions.OPT_SAVESCREENSHOT] = (game.Settings.SaveScreenshots ? 1 : 0);
-            options[(int)GameOptions.OPT_NOSKIPTEXT] = (int)game.Settings.SkipSpeech;
-            options[(int)GameOptions.OPT_PORTRAITSIDE] = (int)game.Settings.SpeechPortraitSide;
-            options[(int)GameOptions.OPT_SPEECHTYPE] = (int)game.Settings.SpeechStyle;
-            options[(int)GameOptions.OPT_SPLITRESOURCES] = game.Settings.SplitResources;
-            options[(int)GameOptions.OPT_TWCUSTOM] = game.Settings.TextWindowGUI;
-            options[(int)GameOptions.OPT_THOUGHTGUI] = game.Settings.ThoughtGUI;
-            options[(int)GameOptions.OPT_TURNTOFACELOC] = (game.Settings.TurnBeforeFacing ? 1 : 0);
-            options[(int)GameOptions.OPT_ROTATECHARS] = (game.Settings.TurnBeforeWalking ? 1 : 0);
-            options[(int)GameOptions.OPT_NATIVECOORDINATES] = (game.Settings.UseLowResCoordinatesInScript ? 0 : 1);
-            options[(int)GameOptions.OPT_WALKONLOOK] = (game.Settings.WalkInLookMode ? 1 : 0);
-            options[(int)GameOptions.OPT_DISABLEOFF] = (int)game.Settings.WhenInterfaceDisabled;
+            options[NativeConstants.GameOptions.OPT_LEFTTORIGHTEVAL] = (game.Settings.LeftToRightPrecedence ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_LETTERBOX] = (game.Settings.LetterboxMode ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_MOUSEWHEEL] = (game.Settings.MouseWheelEnabled ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_DIALOGNUMBERED] = (game.Settings.NumberDialogOptions ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_PIXPERFECT] = (game.Settings.PixelPerfect ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_FADETYPE] = (int)game.Settings.RoomTransition;
+            options[NativeConstants.GameOptions.OPT_RUNGAMEDLGOPTS] = (game.Settings.RunGameLoopsWhileDialogOptionsDisplayed ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_SAVESCREENSHOT] = (game.Settings.SaveScreenshots ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_NOSKIPTEXT] = (int)game.Settings.SkipSpeech;
+            options[NativeConstants.GameOptions.OPT_PORTRAITSIDE] = (int)game.Settings.SpeechPortraitSide;
+            options[NativeConstants.GameOptions.OPT_SPEECHTYPE] = (int)game.Settings.SpeechStyle;
+            options[NativeConstants.GameOptions.OPT_SPLITRESOURCES] = game.Settings.SplitResources;
+            options[NativeConstants.GameOptions.OPT_TWCUSTOM] = game.Settings.TextWindowGUI;
+            options[NativeConstants.GameOptions.OPT_THOUGHTGUI] = game.Settings.ThoughtGUI;
+            options[NativeConstants.GameOptions.OPT_TURNTOFACELOC] = (game.Settings.TurnBeforeFacing ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_ROTATECHARS] = (game.Settings.TurnBeforeWalking ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_NATIVECOORDINATES] = (game.Settings.UseLowResCoordinatesInScript ? 0 : 1);
+            options[NativeConstants.GameOptions.OPT_WALKONLOOK] = (game.Settings.WalkInLookMode ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_DISABLEOFF] = (int)game.Settings.WhenInterfaceDisabled;
             for (int i = 0; i < options.Length; ++i) // writing only ints, alignment preserved
             {
                 writer.Write(options[i]);
@@ -577,7 +574,7 @@ struct GameSetupStructBase {
             }
             else
             {
-                writer.Write(Constants.GAME_RESOLUTION_CUSTOM);
+                writer.Write(NativeConstants.GAME_RESOLUTION_CUSTOM);
                 writer.Write(game.Settings.CustomResolution.Width);
                 writer.Write(game.Settings.CustomResolution.Height);
             }
@@ -599,13 +596,11 @@ struct GameSetupStructBase {
 
         private static void UpdateSpriteFlags(SpriteFolder folder, byte[] flags)
         {
-            const byte SPF_640x400 = (byte)1;
-            const byte SPF_ALPHACHANNEL = (byte)0x10;
             foreach (Sprite sprite in folder.Sprites)
             {
                 flags[sprite.Number] = 0;
-                if (sprite.Resolution == SpriteImportResolution.HighRes) flags[sprite.Number] |= SPF_640x400;
-                if (sprite.AlphaChannel) flags[sprite.Number] |= SPF_ALPHACHANNEL;
+                if (sprite.Resolution == SpriteImportResolution.HighRes) flags[sprite.Number] |= NativeConstants.SPF_640x400;
+                if (sprite.AlphaChannel) flags[sprite.Number] |= NativeConstants.SPF_ALPHACHANNEL;
             }
             foreach (SpriteFolder subfolder in folder.SubFolders)
             {
@@ -652,9 +647,6 @@ struct GameSetupStructBase {
 
         private class CompiledCustomProperties
         {
-            public const int MAX_CUSTOM_PROPERTIES = 30;
-            public const int MAX_CUSTOM_PROPERTY_NAME_LENGTH = 200;
-            public const int MAX_CUSTOM_PROPERTY_VALUE_LENGTH = 500;
             private List<string> _names;
             private List<string> _values;
 
@@ -716,9 +708,9 @@ struct GameSetupStructBase {
 
             public void AddProperty(string name, string value)
             {
-                if (PropertyCount >= MAX_CUSTOM_PROPERTIES) return;
-                _names.Add(SafeTruncate(name, MAX_CUSTOM_PROPERTY_NAME_LENGTH - 1));
-                _values.Add(SafeTruncate(value, MAX_CUSTOM_PROPERTY_VALUE_LENGTH - 1));
+                if (PropertyCount >= NativeConstants.MAX_CUSTOM_PROPERTIES) return;
+                _names.Add(SafeTruncate(name, NativeConstants.MAX_CUSTOM_PROPERTY_NAME_LENGTH - 1));
+                _values.Add(SafeTruncate(value, NativeConstants.MAX_CUSTOM_PROPERTY_VALUE_LENGTH - 1));
             }
 
             public void Serialize(BinaryWriter writer)
@@ -727,8 +719,8 @@ struct GameSetupStructBase {
                 writer.Write(PropertyCount);
                 for (int i = 0; i < PropertyCount; ++i)
                 {
-                    FilePutNullTerminatedString(Names[i], MAX_CUSTOM_PROPERTY_NAME_LENGTH, writer);
-                    FilePutNullTerminatedString(Values[i], MAX_CUSTOM_PROPERTY_VALUE_LENGTH, writer);
+                    FilePutNullTerminatedString(Names[i], NativeConstants.MAX_CUSTOM_PROPERTY_NAME_LENGTH, writer);
+                    FilePutNullTerminatedString(Values[i], NativeConstants.MAX_CUSTOM_PROPERTY_VALUE_LENGTH, writer);
                 }
             }
 
@@ -738,8 +730,8 @@ struct GameSetupStructBase {
                 int count = reader.ReadInt32();
                 for (int i = 0; i < count; ++i)
                 {
-                    string name = ReadString(MAX_CUSTOM_PROPERTY_NAME_LENGTH, reader);
-                    string value = ReadString(MAX_CUSTOM_PROPERTY_VALUE_LENGTH, reader);
+                    string name = ReadString(NativeConstants.MAX_CUSTOM_PROPERTY_NAME_LENGTH, reader);
+                    string value = ReadString(NativeConstants.MAX_CUSTOM_PROPERTY_VALUE_LENGTH, reader);
                     AddProperty(name, value);
                 }
                 return 0;
@@ -774,15 +766,14 @@ struct GameSetupStructBase {
 
         static string EncryptText(string toEncrypt)
         {
-            const string PASSWORD_ENC_STRING = "Avis Durgan";
             StringBuilder sb = new StringBuilder(toEncrypt);
             int p = 0;
             for (int i = 0; i < toEncrypt.Length; ++i, ++p)
             {
-                if (p == PASSWORD_ENC_STRING.Length) p = 0;
-                sb[i] += PASSWORD_ENC_STRING[p];
+                if (p == NativeConstants.PASSWORD_ENC_STRING.Length) p = 0;
+                sb[i] += NativeConstants.PASSWORD_ENC_STRING[p];
             }
-            sb.Append(PASSWORD_ENC_STRING[p]);
+            sb.Append(NativeConstants.PASSWORD_ENC_STRING[p]);
             return sb.ToString();
         }
 
@@ -791,7 +782,7 @@ struct GameSetupStructBase {
             int stlent = text.Length + 1;
             writer.Write(stlent);
             text = EncryptText(text);
-            for (int i = 0; i < text.Length; ++i)
+            for (int i = 0; i < text.Length; ++i) // NOTE: Using ASCII encoding here actually breaks the encryption and gives wrong result
             {
                 writer.Write((byte)text[i]);
             }
@@ -819,8 +810,6 @@ struct GameSetupStructBase {
 
             public void WriteViews(IViewFolder folder, Game game)
             {
-                const int LOOPFLAG_RUNNEXTLOOP = 1;
-                const int VFLG_FLIPSPRITE = 1;
                 if (writer == null)
                 {
                     throw new CompileError("Could not write views: Invalid stream (NULL)");
@@ -834,7 +823,7 @@ struct GameSetupStructBase {
                     {
                         short numFrames = (short)view.Loops[i].Frames.Count;
                         writer.Write(numFrames);
-                        writer.Write(view.Loops[i].RunNextLoop ? LOOPFLAG_RUNNEXTLOOP : 0);
+                        writer.Write(view.Loops[i].RunNextLoop ? NativeConstants.LOOPFLAG_RUNNEXTLOOP : 0);
                         for (int j = 0; j < numFrames; ++j)
                         {
                             ViewFrame frame = view.Loops[i].Frames[j];
@@ -843,7 +832,7 @@ struct GameSetupStructBase {
                             writer.Write((short)0); // unused y-offset
                             writer.Write((short)frame.Delay);
                             writer.Write((short)0); // struct alignment padding
-                            writer.Write(frame.Flipped ? VFLG_FLIPSPRITE : 0);
+                            writer.Write(frame.Flipped ? NativeConstants.VFLG_FLIPSPRITE : 0);
                             writer.Write(frame.Sound > 0 ? game.GetAudioArrayIndexFromAudioClipIndex(frame.Sound) : -1);
                             writer.Write(0); // unused reservedForFuture[0]
                             writer.Write(0); // unused reservedForFuture[1]
@@ -868,65 +857,6 @@ struct GameSetupStructBase {
             {
                 this.writer = writer;
                 this.game = game;
-            }
-
-            private enum GUIVersion
-            {
-                VersionInitial = 0,
-                /*Version214 = 100,
-                Version222 = 101,
-                Version230 = 102,
-                VersionUnknown103 = 103,
-                VersionUnknown104 = 104,
-                Version260 = 105,
-                VersionUnknown106 = 106,
-                VersionUnknown107 = 107,
-                VersionUnknown108 = 108,
-                VersionUnknown109 = 109,
-                Version270 = 110,
-                Version272a = 111,
-                Version272b = 112,
-                Version272c = 113,
-                Version272d = 114,*/
-                Version272e = 115,
-                Version330 = 116,
-                Version331 = 117,
-                Version340 = 118,
-                VersionCurrent = Version340,
-                VersionForwardCompatible = Version272e
-            }
-
-            private enum GUIFlags
-            {
-                // TODO: This should probably be a "Constants" class to avoid having to cast
-                // every time one of these is used.
-                GUIF_NOCLICK = 1,
-                GUIF_CLIP = 0x0020,
-                GUIF_TRANSLATED = 0x0080,
-                GLF_NOBORDER = 1,
-                GLF_NOARROWS = 2,
-                POPUP_NONE = 0,
-                POPUP_MOUSEY = 1,
-                POPUP_SCRIPT = 2,
-                POPUP_NOAUTOREM = 3,
-                POPUP_NONEINITIALLYOFF = 4,
-                GUI_TEXTWINDOW = 0x05,
-                GTF_NOBORDER = 1,
-                MAX_GUILABEL_TEXT_LEN = 2048,
-                GALIGN_LEFT = 0,
-                GALIGN_RIGHT = 1,
-                GALIGN_CENTRE = 2,
-                MAX_GUIOBJ_SCRIPTNAME_LEN = 25,
-                MAX_GUIOBJ_EVENTHANDLER_LEN = 30,
-                MAX_GUIOBJ_EVENTS = 10,
-                MAX_OBJS_ON_GUI = 30,
-                GOBJ_BUTTON = 1,
-                GOBJ_LABEL = 2,
-                GOBJ_INVENTORY = 3,
-                GOBJ_SLIDER = 4,
-                GOBJ_TEXTBOX = 5,
-                GOBJ_LISTBOX = 6,
-                TEXTWINDOW_PADDING_DEFAULT = 3
             }
 
             /// <summary>
@@ -1110,12 +1040,12 @@ struct GameSetupStructBase {
                 writer.Write(control.Height);
                 writer.Write(control.ZOrder);
                 writer.Write(0); // activated
-                string buffer = SafeTruncate(control.Name, (int)GUIFlags.MAX_GUIOBJ_SCRIPTNAME_LEN);
+                string buffer = SafeTruncate(control.Name, NativeConstants.MAX_GUIOBJ_SCRIPTNAME_LEN);
                 FilePutNullTerminatedString(buffer, buffer.Length + 1, writer);
                 writer.Write(events.Length); // numSupportedEvents
                 foreach (string sevent in events)
                 {
-                    buffer = SafeTruncate(sevent, (int)GUIFlags.MAX_GUIOBJ_EVENTHANDLER_LEN);
+                    buffer = SafeTruncate(sevent, NativeConstants.MAX_GUIOBJ_EVENTHANDLER_LEN);
                     FilePutNullTerminatedString(buffer, buffer.Length + 1, writer);
                 }
             }
@@ -1132,7 +1062,7 @@ struct GameSetupStructBase {
                 {
                     int flags;
                     string[] events;
-                    flags = (ctrl.ClipImage ? (int)GUIFlags.GUIF_CLIP : 0);
+                    flags = (ctrl.ClipImage ? NativeConstants.GUIF_CLIP : 0);
                     events = (ctrl.OnClick == null ? new string[0] : new string[] { ctrl.OnClick });
                     WriteGUIControl(ctrl, flags, events);
                     writer.Write(ctrl.Image); // pic
@@ -1159,7 +1089,7 @@ struct GameSetupStructBase {
                 foreach (GUILabel label in GUILabels)
                 {
                     WriteGUIControl(label, 0);
-                    string text = SafeTruncate(label.Text, (int)GUIFlags.MAX_GUILABEL_TEXT_LEN);
+                    string text = SafeTruncate(label.Text, NativeConstants.MAX_GUILABEL_TEXT_LEN);
                     writer.Write(text.Length + 1);
                     FilePutNullTerminatedString(text, text.Length + 1, writer);
                     writer.Write(label.Font);
@@ -1206,7 +1136,7 @@ struct GameSetupStructBase {
                     WriteString(textBox.Text, 200, writer);
                     writer.Write(textBox.Font);
                     writer.Write(textBox.TextColor);
-                    writer.Write(textBox.ShowBorder ? 0 : (int)GUIFlags.GTF_NOBORDER);
+                    writer.Write(textBox.ShowBorder ? 0 : NativeConstants.GTF_NOBORDER);
                 }
             }
 
@@ -1215,7 +1145,7 @@ struct GameSetupStructBase {
                 writer.Write(GUIListBoxes.Count);
                 foreach (GUIListBox listBox in GUIListBoxes)
                 {
-                    int flags = (listBox.Translated ? (int)GUIFlags.GUIF_TRANSLATED : 0);
+                    int flags = (listBox.Translated ? NativeConstants.GUIF_TRANSLATED : 0);
                     WriteGUIControl(listBox, flags, new string[] { listBox.OnSelectionChanged });
                     writer.Write(0); // numItems
                     writer.Write(0); // selected
@@ -1227,8 +1157,8 @@ struct GameSetupStructBase {
                     writer.Write(listBox.Font);
                     writer.Write(listBox.TextColor);
                     writer.Write(listBox.SelectedTextColor);
-                    int exflags = (listBox.ShowBorder ? 0 : (int)GUIFlags.GLF_NOBORDER);
-                    exflags |= (listBox.ShowScrollArrows ? 0 : (int)GUIFlags.GLF_NOARROWS);
+                    int exflags = (listBox.ShowBorder ? 0 : NativeConstants.GLF_NOBORDER);
+                    exflags |= (listBox.ShowScrollArrows ? 0 : NativeConstants.GLF_NOARROWS);
                     writer.Write(exflags);
                     writer.Write((int)listBox.TextAlignment);
                     writer.Write(0); // reserved1
@@ -1245,14 +1175,15 @@ struct GameSetupStructBase {
             /// </returns>
             private int[][] PopulateGUIControls()
             {
-                int[][] objrefptrs = new int[game.GUIs.Count][];
+                //int[][] objrefptrs = new int[game.GUIs.Count][];
+                List<int[]> objrefptrs = new List<int[]>();
                 foreach (GUI gui in game.GUIs)
                 {
-                    objrefptrs[gui.ID] = new int[(int)GUIFlags.MAX_OBJS_ON_GUI];
+                    //objrefptrs[gui.ID] = new int[Constants.MAX_OBJS_ON_GUI];
+                    objrefptrs.Add(new int[gui.Controls.Count]);
                     int numobjs = 0; // number of processed controls on this GUI
                     foreach (GUIControl control in gui.Controls)
                     {
-                        // TODO: Raise error if too many GUIControls
                         GUIButton button = control as GUIButton;
                         GUILabel label = control as GUILabel;
                         GUIInventory invWindow = control as GUIInventory;
@@ -1262,40 +1193,40 @@ struct GameSetupStructBase {
                         GUITextWindowEdge textWindowEdge = control as GUITextWindowEdge;
                         if ((button != null) || (textWindowEdge != null))
                         {
-                            objrefptrs[gui.ID][numobjs] = ((int)GUIFlags.GOBJ_BUTTON << 16) | GUIButtonsAndTextWindowEdges.Count;
+                            objrefptrs[gui.ID][numobjs] = (NativeConstants.GOBJ_BUTTON << 16) | GUIButtonsAndTextWindowEdges.Count;
                             GUIButtonsAndTextWindowEdges.Add(button != null ?
                                 (GUIButtonOrTextWindowEdge)button :
                                 (GUIButtonOrTextWindowEdge)textWindowEdge);
                         }
                         else if (label != null)
                         {
-                            objrefptrs[gui.ID][numobjs] = ((int)GUIFlags.GOBJ_LABEL << 16) | GUILabels.Count;
+                            objrefptrs[gui.ID][numobjs] = (NativeConstants.GOBJ_LABEL << 16) | GUILabels.Count;
                             GUILabels.Add(label);
                         }
                         else if (invWindow != null)
                         {
-                            objrefptrs[gui.ID][numobjs] = ((int)GUIFlags.GOBJ_INVENTORY << 16) | GUIInvWindows.Count;
+                            objrefptrs[gui.ID][numobjs] = (NativeConstants.GOBJ_INVENTORY << 16) | GUIInvWindows.Count;
                             GUIInvWindows.Add(invWindow);
                         }
                         else if (slider != null)
                         {
-                            objrefptrs[gui.ID][numobjs] = ((int)GUIFlags.GOBJ_SLIDER << 16) | GUISliders.Count;
+                            objrefptrs[gui.ID][numobjs] = (NativeConstants.GOBJ_SLIDER << 16) | GUISliders.Count;
                             GUISliders.Add(slider);
                         }
                         else if (textBox != null)
                         {
-                            objrefptrs[gui.ID][numobjs] = ((int)GUIFlags.GOBJ_TEXTBOX << 16) | GUITextBoxes.Count;
+                            objrefptrs[gui.ID][numobjs] = (NativeConstants.GOBJ_TEXTBOX << 16) | GUITextBoxes.Count;
                             GUITextBoxes.Add(textBox);
                         }
                         else if (listBox != null)
                         {
-                            objrefptrs[gui.ID][numobjs] = ((int)GUIFlags.GOBJ_LISTBOX << 16) | GUIListBoxes.Count;
+                            objrefptrs[gui.ID][numobjs] = (NativeConstants.GOBJ_LISTBOX << 16) | GUIListBoxes.Count;
                             GUIListBoxes.Add(listBox);
                         }
                         ++numobjs;
                     }
                 }
-                return objrefptrs;
+                return objrefptrs.ToArray();
             }
 
             private void WriteNormalGUI(NormalGUI gui)
@@ -1321,7 +1252,7 @@ struct GameSetupStructBase {
                 writer.Write(-1); // mousewasy
                 writer.Write(-1); // mousedownon
                 writer.Write(-1); // highlightobj
-                writer.Write(gui.Clickable ? 0 : (int)GUIFlags.GUIF_NOCLICK); // flags
+                writer.Write(gui.Clickable ? 0 : NativeConstants.GUIMAIN_NOCLICK); // flags
                 int transparency = gui.Transparency;
                 if (transparency <= 0) transparency = 0;
                 else if (transparency >= 100) transparency = 255;
@@ -1329,14 +1260,14 @@ struct GameSetupStructBase {
                 writer.Write(transparency); // transparency
                 writer.Write(gui.ZOrder); // zorder
                 writer.Write(0); // guiId, TODO: should this be gui.ID?
-                writer.Write((int)GUIFlags.TEXTWINDOW_PADDING_DEFAULT); // padding
+                writer.Write(NativeConstants.TEXTWINDOW_PADDING_DEFAULT); // padding
                 writer.Write(new byte[5 * sizeof(int)]); // reserved
                 writer.Write(1); // on
             }
 
             private void WriteTextWindowGUI(TextWindowGUI gui)
             {
-                writer.Write((byte)GUIFlags.GUI_TEXTWINDOW); // vtext...
+                writer.Write(NativeConstants.GUIMAIN_TEXTWINDOW); // vtext...
                 writer.Write(new byte[3]); // ...vtext
                 WriteString(gui.Name, gui.Name.Length + 1, writer); // name
                 writer.Write((byte)0); // clickEventHandler
@@ -1348,7 +1279,7 @@ struct GameSetupStructBase {
                 writer.Write(100); // hit
                 writer.Write(0); // focus
                 writer.Write(gui.Controls.Count); // numobjs
-                writer.Write((int)GUIFlags.POPUP_SCRIPT); // popup
+                writer.Write(NativeConstants.GUI_POPUP_MODAL); // popup
                 writer.Write(0); // popupyp
                 writer.Write(gui.BackgroundColor); // bgcol
                 writer.Write(gui.BackgroundImage); // bgpic
@@ -1369,11 +1300,10 @@ struct GameSetupStructBase {
 
             public void WriteAllGUIs()
             {
-                const uint GUIMAGIC = 0xCAFEBEEF;
-                GUIVersion version = GUIVersion.VersionCurrent;
+                int version = NativeConstants.GUIVersion.Current;
                 int[][] objrefptrs = PopulateGUIControls();
-                writer.Write(GUIMAGIC);
-                writer.Write((int)version);
+                writer.Write(NativeConstants.GUIMAGIC);
+                writer.Write(version);
                 writer.Write(game.GUIs.Count);
                 foreach (GUI gui in game.GUIs)
                 {
@@ -1396,14 +1326,13 @@ struct GameSetupStructBase {
 
         private static void WritePluginsToDisk(BinaryWriter writer, Game game)
         {
-            const int SAVEBUFFERSIZE = 5120;
             writer.Write(1); // version
             writer.Write(game.Plugins.Count);
             foreach (Plugin plugin in game.Plugins)
             {
                 FilePutNullTerminatedString(plugin.FileName, plugin.FileName.Length + 1, writer);
                 int savesize = plugin.SerializedData.Length;
-                if (savesize > SAVEBUFFERSIZE)
+                if (savesize > NativeConstants.SAVEBUFFERSIZE)
                 {
                     System.Windows.Forms.MessageBox.Show("Plugin tried to write too much data to game file.");
                     savesize = 0;
@@ -1411,46 +1340,6 @@ struct GameSetupStructBase {
                 writer.Write(savesize);
                 if (savesize > 0) writer.Write(plugin.SerializedData);
             }
-        }
-
-        private class Constants
-        {
-            public const string GAME_FILE_SIG = "Adventure Creator Game File v2";
-            public const int GAME_DATA_VERSION_CURRENT = 45;
-            public const int MAX_GUID_LENGTH = 40;
-            public const int MAX_SG_EXT_LENGTH = 20;
-            public const int MAX_SG_FOLDER_LEN = 50;
-            public const int MAX_SCRIPT_NAME_LEN = 20;
-            public const int FFLG_SIZEMASK = 0x003F;
-            public const char IFLG_STARTWITH = (char)1;
-            public const char MCF_ANIMMOVE = (char)1;
-            public const char MCF_STANDARD = (char)4;
-            public const char MCF_HOTSPOT = (char)8; // only animate when over hotspot
-            public const int CHF_MANUALSCALING = 1;
-            public const int CHF_NOINTERACT = 4;
-            public const int CHF_NODIAGONAL = 8;
-            public const int CHF_NOLIGHTING = 0x20;
-            public const int CHF_NOTURNING = 0x40;
-            public const int CHF_NOBLOCKING = 0x200;
-            public const int CHF_SCALEMOVESPEED = 0x400;
-            public const int CHF_SCALEVOLUME = 0x1000;
-            public const int CHF_ANTIGLIDE = 0x20000;
-            public const int DFLG_ON = 1; // currently enabled
-            public const int DFLG_NOREPEAT = 4; // character doesn't repeat it when clicked
-            public const int DTFLG_SHOWPARSER = 1; // show parser in this topic
-            public const sbyte FONT_OUTLINE_AUTO = (sbyte)-10;
-            public const int MAX_FONTS = 30;
-            public const int MAX_SPRITES = 30000;
-            public const int MAX_CURSOR = 20;
-            public const int MAX_PARSER_WORD_LENGTH = 30;
-            public const int MAX_INV = 301;
-            public const int MAXLIPSYNCFRAMES = 20;
-            public const int MAXGLOBALMES = 500;
-            public const int MAXTOPICOPTIONS = 30;
-            public const int MAX_CUSTOM_PROPERTIES = 30;
-            public const short UNIFORM_WALK_SPEED = 0;
-            public const string AGS_VERSION = AGS.Types.Version.AGS_EDITOR_VERSION;
-            public const int GAME_RESOLUTION_CUSTOM = 8;
         }
 
         public static void SaveThisGameToFile(string fileName, Game game)
@@ -1461,21 +1350,21 @@ struct GameSetupStructBase {
                 throw new CompileError(string.Format("Cannot open file {0} for writing", fileName));
             }
             BinaryWriter writer = new BinaryWriter(ostream);
-            WriteString(Constants.GAME_FILE_SIG, Constants.GAME_FILE_SIG.Length, writer);
-            writer.Write(Constants.GAME_DATA_VERSION_CURRENT);
-            writer.Write(Constants.AGS_VERSION.Length);
-            WriteString(Constants.AGS_VERSION, Constants.AGS_VERSION.Length, writer);
+            WriteString(NativeConstants.GAME_FILE_SIG, NativeConstants.GAME_FILE_SIG.Length, writer);
+            writer.Write(NativeConstants.GAME_DATA_VERSION_CURRENT);
+            writer.Write(AGS.Types.Version.AGS_EDITOR_VERSION.Length);
+            WriteString(AGS.Types.Version.AGS_EDITOR_VERSION, AGS.Types.Version.AGS_EDITOR_VERSION.Length, writer);
             WriteGameSetupStructBase_Aligned(writer, game);
-            WriteString(game.Settings.GUIDAsString, Constants.MAX_GUID_LENGTH, writer);
-            WriteString(game.Settings.SaveGameFileExtension, Constants.MAX_SG_EXT_LENGTH, writer);
-            WriteString(game.Settings.SaveGameFolderName, Constants.MAX_SG_FOLDER_LEN, writer);
-            if (game.Fonts.Count > Constants.MAX_FONTS)
+            WriteString(game.Settings.GUIDAsString, NativeConstants.MAX_GUID_LENGTH, writer);
+            WriteString(game.Settings.SaveGameFileExtension, NativeConstants.MAX_SG_EXT_LENGTH, writer);
+            WriteString(game.Settings.SaveGameFolderName, NativeConstants.MAX_SG_FOLDER_LEN, writer);
+            if (game.Fonts.Count > NativeConstants.MAX_FONTS)
             {
                 throw new CompileError("Too many fonts");
             }
             for (int i = 0; i < game.Fonts.Count; ++i)
             {
-                writer.Write((byte)(game.Fonts[i].PointSize & Constants.FFLG_SIZEMASK));
+                writer.Write((byte)(game.Fonts[i].PointSize & NativeConstants.FFLG_SIZEMASK));
             }
             for (int i = 0; i < game.Fonts.Count; ++i)
             {
@@ -1485,17 +1374,17 @@ struct GameSetupStructBase {
                 }
                 else if (game.Fonts[i].OutlineStyle == FontOutlineStyle.Automatic)
                 {
-                    writer.Write(Constants.FONT_OUTLINE_AUTO);
+                    writer.Write(NativeConstants.FONT_OUTLINE_AUTO);
                 }
                 else
                 {
                     writer.Write((byte)game.Fonts[i].OutlineFont);
                 }
             }
-            writer.Write(Constants.MAX_SPRITES);
-            byte[] spriteFlags = new byte[Constants.MAX_SPRITES];
+            writer.Write(NativeConstants.MAX_SPRITES);
+            byte[] spriteFlags = new byte[NativeConstants.MAX_SPRITES];
             UpdateSpriteFlags(game.RootSpriteFolder, spriteFlags);
-            for (int i = 0; i < Constants.MAX_SPRITES; ++i)
+            for (int i = 0; i < NativeConstants.MAX_SPRITES; ++i)
             {
                 writer.Write(spriteFlags[i]);
             }
@@ -1512,10 +1401,10 @@ struct GameSetupStructBase {
                 {
                     writer.Write(0);
                 }
-                writer.Write(game.InventoryItems[i].PlayerStartsWithItem ? Constants.IFLG_STARTWITH : (char)0);
+                writer.Write(game.InventoryItems[i].PlayerStartsWithItem ? NativeConstants.IFLG_STARTWITH : (char)0);
                 writer.Write(new byte[3]); // 3 bytes padding
             }
-            if (game.Cursors.Count > Constants.MAX_CURSOR)
+            if (game.Cursors.Count > NativeConstants.MAX_CURSOR)
             {
                 throw new CompileError("Too many cursors");
             }
@@ -1528,13 +1417,13 @@ struct GameSetupStructBase {
                 if (game.Cursors[i].Animate)
                 {
                     writer.Write((short)(game.Cursors[i].View - 1));
-                    if (game.Cursors[i].AnimateOnlyOnHotspots) flags |= Constants.MCF_HOTSPOT;
-                    if (game.Cursors[i].AnimateOnlyWhenMoving) flags |= Constants.MCF_ANIMMOVE;
+                    if (game.Cursors[i].AnimateOnlyOnHotspots) flags |= NativeConstants.MCF_HOTSPOT;
+                    if (game.Cursors[i].AnimateOnlyWhenMoving) flags |= NativeConstants.MCF_ANIMMOVE;
                 }
                 else writer.Write((short)-1);
                 WriteString(game.Cursors[i].Name, 9, writer);
                 writer.Write((byte)0); // null terminator
-                if (game.Cursors[i].StandardMode) flags |= Constants.MCF_STANDARD;
+                if (game.Cursors[i].StandardMode) flags |= NativeConstants.MCF_STANDARD;
                 writer.Write(flags);
                 writer.Write(new byte[3]); // 3 bytes padding
             }
@@ -1549,7 +1438,7 @@ struct GameSetupStructBase {
             writer.Write(game.TextParser.Words.Count);
             for (int i = 0; i < game.TextParser.Words.Count; ++i)
             {
-                WriteStringEncrypted(writer, SafeTruncate(game.TextParser.Words[i].Word, Constants.MAX_PARSER_WORD_LENGTH));
+                WriteStringEncrypted(writer, SafeTruncate(game.TextParser.Words[i].Word, NativeConstants.MAX_PARSER_WORD_LENGTH));
                 writer.Write((short)game.TextParser.Words[i].WordGroup);
             }
             WriteCompiledScript(ostream, game.ScriptsToCompile.GetScriptByFilename(Script.GLOBAL_SCRIPT_FILE_NAME));
@@ -1579,15 +1468,15 @@ struct GameSetupStructBase {
             foreach (Character character in game.Characters)
             {
                 int flags = 0;
-                if (character.AdjustSpeedWithScaling) flags |= Constants.CHF_SCALEMOVESPEED;
-                if (character.AdjustVolumeWithScaling) flags |= Constants.CHF_SCALEVOLUME;
-                if (!character.Clickable) flags |= Constants.CHF_NOINTERACT;
-                if (!character.DiagonalLoops) flags |= Constants.CHF_NODIAGONAL;
-                if (character.MovementLinkedToAnimation) flags |= Constants.CHF_ANTIGLIDE;
-                if (!character.Solid) flags |= Constants.CHF_NOBLOCKING;
-                if (!character.TurnBeforeWalking) flags |= Constants.CHF_NOTURNING;
-                if (!character.UseRoomAreaLighting) flags |= Constants.CHF_NOLIGHTING;
-                if (!character.UseRoomAreaScaling) flags |= Constants.CHF_MANUALSCALING;
+                if (character.AdjustSpeedWithScaling) flags |= NativeConstants.CHF_SCALEMOVESPEED;
+                if (character.AdjustVolumeWithScaling) flags |= NativeConstants.CHF_SCALEVOLUME;
+                if (!character.Clickable) flags |= NativeConstants.CHF_NOINTERACT;
+                if (!character.DiagonalLoops) flags |= NativeConstants.CHF_NODIAGONAL;
+                if (character.MovementLinkedToAnimation) flags |= NativeConstants.CHF_ANTIGLIDE;
+                if (!character.Solid) flags |= NativeConstants.CHF_NOBLOCKING;
+                if (!character.TurnBeforeWalking) flags |= NativeConstants.CHF_NOTURNING;
+                if (!character.UseRoomAreaLighting) flags |= NativeConstants.CHF_NOLIGHTING;
+                if (!character.UseRoomAreaScaling) flags |= NativeConstants.CHF_MANUALSCALING;
                 writer.Write(character.NormalView - 1);             // defview
                 writer.Write(character.SpeechView - 1);             // talkview
                 writer.Write(character.NormalView - 1);             // view
@@ -1611,7 +1500,7 @@ struct GameSetupStructBase {
                 writer.Write((short)0);                       // blinkinterval
                 writer.Write((short)0);                       // blinktimer
                 writer.Write((short)0);                         // blinkframe
-                writer.Write(character.UniformMovementSpeed ? Constants.UNIFORM_WALK_SPEED : (short)character.MovementSpeedY); // walkspeed_y
+                writer.Write(character.UniformMovementSpeed ? NativeConstants.UNIFORM_WALK_SPEED : (short)character.MovementSpeedY); // walkspeed_y
                 writer.Write((short)0); // pic_yoffs
                 writer.Write(0); // z
                 writer.Write(0); // walkwait
@@ -1634,59 +1523,59 @@ struct GameSetupStructBase {
                     if ((isPlayer) && (invItem.PlayerStartsWithItem)) writer.Write((short)1);
                     else writer.Write((short)0);
                 }
-                if (game.InventoryItems.Count < Constants.MAX_INV)
+                if (game.InventoryItems.Count < NativeConstants.MAX_INV)
                 {
-                    writer.Write(new byte[(Constants.MAX_INV - game.InventoryItems.Count) * sizeof(short)]);
+                    writer.Write(new byte[(NativeConstants.MAX_INV - game.InventoryItems.Count) * sizeof(short)]);
                 }
                 writer.Write((short)0); // actx
                 writer.Write((short)0); // acty
                 WriteString(character.RealName, 40, writer); // name
-                WriteString(character.ScriptName, Constants.MAX_SCRIPT_NAME_LEN, writer); // scrname
+                WriteString(character.ScriptName, NativeConstants.MAX_SCRIPT_NAME_LEN, writer); // scrname
                 writer.Write((char)1); // on
                 writer.Write((byte)0); // alignment padding
             }
-            for (int i = 0; i < Constants.MAXLIPSYNCFRAMES; ++i)
+            for (int i = 0; i < NativeConstants.MAXLIPSYNCFRAMES; ++i)
             {
                 WriteString(game.LipSync.CharactersPerFrame[i], 50, writer);
             }
-            for (int i = 0; i < Constants.MAXGLOBALMES; ++i)
+            for (int i = 0; i < NativeConstants.MAXGLOBALMES; ++i)
             {
                 if (string.IsNullOrEmpty(game.GlobalMessages[i])) continue;
                 WriteStringEncrypted(writer, game.GlobalMessages[i]);
             }
             foreach (Dialog curDialog in game.Dialogs)
             {
-                for (int i = 0; (i < Constants.MAXTOPICOPTIONS) && (i < curDialog.Options.Count); ++i)
+                for (int i = 0; (i < NativeConstants.MAXTOPICOPTIONS) && (i < curDialog.Options.Count); ++i)
                 {
                     WriteString(curDialog.Options[i].Text, 150, writer); // optionnames
                 }
-                for (int i = curDialog.Options.Count; i < Constants.MAXTOPICOPTIONS; ++i)
+                for (int i = curDialog.Options.Count; i < NativeConstants.MAXTOPICOPTIONS; ++i)
                 {
                     WriteString("", 150, writer);
                 }
-                for (int i = 0; (i < Constants.MAXTOPICOPTIONS) && (i < curDialog.Options.Count); ++i)
+                for (int i = 0; (i < NativeConstants.MAXTOPICOPTIONS) && (i < curDialog.Options.Count); ++i)
                 {
                     DialogOption option = curDialog.Options[i];
                     int flags = 0;
-                    if (!option.Say) flags |= Constants.DFLG_NOREPEAT;
-                    if (option.Show) flags |= Constants.DFLG_ON;
+                    if (!option.Say) flags |= NativeConstants.DFLG_NOREPEAT;
+                    if (option.Show) flags |= NativeConstants.DFLG_ON;
                     writer.Write(flags); // optionflags
                 }
-                for (int i = curDialog.Options.Count; i < Constants.MAXTOPICOPTIONS; ++i)
+                for (int i = curDialog.Options.Count; i < NativeConstants.MAXTOPICOPTIONS; ++i)
                 {
                     writer.Write(0);
                 }
                 writer.Write(new byte[4]); // optionscripts
-                writer.Write(new byte[Constants.MAXTOPICOPTIONS * sizeof(short)]); // entrypoints
+                writer.Write(new byte[NativeConstants.MAXTOPICOPTIONS * sizeof(short)]); // entrypoints
                 writer.Write((short)0); // startupentrypoint
                 writer.Write((short)0); // codesize
                 writer.Write(curDialog.Options.Count); // numoptions
-                writer.Write(curDialog.ShowTextParser ? Constants.DTFLG_SHOWPARSER : 0); // topicflags
+                writer.Write(curDialog.ShowTextParser ? NativeConstants.DTFLG_SHOWPARSER : 0); // topicflags
             }
             GUIsWriter guisWriter = new GUIsWriter(writer, game);
             guisWriter.WriteAllGUIs();
             WritePluginsToDisk(writer, game);
-            if (game.PropertySchema.PropertyDefinitions.Count > Constants.MAX_CUSTOM_PROPERTIES)
+            if (game.PropertySchema.PropertyDefinitions.Count > NativeConstants.MAX_CUSTOM_PROPERTIES)
             {
                 throw new CompileError("Too many custom properties defined");
             }

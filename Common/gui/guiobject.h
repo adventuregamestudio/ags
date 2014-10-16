@@ -33,18 +33,18 @@ using namespace AGS; // FIXME later
 #define GUIF_DISABLED   0x0004
 #define GUIF_TABSTOP    0x0008 // obsolete?
 #define GUIF_INVISIBLE  0x0010
-#define GUIF_CLIP       0x0020
+//#define GUIF_CLIP       0x0020
 #define GUIF_NOCLICKS   0x0040
-#define GUIF_TRANSLATED 0x0080 // 3.3.0.1132
+//#define GUIF_TRANSLATED 0x0080 // 3.3.0.1132
 #define GUIF_DELETED    0x8000
 
 #define BASEGOBJ_SIZE 7
 #define GALIGN_LEFT   0
 #define GALIGN_RIGHT  1
 #define GALIGN_CENTRE 2
-#define MAX_GUIOBJ_SCRIPTNAME_LEN 25
+//#define MAX_GUIOBJ_SCRIPTNAME_LEN 25
 #define MAX_GUIOBJ_EVENTS 10
-#define MAX_GUIOBJ_EVENTHANDLER_LEN 30
+//#define MAX_GUIOBJ_EVENTHANDLER_LEN 30
 struct GUIObject
 {
   int guin, objn;    // gui and object number of this object

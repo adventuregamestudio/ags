@@ -19,10 +19,6 @@
 #include "gui/guiobject.h"
 #include "util/string.h"
 
-//#define GLF_NOBORDER     1
-//#define GLF_NOARROWS     2
-#define GLF_SGINDEXVALID 4
-
 struct GUIListBox:public GUIObject
 {
   AGS::Common::String items[MAX_LISTBOX_ITEMS];

@@ -35,8 +35,6 @@ struct GameSetupStruct;
 #define GUIMAIN_EVENTHANDLER_LENGTH 20
 #define GUIMAIN_LEGACY_TW_FLAGS_SIZE 4
 
-//#define TEXTWINDOW_PADDING_DEFAULT  3
-
 namespace AGS
 {
 namespace Common

@@ -31,9 +31,11 @@ GameSetup::GameSetup()
     override_script_os = -1;
     override_multitasking = -1;
     override_upscale = false;
-    filter_scaling_max_uniform = false;
-    filter_scaling_x = kUnit;
-    filter_scaling_y = kUnit;
+    gfxFilterID = "StdScale";
+    screen_sz_def = kScreenDef_MaxDisplay;
+    filter_scaling_max_uniform = true;
+    filter_scaling_x = 0;
+    filter_scaling_y = 0;
     match_device_ratio = false;
-    game_frame_placement = kPlaceStretchProportional;
+    game_frame_placement = kPlaceCenter;
 }

@@ -68,7 +68,6 @@
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
-namespace Math = AGS::Common::Math;
 
 #if !defined (WINDOWS_VERSION)
 // for toupper

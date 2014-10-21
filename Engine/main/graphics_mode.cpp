@@ -459,7 +459,7 @@ void set_game_frame_after_screen_size(const Size game_size, const Size screen_si
     }
     else if (usetup.filter_scaling_max_uniform)
     {
-        scale_x = scale_y = min(max_scaling_x, max_scaling_y);
+        scale_x = scale_y = Math::Min(max_scaling_x, max_scaling_y);
     }
     else
     {

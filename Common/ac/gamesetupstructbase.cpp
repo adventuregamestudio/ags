@@ -38,11 +38,7 @@ GameSetupStructBase::~GameSetupStructBase()
 void GameSetupStructBase::SetDefaultResolution(GameResolutionType resolution_type)
 {
     default_resolution = resolution_type;
-    // The letterbox-by-design game property requests that game frame must
-    // include black horizontal borders of fixed height.
-    // If the letterbox option is disabled, then the game frame size will be
-    // equal to native game size.
-    size = ResolutionTypeToSize(default_resolution, options[OPT_LETTERBOX] != 0);
+    size = ResolutionTypeToSize(default_resolution);
 }
 
 void GameSetupStructBase::SetCustomResolution(Size game_res)

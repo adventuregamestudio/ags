@@ -33,7 +33,6 @@ public:
 
   inline ~WiiMutex()
   {
-    Unlock();
     LWP_MutexDestroy(_mutex);
   }
 

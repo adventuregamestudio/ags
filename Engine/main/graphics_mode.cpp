@@ -788,7 +788,8 @@ bool create_gfx_driver_and_init_mode(const String &gfx_driver_id, const GameSize
         return false;
     // Log out supported driver modes
     log_out_driver_modes(color_depths.Prime);
-    log_out_driver_modes(color_depths.Alternate);
+    if (color_depths.Prime != color_depths.Alternate)
+        log_out_driver_modes(color_depths.Alternate);
     
     if (!engine_set_gfx_filter(color_depths.Prime))
         return false;

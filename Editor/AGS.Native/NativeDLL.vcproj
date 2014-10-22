@@ -28,7 +28,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="start /WAIT $(SolutionDir)\..\Editor\UpdateCPPVersion\bin\$(ConfigurationName)\UpdateCPPVersion.exe $(TargetPath)"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -128,7 +128,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(SolutionDir)\..\Editor\UpdateCPPVersion\bin\$(ConfigurationName)\UpdateCPPVersion.exe $(TargetPath)"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"

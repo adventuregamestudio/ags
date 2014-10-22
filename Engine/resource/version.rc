@@ -87,7 +87,7 @@ END
 BEGIN
     "#include <WinResrc.h>\r\n"
     "#define IDC_STATIC -1\r\n"
-    "#include ../../Common/core/def_version.h\r\n"
+    "#include ""../../Common/core/def_version.h""\r\n"
     "\0"
 END
 

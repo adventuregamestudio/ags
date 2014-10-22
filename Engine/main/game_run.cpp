@@ -298,7 +298,7 @@ void check_controls() {
                 DEBUG_CONSOLE("Mouse click over GUI %d", mongu);
                 guis[mongu].OnMouseButtonDown();
                 // run GUI click handler if not on any control
-                if ((guis[mongu].MouseDownCtrl < 0) && (guis[mongu].OnClickHandler[0] != 0))
+                if ((guis[mongu].MouseDownCtrl < 0) && (!guis[mongu].OnClickHandler.IsEmpty()))
                     setevent(EV_IFACECLICK, mongu, -1, aa + 1);
 
                 run_on_event(GE_GUI_MOUSEDOWN, RuntimeScriptValue().SetInt32(mongu));

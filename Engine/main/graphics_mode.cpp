@@ -837,7 +837,8 @@ bool graphics_mode_init()
     game_size.Game = game.size;
     // The letterbox-by-design game property requests that game is run with
     // black horizontal borders
-    game_size.Box = ResolutionTypeToSize(game.GetDefaultResolution(), game.options[OPT_LETTERBOX] != 0);
+    game_size.Box = game.GetDefaultResolution() == kGameResolution_Custom ? game.size :
+        ResolutionTypeToSize(game.GetDefaultResolution(), game.options[OPT_LETTERBOX] != 0);
 
     if (!create_gfx_driver_and_init_mode(usetup.gfxDriverID, game_size, color_depths, usetup.windowed != 0))
     {

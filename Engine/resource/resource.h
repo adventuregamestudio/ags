@@ -2,6 +2,7 @@
 // Microsoft Visual C++ generated include file.
 // Used by version.rc
 //
+#define IDC_STATIC -1
 #define IDOKRUN                         3
 #define IDI_ICON1                       101
 #define IDD_DIALOG1                     102

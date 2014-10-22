@@ -25,6 +25,7 @@
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
+#include "core/def_version.h"
 #include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
@@ -118,17 +119,6 @@ void main_create_platform_driver()
     platform = AGSPlatformDriver::GetDriver();
 }
 
-// Version and build numbers
-#define ACI_VERSION_MAJOR               3
-#define ACI_VERSION_MINOR               3
-#define ACI_VERSION_RELEASE             2
-#define ACI_VERSION_REVISION            0
-#ifdef NO_MP3_PLAYER
-#define SPECIAL_VERSION "NMP"
-#else
-#define SPECIAL_VERSION ""
-#endif
-
 // this needs to be updated if the "play" struct changes
 #define SVG_VERSION_BWCOMPAT_MAJOR      3
 #define SVG_VERSION_BWCOMPAT_MINOR      2
@@ -150,10 +140,9 @@ AGS::Engine::Version SavedgameLowestForwardCompatVersion;
 
 void main_init()
 {
+    EngineVersion = Version(ACI_VERSION_STR " " SPECIAL_VERSION);
 #if defined (BUILD_STR)
-    EngineVersion = Version(ACI_VERSION_MAJOR, ACI_VERSION_MINOR, ACI_VERSION_RELEASE, ACI_VERSION_REVISION, SPECIAL_VERSION, BUILD_STR);
-#else
-    EngineVersion = Version(ACI_VERSION_MAJOR, ACI_VERSION_MINOR, ACI_VERSION_RELEASE, ACI_VERSION_REVISION, SPECIAL_VERSION);
+    EngineVersion.BuildInfo = BUILD_STR;
 #endif
     SavedgameLowestBackwardCompatVersion = Version(SVG_VERSION_BWCOMPAT_MAJOR, SVG_VERSION_BWCOMPAT_MINOR, SVG_VERSION_BWCOMPAT_RELEASE, SVG_VERSION_BWCOMPAT_REVISION);
     SavedgameLowestForwardCompatVersion = Version(SVG_VERSION_FWCOMPAT_MAJOR, SVG_VERSION_FWCOMPAT_MINOR, SVG_VERSION_FWCOMPAT_RELEASE, SVG_VERSION_FWCOMPAT_REVISION);
@@ -448,7 +437,7 @@ int main(int argc,char*argv[]) {
     initialize_debug_system();
 
     Out::FPrint("Adventure Game Studio v%s Interpreter\n"
-           "Copyright (c) 1999-2011 Chris Jones and 2011-2014 others\n"
+           "Copyright (c) 1999-2011 Chris Jones and " ACI_COPYRIGHT_YEARS " others\n"
 #ifdef BUILD_STR
            "ACI version %s (Build: %s)\n",
            EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr(), EngineVersion.BuildInfo.GetCStr());

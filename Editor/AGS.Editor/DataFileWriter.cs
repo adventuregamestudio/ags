@@ -70,7 +70,8 @@ namespace AGS.Editor
             public static readonly int GLF_NOBORDER = (int)Factory.NativeProxy.GetNativeConstant("GLF_NOBORDER");
             public static readonly int GLF_NOARROWS = (int)Factory.NativeProxy.GetNativeConstant("GLF_NOARROWS");
             public static readonly int GUI_POPUP_MODAL = (int)Factory.NativeProxy.GetNativeConstant("GUI_POPUP_MODAL");
-            public static readonly byte GUIMAIN_TEXTWINDOW = (byte)(int)Factory.NativeProxy.GetNativeConstant("GUIMAIN_TEXTWINDOW");
+            public static readonly int GUIMAIN_TEXTWINDOW = (int)Factory.NativeProxy.GetNativeConstant("GUIMAIN_TEXTWINDOW");
+            public static readonly byte GUIMAIN_LEGACYTEXTWINDOW = (byte)(int)Factory.NativeProxy.GetNativeConstant("GUIMAIN_LEGACYTEXTWINDOW");
             public static readonly int GTF_NOBORDER = (int)Factory.NativeProxy.GetNativeConstant("GTF_NOBORDER");
             public static readonly int MAX_GUILABEL_TEXT_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_GUILABEL_TEXT_LEN");
             public static readonly int MAX_GUIOBJ_SCRIPTNAME_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_GUIOBJ_SCRIPTNAME_LEN");
@@ -129,6 +130,17 @@ namespace AGS.Editor
                 public static readonly int OPT_GLOBALTALKANIMSPD = (int)Factory.NativeProxy.GetNativeConstant("OPT_GLOBALTALKANIMSPD");
                 public static readonly int OPT_SPRITEALPHA = (int)Factory.NativeProxy.GetNativeConstant("OPT_SPRITEALPHA");
             }
+        }
+
+        private static byte[] GetBytes(string text, int length)
+        {
+            byte[] bytes = new byte[length];
+            int i = 0;
+            for ( ; i < Math.Min(text.Length, length); ++i)
+            {
+                bytes[i] = (byte)text[i];
+            }
+            return bytes;
         }
 
         private class MultiFileLibNew
@@ -247,20 +259,22 @@ namespace AGS.Editor
 
         static void FilePutNullTerminatedString(string text, int maxLen, BinaryWriter writer)
         {
-            if ((text != null) && (maxLen >= 2))
+            if (maxLen <= 0) return;
+            if ((string.IsNullOrEmpty(text)) || (maxLen == 1))
             {
-                int len = text.IndexOf('\0');
-                text = text.Substring(0, Math.Min(len == -1 ? text.Length : len, maxLen - 1));
-                writer.Write(Encoding.ASCII.GetBytes(text));
+                writer.Write((byte)0);
+                return;
             }
-            writer.Write(new byte[] { (byte)0 });
+            int len = text.IndexOf('\0');
+            if (len == -1) len += maxLen;
+            if (len < text.Length) text = text.Substring(0, len);
+            writer.Write(GetBytes(text, text.Length + 1));
         }
 
         static void FilePutStringEncrypted(string text, BinaryWriter writer)
         {
-            byte[] bytes = Encoding.ASCII.GetBytes(text);
+            byte[] bytes = GetBytes(text, text.Length + 1);
             FileWriteDataEncrypted(bytes, writer);
-            FileWriteDataEncrypted(new byte[] { (byte)0 }, writer);
         }
 
         static void FilePutIntEncrypted(int numberToWrite, BinaryWriter writer)
@@ -618,31 +632,33 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Writes a string to the file as ASCII bytes. Length must be provided
+        /// Writes a string to the file as bytes. Length must be provided
         /// and will pad or truncate the text as necessary.
         /// </summary>
         private static void WriteString(string src, int length, BinaryWriter writer)
         {
             if ((writer == null) || (length <= 0)) return;
-            byte[] bytes = null;
-            if (string.IsNullOrEmpty(src)) bytes = new byte[length];
-            else
-            {
-                src = SafeTruncate(src, length);
-                if (src.Length < length)
-                {
-                    List<char> chars = new List<char>(src.ToCharArray());
-                    chars.AddRange(new char[length - src.Length]);
-                    bytes = Encoding.ASCII.GetBytes(chars.ToArray());
-                }
-                else bytes = Encoding.ASCII.GetBytes(src);
-            }
+            byte[] bytes = GetBytes(src, length);
             writer.Write(bytes);
         }
 
         private static string ReadString(int length, BinaryReader reader)
         {
             return new string(reader.ReadChars(length));
+        }
+
+        private class CustomPropertiesWriter
+        {
+            public static void Write(BinaryWriter writer, CustomProperties properties)
+            {
+                writer.Write(1);
+                writer.Write(properties.PropertyValues.Count);
+                foreach (KeyValuePair<string, CustomProperty> pair in properties.PropertyValues)
+                {
+                    FilePutNullTerminatedString(pair.Value.Name, NativeConstants.MAX_CUSTOM_PROPERTY_NAME_LENGTH, writer);
+                    FilePutNullTerminatedString(pair.Value.Value, NativeConstants.MAX_CUSTOM_PROPERTY_VALUE_LENGTH, writer);
+                }
+            }
         }
 
         private class CompiledCustomProperties
@@ -768,10 +784,11 @@ namespace AGS.Editor
         {
             StringBuilder sb = new StringBuilder(toEncrypt);
             int p = 0;
-            for (int i = 0; i < toEncrypt.Length; ++i, ++p)
+            for (int i = 0; i < toEncrypt.Length; ++i)
             {
-                if (p == NativeConstants.PASSWORD_ENC_STRING.Length) p = 0;
                 sb[i] += NativeConstants.PASSWORD_ENC_STRING[p];
+                ++p;
+                if (p == NativeConstants.PASSWORD_ENC_STRING.Length) p = 0;
             }
             sb.Append(NativeConstants.PASSWORD_ENC_STRING[p]);
             return sb.ToString();
@@ -782,10 +799,7 @@ namespace AGS.Editor
             int stlent = text.Length + 1;
             writer.Write(stlent);
             text = EncryptText(text);
-            for (int i = 0; i < text.Length; ++i) // NOTE: Using ASCII encoding here actually breaks the encryption and gives wrong result
-            {
-                writer.Write((byte)text[i]);
-            }
+            writer.Write(GetBytes(text, text.Length));
         }
 
         static void WriteCompiledScript(FileStream ostream, Script script)
@@ -799,13 +813,23 @@ namespace AGS.Editor
 
         class ViewsWriter
         {
-            private FolderHelper.ViewFolderProcessing processingDelegate;
             private BinaryWriter writer;
+            private View[] views;
 
-            public ViewsWriter(BinaryWriter writer)
+            public ViewsWriter(BinaryWriter writer, Game game)
             {
                 this.writer = writer;
-                processingDelegate = new FolderHelper.ViewFolderProcessing(WriteViews);
+                views = new View[game.ViewCount];
+                PopulateViews(game.RootViewFolder, game);
+            }
+
+            public void PopulateViews(IViewFolder folder, Game game)
+            {
+                FolderHelper.ForEachViewFolder(folder, game, new FolderHelper.ViewFolderProcessing(PopulateViews));
+                foreach (View view in folder.Views)
+                {
+                    views[view.ID - 1] = view;
+                }
             }
 
             public void WriteViews(IViewFolder folder, Game game)
@@ -814,8 +838,7 @@ namespace AGS.Editor
                 {
                     throw new CompileError("Could not write views: Invalid stream (NULL)");
                 }
-                FolderHelper.ForEachViewFolder(folder, game, processingDelegate);
-                foreach (View view in folder.Views)
+                foreach (View view in views)
                 {
                     short numLoops = (short)view.Loops.Count;
                     writer.Write(numLoops);
@@ -1040,13 +1063,11 @@ namespace AGS.Editor
                 writer.Write(control.Height);
                 writer.Write(control.ZOrder);
                 writer.Write(0); // activated
-                string buffer = SafeTruncate(control.Name, NativeConstants.MAX_GUIOBJ_SCRIPTNAME_LEN);
-                FilePutNullTerminatedString(buffer, buffer.Length + 1, writer);
+                FilePutNullTerminatedString(control.Name, NativeConstants.MAX_GUIOBJ_SCRIPTNAME_LEN + 1, writer);
                 writer.Write(events.Length); // numSupportedEvents
                 foreach (string sevent in events)
                 {
-                    buffer = SafeTruncate(sevent, NativeConstants.MAX_GUIOBJ_EVENTHANDLER_LEN);
-                    FilePutNullTerminatedString(buffer, buffer.Length + 1, writer);
+                    FilePutNullTerminatedString(sevent, NativeConstants.MAX_GUIOBJ_EVENTHANDLER_LEN + 1, writer);
                 }
             }
 
@@ -1061,10 +1082,8 @@ namespace AGS.Editor
                 foreach (GUIButtonOrTextWindowEdge ctrl in GUIButtonsAndTextWindowEdges)
                 {
                     int flags;
-                    string[] events;
                     flags = (ctrl.ClipImage ? NativeConstants.GUIF_CLIP : 0);
-                    events = (ctrl.OnClick == null ? new string[0] : new string[] { ctrl.OnClick });
-                    WriteGUIControl(ctrl, flags, events);
+                    WriteGUIControl(ctrl, flags, new string[] { ctrl.OnClick });
                     writer.Write(ctrl.Image); // pic
                     writer.Write(ctrl.MouseoverImage); // overpic
                     writer.Write(ctrl.PushedImage); // pushedpic
@@ -1234,8 +1253,6 @@ namespace AGS.Editor
                 writer.Write(new byte[4]); // vtext
                 WriteString(gui.Name, gui.Name.Length + 1, writer); // name
                 WriteString(gui.OnClick, gui.OnClick.Length + 1, writer); // clickEventHandler
-                //WriteString(SafeTruncate(gui.Name, 15), 16, writer); // name
-                //WriteString(SafeTruncate(gui.OnClick, 19), 20, writer); // clickEventHandler
                 writer.Write(gui.Left); // x
                 writer.Write(gui.Top); // y
                 writer.Write(gui.Width); // wid
@@ -1259,7 +1276,7 @@ namespace AGS.Editor
                 else transparency = ((100 - transparency) * 25) / 10;
                 writer.Write(transparency); // transparency
                 writer.Write(gui.ZOrder); // zorder
-                writer.Write(0); // guiId, TODO: should this be gui.ID?
+                writer.Write(0); // guiId
                 writer.Write(NativeConstants.TEXTWINDOW_PADDING_DEFAULT); // padding
                 writer.Write(new byte[5 * sizeof(int)]); // reserved
                 writer.Write(1); // on
@@ -1267,12 +1284,10 @@ namespace AGS.Editor
 
             private void WriteTextWindowGUI(TextWindowGUI gui)
             {
-                writer.Write(NativeConstants.GUIMAIN_TEXTWINDOW); // vtext...
+                writer.Write(NativeConstants.GUIMAIN_LEGACYTEXTWINDOW); // vtext...
                 writer.Write(new byte[3]); // ...vtext
                 WriteString(gui.Name, gui.Name.Length + 1, writer); // name
                 writer.Write((byte)0); // clickEventHandler
-                //WriteString(SafeTruncate(gui.Name, 15), 16, writer); // name
-                //writer.Write(new byte[20]); // clickEventHandler
                 writer.Write(0); // x
                 writer.Write(0); // y
                 writer.Write(200); // wid
@@ -1280,7 +1295,7 @@ namespace AGS.Editor
                 writer.Write(0); // focus
                 writer.Write(gui.Controls.Count); // numobjs
                 writer.Write(NativeConstants.GUI_POPUP_MODAL); // popup
-                writer.Write(0); // popupyp
+                writer.Write(-1); // popupyp
                 writer.Write(gui.BackgroundColor); // bgcol
                 writer.Write(gui.BackgroundImage); // bgpic
                 writer.Write(gui.TextColor); // fgcol
@@ -1289,10 +1304,10 @@ namespace AGS.Editor
                 writer.Write(-1); // mousewasy
                 writer.Write(-1); // mousedownon
                 writer.Write(-1); // highlightobj
-                writer.Write(0); // flags
+                writer.Write(NativeConstants.GUIMAIN_TEXTWINDOW); // flags
                 writer.Write(0); // transparency
-                writer.Write(0); // zorder
-                writer.Write(0); // guiId, TODO: should this be gui.ID?
+                writer.Write(-1); // zorder
+                writer.Write(0); // guiId
                 writer.Write(gui.Padding); // padding
                 writer.Write(new byte[5 * sizeof(int)]); // reserved
                 writer.Write(1); // on
@@ -1463,7 +1478,7 @@ namespace AGS.Editor
             {
                 WriteCompiledScript(ostream, script);
             }
-            ViewsWriter viewsWriter = new ViewsWriter(writer);
+            ViewsWriter viewsWriter = new ViewsWriter(writer, game);
             viewsWriter.WriteViews(FolderHelper.GetRootViewFolder(game), game);
             foreach (Character character in game.Characters)
             {
@@ -1477,46 +1492,50 @@ namespace AGS.Editor
                 if (!character.TurnBeforeWalking) flags |= NativeConstants.CHF_NOTURNING;
                 if (!character.UseRoomAreaLighting) flags |= NativeConstants.CHF_NOLIGHTING;
                 if (!character.UseRoomAreaScaling) flags |= NativeConstants.CHF_MANUALSCALING;
-                writer.Write(character.NormalView - 1);             // defview
-                writer.Write(character.SpeechView - 1);             // talkview
-                writer.Write(character.NormalView - 1);             // view
-                writer.Write(character.StartingRoom);               // room
-                writer.Write(0);                               // prevroom
-                writer.Write(character.StartX);                     // x
-                writer.Write(character.StartY);                     // y
-                writer.Write(0);                                // wait
-                writer.Write(flags);                            // flags
-                writer.Write((short)0);                        // following
-                writer.Write((short)0);          // followinfo
-                writer.Write(character.IdleView - 1);               // idleview
-                writer.Write((short)0);                        // idletime
-                writer.Write((short)0);                        // idleleft
-                writer.Write((short)0);                         // transparency
-                writer.Write((short)0);                        // baseline
-                writer.Write(0);                               // activeinv
-                writer.Write(character.SpeechColor);                // talkcolor
-                writer.Write(character.ThinkingView - 1);           // thinkview
-                writer.Write((short)(character.BlinkingView - 1));  // blinkview
-                writer.Write((short)0);                       // blinkinterval
-                writer.Write((short)0);                       // blinktimer
-                writer.Write((short)0);                         // blinkframe
-                writer.Write(character.UniformMovementSpeed ? NativeConstants.UNIFORM_WALK_SPEED : (short)character.MovementSpeedY); // walkspeed_y
-                writer.Write((short)0); // pic_yoffs
-                writer.Write(0); // z
-                writer.Write(0); // walkwait
-                writer.Write((short)character.SpeechAnimationDelay); // speech_anim_speed
-                writer.Write((short)0); // reserved1
-                writer.Write((short)0); // blocking_width
-                writer.Write((short)0); // blocking_height
-                writer.Write(character.ID); // index_id
-                writer.Write((short)0); // pic_xoffs
-                writer.Write((short)0); // walkwaitcounter
-                writer.Write(game.FindViewByID(character.NormalView).Loops[0].Frames.Count < 1 ? (short)1 : (short)0); // loop
-                writer.Write((short)0); // frame
-                writer.Write((short)0); // walking
-                writer.Write((short)0); // animating
-                writer.Write(character.UniformMovementSpeed ? (short)character.MovementSpeed : (short)character.MovementSpeedX); // walkspeed
-                writer.Write((short)character.AnimationDelay); // animspeed
+                writer.Write(character.NormalView - 1);                // defview
+                writer.Write(character.SpeechView - 1);                // talkview
+                writer.Write(character.NormalView - 1);                // view
+                writer.Write(character.StartingRoom);                  // room
+                writer.Write(0);                                       // prevroom
+                writer.Write(character.StartX);                        // x
+                writer.Write(character.StartY);                        // y
+                writer.Write(0);                                       // wait
+                writer.Write(flags);                                   // flags
+                writer.Write((short)0);                                // following
+                writer.Write((short)0);                                // followinfo
+                writer.Write(character.IdleView - 1);                  // idleview
+                writer.Write((short)0);                                // idletime
+                writer.Write((short)0);                                // idleleft
+                writer.Write((short)0);                                // transparency
+                writer.Write((short)0);                                // baseline
+                writer.Write(0);                                       // activeinv
+                writer.Write(character.SpeechColor);                   // talkcolor
+                writer.Write(character.ThinkingView - 1);              // thinkview
+                writer.Write((short)(character.BlinkingView - 1));     // blinkview
+                writer.Write((short)0);                                // blinkinterval
+                writer.Write((short)0);                                // blinktimer
+                writer.Write((short)0);                                // blinkframe
+                writer.Write(character.UniformMovementSpeed ?          // walkspeed_y
+                    NativeConstants.UNIFORM_WALK_SPEED :
+                    (short)character.MovementSpeedY);
+                writer.Write((short)0);                                // pic_yoffs
+                writer.Write(0);                                       // z
+                writer.Write(0);                                       // walkwait
+                writer.Write((short)character.SpeechAnimationDelay);   // speech_anim_speed
+                writer.Write((short)0);                                // reserved1
+                writer.Write((short)0);                                // blocking_width
+                writer.Write((short)0);                                // blocking_height
+                writer.Write(0);                                       // index_id
+                writer.Write((short)0);                                // pic_xoffs
+                writer.Write((short)0);                                // walkwaitcounter
+                writer.Write((short)0);                                // loop
+                writer.Write((short)0);                                // frame
+                writer.Write((short)0);                                // walking
+                writer.Write((short)0);                                // animating
+                writer.Write(character.UniformMovementSpeed ?          // walkspeed
+                    (short)character.MovementSpeed :
+                    (short)character.MovementSpeedX);
+                writer.Write((short)character.AnimationDelay);         // animspeed
                 bool isPlayer = (character == game.PlayerCharacter);
                 foreach (InventoryItem invItem in game.InventoryItems) // inv[MAX_INV]
                 {
@@ -1527,12 +1546,12 @@ namespace AGS.Editor
                 {
                     writer.Write(new byte[(NativeConstants.MAX_INV - game.InventoryItems.Count) * sizeof(short)]);
                 }
-                writer.Write((short)0); // actx
-                writer.Write((short)0); // acty
-                WriteString(character.RealName, 40, writer); // name
+                writer.Write((short)0);                                // actx
+                writer.Write((short)0);                                // acty
+                WriteString(character.RealName, 40, writer);           // name
                 WriteString(character.ScriptName, NativeConstants.MAX_SCRIPT_NAME_LEN, writer); // scrname
-                writer.Write((char)1); // on
-                writer.Write((byte)0); // alignment padding
+                writer.Write((char)1);                                 // on
+                writer.Write((byte)0);                                 // alignment padding
             }
             for (int i = 0; i < NativeConstants.MAXLIPSYNCFRAMES; ++i)
             {
@@ -1590,17 +1609,14 @@ namespace AGS.Editor
             }
             for (int i = 0; i < game.Characters.Count; ++i)
             {
-                CompiledCustomProperties item = new CompiledCustomProperties();
-                CompileCustomProperties(game.Characters[i].Properties, item);
-                item.Serialize(writer);
+                CustomPropertiesWriter.Write(writer, game.Characters[i].Properties);
             }
+            writer.Write(1); // inv slot 0 is unused, write the property header (int 1)
+            writer.Write(0); // then write the number of props used by this inv item (int 0)
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {
-                CompiledCustomProperties item = new CompiledCustomProperties();
-                CompileCustomProperties(game.InventoryItems[i].Properties, item);
-                item.Serialize(writer);
+                CustomPropertiesWriter.Write(writer, game.InventoryItems[i].Properties);
             }
-            new CompiledCustomProperties().Serialize(writer); // data file is writing 1 extra slot for inventory properties
             for (int i = 0; i <= game.ViewCount; ++i) // ViewCount is highest numbered view
             {
                 View view = game.FindViewByID(i);
@@ -1644,9 +1660,10 @@ namespace AGS.Editor
                 writer.Write((byte)clip.Type); // type
                 writer.Write((byte)clip.FileType); // fileType
                 writer.Write(clip.ActualRepeat ? (byte)1 : (byte)0); // defaultRepeat
-                writer.Write(new byte[3]); // struct alignment padding
+                writer.Write((byte)0); // struct alignment padding
                 writer.Write((short)clip.ActualPriority); // defaultPriority
                 writer.Write((short)clip.ActualVolume); // defaultVolume
+                writer.Write(new byte[2]); // struct alignment padding
                 writer.Write(0); // reserved
             }
             writer.Write(game.GetAudioArrayIndexFromAudioClipIndex(game.Settings.PlaySoundOnScore));

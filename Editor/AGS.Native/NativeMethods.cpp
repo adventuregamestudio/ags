@@ -703,6 +703,7 @@ namespace AGS
             if (name->Equals("GLF_NOARROWS")) return GLF_NOARROWS;
             if (name->Equals("GUI_POPUP_MODAL")) return (int)Common::kGUIPopupModal;
             if (name->Equals("GUIMAIN_TEXTWINDOW")) return (int)Common::kGUIMain_TextWindow;
+            if (name->Equals("GUIMAIN_LEGACYTEXTWINDOW")) return (int)Common::kGUIMain_LegacyTextWindow;
             if (name->Equals("GTF_NOBORDER")) return GTF_NOBORDER;
             if (name->Equals("MAX_GUILABEL_TEXT_LEN")) return MAX_GUILABEL_TEXT_LEN;
             if (name->Equals("MAX_GUIOBJ_SCRIPTNAME_LEN")) return MAX_GUIOBJ_SCRIPTNAME_LEN;

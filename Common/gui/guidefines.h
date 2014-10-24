@@ -109,6 +109,11 @@ enum GUIMainFlags
     kGUIMain_TextWindow = 0x02
 };
 
+enum GUIMainLegacyFlags
+{
+    kGUIMain_LegacyTextWindow = 5
+};
+
 enum GUIPopupStyle
 {
     // normal GUI, initally on

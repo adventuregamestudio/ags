@@ -55,7 +55,6 @@ public:
 
   void reset()
   {
-      memset(this, 0, sizeof(GUILabel));
     GUIObject::init();
     align = GALIGN_LEFT;
     font = 0;

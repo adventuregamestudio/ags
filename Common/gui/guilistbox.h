@@ -67,7 +67,6 @@ struct GUIListBox:public GUIObject
 
   void reset()
   {
-      memset(this, 0, sizeof(GUIListBox));
     GUIObject::init();
     mousexp = 0;
     mouseyp = 0;

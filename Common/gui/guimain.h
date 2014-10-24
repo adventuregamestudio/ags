@@ -40,11 +40,6 @@ namespace AGS
 namespace Common
 {
 
-enum GUIMainLegacyFlags
-{
-    kGUIMain_LegacyTextWindow = 5
-};
-
 enum GUIVisibilityState
 {
     kGUIVisibility_Concealed = -1, // gui is hidden by command

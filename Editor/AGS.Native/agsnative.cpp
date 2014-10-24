@@ -3458,7 +3458,7 @@ void CompileCustomProperties(AGS::Types::CustomProperties ^convertFrom, ::Custom
 {
 	compileInto->reset();
 	int j = 0;
-	char propName[200];
+	char propName[MAX_CUSTOM_PROPERTY_NAME_LENGTH];
 	char propVal[MAX_CUSTOM_PROPERTY_VALUE_LENGTH];
 	for each (String ^key in convertFrom->PropertyValues->Keys)
 	{

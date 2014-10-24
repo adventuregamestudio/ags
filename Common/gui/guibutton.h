@@ -78,7 +78,6 @@ struct GUIButton:public GUIObject
 
   void reset()
   {
-      memset(this, 0, sizeof(GUIButton));
     GUIObject::init();
     usepic = -1;
     pic = -1;

@@ -138,13 +138,21 @@ namespace AGS.Types
                 }
             }
 
+            DeserializeIgnoreAttribute[] ignoreAttributes =
+                (DeserializeIgnoreAttribute[])obj.GetType().GetCustomAttributes(typeof(DeserializeIgnoreAttribute), true);
+
             foreach (XmlNode child in mainNode.ChildNodes)
             {
                 string elementValue = child.InnerText;
                 PropertyInfo prop = obj.GetType().GetProperty(child.Name);
                 if (prop == null)
                 {
-                    throw new InvalidDataException("The property '" + child.Name + "' could not be read. This game may require a newer version of AGS.");
+                    if (ignoreAttributes.Length == 0 ||
+                        !Array.Exists(ignoreAttributes, DeserializeIgnoreAttribute.MatchesPropertyName(child.Name)))
+                    {
+                        throw new InvalidDataException("The property '" + child.Name + "' could not be read. This game may require a newer version of AGS.");
+                    }
+                    continue;
                 }
                 else if (!prop.CanWrite)
                 {

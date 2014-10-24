@@ -129,6 +129,7 @@ namespace AGS.Editor
                 public static readonly int OPT_NATIVECOORDINATES = (int)Factory.NativeProxy.GetNativeConstant("OPT_NATIVECOORDINATES");
                 public static readonly int OPT_GLOBALTALKANIMSPD = (int)Factory.NativeProxy.GetNativeConstant("OPT_GLOBALTALKANIMSPD");
                 public static readonly int OPT_SPRITEALPHA = (int)Factory.NativeProxy.GetNativeConstant("OPT_SPRITEALPHA");
+                public static readonly int OPT_LIPSYNCTEXT = (int)Factory.NativeProxy.GetNativeConstant("OPT_LIPSYNCTEXT");
             }
         }
 
@@ -543,6 +544,7 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_NATIVECOORDINATES] = (game.Settings.UseLowResCoordinatesInScript ? 0 : 1);
             options[NativeConstants.GameOptions.OPT_WALKONLOOK] = (game.Settings.WalkInLookMode ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_DISABLEOFF] = (int)game.Settings.WhenInterfaceDisabled;
+            options[NativeConstants.GameOptions.OPT_LIPSYNCTEXT] = (game.LipSync.Type == LipSyncType.Text ? 1 : 0);
             for (int i = 0; i < options.Length; ++i) // writing only ints, alignment preserved
             {
                 writer.Write(options[i]);
@@ -580,11 +582,9 @@ namespace AGS.Editor
             writer.Write(game.Settings.UniqueID);
             writer.Write(game.GUIs.Count);
             writer.Write(game.Cursors.Count);
-            if ((game.Settings.LegacyLetterboxAble) && (game.Settings.LetterboxMode))
+            if (game.Settings.LetterboxMode)
             {
-#pragma warning disable 612, 618 // we know this is the old resolution member, don't warn about this usage
-                writer.Write((int)game.Settings.Resolution);
-#pragma warning restore 612, 618
+                writer.Write((int)game.Settings.LegacyLetterboxResolution);
             }
             else
             {

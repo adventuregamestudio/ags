@@ -61,6 +61,12 @@ extern int _places_r, _places_g, _places_b;
 IGfxDriverFactory *GfxFactory = NULL;
 IGfxFilter *filter;
 
+struct GameSizeDef
+{
+    Size Game; // actual game size
+    Size Box;  // bounding box
+};
+
 struct ColorDepthOption
 {
     int32_t Prime;
@@ -181,23 +187,23 @@ void engine_init_resolution_settings(const Size game_size, ColorDepthOption &col
 {
     Out::FPrint("Initializing resolution settings");
 
-    play.SetViewport(game.size);
+    play.SetViewport(game_size);
 
     if (game.IsHiRes())
     {
-        play.native_size.Width = game.size.Width / 2;
-        play.native_size.Height = game.size.Height / 2;
+        play.native_size.Width = game_size.Width / 2;
+        play.native_size.Height = game_size.Height / 2;
         wtext_multiply = 2;
     }
     else
     {
-        play.native_size.Width = game.size.Width;
-        play.native_size.Height = game.size.Height;
+        play.native_size.Width = game_size.Width;
+        play.native_size.Height = game_size.Height;
         wtext_multiply = 1;
     }
 
     usetup.textheight = wgetfontheight(0) + 1;
-    current_screen_resolution_multiplier = game.size.Width / play.native_size.Width;
+    current_screen_resolution_multiplier = game_size.Width / play.native_size.Width;
 
     if (game.IsHiRes() &&
         (game.options[OPT_NATIVECOORDINATES]))
@@ -405,7 +411,7 @@ bool create_gfx_driver(const String &gfx_driver_id)
     return true;
 }
 
-bool init_gfx_mode(const Size game_size, const Size screen_size, const Size frame_size, const RectPlacement frame_place,
+bool init_gfx_mode(const GameSizeDef &game_size, const Size &screen_size, const GameSizeDef &frame_size, const RectPlacement frame_place,
                    const int color_depth, const bool windowed)
 {
     ScreenResolution.Width = screen_size.Width;
@@ -421,16 +427,19 @@ bool init_gfx_mode(const Size game_size, const Size screen_size, const Size fram
     const char *frame_placement[kNumRectPlacement] = { "offset", "center", "stretch", "proportional" };
     Out::FPrint("Attempt to switch gfx mode to %d x %d (%d-bit) %s; game frame: %d x %d, frame placement: %s",
         ScreenResolution.Width, ScreenResolution.Height, ScreenResolution.ColorDepth, windowed ? "windowed" : "fullscreen",
-        frame_size.Width, frame_size.Height, frame_placement[frame_place]);
+        frame_size.Box.Width, frame_size.Box.Height, frame_placement[frame_place]);
 
     // CHECKME: why 50? Do we need this if we are not using allegro software driver?
     if (usetup.refresh >= 50)
         request_refresh_rate(usetup.refresh);
 
     const DisplayMode mode = DisplayMode(ScreenResolution, windowed, usetup.refresh, usetup.vsync);
-    const Size src_size = game_size;
+    const Size src_size = game_size.Game;
     const Rect screen_rect = RectWH(0, 0, screen_size.Width, screen_size.Height);
-    Rect dst_rect = PlaceInRect(screen_rect, RectWH(0, 0, frame_size.Width, frame_size.Height), frame_place);
+    Rect dst_rect = PlaceInRect(screen_rect, RectWH(0, 0, frame_size.Box.Width, frame_size.Box.Height), frame_place);
+    // If requested bounding box is larger than game frame, then position the frame centered inside bounding box
+    if (frame_size.Box != frame_size.Game)
+        dst_rect = PlaceInRect(dst_rect, RectWH(0, 0, frame_size.Game.Width, frame_size.Game.Height), kPlaceCenter);
 
     if (gfxDriver->Init(mode, src_size, dst_rect, &timerloop))
     {
@@ -447,11 +456,12 @@ bool init_gfx_mode(const Size game_size, const Size screen_size, const Size fram
     return false;
 }
 
-void set_game_frame_after_screen_size(const Size game_size, const Size screen_size, Size &frame_size)
+void set_game_frame_after_screen_size(const GameSizeDef &game_size, const Size screen_size,
+                                      GameSizeDef &frame_size)
 {
     // Set game frame as native game resolution scaled by custom factor
-    const uint32_t max_scaling_x = (screen_size.Width / game_size.Width) << kShift;
-    const uint32_t max_scaling_y = (screen_size.Height / game_size.Height) << kShift;
+    const uint32_t max_scaling_x = (screen_size.Width / game_size.Box.Width) << kShift;
+    const uint32_t max_scaling_y = (screen_size.Height / game_size.Box.Height) << kShift;
     int scale_x, scale_y;
     if (filter->GetInfo().FixedScale != 0)
     {
@@ -459,7 +469,7 @@ void set_game_frame_after_screen_size(const Size game_size, const Size screen_si
     }
     else if (usetup.filter_scaling_max_uniform)
     {
-        scale_x = scale_y = min(max_scaling_x, max_scaling_y);
+        scale_x = scale_y = Math::Min(max_scaling_x, max_scaling_y);
     }
     else
     {
@@ -471,10 +481,12 @@ void set_game_frame_after_screen_size(const Size game_size, const Size screen_si
         scale_x = kUnit;
     if (scale_y <= 0)
         scale_y = kUnit;
-    frame_size = Size((game_size.Width * scale_x) >> kShift, (game_size.Height * scale_y) >> kShift);
+    frame_size.Game = Size((game_size.Game.Width * scale_x) >> kShift, (game_size.Game.Height * scale_y) >> kShift);
+    frame_size.Box = Size((game_size.Box.Width * scale_x) >> kShift, (game_size.Box.Height * scale_y) >> kShift);
 }
 
-void precalc_render_screen_and_frame(const Size game_size, Size &screen_size, Size &frame_size, const int color_depth, const bool windowed)
+void precalc_render_screen_and_frame(const GameSizeDef &game_size, Size &screen_size, GameSizeDef &frame_size,
+                                     const int color_depth, const bool windowed)
 {
     Size device_size;
     get_desktop_size_for_mode(device_size, windowed);
@@ -491,15 +503,15 @@ void precalc_render_screen_and_frame(const Size game_size, Size &screen_size, Si
             // use the scaled game size instead
             set_game_frame_after_screen_size(game_size, device_size, frame_size);
             if (screen_size.Width <= 0)
-                screen_size.Width = frame_size.Width;
+                screen_size.Width = frame_size.Box.Width;
             if (screen_size.Height <= 0)
-                screen_size.Height = frame_size.Height;
+                screen_size.Height = frame_size.Box.Height;
         }
         break;
     case kScreenDef_ByGameScaling:
         // Use game frame (scaled game) size
         set_game_frame_after_screen_size(game_size, device_size, frame_size);
-        screen_size = frame_size;
+        screen_size = frame_size.Box;
         break;
     case kScreenDef_MaxDisplay:
         // Set as big as current device size
@@ -508,7 +520,7 @@ void precalc_render_screen_and_frame(const Size game_size, Size &screen_size, Si
     }
 }
 
-void setup_render_frame(const Size game_size, const Size screen_size, Size &frame_size, RectPlacement &frame_place)
+void setup_render_frame(const GameSizeDef &game_size, const Size screen_size, GameSizeDef &frame_size, RectPlacement &frame_place)
 {
     // Setup final render frame, depending on defined screen size
     if (usetup.screen_sz_def != kScreenDef_ByGameScaling)
@@ -521,19 +533,19 @@ void setup_render_frame(const Size game_size, const Size screen_size, Size &fram
     // do not apply a "centered" style, use "proportional stretch" instead
     if (frame_place == kPlaceCenter || frame_place == kPlaceOffset)
     {
-        if (frame_size.ExceedsByAny(screen_size))
+        if (frame_size.Box.ExceedsByAny(screen_size))
             frame_place = kPlaceStretchProportional;
     }
 }
 
-bool try_init_gfx_mode(const Size game_size, const Size screen_size, const Size frame_size, const int color_depth, const bool windowed)
+bool try_init_gfx_mode(const GameSizeDef &game_size, const Size screen_size, const GameSizeDef &frame_size, const int color_depth, const bool windowed)
 {
     // Find nearest compatible mode and init that
     Out::FPrint("Attempting to find nearest supported resolution for screen size %d x %d (%d-bit) %s",
         screen_size.Width, screen_size.Height, color_depth, windowed ? "windowed" : "fullscreen");
     Size device_size;
     Size fixed_screen_size = screen_size;
-    Size fixed_frame_size = frame_size;
+    GameSizeDef fixed_frame = frame_size;
     bool mode_found = false;
 
     get_desktop_size_for_mode(device_size, windowed);
@@ -562,18 +574,20 @@ bool try_init_gfx_mode(const Size game_size, const Size screen_size, const Size 
     if (mode_found)
     {
         RectPlacement frame_place;
-        setup_render_frame(game_size, fixed_screen_size, fixed_frame_size, frame_place);
-        return init_gfx_mode(game_size, fixed_screen_size, fixed_frame_size, frame_place, color_depth, windowed);
+        setup_render_frame(game_size, fixed_screen_size, fixed_frame, frame_place);
+        return init_gfx_mode(game_size, fixed_screen_size, fixed_frame, frame_place, color_depth, windowed);
     }
 
     Out::FPrint("Could not find compatible graphics mode");
     return false;
 }
 
-bool try_init_gfx_mode(const Size game_size, const ColorDepthOption color_depths, const bool windowed)
+bool try_init_gfx_mode(const GameSizeDef &game_size, const ColorDepthOption color_depths, const bool windowed)
 {
-    Size screen_size;
-    Size frame_size;
+    Size screen_size; // final screen size
+    GameSizeDef frame_size; // scaled game definition
+    // When precalculating screen size we use box bounding size for reference, in case engine
+    // requested larger screen space to place the game in
     precalc_render_screen_and_frame(game_size, screen_size, frame_size, color_depths.Prime, windowed);
     bool result = try_init_gfx_mode(game_size, screen_size, frame_size, color_depths.Prime, windowed);
     if (!result && color_depths.Prime != color_depths.Alternate)
@@ -581,7 +595,7 @@ bool try_init_gfx_mode(const Size game_size, const ColorDepthOption color_depths
     return result;
 }
 
-bool engine_init_graphics_mode(const Size game_size, const ColorDepthOption color_depths, const bool windowed)
+bool engine_init_graphics_mode(const GameSizeDef &game_size, const ColorDepthOption color_depths, const bool windowed)
 {
     Out::FPrint("Switching to graphics mode");
     bool result = try_init_gfx_mode(game_size, color_depths, windowed);
@@ -767,14 +781,15 @@ void log_out_driver_modes(const int color_depth)
     Out::FPrint(out_str);
 }
 
-bool create_gfx_driver_and_init_mode(const String &gfx_driver_id, const Size game_size,
+bool create_gfx_driver_and_init_mode(const String &gfx_driver_id, const GameSizeDef &game_size,
                                      const ColorDepthOption color_depths, const bool windowed)
 {
     if (!create_gfx_driver(gfx_driver_id))
         return false;
     // Log out supported driver modes
     log_out_driver_modes(color_depths.Prime);
-    log_out_driver_modes(color_depths.Alternate);
+    if (color_depths.Prime != color_depths.Alternate)
+        log_out_driver_modes(color_depths.Alternate);
     
     if (!engine_set_gfx_filter(color_depths.Prime))
         return false;
@@ -783,7 +798,7 @@ bool create_gfx_driver_and_init_mode(const String &gfx_driver_id, const Size gam
         return false;
 
     // init game scaling transformation
-    GameScaling.Init(game_size, gfxDriver->GetRenderDestination());
+    GameScaling.Init(game_size.Game, gfxDriver->GetRenderDestination());
     return true;
 }
 
@@ -815,14 +830,24 @@ bool graphics_mode_init()
     // Calculate required screen and game frame resolutions
     engine_init_resolution_settings(game.size, color_depths);
 
-    if (!create_gfx_driver_and_init_mode(usetup.gfxDriverID, game.size, color_depths, usetup.windowed != 0))
+    // Game size is used when defining resolution base and proper scaling;
+    // Box size specifies minimal wanted screen size for the game (unscaled),
+    // it is supposed to be be equal or greater than game_size
+    GameSizeDef game_size;
+    game_size.Game = game.size;
+    // The letterbox-by-design game property requests that game is run with
+    // black horizontal borders
+    game_size.Box = game.GetDefaultResolution() == kGameResolution_Custom ? game.size :
+        ResolutionTypeToSize(game.GetDefaultResolution(), game.options[OPT_LETTERBOX] != 0);
+
+    if (!create_gfx_driver_and_init_mode(usetup.gfxDriverID, game_size, color_depths, usetup.windowed != 0))
     {
         if (gfxDriver && stricmp(gfxDriver->GetDriverID(), "DX5") != 0)
         {
             graphics_mode_shutdown();
-            if (!create_gfx_driver_and_init_mode("DX5", game.size, color_depths, usetup.windowed != 0))
+            if (!create_gfx_driver_and_init_mode("DX5", game_size, color_depths, usetup.windowed != 0))
             {
-                display_gfx_mode_error(game.size, color_depths.Prime);
+                display_gfx_mode_error(game_size.Box, color_depths.Prime);
                 return false;
             }
         }

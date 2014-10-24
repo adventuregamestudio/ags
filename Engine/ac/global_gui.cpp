@@ -41,6 +41,8 @@ int IsGUIOn (int guinum) {
 // It is used by the editor's automatic macro generation.
 int FindGUIID (const char* GUIName) {
     for (int ii = 0; ii < game.numgui; ii++) {
+        if (guis[ii].Name.IsEmpty())
+            continue;
         if (strcmp(guis[ii].Name, GUIName) == 0)
             return ii;
         if ((guis[ii].Name[0] == 'g') && (stricmp(guis[ii].Name.GetCStr() + 1, GUIName) == 0))

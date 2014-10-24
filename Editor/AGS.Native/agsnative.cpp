@@ -2732,8 +2732,9 @@ void UpdateSpriteFlags(SpriteFolder ^folder)
 void SetGameResolution(Game ^game)
 {
     // For backwards compatibility, save letterbox-by-design games as having non-custom resolution
-    if (game->Settings->LegacyLetterboxAble && game->Settings->LetterboxMode)
-        thisgame.SetDefaultResolution((GameResolutionType)game->Settings->Resolution);
+    thisgame.options[OPT_LETTERBOX] = game->Settings->LetterboxMode;
+    if (game->Settings->LetterboxMode)
+        thisgame.SetDefaultResolution((GameResolutionType)game->Settings->LegacyLetterboxResolution);
     else
         thisgame.SetCustomResolution(::Size(game->Settings->CustomResolution.Width, game->Settings->CustomResolution.Height));
 }

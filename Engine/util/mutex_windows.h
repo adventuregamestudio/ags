@@ -41,8 +41,6 @@ public:
 
   ~WindowsMutex()
   {
-    Unlock();
-
     _ASSERT(_mutex != NULL);
 
     CloseHandle(_mutex);

@@ -480,8 +480,7 @@ void init_and_register_guis()
 
         // copy the script name to its own memory location
         // because ccAddExtSymbol only keeps a reference
-        guiScriptObjNames[ee] = (char*)malloc(21); // FIXME: remove name length limit
-        strncpy(guiScriptObjNames[ee], guis[ee].Name, 20);
+        guiScriptObjNames[ee] = strdup(guis[ee].Name);
 
         // 64 bit: Using the id instead
         // scrGui[ee].gui = &guis[ee];

@@ -19,7 +19,12 @@
 #ifndef __CC_INSTANCE_H
 #define __CC_INSTANCE_H
 
+#if defined (_MSC_VER)
 #include <unordered_map>
+#elif defined (__GNUC__)
+#include <tr1/memory>
+#include <tr1/unordered_map>
+#endif
 #include "script/script_common.h"
 #include "script/cc_script.h"  // ccScript
 #include "script/nonblockingscriptfunction.h"

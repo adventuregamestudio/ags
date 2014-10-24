@@ -20,7 +20,7 @@
 
 #include "util/math.h"
 
-namespace Math = AGS::Common::Math;
+namespace AGSMath = AGS::Common::Math;
 //namespace AGS
 //{
 //namespace Common
@@ -112,8 +112,8 @@ struct Size
 
     inline void Clamp(const Size floor, const Size ceil)
     {
-        Width = Math::Clamp(floor.Width, ceil.Width, Width);
-        Height = Math::Clamp(floor.Height, ceil.Height, Height);
+        Width = AGSMath::Clamp(floor.Width, ceil.Width, Width);
+        Height = AGSMath::Clamp(floor.Height, ceil.Height, Height);
     }
 
     // Indicates if current size exceeds other size by any metric

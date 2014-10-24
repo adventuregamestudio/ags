@@ -178,13 +178,22 @@ namespace AGS.Types
         [Category("(Setup)")]
         [EditorAttribute(typeof(CustomResolutionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomResolutionTypeConverter))]
-        [RefreshProperties(RefreshProperties.Repaint)]
+        [RefreshProperties(RefreshProperties.All)]
         public Size CustomResolution
         {
             get { return _resolution; }
-            set { _resolution = value; }
+            set
+            {
+                _resolution = value;
+                if (LegacyLetterboxResolution == GameResolutions.Custom)
+                    LetterboxMode = false;
+            }
         }
 
+        /// <summary>
+        /// Tells if the game should be considered low-resolution.
+        /// For backwards-compatble logic only.
+        /// </summary>
         [Browsable(false)]
         public bool LowResolution
         {
@@ -194,13 +203,23 @@ namespace AGS.Types
             }
         }
 
+        /// <summary>
+        /// Tells which of the legacy resolution types would be represented by
+        /// the current game resolution if designed in letterboxed mode.
+        /// Returns GameResolutions.Custom if current resolution cannot be used
+        /// for letterboxed design.
+        /// For backwards-compatible logic only.
+        /// </summary>
         [Browsable(false)]
-        public bool LegacyLetterboxAble
+        public GameResolutions LegacyLetterboxResolution
         {
             get
             {
-                return (CustomResolution.Width == 320 && CustomResolution.Height == 200) ||
-                       (CustomResolution.Width == 640 && CustomResolution.Height == 400);
+                if (CustomResolution.Width == 320 && CustomResolution.Height == 200)
+                    return GameResolutions.R320x200;
+                if (CustomResolution.Width == 640 && CustomResolution.Height == 400)
+                    return GameResolutions.R640x400;
+                return GameResolutions.Custom;
             }
         }
 
@@ -301,7 +320,11 @@ namespace AGS.Types
         public bool LetterboxMode
         {
             get { return _letterboxMode; }
-            set { _letterboxMode = value; }
+            set
+            {
+                if (value == false || LegacyLetterboxResolution != GameResolutions.Custom)
+                    _letterboxMode = value;
+            }
         }
 
         [DisplayName("Automatically move the player in Walk mode")]
@@ -1013,7 +1036,8 @@ namespace AGS.Types
                     wantThisProperty = false;
                 }
                 // TODO: this must be done other way; leaving for backwards-compatibility only
-                else if (property.Name == "LetterboxMode" && LegacyLetterboxAble)
+                else if (property.Name == "LetterboxMode" &&
+                    LegacyLetterboxResolution == GameResolutions.Custom)
                 {
                     // Only show letterbox option for 320x200 and 640x400 games
                     wantThisProperty = false;

@@ -315,9 +315,10 @@ void read_config_file(char *argv0) {
 
         usetup.translation = INIreaditem ("language", "translation");
 
-#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
         // PSP: Don't let the setup determine the cache size as it is always too big.
-        spriteset.maxCacheSize = INIreadint ("misc", "cachemax", 20) * 1024;
+#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+        // the config file specifies cache size in KB, here we convert it to bytes
+        spriteset.maxCacheSize = INIreadint ("misc", "cachemax", DEFAULTCACHESIZE / 1024) * 1024;
 #endif
 
         char *repfile = INIreaditem ("misc", "replay");

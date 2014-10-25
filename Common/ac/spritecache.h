@@ -29,6 +29,13 @@ using namespace AGS; // FIXME later
 // a definite way of knowing whether the sprite existed in the sprite file.
 #define SPRCACHEFLAG_DOESNOTEXIST 1
 
+// PSP: Use smaller sprite cache due to limited total memory.
+#if defined (PSP_VERSION)
+#define DEFAULTCACHESIZE 5000000
+#else
+#define DEFAULTCACHESIZE 20 * 1024 * 1024 // max size, in bytes (20 MB)
+#endif
+
 class SpriteCache
 {
 public:

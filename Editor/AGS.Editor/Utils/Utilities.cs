@@ -443,7 +443,7 @@ namespace AGS.Editor
         {
             return CreateHardLink(destFileName, sourceFileName, false);
         }
-        
+
         public static bool CreateHardLink(string destFileName, string sourceFileName, bool overwrite)
         {
             if (File.Exists(destFileName))
@@ -458,7 +458,7 @@ namespace AGS.Editor
                 fileName = "ln";
                 args = string.Format("{0} {1}", sourceFileName, destFileName);
             }
-            bool result = Process.Start(fileName, args);
+            bool result = (Process.Start(fileName, args) != null);
             if (result)
             {
                 // by default the new hard link will be accessible to the current user only
@@ -476,6 +476,7 @@ namespace AGS.Editor
                 File.SetAccessControl(destFileName, fsec);
             }
             return result;
+        }
 
         public static string GetFullPathFromProjectRelative(string relativePath)
         {

@@ -47,6 +47,7 @@
 #include "main/engine.h"
 #include "main/game_start.h"
 #include "main/game_run.h"
+#include "main/graphics_mode.h"
 #include "media/audio/audio.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
@@ -61,7 +62,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #define ALLEGRO_KEYBOARD_HANDLER
 
-extern int guis_need_update;
 extern GameState play;
 extern ExecutingScript*curscript;
 extern const char *load_game_errors[9];
@@ -84,9 +84,9 @@ extern int getloctype_index;
 extern int offsetx, offsety;
 extern char saveGameDirectory[260];
 extern IGraphicsDriver *gfxDriver;
-extern int scrnwid,scrnhit;
 extern color palette[256];
 extern Bitmap *virtual_screen;
+extern int psp_gfx_renderer;
 
 void GiveScore(int amnt) 
 {
@@ -749,7 +749,13 @@ int SaveScreenShot(const char*namm) {
 
     if (gfxDriver->RequiresFullRedrawEachFrame()) 
     {
-        Bitmap *buffer = BitmapHelper::CreateBitmap(scrnwid, scrnhit, 32);
+        // FIXME this weird stuff! (related to incomplete OpenGL renderer)
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
+        int color_depth = (psp_gfx_renderer > 0) ? 32 : ScreenResolution.ColorDepth;
+#else
+        int color_depth = ScreenResolution.ColorDepth;
+#endif
+        Bitmap *buffer = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), color_depth);
         gfxDriver->GetCopyOfScreenIntoBitmap(buffer);
 
 		if (!buffer->SaveToFile(fileName, palette)!=0)
@@ -775,7 +781,7 @@ void SetMultitasking (int mode) {
     }
 
     // Don't allow background running if full screen
-    if ((mode == 1) && (usetup.windowed == 0))
+    if ((mode == 1) && (!usetup.windowed))
         mode = 0;
 
     if (mode == 0) {

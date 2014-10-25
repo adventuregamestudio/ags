@@ -20,6 +20,15 @@
 using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
 
+extern GameSetupStruct game;
+
+void GameState::SetViewport(const Size viewport_size)
+{
+    viewport = RectWH((game.size.Width - viewport_size.Width) / 2,
+                      (game.size.Height - viewport_size.Height) / 2,
+                       viewport_size.Width, viewport_size.Height);
+}
+
 //
 // [IKM] What must be kept in mind: in previous versions of AGS
 // this struct was read and written as-is (read/write-ing object)
@@ -29,8 +38,6 @@ using AGS::Common::Stream;
 // On other hand we should read/write even pointers to arrays
 // (or at least emulate that), although that could make no sense.
 //
-
-extern GameSetupStruct game;
 
 void GameState::ReadFromFile_v321(Stream *in)
 {
@@ -153,7 +160,7 @@ void GameState::ReadFromFile_v321(Stream *in)
     speech_font = in->ReadInt32();
     key_skip_wait = in->ReadInt8();
     swap_portrait_lastchar = in->ReadInt32();
-    seperate_music_lib = in->ReadInt32();
+    separate_music_lib = in->ReadInt32();
     in_conversation = in->ReadInt32();
     screen_tint = in->ReadInt32();
     num_parsed_words = in->ReadInt32();
@@ -334,7 +341,7 @@ void GameState::WriteToFile_v321(Stream *out)
     out->WriteInt32( speech_font);
     out->WriteInt8( key_skip_wait);
     out->WriteInt32( swap_portrait_lastchar);
-    out->WriteInt32( seperate_music_lib);
+    out->WriteInt32( separate_music_lib);
     out->WriteInt32( in_conversation);
     out->WriteInt32( screen_tint);
     out->WriteInt32( num_parsed_words);

@@ -15,27 +15,30 @@
 #ifndef __AC_GAMESETUP_H
 #define __AC_GAMESETUP_H
 
+#include "util/geometry.h"
 #include "util/string.h"
 
-// game setup, read in from CFG file
-// this struct is redefined in acdialog.cpp, any changes might
-// need to be reflected there
-// [IKM] 2012-06-27: now it isn't
+enum ScreenSizeDefinition
+{
+    kScreenDef_Explicit,        // define by width & height
+    kScreenDef_ByGameScaling,   // define by game scale factor
+    kScreenDef_MaxDisplay,      // set to maximal supported (desktop/device screen size)
+    kNumScreenDef
+};
+
 struct GameSetup {
-    int digicard,midicard;
+    int digicard;
+    int midicard;
     int mod_player;
     int textheight;
     int mp3_player;
-    int want_letterbox;
-    int windowed;
-    int vsync;
-    int base_width, base_height;
+    bool windowed;
+    bool vsync;
     short refresh;
-    char  no_speech_pack;
-    char  enable_antialiasing;
-    char  force_hicolor_mode;
-    char  disable_exception_handling;
-    char  enable_side_borders;
+    bool  no_speech_pack;
+    bool  enable_antialiasing;
+    bool  force_hicolor_mode;
+    bool  disable_exception_handling;
     AGS::Common::String data_files_dir;
     AGS::Common::String main_data_filename;
     char *translation;
@@ -44,6 +47,15 @@ struct GameSetup {
     int   override_script_os;
     char  override_multitasking;
     bool  override_upscale;
+    ScreenSizeDefinition screen_sz_def;
+    Size  screen_size;
+    uint32_t filter_scaling_x;
+    uint32_t filter_scaling_y;
+    bool filter_scaling_max_uniform;
+    bool match_device_ratio;
+    RectPlacement game_frame_placement;
+    AGS::Common::String gfxFilterRequest;
+
     GameSetup();
 };
 

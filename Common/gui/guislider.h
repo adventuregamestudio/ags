@@ -15,8 +15,8 @@
 #ifndef __AC_GUISLIDER_H
 #define __AC_GUISLIDER_H
 
+#include <vector>
 #include "gui/guiobject.h"
-#include "gui/dynamicarray.h"
 
 struct GUISlider:public GUIObject
 {
@@ -87,7 +87,7 @@ struct GUISlider:public GUIObject
   }
 };
 
-extern DynamicArray<GUISlider> guislider;
+extern std::vector<GUISlider> guislider;
 extern int numguislider;
 
 #endif // __AC_GUISLIDER_H

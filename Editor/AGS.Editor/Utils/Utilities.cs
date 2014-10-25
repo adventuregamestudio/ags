@@ -439,9 +439,6 @@ namespace AGS.Editor
             return icon;
         }
 
-        [DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
-        private static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
-
         public static bool CreateHardLink(string destFileName, string sourceFileName)
         {
             return CreateHardLink(destFileName, sourceFileName, false);
@@ -454,7 +451,14 @@ namespace AGS.Editor
                 if (overwrite) File.Delete(destFileName);
                 else return false;
             }
-            bool result = CreateHardLink(destFileName, sourceFileName, IntPtr.Zero);
+            string fileName = "mklink";
+            string args = string.Format("/h {0} {1}", destFileName, sourceFileName);
+            if (IsMonoRunning())
+            {
+                fileName = "ln";
+                args = string.Format("{0} {1}", sourceFileName, destFileName);
+            }
+            bool result = Process.Start(fileName, args);
             if (result)
             {
                 // by default the new hard link will be accessible to the current user only
@@ -472,6 +476,16 @@ namespace AGS.Editor
                 File.SetAccessControl(destFileName, fsec);
             }
             return result;
+
+        public static string GetFullPathFromProjectRelative(string relativePath)
+        {
+            if (AGSEditor.Instance.CurrentGame == null) return relativePath;
+            return Path.Combine(AGSEditor.Instance.CurrentGame.DirectoryPath, relativePath);
+        }
+
+        public static string GetFullPathFromEditorRelative(string relativePath)
+        {
+            return Path.Combine(AGSEditor.Instance.EditorDirectory, relativePath);
         }
     }
 }

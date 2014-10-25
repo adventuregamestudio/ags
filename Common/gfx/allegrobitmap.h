@@ -96,6 +96,10 @@ public:
     {
         return _alBitmap->h;
     }
+    inline Size GetSize() const
+    {
+        return Size(_alBitmap->w, _alBitmap->h);
+    }
     inline int  GetColorDepth() const
     {
         return bitmap_color_depth(_alBitmap);
@@ -103,8 +107,7 @@ public:
     // BPP: bytes per pixel
     inline int  GetBPP() const
     {
-        int color_depth = GetColorDepth();
-        return color_depth == 15 ? 2 : (color_depth >> 3);
+        return (GetColorDepth() + 7) / 8;
     }
 
     // CHECKME: probably should not be exposed, see comment to GetData()

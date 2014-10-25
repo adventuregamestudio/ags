@@ -60,12 +60,12 @@ namespace AGS.Editor
             return Enum.GetName(typeof(T), enumValue);
         }
 
-        private void ResizeAllGUIs(GameResolutions oldResolution, GameResolutions newResolution)
+        private void ResizeAllGUIs(Size oldResolution, Size newResolution)
         {
-            int oldWidth = AGS.Types.Utilities.GetGameResolutionWidth(oldResolution);
-            int oldHeight = AGS.Types.Utilities.GetGameResolutionHeight(oldResolution);
-            int newWidth = AGS.Types.Utilities.GetGameResolutionWidth(newResolution);
-            int newHeight = AGS.Types.Utilities.GetGameResolutionHeight(newResolution);
+            int oldWidth = oldResolution.Width;
+            int oldHeight = oldResolution.Height;
+            int newWidth = newResolution.Width;
+            int newHeight = newResolution.Height;
 
             foreach (GUI gui in Factory.AGSEditor.CurrentGame.RootGUIFolder.AllItemsFlat)
             {
@@ -88,21 +88,16 @@ namespace AGS.Editor
             }
         }
 
-        private void HandleGameResolutionChange(GameResolutions oldResolution, GameResolutions newResolution)
+        private void HandleGameResolutionChange(Size oldResolution, Size newResolution)
         {
-            if ((newResolution == GameResolutions.R800x600) ||
-                (newResolution == GameResolutions.R1024x768))
+            if (newResolution == oldResolution)
             {
-                if (Factory.GUIController.ShowQuestion("Are you sure you need to use this resolution? High resolutions like 800x600 and 1024x768 increase the file size of your game and increase the system requirements needed to play it. Are your graphics really detailed enough to need this?") == DialogResult.No)
-                {
-                    Factory.AGSEditor.CurrentGame.Settings.Resolution = oldResolution;
-                    return;
-                }
+                return;
             }
 
-            string oldResolutionText = GetEnumValueDescription<GameResolutions>(oldResolution);
-            string newResolutionText = GetEnumValueDescription<GameResolutions>(newResolution);
-            if (Factory.GUIController.ShowQuestion(string.Format("You've changed your game resolution from {0} to {1}.{2}You will need to import a new background of the correct size for all your rooms.{2}{2}Would you like AGS to automatically resize all your GUIs to the new resolution?", oldResolutionText, newResolutionText, Environment.NewLine)) == DialogResult.Yes)
+            string oldResolutionText = Types.Utilities.ResolutionToUserString(oldResolution);
+            string newResolutionText = Types.Utilities.ResolutionToUserString(newResolution);
+            if (Factory.GUIController.ShowQuestion(string.Format("You've changed your game resolution from '{0}' to '{1}'.{2}You will need to import a new background of the correct size for all your rooms.{2}{2}Would you like AGS to automatically resize all your GUIs to the new resolution?", oldResolutionText, newResolutionText, Environment.NewLine)) == DialogResult.Yes)
             {
                 ResizeAllGUIs(oldResolution, newResolution);
             }
@@ -131,7 +126,7 @@ namespace AGS.Editor
             }
             else if (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_RESOLUTION)
             {
-                HandleGameResolutionChange((GameResolutions)e.OldValue, Factory.AGSEditor.CurrentGame.Settings.Resolution);
+                HandleGameResolutionChange((Size)e.OldValue, Factory.AGSEditor.CurrentGame.Settings.CustomResolution);
             }
             else if ((e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_SCALE_FONTS) ||
 					 (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_ANTI_ALIAS_FONTS))

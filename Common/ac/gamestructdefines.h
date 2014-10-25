@@ -20,13 +20,6 @@
 
 #include "util/geometry.h"
 
-#define POPUP_NONE      0
-#define POPUP_MOUSEY    1
-#define POPUP_SCRIPT    2
-#define POPUP_NOAUTOREM 3  // don't remove automatically during cutscene
-#define POPUP_NONEINITIALLYOFF 4   // normal GUI, initially off
-#define IFLG_TEXTWINDOW 1
-
 #define PAL_GAMEWIDE        0
 #define PAL_LOCKED          1
 #define PAL_BACKGROUND      2
@@ -99,7 +92,6 @@
 #define FFLG_SIZEMASK 0x003f
 #define FONT_OUTLINE_AUTO -10
 #define MAX_FONT_SIZE 63
-#define TEXTWINDOW_PADDING_DEFAULT               3
 #define DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT  14 // Yellow
 
 #define MAXVIEWNAMELENGTH 15
@@ -112,13 +104,17 @@
 
 enum GameResolutionType
 {
-    kGameResolution_Undefined   = 0,
+    kGameResolution_Undefined   = -1,
+    // definition of 320x200 in very old versions of the engine (somewhere pre-2.56)
+    kGameResolution_Default     = 0,
     kGameResolution_320x200     = 1,
     kGameResolution_320x240     = 2,
     kGameResolution_640x400     = 3,
     kGameResolution_640x480     = 4,
     kGameResolution_800x600     = 5,
     kGameResolution_1024x768    = 6,
+    kGameResolution_1280x720    = 7,
+    kGameResolution_Custom      = 8,
     kNumGameResolutions,
 
     kGameResolution_LastLoRes   = kGameResolution_320x240,
@@ -130,6 +126,6 @@ inline bool IsHiRes(GameResolutionType resolution)
     return resolution > kGameResolution_LastLoRes;
 }
 
-Size ResolutionTypeToSize(GameResolutionType resolution);
+Size ResolutionTypeToSize(GameResolutionType resolution, bool letterbox = false);
 
 #endif // __AGS_CN_AC__GAMESTRUCTDEFINES_H

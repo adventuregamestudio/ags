@@ -19,6 +19,7 @@
 #include "alfont.h"
 #include "ac/common.h"
 #include "core/assetmanager.h"
+#include "debug/out.h"
 #include "font/fonts.h"
 #include "font/wfnfontrenderer.h"
 #include "gfx/allegrobitmap.h"
@@ -26,10 +27,7 @@
 #include "util/stream.h"
 #include "util/string.h"
 
-using AGS::Common::AssetManager;
-using AGS::Common::Bitmap;
-using AGS::Common::Stream;
-using AGS::Common::String;
+using namespace AGS::Common;
 
 WFNFontRenderer wfnRenderer;
 
@@ -58,7 +56,7 @@ int WFNFontRenderer::GetTextWidth(const char *text, int fontNumber)
 
   for (; *text; ++text)
   {
-    const WFNFont::WFNChar &wfn_char = font->GetChar(GetCharCode(*text, font));
+    const WFNChar &wfn_char = font->GetChar(GetCharCode(*text, font));
     text_width += wfn_char.Width;
   }
   return text_width * wtext_multiply;
@@ -71,7 +69,7 @@ int WFNFontRenderer::GetTextHeight(const char *text, int fontNumber)
 
   for (; *text; ++text) 
   {
-    const WFNFont::WFNChar &wfn_char = font->GetChar(GetCharCode(*text, font));
+    const WFNChar &wfn_char = font->GetChar(GetCharCode(*text, font));
     const uint16_t height = wfn_char.Height;
     if (height > max_height)
       max_height = height;
@@ -94,7 +92,7 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
   set_our_eip(oldeip);
 }
 
-int WFNFontRenderer::RenderChar(Common::Bitmap *ds, const int at_x, const int at_y, const WFNFont::WFNChar &wfn_char, const color_t text_color)
+int WFNFontRenderer::RenderChar(Common::Bitmap *ds, const int at_x, const int at_y, const WFNChar &wfn_char, const color_t text_color)
 {
   const int width = wfn_char.Width;
   const int height = wfn_char.Height;
@@ -144,12 +142,14 @@ bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   }
 
   WFNFont *font = new WFNFont();
-  bool result = font->ReadFromFile(ffi, AssetManager::GetLastAssetSize());
+  WFNError err = font->ReadFromFile(ffi, AssetManager::GetLastAssetSize());
   delete ffi;
-  if (!result)
+  if (err == kWFNErr_HasBadCharacters)
+    Out::FPrint("WARNING: font '%s' has mistakes in data format, some characters may be displayed incorrectly", file_name.GetCStr());
+  else if (err != kWFNErr_NoError)
   {
-      delete font;
-      return false;
+    delete font;
+    return false;
   }
   fonts[fontNumber] = (IFont*)font;
   return true;

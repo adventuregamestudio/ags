@@ -24,7 +24,7 @@
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 
-DynamicArray<GUITextBox> guitext;
+std::vector<GUITextBox> guitext;
 int numguitext = 0;
 
 void GUITextBox::WriteToFile(Stream *out)

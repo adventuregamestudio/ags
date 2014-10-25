@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -17,6 +18,7 @@ namespace AGS.Types
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_LETTERBOX_MODE = "Enable letterbox mode";
         public const string PROPERTY_TARGET_PLATFORMS = "Target platforms";
+        public const string PROPERTY_BUILD_TARGETS = "Build target platforms";
 		public const string REGEX_FOUR_PART_VERSION = @"^(\d+)\.(\d+)\.(\d+)\.(\d+)$";
 
 		private const string DEFAULT_GENRE = "Adventure";
@@ -28,7 +30,7 @@ namespace AGS.Types
         }
 
         private string _gameName = "New game";
-        private GameResolutions _resolution = GameResolutions.R320x200;
+        private Size _resolution = new Size(320, 200);
         private GameColorDepth _colorDepth = GameColorDepth.HighColor;
 		private GraphicsDriver _graphicsDriver = GraphicsDriver.DX5;
         private bool _debugMode = true;
@@ -38,6 +40,7 @@ namespace AGS.Types
         private InterfaceDisabledAction _whenInterfaceDisabled = InterfaceDisabledAction.GreyOut;
         private bool _pixelPerfect = true;
         private bool _autoMoveInWalkMode = true;
+        private bool _letterboxMode = false;
         private int _splitResources = 0;
         private bool _turnBeforeWalking = true;
         private bool _turnBeforeFacing = true;
@@ -94,6 +97,7 @@ namespace AGS.Types
         private string _saveGamesFolderName = string.Empty;
         private int _audioIndexer = 0;
         private Targets.Platforms _targetPlatforms = Targets.Platforms.Windows;
+        private BuildTargetPlatform _buildTargets = BuildTargetPlatform.DataFileOnly | BuildTargetPlatform.Windows;
 
 		public void GenerateNewGameID()
 		{
@@ -142,15 +146,84 @@ namespace AGS.Types
             set { _colorDepth = value; }
         }
 
+        [AGSNoSerialize]
+        [Browsable(false)]
+        [Obsolete("Old Resolution property of Enum type is replaced by CustomResolution of Size type.")]
+        public GameResolutions Resolution
+        {
+            get { return GameResolutions.Custom; }
+            set
+            {
+                switch (value)
+                {
+                    case GameResolutions.R320x200:
+                        CustomResolution = new Size(320, 200); break;
+                    case GameResolutions.R320x240:
+                        CustomResolution = new Size(320, 240); break;
+                    case GameResolutions.R640x400:
+                        CustomResolution = new Size(640, 400); break;
+                    case GameResolutions.R640x480:
+                        CustomResolution = new Size(640, 480); break;
+                    case GameResolutions.R800x600:
+                        CustomResolution = new Size(800, 600); break;
+                    case GameResolutions.R1024x768:
+                        CustomResolution = new Size(1024, 768); break;
+                    case GameResolutions.R1280x720:
+                        CustomResolution = new Size(1280, 720); break;
+                    case GameResolutions.Custom:
+                        throw new ArgumentOutOfRangeException("You are not allowed to explicitly set Custom resolution type to the deprecated Settings.Resolution property.");
+                }
+            }
+        }
+
         [DisplayName(PROPERTY_RESOLUTION)]
         [Description("The graphics resolution of the game (higher allows more detail, but slower performance and larger file size)")]
         [Category("(Setup)")]
-        [TypeConverter(typeof(EnumTypeConverter))]
+        [EditorAttribute(typeof(CustomResolutionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(CustomResolutionTypeConverter))]
         [RefreshProperties(RefreshProperties.All)]
-        public GameResolutions Resolution
+        public Size CustomResolution
         {
             get { return _resolution; }
-            set { _resolution = value; }
+            set
+            {
+                _resolution = value;
+                if (LegacyLetterboxResolution == GameResolutions.Custom)
+                    LetterboxMode = false;
+            }
+        }
+
+        /// <summary>
+        /// Tells if the game should be considered low-resolution.
+        /// For backwards-compatble logic only.
+        /// </summary>
+        [Browsable(false)]
+        public bool LowResolution
+        {
+            get
+            {
+                return CustomResolution.Width <= 320 || CustomResolution.Height <= 240;
+            }
+        }
+
+        /// <summary>
+        /// Tells which of the legacy resolution types would be represented by
+        /// the current game resolution if designed in letterboxed mode.
+        /// Returns GameResolutions.Custom if current resolution cannot be used
+        /// for letterboxed design.
+        /// For backwards-compatible logic only.
+        /// </summary>
+        [Browsable(false)]
+        public GameResolutions LegacyLetterboxResolution
+        {
+            get
+            {
+                if (CustomResolution.Width == 320 && CustomResolution.Height == 200)
+                    return GameResolutions.R320x200;
+                if (CustomResolution.Width == 640 && CustomResolution.Height == 400)
+                    return GameResolutions.R640x400;
+                return GameResolutions.Custom;
+            }
         }
 
 		[DisplayName("Default graphics driver")]
@@ -246,13 +319,15 @@ namespace AGS.Types
         [DisplayName("Enable letterbox mode")]
         [Description("Game will run at 320x240 or 640x480 with top and bottom black borders to give a square aspect ratio")]
         [DefaultValue(false)]
-        [Category("Visual")]
-        [Browsable(false)]
-        [Obsolete("Letterbox game setting is deprecated and no longer required to be set")]
+        [Category("(Setup)")]
         public bool LetterboxMode
         {
-            get { return false; }
-            set {  }
+            get { return _letterboxMode; }
+            set
+            {
+                if (value == false || LegacyLetterboxResolution != GameResolutions.Custom)
+                    _letterboxMode = value;
+            }
         }
 
         [DisplayName("Automatically move the player in Walk mode")]
@@ -856,6 +931,17 @@ namespace AGS.Types
             { _targetPlatforms = value; }
         }
 
+        [DisplayName(PROPERTY_BUILD_TARGETS)]
+        [DefaultValue(BuildTargetPlatform.DataFileOnly | BuildTargetPlatform.Windows)]
+        [Description("Sets the platforms to compile your game for when selecting \"Build all target platforms\".")]
+        [Category("Compiler")]
+        [Editor(typeof(BuildTargetUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public BuildTargetPlatform BuildTargets
+        {
+            get { return _buildTargets; }
+            set { _buildTargets = value; }
+        }
+
         public void ToXml(XmlTextWriter writer)
         {
             SerializeUtils.SerializeToXML(this, writer);
@@ -964,6 +1050,13 @@ namespace AGS.Types
                     ((property.Name == "InventoryHotspotMarkerDotColor") ||
                      (property.Name == "InventoryHotspotMarkerCrosshairColor")))
                 {
+                    wantThisProperty = false;
+                }
+                // TODO: this must be done other way; leaving for backwards-compatibility only
+                else if (property.Name == "LetterboxMode" &&
+                    LegacyLetterboxResolution == GameResolutions.Custom)
+                {
+                    // Only show letterbox option for 320x200 and 640x400 games
                     wantThisProperty = false;
                 }
                 else if ((property.Name == "GlobalSpeechAnimationDelay") && (!UseGlobalSpeechAnimationDelay))

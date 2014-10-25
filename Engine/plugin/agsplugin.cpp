@@ -14,7 +14,6 @@
 
 #include "util/wgt2allg.h"
 #include "plugin/agsplugin.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/roomstruct.h"
 #include "ac/view.h"
@@ -39,6 +38,7 @@
 #include "util/string_utils.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "device/mousew32.h"
 #include "gui/guidefines.h"
 #include "main/engine.h"
 #include "media/audio/audio.h"
@@ -48,16 +48,16 @@
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
 #include "util/stream.h"
-#include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/gfxfilter.h"
 #include "script/runtimescriptvalue.h"
 #include "debug/out.h"
 #include "ac/dynobj/scriptstring.h"
+#include "main/graphics_mode.h"
 
-using AGS::Common::Stream;
-
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 
 #if defined(BUILTIN_PLUGINS)
@@ -92,8 +92,6 @@ extern "C"
 
 
 extern IGraphicsDriver *gfxDriver;
-extern int scrnwid,scrnhit;
-extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int mousex, mousey;
 extern int displayed_room;
 extern roomstruct thisroom;
@@ -244,11 +242,11 @@ void IAGSEngine::DrawText (int32 x, int32 y, int32 font, int32 color, char *text
 }
 void IAGSEngine::GetScreenDimensions (int32 *width, int32 *height, int32 *coldepth) {
     if (width != NULL)
-        width[0] = scrnwid;
+        width[0] = play.viewport.GetWidth();
     if (height != NULL)
-        height[0] = scrnhit;
+        height[0] = play.viewport.GetHeight();
     if (coldepth != NULL)
-        coldepth[0] = final_col_dep;
+        coldepth[0] = ScreenResolution.ColorDepth;
 }
 unsigned char ** IAGSEngine::GetRawBitmapSurface (BITMAP *bmp) {
     if (!is_linear_bitmap (bmp))
@@ -744,7 +742,7 @@ int IAGSEngine::DecrementManagedObjectRefCount(const char *address) {
 }
 
 void IAGSEngine::SetMousePosition(int32 x, int32 y) {
-    filter->SetMousePosition(x, y);
+    Mouse::SetPosition(Point(x, y));
     RefreshMouse();
 }
 
@@ -943,7 +941,7 @@ void pl_read_plugins_from_disk (Stream *in) {
 
         if (buffer[strlen(buffer) - 1] == '!') {
             // editor-only plugin, ignore it
-            in->Seek(Common::kSeekCurrent, datasize);
+            in->Seek(datasize);
             a--;
             numPlugins--;
             continue;

@@ -14,7 +14,6 @@
 
 #include <stdio.h>
 #include "ac/global_debug.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/characterinfo.h"
 #include "ac/draw.h"
@@ -40,9 +39,10 @@
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
+#include "main/graphics_mode.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern GameSetup usetup;
@@ -57,8 +57,6 @@ extern TreeMap *transtree;
 extern int offsetx, offsety;
 extern int displayed_room, starting_room;
 extern MoveList *mls;
-extern int final_scrn_wid,final_scrn_hit,final_col_dep;
-extern int scrnwid,scrnhit;
 extern char transFileName[MAX_PATH];
 
 void script_debug(int cmdd,int dataa) {
@@ -72,14 +70,19 @@ void script_debug(int cmdd,int dataa) {
     }
     else if (cmdd==1) {
         char toDisplay[STD_BUFFER_SIZE];
-        const char *filterName = filter->GetVersionBoxText();
-        DisplayResolution mode = gfxDriver->GetResolution();
+        DisplayMode mode = gfxDriver->GetDisplayMode();
+        Rect render_frame = gfxDriver->GetRenderDestination();
         sprintf(toDisplay,"Adventure Game Studio run-time engine[ACI version %s"
-            "[Running %d x %d at %d-bit, game frame is %d x %d %s[GFX: %s[%s" "Sprite cache size: %d KB (limit %d KB; %d locked)",
-            EngineVersion.LongString.GetCStr(), mode.Width, mode.Height, final_col_dep, final_scrn_wid, final_scrn_hit, (convert_16bit_bgr) ? "BGR" : "",
-            gfxDriver->GetDriverName(), filterName,
+            "[Game resolution %d x %d"
+            "[Running %d x %d at %d-bit%s%s[GFX: %s; %s[Draw frame %d x %d["
+            "Sprite cache size: %d KB (limit %d KB; %d locked)",
+            EngineVersion.LongString.GetCStr(), game.size.Width, game.size.Height,
+            mode.Width, mode.Height, mode.ColorDepth, (convert_16bit_bgr) ? " BGR" : "",
+            mode.Windowed ? " W" : "",
+            gfxDriver->GetDriverName(), filter->GetInfo().Name.GetCStr(),
+            render_frame.GetWidth(), render_frame.GetHeight(),
             spriteset.cachesize / 1024, spriteset.maxCacheSize / 1024, spriteset.lockedSize / 1024);
-        if (play.seperate_music_lib)
+        if (play.separate_music_lib)
             strcat(toDisplay,"[AUDIO.VOX enabled");
         if (play.want_speech >= 1)
             strcat(toDisplay,"[SPEECH.VOX enabled");
@@ -98,7 +101,7 @@ void script_debug(int cmdd,int dataa) {
     {  // show walkable areas from here
         Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
         tempw->Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
-        Bitmap *stretched = BitmapHelper::CreateBitmap(scrnwid, scrnhit);
+        Bitmap *stretched = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight());
         stretched->StretchBlt(tempw,
 			RectWH(-offsetx, -offsety, get_fixed_pixel_size(tempw->GetWidth()), get_fixed_pixel_size(tempw->GetHeight())),
 			Common::kBitmap_Transparency);

@@ -17,6 +17,7 @@
 
 #include "ac/runtime_defines.h"
 #include "media/audio/queuedaudioitem.h"
+#include "util/geometry.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
@@ -136,7 +137,7 @@ struct GameState {
     char  key_skip_wait;
     int   swap_portrait_lastchar;
     int   swap_portrait_lastlastchar;
-    int   seperate_music_lib;
+    int   separate_music_lib;
     int   in_conversation;
     int   screen_tint;
     int   num_parsed_words;
@@ -190,6 +191,14 @@ struct GameState {
 
     // These variables are not serialized
     bool  speech_in_post_state;
+    // Viewport defines the current position of the playable area;
+    // in basic case it will be identical to game size, but it may be smaller
+    // to support room sizes lesser than game size.
+    Rect  viewport;
+    // game size in low-res units (for backwards-compatibility)
+    Size  native_size;
+
+    void SetViewport(const Size viewport_size);
 
     void ReadFromFile_v321(Common::Stream *in);
     void WriteToFile_v321(Common::Stream *out);

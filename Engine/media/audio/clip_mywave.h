@@ -23,7 +23,6 @@ struct MYWAVE:public SOUNDCLIP
     SAMPLE *wave;
     int voice;
     int firstTime;
-    int repeat;
 
     int poll();
 

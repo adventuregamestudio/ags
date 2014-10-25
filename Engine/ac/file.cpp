@@ -29,8 +29,7 @@
 #include "main/game_file.h"
 #include "util/string.h"
 
-using AGS::Common::Stream;
-using AGS::Common::String;
+using namespace AGS::Common;
 
 #if defined (AGS_RUNTIME_PATCH_ALLEGRO)
 #include <dlfcn.h>
@@ -177,6 +176,12 @@ int File_ReadRawInt(sc_File *fil) {
   return FileReadRawInt(fil->handle);
 }
 
+int File_Seek(sc_File *fil, int offset, int origin)
+{
+    Stream *in = get_valid_file_stream_from_handle(fil->handle, "File.Seek");
+    return (int)in->Seek(offset, (StreamSeek)origin);
+}
+
 int File_GetEOF(sc_File *fil) {
   if (fil->handle <= 0)
     return 1;
@@ -187,6 +192,15 @@ int File_GetError(sc_File *fil) {
   if (fil->handle <= 0)
     return 1;
   return FileIsError(fil->handle);
+}
+
+int File_GetPosition(sc_File *fil)
+{
+    if (fil->handle <= 0)
+        return -1;
+    Stream *stream = get_valid_file_stream_from_handle(fil->handle, "File.Position");
+    // TODO: a problem is that AGS script does not support unsigned or long int
+    return (int)stream->GetPosition();
 }
 
 //=============================================================================
@@ -491,6 +505,11 @@ RuntimeScriptValue Sc_File_WriteString(void *self, const RuntimeScriptValue *par
     API_OBJCALL_VOID_POBJ(sc_File, File_WriteString, const char);
 }
 
+RuntimeScriptValue Sc_File_Seek(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_PINT2(sc_File, File_Seek);
+}
+
 // int (sc_File *fil)
 RuntimeScriptValue Sc_File_GetEOF(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -501,6 +520,11 @@ RuntimeScriptValue Sc_File_GetEOF(void *self, const RuntimeScriptValue *params, 
 RuntimeScriptValue Sc_File_GetError(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(sc_File, File_GetError);
+}
+
+RuntimeScriptValue Sc_File_GetPosition(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(sc_File, File_GetPosition);
 }
 
 
@@ -521,8 +545,10 @@ void RegisterFileAPI()
     ccAddExternalObjectFunction("File::WriteRawChar^1",     Sc_File_WriteRawChar);
     ccAddExternalObjectFunction("File::WriteRawLine^1",     Sc_File_WriteRawLine);
     ccAddExternalObjectFunction("File::WriteString^1",      Sc_File_WriteString);
+    ccAddExternalObjectFunction("File::Seek^2",             Sc_File_Seek);
     ccAddExternalObjectFunction("File::get_EOF",            Sc_File_GetEOF);
     ccAddExternalObjectFunction("File::get_Error",          Sc_File_GetError);
+    ccAddExternalObjectFunction("File::get_Position",       Sc_File_GetPosition);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

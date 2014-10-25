@@ -15,8 +15,8 @@
 #ifndef __AC_GUIINV_H
 #define __AC_GUIINV_H
 
+#include <vector>
 #include "gui/guiobject.h"
-#include "gui/dynamicarray.h"
 
 struct GUIInv:public GUIObject
 {
@@ -76,7 +76,7 @@ struct GUIInv:public GUIObject
   }
 };
 
-extern DynamicArray<GUIInv> guiinv;
+extern std::vector<GUIInv> guiinv;
 extern int numguiinv;
 
 #endif // __AC_GUIINV_H

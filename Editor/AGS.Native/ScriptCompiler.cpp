@@ -113,39 +113,6 @@ namespace AGS
 			save_game_to_dta_file(game, fileNameBuffer);
 		}
 
-        void NativeMethods::CreateDataFile(cli::array<String^> ^fileList, long splitSize, String ^baseFileName,
-            bool isGameEXE)
-        {
-            return CreateDataFile(fileList, splitSize, baseFileName, isGameEXE, "Compiled");
-        }
-
-		void NativeMethods::CreateDataFile(cli::array<String^> ^fileList, long splitSize, String ^baseFileName, bool isGameEXE, String ^compiledDir)
-		{
-			char **fileNames = (char**)malloc(sizeof(char*) * fileList->Length);
-			for (int i = 0; i < fileList->Length; i++)
-			{
-				fileNames[i] = (char*)malloc(fileList[i]->Length + 1);
-				ConvertFileNameToCharArray(fileList[i], fileNames[i]);
-			}
-			char baseFileNameChars[MAX_PATH];
-			ConvertFileNameToCharArray(baseFileName, baseFileNameChars);
-            char compiledDirChars[MAX_PATH];
-            ConvertFileNameToCharArray(compiledDir, compiledDirChars);
-
-			const char *errorMsg = make_data_file(fileList->Length, fileNames, splitSize, baseFileNameChars, isGameEXE, compiledDirChars);
-
-			for (int i = 0; i < fileList->Length; i++)
-			{
-				free(fileNames[i]);
-			}
-			free(fileNames);
-
-			if (errorMsg != NULL)
-			{
-				throw gcnew AGSEditorException(gcnew String(errorMsg));
-			}
-		}
-
 		void NativeMethods::CreateVOXFile(String ^fileName, cli::array<String^> ^fileList)
 		{
 			char **fileNames = (char**)malloc(sizeof(char*) * fileList->Length);

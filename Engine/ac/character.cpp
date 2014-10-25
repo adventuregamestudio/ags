@@ -59,6 +59,7 @@
 #include "ac/dynobj/cc_inventory.h"
 #include "script/script_runtime.h"
 #include "gfx/gfx_util.h"
+#include "main/graphics_mode.h"
 
 using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
@@ -85,7 +86,6 @@ extern int numscreenover;
 extern int said_text;
 extern int our_eip;
 extern int update_music_at;
-extern int scrnwid,scrnhit;
 extern int current_screen_resolution_multiplier;
 extern int cur_mode;
 extern int screen_is_dirty;
@@ -302,16 +302,6 @@ void Character_ChangeView(CharacterInfo *chap, int vii) {
     FindReasonableLoopForCharacter(chap);
 }
 
-void Character_FaceCharacter(CharacterInfo *char1, CharacterInfo *char2, int blockingStyle) {
-    if (char2 == NULL) 
-        quit("!FaceCharacter: invalid character specified");
-
-    if (char1->room != char2->room)
-        quit("!FaceCharacter: characters are in different rooms");
-
-    Character_FaceLocation(char1, char2->x, char2->y, blockingStyle);
-}
-
 enum DirectionalLoop
 {
     kDirLoop_Down      = 0,
@@ -323,10 +313,12 @@ enum DirectionalLoop
     kDirLoop_DownLeft  = 6,
     kDirLoop_UpLeft    = 7,
 
-    kDirLoop_Default       = kDirLoop_Down,
-    kDirLoop_LastOrtogonal = kDirLoop_Up,
-    kDirLoop_Last          = kDirLoop_UpLeft,
+    kDirLoop_Default        = kDirLoop_Down,
+    kDirLoop_LastOrthogonal = kDirLoop_Up,
+    kDirLoop_Last           = kDirLoop_UpLeft,
 };
+
+// Internal direction-facing functions
 
 DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, int x_diff, int y_diff)
 {
@@ -382,7 +374,44 @@ DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, int x_diff, int y_diff
     return next_loop;
 }
 
-void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingStyle) {
+void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
+{
+    // Change facing only if the desired direction is different
+    if (direction != char1->loop)
+    {
+        if ((game.options[OPT_TURNTOFACELOC] != 0) &&
+            (in_enters_screen == 0))
+        {
+            const int no_diagonal = useDiagonal (char1);
+            const int highestLoopForTurning = no_diagonal != 1 ? kDirLoop_Last : kDirLoop_LastOrthogonal;
+            if ((char1->loop <= highestLoopForTurning))
+            {
+                // Turn to face new direction
+                Character_StopMoving(char1);
+                if (char1->on == 1)
+                {
+                    // only do the turning if the character is not hidden
+                    // (otherwise GameLoopUntilEvent will never return)
+                    start_character_turning (char1, direction, no_diagonal);
+
+                    if ((blockingStyle == BLOCKING) || (blockingStyle == 1))
+                        GameLoopUntilEvent(UNTIL_MOVEEND, (long) &char1->walking);
+                }
+                else
+                    char1->loop = direction;
+            }
+            else
+                char1->loop = direction;
+        }
+        else
+            char1->loop = direction;
+    }
+
+    char1->frame = 0;
+}
+
+void FaceLocationXY(CharacterInfo *char1, int xx, int yy, int blockingStyle)
+{
     DEBUG_CONSOLE("%s: Face location %d,%d", char1->scrname, xx, yy);
 
     const int diffrx = xx - char1->x;
@@ -393,42 +422,48 @@ void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingSt
         return;
     }
 
-    const int useloop = GetDirectionalLoop(char1, diffrx, diffry);
+    FaceDirectionalLoop(char1, GetDirectionalLoop(char1, diffrx, diffry), blockingStyle);
+}
 
-    int highestLoopForTurning = kDirLoop_LastOrtogonal;
-    const int no_diagonal = useDiagonal (char1);
-    if (no_diagonal != 1) {
-        highestLoopForTurning = kDirLoop_Last;
+// External direction-facing functions with validation
+
+void Character_FaceDirection(CharacterInfo *char1, int direction, int blockingStyle)
+{
+    if (char1 == NULL)
+        quit("!FaceDirection: invalid character specified");
+
+    if (direction != SCR_NO_VALUE)
+    {
+        if (direction < 0 || direction > kDirLoop_Last)
+            quit("!FaceDirection: invalid direction specified");
+
+        FaceDirectionalLoop(char1, direction, blockingStyle);
     }
+}
 
-    if ((game.options[OPT_TURNTOFACELOC] != 0) &&
-        (useloop != char1->loop) &&
-        (char1->loop <= highestLoopForTurning) &&
-        (in_enters_screen == 0)) {
-            // Turn to face new direction
-            Character_StopMoving(char1);
-            if (char1->on == 1) {
-                // only do the turning if the character is not hidden
-                // (otherwise GameLoopUntilEvent will never return)
-                start_character_turning (char1, useloop, no_diagonal);
+void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingStyle)
+{
+    if (char1 == NULL)
+        quit("!FaceLocation: invalid character specified");
 
-                if ((blockingStyle == BLOCKING) || (blockingStyle == 1))
-                    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&char1->walking);
-            }
-            else
-                char1->loop = useloop;
-    }
-    else
-        char1->loop=useloop;
-
-    char1->frame=0;
+    FaceLocationXY(char1, xx, yy, blockingStyle);
 }
 
 void Character_FaceObject(CharacterInfo *char1, ScriptObject *obj, int blockingStyle) {
     if (obj == NULL) 
         quit("!FaceObject: invalid object specified");
 
-    Character_FaceLocation(char1, objs[obj->id].x, objs[obj->id].y, blockingStyle);
+    FaceLocationXY(char1, objs[obj->id].x, objs[obj->id].y, blockingStyle);
+}
+
+void Character_FaceCharacter(CharacterInfo *char1, CharacterInfo *char2, int blockingStyle) {
+    if (char2 == NULL) 
+        quit("!FaceCharacter: invalid character specified");
+
+    if (char1->room != char2->room)
+        quit("!FaceCharacter: characters are in different rooms");
+
+    FaceLocationXY(char1, char2->x, char2->y, blockingStyle);
 }
 
 void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int distaway, int eagerness) {
@@ -1588,7 +1623,7 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     set_route_move_speed(move_speed_x, move_speed_y);
     set_color_depth(8);
     int mslot=find_route(charX, charY, tox, toy, prepare_walkable_areas(chac), chac+CHMLSOFFS, 1, ignwal);
-    set_color_depth(final_col_dep);
+    set_color_depth(ScreenResolution.ColorDepth);
     if (mslot>0) {
         chin->walking = mslot;
         mls[mslot].direct = ignwal;
@@ -1705,7 +1740,7 @@ void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
         chinf->loop = useloop;
         return;
     }
-    if ((chinf->loop > kDirLoop_LastOrtogonal) && ((chinf->flags & CHF_NODIAGONAL)!=0)) {
+    if ((chinf->loop > kDirLoop_LastOrthogonal) && ((chinf->flags & CHF_NODIAGONAL)!=0)) {
         // They've just been playing an animation with an extended loop number,
         // so don't try and rotate using it
         chinf->loop = useloop;
@@ -2281,7 +2316,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
     int allowShrink = 0;
     int bwidth = widd;
     if (bwidth < 0)
-        bwidth = scrnwid/2 + scrnwid/4;
+        bwidth = play.viewport.GetWidth()/2 + play.viewport.GetWidth()/4;
 
     our_eip=151;
 
@@ -2483,8 +2518,8 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
 
             // if they accidentally used a large full-screen image as the sierra-style
             // talk view, correct it
-            if ((game.options[OPT_SPEECHTYPE] != 3) && (bigx > scrnwid - get_fixed_pixel_size(50)))
-                bigx = scrnwid - get_fixed_pixel_size(50);
+            if ((game.options[OPT_SPEECHTYPE] != 3) && (bigx > play.viewport.GetWidth() - get_fixed_pixel_size(50)))
+                bigx = play.viewport.GetWidth() - get_fixed_pixel_size(50);
 
             if (widd > 0)
                 bwidth = widd - bigx;
@@ -2498,7 +2533,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
 
             if (game.options[OPT_SPEECHTYPE] == 3) {
                 // QFG4-style whole screen picture
-                closeupface = BitmapHelper::CreateBitmap(scrnwid, scrnhit, spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
+                closeupface = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
                 closeupface->Clear(0);
                 if (xx < 0 && play.speech_portrait_placement)
                 {
@@ -2512,9 +2547,9 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                 }
                 else
                 {
-                    view_frame_y = scrnhit/2 - spriteheight[viptr->loops[0].frames[0].pic]/2;
+                    view_frame_y = play.viewport.GetHeight()/2 - spriteheight[viptr->loops[0].frames[0].pic]/2;
                 }
-                bigx = scrnwid/2 - get_fixed_pixel_size(20);
+                bigx = play.viewport.GetWidth()/2 - get_fixed_pixel_size(20);
                 ovr_type = OVER_COMPLETE;
                 ovr_yp = 0;
                 tdyp = -1;  // center vertically
@@ -2553,7 +2588,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                     tdxp += get_fixed_pixel_size(16);
                 }
 
-                int maxWidth = (scrnwid - tdxp) - get_fixed_pixel_size(5) - 
+                int maxWidth = (play.viewport.GetWidth() - tdxp) - get_fixed_pixel_size(5) - 
                     get_textwindow_border_width (play.speech_textwindow_gui) / 2;
 
                 if (bwidth > maxWidth)
@@ -2573,7 +2608,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                     tdxp = get_fixed_pixel_size(9);
                     if (play.speech_portrait_placement)
                     {
-                        overlay_x = (scrnwid - bigx) - play.speech_portrait_x;
+                        overlay_x = (play.viewport.GetWidth() - bigx) - play.speech_portrait_x;
                         int maxWidth = overlay_x - tdxp - get_fixed_pixel_size(9) - 
                             get_textwindow_border_width (play.speech_textwindow_gui) / 2;
                         if (bwidth > maxWidth)
@@ -2581,7 +2616,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                     }
                     else
                     {
-                        overlay_x = (scrnwid - bigx) - get_fixed_pixel_size(5);
+                        overlay_x = (play.viewport.GetWidth() - bigx) - get_fixed_pixel_size(5);
                     }
                 }
                 else {
@@ -2643,11 +2678,11 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                 views[speakingChar->view].loops[speakingChar->loop].frames[0].speed;
 
             if (widd < 0) {
-                bwidth = scrnwid/2 + scrnwid/6;
+                bwidth = play.viewport.GetWidth()/2 + play.viewport.GetWidth()/6;
                 // If they are close to the screen edge, make the text narrower
                 int relx = multiply_up_coordinate(speakingChar->x) - offsetx;
-                if ((relx < scrnwid / 4) || (relx > scrnwid - (scrnwid / 4)))
-                    bwidth -= scrnwid / 5;
+                if ((relx < play.viewport.GetWidth() / 4) || (relx > play.viewport.GetWidth() - (play.viewport.GetWidth() / 4)))
+                    bwidth -= play.viewport.GetWidth() / 5;
             }
             /*   this causes the text to bob up and down as they talk
             tdxp = OVR_AUTOPLACE;
@@ -2829,6 +2864,12 @@ RuntimeScriptValue Sc_Character_ChangeView(void *self, const RuntimeScriptValue 
 RuntimeScriptValue Sc_Character_FaceCharacter(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_POBJ_PINT(CharacterInfo, Character_FaceCharacter, CharacterInfo);
+}
+
+// void | CharacterInfo *char1, int direction, int blockingStyle
+RuntimeScriptValue Sc_Character_FaceDirection(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT2(CharacterInfo, Character_FaceDirection);
 }
 
 // void | CharacterInfo *char1, int xx, int yy, int blockingStyle
@@ -3536,6 +3577,7 @@ void RegisterCharacterAPI()
 	ccAddExternalObjectFunction("Character::ChangeRoomAutoPosition^2",  Sc_Character_ChangeRoomAutoPosition);
 	ccAddExternalObjectFunction("Character::ChangeView^1",              Sc_Character_ChangeView);
 	ccAddExternalObjectFunction("Character::FaceCharacter^2",           Sc_Character_FaceCharacter);
+	ccAddExternalObjectFunction("Character::FaceDirection^2",           Sc_Character_FaceDirection);
 	ccAddExternalObjectFunction("Character::FaceLocation^3",            Sc_Character_FaceLocation);
 	ccAddExternalObjectFunction("Character::FaceObject^2",              Sc_Character_FaceObject);
 	ccAddExternalObjectFunction("Character::FollowCharacter^3",         Sc_Character_FollowCharacter);
@@ -3666,6 +3708,7 @@ void RegisterCharacterAPI()
     ccAddExternalFunctionForPlugin("Character::ChangeRoomAutoPosition^2",  (void*)Character_ChangeRoomAutoPosition);
     ccAddExternalFunctionForPlugin("Character::ChangeView^1",              (void*)Character_ChangeView);
     ccAddExternalFunctionForPlugin("Character::FaceCharacter^2",           (void*)Character_FaceCharacter);
+    ccAddExternalFunctionForPlugin("Character::FaceDirection^2",           (void*)Character_FaceDirection);
     ccAddExternalFunctionForPlugin("Character::FaceLocation^3",            (void*)Character_FaceLocation);
     ccAddExternalFunctionForPlugin("Character::FaceObject^2",              (void*)Character_FaceObject);
     ccAddExternalFunctionForPlugin("Character::FollowCharacter^3",         (void*)Character_FollowCharacter);

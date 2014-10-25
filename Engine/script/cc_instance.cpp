@@ -20,6 +20,7 @@
 #include "ac/roomstruct.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/managedobjectpool.h"
+#include "gui/guidefines.h"
 #include "script/cc_error.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
@@ -44,7 +45,6 @@ using namespace AGS::Common;
 extern ccInstance *loadedInstances[MAX_LOADED_INSTANCES]; // in script/script_runtime
 extern int gameHasBeenRestored; // in ac/game
 extern ExecutingScript*curscript; // in script/script
-extern int guis_need_update; // in gui/guimain
 extern int displayed_room; // in ac/game
 extern roomstruct thisroom; // ac/game
 extern int maxWhileLoops;
@@ -223,9 +223,6 @@ ccInstance *ccInstance::CreateEx(ccScript * scri, ccInstance * joined)
 ccInstance::ccInstance()
 {
     flags               = 0;
-    globalvars          = NULL;
-    num_globalvars      = 0;
-    num_globalvar_slots = 0;
     globaldata          = NULL;
     globaldatasize      = 0;
     code                = NULL;
@@ -286,7 +283,7 @@ void ccInstance::AbortAndDestroy()
         return -1; \
     }
 
-int ccInstance::CallScriptFunction(char *funcname, int32_t numargs, RuntimeScriptValue *params)
+int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, RuntimeScriptValue *params)
 {
     ccError = 0;
     currentline = 0;
@@ -399,9 +396,9 @@ int ccInstance::CallScriptFunction(char *funcname, int32_t numargs, RuntimeScrip
     return ccError;
 }
 
-void ccInstance::DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool *hasTheFunc) {
-    if (!hasTheFunc[0])
-        return;
+bool ccInstance::DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool hasTheFunc) {
+    if (!hasTheFunc)
+        return(false);
 
     no_blocking_functions++;
     int result;
@@ -415,7 +412,7 @@ void ccInstance::DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, 
 
     if (result == -2) {
         // the function doens't exist, so don't try and run it again
-        hasTheFunc[0] = false;
+        hasTheFunc = false;
     }
     else if ((result != 0) && (result != 100)) {
         quit_with_script_error(funcToRun->functionName);
@@ -428,10 +425,11 @@ void ccInstance::DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, 
     ccErrorString[0] = 0;
     ccError = 0;
     no_blocking_functions--;
+    return(hasTheFunc);
 }
 
 char scfunctionname[MAX_FUNCTION_NAME_LEN+1];
-int ccInstance::PrepareTextScript(char**tsname) {
+int ccInstance::PrepareTextScript(const char**tsname) {
     ccError=0;
     if (this==NULL) return -1;
     if (GetSymbolAddress(tsname[0]).IsNull()) {
@@ -529,16 +527,15 @@ int ccInstance::Run(int32_t curpc)
         codeOp.Instruction.InstanceId	= (codeOp.Instruction.Code >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
         codeOp.Instruction.Code		   &= INSTANCE_ID_REMOVEMASK; // now this is pure instruction code
 
-        int want_args = sccmd_info[codeOp.Instruction.Code].ArgCount;
-        if (pc + want_args >= codeInst->codesize)
+        codeOp.ArgCount = sccmd_info[codeOp.Instruction.Code].ArgCount;
+        if (pc + codeOp.ArgCount >= codeInst->codesize)
         {
-            cc_error("unexpected end of code data at %d", pc + want_args);
+            cc_error("unexpected end of code data (%d; %d)", pc + codeOp.ArgCount, codeInst->codesize);
             return -1;
         }
-        codeOp.ArgCount = want_args;
 
         int pc_at = pc + 1;
-        for (int i = 0; i < want_args; ++i, ++pc_at)
+        for (int i = 0; i < codeOp.ArgCount; ++i, ++pc_at)
         {
             char fixup = codeInst->code_fixups[pc_at];
             if (fixup > 0)
@@ -816,7 +813,7 @@ int ccInstance::Run(int32_t curpc)
           PUSH_CALL_STACK;
 
           ASSERT_STACK_SPACE_AVAILABLE(1);
-          PushValueToStack(RuntimeScriptValue().SetInt32(pc + sccmd_info[codeOp.Instruction.Code].ArgCount + 1));
+          PushValueToStack(RuntimeScriptValue().SetInt32(pc + codeOp.ArgCount + 1));
           if (ccError)
           {
               return -1;
@@ -1218,6 +1215,7 @@ int ccInstance::Run(int32_t curpc)
           case kScValStaticObject:
           case kScValDynamicObject:
           case kScValPluginObject:
+          case kScValPluginArg:
           // This might be an object of USER-DEFINED type, calling its MEMBER-FUNCTION.
           // Note, that this is the only case known when such object is written into reg[SREG_OP];
           // in any other case that would count as error. 
@@ -1373,11 +1371,11 @@ int ccInstance::Run(int32_t curpc)
         if (flags & INSTF_ABORTED)
             return 0;
 
-        pc += sccmd_info[codeOp.Instruction.Code].ArgCount + 1;
+        pc += codeOp.ArgCount + 1;
     }
 }
 
-int ccInstance::RunScriptFunctionIfExists(char*tsname,int numParam, RuntimeScriptValue *params) {
+int ccInstance::RunScriptFunctionIfExists(const char*tsname,int numParam, RuntimeScriptValue *params) {
     int oldRestoreCount = gameHasBeenRestored;
     // First, save the current ccError state
     // This is necessary because we might be attempting
@@ -1428,7 +1426,7 @@ int ccInstance::RunScriptFunctionIfExists(char*tsname,int numParam, RuntimeScrip
     return toret;
 }
 
-int ccInstance::RunTextScript(char*tsname) {
+int ccInstance::RunTextScript(const char *tsname) {
     if (strcmp(tsname, REP_EXEC_NAME) == 0) {
         // run module rep_execs
         int room_changes_was = play.room_changes;
@@ -1452,7 +1450,7 @@ int ccInstance::RunTextScript(char*tsname) {
     return toret;
 }
 
-int ccInstance::RunTextScriptIParam(char*tsname,RuntimeScriptValue &iparam) {
+int ccInstance::RunTextScriptIParam(const char *tsname,RuntimeScriptValue &iparam) {
     if ((strcmp(tsname, "on_key_press") == 0) || (strcmp(tsname, "on_mouse_click") == 0)) {
         bool eventWasClaimed;
         int toret = run_claimable_event(tsname, true, 1, &iparam, &eventWasClaimed);
@@ -1464,7 +1462,7 @@ int ccInstance::RunTextScriptIParam(char*tsname,RuntimeScriptValue &iparam) {
     return RunScriptFunctionIfExists(tsname, 1, &iparam);
 }
 
-int ccInstance::RunTextScript2IParam(char*tsname,RuntimeScriptValue &iparam, RuntimeScriptValue &param2) {
+int ccInstance::RunTextScript2IParam(const char*tsname,RuntimeScriptValue &iparam, RuntimeScriptValue &param2) {
     RuntimeScriptValue params[2];
     params[0] = iparam;
     params[1] = param2;
@@ -1531,7 +1529,7 @@ void ccInstance::GetScriptPosition(ScriptPosition &script_pos)
 }
 
 // get a pointer to a variable or function exported by the script
-RuntimeScriptValue ccInstance::GetSymbolAddress(char *symname)
+RuntimeScriptValue ccInstance::GetSymbolAddress(const char *symname)
 {
     int k;
     char altName[200];
@@ -1559,7 +1557,7 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
         return;
     }
 
-    Stream *data_s = ci_fopen("script.log", Common::kFile_Create, Common::kFile_Write);
+    Stream *data_s = ci_fopen("script.log", kFile_Create, kFile_Write);
     TextStreamWriter writer(data_s);
     writer.WriteFormat("Line %3d, IP:%8d (SP:%p) ", line_num, pc, registers[SREG_SP].RValue);
 
@@ -1602,7 +1600,6 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
     if (joined != NULL) {
         // share memory space with an existing instance (ie. this is a thread/fork)
         globalvars = joined->globalvars;
-        num_globalvars = joined->num_globalvars;
         globaldatasize = joined->globaldatasize;
         globaldata = joined->globaldata;
         code = joined->code;
@@ -1611,6 +1608,7 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
     else {
         // create own memory space
         // NOTE: globalvars are created in CreateGlobalVars()
+        globalvars.reset(new ScVarMap());
         globaldatasize = scri->globaldatasize;
         globaldata = NULL;
         if (globaldatasize > 0)
@@ -1742,11 +1740,10 @@ void ccInstance::Free()
 
     if ((flags & INSTF_SHAREDATA) == 0)
     {
-        delete [] globalvars;
         nullfree(globaldata);
         nullfree(code);
     }
-    globalvars = NULL;
+    globalvars.reset();
     globaldata = NULL;
     code = NULL;
     strings = NULL;
@@ -1806,7 +1803,6 @@ bool ccInstance::ResolveScriptImports(ccScript * scri)
 // certain accuracy after all global vars are registered. Each
 // global var's size would be limited by closest next var's ScAddress
 // and globaldatasize.
-// TODO: rework this routine by the use of normal Array or Map class
 bool ccInstance::CreateGlobalVars(ccScript * scri)
 {
     ScriptVariable glvar;
@@ -1843,7 +1839,7 @@ bool ccInstance::CreateGlobalVars(ccScript * scri)
             continue;
         }
 
-        TryAddGlobalVar(glvar);
+        AddGlobalVar(glvar);
     }
 
     // Step Two: deduce global variables from exports
@@ -1857,105 +1853,44 @@ bool ccInstance::CreateGlobalVars(ccScript * scri)
             // no need to worry about these here
             glvar.ScAddress = eaddr;
             glvar.RValue.SetData(globaldata + glvar.ScAddress, 0);
-            TryAddGlobalVar(glvar);
+            AddGlobalVar(glvar);
         }
     }
 
     return true;
 }
 
-bool ccInstance::TryAddGlobalVar(const ScriptVariable &glvar)
+bool ccInstance::AddGlobalVar(const ScriptVariable &glvar)
 {
-    int index;
-    if (!FindGlobalVar(glvar.ScAddress, &index))
-    {
-        AddGlobalVar(glvar, index);
-        return true;
-    }
-    return false;
-}
-
-// TODO: use bsearch routine from Array or Map class, when we put one in use
-ScriptVariable *ccInstance::FindGlobalVar(int32_t var_addr, int *pindex)
-{
-    if (pindex)
-    {
-        *pindex = -1;
-    }
-
-    if (!num_globalvars)
-    {
-        return NULL;
-    }
-
     // [IKM] 2013-02-23:
     // !!! TODO
     // "Metal Dead" game (built with AGS 3.21.1115) fails to pass this check,
     // because one of its fixups in script creates reference beyond global
     // data buffer. The error will be suppressed until root of the problem is
     // found, and some proper workaround invented.
-    if (var_addr >= globaldatasize)
+    if (glvar.ScAddress < 0 || glvar.ScAddress >= globaldatasize)
+    {
+        /*
+        return false;
+        */
+        Out::FPrint("WARNING: global variable refers to data beyond allocated buffer (%d, %d)", glvar.ScAddress, globaldatasize);
+    }
+    globalvars->insert(std::make_pair(glvar.ScAddress, glvar));
+    return true;
+}
+
+ScriptVariable *ccInstance::FindGlobalVar(int32_t var_addr)
+{
+    // NOTE: see comment for AddGlobalVar()
+    if (var_addr < 0 || var_addr >= globaldatasize)
     {
         /*
         return NULL;
         */
-        Common::Out::FPrint("WARNING: global variable found beyond allocated global data buffer (%d, %d)", var_addr, globaldatasize);
+        Out::FPrint("WARNING: looking up for global variable beyond allocated buffer (%d, %d)", var_addr, globaldatasize);
     }
-
-    int first   = 0;
-    int last    = num_globalvars;
-    int mid;
-    while (first < last)
-    {
-        mid = first + ((last - first) >> 1);
-        if (var_addr <= globalvars[mid].ScAddress)
-        {
-            last = mid;
-        }
-        else
-        {
-            first = mid + 1;
-        }
-    }
-
-    if (pindex)
-    {
-        *pindex = last;
-    }
-
-    if (last < num_globalvars && globalvars[last].ScAddress == var_addr)
-    {
-        return &globalvars[last];
-    }
-    return NULL;
-}
-
-void ccInstance::AddGlobalVar(const ScriptVariable &glvar, int at_index)
-{
-    if (at_index < 0 || at_index > num_globalvars)
-    {
-        at_index = num_globalvars;
-    }
-
-    // FIXME: some hardcore vector emulation here :/
-    if (num_globalvars == num_globalvar_slots)
-    {
-        num_globalvar_slots = num_globalvars + 100;
-        ScriptVariable *new_arr = new ScriptVariable[num_globalvar_slots];
-        if (num_globalvars > 0)
-        {
-            memcpy(new_arr, globalvars, num_globalvars * sizeof(ScriptVariable));
-        }
-        delete [] globalvars;
-        globalvars = new_arr;
-    }
-
-    if (at_index < num_globalvars)
-    {
-        memmove(globalvars + at_index + 1, globalvars + at_index, (num_globalvars - at_index) * sizeof(ScriptVariable));
-    }
-    globalvars[at_index] = glvar;
-    num_globalvars++;
+    ScVarMap::iterator it = globalvars->find(var_addr);
+    return it != globalvars->end() ? &it->second : NULL;
 }
 
 bool ccInstance::CreateRuntimeCodeFixups(ccScript * scri)

@@ -18,8 +18,6 @@
 #ifndef __AGS_EE_MAIN__GAMERUN_H
 #define __AGS_EE_MAIN__GAMERUN_H
 
-#include "gfx/ali3d.h"
-
 namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
 using namespace AGS::Engine; // FIXME later
 

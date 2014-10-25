@@ -38,8 +38,8 @@
 #include "gfx/graphicsdriver.h"
 #include "media/audio/soundclip.h"
 
-using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern MoveList *mls;
 extern RoomStatus*croom;

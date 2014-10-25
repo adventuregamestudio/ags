@@ -22,7 +22,6 @@
 struct MYMOD:public SOUNDCLIP
 {
     JGMOD *tune;
-    int repeat;
 
     int poll();
 

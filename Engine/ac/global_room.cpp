@@ -184,10 +184,6 @@ int HasBeenToRoom (int roomnum) {
         return 0;
 }
 
-int GetRoomProperty (const char *property) {
-    return get_int_property (&thisroom.roomProps, property);
-}
-
 void GetRoomPropertyText (const char *property, char *bufer) {
     get_text_property (&thisroom.roomProps, property, bufer);
 }

@@ -28,7 +28,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="start /WAIT $(SolutionDir)\..\Editor\UpdateCPPVersion\bin\$(ConfigurationName)\UpdateCPPVersion.exe $(TargetPath)"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -81,9 +81,9 @@
 				Name="VCLinkerTool"
 				RegisterOutput="false"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="Common_d.lib Compiler_d.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
+				AdditionalDependencies="Common_md_d.lib Compiler_md_d.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)\..\Solutions\.lib\$(ConfigurationName)&quot;;&quot;$(SolutionDir)\..\Windows\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)\..\Solutions\.lib\Debug_MD&quot;;&quot;$(SolutionDir)\..\Windows\lib&quot;"
 				IgnoreDefaultLibraryNames="LIBCMTD.lib"
 				ModuleDefinitionFile=""
 				GenerateDebugInformation="true"
@@ -128,7 +128,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(SolutionDir)\..\Editor\UpdateCPPVersion\bin\$(ConfigurationName)\UpdateCPPVersion.exe $(TargetPath)"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -180,9 +180,9 @@
 				Name="VCLinkerTool"
 				RegisterOutput="false"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="Common.lib Compiler.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
+				AdditionalDependencies="Common_md.lib Compiler_md.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)\..\Solutions\.lib\$(ConfigurationName)&quot;;&quot;$(SolutionDir)\..\Windows\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)\..\Solutions\.lib\Release_MD&quot;;&quot;$(SolutionDir)\..\Windows\lib&quot;"
 				IgnoreDefaultLibraryNames="LIBCMT.lib"
 				ModuleDefinitionFile=""
 				GenerateDebugInformation="true"
@@ -300,6 +300,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\agsnative.h"
+				>
+			</File>
 			<File
 				RelativePath=".\NativeMethods.h"
 				>

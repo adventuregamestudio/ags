@@ -84,12 +84,13 @@ public:
     virtual size_t  WriteArrayOfInt32(const int32_t *buffer, size_t count);
     virtual size_t  WriteArrayOfInt64(const int64_t *buffer, size_t count);
 
-    virtual size_t  Seek(StreamSeek seek, int pos);
+    virtual size_t  Seek(int offset, StreamSeek origin);
 
 protected:
     void            ReadPadding(size_t next_type);
     void            WritePadding(size_t next_type);
     void            FinalizeBlock();
+    void            ClearPaddingBuffer();
 
 private:
     static const size_t LargestPossibleType = sizeof(int64_t);

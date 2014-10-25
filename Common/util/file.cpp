@@ -38,6 +38,17 @@ bool File::TestReadFile(const String &filename)
     return false;
 }
 
+bool File::TestWriteFile(const String &filename)
+{
+    FILE *test_file = fopen(filename, "r+");
+    if (test_file)
+    {
+        fclose(test_file);
+        return true;
+    }
+    return TestCreateFile(filename);
+}
+
 bool File::TestCreateFile(const String &filename)
 {
     FILE *test_file = fopen(filename, "wb");

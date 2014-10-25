@@ -17,7 +17,6 @@
 //
 
 #include "main/mainheader.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
@@ -60,16 +59,13 @@
 #include "main/game_file.h"
 #include "debug/out.h"
 
-using AGS::Common::String;
-using AGS::Common::Stream;
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
-namespace Path = AGS::Common::Path;
-namespace Out = AGS::Common::Out;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern char check_dynamic_sprites_at_exit;
 extern int our_eip;
 extern volatile char want_exit, abort_engine;
+extern bool justRunSetup;
 extern GameSetup usetup;
 extern GameSetupStruct game;
 extern int proper_exit;
@@ -80,16 +76,13 @@ extern SpriteCache spriteset;
 extern ObjectCache objcache[MAX_INIT_SPR];
 extern ScriptObject scrObj[MAX_INIT_SPR];
 extern ViewStruct*views;
-extern GUIMain*guis;
 extern int displayed_room;
 extern int eip_guinum;
 extern int eip_guiobj;
 extern const char *replayTempFile;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhenome;
-extern int scrnwid,scrnhit;
 extern ScriptSystem scsystem;
-extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap *virtual_screen;
 extern Bitmap **actsps;
@@ -175,8 +168,8 @@ int engine_check_run_setup(int argc,char*argv[])
 {
 #if defined (WINDOWS_VERSION)
     // check if Setup needs to be run instead
-    if (argc>1) {
-        if (stricmp(argv[1],"--setup")==0) { 
+    if (justRunSetup)
+    {
             Out::FPrint("Running Setup");
 
             if (!platform->RunSetup())
@@ -189,7 +182,6 @@ int engine_check_run_setup(int argc,char*argv[])
             sprintf (quotedpath, "\"%s\"", argv[0]);
             _spawnl (_P_OVERLAY, argv[0], quotedpath, NULL);
             //read_config_file(argv[0]);
-        }
     }
 #endif
 
@@ -200,9 +192,12 @@ void engine_force_window()
 {
     // Force to run in a window, override the config file
     if (force_window == 1)
-        usetup.windowed = 1;
+    {
+        usetup.windowed = true;
+        usetup.screen_sz_def = kScreenDef_ByGameScaling;
+    }
     else if (force_window == 2)
-        usetup.windowed = 0;
+        usetup.windowed = false;
 }
 
 void init_game_file_name_from_cmdline()
@@ -476,7 +471,7 @@ int engine_init_speech()
 {
     play.want_speech=-2;
 
-    if (usetup.no_speech_pack == 0) {
+    if (!usetup.no_speech_pack) {
         /* Can't just use fopen here, since we need to change the filename
         so that pack functions, etc. will have the right case later */
         speech_file = ci_find_file(usetup.data_files_dir, "speech.vox");
@@ -535,7 +530,7 @@ int engine_init_speech()
 
 int engine_init_music()
 {
-    play.seperate_music_lib = 0;
+    play.separate_music_lib = 0;
 
     /* Can't just use fopen here, since we need to change the filename
     so that pack functions, etc. will have the right case later */
@@ -566,7 +561,7 @@ int engine_init_music()
         }
         Common::AssetManager::SetDataFile(game_file_name);
         platform->WriteConsole("Audio vox found and initialized.\n");
-        play.seperate_music_lib = 1;
+        play.separate_music_lib = 1;
     }
 
     return RETURN_CONTINUE;
@@ -650,7 +645,7 @@ void engine_init_sound()
         // therefore the MIDI soundtrack will be used if present,
         // and the voice mode should not go to Voice Only
         play.want_speech = -2;
-        play.seperate_music_lib = 0;
+        play.separate_music_lib = 0;
     }
 }
 
@@ -892,7 +887,7 @@ void show_preload () {
         Bitmap *tsc = BitmapHelper::CreateBitmapCopy(splashsc, screen_bmp->GetColorDepth());
 
 		screen_bmp->Fill(0);
-        screen_bmp->StretchBlt(tsc, RectWH(0, 0, scrnwid,scrnhit), Common::kBitmap_Transparency);
+        screen_bmp->StretchBlt(tsc, RectWH(0, 0, play.viewport.GetWidth(),play.viewport.GetHeight()), Common::kBitmap_Transparency);
 
         gfxDriver->ClearDrawList();
 
@@ -941,7 +936,7 @@ void engine_setup_screen()
 {
     Out::FPrint("Set up screen");
 
-    virtual_screen=BitmapHelper::CreateBitmap(scrnwid,scrnhit,final_col_dep);
+    virtual_screen=BitmapHelper::CreateBitmap(play.viewport.GetWidth(),play.viewport.GetHeight(),ScreenResolution.ColorDepth);
     virtual_screen->Clear();
     gfxDriver->SetMemoryBackBuffer(virtual_screen);
     //  ignore_mouseoff_bitmap = virtual_screen;
@@ -1207,13 +1202,13 @@ void engine_init_game_settings()
 
 void engine_init_game_shit()
 {
-    scsystem.width = final_scrn_wid;
-    scsystem.height = final_scrn_hit;
-    scsystem.coldepth = final_col_dep;
+    scsystem.width = game.size.Width;
+    scsystem.height = game.size.Height;
+    scsystem.coldepth = ScreenResolution.ColorDepth;
     scsystem.windowed = 0;
     scsystem.vsync = 0;
-    scsystem.viewport_width = divide_down_coordinate(scrnwid);
-    scsystem.viewport_height = divide_down_coordinate(scrnhit);
+    scsystem.viewport_width = divide_down_coordinate(play.viewport.GetWidth());
+    scsystem.viewport_height = divide_down_coordinate(play.viewport.GetHeight());
     // ScriptSystem::aci_version is only 10 chars long
     strncpy(scsystem.aci_version, EngineVersion.LongString, 10);
     if (usetup.override_script_os >= 0)
@@ -1230,17 +1225,17 @@ void engine_init_game_shit()
     if (usetup.vsync)
         scsystem.vsync = 1;
 
-    filter->SetMouseArea(0, 0, scrnwid-1, scrnhit-1);
+    Mouse::SetGraphicArea();
     //  mloadwcursor("mouse.spr");
     //mousecurs[0]=spriteset[2054];
     currentcursor=0;
     our_eip=-4;
     mousey=100;  // stop icon bar popping up
-    init_invalid_regions(final_scrn_hit);
+    init_invalid_regions(game.size.Height);
     SetVirtualScreen(virtual_screen);
     our_eip = -41;
 
-    gfxDriver->SetRenderOffset(get_screen_x_adjustment(virtual_screen), get_screen_y_adjustment(virtual_screen));
+    gfxDriver->SetRenderOffset(play.viewport.Left, play.viewport.Top);
 }
 
 void engine_update_mp3_thread()
@@ -1432,10 +1427,8 @@ int initialize_engine(int argc,char*argv[])
 
     engine_init_modxm_player();
 
-    res = graphics_mode_init();
-    if (res != RETURN_CONTINUE) {
-        return res;
-    }
+    if (!graphics_mode_init())
+        return EXIT_NORMAL;
 
     SetMultitasking(0);
 

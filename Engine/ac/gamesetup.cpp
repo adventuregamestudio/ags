@@ -17,19 +17,25 @@
 
 GameSetup::GameSetup()
 {
-    digicard=DIGI_AUTODETECT; midicard=MIDI_AUTODETECT;
-    mod_player=1; mp3_player=1;
-    want_letterbox=0; windowed = 0;
-    vsync = 0;
-    no_speech_pack = 0;
+    digicard=DIGI_AUTODETECT;
+    midicard=MIDI_AUTODETECT;
+    mod_player=1;
+    mp3_player=1;
+    windowed = false;
+    vsync = false;
+    no_speech_pack = false;
     refresh = 0;
-    enable_antialiasing = 0;
-    force_hicolor_mode = 0;
-    disable_exception_handling = 0;
-    enable_side_borders = 1;
-    base_width = 320;
-    base_height = 200;
+    enable_antialiasing = false;
+    force_hicolor_mode = false;
+    disable_exception_handling = false;
     override_script_os = -1;
     override_multitasking = -1;
     override_upscale = false;
+    gfxFilterID = "StdScale";
+    screen_sz_def = kScreenDef_MaxDisplay;
+    filter_scaling_max_uniform = true;
+    filter_scaling_x = 0;
+    filter_scaling_y = 0;
+    match_device_ratio = false;
+    game_frame_placement = kPlaceCenter;
 }

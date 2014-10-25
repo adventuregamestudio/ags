@@ -13,13 +13,13 @@
 //=============================================================================
 
 #include <stdio.h>
-#include "gfx/ali3d.h"
 #include "ac/overlay.h"
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/characterextras.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_overlay.h"
 #include "ac/global_translation.h"
 #include "ac/runtime_defines.h"
@@ -29,10 +29,10 @@
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
 
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern int scrnwid,scrnhit;
 extern int offsetx, offsety;
 extern int displayed_room;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -250,11 +250,11 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
         tdxp = (multiply_up_coordinate(game.chars[charid].x) - screenover[overlayidx].pic->GetWidth()/2) - offsetx;
         if (tdxp < 0) tdxp=0;
 
-        if ((tdxp + screenover[overlayidx].pic->GetWidth()) >= scrnwid)
-            tdxp = (scrnwid - screenover[overlayidx].pic->GetWidth()) - 1;
+        if ((tdxp + screenover[overlayidx].pic->GetWidth()) >= play.viewport.GetWidth())
+            tdxp = (play.viewport.GetWidth() - screenover[overlayidx].pic->GetWidth()) - 1;
         if (game.chars[charid].room != displayed_room) {
-            tdxp = scrnwid/2 - screenover[overlayidx].pic->GetWidth()/2;
-            tdyp = scrnhit/2 - screenover[overlayidx].pic->GetHeight()/2;
+            tdxp = play.viewport.GetWidth()/2 - screenover[overlayidx].pic->GetWidth()/2;
+            tdyp = play.viewport.GetHeight()/2 - screenover[overlayidx].pic->GetHeight()/2;
         }
     }
     else {

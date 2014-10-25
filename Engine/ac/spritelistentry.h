@@ -18,9 +18,11 @@
 #ifndef __AGS_EE_AC__SPRITELISTENTRY_H
 #define __AGS_EE_AC__SPRITELISTENTRY_H
 
+#include "gfx/ddb.h"
+
 struct SpriteListEntry {
-    IDriverDependantBitmap *bmp;
-    Common::Bitmap *pic;
+    AGS::Engine::IDriverDependantBitmap *bmp;
+    AGS::Common::Bitmap *pic;
     int baseline;
     int x,y;
     int transparent;

@@ -15,50 +15,59 @@
 #include "gfx/bitmap.h"
 #include "gfx/gfxfilter_hq2x.h"
 #include "gfx/hq2x3x.h"
-#include "gfx/gfxfilterdefines.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+namespace AGS
+{
+namespace Engine
+{
+namespace ALSW
+{
 
-const char* Hq2xGFXFilter::Initialize(int width, int height, int colDepth) {
-    if (colDepth < 32)
-        return "Only supports 32-bit colour games";
+using namespace Common;
 
-    return ScalingGFXFilter::Initialize(width, height, colDepth);
+const GfxFilterInfo Hq2xGfxFilter::FilterInfo = GfxFilterInfo("Hq2x", "Hq2x", 2);
+
+const GfxFilterInfo &Hq2xGfxFilter::GetInfo() const
+{
+    return FilterInfo;
 }
 
+bool Hq2xGfxFilter::Initialize(const int color_depth, String &err_str)
+{
+    if (color_depth < 32)
+    {
+        err_str = "Only supports 32-bit colour games";
+        return false;
+    }
+    return AllegroGfxFilter::Initialize(color_depth, err_str);
+}
 
-Bitmap* Hq2xGFXFilter::ScreenInitialized(Bitmap *screen, int fakeWidth, int fakeHeight) {
-    realScreen = screen;
-    realScreenBuffer = BitmapHelper::CreateBitmap(screen->GetWidth(), screen->GetHeight());
-    realScreenSizedBuffer = BitmapHelper::CreateBitmap(screen->GetWidth(), screen->GetHeight(), screen->GetColorDepth());
-    fakeScreen = BitmapHelper::CreateBitmap(fakeWidth, fakeHeight, screen->GetColorDepth());
+Bitmap* Hq2xGfxFilter::InitVirtualScreen(Bitmap *screen, const Size src_size, const Rect dst_rect)
+{
+    Bitmap *virtual_screen = AllegroGfxFilter::InitVirtualScreen(screen, src_size, dst_rect);
+    _hq2xScalingBuffer = BitmapHelper::CreateBitmap(src_size.Width * 2, src_size.Height * 2);
+
     InitLUTs();
-    return fakeScreen;
+    return virtual_screen;
 }
 
-Bitmap *Hq2xGFXFilter::ShutdownAndReturnRealScreen(Bitmap *currentScreen) {
-    delete fakeScreen;
-    delete realScreenBuffer;
-    delete realScreenSizedBuffer;
-    return realScreen;
+Bitmap *Hq2xGfxFilter::ShutdownAndReturnRealScreen(Bitmap *currentScreen)
+{
+    Bitmap *real_screen = AllegroGfxFilter::ShutdownAndReturnRealScreen(currentScreen);
+    delete _hq2xScalingBuffer;
+    _hq2xScalingBuffer = NULL;
+    return real_screen;
 }
 
-void Hq2xGFXFilter::RenderScreen(Bitmap *toRender, int x, int y) {
-
-    realScreenBuffer->Acquire();
-    hq2x_32(&toRender->GetScanLineForWriting(0)[0], &realScreenBuffer->GetScanLineForWriting(0)[0], toRender->GetWidth(), toRender->GetHeight(), realScreenBuffer->GetWidth() * BYTES_PER_PIXEL(realScreenBuffer->GetColorDepth()));
-    realScreenBuffer->Release();
-
-    realScreen->Blit(realScreenBuffer, 0, 0, x * MULTIPLIER, y * MULTIPLIER, realScreen->GetWidth(), realScreen->GetHeight());
-
-    lastBlitFrom = toRender;
+Bitmap *Hq2xGfxFilter::PreRenderPass(Bitmap *toRender)
+{
+    _hq2xScalingBuffer->Acquire();
+    hq2x_32(toRender->GetDataForWriting(), _hq2xScalingBuffer->GetDataForWriting(),
+        toRender->GetWidth(), toRender->GetHeight(), _hq2xScalingBuffer->GetLineLength());
+    _hq2xScalingBuffer->Release();
+    return _hq2xScalingBuffer;
 }
 
-const char *Hq2xGFXFilter::GetVersionBoxText() {
-    return "Hq2x filter (32-bit only)[";
-}
-
-const char *Hq2xGFXFilter::GetFilterID() {
-    return "Hq2x";
-}
+} // namespace ALSW
+} // namespace Engine
+} // namespace AGS

@@ -18,7 +18,6 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/string.h"
 
-extern int guis_need_update;
 extern GameSetupStruct game;
 
 

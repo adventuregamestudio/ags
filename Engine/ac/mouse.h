@@ -27,7 +27,7 @@
 #define LEFT  0
 #define RIGHT 1
 
-#define MOUSE_MAX_Y divide_down_coordinate(vesa_yres)
+#define MOUSE_MAX_Y divide_down_coordinate(play.viewport.GetHeight())
 
 void Mouse_SetVisible(int isOn);
 int Mouse_GetVisible();
@@ -65,6 +65,5 @@ void set_new_cursor_graphic (int spriteslot);
 int find_next_enabled_cursor(int startwith);
 
 extern ScriptMouse scmouse;
-
 
 #endif // __AGS_EE_AC__MOUSE_H

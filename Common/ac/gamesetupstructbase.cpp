@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include "ac/gamesetupstructbase.h"
+#include "ac/game_version.h"
 #include "util/stream.h"
 
 using AGS::Common::Stream;
@@ -32,6 +33,18 @@ GameSetupStructBase::GameSetupStructBase()
 GameSetupStructBase::~GameSetupStructBase()
 {
     delete [] load_messages;
+}
+
+void GameSetupStructBase::SetDefaultResolution(GameResolutionType resolution_type)
+{
+    default_resolution = resolution_type;
+    size = ResolutionTypeToSize(default_resolution);
+}
+
+void GameSetupStructBase::SetCustomResolution(Size game_res)
+{
+    default_resolution = kGameResolution_Custom;
+    size = game_res;
 }
 
 void GameSetupStructBase::ReadFromFile(Stream *in)
@@ -57,7 +70,17 @@ void GameSetupStructBase::ReadFromFile(Stream *in)
     uniqueid = in->ReadInt32();
     numgui = in->ReadInt32();
     numcursors = in->ReadInt32();
-    default_resolution = (GameResolutionType)in->ReadInt32();
+    GameResolutionType resolution_type = (GameResolutionType)in->ReadInt32();
+    if (resolution_type == kGameResolution_Custom && loaded_game_file_version >= kGameVersion_340)
+    {
+        Size game_size;
+        game_size.Width = in->ReadInt32();
+        game_size.Height = in->ReadInt32();
+        SetCustomResolution(game_size);
+    }
+    else
+        SetDefaultResolution(resolution_type);
+
     default_lipsync_frame = in->ReadInt32();
     invhotdotsprite = in->ReadInt32();
     in->ReadArrayOfInt32(reserved, 17);
@@ -96,6 +119,11 @@ void GameSetupStructBase::WriteToFile(Stream *out)
     out->WriteInt32(numgui);
     out->WriteInt32(numcursors);
     out->WriteInt32(default_resolution);
+    if (default_resolution == kGameResolution_Custom)
+    {
+        out->WriteInt32(size.Width);
+        out->WriteInt32(size.Height);
+    }
     out->WriteInt32(default_lipsync_frame);
     out->WriteInt32(invhotdotsprite);
     out->WriteArrayOfInt32(reserved, 17);
@@ -109,22 +137,25 @@ void GameSetupStructBase::WriteToFile(Stream *out)
     out->WriteInt32(compiled_script ? 1 : 0);
 }
 
-Size ResolutionTypeToSize(GameResolutionType resolution)
+Size ResolutionTypeToSize(GameResolutionType resolution, bool letterbox)
 {
     switch (resolution)
     {
+    case kGameResolution_Default:
     case kGameResolution_320x200:
-        return Size(320, 200);
+        return letterbox ? Size(320, 240) : Size(320, 200);
     case kGameResolution_320x240:
         return Size(320, 240);
     case kGameResolution_640x400:
-        return Size(640, 400);
+        return letterbox ? Size(640, 480) : Size(640, 400);
     case kGameResolution_640x480:
         return Size(640, 480);
     case kGameResolution_800x600:
         return Size(800, 600);
     case kGameResolution_1024x768:
         return Size(1024, 768);
+    case kGameResolution_1280x720:
+        return Size(1280,720);
     }
     return Size();
 }

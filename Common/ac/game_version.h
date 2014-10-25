@@ -80,6 +80,9 @@ Added few more game options.
 44 : 3.3.1
 Added custom dialog option highlight colour.
 
+45 : 3.4.0
+Support for custom game resolution
+
 */
 
 enum GameDataVersion
@@ -106,8 +109,9 @@ enum GameDataVersion
     kGameVersion_320            = 41,
     kGameVersion_321            = 42,
     kGameVersion_330            = 43,
-    kGameVersion_331,
-    kGameVersion_Current        = kGameVersion_331
+    kGameVersion_331            = 44,
+    kGameVersion_340            = 45,
+    kGameVersion_Current        = kGameVersion_340
 };
 
 extern GameDataVersion loaded_game_file_version;

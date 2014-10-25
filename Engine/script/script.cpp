@@ -52,7 +52,6 @@ extern int gameHasBeenRestored, displayed_room;
 extern unsigned int load_new_game;
 extern RoomObject*objs;
 extern int our_eip;
-extern int guis_need_update;
 extern CharacterInfo*playerchar;
 
 ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
@@ -78,10 +77,10 @@ NonBlockingScriptFunction runDialogOptionMouseClickHandlerFunc("dialog_options_m
 
 ScriptSystem scsystem;
 
-ccScript *scriptModules[MAX_SCRIPT_MODULES];
-ccInstance *moduleInst[MAX_SCRIPT_MODULES];
-ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
-RuntimeScriptValue moduleRepExecAddr[MAX_SCRIPT_MODULES];
+std::vector<ccScript *> scriptModules;
+std::vector<ccInstance *> moduleInst;
+std::vector<ccInstance *> moduleInstFork;
+std::vector<RuntimeScriptValue> moduleRepExecAddr;
 int numScriptModules = 0;
 
 char **characterScriptObjNames = NULL;
@@ -122,18 +121,18 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
     // run modules
     // modules need a forkedinst for this to work
     for (int kk = 0; kk < numScriptModules; kk++) {
-        moduleInstFork[kk]->DoRunScriptFuncCantBlock(funcToRun, &funcToRun->moduleHasFunction[kk]);
+        funcToRun->moduleHasFunction[kk] = moduleInstFork[kk]->DoRunScriptFuncCantBlock(funcToRun, funcToRun->moduleHasFunction[kk]);
 
         if (room_changes_was != play.room_changes)
             return;
     }
 
-    gameinstFork->DoRunScriptFuncCantBlock(funcToRun, &funcToRun->globalScriptHasFunction);
+    funcToRun->globalScriptHasFunction = gameinstFork->DoRunScriptFuncCantBlock(funcToRun, funcToRun->globalScriptHasFunction);
 
     if (room_changes_was != play.room_changes)
         return;
 
-    roominstFork->DoRunScriptFuncCantBlock(funcToRun, &funcToRun->roomHasFunction);
+    funcToRun->roomHasFunction = roominstFork->DoRunScriptFuncCantBlock(funcToRun, funcToRun->roomHasFunction);
 }
 
 //-----------------------------------------------------------

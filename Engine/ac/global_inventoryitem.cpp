@@ -26,11 +26,11 @@
 #include "ac/event.h"
 #include "ac/gamestate.h"
 
+using namespace AGS::Common;
+
 extern GameSetupStruct game;
 extern GameState play;
-extern int guis_need_update;
 extern int mousex, mousey;
-extern GUIMain*guis;
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern char*evblockbasename;
 extern int evblocknum;
@@ -71,17 +71,17 @@ int GetInvAt (int xxx, int yyy) {
   int ongui = GetGUIAt (xxx, yyy);
   if (ongui >= 0) {
     int mxwas = mousex, mywas = mousey;
-    mousex = multiply_up_coordinate(xxx) - guis[ongui].x;
-    mousey = multiply_up_coordinate(yyy) - guis[ongui].y;
-    int onobj = guis[ongui].find_object_under_mouse();
+    mousex = multiply_up_coordinate(xxx) - guis[ongui].X;
+    mousey = multiply_up_coordinate(yyy) - guis[ongui].Y;
+    int onobj = guis[ongui].FindControlUnderMouse();
     if (onobj>=0) {
-      mouse_ifacebut_xoffs = mousex-(guis[ongui].objs[onobj]->x);
-      mouse_ifacebut_yoffs = mousey-(guis[ongui].objs[onobj]->y);
+      mouse_ifacebut_xoffs = mousex-(guis[ongui].Controls[onobj]->x);
+      mouse_ifacebut_yoffs = mousey-(guis[ongui].Controls[onobj]->y);
     }
     mousex = mxwas;
     mousey = mywas;
-    if ((onobj>=0) && ((guis[ongui].objrefptr[onobj] >> 16)==GOBJ_INVENTORY))
-      return offset_over_inv((GUIInv*)guis[ongui].objs[onobj]);
+    if ((onobj>=0) && ((guis[ongui].CtrlRefs[onobj] >> 16)==kGUIInvWindow))
+      return offset_over_inv((GUIInv*)guis[ongui].Controls[onobj]);
   }
   return -1;
 }

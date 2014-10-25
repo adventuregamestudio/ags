@@ -15,7 +15,6 @@
 #define USE_CLIB
 #include <stdio.h>
 #include "ac/global_video.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
@@ -32,12 +31,10 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
+#include "main/graphics_mode.h"
 
-using AGS::Common::Stream;
-
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
-namespace Out = AGS::Common::Out;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
@@ -51,10 +48,6 @@ extern Bitmap *fli_buffer;
 extern IDriverDependantBitmap *fli_ddb;
 extern Bitmap *fli_target;
 extern IGraphicsDriver *gfxDriver;
-
-// defined in ac_screen
-extern int final_scrn_wid,final_scrn_hit,final_col_dep;
-extern int scrnwid,scrnhit;
 
 void play_flc_file(int numb,int playflags) {
     color oldpal[256];
@@ -91,20 +84,20 @@ void play_flc_file(int numb,int playflags) {
         debug_log("FLIC animation FLIC%d.FLC not found",numb);
         return;
     }
-    in->Seek(Common::kSeekCurrent,8);
+    in->Seek(8);
     fliwidth = in->ReadInt16();
     fliheight = in->ReadInt16();
     delete in;
     if (game.color_depth > 1) {
-        hicol_buf=BitmapHelper::CreateBitmap(fliwidth,fliheight,final_col_dep);
+        hicol_buf=BitmapHelper::CreateBitmap(fliwidth,fliheight,ScreenResolution.ColorDepth);
         hicol_buf->Clear();
     }
     // override the stretch option if necessary
-    if ((fliwidth==scrnwid) && (fliheight==scrnhit))
+    if ((fliwidth==play.viewport.GetWidth()) && (fliheight==play.viewport.GetHeight()))
         stretch_flc = 0;
-    else if ((fliwidth > scrnwid) || (fliheight > scrnhit))
+    else if ((fliwidth > play.viewport.GetWidth()) || (fliheight > play.viewport.GetHeight()))
         stretch_flc = 1;
-    fli_buffer=BitmapHelper::CreateBitmap(fliwidth,fliheight,8); //640,400); //scrnwid,scrnhit);
+    fli_buffer=BitmapHelper::CreateBitmap(fliwidth,fliheight,8); //640,400); //play.viewport.GetWidth(),play.viewport.GetHeight());
     if (fli_buffer==NULL) quit("Not enough memory to play animation");
     fli_buffer->Clear();
 
@@ -115,7 +108,7 @@ void play_flc_file(int numb,int playflags) {
         render_to_screen(screen_bmp, 0, 0);
     }
 
-    fli_target = BitmapHelper::CreateBitmap(screen_bmp->GetWidth(), screen_bmp->GetHeight(), final_col_dep);
+    fli_target = BitmapHelper::CreateBitmap(screen_bmp->GetWidth(), screen_bmp->GetHeight(), ScreenResolution.ColorDepth);
     fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
 
 	if (play_fli(flicnam,(BITMAP*)fli_buffer->GetAllegroBitmap(),0,fli_callback)==FLI_ERROR)

@@ -25,9 +25,11 @@
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
+#include "core/def_version.h"
 #include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
+#include "main/config.h"
 #include "main/engine.h"
 #include "main/mainheader.h"
 #include "main/main.h"
@@ -41,9 +43,8 @@
 #include "test/test_all.h"
 #endif
 
-namespace Directory = AGS::Common::Directory;
-namespace Out       = AGS::Common::Out;
-namespace Path      = AGS::Common::Path;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 char appDirectory[512]; // Needed for library loading
 
@@ -72,7 +73,6 @@ extern GameState play;
 extern int our_eip;
 extern AGSPlatformDriver *platform;
 extern int debug_flags;
-extern int force_letterbox;
 extern int debug_15bit_mode, debug_24bit_mode;
 extern int convert_16bit_bgr;
 extern int display_fps;
@@ -82,9 +82,9 @@ extern char editor_debugger_instance_token[100];
 
 
 // Startup flags, set from parameters to engine
-char force_gfxfilter[50];
 int datafile_argv=0, change_to_game_dir = 0, force_window = 0;
 int override_start_room = 0, force_16bit = 0;
+bool justRunSetup = false;
 bool justRegisterGame = false;
 bool justUnRegisterGame = false;
 const char *loadSaveGameOnStartup = NULL;
@@ -118,17 +118,6 @@ void main_create_platform_driver()
     platform = AGSPlatformDriver::GetDriver();
 }
 
-// Version and build numbers
-#define ACI_VERSION_MAJOR               3
-#define ACI_VERSION_MINOR               3
-#define ACI_VERSION_RELEASE             1
-#define ACI_VERSION_REVISION            1165
-#ifdef NO_MP3_PLAYER
-#define SPECIAL_VERSION "NMP"
-#else
-#define SPECIAL_VERSION ""
-#endif
-
 // this needs to be updated if the "play" struct changes
 #define SVG_VERSION_BWCOMPAT_MAJOR      3
 #define SVG_VERSION_BWCOMPAT_MINOR      2
@@ -150,10 +139,9 @@ AGS::Engine::Version SavedgameLowestForwardCompatVersion;
 
 void main_init()
 {
+    EngineVersion = Version(ACI_VERSION_STR " " SPECIAL_VERSION);
 #if defined (BUILD_STR)
-    EngineVersion = Version(ACI_VERSION_MAJOR, ACI_VERSION_MINOR, ACI_VERSION_RELEASE, ACI_VERSION_REVISION, SPECIAL_VERSION, BUILD_STR);
-#else
-    EngineVersion = Version(ACI_VERSION_MAJOR, ACI_VERSION_MINOR, ACI_VERSION_RELEASE, ACI_VERSION_REVISION, SPECIAL_VERSION);
+    EngineVersion.BuildInfo = BUILD_STR;
 #endif
     SavedgameLowestBackwardCompatVersion = Version(SVG_VERSION_BWCOMPAT_MAJOR, SVG_VERSION_BWCOMPAT_MINOR, SVG_VERSION_BWCOMPAT_RELEASE, SVG_VERSION_BWCOMPAT_REVISION);
     SavedgameLowestForwardCompatVersion = Version(SVG_VERSION_FWCOMPAT_MAJOR, SVG_VERSION_FWCOMPAT_MINOR, SVG_VERSION_FWCOMPAT_RELEASE, SVG_VERSION_FWCOMPAT_REVISION);
@@ -188,8 +176,10 @@ void main_print_help() {
            "  --fullscreen                 Force display mode to fullscreen\n"
            "  --hicolor                    Downmix 32bit colors to 16bit\n"
            "  --letterbox                  Enable letterbox mode\n"
-           "  --gfxfilter <filter>         Enable graphics filter. Available options:\n"
-           "                                 StdScale2, StdScale3, StdScale4, Hq2x or Hq3x\n"
+           "  --gfxfilter <filter> [<scaling>]\n"
+           "                               Request graphics filter. Available options:\n"
+           "                                 none, stdscale, hq2x, hq3x;\n"
+           "                                 scaling is specified by integer number\n"
            "  --log                        Enable program output to the log file\n"
            "  --no-log                     Disable program output to the log file,\n"
            "                                 overriding configuration file setting\n"
@@ -204,8 +194,6 @@ void main_print_help() {
 
 int main_process_cmdline(int argc,char*argv[])
 {
-    force_gfxfilter[0] = '\0';
-
     for (int ee=1;ee<argc;ee++) {
         if (stricmp(argv[ee],"--help") == 0 || argv[ee][1]=='?') {
             return 0;
@@ -220,16 +208,19 @@ int main_process_cmdline(int argc,char*argv[])
             force_window = 2;
         else if (stricmp(argv[ee],"-hicolor") == 0 || stricmp(argv[ee],"--hicolor") == 0)
             force_16bit = 1;
-        else if (stricmp(argv[ee],"-letterbox") == 0 || stricmp(argv[ee],"--letterbox") == 0)
-            force_letterbox = 1;
         else if (stricmp(argv[ee],"-record") == 0)
             play.recording = 1;
         else if (stricmp(argv[ee],"-playback") == 0)
             play.playback = 1;
         else if ((stricmp(argv[ee],"-gfxfilter") == 0 || stricmp(argv[ee],"--gfxfilter") == 0) && (argc > ee + 1))
         {
-            strncpy(force_gfxfilter, argv[ee + 1], 49);
-            ee++;
+            usetup.gfxFilterID = argv[++ee];
+            int scaling = kUnit;
+            if (argc > ee + 1 && argv[ee + 1][0] != '-')
+                scaling = parse_scaling_factor(argv[++ee]);
+            usetup.filter_scaling_x = usetup.filter_scaling_y = scaling;
+            if (scaling == 0)
+                usetup.filter_scaling_max_uniform = true;
         }
 #ifdef _DEBUG
         else if ((stricmp(argv[ee],"--startr") == 0) && (ee < argc-1)) {
@@ -254,8 +245,12 @@ int main_process_cmdline(int argc,char*argv[])
         else if (stricmp(argv[ee],"-nomusic")==0) debug_flags|=DBG_NOMUSIC;
         else if (stricmp(argv[ee],"-noscript")==0) debug_flags|=DBG_NOSCRIPT;
         else if (stricmp(argv[ee],"-novideo")==0) debug_flags|=DBG_NOVIDEO;
-        else if (stricmp(argv[ee],"-noexceptionhandler")==0) usetup.disable_exception_handling = 1;
+        else if (stricmp(argv[ee],"-noexceptionhandler")==0) usetup.disable_exception_handling = true;
         else if (stricmp(argv[ee],"-dbgscript")==0) debug_flags|=DBG_DBGSCRIPT;
+        else if (stricmp(argv[ee], "--setup") == 0)
+        {
+            justRunSetup = true;
+        }
         else if (stricmp(argv[ee],"-registergame") == 0)
         {
             justRegisterGame = true;
@@ -444,7 +439,7 @@ int main(int argc,char*argv[]) {
     initialize_debug_system();
 
     Out::FPrint("Adventure Game Studio v%s Interpreter\n"
-           "Copyright (c) 1999-2011 Chris Jones and 2011-2014 others\n"
+           "Copyright (c) 1999-2011 Chris Jones and " ACI_COPYRIGHT_YEARS " others\n"
 #ifdef BUILD_STR
            "ACI version %s (Build: %s)\n",
            EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr(), EngineVersion.BuildInfo.GetCStr());
@@ -480,7 +475,7 @@ int main(int argc,char*argv[]) {
         exit(0);
 
 #ifndef USE_CUSTOM_EXCEPTION_HANDLER
-    usetup.disable_exception_handling = 1;
+    usetup.disable_exception_handling = true;
 #endif
 
     if (usetup.disable_exception_handling)

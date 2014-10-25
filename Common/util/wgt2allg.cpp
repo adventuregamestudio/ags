@@ -18,9 +18,7 @@
 #include "core/assetmanager.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
   Common::Bitmap *gl_VirtualScreenBitmap;
   Common::Bitmap *SetVirtualScreen(Bitmap *bitmap)
@@ -61,10 +59,6 @@ using AGS::Common::Stream;
 extern "C"
 {
 #endif
-
-//int currentcolor;
-int vesa_xres, vesa_yres;
-//Bitmap *abuf;
 
   void wsetrgb(int coll, int r, int g, int b, color * pall)
   {
@@ -165,7 +159,7 @@ int vesa_xres, vesa_yres;
       wdd = in->ReadInt16();
       htt = in->ReadInt16();
       if (vv < strt) {
-          in->Seek(Common::kSeekCurrent, wdd * htt);
+          in->Seek(wdd * htt);
         continue;
       }
       sarray[vv] = BitmapHelper::CreateBitmap(wdd, htt, coldep * 8);

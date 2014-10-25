@@ -81,8 +81,6 @@ namespace AGS
 			String ^LoadRoomScript(String ^roomFileName);
 			void CompileScript(Script ^script, cli::array<String^> ^preProcessedScripts, Game ^game, bool isRoomScript);
 			void CompileGameToDTAFile(Game ^game, String^ fileName);
-			void CreateDataFile(cli::array<String^> ^fileList, long splitSize, String ^baseFileName, bool isGameEXE);
-            void CreateDataFile(cli::array<String^> ^fileList, long splitSize, String ^baseFileName, bool isGameEXE, String ^compiledDir);
 			void CreateVOXFile(String ^fileName, cli::array<String^> ^fileList);
 			GameTemplate^ LoadTemplateFile(String ^fileName);
       RoomTemplate^ LoadRoomTemplateFile(String ^fileName);
@@ -94,6 +92,7 @@ namespace AGS
       void UpdateFileVersionInfo(String ^fileToUpdate, cli::array<System::Byte> ^authorNameUnicode, cli::array<System::Byte> ^gameNameUnicode);
 			cli::array<unsigned char>^ TransformStringToBytes(String ^text);
 			bool HaveSpritesBeenModified();
+            Object^ GetNativeConstant(String ^name);
 		};
 
 		public ref class SourceCodeControl

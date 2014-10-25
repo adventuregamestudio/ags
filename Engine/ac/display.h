@@ -20,6 +20,8 @@
 
 #include "gui/guimain.h"
 
+using AGS::Common::GUIMain;
+
 int  _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,int asspch, int isThought, int allowShrink, bool overlayPositionFixed);
 void _display_at(int xx,int yy,int wii,char*todis,int blocking,int asspch, int isThought, int allowShrink, bool overlayPositionFixed);
 bool ShouldAntiAliasText();

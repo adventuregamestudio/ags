@@ -66,6 +66,12 @@ namespace BitmapHelper
     Bitmap *CreateBitmapCopy(Bitmap *src, int color_depth = 0);
 	Bitmap *LoadFromFile(const char *filename);
 
+    // Copy pixel data into bitmap from memory buffer. It is required that the
+    // source matches bitmap format and has enough data.
+    // Pitch is given in bytes and defines the length of the source scan line.
+    // Offset is optional and defines horizontal offset, in pixels.
+    void    ReadPixelsFromMemory(Bitmap *dst, const uint8_t *src_buffer, const size_t src_pitch, const size_t src_px_offset = 0);
+
 	// TODO: revise this later
 	// Getters and setters for screen bitmap
 	// Unfortunately some of the allegro functions require "screen" allegro bitmap,

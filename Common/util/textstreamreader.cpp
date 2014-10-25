@@ -135,7 +135,7 @@ String TextStreamReader::ReadLine()
     {
         // CHECKME: what if stream does not support seek? need an algorythm fork for that
         // the seek offset should be negative
-        _stream->Seek(kSeekCurrent, line_break_position - chars_read_last + 1 /* beyond line feed */);
+        _stream->Seek(line_break_position - chars_read_last + 1 /* beyond line feed */);
     }
 
     str.TrimRight('\r');

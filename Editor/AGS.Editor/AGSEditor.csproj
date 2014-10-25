@@ -574,6 +574,9 @@
     <EmbeddedResource Include="GUI\SelectReligion.resx">
       <DependentUpon>SelectReligion.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="GUI\CustomResolutionDialog.resx">
+      <DependentUpon>CustomResolutionDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="GUI\StartNewGameWizardPage2.resx">
       <DependentUpon>StartNewGameWizardPage2.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -758,6 +761,7 @@
     <Compile Include="Audio\IAudioPreviewer.cs" />
     <Compile Include="Audio\IrrklangPlayer.cs" />
     <Compile Include="AutoComplete.cs" />
+    <Compile Include="BuildTarget.cs" />
     <Compile Include="ComponentController.cs" />
     <Compile Include="Components\AudioComponent.cs" />
     <Compile Include="Components\BaseComponent.cs" />
@@ -803,11 +807,18 @@
     <Compile Include="GUI\PropertiesPanel.Designer.cs">
       <DependentUpon>PropertiesPanel.cs</DependentUpon>
     </Compile>
+    <Compile Include="GUI\CustomResolutionDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\CustomResolutionDialog.Designer.cs">
+      <DependentUpon>CustomResolutionDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\ToolStripExtended.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="GUI\WindowsLayoutManager.cs" />
     <Compile Include="GUI\WindowsMenuManager.cs" />
+    <Compile Include="DataFileWriter.cs" />
     <Compile Include="Utils\ColorMapper.cs" />
     <Compile Include="Utils\DialogScriptConverter.cs" />
     <Compile Include="EditorEvents.cs" />

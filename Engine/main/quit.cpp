@@ -16,7 +16,6 @@
 // Quit game procedure
 //
 
-#include "gfx/ali3d.h"
 #include "ac/cdaudio.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
@@ -37,9 +36,8 @@
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
-namespace Out = AGS::Common::Out;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];

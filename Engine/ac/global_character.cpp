@@ -48,10 +48,8 @@ extern GameState play;
 extern ScriptObject scrObj[MAX_INIT_SPR];
 extern ScriptInvItem scrInv[MAX_INV];
 extern int offsetx, offsety;
-extern int guis_need_update;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
-extern int scrnwid,scrnhit;
 
 // defined in character unit
 extern CharacterExtras *charextra;
@@ -567,7 +565,7 @@ int DisplaySpeechBackground(int charid, const char*speel) {
         }
     }
 
-    int ovrl=CreateTextOverlay(OVR_AUTOPLACE,charid,scrnwid/2,FONT_SPEECH,
+    int ovrl=CreateTextOverlay(OVR_AUTOPLACE,charid,play.viewport.GetWidth()/2,FONT_SPEECH,
         -game.chars[charid].talkcolor, get_translation(speel));
 
     int scid = find_overlay_of_type(ovrl);

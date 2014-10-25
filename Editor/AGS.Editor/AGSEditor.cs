@@ -43,8 +43,28 @@ namespace AGS.Editor
         public const string AGS_REGISTRY_KEY = @"SOFTWARE\Adventure Game Studio\AGS Editor";
         public const string SPRITE_FILE_NAME = "acsprset.spr";
         public const string SPRITE_INDEX_FILE_NAME = "sprindex.dat";
-		public const string LATEST_XML_VERSION = "3.0.3.2";
-        public const int    LATEST_XML_VERSION_INDEX = 7;
+
+        /* 
+         * LATEST_XML_VERSION is the last version of the Editor that used 4-point-4-number string
+         * to identify the version of AGS that saved game project.
+         * DO NOT MODIFY THIS CONSTANT UNLESS YOU REALLY WANT TO CHANGE THE IDENTIFICATION METHOD.
+        */
+        public const string LATEST_XML_VERSION = "3.0.3.2";
+
+        /*
+         * LATEST_XML_VERSION_INDEX is the current project XML version.
+         * DO increase this number for every new public release that introduces a new
+         * property in the main project's XML, otherwise people who are trying to open
+         * newer projects in older Editors will get confusing error messages, instead
+         * of clear "wrong version of AGS" message.
+        */
+        /*
+         * 6: 3.2.1
+         * 7: 3.2.2
+         * 8: 3.3.1.1163 - Settings.LastBuildConfiguration;
+         * 9: 3.4.0.1    - Settings.CustomResolution
+        */
+        public const int    LATEST_XML_VERSION_INDEX = 9;
         public static readonly string AUDIO_VOX_FILE_NAME;
 
         private const string USER_DATA_FILE_NAME = GAME_FILE_NAME + USER_DATA_FILE_SUFFIX;
@@ -960,7 +980,8 @@ namespace AGS.Editor
             bool forceRebuild = (bool)parameter;
             SetMODMusicFlag();
             DeleteAnyExistingSplitResourceFiles();
-            Factory.NativeProxy.CompileGameToDTAFile(_game, COMPILED_DTA_FILE_NAME);
+            DataFileWriter.SaveThisGameToFile(COMPILED_DTA_FILE_NAME, _game);
+            //Factory.NativeProxy.CompileGameToDTAFile(_game, COMPILED_DTA_FILE_NAME);
             Factory.NativeProxy.CreateGameEXE(ConstructFileListForEXE(), _game, this.BaseGameFileName);
             File.Delete(COMPILED_DTA_FILE_NAME);
             CreateCompiledSetupProgram();
@@ -1586,39 +1607,28 @@ namespace AGS.Editor
 				NativeProxy.WritePrivateProfileString("sound", "midiwinindx", "0", configFilePath);
 			}
 
+            if (_game.Settings.LetterboxMode)
+            {
+                NativeProxy.WritePrivateProfileString("misc", "defaultres", ((int)_game.Settings.LegacyLetterboxResolution).ToString(), configFilePath);
+                NativeProxy.WritePrivateProfileString("misc", "letterbox", "1", configFilePath);
+                NativeProxy.WritePrivateProfileString("misc", "game_width", null, configFilePath);
+                NativeProxy.WritePrivateProfileString("misc", "game_height", null, configFilePath);
+            }
+            else
+            {
+                NativeProxy.WritePrivateProfileString("misc", "defaultres", null, configFilePath);
+                NativeProxy.WritePrivateProfileString("misc", "letterbox", null, configFilePath);
+                NativeProxy.WritePrivateProfileString("misc", "game_width", _game.Settings.CustomResolution.Width.ToString(), configFilePath);
+                NativeProxy.WritePrivateProfileString("misc", "game_height", _game.Settings.CustomResolution.Height.ToString(), configFilePath);
+            }
 			NativeProxy.WritePrivateProfileString("misc", "gamecolordepth", (((int)_game.Settings.ColorDepth) * 8).ToString(), configFilePath);
 
-			int resolution = (int)_game.Settings.Resolution;
-			StringBuilder buffer = new StringBuilder(100);
-			NativeProxy.GetPrivateProfileString("misc", "defaultres", "NULL", buffer, buffer.Capacity, configFilePath);
-
-			if (buffer.ToString() != resolution.ToString())
-			{
-				NativeProxy.WritePrivateProfileString("misc", "defaultres", resolution.ToString(), configFilePath);
-
-				int screenRes = 1;
-				if ((_game.Settings.Resolution == GameResolutions.R320x200) ||
-					(_game.Settings.Resolution == GameResolutions.R320x240)) 
-				{
-					screenRes = 0;
-				}
-				NativeProxy.WritePrivateProfileString("misc", "screenres", screenRes.ToString(), configFilePath);
-
-				int letterbox = 0;
-				if ((_game.Settings.Resolution == GameResolutions.R320x240) ||
-					(_game.Settings.Resolution == GameResolutions.R640x480))
-				{
-					letterbox = 1;
-				}
-				NativeProxy.WritePrivateProfileString("misc", "letterbox", letterbox.ToString(), configFilePath);
-			}
-
-			NativeProxy.GetPrivateProfileString("misc", "defaultgfxdriver", "NULL", buffer, buffer.Capacity, configFilePath);
-			if (buffer.ToString() != _game.Settings.GraphicsDriver.ToString())
-			{
-				NativeProxy.WritePrivateProfileString("misc", "defaultgfxdriver", _game.Settings.GraphicsDriver.ToString(), configFilePath);
-				NativeProxy.WritePrivateProfileString("misc", "gfxdriver", _game.Settings.GraphicsDriver.ToString(), configFilePath);
-			}
+            StringBuilder buffer = new StringBuilder(100);
+            NativeProxy.GetPrivateProfileString("graphics", "driver", "NULL", buffer, buffer.Capacity, configFilePath);
+            if (buffer.ToString() != _game.Settings.GraphicsDriver.ToString())
+            {
+                NativeProxy.WritePrivateProfileString("graphics", "driver", _game.Settings.GraphicsDriver.ToString(), configFilePath);
+            }
             NativeProxy.WritePrivateProfileString("misc", "titletext", _game.Settings.GameName + " Setup", configFilePath);
         }
 

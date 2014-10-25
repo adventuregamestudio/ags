@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -236,6 +236,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AGSColor.cs" />
+    <Compile Include="Attributes\DeserializeIgnoreAttribute.cs" />
     <Compile Include="AudioClipType.cs" />
     <Compile Include="BaseFolderCollection.cs" />
     <Compile Include="BuildTargetInfo.cs" />
@@ -274,6 +275,7 @@
     <Compile Include="PropertyGridExtras\AudioClipTypeTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\BaseListSelectTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\BuildTargetUIEditor.cs" />
+    <Compile Include="PropertyGridExtras\CustomResolutionTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\FlagsEditor.cs" />
     <Compile Include="PropertyGridExtras\FlagsEditorControl.cs">
       <SubType>UserControl</SubType>
@@ -281,6 +283,7 @@
     <Compile Include="PropertyGridExtras\FlagsEditorControl.Designer.cs">
       <DependentUpon>FlagsEditorControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="PropertyGridExtras\CustomResolutionUIEditor.cs" />
     <Compile Include="PropertyGridExtras\FontTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\RoomListTypeConverter.cs" />
     <Compile Include="ScriptAndHeader.cs" />

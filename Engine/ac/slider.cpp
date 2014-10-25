@@ -15,8 +15,6 @@
 #include "ac/slider.h"
 #include "ac/common.h"
 
-extern int guis_need_update;
-
 // *** SLIDER FUNCTIONS
 
 void Slider_SetMax(GUISlider *guisl, int valn) {

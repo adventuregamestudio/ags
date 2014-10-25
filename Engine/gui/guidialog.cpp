@@ -14,7 +14,6 @@
 
 #include <stdio.h>
 #include "gui/guidialog.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/game.h"
@@ -25,8 +24,8 @@
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 
-using AGS::Common::String;
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern IGraphicsDriver *gfxDriver;
 extern GameSetup usetup;

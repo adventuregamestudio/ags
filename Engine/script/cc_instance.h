@@ -19,7 +19,12 @@
 #ifndef __CC_INSTANCE_H
 #define __CC_INSTANCE_H
 
+#if defined (_MSC_VER)
 #include <unordered_map>
+#elif defined (__GNUC__)
+#include <tr1/memory>
+#include <tr1/unordered_map>
+#endif
 #include "script/script_common.h"
 #include "script/cc_script.h"  // ccScript
 #include "script/nonblockingscriptfunction.h"
@@ -161,20 +166,20 @@ public:
     void    AbortAndDestroy();
     
     // call an exported function in the script (2nd arg is number of params)
-    int     CallScriptFunction(char *funcname, int32_t num_params, RuntimeScriptValue *params);
+    int     CallScriptFunction(const char *funcname, int32_t num_params, RuntimeScriptValue *params);
     bool    DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool hasTheFunc);
-    int     PrepareTextScript(char**tsname);
+    int     PrepareTextScript(const char **tsname);
     int     Run(int32_t curpc);
-    int     RunScriptFunctionIfExists(char*tsname,int numParam, RuntimeScriptValue *params);
-    int     RunTextScript(char*tsname);
-    int     RunTextScriptIParam(char*tsname, RuntimeScriptValue &iparam);
-    int     RunTextScript2IParam(char*tsname,RuntimeScriptValue &iparam, RuntimeScriptValue &param2);
+    int     RunScriptFunctionIfExists(const char *tsname,int numParam, RuntimeScriptValue *params);
+    int     RunTextScript(const char *tsname);
+    int     RunTextScriptIParam(const char *tsname, RuntimeScriptValue &iparam);
+    int     RunTextScript2IParam(const char *tsname,RuntimeScriptValue &iparam, RuntimeScriptValue &param2);
     
     void    GetCallStack(char *buffer, int maxLines);
     void    GetScriptName(char *curScrName);
     void    GetScriptPosition(ScriptPosition &script_pos);
     // get the address of an exported variable in the script
-    RuntimeScriptValue GetSymbolAddress(char *);
+    RuntimeScriptValue GetSymbolAddress(const char *symname);
     void    DumpInstruction(const ScriptOperation &op);
 
 protected:

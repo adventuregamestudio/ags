@@ -96,6 +96,10 @@ public:
     {
         return _alBitmap->h;
     }
+    inline Size GetSize() const
+    {
+        return Size(_alBitmap->w, _alBitmap->h);
+    }
     inline int  GetColorDepth() const
     {
         return bitmap_color_depth(_alBitmap);

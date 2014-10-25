@@ -22,10 +22,10 @@
 #include "ac/string.h"
 #include "gui/guimain.h"
 
-extern int guis_need_update;
+using namespace AGS::Common;
+
 extern char saveGameDirectory[260];
 extern GameState play;
-extern GUIMain*guis;
 extern GameSetupStruct game;
 
 // *** LIST BOX FUNCTIONS
@@ -111,7 +111,7 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
     for (int kk=0;kk<numsaves-1;kk++) {  // Date order the games
 
       if (filedates[kk] < filedates[kk+1]) {   // swap them round
-        char*tempptr = listbox->items[kk];
+        String tempptr = listbox->items[kk];
         listbox->items[kk] = listbox->items[kk+1];
         listbox->items[kk+1] = tempptr;
         int numtem = listbox->saveGameIndex[kk];
@@ -138,12 +138,12 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
 
 int ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y) {
 
-  if (guis[listbox->guin].on < 1)
+  if (!guis[listbox->guin].IsVisible())
     return -1;
 
   multiply_up_coordinates(&x, &y);
-  x = (x - listbox->x) - guis[listbox->guin].x;
-  y = (y - listbox->y) - guis[listbox->guin].y;
+  x = (x - listbox->x) - guis[listbox->guin].X;
+  y = (y - listbox->y) - guis[listbox->guin].Y;
 
   if ((x < 0) || (y < 0) || (x >= listbox->wid) || (y >= listbox->hit))
     return -1;
@@ -286,11 +286,11 @@ void ListBox_ScrollUp(GUIListBox *listbox) {
 
 GUIListBox* is_valid_listbox (int guin, int objn) {
   if ((guin<0) | (guin>=game.numgui)) quit("!ListBox: invalid GUI number");
-  if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!ListBox: invalid object number");
-  if (guis[guin].get_control_type(objn)!=GOBJ_LISTBOX)
+  if ((objn<0) | (objn>=guis[guin].ControlCount)) quit("!ListBox: invalid object number");
+  if (guis[guin].GetControlType(objn)!=kGUIListBox)
     quit("!ListBox: specified control is not a list box");
   guis_need_update = 1;
-  return (GUIListBox*)guis[guin].objs[objn];
+  return (GUIListBox*)guis[guin].Controls[objn];
 }
 
 //=============================================================================

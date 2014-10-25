@@ -302,7 +302,7 @@ namespace AGS.Editor
 //            sb.AppendLine("#define AGS_MAX_CHARACTERS " + Game.MAX_CHARACTERS);
             sb.AppendLine("#define AGS_MAX_INV_ITEMS " + Game.MAX_INV_ITEMS);
 //            sb.AppendLine("#define AGS_MAX_GUIS " + Game.MAX_GUIS);
-            sb.AppendLine("#define AGS_MAX_CONTROLS_PER_GUI " + GUI.MAX_CONTROLS_PER_GUI);
+            sb.AppendLine("#define AGS_MAX_CONTROLS_PER_GUI " + GUI.LEGACY_MAX_CONTROLS_PER_GUI);
 //            sb.AppendLine("#define AGS_MAX_VIEWS " + Game.MAX_VIEWS);
 //            sb.AppendLine("#define AGS_MAX_LOOPS_PER_VIEW " + AGS.Types.View.MAX_LOOPS_PER_VIEW);
 //            sb.AppendLine("#define AGS_MAX_FRAMES_PER_LOOP " + ViewLoop.MAX_FRAMES_PER_LOOP);

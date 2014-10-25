@@ -15,11 +15,17 @@
 #include "util/alignedstream.h"
 #include "util/stream.h"
 #include "util/math.h"
+#include <cstring>
 
 namespace AGS
 {
 namespace Common
 {
+
+void AlignedStream::ClearPaddingBuffer()
+{
+    std::memset(_paddingBuffer, 0, (int)LargestPossibleType);
+}
 
 AlignedStream::AlignedStream(Stream *stream, AlignedStreamMode mode, ObjectOwnershipPolicy stream_ownership_policy,
                              size_t base_alignment)
@@ -29,6 +35,7 @@ AlignedStream::AlignedStream(Stream *stream, AlignedStreamMode mode, ObjectOwner
     , _maxAlignment(0)
     , _block(0)
 {
+    ClearPaddingBuffer();
 }
 
 AlignedStream::~AlignedStream()
@@ -318,6 +325,7 @@ void AlignedStream::ReadPadding(size_t next_type)
             // We do not know and should not care if the underlying stream
             // supports seek, so use read to skip the padding instead.
             _stream->Read(_paddingBuffer, next_type - pad);
+            ClearPaddingBuffer();
             _block += next_type - pad;
         }
 

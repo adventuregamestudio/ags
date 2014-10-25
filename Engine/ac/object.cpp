@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/object.h"
-#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/draw.h"
@@ -36,6 +35,7 @@
 #include "gfx/gfx_util.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_object.h"
+#include "main/graphics_mode.h"
 
 using AGS::Common::Bitmap;
 
@@ -45,7 +45,6 @@ extern RoomStatus*croom;
 extern RoomObject*objs;
 extern roomstruct thisroom;
 extern ObjectCache objcache[MAX_INIT_SPR];
-extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern MoveList *mls;
 extern GameSetupStruct game;
 extern Bitmap *walkable_areas_temp;
@@ -345,7 +344,7 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
     set_route_move_speed(spee, spee);
     set_color_depth(8);
     int mslot=find_route(objX, objY, tox, toy, prepare_walkable_areas(-1), objj+1, 1, ignwal);
-    set_color_depth(final_col_dep);
+    set_color_depth(ScreenResolution.ColorDepth);
     if (mslot>0) {
         objs[objj].moving = mslot;
         mls[mslot].direct = ignwal;

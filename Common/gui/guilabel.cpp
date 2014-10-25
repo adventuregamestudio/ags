@@ -22,18 +22,16 @@
 #include "util/stream.h"
 #include "util/wgt2allg.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
-DynamicArray<GUILabel> guilabels;
+std::vector<GUILabel> guilabels;
 int numguilabels = 0;
 
 void GUILabel::WriteToFile(Stream *out)
 {
   GUIObject::WriteToFile(out);
-  // MACPORT FIXES: swap
-  //->WriteArray(&text[0], sizeof(char), 200);
-  out->WriteInt32((int)strlen(text) + 1);
-  out->Write(&text[0], strlen(text) + 1);
+  out->WriteInt32(text.GetLength() + 1);
+  text.Write(out);
   out->WriteArrayOfInt32(&font, 3);
 }
 
@@ -41,18 +39,15 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
   GUIObject::ReadFromFile(in, gui_version);
 
-  if (textBufferLen > 0)
-    free(text);
-
+  int text_buf_len;
   if (gui_version < kGuiVersion_272c) {
-    textBufferLen = 200;
+    text_buf_len = 200;
   }
   else {
-    textBufferLen = in->ReadInt32();
+    text_buf_len = in->ReadInt32();
   }
 
-  text = (char*)malloc(textBufferLen);
-  in->Read(&text[0], textBufferLen);
+  text.ReadCount(in, text_buf_len);
 
   in->ReadArrayOfInt32(&font, 3);
   if (textcol == 0)
@@ -64,22 +59,9 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 
 void GUILabel::SetText(const char *newText) {
 
-  if ((int)strlen(newText) < textBufferLen) {
-    strcpy(this->text, newText);
-    return;
-  }
-
-  if (textBufferLen > 0)
-    free(this->text);
-
-  textBufferLen = (int)strlen(newText) + 1;
-
-  this->text = (char*)malloc(textBufferLen);
-  strcpy(this->text, newText);
-
   // restrict to this length
-  if (textBufferLen >= MAX_GUILABEL_TEXT_LEN)
-    this->text[MAX_GUILABEL_TEXT_LEN - 1] = 0;
+  // CHECKME: is there any sense in this restriction?
+  text = String(newText).Left(MAX_GUILABEL_TEXT_LEN);
 }
 
 const char *GUILabel::GetText() {

@@ -329,12 +329,6 @@ namespace AGS.Editor
             }
             else if (AboutToAddControl())
             {
-				if (_gui.Controls.Count >= GUI.MAX_CONTROLS_PER_GUI)
-				{
-					Factory.GUIController.ShowMessage("You already have the maximum number of controls on this GUI, and cannot add any more.", MessageBoxIcon.Warning);
-					return;
-				}
-
                 _addingControl = true;
                 _addingControlX = e.X;
                 _addingControlY = e.Y;
@@ -760,11 +754,6 @@ namespace AGS.Editor
 
         private void PasteControlClick(object sender, EventArgs e)
         {
-            if (_gui.Controls.Count >= GUI.MAX_CONTROLS_PER_GUI)
-            {
-                Factory.GUIController.ShowMessage("You already have the maximum number of controls on this GUI, and cannot add any more.", MessageBoxIcon.Warning);
-                return;
-            }
             GUIControl newControl = GUIControl.GetFromClipBoard();
             if (newControl != null)
             {

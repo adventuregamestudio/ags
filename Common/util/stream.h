@@ -99,6 +99,9 @@ public:
     // Helper function for easier compatibility with 64-bit platforms,
     // writes intptr_t array elements as 32-bit values
     size_t WriteArrayOfIntPtr32(const intptr_t *buffer, size_t count);
+
+    // Fill the requested number of bytes with particular value
+    size_t WriteByteCount(uint8_t b, size_t count);
 };
 
 } // namespace Common

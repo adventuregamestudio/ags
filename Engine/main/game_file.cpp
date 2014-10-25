@@ -49,6 +49,7 @@
 #include "ac/gamesetup.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
 
@@ -56,15 +57,11 @@ extern char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
 extern unsigned char** old_dialog_scripts; // defined in ac_conversation
 extern char** old_speech_lines;
 
-extern DynamicArray<GUILabel> guilabels; // defined in ac_guilabel
-extern int numguilabels;
-
 extern int ifacepopped;
 
 extern GameSetupStruct game;
 extern ViewStruct*views;
 extern DialogTopic *dialog;
-extern GUIMain*guis;
 extern CharacterCache *charcache;
 extern MoveList *mls;
 
@@ -356,7 +353,7 @@ void game_file_read_dialogs(Stream *in)
 
 void game_file_read_gui(Stream *in)
 {
-	read_gui(in,guis,&game, &guis);
+	read_gui(in,guis,&game);
 
     for (int bb = 0; bb < numguilabels; bb++) {
         // labels are not clickable by default
@@ -472,19 +469,18 @@ void init_and_register_guis()
     guiScriptObjNames = (char**)malloc(sizeof(char*) * game.numgui);
 
     for (ee=0;ee<game.numgui;ee++) {
-        guis[ee].rebuild_array();
-        if ((guis[ee].popup == POPUP_NONE) || (guis[ee].popup == POPUP_NOAUTOREM))
-            guis[ee].on = 1;
+        guis[ee].RebuildArray();
+        if ((guis[ee].PopupStyle == kGUIPopupNone) || (guis[ee].PopupStyle == kGUIPopupNoAutoRemove))
+            guis[ee].SetVisibility(kGUIVisibility_On);
         else
-            guis[ee].on = 0;
+            guis[ee].SetVisibility(kGUIVisibility_Off);
 
         // export all the GUI's controls
         export_gui_controls(ee);
 
         // copy the script name to its own memory location
         // because ccAddExtSymbol only keeps a reference
-        guiScriptObjNames[ee] = (char*)malloc(21);
-        strcpy(guiScriptObjNames[ee], guis[ee].name);
+        guiScriptObjNames[ee] = strdup(guis[ee].Name);
 
         // 64 bit: Using the id instead
         // scrGui[ee].gui = &guis[ee];
@@ -609,6 +605,9 @@ int load_game_file() {
 
     ReadGameSetupStructBase_Aligned(in);
 
+    if (game.size.IsNull())
+        quit("Unable to define native game resolution, could be unsupported game format.");
+
     // The earlier versions of AGS provided support for "upscaling" low-res
     // games (320x200 and 320x240) to hi-res (640x400 and 640x480
     // respectively). The script API has means for detecting if the game is
@@ -620,10 +619,10 @@ int load_game_file() {
     // resolutions, such as 320x200 and 320x240.
     if (usetup.override_upscale)
     {
-        if (game.default_resolution == kGameResolution_320x200)
-            game.default_resolution = kGameResolution_640x400;
-        else if (game.default_resolution == kGameResolution_320x240)
-            game.default_resolution = kGameResolution_640x480;
+        if (game.GetDefaultResolution() == kGameResolution_320x200)
+            game.SetDefaultResolution(kGameResolution_640x400);
+        else if (game.GetDefaultResolution() == kGameResolution_320x240)
+            game.SetDefaultResolution(kGameResolution_640x480);
     }
 
     if (filever < kGameVersion_312)

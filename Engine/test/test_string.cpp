@@ -185,6 +185,37 @@ void Test_String()
         assert(strcmp(s11, "") == 0);
     }
 
+    // Test Section
+    {
+        String s = "_123_567_";
+        int from;
+        int to;
+        assert(s.FindSection('_', 0, 0, true, true, from, to));
+        assert(from == 0 && to == 0);
+        assert(s.FindSection('_', 0, 0, false, true, from, to));
+        assert(from == 0 && to == 0);
+        assert(s.FindSection('_', 0, 0, true, false, from, to));
+        assert(from == 0 && to == 1);
+        assert(s.FindSection('_', 0, 0, false, false, from, to));
+        assert(from == 0 && to == 1);
+        assert(s.FindSection('_', 3, 3, true, true, from, to));
+        assert(from == 9 && to == 9);
+        assert(s.FindSection('_', 3, 3, false, true, from, to));
+        assert(from == 8 && to == 9);
+        assert(s.FindSection('_', 3, 3, true, false, from, to));
+        assert(from == 9 && to == 9);
+        assert(s.FindSection('_', 3, 3, false, false, from, to));
+        assert(from == 8 && to == 9);
+        assert(s.FindSection('_', 1, 1, true, true, from, to));
+        assert(from == 1 && to == 4);
+        assert(s.FindSection('_', 1, 1, false, true, from, to));
+        assert(from == 0 && to == 4);
+        assert(s.FindSection('_', 1, 1, true, false, from, to));
+        assert(from == 1 && to == 5);
+        assert(s.FindSection('_', 1, 1, false, false, from, to));
+        assert(from == 0 && to == 5);
+    }
+
     // Test Append
     {
         String s1 = "a string to enlarge - ";
@@ -230,21 +261,17 @@ void Test_String()
         String str8 = str1;
         String str9 = str1;
         String str10 = str1;
-        String str11 = str1;
-        String str12 = str1;
 
         str1.ClipLeftSection('\\');
         str2.ClipLeftSection('\\', false);
         str3.ClipRightSection('\\');
         str4.ClipRightSection('\\', false);
-        str5.ClipSection('\\', 1, 3);
-        str6.ClipSection('\\', 1, 3, false, false);
-        str7.ClipSection('|', 1, 3);
-        str8.ClipSection('\\', 0, 3);
-        str9.ClipSection('\\', 1, 4);
+        str5.ClipSection('\\', 1, 2);
+        str6.ClipSection('\\', 1, 2, false, false);
+        str7.ClipSection('|', 1, 2);
+        str8.ClipSection('\\', 0, 2);
+        str9.ClipSection('\\', 1, 3);
         str10.ClipSection('\\', 3, 1);
-        str11.ClipSection('\\', 3, 3);
-        str12.ClipSection('\\', 3, 3, false, false);
         assert(strcmp(str1, "Games\\AGS\\MyNewGame") == 0);
         assert(strcmp(str2, "\\Games\\AGS\\MyNewGame") == 0);
         assert(strcmp(str3, "C:\\Games\\AGS") == 0);
@@ -255,8 +282,6 @@ void Test_String()
         assert(strcmp(str8, "MyNewGame") == 0);
         assert(strcmp(str9, "C:") == 0);
         assert(strcmp(str10, "C:\\Games\\AGS\\MyNewGame") == 0);
-        assert(strcmp(str11, "C:\\Games\\AGSMyNewGame") == 0);
-        assert(strcmp(str12, "C:\\Games\\AGS\\MyNewGame") == 0);
     }
 
     // Test making new string
@@ -375,11 +400,11 @@ void Test_String()
         str2.TruncateToLeftSection('\\', false);
         str3.TruncateToRightSection('\\');
         str4.TruncateToRightSection('\\', false);
-        str5.TruncateToSection('\\', 1, 3);
-        str6.TruncateToSection('\\', 1, 3, false, false);
+        str5.TruncateToSection('\\', 1, 2);
+        str6.TruncateToSection('\\', 1, 2, false, false);
         str7.TruncateToSection('|', 1, 3);
-        str8.TruncateToSection('\\', 0, 3);
-        str9.TruncateToSection('\\', 1, 4);
+        str8.TruncateToSection('\\', 0, 2);
+        str9.TruncateToSection('\\', 1, 3);
         str10.TruncateToSection('\\', 3, 1);
         str11.TruncateToSection('\\', 3, 3);
         str12.TruncateToSection('\\', 3, 3, false, false);
@@ -393,8 +418,8 @@ void Test_String()
         assert(strcmp(str8, "C:\\Games\\AGS") == 0);
         assert(strcmp(str9, "Games\\AGS\\MyNewGame") == 0);
         assert(strcmp(str10, "") == 0);
-        assert(strcmp(str11, "") == 0);
-        assert(strcmp(str12, "\\") == 0);
+        assert(strcmp(str11, "MyNewGame") == 0);
+        assert(strcmp(str12, "\\MyNewGame") == 0);
     }
 }
 

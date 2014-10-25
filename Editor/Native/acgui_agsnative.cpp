@@ -4,6 +4,7 @@
 
 #pragma unmanaged
 
+#include "ac/gamesetupstruct.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"
 #include "gui/guibutton.h"
@@ -12,20 +13,22 @@
 #include "gui/guitextbox.h"
 #include "util/string_utils.h"
 
-bool GUIMain::is_alpha() 
+extern GameSetupStruct thisgame;
+
+bool AGS::Common::GUIMain::HasAlphaChannel() const
 {
-    if (this->bgpic > 0)
+    if (this->BgImage > 0)
     {
         // alpha state depends on background image
-        return is_sprite_alpha(this->bgpic);
+        return is_sprite_alpha(this->BgImage);
     }
-    if (this->bgcol > 0)
+    if (this->BgColor > 0)
     {
         // not alpha transparent if there is a background color
         return false;
     }
     // transparent background, enable alpha blending
-    return final_col_dep >= 24;
+    return thisgame.color_depth * 8 >= 24;
 }
 
 //=============================================================================
@@ -69,7 +72,7 @@ int wgettextwidth_compensate(const char *tex, int font)
   return wgettextwidth(tex, font);
 }
 
-void GUILabel::Draw_replace_macro_tokens(char *oritext, char *text)
+void GUILabel::Draw_replace_macro_tokens(char *oritext, const char *text)
 {
   strcpy(oritext, text);
 }

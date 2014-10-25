@@ -18,6 +18,26 @@
 #define MAX_LISTBOX_ITEMS 200
 #define MAX_GUILABEL_TEXT_LEN 2048
 #define GUIMAGIC          0xcafebeef
+// GUI Control flags (32-bit)
+#define GUIF_DEFAULT    0x0001
+#define GUIF_CANCEL     0x0002 // obsolete?
+#define GUIF_DISABLED   0x0004
+#define GUIF_TABSTOP    0x0008 // obsolete?
+#define GUIF_INVISIBLE  0x0010
+#define GUIF_CLIP       0x0020
+#define GUIF_NOCLICKS   0x0040
+#define GUIF_TRANSLATED 0x0080 // 3.3.0.1132
+#define GUIF_DELETED    0x8000
+#define MAX_GUIOBJ_SCRIPTNAME_LEN 25
+#define MAX_GUIOBJ_EVENTS 10
+#define MAX_GUIOBJ_EVENTHANDLER_LEN 30
+#define TEXTWINDOW_PADDING_DEFAULT  3
+// ListBox flags
+#define GLF_NOBORDER     1
+#define GLF_NOARROWS     2
+#define GLF_SGINDEXVALID 4
+// TextBox flags
+#define GTF_NOBORDER  1
 //#define MAX_OBJ_EACH_TYPE 251
 
 #define MAXLINE 50
@@ -43,6 +63,7 @@
 //
 // 3.3.0.1132 (116): Added GUIF_TRANSLATED flag.
 // 3.3.1.???? (117): Added padding variable for text window GUIs.
+// 3.4.0      (118): Removed GUI limits
 //
 //=============================================================================
 
@@ -69,8 +90,58 @@ enum GuiVersion
     
     kGuiVersion_330         = 116,
     kGuiVersion_331         = 117,
-    kGuiVersion_Current     = kGuiVersion_331,
+    kGuiVersion_340         = 118,
+    kGuiVersion_Current     = kGuiVersion_340,
+    // Defines the oldest version of gui data that is complying to current
+    // savedgame format; if the loaded game data is of this version or lower,
+    // then this value will be written to savedgame instead of current version.
     kGuiVersion_ForwardCompatible = kGuiVersion_272e
 };
+
+namespace AGS
+{
+namespace Common
+{
+
+enum GUIMainFlags
+{
+    kGUIMain_NoClick    = 0x01,
+    kGUIMain_TextWindow = 0x02
+};
+
+enum GUIMainLegacyFlags
+{
+    kGUIMain_LegacyTextWindow = 5
+};
+
+enum GUIPopupStyle
+{
+    // normal GUI, initally on
+    kGUIPopupNone             = 0,
+    // show when mouse moves to top of screen
+    kGUIPopupMouseY           = 1,
+    // pauses game when shown
+    kGUIPopupModal            = 2,
+    // initially on and not removed when interface is off
+    kGUIPopupNoAutoRemove     = 3,
+    // normal GUI, initially off
+    kGUIPopupNoneInitiallyOff = 4
+};
+
+enum GUIControlType
+{
+    kGUIControlUndefined = -1,
+    kGUIButton      = 1,
+    kGUILabel       = 2,
+    kGUIInvWindow   = 3,
+    kGUISlider      = 4,
+    kGUITextBox     = 5,
+    kGUIListBox     = 6
+};
+
+} // namespace Common
+} // namespace AGS
+
+extern int guis_need_update;
 
 #endif // __AC_GUIDEFINES_H

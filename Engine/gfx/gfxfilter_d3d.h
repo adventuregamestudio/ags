@@ -12,28 +12,35 @@
 //
 //=============================================================================
 //
-// AGS specific color blending routines for transparency and tinting effects
+// Standard 3D-accelerated filter
 //
 //=============================================================================
 
-#ifndef __AC_D3DGFXFILTER_H
-#define __AC_D3DGFXFILTER_H
+#ifndef __AGS_EE_GFX__D3DGFXFILTER_H
+#define __AGS_EE_GFX__D3DGFXFILTER_H
 
 #include "gfx/gfxfilter_scaling.h"
 
-struct D3DGFXFilter : ScalingGFXFilter {
-protected:
+namespace AGS
+{
+namespace Engine
+{
+namespace D3D
+{
 
+class D3DGfxFilter : public ScalingGfxFilter
+{
 public:
-
-    D3DGFXFilter(bool justCheckingForSetup);
-    D3DGFXFilter(int multiplier, bool justCheckingForSetup);
+    virtual const GfxFilterInfo &GetInfo() const;
 
     virtual void SetSamplerStateForStandardSprite(void *direct3ddevice9);
     virtual bool NeedToColourEdgeLines();
+
+    static const GfxFilterInfo FilterInfo;
 };
 
-GFXFilter **get_allegro_gfx_filter_list(bool checkingForSetup);
-GFXFilter **get_d3d_gfx_filter_list(bool checkingForSetup);
+} // namespace D3D
+} // namespace Engine
+} // namespace AGS
 
-#endif // __AC_D3DGFXFILTER_H
+#endif // __AGS_EE_GFX__D3DGFXFILTER_H

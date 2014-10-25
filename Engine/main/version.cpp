@@ -69,10 +69,10 @@ Version::Version(const String &version_string)
 void Version::SetFromString(const String &version_string)
 {
     Major = version_string.LeftSection('.').ToInt();
-    String second_section = version_string.Section('.', 1, 2);
+    String second_section = version_string.Section('.', 1, 1);
     Minor = second_section.ToInt();
-    String third_section = version_string.Section('.', 2, 3);
-    String fourth_section = version_string.Section('.', 3, 4);
+    String third_section = version_string.Section('.', 2, 2);
+    String fourth_section = version_string.Section('.', 3, 3);
     String revision_section;
 
     bool old_version_format = Major < 3 || fourth_section.IsEmpty();

@@ -20,6 +20,7 @@
 #include "ac/roomstruct.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/managedobjectpool.h"
+#include "gui/guidefines.h"
 #include "script/cc_error.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
@@ -44,7 +45,6 @@ using namespace AGS::Common;
 extern ccInstance *loadedInstances[MAX_LOADED_INSTANCES]; // in script/script_runtime
 extern int gameHasBeenRestored; // in ac/game
 extern ExecutingScript*curscript; // in script/script
-extern int guis_need_update; // in gui/guimain
 extern int displayed_room; // in ac/game
 extern roomstruct thisroom; // ac/game
 extern int maxWhileLoops;
@@ -283,7 +283,7 @@ void ccInstance::AbortAndDestroy()
         return -1; \
     }
 
-int ccInstance::CallScriptFunction(char *funcname, int32_t numargs, RuntimeScriptValue *params)
+int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, RuntimeScriptValue *params)
 {
     ccError = 0;
     currentline = 0;
@@ -429,7 +429,7 @@ bool ccInstance::DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, 
 }
 
 char scfunctionname[MAX_FUNCTION_NAME_LEN+1];
-int ccInstance::PrepareTextScript(char**tsname) {
+int ccInstance::PrepareTextScript(const char**tsname) {
     ccError=0;
     if (this==NULL) return -1;
     if (GetSymbolAddress(tsname[0]).IsNull()) {
@@ -527,16 +527,15 @@ int ccInstance::Run(int32_t curpc)
         codeOp.Instruction.InstanceId	= (codeOp.Instruction.Code >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
         codeOp.Instruction.Code		   &= INSTANCE_ID_REMOVEMASK; // now this is pure instruction code
 
-        int want_args = sccmd_info[codeOp.Instruction.Code].ArgCount;
-        if (pc + want_args >= codeInst->codesize)
+        codeOp.ArgCount = sccmd_info[codeOp.Instruction.Code].ArgCount;
+        if (pc + codeOp.ArgCount >= codeInst->codesize)
         {
-            cc_error("unexpected end of code data at %d", pc + want_args);
+            cc_error("unexpected end of code data (%d; %d)", pc + codeOp.ArgCount, codeInst->codesize);
             return -1;
         }
-        codeOp.ArgCount = want_args;
 
         int pc_at = pc + 1;
-        for (int i = 0; i < want_args; ++i, ++pc_at)
+        for (int i = 0; i < codeOp.ArgCount; ++i, ++pc_at)
         {
             char fixup = codeInst->code_fixups[pc_at];
             if (fixup > 0)
@@ -814,7 +813,7 @@ int ccInstance::Run(int32_t curpc)
           PUSH_CALL_STACK;
 
           ASSERT_STACK_SPACE_AVAILABLE(1);
-          PushValueToStack(RuntimeScriptValue().SetInt32(pc + sccmd_info[codeOp.Instruction.Code].ArgCount + 1));
+          PushValueToStack(RuntimeScriptValue().SetInt32(pc + codeOp.ArgCount + 1));
           if (ccError)
           {
               return -1;
@@ -1372,11 +1371,11 @@ int ccInstance::Run(int32_t curpc)
         if (flags & INSTF_ABORTED)
             return 0;
 
-        pc += sccmd_info[codeOp.Instruction.Code].ArgCount + 1;
+        pc += codeOp.ArgCount + 1;
     }
 }
 
-int ccInstance::RunScriptFunctionIfExists(char*tsname,int numParam, RuntimeScriptValue *params) {
+int ccInstance::RunScriptFunctionIfExists(const char*tsname,int numParam, RuntimeScriptValue *params) {
     int oldRestoreCount = gameHasBeenRestored;
     // First, save the current ccError state
     // This is necessary because we might be attempting
@@ -1427,7 +1426,7 @@ int ccInstance::RunScriptFunctionIfExists(char*tsname,int numParam, RuntimeScrip
     return toret;
 }
 
-int ccInstance::RunTextScript(char*tsname) {
+int ccInstance::RunTextScript(const char *tsname) {
     if (strcmp(tsname, REP_EXEC_NAME) == 0) {
         // run module rep_execs
         int room_changes_was = play.room_changes;
@@ -1451,7 +1450,7 @@ int ccInstance::RunTextScript(char*tsname) {
     return toret;
 }
 
-int ccInstance::RunTextScriptIParam(char*tsname,RuntimeScriptValue &iparam) {
+int ccInstance::RunTextScriptIParam(const char *tsname,RuntimeScriptValue &iparam) {
     if ((strcmp(tsname, "on_key_press") == 0) || (strcmp(tsname, "on_mouse_click") == 0)) {
         bool eventWasClaimed;
         int toret = run_claimable_event(tsname, true, 1, &iparam, &eventWasClaimed);
@@ -1463,7 +1462,7 @@ int ccInstance::RunTextScriptIParam(char*tsname,RuntimeScriptValue &iparam) {
     return RunScriptFunctionIfExists(tsname, 1, &iparam);
 }
 
-int ccInstance::RunTextScript2IParam(char*tsname,RuntimeScriptValue &iparam, RuntimeScriptValue &param2) {
+int ccInstance::RunTextScript2IParam(const char*tsname,RuntimeScriptValue &iparam, RuntimeScriptValue &param2) {
     RuntimeScriptValue params[2];
     params[0] = iparam;
     params[1] = param2;
@@ -1530,7 +1529,7 @@ void ccInstance::GetScriptPosition(ScriptPosition &script_pos)
 }
 
 // get a pointer to a variable or function exported by the script
-RuntimeScriptValue ccInstance::GetSymbolAddress(char *symname)
+RuntimeScriptValue ccInstance::GetSymbolAddress(const char *symname)
 {
     int k;
     char altName[200];

@@ -15,6 +15,8 @@
 #ifdef _DEBUG
 
 void Test_DoAllTests();
+// Math tests
+void Test_Math();
 // File tests
 void Test_File();
 // Graphics tests

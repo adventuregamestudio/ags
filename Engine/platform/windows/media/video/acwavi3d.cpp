@@ -31,7 +31,6 @@
 #define _STRSAFE_H_INCLUDED_
 typedef float D3DVALUE, *LPD3DVALUE;
 #include "media/video/VMR9Graph.h"
-#include "gfx/ali3d.h"
 #include "platform/base/agsplatformdriver.h"
 //#include <atlbase.h>
 

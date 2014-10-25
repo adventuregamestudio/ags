@@ -8,6 +8,7 @@
 // Generated from the TEXTINCLUDE 2 resource.
 //
 #include "winres.h"
+#include "../../Common/core/def_version.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -29,12 +30,14 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
 
 1 TEXTINCLUDE 
 BEGIN
-    "resource.h\0"
+    "resource.h\r\n"
+    "\0"
 END
 
 2 TEXTINCLUDE 
 BEGIN
     "#include ""winres.h""\r\n"
+    "../../Common/core/def_version.h\r\n"
     "\0"
 END
 
@@ -47,8 +50,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,3,1,1165
- PRODUCTVERSION 3,3,1,1165
+ FILEVERSION ACI_VERSION_MSRC_DEF
+ PRODUCTVERSION ACI_VERSION_MSRC_DEF
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -65,12 +68,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Chris Jones et al."
             VALUE "FileDescription", "AGS Editor C++ Helper"
-            VALUE "FileVersion", "3.3.1.1165"
-            VALUE "LegalCopyright", "(c) 2006-2011 Chris Jones and 2011-2014 others. All rights reserved"
+            VALUE "FileVersion", ACI_VERSION_STR
+            VALUE "LegalCopyright", "(c) 2006-2011 Chris Jones and " ACI_COPYRIGHT_YEARS " others. All rights reserved"
             VALUE "InternalName", "NativeDLL.dll"
             VALUE "OriginalFilename", "NativeDLL.dll"
             VALUE "ProductName", "Adventure Game Studio"
-            VALUE "ProductVersion", "3.3.1.1165"
+            VALUE "ProductVersion", ACI_VERSION_STR
         END
     END
     BLOCK "VarFileInfo"

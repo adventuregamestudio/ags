@@ -11,24 +11,33 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+//
+// Dummy OpenGL filter; does nothing useful at the moment
+//
+//=============================================================================
 
-#ifndef __AC_GFXFILTERHELPERS_H
-#define __AC_GFXFILTERHELPERS_H
+#ifndef __AGS_EE_GFX__OGLGFXFILTER_H
+#define __AGS_EE_GFX__OGLGFXFILTER_H
 
-struct MouseGetPosCallbackImpl : IMouseGetPosCallback {
-protected:
-    ScalingGFXFilter *_callbackFilter;
+#include "gfx/gfxfilter_scaling.h"
 
+namespace AGS
+{
+namespace Engine
+{
+namespace OGL
+{
+
+class OGLGfxFilter : public ScalingGfxFilter
+{
 public:
-    MouseGetPosCallbackImpl(ScalingGFXFilter *filter)
-    {
-        _callbackFilter = filter;
-    }
+    virtual const GfxFilterInfo &GetInfo() const;
 
-    virtual void AdjustPosition(int *x, int *y)
-    {
-        _callbackFilter->AdjustPosition(x, y);
-    }
+    static const GfxFilterInfo FilterInfo;
 };
 
-#endif // __AC_GFXFILTERHELPERS_H
+} // namespace D3D
+} // namespace Engine
+} // namespace AGS
+
+#endif // __AGS_EE_GFX__OGLGFXFILTER_H

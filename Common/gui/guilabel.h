@@ -15,14 +15,14 @@
 #ifndef __AC_GUILABEL_H
 #define __AC_GUILABEL_H
 
+#include <vector>
 #include "gui/guiobject.h"
-#include "gui/dynamicarray.h"
+#include "util/string.h"
 
 struct GUILabel:public GUIObject
 {
 private:
-  char *text;
-  int textBufferLen;
+  AGS::Common::String text;
 public:
   int font, textcol, align;
 
@@ -60,26 +60,19 @@ public:
     font = 0;
     textcol = 0;
     numSupportedEvents = 0;
-    text = "";
-    textBufferLen = 0;
   }
 
   GUILabel() {
     reset();
   }
 
-  virtual ~GUILabel()
-  {
-    if (textBufferLen > 0)
-      free(text);
-  }
-
 private:
-  void Draw_replace_macro_tokens(char *oritext, char *text);
+    // CHECKME: for some reason this function calls dest string "oritext"
+  void Draw_replace_macro_tokens(char *oritext, const char *text);
   void Draw_split_lines(char *teptr, int wid, int font, int &numlines);
 };
 
-extern DynamicArray<GUILabel> guilabels;
+extern std::vector<GUILabel> guilabels;
 extern int numguilabels;
 
 #endif // __AC_GUILABEL_H

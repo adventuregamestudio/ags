@@ -81,7 +81,7 @@ SOUNDCLIP *my_load_wave(const char *filename, int voll, int loop)
     thiswave->wave = new_sample;
     thiswave->vol = voll;
     thiswave->firstTime = 1;
-    thiswave->repeat = loop;
+    thiswave->repeat = (loop != 0);
 
     return thiswave;
 }
@@ -291,7 +291,7 @@ SOUNDCLIP *my_load_mod(const char *filname, int repet)
     thismod = new MYMOD();
     thismod->done = 0;
     thismod->tune = modPtr;
-    thismod->repeat = repet;
+    thismod->repeat = (repet != 0);
 
     return thismod;
 }

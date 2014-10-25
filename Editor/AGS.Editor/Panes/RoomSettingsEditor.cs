@@ -276,8 +276,9 @@ namespace AGS.Editor
 					{
 						newResolution = _room.Resolution;
 					}
-					else if ((bmp.Width >= 640) && (bmp.Height >= 400) &&
-						(Factory.AGSEditor.CurrentGame.Settings.Resolution >= GameResolutions.R640x400))
+                    // CHECKME: WTF is this??? How to deal with it?
+					else if (//(bmp.Width > 640) && (bmp.Height > 400) &&
+						(!Factory.AGSEditor.CurrentGame.Settings.LowResolution))
 					{
 						newResolution = RoomResolution.HighRes;
 					}

@@ -768,6 +768,7 @@
     <Compile Include="Components\BaseComponentWithFolders.cs" />
     <Compile Include="Components\BaseComponentWithScripts.cs" />
     <Compile Include="Components\BuildCommandsComponent.cs" />
+    <Compile Include="Components\BuildLinuxComponent.cs" />
     <Compile Include="Components\GlobalVariablesComponent.cs" />
     <Compile Include="Components\HelpCommandsComponent.cs" />
     <Compile Include="Components\SpeechComponent.cs" />

@@ -15,6 +15,7 @@ namespace AGS.Editor.Components
 
         private const string COMPILE_GAME_COMMAND = "CompileGame";
 		private const string REBUILD_GAME_COMMAND = "RebuildGame";
+        private const string REBUILD_ALL_PLATFORMS_COMMAND = "RebuildAllPlatforms";
 		private const string SETUP_GAME_COMMAND = "SetupGame";
         private const string TEST_GAME_COMMAND = "TestGame";
         private const string RUN_COMMAND = "RunGame";
@@ -43,6 +44,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("StopMenuIcon", Resources.ResourceManager.GetIcon("menu_build_stop.ico"));
             _guiController.RegisterIcon("PauseMenuIcon", Resources.ResourceManager.GetIcon("menu_build_pause.ico"));
 			_guiController.RegisterIcon("RebuildAllMenuIcon", Resources.ResourceManager.GetIcon("menu_build_rebuild-files.ico"));
+            _guiController.RegisterIcon("RebuildAllPlatformsMenuIcon", Resources.ResourceManager.GetIcon("menu_build_rebuild-files.ico"));
 			_guiController.RegisterIcon("SetupGameMenuIcon", Resources.ResourceManager.GetIcon("menu_build_gamesetup.ico"));
 
             _guiController.RegisterIcon("MenuIconBuildEXE", Resources.ResourceManager.GetIcon("menu_file_built-exe.ico"));
@@ -58,6 +60,7 @@ namespace AGS.Editor.Components
             debugCommands.Commands.Add(MenuCommand.Separator);
             debugCommands.Commands.Add(new MenuCommand(COMPILE_GAME_COMMAND, "&Build EXE", Keys.F7, "MenuIconBuildEXE"));
 			debugCommands.Commands.Add(new MenuCommand(REBUILD_GAME_COMMAND, "Rebuild &all files", "RebuildAllMenuIcon"));
+            debugCommands.Commands.Add(new MenuCommand(REBUILD_ALL_PLATFORMS_COMMAND, "Re&build all platforms", "RebuildAllPlatformsMenuIcon"));
 			debugCommands.Commands.Add(new MenuCommand(SETUP_GAME_COMMAND, "Run game setu&p...", "SetupGameMenuIcon"));
             _guiController.AddMenuItems(this, debugCommands);
 
@@ -215,7 +218,11 @@ namespace AGS.Editor.Components
 			{
 				CompileGame(true);
 			}
-			else if (controlID == SETUP_GAME_COMMAND)
+            else if (controlID == REBUILD_ALL_PLATFORMS_COMMAND)
+            {
+                CompileGameForAllPlatforms(true);
+            }
+            else if (controlID == SETUP_GAME_COMMAND)
             {
                 try
                 {
@@ -243,6 +250,19 @@ namespace AGS.Editor.Components
 				}
 			}
 		}
+
+        private void CompileGameForAllPlatforms(bool forceRebuild)
+        {
+            forceRebuild = _agsEditor.NeedsRebuildForDebugMode() || forceRebuild;
+            if (_agsEditor.SaveGameFiles())
+            {
+                if (_agsEditor.CompileGame(forceRebuild, false).Count == 0)
+                {
+                    Factory.Events.OnBuildAllPlatforms();
+                    _guiController.ShowMessage("Compile successful!", MessageBoxIcon.Information);
+                }
+            }
+        }
 
 		private bool guiController_QueryEditorShutdown()
         {
@@ -292,5 +312,10 @@ namespace AGS.Editor.Components
             _testGameInProgress = false;
         }
 
+        public override void RefreshDataFromGame()
+        {
+            base.RefreshDataFromGame();
+            Factory.AGSEditor.RefreshBuildPlatforms(Factory.AGSEditor.CurrentGame.Settings.TargetPlatforms);
+        }
     }
 }

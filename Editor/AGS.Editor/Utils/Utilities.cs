@@ -7,6 +7,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
 using System.Windows.Forms;
 
@@ -83,12 +85,47 @@ namespace AGS.Editor
 
         public static void EnsureStandardSubFoldersExist()
         {
-            string[] foldersToCreate = { "Speech", AudioClip.AUDIO_CACHE_DIRECTORY, "Compiled" };
+            List<string> foldersToCreate = new List<string> { "Speech", AudioClip.AUDIO_CACHE_DIRECTORY, "Compiled" };
+            if ((AGSEditor.Instance.CurrentGame != null) && (AGSEditor.Instance.CurrentGame.Settings.TargetPlatforms != Targets.Platforms.Windows))
+            {
+                Targets.Platforms platform = AGSEditor.Instance.CurrentGame.Settings.TargetPlatforms;
+                if ((platform & Targets.Platforms.Windows) != 0) foldersToCreate.Add(Path.Combine("Compiled", "Windows"));
+                if ((platform & Targets.Platforms.Linux) != 0) foldersToCreate.Add(Path.Combine("Compiled", "Linux"));
+                if ((platform & Targets.Platforms.OSX) != 0) foldersToCreate.Add(Path.Combine("Compiled", "OSX"));
+                if ((platform & Targets.Platforms.Android) != 0) foldersToCreate.Add(Path.Combine("Compiled", "Android"));
+                if ((platform & Targets.Platforms.iOS) != 0) foldersToCreate.Add(Path.Combine("Compiled", "iOS"));
+            }
             foreach (string folderName in foldersToCreate)
             {
                 if (!Directory.Exists(folderName))
                 {
                     Directory.CreateDirectory(folderName);
+                }
+            }
+        }
+
+        public static void EnsurePlatformSubFoldersExist(Targets.Platforms platforms)
+        {
+            EnsurePlatformSubFoldersExist(platforms, true);
+        }
+
+        public static void EnsurePlatformSubFoldersExist(Targets.Platforms platforms, bool removeOthers)
+        {
+            foreach (Targets.Platforms platform in Enum.GetValues(typeof(Targets.Platforms)))
+            {
+                string platformFolder = Path.Combine(AGSEditor.Instance.CompiledRootDirectory, platform.ToString());
+                // if platform is NOT only Windows, then create all necessary platform folders
+                // otherwise, don't create any platform folders
+                if (((platform & platforms) != 0) && (platforms != Targets.Platforms.Windows))
+                {
+                    if (!Directory.Exists(platformFolder))
+                    {
+                        Directory.CreateDirectory(platformFolder);
+                    }
+                }
+                else if ((Directory.Exists(platformFolder)) && (removeOthers))
+                {
+                    Directory.Delete(platformFolder, true);
                 }
             }
         }
@@ -400,6 +437,45 @@ namespace AGS.Editor
             DestroyIcon(UnmanagedIconHandle);
 
             return icon;
+        }
+
+        public static bool CreateHardLink(string destFileName, string sourceFileName)
+        {
+            return CreateHardLink(destFileName, sourceFileName, false);
+        }
+
+        public static bool CreateHardLink(string destFileName, string sourceFileName, bool overwrite)
+        {
+            if (File.Exists(destFileName))
+            {
+                if (overwrite) File.Delete(destFileName);
+                else return false;
+            }
+            string fileName = "mklink";
+            string args = string.Format("/h {0} {1}", destFileName, sourceFileName);
+            if (IsMonoRunning())
+            {
+                fileName = "ln";
+                args = string.Format("{0} {1}", sourceFileName, destFileName);
+            }
+            bool result = (Process.Start(fileName, args) != null);
+            if (result)
+            {
+                // by default the new hard link will be accessible to the current user only
+                // instead, we'll change it to be accessible to the entire "Users" group
+                FileSecurity fsec = File.GetAccessControl(destFileName);
+                fsec.AddAccessRule
+                (
+                    new FileSystemAccessRule
+                    (
+                        new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null),
+                        FileSystemRights.Modify,
+                        AccessControlType.Allow
+                    )
+                );
+                File.SetAccessControl(destFileName, fsec);
+            }
+            return result;
         }
 
         public static string GetFullPathFromProjectRelative(string relativePath)

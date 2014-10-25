@@ -241,6 +241,7 @@
     <Compile Include="BaseFolderCollection.cs" />
     <Compile Include="BuildTargetInfo.cs" />
     <Compile Include="Enums\BuildConfiguration.cs" />
+    <Compile Include="EditorFeatures\TargetPlatform.cs" />
     <Compile Include="Enums\BuildTargetPlatform.cs" />
     <Compile Include="Enums\SpriteAlphaStyle.cs" />
     <Compile Include="HelperTypes\BindingListWithRemoving.cs" />
@@ -285,6 +286,7 @@
     </Compile>
     <Compile Include="PropertyGridExtras\CustomResolutionUIEditor.cs" />
     <Compile Include="PropertyGridExtras\FontTypeConverter.cs" />
+    <Compile Include="PropertyGridExtras\PlatformsEditor.cs" />
     <Compile Include="PropertyGridExtras\RoomListTypeConverter.cs" />
     <Compile Include="ScriptAndHeader.cs" />
     <Compile Include="ScriptFolder.cs" />

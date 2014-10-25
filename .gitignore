@@ -12,6 +12,7 @@ Editor/AGS.Editor/obj
 Editor/AGS.Native/Debug
 Editor/AGS.Types/bin
 Editor/AGS.Types/obj
+Editor/References/AGS.Native.dll
 Editor/UpdateCPPVersion/bin
 Editor/UpdateCPPVersion/obj
 Solutions/.build/

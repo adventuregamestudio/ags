@@ -35,7 +35,7 @@ namespace AGS.Editor
         {
             foreach (Translation translation in Factory.AGSEditor.CurrentGame.Translations)
             {
-                string compiledPath = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, translation.CompiledFileName);
+                string compiledPath = Path.Combine(AGSEditor.Instance.CompiledWindowsDirectory, translation.CompiledFileName);
                 if (File.Exists(compiledPath))
                 {
                     File.Delete(compiledPath);
@@ -132,6 +132,12 @@ namespace AGS.Editor
 					 (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_ANTI_ALIAS_FONTS))
             {
 				Factory.Events.OnGameSettingsChanged();
+            }
+            else if (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_TARGET_PLATFORMS)
+            {
+                Targets.Platforms newValue = (e.ChangedItem.Value as Targets.Platforms?) ?? Targets.Platforms.Windows;
+                Factory.AGSEditor.RefreshBuildPlatforms(newValue);
+                Utilities.EnsurePlatformSubFoldersExist(newValue);
             }
         }
 

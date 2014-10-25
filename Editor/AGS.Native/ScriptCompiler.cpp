@@ -21,7 +21,7 @@ see the license.txt for details.
 extern char editorVersionNumber[50];
 extern void ConvertFileNameToCharArray(System::String^ clrString, char *textBuffer);
 extern void save_game_to_dta_file(Game^ game, const char *fileName);
-extern const char* make_data_file(int numFiles, char * const*fileNames, long splitSize, const char *baseFileName, bool makeFileNameAssumptionsForEXE);
+extern char const* make_data_file(int numFiles, char *const *fileNames, long splitSize, char const *baseFileName, bool makeFileNameAssumptionsForEXE, char const *compiledDir);
 extern void ReplaceIconFromFile(const char *iconName, const char *exeName);
 extern void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType);
 extern const char* make_old_style_data_file(const char* dataFileName, int numFiles, char * const*fileNames);

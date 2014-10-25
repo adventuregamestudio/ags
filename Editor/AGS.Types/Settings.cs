@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -16,6 +17,7 @@ namespace AGS.Types
         public const string PROPERTY_SCALE_FONTS = "Fonts designed for 640x480";
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_LETTERBOX_MODE = "Enable letterbox mode";
+        public const string PROPERTY_TARGET_PLATFORMS = "Target platforms";
         public const string PROPERTY_BUILD_TARGETS = "Build target platforms";
 		public const string REGEX_FOUR_PART_VERSION = @"^(\d+)\.(\d+)\.(\d+)\.(\d+)$";
 
@@ -94,6 +96,7 @@ namespace AGS.Types
 		private bool _enhancedSaveGames = false;
         private string _saveGamesFolderName = string.Empty;
         private int _audioIndexer = 0;
+        private Targets.Platforms _targetPlatforms = Targets.Platforms.Windows;
         private BuildTargetPlatform _buildTargets = BuildTargetPlatform.DataFileOnly | BuildTargetPlatform.Windows;
 
 		public void GenerateNewGameID()
@@ -915,6 +918,19 @@ namespace AGS.Types
             set { _audioIndexer = value; }
         }
 
+        [DisplayName(PROPERTY_TARGET_PLATFORMS)]
+        [DefaultValue(Targets.Platforms.Windows)]
+        [Description("Sets the platforms to compile your game for when selecting \"Build all platforms\".")]
+        [Category("Compiler")]
+        [Editor(typeof(PlatformsEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public Targets.Platforms TargetPlatforms
+        {
+            get { return _targetPlatforms; }
+
+            set
+            { _targetPlatforms = value; }
+        }
+
         [DisplayName(PROPERTY_BUILD_TARGETS)]
         [DefaultValue(BuildTargetPlatform.DataFileOnly | BuildTargetPlatform.Windows)]
         [Description("Sets the platforms to compile your game for when selecting \"Build all target platforms\".")]
@@ -955,6 +971,7 @@ namespace AGS.Types
             _useLowResCoordinatesInScript = true;
             _audioIndexer = 0;
             _enforceNewAudio = false;
+            _targetPlatforms = Targets.GetAvailablePlatforms();
 
             SerializeUtils.DeserializeFromXML(this, node);
 

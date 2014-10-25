@@ -33,7 +33,7 @@ namespace AGS.Editor
 		public event GetSourceControlFileListHandler GetSourceControlFileList;
 
 		public const string BUILT_IN_HEADER_FILE_NAME = "_BuiltInScriptHeader.ash";
-        public const string OUTPUT_DIRECTORY = "Compiled";
+        private const string OUTPUT_DIRECTORY = "Compiled";
         public const string DEBUG_OUTPUT_DIRECTORY = "_Debug";
         //public const string DEBUG_EXE_FILE_NAME = "_debug.exe";
         public const string GAME_FILE_NAME = "Game.agf";
@@ -65,7 +65,7 @@ namespace AGS.Editor
          * 9: 3.4.0.1    - Settings.CustomResolution
         */
         public const int    LATEST_XML_VERSION_INDEX = 9;
-        public static readonly string AUDIO_VOX_FILE_NAME = OUTPUT_DIRECTORY + Path.DirectorySeparatorChar + "audio.vox";
+        public static readonly string AUDIO_VOX_FILE_NAME;
 
         private const string USER_DATA_FILE_NAME = GAME_FILE_NAME + USER_DATA_FILE_SUFFIX;
         private const string USER_DATA_FILE_SUFFIX = ".user";
@@ -100,6 +100,7 @@ namespace AGS.Editor
 		private bool _applicationStarted = false;
         private FileSystemWatcher _fileWatcher = null;
         private FileStream _lockFile = null;
+        private Targets.Platforms _lastBuiltPlatform = Targets.Platforms.Windows;
 
         private static AGSEditor _instance;
 
@@ -113,6 +114,11 @@ namespace AGS.Editor
                 }
                 return _instance;
             }
+        }
+
+        static AGSEditor()
+        {
+            AUDIO_VOX_FILE_NAME = Path.Combine(AGSEditor.Instance.CompiledWindowsDirectory, "audio.vox");
         }
 
         private AGSEditor()
@@ -150,11 +156,31 @@ namespace AGS.Editor
             get { return Path.GetFileName(this.GameDirectory); }
         }
 
+        public string CompiledRootDirectory
+        {
+            get
+            {
+                return OUTPUT_DIRECTORY;
+            }
+        }
+
+        public string CompiledWindowsDirectory
+        {
+            get
+            {
+                if ((_game != null) && (_game.Settings.TargetPlatforms != Targets.Platforms.Windows))
+                {
+                    return Path.Combine(OUTPUT_DIRECTORY, "Windows");
+                }
+                return OUTPUT_DIRECTORY;
+            }
+        }
+
 		private string CompiledEXEFileName
 		{
 			get
 			{
-				return Path.Combine(OUTPUT_DIRECTORY, this.BaseGameFileName + ".exe");
+				return Path.Combine(CompiledWindowsDirectory, this.BaseGameFileName + ".exe");
 			}
 		}
 
@@ -734,6 +760,21 @@ namespace AGS.Editor
             }
         }
 
+        public void RefreshBuildPlatforms(Targets.Platforms platforms)
+        {
+            Dictionary<Targets.Platforms, EditorEvents.ParameterlessDelegate> buildCommands = new Dictionary<Targets.Platforms, EditorEvents.ParameterlessDelegate>();
+            buildCommands.Add(Targets.Platforms.Linux, Components.BuildLinuxComponent.Instance.BuildForLinux);
+            // add other platforms as they are included
+            foreach (Targets.Platforms platform in Enum.GetValues(typeof(Targets.Platforms)))
+            {
+                if (buildCommands.ContainsKey(platform))
+                {
+                    if ((platforms & platform) != 0) Factory.Events.BuildAllPlatforms += buildCommands[platform];
+                    else Factory.Events.BuildAllPlatforms -= buildCommands[platform];
+                }
+            }
+        }
+
         private void CloseLockFile()
         {
             if (_lockFile != null)
@@ -879,7 +920,7 @@ namespace AGS.Editor
 
         private void DeleteAnyExistingSplitResourceFiles()
         {
-            foreach (string fileName in Utilities.GetDirectoryFileList(OUTPUT_DIRECTORY, this.BaseGameFileName + ".0*"))
+            foreach (string fileName in Utilities.GetDirectoryFileList(CompiledWindowsDirectory, this.BaseGameFileName + ".0*"))
             {
                 File.Delete(fileName);
             }
@@ -918,6 +959,24 @@ namespace AGS.Editor
 
         private object CreateCompiledFiles(object parameter)
         {
+            if (_lastBuiltPlatform != _game.Settings.TargetPlatforms)
+            {
+                string compiledDir = Path.Combine(_game.DirectoryPath, OUTPUT_DIRECTORY);
+                string compiledWinDir = Path.Combine(compiledDir, "Windows");
+                if ((_lastBuiltPlatform == Targets.Platforms.Windows) && (_game.Settings.TargetPlatforms != Targets.Platforms.Windows))
+                {
+                    Directory.Move(compiledDir, compiledWinDir);
+                }
+                else if ((_lastBuiltPlatform != Targets.Platforms.Windows) && (_game.Settings.TargetPlatforms == Targets.Platforms.Windows))
+                {
+                    string temp = Path.Combine(_game.DirectoryPath, OUTPUT_DIRECTORY + "TEMP");
+                    if (Directory.Exists(temp)) Directory.Delete(temp, true);
+                    Directory.Move(compiledWinDir, temp);
+                    Directory.Delete(compiledDir, true);
+                    Directory.Move(temp, compiledDir);
+                }
+                _lastBuiltPlatform = _game.Settings.TargetPlatforms;
+            }
             bool forceRebuild = (bool)parameter;
             SetMODMusicFlag();
             DeleteAnyExistingSplitResourceFiles();
@@ -1302,7 +1361,7 @@ namespace AGS.Editor
 				File.Move(this.BaseGameFileName + ".exe", this.DebugEXEFileName);
 
                 // copy configuration from Compiled folder to use with Debugging
-                string cfgFilePath = Path.Combine(OUTPUT_DIRECTORY, CONFIG_FILE_NAME);
+                string cfgFilePath = Path.Combine(CompiledWindowsDirectory, CONFIG_FILE_NAME);
                 if (File.Exists(cfgFilePath))
                 {
                     File.Copy(cfgFilePath, Path.Combine(DEBUG_OUTPUT_DIRECTORY, CONFIG_FILE_NAME), true);
@@ -1360,7 +1419,7 @@ namespace AGS.Editor
 
                 foreach (Plugin plugin in _game.Plugins)
                 {
-                    File.Copy(Path.Combine(this.EditorDirectory, plugin.FileName), Path.Combine(OUTPUT_DIRECTORY, plugin.FileName), true);
+                    File.Copy(Path.Combine(this.EditorDirectory, plugin.FileName), Path.Combine(CompiledWindowsDirectory, plugin.FileName), true);
                 }
             }
             catch (Exception ex)
@@ -1371,7 +1430,7 @@ namespace AGS.Editor
 
         private void CreateCompiledSetupProgram()
         {
-            string setupFileName = Path.Combine(OUTPUT_DIRECTORY, COMPILED_SETUP_FILE_NAME);
+            string setupFileName = Path.Combine(CompiledWindowsDirectory, COMPILED_SETUP_FILE_NAME);
             Resources.ResourceManager.CopyFileFromResourcesToDisk(SETUP_PROGRAM_SOURCE_FILE, setupFileName);
 
             if (File.Exists(SETUP_ICON_FILE_NAME))
@@ -1533,7 +1592,7 @@ namespace AGS.Editor
 
 		private void WriteConfigFile()
 		{
-			string configFilePath = Path.Combine(OUTPUT_DIRECTORY, CONFIG_FILE_NAME);
+			string configFilePath = Path.Combine(CompiledWindowsDirectory, CONFIG_FILE_NAME);
 
 			if (!File.Exists(configFilePath))
 			{

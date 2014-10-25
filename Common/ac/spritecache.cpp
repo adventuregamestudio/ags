@@ -43,12 +43,6 @@ extern int spritewidth[], spriteheight[];
 #define SPRITE_LOCKED -1
 #define START_OF_LIST -1
 #define END_OF_LIST   -1
-// PSP: Use smaller sprite cache due to limited total memory.
-#if defined (PSP_VERSION)
-#define DEFAULTCACHESIZE 5000000
-#else
-#define DEFAULTCACHESIZE 20240000        // max size, in bytes (20 MB)
-#endif
 
 const char *spindexid = "SPRINDEX";
 const char *spindexfilename = "sprindex.dat";

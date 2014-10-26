@@ -262,7 +262,7 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
     }
 
     draw_sprite_support_alpha(ds, sds->hasAlphaChannel != 0, xx, yy, sourcePic, (game.spriteflags[slot] & SPF_ALPHACHANNEL) != 0,
-        GfxDef::Trans100ToAlpha255(trans));
+        kBlendMode_Alpha, GfxDef::Trans100ToAlpha255(trans));
 
     sds->FinishedDrawing();
 

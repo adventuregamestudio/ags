@@ -628,7 +628,7 @@ void wputblock_stretch(Common::Bitmap *g, int xpt,int ypt,Common::Bitmap *tblock
   else g->StretchBlt(tblock,RectWH(xpt,ypt,nsx,nsy), Common::kBitmap_Transparency);
 }
 
-void draw_gui_sprite(Common::Bitmap *g, int sprnum, int atxp, int atyp, bool use_alpha) {
+void draw_gui_sprite(Common::Bitmap *g, int sprnum, int atxp, int atyp, bool use_alpha, Common::BlendMode blend_mode) {
   Common::Bitmap *blptr = get_sprite(sprnum);
   Common::Bitmap *towrite=blptr;
   int needtofree=0, main_color_depth = thisgame.color_depth * 8;

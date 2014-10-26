@@ -28,8 +28,8 @@ enum GameSpriteAlphaRenderingStyle
 enum GameGuiAlphaRenderingStyle
 {
     kGuiAlphaRender_Classic = 0,
-    kGuiAlphaRender_AdditiveOpacitySrcCopy,
-    kGuiAlphaRender_MultiplyTranslucenceSrcBlend
+    kGuiAlphaRender_AdditiveAlpha,
+    kGuiAlphaRender_Improved
 };
 
 //

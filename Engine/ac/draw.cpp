@@ -821,7 +821,7 @@ void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos
         (use_new_sprite_alpha_blending || alpha == 0xFF))
     {
         if (use_new_sprite_alpha_blending)
-           set_argb2argb_alpha_blender(alpha);
+           set_argb2argb_blender(alpha);
         else
             set_alpha_blender();
         ds->TransBlendBlt(image, xpos, ypos);
@@ -1100,7 +1100,7 @@ void draw_gui_sprite(Bitmap *ds, int picc, int xx, int yy, bool use_alpha)
         {
             if (game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_MultiplyTranslucenceSrcBlend)
             {
-                set_argb2argb_alpha_blender();
+                set_argb2argb_blender();
             }
             else
             {

@@ -179,7 +179,7 @@ unsigned long _additive_alpha_copysrc_blender(unsigned long x, unsigned long y, 
 // NOTE: Allegro does not call blender callback when source alpha is zero, therefore 
 // we do not check this case here; this should be kept in mind if a need arises to
 // use this function elsewise.
-unsigned long _argb2argb_alpha_blender(unsigned long src_col, unsigned long dst_col, unsigned long src_alpha)
+unsigned long _argb2argb_blender(unsigned long src_col, unsigned long dst_col, unsigned long src_alpha)
 {
     unsigned long dst_g, dst_alpha;
 
@@ -222,9 +222,9 @@ void set_additive_alpha_blender()
     set_blender_mode(NULL, NULL, _additive_alpha_copysrc_blender, 0, 0, 0, 0);
 }
 
-void set_argb2argb_alpha_blender(int custom_src_alpha)
+void set_argb2argb_blender(int alpha)
 {
-    set_blender_mode(NULL, NULL, _argb2argb_alpha_blender, 0, 0, 0, custom_src_alpha);
+    set_blender_mode(NULL, NULL, _argb2argb_blender, 0, 0, 0, alpha);
 }
 
 // sets the alpha channel to opaque. used when drawing a non-alpha sprite onto an alpha-sprite

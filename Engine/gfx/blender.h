@@ -58,7 +58,8 @@ void set_my_trans_blender(int r, int g, int b, int a);
 // The final alpha is calculated by multiplying two translucences (1 - .alpha).
 // Custom alpha parameter, when not zero, is treated as fraction of source
 // alpha that has to be used in color blending.
-void set_argb2argb_alpha_blender(int custom_src_alpha = 0);
+unsigned long _argb2argb_blender(unsigned long src_col, unsigned long dst_col, unsigned long src_alpha);
+void set_argb2argb_blender(int alpha = 0xFF);
 // Additive alpha blender plain copies src over, applying a summ of src and
 // dst alpha values.
 void set_additive_alpha_blender();

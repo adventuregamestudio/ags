@@ -23,6 +23,16 @@ namespace AGS
 namespace Common
 {
 
+enum BlendMode
+{
+    // free blending (ARGB -> ARGB) modes
+    kBlendMode_NoAlpha        = 0, // ignore alpha channel
+    kBlendMode_Alpha,              // alpha-blend src to dest, combining src & dest alphas
+    // NOTE: add new modes here
+
+    kNumBlendModes
+};
+
 namespace GfxDef
 {
     inline int Trans100ToAlpha255(int transparency)

@@ -73,6 +73,13 @@ int MYOGG::poll()
     return done;
 }
 
+void MYOGG::adjust_stream()
+{
+    int final_vol = vol + volModifier + directionalVolModifier;
+    if (final_vol < 0) final_vol = 0;
+    alogg_adjust_oggstream(stream, final_vol, panning, 1000);
+}
+
 void MYOGG::set_volume(int newvol)
 {
     // boost MP3 volume
@@ -80,9 +87,7 @@ void MYOGG::set_volume(int newvol)
     if (newvol > 255)
         newvol = 255;
     vol = newvol;
-    newvol += volModifier + directionalVolModifier;
-    if (newvol < 0) newvol = 0;
-    alogg_adjust_oggstream(stream, newvol, panning, 1000);
+    adjust_stream();
 }
 
 void MYOGG::internal_destroy()

@@ -41,6 +41,9 @@ struct MYMP3:public SOUNDCLIP
     int get_sound_type();
     int play();
     MYMP3();
+
+private:
+    void adjust_stream();
 };
 
 #endif // __AC_MYMP3_H

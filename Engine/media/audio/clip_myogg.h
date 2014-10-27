@@ -54,6 +54,9 @@ struct MYOGG:public SOUNDCLIP
     int play();
 
     MYOGG();
+
+private:
+    void adjust_stream();
 };
 
 #endif // __AC_MYOGG_H

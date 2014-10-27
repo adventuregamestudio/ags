@@ -54,15 +54,20 @@ int MYSTATICOGG::poll()
     return done;
 }
 
+void MYSTATICOGG::adjust_stream()
+{
+    int final_vol = vol + volModifier + directionalVolModifier;
+    if (final_vol < 0) final_vol = 0;
+    alogg_adjust_ogg(tune, final_vol, panning, 1000, repeat);
+}
+
 void MYSTATICOGG::set_volume(int newvol)
 {
     vol = newvol;
 
     if (tune != NULL)
     {
-        newvol += volModifier + directionalVolModifier;
-        if (newvol < 0) newvol = 0;
-        alogg_adjust_ogg(tune, newvol, panning, 1000, repeat);
+        adjust_stream();
     }
 }
 

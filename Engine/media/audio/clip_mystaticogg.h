@@ -57,6 +57,9 @@ struct MYSTATICOGG:public SOUNDCLIP
     int play();
 
     MYSTATICOGG();
+
+private:
+    void adjust_stream();
 };
 
 #endif // __AC_MYSTATICOGG_H

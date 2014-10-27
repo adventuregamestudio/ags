@@ -50,6 +50,9 @@ struct MYSTATICMP3:public SOUNDCLIP
     int play();
 
     MYSTATICMP3();
+
+private:
+    void adjust_stream();
 };
 
 #endif // __AC_MYSTATICMP3_H

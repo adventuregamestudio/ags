@@ -26,7 +26,7 @@ struct MYWAVE:public SOUNDCLIP
 
     int poll();
 
-    void set_volume(int newvol);
+    void set_volume(int new_speed);
 
     void internal_destroy();
 

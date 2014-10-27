@@ -32,6 +32,7 @@ struct MYOGG:public SOUNDCLIP
     int poll();
 
     void set_volume(int newvol);
+    void set_speed(int new_speed);
 
     void internal_destroy();
 

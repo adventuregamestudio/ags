@@ -1384,6 +1384,8 @@ void save_game_audioclips_and_crossfade(Stream *out)
             out->WriteInt32(channels[bb]->panning);
             out->WriteInt32(channels[bb]->volAsPercentage);
             out->WriteInt32(channels[bb]->panningAsPercentage);
+            if (loaded_game_file_version >= kGameVersion_340_2)
+                out->WriteInt32(channels[bb]->speed);
         }
         else
         {
@@ -2069,11 +2071,15 @@ void restore_game_audioclips_and_crossfade(Stream *in, int crossfadeInChannelWas
             int pan = in->ReadInt32();
             int volAsPercent = in->ReadInt32();
             int panAsPercent = in->ReadInt32();
+            int speed = 1000;
+            if (loaded_game_file_version >= kGameVersion_340_2)
+                speed = in->ReadInt32();
             play_audio_clip_on_channel(bb, &game.audioClips[audioClipIndex], priority, repeat, channelPositions[bb]);
             if (channels[bb] != NULL)
             {
                 channels[bb]->set_panning(pan);
                 channels[bb]->set_volume_alternate(volAsPercent, vol);
+                channels[bb]->set_speed(speed);
                 channels[bb]->panningAsPercentage = panAsPercent;
             }
         }

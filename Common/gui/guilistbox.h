@@ -83,6 +83,9 @@ struct GUIListBox:public GUIObject
     selectedbgcol = 16;
     backcol = 7;
     exflags = 0;
+    rowheight = 0;
+    num_items_fit = 0;
+    alignment = GALIGN_LEFT;
     numSupportedEvents = 1;
     supportedEvents[0] = "SelectionChanged";
     supportedEventArgs[0] = "GUIControl *control";

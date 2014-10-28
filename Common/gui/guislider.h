@@ -74,6 +74,10 @@ struct GUISlider:public GUIObject
     min = 0;
     max = 10;
     value = 0;
+    mpressed = 0;
+    handlepic = -1;
+    handleoffset = 0;
+    bgimage = 0;
     activated = 0;
     cached_handtlx = cached_handbrx = 0;
     cached_handtly = cached_handbry = 0;

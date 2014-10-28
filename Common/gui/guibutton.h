@@ -90,6 +90,8 @@ struct GUIButton:public GUIObject
     textcol = 0;
     leftclick = 2;
     rightclick = 0;
+    lclickdata = rclickdata = 0;
+    textAlignment = GBUT_ALIGN_TOPMIDDLE;
     activated = 0;
     numSupportedEvents = 1;
     supportedEvents[0] = "Click";

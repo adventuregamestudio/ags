@@ -231,7 +231,7 @@ namespace AGS.Editor
             try
             {
                 string exeName = Factory.AGSEditor.BaseGameFileName + ".exe";
-                Directory.SetCurrentDirectory(AGSEditor.Instance.CompiledWindowsDirectory);
+                Directory.SetCurrentDirectory(AGSEditor.Instance.CompiledDirectory);
 
                 RunEXEFile(exeName, parameter, raiseEventOnExit);
             }

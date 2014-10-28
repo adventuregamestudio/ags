@@ -4,7 +4,7 @@ using System.Windows.Forms;
 
 namespace AGS.Types
 {
-    public class PlatformsEditor : FlagsEditor
+    public class PlatformsEditor : FlagsUIEditor
     {
         public PlatformsEditor() : base()
         {
@@ -24,7 +24,8 @@ namespace AGS.Types
 
         public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
         {
-            return base.EditValueHelper(context, provider, value, new FlagsEditorControl.ValueExclusionCheck(AGS.Types.Targets.IsPlatformAvailable));
+            //return base.EditValueHelper(context, provider, value, new FlagsUIEditorControl.ValueExclusionCheck(AGS.Types.Targets.IsPlatformAvailable));
+            return false;
         }
     }
 }

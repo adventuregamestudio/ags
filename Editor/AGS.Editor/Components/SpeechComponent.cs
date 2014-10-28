@@ -22,7 +22,7 @@ namespace AGS.Editor.Components
 
         static SpeechComponent()
         {
-            SPEECH_VOX_FILE_NAME = Path.Combine(AGSEditor.Instance.CompiledWindowsDirectory, "speech.vox");
+            SPEECH_VOX_FILE_NAME = Path.Combine(AGSEditor.Instance.CompiledDirectory, "speech.vox");
         }
 
         public SpeechComponent(GUIController guiController, AGSEditor agsEditor)

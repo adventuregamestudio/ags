@@ -10,7 +10,7 @@ namespace AGS.Types
     [Flags]
     public enum BuildTargetPlatform
     {
-        DataFileOnly = 0x00,
+        DataFile     = 0x00,
         Windows      = 0x02,
         Linux        = 0x04,
         Android      = 0x08,

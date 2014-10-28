@@ -47,7 +47,8 @@ namespace AGS.Editor.Components
         {
             instance = this;
             editor = agsEditor;
-            libs = Targets.GetPlatformRequiredLibraryNames(Targets.Platforms.Linux);
+            libs = new string[0];
+            //libs = Targets.GetPlatformRequiredLibraryNames(Targets.Platforms.Linux);
         }
 
         void InitPaths()

@@ -62,7 +62,7 @@ namespace AGS.Types
 
         /// <summary>
         /// Returns the directory from which the editor is running.
-        /// RequiredAGSVersion: 3.3.1.1165
+        /// RequiredAGSVersion: 3.4.0
         /// </summary>
         public static string EditorDirectory
         {

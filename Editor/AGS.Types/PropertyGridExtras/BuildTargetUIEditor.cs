@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AGS.Types
 {
-    public class BuildTargetUIEditor : FlagsEditor
+    public class BuildTargetUIEditor : FlagsUIEditor
     {
         public BuildTargetUIEditor()
             : base()
@@ -20,7 +20,7 @@ namespace AGS.Types
 
         public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
         {
-            return base.EditValueHelper(context, provider, value, new FlagsEditorControl.ValueExclusionCheck(BuildTargetInfo.IsBuildTargetAvailable));
+            return base.EditValueHelper(context, provider, value, new FlagsUIEditorControl.ValueExclusionCheck(BuildTargetInfo.IsBuildTargetAvailable));
         }
     }
 }

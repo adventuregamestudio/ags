@@ -1,6 +1,6 @@
 ﻿namespace AGS.Types
 {
-    partial class FlagsEditorControl
+    partial class FlagsUIEditorControl
     {
         /// <summary> 
         /// Required designer variable.

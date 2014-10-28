@@ -8,13 +8,13 @@ using System.Windows.Forms.Design;
 
 namespace AGS.Types
 {
-    public class FlagsEditor : UITypeEditor
+    public class FlagsUIEditor : UITypeEditor
     {
-        protected FlagsEditorControl editor = null;
+        protected FlagsUIEditorControl editor = null;
 
-        public FlagsEditor()
+        public FlagsUIEditor()
         {
-            editor = new FlagsEditorControl(this);
+            editor = new FlagsUIEditorControl(this);
         }
 
         // our editor is a DropDown editor
@@ -25,7 +25,7 @@ namespace AGS.Types
 
         protected object EditValueHelper(ITypeDescriptorContext context,
             IServiceProvider provider, object value,
-            FlagsEditorControl.ValueExclusionCheck valueCheck)
+            FlagsUIEditorControl.ValueExclusionCheck valueCheck)
         {
             // if value is not an enum than we can not edit it
             if (!(value is Enum))
@@ -53,7 +53,7 @@ namespace AGS.Types
                 if (edSvc == null)
                     return value;
                 //if (editor == null)
-                //    editor = new FlagsEditorControl(this);
+                //    editor = new FlagsUIEditorControl(this);
                 // prepare list
                 editor.Begin(edSvc, value, valueCheck);
                 // show drop down now

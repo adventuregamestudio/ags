@@ -26,7 +26,6 @@ namespace AGS.Editor
         public event ShowSpriteManagerHandler ShowSpriteManager;
         public delegate void FileChangedInGameFolderHandler(string fileName);
         public event FileChangedInGameFolderHandler FileChangedInGameFolder;
-        public event ParameterlessDelegate BuildAllPlatforms;
 
 		public void OnGameSettingsChanged()
 		{
@@ -107,14 +106,6 @@ namespace AGS.Editor
             if (FileChangedInGameFolder != null)
             {
                 FileChangedInGameFolder(fileName);
-            }
-        }
-
-        public void OnBuildAllPlatforms()
-        {
-            if (BuildAllPlatforms != null)
-            {
-                BuildAllPlatforms();
             }
         }
 

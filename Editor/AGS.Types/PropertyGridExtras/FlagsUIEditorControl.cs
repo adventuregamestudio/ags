@@ -12,22 +12,22 @@ using System.Windows.Forms.Design;
 
 namespace AGS.Types
 {
-    public partial class FlagsEditorControl : UserControl
+    public partial class FlagsUIEditorControl : UserControl
     {
         // CheckedListBox control moved to designer code
         public event ItemCheckEventHandler ItemCheck;
-        FlagsEditor Editor = null;
+        FlagsUIEditor Editor = null;
         IWindowsFormsEditorService _Service = null;
         object _Value;
         long leftOver = 0;
         bool cancelFlag = false;
 
-        public FlagsEditorControl()
+        public FlagsUIEditorControl()
         {
             InitializeComponent();
         }
 
-        public FlagsEditorControl(FlagsEditor editor)
+        public FlagsUIEditorControl(FlagsUIEditor editor)
             : this()
         {
             Editor = editor;

@@ -11,128 +11,6 @@ namespace AGS.Editor
 {
     public class DataFileWriter
     {
-        private class NativeConstants
-        {
-            // NOTE: GetNativeConstant returns only int or string, so some additional casting may be required
-            public static readonly string GAME_FILE_SIG = (string)Factory.NativeProxy.GetNativeConstant("GAME_FILE_SIG");
-            public static readonly int GAME_DATA_VERSION_CURRENT = (int)Factory.NativeProxy.GetNativeConstant("GAME_DATA_VERSION_CURRENT");
-            public static readonly int MAX_GUID_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_GUID_LENGTH");
-            public static readonly int MAX_SG_EXT_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_SG_EXT_LENGTH");
-            public static readonly int MAX_SG_FOLDER_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_SG_FOLDER_LEN");
-            public static readonly int MAX_SCRIPT_NAME_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_SCRIPT_NAME_LEN");
-            public static readonly int FFLG_SIZEMASK = (int)Factory.NativeProxy.GetNativeConstant("FFLG_SIZEMASK");
-            public static readonly char IFLG_STARTWITH = (char)(int)Factory.NativeProxy.GetNativeConstant("IFLG_STARTWITH");
-            public static readonly char MCF_ANIMMOVE = (char)(int)Factory.NativeProxy.GetNativeConstant("MCF_ANIMMOVE");
-            public static readonly char MCF_STANDARD = (char)(int)Factory.NativeProxy.GetNativeConstant("MCF_STANDARD");
-            public static readonly char MCF_HOTSPOT = (char)(int)Factory.NativeProxy.GetNativeConstant("MCF_HOTSPOT");
-            public static readonly int CHF_MANUALSCALING = (int)Factory.NativeProxy.GetNativeConstant("CHF_MANUALSCALING");
-            public static readonly int CHF_NOINTERACT = (int)Factory.NativeProxy.GetNativeConstant("CHF_NOINTERACT");
-            public static readonly int CHF_NODIAGONAL = (int)Factory.NativeProxy.GetNativeConstant("CHF_NODIAGONAL");
-            public static readonly int CHF_NOLIGHTING = (int)Factory.NativeProxy.GetNativeConstant("CHF_NOLIGHTING");
-            public static readonly int CHF_NOTURNING = (int)Factory.NativeProxy.GetNativeConstant("CHF_NOTURNING");
-            public static readonly int CHF_NOBLOCKING = (int)Factory.NativeProxy.GetNativeConstant("CHF_NOBLOCKING");
-            public static readonly int CHF_SCALEMOVESPEED = (int)Factory.NativeProxy.GetNativeConstant("CHF_SCALEMOVESPEED");
-            public static readonly int CHF_SCALEVOLUME = (int)Factory.NativeProxy.GetNativeConstant("CHF_SCALEVOLUME");
-            public static readonly int CHF_ANTIGLIDE = (int)Factory.NativeProxy.GetNativeConstant("CHF_ANTIGLIDE");
-            public static readonly int DFLG_ON = (int)Factory.NativeProxy.GetNativeConstant("DFLG_ON");
-            public static readonly int DFLG_NOREPEAT = (int)Factory.NativeProxy.GetNativeConstant("DFLG_NOREPEAT");
-            public static readonly int DTFLG_SHOWPARSER = (int)Factory.NativeProxy.GetNativeConstant("DTFLG_SHOWPARSER");
-            public static readonly sbyte FONT_OUTLINE_AUTO = (sbyte)(int)Factory.NativeProxy.GetNativeConstant("FONT_OUTLINE_AUTO");
-            public static readonly int MAX_FONTS = (int)Factory.NativeProxy.GetNativeConstant("MAX_FONTS");
-            public static readonly int MAX_SPRITES = (int)Factory.NativeProxy.GetNativeConstant("MAX_SPRITES");
-            public static readonly int MAX_CURSOR = (int)Factory.NativeProxy.GetNativeConstant("MAX_CURSOR");
-            public static readonly int MAX_PARSER_WORD_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_PARSER_WORD_LENGTH");
-            public static readonly int MAX_INV = (int)Factory.NativeProxy.GetNativeConstant("MAX_INV");
-            public static readonly int MAXLIPSYNCFRAMES = (int)Factory.NativeProxy.GetNativeConstant("MAXLIPSYNCFRAMES");
-            public static readonly int MAXGLOBALMES = (int)Factory.NativeProxy.GetNativeConstant("MAXGLOBALMES");
-            public static readonly int MAXTOPICOPTIONS = (int)Factory.NativeProxy.GetNativeConstant("MAXTOPICOPTIONS");
-            public static readonly short UNIFORM_WALK_SPEED = (short)(int)Factory.NativeProxy.GetNativeConstant("UNIFORM_WALK_SPEED");
-            public static readonly int GAME_RESOLUTION_CUSTOM = (int)Factory.NativeProxy.GetNativeConstant("GAME_RESOLUTION_CUSTOM");
-            public static readonly int MAXMULTIFILES = (int)Factory.NativeProxy.GetNativeConstant("MAXMULTIFILES");
-            public static readonly int RAND_SEED_SALT = (int)Factory.NativeProxy.GetNativeConstant("RAND_SEED_SALT");
-            public static readonly int CHUNKSIZE = (int)Factory.NativeProxy.GetNativeConstant("CHUNKSIZE");
-            public static readonly string CLIB_END_SIGNATURE = (string)Factory.NativeProxy.GetNativeConstant("CLIB_END_SIGNATURE");
-            public static readonly int MAX_FILENAME_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_FILENAME_LENGTH");
-            public static readonly string SPRSET_NAME = (string)Factory.NativeProxy.GetNativeConstant("SPRSET_NAME");
-            public static readonly byte SPF_640x400 = (byte)(int)Factory.NativeProxy.GetNativeConstant("SPF_640x400");
-            public static readonly byte SPF_ALPHACHANNEL = (byte)(int)Factory.NativeProxy.GetNativeConstant("SPF_ALPHACHANNEL");
-            public static readonly int MAX_CUSTOM_PROPERTIES = (int)Factory.NativeProxy.GetNativeConstant("MAX_CUSTOM_PROPERTIES");
-            public static readonly int MAX_CUSTOM_PROPERTY_NAME_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_CUSTOM_PROPERTY_NAME_LENGTH");
-            public static readonly int MAX_CUSTOM_PROPERTY_VALUE_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_CUSTOM_PROPERTY_VALUE_LENGTH");
-            public static readonly string PASSWORD_ENC_STRING = (string)Factory.NativeProxy.GetNativeConstant("PASSWORD_ENC_STRING");
-            public static readonly int LOOPFLAG_RUNNEXTLOOP = (int)Factory.NativeProxy.GetNativeConstant("LOOPFLAG_RUNNEXTLOOP");
-            public static readonly int VFLG_FLIPSPRITE = (int)Factory.NativeProxy.GetNativeConstant("VFLG_FLIPSPRITE");
-            public static readonly uint GUIMAGIC = (uint)Factory.NativeProxy.GetNativeConstant("GUIMAGIC");
-            public static readonly int SAVEBUFFERSIZE = (int)Factory.NativeProxy.GetNativeConstant("SAVEBUFFERSIZE");
-            public static readonly int GUIMAIN_NOCLICK = (int)Factory.NativeProxy.GetNativeConstant("GUIMAIN_NOCLICK");
-            public static readonly int GUIF_CLIP = (int)Factory.NativeProxy.GetNativeConstant("GUIF_CLIP");
-            public static readonly int GUIF_TRANSLATED = (int)Factory.NativeProxy.GetNativeConstant("GUIF_TRANSLATED");
-            public static readonly int GLF_NOBORDER = (int)Factory.NativeProxy.GetNativeConstant("GLF_NOBORDER");
-            public static readonly int GLF_NOARROWS = (int)Factory.NativeProxy.GetNativeConstant("GLF_NOARROWS");
-            public static readonly int GUI_POPUP_MODAL = (int)Factory.NativeProxy.GetNativeConstant("GUI_POPUP_MODAL");
-            public static readonly int GUIMAIN_TEXTWINDOW = (int)Factory.NativeProxy.GetNativeConstant("GUIMAIN_TEXTWINDOW");
-            public static readonly byte GUIMAIN_LEGACYTEXTWINDOW = (byte)(int)Factory.NativeProxy.GetNativeConstant("GUIMAIN_LEGACYTEXTWINDOW");
-            public static readonly int GTF_NOBORDER = (int)Factory.NativeProxy.GetNativeConstant("GTF_NOBORDER");
-            public static readonly int MAX_GUILABEL_TEXT_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_GUILABEL_TEXT_LEN");
-            public static readonly int MAX_GUIOBJ_SCRIPTNAME_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_GUIOBJ_SCRIPTNAME_LEN");
-            public static readonly int MAX_GUIOBJ_EVENTHANDLER_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_GUIOBJ_EVENTHANDLER_LEN");
-            public static readonly int GOBJ_BUTTON = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_BUTTON");
-            public static readonly int GOBJ_LABEL = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_LABEL");
-            public static readonly int GOBJ_INVENTORY = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_INVENTORY");
-            public static readonly int GOBJ_SLIDER = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_SLIDER");
-            public static readonly int GOBJ_TEXTBOX = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_TEXTBOX");
-            public static readonly int GOBJ_LISTBOX = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_LISTBOX");
-            public static readonly int TEXTWINDOW_PADDING_DEFAULT = (int)Factory.NativeProxy.GetNativeConstant("TEXTWINDOW_PADDING_DEFAULT");
-
-            public class GUIVersion
-            {
-                public static readonly int Current = (int)Factory.NativeProxy.GetNativeConstant("GUI_VERSION_CURRENT");
-            }
-
-            public class GameOptions
-            {
-                public static readonly int OPT_DEBUGMODE = (int)Factory.NativeProxy.GetNativeConstant("OPT_DEBUGMODE");
-                public static readonly int OPT_WALKONLOOK = (int)Factory.NativeProxy.GetNativeConstant("OPT_WALKONLOOK");
-                public static readonly int OPT_DIALOGIFACE = (int)Factory.NativeProxy.GetNativeConstant("OPT_DIALOGIFACE");
-                public static readonly int OPT_ANTIGLIDE = (int)Factory.NativeProxy.GetNativeConstant("OPT_ANTIGLIDE");
-                public static readonly int OPT_TWCUSTOM = (int)Factory.NativeProxy.GetNativeConstant("OPT_TWCUSTOM");
-                public static readonly int OPT_DIALOGGAP = (int)Factory.NativeProxy.GetNativeConstant("OPT_DIALOGGAP");
-                public static readonly int OPT_NOSKIPTEXT = (int)Factory.NativeProxy.GetNativeConstant("OPT_NOSKIPTEXT");
-                public static readonly int OPT_DISABLEOFF = (int)Factory.NativeProxy.GetNativeConstant("OPT_DISABLEOFF");
-                public static readonly int OPT_ALWAYSSPCH = (int)Factory.NativeProxy.GetNativeConstant("OPT_ALWAYSSPCH");
-                public static readonly int OPT_SPEECHTYPE = (int)Factory.NativeProxy.GetNativeConstant("OPT_SPEECHTYPE");
-                public static readonly int OPT_PIXPERFECT = (int)Factory.NativeProxy.GetNativeConstant("OPT_PIXPERFECT");
-                public static readonly int OPT_NOWALKMODE = (int)Factory.NativeProxy.GetNativeConstant("OPT_NOWALKMODE");
-                public static readonly int OPT_LETTERBOX = (int)Factory.NativeProxy.GetNativeConstant("OPT_LETTERBOX");
-                public static readonly int OPT_FIXEDINVCURSOR = (int)Factory.NativeProxy.GetNativeConstant("OPT_FIXEDINVCURSOR");
-                public static readonly int OPT_NOSCALEFNT = (int)Factory.NativeProxy.GetNativeConstant("OPT_NOSCALEFNT");
-                public static readonly int OPT_SPLITRESOURCES = (int)Factory.NativeProxy.GetNativeConstant("OPT_SPLITRESOURCES");
-                public static readonly int OPT_ROTATECHARS = (int)Factory.NativeProxy.GetNativeConstant("OPT_ROTATECHARS");
-                public static readonly int OPT_FADETYPE = (int)Factory.NativeProxy.GetNativeConstant("OPT_FADETYPE");
-                public static readonly int OPT_HANDLEINVCLICKS = (int)Factory.NativeProxy.GetNativeConstant("OPT_HANDLEINVCLICKS");
-                public static readonly int OPT_MOUSEWHEEL = (int)Factory.NativeProxy.GetNativeConstant("OPT_MOUSEWHEEL");
-                public static readonly int OPT_DIALOGNUMBERED = (int)Factory.NativeProxy.GetNativeConstant("OPT_DIALOGNUMBERED");
-                public static readonly int OPT_DIALOGUPWARDS = (int)Factory.NativeProxy.GetNativeConstant("OPT_DIALOGUPWARDS");
-                public static readonly int OPT_ANTIALIASFONTS = (int)Factory.NativeProxy.GetNativeConstant("OPT_ANTIALIASFONTS");
-                public static readonly int OPT_THOUGHTGUI = (int)Factory.NativeProxy.GetNativeConstant("OPT_THOUGHTGUI");
-                public static readonly int OPT_TURNTOFACELOC = (int)Factory.NativeProxy.GetNativeConstant("OPT_TURNTOFACELOC");
-                public static readonly int OPT_RIGHTLEFTWRITE = (int)Factory.NativeProxy.GetNativeConstant("OPT_RIGHTLEFTWRITE");
-                public static readonly int OPT_DUPLICATEINV = (int)Factory.NativeProxy.GetNativeConstant("OPT_DUPLICATEINV");
-                public static readonly int OPT_SAVESCREENSHOT = (int)Factory.NativeProxy.GetNativeConstant("OPT_SAVESCREENSHOT");
-                public static readonly int OPT_PORTRAITSIDE = (int)Factory.NativeProxy.GetNativeConstant("OPT_PORTRAITSIDE");
-                public static readonly int OPT_STRICTSCRIPTING = (int)Factory.NativeProxy.GetNativeConstant("OPT_STRICTSCRIPTING");
-                public static readonly int OPT_LEFTTORIGHTEVAL = (int)Factory.NativeProxy.GetNativeConstant("OPT_LEFTTORIGHTEVAL");
-                public static readonly int OPT_COMPRESSSPRITES = (int)Factory.NativeProxy.GetNativeConstant("OPT_COMPRESSSPRITES");
-                public static readonly int OPT_STRICTSTRINGS = (int)Factory.NativeProxy.GetNativeConstant("OPT_STRICTSTRINGS");
-                public static readonly int OPT_NEWGUIALPHA = (int)Factory.NativeProxy.GetNativeConstant("OPT_NEWGUIALPHA");
-                public static readonly int OPT_RUNGAMEDLGOPTS = (int)Factory.NativeProxy.GetNativeConstant("OPT_RUNGAMEDLGOPTS");
-                public static readonly int OPT_NATIVECOORDINATES = (int)Factory.NativeProxy.GetNativeConstant("OPT_NATIVECOORDINATES");
-                public static readonly int OPT_GLOBALTALKANIMSPD = (int)Factory.NativeProxy.GetNativeConstant("OPT_GLOBALTALKANIMSPD");
-                public static readonly int OPT_SPRITEALPHA = (int)Factory.NativeProxy.GetNativeConstant("OPT_SPRITEALPHA");
-                public static readonly int OPT_LIPSYNCTEXT = (int)Factory.NativeProxy.GetNativeConstant("OPT_LIPSYNCTEXT");
-            }
-        }
-
         private static byte[] GetBytes(string text, int length)
         {
             byte[] bytes = new byte[length];
@@ -220,27 +98,25 @@ namespace AGS.Editor
         class PseudoRandInt
         {
             private static PseudoRandInt _instance;
-            private int _seed;
             private int _lastRandValue;
 
             public static PseudoRandInt Instance
             {
                 get
                 {
-                    if (_instance == null) _instance = new PseudoRandInt((int)DateTime.Now.Ticks);
+                    if (_instance == null) _instance = new PseudoRandInt((int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds);
                     return _instance;
                 }
             }
 
-            public static void InitializeInstance(int value)
+            public static void InitializeInstance(int seed)
             {
-                _instance = new PseudoRandInt(value);
+                _instance = new PseudoRandInt(seed);
             }
 
-            private PseudoRandInt(int value)
+            private PseudoRandInt(int seed)
             {
-                _seed = value;
-                _lastRandValue = value;
+                _lastRandValue = seed;
             }
 
             public int GetNextRand()
@@ -258,6 +134,17 @@ namespace AGS.Editor
             }
         }
 
+        static void FilePutStringEncrypted(string text, BinaryWriter writer)
+        {
+            byte[] bytes = GetBytes(text, text.Length + 1);
+            FileWriteDataEncrypted(bytes, writer);
+        }
+
+        static void FilePutIntEncrypted(int numberToWrite, BinaryWriter writer)
+        {
+            FileWriteDataEncrypted(BitConverter.GetBytes(numberToWrite), writer);
+        }
+
         static void FilePutNullTerminatedString(string text, int maxLen, BinaryWriter writer)
         {
             if (maxLen <= 0) return;
@@ -272,20 +159,9 @@ namespace AGS.Editor
             writer.Write(GetBytes(text, text.Length + 1));
         }
 
-        static void FilePutStringEncrypted(string text, BinaryWriter writer)
-        {
-            byte[] bytes = GetBytes(text, text.Length + 1);
-            FileWriteDataEncrypted(bytes, writer);
-        }
-
-        static void FilePutIntEncrypted(int numberToWrite, BinaryWriter writer)
-        {
-            FileWriteDataEncrypted(BitConverter.GetBytes(numberToWrite), writer);
-        }
-
         static void WriteCLIBHeader(BinaryWriter writer)
         {
-            int randSeed = (int)DateTime.Now.Ticks;
+            int randSeed = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
             writer.Write(randSeed - NativeConstants.RAND_SEED_SALT);
             PseudoRandInt.InitializeInstance(randSeed);
             FilePutIntEncrypted(ourlib.DataFilenames.Count, writer);
@@ -359,7 +235,7 @@ namespace AGS.Editor
 
         public static string MakeDataFile(string[] fileNames, int splitSize, string baseFileName, bool makeFileNameAssumptionsForEXE)
         {
-            Environment.CurrentDirectory = AGSEditor.Instance.CurrentGame.DirectoryPath;
+            Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;
             ourlib.DataFilenames.Clear();
             ourlib.Files.Clear();
             ourlib.Files.Capacity = fileNames.Length;
@@ -411,7 +287,7 @@ namespace AGS.Editor
             {
                 if (makeFileNameAssumptionsForEXE)
                 {
-                    ourlib.DataFilenames.Add(baseFileName + "." + (i == 0 ? "exe" : i.ToString("D3")));
+                    ourlib.DataFilenames.Add(baseFileName + "." + i.ToString("D3"));
                 }
                 else
                 {
@@ -444,8 +320,7 @@ namespace AGS.Editor
                     outputFileName = baseFileName;
                 }
                 if (i == 0) firstDataFileFullPath = outputFileName;
-                using (Stream wout = TryFileOpen(outputFileName,
-                    i == 0 ? FileMode.Append : FileMode.Create, FileAccess.Write))
+                using (Stream wout = TryFileOpen(outputFileName, FileMode.Create, FileAccess.Write))
                 {
                     if (wout == null) return "ERROR: unable to open file for writing";
                     BinaryWriter writer = new BinaryWriter(wout);
@@ -491,7 +366,7 @@ namespace AGS.Editor
                     }
                 }
             }
-            using (Stream wout = TryFileOpen(firstDataFileFullPath, FileMode.Open, FileAccess.ReadWrite))
+            using (Stream wout = TryFileOpen(firstDataFileFullPath, FileMode.Open, FileAccess.Write))
             {
                 wout.Seek(mainHeaderOffset, SeekOrigin.Begin);
                 WriteCLIBHeader(new BinaryWriter(wout));

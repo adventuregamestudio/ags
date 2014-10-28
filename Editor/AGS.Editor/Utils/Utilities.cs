@@ -86,46 +86,11 @@ namespace AGS.Editor
         public static void EnsureStandardSubFoldersExist()
         {
             List<string> foldersToCreate = new List<string> { "Speech", AudioClip.AUDIO_CACHE_DIRECTORY, "Compiled" };
-            if ((AGSEditor.Instance.CurrentGame != null) && (AGSEditor.Instance.CurrentGame.Settings.TargetPlatforms != Targets.Platforms.Windows))
-            {
-                Targets.Platforms platform = AGSEditor.Instance.CurrentGame.Settings.TargetPlatforms;
-                if ((platform & Targets.Platforms.Windows) != 0) foldersToCreate.Add(Path.Combine("Compiled", "Windows"));
-                if ((platform & Targets.Platforms.Linux) != 0) foldersToCreate.Add(Path.Combine("Compiled", "Linux"));
-                if ((platform & Targets.Platforms.OSX) != 0) foldersToCreate.Add(Path.Combine("Compiled", "OSX"));
-                if ((platform & Targets.Platforms.Android) != 0) foldersToCreate.Add(Path.Combine("Compiled", "Android"));
-                if ((platform & Targets.Platforms.iOS) != 0) foldersToCreate.Add(Path.Combine("Compiled", "iOS"));
-            }
             foreach (string folderName in foldersToCreate)
             {
                 if (!Directory.Exists(folderName))
                 {
                     Directory.CreateDirectory(folderName);
-                }
-            }
-        }
-
-        public static void EnsurePlatformSubFoldersExist(Targets.Platforms platforms)
-        {
-            EnsurePlatformSubFoldersExist(platforms, true);
-        }
-
-        public static void EnsurePlatformSubFoldersExist(Targets.Platforms platforms, bool removeOthers)
-        {
-            foreach (Targets.Platforms platform in Enum.GetValues(typeof(Targets.Platforms)))
-            {
-                string platformFolder = Path.Combine(AGSEditor.Instance.CompiledRootDirectory, platform.ToString());
-                // if platform is NOT only Windows, then create all necessary platform folders
-                // otherwise, don't create any platform folders
-                if (((platform & platforms) != 0) && (platforms != Targets.Platforms.Windows))
-                {
-                    if (!Directory.Exists(platformFolder))
-                    {
-                        Directory.CreateDirectory(platformFolder);
-                    }
-                }
-                else if ((Directory.Exists(platformFolder)) && (removeOthers))
-                {
-                    Directory.Delete(platformFolder, true);
                 }
             }
         }
@@ -451,16 +416,42 @@ namespace AGS.Editor
                 if (overwrite) File.Delete(destFileName);
                 else return false;
             }
-            string fileName = "mklink";
-            string args = string.Format("/h {0} {1}", destFileName, sourceFileName);
+            List<char> invalidFileNameChars = new List<char>(Path.GetInvalidFileNameChars());
+            if (invalidFileNameChars.Contains('/')) invalidFileNameChars.Remove('/');
+            if (invalidFileNameChars.Contains('\\')) invalidFileNameChars.Remove('\\');
+            if (destFileName.IndexOfAny(invalidFileNameChars.ToArray()) != -1)
+            {
+                throw new ArgumentException("Cannot create hard link! Invalid destination file name.");
+            }
+            if (sourceFileName.IndexOfAny(invalidFileNameChars.ToArray()) != -1)
+            {
+                throw new ArgumentException("Cannot create hard link! Invalid source file name.");
+            }
+            if (!File.Exists(sourceFileName))
+            {
+                throw new FileNotFoundException("Cannot create hard link! Source file does not exist.");
+            }
+            ProcessStartInfo si = new ProcessStartInfo("cmd.exe");
+            si.RedirectStandardInput = false;
+            si.RedirectStandardOutput = false;
+            si.RedirectStandardError = false;
+            si.UseShellExecute = false;
+            si.Arguments = string.Format("/c mklink /h \"{0}\" \"{1}\"", destFileName, sourceFileName);
+            si.CreateNoWindow = true;
+            si.WindowStyle = ProcessWindowStyle.Hidden;
             if (IsMonoRunning())
             {
-                fileName = "ln";
-                args = string.Format("{0} {1}", sourceFileName, destFileName);
+                si.FileName = "ln";
+                si.Arguments = string.Format("\"{0}\" \"{1}\"", sourceFileName, destFileName);
             }
-            bool result = (Process.Start(fileName, args) != null);
+            Process process = Process.Start(si);
+            bool result = (process != null);
             if (result)
             {
+                process.EnableRaisingEvents = true;
+                process.WaitForExit();
+                if (process.ExitCode != 0) return false;
+                process.Close();
                 // by default the new hard link will be accessible to the current user only
                 // instead, we'll change it to be accessible to the entire "Users" group
                 FileSecurity fsec = File.GetAccessControl(destFileName);

@@ -43,6 +43,8 @@ struct MYMP3:public SOUNDCLIP
     int play();
     MYMP3();
 
+protected:
+    virtual void adjust_volume();
 private:
     void adjust_stream();
 };

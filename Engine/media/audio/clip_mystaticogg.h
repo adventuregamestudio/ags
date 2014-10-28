@@ -59,6 +59,8 @@ struct MYSTATICOGG:public SOUNDCLIP
 
     MYSTATICOGG();
 
+protected:
+    virtual void adjust_volume();
 private:
     void adjust_stream();
 };

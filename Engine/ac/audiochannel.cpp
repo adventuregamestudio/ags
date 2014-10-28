@@ -188,8 +188,7 @@ void AudioChannel_SetRoomLocation(ScriptAudioChannel *channel, int xPos, int yPo
         }
         else
         {
-            channels[channel->id]->directionalVolModifier = 0;
-            channels[channel->id]->set_volume(channels[channel->id]->vol);
+            channels[channel->id]->apply_directional_modifier(0);
         }
     }
 }

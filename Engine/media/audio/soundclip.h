@@ -114,12 +114,26 @@ struct SOUNDCLIP
     inline void apply_volume_modifier(int mod)
     {
         volModifier = mod;
-        // this forces implementation to recalculate absolute volume using new modifier
-        set_volume(vol);
+        adjust_volume();
     }
+
+    inline void apply_directional_modifier(int mod)
+    {
+        directionalVolModifier = mod;
+        adjust_volume();
+    }
+
+    virtual void adjust_volume() = 0;
 
     SOUNDCLIP();
     ~SOUNDCLIP();
+
+protected:
+    inline int get_final_volume() const
+    {
+        int final_vol = vol + volModifier + directionalVolModifier;
+        return final_vol >= 0 ? final_vol : 0;
+    }
 };
 
 

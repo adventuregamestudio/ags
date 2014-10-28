@@ -56,19 +56,19 @@ int MYSTATICOGG::poll()
 
 void MYSTATICOGG::adjust_stream()
 {
-    int final_vol = vol + volModifier + directionalVolModifier;
-    if (final_vol < 0) final_vol = 0;
-    alogg_adjust_ogg(tune, final_vol, panning, speed, repeat);
+    if (tune)
+        alogg_adjust_ogg(tune, get_final_volume(), panning, speed, repeat);
+}
+
+void MYSTATICOGG::adjust_volume()
+{
+    adjust_stream();
 }
 
 void MYSTATICOGG::set_volume(int newvol)
 {
     vol = newvol;
-
-    if (tune != NULL)
-    {
-        adjust_stream();
-    }
+    adjust_stream();
 }
 
 void MYSTATICOGG::set_speed(int new_speed)

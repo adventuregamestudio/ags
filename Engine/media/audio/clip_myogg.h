@@ -56,6 +56,8 @@ struct MYOGG:public SOUNDCLIP
 
     MYOGG();
 
+protected:
+    virtual void adjust_volume();
 private:
     void adjust_stream();
 };

@@ -48,6 +48,9 @@ struct MYWAVE:public SOUNDCLIP
     int play();
 
     MYWAVE();
+
+protected:
+    virtual void adjust_volume();
 };
 
 #endif // __AC_MYWAVE_H

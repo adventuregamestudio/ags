@@ -75,9 +75,12 @@ int MYOGG::poll()
 
 void MYOGG::adjust_stream()
 {
-    int final_vol = vol + volModifier + directionalVolModifier;
-    if (final_vol < 0) final_vol = 0;
-    alogg_adjust_oggstream(stream, final_vol, panning, speed);
+    alogg_adjust_oggstream(stream, get_final_volume(), panning, speed);
+}
+
+void MYOGG::adjust_volume()
+{
+    adjust_stream();
 }
 
 void MYOGG::set_volume(int newvol)

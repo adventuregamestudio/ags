@@ -52,6 +52,8 @@ struct MYSTATICMP3:public SOUNDCLIP
 
     MYSTATICMP3();
 
+protected:
+    virtual void adjust_volume();
 private:
     void adjust_stream();
 };

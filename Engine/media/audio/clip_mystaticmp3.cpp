@@ -67,20 +67,22 @@ int MYSTATICMP3::poll()
 
 void MYSTATICMP3::adjust_stream()
 {
-    int final_vol = vol + volModifier + directionalVolModifier;
-    if (final_vol < 0) final_vol = 0;
-    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-    almp3_adjust_mp3(tune, final_vol, panning, speed, repeat);
+    if (tune)
+    {
+        AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+        almp3_adjust_mp3(tune, get_final_volume(), panning, speed, repeat);
+    }
+}
+
+void MYSTATICMP3::adjust_volume()
+{
+    adjust_stream();
 }
 
 void MYSTATICMP3::set_volume(int newvol)
 {
     vol = newvol;
-
-    if (tune != NULL)
-    {
-        adjust_stream();
-    }
+    adjust_stream();
 }
 
 void MYSTATICMP3::set_speed(int new_speed)

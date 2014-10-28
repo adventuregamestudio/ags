@@ -79,10 +79,13 @@ int MYMP3::poll()
 
 void MYMP3::adjust_stream()
 {
-    int final_vol = vol + volModifier + directionalVolModifier;
-    if (final_vol < 0) final_vol = 0;
     AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-    almp3_adjust_mp3stream(stream, final_vol, panning, speed);
+    almp3_adjust_mp3stream(stream, get_final_volume(), panning, speed);
+}
+
+void MYMP3::adjust_volume()
+{
+    adjust_stream();
 }
 
 void MYMP3::set_volume(int newvol)

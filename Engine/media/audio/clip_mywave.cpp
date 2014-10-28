@@ -57,16 +57,16 @@ int MYWAVE::poll()
     return done;
 }
 
+void MYWAVE::adjust_volume()
+{
+    if (voice >= 0)
+        voice_set_volume(voice, get_final_volume());
+}
+
 void MYWAVE::set_volume(int newvol)
 {
     vol = newvol;
-
-    if (voice >= 0)
-    {
-        newvol += volModifier + directionalVolModifier;
-        if (newvol < 0) newvol = 0;
-        voice_set_volume(voice, newvol);
-    }
+    adjust_volume();
 }
 
 void MYWAVE::internal_destroy()

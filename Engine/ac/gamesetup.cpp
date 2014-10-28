@@ -31,7 +31,6 @@ GameSetup::GameSetup()
     override_script_os = -1;
     override_multitasking = -1;
     override_upscale = false;
-    gfxFilterID = "StdScale";
     screen_sz_def = kScreenDef_MaxDisplay;
     filter_scaling_max_uniform = true;
     filter_scaling_x = 0;

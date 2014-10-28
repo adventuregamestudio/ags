@@ -270,6 +270,7 @@ void read_config_file(char *argv0) {
             {
                 gfx_scaling_x = INIreadstring("graphics", "filter_scaling_x", gfx_scaling_both);
                 gfx_scaling_y = INIreadstring("graphics", "filter_scaling_y", gfx_scaling_both);
+                usetup.filter_scaling_max_uniform = false;
                 usetup.filter_scaling_x = parse_scaling_factor(gfx_scaling_x);
                 usetup.filter_scaling_y = parse_scaling_factor(gfx_scaling_y);
             }
@@ -359,6 +360,11 @@ void read_config_file(char *argv0) {
         {
             enable_log_file = INIreadint ("misc", "log") != 0;
         }
+    }
+    else if (usetup.gfxFilterID.IsEmpty())
+    {
+        // No config file found
+        usetup.gfxFilterID = "StdScale";
     }
 
     if (usetup.gfxDriverID.IsEmpty())

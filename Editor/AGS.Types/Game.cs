@@ -47,6 +47,7 @@ namespace AGS.Types
         private string[] _globalMessages;
         private Character _playerCharacter;
         private Settings _settings;
+        private WorkspaceState _workspaceState;
         private PaletteEntry[] _palette;
         private SpriteFolder _sprites;
         private ViewFolders _views;
@@ -80,6 +81,7 @@ namespace AGS.Types
             _rooms = new UnloadedRoomFolders(UnloadedRoomFolder.MAIN_UNLOADED_ROOM_FOLDER_NAME);
             _oldInteractionVariables = new List<OldInteractionVariable>();
             _settings = new Settings();
+            _workspaceState = new WorkspaceState();
             _palette = new PaletteEntry[PALETTE_SIZE];
             _sprites = new SpriteFolder("Main");
             _views = new ViewFolders("Main");
@@ -176,6 +178,11 @@ namespace AGS.Types
         public Settings Settings
         {
             get { return _settings; }
+        }
+
+        public WorkspaceState WorkspaceState
+        {
+            get { return _workspaceState; }
         }
 
         public PaletteEntry[] Palette

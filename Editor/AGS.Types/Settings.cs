@@ -8,6 +8,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [DeserializeIgnore("LastBuildConfiguration")]
     public class Settings : ICustomTypeDescriptor
     {
         public const string PROPERTY_GAME_NAME = "Game name";
@@ -31,7 +32,6 @@ namespace AGS.Types
         private GameColorDepth _colorDepth = GameColorDepth.HighColor;
 		private GraphicsDriver _graphicsDriver = GraphicsDriver.DX5;
         private bool _debugMode = true;
-        private BuildConfiguration _lastBuildConfiguration = BuildConfiguration.Unknown;
         private bool _antiGlideMode = true;
         private bool _walkInLookMode = false;
         private InterfaceDisabledAction _whenInterfaceDisabled = InterfaceDisabledAction.GreyOut;
@@ -460,13 +460,6 @@ namespace AGS.Types
         {
             get { return _debugMode; }
             set { _debugMode = value; }
-        }
-
-        [Browsable(false)]
-        public BuildConfiguration LastBuildConfiguration
-        {
-            get { return _lastBuildConfiguration; }
-            set { _lastBuildConfiguration = value; }
         }
 
         [DisplayName("Use selected inventory graphic for cursor")]

@@ -157,7 +157,7 @@ public:
     int32_t Padding;        // padding surrounding a GUI text window
     GUIPopupStyle PopupStyle; // GUI popup behavior
     int32_t PopupAtMouseY;  // popup when mousey < this
-    int32_t Transparency;   // inverted alpha
+    int32_t Transparency;   // "incorrect" alpha (in legacy 255-range units)
     int32_t ZOrder;
 
     int32_t FocusCtrl;      // which control has the focus

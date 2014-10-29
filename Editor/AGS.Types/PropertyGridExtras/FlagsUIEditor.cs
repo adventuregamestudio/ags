@@ -23,6 +23,14 @@ namespace AGS.Types
             return UITypeEditorEditStyle.DropDown;
         }
 
+        public virtual bool AlwaysIncludeZero
+        {
+            get
+            {
+                return false;
+            }
+        }
+
         protected object EditValueHelper(ITypeDescriptorContext context,
             IServiceProvider provider, object value,
             FlagsUIEditorControl.ValueExclusionCheck valueCheck)

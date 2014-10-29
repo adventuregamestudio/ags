@@ -170,13 +170,12 @@ namespace AGS.Editor
             CreateCompiledSetupProgram();
             Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;
             string compiledDir = Factory.AGSEditor.CompiledDirectory;
-            //if (!File.Exists(GetCompiledPath(AGSEditor.CONFIG_FILE_NAME)))
-            //{
-            //    File.Copy(Path.Combine(compiledDir, AGSEditor.CONFIG_FILE_NAME),
-            //        GetCompiledPath(AGSEditor.CONFIG_FILE_NAME));
-            //}
-            Utilities.CreateHardLink(GetCompiledPath(AGSEditor.CONFIG_FILE_NAME),
-                Path.Combine(compiledDir, AGSEditor.CONFIG_FILE_NAME), false);
+            if (!File.Exists(GetCompiledPath(AGSEditor.CONFIG_FILE_NAME)))
+            {
+                // don't hard-link config file
+                File.Copy(Path.Combine(compiledDir, AGSEditor.CONFIG_FILE_NAME),
+                    GetCompiledPath(AGSEditor.CONFIG_FILE_NAME));
+            }
             foreach (string fileName in Utilities.GetDirectoryFileList(Factory.AGSEditor.CompiledDirectory, "*.vox"))
             {
                 Utilities.CreateHardLink(GetCompiledPath(fileName), Path.Combine(compiledDir, fileName), true);

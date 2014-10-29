@@ -404,6 +404,24 @@ namespace AGS.Editor
             return icon;
         }
 
+        /// <summary>
+        /// Sets security permissions for the file, allowing modification from the "users" group.
+        /// </summary>
+        public static void SetFileAccessAllowUsersToModify(string fileName)
+        {
+            FileSecurity fsec = File.GetAccessControl(fileName);
+            fsec.AddAccessRule
+            (
+                new FileSystemAccessRule
+                (
+                    new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null),
+                    FileSystemRights.Modify,
+                    AccessControlType.Allow
+                )
+            );
+            File.SetAccessControl(fileName, fsec);
+        }
+
         public static bool CreateHardLink(string destFileName, string sourceFileName)
         {
             return CreateHardLink(destFileName, sourceFileName, false);
@@ -417,15 +435,13 @@ namespace AGS.Editor
                 else return false;
             }
             List<char> invalidFileNameChars = new List<char>(Path.GetInvalidFileNameChars());
-            if (invalidFileNameChars.Contains('/')) invalidFileNameChars.Remove('/');
-            if (invalidFileNameChars.Contains('\\')) invalidFileNameChars.Remove('\\');
-            if (destFileName.IndexOfAny(invalidFileNameChars.ToArray()) != -1)
+            if (Path.GetFileName(destFileName).IndexOfAny(invalidFileNameChars.ToArray()) != -1)
             {
-                throw new ArgumentException("Cannot create hard link! Invalid destination file name.");
+                throw new ArgumentException("Cannot create hard link! Invalid destination file name. (" + destFileName + ")");
             }
-            if (sourceFileName.IndexOfAny(invalidFileNameChars.ToArray()) != -1)
+            if (Path.GetFileName(sourceFileName).IndexOfAny(invalidFileNameChars.ToArray()) != -1)
             {
-                throw new ArgumentException("Cannot create hard link! Invalid source file name.");
+                throw new ArgumentException("Cannot create hard link! Invalid source file name. (" + sourceFileName + ")");
             }
             if (!File.Exists(sourceFileName))
             {
@@ -454,17 +470,7 @@ namespace AGS.Editor
                 process.Close();
                 // by default the new hard link will be accessible to the current user only
                 // instead, we'll change it to be accessible to the entire "Users" group
-                FileSecurity fsec = File.GetAccessControl(destFileName);
-                fsec.AddAccessRule
-                (
-                    new FileSystemAccessRule
-                    (
-                        new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null),
-                        FileSystemRights.Modify,
-                        AccessControlType.Allow
-                    )
-                );
-                File.SetAccessControl(destFileName, fsec);
+                SetFileAccessAllowUsersToModify(destFileName);
             }
             return result;
         }

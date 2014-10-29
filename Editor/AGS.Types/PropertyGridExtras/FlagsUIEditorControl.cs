@@ -57,7 +57,7 @@ namespace AGS.Types
                 long val = Convert.ToInt64(values.GetValue(i));
                 bool check = false;
                 if (val == 0)
-                    check = (current == 0);
+                    check = ((current == 0) || (Editor.AlwaysIncludeZero));
                 else
                 {
                     check = ((current & val) == val);

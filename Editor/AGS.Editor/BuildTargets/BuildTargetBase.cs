@@ -35,7 +35,7 @@ namespace AGS.Editor
             else if (parts[0] == OutputDirectory) i++;
             for (; i < parts.Length; ++i)
             {
-                sb.Append(Path.DirectorySeparatorChar + parts[i]);
+                if (!string.IsNullOrEmpty(parts[i])) sb.Append(Path.DirectorySeparatorChar + parts[i]);
             }
             return sb.ToString();
         }

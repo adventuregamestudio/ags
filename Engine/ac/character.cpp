@@ -58,12 +58,10 @@
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_inventory.h"
 #include "script/script_runtime.h"
-#include "gfx/gfx_util.h"
+#include "gfx/gfx_def.h"
 #include "main/graphics_mode.h"
 
-using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern int displayed_room,starting_room;
@@ -1474,7 +1472,7 @@ void Character_SetThinkView(CharacterInfo *chaa, int vii) {
 
 int Character_GetTransparency(CharacterInfo *chaa) {
 
-    return GfxUtil::LegacyTrans255ToTrans100(chaa->transparency);
+    return GfxDef::LegacyTrans255ToTrans100(chaa->transparency);
 }
 
 void Character_SetTransparency(CharacterInfo *chaa, int trans) {
@@ -1482,7 +1480,7 @@ void Character_SetTransparency(CharacterInfo *chaa, int trans) {
     if ((trans < 0) || (trans > 100))
         quit("!SetCharTransparent: transparency value must be between 0 and 100");
 
-    chaa->transparency = GfxUtil::Trans100ToLegacyTrans255(trans);
+    chaa->transparency = GfxDef::Trans100ToLegacyTrans255(trans);
 }
 
 int Character_GetTurnBeforeWalking(CharacterInfo *chaa) {

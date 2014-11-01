@@ -42,10 +42,5 @@ namespace AGS.Types
         {
             get;
         }
-
-        BuildTargetPlatform Platform
-        {
-            get;
-        }
     }
 }

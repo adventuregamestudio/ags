@@ -95,7 +95,7 @@ namespace AGS.Types
 		private bool _enhancedSaveGames = false;
         private string _saveGamesFolderName = string.Empty;
         private int _audioIndexer = 0;
-        private BuildTargetPlatform _buildTargets = BuildTargetPlatform.DataFile | BuildTargetPlatform.Windows;
+        private string _buildTargets = string.Empty;
 
 		public void GenerateNewGameID()
 		{
@@ -917,14 +917,18 @@ namespace AGS.Types
         }
 
         [DisplayName(PROPERTY_BUILD_TARGETS)]
-        [DefaultValue(BuildTargetPlatform.Windows)]
         [Description("Sets the platforms to compile your game for.")]
         [Category("Compiler")]
         [Editor(typeof(BuildTargetUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
-        public BuildTargetPlatform BuildTargets
+        public string BuildTargets
         {
             get { return _buildTargets; }
-            set { _buildTargets = value; }
+
+            set
+            {
+                string dataFile = "DataFile, ";
+                _buildTargets = (value.StartsWith(dataFile) ? value.Substring(dataFile.Length) : value);
+            }
         }
 
         public void ToXml(XmlTextWriter writer)

@@ -210,19 +210,19 @@ namespace AGS.Editor
             return true;
         }
 
+        public override string Name
+        {
+            get
+            {
+                return "Windows";
+            }
+        }
+
         public override string OutputDirectory
         {
             get
             {
                 return WINDOWS_DIR;
-            }
-        }
-
-        public override BuildTargetPlatform Platform
-        {
-            get
-            {
-                return BuildTargetPlatform.Windows;
             }
         }
     }

@@ -108,19 +108,19 @@ namespace AGS.Editor
             }
         }
 
+        public override string Name
+        {
+            get
+            {
+                return "DataFile";
+            }
+        }
+
         public override string OutputDirectory
         {
             get
             {
                 return "";
-            }
-        }
-
-        public override BuildTargetPlatform Platform
-        {
-            get
-            {
-                return BuildTargetPlatform.DataFile;
             }
         }
     }

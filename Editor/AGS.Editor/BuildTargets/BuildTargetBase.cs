@@ -15,7 +15,7 @@ namespace AGS.Editor
         {
             if (!IsAvailable)
             {
-                errors.Add(new CompileError("Could not build target platform " + Platform + ", because it is unavailable."));
+                errors.Add(new CompileError("Could not build target platform " + Name + ", because it is unavailable."));
                 return false;
             }
             EnsureStandardSubfoldersExist();
@@ -57,7 +57,7 @@ namespace AGS.Editor
         {
             get
             {
-                return BuildTargetInfo.IsBuildTargetAvailable(Platform);
+                return BuildTargetsInfo.IsBuildTargetAvailable(this);
             }
         }
 
@@ -65,7 +65,10 @@ namespace AGS.Editor
         {
             get
             {
-                return ((Factory.AGSEditor.CurrentGame.Settings.BuildTargets & Platform) != 0);
+                List<string> targets = new List<string>(
+                    Factory.AGSEditor.CurrentGame.Settings.BuildTargets.Split(StringListUIEditor.Separators,
+                    StringSplitOptions.RemoveEmptyEntries));
+                return targets.Contains(Name);
             }
         }
 
@@ -73,16 +76,13 @@ namespace AGS.Editor
         {
             get
             {
-                return (Factory.AGSEditor.CurrentGame.Settings.BuildTargets == Platform);
+                return (Factory.AGSEditor.CurrentGame.Settings.BuildTargets == ("DataFile," + Name));
             }
         }
 
-        public virtual string Name
+        public abstract string Name
         {
-            get
-            {
-                return Platform.ToString();
-            }
+            get;
         }
 
         public abstract string OutputDirectory
@@ -96,11 +96,6 @@ namespace AGS.Editor
             {
                 return Utilities.GetFullPathFromProjectRelative(OutputDirectory);
             }
-        }
-
-        public abstract BuildTargetPlatform Platform
-        {
-            get;
         }
     }
 }

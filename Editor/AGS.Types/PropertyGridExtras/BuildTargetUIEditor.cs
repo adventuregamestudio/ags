@@ -6,15 +6,15 @@ using System.Windows.Forms;
 
 namespace AGS.Types
 {
-    public class BuildTargetUIEditor : FlagsUIEditor
+    public class BuildTargetUIEditor : StringListUIEditor
     {
         public BuildTargetUIEditor()
             : base()
         {
-            editor.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(editor_ItemCheck);
+            editor.ItemCheck += new ItemCheckEventHandler(editor_ItemCheck);
         }
 
-        void editor_ItemCheck(object sender, System.Windows.Forms.ItemCheckEventArgs e)
+        void editor_ItemCheck(object sender, ItemCheckEventArgs e)
         {
             CheckedListBox list = (sender as CheckedListBox);
             if (list == null) return;
@@ -25,17 +25,10 @@ namespace AGS.Types
             }
         }
 
-        public override bool AlwaysIncludeZero
-        {
-            get
-            {
-                return true; // here BuildTargetPlatform.DataFile is zero, always include it as checked
-            }
-        }
-
         public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
         {
-            return base.EditValueHelper(context, provider, value, new FlagsUIEditorControl.ValueExclusionCheck(BuildTargetInfo.IsBuildTargetAvailable));
+            return base.EditValueHelper(context, provider, "DataFile, " + value.ToString(),
+                new List<string>(BuildTargetsInfo.GetRegisteredBuildTargetNames()));
         }
     }
 }

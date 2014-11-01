@@ -118,9 +118,9 @@ namespace AGS.Editor
         static AGSEditor()
         {
             AUDIO_VOX_FILE_NAME = Path.Combine(AGSEditor.Instance.CompiledDirectory, "audio.vox");
-            BuildTargetInfo.RegisterBuildTarget(new BuildTargetDataFile());
-            BuildTargetInfo.RegisterBuildTarget(new BuildTargetWindows());
-            BuildTargetInfo.RegisterBuildTarget(new BuildTargetLinux());
+            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDataFile());
+            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetWindows());
+            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetLinux());
         }
 
         private AGSEditor()
@@ -906,9 +906,9 @@ namespace AGS.Editor
             object[] parameters = (object[])parameter;
             CompileMessages errors = (CompileMessages)parameters[0];
             bool forceRebuild = (bool)parameters[1];
-            IBuildTarget targetDataFile = BuildTargetInfo.FindBuildTargetByPlatform(BuildTargetPlatform.DataFile);
+            IBuildTarget targetDataFile = BuildTargetsInfo.FindBuildTargetByName("DataFile");
             targetDataFile.Build(errors, forceRebuild); // ensure that data file is built first
-            foreach (IBuildTarget target in BuildTargetInfo.GetSelectedBuildTargets())
+            foreach (IBuildTarget target in BuildTargetsInfo.GetSelectedBuildTargets())
             {
                 if (target != targetDataFile) target.Build(errors, forceRebuild);
             }

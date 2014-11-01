@@ -188,19 +188,19 @@ fi
             return true;
         }
 
+        public override string Name
+        {
+            get
+            {
+                return "Linux";
+            }
+        }
+
         public override string OutputDirectory
         {
             get
             {
                 return LINUX_DIR;
-            }
-        }
-
-        public override BuildTargetPlatform Platform
-        {
-            get
-            {
-                return BuildTargetPlatform.Linux;
             }
         }
     }

@@ -229,6 +229,9 @@
     <EmbeddedResource Include="PropertyGridExtras\event.bmp" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="PropertyGridExtras\StringListUIEditorControl.resx">
+      <DependentUpon>StringListUIEditorControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources\roomdef.pal" />
   </ItemGroup>
   <ItemGroup>
@@ -239,9 +242,8 @@
     <Compile Include="Attributes\DeserializeIgnoreAttribute.cs" />
     <Compile Include="AudioClipType.cs" />
     <Compile Include="BaseFolderCollection.cs" />
-    <Compile Include="BuildTargetInfo.cs" />
+    <Compile Include="BuildTargetsInfo.cs" />
     <Compile Include="Enums\BuildConfiguration.cs" />
-    <Compile Include="Enums\BuildTargetPlatform.cs" />
     <Compile Include="Enums\SpriteAlphaStyle.cs" />
     <Compile Include="HelperTypes\BindingListWithRemoving.cs" />
     <Compile Include="CharacterFolder.cs" />
@@ -277,16 +279,16 @@
     <Compile Include="PropertyGridExtras\BaseListSelectTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\BuildTargetUIEditor.cs" />
     <Compile Include="PropertyGridExtras\CustomResolutionTypeConverter.cs" />
-    <Compile Include="PropertyGridExtras\FlagsUIEditor.cs" />
-    <Compile Include="PropertyGridExtras\FlagsUIEditorControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="PropertyGridExtras\FlagsUIEditorControl.Designer.cs">
-      <DependentUpon>FlagsUIEditorControl.cs</DependentUpon>
-    </Compile>
     <Compile Include="PropertyGridExtras\CustomResolutionUIEditor.cs" />
     <Compile Include="PropertyGridExtras\FontTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\RoomListTypeConverter.cs" />
+    <Compile Include="PropertyGridExtras\StringListUIEditor.cs" />
+    <Compile Include="PropertyGridExtras\StringListUIEditorControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PropertyGridExtras\StringListUIEditorControl.Designer.cs">
+      <DependentUpon>StringListUIEditorControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="ScriptAndHeader.cs" />
     <Compile Include="ScriptFolder.cs" />
     <Compile Include="UnloadedRoomFolder.cs" />

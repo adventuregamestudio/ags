@@ -76,7 +76,7 @@ namespace AGS.Editor
         {
             get
             {
-                return (Factory.AGSEditor.CurrentGame.Settings.BuildTargets == ("DataFile," + Name));
+                return (Factory.AGSEditor.CurrentGame.Settings.BuildTargets == Name);
             }
         }
 

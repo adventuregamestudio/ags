@@ -24,6 +24,12 @@ set -e
 # source tree is git clean. That means: check 'git status', commit any
 # changes and maybe run 'git clean -dfx'.
 
+# The chroots can later be updated, which becomes necessary if
+# this script fails because some Debian package cannot be downloaded:
+
+# cowbuilder-dist wheezy i386 update
+# cowbuilder-dist wheezy amd64 update
+
 BASEPATH=$(dirname $(dirname $(readlink -f $0)))
 
 if test -d $BASEPATH/ags+libraries

@@ -25,6 +25,7 @@
 #define __AGS_EE_GFX__GFXUTIL_H
 
 #include "gfx/bitmap.h"
+#include "gfx/gfx_def.h"
 
 namespace AGS
 {
@@ -35,81 +36,16 @@ using Common::Bitmap;
 
 namespace GfxUtil
 {
-    inline int Trans100ToAlpha255(int transparency)
-    {
-        return ((100 - transparency) * 255) / 100;
-    }
+    // Considers the given information about source and destination surfaces,
+    // then draws a bimtap over another either using requested blending mode,
+    // or fallbacks to common "magic pink" transparency mode;
+    // optionally uses blending alpha (overall image transparency).
+    void DrawSpriteBlend(Bitmap *ds, const Point &ds_at, Bitmap *sprite,
+        Common::BlendMode blend_mode, bool dst_has_alpha = true, bool src_has_alpha = true, int blend_alpha = 0xFF);
 
-    inline int Alpha255ToTrans100(int alpha)
-    {
-        return 100 - ((alpha * 100) / 255);
-    }
-
-    // Special formulae to reduce precision loss and support flawless forth &
-    // reverse conversion for multiplies of 10%
-    inline int Trans100ToAlpha250(int transparency)
-    {
-        return ((100 - transparency) * 25) / 10;
-    }
-
-    inline int Alpha250ToTrans100(int alpha)
-    {
-        return 100 - ((alpha * 10) / 25);
-    }
-
-    // Convert correct 100-ranged transparency into legacy 255-ranged
-    // transparency; legacy inconsistent transparency value range:
-    // 0   = opaque,
-    // 255 = invisible,
-    // 1 -to- 254 = barely visible -to- mostly visible (as proper alpha)
-    inline int Trans100ToLegacyTrans255(int transparency)
-    {
-        if (transparency == 0)
-        {
-            return 0; // this means opaque
-        }
-        else if (transparency == 100)
-        {
-            return 255; // this means invisible
-        }
-        // the rest of the range works as alpha
-        return Trans100ToAlpha250(transparency);
-    }
-
-    inline int LegacyTrans255ToTrans100(int legacy_transparency)
-    {
-        if (legacy_transparency == 0)
-        {
-            return 0; // this means opaque
-        }
-        else if (legacy_transparency == 255)
-        {
-            return 100; // this means invisible
-        }
-        // the rest of the range works as alpha
-        return Alpha250ToTrans100(legacy_transparency);
-    }
-
-    // Convert legacy 100-ranged transparency into proper 255-ranged alpha
-    // 0      => alpha 255
-    // 100    => alpha 0
-    // 1 - 99 => alpha 1 - 244
-    inline int LegacyTrans100ToAlpha255(int legacy_transparency)
-    {
-        if (legacy_transparency == 0)
-        {
-            return 255; // this means opaque
-        }
-        else if (legacy_transparency == 100)
-        {
-            return 0; // this means invisible
-        }
-        // the rest of the range works as alpha (only 100-ranged)
-        return legacy_transparency * 255 / 100;
-    }
-
-    // Draws a bitmap over another one with given alpha level (0 - 255);
-    // selects proper drawing method depending on respected color depths.
+    // Draws a bitmap over another one with given alpha level (0 - 255),
+    // ignoring image's alpha channel, even if there's one;
+    // does proper conversion depending on respected color depths.
     void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int alpha = 0xFF);
 } // namespace GfxUtil
 

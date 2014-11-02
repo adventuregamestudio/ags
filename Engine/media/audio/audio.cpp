@@ -566,14 +566,12 @@ void update_directional_sound_vol()
         if ((channels[chan] != NULL) && (channels[chan]->done == 0) &&
             (channels[chan]->xSource >= 0)) 
         {
-            channels[chan]->directionalVolModifier = 
+            channels[chan]->apply_directional_modifier(
                 get_volume_adjusted_for_distance(channels[chan]->vol, 
                 channels[chan]->xSource,
                 channels[chan]->ySource,
                 channels[chan]->maximumPossibleDistanceAway) -
-                channels[chan]->vol;
-
-            channels[chan]->set_volume(channels[chan]->vol);
+                channels[chan]->vol);
         }
     }
 }

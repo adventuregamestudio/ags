@@ -14,10 +14,10 @@
 
 #ifdef _DEBUG
 
-#include "gfx/gfx_util.h"
+#include "gfx/gfx_def.h"
 #include "debug/assert.h"
 
-namespace GfxUtil = AGS::Engine::GfxUtil;
+namespace GfxDef = AGS::Common::GfxDef;
 
 void Test_Gfx()
 {
@@ -30,8 +30,8 @@ void Test_Gfx()
 
     for (int i = 0; i < arr_sz; ++i)
     {
-        trans255[i] = GfxUtil::Trans100ToLegacyTrans255(trans100[i]);
-        trans100_back[i] = GfxUtil::LegacyTrans255ToTrans100(trans255[i]);
+        trans255[i] = GfxDef::Trans100ToLegacyTrans255(trans100[i]);
+        trans100_back[i] = GfxDef::LegacyTrans255ToTrans100(trans255[i]);
         assert(trans100[i] == trans100_back[i]);
     }
 }

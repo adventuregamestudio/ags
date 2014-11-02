@@ -807,23 +807,20 @@ void putpixel_compensate (Bitmap *ds, int xx,int yy, int col) {
 
 
 
-void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, Bitmap *image, bool src_has_alpha, int alpha)
+void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, Bitmap *image, bool src_has_alpha,
+                               BlendMode blend_mode, int alpha)
 {
     if (alpha <= 0)
-    {
         return;
-    }
 
-    const bool use_new_sprite_alpha_blending =
-        (game.options[OPT_SPRITEALPHA] == kSpriteAlphaRender_Improved) && ds_has_alpha;
-
-    if (src_has_alpha &&
-        (use_new_sprite_alpha_blending || alpha == 0xFF))
+    if (game.options[OPT_SPRITEALPHA] == kSpriteAlphaRender_Improved)
     {
-        if (use_new_sprite_alpha_blending)
-           set_argb2argb_alpha_blender(alpha);
-        else
-            set_alpha_blender();
+        GfxUtil::DrawSpriteBlend(ds, Point(xpos, ypos), image, blend_mode, ds_has_alpha, src_has_alpha, alpha);
+    }
+    // Backwards-compatible drawing
+    else if (src_has_alpha && alpha == 0xFF)
+    {
+        set_alpha_blender();
         ds->TransBlendBlt(image, xpos, ypos);
     }
     else
@@ -832,9 +829,11 @@ void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos
     }
 }
 
-void draw_sprite_slot_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, int src_slot, int alpha)
+void draw_sprite_slot_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, int src_slot,
+                                    BlendMode blend_mode, int alpha)
 {
-    draw_sprite_support_alpha(ds, ds_has_alpha, xpos, ypos, spriteset[src_slot], (game.spriteflags[src_slot] & SPF_ALPHACHANNEL) != 0, alpha);
+    draw_sprite_support_alpha(ds, ds_has_alpha, xpos, ypos, spriteset[src_slot], (game.spriteflags[src_slot] & SPF_ALPHACHANNEL) != 0,
+        blend_mode, alpha);
 }
 
 
@@ -1090,39 +1089,34 @@ void repair_alpha_channel(Bitmap *dest, Bitmap *bgpic)
 
 
 // used by GUI renderer to draw images
-void draw_gui_sprite(Bitmap *ds, int picc, int xx, int yy, bool use_alpha) 
+void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMode blend_mode) 
 {
-    if ((use_alpha) && 
-        (game.options[OPT_NEWGUIALPHA] != kGuiAlphaRender_Classic) &&
-        (ds->GetColorDepth() == 32))
-    {
-        if (game.spriteflags[picc] & SPF_ALPHACHANNEL)
-        {
-            if (game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_MultiplyTranslucenceSrcBlend)
-            {
-                set_argb2argb_alpha_blender();
-            }
-            else
-            {
-                set_additive_alpha_blender();
-            }
-        }
-        else
-        {
-            set_opaque_alpha_blender();
-        }
+    Bitmap *sprite = spriteset[pic];
+    const bool ds_has_alpha  = ds->GetColorDepth() == 32;
+    const bool src_has_alpha = (game.spriteflags[pic] & SPF_ALPHACHANNEL) != 0;
 
-        ds->TransBlendBlt(spriteset[picc], xx, yy);
+    if (use_alpha && game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Improved)
+    {
+        GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, ds_has_alpha, src_has_alpha);
+    }
+    // Backwards-compatible drawing
+    else if (use_alpha && ds_has_alpha && game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_AdditiveAlpha)
+    {
+        if (src_has_alpha)
+            set_additive_alpha_blender();
+        else
+            set_opaque_alpha_blender();
+        ds->TransBlendBlt(sprite, x, y);
     }
     else
     {
-        GfxUtil::DrawSpriteWithTransparency(ds, spriteset[picc], xx, yy);
+        GfxUtil::DrawSpriteWithTransparency(ds, sprite, x, y);
     }
 }
 
-void draw_gui_sprite_v330(Bitmap *ds, int pic, int x, int y, bool use_alpha)
+void draw_gui_sprite_v330(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMode blend_mode)
 {
-    draw_gui_sprite(ds, pic, x, y, use_alpha && (loaded_game_file_version >= kGameVersion_330));
+    draw_gui_sprite(ds, pic, x, y, use_alpha && (loaded_game_file_version >= kGameVersion_330), blend_mode);
 }
 
 // function to sort the sprites into baseline order

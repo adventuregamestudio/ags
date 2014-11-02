@@ -37,9 +37,9 @@
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
-#include "gfx/gfx_util.h"
+#include "gfx/gfx_def.h"
 
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
 
 #define OVERLAPPING_OBJECT 1000
 
@@ -178,7 +178,7 @@ void SetObjectTransparency(int obn,int trans) {
     if (!is_valid_object(obn)) quit("!SetObjectTransparent: invalid object number specified");
     if ((trans < 0) || (trans > 100)) quit("!SetObjectTransparent: transparency value must be between 0 and 100");
 
-    objs[obn].transparent = GfxUtil::Trans100ToLegacyTrans255(trans);
+    objs[obn].transparent = GfxDef::Trans100ToLegacyTrans255(trans);
 }
 
 

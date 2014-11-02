@@ -937,6 +937,10 @@
 					RelativePath="..\..\Common\gfx\bitmap.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\common\gfx\gfx_def.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="api"

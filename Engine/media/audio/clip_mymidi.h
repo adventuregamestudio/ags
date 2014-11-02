@@ -54,6 +54,9 @@ struct MYMIDI:public SOUNDCLIP
     int play();
 
     MYMIDI();
+
+protected:
+    virtual void adjust_volume();
 };
 
 #endif // __AC_MYMIDI_H

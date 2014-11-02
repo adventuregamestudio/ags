@@ -27,11 +27,11 @@
 #include "font/fonts.h"
 #include "gui/guidefines.h"
 #include "ac/spritecache.h"
+#include "gfx/gfx_def.h"
 #include "gfx/gfx_util.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
-namespace GfxUtil = AGS::Engine::GfxUtil;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern Bitmap *raw_saved_screen;
 extern roomstruct thisroom;
@@ -112,7 +112,7 @@ void RawDrawFrameTransparent (int frame, int translev) {
     {
         // Draw it transparently
         GfxUtil::DrawSpriteWithTransparency (RAW_SURFACE(), thisroom.ebscene[frame], 0, 0,
-            GfxUtil::Trans100ToAlpha255(translev));
+            GfxDef::Trans100ToAlpha255(translev));
     }
     invalidate_screen();
     mark_current_background_dirty();
@@ -191,7 +191,7 @@ void RawDrawImageCore(int xx, int yy, int slot, int alpha) {
         debug_log("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, spriteset[slot]->GetColorDepth(), RAW_SURFACE()->GetColorDepth());
     }
 
-    draw_sprite_slot_support_alpha(RAW_SURFACE(), false, xx, yy, slot, alpha);
+    draw_sprite_slot_support_alpha(RAW_SURFACE(), false, xx, yy, slot, kBlendMode_Alpha, alpha);
     invalidate_screen();
     mark_current_background_dirty();
     RAW_END();
@@ -246,7 +246,7 @@ void RawDrawImageTransparent(int xx, int yy, int slot, int legacy_transparency) 
     // 100    => alpha 0
     // 1 - 99 => alpha 1 - 244
     // 
-    RawDrawImageTrans(xx, yy, slot, GfxUtil::LegacyTrans100ToAlpha255(legacy_transparency));
+    RawDrawImageTrans(xx, yy, slot, GfxDef::LegacyTrans100ToAlpha255(legacy_transparency));
 
     update_polled_stuff_if_runtime();  // this operation can be slow so stop music skipping
 }

@@ -18,6 +18,7 @@
 #include <vector>
 #include "gui/guiobject.h"
 #include "ac/common_defines.h"       // AGS_INLINE
+#include "gfx/gfx_def.h"
 #include "util/geometry.h"
 #include "util/string.h"
 
@@ -119,7 +120,7 @@ public:
     int32_t Padding;        // padding surrounding a GUI text window
     GUIPopupStyle PopupStyle; // GUI popup behavior
     int32_t PopupAtMouseY;  // popup when mousey < this
-    int32_t Transparency;   // inverted alpha
+    int32_t Transparency;   // "incorrect" alpha (in legacy 255-range units)
     int32_t ZOrder;
 
     int32_t FocusCtrl;      // which control has the focus
@@ -161,7 +162,8 @@ extern int get_adjusted_spriteheight(int spr);
 extern bool is_sprite_alpha(int spr);
 
 // This function has distinct implementations in Engine and Editor
-extern void draw_gui_sprite(Common::Bitmap *ds, int spr, int x, int y, bool use_alpha);
+extern void draw_gui_sprite(Common::Bitmap *ds, int spr, int x, int y, bool use_alpha = true,
+                            Common::BlendMode blend_mode = Common::kBlendMode_Alpha);
 
 extern AGS_INLINE int divide_down_coordinate(int coord);
 extern AGS_INLINE int multiply_up_coordinate(int coord);

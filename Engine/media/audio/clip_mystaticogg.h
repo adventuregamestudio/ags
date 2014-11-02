@@ -33,6 +33,7 @@ struct MYSTATICOGG:public SOUNDCLIP
     int poll();
 
     void set_volume(int newvol);
+    void set_speed(int new_speed);
 
     void internal_destroy();
 
@@ -57,6 +58,11 @@ struct MYSTATICOGG:public SOUNDCLIP
     int play();
 
     MYSTATICOGG();
+
+protected:
+    virtual void adjust_volume();
+private:
+    void adjust_stream();
 };
 
 #endif // __AC_MYSTATICOGG_H

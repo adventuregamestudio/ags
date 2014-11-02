@@ -32,12 +32,12 @@
 #include "ac/route_finder.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
-#include "gfx/gfx_util.h"
+#include "gfx/gfx_def.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_object.h"
 #include "main/graphics_mode.h"
 
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
 
 
 extern ScriptObject scrObj[MAX_INIT_SPR];
@@ -89,7 +89,7 @@ int Object_GetTransparency(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.Transparent: invalid object number specified");
 
-    return GfxUtil::LegacyTrans255ToTrans100(objs[objj->id].transparent);
+    return GfxDef::LegacyTrans255ToTrans100(objs[objj->id].transparent);
 }
 
 void Object_SetBaseline(ScriptObject *objj, int basel) {

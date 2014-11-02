@@ -47,16 +47,16 @@ int MYMOD::poll()
     return done;
 }
 
+void MYMOD::adjust_volume()
+{
+    if (duhPlayer)
+        al_duh_set_volume(duhPlayer, VOLUME_TO_DUMB_VOL(get_final_volume()));
+}
+
 void MYMOD::set_volume(int newvol)
 {
     vol = newvol;
-
-    if (duhPlayer)
-    {
-        newvol += volModifier + directionalVolModifier;
-        if (newvol < 0) newvol = 0;
-        al_duh_set_volume(duhPlayer, VOLUME_TO_DUMB_VOL(newvol));
-    }
+    adjust_volume();
 }
 
 void MYMOD::destroy()

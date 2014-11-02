@@ -137,6 +137,24 @@ int AudioChannel_SetVolume(ScriptAudioChannel *channel, int newVolume)
     return 0;
 }
 
+int AudioChannel_GetSpeed(ScriptAudioChannel *channel)
+{
+    if ((channels[channel->id] != NULL) &&
+        (channels[channel->id]->done == 0))
+    {
+        return channels[channel->id]->get_speed();
+    }
+    return 0;
+}
+
+void AudioChannel_SetSpeed(ScriptAudioChannel *channel, int new_speed)
+{
+    if ((channels[channel->id] != NULL) &&
+        (channels[channel->id]->done == 0))
+    {
+        channels[channel->id]->set_speed(new_speed);
+    }
+}
 
 void AudioChannel_Stop(ScriptAudioChannel *channel)
 {
@@ -170,8 +188,7 @@ void AudioChannel_SetRoomLocation(ScriptAudioChannel *channel, int xPos, int yPo
         }
         else
         {
-            channels[channel->id]->directionalVolModifier = 0;
-            channels[channel->id]->set_volume(channels[channel->id]->vol);
+            channels[channel->id]->apply_directional_modifier(0);
         }
     }
 }
@@ -264,6 +281,16 @@ RuntimeScriptValue Sc_AudioChannel_SetRoomLocation(void *self, const RuntimeScri
     API_OBJCALL_VOID_PINT2(ScriptAudioChannel, AudioChannel_SetRoomLocation);
 }
 
+RuntimeScriptValue Sc_AudioChannel_GetSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptAudioChannel, AudioChannel_GetSpeed);
+}
+
+RuntimeScriptValue Sc_AudioChannel_SetSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptAudioChannel, AudioChannel_SetSpeed);
+}
+
 void RegisterAudioChannelAPI()
 {
     ccAddExternalObjectFunction("AudioChannel::Seek^1",             Sc_AudioChannel_Seek);
@@ -279,6 +306,10 @@ void RegisterAudioChannelAPI()
     ccAddExternalObjectFunction("AudioChannel::get_PositionMs",     Sc_AudioChannel_GetPositionMs);
     ccAddExternalObjectFunction("AudioChannel::get_Volume",         Sc_AudioChannel_GetVolume);
     ccAddExternalObjectFunction("AudioChannel::set_Volume",         Sc_AudioChannel_SetVolume);
+    ccAddExternalObjectFunction("AudioChannel::get_Speed",          Sc_AudioChannel_GetSpeed);
+    ccAddExternalObjectFunction("AudioChannel::set_Speed",          Sc_AudioChannel_SetSpeed);
+    // For compatibility with  Ahmet Kamil's (aka Gord10) custom engine
+    ccAddExternalObjectFunction("AudioChannel::SetSpeed^1",         Sc_AudioChannel_SetSpeed);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

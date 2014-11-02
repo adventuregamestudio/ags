@@ -1756,6 +1756,8 @@ builtin managed struct AudioChannel {
   readonly import attribute int PositionMs;
   /// The volume of this sound channel, from 0 to 100.
   import attribute int Volume;
+  /// The speed of playing, in clip milliseconds per second (1000 is default).
+  import attribute int Speed;
 };
 
 builtin managed struct AudioClip {

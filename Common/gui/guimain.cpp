@@ -26,6 +26,7 @@
 #include "ac/spritecache.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
+#include "gfx/gfx_def.h"
 #include "debug/out.h"
 #include "util/math.h"
 
@@ -381,14 +382,7 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
 
 void GUIMain::SetTransparencyAsPercentage(int percent)
 {
-    // TODO: move parts of gfxutil to common and use std alpha/transparency transformation here
-    // convert from % transparent to Opacity from 0-255
-    if (percent == 0)
-        Transparency = 0;
-    else if (percent == 100)
-        Transparency = 255;
-    else
-        Transparency = ((100 - percent) * 25) / 10;
+    Transparency = GfxDef::Trans100ToLegacyTrans255(percent);
 }
 
 void GUIMain::SetVisibility(GUIVisibilityState visibility)

@@ -65,6 +65,9 @@ struct MYMOD : public SOUNDCLIP
     int play();
 
     MYMOD();
+
+protected:
+    virtual void adjust_volume();
 };
 
 #endif // __AC_MYDUMBMOD_H

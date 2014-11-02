@@ -50,6 +50,7 @@ struct GUITextBox:public GUIObject
     font = 0;
     textcol = 0;
     text[0] = 0;
+    exflags = 0;
     numSupportedEvents = 1;
     supportedEvents[0] = "Activate";
     supportedEventArgs[0] = "GUIControl *control";

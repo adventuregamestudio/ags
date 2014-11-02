@@ -30,6 +30,7 @@ struct MYMP3:public SOUNDCLIP
 
     int poll();
     void set_volume(int newvol);
+    void set_speed(int new_speed);
     void internal_destroy();
     void destroy();
     void seek(int pos);
@@ -41,6 +42,11 @@ struct MYMP3:public SOUNDCLIP
     int get_sound_type();
     int play();
     MYMP3();
+
+protected:
+    virtual void adjust_volume();
+private:
+    void adjust_stream();
 };
 
 #endif // __AC_MYMP3_H

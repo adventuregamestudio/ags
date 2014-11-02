@@ -31,12 +31,15 @@ int MYMIDI::poll()
     return done;
 }
 
+void MYMIDI::adjust_volume()
+{
+    ::set_volume(-1, get_final_volume());
+}
+
 void MYMIDI::set_volume(int newvol)
 {
     vol = newvol;
-    newvol += volModifier + directionalVolModifier;
-    if (newvol < 0) newvol = 0;
-    ::set_volume(-1, newvol);
+    adjust_volume();
 }
 
 void MYMIDI::destroy()

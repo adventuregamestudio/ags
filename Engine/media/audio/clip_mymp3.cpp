@@ -77,6 +77,17 @@ int MYMP3::poll()
     return done;
 }
 
+void MYMP3::adjust_stream()
+{
+    AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+    almp3_adjust_mp3stream(stream, get_final_volume(), panning, speed);
+}
+
+void MYMP3::adjust_volume()
+{
+    adjust_stream();
+}
+
 void MYMP3::set_volume(int newvol)
 {
     // boost MP3 volume
@@ -85,11 +96,13 @@ void MYMP3::set_volume(int newvol)
         newvol = 255;
 
     vol = newvol;
-    newvol += volModifier + directionalVolModifier;
-    if (newvol < 0) newvol = 0;
+    adjust_stream();
+}
 
-	AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-    almp3_adjust_mp3stream(stream, newvol, panning, 1000);
+void MYMP3::set_speed(int new_speed)
+{
+    speed = new_speed;
+    adjust_stream();
 }
 
 void MYMP3::internal_destroy()

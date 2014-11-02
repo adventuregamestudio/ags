@@ -65,17 +65,30 @@ int MYSTATICMP3::poll()
     return done;
 }
 
+void MYSTATICMP3::adjust_stream()
+{
+    if (tune)
+    {
+        AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
+        almp3_adjust_mp3(tune, get_final_volume(), panning, speed, repeat);
+    }
+}
+
+void MYSTATICMP3::adjust_volume()
+{
+    adjust_stream();
+}
+
 void MYSTATICMP3::set_volume(int newvol)
 {
     vol = newvol;
+    adjust_stream();
+}
 
-    if (tune != NULL)
-    {
-        newvol += volModifier + directionalVolModifier;
-        if (newvol < 0) newvol = 0;
-        AGS::Engine::MutexLock _lockMp3(_mp3_mutex);
-        almp3_adjust_mp3(tune, newvol, panning, 1000, repeat);
-    }
+void MYSTATICMP3::set_speed(int new_speed)
+{
+    speed = new_speed;
+    adjust_stream();
 }
 
 void MYSTATICMP3::internal_destroy()

@@ -192,7 +192,7 @@ void System_SetVolume(int newvol)
     {
         if ((channels[i] != NULL) && (channels[i]->done == 0)) 
         {
-            channels[i]->set_volume(channels[i]->vol);
+            channels[i]->adjust_volume();
         }
     }
 }

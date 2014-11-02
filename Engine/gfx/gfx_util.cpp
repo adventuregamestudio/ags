@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include "gfx/gfx_util.h"
+#include "gfx/blender.h"
 
 // CHECKME: is this hack still relevant?
 #if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
@@ -24,8 +25,66 @@ namespace AGS
 namespace Engine
 {
 
+using namespace Common;
+
 namespace GfxUtil
 {
+
+typedef BLENDER_FUNC PfnBlenderCb;
+
+struct BlendModeSetter
+{
+    // Blender setter for destination with and without alpha channel;
+    // assign null pointer if not supported
+    PfnBlenderCb AllAlpha;       // src w alpha   -> dst w alpha
+    PfnBlenderCb AlphaToOpaque;  // src w alpha   -> dst w/o alpha
+    PfnBlenderCb OpaqueToAlpha;  // src w/o alpha -> dst w alpha
+    PfnBlenderCb OpaqueToOpaque; // src w/o alpha -> dst w/o alpha
+};
+
+// Array of blender descriptions
+// NOTE: set NULL function pointer to fallback to common image blitting
+static const BlendModeSetter BlendModeSets[kNumBlendModes] =
+{
+    { NULL, NULL, NULL, NULL }, // kBlendMode_NoAlpha
+    { _argb2argb_blender, _argb2argb_blender, _argb2argb_blender, NULL }, // kBlendMode_Alpha
+    // NOTE: add new modes here
+};
+
+bool SetBlender(BlendMode blend_mode, bool dst_has_alpha, bool src_has_alpha, int blend_alpha)
+{
+    if (blend_mode < 0 || blend_mode > kNumBlendModes)
+        return false;
+    const BlendModeSetter &set = BlendModeSets[blend_mode];
+    PfnBlenderCb blender =
+        dst_has_alpha ? (src_has_alpha ? set.AllAlpha : set.OpaqueToAlpha) :
+        (src_has_alpha ? set.AlphaToOpaque : set.OpaqueToOpaque);
+    if (blender)
+    {
+        set_blender_mode(NULL, NULL, blender, 0, 0, 0, blend_alpha);
+        return true;
+    }
+    return false;
+}
+
+void DrawSpriteBlend(Bitmap *ds, const Point &ds_at, Bitmap *sprite,
+                       BlendMode blend_mode,  bool dst_has_alpha, bool src_has_alpha, int blend_alpha)
+{
+    if (blend_alpha <= 0)
+        return; // do not draw 100% transparent image
+
+    if (// support only 32-bit blending at the moment
+        ds->GetColorDepth() == 32 && sprite->GetColorDepth() == 32 &&
+        // set blenders if applicable and tell if succeeded
+        SetBlender(blend_mode, dst_has_alpha, src_has_alpha, blend_alpha))
+    {
+        ds->TransBlendBlt(sprite, ds_at.X, ds_at.Y);
+    }
+    else
+    {
+        GfxUtil::DrawSpriteWithTransparency(ds, sprite, ds_at.X, ds_at.Y, blend_alpha);
+    }
+}
 
 void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int alpha)
 {
@@ -49,7 +108,7 @@ void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int al
         {
             // 256-col sprite -> truecolor background
             // this is automatically supported by allegro, no twiddling needed
-            ds->Blit(sprite, x, y, Common::kBitmap_Transparency);
+            ds->Blit(sprite, x, y, kBitmap_Transparency);
             return;
         }
 
@@ -76,7 +135,7 @@ void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int al
                 }
             }
         }
-        ds->Blit(&hctemp, x, y, Common::kBitmap_Transparency);
+        ds->Blit(&hctemp, x, y, kBitmap_Transparency);
     }
     else
     {
@@ -87,7 +146,7 @@ void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int al
         }
         else
         {
-            ds->Blit(sprite, x, y, Common::kBitmap_Transparency);
+            ds->Blit(sprite, x, y, kBitmap_Transparency);
         }
     }
 }

@@ -1,4 +1,4 @@
 unapply-patches
 # Keep this list of folders that are not included in the
 # orig syncronized with the one in debian/rules!
-extend-diff-ignore="^(Android|Editor|iOS|OSX|PSP|Windows)"
+extend-diff-ignore="^(Android|Editor|iOS|OSX|PSP|Windows|Plugins/agslua)"

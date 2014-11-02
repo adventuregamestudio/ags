@@ -761,6 +761,10 @@
     <Compile Include="Audio\IAudioPreviewer.cs" />
     <Compile Include="Audio\IrrklangPlayer.cs" />
     <Compile Include="AutoComplete.cs" />
+    <Compile Include="BuildTargets\BuildTargetBase.cs" />
+    <Compile Include="BuildTargets\BuildTargetDataFile.cs" />
+    <Compile Include="BuildTargets\BuildTargetLinux.cs" />
+    <Compile Include="BuildTargets\BuildTargetWindows.cs" />
     <Compile Include="ComponentController.cs" />
     <Compile Include="Components\AudioComponent.cs" />
     <Compile Include="Components\BaseComponent.cs" />
@@ -816,6 +820,7 @@
     </Compile>
     <Compile Include="GUI\WindowsLayoutManager.cs" />
     <Compile Include="GUI\WindowsMenuManager.cs" />
+    <Compile Include="DataFileWriter.cs" />
     <Compile Include="Utils\ColorMapper.cs" />
     <Compile Include="Utils\DialogScriptConverter.cs" />
     <Compile Include="EditorEvents.cs" />
@@ -932,6 +937,7 @@
       <DependentUpon>WelcomePane.cs</DependentUpon>
     </Compile>
     <Compile Include="Plugins\EditorPlugin.cs" />
+    <Compile Include="Utils\NativeConstants.cs" />
     <Compile Include="Utils\SpriteUsageChecker.cs" />
     <Compile Include="Tasks.cs" />
     <Compile Include="TextProcessing\BaseTextProcess.cs" />

@@ -15,10 +15,15 @@ namespace AGS.Editor.Components
     {
         private static readonly string PAM_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.pam";
         private const string LIP_SYNC_DATA_OUTPUT = "syncdata.dat";
-        private static readonly string SPEECH_VOX_FILE_NAME = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, "speech.vox");
+        private static readonly string SPEECH_VOX_FILE_NAME;
 
         private Dictionary<string, DateTime> _speechVoxStatus = new Dictionary<string, DateTime>();
 		private Dictionary<string, DateTime> _pamFileStatus = new Dictionary<string, DateTime>();
+
+        static SpeechComponent()
+        {
+            SPEECH_VOX_FILE_NAME = Path.Combine(AGSEditor.Instance.CompiledDirectory, "speech.vox");
+        }
 
         public SpeechComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)

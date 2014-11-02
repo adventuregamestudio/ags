@@ -35,7 +35,7 @@ namespace AGS.Editor
         {
             foreach (Translation translation in Factory.AGSEditor.CurrentGame.Translations)
             {
-                string compiledPath = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, translation.CompiledFileName);
+                string compiledPath = Path.Combine(AGSEditor.Instance.CompiledDirectory, translation.CompiledFileName);
                 if (File.Exists(compiledPath))
                 {
                     File.Delete(compiledPath);

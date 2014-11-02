@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Text;
 
 namespace AGS.Types
@@ -56,6 +58,18 @@ namespace AGS.Types
         public static string ValidateScriptName(string name)
         {
             return ValidateScriptName(name, 99999);
+        }
+
+        /// <summary>
+        /// Returns the directory from which the editor is running.
+        /// RequiredAGSVersion: 3.4.0
+        /// </summary>
+        public static string EditorDirectory
+        {
+            get
+            {
+                return Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+            }
         }
 
         public static Size UserStringToResolution(string s)

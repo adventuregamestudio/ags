@@ -43,6 +43,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("StopMenuIcon", Resources.ResourceManager.GetIcon("menu_build_stop.ico"));
             _guiController.RegisterIcon("PauseMenuIcon", Resources.ResourceManager.GetIcon("menu_build_pause.ico"));
 			_guiController.RegisterIcon("RebuildAllMenuIcon", Resources.ResourceManager.GetIcon("menu_build_rebuild-files.ico"));
+            _guiController.RegisterIcon("RebuildAllPlatformsMenuIcon", Resources.ResourceManager.GetIcon("menu_build_rebuild-files.ico"));
 			_guiController.RegisterIcon("SetupGameMenuIcon", Resources.ResourceManager.GetIcon("menu_build_gamesetup.ico"));
 
             _guiController.RegisterIcon("MenuIconBuildEXE", Resources.ResourceManager.GetIcon("menu_file_built-exe.ico"));
@@ -215,7 +216,7 @@ namespace AGS.Editor.Components
 			{
 				CompileGame(true);
 			}
-			else if (controlID == SETUP_GAME_COMMAND)
+            else if (controlID == SETUP_GAME_COMMAND)
             {
                 try
                 {
@@ -291,6 +292,5 @@ namespace AGS.Editor.Components
 
             _testGameInProgress = false;
         }
-
     }
 }

@@ -127,7 +127,7 @@ void CustomProperties::addProperty (const char *newname, const char *newval) {
     if (numProps >= MAX_CUSTOM_PROPERTIES) {
         return;
     }
-    propName[numProps] = (char*)malloc(200);
+    propName[numProps] = (char*)malloc(MAX_CUSTOM_PROPERTY_NAME_LENGTH);
     propVal[numProps] = (char*)malloc(MAX_CUSTOM_PROPERTY_VALUE_LENGTH);
     strcpy (propName[numProps], newname);
     strcpy (propVal[numProps], newval);

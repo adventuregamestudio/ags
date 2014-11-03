@@ -7,19 +7,16 @@ extern bool Scintilla_RegisterClasses(void *hInstance);
 extern int Scintilla_LinkLexers();
 
 int antiAliasFonts = 0;
-#define SAVEBUFFERSIZE 5120
 bool ShouldAntiAliasText() { return (antiAliasFonts != 0); }
 
 int mousex, mousey;
+#include "agsnative.h"
 #include "util/wgt2allg.h"
 #include "util/misc.h"
 #include "ac/spritecache.h"
 #include "ac/actiontype.h"
-#include "ac/common.h"
 #include "ac/roomstruct.h"
 #include "ac/scriptmodule.h"
-#include "ac/view.h"
-#include "ac/dialogtopic.h"
 #include "ac/gamesetupstruct.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"
@@ -30,7 +27,6 @@ int mousex, mousey;
 #include "gui/guilistbox.h"
 #include "gui/guislider.h"
 #include "util/compress.h"
-#include "util/geometry.h"
 #include "util/string_utils.h"    // fputstring, etc
 #include "util/alignedstream.h"
 #include "util/filestream.h"
@@ -2266,8 +2262,6 @@ void save_room_file(const char*rtsa)
 // ****** CLIB MAKER **** //
 
 #define MAX_FILES 10000
-#define MAXMULTIFILES 25
-#define MAX_FILENAME_LENGTH 100
 #define MAX_DATAFILENAME_LENGTH 50
 struct MultiFileLibNew {
   char data_filenames[MAXMULTIFILES][MAX_DATAFILENAME_LENGTH];
@@ -2325,7 +2319,6 @@ void write_clib_header(Stream*wout) {
 }
 
 
-#define CHUNKSIZE 256000
 int copy_file_across(Stream*inlibb,Stream*coppy,long leftforthis) {
   int success = 1;
   char*diskbuffer=(char*)malloc(CHUNKSIZE+10);
@@ -3467,11 +3460,11 @@ void CompileCustomProperties(AGS::Types::CustomProperties ^convertFrom, ::Custom
 {
 	compileInto->reset();
 	int j = 0;
-	char propName[200];
+	char propName[MAX_CUSTOM_PROPERTY_NAME_LENGTH];
 	char propVal[MAX_CUSTOM_PROPERTY_VALUE_LENGTH];
 	for each (String ^key in convertFrom->PropertyValues->Keys)
 	{
-		ConvertStringToCharArray(convertFrom->PropertyValues[key]->Name, propName, 200);
+		ConvertStringToCharArray(convertFrom->PropertyValues[key]->Name, propName, MAX_CUSTOM_PROPERTY_NAME_LENGTH);
 		ConvertStringToCharArray(convertFrom->PropertyValues[key]->Value, propVal, MAX_CUSTOM_PROPERTY_VALUE_LENGTH);
 		compileInto->addProperty(propName, propVal);
 		j++;

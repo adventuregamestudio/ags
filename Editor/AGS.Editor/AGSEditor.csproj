@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -932,6 +932,7 @@
       <DependentUpon>WelcomePane.cs</DependentUpon>
     </Compile>
     <Compile Include="Plugins\EditorPlugin.cs" />
+    <Compile Include="Utils\NativeConstants.cs" />
     <Compile Include="Utils\SpriteUsageChecker.cs" />
     <Compile Include="Tasks.cs" />
     <Compile Include="TextProcessing\BaseTextProcess.cs" />

@@ -456,6 +456,18 @@ namespace AGS.Editor
         {
             return _native.TransformStringToBytes(text);
         }
+
+        /// <summary>
+        /// Allows the Editor to reuse constants from the native code. If a constant required by the Editor
+        /// is not also required by the Engine, then it should instead by moved into AGS.Types (AGS.Native
+        /// references the AGS.Types assembly). Note that this method returns only System::Int32 and
+        /// System::String objects -- it is up to the user to determine if the value should be used as a
+        /// smaller integral type (additional casting may be required to cast to a non-int integral type).
+        /// </summary>
+        public object GetNativeConstant(string name)
+        {
+            return _native.GetNativeConstant(name);
+        }
         
         /*/// <summary>
         /// Obsolete: Use Utilities.IsShiftPressed instead

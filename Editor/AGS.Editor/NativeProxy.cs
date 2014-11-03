@@ -380,19 +380,28 @@ namespace AGS.Editor
             _native.CompileScript(script, preProcessedData, game, isRoomScript);
         }
 
-        public void CompileGameToDTAFile(Game game, string fileName)
+        public void CreateDataFile(string[] fileList, int splitSize, string baseFileName, bool isGameEXE)
         {
-            _native.CompileGameToDTAFile(game, fileName);
+            string[] fileNames = new string[fileList.Length];
+            for (int i = 0; i < fileList.Length; ++i)
+            {
+                fileNames[i] = fileList[i];
+            }
+            string errorMsg = DataFileWriter.MakeDataFile(fileList, splitSize, baseFileName, isGameEXE);
+            if (errorMsg != null)
+            {
+                throw new AGSEditorException(errorMsg);
+            }
         }
 
         public void CreateGameEXE(string[] fileList, Game game, string baseFileName)
         {
-            _native.CreateDataFile(fileList, game.Settings.SplitResources * 1000000, baseFileName, true);
+            CreateDataFile(fileList, game.Settings.SplitResources * 1000000, baseFileName, true);
         }
 
         public void CreateDebugMiniEXE(string[] fileList, string exeFileName)
         {
-            _native.CreateDataFile(fileList, 0, exeFileName, false);
+            CreateDataFile(fileList, 0, exeFileName, false);
         }
 
         public void CreateVOXFile(string fileName, string[] fileList)
@@ -402,7 +411,7 @@ namespace AGS.Editor
 
         public void CreateTemplateFile(string templateFileName, string[] fileList)
         {
-            _native.CreateDataFile(fileList, 0, templateFileName, false);
+            CreateDataFile(fileList, 0, templateFileName, false);
         }
 
         public GameTemplate LoadTemplateFile(string fileName)

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -774,6 +774,7 @@
     <Compile Include="Components\StatisticsSenderComponent.cs" />
     <Compile Include="Components\TranslationsComponent.cs" />
     <Compile Include="Components\WelcomeComponent.cs" />
+    <Compile Include="DataFileWriter.cs" />
     <Compile Include="Debugger\DebugController.cs" />
     <Compile Include="Debugger\IEngineCommunication.cs" />
     <Compile Include="Debugger\NamedPipesEngineCommunication.cs" />

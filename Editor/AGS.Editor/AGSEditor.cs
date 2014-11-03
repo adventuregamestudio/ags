@@ -921,7 +921,7 @@ namespace AGS.Editor
             bool forceRebuild = (bool)parameter;
             SetMODMusicFlag();
             DeleteAnyExistingSplitResourceFiles();
-            Factory.NativeProxy.CompileGameToDTAFile(_game, COMPILED_DTA_FILE_NAME);
+            DataFileWriter.SaveThisGameToFile(COMPILED_DTA_FILE_NAME, _game);
             Factory.NativeProxy.CreateGameEXE(ConstructFileListForEXE(), _game, this.BaseGameFileName);
             File.Delete(COMPILED_DTA_FILE_NAME);
             CreateCompiledSetupProgram();
@@ -938,7 +938,7 @@ namespace AGS.Editor
         private object CreateDebugFiles(object parameter)
         {
             SetMODMusicFlag();
-            Factory.NativeProxy.CompileGameToDTAFile(_game, COMPILED_DTA_FILE_NAME);
+            DataFileWriter.SaveThisGameToFile(COMPILED_DTA_FILE_NAME, _game);
             Factory.NativeProxy.CreateDebugMiniEXE(new string[] { COMPILED_DTA_FILE_NAME }, this.BaseGameFileName + ".exe");
             File.Delete(COMPILED_DTA_FILE_NAME);
 

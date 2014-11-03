@@ -274,16 +274,16 @@
     <Compile Include="PropertyGridExtras\AudioClipTypeTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\BaseListSelectTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\CustomResolutionTypeConverter.cs" />
-    <Compile Include="PropertyGridExtras\FlagsEditor.cs" />
-    <Compile Include="PropertyGridExtras\FlagsEditorControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="PropertyGridExtras\FlagsEditorControl.Designer.cs">
-      <DependentUpon>FlagsEditorControl.cs</DependentUpon>
-    </Compile>
     <Compile Include="PropertyGridExtras\CustomResolutionUIEditor.cs" />
     <Compile Include="PropertyGridExtras\FontTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\RoomListTypeConverter.cs" />
+    <Compile Include="PropertyGridExtras\StringListUIEditor.cs" />
+    <Compile Include="PropertyGridExtras\StringListUIEditorControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PropertyGridExtras\StringListUIEditorControl.Designer.cs">
+      <DependentUpon>StringListUIEditorControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="ScriptAndHeader.cs" />
     <Compile Include="ScriptFolder.cs" />
     <Compile Include="UnloadedRoomFolder.cs" />

@@ -755,6 +755,7 @@ namespace AGS
             if (name->Equals("OPT_GLOBALTALKANIMSPD")) return OPT_GLOBALTALKANIMSPD;
             if (name->Equals("OPT_SPRITEALPHA")) return OPT_SPRITEALPHA;
             if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
+            return nullptr;
         }
 	}
 }

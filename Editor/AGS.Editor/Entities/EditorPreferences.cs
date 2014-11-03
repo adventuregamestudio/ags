@@ -26,6 +26,7 @@ namespace AGS.Editor
         private bool _remapPalettizedBackgrounds = true;
         private List<string> _previousSearches = new List<string>();
         private bool _keepHelpOnTop = true;
+        private bool _useLegacyCompiler = false;
 
         private string _registryKey;
 
@@ -53,6 +54,7 @@ namespace AGS.Editor
                 _lastBackupWarning = ReadDateFromRegistry(key, "LastBackupWarning", _lastBackupWarning);
                 _remapPalettizedBackgrounds = Convert.ToInt32(key.GetValue("RemapPaletteBackgrounds", _remapPalettizedBackgrounds)) != 0;
                 _keepHelpOnTop = Convert.ToInt32(key.GetValue("KeepHelpOnTop", _keepHelpOnTop)) != 0;
+                _useLegacyCompiler = Convert.ToInt32(key.GetValue("UseLegacyCompiler", _useLegacyCompiler)) != 0;
                 ReadRecentSearchesList(key);
                 key.Close();
 
@@ -127,6 +129,7 @@ namespace AGS.Editor
                 key.SetValue("LastBackupWarning", _lastBackupWarning.ToString("u"));
                 key.SetValue("RemapPaletteBackgrounds", _remapPalettizedBackgrounds ? "1" : "0");
                 key.SetValue("KeepHelpOnTop", _keepHelpOnTop ? "1" : "0");
+                key.SetValue("UseLegacyCompiler", _useLegacyCompiler ? "1" : "0");
                 WriteRecentSearchesList(key);
                 key.Close();
             }
@@ -253,6 +256,12 @@ namespace AGS.Editor
         {
             get { return _keepHelpOnTop; }
             set { _keepHelpOnTop = value; }
+        }
+
+        public bool UseLegacyCompiler
+        {
+            get { return _useLegacyCompiler; }
+            set { _useLegacyCompiler = value; }
         }
     }
 }

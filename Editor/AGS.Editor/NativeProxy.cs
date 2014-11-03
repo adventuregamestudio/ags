@@ -380,8 +380,18 @@ namespace AGS.Editor
             _native.CompileScript(script, preProcessedData, game, isRoomScript);
         }
 
+        public void CompileGameToDTAFile(Game game, string fileName)
+        {
+            _native.CompileGameToDTAFile(game, fileName);
+        }
+
         public void CreateDataFile(string[] fileList, int splitSize, string baseFileName, bool isGameEXE)
         {
+            if (Factory.AGSEditor.Preferences.UseLegacyCompiler)
+            {
+                _native.CreateDataFile(fileList, splitSize, baseFileName, isGameEXE);
+                return;
+            }
             string[] fileNames = new string[fileList.Length];
             for (int i = 0; i < fileList.Length; ++i)
             {

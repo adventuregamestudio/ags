@@ -317,7 +317,8 @@ void AlignedStream::ReadPadding(size_t next_type)
         {
             // We do not know and should not care if the underlying stream
             // supports seek, so use read to skip the padding instead.
-            _stream->Read(_paddingBuffer, next_type - pad);
+            for (size_t i = next_type - pad; i > 0; --i)
+                _stream->ReadByte();
             _block += next_type - pad;
         }
 
@@ -350,7 +351,7 @@ void AlignedStream::WritePadding(size_t next_type)
         // Write padding only if have to
         if (pad)
         {
-            _stream->Write(_paddingBuffer, next_type - pad);
+            _stream->WriteByteCount(0, next_type - pad);
             _block += next_type - pad;
         }
 

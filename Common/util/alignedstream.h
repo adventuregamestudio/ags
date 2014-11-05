@@ -98,7 +98,6 @@ private:
     size_t              _baseAlignment;
     size_t              _maxAlignment;
     int64_t             _block;
-    int8_t              _paddingBuffer[sizeof(int64_t)];
 };
 
 } // namespace Common

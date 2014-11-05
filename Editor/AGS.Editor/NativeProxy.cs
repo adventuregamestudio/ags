@@ -385,14 +385,33 @@ namespace AGS.Editor
             _native.CompileGameToDTAFile(game, fileName);
         }
 
+        public void CreateDataFile(string[] fileList, int splitSize, string baseFileName, bool isGameEXE)
+        {
+            if (Factory.AGSEditor.Preferences.UseLegacyCompiler)
+            {
+                _native.CreateDataFile(fileList, splitSize, baseFileName, isGameEXE);
+                return;
+            }
+            string[] fileNames = new string[fileList.Length];
+            for (int i = 0; i < fileList.Length; ++i)
+            {
+                fileNames[i] = fileList[i];
+            }
+            string errorMsg = DataFileWriter.MakeDataFile(fileList, splitSize, baseFileName, isGameEXE);
+            if (errorMsg != null)
+            {
+                throw new AGSEditorException(errorMsg);
+            }
+        }
+
         public void CreateGameEXE(string[] fileList, Game game, string baseFileName)
         {
-            _native.CreateDataFile(fileList, game.Settings.SplitResources * 1000000, baseFileName, true);
+            CreateDataFile(fileList, game.Settings.SplitResources * 1000000, baseFileName, true);
         }
 
         public void CreateDebugMiniEXE(string[] fileList, string exeFileName)
         {
-            _native.CreateDataFile(fileList, 0, exeFileName, false);
+            CreateDataFile(fileList, 0, exeFileName, false);
         }
 
         public void CreateVOXFile(string fileName, string[] fileList)
@@ -402,7 +421,7 @@ namespace AGS.Editor
 
         public void CreateTemplateFile(string templateFileName, string[] fileList)
         {
-            _native.CreateDataFile(fileList, 0, templateFileName, false);
+            CreateDataFile(fileList, 0, templateFileName, false);
         }
 
         public GameTemplate LoadTemplateFile(string fileName)
@@ -455,6 +474,18 @@ namespace AGS.Editor
         public byte[] TransformStringToBytes(string text)
         {
             return _native.TransformStringToBytes(text);
+        }
+
+        /// <summary>
+        /// Allows the Editor to reuse constants from the native code. If a constant required by the Editor
+        /// is not also required by the Engine, then it should instead by moved into AGS.Types (AGS.Native
+        /// references the AGS.Types assembly). Note that this method returns only System::Int32 and
+        /// System::String objects -- it is up to the user to determine if the value should be used as a
+        /// smaller integral type (additional casting may be required to cast to a non-int integral type).
+        /// </summary>
+        public object GetNativeConstant(string name)
+        {
+            return _native.GetNativeConstant(name);
         }
         
         /*/// <summary>

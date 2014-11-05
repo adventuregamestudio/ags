@@ -7,6 +7,7 @@ Copyright (c) 2006-2010 Chris Jones
 The AGS Editor Source Code is provided under the Artistic License 2.0,
 see the license.txt for details.
 */
+#include "agsnative.h"
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdlib.h>
@@ -634,5 +635,127 @@ namespace AGS
 		{
 			return spritesModified;
 		}
+
+        /// <summary>
+        /// Allows the Editor to reuse constants from the native code. If a constant required by the Editor
+        /// is not also required by the Engine, then it should instead by moved into AGS.Types (AGS.Native
+        /// references the AGS.Types assembly). Note that this method returns only System::Int32 and
+        /// System::String objects -- it is up to the user to determine if the value should be used as a
+        /// smaller integral type (additional casting may be required to cast to a non-int integral type).
+        /// </summary>
+        Object^ NativeMethods::GetNativeConstant(String ^name)
+        {
+            if (name == nullptr) return nullptr;
+            if (name->Equals("GAME_FILE_SIG")) return gcnew String(game_file_sig);
+            if (name->Equals("GAME_DATA_VERSION_CURRENT")) return (int)kGameVersion_Current;
+            if (name->Equals("MAX_GUID_LENGTH")) return MAX_GUID_LENGTH;
+            if (name->Equals("MAX_SG_EXT_LENGTH")) return MAX_SG_EXT_LENGTH;
+            if (name->Equals("MAX_SG_FOLDER_LEN")) return MAX_SG_FOLDER_LEN;
+            if (name->Equals("MAX_SCRIPT_NAME_LEN")) return MAX_SCRIPT_NAME_LEN;
+            if (name->Equals("FFLG_SIZEMASK")) return FFLG_SIZEMASK;
+            if (name->Equals("IFLG_STARTWITH")) return IFLG_STARTWITH;
+            if (name->Equals("MCF_ANIMMOVE")) return MCF_ANIMMOVE;
+            if (name->Equals("MCF_STANDARD")) return MCF_STANDARD;
+            if (name->Equals("MCF_HOTSPOT")) return MCF_HOTSPOT;
+            if (name->Equals("CHF_MANUALSCALING")) return CHF_MANUALSCALING;
+            if (name->Equals("CHF_NOINTERACT")) return CHF_NOINTERACT;
+            if (name->Equals("CHF_NODIAGONAL")) return CHF_NODIAGONAL;
+            if (name->Equals("CHF_NOLIGHTING")) return CHF_NOLIGHTING;
+            if (name->Equals("CHF_NOTURNING")) return CHF_NOTURNING;
+            if (name->Equals("CHF_NOBLOCKING")) return CHF_NOBLOCKING;
+            if (name->Equals("CHF_SCALEMOVESPEED")) return CHF_SCALEMOVESPEED;
+            if (name->Equals("CHF_SCALEVOLUME")) return CHF_SCALEVOLUME;
+            if (name->Equals("CHF_ANTIGLIDE")) return CHF_ANTIGLIDE;
+            if (name->Equals("DFLG_ON")) return DFLG_ON;
+            if (name->Equals("DFLG_NOREPEAT")) return DFLG_NOREPEAT;
+            if (name->Equals("DTFLG_SHOWPARSER")) return DTFLG_SHOWPARSER;
+            if (name->Equals("FONT_OUTLINE_AUTO")) return FONT_OUTLINE_AUTO;
+            if (name->Equals("MAX_FONTS")) return MAX_FONTS;
+            if (name->Equals("MAX_SPRITES")) return MAX_SPRITES;
+            if (name->Equals("MAX_CURSOR")) return MAX_CURSOR;
+            if (name->Equals("MAX_PARSER_WORD_LENGTH")) return MAX_PARSER_WORD_LENGTH;
+            if (name->Equals("MAX_INV")) return MAX_INV;
+            if (name->Equals("MAXLIPSYNCFRAMES")) return MAXLIPSYNCFRAMES;
+            if (name->Equals("MAXGLOBALMES")) return MAXGLOBALMES;
+            if (name->Equals("MAXTOPICOPTIONS")) return MAXTOPICOPTIONS;
+            if (name->Equals("UNIFORM_WALK_SPEED")) return UNIFORM_WALK_SPEED;
+            if (name->Equals("GAME_RESOLUTION_CUSTOM")) return (int)kGameResolution_Custom;
+            if (name->Equals("MAXMULTIFILES")) return MAXMULTIFILES;
+            if (name->Equals("RAND_SEED_SALT")) return RAND_SEED_SALT;
+            if (name->Equals("CHUNKSIZE")) return CHUNKSIZE;
+            if (name->Equals("CLIB_END_SIGNATURE")) return gcnew String(clibendsig);
+            if (name->Equals("MAX_FILENAME_LENGTH")) return MAX_FILENAME_LENGTH;
+            if (name->Equals("SPRSET_NAME")) return gcnew String(sprsetname);
+            if (name->Equals("SPF_640x400")) return SPF_640x400;
+            if (name->Equals("SPF_ALPHACHANNEL")) return SPF_ALPHACHANNEL;
+            if (name->Equals("MAX_CUSTOM_PROPERTIES")) return MAX_CUSTOM_PROPERTIES;
+            if (name->Equals("MAX_CUSTOM_PROPERTY_NAME_LENGTH")) return MAX_CUSTOM_PROPERTY_NAME_LENGTH;
+            if (name->Equals("MAX_CUSTOM_PROPERTY_VALUE_LENGTH")) return MAX_CUSTOM_PROPERTY_VALUE_LENGTH;
+            if (name->Equals("PASSWORD_ENC_STRING")) return gcnew String(passwencstring);
+            if (name->Equals("LOOPFLAG_RUNNEXTLOOP")) return LOOPFLAG_RUNNEXTLOOP;
+            if (name->Equals("VFLG_FLIPSPRITE")) return VFLG_FLIPSPRITE;
+            if (name->Equals("GUIMAGIC")) return GUIMAGIC;
+            if (name->Equals("SAVEBUFFERSIZE")) return SAVEBUFFERSIZE;
+            if (name->Equals("GUIMAIN_NOCLICK")) return (int)Common::kGUIMain_NoClick;
+            if (name->Equals("GUIF_CLIP")) return GUIF_CLIP;
+            if (name->Equals("GUIF_TRANSLATED")) return GUIF_TRANSLATED;
+            if (name->Equals("GLF_NOBORDER")) return GLF_NOBORDER;
+            if (name->Equals("GLF_NOARROWS")) return GLF_NOARROWS;
+            if (name->Equals("GUI_POPUP_MODAL")) return (int)Common::kGUIPopupModal;
+            if (name->Equals("GUIMAIN_TEXTWINDOW")) return (int)Common::kGUIMain_TextWindow;
+            if (name->Equals("GUIMAIN_LEGACYTEXTWINDOW")) return (int)Common::kGUIMain_LegacyTextWindow;
+            if (name->Equals("GTF_NOBORDER")) return GTF_NOBORDER;
+            if (name->Equals("MAX_GUILABEL_TEXT_LEN")) return MAX_GUILABEL_TEXT_LEN;
+            if (name->Equals("MAX_GUIOBJ_SCRIPTNAME_LEN")) return MAX_GUIOBJ_SCRIPTNAME_LEN;
+            if (name->Equals("MAX_GUIOBJ_EVENTHANDLER_LEN")) return MAX_GUIOBJ_EVENTHANDLER_LEN;
+            if (name->Equals("GOBJ_BUTTON")) return (int)Common::kGUIButton;
+            if (name->Equals("GOBJ_LABEL")) return (int)Common::kGUILabel;
+            if (name->Equals("GOBJ_INVENTORY")) return (int)Common::kGUIInvWindow;
+            if (name->Equals("GOBJ_SLIDER")) return (int)Common::kGUISlider;
+            if (name->Equals("GOBJ_TEXTBOX")) return (int)Common::kGUITextBox;
+            if (name->Equals("GOBJ_LISTBOX")) return (int)Common::kGUIListBox;
+            if (name->Equals("TEXTWINDOW_PADDING_DEFAULT")) return TEXTWINDOW_PADDING_DEFAULT;
+            if (name->Equals("GUI_VERSION_CURRENT")) return (int)kGuiVersion_Current;
+            if (name->Equals("OPT_DEBUGMODE")) return OPT_DEBUGMODE;
+            if (name->Equals("OPT_WALKONLOOK")) return OPT_WALKONLOOK;
+            if (name->Equals("OPT_DIALOGIFACE")) return OPT_DIALOGIFACE;
+            if (name->Equals("OPT_ANTIGLIDE")) return OPT_ANTIGLIDE;
+            if (name->Equals("OPT_TWCUSTOM")) return OPT_TWCUSTOM;
+            if (name->Equals("OPT_DIALOGGAP")) return OPT_DIALOGGAP;
+            if (name->Equals("OPT_NOSKIPTEXT")) return OPT_NOSKIPTEXT;
+            if (name->Equals("OPT_DISABLEOFF")) return OPT_DISABLEOFF;
+            if (name->Equals("OPT_ALWAYSSPCH")) return OPT_ALWAYSSPCH;
+            if (name->Equals("OPT_SPEECHTYPE")) return OPT_SPEECHTYPE;
+            if (name->Equals("OPT_PIXPERFECT")) return OPT_PIXPERFECT;
+            if (name->Equals("OPT_NOWALKMODE")) return OPT_NOWALKMODE;
+            if (name->Equals("OPT_LETTERBOX")) return OPT_LETTERBOX;
+            if (name->Equals("OPT_FIXEDINVCURSOR")) return OPT_FIXEDINVCURSOR;
+            if (name->Equals("OPT_NOSCALEFNT")) return OPT_NOSCALEFNT;
+            if (name->Equals("OPT_SPLITRESOURCES")) return OPT_SPLITRESOURCES;
+            if (name->Equals("OPT_ROTATECHARS")) return OPT_ROTATECHARS;
+            if (name->Equals("OPT_FADETYPE")) return OPT_FADETYPE;
+            if (name->Equals("OPT_HANDLEINVCLICKS")) return OPT_HANDLEINVCLICKS;
+            if (name->Equals("OPT_MOUSEWHEEL")) return OPT_MOUSEWHEEL;
+            if (name->Equals("OPT_DIALOGNUMBERED")) return OPT_DIALOGNUMBERED;
+            if (name->Equals("OPT_DIALOGUPWARDS")) return OPT_DIALOGUPWARDS;
+            if (name->Equals("OPT_ANTIALIASFONTS")) return OPT_ANTIALIASFONTS;
+            if (name->Equals("OPT_THOUGHTGUI")) return OPT_THOUGHTGUI;
+            if (name->Equals("OPT_TURNTOFACELOC")) return OPT_TURNTOFACELOC;
+            if (name->Equals("OPT_RIGHTLEFTWRITE")) return OPT_RIGHTLEFTWRITE;
+            if (name->Equals("OPT_DUPLICATEINV")) return OPT_DUPLICATEINV;
+            if (name->Equals("OPT_SAVESCREENSHOT")) return OPT_SAVESCREENSHOT;
+            if (name->Equals("OPT_PORTRAITSIDE")) return OPT_PORTRAITSIDE;
+            if (name->Equals("OPT_STRICTSCRIPTING")) return OPT_STRICTSCRIPTING;
+            if (name->Equals("OPT_LEFTTORIGHTEVAL")) return OPT_LEFTTORIGHTEVAL;
+            if (name->Equals("OPT_COMPRESSSPRITES")) return OPT_COMPRESSSPRITES;
+            if (name->Equals("OPT_STRICTSTRINGS")) return OPT_STRICTSTRINGS;
+            if (name->Equals("OPT_NEWGUIALPHA")) return OPT_NEWGUIALPHA;
+            if (name->Equals("OPT_RUNGAMEDLGOPTS")) return OPT_RUNGAMEDLGOPTS;
+            if (name->Equals("OPT_NATIVECOORDINATES")) return OPT_NATIVECOORDINATES;
+            if (name->Equals("OPT_GLOBALTALKANIMSPD")) return OPT_GLOBALTALKANIMSPD;
+            if (name->Equals("OPT_SPRITEALPHA")) return OPT_SPRITEALPHA;
+            if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
+            return nullptr;
+        }
 	}
 }

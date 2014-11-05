@@ -774,6 +774,7 @@
     <Compile Include="Components\StatisticsSenderComponent.cs" />
     <Compile Include="Components\TranslationsComponent.cs" />
     <Compile Include="Components\WelcomeComponent.cs" />
+    <Compile Include="DataFileWriter.cs" />
     <Compile Include="Debugger\DebugController.cs" />
     <Compile Include="Debugger\IEngineCommunication.cs" />
     <Compile Include="Debugger\NamedPipesEngineCommunication.cs" />
@@ -932,6 +933,7 @@
       <DependentUpon>WelcomePane.cs</DependentUpon>
     </Compile>
     <Compile Include="Plugins\EditorPlugin.cs" />
+    <Compile Include="Utils\NativeConstants.cs" />
     <Compile Include="Utils\SpriteUsageChecker.cs" />
     <Compile Include="Tasks.cs" />
     <Compile Include="TextProcessing\BaseTextProcess.cs" />

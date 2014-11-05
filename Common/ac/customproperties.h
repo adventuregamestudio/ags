@@ -19,6 +19,7 @@ namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 #define MAX_CUSTOM_PROPERTIES 30
+#define MAX_CUSTOM_PROPERTY_NAME_LENGTH 200 // was literal in agsnative.cpp
 #define MAX_CUSTOM_PROPERTY_VALUE_LENGTH 500
 #define PROP_TYPE_BOOL   1
 #define PROP_TYPE_INT    2

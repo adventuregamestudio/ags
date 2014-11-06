@@ -763,6 +763,7 @@
     <Compile Include="AutoComplete.cs" />
     <Compile Include="BuildTargets\BuildTargetBase.cs" />
     <Compile Include="BuildTargets\BuildTargetDataFile.cs" />
+    <Compile Include="BuildTargets\BuildTargetDebug.cs" />
     <Compile Include="BuildTargets\BuildTargetWindows.cs" />
     <Compile Include="ComponentController.cs" />
     <Compile Include="Components\AudioComponent.cs" />

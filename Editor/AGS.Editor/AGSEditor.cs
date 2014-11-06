@@ -130,6 +130,7 @@ namespace AGS.Editor
             _editorExePath = Process.GetCurrentProcess().MainModule.FileName;
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDataFile());
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetWindows());
+            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDebug());
         }
 
         public Game CurrentGame
@@ -161,14 +162,6 @@ namespace AGS.Editor
         {
             get { return Path.GetFileName(this.GameDirectory); }
         }
-
-		private string DebugEXEFileName
-		{
-			get
-			{
-				return Path.Combine(DEBUG_OUTPUT_DIRECTORY, this.BaseGameFileName + ".exe");
-			}
-		}
 
         public Script BuiltInScriptHeader
         {
@@ -956,23 +949,6 @@ namespace AGS.Editor
             {
                 ExtraOutputCreationStep();
             }
-            
-            return null;
-        }
-
-        private object CreateDebugFiles(object parameter)
-        {
-            SetMODMusicFlag();
-            if (!_preferences.UseLegacyCompiler) DataFileWriter.SaveThisGameToFile(COMPILED_DTA_FILE_NAME, _game);
-            else Factory.NativeProxy.CompileGameToDTAFile(_game, COMPILED_DTA_FILE_NAME);
-            Factory.NativeProxy.CreateDebugMiniEXE(new string[] { COMPILED_DTA_FILE_NAME }, this.BaseGameFileName + ".exe");
-            File.Delete(COMPILED_DTA_FILE_NAME);
-
-            if (ExtraOutputCreationStep != null)
-            {
-                ExtraOutputCreationStep();
-            }
-
             return null;
         }
 
@@ -1200,14 +1176,9 @@ namespace AGS.Editor
 				}
 				else if (!errors.HasErrors)
 				{
-					string sourceEXE = Path.Combine(this.EditorDirectory, ENGINE_EXE_FILE_NAME);
-					if (!File.Exists(sourceEXE))
+					if (createMiniExeForDebug)
 					{
-						errors.Add(new CompileError("Cannot find the file '" + sourceEXE + "'. This file is required in order to compile your game."));
-					}
-					else if (createMiniExeForDebug)
-					{
-						CreateMiniEXEForDebugging(sourceEXE, errors);
+						CreateMiniEXEForDebugging(errors);
 					}
 					else
 					{
@@ -1228,37 +1199,13 @@ namespace AGS.Editor
         /// in order to improve compile speed.
         /// All other files will be sourced from the game folder.
         /// </summary>
-        private void CreateMiniEXEForDebugging(string sourceEXE, CompileMessages errors)
+        private void CreateMiniEXEForDebugging(CompileMessages errors)
         {
-            try
+            IBuildTarget target = BuildTargetsInfo.FindBuildTargetByName(BuildTargetDebug.DEBUG_TARGET_NAME);
+            target.Build(errors, false);
+            if (ExtraOutputCreationStep != null)
             {
-                if (!Directory.Exists(DEBUG_OUTPUT_DIRECTORY))
-                {
-                    Directory.CreateDirectory(DEBUG_OUTPUT_DIRECTORY);
-                }
-				Utilities.DeleteFileIfExists(this.BaseGameFileName + ".exe");
-                File.Copy(sourceEXE, this.BaseGameFileName + ".exe", true);
-
-                BusyDialog.Show("Please wait while we prepare to run the game...", new BusyDialog.ProcessingHandler(CreateDebugFiles), null);
-
-				Utilities.DeleteFileIfExists(this.DebugEXEFileName);
-				File.Move(this.BaseGameFileName + ".exe", this.DebugEXEFileName);
-
-                // copy configuration from Compiled folder to use with Debugging
-                string cfgFilePath = Path.Combine(OUTPUT_DIRECTORY, CONFIG_FILE_NAME);
-                if (File.Exists(cfgFilePath))
-                {
-                    File.Copy(cfgFilePath, Path.Combine(DEBUG_OUTPUT_DIRECTORY, CONFIG_FILE_NAME), true);
-                }
-
-                foreach (Plugin plugin in _game.Plugins)
-                {
-                    File.Copy(Path.Combine(this.EditorDirectory, plugin.FileName), Path.Combine(DEBUG_OUTPUT_DIRECTORY, plugin.FileName), true);
-                }
-            }
-            catch (Exception ex)
-            {
-                errors.Add(new CompileError("Unexpected error: " + ex.Message));
+                ExtraOutputCreationStep();
             }
         }
 

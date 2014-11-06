@@ -30,7 +30,7 @@ namespace AGS.Types
         {
             return base.EditValueHelper(context, provider, string.Format("{0}{1}{2}", BuildTargetsInfo.DATAFILE_TARGET_NAME,
                 StringListUIEditor.Separators[0], value.ToString()),
-                new List<string>(BuildTargetsInfo.GetRegisteredBuildTargetNames(true)));
+                new List<string>(BuildTargetsInfo.GetAvailableBuildTargetNames()));
         }
     }
 }

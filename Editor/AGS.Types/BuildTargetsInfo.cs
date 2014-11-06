@@ -58,6 +58,35 @@ namespace AGS.Types
         }
 
         /// <summary>
+        /// Returns a list of the registered build targets which are
+        /// currently available for building.
+        /// </summary>
+        public static IList<IBuildTarget> GetAvailableBuildTargets()
+        {
+            IList<IBuildTarget> targets = GetRegisteredBuildTargets(true);
+            List<IBuildTarget> result = new List<IBuildTarget>(targets);
+            foreach (IBuildTarget target in targets)
+            {
+                if (!target.IsAvailable) result.Remove(target);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Returns a list of the names of all available build targets.
+        /// </summary>
+        public static string[] GetAvailableBuildTargetNames()
+        {
+            IList<IBuildTarget> targets = GetAvailableBuildTargets();
+            string[] names = new string[targets.Count];
+            for (int i = 0; i < targets.Count; ++i)
+            {
+                names[i] = targets[i].Name;
+            }
+            return names;
+        }
+
+        /// <summary>
         /// Returns a list of the names of all registered build targets.
         /// </summary>
         public static string[] GetRegisteredBuildTargetNames(bool onlyNormalTargets)

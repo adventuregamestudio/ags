@@ -275,6 +275,7 @@
     <Compile Include="PropertyGridExtras\AudioClipTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\AudioClipTypeTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\BaseListSelectTypeConverter.cs" />
+    <Compile Include="PropertyGridExtras\BuildTargetUIEditor.cs" />
     <Compile Include="PropertyGridExtras\CustomResolutionTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\CustomResolutionUIEditor.cs" />
     <Compile Include="PropertyGridExtras\FontTypeConverter.cs" />

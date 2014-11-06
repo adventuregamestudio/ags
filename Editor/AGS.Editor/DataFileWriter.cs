@@ -287,7 +287,7 @@ namespace AGS.Editor
             {
                 if (makeFileNameAssumptionsForEXE)
                 {
-                    ourlib.DataFilenames.Add(baseFileName + "." + (i == 0 ? "exe" : i.ToString("D3")));
+                    ourlib.DataFilenames.Add(baseFileName + "." + i.ToString("D3"));
                 }
                 else
                 {
@@ -321,7 +321,7 @@ namespace AGS.Editor
                 }
                 if (i == 0) firstDataFileFullPath = outputFileName;
                 using (Stream wout = TryFileOpen(outputFileName,
-                    (i == 0 ? FileMode.Append : FileMode.Create), FileAccess.Write))
+                    (makeFileNameAssumptionsForEXE ? FileMode.Create : FileMode.Append), FileAccess.Write))
                 {
                     if (wout == null) return "ERROR: unable to open file for writing";
                     BinaryWriter writer = new BinaryWriter(wout);

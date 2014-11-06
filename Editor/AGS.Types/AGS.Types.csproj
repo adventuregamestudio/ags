@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -239,6 +239,7 @@
     <Compile Include="Attributes\DeserializeIgnoreAttribute.cs" />
     <Compile Include="AudioClipType.cs" />
     <Compile Include="BaseFolderCollection.cs" />
+    <Compile Include="BuildTargetsInfo.cs" />
     <Compile Include="Enums\BuildConfiguration.cs" />
     <Compile Include="Enums\SpriteAlphaStyle.cs" />
     <Compile Include="HelperTypes\BindingListWithRemoving.cs" />
@@ -259,6 +260,7 @@
     <Compile Include="Interfaces\Docking\IDockingPane.cs" />
     <Compile Include="Interfaces\Docking\IDockingPanel.cs" />
     <Compile Include="Interfaces\Docking\IFloatWindow.cs" />
+    <Compile Include="Interfaces\IBuildTarget.cs" />
     <Compile Include="Interfaces\IColorMapper.cs" />
     <Compile Include="Interfaces\Docking\IDockingContainer.cs" />
     <Compile Include="Interfaces\IGlobalVariablesController.cs" />

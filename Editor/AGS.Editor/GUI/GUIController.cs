@@ -981,7 +981,7 @@ namespace AGS.Editor
                     _agsEditor.CurrentGame.Settings.SaveGameFolderName = newGameName;
                     _agsEditor.CurrentGame.Settings.GenerateNewGameID();
                     Factory.GUIController.GameNameUpdated();
-                    _agsEditor.CurrentGame.Settings.LastBuildConfiguration = _agsEditor.CurrentGame.Settings.DebugMode ? BuildConfiguration.Debug : BuildConfiguration.Release;
+                    _agsEditor.CurrentGame.WorkspaceState.LastBuildConfiguration = _agsEditor.CurrentGame.Settings.DebugMode ? BuildConfiguration.Debug : BuildConfiguration.Release;
                     if (_agsEditor.SaveGameFiles())
                     {
                         // Force a rebuild to remove the key in the room

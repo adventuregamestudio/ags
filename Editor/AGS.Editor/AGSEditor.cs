@@ -600,16 +600,12 @@ namespace AGS.Editor
                 }
                 int? versionIndex = null;
                 XmlAttribute versionIndexNode = doc.DocumentElement.Attributes[XML_ATTRIBUTE_VERSION_INDEX];
-                if ((versionIndexNode == null) && (fileVersion == LATEST_XML_VERSION))
-                {
-                    throw new AGSEditorException("Invalid format game data file");
-                }
-                else if (versionIndexNode != null)
+                if (versionIndexNode != null)
                 {
                     // From 3.0.2.1 we switched to a simple integer version, it's easier to
                     // compare than using the 4-point version
                     versionIndex = Convert.ToInt32(versionIndexNode.InnerText);
-                    if ((versionIndex < 1) || (versionIndex > LATEST_XML_VERSION_INDEX))
+                    if ((versionIndex < 1) || (versionIndex > LATEST_USER_DATA_XML_VERSION_INDEX))
                     {
                         throw new AGSEditorException("This game's user data file is from " +
                             ((userDataSavedWithEditorVersion == null) ? "a newer version" : ("version " + userDataSavedWithEditorVersion))

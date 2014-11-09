@@ -55,45 +55,14 @@ namespace AGS.Editor
             {
                 string baseGameFileName = Factory.AGSEditor.BaseGameFileName;
                 string exeFileName = baseGameFileName + ".exe";
-                string compiledEXE = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, exeFileName);
+                string compiledEXE = Path.Combine(Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
+                    BuildTargetWindows.WINDOWS_DIRECTORY), exeFileName);
                 string sourceEXE = Path.Combine(Factory.AGSEditor.EditorDirectory, AGSEditor.ENGINE_EXE_FILE_NAME);
-                if (Factory.AGSEditor.Preferences.UseLegacyCompiler)
-                {
-                    Utilities.DeleteFileIfExists(compiledEXE);
-                    File.Copy(sourceEXE, compiledEXE, true);
-                }
+                Utilities.DeleteFileIfExists(compiledEXE);
+                File.Copy(sourceEXE, exeFileName, true);
                 BusyDialog.Show("Please wait while we prepare to run the game...", new BusyDialog.ProcessingHandler(CreateDebugFiles), null);
-                if (Factory.AGSEditor.Preferences.UseLegacyCompiler)
-                {
-                    Utilities.DeleteFileIfExists(GetDebugPath(exeFileName));
-                    File.Move(compiledEXE, GetDebugPath(exeFileName));
-                }
-                else
-                {
-                    File.Copy(sourceEXE, GetDebugPath(exeFileName), true);
-                    using (FileStream ostream = File.Open(GetDebugPath(exeFileName), FileMode.Append, FileAccess.Write))
-                    {
-                        int startPosition = (int)ostream.Position;
-                        string firstDataFile = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, baseGameFileName + ".000");
-                        if (File.Exists(firstDataFile))
-                        {
-                            using (FileStream istream = File.Open(firstDataFile, FileMode.Open, FileAccess.Read))
-                            {
-                                byte[] buffer = new byte[4096];
-                                for (int count = istream.Read(buffer, 0, 4096); count > 0;
-                                    count = istream.Read(buffer, 0, 4096))
-                                {
-                                    ostream.Write(buffer, 0, count);
-                                }
-                            }
-                            // write the offset into the EXE where the first data file resides
-                            ostream.Write(BitConverter.GetBytes(startPosition), 0, 4);
-                            // write the CLIB end signature so the engine knows this is a valid EXE
-                            ostream.Write(Encoding.UTF8.GetBytes(NativeConstants.CLIB_END_SIGNATURE.ToCharArray()), 0,
-                                NativeConstants.CLIB_END_SIGNATURE.Length);
-                        }
-                    }
-                }
+                Utilities.DeleteFileIfExists(GetDebugPath(exeFileName));
+                File.Move(exeFileName, GetDebugPath(exeFileName));
                 // copy configuration from Compiled folder to use with Debugging
                 string cfgFilePath = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.CONFIG_FILE_NAME);
                 if (File.Exists(cfgFilePath))

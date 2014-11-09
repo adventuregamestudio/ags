@@ -59,12 +59,13 @@ namespace AGS.Editor
          * of clear "wrong version of AGS" message.
         */
         /*
-         * 6: 3.2.1
-         * 7: 3.2.2
-         * 8: 3.3.1.1163 - Settings.LastBuildConfiguration;
-         * 9: 3.4.0.1    - Settings.CustomResolution
+         *  6: 3.2.1
+         *  7: 3.2.2
+         *  8: 3.3.1.1163 - Settings.LastBuildConfiguration;
+         *  9: 3.4.0.1    - Settings.CustomResolution
+         * 10: 3.4.0.2    - Settings.BuildTargets
         */
-        public const int    LATEST_XML_VERSION_INDEX = 9;
+        public const int    LATEST_XML_VERSION_INDEX = 10;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

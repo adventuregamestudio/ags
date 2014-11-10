@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -761,6 +761,11 @@
     <Compile Include="Audio\IAudioPreviewer.cs" />
     <Compile Include="Audio\IrrklangPlayer.cs" />
     <Compile Include="AutoComplete.cs" />
+    <Compile Include="BuildTargets\BuildTargetBase.cs" />
+    <Compile Include="BuildTargets\BuildTargetDataFile.cs" />
+    <Compile Include="BuildTargets\BuildTargetDebug.cs" />
+    <Compile Include="BuildTargets\BuildTargetLinux.cs" />
+    <Compile Include="BuildTargets\BuildTargetWindows.cs" />
     <Compile Include="ComponentController.cs" />
     <Compile Include="Components\AudioComponent.cs" />
     <Compile Include="Components\BaseComponent.cs" />

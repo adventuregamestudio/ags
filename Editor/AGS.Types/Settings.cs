@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -17,6 +18,7 @@ namespace AGS.Types
         public const string PROPERTY_SCALE_FONTS = "Fonts designed for 640x480";
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_LETTERBOX_MODE = "Enable letterbox mode";
+        public const string PROPERTY_BUILD_TARGETS = "Build target platforms";
 		public const string REGEX_FOUR_PART_VERSION = @"^(\d+)\.(\d+)\.(\d+)\.(\d+)$";
 
 		private const string DEFAULT_GENRE = "Adventure";
@@ -93,6 +95,38 @@ namespace AGS.Types
 		private bool _enhancedSaveGames = false;
         private string _saveGamesFolderName = string.Empty;
         private int _audioIndexer = 0;
+        private string _buildTargets = GetBuildTargetsString(BuildTargetsInfo.GetAvailableBuildTargetNames(), false);
+
+        /// <summary>
+        /// Helper function to validate the BuildTargets string. Excludes data file target
+        /// from the string unless it is the only target, and optionally checks that the
+        /// targets are available for building.
+        /// </summary>
+        private static string GetBuildTargetsString(string[] targets, bool checkAvailable)
+        {
+            if (targets.Length == 0) return BuildTargetsInfo.DATAFILE_TARGET_NAME;
+            List<string> availableTargets = null; // only retrieve available targets on request
+            if (checkAvailable) availableTargets = new List<string>(BuildTargetsInfo.GetAvailableBuildTargetNames());
+            List<string> resultTargetList = new List<string>(targets.Length);
+            foreach (string targ in targets)
+            {
+                if ((!checkAvailable) || (availableTargets.Contains(targ)))
+                {
+                    // only include data file target if it is the only target
+                    if ((targ != BuildTargetsInfo.DATAFILE_TARGET_NAME) || (targets.Length == 1))
+                    {
+                        resultTargetList.Add(targ);
+                    }
+                }
+            }
+            return string.Join(BuildTargetUIEditor.Separators[0], resultTargetList.ToArray());
+        }
+
+        private static string GetBuildTargetsString(string targetList, bool checkAvailable)
+        {
+            return GetBuildTargetsString(targetList.Split(BuildTargetUIEditor.Separators,
+                StringSplitOptions.RemoveEmptyEntries), checkAvailable);
+        }
 
 		public void GenerateNewGameID()
 		{
@@ -904,6 +938,20 @@ namespace AGS.Types
         {
             get { return _audioIndexer; }
             set { _audioIndexer = value; }
+        }
+
+        [DisplayName(PROPERTY_BUILD_TARGETS)]
+        [Description("Sets the platforms to compile your game for.")]
+        [Category("Compiler")]
+        [Editor(typeof(BuildTargetUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public string BuildTargets
+        {
+            get { return _buildTargets; }
+
+            set
+            {
+                _buildTargets = GetBuildTargetsString(value, true);
+            }
         }
 
         public void ToXml(XmlTextWriter writer)

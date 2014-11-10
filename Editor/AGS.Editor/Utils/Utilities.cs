@@ -7,6 +7,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
 using System.Windows.Forms;
 
@@ -83,7 +85,7 @@ namespace AGS.Editor
 
         public static void EnsureStandardSubFoldersExist()
         {
-            string[] foldersToCreate = { "Speech", AudioClip.AUDIO_CACHE_DIRECTORY, "Compiled" };
+            List<string> foldersToCreate = new List<string> { "Speech", AudioClip.AUDIO_CACHE_DIRECTORY, "Compiled" };
             foreach (string folderName in foldersToCreate)
             {
                 if (!Directory.Exists(folderName))
@@ -400,6 +402,77 @@ namespace AGS.Editor
             DestroyIcon(UnmanagedIconHandle);
 
             return icon;
+        }
+
+        /// <summary>
+        /// Sets security permissions for the file, allowing modification from the "users" group.
+        /// </summary>
+        public static void SetFileAccessAllowUsersToModify(string fileName)
+        {
+            FileSecurity fsec = File.GetAccessControl(fileName);
+            fsec.AddAccessRule
+            (
+                new FileSystemAccessRule
+                (
+                    new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null),
+                    FileSystemRights.Modify,
+                    AccessControlType.Allow
+                )
+            );
+            File.SetAccessControl(fileName, fsec);
+        }
+
+        public static bool CreateHardLink(string destFileName, string sourceFileName)
+        {
+            return CreateHardLink(destFileName, sourceFileName, false);
+        }
+
+        public static bool CreateHardLink(string destFileName, string sourceFileName, bool overwrite)
+        {
+            if (File.Exists(destFileName))
+            {
+                if (overwrite) File.Delete(destFileName);
+                else return false;
+            }
+            List<char> invalidFileNameChars = new List<char>(Path.GetInvalidFileNameChars());
+            if (Path.GetFileName(destFileName).IndexOfAny(invalidFileNameChars.ToArray()) != -1)
+            {
+                throw new ArgumentException("Cannot create hard link! Invalid destination file name. (" + destFileName + ")");
+            }
+            if (Path.GetFileName(sourceFileName).IndexOfAny(invalidFileNameChars.ToArray()) != -1)
+            {
+                throw new ArgumentException("Cannot create hard link! Invalid source file name. (" + sourceFileName + ")");
+            }
+            if (!File.Exists(sourceFileName))
+            {
+                throw new FileNotFoundException("Cannot create hard link! Source file does not exist.");
+            }
+            ProcessStartInfo si = new ProcessStartInfo("cmd.exe");
+            si.RedirectStandardInput = false;
+            si.RedirectStandardOutput = false;
+            si.RedirectStandardError = false;
+            si.UseShellExecute = false;
+            si.Arguments = string.Format("/c mklink /h \"{0}\" \"{1}\"", destFileName, sourceFileName);
+            si.CreateNoWindow = true;
+            si.WindowStyle = ProcessWindowStyle.Hidden;
+            if (IsMonoRunning())
+            {
+                si.FileName = "ln";
+                si.Arguments = string.Format("\"{0}\" \"{1}\"", sourceFileName, destFileName);
+            }
+            Process process = Process.Start(si);
+            bool result = (process != null);
+            if (result)
+            {
+                process.EnableRaisingEvents = true;
+                process.WaitForExit();
+                if (process.ExitCode != 0) return false;
+                process.Close();
+                // by default the new hard link will be accessible to the current user only
+                // instead, we'll change it to be accessible to the entire "Users" group
+                SetFileAccessAllowUsersToModify(destFileName);
+            }
+            return result;
         }
     }
 }

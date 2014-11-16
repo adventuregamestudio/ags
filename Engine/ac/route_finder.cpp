@@ -570,10 +570,6 @@ int __find_route(int srcx, int srcy, short *tox, short *toy, int noredx)
   if ((noredx == 0) && (wallscreen->GetPixel(tox[0], toy[0]) == 0))
     return 0; // clicked on a wall
 
-  int is_straight = 0;
-  if ((srcx - tox[0] == 0) || (srcy - toy[0] == 0) || (abs(srcx - tox[0]) == abs(srcy - toy[0])))
-    is_straight = 1;
-
   pathbackstage = 0;
 
   if (leftorright == 0) {
@@ -600,9 +596,8 @@ findroutebk:
       return 0;
   }
 
-  if (is_straight)
-    ;            // don't use new algo on arrow key presses
-  else if (find_route_dijkstra(srcx, srcy, tox[0], toy[0])) {
+  // Try the new pathfinding algorithm
+  if (find_route_dijkstra(srcx, srcy, tox[0], toy[0])) {
     return 1;
   }
 

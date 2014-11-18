@@ -431,6 +431,8 @@ builtin managed struct Room {
   import static String GetTextProperty(const string property);
   /// Gets a drawing surface that allows you to manipulate the room background.
   import static DrawingSurface* GetDrawingSurfaceForBackground(int backgroundNumber=SCR_NO_VALUE);
+  /// Performs default processing of a mouse click at the specified co-ordinates.
+  import static void ProcessClick(int x, int y, CursorMode);
   /// Gets the Y co-ordinate of the bottom edge of the room.
   readonly import static attribute int BottomEdge;
   /// Gets the colour depth of the room background.
@@ -572,8 +574,10 @@ import void DisplayMessageBar(int y, int textColor, int backColor, const string 
 import void ResetRoom(int roomNumber);
 /// Checks whether the player has been in the specified room yet.
 import int  HasPlayerBeenInRoom(int roomNumber);
+#ifndef STRICT
 /// Performs default processing of a mouse click at the specified co-ordinates.
 import void ProcessClick(int x, int y, CursorMode);
+#endif
 /// Exits the game with an error message.
 import void AbortGame(const string message, ...);
 /// Quits the game, optionally showing a confirmation dialog.

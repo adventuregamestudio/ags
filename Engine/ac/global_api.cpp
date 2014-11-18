@@ -1216,12 +1216,6 @@ RuntimeScriptValue Sc_scrPlayVideo(const RuntimeScriptValue *params, int32_t par
     API_SCALL_VOID_POBJ_PINT2(scrPlayVideo, const char);
 }
 
-// void (int xx,int yy,int mood)
-RuntimeScriptValue Sc_ProcessClick(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT3(ProcessClick);
-}
-
 // void (int dialog)
 RuntimeScriptValue Sc_QuitGame(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2488,7 +2482,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("PlaySoundEx",              Sc_PlaySoundEx);
 	ccAddExternalStaticFunction("PlaySpeech",               Sc_scr_play_speech);
 	ccAddExternalStaticFunction("PlayVideo",                Sc_scrPlayVideo);
-	ccAddExternalStaticFunction("ProcessClick",             Sc_ProcessClick);
 	ccAddExternalStaticFunction("QuitGame",                 Sc_QuitGame);
 	ccAddExternalStaticFunction("Random",                   Sc_Rand);
 	ccAddExternalStaticFunction("RawClearScreen",           Sc_RawClear);

@@ -1203,12 +1203,20 @@ RuntimeScriptValue Sc_Room_GetWidth(const RuntimeScriptValue *params, int32_t pa
     API_SCALL_INT(Room_GetWidth);
 }
 
+// void (int xx,int yy,int mood)
+RuntimeScriptValue Sc_ProcessClick(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT3(ProcessClick);
+}
+
 
 void RegisterRoomAPI()
 {
     ccAddExternalStaticFunction("Room::GetDrawingSurfaceForBackground^1",   Sc_Room_GetDrawingSurfaceForBackground);
     ccAddExternalStaticFunction("Room::GetProperty^1",                      Sc_Room_GetProperty);
     ccAddExternalStaticFunction("Room::GetTextProperty^1",                  Sc_Room_GetTextProperty);
+    ccAddExternalStaticFunction("Room::ProcessClick^3",                     Sc_ProcessClick);
+    ccAddExternalStaticFunction("ProcessClick",                             Sc_ProcessClick);
     ccAddExternalStaticFunction("Room::get_BottomEdge",                     Sc_Room_GetBottomEdge);
     ccAddExternalStaticFunction("Room::get_ColorDepth",                     Sc_Room_GetColorDepth);
     ccAddExternalStaticFunction("Room::get_Height",                         Sc_Room_GetHeight);

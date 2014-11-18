@@ -1,4 +1,4 @@
-﻿using AGS.Types;
+using AGS.Types;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -716,6 +716,7 @@ namespace AGS.Editor
                 }
                 foreach (View view in views)
                 {
+                    if (view == null) continue; // views are not always sequential, so we may have some null entries
                     short numLoops = (short)view.Loops.Count;
                     writer.Write(numLoops);
                     for (int i = 0; i < numLoops; ++i)

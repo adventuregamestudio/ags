@@ -1,4 +1,4 @@
-﻿using AGS.Types;
+using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -92,7 +92,8 @@ namespace AGS.Editor
             if (!base.Build(errors, forceRebuild)) return false;
             Factory.AGSEditor.SetMODMusicFlag();
             DeleteAnyExistingSplitResourceFiles();
-            DataFileWriter.SaveThisGameToFile(AGSEditor.COMPILED_DTA_FILE_NAME, Factory.AGSEditor.CurrentGame);
+            if (Factory.AGSEditor.Preferences.UseLegacyCompiler) Factory.NativeProxy.CompileGameToDTAFile(Factory.AGSEditor.CurrentGame, AGSEditor.COMPILED_DTA_FILE_NAME);
+            else DataFileWriter.SaveThisGameToFile(AGSEditor.COMPILED_DTA_FILE_NAME, Factory.AGSEditor.CurrentGame);
             Factory.NativeProxy.CreateGameEXE(ConstructFileListForEXE(), Factory.AGSEditor.CurrentGame, Factory.AGSEditor.BaseGameFileName);
             File.Delete(AGSEditor.COMPILED_DTA_FILE_NAME);
             CreateAudioVOXFile(forceRebuild);

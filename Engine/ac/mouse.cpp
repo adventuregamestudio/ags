@@ -21,6 +21,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_mouse.h"
+#include "ac/global_plugin.h"
 #include "ac/global_screen.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
@@ -501,12 +502,17 @@ RuntimeScriptValue Sc_Mouse_SetVisible(const RuntimeScriptValue *params, int32_t
     API_SCALL_VOID_PINT(Mouse_SetVisible);
 }
 
+RuntimeScriptValue Sc_Mouse_Click(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(PluginSimulateMouseClick);
+}
 
 void RegisterMouseAPI()
 {
     ccAddExternalStaticFunction("Mouse::ChangeModeGraphic^2",       Sc_ChangeCursorGraphic);
     ccAddExternalStaticFunction("Mouse::ChangeModeHotspot^3",       Sc_ChangeCursorHotspot);
     ccAddExternalStaticFunction("Mouse::ChangeModeView^2",          Sc_Mouse_ChangeModeView);
+    ccAddExternalStaticFunction("Mouse::Click^1",                   Sc_Mouse_Click);
     ccAddExternalStaticFunction("Mouse::DisableMode^1",             Sc_disable_cursor_mode);
     ccAddExternalStaticFunction("Mouse::EnableMode^1",              Sc_enable_cursor_mode);
     ccAddExternalStaticFunction("Mouse::GetModeGraphic^1",          Sc_Mouse_GetModeGraphic);

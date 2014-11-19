@@ -1547,6 +1547,8 @@ builtin managed struct GUI {
   import void Click(MouseButton);
   /// Gets the topmost GUI visible on the screen at the specified co-ordinates.
   import static GUI* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  /// Performs default processing of a mouse click at the specified co-ordinates.
+  import static void ProcessClick(int x, int y, MouseButton);
   /// Moves the GUI to have its top-left corner at the specified position.
   import void SetPosition(int x, int y);
   /// Changes the size of the GUI.

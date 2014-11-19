@@ -59,6 +59,7 @@ int numevents=0;
 char*evblockbasename;
 int evblocknum;
 
+int inside_processevent=0;
 int eventClaimed = EVENT_NONE;
 
 char*tsnames[4]={NULL, REP_EXEC_NAME, "on_key_press","on_mouse_click"};
@@ -139,6 +140,17 @@ void setevent(int evtyp,int ev1,int ev2,int ev3) {
     event[numevents].player=game.playercharacter;
     numevents++;
     if (numevents>=MAXEVENTS) quit("too many events posted");
+}
+
+// TODO: this is kind of a hack, which forces event to be processed even if
+// it was fired from insides of other event processing.
+// The proper solution would be to do the event processing overhaul in AGS.
+void force_event(int evtyp,int ev1,int ev2,int ev3)
+{
+    if (inside_processevent)
+        runevent_now(evtyp, ev1, ev2, ev3);
+    else
+        setevent(evtyp, ev1, ev2, ev3);
 }
 
 void process_event(EventHappened*evp) {
@@ -368,7 +380,6 @@ void runevent_now (int evtyp, int ev1, int ev2, int ev3) {
     process_event(&evh);
 }
 
-int inside_processevent=0;
 void processallevents(int numev,EventHappened*evlist) {
     int dd;
 

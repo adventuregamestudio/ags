@@ -24,6 +24,7 @@
 #include "ac/global_gui.h"
 #include "ac/global_inventoryitem.h"
 #include "ac/global_screen.h"
+#include "ac/guicontrol.h"
 #include "ac/interfacebutton.h"
 #include "ac/invwindow.h"
 #include "ac/mouse.h"
@@ -231,6 +232,23 @@ ScriptGUI *GetGUIAtLocation(int xx, int yy) {
 void GUI_Click(ScriptGUI *scgui, int mbut)
 {
     process_interface_click(scgui->id, -1, mbut);
+}
+
+void GUI_ProcessClick(int x, int y, int mbut)
+{
+    int guiid = gui_get_interactable(x, y);
+    if (guiid >= 0)
+    {
+        const int real_mousex = mousex;
+        const int real_mousey = mousey;
+        mousex = x;
+        mousey = y;
+        guis[guiid].Poll();
+        gui_on_mouse_down(guiid, mbut);
+        gui_on_mouse_up(guiid, mbut);
+        mousex = real_mousex;
+        mousey = real_mousey;
+    }
 }
 
 //=============================================================================
@@ -503,6 +521,13 @@ void recreate_guibg_image(GUIMain *tehgui)
 
 extern int is_complete_overlay;
 
+int gui_get_interactable(int x,int y)
+{
+    if ((game.options[OPT_DISABLEOFF]==3) && (all_buttons_disabled > 0))
+        return -1;
+    return GetGUIAt(x, y);
+}
+
 int gui_on_mouse_move()
 {
     int mouse_over_gui = -1;
@@ -542,7 +567,7 @@ void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
         if (guis[wasongui].GetControlType(i)!=kGUISlider) continue;
         // GUI Slider repeatedly activates while being dragged
         guis[wasongui].Controls[i]->activated=0;
-        setevent(EV_IFACECLICK, wasongui, i, wasbutdown);
+        force_event(EV_IFACECLICK, wasongui, i, wasbutdown);
         break;
     }
 }
@@ -558,7 +583,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown)
 
         int cttype=guis[wasongui].GetControlType(i);
         if ((cttype == kGUIButton) || (cttype == kGUISlider) || (cttype == kGUIListBox)) {
-            setevent(EV_IFACECLICK, wasongui, i, wasbutdown);
+            force_event(EV_IFACECLICK, wasongui, i, wasbutdown);
         }
         else if (cttype == kGUIInvWindow) {
             mouse_ifacebut_xoffs=mousex-(guis[wasongui].Controls[i]->x)-guis[wasongui].X;
@@ -570,7 +595,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown)
                 if (game.options[OPT_HANDLEINVCLICKS]) {
                     // Let the script handle the click
                     // LEFTINV is 5, RIGHTINV is 6
-                    setevent(EV_TEXTSCRIPT,TS_MCLICK, wasbutdown + 4);
+                    force_event(EV_TEXTSCRIPT,TS_MCLICK, wasbutdown + 4);
                 }
                 else if (wasbutdown==2)  // right-click is always Look
                     run_event_block_inv(iit, 0);
@@ -596,7 +621,7 @@ void gui_on_mouse_down(const int guin, const int mbut)
     guis[guin].OnMouseButtonDown();
     // run GUI click handler if not on any control
     if ((guis[guin].MouseDownCtrl < 0) && (!guis[guin].OnClickHandler.IsEmpty()))
-        setevent(EV_IFACECLICK, guin, -1, mbut);
+        force_event(EV_IFACECLICK, guin, -1, mbut);
 
     run_on_event(GE_GUI_MOUSEDOWN, RuntimeScriptValue().SetInt32(guin));
 }
@@ -766,11 +791,17 @@ RuntimeScriptValue Sc_GUI_Click(void *self, const RuntimeScriptValue *params, in
     API_OBJCALL_VOID_PINT(ScriptGUI, GUI_Click);
 }
 
+RuntimeScriptValue Sc_GUI_ProcessClick(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT3(GUI_ProcessClick);
+}
+
 void RegisterGUIAPI()
 {
     ccAddExternalObjectFunction("GUI::Centre^0",                Sc_GUI_Centre);
     ccAddExternalObjectFunction("GUI::Click^1",                 Sc_GUI_Click);
     ccAddExternalStaticFunction("GUI::GetAtScreenXY^2",         Sc_GetGUIAtLocation);
+    ccAddExternalStaticFunction("GUI::ProcessClick^3",          Sc_GUI_ProcessClick);
     ccAddExternalObjectFunction("GUI::SetPosition^2",           Sc_GUI_SetPosition);
     ccAddExternalObjectFunction("GUI::SetSize^2",               Sc_GUI_SetSize);
     ccAddExternalObjectFunction("GUI::get_BackgroundGraphic",   Sc_GUI_GetBackgroundGraphic);

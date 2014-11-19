@@ -58,6 +58,7 @@ void run_room_event(int id);
 void run_event_block_inv(int invNum, int event);
 // event list functions
 void setevent(int evtyp,int ev1=0,int ev2=-1000,int ev3=0);
+void force_event(int evtyp,int ev1=0,int ev2=-1000,int ev3=0);
 void process_event(EventHappened*evp);
 void runevent_now (int evtyp, int ev1, int ev2, int ev3);
 void processallevents(int numev,EventHappened*evlist);

@@ -48,7 +48,7 @@ int ExecutingScript::queue_action(PostScriptAction act, int data, const char *an
     return numPostScriptActions - 1;
 }
 
-void ExecutingScript::run_another (char *namm, RuntimeScriptValue &p1, RuntimeScriptValue &p2) {
+void ExecutingScript::run_another(const char *namm, ScriptInstType scinst, size_t param_count, const RuntimeScriptValue &p1, const RuntimeScriptValue &p2) {
     if (numanother < MAX_QUEUED_SCRIPTS)
         numanother++;
     else {
@@ -57,9 +57,12 @@ void ExecutingScript::run_another (char *namm, RuntimeScriptValue &p1, RuntimeSc
         run_another_p2[numanother - 1]);*/
     }
     int thisslot = numanother - 1;
-    strncpy(script_run_another[thisslot], namm, MAX_FUNCTION_NAME_LEN);
-    run_another_p1[thisslot] = p1;
-    run_another_p2[thisslot] = p2;
+    QueuedScript &script = ScFnQueue[thisslot];
+    script.FnName.SetString(namm, MAX_FUNCTION_NAME_LEN);
+    script.Instance = scinst;
+    script.ParamCount = param_count;
+    script.Param1 = p1;
+    script.Param2 = p2;
 }
 
 void ExecutingScript::init() {

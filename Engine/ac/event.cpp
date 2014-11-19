@@ -101,7 +101,7 @@ int run_claimable_event(const char *tsname, bool includeRoom, int numParams, con
 // runs the global script on_event function
 void run_on_event (int evtype, RuntimeScriptValue &wparam) {
     if (inside_script) {
-        curscript->run_another("#on_event", RuntimeScriptValue().SetInt32(evtype), wparam);
+        curscript->run_another("on_event", kScInstGame, 2, RuntimeScriptValue().SetInt32(evtype), wparam);
     }
     else
         gameinst->RunTextScript2IParam("on_event", RuntimeScriptValue().SetInt32(evtype), wparam);
@@ -150,16 +150,14 @@ void process_event(EventHappened*evp) {
         int resl=0; ccError=0;
         if (evp->data2 > -1000) {
             if (inside_script) {
-                char nameToExec[50];
-                sprintf (nameToExec, "!%s", tsnames[evp->data1]);
-                curscript->run_another(nameToExec, RuntimeScriptValue().SetInt32(evp->data2), rval_null /*0*/);
+                curscript->run_another(tsnames[evp->data1], kScInstGame, 1, RuntimeScriptValue().SetInt32(evp->data2), rval_null);
             }
             else
                 resl=gameinst->RunTextScriptIParam(tsnames[evp->data1],RuntimeScriptValue().SetInt32(evp->data2));
         }
         else {
             if (inside_script)
-                curscript->run_another (tsnames[evp->data1], rval_null, rval_null /*0, 0*/);
+                curscript->run_another (tsnames[evp->data1], kScInstGame, 0, rval_null, rval_null);
             else
                 resl=gameinst->RunTextScript(tsnames[evp->data1]);
         }

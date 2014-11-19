@@ -598,9 +598,7 @@ int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int
     if (inside_script)
         return -300;
 
-    ccInstance *toRun = gameinst;
-    if (!globalScript)
-        toRun = roominst;
+    ccInstance *toRun = GetScriptInstanceByType(globalScript ? kScInstGame : kScInstRoom);
 
     RuntimeScriptValue params[3];
     params[0].SetPluginArgument(arg1);
@@ -644,40 +642,11 @@ void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, i
         return;
     }
 
-    // queue it up, baby!
-    char scNameToRun[100];
-    if (globalScript) {
+    if (numArgs < 0 || numArgs > 2)
+        quit("IAGSEngine::QueueGameScriptFunction: invalid number of arguments");
 
-        if (numArgs == 0) {
-            strcpy(scNameToRun, "");
-        }
-        else if (numArgs == 1) {
-            strcpy(scNameToRun, "!");
-        }
-        else if (numArgs == 2) {
-            strcpy(scNameToRun, "#");
-        }
-        else
-            quit("IAGSEngine::QueueGameScriptFunction: invalid number of arguments");
-    }
-    else {
-        // room script
-        if (numArgs == 0) {
-            strcpy(scNameToRun, "|");
-        }
-        else if (numArgs == 1) {
-            strcpy(scNameToRun, "$");
-        }
-        else if (numArgs == 2) {
-            strcpy(scNameToRun, "%");
-        }
-        else
-            quit("IAGSEngine::QueueGameScriptFunction: invalid number of arguments");
-
-    }
-    strcat(scNameToRun, name);
-
-    curscript->run_another(scNameToRun, RuntimeScriptValue().SetPluginArgument(arg1), RuntimeScriptValue().SetPluginArgument(arg2));
+    curscript->run_another(name, globalScript ? kScInstGame : kScInstRoom, numArgs,
+        RuntimeScriptValue().SetPluginArgument(arg1), RuntimeScriptValue().SetPluginArgument(arg2));
 }
 
 int IAGSEngine::RegisterManagedObject(const void *object, IAGSScriptManagedObject *callback) {

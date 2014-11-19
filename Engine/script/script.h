@@ -36,6 +36,7 @@ int     run_interaction_script(InteractionScripts *nint, int evnt, int chkAny = 
 int     create_global_script();
 void    cancel_all_scripts();
 
+ccInstance *GetScriptInstanceByType(ScriptInstType sc_inst);
 //=============================================================================
 
 char*   make_ts_func_name(char*base,int iii,int subd);

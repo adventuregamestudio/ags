@@ -212,15 +212,13 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
         if ((strstr(evblockbasename,"character")!=0) || (strstr(evblockbasename,"inventory")!=0)) {
             // Character or Inventory (global script)
             if (inside_script) 
-                curscript->run_another (nint->scriptFuncNames[evnt], rval_null, rval_null /*0, 0*/);
+                curscript->run_another (nint->scriptFuncNames[evnt], kScInstGame, 0, rval_null, rval_null);
             else gameinst->RunTextScript(nint->scriptFuncNames[evnt]);
         }
         else {
             // Other (room script)
             if (inside_script) {
-                char funcName[MAX_FUNCTION_NAME_LEN+1];
-                snprintf(funcName, MAX_FUNCTION_NAME_LEN, "|%s", nint->scriptFuncNames[evnt]);
-                curscript->run_another (funcName, rval_null, rval_null /*0, 0*/);
+                curscript->run_another (nint->scriptFuncNames[evnt], kScInstRoom, 0, rval_null, rval_null);
             }
             else
                 roominst->RunTextScript(nint->scriptFuncNames[evnt]);
@@ -280,6 +278,15 @@ void cancel_all_scripts() {
     num_scripts = 0;
     /*  if (gameinst!=NULL) ->Abort(gameinst);
     if (roominst!=NULL) ->Abort(roominst);*/
+}
+
+ccInstance *GetScriptInstanceByType(ScriptInstType sc_inst)
+{
+    if (sc_inst == kScInstGame)
+        return gameinst;
+    else if (sc_inst == kScInstRoom)
+        return roominst;
+    return NULL;
 }
 
 //=============================================================================
@@ -367,23 +374,23 @@ void post_script_cleanup() {
     int jj;
     for (jj = 0; jj < copyof.numanother; jj++) {
         old_room_number = displayed_room;
-        char runnext[MAX_FUNCTION_NAME_LEN+1];
-        strncpy(runnext,copyof.script_run_another[jj],MAX_FUNCTION_NAME_LEN);
-        copyof.script_run_another[jj][0]=0;
-        if (runnext[0]=='#')
-            gameinst->RunTextScript2IParam(&runnext[1],copyof.run_another_p1[jj],copyof.run_another_p2[jj]);
-        else if (runnext[0]=='!')
-            gameinst->RunTextScriptIParam(&runnext[1],copyof.run_another_p1[jj]);
-        else if (runnext[0]=='|')
-            roominst->RunTextScript(&runnext[1]);
-        else if (runnext[0]=='%')
-            roominst->RunTextScript2IParam(&runnext[1], copyof.run_another_p1[jj], copyof.run_another_p2[jj]);
-        else if (runnext[0]=='$') {
-            roominst->RunTextScriptIParam(&runnext[1],copyof.run_another_p1[jj]);
-            play.roomscript_finished = 1;
+        QueuedScript &script = copyof.ScFnQueue[jj];
+        ccInstance *inst = GetScriptInstanceByType(script.Instance);
+        if (inst)
+        {
+            if (script.ParamCount == 2)
+                inst->RunTextScript2IParam(script.FnName, script.Param1, script.Param2);
+            else if (script.ParamCount == 1)
+                inst->RunTextScriptIParam(script.FnName, script.Param1);
+            else if (script.ParamCount == 0)
+                inst->RunTextScript(script.FnName);
+
+            if (script.Instance == kScInstRoom && script.ParamCount == 1)
+            {
+                // some bogus hack for "on_call" event handler
+                play.roomscript_finished = 1;
+            }
         }
-        else
-            gameinst->RunTextScript(runnext);
 
         // if they've changed rooms, cancel any further pending scripts
         if ((displayed_room != old_room_number) || (load_new_game))
@@ -444,22 +451,20 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
               update_mp3();
                   if ((strstr(evblockbasename,"character")!=0) || (strstr(evblockbasename,"inventory")!=0)) {
                       // Character or Inventory (global script)
-                      char *torun = make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val);
+                      const char *torun = make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val);
                       // we are already inside the mouseclick event of the script, can't nest calls
                       if (inside_script) 
-                          curscript->run_another (torun, rval_null, rval_null /*0, 0*/);
+                          curscript->run_another (torun, kScInstGame, 0, rval_null, rval_null);
                       else gameinst->RunTextScript(torun);
                   }
                   else {
                       // Other (room script)
+                      const char *torun = make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val);
                       if (inside_script) {
-                          char funcName[MAX_FUNCTION_NAME_LEN+1];
-                          strcpy(funcName,"|");
-                          strncat(funcName,make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val),MAX_FUNCTION_NAME_LEN-1);
-                          curscript->run_another (funcName, rval_null, rval_null /*0, 0*/);
+                          curscript->run_another (torun, kScInstRoom, 0, rval_null, rval_null);
                       }
                       else
-                          roominst->RunTextScript(make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val));
+                          roominst->RunTextScript(torun);
                   }
                   update_mp3();
                       break;
@@ -685,7 +690,7 @@ void run_unhandled_event (int evnt) {
         can_run_delayed_command();
 
         if (inside_script)
-            curscript->run_another ("#unhandled_event", RuntimeScriptValue().SetInt32(evtype), RuntimeScriptValue().SetInt32(evnt));
+            curscript->run_another ("unhandled_event", kScInstGame, 2, RuntimeScriptValue().SetInt32(evtype), RuntimeScriptValue().SetInt32(evnt));
         else
             gameinst->RunTextScript2IParam("unhandled_event",RuntimeScriptValue().SetInt32(evtype),RuntimeScriptValue().SetInt32(evnt));
     }

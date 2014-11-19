@@ -171,7 +171,7 @@ void CallRoomScript (int value) {
 
     play.roomscript_finished = 0;
     RuntimeScriptValue rval_null;
-    curscript->run_another("$on_call", RuntimeScriptValue().SetInt32(value), rval_null /*0*/);
+    curscript->run_another("on_call", kScInstRoom, 1, RuntimeScriptValue().SetInt32(value), rval_null);
 }
 
 int HasBeenToRoom (int roomnum) {

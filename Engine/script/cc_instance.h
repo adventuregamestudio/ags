@@ -166,14 +166,14 @@ public:
     void    AbortAndDestroy();
     
     // call an exported function in the script (2nd arg is number of params)
-    int     CallScriptFunction(const char *funcname, int32_t num_params, RuntimeScriptValue *params);
+    int     CallScriptFunction(const char *funcname, int32_t num_params, const RuntimeScriptValue *params);
     bool    DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool hasTheFunc);
     int     PrepareTextScript(const char **tsname);
     int     Run(int32_t curpc);
-    int     RunScriptFunctionIfExists(const char *tsname,int numParam, RuntimeScriptValue *params);
+    int     RunScriptFunctionIfExists(const char *tsname, int numParam, const RuntimeScriptValue *params);
     int     RunTextScript(const char *tsname);
-    int     RunTextScriptIParam(const char *tsname, RuntimeScriptValue &iparam);
-    int     RunTextScript2IParam(const char *tsname,RuntimeScriptValue &iparam, RuntimeScriptValue &param2);
+    int     RunTextScriptIParam(const char *tsname, const RuntimeScriptValue &iparam);
+    int     RunTextScript2IParam(const char *tsname, const RuntimeScriptValue &iparam, const RuntimeScriptValue &param2);
     
     void    GetCallStack(char *buffer, int maxLines);
     void    GetScriptName(char *curScrName);

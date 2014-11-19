@@ -283,7 +283,7 @@ void ccInstance::AbortAndDestroy()
         return -1; \
     }
 
-int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, RuntimeScriptValue *params)
+int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, const RuntimeScriptValue *params)
 {
     ccError = 0;
     currentline = 0;
@@ -1375,7 +1375,7 @@ int ccInstance::Run(int32_t curpc)
     }
 }
 
-int ccInstance::RunScriptFunctionIfExists(const char*tsname,int numParam, RuntimeScriptValue *params) {
+int ccInstance::RunScriptFunctionIfExists(const char*tsname, int numParam, const RuntimeScriptValue *params) {
     int oldRestoreCount = gameHasBeenRestored;
     // First, save the current ccError state
     // This is necessary because we might be attempting
@@ -1450,7 +1450,7 @@ int ccInstance::RunTextScript(const char *tsname) {
     return toret;
 }
 
-int ccInstance::RunTextScriptIParam(const char *tsname,RuntimeScriptValue &iparam) {
+int ccInstance::RunTextScriptIParam(const char *tsname, const RuntimeScriptValue &iparam) {
     if ((strcmp(tsname, "on_key_press") == 0) || (strcmp(tsname, "on_mouse_click") == 0)) {
         bool eventWasClaimed;
         int toret = run_claimable_event(tsname, true, 1, &iparam, &eventWasClaimed);
@@ -1462,7 +1462,7 @@ int ccInstance::RunTextScriptIParam(const char *tsname,RuntimeScriptValue &ipara
     return RunScriptFunctionIfExists(tsname, 1, &iparam);
 }
 
-int ccInstance::RunTextScript2IParam(const char*tsname,RuntimeScriptValue &iparam, RuntimeScriptValue &param2) {
+int ccInstance::RunTextScript2IParam(const char*tsname, const RuntimeScriptValue &iparam, const RuntimeScriptValue &param2) {
     RuntimeScriptValue params[2];
     params[0] = iparam;
     params[1] = param2;

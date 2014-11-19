@@ -224,6 +224,11 @@ ScriptGUI *GetGUIAtLocation(int xx, int yy) {
     return &scrGui[guiid];
 }
 
+void GUI_Click(ScriptGUI *scgui, int mbut)
+{
+    process_interface_click(scgui->id, -1, mbut);
+}
+
 //=============================================================================
 
 void remove_popup_interface(int ifacenum) {
@@ -652,10 +657,15 @@ RuntimeScriptValue Sc_GUI_SetZOrder(void *self, const RuntimeScriptValue *params
     API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetZOrder);
 }
 
+RuntimeScriptValue Sc_GUI_Click(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptGUI, GUI_Click);
+}
 
 void RegisterGUIAPI()
 {
     ccAddExternalObjectFunction("GUI::Centre^0",                Sc_GUI_Centre);
+    ccAddExternalObjectFunction("GUI::Click^1",                 Sc_GUI_Click);
     ccAddExternalStaticFunction("GUI::GetAtScreenXY^2",         Sc_GetGUIAtLocation);
     ccAddExternalObjectFunction("GUI::SetPosition^2",           Sc_GUI_SetPosition);
     ccAddExternalObjectFunction("GUI::SetSize^2",               Sc_GUI_SetSize);

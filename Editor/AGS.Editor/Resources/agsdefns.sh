@@ -1422,6 +1422,8 @@ builtin managed struct Label extends GUIControl {
 builtin managed struct Button extends GUIControl {
   /// Animates the button graphic using the specified view loop.
   import void Animate(int view, int loop, int delay, RepeatStyle);
+  /// Runs the OnClick event handler for this Button.
+  import void Click(MouseButton);
 #ifndef STRICT_STRINGS
   import void GetText(string buffer);
   import void SetText(const string text);
@@ -1541,6 +1543,8 @@ builtin managed struct ListBox extends GUIControl {
 builtin managed struct GUI {
   /// Moves the GUI to be centred on the screen.
   import void Centre();
+  /// Runs the OnClick event handler for this GUI.
+  import void Click(MouseButton);
   /// Gets the topmost GUI visible on the screen at the specified co-ordinates.
   import static GUI* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
   /// Moves the GUI to have its top-left corner at the specified position.

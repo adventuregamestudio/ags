@@ -211,17 +211,11 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
     update_mp3();
         if ((strstr(evblockbasename,"character")!=0) || (strstr(evblockbasename,"inventory")!=0)) {
             // Character or Inventory (global script)
-            if (inside_script) 
-                curscript->run_another (nint->scriptFuncNames[evnt], kScInstGame, 0, rval_null, rval_null);
-            else gameinst->RunTextScript(nint->scriptFuncNames[evnt]);
+            QueueScriptFunction(kScInstGame, nint->scriptFuncNames[evnt]);
         }
         else {
             // Other (room script)
-            if (inside_script) {
-                curscript->run_another (nint->scriptFuncNames[evnt], kScInstRoom, 0, rval_null, rval_null);
-            }
-            else
-                roominst->RunTextScript(nint->scriptFuncNames[evnt]);
+            QueueScriptFunction(kScInstRoom, nint->scriptFuncNames[evnt]);
         }
         update_mp3();
 
@@ -287,6 +281,30 @@ ccInstance *GetScriptInstanceByType(ScriptInstType sc_inst)
     else if (sc_inst == kScInstRoom)
         return roominst;
     return NULL;
+}
+
+void QueueScriptFunction(ScriptInstType sc_inst, const char *fn_name, size_t param_count, const RuntimeScriptValue &p1, const RuntimeScriptValue &p2)
+{
+    if (inside_script)
+        // queue the script for the run after current script is finished
+        curscript->run_another (fn_name, sc_inst, param_count, p1, p2);
+    else
+        // if no script is currently running, run the requested script right away
+        RunScriptFunction(sc_inst, fn_name, param_count, p1, p2);
+}
+
+void RunScriptFunction(ScriptInstType sc_inst, const char *fn_name, size_t param_count, const RuntimeScriptValue &p1, const RuntimeScriptValue &p2)
+{
+    ccInstance *inst = GetScriptInstanceByType(sc_inst);
+    if (inst)
+    {
+        if (param_count == 2)
+            inst->RunTextScript2IParam(fn_name, p1, p2);
+        else if (param_count == 1)
+            inst->RunTextScriptIParam(fn_name, p1);
+        else if (param_count == 0)
+            inst->RunTextScript(fn_name);
+    }
 }
 
 //=============================================================================
@@ -375,21 +393,11 @@ void post_script_cleanup() {
     for (jj = 0; jj < copyof.numanother; jj++) {
         old_room_number = displayed_room;
         QueuedScript &script = copyof.ScFnQueue[jj];
-        ccInstance *inst = GetScriptInstanceByType(script.Instance);
-        if (inst)
+        RunScriptFunction(script.Instance, script.FnName, script.ParamCount, script.Param1, script.Param2);
+        if (script.Instance == kScInstRoom && script.ParamCount == 1)
         {
-            if (script.ParamCount == 2)
-                inst->RunTextScript2IParam(script.FnName, script.Param1, script.Param2);
-            else if (script.ParamCount == 1)
-                inst->RunTextScriptIParam(script.FnName, script.Param1);
-            else if (script.ParamCount == 0)
-                inst->RunTextScript(script.FnName);
-
-            if (script.Instance == kScInstRoom && script.ParamCount == 1)
-            {
-                // some bogus hack for "on_call" event handler
-                play.roomscript_finished = 1;
-            }
+            // some bogus hack for "on_call" event handler
+            play.roomscript_finished = 1;
         }
 
         // if they've changed rooms, cancel any further pending scripts
@@ -453,18 +461,12 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
                       // Character or Inventory (global script)
                       const char *torun = make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val);
                       // we are already inside the mouseclick event of the script, can't nest calls
-                      if (inside_script) 
-                          curscript->run_another (torun, kScInstGame, 0, rval_null, rval_null);
-                      else gameinst->RunTextScript(torun);
+                      QueueScriptFunction(kScInstGame, torun);
                   }
                   else {
                       // Other (room script)
                       const char *torun = make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val);
-                      if (inside_script) {
-                          curscript->run_another (torun, kScInstRoom, 0, rval_null, rval_null);
-                      }
-                      else
-                          roominst->RunTextScript(torun);
+                      QueueScriptFunction(kScInstRoom, torun);
                   }
                   update_mp3();
                       break;
@@ -689,10 +691,7 @@ void run_unhandled_event (int evnt) {
     else if (evtype > 0) {
         can_run_delayed_command();
 
-        if (inside_script)
-            curscript->run_another ("unhandled_event", kScInstGame, 2, RuntimeScriptValue().SetInt32(evtype), RuntimeScriptValue().SetInt32(evnt));
-        else
-            gameinst->RunTextScript2IParam("unhandled_event",RuntimeScriptValue().SetInt32(evtype),RuntimeScriptValue().SetInt32(evnt));
+        QueueScriptFunction(kScInstGame, "unhandled_event", 2, RuntimeScriptValue().SetInt32(evtype), RuntimeScriptValue().SetInt32(evnt));
     }
 }
 

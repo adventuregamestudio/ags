@@ -245,7 +245,7 @@ void remove_popup_interface(int ifacenum) {
 void process_interface_click(int ifce, int btn, int mbut) {
     if (btn < 0) {
         // click on GUI background
-        gameinst->RunTextScript2IParam(guis[ifce].OnClickHandler,
+        QueueScriptFunction(kScInstGame, guis[ifce].OnClickHandler, 2,
             RuntimeScriptValue().SetDynamicObject(&scrGui[ifce], &ccDynamicGUI),
             RuntimeScriptValue().SetInt32(mbut));
         return;
@@ -274,15 +274,15 @@ void process_interface_click(int ifce, int btn, int mbut) {
             (!gameinst->GetSymbolAddress(theObj->eventHandlers[0]).IsNull())) {
                 // control-specific event handler
                 if (strchr(theObj->GetEventArgs(0), ',') != NULL)
-                    gameinst->RunTextScript2IParam(theObj->eventHandlers[0],
+                    QueueScriptFunction(kScInstGame, theObj->eventHandlers[0], 2,
                         RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject),
                         RuntimeScriptValue().SetInt32(mbut));
                 else
-                    gameinst->RunTextScriptIParam(theObj->eventHandlers[0],
+                    QueueScriptFunction(kScInstGame, theObj->eventHandlers[0], 1,
                         RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject));
         }
         else
-            gameinst->RunTextScript2IParam("interface_click",
+            QueueScriptFunction(kScInstGame, "interface_click", 2,
                 RuntimeScriptValue().SetInt32(ifce),
                 RuntimeScriptValue().SetInt32(btn));
     }

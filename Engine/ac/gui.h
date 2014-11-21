@@ -61,4 +61,9 @@ int		adjust_x_for_guis (int xx, int yy);
 int		adjust_y_for_guis ( int yy);
 void	recreate_guibg_image(GUIMain *tehgui);
 
+int     gui_on_mouse_move();
+void    gui_on_mouse_hold(const int wasongui, const int wasbutdown);
+void    gui_on_mouse_up(const int wasongui, const int wasbutdown);
+void    gui_on_mouse_down(const int guin, const int mbut);
+
 #endif // __AGS_EE_AC__GUI_H

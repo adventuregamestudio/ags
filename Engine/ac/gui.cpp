@@ -16,12 +16,16 @@
 #include "ac/gui.h"
 #include "ac/common.h"
 #include "ac/draw.h"
+#include "ac/event.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/global_character.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
+#include "ac/global_inventoryitem.h"
 #include "ac/global_screen.h"
 #include "ac/interfacebutton.h"
+#include "ac/invwindow.h"
 #include "ac/mouse.h"
 #include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
@@ -495,6 +499,106 @@ void recreate_guibg_image(GUIMain *tehgui)
     gfxDriver->DestroyDDB(guibgbmp[ifn]);
     guibgbmp[ifn] = NULL;
   }
+}
+
+extern int is_complete_overlay;
+
+int gui_on_mouse_move()
+{
+    int mouse_over_gui = -1;
+    // If all GUIs are off, skip the loop
+    if ((game.options[OPT_DISABLEOFF]==3) && (all_buttons_disabled > 0)) ;
+    else {
+        // Scan for mouse-y-pos GUIs, and pop one up if appropriate
+        // Also work out the mouse-over GUI while we're at it
+        int ll;
+        for (ll = 0; ll < game.numgui;ll++) {
+            const int guin = play.gui_draw_order[ll];
+            if (guis[guin].IsMouseOnGUI()) mouse_over_gui=guin;
+
+            if (guis[guin].PopupStyle!=kGUIPopupMouseY) continue;
+            if (is_complete_overlay>0) break;  // interfaces disabled
+            //    if (play.disabled_user_interface>0) break;
+            if (ifacepopped==guin) continue;
+            if (guis[guin].IsConcealed()) continue;
+            // Don't allow it to be popped up while skipping cutscene
+            if (play.fast_forward) continue;
+
+            if (mousey < guis[guin].PopupAtMouseY) {
+                set_mouse_cursor(CURS_ARROW);
+                guis[guin].SetVisibility(kGUIVisibility_On); guis_need_update = 1;
+                ifacepopped=guin; PauseGame();
+                break;
+            }
+        }
+    }
+    return mouse_over_gui;
+}
+
+void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
+{
+    for (int i=0;i<guis[wasongui].ControlCount;i++) {
+        if (guis[wasongui].Controls[i]->activated<1) continue;
+        if (guis[wasongui].GetControlType(i)!=kGUISlider) continue;
+        // GUI Slider repeatedly activates while being dragged
+        guis[wasongui].Controls[i]->activated=0;
+        setevent(EV_IFACECLICK, wasongui, i, wasbutdown);
+        break;
+    }
+}
+
+void gui_on_mouse_up(const int wasongui, const int wasbutdown)
+{
+    guis[wasongui].OnMouseButtonUp();
+
+    for (int i=0;i<guis[wasongui].ControlCount;i++) {
+        if (guis[wasongui].Controls[i]->activated<1) continue;
+        guis[wasongui].Controls[i]->activated=0;
+        if (!IsInterfaceEnabled()) break;
+
+        int cttype=guis[wasongui].GetControlType(i);
+        if ((cttype == kGUIButton) || (cttype == kGUISlider) || (cttype == kGUIListBox)) {
+            setevent(EV_IFACECLICK, wasongui, i, wasbutdown);
+        }
+        else if (cttype == kGUIInvWindow) {
+            mouse_ifacebut_xoffs=mousex-(guis[wasongui].Controls[i]->x)-guis[wasongui].X;
+            mouse_ifacebut_yoffs=mousey-(guis[wasongui].Controls[i]->y)-guis[wasongui].Y;
+            int iit=offset_over_inv((GUIInv*)guis[wasongui].Controls[i]);
+            if (iit>=0) {
+                evblocknum=iit;
+                play.used_inv_on = iit;
+                if (game.options[OPT_HANDLEINVCLICKS]) {
+                    // Let the script handle the click
+                    // LEFTINV is 5, RIGHTINV is 6
+                    setevent(EV_TEXTSCRIPT,TS_MCLICK, wasbutdown + 4);
+                }
+                else if (wasbutdown==2)  // right-click is always Look
+                    run_event_block_inv(iit, 0);
+                else if (cur_mode == MODE_HAND)
+                    SetActiveInventory(iit);
+                else
+                    RunInventoryInteraction (iit, cur_mode);
+                evblocknum=-1;
+            }
+        }
+        else quit("clicked on unknown control type");
+        if (guis[wasongui].PopupStyle==kGUIPopupMouseY)
+            remove_popup_interface(wasongui);
+        break;
+    }
+
+    run_on_event(GE_GUI_MOUSEUP, RuntimeScriptValue().SetInt32(wasongui));
+}
+
+void gui_on_mouse_down(const int guin, const int mbut)
+{
+    DEBUG_CONSOLE("Mouse click over GUI %d", guin);
+    guis[guin].OnMouseButtonDown();
+    // run GUI click handler if not on any control
+    if ((guis[guin].MouseDownCtrl < 0) && (!guis[guin].OnClickHandler.IsEmpty()))
+        setevent(EV_IFACECLICK, guin, -1, mbut);
+
+    run_on_event(GE_GUI_MOUSEDOWN, RuntimeScriptValue().SetInt32(guin));
 }
 
 //=============================================================================

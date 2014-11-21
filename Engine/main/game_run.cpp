@@ -23,16 +23,13 @@
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/global_character.h"
 #include "ac/global_debug.h"
 #include "ac/global_display.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
-#include "ac/global_inventoryitem.h"
 #include "ac/global_region.h"
 #include "ac/gui.h"
 #include "ac/hotspot.h"
-#include "ac/invwindow.h"
 #include "ac/mouse.h"
 #include "ac/overlay.h"
 #include "ac/record.h"
@@ -73,7 +70,6 @@ extern int inside_script,in_graph_script;
 extern int no_blocking_functions;
 extern CharacterInfo*playerchar;
 extern GameState play;
-extern int is_complete_overlay;
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern int cur_mode;
 extern RoomObject*objs;
@@ -186,32 +182,8 @@ void check_controls() {
     NEXT_ITERATION();
 
     int aa,mongu=-1;
-    // If all GUIs are off, skip the loop
-    if ((game.options[OPT_DISABLEOFF]==3) && (all_buttons_disabled > 0)) ;
-    else {
-        // Scan for mouse-y-pos GUIs, and pop one up if appropriate
-        // Also work out the mouse-over GUI while we're at it
-        int ll;
-        for (ll = 0; ll < game.numgui;ll++) {
-            aa = play.gui_draw_order[ll];
-            if (guis[aa].IsMouseOnGUI()) mongu=aa;
-
-            if (guis[aa].PopupStyle!=kGUIPopupMouseY) continue;
-            if (is_complete_overlay>0) break;  // interfaces disabled
-            //    if (play.disabled_user_interface>0) break;
-            if (ifacepopped==aa) continue;
-            if (guis[aa].IsConcealed()) continue;
-            // Don't allow it to be popped up while skipping cutscene
-            if (play.fast_forward) continue;
-
-            if (mousey < guis[aa].PopupAtMouseY) {
-                set_mouse_cursor(CURS_ARROW);
-                guis[aa].SetVisibility(kGUIVisibility_On); guis_need_update = 1;
-                ifacepopped=aa; PauseGame();
-                break;
-            }
-        }
-    }
+    
+    mongu = gui_on_mouse_move();
 
     mouse_on_iface=mongu;
     if ((ifacepopped>=0) && (mousey>=guis[ifacepopped].Y+guis[ifacepopped].Height))
@@ -221,57 +193,11 @@ void check_controls() {
     static int wasbutdown=0,wasongui=0;
 
     if ((wasbutdown>0) && (misbuttondown(wasbutdown-1))) {
-        for (aa=0;aa<guis[wasongui].ControlCount;aa++) {
-            if (guis[wasongui].Controls[aa]->activated<1) continue;
-            if (guis[wasongui].GetControlType(aa)!=kGUISlider) continue;
-            // GUI Slider repeatedly activates while being dragged
-            guis[wasongui].Controls[aa]->activated=0;
-            setevent(EV_IFACECLICK, wasongui, aa, wasbutdown);
-            break;
-        }
+        gui_on_mouse_hold(wasongui, wasbutdown);
     }
     else if ((wasbutdown>0) && (!misbuttondown(wasbutdown-1))) {
-        guis[wasongui].OnMouseButtonUp();
-        int whichbut=wasbutdown;
+        gui_on_mouse_up(wasongui, wasbutdown);
         wasbutdown=0;
-
-        for (aa=0;aa<guis[wasongui].ControlCount;aa++) {
-            if (guis[wasongui].Controls[aa]->activated<1) continue;
-            guis[wasongui].Controls[aa]->activated=0;
-            if (!IsInterfaceEnabled()) break;
-
-            int cttype=guis[wasongui].GetControlType(aa);
-            if ((cttype == kGUIButton) || (cttype == kGUISlider) || (cttype == kGUIListBox)) {
-                setevent(EV_IFACECLICK, wasongui, aa, whichbut);
-            }
-            else if (cttype == kGUIInvWindow) {
-                mouse_ifacebut_xoffs=mousex-(guis[wasongui].Controls[aa]->x)-guis[wasongui].X;
-                mouse_ifacebut_yoffs=mousey-(guis[wasongui].Controls[aa]->y)-guis[wasongui].Y;
-                int iit=offset_over_inv((GUIInv*)guis[wasongui].Controls[aa]);
-                if (iit>=0) {
-                    evblocknum=iit;
-                    play.used_inv_on = iit;
-                    if (game.options[OPT_HANDLEINVCLICKS]) {
-                        // Let the script handle the click
-                        // LEFTINV is 5, RIGHTINV is 6
-                        setevent(EV_TEXTSCRIPT,TS_MCLICK, whichbut + 4);
-                    }
-                    else if (whichbut==2)  // right-click is always Look
-                        run_event_block_inv(iit, 0);
-                    else if (cur_mode == MODE_HAND)
-                        SetActiveInventory(iit);
-                    else
-                        RunInventoryInteraction (iit, cur_mode);
-                    evblocknum=-1;
-                }
-            }
-            else quit("clicked on unknown control type");
-            if (guis[wasongui].PopupStyle==kGUIPopupMouseY)
-                remove_popup_interface(wasongui);
-            break;
-        }
-
-        run_on_event(GE_GUI_MOUSEUP, RuntimeScriptValue().SetInt32(wasongui));
     }
 
     aa=mgetbutton();
@@ -295,14 +221,8 @@ void check_controls() {
         }
         else if (mongu>=0) {
             if (wasbutdown==0) {
-                DEBUG_CONSOLE("Mouse click over GUI %d", mongu);
-                guis[mongu].OnMouseButtonDown();
-                // run GUI click handler if not on any control
-                if ((guis[mongu].MouseDownCtrl < 0) && (!guis[mongu].OnClickHandler.IsEmpty()))
-                    setevent(EV_IFACECLICK, mongu, -1, aa + 1);
-
-                run_on_event(GE_GUI_MOUSEDOWN, RuntimeScriptValue().SetInt32(mongu));
-            }
+                gui_on_mouse_down(mongu, aa+1);
+            }            
             wasongui=mongu;
             wasbutdown=aa+1;
         }

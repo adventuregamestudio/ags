@@ -63,8 +63,8 @@ public:
     bool        HasAlphaChannel() const;
     // Tells if gui is allowed to be displayed, but is currently hidden off-screen
     inline bool IsConcealed() const { return _visibility == kGUIVisibility_Concealed; }
-    // Tells if mouse cursor is currently over gui
-    bool        IsMouseOnGUI() const;
+    // Tells if given coordinates are within interactable area of gui
+    bool        IsInteractableAt(int x, int y) const;
     // Tells if gui visibility is disabled
     inline bool IsOff() const { return _visibility == kGUIVisibility_Off; }
     // Tells if gui is a text window

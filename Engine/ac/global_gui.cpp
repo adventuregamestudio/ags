@@ -224,10 +224,7 @@ int GetGUIAt (int xx,int yy) {
     int aa, ll;
     for (ll = game.numgui - 1; ll >= 0; ll--) {
         aa = play.gui_draw_order[ll];
-        if (!guis[aa].IsVisible()) continue;
-        if (guis[aa].Flags & kGUIMain_NoClick) continue;
-        if ((xx>=guis[aa].X) & (yy>=guis[aa].Y) &
-            (xx<=guis[aa].X+guis[aa].Width) & (yy<=guis[aa].Y+guis[aa].Height))
+        if (guis[aa].IsInteractableAt(xx, yy))
             return aa;
     }
     return -1;

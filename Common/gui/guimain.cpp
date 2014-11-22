@@ -135,13 +135,13 @@ GUIControlType GUIMain::GetControlType(int index) const
     return (GUIControlType)((CtrlRefs[index] >> 16) & 0x0000ffff);
 }
 
-bool GUIMain::IsMouseOnGUI() const
+bool GUIMain::IsInteractableAt(int x, int y) const
 {
     if (!IsVisible())
         return false;
     if (Flags & kGUIMain_NoClick)
         return false;
-    if ((mousex >= X) & (mousey >= Y) & (mousex <= X + Width) & (mousey <= Y + Height))
+    if ((x >= X) & (y >= Y) & (x <= X + Width) & (y <= Y + Height))
         return true;
     return false;
 }

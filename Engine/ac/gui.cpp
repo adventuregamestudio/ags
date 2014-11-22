@@ -514,7 +514,7 @@ int gui_on_mouse_move()
         int ll;
         for (ll = 0; ll < game.numgui;ll++) {
             const int guin = play.gui_draw_order[ll];
-            if (guis[guin].IsMouseOnGUI()) mouse_over_gui=guin;
+            if (guis[guin].IsInteractableAt(mousex, mousey)) mouse_over_gui=guin;
 
             if (guis[guin].PopupStyle!=kGUIPopupMouseY) continue;
             if (is_complete_overlay>0) break;  // interfaces disabled

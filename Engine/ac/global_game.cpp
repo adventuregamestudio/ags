@@ -605,7 +605,7 @@ int IsKeyPressed (int keycode) {
 #ifdef ALLEGRO_KEYBOARD_HANDLER
     if (keyboard_needs_poll())
         poll_keyboard();
-    if (keycode >= 300) {
+    if (keycode >= AGS_EXT_KEY_SHIFT) {
         // function keys are 12 lower in allegro 4
         if ((keycode>=359) & (keycode<=368)) keycode-=12;
         // F11-F12
@@ -629,9 +629,9 @@ int IsKeyPressed (int keycode) {
         else if (keycode==372) keycode=345;
         else if (keycode==373) keycode=346;
         // insert
-        else if (keycode == AGS_KEYCODE_INSERT) keycode = KEY_INSERT + 300;
+        else if (keycode == AGS_KEYCODE_INSERT) keycode = KEY_INSERT + AGS_EXT_KEY_SHIFT;
         // delete
-        else if (keycode == AGS_KEYCODE_DELETE) keycode = KEY_DEL + 300;
+        else if (keycode == AGS_KEYCODE_DELETE) keycode = KEY_DEL + AGS_EXT_KEY_SHIFT;
 
         // deal with shift/ctrl/alt
         if (keycode == 403) keycode = KEY_LSHIFT;
@@ -639,7 +639,7 @@ int IsKeyPressed (int keycode) {
         else if (keycode == 405) keycode = KEY_LCONTROL;
         else if (keycode == 406) keycode = KEY_RCONTROL;
         else if (keycode == 407) keycode = KEY_ALT;
-        else keycode -= 300;
+        else keycode -= AGS_EXT_KEY_SHIFT;
 
         if (rec_iskeypressed(keycode))
             return 1;

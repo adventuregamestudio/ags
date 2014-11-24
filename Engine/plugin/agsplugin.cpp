@@ -28,6 +28,7 @@
 #include "ac/global_audio.h"
 #include "ac/global_plugin.h"
 #include "ac/global_walkablearea.h"
+#include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/movelist.h"
 #include "ac/objectcache.h"
@@ -353,7 +354,7 @@ void IAGSEngine::PollSystem () {
 
     if (rec_kbhit()) {
         int kp = rec_getch();
-        if (kp == 0) kp = rec_getch()+300;
+        if (kp == 0) kp = rec_getch()+AGS_EXT_KEY_SHIFT;
         pl_run_plugin_hooks (AGSE_KEYPRESS, kp);
     }
 

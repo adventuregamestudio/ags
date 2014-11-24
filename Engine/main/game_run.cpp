@@ -32,6 +32,7 @@
 #include "ac/global_region.h"
 #include "ac/gui.h"
 #include "ac/hotspot.h"
+#include "ac/keycode.h"
 #include "ac/invwindow.h"
 #include "ac/mouse.h"
 #include "ac/overlay.h"
@@ -337,7 +338,7 @@ void check_controls() {
         int was_playing = play.playback;
 
         int kgn = getch();
-        if (kgn==0) kgn=getch()+300;
+        if (kgn==0) kgn=getch()+AGS_EXT_KEY_SHIFT;
         //    if (kgn==367) restart_game();
         //    if (kgn==2) Display("numover: %d character movesped: %d, animspd: %d",numscreenover,playerchar->walkspeed,playerchar->animspeed);
         //    if (kgn==2) CreateTextOverlay(50,60,170,FONT_SPEECH,14,"This is a test screen overlay which shouldn't disappear");

@@ -28,7 +28,12 @@ override_dh_clean:
 	dh_clean --exclude=Editor/*
 
 get-orig-source:
-	git archive --prefix=ags_$(VERSION)/ --format=tar HEAD $(ORIG_CONTENT) | gzip > ../ags_$(VERSION).orig.tar.gz
+	mkdir -p ../orig_temp/ags_$(VERSION)
+	debian/git-archive-all.sh ../orig_temp/ags_$(VERSION)/orig_temp.tar
+	cd ../orig_temp/ags_$(VERSION) && tar -xf orig_temp.tar $(ORIG_CONTENT)
+	rm ../orig_temp/ags_$(VERSION)/orig_temp.tar
+	cd ../orig_temp && tar -pczf ../ags_$(VERSION).orig.tar.gz ags_$(VERSION)
+	rm -rf ../orig_temp
 
 override_dh_gencontrol:
 	dh_gencontrol -- $(GENCONTROL_SUBSTVARS)

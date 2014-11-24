@@ -442,7 +442,9 @@ void check_controls() {
         script_debug(5,0);
         play.debug_mode--;
         }*/
-        else if ((kgn == 22) && (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
+        else if ((kgn == 22 + AGS_EXT_KEY_SHIFT && (key[KEY_LCONTROL] || key[KEY_RCONTROL]) ) &&
+            (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0))
+        {
             // make sure we can't interrupt a Wait()
             // and desync the music to cutscene
             play.debug_mode++;

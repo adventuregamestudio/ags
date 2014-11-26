@@ -1823,6 +1823,8 @@ builtin struct System {
   import static attribute bool VSync;
   /// Gets whether the game is running in a window.
   readonly import static attribute bool Windowed;
+  /// Gets a report about the runtime engine the game is running under.
+  readonly import static attribute String RuntimeInfo;
 };
 
 enum BlockingStyle {

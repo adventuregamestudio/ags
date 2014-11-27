@@ -132,7 +132,11 @@ void DialogOptionsRendering_SetActiveOptionID(ScriptDialogOptionsRendering *dlgO
     if ((activeOptionID < 0) || (activeOptionID > optionCount))
         quitprintf("DialogOptionsRenderingInfo.ActiveOptionID: invalid ID specified for this dialog (specified %d, valid range: 1..%d)", activeOptionID, optionCount);
 
-    dlgOptRender->activeOptionID = activeOptionID - 1;
+    if (dlgOptRender->activeOptionID != activeOptionID - 1)
+    {
+        dlgOptRender->activeOptionID = activeOptionID - 1;
+        dlgOptRender->needRepaint = true;
+    }
 }
 
 //=============================================================================

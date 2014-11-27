@@ -200,6 +200,7 @@ void game_file_read_script_modules(Stream *in)
         renderDialogOptionsFunc.moduleHasFunction.resize(numScriptModules, true);
         getDialogOptionUnderCursorFunc.moduleHasFunction.resize(numScriptModules, true);
         runDialogOptionMouseClickHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
+        runDialogOptionRepExecFunc.moduleHasFunction.resize(numScriptModules, true);
         for (int bb = 0; bb < numScriptModules; bb++) {
             scriptModules[bb] = ccScript::CreateFromStream(in);
             if (scriptModules[bb] == NULL)

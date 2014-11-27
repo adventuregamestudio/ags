@@ -854,6 +854,8 @@ void DialogOptions::Redraw()
 
 bool DialogOptions::Run()
 {
+    const bool new_custom_render = loaded_game_file_version >= kGameVersion_340_2 && usingCustomRendering;
+
       if (runGameLoopsInBackground)
       {
         play.disabled_user_interface++;
@@ -868,6 +870,12 @@ bool DialogOptions::Run()
         render_graphics(ddb, dirtyx, dirtyy);
       
         update_polled_audio_and_crossfade();
+      }
+
+      if (new_custom_render)
+      {
+        runDialogOptionRepExecFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+        run_function_on_non_blocking_thread(&runDialogOptionRepExecFunc);
       }
 
       if (kbhit()) {

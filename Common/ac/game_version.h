@@ -83,8 +83,9 @@ Added custom dialog option highlight colour.
 45 : 3.4.0.1
 Support for custom game resolution.
 
-46 : 3.4.0.2
+46 : 3.4.0.2-.3
 Audio playback speed.
+Custom dialog option rendering extension.
 
 */
 

@@ -26,6 +26,7 @@ struct ScriptDialogOptionsRendering : AGSCCDynamicObject {
     int activeOptionID;
     ScriptDrawingSurface *surfaceToRenderTo;
     bool surfaceAccessed;
+    bool needRepaint;
 
     // return the type name of the object
     virtual const char *GetType();

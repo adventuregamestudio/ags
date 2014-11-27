@@ -25,6 +25,11 @@ extern CCDialog ccDynamicDialog;
 
 // ** SCRIPT DIALOGOPTIONSRENDERING OBJECT
 
+void DialogOptionsRendering_Update(ScriptDialogOptionsRendering *dlgOptRender)
+{
+    dlgOptRender->needRepaint = true;
+}
+
 int DialogOptionsRendering_GetX(ScriptDialogOptionsRendering *dlgOptRender)
 {
     return dlgOptRender->x;
@@ -139,6 +144,11 @@ void DialogOptionsRendering_SetActiveOptionID(ScriptDialogOptionsRendering *dlgO
 #include "debug/out.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
+
+RuntimeScriptValue Sc_DialogOptionsRendering_Update(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(ScriptDialogOptionsRendering, DialogOptionsRendering_Update);
+}
 
 // int (ScriptDialogOptionsRendering *dlgOptRender)
 RuntimeScriptValue Sc_DialogOptionsRendering_GetActiveOptionID(void *self, const RuntimeScriptValue *params, int32_t param_count)
@@ -261,6 +271,7 @@ RuntimeScriptValue Sc_DialogOptionsRendering_SetHasAlphaChannel(void *self, cons
 
 void RegisterDialogOptionsRenderingAPI()
 {
+    ccAddExternalObjectFunction("DialogOptionsRenderingInfo::Update^0",             Sc_DialogOptionsRendering_Update);
     ccAddExternalObjectFunction("DialogOptionsRenderingInfo::get_ActiveOptionID",   Sc_DialogOptionsRendering_GetActiveOptionID);
     ccAddExternalObjectFunction("DialogOptionsRenderingInfo::set_ActiveOptionID",   Sc_DialogOptionsRendering_SetActiveOptionID);
     ccAddExternalObjectFunction("DialogOptionsRenderingInfo::get_DialogToRender",   Sc_DialogOptionsRendering_GetDialogToRender);

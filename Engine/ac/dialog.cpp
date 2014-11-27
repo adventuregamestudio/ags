@@ -455,7 +455,7 @@ struct DialogOptions
     int parserActivated;
 
     int curyp;
-    int wantRefresh;
+    bool wantRefresh;
     bool usingCustomRendering;
     int orixp;
     int oriyp;
@@ -623,7 +623,7 @@ void DialogOptions::Show()
 
     orixp = dlgxp;
     oriyp = dlgyp;
-    wantRefresh = 0;
+    wantRefresh = false;
     mouseison=-10;
     
     update_polled_stuff_if_runtime();
@@ -641,7 +641,7 @@ void DialogOptions::Show()
 
 void DialogOptions::Redraw()
 {
-    wantRefresh = 1;
+    wantRefresh = true;
 
     if (usingCustomRendering)
     {
@@ -682,6 +682,7 @@ void DialogOptions::Redraw()
         if (areawid == 0)
           areawid = tempScrn->GetWidth();
       }
+      ccDialogOptionsRendering.needRepaint = false;
     }
     else if (is_textwindow) {
       // text window behind the options
@@ -814,7 +815,7 @@ void DialogOptions::Redraw()
       parserInput->activated = 0;
     }
 
-    wantRefresh = 0;
+    wantRefresh = false;
     ds = SetVirtualScreen(virtual_screen);
 
     update_polled_stuff_if_runtime();
@@ -882,7 +883,7 @@ bool DialogOptions::Run()
       if (kbhit()) {
         int gkey = getch();
         if (parserInput) {
-          wantRefresh = 1;
+          wantRefresh = true;
           // type into the parser 
           if ((gkey == 361) || ((gkey == ' ') && (strlen(parserInput->text) == 0))) {
             // write previous contents into textbox (F3 or Space when box is empty)
@@ -1026,6 +1027,11 @@ bool DialogOptions::Run()
       }
       if (mousewason != mouseison) {
         //domouse(2);
+        Redraw();
+        return true; // continue running loop
+      }
+      if (new_custom_render && ccDialogOptionsRendering.needRepaint)
+      {
         Redraw();
         return true; // continue running loop
       }

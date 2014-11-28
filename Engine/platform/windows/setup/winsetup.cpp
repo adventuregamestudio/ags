@@ -89,6 +89,7 @@ struct WinConfig
     bool   UseVoicePack;
 
     int    SpriteCacheSize;
+    String DefaultLanguageName;
     String Language;
 
     WinConfig();
@@ -125,6 +126,7 @@ void WinConfig::SetDefaults()
     UseVoicePack = true;
 
     SpriteCacheSize = 1024 * 20;
+    DefaultLanguageName = "Game Default";
 
     Title = "Game Setup";
 }
@@ -199,6 +201,7 @@ void WinConfig::Load()
 
     SpriteCacheSize = ReadPPInt("misc", "cachemax", SpriteCacheSize);
     Language = ReadPPString("language", "translation", Language);
+    DefaultLanguageName = ReadPPString("language", "default_translation_name", DefaultLanguageName);
 
     Title = ReadPPString("misc", "titletext", Title);
 }
@@ -864,7 +867,7 @@ void WinSetupDialog::FillGfxModeList()
 void WinSetupDialog::FillLanguageList()
 {
     ResetContent(_hLanguageList);
-    AddString(_hLanguageList, "Game Default");
+    AddString(_hLanguageList, _winCfg.DefaultLanguageName.GetCStr());
     SetCurSel(_hLanguageList, 0);
 
     String path_mask = String::FromFormat("%s\\*.tra", _winCfg.DataDirectory.GetCStr());

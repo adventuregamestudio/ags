@@ -237,11 +237,109 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
 }
 
 extern Bitmap *mousecurs[10];
+int leftorright = 0;
+int nesting = 0;
 int pathbackstage = 0;
 int finalpartx = 0, finalparty = 0;
 short **beenhere = NULL;     //[200][320];
 int beenhere_array_size = 0;
 const int BEENHERE_SIZE = 2;
+
+#define DIR_LEFT  0
+#define DIR_RIGHT 2
+#define DIR_UP    1
+#define DIR_DOWN  3
+
+int try_this_square(int srcx, int srcy, int tox, int toy)
+{
+  if (beenhere[srcy][srcx] & 0x80)
+    return 0;
+
+  // nesting of 8040 leads to stack overflow
+  if (nesting > 7000)
+    return 0;
+
+  nesting++;
+  if (can_see_from(srcx, srcy, tox, toy)) {
+    finalpartx = srcx;
+    finalparty = srcy;
+    nesting--;
+    pathbackstage = 0;
+    return 2;
+  }
+
+#ifdef DEBUG_PATHFINDER
+  wputblock(lastcx, lastcy, mousecurs[C_CROSS], 1);
+#endif
+
+  int trydir = DIR_UP;
+  int xdiff = abs(srcx - tox), ydiff = abs(srcy - toy);
+  if (ydiff > xdiff) {
+    if (srcy > toy)
+      trydir = DIR_UP;
+    else
+      trydir = DIR_DOWN;
+  } else if (srcx > tox)
+    trydir = DIR_LEFT;
+  else if (srcx < tox)
+    trydir = DIR_RIGHT;
+
+  int iterations = 0;
+
+try_again:
+  int nextx = srcx, nexty = srcy;
+  if (trydir == DIR_LEFT)
+    nextx--;
+  else if (trydir == DIR_RIGHT)
+    nextx++;
+  else if (trydir == DIR_DOWN)
+    nexty++;
+  else if (trydir == DIR_UP)
+    nexty--;
+
+  iterations++;
+  if (iterations > 5) {
+//    fprintf(stderr,"not found: %d,%d  beenhere 0x%X\n",srcx,srcy,beenhere[srcy][srcx]);
+    nesting--;
+    return 0;
+  }
+
+  if (((nextx < 0) | (nextx >= wallscreen->GetWidth()) | (nexty < 0) | (nexty >= wallscreen->GetHeight())) ||
+      (wallscreen->GetPixel(nextx, nexty) == 0) || ((beenhere[srcy][srcx] & (1 << trydir)) != 0)) {
+
+    if (leftorright == 0) {
+      trydir++;
+      if (trydir > 3)
+        trydir = 0;
+    } else {
+      trydir--;
+      if (trydir < 0)
+        trydir = 3;
+    }
+    goto try_again;
+  }
+  beenhere[srcy][srcx] |= (1 << trydir);
+//  srcx=nextx; srcy=nexty;
+  beenhere[srcy][srcx] |= 0x80; // being processed
+
+  int retcod = try_this_square(nextx, nexty, tox, toy);
+  if (retcod == 0)
+    goto try_again;
+
+  nesting--;
+  beenhere[srcy][srcx] &= 0x7f;
+  if (retcod == 2) {
+    pathbackx[pathbackstage] = srcx;
+    pathbacky[pathbackstage] = srcy;
+    pathbackstage++;
+    if (pathbackstage >= MAXPATHBACK - 1)
+      return 0;
+
+    return 2;
+  }
+  return 1;
+}
+
 
 #define CHECK_MIN(cellx, celly) { \
   if (beenhere[celly][cellx] == -1) {\
@@ -288,6 +386,10 @@ void round_down_coords(int &tmpx, int &tmpy)
 int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
 {
   int i, j;
+
+  // This algorithm doesn't behave differently the second time, so ignore
+  if (leftorright == 1)
+    return 0;
 
   for (i = 0; i < wallscreen->GetHeight(); i++)
     memset(&beenhere[i][0], 0xff, wallscreen->GetWidth() * BEENHERE_SIZE);
@@ -470,27 +572,42 @@ int __find_route(int srcx, int srcy, short *tox, short *toy, int noredx)
 
   pathbackstage = 0;
 
-  waspossible = 1;
+  if (leftorright == 0) {
+    waspossible = 1;
 
 findroutebk:
-  if ((srcx == tox[0]) && (srcy == toy[0])) {
-    pathbackstage = 0;
-    return 1;
-  }
-
-  if ((waspossible = is_route_possible(srcx, srcy, tox[0], toy[0], wallscreen)) == 0) {
-    if (suggestx >= 0) {
-      tox[0] = suggestx;
-      toy[0] = suggesty;
-      goto findroutebk;
+    if ((srcx == tox[0]) && (srcy == toy[0])) {
+      pathbackstage = 0;
+      return 1;
     }
-    return 0;
+
+    if ((waspossible = is_route_possible(srcx, srcy, tox[0], toy[0], wallscreen)) == 0) {
+      if (suggestx >= 0) {
+        tox[0] = suggestx;
+        toy[0] = suggesty;
+        goto findroutebk;
+      }
+      return 0;
+    }
   }
 
-  if (find_route_dijkstra(srcx, srcy, tox[0], toy[0]))
-    return 1;
+  if (leftorright == 1) {
+    if (waspossible == 0)
+      return 0;
+  }
 
-  return 0;
+  // Try the new pathfinding algorithm
+  if (find_route_dijkstra(srcx, srcy, tox[0], toy[0])) {
+    return 1;
+  }
+
+  // if the new pathfinder failed, try the old one
+  pathbackstage = 0;
+  memset(&beenhere[0][0], 0, wallscreen->GetWidth() * wallscreen->GetHeight() * BEENHERE_SIZE);
+  if (try_this_square(srcx, srcy, tox[0], toy[0]) == 0)
+    return 0;
+
+  return 1;
 }
 
 void set_route_move_speed(int speed_x, int speed_y)
@@ -603,6 +720,7 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
   __wnormscreen();
 #endif
   wallscreen = onscreen;
+  leftorright = 0;
   int aaa;
 
   if (wallscreen->GetHeight() > beenhere_array_size)
@@ -630,6 +748,8 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
       beenhere[aaa] = beenhere[0] + aaa * (wallscreen->GetWidth());
 
     if (__find_route(srcx, srcy, &xx, &yy, nocross) == 0) {
+      leftorright = 1;
+      if (__find_route(srcx, srcy, &xx, &yy, nocross) == 0)
         pathbackstage = -1;
     }
     free(beenhere[0]);

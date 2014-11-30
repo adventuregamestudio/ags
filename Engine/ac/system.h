@@ -42,6 +42,7 @@ int     System_GetAudioChannelCount();
 ScriptAudioChannel* System_GetAudioChannels(int index);
 int     System_GetVolume();
 void    System_SetVolume(int newvol);
+const char *System_GetRuntimeInfo();
 
 
 #endif // __AGS_EE_AC_SYSTEMAUDIO_H

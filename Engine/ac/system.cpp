@@ -28,6 +28,7 @@
 #include "gfx/graphicsdriver.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "main/graphics_mode.h"
+#include "ac/global_debug.h"
 
 using namespace AGS::Engine;
 
@@ -197,6 +198,13 @@ void System_SetVolume(int newvol)
     }
 }
 
+const char* System_GetRuntimeInfo()
+{
+    String runtimeInfo = GetRuntimeInfo();
+
+    return CreateNewScriptString(runtimeInfo.GetCStr());
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -342,6 +350,12 @@ RuntimeScriptValue Sc_System_GetWindowed(const RuntimeScriptValue *params, int32
     API_SCALL_INT(System_GetWindowed);
 }
 
+// const char *()
+RuntimeScriptValue Sc_System_GetRuntimeInfo(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(const char, myScriptStringImpl, System_GetRuntimeInfo);
+}
+
 
 void RegisterSystemAPI()
 {
@@ -355,6 +369,7 @@ void RegisterSystemAPI()
     ccAddExternalStaticFunction("System::get_NumLock",              Sc_System_GetNumLock);
     ccAddExternalStaticFunction("System::set_NumLock",              Sc_System_SetNumLock);
     ccAddExternalStaticFunction("System::get_OperatingSystem",      Sc_System_GetOS);
+    ccAddExternalStaticFunction("System::get_RuntimeInfo",          Sc_System_GetRuntimeInfo);
     ccAddExternalStaticFunction("System::get_ScreenHeight",         Sc_System_GetScreenHeight);
     ccAddExternalStaticFunction("System::get_ScreenWidth",          Sc_System_GetScreenWidth);
     ccAddExternalStaticFunction("System::get_ScrollLock",           Sc_System_GetScrollLock);
@@ -381,6 +396,7 @@ void RegisterSystemAPI()
     ccAddExternalFunctionForPlugin("System::get_NumLock",              (void*)System_GetNumLock);
     ccAddExternalFunctionForPlugin("System::set_NumLock",              (void*)System_SetNumLock);
     ccAddExternalFunctionForPlugin("System::get_OperatingSystem",      (void*)System_GetOS);
+    ccAddExternalFunctionForPlugin("System::get_RuntimeInfo",          (void*)System_GetRuntimeInfo);
     ccAddExternalFunctionForPlugin("System::get_ScreenHeight",         (void*)System_GetScreenHeight);
     ccAddExternalFunctionForPlugin("System::get_ScreenWidth",          (void*)System_GetScreenWidth);
     ccAddExternalFunctionForPlugin("System::get_ScrollLock",           (void*)System_GetScrollLock);

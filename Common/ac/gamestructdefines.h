@@ -132,4 +132,12 @@ inline bool IsHiRes(GameResolutionType resolution)
 
 Size ResolutionTypeToSize(GameResolutionType resolution, bool letterbox = false);
 
+// Automatic numbering of dialog options (OPT_DIALOGNUMBERED)
+enum DialogOptionNumbering
+{
+    kDlgOptNoNumbering = -1,
+    kDlgOptKeysOnly    =  0, // implicit key shortcuts
+    kDlgOptNumbering   =  1  // draw option indices and use key shortcuts
+};
+
 #endif // __AGS_CN_AC__GAMESTRUCTDEFINES_H

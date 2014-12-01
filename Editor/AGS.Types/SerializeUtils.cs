@@ -138,7 +138,19 @@ namespace AGS.Types
                 {
                     throw new InvalidDataException("The property '" + child.Name + "' could not be read. This game may require a newer version of AGS.");
                 }
-                else if (!prop.CanWrite)
+
+                // Process any existing value conversions; this helps to upgrade game from older version
+                DeserializeConvertValueAttribute[] conversions =
+                    (DeserializeConvertValueAttribute[])prop.PropertyType.GetCustomAttributes(typeof(DeserializeConvertValueAttribute), true);
+                if (conversions.Length > 0)
+                {
+                    foreach (DeserializeConvertValueAttribute conversion in conversions)
+                    {
+                        elementValue = conversion.Convert(elementValue);
+                    }
+                }
+                
+                if (!prop.CanWrite)
                 {
                     // do nothing, read-only
                 }

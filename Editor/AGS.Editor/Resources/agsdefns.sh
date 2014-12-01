@@ -1721,6 +1721,8 @@ builtin managed struct DateTime {
 };
 
 builtin managed struct DialogOptionsRenderingInfo {
+  /// Runs the active dialog option
+  import bool RunActiveOption();
   /// Forces dialog options to redraw itself
   import void Update();
   /// The option that the mouse is currently positioned over

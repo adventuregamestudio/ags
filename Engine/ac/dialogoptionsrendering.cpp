@@ -30,6 +30,12 @@ void DialogOptionsRendering_Update(ScriptDialogOptionsRendering *dlgOptRender)
     dlgOptRender->needRepaint = true;
 }
 
+bool DialogOptionsRendering_RunActiveOption(ScriptDialogOptionsRendering *dlgOptRender)
+{
+    dlgOptRender->chosenOptionID = dlgOptRender->activeOptionID;
+    return dlgOptRender->chosenOptionID >= 0;
+}
+
 int DialogOptionsRendering_GetX(ScriptDialogOptionsRendering *dlgOptRender)
 {
     return dlgOptRender->x;
@@ -154,6 +160,11 @@ RuntimeScriptValue Sc_DialogOptionsRendering_Update(void *self, const RuntimeScr
     API_OBJCALL_VOID(ScriptDialogOptionsRendering, DialogOptionsRendering_Update);
 }
 
+RuntimeScriptValue Sc_DialogOptionsRendering_RunActiveOption(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptDialogOptionsRendering, DialogOptionsRendering_RunActiveOption);
+}
+
 // int (ScriptDialogOptionsRendering *dlgOptRender)
 RuntimeScriptValue Sc_DialogOptionsRendering_GetActiveOptionID(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -276,6 +287,7 @@ RuntimeScriptValue Sc_DialogOptionsRendering_SetHasAlphaChannel(void *self, cons
 void RegisterDialogOptionsRenderingAPI()
 {
     ccAddExternalObjectFunction("DialogOptionsRenderingInfo::Update^0",             Sc_DialogOptionsRendering_Update);
+    ccAddExternalObjectFunction("DialogOptionsRenderingInfo::RunActiveOption^0",    Sc_DialogOptionsRendering_RunActiveOption);
     ccAddExternalObjectFunction("DialogOptionsRenderingInfo::get_ActiveOptionID",   Sc_DialogOptionsRendering_GetActiveOptionID);
     ccAddExternalObjectFunction("DialogOptionsRenderingInfo::set_ActiveOptionID",   Sc_DialogOptionsRendering_SetActiveOptionID);
     ccAddExternalObjectFunction("DialogOptionsRenderingInfo::get_DialogToRender",   Sc_DialogOptionsRendering_GetDialogToRender);

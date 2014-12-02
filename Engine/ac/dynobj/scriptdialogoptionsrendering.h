@@ -24,6 +24,7 @@ struct ScriptDialogOptionsRendering : AGSCCDynamicObject {
     int parserTextboxWidth;
     int dialogID;
     int activeOptionID;
+    int chosenOptionID;
     ScriptDrawingSurface *surfaceToRenderTo;
     bool surfaceAccessed;
     bool needRepaint;

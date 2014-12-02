@@ -920,7 +920,8 @@ bool DialogOptions::Run()
       }
       mousewason=mouseison;
       mouseison=-1;
-      if (usingCustomRendering)
+      if (new_custom_render); // do not automatically detect option under mouse
+      else if (usingCustomRendering)
       {
         if ((mousex >= dirtyx) && (mousey >= dirtyy) &&
             (mousex < dirtyx + tempScrn->GetWidth()) &&
@@ -964,8 +965,9 @@ bool DialogOptions::Run()
 
       int mouseButtonPressed = mgetbutton();
 
-      if (mouseButtonPressed != NONE) {
-        if (mouseison < 0) 
+      if (mouseButtonPressed != NONE)
+      {
+        if (mouseison < 0 && !new_custom_render)
         {
           if (usingCustomRendering)
           {
@@ -984,6 +986,12 @@ bool DialogOptions::Run()
         if (mouseison == DLG_OPTION_PARSER) {
           // they clicked the text box
           parserActivated = 1;
+        }
+        else if (new_custom_render)
+        {
+            runDialogOptionMouseClickHandlerFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+            runDialogOptionMouseClickHandlerFunc.params[1].SetInt32(mouseButtonPressed + 1);
+            run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
         }
         else if (usingCustomRendering)
         {
@@ -1005,12 +1013,12 @@ bool DialogOptions::Run()
             runDialogOptionMouseClickHandlerFunc.params[1].SetInt32((mouseWheelTurn < 0) ? 9 : 8);
             run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
 
-            if (runDialogOptionMouseClickHandlerFunc.atLeastOneImplementationExists)
+            if (!new_custom_render)
             {
-              Redraw();
+                if (runDialogOptionMouseClickHandlerFunc.atLeastOneImplementationExists)
+                    Redraw();
+                return true; // continue running loop
             }
-
-            return true; // continue running loop
         }
       }
 
@@ -1030,10 +1038,19 @@ bool DialogOptions::Run()
         Redraw();
         return true; // continue running loop
       }
-      if (new_custom_render && ccDialogOptionsRendering.needRepaint)
+      if (new_custom_render)
       {
-        Redraw();
-        return true; // continue running loop
+        if (ccDialogOptionsRendering.chosenOptionID >= 0)
+        {
+            chose = ccDialogOptionsRendering.chosenOptionID;
+            ccDialogOptionsRendering.chosenOptionID = -1;
+            return false; // end dialog options running loop
+        }
+        if (ccDialogOptionsRendering.needRepaint)
+        {
+            Redraw();
+            return true; // continue running loop
+        }
       }
       PollUntilNextFrame();
       return true; // continue running loop

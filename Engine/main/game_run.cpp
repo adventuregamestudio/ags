@@ -30,6 +30,7 @@
 #include "ac/global_region.h"
 #include "ac/gui.h"
 #include "ac/hotspot.h"
+#include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/overlay.h"
 #include "ac/record.h"
@@ -384,7 +385,7 @@ void check_controls() {
                 }
             }
             if (!keywasprocessed) {
-                if ((kgn>='a') & (kgn<='z')) kgn-=32;
+                kgn = GetKeyForKeyPressCb(kgn);
                 DEBUG_CONSOLE("Running on_key_press keycode %d", kgn);
                 setevent(EV_TEXTSCRIPT,TS_KEYPRESS,kgn);
             }

@@ -29,6 +29,7 @@
 #include "ac/global_gui.h"
 #include "ac/global_room.h"
 #include "ac/global_translation.h"
+#include "ac/keycode.h"
 #include "ac/overlay.h"
 #include "ac/mouse.h"
 #include "ac/parser.h"
@@ -900,6 +901,12 @@ bool DialogOptions::Run()
               return true; // continue running loop
             }
           }
+        }
+        else if (new_custom_render)
+        {
+            runDialogOptionKeyPressHandlerFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+            runDialogOptionKeyPressHandlerFunc.params[1].SetInt32(GetKeyForKeyPressCb(gkey));
+            run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
         }
         // Allow selection of options by keyboard shortcuts
         else if ((gkey >= '1') && (gkey <= '9')) {

@@ -29,4 +29,10 @@
 #define AGS_KEYCODE_ALT_TAB 399
 #define READKEY_CODE_ALT_TAB 0x4000
 
+// Gets a key code for "on_key_press" script callback
+inline int GetKeyForKeyPressCb(int keycode)
+{
+    return (keycode >= 'a' && keycode <= 'z') ? keycode - 32 : keycode;
+}
+
 #endif // __AGS_EE_AC__KEYCODE_H

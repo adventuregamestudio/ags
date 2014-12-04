@@ -716,8 +716,10 @@ namespace AGS.Editor
                 }
                 foreach (View view in views)
                 {
-                    if (view == null) continue; // views are not always sequential, so we may have some null entries
-                    short numLoops = (short)view.Loops.Count;
+                    // views are not always sequential, so we may have some null entries;
+                    // but even in that case we must write number of loops (0) to conform
+                    // to the data format
+                    short numLoops = (short)(view != null ? view.Loops.Count : 0);
                     writer.Write(numLoops);
                     for (int i = 0; i < numLoops; ++i)
                     {
@@ -1494,10 +1496,13 @@ namespace AGS.Editor
             {
                 CustomPropertiesWriter.Write(writer, game.InventoryItems[i].Properties);
             }
-            for (int i = 0; i <= game.ViewCount; ++i) // ViewCount is highest numbered view
+            for (int i = 0; i < game.ViewCount; ++i) // ViewCount is highest numbered view
             {
-                View view = game.FindViewByID(i);
-                if (view != null) FilePutNullTerminatedString(view.Name, view.Name.Length + 1, writer);
+                View view = game.FindViewByID(i + 1);
+                if (view != null)
+                    FilePutNullTerminatedString(view.Name, view.Name.Length + 1, writer);
+                else
+                    writer.Write((byte)0); // view is null, so its name is just a single NUL byte
             }
             writer.Write((byte)0); // inventory slot 0 is unused, so its name is just a single NUL byte
             for (int i = 0; i < game.InventoryItems.Count; ++i)

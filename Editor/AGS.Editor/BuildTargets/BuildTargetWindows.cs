@@ -177,9 +177,13 @@ namespace AGS.Editor
                 File.Copy(Path.Combine(compiledDir, AGSEditor.CONFIG_FILE_NAME),
                     GetCompiledPath(AGSEditor.CONFIG_FILE_NAME));
             }
-            foreach (string fileName in Utilities.GetDirectoryFileList(AGSEditor.OUTPUT_DIRECTORY, "*.vox"))
+            foreach (string fileName in Utilities.GetDirectoryFileList(compiledDir, "*.vox"))
             {
-                Utilities.CreateHardLink(GetCompiledPath(fileName), Path.Combine(compiledDir, fileName), true);
+                Utilities.CreateHardLink(GetCompiledPath(fileName.Split('\\')), fileName, true);
+            }
+            foreach (string fileName in Utilities.GetDirectoryFileList(compiledDir, "*.tra"))
+            {
+                Utilities.CreateHardLink(GetCompiledPath(fileName.Split('\\')), fileName, true);
             }
             string baseGameFileName = Factory.AGSEditor.BaseGameFileName;
             using (FileStream ostream = File.Open(GetCompiledPath(baseGameFileName + ".exe"), FileMode.Append,

@@ -1019,7 +1019,6 @@ int alogg_poll_oggstream(ALOGG_OGGSTREAM *ogg) {
       free_audio_stream_buffer(ogg->audiostream);
       /* if this was not the last block, buffer underrun */
       if (!last_block) {
-        alogg_stop_oggstream(ogg);
         return ALOGG_POLL_BUFFERUNDERRUN;
       }
       /* else we just finished playing, we need to wait for audio to stop */

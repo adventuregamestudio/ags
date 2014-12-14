@@ -139,7 +139,7 @@ namespace AGS.Editor
         private void udWidthHeight_Validating(object sender, CancelEventArgs e)
         {
             NumericUpDown num = (NumericUpDown)sender;
-            num.Value = Math.Max(128, num.Value);
+            num.Value = Math.Max(1, num.Value);
         }
     }
 }

@@ -203,8 +203,8 @@ unsigned long _argb2argb_alpha_blender(unsigned long src_col, unsigned long dst_
     dst_col = (((src_col & 0xFF00FF) - (dst_col & 0xFF00FF)) * src_alpha / 256 + dst_col) & 0xFF00FF;
     
     // dst_alpha now contains the final alpha
-    // we assume that final alpha will never be zero (see note above)
-    dst_alpha   = src_alpha + (dst_alpha * (256 - src_alpha) / 256);
+    // we assume that final alpha will never be zero
+    dst_alpha  = 256 - (256 - src_alpha) * (256 - dst_alpha) / 256;
     // src_alpha is now the final alpha factor made for being multiplied by,
     // instead of divided by: this makes it possible to use it in faster
     // calculation below

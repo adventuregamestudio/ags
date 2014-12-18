@@ -15,21 +15,22 @@
 #ifndef __CC_SYSTEMIMPORTS_H
 #define __CC_SYSTEMIMPORTS_H
 
+#include <map>
 #include "script/cc_instance.h"    // ccInstance
-#include "script/cc_treemap.h"     // ccTreeMap
 
 struct ICCDynamicObject;
 struct ICCStaticObject;
+
+using AGS::Common::String;
 
 struct ScriptImport
 {
     ScriptImport()
     {
-        Name        = NULL;
         InstancePtr = NULL;
     }
 
-    const char          *Name;          // import's uid
+    String              Name;           // import's uid
     RuntimeScriptValue  Value;
     ccInstance          *InstancePtr;   // script instance
 };
@@ -37,33 +38,21 @@ struct ScriptImport
 struct SystemImports
 {
 private:
-    ScriptImport *imports;
-    int numimports;
-    int bufferSize;
-    ccTreeMap btree;
+    // Note we can't use a hash-map here, because we sometimes need to search
+    // by partial keys.
+    typedef std::map<String, int> IndexMap;
+
+    std::vector<ScriptImport> imports;
+    IndexMap btree;
 
 public:
-    int  add(const char *name, const RuntimeScriptValue &value, ccInstance *inst);
-    void remove(const char *name);
-    const ScriptImport *getByName(const char *name);
-    int  get_index_of(const char *name);
+    int  add(const String &name, const RuntimeScriptValue &value, ccInstance *inst);
+    void remove(const String &name);
+    const ScriptImport *getByName(const String &name);
+    int  get_index_of(const String &name);
     const ScriptImport *getByIndex(int index);
-    //void *get_addr_of(const char *name);
-    //ccInstance* is_script_import(const char *name);
-    //void remove_range(void *from_ptr, intptr_t dist);
     void RemoveScriptExports(ccInstance *inst);
-    void clear() {
-        numimports = 0;
-        btree.clear();
-    }
-    //  void remove_all_script_exports();
-
-    SystemImports()
-    {
-        numimports  = 0;
-        bufferSize  = 0;
-        imports     = NULL;
-    }
+    void clear();
 };
 
 extern SystemImports simp;

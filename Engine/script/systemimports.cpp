@@ -20,17 +20,10 @@
 
 extern void quit(const char *);
 
-struct CompareStringsPartial : ICompareStrings {
-    virtual int compare(const char *left, const char *right) {
-        return strncmp(left, right, strlen(left));
-    }
-};
-CompareStringsPartial ccCompareStringsPartial;
-
 SystemImports simp;
 SystemImports simp_for_plugin;
 
-int SystemImports::add(const char *name, const RuntimeScriptValue &value, ccInstance *anotherscr)
+int SystemImports::add(const String &name, const RuntimeScriptValue &value, ccInstance *anotherscr)
 {
     int ixof;
 
@@ -43,43 +36,36 @@ int SystemImports::add(const char *name, const RuntimeScriptValue &value, ccInst
         return 0;
     }
 
-    ixof = numimports;
-    for (int ii = 0; ii < numimports; ii++) {
-        if (imports[ii].Name == NULL) {
-            ixof = ii;
+    ixof = imports.size();
+    for (size_t i = 0; i < imports.size(); ++i)
+    {
+        if (imports[i].Name == NULL)
+        {
+            ixof = i;
             break;
         }
     }
 
-    if (ixof >= this->bufferSize)
-    {
-        if (this->bufferSize > 50000)
-            return -1;  // something has gone badly wrong
-        this->bufferSize += 1000;
-        this->imports = (ScriptImport*)realloc(this->imports, sizeof(ScriptImport) * this->bufferSize);
-    }
-
-    btree.addEntry(name, ixof);
+    btree[name] = ixof;
+    if (ixof == imports.size())
+        imports.push_back(ScriptImport());
     imports[ixof].Name          = name; // TODO: rather make a string copy here for safety reasons
     imports[ixof].Value         = value;
     imports[ixof].InstancePtr   = anotherscr;
-
-    if (ixof == numimports)
-        numimports++;
     return 0;
 }
 
-void SystemImports::remove(const char *nameToRemove) {
-    int idx = get_index_of(nameToRemove);
+void SystemImports::remove(const String &name) {
+    int idx = get_index_of(name);
     if (idx < 0)
         return;
-    btree.removeEntry(imports[idx].Name);
+    btree.erase(imports[idx].Name);
     imports[idx].Name = NULL;
     imports[idx].Value.Invalidate();
     imports[idx].InstancePtr = NULL;
 }
 
-const ScriptImport *SystemImports::getByName(const char *name)
+const ScriptImport *SystemImports::getByName(const String &name)
 {
     int o = get_index_of(name);
     if (o < 0)
@@ -90,38 +76,35 @@ const ScriptImport *SystemImports::getByName(const char *name)
 
 const ScriptImport *SystemImports::getByIndex(int index)
 {
-    if (index < 0 || index > numimports)
-    {
+    if ((size_t)index >= imports.size())
         return NULL;
-    }
+
     return &imports[index];
 }
 
-int SystemImports::get_index_of(const char *namw)
+int SystemImports::get_index_of(const String &name)
 {
-    int bestMatch = -1;
-    char altName[200];
-    sprintf(altName, "%s$", namw);
+    IndexMap::const_iterator it = btree.find(name);
+    if (it != btree.end())
+        return it->second;
 
-    int idx = btree.findValue((const char*)namw);
-    if (idx >= 0)
-        return idx;
-
+    // CHECKME: what are "mangled names" and where do they come from?
+    String mangled_name = String::FromFormat("%s$", name.GetCStr());
     // if it's a function with a mangled name, allow it
-    idx = btree.findValue(altName, &ccCompareStringsPartial);
-    if (idx >= 0)
-        return idx;
+    it = btree.lower_bound(mangled_name);
+    if (it != btree.end() && it->first.CompareLeft(mangled_name) == 0)
+        return it->second;
 
-    if ((strlen(namw) > 3) && 
-        ((namw[strlen(namw) - 2] == '^') || (namw[strlen(namw) - 3] == '^'))) {
+    if (name.GetLength() > 3)
+    {
+        int c = name.FindCharReverse('^');
+        if (c == name.GetLength() - 2 || c == name.GetLength() - 3)
+        {
             // Function with number of prametrs on the end
             // attempt to find it without the param count
-            strcpy(altName, namw);
-            strrchr(altName, '^')[0] = 0;
-
-            return get_index_of(altName);
+            return get_index_of(name.Left(c));
+        }
     }
-
     return -1;
 }
 
@@ -132,17 +115,23 @@ void SystemImports::RemoveScriptExports(ccInstance *inst)
         return;
     }
 
-    for (int i = 0; i < numimports; ++i)
+    for (size_t i = 0; i < imports.size(); ++i)
     {
         if (imports[i].Name == NULL)
             continue;
 
         if (imports[i].InstancePtr == inst)
         {
-            btree.removeEntry(imports[i].Name);
+            btree.erase(imports[i].Name);
             imports[i].Name = NULL;
             imports[i].Value.Invalidate();
             imports[i].InstancePtr = 0;
         }
     }
+}
+
+void SystemImports::clear()
+{
+    btree.clear();
+    imports.clear();
 }

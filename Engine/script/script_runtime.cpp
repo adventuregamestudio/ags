@@ -39,44 +39,44 @@
 
 extern ccInstance *current_instance; // in script/cc_instance
 
-bool ccAddExternalStaticFunction(const char *name, ScriptAPIFunction *pfn)
+bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *pfn)
 {
     return simp.add(name, RuntimeScriptValue().SetStaticFunction(pfn), NULL) == 0;
 }
 
-bool ccAddExternalPluginFunction(const char *name, void *pfn)
+bool ccAddExternalPluginFunction(const String &name, void *pfn)
 {
     return simp.add(name, RuntimeScriptValue().SetPluginFunction(pfn), NULL) == 0;
 }
 
-bool ccAddExternalStaticObject(const char *name, void *ptr, ICCStaticObject *manager)
+bool ccAddExternalStaticObject(const String &name, void *ptr, ICCStaticObject *manager)
 {
     return simp.add(name, RuntimeScriptValue().SetStaticObject(ptr, manager), NULL) == 0;
 }
 
-bool ccAddExternalStaticArray(const char *name, void *ptr, StaticArray *array_mgr)
+bool ccAddExternalStaticArray(const String &name, void *ptr, StaticArray *array_mgr)
 {
     return simp.add(name, RuntimeScriptValue().SetStaticArray(ptr, array_mgr), NULL) == 0;
 }
 
-bool ccAddExternalDynamicObject(const char *name, void *ptr, ICCDynamicObject *manager)
+bool ccAddExternalDynamicObject(const String &name, void *ptr, ICCDynamicObject *manager)
 {
     return simp.add(name, RuntimeScriptValue().SetDynamicObject(ptr, manager), NULL) == 0;
 }
 
-bool ccAddExternalObjectFunction(const char *name, ScriptAPIObjectFunction *pfn)
+bool ccAddExternalObjectFunction(const String &name, ScriptAPIObjectFunction *pfn)
 {
     return simp.add(name, RuntimeScriptValue().SetObjectFunction(pfn), NULL) == 0;
 }
 
-bool ccAddExternalScriptSymbol(const char *name, const RuntimeScriptValue &prval, ccInstance *inst)
+bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, ccInstance *inst)
 {
     return simp.add(name, prval, inst) == 0;
 }
 
-void ccRemoveExternalSymbol(const char *namof)
+void ccRemoveExternalSymbol(const String &name)
 {
-    simp.remove(namof);
+    simp.remove(name);
 }
 
 void ccRemoveAllSymbols()
@@ -94,9 +94,9 @@ void nullfree(void *data)
         free(data);
 }
 
-void *ccGetSymbolAddress(char *namof)
+void *ccGetSymbolAddress(const String &name)
 {
-    const ScriptImport *import = simp.getByName(namof);
+    const ScriptImport *import = simp.getByName(name);
     if (import)
     {
         return import->Value.Ptr;
@@ -104,14 +104,14 @@ void *ccGetSymbolAddress(char *namof)
     return NULL;
 }
 
-bool ccAddExternalFunctionForPlugin(const char *name, void *pfn)
+bool ccAddExternalFunctionForPlugin(const String &name, void *pfn)
 {
     return simp_for_plugin.add(name, RuntimeScriptValue().SetPluginFunction(pfn), NULL) == 0;
 }
 
-void *ccGetSymbolAddressForPlugin(char *namof)
+void *ccGetSymbolAddressForPlugin(const String &name)
 {
-    const ScriptImport *import = simp_for_plugin.getByName(namof);
+    const ScriptImport *import = simp_for_plugin.getByName(name);
     if (import)
     {
         return import->Value.Ptr;
@@ -119,7 +119,7 @@ void *ccGetSymbolAddressForPlugin(char *namof)
     else
     {
         // Also search the internal symbol table for non-function symbols
-        import = simp.getByName(namof);
+        import = simp.getByName(name);
         if (import)
         {
             return import->Value.Ptr;

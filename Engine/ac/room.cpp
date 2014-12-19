@@ -1078,6 +1078,7 @@ void compile_room_script() {
         quitprintf("Unable to create forked room instance: %s", ccErrorString);
 
     repExecAlways.roomHasFunction = true;
+    lateRepExecAlways.roomHasFunction = true;
     getDialogOptionsDimensionsFunc.roomHasFunction = true;
 }
 

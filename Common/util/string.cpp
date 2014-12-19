@@ -355,7 +355,6 @@ String String::Right(int count) const
     return count == GetLength() ? *this : String(GetCStr() + GetLength() - count, count);
 }
 
-// Extract leftmost part, separated by the given char
 String String::LeftSection(char separator, bool exclude_separator) const
 {
     if (_meta && separator)
@@ -367,10 +366,9 @@ String String::LeftSection(char separator, bool exclude_separator) const
             return Left(slice_at);
         }
     }
-    return String();
+    return *this;
 }
 
-// Extract rightmost part, separated by the given char
 String String::RightSection(char separator, bool exclude_separator) const
 {
     if (_meta && separator)
@@ -382,10 +380,9 @@ String String::RightSection(char separator, bool exclude_separator) const
             return Right(count);
         }
     }
-    return String();
+    return *this;
 }
 
-// Extract the section between Xth and Yth appearance of the given character
 String String::Section(char separator, int first, int last,
                           bool exclude_first_sep, bool exclude_last_sep) const
 {
@@ -520,6 +517,8 @@ void String::ClipLeftSection(char separator, bool include_separator)
         {
             ClipLeft(include_separator ? slice_at + 1 : slice_at);
         }
+        else
+            Empty();
     }
 }
 
@@ -532,6 +531,8 @@ void String::ClipRightSection(char separator, bool include_separator)
         {
             ClipRight(include_separator ? _meta->Length - slice_at : _meta->Length - slice_at - 1);
         }
+        else
+            Empty();
     }
 }
 

@@ -189,11 +189,13 @@ public:
     // Extract N rightmost characters
     String  Right(int count) const;
 
-    // Extract leftmost part, separated by the given char
+    // Extract leftmost part, separated by the given char; if no separator was
+    // found returns the whole string
     String  LeftSection(char separator, bool exclude_separator = true) const;
-    // Extract rightmost part, separated by the given char
+    // Extract rightmost part, separated by the given char; if no separator was
+    // found returns the whole string
     String  RightSection(char separator, bool exclude_separator = true) const;
-    // Extract the section between Xth and Yth appearance of the given character
+    // Extract the range of Xth to Yth fields, separated by the given character
     String  Section(char separator, int first, int last,
                               bool exclude_first_sep = true, bool exclude_last_sep = true) const;
 
@@ -221,11 +223,13 @@ public:
     void    ClipMid(int from, int count = -1);
     // Cuts off rightmost N characters
     void    ClipRight(int count);
-    // Cuts off leftmost part, separated by the given char
+    // Cuts off leftmost part, separated by the given char; if no separator was
+    // found cuts whole string, leaving empty string
     void    ClipLeftSection(char separator, bool include_separator = true);
-    // Cuts off rightmost part, separated by the given char
+    // Cuts off rightmost part, separated by the given char; if no separator
+    // was found cuts whole string, leaving empty string
     void    ClipRightSection(char separator, bool include_separator = true);
-    // Cuts out the section between Xth and Yth appearance of the given character
+    // Cuts out the range of Xth to Yth fields separated by the given character
     void    ClipSection(char separator, int first, int last,
                               bool include_first_sep = true, bool include_last_sep = true);
     // Sets string length to zero
@@ -269,12 +273,14 @@ public:
     void    TruncateToMid(int from, int count = -1);
     // Truncate the string to the rightmost N characters
     void    TruncateToRight(int count);
-    // Truncate the string to the leftmost part, separated by the given char
+    // Truncate the string to the leftmost part, separated by the given char;
+    // if no separator was found leaves string unchanged
     void    TruncateToLeftSection(char separator, bool exclude_separator = true);
-    // Truncate the string to the rightmost part, separated by the given char
+    // Truncate the string to the rightmost part, separated by the given char;
+    // if no separator was found leaves string unchanged
     void    TruncateToRightSection(char separator, bool exclude_separator = true);
-    // Truncate the string to the section between Xth and Yth appearance of
-    // the given character
+    // Truncate the string to range of Xth to Yth fields separated by the
+    // given character
     void    TruncateToSection(char separator, int first, int last,
                               bool exclude_first_sep = true, bool exclude_last_sep = true);
 

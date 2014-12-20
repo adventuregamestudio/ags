@@ -445,7 +445,7 @@ namespace AGS.Editor
             }
             if (!File.Exists(sourceFileName))
             {
-                throw new FileNotFoundException("Cannot create hard link! Source file does not exist.");
+                throw new FileNotFoundException("Cannot create hard link! Source file does not exist. (" + sourceFileName + ")");
             }
             ProcessStartInfo si = new ProcessStartInfo("cmd.exe");
             si.RedirectStandardInput = false;

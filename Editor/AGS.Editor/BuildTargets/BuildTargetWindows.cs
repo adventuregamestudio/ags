@@ -171,46 +171,41 @@ namespace AGS.Editor
             CreateCompiledSetupProgram();
             Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;
             string compiledDir = AGSEditor.OUTPUT_DIRECTORY;
+            string baseGameFileName = Factory.AGSEditor.BaseGameFileName;
             if (!File.Exists(GetCompiledPath(AGSEditor.CONFIG_FILE_NAME)))
             {
                 // don't hard-link config file
                 File.Copy(Path.Combine(compiledDir, AGSEditor.CONFIG_FILE_NAME),
                     GetCompiledPath(AGSEditor.CONFIG_FILE_NAME));
             }
-            foreach (string fileName in Utilities.GetDirectoryFileList(AGSEditor.OUTPUT_DIRECTORY, "*.vox"))
+            foreach (string fileName in Utilities.GetDirectoryFileList(compiledDir, "*"))
             {
-                Utilities.CreateHardLink(GetCompiledPath(fileName), Path.Combine(compiledDir, fileName), true);
-            }
-            string baseGameFileName = Factory.AGSEditor.BaseGameFileName;
-            using (FileStream ostream = File.Open(GetCompiledPath(baseGameFileName + ".exe"), FileMode.Append,
-                FileAccess.Write))
-            {
-                int startPosition = (int)ostream.Position;
-                bool has000File = false;
-                foreach (string fileName in Utilities.GetDirectoryFileList(compiledDir, baseGameFileName + ".0*"))
+                if (fileName.EndsWith(".000"))
                 {
-                    if (fileName.EndsWith(".000"))
+                    using (FileStream ostream = File.Open(GetCompiledPath(baseGameFileName + ".exe"), FileMode.Append,
+                        FileAccess.Write))
                     {
+                        int startPosition = (int)ostream.Position;
                         using (FileStream istream = File.Open(fileName, FileMode.Open, FileAccess.Read))
                         {
-                            byte[] buffer = new byte[4096];
-                            for (int count = istream.Read(buffer, 0, 4096); count > 0;
-                                count = istream.Read(buffer, 0, 4096))
+                            const int bufferSize = 4096;
+                            byte[] buffer = new byte[bufferSize];
+                            for (int count = istream.Read(buffer, 0, bufferSize); count > 0;
+                                count = istream.Read(buffer, 0, bufferSize))
                             {
                                 ostream.Write(buffer, 0, count);
                             }
                         }
-                        has000File = true;
+                        // write the offset into the EXE where the first data file resides
+                        ostream.Write(BitConverter.GetBytes(startPosition), 0, 4);
+                        // write the CLIB end signature so the engine knows this is a valid EXE
+                        ostream.Write(Encoding.UTF8.GetBytes(NativeConstants.CLIB_END_SIGNATURE.ToCharArray()), 0,
+                            NativeConstants.CLIB_END_SIGNATURE.Length);
                     }
-                    else Utilities.CreateHardLink(GetCompiledPath(fileName), fileName, true);
                 }
-                if (has000File)
+                else if (!fileName.EndsWith(AGSEditor.CONFIG_FILE_NAME))
                 {
-                    // write the offset into the EXE where the first data file resides
-                    ostream.Write(BitConverter.GetBytes(startPosition), 0, 4);
-                    // write the CLIB end signature so the engine knows this is a valid EXE
-                    ostream.Write(Encoding.UTF8.GetBytes(NativeConstants.CLIB_END_SIGNATURE.ToCharArray()), 0,
-                        NativeConstants.CLIB_END_SIGNATURE.Length);
+                    Utilities.CreateHardLink(GetCompiledPath(Path.GetFileName(fileName)), fileName, true);
                 }
             }
             return true;

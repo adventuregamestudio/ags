@@ -405,21 +405,78 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Sets security permissions for the file, allowing modification from the "users" group.
+        /// Sets security permissions for a specific file.
         /// </summary>
-        public static void SetFileAccessAllowUsersToModify(string fileName)
+        public static void SetFileAccess(string fileName, SecurityIdentifier sid, FileSystemRights rights, AccessControlType type)
         {
-            FileSecurity fsec = File.GetAccessControl(fileName);
-            fsec.AddAccessRule
-            (
-                new FileSystemAccessRule
-                (
-                    new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null),
-                    FileSystemRights.Modify,
-                    AccessControlType.Allow
-                )
-            );
-            File.SetAccessControl(fileName, fsec);
+            try
+            {
+                FileSecurity fsec = File.GetAccessControl(fileName);
+                fsec.AddAccessRule(new FileSystemAccessRule(sid, rights, type));
+                File.SetAccessControl(fileName, fsec);
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
+        }
+
+        public static void SetDirectoryFilesAccess(string directory)
+        {
+            SetDirectoryFilesAccess(directory, new SecurityIdentifier(WellKnownSidType.WorldSid, null));
+        }
+
+        public static void SetDirectoryFilesAccess(string directory, SecurityIdentifier sid)
+        {
+            SetDirectoryFilesAccess(directory, sid, FileSystemRights.Modify);
+        }
+
+        public static void SetDirectoryFilesAccess(string directory, SecurityIdentifier sid, FileSystemRights rights)
+        {
+            SetDirectoryFilesAccess(directory, sid, rights, AccessControlType.Allow);
+        }
+
+        /// <summary>
+        /// Sets security permissions for all files in a directory.
+        /// </summary>
+        public static void SetDirectoryFilesAccess(string directory, SecurityIdentifier sid, FileSystemRights rights, AccessControlType type)
+        {
+            try
+            {
+                // first we will attempt to take ownership of the file
+                // this ensures (if successful) that all users can change security
+                // permissions for the file without admin access
+                ProcessStartInfo si = new ProcessStartInfo("cmd.exe");
+                si.RedirectStandardInput = false;
+                si.RedirectStandardOutput = false;
+                si.RedirectStandardError = false;
+                si.UseShellExecute = false;
+                si.Arguments = string.Format("/c takeown /f \"{0}\" /r /d y", directory);
+                si.CreateNoWindow = true;
+                si.WindowStyle = ProcessWindowStyle.Hidden;
+                if (Utilities.IsMonoRunning())
+                {
+                    si.FileName = "chown";
+                    si.Arguments = string.Format("-R $USER:$USER \"{0}\"", directory);
+                }
+                Process process = Process.Start(si);
+                bool result = (process != null);
+                if (result)
+                {
+                    process.EnableRaisingEvents = true;
+                    process.WaitForExit();
+                    if (process.ExitCode != 0) return;
+                    process.Close();
+                    // after successfully gaining ownership, parse each file in the
+                    // directory (recursively) and update its access rights
+                    foreach (string filename in Utilities.GetDirectoryFileList(directory, "*", SearchOption.AllDirectories))
+                    {
+                        Utilities.SetFileAccess(filename, sid, rights, type);
+                    }
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
         }
 
         public static bool CreateHardLink(string destFileName, string sourceFileName)
@@ -434,18 +491,18 @@ namespace AGS.Editor
                 if (overwrite) File.Delete(destFileName);
                 else return false;
             }
-            List<char> invalidFileNameChars = new List<char>(Path.GetInvalidFileNameChars());
-            if (Path.GetFileName(destFileName).IndexOfAny(invalidFileNameChars.ToArray()) != -1)
+            char[] invalidFileNameChars = Path.GetInvalidFileNameChars();
+            if (Path.GetFileName(destFileName).IndexOfAny(invalidFileNameChars) != -1)
             {
                 throw new ArgumentException("Cannot create hard link! Invalid destination file name. (" + destFileName + ")");
             }
-            if (Path.GetFileName(sourceFileName).IndexOfAny(invalidFileNameChars.ToArray()) != -1)
+            if (Path.GetFileName(sourceFileName).IndexOfAny(invalidFileNameChars) != -1)
             {
                 throw new ArgumentException("Cannot create hard link! Invalid source file name. (" + sourceFileName + ")");
             }
             if (!File.Exists(sourceFileName))
             {
-                throw new FileNotFoundException("Cannot create hard link! Source file does not exist.");
+                throw new FileNotFoundException("Cannot create hard link! Source file does not exist. (" + sourceFileName + ")");
             }
             ProcessStartInfo si = new ProcessStartInfo("cmd.exe");
             si.RedirectStandardInput = false;
@@ -468,9 +525,6 @@ namespace AGS.Editor
                 process.WaitForExit();
                 if (process.ExitCode != 0) return false;
                 process.Close();
-                // by default the new hard link will be accessible to the current user only
-                // instead, we'll change it to be accessible to the entire "Users" group
-                SetFileAccessAllowUsersToModify(destFileName);
             }
             return result;
         }

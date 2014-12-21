@@ -943,9 +943,12 @@ namespace AGS.Editor
             bool forceRebuild = parameters.RebuildAll;
             IBuildTarget targetDataFile = BuildTargetsInfo.FindBuildTargetByName(BuildTargetsInfo.DATAFILE_TARGET_NAME);
             targetDataFile.Build(errors, forceRebuild); // ensure that data file is built first
-            foreach (IBuildTarget target in BuildTargetsInfo.GetSelectedBuildTargets())
+            if (!Factory.AGSEditor.Preferences.UseLegacyCompiler)
             {
-                if (target != targetDataFile) target.Build(errors, forceRebuild);
+                foreach (IBuildTarget target in BuildTargetsInfo.GetSelectedBuildTargets())
+                {
+                    if (target != targetDataFile) target.Build(errors, forceRebuild);
+                }
             }
             if (ExtraOutputCreationStep != null)
             {

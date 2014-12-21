@@ -24,7 +24,7 @@ namespace AGS.Editor
             return new string[] { GetCompiledPath() };
         }
 
-        private void CreateCompiledSetupProgram()
+        public void CreateCompiledSetupProgram()
         {
             string setupFileName = GetCompiledPath(AGSEditor.COMPILED_SETUP_FILE_NAME);
             Resources.ResourceManager.CopyFileFromResourcesToDisk(AGSEditor.SETUP_PROGRAM_SOURCE_FILE, setupFileName);
@@ -134,18 +134,20 @@ namespace AGS.Editor
             }
         }
 
-        public override bool Build(CompileMessages errors, bool forceRebuild)
+        public void UpdateWindowsEXE(string filename)
         {
-            if (!base.Build(errors, forceRebuild)) return false;
-            string newExeName = Path.Combine(Path.Combine(AGSEditor.OUTPUT_DIRECTORY, WINDOWS_DIRECTORY),
-                Factory.AGSEditor.BaseGameFileName + ".exe");
-            string sourceEXE = Path.Combine(Factory.AGSEditor.EditorDirectory, AGSEditor.ENGINE_EXE_FILE_NAME);
-            File.Copy(sourceEXE, newExeName, true);
+            UpdateWindowsEXE(filename, null);
+        }
+
+        public void UpdateWindowsEXE(string filename, CompileMessages errors)
+        {
+            if (!File.Exists(filename)) return;
+            if (errors == null) errors = new CompileMessages();
             if (File.Exists(AGSEditor.CUSTOM_ICON_FILE_NAME))
             {
                 try
                 {
-                    Factory.NativeProxy.UpdateFileIcon(newExeName, AGSEditor.CUSTOM_ICON_FILE_NAME);
+                    Factory.NativeProxy.UpdateFileIcon(filename, AGSEditor.CUSTOM_ICON_FILE_NAME);
                 }
                 catch (AGSEditorException ex)
                 {
@@ -154,7 +156,7 @@ namespace AGS.Editor
             }
             try
             {
-                UpdateVistaGameExplorerResources(newExeName);
+                UpdateVistaGameExplorerResources(filename);
             }
             catch (Exception ex)
             {
@@ -162,16 +164,25 @@ namespace AGS.Editor
             }
             try
             {
-                Factory.NativeProxy.UpdateFileVersionInfo(newExeName, Factory.AGSEditor.CurrentGame.Settings.DeveloperName, Factory.AGSEditor.CurrentGame.Settings.GameName);
+                Factory.NativeProxy.UpdateFileVersionInfo(filename, Factory.AGSEditor.CurrentGame.Settings.DeveloperName, Factory.AGSEditor.CurrentGame.Settings.GameName);
             }
             catch (Exception ex)
             {
                 errors.Add(new CompileError("Unable to set EXE name/description: " + ex.Message));
             }
-            CreateCompiledSetupProgram();
-            Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;
+        }
+
+        public override bool Build(CompileMessages errors, bool forceRebuild)
+        {
+            if (!base.Build(errors, forceRebuild)) return false;
             string compiledDir = AGSEditor.OUTPUT_DIRECTORY;
             string baseGameFileName = Factory.AGSEditor.BaseGameFileName;
+            string newExeName = GetCompiledPath(baseGameFileName + ".exe");
+            string sourceEXE = Path.Combine(Factory.AGSEditor.EditorDirectory, AGSEditor.ENGINE_EXE_FILE_NAME);
+            File.Copy(sourceEXE, newExeName, true);
+            UpdateWindowsEXE(newExeName, errors);
+            CreateCompiledSetupProgram();
+            Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;
             if (!File.Exists(GetCompiledPath(AGSEditor.CONFIG_FILE_NAME)))
             {
                 // don't hard-link config file
@@ -223,7 +234,8 @@ namespace AGS.Editor
         {
             get
             {
-                return WINDOWS_DIRECTORY;
+                if (Factory.AGSEditor.Preferences.UseLegacyCompiler) return "";
+                else return WINDOWS_DIRECTORY;
             }
         }
     }

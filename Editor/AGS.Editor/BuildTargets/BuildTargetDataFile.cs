@@ -92,7 +92,21 @@ namespace AGS.Editor
             if (!base.Build(errors, forceRebuild)) return false;
             Factory.AGSEditor.SetMODMusicFlag();
             DeleteAnyExistingSplitResourceFiles();
-            if (Factory.AGSEditor.Preferences.UseLegacyCompiler) Factory.NativeProxy.CompileGameToDTAFile(Factory.AGSEditor.CurrentGame, AGSEditor.COMPILED_DTA_FILE_NAME);
+            if (Factory.AGSEditor.Preferences.UseLegacyCompiler)
+            {
+                Factory.NativeProxy.CompileGameToDTAFile(Factory.AGSEditor.CurrentGame, AGSEditor.COMPILED_DTA_FILE_NAME);
+                // if using the legacy compiler, make sure engine EXE is copied before calling CreateGameEXE
+                string newExeName = GetCompiledPath(Factory.AGSEditor.BaseGameFileName + ".exe");
+                string sourceEXE = Path.Combine(Factory.AGSEditor.EditorDirectory, AGSEditor.ENGINE_EXE_FILE_NAME);
+                File.Copy(sourceEXE, newExeName, true);
+                BuildTargetWindows targetWindows = (BuildTargetsInfo.FindBuildTargetByName("Windows") as BuildTargetWindows);
+                // updating the Vista game explorer resources after the EXE is fully created is deleting the data file,
+                // corrupting the game resources
+                targetWindows.UpdateWindowsEXE(newExeName, errors);
+                // finally, doing this here eliminates the need to directly call BuildTargetWindows.Build, as this is the
+                // last thing we need it for, and the rest (above) all needs to be done here anyway
+                targetWindows.CreateCompiledSetupProgram();
+            }
             else DataFileWriter.SaveThisGameToFile(AGSEditor.COMPILED_DTA_FILE_NAME, Factory.AGSEditor.CurrentGame);
             Factory.NativeProxy.CreateGameEXE(ConstructFileListForEXE(), Factory.AGSEditor.CurrentGame, Factory.AGSEditor.BaseGameFileName);
             File.Delete(AGSEditor.COMPILED_DTA_FILE_NAME);

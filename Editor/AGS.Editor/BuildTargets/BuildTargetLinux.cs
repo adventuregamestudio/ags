@@ -188,7 +188,6 @@ fi
             byte[] bytes = Encoding.UTF8.GetBytes(scriptText);
             stream.Write(bytes, 0, bytes.Length);
             stream.Close();
-            Utilities.SetFileAccessAllowUsersToModify(scriptFileName);
             return true;
         }
 

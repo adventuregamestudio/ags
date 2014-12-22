@@ -24,7 +24,7 @@ namespace AGS.Editor
             return new string[] { GetCompiledPath() };
         }
 
-        private void CreateCompiledSetupProgram()
+        public void CreateCompiledSetupProgram()
         {
             string setupFileName = GetCompiledPath(AGSEditor.COMPILED_SETUP_FILE_NAME);
             Resources.ResourceManager.CopyFileFromResourcesToDisk(AGSEditor.SETUP_PROGRAM_SOURCE_FILE, setupFileName);
@@ -134,18 +134,20 @@ namespace AGS.Editor
             }
         }
 
-        public override bool Build(CompileMessages errors, bool forceRebuild)
+        public void UpdateWindowsEXE(string filename)
         {
-            if (!base.Build(errors, forceRebuild)) return false;
-            string newExeName = Path.Combine(Path.Combine(AGSEditor.OUTPUT_DIRECTORY, WINDOWS_DIRECTORY),
-                Factory.AGSEditor.BaseGameFileName + ".exe");
-            string sourceEXE = Path.Combine(Factory.AGSEditor.EditorDirectory, AGSEditor.ENGINE_EXE_FILE_NAME);
-            File.Copy(sourceEXE, newExeName, true);
+            UpdateWindowsEXE(filename, null);
+        }
+
+        public void UpdateWindowsEXE(string filename, CompileMessages errors)
+        {
+            if (!File.Exists(filename)) return;
+            if (errors == null) errors = new CompileMessages();
             if (File.Exists(AGSEditor.CUSTOM_ICON_FILE_NAME))
             {
                 try
                 {
-                    Factory.NativeProxy.UpdateFileIcon(newExeName, AGSEditor.CUSTOM_ICON_FILE_NAME);
+                    Factory.NativeProxy.UpdateFileIcon(filename, AGSEditor.CUSTOM_ICON_FILE_NAME);
                 }
                 catch (AGSEditorException ex)
                 {
@@ -154,7 +156,7 @@ namespace AGS.Editor
             }
             try
             {
-                UpdateVistaGameExplorerResources(newExeName);
+                UpdateVistaGameExplorerResources(filename);
             }
             catch (Exception ex)
             {
@@ -162,55 +164,59 @@ namespace AGS.Editor
             }
             try
             {
-                Factory.NativeProxy.UpdateFileVersionInfo(newExeName, Factory.AGSEditor.CurrentGame.Settings.DeveloperName, Factory.AGSEditor.CurrentGame.Settings.GameName);
+                Factory.NativeProxy.UpdateFileVersionInfo(filename, Factory.AGSEditor.CurrentGame.Settings.DeveloperName, Factory.AGSEditor.CurrentGame.Settings.GameName);
             }
             catch (Exception ex)
             {
                 errors.Add(new CompileError("Unable to set EXE name/description: " + ex.Message));
             }
+        }
+
+        public override bool Build(CompileMessages errors, bool forceRebuild)
+        {
+            if (!base.Build(errors, forceRebuild)) return false;
+            string compiledDir = AGSEditor.OUTPUT_DIRECTORY;
+            string baseGameFileName = Factory.AGSEditor.BaseGameFileName;
+            string newExeName = GetCompiledPath(baseGameFileName + ".exe");
+            string sourceEXE = Path.Combine(Factory.AGSEditor.EditorDirectory, AGSEditor.ENGINE_EXE_FILE_NAME);
+            File.Copy(sourceEXE, newExeName, true);
+            UpdateWindowsEXE(newExeName, errors);
             CreateCompiledSetupProgram();
             Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;
-            string compiledDir = AGSEditor.OUTPUT_DIRECTORY;
             if (!File.Exists(GetCompiledPath(AGSEditor.CONFIG_FILE_NAME)))
             {
                 // don't hard-link config file
                 File.Copy(Path.Combine(compiledDir, AGSEditor.CONFIG_FILE_NAME),
                     GetCompiledPath(AGSEditor.CONFIG_FILE_NAME));
             }
-            foreach (string fileName in Utilities.GetDirectoryFileList(AGSEditor.OUTPUT_DIRECTORY, "*.vox"))
+            foreach (string fileName in Utilities.GetDirectoryFileList(compiledDir, "*"))
             {
-                Utilities.CreateHardLink(GetCompiledPath(fileName), Path.Combine(compiledDir, fileName), true);
-            }
-            string baseGameFileName = Factory.AGSEditor.BaseGameFileName;
-            using (FileStream ostream = File.Open(GetCompiledPath(baseGameFileName + ".exe"), FileMode.Append,
-                FileAccess.Write))
-            {
-                int startPosition = (int)ostream.Position;
-                bool has000File = false;
-                foreach (string fileName in Utilities.GetDirectoryFileList(compiledDir, baseGameFileName + ".0*"))
+                if (fileName.EndsWith(".000"))
                 {
-                    if (fileName.EndsWith(".000"))
+                    using (FileStream ostream = File.Open(GetCompiledPath(baseGameFileName + ".exe"), FileMode.Append,
+                        FileAccess.Write))
                     {
+                        int startPosition = (int)ostream.Position;
                         using (FileStream istream = File.Open(fileName, FileMode.Open, FileAccess.Read))
                         {
-                            byte[] buffer = new byte[4096];
-                            for (int count = istream.Read(buffer, 0, 4096); count > 0;
-                                count = istream.Read(buffer, 0, 4096))
+                            const int bufferSize = 4096;
+                            byte[] buffer = new byte[bufferSize];
+                            for (int count = istream.Read(buffer, 0, bufferSize); count > 0;
+                                count = istream.Read(buffer, 0, bufferSize))
                             {
                                 ostream.Write(buffer, 0, count);
                             }
                         }
-                        has000File = true;
+                        // write the offset into the EXE where the first data file resides
+                        ostream.Write(BitConverter.GetBytes(startPosition), 0, 4);
+                        // write the CLIB end signature so the engine knows this is a valid EXE
+                        ostream.Write(Encoding.UTF8.GetBytes(NativeConstants.CLIB_END_SIGNATURE.ToCharArray()), 0,
+                            NativeConstants.CLIB_END_SIGNATURE.Length);
                     }
-                    else Utilities.CreateHardLink(GetCompiledPath(fileName), fileName, true);
                 }
-                if (has000File)
+                else if (!fileName.EndsWith(AGSEditor.CONFIG_FILE_NAME))
                 {
-                    // write the offset into the EXE where the first data file resides
-                    ostream.Write(BitConverter.GetBytes(startPosition), 0, 4);
-                    // write the CLIB end signature so the engine knows this is a valid EXE
-                    ostream.Write(Encoding.UTF8.GetBytes(NativeConstants.CLIB_END_SIGNATURE.ToCharArray()), 0,
-                        NativeConstants.CLIB_END_SIGNATURE.Length);
+                    Utilities.CreateHardLink(GetCompiledPath(Path.GetFileName(fileName)), fileName, true);
                 }
             }
             return true;
@@ -228,7 +234,8 @@ namespace AGS.Editor
         {
             get
             {
-                return WINDOWS_DIRECTORY;
+                if (Factory.AGSEditor.Preferences.UseLegacyCompiler) return "";
+                else return WINDOWS_DIRECTORY;
             }
         }
     }

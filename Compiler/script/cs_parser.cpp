@@ -4400,6 +4400,9 @@ startvarbit:
                         cc_error("expected ';'");
                         return -1;
                     }
+                    int totalsub = remove_locals(loop_level - 1, 1, scrip);
+                    if (totalsub > 0)
+                        scrip->write_cmd2(SCMD_SUB,SREG_SP,totalsub);
                     scrip->flush_line_numbers();
                     scrip->write_cmd2(SCMD_LITTOREG,SREG_AX,0); // Clear out the AX register so that the jump works correctly
                     scrip->write_cmd1(SCMD_JMP, -((scrip->codesize+2) - nested_info[loop_level] + 1)); // Jump to the known break point
@@ -4419,12 +4422,16 @@ startvarbit:
                         cc_error("expected ';'");
                         return -1;
                     }
+                    int totalsub = remove_locals(loop_level - 1, 1, scrip);
+                    if (totalsub > 0)
+                        scrip->write_cmd2(SCMD_SUB,SREG_SP,totalsub);
                     // if it's a for loop, drop the yanked chunk (loop increment) back in
                     if(nested_chunk_size[loop_level] > 0)
                     {
                         scrip->write_chunk(nested_chunk, loop_level, nested_chunk_size[loop_level], false, nested_fixup_start[nested_level], nested_fixup_stop[nested_level], scrip->codesize - nested_assign_addr[nested_level]);
                     }
                     scrip->flush_line_numbers();
+                    scrip->write_cmd2(SCMD_LITTOREG,SREG_AX,0); // Clear out the AX register so that the jump works correctly
                     scrip->write_cmd1(SCMD_JMP, -((scrip->codesize+2) - nested_start[loop_level])); // Jump to the start of the loop
                 }
                 else {

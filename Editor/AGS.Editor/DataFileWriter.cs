@@ -287,7 +287,8 @@ namespace AGS.Editor
             {
                 if (makeFileNameAssumptionsForEXE)
                 {
-                    ourlib.DataFilenames.Add(baseFileName + "." + i.ToString("D3"));
+                    ourlib.DataFilenames.Add(baseFileName + "." + 
+                        (i == 0 ? "ags" : i.ToString("D3")));
                 }
                 else
                 {

@@ -79,6 +79,9 @@ namespace AGS.Editor
             this.chkRemapBgImport = new System.Windows.Forms.CheckBox();
             this.groupBox10 = new System.Windows.Forms.GroupBox();
             this.chkUseLegacyCompiler = new System.Windows.Forms.CheckBox();
+            this.groupBox11 = new System.Windows.Forms.GroupBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.cmbColorTheme = new System.Windows.Forms.ComboBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.udTabWidth)).BeginInit();
@@ -91,6 +94,7 @@ namespace AGS.Editor
             ((System.ComponentModel.ISupportInitialize)(this.udBackupInterval)).BeginInit();
             this.groupBox9.SuspendLayout();
             this.groupBox10.SuspendLayout();
+            this.groupBox11.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnOK
@@ -237,7 +241,7 @@ namespace AGS.Editor
             this.label8.Size = new System.Drawing.Size(340, 26);
             this.label8.TabIndex = 2;
             this.label8.Text = "Changing these settings require you to restart the editor for them to take effect" +
-                ".";
+    ".";
             // 
             // label2
             // 
@@ -462,7 +466,7 @@ namespace AGS.Editor
             this.label11.Size = new System.Drawing.Size(339, 26);
             this.label11.TabIndex = 2;
             this.label11.Text = "When you double-click a sprite, what program do you want to use to edit it? This " +
-                "program must support PNG and BMP files.";
+    "program must support PNG and BMP files.";
             // 
             // radPaintProgram
             // 
@@ -659,7 +663,7 @@ namespace AGS.Editor
             this.chkRemapBgImport.Size = new System.Drawing.Size(330, 30);
             this.chkRemapBgImport.TabIndex = 8;
             this.chkRemapBgImport.Text = "Remap palette of room backgrounds into allocated background palette slots (8-bit " +
-                "games only)";
+    "games only)";
             this.chkRemapBgImport.UseVisualStyleBackColor = true;
             // 
             // groupBox10
@@ -682,6 +686,38 @@ namespace AGS.Editor
             this.chkUseLegacyCompiler.Text = "Use legacy compiler";
             this.chkUseLegacyCompiler.UseVisualStyleBackColor = true;
             // 
+            // groupBox11
+            // 
+            this.groupBox11.Controls.Add(this.cmbColorTheme);
+            this.groupBox11.Controls.Add(this.label7);
+            this.groupBox11.Location = new System.Drawing.Point(383, 446);
+            this.groupBox11.Name = "groupBox11";
+            this.groupBox11.Size = new System.Drawing.Size(361, 47);
+            this.groupBox11.TabIndex = 12;
+            this.groupBox11.TabStop = false;
+            this.groupBox11.Text = "Color theme";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(7, 20);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(198, 13);
+            this.label7.TabIndex = 0;
+            this.label7.Text = "Changes the color theme for the editor:";
+            // 
+            // cmbColorTheme
+            // 
+            this.cmbColorTheme.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbColorTheme.FormattingEnabled = true;
+            this.cmbColorTheme.Items.AddRange(new object[] {
+            "Vanilla",
+            "Draconian"});
+            this.cmbColorTheme.Location = new System.Drawing.Point(211, 16);
+            this.cmbColorTheme.Name = "cmbColorTheme";
+            this.cmbColorTheme.Size = new System.Drawing.Size(135, 21);
+            this.cmbColorTheme.TabIndex = 1;
+            // 
             // PreferencesEditor
             // 
             this.AcceptButton = this.btnOK;
@@ -689,6 +725,7 @@ namespace AGS.Editor
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnCancel;
             this.ClientSize = new System.Drawing.Size(754, 534);
+            this.Controls.Add(this.groupBox11);
             this.Controls.Add(this.groupBox10);
             this.Controls.Add(this.groupBox9);
             this.Controls.Add(this.groupBox8);
@@ -729,6 +766,8 @@ namespace AGS.Editor
             this.groupBox9.ResumeLayout(false);
             this.groupBox10.ResumeLayout(false);
             this.groupBox10.PerformLayout();
+            this.groupBox11.ResumeLayout(false);
+            this.groupBox11.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -786,5 +825,8 @@ namespace AGS.Editor
         private System.Windows.Forms.CheckBox chkKeepHelpOnTop;
         private System.Windows.Forms.GroupBox groupBox10;
         private System.Windows.Forms.CheckBox chkUseLegacyCompiler;
+        private System.Windows.Forms.GroupBox groupBox11;
+        private System.Windows.Forms.ComboBox cmbColorTheme;
+        private System.Windows.Forms.Label label7;
     }
 }

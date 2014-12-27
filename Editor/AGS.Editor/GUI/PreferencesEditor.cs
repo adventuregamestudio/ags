@@ -46,6 +46,7 @@ namespace AGS.Editor
             chkRemapBgImport.Checked = _preferences.RemapPalettizedBackgrounds;
             chkKeepHelpOnTop.Checked = _preferences.KeepHelpOnTop;
             chkUseLegacyCompiler.Checked = _preferences.UseLegacyCompiler;
+            cmbColorTheme.SelectedIndex = Load_cmbColourTheme_Index();
             Utilities.CheckLabelWidthsOnForm(this);
 		}
 
@@ -67,6 +68,12 @@ namespace AGS.Editor
 				this.DialogResult = DialogResult.None;
 				return;
 			}
+
+            if (!_preferences.EditorColorTheme.Equals(cmbColorTheme.GetItemText(cmbColorTheme.SelectedItem)))
+            {
+                _preferences.EditorColorTheme = cmbColorTheme.GetItemText(cmbColorTheme.SelectedItem);
+                Factory.GUIController.ShowMessage("Please restart AGS to make sure color theme changes take effect.", System.Windows.Forms.MessageBoxIcon.Information);
+            }
 
             _preferences.TabSize = Convert.ToInt32(udTabWidth.Value);
             _preferences.TestGameStyle = (TestGameWindowStyle)cmbTestGameStyle.SelectedIndex;
@@ -146,6 +153,19 @@ namespace AGS.Editor
         private void chkBackupReminders_CheckedChanged(object sender, EventArgs e)
         {
             udBackupInterval.Enabled = chkBackupReminders.Checked;
+        }
+
+        private int Load_cmbColourTheme_Index()
+        {
+            for (int i = 0; i < cmbColorTheme.Items.Count; i++)
+            {
+                if (_preferences.EditorColorTheme.Equals(cmbColorTheme.Items[i].ToString()))
+                {
+                    return i;
+                }
+            }
+            Factory.GUIController.ShowMessage(String.Format("Could not find color theme {0}, loading Vanilla instead.", _preferences.EditorColorTheme), System.Windows.Forms.MessageBoxIcon.Warning);
+            return 0;
         }
     }
 }

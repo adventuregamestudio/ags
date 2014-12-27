@@ -479,6 +479,20 @@ namespace AGS.Editor
             }
         }
 
+        public static bool IsWindowsXPOrHigher()
+        {
+            OperatingSystem os = Environment.OSVersion;
+            // Windows XP reports platform as Win32NT and version number >= 5.1
+            return ((os.Platform == PlatformID.Win32NT) && ((os.Version.Major > 5) || ((os.Version.Major == 5) && (os.Version.Minor == 1))));
+        }
+
+        public static bool IsWindowsVistaOrHigher()
+        {
+            OperatingSystem os = Environment.OSVersion;
+            // Windows Vista reports platform as Win32NT and version number >= 6
+            return ((os.Platform == PlatformID.Win32NT) && (os.Version.Major >= 6));
+        }
+
         public static bool CreateHardLink(string destFileName, string sourceFileName)
         {
             return CreateHardLink(destFileName, sourceFileName, false);
@@ -512,6 +526,10 @@ namespace AGS.Editor
             si.Arguments = string.Format("/c mklink /h \"{0}\" \"{1}\"", destFileName, sourceFileName);
             si.CreateNoWindow = true;
             si.WindowStyle = ProcessWindowStyle.Hidden;
+            if ((!IsWindowsVistaOrHigher()) && (IsWindowsXPOrHigher())) // running Windows XP
+            {
+                si.Arguments = string.Format("/c fsutil hardlink create \"{0}\" \"{1}\"", destFileName, sourceFileName);
+            }
             if (IsMonoRunning())
             {
                 si.FileName = "ln";

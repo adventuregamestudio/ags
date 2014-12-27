@@ -191,7 +191,7 @@ namespace AGS.Editor
             }
             foreach (string fileName in Utilities.GetDirectoryFileList(compiledDir, "*"))
             {
-                if (fileName.EndsWith(".000"))
+                if (fileName.EndsWith(".ags"))
                 {
                     using (FileStream ostream = File.Open(GetCompiledPath(baseGameFileName + ".exe"), FileMode.Append,
                         FileAccess.Write))

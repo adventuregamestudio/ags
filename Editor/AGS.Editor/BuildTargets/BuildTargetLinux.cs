@@ -131,12 +131,7 @@ namespace AGS.Editor
                 else if ((!fileName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) &&
                     (!Path.GetFileName(fileName).Equals("winsetup.exe", StringComparison.OrdinalIgnoreCase)))
                 {
-                    string newName = Path.GetFileName(fileName);
-                    if (newName.Equals(Factory.AGSEditor.BaseGameFileName + ".000"))
-                    {
-                        newName = AGSEditor.OLD_GAME_FILE_NAME;
-                    }
-                    Utilities.CreateHardLink(GetCompiledPath(LINUX_DATA_DIR, newName), fileName, true);
+                    Utilities.CreateHardLink(GetCompiledPath(LINUX_DATA_DIR, Path.GetFileName(fileName)), fileName, true);
                 }
             }
             foreach (KeyValuePair<string, string> pair in GetRequiredLibraryPaths())

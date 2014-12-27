@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -71,6 +71,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AGSEditor.cs" />
+    <Compile Include="ColorTheme\ColorTheme.cs" />
+    <Compile Include="ColorTheme\Draconian\DraconianComboBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ColorTheme\Draconian\DraconianMenuColors.cs" />
+    <Compile Include="ColorTheme\Draconian\DraconianMenuRenderer.cs" />
+    <Compile Include="ColorTheme\Draconian\DraconianTheme.cs" />
+    <Compile Include="ColorTheme\Draconian\DraconianToolStripRenderer.cs" />
+    <Compile Include="ColorTheme\Vanilla\VanillaTheme.cs" />
     <Compile Include="Components\CharactersComponent.cs" />
     <Compile Include="Components\CursorsComponent.cs" />
     <Compile Include="Components\DialogsComponent.cs" />
@@ -1059,6 +1068,7 @@
   <ItemGroup>
     <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

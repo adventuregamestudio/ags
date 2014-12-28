@@ -367,7 +367,7 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
         draw_gui_sprite_v330(ds, game.dialog_bullet, dlgxp, curyp, ds_has_alpha);
     }
     int cc;
-    if (game.options[OPT_DIALOGNUMBERED]) {
+    if (game.options[OPT_DIALOGNUMBERED] == kDlgOptNumbering) {
       char tempbfr[20];
       int actualpicwid = 0;
       if (game.dialog_bullet > 0)
@@ -506,7 +506,7 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
     bullet_wid = spritewidth[game.dialog_bullet]+3;
 
   // numbered options, leave space for the numbers
-  if (game.options[OPT_DIALOGNUMBERED])
+  if (game.options[OPT_DIALOGNUMBERED] == kDlgOptNumbering)
     bullet_wid += wgettextwidth_compensate("9. ", usingfont);
 
   said_text = 0;
@@ -910,7 +910,9 @@ bool DialogOptions::Run()
             run_function_on_non_blocking_thread(&runDialogOptionKeyPressHandlerFunc);
         }
         // Allow selection of options by keyboard shortcuts
-        else if ((gkey >= '1') && (gkey <= '9')) {
+        else if (game.options[OPT_DIALOGNUMBERED] >= kDlgOptKeysOnly &&
+                 gkey >= '1' && gkey <= '9')
+        {
           gkey -= '1';
           if (gkey < numdisp) {
             chose = disporder[gkey];

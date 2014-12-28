@@ -498,7 +498,7 @@ int my_readkey() {
     }*/
 
     if ((gott & 0x00ff) == EXTENDED_KEY_CODE) {
-        gott = scancode + 300;
+        gott = scancode + AGS_EXT_KEY_SHIFT;
 
         // convert Allegro KEY_* numbers to scan codes
         // (for backwards compatibility we can't just use the

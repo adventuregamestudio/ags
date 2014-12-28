@@ -154,7 +154,19 @@ namespace AGS.Types
                     }
                     continue;
                 }
-                else if (!prop.CanWrite)
+
+                // Process any existing value conversions; this helps to upgrade game from older version
+                DeserializeConvertValueAttribute[] conversions =
+                    (DeserializeConvertValueAttribute[])prop.PropertyType.GetCustomAttributes(typeof(DeserializeConvertValueAttribute), true);
+                if (conversions.Length > 0)
+                {
+                    foreach (DeserializeConvertValueAttribute conversion in conversions)
+                    {
+                        elementValue = conversion.Convert(elementValue);
+                    }
+                }
+                
+                if (!prop.CanWrite)
                 {
                     // do nothing, read-only
                 }

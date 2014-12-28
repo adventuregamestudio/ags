@@ -236,11 +236,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AGSColor.cs" />
+    <Compile Include="Attributes\DeserializeConvertValueAttribute.cs" />
     <Compile Include="Attributes\DeserializeIgnoreAttribute.cs" />
     <Compile Include="AudioClipType.cs" />
     <Compile Include="BaseFolderCollection.cs" />
     <Compile Include="BuildTargetsInfo.cs" />
     <Compile Include="Enums\BuildConfiguration.cs" />
+    <Compile Include="Enums\DialogOptionsNumbering.cs" />
     <Compile Include="Enums\SpriteAlphaStyle.cs" />
     <Compile Include="HelperTypes\BindingListWithRemoving.cs" />
     <Compile Include="CharacterFolder.cs" />

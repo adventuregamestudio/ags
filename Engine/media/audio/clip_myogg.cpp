@@ -63,13 +63,16 @@ int MYOGG::poll()
             alogg_free_oggstream_buffer(stream, free_val);
         }
     }
-    if (alogg_poll_oggstream(stream) == ALOGG_POLL_PLAYJUSTFINISHED) {
+
+    int ret = alogg_poll_oggstream(stream);
+    if (ret == ALOGG_OK || ret == ALOGG_POLL_BUFFERUNDERRUN)
+        get_pos_ms();  // call this to keep the last_but_one stuff up to date
+    else {
+        // finished playing or error
         done = 1;
         if (psp_audio_multithreaded)
             internal_destroy();
     }
-    else get_pos_ms();  // call this to keep the last_but_one stuff up to date
-
     return done;
 }
 

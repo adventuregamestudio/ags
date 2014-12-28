@@ -175,10 +175,6 @@ unsigned long _additive_alpha_copysrc_blender(unsigned long x, unsigned long y, 
 // assign new alpha value as a multiplication of translucenses.
 // combined_alpha = front.alpha + back.alpha * (1 - front.alpha);
 // combined_rgb = (front.rgb * front.alpha + back.rgb * (1 - front.alpha) * back.alpha) / combined_alpha;
-//
-// NOTE: Allegro does not call blender callback when source alpha is zero, therefore 
-// we do not check this case here; this should be kept in mind if a need arises to
-// use this function elsewise.
 unsigned long _argb2argb_blender(unsigned long src_col, unsigned long dst_col, unsigned long src_alpha)
 {
     unsigned long dst_g, dst_alpha;
@@ -189,6 +185,8 @@ unsigned long _argb2argb_blender(unsigned long src_col, unsigned long dst_col, u
         src_alpha = geta32(src_col);
     if (src_alpha)
         src_alpha++;
+    else
+        return dst_col;
     dst_alpha = geta32(dst_col);
     if (dst_alpha)
         dst_alpha++;
@@ -204,8 +202,8 @@ unsigned long _argb2argb_blender(unsigned long src_col, unsigned long dst_col, u
     dst_col = (((src_col & 0xFF00FF) - (dst_col & 0xFF00FF)) * src_alpha / 256 + dst_col) & 0xFF00FF;
     
     // dst_alpha now contains the final alpha
-    // we assume that final alpha will never be zero (see note above)
-    dst_alpha   = src_alpha + (dst_alpha * (256 - src_alpha) / 256);
+    // we assume that final alpha will never be zero
+    dst_alpha  = 256 - (256 - src_alpha) * (256 - dst_alpha) / 256;
     // src_alpha is now the final alpha factor made for being multiplied by,
     // instead of divided by: this makes it possible to use it in faster
     // calculation below

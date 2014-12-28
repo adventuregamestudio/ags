@@ -405,7 +405,7 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_LEFTTORIGHTEVAL] = (game.Settings.LeftToRightPrecedence ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_LETTERBOX] = (game.Settings.LetterboxMode ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_MOUSEWHEEL] = (game.Settings.MouseWheelEnabled ? 1 : 0);
-            options[NativeConstants.GameOptions.OPT_DIALOGNUMBERED] = (game.Settings.NumberDialogOptions ? 1 : 0);
+            options[NativeConstants.GameOptions.OPT_DIALOGNUMBERED] = (int)game.Settings.NumberDialogOptions;
             options[NativeConstants.GameOptions.OPT_PIXPERFECT] = (game.Settings.PixelPerfect ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_FADETYPE] = (int)game.Settings.RoomTransition;
             options[NativeConstants.GameOptions.OPT_RUNGAMEDLGOPTS] = (game.Settings.RunGameLoopsWhileDialogOptionsDisplayed ? 1 : 0);

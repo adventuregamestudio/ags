@@ -242,7 +242,7 @@ void check_controls() {
         int was_playing = play.playback;
 
         int kgn = getch();
-        if (kgn==0) kgn=getch()+300;
+        if (kgn==0) kgn=getch()+AGS_EXT_KEY_SHIFT;
         //    if (kgn==367) restart_game();
         //    if (kgn==2) Display("numover: %d character movesped: %d, animspd: %d",numscreenover,playerchar->walkspeed,playerchar->animspeed);
         //    if (kgn==2) CreateTextOverlay(50,60,170,FONT_SPEECH,14,"This is a test screen overlay which shouldn't disappear");
@@ -346,7 +346,9 @@ void check_controls() {
         script_debug(5,0);
         play.debug_mode--;
         }*/
-        else if ((kgn == 22) && (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
+        else if ((kgn == 22 + AGS_EXT_KEY_SHIFT && (key[KEY_LCONTROL] || key[KEY_RCONTROL]) ) &&
+            (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0))
+        {
             // make sure we can't interrupt a Wait()
             // and desync the music to cutscene
             play.debug_mode++;

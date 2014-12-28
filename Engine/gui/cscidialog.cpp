@@ -18,6 +18,7 @@
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "ac/gui.h"
+#include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/record.h"
 #include "ac/runtime_defines.h"
@@ -158,7 +159,7 @@ int WINAPI _export CSCIWaitMessage(Bitmap *ds, CSCIMessage * cscim)
         if (kbhit()) {
             int keywas = getch();
             if (keywas == 0)
-                keywas = getch() + 300;
+                keywas = getch() + AGS_EXT_KEY_SHIFT;
 
             if (keywas == 13) {
                 cscim->id = finddefaultcontrol(CNF_DEFAULT);

@@ -63,7 +63,7 @@ namespace AGS.Types
         private SpeechStyle _speechStyle = SpeechStyle.Lucasarts;
         private int _globalSpeechAnimationDelay = 5;
         private bool _useGlobalSpeechAnimationDelay = false;
-        private bool _numberDialogOptions = false;
+        private DialogOptionsNumbering _numberDialogOptions = DialogOptionsNumbering.KeyShortcutsOnly;
         private bool _dialogOptionsBackwards = false;
         private SpeechPortraitSide _speechPortraitSide = SpeechPortraitSide.Left;
         private int _textWindowGUI = 0;
@@ -676,9 +676,10 @@ namespace AGS.Types
 
         [DisplayName("Number dialog options")]
         [Description("Dialog options become numbered bullet points, and the numeric keys can be used to select them")]
-        [DefaultValue(false)]
+        [DefaultValue(DialogOptionsNumbering.None)]
         [Category("Dialog")]
-        public bool NumberDialogOptions
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public DialogOptionsNumbering NumberDialogOptions
         {
             get { return _numberDialogOptions; }
             set { _numberDialogOptions = value; }

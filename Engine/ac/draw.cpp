@@ -678,8 +678,8 @@ void render_black_borders(int atx, int aty)
         if (aty > 0)
         {
             // letterbox borders
-            blankImage->SetStretch(play.viewport.GetWidth(), aty);
-            gfxDriver->DrawSprite(0, -aty, blankImage);
+            blankImage->SetStretch(game.size.Width, aty);
+            gfxDriver->DrawSprite(-atx, -aty, blankImage);
             gfxDriver->DrawSprite(0, play.viewport.GetHeight(), blankImage);
         }
         if (atx > 0)

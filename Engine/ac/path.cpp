@@ -27,7 +27,7 @@ void convert_move_path_to_high_res(MoveList *ml)
     {
         short lowPart = (ml->pos[i] & 0x0000ffff) * current_screen_resolution_multiplier;
         short highPart = ((ml->pos[i] >> 16) & 0x0000ffff) * current_screen_resolution_multiplier;
-        ml->pos[i] = (highPart << 16) | lowPart;
+        ml->pos[i] = ((int)highPart << 16) | (lowPart & 0x0000ffff);
 
         ml->xpermove[i] *= current_screen_resolution_multiplier;
         ml->ypermove[i] *= current_screen_resolution_multiplier;

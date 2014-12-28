@@ -1609,7 +1609,6 @@ int almp3_poll_mp3stream(ALMP3_MP3STREAM *mp3) {
       free_audio_stream_buffer(mp3->audiostream);
       /* if this was not the last block, buffer underrun */
       if (!last_block) {
-        almp3_stop_mp3stream(mp3);
         return ALMP3_POLL_BUFFERUNDERRUN;
       }
       /* else we just finished playing, we need to wait for audio to stop */
@@ -1644,7 +1643,6 @@ int almp3_poll_mp3stream(ALMP3_MP3STREAM *mp3) {
           free_audio_stream_buffer(mp3->audiostream);
           /* if this was not the last block, buffer underrun */
           if (!last_block) {
-            almp3_stop_mp3stream(mp3);
             return ALMP3_POLL_BUFFERUNDERRUN;
           }
           /* else we just finished playing, we need to wait for audio to stop */
@@ -1717,7 +1715,6 @@ int almp3_poll_mp3stream(ALMP3_MP3STREAM *mp3) {
     if (mp3->data_cursor >= mp3->databuf_len) {
       /* if this was not the last block, buffer underrun */
       if (!last_block) {
-        almp3_stop_mp3stream(mp3);
         return ALMP3_POLL_BUFFERUNDERRUN;
       }
       /* else we just finished playing, we need to wait for audio to stop */

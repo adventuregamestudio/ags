@@ -74,7 +74,7 @@ namespace AGS.Types
         {
             _items.Insert(index, item);
             UnregisterFolderChange();
-            _folder.Items.Add(item);
+            _folder.Items.Insert(index, item);
             RegisterFolderChange();
         }
         
@@ -99,7 +99,7 @@ namespace AGS.Types
                 _items[index] = value;
                 UnregisterFolderChange();
                 _folder.Remove(item);
-                _folder.Items.Add(value);
+                _folder.Items.Insert(index, value);
                 RegisterFolderChange();
             }
         }

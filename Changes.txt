@@ -1,11 +1,44 @@
 REVISION HISTORY
 ================
-VERSION 3.3.2, September 2014
+VERSION 3.3.3, December 2014
+
+Features:
+- "Number dialog options" game setting now let you choose between "Disable", "Keyboard shortcuts
+  only" and "Draw numbers and use keyboard shortcuts" instead of being just "on"/"off".
+- The built-in shortcut for showing runtime information has been changed from "Ctrl + V" to
+  "Ctrl + Alt + V".
 
 Bug Fixes:
-- Restored letterboxed-by-design game mode (broken in 3.3.0 update-1).
-- Fixed misinterpreted 320x200 resolution type when running very old games
-  (broken in 3.3.0 update-1).
+- Fixed audio-related crash on some Linux and Linux-derived systems caused by improper use of mutexes.
+- Fixed division by zero and color value overflow cases in alpha blender.
+- Fixed voice audio breaking playing on very rare occasions when clip format is OGG or MP3.
+  The fix is imperfect, and there's very short pause occuring at same point of playback. The voice
+  will continue playing though.
+- Fixed character walking in hi-res games when the destination has negative Y coordinate.
+- Fixed black borders not drawn in screen corners by Direct3D renderer.
+- Corrected interpretation for games made with AGS 3.0 - 3.2 to let them assign empty loop
+  in SetObjectFrame().
+
+Engine log:
+- Do not log out supported gfx modes twice if the secondary color depth is equal to primary one.
+
+
+VERSION 3.3.2, September 2014
+
+Features:
+- Reimplemented alternate display modes, now side-borders and top/bottom borders work properly for
+  all game and screen resolutions.
+- Added config option to run pre-3.1.0 lo-res games in hi-res mode.
+
+Bug Fixes:
+- Fixed Editor crashing when user types "#define" in script.
+- Fixed error in game compilation after user moves item folders up or down in the project tree.
+- Fixed bug which could make Character.Transparency and Object.Transparency properties return
+  slightly incorrect values.
+- Fixed bug that could let user to load corrupted savedgame, which in turn could cause more trouble.
+- Provided error handling for several exceptional cases on graphics mode initialization (program
+  should at least close normally, showing comprehensible error message).
+- Fixed crash in legacy built-in inventory screen.
 - Fixed bug in script interpreter that could cause misinterpretation of value provided by plugin.
 - Fixed "--setup" command line argument not working if it is not the first argument.
 - Fixed WinSetup dialog not sized properly when larger fonts (DPI) option is used in
@@ -18,40 +51,7 @@ Manual:
 - Fixed Speech.VoiceMode example.
 
 
-VERSION 3.3.0 hotfix-3, July 2014
-
-Bug Fixes:
-- Provided error handling for several exceptional cases on graphics mode initialization (program
-  should at least close normally, showing comprehensible error message).
-- Fixed crash in legacy built-in inventory screen.
-- Fixed screen size was incorrectly calculated in letterbox mode when the scrolling room is loaded
-  (this could cause some GUIs or Overlays refuse to take requested position, and also slightly
-  affected "box in/out" translation effect).
-
-
-VERSION 3.3.0 update-1, May 2014
-
-Features:
-- Reimplemented alternate display modes, now side-borders and top/bottom borders work properly for
-  all game resolutions.
-
-
-VERSION 3.3.0 hotfix-2, April 2014
-
-Features:
-- Added config option to run pre-3.1.0 lo-res games in hi-res mode.
-
-Bug Fixes:
-- Fixed error in game compilation after user moves item folders up or down in the project tree.
-- Fixed bug which could make Character.Transparency and Object.Transparency properties return
-  slightly incorrect values.
-- Fixed bug that could let user to load corrupted savedgame, which in turn could cause more trouble.
-
-
-VERSION 3.3.0 hotfix-1, March 2014
-
-Bug Fixes:
-- Fixed Editor crashing when user types "#define" in script.
+NOTE: VERSION 3.3.1 was cancelled and never released: the WIP build was renamed to 3.4.0.
 
 
 VERSION 3.3.0, February 2014:

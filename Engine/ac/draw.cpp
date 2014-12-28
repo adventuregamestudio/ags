@@ -709,9 +709,9 @@ void render_black_borders(int atx, int aty)
         if (aty > 0)
         {
             // letterbox borders
-            blankImage->SetStretch(scrnwid, aty);
-            gfxDriver->DrawSprite(0, -aty, blankImage);
-            gfxDriver->DrawSprite(0, scrnhit, blankImage);
+            blankImage->SetStretch(final_scrn_wid, aty);
+            gfxDriver->DrawSprite(-atx, -aty, blankImage);
+            gfxDriver->DrawSprite(-atx, scrnhit, blankImage);
         }
         if (atx > 0)
         {

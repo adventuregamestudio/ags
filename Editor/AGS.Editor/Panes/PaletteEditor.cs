@@ -22,9 +22,12 @@ namespace AGS.Editor
         private List<int> _selectedIndexes = new List<int>();
         private TabPage _colourFinder;
 
+        private Color paletteStringColor = Color.Black;
+
         public PaletteEditor()
         {
             InitializeComponent();
+            this.LoadColorTheme();
             _colourFinder = tabControl.TabPages[1];
             Factory.GUIController.OnPropertyObjectChanged += new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
             _selectedIndexes.Add(0);
@@ -143,7 +146,7 @@ namespace AGS.Editor
                 if (i % 16 == 0)
                 {
                     int textXpos = 25 - (int)e.Graphics.MeasureString(i.ToString(), this.Font).Width;
-                    e.Graphics.DrawString(i.ToString(), this.Font, Brushes.Black, textXpos, y + 3);
+                    e.Graphics.DrawString(i.ToString(), this.Font, new SolidBrush(this.paletteStringColor), textXpos, y + 3);
                 }
                 if (game.Palette[i].ColourType == PaletteColourType.Background)
                 {
@@ -377,5 +380,22 @@ namespace AGS.Editor
 			}
 			dialog.Dispose();
 		}
+
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_EditorContentPanel(this);
+            colorTheme.Color_TabControl(this.tabControl);
+            colorTheme.Color_TabPage(this.colourFinderPage);
+            colorTheme.Color_TabPage(palettePage);
+            colorTheme.Color_GroupBox(this.groupBox1);
+            colorTheme.Color_GroupBox(this.groupBox2);
+            colorTheme.Color_TextBox(this.txtColourNumber);
+            colorTheme.Color_Button(this.btnColorDialog);
+            if (colorTheme is DraconianTheme)
+            {
+                this.paletteStringColor = (colorTheme as DraconianTheme).White;
+            }
+        }
     }
 }

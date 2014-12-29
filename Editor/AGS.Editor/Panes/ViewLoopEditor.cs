@@ -39,9 +39,12 @@ namespace AGS.Editor
         private int _selectedFrame;
         private int _framelessWidth;
 
+        private Color viewFrameStringColor = Color.Black;
+
         public ViewLoopEditor(ViewLoop loopToEdit, GUIController guiController)
         {
             InitializeComponent();
+            this.LoadColorTheme();
             _selectedFrame = -1;
             _loop = loopToEdit;
             lblLoopTitle.Text = "Loop " + _loop.ID + " (" + _loop.DirectionDescription + ")";
@@ -364,6 +367,16 @@ namespace AGS.Editor
                     this.Invalidate();
                 }
             }
-        }                
+        }
+
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_Button(this.btnNewFrame);
+            if (colorTheme is DraconianTheme)
+            {
+                this.viewFrameStringColor = (colorTheme as DraconianTheme).White;
+            }
+        }
     }
 }

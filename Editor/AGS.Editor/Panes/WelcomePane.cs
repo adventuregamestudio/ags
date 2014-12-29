@@ -38,6 +38,7 @@ namespace AGS.Editor
         {
             _guiContoller = guiContoller;
             InitializeComponent();
+            this.LoadColorTheme();
         }
 
         protected override string OnGetHelpKeyword()
@@ -126,6 +127,15 @@ namespace AGS.Editor
             else
             {
                 System.Diagnostics.Process.Start(_currentTipLinkTarget);
+            }
+        }
+
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            if (colorTheme is DraconianTheme)
+            {
+                this.BackColor = (colorTheme as DraconianTheme).EditorColor;
             }
         }
     }

@@ -24,6 +24,7 @@ namespace AGS.Editor
         public TextParserEditor(TextParser parser)
         {
             InitializeComponent();
+            this.LoadColorTheme();
             lvwWords.ListViewItemSorter = new TextParserWordComparer();
             _parser = parser;
 
@@ -209,5 +210,12 @@ namespace AGS.Editor
         {
         }
 
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_EditorContentPanel(this);
+            colorTheme.Color_GroupBox(this.mainFrame);
+            colorTheme.Color_ListView(this.lvwWords);
+        }
     }
 }

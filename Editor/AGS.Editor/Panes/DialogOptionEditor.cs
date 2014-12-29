@@ -16,6 +16,7 @@ namespace AGS.Editor
         public DialogOptionEditor(DialogOption option)
         {
             InitializeComponent();
+            this.LoadColorTheme();
             _option = option;
             chkSay.DataBindings.Add("Checked", option, "Say", false, DataSourceUpdateMode.OnPropertyChanged);
             chkShow.DataBindings.Add("Checked", option, "Show", false, DataSourceUpdateMode.OnPropertyChanged);
@@ -24,5 +25,11 @@ namespace AGS.Editor
             txtOptionText.Focus();
         }
 
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_UserControl(this);
+            colorTheme.Color_TextBox(this.txtOptionText);
+        }
     }
 }

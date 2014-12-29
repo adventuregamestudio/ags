@@ -70,7 +70,8 @@ namespace AGS.Editor
             _agsEditor = agsEditor;
             Init(scriptToEdit);
             _room = null;
-            _roomNumber = 0;            
+            _roomNumber = 0;
+            this.LoadColorTheme();
         }
 
         public void Clear()
@@ -1080,6 +1081,21 @@ namespace AGS.Editor
             {
                 UpdateFunctionList();
             }
-        }        
+        }
+
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_Panel(this.panel1);
+            if(colorTheme is DraconianTheme)
+            {
+                this.panel1.Controls.Remove(this.cmbFunctions);
+                this.cmbFunctions = new DraconianComboBox(this.cmbFunctions);
+                this.panel1.Controls.Add(this.cmbFunctions);
+                this.cmbFunctions.SelectedIndexChanged += new System.EventHandler(this.cmbFunctions_SelectedIndexChanged);
+                this.cmbFunctions.MouseEnter += new System.EventHandler(this.cmbFunctions_MouseEnter);
+                this.cmbFunctions.MouseLeave += new System.EventHandler(this.cmbFunctions_MouseLeave);
+            }            
+        }
     }
 }

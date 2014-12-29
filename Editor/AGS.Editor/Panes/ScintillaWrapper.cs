@@ -120,29 +120,7 @@ namespace AGS.Editor
             this.scintillaControl1.StyleSetFont((int)Scintilla.Enums.StylesCommon.Default, DEFAULT_FONT);
             this.scintillaControl1.StyleSetFontSize((int)Scintilla.Enums.StylesCommon.Default, DEFAULT_FONT_SIZE);
 
-            this.scintillaControl1.StyleSetFont((int)Cpp.BraceBad, DEFAULT_FONT);
-            this.scintillaControl1.StyleSetFontSize((int)Cpp.BraceBad, DEFAULT_FONT_SIZE);
-            this.scintillaControl1.StyleSetBack(Cpp.BraceBad, Color.FromArgb(255, 0, 0));
-            this.scintillaControl1.StyleSetFont((int)Cpp.BraceLight, DEFAULT_FONT);
-            this.scintillaControl1.StyleSetFontSize((int)Cpp.BraceLight, DEFAULT_FONT_SIZE);
-            this.scintillaControl1.StyleSetBold(Cpp.BraceLight, true);
-            this.scintillaControl1.StyleSetBack(Cpp.BraceLight, Color.FromArgb(210, 210, 0));
-        
-            this.scintillaControl1.StyleSetFore(Cpp.Word, Color.FromArgb(0, 0, 244));
-			this.scintillaControl1.StyleSetFore(Cpp.Word2, Color.FromArgb(43, 145, 175));
-            this.scintillaControl1.StyleSetFore(Cpp.Comment, Color.FromArgb(27, 127, 27));
-            this.scintillaControl1.StyleSetFore(Cpp.CommentLine, Color.FromArgb(27, 127, 27));
-            this.scintillaControl1.StyleSetFore(Cpp.CommentDoc, Color.FromArgb(27, 127, 27));
-            this.scintillaControl1.StyleSetFore(Cpp.CommentLineDoc, Color.FromArgb(27, 127, 27));
-            this.scintillaControl1.StyleSetFore(Cpp.Number, Color.FromArgb(150, 27, 27));
-            this.scintillaControl1.StyleSetFore(Cpp.String, Color.FromArgb(70, 7, 7));
-            this.scintillaControl1.StyleSetFore(Cpp.Operator, Color.FromArgb(0, 70, 0));
-            this.scintillaControl1.StyleSetBack(Cpp.Preprocessor, Color.FromArgb(210, 210, 210));
-
-            this.scintillaControl1.StyleSetFont((int)Cpp.CallTip, USER_FRIENDLY_FONT);
-            this.scintillaControl1.StyleSetFontSize((int)Cpp.CallTip, USER_FRIENDLY_FONT_SIZE);
-            this.scintillaControl1.StyleSetFore(Cpp.CallTip, Color.Black);
-            this.scintillaControl1.StyleSetBack(Cpp.CallTip, Color.LightGoldenrodYellow);
+            this.LoadColorTheme();
 
             this.scintillaControl1.CallTipSetForeHlt(Color.FromArgb(240, 0, 0));
             this.scintillaControl1.CallTipUseStyle(0);
@@ -156,39 +134,18 @@ namespace AGS.Editor
 
             // ensure scintilla does not handle Ctrl+Space
             this.scintillaControl1.ClearCmdKey(' ' | ((int)KeyMod.Ctrl << 16));
-			// disable Ctrl+T swapping lines since it used to be Test Game
-			this.scintillaControl1.ClearCmdKey('T' | ((int)KeyMod.Ctrl << 16));
+            // disable Ctrl+T swapping lines since it used to be Test Game
+            this.scintillaControl1.ClearCmdKey('T' | ((int)KeyMod.Ctrl << 16));
 
             this.scintillaControl1.TabWidth = Factory.AGSEditor.Preferences.TabSize;
-			this.scintillaControl1.IsUseTabs = Factory.AGSEditor.Preferences.IndentUsingTabs;
-			this.scintillaControl1.UsePopUp(false);
-
-            // override the selected text colour
-            this.scintillaControl1.SetSelFore(true, Color.FromArgb(255, 255, 255));
-            this.scintillaControl1.SetSelBack(true, Color.FromArgb(0, 34, 130));
+            this.scintillaControl1.IsUseTabs = Factory.AGSEditor.Preferences.IndentUsingTabs;
+            this.scintillaControl1.UsePopUp(false);
 
             // remove the default margins
             this.scintillaControl1.SetMarginWidth(0, 0);
             this.scintillaControl1.SetMarginWidth(1, 16);
-            
-            this.scintillaControl1.MarkerDefine(MARKER_TYPE_BREAKPOINT, (int)MarkerSymbol.Background);
-            this.scintillaControl1.MarkerSetBack(MARKER_TYPE_BREAKPOINT, Color.FromArgb(255, 100, 100));
-            this.scintillaControl1.MarkerSetFore(MARKER_TYPE_BREAKPOINT, Color.White);
-
-            this.scintillaControl1.MarkerDefine(MARKER_TYPE_BREAKPOINT2, (int)MarkerSymbol.Circle);
-            this.scintillaControl1.MarkerSetBack(MARKER_TYPE_BREAKPOINT2, Color.Red);
-            this.scintillaControl1.MarkerSetFore(MARKER_TYPE_BREAKPOINT2, Color.Black);
 
             this.scintillaControl1.SetMarginSensitivity(1, 1);
-
-            this.scintillaControl1.MarkerDefine(MARKER_TYPE_CURRENT_STATEMENT, (int)MarkerSymbol.Arrow);
-            this.scintillaControl1.MarkerSetBack(MARKER_TYPE_CURRENT_STATEMENT, Color.Yellow);
-            this.scintillaControl1.MarkerSetFore(MARKER_TYPE_CURRENT_STATEMENT, Color.White);
-
-            this.scintillaControl1.MarkerDefine(MARKER_TYPE_CURRENT_STATEMENT2, (int)MarkerSymbol.Background);
-            this.scintillaControl1.MarkerSetBack(MARKER_TYPE_CURRENT_STATEMENT2, Color.Yellow);
-            this.scintillaControl1.MarkerSetFore(MARKER_TYPE_CURRENT_STATEMENT2, Color.White);
-
             this.scintillaControl1.ModEventMask = 3;  // Insert/Delete text only
 
             this.scintillaControl1.SavePointLeft += new EventHandler(OnSavePointLeft);
@@ -197,13 +154,12 @@ namespace AGS.Editor
             this.scintillaControl1.UpdateUI += new EventHandler(OnUpdateUI);
             this.scintillaControl1.ModifyAttemptOnReadOnly += new EventHandler(OnModifyAttemptOnReadOnly);
             this.scintillaControl1.TextModified += new EventHandler<Scintilla.TextModifiedEventArgs>(scintillaControl1_TextModified);
-			this.scintillaControl1.MouseUp += new MouseEventHandler(ScintillaWrapper_MouseUp);
+            this.scintillaControl1.MouseUp += new MouseEventHandler(ScintillaWrapper_MouseUp);
             this.scintillaControl1.DwellStart += new EventHandler<Scintilla.DwellStartEventArgs>(scintillaControl1_DwellStart);
             this.scintillaControl1.DwellEnd += new EventHandler(scintillaControl1_DwellEnd);
             this.scintillaControl1.MarginClick += new EventHandler<Scintilla.MarginClickEventArgs>(scintillaControl1_MarginClick);
 
             this.scintillaControl1.SetFolding();
-            
 
             this.scintillaControl1.IsReadOnly = true;
         }
@@ -2077,6 +2033,12 @@ namespace AGS.Editor
             scintillaControl1.SelectionStart = 0;
             scintillaControl1.SelectionEnd = 0;
             scintillaControl1.CurrentPos = 0;
+        }
+
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_ScintillaControl(this.scintillaControl1, DEFAULT_FONT, DEFAULT_FONT_SIZE, USER_FRIENDLY_FONT, USER_FRIENDLY_FONT_SIZE, MARKER_MASK_BREAKPOINT, MARKER_MASK_BREAKPOINT2, MARKER_TYPE_CURRENT_STATEMENT, MARKER_TYPE_CURRENT_STATEMENT2);
         }
     }
 }

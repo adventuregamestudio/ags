@@ -41,6 +41,7 @@ namespace AGS.Editor
         public void Init()
         {
             InitializeComponent();
+            this.LoadColorTheme();
 
             _extraMenu.Commands.Add(new MenuCommand(FIND_COMMAND, "Find...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F, "FindMenuIcon"));
             _extraMenu.Commands.Add(new MenuCommand(FIND_NEXT_COMMAND, "Find next", System.Windows.Forms.Keys.F3, "FindNextMenuIcon"));
@@ -323,6 +324,12 @@ namespace AGS.Editor
             }
         }
 
-
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_EditorContentPanel(this);
+            colorTheme.Color_Button(this.btnDeleteOption);
+            colorTheme.Color_Button(this.btnNewOption);
+        }
     }
 }

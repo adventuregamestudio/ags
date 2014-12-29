@@ -33,6 +33,7 @@ namespace AGS.Editor
 			this.SetStyle(ControlStyles.Selectable, true);
 
             InitializeComponent();
+            this.LoadColorTheme();
             _room = room;
             if (_room.Resolution == RoomResolution.LowRes)
             {
@@ -652,6 +653,32 @@ namespace AGS.Editor
 		private void chkCharacterOffset_CheckedChanged(object sender, EventArgs e)
         {
             _state.DragFromCenter = chkCharacterOffset.Checked;
+        }
+
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_EditorContentPanel(this);
+            colorTheme.Color_GroupBox(this.mainFrame);
+            colorTheme.Color_Button(this.btnChangeImage);
+            colorTheme.Color_Button(this.btnDelete);
+            colorTheme.Color_Button(this.btnExport);            
+
+            if (colorTheme is DraconianTheme)
+            {
+                this.mainFrame.Controls.Remove(this.cmbBackgrounds);
+                this.cmbBackgrounds = new DraconianComboBox(this.cmbBackgrounds);
+                this.mainFrame.Controls.Add(this.cmbBackgrounds);
+                this.cmbBackgrounds.SelectedIndexChanged += new System.EventHandler(this.cmbBackgrounds_SelectedIndexChanged);
+
+                this.mainFrame.Controls.Remove(this.cmbViewType);
+                this.cmbViewType = new DraconianComboBox(this.cmbViewType);
+                this.mainFrame.Controls.Add(this.cmbViewType);
+                this.cmbViewType.SelectedIndexChanged += new System.EventHandler(this.cmbViewType_SelectedIndexChanged);
+
+                this.bufferedPanel1.BackColor = (colorTheme as DraconianTheme).PanelColor;
+                this.bufferedPanel1.ForeColor = (colorTheme as DraconianTheme).White;
+            }
         }
     }
 

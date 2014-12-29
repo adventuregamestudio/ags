@@ -23,6 +23,7 @@ namespace AGS.Editor
         public AudioEditor()
         {
             InitializeComponent();
+            this.LoadColorTheme();
         }
 
         public object SelectedItem
@@ -187,6 +188,17 @@ namespace AGS.Editor
             {
                 _previewer.Stop();
             }
+        }
+
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_EditorContentPanel(this);
+            colorTheme.Color_GroupBox(this.grpAudioClip);
+            colorTheme.Color_GroupBox(this.grpAudioType);
+            colorTheme.Color_Button(this.btnPause);
+            colorTheme.Color_Button(this.btnPlay);
+            colorTheme.Color_Button(this.btnStop);
         }
     }
 }

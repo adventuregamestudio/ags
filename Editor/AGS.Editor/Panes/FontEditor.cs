@@ -17,6 +17,7 @@ namespace AGS.Editor
         public FontEditor()
         {
             InitializeComponent();
+            this.LoadColorTheme();
         }
 
         public FontEditor(AGS.Types.Font selectedFont) : this()
@@ -137,5 +138,12 @@ namespace AGS.Editor
             }
         }
 
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_EditorContentPanel(this);
+            colorTheme.Color_GroupBox(this.currentItemGroupBox);
+            colorTheme.Color_Button(this.btnImportFont);
+        }
     }
 }

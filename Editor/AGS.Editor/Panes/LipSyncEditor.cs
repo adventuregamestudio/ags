@@ -17,7 +17,7 @@ namespace AGS.Editor
 
         public LipSyncEditor(LipSync lipSync)
         {
-            InitializeComponent();
+            InitializeComponent();            
             _lipSync = lipSync;
             this.AutoScroll = true;
 
@@ -49,6 +49,7 @@ namespace AGS.Editor
                 }
             }
             UpdateControlsEnabled();
+            this.LoadColorTheme();
         }
 
         public LipSync EditingLipSync
@@ -88,5 +89,17 @@ namespace AGS.Editor
             }
         }
 
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_EditorContentPanel(this);
+            foreach (var control in this.Controls)
+            {
+                if (control is TextBox)
+                {
+                    colorTheme.Color_TextBox(control as TextBox);
+                }
+            }
+        }
     }
 }

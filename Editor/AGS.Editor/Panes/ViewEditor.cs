@@ -25,6 +25,7 @@ namespace AGS.Editor
             viewToEdit.ViewUpdated += _viewUpdateHandler;
 
             InitializeComponent();
+            this.LoadColorTheme();
             _editingView = viewToEdit;
             InitializeControls();
 			viewPreview.DynamicUpdates = true;
@@ -307,5 +308,12 @@ namespace AGS.Editor
 		{
 		}
 
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_EditorContentPanel(this);
+            colorTheme.Color_Button(this.btnDeleteLastLoop);
+            colorTheme.Color_Button(this.btnNewLoop);
+        }
     }
 }

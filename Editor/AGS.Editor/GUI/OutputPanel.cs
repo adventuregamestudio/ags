@@ -17,7 +17,8 @@ namespace AGS.Editor
 
         public OutputPanel()
         {
-            InitializeComponent();            
+            InitializeComponent();
+            this.LoadColorTheme();
         }
 
 		public void SetImageList(ImageList list)
@@ -126,5 +127,11 @@ namespace AGS.Editor
 				ShowContextMenu(e.Location);
 			}
 		}
+
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_ListView(this.lvwResults);
+        }
     }
 }

@@ -838,6 +838,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\string_types.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\string_utils.h"
 					>
 				</File>

@@ -929,7 +929,7 @@ void WinSetupDialog::FillScalingList()
             for (int scale = 2; scale <= min_scale; ++scale)
                 AddScalingString(-scale);
 
-            _maxGameScale = max_scale;
+            _maxGameScale = max(1, max_scale);
         }
 
         SetCurSelToItemData(_hGfxFilterScalingList, _winCfg.FilterScaling, NULL, kFilterScaling_MaxFit);
@@ -1080,7 +1080,7 @@ void WinSetupDialog::SetGfxModeText()
     else
         scaling = _winCfg.FilterScaling;
 
-    if (scaling > 0)
+    if (scaling >= 0)
     {
         width = _winCfg.GameResolution.Width * scaling;
         height = _winCfg.GameResolution.Height * scaling;

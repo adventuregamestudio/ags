@@ -20,10 +20,7 @@
 #include "util/alignedstream.h"
 #include "util/math.h"
 
-using AGS::Common::AlignedStream;
-using AGS::Common::Stream;
-using AGS::Common::String;
-namespace Math = AGS::Common::Math;
+using namespace AGS::Common;
 
 
 // Create the missing audioClips data structure for 3.1.x games.
@@ -355,16 +352,16 @@ void GameSetupStruct::read_customprops(Common::Stream *in, GAME_STRUCT_READ_DATA
 {
     if (read_data.filever >= kGameVersion_260) // >= 2.60
     {
-        if (propSchema.UnSerialize(in))
+        if (Properties::ReadSchema(propSchema, in))
             quit("load room: unable to deserialize prop schema");
 
         int errors = 0;
         int bb;
 
         for (bb = 0; bb < numcharacters; bb++)
-            errors += charProps[bb].UnSerialize (in);
+            errors += Properties::ReadValues(charProps[bb], in);
         for (bb = 0; bb < numinvitems; bb++)
-            errors += invProps[bb].UnSerialize (in);
+            errors += Properties::ReadValues(invProps[bb], in);
 
         if (errors > 0)
             quit("LoadGame: errors encountered reading custom props");

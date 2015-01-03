@@ -1019,14 +1019,14 @@ void Character_RunInteraction(CharacterInfo *chaa, int mood) {
 
 int Character_GetProperty(CharacterInfo *chaa, const char *property) {
 
-    return get_int_property(&game.charProps[chaa->index_id], property);
+    return get_int_property(game.charProps[chaa->index_id], property);
 
 }
 void Character_GetPropertyText(CharacterInfo *chaa, const char *property, char *bufer) {
-    get_text_property(&game.charProps[chaa->index_id], property, bufer);
+    get_text_property(game.charProps[chaa->index_id], property, bufer);
 }
 const char* Character_GetTextProperty(CharacterInfo *chaa, const char *property) {
-    return get_text_property_dynamic_string(&game.charProps[chaa->index_id], property);
+    return get_text_property_dynamic_string(game.charProps[chaa->index_id], property);
 }
 
 ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {

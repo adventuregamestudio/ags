@@ -481,11 +481,11 @@ int AreThingsOverlapping(int thing1, int thing2) {
 int GetObjectProperty (int hss, const char *property) {
     if (!is_valid_object(hss))
         quit("!GetObjectProperty: invalid object");
-    return get_int_property (&thisroom.objProps[hss], property);
+    return get_int_property (thisroom.objProps[hss], property);
 }
 
 void GetObjectPropertyText (int item, const char *property, char *bufer) {
-    get_text_property (&thisroom.objProps[item], property, bufer);
+    get_text_property (thisroom.objProps[item], property, bufer);
 }
 
 Bitmap *GetObjectImage(int obj, int *isFlipped) 

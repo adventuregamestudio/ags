@@ -35,6 +35,7 @@ int mousex, mousey;
 
 using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
+namespace AGSProps = AGS::Common::Properties;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using AGS::Common::GUIMain;
 
@@ -1636,22 +1637,22 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   const char *pluginError = read_plugins_from_disk (iii);
   if (pluginError != NULL) return pluginError;
 
-  thisgame.charProps = (CustomProperties*)calloc(thisgame.numcharacters, sizeof(CustomProperties));
+  thisgame.charProps = new AGS::Common::StringIMap[thisgame.numcharacters];
 
   for (bb = 0; bb < thisgame.numcharacters; bb++)
-    thisgame.charProps[bb].reset();
+    thisgame.charProps[bb].clear();
   for (bb = 0; bb < MAX_INV; bb++)
-    thisgame.invProps[bb].reset();
+    thisgame.invProps[bb].clear();
 
-  if (thisgame.propSchema.UnSerialize (iii))
+  if (AGSProps::ReadSchema(thisgame.propSchema, iii))
     return "unable to deserialize prop schema";
 
   int errors = 0;
 
   for (bb = 0; bb < thisgame.numcharacters; bb++)
-    errors += thisgame.charProps[bb].UnSerialize (iii);
+    errors += AGSProps::ReadValues(thisgame.charProps[bb], iii);
   for (bb = 0; bb < thisgame.numinvitems; bb++)
-    errors += thisgame.invProps[bb].UnSerialize (iii);
+    errors += AGSProps::ReadValues(thisgame.invProps[bb], iii);
 
   if (errors > 0)
     return "errors encountered reading custom props";
@@ -1728,8 +1729,8 @@ void free_old_game_data()
   if (thisgame.charProps != NULL)
   {
     for (bb = 0; bb < thisgame.numcharacters; bb++)
-      thisgame.charProps[bb].reset();
-    free(thisgame.charProps);
+      thisgame.charProps[bb].clear();
+    delete [] thisgame.charProps;
     thisgame.charProps = NULL;
   }
   if (thisgame.intrChar != NULL)
@@ -2205,11 +2206,11 @@ void save_room(const char *files, roomstruct rstruc) {
     lenis = 0;
     opty->WriteInt32(lenis);
     opty->WriteInt32 (1);  // Version 1 of properties block
-    rstruc.roomProps.Serialize (opty);
+    AGSProps::WriteValues(rstruc.roomProps, opty);
     for (gg = 0; gg < rstruc.numhotspots; gg++)
-      rstruc.hsProps[gg].Serialize (opty);
+      AGSProps::WriteValues(rstruc.hsProps[gg], opty);
     for (gg = 0; gg < rstruc.numsprs; gg++)
-      rstruc.objProps[gg].Serialize (opty);
+      AGSProps::WriteValues(rstruc.objProps[gg], opty);
 
     lenis = (opty->GetPosition() - lenpos) - 4;
     opty->Seek(lenpos, Common::kSeekBegin);
@@ -3445,29 +3446,27 @@ Dictionary<int, Sprite^>^ load_sprite_dimensions()
 	return sprites;
 }
 
-void ConvertCustomProperties(AGS::Types::CustomProperties ^insertInto, ::CustomProperties *propToConvert)
+void ConvertCustomProperties(AGS::Types::CustomProperties ^insertInto, AGS::Common::StringIMap *propToConvert)
 {
-	for (int j = 0; j < propToConvert->numProps; j++) 
+    for (AGS::Common::StringIMap::const_iterator it = propToConvert->begin();
+         it != propToConvert->end(); ++it)
 	{
 		CustomProperty ^newProp = gcnew CustomProperty();
-		newProp->Name = gcnew String(propToConvert->propName[j]);
-		newProp->Value = gcnew String(propToConvert->propVal[j]);
+		newProp->Name = gcnew String(it->first);
+		newProp->Value = gcnew String(it->second);
 		insertInto->PropertyValues->Add(newProp->Name, newProp);
 	}
 }
 
-void CompileCustomProperties(AGS::Types::CustomProperties ^convertFrom, ::CustomProperties *compileInto)
+void CompileCustomProperties(AGS::Types::CustomProperties ^convertFrom, AGS::Common::StringIMap *compileInto)
 {
-	compileInto->reset();
-	int j = 0;
-	char propName[MAX_CUSTOM_PROPERTY_NAME_LENGTH];
-	char propVal[MAX_CUSTOM_PROPERTY_VALUE_LENGTH];
+	compileInto->clear();
 	for each (String ^key in convertFrom->PropertyValues->Keys)
 	{
-		ConvertStringToCharArray(convertFrom->PropertyValues[key]->Name, propName, MAX_CUSTOM_PROPERTY_NAME_LENGTH);
-		ConvertStringToCharArray(convertFrom->PropertyValues[key]->Value, propVal, MAX_CUSTOM_PROPERTY_VALUE_LENGTH);
-		compileInto->addProperty(propName, propVal);
-		j++;
+        AGS::Common::String name, value;
+		ConvertStringToNativeString(convertFrom->PropertyValues[key]->Name, name, MAX_CUSTOM_PROPERTY_NAME_LENGTH);
+		ConvertStringToNativeString(convertFrom->PropertyValues[key]->Value, value, MAX_CUSTOM_PROPERTY_VALUE_LENGTH);
+		(*compileInto)[name] = value;
 	}
 }
 
@@ -4046,14 +4045,14 @@ Game^ load_old_game_dta_file(const char *fileName)
 		game->InventoryItems->Add(invItem);
 	}
 
-	//AGS::Types::CustomPropertySchema ^schema = gcnew AGS::Types::CustomPropertySchema();
-	for (i = 0; i < thisgame.propSchema.numProps; i++) 
+    for (AGS::Common::PropertySchema::const_iterator it = thisgame.propSchema.begin();
+         it != thisgame.propSchema.end(); ++it)
 	{
 		CustomPropertySchemaItem ^schemaItem = gcnew CustomPropertySchemaItem();
-		schemaItem->Name = gcnew String(thisgame.propSchema.propName[i]);
-		schemaItem->Description = gcnew String(thisgame.propSchema.propDesc[i]);
-		schemaItem->DefaultValue = gcnew String(thisgame.propSchema.defaultValue[i]);
-		schemaItem->Type = (AGS::Types::CustomPropertyType)thisgame.propSchema.propType[i];
+		schemaItem->Name = gcnew String(it->second.Name);
+		schemaItem->Description = gcnew String(it->second.Description);
+		schemaItem->DefaultValue = gcnew String(it->second.DefaultValue);
+		schemaItem->Type = (AGS::Types::CustomPropertyType)it->second.Type;
 
 		game->PropertySchema->PropertyDefinitions->Add(schemaItem);
 	}
@@ -4788,11 +4787,11 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
   write_gui(ooo,guis,&thisgame,false);
   write_plugins_to_disk(ooo);
   // write the custom properties & schema
-  thisgame.propSchema.Serialize(ooo);
+  AGSProps::WriteSchema(thisgame.propSchema, ooo);
   for (bb = 0; bb < thisgame.numcharacters; bb++)
-    thisgame.charProps[bb].Serialize (ooo);
+    AGSProps::WriteValues(thisgame.charProps[bb], ooo);
   for (bb = 0; bb < thisgame.numinvitems; bb++)
-    thisgame.invProps[bb].Serialize (ooo);
+    AGSProps::WriteValues(thisgame.invProps[bb], ooo);
 
   for (bb = 0; bb < thisgame.numviews; bb++)
     fputstring(thisgame.viewNames[bb], ooo);
@@ -4986,7 +4985,7 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	// ** Characters **
 	thisgame.numcharacters = game->Characters->Count;
 	thisgame.chars = (CharacterInfo*)calloc(sizeof(CharacterInfo) * thisgame.numcharacters, 1);
-  thisgame.charProps = (::CustomProperties*)calloc(thisgame.numcharacters, sizeof(::CustomProperties));
+    thisgame.charProps = new AGS::Common::StringIMap[thisgame.numcharacters];
 	for (i = 0; i < thisgame.numcharacters; i++) 
 	{
 		AGS::Types::Character ^character = game->Characters[i];
@@ -5192,15 +5191,15 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	{
 		throw gcnew CompileError("Too many custom properties defined");
 	}
-	thisgame.propSchema.numProps = schema->Count;
-	for (i = 0; i < thisgame.propSchema.numProps; i++) 
+	for (int i = 0; i < schema->Count; i++) 
 	{
+        AGS::Common::PropertyDesc desc;
 		CustomPropertySchemaItem ^schemaItem = schema[i];
-		ConvertStringToCharArray(schemaItem->Name, thisgame.propSchema.propName[i], 20);
-		ConvertStringToCharArray(schemaItem->Description, thisgame.propSchema.propDesc[i], 100);
-		thisgame.propSchema.defaultValue[i] = (char*)malloc(schemaItem->DefaultValue->Length + 1);
-		ConvertStringToCharArray(schemaItem->DefaultValue, thisgame.propSchema.defaultValue[i]);
-		thisgame.propSchema.propType[i] = (int)schemaItem->Type;
+		ConvertStringToNativeString(schemaItem->Name, desc.Name, MAX_CUSTOM_PROPERTY_SCHEMA_NAME_LENGTH);
+		ConvertStringToNativeString(schemaItem->Description, desc.Description, MAX_CUSTOM_PROPERTY_DESC_LENGTH);
+		ConvertStringToNativeString(schemaItem->DefaultValue, desc.DefaultValue);
+        desc.Type = (AGS::Common::PropertyType)schemaItem->Type;
+        thisgame.propSchema[desc.Name] = desc;
 	}
 
 	// ** GUIs **

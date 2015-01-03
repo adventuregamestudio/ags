@@ -532,10 +532,10 @@ void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes) {
   }
 
   for (i = 0; i < rstruc->numhotspots; i++)
-    rstruc->hsProps[i].reset();
+    rstruc->hsProps[i].clear();
   for (i = 0; i < rstruc->numsprs; i++)
-    rstruc->objProps[i].reset();
-  rstruc->roomProps.reset();
+    rstruc->objProps[i].clear();
+  rstruc->roomProps.clear();
 
   if (rstruc->localvars != NULL)
     free (rstruc->localvars);
@@ -647,17 +647,17 @@ void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes) {
     else if (thisblock == BLOCKTYPE_PROPERTIES) {
       // Read custom properties
       if (opty->ReadInt32() != 1)
-        quit("LoadRoom: unknown Custom Properties Bitmap *encounreted");
+        quit("LoadRoom: unknown Custom Properties block encountered");
 
       int errors = 0, gg;
 
-      if (rstruc->roomProps.UnSerialize (opty))
-        quit("LoadRoom: error reading custom properties Bitmap *");
+      if (Properties::ReadValues(rstruc->roomProps, opty))
+        quit("LoadRoom: error reading custom properties block");
 
       for (gg = 0; gg < rstruc->numhotspots; gg++)
-        errors += rstruc->hsProps[gg].UnSerialize (opty);
+        errors += Properties::ReadValues(rstruc->hsProps[gg], opty);
       for (gg = 0; gg < rstruc->numsprs; gg++)
-        errors += rstruc->objProps[gg].UnSerialize (opty);
+        errors += Properties::ReadValues(rstruc->objProps[gg], opty);
 
       if (errors > 0)
         quit("LoadRoom: errors encountered reading custom props");

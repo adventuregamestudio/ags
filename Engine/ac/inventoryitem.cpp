@@ -82,15 +82,15 @@ int InventoryItem_CheckInteractionAvailable(ScriptInvItem *iitem, int mood) {
 }
 
 int InventoryItem_GetProperty(ScriptInvItem *scii, const char *property) {
-    return get_int_property (&game.invProps[scii->id], property);
+    return get_int_property (game.invProps[scii->id], property);
 }
 
 void InventoryItem_GetPropertyText(ScriptInvItem *scii, const char *property, char *bufer) {
-    get_text_property(&game.invProps[scii->id], property, bufer);
+    get_text_property(game.invProps[scii->id], property, bufer);
 }
 
 const char* InventoryItem_GetTextProperty(ScriptInvItem *scii, const char *property) {
-    return get_text_property_dynamic_string(&game.invProps[scii->id], property);
+    return get_text_property_dynamic_string(game.invProps[scii->id], property);
 }
 
 //=============================================================================

@@ -369,7 +369,7 @@ void Object_GetPropertyText(ScriptObject *objj, const char *property, char *bufe
     GetObjectPropertyText(objj->id, property, bufer);
 }
 const char* Object_GetTextProperty(ScriptObject *objj, const char *property) {
-    return get_text_property_dynamic_string(&thisroom.objProps[objj->id], property);
+    return get_text_property_dynamic_string(thisroom.objProps[objj->id], property);
 }
 
 void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) {

@@ -186,11 +186,11 @@ int Room_GetMusicOnLoad() {
 }
 
 const char* Room_GetTextProperty(const char *property) {
-    return get_text_property_dynamic_string(&thisroom.roomProps, property);
+    return get_text_property_dynamic_string(thisroom.roomProps, property);
 }
 
 int Room_GetProperty (const char *property) {
-    return get_int_property(&thisroom.roomProps, property);
+    return get_int_property(thisroom.roomProps, property);
 }
 
 const char* Room_GetMessages(int index) {

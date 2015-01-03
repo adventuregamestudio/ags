@@ -360,10 +360,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\customproperties.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\ac\gamesetupstruct.cpp"
 					>
 				</File>
@@ -596,6 +592,14 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="game"
+				>
+				<File
+					RelativePath="..\..\Common\game\customproperties.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -623,10 +627,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\common_defines.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\customproperties.h"
 					>
 				</File>
 				<File
@@ -951,6 +951,14 @@
 				>
 				<File
 					RelativePath="..\..\Common\api\stream_api.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="game"
+				>
+				<File
+					RelativePath="..\..\Common\game\customproperties.h"
 					>
 				</File>
 			</Filter>

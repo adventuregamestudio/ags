@@ -16,10 +16,10 @@
 #define __AC_ROOMSTRUCT_H
 
 #include "ac/interaction.h"  // NewInteraction
-#include "ac/customproperties.h"
 #include "ac/messageinfo.h"
 #include "ac/animationstruct.h"
 #include "ac/point.h"
+#include "game/customproperties.h"
 #include "script/cc_script.h"       // ccScript
 #include "util/wgt2allg.h" // color (allegro RGB)
 
@@ -144,7 +144,7 @@ struct roomstruct {
     short         objectFlags[MAX_INIT_SPR];
     char          objectnames[MAX_INIT_SPR][MAXOBJNAMELEN];
     char          objectscriptnames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN];
-    CustomProperties objProps[MAX_INIT_SPR];
+    AGS::Common::StringIMap objProps[MAX_INIT_SPR];
     char          password[11];
     char          options[10];                    // [0]=startup music
     char          *message[MAXMESS];
@@ -188,8 +188,8 @@ struct roomstruct {
     InteractionVariable *localvars;
     int           numLocalVars;
     char          ebpalShared[MAX_BSCENE];  // used internally by engine atm
-    CustomProperties roomProps;
-    CustomProperties hsProps[MAX_HOTSPOTS];
+    AGS::Common::StringIMap roomProps;
+    AGS::Common::StringIMap hsProps[MAX_HOTSPOTS];
     int           gameId;
 
     roomstruct();

@@ -36,6 +36,7 @@ COMMON_subdirs = \
 ../Common/core \
 ../Common/debug \
 ../Common/font \
+../Common/game \
 ../Common/gfx \
 ../Common/gui \
 ../Common/platform/base \

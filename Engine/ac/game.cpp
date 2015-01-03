@@ -507,7 +507,7 @@ void unload_game_file() {
             game.intrChar[bb] = NULL;
         }
         free(characterScriptObjNames[bb]);
-        game.charProps[bb].reset();
+        game.charProps[bb].clear();
     }
     if (game.intrChar != NULL)
     {

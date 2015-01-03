@@ -19,58 +19,58 @@
 #include "ac/dynobj/scriptstring.h"
 #include "script/runtimescriptvalue.h"
 
+using namespace AGS::Common;
+
 extern GameSetupStruct game;
 extern ScriptString myScriptStringImpl;
 
 // begin custom property functions
 
-// Get an integer property
-int get_int_property (CustomProperties *cprop, const char *property) {
-    int idx = game.propSchema.findProperty(property);
-
-    if (idx < 0)
+bool get_property_desc(PropertyDesc &desc, const char *property, PropertyType want_type)
+{
+    PropertySchema::const_iterator sch_it = game.propSchema.find(property);
+    if (sch_it == game.propSchema.end())
         quit("!GetProperty: no such property found in schema. Make sure you are using the property's name, and not its description, when calling this command.");
 
-    if (game.propSchema.propType[idx] == PROP_TYPE_STRING)
-        quit("!GetProperty: need to use GetPropertyString for a text property");
+    desc = sch_it->second;
+    if (want_type == kPropertyString && desc.Type != kPropertyString)
+        quit("!GetTextProperty: need to use GetProperty for a non-text property");
+    else if (want_type != kPropertyString && desc.Type == kPropertyString)
+        quit("!GetProperty: need to use GetTextProperty for a text property");
+    return true;
+}
 
-    const char *valtemp = cprop->getPropertyValue(property);
-    if (valtemp == NULL) {
-        valtemp = game.propSchema.defaultValue[idx];
-    }
-    return atoi(valtemp);
+// Get an integer property
+int get_int_property (const StringIMap &cprop, const char *property)
+{
+    PropertyDesc desc;
+    if (!get_property_desc(desc, property, kPropertyInteger))
+        return 0;
+
+    StringIMap::const_iterator str_it = cprop.find(property);
+    const char *cstr = str_it != cprop.end() ? str_it->second : desc.DefaultValue;
+    return atoi(cstr);
 }
 
 // Get a string property
-void get_text_property (CustomProperties *cprop, const char *property, char *bufer) {
-    int idx = game.propSchema.findProperty(property);
+void get_text_property (const StringIMap &cprop, const char *property, char *bufer)
+{
+    PropertyDesc desc;
+    if (!get_property_desc(desc, property, kPropertyString))
+        return;
 
-    if (idx < 0)
-        quit("!GetPropertyText: no such property found in schema. Make sure you are using the property's name, and not its description, when calling this command.");
-
-    if (game.propSchema.propType[idx] != PROP_TYPE_STRING)
-        quit("!GetPropertyText: need to use GetProperty for a non-text property");
-
-    const char *valtemp = cprop->getPropertyValue(property);
-    if (valtemp == NULL) {
-        valtemp = game.propSchema.defaultValue[idx];
-    }
-    strcpy (bufer, valtemp);
+    StringIMap::const_iterator str_it = cprop.find(property);
+    const char *cstr = str_it != cprop.end() ? str_it->second : desc.DefaultValue;
+    strcpy(bufer, cstr);
 }
 
-const char* get_text_property_dynamic_string(CustomProperties *cprop, const char *property) {
-    int idx = game.propSchema.findProperty(property);
+const char* get_text_property_dynamic_string(const StringIMap &cprop, const char *property)
+{
+    PropertyDesc desc;
+    if (!get_property_desc(desc, property, kPropertyString))
+        return NULL;
 
-    if (idx < 0)
-        quit("!GetTextProperty: no such property found in schema. Make sure you are using the property's name, and not its description, when calling this command.");
-
-    if (game.propSchema.propType[idx] != PROP_TYPE_STRING)
-        quit("!GetTextProperty: need to use GetProperty for a non-text property");
-
-    const char *valtemp = cprop->getPropertyValue(property);
-    if (valtemp == NULL) {
-        valtemp = game.propSchema.defaultValue[idx];
-    }
-
-    return CreateNewScriptString(valtemp);
+    StringIMap::const_iterator str_it = cprop.find(property);
+    const char *cstr = str_it != cprop.end() ? str_it->second : desc.DefaultValue;
+    return CreateNewScriptString(cstr);
 }

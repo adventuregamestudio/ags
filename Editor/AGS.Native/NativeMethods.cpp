@@ -688,9 +688,6 @@ namespace AGS
             if (name->Equals("SPRSET_NAME")) return gcnew String(sprsetname);
             if (name->Equals("SPF_640x400")) return SPF_640x400;
             if (name->Equals("SPF_ALPHACHANNEL")) return SPF_ALPHACHANNEL;
-            if (name->Equals("MAX_CUSTOM_PROPERTIES")) return MAX_CUSTOM_PROPERTIES;
-            if (name->Equals("MAX_CUSTOM_PROPERTY_NAME_LENGTH")) return MAX_CUSTOM_PROPERTY_NAME_LENGTH;
-            if (name->Equals("MAX_CUSTOM_PROPERTY_VALUE_LENGTH")) return MAX_CUSTOM_PROPERTY_VALUE_LENGTH;
             if (name->Equals("PASSWORD_ENC_STRING")) return gcnew String(passwencstring);
             if (name->Equals("LOOPFLAG_RUNNEXTLOOP")) return LOOPFLAG_RUNNEXTLOOP;
             if (name->Equals("VFLG_FLIPSPRITE")) return VFLG_FLIPSPRITE;
@@ -716,6 +713,7 @@ namespace AGS
             if (name->Equals("GOBJ_LISTBOX")) return (int)Common::kGUIListBox;
             if (name->Equals("TEXTWINDOW_PADDING_DEFAULT")) return TEXTWINDOW_PADDING_DEFAULT;
             if (name->Equals("GUI_VERSION_CURRENT")) return (int)kGuiVersion_Current;
+            if (name->Equals("CUSTOM_PROPERTY_SCHEMA_VERSION")) return (int)AGS::Common::kPropertyVersion_Current;
             if (name->Equals("OPT_DEBUGMODE")) return OPT_DEBUGMODE;
             if (name->Equals("OPT_WALKONLOOK")) return OPT_WALKONLOOK;
             if (name->Equals("OPT_DIALOGIFACE")) return OPT_DIALOGIFACE;

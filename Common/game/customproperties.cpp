@@ -49,13 +49,27 @@ PropertyError ReadSchema(PropertySchema &schema, Stream *in)
 
     PropertyDesc prop;
     int count = in->ReadInt32();
-    for (int i = 0; i < count; ++i)
+    if (version == kPropertyVersion_Initial)
     {
-        prop.Name.Read(in, MAX_CUSTOM_PROPERTY_SCHEMA_NAME_LENGTH);
-        prop.Description.Read(in, MAX_CUSTOM_PROPERTY_DESC_LENGTH);
-        prop.DefaultValue.Read(in, MAX_CUSTOM_PROPERTY_VALUE_LENGTH);
-        prop.Type = (PropertyType)in->ReadInt32();
-        schema[prop.Name] = prop;
+        for (int i = 0; i < count; ++i)
+        {
+            prop.Name.Read(in, LEGACY_MAX_CUSTOM_PROP_SCHEMA_NAME_LENGTH);
+            prop.Description.Read(in, LEGACY_MAX_CUSTOM_PROP_DESC_LENGTH);
+            prop.DefaultValue.Read(in, LEGACY_MAX_CUSTOM_PROP_VALUE_LENGTH);
+            prop.Type = (PropertyType)in->ReadInt32();
+            schema[prop.Name] = prop;
+        }
+    }
+    else
+    {
+        for (int i = 0; i < count; ++i)
+        {
+            prop.Name = StrUtil::ReadString(in);
+            prop.Type = (PropertyType)in->ReadInt32();
+            prop.Description = StrUtil::ReadString(in);
+            prop.DefaultValue = StrUtil::ReadString(in);
+            schema[prop.Name] = prop;
+        }
     }
     return kPropertyErr_NoError;
 }
@@ -68,10 +82,10 @@ void WriteSchema(const PropertySchema &schema, Stream *out)
          it != schema.end(); ++it)
     {
         const PropertyDesc &prop = it->second;
-        prop.Name.Write(out);
-        prop.Description.Write(out);
-        prop.DefaultValue.Write(out);
+        StrUtil::WriteString(prop.Name, out);
         out->WriteInt32(prop.Type);
+        StrUtil::WriteString(prop.Description, out);
+        StrUtil::WriteString(prop.DefaultValue, out);
     }
 }
 
@@ -85,10 +99,21 @@ PropertyError ReadValues(StringIMap &map, Stream *in)
     }
 
     int count = in->ReadInt32();
-    for (int i = 0; i < count; ++i)
+    if (version == kPropertyVersion_Initial)
     {
-        String name  = String::FromStream(in, MAX_CUSTOM_PROPERTY_NAME_LENGTH);
-        map[name] = String::FromStream(in, MAX_CUSTOM_PROPERTY_VALUE_LENGTH);
+        for (int i = 0; i < count; ++i)
+        {
+            String name  = String::FromStream(in, LEGACY_MAX_CUSTOM_PROP_NAME_LENGTH);
+            map[name] = String::FromStream(in, LEGACY_MAX_CUSTOM_PROP_VALUE_LENGTH);
+        }
+    }
+    else
+    {
+        for (int i = 0; i < count; ++i)
+        {
+            String name  = StrUtil::ReadString(in);
+            map[name] = StrUtil::ReadString(in);
+        }
     }
     return kPropertyErr_NoError;
 }
@@ -100,8 +125,8 @@ void WriteValues(const StringIMap &map, Stream *out)
     for (StringIMap::const_iterator it = map.begin();
          it != map.end(); ++it)
     {
-        it->first.Write(out);
-        it->second.Write(out);
+        StrUtil::WriteString(it->first, out);
+        StrUtil::WriteString(it->second, out);
     }
 }
 

@@ -27,6 +27,7 @@ int mousex, mousey;
 #include "gui/guilistbox.h"
 #include "gui/guislider.h"
 #include "util/compress.h"
+#include "util/string_types.h"
 #include "util/string_utils.h"    // fputstring, etc
 #include "util/alignedstream.h"
 #include "util/filestream.h"
@@ -37,6 +38,7 @@ using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
 namespace AGSProps = AGS::Common::Properties;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
+namespace AGSProps = AGS::Common::Properties;
 using AGS::Common::GUIMain;
 
 //-----------------------------------------------------------------------------
@@ -3464,8 +3466,8 @@ void CompileCustomProperties(AGS::Types::CustomProperties ^convertFrom, AGS::Com
 	for each (String ^key in convertFrom->PropertyValues->Keys)
 	{
         AGS::Common::String name, value;
-		ConvertStringToNativeString(convertFrom->PropertyValues[key]->Name, name, MAX_CUSTOM_PROPERTY_NAME_LENGTH);
-		ConvertStringToNativeString(convertFrom->PropertyValues[key]->Value, value, MAX_CUSTOM_PROPERTY_VALUE_LENGTH);
+		ConvertStringToNativeString(convertFrom->PropertyValues[key]->Name, name);
+		ConvertStringToNativeString(convertFrom->PropertyValues[key]->Value, value);
 		(*compileInto)[name] = value;
 	}
 }
@@ -5187,17 +5189,13 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 
 	// ** Custom Properties Schema **
 	List<AGS::Types::CustomPropertySchemaItem ^> ^schema = game->PropertySchema->PropertyDefinitions;
-	if (schema->Count > MAX_CUSTOM_PROPERTIES)
-	{
-		throw gcnew CompileError("Too many custom properties defined");
-	}
 	for (int i = 0; i < schema->Count; i++) 
 	{
         AGS::Common::PropertyDesc desc;
 		CustomPropertySchemaItem ^schemaItem = schema[i];
-		ConvertStringToNativeString(schemaItem->Name, desc.Name, MAX_CUSTOM_PROPERTY_SCHEMA_NAME_LENGTH);
-		ConvertStringToNativeString(schemaItem->Description, desc.Description, MAX_CUSTOM_PROPERTY_DESC_LENGTH);
-		ConvertStringToNativeString(schemaItem->DefaultValue, desc.DefaultValue);
+        ConvertStringToNativeString(schemaItem->Name, desc.Name);
+        ConvertStringToNativeString(schemaItem->Description, desc.Description);
+        ConvertStringToNativeString(schemaItem->DefaultValue, desc.DefaultValue);
         desc.Type = (AGS::Common::PropertyType)schemaItem->Type;
         thisgame.propSchema[desc.Name] = desc;
 	}

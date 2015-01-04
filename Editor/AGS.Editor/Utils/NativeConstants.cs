@@ -49,9 +49,6 @@ namespace AGS.Editor
         public static readonly string SPRSET_NAME = (string)Factory.NativeProxy.GetNativeConstant("SPRSET_NAME");
         public static readonly byte SPF_640x400 = (byte)(int)Factory.NativeProxy.GetNativeConstant("SPF_640x400");
         public static readonly byte SPF_ALPHACHANNEL = (byte)(int)Factory.NativeProxy.GetNativeConstant("SPF_ALPHACHANNEL");
-        public static readonly int MAX_CUSTOM_PROPERTIES = (int)Factory.NativeProxy.GetNativeConstant("MAX_CUSTOM_PROPERTIES");
-        public static readonly int MAX_CUSTOM_PROPERTY_NAME_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_CUSTOM_PROPERTY_NAME_LENGTH");
-        public static readonly int MAX_CUSTOM_PROPERTY_VALUE_LENGTH = (int)Factory.NativeProxy.GetNativeConstant("MAX_CUSTOM_PROPERTY_VALUE_LENGTH");
         public static readonly string PASSWORD_ENC_STRING = (string)Factory.NativeProxy.GetNativeConstant("PASSWORD_ENC_STRING");
         public static readonly int LOOPFLAG_RUNNEXTLOOP = (int)Factory.NativeProxy.GetNativeConstant("LOOPFLAG_RUNNEXTLOOP");
         public static readonly int VFLG_FLIPSPRITE = (int)Factory.NativeProxy.GetNativeConstant("VFLG_FLIPSPRITE");
@@ -80,6 +77,11 @@ namespace AGS.Editor
         public class GUIVersion
         {
             public static readonly int Current = (int)Factory.NativeProxy.GetNativeConstant("GUI_VERSION_CURRENT");
+        }
+
+        public class CustomPropertyVersion
+        {
+            public static readonly int Current = (int)Factory.NativeProxy.GetNativeConstant("CUSTOM_PROPERTY_SCHEMA_VERSION");
         }
 
         public class GameOptions

@@ -187,5 +187,21 @@ StrUtil::ConversionError StrUtil::StringToInt(const String &s, int &val, int def
     return StrUtil::kNoError;
 }
 
+String StrUtil::ReadString(Stream *in)
+{
+    int32_t len = in->ReadInt32();
+    if (len > 0)
+        return String::FromStreamCount(in, len);
+    return String();
+}
+
+void StrUtil::WriteString(const String &s, Stream *out)
+{
+    int32_t len = s.GetLength();
+    out->WriteInt32(len);
+    if (len > 0)
+        out->Write(s.GetCStr(), len);
+}
+
 } // namespace Common
 } // namespace AGS

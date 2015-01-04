@@ -87,6 +87,11 @@ namespace StrUtil
     // of range; the 'val' variable will be set with resulting integer, or
     // def_val on failure
     ConversionError StringToInt(const String &s, int &val, int def_val);
+
+    // Serializes and unserializes unterminated string prefixed with length;
+    // length is presented as int32 integer
+    String          ReadString(Stream *in);
+    void            WriteString(const String &s, Stream *out);
 }
 } // namespace Common
 } // namespace AGS

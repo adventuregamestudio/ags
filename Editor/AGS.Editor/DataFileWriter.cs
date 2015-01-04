@@ -145,6 +145,12 @@ namespace AGS.Editor
             FileWriteDataEncrypted(BitConverter.GetBytes(numberToWrite), writer);
         }
 
+        static void FilePutString(string text, BinaryWriter writer)
+        {
+            writer.Write((int)text.Length);
+            writer.Write(GetBytes(text, text.Length));
+        }
+
         static void FilePutNullTerminatedString(string text, int maxLen, BinaryWriter writer)
         {
             if (maxLen <= 0) return;
@@ -524,16 +530,22 @@ namespace AGS.Editor
             return new string(reader.ReadChars(length));
         }
 
+        private static string ReadString(BinaryReader reader)
+        {
+            int len = reader.ReadInt32();
+            return new string(reader.ReadChars(len));
+        }
+
         private class CustomPropertiesWriter
         {
             public static void Write(BinaryWriter writer, CustomProperties properties)
             {
-                writer.Write(1);
+                writer.Write(NativeConstants.CustomPropertyVersion.Current);
                 writer.Write(properties.PropertyValues.Count);
                 foreach (KeyValuePair<string, CustomProperty> pair in properties.PropertyValues)
                 {
-                    FilePutNullTerminatedString(pair.Value.Name, NativeConstants.MAX_CUSTOM_PROPERTY_NAME_LENGTH, writer);
-                    FilePutNullTerminatedString(pair.Value.Value, NativeConstants.MAX_CUSTOM_PROPERTY_VALUE_LENGTH, writer);
+                    FilePutString(pair.Value.Name, writer);
+                    FilePutString(pair.Value.Value, writer);
                 }
             }
         }
@@ -601,30 +613,29 @@ namespace AGS.Editor
 
             public void AddProperty(string name, string value)
             {
-                if (PropertyCount >= NativeConstants.MAX_CUSTOM_PROPERTIES) return;
-                _names.Add(SafeTruncate(name, NativeConstants.MAX_CUSTOM_PROPERTY_NAME_LENGTH - 1));
-                _values.Add(SafeTruncate(value, NativeConstants.MAX_CUSTOM_PROPERTY_VALUE_LENGTH - 1));
+                _names.Add(name);
+                _values.Add(value);
             }
 
             public void Serialize(BinaryWriter writer)
             {
-                writer.Write(1);
+                writer.Write(NativeConstants.CustomPropertyVersion.Current);
                 writer.Write(PropertyCount);
                 for (int i = 0; i < PropertyCount; ++i)
                 {
-                    FilePutNullTerminatedString(Names[i], NativeConstants.MAX_CUSTOM_PROPERTY_NAME_LENGTH, writer);
-                    FilePutNullTerminatedString(Values[i], NativeConstants.MAX_CUSTOM_PROPERTY_VALUE_LENGTH, writer);
+                    FilePutString(Names[i], writer);
+                    FilePutString(Values[i], writer);
                 }
             }
 
             int UnSerialize(BinaryReader reader)
             {
-                if (reader.ReadInt32() != 1) return -1;
+                if (reader.ReadInt32() != NativeConstants.CustomPropertyVersion.Current) return -1;
                 int count = reader.ReadInt32();
                 for (int i = 0; i < count; ++i)
                 {
-                    string name = ReadString(NativeConstants.MAX_CUSTOM_PROPERTY_NAME_LENGTH, reader);
-                    string value = ReadString(NativeConstants.MAX_CUSTOM_PROPERTY_VALUE_LENGTH, reader);
+                    string name = ReadString(reader);
+                    string value = ReadString(reader);
                     AddProperty(name, value);
                 }
                 return 0;
@@ -1474,18 +1485,14 @@ namespace AGS.Editor
             GUIsWriter guisWriter = new GUIsWriter(writer, game);
             guisWriter.WriteAllGUIs();
             WritePluginsToDisk(writer, game);
-            if (game.PropertySchema.PropertyDefinitions.Count > NativeConstants.MAX_CUSTOM_PROPERTIES)
-            {
-                throw new CompileError("Too many custom properties defined");
-            }
-            writer.Write(1); // properties schema version 1 at present
+            writer.Write(NativeConstants.CustomPropertyVersion.Current);
             writer.Write(game.PropertySchema.PropertyDefinitions.Count);
             foreach (CustomPropertySchemaItem schemaItem in game.PropertySchema.PropertyDefinitions)
             {
-                FilePutNullTerminatedString(SafeTruncate(schemaItem.Name, 19), 20, writer);
-                FilePutNullTerminatedString(SafeTruncate(schemaItem.Description, 99), 100, writer);
-                FilePutNullTerminatedString(schemaItem.DefaultValue, schemaItem.DefaultValue.Length + 1, writer);
+                FilePutString(schemaItem.Name, writer);
                 writer.Write((int)schemaItem.Type);
+                FilePutString(schemaItem.Description, writer);
+                FilePutString(schemaItem.DefaultValue, writer);
             }
             for (int i = 0; i < game.Characters.Count; ++i)
             {

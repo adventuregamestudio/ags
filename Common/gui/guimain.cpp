@@ -29,6 +29,7 @@
 #include "gfx/gfx_def.h"
 #include "debug/out.h"
 #include "util/math.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 
@@ -443,8 +444,8 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     }
     else
     {
-        Name.Read(in);
-        OnClickHandler.Read(in);
+        Name = StrUtil::ReadString(in);
+        OnClickHandler = StrUtil::ReadString(in);
     }
     X             = in->ReadInt32();
     Y             = in->ReadInt32();
@@ -502,8 +503,8 @@ void GUIMain::WriteToFile(Stream *out, GuiVersion gui_version) const
     }
     else
     {
-        Name.Write(out);
-        OnClickHandler.Write(out);
+        StrUtil::WriteString(Name, out);
+        StrUtil::WriteString(OnClickHandler, out);
     }
     out->WriteInt32(X);
     out->WriteInt32(Y);

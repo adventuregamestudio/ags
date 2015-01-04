@@ -147,8 +147,13 @@ namespace AGS.Editor
 
         static void FilePutString(string text, BinaryWriter writer)
         {
-            writer.Write((int)text.Length);
-            writer.Write(GetBytes(text, text.Length));
+            if (String.IsNullOrEmpty(text))
+                writer.Write((int)0);
+            else
+            {
+                writer.Write((int)text.Length);
+                writer.Write(GetBytes(text, text.Length));
+            }
         }
 
         static void FilePutNullTerminatedString(string text, int maxLen, BinaryWriter writer)
@@ -1142,8 +1147,8 @@ namespace AGS.Editor
             private void WriteNormalGUI(NormalGUI gui)
             {
                 writer.Write(new byte[4]); // vtext
-                WriteString(gui.Name, gui.Name.Length + 1, writer); // name
-                WriteString(gui.OnClick, gui.OnClick.Length + 1, writer); // clickEventHandler
+                FilePutString(gui.Name, writer); // name
+                FilePutString(gui.OnClick, writer); // clickEventHandler
                 writer.Write(gui.Left); // x
                 writer.Write(gui.Top); // y
                 writer.Write(gui.Width); // wid
@@ -1177,8 +1182,8 @@ namespace AGS.Editor
             {
                 writer.Write(NativeConstants.GUIMAIN_LEGACYTEXTWINDOW); // vtext...
                 writer.Write(new byte[3]); // ...vtext
-                WriteString(gui.Name, gui.Name.Length + 1, writer); // name
-                writer.Write((byte)0); // clickEventHandler
+                FilePutString(gui.Name, writer); // name
+                FilePutString(null, writer); // clickEventHandler
                 writer.Write(0); // x
                 writer.Write(0); // y
                 writer.Write(200); // wid

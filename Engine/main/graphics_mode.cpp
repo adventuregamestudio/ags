@@ -602,7 +602,7 @@ bool engine_init_graphics_mode(const GameSizeDef &game_size, const ColorDepthOpt
     // Try windowed mode if fullscreen failed, and vice versa
     if (!result && editor_debugging_enabled == 0)
     {
-        bool result = try_init_gfx_mode(game_size, color_depths, !windowed);
+        result = try_init_gfx_mode(game_size, color_depths, !windowed);
     }
     return result;
 }

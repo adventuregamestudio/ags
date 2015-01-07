@@ -195,7 +195,17 @@ namespace AGS.Types
                     // Must use CultureInfo.InvariantCulture otherwise DateTime.Parse
                     // crashes if the system regional settings short date format has
                     // spaces in it (.NET bug)
-					prop.SetValue(obj, DateTime.Parse(elementValue, CultureInfo.InvariantCulture), null);
+                    DateTime dateTime = DateTime.MinValue;
+                    if(DateTime.TryParseExact(elementValue, "u", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime))
+                    {
+                        // Get and set audio files time stamps
+                        prop.SetValue(obj, dateTime, null);
+                    }
+                    else
+                    {
+                        // Release Date timestamp doesn't store time of the day, and as such it ends up in the else-statement
+                        prop.SetValue(obj, DateTime.Parse(elementValue, CultureInfo.InvariantCulture), null);
+                    }					                    
 				}
                 else if (prop.PropertyType.IsEnum)
                 {

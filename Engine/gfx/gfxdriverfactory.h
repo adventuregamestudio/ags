@@ -24,6 +24,7 @@
 #define __AGS_EE_GFX__GFXDRIVERFACTORY_H
 
 #include "util/string.h"
+#include "util/string_types.h"
 
 namespace AGS
 {
@@ -31,6 +32,7 @@ namespace Engine
 {
 
 using Common::String;
+using Common::StringV;
 class IGraphicsDriver;
 class IGfxFilter;
 struct GfxFilterInfo;
@@ -56,6 +58,8 @@ public:
     virtual IGfxFilter *         SetFilter(const String &id) = 0;
 };
 
+// Query the available graphics factory names
+void GetGfxDriverFactoryNames(StringV &ids);
 // Acquire the graphics factory singleton object by its id
 IGfxDriverFactory *GetGfxDriverFactory(const String id);
 

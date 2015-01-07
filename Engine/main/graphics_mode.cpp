@@ -16,6 +16,7 @@
 // Graphics initialization
 //
 
+#include <algorithm>
 #include "main/mainheader.h"
 #include "ac/common.h"
 #include "ac/display.h"
@@ -287,22 +288,18 @@ bool pre_create_gfx_driver(const String &gfx_driver_id)
     GfxFactory = GetGfxDriverFactory(gfx_driver_id);
     if (!GfxFactory)
     {
-        Out::FPrint("Failed to initialize %s driver factory: %s", gfx_driver_id.GetCStr(), get_allegro_error());
-        // If hardware driver was requested, try software instead
-        // TODO: use default driver id
-        if (gfx_driver_id.CompareNoCase("DX5") != 0)
-            GfxFactory = GetGfxDriverFactory("DX5");
+        Out::FPrint("Failed to initialize %s graphics factory: %s", gfx_driver_id.GetCStr(), get_allegro_error());
+        return false;
     }
-    if (GfxFactory)
+    Out::FPrint("Using graphics factory: %s", gfx_driver_id.GetCStr());
+    gfxDriver = GfxFactory->GetDriver();
+    if (!gfxDriver)
     {
-        gfxDriver = GfxFactory->GetDriver();
+        Out::FPrint("Failed to create graphics driver. %s", get_allegro_error());
+        return false;
     }
-    if (gfxDriver)
-    {
-        Out::FPrint("Created graphics driver: %s", gfxDriver->GetDriverName());
-        return true;
-    }
-    return false;
+    Out::FPrint("Created graphics driver: %s", gfxDriver->GetDriverName());
+    return true;
 }
 
 int engine_set_gfx_filter(const int color_depth)
@@ -401,11 +398,9 @@ bool find_nearest_supported_mode(const IGfxModeList &modes, Size &wanted_size, i
 
 bool create_gfx_driver(const String &gfx_driver_id)
 {
-    Out::FPrint("Init gfx driver");
     if (!pre_create_gfx_driver(gfx_driver_id))
         return false;
 
-    usetup.gfxDriverID = gfxDriver->GetDriverID();
     gfxDriver->SetCallbackOnInit(GfxDriverOnInitCallback);
     gfxDriver->SetTintMethod(TintReColourise);
     return true;
@@ -840,19 +835,30 @@ bool graphics_mode_init()
     game_size.Box = game.GetDefaultResolution() == kGameResolution_Custom ? game.size :
         ResolutionTypeToSize(game.GetDefaultResolution(), game.options[OPT_LETTERBOX] != 0);
 
-    if (!create_gfx_driver_and_init_mode(usetup.gfxDriverID, game_size, color_depths, usetup.windowed != 0))
+    // Prepare the list of available gfx factories, having the one requested by user at first place
+    StringV ids;
+    GetGfxDriverFactoryNames(ids);
+    StringV::iterator it = std::find(ids.begin(), ids.end(), usetup.gfxDriverID);
+    if (it != ids.end())
+        std::rotate(ids.begin(), it, ids.end());
+
+    // Try to create renderer and init gfx mode, choosing one factory at a time
+    bool result = false;
+    for (StringV::const_iterator it = ids.begin(); it != ids.end(); ++it)
     {
-        if (gfxDriver && stricmp(gfxDriver->GetDriverID(), "DX5") != 0)
-        {
-            graphics_mode_shutdown();
-            if (!create_gfx_driver_and_init_mode("DX5", game_size, color_depths, usetup.windowed != 0))
-            {
-                display_gfx_mode_error(game_size.Box, color_depths.Prime);
-                return false;
-            }
-        }
+        result = create_gfx_driver_and_init_mode(*it, game_size, color_depths, usetup.windowed);
+        if (result)
+            break;
+        graphics_mode_shutdown();
+    }
+    // If all possibilities failed, display error message and quit
+    if (!result)
+    {
+        display_gfx_mode_error(game_size.Box, color_depths.Prime);
+        return false;
     }
 
+    // On success continue initialization
     engine_prepare_screen();
     platform->PostAllegroInit(usetup.windowed);
     engine_set_gfx_driver_callbacks();

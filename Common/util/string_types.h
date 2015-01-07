@@ -22,6 +22,7 @@
 #include <tr1/functional>
 #include <tr1/unordered_map>
 #endif
+#include <vector>
 #include "util/string.h"
 
 
@@ -88,6 +89,7 @@ struct HashStrNoCase : public std::unary_function<String, size_t>
     }
 };
 
+typedef std::vector<String> StringV;
 typedef std::tr1::unordered_map<String, String> StringMap;
 typedef std::tr1::unordered_map<String, String, HashStrNoCase, StrCmpNoCase> StringIMap;
 

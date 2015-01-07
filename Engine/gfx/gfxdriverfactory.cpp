@@ -26,6 +26,8 @@
 #include "gfx/gfxfilter_d3d.h"
 #endif
 
+#include "main/main_allegro.h"
+
 extern int psp_gfx_renderer;
 
 namespace AGS
@@ -33,18 +35,30 @@ namespace AGS
 namespace Engine
 {
 
+void GetGfxDriverFactoryNames(StringV &ids)
+{
+#ifdef WINDOWS_VERSION
+    ids.push_back("D3D9");
+#endif
+#if defined (ANDROID_VERSION) || defined (IOS_VERSION)
+    ids.push_back("OGL");
+#endif
+    ids.push_back("DX5");
+}
+
 IGfxDriverFactory *GetGfxDriverFactory(const String id)
 {
 #ifdef WINDOWS_VERSION
     if (id.CompareNoCase("D3D9") == 0)
         return D3D::D3DGraphicsFactory::GetFactory();
 #endif
-#if defined (ANDROID_VERSION) || defined (IOS_VERSION) || defined (WINDOWS_VERSION)
-    if ((id.CompareNoCase("OGL") != 0 || id.CompareNoCase("D3D9") == 0) && psp_gfx_renderer > 0)
+#if defined (ANDROID_VERSION) || defined (IOS_VERSION)
+    if (id.CompareNoCase("OGL") == 0 || (id.CompareNoCase("D3D9") == 0 && psp_gfx_renderer > 0))
         return OGL::OGLGraphicsFactory::GetFactory();
 #endif
     if (id.CompareNoCase("DX5") == 0)
         return ALSW::ALSWGraphicsFactory::GetFactory();
+    set_allegro_error("No graphics factory with such id: %s", id.GetCStr());
     return NULL;
 }
 

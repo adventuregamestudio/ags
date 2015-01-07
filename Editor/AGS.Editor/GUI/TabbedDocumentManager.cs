@@ -86,6 +86,14 @@ namespace AGS.Editor
             get { return _currentPane; }
         }
 
+        public IList<ContentDocument> Documents
+        {
+            get
+            {
+                return _panes.AsReadOnly();
+            }
+        }
+
         public void SetActiveDocument(ContentDocument pane)
         {
             SetActiveDocument(pane, true);

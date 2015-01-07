@@ -297,6 +297,14 @@ namespace AGS.Editor
             _mainForm.RemovePaneIfExists(pane);
         }
 
+        public IList<ContentDocument> Panes
+        {
+            get
+            {
+                return _mainForm.Panes;
+            }
+        }
+
         public void ShowOutputPanel(CompileMessages errors)
         {
             _mainForm.pnlOutput.ErrorsToList = errors;

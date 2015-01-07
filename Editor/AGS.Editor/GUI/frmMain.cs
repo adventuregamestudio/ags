@@ -213,6 +213,14 @@ namespace AGS.Editor
             }
         }
 
+        public IList<ContentDocument> Panes
+        {
+            get
+            {
+                return tabbedDocumentContainer1.Documents;
+            }
+        }
+
 		/*public void SetProjectTreeLocation(bool rightHandSide)
 		{
 			SplitterPanel leftHandPanel = this.mainContainer.Panel1;

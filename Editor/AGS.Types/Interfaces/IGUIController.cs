@@ -22,6 +22,10 @@ namespace AGS.Types
 		/// exist there, nothing happens.
 		/// </summary>
         void RemovePaneIfExists(ContentDocument pane);
+        /// <summary>
+        /// Returns a read-only list of the currently open panes.
+        /// </summary>
+        IList<ContentDocument> Panes { get; }
 		/// <summary>
 		/// Shows a message box with the specified message and icon
 		/// </summary>

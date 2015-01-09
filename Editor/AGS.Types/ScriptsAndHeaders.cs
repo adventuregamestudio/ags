@@ -114,6 +114,12 @@ namespace AGS.Types
             return scriptAndHeader.Script;
         }
 
+        public ScriptAndHeader GetScriptAndHeaderByFilename(string filename)
+        {
+            int index;
+            return GetScriptAndHeaderByFilename(filename, out index);
+        }
+
         public ScriptAndHeader GetScriptAndHeaderByFilename(string filename, out int index)
         {
             index = 0;

@@ -308,7 +308,7 @@ int engine_set_gfx_filter(const int color_depth)
     return RETURN_CONTINUE;
 }
 
-bool find_nearest_supported_mode(Size &wanted_size, const int color_depth, const Size *ratio_reference)
+bool find_nearest_supported_mode(Size &wanted_size, const int color_depth, const Size *ratio_reference = NULL, const Size *upper_bound = NULL)
 {
     IGfxModeList *modes = gfxDriver->GetSupportedModeList(color_depth);
     if (!modes)
@@ -316,15 +316,16 @@ bool find_nearest_supported_mode(Size &wanted_size, const int color_depth, const
         Out::FPrint("Couldn't get a list of supported resolutions");
         return false;
     }
-    bool result = find_nearest_supported_mode(*modes, wanted_size, NULL, color_depth, ratio_reference);
+    bool result = find_nearest_supported_mode(*modes, wanted_size, NULL, color_depth, ratio_reference, upper_bound);
     delete modes;
     return result;
 }
 
-bool find_nearest_supported_mode(const IGfxModeList &modes, Size &wanted_size, int *mode_index, const int color_depth, const Size *ratio_reference)
+bool find_nearest_supported_mode(const IGfxModeList &modes, Size &wanted_size, int *mode_index, const int color_depth,
+                                 const Size *ratio_reference, const Size *upper_bound)
 {
     uint32_t wanted_ratio = 0;
-    if (ratio_reference)
+    if (ratio_reference && !ratio_reference->IsNull())
     {
         wanted_ratio = (ratio_reference->Height << kShift) / ratio_reference->Width;
     }
@@ -354,6 +355,8 @@ bool find_nearest_supported_mode(const IGfxModeList &modes, Size &wanted_size, i
                 continue;
             }
         }
+        if (upper_bound && (mode.Width > upper_bound->Width || mode.Height > upper_bound->Height))
+            continue;
         if (mode.Width == wanted_size.Width && mode.Height == wanted_size.Height)
         {
             nearest_width = mode.Width;
@@ -531,6 +534,7 @@ bool try_init_gfx_mode(const GameSizeDef &game_size, const Size screen_size, con
     // Find nearest compatible mode and init that
     Out::FPrint("Attempting to find nearest supported resolution for screen size %d x %d (%d-bit) %s",
         screen_size.Width, screen_size.Height, color_depth, windowed ? "windowed" : "fullscreen");
+    Size device_size = get_desktop_size();
     Size fixed_screen_size = screen_size;
     GameSizeDef fixed_frame = frame_size;
     bool mode_found = false;
@@ -545,24 +549,34 @@ bool try_init_gfx_mode(const GameSizeDef &game_size, const Size screen_size, con
     // Fullscreen mode
     else
     {
-        Size device_size = get_desktop_size();
-        if (usetup.match_device_ratio && !device_size.IsNull())
+        if (usetup.match_device_ratio)
             mode_found = find_nearest_supported_mode(fixed_screen_size, color_depth, &device_size);
-        else
-            mode_found = find_nearest_supported_mode(fixed_screen_size, color_depth, NULL);
+        if (!usetup.match_device_ratio || !mode_found)
+            mode_found = find_nearest_supported_mode(fixed_screen_size, color_depth);
     }
 
-    if (mode_found)
+    if (!mode_found)
     {
-        RectPlacement frame_place;
-        setup_render_frame(game_size, fixed_screen_size, fixed_frame, frame_place);
-        return init_gfx_mode(game_size, fixed_screen_size, fixed_frame, frame_place, color_depth, windowed);
+        Out::FPrint("Could not find compatible graphics mode");
+        return false;
     }
 
-    Out::FPrint("Could not find compatible graphics mode");
-    return false;
+    RectPlacement frame_place;
+    setup_render_frame(game_size, fixed_screen_size, fixed_frame, frame_place);
+    bool result = init_gfx_mode(game_size, fixed_screen_size, fixed_frame, frame_place, color_depth, windowed);
+
+    if (!result && windowed)
+    {
+        // When initializing windowed mode we could start with any random window size;
+        // if that did not work, try to find nearest supported mode, as with fullscreen mode
+        platform->ValidateWindowSize(device_size.Width, device_size.Height, false);
+        find_nearest_supported_mode(fixed_screen_size, color_depth, NULL, &device_size);
+        result = init_gfx_mode(game_size, fixed_screen_size, fixed_frame, frame_place, color_depth, true);
+    }
+    return result;
 }
 
+// Tries to init gfx mode with given parameters; makes two attempts with primary and secondary colour depths
 bool try_init_gfx_mode(const GameSizeDef &game_size, const ColorDepthOption color_depths, const bool windowed)
 {
     Size screen_size; // final screen size
@@ -576,6 +590,7 @@ bool try_init_gfx_mode(const GameSizeDef &game_size, const ColorDepthOption colo
     return result;
 }
 
+// Tries to init gfx mode either fullscreen or windowed; if failed tries to init alternate one
 bool engine_init_graphics_mode(const GameSizeDef &game_size, const ColorDepthOption color_depths, const bool windowed)
 {
     Out::FPrint("Switching to graphics mode");

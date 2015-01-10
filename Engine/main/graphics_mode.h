@@ -30,7 +30,7 @@ AGS::Common::String make_scaling_factor_string(uint32_t scaling);
 
 namespace AGS { namespace Engine { class IGfxModeList; }}
 bool find_nearest_supported_mode(const AGS::Engine::IGfxModeList &modes, Size &wanted_size, int *mode_index,
-                                 const int color_depth, const Size *ratio_reference = NULL);
+                                 const int color_depth, const Size *ratio_reference = NULL, const Size *upper_bound = NULL);
 
 // The actual game screen resolution
 extern AGS::Engine::GraphicResolution ScreenResolution;

@@ -118,6 +118,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void RegisterGameWithGameExplorer();
   virtual void UnRegisterGameWithGameExplorer();
   virtual int  ConvertKeycodeToScanCode(int keyCode);
+  virtual void ValidateWindowSize(int &x, int &y, bool borderless) const;
 
 private:
   void add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
@@ -841,6 +842,35 @@ int AGSWin32::ConvertKeycodeToScanCode(int keycode)
   if ((scancode >= 0) && (scancode < 256))
     keycode = hw_to_mycode[scancode];
   return keycode;
+}
+
+void AGSWin32::ValidateWindowSize(int &x, int &y, bool borderless) const
+{
+    // MS Windows DirectDraw and Direct3D renderers do not support a window
+    // which exceeds the height of current desktop resolution
+    RECT rc;
+    SystemParametersInfo(SPI_GETWORKAREA, 0, &rc, 0);
+    int cx = rc.right - rc.left;
+    int cy = rc.bottom - rc.top;
+    if (!borderless)
+    {
+        OSVERSIONINFO OS;
+        OS.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
+        GetVersionEx (&OS);
+
+        NONCLIENTMETRICS ncm;
+        size_t ncm_sz = sizeof(ncm);
+        if (OS.dwMajorVersion < 6)
+            ncm_sz -= sizeof(ncm.iPaddedBorderWidth);
+        ncm.cbSize = ncm_sz;
+        SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm_sz, &ncm, 0);
+        int border = ncm.iBorderWidth * 2 + ncm.iCaptionHeight;
+        if (OS.dwMajorVersion >= 6)
+            border += ncm.iPaddedBorderWidth * 2;
+        cy -= border;
+    }
+    x = Math::Clamp(1, cx, x);
+    y = Math::Clamp(1, cy, y);
 }
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {

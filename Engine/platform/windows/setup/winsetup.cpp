@@ -31,6 +31,7 @@
 #include "gfx/graphicsdriver.h"
 #include "main/config.h"
 #include "main/graphics_mode.h"
+#include "platform/base/agsplatformdriver.h"
 #include "resource/resource.h"
 #include "util/file.h"
 #include "util/string_utils.h"
@@ -112,7 +113,7 @@ void WinConfig::SetDefaults()
 
     GfxFilterId = "StdScale";
     GfxDriverId = "D3D9";
-    get_desktop_size_for_mode(ScreenSize, false);
+    ScreenSize = get_desktop_size();
     FilterScaling = 0;
     FramePlacement = "center";
     RefreshRate = 0;
@@ -493,8 +494,9 @@ INT_PTR WinSetupDialog::OnInitDialog()
     _hStretchToScreen       = GetDlgItem(_hwnd, IDC_STRETCHTOSCREEN);
     _hKeepAspectRatio       = GetDlgItem(_hwnd, IDC_ASPECTRATIO);
 
-    get_desktop_size_for_mode(_desktopSize, false);
-    get_desktop_size_for_mode(_maxWindowSize, true);
+    _desktopSize = get_desktop_size();
+    _maxWindowSize = _desktopSize;
+    AGSPlatformDriver::GetDriver()->ValidateWindowSize(_maxWindowSize.Width, _maxWindowSize.Height, false);
     _minGameSize = Size(320, 200);
     _maxGameScale = 1;
 

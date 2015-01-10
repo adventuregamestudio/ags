@@ -155,17 +155,11 @@ void adjust_sizes_for_resolution(int filever)
 
 }
 
-bool get_desktop_size_for_mode(Size &size, const bool windowed)
+Size get_desktop_size()
 {
-    if (!windowed)
-        return get_desktop_resolution(&size.Width, &size.Height) == 0;
-    else if (get_desktop_resolution(&size.Width, &size.Height) == 0)
-    {
-        // TODO: a platform-specific way to do this?
-        size.Height -= 32; // give some space for window borders
-        return true;
-    }
-    return false;
+    Size sz;
+    get_desktop_resolution(&sz.Width, &sz.Height);
+    return sz;
 }
 
 String make_scaling_factor_string(uint32_t scaling)
@@ -483,8 +477,7 @@ void set_game_frame_after_screen_size(const GameSizeDef &game_size, const Size s
 void precalc_render_screen_and_frame(const GameSizeDef &game_size, Size &screen_size, GameSizeDef &frame_size,
                                      const int color_depth, const bool windowed)
 {
-    Size device_size;
-    get_desktop_size_for_mode(device_size, windowed);
+    Size device_size = get_desktop_size();
 
     // Set requested screen (window) size, depending on screen definition option
     switch (usetup.screen_sz_def)
@@ -538,28 +531,21 @@ bool try_init_gfx_mode(const GameSizeDef &game_size, const Size screen_size, con
     // Find nearest compatible mode and init that
     Out::FPrint("Attempting to find nearest supported resolution for screen size %d x %d (%d-bit) %s",
         screen_size.Width, screen_size.Height, color_depth, windowed ? "windowed" : "fullscreen");
-    Size device_size;
     Size fixed_screen_size = screen_size;
     GameSizeDef fixed_frame = frame_size;
     bool mode_found = false;
 
-    get_desktop_size_for_mode(device_size, windowed);
     // Windowed mode
     if (windowed)
     {
         // If windowed mode, make the resolution stay in the generally supported limits
-        // TODO: platform/driver specific values?
-        const Size minimal_size(128, 128);
-        if (device_size.IsNull())
-            device_size = screen_size;
-
-        if (screen_size.ExceedsByAny(device_size) || minimal_size.ExceedsByAny(screen_size))
-            fixed_screen_size.Clamp(minimal_size, device_size);
+        platform->ValidateWindowSize(fixed_screen_size.Width, fixed_screen_size.Height, false);
         mode_found = true;
     }
     // Fullscreen mode
     else
     {
+        Size device_size = get_desktop_size();
         if (usetup.match_device_ratio && !device_size.IsNull())
             mode_found = find_nearest_supported_mode(fixed_screen_size, color_depth, &device_size);
         else

@@ -256,8 +256,6 @@ void D3DGraphicsDriver::initD3DDLL()
    // Set the display mode in the window's thread
    if (wnd_call_proc(wnd_create_device)) {
      _exit_critical();
-     direct3d->Release();
-     direct3d = NULL;
      throw Ali3DException(get_allegro_error());
    }
 

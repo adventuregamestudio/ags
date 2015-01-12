@@ -664,6 +664,11 @@ const GfxFilterInfo *ALSWGraphicsFactory::GetFilterInfo(size_t index) const
     }
 }
 
+String ALSWGraphicsFactory::GetDefaultFilterID() const
+{
+    return AllegroGfxFilter::FilterInfo.Id;
+}
+
 /* static */ ALSWGraphicsFactory *ALSWGraphicsFactory::GetFactory()
 {
     if (!_factory)

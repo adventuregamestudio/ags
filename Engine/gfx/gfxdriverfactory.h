@@ -52,9 +52,14 @@ public:
     // if one was not created yet, 
     virtual void                 DestroyDriver() = 0;
 
+    // Get number of supported filters
     virtual size_t               GetFilterCount() const = 0;
+    // Get filter description
     virtual const GfxFilterInfo *GetFilterInfo(size_t index) const = 0;
+    // Get ID of the default filter
+    virtual String               GetDefaultFilterID() const = 0;
 
+    // Assign specified filter to graphics driver
     virtual IGfxFilter *         SetFilter(const String &id) = 0;
 };
 

@@ -265,13 +265,10 @@ bool initialize_graphics_filter(const String filter_id, const int color_depth)
         return false;
     }
 
-    Out::FPrint("Applying scaling filter: %s", filter->GetInfo().Id.GetCStr());
-
     String filter_error;
     if (!filter->Initialize(color_depth, filter_error))
     {
-        proper_exit = 1;
-        platform->DisplayAlert("Unable to initialize the graphics filter. It returned the following error:\n'%s'\n\nTry choosing a different graphics filter.", filter_error.GetCStr());
+        Out::FPrint("Unable to initialize the graphics filter. Error: %s.", filter_error.GetCStr());
         return false;
     }
     return true;
@@ -301,10 +298,16 @@ bool engine_set_gfx_filter(const int color_depth)
     Out::FPrint("Requested gfx filter: %s, filter scaling: %s", usetup.gfxFilterRequest.GetCStr(), make_scaling_factor_string().GetCStr());
     if (!initialize_graphics_filter(usetup.gfxFilterID, color_depth))
     {
-        Out::FPrint("Failed to apply gfx filter: %s; will try to use standard filter instead", usetup.gfxFilterRequest.GetCStr());
-        if (!initialize_graphics_filter("StdScale", color_depth))
-            return false;
+        String def_filter = GfxFactory->GetDefaultFilterID();
+        if (def_filter.CompareNoCase(usetup.gfxFilterID) != 0)
+        {
+            Out::FPrint("Failed to apply gfx filter: %s; will try to use factory default filter '%s' instead",
+                usetup.gfxFilterRequest.GetCStr(), def_filter.GetCStr());
+            if (!initialize_graphics_filter(def_filter, color_depth))
+                return false;
+        }
     }
+    Out::FPrint("Using gfx filter: %s", GfxFactory->GetDriver()->GetGraphicsFilter()->GetInfo().Id.GetCStr());
     return true;
 }
 
@@ -842,6 +845,8 @@ bool graphics_mode_init()
     StringV::iterator it = std::find(ids.begin(), ids.end(), usetup.gfxDriverID);
     if (it != ids.end())
         std::rotate(ids.begin(), it, ids.end());
+    else
+        Out::FPrint("Requested graphics driver '%s' not found, will try existing drivers instead", usetup.gfxDriverID.GetCStr());
 
     // Try to create renderer and init gfx mode, choosing one factory at a time
     bool result = false;

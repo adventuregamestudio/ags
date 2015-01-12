@@ -227,6 +227,7 @@ public:
 
     virtual size_t               GetFilterCount() const;
     virtual const GfxFilterInfo *GetFilterInfo(size_t index) const;
+    virtual String               GetDefaultFilterID() const;
 
     static  ALSWGraphicsFactory *GetFactory();
 

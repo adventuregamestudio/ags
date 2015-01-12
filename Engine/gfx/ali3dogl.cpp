@@ -1559,6 +1559,11 @@ const GfxFilterInfo *OGLGraphicsFactory::GetFilterInfo(size_t index) const
     return index == 0 ? &OGLGfxFilter::FilterInfo : NULL;
 }
 
+String OGLGraphicsFactory::GetDefaultFilterID() const
+{
+    return OGLGfxFilter::FilterInfo.Id;
+}
+
 /* static */ OGLGraphicsFactory *OGLGraphicsFactory::GetFactory()
 {
     if (!_factory)

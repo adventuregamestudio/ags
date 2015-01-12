@@ -271,6 +271,7 @@ public:
 
     virtual size_t               GetFilterCount() const;
     virtual const GfxFilterInfo *GetFilterInfo(size_t index) const;
+    virtual String               GetDefaultFilterID() const;
 
     static D3DGraphicsFactory   *GetFactory();
     static D3DGraphicsDriver    *GetD3DDriver();

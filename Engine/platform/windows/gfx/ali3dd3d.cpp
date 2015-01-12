@@ -1774,6 +1774,11 @@ const GfxFilterInfo *D3DGraphicsFactory::GetFilterInfo(size_t index) const
     }
 }
 
+String D3DGraphicsFactory::GetDefaultFilterID() const
+{
+    return D3DGfxFilter::FilterInfo.Id;
+}
+
 /* static */ D3DGraphicsFactory *D3DGraphicsFactory::GetFactory()
 {
     if (!_factory)

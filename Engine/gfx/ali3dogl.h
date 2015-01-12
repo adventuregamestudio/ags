@@ -248,7 +248,6 @@ private:
     bool _smoothScaling;
     bool _legacyPixelShader;
     float _pixelRenderOffset;
-    volatile int *_loopTimer;
     Bitmap *_screenTintLayer;
     OGLBitmap* _screenTintLayerDDB;
     SpriteDrawListEntry _screenTintSprite;

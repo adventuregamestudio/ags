@@ -296,16 +296,16 @@ bool pre_create_gfx_driver(const String &gfx_driver_id)
     return true;
 }
 
-int engine_set_gfx_filter(const int color_depth)
+bool engine_set_gfx_filter(const int color_depth)
 {
     Out::FPrint("Requested gfx filter: %s, filter scaling: %s", usetup.gfxFilterRequest.GetCStr(), make_scaling_factor_string().GetCStr());
     if (!initialize_graphics_filter(usetup.gfxFilterID, color_depth))
     {
         Out::FPrint("Failed to apply gfx filter: %s; will try to use standard filter instead", usetup.gfxFilterRequest.GetCStr());
         if (!initialize_graphics_filter("StdScale", color_depth))
-            return EXIT_NORMAL;
+            return false;
     }
-    return RETURN_CONTINUE;
+    return true;
 }
 
 bool find_nearest_supported_mode(Size &wanted_size, const int color_depth, const Size *ratio_reference = NULL, const Size *upper_bound = NULL)

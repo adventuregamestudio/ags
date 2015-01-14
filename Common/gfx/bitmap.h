@@ -66,6 +66,11 @@ namespace BitmapHelper
     Bitmap *CreateBitmapCopy(Bitmap *src, int color_depth = 0);
 	Bitmap *LoadFromFile(const char *filename);
 
+    // Copy transparency mask and/or alpha channel from one bitmap into another.
+    // Destination and mask bitmaps must be of the same pixel format.
+    // Transparency is merged, meaning that fully transparent pixels on
+    // destination should remain such regardless of mask pixel values.
+    void    CopyTransparency(Bitmap *dst, const Bitmap *mask, bool use_alpha);
     // Copy pixel data into bitmap from memory buffer. It is required that the
     // source matches bitmap format and has enough data.
     // Pitch is given in bytes and defines the length of the source scan line.

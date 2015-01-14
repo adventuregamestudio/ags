@@ -92,6 +92,81 @@ Bitmap *LoadFromFile(const char *filename)
 	return bitmap;
 }
 
+
+template <class TPx, size_t BPP_>
+struct PixelTransCpy
+{
+    static const size_t BPP = BPP_;
+    inline void operator ()(uint8_t *dst, const uint8_t *src, color_t mask_color, bool use_alpha) const
+    {
+        if (*(TPx*)src == mask_color)
+            *(TPx*)dst = mask_color;
+    }
+};
+
+typedef PixelTransCpy<uint8_t,  1> PixelTransCpy8;
+typedef PixelTransCpy<uint16_t, 2> PixelTransCpy16;
+
+struct PixelTransCpy24
+{
+    static const size_t BPP = 3;
+    inline void operator ()(uint8_t *dst, const uint8_t *src, color_t mask_color, bool use_alpha) const
+    {
+        const uint8_t *mcol_ptr = (const uint8_t*)&mask_color;
+        if (src[0] == mcol_ptr[0] && src[1] == mcol_ptr[1] && src[2] == mcol_ptr[2])
+        {
+            dst[0] = mcol_ptr[0];
+            dst[1] = mcol_ptr[1];
+            dst[2] = mcol_ptr[2];
+        }
+    }
+};
+
+struct PixelTransCpy32
+{
+    static const size_t BPP = 4;
+    inline void operator ()(uint8_t *dst, const uint8_t *src, color_t mask_color, bool use_alpha) const
+    {
+        if (*(const uint32_t*)src == mask_color)
+            *(uint32_t*)dst = mask_color;
+        else if (use_alpha)
+            dst[3] =  src[3]; // copy alpha channel
+        else
+            dst[3] = 0xFF; // set the alpha channel byte to opaque
+    }
+};
+
+template <class FnPxProc>
+void ApplyMask(uint8_t *dst, const uint8_t *src, size_t pitch, size_t height, FnPxProc proc, color_t mask_color, bool use_alpha)
+{
+    for (size_t y = 0; y < height; ++y)
+    {
+        for (size_t x = 0; x < pitch; x += FnPxProc::BPP, src += FnPxProc::BPP, dst += FnPxProc::BPP)
+        {
+            proc(dst, src, mask_color, use_alpha);
+        }
+    }
+}
+
+void CopyTransparency(Bitmap *dst, const Bitmap *mask, bool use_alpha)
+{
+    color_t mask_color     = mask->GetMaskColor();
+    uint8_t *dst_ptr       = dst->GetDataForWriting();
+    const uint8_t *src_ptr = mask->GetData();
+    size_t bpp             = mask->GetBPP();
+    size_t pitch           = mask->GetLineLength();
+    size_t height          = mask->GetHeight();
+
+    if (mask->GetBPP() == 1)
+        ApplyMask(dst_ptr, src_ptr, pitch, height, PixelTransCpy8(), mask_color, use_alpha);
+    else if (mask->GetBPP() == 2)
+        ApplyMask(dst_ptr, src_ptr, pitch, height, PixelTransCpy16(), mask_color, use_alpha);
+    else if (mask->GetBPP() == 3)
+        ApplyMask(dst_ptr, src_ptr, pitch, height, PixelTransCpy24(), mask_color, use_alpha);
+    else
+        ApplyMask(dst_ptr, src_ptr, pitch, height, PixelTransCpy32(), mask_color, use_alpha);
+}
+
 void ReadPixelsFromMemory(Bitmap *dst, const uint8_t *src_buffer, const size_t src_pitch, const size_t src_px_offset)
 {
     const size_t bpp = dst->GetBPP();

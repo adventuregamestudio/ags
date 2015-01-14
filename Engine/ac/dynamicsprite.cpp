@@ -167,52 +167,7 @@ void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSpri
         game.spriteflags[sds->slot] |= SPF_ALPHACHANNEL;
     }
 
-    unsigned int maskColor = source->GetMaskColor();
-    int colDep = source->GetColorDepth();
-    int bytesPerPixel = (colDep + 1) / 8;
-
-    unsigned short *shortPtr;
-    unsigned int *longPtr;
-    for (int y = 0; y < target->GetHeight(); y++)
-    {
-        unsigned char * sourcePixel = source->GetScanLineForWriting(y);
-        unsigned char * targetPixel = target->GetScanLineForWriting(y);
-        for (int x = 0; x < target->GetWidth(); x++)
-        {
-            shortPtr = (unsigned short*)sourcePixel;
-            longPtr = (unsigned int*)sourcePixel;
-
-            if ((colDep == 8) && (sourcePixel[0] == maskColor))
-            {
-                targetPixel[0] = maskColor;
-            }
-            else if ((bytesPerPixel == 2) && (shortPtr[0] == maskColor))
-            {
-                ((unsigned short*)targetPixel)[0] = maskColor;
-            }
-            else if ((bytesPerPixel == 3) && (memcmp(sourcePixel, &maskColor, 3) == 0))
-            {
-                memcpy(targetPixel, sourcePixel, 3);
-            }
-            else if ((bytesPerPixel == 4) && (longPtr[0] == maskColor))
-            {
-                ((unsigned int*)targetPixel)[0] = maskColor;
-            }
-            else if ((bytesPerPixel == 4) && (sourceHasAlpha))
-            {
-                // the fourth byte is the alpha channel, copy it
-                targetPixel[3] = sourcePixel[3];
-            }
-            else if (bytesPerPixel == 4)
-            {
-                // set the alpha channel byte to opaque
-                targetPixel[3] = 0xff;
-            }
-
-            sourcePixel += bytesPerPixel;
-            targetPixel += bytesPerPixel;
-        }
-    }
+    BitmapHelper::CopyTransparency(target, source, sourceHasAlpha);
 }
 
 void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int height, int x, int y) 

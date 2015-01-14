@@ -23,6 +23,7 @@ namespace AGS.Editor
 
         private const int TAB_HEIGHT = 18;
         private const string MENU_ITEM_CLOSE = "Close";
+        private const string MENU_ITEM_CLOSE_ALL = "CloseAll";
         private const string MENU_ITEM_CLOSE_ALL_BUT_THIS = "CloseAllOthers";
         private const string MENU_ITEM_NAVIGATE = "Navigate";
 
@@ -236,45 +237,33 @@ namespace AGS.Editor
             else panel.DockingContainer.Refresh();
         }
 
-        public void RemoveAllDocumentsExcept(ContentDocument pane)
+        public void RemoveAllDocuments(ContentDocument except)
         {
-            List<ContentDocument> newPaneList = new List<ContentDocument>();
-
-            ContentDocument[] copyOfPaneList = _panes.ToArray();
-            foreach (ContentDocument doc in copyOfPaneList)
+            ContentDocument[] copyOfPanesList = _panes.ToArray();
+            foreach (ContentDocument pane in copyOfPanesList)
             {
-                if (doc != pane)
+                if(pane != except)
                 {
                     bool cancelled = false;
-                    doc.Control.PanelClosing(true, ref cancelled);
-                    if (cancelled)
+                    pane.Control.PanelClosing(true, ref cancelled);
+                    if(!cancelled)
                     {
-                        newPaneList.Add(doc);
-                    }
-                    else
-                    {
-                        doc.Control.DockingContainer.Hide();
-                        doc.Visible = false;                        
+                        pane.Control.DockingContainer.Hide();
+                        pane.Visible = false;
+                        _panes.Remove(pane);
+                        _panesInOrderUsed.Remove(pane);
                     }
                 }
             }
 
-            _panes = newPaneList;
-            _panes.Add(pane);
-            _panesInOrderUsed = new List<ContentDocument>();
-            foreach (ContentDocument doc in _panes) 
+            if(except != null)
             {
-                _panesInOrderUsed.Add(doc);
-            }
-            if (pane != _currentPane)
-            {
-                SetActiveDocument(pane);
+                SetActiveDocument(except);
             }
             else
             {
                 RefreshWindowsMenu();
             }
-            //tabsPanel.Invalidate();
         }
 
         public void RemoveDocument(ContentDocument pane)
@@ -488,6 +477,7 @@ namespace AGS.Editor
             ContextMenuStrip menu = new ContextMenuStrip();
             menu.Tag = document;
             menu.Items.Add(new ToolStripMenuItem("Close", null, onClick, MENU_ITEM_CLOSE));
+            menu.Items.Add(new ToolStripMenuItem("Close all", null, onClick, MENU_ITEM_CLOSE_ALL));
             menu.Items.Add(new ToolStripMenuItem("Close all others", null, onClick, MENU_ITEM_CLOSE_ALL_BUT_THIS));
             if (document.TreeNodeID != null)
             {
@@ -504,12 +494,13 @@ namespace AGS.Editor
             {
                 RemoveDocument(document, true);
             }
+            else if (item.Name == MENU_ITEM_CLOSE_ALL)
+            {
+                RemoveAllDocuments(null); // null -> Remove all documents, no exceptions
+            }
             else if (item.Name == MENU_ITEM_CLOSE_ALL_BUT_THIS)
             {
-                if (MessageBox.Show("Are you sure you want to close all other tabs?", "Confirm close", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                {
-                    RemoveAllDocumentsExcept(document);
-                }
+                RemoveAllDocuments(document);
             }
             else if (item.Name == MENU_ITEM_NAVIGATE)
             {

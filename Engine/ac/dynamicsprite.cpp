@@ -160,14 +160,15 @@ void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSpri
     }
 
     // set the target's alpha channel depending on the source
-    bool sourceHasAlpha = (game.spriteflags[sourceSprite] & SPF_ALPHACHANNEL) != 0;
+    bool dst_has_alpha = (game.spriteflags[sds->slot] & SPF_ALPHACHANNEL) != 0;
+    bool src_has_alpha = (game.spriteflags[sourceSprite] & SPF_ALPHACHANNEL) != 0;
     game.spriteflags[sds->slot] &= ~SPF_ALPHACHANNEL;
-    if (sourceHasAlpha)
+    if (src_has_alpha)
     {
         game.spriteflags[sds->slot] |= SPF_ALPHACHANNEL;
     }
 
-    BitmapHelper::CopyTransparency(target, source, sourceHasAlpha);
+    BitmapHelper::CopyTransparency(target, source, dst_has_alpha, src_has_alpha);
 }
 
 void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int height, int x, int y) 

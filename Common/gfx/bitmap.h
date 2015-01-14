@@ -70,7 +70,7 @@ namespace BitmapHelper
     // Destination and mask bitmaps must be of the same pixel format.
     // Transparency is merged, meaning that fully transparent pixels on
     // destination should remain such regardless of mask pixel values.
-    void    CopyTransparency(Bitmap *dst, const Bitmap *mask, bool use_alpha);
+    void    CopyTransparency(Bitmap *dst, const Bitmap *mask, bool dst_has_alpha, bool mask_has_alpha);
     // Copy pixel data into bitmap from memory buffer. It is required that the
     // source matches bitmap format and has enough data.
     // Pitch is given in bytes and defines the length of the source scan line.

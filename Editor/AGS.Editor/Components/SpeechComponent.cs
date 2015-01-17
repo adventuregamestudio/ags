@@ -14,6 +14,7 @@ namespace AGS.Editor.Components
     class SpeechComponent : BaseComponent
     {
         private static readonly string PAMELA_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.pam";
+        private static readonly string PAPAGAYO_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.dat";
         private static readonly string OGG_VORBIS_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.ogg";
         private static readonly string MP3_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.mp3";
         private static readonly string WAVEFORM_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.wav";
@@ -39,6 +40,7 @@ namespace AGS.Editor.Components
                 Utilities.AddAllMatchingFiles(fileNames, MP3_FILE_FILTER, true);
                 Utilities.AddAllMatchingFiles(fileNames, WAVEFORM_FILE_FILTER, true);
                 Utilities.AddAllMatchingFiles(fileNames, PAMELA_FILE_FILTER, true);
+                Utilities.AddAllMatchingFiles(fileNames, PAPAGAYO_FILE_FILTER, true);
             }
         }
 
@@ -48,7 +50,7 @@ namespace AGS.Editor.Components
 
 			if (DoesTargetFileNeedRebuild(LIP_SYNC_DATA_OUTPUT, pamFileList, _pamFileStatus))
 			{
-				CompilePAMFiles(errors);
+				CompileLipSyncFiles(errors);
 
 				UpdateVOXFileStatusWithCurrentFileTimes(pamFileList, _pamFileStatus);
 			}
@@ -83,7 +85,23 @@ namespace AGS.Editor.Components
             return frameID;
         }
 
-        private SpeechLipSyncLine CompilePAMFile(string fileName, CompileMessages errors)
+        private void AlignPhonemeOffsets(SpeechLipSyncLine syncDataForThisFile)
+        {
+            syncDataForThisFile.Phenomes.Sort();
+
+            // The PAM/DAT files contain start times: Convert to end times
+            for (int i = 0; i < syncDataForThisFile.Phenomes.Count - 1; i++)
+            {
+                syncDataForThisFile.Phenomes[i].EndTimeOffset = syncDataForThisFile.Phenomes[i + 1].EndTimeOffset;
+            }
+
+            if (syncDataForThisFile.Phenomes.Count > 1)
+            {
+                syncDataForThisFile.Phenomes[syncDataForThisFile.Phenomes.Count - 1].EndTimeOffset = syncDataForThisFile.Phenomes[syncDataForThisFile.Phenomes.Count - 2].EndTimeOffset + 1000;
+            }
+        }
+
+        private SpeechLipSyncLine CompilePamelaFile(string fileName, CompileMessages errors)
         {
             SpeechLipSyncLine syncDataForThisFile = new SpeechLipSyncLine();
             syncDataForThisFile.FileName = Path.GetFileNameWithoutExtension(fileName);
@@ -128,29 +146,63 @@ namespace AGS.Editor.Components
                 }
             }
             sr.Close();
-            syncDataForThisFile.Phenomes.Sort();
-
-            // The PAM file contains start times: Convert to end times
-            for (int i = 0; i < syncDataForThisFile.Phenomes.Count - 1; i++)
-            {
-                syncDataForThisFile.Phenomes[i].EndTimeOffset = syncDataForThisFile.Phenomes[i + 1].EndTimeOffset;
-            }
-
-            if (syncDataForThisFile.Phenomes.Count > 1)
-            {
-                syncDataForThisFile.Phenomes[syncDataForThisFile.Phenomes.Count - 1].EndTimeOffset = syncDataForThisFile.Phenomes[syncDataForThisFile.Phenomes.Count - 2].EndTimeOffset + 1000;
-            }
+			AlignPhonemeOffsets(syncDataForThisFile);
 
             return syncDataForThisFile;
         }
 
-        private void CompilePAMFiles(CompileMessages errors)
+        private SpeechLipSyncLine CompilePapagayoFile(string fileName, CompileMessages errors)
+        {
+            SpeechLipSyncLine syncDataForThisFile = new SpeechLipSyncLine();
+            syncDataForThisFile.FileName = Path.GetFileNameWithoutExtension(fileName);
+
+            string thisLine;
+            int lineNumber = 0;
+
+            StreamReader sr = new StreamReader(fileName);
+            if ((thisLine = sr.ReadLine()) != null) // Skip over the first line (always a heading)
+                while ((thisLine = sr.ReadLine()) != null)
+                {
+                    lineNumber++;
+                    if (thisLine.IndexOf(' ') > 0)
+                    {
+                        string[] parts = thisLine.Split(' ');
+                        // Convert from Pamela XPOS into milliseconds
+                        int xpos = Convert.ToInt32(parts[0]);
+                        if (xpos < 0) // Clamp negative XPOS to 0
+                            xpos = 0;
+                        int milliSeconds = (Convert.ToInt32(parts[0]) * 1000) / 24;
+                        string phenomeCode = parts[1].Trim().ToUpper();
+                        int frameID = FindFrameNumberForPhenome(phenomeCode);
+                        if (frameID < 0)
+                        {
+                            string friendlyFileName = Path.GetFileName(fileName);
+                            errors.Add(new CompileError("No frame found to match phenome code '" + phenomeCode + "'", friendlyFileName, lineNumber));
+                        }
+                        else
+                        {
+                            syncDataForThisFile.Phenomes.Add(new SpeechLipSyncPhenome(milliSeconds, (short)frameID));
+                        }
+                    }
+                }
+            sr.Close();
+			AlignPhonemeOffsets(syncDataForThisFile);
+
+            return syncDataForThisFile;
+        }
+
+        private void CompileLipSyncFiles(CompileMessages errors)
         {
             List<SpeechLipSyncLine> lipSyncDataLines = new List<SpeechLipSyncLine>();
 
             foreach (string fileName in Utilities.GetDirectoryFileList(Directory.GetCurrentDirectory(), PAMELA_FILE_FILTER))
             {
-                lipSyncDataLines.Add(CompilePAMFile(fileName, errors));
+                lipSyncDataLines.Add(CompilePamelaFile(fileName, errors));
+            }
+
+            foreach (string fileName in Utilities.GetDirectoryFileList(Directory.GetCurrentDirectory(), PAPAGAYO_FILE_FILTER))
+            {
+                lipSyncDataLines.Add(CompilePapagayoFile(fileName, errors));
             }
 
             if (File.Exists(LIP_SYNC_DATA_OUTPUT))
@@ -213,6 +265,7 @@ namespace AGS.Editor.Components
 		{
 			List<string> files = new List<string>();
 			Utilities.AddAllMatchingFiles(files, PAMELA_FILE_FILTER);
+			Utilities.AddAllMatchingFiles(files, PAPAGAYO_FILE_FILTER);
 			return files.ToArray();
 		}
 

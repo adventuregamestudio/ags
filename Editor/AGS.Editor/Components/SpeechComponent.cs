@@ -13,7 +13,10 @@ namespace AGS.Editor.Components
 {
     class SpeechComponent : BaseComponent
     {
-        private static readonly string PAM_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.pam";
+        private static readonly string PAMELA_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.pam";
+        private static readonly string OGG_VORBIS_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.ogg";
+        private static readonly string MP3_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.mp3";
+        private static readonly string WAVEFORM_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.wav";
         private const string LIP_SYNC_DATA_OUTPUT = "syncdata.dat";
         private static readonly string SPEECH_VOX_FILE_NAME = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, "speech.vox");
 
@@ -32,10 +35,10 @@ namespace AGS.Editor.Components
         {
             if (_agsEditor.CurrentGame.Settings.BinaryFilesInSourceControl)
             {
-                Utilities.AddAllMatchingFiles(fileNames, "Speech" + Path.DirectorySeparatorChar + "*.ogg", true);
-                Utilities.AddAllMatchingFiles(fileNames, "Speech" + Path.DirectorySeparatorChar + "*.mp3", true);
-                Utilities.AddAllMatchingFiles(fileNames, "Speech" + Path.DirectorySeparatorChar + "*.wav", true);
-                Utilities.AddAllMatchingFiles(fileNames, "Speech" + Path.DirectorySeparatorChar + "*.pam", true);
+                Utilities.AddAllMatchingFiles(fileNames, OGG_VORBIS_FILE_FILTER, true);
+                Utilities.AddAllMatchingFiles(fileNames, MP3_FILE_FILTER, true);
+                Utilities.AddAllMatchingFiles(fileNames, WAVEFORM_FILE_FILTER, true);
+                Utilities.AddAllMatchingFiles(fileNames, PAMELA_FILE_FILTER, true);
             }
         }
 
@@ -145,7 +148,7 @@ namespace AGS.Editor.Components
         {
             List<SpeechLipSyncLine> lipSyncDataLines = new List<SpeechLipSyncLine>();
 
-            foreach (string fileName in Utilities.GetDirectoryFileList(Directory.GetCurrentDirectory(), PAM_FILE_FILTER))
+            foreach (string fileName in Utilities.GetDirectoryFileList(Directory.GetCurrentDirectory(), PAMELA_FILE_FILTER))
             {
                 lipSyncDataLines.Add(CompilePAMFile(fileName, errors));
             }
@@ -200,16 +203,16 @@ namespace AGS.Editor.Components
         {
             List<string> files = new List<string>();
             Utilities.AddAllMatchingFiles(files, LIP_SYNC_DATA_OUTPUT);
-            Utilities.AddAllMatchingFiles(files, "Speech" + Path.DirectorySeparatorChar + "*.mp3");
-            Utilities.AddAllMatchingFiles(files, "Speech" + Path.DirectorySeparatorChar + "*.ogg");
-            Utilities.AddAllMatchingFiles(files, "Speech" + Path.DirectorySeparatorChar + "*.wav");
+            Utilities.AddAllMatchingFiles(files, MP3_FILE_FILTER);
+            Utilities.AddAllMatchingFiles(files, OGG_VORBIS_FILE_FILTER);
+            Utilities.AddAllMatchingFiles(files, WAVEFORM_FILE_FILTER);
             return files.ToArray();
         }
 
 		private string[] ConstructFileListForSyncData()
 		{
 			List<string> files = new List<string>();
-			Utilities.AddAllMatchingFiles(files, PAM_FILE_FILTER);
+			Utilities.AddAllMatchingFiles(files, PAMELA_FILE_FILTER);
 			return files.ToArray();
 		}
 

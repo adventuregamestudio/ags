@@ -67,7 +67,7 @@ namespace AGS.Editor.Components
             get { return ComponentIDs.Speech; }
         }
 
-        private int FindFrameNumberForPhenome(string phenomeCode)
+        private int FindFrameNumberForPhoneme(string phonemeCode)
         {
             int frameID = -1;
             for (int i = 0; i < (_agsEditor.CurrentGame.LipSync.CharactersPerFrame.Length) && (frameID < 0); i++)
@@ -75,7 +75,7 @@ namespace AGS.Editor.Components
                 string[] codesForThisFrame = _agsEditor.CurrentGame.LipSync.CharactersPerFrame[i].Split('/');
                 foreach (string code in codesForThisFrame)
                 {
-                    if (code.ToUpper() == phenomeCode)
+                    if (code.ToUpper() == phonemeCode)
                     {
                         frameID = i;
                         break;
@@ -87,17 +87,17 @@ namespace AGS.Editor.Components
 
         private void AlignPhonemeOffsets(SpeechLipSyncLine syncDataForThisFile)
         {
-            syncDataForThisFile.Phenomes.Sort();
+            syncDataForThisFile.Phonemes.Sort();
 
             // The PAM/DAT files contain start times: Convert to end times
-            for (int i = 0; i < syncDataForThisFile.Phenomes.Count - 1; i++)
+            for (int i = 0; i < syncDataForThisFile.Phonemes.Count - 1; i++)
             {
-                syncDataForThisFile.Phenomes[i].EndTimeOffset = syncDataForThisFile.Phenomes[i + 1].EndTimeOffset;
+                syncDataForThisFile.Phonemes[i].EndTimeOffset = syncDataForThisFile.Phonemes[i + 1].EndTimeOffset;
             }
 
-            if (syncDataForThisFile.Phenomes.Count > 1)
+            if (syncDataForThisFile.Phonemes.Count > 1)
             {
-                syncDataForThisFile.Phenomes[syncDataForThisFile.Phenomes.Count - 1].EndTimeOffset = syncDataForThisFile.Phenomes[syncDataForThisFile.Phenomes.Count - 2].EndTimeOffset + 1000;
+                syncDataForThisFile.Phonemes[syncDataForThisFile.Phonemes.Count - 1].EndTimeOffset = syncDataForThisFile.Phonemes[syncDataForThisFile.Phonemes.Count - 2].EndTimeOffset + 1000;
             }
         }
 
@@ -131,16 +131,16 @@ namespace AGS.Editor.Components
                         string[] parts = thisLine.Split(':');
                         // Convert from Pamela XPOS into milliseconds
                         int milliSeconds = ((Convert.ToInt32(parts[0]) / 15) * 1000) / 24;
-                        string phenomeCode = parts[1].Trim().ToUpper();
-                        int frameID = FindFrameNumberForPhenome(phenomeCode);
+                        string phonemeCode = parts[1].Trim().ToUpper();
+                        int frameID = FindFrameNumberForPhoneme(phonemeCode);
                         if (frameID < 0)
                         {
                             string friendlyFileName = Path.GetFileName(fileName);
-                            errors.Add(new CompileError("No frame found to match phenome code '" + phenomeCode + "'", friendlyFileName, lineNumber));
+                            errors.Add(new CompileError("No frame found to match phoneme code '" + phonemeCode + "'", friendlyFileName, lineNumber));
                         }
                         else
                         {
-                            syncDataForThisFile.Phenomes.Add(new SpeechLipSyncPhenome(milliSeconds, (short)frameID));
+                            syncDataForThisFile.Phonemes.Add(new SpeechLipSyncPhoneme(milliSeconds, (short)frameID));
                         }
                     }
                 }
@@ -172,16 +172,16 @@ namespace AGS.Editor.Components
                         if (xpos < 0) // Clamp negative XPOS to 0
                             xpos = 0;
                         int milliSeconds = (Convert.ToInt32(parts[0]) * 1000) / 24;
-                        string phenomeCode = parts[1].Trim().ToUpper();
-                        int frameID = FindFrameNumberForPhenome(phenomeCode);
+                        string phonemeCode = parts[1].Trim().ToUpper();
+                        int frameID = FindFrameNumberForPhoneme(phonemeCode);
                         if (frameID < 0)
                         {
                             string friendlyFileName = Path.GetFileName(fileName);
-                            errors.Add(new CompileError("No frame found to match phenome code '" + phenomeCode + "'", friendlyFileName, lineNumber));
+                            errors.Add(new CompileError("No frame found to match phoneme code '" + phonemeCode + "'", friendlyFileName, lineNumber));
                         }
                         else
                         {
-                            syncDataForThisFile.Phenomes.Add(new SpeechLipSyncPhenome(milliSeconds, (short)frameID));
+                            syncDataForThisFile.Phonemes.Add(new SpeechLipSyncPhoneme(milliSeconds, (short)frameID));
                         }
                     }
                 }
@@ -218,7 +218,7 @@ namespace AGS.Editor.Components
 
                 foreach (SpeechLipSyncLine line in lipSyncDataLines)
                 {
-					bw.Write((short)line.Phenomes.Count);
+					bw.Write((short)line.Phonemes.Count);
 
 					byte[] fileNameBytes = Encoding.Default.GetBytes(line.FileName);
 					byte[] paddedFileNameBytes = new byte[14];
@@ -226,13 +226,13 @@ namespace AGS.Editor.Components
 					paddedFileNameBytes[fileNameBytes.Length] = 0;
 					bw.Write(paddedFileNameBytes);
 
-                    for (int i = 0; i < line.Phenomes.Count; i++)
+                    for (int i = 0; i < line.Phonemes.Count; i++)
                     {
-						bw.Write((int)line.Phenomes[i].EndTimeOffset);
+						bw.Write((int)line.Phonemes[i].EndTimeOffset);
                     }
-					for (int i = 0; i < line.Phenomes.Count; i++)
+					for (int i = 0; i < line.Phonemes.Count; i++)
 					{
-						bw.Write((short)line.Phenomes[i].Frame);
+						bw.Write((short)line.Phonemes[i].Frame);
 					}
 				}
 

@@ -8,12 +8,12 @@ namespace AGS.Editor
     internal class SpeechLipSyncLine
     {
         public string FileName;
-        public List<SpeechLipSyncPhenome> Phenomes = new List<SpeechLipSyncPhenome>();
+        public List<SpeechLipSyncPhoneme> Phonemes = new List<SpeechLipSyncPhoneme>();
     }
 
-    internal class SpeechLipSyncPhenome : IComparable<SpeechLipSyncPhenome>
+    internal class SpeechLipSyncPhoneme : IComparable<SpeechLipSyncPhoneme>
     {
-        public SpeechLipSyncPhenome(int endTimeOffset, short frame)
+        public SpeechLipSyncPhoneme(int endTimeOffset, short frame)
         {
             this.EndTimeOffset = endTimeOffset;
             this.Frame = frame;
@@ -22,7 +22,7 @@ namespace AGS.Editor
         public int EndTimeOffset;
         public short Frame;
 
-        public int CompareTo(SpeechLipSyncPhenome other)
+        public int CompareTo(SpeechLipSyncPhoneme other)
         {
             return EndTimeOffset - other.EndTimeOffset;
         }

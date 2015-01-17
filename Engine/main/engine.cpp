@@ -87,7 +87,7 @@ extern int eip_guinum;
 extern int eip_guiobj;
 extern const char *replayTempFile;
 extern SpeechLipSyncLine *splipsync;
-extern int numLipLines, curLipLine, curLipLinePhenome;
+extern int numLipLines, curLipLine, curLipLinePhoneme;
 extern int scrnwid,scrnhit;
 extern ScriptSystem scsystem;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
@@ -519,12 +519,12 @@ int engine_init_speech()
                     splipsync = (SpeechLipSyncLine*)malloc (sizeof(SpeechLipSyncLine) * numLipLines);
                     for (int ee = 0; ee < numLipLines; ee++)
                     {
-                        splipsync[ee].numPhenomes = speechsync->ReadInt16();
+                        splipsync[ee].numPhonemes = speechsync->ReadInt16();
                         speechsync->Read(splipsync[ee].filename, 14);
-                        splipsync[ee].endtimeoffs = (int*)malloc(splipsync[ee].numPhenomes * sizeof(int));
-                        speechsync->ReadArrayOfInt32(splipsync[ee].endtimeoffs, splipsync[ee].numPhenomes);
-                        splipsync[ee].frame = (short*)malloc(splipsync[ee].numPhenomes * sizeof(short));
-                        speechsync->ReadArrayOfInt16(splipsync[ee].frame, splipsync[ee].numPhenomes);
+                        splipsync[ee].endtimeoffs = (int*)malloc(splipsync[ee].numPhonemes * sizeof(int));
+                        speechsync->ReadArrayOfInt32(splipsync[ee].endtimeoffs, splipsync[ee].numPhonemes);
+                        splipsync[ee].frame = (short*)malloc(splipsync[ee].numPhonemes * sizeof(short));
+                        speechsync->ReadArrayOfInt16(splipsync[ee].frame, splipsync[ee].numPhonemes);
                     }
                 }
                 delete speechsync;

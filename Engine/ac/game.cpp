@@ -91,7 +91,7 @@ extern int time_between_timers;
 extern Bitmap *virtual_screen;
 extern int cur_mode,cur_cursor;
 extern SpeechLipSyncLine *splipsync;
-extern int numLipLines, curLipLine, curLipLinePhenome;
+extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 extern CharacterExtras *charextra;
 extern DialogTopic *dialog;

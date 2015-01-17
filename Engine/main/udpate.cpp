@@ -60,7 +60,7 @@ extern bool facetalk_qfg4_override_placement_x, facetalk_qfg4_override_placement
 extern volatile unsigned long globalTimerCounter;
 extern int time_between_timers;
 extern SpeechLipSyncLine *splipsync;
-extern int numLipLines, curLipLine, curLipLinePhenome;
+extern int numLipLines, curLipLine, curLipLinePhoneme;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
 extern int is_text_overlay;
@@ -331,19 +331,19 @@ void update_sierra_speech()
     if (curLipLine >= 0) {
       // check voice lip sync
       int spchOffs = channels[SCHAN_SPEECH]->get_pos_ms ();
-      if (curLipLinePhenome >= splipsync[curLipLine].numPhenomes) {
+      if (curLipLinePhoneme >= splipsync[curLipLine].numPhonemes) {
         // the lip-sync has finished, so just stay idle
       }
       else 
       {
-        while ((curLipLinePhenome < splipsync[curLipLine].numPhenomes) &&
-          ((curLipLinePhenome < 0) || (spchOffs >= splipsync[curLipLine].endtimeoffs[curLipLinePhenome])))
+        while ((curLipLinePhoneme < splipsync[curLipLine].numPhonemes) &&
+          ((curLipLinePhoneme < 0) || (spchOffs >= splipsync[curLipLine].endtimeoffs[curLipLinePhoneme])))
         {
-          curLipLinePhenome ++;
-          if (curLipLinePhenome >= splipsync[curLipLine].numPhenomes)
+          curLipLinePhoneme ++;
+          if (curLipLinePhoneme >= splipsync[curLipLine].numPhonemes)
             facetalkframe = game.default_lipsync_frame;
           else
-            facetalkframe = splipsync[curLipLine].frame[curLipLinePhenome];
+            facetalkframe = splipsync[curLipLine].frame[curLipLinePhoneme];
 
           if (facetalkframe >= views[facetalkview].loops[facetalkloop].numFrames)
             facetalkframe = 0;

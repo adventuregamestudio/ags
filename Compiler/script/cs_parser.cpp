@@ -168,6 +168,12 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
             else
                 sym.stype[towrite] = SYM_LITERALVALUE;
         }
+        if (sym.stype[towrite] == SYM_MASSIGN && thischar == '*' && sym.stype[last_time] == SYM_VARTYPE) {
+            // Break up *= when a parameter is declared with only the type and an initial value
+            // e.g. import void someMethod(InventoryItem *= 0);
+            targ->write(sym.find("*"));
+            towrite = sym.find("=");
+        }
 
         if (sym.stype[towrite] == SYM_OPENPARENTHESIS)
             parenthesisdepth++;

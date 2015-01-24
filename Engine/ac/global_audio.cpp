@@ -33,7 +33,7 @@ extern GameSetupStruct game;
 extern roomstruct thisroom;
 extern char *speech_file;
 extern SpeechLipSyncLine *splipsync;
-extern int numLipLines, curLipLine, curLipLinePhenome;
+extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 void StopAmbientSound (int channel) {
     if ((channel < 0) || (channel >= MAX_SOUND_CHANNELS))
@@ -493,7 +493,7 @@ int play_speech(int charid,int sndid) {
     int ii;  // Compare the base file name to the .pam file name
     char *basefnptr = strchr (&finame[4], '~') + 1;
     curLipLine = -1;  // See if we have voice lip sync for this line
-    curLipLinePhenome = -1;
+    curLipLinePhoneme = -1;
     for (ii = 0; ii < numLipLines; ii++) {
         if (stricmp(splipsync[ii].filename, basefnptr) == 0) {
             curLipLine = ii;

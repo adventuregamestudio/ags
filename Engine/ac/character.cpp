@@ -111,7 +111,7 @@ bool facetalk_qfg4_override_placement_y = false;
 int loops_per_character, text_lips_offset, char_speaking = -1;
 char *text_lips_text = NULL;
 SpeechLipSyncLine *splipsync = NULL;
-int numLipLines = 0, curLipLine = -1, curLipLinePhenome = 0;
+int numLipLines = 0, curLipLine = -1, curLipLinePhoneme = 0;
 
 // **** CHARACTER: FUNCTIONS ****
 

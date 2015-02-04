@@ -130,6 +130,36 @@ void WriteValues(const StringIMap &map, Stream *out)
     }
 }
 
+void CopyMissing(StringIMap &child, const StringIMap &base)
+{
+    for (StringIMap::const_iterator it = base.begin();
+        it != base.end(); ++it)
+    {
+        StringIMap::const_iterator found = child.find(it->first);
+        if (found == child.end())
+            child[it->first] = it->second;
+    }
+}
+
+void RemoveMatching(StringIMap &child, const PropertySchema &schema, const StringIMap &base)
+{
+    for (PropertySchema::const_iterator it_sch = schema.begin();
+         it_sch != schema.end(); ++it_sch)
+    {
+        StringIMap::const_iterator it_base  = base.find(it_sch->second.Name);
+        StringIMap::const_iterator it_child = child.find(it_sch->second.Name);
+
+        // Remove the item from child map if there is a matching value in base map, or
+        // if there is no value in base map and the child matches default property value
+        if (it_child != child.end() &&
+            (it_base != base.end() && it_child->second.CompareNoCase(it_base->second) == 0 ||
+             it_base == base.end() && it_child->second.CompareNoCase(it_sch->second.DefaultValue) == 0))
+        {
+            child.erase(it_child);
+        }
+    }
+}
+
 } // namespace Properties
 
 } // namespace Common

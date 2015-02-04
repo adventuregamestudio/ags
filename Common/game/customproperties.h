@@ -95,6 +95,11 @@ namespace Properties
     PropertyError ReadValues(StringIMap &map, Stream *in);
     void          WriteValues(const StringIMap &map, Stream *out);
 
+    // Compares two property maps and copies missing properties from base to child
+    void          CopyMissing(StringIMap &child, const StringIMap &base);
+    // Compares two property maps and removes properties with matching values from child
+    void          RemoveMatching(StringIMap &child, const PropertySchema &schema, const StringIMap &base);
+
 } // namespace Properties
 
 } // namespace Common

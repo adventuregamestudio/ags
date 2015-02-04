@@ -58,6 +58,7 @@ struct RoomStatus {
     ~RoomStatus();
 
     void FreeScriptData();
+    void FreeProperties();
 
     void ReadFromFile_v321(Common::Stream *in);
     void WriteToFile_v321(Common::Stream *out);

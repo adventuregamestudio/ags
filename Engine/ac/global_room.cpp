@@ -143,6 +143,7 @@ void ResetRoom(int nrnum) {
     {
         RoomStatus* roomstat = getRoomStatus(nrnum);
         roomstat->FreeScriptData();
+        roomstat->FreeProperties();
         roomstat->beenhere = 0;
     }
 

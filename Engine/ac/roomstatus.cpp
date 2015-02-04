@@ -49,6 +49,19 @@ void RoomStatus::FreeScriptData()
     tsdatasize = 0;
 }
 
+void RoomStatus::FreeProperties()
+{
+    roomProps.clear();
+    for (int i = 0; MAX_HOTSPOTS; ++i)
+    {
+        hsProps[i].clear();
+    }
+    for (int i = 0; MAX_INIT_SPR; ++i)
+    {
+        objProps[i].clear();
+    }
+}
+
 void RoomStatus::ReadFromFile_v321(Stream *in)
 {
     beenhere = in->ReadInt32();

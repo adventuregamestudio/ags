@@ -368,8 +368,20 @@ int Object_GetProperty (ScriptObject *objj, const char *property) {
 void Object_GetPropertyText(ScriptObject *objj, const char *property, char *bufer) {
     GetObjectPropertyText(objj->id, property, bufer);
 }
-const char* Object_GetTextProperty(ScriptObject *objj, const char *property) {
-    return get_text_property_dynamic_string(thisroom.objProps[objj->id], property);
+
+const char* Object_GetTextProperty(ScriptObject *objj, const char *property)
+{
+    return get_text_property_dynamic_string(croom->objProps[objj->id], property);
+}
+
+void Object_SetProperty(ScriptObject *objj, const char *property, int value)
+{
+    set_int_property(croom->objProps[objj->id], property, value);
+}
+
+void Object_SetTextProperty(ScriptObject *objj, const char *property, const char *value)
+{
+    set_text_property(croom->objProps[objj->id], property, value);
 }
 
 void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) {
@@ -506,6 +518,16 @@ RuntimeScriptValue Sc_Object_GetPropertyText(void *self, const RuntimeScriptValu
 RuntimeScriptValue Sc_Object_GetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJ_POBJ(ScriptObject, const char, myScriptStringImpl, Object_GetTextProperty, const char);
+}
+
+RuntimeScriptValue Sc_Object_SetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ_PINT(ScriptObject, Object_SetProperty, const char);
+}
+
+RuntimeScriptValue Sc_Object_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ2(ScriptObject, Object_SetTextProperty, const char, const char);
 }
 
 // void (ScriptObject *objj)
@@ -769,6 +791,8 @@ void RegisterObjectAPI()
     ccAddExternalObjectFunction("Object::GetProperty^1",            Sc_Object_GetProperty);
     ccAddExternalObjectFunction("Object::GetPropertyText^2",        Sc_Object_GetPropertyText);
     ccAddExternalObjectFunction("Object::GetTextProperty^1",        Sc_Object_GetTextProperty);
+    ccAddExternalObjectFunction("Object::SetProperty^2",            Sc_Object_SetProperty);
+    ccAddExternalObjectFunction("Object::SetTextProperty^2",        Sc_Object_SetTextProperty);
     ccAddExternalObjectFunction("Object::IsInteractionAvailable^1", Sc_Object_IsInteractionAvailable);
     ccAddExternalObjectFunction("Object::MergeIntoBackground^0",    Sc_Object_MergeIntoBackground);
     ccAddExternalObjectFunction("Object::Move^5",                   Sc_Object_Move);

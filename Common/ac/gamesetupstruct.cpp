@@ -497,6 +497,18 @@ void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* c
     options[OPT_LIPSYNCTEXT] = in->ReadByte();
 
     ReadCharacters_Aligned(in);
+
+    if (loaded_game_file_version >= kGameVersion_340_4)
+    {
+        for (int i = 0; i < numcharacters; ++i)
+        {
+            Properties::ReadValues(charProps[i], in);
+        }
+        for (int i = 0; i < numinvitems; ++i)
+        {
+            Properties::ReadValues(invProps[i], in);
+        }
+    }
 }
 
 void GameSetupStruct::WriteForSaveGame_v321(Stream *out)
@@ -517,6 +529,18 @@ void GameSetupStruct::WriteForSaveGame_v321(Stream *out)
     out->WriteInt8 (options[OPT_LIPSYNCTEXT]);
 
     WriteCharacters_Aligned(out);
+
+    if (loaded_game_file_version >= kGameVersion_340_4)
+    {
+        for (int i = 0; i < numcharacters; ++i)
+        {
+            Properties::WriteValues(charProps[i], out);
+        }
+        for (int i = 0; i < numinvitems; ++i)
+        {
+            Properties::WriteValues(invProps[i], out);
+        }
+    }
 }
 
 //=============================================================================

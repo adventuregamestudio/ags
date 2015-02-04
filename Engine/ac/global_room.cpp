@@ -32,6 +32,7 @@
 
 extern GameState play;
 extern GameSetupStruct game;
+extern RoomStatus *croom;
 extern CharacterInfo*playerchar;
 extern int displayed_room;
 extern int in_enters_screen;
@@ -178,8 +179,9 @@ int HasBeenToRoom (int roomnum) {
         return 0;
 }
 
-void GetRoomPropertyText (const char *property, char *bufer) {
-    get_text_property (thisroom.roomProps, property, bufer);
+void GetRoomPropertyText (const char *property, char *bufer)
+{
+    get_text_property(croom->roomProps, property, bufer);
 }
 
 void SetBackgroundFrame(int frnum) {

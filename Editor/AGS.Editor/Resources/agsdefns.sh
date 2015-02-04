@@ -429,6 +429,10 @@ builtin managed struct Room {
   import static int GetProperty(const string property);
   /// Gets a custom text property associated with this room.
   import static String GetTextProperty(const string property);
+  /// Sets an integer custom property associated with this room.
+  import static void SetProperty(const string property, int value);
+  /// Sets a text custom property associated with this room.
+  import static void SetTextProperty(const string property, const string value);
   /// Gets a drawing surface that allows you to manipulate the room background.
   import static DrawingSurface* GetDrawingSurfaceForBackground(int backgroundNumber=SCR_NO_VALUE);
   /// Performs default processing of a mouse click at the specified co-ordinates.
@@ -1058,6 +1062,10 @@ builtin managed struct InventoryItem {
   import int  GetProperty(const string property);
   /// Gets a text custom property for this item.
   import String GetTextProperty(const string property);
+  /// Sets an integer custom property for this item.
+  import void SetProperty(const string property, int value);
+  /// Sets a text custom property for this item.
+  import void SetTextProperty(const string property, const string value);
   /// Checks whether an event handler has been registered for clicking on this item in the specified cursor mode.
   import int  IsInteractionAvailable(CursorMode);
   /// Runs the registered event handler for this item.
@@ -1591,6 +1599,10 @@ builtin managed struct Hotspot {
   import int  GetProperty(const string property);
   /// Gets a text Custom Property for this hotspot.
   import String GetTextProperty(const string property);
+  /// Sets an integer custom property for this hotspot.
+  import void SetProperty(const string property, int value);
+  /// Sets a text custom property for this hotspot.
+  import void SetTextProperty(const string property, const string value);
   /// Runs the specified event handler for this hotspot.
   import void RunInteraction(CursorMode);
   /// Checks whether an event handler has been registered for clicking on this hotspot in the specified cursor mode.
@@ -1869,6 +1881,10 @@ builtin managed struct Object {
   import function GetProperty(const string property);
   /// Gets a text Custom Property for this object.
   import String   GetTextProperty(const string property);
+  /// Sets an integer custom property for this object.
+  import void SetProperty(const string property, int value);
+  /// Sets a text custom property for this object.
+  import void SetTextProperty(const string property, const string value);
   /// Checks whether this object is colliding with another.
   import bool IsCollidingWithObject(Object*);
   /// Merges the object's image into the room background, and disables the object.
@@ -1965,6 +1981,10 @@ builtin managed struct Character {
 #endif
   /// Gets a text custom property for this character.
   import String   GetTextProperty(const string property);
+  /// Sets an integer custom property for this character.
+  import void SetProperty(const string property, int value);
+  /// Sets a text custom property for this character.
+  import void SetTextProperty(const string property, const string value);
   /// Checks whether the character currently has the specified inventory item.
   import bool     HasInventory(InventoryItem *item);
   /// Checks whether this character is in collision with the other character.

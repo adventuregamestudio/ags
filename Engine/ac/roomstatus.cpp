@@ -16,10 +16,10 @@
 #include <stdlib.h> // free
 #include "ac/common.h"
 #include "ac/roomstatus.h"
+#include "game/customproperties.h"
 #include "util/alignedstream.h"
 
-using AGS::Common::AlignedStream;
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 RoomStatus::RoomStatus()
 {
@@ -74,6 +74,19 @@ void RoomStatus::ReadFromFile_v321(Stream *in)
     in->ReadArrayOfInt8((int8_t*)region_enabled, MAX_REGIONS);
     in->ReadArrayOfInt16(walkbehind_base, MAX_OBJ);
     in->ReadArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
+
+    if (loaded_game_file_version >= kGameVersion_340_4)
+    {
+        Properties::ReadValues(roomProps, in);
+        for (int i = 0; i < MAX_HOTSPOTS; ++i)
+        {
+            Properties::ReadValues(hsProps[i], in);
+        }
+        for (int i = 0; i < MAX_INIT_SPR; ++i)
+        {
+            Properties::ReadValues(objProps[i], in);
+        }
+    }
 }
 
 void RoomStatus::WriteToFile_v321(Stream *out)
@@ -101,6 +114,19 @@ void RoomStatus::WriteToFile_v321(Stream *out)
     out->Write(region_enabled, MAX_REGIONS);
     out->WriteArrayOfInt16(walkbehind_base, MAX_OBJ);
     out->WriteArrayOfInt32(interactionVariableValues,MAX_GLOBAL_VARIABLES);
+
+    if (loaded_game_file_version >= kGameVersion_340_4)
+    {
+        Properties::WriteValues(roomProps, out);
+        for (int i = 0; i < MAX_HOTSPOTS; ++i)
+        {
+            Properties::WriteValues(hsProps[i], out);
+        }
+        for (int i = 0; i < MAX_INIT_SPR; ++i)
+        {
+            Properties::WriteValues(objProps[i], out);
+        }
+    }
 }
 
 void RoomStatus::ReadRoomObjects_Aligned(Common::Stream *in)

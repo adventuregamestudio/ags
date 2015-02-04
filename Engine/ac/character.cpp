@@ -1029,6 +1029,16 @@ const char* Character_GetTextProperty(CharacterInfo *chaa, const char *property)
     return get_text_property_dynamic_string(game.charProps[chaa->index_id], property);
 }
 
+void Character_SetProperty(CharacterInfo *chaa, const char *property, int value)
+{
+    set_int_property(game.charProps[chaa->index_id], property, value);
+}
+
+void Character_SetTextProperty(CharacterInfo *chaa, const char *property, const char *value)
+{
+    set_text_property(game.charProps[chaa->index_id], property, value);
+}
+
 ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {
 
     if (chaa->activeinv <= 0)
@@ -2906,6 +2916,16 @@ RuntimeScriptValue Sc_Character_GetTextProperty(void *self, const RuntimeScriptV
     API_OBJCALL_OBJ_POBJ(CharacterInfo, const char, myScriptStringImpl, Character_GetTextProperty, const char);
 }
 
+RuntimeScriptValue Sc_Character_SetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ_PINT(CharacterInfo, Character_SetProperty, const char);
+}
+
+RuntimeScriptValue Sc_Character_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ2(CharacterInfo, Character_SetTextProperty, const char, const char);
+}
+
 // int (CharacterInfo *chaa, ScriptInvItem *invi)
 RuntimeScriptValue Sc_Character_HasInventory(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -3582,6 +3602,8 @@ void RegisterCharacterAPI()
 	ccAddExternalObjectFunction("Character::GetProperty^1",             Sc_Character_GetProperty);
 	ccAddExternalObjectFunction("Character::GetPropertyText^2",         Sc_Character_GetPropertyText);
 	ccAddExternalObjectFunction("Character::GetTextProperty^1",         Sc_Character_GetTextProperty);
+    ccAddExternalObjectFunction("Character::SetProperty^2",             Sc_Character_SetProperty);
+    ccAddExternalObjectFunction("Character::SetTextProperty^2",         Sc_Character_SetTextProperty);
 	ccAddExternalObjectFunction("Character::HasInventory^1",            Sc_Character_HasInventory);
 	ccAddExternalObjectFunction("Character::IsCollidingWithChar^1",     Sc_Character_IsCollidingWithChar);
 	ccAddExternalObjectFunction("Character::IsCollidingWithObject^1",   Sc_Character_IsCollidingWithObject);

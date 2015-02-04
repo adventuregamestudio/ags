@@ -87,6 +87,9 @@ Support for custom game resolution.
 Audio playback speed.
 Custom dialog option rendering extension.
 
+47 : 3.4.0.4
+Custom properties changed at runtime.
+
 */
 
 enum GameDataVersion
@@ -116,7 +119,8 @@ enum GameDataVersion
     kGameVersion_331            = 44,
     kGameVersion_340_1          = 45,
     kGameVersion_340_2          = 46,
-    kGameVersion_Current        = kGameVersion_340_2
+    kGameVersion_340_4          = 47,
+    kGameVersion_Current        = kGameVersion_340_4
 };
 
 extern GameDataVersion loaded_game_file_version;

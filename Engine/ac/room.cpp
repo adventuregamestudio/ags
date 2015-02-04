@@ -185,12 +185,24 @@ int Room_GetMusicOnLoad() {
     return thisroom.options[ST_TUNE];
 }
 
-const char* Room_GetTextProperty(const char *property) {
-    return get_text_property_dynamic_string(thisroom.roomProps, property);
+int Room_GetProperty(const char *property)
+{
+    return get_int_property(croom->roomProps, property);
 }
 
-int Room_GetProperty (const char *property) {
-    return get_int_property(thisroom.roomProps, property);
+const char* Room_GetTextProperty(const char *property)
+{
+    return get_text_property_dynamic_string(croom->roomProps, property);
+}
+
+void Room_SetProperty(const char *property, int value)
+{
+    return set_int_property(croom->roomProps, property, value);
+}
+
+void Room_SetTextProperty(const char *property, const char *value)
+{
+    return set_text_property(croom->roomProps, property, value);
 }
 
 const char* Room_GetMessages(int index) {
@@ -679,6 +691,18 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         for (cc = 0; cc < MAX_REGIONS; cc++) {
             croom->region_enabled[cc] = 1;
         }
+
+        // Copy properties
+        croom->roomProps = thisroom.roomProps;
+        for (int i = 0; i < MAX_HOTSPOTS; ++i)
+        {
+            croom->hsProps[i] = thisroom.hsProps[i];
+        }
+        for (int i = 0; i < MAX_INIT_SPR; ++i)
+        {
+            croom->objProps[i] = thisroom.objProps[i];
+        }
+
         croom->beenhere=1;
         in_new_room=2;
     }
@@ -1142,6 +1166,17 @@ RuntimeScriptValue Sc_Room_GetTextProperty(const RuntimeScriptValue *params, int
     API_SCALL_OBJ_POBJ(const char, myScriptStringImpl, Room_GetTextProperty, const char);
 }
 
+RuntimeScriptValue Sc_Room_SetProperty(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_POBJ_PINT(Room_SetProperty, const char);
+}
+
+// const char* (const char *property)
+RuntimeScriptValue Sc_Room_SetTextProperty(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_POBJ2(Room_SetTextProperty, const char, const char);
+}
+
 // int ()
 RuntimeScriptValue Sc_Room_GetBottomEdge(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1214,6 +1249,8 @@ void RegisterRoomAPI()
     ccAddExternalStaticFunction("Room::GetDrawingSurfaceForBackground^1",   Sc_Room_GetDrawingSurfaceForBackground);
     ccAddExternalStaticFunction("Room::GetProperty^1",                      Sc_Room_GetProperty);
     ccAddExternalStaticFunction("Room::GetTextProperty^1",                  Sc_Room_GetTextProperty);
+    ccAddExternalStaticFunction("Room::SetProperty^2",                      Sc_Room_SetProperty);
+    ccAddExternalStaticFunction("Room::SetTextProperty^2",                  Sc_Room_SetTextProperty);
     ccAddExternalStaticFunction("Room::ProcessClick^3",                     Sc_ProcessClick);
     ccAddExternalStaticFunction("ProcessClick",                             Sc_ProcessClick);
     ccAddExternalStaticFunction("Room::get_BottomEdge",                     Sc_Room_GetBottomEdge);

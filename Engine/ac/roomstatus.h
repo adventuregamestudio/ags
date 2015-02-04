@@ -20,6 +20,7 @@
 
 #include "ac/roomobject.h"
 #include "ac/interaction.h"
+#include "util/string_types.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
@@ -38,6 +39,10 @@ struct RoomStatus {
     NewInteraction intrObject [MAX_INIT_SPR];
     NewInteraction intrRegion [MAX_REGIONS];
     NewInteraction intrRoom;
+
+    Common::StringIMap roomProps;
+    Common::StringIMap hsProps[MAX_HOTSPOTS];
+    Common::StringIMap objProps[MAX_INIT_SPR];
     // [IKM] 2012-06-22: not used anywhere
 #ifdef UNUSED_CODE
     EventBlock hscond[MAX_HOTSPOTS];

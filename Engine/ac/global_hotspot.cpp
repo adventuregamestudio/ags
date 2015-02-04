@@ -137,9 +137,12 @@ void RunHotspotInteraction (int hotspothere, int mood) {
     evblocknum = oldblocknum;
 }
 
-int GetHotspotProperty (int hss, const char *property) {
-    return get_int_property (thisroom.hsProps[hss], property);
+int GetHotspotProperty (int hss, const char *property)
+{
+    return get_int_property(croom->hsProps[hss], property);
 }
-void GetHotspotPropertyText (int item, const char *property, char *bufer) {
-    get_text_property (thisroom.hsProps[item], property, bufer);
+
+void GetHotspotPropertyText (int item, const char *property, char *bufer)
+{
+    get_text_property(croom->hsProps[item], property, bufer);
 }

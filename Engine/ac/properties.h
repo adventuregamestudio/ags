@@ -24,4 +24,7 @@ int get_int_property (const AGS::Common::StringIMap &cprop, const char *property
 void get_text_property (const AGS::Common::StringIMap &cprop, const char *property, char *bufer);
 const char* get_text_property_dynamic_string(const AGS::Common::StringIMap &cprop, const char *property);
 
+void set_int_property(AGS::Common::StringIMap &cprop, const char *property, int value);
+void set_text_property(AGS::Common::StringIMap &cprop, const char *property, const char* value);
+
 #endif // __AGS_EE_AC__PROPERTIES_H

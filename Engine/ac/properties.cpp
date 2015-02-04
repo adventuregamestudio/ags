@@ -74,3 +74,17 @@ const char* get_text_property_dynamic_string(const StringIMap &cprop, const char
     const char *cstr = str_it != cprop.end() ? str_it->second : desc.DefaultValue;
     return CreateNewScriptString(cstr);
 }
+
+void set_int_property(AGS::Common::StringIMap &cprop, const char *property, int value)
+{
+    PropertyDesc desc;
+    if (get_property_desc(desc, property, kPropertyInteger))
+        cprop[desc.Name] = String::FromFormat("%d", value);
+}
+
+void set_text_property(AGS::Common::StringIMap &cprop, const char *property, const char* value)
+{
+    PropertyDesc desc;
+    if (get_property_desc(desc, property, kPropertyString))
+        cprop[desc.Name] = value;
+}

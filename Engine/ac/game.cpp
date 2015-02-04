@@ -1753,10 +1753,7 @@ void restore_game_room_state(Stream *in, const char *nametouse)
         if (beenhere)
         {
             roomstat = getRoomStatus(vv);
-            if ((roomstat->tsdatasize > 0) && (roomstat->tsdata != NULL))
-                free(roomstat->tsdata);
-            roomstat->tsdatasize = 0;
-            roomstat->tsdata = NULL;
+            roomstat->FreeScriptData();
             roomstat->beenhere = beenhere;
 
             if (roomstat->beenhere)
@@ -2004,8 +2001,7 @@ void restore_game_displayed_room_status(Stream *in, Bitmap **newbscene)
         if (bb)
             raw_saved_screen = read_serialized_bitmap(in);
 
-        if (troom.tsdata != NULL)
-            free (troom.tsdata);
+        troom.FreeScriptData();
 
         // get the current troom, in case they save in room 600 or whatever
         ReadRoomStatus_Aligned(&troom, in);

@@ -228,9 +228,8 @@ Bitmap *fix_bitmap_size(Bitmap *todubl) {
 
 
 void save_room_data_segment () {
-    if (croom->tsdatasize > 0)
-        free(croom->tsdata);
-    croom->tsdata = NULL;
+    croom->FreeScriptData();
+    
     croom->tsdatasize = roominst->globaldatasize;
     if (croom->tsdatasize > 0) {
         croom->tsdata=(char*)malloc(croom->tsdatasize+10);

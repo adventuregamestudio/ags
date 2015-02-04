@@ -41,6 +41,8 @@ struct RoomObject {
     char  flags;
     short blocking_width, blocking_height;
 
+    RoomObject();
+
     int get_width();
     int get_height();
     int get_baseline();

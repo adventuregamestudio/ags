@@ -49,7 +49,10 @@ struct RoomStatus {
     short walkbehind_base[MAX_OBJ];
     int   interactionVariableValues[MAX_GLOBAL_VARIABLES];
 
-    RoomStatus() { beenhere=0; numobj=0; tsdatasize=0; tsdata=NULL; }
+    RoomStatus();
+    ~RoomStatus();
+
+    void FreeScriptData();
 
     void ReadFromFile_v321(Common::Stream *in);
     void WriteToFile_v321(Common::Stream *out);

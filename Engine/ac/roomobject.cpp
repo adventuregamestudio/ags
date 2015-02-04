@@ -29,6 +29,26 @@ extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern ViewStruct*views;
 extern GameState play;
 
+RoomObject::RoomObject()
+{
+    x = y = 0;
+    transparent = 0;
+    tint_r = tint_g = 0;
+    tint_b = tint_level = 0;
+    tint_light = 0;
+    last_zoom = 0;
+    last_width = last_height = 0;
+    num = 0;
+    baseline = 0;
+    view = loop = frame = 0;
+    wait = moving = 0;
+    cycling = 0;
+    overall_speed = 0;
+    on = 0;
+    flags = 0;
+    blocking_width = blocking_height = 0;
+}
+
 int RoomObject::get_width() {
     if (last_width == 0)
         return spritewidth[num];

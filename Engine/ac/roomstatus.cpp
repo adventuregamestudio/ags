@@ -21,6 +21,34 @@
 using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
 
+RoomStatus::RoomStatus()
+{
+    beenhere = 0;
+    numobj = 0;
+    memset(&flagstates, 0, sizeof(flagstates));
+    tsdatasize = 0;
+    tsdata = NULL;
+    
+    memset(&hotspot_enabled, 0, sizeof(hotspot_enabled));
+    memset(&region_enabled, 0, sizeof(region_enabled));
+    memset(&walkbehind_base, 0, sizeof(walkbehind_base));
+    memset(&interactionVariableValues, 0, sizeof(interactionVariableValues));
+}
+
+RoomStatus::~RoomStatus()
+{
+    if (tsdata)
+        free(tsdata);
+}
+
+void RoomStatus::FreeScriptData()
+{
+    if (tsdata)
+        free(tsdata);
+    tsdata = NULL;
+    tsdatasize = 0;
+}
+
 void RoomStatus::ReadFromFile_v321(Stream *in)
 {
     beenhere = in->ReadInt32();
@@ -105,8 +133,7 @@ RoomStatus* getRoomStatus(int room)
     if (room_statuses[room] == NULL)
     {
         // First access, allocate and initialise the status
-        room_statuses[room] = new RoomStatus;
-        memset(room_statuses[room], 0, sizeof(RoomStatus));
+        room_statuses[room] = new RoomStatus();
     }
     return room_statuses[room];
 }
@@ -126,8 +153,6 @@ void resetRoomStatuses()
     {
         if (room_statuses[i] != NULL)
         {
-            if ((room_statuses[i]->tsdata != NULL) && (room_statuses[i]->tsdatasize > 0))
-                free(room_statuses[i]->tsdata);
             delete room_statuses[i];
             room_statuses[i] = NULL;
         }

@@ -141,13 +141,7 @@ void ResetRoom(int nrnum) {
     if (isRoomStatusValid(nrnum))
     {
         RoomStatus* roomstat = getRoomStatus(nrnum);
-        if (roomstat->beenhere)
-        {
-            if (roomstat->tsdata != NULL)
-                free(roomstat->tsdata);
-            roomstat->tsdata = NULL;
-            roomstat->tsdatasize = 0;
-        }
+        roomstat->FreeScriptData();
         roomstat->beenhere = 0;
     }
 

@@ -50,6 +50,7 @@ using namespace AGS; // FIXME later
 27:  v3.0 - store Y of bottom of object, not top
 28:  v3.0.3 - remove hotspot name length limit
 29:  v3.0.3 - high-res coords for object x/y, edges and hotspot walk-to point
+30:  v3.3.4 - tint luminance for regions
 */
 enum RoomFileVersion
 {
@@ -80,7 +81,8 @@ enum RoomFileVersion
     kRoomVersion_300b       = 27,
     kRoomVersion_303a       = 28,
     kRoomVersion_303b       = 29,
-    kRoomVersion_Current    = kRoomVersion_303b
+    kRoomVersion_334        = 30,
+    kRoomVersion_Current    = kRoomVersion_334
 };
 
 // thisroom.options[0] = startup music
@@ -121,7 +123,7 @@ struct sprstruc {
 #pragma pack()
 
 #define NOT_VECTOR_SCALED -10000
-#define TINT_IS_ENABLED 0x80000000
+#define LEGACY_TINT_IS_ENABLED 0x80000000
 struct roomstruct {
     Common::Bitmap *        walls, *object, *lookat;          // 'object' is the walk-behind
     Common::Bitmap *        regions;

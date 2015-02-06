@@ -71,7 +71,7 @@ void SetAreaLightLevel(int area, int brightness) {
     if (brightness > 100) brightness = 100;
     thisroom.regionLightLevel[area] = brightness;
     // disable RGB tint for this area
-    thisroom.regionTintLevel[area] &= ~TINT_IS_ENABLED;
+    thisroom.regionTintLevel[area]  = 0;
     generate_light_table();
     DEBUG_CONSOLE("Region %d light level set to %d", area, brightness);
 }
@@ -102,11 +102,11 @@ void SetRegionTint (int area, int red, int green, int blue, int amount) {
     unsigned char rgreen = green;
     unsigned char rblue = blue;
 
-    thisroom.regionTintLevel[area] = TINT_IS_ENABLED;
     thisroom.regionTintLevel[area] |= rred & 0x000000ff;
     thisroom.regionTintLevel[area] |= (int(rgreen) << 8) & 0x0000ff00;
     thisroom.regionTintLevel[area] |= (int(rblue) << 16) & 0x00ff0000;
-    thisroom.regionLightLevel[area] = amount;
+    thisroom.regionTintLevel[area] |= ((amount & 0xFF) << 24);
+    thisroom.regionLightLevel[area] = 255;
 }
 
 void DisableRegion(int hsnum) {

@@ -445,6 +445,22 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
     in->ReadArrayOfInt32 (&rstruc->regionTintLevel[0], rstruc->numRegions);
   }
 
+  if (rfh.version < kRoomVersion_334)
+  {
+    // Convert the old format tint saturation
+    for (int i = 0; i < MAX_REGIONS; ++i)
+    {
+      if ((rstruc->regionTintLevel[i] & LEGACY_TINT_IS_ENABLED) != 0)
+      {
+        rstruc->regionTintLevel[i] &= ~LEGACY_TINT_IS_ENABLED;
+        // older versions of the editor had a bug - work around it
+        int tint_amount = (rstruc->regionLightLevel[i] > 0 ? rstruc->regionLightLevel[i] : 50);
+        rstruc->regionTintLevel[i] |= (tint_amount & 0xFF) << 24;
+        rstruc->regionLightLevel[i] = 255;
+      }
+    }
+  }
+
   update_polled_stuff_if_runtime();
 
   if (rfh.version >= kRoomVersion_pre114_5) {
@@ -484,7 +500,7 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
     rstruc->regions->Blit (rstruc->walls, 0, 0, 0, 0, rstruc->regions->GetWidth(), rstruc->regions->GetHeight());
     for (f = 0; f <= 15; f++) {
       rstruc->regionLightLevel[f] = rstruc->walk_area_light[f];
-      rstruc->regionTintLevel[f] = 0;
+      rstruc->regionTintLevel[f] = 255;
     }
   }
 

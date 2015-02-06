@@ -47,7 +47,7 @@ int Region_GetLightLevel(ScriptRegion *ssr) {
 }
 
 int Region_GetTintEnabled(ScriptRegion *srr) {
-    if (thisroom.regionTintLevel[srr->id] & TINT_IS_ENABLED)
+    if (thisroom.regionTintLevel[srr->id] & 0xFF000000)
         return 1;
     return 0;
 }

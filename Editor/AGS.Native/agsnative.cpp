@@ -4423,12 +4423,12 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	{
 		RoomRegion ^area = room->Regions[i];
 		area->ID = i;
-		area->UseColourTint = ((thisroom.regionTintLevel[i] & TINT_IS_ENABLED) != 0);
-		area->LightLevel = thisroom.regionLightLevel[i] + 100;
+        area->LightLevel = thisroom.regionLightLevel[i] + 100;
+        area->TintSaturation = (thisroom.regionTintLevel[i] >> 24) & 0xFF;
+        area->UseColourTint = area->TintSaturation != 0;
 		area->BlueTint = (thisroom.regionTintLevel[i] >> 16) & 0x00ff;
 		area->GreenTint = (thisroom.regionTintLevel[i] >> 8) & 0x00ff;
 		area->RedTint = thisroom.regionTintLevel[i] & 0x00ff;
-		area->TintSaturation = (thisroom.regionLightLevel[i] > 0) ? thisroom.regionLightLevel[i] : 50;
 
 		if (thisroom.wasversion < kRoomVersion_300a)
 		{
@@ -4570,12 +4570,12 @@ void save_crm_file(Room ^room)
 		thisroom.regionTintLevel[i] = 0;
 		if (area->UseColourTint) 
 		{
-			thisroom.regionTintLevel[i] = TINT_IS_ENABLED;
-			thisroom.regionTintLevel[i] |= area->RedTint | (area->GreenTint << 8) | (area->BlueTint << 16);
-			thisroom.regionLightLevel[i] = area->TintSaturation;
+            thisroom.regionTintLevel[i] |= area->RedTint | (area->GreenTint << 8) | (area->BlueTint << 16) | (area->TintSaturation << 24);
+            thisroom.regionLightLevel[i] = 255;
 		}
 		else 
 		{
+            thisroom.regionTintLevel[i] = 0;
 			thisroom.regionLightLevel[i] = area->LightLevel - 100;
 		}
 	}

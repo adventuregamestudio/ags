@@ -1240,21 +1240,18 @@ void get_local_tint(int xpp, int ypp, int nolight,
             light_level = thisroom.regionLightLevel[0];
             tint_level = thisroom.regionTintLevel[0];
         }
+
+        int tint_sat = (tint_level >> 24) & 0xFF;
         if ((game.color_depth == 1) || ((tint_level & 0x00ffffff) == 0) ||
-            ((tint_level & TINT_IS_ENABLED) == 0))
+            (tint_sat == 0))
             tint_level = 0;
 
         if (tint_level) {
             tint_red = (unsigned char)(tint_level & 0x000ff);
             tint_green = (unsigned char)((tint_level >> 8) & 0x000ff);
             tint_blue = (unsigned char)((tint_level >> 16) & 0x000ff);
-            tint_amount = light_level;
-            // older versions of the editor had a bug - work around it
-            if (tint_amount < 0)
-                tint_amount = 50;
-            /*red = ((red + 100) * 25) / 20;
-            grn = ((grn + 100) * 25) / 20;
-            blu = ((blu + 100) * 25) / 20;*/
+            tint_amount = tint_sat;
+            tint_light = light_level;
         }
 
         if (play.rtint_level > 0) {

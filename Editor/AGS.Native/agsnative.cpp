@@ -4426,6 +4426,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
         area->LightLevel = thisroom.regionLightLevel[i] + 100;
         area->TintSaturation = (thisroom.regionTintLevel[i] >> 24) & 0xFF;
         area->UseColourTint = area->TintSaturation != 0;
+        area->TintLuminance = area->UseColourTint ? thisroom.regionLightLevel[i] : 100;
 		area->BlueTint = (thisroom.regionTintLevel[i] >> 16) & 0x00ff;
 		area->GreenTint = (thisroom.regionTintLevel[i] >> 8) & 0x00ff;
 		area->RedTint = thisroom.regionTintLevel[i] & 0x00ff;
@@ -4571,7 +4572,7 @@ void save_crm_file(Room ^room)
 		if (area->UseColourTint) 
 		{
             thisroom.regionTintLevel[i] |= area->RedTint | (area->GreenTint << 8) | (area->BlueTint << 16) | (area->TintSaturation << 24);
-            thisroom.regionLightLevel[i] = 255;
+            thisroom.regionLightLevel[i] = (area->TintLuminance * 25) / 10;
 		}
 		else 
 		{

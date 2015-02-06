@@ -18,6 +18,7 @@ namespace AGS.Types
         private int _greenTint;
         private int _blueTint;
         private int _tintAmount;
+        private int _tintLuminance;
         private Interactions _interactions = new Interactions(_interactionSchema);
 
         static RoomRegion()
@@ -87,6 +88,14 @@ namespace AGS.Types
         {
             get { return _tintAmount; }
             set { _tintAmount = value; }
+        }
+
+        [Description("The luminance of the region tint (0=pitch black, 100=original lighting)")]
+        [Category("Lighting")]
+        public int TintLuminance
+        {
+            get { return _tintLuminance; }
+            set { _tintLuminance = value; }
         }
 
         [Browsable(false)]
@@ -163,7 +172,8 @@ namespace AGS.Types
                     ((property.Name == "RedTint") || 
                     (property.Name == "GreenTint") ||
                     (property.Name == "BlueTint") ||
-                    (property.Name == "TintSaturation")))
+                    (property.Name == "TintSaturation") ||
+                    (property.Name == "TintLuminance")))
                 {
                     wantThisProperty = false;
                 }

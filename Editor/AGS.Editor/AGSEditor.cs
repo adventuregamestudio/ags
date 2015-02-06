@@ -64,8 +64,9 @@ namespace AGS.Editor
          *  8: 3.3.1.1163 - Settings.LastBuildConfiguration;
          *  9: 3.4.0.1    - Settings.CustomResolution
          * 10: 3.4.0.2    - Settings.BuildTargets
+         * 11: 3.4.0.4    - Region.TintLuminance
         */
-        public const int    LATEST_XML_VERSION_INDEX = 10;
+        public const int    LATEST_XML_VERSION_INDEX = 11;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.

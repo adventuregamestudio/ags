@@ -28,7 +28,7 @@ int     Region_GetTintRed(ScriptRegion *srr);
 int     Region_GetTintGreen(ScriptRegion *srr);
 int     Region_GetTintBlue(ScriptRegion *srr);
 int     Region_GetTintSaturation(ScriptRegion *srr);
-void    Region_Tint(ScriptRegion *srr, int red, int green, int blue, int amount);
+void    Region_Tint(ScriptRegion *srr, int red, int green, int blue, int amount, int luminance);
 void    Region_SetEnabled(ScriptRegion *ssr, int enable);
 int     Region_GetEnabled(ScriptRegion *ssr);
 int     Region_GetID(ScriptRegion *ssr);

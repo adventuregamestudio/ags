@@ -76,7 +76,8 @@ void SetAreaLightLevel(int area, int brightness) {
     DEBUG_CONSOLE("Region %d light level set to %d", area, brightness);
 }
 
-void SetRegionTint (int area, int red, int green, int blue, int amount) {
+void SetRegionTint (int area, int red, int green, int blue, int amount, int luminance)
+{
     if ((area < 0) || (area > MAX_REGIONS))
         quit("!SetRegionTint: invalid region");
 
@@ -91,6 +92,8 @@ void SetRegionTint (int area, int red, int green, int blue, int amount) {
 
     if ((amount < 1) || (amount > 100))
         quit("!SetRegionTint: amount must be 1-100");
+    if ((luminance < 0) || (luminance > 100))
+        quit("!SetRegionTint: luminance must be 0-100");
 
     DEBUG_CONSOLE("Region %d tint set to %d,%d,%d", area, red, green, blue);
 
@@ -106,7 +109,7 @@ void SetRegionTint (int area, int red, int green, int blue, int amount) {
     thisroom.regionTintLevel[area] |= (int(rgreen) << 8) & 0x0000ff00;
     thisroom.regionTintLevel[area] |= (int(rblue) << 16) & 0x00ff0000;
     thisroom.regionTintLevel[area] |= ((amount & 0xFF) << 24);
-    thisroom.regionLightLevel[area] = 255;
+    thisroom.regionLightLevel[area] = (luminance * 25) / 10;
 }
 
 void DisableRegion(int hsnum) {

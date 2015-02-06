@@ -72,7 +72,13 @@ int Region_GetTintSaturation(ScriptRegion *srr) {
     return thisroom.regionLightLevel[srr->id];
 }
 
-void Region_Tint(ScriptRegion *srr, int red, int green, int blue, int amount) {
+void Region_Tint(ScriptRegion *srr, int red, int green, int blue, int amount, int luminance)
+{
+    SetRegionTint(srr->id, red, green, blue, amount, luminance);
+}
+
+void Region_TintNoLum(ScriptRegion *srr, int red, int green, int blue, int amount)
+{
     SetRegionTint(srr->id, red, green, blue, amount);
 }
 
@@ -127,10 +133,15 @@ RuntimeScriptValue Sc_GetRegionAtLocation(const RuntimeScriptValue *params, int3
     API_SCALL_OBJ_PINT2(ScriptRegion, ccDynamicRegion, GetRegionAtLocation);
 }
 
-// void (ScriptRegion *srr, int red, int green, int blue, int amount)
 RuntimeScriptValue Sc_Region_Tint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT4(ScriptRegion, Region_Tint);
+    API_OBJCALL_VOID_PINT5(ScriptRegion, Region_Tint);
+}
+
+// void (ScriptRegion *srr, int red, int green, int blue, int amount)
+RuntimeScriptValue Sc_Region_TintNoLum(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT4(ScriptRegion, Region_TintNoLum);
 }
 
 // void (ScriptRegion *ssr, int mood)
@@ -204,7 +215,8 @@ RuntimeScriptValue Sc_Region_GetTintSaturation(void *self, const RuntimeScriptVa
 void RegisterRegionAPI()
 {
     ccAddExternalStaticFunction("Region::GetAtRoomXY^2",        Sc_GetRegionAtLocation);
-    ccAddExternalObjectFunction("Region::Tint^4",               Sc_Region_Tint);
+    ccAddExternalObjectFunction("Region::Tint^4",               Sc_Region_TintNoLum);
+    ccAddExternalObjectFunction("Region::Tint^5",               Sc_Region_Tint);
     ccAddExternalObjectFunction("Region::RunInteraction^1",     Sc_Region_RunInteraction);
     ccAddExternalObjectFunction("Region::get_Enabled",          Sc_Region_GetEnabled);
     ccAddExternalObjectFunction("Region::set_Enabled",          Sc_Region_SetEnabled);
@@ -220,7 +232,7 @@ void RegisterRegionAPI()
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
     ccAddExternalFunctionForPlugin("Region::GetAtRoomXY^2",        (void*)GetRegionAtLocation);
-    ccAddExternalFunctionForPlugin("Region::Tint^4",               (void*)Region_Tint);
+    ccAddExternalFunctionForPlugin("Region::Tint^4",               (void*)Region_TintNoLum);
     ccAddExternalFunctionForPlugin("Region::RunInteraction^1",     (void*)Region_RunInteraction);
     ccAddExternalFunctionForPlugin("Region::get_Enabled",          (void*)Region_GetEnabled);
     ccAddExternalFunctionForPlugin("Region::set_Enabled",          (void*)Region_SetEnabled);

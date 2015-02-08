@@ -192,9 +192,7 @@ void quit_message_on_exit(char *qmsg, char *alertis)
 
 void quit_release_data()
 {
-    // wipe all the interaction structs so they don't de-alloc the children twice
     resetRoomStatuses();
-    memset (&troom, 0, sizeof(RoomStatus));
 
     /*  _CrtMemState memstart;
     _CrtMemCheckpoint(&memstart);

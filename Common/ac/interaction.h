@@ -43,7 +43,8 @@ using namespace AGS; // FIXME later
 #define VALTYPE_BOOLEAN    3
 #define VALTYPE_CHARNUM    4
 
-struct NewInteractionValue {
+struct NewInteractionValue
+{
     unsigned char valType;
     int  val;
     int  extra;
@@ -54,21 +55,21 @@ struct NewInteractionValue {
     void WriteToFile(Common::Stream *out);
 };
 
-struct NewInteractionAction {
-    virtual void reset() = 0;
-};
+
 struct NewInteractionCommandList;
 
-struct NewInteractionCommand: public NewInteractionAction {
+struct NewInteractionCommand
+{
     int32 type;
     NewInteractionValue data[MAX_ACTION_ARGS];
-    NewInteractionAction * children;
+    NewInteractionCommandList *children;
     NewInteractionCommandList *parent;
 
     NewInteractionCommand();
+    ~NewInteractionCommand();
     NewInteractionCommandList *get_child_list();
-    void remove();
 
+    void assign(const NewInteractionCommand &nic, NewInteractionCommandList *new_parent);
     void reset();
 
     void ReadFromFile_v321(Common::Stream *in);
@@ -77,19 +78,23 @@ struct NewInteractionCommand: public NewInteractionAction {
     void WriteNewInteractionValues_Aligned(Common::Stream *out);
 };
 
-struct NewInteractionCommandList : public NewInteractionAction {
+struct NewInteractionCommandList
+{
     int32 numCommands;
     NewInteractionCommand command[MAX_COMMANDS_PER_LIST];
     int32 timesRun;   // used by engine to track score changes
 
-    NewInteractionCommandList ();
+    NewInteractionCommandList();
+    NewInteractionCommandList(const NewInteractionCommandList &nicmd_list);
+    ~NewInteractionCommandList();
     void reset();
 
     void ReadInteractionCommands_Aligned(Common::Stream *in);
     void WriteInteractionCommands_Aligned(Common::Stream *out);
 };
 
-struct NewInteraction {
+struct NewInteraction
+{
     int numEvents;
     // the first few event types depend on the item - ID's of 100+ are
     // custom events (used for subroutines)
@@ -97,16 +102,17 @@ struct NewInteraction {
     int timesRun[MAX_NEWINTERACTION_EVENTS];
     NewInteractionCommandList *response[MAX_NEWINTERACTION_EVENTS];
 
-
     NewInteraction();
-
+    NewInteraction(const NewInteraction &ni);
+    ~NewInteraction();
 
     void copy_timesrun_from (NewInteraction *nifrom);
     void reset();
-    ~NewInteraction();
 
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);
+
+    NewInteraction &operator =(const NewInteraction &ni);
 };
 
 

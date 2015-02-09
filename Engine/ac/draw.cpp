@@ -1254,14 +1254,23 @@ void get_local_tint(int xpp, int ypp, int nolight,
             tint_light = light_level;
         }
 
-        if (play.rtint_level > 0) {
-            // override with room tint
-            tint_level = 1;
-            tint_red = play.rtint_red;
-            tint_green = play.rtint_green;
-            tint_blue = play.rtint_blue;
-            tint_amount = play.rtint_level;
-            tint_light = play.rtint_light;
+        if (play.rtint_enabled)
+        {
+            if (play.rtint_level > 0)
+            {
+                // override with room tint
+                tint_red = play.rtint_red;
+                tint_green = play.rtint_green;
+                tint_blue = play.rtint_blue;
+                tint_amount = play.rtint_level;
+                tint_light = play.rtint_light;
+            }
+            else
+            {
+                // override with room light level
+                tint_amount = 0;
+                light_level = play.rtint_light;
+            }
         }
     }
 

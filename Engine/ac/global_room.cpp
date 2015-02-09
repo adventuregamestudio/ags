@@ -29,6 +29,9 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "script/script.h"
+#include "util/math.h"
+
+using namespace Common;
 
 extern GameState play;
 extern GameSetupStruct game;
@@ -51,11 +54,21 @@ void SetAmbientTint (int red, int green, int blue, int opacity, int luminance) {
 
     DEBUG_CONSOLE("Set ambient tint RGB(%d,%d,%d) %d%%", red, green, blue, opacity);
 
+    play.rtint_enabled = opacity > 0;
     play.rtint_red = red;
     play.rtint_green = green;
     play.rtint_blue = blue;
     play.rtint_level = opacity;
     play.rtint_light = (luminance * 25) / 10;
+}
+
+void SetAmbientLightLevel(int light_level)
+{
+    light_level = Math::Clamp(-100, 100, light_level);
+
+    play.rtint_enabled = light_level != 0;
+    play.rtint_level = 0;
+    play.rtint_light = light_level;
 }
 
 extern ScriptPosition last_in_dialog_request_script_pos;

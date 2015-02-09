@@ -1163,6 +1163,8 @@ import void UpdatePalette();
 import void TintScreen (int red, int green, int blue);
 /// Sets an ambient tint that affects all objects and characters in the room.
 import void SetAmbientTint(int red, int green, int blue, int saturation, int luminance);
+/// Sets an ambient light level that affects all objects and characters in the room.
+import void SetAmbientLightLevel(int light_level);
 /// Returns a random number between 0 and MAX, inclusive.
 import int  Random(int max);
 /// Locks the current room to the specified background.

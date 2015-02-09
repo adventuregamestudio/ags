@@ -19,6 +19,7 @@
 #define __AGS_EE_AC__GLOBALROOM_H
 
 void SetAmbientTint (int red, int green, int blue, int opacity, int luminance);
+void SetAmbientLightLevel(int light_level);
 void NewRoom(int nrnum);
 void NewRoomEx(int nrnum,int newx,int newy);
 void NewRoomNPC(int charid, int nrnum, int newx, int newy);

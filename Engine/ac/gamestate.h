@@ -154,6 +154,7 @@ struct GameState {
     unsigned long shakesc_delay;  // unsigned long to match loopcounter
     int   shakesc_amount, shakesc_length;
     int   rtint_red, rtint_green, rtint_blue, rtint_level, rtint_light;
+    bool  rtint_enabled;
     int   end_cutscene_music;
     int   skip_until_char_stops;
     int   get_loc_name_last_time;

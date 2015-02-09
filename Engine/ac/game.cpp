@@ -1775,6 +1775,22 @@ void ReadGameState_Aligned(Stream *in)
     play.ReadFromFile_v321(&align_s);
 }
 
+void restore_game_play_ex_data(Stream *in)
+{
+    if (play.num_do_once_tokens > 0)
+    {
+        play.do_once_tokens = (char**)malloc(sizeof(char*) * play.num_do_once_tokens);
+        for (int bb = 0; bb < play.num_do_once_tokens; bb++)
+        {
+            fgetstring_limit(rbuffer, in, 200);
+            play.do_once_tokens[bb] = (char*)malloc(strlen(rbuffer) + 1);
+            strcpy(play.do_once_tokens[bb], rbuffer);
+        }
+    }
+
+    in->ReadArrayOfInt32(&play.gui_draw_order[0], game.numgui);
+}
+
 void restore_game_play(Stream *in)
 {
     int speech_was = play.want_speech, musicvox = play.separate_music_lib;
@@ -1810,18 +1826,7 @@ void restore_game_play(Stream *in)
     play.room_changes = roomchanges_was;
     play.gui_draw_order = gui_draw_order_was;
 
-    if (play.num_do_once_tokens > 0)
-    {
-        play.do_once_tokens = (char**)malloc(sizeof(char*) * play.num_do_once_tokens);
-        for (int bb = 0; bb < play.num_do_once_tokens; bb++)
-        {
-            fgetstring_limit(rbuffer, in, 200);
-            play.do_once_tokens[bb] = (char*)malloc(strlen(rbuffer) + 1);
-            strcpy(play.do_once_tokens[bb], rbuffer);
-        }
-    }
-
-    in->ReadArrayOfInt32(&play.gui_draw_order[0], game.numgui);
+    restore_game_play_ex_data(in);
 }
 
 void ReadMoveList_Aligned(Stream *in)

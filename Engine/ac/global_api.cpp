@@ -1494,6 +1494,11 @@ RuntimeScriptValue Sc_SetAmbientTint(const RuntimeScriptValue *params, int32_t p
     API_SCALL_VOID_PINT5(SetAmbientTint);
 }
 
+RuntimeScriptValue Sc_SetAmbientLightLevel(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(SetAmbientLightLevel);
+}
+
 // void (int area, int brightness)
 RuntimeScriptValue Sc_SetAreaLightLevel(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2530,6 +2535,7 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("SeekMP3PosMillis",         Sc_SeekMP3PosMillis);
 	ccAddExternalStaticFunction("SetActiveInventory",       Sc_SetActiveInventory);
 	ccAddExternalStaticFunction("SetAmbientTint",           Sc_SetAmbientTint);
+    ccAddExternalStaticFunction("SetAmbientLightLevel",     Sc_SetAmbientLightLevel);
 	ccAddExternalStaticFunction("SetAreaLightLevel",        Sc_SetAreaLightLevel);
 	ccAddExternalStaticFunction("SetAreaScaling",           Sc_SetAreaScaling);
 	ccAddExternalStaticFunction("SetBackgroundFrame",       Sc_SetBackgroundFrame);

@@ -1059,8 +1059,9 @@ void init_game_settings() {
     play.lipsync_speed = 15;
     play.close_mouth_speech_time = 10;
     play.disable_antialiasing = 0;
+    play.rtint_enabled = false;
     play.rtint_level = 0;
-    play.rtint_light = 255;
+    play.rtint_light = 0;
     play.text_speed_modifier = 0;
     play.text_align = SCALIGN_LEFT;
     // Make the default alignment to the right with right-to-left text

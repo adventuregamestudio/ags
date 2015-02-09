@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include "ac/game_version.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
 #include "util/alignedstream.h"
@@ -182,6 +183,10 @@ void GameState::ReadFromFile_v321(Stream *in)
     rtint_blue = in->ReadInt32();
     rtint_level = in->ReadInt32();
     rtint_light = in->ReadInt32();
+    if (loaded_game_file_version >= kGameVersion_340_4)
+        play.rtint_enabled = in->ReadBool();
+    else
+        play.rtint_enabled = play.rtint_level > 0;
     end_cutscene_music = in->ReadInt32();
     skip_until_char_stops = in->ReadInt32();
     get_loc_name_last_time = in->ReadInt32();
@@ -363,6 +368,8 @@ void GameState::WriteToFile_v321(Stream *out)
     out->WriteInt32( rtint_blue);
     out->WriteInt32( rtint_level);
     out->WriteInt32( rtint_light);
+    if (loaded_game_file_version >= kGameVersion_340_4)
+        out->WriteBool(play.rtint_enabled);
     out->WriteInt32( end_cutscene_music);
     out->WriteInt32( skip_until_char_stops);
     out->WriteInt32( get_loc_name_last_time);

@@ -89,6 +89,7 @@ Custom dialog option rendering extension.
 
 47 : 3.4.0.4
 Custom properties changed at runtime.
+Ambient lighting
 
 */
 

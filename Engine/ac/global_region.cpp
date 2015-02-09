@@ -72,7 +72,6 @@ void SetAreaLightLevel(int area, int brightness) {
     thisroom.regionLightLevel[area] = brightness;
     // disable RGB tint for this area
     thisroom.regionTintLevel[area]  = 0;
-    generate_light_table();
     DEBUG_CONSOLE("Region %d light level set to %d", area, brightness);
 }
 

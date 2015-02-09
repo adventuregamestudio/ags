@@ -103,17 +103,12 @@ void Region_RunInteraction(ScriptRegion *ssr, int mood) {
 
 //=============================================================================
 
-void generate_light_table() {
-    int cc;
-    if ((game.color_depth == 1) && (color_map == NULL)) {
-        // in 256-col mode, check if we need the light table this room
-        for (cc=0;cc < MAX_REGIONS;cc++) {
-            if (thisroom.regionLightLevel[cc] < 0) {
-                create_light_table(&maincoltable,palette,0,0,0,NULL);
-                color_map=&maincoltable;
-                break;
-            }
-        }
+void generate_light_table()
+{
+    if (game.color_depth == 1 && color_map == NULL)
+    {
+        create_light_table(&maincoltable, palette, 0, 0, 0, NULL);
+        color_map = &maincoltable;
     }
 }
 

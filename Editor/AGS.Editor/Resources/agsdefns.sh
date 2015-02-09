@@ -1899,6 +1899,8 @@ builtin managed struct Object {
   import function RunInteraction(CursorMode);
   /// Checks whether an event handler has been registered for clicking on this object in the specified cursor mode.
   import bool     IsInteractionAvailable(CursorMode);
+  /// Sets the individual light level for this object.
+  import function SetLightLevel(int light_level);
   /// Instantly moves the object to have its bottom-left at the new co-ordinates.
   import function SetPosition(int x, int y);
   /// Sets the object to use the specified view, ahead of doing an animation.
@@ -2023,6 +2025,8 @@ builtin managed struct Character {
   import function SetAsPlayer();
   /// Changes the character's idle view.
   import function SetIdleView(int view, int delay);
+  /// Sets the individual light level for this character.
+  import function SetLightLevel(int light_level);
   /// Changes the character's movement speed.
   import function SetWalkSpeed(int x, int y);
   /// Stops the character from moving.

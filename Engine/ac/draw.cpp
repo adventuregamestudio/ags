@@ -1487,6 +1487,8 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     objs[aa].last_width = sprwidth;
     objs[aa].last_height = sprheight;
 
+    tint_red = tint_green = tint_blue = tint_level = tint_light = light_level = 0;
+
     if (objs[aa].flags & OBJF_HASTINT) {
         // object specific tint, use it
         tint_red = objs[aa].tint_r;
@@ -1495,6 +1497,10 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
         tint_level = objs[aa].tint_level;
         tint_light = objs[aa].tint_light;
         light_level = 0;
+    }
+    else if (objs[aa].flags & OBJF_HASLIGHT)
+    {
+        light_level = objs[aa].tint_light;
     }
     else {
         // get the ambient or region tint
@@ -1785,8 +1791,6 @@ void prepare_characters_for_drawing() {
         // sort out the stretching if required
         onarea = get_walkable_area_at_character (aa);
         our_eip = 332;
-        light_level = 0;
-        tint_amount = 0;
 
         if (chin->flags & CHF_MANUALSCALING)  // character ignores scaling
             zoom_level = charextra[aa].zoom;
@@ -1800,6 +1804,8 @@ void prepare_characters_for_drawing() {
 
         charextra[aa].zoom = zoom_level;
 
+        tint_red = tint_green = tint_blue = tint_amount = tint_light = light_level = 0;
+
         if (chin->flags & CHF_HASTINT) {
             // object specific tint, use it
             tint_red = charextra[aa].tint_r;
@@ -1808,6 +1814,10 @@ void prepare_characters_for_drawing() {
             tint_amount = charextra[aa].tint_level;
             tint_light = charextra[aa].tint_light;
             light_level = 0;
+        }
+        else if (chin->flags & CHF_HASLIGHT)
+        {
+            light_level = charextra[aa].tint_light;
         }
         else {
             get_local_tint(chin->x, chin->y, chin->flags & CHF_NOLIGHTING,

@@ -111,6 +111,7 @@ void SetObjectTint(int obj, int red, int green, int blue, int opacity, int lumin
     objs[obj].tint_b = blue;
     objs[obj].tint_level = opacity;
     objs[obj].tint_light = (luminance * 25) / 10;
+    objs[obj].flags &= ~OBJF_HASLIGHT;
     objs[obj].flags |= OBJF_HASTINT;
 }
 
@@ -118,9 +119,9 @@ void RemoveObjectTint(int obj) {
     if (!is_valid_object(obj))
         quit("!RemoveObjectTint: invalid object");
 
-    if (objs[obj].flags & OBJF_HASTINT) {
+    if (objs[obj].flags & (OBJF_HASTINT | OBJF_HASLIGHT)) {
         DEBUG_CONSOLE("Un-tint object %d", obj);
-        objs[obj].flags &= ~OBJF_HASTINT;
+        objs[obj].flags &= ~(OBJF_HASTINT | OBJF_HASLIGHT);
     }
     else {
         debug_log("RemoveObjectTint called but object was not tinted");

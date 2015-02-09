@@ -721,9 +721,9 @@ void Character_PlaceOnWalkableArea(CharacterInfo *chap)
 
 void Character_RemoveTint(CharacterInfo *chaa) {
 
-    if (chaa->flags & CHF_HASTINT) {
+    if (chaa->flags & (CHF_HASTINT | CHF_HASLIGHT)) {
         DEBUG_CONSOLE("Un-tint %s", chaa->scrname);
-        chaa->flags &= ~CHF_HASTINT;
+        chaa->flags &= ~(CHF_HASTINT | CHF_HASLIGHT);
     }
     else {
         debug_log("Character.RemoveTint called but character was not tinted");
@@ -732,7 +732,7 @@ void Character_RemoveTint(CharacterInfo *chaa) {
 
 int Character_GetHasExplicitTint(CharacterInfo *chaa) {
 
-    if (chaa->flags & CHF_HASTINT)
+    if (chaa->flags & (CHF_HASTINT | CHF_HASLIGHT))
         return 1;
 
     return 0;
@@ -854,6 +854,15 @@ void Character_SetIdleView(CharacterInfo *chaa, int iview, int itime) {
 
 }
 
+void Character_SetLightLevel(CharacterInfo *chaa, int light_level)
+{
+    light_level = Math::Clamp(-100, 100, light_level);
+    
+    charextra[chaa->index_id].tint_light = light_level;
+    chaa->flags &= ~CHF_HASTINT;
+    chaa->flags |= CHF_HASLIGHT;
+}
+
 void Character_SetOption(CharacterInfo *chaa, int flag, int yesorno) {
 
     if ((yesorno < 0) || (yesorno > 1))
@@ -931,6 +940,7 @@ void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opaci
     charextra[chaa->index_id].tint_b = blue;
     charextra[chaa->index_id].tint_level = opacity;
     charextra[chaa->index_id].tint_light = (luminance * 25) / 10;
+    chaa->flags &= ~CHF_HASLIGHT;
     chaa->flags |= CHF_HASTINT;
 }
 
@@ -3035,6 +3045,11 @@ RuntimeScriptValue Sc_Character_SetIdleView(void *self, const RuntimeScriptValue
     API_OBJCALL_VOID_PINT2(CharacterInfo, Character_SetIdleView);
 }
 
+RuntimeScriptValue Sc_Character_SetLightLevel(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetLightLevel);
+}
+
 /*
 RuntimeScriptValue Sc_Character_SetOption(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -3622,6 +3637,7 @@ void RegisterCharacterAPI()
 	ccAddExternalObjectFunction("Character::SayBackground^1",           Sc_Character_SayBackground);
 	ccAddExternalObjectFunction("Character::SetAsPlayer^0",             Sc_Character_SetAsPlayer);
 	ccAddExternalObjectFunction("Character::SetIdleView^2",             Sc_Character_SetIdleView);
+    ccAddExternalObjectFunction("Character::SetLightLevel^1",           Sc_Character_SetLightLevel);
 	//ccAddExternalObjectFunction("Character::SetOption^2",             Sc_Character_SetOption);
 	ccAddExternalObjectFunction("Character::SetWalkSpeed^2",            Sc_Character_SetSpeed);
 	ccAddExternalObjectFunction("Character::StopMoving^0",              Sc_Character_StopMoving);

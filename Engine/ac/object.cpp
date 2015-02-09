@@ -194,6 +194,17 @@ int Object_GetMoving(ScriptObject *objj) {
     return IsObjectMoving(objj->id);
 }
 
+void Object_SetLightLevel(ScriptObject *objj, int light_level)
+{
+    int obj = objj->id;
+    if (!is_valid_object(obj))
+        quit("!SetObjectTint: invalid object number specified");
+
+    objs[obj].tint_light = light_level;
+    objs[obj].flags &= ~OBJF_HASTINT;
+    objs[obj].flags |= OBJF_HASLIGHT;
+}
+
 void Object_SetPosition(ScriptObject *objj, int xx, int yy) {
     SetObjectPosition(objj->id, xx, yy);
 }
@@ -559,6 +570,11 @@ RuntimeScriptValue Sc_Object_RunInteraction(void *self, const RuntimeScriptValue
     API_OBJCALL_VOID_PINT(ScriptObject, Object_RunInteraction);
 }
 
+RuntimeScriptValue Sc_Object_SetLightLevel(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetLightLevel);
+}
+
 // void (ScriptObject *objj, int xx, int yy)
 RuntimeScriptValue Sc_Object_SetPosition(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -798,6 +814,7 @@ void RegisterObjectAPI()
     ccAddExternalObjectFunction("Object::Move^5",                   Sc_Object_Move);
     ccAddExternalObjectFunction("Object::RemoveTint^0",             Sc_Object_RemoveTint);
     ccAddExternalObjectFunction("Object::RunInteraction^1",         Sc_Object_RunInteraction);
+    ccAddExternalObjectFunction("Object::SetLightLevel^1",          Sc_Object_SetLightLevel);
     ccAddExternalObjectFunction("Object::SetPosition^2",            Sc_Object_SetPosition);
     ccAddExternalObjectFunction("Object::SetView^3",                Sc_Object_SetView);
     ccAddExternalObjectFunction("Object::StopAnimating^0",          Sc_Object_StopAnimating);

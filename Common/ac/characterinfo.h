@@ -39,6 +39,7 @@ using namespace AGS; // FIXME later
 #define CHF_AWAITINGMOVE    0x8000   // engine only
 #define CHF_MOVENOTWALK     0x10000   // engine only - do not do walk anim
 #define CHF_ANTIGLIDE       0x20000
+#define CHF_HASLIGHT        0x40000
 // Speechcol is no longer part of the flags as of v2.5
 #define OCHF_SPEECHCOL      0xff000000
 #define OCHF_SPEECHCOLSHIFT 24

@@ -377,7 +377,20 @@ int deal_with_end_of_ifelse (char*nested_type,long*nested_info,long*nested_start
          return 1;
      }
      else
+     {
          nestlevel[0]--;
+         if(nested_type[nestlevel[0]] == NEST_FOR)
+         {
+             nestlevel[0]--;
+             // find local variables that have just been removed
+             int totalsub = remove_locals (nestlevel[0], 0, scrip);
+
+             if (totalsub > 0) {
+                 scrip->cur_sp -= totalsub;
+                 scrip->write_cmd2(SCMD_SUB,SREG_SP,totalsub);
+             }
+         }
+     }
      return 0;
 }
 
@@ -4322,6 +4335,9 @@ startvarbit:
                 continue;
             }
             else if (sym.get_type(cursym) == SYM_FOR) {
+                INC_NESTED_LEVEL;
+                nested_type[nested_level] = NEST_FOR;
+                nested_start[nested_level] = 0;
                 if (sym.get_type(targ.peeknext()) != SYM_OPENPARENTHESIS) {
                     cc_error("expected '('");
                     return -1;
@@ -4336,8 +4352,78 @@ startvarbit:
                     lilen = extract_variable_name(cursym, &targ, &vnlist[0], &funcAtOffs);
                     if (lilen < 0)
                         return -1;
-                    if (evaluate_assignment(&targ, scrip, false, cursym, lilen, vnlist, false))
-                        return -1;
+                    if (sym.get_type(cursym) == SYM_VARTYPE) {
+                        int varsize = sym.ssize[cursym];
+                        int vtwas = cursym;
+
+                        int isPointer = 0;
+
+                        if (strcmp(sym.get_name(targ.peeknext()), "*") == 0) {
+                            // only allow pointers to structs
+                            if ((sym.flags[vtwas] & SFLG_STRUCTTYPE) == 0) {
+                                cc_error("Cannot create pointer to basic type");
+                                return -1;
+                            }
+                            if (sym.flags[vtwas] & SFLG_AUTOPTR) {
+                                cc_error("Invalid use of '*'");
+                                return -1;
+                            }
+                            isPointer = 1;
+                            targ.getnext();
+                        }
+
+                        if (sym.flags[vtwas] & SFLG_AUTOPTR)
+                            isPointer = 1;
+
+                        if (sym.get_type(targ.peeknext()) == SYM_LOOPCHECKOFF) {
+                            cc_error("'noloopcheck' is not applicable in this context");
+                            return -1;
+                        }
+
+                        int reslt;
+                        // FIXME: This duplicates common variable declaration parsing at/around the "startvarbit" label
+                        do {
+                            cursym = targ.getnext();
+                            if (cursym == SCODE_META) {
+                                // eg. "int" was the last word in the file
+                                currentline = targ.lineAtEnd;
+                                cc_error("Unexpected end of file");
+                                return -1;
+                            }
+
+                            int next_type = sym.get_type(targ.peeknext());
+                            if (next_type == SYM_MEMBERACCESS || next_type == SYM_OPENPARENTHESIS) {
+                                cc_error("Function declaration not allowed in for loop initialiser");
+                                return -1;
+                            }
+                            else if (sym.get_type(cursym) != 0) {
+                                cc_error("Variable '%s' is already defined",sym.get_name(cursym));
+                                return -1;
+                            }
+                            else if (next_is_protected) {
+                                cc_error("'protected' not valid in this context");
+                                return -1;
+                            }
+                            else if (next_is_static) {
+                                cc_error("Invalid use of 'static'");
+                                return -1;
+                            }
+                            else {
+                                // variable declaration
+                                sym.sscope[cursym] = nested_level;
+                                if (next_is_readonly)
+                                    sym.flags[cursym] |= SFLG_READONLY;
+
+                                // parse the declaration
+                                reslt = parse_variable_declaration(cursym, &next_type, 0, varsize, scrip, &targ, vtwas, isPointer);
+                                if (reslt < 0) return -1;
+                            }
+                        }
+                        while(reslt == 2);
+                    }
+                    else
+                        if (evaluate_assignment(&targ, scrip, false, cursym, lilen, vnlist, false))
+                            return -1;
                 }
                 long oriaddr = scrip->codesize;
                 bool hasLimitCheck;

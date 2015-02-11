@@ -12,7 +12,6 @@
 #define NEST_ELSESINGLE 6
 #define NEST_STRUCT     7
 #define MAX_FUNCTIONS 2000
-#define MAXSYMBOLS 10000
 #define MAX_FUNCTION_PARAMETERS 15
 // This is the maximum length of a "static string" in the script
 #define MAX_SYM_LEN 500

@@ -47,6 +47,18 @@ int symbolTable::get_propset(int symb) {
 void symbolTable::reset() {
     int rr;
     for (rr=0;rr<numsymbols;rr++) free(sname[rr]);
+    sname.resize(0);
+    stype.resize(0);
+    flags.resize(0);
+    vartype.resize(0);
+    soffs.resize(0);
+    ssize.resize(0);
+    sscope.resize(0);
+    arrsize.resize(0);
+    extends.resize(0);
+    funcparamtypes.resize(0);
+    funcParamDefaultValues.resize(0);
+
     numsymbols=0;
     currentscope=0;
     stringStructSym = 0;
@@ -177,21 +189,24 @@ int symbolTable::add(char*nta) {
 }
 int symbolTable::add_ex(char*nta,int typo,char sizee) {
     if (find(nta) >= 0) return -1;
-    if (numsymbols >= MAXSYMBOLS) return -1;
-    sname[numsymbols]=(char*)malloc(strlen(nta) * 2 + 5);
+    char *fullname = (char*)malloc(sizeof(char) * (strlen(nta) * 2 + 5));
     // put the name, followed by the pointer-equivalent
-    strcpy(sname[numsymbols], nta);
-    strcpy(&sname[numsymbols][strlen(nta) + 1], nta);
-    strcat(&sname[numsymbols][strlen(nta) + 1], "*");
+    strcpy(fullname, nta);
+    strcpy(&fullname[strlen(nta) + 1], nta);
+    strcat(&fullname[strlen(nta) + 1], "*");
+    sname.push_back(fullname);
 
-    stype[numsymbols]=typo;
-    ssize[numsymbols]=sizee;
-    sscope[numsymbols] = 0;
-    arrsize[numsymbols] = 0;
-    flags[numsymbols] = 0;
-    vartype[numsymbols] = 0;
-    extends[numsymbols] = 0;
-    symbolTree.addEntry(sname[numsymbols], numsymbols);
+    stype.push_back(typo);
+    flags.push_back(0);
+    vartype.push_back(0);
+    soffs.push_back(0);
+    ssize.push_back(sizee);
+    sscope.push_back(0);
+    arrsize.push_back(0);
+    extends.push_back(0);
+    funcparamtypes.push_back(std::vector<unsigned long>(MAX_FUNCTION_PARAMETERS + 1));
+    funcParamDefaultValues.push_back(std::vector<short>(MAX_FUNCTION_PARAMETERS + 1));
+    symbolTree.addEntry(fullname, numsymbols);
     numsymbols++;
     return numsymbols-1;
 }

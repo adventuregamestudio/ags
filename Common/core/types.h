@@ -28,6 +28,16 @@
 #define NULL 0
 #endif
 
+#ifndef FORCEINLINE
+#if defined(_MSC_VER)
+#define FORCEINLINE __forceinline
+#elif defined (__GNUC__)
+#define FORCEINLINE inline __attribute__((__always_inline__))
+#else
+#define FORCEINLINE inline
+#endif
+#endif
+
 #include <stddef.h>
 #if !defined (WINDOWS_VERSION)
 #include <stdint.h>

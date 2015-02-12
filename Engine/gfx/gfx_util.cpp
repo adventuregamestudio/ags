@@ -39,15 +39,16 @@ struct BlendModeSetter
     PfnBlenderCb AllAlpha;       // src w alpha   -> dst w alpha
     PfnBlenderCb AlphaToOpaque;  // src w alpha   -> dst w/o alpha
     PfnBlenderCb OpaqueToAlpha;  // src w/o alpha -> dst w alpha
-    PfnBlenderCb OpaqueToOpaque; // src w/o alpha -> dst w/o alpha
+    PfnBlenderCb OpaqueToAlphaNoTrans; // src w/o alpha -> dst w alpha (opt-ed for no transparency)
+    PfnBlenderCb AllOpaque;      // src w/o alpha -> dst w/o alpha
 };
 
 // Array of blender descriptions
 // NOTE: set NULL function pointer to fallback to common image blitting
 static const BlendModeSetter BlendModeSets[kNumBlendModes] =
 {
-    { NULL, NULL, NULL, NULL }, // kBlendMode_NoAlpha
-    { _argb2argb_blender, _argb2argb_blender, _argb2argb_blender, NULL }, // kBlendMode_Alpha
+    { NULL, NULL, NULL, NULL, NULL }, // kBlendMode_NoAlpha
+    { _argb2argb_blender, _argb2rgb_blender, _rgb2argb_blender, _opaque_alpha_blender, NULL }, // kBlendMode_Alpha
     // NOTE: add new modes here
 };
 
@@ -56,9 +57,13 @@ bool SetBlender(BlendMode blend_mode, bool dst_has_alpha, bool src_has_alpha, in
     if (blend_mode < 0 || blend_mode > kNumBlendModes)
         return false;
     const BlendModeSetter &set = BlendModeSets[blend_mode];
-    PfnBlenderCb blender =
-        dst_has_alpha ? (src_has_alpha ? set.AllAlpha : set.OpaqueToAlpha) :
-        (src_has_alpha ? set.AlphaToOpaque : set.OpaqueToOpaque);
+    PfnBlenderCb blender;
+    if (dst_has_alpha)
+        blender = src_has_alpha ? set.AllAlpha :
+            (blend_alpha == 0xFF ? set.OpaqueToAlphaNoTrans : set.OpaqueToAlpha);
+    else
+        blender = src_has_alpha ? set.AlphaToOpaque : set.AllOpaque;
+
     if (blender)
     {
         set_blender_mode(NULL, NULL, blender, 0, 0, 0, blend_alpha);

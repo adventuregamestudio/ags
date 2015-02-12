@@ -3,6 +3,7 @@
 
 #include "cs_parser_common.h"   // macro definitions
 #include "script/cc_treemap.h"
+#include <vector>
 
 struct symbolTable {
     int numsymbols;
@@ -13,18 +14,18 @@ struct symbolTable {
     int normalVoidSym;
     int nullSym;
     int stringStructSym;
-    char* sname[MAXSYMBOLS];
-    short stype[MAXSYMBOLS];
-    long  flags[MAXSYMBOLS];
-    short vartype[MAXSYMBOLS];
-    int   soffs[MAXSYMBOLS];
-    long  ssize[MAXSYMBOLS];  // or return type size for function
-    short sscope[MAXSYMBOLS];  // or num arguments for function
-    long  arrsize[MAXSYMBOLS];
-    short extends[MAXSYMBOLS]; // inherits another class (classes) / owning class (member vars)
+    std::vector<char *> sname;
+    std::vector<short> stype;
+    std::vector<long> flags;
+    std::vector<short> vartype;
+    std::vector<int> soffs;
+    std::vector<long> ssize; // or return type size for function
+    std::vector<short> sscope; // or num arguments for function
+    std::vector<long> arrsize;
+    std::vector<short> extends; // inherits another class (classes) / owning class (member vars)
     // functions only, save types of return value and all parameters
-    unsigned long funcparamtypes[MAXSYMBOLS][MAX_FUNCTION_PARAMETERS+1]; 
-    short funcParamDefaultValues[MAXSYMBOLS][MAX_FUNCTION_PARAMETERS+1]; 
+    std::vector<std::vector<unsigned long> > funcparamtypes;
+    std::vector<std::vector<short> > funcParamDefaultValues;
     char tempBuffer[2][MAX_SYM_LEN];
     int  usingTempBuffer;
 

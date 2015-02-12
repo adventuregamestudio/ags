@@ -15,7 +15,6 @@
 #define NEST_DOSINGLE   9 // Single Do statement
 #define NEST_FOR        10 // For statement
 #define MAX_FUNCTIONS 2000
-#define MAXSYMBOLS 10000
 #define MAX_FUNCTION_PARAMETERS 15
 // This is the maximum length of a "static string" in the script
 #define MAX_SYM_LEN 500

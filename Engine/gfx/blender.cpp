@@ -175,6 +175,7 @@ unsigned long _additive_alpha_copysrc_blender(unsigned long x, unsigned long y, 
 FORCEINLINE unsigned long argb2argb_blend_core(unsigned long src_col, unsigned long dst_col, unsigned long src_alpha)
 {
     unsigned long dst_g, dst_alpha;
+    src_alpha++;
     dst_alpha = geta32(dst_col);
     if (dst_alpha)
         dst_alpha++;
@@ -213,11 +214,8 @@ unsigned long _argb2argb_blender(unsigned long src_col, unsigned long dst_col, u
         src_alpha = geta32(src_col) * ((src_alpha & 0xFF) + 1) / 256;
     else
         src_alpha = geta32(src_col);
-    if (src_alpha)
-        src_alpha++;
-    else
+    if (src_alpha == 0)
         return dst_col;
-
     return argb2argb_blend_core(src_col, dst_col, src_alpha);
 }
 
@@ -225,10 +223,6 @@ unsigned long _rgb2argb_blender(unsigned long src_col, unsigned long dst_col, un
 {
     if (src_alpha == 0 || src_alpha == 0xFF)
         return src_col | 0xFF000000;
-
-    src_alpha = 0xFF * ((src_alpha & 0xFF) + 1) / 256;
-    src_alpha++;
-
     return argb2argb_blend_core(src_col | 0xFF000000, dst_col, src_alpha);
 }
 

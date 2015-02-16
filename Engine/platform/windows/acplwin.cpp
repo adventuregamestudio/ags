@@ -104,6 +104,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
+  virtual const char* GetAllegroFailUserHint();
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
   virtual void PlayVideo(const char* name, int skip, int flags);
@@ -712,6 +713,11 @@ unsigned long AGSWin32::GetDiskFreeSpaceMB() {
 
 const char* AGSWin32::GetNoMouseErrorString() {
   return "No mouse was detected on your system, or your mouse is not configured to work with DirectInput. You must have a mouse to play this game.";
+}
+
+const char* AGSWin32::GetAllegroFailUserHint()
+{
+  return "Make sure you have DirectX 5 or above installed.";
 }
 
 eScriptSystemOSID AGSWin32::GetSystemOSID() {

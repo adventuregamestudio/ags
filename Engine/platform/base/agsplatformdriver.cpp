@@ -46,6 +46,10 @@ void AGSPlatformDriver::DisplaySwitchIn() { }
 void AGSPlatformDriver::RegisterGameWithGameExplorer() { }
 void AGSPlatformDriver::UnRegisterGameWithGameExplorer() { }
 
+const char* AGSPlatformDriver::GetAllegroFailUserHint()
+{
+    return "Make sure you have latest version of Allegro 4 libraries installed, and your system is running in graphical mode.";
+}
 
 void AGSPlatformDriver::GetSystemTime(ScriptDateTime *sdt) {
     struct tm *newtime;

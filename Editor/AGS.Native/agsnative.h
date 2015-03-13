@@ -31,6 +31,7 @@
 #define CHUNKSIZE 256000
 #define MAX_FILENAME_LENGTH 100
 #define SAVEBUFFERSIZE 5120
+#define MAX_PLUGINS 40
 
 extern const int RAND_SEED_SALT;
 extern const char *clibendsig;

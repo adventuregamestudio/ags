@@ -1237,6 +1237,10 @@ namespace AGS.Editor
 
         private static void WritePluginsToDisk(BinaryWriter writer, Game game)
         {
+            if (game.Plugins.Count > NativeConstants.MAX_PLUGINS)
+            {
+                throw new CompileError("Too many plugins");
+            }
             writer.Write(1); // version
             writer.Write(game.Plugins.Count);
             foreach (Plugin plugin in game.Plugins)
@@ -1298,6 +1302,10 @@ namespace AGS.Editor
             for (int i = 0; i < NativeConstants.MAX_SPRITES; ++i)
             {
                 writer.Write(spriteFlags[i]);
+            }
+            if (game.InventoryItems.Count > NativeConstants.MAX_INV)
+            {
+                throw new CompileError("Too many inventory items");
             }
             writer.Write(new byte[68]); // inventory item slot 0 is unused
             for (int i = 0; i < game.InventoryItems.Count; ++i)
@@ -1457,6 +1465,10 @@ namespace AGS.Editor
             {
                 if (string.IsNullOrEmpty(game.GlobalMessages[i])) continue;
                 WriteStringEncrypted(writer, game.GlobalMessages[i]);
+            }
+            if (game.Dialogs.Count > NativeConstants.MAX_DIALOG)
+            {
+                throw new CompileError("Too many dialogs");
             }
             foreach (Dialog curDialog in game.Dialogs)
             {

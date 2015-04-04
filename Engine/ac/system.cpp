@@ -37,7 +37,12 @@ extern ScriptSystem scsystem;
 extern int scrnwid,scrnhit;
 extern IGraphicsDriver *gfxDriver;
 extern CCAudioChannel ccDynamicAudio;
+extern volatile bool switched_away;
 
+bool System_HasInputFocus()
+{
+    return !switched_away;
+}
 
 int System_GetColorDepth() {
     return final_col_dep;
@@ -228,6 +233,11 @@ RuntimeScriptValue Sc_System_GetHardwareAcceleration(const RuntimeScriptValue *p
     API_SCALL_INT(System_GetHardwareAcceleration);
 }
 
+RuntimeScriptValue Sc_System_GetHasInputFocus(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL(System_HasInputFocus);
+}
+
 // int ()
 RuntimeScriptValue Sc_System_GetNumLock(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -328,6 +338,7 @@ void RegisterSystemAPI()
     ccAddExternalStaticFunction("System::get_Gamma",                Sc_System_GetGamma);
     ccAddExternalStaticFunction("System::set_Gamma",                Sc_System_SetGamma);
     ccAddExternalStaticFunction("System::get_HardwareAcceleration", Sc_System_GetHardwareAcceleration);
+    ccAddExternalStaticFunction("System::get_HasInputFocus",        Sc_System_GetHasInputFocus);
     ccAddExternalStaticFunction("System::get_NumLock",              Sc_System_GetNumLock);
     ccAddExternalStaticFunction("System::set_NumLock",              Sc_System_SetNumLock);
     ccAddExternalStaticFunction("System::get_OperatingSystem",      Sc_System_GetOS);

@@ -1763,6 +1763,8 @@ struct System {
   import static attribute int  Gamma;
   /// Gets whether the game is running with 3D Hardware Acceleration.
   readonly import static attribute bool HardwareAcceleration;
+  /// Gets whether the game window has input focus
+  readonly import static attribute bool HasInputFocus;
   /// Gets whether Num Lock is currently on.
   readonly import static attribute bool NumLock;
   /// Gets which operating system the game is running on.

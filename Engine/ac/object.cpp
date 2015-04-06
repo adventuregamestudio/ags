@@ -385,14 +385,14 @@ const char* Object_GetTextProperty(ScriptObject *objj, const char *property)
     return get_text_property_dynamic_string(croom->objProps[objj->id], property);
 }
 
-void Object_SetProperty(ScriptObject *objj, const char *property, int value)
+bool Object_SetProperty(ScriptObject *objj, const char *property, int value)
 {
-    set_int_property(croom->objProps[objj->id], property, value);
+    return set_int_property(croom->objProps[objj->id], property, value);
 }
 
-void Object_SetTextProperty(ScriptObject *objj, const char *property, const char *value)
+bool Object_SetTextProperty(ScriptObject *objj, const char *property, const char *value)
 {
-    set_text_property(croom->objProps[objj->id], property, value);
+    return set_text_property(croom->objProps[objj->id], property, value);
 }
 
 void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) {
@@ -533,12 +533,12 @@ RuntimeScriptValue Sc_Object_GetTextProperty(void *self, const RuntimeScriptValu
 
 RuntimeScriptValue Sc_Object_SetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ_PINT(ScriptObject, Object_SetProperty, const char);
+    API_OBJCALL_BOOL_POBJ_PINT(ScriptObject, Object_SetProperty, const char);
 }
 
 RuntimeScriptValue Sc_Object_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ2(ScriptObject, Object_SetTextProperty, const char, const char);
+    API_OBJCALL_BOOL_POBJ2(ScriptObject, Object_SetTextProperty, const char, const char);
 }
 
 // void (ScriptObject *objj)

@@ -1039,14 +1039,14 @@ const char* Character_GetTextProperty(CharacterInfo *chaa, const char *property)
     return get_text_property_dynamic_string(game.charProps[chaa->index_id], property);
 }
 
-void Character_SetProperty(CharacterInfo *chaa, const char *property, int value)
+bool Character_SetProperty(CharacterInfo *chaa, const char *property, int value)
 {
-    set_int_property(game.charProps[chaa->index_id], property, value);
+    return set_int_property(game.charProps[chaa->index_id], property, value);
 }
 
-void Character_SetTextProperty(CharacterInfo *chaa, const char *property, const char *value)
+bool Character_SetTextProperty(CharacterInfo *chaa, const char *property, const char *value)
 {
-    set_text_property(game.charProps[chaa->index_id], property, value);
+    return set_text_property(game.charProps[chaa->index_id], property, value);
 }
 
 ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {
@@ -2928,12 +2928,12 @@ RuntimeScriptValue Sc_Character_GetTextProperty(void *self, const RuntimeScriptV
 
 RuntimeScriptValue Sc_Character_SetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ_PINT(CharacterInfo, Character_SetProperty, const char);
+    API_OBJCALL_BOOL_POBJ_PINT(CharacterInfo, Character_SetProperty, const char);
 }
 
 RuntimeScriptValue Sc_Character_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ2(CharacterInfo, Character_SetTextProperty, const char, const char);
+    API_OBJCALL_BOOL_POBJ2(CharacterInfo, Character_SetTextProperty, const char, const char);
 }
 
 // int (CharacterInfo *chaa, ScriptInvItem *invi)

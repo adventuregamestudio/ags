@@ -102,14 +102,14 @@ const char* Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property)
     return get_text_property_dynamic_string(croom->hsProps[hss->id], property);
 }
 
-void Hotspot_SetProperty(ScriptHotspot *hss, const char *property, int value)
+bool Hotspot_SetProperty(ScriptHotspot *hss, const char *property, int value)
 {
-    set_int_property(croom->hsProps[hss->id], property, value);
+    return set_int_property(croom->hsProps[hss->id], property, value);
 }
 
-void Hotspot_SetTextProperty(ScriptHotspot *hss, const char *property, const char *value)
+bool Hotspot_SetTextProperty(ScriptHotspot *hss, const char *property, const char *value)
 {
-    set_text_property(croom->hsProps[hss->id], property, value);
+    return set_text_property(croom->hsProps[hss->id], property, value);
 }
 
 int get_hotspot_at(int xpp,int ypp) {
@@ -164,12 +164,12 @@ RuntimeScriptValue Sc_Hotspot_GetTextProperty(void *self, const RuntimeScriptVal
 
 RuntimeScriptValue Sc_Hotspot_SetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ_PINT(ScriptHotspot, Hotspot_SetProperty, const char);
+    API_OBJCALL_BOOL_POBJ_PINT(ScriptHotspot, Hotspot_SetProperty, const char);
 }
 
 RuntimeScriptValue Sc_Hotspot_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ2(ScriptHotspot, Hotspot_SetTextProperty, const char, const char);
+    API_OBJCALL_BOOL_POBJ2(ScriptHotspot, Hotspot_SetTextProperty, const char, const char);
 }
 
 RuntimeScriptValue Sc_Hotspot_IsInteractionAvailable(void *self, const RuntimeScriptValue *params, int32_t param_count)

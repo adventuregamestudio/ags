@@ -195,12 +195,12 @@ const char* Room_GetTextProperty(const char *property)
     return get_text_property_dynamic_string(croom->roomProps, property);
 }
 
-void Room_SetProperty(const char *property, int value)
+bool Room_SetProperty(const char *property, int value)
 {
     return set_int_property(croom->roomProps, property, value);
 }
 
-void Room_SetTextProperty(const char *property, const char *value)
+bool Room_SetTextProperty(const char *property, const char *value)
 {
     return set_text_property(croom->roomProps, property, value);
 }
@@ -1189,13 +1189,13 @@ RuntimeScriptValue Sc_Room_GetTextProperty(const RuntimeScriptValue *params, int
 
 RuntimeScriptValue Sc_Room_SetProperty(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ_PINT(Room_SetProperty, const char);
+    API_SCALL_BOOL_POBJ_PINT(Room_SetProperty, const char);
 }
 
 // const char* (const char *property)
 RuntimeScriptValue Sc_Room_SetTextProperty(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ2(Room_SetTextProperty, const char, const char);
+    API_SCALL_BOOL_POBJ2(Room_SetTextProperty, const char, const char);
 }
 
 // int ()

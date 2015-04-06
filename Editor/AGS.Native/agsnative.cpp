@@ -1478,7 +1478,6 @@ bool reset_sprite_file() {
   return true;
 }
 
-#define MAX_PLUGINS 40
 struct PluginData 
 {
 	char filename[50];

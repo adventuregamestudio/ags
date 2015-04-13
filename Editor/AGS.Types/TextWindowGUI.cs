@@ -6,6 +6,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [DefaultProperty("TextColor")]
     public class TextWindowGUI : GUI
     {
 		private int _textColor;

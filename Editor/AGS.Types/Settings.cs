@@ -10,6 +10,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [DeserializeIgnore("LastBuildConfiguration")]
+    [DefaultProperty("DebugMode")]
     public class Settings : ICustomTypeDescriptor
     {
         public const string PROPERTY_GAME_NAME = "Game name";

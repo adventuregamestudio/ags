@@ -9,6 +9,7 @@ using AGS.Types.Interfaces;
 
 namespace AGS.Types
 {
+    [DefaultProperty("Name")]
     public class Script : IScript, IToXml
     {
         public const string GLOBAL_SCRIPT_FILE_NAME = "GlobalScript.asc";

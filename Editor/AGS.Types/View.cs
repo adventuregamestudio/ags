@@ -6,6 +6,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [DefaultProperty("Name")]
     public class View : IToXml, IComparable<View>
     {
         public delegate void ViewUpdatedHandler(View view);

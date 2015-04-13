@@ -8,6 +8,7 @@ namespace AGS.Types
 {
     [Serializable]
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
+    [DefaultProperty("HandleImage")]
     public class GUISlider : GUIControl
     {
         public const string CONTROL_DISPLAY_NAME = "Slider";

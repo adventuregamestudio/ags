@@ -7,6 +7,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [Serializable]
+    [DefaultProperty("Image")]
     public class GUITextWindowEdge : GUIControl
     {
         public const string CONTROL_DISPLAY_NAME = "TextWindowEdge";

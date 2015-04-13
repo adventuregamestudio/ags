@@ -6,6 +6,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [DefaultProperty("DefaultFrame")]
     public class LipSync
     {
 		public const int MAX_LIP_SYNC_FRAMES = 20;

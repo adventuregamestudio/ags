@@ -6,6 +6,7 @@ using System.Text;
 
 namespace AGS.Types
 {
+    [DefaultProperty("ScalingLevel")]
     public class RoomWalkableArea : ICustomTypeDescriptor
     {
         private int _id;

@@ -7,6 +7,7 @@ using System.Text;
 namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
+    [DefaultProperty("Description")]
     public class Room : UnloadedRoom, IChangeNotification, ILoadedRoom
     {
         // These constants are also defined in the native code, if you change

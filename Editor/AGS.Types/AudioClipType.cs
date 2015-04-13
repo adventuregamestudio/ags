@@ -4,6 +4,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [DefaultProperty("VolumeReductionWhileSpeechPlaying")]
     public class AudioClipType
     {
         [ReadOnly(true)]

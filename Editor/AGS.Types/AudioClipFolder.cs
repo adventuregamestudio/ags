@@ -16,6 +16,7 @@ namespace AGS.Types
             base(new AudioClipFolder(node)) { }
     }
 
+    [DefaultProperty("DefaultBundlingType")]
     public class AudioClipFolder : BaseFolderCollection<AudioClip, AudioClipFolder>
     {
         private int _volume = 100;

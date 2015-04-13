@@ -6,6 +6,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [DefaultProperty("Text")]
     public class DialogOption
     {
         private int _id;

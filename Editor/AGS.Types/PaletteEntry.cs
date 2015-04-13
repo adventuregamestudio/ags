@@ -6,6 +6,7 @@ using System.Text;
 
 namespace AGS.Types
 {
+    [DefaultProperty("Colour")]
     public class PaletteEntry
     {
         public const string PROPERTY_COLOR_TYPE = "ColourType";

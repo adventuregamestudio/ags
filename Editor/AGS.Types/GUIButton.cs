@@ -6,9 +6,10 @@ using System.Xml;
 using System.Drawing;
 
 namespace AGS.Types
-{
+{    
     [Serializable]
-    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
+    [DefaultProperty("Image")]
+    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]    
     public class GUIButton : GUIControl
     {
         public const string CONTROL_DISPLAY_NAME = "Button";

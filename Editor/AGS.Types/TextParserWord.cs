@@ -6,6 +6,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [DefaultProperty("Word")]
     public class TextParserWord
     {
         private int _wordGroup;

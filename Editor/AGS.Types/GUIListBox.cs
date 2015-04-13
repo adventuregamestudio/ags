@@ -6,9 +6,10 @@ using System.Xml;
 using System.Drawing;
 
 namespace AGS.Types
-{
-    [Serializable]
+{    
+    [Serializable]    
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
+    [DefaultProperty("TextColor")]
     public class GUIListBox : GUIControl
     {
         public const string CONTROL_DISPLAY_NAME = "ListBox";

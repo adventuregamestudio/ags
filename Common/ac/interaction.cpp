@@ -147,7 +147,6 @@ NewInteractionCommandList::NewInteractionCommandList()
 
 NewInteractionCommandList::NewInteractionCommandList(const NewInteractionCommandList &nicmd_list)
 {
-    reset();
     numCommands = nicmd_list.numCommands;
     timesRun = nicmd_list.timesRun;
     for (int i = 0; i < numCommands; ++i)

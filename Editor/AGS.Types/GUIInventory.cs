@@ -7,6 +7,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [Serializable]
+    [DefaultProperty("CharacterID")]
     public class GUIInventory : GUIControl
     {
         public const string CONTROL_DISPLAY_NAME = "InventoryWindow";

@@ -5,6 +5,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [DefaultProperty("BundlingType")]
     public class AudioClip : IToXml, IComparable<AudioClip>
     {
         private const string COMPILED_AUDIO_FILENAME_PREFIX = "au";

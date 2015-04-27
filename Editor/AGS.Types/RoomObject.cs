@@ -6,6 +6,7 @@ using System.Text;
 namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
+    [DefaultProperty("Image")]
 	public class RoomObject : IComparable<RoomObject>, IChangeNotification, ICustomTypeDescriptor
     {
 		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";

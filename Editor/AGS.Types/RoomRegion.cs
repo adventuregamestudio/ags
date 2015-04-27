@@ -7,6 +7,7 @@ using System.Text;
 namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
+    [DefaultProperty("LightLevel")]
     public class RoomRegion : ICustomTypeDescriptor
     {
         private static InteractionSchema _interactionSchema;

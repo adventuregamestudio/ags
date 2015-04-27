@@ -6,6 +6,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [DefaultProperty("OutlineStyle")]
     public class Font
     {
         private int _id;

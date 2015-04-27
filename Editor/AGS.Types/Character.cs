@@ -8,6 +8,7 @@ using System.Drawing;
 namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
+    [DefaultProperty("StartingRoom")]
     public class Character : ICustomTypeDescriptor, IToXml, IComparable<Character>
     {
         public const string PROPERTY_NAME_SCRIPTNAME = "ScriptName";

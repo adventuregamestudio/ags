@@ -6,9 +6,10 @@ using System.Xml;
 using System.Drawing;
 
 namespace AGS.Types
-{
+{    
     [Serializable]
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
+    [DefaultProperty("BackgroundImage")]
     public abstract class GUI : IToXml, IComparable<GUI>
     {
         public const int LEGACY_MAX_CONTROLS_PER_GUI = 30;

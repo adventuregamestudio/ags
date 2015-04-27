@@ -7,6 +7,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
+    [DefaultProperty("Image")]
     public class InventoryItem : IToXml, IComparable<InventoryItem>
     {
         private static InteractionSchema _interactionSchema;

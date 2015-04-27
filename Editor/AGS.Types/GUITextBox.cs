@@ -9,6 +9,7 @@ namespace AGS.Types
 {
     [Serializable]
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
+    [DefaultProperty("TextColor")]
     public class GUITextBox : GUIControl
     {
         public const string CONTROL_DISPLAY_NAME = "TextBox";

@@ -8,6 +8,7 @@ using System.Drawing;
 namespace AGS.Types
 {
     [Serializable]
+    [DefaultProperty("Text")]
     public class GUILabel : GUIControl
     {
         public const string CONTROL_DISPLAY_NAME = "Label";

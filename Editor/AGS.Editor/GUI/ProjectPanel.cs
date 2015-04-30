@@ -14,6 +14,13 @@ namespace AGS.Editor
         public ProjectPanel()
         {
             InitializeComponent();
+            this.LoadColorTheme();
+        }
+
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_TreeView(this.projectTree);
         }
     }
 }

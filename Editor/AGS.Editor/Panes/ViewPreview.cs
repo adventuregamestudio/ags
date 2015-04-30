@@ -23,6 +23,7 @@ namespace AGS.Editor
         public ViewPreview()
         {
             InitializeComponent();
+            this.LoadColorTheme();
         }
 
         public string Title
@@ -234,6 +235,15 @@ namespace AGS.Editor
 
         private void udDelay_ValueChanged(object sender, EventArgs e)
         {
+        }
+
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_GroupBox(this.mainGroupBox);
+            colorTheme.Color_NumericUpDown(this.udLoop);
+            colorTheme.Color_NumericUpDown(this.udFrame);
+            colorTheme.Color_NumericUpDown(this.udDelay);
         }
     }
 }

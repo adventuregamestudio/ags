@@ -72,6 +72,7 @@ namespace AGS.Editor
         private GUIController()
         {
             _menuItems = new Dictionary<string, IEditorComponent>();
+            this.InitializeColorTheme();
         }
 
         private static GUIController _instance;
@@ -136,6 +137,12 @@ namespace AGS.Editor
         public Icon MainIcon
         {
             get { return _mainForm.Icon; }
+        }
+
+        public ColorTheme UserColorTheme
+        {
+            get;
+            private set;
         }
 
 		public void ShowMessage(string message, MessageBoxIconType icon)
@@ -1681,6 +1688,24 @@ namespace AGS.Editor
                 key.SetValue("MainWinSplitter1", splitterX.ToString());
                 key.SetValue("MainWinSplitter2", splitterY.ToString());*/
                 key.Close();
+            }
+        }
+
+        private void InitializeColorTheme()
+        {
+            string colorTheme = Factory.AGSEditor.Preferences.EditorColorTheme;
+
+            if (colorTheme.Equals("Vanilla"))
+            {
+                this.UserColorTheme = new VanillaTheme();
+            }
+            else if (colorTheme.Equals("Draconian"))
+            {
+                this.UserColorTheme = new DraconianTheme();
+            }
+            else
+            {
+                // TODO --- Load Custom Color theme
             }
         }
 

@@ -13,7 +13,8 @@ namespace AGS.Editor
     {
         public PropertiesPanel()
         {
-            InitializeComponent();                          
+            InitializeComponent();
+            this.LoadColorTheme();              
         }
 
         public event PropertyValueChangedEventHandler PropertyValueChanged
@@ -26,6 +27,21 @@ namespace AGS.Editor
         {
             add { propertyObjectCombo.SelectedIndexChanged += value; }
             remove { propertyObjectCombo.SelectedIndexChanged -= value; }
+        }
+
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_PropertyGrid(this.propertiesGrid);
+            if(colorTheme is DraconianTheme)
+            {
+                //For reasons I'm unable to figure out, calling the combo box swap from code stops the text from rendering
+                //However, calling the code lines directly form here makes it work, even though the code appears to be the same
+                //colorTheme.Color_ComboBox(this.propertyObjectCombo, this);
+                this.Controls.Remove(this.propertyObjectCombo);
+                this.propertyObjectCombo = new DraconianComboBox(this.propertyObjectCombo);
+                this.Controls.Add(this.propertyObjectCombo);
+            }            
         }
     }
 }

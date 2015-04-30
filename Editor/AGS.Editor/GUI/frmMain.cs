@@ -35,6 +35,7 @@ namespace AGS.Editor
         public frmMain()
         {
             InitializeComponent();
+            this.LoadColorTheme();
             
             tabbedDocumentContainer1.ActiveDocumentChanged += new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanged);
             tabbedDocumentContainer1.ActiveDocumentChanging += new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanging);
@@ -505,5 +506,18 @@ namespace AGS.Editor
             //SetPropertyObject(null);
         }
 
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_DockPanel(this.mainContainer);
+            colorTheme.Color_MenuStripExtended(this.mainMenu);
+            colorTheme.Color_DockContent(this.projectPanel);
+            colorTheme.Color_DockContent(this.propertiesPanel);
+            colorTheme.Color_DockContent(this.pnlOutput);
+            colorTheme.Color_DockContent(this.pnlCallStack);
+            colorTheme.Color_DockContent(this.pnlFindResults);
+            colorTheme.Color_ToolStripExtended(this.toolStrip);
+            colorTheme.Color_StatusStrip(this.statusStrip);
+        }  
     }
 }

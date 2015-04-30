@@ -17,6 +17,7 @@ namespace AGS.Editor
         public InventoryEditor()
         {
             InitializeComponent();
+            this.LoadColorTheme();
         }
 
         public InventoryEditor(InventoryItem itemToEdit) : this()
@@ -97,5 +98,13 @@ namespace AGS.Editor
             }
         }
 
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_EditorContentPanel(this);
+            colorTheme.Color_GroupBox(this.currentItemGroupBox);
+            colorTheme.Color_GroupBox(this.groupBox1);
+            colorTheme.Color_GroupBox(this.groupBox2);
+        }
     }
 }

@@ -16,6 +16,7 @@ namespace AGS.Editor
         public GeneralSettings()
         {
             InitializeComponent();
+            this.LoadColorTheme();
 
             gameSettings.SelectedObject = Factory.AGSEditor.CurrentGame.Settings;
         }
@@ -135,5 +136,11 @@ namespace AGS.Editor
             }
         }
 
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_EditorContentPanel(this);
+            colorTheme.Color_PropertyGrid(this.gameSettings);
+        }
     }
 }

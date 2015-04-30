@@ -18,6 +18,7 @@ namespace AGS.Editor
         public CharacterEditor(Character characterToEdit)
         {
             InitializeComponent();
+            this.LoadColorTheme();
             _character = characterToEdit;
             _normalFont = lblIsPlayer.Font;
             _boldFont = new System.Drawing.Font(_normalFont.Name, _normalFont.Size, FontStyle.Bold);
@@ -78,5 +79,12 @@ namespace AGS.Editor
             }
         }
 
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_EditorContentPanel(this);
+            colorTheme.Color_GroupBox(this.groupBox1);
+            colorTheme.Color_Button(this.btnMakePlayer);
+        }
     }
 }

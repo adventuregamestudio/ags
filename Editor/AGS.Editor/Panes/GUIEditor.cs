@@ -75,6 +75,7 @@ namespace AGS.Editor
         public GUIEditor()
         {
             InitializeComponent();
+            this.LoadColorTheme();
 
             Factory.GUIController.OnPropertyObjectChanged += new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
         }
@@ -1140,5 +1141,10 @@ namespace AGS.Editor
 			}
 		}
 
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_EditorContentPanel(this);
+        }
     }
 }

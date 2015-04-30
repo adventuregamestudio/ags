@@ -28,6 +28,7 @@ namespace AGS.Editor
         public GlobalVariablesEditor(Game game)
         {
             InitializeComponent();
+            this.LoadColorTheme();
             lvwWords.ListViewItemSorter = new GlobalVariableComparer();
             _game = game;
             _variables = game.GlobalVariables;
@@ -209,5 +210,12 @@ namespace AGS.Editor
             }
         }
 
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_EditorContentPanel(this);
+            colorTheme.Color_GroupBox(this.mainFrame);
+            colorTheme.Color_ListView(this.lvwWords);
+        }
     }
 }

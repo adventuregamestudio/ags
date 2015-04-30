@@ -72,6 +72,7 @@ namespace AGS.Editor
         public SpriteSelector()
         {
             InitializeComponent();
+            this.LoadColorTheme();
             _folders = new Dictionary<string, SpriteFolder>(
                 // The TreeNodeCollection uses case-insensitive string comparer
                 StringComparer.Create(System.Globalization.CultureInfo.CurrentCulture, true));
@@ -1519,6 +1520,17 @@ namespace AGS.Editor
 			return _nodeFolderMapping[draggedIntoFolder];
 		}
 
+        private void LoadColorTheme()
+        {
+            ColorTheme colorTheme = Factory.GUIController.UserColorTheme;
+            colorTheme.Color_UserControl(this);
+            colorTheme.Color_TreeView(this.folderList);
+            if (colorTheme is DraconianTheme)
+            {
+                this.spriteList.BackColor = (colorTheme as DraconianTheme).PanelColor;
+                this.spriteList.ForeColor = (colorTheme as DraconianTheme).White;
+            }
+        }
     }
 
 	internal class SpriteManagerDragDropData

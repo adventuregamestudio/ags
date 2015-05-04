@@ -499,6 +499,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     our_eip=202;
     const int real_room_height = multiply_up_coordinate(thisroom.height);
     // Frame size is updated when letterbox mode is on, or when room's size is smaller than game's size.
+    // NOTE: if "want_letterbox" is false, GameSize.Height = final_scrn_hit always.
     if (usetup.want_letterbox ||
             real_room_height < GameSize.Height || scrnhit < GameSize.Height) {
         int abscreen=0;
@@ -507,7 +508,11 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         if (ds==BitmapHelper::GetScreenBitmap()) abscreen=1;
         else if (ds==virtual_screen) abscreen=2;
         int newScreenHeight = final_scrn_hit;
-        const int viewport_height = Math::Min(real_room_height, GameSize.Height);
+        // [IKM] 2015-05-04: in original engine the letterbox feature only allowed viewports of
+        // either 200 or 240 (400 and 480) pixels, if the room height was equal or greater than 200 (400).
+        const int viewport_height = real_room_height < GameSize.Height ? real_room_height :
+            (real_room_height >= GameSize.Height && real_room_height < final_scrn_hit) ? GameSize.Height :
+            final_scrn_hit;
         if (viewport_height < final_scrn_hit) {
             clear_letterbox_borders();
             newScreenHeight = viewport_height;

@@ -5,11 +5,40 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace AGS.Editor.Components
 {
     class HelpCommandsComponent : BaseComponent
     {
+        [StructLayout(LayoutKind.Sequential)]
+        private struct Rect
+        {
+            public int Left { get; set; }
+            public int Top { get; set; }
+            public int Right { get; set; }
+            public int Bottom { get; set; }
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MonitorInfo
+        {
+            public int cbSize;
+            public Rect rcMonitor;
+            public Rect rcWork;
+            public uint dwFlags;
+        }
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr MonitorFromWindow(IntPtr windowHandle, uint flags);
+        [DllImport("user32.dll")]
+        private static extern bool GetMonitorInfo(IntPtr monitorHandle, ref MonitorInfo info);
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool SetWindowPos(IntPtr windowHandle, IntPtr handleInsertAfter, int x, int y, int cx, int cy, uint flags);
+
+        private const uint MONITOR_DEFAULTTONEAREST = 2;
+        private const uint SWP_NOZORDER = 0x0004;
+
         private const string LAUNCH_HELP_COMMAND = "LaunchHelp";
         private const string HELP_CONTENTS_COMMAND = "HelpContents";
         private const string HELP_INDEX_COMMAND = "HelpIndex";
@@ -101,10 +130,12 @@ namespace AGS.Editor.Components
             else if (controlID == HELP_CONTENTS_COMMAND)
             {
                 Help.ShowHelp(GetHelpParentWindow(), _helpFileName);
+                AdjustHelpWindowSize();
             }
             else if (controlID == HELP_INDEX_COMMAND)
             {
                 Help.ShowHelpIndex(GetHelpParentWindow(), _helpFileName);
+                AdjustHelpWindowSize();
             }
             else if (controlID == CRASH_EDITOR_COMMAND)
             {
@@ -120,6 +151,7 @@ namespace AGS.Editor.Components
         private void LaunchHelp(string url, HelpNavigator command, object parameter)
         {
             Help.ShowHelp(GetHelpParentWindow(), url, command, parameter);
+            AdjustHelpWindowSize();
         }
 
         /// <summary>
@@ -164,7 +196,7 @@ namespace AGS.Editor.Components
             try
             {
                 string dataDownload = (string)BusyDialog.Show("Please wait while we check for updates...", new BusyDialog.ProcessingHandler(DownloadUpdateStatusThread), null);
-                
+
                 XmlDocument doc = new XmlDocument();
                 doc.LoadXml(dataDownload);
                 string newVersionName;
@@ -223,7 +255,7 @@ namespace AGS.Editor.Components
         private VersionCheckStatus CompareSoftwareVersions(string serverVersionText)
         {
             string[] serverVersion = serverVersionText.Split('.');
-			string[] thisVersion = AGS.Types.Version.AGS_EDITOR_VERSION.Split('.');
+            string[] thisVersion = AGS.Types.Version.AGS_EDITOR_VERSION.Split('.');
             VersionCheckStatus status = VersionCheckStatus.Equal;
 
             for (int i = 0; i < serverVersion.Length; i++)
@@ -242,6 +274,28 @@ namespace AGS.Editor.Components
                 }
             }
             return status;
+        }
+
+        /// <summary>
+        /// The HTML Help API's HtmlHelp method forces the help window to stretch across multiple monitors if it opens at a negative location (-x, -y).
+        /// This method resizes the window to the work-space size of the monitor that it is in.
+        /// This method must be called immediately after opening the Help window with the Help class.
+        /// </summary>
+        private bool AdjustHelpWindowSize()
+        {
+            IntPtr helpHandle = Process.GetCurrentProcess().MainWindowHandle; // get the Help window handle
+            if (helpHandle == null)
+            {
+                return false;
+            }
+            MonitorInfo monitorInfo = new MonitorInfo();
+            monitorInfo.cbSize = Marshal.SizeOf(monitorInfo);
+            if (!GetMonitorInfo(MonitorFromWindow(helpHandle, MONITOR_DEFAULTTONEAREST), ref monitorInfo))
+            {
+                return false;
+            }
+            Rect workSize = monitorInfo.rcWork;
+            return SetWindowPos(helpHandle, IntPtr.Zero, workSize.Left, workSize.Top, workSize.Right - workSize.Left, workSize.Bottom - workSize.Top, SWP_NOZORDER);
         }
 
         private enum VersionCheckStatus

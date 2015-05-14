@@ -20,7 +20,10 @@
 #include "ac/gamestate.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "debug/out.h"
 #include "script/script.h"
+
+using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern GameState play;
@@ -61,11 +64,21 @@ void StopDialog() {
   play.stop_dialog_at_end = DIALOG_STOP;
 }
 
-void SetDialogOption(int dlg,int opt,int onoroff) {
+void SetDialogOption(int dlg, int opt, int onoroff, bool dlg_script)
+{
   if ((dlg<0) | (dlg>=game.numdialog))
     quit("!SetDialogOption: Invalid topic number specified");
   if ((opt<1) | (opt>dialog[dlg].numoptions))
+  {
+    // Pre-3.1.1 games had "dialog scripts" that were written in different language and
+    // parsed differently; its "option-on/off" commands were more permissive.
+    if (dlg_script)
+    {
+      Out::FPrint("SetDialogOption: Invalid option number specified (%d : %d)", dlg, opt);
+      return;
+    }
     quit("!SetDialogOption: Invalid option number specified");
+  }
   opt--;
 
   dialog[dlg].optionflags[opt]&=~DFLG_ON;

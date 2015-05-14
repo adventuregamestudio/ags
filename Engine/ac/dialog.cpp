@@ -233,12 +233,12 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
 
         case DCMD_OPTOFF:
           get_dialog_script_parameters(script, &param1, NULL);
-          SetDialogOption(dialogID, param1 + 1, 0);
+          SetDialogOption(dialogID, param1 + 1, 0, true);
           break;
 
         case DCMD_OPTON:
           get_dialog_script_parameters(script, &param1, NULL);
-          SetDialogOption(dialogID, param1 + 1, DFLG_ON);
+          SetDialogOption(dialogID, param1 + 1, DFLG_ON, true);
           break;
 
         case DCMD_RETURN:
@@ -252,7 +252,7 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
 
         case DCMD_OPTOFFFOREVER:
           get_dialog_script_parameters(script, &param1, NULL);
-          SetDialogOption(dialogID, param1 + 1, DFLG_OFFPERM);
+          SetDialogOption(dialogID, param1 + 1, DFLG_OFFPERM, true);
           break;
 
         case DCMD_RUNTEXTSCRIPT:

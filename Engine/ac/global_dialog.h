@@ -20,7 +20,7 @@
 
 void RunDialog(int tum);
 int GetDialogOption (int dlg, int opt);
-void SetDialogOption(int dlg,int opt,int onoroff);
+void SetDialogOption(int dlg, int opt, int onoroff, bool dlg_script = false);
 void StopDialog();
 
 #endif // __AGS_EE_AC__GLOBALDIALOG_H

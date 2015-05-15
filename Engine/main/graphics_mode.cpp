@@ -280,7 +280,7 @@ int initialize_graphics_filter(const char *filterID, int width, int height, int 
     while (thisFilter != NULL) {
 
         if ((filterID != NULL) &&
-            (strcmp(thisFilter->GetFilterID(), filterID) == 0))
+            (stricmp(thisFilter->GetFilterID(), filterID) == 0))
             filter = thisFilter;
         else if (idx > 0)
             delete thisFilter;

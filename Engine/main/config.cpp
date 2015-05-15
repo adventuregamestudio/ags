@@ -222,9 +222,12 @@ void read_config_file(char *argv0) {
         if (usetup.midicard < 0)
             usetup.midicard = MIDI_AUTODETECT;
 #endif
+
+#if !defined (LINUX_VERSION)
         int threaded_audio = INIreadint("sound", "threaded");
         if (threaded_audio >= 0)
             psp_audio_multithreaded = threaded_audio;
+#endif
 
         usetup.windowed = INIreadint("misc", "windowed") > 0;
 

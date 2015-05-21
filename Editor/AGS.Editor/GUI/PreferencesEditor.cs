@@ -45,6 +45,7 @@ namespace AGS.Editor
             udBackupInterval.Enabled = chkBackupReminders.Checked;
             chkRemapBgImport.Checked = _preferences.RemapPalettizedBackgrounds;
             chkKeepHelpOnTop.Checked = _preferences.KeepHelpOnTop;
+            chkPromptDialogOnTabsClose.Checked = _preferences.DialogOnMultibleTabsClose;
             chkUseLegacyCompiler.Checked = _preferences.UseLegacyCompiler;
             Utilities.CheckLabelWidthsOnForm(this);
 		}
@@ -82,6 +83,7 @@ namespace AGS.Editor
             _preferences.BackupWarningInterval = (chkBackupReminders.Checked ? (int)udBackupInterval.Value : 0);
             _preferences.RemapPalettizedBackgrounds = chkRemapBgImport.Checked;
             _preferences.KeepHelpOnTop = chkKeepHelpOnTop.Checked;
+            _preferences.DialogOnMultibleTabsClose = chkPromptDialogOnTabsClose.Checked;
             _preferences.UseLegacyCompiler = chkUseLegacyCompiler.Checked;
 		}
 

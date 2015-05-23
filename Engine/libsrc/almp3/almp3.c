@@ -248,7 +248,9 @@ static int almp3_get_bytes_at_frame_using_toc_mp3(ALMP3_MP3 *mp3, int frame) {
   bytesdif = bytesmax - bytesmin;
   framedif = framemax - framemin;
 
-  bytes = bytesmin + (((frame - framemin) * bytesdif) / framedif);
+  bytes = bytesmin;
+  if (framedif)
+    bytes += (((frame - framemin) * bytesdif) / framedif);
 
   return bytes;
 }

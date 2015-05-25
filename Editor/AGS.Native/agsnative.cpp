@@ -1638,7 +1638,7 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   const char *pluginError = read_plugins_from_disk (iii);
   if (pluginError != NULL) return pluginError;
 
-  thisgame.charProps = new AGS::Common::StringIMap[thisgame.numcharacters];
+  thisgame.charProps.resize(thisgame.numcharacters);
 
   for (bb = 0; bb < thisgame.numcharacters; bb++)
     thisgame.charProps[bb].clear();
@@ -1727,13 +1727,7 @@ void free_old_game_data()
 	  if (dialog[bb].optionscripts != NULL)
 		  free(dialog[bb].optionscripts);
   }
-  if (thisgame.charProps != NULL)
-  {
-    for (bb = 0; bb < thisgame.numcharacters; bb++)
-      thisgame.charProps[bb].clear();
-    delete [] thisgame.charProps;
-    thisgame.charProps = NULL;
-  }
+  thisgame.charProps.clear();
   if (thisgame.intrChar != NULL)
   {
     for (bb = 0; bb < thisgame.numcharacters; bb++)
@@ -4987,7 +4981,7 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	// ** Characters **
 	thisgame.numcharacters = game->Characters->Count;
 	thisgame.chars = (CharacterInfo*)calloc(sizeof(CharacterInfo) * thisgame.numcharacters, 1);
-    thisgame.charProps = new AGS::Common::StringIMap[thisgame.numcharacters];
+    thisgame.charProps.resize(thisgame.numcharacters);
 	for (i = 0; i < thisgame.numcharacters; i++) 
 	{
 		AGS::Types::Character ^character = game->Characters[i];

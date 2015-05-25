@@ -507,7 +507,6 @@ void unload_game_file() {
             game.intrChar[bb] = NULL;
         }
         free(characterScriptObjNames[bb]);
-        game.charProps[bb].clear();
     }
     if (game.intrChar != NULL)
     {
@@ -522,7 +521,7 @@ void unload_game_file() {
     free(actspswb);
     free(actspswbbmp);
     free(actspswbcache);
-    free(game.charProps);
+    game.charProps.clear();
 
     for (bb = 1; bb < game.numinvitems; bb++) {
         if (game.invScripts != NULL)

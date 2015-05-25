@@ -40,7 +40,8 @@ struct GameSetupStruct: public GameSetupStructBase {
     int               filever;  // just used by editor
     char              lipSyncFrameLetters[MAXLIPSYNCFRAMES][50];
     AGS::Common::PropertySchema propSchema;
-    AGS::Common::StringIMap *charProps, invProps[MAX_INV];
+    std::vector<AGS::Common::StringIMap> charProps;
+    AGS::Common::StringIMap invProps[MAX_INV];
     char              **viewNames;
     char              invScriptNames[MAX_INV][MAX_SCRIPT_NAME_LEN];
     char              dialogScriptNames[MAX_DIALOG][MAX_SCRIPT_NAME_LEN];

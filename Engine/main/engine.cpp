@@ -398,13 +398,10 @@ int engine_init_game_data(int argc,char*argv[])
                 sprintf(emsg, "ERROR: Unable to find or open '%s'.\n\n", game_file_name.GetCStr());
             }
         }
-        else if (errcod==Common::kAssetErrLibAssetCount)
+        else if (errcod==Common::kAssetErrLibParse)
         {
-            sprintf(emsg, "ERROR: Too many files in data file.\n\n%s\n\n", game_file_name.GetCStr());
-        }
-        else
-        {
-            sprintf(emsg, "ERROR: The file is corrupt. Make sure you have the correct version of the "
+            sprintf(emsg, "ERROR: The game file is of unsupported format or file is corrupt. "
+                "Make sure you have the correct version of the "
                 "editor, and that this really is an AGS game.\n\n%s\n\n", game_file_name.GetCStr());
         }
 

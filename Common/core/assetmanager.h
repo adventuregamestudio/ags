@@ -14,6 +14,10 @@
 //
 // Asset manager class fore reading and writing game resources
 // Asset manager is a singleton
+//-----------------------------------------------------------------------------
+//
+// The code is based on CLIB32, by Chris Jones (1998-99), DJGPP implementation
+// of the CLIB reader.
 //
 //-----------------------------------------------------------------------------
 //
@@ -26,15 +30,6 @@
 // Files should be registered based on their source package and their types.
 // The user must not have access to this information, but is allowed to query
 // all files of certain type (perhaps, filtered and ordered by their id).
-//
-//=============================================================================
-//
-// CLIB32 - DJGPP implemention of the CLIB reader.
-//
-// 22/12/02 - Shawn's Linux changes approved and integrated - CJ
-//
-// v1.2 (Apr'01)  added support for new multi-file CLIB version 10 files
-// v1.1 (Jul'99)  added support for appended-to-exe data files
 //
 //=============================================================================
 
@@ -65,10 +60,7 @@ enum AssetError
 {
     kAssetNoError           =  0,
     kAssetErrNoLibFile      = -1, // library file not found or can't be read
-    kAssetErrNoLibSig       = -2, // library signature does not match
-    kAssetErrLibVersion     = -3, // library version unsupported
-    kAssetErrNoLibBase      = -4, // file is not library base (head)
-    kAssetErrLibAssetCount  = -5, // too many assets in library
+    kAssetErrLibParse       = -2, // bad library file format or read error
     kAssetErrNoManager      = -6, // asset manager not initialized
 };
 
@@ -92,11 +84,7 @@ public:
     static String       GetAssetFileByIndex(int index);
     static long         GetAssetOffset(const String &asset_name);
     static long         GetAssetSize(const String &asset_name);
-    static long         GetLastAssetSize();    
-    
-    static void         InitPseudoRand(int seed);
-    static int          GetNextPseudoRand();
-
+    static long         GetLastAssetSize();
 
     static bool         DoesAssetExist(const String &asset_name);
     static Stream       *OpenAsset(const String &asset_name,
@@ -120,17 +108,8 @@ private:
     long        _GetAssetOffset(const String &asset_name);
     long        _GetAssetSize(const String &asset_name);
     long        _GetLastAssetSize();
-    
-    void        _InitPseudoRand(int seed);
-    int         _GetNextPseudoRand();
 
     AssetError  RegisterAssetLib(const String &data_file, const String &password);
-
-    AssetError  ReadSingleFileAssetLib(MultiFileLib * mfl, Stream *ci_s, int lib_version);
-    AssetError  ReadMultiFileAssetLib(MultiFileLib * mfl, Stream *ci_s, int lib_version);
-    AssetError  ReadAssetLibV10(MultiFileLib * mfl, Stream *ci_s, int lib_version);
-    AssetError  ReadAssetLibV20(MultiFileLib * mfl, Stream *ci_s, int lib_version);
-    AssetError  ReadAssetLibV21(MultiFileLib * mfl, Stream *ci_s, int lib_version);
 
     bool        _DoesAssetExist(const String &asset_name);
     Stream      *_OpenAsset(const String &asset_name,
@@ -143,23 +122,12 @@ private:
     Stream      *OpenAssetFromDir(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
     Stream      *OpenAssetByPriority(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
 
-    // Decryption routines
-    void        ReadEncArray(void *data, int dataSize, int dataCount, Stream *ci_s);
-    int32_t     ReadEncInt32(Stream *ci_s);
-    void        ReadEncString(char *buffer, int maxLength, Stream *ci_s);
-    void        DecryptText(char *text, int length);
-
     static AssetManager     *_theAssetManager;
     AssetSearchPriority     _searchPriority;
 
     AssetLibInfo            &_assetLib;
+    String                  _basePath;          // library's parent path (directory)
     long                    _lastAssetSize;     // size of asset that was opened last time
-
-    static const String     _libHeadSig;
-    static const String     _libTailSig;
-    static const int        _encryptionRandSeed;
-    static const String     _encryptionString;
-    int                     _lastRandValue;     // to remember last used random number during decryption
 };
 
 } // namespace Common

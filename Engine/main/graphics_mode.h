@@ -22,6 +22,7 @@ int  graphics_mode_init();
 void graphics_mode_shutdown();
 
 extern Size GameSize;
+extern Size LetterboxedGameSize; // size of the game combined with letterbox borders
 extern int final_scrn_wid, final_scrn_hit, final_col_dep, game_frame_y_offset;
 
 #endif // __AGS_EE_MAIN__GRAPHICSMODE_H

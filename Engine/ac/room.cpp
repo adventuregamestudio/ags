@@ -511,8 +511,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         // [IKM] 2015-05-04: in original engine the letterbox feature only allowed viewports of
         // either 200 or 240 (400 and 480) pixels, if the room height was equal or greater than 200 (400).
         const int viewport_height = real_room_height < GameSize.Height ? real_room_height :
-            (real_room_height >= GameSize.Height && real_room_height < final_scrn_hit) ? GameSize.Height :
-            final_scrn_hit;
+            (real_room_height >= GameSize.Height && real_room_height < LetterboxedGameSize.Height) ? GameSize.Height :
+            LetterboxedGameSize.Height;
         if (viewport_height < final_scrn_hit) {
             clear_letterbox_borders();
             newScreenHeight = viewport_height;

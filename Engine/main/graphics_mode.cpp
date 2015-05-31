@@ -68,6 +68,7 @@ extern int _places_r, _places_g, _places_b;
 const int MaxScalingFactor = 8; // we support up to x8 scaling now
 
 Size GameSize;
+Size LetterboxedGameSize;
 int firstDepth, secondDepth;
 String GfxFilterRequest;
 
@@ -241,7 +242,8 @@ void engine_init_screen_settings(Size &game_size, Size &screen_size)
     // include black horizontal borders of fixed height.
     // If the letterbox option is disabled, then the game frame size will be
     // equal to native game size.
-    game_size = ResolutionTypeToSize(game.default_resolution, game.options[OPT_LETTERBOX] != 0);
+    LetterboxedGameSize = ResolutionTypeToSize(game.default_resolution, game.options[OPT_LETTERBOX] != 0);
+    game_size = LetterboxedGameSize;
     screen_size = Size(0, 0);
 
     // Log out display information

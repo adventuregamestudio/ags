@@ -50,7 +50,8 @@ void Hq3xGFXFilter::RenderScreen(Bitmap *toRender, int x, int y) {
     hq3x_32(&toRender->GetScanLineForWriting(0)[0], &realScreenBuffer->GetScanLineForWriting(0)[0], toRender->GetWidth(), toRender->GetHeight(), realScreenBuffer->GetWidth() * BYTES_PER_PIXEL(realScreenBuffer->GetColorDepth()));
     realScreenBuffer->Release();
 
-    realScreen->Blit(realScreenBuffer, 0, 0, x * MULTIPLIER, y * MULTIPLIER, realScreen->GetWidth(), realScreen->GetHeight());
+    realScreen->Blit(realScreenBuffer, 0, 0, x * MULTIPLIER, y * MULTIPLIER,
+        toRender->GetWidth() * MULTIPLIER, toRender->GetHeight() * MULTIPLIER);
 
     lastBlitFrom = toRender;
 }

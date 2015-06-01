@@ -496,10 +496,16 @@ namespace AGS.Editor
             }
             else if (item.Name == MENU_ITEM_CLOSE_ALL)
             {
+                if (Factory.AGSEditor.Preferences.DialogOnMultibleTabsClose && MessageBox.Show("Are you sure you want to close all tabs?", "Confirm close", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+                    return;                
+                    
                 RemoveAllDocuments(null); // null -> Remove all documents, no exceptions
             }
             else if (item.Name == MENU_ITEM_CLOSE_ALL_BUT_THIS)
             {
+                if (Factory.AGSEditor.Preferences.DialogOnMultibleTabsClose && MessageBox.Show("Are you sure you want to close all other tabs?", "Confirm close", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+                    return;
+
                 RemoveAllDocuments(document);
             }
             else if (item.Name == MENU_ITEM_NAVIGATE)

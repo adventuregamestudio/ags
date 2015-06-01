@@ -79,6 +79,7 @@ namespace AGS.Editor
             this.chkRemapBgImport = new System.Windows.Forms.CheckBox();
             this.groupBox10 = new System.Windows.Forms.GroupBox();
             this.chkUseLegacyCompiler = new System.Windows.Forms.CheckBox();
+            this.chkPromptDialogOnTabsClose = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.udTabWidth)).BeginInit();
@@ -96,7 +97,7 @@ namespace AGS.Editor
             // btnOK
             // 
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOK.Location = new System.Drawing.Point(12, 499);
+            this.btnOK.Location = new System.Drawing.Point(12, 519);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(98, 27);
             this.btnOK.TabIndex = 0;
@@ -107,7 +108,7 @@ namespace AGS.Editor
             // btnCancel
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(116, 499);
+            this.btnCancel.Location = new System.Drawing.Point(116, 519);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(100, 27);
             this.btnCancel.TabIndex = 1;
@@ -237,7 +238,7 @@ namespace AGS.Editor
             this.label8.Size = new System.Drawing.Size(340, 26);
             this.label8.TabIndex = 2;
             this.label8.Text = "Changing these settings require you to restart the editor for them to take effect" +
-                ".";
+    ".";
             // 
             // label2
             // 
@@ -250,6 +251,7 @@ namespace AGS.Editor
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.chkPromptDialogOnTabsClose);
             this.groupBox3.Controls.Add(this.chkKeepHelpOnTop);
             this.groupBox3.Controls.Add(this.chkAlwaysShowViewPreview);
             this.groupBox3.Controls.Add(this.cmbMessageOnCompile);
@@ -258,7 +260,7 @@ namespace AGS.Editor
             this.groupBox3.Controls.Add(this.label5);
             this.groupBox3.Location = new System.Drawing.Point(7, 116);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(365, 128);
+            this.groupBox3.Size = new System.Drawing.Size(365, 148);
             this.groupBox3.TabIndex = 4;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Editor appearance";
@@ -462,7 +464,7 @@ namespace AGS.Editor
             this.label11.Size = new System.Drawing.Size(339, 26);
             this.label11.TabIndex = 2;
             this.label11.Text = "When you double-click a sprite, what program do you want to use to edit it? This " +
-                "program must support PNG and BMP files.";
+    "program must support PNG and BMP files.";
             // 
             // radPaintProgram
             // 
@@ -558,7 +560,7 @@ namespace AGS.Editor
             // 
             this.groupBox7.Controls.Add(this.lnkUsageInfo);
             this.groupBox7.Controls.Add(this.chkUsageInfo);
-            this.groupBox7.Location = new System.Drawing.Point(7, 250);
+            this.groupBox7.Location = new System.Drawing.Point(7, 270);
             this.groupBox7.Name = "groupBox7";
             this.groupBox7.Size = new System.Drawing.Size(365, 68);
             this.groupBox7.TabIndex = 8;
@@ -591,7 +593,7 @@ namespace AGS.Editor
             this.groupBox8.Controls.Add(this.udBackupInterval);
             this.groupBox8.Controls.Add(this.label14);
             this.groupBox8.Controls.Add(this.chkBackupReminders);
-            this.groupBox8.Location = new System.Drawing.Point(7, 325);
+            this.groupBox8.Location = new System.Drawing.Point(7, 345);
             this.groupBox8.Name = "groupBox8";
             this.groupBox8.Size = new System.Drawing.Size(365, 53);
             this.groupBox8.TabIndex = 9;
@@ -645,7 +647,7 @@ namespace AGS.Editor
             // groupBox9
             // 
             this.groupBox9.Controls.Add(this.chkRemapBgImport);
-            this.groupBox9.Location = new System.Drawing.Point(7, 386);
+            this.groupBox9.Location = new System.Drawing.Point(7, 406);
             this.groupBox9.Name = "groupBox9";
             this.groupBox9.Size = new System.Drawing.Size(365, 54);
             this.groupBox9.TabIndex = 10;
@@ -659,13 +661,13 @@ namespace AGS.Editor
             this.chkRemapBgImport.Size = new System.Drawing.Size(330, 30);
             this.chkRemapBgImport.TabIndex = 8;
             this.chkRemapBgImport.Text = "Remap palette of room backgrounds into allocated background palette slots (8-bit " +
-                "games only)";
+    "games only)";
             this.chkRemapBgImport.UseVisualStyleBackColor = true;
             // 
             // groupBox10
             // 
             this.groupBox10.Controls.Add(this.chkUseLegacyCompiler);
-            this.groupBox10.Location = new System.Drawing.Point(7, 446);
+            this.groupBox10.Location = new System.Drawing.Point(7, 466);
             this.groupBox10.Name = "groupBox10";
             this.groupBox10.Size = new System.Drawing.Size(365, 47);
             this.groupBox10.TabIndex = 11;
@@ -682,13 +684,23 @@ namespace AGS.Editor
             this.chkUseLegacyCompiler.Text = "Use legacy compiler";
             this.chkUseLegacyCompiler.UseVisualStyleBackColor = true;
             // 
+            // chkPromptDialogOnTabsClose
+            // 
+            this.chkPromptDialogOnTabsClose.AutoSize = true;
+            this.chkPromptDialogOnTabsClose.Location = new System.Drawing.Point(14, 123);
+            this.chkPromptDialogOnTabsClose.Name = "chkPromptDialogOnTabsClose";
+            this.chkPromptDialogOnTabsClose.Size = new System.Drawing.Size(204, 17);
+            this.chkPromptDialogOnTabsClose.TabIndex = 9;
+            this.chkPromptDialogOnTabsClose.Text = "Prompt dialog on closing multiple tabs";
+            this.chkPromptDialogOnTabsClose.UseVisualStyleBackColor = true;
+            // 
             // PreferencesEditor
             // 
             this.AcceptButton = this.btnOK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(754, 534);
+            this.ClientSize = new System.Drawing.Size(754, 554);
             this.Controls.Add(this.groupBox10);
             this.Controls.Add(this.groupBox9);
             this.Controls.Add(this.groupBox8);
@@ -786,5 +798,6 @@ namespace AGS.Editor
         private System.Windows.Forms.CheckBox chkKeepHelpOnTop;
         private System.Windows.Forms.GroupBox groupBox10;
         private System.Windows.Forms.CheckBox chkUseLegacyCompiler;
+        private System.Windows.Forms.CheckBox chkPromptDialogOnTabsClose;
     }
 }

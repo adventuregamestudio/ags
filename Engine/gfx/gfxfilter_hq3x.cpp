@@ -20,11 +20,11 @@
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-const char* Hq3xGFXFilter::Initialize(int width, int height, int colDepth) {
+const char* Hq3xGFXFilter::Initialize(int colDepth) {
     if (colDepth < 32)
         return "Only supports 32-bit colour games";
 
-    return ScalingGFXFilter::Initialize(width, height, colDepth);
+    return ScalingGFXFilter::Initialize(colDepth);
 }
 
 

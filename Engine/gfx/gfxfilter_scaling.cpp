@@ -28,7 +28,7 @@ ScalingGFXFilter::ScalingGFXFilter(int multiplier, bool justCheckingForSetup) : 
     sprintf(filterID, "StdScale%d", multiplier);
 }
 
-const char* ScalingGFXFilter::Initialize(int width, int height, int colDepth) {
+const char* ScalingGFXFilter::Initialize(int colDepth) {
     mouseCallbackPtr = new MouseGetPosCallbackImpl(this);
     msetcallback(mouseCallbackPtr);
     return NULL;
@@ -36,6 +36,11 @@ const char* ScalingGFXFilter::Initialize(int width, int height, int colDepth) {
 
 void ScalingGFXFilter::UnInitialize() {
     msetcallback(NULL);
+}
+
+int ScalingGFXFilter::GetScalingFactor() const
+{
+    return MULTIPLIER;
 }
 
 void ScalingGFXFilter::GetRealResolution(int *wid, int *hit) {
@@ -79,9 +84,6 @@ const char *ScalingGFXFilter::GetFilterID() {
 
 ScalingGFXFilter::~ScalingGFXFilter()
 {
-    if (mouseCallbackPtr != NULL)
-    {
-        delete mouseCallbackPtr;
-        mouseCallbackPtr = NULL;
-    }
+    UnInitialize();
+    delete mouseCallbackPtr;
 }

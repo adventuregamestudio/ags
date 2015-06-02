@@ -261,7 +261,7 @@ void engine_init_screen_settings(Size &game_size, Size &screen_size)
     adjust_sizes_for_resolution(loaded_game_file_version);
 }
 
-int initialize_graphics_filter(const char *filterID, int width, int height, int colDepth)
+bool initialize_graphics_filter(const char *filterID, int colDepth)
 {
     int idx = 0;
     GFXFilter **filterList;
@@ -275,33 +275,36 @@ int initialize_graphics_filter(const char *filterID, int width, int height, int 
         filterList = get_allegro_gfx_filter_list(false);
     }
 
-    // by default, select No Filter
-    filter = filterList[0];
-
+    filter = NULL;
     GFXFilter *thisFilter = filterList[idx];
-    while (thisFilter != NULL) {
-
+    while (thisFilter != NULL)
+    {
         if ((filterID != NULL) &&
             (stricmp(thisFilter->GetFilterID(), filterID) == 0))
             filter = thisFilter;
-        else if (idx > 0)
+        else
             delete thisFilter;
 
         idx++;
         thisFilter = filterList[idx];
     }
 
-    Out::FPrint("Applying scaling filter: %s", filter->GetFilterID());
-
-    const char *filterError = filter->Initialize(width, height, colDepth);
-    if (filterError != NULL) {
-        proper_exit = 1;
-        platform->DisplayAlert("Unable to initialize the graphics filter. It returned the following error:\n'%s'\n\nTry running Setup and selecting a different graphics filter.", filterError);
-        return -1;
+    if (!filter)
+    {
+        Out::FPrint("Could not find graphics filter %s", filterID);
+        return false;
     }
 
-    gfxDriver->SetGraphicsFilter(filter);
-    return 0;
+    const char *filterError = filter->Initialize(colDepth);
+    if (filterError != NULL)
+    {
+        platform->DisplayAlert("Unable to initialize the graphics filter '%s'. It returned the following error:\n'%s'"
+            "\n\nTry running Setup and selecting a different graphics filter.", filter->GetFilterID(), filterError);
+        delete filter;
+        filter = NULL;
+        return false;
+    }
+    return true;
 }
 
 bool pre_create_gfx_driver(const String &gfx_driver_id)
@@ -498,24 +501,6 @@ int find_max_supported_uniform_scaling(const Size &base_size, Size &found_size, 
     return least_supported_scaling;
 }
 
-int get_scaling_from_filter_name(const String &filter_id)
-{
-    int scaling = 0;
-    if (filter_id.CompareLeftNoCase("StdScale") == 0)
-    {
-        scaling = filter_id.Mid(8).ToInt();
-    }
-    else if (filter_id.CompareLeftNoCase("Hq") == 0)
-    {
-        scaling = filter_id.Mid(2).ToInt();
-    }
-    else if (filter_id.CompareLeftNoCase("AAx") == 0)
-    {
-        scaling = filter_id.Mid(3).ToInt();
-    }
-    return scaling > 0 ? scaling : 1;
-}
-
 // Finds any supported graphics mode that can fit requested game frame size;
 // returns true if found acceptable mode, sets found_size.
 bool try_find_nearest_supported_mode(const Size &base_size, const int scaling_factor, Size &found_size, const int color_depth,
@@ -679,54 +664,53 @@ int engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color_
         GfxFilterRequest = usetup.gfxFilterID;
     Out::FPrint("Requested gfx filter: %s", GfxFilterRequest.GetCStr());
 
-    String gfxfilter;
-    if (GfxFilterRequest.CompareNoCase("max") != 0)
-        gfxfilter = GfxFilterRequest;
-    
-    const Size base_size = game_size;
-
-    int scaling_factor = 0;
-    if (!gfxfilter.IsEmpty())
+    // Try to initialize gfx filter of requested name
+    if (GfxFilterRequest.CompareNoCase("max") != 0 &&
+        initialize_graphics_filter(GfxFilterRequest, color_depth))
     {
-        scaling_factor = get_scaling_from_filter_name(gfxfilter);
-        Size found_screen_size;
-        if (try_find_nearest_supported_mode(base_size, scaling_factor, found_screen_size, color_depth,
+        // Filter found, but we must also try if the engine will be able to set
+        // screen resolution
+        if (!try_find_nearest_supported_mode(game_size, filter->GetScalingFactor(), screen_size, color_depth,
                 usetup.windowed, usetup.prefer_sideborders, usetup.prefer_letterbox))
-            screen_size = found_screen_size;
-    }
-
-    if (screen_size.IsNull())
-    {
-#if defined (WINDOWS_VERSION) || defined (LINUX_VERSION)
-        Size found_screen_size;
-        scaling_factor = try_find_max_supported_uniform_scaling(base_size, found_screen_size, color_depth,
-                            usetup.windowed, usetup.prefer_sideborders, usetup.prefer_letterbox);
-        if (scaling_factor > 0)
         {
-            screen_size = found_screen_size;
+            delete filter;
+            filter = NULL;
         }
-        else
+    }
+    
+    // If the filter was not set for any reason, try to choose standard scaling filter
+    // of maximal possible scaling factor
+    if (!filter)
+    {
+        String filter_name;
+        int scaling_factor;
+#if defined (WINDOWS_VERSION) || defined (LINUX_VERSION)
+        scaling_factor = try_find_max_supported_uniform_scaling(game_size, screen_size, color_depth,
+                            usetup.windowed, usetup.prefer_sideborders, usetup.prefer_letterbox);
+        if (scaling_factor == 0)
 #endif
         {
             screen_size = game_size;
             scaling_factor = 1;
         }
-        gfxfilter.Format(scaling_factor > 1 ? "StdScale%d" : "None", scaling_factor);
+        filter_name.Format(scaling_factor > 1 ? "StdScale%d" : "None", scaling_factor);
+        initialize_graphics_filter(filter_name, color_depth);
     }
 
-    if (gfxfilter.IsEmpty())
+    // If not suitable filter still found then return with error message
+    if (!filter)
     {
         set_allegro_error("Failed to find acceptable graphics filter");
         return EXIT_NORMAL;
     }
-    game_size.Width = screen_size.Width / scaling_factor;
-    game_size.Height = screen_size.Height / scaling_factor;
+
+    // On success apply filter and define game frame
+    Out::FPrint("Applying graphics filter: %s", filter->GetFilterID());
+    gfxDriver->SetGraphicsFilter(filter);    
+    game_size.Width = screen_size.Width / filter->GetScalingFactor();
+    game_size.Height = screen_size.Height / filter->GetScalingFactor();
     Out::FPrint("Chosen gfx resolution: %d x %d (%d bit), game frame: %d x %d",
         screen_size.Width, screen_size.Height, color_depth, game_size.Width, game_size.Height);
-    if (initialize_graphics_filter(gfxfilter, base_size.Width, base_size.Height, color_depth))
-    {
-        return EXIT_NORMAL;
-    }
     return RETURN_CONTINUE;
 }
 

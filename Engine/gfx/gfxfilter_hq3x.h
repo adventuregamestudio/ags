@@ -32,7 +32,7 @@ public:
 
     Hq3xGFXFilter(bool justCheckingForSetup) : ScalingAllegroGFXFilter(3, justCheckingForSetup) { }
 
-    virtual const char* Initialize(int width, int height, int colDepth);
+    virtual const char* Initialize(int colDepth);
     virtual Common::Bitmap *ScreenInitialized(Common::Bitmap *screen, int fakeWidth, int fakeHeight);
     virtual Common::Bitmap *ShutdownAndReturnRealScreen(Common::Bitmap *currentScreen);
     virtual void RenderScreen(Common::Bitmap *toRender, int x, int y);

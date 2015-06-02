@@ -22,8 +22,9 @@
 struct GFXFilter {
 public:
 
-    virtual const char *Initialize(int width, int height, int colDepth);
+    virtual const char *Initialize(int colDepth);
     virtual void UnInitialize();
+    virtual int  GetScalingFactor() const;
     virtual void GetRealResolution(int *wid, int *hit);
     virtual void SetMousePosition(int x, int y);
     // SetMouseArea shows the standard Windows cursor when the mouse moves outside

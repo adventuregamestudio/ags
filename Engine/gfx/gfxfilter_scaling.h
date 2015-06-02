@@ -35,8 +35,9 @@ protected:
 
 public:
 
-    virtual const char* Initialize(int width, int height, int colDepth);
+    virtual const char* Initialize(int colDepth);
     virtual void UnInitialize();
+    virtual int  GetScalingFactor() const;
     virtual void GetRealResolution(int *wid, int *hit);
     virtual void SetMouseArea(int x1, int y1, int x2, int y2);
     virtual void SetMouseLimit(int x1, int y1, int x2, int y2);

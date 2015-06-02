@@ -24,12 +24,17 @@
 
 // Standard do-nothing filter
 
-const char* GFXFilter::Initialize(int width, int height, int colDepth) {
+const char* GFXFilter::Initialize(int colDepth) {
     return NULL;  // always succeeds
 }
 
 void GFXFilter::UnInitialize() {
     // do nothing
+}
+
+int GFXFilter::GetScalingFactor() const
+{
+    return 1;
 }
 
 void GFXFilter::GetRealResolution(int *wid, int *hit) {

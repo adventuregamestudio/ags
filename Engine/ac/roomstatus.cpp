@@ -52,11 +52,11 @@ void RoomStatus::FreeScriptData()
 void RoomStatus::FreeProperties()
 {
     roomProps.clear();
-    for (int i = 0; MAX_HOTSPOTS; ++i)
+    for (int i = 0; i < MAX_HOTSPOTS; ++i)
     {
         hsProps[i].clear();
     }
-    for (int i = 0; MAX_INIT_SPR; ++i)
+    for (int i = 0; i < MAX_INIT_SPR; ++i)
     {
         objProps[i].clear();
     }

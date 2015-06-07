@@ -834,10 +834,7 @@ bool graphics_mode_init()
     // it is supposed to be be equal or greater than game_size
     GameSizeDef game_size;
     game_size.Game = game.size;
-    // The letterbox-by-design game property requests that game is run with
-    // black horizontal borders
-    game_size.Box = game.GetDefaultResolution() == kGameResolution_Custom ? game.size :
-        ResolutionTypeToSize(game.GetDefaultResolution(), game.options[OPT_LETTERBOX] != 0);
+    game_size.Box = game.size;
 
     // Prepare the list of available gfx factories, having the one requested by user at first place
     StringV ids;

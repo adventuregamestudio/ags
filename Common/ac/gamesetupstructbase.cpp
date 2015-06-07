@@ -38,13 +38,15 @@ GameSetupStructBase::~GameSetupStructBase()
 void GameSetupStructBase::SetDefaultResolution(GameResolutionType resolution_type)
 {
     default_resolution = resolution_type;
-    size = ResolutionTypeToSize(default_resolution);
+    size = ResolutionTypeToSize(default_resolution, options[OPT_LETTERBOX] != 0);
+    altsize = ResolutionTypeToSize(default_resolution, false);
 }
 
 void GameSetupStructBase::SetCustomResolution(Size game_res)
 {
     default_resolution = kGameResolution_Custom;
     size = game_res;
+    altsize = size;
 }
 
 void GameSetupStructBase::ReadFromFile(Stream *in)

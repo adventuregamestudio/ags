@@ -538,7 +538,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     our_eip=202;
     const int real_room_height = multiply_up_coordinate(thisroom.height);
     // Game viewport is updated when when room's size is smaller than game's size.
-    // NOTE: if "want_letterbox" is false, GameSize.Height = final_scrn_hit always.
+    // NOTE: if "OPT_LETTERBOX" is false, altsize.Height = size.Height always.
     if (real_room_height < game.size.Height || play.viewport.GetHeight() < game.size.Height) {
         int abscreen=0;
 
@@ -551,8 +551,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         int newScreenHeight = game.size.Height;
         // [IKM] 2015-05-04: in original engine the letterbox feature only allowed viewports of
         // either 200 or 240 (400 and 480) pixels, if the room height was equal or greater than 200 (400).
-        const int viewport_height = real_room_height < game.size.Height ? real_room_height :
-            (real_room_height >= game.size.Height && real_room_height < game.size.Height) ? game.size.Height :
+        const int viewport_height = real_room_height < game.altsize.Height ? real_room_height :
+            (real_room_height >= game.altsize.Height && real_room_height < game.size.Height) ? game.altsize.Height :
             game.size.Height;
         if (viewport_height < game.size.Height) {
             clear_letterbox_borders();

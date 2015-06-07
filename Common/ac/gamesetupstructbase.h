@@ -58,6 +58,7 @@ struct GameSetupStructBase {
     CharacterInfo    *chars;
     ccScript         *compiled_script;
     Size              size;                 // native game size in pixels
+    Size              altsize;              // alternate, lesser, game size for letterbox-by-design games
 
     int32_t          *load_messages;
     bool             load_dictionary;

@@ -1,18 +1,32 @@
 Adventure Game Studio (AGS)
-Copyright (C) 1999-2012 by the following:
+Copyright (c) 1999-2011 Chris Jones and 2011-2015 various contributors.
 
-Chris Jones
+Adventure Game Studio was originally developed by Chris Jones. 
+The latter versions and engine ports to various platforms are product of collaborative work of the following people (in alphabetic order): 
+
 Bernhard Rosenkraenzer
 Cristian Morales Vega
+Gilad Shaham
 Ivan Mogilko
-Jochen Schleu
+Francesco Ariis
 Janet Gilbert
+Jochen Schleu
+Michael Rittenhouse
+Ori Avtalion
+Paul Wilkinson
 Piotr Wieczorek
+rofl0r
 Scott Baker
+Shane Stevens
+Shawn R. Walker
+Stefano Collavini
 Steve McCrea
+Steven Poulton
 Sunit Das
+Tobias Hansen
+Tom Vandepoele
 Tzach Shabtay
 
 Members of development team would like to thank:
 
-Alyssa Milburn and Nick Sonneveld, for inspiration and ideas on refactoring AGS Engine
+Alyssa Milburn and Nick Sonneveld, for inspiration and ideas on refactoring AGS Engine code

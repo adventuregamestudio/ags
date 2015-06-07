@@ -126,16 +126,15 @@ int engine_init_allegro()
 
     our_eip = -199;
     // Initialize allegro
-#ifdef WINDOWS_VERSION
-    if (install_allegro(SYSTEM_AUTODETECT,&myerrno,atexit)) {
-        platform->DisplayAlert("Unable to initialize graphics subsystem. Make sure you have DirectX 5 or above installed.");
-#else
-    if (install_allegro(SYSTEM_AUTODETECT, &myerrno, atexit)) {
-        platform->DisplayAlert("Unknown error initializing graphics subsystem.");
-#endif
+    if (install_allegro(SYSTEM_AUTODETECT, &myerrno, atexit))
+    {
+        const char *al_err = get_allegro_error();
+        const char *user_hint = platform->GetAllegroFailUserHint();
+        platform->DisplayAlert("Unable to initialize Allegro system driver.\n%s\n\n%s",
+            al_err[0] ? al_err : "Allegro library provided no further information on the problem.",
+            user_hint);
         return EXIT_NORMAL;
     }
-
     return RETURN_CONTINUE;
 }
 

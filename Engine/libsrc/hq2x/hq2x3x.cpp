@@ -2886,7 +2886,7 @@ void hq2x_32( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int
       pIn += INPUT_IMAGE_PIXEL_SIZE_IN_BYTES;
       pOut+=8;
     }
-    pOut+=BpL;
+    pOut+=BpL + (BpL - Xres * 8);
   }
 }
 
@@ -6675,7 +6675,7 @@ void hq3x_32( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int
       pIn += INPUT_IMAGE_PIXEL_SIZE_IN_BYTES;
       pOut+=12;
     }
-    pOut+=BpL;
+    pOut+=BpL + (BpL - Xres * 12);
     pOut+=BpL;
   }
 }

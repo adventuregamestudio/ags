@@ -227,7 +227,9 @@ void read_config_file(char *argv0) {
             idx = MIDI_AUTODETECT;
         usetup.midicard = idx;
 #endif
+#if !defined (LINUX_VERSION)
         psp_audio_multithreaded = INIreadint("sound", "threaded", psp_audio_multithreaded);
+#endif
 
         // Graphics mode
 #if defined (WINDOWS_VERSION)

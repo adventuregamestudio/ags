@@ -46,6 +46,7 @@ struct AGSLinux : AGSPlatformDriver {
   virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
+  virtual const char* GetAllegroFailUserHint();
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
   virtual void PlayVideo(const char* name, int skip, int flags);
@@ -140,6 +141,11 @@ unsigned long AGSLinux::GetDiskFreeSpaceMB() {
 
 const char* AGSLinux::GetNoMouseErrorString() {
   return "This game requires a mouse. You need to configure and setup your mouse to play this game.\n";
+}
+
+const char* AGSLinux::GetAllegroFailUserHint()
+{
+  return "Make sure you have latest version of Allegro 4 libraries installed, and X server is running.";
 }
 
 eScriptSystemOSID AGSLinux::GetSystemOSID() {

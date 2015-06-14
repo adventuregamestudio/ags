@@ -263,11 +263,18 @@ void ccCompiledScript::write_chunk(intptr_t **nested_chunk, int index, intptr_t 
         if(dispose)
             free(nested_chunk[index]);
     }
-    while(fixup_start < fixup_stop)
-    {
-        fixups[fixup_start] = fixups[fixup_start] + adjust;
-        fixup_start++;
-    }
+    if(dispose)
+        while(fixup_start < fixup_stop)
+        {
+            fixups[fixup_start] += adjust;
+            fixup_start++;
+        }
+    else
+        while(fixup_start < fixup_stop)
+        {
+            add_fixup(fixups[fixup_start] + adjust, fixuptypes[fixup_start]);
+            fixup_start++;
+        }
 }
 
 const char* ccCompiledScript::start_new_section(const char *name) {

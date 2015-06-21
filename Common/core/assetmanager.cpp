@@ -64,8 +64,14 @@ AssetManager::~AssetManager()
 
 /* static */ bool AssetManager::IsDataFile(const String &data_file)
 {
-    assert(_theAssetManager != NULL);
-    return _theAssetManager ? _theAssetManager->_IsDataFile(data_file) : false;
+    Stream *in = ci_fopen(data_file, Common::kFile_Open, Common::kFile_Read);
+    if (in)
+    {
+        MFLUtil::MFLError err = MFLUtil::TestIsMFL(in, true);
+        delete in;
+        return err == MFLUtil::kMFLNoError;
+    }
+    return false;
 }
 
 /* static */ AssetError AssetManager::SetDataFile(const String &data_file)
@@ -169,18 +175,6 @@ bool AssetManager::_SetSearchPriority(AssetSearchPriority priority)
 AssetSearchPriority AssetManager::_GetSearchPriority()
 {
     return _searchPriority;
-}
-
-bool AssetManager::_IsDataFile(const String &data_file)
-{
-    Stream *in = ci_fopen(data_file, Common::kFile_Open, Common::kFile_Read);
-    if (in)
-    {
-        MFLUtil::MFLError err = MFLUtil::TestIsMFL(in);
-        delete in;
-        return err == MFLUtil::kMFLNoError;
-    }
-    return false;
 }
 
 AssetError AssetManager::_SetDataFile(const String &data_file)

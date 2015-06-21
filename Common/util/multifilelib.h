@@ -49,7 +49,7 @@ namespace MFLUtil
     extern const String HeadSig;
     extern const String TailSig;
 
-    MFLError TestIsMFL(Stream *in);
+    MFLError TestIsMFL(Stream *in, bool test_is_main = false);
     MFLError ReadHeader(AssetLibInfo &lib, Stream *in);
 
     const int EncryptionRandSeed = 9338638;

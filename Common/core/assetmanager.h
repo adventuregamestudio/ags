@@ -74,6 +74,7 @@ public:
     static bool     SetSearchPriority(AssetSearchPriority priority);
     static AssetSearchPriority GetSearchPriority();
 
+    // Test if given file is main data file
     static bool         IsDataFile(const String &data_file);
 
     // NOTE: this group of methods are only temporarily public
@@ -99,7 +100,6 @@ private:
 
     bool        _SetSearchPriority(AssetSearchPriority priority);
     AssetSearchPriority _GetSearchPriority();
-    bool        _IsDataFile(const String &data_file);
     AssetError  _SetDataFile(const String &data_file);
     String      _GetLibraryBaseFile();
     int         _GetAssetCount();    

@@ -53,9 +53,20 @@ namespace MFLUtil
 };
 
 
-MFLUtil::MFLError MFLUtil::TestIsMFL(Stream *in)
+MFLUtil::MFLError MFLUtil::TestIsMFL(Stream *in, bool test_is_main)
 {
-    return ReadSigsAndVersion(in, NULL, NULL);
+    int lib_version;
+    MFLError err = ReadSigsAndVersion(in, &lib_version, NULL);
+    if (err == kMFLNoError)
+    {
+        if (lib_version >= 10 && test_is_main)
+        {
+            // this version supports multiple data files, check if it is the first one
+            if (in->ReadByte() != 0)
+                return kMFLErrNoLibBase; // not first datafile in chain
+        }
+    }
+    return err;
 }
 
 MFLUtil::MFLError MFLUtil::ReadHeader(AssetLibInfo &lib, Stream *in)

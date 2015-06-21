@@ -74,6 +74,18 @@ AssetManager::~AssetManager()
     return false;
 }
 
+AssetError AssetManager::ReadDataFileTOC(const String &data_file, AssetLibInfo &lib)
+{
+    Stream *in = ci_fopen(data_file, Common::kFile_Open, Common::kFile_Read);
+    if (in)
+    {
+        MFLUtil::MFLError err = MFLUtil::ReadHeader(lib, in);
+        delete in;
+        return (err != MFLUtil::kMFLNoError) ? kAssetErrLibParse : kAssetNoError;
+    }
+    return kAssetErrNoLibFile;
+}
+
 /* static */ AssetError AssetManager::SetDataFile(const String &data_file)
 {
     assert(_theAssetManager != NULL);

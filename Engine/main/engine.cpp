@@ -59,13 +59,9 @@
 #include "util/path.h"
 #include "main/game_file.h"
 #include "debug/out.h"
+#include "core/asset.h"
 
-using AGS::Common::String;
-using AGS::Common::Stream;
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
-namespace Path = AGS::Common::Path;
-namespace Out = AGS::Common::Out;
+using namespace AGS::Common;
 
 extern char check_dynamic_sprites_at_exit;
 extern int our_eip;
@@ -220,102 +216,73 @@ void init_game_file_name_from_cmdline()
 #endif
 }
 
+bool is_main_game_file(const String &filename)
+{
+    // We must not only detect if the given file is a correct AGS data library,
+    // we also have to assure that this library contains main game asset.
+    // Library may contain some optional data (digital audio, speech etc), but
+    // that is not what we want.
+    AssetLibInfo lib;
+    if (AssetManager::ReadDataFileTOC(filename, lib) != kAssetNoError)
+        return false;
+    for (size_t i = 0; i < lib.AssetInfos.size(); ++i)
+    {
+        if (lib.AssetInfos[i].FileName.CompareNoCase(MainGameAssetName_v3) == 0 ||
+            lib.AssetInfos[i].FileName.CompareNoCase(MainGameAssetName_v2) == 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 String find_game_data_in_directory(const String &path)
 {
+    al_ffblk ff;
     String test_file;
-    String found_data_file;
-    // TODO: find a way to make this platform-agnostic way
-    // using find-file interface or something
-#if defined (LINUX_VERSION) || defined (MAC_VERSION)
-    DIR* fd = NULL;
-    struct dirent* entry = NULL;
-    version_info_t version_info;
+    String first_nonstd_fn;
+    String pattern = path;
+    pattern.Append("/*");
 
-    if ((fd = opendir(path)))
+    if (al_findfirst(pattern, &ff, FA_ALL & ~(FA_DIREC)) != 0)
+        return "";
+    // Select first found data file; files with standart names (*.ags) have
+    // higher priority over files with custom names.
+    do
     {
-        while ((entry = readdir(fd)))
+        test_file = ff.name;
+        // Add a bit of sanity and do not parse contents of the 10k-files-large
+        // digital sound libraries.
+        // NOTE: we could certainly benefit from any kind of flag in file lib
+        // that would tell us this is the main lib without extra parsing.
+        if (test_file.CompareRightNoCase(".vox") == 0)
+            continue;
+
+        // *.ags is a standart cross-platform file pattern for AGS games,
+        // ac2game.dat is a legacy file name for very old games,
+        // *.exe is a MS Win executable; it is included to this case because
+        // users often run AGS ports with Windows versions of games.
+        bool is_std_name = test_file.CompareRightNoCase(".ags") == 0 ||
+            test_file.CompareNoCase("ac2game.dat") == 0 ||
+            test_file.CompareRightNoCase(".exe") == 0;
+        if (is_std_name || first_nonstd_fn.IsEmpty())
         {
-            // Filename must be >= 4 chars long
-            int length = strlen(entry->d_name);
-            if (length < 4)
+            test_file.Format("%s/%s", path.GetCStr(), ff.name);
+            if (is_main_game_file(test_file))
             {
-                continue;
-            }
-
-            // Exclude the setup program
-            if (stricmp(entry->d_name, "winsetup.exe") == 0)
-            {
-                continue;
-            }
-
-            if (stricmp(&(entry->d_name[length - 4]), ".exe") == 0)
-            {
-                if (!getVersionInformation(entry->d_name, &version_info))
-                    continue;
-                if (strcmp(version_info.internal_name, "acwin") == 0)
+                if (is_std_name)
                 {
-                    test_file.Format("%s/%s", path.GetCStr(), entry->d_name);
-                    if (AGS::Common::AssetManager::IsDataFile(test_file))
-                    {
-                        found_data_file = test_file;
-                        break;
-                    }
+                    al_findclose(&ff);
+                    return test_file;
                 }
-            }
-            else if (stricmp(&(entry->d_name[length - 4]), ".ags") == 0 ||
-                stricmp(entry->d_name, "ac2game.dat") == 0)
-            {
-                test_file.Format("%s/%s", path.GetCStr(), entry->d_name);
-                if (AGS::Common::AssetManager::IsDataFile(test_file))
-                {
-                    found_data_file = test_file;
-                    break;
-                }
+                else
+                    first_nonstd_fn = test_file;
             }
         }
-        closedir(fd);
     }
-#elif defined (WINDOWS_VERSION)
-    String path_mask = path;
-    path_mask.Append("/*");
-    WIN32_FIND_DATAA file_data;
-    HANDLE find_handle = FindFirstFileA(path_mask, &file_data);
-    if (find_handle != INVALID_HANDLE_VALUE)
-    {
-        do
-        {
-            // Filename must be >= 4 chars long
-            int length = strlen(file_data.cFileName);
-            if (length < 4)
-            {
-                continue;
-            }
-
-            // Exclude the setup program
-            if (strcmp(file_data.cFileName, "winsetup.exe") == 0)
-            {
-                continue;
-            }
-
-            if (strcmp(&(file_data.cFileName[length - 4]), ".exe") == 0 ||
-                strcmp(&(file_data.cFileName[length - 4]), ".ags") == 0 ||
-                strcmp(file_data.cFileName, "ac2game.dat") == 0)
-            {
-                test_file.Format("%s/%s", path.GetCStr(), file_data.cFileName);
-                if (AGS::Common::AssetManager::IsDataFile(test_file))
-                {
-                    found_data_file = test_file;
-                    break;
-                }
-            }
-        }
-        while (FindNextFileA(find_handle, &file_data) != FALSE);
-        FindClose(find_handle);
-    }
-#else
-    // TODO ??? (PSP, ANDROID)
-#endif
-    return found_data_file;
+    while(al_findnext(&ff) == 0);
+    al_findclose(&ff);
+    return first_nonstd_fn;
 }
 
 extern char appDirectory[512];

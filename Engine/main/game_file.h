@@ -27,4 +27,7 @@ extern void WriteGameSetupStructBase_Aligned(Common::Stream *out);
 
 extern AGS::Common::String game_file_name;
 
+extern const AGS::Common::String MainGameAssetName_v3;
+extern const AGS::Common::String MainGameAssetName_v2;
+
 #endif // __AGS_EE_MAIN__GAMEFILE_H

@@ -642,7 +642,7 @@ void atexit_handler() {
         sprintf(pexbuf,"\nError: the program has exited without requesting it.\n"
             "Program pointer: %+03d  (write this number down), ACI version %s\n"
             "If you see a list of numbers above, please write them down and contact\n"
-            "Chris Jones. Otherwise, note down any other information displayed.\n",
+            "developers. Otherwise, note down any other information displayed.\n",
             our_eip, EngineVersion.LongString.GetCStr());
         platform->DisplayAlert(pexbuf);
     }

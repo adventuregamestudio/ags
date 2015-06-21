@@ -14,6 +14,7 @@
 #define NEST_DO         8 // Do statement (to be followed by a while)
 #define NEST_DOSINGLE   9 // Single Do statement
 #define NEST_FOR        10 // For statement
+#define NEST_SWITCH     11 // Case block for a switch statement
 #define MAX_FUNCTIONS 2000
 #define MAX_FUNCTION_PARAMETERS 15
 // This is the maximum length of a "static string" in the script
@@ -71,6 +72,10 @@
 #define SYM_CONTINUE   56
 #define SYM_DO         57
 #define SYM_BUILTIN    58 // Used to indicate that a managed object can't be instantiated directly by the user
+#define SYM_SWITCH     59
+#define SYM_CASE       60
+#define SYM_DEFAULT    61
+#define SYM_LABEL      62 // : appearing at the end of a label
 
 #define SFLG_PARAMETER  1
 #define SFLG_ARRAY      2

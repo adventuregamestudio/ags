@@ -120,6 +120,9 @@ void symbolTable::reset() {
     add_ex("break",SYM_BREAK,0);
     add_ex("continue",SYM_CONTINUE,0);
     add_ex("do",SYM_DO,0);
+    add_ex("switch",SYM_SWITCH,0);
+    add_ex("case",SYM_CASE,0);
+    add_ex("default",SYM_DEFAULT,0);
     add_ex("...",SYM_VARARGS,0);
     add_ex("struct",SYM_STRUCT,0);
     add_ex("import",SYM_IMPORT,0);
@@ -128,6 +131,7 @@ void symbolTable::reset() {
     add_ex("return", SYM_RETURN, 0);
     add_ex("readonly",SYM_READONLY,0);
     add_ex("::", SYM_MEMBERACCESS, 0);
+    add_ex(":", SYM_LABEL, 0);
     add_ex("attribute", SYM_PROPERTY, 0);
     add_ex("enum", SYM_ENUM, 0);
     add_ex("managed", SYM_MANAGED, 0);

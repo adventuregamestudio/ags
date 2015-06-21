@@ -46,8 +46,14 @@ namespace MFLUtil
         kMFLErrLibAssetCount  = -4, // too many assets in library
     };
 
+    extern const String HeadSig;
+    extern const String TailSig;
+
     MFLError TestIsMFL(Stream *in);
     MFLError ReadHeader(AssetLibInfo &lib, Stream *in);
+
+    const int EncryptionRandSeed = 9338638;
+    int      GetNextPseudoRand(int &rand_val);
 };
 
 } // namespace Common

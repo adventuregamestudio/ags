@@ -23,8 +23,8 @@ namespace Common
 
 namespace MFLUtil
 {
-    static const String HeadSig = "CLIB\x1a";
-    static const String TailSig = "CLIB\x1\x2\x3\x4SIGE";
+    const String HeadSig = "CLIB\x1a";
+    const String TailSig = "CLIB\x1\x2\x3\x4SIGE";
 
     static const size_t SingleFilePswLen = 13;
 
@@ -35,7 +35,6 @@ namespace MFLUtil
     static const size_t V10LibFileLen    = 20;
     static const size_t V10AssetFileLen  = 25;
 
-    static const int    EncryptionRandSeed = 9338638;
     static const String EncryptionString = "My\x1\xde\x4Jibzle";
 
     MFLError ReadSigsAndVersion(Stream *in, int *p_lib_version, long *p_abs_offset);
@@ -47,7 +46,6 @@ namespace MFLUtil
 
     // Decryption routines
     void     DecryptText(char *text);
-    int      GetNextPseudoRand(int &rand_val);
     void     ReadEncArray(void *data, size_t size, size_t count, Stream *in, int &rand_val);
     int8_t   ReadEncInt8(Stream *in, int &rand_val);
     int32_t  ReadEncInt32(Stream *in, int &rand_val);

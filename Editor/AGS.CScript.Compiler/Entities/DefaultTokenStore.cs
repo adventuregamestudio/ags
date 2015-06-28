@@ -67,10 +67,14 @@ namespace AGS.CScript.Compiler
 				_DefaultTokens.Add(new KeywordToken("break", PredefinedSymbol.Break));
 				_DefaultTokens.Add(new KeywordToken("continue", PredefinedSymbol.Continue));
 				_DefaultTokens.Add(new KeywordToken("do", PredefinedSymbol.Do));
+				_DefaultTokens.Add(new KeywordToken("switch", PredefinedSymbol.Switch));
+				_DefaultTokens.Add(new KeywordToken("case", PredefinedSymbol.Case));
+				_DefaultTokens.Add(new KeywordToken("default", PredefinedSymbol.Default));
 				_DefaultTokens.Add(new KeywordToken("...", PredefinedSymbol.VariableArguments));
 				_DefaultTokens.Add(new KeywordToken("struct", PredefinedSymbol.StructDefinition));
 				_DefaultTokens.Add(new KeywordToken("return", PredefinedSymbol.Return));
 				_DefaultTokens.Add(new KeywordToken("::", PredefinedSymbol.MemberOf));
+				_DefaultTokens.Add(new KeywordToken(":", PredefinedSymbol.Label));
 				_DefaultTokens.Add(new KeywordToken("enum", PredefinedSymbol.Enum));
 				_DefaultTokens.Add(new KeywordToken("null", PredefinedSymbol.Null));
 				_DefaultTokens.Add(new KeywordToken("extends", PredefinedSymbol.Extends));

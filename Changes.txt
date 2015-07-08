@@ -1,5 +1,30 @@
 REVISION HISTORY
 ================
+VERSION 3.3.4, July 2015
+
+Features:
+- Removed 10,000 symbols limit in scripts.
+- Added Character.Thinking and Character.ThinkingFrame script properties.
+- Added Papagayo voice lip sync support.
+- Engine now scans all available files in search of game data, only giving standard names
+  a priority.
+
+Bug Fixes:
+- Restored letterboxed game's viewport behavior for larger (and scrolling) rooms.
+- Fixed Hq2x and Hq3x filter rendering when the display resolution requires side borders.
+- Fixed Hq2X and Hq3x filters leaving graphic artifacts on letterbox borders.
+- Fixed wrong screen settings could be applied in particular cases when requested gfx filter
+  could not be found or failed to initialize.
+- Gfx filter name supplied in command line is case-insensitive now.
+- Fixed division by zero in AlMP3 library code, that could cause crash when seeking in MP3
+  audio clip.
+- Removed an advise to contact Chris Jones displayed in case of error.
+
+Compatibility:
+- Permissive emulation of pre-AGS 3.1.1 "option-on/off" commands in dialog script, that do
+not stop game execution if a wrong option number is supplied.
+
+
 VERSION 3.3.3, December 2014
 
 Features:
@@ -16,6 +41,8 @@ Bug Fixes:
   will continue playing though.
 - Fixed character walking in hi-res games when the destination has negative Y coordinate.
 - Fixed black borders not drawn in screen corners by Direct3D renderer.
+
+Compatibility:
 - Corrected interpretation for games made with AGS 3.0 - 3.2 to let them assign empty loop
   in SetObjectFrame().
 

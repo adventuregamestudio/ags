@@ -8,7 +8,7 @@
 \parskip=10pt%
 \parindent=0pt%
 \backgroundcolour{255;255;225}\textcolour{0;0;0}% Has an effect in HTML only
-\title{Adventure Game Studio 3.3.0}%
+\title{Adventure Game Studio 3.3.4}%
 \author{by Chris Jones et al.}%
 \makeindex%
 \begin{document}%
@@ -1979,14 +1979,17 @@ that you want to use the plugin.
 
 \section{Lip sync}%
 
-If you want, AGS can pretend to 'read' out speech text. Go to the 'Lip Sync' pane
-in the editor.
+Lip sync is a way to animate character talking in connection with particular letters and their combinations (phonemes).
 
 Normally when a character is talking, AGS simply cycles through the speech animation
 from start to finish, and then loops back round. However, lip syncing allows you to be
 cleverer by specifying a particular frame to go with various letters and sounds. Then,
 as the character talks, AGS plays appropriate frames to simulate the character actually
 saying those words.
+
+Lip sync is being configured on corresponding 'Lip Sync' pane in the editor.
+
+\subsection{Text-based lip syncing}%
 
 In the Lip Sync Editor, you have 20 text boxes, one for each possible frame of the
 talking loop. In each box, you can enter all the letters which will cause that frame of
@@ -2006,8 +2009,7 @@ letter R, S, Th or G is spoken.
 The "Default frame for unlisted characters" box allows you to set which frame is used
 when a character not listed in any of the text boxes is encountered.
 
-
-\bf{Voice speech lip sync}
+\subsection{Voice-based lip sync}%
 
 AGS supports lip syncing voice speech to the talking animation. If you enable this
 feature, you cannot use the standard lip-sync for non-voice lines.
@@ -2017,8 +2019,13 @@ your own risk}
 
 \bf{NOTE:} The voice sync feature only supports Sierra-style speech.
 
-In order to do this, you need to download the third-party PAMELA application:
+In order to do this, you need to download one of the third-party applications that produce
+lip sync data based on voice clips.
+AGS supports two such data formats: \bf{PAMELA} and \bf{Papagayo}.
 
+\subsection{PAMELA}
+
+Download PAMELA application by the following link:
 \verb$http://www-personal.monash.edu.au/~myless/catnap/pamela/$
 
 Set up the phenomes in Pamela so that there are only 10 (or as many talking frames as you have)
@@ -2043,6 +2050,49 @@ to sync the animation of the talking frames during the game.
 \bf{NOTE:} Voice lip sync does not work well with MP3 files. It is strongly recommended
 that you use OGG or WAV for speech.
 
+
+\subsection{Papagayo}
+
+Download Papagayo application by the following link:
+\verb$http://www.lostmarble.com/papagayo/$
+
+First you would need to set up your 10 or so phonemes associations (as described above for PAMELA).
+
+Then start up the Papagayo program and open a speech file in .WAV format. The waveform will appear
+on-screen, represented by a blue, horizontal bar. You can press the triangular 'Play' button
+at the top of the screen to listen to the speech audio.
+
+In the "Spoken Text" field at the bottom of the screen, type in the exact text words heard in the
+speech file. As you type, you will notice that each word appears as a horizontal orange bar above
+the blue waveform. At the same time, individual pink phonemes start appearing below
+the blue waveform bar. (These pink phonemes at the bottom should correspond to the fields
+in AGS editor's "Lip Sync" tab).
+
+If you play the speech audio at this point, you'll see that the mouth image at the upper right
+corner of the screen changes as each pink phoneme is reached during playback. However, the result
+will not be perfect. To remedy this, you need to drag the orange words at the top of the screen
+so that their length matches up with the timing of each spoken word in the audio.
+Double-clicking an orange word will make that portion of the audio play, so you can test if it's accurate.
+
+Sometimes an orange word will contain too many, too few, or inaccurate phonemes. You can edit these
+by right-clicking an orange word and adding, editing, or deleting the desired phonemes.
+Each one should be separated by a space.
+
+For even further accuracy, individual pink phonemes can be dragged left or right to position them
+more precisely.
+
+When you're happy with the results, you can save the project as a .pgo file, which will allow you
+to open and re-edit this line later. But to use it in AGS, click the "Export" button at the
+bottom right side of the screen, and save it as a .dat file.
+
+Use the Papagayo application on each of your speech lines, and export a Papagayo file (.dat file)
+for each speech file, naming it the same as the speech.
+
+For example, the Papagayo project for EGO46.OGG would be called EGO46.DAT, placed in your game's
+Speech folder.
+
+When you build the game, this dat file is compiled into the speech.vox and will be used to sync
+the animation of the talking frames during the game.
 
 
 \section{New Game templates}\index{Templates, creating}%
@@ -5888,6 +5938,8 @@ will display the message above EGO's head and play the character's thinking anim
 
 \it{See Also:} \helprefn{Character.BlinkWhileThinking}{Character.BlinkWhileThinking},
 \helprefn{Character.Say}{Character.Say},
+\helprefn{Character.Thinking}{Character.Thinking},
+\helprefn{Character.ThinkingFrame}{Character.ThinkingFrame},
 \helprefn{Character.ThinkView}{Character.ThinkView},
 \helprefn{game.speech_bubble_width}{Gamevariables}
 
@@ -6073,7 +6125,8 @@ to do this.
 
 \it{See Also:} \helprefn{Character.Animate}{Character.Animate},
 \helprefn{Character.Moving}{Character.Moving},
-\helprefn{Character.Speaking}{Character.Speaking}
+\helprefn{Character.Speaking}{Character.Speaking},
+\helprefn{Character.Thinking}{Character.Thinking}
 
 
 \subsection{AnimationSpeed property}\label{Character.AnimationSpeed}\index{Character.AnimationSpeed}%
@@ -6556,6 +6609,7 @@ will move EGO to 125,40 and return control to the player when he gets there.
 \helprefn{Character.Move}{Character.Move},
 \helprefn{Character.Speaking}{Character.Speaking},
 \helprefn{Character.StopMoving}{Character.StopMoving},
+\helprefn{Character.Thinking}{Character.Thinking},
 \helprefn{Character.Walk}{Character.Walk}
 
 
@@ -6761,7 +6815,8 @@ will animate the character using loop 3 while they are talking (only useful with
 \it{See Also:} \helprefn{Character.Animating}{Character.Animating},
 \helprefn{Character.Moving}{Character.Moving},
 \helprefn{Character.Say}{Character.Say},
-\helprefn{Character.SpeakingFrame}{Character.SpeakingFrame}
+\helprefn{Character.SpeakingFrame}{Character.SpeakingFrame},
+\helprefn{Character.Thinking}{Character.Thinking}
 
 
 \subsection{SpeakingFrame property}\label{Character.SpeakingFrame}\index{Character.SpeakingFrame}%
@@ -6867,6 +6922,72 @@ will change the character EGO's speech view to view 10.
 \helprefn{Character.BlinkView}{Character.BlinkView},
 \helprefn{Character.SpeechAnimationDelay}{Character.SpeechAnimationDelay},
 \helprefn{Character.SpeechColor}{Character.SpeechColor}
+
+
+\subsection{Thinking property}\label{Character.Thinking}\index{Character.Thinking}%
+
+\begin{verbatim}
+readonly bool Character.Thinking
+\end{verbatim}
+Returns true if the character is currently thinking, or false if not.
+
+This property is read-only. It will \bf{only} return true for the active thinking character.
+
+Since this property will only be true while the character is thinking, and thinking is
+a blocking command, this property will probably only be useful to access from
+the repeatedly_execute_always handler.
+
+\fcol{red}{Example:}
+\begin{verbatim}
+function repeatedly_execute_always()
+{
+  if (cEgo.Thinking) {
+    cEgo.Transparency = 50;
+  else
+    cEgo.Transparency = 0;
+}
+\end{verbatim}
+this will keep character semi-transparent while he is thinking.
+
+\it{Compatibility:} Supported by \bf{AGS 3.3.4} and later versions.
+
+\it{See Also:} \helprefn{Character.Animating}{Character.Animating},
+\helprefn{Character.Moving}{Character.Moving},
+\helprefn{Character.Speaking}{Character.Speaking}
+\helprefn{Character.Think}{Character.Think},
+\helprefn{Character.ThinkingFrame}{Character.ThinkingFrame},
+
+
+\subsection{ThinkingFrame property}\label{Character.ThinkingFrame}\index{Character.ThinkingFrame}%
+
+\begin{verbatim}
+readonly int Character.ThinkingFrame
+\end{verbatim}
+Returns the current frame number of the character's thinking animation. This is
+useful when using Sierra-style speech, if you want to synchronize events with the
+progress of the close-up face talking animation.
+
+This property is read-only. It is only accessible while the character is thinking;
+if you attempt to call it when \helprefn{Character.Thinking}{Character.Thinking} is
+\it{false} then it will raise an error.
+
+Since thinking is a blocking command, this property will probably only be useful 
+access from the repeatedly_execute_always handler.
+
+\fcol{red}{Example:}
+\begin{verbatim}
+if (cEgo.Thinking) {
+  if (cEgo.ThinkingFrame == 0) {
+    cMan.Move(cMan.x + 10, cMan.y, eNoBlock, eAnywhere);
+  }
+}
+\end{verbatim}
+will move cMan to the right every time the thinking animation loops back to Frame 0.
+
+\it{Compatibility:} Supported by \bf{AGS 3.3.4} and later versions.
+
+\it{See Also:} \helprefn{Character.Think}{Character.Think},
+\helprefn{Character.Thinking}{Character.Thinking}
 
 
 \subsection{ThinkView property}\label{Character.ThinkView}\index{Character.ThinkView}%

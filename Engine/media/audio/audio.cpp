@@ -226,7 +226,9 @@ int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool interruptE
 SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
 {
     const char *clipFileName = get_audio_clip_file_name(audioClip);
-    if ((clipFileName == NULL) || (usetup.digicard == DIGI_NONE))
+    if ((clipFileName == NULL) ||
+        (audioClip->fileType == eAudioFileMIDI && usetup.midicard == MIDI_NONE) ||
+        (audioClip->fileType != eAudioFileMIDI && usetup.digicard == DIGI_NONE))
     {
         return NULL;
     }

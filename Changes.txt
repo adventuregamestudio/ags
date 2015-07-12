@@ -16,6 +16,8 @@ Bug Fixes:
 - Fixed wrong screen settings could be applied in particular cases when requested gfx filter
   could not be found or failed to initialize.
 - Gfx filter name supplied in command line is case-insensitive now.
+- Do not disable both digital sound and MIDI music if only one of these failed to initialize.
+- Fixed MIDI music refuses to start if digital sound is disabled.
 - Fixed division by zero in AlMP3 library code, that could cause crash when seeking in MP3
   audio clip.
 - Removed an advise to contact Chris Jones displayed in case of error.

@@ -23,6 +23,7 @@ namespace AGS.Editor
         private const string LOOK_IN_CURRENT_PROJECT = "Current Project";
 
         private static string _lastSelectedLookIn;
+        private static bool _lastSelectedCaseSensitive;
 
         public FindReplaceDialog(string defaultSearchText, 
             string defaultReplaceText, EditorPreferences preferences,
@@ -42,6 +43,8 @@ namespace AGS.Editor
             cmbLookIn.Items.Add(LOOK_IN_CURRENT_DOCUMENT);
             cmbLookIn.Items.Add(LOOK_IN_CURRENT_PROJECT);
             cmbLookIn.Text = _lastSelectedLookIn ?? LOOK_IN_CURRENT_DOCUMENT;
+
+            chkCaseSensitive.Checked = _lastSelectedCaseSensitive;
             
             cmbFind.Text = defaultSearchText;
 			cmbReplace.Text = defaultReplaceText;
@@ -78,7 +81,6 @@ namespace AGS.Editor
         public bool CaseSensitive
         {
             get { return chkCaseSensitive.Checked; }
-            set { chkCaseSensitive.Checked = value; }
         }
 
 		public bool ShowingReplaceDialog
@@ -182,6 +184,7 @@ namespace AGS.Editor
         private void onFormClosed(object sender, FormClosedEventArgs e)
         {
             _lastSelectedLookIn = cmbLookIn.Text;
+            _lastSelectedCaseSensitive = chkCaseSensitive.Checked;
         }
 
         private void onFormDeactivated(object sender, EventArgs e)

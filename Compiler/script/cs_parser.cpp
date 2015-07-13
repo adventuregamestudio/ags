@@ -1298,7 +1298,8 @@ long extract_variable_name(int fsym, ccInternalList*targ,long*slist, int *funcAt
       // save this member for use in a sub-member
     }
     else if (nexttype == SYM_OPENBRACKET) {
-      if (sym.get_type(slist[sslen]) >= NOTEXPRESSION) {
+      if ((sym.get_type(slist[sslen]) >= NOTEXPRESSION) &&
+          ((sym.get_type(slist[sslen]) != SYM_VARTYPE) || ((sym.flags[slist[sslen]] & SFLG_STRUCTTYPE) == 0))) {
         cc_error("parse error after '['");
         return -1;
         }
@@ -1311,10 +1312,14 @@ long extract_variable_name(int fsym, ccInternalList*targ,long*slist, int *funcAt
         return -1;
         }
       int braclevel = 0, linenumWas = currentline;
-      // extract the contents of the brackets - comma is allowed
-      // because you can have like  array[func(a,b)] 
+      // extract the contents of the brackets
+      // comma is allowed because you can have like array[func(a,b)] 
+      // vartype is allowed to permit access to static members, e.g. array[Game.GetColorFromRGB(0, 0, 0)]
       while ((sym.get_type(slist[sslen]) < NOTEXPRESSION) ||
-             (sym.get_type(slist[sslen]) == SYM_COMMA)) {
+             (sym.get_type(slist[sslen]) == SYM_COMMA) ||
+             (sym.get_type(slist[sslen]) == SYM_VARTYPE) && (sym.flags[slist[sslen]] & SFLG_STRUCTTYPE)) {
+        if (sym.get_type(slist[sslen - 1]) == SYM_VARTYPE && sym.get_type(slist[sslen]) != SYM_DOT)
+          break;
         if (targ->getnext() == SCODE_INVALID) {
           currentline = linenumWas;
           cc_error("missing ']'");

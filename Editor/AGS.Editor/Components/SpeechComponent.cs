@@ -129,8 +129,11 @@ namespace AGS.Editor.Components
                     if (thisLine.IndexOf(':') > 0)
                     {
                         string[] parts = thisLine.Split(':');
+                        int part0;
                         // Convert from Pamela XPOS into milliseconds
-                        int milliSeconds = ((Convert.ToInt32(parts[0]) / 15) * 1000) / 24;
+                        if (!Int32.TryParse(parts[0], out part0))
+                            break; // Encountered invalid data in a lip sync file
+                        int milliSeconds = ((part0 / 15) * 1000) / 24;
                         string phonemeCode = parts[1].Trim().ToUpper();
                         int frameID = FindFrameNumberForPhoneme(phonemeCode);
                         if (frameID < 0)
@@ -167,11 +170,13 @@ namespace AGS.Editor.Components
                     if (thisLine.IndexOf(' ') > 0)
                     {
                         string[] parts = thisLine.Split(' ');
-                        // Convert from Pamela XPOS into milliseconds
-                        int xpos = Convert.ToInt32(parts[0]);
+                        int part0;
+                        if (!Int32.TryParse(parts[0], out part0))
+                            break; // Encountered invalid data in a lip sync file
+                        int xpos = part0;
                         if (xpos < 0) // Clamp negative XPOS to 0
                             xpos = 0;
-                        int milliSeconds = (Convert.ToInt32(parts[0]) * 1000) / 24;
+                        int milliSeconds = (part0 * 1000) / 24;
                         string phonemeCode = parts[1].Trim().ToUpper();
                         int frameID = FindFrameNumberForPhoneme(phonemeCode);
                         if (frameID < 0)

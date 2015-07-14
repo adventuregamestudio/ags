@@ -13,7 +13,6 @@ namespace AGS.Editor.TextProcessing
         private IScript _script;
         private AGSEditor _agsEditor;
         private static string _lastSearchText, _lastReplaceText;
-        private bool _lastCaseSensitive;
         private static bool _creatingDialog;
         private static FindReplaceDialog _dialog;
 
@@ -29,7 +28,6 @@ namespace AGS.Editor.TextProcessing
             {
                 _lastSearchText = lastSearchText;
             }
-            this._lastCaseSensitive = lastCaseSensitive;
         }
 
         public static void CloseDialogIfNeeded()
@@ -49,7 +47,6 @@ namespace AGS.Editor.TextProcessing
             bool showAll = _dialog.ShowingAllDialog;
 
             _lastReplaceText = _dialog.TextToReplaceWith;
-            _lastCaseSensitive = _dialog.CaseSensitive;
 
             if (_dialog.TextToFind.Length > 0)
             {
@@ -147,7 +144,6 @@ namespace AGS.Editor.TextProcessing
                     _lastReplaceText, _agsEditor.Preferences, this);
                 _dialog.ShowingReplaceDialog = showReplace;
                 _dialog.ShowingAllDialog = showAll;
-                _dialog.CaseSensitive = _lastCaseSensitive;
             }            
         }
 

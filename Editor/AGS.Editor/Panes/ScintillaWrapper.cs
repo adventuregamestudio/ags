@@ -615,7 +615,7 @@ namespace AGS.Editor
             int nextPos = -1;
             if (currentPos < documentText.Length)
             {
-                nextPos = documentText.IndexOf(text, currentPos + 1, comparisonType);
+                nextPos = documentText.IndexOf(text, currentPos, comparisonType);
             }
             if (nextPos < 0)
             {

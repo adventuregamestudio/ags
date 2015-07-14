@@ -439,7 +439,7 @@ namespace AGS.Editor
 					if ((bmpToImport.Width == bmp.Width) &&
 						(bmpToImport.Height == bmp.Height))
 					{
-						newSprite.SourceFile = sourceFileName;
+                        newSprite.SourceFile = sourceFileName.Replace(Factory.AGSEditor.CurrentGame.DirectoryPath + Path.DirectorySeparatorChar, string.Empty);
 					}
                 }
                 RefreshSpriteDisplay();

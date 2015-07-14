@@ -61,7 +61,7 @@ namespace AGS.Editor
                     }
                     Factory.NativeProxy.ReloadTTFFont(_item.ID);
                     _item.PointSize = fontSize;
-                    _item.SourceFilename = fileName;
+                    _item.SourceFilename = fileName.Replace(Factory.AGSEditor.CurrentGame.DirectoryPath + Path.DirectorySeparatorChar, string.Empty);
                 }
                 catch (AGSEditorException ex)
                 {
@@ -81,7 +81,7 @@ namespace AGS.Editor
                 }
                 Factory.NativeProxy.ImportSCIFont(fileName, _item.ID);
                 _item.PointSize = 0;
-                _item.SourceFilename = fileName;
+                _item.SourceFilename = fileName.Replace(Factory.AGSEditor.CurrentGame.DirectoryPath + Path.DirectorySeparatorChar, string.Empty);
             }
             catch (AGSEditorException ex)
             {

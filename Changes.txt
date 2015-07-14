@@ -6,10 +6,14 @@ Features:
 - Removed 10,000 symbols limit in scripts.
 - Added Character.Thinking and Character.ThinkingFrame script properties.
 - Added Papagayo voice lip sync support.
+- Find/Replace dialog now remembers the state of "Case sensitive" checkbox.
 - Engine now scans all available files in search of game data, only giving standard names
   a priority.
 
 Bug Fixes:
+- Fixed Editor crash in case of lip sync data parsing error.
+- Fixed Find/Replace dialog skipped the first word in the script being searched through.
+- Fixed an order of cycling through fields on Find/Replace dialog.
 - Restored letterboxed game's viewport behavior for larger (and scrolling) rooms.
 - Fixed Hq2x and Hq3x filter rendering when the display resolution requires side borders.
 - Fixed Hq2X and Hq3x filters leaving graphic artifacts on letterbox borders.

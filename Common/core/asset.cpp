@@ -11,23 +11,26 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
-#ifndef __AGS_EE_MAIN__GAMEFILE_H
-#define __AGS_EE_MAIN__GAMEFILE_H
 
-#include "util/string.h"
+#include "core/asset.h"
 
-void set_default_glmsg (int msgnum, const char* val);
+namespace AGS
+{
+namespace Common
+{
 
-extern void ReadGameSetupStructBase_Aligned(Common::Stream *in);
-extern void WriteGameSetupStructBase_Aligned(Common::Stream *out);
+AssetInfo::AssetInfo()
+    : LibUid(0)
+    , Offset(0)
+    , Size(0)
+{
+}
+void AssetLibInfo::Unload()
+{
+    BaseFileName = "";
+    LibFileNames.clear();
+    AssetInfos.clear();
+}
 
-extern AGS::Common::String game_file_name;
-
-extern const AGS::Common::String MainGameAssetName_v3;
-extern const AGS::Common::String MainGameAssetName_v2;
-
-#endif // __AGS_EE_MAIN__GAMEFILE_H
+} // namespace Common
+} // namespace AGS

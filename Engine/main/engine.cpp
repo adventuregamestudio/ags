@@ -58,6 +58,7 @@
 #include "util/path.h"
 #include "main/game_file.h"
 #include "debug/out.h"
+#include "core/asset.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -209,102 +210,73 @@ void init_game_file_name_from_cmdline()
 #endif
 }
 
+bool is_main_game_file(const String &filename)
+{
+    // We must not only detect if the given file is a correct AGS data library,
+    // we also have to assure that this library contains main game asset.
+    // Library may contain some optional data (digital audio, speech etc), but
+    // that is not what we want.
+    AssetLibInfo lib;
+    if (AssetManager::ReadDataFileTOC(filename, lib) != kAssetNoError)
+        return false;
+    for (size_t i = 0; i < lib.AssetInfos.size(); ++i)
+    {
+        if (lib.AssetInfos[i].FileName.CompareNoCase(MainGameAssetName_v3) == 0 ||
+            lib.AssetInfos[i].FileName.CompareNoCase(MainGameAssetName_v2) == 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 String find_game_data_in_directory(const String &path)
 {
+    al_ffblk ff;
     String test_file;
-    String found_data_file;
-    // TODO: find a way to make this platform-agnostic way
-    // using find-file interface or something
-#if defined (LINUX_VERSION) || defined (MAC_VERSION)
-    DIR* fd = NULL;
-    struct dirent* entry = NULL;
-    version_info_t version_info;
+    String first_nonstd_fn;
+    String pattern = path;
+    pattern.Append("/*");
 
-    if ((fd = opendir(path)))
+    if (al_findfirst(pattern, &ff, FA_ALL & ~(FA_DIREC)) != 0)
+        return "";
+    // Select first found data file; files with standart names (*.ags) have
+    // higher priority over files with custom names.
+    do
     {
-        while ((entry = readdir(fd)))
+        test_file = ff.name;
+        // Add a bit of sanity and do not parse contents of the 10k-files-large
+        // digital sound libraries.
+        // NOTE: we could certainly benefit from any kind of flag in file lib
+        // that would tell us this is the main lib without extra parsing.
+        if (test_file.CompareRightNoCase(".vox") == 0)
+            continue;
+
+        // *.ags is a standart cross-platform file pattern for AGS games,
+        // ac2game.dat is a legacy file name for very old games,
+        // *.exe is a MS Win executable; it is included to this case because
+        // users often run AGS ports with Windows versions of games.
+        bool is_std_name = test_file.CompareRightNoCase(".ags") == 0 ||
+            test_file.CompareNoCase("ac2game.dat") == 0 ||
+            test_file.CompareRightNoCase(".exe") == 0;
+        if (is_std_name || first_nonstd_fn.IsEmpty())
         {
-            // Filename must be >= 4 chars long
-            int length = strlen(entry->d_name);
-            if (length < 4)
+            test_file.Format("%s/%s", path.GetCStr(), ff.name);
+            if (is_main_game_file(test_file))
             {
-                continue;
-            }
-
-            // Exclude the setup program
-            if (stricmp(entry->d_name, "winsetup.exe") == 0)
-            {
-                continue;
-            }
-
-            if (stricmp(&(entry->d_name[length - 4]), ".exe") == 0)
-            {
-                if (!getVersionInformation(entry->d_name, &version_info))
-                    continue;
-                if (strcmp(version_info.internal_name, "acwin") == 0)
+                if (is_std_name)
                 {
-                    test_file.Format("%s/%s", path.GetCStr(), entry->d_name);
-                    if (AGS::Common::AssetManager::IsDataFile(test_file))
-                    {
-                        found_data_file = test_file;
-                        break;
-                    }
+                    al_findclose(&ff);
+                    return test_file;
                 }
-            }
-            else if (stricmp(&(entry->d_name[length - 4]), ".ags") == 0 ||
-                stricmp(entry->d_name, "ac2game.dat") == 0)
-            {
-                test_file.Format("%s/%s", path.GetCStr(), entry->d_name);
-                if (AGS::Common::AssetManager::IsDataFile(test_file))
-                {
-                    found_data_file = test_file;
-                    break;
-                }
+                else
+                    first_nonstd_fn = test_file;
             }
         }
-        closedir(fd);
     }
-#elif defined (WINDOWS_VERSION)
-    String path_mask = path;
-    path_mask.Append("/*");
-    WIN32_FIND_DATAA file_data;
-    HANDLE find_handle = FindFirstFileA(path_mask, &file_data);
-    if (find_handle != INVALID_HANDLE_VALUE)
-    {
-        do
-        {
-            // Filename must be >= 4 chars long
-            int length = strlen(file_data.cFileName);
-            if (length < 4)
-            {
-                continue;
-            }
-
-            // Exclude the setup program
-            if (strcmp(file_data.cFileName, "winsetup.exe") == 0)
-            {
-                continue;
-            }
-
-            if (strcmp(&(file_data.cFileName[length - 4]), ".exe") == 0 ||
-                strcmp(&(file_data.cFileName[length - 4]), ".ags") == 0 ||
-                strcmp(file_data.cFileName, "ac2game.dat") == 0)
-            {
-                test_file.Format("%s/%s", path.GetCStr(), file_data.cFileName);
-                if (AGS::Common::AssetManager::IsDataFile(test_file))
-                {
-                    found_data_file = test_file;
-                    break;
-                }
-            }
-        }
-        while (FindNextFileA(find_handle, &file_data) != FALSE);
-        FindClose(find_handle);
-    }
-#else
-    // TODO ??? (PSP, ANDROID)
-#endif
-    return found_data_file;
+    while(al_findnext(&ff) == 0);
+    al_findclose(&ff);
+    return first_nonstd_fn;
 }
 
 extern char appDirectory[512];
@@ -387,13 +359,10 @@ int engine_init_game_data(int argc,char*argv[])
                 sprintf(emsg, "ERROR: Unable to find or open '%s'.\n\n", game_file_name.GetCStr());
             }
         }
-        else if (errcod==Common::kAssetErrLibAssetCount)
+        else if (errcod==Common::kAssetErrLibParse)
         {
-            sprintf(emsg, "ERROR: Too many files in data file.\n\n%s\n\n", game_file_name.GetCStr());
-        }
-        else
-        {
-            sprintf(emsg, "ERROR: The file is corrupt. Make sure you have the correct version of the "
+            sprintf(emsg, "ERROR: The game file is of unsupported format or file is corrupt. "
+                "Make sure you have the correct version of the "
                 "editor, and that this really is an AGS game.\n\n%s\n\n", game_file_name.GetCStr());
         }
 
@@ -578,34 +547,71 @@ void engine_init_keyboard()
 void engine_init_timer()
 {
     Out::FPrint("Install timer");
-
-    platform->WriteConsole("Checking sound inits.\n");
-    if (opts.mod_player) reserve_voices(16,-1);
-    // maybe this line will solve the sound volume?
-    // [IKM] does this refer to install_timer or set_volume_per_voice?
     install_timer();
-#if ALLEGRO_DATE > 19991010
-    set_volume_per_voice(1);
-#endif
+}
+
+typedef char AlIDStr[5];
+
+void AlIDToChars(int al_id, AlIDStr &id_str)
+{
+    id_str[0] = (al_id >> 24) & 0xFF;
+    id_str[1] = (al_id >> 16) & 0xFF;
+    id_str[2] = (al_id >> 8) & 0xFF;
+    id_str[3] = (al_id) & 0xFF;
+    id_str[4] = 0;
+}
+
+void AlDigiToChars(int digi_id, AlIDStr &id_str)
+{
+    if (digi_id == DIGI_NONE)
+        strcpy(id_str, "None");
+    else if (digi_id == DIGI_AUTODETECT)
+        strcpy(id_str, "Auto");
+    else
+        AlIDToChars(digi_id, id_str);
+}
+
+void AlMidiToChars(int midi_id, AlIDStr &id_str)
+{
+    if (midi_id == MIDI_NONE)
+        strcpy(id_str, "None");
+    else if (midi_id == MIDI_AUTODETECT)
+        strcpy(id_str, "Auto");
+    else
+        AlIDToChars(midi_id, id_str);
+}
+
+bool try_install_sound(int digi_id, int midi_id)
+{
+    if (install_sound(digi_id, midi_id, NULL) == 0)
+        return true;
+    // Allegro does not let you try digital and MIDI drivers separately,
+    // and does not indicate which driver failed by return value.
+    // Therefore we try to guess.
+    if (midi_id != MIDI_NONE)
+    {
+        Out::FPrint("Failed to init one of the drivers; Error: %s\nTrying to start without MIDI", get_allegro_error());
+        if (install_sound(digi_id, MIDI_NONE, NULL) == 0)
+            return true;
+    }
+    if (digi_id != DIGI_NONE)
+    {
+        Out::FPrint("Failed to init one of the drivers; Error: %s\nTrying to start without DIGI", get_allegro_error());
+        if (install_sound(DIGI_NONE, midi_id, NULL) == 0)
+            return true;
+    }
+    Out::FPrint("Failed to init sound drivers. Error: %s", get_allegro_error());
+    return false;
 }
 
 void engine_init_sound()
 {
-#ifdef WINDOWS_VERSION
-    // don't let it use the hardware mixer verion, crashes some systems
-    //if ((usetup.digicard == DIGI_AUTODETECT) || (usetup.digicard == DIGI_DIRECTX(0)))
-    //    usetup.digicard = DIGI_DIRECTAMX(0);
-
-    if (usetup.digicard == DIGI_DIRECTX(0)) {
-        // DirectX mixer seems to buffer an extra sample itself
-        use_extra_sound_offset = 1;
-    }
-
-    // if the user clicked away to another app while we were
-    // loading, DirectSound will fail to initialize. There doesn't
-    // seem to be a solution to force us back to the foreground,
-    // because we have no actual visible window at this time
-
+    platform->WriteConsole("Checking sound inits.\n");
+    if (opts.mod_player)
+        reserve_voices(16, -1);
+#if ALLEGRO_DATE > 19991010
+    // maybe this line will solve the sound volume?
+    set_volume_per_voice(1);
 #endif
 
     Out::FPrint("Initialize sound drivers");
@@ -620,32 +626,62 @@ void engine_init_sound()
     if (!psp_midi_enabled)
         usetup.midicard = MIDI_NONE;
 
-    if (install_sound(usetup.digicard,usetup.midicard,NULL)!=0) {
-        reserve_voices(-1,-1);
-        opts.mod_player=0;
-        opts.mp3_player=0;
-        if (install_sound(usetup.digicard,usetup.midicard,NULL)!=0) {
-            if ((usetup.digicard != DIGI_NONE) && (usetup.midicard != MIDI_NONE)) {
-                // only flag an error if they wanted a sound card
-                platform->DisplayAlert("\nUnable to initialize your audio hardware.\n"
-                    "[Problem: %s]\n", get_allegro_error());
-            }
-            reserve_voices(0,0);
-            install_sound(DIGI_NONE, MIDI_NONE, NULL);
-            usetup.digicard = DIGI_NONE;
-            usetup.midicard = MIDI_NONE;
-        }
+    AlIDStr digi_id;
+    AlIDStr midi_id;
+    AlDigiToChars(usetup.digicard, digi_id);
+    AlMidiToChars(usetup.midicard, midi_id);
+    Out::FPrint("Trying digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
+        digi_id, usetup.digicard, midi_id, usetup.midicard);
+
+    bool sound_res = try_install_sound(usetup.digicard, usetup.midicard);
+    if (!sound_res && opts.mod_player)
+    {
+        Out::FPrint("Resetting to default sound parameters and trying again.");
+        reserve_voices(-1, -1); // this resets voice number to defaults
+        opts.mod_player = 0;
+        opts.mp3_player = 0; // CHECKME: why disabling MP3 player too?
+        sound_res = try_install_sound(usetup.digicard, usetup.midicard);
     }
+    if (!sound_res)
+    {
+        // If everything failed, disable sound completely
+        reserve_voices(0,0);
+        install_sound(DIGI_NONE, MIDI_NONE, NULL);
+    }
+    if (usetup.digicard != DIGI_NONE && digi_card == DIGI_NONE ||
+        usetup.midicard != MIDI_NONE && midi_card == MIDI_NONE)
+    {
+        // only flag an error if they wanted a sound card
+        platform->DisplayAlert("\nUnable to initialize your audio hardware.\n"
+            "[Problem: %s]\n", get_allegro_error());
+    }
+
+    usetup.digicard = digi_card;
+    usetup.midicard = midi_card;
+
+    AlDigiToChars(usetup.digicard, digi_id);
+    AlMidiToChars(usetup.midicard, midi_id);
+    Out::FPrint("Installed digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
+        digi_id, usetup.digicard, midi_id, usetup.midicard);
 
     our_eip = -181;
 
-    if (usetup.digicard == DIGI_NONE) {
+    if (usetup.digicard == DIGI_NONE)
+    {
         // disable speech and music if no digital sound
         // therefore the MIDI soundtrack will be used if present,
         // and the voice mode should not go to Voice Only
         play.want_speech = -2;
         play.separate_music_lib = 0;
     }
+
+#ifdef WINDOWS_VERSION
+    if (usetup.digicard == DIGI_DIRECTX(0))
+    {
+        // DirectX mixer seems to buffer an extra sample itself
+        use_extra_sound_offset = 1;
+    }
+#endif
 }
 
 void engine_init_debug()
@@ -667,7 +703,7 @@ void atexit_handler() {
         sprintf(pexbuf,"\nError: the program has exited without requesting it.\n"
             "Program pointer: %+03d  (write this number down), ACI version %s\n"
             "If you see a list of numbers above, please write them down and contact\n"
-            "Chris Jones. Otherwise, note down any other information displayed.\n",
+            "developers. Otherwise, note down any other information displayed.\n",
             our_eip, EngineVersion.LongString.GetCStr());
         platform->DisplayAlert(pexbuf);
     }

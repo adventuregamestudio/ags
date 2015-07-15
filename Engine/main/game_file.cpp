@@ -121,12 +121,15 @@ GameDataVersion filever;
 int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
 String game_file_name;
 
+const String MainGameAssetName_v3 = "game28.dta"; // 3.x data file name
+const String MainGameAssetName_v2 = "ac2game.dta"; // 2.x data file name
+
 
 Stream * game_file_open()
 {
-	Stream*in = Common::AssetManager::OpenAsset("game28.dta"); // 3.x data file name
+	Stream*in = Common::AssetManager::OpenAsset(MainGameAssetName_v3); // 3.x data file name
     if (in==NULL) {
-        in = Common::AssetManager::OpenAsset("ac2game.dta"); // 2.x data file name
+        in = Common::AssetManager::OpenAsset(MainGameAssetName_v2); // 2.x data file name
     }
 
 	return in;

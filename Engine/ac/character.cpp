@@ -109,6 +109,7 @@ bool facetalk_qfg4_override_placement_y = false;
 
 // lip-sync speech settings
 int loops_per_character, text_lips_offset, char_speaking = -1;
+int char_thinking = -1;
 char *text_lips_text = NULL;
 SpeechLipSyncLine *splipsync = NULL;
 int numLipLines = 0, curLipLine = -1, curLipLinePhoneme = 0;
@@ -1478,6 +1479,20 @@ void Character_SetSpeechView(CharacterInfo *chaa, int vii) {
     chaa->talkview = vii - 1;
 }
 
+bool Character_GetThinking(CharacterInfo *chaa)
+{
+    return char_thinking == chaa->index_id;
+}
+
+int Character_GetThinkingFrame(CharacterInfo *chaa)
+{
+    if (char_thinking == chaa->index_id)
+        return chaa->thinkview > 0 ? chaa->frame : -1;
+
+    quit("!Character.ThinkingFrame: character is not currently thinking");
+    return -1;
+}
+
 int Character_GetThinkView(CharacterInfo *chaa) {
 
     return chaa->thinkview + 1;
@@ -2721,6 +2736,9 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
     if ((widd > 0) && (isThought == 0))
         allowShrink = 0;
 
+    if (isThought)
+        char_thinking = aschar;
+
     our_eip=155;
     _display_at(tdxp,tdyp,bwidth,texx,0,textcol, isThought, allowShrink, overlayPositionFixed);
     our_eip=156;
@@ -2750,6 +2768,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
         charextra[aschar].process_idle_this_time = 1;
     }
     char_speaking = -1;
+    char_thinking = -1;
     stop_speech();
 }
 
@@ -3484,6 +3503,16 @@ RuntimeScriptValue Sc_Character_SetSpeechView(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetSpeechView);
 }
 
+RuntimeScriptValue Sc_Character_GetThinking(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(CharacterInfo, Character_GetThinking);
+}
+
+RuntimeScriptValue Sc_Character_GetThinkingFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetThinkingFrame);
+}
+
 // int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetThinkView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -3713,6 +3742,8 @@ void RegisterCharacterAPI()
 	ccAddExternalObjectFunction("Character::set_SpeechColor",           Sc_Character_SetSpeechColor);
 	ccAddExternalObjectFunction("Character::get_SpeechView",            Sc_Character_GetSpeechView);
 	ccAddExternalObjectFunction("Character::set_SpeechView",            Sc_Character_SetSpeechView);
+    ccAddExternalObjectFunction("Character::get_Thinking",              Sc_Character_GetThinking);
+    ccAddExternalObjectFunction("Character::get_ThinkingFrame",         Sc_Character_GetThinkingFrame);
 	ccAddExternalObjectFunction("Character::get_ThinkView",             Sc_Character_GetThinkView);
 	ccAddExternalObjectFunction("Character::set_ThinkView",             Sc_Character_SetThinkView);
 	ccAddExternalObjectFunction("Character::get_Transparency",          Sc_Character_GetTransparency);

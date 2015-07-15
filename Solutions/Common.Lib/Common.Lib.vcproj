@@ -508,6 +508,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\mutifilelib.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\path.cpp"
 					>
 				</File>
@@ -587,6 +591,10 @@
 			<Filter
 				Name="core"
 				>
+				<File
+					RelativePath="..\..\Common\core\asset.cpp"
+					>
+				</File>
 				<File
 					RelativePath="..\..\Common\core\assetmanager.cpp"
 					>
@@ -822,6 +830,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\multifilelib.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\path.h"
 					>
 				</File>
@@ -897,6 +909,10 @@
 			<Filter
 				Name="core"
 				>
+				<File
+					RelativePath="..\..\Common\core\asset.h"
+					>
+				</File>
 				<File
 					RelativePath="..\..\Common\core\assetmanager.h"
 					>

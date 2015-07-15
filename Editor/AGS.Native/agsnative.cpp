@@ -78,7 +78,6 @@ GameSetupStruct thisgame;
 SpriteCache spriteset(MAX_SPRITES + 2);
 GUIMain tempgui;
 const char*sprsetname = "acsprset.spr";
-const char*clibendsig = "CLIB\x1\x2\x3\x4SIGE";
 const char *old_editor_data_file = "editor.dat";
 const char *new_editor_data_file = "game.agf";
 const char *old_editor_main_game_file = "ac2game.dta";
@@ -2256,6 +2255,9 @@ void save_room_file(const char*rtsa)
 
 
 // ****** CLIB MAKER **** //
+#include "util/multifilelib.h"
+
+namespace MFLUtil = AGS::Common::MFLUtil;
 
 #define MAX_FILES 10000
 #define MAX_DATAFILENAME_LENGTH 50
@@ -2273,45 +2275,43 @@ MultiFileLibNew ourlib;
 //static const char *tempSetting = "My\x1\xde\x4Jibzle";  // clib password
 //extern void init_pseudo_rand_gen(int seed);
 //extern int get_pseudo_rand();
-const int RAND_SEED_SALT = 9338638;  // must update clib32.cpp if this changes
 
-void fwrite_data_enc(const void *data, int dataSize, int dataCount, Stream *ooo)
+void fwrite_data_enc(const void *data, int dataSize, int dataCount, Stream *ooo, int &rand_val)
 {
   const unsigned char *dataChar = (const unsigned char*)data;
   for (int i = 0; i < dataSize * dataCount; i++)
   {
-    ooo->WriteByte(dataChar[i] + Common::AssetManager::GetNextPseudoRand());
+    ooo->WriteByte(dataChar[i] + MFLUtil::GetNextPseudoRand(rand_val));
   }
 }
 
-void fputstring_enc(const char *sss, Stream *ooo) 
+void fputstring_enc(const char *sss, Stream *ooo, int &rand_val) 
 {
-  fwrite_data_enc(sss, 1, strlen(sss) + 1, ooo);
+  fwrite_data_enc(sss, 1, strlen(sss) + 1, ooo, rand_val);
 }
 
-void putw_enc(int numberToWrite, Stream *ooo)
+void putw_enc(int numberToWrite, Stream *ooo, int &rand_val)
 {
-  fwrite_data_enc(&numberToWrite, 4, 1, ooo);
+  fwrite_data_enc(&numberToWrite, 4, 1, ooo, rand_val);
 }
 
 void write_clib_header(Stream*wout) {
   int ff;
   int randSeed = (int)time(NULL);
-  wout->WriteInt32(randSeed - RAND_SEED_SALT);
-  Common::AssetManager::InitPseudoRand(randSeed);
-  putw_enc(ourlib.num_data_files, wout);
+  wout->WriteInt32(randSeed - MFLUtil::EncryptionRandSeed);
+  putw_enc(ourlib.num_data_files, wout, randSeed);
   for (ff = 0; ff < ourlib.num_data_files; ff++)
   {
-    fputstring_enc(ourlib.data_filenames[ff], wout);
+    fputstring_enc(ourlib.data_filenames[ff], wout, randSeed);
   }
-  putw_enc(ourlib.num_files, wout);
+  putw_enc(ourlib.num_files, wout, randSeed);
   for (ff = 0; ff < ourlib.num_files; ff++) 
   {
-    fputstring_enc(ourlib.filenames[ff], wout);
+    fputstring_enc(ourlib.filenames[ff], wout, randSeed);
   }
-  fwrite_data_enc(&ourlib.offset[0],4,ourlib.num_files, wout);
-  fwrite_data_enc(&ourlib.length[0],4,ourlib.num_files, wout);
-  fwrite_data_enc(&ourlib.file_datafile[0],1,ourlib.num_files, wout);
+  fwrite_data_enc(&ourlib.offset[0],4,ourlib.num_files, wout, randSeed);
+  fwrite_data_enc(&ourlib.length[0],4,ourlib.num_files, wout, randSeed);
+  fwrite_data_enc(&ourlib.file_datafile[0],1,ourlib.num_files, wout, randSeed);
 }
 
 
@@ -2376,7 +2376,7 @@ const char* make_old_style_data_file(const char* dataFileName, int numfile, char
   }
   // write the header
   Stream*wout=Common::File::CreateFile(dataFileName);
-  wout->Write("CLIB\x1a",5);
+  wout->Write(MFLUtil::HeadSig, MFLUtil::HeadSig.GetLength());
   wout->WriteByte(6);  // version
   wout->WriteByte(passwmod);  // password modifier
   wout->WriteByte(0);  // reserved
@@ -2563,7 +2563,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
 	  }
 
 	  startOffset = wout->GetLength();
-    wout->Write("CLIB\x1a",5);
+    wout->Write(MFLUtil::HeadSig, MFLUtil::HeadSig.GetLength());
     wout->WriteByte(21);  // version
     wout->WriteByte(a);   // file number
 
@@ -2597,7 +2597,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
 	if (startOffset > 0)
 	{
 		wout->WriteInt32(startOffset);
-		wout->Write(clibendsig, 12);
+        wout->Write(MFLUtil::TailSig, MFLUtil::TailSig.GetLength());
 	}
     delete wout;
   }

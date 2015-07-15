@@ -2116,6 +2116,10 @@ builtin managed struct Character {
   import attribute int  SpeechColor;
   /// Gets/sets the character's speech view.
   import attribute int  SpeechView;
+  /// Gets whether the character is currently in the middle of a Think command.
+  readonly import attribute bool Thinking;
+  /// Gets the current frame of the character's thinking animation (only valid when Thinking is true)
+  readonly import attribute int ThinkingFrame;
   /// Gets/sets the character's thinking view.
   import attribute int  ThinkView;
   /// Gets/sets the character's current transparency level.

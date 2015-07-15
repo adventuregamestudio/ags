@@ -88,7 +88,7 @@ namespace AGS.Editor
             this.cmdToggleReplace.Location = new System.Drawing.Point(298, 15);
             this.cmdToggleReplace.Name = "cmdToggleReplace";
             this.cmdToggleReplace.Size = new System.Drawing.Size(75, 21);
-            this.cmdToggleReplace.TabIndex = 2;
+            this.cmdToggleReplace.TabIndex = 5;
             this.cmdToggleReplace.Text = ">> R&eplace";
             this.cmdToggleReplace.UseVisualStyleBackColor = true;
             this.cmdToggleReplace.Click += new System.EventHandler(this.cmdToggleReplace_Click);
@@ -111,7 +111,7 @@ namespace AGS.Editor
             this.chkCaseSensitive.Location = new System.Drawing.Point(15, 115);
             this.chkCaseSensitive.Name = "chkCaseSensitive";
             this.chkCaseSensitive.Size = new System.Drawing.Size(96, 17);
-            this.chkCaseSensitive.TabIndex = 5;
+            this.chkCaseSensitive.TabIndex = 4;
             this.chkCaseSensitive.Text = "C&ase Sensitive";
             this.chkCaseSensitive.UseVisualStyleBackColor = true;
             // 
@@ -131,7 +131,7 @@ namespace AGS.Editor
             this.cmbLookIn.Location = new System.Drawing.Point(89, 81);
             this.cmbLookIn.Name = "cmbLookIn";
             this.cmbLookIn.Size = new System.Drawing.Size(203, 21);
-            this.cmbLookIn.TabIndex = 4;
+            this.cmbLookIn.TabIndex = 3;
             // 
             // lblLookIn
             // 
@@ -149,7 +149,7 @@ namespace AGS.Editor
             this.cmbReplace.Location = new System.Drawing.Point(89, 48);
             this.cmbReplace.Name = "cmbReplace";
             this.cmbReplace.Size = new System.Drawing.Size(203, 21);
-            this.cmbReplace.TabIndex = 3;
+            this.cmbReplace.TabIndex = 2;
             // 
             // FindReplaceDialog
             // 

@@ -50,3 +50,12 @@ Solutions/Common.Lib/Debug_MD/
 Solutions/Common.Lib/Release_MD/
 Solutions/Compiler.Lib/Debug_MD/
 Solutions/Compiler.Lib/Release_MD/
+Manual/*.htm
+Manual/*.con
+Manual/ags.ref
+Manual/ags.chm
+Manual/ags.chw
+Manual/ags.hhc
+Manual/ags.hhk
+Manual/ags.hhp
+Manual/ags.htx

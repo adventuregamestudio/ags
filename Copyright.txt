@@ -4,16 +4,18 @@ Copyright (c) 1999-2011 Chris Jones and 2011-2015 various contributors.
 Adventure Game Studio was originally developed by Chris Jones. 
 The latter versions and engine ports to various platforms are product of collaborative work of the following people (in alphabetic order): 
 
+Benjamin Penney
 Bernhard Rosenkraenzer
 Cristian Morales Vega
+Francesco Ariis
 Gilad Shaham
 Ivan Mogilko
-Francesco Ariis
 Janet Gilbert
 Jochen Schleu
 Michael Rittenhouse
 Ori Avtalion
 Paul Wilkinson
+Per Olav Flaten
 Piotr Wieczorek
 rofl0r
 Scott Baker

@@ -1402,9 +1402,10 @@ namespace AGS.Editor
 			NativeProxy.WritePrivateProfileString("misc", "gamecolordepth", (((int)_game.Settings.ColorDepth) * 8).ToString(), configFilePath);
 
             StringBuilder buffer = new StringBuilder(100);
-            NativeProxy.GetPrivateProfileString("graphics", "driver", "NULL", buffer, buffer.Capacity, configFilePath);
+            NativeProxy.GetPrivateProfileString("graphics", "defaultdriver", "NULL", buffer, buffer.Capacity, configFilePath);
             if (buffer.ToString() != _game.Settings.GraphicsDriver.ToString())
             {
+                NativeProxy.WritePrivateProfileString("graphics", "defaultdriver", _game.Settings.GraphicsDriver.ToString(), configFilePath);
                 NativeProxy.WritePrivateProfileString("graphics", "driver", _game.Settings.GraphicsDriver.ToString(), configFilePath);
             }
             NativeProxy.WritePrivateProfileString("misc", "titletext", _game.Settings.GameName + " Setup", configFilePath);

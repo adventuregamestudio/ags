@@ -65,6 +65,12 @@ namespace AGS.Editor
                 File.Move(exeFileName, GetDebugPath(exeFileName));
                 // copy configuration from Compiled folder to use with Debugging
                 string cfgFilePath = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.CONFIG_FILE_NAME);
+                if (!Factory.AGSEditor.Preferences.UseLegacyCompiler)
+                {
+                    IBuildTarget targetWin = BuildTargetsInfo.FindBuildTargetByName("Windows");
+                    if (targetWin != null)
+                        cfgFilePath = targetWin.GetCompiledPath(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.CONFIG_FILE_NAME);
+                }
                 if (File.Exists(cfgFilePath))
                 {
                     File.Copy(cfgFilePath, GetDebugPath(AGSEditor.CONFIG_FILE_NAME), true);

@@ -1368,9 +1368,14 @@ namespace AGS.Editor
             return result;
         }
 
-		public void WriteConfigFile()
+        /// <summary>
+        /// Writes up-to-date game information into configuration file.
+        /// This updates only values that strongly depend on game properties,
+        /// and does not affect user settings.
+        /// </summary>
+		public void WriteConfigFile(string outputDir)
 		{
-			string configFilePath = Path.Combine(OUTPUT_DIRECTORY, CONFIG_FILE_NAME);
+            string configFilePath = Path.Combine(outputDir, CONFIG_FILE_NAME);
 
 			if (!File.Exists(configFilePath))
 			{
@@ -1469,7 +1474,7 @@ namespace AGS.Editor
 
         private object SaveGameFilesProcess(object parameter)
         {
-			WriteConfigFile();
+			WriteConfigFile(OUTPUT_DIRECTORY);
 
             SaveUserDataFile();
 

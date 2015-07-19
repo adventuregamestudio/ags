@@ -111,7 +111,8 @@ namespace AGS.Editor
             Factory.NativeProxy.CreateGameEXE(ConstructFileListForEXE(), Factory.AGSEditor.CurrentGame, Factory.AGSEditor.BaseGameFileName);
             File.Delete(AGSEditor.COMPILED_DTA_FILE_NAME);
             CreateAudioVOXFile(forceRebuild);
-            if (!File.Exists(AGSEditor.CONFIG_FILE_NAME)) Factory.AGSEditor.WriteConfigFile();
+            // Update config file with current game parameters
+            Factory.AGSEditor.WriteConfigFile(AGSEditor.OUTPUT_DIRECTORY);
             return true;
         }
 

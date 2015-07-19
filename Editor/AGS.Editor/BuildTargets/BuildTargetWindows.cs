@@ -183,12 +183,6 @@ namespace AGS.Editor
             UpdateWindowsEXE(newExeName, errors);
             CreateCompiledSetupProgram();
             Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;
-            if (!File.Exists(GetCompiledPath(AGSEditor.CONFIG_FILE_NAME)))
-            {
-                // don't hard-link config file
-                File.Copy(Path.Combine(compiledDir, AGSEditor.CONFIG_FILE_NAME),
-                    GetCompiledPath(AGSEditor.CONFIG_FILE_NAME));
-            }
             foreach (string fileName in Utilities.GetDirectoryFileList(compiledDir, "*"))
             {
                 if (fileName.EndsWith(".ags"))
@@ -219,6 +213,8 @@ namespace AGS.Editor
                     Utilities.CreateHardLink(GetCompiledPath(Path.GetFileName(fileName)), fileName, true);
                 }
             }
+            // Update config file with current game parameters
+            Factory.AGSEditor.WriteConfigFile(GetCompiledPath());
             return true;
         }
 

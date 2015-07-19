@@ -122,18 +122,16 @@ namespace AGS.Editor
             }
             foreach (string fileName in Directory.GetFiles(AGSEditor.OUTPUT_DIRECTORY))
             {
-                if (Path.GetFileName(fileName).Equals(AGSEditor.CONFIG_FILE_NAME, StringComparison.OrdinalIgnoreCase))
-                {
-                    // don't hard-link config file
-                    string acsetupPath = GetCompiledPath(LINUX_DATA_DIR, AGSEditor.CONFIG_FILE_NAME);
-                    if (!File.Exists(acsetupPath)) File.Copy(fileName, acsetupPath);
-                }
-                else if ((!fileName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) &&
-                    (!Path.GetFileName(fileName).Equals("winsetup.exe", StringComparison.OrdinalIgnoreCase)))
+                if ((!fileName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) &&
+                    (!Path.GetFileName(fileName).Equals("winsetup.exe", StringComparison.OrdinalIgnoreCase)) &&
+                    (!Path.GetFileName(fileName).Equals(AGSEditor.CONFIG_FILE_NAME, StringComparison.OrdinalIgnoreCase)))
                 {
                     Utilities.CreateHardLink(GetCompiledPath(LINUX_DATA_DIR, Path.GetFileName(fileName)), fileName, true);
                 }
             }
+            // Update config file with current game parameters
+            Factory.AGSEditor.WriteConfigFile(GetCompiledPath(LINUX_DATA_DIR));
+
             foreach (KeyValuePair<string, string> pair in GetRequiredLibraryPaths())
             {
                 string fileName = pair.Value;

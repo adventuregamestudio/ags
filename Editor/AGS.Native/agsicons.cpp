@@ -59,6 +59,43 @@ typedef struct
 const int FIRST_ICON_ID = 551; // arbitrary first ID
 
 
+// Resource enumeration callback; find only first resource of given kind and breaks enumeration
+BOOL CALLBACK FindFirstResource(HMODULE hModule, LPCTSTR lpszType, LPTSTR lpszName, LONG_PTR lParam)
+{
+    LPTSTR *res_name = (LPTSTR*)lParam;
+    if (IS_INTRESOURCE(lpszName))
+        *res_name = lpszName;
+    else
+        *res_name = strdup(lpszName);
+    return FALSE; // do not continue enumeration
+}
+
+// Queries engine executable for the icon resource ID
+bool FindResID(const char *exeName, LPCSTR lpType, LPTSTR &lpIconResName, String^% err_msg)
+{
+    HMODULE hExe;
+    // Load the .EXE file
+    hExe = LoadLibrary(exeName); 
+    if (hExe == NULL) 
+    {
+        err_msg = "Unable to load executable.";
+        return false;
+    }
+
+    lpIconResName = NULL;
+    EnumResourceNames(hExe, lpType, FindFirstResource, (LONG_PTR)&lpIconResName);
+
+    // Clean up. 
+    if (!FreeLibrary(hExe)) 
+    { 
+        err_msg = "Could not free executable."; 
+        return false;
+    }
+    if (lpIconResName == NULL)
+        err_msg = "No icons found.";
+    return lpIconResName != NULL;
+}
+
 void ReplaceIconFromFile(const char *iconName, const char *exeName) {
 
   int i;
@@ -97,13 +134,23 @@ void ReplaceIconFromFile(const char *iconName, const char *exeName) {
     resIconHeader.idEntries[i].nID = i + FIRST_ICON_ID;  
   }
 
+  LPTSTR lpIconResName = NULL;
+  String ^err_msg;
+  if (!FindResID(exeName, RT_GROUP_ICON, lpIconResName, err_msg))
+  {
+    fclose(icoin);
+    throw gcnew AGSEditorException("Unable to find icon ID in the engine executable:\n" + err_msg);
+  }
+
   HANDLE hUpdate = BeginUpdateResource(exeName, FALSE);
   if (hUpdate == NULL) {
     fclose(icoin);
+    if (!IS_INTRESOURCE(lpIconResName))
+        free(lpIconResName);
     throw gcnew AGSEditorException("Unable to load the custom icon: BeginUpdateResource failed");
   }
 
-  int retcode = UpdateResource(hUpdate, RT_GROUP_ICON, MAKEINTRESOURCE(104),
+  int retcode = UpdateResource(hUpdate, RT_GROUP_ICON, lpIconResName,
                     MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_UK),
                     &resIconHeader,
                     6 + sizeof(GRPICONDIRENTRY) * iconHeader.idCount );
@@ -132,6 +179,8 @@ void ReplaceIconFromFile(const char *iconName, const char *exeName) {
   }
 
   fclose(icoin);
+  if (!IS_INTRESOURCE(lpIconResName))
+      free(lpIconResName);
 
   if (EndUpdateResource(hUpdate, FALSE) == 0) {
     if (errorMsg == NULL) errorMsg = "Unable to load the custom icon: EndUpdateResource failed";

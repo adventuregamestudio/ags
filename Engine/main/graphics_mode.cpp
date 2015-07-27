@@ -248,9 +248,10 @@ void engine_init_resolution_settings(const Size game_size, ColorDepthOption &col
         game.options[OPT_LETTERBOX] == 0 ? "": " letterbox-by-design");
     const char *screen_sz_def_options[kNumScreenDef] = { "explicit", "scaling", "max" };
     const char *game_frame_options[kNumRectPlacement] = { "offset", "center", "stretch", "proportional" };
+    const bool ignore_device_ratio = usetup.windowed || usetup.screen_sz_def == kScreenDef_Explicit;
     Out::FPrint("Game settings: windowed = %s, screen def: %s, screen size: %d x %d, match device ratio: %s, frame placement: %s",
         usetup.windowed ? "yes" : "no", screen_sz_def_options[usetup.screen_sz_def], usetup.screen_size.Width, usetup.screen_size.Height,
-        usetup.match_device_ratio ? "yes" : "no",
+        ignore_device_ratio ? "ignore" : (usetup.match_device_ratio ? "yes" : "no"),
         game_frame_options[usetup.game_frame_placement]);
 
     adjust_sizes_for_resolution(loaded_game_file_version);
@@ -552,9 +553,10 @@ bool try_init_gfx_mode(const GameSizeDef &game_size, const Size screen_size, con
     // Fullscreen mode
     else
     {
-        if (usetup.match_device_ratio)
+        const bool match_device_ratio = usetup.screen_sz_def != kScreenDef_Explicit && usetup.match_device_ratio;
+        if (match_device_ratio)
             mode_found = find_nearest_supported_mode(fixed_screen_size, color_depth, &device_size);
-        if (!usetup.match_device_ratio || !mode_found)
+        if (!match_device_ratio || !mode_found)
             mode_found = find_nearest_supported_mode(fixed_screen_size, color_depth);
     }
 

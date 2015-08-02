@@ -42,7 +42,8 @@
 #include "gfx/gfx_util.h"
 #include "main/graphics_mode.h"
 
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 
 /*

@@ -15,16 +15,8 @@
 #ifndef __AC_GAMESETUP_H
 #define __AC_GAMESETUP_H
 
-#include "util/geometry.h"
-#include "util/string.h"
+#include "main/graphics_mode.h"
 
-enum ScreenSizeDefinition
-{
-    kScreenDef_Explicit,        // define by width & height
-    kScreenDef_ByGameScaling,   // define by game scale factor
-    kScreenDef_MaxDisplay,      // set to maximal supported (desktop/device screen size)
-    kNumScreenDef
-};
 
 struct GameSetup {
     int digicard;
@@ -32,9 +24,6 @@ struct GameSetup {
     int mod_player;
     int textheight;
     int mp3_player;
-    bool windowed;
-    bool vsync;
-    short refresh;
     bool  no_speech_pack;
     bool  enable_antialiasing;
     bool  force_hicolor_mode;
@@ -42,19 +31,11 @@ struct GameSetup {
     AGS::Common::String data_files_dir;
     AGS::Common::String main_data_filename;
     char *translation;
-    AGS::Common::String gfxFilterID;
-    AGS::Common::String gfxDriverID;
     int   override_script_os;
     char  override_multitasking;
     bool  override_upscale;
-    ScreenSizeDefinition screen_sz_def;
-    Size  screen_size;
-    uint32_t filter_scaling_x;
-    uint32_t filter_scaling_y;
-    bool filter_scaling_max_uniform;
-    bool match_device_ratio;
-    RectPlacement game_frame_placement;
-    AGS::Common::String gfxFilterRequest;
+
+    ScreenSetup Screen;
 
     GameSetup();
 };

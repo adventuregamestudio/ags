@@ -194,11 +194,11 @@ void engine_force_window()
     // Force to run in a window, override the config file
     if (force_window == 1)
     {
-        usetup.windowed = true;
-        usetup.screen_sz_def = kScreenDef_ByGameScaling;
+        usetup.Screen.Windowed = true;
+        usetup.Screen.SizeDef = kScreenDef_ByGameScaling;
     }
     else if (force_window == 2)
-        usetup.windowed = false;
+        usetup.Screen.Windowed = false;
 }
 
 void init_game_file_name_from_cmdline()
@@ -1462,12 +1462,12 @@ int initialize_engine(int argc,char*argv[])
     engine_init_resolution_settings(game.size, color_depths);
 
     // Attempt to initialize graphics mode
-    if (!graphics_mode_init(color_depths))
+    if (!graphics_mode_init(usetup.Screen, color_depths))
         return EXIT_NORMAL;
 
     engine_post_gfxmode_setup();
 
-    platform->PostAllegroInit(usetup.windowed);
+    platform->PostAllegroInit(usetup.Screen.Windowed);
 
     SetMultitasking(0);
 

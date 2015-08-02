@@ -19,9 +19,61 @@
 #define __AGS_EE_MAIN__GRAPHICSMODE_H
 
 #include "gfx/gfxdefines.h"
-#include "util/geometry.h"
 #include "util/scaling.h"
 #include "util/string.h"
+
+using AGS::Common::String;
+
+Size get_desktop_size();
+String make_scaling_factor_string(uint32_t scaling);
+
+namespace AGS { namespace Engine { class IGfxModeList; }}
+bool find_nearest_supported_mode(const AGS::Engine::IGfxModeList &modes, Size &wanted_size, int *mode_index,
+                                 const int color_depth, const Size *ratio_reference = NULL, const Size *upper_bound = NULL);
+
+namespace AGS { namespace Engine { class IGfxFilter; } }
+extern AGS::Engine::IGfxFilter *filter;
+
+// The actual game screen resolution
+extern AGS::Engine::GraphicResolution ScreenResolution;
+// The game-to-screen transformation
+extern AGS::Engine::PlaneScaling GameScaling;
+
+
+// Filter configuration
+struct GfxFilterSetup
+{
+    String ID;          // internal filter ID
+    String UserRequest; // filter name, requested by user
+
+    bool   MaxUniform;    // calculate maximal uniform scaling factor based on display resolution
+    int    ScaleX;        // distinct X scaling
+    int    ScaleY;        // distinct Y scaling
+};
+
+enum ScreenSizeDefinition
+{
+    kScreenDef_Explicit,        // define by width & height
+    kScreenDef_ByGameScaling,   // define by game scale factor
+    kScreenDef_MaxDisplay,      // set to maximal supported (desktop/device screen size)
+    kNumScreenDef
+};
+
+// General display configuration
+struct ScreenSetup
+{
+    String               DriverID;      // graphics driver ID
+    ScreenSizeDefinition SizeDef;       // a method used to determine screen size
+    Size                 Size;          // explicitly defined screen metrics
+    bool                 MatchDeviceRatio; // choose resolution matching device aspect ratio
+
+    int                  RefreshRate;   // gfx mode refresh rate
+    bool                 VSync;         // vertical sync
+    bool                 Windowed;      // is mode windowed
+
+    RectPlacement        FramePlacement;// a method used to determine frame position on screen
+    GfxFilterSetup       Filter;        // scaling filter definition
+};
 
 struct ColorDepthOption
 {
@@ -29,21 +81,9 @@ struct ColorDepthOption
     int32_t Alternate;
 };
 
-bool graphics_mode_init(const ColorDepthOption &color_depths);
+// Makes an attempt to deduce and set a new gfx mode from user config
+bool graphics_mode_init(const ScreenSetup &setup, const ColorDepthOption &color_depths);
+// Releases current graphic mode and shuts down renderer
 void graphics_mode_shutdown();
-Size get_desktop_size();
-AGS::Common::String make_scaling_factor_string(uint32_t scaling);
-
-namespace AGS { namespace Engine { class IGfxModeList; }}
-bool find_nearest_supported_mode(const AGS::Engine::IGfxModeList &modes, Size &wanted_size, int *mode_index,
-                                 const int color_depth, const Size *ratio_reference = NULL, const Size *upper_bound = NULL);
-
-// The actual game screen resolution
-extern AGS::Engine::GraphicResolution ScreenResolution;
-// The game-to-screen transformation
-extern AGS::Engine::PlaneScaling GameScaling;
-
-namespace AGS { namespace Engine { class IGfxFilter; } }
-extern AGS::Engine::IGfxFilter *filter;
 
 #endif // __AGS_EE_MAIN__GRAPHICSMODE_H

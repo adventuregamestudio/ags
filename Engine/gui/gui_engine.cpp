@@ -34,7 +34,8 @@
 #include "gfx/blender.h"
 #include "main/graphics_mode.h"
 
-using AGS::Common::Bitmap;
+using namespace Common;
+using namespace Engine;
 
 // For engine these are defined in ac.cpp
 extern int eip_guiobj;
@@ -47,7 +48,7 @@ extern void ensure_text_valid_for_font(char *, int);
 extern SpriteCache spriteset; // in ac_runningame
 extern GameSetupStruct game;
 
-bool AGS::Common::GUIMain::HasAlphaChannel() const
+bool GUIMain::HasAlphaChannel() const
 {
     if (this->BgImage > 0)
     {

@@ -214,13 +214,13 @@ int main_process_cmdline(int argc,char*argv[])
             play.playback = 1;
         else if ((stricmp(argv[ee],"-gfxfilter") == 0 || stricmp(argv[ee],"--gfxfilter") == 0) && (argc > ee + 1))
         {
-            usetup.gfxFilterID = argv[++ee];
+            usetup.Screen.Filter.ID = argv[++ee];
             int scaling = kUnit;
             if (argc > ee + 1 && argv[ee + 1][0] != '-')
                 scaling = parse_scaling_factor(argv[++ee]);
-            usetup.filter_scaling_x = usetup.filter_scaling_y = scaling;
+            usetup.Screen.Filter.ScaleX = usetup.Screen.Filter.ScaleY = scaling;
             if (scaling == 0)
-                usetup.filter_scaling_max_uniform = true;
+                usetup.Screen.Filter.MaxUniform = true;
         }
 #ifdef _DEBUG
         else if ((stricmp(argv[ee],"--startr") == 0) && (ee < argc-1)) {

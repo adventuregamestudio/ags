@@ -1048,6 +1048,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\main\engine_setup.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\main\game_file.cpp"
 					>
 				</File>
@@ -2027,6 +2031,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\main\engine.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\engine_setup.h"
 					>
 				</File>
 				<File

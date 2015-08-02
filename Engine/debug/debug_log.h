@@ -20,7 +20,6 @@
 #include "ac/gamestate.h"
 #include "platform/base/agsplatformdriver.h"
 
-extern GameState play;
 void initialize_debug_system();
 void apply_output_configuration();
 void shutdown_debug_system();

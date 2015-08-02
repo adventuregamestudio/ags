@@ -43,8 +43,9 @@
 #include "font/fonts.h"
 #include "main/config.h"
 #include "main/game_start.h"
-#include "main/graphics_mode.h"
 #include "main/engine.h"
+#include "main/engine_setup.h"
+#include "main/graphics_mode.h"
 #include "main/main.h"
 #include "main/main_allegro.h"
 #include "media/audio/sound.h"
@@ -1457,8 +1458,16 @@ int initialize_engine(int argc,char*argv[])
 
     engine_init_modxm_player();
 
-    if (!graphics_mode_init())
+    ColorDepthOption color_depths;
+    engine_init_resolution_settings(game.size, color_depths);
+
+    // Attempt to initialize graphics mode
+    if (!graphics_mode_init(color_depths))
         return EXIT_NORMAL;
+
+    engine_post_gfxmode_setup();
+
+    platform->PostAllegroInit(usetup.windowed);
 
     SetMultitasking(0);
 

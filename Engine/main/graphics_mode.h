@@ -23,7 +23,13 @@
 #include "util/scaling.h"
 #include "util/string.h"
 
-bool graphics_mode_init();
+struct ColorDepthOption
+{
+    int32_t Prime;
+    int32_t Alternate;
+};
+
+bool graphics_mode_init(const ColorDepthOption &color_depths);
 void graphics_mode_shutdown();
 Size get_desktop_size();
 AGS::Common::String make_scaling_factor_string(uint32_t scaling);

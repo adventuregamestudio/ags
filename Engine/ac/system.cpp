@@ -132,9 +132,7 @@ void System_SetVsync(int newValue) {
 }
 
 int System_GetWindowed() {
-    if (usetup.windowed)
-        return 1;
-    return 0;
+    return scsystem.windowed;
 }
 
 int System_GetSupportsGammaControl() {

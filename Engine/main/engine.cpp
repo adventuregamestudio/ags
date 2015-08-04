@@ -1238,11 +1238,12 @@ void engine_init_game_settings()
 
 void engine_init_game_shit()
 {
+    DisplayMode dm = gfxDriver->GetDisplayMode();
     scsystem.width = game.size.Width;
     scsystem.height = game.size.Height;
-    scsystem.coldepth = ScreenResolution.ColorDepth;
-    scsystem.windowed = 0;
-    scsystem.vsync = 0;
+    scsystem.coldepth = dm.ColorDepth;
+    scsystem.windowed = dm.Windowed;
+    scsystem.vsync = dm.Vsync;
     scsystem.viewport_width = divide_down_coordinate(play.viewport.GetWidth());
     scsystem.viewport_height = divide_down_coordinate(play.viewport.GetHeight());
     // ScriptSystem::aci_version is only 10 chars long
@@ -1255,11 +1256,6 @@ void engine_init_game_shit()
     {
         scsystem.os = platform->GetSystemOSID();
     }
-
-    if (usetup.windowed)
-        scsystem.windowed = 1;
-    if (usetup.vsync)
-        scsystem.vsync = 1;
 
     Mouse::SetGraphicArea();
     //  mloadwcursor("mouse.spr");

@@ -410,22 +410,19 @@ bool create_gfx_driver(const String &gfx_driver_id)
 bool init_gfx_mode(const GameSizeDef &game_size, const Size &screen_size, const GameSizeDef &frame_size, const RectPlacement frame_place,
                    const int color_depth, const bool windowed)
 {
-    ScreenResolution.Width = screen_size.Width;
-    ScreenResolution.Height = screen_size.Height;
-    ScreenResolution.ColorDepth = color_depth;
-
-    set_color_depth(color_depth);
+    int width = screen_size.Width;
+    int height = screen_size.Height;
 
     const char *frame_placement[kNumRectPlacement] = { "offset", "center", "stretch", "proportional" };
     Out::FPrint("Attempt to switch gfx mode to %d x %d (%d-bit) %s; game frame: %d x %d, frame placement: %s",
-        ScreenResolution.Width, ScreenResolution.Height, ScreenResolution.ColorDepth, windowed ? "windowed" : "fullscreen",
+        width, height, color_depth, windowed ? "windowed" : "fullscreen",
         frame_size.Box.Width, frame_size.Box.Height, frame_placement[frame_place]);
 
     // CHECKME: why 50? Do we need this if we are not using allegro software driver?
     if (usetup.refresh >= 50)
         request_refresh_rate(usetup.refresh);
 
-    const DisplayMode mode = DisplayMode(ScreenResolution, windowed, usetup.refresh, usetup.vsync);
+    const DisplayMode mode = DisplayMode(GraphicResolution(width, height, color_depth), windowed, usetup.refresh, usetup.vsync);
     const Size src_size = game_size.Game;
     const Rect screen_rect = RectWH(0, 0, screen_size.Width, screen_size.Height);
     Rect dst_rect = PlaceInRect(screen_rect, RectWH(0, 0, frame_size.Box.Width, frame_size.Box.Height), frame_place);
@@ -433,17 +430,9 @@ bool init_gfx_mode(const GameSizeDef &game_size, const Size &screen_size, const 
     if (frame_size.Box != frame_size.Game)
         dst_rect = PlaceInRect(dst_rect, RectWH(0, 0, frame_size.Game.Width, frame_size.Game.Height), kPlaceCenter);
 
+    set_color_depth(color_depth); // this tells Allegro default bitmap color depth
     if (gfxDriver->Init(mode, src_size, dst_rect, &timerloop))
-    {
-        Rect filter_rect = filter->GetDestination();
-        Rect dst_rect = gfxDriver->GetRenderDestination();
-        Out::FPrint("Succeeded. Using gfx mode %d x %d (%d-bit) %s\n\t"
-                    "filter dest (%d, %d, %d, %d : %d x %d), render dest (%d, %d, %d, %d : %d x %d)",
-            ScreenResolution.Width, ScreenResolution.Height, ScreenResolution.ColorDepth, windowed ? "windowed" : "fullscreen",
-            filter_rect.Left, filter_rect.Top, filter_rect.Right, filter_rect.Bottom, filter_rect.GetWidth(), filter_rect.GetHeight(),
-            dst_rect.Left, dst_rect.Top, dst_rect.Right, dst_rect.Bottom, dst_rect.GetWidth(), dst_rect.GetHeight());
         return true;
-    }
     Out::FPrint("Failed. %s", get_allegro_error());
     return false;
 }
@@ -859,7 +848,18 @@ bool graphics_mode_init()
         return false;
     }
 
-    // On success continue initialization
+    // On success: log out new mode params and continue initialization
+    DisplayMode dm   = gfxDriver->GetDisplayMode();
+    ScreenResolution = dm;
+
+    Rect dst_rect    = gfxDriver->GetRenderDestination();
+    Rect filter_rect = filter->GetDestination();
+    Out::FPrint("Succeeded. Using gfx mode %d x %d (%d-bit) %s\n\t"
+                "filter dest (%d, %d, %d, %d : %d x %d), render dest (%d, %d, %d, %d : %d x %d)",
+        dm.Width, dm.Height, dm.ColorDepth, dm.Windowed ? "windowed" : "fullscreen",
+        filter_rect.Left, filter_rect.Top, filter_rect.Right, filter_rect.Bottom, filter_rect.GetWidth(), filter_rect.GetHeight(),
+        dst_rect.Left, dst_rect.Top, dst_rect.Right, dst_rect.Bottom, dst_rect.GetWidth(), dst_rect.GetHeight());
+
     engine_prepare_screen();
     platform->PostAllegroInit(usetup.windowed);
     engine_set_gfx_driver_callbacks();

@@ -211,7 +211,12 @@ void engine_init_resolution_settings(const Size game_size, ColorDepthOption &col
     if (game.color_depth < 2)
         usetup.force_hicolor_mode = false;
 
-    if (debug_15bit_mode)
+    if (game.color_depth == 1)
+    {
+        color_depths.Prime = 8;
+        color_depths.Alternate = 8;
+    }
+    else if (debug_15bit_mode)
     {
         color_depths.Prime = 15;
         color_depths.Alternate = 15;
@@ -230,11 +235,6 @@ void engine_init_resolution_settings(const Size game_size, ColorDepthOption &col
     {
         color_depths.Prime = 32;
         color_depths.Alternate = 24;
-    }
-    else
-    {
-        color_depths.Prime = 8;
-        color_depths.Alternate = 8;
     }
 
     // Log out display information
@@ -414,11 +414,7 @@ bool init_gfx_mode(const GameSizeDef &game_size, const Size &screen_size, const 
     ScreenResolution.Height = screen_size.Height;
     ScreenResolution.ColorDepth = color_depth;
 
-    // CHECKME: find out what is this all about
-    if (game.color_depth == 1)
-        ScreenResolution.ColorDepth = 8;
-    else
-        set_color_depth(color_depth);
+    set_color_depth(color_depth);
 
     const char *frame_placement[kNumRectPlacement] = { "offset", "center", "stretch", "proportional" };
     Out::FPrint("Attempt to switch gfx mode to %d x %d (%d-bit) %s; game frame: %d x %d, frame placement: %s",

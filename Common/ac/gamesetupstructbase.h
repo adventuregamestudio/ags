@@ -83,7 +83,7 @@ struct GameSetupStructBase {
     inline bool IsHiRes() const
     {
         if (default_resolution == kGameResolution_Custom)
-            return size.Width > 320 || size.Height > 240;
+            return (size.Width * size.Height) > (320 * 240);
         return ::IsHiRes(default_resolution);
     }
 

@@ -226,15 +226,15 @@ namespace AGS.Types
         /// <summary>
         /// Tells if the game should be considered low-resolution.
         /// For backwards-compatble logic only.
-        /// The "low resolution" assumes that neither of the game
-        /// metrics exceed 320x240.
+        /// The "low resolution" assumes that game does not exceed
+        /// 320x240 pixels.
         /// </summary>
         [Browsable(false)]
         public bool LowResolution
         {
             get
             {
-                return !(CustomResolution.Width > 320 || CustomResolution.Height > 240);
+                return (CustomResolution.Width * CustomResolution.Height) <= (320 * 240);
             }
         }
 

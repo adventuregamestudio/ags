@@ -290,7 +290,7 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
             play.globalscriptvars[ee] = 0;  
     }
 
-    init_game_settings();
+    engine_init_game_settings();
     play.screen_is_faded_out = 1;
 
     if (load_new_game_restore >= 0) {

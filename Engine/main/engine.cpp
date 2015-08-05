@@ -976,14 +976,17 @@ void engine_setup_screen()
     gfxDriver->SetMemoryBackBuffer(virtual_screen);
     //  ignore_mouseoff_bitmap = virtual_screen;
     SetVirtualScreen(BitmapHelper::GetScreenBitmap());
-    our_eip=-7;
-
-    for (int ee = 0; ee < MAX_INIT_SPR + game.numcharacters; ee++)
-        actsps[ee] = NULL;
 }
 
-void init_game_settings() {
+void engine_init_game_settings()
+{
+    our_eip=-7;
+    Out::FPrint("Initialize game settings");
+
     int ee;
+
+    for (ee = 0; ee < MAX_INIT_SPR + game.numcharacters; ee++)
+        actsps[ee] = NULL;
 
     for (ee=0;ee<256;ee++) {
         if (game.paluses[ee]!=PAL_BACKGROUND)
@@ -1227,16 +1230,14 @@ void init_game_settings() {
 
     update_invorder();
     displayed_room = -10;
+
+    currentcursor=0;
+    our_eip=-4;
+    mousey=100;  // stop icon bar popping up
+    init_invalid_regions(game.size.Height);
 }
 
-void engine_init_game_settings()
-{
-    Out::FPrint("Initialize game settings");
-
-    init_game_settings();
-}
-
-void engine_init_game_shit()
+void engine_setup_scsystem()
 {
     DisplayMode dm = gfxDriver->GetDisplayMode();
     scsystem.width = game.size.Width;
@@ -1256,14 +1257,11 @@ void engine_init_game_shit()
     {
         scsystem.os = platform->GetSystemOSID();
     }
+}
 
+void engine_setup_graphic_area()
+{
     Mouse::SetGraphicArea();
-    //  mloadwcursor("mouse.spr");
-    //mousecurs[0]=spriteset[2054];
-    currentcursor=0;
-    our_eip=-4;
-    mousey=100;  // stop icon bar popping up
-    init_invalid_regions(game.size.Height);
     SetVirtualScreen(virtual_screen);
     our_eip = -41;
 
@@ -1304,7 +1302,7 @@ void engine_prepare_to_start_game()
 {
     Out::FPrint("Prepare to start game");
 
-    engine_init_game_shit();
+    engine_setup_graphic_area();
     engine_start_multithreaded_audio();
 
 #if defined(ANDROID_VERSION)

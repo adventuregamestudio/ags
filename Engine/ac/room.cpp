@@ -313,7 +313,7 @@ void unload_old_room() {
     for (ff = 0; ff < MAX_BSCENE; ff++)
         play.raw_modified[ff] = 0;
     for (ff = 0; ff < thisroom.numLocalVars; ff++)
-        croom->interactionVariableValues[ff] = thisroom.localvars[ff].value;
+        croom->interactionVariableValues[ff] = thisroom.localvars[ff].Value;
 
     remove_unchanged_properties_from_croom();
 
@@ -672,13 +672,13 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         // a save game)
         if (thisroom.roomScripts == NULL)
         {
-            thisroom.intrRoom->copy_timesrun_from (&croom->intrRoom);
+            thisroom.intrRoom->CopyTimesRun(croom->intrRoom);
             for (cc=0;cc < MAX_HOTSPOTS;cc++)
-                thisroom.intrHotspot[cc]->copy_timesrun_from (&croom->intrHotspot[cc]);
+                thisroom.intrHotspot[cc]->CopyTimesRun(croom->intrHotspot[cc]);
             for (cc=0;cc < MAX_INIT_SPR;cc++)
-                thisroom.intrObject[cc]->copy_timesrun_from (&croom->intrObject[cc]);
+                thisroom.intrObject[cc]->CopyTimesRun(croom->intrObject[cc]);
             for (cc=0;cc < MAX_REGIONS;cc++)
-                thisroom.intrRegion[cc]->copy_timesrun_from (&croom->intrRegion[cc]);
+                thisroom.intrRegion[cc]->CopyTimesRun(croom->intrRegion[cc]);
         }
     }
     if (croom->beenhere==0) {
@@ -733,7 +733,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     else {
         // We have been here before
         for (int ff = 0; ff < thisroom.numLocalVars; ff++)
-            thisroom.localvars[ff].value = croom->interactionVariableValues[ff];
+            thisroom.localvars[ff].Value = croom->interactionVariableValues[ff];
     }
 
     update_polled_stuff_if_runtime();

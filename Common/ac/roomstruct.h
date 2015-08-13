@@ -15,17 +15,22 @@
 #ifndef __AC_ROOMSTRUCT_H
 #define __AC_ROOMSTRUCT_H
 
-#include "ac/interaction.h"  // NewInteraction
+#include "ac/common_defines.h"
 #include "ac/messageinfo.h"
 #include "ac/animationstruct.h"
 #include "ac/point.h"
 #include "game/customproperties.h"
+#include "game/interactions.h"
 #include "script/cc_script.h"       // ccScript
 #include "util/wgt2allg.h" // color (allegro RGB)
 
 namespace AGS { namespace Common { class Stream; } }
-namespace AGS { namespace Common { class Bitmap; }}
-using namespace AGS; // FIXME later
+namespace AGS { namespace Common { class Bitmap; } }
+using AGS::Common::Stream;
+using AGS::Common::Bitmap;
+using AGS::Common::Interaction;
+using AGS::Common::InteractionScripts;
+using AGS::Common::InteractionVariable;
 
 /* room file versions history
 8:  final v1.14 release
@@ -140,7 +145,7 @@ struct roomstruct {
     short         left,right,top,bottom;          // to walk off screen
     short         numsprs,nummes;                 // number of initial sprites and messages
     sprstruc      sprs[MAX_INIT_SPR];             // structures for each sprite
-    NewInteraction *intrObject[MAX_INIT_SPR];
+    Interaction  *intrObject[MAX_INIT_SPR];
     InteractionScripts **objectScripts;
     int           objbaseline[MAX_INIT_SPR];                // or -1 (use bottom of object graphic)
     short         objectFlags[MAX_INIT_SPR];
@@ -163,9 +168,9 @@ struct roomstruct {
     _Point        hswalkto[MAX_HOTSPOTS];
     char*         hotspotnames[MAX_HOTSPOTS];
     char          hotspotScriptNames[MAX_HOTSPOTS][MAX_SCRIPT_NAME_LEN];
-    NewInteraction *intrHotspot[MAX_HOTSPOTS];
-    NewInteraction *intrRoom;
-    NewInteraction *intrRegion[MAX_REGIONS];
+    Interaction  *intrHotspot[MAX_HOTSPOTS];
+    Interaction  *intrRoom;
+    Interaction  *intrRegion[MAX_REGIONS];
     InteractionScripts **hotspotScripts;
     InteractionScripts **regionScripts;
     InteractionScripts *roomScripts;

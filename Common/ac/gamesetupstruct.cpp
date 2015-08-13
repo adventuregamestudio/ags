@@ -195,30 +195,28 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GAME_STRUCT_R
         charScripts = new InteractionScripts*[numcharacters];
         invScripts = new InteractionScripts*[numinvitems];
         for (bb = 0; bb < numcharacters; bb++) {
-            charScripts[bb] = new InteractionScripts();
-            deserialize_interaction_scripts(in, charScripts[bb]);
+            charScripts[bb] = InteractionScripts::CreateFromStream(in);
         }
         for (bb = 1; bb < numinvitems; bb++) {
-            invScripts[bb] = new InteractionScripts();
-            deserialize_interaction_scripts(in, invScripts[bb]);
+            invScripts[bb] = InteractionScripts::CreateFromStream(in);
         }
     }
     else // 2.x
     {
         int bb;
 
-        intrChar = new NewInteraction*[numcharacters];
+        intrChar = new Interaction*[numcharacters];
 
         for (bb = 0; bb < numcharacters; bb++) {
-            intrChar[bb] = deserialize_new_interaction(in);
+            intrChar[bb] = Interaction::CreateFromStream(in);
         }
         for (bb = 0; bb < numinvitems; bb++) {
-            intrInv[bb] = deserialize_new_interaction(in);
+            intrInv[bb] = Interaction::CreateFromStream(in);
         }
 
         numGlobalVars = in->ReadInt32();
         for (bb = 0; bb < numGlobalVars; bb++) {
-            globalvars[bb].ReadFromFile(in);
+            globalvars[bb].Read(in);
         }
     }
 }
@@ -481,9 +479,9 @@ void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* c
     if (invScripts == NULL)
     {
         for (bb = 0; bb < numinvitems; bb++)
-            in->ReadArrayOfInt32(&intrInv[bb]->timesRun[0], MAX_NEWINTERACTION_EVENTS);
+            intrInv[bb]->ReadTimesRunFromSavedgame(in);
         for (bb = 0; bb < numcharacters; bb++)
-            in->ReadArrayOfInt32 (&intrChar[bb]->timesRun[0], MAX_NEWINTERACTION_EVENTS);
+            intrChar[bb]->ReadTimesRunFromSavedgame(in);
     }
 
     // restore pointer members
@@ -520,9 +518,9 @@ void GameSetupStruct::WriteForSaveGame_v321(Stream *out)
     {
       int bb;
       for (bb = 0; bb < numinvitems; bb++)
-        out->WriteArrayOfInt32 (&intrInv[bb]->timesRun[0], MAX_NEWINTERACTION_EVENTS);
+        intrInv[bb]->WriteTimesRunToSavedgame(out);
       for (bb = 0; bb < numcharacters; bb++)
-        out->WriteArrayOfInt32 (&intrChar[bb]->timesRun[0], MAX_NEWINTERACTION_EVENTS); 
+        intrChar[bb]->WriteTimesRunToSavedgame(out);
     }
 
     out->WriteArrayOfInt32 (&options[0], OPT_HIGHESTOPTION_321 + 1);

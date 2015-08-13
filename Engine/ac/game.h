@@ -19,7 +19,6 @@
 #ifndef __AGS_EE_AC__GAME_H
 #define __AGS_EE_AC__GAME_H
 
-#include "ac/interaction.h"
 #include "ac/dynobj/scriptviewframe.h"
 
 // Forward declaration
@@ -150,9 +149,6 @@ void display_switch_in();
 void replace_tokens(char*srcmes,char*destm, int maxlen = 99999);
 char *get_global_message (int msnum);
 void get_message_text (int msnum, char *buffer, char giveErr = 1);
-
-InteractionVariable *get_interaction_variable (int varindx);
-InteractionVariable *FindGraphicalVariable(const char *varName);
 
 void register_audio_script_objects();
 bool unserialize_audio_script_object(int index, const char *objectType, const char *serializedData, int dataSize);

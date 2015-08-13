@@ -59,15 +59,15 @@ roomstruct::roomstruct() {
         walk_area_bottom[i] = -1;
     }
     for (i = 0; i < MAX_HOTSPOTS; i++) {
-        intrHotspot[i] = new NewInteraction();
+        intrHotspot[i] = new Interaction();
         hotspotnames[i] = NULL;
         hotspotScriptNames[i][0] = 0;
     }
     for (i = 0; i < MAX_INIT_SPR; i++)
-        intrObject[i] = new NewInteraction();
+        intrObject[i] = new Interaction();
     for (i = 0; i < MAX_REGIONS; i++)
-        intrRegion[i] = new NewInteraction();
-    intrRoom = new NewInteraction();
+        intrRegion[i] = new Interaction();
+    intrRoom = new Interaction();
     gameId = 0;
     numRegions = 0;
     hotspotScripts = NULL;
@@ -253,7 +253,7 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
 
       for (int iteratorCount = 0; iteratorCount < rstruc->numLocalVars; ++iteratorCount)
       {
-          rstruc->localvars[iteratorCount].ReadFromFile(in);
+          rstruc->localvars[iteratorCount].Read(in);
       }
     }
   }
@@ -274,9 +274,9 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
 	  if (rfh.version < kRoomVersion_300a) 
 	  {
 		  if (f < rstruc->numhotspots)
-			rstruc->intrHotspot[f] = deserialize_new_interaction (in);
+			rstruc->intrHotspot[f] = Interaction::CreateFromStream(in);
 		  else
-			rstruc->intrHotspot[f] = new NewInteraction();
+			rstruc->intrHotspot[f] = new Interaction();
 	  }
     }
 
@@ -289,22 +289,22 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
 	  if (rfh.version < kRoomVersion_300a) 
 	  {
 		  if (f < rstruc->numsprs)
-			rstruc->intrObject[f] = deserialize_new_interaction (in);
+			rstruc->intrObject[f] = Interaction::CreateFromStream(in);
 		  else
-			rstruc->intrObject[f] = new NewInteraction();
+			rstruc->intrObject[f] = new Interaction();
 	  }
     }
 
 	if (rfh.version < kRoomVersion_300a) 
 	{
 	    delete rstruc->intrRoom;
-		rstruc->intrRoom = deserialize_new_interaction (in);
+		rstruc->intrRoom = Interaction::CreateFromStream(in);
 	}
 
     for (f = 0; f < MAX_REGIONS; f++) {
       if (rstruc->intrRegion[f] != NULL)
         delete rstruc->intrRegion[f];
-      rstruc->intrRegion[f] = new NewInteraction();
+      rstruc->intrRegion[f] = new Interaction();
     }
 
     if (rfh.version >= kRoomVersion_255b) {
@@ -316,7 +316,7 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
 	  {
         for (f = 0; f < rstruc->numRegions; f++) {
           delete rstruc->intrRegion[f];
-          rstruc->intrRegion[f] = deserialize_new_interaction (in);
+          rstruc->intrRegion[f] = Interaction::CreateFromStream(in);
 		}
       }
     }
@@ -326,20 +326,16 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
 	  rstruc->hotspotScripts = new InteractionScripts*[rstruc->numhotspots];
 	  rstruc->objectScripts = new InteractionScripts*[rstruc->numsprs];
       rstruc->regionScripts = new InteractionScripts*[rstruc->numRegions];
-	  rstruc->roomScripts = new InteractionScripts();
-	  deserialize_interaction_scripts(in, rstruc->roomScripts);
+      rstruc->roomScripts = InteractionScripts::CreateFromStream(in);
 	  int bb;
       for (bb = 0; bb < rstruc->numhotspots; bb++) {
-        rstruc->hotspotScripts[bb] = new InteractionScripts();
-        deserialize_interaction_scripts(in, rstruc->hotspotScripts[bb]);
+        rstruc->hotspotScripts[bb] = InteractionScripts::CreateFromStream(in);
       }
       for (bb = 0; bb < rstruc->numsprs; bb++) {
-        rstruc->objectScripts[bb] = new InteractionScripts();
-        deserialize_interaction_scripts(in, rstruc->objectScripts[bb]);
+        rstruc->objectScripts[bb] = InteractionScripts::CreateFromStream(in);
       }
 	  for (bb = 0; bb < rstruc->numRegions; bb++) {
-        rstruc->regionScripts[bb] = new InteractionScripts();
-        deserialize_interaction_scripts(in, rstruc->regionScripts[bb]);
+        rstruc->regionScripts[bb] = InteractionScripts::CreateFromStream(in);
       }
 
 	}

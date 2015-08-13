@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Common.Lib"
 	ProjectGUID="{463A715C-3EF3-47C7-AC7F-D97660149C49}"
 	RootNamespace="CommonLib"
@@ -368,10 +368,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\interaction.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\ac\messageinfo.cpp"
 					>
 				</File>
@@ -607,6 +603,10 @@
 					RelativePath="..\..\Common\game\customproperties.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Common\game\interactions.cpp"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -655,10 +655,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\gamestructdefines.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\interaction.h"
 					>
 				</File>
 				<File
@@ -975,6 +971,10 @@
 				>
 				<File
 					RelativePath="..\..\Common\game\customproperties.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\game\interactions.h"
 					>
 				</File>
 			</Filter>

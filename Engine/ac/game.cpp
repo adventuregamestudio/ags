@@ -1173,7 +1173,7 @@ void save_game_room_state(Stream *out)
 
         // Update the saved interaction variable values
         for (int ff = 0; ff < thisroom.numLocalVars; ff++)
-            croom->interactionVariableValues[ff] = thisroom.localvars[ff].value;
+            croom->interactionVariableValues[ff] = thisroom.localvars[ff].Value;
     }
 
     // write the room state for all the rooms the player has been in
@@ -1351,9 +1351,8 @@ void save_game_globalvars(Stream *out)
     out->WriteInt32 (numGlobalVars);
     for (int i = 0; i < numGlobalVars; ++i)
     {
-        globalvars[i].WriteToFile(out);
+        globalvars[i].Write(out);
     }
-    //out->WriteArray (&globalvars[0], sizeof(InteractionVariable), numGlobalVars);
 }
 
 void save_game_views(Stream *out)
@@ -2026,7 +2025,7 @@ void restore_game_globalvars(Stream *in)
 
     for (int i = 0; i < numGlobalVars; ++i)
     {
-        globalvars[i].ReadFromFile(in);
+        globalvars[i].Read(in);
     }
 }
 
@@ -2830,30 +2829,6 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
 
     buffer[0]=0;
     replace_tokens(get_translation(thisroom.message[msnum]), buffer, maxlen);
-}
-
-InteractionVariable *get_interaction_variable (int varindx) {
-
-    if ((varindx >= LOCAL_VARIABLE_OFFSET) && (varindx < LOCAL_VARIABLE_OFFSET + thisroom.numLocalVars))
-        return &thisroom.localvars[varindx - LOCAL_VARIABLE_OFFSET];
-
-    if ((varindx < 0) || (varindx >= numGlobalVars))
-        quit("!invalid interaction variable specified");
-
-    return &globalvars[varindx];
-}
-
-InteractionVariable *FindGraphicalVariable(const char *varName) {
-    int ii;
-    for (ii = 0; ii < numGlobalVars; ii++) {
-        if (stricmp (globalvars[ii].name, varName) == 0)
-            return &globalvars[ii];
-    }
-    for (ii = 0; ii < thisroom.numLocalVars; ii++) {
-        if (stricmp (thisroom.localvars[ii].name, varName) == 0)
-            return &thisroom.localvars[ii];
-    }
-    return NULL;
 }
 
 void register_audio_script_objects()

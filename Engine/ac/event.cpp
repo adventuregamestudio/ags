@@ -169,7 +169,7 @@ void process_event(EventHappened*evp) {
         NewRoom(evp->data1);
     }
     else if (evp->type==EV_RUNEVBLOCK) {
-        NewInteraction*evpt=NULL;
+        Interaction*evpt=NULL;
         InteractionScripts *scriptPtr = NULL;
         char *oldbasename = evblockbasename;
         int   oldblocknum = evblocknum;

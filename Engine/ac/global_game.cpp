@@ -907,7 +907,7 @@ int GetGraphicalVariable (const char *varName) {
         quit(quitmessage);
         return 0;
     }
-    return theVar->value;
+    return theVar->Value;
 }
 
 void SetGraphicalVariable (const char *varName, int p_value) {
@@ -918,7 +918,7 @@ void SetGraphicalVariable (const char *varName, int p_value) {
         quit(quitmessage);
     }
     else
-        theVar->value = p_value;
+        theVar->Value = p_value;
 }
 
 void scrWait(int nloops) {

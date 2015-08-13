@@ -20,18 +20,23 @@
 
 #include <vector>
 
-#include "ac/interaction.h"
 #include "script/cc_instance.h"
 #include "script/executingscript.h"
 #include "script/nonblockingscriptfunction.h"
 #include "ac/dynobj/scriptsystem.h"
+#include "game/interactions.h"
+
+using AGS::Common::Interaction;
+using AGS::Common::InteractionCommandList;
+using AGS::Common::InteractionScripts;
+using AGS::Common::InteractionVariable;
 
 #define REP_EXEC_ALWAYS_NAME "repeatedly_execute_always"
 #define REP_EXEC_NAME "repeatedly_execute"
 
 int     run_dialog_request (int parmtr);
 void    run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun);
-int     run_interaction_event (NewInteraction *nint, int evnt, int chkAny = -1, int isInv = 0);
+int     run_interaction_event (Interaction *nint, int evnt, int chkAny = -1, int isInv = 0);
 int     run_interaction_script(InteractionScripts *nint, int evnt, int chkAny = -1, int isInv = 0);
 int     create_global_script();
 void    cancel_all_scripts();
@@ -49,8 +54,10 @@ void    RunScriptFunction(ScriptInstType sc_inst, const char *fn_name, size_t pa
 char*   make_ts_func_name(char*base,int iii,int subd);
 void    post_script_cleanup();
 void    quit_with_script_error(const char *functionName);
-int     get_nivalue (NewInteractionCommandList *nic, int idx, int parm);
-int     run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun, int*cmdsrun);
+int     get_nivalue (InteractionCommandList *nic, int idx, int parm);
+int     run_interaction_commandlist (InteractionCommandList *nicl, int *timesrun, int*cmdsrun);
+InteractionVariable *get_interaction_variable (int varindx);
+InteractionVariable *FindGraphicalVariable(const char *varName);
 void    run_unhandled_event (int evnt);
 void    setup_exports(char*expfrom);
 void    can_run_delayed_command();

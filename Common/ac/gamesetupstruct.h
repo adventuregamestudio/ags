@@ -19,13 +19,16 @@
 #define __AGS_CN_AC__GAMESETUPSTRUCT_H
 
 #include "ac/audiocliptype.h"        // AudioClipType
-#include "ac/interaction.h"      // NewInteraction
 #include "ac/inventoryiteminfo.h"   // InventoryItemInfo
 #include "ac/mousecursor.h"      // MouseCursor
 #include "ac/gamesetupstructbase.h"
 #include "ac/oldgamesetupstruct.h"
 #include "ac/dynobj/scriptaudioclip.h" // ScriptAudioClip
 #include "game/customproperties.h"
+#include "game/interactions.h"
+
+using AGS::Common::Interaction;
+using AGS::Common::InteractionScripts;
 
 struct GameSetupStruct: public GameSetupStructBase {
     unsigned char     fontflags[MAX_FONTS];
@@ -33,8 +36,8 @@ struct GameSetupStruct: public GameSetupStructBase {
     unsigned char     spriteflags[MAX_SPRITES];
     InventoryItemInfo invinfo[MAX_INV];
     MouseCursor       mcurs[MAX_CURSOR];
-    NewInteraction   **intrChar;
-    NewInteraction   *intrInv[MAX_INV];
+    Interaction     **intrChar;
+    Interaction      *intrInv[MAX_INV];
     InteractionScripts **charScripts;
     InteractionScripts **invScripts;
     int               filever;  // just used by editor

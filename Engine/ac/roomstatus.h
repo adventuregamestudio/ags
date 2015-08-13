@@ -19,12 +19,13 @@
 #define __AGS_EE_AC__ROOMSTATUS_H
 
 #include "ac/roomobject.h"
-#include "ac/interaction.h"
+#include "game/interactions.h"
 #include "util/string_types.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
-using namespace AGS; // FIXME later
+using AGS::Common::Stream;
+using AGS::Common::Interaction;
 
 // This struct is saved in the save games - it contains everything about
 // a room that could change
@@ -35,10 +36,10 @@ struct RoomStatus {
     short flagstates[MAX_FLAGS];
     int   tsdatasize;
     char* tsdata;
-    NewInteraction intrHotspot[MAX_HOTSPOTS];
-    NewInteraction intrObject [MAX_INIT_SPR];
-    NewInteraction intrRegion [MAX_REGIONS];
-    NewInteraction intrRoom;
+    Interaction intrHotspot[MAX_HOTSPOTS];
+    Interaction intrObject [MAX_INIT_SPR];
+    Interaction intrRegion [MAX_REGIONS];
+    Interaction intrRoom;
 
     Common::StringIMap roomProps;
     Common::StringIMap hsProps[MAX_HOTSPOTS];

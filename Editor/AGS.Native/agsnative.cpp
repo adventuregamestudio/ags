@@ -40,6 +40,9 @@ namespace AGSProps = AGS::Common::Properties;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 namespace AGSProps = AGS::Common::Properties;
 using AGS::Common::GUIMain;
+using AGS::Common::Interaction;
+using AGS::Common::InteractionCommand;
+using AGS::Common::InteractionCommandList;
 
 //-----------------------------------------------------------------------------
 // [IKM] 2012-09-07
@@ -1592,13 +1595,13 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   iii->ReadArray(&thisgame.invinfo[0], sizeof(InventoryItemInfo), thisgame.numinvitems);
   iii->ReadArray(&thisgame.mcurs[0], sizeof(MouseCursor), thisgame.numcursors);
 
-  thisgame.intrChar = (NewInteraction**)calloc(thisgame.numcharacters, sizeof(NewInteraction*));
+  thisgame.intrChar = (Interaction**)calloc(thisgame.numcharacters, sizeof(Interaction*));
   for (bb = 0; bb < thisgame.numcharacters; bb++) {
-    thisgame.intrChar[bb] = deserialize_new_interaction (iii);
+    thisgame.intrChar[bb] = Interaction::CreateFromStream(iii);
   }
   for (bb = 0; bb < thisgame.numinvitems; bb++) {
     delete thisgame.intrInv[bb];
-    thisgame.intrInv[bb] = deserialize_new_interaction (iii);
+    thisgame.intrInv[bb] = Interaction::CreateFromStream(iii);
   }
 
   numGlobalVars = iii->ReadInt32();
@@ -3481,9 +3484,9 @@ const char *GetCharacterScriptName(int charid, AGS::Types::Game ^game)
 	return charScriptNameBuf;
 }
 
-void ConvertInteractionToScript(System::Text::StringBuilder ^sb, NewInteractionCommand *intrcmd, String^ scriptFuncPrefix, AGS::Types::Game ^game, int *runScriptCount, bool *onlyIfInvWasUseds, int commandOffset) 
+void ConvertInteractionToScript(System::Text::StringBuilder ^sb, InteractionCommand *intrcmd, String^ scriptFuncPrefix, AGS::Types::Game ^game, int *runScriptCount, bool *onlyIfInvWasUseds, int commandOffset) 
 {
-  if (intrcmd->type != 1)
+  if (intrcmd->Type != 1)
   {
     // if another type of interaction, we definately can't optimise
     // away the wrapper function
@@ -3494,18 +3497,18 @@ void ConvertInteractionToScript(System::Text::StringBuilder ^sb, NewInteractionC
     runScriptCount[0]++;
   }
 
-  if (intrcmd->type != 20)
+  if (intrcmd->Type != 20)
   {
 	  *onlyIfInvWasUseds = false;
   }
 
-	switch (intrcmd->type)
+	switch (intrcmd->Type)
 	{
 	case 0:
 		break;
 	case 1:  // Run Script
 		sb->Append(scriptFuncPrefix);
-		sb->Append(System::Convert::ToChar(intrcmd->data[0].val + 'a'));
+		sb->Append(System::Convert::ToChar(intrcmd->Data[0].Value + 'a'));
 		sb->AppendLine("();");
 		break;
 	case 3: // Add Score
@@ -3547,24 +3550,24 @@ void ConvertInteractionToScript(System::Text::StringBuilder ^sb, NewInteractionC
 	case 47: // IF player has been in room
 		// For these, the sample script code will work
 		{
-		String ^scriptCode = gcnew String(actions[intrcmd->type].textscript);
+		String ^scriptCode = gcnew String(actions[intrcmd->Type].textscript);
 		if ((*onlyIfInvWasUseds) && (commandOffset > 0))
 		{
 			scriptCode = String::Concat("else ", scriptCode);
 		}
-		scriptCode = scriptCode->Replace("$$1", (gcnew Int32(intrcmd->data[0].val))->ToString() );
-		scriptCode = scriptCode->Replace("$$2", (gcnew Int32(intrcmd->data[1].val))->ToString() );
-		scriptCode = scriptCode->Replace("$$3", (gcnew Int32(intrcmd->data[2].val))->ToString() );
-		scriptCode = scriptCode->Replace("$$4", (gcnew Int32(intrcmd->data[3].val))->ToString() );
+		scriptCode = scriptCode->Replace("$$1", (gcnew Int32(intrcmd->Data[0].Value))->ToString() );
+		scriptCode = scriptCode->Replace("$$2", (gcnew Int32(intrcmd->Data[1].Value))->ToString() );
+		scriptCode = scriptCode->Replace("$$3", (gcnew Int32(intrcmd->Data[2].Value))->ToString() );
+		scriptCode = scriptCode->Replace("$$4", (gcnew Int32(intrcmd->Data[3].Value))->ToString() );
 		sb->AppendLine(scriptCode);
 		}
 		break;
 	case 34: // animate character
 		{
 		char scriptCode[100];
-		int charID = intrcmd->data[0].val;
-		int loop = intrcmd->data[1].val;
-		int speed = intrcmd->data[2].val;
+		int charID = intrcmd->Data[0].Value;
+		int loop = intrcmd->Data[1].Value;
+		int speed = intrcmd->Data[2].Value;
 		sprintf(scriptCode, "%s.Animate(%d, %d, eOnce, eBlock);", GetCharacterScriptName(charID, game), loop, speed);
 		sb->AppendLine(gcnew String(scriptCode));
 		}
@@ -3572,10 +3575,10 @@ void ConvertInteractionToScript(System::Text::StringBuilder ^sb, NewInteractionC
 	case 35: // quick animation
 		{
 		char scriptCode[300];
-		int charID = intrcmd->data[0].val;
-		int view = intrcmd->data[1].val;
-		int loop = intrcmd->data[2].val;
-		int speed = intrcmd->data[3].val;
+		int charID = intrcmd->Data[0].Value;
+		int view = intrcmd->Data[1].Value;
+		int loop = intrcmd->Data[2].Value;
+		int speed = intrcmd->Data[3].Value;
 		sprintf(scriptCode, "%s.LockView(%d);\n"
 							"%s.Animate(%d, %d, eOnce, eBlock);\n"
 							"%s.UnlockView();",
@@ -3588,45 +3591,45 @@ void ConvertInteractionToScript(System::Text::StringBuilder ^sb, NewInteractionC
 	case 14: // Move Object
 		{
 		char scriptCode[100];
-		int objID = intrcmd->data[0].val;
-		int x = intrcmd->data[1].val;
-		int y = intrcmd->data[2].val;
-		int speed = intrcmd->data[3].val;
-		sprintf(scriptCode, "object[%d].Move(%d, %d, %d, %s);", objID, x, y, speed, (intrcmd->data[4].val) ? "eBlock" : "eNoBlock");
+		int objID = intrcmd->Data[0].Value;
+		int x = intrcmd->Data[1].Value;
+		int y = intrcmd->Data[2].Value;
+		int speed = intrcmd->Data[3].Value;
+		sprintf(scriptCode, "object[%d].Move(%d, %d, %d, %s);", objID, x, y, speed, (intrcmd->Data[4].Value) ? "eBlock" : "eNoBlock");
 		sb->AppendLine(gcnew String(scriptCode));
 		}
 		break;
 	case 19: // Move Character
 		{
 		char scriptCode[100];
-		int charID = intrcmd->data[0].val;
-		int x = intrcmd->data[1].val;
-		int y = intrcmd->data[2].val;
-		sprintf(scriptCode, "%s.Walk(%d, %d, %s);", GetCharacterScriptName(charID, game), x, y, (intrcmd->data[3].val) ? "eBlock" : "eNoBlock");
+		int charID = intrcmd->Data[0].Value;
+		int x = intrcmd->Data[1].Value;
+		int y = intrcmd->Data[2].Value;
+		sprintf(scriptCode, "%s.Walk(%d, %d, %s);", GetCharacterScriptName(charID, game), x, y, (intrcmd->Data[3].Value) ? "eBlock" : "eNoBlock");
 		sb->AppendLine(gcnew String(scriptCode));
 		}
 		break;
 	case 18: // Animate Object
 		{
 		char scriptCode[100];
-		int objID = intrcmd->data[0].val;
-		int loop = intrcmd->data[1].val;
-		int speed = intrcmd->data[2].val;
-		sprintf(scriptCode, "object[%d].Animate(%d, %d, %s, eNoBlock);", objID, loop, speed, (intrcmd->data[3].val) ? "eRepeat" : "eOnce");
+		int objID = intrcmd->Data[0].Value;
+		int loop = intrcmd->Data[1].Value;
+		int speed = intrcmd->Data[2].Value;
+		sprintf(scriptCode, "object[%d].Animate(%d, %d, %s, eNoBlock);", objID, loop, speed, (intrcmd->Data[3].Value) ? "eRepeat" : "eOnce");
 		sb->AppendLine(gcnew String(scriptCode));
 		}
 		break;
 	case 23: // IF variable set to value
 		{
 		char scriptCode[100];
-		int valueToCheck = intrcmd->data[1].val;
-		if ((game == nullptr) || (intrcmd->data[0].val >= game->OldInteractionVariables->Count))
+		int valueToCheck = intrcmd->Data[1].Value;
+		if ((game == nullptr) || (intrcmd->Data[0].Value >= game->OldInteractionVariables->Count))
 		{
-			sprintf(scriptCode, "if (__INTRVAL$%d$ == %d) {", intrcmd->data[0].val, valueToCheck);
+			sprintf(scriptCode, "if (__INTRVAL$%d$ == %d) {", intrcmd->Data[0].Value, valueToCheck);
 		}
 		else
 		{
-			OldInteractionVariable^ variableToCheck = game->OldInteractionVariables[intrcmd->data[0].val];
+			OldInteractionVariable^ variableToCheck = game->OldInteractionVariables[intrcmd->Data[0].Value];
 			sprintf(scriptCode, "if (%s == %d) {", variableToCheck->ScriptName, valueToCheck);
 		}
 		sb->AppendLine(gcnew String(scriptCode));
@@ -3635,14 +3638,14 @@ void ConvertInteractionToScript(System::Text::StringBuilder ^sb, NewInteractionC
 	case 33: // Set variable
 		{
 		char scriptCode[100];
-		int valueToCheck = intrcmd->data[1].val;
-		if ((game == nullptr) || (intrcmd->data[0].val >= game->OldInteractionVariables->Count))
+		int valueToCheck = intrcmd->Data[1].Value;
+		if ((game == nullptr) || (intrcmd->Data[0].Value >= game->OldInteractionVariables->Count))
 		{
-			sprintf(scriptCode, "__INTRVAL$%d$ = %d;", intrcmd->data[0].val, valueToCheck);
+			sprintf(scriptCode, "__INTRVAL$%d$ = %d;", intrcmd->Data[0].Value, valueToCheck);
 		}
 		else
 		{
-			OldInteractionVariable^ variableToCheck = game->OldInteractionVariables[intrcmd->data[0].val];
+			OldInteractionVariable^ variableToCheck = game->OldInteractionVariables[intrcmd->Data[0].Value];
 			sprintf(scriptCode, "%s = %d;", variableToCheck->ScriptName, valueToCheck);
 		}
 		sb->AppendLine(gcnew String(scriptCode));
@@ -3651,11 +3654,11 @@ void ConvertInteractionToScript(System::Text::StringBuilder ^sb, NewInteractionC
 	case 12: // Change Room
 		{
 		char scriptCode[200];
-		int room = intrcmd->data[0].val;
+		int room = intrcmd->Data[0].Value;
 		sprintf(scriptCode, "player.ChangeRoomAutoPosition(%d", room);
-		if (intrcmd->data[1].val > 0) 
+		if (intrcmd->Data[1].Value > 0) 
 		{
-			sprintf(&scriptCode[strlen(scriptCode)], ", %d", intrcmd->data[1].val);
+			sprintf(&scriptCode[strlen(scriptCode)], ", %d", intrcmd->Data[1].Value);
 		}
 		strcat(scriptCode, ");");
 		sb->AppendLine(gcnew String(scriptCode));
@@ -3663,7 +3666,7 @@ void ConvertInteractionToScript(System::Text::StringBuilder ^sb, NewInteractionC
 		break;
 	case 2: // Add Score On First Execution
 		{
-		  int points = intrcmd->data[0].val;
+		  int points = intrcmd->Data[0].Value;
       String^ newGuid = System::Guid::NewGuid().ToString();
       String^ scriptCode = String::Format("if (Game.DoOnceOnly(\"{0}\"))", newGuid);
       scriptCode = String::Concat(scriptCode, " {\n  ");
@@ -3677,22 +3680,22 @@ void ConvertInteractionToScript(System::Text::StringBuilder ^sb, NewInteractionC
 	}
 }
 
-void ConvertInteractionCommandList(System::Text::StringBuilder^ sb, NewInteractionCommandList *cmdList, String^ scriptFuncPrefix, AGS::Types::Game^ game, int *runScriptCount, int targetTypeForUnhandledEvent) 
+void ConvertInteractionCommandList(System::Text::StringBuilder^ sb, InteractionCommandList *cmdList, String^ scriptFuncPrefix, AGS::Types::Game^ game, int *runScriptCount, int targetTypeForUnhandledEvent) 
 {
 	bool onlyIfInvWasUseds = true;
 
-	for (int cmd = 0; cmd < cmdList->numCommands; cmd++)
+    for (size_t cmd = 0; cmd < cmdList->Cmds.size(); cmd++)
 	{
-		ConvertInteractionToScript(sb, &cmdList->command[cmd], scriptFuncPrefix, game, runScriptCount, &onlyIfInvWasUseds, cmd);
-		if (cmdList->command[cmd].get_child_list() != NULL) 
+		ConvertInteractionToScript(sb, &cmdList->Cmds[cmd], scriptFuncPrefix, game, runScriptCount, &onlyIfInvWasUseds, cmd);
+		if (cmdList->Cmds[cmd].Children.get() != NULL) 
 		{
-			ConvertInteractionCommandList(sb, cmdList->command[cmd].get_child_list(), scriptFuncPrefix, game, runScriptCount, targetTypeForUnhandledEvent);
+			ConvertInteractionCommandList(sb, cmdList->Cmds[cmd].Children.get(), scriptFuncPrefix, game, runScriptCount, targetTypeForUnhandledEvent);
 			sb->AppendLine("}");
 		}
 	}
 
 	if ((onlyIfInvWasUseds) && (targetTypeForUnhandledEvent > 0) && 
-		(cmdList->numCommands > 0))
+		(cmdList->Cmds.size() > 0))
 	{
 		sb->AppendLine("else {");
 		sb->AppendLine(String::Format(" unhandled_event({0}, 3);", targetTypeForUnhandledEvent));
@@ -3702,31 +3705,31 @@ void ConvertInteractionCommandList(System::Text::StringBuilder^ sb, NewInteracti
 
 void CopyInteractions(AGS::Types::Interactions ^destination, ::InteractionScripts *source)
 {
-	if (source->numEvents > destination->ScriptFunctionNames->Length) 
+    if (source->ScriptFuncNames.size() > (size_t)destination->ScriptFunctionNames->Length) 
 	{
 		throw gcnew AGS::Types::AGSEditorException("Invalid interaction funcs: too many interaction events");
 	}
 
-	for (int i = 0; i < source->numEvents; i++) 
+	for (size_t i = 0; i < source->ScriptFuncNames.size(); i++) 
 	{
-		destination->ScriptFunctionNames[i] = gcnew String(source->scriptFuncNames[i]);
+		destination->ScriptFunctionNames[i] = gcnew String(source->ScriptFuncNames[i]);
 	}
 }
 
-void ConvertInteractions(AGS::Types::Interactions ^interactions, ::NewInteraction *intr, String^ scriptFuncPrefix, AGS::Types::Game ^game, int targetTypeForUnhandledEvent)
+void ConvertInteractions(AGS::Types::Interactions ^interactions, Interaction *intr, String^ scriptFuncPrefix, AGS::Types::Game ^game, int targetTypeForUnhandledEvent)
 {
-	if (intr->numEvents > interactions->ScriptFunctionNames->Length) 
+	if (intr->Events.size() > (size_t)interactions->ScriptFunctionNames->Length) 
 	{
 		throw gcnew AGS::Types::AGSEditorException("Invalid interaction data: too many interaction events");
 	}
 
-	for (int i = 0; i < intr->numEvents; i++) 
+	for (size_t i = 0; i < intr->Events.size(); i++) 
 	{
-		if (intr->response[i] != NULL) 
+        if (intr->Events[i].Response.get() != NULL) 
 		{
       int runScriptCount = 0;
 			System::Text::StringBuilder^ sb = gcnew System::Text::StringBuilder();
-			ConvertInteractionCommandList(sb, intr->response[i], scriptFuncPrefix, game, &runScriptCount, targetTypeForUnhandledEvent);
+			ConvertInteractionCommandList(sb, intr->Events[i].Response.get(), scriptFuncPrefix, game, &runScriptCount, targetTypeForUnhandledEvent);
       if (runScriptCount == 1)
       {
         sb->Append("$$SINGLE_RUN_SCRIPT$$");
@@ -3838,7 +3841,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 	for (i = 0; i < numGlobalVars; i++)
 	{
 		OldInteractionVariable ^intVar;
-		intVar = gcnew OldInteractionVariable(gcnew String(globalvars[i].name), globalvars[i].value);
+		intVar = gcnew OldInteractionVariable(gcnew String(globalvars[i].Name), globalvars[i].Value);
 		game->OldInteractionVariables->Add(intVar);
 	}
 	
@@ -4304,7 +4307,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	for (i = 0; i < thisroom.numLocalVars; i++)
 	{
 		OldInteractionVariable ^intVar;
-		intVar = gcnew OldInteractionVariable(gcnew String(thisroom.localvars[i].name), thisroom.localvars[i].value);
+		intVar = gcnew OldInteractionVariable(gcnew String(thisroom.localvars[i].Name), thisroom.localvars[i].Value);
 		room->OldInteractionVariables->Add(intVar);
 	}
 

@@ -1,7 +1,7 @@
 #ifndef __AC_ACTIONTYPE_H
 #define __AC_ACTIONTYPE_H
 
-#include "ac/interaction.h" // constants
+#include "game/interactions.h" // constants
 
 #define NUM_ACTION_TYPES 48
 #define ARG_TYPE_INT 1

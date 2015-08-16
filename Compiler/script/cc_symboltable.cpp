@@ -8,8 +8,7 @@
 
 
 symbolTable::symbolTable() {
-	numsymbols=0; 
-	currentscope=0; 
+	numsymbols = 0; 
 	usingTempBuffer = 0; 
 	stringStructSym = 0; 
 }
@@ -67,7 +66,6 @@ void symbolTable::reset() {
     funcParamDefaultValues.resize(0);
 
     numsymbols=0;
-    currentscope=0;
     stringStructSym = 0;
     symbolTree.clear();
     add_ex("___dummy__sym0",999,0);
@@ -160,7 +158,12 @@ int symbolTable::operatorToVCPUCmd(int opprec) {
 int symbolTable::find(const char*ntf) {
     return symbolTree.findValue(ntf);
 }
+
 char*symbolTable::get_name(int idx) {
+
+	// early exit
+	int actualIdx = idx & STYPE_MASK;
+	if (actualIdx < 0 || actualIdx >= numsymbols) { return NULL; }
 
     if (idx & STYPE_CONST) {
         // return "const" version of name, using alternating buffer
@@ -176,28 +179,20 @@ char*symbolTable::get_name(int idx) {
     if (idx & STYPE_DYNARRAY) {
         // dynamic array
         idx &= ~(STYPE_DYNARRAY | STYPE_POINTER);
-        if ((idx >= 0) && (idx < numsymbols)) {
-            int bufferIdx = usingTempBuffer;
-            usingTempBuffer = (usingTempBuffer + 1) % 2;
-            sprintf(tempBuffer[bufferIdx], "%s[]", get_name(idx));
-            return &tempBuffer[bufferIdx][0];
-        }
-        return NULL;
+        int bufferIdx = usingTempBuffer;
+        usingTempBuffer = (usingTempBuffer + 1) % 2;
+        sprintf(tempBuffer[bufferIdx], "%s[]", get_name(idx));
+        return &tempBuffer[bufferIdx][0];
     }
 
     if (idx & STYPE_POINTER) {
         // it's a pointer -- return the secret pointer version
         // of the name
         idx &= ~STYPE_POINTER;
-        if ((idx >= 0) && (idx < numsymbols)) {
-            return &sname[idx][strlen(sname[idx]) + 1];
-        }
-        return NULL;
+        return &sname[idx][strlen(sname[idx]) + 1];
     }
 
-    if ((idx >= 0) && (idx < numsymbols))
-        return sname[idx];
-    return NULL;
+    return sname[idx];
 }
 int symbolTable::add(char*nta) {
     return add_ex(nta,0,0);

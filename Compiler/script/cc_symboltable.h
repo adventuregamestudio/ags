@@ -14,7 +14,7 @@ struct symbolTable {
     int normalFloatSym;
     int normalVoidSym;
     int nullSym;
-    int stringStructSym;
+    int stringStructSym;  // can get overwritten with new String symbol defined in agsdefns.sh
 
 	// properties for symbols, size is numsymbols
     std::vector<short> stype;
@@ -45,7 +45,6 @@ struct symbolTable {
     int get_propset(int symb);
 
 private: 
-	int currentscope;
     std::vector<char *> sname;
     char tempBuffer[2][MAX_SYM_LEN];
     int  usingTempBuffer;

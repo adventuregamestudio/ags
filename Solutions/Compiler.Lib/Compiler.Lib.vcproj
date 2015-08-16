@@ -295,10 +295,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\script\cc_error.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Compiler\script\cc_internallist.cpp"
 					>
 				</File>
@@ -307,19 +303,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\script\cc_options.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\script\cc_script.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Compiler\script\cc_symboltable.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\script\cc_treemap.cpp"
 					>
 				</File>
 				<File
@@ -336,6 +320,26 @@
 				</File>
 				<File
 					RelativePath="..\..\Compiler\script\cs_prepro.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="cs"
+				>
+				<File
+					RelativePath="..\..\Common\script\cc_error.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_options.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_script.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_treemap.cpp"
 					>
 				</File>
 				<File

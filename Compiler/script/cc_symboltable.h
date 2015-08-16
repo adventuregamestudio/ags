@@ -7,14 +7,16 @@
 
 struct symbolTable {
     int numsymbols;
-    int currentscope;
+
+	// index for predefined symbols
     int normalIntSym;
     int normalStringSym;
     int normalFloatSym;
     int normalVoidSym;
     int nullSym;
     int stringStructSym;
-    std::vector<char *> sname;
+
+	// properties for symbols, size is numsymbols
     std::vector<short> stype;
     std::vector<long> flags;
     std::vector<short> vartype;
@@ -26,16 +28,11 @@ struct symbolTable {
     // functions only, save types of return value and all parameters
     std::vector<std::vector<unsigned long> > funcparamtypes;
     std::vector<std::vector<short> > funcParamDefaultValues;
-    char tempBuffer[2][MAX_SYM_LEN];
-    int  usingTempBuffer;
-
-    ccTreeMap symbolTree;
 
     symbolTable();
     void reset();    // clears table
     int  find(const char*);  // returns ID of symbol, or -1
     int  add_ex(char*,int,char);  // adds new symbol of type and size
-    int  add_operator(char*, int priority, int vcpucmd); // adds new operator
     int  add(char*);   // adds new symbol, returns -1 if already exists
     int  get_num_args(int funcSym);
     char*get_name(int); // gets symbol name of index
@@ -46,8 +43,17 @@ struct symbolTable {
     void set_propfuncs(int symb, int propget, int propset);
     int get_propget(int symb);
     int get_propset(int symb);
-};
 
+private: 
+	int currentscope;
+    std::vector<char *> sname;
+    char tempBuffer[2][MAX_SYM_LEN];
+    int  usingTempBuffer;
+
+    ccTreeMap symbolTree;
+
+    int  add_operator(char*, int priority, int vcpucmd); // adds new operator
+};
 
 
 extern symbolTable sym;

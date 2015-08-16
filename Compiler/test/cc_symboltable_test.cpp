@@ -119,8 +119,8 @@ TEST_CASE("add_ex - default values", "[cc_symboltable]") {
 	REQUIRE(testSym.flags[a_sym] == 0);
 	REQUIRE(testSym.vartype[a_sym] == 0);
 	REQUIRE(testSym.soffs[a_sym] == 0);
-	REQUIRE(testSym.ssize[a_sym] == sizee);
-	REQUIRE(testSym.sscope[a_sym] == 0);
+	REQUIRE(testSym.entries[a_sym].ssize == sizee);
+	REQUIRE(testSym.entries[a_sym].sscope == 0);
 	REQUIRE(testSym.arrsize[a_sym] == 0);
 	REQUIRE(testSym.extends[a_sym] == 0);
 	REQUIRE(testSym.get_num_args(a_sym) == 0);
@@ -134,4 +134,13 @@ TEST_CASE("add_ex - available afterwards", "[cc_symboltable]") {
 	// no test is available.. but we can try to get name.
 	char *name = testSym.get_name(a_sym);
 	REQUIRE(name != 0);
+}
+
+TEST_CASE("entries - ensure modifiable", "[cc_symboltable]") {
+	symbolTable testSym;
+
+	// ensure reading and writing to entries actually works!
+	int a_sym = testSym.add_ex("x",0,0);
+	testSym.entries[a_sym].flags = 10;
+	REQUIRE(testSym.entries[a_sym].flags == 10);
 }

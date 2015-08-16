@@ -287,7 +287,7 @@ void free_pointers_from_struct(int structVarSym, ccCompiledScript *scrip) {
                     if (sym.flags[structVarSym] & SFLG_ARRAY) {
                         // an array of structs, free any pointers in them
                         for (int ii = 1; ii < sym.arrsize[structVarSym]; ii++) {
-                            spOffs -= sym.ssize[structType];
+                            spOffs -= sym.entries[structType].ssize;
                             free_pointer(spOffs, SCMD_MEMZEROPTR, dd, scrip);
                         }
                     }
@@ -311,17 +311,17 @@ int remove_locals(int from_level, int just_count, ccCompiledScript *scrip) {
         zeroPtrCmd = SCMD_MEMZEROPTRND;
 
     for (cc=0;cc<sym.numsymbols;cc++) {
-        if ((sym.sscope[cc] > from_level) && (sym.stype[cc] == SYM_LOCALVAR)) {
+        if ((sym.entries[cc].sscope > from_level) && (sym.stype[cc] == SYM_LOCALVAR)) {
             // caller will sort out stack, so ignore parameters
             if ((sym.flags[cc] & SFLG_PARAMETER)==0) {
                 if (sym.flags[cc] & SFLG_DYNAMICARRAY)
                     totalsub += 4;
                 else 
                 {
-                    totalsub += sym.ssize[cc];
+                    totalsub += sym.entries[cc].ssize;
                     // remove all elements if array
                     if (sym.flags[cc] & SFLG_ARRAY)
-                        totalsub += (sym.arrsize[cc] - 1) * sym.ssize[cc];
+                        totalsub += (sym.arrsize[cc] - 1) * sym.entries[cc].ssize;
                 }
                 if (sym.flags[cc] & SFLG_STRBUFFER)
                     totalsub += STRING_LENGTH;
@@ -340,7 +340,7 @@ int remove_locals(int from_level, int just_count, ccCompiledScript *scrip) {
 
             if (just_count == 0) {
                 sym.stype[cc] = 0;
-                sym.sscope[cc] = 0;
+                sym.entries[cc].sscope = 0;
                 sym.flags[cc] = 0;
             }
         }
@@ -541,7 +541,7 @@ int check_for_default_value(ccInternalList &targ, int funcsym, int numparams) {
             return -1;
         }
 
-        sym.funcParamDefaultValues[funcsym][numparams % 100] = defaultValue;
+        sym.entries[funcsym].funcParamDefaultValues[numparams % 100] = defaultValue;
 
     }
 
@@ -580,7 +580,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
                  int returnsDynArray) {
   int numparams = 1;
   int funcsym = *funcsymptr;
-  int varsize = sym.ssize[vtwas];
+  int varsize = sym.entries[vtwas].ssize;
   // skip the opening (
   targ.getnext();
 
@@ -666,16 +666,16 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
   }
 
   sym.stype[funcsym] = SYM_FUNCTION;
-  sym.ssize[funcsym] = varsize;  // save return type size
-  sym.funcparamtypes[funcsym][0] = vtwas;  // return type
+  sym.entries[funcsym].ssize = varsize;  // save return type size
+  sym.entries[funcsym].funcparamtypes[0] = vtwas;  // return type
 
   if (returnsPointer)
   {
-    sym.funcparamtypes[funcsym][0] |= STYPE_POINTER;
+    sym.entries[funcsym].funcparamtypes[0] |= STYPE_POINTER;
   }
   if (returnsDynArray)
   {
-    sym.funcparamtypes[funcsym][0] |= STYPE_DYNARRAY;
+    sym.entries[funcsym].funcparamtypes[0] |= STYPE_DYNARRAY;
   }
 
   if ((!returnsPointer) && (!returnsDynArray) && 
@@ -741,17 +741,17 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       }
       int isPointerParam = 0;
       // save the parameter type (numparams starts from 1)
-      sym.funcparamtypes[funcsym][numparams % 100] = cursym;
-      sym.funcParamDefaultValues[funcsym][numparams % 100] = PARAM_NO_DEFAULT_VALUE;
+      sym.entries[funcsym].funcparamtypes[numparams % 100] = cursym;
+      sym.entries[funcsym].funcParamDefaultValues[numparams % 100] = PARAM_NO_DEFAULT_VALUE;
 
       if (next_is_const)
-        sym.funcparamtypes[funcsym][numparams % 100] |= STYPE_CONST;
+        sym.entries[funcsym].funcparamtypes[numparams % 100] |= STYPE_CONST;
 
       functype[strlen(functype)+1] = 0;
       functype[strlen(functype)] = (char)cursym;  // save variable type
       if (strcmp(sym.get_name(targ.peeknext()), "*") == 0) {
         // pointer
-        sym.funcparamtypes[funcsym][numparams % 100] |= STYPE_POINTER;
+        sym.entries[funcsym].funcparamtypes[numparams % 100] |= STYPE_POINTER;
         isPointerParam = 1;
         targ.getnext();
         if ((sym.flags[cursym] & SFLG_MANAGED) == 0) {
@@ -766,7 +766,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       }
 
       if (sym.flags[cursym] & SFLG_AUTOPTR) {
-        sym.funcparamtypes[funcsym][numparams % 100] |= STYPE_POINTER;
+        sym.entries[funcsym].funcparamtypes[numparams % 100] |= STYPE_POINTER;
         isPointerParam = 1;
       }
 
@@ -808,8 +808,8 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
         sym.extends[cursym] = 0;
         sym.arrsize[cursym] = 1;
         sym.vartype[cursym] = vartypesym;
-        sym.ssize[cursym] = 4; //oldsize;  fix param to 4 bytes for djgpp
-        sym.sscope[cursym] = nested_level + 1;
+        sym.entries[cursym].ssize = 4; //oldsize;  fix param to 4 bytes for djgpp
+        sym.entries[cursym].sscope = nested_level + 1;
         sym.flags[cursym] |= SFLG_PARAMETER;
         if (isPointerParam)
           sym.flags[cursym] |= SFLG_POINTER;
@@ -832,7 +832,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       }
       else if (dynArrayStatus > 0)
       {
-        sym.funcparamtypes[funcsym][(numparams - 1) % 100] |= STYPE_DYNARRAY;
+        sym.entries[funcsym].funcparamtypes[(numparams - 1) % 100] |= STYPE_DYNARRAY;
         if (createdLocalVar) 
         {
           sym.flags[cursym] |= SFLG_DYNAMICARRAY | SFLG_ARRAY;
@@ -859,9 +859,9 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
     }
   }
   // save the number of parameters
-  sym.sscope[funcsym] = (numparams-1);
+  sym.entries[funcsym].sscope = (numparams-1);
   if (funcNum >= 0)
-    scrip->funcnumparams[funcNum] = sym.sscope[funcsym];
+    scrip->funcnumparams[funcNum] = sym.entries[funcsym].sscope;
 
   if (func_is_static)
     sym.flags[funcsym] |= SFLG_STATIC;
@@ -873,7 +873,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       // for imported member functions, append the number of parameters
       // to the name of the import
       char appendage[10];
-      sprintf(appendage, "^%d", sym.sscope[funcsym]);
+      sprintf(appendage, "^%d", sym.entries[funcsym].sscope);
 
       strcat(scrip->imports[in_func], appendage);
     }
@@ -943,17 +943,17 @@ int find_lowest_bonding_operator(long*slist,int listlen) {
       if (ccGetOption(SCOPT_LEFTTORIGHT)) {
         // left-to-right; find the right-most operator, then
         // they will be recursively processed left
-        if (sym.ssize[slist[k]] >= lowestis)
+        if (sym.entries[slist[k]].ssize >= lowestis)
           thisIsTheOperator = 1;
       }
       else {
         // right-to-left; find the left-most operator, then
         // they will be recursively processed right
-        if (sym.ssize[slist[k]] > lowestis) 
+        if (sym.entries[slist[k]].ssize > lowestis) 
           thisIsTheOperator = 1;
       }
       if (thisIsTheOperator) {
-        lowestis = sym.ssize[slist[k]];
+        lowestis = sym.entries[slist[k]].ssize;
         lowestat = k;
       }
     }
@@ -1517,7 +1517,7 @@ int get_array_index_into_ax(ccCompiledScript *scrip, long *symlist, int openBrac
   if (multiplySize) {
     // multiply up array index (in AX) by size of array element
     // to get memory offset
-    scrip->write_cmd2(SCMD_MUL, SREG_AX, sym.ssize[arrSym]);
+    scrip->write_cmd2(SCMD_MUL, SREG_AX, sym.entries[arrSym].ssize);
   }
 
   return 0;
@@ -1666,7 +1666,7 @@ int process_arrays_and_members(int slilen,long*syml,int*soffset,int*extraoffset,
         // write out any code to calculate the offset - instead, modify
         // the hard offset value which will be written to MAR
         soffset[0] += sym.soffs[syml[onoffs+1]];
-        readcmd[0] = get_readcmd_for_size(sym.ssize[syml[onoffs+1]],iswrite);
+        readcmd[0] = get_readcmd_for_size(sym.entries[syml[onoffs+1]].ssize,iswrite);
 
         // if one of the struct members in the path is read-only, don't allow it
         if ((iswrite) || (mustBeWritable)) {
@@ -1785,7 +1785,7 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
                               int mainVariableSym, int mainVariableType,
                               bool isDynamicArray) {
   int gotValType = 0;
-  int readcmd = get_readcmd_for_size(sym.ssize[variableSym], writing);
+  int readcmd = get_readcmd_for_size(sym.entries[variableSym].ssize, writing);
 
   if (mainVariableType == SYM_VARTYPE) {
     // it's a static member property
@@ -2347,7 +2347,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
           }
 
           bool isManagedType = false;
-          int size = sym.ssize[arrayType];
+          int size = sym.entries[arrayType].ssize;
           if (sym.flags[arrayType] & SFLG_MANAGED)
           {
             isManagedType = true;
@@ -2372,7 +2372,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
             cc_error("Built-in type '%s' cannot be instantiated directly", sym.get_name(symlist[oploc + 1]));
             return -1;
           }
-          const size_t size = sym.ssize[symlist[oploc + 1]];
+          const size_t size = sym.entries[symlist[oploc + 1]].ssize;
           scrip->write_cmd2(SCMD_NEWUSEROBJECT, SREG_AX, size);
           scrip->ax_val_type = symlist[oploc + 1] | STYPE_POINTER;
       }
@@ -2639,13 +2639,13 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       // not enough arguments -- see if we can supply default values
       for (int ii = func_args; ii > num_supplied_args; ii--) {
 
-        if (sym.funcParamDefaultValues[funcsym][ii] == PARAM_NO_DEFAULT_VALUE) {
+        if (sym.entries[funcsym].funcParamDefaultValues[ii] == PARAM_NO_DEFAULT_VALUE) {
           cc_error("Not enough parameters in call to function");
           return -1;
         }
 
         // push the default value onto the stack
-        scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, sym.funcParamDefaultValues[funcsym][ii]);
+        scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, sym.entries[funcsym].funcParamDefaultValues[ii]);
 
         if (sym.flags[funcsym] & SFLG_IMPORTED)
           scrip->write_cmd1(SCMD_PUSHREAL, SREG_AX);
@@ -2685,7 +2685,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
 
       if (num_supplied_args - numargs <= func_args) {
         // if non-variable arguments, check types
-        int parameterType = sym.funcparamtypes[funcsym][num_supplied_args - numargs];
+        int parameterType = sym.entries[funcsym].funcparamtypes[num_supplied_args - numargs];
 
         PerformStringConversionInAX(scrip, &scrip->ax_val_type, parameterType);
 
@@ -2717,8 +2717,8 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
     usingListLen--;
     // check that the user provided the right number of args
     // if it's a variable arg function, check that there are enough
-    if ((sym.sscope[funcsym] >= 100) && (numargs >= sym.sscope[funcsym] - 100)) ;
-    else if (sym.sscope[funcsym] == numargs) ;
+    if ((sym.entries[funcsym].sscope >= 100) && (numargs >= sym.entries[funcsym].sscope - 100)) ;
+    else if (sym.entries[funcsym].sscope == numargs) ;
     else {
       cc_error("wrong number of parameters in call to '%s'",sym.get_name(funcsym));
       return -1;
@@ -2756,7 +2756,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       }
     }
     // function return type
-    scrip->ax_val_type = sym.funcparamtypes[funcsym][0];
+    scrip->ax_val_type = sym.entries[funcsym].funcparamtypes[0];
     scrip->ax_val_scope = SYM_LOCALVAR;
 
     if (using_op)
@@ -2917,7 +2917,7 @@ int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expe
         if (read_variable_into_ax(lilen,&vnlist[0],scrip, 1))
             return -1;
 
-        int cpuOp = sym.ssize[asstype];
+        int cpuOp = sym.entries[asstype].ssize;
 
         if (check_operator_valid_for_type(&cpuOp, scrip->ax_val_type, 0))
             return -1;
@@ -2945,7 +2945,7 @@ int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expe
         if (check_type_mismatch(varTypeRHS, scrip->ax_val_type, 1))
             return -1;
 
-        int cpuOp = sym.ssize[asstype];
+        int cpuOp = sym.entries[asstype].ssize;
 
         if (check_operator_valid_for_type(&cpuOp, varTypeRHS, scrip->ax_val_type))
             return -1;
@@ -3017,7 +3017,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
   if (isPointer) {
     varsize = 4;
   }
-  sym.ssize[cursym] = varsize;
+  sym.entries[cursym].ssize = varsize;
   sym.arrsize[cursym] = 1;
   sym.vartype[cursym] = vtwas;
   if (isPointer)
@@ -3154,7 +3154,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
           tehValue = -tehValue;
         getsvalue[0] = float_to_int_raw(tehValue);
       }
-      else if (sym.ssize[cursym] > 4) {
+      else if (sym.entries[cursym].ssize > 4) {
         cc_error("cannot initialize struct type");
         return -1;
       }
@@ -3336,8 +3336,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
 
                 // loop through all parameters and check if they are pointers
                 // the first entry is the return value
-                for (int pa = 1; pa <= sym.sscope[inFuncSym]; pa++) {
-                    if (sym.funcparamtypes[inFuncSym][pa] & (STYPE_POINTER | STYPE_DYNARRAY)) {
+                for (int pa = 1; pa <= sym.entries[inFuncSym].sscope; pa++) {
+                    if (sym.entries[inFuncSym].funcparamtypes[pa] & (STYPE_POINTER | STYPE_DYNARRAY)) {
                         // pointers are passed in on the stack with the real
                         // memory address -- convert this to the mem handle
                         // since params are pushed backwards, this works
@@ -3356,8 +3356,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         // declare "this" inside member functions
                         sym.stype[thisSym] = SYM_LOCALVAR;
                         sym.vartype[thisSym] = isMemberFunction;
-                        sym.ssize[thisSym] = varsize; // pointer to struct
-                        sym.sscope[thisSym] = nested_level;
+                        sym.entries[thisSym].ssize = varsize; // pointer to struct
+                        sym.entries[thisSym].sscope = nested_level;
                         sym.flags[thisSym] = SFLG_READONLY | SFLG_ACCESSED | SFLG_POINTER | SFLG_THISPTR;
                         // declare as local variable
                         sym.soffs[thisSym] = scrip->cur_sp;
@@ -3462,13 +3462,13 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             sym.extends[stname] = 0;
             sym.stype[stname] = SYM_VARTYPE;
             sym.flags[stname] |= SFLG_STRUCTTYPE;
-            sym.ssize[stname] = 0;
+            sym.entries[stname].ssize = 0;
 
             if (sym.get_type(targ.peeknext()) == SYM_SEMICOLON) {
                 // forward-declaration of struct type
                 targ.getnext();
                 sym.stype[stname] = SYM_UNDEFINEDSTRUCT;
-                sym.ssize[stname] = 4;
+                sym.entries[stname].ssize = 4;
                 if (next_is_managed) {
                     sym.flags[stname] |= SFLG_MANAGED;
                     next_is_managed = 0;
@@ -3519,7 +3519,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     cc_error("The built-in type '%s' cannot be extended by a concrete struct. Use extender methods instead", sym.get_name(extendsWhat));
                     return -1;
                 }
-                size_so_far = sym.ssize[extendsWhat];
+                size_so_far = sym.entries[extendsWhat].ssize;
                 sym.extends[stname] = extendsWhat;
             }
             if (sym.get_type(targ.getnext()) != SYM_OPENBRACE) {
@@ -3660,8 +3660,9 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         // find the member-name-only sym
                         member = sym.find(memberExt);
                         // if it's never referenced it won't exist, so create it
-                        if (member < 1)
+                        if (member < 1) {
                             member = sym.add_ex(memberExt, 0, 0);
+                        }
 
                         if (find_member_sym(extendsWhat, &member, true) == 0) {
                             cc_error("'%s' already defined by inherited class", sym.get_name(member));
@@ -3722,7 +3723,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         // member variable
                         sym.stype[vname] = SYM_STRUCTMEMBER;
                         sym.extends[vname] = stname;  // save which struct it belongs to
-                        sym.ssize[vname] = sym.ssize[cursym];
+                        sym.entries[vname].ssize = sym.entries[cursym].ssize;
                         sym.soffs[vname] = size_so_far;
                         sym.vartype[vname] = (short)cursym;
                         if (member_is_readonly)
@@ -3731,7 +3732,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                             sym.flags[vname] |= SFLG_PROPERTY;
                         if (member_is_pointer) {
                             sym.flags[vname] |= SFLG_POINTER;
-                            sym.ssize[vname] = 4;
+                            sym.entries[vname].ssize = 4;
                         }
                         if (member_is_static)
                             sym.flags[vname] |= SFLG_STATIC;
@@ -3810,7 +3811,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                                     return -1;
                                 }
 
-                                size_so_far += array_size * sym.ssize[vname];
+                                size_so_far += array_size * sym.entries[vname].ssize;
 
                                 if (sym.get_type(targ.getnext()) != SYM_CLOSEBRACKET) {
                                     cc_error("expected ']'");
@@ -3821,7 +3822,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                             sym.arrsize[vname] = array_size;
                         }
                         else
-                            size_so_far += sym.ssize[vname];
+                            size_so_far += sym.entries[vname].ssize;
                     }
 
                     // both functions and variables have this set
@@ -3837,7 +3838,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             }
             // align struct on 4-byte boundary in keeping with compiler
             if ((size_so_far % 4) != 0) size_so_far += 4 - (size_so_far % 4);
-            sym.ssize[stname] = size_so_far;
+            sym.entries[stname].ssize = size_so_far;
             // read in the }
             targ.getnext();
             if (sym.get_type(targ.getnext()) != SYM_SEMICOLON) {
@@ -3860,7 +3861,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             }
             sym.stype[enumName] = SYM_VARTYPE;
             // standard int size
-            sym.ssize[enumName] = 4;
+            sym.entries[enumName].ssize = 4;
             sym.vartype[enumName] = sym.normalIntSym;
 
             if (sym.get_type(targ.getnext()) != SYM_OPENBRACE) {
@@ -3901,10 +3902,10 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
 
                     // TODO: declare declareVariableSym as a const variable
                     sym.stype[declareVariableSym] = SYM_CONSTANT;
-                    sym.ssize[declareVariableSym] = 4;
+                    sym.entries[declareVariableSym].ssize = 4;
                     sym.arrsize[declareVariableSym] = 1;
                     sym.vartype[declareVariableSym] = enumName;
-                    sym.sscope[declareVariableSym] = 0;
+                    sym.entries[declareVariableSym].sscope = 0;
                     sym.flags[declareVariableSym] = SFLG_READONLY;
                     // soffs is unused for a constant, so in a gratiuitous
                     // hack we use it to store the enum's value
@@ -4044,7 +4045,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 if ((ccGetOption(SCOPT_EXPORTALL)!=0) && (nextype == SYM_FUNCTION));
                 else if (scrip->add_new_export(sym.get_name(cursym),
                     (nextype == SYM_GLOBALVAR) ? EXPORT_DATA : EXPORT_FUNCTION,
-                    sym.soffs[cursym], sym.sscope[cursym]) == -1) {
+                    sym.soffs[cursym], sym.entries[cursym].sscope) == -1) {
                         return -1;
                 }
                 cursym = targ.getnext();
@@ -4058,7 +4059,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
         }
         else if ((symType == SYM_VARTYPE) && (sym.get_type(targ.peeknext()) != SYM_DOT)) {
             // variable type, so what follows is a function or variable declaration
-            int varsize = sym.ssize[cursym];
+            int varsize = sym.entries[cursym].ssize;
             int vtwas = cursym;
             if ((nested_type[nested_level] == NEST_IFSINGLE) ||
                 (nested_type[nested_level] == NEST_ELSESINGLE) ||
@@ -4196,7 +4197,7 @@ startvarbit:
                 // variable declaration
                 if (!isglobal)
                     // local variable declaration only
-                    sym.sscope[cursym] = nested_level;
+                    sym.entries[cursym].sscope = nested_level;
                 if (next_is_readonly)
                     sym.flags[cursym] |= SFLG_READONLY;
                 if (next_is_static) {
@@ -4224,22 +4225,22 @@ startvarbit:
                     cc_error("Type of identifier differs from original declaration");
                 else if (oldDefinition.flags != (sym.flags[cursym] & ~SFLG_IMPORTED))
                     cc_error("Attributes of identifier do not match prototype");
-                else if (oldDefinition.ssize != sym.ssize[cursym])
+                else if (oldDefinition.ssize != sym.entries[cursym].ssize)
                     cc_error("Size of identifier does not match prototype");
                 else if ((sym.flags[cursym] & SFLG_ARRAY) && (oldDefinition.arrsize != sym.arrsize[cursym]))
                     cc_error("Array size '%d' of identifier does not match prototype which is '%d'", sym.arrsize[cursym], oldDefinition.arrsize);
                 else if (oldDefinition.stype == SYM_FUNCTION) {
                     // function-only checks
-                    if (oldDefinition.sscope != sym.sscope[cursym])
+                    if (oldDefinition.sscope != sym.entries[cursym].sscope)
                         cc_error("Function declaration has wrong number of arguments to prototype");
                     else {
                         // this is <= because the return type is the first one
                         for (int ii = 0; ii <= sym.get_num_args(cursym); ii++) {
-                            if (oldDefinition.funcparamtypes[ii] != sym.funcparamtypes[cursym][ii])
+                            if (oldDefinition.funcparamtypes[ii] != sym.entries[cursym].funcparamtypes[ii])
                                 cc_error("Parameter type does not match prototype");
 
                             // copy the default values from the function prototype
-                            sym.funcParamDefaultValues[cursym][ii] = oldDefinition.funcParamDefaultValues[ii];
+                            sym.entries[cursym].funcParamDefaultValues[ii] = oldDefinition.funcParamDefaultValues[ii];
                         }
                     }
                 }
@@ -4299,7 +4300,7 @@ startvarbit:
             }
             else if (sym.get_type(cursym) == SYM_RETURN) {
 
-                int functionReturnType = sym.funcparamtypes[inFuncSym][0];
+                int functionReturnType = sym.entries[inFuncSym].funcparamtypes[0];
 
                 if (sym.get_type(targ.peeknext()) != SYM_SEMICOLON) {
                     if (functionReturnType == sym.normalVoidSym) {
@@ -4418,7 +4419,7 @@ startvarbit:
                     if (lilen < 0)
                         return -1;
                     if (sym.get_type(cursym) == SYM_VARTYPE) {
-                        int varsize = sym.ssize[cursym];
+                        int varsize = sym.entries[cursym].ssize;
                         int vtwas = cursym;
 
                         int isPointer = 0;
@@ -4475,7 +4476,7 @@ startvarbit:
                             }
                             else {
                                 // variable declaration
-                                sym.sscope[cursym] = nested_level;
+                                sym.entries[cursym].sscope = nested_level;
                                 if (next_is_readonly)
                                     sym.flags[cursym] |= SFLG_READONLY;
 

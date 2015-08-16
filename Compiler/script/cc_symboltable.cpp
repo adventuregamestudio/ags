@@ -13,7 +13,7 @@ symbolTable::symbolTable() {
 }
 
 int symbolTable::get_num_args(int funcSym) {
-    return sscope[funcSym] % 100;
+    return entries[funcSym].sscope % 100;
 }
 int symbolTable::get_type(int ii) {
     // just return the real type, regardless of pointerness/constness
@@ -60,12 +60,8 @@ void symbolTable::reset() {
     flags.resize(0);
     vartype.resize(0);
     soffs.resize(0);
-    ssize.resize(0);
-    sscope.resize(0);
     arrsize.resize(0);
     extends.resize(0);
-    funcparamtypes.resize(0);
-    funcParamDefaultValues.resize(0);
 
     numsymbols=0;
     stringStructSym = 0;
@@ -208,18 +204,18 @@ int symbolTable::add_ex (char*nta,int typo,char sizee) {
 
 	SymbolTableEntry entry = {};
 	entry.sname = std::string(nta);
+	entry.ssize = sizee;
+	entry.sscope = 0;
+	entry.funcparamtypes = std::vector<unsigned long>(MAX_FUNCTION_PARAMETERS + 1);
+	entry.funcParamDefaultValues = std::vector<short>(MAX_FUNCTION_PARAMETERS + 1);
 	entries.push_back(entry);
 
     stype.push_back(typo);
     flags.push_back(0);
     vartype.push_back(0);
     soffs.push_back(0);
-    ssize.push_back(sizee);
-    sscope.push_back(0);
     arrsize.push_back(0);
     extends.push_back(0);
-    funcparamtypes.push_back(std::vector<unsigned long>(MAX_FUNCTION_PARAMETERS + 1));
-    funcParamDefaultValues.push_back(std::vector<short>(MAX_FUNCTION_PARAMETERS + 1));
 
     symbolTree.addEntry(nta, p_value);
     return p_value;

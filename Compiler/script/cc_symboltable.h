@@ -42,13 +42,8 @@ struct symbolTable {
     std::vector<long> flags;
     std::vector<short> vartype;
     std::vector<int> soffs;
-    std::vector<long> ssize; // or return type size for function
-    std::vector<short> sscope; // or num arguments for function
     std::vector<long> arrsize;
     std::vector<short> extends; // inherits another class (classes) / owning class (member vars)
-    // functions only, save types of return value and all parameters
-    std::vector<std::vector<unsigned long> > funcparamtypes;
-    std::vector<std::vector<short> > funcParamDefaultValues;
 
     symbolTable();
     void reset();    // clears table

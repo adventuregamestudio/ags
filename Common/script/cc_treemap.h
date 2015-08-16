@@ -19,29 +19,18 @@
 #ifndef __CC_TREEMAP_H
 #define __CC_TREEMAP_H
 
-struct ICompareStrings {
-    virtual int compare(const char *left, const char *right) {
-        return strcmp(left, right);
-    }
-};
+#include <map>
+#include <string>
 
-// Binary tree structure for holding strings, allows fast access
+// Mimics original interface but uses a std::map for storage
 struct ccTreeMap {
-    ccTreeMap *left, *right;
-    const char *text;
-    int value;
-
-    ccTreeMap();
-    ccTreeMap *findNode(const char *key, ICompareStrings *comparer);
-    int findValue(const char* key, ICompareStrings *comparer);
-    int findValue(const char* key);
-    void Clone(ccTreeMap *node);
-    void removeNode();
-    void removeEntry(const char *key);
-    void addEntry(const char* ntx, int p_value);
-    void destroyNonRecursive();
+    int findValue(const char *key);
+    void addEntry(const char *ntx, int p_value);
     void clear();
     ~ccTreeMap();
+
+private:
+    std::map<std::string, int> storage;
 };
 
 #endif // __CC_TREEMAP_H

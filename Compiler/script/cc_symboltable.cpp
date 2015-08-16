@@ -9,7 +9,6 @@
 
 symbolTable::symbolTable() {
 	numsymbols = 0; 
-	usingTempBuffer = 0; 
 	stringStructSym = 0; 
 }
 
@@ -49,10 +48,10 @@ int symbolTable::get_propset(int symb) {
 
 
 void symbolTable::reset() {
-    int rr;
-	for (rr=0;rr<numsymbols;rr++) {
-		free(sname[rr]);
+	for (std::map<int, char*>::iterator it = nameGenCache.begin(); it != nameGenCache.end(); ++it) {
+		free(it->second);
 	}
+	nameGenCache.clear();
     sname.resize(0);
     stype.resize(0);
     flags.resize(0);
@@ -159,41 +158,40 @@ int symbolTable::find(const char*ntf) {
     return symbolTree.findValue(ntf);
 }
 
-char*symbolTable::get_name(int idx) {
-
-	// early exit
-	int actualIdx = idx & STYPE_MASK;
-	if (actualIdx < 0 || actualIdx >= numsymbols) { return NULL; }
-
-    if (idx & STYPE_CONST) {
-        // return "const" version of name, using alternating buffer
-        // so that this can be called twice by the caller
+std::string symbolTable::get_name_string(int idx) {
+	if (idx & STYPE_CONST) {
         idx &= ~STYPE_CONST;
-
-        int bufferIdx = usingTempBuffer;
-        usingTempBuffer = (usingTempBuffer + 1) % 2;
-        sprintf(tempBuffer[bufferIdx], "const %s", get_name(idx));
-        return &tempBuffer[bufferIdx][0];
+		return std::string("const ") + get_name_string(idx);
     }
 
     if (idx & STYPE_DYNARRAY) {
-        // dynamic array
         idx &= ~(STYPE_DYNARRAY | STYPE_POINTER);
-        int bufferIdx = usingTempBuffer;
-        usingTempBuffer = (usingTempBuffer + 1) % 2;
-        sprintf(tempBuffer[bufferIdx], "%s[]", get_name(idx));
-        return &tempBuffer[bufferIdx][0];
+		return get_name_string(idx) + std::string("[]");
     }
 
     if (idx & STYPE_POINTER) {
-        // it's a pointer -- return the secret pointer version
-        // of the name
         idx &= ~STYPE_POINTER;
-        return &sname[idx][strlen(sname[idx]) + 1];
+		return get_name_string(idx) + std::string("*");
     }
 
     return sname[idx];
 }
+
+char *symbolTable::get_name(int idx) {
+	if (nameGenCache.count(idx) > 0) {
+		return nameGenCache[idx];
+	}
+
+	int actualIdx = idx & STYPE_MASK;
+	if (actualIdx < 0 || actualIdx >= numsymbols) { return NULL; }
+
+	std::string resultString = get_name_string(idx);
+	char *result = (char *)malloc(resultString.length() + 1);
+	strcpy(result, resultString.c_str());
+	nameGenCache[idx] = result;
+	return result;
+}
+
 int symbolTable::add(char*nta) {
     return add_ex(nta,0,0);
 }
@@ -205,13 +203,7 @@ int symbolTable::add_ex (char*nta,int typo,char sizee) {
 	int p_value = numsymbols;
 	numsymbols += 1;
 
-    char *fullname = (char*)malloc(sizeof(char) * (strlen(nta) * 2 + 5));
-    // put the name, followed by the pointer-equivalent
-    strcpy(fullname, nta);
-    strcpy(&fullname[strlen(nta) + 1], nta);
-    strcat(&fullname[strlen(nta) + 1], "*");
-    sname.push_back(fullname);
-
+	sname.push_back(std::string(nta));
     stype.push_back(typo);
     flags.push_back(0);
     vartype.push_back(0);
@@ -223,7 +215,7 @@ int symbolTable::add_ex (char*nta,int typo,char sizee) {
     funcparamtypes.push_back(std::vector<unsigned long>(MAX_FUNCTION_PARAMETERS + 1));
     funcParamDefaultValues.push_back(std::vector<short>(MAX_FUNCTION_PARAMETERS + 1));
 
-    symbolTree.addEntry(fullname, p_value);
+    symbolTree.addEntry(nta, p_value);
     return p_value;
 }
 int symbolTable::add_operator(char *nta, int priority, int vcpucmd) {

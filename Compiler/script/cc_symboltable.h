@@ -4,6 +4,8 @@
 #include "cs_parser_common.h"   // macro definitions
 #include "script/cc_treemap.h"
 #include <vector>
+#include <map>
+#include <string>
 
 struct symbolTable {
     int numsymbols;
@@ -35,7 +37,8 @@ struct symbolTable {
     int  add_ex(char*,int,char);  // adds new symbol of type and size
     int  add(char*);   // adds new symbol, returns -1 if already exists
     int  get_num_args(int funcSym);
-    char*get_name(int); // gets symbol name of index
+    char *get_name(int); // gets symbol name of index
+	std::string get_name_string(int idx);
     int  get_type(int ii);
     int  operatorToVCPUCmd(int opprec);
     int  is_loadable_variable(int symm);
@@ -45,9 +48,9 @@ struct symbolTable {
     int get_propset(int symb);
 
 private: 
-    std::vector<char *> sname;
-    char tempBuffer[2][MAX_SYM_LEN];
-    int  usingTempBuffer;
+
+    std::map<int, char *> nameGenCache;
+	std::vector<std::string> sname;
 
     ccTreeMap symbolTree;
 

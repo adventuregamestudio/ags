@@ -52,7 +52,10 @@ void symbolTable::reset() {
 		free(it->second);
 	}
 	nameGenCache.clear();
-    sname.resize(0);
+    
+	// eventually everything will be .entries.
+	entries.clear();
+
     stype.resize(0);
     flags.resize(0);
     vartype.resize(0);
@@ -174,7 +177,7 @@ std::string symbolTable::get_name_string(int idx) {
 		return get_name_string(idx) + std::string("*");
     }
 
-    return sname[idx];
+    return entries[idx].sname;
 }
 
 char *symbolTable::get_name(int idx) {
@@ -203,7 +206,10 @@ int symbolTable::add_ex (char*nta,int typo,char sizee) {
 	int p_value = numsymbols;
 	numsymbols += 1;
 
-	sname.push_back(std::string(nta));
+	SymbolTableEntry entry = {};
+	entry.sname = std::string(nta);
+	entries.push_back(entry);
+
     stype.push_back(typo);
     flags.push_back(0);
     vartype.push_back(0);

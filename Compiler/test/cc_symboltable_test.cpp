@@ -92,52 +92,46 @@ TEST_CASE("get_name - flags of non-existent", "[cc_symboltable]") {
 	REQUIRE (testSym.get_name(no_exist_sym | STYPE_CONST | STYPE_DYNARRAY | STYPE_POINTER) == NULL);
 }
 
+TEST_CASE("add_ex - already exists", "[cc_symboltable]") {
+	symbolTable testSym;
 
+	int a_sym = testSym.add_ex("a",0,0);
+	REQUIRE(testSym.add_ex("a",0,0) == -1);
+}
 
+TEST_CASE("add_ex - unique", "[cc_symboltable]") {
+	symbolTable testSym;
 
+	int a_sym = testSym.add_ex("a",0,0);
+	int b_sym = testSym.add_ex("b",0,0);
+	REQUIRE(a_sym != b_sym);
+}
+	
+TEST_CASE("add_ex - default values", "[cc_symboltable]") {
+	symbolTable testSym;
 
+	int typo = 1;
+	int sizee = 2;
+	int a_sym = testSym.add_ex("a", typo, sizee);
 
+	REQUIRE(testSym.entries[a_sym].sname == std::string("a"));
+	REQUIRE(testSym.stype[a_sym] == typo);
+	REQUIRE(testSym.flags[a_sym] == 0);
+	REQUIRE(testSym.vartype[a_sym] == 0);
+	REQUIRE(testSym.soffs[a_sym] == 0);
+	REQUIRE(testSym.ssize[a_sym] == sizee);
+	REQUIRE(testSym.sscope[a_sym] == 0);
+	REQUIRE(testSym.arrsize[a_sym] == 0);
+	REQUIRE(testSym.extends[a_sym] == 0);
+	REQUIRE(testSym.get_num_args(a_sym) == 0);
+}
 
+TEST_CASE("add_ex - available afterwards", "[cc_symboltable]") {
+	symbolTable testSym;
 
+	int a_sym = testSym.add_ex("x",0,0);
 
-	/*
-
-
-	  int numsymbols;
-
-	// index for predefined symbols
-    int normalIntSym;
-    int normalStringSym;
-    int normalFloatSym;
-    int normalVoidSym;
-    int nullSym;
-    int stringStructSym;
-
-	// properties for symbols, size is numsymbols
-    std::vector<short> stype;
-    std::vector<long> flags;
-    std::vector<short> vartype;
-    std::vector<int> soffs;
-    std::vector<long> ssize; // or return type size for function
-    std::vector<short> sscope; // or num arguments for function
-    std::vector<long> arrsize;
-    std::vector<short> extends; // inherits another class (classes) / owning class (member vars)
-    // functions only, save types of return value and all parameters
-    std::vector<std::vector<unsigned long> > funcparamtypes;
-    std::vector<std::vector<short> > funcParamDefaultValues;
-
-    symbolTable();
-    void reset();    // clears table
-    int  find(const char*);  // returns ID of symbol, or -1
-    int  add_ex(char*,int,char);  // adds new symbol of type and size
-    int  add(char*);   // adds new symbol, returns -1 if already exists
-    int  get_num_args(int funcSym);
-    char*get_name(int); // gets symbol name of index
-    int  get_type(int ii);
-    int  operatorToVCPUCmd(int opprec);
-    int  is_loadable_variable(int symm);
-
-    void set_propfuncs(int symb, int propget, int propset);
-    int get_propget(int symb);
-    int get_propset(int symb);
-*/
+	// no test is available.. but we can try to get name.
+	char *name = testSym.get_name(a_sym);
+	REQUIRE(name != 0);
+}

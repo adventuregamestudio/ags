@@ -7,6 +7,23 @@
 #include <map>
 #include <string>
 
+
+// So there's another symbol definition in cc_symboldef.h
+struct SymbolTableEntry {
+	std::string sname;
+	short stype;
+	long flags;
+	short vartype;
+	int soffs;
+	long ssize; // or return type size for function
+	short sscope; // or num arguments for function
+	long arrsize;
+	short extends; // inherits another class (classes) / owning class (member vars)
+    // functions only, save types of return value and all parameters
+    std::vector<unsigned long> funcparamtypes;
+    std::vector<short> funcParamDefaultValues;
+};
+
 struct symbolTable {
     int numsymbols;
 
@@ -17,6 +34,8 @@ struct symbolTable {
     int normalVoidSym;
     int nullSym;
     int stringStructSym;  // can get overwritten with new String symbol defined in agsdefns.sh
+
+	std::vector<SymbolTableEntry> entries;
 
 	// properties for symbols, size is numsymbols
     std::vector<short> stype;
@@ -50,7 +69,6 @@ struct symbolTable {
 private: 
 
     std::map<int, char *> nameGenCache;
-	std::vector<std::string> sname;
 
     ccTreeMap symbolTree;
 

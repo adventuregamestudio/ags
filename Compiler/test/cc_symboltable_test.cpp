@@ -123,7 +123,7 @@ TEST_CASE("add_ex - default values", "[cc_symboltable]") {
 	REQUIRE(testSym.entries[a_sym].sscope == 0);
 	REQUIRE(testSym.entries[a_sym].arrsize == 0);
 	REQUIRE(testSym.entries[a_sym].extends == 0);
-	REQUIRE(testSym.get_num_args(a_sym) == 0);
+	REQUIRE(testSym.entries[a_sym].get_num_args() == 0);
 }
 
 TEST_CASE("add_ex - available afterwards", "[cc_symboltable]") {
@@ -143,4 +143,34 @@ TEST_CASE("entries - ensure modifiable", "[cc_symboltable]") {
 	int a_sym = testSym.add_ex("x",0,0);
 	testSym.entries[a_sym].flags = 10;
 	REQUIRE(testSym.entries[a_sym].flags == 10);
+}
+
+TEST_CASE("get_num_args", "[cc_symboltable]") {
+	symbolTable testSym;
+	int sym_01 = testSym.add("yellow");
+
+	testSym.entries[sym_01].sscope = 0;
+	REQUIRE(testSym.entries[sym_01].get_num_args() == 0);
+	testSym.entries[sym_01].sscope = 1;
+	REQUIRE(testSym.entries[sym_01].get_num_args() == 1);
+	testSym.entries[sym_01].sscope = 2;
+	REQUIRE(testSym.entries[sym_01].get_num_args() == 2);
+
+	testSym.entries[sym_01].sscope = 100;
+	REQUIRE(testSym.entries[sym_01].get_num_args() == 0);
+	testSym.entries[sym_01].sscope = 101;
+	REQUIRE(testSym.entries[sym_01].get_num_args() == 1);
+	testSym.entries[sym_01].sscope = 102;
+	REQUIRE(testSym.entries[sym_01].get_num_args() == 2);
+}
+
+TEST_CASE("is_loadable_variable", "[cc_symboltable]") {
+}
+TEST_CASE("set_propfuncs", "[cc_symboltable]") {
+}
+TEST_CASE("get_propget", "[cc_symboltable]") {
+}
+TEST_CASE("get_propset", "[cc_symboltable]") {
+}
+TEST_CASE("operatorToVCPUCmd", "[cc_symboltable]") {
 }

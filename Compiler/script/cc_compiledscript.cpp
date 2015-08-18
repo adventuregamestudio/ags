@@ -149,7 +149,7 @@ int ccCompiledScript::remove_any_import (char*namm, SymbolDef *oldSym) {
         oldSym->arrsize = sym.entries[sidx].arrsize;
         if (sym.entries[sidx].stype == SYM_FUNCTION) {
             // <= because of return type
-            for (i = 0; i <= sym.get_num_args(sidx); i++) {
+            for (i = 0; i <= sym.entries[sidx].get_num_args(); i++) {
                 oldSym->funcparamtypes[i] = sym.entries[sidx].funcparamtypes[i];
                 oldSym->funcParamDefaultValues[i] = sym.entries[sidx].funcParamDefaultValues[i];
             }

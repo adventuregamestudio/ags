@@ -12,9 +12,11 @@ symbolTable::symbolTable() {
 	stringStructSym = 0; 
 }
 
-int symbolTable::get_num_args(int funcSym) {
-    return entries[funcSym].sscope % 100;
+int SymbolTableEntry::get_num_args() {
+	// TODO: assert is func?
+    return sscope % 100;
 }
+
 int symbolTable::get_type(int ii) {
     // just return the real type, regardless of pointerness/constness
     ii &= ~(STYPE_POINTER | STYPE_CONST | STYPE_DYNARRAY);

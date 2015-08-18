@@ -22,6 +22,13 @@ struct SymbolTableEntry {
     // functions only, save types of return value and all parameters
     std::vector<unsigned long> funcparamtypes;
     std::vector<short> funcParamDefaultValues;
+
+	int get_num_args();
+	int is_loadable_variable();
+	void set_propfuncs(int propget, int propset);
+	int get_propget();
+	int get_propset();
+	int operatorToVCPUCmd();
 };
 
 struct symbolTable {
@@ -43,7 +50,6 @@ struct symbolTable {
     int  find(const char*);  // returns ID of symbol, or -1
     int  add_ex(char*,int,char);  // adds new symbol of type and size
     int  add(char*);   // adds new symbol, returns -1 if already exists
-    int  get_num_args(int funcSym);
     char *get_name(int); // gets symbol name of index
 	std::string get_name_string(int idx);
     int  get_type(int ii);

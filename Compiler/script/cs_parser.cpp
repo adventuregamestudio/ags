@@ -2633,7 +2633,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
     int orisize = ct;
     int thispar = 0;
     int numargs = 0;
-    int func_args = sym.get_num_args(funcsym);
+    int func_args = sym.entries[funcsym].get_num_args();
 
     if (num_supplied_args < func_args) {
       // not enough arguments -- see if we can supply default values
@@ -4235,7 +4235,7 @@ startvarbit:
                         cc_error("Function declaration has wrong number of arguments to prototype");
                     else {
                         // this is <= because the return type is the first one
-                        for (int ii = 0; ii <= sym.get_num_args(cursym); ii++) {
+                        for (int ii = 0; ii <= sym.entries[cursym].get_num_args(); ii++) {
                             if (oldDefinition.funcparamtypes[ii] != sym.entries[cursym].funcparamtypes[ii])
                                 cc_error("Parameter type does not match prototype");
 

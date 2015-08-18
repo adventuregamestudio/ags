@@ -6,9 +6,7 @@
 #include "script/script_common.h"      // macro definitions
 #include "cc_symboldef.h"   // macro definitions
 
-
 symbolTable::symbolTable() {
-	numsymbols = 0; 
 	stringStructSym = 0; 
 }
 
@@ -21,7 +19,7 @@ int symbolTable::get_type(int ii) {
     // just return the real type, regardless of pointerness/constness
     ii &= ~(STYPE_POINTER | STYPE_CONST | STYPE_DYNARRAY);
 
-	if ((ii < 0) || (ii >= numsymbols)) { return -1; }
+	if ((ii < 0) || (ii >= entries.size())) { return -1; }
     return entries[ii].stype;
 }
 
@@ -55,7 +53,6 @@ void symbolTable::reset() {
 	nameGenCache.clear();
     
 	entries.clear();
-    numsymbols=0;
 
     stringStructSym = 0;
     symbolTree.clear();
@@ -176,7 +173,7 @@ char *symbolTable::get_name(int idx) {
 	}
 
 	int actualIdx = idx & STYPE_MASK;
-	if (actualIdx < 0 || actualIdx >= numsymbols) { return NULL; }
+	if (actualIdx < 0 || actualIdx >= entries.size()) { return NULL; }
 
 	std::string resultString = get_name_string(idx);
 	char *result = (char *)malloc(resultString.length() + 1);
@@ -193,8 +190,7 @@ int symbolTable::add_ex (char*nta,int typo,char sizee) {
 		return -1;
 	}
 
-	int p_value = numsymbols;
-	numsymbols += 1;
+	int p_value = entries.size();
 
 	SymbolTableEntry entry = {};
 	entry.sname = std::string(nta);

@@ -35,8 +35,6 @@ struct SymbolTableEntry {
 };
 
 struct symbolTable {
-    int numsymbols;
-
 	// index for predefined symbols
     int normalIntSym;
     int normalStringSym;

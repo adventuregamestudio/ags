@@ -177,12 +177,29 @@ TEST_CASE("is_loadable_variable", "[cc_symboltable]") {
 	testSym.entries[sym_01].stype = SYM_CONSTANT;
 	REQUIRE(testSym.entries[sym_01].is_loadable_variable());
 }
-TEST_CASE("set_propfuncs", "[cc_symboltable]") {
+
+TEST_CASE("propfuncs", "[cc_symboltable]") {
+
+	symbolTable testSym;
+	int sym_01 = testSym.add("cup");
+
+	testSym.entries[sym_01].set_propfuncs(0, 0);
+	REQUIRE(testSym.entries[sym_01].get_propget() == 0);
+	REQUIRE(testSym.entries[sym_01].get_propset() == 0);
+
+	testSym.entries[sym_01].set_propfuncs(1, 2);
+	REQUIRE(testSym.entries[sym_01].get_propget() == 1);
+	REQUIRE(testSym.entries[sym_01].get_propset() == 2);
+
+	testSym.entries[sym_01].set_propfuncs(100, 200);
+	REQUIRE(testSym.entries[sym_01].get_propget() == 100);
+	REQUIRE(testSym.entries[sym_01].get_propset() == 200);
+
+	testSym.entries[sym_01].set_propfuncs(0xFFFF, 0xFFFF);
+	REQUIRE(testSym.entries[sym_01].get_propget() == -1);
+	REQUIRE(testSym.entries[sym_01].get_propset() == -1);
 }
-TEST_CASE("get_propget", "[cc_symboltable]") {
-}
-TEST_CASE("get_propset", "[cc_symboltable]") {
-}
+
 TEST_CASE("operatorToVCPUCmd", "[cc_symboltable]") {
 	symbolTable testSym;
 	int sym_01 = testSym.add("grassgreen");

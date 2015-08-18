@@ -1727,9 +1727,9 @@ int call_property_func(ccCompiledScript *scrip, int propSym, int isWrite) {
 
   int propFunc;
   if (isWrite)
-    propFunc = sym.get_propset(propSym);
+    propFunc = sym.entries[propSym].get_propset();
   else
-    propFunc = sym.get_propget(propSym);
+    propFunc = sym.entries[propSym].get_propget();
 
   if (propFunc == 0) {
     cc_error("Internal error: property in use but not set");
@@ -3785,7 +3785,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                                 sprintf(propFuncName, "%s::set%s_%s", sym.get_name(stname), namePrefix, memberPart);
                                 propSet = scrip->add_new_import(propFuncName);
                             }
-                            sym.set_propfuncs(vname, propGet, propSet);
+                            sym.entries[vname].set_propfuncs(propGet, propSet);
                         }
                         else if (sym.get_type(targ.peeknext()) == SYM_OPENBRACKET) {
                             // An array!

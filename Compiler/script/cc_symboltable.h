@@ -24,10 +24,13 @@ struct SymbolTableEntry {
     std::vector<short> funcParamDefaultValues;
 
 	int get_num_args();
+
 	int is_loadable_variable();
+
 	void set_propfuncs(int propget, int propset);
 	int get_propget();
 	int get_propset();
+
 	int operatorToVCPUCmd();
 };
 
@@ -54,9 +57,6 @@ struct symbolTable {
 	std::string get_name_string(int idx);
     int  get_type(int ii);
 
-    void set_propfuncs(int symb, int propget, int propset);
-    int get_propget(int symb);
-    int get_propset(int symb);
 
 private: 
 

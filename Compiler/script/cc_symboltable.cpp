@@ -29,18 +29,19 @@ int SymbolTableEntry::is_loadable_variable() {
     return (stype == SYM_GLOBALVAR) || (stype == SYM_LOCALVAR) || (stype == SYM_CONSTANT);
 }
 
-void symbolTable::set_propfuncs(int symb, int propget, int propset) {
-    entries[symb].soffs = (propget << 16) | propset;
+void SymbolTableEntry::set_propfuncs(int propget, int propset) {
+    // TODO check ranges and throw exception
+    soffs = (propget << 16) | propset;
 }
-int symbolTable::get_propget(int symb) {
-    int toret = (entries[symb].soffs >> 16) & 0x00ffff;
+int SymbolTableEntry::get_propget() {
+    int toret = (soffs >> 16) & 0x00ffff;
 	if (toret == 0xffff) {
         return -1;
 	}
     return toret;
 }
-int symbolTable::get_propset(int symb) {
-    int toret = entries[symb].soffs & 0x00ffff;
+int SymbolTableEntry::get_propset() {
+    int toret = soffs & 0x00ffff;
 	if (toret == 0xffff) {
         return -1;
 	}

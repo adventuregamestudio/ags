@@ -35,15 +35,8 @@ struct symbolTable {
     int nullSym;
     int stringStructSym;  // can get overwritten with new String symbol defined in agsdefns.sh
 
-	std::vector<SymbolTableEntry> entries;
-
 	// properties for symbols, size is numsymbols
-    std::vector<short> stype;
-    std::vector<long> flags;
-    std::vector<short> vartype;
-    std::vector<int> soffs;
-    std::vector<long> arrsize;
-    std::vector<short> extends; // inherits another class (classes) / owning class (member vars)
+	std::vector<SymbolTableEntry> entries;
 
     symbolTable();
     void reset();    // clears table

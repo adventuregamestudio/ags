@@ -115,14 +115,14 @@ TEST_CASE("add_ex - default values", "[cc_symboltable]") {
 	int a_sym = testSym.add_ex("a", typo, sizee);
 
 	REQUIRE(testSym.entries[a_sym].sname == std::string("a"));
-	REQUIRE(testSym.stype[a_sym] == typo);
-	REQUIRE(testSym.flags[a_sym] == 0);
-	REQUIRE(testSym.vartype[a_sym] == 0);
-	REQUIRE(testSym.soffs[a_sym] == 0);
+	REQUIRE(testSym.entries[a_sym].stype == typo);
+	REQUIRE(testSym.entries[a_sym].flags == 0);
+	REQUIRE(testSym.entries[a_sym].vartype == 0);
+	REQUIRE(testSym.entries[a_sym].soffs == 0);
 	REQUIRE(testSym.entries[a_sym].ssize == sizee);
 	REQUIRE(testSym.entries[a_sym].sscope == 0);
-	REQUIRE(testSym.arrsize[a_sym] == 0);
-	REQUIRE(testSym.extends[a_sym] == 0);
+	REQUIRE(testSym.entries[a_sym].arrsize == 0);
+	REQUIRE(testSym.entries[a_sym].extends == 0);
 	REQUIRE(testSym.get_num_args(a_sym) == 0);
 }
 

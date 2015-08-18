@@ -148,7 +148,7 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
             return -1;
         }
 
-        if (sym.stype[last_time] == SYM_DOT) {
+        if (sym.entries[last_time].stype == SYM_DOT) {
             // mangle member variable accesses so that you can have a 
             // struct called Room but also a member property called Room
             char thissymbol_mangled[MAX_SYM_LEN + 1];
@@ -164,46 +164,46 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
         }
         if ((thissymbol[0] >= '0') && (thissymbol[0] <= '9')) {
             if (strchr(thissymbol, '.') != NULL)
-                sym.stype[towrite] = SYM_LITERALFLOAT;
+                sym.entries[towrite].stype = SYM_LITERALFLOAT;
             else
-                sym.stype[towrite] = SYM_LITERALVALUE;
+                sym.entries[towrite].stype = SYM_LITERALVALUE;
         }
-        if (sym.stype[towrite] == SYM_MASSIGN && thischar == '*' && sym.stype[last_time] == SYM_VARTYPE) {
+        if (sym.entries[towrite].stype == SYM_MASSIGN && thischar == '*' && sym.entries[last_time].stype == SYM_VARTYPE) {
             // Break up *= when a parameter is declared with only the type and an initial value
             // e.g. import void someMethod(InventoryItem *= 0);
             targ->write(sym.find("*"));
             towrite = sym.find("=");
         }
 
-        if (sym.stype[towrite] == SYM_OPENPARENTHESIS)
+        if (sym.entries[towrite].stype == SYM_OPENPARENTHESIS)
             parenthesisdepth++;
-        else if (sym.stype[towrite] == SYM_CLOSEPARENTHESIS)
+        else if (sym.entries[towrite].stype == SYM_CLOSEPARENTHESIS)
             parenthesisdepth--;
 
         // deal with forward-declas
-        if ((sym.stype[towrite] == SYM_SEMICOLON) && (bracedepth == 0))
+        if ((sym.entries[towrite].stype == SYM_SEMICOLON) && (bracedepth == 0))
             in_struct_declr = -1;
 
         // this bit sorts out renaming struct members to allow different
         // structs to have same member names at different offsets
         if (towrite < 1) ;
-        else if (sym.stype[last_time] == SYM_STRUCT) {
+        else if (sym.entries[last_time].stype == SYM_STRUCT) {
             in_struct_declr = towrite;
             bracedepth = 0;
         }
-        else if ((sym.stype[last_time] == SYM_ENUM) && (sym.stype[towrite] == 0)) {
+        else if ((sym.entries[last_time].stype == SYM_ENUM) && (sym.entries[towrite].stype == 0)) {
             // make sure it doens't get jibbled when used within
             // structs
-            sym.stype[towrite] = SYM_TEMPORARYTYPE;
+            sym.entries[towrite].stype = SYM_TEMPORARYTYPE;
         }
-        else if ((sym.stype[towrite] == SYM_OPENBRACE) && (in_struct_declr >= 0))
+        else if ((sym.entries[towrite].stype == SYM_OPENBRACE) && (in_struct_declr >= 0))
             bracedepth++;
-        else if ((sym.stype[towrite] == SYM_CLOSEBRACE) && (in_struct_declr >= 0)) {
+        else if ((sym.entries[towrite].stype == SYM_CLOSEBRACE) && (in_struct_declr >= 0)) {
             bracedepth--;
             if (bracedepth <= 0)
                 in_struct_declr = -1;
         }
-        else if ((sym.stype[towrite] == 0 || sym.stype[towrite] == SYM_FUNCTION) && (in_struct_declr >= 0) &&
+        else if ((sym.entries[towrite].stype == 0 || sym.entries[towrite].stype == SYM_FUNCTION) && (in_struct_declr >= 0) &&
             (parenthesisdepth == 0) && (bracedepth > 0)) {
                 // change the name of structure members so that the same member name
                 // can be used in multiple structs
@@ -211,14 +211,14 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
                 // and not an imported func/property type)
                 // (and if not the struct type (this allows member functions
                 // which return the struct)
-                if ((sym.stype[last_time] != SYM_PROPERTY) &&
-                    (sym.stype[last_time] != SYM_IMPORT) &&
-                    (sym.stype[last_time] != SYM_STATIC) &&
-                    (sym.stype[last_time] != SYM_PROTECTED) &&
-                    (sym.stype[last_time] != SYM_WRITEPROTECTED) &&
-                    (sym.stype[last_time] != SYM_SEMICOLON) &&
-                    (sym.stype[last_time] != SYM_OPENBRACE) &&
-                    (sym.stype[last_time] != SYM_OPENBRACKET) &&
+                if ((sym.entries[last_time].stype != SYM_PROPERTY) &&
+                    (sym.entries[last_time].stype != SYM_IMPORT) &&
+                    (sym.entries[last_time].stype != SYM_STATIC) &&
+                    (sym.entries[last_time].stype != SYM_PROTECTED) &&
+                    (sym.entries[last_time].stype != SYM_WRITEPROTECTED) &&
+                    (sym.entries[last_time].stype != SYM_SEMICOLON) &&
+                    (sym.entries[last_time].stype != SYM_OPENBRACE) &&
+                    (sym.entries[last_time].stype != SYM_OPENBRACKET) &&
                     (towrite != in_struct_declr)) {
                         const char *new_name = get_member_full_name(in_struct_declr, towrite);
                         //      printf("changed '%s' to '%s'\n",sym.get_name(towrite),new_name);
@@ -231,10 +231,10 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
             // strip closing speech mark
             thissymbol[strlen(thissymbol)-1] = 0;
             // save the string into the string table area
-            sym.stype[towrite] = SYM_STRING;
-            sym.soffs[towrite] = scrip->add_string(&thissymbol[1]);
+            sym.entries[towrite].stype = SYM_STRING;
+            sym.entries[towrite].soffs = scrip->add_string(&thissymbol[1]);
             // set it to be recognised as a string
-            sym.vartype[towrite] = sym.normalStringSym;
+            sym.entries[towrite].vartype = sym.normalStringSym;
 
             if (strncmp(thissymbol, NEW_SCRIPT_TOKEN_PREFIX, 18) == 0)
             {
@@ -248,8 +248,8 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
     targ->write_meta(SMETA_END,0);
     // clear any temporary tpyes set
     for (int ii = 0; ii < sym.numsymbols; ii++) {
-        if (sym.stype[ii] == SYM_TEMPORARYTYPE)
-            sym.stype[ii] = 0;
+        if (sym.entries[ii].stype == SYM_TEMPORARYTYPE)
+            sym.entries[ii].stype = 0;
     }
 
     return 0;
@@ -260,9 +260,9 @@ void free_pointer(int spOffset, int zeroCmd, int arraySym, ccCompiledScript *scr
     scrip->write_cmd1(SCMD_LOADSPOFFS, spOffset);
     scrip->write_cmd(zeroCmd);
 
-    if ((sym.flags[arraySym] & (SFLG_ARRAY | SFLG_DYNAMICARRAY)) == SFLG_ARRAY) {
+    if ((sym.entries[arraySym].flags & (SFLG_ARRAY | SFLG_DYNAMICARRAY)) == SFLG_ARRAY) {
         // array of pointers -- release each one
-        for (int ee = 1; ee < sym.arrsize[arraySym]; ee++) {
+        for (int ee = 1; ee < sym.entries[arraySym].arrsize; ee++) {
             scrip->write_cmd2(SCMD_ADD, SREG_MAR, 4);
             scrip->write_cmd(zeroCmd);
         }
@@ -271,22 +271,22 @@ void free_pointer(int spOffset, int zeroCmd, int arraySym, ccCompiledScript *scr
 }
 
 void free_pointers_from_struct(int structVarSym, ccCompiledScript *scrip) {
-    int structType = sym.vartype[structVarSym];
+    int structType = sym.entries[structVarSym].vartype;
 
     for (int dd = 0; dd < sym.numsymbols; dd++) {
-        if ((sym.stype[dd] == SYM_STRUCTMEMBER) &&
-            (sym.extends[dd] == structType) &&
-            ((sym.flags[dd] & SFLG_IMPORTED) == 0) &&
-            ((sym.flags[dd] & SFLG_PROPERTY) == 0)) {
+        if ((sym.entries[dd].stype == SYM_STRUCTMEMBER) &&
+            (sym.entries[dd].extends == structType) &&
+            ((sym.entries[dd].flags & SFLG_IMPORTED) == 0) &&
+            ((sym.entries[dd].flags & SFLG_PROPERTY) == 0)) {
 
-                if (sym.flags[dd] & SFLG_POINTER) {
-                    int spOffs = (scrip->cur_sp - sym.soffs[structVarSym]) - sym.soffs[dd];
+                if (sym.entries[dd].flags & SFLG_POINTER) {
+                    int spOffs = (scrip->cur_sp - sym.entries[structVarSym].soffs) - sym.entries[dd].soffs;
 
                     free_pointer(spOffs, SCMD_MEMZEROPTR, dd, scrip);
 
-                    if (sym.flags[structVarSym] & SFLG_ARRAY) {
+                    if (sym.entries[structVarSym].flags & SFLG_ARRAY) {
                         // an array of structs, free any pointers in them
-                        for (int ii = 1; ii < sym.arrsize[structVarSym]; ii++) {
+                        for (int ii = 1; ii < sym.entries[structVarSym].arrsize; ii++) {
                             spOffs -= sym.entries[structType].ssize;
                             free_pointer(spOffs, SCMD_MEMZEROPTR, dd, scrip);
                         }
@@ -311,37 +311,37 @@ int remove_locals(int from_level, int just_count, ccCompiledScript *scrip) {
         zeroPtrCmd = SCMD_MEMZEROPTRND;
 
     for (cc=0;cc<sym.numsymbols;cc++) {
-        if ((sym.entries[cc].sscope > from_level) && (sym.stype[cc] == SYM_LOCALVAR)) {
+        if ((sym.entries[cc].sscope > from_level) && (sym.entries[cc].stype == SYM_LOCALVAR)) {
             // caller will sort out stack, so ignore parameters
-            if ((sym.flags[cc] & SFLG_PARAMETER)==0) {
-                if (sym.flags[cc] & SFLG_DYNAMICARRAY)
+            if ((sym.entries[cc].flags & SFLG_PARAMETER)==0) {
+                if (sym.entries[cc].flags & SFLG_DYNAMICARRAY)
                     totalsub += 4;
                 else 
                 {
                     totalsub += sym.entries[cc].ssize;
                     // remove all elements if array
-                    if (sym.flags[cc] & SFLG_ARRAY)
-                        totalsub += (sym.arrsize[cc] - 1) * sym.entries[cc].ssize;
+                    if (sym.entries[cc].flags & SFLG_ARRAY)
+                        totalsub += (sym.entries[cc].arrsize - 1) * sym.entries[cc].ssize;
                 }
-                if (sym.flags[cc] & SFLG_STRBUFFER)
+                if (sym.entries[cc].flags & SFLG_STRBUFFER)
                     totalsub += STRING_LENGTH;
             }
             // release the pointer reference if applicable
-            if (sym.flags[cc] & SFLG_THISPTR) { }
-            else if (((sym.flags[cc] & SFLG_POINTER) != 0) ||
-                ((sym.flags[cc] & SFLG_DYNAMICARRAY) != 0)) 
+            if (sym.entries[cc].flags & SFLG_THISPTR) { }
+            else if (((sym.entries[cc].flags & SFLG_POINTER) != 0) ||
+                ((sym.entries[cc].flags & SFLG_DYNAMICARRAY) != 0)) 
             {
-                free_pointer(scrip->cur_sp - sym.soffs[cc], zeroPtrCmd, cc, scrip);
+                free_pointer(scrip->cur_sp - sym.entries[cc].soffs, zeroPtrCmd, cc, scrip);
             }
-            else if (sym.flags[sym.vartype[cc]] & SFLG_STRUCTTYPE) {
+            else if (sym.entries[sym.entries[cc].vartype].flags & SFLG_STRUCTTYPE) {
                 // a struct -- free any pointers it contains
                 free_pointers_from_struct(cc, scrip);
             }
 
             if (just_count == 0) {
-                sym.stype[cc] = 0;
+                sym.entries[cc].stype = 0;
                 sym.entries[cc].sscope = 0;
-                sym.flags[cc] = 0;
+                sym.entries[cc].flags = 0;
             }
         }
     }
@@ -480,9 +480,9 @@ int find_member_sym(int structSym, long *memSym, int allowProtected) {
 
     oriname = sym.find((char*)possname);
     if (oriname < 0) {
-        if (sym.extends[structSym] > 0) {
+        if (sym.entries[structSym].extends > 0) {
             // walk the inheritance tree to find the member
-            if (find_member_sym(sym.extends[structSym], memSym, allowProtected) == 0)
+            if (find_member_sym(sym.entries[structSym].extends, memSym, allowProtected) == 0)
                 return 0;
             // the inherited member was not found, so fall through to
             // the error message
@@ -490,7 +490,7 @@ int find_member_sym(int structSym, long *memSym, int allowProtected) {
         cc_error("'%s' is not a public member of '%s'. Are you sure you spelt it correctly (remember, capital letters are important)?",sym.get_name(*memSym),sym.get_name(structSym));
         return -1;
     }
-    if ((!allowProtected) && (sym.flags[oriname] & SFLG_PROTECTED)) {
+    if ((!allowProtected) && (sym.entries[oriname].flags & SFLG_PROTECTED)) {
         cc_error("Cannot access protected member '%s'", sym.get_name(oriname));
         return -1;
     }
@@ -504,7 +504,7 @@ int get_literal_value(int fromSym, int *theValue, const char *errorMsg) {
     *theValue = atoi(sym.get_name(fromSym));
   }
   else if (sym.get_type(fromSym) == SYM_CONSTANT) {
-    *theValue = sym.soffs[fromSym];
+    *theValue = sym.entries[fromSym].soffs;
   }
   else {
     cc_error((char*)errorMsg);
@@ -559,8 +559,8 @@ int check_for_dynamic_array_declaration(ccInternalList &targ, int typeSym)
       cc_error("fixed size array cannot be used in this way");
       return -1;
     }
-    if (((sym.flags[typeSym] & SFLG_STRUCTTYPE) != 0) &&
-        ((sym.flags[typeSym] & SFLG_MANAGED) == 0))
+    if (((sym.entries[typeSym].flags & SFLG_STRUCTTYPE) != 0) &&
+        ((sym.entries[typeSym].flags & SFLG_MANAGED) == 0))
     {
       cc_error("cannot pass non-managed struct array");
       return -1;
@@ -601,7 +601,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
 	      cc_error("'this' must be followed by a struct name");
 	    return -1;
 	  }
-	  if ((sym.flags[targ.peeknext()] & SFLG_STRUCTTYPE) == 0)
+	  if ((sym.entries[targ.peeknext()].flags & SFLG_STRUCTTYPE) == 0)
 	  {
 	    if(func_is_static)
 	      cc_error("'static' cannot be used with primitive types");
@@ -633,14 +633,14 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
         return -1;
     }
 
-	  if (sym.stype[funcsym] != 0) 
+	  if (sym.entries[funcsym].stype != 0) 
 	  {
 	    cc_error("function '%s' is already defined", functionName);
 	    return -1;
 	  }
-	  sym.flags[funcsym] = SFLG_STRUCTMEMBER;
+	  sym.entries[funcsym].flags = SFLG_STRUCTMEMBER;
 	  if(func_is_static)
-	    sym.flags[funcsym] |= SFLG_STATIC;
+	    sym.entries[funcsym].flags |= SFLG_STATIC;
   	
 	  targ.getnext();
 	  if (!func_is_static && strcmp(sym.get_name(targ.getnext()), "*") != 0) 
@@ -665,7 +665,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
 	  }
   }
 
-  sym.stype[funcsym] = SYM_FUNCTION;
+  sym.entries[funcsym].stype = SYM_FUNCTION;
   sym.entries[funcsym].ssize = varsize;  // save return type size
   sym.entries[funcsym].funcparamtypes[0] = vtwas;  // return type
 
@@ -679,7 +679,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
   }
 
   if ((!returnsPointer) && (!returnsDynArray) && 
-      ((sym.flags[vtwas] & SFLG_STRUCTTYPE) != 0)) 
+      ((sym.entries[vtwas].flags & SFLG_STRUCTTYPE) != 0)) 
   {
     cc_error("Cannot return entire struct from function");
     return -1;
@@ -706,7 +706,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       cc_error("Internal compiler error: table overflow");
     return -1;
   }
-  sym.soffs[funcsym] = in_func;  // save code offset of function
+  sym.entries[funcsym].soffs = in_func;  // save code offset of function
   scrip->cur_sp += 4;  // the return address will be pushed
 
   int prototype = 0;
@@ -754,18 +754,18 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
         sym.entries[funcsym].funcparamtypes[numparams % 100] |= STYPE_POINTER;
         isPointerParam = 1;
         targ.getnext();
-        if ((sym.flags[cursym] & SFLG_MANAGED) == 0) {
+        if ((sym.entries[cursym].flags & SFLG_MANAGED) == 0) {
           // can only point to managed structs
           cc_error("Cannot declare pointer to non-managed type");
           return -1; 
         }
-        if (sym.flags[cursym] & SFLG_AUTOPTR) {
+        if (sym.entries[cursym].flags & SFLG_AUTOPTR) {
           cc_error("Invalid use of pointer");
           return -1; 
         }
       }
 
-      if (sym.flags[cursym] & SFLG_AUTOPTR) {
+      if (sym.entries[cursym].flags & SFLG_AUTOPTR) {
         sym.entries[funcsym].funcparamtypes[numparams % 100] |= STYPE_POINTER;
         isPointerParam = 1;
       }
@@ -799,26 +799,26 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       else {
         // it's a parameter
         int vartypesym = cursym;
-        if ((sym.flags[cursym] & SFLG_STRUCTTYPE) && (!isPointerParam)) {
+        if ((sym.entries[cursym].flags & SFLG_STRUCTTYPE) && (!isPointerParam)) {
           cc_error("struct cannot be passed as parameter");
           return -1;
         }
         cursym = targ.getnext();
-        sym.stype[cursym] = SYM_LOCALVAR;
-        sym.extends[cursym] = 0;
-        sym.arrsize[cursym] = 1;
-        sym.vartype[cursym] = vartypesym;
+        sym.entries[cursym].stype = SYM_LOCALVAR;
+        sym.entries[cursym].extends = 0;
+        sym.entries[cursym].arrsize = 1;
+        sym.entries[cursym].vartype = vartypesym;
         sym.entries[cursym].ssize = 4; //oldsize;  fix param to 4 bytes for djgpp
         sym.entries[cursym].sscope = nested_level + 1;
-        sym.flags[cursym] |= SFLG_PARAMETER;
+        sym.entries[cursym].flags |= SFLG_PARAMETER;
         if (isPointerParam)
-          sym.flags[cursym] |= SFLG_POINTER;
+          sym.entries[cursym].flags |= SFLG_POINTER;
         if (next_is_const)
-          sym.flags[cursym] |= SFLG_CONST | SFLG_READONLY;
+          sym.entries[cursym].flags |= SFLG_CONST | SFLG_READONLY;
         // the parameters are pushed backwards, so the top of the
         // stack has the first parameter. The +1 is because the
         // call will push the return address onto the stack as well
-        sym.soffs[cursym] = scrip->cur_sp - (numparams+1)*4;
+        sym.entries[cursym].soffs = scrip->cur_sp - (numparams+1)*4;
         createdLocalVar = true;
         numparams++;
 /*              scrip->cur_sp += oldsize;
@@ -835,7 +835,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
         sym.entries[funcsym].funcparamtypes[(numparams - 1) % 100] |= STYPE_DYNARRAY;
         if (createdLocalVar) 
         {
-          sym.flags[cursym] |= SFLG_DYNAMICARRAY | SFLG_ARRAY;
+          sym.entries[cursym].flags |= SFLG_DYNAMICARRAY | SFLG_ARRAY;
         }
       }
 
@@ -864,10 +864,10 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
     scrip->funcnumparams[funcNum] = sym.entries[funcsym].sscope;
 
   if (func_is_static)
-    sym.flags[funcsym] |= SFLG_STATIC;
+    sym.entries[funcsym].flags |= SFLG_STATIC;
 
   if (next_is_import) {
-    sym.flags[funcsym] |= SFLG_IMPORTED;
+    sym.entries[funcsym].flags |= SFLG_IMPORTED;
 
     if (isMemberFunction) {
       // for imported member functions, append the number of parameters
@@ -1123,8 +1123,8 @@ int check_type_mismatch(int typeIs, int typeWantsToBe, int orderMatters) {
     }
     // check against inherited classes
     int tryTypeIs = typeIs & ~STYPE_POINTER;
-    while (sym.extends[tryTypeIs] > 0) {
-      tryTypeIs = sym.extends[tryTypeIs];
+    while (sym.entries[tryTypeIs].extends > 0) {
+      tryTypeIs = sym.entries[tryTypeIs].extends;
       if ((tryTypeIs | STYPE_POINTER) == typeWantsToBe) {
         pointerIsOk = 1;
         break;
@@ -1138,8 +1138,8 @@ int check_type_mismatch(int typeIs, int typeWantsToBe, int orderMatters) {
       isTypeMismatch = 1;
     }
   }
-  else if ((sym.flags[typeIs] & SFLG_STRUCTTYPE) ||
-           (sym.flags[typeWantsToBe] & SFLG_STRUCTTYPE)) {
+  else if ((sym.entries[typeIs].flags & SFLG_STRUCTTYPE) ||
+           (sym.entries[typeWantsToBe].flags & SFLG_STRUCTTYPE)) {
     if (typeIs != typeWantsToBe) {
       isTypeMismatch = 1;
     }
@@ -1231,14 +1231,14 @@ long extract_variable_name(int fsym, ccInternalList*targ,long*slist, int *funcAt
         reallywant = fsym;
       }
       else {
-        reallywant = sym.vartype[fsym];
+        reallywant = sym.entries[fsym].vartype;
         if (reallywant < 1) {
           cc_error("structure required on left side of '.'");
           return -1;
         }
       }
 
-      if (((sym.flags[fsym] & SFLG_ARRAY) != 0) && (justHadBrackets == 0)) {
+      if (((sym.entries[fsym].flags & SFLG_ARRAY) != 0) && (justHadBrackets == 0)) {
         cc_error("'[' expected");
         return -1;
       }
@@ -1246,17 +1246,17 @@ long extract_variable_name(int fsym, ccInternalList*targ,long*slist, int *funcAt
 
       // allow protected member access with the "this" ptr only
       int allowProtectedMembers = 0;
-      if (sym.flags[fsym] & SFLG_THISPTR) {
+      if (sym.entries[fsym].flags & SFLG_THISPTR) {
         allowProtectedMembers = 1;
       }
       // convert the member's sym to the structmember version
       if (find_member_sym(reallywant, &slist[sslen], allowProtectedMembers))
         return -1;
-      if ((sym.flags[slist[sslen]] & SFLG_STRUCTMEMBER) == 0) {
+      if ((sym.entries[slist[sslen]].flags & SFLG_STRUCTMEMBER) == 0) {
         cc_error("structure member required after '.'");
         return -1;
       }
-      if ((mustBeStaticMember) && ((sym.flags[slist[sslen]] & SFLG_STATIC) == 0)) {
+      if ((mustBeStaticMember) && ((sym.entries[slist[sslen]].flags & SFLG_STATIC) == 0)) {
         cc_error("must have an instance of the struct to access a non-static member");
         return -1;
       }
@@ -1299,7 +1299,7 @@ long extract_variable_name(int fsym, ccInternalList*targ,long*slist, int *funcAt
     }
     else if (nexttype == SYM_OPENBRACKET) {
       if ((sym.get_type(slist[sslen]) >= NOTEXPRESSION) &&
-          ((sym.get_type(slist[sslen]) != SYM_VARTYPE) || ((sym.flags[slist[sslen]] & SFLG_STRUCTTYPE) == 0))) {
+          ((sym.get_type(slist[sslen]) != SYM_VARTYPE) || ((sym.entries[slist[sslen]].flags & SFLG_STRUCTTYPE) == 0))) {
         cc_error("parse error after '['");
         return -1;
         }
@@ -1307,7 +1307,7 @@ long extract_variable_name(int fsym, ccInternalList*targ,long*slist, int *funcAt
         cc_error("array index not specified");
         return -1;
         }
-      if ((sym.flags[slist[sslen-2]] & SFLG_ARRAY)==0) {
+      if ((sym.entries[slist[sslen-2]].flags & SFLG_ARRAY)==0) {
         cc_error("%s is not an array",sym.get_name(slist[sslen-2]));
         return -1;
         }
@@ -1317,7 +1317,7 @@ long extract_variable_name(int fsym, ccInternalList*targ,long*slist, int *funcAt
       // vartype is allowed to permit access to static members, e.g. array[Game.GetColorFromRGB(0, 0, 0)]
       while ((sym.get_type(slist[sslen]) < NOTEXPRESSION) ||
              (sym.get_type(slist[sslen]) == SYM_COMMA) ||
-             (sym.get_type(slist[sslen]) == SYM_VARTYPE) && (sym.flags[slist[sslen]] & SFLG_STRUCTTYPE)) {
+             (sym.get_type(slist[sslen]) == SYM_VARTYPE) && (sym.entries[slist[sslen]].flags & SFLG_STRUCTTYPE)) {
         if (sym.get_type(slist[sslen - 1]) == SYM_VARTYPE && sym.get_type(slist[sslen]) != SYM_DOT)
           break;
         if (targ->getnext() == SCODE_INVALID) {
@@ -1378,10 +1378,10 @@ void set_ax_scope(ccCompiledScript *scrip, int syoffs) {
     scrip->ax_val_scope = SYM_GLOBALVAR;
   // if it's a parameter, pretend it's a global var
   // this allows it to be returned back from the function
-  else if (sym.flags[syoffs] & SFLG_PARAMETER)
+  else if (sym.entries[syoffs].flags & SFLG_PARAMETER)
     scrip->ax_val_scope = SYM_GLOBALVAR;
   else    
-    scrip->ax_val_scope = sym.stype[syoffs];
+    scrip->ax_val_scope = sym.entries[syoffs].stype;
 }
 
 int findClosingBracketOffs(int openBracketOffs, long *symlist, int slilen) {
@@ -1500,7 +1500,7 @@ int get_array_index_into_ax(ccCompiledScript *scrip, long *symlist, int openBrac
 
   int arrSym = symlist[openBracketOffs - 1];
 
-  if ((sym.flags[arrSym] & SFLG_ARRAY) == 0) {
+  if ((sym.entries[arrSym].flags & SFLG_ARRAY) == 0) {
     cc_error("Internal error: not an array: '%s'", sym.get_name(arrSym));
     return -1;
   }
@@ -1508,9 +1508,9 @@ int get_array_index_into_ax(ccCompiledScript *scrip, long *symlist, int openBrac
   if (checkBounds) {
     // check the array bounds that have been calculated in AX,
     // before they are added to the overall offset
-    if ((sym.flags[arrSym] & SFLG_DYNAMICARRAY) == 0) 
+    if ((sym.entries[arrSym].flags & SFLG_DYNAMICARRAY) == 0) 
     {
-      scrip->write_cmd2(SCMD_CHECKBOUNDS, SREG_AX, sym.arrsize[arrSym]);
+      scrip->write_cmd2(SCMD_CHECKBOUNDS, SREG_AX, sym.entries[arrSym].arrsize);
     }
   }
 
@@ -1538,14 +1538,14 @@ int parseArrayIndexOffsets(ccCompiledScript *scrip, VariableSymlist *thisClause,
     bool propertyIndexer = false;
     bool checkBounds = true, multiplySize = true;
 
-    if ((sym.flags[thisClause->syml[0]] & SFLG_PROPERTY) ||
-        (sym.flags[thisClause->syml[0]] & SFLG_POINTER)) {
+    if ((sym.entries[thisClause->syml[0]].flags & SFLG_PROPERTY) ||
+        (sym.entries[thisClause->syml[0]].flags & SFLG_POINTER)) {
       // an array property, or array of pointers; in this case,
       // don't touch CX but just calculate the index value into DX
       propertyIndexer = true;
       multiplySize = false;
       // don't check bounds, the property getter will do that
-      if (sym.flags[thisClause->syml[0]] & SFLG_PROPERTY)
+      if (sym.entries[thisClause->syml[0]].flags & SFLG_PROPERTY)
         checkBounds = false;
     }
     
@@ -1631,12 +1631,12 @@ int process_arrays_and_members(int slilen,long*syml,int*soffset,int*extraoffset,
         // the object
         *addressOf = 1;
       }
-      else if (sym.flags[syml[onoffs + 1]] & SFLG_PROPERTY) {
+      else if (sym.entries[syml[onoffs + 1]].flags & SFLG_PROPERTY) {
         // property pesudo-function
         // treat like a function for now
         *addressOf = 1;
         *isProperty = syml[onoffs + 1];
-        sym.flags[*isProperty] |= SFLG_ACCESSED;
+        sym.entries[*isProperty].flags |= SFLG_ACCESSED;
         *symlOfVariable = onoffs + 1;
 
         if (mustBeWritable) {
@@ -1647,7 +1647,7 @@ int process_arrays_and_members(int slilen,long*syml,int*soffset,int*extraoffset,
           readonly_cannot_cause_error = 1;
         }
         else if (iswrite) {
-          if (sym.flags[syml[onoffs+1]] & SFLG_READONLY) {
+          if (sym.entries[syml[onoffs+1]].flags & SFLG_READONLY) {
             cc_error("property '%s' is read-only", sym.get_name(syml[onoffs + 1]));
             return -1;
           }
@@ -1665,12 +1665,12 @@ int process_arrays_and_members(int slilen,long*syml,int*soffset,int*extraoffset,
         // since the member has a fixed offset into the structure, don't
         // write out any code to calculate the offset - instead, modify
         // the hard offset value which will be written to MAR
-        soffset[0] += sym.soffs[syml[onoffs+1]];
+        soffset[0] += sym.entries[syml[onoffs+1]].soffs;
         readcmd[0] = get_readcmd_for_size(sym.entries[syml[onoffs+1]].ssize,iswrite);
 
         // if one of the struct members in the path is read-only, don't allow it
         if ((iswrite) || (mustBeWritable)) {
-          if (sym.flags[syml[onoffs+1]] & SFLG_READONLY) {
+          if (sym.entries[syml[onoffs+1]].flags & SFLG_READONLY) {
             cc_error("variable '%s' is read-only", sym.get_name(syml[onoffs + 1]));
             return -1;
           }
@@ -1690,14 +1690,14 @@ int call_property_func(ccCompiledScript *scrip, int propSym, int isWrite) {
   // AX contains the struct address
 
   // Always a struct member -- set OP = AX
-  if ((sym.flags[propSym] & SFLG_STATIC) == 0) {
+  if ((sym.entries[propSym].flags & SFLG_STATIC) == 0) {
     scrip->push_reg(SREG_OP);
     scrip->write_cmd1(SCMD_CALLOBJ, SREG_AX);
   }
 
   if (isWrite) {
     // BX contains the new value
-    if (sym.flags[propSym] & SFLG_IMPORTED) 
+    if (sym.entries[propSym].flags & SFLG_IMPORTED) 
       scrip->write_cmd1(SCMD_PUSHREAL, SREG_BX);
     else {
       cc_error("internal error: prop is not import");
@@ -1707,9 +1707,9 @@ int call_property_func(ccCompiledScript *scrip, int propSym, int isWrite) {
     numargs++;
   }
 
-  if (sym.flags[propSym] & SFLG_ARRAY) {
+  if (sym.entries[propSym].flags & SFLG_ARRAY) {
     // array indexer is in DX
-    if (sym.flags[propSym] & SFLG_IMPORTED) 
+    if (sym.entries[propSym].flags & SFLG_IMPORTED) 
       scrip->write_cmd1(SCMD_PUSHREAL, SREG_DX);
     else {
       cc_error("internal error: prop is not import");
@@ -1719,7 +1719,7 @@ int call_property_func(ccCompiledScript *scrip, int propSym, int isWrite) {
     numargs++; 
   }
 
-  if (sym.flags[propSym] & SFLG_IMPORTED) {
+  if (sym.entries[propSym].flags & SFLG_IMPORTED) {
     // tell it how many args for this call (nested imported functions
     // causes stack problems otherwise)
     scrip->write_cmd1(SCMD_NUMFUNCARGS, numargs);
@@ -1739,7 +1739,7 @@ int call_property_func(ccCompiledScript *scrip, int propSym, int isWrite) {
   // AX = Func Address
   scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, propFunc);
 
-  if (sym.flags[propSym] & SFLG_IMPORTED) {
+  if (sym.entries[propSym].flags & SFLG_IMPORTED) {
     scrip->fixup_previous(FIXUP_IMPORT);
     // do the call
     scrip->write_cmd1(SCMD_CALLEXT, SREG_AX);
@@ -1759,17 +1759,17 @@ int call_property_func(ccCompiledScript *scrip, int propSym, int isWrite) {
 
   if (!isWrite) {
     // function return type
-    scrip->ax_val_type = sym.vartype[propSym];
+    scrip->ax_val_type = sym.entries[propSym].vartype;
     scrip->ax_val_scope = SYM_LOCALVAR;
-    if (sym.flags[propSym] & SFLG_DYNAMICARRAY)
+    if (sym.entries[propSym].flags & SFLG_DYNAMICARRAY)
       scrip->ax_val_type |= STYPE_DYNARRAY;
-    if (sym.flags[propSym] & SFLG_POINTER)
+    if (sym.entries[propSym].flags & SFLG_POINTER)
       scrip->ax_val_type |= STYPE_POINTER;
-    if (sym.flags[propSym] & SFLG_CONST)
+    if (sym.entries[propSym].flags & SFLG_CONST)
       scrip->ax_val_type |= STYPE_CONST;
   }
 
-  if ((sym.flags[propSym] & SFLG_STATIC) == 0) {
+  if ((sym.entries[propSym].flags & SFLG_STATIC) == 0) {
     scrip->pop_reg(SREG_OP);
   }
 
@@ -1797,8 +1797,8 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
     // goes wrong
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, 0);
 
-    gotValType = sym.vartype[variableSym];
-    if (sym.flags[variableSym] & SFLG_CONST)
+    gotValType = sym.entries[variableSym].vartype;
+    if (sym.entries[variableSym].flags & SFLG_CONST)
       gotValType |= STYPE_CONST;
   }
   else if (mainVariableType == SYM_LITERALVALUE) {
@@ -1822,14 +1822,14 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
       cc_error("cannot write to constant");
       return -1;
     }
-    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, sym.soffs[variableSym]);
+    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, sym.entries[variableSym].soffs);
     gotValType = sym.normalIntSym;
   }
   else if ((mainVariableType == SYM_LOCALVAR) ||
            (mainVariableType == SYM_GLOBALVAR)) {
 
-    gotValType = sym.vartype[variableSym];
-    if (sym.flags[variableSym] & SFLG_CONST)
+    gotValType = sym.entries[variableSym].vartype;
+    if (sym.entries[variableSym].flags & SFLG_CONST)
       gotValType |= STYPE_CONST;
 
     // a "normal" variable
@@ -1846,9 +1846,9 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
     }
     else {
       // global variable
-      if (sym.flags[mainVariableSym] & SFLG_IMPORTED) {
+      if (sym.entries[mainVariableSym].flags & SFLG_IMPORTED) {
         // imported variable, so get the import address and then add any offset
-        scrip->write_cmd2(SCMD_LITTOREG,SREG_MAR,sym.soffs[mainVariableSym]);
+        scrip->write_cmd2(SCMD_LITTOREG,SREG_MAR,sym.entries[mainVariableSym].soffs);
         scrip->fixup_previous(FIXUP_IMPORT);
         if (soffset != 0)
           scrip->write_cmd2(SCMD_ADD,SREG_MAR,soffset);
@@ -1915,7 +1915,7 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
 
   if ((addressof) && (!isProperty))
     gotValType |= STYPE_POINTER;
-  else if ((isProperty) && (sym.flags[variableSym] & SFLG_POINTER))
+  else if ((isProperty) && (sym.entries[variableSym].flags & SFLG_POINTER))
     gotValType |= STYPE_POINTER;
 
   if (writing) {
@@ -1975,7 +1975,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
     }
 
     // each clause in the chain can be marked as Accessed
-    sym.flags[variableSym] |= SFLG_ACCESSED;
+    sym.entries[variableSym].flags |= SFLG_ACCESSED;
 
     bool getAddressOnlyIntoAX = false;
     bool doMemoryAccessNow = false;
@@ -1988,14 +1988,14 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
     // end of the path, not an intermediate pathing property
     bool writingThisTime = isLastClause && writing;
 
-    if (sym.flags[variableSym] & SFLG_PROPERTY) { }
-    else if (sym.flags[variableSym] & SFLG_IMPORTED) { }
+    if (sym.entries[variableSym].flags & SFLG_PROPERTY) { }
+    else if (sym.entries[variableSym].flags & SFLG_IMPORTED) { }
     else if ((variableSymType == SYM_GLOBALVAR) || (variableSymType == SYM_LOCALVAR) ||
         (variableSymType == SYM_STRUCTMEMBER) || (variableSymType == SYM_STRING)) {
       // since the member has a fixed offset into the structure, don't
       // write out any code to calculate the offset - instead, modify
       // the hard offset value which will be written to MAR
-      currentByteOffset += sym.soffs[variableSym];
+      currentByteOffset += sym.entries[variableSym].soffs;
     }
 
     if (variableSymType == SYM_FUNCTION) {
@@ -2009,14 +2009,14 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
         return -1;
       }
     }
-    else if (sym.flags[variableSym] & SFLG_PROPERTY) {
+    else if (sym.entries[variableSym].flags & SFLG_PROPERTY) {
       // since a property is effectively a function call, load
       // the object's address
       getAddressOnlyIntoAX = true;
       doMemoryAccessNow = true;
       isProperty = true;
 
-      if ((sym.flags[variableSym] & SFLG_ARRAY) &&
+      if ((sym.entries[variableSym].flags & SFLG_ARRAY) &&
           ((thisClause->len <= 1) ||
            (sym.get_type(thisClause->syml[1]) != SYM_OPENBRACKET))) {
         // normally, the whole array can be used as a pointer.
@@ -2038,7 +2038,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
       }
       else if (writing) {
 
-        if ((writingThisTime) && (sym.flags[variableSym] & SFLG_READONLY)) {
+        if ((writingThisTime) && (sym.entries[variableSym].flags & SFLG_READONLY)) {
           cc_error("property '%s' is read-only", sym.get_name(variableSym));
           return -1;
         }
@@ -2049,10 +2049,10 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
       }
 
     }
-    else if (sym.flags[variableSym] & SFLG_POINTER) {
+    else if (sym.entries[variableSym].flags & SFLG_POINTER) {
       bool isArrayOfPointers = false;
 
-      if (sym.flags[variableSym] & SFLG_ARRAY) {
+      if (sym.entries[variableSym].flags & SFLG_ARRAY) {
         // array of pointers
 
         if ((thisClause->len <= 1) ||
@@ -2060,7 +2060,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
           // normally, the whole array can be used as a pointer.
           // this is not the case with an pointer array, so catch
           // it here and give an error
-          if (sym.flags[variableSym] & SFLG_DYNAMICARRAY)
+          if (sym.entries[variableSym].flags & SFLG_DYNAMICARRAY)
           {
             isDynamicArray = true;
           }
@@ -2088,7 +2088,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
 
       // Push the pointer address onto the stack, where it can be
       // retrieved by do_variable_memory_access later on
-      if (sym.flags[variableSym] & SFLG_THISPTR) {
+      if (sym.entries[variableSym].flags & SFLG_THISPTR) {
         if (isPointer) {
           // already a pointer on the stack
           cc_error("Nested this pointers??");
@@ -2114,8 +2114,8 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
         }
         else if (firstVariableType == SYM_GLOBALVAR) {
 
-          if (sym.flags[firstVariableSym] & SFLG_IMPORTED) {
-            scrip->write_cmd2(SCMD_LITTOREG, SREG_MAR, sym.soffs[firstVariableSym]);
+          if (sym.entries[firstVariableSym].flags & SFLG_IMPORTED) {
+            scrip->write_cmd2(SCMD_LITTOREG, SREG_MAR, sym.entries[firstVariableSym].soffs);
             scrip->fixup_previous(FIXUP_IMPORT);
             if (currentByteOffset)
               scrip->write_cmd2(SCMD_ADD, SREG_MAR, currentByteOffset);
@@ -2135,7 +2135,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
         {
           scrip->write_cmd2(SCMD_MUL, SREG_DX, 4);
 
-          if (sym.flags[variableSym] & SFLG_DYNAMICARRAY) 
+          if (sym.entries[variableSym].flags & SFLG_DYNAMICARRAY) 
           {
             // pointer to an array -- dereference the pointer
             scrip->write_cmd1(SCMD_MEMREADPTR, SREG_MAR);
@@ -2159,7 +2159,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
     }
     else {
 
-      if (sym.flags[variableSym] & SFLG_DYNAMICARRAY) 
+      if (sym.entries[variableSym].flags & SFLG_DYNAMICARRAY) 
       {
         isDynamicArray = true;
       }
@@ -2173,15 +2173,15 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
     if (((writing) || (mustBeWritable)) && (readonly_cannot_cause_error == 0)) {
       // allow writing to read-only pointers if it's actually
       // a property being accessed
-      if ((sym.flags[variableSym] & SFLG_POINTER) && (!isLastClause)) { }
-      else if (sym.flags[variableSym] & SFLG_READONLY) {
+      if ((sym.entries[variableSym].flags & SFLG_POINTER) && (!isLastClause)) { }
+      else if (sym.entries[variableSym].flags & SFLG_READONLY) {
         cc_error("variable '%s' is read-only", sym.get_name(variableSym));
         return -1;
       }
-      else if (sym.flags[variableSym] & SFLG_WRITEPROTECTED) {
+      else if (sym.entries[variableSym].flags & SFLG_WRITEPROTECTED) {
         // write-protected variables can only be written by 
         // the this ptr
-        if ((ee > 0) && (sym.flags[variablePath[ee - 1].syml[0]] & SFLG_THISPTR)) { }
+        if ((ee > 0) && (sym.entries[variablePath[ee - 1].syml[0]].flags & SFLG_THISPTR)) { }
         else {
           cc_error("variable '%s' is write-protected", sym.get_name(variableSym));
           return -1;
@@ -2191,12 +2191,12 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
     }
 
 
-    if (sym.flags[variableSym] & SFLG_ARRAY) {
+    if (sym.entries[variableSym].flags & SFLG_ARRAY) {
       // array without index specified -- get address
       if ((thisClause->len == 1) ||
           (sym.get_type(thisClause->syml[1]) != SYM_OPENBRACKET)) {
 
-        if ((sym.flags[variableSym] & SFLG_DYNAMICARRAY) == 0) 
+        if ((sym.entries[variableSym].flags & SFLG_DYNAMICARRAY) == 0) 
         {
           getAddressOnlyIntoAX = true;
           cannotAssign = true;
@@ -2205,12 +2205,12 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
 
     }
 
-    if (sym.flags[variableSym] & SFLG_POINTER) { }
-    else if (sym.flags[sym.vartype[variableSym]] & SFLG_STRUCTTYPE) {
+    if (sym.entries[variableSym].flags & SFLG_POINTER) { }
+    else if (sym.entries[sym.entries[variableSym].vartype].flags & SFLG_STRUCTTYPE) {
       // struct variable without member access
       if (isLastClause) 
       {
-        if ((sym.flags[variableSym] & SFLG_DYNAMICARRAY) == 0) 
+        if ((sym.entries[variableSym].flags & SFLG_DYNAMICARRAY) == 0) 
         {
           getAddressOnlyIntoAX = true;
           cannotAssign = true;
@@ -2348,12 +2348,12 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
 
           bool isManagedType = false;
           int size = sym.entries[arrayType].ssize;
-          if (sym.flags[arrayType] & SFLG_MANAGED)
+          if (sym.entries[arrayType].flags & SFLG_MANAGED)
           {
             isManagedType = true;
             size = 4;
           }   
-          else if (sym.flags[arrayType] & SFLG_STRUCTTYPE)
+          else if (sym.entries[arrayType].flags & SFLG_STRUCTTYPE)
           {
             cc_error("cannot create dynamic array of unmanaged struct");
             return -1;
@@ -2367,7 +2367,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       }
       else
       {
-          if(sym.flags[symlist[oploc + 1]] & SFLG_BUILTIN)
+          if(sym.entries[symlist[oploc + 1]].flags & SFLG_BUILTIN)
           {
             cc_error("Built-in type '%s' cannot be instantiated directly", sym.get_name(symlist[oploc + 1]));
             return -1;
@@ -2589,7 +2589,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
     }
 
     // static function doesn't want the "this" ptr
-    if (sym.flags[funcsym] & SFLG_STATIC)
+    if (sym.entries[funcsym].flags & SFLG_STATIC)
       using_op = 0;
 
     usingList += 2;
@@ -2647,7 +2647,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
         // push the default value onto the stack
         scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, sym.entries[funcsym].funcParamDefaultValues[ii]);
 
-        if (sym.flags[funcsym] & SFLG_IMPORTED)
+        if (sym.entries[funcsym].flags & SFLG_IMPORTED)
           scrip->write_cmd1(SCMD_PUSHREAL, SREG_AX);
         else
           scrip->push_reg(SREG_AX);
@@ -2696,7 +2696,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       }
 
 
-      if (sym.flags[funcsym] & SFLG_IMPORTED)
+      if (sym.entries[funcsym].flags & SFLG_IMPORTED)
         scrip->write_cmd1(SCMD_PUSHREAL,SREG_AX);
       else
         scrip->push_reg(SREG_AX);
@@ -2723,7 +2723,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       cc_error("wrong number of parameters in call to '%s'",sym.get_name(funcsym));
       return -1;
       }
-    sym.flags[funcsym] |= SFLG_ACCESSED;
+    sym.entries[funcsym].flags |= SFLG_ACCESSED;
 
     if (using_op) {
       // write the address of the function's object to the OP reg
@@ -2731,14 +2731,14 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       scrip->write_cmd1(SCMD_CALLOBJ, SREG_AX);
     }
 
-    if (sym.flags[funcsym] & SFLG_IMPORTED) {
+    if (sym.entries[funcsym].flags & SFLG_IMPORTED) {
       // tell it how many args for this call (nested imported functions
       // causes stack problems otherwise)
       scrip->write_cmd1(SCMD_NUMFUNCARGS, numargs);
     }
     // call it
-    scrip->write_cmd2(SCMD_LITTOREG,SREG_AX,sym.soffs[funcsym]);
-    if (sym.flags[funcsym] & SFLG_IMPORTED) {
+    scrip->write_cmd2(SCMD_LITTOREG,SREG_AX,sym.entries[funcsym].soffs);
+    if (sym.entries[funcsym].flags & SFLG_IMPORTED) {
       scrip->fixup_previous(FIXUP_IMPORT);
       // do the call
       scrip->write_cmd1(SCMD_CALLEXT,SREG_AX);
@@ -2874,7 +2874,7 @@ int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expe
     if (!sym.is_loadable_variable(cursym)) {
         // allow through static properties
         if ((sym.get_type(cursym) == SYM_VARTYPE) && (lilen > 2) &&
-            (sym.flags[vnlist[2]] & SFLG_STATIC))
+            (sym.entries[vnlist[2]].flags & SFLG_STATIC))
         { }
         else {
             cc_error("variable required on left of assignment %s ", sym.get_name(cursym));
@@ -2883,7 +2883,7 @@ int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expe
     }
     bool isAccessingDynamicArray = false;
 
-    if (((sym.flags[cursym] & SFLG_DYNAMICARRAY) != 0) && (lilen < 2))
+    if (((sym.entries[cursym].flags & SFLG_DYNAMICARRAY) != 0) && (lilen < 2))
     {
         if (sym.get_type(targ->peeknext()) != SYM_ASSIGN)
         {
@@ -2892,17 +2892,17 @@ int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expe
         }
         isAccessingDynamicArray = true;
     }
-    else if (((sym.flags[cursym] & SFLG_ARRAY) != 0) && (lilen < 2))
+    else if (((sym.entries[cursym].flags & SFLG_ARRAY) != 0) && (lilen < 2))
     {
         cc_error("cannot assign value to entire array");
         return -1;
     }
-    if (sym.flags[cursym] & SFLG_ISSTRING) {
+    if (sym.entries[cursym].flags & SFLG_ISSTRING) {
         cc_error ("cannot assign to string; use Str* functions instead");
         return -1;
     }
     /*
-    if (sym.flags[cursym] & SFLG_READONLY) {
+    if (sym.entries[cursym].flags & SFLG_READONLY) {
     cc_error("variable '%s' is read-only", sym.get_name(cursym));
     return -1;
     }
@@ -2965,7 +2965,7 @@ int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expe
                 return -1;
             }
         }
-        PerformStringConversionInAX(scrip, &scrip->ax_val_type, sym.vartype[vnlist[finalPartOfLHS]]);
+        PerformStringConversionInAX(scrip, &scrip->ax_val_type, sym.entries[vnlist[finalPartOfLHS]].vartype);
     }
 
     if (MARIntactAssumption) ;
@@ -3000,7 +3000,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     return -1;
   }
 
-  if ((sym.flags[vtwas] & SFLG_MANAGED) && (!isPointer) && (isglobal != 2)) {
+  if ((sym.entries[vtwas].flags & SFLG_MANAGED) && (!isPointer) && (isglobal != 2)) {
     // managed structs must be allocated via ccRegisterObject,
     // and cannot be declared normally in the script (unless imported)
     cc_error("Cannot declare local instance of managed type");
@@ -3012,18 +3012,18 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     return -1;
   }
 
-  sym.extends[cursym] = 0;
-  sym.stype[cursym] = (isglobal != 0) ? SYM_GLOBALVAR : SYM_LOCALVAR;
+  sym.entries[cursym].extends = 0;
+  sym.entries[cursym].stype = (isglobal != 0) ? SYM_GLOBALVAR : SYM_LOCALVAR;
   if (isPointer) {
     varsize = 4;
   }
   sym.entries[cursym].ssize = varsize;
-  sym.arrsize[cursym] = 1;
-  sym.vartype[cursym] = vtwas;
+  sym.entries[cursym].arrsize = 1;
+  sym.entries[cursym].vartype = vtwas;
   if (isPointer)
-    sym.flags[cursym] |= SFLG_POINTER;
+    sym.entries[cursym].flags |= SFLG_POINTER;
 
-  if (((sym.flags[vtwas] & SFLG_MANAGED) == 0) && (isPointer) && (isglobal != 2)) {
+  if (((sym.entries[vtwas].flags & SFLG_MANAGED) == 0) && (isPointer) && (isglobal != 2)) {
     // can only point to managed structs
     cc_error("Cannot declare pointer to non-managed type");
     return -1; 
@@ -3035,7 +3035,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
 
     if (sym.get_type(targ->peeknext()) == SYM_CLOSEBRACKET)
     {
-      sym.flags[cursym] |= SFLG_DYNAMICARRAY;
+      sym.entries[cursym].flags |= SFLG_DYNAMICARRAY;
       array_size = 0;
       varsize = 4;
       //cc_error("dynamic arrays not yet supported"); return -1;
@@ -3054,8 +3054,8 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
 
       varsize *= array_size;
     }
-    sym.flags[cursym] |= SFLG_ARRAY;
-    sym.arrsize[cursym] = array_size;
+    sym.entries[cursym].flags |= SFLG_ARRAY;
+    sym.entries[cursym].arrsize = array_size;
 
     if (sym.get_type(targ->getnext()) != SYM_CLOSEBRACKET)
     {
@@ -3071,13 +3071,13 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
   }
 
   if (strcmp(sym.get_name(vtwas),"string")==0) {
-    sym.flags[cursym] |= SFLG_ISSTRING;
+    sym.entries[cursym].flags |= SFLG_ISSTRING;
     // if it's a string, allocate it some space
     if (ccGetOption(SCOPT_OLDSTRINGS) == 0) {
       cc_error("type 'string' is no longer supported; use String instead");
       return -1;
     }
-    else if (sym.flags[cursym] & SFLG_DYNAMICARRAY)
+    else if (sym.entries[cursym].flags & SFLG_DYNAMICARRAY)
     {
       cc_error("arrays of old-style strings are not supported");
       return -1;
@@ -3105,7 +3105,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
       //scrip->add_fixup(scrip->codesize-2,FIXUP_STACK);
       scrip->cur_sp += STRING_LENGTH;
       scrip->write_cmd2(SCMD_ADD,SREG_SP,STRING_LENGTH);
-      sym.flags[cursym] |= SFLG_STRBUFFER;
+      sym.entries[cursym].flags |= SFLG_STRBUFFER;
       //need_fixup = 1;
     }
   }
@@ -3116,25 +3116,25 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
       cc_error("cannot set initial value of imported variables");
       return -1;
     }
-    if ((sym.flags[cursym] & (SFLG_ARRAY | SFLG_DYNAMICARRAY)) == SFLG_ARRAY) {
+    if ((sym.entries[cursym].flags & (SFLG_ARRAY | SFLG_DYNAMICARRAY)) == SFLG_ARRAY) {
       cc_error("cannot assign value to array");
       return -1;
     }
-    if (sym.flags[cursym] & SFLG_ISSTRING) {
+    if (sym.entries[cursym].flags & SFLG_ISSTRING) {
       cc_error("cannot assign value to string, use StrCopy");
       return -1;
     }
     targ->getnext();  // skip the '='
 
     int actualVarType = vtwas;
-    if (sym.flags[cursym] & SFLG_POINTER)
+    if (sym.entries[cursym].flags & SFLG_POINTER)
       actualVarType |= STYPE_POINTER;
 
-    if (sym.flags[cursym] & SFLG_DYNAMICARRAY)
+    if (sym.entries[cursym].flags & SFLG_DYNAMICARRAY)
       actualVarType |= STYPE_DYNARRAY;
 
     if (isglobal) {
-      if ((sym.flags[cursym] & (SFLG_POINTER | SFLG_DYNAMICARRAY)) != 0) {
+      if ((sym.entries[cursym].flags & (SFLG_POINTER | SFLG_DYNAMICARRAY)) != 0) {
         cc_error("cannot assign initial value to global pointer");
         return -1;
       }
@@ -3143,7 +3143,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
         is_neg = 1;
         targ->getnext();
       }
-      if (sym.vartype[cursym] == sym.normalFloatSym) {
+      if (sym.entries[cursym].vartype == sym.normalFloatSym) {
         // initialize float
         if (sym.get_type(targ->peeknext()) != SYM_LITERALFLOAT) {
           cc_error("Expected floating point value after '='");
@@ -3185,27 +3185,27 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
   
   if (isglobal == 2) {
     // an imported variable
-    sym.soffs[cursym] = scrip->add_new_import(sym.get_name(cursym));
-    sym.flags[cursym] |= SFLG_IMPORTED;
-    if (sym.soffs[cursym] == -1) {
+    sym.entries[cursym].soffs = scrip->add_new_import(sym.get_name(cursym));
+    sym.entries[cursym].flags |= SFLG_IMPORTED;
+    if (sym.entries[cursym].soffs == -1) {
       cc_error("Internal error: import table overflow");
       return -1;
       }
     }
   else if (isglobal) {
     // a global variable
-    sym.soffs[cursym] = scrip->add_global(varsize,(char*)&getsvalue[0]);
-    if (sym.soffs[cursym] < 0)
+    sym.entries[cursym].soffs = scrip->add_global(varsize,(char*)&getsvalue[0]);
+    if (sym.entries[cursym].soffs < 0)
       return -1;
-    if (need_fixup == 1) scrip->add_fixup(sym.soffs[cursym],FIXUP_DATADATA);
+    if (need_fixup == 1) scrip->add_fixup(sym.entries[cursym].soffs,FIXUP_DATADATA);
     }
   else {
     // local variable
-    sym.soffs[cursym] = scrip->cur_sp;
+    sym.entries[cursym].soffs = scrip->cur_sp;
     scrip->write_cmd2(SCMD_REGTOREG,SREG_SP,SREG_MAR);
     if (need_fixup == 2) {
       // expression worked out into ax
-      if ((sym.flags[cursym] & (SFLG_POINTER | SFLG_DYNAMICARRAY)) != 0) 
+      if ((sym.entries[cursym].flags & (SFLG_POINTER | SFLG_DYNAMICARRAY)) != 0) 
       {
         scrip->write_cmd1(SCMD_MEMINITPTR, SREG_AX);
       }
@@ -3219,7 +3219,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
       scrip->write_cmd1(SCMD_ZEROMEMORY, varsize);
 
     if (need_fixup == 1) {
-      sym.flags[cursym] |= SFLG_STRBUFFER;
+      sym.entries[cursym].flags |= SFLG_STRBUFFER;
       scrip->fixup_previous(FIXUP_STACK);
     }
     scrip->cur_sp += varsize;
@@ -3349,18 +3349,18 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 }
 
                 // non-static member function -- declare "this" ptr
-                if ((isMemberFunction) && ((sym.flags[inFuncSym] & SFLG_STATIC) == 0)) {
+                if ((isMemberFunction) && ((sym.entries[inFuncSym].flags & SFLG_STATIC) == 0)) {
                     int thisSym = sym.find("this");
                     if (thisSym > 0) {
                         int varsize = 4;
                         // declare "this" inside member functions
-                        sym.stype[thisSym] = SYM_LOCALVAR;
-                        sym.vartype[thisSym] = isMemberFunction;
+                        sym.entries[thisSym].stype = SYM_LOCALVAR;
+                        sym.entries[thisSym].vartype = isMemberFunction;
                         sym.entries[thisSym].ssize = varsize; // pointer to struct
                         sym.entries[thisSym].sscope = nested_level;
-                        sym.flags[thisSym] = SFLG_READONLY | SFLG_ACCESSED | SFLG_POINTER | SFLG_THISPTR;
+                        sym.entries[thisSym].flags = SFLG_READONLY | SFLG_ACCESSED | SFLG_POINTER | SFLG_THISPTR;
                         // declare as local variable
-                        sym.soffs[thisSym] = scrip->cur_sp;
+                        sym.entries[thisSym].soffs = scrip->cur_sp;
                         scrip->write_cmd2(SCMD_REGTOREG, SREG_SP, SREG_MAR);
                         // first of all, write NULL to the pointer so that
                         // it doesn't try and free it in the following call
@@ -3459,35 +3459,35 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             }
             int size_so_far = 0;
             int extendsWhat = 0;
-            sym.extends[stname] = 0;
-            sym.stype[stname] = SYM_VARTYPE;
-            sym.flags[stname] |= SFLG_STRUCTTYPE;
+            sym.entries[stname].extends = 0;
+            sym.entries[stname].stype = SYM_VARTYPE;
+            sym.entries[stname].flags |= SFLG_STRUCTTYPE;
             sym.entries[stname].ssize = 0;
 
             if (sym.get_type(targ.peeknext()) == SYM_SEMICOLON) {
                 // forward-declaration of struct type
                 targ.getnext();
-                sym.stype[stname] = SYM_UNDEFINEDSTRUCT;
+                sym.entries[stname].stype = SYM_UNDEFINEDSTRUCT;
                 sym.entries[stname].ssize = 4;
                 if (next_is_managed) {
-                    sym.flags[stname] |= SFLG_MANAGED;
+                    sym.entries[stname].flags |= SFLG_MANAGED;
                     next_is_managed = 0;
                 }
                 continue;
             }
 
             if (next_is_managed) {
-                sym.flags[stname] |= SFLG_MANAGED;
+                sym.entries[stname].flags |= SFLG_MANAGED;
                 next_is_managed = 0;
             }
 
             if (next_is_builtin) {
-                sym.flags[stname] |= SFLG_BUILTIN;
+                sym.entries[stname].flags |= SFLG_BUILTIN;
                 next_is_builtin = 0;
             }
 
             if (next_is_autoptr) {
-                sym.flags[stname] |= SFLG_AUTOPTR;
+                sym.entries[stname].flags |= SFLG_AUTOPTR;
                 next_is_autoptr = 0;
             }
 
@@ -3503,24 +3503,24 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     cc_error("Invalid use of 'extends'");
                     return -1;
                 }
-                if ((sym.flags[extendsWhat] & SFLG_STRUCTTYPE) == 0) {
+                if ((sym.entries[extendsWhat].flags & SFLG_STRUCTTYPE) == 0) {
                     cc_error("Must extend a struct type");
                     return -1;
                 }
-                if ((sym.flags[extendsWhat] & SFLG_MANAGED) == 0 && (sym.flags[stname] & SFLG_MANAGED)) {
+                if ((sym.entries[extendsWhat].flags & SFLG_MANAGED) == 0 && (sym.entries[stname].flags & SFLG_MANAGED)) {
                     cc_error("Incompatible types. Managed struct cannot extend unmanaged struct '%s'", sym.get_name(extendsWhat));
                     return -1;
                 }
-                if ((sym.flags[extendsWhat] & SFLG_MANAGED) && (sym.flags[stname] & SFLG_MANAGED) == 0) {
+                if ((sym.entries[extendsWhat].flags & SFLG_MANAGED) && (sym.entries[stname].flags & SFLG_MANAGED) == 0) {
                     cc_error("Incompatible types. Unmanaged struct cannot extend managed struct '%s'", sym.get_name(extendsWhat));
                     return -1;
                 }
-                if ((sym.flags[extendsWhat] & SFLG_BUILTIN) && (sym.flags[stname] & SFLG_BUILTIN) == 0) {
+                if ((sym.entries[extendsWhat].flags & SFLG_BUILTIN) && (sym.entries[stname].flags & SFLG_BUILTIN) == 0) {
                     cc_error("The built-in type '%s' cannot be extended by a concrete struct. Use extender methods instead", sym.get_name(extendsWhat));
                     return -1;
                 }
                 size_so_far = sym.entries[extendsWhat].ssize;
-                sym.extends[stname] = extendsWhat;
+                sym.entries[stname].extends = extendsWhat;
             }
             if (sym.get_type(targ.getnext()) != SYM_OPENBRACE) {
                 cc_error("expected '{'");
@@ -3600,7 +3600,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     return -1;
                 }
 
-                if (sym.flags[cursym] & SFLG_AUTOPTR) {
+                if (sym.entries[cursym].flags & SFLG_AUTOPTR) {
                     member_is_pointer = 1;
                 }
                 else if (strcmp(sym.get_name(targ.peeknext()), "*") == 0) {
@@ -3612,19 +3612,19 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     return -1;
                 }
 
-                if ((sym.flags[cursym] & SFLG_STRUCTTYPE) && (member_is_pointer == 0)) {
+                if ((sym.entries[cursym].flags & SFLG_STRUCTTYPE) && (member_is_pointer == 0)) {
                     cc_error("Member variable cannot be struct");
                     return -1;
                 }
-                if ((member_is_pointer) && (sym.flags[stname] & SFLG_MANAGED) && (!member_is_import)) {
+                if ((member_is_pointer) && (sym.entries[stname].flags & SFLG_MANAGED) && (!member_is_import)) {
                     cc_error("Member variable of managed struct cannot be pointer");
                     return -1;
                 }
-                else if ((sym.flags[cursym] & SFLG_MANAGED) && (!member_is_pointer)) {
+                else if ((sym.entries[cursym].flags & SFLG_MANAGED) && (!member_is_pointer)) {
                     cc_error("Cannot declare non-pointer of managed type");
                     return -1; 
                 }
-                else if (((sym.flags[cursym] & SFLG_MANAGED) == 0) && (member_is_pointer)) {
+                else if (((sym.entries[cursym].flags & SFLG_MANAGED) == 0) && (member_is_pointer)) {
                     cc_error("Cannot declare pointer to non-managed type");
                     return -1; 
                 }
@@ -3690,7 +3690,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                             return -1;
 
                         if (member_is_protected)
-                            sym.flags[vname] |= SFLG_PROTECTED;
+                            sym.entries[vname].flags |= SFLG_PROTECTED;
 
                         if (in_func >= 0) {
                             cc_error("Cannot define member function body inside struct");
@@ -3721,25 +3721,25 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     }
                     else {
                         // member variable
-                        sym.stype[vname] = SYM_STRUCTMEMBER;
-                        sym.extends[vname] = stname;  // save which struct it belongs to
+                        sym.entries[vname].stype = SYM_STRUCTMEMBER;
+                        sym.entries[vname].extends = stname;  // save which struct it belongs to
                         sym.entries[vname].ssize = sym.entries[cursym].ssize;
-                        sym.soffs[vname] = size_so_far;
-                        sym.vartype[vname] = (short)cursym;
+                        sym.entries[vname].soffs = size_so_far;
+                        sym.entries[vname].vartype = (short)cursym;
                         if (member_is_readonly)
-                            sym.flags[vname] |= SFLG_READONLY;
+                            sym.entries[vname].flags |= SFLG_READONLY;
                         if (member_is_property)
-                            sym.flags[vname] |= SFLG_PROPERTY;
+                            sym.entries[vname].flags |= SFLG_PROPERTY;
                         if (member_is_pointer) {
-                            sym.flags[vname] |= SFLG_POINTER;
+                            sym.entries[vname].flags |= SFLG_POINTER;
                             sym.entries[vname].ssize = 4;
                         }
                         if (member_is_static)
-                            sym.flags[vname] |= SFLG_STATIC;
+                            sym.entries[vname].flags |= SFLG_STATIC;
                         if (member_is_protected)
-                            sym.flags[vname] |= SFLG_PROTECTED;
+                            sym.entries[vname].flags |= SFLG_PROTECTED;
                         else if (member_is_writeprotected)
-                            sym.flags[vname] |= SFLG_WRITEPROTECTED;
+                            sym.entries[vname].flags |= SFLG_WRITEPROTECTED;
 
                         if (member_is_property) {
                             if (!member_is_import) {
@@ -3747,7 +3747,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                                 return -1;
                             }
                             else {
-                                sym.flags[vname] |= SFLG_IMPORTED;
+                                sym.entries[vname].flags |= SFLG_IMPORTED;
                             }
 
                             const char *namePrefix = "";
@@ -3760,8 +3760,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                                     return -1;
                                 }
 
-                                sym.flags[vname] |= SFLG_ARRAY;
-                                sym.arrsize[vname] = 0;
+                                sym.entries[vname].flags |= SFLG_ARRAY;
+                                sym.entries[vname].arrsize = 0;
                                 namePrefix = "i";
                             }
                             // the variable name will have been jibbled with
@@ -3794,11 +3794,11 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                             int array_size;
 
                             if (sym.get_type(nextt) == SYM_CLOSEBRACKET) {
-                                if ((sym.flags[stname] & SFLG_MANAGED)) {
+                                if ((sym.entries[stname].flags & SFLG_MANAGED)) {
                                     cc_error("Member variable of managed struct cannot be dynamic array");
                                     return -1;
                                 }
-                                sym.flags[vname] |= SFLG_DYNAMICARRAY;
+                                sym.entries[vname].flags |= SFLG_DYNAMICARRAY;
                                 array_size = 0;
                                 size_so_far += 4;
                             }
@@ -3818,15 +3818,15 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                                     return -1;
                                 }
                             }
-                            sym.flags[vname] |= SFLG_ARRAY;
-                            sym.arrsize[vname] = array_size;
+                            sym.entries[vname].flags |= SFLG_ARRAY;
+                            sym.entries[vname].arrsize = array_size;
                         }
                         else
                             size_so_far += sym.entries[vname].ssize;
                     }
 
                     // both functions and variables have this set
-                    sym.flags[vname] |= SFLG_STRUCTMEMBER;
+                    sym.entries[vname].flags |= SFLG_STRUCTMEMBER;
 
                 } while (sym.get_type(targ.peeknext()) == SYM_COMMA) ;
 
@@ -3859,10 +3859,10 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 cc_error("'%s' is already defined",sym.get_name(enumName));
                 return -1;
             }
-            sym.stype[enumName] = SYM_VARTYPE;
+            sym.entries[enumName].stype = SYM_VARTYPE;
             // standard int size
             sym.entries[enumName].ssize = 4;
-            sym.vartype[enumName] = sym.normalIntSym;
+            sym.entries[enumName].vartype = sym.normalIntSym;
 
             if (sym.get_type(targ.getnext()) != SYM_OPENBRACE) {
                 cc_error("expected '{'");
@@ -3901,15 +3901,15 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     }
 
                     // TODO: declare declareVariableSym as a const variable
-                    sym.stype[declareVariableSym] = SYM_CONSTANT;
+                    sym.entries[declareVariableSym].stype = SYM_CONSTANT;
                     sym.entries[declareVariableSym].ssize = 4;
-                    sym.arrsize[declareVariableSym] = 1;
-                    sym.vartype[declareVariableSym] = enumName;
+                    sym.entries[declareVariableSym].arrsize = 1;
+                    sym.entries[declareVariableSym].vartype = enumName;
                     sym.entries[declareVariableSym].sscope = 0;
-                    sym.flags[declareVariableSym] = SFLG_READONLY;
+                    sym.entries[declareVariableSym].flags = SFLG_READONLY;
                     // soffs is unused for a constant, so in a gratiuitous
                     // hack we use it to store the enum's value
-                    sym.soffs[declareVariableSym] = currentValue;
+                    sym.entries[declareVariableSym].soffs = currentValue;
 
 
                     // proceed to check the next one
@@ -4032,11 +4032,11 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     cc_error("invalid export symbol '%s'",sym.get_name(cursym));
                     return -1;
                 }
-                if (sym.flags[cursym] & SFLG_IMPORTED) {
+                if (sym.entries[cursym].flags & SFLG_IMPORTED) {
                     cc_error("cannot export an import");
                     return -1;
                 }
-                if (sym.flags[cursym] & SFLG_ISSTRING) {
+                if (sym.entries[cursym].flags & SFLG_ISSTRING) {
                     cc_error("cannot export string; use char[200] instead");
                     return -1;
                 }
@@ -4045,7 +4045,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 if ((ccGetOption(SCOPT_EXPORTALL)!=0) && (nextype == SYM_FUNCTION));
                 else if (scrip->add_new_export(sym.get_name(cursym),
                     (nextype == SYM_GLOBALVAR) ? EXPORT_DATA : EXPORT_FUNCTION,
-                    sym.soffs[cursym], sym.entries[cursym].sscope) == -1) {
+                    sym.entries[cursym].soffs, sym.entries[cursym].sscope) == -1) {
                         return -1;
                 }
                 cursym = targ.getnext();
@@ -4079,11 +4079,11 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
 
             if (strcmp(sym.get_name(targ.peeknext()), "*") == 0) {
                 // only allow pointers to structs
-                if ((sym.flags[vtwas] & SFLG_STRUCTTYPE) == 0) {
+                if ((sym.entries[vtwas].flags & SFLG_STRUCTTYPE) == 0) {
                     cc_error("Cannot create pointer to basic type");
                     return -1;
                 }
-                if (sym.flags[vtwas] & SFLG_AUTOPTR) {
+                if (sym.entries[vtwas].flags & SFLG_AUTOPTR) {
                     cc_error("Invalid use of '*'");
                     return -1;
                 }
@@ -4091,7 +4091,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 targ.getnext();
             }
 
-            if (sym.flags[vtwas] & SFLG_AUTOPTR)
+            if (sym.entries[vtwas].flags & SFLG_AUTOPTR)
                 isPointer = 1;
 
             int dynArrayStatus = check_for_dynamic_array_declaration(targ, vtwas);
@@ -4161,14 +4161,14 @@ startvarbit:
 
                 // restore the flag, since remve_any_imports zeros it out
                 if (member_function_definition)
-                    sym.flags[cursym] |= SFLG_STRUCTMEMBER;
+                    sym.entries[cursym].flags |= SFLG_STRUCTMEMBER;
                 else if (next_is_static) {
                     cc_error("'static' only applies to member functions");
                     return -1;
                 }
 
                 if (next_is_protected)
-                    sym.flags[cursym] |= SFLG_PROTECTED;
+                    sym.entries[cursym].flags |= SFLG_PROTECTED;
 
                 if (in_func >= 0)
                     inFuncSym = cursym;
@@ -4199,7 +4199,7 @@ startvarbit:
                     // local variable declaration only
                     sym.entries[cursym].sscope = nested_level;
                 if (next_is_readonly)
-                    sym.flags[cursym] |= SFLG_READONLY;
+                    sym.entries[cursym].flags |= SFLG_READONLY;
                 if (next_is_static) {
                     cc_error("Invalid use of 'static'");
                     return -1;
@@ -4221,14 +4221,14 @@ startvarbit:
                 ccError = 0;
                 if (!isglobal)
                     cc_error("Local variable cannot have the same name as an import");
-                else if (oldDefinition.stype != sym.stype[cursym])
+                else if (oldDefinition.stype != sym.entries[cursym].stype)
                     cc_error("Type of identifier differs from original declaration");
-                else if (oldDefinition.flags != (sym.flags[cursym] & ~SFLG_IMPORTED))
+                else if (oldDefinition.flags != (sym.entries[cursym].flags & ~SFLG_IMPORTED))
                     cc_error("Attributes of identifier do not match prototype");
                 else if (oldDefinition.ssize != sym.entries[cursym].ssize)
                     cc_error("Size of identifier does not match prototype");
-                else if ((sym.flags[cursym] & SFLG_ARRAY) && (oldDefinition.arrsize != sym.arrsize[cursym]))
-                    cc_error("Array size '%d' of identifier does not match prototype which is '%d'", sym.arrsize[cursym], oldDefinition.arrsize);
+                else if ((sym.entries[cursym].flags & SFLG_ARRAY) && (oldDefinition.arrsize != sym.entries[cursym].arrsize))
+                    cc_error("Array size '%d' of identifier does not match prototype which is '%d'", sym.entries[cursym].arrsize, oldDefinition.arrsize);
                 else if (oldDefinition.stype == SYM_FUNCTION) {
                     // function-only checks
                     if (oldDefinition.sscope != sym.entries[cursym].sscope)
@@ -4426,11 +4426,11 @@ startvarbit:
 
                         if (strcmp(sym.get_name(targ.peeknext()), "*") == 0) {
                             // only allow pointers to structs
-                            if ((sym.flags[vtwas] & SFLG_STRUCTTYPE) == 0) {
+                            if ((sym.entries[vtwas].flags & SFLG_STRUCTTYPE) == 0) {
                                 cc_error("Cannot create pointer to basic type");
                                 return -1;
                             }
-                            if (sym.flags[vtwas] & SFLG_AUTOPTR) {
+                            if (sym.entries[vtwas].flags & SFLG_AUTOPTR) {
                                 cc_error("Invalid use of '*'");
                                 return -1;
                             }
@@ -4438,7 +4438,7 @@ startvarbit:
                             targ.getnext();
                         }
 
-                        if (sym.flags[vtwas] & SFLG_AUTOPTR)
+                        if (sym.entries[vtwas].flags & SFLG_AUTOPTR)
                             isPointer = 1;
 
                         if (sym.get_type(targ.peeknext()) == SYM_LOOPCHECKOFF) {
@@ -4478,7 +4478,7 @@ startvarbit:
                                 // variable declaration
                                 sym.entries[cursym].sscope = nested_level;
                                 if (next_is_readonly)
-                                    sym.flags[cursym] |= SFLG_READONLY;
+                                    sym.entries[cursym].flags |= SFLG_READONLY;
 
                                 // parse the declaration
                                 reslt = parse_variable_declaration(cursym, &next_type, 0, varsize, scrip, &targ, vtwas, isPointer);

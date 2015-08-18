@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include "debug/assert.h"
 #include "util/alignedstream.h"
 #include "util/stream.h"
 #include "util/math.h"
@@ -291,7 +292,9 @@ size_t AlignedStream::WriteArrayOfInt64(const int64_t *buffer, size_t count)
 
 size_t AlignedStream::Seek(int offset, StreamSeek origin)
 {
-    // Not supported
+    // TODO: split out Seekable Stream interface
+    assert(false); // aligned stream should not be used in cases
+                   // where Seek() is required to be called
     return GetPosition();
 }
 

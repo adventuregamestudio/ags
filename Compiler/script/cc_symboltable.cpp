@@ -25,9 +25,8 @@ int symbolTable::get_type(int ii) {
     return entries[ii].stype;
 }
 
-int symbolTable::is_loadable_variable(int symm) {
-    return ((entries[symm].stype == SYM_GLOBALVAR) || (entries[symm].stype == SYM_LOCALVAR)
-        || (entries[symm].stype == SYM_CONSTANT));
+int SymbolTableEntry::is_loadable_variable() {
+    return (stype == SYM_GLOBALVAR) || (stype == SYM_LOCALVAR) || (stype == SYM_CONSTANT);
 }
 
 void symbolTable::set_propfuncs(int symb, int propget, int propset) {

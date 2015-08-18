@@ -165,6 +165,17 @@ TEST_CASE("get_num_args", "[cc_symboltable]") {
 }
 
 TEST_CASE("is_loadable_variable", "[cc_symboltable]") {
+	symbolTable testSym;
+	int sym_01 = testSym.add("supergreen");
+
+	REQUIRE(!testSym.entries[sym_01].is_loadable_variable());
+
+	testSym.entries[sym_01].stype = SYM_GLOBALVAR;
+	REQUIRE(testSym.entries[sym_01].is_loadable_variable());
+	testSym.entries[sym_01].stype = SYM_LOCALVAR;
+	REQUIRE(testSym.entries[sym_01].is_loadable_variable());
+	testSym.entries[sym_01].stype = SYM_CONSTANT;
+	REQUIRE(testSym.entries[sym_01].is_loadable_variable());
 }
 TEST_CASE("set_propfuncs", "[cc_symboltable]") {
 }

@@ -1182,7 +1182,7 @@ long extract_variable_name(int fsym, ccInternalList*targ,long*slist, int *funcAt
 
   int mustBeStaticMember = 0;
 
-  if (!sym.is_loadable_variable(fsym)) {
+  if (!sym.entries[fsym].is_loadable_variable()) {
 
     // allow struct type as first word, but then a static member must be used
     if (sym.get_type(fsym) == SYM_VARTYPE)
@@ -2871,7 +2871,7 @@ int evaluate_expression(ccInternalList*targ,ccCompiledScript*scrip,int countbrac
   }
 
 int evaluate_assignment(ccInternalList *targ, ccCompiledScript *scrip, bool expectCloseBracket, int cursym, long lilen, long *vnlist, bool insideBracketedDeclaration) {
-    if (!sym.is_loadable_variable(cursym)) {
+    if (!sym.entries[cursym].is_loadable_variable()) {
         // allow through static properties
         if ((sym.get_type(cursym) == SYM_VARTYPE) && (lilen > 2) &&
             (sym.entries[vnlist[2]].flags & SFLG_STATIC))

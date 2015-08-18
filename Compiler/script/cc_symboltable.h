@@ -54,7 +54,6 @@ struct symbolTable {
 	std::string get_name_string(int idx);
     int  get_type(int ii);
     int  operatorToVCPUCmd(int opprec);
-    int  is_loadable_variable(int symm);
 
     void set_propfuncs(int symb, int propget, int propset);
     int get_propget(int symb);

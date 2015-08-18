@@ -184,4 +184,15 @@ TEST_CASE("get_propget", "[cc_symboltable]") {
 TEST_CASE("get_propset", "[cc_symboltable]") {
 }
 TEST_CASE("operatorToVCPUCmd", "[cc_symboltable]") {
+	symbolTable testSym;
+	int sym_01 = testSym.add("grassgreen");
+
+	testSym.entries[sym_01].vartype = 0;
+	REQUIRE(testSym.entries[sym_01].operatorToVCPUCmd() == 0);
+	testSym.entries[sym_01].vartype = 1;
+	REQUIRE(testSym.entries[sym_01].operatorToVCPUCmd() == 1);
+	testSym.entries[sym_01].vartype = 10;
+	REQUIRE(testSym.entries[sym_01].operatorToVCPUCmd() == 10);
+	testSym.entries[sym_01].vartype = 100;
+	REQUIRE(testSym.entries[sym_01].operatorToVCPUCmd() == 100);
 }

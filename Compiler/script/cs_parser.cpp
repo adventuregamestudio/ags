@@ -2379,7 +2379,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
 
       return 0;
     }
-    else if (sym.operatorToVCPUCmd(symlist[oploc]) == SCMD_SUBREG) {
+    else if (sym.entries[symlist[oploc]].operatorToVCPUCmd() == SCMD_SUBREG) {
       // "-" operator (it wants to negate whatever comes next)
       if (listlen < 2) {
         cc_error("parse error at '-'");
@@ -2397,7 +2397,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       scrip->write_cmd2(SCMD_REGTOREG,SREG_BX,SREG_AX);
       return 0;
     }
-    else if (sym.operatorToVCPUCmd(symlist[oploc]) == SCMD_NOTREG) {
+    else if (sym.entries[symlist[oploc]].operatorToVCPUCmd() == SCMD_NOTREG) {
       // "!" operator (NOT whatever comes next)
       if (listlen < 2) {
         cc_error("parse error at '!'");
@@ -2422,7 +2422,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
 
   if (oploc > 0) {
     // There is an operator in the expression, eg.  "5 + var1"
-    int vcpuOperator = sym.operatorToVCPUCmd(symlist[oploc]);
+    int vcpuOperator = sym.entries[symlist[oploc]].operatorToVCPUCmd();
 
     if (vcpuOperator == SCMD_NOTREG) {
       // you can't do   a = b ! c;
@@ -2544,7 +2544,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       if (parse_sub_expr(&symlist[1],listlen-1,scrip) < 0) return -1;
       scrip->pop_reg(SREG_BX);
       // now LHS is in BX, RHS is in AX - so do the maths
-      scrip->write_cmd2(sym.operatorToVCPUCmd(op),SREG_BX,SREG_AX);
+      scrip->write_cmd2(sym.entries[op].operatorToVCPUCmd(),SREG_BX,SREG_AX);
       // copy the result into AX for return
       scrip->write_cmd2(SCMD_REGTOREG,SREG_BX,SREG_AX);*/
       }

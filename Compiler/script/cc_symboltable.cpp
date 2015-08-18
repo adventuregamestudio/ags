@@ -142,9 +142,9 @@ void symbolTable::reset() {
     add_ex("noloopcheck", SYM_LOOPCHECKOFF, 0);
     add_ex("builtin", SYM_BUILTIN, 0);
 }
-int symbolTable::operatorToVCPUCmd(int opprec) {
-    //return entries[opprec].ssize + 8;
-    return entries[opprec].vartype;
+int SymbolTableEntry::operatorToVCPUCmd() {
+    //return ssize + 8;
+    return vartype;
 }
 int symbolTable::find(const char*ntf) {
     return symbolTree.findValue(ntf);

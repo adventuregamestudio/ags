@@ -53,7 +53,6 @@ struct symbolTable {
     char *get_name(int); // gets symbol name of index
 	std::string get_name_string(int idx);
     int  get_type(int ii);
-    int  operatorToVCPUCmd(int opprec);
 
     void set_propfuncs(int symb, int propget, int propset);
     int get_propget(int symb);

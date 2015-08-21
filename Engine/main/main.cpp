@@ -85,6 +85,7 @@ extern char editor_debugger_instance_token[100];
 char force_gfxfilter[50];
 int datafile_argv=0, change_to_game_dir = 0, force_window = 0;
 int override_start_room = 0, force_16bit = 0;
+bool justDisplayHelp = false;
 bool justRunSetup = false;
 bool justRegisterGame = false;
 bool justUnRegisterGame = false;
@@ -196,8 +197,10 @@ int main_process_cmdline(int argc,char*argv[])
     force_gfxfilter[0] = '\0';
 
     for (int ee=1;ee<argc;ee++) {
-        if (stricmp(argv[ee],"--help") == 0 || argv[ee][1]=='?') {
-            return 0;
+        if (stricmp(argv[ee],"--help") == 0 || stricmp(argv[ee],"/?") == 0 || stricmp(argv[ee],"-?") == 0)
+        {
+            justDisplayHelp = true;
+            return RETURN_CONTINUE;
         }
         if (stricmp(argv[ee],"-shelllaunch") == 0)
             change_to_game_dir = 1;
@@ -445,13 +448,6 @@ int main(int argc,char*argv[]) {
            "ACI version %s\n", EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr());
 #endif
 
-    if ((argc>1) && (stricmp(argv[1],"--help") == 0 || argv[1][1]=='?')) {
-        main_print_help();
-        return 0;
-    }
-
-    Out::FPrint("*** ENGINE STARTUP ***");
-
 #if defined(WINDOWS_VERSION)
     _set_new_handler(malloc_fail_handler);
     _set_new_mode(1);
@@ -462,6 +458,12 @@ int main(int argc,char*argv[]) {
     res = main_process_cmdline(argc, argv);
     if (res != RETURN_CONTINUE) {
         return res;
+    }
+
+    if (justDisplayHelp)
+    {
+        main_print_help();
+        return 0;
     }
 
     main_init_crt_report();

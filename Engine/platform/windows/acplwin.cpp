@@ -115,8 +115,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual int  RunSetup();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
-  virtual void WriteConsole(const char*, ...);
-  virtual void WriteDebugString(const char*, ...);
+  virtual void WriteStdOut(const char*, ...);
   virtual void DisplaySwitchOut() ;
   virtual void DisplaySwitchIn() ;
   virtual void RegisterGameWithGameExplorer();
@@ -516,7 +515,7 @@ void AGSWin32::PostAllegroInit(bool windowed)
   // Sleep() don't take more time than specified
   MMRESULT result = timeBeginPeriod(win32TimerPeriod);
   if (result != TIMERR_NOERROR)
-    platform->WriteDebugString("Failed to set the timer resolution to %d ms", win32TimerPeriod);
+    platform->WriteStdOut("Failed to set the timer resolution to %d ms", win32TimerPeriod);
 }
 
 typedef UINT (CALLBACK* Dynamic_SHGetKnownFolderPathType) (GUID& rfid, DWORD dwFlags, HANDLE hToken, PWSTR *ppszPath); 
@@ -817,15 +816,11 @@ void AGSWin32::SetGameWindowIcon() {
   set_icon();
 }
 
-void AGSWin32::WriteConsole(const char *text, ...) {
-  // Do nothing (Windows GUI app)
-}
-
-void AGSWin32::WriteDebugString(const char* texx, ...) {
+void AGSWin32::WriteStdOut(const char *text, ...) {
   char displbuf[STD_BUFFER_SIZE] = "AGS: ";
   va_list ap;
-  va_start(ap,texx);
-  vsprintf(&displbuf[5],texx,ap);
+  va_start(ap,text);
+  vsprintf(&displbuf[5],text,ap);
   va_end(ap);
   strcat(displbuf, "\n");
 

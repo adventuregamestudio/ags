@@ -73,8 +73,7 @@ struct AGSPSP : AGSPlatformDriver {
   virtual int  RunSetup();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
-  virtual void WriteConsole(const char*, ...);
-  virtual void WriteDebugString(const char* texx, ...);
+  virtual void WriteStdOut(const char*, ...);
 };
 
 
@@ -477,17 +476,6 @@ void psp_initialize()
 
 
 
-void AGSPSP::WriteDebugString(const char* texx, ...) {
-  char displbuf[STD_BUFFER_SIZE] = "AGS: ";
-  va_list ap;
-  va_start(ap,texx);
-  vsprintf(&displbuf[5],texx,ap);
-  va_end(ap);
-  strcat(displbuf, "\n");
-
-  printf(displbuf);
-}
-
 int AGSPSP::CDPlayerCommand(int cmdd, int datt) {
   return 1;//cd_player_control(cmdd, datt);
 }
@@ -551,13 +539,15 @@ void AGSPSP::SetGameWindowIcon() {
   // do nothing
 }
 
-void AGSPSP::WriteConsole(const char *text, ...) {
-  char displbuf[2000];
+void AGSPSP::WriteStdOut(const char *text, ...) {
+  char displbuf[STD_BUFFER_SIZE] = "AGS: ";
   va_list ap;
-  va_start(ap, text);
-  vsprintf(displbuf, text, ap);
+  va_start(ap,text);
+  vsprintf(&displbuf[5],text,ap);
   va_end(ap);
-  printf("%s", displbuf);
+  strcat(displbuf, "\n");
+
+  printf(displbuf);
 }
 
 void AGSPSP::ShutdownCDPlayer() {

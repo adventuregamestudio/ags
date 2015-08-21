@@ -494,7 +494,7 @@ int engine_init_speech()
                 delete speechsync;
             }
             Common::AssetManager::SetDataFile(game_file_name);
-            platform->WriteConsole("Speech sample file found and initialized.\n");
+            platform->WriteStdOut("Speech sample file found and initialized.\n");
             play.want_speech=1;
         }
     }
@@ -534,7 +534,7 @@ int engine_init_music()
             return EXIT_NORMAL;
         }
         Common::AssetManager::SetDataFile(game_file_name);
-        platform->WriteConsole("Audio vox found and initialized.\n");
+        platform->WriteStdOut("Audio vox found and initialized.\n");
         play.seperate_music_lib = 1;
     }
 
@@ -612,7 +612,7 @@ bool try_install_sound(int digi_id, int midi_id)
 
 void engine_init_sound()
 {
-    platform->WriteConsole("Checking sound inits.\n");
+    platform->WriteStdOut("Checking sound inits.\n");
     if (opts.mod_player)
         reserve_voices(16, -1);
 #if ALLEGRO_DATE > 19991010

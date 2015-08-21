@@ -172,7 +172,8 @@ extern char return_to_roomedit[30];
 extern char return_to_room[150];
 
 void main_print_help() {
-    printf("Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
+    platform->WriteStdOut(
+           "Usage: ags [OPTIONS] [GAMEFILE or DIRECTORY]\n\n"
            "Options:\n"
            "  --windowed                   Force display mode to windowed\n"
            "  --fullscreen                 Force display mode to fullscreen\n"

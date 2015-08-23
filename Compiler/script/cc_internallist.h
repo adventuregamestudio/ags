@@ -3,19 +3,20 @@
 
 #define SCODE_META    (-2)   // meta tag follows
 #define SCODE_INVALID (-1)   // this should never get added, so it's a fault
-#define SMETA_LINENUM 1
-#define SMETA_END 2
+#define SMETA_LINENUM (1)
+#define SMETA_END (2)
+
 struct ccInternalList {
     int length;    // size of array, in ints
     int allocated; // memory allocated for array, in bytes
-    long*script;
+    long *script;
     int pos;
     int lineAtEnd;
     int cancelCurrentLine;  // whether to set currentline=-10 if end reached
 
     void startread();
     long peeknext();
-    long getnext();
+    long getnext();  // and update global current_line
     void write(int value);
     // write a meta symbol (ie. non-code thingy)
     void write_meta(int type,int param);
@@ -23,6 +24,9 @@ struct ccInternalList {
     void init();
     ~ccInternalList();
     ccInternalList();
+
+private:
+	bool isPosValid(int pos);
 };
 
 #endif // __CC_INTERNALLIST_H

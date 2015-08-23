@@ -6,63 +6,57 @@
 #include "script/script_common.h"      // macro definitions
 #include "cc_symboldef.h"   // macro definitions
 
-
-symbolTable::symbolTable() { numsymbols=0; currentscope=0; usingTempBuffer = 0; stringStructSym = 0; }
-int symbolTable::get_num_args(int funcSym) {
-    return sscope[funcSym] % 100;
+symbolTable::symbolTable() {
+	stringStructSym = 0; 
 }
+
+int SymbolTableEntry::get_num_args() {
+	// TODO: assert is func?
+    return sscope % 100;
+}
+
 int symbolTable::get_type(int ii) {
     // just return the real type, regardless of pointerness/constness
     ii &= ~(STYPE_POINTER | STYPE_CONST | STYPE_DYNARRAY);
 
-    if ((ii < 0) || (ii >= numsymbols)) return -1;
-    return stype[ii];
+	if ((ii < 0) || (ii >= entries.size())) { return -1; }
+    return entries[ii].stype;
 }
 
-int symbolTable::is_loadable_variable(int symm) {
-    if ((stype[symm] == SYM_GLOBALVAR) || (stype[symm] == SYM_LOCALVAR)
-        || (stype[symm] == SYM_CONSTANT))
-        return 1;
-
-    return 0;
+int SymbolTableEntry::is_loadable_variable() {
+    return (stype == SYM_GLOBALVAR) || (stype == SYM_LOCALVAR) || (stype == SYM_CONSTANT);
 }
 
-void symbolTable::set_propfuncs(int symb, int propget, int propset) {
-    soffs[symb] = (propget << 16) | propset;
+void SymbolTableEntry::set_propfuncs(int propget, int propset) {
+    // TODO check ranges and throw exception
+    soffs = (propget << 16) | propset;
 }
-int symbolTable::get_propget(int symb) {
-    int toret = (soffs[symb] >> 16) & 0x00ffff;
-    if (toret == 0xffff)
+int SymbolTableEntry::get_propget() {
+    int toret = (soffs >> 16) & 0x00ffff;
+	if (toret == 0xffff) {
         return -1;
+	}
     return toret;
 }
-int symbolTable::get_propset(int symb) {
-    int toret = soffs[symb] & 0x00ffff;
-    if (toret == 0xffff)
+int SymbolTableEntry::get_propset() {
+    int toret = soffs & 0x00ffff;
+	if (toret == 0xffff) {
         return -1;
+	}
     return toret;
 }
-
 
 void symbolTable::reset() {
-    int rr;
-    for (rr=0;rr<numsymbols;rr++) free(sname[rr]);
-    sname.resize(0);
-    stype.resize(0);
-    flags.resize(0);
-    vartype.resize(0);
-    soffs.resize(0);
-    ssize.resize(0);
-    sscope.resize(0);
-    arrsize.resize(0);
-    extends.resize(0);
-    funcparamtypes.resize(0);
-    funcParamDefaultValues.resize(0);
+	for (std::map<int, char*>::iterator it = nameGenCache.begin(); it != nameGenCache.end(); ++it) {
+		free(it->second);
+	}
+	nameGenCache.clear();
+    
+	entries.clear();
 
-    numsymbols=0;
-    currentscope=0;
     stringStructSym = 0;
     symbolTree.clear();
+
     add_ex("___dummy__sym0",999,0);
     normalIntSym = add_ex("int",SYM_VARTYPE,4);
     add_ex("char",SYM_VARTYPE,1);
@@ -146,90 +140,80 @@ void symbolTable::reset() {
     add_ex("noloopcheck", SYM_LOOPCHECKOFF, 0);
     add_ex("builtin", SYM_BUILTIN, 0);
 }
-int symbolTable::operatorToVCPUCmd(int opprec) {
-    //return ssize[opprec] + 8;
-    return vartype[opprec];
+int SymbolTableEntry::operatorToVCPUCmd() {
+    //return ssize + 8;
+    return vartype;
 }
 int symbolTable::find(const char*ntf) {
     return symbolTree.findValue(ntf);
-    /*
-    int ss;
-
-    for (ss=0;ss<numsymbols;ss++) {
-    if (strcmp(ntf,sname[ss]) == 0)
-    return ss;
-    }
-    return -1;*/
 }
-char*symbolTable::get_name(int idx) {
 
-    if (idx & STYPE_CONST) {
-        // return "const" version of name, using alternating buffer
-        // so that this can be called twice by the caller
+std::string symbolTable::get_name_string(int idx) {
+	if (idx & STYPE_CONST) {
         idx &= ~STYPE_CONST;
-
-        int bufferIdx = usingTempBuffer;
-        usingTempBuffer = (usingTempBuffer + 1) % 2;
-        sprintf(tempBuffer[bufferIdx], "const %s", get_name(idx));
-        return &tempBuffer[bufferIdx][0];
+		return std::string("const ") + get_name_string(idx);
     }
 
     if (idx & STYPE_DYNARRAY) {
-        // dynamic array
         idx &= ~(STYPE_DYNARRAY | STYPE_POINTER);
-        if ((idx >= 0) && (idx < numsymbols)) {
-            int bufferIdx = usingTempBuffer;
-            usingTempBuffer = (usingTempBuffer + 1) % 2;
-            sprintf(tempBuffer[bufferIdx], "%s[]", get_name(idx));
-            return &tempBuffer[bufferIdx][0];
-        }
-        return NULL;
+		return get_name_string(idx) + std::string("[]");
     }
 
     if (idx & STYPE_POINTER) {
-        // it's a pointer -- return the secret pointer version
-        // of the name
         idx &= ~STYPE_POINTER;
-        if ((idx >= 0) && (idx < numsymbols)) {
-            return &sname[idx][strlen(sname[idx]) + 1];
-        }
-        return NULL;
+		return get_name_string(idx) + std::string("*");
     }
 
-    if ((idx >= 0) && (idx < numsymbols))
-        return sname[idx];
-    return NULL;
+    return entries[idx].sname;
 }
+
+char *symbolTable::get_name(int idx) {
+	if (nameGenCache.count(idx) > 0) {
+		return nameGenCache[idx];
+	}
+
+	int actualIdx = idx & STYPE_MASK;
+	if (actualIdx < 0 || actualIdx >= entries.size()) { return NULL; }
+
+	std::string resultString = get_name_string(idx);
+	char *result = (char *)malloc(resultString.length() + 1);
+	strcpy(result, resultString.c_str());
+	nameGenCache[idx] = result;
+	return result;
+}
+
 int symbolTable::add(char*nta) {
     return add_ex(nta,0,0);
 }
-int symbolTable::add_ex(char*nta,int typo,char sizee) {
-    if (find(nta) >= 0) return -1;
-    char *fullname = (char*)malloc(sizeof(char) * (strlen(nta) * 2 + 5));
-    // put the name, followed by the pointer-equivalent
-    strcpy(fullname, nta);
-    strcpy(&fullname[strlen(nta) + 1], nta);
-    strcat(&fullname[strlen(nta) + 1], "*");
-    sname.push_back(fullname);
+int symbolTable::add_ex (char*nta,int typo,char sizee) {
+	if (find(nta) >= 0) {
+		return -1;
+	}
 
-    stype.push_back(typo);
-    flags.push_back(0);
-    vartype.push_back(0);
-    soffs.push_back(0);
-    ssize.push_back(sizee);
-    sscope.push_back(0);
-    arrsize.push_back(0);
-    extends.push_back(0);
-    funcparamtypes.push_back(std::vector<unsigned long>(MAX_FUNCTION_PARAMETERS + 1));
-    funcParamDefaultValues.push_back(std::vector<short>(MAX_FUNCTION_PARAMETERS + 1));
-    symbolTree.addEntry(fullname, numsymbols);
-    numsymbols++;
-    return numsymbols-1;
+	int p_value = entries.size();
+
+	SymbolTableEntry entry = {};
+	entry.sname = std::string(nta);
+    entry.stype = typo;
+    entry.flags = 0;
+    entry.vartype = 0;
+    entry.soffs = 0;
+	entry.ssize = sizee;
+	entry.sscope = 0;
+    entry.arrsize = 0;
+    entry.extends = 0;
+	entry.funcparamtypes = std::vector<unsigned long>(MAX_FUNCTION_PARAMETERS + 1);
+	entry.funcParamDefaultValues = std::vector<short>(MAX_FUNCTION_PARAMETERS + 1);
+	entries.push_back(entry);
+
+    symbolTree.addEntry(nta, p_value);
+    return p_value;
 }
 int symbolTable::add_operator(char *nta, int priority, int vcpucmd) {
     int nss = add_ex(nta, SYM_OPERATOR, priority);
-    if (nss >= 0)
-        vartype[nss] = vcpucmd;
+	if (nss >= 0) {
+        entries[nss].vartype = vcpucmd;
+	}
     return nss;
 }
 

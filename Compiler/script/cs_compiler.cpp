@@ -92,20 +92,20 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
         return NULL;
     }
 
-    for (t=0;t<sym.numsymbols;t++) {
+    for (t=0;t<sym.entries.size();t++) {
         int stype = sym.get_type(t);
         // blank out the name for imports that are not used, to save space
         // in the output file
-        if (((sym.flags[t] & SFLG_IMPORTED)!=0) && ((sym.flags[t] & SFLG_ACCESSED)==0)) {
+        if (((sym.entries[t].flags & SFLG_IMPORTED)!=0) && ((sym.entries[t].flags & SFLG_ACCESSED)==0)) {
 
             if ((stype == SYM_FUNCTION) || (stype == SYM_GLOBALVAR)) {
                 // unused func/variable
-                cctemp->imports[sym.soffs[t]][0] = 0;
+                cctemp->imports[sym.entries[t].soffs][0] = 0;
             }
-            else if (sym.flags[t] & SFLG_PROPERTY) {
+            else if (sym.entries[t].flags & SFLG_PROPERTY) {
                 // unused property -- get rid of the getter and setter
-                int propGet = sym.get_propget(t);
-                int propSet = sym.get_propset(t);
+                int propGet = sym.entries[t].get_propget();
+                int propSet = sym.entries[t].get_propset();
                 if (propGet > 0)
                     cctemp->imports[propGet][0] = 0;
                 if (propSet > 0)
@@ -116,9 +116,9 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
         if ((sym.get_type(t) != SYM_GLOBALVAR) &&
             (sym.get_type(t) != SYM_LOCALVAR)) continue;
 
-        if (sym.flags[t] & SFLG_IMPORTED) continue;
+        if (sym.entries[t].flags & SFLG_IMPORTED) continue;
         if (ccGetOption(SCOPT_SHOWWARNINGS)==0) ;
-        else if ((sym.flags[t] & SFLG_ACCESSED)==0) {
+        else if ((sym.entries[t].flags & SFLG_ACCESSED)==0) {
             printf("warning: variable '%s' is never used\n",sym.get_name(t));
         }
     }

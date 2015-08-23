@@ -315,12 +315,12 @@ void initialise_game_file_name()
         if (game_file_name.IsEmpty() || !Common::AssetManager::IsDataFile(game_file_name))
         {
             // 3.2 Look in current directory
-            String cur_dir = AGS::Common::Directory::GetCurrentDirectory();
+            String cur_dir = Directory::GetCurrentDirectory();
             game_file_name = find_game_data_in_directory(cur_dir);
             if (game_file_name.IsEmpty())
             {
                 // 3.3 Look in executable's directory (if it's different from current dir)
-                if (AGS::Common::Path::ComparePaths(appDirectory, cur_dir))
+                if (Path::ComparePaths(appDirectory, cur_dir))
                 {
                     game_file_name = find_game_data_in_directory(appDirectory);
                 }
@@ -331,12 +331,12 @@ void initialise_game_file_name()
     // Finally, store game file's absolute path, or report error
     if (game_file_name.IsEmpty())
     {
-        AGS::Common::Out::FPrint("Game data file could not be found\n");
+        Out::FPrint("Game data file could not be found\n");
     }
     else
     {
-        game_file_name = AGS::Common::Path::MakeAbsolutePath(game_file_name);
-        AGS::Common::Out::FPrint("Game data file: %s\n", game_file_name.GetCStr());
+        game_file_name = Path::MakeAbsolutePath(game_file_name);
+        Out::FPrint("Game data file: %s\n", game_file_name.GetCStr());
     }
 }
 

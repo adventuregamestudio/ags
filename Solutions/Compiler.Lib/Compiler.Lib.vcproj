@@ -365,10 +365,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\script\cc_instance.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\script\cc_options.h"
 					>
 				</File>

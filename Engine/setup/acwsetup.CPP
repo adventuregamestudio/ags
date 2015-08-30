@@ -216,7 +216,7 @@ void InitializeDialog(HWND hDlg) {
   SendDlgItemMessage(hDlg,IDC_COMBO1,CB_SETTOPINDEX,0,0);
   SendDlgItemMessage(hDlg,IDC_COMBO1,CB_SETCURSEL,curdigi,0);
   SendDlgItemMessage(hDlg,IDC_COMBO2,CB_ADDSTRING,0,(LPARAM)"Default MCI Music Device");
-  SendDlgItemMessage(hDlg,IDC_COMBO2,CB_ADDSTRING,0,(LPARAM)"Disable music");
+  SendDlgItemMessage(hDlg,IDC_COMBO2,CB_ADDSTRING,0,(LPARAM)"Disable MIDI music");
   SendDlgItemMessage(hDlg,IDC_COMBO2,CB_ADDSTRING,0,(LPARAM)"Win32 MIDI Mapper");
   SendDlgItemMessage(hDlg,IDC_COMBO2,CB_SETTOPINDEX,0,0);
   SendDlgItemMessage(hDlg,IDC_COMBO2,CB_SETCURSEL,curmidi,0);

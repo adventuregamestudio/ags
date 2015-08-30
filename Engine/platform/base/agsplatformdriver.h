@@ -46,6 +46,7 @@ struct AGSPlatformDriver
     virtual const char *GetAllUsersDataDirectory() { return NULL; }
     // Get default directory for program output (logs)
     virtual const char *GetAppOutputDirectory() { return "."; }
+    virtual const char *GetGraphicsTroubleshootingText() { return ""; }
     virtual unsigned long GetDiskFreeSpaceMB() = 0;
     virtual const char* GetNoMouseErrorString() = 0;
     virtual const char* GetAllegroFailUserHint();
@@ -59,8 +60,7 @@ struct AGSPlatformDriver
     virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize);
     virtual int  RunSetup() = 0;
     virtual void SetGameWindowIcon();
-    virtual void WriteConsole(const char*, ...) = 0;
-    virtual void WriteDebugString(const char*, ...);
+    virtual void WriteStdOut(const char*, ...) = 0;
     virtual void YieldCPU();
     virtual void DisplaySwitchOut();
     virtual void DisplaySwitchIn();

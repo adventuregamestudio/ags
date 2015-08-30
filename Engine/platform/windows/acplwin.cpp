@@ -102,6 +102,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void DisplayAlert(const char*, ...);
   virtual const char *GetAllUsersDataDirectory();
   virtual const char *GetAppOutputDirectory();
+  virtual const char *GetGraphicsTroubleshootingText();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
   virtual const char* GetAllegroFailUserHint();
@@ -114,8 +115,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual int  RunSetup();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
-  virtual void WriteConsole(const char*, ...);
-  virtual void WriteDebugString(const char*, ...);
+  virtual void WriteStdOut(const char*, ...);
   virtual void DisplaySwitchOut() ;
   virtual void DisplaySwitchIn() ;
   virtual void RegisterGameWithGameExplorer();
@@ -515,7 +515,7 @@ void AGSWin32::PostAllegroInit(bool windowed)
   // Sleep() don't take more time than specified
   MMRESULT result = timeBeginPeriod(win32TimerPeriod);
   if (result != TIMERR_NOERROR)
-    platform->WriteDebugString("Failed to set the timer resolution to %d ms", win32TimerPeriod);
+    platform->WriteStdOut("Failed to set the timer resolution to %d ms", win32TimerPeriod);
 }
 
 typedef UINT (CALLBACK* Dynamic_SHGetKnownFolderPathType) (GUID& rfid, DWORD dwFlags, HANDLE hToken, PWSTR *ppszPath); 
@@ -644,6 +644,19 @@ const char *AGSWin32::GetAppOutputDirectory()
 {
   DetermineAppOutputDirectory();
   return win32OutputDirectory;
+}
+
+const char *AGSWin32::GetGraphicsTroubleshootingText()
+{
+  return "\n\nPossible causes:\n"
+    "* your graphics card drivers do not support this resolution. "
+    "Run the game setup program and try another resolution.\n"
+    "* the graphics driver you have selected does not work. Try switching between Direct3D and DirectDraw.\n"
+    "* the graphics filter you have selected does not work. Try another filter.\n"
+    "* your graphics card drivers are out of date. "
+    "Try downloading updated graphics card drivers from your manufacturer's website.\n"
+    "* there is a problem with your graphics card driver configuration. "
+    "Run DXDiag using the Run command (Start->Run, type \"dxdiag.exe\") and correct any problems reported there.";
 }
 
 void AGSWin32::DisplaySwitchOut() {
@@ -803,15 +816,11 @@ void AGSWin32::SetGameWindowIcon() {
   set_icon();
 }
 
-void AGSWin32::WriteConsole(const char *text, ...) {
-  // Do nothing (Windows GUI app)
-}
-
-void AGSWin32::WriteDebugString(const char* texx, ...) {
+void AGSWin32::WriteStdOut(const char *text, ...) {
   char displbuf[STD_BUFFER_SIZE] = "AGS: ";
   va_list ap;
-  va_start(ap,texx);
-  vsprintf(&displbuf[5],texx,ap);
+  va_start(ap,text);
+  vsprintf(&displbuf[5],text,ap);
   va_end(ap);
   strcat(displbuf, "\n");
 

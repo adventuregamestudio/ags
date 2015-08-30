@@ -1,7 +1,7 @@
 start /WAIT tex2rtf.exe ags.tex ags.html -html -sync
 python striphdr.py htmlfiles\actutor.htm ags29.htm
 python striphdr.py htmlfiles\actutor2.htm ags30.htm
-procdocs
+python procdocs.py
 cd htmlfiles
 for %%i in (acintro*.htm) do python ..\striphdr.py %%i ..\%%i
 cd ..

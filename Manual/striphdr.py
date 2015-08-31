@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import re
 
 # Format actutor.htm files to make it suitable for inclusion in html docs.
 
@@ -28,11 +29,12 @@ def main():
     # startstr = "<td width=\"550\">"
     startstr = "<td class=\"maintext\">"
     start = buf.index(startstr) + len(startstr)
-    end = buf.index("</td>\r\n</tr>\r\n</table></td>", start)
+    endre = re.compile(r"\s*</td>\s*</tr>\s*</table>\s*</td>\s*</tr>", re.MULTILINE|re.IGNORECASE)
+    end = endre.search(buf, start).start()
 
     buf = buf[start:end]
 
-    # link to chapter 2.
+    # actutor has been slotted into 29,30
     buf = buf.replace("actutor.htm", "ags29.htm")
     buf = buf.replace("actutor2.htm", "ags30.htm")
 

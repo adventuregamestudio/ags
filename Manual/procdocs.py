@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import glob
+import re
 import sys
 
 # Format generated .htm to have correct syntax and additional styling.
@@ -20,6 +21,8 @@ STYLE = """\
   }
 --></style>"""
 
+endhead_re = re.compile(r"</title>\s*(</head>)", re.MULTILINE|re.IGNORECASE)
+
 def process_file(filename):
     print "Processing {0}...".format(filename)
 
@@ -30,12 +33,9 @@ def process_file(filename):
     data = data.replace("GTSS", ">")
     data = data.replace("LTSS", "<")
 
-    if "</title></head>" in data or "</TITLE></HEAD>" in data:
-        insert_index = data.find("</head>")
-        if insert_index < 0:
-            insert_index = data.find("</HEAD>")
-        if insert_index < 0:
-            raise Exception("Could not find end of <head> block.")
+    endm = endhead_re.search(data)
+    if endm:
+        insert_index = endm.start(1)
         data = data[:insert_index] + STYLE + data[insert_index:]
 
     with file(filename, 'wb') as oup:

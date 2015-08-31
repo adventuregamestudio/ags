@@ -22,6 +22,8 @@ echo images\*.gif >>ags.hhp
 hhc ags.hhp
 if %errorlevel% neq 1 goto error
 
+move /Y ags.chm ags-help.chm
+
 goto :EOF
 
 :error

@@ -1,6 +1,7 @@
 
 #define AgsName "Adventure Game Studio"
 #define AgsUrl "http://www.adventuregamestudio.co.uk/"
+#define VcRedistInstaller "vcredist_x86-9.0.30729.6161.exe"
 ; requires AgsVersion to be passed in since innosetup is interested in 4 digit version numbers
 
 [Setup]
@@ -53,12 +54,15 @@ Name: "{app}\Templates";
 
 
 [Files]
-; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-
+Source: "Source\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Source\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Source\ags-help.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Source\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion
 Source: "Source\Docs\*"; DestDir: "{app}\Docs"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Source\Templates\*"; DestDir: "{app}\Templates"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Source\Demo Game\*"; DestDir: "{app}\Demo Game"; Flags: ignoreversion recursesubdirs createallsubdirs; Tasks: demogame
+Source: "{#VcRedistInstaller}"; DestDir: {tmp}; Flags: deleteafterinstall; Check: VCRedistNeedsInstall;
+; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 
 [Icons]
@@ -80,11 +84,19 @@ Root: HKCR; Subkey: "AGSGameSource\shell\open\command"; ValueType: string; Value
 
 
 [Run]
-Filename: "{tmp}\vcredist_x86.exe"; Check: VCRedistNeedsInstall; Flags: skipifdoesntexist; Tasks: vcredist
+; "How to perform a silent install of the Visual C++ 2008 redistributable packages"
+;   http://blogs.msdn.com/b/astebner/archive/2010/10/18/9513328.aspx
+Filename: "{tmp}\{#VcRedistInstaller}"; Parameters: "/qb"; Check: VCRedistNeedsInstall; Flags: skipifdoesntexist; Tasks: vcredist
+
 Filename: "{app}\AGSEditor.exe"; Description: "{cm:LaunchProgram,Adventure Game Studio}"; Flags: nowait postinstall skipifsilent;
 
 
 [Code]
+
+// Based on code from "How to make vcredist_x86 reinstall only if not yet installed?"
+//  http://stackoverflow.com/questions/11137424/how-to-make-vcredist-x86-reinstall-only-if-not-yet-installed
+// "How to detect the presence of the Visual C++ 9.0 runtime redistributable package"
+//  http://blogs.msdn.com/b/astebner/archive/2009/01/29/9384143.aspx
 
 #IFDEF UNICODE
   #DEFINE AW "W"
@@ -102,7 +114,9 @@ const
   INSTALLSTATE_ABSENT = 2;       // The product is installed for a different user.
   INSTALLSTATE_DEFAULT = 5;      // The product is installed for the current user.
 
-  VC_2008_SP1_6161_REDIST_X86 = '{9BE518E6-ECC6-35A9-88E4-87755C07200F}';
+  VC_2008_SP1_MFC_SEC_UPD_REDIST_X86 = '{9BE518E6-ECC6-35A9-88E4-87755C07200F}';
+  VC_2008_SP1_MFC_SEC_UPD_REDIST_X64 = '{5FCE6D76-F5DC-37AB-B2B8-22AB8CEDB1D4}';
+  VC_2008_SP1_MFC_SEC_UPD_REDIST_IA64 = '{515643D1-4E9E-342F-A75A-D1F16448DC04}';
 
   DOT_NET_REGISTRY_KEY = 'Software\Microsoft\.NETFramework\policy\v2.0';
 
@@ -114,7 +128,6 @@ const
 
 var
   ErrorCode: Integer;
-
 
 function MsiQueryProductState(szProduct: string): INSTALLSTATE;
   external 'MsiQueryProductState{#AW}@msi.dll stdcall';
@@ -130,7 +143,7 @@ begin
   // or False when you don't need to.
   // The following won't install your VC redist only when the Visual C++
   // 2008 SP1 Redist (x86) is installed for the current user
-  Result := not VCVersionInstalled(VC_2008_SP1_6161_REDIST_X86);
+  Result := not VCVersionInstalled(VC_2008_SP1_MFC_SEC_UPD_REDIST_X86);
 end;
 
 

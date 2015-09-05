@@ -449,7 +449,7 @@ int check_for_default_value(ccInternalList &targ, int funcsym, int numparams) {
     return 0;
 }
 
-int check_for_dynamic_array_declaration(ccInternalList &targ, int typeSym)
+int check_for_dynamic_array_declaration(ccInternalList &targ, int typeSym, bool isPointer)
 {
   if (sym.get_type(targ.peeknext()) == SYM_OPENBRACKET)
   {
@@ -460,11 +460,15 @@ int check_for_dynamic_array_declaration(ccInternalList &targ, int typeSym)
       cc_error("fixed size array cannot be used in this way");
       return -1;
     }
-    if (((sym.flags[typeSym] & SFLG_STRUCTTYPE) != 0) &&
-        ((sym.flags[typeSym] & SFLG_MANAGED) == 0))
-    {
-      cc_error("cannot pass non-managed struct array");
-      return -1;
+    if (sym.flags[typeSym] & SFLG_STRUCTTYPE) {
+        if (!(sym.flags[typeSym] & SFLG_MANAGED)) {
+            cc_error("cannot pass non-managed struct array");
+            return -1;
+        }
+        if (!isPointer) {
+            cc_error("cannot pass non-pointer struct array");
+            return -1;
+        }
     }
     return 1;
   }
@@ -713,7 +717,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
         scrip->write_cmd2(SCMD_ADD,SREG_SP,oldsize);*/
       }
 
-      int dynArrayStatus = check_for_dynamic_array_declaration(targ, cursym);
+      int dynArrayStatus = check_for_dynamic_array_declaration(targ, cursym, !!isPointerParam);
       if (dynArrayStatus < 0)
       {
         return -1;
@@ -3763,7 +3767,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             if (sym.flags[vtwas] & SFLG_AUTOPTR)
                 isPointer = 1;
 
-            int dynArrayStatus = check_for_dynamic_array_declaration(targ, vtwas);
+            int dynArrayStatus = check_for_dynamic_array_declaration(targ, vtwas, !!isPointer);
             if (dynArrayStatus < 0) return -1;
             if (dynArrayStatus > 0)
             {

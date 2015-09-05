@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <cerrno>
 #include "cs_parser.h"
 #include "cc_internallist.h"    // ccInternalList
 #include "cs_parser_common.h"
@@ -399,13 +400,17 @@ int find_member_sym(int structSym, long *memSym, int allowProtected) {
     return 0;
 }
 
-int get_literal_value(int fromSym, int *theValue, const char *errorMsg) {
-
+int get_literal_value(int fromSym, int &theValue, const char *errorMsg) {
   if (sym.get_type(fromSym) == SYM_LITERALVALUE) {
-    *theValue = atoi(sym.get_name(fromSym));
+    errno = 0;
+    theValue = atoi(sym.get_name(fromSym));
+    if (errno == ERANGE) {
+        cc_error("Overflow while parsing integer symbol '%s'.", sym.get_friendly_name(fromSym).c_str());
+        return -1;
+    }
   }
   else if (sym.get_type(fromSym) == SYM_CONSTANT) {
-    *theValue = sym.soffs[fromSym];
+    theValue = sym.soffs[fromSym];
   }
   else {
     cc_error((char*)errorMsg);
@@ -431,8 +436,9 @@ int check_for_default_value(ccInternalList &targ, int funcsym, int numparams) {
         int defaultValue;
 
         // extract the default value
-        if (get_literal_value(defValSym, &defaultValue, "Parameter default value must be literal"))
+        if (get_literal_value(defValSym, defaultValue, "Parameter default value must be literal") < 0) {
             return -1;
+        }
 
         if (negateIt)
             defaultValue = -defaultValue;
@@ -1671,6 +1677,14 @@ int call_property_func(ccCompiledScript *scrip, int propSym, int isWrite) {
   return 0;
 }
 
+int checked_atoi(int &value, const char *str) {
+    if (str == 0) { return -1; }
+    errno = 0;
+    value = atoi(str);
+    if (errno == ERANGE) { return -1; }
+    return 0;
+}
+
 int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
                               int variableSymType, bool isProperty,
                               int writing, int mustBeWritable,
@@ -1701,7 +1715,12 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
       cc_error("cannot write to a literal value");
       return -1;
     }
-    scrip->write_cmd2(SCMD_LITTOREG,SREG_AX, atoi(sym.get_name(variableSym)));
+    int varSymValue;
+    if (checked_atoi(varSymValue, sym.get_name(variableSym)) < 0) {
+      cc_error("Error while parsing integer symbol '%s'.", sym.get_friendly_name(variableSym).c_str());
+      return -1;
+    }
+    scrip->write_cmd2(SCMD_LITTOREG,SREG_AX, varSymValue);
     gotValType = sym.normalIntSym;
   }
   else if (mainVariableType == SYM_LITERALFLOAT) {
@@ -2804,8 +2823,9 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     {
       int nextt = targ->getnext();
 
-      if (get_literal_value(nextt, &array_size, "Array size must be constant value"))
+      if (get_literal_value(nextt, array_size, "Array size must be constant value") < 0) {
         return -1;
+      }
 
       if (array_size < 1) {
         cc_error("Array size must be >=1");
@@ -2919,11 +2939,11 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
         return -1;
       }
       else {
-        // initialize int
-        // warning: cast long* to int*; they are both 32-bit but
-        // this can't be guaranteed
-        if (get_literal_value(targ->getnext(), (int*)getsvalue, "Expected integer value after '='"))
+        int getsvalue_int;
+        if (get_literal_value(targ->getnext(), getsvalue_int, "Expected integer value after '='") < 0) {
           return -1;
+        }
+        getsvalue[0] = (long)getsvalue_int;
 
         if (is_neg)
           getsvalue[0] = -getsvalue[0];
@@ -3489,8 +3509,9 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                             int nextt = targ.getnext();
                             int array_size;
 
-                            if (get_literal_value(nextt, &array_size, "Array size must be constant value"))
+                            if (get_literal_value(nextt, array_size, "Array size must be constant value") < 0) {
                                 return -1;
+                            }
 
                             if (array_size < 1) {
                                 cc_error("array size cannot be less than 1");
@@ -3579,8 +3600,9 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         // a specifically indexed entry
                         nextSym = targ.getnext();
 
-                        if (get_literal_value(nextSym, &currentValue, "enum must be set to literal value"))
+                        if (get_literal_value(nextSym, currentValue, "enum must be set to literal value") < 0) {
                             return -1;
+                        }
 
                         nextSym = targ.getnext();
                     }

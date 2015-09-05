@@ -49,3 +49,28 @@ TEST(Compile, UnknownKeywordAfterReadonly) {
     ASSERT_EQ(-1, compileResult);
     ASSERT_STREQ("Syntax error at 'MyStruct::int2'; expected variable type", last_seen_cc_error);
 }
+
+TEST(Compile, DynamicArrayReturnValueErrorText) {
+    ccCompiledScript *scrip = new ccCompiledScript();
+    scrip->init();
+
+    sym.reset();  // <-- global
+
+    char *inpl = "\
+        managed struct DynamicSprite { };\
+        \
+        DynamicSprite[] Func()\
+        {\
+          DynamicSprite *r[] = new DynamicSprite[10];\
+          return r;\
+        }";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_EQ(-1, compileResult);
+    ASSERT_STREQ("Type mismatch: cannot convert 'DynamicSprite*[]' to 'DynamicSprite[]'", last_seen_cc_error);
+}
+
+// TODO: "DynamicSprite[]" type in the function declaration should cause error on its own, because managed types are
+// only allowed to be referenced by pointers.

@@ -40,6 +40,7 @@ struct symbolTable {
     int  add_operator(char*, int priority, int vcpucmd); // adds new operator
     int  add(char*);   // adds new symbol, returns -1 if already exists
     int  get_num_args(int funcSym);
+    std::string symbolTable::get_friendly_name(int idx);  // inclue ptr
     std::string symbolTable::get_name_string(int idx);
     char *get_name(int idx); // gets symbol name of index
     int  get_type(int ii);

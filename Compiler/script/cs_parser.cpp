@@ -465,6 +465,7 @@ int check_for_default_value(ccInternalList &targ, int funcsym, int numparams) {
         }
 
         sym.funcParamDefaultValues[funcsym][numparams % 100] = defaultValue;
+        sym.funcParamHasDefaultValues[funcsym][numparams % 100] = true;
 
     }
 
@@ -656,7 +657,8 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       int isPointerParam = 0;
       // save the parameter type (numparams starts from 1)
       sym.funcparamtypes[funcsym][numparams % 100] = cursym;
-      sym.funcParamDefaultValues[funcsym][numparams % 100] = PARAM_NO_DEFAULT_VALUE;
+      sym.funcParamDefaultValues[funcsym][numparams % 100] = 0;
+      sym.funcParamHasDefaultValues[funcsym][numparams % 100] = false;
 
       if (next_is_const)
         sym.funcparamtypes[funcsym][numparams % 100] |= STYPE_CONST;
@@ -2580,7 +2582,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       // not enough arguments -- see if we can supply default values
       for (int ii = func_args; ii > num_supplied_args; ii--) {
 
-        if (sym.funcParamDefaultValues[funcsym][ii] == PARAM_NO_DEFAULT_VALUE) {
+        if (!sym.funcParamHasDefaultValues[funcsym][ii]) {
           cc_error("Not enough parameters in call to function");
           return -1;
         }

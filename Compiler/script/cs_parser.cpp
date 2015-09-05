@@ -90,6 +90,13 @@ const char *get_member_full_name(int structSym, int memberSym) {
     return constructedMemberName;
 }
 
+int sym_find_or_add(symbolTable &sym, const char *sname) {
+    int symdex = sym.find(sname);
+    if (symdex < 0) {
+        symdex = sym.add((char *)sname);  // "safe" to cast since it doesn't get modified.
+    }
+    return symdex;
+}
 
 int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
     // *** create the symbol table and parse the text code into symbol code
@@ -147,10 +154,9 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
             strcpy(thissymbol, thissymbol_mangled);
         }
 
-        int towrite = sym.find(thissymbol);
-        if (towrite < 0) towrite = sym.add(thissymbol);
+        int towrite = sym_find_or_add(sym, thissymbol);
         if (towrite < 0) {
-            cc_error("symbol table overflow - too many symbols defined");
+            cc_error("symbol table overflow - could not ensure new symbol.");
             return -1;
         }
         if ((thissymbol[0] >= '0') && (thissymbol[0] <= '9')) {
@@ -205,7 +211,11 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
                     (towrite != in_struct_declr)) {
                         const char *new_name = get_member_full_name(in_struct_declr, towrite);
                         //      printf("changed '%s' to '%s'\n",sym.get_name(towrite),new_name);
-                        towrite = sym.add((char*)new_name);
+                        towrite = sym_find_or_add(sym, new_name);
+                        if (towrite < 0) {
+                            cc_error("symbol table error - could not ensure new struct symbol.");
+                            return -1;
+                        }
                 }
         }
 

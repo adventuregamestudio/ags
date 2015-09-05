@@ -76,5 +76,25 @@ TEST(Compile, DynamicArrayReturnValueErrorText) {
     EXPECT_STREQ("Type mismatch: cannot convert 'DynamicSprite*[]' to 'int[]'", last_seen_cc_error);
 }
 
-// TODO: "DynamicSprite[]" type in the function declaration should cause error on its own, because managed types are
-// only allowed to be referenced by pointers.
+TEST(Compile, DynamicTypeReturnNonPointerManaged) {
+    // "DynamicSprite[]" type in the function declaration should cause error on its own, because managed types are
+    // only allowed to be referenced by pointers.
+
+    ccCompiledScript *scrip = new ccCompiledScript();
+    scrip->init();
+
+    sym.reset();  // <-- global
+
+    char *inpl = "\
+        managed struct DynamicSprite { };\
+        \
+        DynamicSprite[] Func()\
+        {\
+        }";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_EQ(-1, compileResult);
+    EXPECT_STREQ("cannot pass non-pointer struct array", last_seen_cc_error);
+}

@@ -2950,9 +2950,9 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
         cc_error("cannot assign initial value to global pointer");
         return -1;
       }
-      int is_neg = 0;
+      bool is_neg = false;
       if (sym.get_name(targ->peeknext())[0] == '-') {
-        is_neg = 1;
+        is_neg = true;
         targ->getnext();
       }
       if (sym.vartype[cursym] == sym.normalFloatSym) {
@@ -3645,6 +3645,13 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
 
                     if (sym.get_type(nextSym) == SYM_ASSIGN) {
                         // a specifically indexed entry
+
+                        bool is_neg = false;
+                        if (sym.get_name(targ.peeknext())[0] == '-') {
+                            is_neg = true;
+                            targ.getnext();
+                        }
+
                         nextSym = targ.getnext();
 
                         if (accept_literal_or_constant_value(nextSym, currentValue, is_neg, "enum must be set to literal value") < 0) {

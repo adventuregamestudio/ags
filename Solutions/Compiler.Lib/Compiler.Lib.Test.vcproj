@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\Common;..\..\Compiler;$(CATCH_INCLUDE_DIR)"
+				AdditionalIncludeDirectories="..\..\Common;..\..\Compiler;$(GOOGLETEST_PREFIX)\include;$(GOOGLETEST_PREFIX)"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;WINDOWS_VERSION"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -117,7 +117,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\Common;..\..\Compiler;$(CATCH_INCLUDE_DIR)"
+				AdditionalIncludeDirectories="..\..\Common;..\..\Compiler;$(GOOGLETEST_PREFIX)\include;$(GOOGLETEST_PREFIX)"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;WINDOWS_VERSION"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -177,27 +177,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\Compiler\test\cc_internallist_test.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Compiler\test\cc_symboltable_test.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Compiler\test\cc_treemap_test.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Compiler\test\cs_parser_tokenize_test.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Compiler\test\main.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Common\util\stream.cpp"
+				>
+			</File>
+			<File
+				RelativePath="$(GOOGLETEST_PREFIX)\src\gtest-all.cc"
+				>
+			</File>
+			<File
+				RelativePath="$(GOOGLETEST_PREFIX)\src\gtest_main.cc"
 				>
 			</File>
 		</Filter>

@@ -63,6 +63,7 @@ void symbolTable::reset() {
     extends.resize(0);
     funcparamtypes.resize(0);
     funcParamDefaultValues.resize(0);
+    funcParamHasDefaultValues.resize(0);
 
     numsymbols=0;
     currentscope=0;
@@ -225,7 +226,8 @@ int symbolTable::add_ex(const char*nta,int typo,char sizee) {
     arrsize.push_back(0);
     extends.push_back(0);
     funcparamtypes.push_back(std::vector<unsigned long>(MAX_FUNCTION_PARAMETERS + 1));
-    funcParamDefaultValues.push_back(std::vector<short>(MAX_FUNCTION_PARAMETERS + 1));
+    funcParamDefaultValues.push_back(std::vector<int>(MAX_FUNCTION_PARAMETERS + 1));
+	funcParamHasDefaultValues.push_back(std::vector<bool>(MAX_FUNCTION_PARAMETERS + 1));
     symbolTree.addEntry(fullname, numsymbols);
     numsymbols++;
     return numsymbols-1;

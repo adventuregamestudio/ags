@@ -27,7 +27,8 @@ struct symbolTable {
     std::vector<short> extends; // inherits another class (classes) / owning class (member vars)
     // functions only, save types of return value and all parameters
     std::vector<std::vector<unsigned long> > funcparamtypes;
-    std::vector<std::vector<short> > funcParamDefaultValues;
+    std::vector< std::vector<int> > funcParamDefaultValues;
+    std::vector< std::vector<bool> > funcParamHasDefaultValues;
     char tempBuffer[2][MAX_SYM_LEN];
     int  usingTempBuffer;
 

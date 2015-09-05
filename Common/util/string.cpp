@@ -647,7 +647,7 @@ void String::SetString(const char *cstr, int length)
 {
     if (cstr)
     {
-        length = length >= 0 ? Math::Min(length, strlen(cstr)) : strlen(cstr);
+        length = length >= 0 ? Math::Min((size_t)length, strlen(cstr)) : strlen(cstr);
         if (length > 0)
         {
             ReserveAndShift(false, Math::Max(0, length - GetLength()));

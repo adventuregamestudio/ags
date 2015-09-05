@@ -134,7 +134,7 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
                             // all the job here.
                             *fmt_bufptr = 0;
                             strncpy(out_ptr, "(null)", avail_outbuf);
-                            snprintf_res = Math::Min(avail_outbuf, 6);
+                            snprintf_res = Math::Min<ptrdiff_t>(avail_outbuf, 6);
                             fmt_done = kFormatParseArgument;
                             break;
                         }
@@ -185,7 +185,7 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
             // If placeholder was not valid, just copy stored format buffer as it is
             else
             {
-                size_t copy_len = Math::Min(Math::Min(fmt_bufptr - fmtbuf, fmtbuf_size - 1), avail_outbuf);
+                size_t copy_len = Math::Min(Math::Min<ptrdiff_t>(fmt_bufptr - fmtbuf, fmtbuf_size - 1), avail_outbuf);
                 memcpy(out_ptr, fmtbuf, copy_len);
                 out_ptr += copy_len;
             }
@@ -289,7 +289,7 @@ const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *format, 
                         {
                             *fmt_bufptr = 0;
                             strncpy(out_ptr, "(null)", avail_outbuf);
-                            snprintf_res = Math::Min(avail_outbuf, 6);
+                            snprintf_res = Math::Min<ptrdiff_t>(avail_outbuf, 6);
                             fmt_done = kFormatParseArgument;
                             break;
                         }
@@ -340,7 +340,7 @@ const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *format, 
             // If placeholder was not valid, just copy stored format buffer as it is
             else
             {
-                size_t copy_len = Math::Min(Math::Min(fmt_bufptr - fmtbuf, fmtbuf_size - 1), avail_outbuf);
+                size_t copy_len = Math::Min(Math::Min<ptrdiff_t>(fmt_bufptr - fmtbuf, fmtbuf_size - 1), avail_outbuf);
                 memcpy(out_ptr, fmtbuf, copy_len);
                 out_ptr += copy_len;
             }

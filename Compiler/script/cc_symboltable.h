@@ -3,6 +3,9 @@
 
 #include "cs_parser_common.h"   // macro definitions
 #include "script/cc_treemap.h"
+
+#include <map>
+#include <string>
 #include <vector>
 
 struct symbolTable {
@@ -14,7 +17,6 @@ struct symbolTable {
     int normalVoidSym;
     int nullSym;
     int stringStructSym;
-    std::vector<char *> sname;
     std::vector<short> stype;
     std::vector<long> flags;
     std::vector<short> vartype;
@@ -25,7 +27,8 @@ struct symbolTable {
     std::vector<short> extends; // inherits another class (classes) / owning class (member vars)
     // functions only, save types of return value and all parameters
     std::vector<std::vector<unsigned long> > funcparamtypes;
-    std::vector<std::vector<short> > funcParamDefaultValues;
+    std::vector< std::vector<int> > funcParamDefaultValues;
+    std::vector< std::vector<bool> > funcParamHasDefaultValues;
     char tempBuffer[2][MAX_SYM_LEN];
     int  usingTempBuffer;
 
@@ -38,7 +41,9 @@ struct symbolTable {
     int  add_operator(char*, int priority, int vcpucmd); // adds new operator
     int  add(char*);   // adds new symbol, returns -1 if already exists
     int  get_num_args(int funcSym);
-    char*get_name(int); // gets symbol name of index
+    std::string symbolTable::get_friendly_name(int idx);  // inclue ptr
+    std::string symbolTable::get_name_string(int idx);
+    char *get_name(int idx); // gets symbol name of index
     int  get_type(int ii);
     int  operatorToVCPUCmd(int opprec);
     int  is_loadable_variable(int symm);
@@ -46,6 +51,12 @@ struct symbolTable {
     void set_propfuncs(int symb, int propget, int propset);
     int get_propget(int symb);
     int get_propset(int symb);
+
+private:
+    std::vector<std::string> sname;
+    std::vector<char *> symbolTreeNames;
+
+    std::map<int, char *> nameGenCache;
 };
 
 

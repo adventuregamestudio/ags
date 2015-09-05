@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include "gfx/bitmap.h"
+#include "util/memory.h"
 
 #ifndef NULL
 #define NULL 0
@@ -89,6 +90,15 @@ Bitmap *LoadFromFile(const char *filename)
 		bitmap = NULL;
 	}
 	return bitmap;
+}
+
+void ReadPixelsFromMemory(Bitmap *dst, const uint8_t *src_buffer, const size_t src_pitch, const size_t src_px_offset)
+{
+    const size_t bpp = dst->GetBPP();
+    const size_t src_px_pitch = src_pitch / bpp;
+    if (src_px_offset >= src_px_pitch)
+        return; // nothing to copy
+    Memory::BlockCopy(dst->GetDataForWriting(), dst->GetLineLength(), 0, src_buffer, src_pitch, src_px_offset * bpp, dst->GetHeight());
 }
 
 // TODO: redo this ugly workaround

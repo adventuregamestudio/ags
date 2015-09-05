@@ -998,12 +998,9 @@ void display_gfx_mode_error(const Size &game_size, const Size &screen_size)
 
     platform->DisplayAlert("%s\n"
             "(Problem: '%s')\n"
-            "Try to correct the problem, or seek help from the AGS homepage.\n"
-            "\nPossible causes:\n* your graphics card drivers do not support this resolution. "
-            "Run the game setup program and try the other resolution.\n"
-            "* the graphics driver you have selected does not work. Try switching between Direct3D and DirectDraw.\n"
-            "* the graphics filter you have selected does not work. Try another filter.",
-            main_error.GetCStr(), get_allegro_error());
+            "Try to correct the problem, or seek help from the AGS homepage."
+            "%s",
+            main_error.GetCStr(), get_allegro_error(), platform->GetGraphicsTroubleshootingText());
 }
 
 int graphics_mode_init()

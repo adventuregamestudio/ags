@@ -55,25 +55,13 @@ struct AGSLinux : AGSPlatformDriver {
   virtual int  RunSetup();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
-  virtual void WriteConsole(const char*, ...);
-  virtual void WriteDebugString(const char* texx, ...);
+  virtual void WriteStdOut(const char*, ...);
   virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize);
 };
 
 
 int AGSLinux::CDPlayerCommand(int cmdd, int datt) {
   return cd_player_control(cmdd, datt);
-}
-
-void AGSLinux::WriteDebugString(const char* texx, ...) {
-  char displbuf[STD_BUFFER_SIZE] = "AGS: ";
-  va_list ap;
-  va_start(ap,texx);
-  vsprintf(&displbuf[5],texx,ap);
-  va_end(ap);
-  strcat(displbuf, "\n");
-
-  printf(displbuf);
 }
 
 void AGSLinux::DisplayAlert(const char *text, ...) {
@@ -173,13 +161,15 @@ void AGSLinux::SetGameWindowIcon() {
   // do nothing
 }
 
-void AGSLinux::WriteConsole(const char *text, ...) {
-  char displbuf[2000];
+void AGSLinux::WriteStdOut(const char *text, ...) {
+  char displbuf[STD_BUFFER_SIZE] = "AGS: ";
   va_list ap;
-  va_start(ap, text);
-  vsprintf(displbuf, text, ap);
+  va_start(ap,text);
+  vsprintf(&displbuf[5],text,ap);
   va_end(ap);
-  printf("%s", displbuf);
+  strcat(displbuf, "\n");
+
+  printf(displbuf);
 }
 
 void AGSLinux::ShutdownCDPlayer() {

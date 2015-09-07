@@ -1,7 +1,9 @@
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cerrno>
+#include <string>
 #include "cs_parser.h"
 #include "cc_internallist.h"    // ccInternalList
 #include "cs_parser_common.h"
@@ -399,13 +401,40 @@ int find_member_sym(int structSym, long *memSym, int allowProtected) {
     return 0;
 }
 
-int get_literal_value(int fromSym, int *theValue, const char *errorMsg) {
 
+int accept_literal_or_constant_value(int fromSym, int &theValue, bool isNegative, const char *errorMsg) {
   if (sym.get_type(fromSym) == SYM_LITERALVALUE) {
-    *theValue = atoi(sym.get_name(fromSym));
+
+    // Prepend '-' so we can parse -2147483648
+    std::string literalStrValue = std::string(sym.get_name(fromSym));
+    if (isNegative) {
+        literalStrValue = '-' + literalStrValue;
+    }
+
+    errno = 0;
+    char *endptr = 0;
+    const long longValue = strtol(literalStrValue.c_str(), &endptr, 10);
+
+    if ((longValue == LONG_MIN || longValue == LONG_MAX) && errno == ERANGE) {
+        cc_error("Could not parse integer symbol '%s' because of overflow.", sym.get_name(fromSym));
+        return -1;
+    }
+    if (endptr[0] != 0) {
+        cc_error("Could not parse integer symbol '%s' because the whole buffer wasn't converted.", sym.get_name(fromSym));
+        return -1;
+    }
+    if (longValue > INT_MAX || longValue < INT_MIN) {
+        cc_error("Could not parse integer symbol '%s' because of overflow.", sym.get_name(fromSym));
+        return -1;
+    }
+
+    theValue = static_cast<int>(longValue);
   }
   else if (sym.get_type(fromSym) == SYM_CONSTANT) {
-    *theValue = sym.soffs[fromSym];
+    theValue = sym.soffs[fromSym];
+    if (isNegative) {
+        theValue = -theValue;
+    }
   }
   else {
     cc_error((char*)errorMsg);
@@ -420,25 +449,18 @@ int check_for_default_value(ccInternalList &targ, int funcsym, int numparams) {
         // parameter has default value
         targ.getnext();
         int defValSym = targ.getnext();
-        int negateIt = 0;
+        bool negateIt = false;
 
         if (sym.get_name(defValSym)[0] == '-') {
             // allow negative default value
-            negateIt = 1;
+            negateIt = true;
             defValSym = targ.getnext();
         }
 
         int defaultValue;
 
         // extract the default value
-        if (get_literal_value(defValSym, &defaultValue, "Parameter default value must be literal"))
-            return -1;
-
-        if (negateIt)
-            defaultValue = -defaultValue;
-
-        if ((defaultValue <= -32000) || (defaultValue > 32000)) {
-            cc_error("default parameter out of range");
+        if (accept_literal_or_constant_value(defValSym, defaultValue, negateIt, "Parameter default value must be literal") < 0) {
             return -1;
         }
 
@@ -1671,6 +1693,28 @@ int call_property_func(ccCompiledScript *scrip, int propSym, int isWrite) {
   return 0;
 }
 
+int accept_literal_value(int &value, int symidx) {
+    errno = 0;
+    char *endptr = 0;
+    const long longValue = strtol(sym.get_name(symidx), &endptr, 10);
+
+    if ((longValue == LONG_MIN || longValue == LONG_MAX) && errno == ERANGE) {
+        cc_error("Could not parse integer symbol '%s' because of overflow.", sym.get_name(symidx));
+        return -1;
+    }
+    if (endptr[0] != 0) {
+        cc_error("Could not parse integer symbol '%s' because the whole buffer wasn't converted.", sym.get_name(symidx));
+        return -1;
+    }
+    if (longValue > INT_MAX || longValue < INT_MIN) {
+        cc_error("Could not parse integer symbol '%s' because of overflow.", sym.get_name(symidx));
+        return -1;
+    }
+
+    value = static_cast<int>(longValue);
+    return 0;
+}
+
 int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
                               int variableSymType, bool isProperty,
                               int writing, int mustBeWritable,
@@ -1701,7 +1745,12 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
       cc_error("cannot write to a literal value");
       return -1;
     }
-    scrip->write_cmd2(SCMD_LITTOREG,SREG_AX, atoi(sym.get_name(variableSym)));
+    int varSymValue;
+    if (accept_literal_value(varSymValue, variableSym) < 0) {
+      cc_error("Error while parsing integer symbol '%s'.", sym.get_name(variableSym));
+      return -1;
+    }
+    scrip->write_cmd2(SCMD_LITTOREG,SREG_AX, varSymValue);
     gotValType = sym.normalIntSym;
   }
   else if (mainVariableType == SYM_LITERALFLOAT) {
@@ -2804,8 +2853,9 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     {
       int nextt = targ->getnext();
 
-      if (get_literal_value(nextt, &array_size, "Array size must be constant value"))
+      if (accept_literal_or_constant_value(nextt, array_size, false, "Array size must be constant value") < 0) {
         return -1;
+      }
 
       if (array_size < 1) {
         cc_error("Array size must be >=1");
@@ -2919,14 +2969,12 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
         return -1;
       }
       else {
-        // initialize int
-        // warning: cast long* to int*; they are both 32-bit but
-        // this can't be guaranteed
-        if (get_literal_value(targ->getnext(), (int*)getsvalue, "Expected integer value after '='"))
+        int getsvalue_int;
+        if (accept_literal_or_constant_value(targ->getnext(), getsvalue_int, is_neg, "Expected integer value after '='") < 0) {
           return -1;
+        }
+        getsvalue[0] = (long)getsvalue_int;
 
-        if (is_neg)
-          getsvalue[0] = -getsvalue[0];
       }
     }
     else {
@@ -3506,8 +3554,9 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                             int nextt = targ.getnext();
                             int array_size;
 
-                            if (get_literal_value(nextt, &array_size, "Array size must be constant value"))
+                            if (accept_literal_or_constant_value(nextt, array_size, false, "Array size must be constant value") < 0) {
                                 return -1;
+                            }
 
                             if (array_size < 1) {
                                 cc_error("array size cannot be less than 1");
@@ -3596,8 +3645,9 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         // a specifically indexed entry
                         nextSym = targ.getnext();
 
-                        if (get_literal_value(nextSym, &currentValue, "enum must be set to literal value"))
+                        if (accept_literal_or_constant_value(nextSym, currentValue, is_neg, "enum must be set to literal value") < 0) {
                             return -1;
+                        }
 
                         nextSym = targ.getnext();
                     }

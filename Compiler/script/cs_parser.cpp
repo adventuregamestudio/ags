@@ -3250,35 +3250,52 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 int member_is_protected = 0;
                 int member_is_writeprotected = 0;
 
-                if (sym.get_type(cursym) == SYM_PROTECTED) {
-                    // protected
-                    member_is_protected = 1;
-                    cursym = targ.getnext();
+                // loop for all qualifiers.
+                bool foundQualifier;
+                do {
+                    foundQualifier = false;
+
+                    if (sym.get_type(cursym) == SYM_PROTECTED) {
+                        // protected
+                        member_is_protected = 1;
+                        foundQualifier = true;
+                        cursym = targ.getnext();
+                    }
+                    if (sym.get_type(cursym) == SYM_WRITEPROTECTED) {
+                        // write-protected
+                        member_is_writeprotected = 1;
+                        foundQualifier = true;
+                        cursym = targ.getnext();
+                    }
+                    if (sym.get_type(cursym) == SYM_READONLY) {
+                        // read only member, carry on
+                        member_is_readonly = 1;
+                        foundQualifier = true;
+                        cursym = targ.getnext();
+                    }
+                    if (sym.get_type(cursym) == SYM_IMPORT) {
+                        member_is_import = 1;
+                        foundQualifier = true;
+                        cursym = targ.getnext();
+                    }
+                    if (sym.get_type(cursym) == SYM_STATIC) {
+                        member_is_static = 1;
+                        foundQualifier = true;
+                        cursym = targ.getnext();
+                    }
+                    if (sym.get_type(cursym) == SYM_PROPERTY) {
+                        // a "property" is a member variable that is actually a pair of functions
+                        member_is_property = 1;
+                        foundQualifier = true;
+                        cursym = targ.getnext();
+                    }
+                } while (foundQualifier);
+
+                if (member_is_protected && member_is_writeprotected) {
+                    cc_error("Field cannot be both protected and write-protected.");
+                    return -1;
                 }
-                else if (sym.get_type(cursym) == SYM_WRITEPROTECTED) {
-                    // write-protected
-                    member_is_writeprotected = 1;
-                    cursym = targ.getnext();
-                }
-                if (sym.get_type(cursym) == SYM_READONLY) {
-                    // read only member, carry on
-                    member_is_readonly = 1;
-                    cursym = targ.getnext();
-                }
-                if (sym.get_type(cursym) == SYM_IMPORT) {
-                    member_is_import = 1;
-                    cursym = targ.getnext();
-                }
-                if (sym.get_type(cursym) == SYM_STATIC) {
-                    member_is_static = 1;
-                    cursym = targ.getnext();
-                }
-                // a "property" is a member variable that is actually
-                // a pair of functions
-                if (sym.get_type(cursym) == SYM_PROPERTY) {
-                    member_is_property = 1;
-                    cursym = targ.getnext();
-                }
+
                 if ((sym.get_type(cursym) != SYM_VARTYPE) &&
                     (sym.get_type(cursym) != SYM_UNDEFINEDSTRUCT)) {
 

@@ -323,6 +323,30 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="cs"
+				>
+				<File
+					RelativePath="..\..\Common\script\cc_error.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_options.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_script.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_treemap.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\script_common.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -330,34 +354,30 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\Common\fmem.h"
+				RelativePath="..\..\Compiler\fmem.h"
 				>
 			</File>
 			<Filter
 				Name="cs"
 				>
 				<File
-					RelativePath="..\..\Common\cs\cc_error.h"
+					RelativePath="..\..\Common\script\cc_error.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_instance.h"
+					RelativePath="..\..\Common\script\cc_options.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_options.h"
+					RelativePath="..\..\Common\script\cc_script.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_script.h"
+					RelativePath="..\..\Common\script\cc_treemap.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_treemap.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_common.h"
+					RelativePath="..\..\Common\script\script_common.h"
 					>
 				</File>
 			</Filter>

@@ -93,7 +93,7 @@ const char *get_member_full_name(int structSym, int memberSym) {
 int sym_find_or_add(symbolTable &sym, const char *sname) {
     int symdex = sym.find(sname);
     if (symdex < 0) {
-        symdex = sym.add((char *)sname);  // "safe" to cast since it doesn't get modified.
+        symdex = sym.add(sname);
     }
     return symdex;
 }
@@ -379,7 +379,7 @@ int find_member_sym(int structSym, long *memSym, int allowProtected) {
     int oriname = *memSym;
     const char *possname = get_member_full_name(structSym, oriname);
 
-    oriname = sym.find((char*)possname);
+    oriname = sym.find(possname);
     if (oriname < 0) {
         if (sym.extends[structSym] > 0) {
             // walk the inheritance tree to find the member
@@ -2954,7 +2954,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     }
   else if (isglobal) {
     // a global variable
-    sym.soffs[cursym] = scrip->add_global(varsize,(char*)&getsvalue[0]);
+    sym.soffs[cursym] = scrip->add_global(varsize,reinterpret_cast<const char*>(&getsvalue[0]));
     if (sym.soffs[cursym] < 0)
       return -1;
     if (need_fixup == 1) scrip->add_fixup(sym.soffs[cursym],FIXUP_DATADATA);
@@ -3373,7 +3373,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         // check that we haven't already inherited a member
                         // with the same name
                         long member = vname;
-                        char *memberExt = sym.get_name(vname);
+                        const char *memberExt = sym.get_name(vname);
                         memberExt = strstr(memberExt, "::");
                         if (memberExt == NULL) {
                             cc_error("Internal compiler error dbc");
@@ -3479,7 +3479,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                             }
                             // the variable name will have been jibbled with
                             // the struct name added to it -- strip it back off
-                            char *memberPart = strstr(sym.get_name(vname), "::");
+                            const char *memberPart = strstr(sym.get_name(vname), "::");
                             if (memberPart == NULL) {
                                 cc_error("internal error: property has no struct name");
                                 return -1;
@@ -3816,7 +3816,7 @@ startvarbit:
                 structSym = cursym;
                 // change cursym to be the full function name
                 const char *mfullname = get_member_full_name(cursym, whichmember);
-                cursym = sym.find((char*)mfullname);
+                cursym = sym.find(mfullname);
                 if (cursym < 0) {
                     cc_error("'%s' does not contain a function '%s'", sym.get_friendly_name(structSym).c_str(), sym.get_friendly_name(whichmember).c_str());
                     return -1;

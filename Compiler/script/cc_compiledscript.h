@@ -20,17 +20,17 @@ struct ccCompiledScript: public ccScript {
     void init();
     void shutdown();
     void free_extra();
-    int  add_global(int,char*);
-    int  add_string(char*);
+    int  add_global(int,const char*);
+    int  add_string(const char*);
     void add_fixup(int32_t,char);
     void fixup_previous(char);
-    int  add_new_function(char*, int *idx);
-    int  add_new_import(char*);
-    int  add_new_export(char*,int,long, int);
+    int  add_new_function(const char*, int *idx);
+    int  add_new_import(const char*);
+    int  add_new_export(const char*,int,long, int);
     void write_code(intptr_t);
     void set_line_number(int nlum) { next_line=nlum; }
     void flush_line_numbers();
-    int  remove_any_import(char*, SymbolDef *oldSym);
+    int  remove_any_import(const char*, SymbolDef *oldSym);
     const char* start_new_section(const char *name);
 
     void write_cmd(int cmdd);

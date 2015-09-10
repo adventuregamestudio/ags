@@ -34,13 +34,13 @@ struct symbolTable {
     symbolTable();
     void reset();    // clears table
     int  find(const char*);  // returns ID of symbol, or -1
-    int  add_ex(char*,int,char);  // adds new symbol of type and size
-    int  add_operator(char*, int priority, int vcpucmd); // adds new operator
-    int  add(char*);   // adds new symbol, returns -1 if already exists
+    int  add_ex(const char*,int,char);  // adds new symbol of type and size
+    int  add_operator(const char*, int priority, int vcpucmd); // adds new operator
+    int  add(const char*);   // adds new symbol, returns -1 if already exists
     int  get_num_args(int funcSym);
     std::string symbolTable::get_friendly_name(int idx);  // inclue ptr
     std::string symbolTable::get_name_string(int idx);
-    char *get_name(int idx); // gets symbol name of index
+    const char *get_name(int idx); // gets symbol name of index
     int  get_type(int ii);
     int  operatorToVCPUCmd(int opprec);
     int  is_loadable_variable(int symm);

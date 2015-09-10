@@ -190,7 +190,7 @@ std::string symbolTable::get_name_string(int idx) {
     return sname[idx & STYPE_MASK];
 }
 
-char *symbolTable::get_name(int idx) {
+const char *symbolTable::get_name(int idx) {
     if (nameGenCache.count(idx) > 0) {
         return nameGenCache[idx];
     }
@@ -205,10 +205,10 @@ char *symbolTable::get_name(int idx) {
     return result;
 }
 
-int symbolTable::add(char*nta) {
+int symbolTable::add(const char*nta) {
     return add_ex(nta,0,0);
 }
-int symbolTable::add_ex(char*nta,int typo,char sizee) {
+int symbolTable::add_ex(const char*nta,int typo,char sizee) {
     if (find(nta) >= 0) return -1;
 
     char *fullname = (char*)malloc(sizeof(char) * (strlen(nta) + 1));
@@ -230,7 +230,7 @@ int symbolTable::add_ex(char*nta,int typo,char sizee) {
     numsymbols++;
     return numsymbols-1;
 }
-int symbolTable::add_operator(char *nta, int priority, int vcpucmd) {
+int symbolTable::add_operator(const char *nta, int priority, int vcpucmd) {
     int nss = add_ex(nta, SYM_OPERATOR, priority);
     if (nss >= 0)
         vartype[nss] = vcpucmd;

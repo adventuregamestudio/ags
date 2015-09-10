@@ -28,8 +28,6 @@ struct symbolTable {
     // functions only, save types of return value and all parameters
     std::vector<std::vector<unsigned long> > funcparamtypes;
     std::vector<std::vector<short> > funcParamDefaultValues;
-    char tempBuffer[2][MAX_SYM_LEN];
-    int  usingTempBuffer;
 
     ccTreeMap symbolTree;
 

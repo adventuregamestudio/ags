@@ -7,7 +7,7 @@
 #include "cc_symboldef.h"   // macro definitions
 
 
-symbolTable::symbolTable() { numsymbols=0; currentscope=0; usingTempBuffer = 0; stringStructSym = 0; }
+symbolTable::symbolTable() { numsymbols=0; currentscope=0; stringStructSym = 0; }
 int symbolTable::get_num_args(int funcSym) {
     return sscope[funcSym] % 100;
 }

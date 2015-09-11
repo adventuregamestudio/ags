@@ -3,10 +3,6 @@
 #include "script/cc_symboltable.h"
 #include "script/cc_internallist.h"
 
-TEST(Parser, Test) {
-    ASSERT_EQ(0, 0);
-}
-
 extern int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip);
 
 char *last_seen_cc_error = 0;

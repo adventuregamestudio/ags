@@ -151,6 +151,22 @@ TEST(Compile, ParsingIntDefaultOverflow) {
     EXPECT_STREQ("Could not parse integer symbol '9999999999999999999999' because of overflow.", last_seen_cc_error);
 }
 
+TEST(Compile, ParsingNegIntDefaultOverflow) {
+    ccCompiledScript *scrip = new ccCompiledScript();
+    scrip->init();
+
+    sym.reset();  // <-- global
+
+    char *inpl = "\
+        import  int  importedfunc(int data1 = -9999999999999999999999, int data2=2, int data3=3);\
+        ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(-1, compileResult);
+    EXPECT_STREQ("Could not parse integer symbol '-9999999999999999999999' because of overflow.", last_seen_cc_error);
+}
+
 TEST(Compile, ParsingIntOverflow) {
     ccCompiledScript *scrip = new ccCompiledScript();
     scrip->init();

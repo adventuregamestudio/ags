@@ -401,6 +401,13 @@ int find_member_sym(int structSym, long *memSym, int allowProtected) {
     return 0;
 }
 
+std::string friendly_int_symbol(int symidx, bool isNegative) {
+    if (isNegative) {
+        return "-" + sym.get_friendly_name(symidx);
+    } else {
+        return sym.get_friendly_name(symidx);
+    }
+}
 
 int accept_literal_or_constant_value(int fromSym, int &theValue, bool isNegative, const char *errorMsg) {
   if (sym.get_type(fromSym) == SYM_LITERALVALUE) {
@@ -416,15 +423,15 @@ int accept_literal_or_constant_value(int fromSym, int &theValue, bool isNegative
     const long longValue = strtol(literalStrValue.c_str(), &endptr, 10);
 
     if ((longValue == LONG_MIN || longValue == LONG_MAX) && errno == ERANGE) {
-        cc_error("Could not parse integer symbol '%s' because of overflow.", sym.get_friendly_name(fromSym).c_str());
+        cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(fromSym, isNegative).c_str());
         return -1;
     }
     if (endptr[0] != 0) {
-        cc_error("Could not parse integer symbol '%s' because the whole buffer wasn't converted.", sym.get_friendly_name(fromSym).c_str());
+        cc_error("Could not parse integer symbol '%s' because the whole buffer wasn't converted.", friendly_int_symbol(fromSym, isNegative).c_str());
         return -1;
     }
     if (longValue > INT_MAX || longValue < INT_MIN) {
-        cc_error("Could not parse integer symbol '%s' because of overflow.", sym.get_friendly_name(fromSym).c_str());
+        cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(fromSym, isNegative).c_str());
         return -1;
     }
 
@@ -1701,15 +1708,15 @@ int accept_literal_value(int &value, int symidx) {
     const long longValue = strtol(sym.get_name(symidx), &endptr, 10);
 
     if ((longValue == LONG_MIN || longValue == LONG_MAX) && errno == ERANGE) {
-        cc_error("Could not parse integer symbol '%s' because of overflow.", sym.get_friendly_name(symidx).c_str());
+        cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(symidx, false).c_str());
         return -1;
     }
     if (endptr[0] != 0) {
-        cc_error("Could not parse integer symbol '%s' because the whole buffer wasn't converted.", sym.get_friendly_name(symidx).c_str());
+        cc_error("Could not parse integer symbol '%s' because the whole buffer wasn't converted.", friendly_int_symbol(symidx, false).c_str());
         return -1;
     }
     if (longValue > INT_MAX || longValue < INT_MIN) {
-        cc_error("Could not parse integer symbol '%s' because of overflow.", sym.get_friendly_name(symidx).c_str());
+        cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(symidx, false).c_str());
         return -1;
     }
 

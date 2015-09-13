@@ -13,30 +13,32 @@ void cc_error_at_line(char *buffer, const char *error_msg)
     last_seen_cc_error = _strdup(error_msg);
 }
 
-TEST(Tokenize, UnknownKeywordAfterReadonly) {
+ccCompiledScript *newScriptFixture() {
+    // TODO: investigate proper google test fixtures.
     ccCompiledScript *scrip = new ccCompiledScript();
     scrip->init();
-
     sym.reset();  // <-- global
+    return scrip;
+}
 
-    ccInternalList targ;
+TEST(Tokenize, UnknownKeywordAfterReadonly) {
+    ccCompiledScript *scrip = newScriptFixture();
 
+    // This incorrect code would crash the tokenizer.
     char *inpl = "struct MyStruct \
         {\
           readonly int2 a; \
           readonly int2 b; \
         };";
 
+    ccInternalList targ;
     int tokenizeResult = cc_tokenize(inpl, &targ, scrip);
 
     ASSERT_EQ(0, tokenizeResult);
 }
 
 TEST(Compile, UnknownKeywordAfterReadonly) {
-    ccCompiledScript *scrip = new ccCompiledScript();
-    scrip->init();
-
-    sym.reset();  // <-- global
+    ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "struct MyStruct \
         {\
@@ -52,10 +54,7 @@ TEST(Compile, UnknownKeywordAfterReadonly) {
 }
 
 TEST(Compile, DynamicArrayReturnValueErrorText) {
-    ccCompiledScript *scrip = new ccCompiledScript();
-    scrip->init();
-
-    sym.reset();  // <-- global
+    ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
         managed struct DynamicSprite { };\
@@ -77,10 +76,7 @@ TEST(Compile, DynamicTypeReturnNonPointerManaged) {
     // "DynamicSprite[]" type in the function declaration should cause error on its own, because managed types are
     // only allowed to be referenced by pointers.
 
-    ccCompiledScript *scrip = new ccCompiledScript();
-    scrip->init();
-
-    sym.reset();  // <-- global
+    ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
         managed struct DynamicSprite { };\
@@ -97,10 +93,7 @@ TEST(Compile, DynamicTypeReturnNonPointerManaged) {
 }
 
 TEST(Compile, StructMemberQualifierOrder) {
-    ccCompiledScript *scrip = new ccCompiledScript();
-    scrip->init();
-
-    sym.reset();  // <-- global
+    ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
         struct BothOrders { \
@@ -118,10 +111,7 @@ TEST(Compile, StructMemberQualifierOrder) {
 }
 
 TEST(Compile, ParsingIntSuccess) {
-    ccCompiledScript *scrip = new ccCompiledScript();
-    scrip->init();
-
-    sym.reset();  // <-- global
+    ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
         import  int  importedfunc(int data1 = 1, int data2=2, int data3=3);\
@@ -136,10 +126,7 @@ TEST(Compile, ParsingIntSuccess) {
 
 
 TEST(Compile, ParsingIntDefaultOverflow) {
-    ccCompiledScript *scrip = new ccCompiledScript();
-    scrip->init();
-
-    sym.reset();  // <-- global
+    ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
         import  int  importedfunc(int data1 = 9999999999999999999999, int data2=2, int data3=3);\
@@ -152,10 +139,7 @@ TEST(Compile, ParsingIntDefaultOverflow) {
 }
 
 TEST(Compile, ParsingNegIntDefaultOverflow) {
-    ccCompiledScript *scrip = new ccCompiledScript();
-    scrip->init();
-
-    sym.reset();  // <-- global
+    ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
         import  int  importedfunc(int data1 = -9999999999999999999999, int data2=2, int data3=3);\
@@ -168,10 +152,7 @@ TEST(Compile, ParsingNegIntDefaultOverflow) {
 }
 
 TEST(Compile, ParsingIntOverflow) {
-    ccCompiledScript *scrip = new ccCompiledScript();
-    scrip->init();
-
-    sym.reset();  // <-- global
+    ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
         int testfunc(int x ) { int y = 4200000000000000000000; } \
@@ -185,10 +166,7 @@ TEST(Compile, ParsingIntOverflow) {
 
 
 TEST(Compile, EnumNegative) {
-    ccCompiledScript *scrip = new ccCompiledScript();
-    scrip->init();
-
-    sym.reset();  // <-- global
+    ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
         enum TestMyEnums {\
@@ -231,10 +209,7 @@ TEST(Compile, EnumNegative) {
 
 
 TEST(Compile, DefaultParametersLargeInts) {
-    ccCompiledScript *scrip = new ccCompiledScript();
-    scrip->init();
-
-    sym.reset();  // <-- global
+    ccCompiledScript *scrip = newScriptFixture();
 
     char *inpl = "\
         import int importedfunc(\
@@ -283,6 +258,4 @@ TEST(Compile, DefaultParametersLargeInts) {
 
     EXPECT_EQ(true, sym.funcParamHasDefaultValues[funcidx][9]);
     EXPECT_EQ(-2, sym.funcParamDefaultValues[funcidx][9]);
-
-
 }

@@ -1,7 +1,9 @@
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cerrno>
+#include <string>
 #include "cs_parser.h"
 #include "cc_internallist.h"    // ccInternalList
 #include "cs_parser_common.h"
@@ -147,7 +149,7 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
         }
 
         if (sym.stype[last_time] == SYM_DOT) {
-            // mangle member variable accesses so that you can have a 
+            // mangle member variable accesses so that you can have a
             // struct called Room but also a member property called Room
             char thissymbol_mangled[MAX_SYM_LEN + 1];
             sprintf(thissymbol_mangled, ".%s", thissymbol);
@@ -308,7 +310,7 @@ int remove_locals(int from_level, int just_count, ccCompiledScript *scrip) {
             if ((sym.flags[cc] & SFLG_PARAMETER)==0) {
                 if (sym.flags[cc] & SFLG_DYNAMICARRAY)
                     totalsub += 4;
-                else 
+                else
                 {
                     totalsub += sym.ssize[cc];
                     // remove all elements if array
@@ -321,7 +323,7 @@ int remove_locals(int from_level, int just_count, ccCompiledScript *scrip) {
             // release the pointer reference if applicable
             if (sym.flags[cc] & SFLG_THISPTR) { }
             else if (((sym.flags[cc] & SFLG_POINTER) != 0) ||
-                ((sym.flags[cc] & SFLG_DYNAMICARRAY) != 0)) 
+                ((sym.flags[cc] & SFLG_DYNAMICARRAY) != 0))
             {
                 free_pointer(scrip->cur_sp - sym.soffs[cc], zeroPtrCmd, cc, scrip);
             }
@@ -399,13 +401,47 @@ int find_member_sym(int structSym, long *memSym, int allowProtected) {
     return 0;
 }
 
-int get_literal_value(int fromSym, int *theValue, const char *errorMsg) {
+std::string friendly_int_symbol(int symidx, bool isNegative) {
+    if (isNegative) {
+        return "-" + sym.get_friendly_name(symidx);
+    } else {
+        return sym.get_friendly_name(symidx);
+    }
+}
 
+int accept_literal_or_constant_value(int fromSym, int &theValue, bool isNegative, const char *errorMsg) {
   if (sym.get_type(fromSym) == SYM_LITERALVALUE) {
-    *theValue = atoi(sym.get_name(fromSym));
+
+    // Prepend '-' so we can parse -2147483648
+    std::string literalStrValue = std::string(sym.get_name(fromSym));
+    if (isNegative) {
+        literalStrValue = '-' + literalStrValue;
+    }
+
+    errno = 0;
+    char *endptr = 0;
+    const long longValue = strtol(literalStrValue.c_str(), &endptr, 10);
+
+    if ((longValue == LONG_MIN || longValue == LONG_MAX) && errno == ERANGE) {
+        cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(fromSym, isNegative).c_str());
+        return -1;
+    }
+    if (endptr[0] != 0) {
+        cc_error("Could not parse integer symbol '%s' because the whole buffer wasn't converted.", friendly_int_symbol(fromSym, isNegative).c_str());
+        return -1;
+    }
+    if (longValue > INT_MAX || longValue < INT_MIN) {
+        cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(fromSym, isNegative).c_str());
+        return -1;
+    }
+
+    theValue = static_cast<int>(longValue);
   }
   else if (sym.get_type(fromSym) == SYM_CONSTANT) {
-    *theValue = sym.soffs[fromSym];
+    theValue = sym.soffs[fromSym];
+    if (isNegative) {
+        theValue = -theValue;
+    }
   }
   else {
     cc_error((char*)errorMsg);
@@ -420,29 +456,23 @@ int check_for_default_value(ccInternalList &targ, int funcsym, int numparams) {
         // parameter has default value
         targ.getnext();
         int defValSym = targ.getnext();
-        int negateIt = 0;
+        bool negateIt = false;
 
         if (sym.get_name(defValSym)[0] == '-') {
             // allow negative default value
-            negateIt = 1;
+            negateIt = true;
             defValSym = targ.getnext();
         }
 
         int defaultValue;
 
         // extract the default value
-        if (get_literal_value(defValSym, &defaultValue, "Parameter default value must be literal"))
-            return -1;
-
-        if (negateIt)
-            defaultValue = -defaultValue;
-
-        if ((defaultValue <= -32000) || (defaultValue > 32000)) {
-            cc_error("default parameter out of range");
+        if (accept_literal_or_constant_value(defValSym, defaultValue, negateIt, "Parameter default value must be literal") < 0) {
             return -1;
         }
 
         sym.funcParamDefaultValues[funcsym][numparams % 100] = defaultValue;
+        sym.funcParamHasDefaultValues[funcsym][numparams % 100] = true;
 
     }
 
@@ -506,7 +536,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
 	    cc_error("'this' cannot be used with primitive types");
 	    return -1;
 	  }
-	  if (strchr(functionName, ':') != NULL) 
+	  if (strchr(functionName, ':') != NULL)
 	  {
 	    cc_error("extender functions cannot be part of a struct");
 	    return -1;
@@ -530,15 +560,15 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
         return -1;
     }
 
-	  if (sym.stype[funcsym] != 0) 
+	  if (sym.stype[funcsym] != 0)
 	  {
 	    cc_error("function '%s' is already defined", functionName);
 	    return -1;
 	  }
 	  sym.flags[funcsym] = SFLG_STRUCTMEMBER;
-  	
+
 	  targ.getnext();
-	  if (strcmp(sym.get_name(targ.getnext()), "*") != 0) 
+	  if (strcmp(sym.get_name(targ.getnext()), "*") != 0)
 	  {
 	    cc_error("extender function must be pointer");
 	    return -1;
@@ -570,8 +600,8 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
     sym.funcparamtypes[funcsym][0] |= STYPE_DYNARRAY;
   }
 
-  if ((!returnsPointer) && (!returnsDynArray) && 
-      ((sym.flags[vtwas] & SFLG_STRUCTTYPE) != 0)) 
+  if ((!returnsPointer) && (!returnsDynArray) &&
+      ((sym.flags[vtwas] & SFLG_STRUCTTYPE) != 0))
   {
     cc_error("Cannot return entire struct from function");
     return -1;
@@ -634,7 +664,8 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       int isPointerParam = 0;
       // save the parameter type (numparams starts from 1)
       sym.funcparamtypes[funcsym][numparams % 100] = cursym;
-      sym.funcParamDefaultValues[funcsym][numparams % 100] = PARAM_NO_DEFAULT_VALUE;
+      sym.funcParamDefaultValues[funcsym][numparams % 100] = 0;
+      sym.funcParamHasDefaultValues[funcsym][numparams % 100] = false;
 
       if (next_is_const)
         sym.funcparamtypes[funcsym][numparams % 100] |= STYPE_CONST;
@@ -649,11 +680,11 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
         if ((sym.flags[cursym] & SFLG_MANAGED) == 0) {
           // can only point to managed structs
           cc_error("Cannot declare pointer to non-managed type");
-          return -1; 
+          return -1;
         }
         if (sym.flags[cursym] & SFLG_AUTOPTR) {
           cc_error("Invalid use of pointer");
-          return -1; 
+          return -1;
         }
       }
 
@@ -725,7 +756,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       else if (dynArrayStatus > 0)
       {
         sym.funcparamtypes[funcsym][(numparams - 1) % 100] |= STYPE_DYNARRAY;
-        if (createdLocalVar) 
+        if (createdLocalVar)
         {
           sym.flags[cursym] |= SFLG_DYNAMICARRAY | SFLG_ARRAY;
         }
@@ -828,7 +859,7 @@ int find_lowest_bonding_operator(long*slist,int listlen) {
     else if (thisType == SYM_CLOSEPARENTHESIS)
       plevel--;
 
-    if (((thisType == SYM_OPERATOR) || (thisType == SYM_NEW)) && 
+    if (((thisType == SYM_OPERATOR) || (thisType == SYM_NEW)) &&
         (plevel == 0) && (blevel == 0)) {
       // .ssize stores the precedence
       int thisIsTheOperator = 0;
@@ -841,7 +872,7 @@ int find_lowest_bonding_operator(long*slist,int listlen) {
       else {
         // right-to-left; find the left-most operator, then
         // they will be recursively processed right
-        if (sym.ssize[slist[k]] > lowestis) 
+        if (sym.ssize[slist[k]] > lowestis)
           thisIsTheOperator = 1;
       }
       if (thisIsTheOperator) {
@@ -1204,7 +1235,7 @@ long extract_variable_name(int fsym, ccInternalList*targ,long*slist, int *funcAt
         }
       int braclevel = 0, linenumWas = currentline;
       // extract the contents of the brackets - comma is allowed
-      // because you can have like  array[func(a,b)] 
+      // because you can have like  array[func(a,b)]
       while ((sym.get_type(slist[sslen]) < NOTEXPRESSION) ||
              (sym.get_type(slist[sslen]) == SYM_COMMA)) {
         if (targ->getnext() == SCODE_INVALID) {
@@ -1267,7 +1298,7 @@ void set_ax_scope(ccCompiledScript *scrip, int syoffs) {
   // this allows it to be returned back from the function
   else if (sym.flags[syoffs] & SFLG_PARAMETER)
     scrip->ax_val_scope = SYM_GLOBALVAR;
-  else    
+  else
     scrip->ax_val_scope = sym.stype[syoffs];
 }
 
@@ -1403,7 +1434,7 @@ int get_array_index_into_ax(ccCompiledScript *scrip, long *symlist, int openBrac
   if (checkBounds) {
     // check the array bounds that have been calculated in AX,
     // before they are added to the overall offset
-    if ((sym.flags[arrSym] & SFLG_DYNAMICARRAY) == 0) 
+    if ((sym.flags[arrSym] & SFLG_DYNAMICARRAY) == 0)
     {
       scrip->write_cmd2(SCMD_CHECKBOUNDS, SREG_AX, sym.arrsize[arrSym]);
     }
@@ -1443,7 +1474,7 @@ int parseArrayIndexOffsets(ccCompiledScript *scrip, VariableSymlist *thisClause,
       if (sym.flags[thisClause->syml[0]] & SFLG_PROPERTY)
         checkBounds = false;
     }
-    
+
     // the value to write is in AX; preserve it
     if (writingOperation)
       scrip->push_reg(SREG_AX);
@@ -1592,26 +1623,26 @@ int call_property_func(ccCompiledScript *scrip, int propSym, int isWrite) {
 
   if (isWrite) {
     // BX contains the new value
-    if (sym.flags[propSym] & SFLG_IMPORTED) 
+    if (sym.flags[propSym] & SFLG_IMPORTED)
       scrip->write_cmd1(SCMD_PUSHREAL, SREG_BX);
     else {
       cc_error("internal error: prop is not import");
       return -1;
     }
-    
+
     numargs++;
   }
 
   if (sym.flags[propSym] & SFLG_ARRAY) {
     // array indexer is in DX
-    if (sym.flags[propSym] & SFLG_IMPORTED) 
+    if (sym.flags[propSym] & SFLG_IMPORTED)
       scrip->write_cmd1(SCMD_PUSHREAL, SREG_DX);
     else {
       cc_error("internal error: prop is not import");
       return -1;
     }
 
-    numargs++; 
+    numargs++;
   }
 
   if (sym.flags[propSym] & SFLG_IMPORTED) {
@@ -1671,6 +1702,28 @@ int call_property_func(ccCompiledScript *scrip, int propSym, int isWrite) {
   return 0;
 }
 
+int accept_literal_value(int &value, int symidx) {
+    errno = 0;
+    char *endptr = 0;
+    const long longValue = strtol(sym.get_name(symidx), &endptr, 10);
+
+    if ((longValue == LONG_MIN || longValue == LONG_MAX) && errno == ERANGE) {
+        cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(symidx, false).c_str());
+        return -1;
+    }
+    if (endptr[0] != 0) {
+        cc_error("Could not parse integer symbol '%s' because the whole buffer wasn't converted.", friendly_int_symbol(symidx, false).c_str());
+        return -1;
+    }
+    if (longValue > INT_MAX || longValue < INT_MIN) {
+        cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(symidx, false).c_str());
+        return -1;
+    }
+
+    value = static_cast<int>(longValue);
+    return 0;
+}
+
 int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
                               int variableSymType, bool isProperty,
                               int writing, int mustBeWritable,
@@ -1701,7 +1754,12 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
       cc_error("cannot write to a literal value");
       return -1;
     }
-    scrip->write_cmd2(SCMD_LITTOREG,SREG_AX, atoi(sym.get_name(variableSym)));
+    int varSymValue;
+    if (accept_literal_value(varSymValue, variableSym) < 0) {
+      cc_error("Error while parsing integer symbol '%s'.", sym.get_friendly_name(variableSym).c_str());
+      return -1;
+    }
+    scrip->write_cmd2(SCMD_LITTOREG,SREG_AX, varSymValue);
     gotValType = sym.normalIntSym;
   }
   else if (mainVariableType == SYM_LITERALFLOAT) {
@@ -1756,7 +1814,7 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
 
     if (extraoffset)
     {
-      if (isDynamicArray) 
+      if (isDynamicArray)
       {
         scrip->write_cmd1(SCMD_MEMREADPTR, SREG_MAR);
         scrip->write_cmd(SCMD_CHECKNULL);
@@ -1765,7 +1823,7 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
 
       scrip->write_cmd2(SCMD_ADDREG,SREG_MAR,SREG_CX);
     }
-    else if (isDynamicArray) 
+    else if (isDynamicArray)
     {
       // not accessing an element of it, must be whole thing
       wholePointerAccess = true;
@@ -2026,11 +2084,11 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
         }
 
         // if an array, the array indexer was put into DX
-        if (isArrayOfPointers) 
+        if (isArrayOfPointers)
         {
           scrip->write_cmd2(SCMD_MUL, SREG_DX, 4);
 
-          if (sym.flags[variableSym] & SFLG_DYNAMICARRAY) 
+          if (sym.flags[variableSym] & SFLG_DYNAMICARRAY)
           {
             // pointer to an array -- dereference the pointer
             scrip->write_cmd1(SCMD_MEMREADPTR, SREG_MAR);
@@ -2054,7 +2112,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
     }
     else {
 
-      if (sym.flags[variableSym] & SFLG_DYNAMICARRAY) 
+      if (sym.flags[variableSym] & SFLG_DYNAMICARRAY)
       {
         isDynamicArray = true;
       }
@@ -2074,7 +2132,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
         return -1;
       }
       else if (sym.flags[variableSym] & SFLG_WRITEPROTECTED) {
-        // write-protected variables can only be written by 
+        // write-protected variables can only be written by
         // the this ptr
         if ((ee > 0) && (sym.flags[variablePath[ee - 1].syml[0]] & SFLG_THISPTR)) { }
         else {
@@ -2091,7 +2149,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
       if ((thisClause->len == 1) ||
           (sym.get_type(thisClause->syml[1]) != SYM_OPENBRACKET)) {
 
-        if ((sym.flags[variableSym] & SFLG_DYNAMICARRAY) == 0) 
+        if ((sym.flags[variableSym] & SFLG_DYNAMICARRAY) == 0)
         {
           getAddressOnlyIntoAX = true;
           cannotAssign = true;
@@ -2103,9 +2161,9 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
     if (sym.flags[variableSym] & SFLG_POINTER) { }
     else if (sym.flags[sym.vartype[variableSym]] & SFLG_STRUCTTYPE) {
       // struct variable without member access
-      if (isLastClause) 
+      if (isLastClause)
       {
-        if ((sym.flags[variableSym] & SFLG_DYNAMICARRAY) == 0) 
+        if ((sym.flags[variableSym] & SFLG_DYNAMICARRAY) == 0)
         {
           getAddressOnlyIntoAX = true;
           cannotAssign = true;
@@ -2220,7 +2278,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
 
   if (oploc == 0) {
     // The operator is the first thing in the expression
-    if (sym.get_type(symlist[oploc]) == SYM_NEW) 
+    if (sym.get_type(symlist[oploc]) == SYM_NEW)
     {
       if (listlen < 5)
       {
@@ -2257,7 +2315,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       {
         isManagedType = true;
         size = 4;
-      }   
+      }
       else if (sym.flags[arrayType] & SFLG_STRUCTTYPE)
       {
         cc_error("cannot create dynamic array of unmanaged struct");
@@ -2348,7 +2406,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       scrip->write_cmd1(SCMD_JNZ, 0);
       jumpLocationOffset = scrip->codesize;
     }
-    
+
     int valtypewas = scrip->ax_val_type;
 
     scrip->push_reg(SREG_AX);
@@ -2356,7 +2414,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       return -1;
     scrip->pop_reg(SREG_BX);
 
-    if (check_type_mismatch(scrip->ax_val_type, valtypewas, 0)) 
+    if (check_type_mismatch(scrip->ax_val_type, valtypewas, 0))
       return -1;
     if (check_operator_valid_for_type(&vcpuOperator, scrip->ax_val_type, valtypewas))
       return -1;
@@ -2531,7 +2589,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       // not enough arguments -- see if we can supply default values
       for (int ii = func_args; ii > num_supplied_args; ii--) {
 
-        if (sym.funcParamDefaultValues[funcsym][ii] == PARAM_NO_DEFAULT_VALUE) {
+        if (!sym.funcParamHasDefaultValues[funcsym][ii]) {
           cc_error("Not enough parameters in call to function");
           return -1;
         }
@@ -2683,7 +2741,7 @@ int evaluate_expression(ccInternalList*targ,ccCompiledScript*scrip,int countbrac
   int j,ourlen=0,brackdepth=0;
   int hadMetaOnly = 1;
   bool lastWasNew = false;
-  
+
   for (j=targ->pos; j < targ->length; j++) {
     if (targ->script[j] == SCODE_META) {
       j+=2;
@@ -2764,7 +2822,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     // managed structs must be allocated via ccRegisterObject,
     // and cannot be declared normally in the script (unless imported)
     cc_error("Cannot declare local instance of managed type");
-    return -1; 
+    return -1;
   }
 
   if (vtwas == sym.normalVoidSym) {
@@ -2786,7 +2844,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
   if (((sym.flags[vtwas] & SFLG_MANAGED) == 0) && (isPointer) && (isglobal != 2)) {
     // can only point to managed structs
     cc_error("Cannot declare pointer to non-managed type");
-    return -1; 
+    return -1;
   }
 
   if (next_type[0] == SYM_OPENBRACKET) {
@@ -2804,8 +2862,9 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     {
       int nextt = targ->getnext();
 
-      if (get_literal_value(nextt, &array_size, "Array size must be constant value"))
+      if (accept_literal_or_constant_value(nextt, array_size, false, "Array size must be constant value") < 0) {
         return -1;
+      }
 
       if (array_size < 1) {
         cc_error("Array size must be >=1");
@@ -2898,9 +2957,9 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
         cc_error("cannot assign initial value to global pointer");
         return -1;
       }
-      int is_neg = 0;
+      bool is_neg = false;
       if (sym.get_name(targ->peeknext())[0] == '-') {
-        is_neg = 1;
+        is_neg = true;
         targ->getnext();
       }
       if (sym.vartype[cursym] == sym.normalFloatSym) {
@@ -2919,14 +2978,12 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
         return -1;
       }
       else {
-        // initialize int
-        // warning: cast long* to int*; they are both 32-bit but
-        // this can't be guaranteed
-        if (get_literal_value(targ->getnext(), (int*)getsvalue, "Expected integer value after '='"))
+        int getsvalue_int;
+        if (accept_literal_or_constant_value(targ->getnext(), getsvalue_int, is_neg, "Expected integer value after '='") < 0) {
           return -1;
+        }
+        getsvalue[0] = (long)getsvalue_int;
 
-        if (is_neg)
-          getsvalue[0] = -getsvalue[0];
       }
     }
     else {
@@ -2942,7 +2999,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     }
     next_type[0] = sym.get_type(targ->peeknext());
   }
-  
+
   if (isglobal == 2) {
     // an imported variable
     sym.soffs[cursym] = scrip->add_new_import(sym.get_name(cursym));
@@ -2965,7 +3022,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     scrip->write_cmd2(SCMD_REGTOREG,SREG_SP,SREG_MAR);
     if (need_fixup == 2) {
       // expression worked out into ax
-      if ((sym.flags[cursym] & (SFLG_POINTER | SFLG_DYNAMICARRAY)) != 0) 
+      if ((sym.flags[cursym] & (SFLG_POINTER | SFLG_DYNAMICARRAY)) != 0)
       {
         scrip->write_cmd1(SCMD_MEMINITPTR, SREG_AX);
       }
@@ -3352,11 +3409,11 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 }
                 else*/ if ((sym.flags[cursym] & SFLG_MANAGED) && (!member_is_pointer)) {
                     cc_error("Cannot declare non-pointer of managed type");
-                    return -1; 
+                    return -1;
                 }
                 else if (((sym.flags[cursym] & SFLG_MANAGED) == 0) && (member_is_pointer)) {
                     cc_error("Cannot declare pointer to non-managed type");
-                    return -1; 
+                    return -1;
                 }
 
                 // run through all variables declared on this line
@@ -3506,8 +3563,9 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                             int nextt = targ.getnext();
                             int array_size;
 
-                            if (get_literal_value(nextt, &array_size, "Array size must be constant value"))
+                            if (accept_literal_or_constant_value(nextt, array_size, false, "Array size must be constant value") < 0) {
                                 return -1;
+                            }
 
                             if (array_size < 1) {
                                 cc_error("array size cannot be less than 1");
@@ -3594,10 +3652,18 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
 
                     if (sym.get_type(nextSym) == SYM_ASSIGN) {
                         // a specifically indexed entry
+
+                        bool is_neg = false;
+                        if (sym.get_name(targ.peeknext())[0] == '-') {
+                            is_neg = true;
+                            targ.getnext();
+                        }
+
                         nextSym = targ.getnext();
 
-                        if (get_literal_value(nextSym, &currentValue, "enum must be set to literal value"))
+                        if (accept_literal_or_constant_value(nextSym, currentValue, is_neg, "enum must be set to literal value") < 0) {
                             return -1;
+                        }
 
                         nextSym = targ.getnext();
                     }

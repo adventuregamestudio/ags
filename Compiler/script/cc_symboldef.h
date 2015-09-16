@@ -16,7 +16,8 @@ struct SymbolDef {
     short sscope;  // or num arguments for function
     long  arrsize;
     unsigned long funcparamtypes[MAX_FUNCTION_PARAMETERS+1];
-    short funcParamDefaultValues[MAX_FUNCTION_PARAMETERS+1];
+    int funcParamDefaultValues[MAX_FUNCTION_PARAMETERS+1];
+    bool funcParamHasDefaultValues[MAX_FUNCTION_PARAMETERS+1];
 };
 
 #endif // __CC_SYMBOLDEF_H

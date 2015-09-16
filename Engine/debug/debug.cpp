@@ -426,19 +426,15 @@ int check_for_messages_from_editor()
 
 
 
-bool send_exception_to_editor(char *qmsg)
+bool send_exception_to_editor(const char *qmsg)
 {
 #ifdef WINDOWS_VERSION
     want_exit = 0;
     // allow the editor to break with the error message
-    const char *errorMsgToSend = qmsg;
-    if (errorMsgToSend[0] == '?')
-        errorMsgToSend++;
-
     if (editor_window_handle != NULL)
         SetForegroundWindow(editor_window_handle);
 
-    if (!send_message_to_editor("ERROR", errorMsgToSend))
+    if (!send_message_to_editor("ERROR", qmsg))
         return false;
 
     while ((check_for_messages_from_editor() == 0) && (want_exit == 0))

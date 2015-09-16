@@ -18,4 +18,28 @@
 #ifndef __AGS_EE_MAIN__QUIT_H
 #define __AGS_EE_MAIN__QUIT_H
 
+enum QuitReason
+{
+    kQuitKind_NormalExit        = 0x01,
+    kQuitKind_DeliberateAbort   = 0x02,
+    kQuitKind_GameException     = 0x04,
+    kQuitKind_EngineException   = 0x08,
+
+    // user closed the window or script command QuitGame was executed
+    kQuit_GameRequest   = kQuitKind_NormalExit | 0x10,
+
+    // user pressed abort game key
+    kQuit_UserAbort     = kQuitKind_DeliberateAbort | 0x20,
+    
+    // script command AbortGame was executed
+    kQuit_ScriptAbort   = kQuitKind_GameException | 0x10,
+    // game logic has generated a warning and warnings are treated as error
+    kQuit_GameWarning   = kQuitKind_GameException | 0x20,
+    // game logic has generated an error (often script error)
+    kQuit_GameError     = kQuitKind_GameException | 0x30,
+
+    // any kind of a fatal engine error
+    kQuit_FatalError    = kQuitKind_EngineException
+};
+
 #endif // __AGS_EE_MAIN__QUIT_H

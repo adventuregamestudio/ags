@@ -28,6 +28,7 @@ namespace AGS.Editor
             _pluginEditorController = new AGSEditorController(_componentController, _agsEditor, _guiController);
 
             _events.GameLoad += new EditorEvents.GameLoadHandler(_events_GameLoad);
+            _events.GamePostLoad += new EditorEvents.GamePostLoadHandler(_events_GamePostLoad);
             _events.GameSettingsChanged += new EditorEvents.ParameterlessDelegate(_events_GameSettingsChanged);
             _events.ImportedOldGame += new EditorEvents.ParameterlessDelegate(_events_ImportedOldGame);
             _events.RefreshAllComponentsFromGame += new EditorEvents.ParameterlessDelegate(_events_RefreshAllComponentsFromGame);
@@ -80,6 +81,26 @@ namespace AGS.Editor
             foreach (string componentID in missingComponents)
             {
                 _guiController.ShowMessage("This game contains data from a plugin or component '" + componentID + "' which you do not have installed. If you save the game, this data will be lost.", AGS.Types.MessageBoxIconType.Warning);
+            }
+        }
+
+        private void _events_GamePostLoad()
+        {
+            Game game = Factory.AGSEditor.CurrentGame;
+
+            // Convert absolute paths to relative paths. This is an automatic fixup from when the
+            // editor stored absolute paths only
+            foreach (Sprite sprite in game.RootSpriteFolder.GetAllSpritesFromAllSubFolders())
+            {
+                sprite.SourceFile = Utilities.GetRelativeToProjectPath(sprite.SourceFile);
+            }
+            foreach (Types.Font font in game.Fonts)
+            {
+                font.SourceFilename = Utilities.GetRelativeToProjectPath(font.SourceFilename);
+            }
+            foreach (AudioClip audio in game.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders())
+            {
+                audio.SourceFileName = Utilities.GetRelativeToProjectPath(audio.SourceFileName);
             }
         }
 

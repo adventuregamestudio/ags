@@ -1482,6 +1482,7 @@ void create_savegame_screenshot(Bitmap *&screenShot)
         }
         else
         {
+            // FIXME this weird stuff! (related to incomplete OpenGL renderer)
 #if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
             int color_depth = (psp_gfx_renderer > 0) ? 32 : final_col_dep;
 #else

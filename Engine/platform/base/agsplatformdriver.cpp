@@ -38,7 +38,6 @@ AGSPlatformDriver *platform = NULL;
 
 // ******** DEFAULT IMPLEMENTATIONS *******
 
-void AGSPlatformDriver::WriteDebugString(const char*, ...) { }
 void AGSPlatformDriver::AboutToQuitGame() { }
 void AGSPlatformDriver::PostAllegroInit(bool windowed) { }
 void AGSPlatformDriver::DisplaySwitchOut() { }
@@ -151,7 +150,7 @@ int AGSPlatformDriver::ConvertKeycodeToScanCode(int keycode)
 // IOutputTarget implementation
 //-----------------------------------------------
 void AGSPlatformDriver::Out(const char *sz_fullmsg) {
-    this->WriteDebugString(sz_fullmsg);
+    this->WriteStdOut(sz_fullmsg);
 }
 
 // ********** CD Player Functions common to Win and Linux ********

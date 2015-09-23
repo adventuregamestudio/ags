@@ -119,7 +119,7 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
         if (sym.flags[t] & SFLG_IMPORTED) continue;
         if (ccGetOption(SCOPT_SHOWWARNINGS)==0) ;
         else if ((sym.flags[t] & SFLG_ACCESSED)==0) {
-            printf("warning: variable '%s' is never used\n",sym.get_name(t));
+            printf("warning: variable '%s' is never used\n",sym.get_friendly_name(t).c_str());
         }
     }
 

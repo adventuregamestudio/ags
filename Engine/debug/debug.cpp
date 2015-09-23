@@ -116,7 +116,7 @@ void apply_output_configuration()
         logfile_path.Append("/ags.log");
         if (DebugLogFile->OpenFile(logfile_path))
         {
-            platform->WriteDebugString("Logging to %s", logfile_path.GetCStr());
+            platform->WriteStdOut("Logging to %s", logfile_path.GetCStr());
         }
         else
         {
@@ -161,7 +161,7 @@ void write_log(char*msg) {
     fprintf(ooo,"%s\n",msg);
     fclose(ooo);
     */
-    platform->WriteDebugString(msg);
+    platform->WriteStdOut(msg);
 }
 
 /* The idea of this is that non-essential errors such as "sound file not
@@ -229,7 +229,7 @@ void debug_write_console (const char *msg, ...) {
     }
     else debug_line[last_debug_line].script[0] = 0;
 
-    platform->WriteDebugString("%s (%s)", displbuf, debug_line[last_debug_line].script);
+    platform->WriteStdOut("%s (%s)", displbuf, debug_line[last_debug_line].script);
 
     last_debug_line = (last_debug_line + 1) % DEBUG_CONSOLE_NUMLINES;
 

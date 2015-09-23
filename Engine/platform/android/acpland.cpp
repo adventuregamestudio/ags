@@ -57,8 +57,7 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual int  RunSetup();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
-  virtual void WriteConsole(const char*, ...);
-  virtual void WriteDebugString(const char* texx, ...);
+  virtual void WriteStdOut(const char*, ...);
 };
 
 
@@ -668,19 +667,6 @@ bool ReadConfiguration(char* filename, bool read_everything)
 
 
 
-void AGSAndroid::WriteDebugString(const char* texx, ...)
-{
-  if (psp_debug_write_to_logcat)
-  {
-    char displbuf[STD_BUFFER_SIZE] = "AGS: ";
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(&displbuf[5],texx,ap);
-    va_end(ap);
-    __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", "%s", displbuf);
-  }
-}
-
 int AGSAndroid::CDPlayerCommand(int cmdd, int datt) {
   return 1;//cd_player_control(cmdd, datt);
 }
@@ -744,13 +730,17 @@ void AGSAndroid::SetGameWindowIcon() {
   // do nothing
 }
 
-void AGSAndroid::WriteConsole(const char *text, ...) {
-  char displbuf[2000];
-  va_list ap;
-  va_start(ap, text);
-  vsprintf(displbuf, text, ap);
-  va_end(ap);
-  __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", "%s", displbuf);  
+void AGSAndroid::WriteStdOut(const char *text, ...)
+{
+  if (psp_debug_write_to_logcat)
+  {
+    char displbuf[STD_BUFFER_SIZE] = "AGS: ";
+    va_list ap;
+    va_start(ap,text);
+    vsprintf(&displbuf[5],text,ap);
+    va_end(ap);
+    __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", "%s", displbuf);
+  }
 }
 
 void AGSAndroid::ShutdownCDPlayer() {

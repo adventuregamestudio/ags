@@ -18,7 +18,7 @@
 #ifndef __AGS_CN_UTIL__MEMORY_H
 #define __AGS_CN_UTIL__MEMORY_H
 
-#include <memory.h>
+#include <string.h>
 #include "util/math.h"
 
 namespace AGS

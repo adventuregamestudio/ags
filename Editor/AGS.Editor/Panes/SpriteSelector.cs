@@ -439,7 +439,7 @@ namespace AGS.Editor
                     if ((bmpToImport.Width == bmp.Width) &&
                         (bmpToImport.Height == bmp.Height))
                     {
-                        newSprite.SourceFile = sourceFileName;
+                        newSprite.SourceFile = Utilities.GetRelativeToProjectPath(sourceFileName);
                     }
                 }
                 RefreshSpriteDisplay();
@@ -459,7 +459,7 @@ namespace AGS.Editor
                 if ((bmpToImport.Width == bmp.Width) &&
                     (bmpToImport.Height == bmp.Height))
                 {
-                    sprite.SourceFile = sourceFileName;
+                    sprite.SourceFile = Utilities.GetRelativeToProjectPath(sourceFileName);
                 }
                 else
                 {
@@ -1137,7 +1137,7 @@ namespace AGS.Editor
                     alphaChannel = true;
                 }
                 Sprite newSprite = CreateSpriteForBitmap(bmp, true, false, alphaChannel);
-                newSprite.SourceFile = fileName;
+                newSprite.SourceFile = Utilities.GetRelativeToProjectPath(fileName);
                 bmp.Dispose();
             }
             catch (Exception ex)

@@ -114,6 +114,19 @@ namespace AGS.Editor
             }
         }
 
+        public static string GetRelativeToProjectPath(string absolutePath)
+        {
+            if (!absolutePath.Contains(Factory.AGSEditor.CurrentGame.DirectoryPath))
+            {
+                return absolutePath;
+            }
+
+            Uri currentProjectUri = new Uri(Factory.AGSEditor.CurrentGame.DirectoryPath + Path.DirectorySeparatorChar);
+            Uri currentPathUri = new Uri(absolutePath);
+
+            return Uri.UnescapeDataString(currentProjectUri.MakeRelativeUri(currentPathUri).OriginalString);
+        }
+
         /// <summary>
         /// Wraps Directory.GetFiles in a handler to deal with an exception
         /// erroneously being thrown on Linux network shares if no files match.

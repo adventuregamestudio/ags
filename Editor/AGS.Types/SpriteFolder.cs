@@ -106,6 +106,25 @@ namespace AGS.Types
         }
 
         /// <summary>
+        /// Assembles a list of all the sprites in the current folder and sub-folders
+        /// </summary>
+        /// <returns>
+        /// Returns an IList with all sprites from this folder and sub-folders
+        /// </returns>
+        public IList<Sprite> GetAllSpritesFromAllSubFolders()
+        {
+            List<Sprite> sprites = new List<Sprite>();
+            sprites.AddRange(Sprites);
+
+            foreach (ISpriteFolder folder in SubFolders)
+            {
+                sprites.AddRange(folder.GetAllSpritesFromAllSubFolders());
+            }
+
+            return sprites;
+        }
+
+        /// <summary>
         /// Causes the SpritesUpdated event to be fired. You should call this
         /// if you modify the sprites and need the Sprite Manager window
         /// to update to reflect the changes.

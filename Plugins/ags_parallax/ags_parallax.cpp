@@ -55,6 +55,13 @@ typedef struct
 #define MAX_SPRITES 100
 sprite_t sprites[MAX_SPRITES];
 
+// workaround to fix this error:
+//   psp-fixup-imports ags_parallax.elf
+//   Error, no .lib.stub section found
+void dummy()
+{
+  void *tmp = new int;
+}
 
 #if defined(ENABLE_SAVING)
 void RestoreGame(FILE* file)

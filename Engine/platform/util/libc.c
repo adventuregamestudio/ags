@@ -19,7 +19,7 @@
 #include <string.h>
 
 // Only a dummy. It is used in a function of alfont, but never called in AGS.
-size_t malloc_usable_size(const void* allocation)
+size_t malloc_usable_size(void* allocation)
 {
   return 0;
 }

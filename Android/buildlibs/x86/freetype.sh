@@ -1,25 +1,22 @@
 #!/bin/bash
 
-# Set up build environment
-source ../setenv.sh i686-android-linux
+source ./ndkenv
 
-# Download and extract the library source
-FILENAME=freetype-2.4.6
-EXTENSION=tar.bz2
-wget -c http://download.savannah.gnu.org/releases/freetype/$FILENAME.$EXTENSION -O ../$FILENAME.$EXTENSION
-tar -jxf ../$FILENAME.$EXTENSION
+SRC_DIR=freetype-2.4.6
+rm -rf $SRC_DIR
+mkdir $SRC_DIR
+tar xf ../../../libsrc/freetype-2.4.6.tar.bz2 --strip-components=1 -C $SRC_DIR
 
-# Get the newest config files for autotools
-source ../update-config.sh $FILENAME
+pushd $SRC_DIR
 
-# Build and install library
-cd $FILENAME
+export CFLAGS="$NDK_CFLAGS -std=gnu99 -fsigned-char" 
+export LDFLAGS="$NDK_LDFLAGS"
 
-export LDFLAGS="-Wl,-L$NDK_ADDITIONAL_LIBRARY_PATH/lib"
-export CFLAGS="-std=c99 -I$NDK_ADDITIONAL_LIBRARY_PATH/include"
-export LIBS="-lc"
-
-./configure --host=$NDK_HOST_NAME --prefix=$NDK_ADDITIONAL_LIBRARY_PATH
+./configure --host=$NDK_HOST_NAME --prefix=$NDK_ADDITIONAL_LIBRARY_PATH --without-zlib
 
 make
 make install
+
+popd
+
+rm -rf $SRC_DIR

@@ -1,8 +1,10 @@
 #!/bin/bash
 
-for i in armeabi armeabi-v7a x86 mips
+set -e
+
+for arch in armeabi armeabi-v7a x86 mips
 do
-	cd $i
+	pushd $arch
 	chmod +x *.sh
 	./freetype.sh
 	./ogg.sh
@@ -11,5 +13,5 @@ do
 	./allegro.sh
 	./dumb.sh
 	./lua.sh
-	cd ..
+	popd
 done

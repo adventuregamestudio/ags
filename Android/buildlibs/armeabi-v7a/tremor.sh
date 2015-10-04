@@ -1,34 +1,23 @@
 #!/bin/bash
 
-# Set up build environment
-source ../setenv.sh arm-linux-androideabi
+source ./ndkenv
 
-# Checkout the library source
-FILENAME=libtremor-svn
-svn co http://svn.xiph.org/trunk/Tremor $FILENAME
+SRC_DIR=libtremor-20150108-r19427
+rm -rf $SRC_DIR
+mkdir $SRC_DIR
+tar xf ../../../libsrc/libtremor-20150108-r19427.tar.bz2 --strip-components=1 -C $SRC_DIR
 
-# Remove call to ./configure from the autogen script
-cd $FILENAME
-head --lines=-1 autogen.sh > autogenmod.sh
+pushd $SRC_DIR
 
-chmod +x ./autogenmod.sh
+# use -marm to override -mthumb in ndkenv
+export CFLAGS="$NDK_CFLAGS -marm -fsigned-char -I$NDK_ADDITIONAL_LIBRARY_PATH/include -DLITTLE_ENDIAN -DBYTE_ORDER=LITTLE_ENDIAN"
+export LDFLAGS="$NDK_LDFLAGS -Wl,-L$NDK_ADDITIONAL_LIBRARY_PATH/lib"
 
-./autogenmod.sh
-
-# Get the newest config files for autotools
-rm config.guess
-rm config.sub
-cd ..
-source ../update-config.sh $FILENAME
-
-# Build and install library
-cd $FILENAME
-
-export LDFLAGS="-Wl,-L$NDK_ADDITIONAL_LIBRARY_PATH/lib,--fix-cortex-a8"
-export CFLAGS="-march=armv7-a -mfloat-abi=softfp -mfpu=vfp -marm -I$NDK_ADDITIONAL_LIBRARY_PATH/include -DLITTLE_ENDIAN -DBYTE_ORDER=LITTLE_ENDIAN"
-export LIBS="-lc"
-
-./configure --host=$NDK_HOST_NAME --prefix=$NDK_ADDITIONAL_LIBRARY_PATH
+./autogen.sh --host=$NDK_HOST_NAME --prefix=$NDK_ADDITIONAL_LIBRARY_PATH
 
 make
 make install
+
+popd
+
+rm -rf $SRC_DIR

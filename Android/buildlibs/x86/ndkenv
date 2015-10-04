@@ -1,0 +1,15 @@
+set -e 
+
+get_abs_path() {
+  # $1 : relative filename
+  echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
+}
+
+unset DEVROOT SDKROOT CFLAGS CC LD CPP CXX AR AS NM CXXCPP RANLIB LDFLAGS CPPFLAGS CXXFLAGS
+
+export NDK_PLATFORM_ROOT=/home/sonneveld/ndk-standalone/android-9/x86
+export NDK_PLATFORM_NAME=x86
+export NDK_HOST_NAME=i686-android-linux
+export NDK_ADDITIONAL_LIBRARY_PATH=$(get_abs_path "../../nativelibs/$NDK_PLATFORM_NAME")
+export PATH=$NDK_PLATFORM_ROOT/bin:$PATH
+

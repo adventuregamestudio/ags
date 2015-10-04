@@ -1,34 +1,23 @@
 #!/bin/bash
 
-# Set up build environment
-source ../setenv.sh mipsel-linux-android
+source ./ndkenv
 
-# Checkout the library source
-FILENAME=libtheora-svn
-svn co http://svn.xiph.org/trunk/theora $FILENAME
+SRC_DIR=libtheora-20150828-gfbb2758
+rm -rf $SRC_DIR
+mkdir $SRC_DIR
+tar xf ../../../libsrc/libtheora-20150828-gfbb2758.tar.bz2 --strip-components=1 -C $SRC_DIR
 
-# Remove call to ./configure from the autogen script
-cd $FILENAME
-head --lines=-1 autogen.sh > autogenmod.sh
+export CFLAGS="$NDK_CFLAGS -fsigned-char -I$NDK_ADDITIONAL_LIBRARY_PATH/include"
+export LDFLAGS="$NDK_LDFLAGS -Wl,-L$NDK_ADDITIONAL_LIBRARY_PATH/lib"
 
-chmod +x ./autogenmod.sh
+pushd $SRC_DIR
 
-./autogenmod.sh
-
-# Get the newest config files for autotools
-rm config.guess
-rm config.sub
-cd ..
-source ../update-config.sh $FILENAME
-
-# Build and install library
-cd $FILENAME
-
-export LDFLAGS="-Wl,-L$NDK_ADDITIONAL_LIBRARY_PATH/lib"
-export CFLAGS="-fpic -I$NDK_ADDITIONAL_LIBRARY_PATH/include"
-export LIBS="-lc"
-
-./configure --host=$NDK_HOST_NAME --prefix=$NDK_ADDITIONAL_LIBRARY_PATH --disable-examples
+# disable asflag-probe as it guess wrong arm arch
+./autogen.sh --host=$NDK_HOST_NAME --prefix=$NDK_ADDITIONAL_LIBRARY_PATH --disable-examples --disable-asflag-probe
 
 make
 make install
+
+popd
+
+rm -rf $SRC_DIR

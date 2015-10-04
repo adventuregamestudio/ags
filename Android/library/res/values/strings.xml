@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">AGS</string>
     <string name="CONFIG_AUDIO_ENABLED">3</string>
     <string name="CONFIG_AUDIO_THREADED">4</string>
     <string name="CONFIG_MIDI_ENABLED">6</string>

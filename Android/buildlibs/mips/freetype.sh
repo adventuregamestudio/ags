@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e 
+
 source ./ndkenv
 
 SRC_DIR=freetype-2.4.6
@@ -12,7 +14,7 @@ pushd $SRC_DIR
 export CFLAGS="$NDK_CFLAGS -std=gnu99 -fsigned-char" 
 export LDFLAGS="$NDK_LDFLAGS"
 
-./configure --host=$NDK_HOST_NAME --prefix=$NDK_ADDITIONAL_LIBRARY_PATH --without-zlib
+./configure --host=$NDK_HOST_NAME --prefix=$NDK_ADDITIONAL_LIBRARY_PATH --without-zlib --disable-shared
 
 make
 make install

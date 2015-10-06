@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e 
+
 source ./ndkenv
 
 SRC_DIR=libtheora-20150828-gfbb2758
@@ -13,7 +15,7 @@ export LDFLAGS="$NDK_LDFLAGS -Wl,-L$NDK_ADDITIONAL_LIBRARY_PATH/lib"
 pushd $SRC_DIR
 
 # disable asflag-probe as it guess wrong arm arch
-./autogen.sh --host=$NDK_HOST_NAME --prefix=$NDK_ADDITIONAL_LIBRARY_PATH --disable-examples --disable-asflag-probe
+./autogen.sh --host=$NDK_HOST_NAME --prefix=$NDK_ADDITIONAL_LIBRARY_PATH --disable-examples --disable-asflag-probe --disable-encode --disable-shared --disable-oggtest --disable-vorbistest
 
 make
 make install

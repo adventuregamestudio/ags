@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e 
+
 source ./ndkenv
 
 SRC_DIR=lua-5.1.5

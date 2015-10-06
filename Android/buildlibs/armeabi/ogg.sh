@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e 
+
 source ./ndkenv
 
 SRC_DIR=libogg-1.3.2
@@ -12,7 +14,7 @@ pushd $SRC_DIR
 export CFLAGS="$NDK_CFLAGS -fsigned-char" 
 export LDFLAGS="$NDK_LDFLAGS"
 
-./configure --host=$NDK_HOST_NAME --prefix=$NDK_ADDITIONAL_LIBRARY_PATH  
+./configure --host=$NDK_HOST_NAME --prefix=$NDK_ADDITIONAL_LIBRARY_PATH --disable-shared
 
 make
 make install

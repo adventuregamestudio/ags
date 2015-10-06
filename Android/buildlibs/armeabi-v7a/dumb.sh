@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e 
+
 source ./ndkenv
 
 SRC_DIR=dumb-0.9.3

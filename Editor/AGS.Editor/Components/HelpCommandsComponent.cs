@@ -89,6 +89,20 @@ namespace AGS.Editor.Components
             {
                 _guiController.ShowMessage("The help file '" + _helpFileName + "' is missing. You may need to reinstall AGS.", MessageBoxIcon.Warning);
             }
+            else if (Utils.AlternateStreams.GetZoneIdentifier(_helpFileName) > Utils.AlternateStreams.URLZONE_LOCAL_MACHINE)
+            {
+                if (_guiController.ShowQuestion("The help file '" + _helpFileName + "' has a restrictive Zone Identifier which needs to be removed." + Environment.NewLine + Environment.NewLine + "Do you want to try unblocking this file?") == DialogResult.Yes)
+                {
+                    if (Utils.AlternateStreams.DeleteZoneIdentifier(_helpFileName))
+                    {
+                        _guiController.ShowMessage("The help file was unblocked successfully.", MessageBoxIcon.Warning);
+                    }
+                    else
+                    {
+                        _guiController.ShowMessage("The help file couldn't be unblocked. Please try running the AGS editor using 'Run as administrator' and try to unblock the file again.", MessageBoxIcon.Warning);
+                    }
+                }  
+            }
             else if (controlID == LAUNCH_HELP_COMMAND)
             {
                 string keyword = string.Empty;

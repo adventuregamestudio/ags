@@ -4,7 +4,7 @@ set -e
 
 source ./setenv.sh
 
-FILENAME=libtremor-20150108-r19427
+FILENAME=libtheora-20150827-gfbb2758
 EXTENSION=tar.bz2
 BUILD_DIR=$FILENAME
 
@@ -14,9 +14,7 @@ tar -xf ../../../libsrc/$FILENAME.$EXTENSION -C $BUILD_DIR --strip-components 1
 
 pushd $BUILD_DIR
 
-export CFLAGS="$CFLAGS -DLITTLE_ENDIAN -DBYTE_ORDER=LITTLE_ENDIAN"
-./autogen.sh $IOS_CONFIGURE_FLAGS --disable-oggtest
-make
+./autogen.sh $IOS_CONFIGURE_FLAGS --disable-doc --disable-spec --disable-asm --disable-oggtest --disable-vorbistest --disable-encode --disable-examples
 make install
 
 popd

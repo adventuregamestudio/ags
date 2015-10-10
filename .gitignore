@@ -61,3 +61,6 @@ Manual/ags.hhc
 Manual/ags.hhk
 Manual/ags.hhp
 Manual/ags.htx
+iOS/nativelibs/armv6
+iOS/nativelibs/armv7
+iOS/nativelibs/i386

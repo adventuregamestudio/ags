@@ -1,27 +1,31 @@
 diff -Naur cmake/Toolchain-ios-gcc.cmake cmake/Toolchain-ios-gcc.cmake
 --- cmake/Toolchain-ios-gcc.cmake	1970-01-01 01:00:00.000000000 +0100
 +++ cmake/Toolchain-ios-gcc.cmake	2012-05-03 11:27:14.337258300 +0200
-@@ -0,0 +1,38 @@
+@@ -0,0 +1,42 @@
 +# The name of the target operating system.
 +set(CMAKE_SYSTEM_NAME Generic)
 +
-+set(IOS_BASE_SDK "4.3")
-+set(IOS_DEPLOY_TGT "3.2")
++set(IOS_BASE_SDK "5.1")
++set(IOS_DEPLOY_TGT "3.1.3")
 +
-+set(DEVROOT "/Developer/Platforms/iPhoneOS.platform/Developer")
++set(DEVROOT "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer")
 +set(SDKROOT "${DEVROOT}/SDKs/iPhoneOS${IOS_BASE_SDK}.sdk")
 +set(IOS_ADDITIONAL_LIBRARY_PATH "$(pwd)/../../nativelibs/armv6")
 +set(IOS_PLATFORM_INCLUDE "${SDKROOT}/usr/include")
 +set(IOS_PLATFORM_LIB "${SDKROOT}/usr/lib")
-+	
++
 +# Location of target environment.
 +
 +set(CMAKE_SYSTEM_INCLUDE_PATH "${IOS_ADDITIONAL_LIBRARY_PATH}/include" "${IOS_PLATFORM_INCLUDE}")
 +set(CMAKE_SYSTEM_LIBRARY_PATH "${IOS_ADDITIONAL_LIBRARY_PATH}/lib" "${IOS_PLATFORM_LIB}")
 +
 +# Which compilers to use for C and C++.
-+set(CMAKE_C_COMPILER "${DEVROOT}/usr/bin/gcc-4.2")
-+set(CMAKE_CXX_COMPILER "${DEVROOT}/usr/bin/g++-4.2")
++execute_process(COMMAND /usr/bin/xcrun -sdk iphoneos -find gcc
++                OUTPUT_VARIABLE CMAKE_C_COMPILER
++                OUTPUT_STRIP_TRAILING_WHITESPACE)
++execute_process(COMMAND /usr/bin/xcrun -sdk iphoneos -find g++
++                OUTPUT_VARIABLE CMAKE_CXX_COMPILER
++                OUTPUT_STRIP_TRAILING_WHITESPACE)
 +
 +# Needed to pass the compiler tests.
 +set(LINK_DIRECTORIES ${NDK_PLATFORM_LIB})
@@ -46,12 +50,12 @@ diff -Naur CMakeLists.txt CMakeLists.txt
 @@ -313,6 +313,21 @@
      set(CMAKE_INSTALL_PREFIX ${PSP_PREFIX})
  endif(PSP)
- 
+
 +if(IOS)
-+	set(IOS_BASE_SDK "4.3")
-+	set(IOS_DEPLOY_TGT "3.2")
++	set(IOS_BASE_SDK "5.1")
++	set(IOS_DEPLOY_TGT "3.1.3")
 +
-+	set(DEVROOT "/Developer/Platforms/iPhoneOS.platform/Developer")
++	set(DEVROOT "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer")
 +	set(SDKROOT "${DEVROOT}/SDKs/iPhoneOS${IOS_BASE_SDK}.sdk")
 +	set(IOS_ADDITIONAL_LIBRARY_PATH "$(pwd)/../../../nativelibs/armv6")
 +	set(IOS_PLATFORM_INCLUDE "${SDKROOT}/usr/include")
@@ -64,11 +68,11 @@ diff -Naur CMakeLists.txt CMakeLists.txt
 +
  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${WFLAGS} ${WFLAGS_C_ONLY}")
  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WFLAGS} ${WFLAGS_CXX_ONLY}")
- 
+
 @@ -673,6 +688,14 @@
      m pspaudio pspgu psprtc pspdebug pspdisplay pspge pspctrl pspsdk c pspnet pspnet_inet pspnet_resolver psputility pspuser pspkernel)
  endif(PSP)
- 
+
 +# -- iOS --
 +
 +if(IOS)
@@ -80,4 +84,4 @@ diff -Naur CMakeLists.txt CMakeLists.txt
  #-----------------------------------------------------------------------------#
  #
  # Generate and install headers
- 
+

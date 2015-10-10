@@ -39,18 +39,18 @@ diff -Naur Makefile Makefile
  CC := cc
  else
 -CC := gcc
-+CC := /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2
++CC := $(shell xcrun -sdk iphoneos --find gcc)
  endif
  endif
 -AR := ar
-+AR := /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/ar
- 
- 
++AR := $(shell xcrun -sdk iphoneos --find ar)
+
+
  # Configuration.
 @@ -74,6 +74,7 @@
- 
+
  else
- 
+
 +PREFIX := $(IOS_ADDITIONAL_LIBRARY_PATH)
  ifdef PREFIX
  DEFAULT_PREFIX := $(PREFIX)
@@ -58,16 +58,16 @@ diff -Naur Makefile Makefile
 @@ -231,8 +232,10 @@
  endif
  endif
- 
+
 -CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS)
 -CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS)
-+CFLAGS_IOS = -std=c99 -arch armv6 -pipe -no-cpp-precomp -isysroot $(SDKROOT) -miphoneos-version-min=$(IOS_DEPLOY_TGT) -I$(IOS_ADDITIONAL_LIBRARY_PATH)/include -I$(SDKROOT)/include
++CFLAGS_IOS = -std=c99 -arch armv6 -isysroot $(SDKROOT) -miphoneos-version-min=$(IOS_DEPLOY_TGT) -I$(IOS_ADDITIONAL_LIBRARY_PATH)/include -I$(SDKROOT)/include
 +
 +CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS) $(CFLAGS_IOS)
 +CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS) $(CFLAGS_IOS)
- 
+
  LDFLAGS := -s
- 
+
 diff -Naur Makefile.rdy Makefile.rdy
 --- Makefile.rdy	2005-08-08 02:18:39.000000000 +0200
 +++ Makefile.rdy	2011-10-19 08:57:16.416901400 +0200
@@ -76,18 +76,18 @@ diff -Naur Makefile.rdy Makefile.rdy
  CC := cc
  else
 -CC := gcc
-+CC := /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2
++CC := $(shell xcrun -sdk iphoneos --find gcc)
  endif
  endif
 -AR := ar
-+AR := /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/ar
- 
- 
++AR := $(shell xcrun -sdk iphoneos --find ar)
+
+
  # Configuration.
 @@ -74,6 +74,7 @@
- 
+
  else
- 
+
 +PREFIX := $(IOS_ADDITIONAL_LIBRARY_PATH)
  ifdef PREFIX
  DEFAULT_PREFIX := $(PREFIX)
@@ -95,13 +95,13 @@ diff -Naur Makefile.rdy Makefile.rdy
 @@ -231,8 +232,10 @@
  endif
  endif
- 
+
 -CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS)
 -CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS)
-+CFLAGS_IOS = -std=c99 -arch armv6 -pipe -no-cpp-precomp -isysroot $(SDKROOT) -miphoneos-version-min=$(IOS_DEPLOY_TGT) -I$(IOS_ADDITIONAL_LIBRARY_PATH)/include -I$(SDKROOT)/include
++CFLAGS_IOS = -std=c99 -arch armv6 -isysroot $(SDKROOT) -miphoneos-version-min=$(IOS_DEPLOY_TGT) -I$(IOS_ADDITIONAL_LIBRARY_PATH)/include -I$(SDKROOT)/include
 +
 +CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS) $(CFLAGS_IOS)
 +CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS) $(CFLAGS_IOS)
- 
+
  LDFLAGS := -s
- 
+

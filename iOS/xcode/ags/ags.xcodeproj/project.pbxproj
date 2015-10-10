@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		16164DEB1BC52C5D004FE07F /* asset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 16164DE91BC52C5D004FE07F /* asset.cpp */; };
+		16164DEF1BC52C87004FE07F /* mutifilelib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 16164DEE1BC52C87004FE07F /* mutifilelib.cpp */; };
 		1D3623260D0F684500981E51 /* agsAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1D3623250D0F684500981E51 /* agsAppDelegate.mm */; };
 		1D60589B0D05DD56006BFB54 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.mm */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
@@ -336,6 +338,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		16164DE91BC52C5D004FE07F /* asset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = asset.cpp; sourceTree = "<group>"; };
+		16164DEA1BC52C5D004FE07F /* asset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asset.h; sourceTree = "<group>"; };
+		16164DED1BC52C87004FE07F /* multifilelib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = multifilelib.h; sourceTree = "<group>"; };
+		16164DEE1BC52C87004FE07F /* mutifilelib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mutifilelib.cpp; sourceTree = "<group>"; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1D3623240D0F684500981E51 /* agsAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = agsAppDelegate.h; sourceTree = "<group>"; };
 		1D3623250D0F684500981E51 /* agsAppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = agsAppDelegate.mm; sourceTree = "<group>"; };
@@ -1323,6 +1329,8 @@
 		60CA39D0160713D200CFB3BD /* core */ = {
 			isa = PBXGroup;
 			children = (
+				16164DE91BC52C5D004FE07F /* asset.cpp */,
+				16164DEA1BC52C5D004FE07F /* asset.h */,
 				6080428D1614DE8F00D33732 /* assetmanager.cpp */,
 				6080428C1614DE8900D33732 /* assetmanager.h */,
 				60CA39D1160713D200CFB3BD /* types.h */,
@@ -1503,6 +1511,8 @@
 		60CA3A46160713D300CFB3BD /* util */ = {
 			isa = PBXGroup;
 			children = (
+				16164DED1BC52C87004FE07F /* multifilelib.h */,
+				16164DEE1BC52C87004FE07F /* mutifilelib.cpp */,
 				600C369016C454C400D0CC4F /* stream.cpp */,
 				600C369116C454C400D0CC4F /* proxystream.h */,
 				600C369216C454C400D0CC4F /* proxystream.cpp */,
@@ -2637,6 +2647,8 @@
 				608D787C176B82D300E48976 /* speech.cpp in Sources */,
 				608D788B176B832C00E48976 /* gfx_util.cpp in Sources */,
 				608B20641866295B005B3BCD /* logfile.cpp in Sources */,
+				16164DEB1BC52C5D004FE07F /* asset.cpp in Sources */,
+				16164DEF1BC52C87004FE07F /* mutifilelib.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -25,8 +25,8 @@ export RANLIB=$(xcrun --sdk $SDK --find ranlib)
 export STRIP=$(xcrun --sdk $SDK --find strip)
 
 export CPPFLAGS="-arch $ARCH -miphoneos-version-min=$IOS_TARGET -isysroot $SDK_PATH"
-export CFLAGS="-arch $ARCH -miphoneos-version-min=$IOS_TARGET -isysroot $SDK_PATH -I$PREFIX/include"
-export CXXFLAGS="-arch $ARCH -miphoneos-version-min=$IOS_TARGET -isysroot $SDK_PATH -I$PREFIX/include"
+export CFLAGS="-arch $ARCH -miphoneos-version-min=$IOS_TARGET -isysroot $SDK_PATH -I$PREFIX/include -fembed-bitcode"
+export CXXFLAGS="-arch $ARCH -miphoneos-version-min=$IOS_TARGET -isysroot $SDK_PATH -I$PREFIX/include -fembed-bitcode"
 export LDFLAGS="-arch $ARCH -miphoneos-version-min=$IOS_TARGET -isysroot $SDK_PATH -L$PREFIX/lib"
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$SDK_PATH/usr/lib/pkgconfig"
 export ACLOCAL_PATH="$PREFIX/share/aclocal:$SDK_PATH/usr/share/aclocal"

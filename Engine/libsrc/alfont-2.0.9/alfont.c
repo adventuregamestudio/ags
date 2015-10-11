@@ -31,6 +31,9 @@
 
 #define _msize malloc_usable_size
 
+size_t wcslen (const wchar_t* wcs);
+size_t malloc_usable_size (void *ptr);
+
 /* structs */
 
 struct ALFONT_FONT {

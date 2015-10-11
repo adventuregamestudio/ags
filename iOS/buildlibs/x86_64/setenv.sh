@@ -4,7 +4,7 @@ SDK="iphonesimulator"
 ARCH="x86_64"
 IOS_HOST_NAME=x86_64-apple-darwin*
 
-# ideally we have 5.1.1 but we get linker errors in xcode 7.0.1
+# ideally we have 5.1.1 but we get linker errors in xcode 7.0.1 (possibly a bug)
 IOS_TARGET="6.0"
 
 # warning: don't set SDKROOT, it is treated specially by xcode tools
@@ -24,10 +24,11 @@ export NM=$(xcrun --sdk $SDK --find nm)
 export RANLIB=$(xcrun --sdk $SDK --find ranlib)
 export STRIP=$(xcrun --sdk $SDK --find strip)
 
-export CPPFLAGS="-arch $ARCH -miphoneos-version-min=$IOS_TARGET -isysroot $SDK_PATH"
-export CFLAGS="-arch $ARCH -miphoneos-version-min=$IOS_TARGET -isysroot $SDK_PATH -I$PREFIX/include"
-export CXXFLAGS="-arch $ARCH -miphoneos-version-min=$IOS_TARGET -isysroot $SDK_PATH -I$PREFIX/include"
-export LDFLAGS="-arch $ARCH -miphoneos-version-min=$IOS_TARGET -isysroot $SDK_PATH -L$PREFIX/lib"
+CROSS_FLAGS="-arch $ARCH -miphoneos-version-min=$IOS_TARGET -isysroot $SDK_PATH"
+export CPPFLAGS="$CROSS_FLAGS"
+export CFLAGS="$CROSS_FLAGS -I$PREFIX/include"
+export CXXFLAGS="$CROSS_FLAGS -I$PREFIX/include"
+export LDFLAGS="$CROSS_FLAGS -L$PREFIX/lib"
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$SDK_PATH/usr/lib/pkgconfig"
 export ACLOCAL_PATH="$PREFIX/share/aclocal:$SDK_PATH/usr/share/aclocal"
 

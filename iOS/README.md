@@ -50,6 +50,10 @@ or 4.x.
 iOS SDK 6: The armv7s architecture must be removed from the build targets because
 only armv7 libraries are included with this source code.
 
+To build from command line, change to <SOURCE>/iOS/xcode/ags and run
+
+    $ xcodebuild clean build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+
 
 ##Native 3rd party libraries
 
@@ -59,9 +63,10 @@ a library.
 Change to the <SOURCE>/iOS/buildlibs directory and run
 
     ./buildall.sh
+    ./makefatlibs.sh
 
-This will download, patch, build and properly install the required libraries for
-armv6, armv7 and i386 architecture. No armv7s libraries are built.
+This will patch, build and properly install the required libraries for
+armv7, armv7s, arm64, i386 and x86_64 architectures.
 
 
 

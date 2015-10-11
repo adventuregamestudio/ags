@@ -1,38 +1,34 @@
-#!/bin/bash
-
 unset DEVROOT SDKROOT CFLAGS CC LD CPP CXX AR AS NM CXXCPP RANLIB LDFLAGS CPPFLAGS CXXFLAGS
 
-SDKVERSION="5.1"
-export IOS_DEPLOY_TGT="3.1.3"
+SDK="iphonesimulator"
 ARCH="i386"
+IOS_HOST_NAME=i386-apple-darwin*
 
-export DEVROOT=$(xcode-select -print-path)/Platforms/iPhoneSimulator.platform/Developer
-export SDKROOT=$DEVROOT/SDKs/iPhoneSimulator$SDKVERSION.sdk
+# ideally we have 5.1.1 but we get linker errors in xcode 7.0.1
+IOS_TARGET="6.0"
+
+# warning: don't set SDKROOT, it is treated specially by xcode tools
+SDK_PATH=$(xcrun --sdk $SDK --show-sdk-path)
 PREFIX=$(pwd)/../../nativelibs/$ARCH
 export IOS_ADDITIONAL_LIBRARY_PATH=$PREFIX
-export IOS_HOST_NAME=i686-apple-darwin10*
 
-  # export SDKVERSION=$(xcrun --sdk $SDK --show-sdk-version) # current version
-  # export SDKROOT=$(xcrun --sdk $SDK --show-sdk-path) # current version
+export AR=$(xcrun --sdk $SDK --find ar)
+export AS=$(xcrun --sdk $SDK --find as)
+export ASCPP=$(xcrun --sdk $SDK --find as)
+export CC=$(xcrun --sdk $SDK --find gcc)
+export CPP="$(xcrun --sdk $SDK --find gcc) -E"
+export CXX=$(xcrun --sdk $SDK --find g++)
+export CXXCPP="$(xcrun --sdk $SDK --find g++) -E"
+export LD=$(xcrun --sdk $SDK --find ld)
+export NM=$(xcrun --sdk $SDK --find nm)
+export RANLIB=$(xcrun --sdk $SDK --find ranlib)
+export STRIP=$(xcrun --sdk $SDK --find strip)
 
-export AR=$(xcrun -sdk iphonesimulator --find ar)
-export AS=$(xcrun -sdk iphonesimulator --find as)
-export ASCPP=$(xcrun -sdk iphonesimulator --find as)
-export CC=$(xcrun -sdk iphonesimulator --find gcc)
-export CPP="$(xcrun -sdk iphonesimulator --find gcc) -E"
-export CXX=$(xcrun -sdk iphonesimulator --find g++)
-export CXXCPP="$(xcrun -sdk iphonesimulator --find g++) -E"
-export LD=$(xcrun -sdk iphonesimulator --find ld)
-export NM=$(xcrun -sdk iphonesimulator --find nm)
-export RANLIB=$(xcrun -sdk iphonesimulator --find ranlib)
-export STRIP=$(xcrun -sdk iphonesimulator --find strip)
-
-export CPPFLAGS="-miphoneos-version-min=$SDKVERSION -arch $ARCH -isysroot $SDKROOT"
-export CFLAGS="-arch $ARCH -miphoneos-version-min=$SDKVERSION -isysroot $SDKROOT -I$PREFIX/include"
-export CXXFLAGS="-arch $ARCH -miphoneos-version-min=$SDKVERSION -isysroot $SDKROOT -I$PREFIX/include"
-export LDFLAGS="-arch $ARCH -miphoneos-version-min=$SDKVERSION -isysroot $SDKROOT -L$PREFIX/lib"
-export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$SDKROOT/usr/lib/pkgconfig:$DEVROOT/usr/lib/pkgconfig"
-export ACLOCAL_PATH="$PREFIX/share/aclocal:$SDKROOT/usr/share/aclocal:$DEVROOT/usr/share/aclocal"
+export CPPFLAGS="-arch $ARCH -miphoneos-version-min=$IOS_TARGET -isysroot $SDK_PATH"
+export CFLAGS="-arch $ARCH -miphoneos-version-min=$IOS_TARGET -isysroot $SDK_PATH -I$PREFIX/include"
+export CXXFLAGS="-arch $ARCH -miphoneos-version-min=$IOS_TARGET -isysroot $SDK_PATH -I$PREFIX/include"
+export LDFLAGS="-arch $ARCH -miphoneos-version-min=$IOS_TARGET -isysroot $SDK_PATH -L$PREFIX/lib"
+export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$SDK_PATH/usr/lib/pkgconfig"
+export ACLOCAL_PATH="$PREFIX/share/aclocal:$SDK_PATH/usr/share/aclocal"
 
 export IOS_CONFIGURE_FLAGS="--host=$IOS_HOST_NAME --prefix=$IOS_ADDITIONAL_LIBRARY_PATH --enable-static --disable-shared"
-

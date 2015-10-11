@@ -39,11 +39,11 @@ diff -Naur Makefile Makefile
  CC := cc
  else
 -CC := gcc
-+CC := $(shell xcrun -sdk iphoneos --find gcc)
++CC := $(shell xcrun --sdk iphoneos --find gcc)
  endif
  endif
 -AR := ar
-+AR := $(shell xcrun -sdk iphoneos --find ar)
++AR := $(shell xcrun --sdk iphoneos --find ar)
 
 
  # Configuration.
@@ -61,7 +61,7 @@ diff -Naur Makefile Makefile
 
 -CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS)
 -CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS)
-+CFLAGS_IOS = -std=c99 -arch armv7 -isysroot $(SDKROOT) -miphoneos-version-min=$(IOS_DEPLOY_TGT) -I$(IOS_ADDITIONAL_LIBRARY_PATH)/include -I$(SDKROOT)/include
++CFLAGS_IOS = $(CFLAGS)
 +
 +CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS) $(CFLAGS_IOS)
 +CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS) $(CFLAGS_IOS)
@@ -76,11 +76,11 @@ diff -Naur Makefile.rdy Makefile.rdy
  CC := cc
  else
 -CC := gcc
-+CC := $(shell xcrun -sdk iphoneos --find gcc)
++CC := $(shell xcrun --sdk iphoneos --find gcc)
  endif
  endif
 -AR := ar
-+AR := $(shell xcrun -sdk iphoneos --find ar)
++AR := $(shell xcrun --sdk iphoneos --find ar)
 
 
  # Configuration.
@@ -98,7 +98,7 @@ diff -Naur Makefile.rdy Makefile.rdy
 
 -CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS)
 -CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS)
-+CFLAGS_IOS = -std=c99 -arch armv7 -isysroot $(SDKROOT) -miphoneos-version-min=$(IOS_DEPLOY_TGT) -I$(IOS_ADDITIONAL_LIBRARY_PATH)/include -I$(SDKROOT)/include
++CFLAGS_IOS = $(CFLAGS)
 +
 +CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS) $(CFLAGS_IOS)
 +CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS) $(CFLAGS_IOS)

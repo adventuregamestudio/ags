@@ -5,7 +5,7 @@ get_abs_path() {
 
 unset DEVROOT SDKROOT CFLAGS CC LD CPP CXX AR AS NM CXXCPP RANLIB LDFLAGS CPPFLAGS CXXFLAGS
 
-export NDK_PLATFORM_ROOT=$HOME/ndk-r10e-standalone/android-9/arm
+export NDK_PLATFORM_ROOT=/opt/android-ndk-r10e-standalone/android-9/arm
 export NDK_PLATFORM_NAME=armeabi-v7a
 export NDK_HOST_NAME=arm-linux-androideabi
 export NDK_ADDITIONAL_LIBRARY_PATH=$(get_abs_path "../../nativelibs/$NDK_PLATFORM_NAME")

@@ -11,7 +11,7 @@ NDK_HOME=/opt/android-ndk-r10e
 PLATFORM=android-9
 
 # standalone toolchains cannot share same directory
-NDK_STANDALONE=$HOME/ndk-r10e-standalone/$PLATFORM
+NDK_STANDALONE=/opt/android-ndk-r10e-standalone/$PLATFORM
 
 for arch in arm x86 mips
 do

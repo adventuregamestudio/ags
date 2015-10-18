@@ -2,6 +2,10 @@
 
 set -e
 
+pushd ../../libsrc
+./download.sh
+popd
+
 for arch in armeabi armeabi-v7a x86 mips
 do
 	pushd $arch

@@ -85,16 +85,24 @@ of games from the SD-card is in <SOURCE>/Android/launcher_list.
 The easiest way to build the app is to create an Android project in Eclipse. Choose the
 "create from existing source" option and point Eclipse to the launcher directory.
 
+To build from the command line, you can use the tool 'ant'.
 
+    $ export ANDROID_HOME=/opt/android-sdk-linux
+    $ cd <SOURCE>/Android/launcher_list
+    $ ant debug
+    $ ant release # for release build
 
 ##Native engine library
 
 This is the main AGS engine code. It must be compiled using the Android NDK. This can
-simply be done by running
+simply be done by running ndk-build within the <SOURCE>Android/library directory. 
 
-    ndk-build
+e.g. (assuming the ndk is installed in /opt)
 
-inside the <SOURCE>/Android/library directory.
+    $ export PATH=$PATH:/opt/android-ndk-r10e
+    $ cd <SOURCE>/Android/library
+    $ ndk-build
+
 The native code is built for all current Android architecture, that is armv6, armv7-a,
 x86 and mips.
 
@@ -111,8 +119,11 @@ Change to the <SOURCE>/Android/buildlibs directory and run
 This will download, patch, build and properly install the required libraries.
 
 The scripts require standalone toolchains for all Android platforms and they have to
-be available on the PATH. See docs/STANDALONE-TOOLCHAIN.html in the NDK directory
+be available on the PATH. See https://developer.android.com/ndk/guides/standalone_toolchain.html
 for instructions on creating the standalone toolchains.
+
+Libraries must be available in <SOURCE>/libsrc
+
 
 
 ##Links

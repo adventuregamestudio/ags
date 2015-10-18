@@ -46,6 +46,7 @@ Android/library/libs/
 Android/library/obj/
 Android/library/local.properties
 Android/library/.classpath
+Android/nativelibs
 Editor/References/AGS.Native.dll
 Solutions/Common.Lib/Debug_MD/
 Solutions/Common.Lib/Release_MD/

@@ -38,6 +38,7 @@
 #ifndef __AGS_CN_GAME__INTEREACTIONS_H
 #define __AGS_CN_GAME__INTEREACTIONS_H
 
+#include <memory>
 #include "util/string_types.h"
 
 #define LOCAL_VARIABLE_OFFSET       10000

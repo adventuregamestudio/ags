@@ -64,7 +64,7 @@ struct ScreenSetup
 {
     String               DriverID;      // graphics driver ID
     ScreenSizeDefinition SizeDef;       // a method used to determine screen size
-    Size                 Size;          // explicitly defined screen metrics
+    ::Size               Size;          // explicitly defined screen metrics
     bool                 MatchDeviceRatio; // choose resolution matching device aspect ratio
 
     int                  RefreshRate;   // gfx mode refresh rate

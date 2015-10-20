@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <string.h>
 #include "ac/common.h"
 #include "game/interactions.h"
 #include "util/alignedstream.h"

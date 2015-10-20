@@ -1053,8 +1053,7 @@ void WinSetupDialog::SaveSetup()
     _winCfg.UseVoicePack = GetCheck(_hUseVoicePack);
     _winCfg.VSync = GetCheck(_hVSync);
     _winCfg.AntialiasSprites = GetCheck(_hAntialiasSprites);
-    if (GetCheck(_hRefresh85Hz))
-        _winCfg.RefreshRate = 85;
+    _winCfg.RefreshRate = GetCheck(_hRefresh85Hz) ? 85 : 0;
     _winCfg.Reduce32to16 = GetCheck(_hReduce32to16);
     _winCfg.GfxFilterId = (LPCTSTR)GetCurItemData(_hGfxFilterList);
 

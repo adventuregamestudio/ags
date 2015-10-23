@@ -31,8 +31,9 @@
 
 #define _msize malloc_usable_size
 
-size_t wcslen (const wchar_t* wcs);
+#ifdef IOS_VERSION
 size_t malloc_usable_size (void *ptr);
+#endif
 
 /* structs */
 

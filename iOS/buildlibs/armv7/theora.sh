@@ -4,7 +4,7 @@ set -e
 
 source ./setenv.sh
 
-FILENAME=libtheora-20150827-gfbb2758
+FILENAME=libtheora-20150828-gfbb2758
 EXTENSION=tar.bz2
 BUILD_DIR=$FILENAME
 

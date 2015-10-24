@@ -1,22 +1,23 @@
 #!/bin/bash
 
-# Set up build environment
+set -e
+
 source ./setenv.sh
 
-# Download and extract the library source
-FILENAME=lua-5.1.4
+FILENAME=lua-5.1.5
 EXTENSION=tar.gz
-wget -c http://www.lua.org/ftp/$FILENAME.$EXTENSION -O ../$FILENAME.$EXTENSION
-tar -zxf ../$FILENAME.$EXTENSION
+BUILD_DIR=$FILENAME
 
-# Build and install library
-cd $FILENAME
+rm -rf $BUILD_DIR
+mkdir -p $BUILD_DIR
+tar -xf ../../../libsrc/$FILENAME.$EXTENSION -C $BUILD_DIR --strip-components 1
 
-# Apply platform patch
+pushd $BUILD_DIR
+
 patch -p0 < ../../../patches/liblua.patch
-
-make generic \
-MYCFLAGS="-arch armv7 -pipe -no-cpp-precomp -isysroot $SDKROOT -miphoneos-version-min=$IOS_DEPLOY_TGT -I$IOS_ADDITIONAL_LIBRARY_PATH/include" \
-MYLDFLAGS="-arch armv7 -pipe -no-cpp-precomp -isysroot $SDKROOT -miphoneos-version-min=$IOS_DEPLOY_TGT -Wl,-L$SDKROOT/usr/lib,-L$IOS_ADDITIONAL_LIBRARY_PATH/lib"
-
+make generic MYCFLAGS="$CFLAGS" MYLDFLAGS="$LDFLAGS"
 make install INSTALL_TOP=$IOS_ADDITIONAL_LIBRARY_PATH
+
+popd
+
+rm -rf $BUILD_DIR

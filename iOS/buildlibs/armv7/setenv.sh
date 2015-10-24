@@ -1,23 +1,35 @@
-#!/bin/bash
-
 unset DEVROOT SDKROOT CFLAGS CC LD CPP CXX AR AS NM CXXCPP RANLIB LDFLAGS CPPFLAGS CXXFLAGS
 
-export IOS_BASE_SDK="4.3"
-export IOS_DEPLOY_TGT="3.2"
+SDK="iphoneos"
+ARCH="armv7"
+IOS_HOST_NAME=armv7-apple-darwin*
 
-export DEVROOT=/Developer/Platforms/iPhoneOS.platform/Developer
-export SDKROOT=$DEVROOT/SDKs/iPhoneOS$IOS_BASE_SDK.sdk
-export IOS_ADDITIONAL_LIBRARY_PATH=$(pwd)/../../nativelibs/armv7
-export IOS_HOST_NAME=arm-apple-darwin10
+# ideally we have 5.1.1 but we get linker errors in xcode 7.0.1 (possibly a bug)
+IOS_TARGET="6.0"
 
-export PATH="$PATH;$DEVROOT/usr/bin"
+# warning: don't set SDKROOT, it is treated specially by xcode tools
+SDK_PATH=$(xcrun --sdk $SDK --show-sdk-path)
+PREFIX=$(pwd)/../../nativelibs/$ARCH
+export IOS_ADDITIONAL_LIBRARY_PATH=$PREFIX
 
-export CPP="$DEVROOT/usr/bin/cpp-4.2"
-export CXX="$DEVROOT/usr/bin/g++-4.2"
-export CXXCPP="$DEVROOT/usr/bin/cpp-4.2"
-export CC="$DEVROOT/usr/bin/gcc-4.2"
-export LD=$DEVROOT/usr/bin/ld
-export AR=$DEVROOT/usr/bin/ar
-export AS=$DEVROOT/usr/bin/as
-export NM=$DEVROOT/usr/bin/nm
-export RANLIB=$DEVROOT/usr/bin/ranlib
+export AR=$(xcrun --sdk $SDK --find ar)
+export AS=$(xcrun --sdk $SDK --find as)
+export ASCPP=$(xcrun --sdk $SDK --find as)
+export CC=$(xcrun --sdk $SDK --find gcc)
+export CPP="$(xcrun --sdk $SDK --find gcc) -E"
+export CXX=$(xcrun --sdk $SDK --find g++)
+export CXXCPP="$(xcrun --sdk $SDK --find g++) -E"
+export LD=$(xcrun --sdk $SDK --find ld)
+export NM=$(xcrun --sdk $SDK --find nm)
+export RANLIB=$(xcrun --sdk $SDK --find ranlib)
+export STRIP=$(xcrun --sdk $SDK --find strip)
+
+CROSS_FLAGS="-arch $ARCH -miphoneos-version-min=$IOS_TARGET -isysroot $SDK_PATH"
+export CPPFLAGS="$CROSS_FLAGS"
+export CFLAGS="$CROSS_FLAGS -I$PREFIX/include -fembed-bitcode"
+export CXXFLAGS="$CROSS_FLAGS -I$PREFIX/include -fembed-bitcode"
+export LDFLAGS="$CROSS_FLAGS -L$PREFIX/lib"
+export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$SDK_PATH/usr/lib/pkgconfig"
+export ACLOCAL_PATH="$PREFIX/share/aclocal:$SDK_PATH/usr/share/aclocal"
+
+export IOS_CONFIGURE_FLAGS="--host=$IOS_HOST_NAME --prefix=$IOS_ADDITIONAL_LIBRARY_PATH --enable-static --disable-shared"

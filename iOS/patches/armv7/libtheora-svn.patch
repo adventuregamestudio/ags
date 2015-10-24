@@ -44,7 +44,7 @@ Index: lib/arm/armcpu.c
 +++ lib/arm/armcpu.c	(working copy)
 @@ -108,9 +108,13 @@
  }
- 
+
  #else
 -/*The feature registers which can tell us what the processor supports are
 -   accessible in priveleged modes only, so we can't have a general user-space

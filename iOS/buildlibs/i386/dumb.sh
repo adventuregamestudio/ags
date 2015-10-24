@@ -1,17 +1,22 @@
 #!/bin/bash
 
+set -e
+
 source ./setenv.sh
 
 FILENAME=dumb-0.9.3
 EXTENSION=tar.gz
+BUILD_DIR=$FILENAME
 
-wget -c http://downloads.sourceforge.net/project/dumb/dumb/0.9.3/dumb-0.9.3.tar.gz -O ../$FILENAME.$EXTENSION
+rm -rf $BUILD_DIR
+mkdir -p $BUILD_DIR
+tar -xf ../../../libsrc/$FILENAME.$EXTENSION -C $BUILD_DIR --strip-components 1
 
-tar -zxf ../$FILENAME.$EXTENSION
-
-cd $FILENAME
+pushd $BUILD_DIR
 
 patch -p0 < ../../../patches/i386/libdumb-0.9.3.patch
-
 make
 make install
+
+popd
+rm -rf $BUILD_DIR

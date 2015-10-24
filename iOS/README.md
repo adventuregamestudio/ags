@@ -43,12 +43,9 @@ The iOS app consists of two parts:
 
 ##iOS app
 
-There is an xcode 3.2.6 project in the <SOURCE>/iOS/xcode directory. It requires the
-iOS SDK 4.x. The project should build on Snow Leopard or Lion with either xcode 3.x
-or 4.x.
-
-iOS SDK 6: The armv7s architecture must be removed from the build targets because
-only armv7 libraries are included with this source code.
+There is an Xcode project in the <SOURCE>/iOS/xcode directory. It requires a
+minimum of the iOS SDK 8.0. The project should build on OS X Mavericks (version
+10.9) or above with Xcode 6.0.1 or above.
 
 To build from command line, change to <SOURCE>/iOS/xcode/ags and run
 

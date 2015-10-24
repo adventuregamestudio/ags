@@ -1,0 +1,91 @@
+Index: lib/arm/arm2gnu.pl
+===================================================================
+--- lib/arm/arm2gnu.pl	(revision 18266)
++++ lib/arm/arm2gnu.pl	(working copy)
+@@ -53,7 +53,7 @@
+     s/\bINCLUDE[ \t]*([^ \t\n]+)/.include \"$1\"/;
+     s/\bGET[ \t]*([^ \t\n]+)/.include \"${ my $x=$1; $x =~ s|\.s|-gnu.S|; \$x }\"/;
+     s/\bIMPORT\b/.extern/;
+-    s/\bEXPORT\b/.global/;
++    s/\bEXPORT\s/.global _/;
+     s/^(\s+)\[/$1IF/;
+     s/^(\s+)\|/$1ELSE/;
+     s/^(\s+)\]/$1ENDIF/;
+@@ -119,7 +119,7 @@
+         $prefix = "";
+         if ($proc)
+         {
+-            $prefix = $prefix.sprintf("\t.type\t%s, %%function; ",$proc);
++            $prefix = $prefix.sprintf("\t.type\t%s, %%function; \n_%s:\n",$proc,$proc);
+             push(@proc_stack, $proc);
+             s/^[A-Za-z_\.]\w+/$&:/;
+         }
+@@ -192,7 +192,7 @@
+     s/^([A-Za-z_]\w*)[ \t]+DCB/$1 .byte/;
+     s/\bDCB\b/.byte/;
+     s/^([A-Za-z_]\w*)[ \t]+\%/.comm $1,/;
+-    s/^[A-Za-z_\.]\w+/$&:/;
++    s/^[A-Za-z_\.]\w+/$&:\n_$&:/;
+     s/^(\d+)/$1:/;
+     s/\%(\d+)/$1b_or_f/;
+     s/\%[Bb](\d+)/$1b/;
+@@ -297,8 +297,3 @@
+         $addPadding = 0;
+     }
+ }
+-#If we had a code section, mark that this object doesn't need an executable
+-# stack.
+-if ($nxstack) {
+-    printf ("    .section\t.note.GNU-stack,\"\",\%\%progbits\n");
+-}
+Index: lib/arm/armcpu.c
+===================================================================
+--- lib/arm/armcpu.c	(revision 18266)
++++ lib/arm/armcpu.c	(working copy)
+@@ -108,9 +108,13 @@
+ }
+
+ #else
+-/*The feature registers which can tell us what the processor supports are
+-   accessible in priveleged modes only, so we can't have a general user-space
+-   detection method like on x86.*/
+-# error "Configured to use ARM asm but no CPU detection method available for " \
+- "your platform.  Reconfigure with --disable-asm (or send patches)."
++
++ogg_uint32_t oc_cpu_flags_get(void){
++#if defined(IOS_ARMV7)
++    return OC_CPU_ARM_EDSP | OC_CPU_ARM_NEON | OC_CPU_ARM_MEDIA;
++#else
++    return OC_CPU_ARM_MEDIA;
+ #endif
++}
++
++#endif
+Index: lib/arm/armenquant.s
+===================================================================
+--- lib/arm/armenquant.s	(revision 18266)
++++ lib/arm/armenquant.s	(working copy)
+@@ -29,7 +29,7 @@
+ 	; r1 = const ogg_uint16_t  _dequant[64]
+ 	STMFD r13!,{r0,r14}
+ 	; Initialize the table using the C routine
+-	BLX	oc_enc_enquant_table_init_c
++	BLX	_oc_enc_enquant_table_init_c
+ 	LDR	r0, [r13],#4
+ 	MOV	r1, #2
+ 	; Now partially de-interleave it, so that the first row is all
+Index: lib/Makefile.am
+===================================================================
+--- lib/Makefile.am	(revision 18266)
++++ lib/Makefile.am	(working copy)
+@@ -301,6 +301,10 @@
+ # convert ARM asm to GNU as format
+ %-gnu.S: $(srcdir)/arm/%.s
+ 	$(srcdir)/arm/arm2gnu.pl < $< > $@
++	perl -pe '$$_= lc($$_)' $@ > $@_
++	cp $@_ $@
+ # Special case for armopts.s, because it is built by configure
+ armopts-gnu.S: arm/armopts.s
+ 	$(srcdir)/arm/arm2gnu.pl < $< > $@
++	perl -pe '$$_= lc($$_)' $@ > $@_
++	cp $@_ $@

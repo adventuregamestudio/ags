@@ -1,21 +1,24 @@
 #!/bin/bash
 
+set -e
+
 source ./setenv.sh
 
-FILENAME=libogg-1.3.0
+FILENAME=libogg-1.3.2
 EXTENSION=tar.gz
+BUILD_DIR=$FILENAME
 
-wget -c http://downloads.xiph.org/releases/ogg/$FILENAME.$EXTENSION -O ../$FILENAME.$EXTENSION
+rm -rf $BUILD_DIR
+mkdir -p $BUILD_DIR
+tar -xf ../../../libsrc/$FILENAME.$EXTENSION -C $BUILD_DIR --strip-components 1
 
-tar -zxf ../$FILENAME.$EXTENSION
+pushd $BUILD_DIR
 
-cd $FILENAME
-
-wget http://git.savannah.gnu.org/cgit/config.git/plain/config.sub -O config.sub
-wget http://git.savannah.gnu.org/cgit/config.git/plain/config.guess -O config.guess
-
-export LDFLAGS="-Wl,-L$SDKROOT/usr/lib,-L$IOS_ADDITIONAL_LIBRARY_PATH/lib"
-export CFLAGS="-std=c99 -arch armv7 -pipe -no-cpp-precomp -isysroot $SDKROOT -miphoneos-version-min=$IOS_DEPLOY_TGT -I$IOS_ADDITIONAL_LIBRARY_PATH/include"
-./configure --host=$IOS_HOST_NAME --prefix=$IOS_ADDITIONAL_LIBRARY_PATH
+# -O4 prevents adding ogg to a fat library http://stackoverflow.com/questions/11711100/cross-compiling-libogg-for-ios
+CFLAGS="$CFLAGS -O3"
+./configure $IOS_CONFIGURE_FLAGS
 make
 make install
+
+popd
+rm -rf $BUILD_DIR

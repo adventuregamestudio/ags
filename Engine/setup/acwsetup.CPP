@@ -21,8 +21,7 @@
 #include "gfx/gfxfilter.h"
 #include "util/filestream.h"
 
-using AGS::Common::Stream;
-using namespace AGS; // FIXME later
+using namespace AGS::Common;
 
 #define AL_ID(a,b,c,d)     (((a)<<24) | ((b)<<16) | ((c)<<8) | (d))
 
@@ -37,7 +36,6 @@ using namespace AGS; // FIXME later
 #define MIDI_WIN32MAPPER         AL_ID('W','3','2','M')
 
 extern "C" HWND allegro_wnd;
-extern int  INIreadint(const char*, const char*, int=0);
 extern void fgetstring_limit (char *, Stream *, int);
 extern char* ac_config_file;
 const char*setupstring, *enginever;
@@ -58,6 +56,13 @@ GFXFilter **filterList = NULL;
 const int specialFilterListIndex = 1;
 const char *specialFilterName = "Max nearest-neighbour filter";
 const char *specialFilterID = "max";
+
+static int INIreadint(const char *sectn, const char *item)
+{
+    char buf[11];
+    GetPrivateProfileString(sectn, item, "-1", buf, sizeof(buf), ac_config_file);
+    return atoi(buf);
+}
 
 int get_filter_real_index(int list_index)
 {
@@ -87,7 +92,7 @@ const char *get_filter_id(int list_index)
 
 void update_resolution_texts(HWND hDlg) {
   
-  bool letterbox_by_design = INIreadint("misc", "letterbox", 0) > 0;
+  bool letterbox_by_design = INIreadint("misc", "letterbox") > 0;
   Size res_size = ResolutionTypeToSize(defaultRes, letterbox_by_design);
   int resx = res_size.Width;
   int resy = res_size.Height;
@@ -137,7 +142,7 @@ void populate_drop_down_with_filters(HWND hDlg)
   int selected_filter = 0;
   while (thisFilter != NULL) {
 
-    if ((idx != 0) && (INIreadint("disabled", thisFilter->GetFilterID(), 0) == 1)) {
+    if ((idx != 0) && (INIreadint("disabled", thisFilter->GetFilterID()) == 1)) {
       // this filter is disabled
       delete thisFilter;
       // remove from list of filters
@@ -296,16 +301,16 @@ void InitializeDialog(HWND hDlg) {
     SendDlgItemMessage(hDlg, IDC_REDUCESPR, BM_SETCHECK, BST_CHECKED,0);
 
   // if no speech pack, disable the checkbox
-  if (!Common::File::TestReadFile("speech.vox"))
+  if (!File::TestReadFile("speech.vox"))
     EnableWindow (GetDlgItem (hDlg, IDC_SPEECHPACK), FALSE);
 
-  if (INIreadint("disabled", "speechvox", 0) == 1)
+  if (INIreadint("disabled", "speechvox") == 1)
     EnableWindow (GetDlgItem (hDlg, IDC_SPEECHPACK), FALSE);
 
-  if (INIreadint("disabled", "16bit", 0) == 1)
+  if (INIreadint("disabled", "16bit") == 1)
     EnableWindow (GetDlgItem (hDlg, IDC_REDUCESPR), FALSE);
 
-  if (INIreadint("disabled", "filters", 0) == 1)
+  if (INIreadint("disabled", "filters") == 1)
     EnableWindow (GetDlgItem(hDlg, IDC_GFXFILTER), FALSE);
 
   RECT win_rect, client_rect;
@@ -506,11 +511,11 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
 int acwsetup(const char*vername, const char*enbuild) {
   setupstring = vername;
   enginever = enbuild;
-  if (Common::File::TestReadFile(ac_config_file)) {
+  if (File::TestReadFile(ac_config_file)) {
     curscrn=INIreadint("misc","screenres");
     if (curscrn > 1)
       curscrn = 1;
-    defaultRes = (GameResolutionType)INIreadint ("misc", "defaultres", 0);
+    defaultRes = (GameResolutionType)INIreadint ("misc", "defaultres");
     if (defaultRes < 1)
       defaultRes = kGameResolution_Default;
 
@@ -521,30 +526,30 @@ int acwsetup(const char*vername, const char*enbuild) {
     if (curdigi > 3) curdigi = 0;
     if (curmidi < 0) curmidi=0;
 
-    windowed = INIreadint("misc","windowed",0);
-    useletterbox = INIreadint("misc","prefer_letterbox", 1) != 0;
+    windowed = INIreadint("misc","windowed");
+    useletterbox = INIreadint("misc","prefer_letterbox") != 0;
 
-    reduce32to16 = INIreadint("misc","notruecolor",0);
+    reduce32to16 = INIreadint("misc","notruecolor");
     if (reduce32to16 < 0)
       reduce32to16 = 0;
 
-    gameColDep = INIreadint("misc", "gamecolordepth", 0);
+    gameColDep = INIreadint("misc", "gamecolordepth");
     if (gameColDep < 0)
       gameColDep = 0;
 
-    refresh = INIreadint("misc","refresh",0);
+    refresh = INIreadint("misc","refresh");
     if (refresh < 1)
       refresh = 0;
-    antialias = INIreadint("misc","antialias",0);
+    antialias = INIreadint("misc","antialias");
     if (antialias < 1)
       antialias = 0;
 
-    sideBorders = INIreadint("misc","prefer_sideborders", 1) != 0;
+    sideBorders = INIreadint("misc","prefer_sideborders") != 0;
 
-    int cacheval = INIreadint ("misc", "cachemax", 0);
+    int cacheval = INIreadint ("misc", "cachemax");
     if (cacheval > 0)
       curmaxcache = cacheval;
-    curusespeech = INIreadint ("sound", "usespeech", 0);
+    curusespeech = INIreadint ("sound", "usespeech");
     if (curusespeech < 0)
       curusespeech = 1;
 

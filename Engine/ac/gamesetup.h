@@ -40,7 +40,7 @@ struct GameSetup {
     bool  prefer_letterbox;  // defines whether it is preferred to have letterbox
     AGS::Common::String data_files_dir;
     AGS::Common::String main_data_filename;
-    char *translation;
+    AGS::Common::String translation;
     AGS::Common::String gfxFilterID;
     AGS::Common::String gfxDriverID;
     int   override_script_os;

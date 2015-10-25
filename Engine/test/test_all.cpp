@@ -24,6 +24,7 @@ void Test_DoAllTests()
     Test_String();
     Test_Version();
     Test_File();
+    Test_IniFile();
 
     Test_Gfx();
 }

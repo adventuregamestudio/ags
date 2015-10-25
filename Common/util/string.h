@@ -271,6 +271,10 @@ public:
     {
         return Compare(cstr) != 0;
     }
+    inline bool operator <(const char *cstr) const
+    {
+        return Compare(cstr) < 0;
+    }
 
 private:
     // Creates new empty string with buffer enough to fit given length

@@ -18,6 +18,7 @@
 #include <algorithm>
 #include "debug/assert.h"
 #include "util/file.h"
+#include "util/ini_util.h"
 #include "util/inifile.h"
 #include "util/stream.h"
 
@@ -186,6 +187,108 @@ void Test_IniFile()
         ini_content.ReadCount(fs, fs->GetLength());
         
         assert(ini_content == IniFileText2);
+    }
+
+    // Test creating KeyValueTree from existing ini file
+    {
+        ConfigTree tree;
+        IniUtil::Read("test.ini", tree);
+
+        assert(tree.size() == 5);
+        assert(tree.find("") != tree.end()); // global section
+        assert(tree.find("section1") != tree.end());
+        assert(tree.find("section3") != tree.end());
+        assert(tree.find("section4") != tree.end());
+        assert(tree.find("section5") != tree.end());
+        StringMap &sub_tree = tree[""];
+        assert(sub_tree.size() == 1);
+        assert(sub_tree.find("global_item") != sub_tree.end());
+        assert(sub_tree["global_item"] == "global_value");
+        sub_tree = tree["section1"];
+        assert(sub_tree.size() == 4);
+        assert(sub_tree.find("item1") != sub_tree.end());
+        assert(sub_tree.find("item2") != sub_tree.end());
+        assert(sub_tree.find("item3") != sub_tree.end());
+        assert(sub_tree.find("new_item") != sub_tree.end());
+        assert(sub_tree["item1"] == "value1");
+        assert(sub_tree["item2"] == "value2");
+        assert(sub_tree["item3"] == "value3");
+        assert(sub_tree["new_item"] == "new_value");
+        sub_tree = tree["section3"];
+        assert(sub_tree.size() == 1);
+        assert(sub_tree.find("item_to_be_kept") != sub_tree.end());
+        assert(sub_tree["item_to_be_kept"] == "another value");
+        sub_tree = tree["section4"];
+        assert(sub_tree.size() == 3);
+        assert(sub_tree.find("new_item1") != sub_tree.end());
+        assert(sub_tree.find("item1") != sub_tree.end());
+        assert(sub_tree.find("new_item2") != sub_tree.end());
+        assert(sub_tree["new_item1"] == "new_value1");
+        assert(sub_tree["item1"] == "value");
+        assert(sub_tree["new_item2"] == "new_value2");
+        sub_tree = tree["section5"];
+        assert(sub_tree.size() == 3);
+        assert(sub_tree.find("item5_1") != sub_tree.end());
+        assert(sub_tree.find("item5_2") != sub_tree.end());
+        assert(sub_tree.find("item5_3") != sub_tree.end());
+        assert(sub_tree["item5_1"] == "value5_1");
+        assert(sub_tree["item5_2"] == "value5_2");
+        assert(sub_tree["item5_3"] == "value5_3");
+    }
+
+    // Test self-serialization
+    ConfigTree tree1;
+    {
+        ConfigTree tree2;
+
+        // construct the tree
+        {
+            StringMap &audio_tree = tree1["audio"];
+            audio_tree["volume"] = "100.0";
+            audio_tree["driver"] = "midi";
+            StringMap &video_tree = tree1["video"];
+            video_tree["gfx_mode"] = "standard mode";
+            video_tree["gamma"]    = "1.0";
+            video_tree["vsync"] = "false";
+        }
+
+        IniUtil::Write("test.ini", tree1);
+        IniUtil::Read("test.ini", tree2);
+
+        // Assert, that tree2 has exactly same items as tree1
+        assert(tree1 == tree2);
+    }
+
+    // Test merging
+    {
+        ConfigTree tree3;
+        ConfigTree tree4;
+
+        // Try merging altered tree into existing file
+        tree3 = tree1;
+        {
+            StringMap &audio_tree = tree3["audio"];
+            audio_tree["extra_option1"] = "extra value 1";
+            audio_tree["extra_option2"] = "extra value 2";
+            audio_tree["extra_option3"] = "extra value 3";
+            StringMap &video_tree = tree3["video"];
+            video_tree["gfx_mode"] = "alternate mode";
+            video_tree["gamma"]    = "2.0";
+            StringMap &new_tree = tree3["other1"];
+            new_tree["item1_1"] = "value1_1";
+            new_tree["item1_2"] = "value1_2";
+            new_tree["item1_3"] = "value1_3";
+            StringMap &new_tree2 = tree3["other2"];
+            new_tree2["item2_1"] = "value2_1";
+            new_tree2["item2_2"] = "value2_2";
+            new_tree2["item2_3"] = "value2_3";
+        }
+
+        IniUtil::Merge("test.ini", tree3);
+        IniUtil::Read("test.ini", tree4);
+
+        // Assert, that tree4 has all the items from tree3
+        assert(tree3 == tree4);
     }
 
     File::DeleteFile("test.ini");

@@ -216,6 +216,9 @@ public:
     void    PrependChar(char c);
     // Replaces all occurences of one character with another character
     void    Replace(char what, char with);
+    // Replaces particular substring with another substring; new substring
+    // may have different length
+    void    ReplaceMid(int from, int count, const char *cstr);
     // Overwrite the Nth character of the string; does not change string's length
     void    SetAt(int index, char c);
     // Makes a new string by copying up to N chars from C-string
@@ -267,6 +270,10 @@ public:
     inline bool operator!=(const char *cstr) const
     {
         return Compare(cstr) != 0;
+    }
+    inline bool operator <(const char *cstr) const
+    {
+        return Compare(cstr) < 0;
     }
 
 private:

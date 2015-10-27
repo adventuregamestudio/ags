@@ -1144,6 +1144,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\test\test_inifile.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\test\test_sprintf.cpp"
 					>
 				</File>

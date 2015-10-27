@@ -15,5 +15,6 @@
 #ifdef _DEBUG
 
 void Test_File();
+void Test_IniFile();
 
 #endif // _DEBUG

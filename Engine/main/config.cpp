@@ -25,12 +25,11 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/override_defines.h" //_getcwd()
 #include "util/filestream.h"
+#include "util/ini_util.h"
 #include "util/textstreamreader.h"
 #include "util/path.h"
 
-using AGS::Common::Stream;
-using AGS::Common::TextStreamReader;
-using AGS::Common::String;
+using namespace AGS::Common;
 
 extern GameSetup usetup;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -52,8 +51,6 @@ extern GameState play;
 char ac_conf_file_defname[MAX_PATH] = "acsetup.cfg";
 char *ac_config_file = &ac_conf_file_defname[0];
 char conffilebuf[512];
-
-char filetouse[MAX_PATH] = "nofile";
 
 // Replace the filename part of complete path WASGV with INIFIL
 void INIgetdirec(char *wasgv, char *inifil) {
@@ -77,72 +74,34 @@ void INIgetdirec(char *wasgv, char *inifil) {
 
 }
 
-char *INIreaditem(const char *sectn, const char *entry) {
-    Stream *fin = Common::File::OpenFileRead(filetouse);
-    if (fin == NULL)
-        return NULL;
-    TextStreamReader reader(fin);
-
-    //char templine[200];
-    char wantsect[100];
-    sprintf (wantsect, "[%s]", sectn);
-
-    // NOTE: the string is used as a raw buffer down there;
-    // FIXME that as soon as string class is optimized for common use
-    String line;
-
-    while (!reader.EOS()) {
-        //fgets (templine, 199, fin);
-        line = reader.ReadLine();
-
-        // find the section
-        if (strnicmp (wantsect, line.GetCStr(), strlen(wantsect)) == 0) {
-            while (!reader.EOS()) {
-                // we're in the right section, find the entry
-                //fgets (templine, 199, fin);
-                line = reader.ReadLine();
-                if (line.IsEmpty())
-                    continue;
-                if (line[0] == '[')
-                    break;
-                // Have we found the entry?
-                if (strnicmp (line.GetCStr(), entry, strlen(entry)) == 0) {
-                    const char *pptr = &line.GetCStr()[strlen(entry)];
-                    while ((pptr[0] == ' ') || (pptr[0] == '\t'))
-                        pptr++;
-                    if (pptr[0] == '=') {
-                        pptr++;
-                        while ((pptr[0] == ' ') || (pptr[0] == '\t'))
-                            pptr++;
-                        char *toret = (char*)malloc (strlen(pptr) + 5);
-                        strcpy (toret, pptr);
-                        return toret;
-                    }
-                }
-            }
+bool INIreaditem(const ConfigTree &cfg, const String &sectn, const String &item, String &value)
+{
+    ConfigNode sec_it = cfg.find(sectn);
+    if (sec_it != cfg.end())
+    {
+        StrStrIter item_it = sec_it->second.find(item);
+        if (item_it != sec_it->second.end())
+        {
+            value = item_it->second;
+            return true;
         }
     }
-    return NULL;
+    return false;
 }
 
-int INIreadint (const char *sectn, const char *item, int errornosect = 1) {
-    char *tempstr = INIreaditem (sectn, item);
-    if (tempstr == NULL)
+int INIreadint(const ConfigTree &cfg, const String &sectn, const String &item)
+{
+    String str;
+    if (!INIreaditem(cfg, sectn, item, str))
         return -1;
 
-    int toret = atoi(tempstr);
-    free (tempstr);
-    return toret;
+    return atoi(str);
 }
 
-String INIreadstring(const char *sectn, const char *entry)
+String INIreadstring(const ConfigTree &cfg, const String &sectn, const String &item)
 {
-    char *tempstr = INIreaditem(sectn, entry);
-    String str = tempstr;
-    if (tempstr)
-    {
-        free(tempstr);
-    }
+    String str;
+    INIreaditem(cfg, sectn, item, str);
     return str;
 }
 
@@ -189,13 +148,14 @@ void read_config_file(char *argv0) {
         return;
     }
 
-    if (Common::File::TestReadFile(ac_config_file)) {
-        strcpy(filetouse,ac_config_file);
+    ConfigTree cfg;
+    if (IniUtil::Read(ac_config_file, cfg))
+    {
 #ifndef WINDOWS_VERSION
-        usetup.digicard=INIreadint("sound","digiid");
-        usetup.midicard=INIreadint("sound","midiid");
+        usetup.digicard=INIreadint(cfg, "sound","digiid");
+        usetup.midicard=INIreadint(cfg, "sound","midiid");
 #else
-        int idx = INIreadint("sound","digiwinindx", 0);
+        int idx = INIreadint(cfg, "sound","digiwinindx");
         if (idx == 0)
             idx = DIGI_DIRECTAMX(0);
         else if (idx == 1)
@@ -208,7 +168,7 @@ void read_config_file(char *argv0) {
             idx = DIGI_AUTODETECT;
         usetup.digicard = idx;
 
-        idx = INIreadint("sound","midiwinindx", 0);
+        idx = INIreadint(cfg, "sound","midiwinindx");
         if (idx == 1)
             idx = MIDI_NONE;
         else if (idx == 2)
@@ -224,29 +184,29 @@ void read_config_file(char *argv0) {
 #endif
 
 #if !defined (LINUX_VERSION)
-        int threaded_audio = INIreadint("sound", "threaded");
+        int threaded_audio = INIreadint(cfg, "sound", "threaded");
         if (threaded_audio >= 0)
             psp_audio_multithreaded = threaded_audio;
 #endif
 
-        usetup.windowed = INIreadint("misc", "windowed") > 0;
+        usetup.windowed = INIreadint(cfg, "misc", "windowed") > 0;
 
-        usetup.refresh = INIreadint ("misc", "refresh");
-        usetup.enable_antialiasing = INIreadint ("misc", "antialias") > 0;
-        usetup.force_hicolor_mode = INIreadint("misc", "notruecolor") > 0;
-        usetup.prefer_sideborders = INIreadint("misc", "prefer_sideborders", 1) != 0;
+        usetup.refresh = INIreadint (cfg, "misc", "refresh");
+        usetup.enable_antialiasing = INIreadint (cfg, "misc", "antialias") > 0;
+        usetup.force_hicolor_mode = INIreadint(cfg, "misc", "notruecolor") > 0;
+        usetup.prefer_sideborders = INIreadint(cfg, "misc", "prefer_sideborders") != 0;
 
 #if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
         // PSP: Letterboxing is not useful on the PSP.
         usetup.prefer_letterbox = false;
 #else
-        usetup.prefer_letterbox = INIreadint ("misc", "prefer_letterbox", 1) != 0;
+        usetup.prefer_letterbox = INIreadint (cfg, "misc", "prefer_letterbox") != 0;
 #endif
 
         // This option is backwards (usevox is 0 if no_speech_pack)
-        usetup.no_speech_pack = INIreadint ("sound", "usespeech", 1) == 0;
+        usetup.no_speech_pack = INIreadint(cfg, "sound", "usespeech") == 0;
 
-        usetup.data_files_dir = INIreadstring("misc","datadir");
+        usetup.data_files_dir = INIreadstring(cfg, "misc","datadir");
         if (usetup.data_files_dir.IsEmpty())
             usetup.data_files_dir = ".";
         // strip any trailing slash
@@ -261,41 +221,40 @@ void read_config_file(char *argv0) {
 #else
         usetup.data_files_dir.TrimRight('/');
 #endif
-        usetup.main_data_filename = INIreadstring ("misc", "datafile");
+        usetup.main_data_filename = INIreadstring(cfg, "misc", "datafile");
 
 #if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
         // PSP: No graphic filters are available.
         usetup.gfxFilterID = "";
 #else
-        usetup.gfxFilterID = INIreadstring("misc", "gfxfilter");
+        usetup.gfxFilterID = INIreadstring(cfg, "misc", "gfxfilter");
 #endif
 
 #if defined (WINDOWS_VERSION)
-        usetup.gfxDriverID = INIreadstring("misc", "gfxdriver");
+        usetup.gfxDriverID = INIreadstring(cfg, "misc", "gfxdriver");
 #else
         usetup.gfxDriverID = "DX5";
 #endif
 
-        usetup.translation = INIreaditem ("language", "translation");
+        usetup.translation = INIreadstring(cfg, "language", "translation");
 
 #if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
         // PSP: Don't let the setup determine the cache size as it is always too big.
-        int tempint = INIreadint ("misc", "cachemax");
+        int tempint = INIreadint(cfg, "misc", "cachemax");
         if (tempint > 0)
             spriteset.maxCacheSize = tempint * 1024;
 #endif
 
-        char *repfile = INIreaditem ("misc", "replay");
+        String repfile = INIreadstring(cfg, "misc", "replay");
         if (repfile != NULL) {
             strcpy (replayfile, repfile);
-            free (repfile);
             play.playback = 1;
         }
         else
             play.playback = 0;
 
-        usetup.override_multitasking = INIreadint("override", "multitasking");
-        String override_os = INIreadstring("override", "os");
+        usetup.override_multitasking = INIreadint(cfg, "override", "multitasking");
+        String override_os = INIreadstring(cfg, "override", "os");
         usetup.override_script_os = -1;
         if (override_os.CompareNoCase("dos") == 0)
         {
@@ -313,7 +272,7 @@ void read_config_file(char *argv0) {
         {
             usetup.override_script_os = eOS_Mac;
         }
-        usetup.override_upscale = INIreadint("override", "upscale") > 0;
+        usetup.override_upscale = INIreadint(cfg, "override", "upscale") > 0;
 
         // NOTE: at the moment AGS provide little means to determine whether an
         // option was overriden by command line, and since command line args
@@ -321,7 +280,7 @@ void read_config_file(char *argv0) {
         // default before applying value from config file.
         if (!enable_log_file && !disable_log_file)
         {
-            int log_value = INIreadint ("misc", "log");
+            int log_value = INIreadint (cfg, "misc", "log");
             if (log_value >= 0)
                 enable_log_file = log_value > 0;
         }

@@ -53,7 +53,7 @@ namespace Math
         }
         else if (from >= floor + height)
         {
-            from = 0;
+            from = floor + height;
             length = 0;
         }
 

@@ -12,6 +12,8 @@
 		16A98D9E1BCA2ED700254F37 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 16A98D9D1BCA2ED700254F37 /* UIKit.framework */; };
 		16A98DA01BCA2EE700254F37 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 16A98D9F1BCA2EE700254F37 /* OpenGLES.framework */; };
 		16A98DA21BCA2F2D00254F37 /* libbz2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 16A98DA11BCA2F2D00254F37 /* libbz2.tbd */; };
+		16EA269B1BDC760300DADE0D /* ini_util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 16EA26971BDC760300DADE0D /* ini_util.cpp */; settings = {ASSET_TAGS = (); }; };
+		16EA269C1BDC760300DADE0D /* inifile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 16EA26991BDC760300DADE0D /* inifile.cpp */; settings = {ASSET_TAGS = (); }; };
 		1D3623260D0F684500981E51 /* agsAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1D3623250D0F684500981E51 /* agsAppDelegate.mm */; };
 		1D60589B0D05DD56006BFB54 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.mm */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
@@ -344,6 +346,10 @@
 		16A98D9D1BCA2ED700254F37 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.0.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		16A98D9F1BCA2EE700254F37 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.0.sdk/System/Library/Frameworks/OpenGLES.framework; sourceTree = DEVELOPER_DIR; };
 		16A98DA11BCA2F2D00254F37 /* libbz2.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libbz2.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.0.sdk/usr/lib/libbz2.tbd; sourceTree = DEVELOPER_DIR; };
+		16EA26971BDC760300DADE0D /* ini_util.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ini_util.cpp; sourceTree = "<group>"; };
+		16EA26981BDC760300DADE0D /* ini_util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ini_util.h; sourceTree = "<group>"; };
+		16EA26991BDC760300DADE0D /* inifile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inifile.cpp; sourceTree = "<group>"; };
+		16EA269A1BDC760300DADE0D /* inifile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inifile.h; sourceTree = "<group>"; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1D3623240D0F684500981E51 /* agsAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = agsAppDelegate.h; sourceTree = "<group>"; };
 		1D3623250D0F684500981E51 /* agsAppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = agsAppDelegate.mm; sourceTree = "<group>"; };
@@ -1507,6 +1513,10 @@
 		60CA3A46160713D300CFB3BD /* util */ = {
 			isa = PBXGroup;
 			children = (
+				16EA26971BDC760300DADE0D /* ini_util.cpp */,
+				16EA26981BDC760300DADE0D /* ini_util.h */,
+				16EA26991BDC760300DADE0D /* inifile.cpp */,
+				16EA269A1BDC760300DADE0D /* inifile.h */,
 				16164DED1BC52C87004FE07F /* multifilelib.h */,
 				16164DEE1BC52C87004FE07F /* mutifilelib.cpp */,
 				600C369016C454C400D0CC4F /* stream.cpp */,
@@ -2427,6 +2437,7 @@
 				60CA3D58160713FF00CFB3BD /* gamestate.cpp in Sources */,
 				60CA3D59160713FF00CFB3BD /* global_audio.cpp in Sources */,
 				60CA3D5A160713FF00CFB3BD /* global_button.cpp in Sources */,
+				16EA269B1BDC760300DADE0D /* ini_util.cpp in Sources */,
 				60CA3D5B160713FF00CFB3BD /* global_character.cpp in Sources */,
 				60CA3D5C160713FF00CFB3BD /* global_datetime.cpp in Sources */,
 				60CA3D5D160713FF00CFB3BD /* global_debug.cpp in Sources */,
@@ -2614,6 +2625,7 @@
 				60898DCC160785DD009E152F /* gfxfilter_hq3x.cpp in Sources */,
 				60898DD6160787FF009E152F /* hq2x3x.cpp in Sources */,
 				6080428E1614DE8F00D33732 /* assetmanager.cpp in Sources */,
+				16EA269C1BDC760300DADE0D /* inifile.cpp in Sources */,
 				608B4E57163BF27B00547FAA /* libc.c in Sources */,
 				60DC154116675B2B002D0474 /* cc_error_engine.cpp in Sources */,
 				60DC154216675B2B002D0474 /* cc_instance.cpp in Sources */,

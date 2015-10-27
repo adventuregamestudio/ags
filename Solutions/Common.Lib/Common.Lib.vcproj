@@ -496,6 +496,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\ini_util.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\inifile.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\lzw.cpp"
 					>
 				</File>
@@ -803,6 +811,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\util\geometry.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\ini_util.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\inifile.h"
 					>
 				</File>
 				<File

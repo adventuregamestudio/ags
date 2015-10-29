@@ -17,6 +17,14 @@
 
 #include "util/string.h"
 
+// Mouse speed definition, specifies how the speed setting is applied to the mouse movement
+enum MouseSpeedDef
+{
+    kMouseSpeed_Absolute,       // apply speed multiplier directly
+    kMouseSpeed_CurrentDisplay, // keep speed/resolution relation based on current system display mode
+    kNumMouseSpeedDefs
+};
+
 struct GameSetup {
     int digicard;
     int midicard;
@@ -43,6 +51,7 @@ struct GameSetup {
     char  override_multitasking;
     bool  override_upscale;
     float mouse_speed;
+    MouseSpeedDef mouse_speed_def;
     GameSetup();
 };
 

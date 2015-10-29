@@ -963,6 +963,9 @@ void log_out_driver_modes(const int color_depth)
 
 int create_gfx_driver_and_init_mode(const String &gfx_driver_id, Size &game_size, Size &screen_size)
 {
+    Size init_desktop;
+    get_desktop_resolution(&init_desktop.Width, &init_desktop.Height);
+
     if (!create_gfx_driver(gfx_driver_id))
         return EXIT_NORMAL;
     // Log out supported driver modes
@@ -987,6 +990,12 @@ int create_gfx_driver_and_init_mode(const String &gfx_driver_id, Size &game_size
     if (control_sens)
     {
         Mouse::EnableControl(!usetup.windowed);
+        if (usetup.mouse_speed_def == kMouseSpeed_CurrentDisplay)
+        {
+            Size cur_desktop;
+            get_desktop_resolution(&cur_desktop.Width, &cur_desktop.Height);
+            Mouse::SetSpeedUnit(Math::Max((float)cur_desktop.Width / (float)init_desktop.Width, (float)cur_desktop.Height / (float)init_desktop.Height));
+        }
         Mouse::SetSpeed(usetup.mouse_speed);
     }
     Out::FPrint("Mouse control: %s, base: %f, speed: %f", Mouse::IsControlEnabled() ? "on" : "off",

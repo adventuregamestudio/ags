@@ -21,6 +21,7 @@
 #include "util/ini_util.h"
 
 void read_config_file(char *argv0);
+void save_config_file();
 
 bool INIreaditem(const AGS::Common::ConfigTree &cfg, const AGS::Common::String &sectn, const AGS::Common::String &item, AGS::Common::String &value);
 int INIreadint(const AGS::Common::ConfigTree &cfg, const AGS::Common::String &sectn, const AGS::Common::String &item);

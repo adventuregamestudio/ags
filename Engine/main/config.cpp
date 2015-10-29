@@ -311,3 +311,12 @@ void read_config_file(char *argv0) {
         usetup.gfxDriverID = "DX5";
 
 }
+
+void save_config_file()
+{
+    ConfigTree cfg;
+
+    cfg["mouse"]["speed"] = String::FromFormat("%f", Mouse::GetSpeed());
+
+    IniUtil::Merge(ac_config_file, cfg);
+}

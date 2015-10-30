@@ -19,6 +19,7 @@
 #include "resource/resource.h"
 #include "ac/gamestructdefines.h"
 #include "gfx/gfxfilter.h"
+#include "main/config.h"
 #include "util/filestream.h"
 
 using namespace AGS::Common;
@@ -56,13 +57,7 @@ GFXFilter **filterList = NULL;
 const int specialFilterListIndex = 1;
 const char *specialFilterName = "Max nearest-neighbour filter";
 const char *specialFilterID = "max";
-
-static int INIreadint(const char *sectn, const char *item)
-{
-    char buf[11];
-    GetPrivateProfileString(sectn, item, "-1", buf, sizeof(buf), ac_config_file);
-    return atoi(buf);
-}
+ConfigTree wincfg;
 
 int get_filter_real_index(int list_index)
 {
@@ -92,7 +87,7 @@ const char *get_filter_id(int list_index)
 
 void update_resolution_texts(HWND hDlg) {
   
-  bool letterbox_by_design = INIreadint("misc", "letterbox") > 0;
+  bool letterbox_by_design = INIreadint(wincfg, "misc", "letterbox") > 0;
   Size res_size = ResolutionTypeToSize(defaultRes, letterbox_by_design);
   int resx = res_size.Width;
   int resy = res_size.Height;
@@ -142,7 +137,7 @@ void populate_drop_down_with_filters(HWND hDlg)
   int selected_filter = 0;
   while (thisFilter != NULL) {
 
-    if ((idx != 0) && (INIreadint("disabled", thisFilter->GetFilterID()) == 1)) {
+    if ((idx != 0) && (INIreadint(wincfg, "disabled", thisFilter->GetFilterID()) == 1)) {
       // this filter is disabled
       delete thisFilter;
       // remove from list of filters
@@ -304,13 +299,13 @@ void InitializeDialog(HWND hDlg) {
   if (!File::TestReadFile("speech.vox"))
     EnableWindow (GetDlgItem (hDlg, IDC_SPEECHPACK), FALSE);
 
-  if (INIreadint("disabled", "speechvox") == 1)
+  if (INIreadint(wincfg, "disabled", "speechvox") == 1)
     EnableWindow (GetDlgItem (hDlg, IDC_SPEECHPACK), FALSE);
 
-  if (INIreadint("disabled", "16bit") == 1)
+  if (INIreadint(wincfg, "disabled", "16bit") == 1)
     EnableWindow (GetDlgItem (hDlg, IDC_REDUCESPR), FALSE);
 
-  if (INIreadint("disabled", "filters") == 1)
+  if (INIreadint(wincfg, "disabled", "filters") == 1)
     EnableWindow (GetDlgItem(hDlg, IDC_GFXFILTER), FALSE);
 
   RECT win_rect, client_rect;
@@ -511,45 +506,45 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
 int acwsetup(const char*vername, const char*enbuild) {
   setupstring = vername;
   enginever = enbuild;
-  if (File::TestReadFile(ac_config_file)) {
-    curscrn=INIreadint("misc","screenres");
+  if (IniUtil::Read(ac_config_file, wincfg)) {
+    curscrn=INIreadint(wincfg, "misc","screenres");
     if (curscrn > 1)
       curscrn = 1;
-    defaultRes = (GameResolutionType)INIreadint ("misc", "defaultres");
+    defaultRes = (GameResolutionType)INIreadint (wincfg, "misc", "defaultres");
     if (defaultRes < 1)
       defaultRes = kGameResolution_Default;
 
-    curdigi=INIreadint("sound","digiwinindx");
-    curmidi=INIreadint("sound","midiwinindx");
+    curdigi=INIreadint(wincfg, "sound","digiwinindx");
+    curmidi=INIreadint(wincfg, "sound","midiwinindx");
 
     if (curdigi < 0) curdigi=0;
     if (curdigi > 3) curdigi = 0;
     if (curmidi < 0) curmidi=0;
 
-    windowed = INIreadint("misc","windowed");
-    useletterbox = INIreadint("misc","prefer_letterbox") != 0;
+    windowed = INIreadint(wincfg, "misc","windowed");
+    useletterbox = INIreadint(wincfg, "misc","prefer_letterbox") != 0;
 
-    reduce32to16 = INIreadint("misc","notruecolor");
+    reduce32to16 = INIreadint(wincfg, "misc","notruecolor");
     if (reduce32to16 < 0)
       reduce32to16 = 0;
 
-    gameColDep = INIreadint("misc", "gamecolordepth");
+    gameColDep = INIreadint(wincfg, "misc", "gamecolordepth");
     if (gameColDep < 0)
       gameColDep = 0;
 
-    refresh = INIreadint("misc","refresh");
+    refresh = INIreadint(wincfg, "misc","refresh");
     if (refresh < 1)
       refresh = 0;
-    antialias = INIreadint("misc","antialias");
+    antialias = INIreadint(wincfg, "misc","antialias");
     if (antialias < 1)
       antialias = 0;
 
-    sideBorders = INIreadint("misc","prefer_sideborders") != 0;
+    sideBorders = INIreadint(wincfg, "misc","prefer_sideborders") != 0;
 
-    int cacheval = INIreadint ("misc", "cachemax");
+    int cacheval = INIreadint (wincfg, "misc", "cachemax");
     if (cacheval > 0)
       curmaxcache = cacheval;
-    curusespeech = INIreadint ("sound", "usespeech");
+    curusespeech = INIreadint (wincfg, "sound", "usespeech");
     if (curusespeech < 0)
       curusespeech = 1;
 

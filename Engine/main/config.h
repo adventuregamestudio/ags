@@ -25,6 +25,7 @@ void save_config_file();
 
 bool INIreaditem(const AGS::Common::ConfigTree &cfg, const AGS::Common::String &sectn, const AGS::Common::String &item, AGS::Common::String &value);
 int INIreadint(const AGS::Common::ConfigTree &cfg, const AGS::Common::String &sectn, const AGS::Common::String &item);
+float INIreadfloat(const AGS::Common::ConfigTree &cfg, const AGS::Common::String &sectn, const AGS::Common::String &item, float def_value = 0.f);
 
 
 #endif // __AGS_EE_MAIN__CONFIG_H

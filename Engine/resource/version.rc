@@ -114,7 +114,7 @@ IDI_ICON2               ICON                    "game-1.ico"
 // Dialog
 //
 
-IDD_DIALOG1 DIALOGEX 0, 0, 360, 285
+IDD_DIALOG1 DIALOGEX 0, 0, 360, 295
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "AGS Game Settings"
 FONT 8, "Tahoma", 400, 0, 0x0
@@ -135,13 +135,13 @@ BEGIN
     PUSHBUTTON      "&Save and Run",IDOKRUN,67,102,56,14
     PUSHBUTTON      "Cancel",IDCANCEL,127,102,56,14
     PUSHBUTTON      "Ad&vanced  >>>",IDC_ADVANCED,282,101,70,15
-    GROUPBOX        "Sound options",IDC_STATIC,7,121,185,89
+    GROUPBOX        "Sound options",IDC_STATIC,7,122,185,60
     CONTROL         "Digital Sound:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,13,136,46,9
     COMBOBOX        IDC_COMBO1,68,134,118,70,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_GROUP | WS_TABSTOP
     CONTROL         "MIDI music:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,13,152,47,10
     COMBOBOX        IDC_COMBO2,68,150,118,70,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_TABSTOP
     CONTROL         "Use voice pack if available",IDC_SPEECHPACK,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,13,169,160,9
-    GROUPBOX        "Graphics options",IDC_STATIC,198,121,154,89
+    GROUPBOX        "Graphics options",IDC_STATIC,198,121,154,99
     CONTROL         "Enable side borders",IDC_SIDEBORDERS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,136,135,9
     CONTROL         "Enable top && bottom borders",IDC_LETTERBOX,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,150,132,9
     CONTROL         "S&mooth scaled sprites (fast CPUs only)",IDC_ANTIALIAS,
@@ -150,11 +150,13 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,178,135,9
     CONTROL         "Use 85 &Hz display (CRT monitors only)",IDC_REFRESH,
                     "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,192,138,9
-    GROUPBOX        "Sprite cache",IDC_STATICADV,7,212,345,55,NOT WS_VISIBLE
-    CONTROL         "Maximum size:",IDC_STATICADV3,"Static",SS_LEFTNOWORDWRAP | NOT WS_VISIBLE | WS_GROUP,15,225,50,10
-    COMBOBOX        IDC_COMBO4,68,223,108,100,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "You can limit the maximum amount of memory that the game will use for its sprite cache. Smaller values may make the game run slower but use less RAM; higher values may be faster but use more RAM. You should not normally need to adjust this.",IDC_STATICADV2,13,239,323,26,NOT WS_VISIBLE
-    CTEXT           "Static",IDC_VERSION,91,270,176,9
+    GROUPBOX        "Sprite cache",IDC_STATICADV,7,222,345,55,NOT WS_VISIBLE
+    CONTROL         "Maximum size:",IDC_STATICADV3,"Static",SS_LEFTNOWORDWRAP | NOT WS_VISIBLE | WS_GROUP,15,235,50,10
+    COMBOBOX        IDC_COMBO4,68,233,108,100,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "You can limit the maximum amount of memory that the game will use for its sprite cache. Smaller values may make the game run slower but use less RAM; higher values may be faster but use more RAM. You should not normally need to adjust this.",IDC_STATICADV2,13,249,323,26,NOT WS_VISIBLE
+    CTEXT           "Static",IDC_VERSION,91,280,176,9
+    CONTROL         "",IDC_MOUSESPEED,"msctls_trackbar32", WS_TABSTOP,10,197,180,21
+    GROUPBOX        "Mouse speed: Default",IDC_MOUSESPEED_TEXT,7,185,186,35
 END
 
 
@@ -171,7 +173,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 352
         TOPMARGIN, 7
-        BOTTOMMARGIN, 280
+        BOTTOMMARGIN, 290
     END
 END
 #endif    // APSTUDIO_INVOKED

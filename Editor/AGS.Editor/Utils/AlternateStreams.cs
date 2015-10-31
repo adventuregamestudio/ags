@@ -20,7 +20,7 @@ namespace AGS.Editor.Utils
         public const uint URLZONE_USER_MAX = 10000;
 
         private const uint FILE_ATTRIBUTE_NORMAL = 0x80;
-        private const uint GENERIC_ALL = 0x10000000;
+        private const uint GENERIC_READ = 0x80000000;
         private const uint FILE_SHARE_READ = 0x00000001;
         private const uint OPEN_EXISTING = 3;
 
@@ -37,7 +37,7 @@ namespace AGS.Editor.Utils
         {
             string streamPath = path + ":" + streamName;
 
-            SafeFileHandle handle = CreateFile(streamPath, GENERIC_ALL,
+            SafeFileHandle handle = CreateFile(streamPath, GENERIC_READ,
                 FILE_SHARE_READ, IntPtr.Zero, OPEN_EXISTING,
                 FILE_ATTRIBUTE_NORMAL, IntPtr.Zero);
                 

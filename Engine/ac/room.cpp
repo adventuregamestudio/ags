@@ -63,6 +63,7 @@
 #include "gfx/bitmap.h"
 #include "util/math.h"
 #include "main/graphics_mode.h"
+#include "device/mousew32.h"
 
 using AGS::Common::Bitmap;
 using AGS::Common::Stream;
@@ -541,6 +542,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
 		scrnhit = BitmapHelper::GetScreenBitmap()->GetHeight();
         vesa_yres = scrnhit;
+        game_frame_x_offset = (final_scrn_wid - scrnwid) / 2;
         game_frame_y_offset = (final_scrn_hit - scrnhit) / 2;
 
         filter->SetMouseArea(0,0, scrnwid-1, vesa_yres-1);

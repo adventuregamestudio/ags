@@ -98,6 +98,15 @@ int INIreadint(const ConfigTree &cfg, const String &sectn, const String &item)
     return atoi(str);
 }
 
+float INIreadfloat(const ConfigTree &cfg, const String &sectn, const String &item, float def_value)
+{
+    String str;
+    if (!INIreaditem(cfg, sectn, item, str))
+        return def_value;
+
+    return atof(str);
+}
+
 String INIreadstring(const ConfigTree &cfg, const String &sectn, const String &item)
 {
     String str;
@@ -252,6 +261,10 @@ void read_config_file(char *argv0) {
         }
         else
             play.playback = 0;
+
+        usetup.mouse_speed = INIreadfloat(cfg, "mouse", "speed", 1.f);
+        if (usetup.mouse_speed <= 0.f)
+            usetup.mouse_speed = 1.f;
 
         usetup.override_multitasking = INIreadint(cfg, "override", "multitasking");
         String override_os = INIreadstring(cfg, "override", "os");

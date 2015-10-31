@@ -153,6 +153,11 @@ struct Rect
 	{
 		return Bottom - Top + 1;
 	}
+
+    inline bool IsInside(int x, int y) const
+    {
+        return x >= Left && y >= Top && (x <= Right) && (y <= Bottom);
+    }
 };
 
 // Helper factory function

@@ -743,6 +743,7 @@ bool init_gfx_mode(const Size &game_size, const Size &screen_size, int cdep)
     final_scrn_wid = game_size.Width;
     final_scrn_hit = game_size.Height;
     final_col_dep = cdep;
+    game_frame_x_offset = (final_scrn_wid - scrnwid) / 2;
     game_frame_y_offset = (final_scrn_hit - scrnhit) / 2;
     usetup.want_letterbox = final_scrn_hit > scrnhit;
 
@@ -980,6 +981,16 @@ int create_gfx_driver_and_init_mode(const String &gfx_driver_id, Size &game_size
     {
         return res;
     }
+
+    // Assign mouse control parameters
+    const bool control_sens = !usetup.windowed;
+    if (control_sens)
+    {
+        Mouse::EnableControl(!usetup.windowed);
+        Mouse::SetSpeed(usetup.mouse_speed);
+    }
+    Out::FPrint("Mouse control: %s, base: %f, speed: %f", Mouse::IsControlEnabled() ? "on" : "off",
+        Mouse::GetSpeedUnit(), Mouse::GetSpeed());
     return RETURN_CONTINUE;
 }
 

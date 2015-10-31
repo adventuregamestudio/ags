@@ -17,10 +17,6 @@
 
 #include "util/string.h"
 
-// game setup, read in from CFG file
-// this struct is redefined in acdialog.cpp, any changes might
-// need to be reflected there
-// [IKM] 2012-06-27: now it isn't
 struct GameSetup {
     int digicard;
     int midicard;
@@ -46,6 +42,7 @@ struct GameSetup {
     int   override_script_os;
     char  override_multitasking;
     bool  override_upscale;
+    float mouse_speed;
     GameSetup();
 };
 

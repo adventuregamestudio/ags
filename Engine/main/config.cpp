@@ -263,6 +263,8 @@ void read_config_file(char *argv0) {
         else
             play.playback = 0;
 
+        usetup.mouse_auto_lock = INIreadint(cfg, "mouse", "auto_lock") > 0;
+
         usetup.mouse_speed = INIreadfloat(cfg, "mouse", "speed", 1.f);
         if (usetup.mouse_speed <= 0.f)
             usetup.mouse_speed = 1.f;

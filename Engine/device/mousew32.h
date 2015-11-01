@@ -49,6 +49,13 @@ int minstalled();
 
 namespace Mouse
 {
+    // Get if mouse is locked to the game window
+    bool IsLockedToWindow();
+    // Try locking mouse to the game window
+    bool TryLockToWindow();
+    // Unlock mouse from the game window
+    void UnlockFromWindow();
+
     // Enable mouse movement control
     void EnableControl(bool confine);
     // Disable mouse movement control

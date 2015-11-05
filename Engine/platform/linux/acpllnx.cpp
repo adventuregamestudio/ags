@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <allegro.h>
+#include <xalleg.h>
 #include "gfx/ali3d.h"
 #include "ac/runtime_defines.h"
 #include "platform/base/agsplatformdriver.h"
@@ -57,6 +58,8 @@ struct AGSLinux : AGSPlatformDriver {
   virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char*, ...);
   virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize);
+  virtual bool LockMouseToWindow();
+  virtual void UnlockMouse();
 };
 
 
@@ -206,4 +209,16 @@ void AGSLinux::ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_
   {
     snprintf(destPath, destSize, "%s", sourcePath);
   }
+}
+
+bool AGSLinux::LockMouseToWindow()
+{
+    return XGrabPointer(_xwin.display, _xwin.window, False,
+        PointerMotionMask | ButtonPressMask | ButtonReleaseMask,
+        GrabModeAsync, GrabModeAsync, _xwin.window, None, CurrentTime) == GrabSuccess;
+}
+
+void AGSLinux::UnlockMouse()
+{
+    XUngrabPointer(_xwin.display, CurrentTime);
 }

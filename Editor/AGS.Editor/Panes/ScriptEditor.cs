@@ -1,18 +1,11 @@
+using AGS.Editor.Components;
+using AGS.Editor.TextProcessing;
 using AGS.Types;
 using AGS.Types.AutoComplete;
-using Scintilla.Enums;
-using Scintilla.Lexers;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
 using System.Text;
 using System.Windows.Forms;
-using AGS.Types.Enums;
-using AGS.Editor.TextProcessing;
-using AGS.Types.Interfaces;
-using AGS.Editor.Components;
 
 namespace AGS.Editor
 {
@@ -31,7 +24,7 @@ namespace AGS.Editor
         private const string UNDO_COMMAND = "ScriptUndo";
         private const string REDO_COMMAND = "ScriptRedo";
         private const string SHOW_AUTOCOMPLETE_COMMAND = "ScriptShowAutoComplete";
-		private const string MATCH_BRACE_COMMAND = "MatchBrace";
+        private const string MATCH_BRACE_COMMAND = "MatchBrace";
         private const string TOGGLE_BREAKPOINT_COMMAND = "ToggleBreakpoint";
         private const string FIND_COMMAND = "ScriptFind";
         private const string FIND_NEXT_COMMAND = "ScriptFindNext";
@@ -40,10 +33,10 @@ namespace AGS.Editor
         private const string REPLACE_ALL_COMMAND = "ScriptReplaceAll";
         private const string GOTO_LINE_COMMAND = "ScriptGotoLine";
         private const string SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND = "ScriptShowMatchingScript";
-		private const string CONTEXT_MENU_GO_TO_DEFINITION = "CtxGoToDefiniton";
+        private const string CONTEXT_MENU_GO_TO_DEFINITION = "CtxGoToDefiniton";
         private const string CONTEXT_MENU_FIND_ALL_USAGES = "CtxFindAllUsages";
         private const string CONTEXT_MENU_GO_TO_SPRITE = "CtxGoToSprite";
-		private const string CONTEXT_MENU_TOGGLE_BREAKPOINT = "CtxToggleBreakpoint";
+        private const string CONTEXT_MENU_TOGGLE_BREAKPOINT = "CtxToggleBreakpoint";
 
         private Script _script;
         private Room _room;
@@ -52,19 +45,19 @@ namespace AGS.Editor
         private List<MenuCommand> _toolbarIcons = new List<MenuCommand>();
         private MenuCommands _extraMenu = new MenuCommands("&Edit", GUIController.FILE_MENU_ID);
         private string _lastSearchText = string.Empty;
-		private bool _lastCaseSensitive = false;
+        private bool _lastCaseSensitive = false;
         private AutoComplete.BackgroundCacheUpdateStatusChangedHandler _autocompleteUpdateHandler;
         private EditorEvents.FileChangedInGameFolderHandler _fileChangedHandler;
         private EventHandler _mainWindowActivatedHandler;
         private Action<Script> _showMatchingScript;
         private bool _allowZoomToFunction = true;
-		private string _goToDefinition = null;
+        private string _goToDefinition = null;
         private int? _goToSprite = null;
         private bool _fileChangedExternally = false;
         // we need this bool because it's not necessarily the same as scintilla.Modified
         private bool _editorTextModifiedSinceLastCopy = false;
         private int _firstVisibleLine;
-        private string _lastKnownScriptText;        
+        private string _lastKnownScriptText;
 
         public ScriptEditor(Script scriptToEdit, AGSEditor agsEditor, Action<Script> showMatchingScript)
         {
@@ -72,7 +65,7 @@ namespace AGS.Editor
             _agsEditor = agsEditor;
             Init(scriptToEdit);
             _room = null;
-            _roomNumber = 0;            
+            _roomNumber = 0;
         }
 
         public void Clear()
@@ -132,27 +125,27 @@ namespace AGS.Editor
             this.Resize += new EventHandler(ScriptEditor_Resize);
             this.Script = scriptToEdit;
 
-            InitScintilla();            
+            InitScintilla();
         }
-        
+
         public int FirstVisibleLine { get { return _firstVisibleLine; } }
 
         public string ModifiedText
         {
-            get 
-            { 
-                return scintilla.IsDisposed ? 
-                    null : scintilla.GetText(); 
+            get
+            {
+                return scintilla.IsDisposed ?
+                    null : scintilla.GetText();
             }
-            set 
+            set
             {
                 _lastKnownScriptText = value;
-                scintilla.SetTextModified(value); 
+                scintilla.SetTextModified(value);
             }
         }
 
         public void InitScintilla()
-        {            
+        {
             scintilla.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
             UpdateStructHighlighting();
 
@@ -169,7 +162,7 @@ namespace AGS.Editor
             scintilla.ConstructContextMenu += new ScintillaWrapper.ConstructContextMenuHandler(scintilla_ConstructContextMenu);
             scintilla.ActivateContextMenu += new ScintillaWrapper.ActivateContextMenuHandler(scintilla_ActivateContextMenu);
             scintilla.ToggleBreakpoint += new EventHandler<Scintilla.MarginClickEventArgs>(scintilla_ToggleBreakpoint);
-            
+
             if (!this.Script.IsHeader)
             {
                 scintilla.SetAutoCompleteSource(this.Script);
@@ -177,7 +170,7 @@ namespace AGS.Editor
 
             scintilla.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
             UpdateStructHighlighting();
-        }        
+        }
 
         public void ActivateWindow()
         {
@@ -186,7 +179,7 @@ namespace AGS.Editor
 
         void scintilla_ToggleBreakpoint(object sender, Scintilla.MarginClickEventArgs e)
         {
-            ToggleBreakpoint(e.LineNumber);   
+            ToggleBreakpoint(e.LineNumber);
         }
 
         private void ScriptEditor_Resize(object sender, EventArgs e)
@@ -238,22 +231,22 @@ namespace AGS.Editor
             }
         }
 
-		private void UpdateStructHighlighting()
-		{
-			StringBuilder sb = new StringBuilder(5000);
-			foreach (Script script in _agsEditor.GetAllScriptHeaders())
-			{
-				foreach (ScriptStruct thisClass in script.AutoCompleteData.Structs)
-				{
-					sb.Append(thisClass.Name + " ");
-				}
-				foreach (ScriptEnum thisEnum in script.AutoCompleteData.Enums)
-				{
-					sb.Append(thisEnum.Name + " ");
-				}
-			}
-			this.scintilla.SetClassNamesList(sb.ToString());
-		}
+        private void UpdateStructHighlighting()
+        {
+            StringBuilder sb = new StringBuilder(5000);
+            foreach (Script script in _agsEditor.GetAllScriptHeaders())
+            {
+                foreach (ScriptStruct thisClass in script.AutoCompleteData.Structs)
+                {
+                    sb.Append(thisClass.Name + " ");
+                }
+                foreach (ScriptEnum thisEnum in script.AutoCompleteData.Enums)
+                {
+                    sb.Append(thisEnum.Name + " ");
+                }
+            }
+            this.scintilla.SetClassNamesList(sb.ToString());
+        }
 
         private void UpdateFunctionList()
         {
@@ -441,11 +434,11 @@ namespace AGS.Editor
         public static bool HoveringCombo { get; private set; }
 
         public IScriptEditorControl ScriptEditorControl
-        { 
-            get 
-            { 
-                return scintilla; 
-            } 
+        {
+            get
+            {
+                return scintilla;
+            }
         }
 
         public void UpdateScriptObjectWithLatestTextInWindow()
@@ -453,7 +446,7 @@ namespace AGS.Editor
             _script.Text = scintilla.GetText();
             _editorTextModifiedSinceLastCopy = false;
         }
-        
+
         public void SaveChanges()
         {
             if (_editorTextModifiedSinceLastCopy)
@@ -461,7 +454,7 @@ namespace AGS.Editor
                 UpdateScriptObjectWithLatestTextInWindow();
             }
 
-            if (!scintilla.IsDisposed && scintilla.IsModified) 
+            if (!scintilla.IsDisposed && scintilla.IsModified)
             {
                 _script.SaveToDisk();
                 scintilla.SetSavePoint();
@@ -472,10 +465,10 @@ namespace AGS.Editor
             }
         }
 
-		public void GoToLine(int lineNumber)
-		{
-			GoToLine(lineNumber, true, false);
-		}
+        public void GoToLine(int lineNumber)
+        {
+            GoToLine(lineNumber, true, false);
+        }
 
         public void GoToLine(int lineNumber, bool selectLine, bool goToLineAfterOpeningBrace)
         {
@@ -486,10 +479,10 @@ namespace AGS.Editor
 
             scintilla.GoToLine(lineNumber);
 
-			if (selectLine)
-			{
-				scintilla.SelectCurrentLine();
-			}
+            if (selectLine)
+            {
+                scintilla.SelectCurrentLine();
+            }
         }
 
         private int FindLineNumberAfterOpeningBrace(int startFromLine)
@@ -505,21 +498,21 @@ namespace AGS.Editor
             return startFromLine;
         }
 
-		public void GoToLineOfCharacterPosition(int position)
-		{
-			GoToLineOfCharacterPosition(position, true);
-		}
+        public void GoToLineOfCharacterPosition(int position)
+        {
+            GoToLineOfCharacterPosition(position, true);
+        }
 
-		public void GoToLineOfCharacterPosition(int position, bool selectLine)
-		{
-			scintilla.GoToPosition(position);
-			if (selectLine)
-			{
-				scintilla.SelectCurrentLine();
-			}
-		}
+        public void GoToLineOfCharacterPosition(int position, bool selectLine)
+        {
+            scintilla.GoToPosition(position);
+            if (selectLine)
+            {
+                scintilla.SelectCurrentLine();
+            }
+        }
 
-        public void SetExecutionPointMarker(int lineNumber) 
+        public void SetExecutionPointMarker(int lineNumber)
         {
             scintilla.ShowCurrentExecutionPoint(lineNumber);
         }
@@ -557,10 +550,10 @@ namespace AGS.Editor
 
         }
 
-		private void ToggleBreakpointOnCurrentLine()
-		{
+        private void ToggleBreakpointOnCurrentLine()
+        {
             ToggleBreakpoint(scintilla.CurrentLine);
-		}
+        }
 
         protected override void OnKeyPressed(System.Windows.Forms.Keys keyData)
         {
@@ -605,12 +598,12 @@ namespace AGS.Editor
             }
             else if (command == TOGGLE_BREAKPOINT_COMMAND)
             {
-				ToggleBreakpointOnCurrentLine();
+                ToggleBreakpointOnCurrentLine();
             }
-			else if (command == MATCH_BRACE_COMMAND)
-			{
-				scintilla.ShowMatchingBrace(true);
-			}
+            else if (command == MATCH_BRACE_COMMAND)
+            {
+                scintilla.ShowMatchingBrace(true);
+            }
             else if (command == SHOW_MATCHING_SCRIPT_OR_HEADER_COMMAND)
             {
                 if (_showMatchingScript != null)
@@ -673,7 +666,7 @@ namespace AGS.Editor
             AutoComplete.RequestBackgroundCacheUpdate(_script);
             ActivateTextEditor();
 
-			Factory.GUIController.ShowCuppit("You've opened a script editor. This is where you set up how the game will react to various events like the player clicking on things. Read the Scripting Tutorial in the manual to get started.", "Script editor introduction");
+            Factory.GUIController.ShowCuppit("You've opened a script editor. This is where you set up how the game will react to various events like the player clicking on things. Read the Scripting Tutorial in the manual to get started.", "Script editor introduction");
         }
 
         protected override void OnWindowDeactivated()
@@ -722,7 +715,7 @@ namespace AGS.Editor
         }
 
         private void scintilla_IsModifiedChanged(object sender, EventArgs e)
-        {   
+        {
             //UGLY HACK due to a bug in DockPanel suite, where the DockStateChanged event is not
             //fired in the scenario where a document was moved from the documents tab to the bottom of
             //that same document tab
@@ -735,7 +728,7 @@ namespace AGS.Editor
             if (_lastKnownScriptText == newText)
             {
                 if (DockStateChanged_Hack != null)
-                    DockStateChanged_Hack(this, e);                                
+                    DockStateChanged_Hack(this, e);
             }
             _lastKnownScriptText = newText;
             //END OF UGLY HACK
@@ -760,7 +753,7 @@ namespace AGS.Editor
             if (!_agsEditor.AttemptToGetWriteAccess(_script.FileName))
             {
                 allowModify = false;
-            }            
+            }
         }
 
         private void scintilla_UpdateUI(object sender, EventArgs e)
@@ -781,7 +774,7 @@ namespace AGS.Editor
                 //The only scenario in which this will not work is if the scrollbar position
                 //really was 0, but then the user could simply press Ctrl+Home and fix this easily.
                 _firstVisibleLine = scintilla.FirstVisibleLine;
-            }            
+            }
         }
 
         private void scintilla_OnBeforeShowingAutoComplete(object sender, EventArgs e)
@@ -863,7 +856,7 @@ namespace AGS.Editor
                 if (func != null)
                 {
                     scintilla.GoToPosition(func.StartsAtCharacterIndex);
-					scintilla.SelectCurrentLine();
+                    scintilla.SelectCurrentLine();
                 }
                 else
                 {
@@ -873,65 +866,65 @@ namespace AGS.Editor
             }
         }
 
-		private void scintilla_ActivateContextMenu(string commandName)
-		{
-			UpdateToolbarButtonsIfNecessary();
-		}
+        private void scintilla_ActivateContextMenu(string commandName)
+        {
+            UpdateToolbarButtonsIfNecessary();
+        }
 
-		private ScriptToken FindTokenInScript(Script script, string structName, string memberName)
-		{
-			ScriptToken found = null;
+        private ScriptToken FindTokenInScript(Script script, string structName, string memberName)
+        {
+            ScriptToken found = null;
 
-			if (structName != null)
-			{
-				ScriptStruct struc = script.AutoCompleteData.FindStruct(structName);
-				if (struc != null)
-				{
-					found = struc.FindMemberFunction(memberName);
-					if (found == null)
-					{
-						found = struc.FindMemberVariable(memberName);
-					}
-				}
-				else
-				{
-					found = script.AutoCompleteData.FindFunction(_goToDefinition.Replace(".", "::"));
-				}
-			}
-			else
-			{
-				found = script.AutoCompleteData.FindFunction(memberName);
-				if (found == null)
-				{
-					found = script.AutoCompleteData.FindVariable(memberName);
-				}
-				if (found == null)
-				{
-					found = script.AutoCompleteData.FindStruct(memberName);
-				}
-			}
+            if (structName != null)
+            {
+                ScriptStruct struc = script.AutoCompleteData.FindStruct(structName);
+                if (struc != null)
+                {
+                    found = struc.FindMemberFunction(memberName);
+                    if (found == null)
+                    {
+                        found = struc.FindMemberVariable(memberName);
+                    }
+                }
+                else
+                {
+                    found = script.AutoCompleteData.FindFunction(_goToDefinition.Replace(".", "::"));
+                }
+            }
+            else
+            {
+                found = script.AutoCompleteData.FindFunction(memberName);
+                if (found == null)
+                {
+                    found = script.AutoCompleteData.FindVariable(memberName);
+                }
+                if (found == null)
+                {
+                    found = script.AutoCompleteData.FindStruct(memberName);
+                }
+            }
 
-			return found;
-		}
+            return found;
+        }
 
         public ScriptStruct FindGlobalVariableOrType(string type)
         {
             return scintilla.FindGlobalVariableOrType(type);
         }
 
-		public ScriptToken FindTokenAsLocalVariable(string memberName, bool searchWholeFunction)
-		{
-			ScriptToken found = null;
+        public ScriptToken FindTokenAsLocalVariable(string memberName, bool searchWholeFunction)
+        {
+            ScriptToken found = null;
             List<ScriptVariable> localVars = scintilla.GetListOfLocalVariablesForCurrentPosition(searchWholeFunction);
-			foreach (ScriptVariable localVar in localVars)
-			{
-				if (localVar.VariableName == memberName)
-				{
-					found = localVar;
-				}
-			}
-			return found;
-		}
+            foreach (ScriptVariable localVar in localVars)
+            {
+                if (localVar.VariableName == memberName)
+                {
+                    found = localVar;
+                }
+            }
+            return found;
+        }
 
         private void FindAllUsages(string structName, string memberName)
         {
@@ -940,23 +933,23 @@ namespace AGS.Editor
             findAllUsages.Find(structName, memberName);
         }
 
-		private void GoToDefinition(string structName, string memberName)
-		{
-			ScriptToken found = null;
-			Script foundInScript = null;
-			List<Script> scriptsToSearch = new List<Script>();
+        private void GoToDefinition(string structName, string memberName)
+        {
+            ScriptToken found = null;
+            Script foundInScript = null;
+            List<Script> scriptsToSearch = new List<Script>();
             scriptsToSearch.AddRange(_agsEditor.GetAllScriptHeaders());
-			scriptsToSearch.Add(_script);
+            scriptsToSearch.Add(_script);
 
-			foreach (Script script in scriptsToSearch)
-			{
-				found = FindTokenInScript(script, structName, memberName);
-				foundInScript = script;
+            foreach (Script script in scriptsToSearch)
+            {
+                found = FindTokenInScript(script, structName, memberName);
+                foundInScript = script;
 
-				if ((found != null) && (script.IsHeader))
-				{
-					// Always prefer the definition in the main script to
-					// the import in the header
+                if ((found != null) && (script.IsHeader))
+                {
+                    // Always prefer the definition in the main script to
+                    // the import in the header
                     Script mainScript = _agsEditor.CurrentGame.RootScriptFolder.FindMatchingScriptOrHeader(script);
                     if (mainScript != null)
                     {
@@ -971,29 +964,29 @@ namespace AGS.Editor
                             foundInScript = mainScript;
                         }
                     }
-				}
+                }
 
-				if (found != null)
-				{
-					break;
-				}
-			}
+                if (found != null)
+                {
+                    break;
+                }
+            }
 
-			if ((found == null) && (structName == null))
-			{
-				found = FindTokenAsLocalVariable(memberName, false);
-			}
+            if ((found == null) && (structName == null))
+            {
+                found = FindTokenAsLocalVariable(memberName, false);
+            }
 
-			if (found != null)
-			{
-				if (foundInScript.FileName == AGSEditor.BUILT_IN_HEADER_FILE_NAME)
-				{
-					Factory.GUIController.LaunchHelpForKeyword(_goToDefinition);
-				}
-				else if (foundInScript.FileName == Tasks.AUTO_GENERATED_HEADER_NAME)
-				{
-					Factory.GUIController.ShowMessage("This variable is internally defined by AGS and probably corresponds to an in-game entity such as a Character or Inventory Item.", MessageBoxIcon.Information);
-				}
+            if (found != null)
+            {
+                if (foundInScript.FileName == AGSEditor.BUILT_IN_HEADER_FILE_NAME)
+                {
+                    Factory.GUIController.LaunchHelpForKeyword(_goToDefinition);
+                }
+                else if (foundInScript.FileName == Tasks.AUTO_GENERATED_HEADER_NAME)
+                {
+                    Factory.GUIController.ShowMessage("This variable is internally defined by AGS and probably corresponds to an in-game entity such as a Character or Inventory Item.", MessageBoxIcon.Information);
+                }
                 else if (foundInScript.FileName == GlobalVariablesComponent.GLOBAL_VARS_HEADER_FILE_NAME)
                 {
                     IGlobalVariablesController globalVariables = (IGlobalVariablesController)Factory.ComponentController.FindComponentThatImplementsInterface(typeof(IGlobalVariablesController));
@@ -1003,37 +996,37 @@ namespace AGS.Editor
                 {
                     Factory.GUIController.ZoomToFile(foundInScript.FileName, ZoomToFileZoomType.ZoomToCharacterPosition, found.StartsAtCharacterIndex);
                 }
-			}
-		}
+            }
+        }
 
-		private void ContextMenuChooseOption(object sender, EventArgs e)
-		{
-			ToolStripMenuItem item = (ToolStripMenuItem)sender;
-			if (item.Name == CONTEXT_MENU_TOGGLE_BREAKPOINT)
-			{
-				ToggleBreakpointOnCurrentLine();
-			}
-			else if (item.Name == CONTEXT_MENU_GO_TO_DEFINITION ||
+        private void ContextMenuChooseOption(object sender, EventArgs e)
+        {
+            ToolStripMenuItem item = (ToolStripMenuItem)sender;
+            if (item.Name == CONTEXT_MENU_TOGGLE_BREAKPOINT)
+            {
+                ToggleBreakpointOnCurrentLine();
+            }
+            else if (item.Name == CONTEXT_MENU_GO_TO_DEFINITION ||
                 item.Name == CONTEXT_MENU_FIND_ALL_USAGES)
-			{
-				string[] structAndMember = _goToDefinition.Split('.');
-				string structName = null;
-				string memberName = structAndMember[0];
-				if (structAndMember.Length > 1)
-				{
-					structName = structAndMember[0];
-					memberName = structAndMember[1];
-				}
+            {
+                string[] structAndMember = _goToDefinition.Split('.');
+                string structName = null;
+                string memberName = structAndMember[0];
+                if (structAndMember.Length > 1)
+                {
+                    structName = structAndMember[0];
+                    memberName = structAndMember[1];
+                }
 
                 if (item.Name == CONTEXT_MENU_GO_TO_DEFINITION)
                 {
-				GoToDefinition(structName, memberName);
-			}
+                    GoToDefinition(structName, memberName);
+                }
                 else
                 {
                     FindAllUsages(structName, memberName);
                 }
-			}
+            }
             else if (item.Name == CONTEXT_MENU_GO_TO_SPRITE)
             {
                 if (!Factory.Events.OnShowSpriteManager(_goToSprite.Value))
@@ -1041,21 +1034,21 @@ namespace AGS.Editor
                     Factory.GUIController.ShowMessage("Unable to display sprite " + _goToSprite + ". Could not find a sprite with that number.", MessageBoxIcon.Warning);
                 }
             }
-		}
+        }
 
-		private void scintilla_ConstructContextMenu(ContextMenuStrip menuStrip, int clickedPositionInDocument)
-		{
-			EventHandler onClick = new EventHandler(ContextMenuChooseOption);
+        private void scintilla_ConstructContextMenu(ContextMenuStrip menuStrip, int clickedPositionInDocument)
+        {
+            EventHandler onClick = new EventHandler(ContextMenuChooseOption);
 
             _goToSprite = null;
-			string clickedOnType = string.Empty;
-			if (!scintilla.InsideStringOrComment(false, clickedPositionInDocument))
-			{
-				float dummy;
-				clickedOnType = scintilla.GetFullTypeNameAtPosition(clickedPositionInDocument);
-				// if on nothing, or a number, ignore
-				if (clickedOnType.Length > 0)
-				{
+            string clickedOnType = string.Empty;
+            if (!scintilla.InsideStringOrComment(false, clickedPositionInDocument))
+            {
+                float dummy;
+                clickedOnType = scintilla.GetFullTypeNameAtPosition(clickedPositionInDocument);
+                // if on nothing, or a number, ignore
+                if (clickedOnType.Length > 0)
+                {
                     int temp;
                     if (int.TryParse(clickedOnType, out temp))
                     {
@@ -1067,18 +1060,18 @@ namespace AGS.Editor
                         _goToDefinition = clickedOnType;
                         clickedOnType = " of " + clickedOnType;
                     }
-				}
-				else
-				{
-					clickedOnType = string.Empty;
-				}
-			}
+                }
+                else
+                {
+                    clickedOnType = string.Empty;
+                }
+            }
 
-			menuStrip.Items.Add(new ToolStripMenuItem("Go to Definition" + clickedOnType, null, onClick, CONTEXT_MENU_GO_TO_DEFINITION));
-			if (clickedOnType == string.Empty)
-			{
-				menuStrip.Items[menuStrip.Items.Count - 1].Enabled = false;
-			}
+            menuStrip.Items.Add(new ToolStripMenuItem("Go to Definition" + clickedOnType, null, onClick, CONTEXT_MENU_GO_TO_DEFINITION));
+            if (clickedOnType == string.Empty)
+            {
+                menuStrip.Items[menuStrip.Items.Count - 1].Enabled = false;
+            }
 
             menuStrip.Items.Add(new ToolStripMenuItem("Find All Usages" + clickedOnType, null, onClick, CONTEXT_MENU_FIND_ALL_USAGES));
             if (clickedOnType == string.Empty)
@@ -1092,9 +1085,9 @@ namespace AGS.Editor
                 menuStrip.Items[menuStrip.Items.Count - 1].Enabled = false;
             }
 
-			menuStrip.Items.Add(new ToolStripSeparator());
-			menuStrip.Items.Add(new ToolStripMenuItem("Toggle Breakpoint", Factory.GUIController.ImageList.Images["ToggleBreakpointMenuIcon"], onClick, CONTEXT_MENU_TOGGLE_BREAKPOINT));
-		}
+            menuStrip.Items.Add(new ToolStripSeparator());
+            menuStrip.Items.Add(new ToolStripMenuItem("Toggle Breakpoint", Factory.GUIController.ImageList.Images["ToggleBreakpointMenuIcon"], onClick, CONTEXT_MENU_TOGGLE_BREAKPOINT));
+        }
 
         void ScriptEditor_HandleCreated(object sender, System.EventArgs e)
         {
@@ -1102,6 +1095,6 @@ namespace AGS.Editor
             {
                 UpdateFunctionList();
             }
-        }        
+        }
     }
 }

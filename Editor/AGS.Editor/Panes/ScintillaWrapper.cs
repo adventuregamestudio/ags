@@ -1,29 +1,27 @@
 using AGS.Types;
 using AGS.Types.AutoComplete;
+using AGS.Types.Interfaces;
 using Scintilla.Enums;
 using Scintilla.Lexers;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
-using AGS.Types.Interfaces;
-using System.Runtime.InteropServices;
 
 namespace AGS.Editor
 {
     // This class is a bit of a mess ... autocomplete is out of control!!
     public partial class ScintillaWrapper : UserControl, IScriptEditorControl
     {
-		public delegate void ConstructContextMenuHandler(ContextMenuStrip menuStrip, int clickedPositionInDocument);
-		public delegate void ActivateContextMenuHandler(string commandName);
+        public delegate void ConstructContextMenuHandler(ContextMenuStrip menuStrip, int clickedPositionInDocument);
+        public delegate void ActivateContextMenuHandler(string commandName);
 
-		private const string CONTEXT_MENU_CUT = "CtxCut";
-		private const string CONTEXT_MENU_COPY = "CtxCopy";
-		private const string CONTEXT_MENU_PASTE = "CtxPaste";
-		private const string CONTEXT_MENU_GO_TO_DEFINITION = "CtxDefinition";
+        private const string CONTEXT_MENU_CUT = "CtxCut";
+        private const string CONTEXT_MENU_COPY = "CtxCopy";
+        private const string CONTEXT_MENU_PASTE = "CtxPaste";
+        private const string CONTEXT_MENU_GO_TO_DEFINITION = "CtxDefinition";
 
         private const string THIS_STRUCT = "this";
         private const int INVALID_POSITION = -1;
@@ -67,8 +65,8 @@ namespace AGS.Editor
         public event TextModifiedHandler TextModified;
         public delegate void AttemptModifyHandler(ref bool allowModify);
         public event AttemptModifyHandler AttemptModify;
-		public event ConstructContextMenuHandler ConstructContextMenu;
-		public event ActivateContextMenuHandler ActivateContextMenu;
+        public event ConstructContextMenuHandler ConstructContextMenu;
+        public event ActivateContextMenuHandler ActivateContextMenu;
 
         private List<string> _keywords = new List<string>();
         private bool _doBraceMatch = false;
@@ -79,7 +77,7 @@ namespace AGS.Editor
         private bool _autoCompleteEnabled = true;
         private bool _ignoreLinesWithoutIndent = false;
         private bool _callTipsEnabled = true;
-		private bool _autoSpaceAfterComma = true;
+        private bool _autoSpaceAfterComma = true;
         private bool _autoDedentClosingBrace = true;
         private IScript _autoCompleteForThis = null;
         private bool _dwellCalltipVisible = false;
@@ -127,9 +125,9 @@ namespace AGS.Editor
             this.scintillaControl1.StyleSetFontSize((int)Cpp.BraceLight, DEFAULT_FONT_SIZE);
             this.scintillaControl1.StyleSetBold(Cpp.BraceLight, true);
             this.scintillaControl1.StyleSetBack(Cpp.BraceLight, Color.FromArgb(210, 210, 0));
-        
+
             this.scintillaControl1.StyleSetFore(Cpp.Word, Color.FromArgb(0, 0, 244));
-			this.scintillaControl1.StyleSetFore(Cpp.Word2, Color.FromArgb(43, 145, 175));
+            this.scintillaControl1.StyleSetFore(Cpp.Word2, Color.FromArgb(43, 145, 175));
             this.scintillaControl1.StyleSetFore(Cpp.Comment, Color.FromArgb(27, 127, 27));
             this.scintillaControl1.StyleSetFore(Cpp.CommentLine, Color.FromArgb(27, 127, 27));
             this.scintillaControl1.StyleSetFore(Cpp.CommentDoc, Color.FromArgb(27, 127, 27));
@@ -156,12 +154,12 @@ namespace AGS.Editor
 
             // ensure scintilla does not handle Ctrl+Space
             this.scintillaControl1.ClearCmdKey(' ' | ((int)KeyMod.Ctrl << 16));
-			// disable Ctrl+T swapping lines since it used to be Test Game
-			this.scintillaControl1.ClearCmdKey('T' | ((int)KeyMod.Ctrl << 16));
+            // disable Ctrl+T swapping lines since it used to be Test Game
+            this.scintillaControl1.ClearCmdKey('T' | ((int)KeyMod.Ctrl << 16));
 
             this.scintillaControl1.TabWidth = Factory.AGSEditor.Preferences.TabSize;
-			this.scintillaControl1.IsUseTabs = Factory.AGSEditor.Preferences.IndentUsingTabs;
-			this.scintillaControl1.UsePopUp(false);
+            this.scintillaControl1.IsUseTabs = Factory.AGSEditor.Preferences.IndentUsingTabs;
+            this.scintillaControl1.UsePopUp(false);
 
             // override the selected text colour
             this.scintillaControl1.SetSelFore(true, Color.FromArgb(255, 255, 255));
@@ -170,7 +168,7 @@ namespace AGS.Editor
             // remove the default margins
             this.scintillaControl1.SetMarginWidth(0, 0);
             this.scintillaControl1.SetMarginWidth(1, 16);
-            
+
             this.scintillaControl1.MarkerDefine(MARKER_TYPE_BREAKPOINT, (int)MarkerSymbol.Background);
             this.scintillaControl1.MarkerSetBack(MARKER_TYPE_BREAKPOINT, Color.FromArgb(255, 100, 100));
             this.scintillaControl1.MarkerSetFore(MARKER_TYPE_BREAKPOINT, Color.White);
@@ -197,7 +195,7 @@ namespace AGS.Editor
             this.scintillaControl1.UpdateUI += new EventHandler(OnUpdateUI);
             this.scintillaControl1.ModifyAttemptOnReadOnly += new EventHandler(OnModifyAttemptOnReadOnly);
             this.scintillaControl1.TextModified += new EventHandler<Scintilla.TextModifiedEventArgs>(scintillaControl1_TextModified);
-			this.scintillaControl1.MouseUp += new MouseEventHandler(ScintillaWrapper_MouseUp);
+            this.scintillaControl1.MouseUp += new MouseEventHandler(ScintillaWrapper_MouseUp);
             this.scintillaControl1.DwellStart += new EventHandler<Scintilla.DwellStartEventArgs>(scintillaControl1_DwellStart);
             this.scintillaControl1.DwellEnd += new EventHandler(scintillaControl1_DwellEnd);
             this.scintillaControl1.MarginClick += new EventHandler<Scintilla.MarginClickEventArgs>(scintillaControl1_MarginClick);
@@ -217,7 +215,7 @@ namespace AGS.Editor
             Color FoldingBackColor = ColorTranslator.FromHtml("#808080");
             this.scintillaControl1.MarkerSetFore((int)Scintilla.Constants.SC_MARKNUM_FOLDER, FoldingForeColor);
             this.scintillaControl1.MarkerSetBack((int)Scintilla.Constants.SC_MARKNUM_FOLDER, FoldingBackColor);
-            this.scintillaControl1.MarkerSetFore((int)Scintilla.Constants.SC_MARKNUM_FOLDEREND, FoldingForeColor );
+            this.scintillaControl1.MarkerSetFore((int)Scintilla.Constants.SC_MARKNUM_FOLDEREND, FoldingForeColor);
             this.scintillaControl1.MarkerSetBack((int)Scintilla.Constants.SC_MARKNUM_FOLDEREND, FoldingBackColor);
             this.scintillaControl1.MarkerSetFore((int)Scintilla.Constants.SC_MARKNUM_FOLDEROPEN, FoldingForeColor);
             this.scintillaControl1.MarkerSetBack((int)Scintilla.Constants.SC_MARKNUM_FOLDEROPEN, FoldingBackColor);
@@ -231,11 +229,11 @@ namespace AGS.Editor
             this.scintillaControl1.MarkerSetBack((int)Scintilla.Constants.SC_MARKNUM_FOLDERSUB, FoldingBackColor);
             this.scintillaControl1.MarkerSetFore((int)Scintilla.Constants.SC_MARKNUM_FOLDERTAIL, FoldingForeColor);
             this.scintillaControl1.MarkerSetBack((int)Scintilla.Constants.SC_MARKNUM_FOLDERTAIL, FoldingBackColor);
-            
+
             // Indentation guides
             this.scintillaControl1.SetIndentationGuides(3);
             this.scintillaControl1.StyleSetFore(Cpp.IndentGuide, ColorTranslator.FromHtml("#DDDDDD"));
-            
+
 
             this.scintillaControl1.IsReadOnly = true;
         }
@@ -267,11 +265,11 @@ namespace AGS.Editor
             set { _ignoreLinesWithoutIndent = value; }
         }
 
-		public bool AutoSpaceAfterComma
-		{
-			get { return _autoSpaceAfterComma; }
-			set { _autoSpaceAfterComma = value; }
-		}
+        public bool AutoSpaceAfterComma
+        {
+            get { return _autoSpaceAfterComma; }
+            set { _autoSpaceAfterComma = value; }
+        }
 
         public string FixedTypeForThisKeyword
         {
@@ -307,7 +305,7 @@ namespace AGS.Editor
 
         public void DeactivateTextEditor()
         {
-            _activated = false; 
+            _activated = false;
         }
 
         public int CurrentPos
@@ -325,39 +323,39 @@ namespace AGS.Editor
             get { return scintillaControl1.FirstVisibleLine; }
         }
 
-		public void SetAsDialog()
+        public void SetAsDialog()
         {
             scintillaControl1.SetLexer(0);
             scintillaControl1.IsDialog = true;
         }
         public void GoToPosition(int newPos)
         {
-			int lineNum = scintillaControl1.LineFromPosition(newPos);            
-			if ((lineNum <= scintillaControl1.FirstVisibleLine) ||
-				(lineNum >= scintillaControl1.FirstVisibleLine + scintillaControl1.LinesOnScreen))
-			{
-				int bottomLine = lineNum + (scintillaControl1.LinesOnScreen / 2);
-				if (bottomLine > scintillaControl1.LineCount)
-				{
-					bottomLine = scintillaControl1.LineCount - 1;
-				}
-				int topLine = lineNum - (scintillaControl1.LinesOnScreen / 2);
-				if (topLine < 0)
-				{
-					topLine = 0;
-				}
-				scintillaControl1.GotoLine(bottomLine);
-				scintillaControl1.GotoLine(topLine);
-			}
+            int lineNum = scintillaControl1.LineFromPosition(newPos);
+            if ((lineNum <= scintillaControl1.FirstVisibleLine) ||
+                (lineNum >= scintillaControl1.FirstVisibleLine + scintillaControl1.LinesOnScreen))
+            {
+                int bottomLine = lineNum + (scintillaControl1.LinesOnScreen / 2);
+                if (bottomLine > scintillaControl1.LineCount)
+                {
+                    bottomLine = scintillaControl1.LineCount - 1;
+                }
+                int topLine = lineNum - (scintillaControl1.LinesOnScreen / 2);
+                if (topLine < 0)
+                {
+                    topLine = 0;
+                }
+                scintillaControl1.GotoLine(bottomLine);
+                scintillaControl1.GotoLine(topLine);
+            }
 
             scintillaControl1.GotoPos(newPos);
         }
 
-		public void SelectCurrentLine()
-		{
-			int curLine = this.CurrentLine;
-			scintillaControl1.SetSel(scintillaControl1.PositionFromLine(curLine), scintillaControl1.PositionFromLine(curLine + 1) - 1);
-		}
+        public void SelectCurrentLine()
+        {
+            int curLine = this.CurrentLine;
+            scintillaControl1.SetSel(scintillaControl1.PositionFromLine(curLine), scintillaControl1.PositionFromLine(curLine + 1) - 1);
+        }
 
         public void AddBreakpoint(int lineNumber)
         {
@@ -392,7 +390,7 @@ namespace AGS.Editor
             return breakpointLines.ToArray();
         }
 
-        public void ShowCurrentExecutionPoint(int lineNumber) 
+        public void ShowCurrentExecutionPoint(int lineNumber)
         {
             scintillaControl1.MarkerAdd(lineNumber - 1, MARKER_TYPE_CURRENT_STATEMENT);
             scintillaControl1.MarkerAdd(lineNumber - 1, MARKER_TYPE_CURRENT_STATEMENT2);
@@ -452,10 +450,10 @@ namespace AGS.Editor
             }
         }
 
-		public void SetClassNamesList(string classNames)
-		{
-			this.scintillaControl1.SetClassListHighlightedWords(classNames);
-		}
+        public void SetClassNamesList(string classNames)
+        {
+            this.scintillaControl1.SetClassListHighlightedWords(classNames);
+        }
 
         public void SetFillupKeys(string fillupKeys)
         {
@@ -543,21 +541,21 @@ namespace AGS.Editor
             this.scintillaControl1.EnsureVisibleEnforcePolicy(lineNum);
             if (lineNum > 0)
             {
-            this.scintillaControl1.EnsureVisibleEnforcePolicy(lineNum - 1);
+                this.scintillaControl1.EnsureVisibleEnforcePolicy(lineNum - 1);
             }
-            
-			int bottomLine = lineNum + (scintillaControl1.LinesOnScreen / 2);
-			if (bottomLine > scintillaControl1.LineCount)
-			{
-				bottomLine = scintillaControl1.LineCount - 1;
-			}
-			int topLine = lineNum - (scintillaControl1.LinesOnScreen / 2);
-			if (topLine < 0)
-			{
-				topLine = 0;
-			}
-			scintillaControl1.GotoLine(bottomLine);
-			scintillaControl1.GotoLine(topLine);
+
+            int bottomLine = lineNum + (scintillaControl1.LinesOnScreen / 2);
+            if (bottomLine > scintillaControl1.LineCount)
+            {
+                bottomLine = scintillaControl1.LineCount - 1;
+            }
+            int topLine = lineNum - (scintillaControl1.LinesOnScreen / 2);
+            if (topLine < 0)
+            {
+                topLine = 0;
+            }
+            scintillaControl1.GotoLine(bottomLine);
+            scintillaControl1.GotoLine(topLine);
             this.scintillaControl1.GotoLine(lineNum - 1);
         }
 
@@ -630,9 +628,9 @@ namespace AGS.Editor
         }
 
         public void SetSelection(int pos, int length)
-        {            
+        {
             scintillaControl1.EnsureVisible(scintillaControl1.LineFromPosition(pos));
-            scintillaControl1.SetSel(pos, pos + length);            
+            scintillaControl1.SetSel(pos, pos + length);
         }
 
         public ScriptTokenReference FindNextOccurrence(string text, bool caseSensitive, bool jumpToStart)
@@ -661,7 +659,7 @@ namespace AGS.Editor
                     return null;
                 }
             }
-            
+
             SetSelection(nextPos, text.Length);
 
             return GetTokenReferenceForCurrentState();
@@ -682,15 +680,15 @@ namespace AGS.Editor
             };
         }
 
-		public void ReplaceSelectedText(string withText)
-		{
-			scintillaControl1.ReplaceSel(withText);
-		}
+        public void ReplaceSelectedText(string withText)
+        {
+            scintillaControl1.ReplaceSel(withText);
+        }
 
-		public string GetFullTypeNameAtCursor()
-		{
-			return GetFullTypeNameAtPosition(scintillaControl1.CurrentPos);
-		}
+        public string GetFullTypeNameAtCursor()
+        {
+            return GetFullTypeNameAtPosition(scintillaControl1.CurrentPos);
+        }
 
         public string GetFullTypeNameAtPosition(int charIndex)
         {
@@ -741,32 +739,32 @@ namespace AGS.Editor
             ShowMatchingBrace(beforeAndAfterCursor, false);
         }
 
-		public void ShowMatchingBrace(bool beforeAndAfterCursor, bool alignIndentation)
-		{
-			int currentPos = scintillaControl1.CurrentPos - 1;
-			int matchPos = scintillaControl1.BraceMatch(currentPos);
-			if ((matchPos < 0) && (beforeAndAfterCursor))
-			{
-				// try the following character instead
-				currentPos++;
-				matchPos = scintillaControl1.BraceMatch(currentPos);
-			}
-			if (matchPos >= 0)
-			{
+        public void ShowMatchingBrace(bool beforeAndAfterCursor, bool alignIndentation)
+        {
+            int currentPos = scintillaControl1.CurrentPos - 1;
+            int matchPos = scintillaControl1.BraceMatch(currentPos);
+            if ((matchPos < 0) && (beforeAndAfterCursor))
+            {
+                // try the following character instead
+                currentPos++;
+                matchPos = scintillaControl1.BraceMatch(currentPos);
+            }
+            if (matchPos >= 0)
+            {
                 if (alignIndentation)
                 {
                     AlignIndentation(currentPos, matchPos);
                     currentPos = scintillaControl1.CurrentPos - 1;
                 }
                 scintillaControl1.BraceHighlight(matchPos, currentPos);
-			}
-			else
-			{
-				scintillaControl1.BraceBadLight(currentPos);
-			}
-			_braceMatchVisible = true;
-			_doBraceMatch = false;
-		}
+            }
+            else
+            {
+                scintillaControl1.BraceBadLight(currentPos);
+            }
+            _braceMatchVisible = true;
+            _doBraceMatch = false;
+        }
 
         private void AlignIndentation(int posToAlign, int posToAlignWith)
         {
@@ -842,38 +840,38 @@ namespace AGS.Editor
                     scintillaControl1.GotoPos(scintillaControl1.GetLineIndentationPosition(lineNumber));
                 }
             }
-			// The following events must be piped to the UpdateUI event,
-			// otherwise they don't work properly
-			else if ((e.Ch == '}') || (e.Ch == ')'))
-			{
-				if (!InsideStringOrComment(true))
-				{
-					_doBraceMatch = true;
-				}
+            // The following events must be piped to the UpdateUI event,
+            // otherwise they don't work properly
+            else if ((e.Ch == '}') || (e.Ch == ')'))
+            {
+                if (!InsideStringOrComment(true))
+                {
+                    _doBraceMatch = true;
+                }
 
-				if (scintillaControl1.IsCallTipActive)
-				{
-					scintillaControl1.CallTipCancel();
-				}
-			}
-			else if ((e.Ch == '(') || (e.Ch == ','))
-			{
-				if ((e.Ch == ',') && (!InsideStringOrComment(true)) &&
-					(_autoSpaceAfterComma))
-				{
-					scintillaControl1.AddText(" ");
-				}
+                if (scintillaControl1.IsCallTipActive)
+                {
+                    scintillaControl1.CallTipCancel();
+                }
+            }
+            else if ((e.Ch == '(') || (e.Ch == ','))
+            {
+                if ((e.Ch == ',') && (!InsideStringOrComment(true)) &&
+                    (_autoSpaceAfterComma))
+                {
+                    scintillaControl1.AddText(" ");
+                }
 
-				_doCalltip = true;
-			}
-			else if ((e.Ch == '.') && (!scintillaControl1.IsAutoCActive))
-			{
-				_doShowAutocomplete = true;
-			}
-			else if (((Char.IsLetterOrDigit(e.Ch)) || (e.Ch == '_') || (e.Ch == ' ')) && (!scintillaControl1.IsAutoCActive))
-			{
-				_doShowAutocomplete = true;
-			}
+                _doCalltip = true;
+            }
+            else if ((e.Ch == '.') && (!scintillaControl1.IsAutoCActive))
+            {
+                _doShowAutocomplete = true;
+            }
+            else if (((Char.IsLetterOrDigit(e.Ch)) || (e.Ch == '_') || (e.Ch == ' ')) && (!scintillaControl1.IsAutoCActive))
+            {
+                _doShowAutocomplete = true;
+            }
 
             if (CharAdded != null)
             {
@@ -947,7 +945,7 @@ namespace AGS.Editor
 
         private string GetPreviousPathedExpression(int startAtPos, bool skipSpacesBeforeCursor)
         {
-			bool startedParsingExpression = !skipSpacesBeforeCursor;
+            bool startedParsingExpression = !skipSpacesBeforeCursor;
             if (startAtPos < 0) startAtPos = 0;
             int cursorPos = startAtPos;
 
@@ -970,38 +968,38 @@ namespace AGS.Editor
                         }
                         cursorPos--;
                     }
-					startedParsingExpression = true;
+                    startedParsingExpression = true;
                 }
                 else if ((thisChar == '.') || (thisChar == '_') ||
                          (Char.IsLetterOrDigit((char)thisChar)))
                 {
                     cursorPos--;
-					startedParsingExpression = true;
+                    startedParsingExpression = true;
                 }
-				else if ((thisChar == ' ') && (!startedParsingExpression))
-				{
-					// if they put a space between function name and parameter
-					// list, skip back over it
-					cursorPos--;
-				}
-				else
-				{
-					cursorPos++;
-					break;
-				}
+                else if ((thisChar == ' ') && (!startedParsingExpression))
+                {
+                    // if they put a space between function name and parameter
+                    // list, skip back over it
+                    cursorPos--;
+                }
+                else
+                {
+                    cursorPos++;
+                    break;
+                }
 
-				if (cursorPos < startAtPos - 200)
-				{
-					// there is probably some invalid syntax like too many
-					// closing brackets, so abort
-					return string.Empty;
-				}
+                if (cursorPos < startAtPos - 200)
+                {
+                    // there is probably some invalid syntax like too many
+                    // closing brackets, so abort
+                    return string.Empty;
+                }
             }
-			if (cursorPos == 0)
-			{
-				// parse error
-				return string.Empty;
-			}
+            if (cursorPos == 0)
+            {
+                // parse error
+                return string.Empty;
+            }
             if (startAtPos < cursorPos)
             {
                 return string.Empty;
@@ -1065,7 +1063,7 @@ namespace AGS.Editor
                 scriptList.Add(script);
             }
 
-            if (_autoCompleteForThis != null && 
+            if (_autoCompleteForThis != null &&
                 _autoCompleteForThis.AutoCompleteData != null)
             {
                 scriptList.Add(_autoCompleteForThis);
@@ -1102,7 +1100,7 @@ namespace AGS.Editor
         private string ReadNextWord(ref string pathedExpression)
         {
             string thisWord = string.Empty;
-            while ((pathedExpression.Length > 0) && 
+            while ((pathedExpression.Length > 0) &&
                 ((Char.IsLetterOrDigit(pathedExpression[0])) || (pathedExpression[0] == '_')))
             {
                 thisWord += pathedExpression[0];
@@ -1327,28 +1325,28 @@ namespace AGS.Editor
             return false;
         }
 
-		/// <summary>
-		/// Checks whether the cursor is inside a string literal or a comment.
-		/// </summary>
-		/// <param name="charJustAdded">Set to true if calling from OnCharAdded,
-		/// because the new character won't have any formatting yet.</param>
-		private bool InsideStringOrComment(bool charJustAdded)
-		{
-			return InsideStringOrComment(charJustAdded, this.scintillaControl1.CurrentPos);
-		}
+        /// <summary>
+        /// Checks whether the cursor is inside a string literal or a comment.
+        /// </summary>
+        /// <param name="charJustAdded">Set to true if calling from OnCharAdded,
+        /// because the new character won't have any formatting yet.</param>
+        private bool InsideStringOrComment(bool charJustAdded)
+        {
+            return InsideStringOrComment(charJustAdded, this.scintillaControl1.CurrentPos);
+        }
 
-		public bool InsideStringOrComment(bool charJustAdded, int position)
-		{
-			Cpp style = (Cpp)this.scintillaControl1.GetStyleAt(position - (charJustAdded ? 2 : 1));
-			if ((style == Cpp.CommentLine) || (style == Cpp.Comment) ||
-				(style == Cpp.CommentDoc) || (style == Cpp.CommentLineDoc) || 
-				(style == Cpp.String))
-			{
-				return true;
-			}
+        public bool InsideStringOrComment(bool charJustAdded, int position)
+        {
+            Cpp style = (Cpp)this.scintillaControl1.GetStyleAt(position - (charJustAdded ? 2 : 1));
+            if ((style == Cpp.CommentLine) || (style == Cpp.Comment) ||
+                (style == Cpp.CommentDoc) || (style == Cpp.CommentLineDoc) ||
+                (style == Cpp.String))
+            {
+                return true;
+            }
 
-			int lineNumber = this.scintillaControl1.LineFromPosition(position);
-			int lineStart = this.scintillaControl1.PositionFromLine(lineNumber);
+            int lineNumber = this.scintillaControl1.LineFromPosition(position);
+            int lineStart = this.scintillaControl1.PositionFromLine(lineNumber);
             string curLine = this.scintillaControl1.GetLine(lineNumber);
             if (curLine.Length > 0)
             {
@@ -1359,24 +1357,24 @@ namespace AGS.Editor
                 }
                 curLine = curLine.Substring(0, length);
             }
-			if (curLine.IndexOf('"') >= 0)
-			{
-				int curIndex = 0;
-				int numSpeechMarks = 0;
-				while ((curIndex = curLine.IndexOf('"', curIndex)) >= 0)
-				{
-					numSpeechMarks++;
-					curIndex++;
-				}
-				if (numSpeechMarks % 2 == 1)
-				{
-					// in a string literal
-					return true;
-				}
-			}
+            if (curLine.IndexOf('"') >= 0)
+            {
+                int curIndex = 0;
+                int numSpeechMarks = 0;
+                while ((curIndex = curLine.IndexOf('"', curIndex)) >= 0)
+                {
+                    numSpeechMarks++;
+                    curIndex++;
+                }
+                if (numSpeechMarks % 2 == 1)
+                {
+                    // in a string literal
+                    return true;
+                }
+            }
 
-			return false;
-		}
+            return false;
+        }
 
         private bool IgnoringCurrentLine()
         {
@@ -1394,10 +1392,10 @@ namespace AGS.Editor
 
         private void ShowAutoCompleteIfAppropriate(int minimumLength)
         {
-			if ((InsideStringOrComment(false)) || (IgnoringCurrentLine()))
-			{
-				return;
-			}
+            if ((InsideStringOrComment(false)) || (IgnoringCurrentLine()))
+            {
+                return;
+            }
 
             int checkAtPos = this.scintillaControl1.CurrentPos - 1;
             if (CheckForAndShowEnumAutocomplete(checkAtPos))
@@ -1413,15 +1411,15 @@ namespace AGS.Editor
             else
             {
                 string previousWord = GetPreviousWord();
-                if ((previousWord.Length >= minimumLength) && 
+                if ((previousWord.Length >= minimumLength) &&
                     ((previousWord.Length == 0) || (!Char.IsDigit(previousWord[0]))))
                 {
-					string needMatch = previousWord;
-					if (minimumLength == 0)
-					{
-						needMatch = null;
-					}
-					ShowAutoComplete(previousWord.Length, ConstructScintillaAutocompleteList(null, false, false, needMatch));
+                    string needMatch = previousWord;
+                    if (minimumLength == 0)
+                    {
+                        needMatch = null;
+                    }
+                    ShowAutoComplete(previousWord.Length, ConstructScintillaAutocompleteList(null, false, false, needMatch));
                 }
             }
         }
@@ -1445,14 +1443,14 @@ namespace AGS.Editor
         {
             int bracketDepth = 0;
             parameterIndex = 0;
-			if ((char)this.scintillaControl1.GetCharAt(currentPos) == ')')
-			{
-				// if they already have   Func(1);  and insert a comma after 
-				// the 1, don't count it as opening a new sub-function
-				currentPos--;
-			}
+            if ((char)this.scintillaControl1.GetCharAt(currentPos) == ')')
+            {
+                // if they already have   Func(1);  and insert a comma after 
+                // the 1, don't count it as opening a new sub-function
+                currentPos--;
+            }
 
-			int charsCounted = 0;
+            int charsCounted = 0;
             while (currentPos > 0)
             {
                 char thisChar = (char)this.scintillaControl1.GetCharAt(currentPos);
@@ -1464,13 +1462,13 @@ namespace AGS.Editor
                 if (thisChar == ')') bracketDepth++;
                 if ((thisChar == ',') && (bracketDepth == 0)) parameterIndex++;
                 currentPos--;
-				charsCounted++;
+                charsCounted++;
 
-				if (charsCounted > 100)
-				{
-					// not inside function parmaeters
-					return -1;
-				}
+                if (charsCounted > 100)
+                {
+                    // not inside function parmaeters
+                    return -1;
+                }
             }
             return currentPos;
         }
@@ -1545,7 +1543,7 @@ namespace AGS.Editor
                 {
                     nameLength = ((ScriptVariable)tokenFound).VariableName.Length;
                 }
-                
+
                 ConstructAndShowCalltip((openingBracketPos - nameLength) + 1, parameterIndex, foundType, tokenFound);
             }
         }
@@ -1724,7 +1722,7 @@ namespace AGS.Editor
             {
                 if (!addedNames.ContainsKey(sf.FunctionName))
                 {
-                    if ((ShouldShowThis(sf)) && 
+                    if ((ShouldShowThis(sf)) &&
                         (sf.StartsAtCharacterIndex < onlyShowIfDefinitionBeforePos) &&
                         (!sf.HideOnMainFunctionList))
                     {
@@ -1811,7 +1809,7 @@ namespace AGS.Editor
                     param = param.Substring(9).Trim();
                 }
                 int index = param.Length - 1;
-                while ((index >= 0) && 
+                while ((index >= 0) &&
                        (Char.IsLetterOrDigit(param[index]) || param[index] == '_'))
                 {
                     index--;
@@ -1949,27 +1947,27 @@ namespace AGS.Editor
                 }
             }
 
-			if (onlyIfMatchForThis != null)
-			{
-				onlyIfMatchForThis = onlyIfMatchForThis.ToLower();
-				int matchLength = onlyIfMatchForThis.Length;
-				bool foundMatch = false;
-				foreach (string entry in globalsList)
-				{
-					if (entry.Length >= matchLength)
-					{
-						if (entry.Substring(0, matchLength).ToLower() == onlyIfMatchForThis)
-						{
-							foundMatch = true;
-							break;
-						}
-					}
-				}
-				if (!foundMatch)
-				{
-					return string.Empty;
-				}
-			}
+            if (onlyIfMatchForThis != null)
+            {
+                onlyIfMatchForThis = onlyIfMatchForThis.ToLower();
+                int matchLength = onlyIfMatchForThis.Length;
+                bool foundMatch = false;
+                foreach (string entry in globalsList)
+                {
+                    if (entry.Length >= matchLength)
+                    {
+                        if (entry.Substring(0, matchLength).ToLower() == onlyIfMatchForThis)
+                        {
+                            foundMatch = true;
+                            break;
+                        }
+                    }
+                }
+                if (!foundMatch)
+                {
+                    return string.Empty;
+                }
+            }
 
             return ConvertAutocompleteListToScintillaFormat(globalsList);
         }
@@ -1990,60 +1988,60 @@ namespace AGS.Editor
             return sb.ToString();
         }
 
-		private void ContextMenuChooseOption(object sender, EventArgs e)
-		{
-			ToolStripMenuItem item = (ToolStripMenuItem)sender;
-			if (item.Name == CONTEXT_MENU_CUT)
-			{
-				this.Cut();
-			}
-			else if (item.Name == CONTEXT_MENU_COPY)
-			{
-				this.Copy();
-			}
-			else if (item.Name == CONTEXT_MENU_PASTE)
-			{
-				this.Paste();
-			}
+        private void ContextMenuChooseOption(object sender, EventArgs e)
+        {
+            ToolStripMenuItem item = (ToolStripMenuItem)sender;
+            if (item.Name == CONTEXT_MENU_CUT)
+            {
+                this.Cut();
+            }
+            else if (item.Name == CONTEXT_MENU_COPY)
+            {
+                this.Copy();
+            }
+            else if (item.Name == CONTEXT_MENU_PASTE)
+            {
+                this.Paste();
+            }
 
-			if (ActivateContextMenu != null)
-			{
-				ActivateContextMenu(item.Name);
-			}
-		}
+            if (ActivateContextMenu != null)
+            {
+                ActivateContextMenu(item.Name);
+            }
+        }
 
-		private void ScintillaWrapper_MouseUp(object sender, MouseEventArgs e)
-		{
-			if (e.Button == MouseButtons.Right)
-			{
-				int clickAtPos = scintillaControl1.PositionFromPoint(e.X, e.Y);
-				if ((clickAtPos < scintillaControl1.SelectionStart) ||
-					(clickAtPos > scintillaControl1.SelectionEnd))
-				{
-					scintillaControl1.GotoPos(clickAtPos);
-				}
+        private void ScintillaWrapper_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                int clickAtPos = scintillaControl1.PositionFromPoint(e.X, e.Y);
+                if ((clickAtPos < scintillaControl1.SelectionStart) ||
+                    (clickAtPos > scintillaControl1.SelectionEnd))
+                {
+                    scintillaControl1.GotoPos(clickAtPos);
+                }
 
-				EventHandler onClick = new EventHandler(ContextMenuChooseOption);
-				ContextMenuStrip menu = new ContextMenuStrip();
+                EventHandler onClick = new EventHandler(ContextMenuChooseOption);
+                ContextMenuStrip menu = new ContextMenuStrip();
 
-				if (ConstructContextMenu != null)
-				{
-					ConstructContextMenu(menu, clickAtPos);
-				}
-				if (menu.Items.Count > 0)
-				{
-					menu.Items.Add(new ToolStripSeparator());
-				}
-				menu.Items.Add(new ToolStripMenuItem("Cut", Factory.GUIController.ImageList.Images["CutIcon"], onClick, CONTEXT_MENU_CUT));
-				menu.Items[menu.Items.Count - 1].Enabled = this.CanCutAndCopy();
-				menu.Items.Add(new ToolStripMenuItem("Copy", Factory.GUIController.ImageList.Images["CopyIcon"], onClick, CONTEXT_MENU_COPY));
-				menu.Items[menu.Items.Count - 1].Enabled = this.CanCutAndCopy();
-				menu.Items.Add(new ToolStripMenuItem("Paste", Factory.GUIController.ImageList.Images["PasteIcon"], onClick, CONTEXT_MENU_PASTE));
-				menu.Items[menu.Items.Count - 1].Enabled = this.CanPaste();
+                if (ConstructContextMenu != null)
+                {
+                    ConstructContextMenu(menu, clickAtPos);
+                }
+                if (menu.Items.Count > 0)
+                {
+                    menu.Items.Add(new ToolStripSeparator());
+                }
+                menu.Items.Add(new ToolStripMenuItem("Cut", Factory.GUIController.ImageList.Images["CutIcon"], onClick, CONTEXT_MENU_CUT));
+                menu.Items[menu.Items.Count - 1].Enabled = this.CanCutAndCopy();
+                menu.Items.Add(new ToolStripMenuItem("Copy", Factory.GUIController.ImageList.Images["CopyIcon"], onClick, CONTEXT_MENU_COPY));
+                menu.Items[menu.Items.Count - 1].Enabled = this.CanCutAndCopy();
+                menu.Items.Add(new ToolStripMenuItem("Paste", Factory.GUIController.ImageList.Images["PasteIcon"], onClick, CONTEXT_MENU_PASTE));
+                menu.Items[menu.Items.Count - 1].Enabled = this.CanPaste();
 
-				menu.Show(this.scintillaControl1, e.X, e.Y);
-			}
-		}
+                menu.Show(this.scintillaControl1, e.X, e.Y);
+            }
+        }
 
         public int LineCount
         {

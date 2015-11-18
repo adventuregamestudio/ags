@@ -2185,6 +2185,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\Engine\resource\resource.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Engine\resource\tintshader.fxo"
 				>
 			</File>

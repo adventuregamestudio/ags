@@ -28,6 +28,7 @@
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "font/fonts.h"
+#include "main/config.h"
 #include "main/graphics_mode.h"
 #include "main/main.h"
 #include "main/mainheader.h"
@@ -259,6 +260,8 @@ void quit(const char *quitmsg) {
     strncpy(qmsgbufr, quitmsg, STD_BUFFER_SIZE);
     qmsgbufr[STD_BUFFER_SIZE - 1] = 0;
     char *qmsg = &qmsgbufr[0];
+
+    save_config_file();
 
 	allegro_bitmap_test_release();
 

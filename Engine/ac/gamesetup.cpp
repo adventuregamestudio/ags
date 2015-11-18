@@ -35,4 +35,6 @@ GameSetup::GameSetup()
     override_script_os = -1;
     override_multitasking = -1;
     override_upscale = false;
+    mouse_speed = 1.f;
+    mouse_speed_def = kMouseSpeed_CurrentDisplay;
 }

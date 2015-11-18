@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include <windows.h>
+#include <commctrl.h>
 #include <stdio.h>
 #include <io.h>
 #include <stdlib.h>
@@ -35,6 +36,9 @@ using namespace AGS::Common;
 #define MIDI_AUTODETECT       -1 
 #define MIDI_NONE             0 
 #define MIDI_WIN32MAPPER         AL_ID('W','3','2','M')
+
+#define MOUSE_SPEED_MIN     1
+#define MOUSE_SPEED_MAX     100
 
 extern "C" HWND allegro_wnd;
 extern void fgetstring_limit (char *, Stream *, int);
@@ -197,6 +201,14 @@ void update_gfx_filter_box_enabled(HWND hDlg)
   update_resolution_texts(hDlg);
 }
 
+void update_mouse_speed_text(HWND hDlg)
+{
+  int slider_pos = SendDlgItemMessage(hDlg,IDC_MOUSESPEED, TBM_GETPOS, 0, 0);
+  float mouse_speed = (float)slider_pos / 10.f;
+  String text = mouse_speed == 1.f ? "Mouse speed: x 1.0 (Default)" : String::FromFormat("Mouse speed: x %0.1f", mouse_speed);
+  SendDlgItemMessage(hDlg, IDC_MOUSESPEED_TEXT, WM_SETTEXT, 0, (LPARAM)text.GetCStr());
+}
+
 void InitializeDialog(HWND hDlg) {
   struct _finddata_t c_file;
   long hFile;
@@ -249,6 +261,16 @@ void InitializeDialog(HWND hDlg) {
 
     _findclose( hFile );
   }
+
+  SendDlgItemMessage(hDlg, IDC_MOUSESPEED, TBM_SETRANGE, (WPARAM)TRUE,
+      (LPARAM)MAKELONG(MOUSE_SPEED_MIN, MOUSE_SPEED_MAX));
+  float mouse_speed = INIreadfloat(wincfg, "mouse", "speed", 1.f);
+  if (mouse_speed <= 0.f)
+      mouse_speed = 1.f;
+  int slider_pos = (int)(mouse_speed * 10.f + .5f);
+  SendDlgItemMessage(hDlg,IDC_MOUSESPEED, TBM_SETPOS, (WPARAM)TRUE, (LPARAM)slider_pos);
+  update_mouse_speed_text(hDlg);
+
   SendDlgItemMessage(hDlg,IDC_COMBO4,CB_ADDSTRING,0,(LPARAM)"10 MB");
   SendDlgItemMessage(hDlg,IDC_COMBO4,CB_ADDSTRING,0,(LPARAM)"20 MB (default)");
   SendDlgItemMessage(hDlg,IDC_COMBO4,CB_ADDSTRING,0,(LPARAM)"50 MB");
@@ -492,11 +514,19 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
           idx = SendDlgItemMessage(hDlg, IDC_GFXFILTER, CB_GETCURSEL, 0, 0);
           const char *filter_id = get_filter_id(idx);
           WritePrivateProfileString("misc", "gfxfilter", filter_id, ac_config_file);
+
+          int slider_pos = SendDlgItemMessage(hDlg,IDC_MOUSESPEED, TBM_GETPOS, 0, 0);
+          float mouse_speed = (float)slider_pos / 10.f;
+          sprintf(tbuf, "%0.1f", mouse_speed);
+          WritePrivateProfileString("mouse", "speed", tbuf, ac_config_file);
         }
 	EndDialog(hDlg, LOWORD(wParam));
  	return TRUE;
       }
       return FALSE;
+    case WM_HSCROLL:
+      update_mouse_speed_text(hDlg);
+      return TRUE;
     default: return FALSE;
     }
   return TRUE;

@@ -139,6 +139,12 @@ int engine_init_allegro()
             user_hint);
         return EXIT_NORMAL;
     }
+
+    // Setup allegro using constructed config string
+    String al_config_data = "[mouse]\n";
+    al_config_data.Append(String::FromFormat("mouse_accel_factor = %d\n", 0));
+    set_config_data(al_config_data, al_config_data.GetLength());
+
     return RETURN_CONTINUE;
 }
 

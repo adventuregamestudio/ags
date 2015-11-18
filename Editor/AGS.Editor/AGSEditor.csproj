@@ -328,6 +328,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="Resources\ResourceManager.cs" />
+    <Compile Include="Utils\AlternateStreams.cs" />
     <Compile Include="Utils\SourceControlProvider.cs" />
     <Compile Include="Enums\SpriteImportMethod.cs" />
     <Compile Include="GUI\TabbedDocumentManager.cs">

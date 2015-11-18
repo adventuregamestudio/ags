@@ -262,6 +262,10 @@ void InitializeDialog(HWND hDlg) {
     _findclose( hFile );
   }
 
+  bool mouse_autolock = INIreadint(wincfg, "mouse", "auto_lock") > 0;
+  if (mouse_autolock)
+      SendDlgItemMessage(hDlg, IDC_MOUSE_AUTOLOCK, BM_SETCHECK, BST_CHECKED, 0);
+
   SendDlgItemMessage(hDlg, IDC_MOUSESPEED, TBM_SETRANGE, (WPARAM)TRUE,
       (LPARAM)MAKELONG(MOUSE_SPEED_MIN, MOUSE_SPEED_MAX));
   float mouse_speed = INIreadfloat(wincfg, "mouse", "speed", 1.f);
@@ -515,6 +519,8 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
           const char *filter_id = get_filter_id(idx);
           WritePrivateProfileString("misc", "gfxfilter", filter_id, ac_config_file);
 
+          bool mouse_autolock = SendDlgItemMessage(hDlg, IDC_MOUSE_AUTOLOCK, BM_GETCHECK, 0, 0) == BST_CHECKED;
+          WritePrivateProfileString("mouse", "auto_lock", mouse_autolock ? "1" : "0", ac_config_file);
           int slider_pos = SendDlgItemMessage(hDlg,IDC_MOUSESPEED, TBM_GETPOS, 0, 0);
           float mouse_speed = (float)slider_pos / 10.f;
           sprintf(tbuf, "%0.1f", mouse_speed);

@@ -100,6 +100,8 @@ void quit_check_dynamic_sprites(char *qmsg)
 
 void quit_shutdown_platform(char *qmsg)
 {
+    // Be sure to unlock mouse on exit, or users will hate us
+    platform->UnlockMouse();
     platform->AboutToQuitGame();
 
     our_eip = 9016;

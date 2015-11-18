@@ -1481,6 +1481,10 @@ int initialize_engine(int argc,char*argv[])
 
     SetMultitasking(0);
 
+    // If auto lock option is set, lock mouse to the game window
+    if (usetup.mouse_auto_lock && usetup.windowed)
+        Mouse::TryLockToWindow();
+
     engine_show_preload();
 
     res = engine_init_sprites();

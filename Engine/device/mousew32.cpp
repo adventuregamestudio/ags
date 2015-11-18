@@ -41,6 +41,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/gfx_util.h"
 #include "main/graphics_mode.h"
+#include "platform/base/agsplatformdriver.h"
 #include "util/math.h"
 
 using namespace AGS::Common;
@@ -70,6 +71,9 @@ IMouseGetPosCallback *callback = NULL;
 
 namespace Mouse
 {
+    // Tells whether mouse was locked to the game window
+    bool LockedToWindow = false;
+
     // Screen rectangle, in which the mouse movement is controlled by engine
     Rect  ControlRect;
     // Mouse control enabled flag
@@ -341,6 +345,24 @@ int minstalled()
     nbuts = 2;
 
   return nbuts;
+}
+
+bool Mouse::IsLockedToWindow()
+{
+    return LockedToWindow;
+}
+
+bool Mouse::TryLockToWindow()
+{
+    if (!LockedToWindow)
+        LockedToWindow = platform->LockMouseToWindow();
+    return LockedToWindow;
+}
+
+void Mouse::UnlockFromWindow()
+{
+    platform->UnlockMouse();
+    LockedToWindow = false;
 }
 
 void Mouse::EnableControl(bool confine)

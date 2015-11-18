@@ -47,6 +47,7 @@ struct GameSetup {
     AGS::Common::String translation;
     AGS::Common::String gfxFilterID;
     AGS::Common::String gfxDriverID;
+    bool  mouse_auto_lock;
     int   override_script_os;
     char  override_multitasking;
     bool  override_upscale;

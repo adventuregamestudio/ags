@@ -647,7 +647,7 @@ struct Mouse {
   /// Changes the mouse cursor to use the graphic for a different non-active cursor mode.
   import static void UseModeGraphic(CursorMode);
   /// Gets/sets whether the user-defined factors are applied to mouse movement
-  import static attribute bool ControlEnabled;
+  readonly import static attribute bool ControlEnabled;
   /// Gets/sets the current mouse cursor mode.
   import static attribute CursorMode Mode;
   /// Gets/sets the mouse speed

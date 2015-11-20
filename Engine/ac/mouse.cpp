@@ -382,14 +382,6 @@ int find_next_enabled_cursor(int startwith) {
     return testing;
 }
 
-void Mouse_EnableControl(bool on)
-{
-    if (on)
-        Mouse::EnableControl(!usetup.windowed);
-    else
-        Mouse::DisableControl();
-}
-
 
 //=============================================================================
 //
@@ -516,11 +508,6 @@ RuntimeScriptValue Sc_Mouse_GetControlEnabled(const RuntimeScriptValue *params, 
     API_SCALL_BOOL(Mouse::IsControlEnabled);
 }
 
-RuntimeScriptValue Sc_Mouse_SetControlEnabled(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PBOOL(Mouse_EnableControl);
-}
-
 RuntimeScriptValue Sc_Mouse_GetSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_FLOAT(Mouse::GetSpeed);
@@ -550,7 +537,6 @@ void RegisterMouseAPI()
     ccAddExternalStaticFunction("Mouse::UseDefaultGraphic^0",       Sc_set_default_cursor);
     ccAddExternalStaticFunction("Mouse::UseModeGraphic^1",          Sc_set_mouse_cursor);
     ccAddExternalStaticFunction("Mouse::get_ControlEnabled",        Sc_Mouse_GetControlEnabled);
-    ccAddExternalStaticFunction("Mouse::set_ControlEnabled",        Sc_Mouse_SetControlEnabled);
     ccAddExternalStaticFunction("Mouse::get_Mode",                  Sc_GetCursorMode);
     ccAddExternalStaticFunction("Mouse::set_Mode",                  Sc_set_cursor_mode);
     ccAddExternalStaticFunction("Mouse::get_Speed",                 Sc_Mouse_GetSpeed);

@@ -271,7 +271,8 @@ void quit(const char *quitmsg)
     // about to free plugins)
     String qmsg = quitmsg;
 
-    save_config_file();
+    if (qreason & kQuitKind_NormalExit)
+        save_config_file();
 
 	allegro_bitmap_test_release();
 

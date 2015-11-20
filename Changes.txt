@@ -1,5 +1,44 @@
 REVISION HISTORY
 ================
+VERSION 3.3.5, November 2015
+
+Editor Features:
+- Path to resource's (sprite, audio) source file is now saved as relative one if the file is
+  located inside game project's folder.
+- Removed arbitrary limit of the script imports (was 50000).
+- Script allows struct member qualifiers to be in any order.
+- Better detection of integer constants overflow in script.
+- Removed arbitrary limit of integer default value of +/-32000. Integer values are now limited
+  by correct 32-bit values (-2147483648 to 2147483647).
+- Support for negative constants in enums.
+- Better folding markers and indentation guides in script editor.
+
+Editor Bug Fixes:
+- Fixed compiler crash if unknown keyword used after "readonly".
+- Fixed compiler did not properly report incorrect type of dynamic array in function declaration.
+- Fixed compiler did not report proper type name in case of syntax error sometimes.
+
+Engine Features:
+- Removed unconfigurable mouse cursor's acceleration.
+- Support for mouse cursor speed control: may be defined in configuration and changed in script).
+- Support for locking mouse inside window: automatic lock is enabled in configuration, and user
+  may use Ctrl+Alt combination to lock/release mouse at any time.
+
+Engine Bug Fixes:
+- Fixed crash if screenshot is taken while game window was minimized or moving.
+- Fixed alpha blend did not work properly for speech portrait if blinking frame did not have alpha channel.
+- Fixed legacy audio functions did not start digital music playback if MIDI driver failed to initialize.
+- Fixed "--help" command line argument not working all times depending on its order.
+
+Script API:
+- Added Mouse.ControlEnabled (readonly) and Mouse.Speed properties.
+- Added System.HasInputFocus property which tells if game currently has focus or runs at background.
+
+Cosmetics & convenience:
+- Clarified disabled MIDI option name in WinSetup.
+- Extended information displayed if graphics driver failed to initialize.
+
+
 VERSION 3.3.4, July 2015
 
 Features:

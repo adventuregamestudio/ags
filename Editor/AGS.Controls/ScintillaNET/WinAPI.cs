@@ -16,6 +16,7 @@ namespace Scintilla
     public class WinAPI
     {
         public const int WM_NOTIFY = 0x004e;
+        public const int WM_SETCURSOR = 0x0020;
 
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool MessageBeep(BeepType type);

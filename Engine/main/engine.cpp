@@ -103,14 +103,36 @@ Common::AssetError errcod;
 
 extern "C" HWND allegro_wnd;
 
+int engine_init_game_data();
 
 
-void engine_read_config(ConfigTree &cfg, int argc,char*argv[])
+bool engine_read_config(ConfigTree &cfg, int argc,char*argv[])
 {
-    Out::FPrint("Reading config file");
+    Out::FPrint("Reading configuration");
 
+    // Read default configuration file
     our_eip = -200;
-    read_config_file(cfg, argv[0]);
+    load_default_config_file(cfg, argv[0]);
+    // Deduce the game data file location
+    if (!engine_init_game_data())
+        return false;
+
+    // Pre-load game name and savegame folder names from data file
+    // TODO: research if that is possible to avoid this step and just
+    // read the full head game data at this point. This might require
+    // further changes of the order of initialization.
+    if (!preload_game_data())
+        return false;
+
+    // Read user configuration file
+    load_user_config_file(cfg);
+
+    // Parse and set up game config
+    read_config(cfg);
+
+    // Fixup configuration after reading
+    post_config();
+    return true;
 }
 
 #define ALLEGRO_KEYBOARD_HANDLER
@@ -358,9 +380,9 @@ void initialise_game_file_name()
     }
 }
 
-int engine_init_game_data(int argc,char*argv[])
+int engine_init_game_data()
 {
-    Out::FPrint("Initializing game data");
+    Out::FPrint("Looking for game data file");
 
     // initialize the data file
     initialise_game_file_name();
@@ -1346,7 +1368,9 @@ void allegro_bitmap_test_init()
 bool engine_do_config(int argc, char*argv[])
 {
     ConfigTree cfg;
-    engine_read_config(cfg, argc, argv);
+    if (!engine_read_config(cfg, argc, argv))
+        return false;
+
     apply_output_configuration();
 
     return engine_check_run_setup(cfg, argc, argv);
@@ -1370,11 +1394,6 @@ int initialize_engine(int argc,char*argv[])
     engine_force_window();
 
     our_eip = -195;
-
-    res = engine_init_game_data(argc, argv);
-    if (res != RETURN_CONTINUE) {
-        return res;
-    }
 
     our_eip = -192;
 

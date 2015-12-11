@@ -57,6 +57,8 @@ struct AGSPlatformDriver
     virtual const char *GetAllUsersDataDirectory() { return "."; }
     // Get directory for storing user's saved games
     virtual const char *GetUserSavedgamesDirectory() { return "."; }
+    // Get directory for storing user configuration files
+    virtual const char *GetUserConfigDirectory() { return "."; }
     // Get default directory for program output (logs)
     virtual const char *GetAppOutputDirectory() { return "."; }
     // Returns array of characters illegal to use in file names

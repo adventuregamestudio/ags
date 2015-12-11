@@ -29,9 +29,11 @@ namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 struct GameSetupStructBase {
+    static const int  GAME_NAME_LENGTH = 50;
     static const int  MAX_OPTIONS = 100;
+    static const int  NUM_INTS_RESERVED = 17;
 
-    char              gamename[50];
+    char              gamename[GAME_NAME_LENGTH];
     int32             options[MAX_OPTIONS];
     unsigned char     paluses[256];
     color             defpal[256];
@@ -52,7 +54,7 @@ struct GameSetupStructBase {
     GameResolutionType default_resolution;
     int32             default_lipsync_frame; // used for unknown chars
     int32             invhotdotsprite;
-    int32             reserved[17];
+    int32             reserved[NUM_INTS_RESERVED];
     char             *messages[MAXGLOBALMES];
     WordsDictionary  *dict;
     char             *globalscript;

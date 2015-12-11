@@ -17,6 +17,7 @@
 //
 
 #include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "debug/debug_log.h"
 #include "main/mainheader.h"
@@ -24,6 +25,7 @@
 #include "ac/spritecache.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/override_defines.h" //_getcwd()
+#include "util/directory.h"
 #include "util/filestream.h"
 #include "util/ini_util.h"
 #include "util/textstreamreader.h"
@@ -32,6 +34,7 @@
 using namespace AGS::Common;
 
 extern GameSetup usetup;
+extern GameSetupStruct game;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern int psp_video_framedrop;
@@ -48,12 +51,11 @@ extern char replayfile[MAX_PATH];
 extern GameState play;
 
 //char datname[80]="ac.clb";
-char ac_conf_file_defname[MAX_PATH] = "acsetup.cfg";
-char *ac_config_file = &ac_conf_file_defname[0];
-char conffilebuf[512];
+const char *ac_conf_file_defname = "acsetup.cfg";
+String ac_config_file;
 
 // Replace the filename part of complete path WASGV with INIFIL
-void INIgetdirec(char *wasgv, char *inifil) {
+void INIgetdirec(char *wasgv, const char *inifil) {
     int u = strlen(wasgv) - 1;
 
     for (u = strlen(wasgv) - 1; u >= 0; u--) {
@@ -120,14 +122,14 @@ void INIwritestring(ConfigTree &cfg, const String &sectn, const String &item, co
     cfg[sectn][item] = value;
 }
 
-void read_config_file(ConfigTree &cfg, const char *alt_cfg_file) {
-
+void find_default_cfg_file(const char *alt_cfg_file)
+{
     // Try current directory for config first; else try exe dir
-    strcpy (ac_conf_file_defname, "acsetup.cfg");
-    ac_config_file = &ac_conf_file_defname[0];
-    if (!Common::File::TestReadFile(ac_config_file)) {
-
-        strcpy(conffilebuf,alt_cfg_file);
+    ac_config_file = ac_conf_file_defname;
+    if (!Common::File::TestReadFile(ac_config_file))
+    {
+        char conffilebuf[512];
+        strcpy(conffilebuf, alt_cfg_file);
 
         /*    for (int ee=0;ee<(int)strlen(conffilebuf);ee++) {
         if (conffilebuf[ee]=='/') conffilebuf[ee]='\\';
@@ -135,35 +137,35 @@ void read_config_file(ConfigTree &cfg, const char *alt_cfg_file) {
         fix_filename_case(conffilebuf);
         fix_filename_slashes(conffilebuf);
 
-        INIgetdirec(conffilebuf,ac_config_file);
+        INIgetdirec(conffilebuf, ac_config_file);
         //    printf("Using config: '%s'\n",conffilebuf);
-        ac_config_file=&conffilebuf[0];
+        ac_config_file = conffilebuf;
     }
     else {
         // put the full path, or it gets written back to the Windows folder
-        _getcwd (ac_config_file, 255);
-        strcat (ac_config_file, "\\acsetup.cfg");
-        fix_filename_case(ac_config_file);
-        fix_filename_slashes(ac_config_file);
+        ac_config_file = Directory::GetCurrentDirectory();
+        ac_config_file.Append("/acsetup.cfg");
+        Path::FixupPath(ac_config_file);
     }
+}
 
+void find_user_cfg_file()
+{
+    String parent_dir = MakeSpecialSubDir(PathOrCurDir(platform->GetUserConfigDirectory()));
+    ac_config_file = String::FromFormat("%s/%s", parent_dir.GetCStr(), ac_conf_file_defname);
+}
+
+void config_defaults()
+{
     // set default dir if no config file
     usetup.data_files_dir = ".";
-    usetup.translation = NULL;
 #ifdef WINDOWS_VERSION
     usetup.digicard = DIGI_DIRECTAMX(0);
 #endif
+}
 
-    // Don't read in the standard config file if disabled.
-    if (psp_ignore_acsetup_cfg_file)
-    {
-        usetup.gfxDriverID = "DX5";
-        usetup.enable_antialiasing = psp_gfx_smooth_sprites != 0;
-        usetup.translation = psp_translation;
-        return;
-    }
-
-    if (IniUtil::Read(ac_config_file, cfg))
+void read_config(const ConfigTree &cfg)
+{
     {
 #ifndef WINDOWS_VERSION
         usetup.digicard=INIreadint(cfg, "sound","digiid");
@@ -313,10 +315,37 @@ void read_config_file(ConfigTree &cfg, const char *alt_cfg_file) {
                 enable_log_file = log_value > 0;
         }
     }
+}
 
+void post_config()
+{
     if (usetup.gfxDriverID.IsEmpty())
         usetup.gfxDriverID = "DX5";
+}
 
+void load_default_config_file(ConfigTree &cfg, const char *alt_cfg_file)
+{
+    config_defaults();
+
+    // Don't read in the standard config file if disabled.
+    if (psp_ignore_acsetup_cfg_file)
+    {
+        usetup.gfxDriverID = "DX5";
+        usetup.enable_antialiasing = psp_gfx_smooth_sprites != 0;
+        usetup.translation = psp_translation;
+        return;
+    }
+
+    find_default_cfg_file(alt_cfg_file);
+    IniUtil::Read(ac_config_file, cfg);
+}
+
+void load_user_config_file(AGS::Common::ConfigTree &cfg)
+{
+    String def_cfg_file = ac_config_file;
+    find_user_cfg_file();
+    if (def_cfg_file.Compare(ac_config_file) != 0)
+        IniUtil::Read(ac_config_file, cfg);
 }
 
 void save_config_file()

@@ -49,6 +49,8 @@ struct AGSPlatformDriver
     virtual const char *GetUserSavedgamesDirectory() { return "."; }
     // Get default directory for program output (logs)
     virtual const char *GetAppOutputDirectory() { return "."; }
+    // Returns array of characters illegal to use in file names
+    virtual const char *GetIllegalFileChars() { return "\\/"; }
     virtual const char *GetGraphicsTroubleshootingText() { return ""; }
     virtual unsigned long GetDiskFreeSpaceMB() = 0;
     virtual const char* GetNoMouseErrorString() = 0;

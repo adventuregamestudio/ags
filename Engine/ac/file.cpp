@@ -280,6 +280,24 @@ const String UserSavedgamesRootToken = "$MYDOCS$";
 const String GameSavedgamesDirToken  = "$SAVEGAMEDIR$";
 const String GameDataDirToken        = "$APPDATADIR$";
 
+void FixupFilename(char *filename)
+{
+    const char *illegal = platform->GetIllegalFileChars();
+    for (char *name_ptr = filename; *name_ptr; ++name_ptr)
+    {
+        if (*name_ptr < ' ')
+        {
+            *name_ptr = '_';
+        }
+        else
+        {
+            for (const char *ch_ptr = illegal; *ch_ptr; ++ch_ptr)
+                if (*name_ptr == *ch_ptr)
+                    *name_ptr = '_';
+        }
+    }
+}
+
 String MakeSpecialSubDir(const String &sp_dir)
 {
     if (is_relative_filename(sp_dir))
@@ -302,22 +320,13 @@ bool ResolveScriptPath(const String &sc_path, bool curdir_only, String &path)
     }
     else if (sc_path.CompareLeft(GameDataDirToken, GameDataDirToken.GetLength()) == 0) 
     {
-        const char *appdata_dir = PathOrCurDir(platform->GetAllUsersDataDirectory());
-        if (game.saveGameFolderName[0] != 0)
-        {
-            parent_dir = MakeSpecialSubDir(appdata_dir);
-            mkdir(parent_dir
+        parent_dir = MakeSpecialSubDir(PathOrCurDir(platform->GetAllUsersDataDirectory()));
+        mkdir(parent_dir
 #if !defined (WINDOWS_VERSION)
                 , 0755
 #endif
                 );
-        }
-        else 
-        {
-            parent_dir = appdata_dir;
-        }
-        if (parent_dir.GetLast() != '/' && parent_dir.GetLast() != '\\')
-            parent_dir.AppendChar('/');
+        parent_dir.AppendChar('/');
         child_path = sc_path.Mid(GameDataDirToken.GetLength());
     }
     else

@@ -52,6 +52,9 @@ inline const char *PathOrCurDir(const char *path)
     return path ? path : ".";
 }
 
+// Subsitutes illegal characters with '_'. This function uses illegal chars array
+// specific to current platform.
+void FixupFilename(char *filename);
 // Creates a directory path by combining absolute path to special directory with
 // custom game's directory name.
 // If the path is relative, keeps it unmodified (no extra subdir added).

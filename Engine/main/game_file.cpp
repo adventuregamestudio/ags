@@ -575,6 +575,23 @@ void WriteGameSetupStructBase_Aligned(Stream *out)
     gameBase->WriteToFile(&align_s);
 }
 
+void fixup_save_directory()
+{
+    // If the save game folder was not specified by game author, create one of
+    // the game name, game GUID, or data file name, as a last resort
+    if (!game.saveGameFolderName[0])
+    {
+        if (game.gamename[0])
+            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN - 1, "%s", game.gamename);
+        else if (game.guid[0])
+            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN - 1, "%s", game.guid);
+        else
+            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN - 1, "AGS-Game-%s", game.uniqueid);
+    }
+    // Lastly, fixup folder name by removing any illegal characters
+    FixupFilename(game.saveGameFolderName);
+}
+
 int load_game_file() {
 
 	int res;    
@@ -713,6 +730,8 @@ int load_game_file() {
 	//-----------------------------------------------------------
 	// Reading from file is finished here
 	//-----------------------------------------------------------
+
+    fixup_save_directory();
 
     update_gui_zorder();
 

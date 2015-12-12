@@ -103,6 +103,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual const char *GetAllUsersDataDirectory();
   virtual const char *GetUserSavedgamesDirectory();
   virtual const char *GetAppOutputDirectory();
+  virtual const char *GetIllegalFileChars();
   virtual const char *GetGraphicsTroubleshootingText();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
@@ -634,6 +635,11 @@ const char *AGSWin32::GetAppOutputDirectory()
 {
   DetermineAppOutputDirectory();
   return win32OutputDirectory;
+}
+
+const char *AGSWin32::GetIllegalFileChars()
+{
+    return "\\/:?\"<>|*";
 }
 
 const char *AGSWin32::GetGraphicsTroubleshootingText()

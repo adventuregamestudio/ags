@@ -232,6 +232,7 @@ void read_config_file(char *argv0) {
         usetup.data_files_dir.TrimRight('/');
 #endif
         usetup.main_data_filename = INIreadstring(cfg, "misc", "datafile");
+        usetup.user_data_dir = INIreadstring(cfg, "misc", "user_data_dir");
 
 #if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
         // PSP: No graphic filters are available.

@@ -349,12 +349,16 @@ String get_save_game_path(int slotNum) {
     return path;
 }
 
-int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
+String MakeSaveGameDir(const char *newFolder, bool allowAbsolute)
 {
+    // if end-user specified custom save folder, use it instead
+    if (!usetup.user_data_dir.IsEmpty())
+        return String::FromFormat("%s/Saves", usetup.user_data_dir.GetCStr());
+
     // don't allow them to go to another folder
     bool is_path_absolute = !is_relative_filename(newFolder);
     if (!allowAbsolute && is_path_absolute)
-        return 0;
+        return "";
 
     String newSaveGameDir = newFolder;
     if (newSaveGameDir.CompareLeft(UserSavedgamesRootToken, UserSavedgamesRootToken.GetLength()) == 0)
@@ -371,6 +375,14 @@ int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
     {
         newSaveGameDir.Format("%s/%s", PathOrCurDir(platform->GetUserSavedgamesDirectory()), newFolder);
     }
+    return newSaveGameDir;
+}
+
+int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
+{
+    String newSaveGameDir = MakeSaveGameDir(newFolder, allowAbsolute);
+    if (newSaveGameDir.IsEmpty())
+        return 0;
 
 #if defined (WINDOWS_VERSION)
     mkdir(newSaveGameDir);

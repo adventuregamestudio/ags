@@ -331,7 +331,10 @@ bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, Stri
     }
     else
     {
-        parent_dir = MakeSpecialSubDir(PathOrCurDir(platform->GetAllUsersDataDirectory()));
+        if (usetup.user_data_dir.IsEmpty())
+            parent_dir = MakeSpecialSubDir(PathOrCurDir(platform->GetAllUsersDataDirectory()));
+        else
+            parent_dir.Format("%s/Data", usetup.user_data_dir.GetCStr());
         mkdir(parent_dir
 #if !defined (WINDOWS_VERSION)
             , 0755

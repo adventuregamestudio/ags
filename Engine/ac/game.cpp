@@ -352,7 +352,8 @@ String get_save_game_path(int slotNum) {
 int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
 {
     // don't allow them to go to another folder
-    if (!allowAbsolute && !is_relative_filename(newFolder))
+    bool is_path_absolute = !is_relative_filename(newFolder);
+    if (!allowAbsolute && is_path_absolute)
         return 0;
 
     String newSaveGameDir = newFolder;
@@ -365,6 +366,10 @@ int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
     {
         newSaveGameDir.ReplaceMid(0, GameDataDirToken.GetLength(),
             PathOrCurDir(platform->GetAllUsersDataDirectory()));
+    }
+    else if (!is_path_absolute)
+    {
+        newSaveGameDir.Format("%s/%s", PathOrCurDir(platform->GetUserSavedgamesDirectory()), newFolder);
     }
 
 #if defined (WINDOWS_VERSION)

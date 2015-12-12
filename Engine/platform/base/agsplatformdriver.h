@@ -43,7 +43,10 @@ struct AGSPlatformDriver
     virtual void AboutToQuitGame();
     virtual void Delay(int millis) = 0;
     virtual void DisplayAlert(const char*, ...) = 0;
-    virtual const char *GetAllUsersDataDirectory() { return NULL; }
+    // Get directory for storing shared game data
+    virtual const char *GetAllUsersDataDirectory() { return "."; }
+    // Get directory for storing user's saved games
+    virtual const char *GetUserSavedgamesDirectory() { return "."; }
     // Get default directory for program output (logs)
     virtual const char *GetAppOutputDirectory() { return "."; }
     virtual const char *GetGraphicsTroubleshootingText() { return ""; }
@@ -57,7 +60,6 @@ struct AGSPlatformDriver
     virtual void PostAllegroInit(bool windowed);
     virtual void PostAllegroExit() = 0;
     virtual void FinishedUsingGraphicsMode();
-    virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize);
     virtual int  RunSetup() = 0;
     virtual void SetGameWindowIcon();
     virtual void WriteStdOut(const char*, ...) = 0;

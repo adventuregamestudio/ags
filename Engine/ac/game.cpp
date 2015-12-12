@@ -351,16 +351,21 @@ String get_save_game_path(int slotNum) {
 
 int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
 {
-
     // don't allow them to go to another folder
-    if ((!allowAbsolute) && ((newFolder[0] == '/') || (newFolder[0] == '\\') ||
-        (newFolder[0] == ' ') ||
-        ((newFolder[0] != 0) && (newFolder[1] == ':'))))
+    if (!allowAbsolute && !is_relative_filename(newFolder))
         return 0;
 
-    char newSaveGameDir[260];
-    platform->ReplaceSpecialPaths(newFolder, newSaveGameDir, sizeof(newSaveGameDir));
-    fix_filename_slashes(newSaveGameDir);
+    String newSaveGameDir = newFolder;
+    if (newSaveGameDir.CompareLeft(UserSavedgamesRootToken, UserSavedgamesRootToken.GetLength()) == 0)
+    {
+        newSaveGameDir.ReplaceMid(0, UserSavedgamesRootToken.GetLength(),
+            PathOrCurDir(platform->GetUserSavedgamesDirectory()));
+    }
+    else if (newSaveGameDir.CompareLeft(GameDataDirToken, GameDataDirToken.GetLength()) == 0)
+    {
+        newSaveGameDir.ReplaceMid(0, GameDataDirToken.GetLength(),
+            PathOrCurDir(platform->GetAllUsersDataDirectory()));
+    }
 
 #if defined (WINDOWS_VERSION)
     mkdir(newSaveGameDir);
@@ -368,7 +373,7 @@ int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
     mkdir(newSaveGameDir, 0755);
 #endif
 
-    put_backslash(newSaveGameDir);
+    newSaveGameDir.AppendChar('/');
 
     char newFolderTempFile[260];
     strcpy(newFolderTempFile, newSaveGameDir);
@@ -390,7 +395,7 @@ int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
         restartGameFile->Read(mbuffer, fileSize);
         delete restartGameFile;
 
-        sprintf(restartGamePath, "%s""agssave.%d%s", newSaveGameDir, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix);
+        sprintf(restartGamePath, "%s""agssave.%d%s", newSaveGameDir.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix);
         restartGameFile = Common::File::CreateFile(restartGamePath);
         restartGameFile->Write(mbuffer, fileSize);
         delete restartGameFile;

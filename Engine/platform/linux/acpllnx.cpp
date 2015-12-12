@@ -45,6 +45,7 @@ struct AGSLinux : AGSPlatformDriver {
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
+  virtual const char *GetUserSavedgamesDirectory();
   virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
@@ -57,7 +58,6 @@ struct AGSLinux : AGSPlatformDriver {
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char*, ...);
-  virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize);
   virtual bool LockMouseToWindow();
   virtual void UnlockMouse();
 };
@@ -114,6 +114,12 @@ void DetermineAppOutputDirectory()
     LinuxOutputDirectory = xdg_path;
   else
     LinuxOutputDirectory = "/tmp";
+}
+
+const char *AGSLinux::GetUserSavedgamesDirectory()
+{
+  DetermineAppOutputDirectory();
+  return LinuxOutputDirectory;
 }
 
 const char *AGSLinux::GetAppOutputDirectory()
@@ -183,32 +189,6 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
   if (instance == NULL)
     instance = new AGSLinux();
   return instance;
-}
-
-void AGSLinux::ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize) {
-  
-  static const char *special_paths[3] = {"$MYDOCS$", "$SAVEGAMEDIR$", "$APPDATADIR$"};
-  static const size_t sp_path_len[3] = {8, 13, 12};
-  int use_sp_path = -1;
-  for (int i = 0; i < 3; ++i)
-  {
-    if (strncasecmp(sourcePath, special_paths[i], sp_path_len[i]) == 0)
-    {
-      use_sp_path = i;
-      break;
-    }
-  }
-  
-  if (use_sp_path >= 0)
-  {
-    size_t l = BuildXDGPath(destPath, destSize);
-    snprintf(destPath + l, destSize - l, "%s", sourcePath + sp_path_len[use_sp_path]);
-    mkdir(destPath, 0755);
-  }
-  else
-  {
-    snprintf(destPath, destSize, "%s", sourcePath);
-  }
 }
 
 bool AGSLinux::LockMouseToWindow()

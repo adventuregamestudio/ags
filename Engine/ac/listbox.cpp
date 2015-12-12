@@ -52,8 +52,8 @@ void ListBox_Clear(GUIListBox *listbox) {
 }
 
 void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
-  char searchPath[MAX_PATH];
-  validate_user_file_path(filemask, searchPath, false);
+  String searchPath;
+  ResolveScriptPath(filemask, false, searchPath);
 
   listbox->Clear();
   al_ffblk dfb;

@@ -820,7 +820,7 @@ void engine_init_directories()
     if (game.saveGameFolderName[0] != 0)
     {
         char newDirBuffer[MAX_PATH];
-        sprintf(newDirBuffer, "$MYDOCS$/%s", game.saveGameFolderName);
+        sprintf(newDirBuffer, "%s/%s", UserSavedgamesRootToken.GetCStr(), game.saveGameFolderName);
         Game_SetSaveGameDirectory(newDirBuffer);
     }
     else if (use_compiled_folder_as_current_dir)

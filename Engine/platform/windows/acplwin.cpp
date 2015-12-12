@@ -101,6 +101,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
   virtual const char *GetAllUsersDataDirectory();
+  virtual const char *GetUserSavedgamesDirectory();
   virtual const char *GetAppOutputDirectory();
   virtual const char *GetGraphicsTroubleshootingText();
   virtual unsigned long GetDiskFreeSpaceMB();
@@ -111,7 +112,6 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroInit(bool windowed);
   virtual void PostAllegroExit();
-  virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize);
   virtual int  RunSetup();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
@@ -618,28 +618,16 @@ void DetermineAppOutputDirectory()
   }
 }
 
-void AGSWin32::ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize) {
-
-  if (strnicmp(sourcePath, "$MYDOCS$", 8) == 0) 
-  {
-    determine_saved_games_folder();
-    snprintf(destPath, destSize, "%s%s", win32SavedGamesDirectory, sourcePath + 8);
-  }
-  else if (strnicmp(sourcePath, "$APPDATADIR$", 12) == 0) 
-  {
-    determine_app_data_folder();
-    snprintf(destPath, destSize, "%s%s", win32AppDataDirectory, sourcePath + 12);
-  }
-  else
-  {
-    snprintf(destPath, destSize, "%s", sourcePath);
-  }
-}
-
 const char* AGSWin32::GetAllUsersDataDirectory() 
 {
   determine_app_data_folder();
   return &win32AppDataDirectory[0];
+}
+
+const char *AGSWin32::GetUserSavedgamesDirectory()
+{
+  determine_saved_games_folder();
+  return win32SavedGamesDirectory;
 }
 
 const char *AGSWin32::GetAppOutputDirectory()

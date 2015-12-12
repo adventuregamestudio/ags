@@ -41,10 +41,9 @@ int32_t FileOpenCMode(const char*fnmm, const char* cmode)
 int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
 {
   int useindx = 0;
-  char fileToOpen[MAX_PATH];
 
-  if (!validate_user_file_path(fnmm, fileToOpen,
-      (open_mode != Common::kFile_Open || work_mode != Common::kFile_Read)))
+  String fileToOpen;
+  if (!ResolveScriptPath(fnmm, (open_mode != Common::kFile_Open || work_mode != Common::kFile_Read), fileToOpen))
     return 0;
 
   // find a free file handle to use

@@ -14,8 +14,10 @@
 
 #include <windows.h>
 #include <commctrl.h>
-#include <stdio.h>
+#include <shlobj.h>
+#include <shlwapi.h>
 #include <io.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include "resource/resource.h"
 #include "ac/gamestructdefines.h"
@@ -63,6 +65,12 @@ const int specialFilterListIndex = 1;
 const char *specialFilterName = "Max nearest-neighbour filter";
 const char *specialFilterID = "max";
 ConfigTree *wincfg;
+
+void MakeFullLongPath(const char *path, char *out_buf, int buf_len)
+{
+    GetFullPathName(path, buf_len, out_buf, NULL);
+    GetLongPathName(out_buf, out_buf, buf_len);
+}
 
 int get_filter_real_index(int list_index)
 {
@@ -263,6 +271,18 @@ void InitializeDialog(HWND hDlg) {
     _findclose( hFile );
   }
 
+  // Custom save dir controls
+  String custom_save_dir = INIreadstring(*wincfg, "misc", "user_data_dir");
+  bool has_save_dir = !custom_save_dir.IsEmpty();
+  if (!has_save_dir)
+      custom_save_dir = curdatadir;
+  SendDlgItemMessage(hDlg, IDC_CUSTOMSAVEDIRCHECK, BM_SETCHECK, has_save_dir ? BST_CHECKED : BST_UNCHECKED, 0);
+  char full_save_dir[MAX_PATH] = {0};
+  MakeFullLongPath(custom_save_dir, full_save_dir, MAX_PATH);
+  SendDlgItemMessage(hDlg, IDC_CUSTOMSAVEDIR, WM_SETTEXT, 0, (LPARAM)full_save_dir);
+  EnableWindow(GetDlgItem(hDlg, IDC_CUSTOMSAVEDIR), has_save_dir ? TRUE : FALSE);
+  EnableWindow(GetDlgItem(hDlg, IDC_CUSTOMSAVEDIRBTN), has_save_dir ? TRUE : FALSE);
+
   bool mouse_autolock = INIreadint(*wincfg, "mouse", "auto_lock") > 0;
   if (mouse_autolock)
       SendDlgItemMessage(hDlg, IDC_MOUSE_AUTOLOCK, BM_SETCHECK, BST_CHECKED, 0);
@@ -355,6 +375,44 @@ void InitializeDialog(HWND hDlg) {
   SendMessage(allegro_wnd, WM_SETTEXT, NULL, (LPARAM)gameNameForTitleBar.GetCStr());
 }
 
+// Browse-for-folder dialog callback
+int CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData)
+{
+    if (uMsg == BFFM_INITIALIZED)
+    {
+        // Set initial selection
+        SendMessage(hwnd, BFFM_SETSELECTION, TRUE, (LPARAM)lpData);
+    }
+    return 0;
+}
+
+// Open common Browse-for-folder dialog
+bool BrowseForFolder(char *dir_buf, int buf_max)
+{
+    bool res = false;
+    CoInitialize(NULL);
+
+    BROWSEINFO bi = { 0 };
+    bi.lpszTitle = "Select location for game saves and custom data files";
+    bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_RETURNFSANCESTORS;
+    bi.lpfn = BrowseCallbackProc;
+    bi.lParam = (LPARAM)dir_buf;
+    LPITEMIDLIST pidl = SHBrowseForFolder ( &bi );
+    if (pidl)
+    {
+        char path[MAX_PATH];
+        if (SHGetPathFromIDList(pidl, path) != FALSE)
+        {
+            _snprintf(dir_buf, buf_max - 1, path);
+            res = true;
+        }
+        CoTaskMemFree(pidl);
+    }
+
+    CoUninitialize();
+    return res;
+}
+
 // handler for Settings dialog
 LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
   char tbuf[MAX_PATH];
@@ -393,6 +451,21 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
       }
       else if ((LOWORD(wParam) == IDC_LETTERBOX) || (LOWORD(wParam) == IDC_GFXFILTER)) {
         update_resolution_texts(hDlg);
+      }
+      else if (LOWORD(wParam) == IDC_CUSTOMSAVEDIRCHECK)
+      {
+        bool custom_save_dir = SendDlgItemMessage(hDlg, IDC_CUSTOMSAVEDIRCHECK, BM_GETCHECK, 0, 0) == BST_CHECKED;
+        EnableWindow(GetDlgItem(hDlg, IDC_CUSTOMSAVEDIR), custom_save_dir ? TRUE : FALSE);
+        EnableWindow(GetDlgItem(hDlg, IDC_CUSTOMSAVEDIRBTN), custom_save_dir ? TRUE : FALSE);
+      }
+      else if (LOWORD(wParam) == IDC_CUSTOMSAVEDIRBTN)
+      {
+        char save_dir[MAX_PATH] = {0};
+        SendDlgItemMessage(hDlg, IDC_CUSTOMSAVEDIR, WM_GETTEXT, MAX_PATH, (LPARAM)save_dir);
+        if (BrowseForFolder(save_dir, MAX_PATH))
+        {
+          SendDlgItemMessage(hDlg, IDC_CUSTOMSAVEDIR, WM_SETTEXT, 0, (LPARAM)save_dir);
+        }
       }
 
       if (LOWORD(wParam) == IDC_GFXDRIVER)
@@ -514,6 +587,35 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
           const char *filter_id = get_filter_id(idx);
           INIwritestring(*wincfg, "misc", "gfxfilter", filter_id);
 
+          bool custom_save_dir = SendDlgItemMessage(hDlg, IDC_CUSTOMSAVEDIRCHECK, BM_GETCHECK, 0, 0) == BST_CHECKED;
+          if (custom_save_dir)
+          {
+              // Compare user path with the game data directory. If user chose
+              // path pointing inside game's directory, then store relative
+              // path instead; thus the path will keep pointing at game's
+              // directory if user moves game elsewhere.
+              char save_dir[MAX_PATH] = {0};
+              SendDlgItemMessage(hDlg, IDC_CUSTOMSAVEDIR, WM_GETTEXT, MAX_PATH, (LPARAM)save_dir);
+              char full_data_dir[MAX_PATH] = {0};
+              char full_save_dir[MAX_PATH] = {0};
+              MakeFullLongPath(curdatadir.GetCStr(), full_data_dir, MAX_PATH);
+              MakeFullLongPath(save_dir, full_save_dir, MAX_PATH);
+              char rel_save_dir[MAX_PATH] = {0};
+              if (PathRelativePathTo(rel_save_dir, full_data_dir, FILE_ATTRIBUTE_DIRECTORY, full_save_dir, FILE_ATTRIBUTE_DIRECTORY) &&
+                  strstr(rel_save_dir, "..") == NULL)
+              {
+                INIwritestring(*wincfg, "misc", "user_data_dir", rel_save_dir);
+              }
+              else
+              {
+                INIwritestring(*wincfg, "misc", "user_data_dir", save_dir);
+              }
+          }
+          else
+          {
+              INIwritestring(*wincfg, "misc", "user_data_dir", "");
+          }
+
           bool mouse_autolock = SendDlgItemMessage(hDlg, IDC_MOUSE_AUTOLOCK, BM_GETCHECK, 0, 0) == BST_CHECKED;
           INIwritestring(*wincfg, "mouse", "auto_lock", mouse_autolock ? "1" : "0");
           int slider_pos = SendDlgItemMessage(hDlg,IDC_MOUSESPEED, TBM_GETPOS, 0, 0);
@@ -534,8 +636,9 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
   }
 
 
-SetupReturnValue acwsetup(ConfigTree &cfg, const char*vername, const char*enbuild)
+SetupReturnValue acwsetup(ConfigTree &cfg, const String &game_data_dir, const char*vername, const char*enbuild)
 {
+  curdatadir = game_data_dir;
   setupstring = vername;
   enginever = enbuild;
   wincfg = &cfg;
@@ -582,7 +685,6 @@ SetupReturnValue acwsetup(ConfigTree &cfg, const char*vername, const char*enbuil
       curusespeech = 1;
 
     curtranslation = INIreadstring(*wincfg, "language", "translation", "");
-    curdatadir = INIreadstring(*wincfg, "misc", "datadir", ".");
     curFilter = INIreadstring(*wincfg, "misc", "gfxfilter", "None");
     curGfxDriver = INIreadstring(*wincfg, "misc", "gfxdriver", "D3D9");
     gameNameForTitleBar = INIreadstring(*wincfg, "misc", "titletext", "Game Setup");

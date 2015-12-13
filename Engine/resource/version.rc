@@ -114,7 +114,7 @@ IDI_ICON2               ICON                    "game-1.ico"
 // Dialog
 //
 
-IDD_DIALOG1 DIALOGEX 0, 0, 360, 317
+IDD_DIALOG1 DIALOGEX 0, 0, 388, 317
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "AGS Game Settings"
 FONT 8, "Tahoma", 400, 0, 0x0
@@ -128,20 +128,28 @@ BEGIN
     CONTROL         "Filter:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,14,61,33,9
     COMBOBOX        IDC_GFXFILTER,50,59,136,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Graphics filters can help you to get low-resolution games running well on high-resolution monitors.",IDC_STATIC,13,75,169,18
-    GROUPBOX        "Gameplay settings",IDC_STATIC,198,7,154,88
+    GROUPBOX        "Gameplay settings",IDC_STATIC,198,7,182,44
     CONTROL         "Game language:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,205,19,56,10
-    COMBOBOX        IDC_COMBO3,205,31,140,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO3,205,31,168,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "",IDC_STATIC,198,59,182,36
+    CONTROL         "Custom game saves path",IDC_CUSTOMSAVEDIRCHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,204,59,165,10,WS_EX_TRANSPARENT
+    EDITTEXT        IDC_CUSTOMSAVEDIR,204,73,148,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_CUSTOMSAVEDIRBTN,353,74,20,14
     DEFPUSHBUTTON   "S&ave",IDOK,7,102,56,14
     PUSHBUTTON      "&Save and Run",IDOKRUN,67,102,56,14
     PUSHBUTTON      "Cancel",IDCANCEL,127,102,56,14
-    PUSHBUTTON      "Ad&vanced  >>>",IDC_ADVANCED,282,101,70,15
+    PUSHBUTTON      "Ad&vanced  >>>",IDC_ADVANCED,310,101,70,15
     GROUPBOX        "Sound options",IDC_STATIC,7,122,185,63
     CONTROL         "Digital Sound:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,13,136,46,9
     COMBOBOX        IDC_COMBO1,68,134,118,70,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_GROUP | WS_TABSTOP
     CONTROL         "MIDI music:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,13,152,47,10
     COMBOBOX        IDC_COMBO2,68,150,118,70,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_TABSTOP
     CONTROL         "Use voice pack if available",IDC_SPEECHPACK,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,13,169,160,9
-    GROUPBOX        "Graphics options",IDC_STATIC,198,121,154,122
+    GROUPBOX        "Mouse options",IDC_STATIC,7,185,186,58
+    CONTROL         "Auto lock to window",IDC_MOUSE_AUTOLOCK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,200,80,10
+    LTEXT           "Cursor speed: Default",IDC_MOUSESPEED_TEXT,15,214,176,8
+    CONTROL         "",IDC_MOUSESPEED,"msctls_trackbar32",WS_TABSTOP,10,225,180,14
+    GROUPBOX        "Graphics options",IDC_STATIC,198,122,182,121
     CONTROL         "Enable side borders",IDC_SIDEBORDERS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,136,135,9
     CONTROL         "Enable top && bottom borders",IDC_LETTERBOX,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,150,132,9
     CONTROL         "S&mooth scaled sprites (fast CPUs only)",IDC_ANTIALIAS,
@@ -150,15 +158,11 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,178,135,9
     CONTROL         "Use 85 &Hz display (CRT monitors only)",IDC_REFRESH,
                     "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,205,192,138,9
-    GROUPBOX        "Sprite cache",IDC_STATICADV,7,245,345,55,NOT WS_VISIBLE
+    GROUPBOX        "Sprite cache",IDC_STATICADV,7,245,373,55,NOT WS_VISIBLE
     CONTROL         "Maximum size:",IDC_STATICADV3,"Static",SS_LEFTNOWORDWRAP | NOT WS_VISIBLE | WS_GROUP,15,258,50,10
     COMBOBOX        IDC_COMBO4,68,256,108,100,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "You can limit the maximum amount of memory that the game will use for its sprite cache. Smaller values may make the game run slower but use less RAM; higher values may be faster but use more RAM. You should not normally need to adjust this.",IDC_STATICADV2,13,272,323,26,NOT WS_VISIBLE
-    CTEXT           "Static",IDC_VERSION,91,303,176,9
-    CONTROL         "",IDC_MOUSESPEED,"msctls_trackbar32",WS_TABSTOP,10,225,180,14
-    GROUPBOX        "Mouse options",IDC_STATIC,7,185,186,58
-    CONTROL         "Auto lock to window",IDC_MOUSE_AUTOLOCK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,200,80,10
-    LTEXT           "Cursor speed: Default",IDC_MOUSESPEED_TEXT,15,214,176,8
+    LTEXT           "You can limit the maximum amount of memory that the game will use for its sprite cache. Smaller values may make the game run slower but use less RAM; higher values may be faster but use more RAM. You should not normally need to adjust this.",IDC_STATICADV2,13,272,359,26,NOT WS_VISIBLE
+    CTEXT           "Static",IDC_VERSION,105,303,176,9
 END
 
 
@@ -173,7 +177,7 @@ BEGIN
     IDD_DIALOG1, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 352
+        RIGHTMARGIN, 380
         TOPMARGIN, 7
         BOTTOMMARGIN, 312
     END

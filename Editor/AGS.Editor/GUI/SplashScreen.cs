@@ -30,7 +30,6 @@ namespace AGS.Editor
             "Best served with nostalgia",
             "Please do not feed the scripters",
             "This area intentionally left blank",
-            "More fun than the girl next door",
             "Insert Disk 2 to continue",
             "The partner that keeps you up all night",
             "Can help weight loss only as part of a balanced diet",

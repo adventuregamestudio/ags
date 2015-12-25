@@ -124,6 +124,23 @@ TEST(Compile, ParsingIntSuccess) {
     ASSERT_EQ(0, compileResult);
 }
 
+TEST(Compile, ParsingIntLimits) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+                 import int int_limits(int param_min = -2147483648, int param_max = 2147483647);\
+                 int int_limits(int param_min, int param_max)\
+                 {\
+                 int var_min = - 2147483648;\
+                 int var_max = 2147483647;\
+                 }\
+                 ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+
+    ASSERT_EQ(0, compileResult);
+}
 
 TEST(Compile, ParsingIntDefaultOverflow) {
     ccCompiledScript *scrip = newScriptFixture();
@@ -162,6 +179,19 @@ TEST(Compile, ParsingIntOverflow) {
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
     EXPECT_STREQ("Error while parsing integer symbol '4200000000000000000000'.", last_seen_cc_error);
+}
+
+TEST(Compile, ParsingNegIntOverflow) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+                 int testfunc(int x ) { int y = -4200000000000000000000; } \
+                 ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(-1, compileResult);
+    EXPECT_STREQ("Error while parsing integer symbol '-4200000000000000000000'.", last_seen_cc_error);
 }
 
 

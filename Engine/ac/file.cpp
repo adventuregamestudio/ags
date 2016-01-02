@@ -27,6 +27,7 @@
 #include "util/stream.h"
 #include "core/assetmanager.h"
 #include "main/game_file.h"
+#include "util/path.h"
 #include "util/string.h"
 
 using namespace AGS::Common;
@@ -313,62 +314,76 @@ String MakeSpecialSubDir(const String &sp_dir)
     return full_path;
 }
 
+String MakeAppDataPath()
+{
+    String app_data_path;
+    if (usetup.user_data_dir.IsEmpty())
+        app_data_path = MakeSpecialSubDir(PathOrCurDir(platform->GetAllUsersDataDirectory()));
+    else
+        app_data_path.Format("%s/Data", usetup.user_data_dir.GetCStr());
+    mkdir(app_data_path
+#if !defined (WINDOWS_VERSION)
+        , 0755
+#endif
+        );
+    app_data_path.AppendChar('/');
+    return app_data_path;
+}
+
 bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, String &alt_path)
 {
-    String parent_dir;
-    String child_path;
+    path.Empty();
     alt_path.Empty();
 
     bool is_absolute = !is_relative_filename(sc_path);
+    if (is_absolute && !read_only)
+    {
+        debug_log("Attempt to access file '%s' denied (cannot write to absolute path)", sc_path.GetCStr());
+        return false;
+    }
+
+    String parent_dir;
+    String child_path;
+
     if (is_absolute)
     {
-        child_path = sc_path;
+        path = sc_path;
+        return true;
     }
-    else if (sc_path.CompareLeft(GameSavedgamesDirToken, GameSavedgamesDirToken.GetLength()) == 0)
+    
+    if (sc_path.CompareLeft(GameSavedgamesDirToken, GameSavedgamesDirToken.GetLength()) == 0)
     {
         parent_dir = saveGameDirectory;
         child_path = sc_path.Mid(GameSavedgamesDirToken.GetLength());
     }
+    else if (sc_path.CompareLeft(GameDataDirToken, GameDataDirToken.GetLength()) == 0)
+    {
+        parent_dir = MakeAppDataPath();
+        child_path = sc_path.Mid(GameDataDirToken.GetLength());
+    }
     else
     {
-        if (usetup.user_data_dir.IsEmpty())
-            parent_dir = MakeSpecialSubDir(PathOrCurDir(platform->GetAllUsersDataDirectory()));
-        else
-            parent_dir.Format("%s/Data", usetup.user_data_dir.GetCStr());
-        mkdir(parent_dir
-#if !defined (WINDOWS_VERSION)
-            , 0755
-#endif
-            );
-        parent_dir.AppendChar('/');
-
-        if (sc_path.CompareLeft(GameDataDirToken, GameDataDirToken.GetLength()) == 0)
-        {
-            child_path = sc_path.Mid(GameDataDirToken.GetLength());
-        }
-        else
-        {
-            // Set alternate non-remapped "unsafe" path for read-only operations
-            if (read_only)
-                alt_path = sc_path;
-            child_path = sc_path;
-        }
+        parent_dir = MakeAppDataPath();
+        // Set alternate non-remapped "unsafe" path for read-only operations
+        if (read_only)
+            alt_path = sc_path;
+        child_path = sc_path;
     }
 
     if (child_path[0] == '\\' || child_path[0] == '/')
         child_path.ClipLeft(1);
 
-    // don't allow write operations for absolute paths or relative paths outside current dir
+    path = String::FromFormat("%s%s", parent_dir.GetCStr(), child_path.GetCStr());
+    // don't allow write operations for relative paths outside game dir
     if (!read_only)
     {
-        if (is_absolute || child_path.FindString("/..") >= 0 || child_path.FindString("\\..") >= 0)
+        if (!Path::IsSameOrSubDir(parent_dir, path))
         {
-            debug_log("Attempt to access file '%s' denied (not current directory)", sc_path.GetCStr());
+            debug_log("Attempt to access file '%s' denied (outside of game directory)", sc_path.GetCStr());
             path = "";
             return false;
         }
     }
-    path = String::FromFormat("%s%s", parent_dir.GetCStr(), child_path.GetCStr());
     return true;
 }
 

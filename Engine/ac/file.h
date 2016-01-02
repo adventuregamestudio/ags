@@ -61,9 +61,10 @@ void FixupFilename(char *filename);
 String MakeSpecialSubDir(const String &sp_dir);
 // Resolves a file path provided by user (e.g. script) into actual file path,
 // by substituting special keywords with actual platform-specific directory names.
+// Sets a primary and alternate paths; the latter is for backwards compatibility only.
 // Returns 'true' on success, and 'false' if either path is impossible to resolve
 // or if the file path is forbidden to be accessed in current situation.
-bool ResolveScriptPath(const String &sc_path, bool curdir_only, String &path);
+bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, String &alt_path);
 
 String  get_current_dir();
 void	get_current_dir_path(char* buffer, const char *fileName);

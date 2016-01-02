@@ -63,20 +63,24 @@ extern int MAXSTRLEN;
 
 int File_Exists(const char *fnmm) {
 
-  String path;
-  if (!ResolveScriptPath(fnmm, false, path))
+  String path, alt_path;
+  if (!ResolveScriptPath(fnmm, true, path, alt_path))
     return 0;
 
-  return File::TestReadFile(path) ? 1 : 0;
+  return (File::TestReadFile(path) || File::TestReadFile(alt_path)) ? 1 : 0;
 }
 
 int File_Delete(const char *fnmm) {
 
-  String path;
-  if (!ResolveScriptPath(fnmm, true, path))
+  String path, alt_path;
+  if (!ResolveScriptPath(fnmm, false, path, alt_path))
     return 0;
 
-  return unlink(path) == 0 ? 1 : 0;
+  if (unlink(path) == 0)
+      return 1;
+  if (errno == ENOENT && !alt_path.IsEmpty() && alt_path.Compare(path) != 0)
+      return unlink(alt_path) == 0 ? 1 : 0;
+  return 0;
 }
 
 void *sc_OpenFile(const char *fnmm, int mode) {
@@ -309,42 +313,52 @@ String MakeSpecialSubDir(const String &sp_dir)
     return full_path;
 }
 
-bool ResolveScriptPath(const String &sc_path, bool curdir_only, String &path)
+bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, String &alt_path)
 {
     String parent_dir;
     String child_path;
-    if (sc_path.CompareLeft(GameSavedgamesDirToken, GameSavedgamesDirToken.GetLength()) == 0)
+    alt_path.Empty();
+
+    bool is_absolute = !is_relative_filename(sc_path);
+    if (is_absolute)
+    {
+        child_path = sc_path;
+    }
+    else if (sc_path.CompareLeft(GameSavedgamesDirToken, GameSavedgamesDirToken.GetLength()) == 0)
     {
         parent_dir = saveGameDirectory;
         child_path = sc_path.Mid(GameSavedgamesDirToken.GetLength());
     }
-    else if (sc_path.CompareLeft(GameDataDirToken, GameDataDirToken.GetLength()) == 0) 
+    else
     {
         parent_dir = MakeSpecialSubDir(PathOrCurDir(platform->GetAllUsersDataDirectory()));
         mkdir(parent_dir
 #if !defined (WINDOWS_VERSION)
-                , 0755
+            , 0755
 #endif
-                );
+            );
         parent_dir.AppendChar('/');
-        child_path = sc_path.Mid(GameDataDirToken.GetLength());
-    }
-    else
-    {
-        if (is_relative_filename(sc_path))
-            parent_dir = get_current_dir();
-        child_path = sc_path;
+
+        if (sc_path.CompareLeft(GameDataDirToken, GameDataDirToken.GetLength()) == 0)
+        {
+            child_path = sc_path.Mid(GameDataDirToken.GetLength());
+        }
+        else
+        {
+            // Set alternate non-remapped "unsafe" path for read-only operations
+            if (read_only)
+                alt_path = sc_path;
+            child_path = sc_path;
+        }
     }
 
     if (child_path[0] == '\\' || child_path[0] == '/')
         child_path.ClipLeft(1);
 
-    // don't allow absolute paths or relative paths outside current dir
-    if (curdir_only)
+    // don't allow write operations for absolute paths or relative paths outside current dir
+    if (!read_only)
     {
-        if (child_path.FindChar('/') >= 0 || child_path.FindChar('\\') >= 0 ||
-            child_path.FindString("/..") >= 0 || child_path.FindString("\\..") >= 0 ||
-            child_path.FindChar(':') >= 0)
+        if (is_absolute || child_path.FindString("/..") >= 0 || child_path.FindString("\\..") >= 0)
         {
             debug_log("Attempt to access file '%s' denied (not current directory)", sc_path.GetCStr());
             path = "";

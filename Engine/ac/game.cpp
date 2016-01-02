@@ -373,6 +373,9 @@ String MakeSaveGameDir(const char *newFolder, bool allowAbsolute)
     }
     else if (!is_path_absolute)
     {
+        // Only remap local dir paths in backwards-compatible mode
+        if (game.options[OPT_SAFEFILEPATHS])
+            return "";
         newSaveGameDir.Format("%s/%s", PathOrCurDir(platform->GetUserSavedgamesDirectory()), newFolder);
     }
     return newSaveGameDir;

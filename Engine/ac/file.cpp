@@ -363,11 +363,31 @@ bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, Stri
     }
     else
     {
-        parent_dir = MakeAppDataPath();
-        // Set alternate non-remapped "unsafe" path for read-only operations
-        if (read_only)
-            alt_path = sc_path;
+        // Only let non-ready-only access to local dir paths in backwards-compatible mode
+        if (!read_only && game.options[OPT_SAFEFILEPATHS])
+        {
+            debug_log("Attempt to access file '%s' denied (cannot write to game installation directory)", sc_path.GetCStr());
+            return false;
+        }
+
         child_path = sc_path;
+        if (!game.options[OPT_SAFEFILEPATHS])
+        {
+            // For old games, which were made without having safe paths in mind,
+            // provide two paths: a path to the local directory and a path to
+            // AppData directory.
+            // This is done in case game writes a file by local path, and would
+            // like to read it back later. Since AppData path has higher priority,
+            // game will first check the AppData location and find a previously
+            // written file.
+            // If no file was written yet, but game is trying to read a pre-created
+            // file in the installation directory, then such file will be found
+            // following the 'alt_path'.
+            parent_dir = MakeAppDataPath();
+            // Set alternate non-remapped "unsafe" path for read-only operations
+            if (read_only)
+                alt_path = sc_path;
+        }
     }
 
     if (child_path[0] == '\\' || child_path[0] == '/')

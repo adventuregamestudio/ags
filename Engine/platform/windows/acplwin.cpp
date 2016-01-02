@@ -38,9 +38,7 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 
-using AGS::Common::Stream;
-using AGS::Common::String;
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern GameSetup usetup;
@@ -90,7 +88,7 @@ extern void dxmedia_abort_video();
 extern void dxmedia_pause_video();
 extern void dxmedia_resume_video();
 extern char lastError[200];
-extern int acwsetup(const char*, const char*);
+extern SetupReturnValue acwsetup(ConfigTree &cfg, const char*, const char*);
 extern void set_icon();
 
 struct AGSWin32 : AGSPlatformDriver {
@@ -100,10 +98,12 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
+  virtual int  GetLastSystemError();
   virtual const char *GetAllUsersDataDirectory();
   virtual const char *GetUserSavedgamesDirectory();
   virtual const char *GetAppOutputDirectory();
   virtual const char *GetIllegalFileChars();
+  virtual const char *GetFileWriteTroubleshootingText();
   virtual const char *GetGraphicsTroubleshootingText();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
@@ -113,7 +113,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroInit(bool windowed);
   virtual void PostAllegroExit();
-  virtual int  RunSetup();
+  virtual SetupReturnValue RunSetup(ConfigTree &cfg);
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char*, ...);
@@ -642,6 +642,11 @@ const char *AGSWin32::GetIllegalFileChars()
     return "\\/:?\"<>|*";
 }
 
+const char *AGSWin32::GetFileWriteTroubleshootingText()
+{
+    return "If you are using Windows Vista or higher, you may need to right-click and Run as Administrator on the Setup application.";
+}
+
 const char *AGSWin32::GetGraphicsTroubleshootingText()
 {
   return "\n\nPossible causes:\n"
@@ -678,6 +683,11 @@ void AGSWin32::DisplayAlert(const char *text, ...) {
   vsprintf(displbuf, text, ap);
   va_end(ap);
   MessageBox(allegro_wnd, displbuf, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);
+}
+
+int AGSWin32::GetLastSystemError()
+{
+  return ::GetLastError();
 }
 
 void AGSWin32::Delay(int millis) 
@@ -801,11 +811,12 @@ void AGSWin32::PostAllegroExit() {
   timeEndPeriod(win32TimerPeriod);
 }
 
-int AGSWin32::RunSetup() {
+SetupReturnValue AGSWin32::RunSetup(ConfigTree &cfg)
+{
   const char *engineVersion = get_engine_version();
   char titleBuffer[200];
   sprintf(titleBuffer, "Adventure Game Studio v%s setup", engineVersion);
-  return acwsetup(titleBuffer, engineVersion);
+  return acwsetup(cfg, titleBuffer, engineVersion);
 }
 
 void AGSWin32::SetGameWindowIcon() {

@@ -107,7 +107,7 @@ float INIreadfloat(const ConfigTree &cfg, const String &sectn, const String &ite
     return atof(str);
 }
 
-String INIreadstring(const ConfigTree &cfg, const String &sectn, const String &item, const String &def_value = "")
+String INIreadstring(const ConfigTree &cfg, const String &sectn, const String &item, const String &def_value)
 {
     String str;
     if (!INIreaditem(cfg, sectn, item, str))
@@ -115,14 +115,19 @@ String INIreadstring(const ConfigTree &cfg, const String &sectn, const String &i
     return str;
 }
 
-void read_config_file(char *argv0) {
+void INIwritestring(ConfigTree &cfg, const String &sectn, const String &item, const String &value)
+{
+    cfg[sectn][item] = value;
+}
+
+void read_config_file(ConfigTree &cfg, const char *alt_cfg_file) {
 
     // Try current directory for config first; else try exe dir
     strcpy (ac_conf_file_defname, "acsetup.cfg");
     ac_config_file = &ac_conf_file_defname[0];
     if (!Common::File::TestReadFile(ac_config_file)) {
 
-        strcpy(conffilebuf,argv0);
+        strcpy(conffilebuf,alt_cfg_file);
 
         /*    for (int ee=0;ee<(int)strlen(conffilebuf);ee++) {
         if (conffilebuf[ee]=='/') conffilebuf[ee]='\\';
@@ -158,7 +163,6 @@ void read_config_file(char *argv0) {
         return;
     }
 
-    ConfigTree cfg;
     if (IniUtil::Read(ac_config_file, cfg))
     {
 #ifndef WINDOWS_VERSION

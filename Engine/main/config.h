@@ -20,12 +20,19 @@
 
 #include "util/ini_util.h"
 
-void read_config_file(char *argv0);
+using AGS::Common::String;
+using AGS::Common::ConfigTree;
+
+extern char *ac_config_file;
+
+void read_config_file(ConfigTree &cfg, const char *alt_cfg_file);
 void save_config_file();
 
-bool INIreaditem(const AGS::Common::ConfigTree &cfg, const AGS::Common::String &sectn, const AGS::Common::String &item, AGS::Common::String &value);
-int INIreadint(const AGS::Common::ConfigTree &cfg, const AGS::Common::String &sectn, const AGS::Common::String &item);
-float INIreadfloat(const AGS::Common::ConfigTree &cfg, const AGS::Common::String &sectn, const AGS::Common::String &item, float def_value = 0.f);
+bool INIreaditem(const ConfigTree &cfg, const String &sectn, const String &item, String &value);
+String INIreadstring(const ConfigTree &cfg, const String &sectn, const String &item, const String &def_value = "");
+int INIreadint(const ConfigTree &cfg, const String &sectn, const String &item);
+float INIreadfloat(const ConfigTree &cfg, const String &sectn, const String &item, float def_value = 0.f);
+void INIwritestring(ConfigTree &cfg, const String &sectn, const String &item, const String &value);
 
 
 #endif // __AGS_EE_MAIN__CONFIG_H

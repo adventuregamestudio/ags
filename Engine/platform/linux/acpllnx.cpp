@@ -54,7 +54,6 @@ struct AGSLinux : AGSPlatformDriver {
   virtual int  InitializeCDPlayer();
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroExit();
-  virtual int  RunSetup();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char*, ...);
@@ -160,10 +159,6 @@ void AGSLinux::PlayVideo(const char *name, int skip, int flags) {
 
 void AGSLinux::PostAllegroExit() {
   // do nothing
-}
-
-int AGSLinux::RunSetup() {
-  return 0;
 }
 
 void AGSLinux::SetGameWindowIcon() {

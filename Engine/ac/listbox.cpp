@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <set>
 #include <stdio.h>
 #include "ac/listbox.h"
 #include "ac/common.h"
@@ -51,19 +52,34 @@ void ListBox_Clear(GUIListBox *listbox) {
   guis_need_update = 1;
 }
 
-void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
-  char searchPath[MAX_PATH];
-  validate_user_file_path(filemask, searchPath, false);
+void FillDirList(std::set<String> &files, const String &path)
+{
+    al_ffblk dfb;
+    int	dun = al_findfirst(path, &dfb, FA_SEARCH);
+    while (!dun) {
+        files.insert(dfb.name);
+        dun = al_findnext(&dfb);
+    }
+    al_findclose(&dfb);
+}
 
+void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
   listbox->Clear();
-  al_ffblk dfb;
-  int	dun = al_findfirst(searchPath, &dfb, FA_SEARCH);
-  while (!dun) {
-    listbox->AddItem(dfb.name);
-    dun = al_findnext(&dfb);
-  }
-  al_findclose(&dfb);
   guis_need_update = 1;
+
+  String path, alt_path;
+  if (!ResolveScriptPath(filemask, true, path, alt_path))
+    return;
+
+  std::set<String> files;
+  FillDirList(files, path);
+  if (!alt_path.IsEmpty() && alt_path.Compare(path) != 0)
+    FillDirList(files, alt_path);
+
+  for (std::set<String>::const_iterator it = files.begin(); it != files.end(); ++it)
+  {
+    listbox->AddItem(*it);
+  }
 }
 
 int ListBox_GetSaveGameSlots(GUIListBox *listbox, int index) {

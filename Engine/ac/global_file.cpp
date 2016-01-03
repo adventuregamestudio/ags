@@ -20,7 +20,7 @@
 #include "ac/string.h"
 #include "util/filestream.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 int32_t FileOpenCMode(const char*fnmm, const char* cmode)
 {
@@ -41,10 +41,10 @@ int32_t FileOpenCMode(const char*fnmm, const char* cmode)
 int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
 {
   int useindx = 0;
-  char fileToOpen[MAX_PATH];
 
-  if (!validate_user_file_path(fnmm, fileToOpen,
-      (open_mode != Common::kFile_Open || work_mode != Common::kFile_Read)))
+  String path, alt_path;
+  if (!ResolveScriptPath(fnmm, (open_mode == Common::kFile_Open && work_mode == Common::kFile_Read),
+      path, alt_path))
     return 0;
 
   // find a free file handle to use
@@ -54,7 +54,11 @@ int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWo
       break;
   }
 
-  valid_handles[useindx].stream = Common::File::OpenFile(fileToOpen, open_mode, work_mode);
+  Stream *s = File::OpenFile(path, open_mode, work_mode);
+  if (!s && !alt_path.IsEmpty() && alt_path.Compare(path) != 0)
+    s = File::OpenFile(alt_path, open_mode, work_mode);
+
+  valid_handles[useindx].stream = s;
   if (valid_handles[useindx].stream == NULL)
     return 0;
   valid_handles[useindx].handle = useindx + 1; // make handle indexes 1-based

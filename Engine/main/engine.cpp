@@ -103,16 +103,36 @@ Common::AssetError errcod;
 
 extern "C" HWND allegro_wnd;
 
+int engine_init_game_data();
 
 
-void engine_read_config(int argc,char*argv[])
+bool engine_read_config(ConfigTree &cfg, int argc,char*argv[])
 {
-    Out::FPrint("Reading config file");
+    Out::FPrint("Reading configuration");
 
+    // Read default configuration file
     our_eip = -200;
-    read_config_file(argv[0]);
+    load_default_config_file(cfg, argv[0]);
+    // Deduce the game data file location
+    if (!engine_init_game_data())
+        return false;
 
-    set_uformat(U_ASCII);
+    // Pre-load game name and savegame folder names from data file
+    // TODO: research if that is possible to avoid this step and just
+    // read the full head game data at this point. This might require
+    // further changes of the order of initialization.
+    if (!preload_game_data())
+        return false;
+
+    // Read user configuration file
+    load_user_config_file(cfg);
+
+    // Parse and set up game config
+    read_config(cfg);
+
+    // Fixup configuration after reading
+    post_config();
+    return true;
 }
 
 #define ALLEGRO_KEYBOARD_HANDLER
@@ -124,12 +144,13 @@ int errno;
 #define myerrno errno
 #endif
 
-int engine_init_allegro()
+bool engine_init_allegro()
 {
     Out::FPrint("Initializing allegro");
 
     our_eip = -199;
     // Initialize allegro
+    set_uformat(U_ASCII);
     if (install_allegro(SYSTEM_AUTODETECT, &myerrno, atexit))
     {
         const char *al_err = get_allegro_error();
@@ -137,15 +158,17 @@ int engine_init_allegro()
         platform->DisplayAlert("Unable to initialize Allegro system driver.\n%s\n\n%s",
             al_err[0] ? al_err : "Allegro library provided no further information on the problem.",
             user_hint);
-        return EXIT_NORMAL;
+        return false;
     }
+    return true;
+}
 
+void engine_setup_allegro()
+{
     // Setup allegro using constructed config string
     String al_config_data = "[mouse]\n";
     al_config_data.Append(String::FromFormat("mouse_accel_factor = %d\n", 0));
     set_config_data(al_config_data, al_config_data.GetLength());
-
-    return RETURN_CONTINUE;
 }
 
 void winclosehook() {
@@ -179,7 +202,7 @@ void engine_setup_window()
     platform->SetGameWindowIcon();
 }
 
-int engine_check_run_setup(int argc,char*argv[])
+bool engine_check_run_setup(ConfigTree &cfg, int argc,char*argv[])
 {
 #if defined (WINDOWS_VERSION)
     // check if Setup needs to be run instead
@@ -187,8 +210,19 @@ int engine_check_run_setup(int argc,char*argv[])
     {
             Out::FPrint("Running Setup");
 
-            if (!platform->RunSetup())
-                return EXIT_NORMAL;
+            SetupReturnValue res = platform->RunSetup(cfg);
+            if (res != kSetup_Cancel)
+            {
+                if (!IniUtil::Merge(ac_config_file, cfg))
+                {
+                    platform->DisplayAlert("Unable to write to the configuration file (error code 0x%08X).\n%s",
+                        platform->GetLastSystemError(), platform->GetFileWriteTroubleshootingText());
+                }
+            }
+            if (res != kSetup_RunGame)
+                return false;
+
+            // TODO: investigate if the full program restart may (should) be avoided
 
             // Just re-reading the config file seems to cause a caching
             // problem on Win9x, so let's restart the process.
@@ -200,7 +234,7 @@ int engine_check_run_setup(int argc,char*argv[])
     }
 #endif
 
-    return RETURN_CONTINUE;
+    return true;
 }
 
 void engine_force_window()
@@ -346,9 +380,9 @@ void initialise_game_file_name()
     }
 }
 
-int engine_init_game_data(int argc,char*argv[])
+int engine_init_game_data()
 {
-    Out::FPrint("Initializing game data");
+    Out::FPrint("Looking for game data file");
 
     // initialize the data file
     initialise_game_file_name();
@@ -817,16 +851,9 @@ void engine_init_directories()
         usetup.data_files_dir = ".";
     }
 
-    if (game.saveGameFolderName[0] != 0)
-    {
-        char newDirBuffer[MAX_PATH];
-        sprintf(newDirBuffer, "$MYDOCS$/%s", game.saveGameFolderName);
-        Game_SetSaveGameDirectory(newDirBuffer);
-    }
-    else if (use_compiled_folder_as_current_dir)
-    {
-        Game_SetSaveGameDirectory("Compiled");
-    }
+    char newDirBuffer[MAX_PATH];
+    sprintf(newDirBuffer, "%s/%s", UserSavedgamesRootToken.GetCStr(), game.saveGameFolderName);
+    Game_SetSaveGameDirectory(newDirBuffer);
 }
 
 #if defined(ANDROID_VERSION)
@@ -1338,35 +1365,35 @@ void allegro_bitmap_test_init()
 	//test_allegro_bitmap = AllegroBitmap::CreateBitmap(320,200,32);
 }
 
+bool engine_do_config(int argc, char*argv[])
+{
+    ConfigTree cfg;
+    if (!engine_read_config(cfg, argc, argv))
+        return false;
+
+    apply_output_configuration();
+
+    return engine_check_run_setup(cfg, argc, argv);
+}
+
 int initialize_engine(int argc,char*argv[])
 {
     int res;
+    if (!engine_init_allegro())
+        return EXIT_NORMAL;
 
-    engine_read_config(argc, argv);
-    apply_output_configuration();
+    if (!engine_do_config(argc, argv))
+        return EXIT_NORMAL;
 
-    res = engine_init_allegro();
-    if (res != RETURN_CONTINUE) {
-        return res;
-    }    
+    engine_setup_allegro();
 
     engine_setup_window();
 
     our_eip = -196;
 
-    res = engine_check_run_setup(argc, argv);
-    if (res != RETURN_CONTINUE) {
-        return res;
-    }
-
     engine_force_window();
 
     our_eip = -195;
-
-    res = engine_init_game_data(argc, argv);
-    if (res != RETURN_CONTINUE) {
-        return res;
-    }
 
     our_eip = -192;
 

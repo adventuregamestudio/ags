@@ -38,9 +38,7 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 
-using AGS::Common::Stream;
-using AGS::Common::String;
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern GameSetup usetup;
@@ -90,7 +88,7 @@ extern void dxmedia_abort_video();
 extern void dxmedia_pause_video();
 extern void dxmedia_resume_video();
 extern char lastError[200];
-extern int acwsetup(const char*, const char*);
+extern SetupReturnValue acwsetup(ConfigTree &cfg, const String &game_data_dir, const char*, const char*);
 extern void set_icon();
 
 struct AGSWin32 : AGSPlatformDriver {
@@ -100,8 +98,13 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
+  virtual int  GetLastSystemError();
   virtual const char *GetAllUsersDataDirectory();
+  virtual const char *GetUserSavedgamesDirectory();
+  virtual const char *GetUserConfigDirectory();
   virtual const char *GetAppOutputDirectory();
+  virtual const char *GetIllegalFileChars();
+  virtual const char *GetFileWriteTroubleshootingText();
   virtual const char *GetGraphicsTroubleshootingText();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
@@ -111,8 +114,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroInit(bool windowed);
   virtual void PostAllegroExit();
-  virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize);
-  virtual int  RunSetup();
+  virtual SetupReturnValue RunSetup(ConfigTree &cfg);
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char*, ...);
@@ -618,34 +620,38 @@ void DetermineAppOutputDirectory()
   }
 }
 
-void AGSWin32::ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize) {
-
-  if (strnicmp(sourcePath, "$MYDOCS$", 8) == 0) 
-  {
-    determine_saved_games_folder();
-    snprintf(destPath, destSize, "%s%s", win32SavedGamesDirectory, sourcePath + 8);
-  }
-  else if (strnicmp(sourcePath, "$APPDATADIR$", 12) == 0) 
-  {
-    determine_app_data_folder();
-    snprintf(destPath, destSize, "%s%s", win32AppDataDirectory, sourcePath + 12);
-  }
-  else
-  {
-    snprintf(destPath, destSize, "%s", sourcePath);
-  }
-}
-
 const char* AGSWin32::GetAllUsersDataDirectory() 
 {
   determine_app_data_folder();
   return &win32AppDataDirectory[0];
 }
 
+const char *AGSWin32::GetUserSavedgamesDirectory()
+{
+  determine_saved_games_folder();
+  return win32SavedGamesDirectory;
+}
+
+const char *AGSWin32::GetUserConfigDirectory()
+{
+  determine_saved_games_folder();
+  return win32SavedGamesDirectory;
+}
+
 const char *AGSWin32::GetAppOutputDirectory()
 {
   DetermineAppOutputDirectory();
   return win32OutputDirectory;
+}
+
+const char *AGSWin32::GetIllegalFileChars()
+{
+    return "\\/:?\"<>|*";
+}
+
+const char *AGSWin32::GetFileWriteTroubleshootingText()
+{
+    return "If you are using Windows Vista or higher, you may need to right-click and Run as Administrator on the Setup application.";
 }
 
 const char *AGSWin32::GetGraphicsTroubleshootingText()
@@ -684,6 +690,11 @@ void AGSWin32::DisplayAlert(const char *text, ...) {
   vsprintf(displbuf, text, ap);
   va_end(ap);
   MessageBox(allegro_wnd, displbuf, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);
+}
+
+int AGSWin32::GetLastSystemError()
+{
+  return ::GetLastError();
 }
 
 void AGSWin32::Delay(int millis) 
@@ -807,11 +818,12 @@ void AGSWin32::PostAllegroExit() {
   timeEndPeriod(win32TimerPeriod);
 }
 
-int AGSWin32::RunSetup() {
+SetupReturnValue AGSWin32::RunSetup(ConfigTree &cfg)
+{
   const char *engineVersion = get_engine_version();
   char titleBuffer[200];
   sprintf(titleBuffer, "Adventure Game Studio v%s setup", engineVersion);
-  return acwsetup(titleBuffer, engineVersion);
+  return acwsetup(cfg, usetup.data_files_dir, titleBuffer, engineVersion);
 }
 
 void AGSWin32::SetGameWindowIcon() {

@@ -131,6 +131,7 @@ public:
 
     int     FindChar(char c, int from = 0) const;
     int     FindCharReverse(char c, int from = -1) const;
+    int     FindString(const char *cstr, int from = 0) const;
     bool    FindSection(char separator, int first, int last, bool exclude_first_sep, bool exclude_last_sep,
                         int &from, int &to) const;
 

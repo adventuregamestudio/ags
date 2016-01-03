@@ -19,8 +19,10 @@
 #ifndef __AGS_EE_PLATFORM__AGSPLATFORMDRIVER_H
 #define __AGS_EE_PLATFORM__AGSPLATFORMDRIVER_H
 
+#include <errno.h>
 #include "ac/datetime.h"
 #include "debug/outputtarget.h"
+#include "util/ini_util.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
@@ -36,6 +38,13 @@ enum eScriptSystemOSID {
     eOS_Mac = 4
 };
 
+enum SetupReturnValue
+{
+    kSetup_Cancel,
+    kSetup_Done,
+    kSetup_RunGame
+};
+
 struct AGSPlatformDriver
     // be used as a output target for logging system
     : public AGS::Common::Out::IOutputTarget
@@ -43,9 +52,18 @@ struct AGSPlatformDriver
     virtual void AboutToQuitGame();
     virtual void Delay(int millis) = 0;
     virtual void DisplayAlert(const char*, ...) = 0;
-    virtual const char *GetAllUsersDataDirectory() { return NULL; }
+    virtual int  GetLastSystemError() { return errno; }
+    // Get directory for storing shared game data
+    virtual const char *GetAllUsersDataDirectory() { return "."; }
+    // Get directory for storing user's saved games
+    virtual const char *GetUserSavedgamesDirectory() { return "."; }
+    // Get directory for storing user configuration files
+    virtual const char *GetUserConfigDirectory() { return "."; }
     // Get default directory for program output (logs)
     virtual const char *GetAppOutputDirectory() { return "."; }
+    // Returns array of characters illegal to use in file names
+    virtual const char *GetIllegalFileChars() { return "\\/"; }
+    virtual const char *GetFileWriteTroubleshootingText() { return ""; }
     virtual const char *GetGraphicsTroubleshootingText() { return ""; }
     virtual unsigned long GetDiskFreeSpaceMB() = 0;
     virtual const char* GetNoMouseErrorString() = 0;
@@ -57,8 +75,7 @@ struct AGSPlatformDriver
     virtual void PostAllegroInit(bool windowed);
     virtual void PostAllegroExit() = 0;
     virtual void FinishedUsingGraphicsMode();
-    virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize);
-    virtual int  RunSetup() = 0;
+    virtual SetupReturnValue RunSetup(Common::ConfigTree &cfg) { return kSetup_Cancel; }
     virtual void SetGameWindowIcon();
     virtual void WriteStdOut(const char*, ...) = 0;
     virtual void YieldCPU();

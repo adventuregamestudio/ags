@@ -44,6 +44,7 @@ struct GameSetup {
     bool  prefer_letterbox;  // defines whether it is preferred to have letterbox
     AGS::Common::String data_files_dir;
     AGS::Common::String main_data_filename;
+    AGS::Common::String user_data_dir; // directory to write savedgames and custom files to
     AGS::Common::String translation;
     AGS::Common::String gfxFilterID;
     AGS::Common::String gfxDriverID;

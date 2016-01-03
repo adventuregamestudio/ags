@@ -37,6 +37,7 @@ namespace IniUtil
 {
     // Parse the contents of given file as INI format and insert values
     // into the tree. The pre-existing tree items, if any, are NOT erased.
+    // Returns FALSE if the file could not be opened.
     bool Read(const String &file, ConfigTree &tree);
     // Serialize given tree to the stream in INI text format.
     // The INI format suggests only one nested level (group - items).
@@ -51,7 +52,8 @@ namespace IniUtil
     // appended to the end of text.
     // Source and destination streams may refer either to different objects,
     // or same stream opened for both reading and writing.
-    void Merge(const String &file, const ConfigTree &tree);
+    // Returns FALSE if the file could not be opened for writing.
+    bool Merge(const String &file, const ConfigTree &tree);
 };
 
 } // namespace Common

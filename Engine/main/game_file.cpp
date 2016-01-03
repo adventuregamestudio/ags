@@ -575,6 +575,52 @@ void WriteGameSetupStructBase_Aligned(Stream *out)
     gameBase->WriteToFile(&align_s);
 }
 
+void PreReadSaveFileInfo(Stream *in)
+{
+    GameSetupStruct::GAME_STRUCT_READ_DATA read_data;
+    read_data.filever        = filever;
+    read_data.saveGameSuffix = saveGameSuffix;
+    game.read_savegame_info(in, read_data);
+}
+
+void fixup_save_directory()
+{
+    // If the save game folder was not specified by game author, create one of
+    // the game name, game GUID, or data file name, as a last resort
+    if (!game.saveGameFolderName[0])
+    {
+        if (game.gamename[0])
+            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN - 1, "%s", game.gamename);
+        else if (game.guid[0])
+            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN - 1, "%s", game.guid);
+        else
+            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN - 1, "AGS-Game-%s", game.uniqueid);
+    }
+    // Lastly, fixup folder name by removing any illegal characters
+    FixupFilename(game.saveGameFolderName);
+}
+
+bool preload_game_data()
+{
+    Stream *in = game_file_open();
+    if (!in)
+        return false;
+
+    if (game_file_read_version(in) != RETURN_CONTINUE)
+        return false;
+
+    {
+        AlignedStream align_s(in, Common::kAligned_Read);
+        game.ReadFromFile(&align_s);
+        // Discard game messages we do not need here
+        delete [] game.load_messages;
+        game.load_messages = NULL;
+    }
+    PreReadSaveFileInfo(in);
+    fixup_save_directory();
+    return true;
+}
+
 int load_game_file() {
 
 	int res;    
@@ -713,6 +759,8 @@ int load_game_file() {
 	//-----------------------------------------------------------
 	// Reading from file is finished here
 	//-----------------------------------------------------------
+
+    fixup_save_directory();
 
     update_gui_zorder();
 

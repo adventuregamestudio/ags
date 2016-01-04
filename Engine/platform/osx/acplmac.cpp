@@ -45,7 +45,7 @@ struct AGSMac : AGSPlatformDriver {
   virtual int  RunSetup();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
-  virtual void WriteStdOut(const char*, ...);
+  virtual void WriteStdOut(const char*);
   virtual void ReplaceSpecialPaths(const char*, char*);
 };
 
@@ -110,15 +110,8 @@ void AGSMac::SetGameWindowIcon() {
   // do nothing
 }
 
-void AGSMac::WriteStdOut(const char *text, ...) {
-  char displbuf[STD_BUFFER_SIZE] = "AGS: ";
-  va_list ap;
-  va_start(ap,text);
-  vsprintf(&displbuf[5],text,ap);
-  va_end(ap);
-  strcat(displbuf, "\n");
-
-  printf(displbuf);
+void AGSMac::WriteStdOut(const char *text) {
+  printf("%s\n", text);
 }
 
 void AGSMac::ShutdownCDPlayer() {

@@ -20,6 +20,7 @@
 #include "util/wgt2allg.h"
 #include "platform/base/agsplatformdriver.h"
 #include "ac/common.h"
+#include "ac/runtime_defines.h"
 #include "util/string_utils.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
@@ -132,11 +133,22 @@ int AGSPlatformDriver::ConvertKeycodeToScanCode(int keycode)
 bool AGSPlatformDriver::LockMouseToWindow() { return false; }
 void AGSPlatformDriver::UnlockMouse() { }
 
+void AGSPlatformDriver::WriteStdOutF(const char *fmt, ...)
+{
+    char displbuf[STD_BUFFER_SIZE];
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(displbuf, STD_BUFFER_SIZE, fmt, ap);
+    va_end(ap);
+    WriteStdOut(displbuf);
+}
+
 //-----------------------------------------------
 // IOutputTarget implementation
 //-----------------------------------------------
-void AGSPlatformDriver::Out(const char *sz_fullmsg) {
-    this->WriteStdOut(sz_fullmsg);
+void AGSPlatformDriver::Out(const char *sz_fullmsg)
+{
+    this->WriteStdOutF("AGS: %s", sz_fullmsg);
 }
 
 // ********** CD Player Functions common to Win and Linux ********

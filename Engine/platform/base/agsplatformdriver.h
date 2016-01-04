@@ -77,7 +77,8 @@ struct AGSPlatformDriver
     virtual void FinishedUsingGraphicsMode();
     virtual SetupReturnValue RunSetup(Common::ConfigTree &cfg) { return kSetup_Cancel; }
     virtual void SetGameWindowIcon();
-    virtual void WriteStdOut(const char*, ...) = 0;
+    // Writes exact line to the standard platform's output
+    virtual void WriteStdOut(const char*) = 0;
     virtual void YieldCPU();
     virtual void DisplaySwitchOut();
     virtual void DisplaySwitchIn();
@@ -99,11 +100,15 @@ struct AGSPlatformDriver
     virtual bool LockMouseToWindow();
     virtual void UnlockMouse();
 
+    // Formats message and writes to standard platform's output
+    void         WriteStdOutF(const char* , ...);
+
     static AGSPlatformDriver *GetDriver();
 
     //-----------------------------------------------
     // IOutputTarget implementation
     //-----------------------------------------------
+    // Writes to the standard platform's output, prepending "AGS: " prefix to the message
     virtual void Out(const char *sz_fullmsg);
 
 private:

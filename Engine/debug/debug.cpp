@@ -340,8 +340,8 @@ int check_for_messages_from_editor()
 
         if (strncmp(msg, "<Engine Command=\"", 17) != 0) 
         {
-            //OutputDebugString("Faulty message received from editor:");
-            //OutputDebugString(msg);
+            //Out::FPrint("Faulty message received from editor:");
+            //Out::FPrint(msg);
             free(msg);
             return 0;
         }

@@ -22,6 +22,7 @@
 #include <winalleg.h>
 #include <allegro/platform/aintwin.h>
 #include <d3d9.h>
+#include "debug/out.h"
 #include "gfx/ali3d.h"
 #include "gfx/gfxfilter_d3d.h"
 #include "platform/base/agsplatformdriver.h"
@@ -32,11 +33,7 @@
 #include "util/library.h"
 #include "util/string.h"
 
-using AGS::Common::Bitmap;
-using AGS::Common::String;
-using AGS::Engine::Library;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
-using namespace AGS; // FIXME later
+using namespace AGS::Common;
 
 extern int dxmedia_play_video_3d(const char*filename, IDirect3DDevice9 *device, bool useAVISound, int canskip, int stretch);
 extern void dxmedia_shutdown_3d();
@@ -745,18 +742,18 @@ int D3DGraphicsDriver::_resetDeviceIfNecessary()
 
   if (hr == D3DERR_DEVICELOST)
   {
-    OutputDebugString("AGS -- D3D Device Lost");
+    Out::FPrint("D3DGraphicsDriver: D3D Device Lost");
     // user has alt+tabbed away from the game
     return 1;
   }
 
   if (hr == D3DERR_DEVICENOTRESET)
   {
-    OutputDebugString("AGS -- D3D Device Not Reset");
+    Out::FPrint("D3DGraphicsDriver: D3D Device Not Reset");
     hr = direct3ddevice->Reset(&d3dpp);
     if (hr != D3D_OK)
     {
-      OutputDebugString("AGS -- Failed to reset D3D device");
+      Out::FPrint("D3DGraphicsDriver: Failed to reset D3D device");
       // can't throw exception because we're in the wrong thread,
       // so just return a value instead
       return 2;
@@ -929,7 +926,7 @@ int D3DGraphicsDriver::_initDLLCallback()
 
 void D3DGraphicsDriver::InitializeD3DState()
 {
-  OutputDebugString("AGS -- InitializeD3DState()");
+  Out::FPrint("D3DGraphicsDriver: InitializeD3DState()");
 
   D3DMATRIX matOrtho = {
     (2.0 / (float)_newmode_width), 0.0, 0.0, 0.0,

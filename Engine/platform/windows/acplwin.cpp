@@ -388,7 +388,7 @@ void AGSWin32::update_game_explorer(bool add)
   HRESULT hr = CoCreateInstance( __uuidof(GameExplorer), NULL, CLSCTX_INPROC_SERVER, __uuidof(IGameExplorer), (void**)&pFwGameExplorer);
   if( FAILED(hr) || pFwGameExplorer == NULL ) 
   {
-    OutputDebugString("Game Explorer not found to register game, Windows Vista required");
+    Out::FPrint("Game Explorer not found to register game, Windows Vista required");
   }
   else 
   {

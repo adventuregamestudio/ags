@@ -73,7 +73,7 @@ struct AGSPSP : AGSPlatformDriver {
   virtual void PostAllegroExit();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
-  virtual void WriteStdOut(const char*, ...);
+  virtual void WriteStdOut(const char*);
 };
 
 
@@ -521,15 +521,8 @@ void AGSPSP::SetGameWindowIcon() {
   // do nothing
 }
 
-void AGSPSP::WriteStdOut(const char *text, ...) {
-  char displbuf[STD_BUFFER_SIZE] = "AGS: ";
-  va_list ap;
-  va_start(ap,text);
-  vsprintf(&displbuf[5],text,ap);
-  va_end(ap);
-  strcat(displbuf, "\n");
-
-  printf(displbuf);
+void AGSPSP::WriteStdOut(const char *text) {
+  printf("%s\n", text);
 }
 
 void AGSPSP::ShutdownCDPlayer() {

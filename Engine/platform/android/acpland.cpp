@@ -55,7 +55,7 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual void PostAllegroExit();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
-  virtual void WriteStdOut(const char*, ...);
+  virtual void WriteStdOut(const char*);
 };
 
 
@@ -716,16 +716,11 @@ void AGSAndroid::SetGameWindowIcon() {
   // do nothing
 }
 
-void AGSAndroid::WriteStdOut(const char *text, ...)
+void AGSAndroid::WriteStdOut(const char *text)
 {
   if (psp_debug_write_to_logcat)
   {
-    char displbuf[STD_BUFFER_SIZE] = "AGS: ";
-    va_list ap;
-    va_start(ap,text);
-    vsprintf(&displbuf[5],text,ap);
-    va_end(ap);
-    __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", "%s", displbuf);
+    __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", "%s", text);
   }
 }
 

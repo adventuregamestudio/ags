@@ -56,7 +56,6 @@ struct AGSLinux : AGSPlatformDriver {
   virtual void PostAllegroExit();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
-  virtual void WriteStdOut(const char*, ...);
   virtual bool LockMouseToWindow();
   virtual void UnlockMouse();
 };
@@ -163,17 +162,6 @@ void AGSLinux::PostAllegroExit() {
 
 void AGSLinux::SetGameWindowIcon() {
   // do nothing
-}
-
-void AGSLinux::WriteStdOut(const char *text, ...) {
-  char displbuf[STD_BUFFER_SIZE] = "AGS: ";
-  va_list ap;
-  va_start(ap,text);
-  vsprintf(&displbuf[5],text,ap);
-  va_end(ap);
-  strcat(displbuf, "\n");
-
-  printf(displbuf);
 }
 
 void AGSLinux::ShutdownCDPlayer() {

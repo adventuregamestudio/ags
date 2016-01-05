@@ -161,7 +161,7 @@ void write_log(char*msg) {
     fprintf(ooo,"%s\n",msg);
     fclose(ooo);
     */
-    platform->WriteStdOut(msg);
+    Out::FPrint(msg);
 }
 
 /* The idea of this is that non-essential errors such as "sound file not

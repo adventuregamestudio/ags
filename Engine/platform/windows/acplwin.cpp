@@ -136,9 +136,12 @@ private:
   void create_shortcut(const char *pathToEXE, const char *workingFolder, const char *arguments, const char *shortcutPath);
   void register_file_extension(const char *exePath);
   void unregister_file_extension();
+
+  bool _isDebuggerPresent; // indicates if the win app is running in the context of a debugger
 };
 
 AGSWin32::AGSWin32() {
+  _isDebuggerPresent = ::IsDebuggerPresent() != FALSE;
   allegro_wnd = NULL;
 }
 
@@ -832,16 +835,23 @@ void AGSWin32::SetGameWindowIcon() {
 }
 
 void AGSWin32::WriteStdOut(const char *fmt, ...) {
-  // Add "AGS:" prefix when outputting to debugger, to make it clear that this
-  // is a text from the program log
-  char buf[STD_BUFFER_SIZE] = "AGS: ";
   va_list ap;
   va_start(ap, fmt);
-  vsnprintf(buf + 5, STD_BUFFER_SIZE - 5, fmt, ap);
+  if (_isDebuggerPresent)
+  {
+    // Add "AGS:" prefix when outputting to debugger, to make it clear that this
+    // is a text from the program log
+    char buf[STD_BUFFER_SIZE] = "AGS: ";
+    vsnprintf(buf + 5, STD_BUFFER_SIZE - 5, fmt, ap);
+    OutputDebugString(buf);
+    OutputDebugString("\n");
+  }
+  else
+  {
+    vprintf(fmt, ap);
+    printf("\n");
+  }
   va_end(ap);
-
-  OutputDebugString(buf);
-  OutputDebugString("\n");
 }
 
 void AGSWin32::ShutdownCDPlayer() {

@@ -86,6 +86,7 @@ char force_gfxfilter[50];
 int datafile_argv=0, change_to_game_dir = 0, force_window = 0;
 int override_start_room = 0, force_16bit = 0;
 bool justDisplayHelp = false;
+bool justDisplayVersion = false;
 bool justRunSetup = false;
 bool justRegisterGame = false;
 bool justUnRegisterGame = false;
@@ -153,6 +154,18 @@ void main_init()
     main_create_platform_driver();
 }
 
+String get_engine_string()
+{
+    return String::FromFormat("Adventure Game Studio v%s Interpreter\n"
+        "Copyright (c) 1999-2011 Chris Jones and " ACI_COPYRIGHT_YEARS " others\n"
+#ifdef BUILD_STR
+        "ACI version %s (Build: %s)\n",
+        EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr(), EngineVersion.BuildInfo.GetCStr());
+#else
+        "ACI version %s\n", EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr());
+#endif
+}
+
 int main_preprocess_cmdline(int argc,char*argv[])
 {
 #ifdef WINDOWS_VERSION
@@ -203,7 +216,9 @@ int main_process_cmdline(int argc,char*argv[])
             justDisplayHelp = true;
             return RETURN_CONTINUE;
         }
-        if (stricmp(argv[ee],"-shelllaunch") == 0)
+        if (stricmp(argv[ee],"-v") == 0 || stricmp(argv[ee],"--version") == 0)
+            justDisplayVersion = true;
+        else if (stricmp(argv[ee],"-shelllaunch") == 0)
             change_to_game_dir = 1;
         else if (stricmp(argv[ee],"-updatereg") == 0)
             debug_flags |= DBG_REGONLY;
@@ -438,17 +453,6 @@ int main(int argc,char*argv[]) {
         return res;
     }
 
-    initialize_debug_system();
-
-    Out::FPrint("Adventure Game Studio v%s Interpreter\n"
-           "Copyright (c) 1999-2011 Chris Jones and " ACI_COPYRIGHT_YEARS " others\n"
-#ifdef BUILD_STR
-           "ACI version %s (Build: %s)\n",
-           EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr(), EngineVersion.BuildInfo.GetCStr());
-#else
-           "ACI version %s\n", EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr());
-#endif
-
 #if defined(WINDOWS_VERSION)
     _set_new_handler(malloc_fail_handler);
     _set_new_mode(1);
@@ -461,11 +465,20 @@ int main(int argc,char*argv[]) {
         return res;
     }
 
+    if (justDisplayVersion)
+    {
+        platform->WriteStdOut(get_engine_string());
+        return 0;
+    }
+
     if (justDisplayHelp)
     {
         main_print_help();
         return 0;
     }
+
+    initialize_debug_system();
+    Out::FPrint(get_engine_string());
 
     main_init_crt_report();
 

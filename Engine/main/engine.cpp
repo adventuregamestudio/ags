@@ -103,38 +103,6 @@ Common::AssetError errcod;
 
 extern "C" HWND allegro_wnd;
 
-int engine_init_game_data();
-
-
-bool engine_read_config(ConfigTree &cfg, int argc,char*argv[])
-{
-    Out::FPrint("Reading configuration");
-
-    // Read default configuration file
-    our_eip = -200;
-    load_default_config_file(cfg, argv[0]);
-    // Deduce the game data file location
-    if (!engine_init_game_data())
-        return false;
-
-    // Pre-load game name and savegame folder names from data file
-    // TODO: research if that is possible to avoid this step and just
-    // read the full head game data at this point. This might require
-    // further changes of the order of initialization.
-    if (!preload_game_data())
-        return false;
-
-    // Read user configuration file
-    load_user_config_file(cfg);
-
-    // Parse and set up game config
-    read_config(cfg);
-
-    // Fixup configuration after reading
-    post_config();
-    return true;
-}
-
 #define ALLEGRO_KEYBOARD_HANDLER
 // KEYBOARD HANDLER
 #if !defined (WINDOWS_VERSION)
@@ -380,7 +348,7 @@ void initialise_game_file_name()
     }
 }
 
-int engine_init_game_data()
+bool engine_init_game_data()
 {
     Out::FPrint("Looking for game data file");
 
@@ -416,7 +384,7 @@ int engine_init_game_data()
 
         main_print_help();
 
-        return EXIT_NORMAL;
+        return false;
     }
 
     // Save data file name and data folder
@@ -432,7 +400,7 @@ int engine_init_game_data()
         }
     }
 
-    return RETURN_CONTINUE;
+    return true;
 }
 
 void engine_init_fonts()
@@ -1363,6 +1331,35 @@ void allegro_bitmap_test_init()
 	test_allegro_bitmap = NULL;
 	// Switched the test off for now
 	//test_allegro_bitmap = AllegroBitmap::CreateBitmap(320,200,32);
+}
+
+bool engine_read_config(ConfigTree &cfg, int argc,char*argv[])
+{
+    Out::FPrint("Reading configuration");
+
+    // Read default configuration file
+    our_eip = -200;
+    load_default_config_file(cfg, argv[0]);
+    // Deduce the game data file location
+    if (!engine_init_game_data())
+        return false;
+
+    // Pre-load game name and savegame folder names from data file
+    // TODO: research if that is possible to avoid this step and just
+    // read the full head game data at this point. This might require
+    // further changes of the order of initialization.
+    if (!preload_game_data())
+        return false;
+
+    // Read user configuration file
+    load_user_config_file(cfg);
+
+    // Parse and set up game config
+    read_config(cfg);
+
+    // Fixup configuration after reading
+    post_config();
+    return true;
 }
 
 bool engine_do_config(int argc, char*argv[])

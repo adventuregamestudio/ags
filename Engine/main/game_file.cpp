@@ -594,7 +594,7 @@ void fixup_save_directory()
         else if (game.guid[0])
             snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN - 1, "%s", game.guid);
         else
-            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN - 1, "AGS-Game-%s", game.uniqueid);
+            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN - 1, "AGS-Game-%d", game.uniqueid);
     }
     // Lastly, fixup folder name by removing any illegal characters
     FixupFilename(game.saveGameFolderName);

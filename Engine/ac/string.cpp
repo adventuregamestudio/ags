@@ -499,10 +499,7 @@ RuntimeScriptValue Sc_strlen(void *self, const RuntimeScriptValue *params, int32
 // const char* (const char *texx, ...)
 const char *ScPl_String_Format(const char *texx, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
-    va_end(arg_ptr);
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
     return String_Format("%s", scsf_buffer);
 }
 

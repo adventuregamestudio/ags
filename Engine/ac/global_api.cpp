@@ -2196,100 +2196,70 @@ RuntimeScriptValue Sc_WaitMouseKey(const RuntimeScriptValue *params, int32_t par
 // void (char*texx, ...)
 void ScPl_sc_AbortGame(const char *texx, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
-    va_end(arg_ptr);
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
     _sc_AbortGame("%s", scsf_buffer);
 }
 
 // int (int xx,int yy,int wii,int fontid,int clr,char*texx, ...)
 int ScPl_CreateTextOverlay(int xx, int yy, int wii, int fontid, int clr, char *texx, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
-    va_end(arg_ptr);
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
     return CreateTextOverlay(xx, yy, wii, fontid, clr, "%s", scsf_buffer);
 }
 
 // void (char*texx, ...)
 void ScPl_Display(char *texx, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
-    va_end(arg_ptr);
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
     Display("%s", scsf_buffer);
 }
 
 // void (int xxp,int yyp,int widd,char*texx, ...)
 void ScPl_DisplayAt(int xxp, int yyp, int widd, char *texx, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
-    va_end(arg_ptr);
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
     DisplayAt(xxp, yyp, widd, "%s", scsf_buffer);
 }
 
 // void (int chid,char*texx, ...)
 void ScPl_sc_displayspeech(int chid, char *texx, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
-    va_end(arg_ptr);
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
     __sc_displayspeech(chid, "%s", scsf_buffer);
 }
 
 // void (int chid, const char*texx, ...)
 void ScPl_DisplayThought(int chid, const char *texx, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
-    va_end(arg_ptr);
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
     DisplayThought(chid, "%s", scsf_buffer);
 }
 
 // void (int ypos, int ttexcol, int backcol, char *title, char*texx, ...)
 void ScPl_DisplayTopBar(int ypos, int ttexcol, int backcol, char *title, char *texx, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
-    va_end(arg_ptr);
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
     DisplayTopBar(ypos, ttexcol, backcol, title, "%s", scsf_buffer);
 }
 
 // void  (int xx, int yy, char*texx, ...)
 void ScPl_RawPrint(int xx, int yy, char *texx, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
-    va_end(arg_ptr);
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
     RawPrint(xx, yy, "%s", scsf_buffer);
 }
 
 // void (int ovrid,int xx,int yy,int wii,int fontid,int clr,char*texx,...)
 void ScPl_SetTextOverlay(int ovrid, int xx, int yy, int wii, int fontid, int clr, char*texx,...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
-    va_end(arg_ptr);
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
     SetTextOverlay(ovrid, xx, yy, wii, fontid, clr, "%s", scsf_buffer);
 }
 
 // void (char*destt, const char*texx, ...);
 void ScPl_sc_sprintf(char *destt, const char *texx, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
-    va_end(arg_ptr);
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
     _sc_sprintf(destt, "%s", scsf_buffer);
 }
 

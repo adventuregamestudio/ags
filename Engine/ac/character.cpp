@@ -3472,20 +3472,14 @@ RuntimeScriptValue Sc_Character_SetZ(void *self, const RuntimeScriptValue *param
 // void (CharacterInfo *chaa, const char *texx, ...)
 void ScPl_Character_Say(CharacterInfo *chaa, const char *texx, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
-    va_end(arg_ptr);
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
     Character_Say(chaa, "%s", scsf_buffer);
 }
 
 // void (CharacterInfo *chaa, const char *texx, ...)
 void ScPl_Character_Think(CharacterInfo *chaa, const char *texx, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
-    va_end(arg_ptr);
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
     Character_Think(chaa, "%s", scsf_buffer);
 }
 

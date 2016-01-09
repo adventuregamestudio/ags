@@ -349,20 +349,14 @@ RuntimeScriptValue Sc_Overlay_SetY(void *self, const RuntimeScriptValue *params,
 // ScriptOverlay* (int x, int y, int width, int font, int colour, const char* text, ...)
 ScriptOverlay* ScPl_Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char *text, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, text);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(text), arg_ptr);
-    va_end(arg_ptr);
+    API_PLUGIN_SCRIPT_SPRINTF(text);
     return Overlay_CreateTextual(x, y, width, font, colour, "%s", scsf_buffer);
 }
 
 // void (ScriptOverlay *scover, int wii, int fontid, int clr, char*texx, ...)
 void ScPl_Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, char *texx, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
-    va_end(arg_ptr);
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
     Overlay_SetText(scover, wii, fontid, clr, "%s", scsf_buffer);
 }
 

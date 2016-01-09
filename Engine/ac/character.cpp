@@ -114,7 +114,7 @@ bool facetalk_qfg4_override_placement_y = false;
 // lip-sync speech settings
 int loops_per_character, text_lips_offset, char_speaking = -1;
 int char_thinking = -1;
-char *text_lips_text = NULL;
+const char *text_lips_text = NULL;
 SpeechLipSyncLine *splipsync = NULL;
 int numLipLines = 0, curLipLine = -1, curLipLinePhoneme = 0;
 
@@ -693,16 +693,8 @@ int Character_GetHasExplicitTint(CharacterInfo *chaa) {
     return 0;
 }
 
-void Character_Say(CharacterInfo *chaa, const char *texx, ...) {
-
-    char displbuf[STD_BUFFER_SIZE];
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(displbuf, get_translation(texx), ap);
-    va_end(ap);
-
-    _DisplaySpeechCore(chaa->index_id, displbuf);
-
+void Character_Say(CharacterInfo *chaa, const char *text) {
+    _DisplaySpeechCore(chaa->index_id, text);
 }
 
 void Character_SayAt(CharacterInfo *chaa, int x, int y, int width, const char *texx) {
@@ -889,15 +881,8 @@ void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opaci
     chaa->flags |= CHF_HASTINT;
 }
 
-void Character_Think(CharacterInfo *chaa, const char *texx, ...) {
-
-    char displbuf[STD_BUFFER_SIZE];
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(displbuf, get_translation(texx), ap);
-    va_end(ap);
-
-    _DisplayThoughtCore(chaa->index_id, displbuf);
+void Character_Think(CharacterInfo *chaa, const char *text) {
+    _DisplayThoughtCore(chaa->index_id, text);
 }
 
 void Character_UnlockView(CharacterInfo *chaa) {
@@ -2167,7 +2152,7 @@ int check_click_on_character(int xx,int yy,int mood) {
     return 0;
 }
 
-void _DisplaySpeechCore(int chid, char *displbuf) {
+void _DisplaySpeechCore(int chid, const char *displbuf) {
     if (displbuf[0] == 0) {
         // no text, just update the current character who's speaking
         // this allows the portrait side to be switched with an empty
@@ -2206,7 +2191,7 @@ void _DisplayThoughtCore(int chid, const char *displbuf) {
     _displayspeech ((char*)displbuf, chid, xpp, ypp, width, 1);
 }
 
-void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThought) {
+void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int isThought) {
     if (!is_valid_character(aschar))
         quit("!DisplaySpeech: invalid character");
 
@@ -2684,13 +2669,13 @@ int get_character_currently_talking() {
     return -1;
 }
 
-void DisplaySpeech(char*texx, int aschar) {
+void DisplaySpeech(const char*texx, int aschar) {
     _displayspeech (texx, aschar, -1, -1, -1, 0);
 }
 
 // Calculate which frame of the loop to use for this character of
 // speech
-int GetLipSyncFrame (char *curtex, int *stroffs) {
+int GetLipSyncFrame (const char *curtex, int *stroffs) {
     /*char *frameletters[MAXLIPSYNCFRAMES] =
     {"./,/ ", "A", "O", "F/V", "D/N/G/L/R", "B/P/M",
     "Y/H/K/Q/C", "I/T/E/X/th", "U/W", "S/Z/J/ch", NULL,
@@ -2725,7 +2710,7 @@ int update_lip_sync(int talkview, int talkloop, int *talkframeptr) {
     int talkwait = 0;
 
     // lip-sync speech
-    char *nowsaying = &text_lips_text[text_lips_offset];
+    const char *nowsaying = &text_lips_text[text_lips_offset];
     // if it's an apostraphe, skip it (we'll, I'll, etc)
     if (nowsaying[0] == '\'') {
         text_lips_offset++;
@@ -2913,7 +2898,7 @@ RuntimeScriptValue Sc_Character_RunInteraction(void *self, const RuntimeScriptVa
 RuntimeScriptValue Sc_Character_Say(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_SCRIPT_SPRINTF(Character_Say, 1);
-    Character_Say((CharacterInfo*)self, "%s", scsf_buffer);
+    Character_Say((CharacterInfo*)self, scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -2963,7 +2948,7 @@ RuntimeScriptValue Sc_Character_StopMoving(void *self, const RuntimeScriptValue 
 RuntimeScriptValue Sc_Character_Think(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_SCRIPT_SPRINTF(Character_Think, 1);
-    Character_Think((CharacterInfo*)self, "%s", scsf_buffer);
+    Character_Think((CharacterInfo*)self, scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -3473,14 +3458,14 @@ RuntimeScriptValue Sc_Character_SetZ(void *self, const RuntimeScriptValue *param
 void ScPl_Character_Say(CharacterInfo *chaa, const char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
-    Character_Say(chaa, "%s", scsf_buffer);
+    Character_Say(chaa, scsf_buffer);
 }
 
 // void (CharacterInfo *chaa, const char *texx, ...)
 void ScPl_Character_Think(CharacterInfo *chaa, const char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
-    Character_Think(chaa, "%s", scsf_buffer);
+    Character_Think(chaa, scsf_buffer);
 }
 
 void RegisterCharacterAPI()

@@ -52,13 +52,7 @@ void Overlay_Remove(ScriptOverlay *sco) {
     sco->Remove();
 }
 
-void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const char*texx, ...) {
-    char displbuf[STD_BUFFER_SIZE];
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(displbuf,get_translation(texx),ap);
-    va_end(ap);
-
+void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const char*text) {
     int ovri=find_overlay_of_type(scover->overlayId);
     if (ovri<0)
         quit("!Overlay.SetText: invalid overlay ID specified");
@@ -68,7 +62,7 @@ void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const 
     RemoveOverlay(scover->overlayId);
     crovr_id = scover->overlayId;
 
-    if (CreateTextOverlay(xx,yy,wii,fontid,clr,displbuf) != scover->overlayId)
+    if (CreateTextOverlay(xx,yy,wii,fontid,clr,text) != scover->overlayId)
         quit("SetTextOverlay internal error: inconsistent type ids");
 }
 
@@ -300,7 +294,7 @@ RuntimeScriptValue Sc_Overlay_CreateTextual(const RuntimeScriptValue *params, in
 RuntimeScriptValue Sc_Overlay_SetText(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_SCRIPT_SPRINTF(Overlay_SetText, 4);
-    Overlay_SetText((ScriptOverlay*)self, params[0].IValue, params[1].IValue, params[2].IValue, "%s", scsf_buffer);
+    Overlay_SetText((ScriptOverlay*)self, params[0].IValue, params[1].IValue, params[2].IValue, scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -357,7 +351,7 @@ ScriptOverlay* ScPl_Overlay_CreateTextual(int x, int y, int width, int font, int
 void ScPl_Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
-    Overlay_SetText(scover, wii, fontid, clr, "%s", scsf_buffer);
+    Overlay_SetText(scover, wii, fontid, clr, scsf_buffer);
 }
 
 

@@ -74,7 +74,7 @@ extern ScriptString myScriptStringImpl;
 RuntimeScriptValue Sc_sc_AbortGame(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(_sc_AbortGame, 1);
-    _sc_AbortGame("%s", scsf_buffer);
+    _sc_AbortGame(scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -190,7 +190,7 @@ RuntimeScriptValue Sc_CreateTextOverlay(const RuntimeScriptValue *params, int32_
     API_SCALL_SCRIPT_SPRINTF(CreateTextOverlay, 6);
     return RuntimeScriptValue().SetInt32(
         CreateTextOverlay(params[0].IValue, params[1].IValue, params[2].IValue,
-            params[3].IValue, params[4].IValue, "%s", scsf_buffer));
+            params[3].IValue, params[4].IValue, scsf_buffer));
 }
 
 // void (int strt,int eend)
@@ -247,7 +247,7 @@ RuntimeScriptValue Sc_DisableRegion(const RuntimeScriptValue *params, int32_t pa
 RuntimeScriptValue Sc_Display(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(Display, 1);
-    Display("%s", scsf_buffer);
+    DisplaySimple(scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -255,7 +255,7 @@ RuntimeScriptValue Sc_Display(const RuntimeScriptValue *params, int32_t param_co
 RuntimeScriptValue Sc_DisplayAt(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(DisplayAt, 4);
-    DisplayAt(params[0].IValue, params[1].IValue, params[2].IValue, "%s", scsf_buffer);
+    DisplayAt(params[0].IValue, params[1].IValue, params[2].IValue, scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -307,7 +307,7 @@ RuntimeScriptValue Sc_DisplaySpeechBackground(const RuntimeScriptValue *params, 
 RuntimeScriptValue Sc_DisplayThought(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(DisplayThought, 2);
-    DisplayThought(params[0].IValue, "%s", scsf_buffer);
+    DisplayThought(params[0].IValue, scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -315,7 +315,7 @@ RuntimeScriptValue Sc_DisplayThought(const RuntimeScriptValue *params, int32_t p
 RuntimeScriptValue Sc_DisplayTopBar(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(DisplayTopBar, 5);
-    DisplayTopBar(params[0].IValue, params[1].IValue, params[2].IValue, params[3].Ptr, "%s", scsf_buffer);
+    DisplayTopBar(params[0].IValue, params[1].IValue, params[2].IValue, params[3].Ptr, scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -1303,7 +1303,7 @@ RuntimeScriptValue Sc_RawDrawTriangle(const RuntimeScriptValue *params, int32_t 
 RuntimeScriptValue Sc_RawPrint(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(RawPrint, 3);
-    RawPrint(params[0].IValue, params[1].IValue, "%s", scsf_buffer);
+    RawPrint(params[0].IValue, params[1].IValue, scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -1953,7 +1953,7 @@ RuntimeScriptValue Sc_SetTextOverlay(const RuntimeScriptValue *params, int32_t p
 {
     API_SCALL_SCRIPT_SPRINTF(SetTextOverlay, 7);
     SetTextOverlay(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue,
-                   params[4].IValue, params[5].IValue, "%s", scsf_buffer);
+                   params[4].IValue, params[5].IValue, scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -2099,7 +2099,7 @@ RuntimeScriptValue Sc_sc_strcpy(const RuntimeScriptValue *params, int32_t param_
 RuntimeScriptValue Sc_sc_sprintf(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(_sc_sprintf, 2);
-    _sc_sprintf(params[0].Ptr, "%s", scsf_buffer);
+    _sc_strcpy(params[0].Ptr, scsf_buffer);
     return params[0];
 }
 
@@ -2197,14 +2197,14 @@ RuntimeScriptValue Sc_WaitMouseKey(const RuntimeScriptValue *params, int32_t par
 void ScPl_sc_AbortGame(const char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
-    _sc_AbortGame("%s", scsf_buffer);
+    _sc_AbortGame(scsf_buffer);
 }
 
 // int (int xx,int yy,int wii,int fontid,int clr,char*texx, ...)
 int ScPl_CreateTextOverlay(int xx, int yy, int wii, int fontid, int clr, char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
-    return CreateTextOverlay(xx, yy, wii, fontid, clr, "%s", scsf_buffer);
+    return CreateTextOverlay(xx, yy, wii, fontid, clr, scsf_buffer);
 }
 
 // void (char*texx, ...)
@@ -2218,7 +2218,7 @@ void ScPl_Display(char *texx, ...)
 void ScPl_DisplayAt(int xxp, int yyp, int widd, char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
-    DisplayAt(xxp, yyp, widd, "%s", scsf_buffer);
+    DisplayAt(xxp, yyp, widd, scsf_buffer);
 }
 
 // void (int chid,char*texx, ...)
@@ -2232,35 +2232,35 @@ void ScPl_sc_displayspeech(int chid, char *texx, ...)
 void ScPl_DisplayThought(int chid, const char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
-    DisplayThought(chid, "%s", scsf_buffer);
+    DisplayThought(chid, scsf_buffer);
 }
 
 // void (int ypos, int ttexcol, int backcol, char *title, char*texx, ...)
 void ScPl_DisplayTopBar(int ypos, int ttexcol, int backcol, char *title, char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
-    DisplayTopBar(ypos, ttexcol, backcol, title, "%s", scsf_buffer);
+    DisplayTopBar(ypos, ttexcol, backcol, title, scsf_buffer);
 }
 
 // void  (int xx, int yy, char*texx, ...)
 void ScPl_RawPrint(int xx, int yy, char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
-    RawPrint(xx, yy, "%s", scsf_buffer);
+    RawPrint(xx, yy, scsf_buffer);
 }
 
 // void (int ovrid,int xx,int yy,int wii,int fontid,int clr,char*texx,...)
 void ScPl_SetTextOverlay(int ovrid, int xx, int yy, int wii, int fontid, int clr, char*texx,...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
-    SetTextOverlay(ovrid, xx, yy, wii, fontid, clr, "%s", scsf_buffer);
+    SetTextOverlay(ovrid, xx, yy, wii, fontid, clr, scsf_buffer);
 }
 
 // void (char*destt, const char*texx, ...);
 void ScPl_sc_sprintf(char *destt, const char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
-    _sc_sprintf(destt, "%s", scsf_buffer);
+    _sc_strcpy(destt, scsf_buffer);
 }
 
 

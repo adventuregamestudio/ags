@@ -21,9 +21,8 @@
 int StrGetCharAt (const char *strin, int posn);
 void StrSetCharAt (char *strin, int posn, int nchar);
 void _sc_strcat(char*s1, const char*s2);
-void _sc_strcpy(char*s1, const char*s2);
 void _sc_strlower (char *desbuf);
 void _sc_strupper (char *desbuf);
-void _sc_sprintf(char*destt, const char*texx, ...);
+void _sc_strcpy(char*destt, const char*text);
 
 #endif // __AGS_EE_AC__GLOBALSTRING_H

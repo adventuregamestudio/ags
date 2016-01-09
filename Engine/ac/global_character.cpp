@@ -522,17 +522,11 @@ void LoseInventoryFromCharacter(int charid, int inum) {
     Character_LoseInventory(&game.chars[charid], &scrInv[inum]);
 }
 
-void DisplayThought(int chid, const char*texx, ...) {
+void DisplayThought(int chid, const char *text) {
     if ((chid < 0) || (chid >= game.numcharacters))
         quit("!DisplayThought: invalid character specified");
 
-    char displbuf[STD_BUFFER_SIZE];
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(displbuf, get_translation(texx), ap);
-    va_end(ap);
-
-    _DisplayThoughtCore(chid, displbuf);
+    _DisplayThoughtCore(chid, text);
 }
 
 void __sc_displayspeech(int chid, const char*texx, ...) {

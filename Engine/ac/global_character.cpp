@@ -529,18 +529,11 @@ void DisplayThought(int chid, const char *text) {
     _DisplayThoughtCore(chid, text);
 }
 
-void __sc_displayspeech(int chid, const char*texx, ...) {
+void __sc_displayspeech(int chid, const char *text) {
     if ((chid<0) || (chid>=game.numcharacters))
         quit("!DisplaySpeech: invalid character specified");
 
-    char displbuf[STD_BUFFER_SIZE];
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(displbuf, get_translation(texx), ap);
-    va_end(ap);
-
-    _DisplaySpeechCore(chid, displbuf);
-
+    _DisplaySpeechCore(chid, text);
 }
 
 // **** THIS IS UNDOCUMENTED BECAUSE IT DOESN'T WORK PROPERLY

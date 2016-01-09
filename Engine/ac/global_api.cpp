@@ -287,7 +287,7 @@ RuntimeScriptValue Sc_DisplayMessageBar(const RuntimeScriptValue *params, int32_
 RuntimeScriptValue Sc_sc_displayspeech(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(DisplayAt, 2);
-    __sc_displayspeech(params[0].IValue, "%s", scsf_buffer);
+    __sc_displayspeech(params[0].IValue, scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -2211,7 +2211,7 @@ int ScPl_CreateTextOverlay(int xx, int yy, int wii, int fontid, int clr, char *t
 void ScPl_Display(char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
-    Display("%s", scsf_buffer);
+    DisplaySimple(scsf_buffer);
 }
 
 // void (int xxp,int yyp,int widd,char*texx, ...)
@@ -2225,7 +2225,7 @@ void ScPl_DisplayAt(int xxp, int yyp, int widd, char *texx, ...)
 void ScPl_sc_displayspeech(int chid, char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
-    __sc_displayspeech(chid, "%s", scsf_buffer);
+    __sc_displayspeech(chid, scsf_buffer);
 }
 
 // void (int chid, const char*texx, ...)

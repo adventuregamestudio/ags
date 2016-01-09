@@ -80,7 +80,7 @@ void add_inventory(int inum);
 void lose_inventory(int inum);
 
 void DisplayThought(int chid, const char *text);
-void __sc_displayspeech(int chid, const char*texx, ...);
+void __sc_displayspeech(int chid, const char *text);
 void DisplaySpeechAt (int xx, int yy, int wii, int aschar, const char*spch);
 int DisplaySpeechBackground(int charid, const char*speel);
 

@@ -55,7 +55,7 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual void PostAllegroExit();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
-  virtual void WriteStdOut(const char*, ...);
+  virtual void WriteStdOut(const char *fmt, ...);
 };
 
 
@@ -716,16 +716,16 @@ void AGSAndroid::SetGameWindowIcon() {
   // do nothing
 }
 
-void AGSAndroid::WriteStdOut(const char *text, ...)
+void AGSAndroid::WriteStdOut(const char *fmt, ...)
 {
+  // TODO: this check should probably be done once when setting up output targets for logging
   if (psp_debug_write_to_logcat)
   {
-    char displbuf[STD_BUFFER_SIZE] = "AGS: ";
-    va_list ap;
-    va_start(ap,text);
-    vsprintf(&displbuf[5],text,ap);
-    va_end(ap);
-    __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", "%s", displbuf);
+    va_list args;
+    va_start(args, fmt);
+    __android_log_vprint(ANDROID_LOG_DEBUG, "AGSNative", fmt, args);
+    // NOTE: __android_log_* functions add trailing '\n'
+    va_end(args);
   }
 }
 

@@ -77,7 +77,9 @@ struct AGSPlatformDriver
     virtual void FinishedUsingGraphicsMode();
     virtual SetupReturnValue RunSetup(Common::ConfigTree &cfg) { return kSetup_Cancel; }
     virtual void SetGameWindowIcon();
-    virtual void WriteStdOut(const char*, ...) = 0;
+    // Formats message and writes to standard platform's output;
+    // Always adds trailing '\n' after formatted string
+    virtual void WriteStdOut(const char *fmt, ...);
     virtual void YieldCPU();
     virtual void DisplaySwitchOut();
     virtual void DisplaySwitchIn();
@@ -104,6 +106,7 @@ struct AGSPlatformDriver
     //-----------------------------------------------
     // IOutputTarget implementation
     //-----------------------------------------------
+    // Writes to the standard platform's output, prepending "AGS: " prefix to the message
     virtual void Out(const char *sz_fullmsg);
 
 private:

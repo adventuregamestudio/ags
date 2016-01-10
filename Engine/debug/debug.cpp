@@ -161,7 +161,7 @@ void write_log(char*msg) {
     fprintf(ooo,"%s\n",msg);
     fclose(ooo);
     */
-    platform->WriteStdOut(msg);
+    Out::FPrint(msg);
 }
 
 /* The idea of this is that non-essential errors such as "sound file not
@@ -340,8 +340,8 @@ int check_for_messages_from_editor()
 
         if (strncmp(msg, "<Engine Command=\"", 17) != 0) 
         {
-            //OutputDebugString("Faulty message received from editor:");
-            //OutputDebugString(msg);
+            //Out::FPrint("Faulty message received from editor:");
+            //Out::FPrint(msg);
             free(msg);
             return 0;
         }

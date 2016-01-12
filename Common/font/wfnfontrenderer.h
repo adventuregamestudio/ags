@@ -17,21 +17,22 @@
 
 #include "font/agsfontrenderer.h"
 
+#include <map>
+#include <vector>
+
 class WFNFontRenderer : public IAGSFontRenderer {
 public:
-  virtual bool LoadFromDisk(int fontNumber, int fontSize);
-  virtual void FreeMemory(int fontNumber);
-  virtual bool SupportsExtendedCharacters(int fontNumber) { return false; }
-  virtual int GetTextWidth(const char *text, int fontNumber);
-  virtual int GetTextHeight(const char *text, int fontNumber);
-  virtual void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) ;
-  virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber);
-  virtual void EnsureTextValidForFont(char *text, int fontNumber);
+    virtual bool LoadFromDisk(int fontNumber, int fontSize) override;
+    virtual void FreeMemory(int fontNumber) override;
+    virtual bool SupportsExtendedCharacters(int fontNumber) override { return false; }
+    virtual int GetTextWidth(const char *text, int fontNumber) override;
+    virtual int GetTextHeight(const char *text, int fontNumber) override;
+    virtual void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) override;
+    virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber) override;
+    virtual void EnsureTextValidForFont(char *text, int fontNumber) override;
 
 private:
-    int printchar(Common::Bitmap *ds, int xxx, int yyy, wgtfont foo, color_t text_color, int charr);
+    std::map<int, std::vector<unsigned char>> _fontData;
 };
-
-extern WFNFontRenderer wfnRenderer;
 
 #endif // __AC_WFNFONTRENDERER_H

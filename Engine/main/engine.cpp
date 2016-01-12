@@ -878,10 +878,9 @@ int engine_check_disk_space()
     return RETURN_CONTINUE;
 }
 
-// [IKM] I have a feeling this should be merged with engine_init_fonts
-int engine_check_fonts()
+int engine_check_font_was_loaded()
 {
-    if (fontRenderers[0] == NULL) 
+    if (!font_first_renderer_loaded())
     {
         platform->DisplayAlert("No fonts found. If you're trying to run the game from the Debug directory, this is not supported. Use the Build EXE command to create an executable in the Compiled folder.");
         proper_exit = 1;
@@ -1484,9 +1483,10 @@ int initialize_engine(int argc,char*argv[])
         return res;
     }
 
-    // [IKM] I do not really understand why is this checked only now;
-    // should not it be checked right after fonts initialization?
-    res = engine_check_fonts();
+    // Make sure that at least one font was loaded in the process of loading
+    // the game data.
+    // TODO: Fold this check into engine_load_game_data()
+    res = engine_check_font_was_loaded();
     if (res != RETURN_CONTINUE) {
         return res;
     }

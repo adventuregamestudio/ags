@@ -19,4 +19,4 @@
 #include "alfont.h"
 #include "font/agsfontrenderer.h"
 
-IFont *fonts[MAX_FONTS];
+// TODO: Remove file?

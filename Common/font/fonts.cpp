@@ -20,6 +20,7 @@
 #include "alfont.h"
 
 #include "ac/common.h"
+#include "ac/gamestructdefines.h"
 #include "font/fonts.h"
 #include "font/agsfontrenderer.h"
 #include "font/ttffontrenderer.h"

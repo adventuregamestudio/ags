@@ -15,14 +15,14 @@
 #ifndef __AC_AGSFONTRENDERER_H
 #define __AC_AGSFONTRENDERER_H
 
-#include "ac/gamestructdefines.h"
-
-typedef unsigned char IFont;
 struct BITMAP;
 
 // WARNING: this interface is exposed for plugins and declared for the second time in agsplugin.h
 class IAGSFontRenderer {
 public:
+  // TODO: This pure virtual class should really define a virtual destructor,
+  // but I'm unsure how it would affect existing plugins using this interface.
+
   virtual bool LoadFromDisk(int fontNumber, int fontSize) = 0;
   virtual void FreeMemory(int fontNumber) = 0;
   virtual bool SupportsExtendedCharacters(int fontNumber) = 0;
@@ -36,7 +36,5 @@ public:
   virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber) = 0;
   virtual void EnsureTextValidForFont(char *text, int fontNumber) = 0;
 };
-
-extern IFont *fonts[MAX_FONTS];
 
 #endif // __AC_AGSFONTRENDERER_H

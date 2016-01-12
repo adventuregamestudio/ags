@@ -37,7 +37,6 @@ public:
   virtual void EnsureTextValidForFont(char *text, int fontNumber) = 0;
 };
 
-extern IAGSFontRenderer* fontRenderers[MAX_FONTS];
 extern IFont *fonts[MAX_FONTS];
 
 #endif // __AC_AGSFONTRENDERER_H

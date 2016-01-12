@@ -19,9 +19,14 @@
 
 using namespace AGS;
 
+class IAGSFontRenderer;
+
 void init_font_renderer();
 void shutdown_font_renderer();
 void adjust_y_coordinate_for_text(int* ypos, int fontnum);
+IAGSFontRenderer* font_replace_renderer(int fontNumber, IAGSFontRenderer* renderer);
+bool font_first_renderer_loaded();
+bool font_supports_extended_characters(int fontNumber);
 void ensure_text_valid_for_font(char *text, int fontnum);
 int wgettextwidth(const char *texx, int fontNumber);
 int wgettextheight(const char *text, int fontNumber);

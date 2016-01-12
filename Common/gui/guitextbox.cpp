@@ -16,7 +16,6 @@
 #include "font/fonts.h"
 #include "gui/guitextbox.h"
 #include "gui/guimain.h"
-#include "font/agsfontrenderer.h"	// fontRenderers;
 #include "util/stream.h"
 #include "gfx/bitmap.h"
 #include "util/wgt2allg.h"
@@ -71,7 +70,7 @@ void GUITextBox::KeyPress(int kp)
     return;
 
   // other key, continue
-  if ((kp >= 128) && (!fontRenderers[font]->SupportsExtendedCharacters(font)))
+  if ((kp >= 128) && (!font_supports_extended_characters(font)))
     return;
 
   if (kp == 13) {

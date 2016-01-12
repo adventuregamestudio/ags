@@ -31,6 +31,8 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 int wtext_multiply = 1;
 
+static IAGSFontRenderer* fontRenderers[MAX_FONTS];
+
 void init_font_renderer()
 {
 #ifdef USE_ALFONT
@@ -53,6 +55,22 @@ void shutdown_font_renderer()
 void adjust_y_coordinate_for_text(int* ypos, int fontnum)
 {
   fontRenderers[fontnum]->AdjustYCoordinateForFont(ypos, fontnum);
+}
+
+bool font_first_renderer_loaded() {
+    return fontRenderers[0] != NULL;
+}
+
+IAGSFontRenderer* font_replace_renderer(int fontNumber, IAGSFontRenderer* renderer)
+{
+  IAGSFontRenderer* oldRender = fontRenderers[fontNumber];
+  fontRenderers[fontNumber] = renderer;
+  return oldRender;
+}
+
+bool font_supports_extended_characters(int fontNumber)
+{
+  return fontRenderers[fontNumber]->SupportsExtendedCharacters(fontNumber);
 }
 
 void ensure_text_valid_for_font(char *text, int fontnum)

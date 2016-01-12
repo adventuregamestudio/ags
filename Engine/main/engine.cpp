@@ -881,7 +881,7 @@ int engine_check_disk_space()
 
 int engine_check_font_was_loaded()
 {
-    if (fontRenderers[0] == NULL) 
+    if (!font_first_renderer_loaded())
     {
         platform->DisplayAlert("No fonts found. If you're trying to run the game from the Debug directory, this is not supported. Use the Build EXE command to create an executable in the Compiled folder.");
         proper_exit = 1;

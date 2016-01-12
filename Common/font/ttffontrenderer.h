@@ -19,14 +19,14 @@
 
 class TTFFontRenderer : public IAGSFontRenderer {
 public:
-  virtual bool LoadFromDisk(int fontNumber, int fontSize);
-  virtual void FreeMemory(int fontNumber);
-  virtual bool SupportsExtendedCharacters(int fontNumber) { return true; }
-  virtual int GetTextWidth(const char *text, int fontNumber);
-  virtual int GetTextHeight(const char *text, int fontNumber);
-  virtual void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) ;
-  virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber);
-  virtual void EnsureTextValidForFont(char *text, int fontNumber);
+    virtual bool LoadFromDisk(int fontNumber, int fontSize) override;
+    virtual void FreeMemory(int fontNumber) override;
+    virtual bool SupportsExtendedCharacters(int fontNumber) override { return true; }
+    virtual int GetTextWidth(const char *text, int fontNumber) override;
+    virtual int GetTextHeight(const char *text, int fontNumber) override;
+    virtual void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) override;
+    virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber) override;
+    virtual void EnsureTextValidForFont(char *text, int fontNumber) override;
 };
 
 extern TTFFontRenderer ttfRenderer;

@@ -34,8 +34,6 @@ extern bool ShouldAntiAliasText();
 // Defined in the engine or editor (currently needed only for non-windows versions)
 extern void set_font_outline(int font_number, int outline_type);
 
-TTFFontRenderer ttfRenderer;
-
 #ifdef USE_ALFONT
 ALFONT_FONT *tempttffnt;
 ALFONT_FONT *get_ttf_block(unsigned char* fontptr)

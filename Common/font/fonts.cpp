@@ -33,6 +33,8 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 int wtext_multiply = 1;
 
 static IAGSFontRenderer* fontRenderers[MAX_FONTS];
+static TTFFontRenderer ttfRenderer;
+static WFNFontRenderer wfnRenderer;
 
 void init_font_renderer()
 {

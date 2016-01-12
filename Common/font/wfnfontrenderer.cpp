@@ -29,7 +29,7 @@
 
 using namespace AGS::Common;
 
-WFNFontRenderer wfnRenderer;
+const char *WFN_FILE_SIGNATURE = "WGT Font File  ";
 
 static unsigned char GetCharCode(unsigned char wanted_code, const WFNFont* font)
 {

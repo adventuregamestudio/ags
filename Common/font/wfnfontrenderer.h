@@ -35,6 +35,4 @@ private:
   std::map<int, WFNFont*> _fontData;
 };
 
-extern WFNFontRenderer wfnRenderer;
-
 #endif // __AC_WFNFONTRENDERER_H

@@ -36,6 +36,4 @@ private:
     std::map<int, ALFONT_FONT*> _fontData;
 };
 
-extern TTFFontRenderer ttfRenderer;
-
 #endif // __AC_TTFFONTRENDERER_H

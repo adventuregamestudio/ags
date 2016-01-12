@@ -41,7 +41,6 @@ static int printchar(Common::Bitmap *ds, int xxx, int yyy, const unsigned char* 
 // **** WFN Renderer ****
 
 const char *WFN_FILE_SIGNATURE = "WGT Font File  ";
-WFNFontRenderer wfnRenderer;
 
 
 void WFNFontRenderer::AdjustYCoordinateForFont(int *ycoord, int fontNumber)

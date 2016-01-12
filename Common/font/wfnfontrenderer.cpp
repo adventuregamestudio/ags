@@ -36,6 +36,7 @@ extern Stream *fopen_shared(char *,
                                  Common::FileWorkMode work_mode = Common::kFile_Read);
 extern int flength_shared(Stream *ffi);
 
+static int printchar(Common::Bitmap *ds, int xxx, int yyy, const unsigned char* foo, color_t text_color, int charr);
 
 // **** WFN Renderer ****
 
@@ -64,20 +65,20 @@ void WFNFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 // Get the position of a character in a bitmap font.
 // Rewritten code to fulfill the alignment restrictions of pointers
 // on the MIPS processor. Can and should be done more efficiently.
-char* psp_get_char(wgtfont foon, int thisCharacter)
+static const unsigned char* psp_get_char(const unsigned char* foon, int thisCharacter)
 {
-  char* tabaddr_ptr = NULL;
+  const unsigned char* tabaddr_ptr = NULL;
   short tabaddr_value = 0;
 
   //tabaddr = (short *)&foon[15];
-  tabaddr_ptr = (char*)&foon[15];
+  tabaddr_ptr = &foon[15];
 
   //tabaddr = (short *)&foon[tabaddr[0]];     // get address table
   memcpy(&tabaddr_value, tabaddr_ptr, 2);
 #if defined (AGS_BIG_ENDIAN)
   AGS::Common::BitByteOperations::SwapBytesInt16(tabaddr_value);
 #endif
-  tabaddr_ptr = (char*)&foon[tabaddr_value];
+  tabaddr_ptr = &foon[tabaddr_value];
 
   //tabaddr = (short *)&foon[tabaddr[thisCharacter]];      // use table to find character
   memcpy(&tabaddr_value, &tabaddr_ptr[thisCharacter*2], 2);
@@ -85,13 +86,14 @@ char* psp_get_char(wgtfont foon, int thisCharacter)
   AGS::Common::BitByteOperations::SwapBytesInt16(tabaddr_value);
 #endif
 
-  return (char*)&foon[tabaddr_value];
+  return &foon[tabaddr_value];
 }
 
 
 int WFNFontRenderer::GetTextWidth(const char *texx, int fontNumber)
 {
-  wgtfont foon = fonts[fontNumber];
+  // TODO: use std::vector::data() in c++11.
+  const unsigned char* foon = &(_fontData[fontNumber][0]);
 
   int totlen = 0;
   unsigned int dd;
@@ -102,10 +104,10 @@ int WFNFontRenderer::GetTextWidth(const char *texx, int fontNumber)
     thisCharacter = texx[dd];
     if ((thisCharacter >= 128) || (thisCharacter < 0)) thisCharacter = '?';
 
-    char* fontaddr = psp_get_char(foon, thisCharacter);
+    const unsigned char* fontaddr = psp_get_char(foon, thisCharacter);
 
     short tabaddr_d;
-    memcpy(&tabaddr_d, (char*)((long)fontaddr + 0), 2);
+    memcpy(&tabaddr_d, fontaddr, 2);
 #if defined (AGS_BIG_ENDIAN)
   AGS::Common::BitByteOperations::SwapBytesInt16(tabaddr_d);
 #endif
@@ -119,7 +121,8 @@ int WFNFontRenderer::GetTextHeight(const char *texx, int fontNumber)
 {
   int highest = 0;
   unsigned int dd;
-  wgtfont foon = fonts[fontNumber];
+  // TODO: use std::vector::data() in c++11.
+  const unsigned char* foon = &(_fontData[fontNumber][0]);
 
   char thisCharacter;
   for (dd = 0; dd < strlen(texx); dd++) 
@@ -127,9 +130,9 @@ int WFNFontRenderer::GetTextHeight(const char *texx, int fontNumber)
     thisCharacter = texx[dd];
     if ((thisCharacter >= 128) || (thisCharacter < 0)) thisCharacter = '?';
 
-    char* fontaddr = psp_get_char(foon, thisCharacter);
+    const unsigned char* fontaddr = psp_get_char(foon, thisCharacter);
     short tabaddr_d;
-    memcpy(&tabaddr_d, (char*)((long)fontaddr + 2), 2);
+    memcpy(&tabaddr_d, fontaddr + 2, 2);
 #if defined (AGS_BIG_ENDIAN)
   AGS::Common::BitByteOperations::SwapBytesInt16(tabaddr_d);
 #endif
@@ -146,6 +149,8 @@ Common::Bitmap render_wrapper;
 void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
   unsigned int ee;
+  // TODO: use std::vector::data() in c++11.
+  const unsigned char* foon = &(_fontData[fontNumber][0]);
 
   int oldeip = get_our_eip();
   set_our_eip(415);
@@ -153,35 +158,35 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
   render_wrapper.WrapAllegroBitmap(destination, true);
 
   for (ee = 0; ee < strlen(text); ee++)
-    x += printchar(&render_wrapper, x, y, fonts[fontNumber], colour, text[ee]);
+    x += printchar(&render_wrapper, x, y, foon, colour, text[ee]);
 
   set_our_eip(oldeip);
 }
 
-int WFNFontRenderer::printchar(Common::Bitmap *ds, int xxx, int yyy, wgtfont foo, color_t text_color, int charr)
+static int printchar(Common::Bitmap *ds, int xxx, int yyy, const unsigned char* foo, color_t text_color, int charr)
 {
-  unsigned char *actdata;
+  const unsigned char *actdata;
   int tt, ss, bytewid, orixp = xxx;
 
   if ((charr > 127) || (charr < 0))
     charr = '?';
 
-  char* tabaddr = psp_get_char(foo, charr);
+  const unsigned char* tabaddr = psp_get_char(foo, charr);
 
   short tabaddr_d;
-  memcpy(&tabaddr_d, (char*)((long)tabaddr), 2);
+  memcpy(&tabaddr_d, tabaddr, 2);
 #if defined (AGS_BIG_ENDIAN)
   AGS::Common::BitByteOperations::SwapBytesInt16(tabaddr_d);
 #endif
   int charWidth = tabaddr_d;
 
-  memcpy(&tabaddr_d, (char*)((long)tabaddr + 2), 2);
+  memcpy(&tabaddr_d, tabaddr + 2, 2);
 #if defined (AGS_BIG_ENDIAN)
   AGS::Common::BitByteOperations::SwapBytesInt16(tabaddr_d);
 #endif
   int charHeight = tabaddr_d;
 
-  actdata = (unsigned char *)&tabaddr[2*2];
+  actdata = tabaddr + 2 * 2;
   bytewid = ((charWidth - 1) / 8) + 1;
 
   // MACPORT FIX: switch now using charWidth and charHeight
@@ -233,20 +238,18 @@ bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   }
 
   lenof = flength_shared(ffi);
-
-  wgtfont tempalloc = (wgtfont) malloc(lenof + 40);
   delete ffi;
 
+  _fontData[fontNumber] = std::vector<unsigned char>(lenof + 40);
   ffi = fopen_shared(filnm);
-  ffi->ReadArray(tempalloc, lenof, 1);
+  // TODO: use std::vector::data() in c++11.
+  ffi->ReadArray(&_fontData[fontNumber][0], lenof, 1);
   delete ffi;
 
-  fonts[fontNumber] = tempalloc;
   return true;
 }
 
 void WFNFontRenderer::FreeMemory(int fontNumber)
 {
-  free(fonts[fontNumber]);
-  fonts[fontNumber] = NULL;
+  _fontData.erase(fontNumber);
 }

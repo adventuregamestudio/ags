@@ -48,7 +48,7 @@ TTFFontRenderer ttfRenderer;
 
 #ifdef USE_ALFONT
 ALFONT_FONT *tempttffnt;
-ALFONT_FONT *get_ttf_block(wgtfont fontptr)
+ALFONT_FONT *get_ttf_block(unsigned char* fontptr)
 {
   memcpy(&tempttffnt, &fontptr[4], sizeof(tempttffnt));
   return tempttffnt;
@@ -72,12 +72,12 @@ void TTFFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 
 int TTFFontRenderer::GetTextWidth(const char *text, int fontNumber)
 {
-  return alfont_text_length(get_ttf_block(fonts[fontNumber]), text);
+  return alfont_text_length(_fontData[fontNumber], text);
 }
 
 int TTFFontRenderer::GetTextHeight(const char *text, int fontNumber)
 {
-  return alfont_text_height(get_ttf_block(fonts[fontNumber]));
+  return alfont_text_height(_fontData[fontNumber]);
 }
 
 void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
@@ -85,12 +85,11 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
   if (y > destination->cb)  // optimisation
     return;
 
-  ALFONT_FONT *alfpt = get_ttf_block(fonts[fontNumber]);
   // Y - 1 because it seems to get drawn down a bit
   if ((ShouldAntiAliasText()) && (bitmap_color_depth(destination) > 8))
-    alfont_textout_aa(destination, alfpt, text, x, y - 1, colour);
+    alfont_textout_aa(destination, _fontData[fontNumber], text, x, y - 1, colour);
   else
-    alfont_textout(destination, alfpt, text, x, y - 1, colour);
+    alfont_textout(destination, _fontData[fontNumber], text, x, y - 1, colour);
 }
 
 bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
@@ -136,19 +135,15 @@ bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   if (fontSize > 0)
     alfont_set_font_size(alfptr, fontSize);
 
-  wgtfont tempalloc = (wgtfont) malloc(20);
-  strcpy((char *)tempalloc, "TTF");
-  memcpy(&((char *)tempalloc)[4], &alfptr, sizeof(alfptr));
-  fonts[fontNumber] = tempalloc;
+  _fontData[fontNumber] = alfptr;
 
   return true;
 }
 
 void TTFFontRenderer::FreeMemory(int fontNumber)
 {
-  alfont_destroy_font(get_ttf_block(fonts[fontNumber]));
-  free(fonts[fontNumber]);
-  fonts[fontNumber] = NULL;
+  alfont_destroy_font(_fontData[fontNumber]);
+  _fontData.erase(fontNumber);
 }
 
 #endif   // USE_ALFONT

@@ -17,6 +17,10 @@
 
 #include "font/agsfontrenderer.h"
 
+#include <map>
+
+struct ALFONT_FONT;
+
 class TTFFontRenderer : public IAGSFontRenderer {
 public:
     virtual bool LoadFromDisk(int fontNumber, int fontSize) override;
@@ -27,6 +31,9 @@ public:
     virtual void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) override;
     virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber) override;
     virtual void EnsureTextValidForFont(char *text, int fontNumber) override;
+
+private:
+    std::map<int, ALFONT_FONT*> _fontData;
 };
 
 extern TTFFontRenderer ttfRenderer;

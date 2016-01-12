@@ -17,6 +17,9 @@
 
 #include "font/agsfontrenderer.h"
 
+#include <map>
+#include <vector>
+
 class WFNFontRenderer : public IAGSFontRenderer {
 public:
     virtual bool LoadFromDisk(int fontNumber, int fontSize) override;
@@ -29,7 +32,7 @@ public:
     virtual void EnsureTextValidForFont(char *text, int fontNumber) override;
 
 private:
-    int printchar(Common::Bitmap *ds, int xxx, int yyy, wgtfont foo, color_t text_color, int charr);
+    std::map<int, std::vector<unsigned char>> _fontData;
 };
 
 extern WFNFontRenderer wfnRenderer;

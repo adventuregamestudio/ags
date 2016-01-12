@@ -19,5 +19,4 @@
 #include "alfont.h"
 #include "font/agsfontrenderer.h"
 
-IAGSFontRenderer* fontRenderers[MAX_FONTS];
 wgtfont fonts[MAX_FONTS];

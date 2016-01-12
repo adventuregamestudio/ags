@@ -58,7 +58,6 @@ extern int time_between_timers;
 extern int offsetx, offsety;
 extern int frames_per_second;
 extern int loops_per_character;
-extern IAGSFontRenderer* fontRenderers[MAX_FONTS];
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern DynamicArray<GUIButton> guibuts;
@@ -425,7 +424,7 @@ void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color
     else if (game.fontoutline[usingfont] == FONT_OUTLINE_AUTO) {
         int outlineDist = 1;
 
-        if ((game.options[OPT_NOSCALEFNT] == 0) && (!fontRenderers[usingfont]->SupportsExtendedCharacters(usingfont))) {
+        if ((game.options[OPT_NOSCALEFNT] == 0) && (!font_supports_extended_characters(usingfont))) {
             // if it's a scaled up SCI font, move the outline out more
             outlineDist = get_fixed_pixel_size(1);
         }
@@ -463,7 +462,7 @@ int wgetfontheight(int font) {
     // automatic outline fonts are 2 pixels taller
     if (game.fontoutline[font] == FONT_OUTLINE_AUTO) {
         // scaled up SCI font, push outline further out
-        if ((game.options[OPT_NOSCALEFNT] == 0) && (!fontRenderers[font]->SupportsExtendedCharacters(font)))
+        if ((game.options[OPT_NOSCALEFNT] == 0) && (!font_supports_extended_characters(font)))
             htof += get_fixed_pixel_size(2);
         // otherwise, just push outline by 1 pixel
         else
@@ -478,7 +477,7 @@ int wgettextwidth_compensate(const char *tex, int font) {
 
     if (game.fontoutline[font] == FONT_OUTLINE_AUTO) {
         // scaled up SCI font, push outline further out
-        if ((game.options[OPT_NOSCALEFNT] == 0) && (!fontRenderers[font]->SupportsExtendedCharacters(font)))
+        if ((game.options[OPT_NOSCALEFNT] == 0) && (!font_supports_extended_characters(font)))
             wdof += get_fixed_pixel_size(2);
         // otherwise, just push outline by 1 pixel
         else

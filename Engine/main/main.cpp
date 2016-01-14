@@ -495,6 +495,8 @@ int main(int argc,char*argv[]) {
     if (usetup.disable_exception_handling)
     {
         int result = initialize_engine(argc, argv);
+        // TODO: refactor engine shutdown routine (must shutdown and delete everything started and created)
+        allegro_exit();
         platform->PostAllegroExit();
         return result;
     }

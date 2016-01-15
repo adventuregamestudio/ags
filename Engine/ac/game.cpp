@@ -12,9 +12,6 @@
 //
 //=============================================================================
 
-#if !defined (WINDOWS_VERSION)
-#include <sys/stat.h>                      //mkdir
-#endif
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/audiochannel.h"
@@ -78,14 +75,11 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "util/alignedstream.h"
+#include "util/directory.h"
 #include "util/filestream.h"
 #include "util/string_utils.h"
 
-using AGS::Common::AlignedStream;
-using AGS::Common::String;
-using AGS::Common::Stream;
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern int time_between_timers;
@@ -387,12 +381,7 @@ int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
     if (newSaveGameDir.IsEmpty())
         return 0;
 
-#if defined (WINDOWS_VERSION)
-    mkdir(newSaveGameDir);
-#else
-    mkdir(newSaveGameDir, 0755);
-#endif
-
+    Directory::CreateDirectory(newSaveGameDir);
     newSaveGameDir.AppendChar('/');
 
     char newFolderTempFile[260];

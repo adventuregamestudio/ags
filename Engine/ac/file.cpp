@@ -312,6 +312,7 @@ String MakeSpecialSubDir(const String &sp_dir)
     if (full_path.GetLast() != '/' && full_path.GetLast() != '\\')
         full_path.AppendChar('/');
     full_path.Append(game.saveGameFolderName);
+    Directory::CreateDirectory(full_path);
     return full_path;
 }
 

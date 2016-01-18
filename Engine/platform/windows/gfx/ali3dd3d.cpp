@@ -1068,7 +1068,7 @@ bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
 IGfxModeList *D3DGraphicsDriver::GetSupportedModeList(int color_depth)
 {
   if (!EnsureDirect3D9IsCreated())
-    return false;
+    return NULL;
 
   return new D3DGfxModeList(direct3d, color_depth_to_d3d_format(color_depth, false));
 }

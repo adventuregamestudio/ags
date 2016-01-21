@@ -24,14 +24,14 @@ namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
 
 void Overlay_Remove(ScriptOverlay *sco);
-void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const char*texx, ...);
+void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const char*text);
 int  Overlay_GetX(ScriptOverlay *scover);
 void Overlay_SetX(ScriptOverlay *scover, int newx);
 int  Overlay_GetY(ScriptOverlay *scover);
 void Overlay_SetY(ScriptOverlay *scover, int newy);
 int  Overlay_GetValid(ScriptOverlay *scover);
 ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, int transparent);
-ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text, ...);
+ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text);
 
 int  find_overlay_of_type(int typ);
 void remove_screen_overlay(int type);

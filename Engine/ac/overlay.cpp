@@ -52,13 +52,7 @@ void Overlay_Remove(ScriptOverlay *sco) {
     sco->Remove();
 }
 
-void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const char*texx, ...) {
-    char displbuf[STD_BUFFER_SIZE];
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(displbuf,get_translation(texx),ap);
-    va_end(ap);
-
+void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const char*text) {
     int ovri=find_overlay_of_type(scover->overlayId);
     if (ovri<0)
         quit("!Overlay.SetText: invalid overlay ID specified");
@@ -68,7 +62,7 @@ void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const 
     RemoveOverlay(scover->overlayId);
     crovr_id = scover->overlayId;
 
-    if (CreateTextOverlay(xx,yy,wii,fontid,clr,displbuf) != scover->overlayId)
+    if (CreateTextOverlay(xx,yy,wii,fontid,clr,get_translation(text)) != scover->overlayId)
         quit("SetTextOverlay internal error: inconsistent type ids");
 }
 
@@ -133,19 +127,13 @@ ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, int transparent) 
     return sco;
 }
 
-ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text, ...) {
+ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text) {
     ScriptOverlay *sco = new ScriptOverlay();
-
-    char displbuf[STD_BUFFER_SIZE];
-    va_list ap;
-    va_start(ap,text);
-    vsprintf(displbuf,get_translation(text),ap);
-    va_end(ap);
 
     multiply_up_coordinates(&x, &y);
     width = multiply_up_coordinate(width);
 
-    sco->overlayId = CreateTextOverlayCore(x, y, width, font, colour, displbuf, 0);
+    sco->overlayId = CreateTextOverlayCore(x, y, width, font, colour, text, 0);
 
     int ovri = find_overlay_of_type(sco->overlayId);
     sco->borderWidth = divide_down_coordinate(screenover[ovri].x - x);
@@ -292,7 +280,7 @@ RuntimeScriptValue Sc_Overlay_CreateTextual(const RuntimeScriptValue *params, in
 {
     API_SCALL_SCRIPT_SPRINTF(Overlay_CreateTextual, 6);
     ScriptOverlay *overlay = Overlay_CreateTextual(params[0].IValue, params[1].IValue, params[2].IValue,
-                                                   params[3].IValue, params[4].IValue, "%s", scsf_buffer);
+                                                   params[3].IValue, params[4].IValue, scsf_buffer);
     return RuntimeScriptValue().SetDynamicObject(overlay, overlay);
 }
 
@@ -300,7 +288,7 @@ RuntimeScriptValue Sc_Overlay_CreateTextual(const RuntimeScriptValue *params, in
 RuntimeScriptValue Sc_Overlay_SetText(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_SCRIPT_SPRINTF(Overlay_SetText, 4);
-    Overlay_SetText((ScriptOverlay*)self, params[0].IValue, params[1].IValue, params[2].IValue, "%s", scsf_buffer);
+    Overlay_SetText((ScriptOverlay*)self, params[0].IValue, params[1].IValue, params[2].IValue, scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -349,21 +337,15 @@ RuntimeScriptValue Sc_Overlay_SetY(void *self, const RuntimeScriptValue *params,
 // ScriptOverlay* (int x, int y, int width, int font, int colour, const char* text, ...)
 ScriptOverlay* ScPl_Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char *text, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, text);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(text), arg_ptr);
-    va_end(arg_ptr);
-    return Overlay_CreateTextual(x, y, width, font, colour, "%s", scsf_buffer);
+    API_PLUGIN_SCRIPT_SPRINTF(text);
+    return Overlay_CreateTextual(x, y, width, font, colour, scsf_buffer);
 }
 
 // void (ScriptOverlay *scover, int wii, int fontid, int clr, char*texx, ...)
 void ScPl_Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, char *texx, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
-    va_end(arg_ptr);
-    Overlay_SetText(scover, wii, fontid, clr, "%s", scsf_buffer);
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
+    Overlay_SetText(scover, wii, fontid, clr, scsf_buffer);
 }
 
 

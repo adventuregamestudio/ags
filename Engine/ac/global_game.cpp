@@ -54,6 +54,7 @@
 #include "gfx/graphicsdriver.h"
 #include "core/assetmanager.h"
 #include "main/game_file.h"
+#include "util/string_utils.h"
 
 using AGS::Common::String;
 using AGS::Common::Bitmap;
@@ -892,13 +893,9 @@ void SetNormalFont (int fontnum) {
     play.normal_font = fontnum;
 }
 
-void _sc_AbortGame(const char*texx, ...) {
+void _sc_AbortGame(const char* text) {
     char displbuf[STD_BUFFER_SIZE] = "!?";
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(&displbuf[2], get_translation(texx), ap);
-    va_end(ap);
-
+    snprintf(&displbuf[2], STD_BUFFER_SIZE - 3, "%s", text);
     quit(displbuf);
 }
 

@@ -140,12 +140,7 @@ void RawSetColorRGB(int red, int grn, int blu) {
 
     play.raw_color = makecol_depth(thisroom.ebscene[play.bg_frame]->GetColorDepth(), red, grn, blu);
 }
-void RawPrint (int xx, int yy, const char*texx, ...) {
-    char displbuf[STD_BUFFER_SIZE];
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(displbuf, get_translation(texx), ap);
-    va_end(ap);
+void RawPrint (int xx, int yy, const char *text) {
     RAW_START();
     // don't use wtextcolor because it will do a 16->32 conversion
     color_t text_color = play.raw_color;
@@ -154,7 +149,7 @@ void RawPrint (int xx, int yy, const char*texx, ...) {
         debug_log ("RawPrint: Attempted to use hi-color on 256-col background");
     }
     multiply_up_coordinates(&xx, &yy);
-    wouttext_outline(RAW_SURFACE(), xx, yy, play.normal_font, text_color, displbuf);
+    wouttext_outline(RAW_SURFACE(), xx, yy, play.normal_font, text_color, text);
     // we must invalidate the entire screen because these are room
     // co-ordinates, not screen co-ords which it works with
     invalidate_screen();

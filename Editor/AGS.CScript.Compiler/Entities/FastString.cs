@@ -64,6 +64,11 @@ namespace AGS.CScript.Compiler
             return _data.IndexOf(text, _offset) - _offset;
         }
 
+        public int IndexOf(char text, int offset)
+        {
+            return _data.IndexOf(text, _offset + offset) - _offset;
+        }
+
         public FastString Substring(int offset)
         {
             return new FastString(_data, _offset + offset);

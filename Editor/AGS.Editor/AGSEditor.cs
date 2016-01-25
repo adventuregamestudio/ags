@@ -1224,7 +1224,14 @@ namespace AGS.Editor
 
                 foreach (Plugin plugin in _game.Plugins)
                 {
-                    File.Copy(Path.Combine(this.EditorDirectory, plugin.FileName), Path.Combine(OUTPUT_DIRECTORY, plugin.FileName), true);
+                    string outputDir = OUTPUT_DIRECTORY;
+                    if (!Factory.AGSEditor.Preferences.UseLegacyCompiler)
+                    {
+                        IBuildTarget targetWin = BuildTargetsInfo.FindBuildTargetByName("Windows");
+                        if (targetWin != null)
+                            outputDir = targetWin.GetCompiledPath();
+                    }
+                    File.Copy(Path.Combine(this.EditorDirectory, plugin.FileName), Path.Combine(outputDir, plugin.FileName), true);
                 }
             }
             catch (Exception ex)

@@ -19,6 +19,7 @@ namespace AGS.Types
         private int _x;
         private int _y;
         private bool _clickable = true;
+        private bool _locked;
         private bool _visible = true;
         private int _baseline;
         private int _effectiveBaseline;
@@ -110,6 +111,14 @@ namespace AGS.Types
         {
             get { return _effectiveBaseline; }
             set { _effectiveBaseline = value; }
+        }
+
+        [Description("Whether the object can be moved in the editor")]
+        [Category("Design")]
+        public bool Locked
+        {
+            get { return _locked; }
+            set { _locked = value; }
         }
 
         [Description("X co-ordinate within the room of the left side of the object")]

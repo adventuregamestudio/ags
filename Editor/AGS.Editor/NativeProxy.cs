@@ -387,21 +387,7 @@ namespace AGS.Editor
 
         public void CreateDataFile(string[] fileList, int splitSize, string baseFileName, bool isGameEXE)
         {
-            if (Factory.AGSEditor.Preferences.UseLegacyCompiler)
-            {
-                _native.CreateDataFile(fileList, splitSize, baseFileName, isGameEXE);
-                return;
-            }
-            string[] fileNames = new string[fileList.Length];
-            for (int i = 0; i < fileList.Length; ++i)
-            {
-                fileNames[i] = fileList[i];
-            }
-            string errorMsg = DataFileWriter.MakeDataFile(fileList, splitSize, baseFileName, isGameEXE);
-            if (errorMsg != null)
-            {
-                throw new AGSEditorException(errorMsg);
-            }
+            _native.CreateDataFile(fileList, splitSize, baseFileName, isGameEXE);
         }
 
         public void CreateGameEXE(string[] fileList, Game game, string baseFileName)

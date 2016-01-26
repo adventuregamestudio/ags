@@ -335,7 +335,7 @@ namespace AGS.Editor
                 using (Stream wout = TryFileOpen(outputFileName,
                     (makeFileNameAssumptions ? FileMode.Create : FileMode.Append), FileAccess.Write))
                 {
-                    if (wout == null) return "ERROR: unable to open file for writing";
+                    if (wout == null) return "ERROR: unable to open file '" + outputFileName + "' for writing";
                     BinaryWriter writer = new BinaryWriter(wout);
                     startOffset = writer.BaseStream.Length;
                     writer.Write("CLIB\x1A".ToCharArray());
@@ -367,7 +367,7 @@ namespace AGS.Editor
                                 }
                                 if (CopyFileAcross(stream, writer.BaseStream, ourlib.Files[j].Length) < 1)
                                 {
-                                    return "Error writing file: possibly disk full";
+                                    return "Error writing file '" + ourlib.Files[j].Filename + "': possibly disk full";
                                 }
                             }
                         }

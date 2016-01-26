@@ -1221,11 +1221,6 @@ namespace AGS.Editor
             try
             {
                 BusyDialog.Show("Please wait while your game is created...", new BusyDialog.ProcessingHandler(CreateCompiledFiles), new CompileScriptsParameters(errors, forceRebuild));
-
-                foreach (Plugin plugin in _game.Plugins)
-                {
-                    File.Copy(Path.Combine(this.EditorDirectory, plugin.FileName), Path.Combine(OUTPUT_DIRECTORY, plugin.FileName), true);
-                }
             }
             catch (Exception ex)
             {

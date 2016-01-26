@@ -24,6 +24,26 @@ namespace AGS.Editor
             return new string[] { GetCompiledPath() };
         }
 
+        public void CopyPlugins(CompileMessages errors)
+        {
+            try
+            {
+                string outputDir = GetCompiledPath();
+                if (Factory.AGSEditor.Preferences.UseLegacyCompiler)
+                {
+                    outputDir = AGSEditor.OUTPUT_DIRECTORY;
+                }
+                foreach (Plugin plugin in Factory.AGSEditor.CurrentGame.Plugins)
+                {
+                    File.Copy(Path.Combine(Factory.AGSEditor.EditorDirectory, plugin.FileName), Path.Combine(outputDir, plugin.FileName), true);
+                }
+            }
+            catch (Exception ex)
+            {
+                errors.Add(new CompileError("Unexpected error: " + ex.Message));
+            }
+        }
+
         public void CreateCompiledSetupProgram()
         {
             string setupFileName = GetCompiledPath(AGSEditor.COMPILED_SETUP_FILE_NAME);
@@ -215,6 +235,8 @@ namespace AGS.Editor
             }
             // Update config file with current game parameters
             Factory.AGSEditor.WriteConfigFile(GetCompiledPath());
+            // Copy Windows plugins
+            CopyPlugins(errors);
             return true;
         }
 

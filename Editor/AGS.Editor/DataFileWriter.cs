@@ -279,7 +279,7 @@ namespace AGS.Editor
                 string fileNameSrc = Path.GetFileName(fileNames[i]);
                 if (fileNameSrc.Length >= NativeConstants.MAX_FILENAME_LENGTH)
                 {
-                    throw new AGSEditorException("Filename too long: " + fileNames[i]);
+                    return "Filename too long: " + fileNames[i];
                 }
                 ourlib.Files.Add(new MultiFileLibNew.MultiFile(fileNameSrc, (byte)currentDataFile, thisFileSize));
             }
@@ -363,7 +363,7 @@ namespace AGS.Editor
                                     catch
                                     {
                                     }
-                                    throw new AGSEditorException("Unable to find file '" + ourlib.Files[j].Filename + "' for compilation. Do not remove files during the compilation process." + Environment.NewLine + Directory.GetCurrentDirectory());
+                                    return "Unable to find file '" + ourlib.Files[j].Filename + "' for compilation in directory '" + Directory.GetCurrentDirectory() + "'. Do not remove files during the compilation process.";
                                 }
                                 if (CopyFileAcross(stream, writer.BaseStream, ourlib.Files[j].Length) < 1)
                                 {
@@ -695,13 +695,15 @@ namespace AGS.Editor
             writer.Write(GetBytes(text, text.Length));
         }
 
-        static void WriteCompiledScript(FileStream ostream, Script script)
+        static bool WriteCompiledScript(FileStream ostream, Script script, CompileMessages errors)
         {
             if (script.CompiledData == null)
             {
-                throw new CompileError(string.Format("Script has not been compiled: {0}", script.FileName));
+                errors.Add(new CompileError(string.Format("Script has not been compiled: {0}", script.FileName)));
+                return false;
             }
             script.CompiledData.Write(ostream, script.FileName);
+            return true;
         }
 
         class ViewsWriter
@@ -725,11 +727,12 @@ namespace AGS.Editor
                 }
             }
 
-            public void WriteViews(IViewFolder folder, Game game)
+            public bool WriteViews(IViewFolder folder, Game game, CompileMessages errors)
             {
                 if (writer == null)
                 {
-                    throw new CompileError("Could not write views: Invalid stream (NULL)");
+                    errors.Add(new CompileError("Could not write views: Invalid stream (NULL)"));
+                    return false;
                 }
                 foreach (View view in views)
                 {
@@ -758,6 +761,7 @@ namespace AGS.Editor
                         }
                     }
                 }
+                return true;
             }
         }
 
@@ -1235,11 +1239,12 @@ namespace AGS.Editor
             }
         }
 
-        private static void WritePluginsToDisk(BinaryWriter writer, Game game)
+        private static bool WritePluginsToDisk(BinaryWriter writer, Game game, CompileMessages errors)
         {
             if (game.Plugins.Count > NativeConstants.MAX_PLUGINS)
             {
-                throw new CompileError("Too many plugins");
+                errors.Add(new CompileError("Too many plugins"));
+                return false;
             }
             writer.Write(1); // version
             writer.Write(game.Plugins.Count);
@@ -1255,14 +1260,16 @@ namespace AGS.Editor
                 writer.Write(savesize);
                 if (savesize > 0) writer.Write(plugin.SerializedData);
             }
+            return true;
         }
 
-        public static void SaveThisGameToFile(string fileName, Game game)
+        public static bool SaveThisGameToFile(string fileName, Game game, CompileMessages errors)
         {
             FileStream ostream = File.Create(fileName);
             if (ostream == null)
             {
-                throw new CompileError(string.Format("Cannot open file {0} for writing", fileName));
+                errors.Add(new CompileError(string.Format("Cannot open file {0} for writing", fileName)));
+                return false;
             }
             BinaryWriter writer = new BinaryWriter(ostream);
             WriteString(NativeConstants.GAME_FILE_SIG, NativeConstants.GAME_FILE_SIG.Length, writer);
@@ -1275,7 +1282,8 @@ namespace AGS.Editor
             WriteString(game.Settings.SaveGameFolderName, NativeConstants.MAX_SG_FOLDER_LEN, writer);
             if (game.Fonts.Count > NativeConstants.MAX_FONTS)
             {
-                throw new CompileError("Too many fonts");
+                errors.Add(new CompileError("Too many fonts"));
+                return false;
             }
             for (int i = 0; i < game.Fonts.Count; ++i)
             {
@@ -1305,7 +1313,8 @@ namespace AGS.Editor
             }
             if (game.InventoryItems.Count > NativeConstants.MAX_INV)
             {
-                throw new CompileError("Too many inventory items");
+                errors.Add(new CompileError("Too many inventory items"));
+                return false;
             }
             writer.Write(new byte[68]); // inventory item slot 0 is unused
             for (int i = 0; i < game.InventoryItems.Count; ++i)
@@ -1325,7 +1334,8 @@ namespace AGS.Editor
             }
             if (game.Cursors.Count > NativeConstants.MAX_CURSOR)
             {
-                throw new CompileError("Too many cursors");
+                errors.Add(new CompileError("Too many cursors"));
+                return false;
             }
             for (int i = 0; i < game.Cursors.Count; ++i)
             {
@@ -1360,8 +1370,11 @@ namespace AGS.Editor
                 WriteStringEncrypted(writer, SafeTruncate(game.TextParser.Words[i].Word, NativeConstants.MAX_PARSER_WORD_LENGTH));
                 writer.Write((short)game.TextParser.Words[i].WordGroup);
             }
-            WriteCompiledScript(ostream, game.ScriptsToCompile.GetScriptByFilename(Script.GLOBAL_SCRIPT_FILE_NAME));
-            WriteCompiledScript(ostream, game.ScriptsToCompile.GetScriptByFilename(Script.DIALOG_SCRIPTS_FILE_NAME));
+            if (!WriteCompiledScript(ostream, game.ScriptsToCompile.GetScriptByFilename(Script.GLOBAL_SCRIPT_FILE_NAME), errors) ||
+                !WriteCompiledScript(ostream, game.ScriptsToCompile.GetScriptByFilename(Script.DIALOG_SCRIPTS_FILE_NAME), errors))
+            {
+                return false;
+            }
             // Extract all the scripts we want to persist (all the non-headers, except
             // the global script which was already written)
             List<Script> scriptsToWrite = new List<Script>();
@@ -1380,10 +1393,16 @@ namespace AGS.Editor
             writer.Write(scriptsToWrite.Count);
             foreach (Script script in scriptsToWrite)
             {
-                WriteCompiledScript(ostream, script);
+                if (!WriteCompiledScript(ostream, script, errors))
+                {
+                    return false;
+                }
             }
             ViewsWriter viewsWriter = new ViewsWriter(writer, game);
-            viewsWriter.WriteViews(FolderHelper.GetRootViewFolder(game), game);
+            if (!viewsWriter.WriteViews(FolderHelper.GetRootViewFolder(game), game, errors))
+            {
+                return false;
+            }
             foreach (Character character in game.Characters)
             {
                 int flags = 0;
@@ -1468,7 +1487,8 @@ namespace AGS.Editor
             }
             if (game.Dialogs.Count > NativeConstants.MAX_DIALOG)
             {
-                throw new CompileError("Too many dialogs");
+                errors.Add(new CompileError("Too many dialogs"));
+                return false;
             }
             foreach (Dialog curDialog in game.Dialogs)
             {
@@ -1501,7 +1521,10 @@ namespace AGS.Editor
             }
             GUIsWriter guisWriter = new GUIsWriter(writer, game);
             guisWriter.WriteAllGUIs();
-            WritePluginsToDisk(writer, game);
+            if (!WritePluginsToDisk(writer, game, errors))
+            {
+                return false;
+            }
             writer.Write(NativeConstants.CustomPropertyVersion.Current);
             writer.Write(game.PropertySchema.PropertyDefinitions.Count);
             foreach (CustomPropertySchemaItem schemaItem in game.PropertySchema.PropertyDefinitions)
@@ -1590,6 +1613,7 @@ namespace AGS.Editor
             }
             writer.Close();
             GC.Collect();
+            return true;
         }
     }
 }

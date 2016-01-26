@@ -110,7 +110,10 @@ namespace AGS.Editor
             }
             else
             {
-                DataFileWriter.SaveThisGameToFile(AGSEditor.COMPILED_DTA_FILE_NAME, Factory.AGSEditor.CurrentGame);
+                if (!DataFileWriter.SaveThisGameToFile(AGSEditor.COMPILED_DTA_FILE_NAME, Factory.AGSEditor.CurrentGame, errors))
+                {
+                    return false;
+                }
                 string errorMsg = DataFileWriter.MakeDataFile(ConstructFileListForDataFile(), Factory.AGSEditor.CurrentGame.Settings.SplitResources * 1000000,
                     Factory.AGSEditor.BaseGameFileName, true);
                 if (errorMsg != null)

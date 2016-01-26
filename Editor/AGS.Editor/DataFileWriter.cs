@@ -244,7 +244,7 @@ namespace AGS.Editor
             return success;
         }
 
-        public static string MakeDataFile(string[] fileNames, int splitSize, string baseFileName, bool makeFileNameAssumptionsForEXE)
+        public static string MakeDataFile(string[] fileNames, int splitSize, string baseFileName, bool makeFileNameAssumptions)
         {
             Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;
             ourlib.DataFilenames.Clear();
@@ -288,7 +288,7 @@ namespace AGS.Editor
             long mainHeaderOffset = 0;
             string outputFileName;
             string firstDataFileFullPath = null;
-            if (makeFileNameAssumptionsForEXE)
+            if (makeFileNameAssumptions)
             {
                 Directory.CreateDirectory("Compiled");
             }
@@ -296,7 +296,7 @@ namespace AGS.Editor
             // so that write_clib_header will write the correct amount of data
             for (int i = 0, cap = ourlib.DataFilenames.Capacity; i < cap; ++i)
             {
-                if (makeFileNameAssumptionsForEXE)
+                if (makeFileNameAssumptions)
                 {
                     ourlib.DataFilenames.Add(baseFileName + "." + 
                         (i == 0 ? "ags" : i.ToString("D3")));
@@ -316,14 +316,14 @@ namespace AGS.Editor
                     if (stream != null)
                     {
                         stream.Close();
-                        if (!makeFileNameAssumptionsForEXE) ourlib.Files[i].Filename = tomake;
+                        if (!makeFileNameAssumptions) ourlib.Files[i].Filename = tomake;
                     }
                 }
             }
             // now, create the actual files
             for (int i = 0; i < ourlib.DataFilenames.Count; ++i)
             {
-                if (makeFileNameAssumptionsForEXE)
+                if (makeFileNameAssumptions)
                 {
                     outputFileName = Path.Combine("Compiled", ourlib.DataFilenames[i]);
                 }
@@ -333,7 +333,7 @@ namespace AGS.Editor
                 }
                 if (i == 0) firstDataFileFullPath = outputFileName;
                 using (Stream wout = TryFileOpen(outputFileName,
-                    (makeFileNameAssumptionsForEXE ? FileMode.Create : FileMode.Append), FileAccess.Write))
+                    (makeFileNameAssumptions ? FileMode.Create : FileMode.Append), FileAccess.Write))
                 {
                     if (wout == null) return "ERROR: unable to open file for writing";
                     BinaryWriter writer = new BinaryWriter(wout);

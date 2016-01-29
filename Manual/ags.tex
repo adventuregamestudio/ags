@@ -18570,7 +18570,11 @@ command.
 readonly int String.AsInt;
 \end{verbatim}
 Converts the string into an integer, and returns that value. Returns
-zero if the string does not contain a number.
+zero if the string does not present a number.
+
+\bf{NOTE:} This operation takes just the leading sequence of the characters from the string,
+if it contains digits and other symbols which could be a part of number. If the string has the
+valid number only in the middle, it will not work.
 
 \fcol{red}{Example:}
 \begin{verbatim}

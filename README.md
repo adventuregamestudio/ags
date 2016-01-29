@@ -20,6 +20,10 @@ To get started building the AGS engine, see the platform specific instructions o
 -    [PSP](PSP/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=43998.0))
 -    [Mac OS X](OSX/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=47264.0))
 
+When running the engine on you may configure it by modifying acsetup.cfg or using several command line arguments.
+On Windows you may also invoke a setup dialog by running executable with "--setup" argument, or executing winsetup.exe, if it is present.
+For the list of available config options and command line arguments, please refer to [OPTIONS.md](OPTIONS.md).
+
 
 ##Issue tracker
 

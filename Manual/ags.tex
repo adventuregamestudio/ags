@@ -1339,27 +1339,33 @@ With AGS you can link a line of dialog to a speech file, to enable "talkie"-
 style games. Suppose you have a dialog script with the following:
 \begin{verbatim}
 ego: "Hi! How are you?"
-david: "I'm fine."
+michael: "I'm fine."
 \end{verbatim}
 Normally this would display the words in the speech text above the characters
 heads. However, you can add the special character '&' to symbolise that a
-voice file should also be played. The file name is made up of the \bf{first four
-letters} of the character's \bf{script name}, then an ID number. For example,
+voice file should also be played.
+
+The file name has format XXXXY.EXT, where XXXX is made of up to \bf{first four
+letters} of the character's script name (except the leading 'c'), the Y is the speech
+file number (with no leading or trailing zeroes or padding of any kind), and EXT is the file extension.
+
+For example, if you have dialog script:
 \begin{verbatim}
 ego: &10 "Hi! How are you?"
-david: &7 "I'm fine."
+michael: &7 "I'm fine."
 \end{verbatim}
-This would play EGO10.WAV with the first line, and DAVI7.WAV with the second.
+
+or common script using Say script function:
+\begin{verbatim}
+cEgo.Say("&10 Hi! How are you?");
+cMichael.Say("&7 I'm fine.");
+\end{verbatim}
+
+Both of those examples would play EGO10.WAV with the first line, and MICH7.WAV with the second.
 When a line of text has a voice linked to it, the text on the screen will not
 be removed until the voice file has finished playing. If the player interrupts
 it by clicking the mouse or pressing a key, the text and voice will be stopped.
 Voice files must be placed in the "Speech" sub-directory of the game folder.
-
-You can also use speech with Say script function.
-\begin{verbatim}
-cEgo.Say("&10 Hi! How are you?");
-cDavid.Say("&7 I'm fine.");
-\end{verbatim}
 
 \bf{NOTE:} WAV, OGG and MP3 format files can be used for speech.
 
@@ -1371,7 +1377,7 @@ from the rest of your game data so that you can offer it as an optional extra
 download to the player. The game will function correctly if the file is not
 present.
 
-\it{SeeAlso:} \helprefn{Speech.VoiceMode}{Speech.VoiceMode} script property.
+\it{SeeAlso:} \helprefn{Speech.VoiceMode}{Speech.VoiceMode}
 
 
 \subsection{The AudioCache folder}\label{AudioCache}\index{AudioCache folder}%

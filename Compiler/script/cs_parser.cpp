@@ -3997,6 +3997,7 @@ startvarbit:
 
                             // copy the default values from the function prototype
                             sym.funcParamDefaultValues[cursym][ii] = oldDefinition.funcParamDefaultValues[ii];
+                            sym.funcParamHasDefaultValues[cursym][ii] = oldDefinition.funcParamHasDefaultValues[ii];
                         }
                     }
                 }

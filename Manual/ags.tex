@@ -2423,179 +2423,6 @@ The Scripting Tutorial is online here:
 The Scripting Tutorial Part 2 is online here:
 \urlref{http://www.bigbluecup.com/actutor2.htm}{http://www.bigbluecup.com/actutor2.htm}
 
-\section{Upgrading to AGS 2.7}\label{UpgradingTo27}%
-
-The script language in AGS 2.7 has changed quite significantly from previous versions.
-Many of the script commands have become \it{object-based}, which has several advantages
-over the previous approach. This page will attempt to introduce you to the new method and
-explain its benefits.
-
-Firstly, so that you can get an idea of the changes, here's an example of some old-style
-script commands and their new equivalents:
-\begin{verbatim}
-AnimateObjectEx(0,2,0,0,0,1);
-ListBoxAdd(3, 5, "New item");
-\end{verbatim}
-becomes:
-\begin{verbatim}
-oWaterfall.Animate(2, 0, eOnce, eForwards, eBlock);
-lstTest.AddItem("New item");
-\end{verbatim}
-
-Just from looking at that example the advantages should be obvious; the script is more
-intuitive for people to learn, much easier to read (no guessing what all the numbers mean
-in the AnimateObjectEx call), and therefore you're less likely to make mistakes when using it.
-GUI controls having names brings it much more into line with Visual Basic-style GUI
-development, so you don't have to remember what control number all your buttons are.
-
-The script editor's autocomplete functionality has been significantly enhanced to aid
-in all this as well. You'll see as you start to experiment that autocomplete pops up more
-often and lists only the relevant commands thanks to object-based scripting.
-
-\bf{So does this mean I have to throw out all my scripts?}
-
-No, certainly not! The new version is fully backwards compatible, so all your existing
-scripts will continue to work just fine. However, for any new scripts that you write,
-it's strongly recommended that you use the new object-based commands.
-
-\bf{Ok, so uh... what's changed exactly?}
-
-The script language syntax hasn't changed at all (that's the way you use semicolons, brackets,
-and so on). It's still just like it was before, but with some new additions. Most
-significantly, most commands are now called \bf{on something}. For example, the old
-command:
-
-\verb$StopMoving(EGO);$
-
-Just from looking at that, it's not at all obvious what StopMoving does. Does it stop
-a character moving, an object moving, or does it stop the screen moving? It's not intuitive.
-So now, rather than supplying the character as a parameter to the function, you actually
-call the function \bf{on} the character. So:
-
-\verb$character[EGO].StopMoving();$
-
-Now it's perfectly clear that it's the character EGO that we want to stop moving.
-
-Suppose you're wondering what commands you can call on a character. Previously it was hard
-to tell, but now if you type  \verb$character[EGO].$  in the script editor, auto-complete will
-pop up and list all the valid functions and properties that you can access on the character.
-
-\bf{So I have to keep typing character[EGO] all the time? What a pain!}
-
-Not so fast! Most of the new object-based commands can be called in two ways -- either
-through the main array as we just saw, but also through what's called the character's
-\bf{Script O-Name}. This is a shorthand that allows you to directly access things, and
-for characters it is the script name in sentence case, with a "c" added to the beginning.
-So, in this example it would be:
-
-\verb$cEgo.StopMoving();$
-
-This line has an identical effect to the one with character[EGO] that we used above.
-
-Furthermore, the \it{player} variable is now kept up to date with the current player
-character, so it is actually useful. In a multi-character game, what you previously had
-to write like this:
-
-\verb$StopMoving(GetPlayerCharacter());$
-
-can now be done like this:
-
-\verb$player.StopMoving();$
-
-\bf{Hmm, I see... so what exactly has been object-ised?}
-
-Currently, the following object-based things are available:
-
-\begin{tabular}{|l|l|}
-\row{ \bf{ Global array } & \bf{ O-Name example }
-}\row{{ character[] } & { cEgo }
-}\row{{ object[] } & { oDoor }
-}\row{{ hotspot[] } & { hTree }
-}\row{{ gui[] } & { gInventory }
-}\row{{ inventory[] } & { iPinkPoster }
-}\row{{ region[] } & { (none) }
-}\end{tabular}
-
-GUI controls are handled slightly differently. They all have a script name,
-and are directly accessed via that. For example, if you set the script name of
-a list box to "lstSaves", then you would use "lstSaves." to access it. There is no
-global array of GUI controls.
-
-\bf{How do I find out the new equivalents of old functions?}
-
-The help file's index has been set up to automatically redirect you to the new commands.
-Just open the help file, go to the index and type in the name of an old command, and
-it will bring you to the new object-based equivalent (if there is one).
-
-\bf{Which commands haven't been changed?}
-
-Commands which don't operate on anything in particular (and therefore wouldn't really
-benefit from being object-based) have been left alone. For example, SaveGameSlot, QuitGame
-and so on have all remained identical to how they were in previous versions.
-
-\bf{What's the deal with these "eBlock" type things?}
-
-AGS now supports \bf{enumerated types}. Basically, in situations where you have to choose
-one from a list of possible options, an enumerated type (or \it{enum}) now steps in. In
-the past, you had commands with descriptions like this:
-
-"Pass 1 if you want the function to block, or 0 if you don't".
-
-This lead to lots of 1's and 0's in function calls, which are hard to read. Now, instead
-of this each number is represented by an easy-to-remember word (such as \it{eBlock} and
-\it{eNoBlock}). Even better, when you call a function that uses an enum parameter,
-auto-complete automatically pops up the list of options for you to choose from.
-
-See the \helprefn{enum keyword}{enum} description for information on how to create your own.
-
-\bf{So do I have to pass all these things like eBlock every time I call the function?}
-
-Nope! Many functions now support \bf{optional parameters}, where the most common options
-are selected automatically. If you look at the help for a function such as the
-\helprefn{Animate character command}{Character.Animate}, you'll see some of the parameters
-are defined as "optional". This means that you don't have to supply them; if you don't,
-the default option that will be chosen is described in the help for that command.
-
-\bf{So what else is new?}
-
-Well, 2.7 introduces the \it{float} data type, so AGS now finally supports floating-point
-arithmetic in your scripts. Also, for more advanced scripters, you can create your own
-member functions (including protected and static ones) to write cleaner script than just
-having a bunch of global functions.
-
-Also, the script editor is now much better at checking your script for errors. You may
-well find that a script which compiled fine before no longer works on 2.7. Hopefully
-the error message should direct you towards fixing any problems.
-
-\bf{Is there anything else I should watch out for?}
-
-Because of the new additions, the script language has more reserved words than before. For
-example, words like "gui", "object" and "hotspot" are now reserved (since they are used
-to access the global arrays). If your script uses any variables with these names, it will
-no longer work. You'll need to change the variable name in order to compile.
-
-Also, the script language now supports \it{pointers}. Because they are a fairly
-complex topic, there's a \helprefn{separate page}{Pointers} devoted to explaining what
-they are.
-
-\bf{Blimey, that's a lot to take in. Where do I start?}
-
-I'd recommend attempting to write your next section of script in the new way. Each time
-you're about to use an old-style command, simply look it up in the manual to find out
-what it's replacement is.
-
-Once you get used to the new system, I'm sure you'll agree that it is a significant
-improvement over the old scripting system and you'll start to enjoy the benefits of
-faster and more intuitive coding.
-
-As always, if there's something you really can't get your head round, post on the
-AGS Forums and we'll help you out as best we can!
-
-Have fun, ILBRK
-CJ
-
-\bf{Next:} \helprefn{Pointers in AGS}{Pointers}
-
 
 \section{Pointers in AGS}\label{Pointers}%
 
@@ -2751,70 +2578,6 @@ Because there is no \it{new} keyword, you cannot create object instances; rather
 are returned by static member functions in AGS, such as \helprefn{File.Open}{File.Open}
 and \helprefn{Hotspot.GetAtScreenXY}{Hotspot.GetAtScreenXY}. See the examples for the
 functions to get an idea of how to use them.
-
-
-\section{Upgrading to AGS 2.71}\label{UpgradingTo271}%
-
-AGS 2.71 adds new simple string support to the scripting language. Strings have long
-been a pain to use in AGS, but this is finally addressed by v2.71.
-
-There's a new String type (that's a capital 'S'). These new strings behave like Java/\verb$C#$
-strings in that you can easily assign to and manipulate them.
-
-For example, in 2.7 and previous versions, you had to do this: ILBRK
-\begin{verbatim}
-string text;
-StrCopy(text, "This is my text");
-\end{verbatim}
-in 2.71, you can now do:
-\begin{verbatim}
-String text = "This is my text";
-\end{verbatim}
-Furthermore, the == and != operators can be used to compare strings for equality (equivalent
-to using StrComp but much more intuitive). An additional benefit is that there is no longer
-a need for GetText() and SetText() methods -- instead, we can now just have Text properties.
-
-All the old-style functions that took a "string buffer" parameter have now been replaced with
-new ones that return a string instead. Where properties have been created, you should be able
-to use them like any other property, so:
-\begin{verbatim}
-lblLabel.Text = "Hello";
-String buttonValue = btnOK.Text;
-\end{verbatim}
-and so on.
-
-\bf{NOTE:} Some of the new functions are provided on the Game object -- for example, the new
-GetSaveSlotDescription function needs to be called like this:ILBRK
-\verb$String description = Game.GetSaveSlotDescription(10);$ ILBRK
-This is part of a move towards all built-in functions being object-based, but watch out for it
-as it could well cause some confusion. The manual will show you which functions require this.
-
-Rather than using old functions like StrCat and StrContains, you now call the functions
-directly on the strings:
-\begin{verbatim}
-String text = "Hello";
-text = text.Append("World");
-\end{verbatim}
-will mean that \it{text} now contains "HelloWorld". ILBRK
-Note the \bf{text =} in that expression. Functions like Append will return a modified version
-of the string, they won't actually change the original. Therefore, to update the \it{text}
-variable you need to assign the result to it.
-
-\bf{Backwards compatibility}
-
-In order to maintain backwards compatibility, a new "const" keyword has been added. This
-applies only to old-style strings, and allows them to interoperate with the new ones. A
-new-style String can be passed to a function that expects a "const string" (which means
-that it will not be allowed to change the string's contents), but cannot be passed to a
-function that expects a "string" (since it could overwrite the string data and mess things up).
-
-So, you may find that any custom functions you have that take a string parameter stop 
-working. If this is the case, change the parameter from "string" to "const string" and
-that should fix it.
-
-Apologies for the inconvenience, but this is the only way to allow new Strings to
-interoperate safely with old-style strings.
-
 
 
 \section{Calling global functions from local scripts}%
@@ -20103,6 +19866,241 @@ A. Because this file is your entire game, including the room files, when you
    room contained in the exe is out of date). To get it back, simply build the
    game again by using the "Build EXE" command on the Build menu.
 
+
+
+\chapter{Upgrading to AGS 2.7}\label{UpgradingTo27}%
+
+The script language in AGS 2.7 has changed quite significantly from previous versions.
+Many of the script commands have become \it{object-based}, which has several advantages
+over the previous approach. This page will attempt to introduce you to the new method and
+explain its benefits.
+
+Firstly, so that you can get an idea of the changes, here's an example of some old-style
+script commands and their new equivalents:
+\begin{verbatim}
+AnimateObjectEx(0,2,0,0,0,1);
+ListBoxAdd(3, 5, "New item");
+\end{verbatim}
+becomes:
+\begin{verbatim}
+oWaterfall.Animate(2, 0, eOnce, eForwards, eBlock);
+lstTest.AddItem("New item");
+\end{verbatim}
+
+Just from looking at that example the advantages should be obvious; the script is more
+intuitive for people to learn, much easier to read (no guessing what all the numbers mean
+in the AnimateObjectEx call), and therefore you're less likely to make mistakes when using it.
+GUI controls having names brings it much more into line with Visual Basic-style GUI
+development, so you don't have to remember what control number all your buttons are.
+
+The script editor's autocomplete functionality has been significantly enhanced to aid
+in all this as well. You'll see as you start to experiment that autocomplete pops up more
+often and lists only the relevant commands thanks to object-based scripting.
+
+\bf{So does this mean I have to throw out all my scripts?}
+
+No, certainly not! The new version is fully backwards compatible, so all your existing
+scripts will continue to work just fine. However, for any new scripts that you write,
+it's strongly recommended that you use the new object-based commands.
+
+\bf{Ok, so uh... what's changed exactly?}
+
+The script language syntax hasn't changed at all (that's the way you use semicolons, brackets,
+and so on). It's still just like it was before, but with some new additions. Most
+significantly, most commands are now called \bf{on something}. For example, the old
+command:
+
+\verb$StopMoving(EGO);$
+
+Just from looking at that, it's not at all obvious what StopMoving does. Does it stop
+a character moving, an object moving, or does it stop the screen moving? It's not intuitive.
+So now, rather than supplying the character as a parameter to the function, you actually
+call the function \bf{on} the character. So:
+
+\verb$character[EGO].StopMoving();$
+
+Now it's perfectly clear that it's the character EGO that we want to stop moving.
+
+Suppose you're wondering what commands you can call on a character. Previously it was hard
+to tell, but now if you type  \verb$character[EGO].$  in the script editor, auto-complete will
+pop up and list all the valid functions and properties that you can access on the character.
+
+\bf{So I have to keep typing character[EGO] all the time? What a pain!}
+
+Not so fast! Most of the new object-based commands can be called in two ways -- either
+through the main array as we just saw, but also through what's called the character's
+\bf{Script O-Name}. This is a shorthand that allows you to directly access things, and
+for characters it is the script name in sentence case, with a "c" added to the beginning.
+So, in this example it would be:
+
+\verb$cEgo.StopMoving();$
+
+This line has an identical effect to the one with character[EGO] that we used above.
+
+Furthermore, the \it{player} variable is now kept up to date with the current player
+character, so it is actually useful. In a multi-character game, what you previously had
+to write like this:
+
+\verb$StopMoving(GetPlayerCharacter());$
+
+can now be done like this:
+
+\verb$player.StopMoving();$
+
+\bf{Hmm, I see... so what exactly has been object-ised?}
+
+Currently, the following object-based things are available:
+
+\begin{tabular}{|l|l|}
+\row{ \bf{ Global array } & \bf{ O-Name example }
+}\row{{ character[] } & { cEgo }
+}\row{{ object[] } & { oDoor }
+}\row{{ hotspot[] } & { hTree }
+}\row{{ gui[] } & { gInventory }
+}\row{{ inventory[] } & { iPinkPoster }
+}\row{{ region[] } & { (none) }
+}\end{tabular}
+
+GUI controls are handled slightly differently. They all have a script name,
+and are directly accessed via that. For example, if you set the script name of
+a list box to "lstSaves", then you would use "lstSaves." to access it. There is no
+global array of GUI controls.
+
+\bf{How do I find out the new equivalents of old functions?}
+
+The help file's index has been set up to automatically redirect you to the new commands.
+Just open the help file, go to the index and type in the name of an old command, and
+it will bring you to the new object-based equivalent (if there is one).
+
+\bf{Which commands haven't been changed?}
+
+Commands which don't operate on anything in particular (and therefore wouldn't really
+benefit from being object-based) have been left alone. For example, SaveGameSlot, QuitGame
+and so on have all remained identical to how they were in previous versions.
+
+\bf{What's the deal with these "eBlock" type things?}
+
+AGS now supports \bf{enumerated types}. Basically, in situations where you have to choose
+one from a list of possible options, an enumerated type (or \it{enum}) now steps in. In
+the past, you had commands with descriptions like this:
+
+"Pass 1 if you want the function to block, or 0 if you don't".
+
+This lead to lots of 1's and 0's in function calls, which are hard to read. Now, instead
+of this each number is represented by an easy-to-remember word (such as \it{eBlock} and
+\it{eNoBlock}). Even better, when you call a function that uses an enum parameter,
+auto-complete automatically pops up the list of options for you to choose from.
+
+See the \helprefn{enum keyword}{enum} description for information on how to create your own.
+
+\bf{So do I have to pass all these things like eBlock every time I call the function?}
+
+Nope! Many functions now support \bf{optional parameters}, where the most common options
+are selected automatically. If you look at the help for a function such as the
+\helprefn{Animate character command}{Character.Animate}, you'll see some of the parameters
+are defined as "optional". This means that you don't have to supply them; if you don't,
+the default option that will be chosen is described in the help for that command.
+
+\bf{So what else is new?}
+
+Well, 2.7 introduces the \it{float} data type, so AGS now finally supports floating-point
+arithmetic in your scripts. Also, for more advanced scripters, you can create your own
+member functions (including protected and static ones) to write cleaner script than just
+having a bunch of global functions.
+
+Also, the script editor is now much better at checking your script for errors. You may
+well find that a script which compiled fine before no longer works on 2.7. Hopefully
+the error message should direct you towards fixing any problems.
+
+\bf{Is there anything else I should watch out for?}
+
+Because of the new additions, the script language has more reserved words than before. For
+example, words like "gui", "object" and "hotspot" are now reserved (since they are used
+to access the global arrays). If your script uses any variables with these names, it will
+no longer work. You'll need to change the variable name in order to compile.
+
+Also, the script language now supports \it{pointers}. Because they are a fairly
+complex topic, there's a \helprefn{separate page}{Pointers} devoted to explaining what
+they are.
+
+\bf{Blimey, that's a lot to take in. Where do I start?}
+
+I'd recommend attempting to write your next section of script in the new way. Each time
+you're about to use an old-style command, simply look it up in the manual to find out
+what it's replacement is.
+
+Once you get used to the new system, I'm sure you'll agree that it is a significant
+improvement over the old scripting system and you'll start to enjoy the benefits of
+faster and more intuitive coding.
+
+As always, if there's something you really can't get your head round, post on the
+AGS Forums and we'll help you out as best we can!
+
+Have fun, ILBRK
+CJ
+
+
+\chapter{Upgrading to AGS 2.71}\label{UpgradingTo271}%
+
+AGS 2.71 adds new simple string support to the scripting language. Strings have long
+been a pain to use in AGS, but this is finally addressed by v2.71.
+
+There's a new String type (that's a capital 'S'). These new strings behave like Java/\verb$C#$
+strings in that you can easily assign to and manipulate them.
+
+For example, in 2.7 and previous versions, you had to do this: ILBRK
+\begin{verbatim}
+string text;
+StrCopy(text, "This is my text");
+\end{verbatim}
+in 2.71, you can now do:
+\begin{verbatim}
+String text = "This is my text";
+\end{verbatim}
+Furthermore, the == and != operators can be used to compare strings for equality (equivalent
+to using StrComp but much more intuitive). An additional benefit is that there is no longer
+a need for GetText() and SetText() methods -- instead, we can now just have Text properties.
+
+All the old-style functions that took a "string buffer" parameter have now been replaced with
+new ones that return a string instead. Where properties have been created, you should be able
+to use them like any other property, so:
+\begin{verbatim}
+lblLabel.Text = "Hello";
+String buttonValue = btnOK.Text;
+\end{verbatim}
+and so on.
+
+\bf{NOTE:} Some of the new functions are provided on the Game object -- for example, the new
+GetSaveSlotDescription function needs to be called like this:ILBRK
+\verb$String description = Game.GetSaveSlotDescription(10);$ ILBRK
+This is part of a move towards all built-in functions being object-based, but watch out for it
+as it could well cause some confusion. The manual will show you which functions require this.
+
+Rather than using old functions like StrCat and StrContains, you now call the functions
+directly on the strings:
+\begin{verbatim}
+String text = "Hello";
+text = text.Append("World");
+\end{verbatim}
+will mean that \it{text} now contains "HelloWorld". ILBRK
+Note the \bf{text =} in that expression. Functions like Append will return a modified version
+of the string, they won't actually change the original. Therefore, to update the \it{text}
+variable you need to assign the result to it.
+
+\bf{Backwards compatibility}
+
+In order to maintain backwards compatibility, a new "const" keyword has been added. This
+applies only to old-style strings, and allows them to interoperate with the new ones. A
+new-style String can be passed to a function that expects a "const string" (which means
+that it will not be allowed to change the string's contents), but cannot be passed to a
+function that expects a "string" (since it could overwrite the string data and mess things up).
+
+So, you may find that any custom functions you have that take a string parameter stop 
+working. If this is the case, change the parameter from "string" to "const string" and
+that should fix it.
+
+Apologies for the inconvenience, but this is the only way to allow new Strings to
+interoperate safely with old-style strings.
 
 
 \chapter{Upgrading to AGS 3.0}\label{UpgradeTo30}%

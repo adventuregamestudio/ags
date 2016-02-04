@@ -21,7 +21,7 @@ Editor Bug Fixes:
 
 Engine Features:
 - Removed unconfigurable mouse cursor's acceleration.
-- Support for mouse cursor speed control: may be defined in configuration and changed in script).
+- Support for mouse cursor speed control: may be defined in configuration and changed in script.
 - A config option for keeping consistent cursor speed relative to user's desktop resolution.
 - Support for locking mouse inside window: automatic lock is enabled in configuration, and user
   may use Ctrl+Alt combination to lock/release mouse at any time.

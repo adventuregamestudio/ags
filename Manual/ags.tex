@@ -2736,6 +2736,7 @@ be called at the appropriate times just before the global script's function is:
 \item function on_mouse_click(MouseButton button) 
 \item function repeatedly_execute()
 \item function repeatedly_execute_always()
+\item function late_repeatedly_execute_always()
 \end{itemize}
 All other special functions, such as \verb$dialog_request$, will only be called in
 the Global Script, even if they exist in another script. If you need other scripts to
@@ -2816,7 +2817,7 @@ However, this is not the case. It is still the global thread that is calling Pro
 so the room script will actually be run on the global thread once it is free.
 
 Finally, we come onto the No-Block thread. This thread is only used to run the
-\it{repeatedly_execute_always} function. Because repeatedly_execute_always is not
+\it{repeatedly_execute_always} and \it{late_repeatedly_execute_always} functions. Because these two are not
 allowed to run any blocking functions, this ensures that the thread never gets blocked
 and so it will always run, even when the other threads are busy:
 
@@ -3035,8 +3036,13 @@ eEventRestoreGame
   See \helprefn{this help page}{RepExec} for more information.
 \item [repeatedly_execute_always()]
   Called every game cycle, even when a blocking routine (eg. speech/cutscene) is in
-  progress. You \bf{cannot} call any blocking functions from this event handler. 
+  progress. You \bf{cannot} call any blocking functions from this event handler.
+  \bf{repeatedly_execute_always} is called \bf{BEFORE} the game objects (characters, rooms, etc) get updated.
   See \helprefn{this help page}{RepExec} for more information.
+\item [late_repeatedly_execute_always()]
+  Called every game cycle, even when a blocking routine (eg. speech/cutscene) is in
+  progress. You \bf{cannot} call any blocking functions from this event handler. 
+  \bf{late_repeatedly_execute_always} is called \bf{AFTER} the game objects (characters, rooms, etc) got updated, but before game is redrawn on screen.
 \item [unhandled_event (int what, int type)]
   Called when an event occurs, but no handler is set up in the Events list.
   This could be used to display a default "I can't do that" type of message.
@@ -3086,7 +3092,7 @@ the keypress/mouseclick first, and then decide whether to pass it on to the glob
 script or not. See the \helprefn{ClaimEvent}{ClaimEvent} function for more.
 
 
-\section{repeatedly_execute (_always)}\label{RepExec}\index{repeatedly_execute}\index{repeatedly_execute_always}%
+\section{repeatedly_execute (_always)}\label{RepExec}\index{repeatedly_execute}\index{repeatedly_execute_always}\index{late_repeatedly_execute_always}%
 
 One of the most common things you'll need to do when scripting is to check if something
 has happened in the game -- and if so, then make the game do something in response.
@@ -3095,7 +3101,7 @@ For example, suppose that you want a bird to fly backwards and forwards across t
 in the background. You need a way of telling the bird to move in one direction, recognise
 when it has finished, and tell it to move back again.
 
-This is where \it{repeatedly_execute} and \it{repeatedly_execute_always} come in. 
+This is where \it{repeatedly_execute}, \it{repeatedly_execute_always} and \it{late_repeatedly_execute_always} come in. 
 
 \bf{What's the difference between them?}
 
@@ -3104,11 +3110,15 @@ second), but only when the game is not blocked. That means that it will run as l
 are no current blocking animations or moves going on (ie. a Walk or Animate command where
 \it{eBlock} has been specified as a parameter).
 
-On the other hand, \it{repeatedly_execute_always} is always run on every game loop, no matter
+On the other hand, \it{repeatedly_execute_always} and \it{late_repeatedly_execute_always} are always run on every game loop, no matter
 whether the game is blocked or not. This comes at a price though, which is that you cannot
 run any blocking code within it. So if you try to script a \it{player.Walk()} command that
 passes the \it{eBlock} parameter -- or even just try to use a \verb$Wait(1);$ command, these
-will fail within \it{repeatedly_execute_always}.
+will fail within \it{(late_)repeatedly_execute_always}.
+
+The difference between \it{repeatedly_execute_always} and \it{late_repeatedly_execute_always} is that first
+is run \bf{before} game updates itself, changing animation frames, moving objects into new position etc, while
+the second, "late" version, is run \bf{after} the game was updated, but before it redrew its new state on screen.
 
 \bf{What would I use each one for?}
 
@@ -3125,6 +3135,14 @@ repeatedly_execute would be the ideal place for it.
 On the other hand, in the case of our bird flying across the screen, because we don't want to
 block the game while the bird flies, and we just want it to happen in the background, 
 \it{repeatedly_execute_always} would be the place to put it.
+
+The \it{late_repeatedly_execute_always} is used in similar way to its "earlier" counterpart, but it may be
+essential if you need to precisely keep track of a game object movement. When \it{late_repeatedly_execute_always} is
+called all the objects are already updated to their new states, therefore you will have accurate information about
+them. On contrary, the \it{repeatedly_execute_always} will always be "one step behind" of the game state.
+
+In a nutshell, if you need to do something right before game state changes, use \it{repeatedly_execute_always}, if you
+need to do something right after game state has changed, use \it{late_repeatedly_execute_always}.
 
 \bf{How do I create them?}
 
@@ -6571,7 +6589,7 @@ that is, it will not return true for any characters talking with the SayBackgrou
 
 Since this property will only be true while the character is speaking, and speaking is
 a blocking command, this property will probably only be useful to access from
-the repeatedly_execute_always handler.
+the (late_)repeatedly_execute_always handler.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -6602,7 +6620,7 @@ if you attempt to call it when \helprefn{Character.Speaking}{Character.Speaking}
 \it{false} then it will raise an error.
 
 Since speaking is a blocking command, this property will probably only be useful 
-access from the repeatedly_execute_always handler.
+access from the (late_)repeatedly_execute_always handler.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -6704,7 +6722,7 @@ This property is read-only. It will \bf{only} return true for the active thinkin
 
 Since this property will only be true while the character is thinking, and thinking is
 a blocking command, this property will probably only be useful to access from
-the repeatedly_execute_always handler.
+the (late_)repeatedly_execute_always handler.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -6741,7 +6759,7 @@ if you attempt to call it when \helprefn{Character.Thinking}{Character.Thinking}
 \it{false} then it will raise an error.
 
 Since thinking is a blocking command, this property will probably only be useful 
-access from the repeatedly_execute_always handler.
+access from the (late_)repeatedly_execute_always handler.
 
 \fcol{red}{Example:}
 \begin{verbatim}

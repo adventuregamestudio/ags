@@ -8,7 +8,7 @@
 \parskip=10pt%
 \parindent=0pt%
 \backgroundcolour{255;255;225}\textcolour{0;0;0}% Has an effect in HTML only
-\title{Adventure Game Studio 3.3.4}%
+\title{Adventure Game Studio 3.3.5}%
 \author{by Chris Jones et al.}%
 \makeindex%
 \begin{document}%
@@ -14593,6 +14593,27 @@ will change the Look cursor's view to ROLLEYES.
 \helprefn{Mouse.ChangeModeHotspot}{Mouse.ChangeModeHotspot}
 
 
+\subsection{ControlEnabled property}\label{Mouse.ControlEnabled}\index{Mouse.ControlEnabled}\index{ControlEnabled}%
+
+\begin{verbatim}
+readonly static bool Mouse.ControlEnabled;
+\end{verbatim}
+Tells if the mouse cursor movement is currently being controlled by AGS engine; otherwise it is controlled by operation system.
+This is usually true only when game is run in fullscreen mode.
+
+This property may be useful to know if custom mouse speed setting is applied or not.
+
+\fcol{red}{Example:}
+\begin{verbatim}
+sldMouseSpeed.Visible = Mouse.ControlEnabled;
+\end{verbatim}
+makes mouse speed slider visible only if the mouse is controlled by the game.
+
+\it{Compatibility:} Supported by \bf{AGS 3.3.5} and later versions.
+
+\it{See Also:} \helprefn{Mouse.Speed}{Mouse.Speed}
+
+
 \subsection{DisableMode}\label{Mouse.DisableMode}\index{Mouse.DisableMode}\index{DisableCursorMode}%
 
 \it{(Formerly known as DisableCursorMode, which is now obsolete)}
@@ -14778,6 +14799,33 @@ mouse.SetPosition(160, 100);
 will place the mouse cursor in the centre of the screen.
 
 \it{See Also:} \helprefn{Mouse.SetBounds}{Mouse.SetBounds}
+
+
+\subsection{Speed property (mouse)}\label{Mouse.Speed}\index{Mouse.Speed}\index{Speed}%
+
+\begin{verbatim}
+static float Mouse.Speed;
+\end{verbatim}
+Gets/sets in-game mouse cursor speed. 1.0 is default, values in the range 0-1 make cursor movement slower, values higher than 1 make cursor movement faster.
+
+Mouse speed changed this way will be saved to the configuration file when player exits the game. Next time game starts it will restore the last value you applied, unless player has modified it in the setup program.
+
+The custom mouse speed is only applied if mouse cursor movement is currently being controlled by the game, which is usually true only when game is run in fullscreen mode.
+Setting this property has no effect otherwise.
+You can use \helprefn{Mouse.ControlEnabled}{Mouse.ControlEnabled} to know if speed will be applied.
+
+\bf{NOTE:} It is strongly advised to \bf{NEVER} use this parameter to achieve gameplay effect (such as character's loss of coordination, and so forth).
+
+\fcol{red}{Example:}
+\begin{verbatim}
+Mouse.Speed = IntToFloat(sldMouseSpeed.Value) / 10.0;
+\end{verbatim}
+converts slider control's position into mouse speed.
+
+\it{Compatibility:} Supported by \bf{AGS 3.3.5} and later versions.
+
+\it{See Also:} \helprefn{Mouse.ControlEnabled}{Mouse.ControlEnabled},
+\helprefn{Mouse.SetPosition}{Mouse.SetPosition}
 
 
 \subsection{Update}\label{Mouse.Update}\index{Mouse.Update}\index{RefreshMouse}%
@@ -18564,6 +18612,39 @@ if (System.HardwareAcceleration) {
 will display a message if the game is being run with hardware acceleration
 
 See Also: \helprefn{AGS Graphics Drivers}{GraphicsDriver}
+
+
+\subsection{HasInputFocus property}\label{System.HasInputFocus}\index{System.HasInputFocus}\index{HasInputFocus}%
+
+\begin{verbatim}
+readonly static bool System.HasInputFocus;
+\end{verbatim}
+Tells whether the game window currently has input focus, meaning it is active and player can control the game.
+
+If your game is made to continue running in the background, when the user switches out from game, you may use this property in scripts to know if that actually happened.
+
+\fcol{red}{Examples:}
+\begin{verbatim}
+if (!System.HasInputFocus)
+  return;
+\end{verbatim}
+skips the rest of the function if player has switched out from the game.
+
+\begin{verbatim}
+function repeatedly_execute()
+{
+  if (!System.HasInputFocus && IsGamePaused() == 0) {
+    PauseGame();
+  } else if (System.HasInputFocus && IsGamePaused() == 1) {
+    UnPauseGame();
+  }
+}
+\end{verbatim}
+pauses game when player switches out, and unpauses it when player switches back to game.
+
+\it{Compatibility:} Supported by \bf{AGS 3.3.5} and later versions.
+
+\it{See Also:} \helprefn{SetMultitaskingMode}{SetMultitaskingMode}
 
 
 \subsection{NumLock property}\label{System.NumLock}\index{System.NumLock}%

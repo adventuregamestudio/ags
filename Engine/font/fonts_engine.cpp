@@ -63,6 +63,11 @@ int flength_shared(Stream *ffi)
   return Common::AssetManager::GetLastAssetSize();
 }
 
+int get_font_outline(int font_number)
+{
+    return game.fontoutline[font_number];
+}
+
 void set_font_outline(int font_number, int outline_type)
 {
     game.fontoutline[font_number] = FONT_OUTLINE_AUTO;

@@ -189,27 +189,92 @@ See Also: \helprefn{System.HardwareAcceleration property}{System.HardwareAcceler
 
 The engine Setup program allows the player to customize certain game settings.
 
-Firstly, they can change the game resolution. If they do so, all your game
-graphics will automatically be stretched or shrunk to fit, and the option is a
-handy way for the player to start the game if their system won't run at the default
-resolution for some reason.
+\bf{NOTE:} currently setup program is featured only for Windows.
 
-They can also select to run the game in a window on the desktop rather than full-screen.
-This will take a performance hit though, so it's always preferable to run full-screen.
+The options in setup are divided into two parts: common and advanced. Advanced
+options could be accessed by pressing "Advanced" button.
 
-"Enable side-borders" and "Enable top & bottom borders" options allow the game to choose from wider range of resolutions, including the ones which display game surrounded by horizontal and/or vertical borders (the so-called "letterboxed" and "pillarboxed" modes).
+\bf{Graphics options}
 
-"Smooth scaled sprites" will apply anti-aliasing to scaled characters, in order to
-give a smoother look to the resizing. This can slow down the game though, so it is off
-by default.
+\begin{description}
+\item [Run in the window instead of fullscreen]
+  If checked, the game will be run in windowed mode, as opposed to fullscreen.
+\item [Driver]
+  Lets player choose a graphics driver. Currently supported are DirectX 5 (old driver)
+and Direct3D 9 (newer and faster driver with hardware acceleration).
+\item [Filter]
+  Here player may choose a graphics scaling filter. Filter type defines the method of
+scaling (nearest-neighbour is most simple one), as well as scaling multiplier.
+  Selecting a filter with higher scaling multiplier will make game stretch to higher resolution.
+  The list of available filters depend on driver selection.
+\end{description}
 
-The "Downgrade 32-bit graphics to 16-bit" option is only available for 32-bit games.
-It allows people with slower PCs to choose to play the game at 16-bit instead, in order
-to boost performance. If they use this, the graphical quality will reduce, but it should at
-least allow them to play the game at a decent speed.
+\bf{Gameplay settings}
 
-Finally, the "Use 85 Hz display" option sets the monitor refresh rate to 85 Hz to run the game, which eliminates flicker. However, this does not work on all monitors, and not at all on flat
+\begin{description}
+\item [Game language]
+  Here player may choose one of the available game translations.
+\item [Custom game saves path]
+  When unchecked, the game will store its files - saved games, and custom runtime data - 
+in the default Windows folders: "C:/Users/<Username>/Saved Games/<Game Title>" and
+"C:/Program Data/Adventure Game Studio/<Game Title>" respectively.
+  Players may enable this option and define their own location to store game files.
+\end{description}
+
+\bf{Advanced graphics options}
+
+\begin{description}
+\item [Enable side-borders / Enable top & bottom borders]
+  These two options allow the game to choose from wider range of resolutions, including
+the ones which display game surrounded by horizontal and/or vertical borders (the
+so-called "letterboxed" and "pillarboxed" modes).
+\item [Smooth scaled sprites]
+  This option will apply anti-aliasing to scaled characters, in order to give
+a smoother look to the resizing. This can slow down the game though, so it is off by default.
+\item [Downgrade 32-bit graphics to 16-bit]
+  This option is only available for 32-bit games. It allows people with slower PCs
+to choose to play the game at 16-bit instead, in order to boost performance.
+If they use this, the graphical quality will reduce, but it should at least allow them to play
+the game at a decent speed.
+\item [Use 85 Hz display]
+  This option sets the monitor refresh rate to 85 Hz to run the game, which eliminates flicker. However, this does not work on all monitors, and not at all on flat
 panel displays, which is why it is disabled by default.
+\end{description}
+
+\bf{Sound options}
+
+\begin{description}
+\item [Digital sound]
+  Here player may choose the digital audio driver, or disable digital sound completely.
+\item [MIDI music]
+  Here player may choose the MIDI music playback method, or disable MIDI music completely.
+\item [Use voice pack is available]
+  When checked, this option enables voice speech in game (where available).
+\end{description}
+
+\bf{Mouse options}
+
+\begin{description}
+\item [Auto lock to window]
+  If this option is enabled, the mouse will be locked inside game window whenever player clicks on it or switches into game.
+The locked mouse cannot leave game window, making it impossible to switch out from the game by mistake (by clicking on desktop,
+for example). Naturally, this option only has importance if game is run in windowed mode; when in fullscreen the mouse is always
+locked.
+\item [Mouse speed]
+  This slider allows player to set up mouse cursor speed in game. It should be noted that this parameter is only applied if the
+game is run in fullscreen mode.
+\end{description}
+
+\bf{Other advanced settings}
+
+\begin{description}
+\item [Sprite cache max size]
+  This option limits the maximum amount of memory that the game will use for its sprite cache. Sprite cache is used to
+  keep a partition of all the game sprites loaded to the memory, thus reducing loading times between rooms and preventing
+  slowdowns during game play.
+  Of course, higher values make the game use more memory. Usually only high-resolution games with long animations need
+  to have this value increased.
+\end{description}
 
 
 \chapter{Tutorial}%

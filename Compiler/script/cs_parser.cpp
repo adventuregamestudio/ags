@@ -1702,28 +1702,6 @@ int call_property_func(ccCompiledScript *scrip, int propSym, int isWrite) {
   return 0;
 }
 
-int accept_literal_value(int &value, int symidx) {
-    errno = 0;
-    char *endptr = 0;
-    const long longValue = strtol(sym.get_name(symidx), &endptr, 10);
-
-    if ((longValue == LONG_MIN || longValue == LONG_MAX) && errno == ERANGE) {
-        cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(symidx, false).c_str());
-        return -1;
-    }
-    if (endptr[0] != 0) {
-        cc_error("Could not parse integer symbol '%s' because the whole buffer wasn't converted.", friendly_int_symbol(symidx, false).c_str());
-        return -1;
-    }
-    if (longValue > INT_MAX || longValue < INT_MIN) {
-        cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(symidx, false).c_str());
-        return -1;
-    }
-
-    value = static_cast<int>(longValue);
-    return 0;
-}
-
 int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
                               int variableSymType, bool isProperty,
                               int writing, int mustBeWritable,
@@ -1731,7 +1709,7 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
                               int soffset, bool isPointer,
                               bool wholePointerAccess,
                               int mainVariableSym, int mainVariableType,
-                              bool isDynamicArray) {
+                              bool isDynamicArray, bool negateLiteral) {
   int gotValType = 0;
   int readcmd = get_readcmd_for_size(sym.ssize[variableSym], writing);
 
@@ -1749,14 +1727,16 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
     if (sym.flags[variableSym] & SFLG_CONST)
       gotValType |= STYPE_CONST;
   }
-  else if (mainVariableType == SYM_LITERALVALUE) {
+  else if ((mainVariableType == SYM_LITERALVALUE) || (mainVariableType == SYM_CONSTANT)) {
     if ((writing) || (mustBeWritable)) {
-      cc_error("cannot write to a literal value");
+      if(mainVariableType == SYM_LITERALVALUE)
+        cc_error("cannot write to a literal value");
+      else
+        cc_error("cannot write to constant");
       return -1;
     }
     int varSymValue;
-    if (accept_literal_value(varSymValue, variableSym) < 0) {
-      cc_error("Error while parsing integer symbol '%s'.", sym.get_friendly_name(variableSym).c_str());
+    if (accept_literal_or_constant_value(variableSym, varSymValue, negateLiteral, "Error parsing integer value") < 0) {
       return -1;
     }
     scrip->write_cmd2(SCMD_LITTOREG,SREG_AX, varSymValue);
@@ -1769,14 +1749,6 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
     }
     scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, float_to_int_raw((float)atof(sym.get_name(variableSym))));
     gotValType = sym.normalFloatSym;
-  }
-  else if (mainVariableType == SYM_CONSTANT) {
-    if ((writing) || (mustBeWritable)) {
-      cc_error("cannot write to constant");
-      return -1;
-    }
-    scrip->write_cmd2(SCMD_LITTOREG, SREG_AX, sym.soffs[variableSym]);
-    gotValType = sym.normalIntSym;
   }
   else if ((mainVariableType == SYM_LOCALVAR) ||
            (mainVariableType == SYM_GLOBALVAR)) {
@@ -1894,7 +1866,7 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
 // member variable, then read_variable_into_ax sets this
 int readonly_cannot_cause_error = 0;
 
-int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int mustBeWritable) {
+int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int mustBeWritable, bool negateLiteral = false) {
   // read the various types of values into AX
   int ee;
 
@@ -2197,7 +2169,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
                                     currentByteOffset, isPointer,
                                     accessActualPointer,
                                     firstVariableSym, firstVariableType,
-                                    isDynamicArray))
+                                    isDynamicArray, negateLiteral))
         return -1;
 
       // reset stuff
@@ -2250,9 +2222,9 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
 }
 
 
-int read_variable_into_ax(int slilen,long*syml,ccCompiledScript*scrip, int mustBeWritable = 0) {
+int read_variable_into_ax(int slilen,long*syml,ccCompiledScript*scrip, int mustBeWritable = 0, bool negateLiteral = false) {
 
-  return do_variable_ax(slilen,syml,scrip, 0, mustBeWritable);
+  return do_variable_ax(slilen,syml,scrip, 0, mustBeWritable, negateLiteral);
 }
 
 int write_ax_to_variable(int slilen,long*syml,ccCompiledScript*scrip) {
@@ -2275,6 +2247,16 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
   }
 
   int oploc = find_lowest_bonding_operator(symlist,listlen);
+  bool hasNegatedLiteral;
+
+  // A literal is being negated on the left
+  if ((oploc == 0) && (listlen > 1) && (sym.get_type(symlist[1]) == SYM_LITERALVALUE) &&
+    (sym.operatorToVCPUCmd(symlist[oploc]) == SCMD_SUBREG)) {
+    oploc = find_lowest_bonding_operator(&symlist[1], listlen - 1);
+    if(oploc > -1)
+      oploc++;
+    hasNegatedLiteral = true;
+  }
 
   if (oploc == 0) {
     // The operator is the first thing in the expression
@@ -2378,6 +2360,11 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       // you can't do   a = b ! c;
       cc_error("Invalid use of operator '!'");
       return -1;
+    }
+    // A value is being negated on the right
+    if ((vcpuOperator == SCMD_SUBREG) && (oploc > 1) && (sym.get_type(symlist[oploc - 1]) == SYM_OPERATOR)) {
+      oploc = find_lowest_bonding_operator(symlist, oploc);
+      vcpuOperator = sym.operatorToVCPUCmd(symlist[oploc]);
     }
     // process the left hand side and save result onto stack
     if (parse_sub_expr(&symlist[0],oploc,scrip))
@@ -2504,8 +2491,16 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
     cc_error("undefined symbol '%s'",sym.get_friendly_name(symlist[0]).c_str());
     return -1;
     }
+  else if (hasNegatedLiteral && (listlen == 2)) {
+    if (read_variable_into_ax(1,&symlist[1],scrip,0,true))
+      return -1;
+  }
   else if (sym.get_type(symlist[0]) == SYM_OPERATOR) {
-    cc_error("Parse error: unexpected '%s'",sym.get_friendly_name(symlist[0]).c_str());
+    // If someone follows the negation operator with bogus tokens, the problem is actually on the right of it
+    if ((sym.operatorToVCPUCmd(symlist[0]) == SCMD_SUBREG) && (listlen > 2))
+      cc_error("Parse error: unexpected '%s'",sym.get_friendly_name(symlist[2]).c_str());
+    else
+      cc_error("Parse error: unexpected '%s'",sym.get_friendly_name(symlist[0]).c_str());
     return -1;
     }
   else if ((sym.get_type(symlist[0]) == SYM_FUNCTION) || (funcAtOffs > 0)) {

@@ -26,7 +26,7 @@ namespace Math = AGS::Common::Math;
 #define snprintf _snprintf
 #endif
 
-char ScSfBuffer[3000];
+char ScSfBuffer[STD_BUFFER_SIZE];
 
 enum FormatParseResult
 {

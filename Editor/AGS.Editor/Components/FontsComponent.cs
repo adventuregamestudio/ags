@@ -16,7 +16,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_DELETE_ITEM = "DeleteFont";
         private const int BUILT_IN_FONTS = 3;
         private const string ICON_KEY = "FontsIcon";
-        
+
         private Dictionary<AGS.Types.Font, ContentDocument> _documents;
         private AGS.Types.Font _itemRightClicked = null;
 
@@ -49,39 +49,39 @@ namespace AGS.Editor.Components
                 newItem.ID = items.Count;
                 newItem.Name = "Font " + newItem.ID;
                 newItem.OutlineStyle = FontOutlineStyle.None;
-				newItem.PointSize = items[0].PointSize;
-				newItem.SourceFilename = items[0].SourceFilename;
+                newItem.PointSize = items[0].PointSize;
+                newItem.SourceFilename = Utilities.GetRelativeToProjectPath(items[0].SourceFilename);
                 items.Add(newItem);
                 Utilities.CopyFont(0, newItem.ID);
                 Factory.NativeProxy.GameSettingsChanged(_agsEditor.CurrentGame);
                 _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
                 _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), newItem.ID.ToString() + ": " + newItem.Name, "FontIcon");
                 _guiController.ProjectTree.SelectNode(this, GetNodeID(newItem));
-				ShowOrAddPane(newItem);
+                ShowOrAddPane(newItem);
                 FontTypeConverter.SetFontList(_agsEditor.CurrentGame.Fonts);
             }
             else if (controlID == COMMAND_DELETE_ITEM)
             {
                 if (MessageBox.Show("Are you sure you want to delete this font? Doing so could break any scripts that refer to fonts by number.", "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-					int removingID = _itemRightClicked.ID;
-					_agsEditor.DeleteFileOnDiskAndSourceControl(_itemRightClicked.WFNFileName);
-					_agsEditor.DeleteFileOnDiskAndSourceControl(_itemRightClicked.TTFFileName);
+                    int removingID = _itemRightClicked.ID;
+                    _agsEditor.DeleteFileOnDiskAndSourceControl(_itemRightClicked.WFNFileName);
+                    _agsEditor.DeleteFileOnDiskAndSourceControl(_itemRightClicked.TTFFileName);
 
                     foreach (AGS.Types.Font item in _agsEditor.CurrentGame.Fonts)
                     {
                         if (item.ID > removingID)
                         {
-							if (File.Exists(item.WFNFileName))
-							{
-								_agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(item.WFNFileName, "agsfnt" + (item.ID - 1) + ".wfn");
-							}
-							if (File.Exists(item.TTFFileName))
-							{
-								_agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(item.TTFFileName, "agsfnt" + (item.ID - 1) + ".ttf");
-							}
-							item.ID--;
-						}
+                            if (File.Exists(item.WFNFileName))
+                            {
+                                _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(item.WFNFileName, "agsfnt" + (item.ID - 1) + ".wfn");
+                            }
+                            if (File.Exists(item.TTFFileName))
+                            {
+                                _agsEditor.SourceControlProvider.RenameFileOnDiskAndInSourceControl(item.TTFFileName, "agsfnt" + (item.ID - 1) + ".ttf");
+                            }
+                            item.ID--;
+                        }
                     }
                     if (_documents.ContainsKey(_itemRightClicked))
                     {
@@ -89,9 +89,9 @@ namespace AGS.Editor.Components
                         _documents.Remove(_itemRightClicked);
                     }
                     _agsEditor.CurrentGame.Fonts.Remove(_itemRightClicked);
-					_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
-					Factory.NativeProxy.GameSettingsChanged(_agsEditor.CurrentGame);
-					RePopulateTreeView();
+                    _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
+                    Factory.NativeProxy.GameSettingsChanged(_agsEditor.CurrentGame);
+                    RePopulateTreeView();
                     FontTypeConverter.SetFontList(_agsEditor.CurrentGame.Fonts);
                 }
             }
@@ -100,29 +100,29 @@ namespace AGS.Editor.Components
                 if (controlID != TOP_LEVEL_COMMAND_ID)
                 {
                     AGS.Types.Font chosenFont = _agsEditor.CurrentGame.Fonts[Convert.ToInt32(controlID.Substring(3))];
-					ShowOrAddPane(chosenFont);
-				}
+                    ShowOrAddPane(chosenFont);
+                }
             }
         }
 
-		private void ShowOrAddPane(AGS.Types.Font chosenFont)
-		{
+        private void ShowOrAddPane(AGS.Types.Font chosenFont)
+        {
             ContentDocument document;
-			if (!_documents.TryGetValue(chosenFont, out document)
+            if (!_documents.TryGetValue(chosenFont, out document)
                 || document.Control.IsDisposed)
-			{
-				Dictionary<string, object> list = new Dictionary<string, object>();
-				list.Add(chosenFont.Name + " (Font " + chosenFont.ID + ")", chosenFont);
+            {
+                Dictionary<string, object> list = new Dictionary<string, object>();
+                list.Add(chosenFont.Name + " (Font " + chosenFont.ID + ")", chosenFont);
 
                 document = new ContentDocument(new FontEditor(chosenFont),
                     chosenFont.WindowTitle, this, ICON_KEY, list);
                 _documents[chosenFont] = document;
                 document.SelectedPropertyGridObject = chosenFont;
-			}
+            }
             document.TreeNodeID = GetNodeID(chosenFont);
             _guiController.AddOrShowPane(document);
-			_guiController.ShowCuppit("The Font Editor allows you to import fonts into your game. Windows TTF fonts are supported, as are SCI fonts which can be created with Radiant FontEdit.", "Fonts introduction");
-		}
+            _guiController.ShowCuppit("The Font Editor allows you to import fonts into your game. Windows TTF fonts are supported, as are SCI fonts which can be created with Radiant FontEdit.", "Fonts introduction");
+        }
 
         public override void PropertyChanged(string propertyName, object oldValue)
         {

@@ -489,7 +489,7 @@ int my_readkey() {
 
     /*  char message[200];
     sprintf(message, "Scancode: %04X", gott);
-    OutputDebugString(message);*/
+    Out::FPrint(message);*/
 
     /*if ((scancode >= KEY_0_PAD) && (scancode <= KEY_9_PAD)) {
     // fix numeric pad keys if numlock is off (allegro 4.2 changed this behaviour)
@@ -549,7 +549,7 @@ int my_readkey() {
     }
 
     //sprintf(message, "Keypress: %d", gott);
-    //OutputDebugString(message);
+    //Out::FPrint(message);
 
     return gott;
 }

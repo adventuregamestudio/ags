@@ -41,7 +41,7 @@ int GUIObject::IsClickable()
   return 1;
 }
 
-void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, char *texx)
+void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx)
 {
   wouttextxy(ds, xxp, yyp, usingfont, text_color, texx);
 }

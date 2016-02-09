@@ -304,7 +304,7 @@ namespace AGS.Editor.Components
             {
                 string newScriptName = EnsureScriptNameIsUnique(Path.GetFileNameWithoutExtension(sourceFileName));
                 AudioClip newClip = new AudioClip(newScriptName, _agsEditor.CurrentGame.GetNextAudioIndex());
-                newClip.SourceFileName = sourceFileName;
+                newClip.SourceFileName = Utilities.GetRelativeToProjectPath(sourceFileName);
                 newClip.FileType = _fileTypeMappings[fileExtension];
                 newClip.FileLastModifiedDate = File.GetLastWriteTimeUtc(sourceFileName);
                 Utilities.CopyFileAndSetDestinationWritable(sourceFileName, newClip.CacheFileName);

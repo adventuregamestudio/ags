@@ -21,6 +21,7 @@
 
 #include <stdarg.h>
 #include "core/types.h"
+#include "ac/runtime_defines.h"
 #include "ac/statobj/agsstaticobject.h"
 
 struct RuntimeScriptValue;
@@ -34,7 +35,7 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
 // Variadic sprintf (needed, because all arguments are pushed as pointer-sized values). Currently used only when plugin calls
 // exported engine function. Should be removed when this plugin issue is resolved.
 const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *format, va_list &arg_ptr);
-extern char ScSfBuffer[3000];
+extern char ScSfBuffer[STD_BUFFER_SIZE];
 
 // Helper macros for script functions
 #define ASSERT_SELF(METHOD) \
@@ -78,17 +79,31 @@ extern char ScSfBuffer[3000];
 
 #define API_SCALL_SCRIPT_SPRINTF(FUNCTION, PARAM_COUNT) \
     ASSERT_PARAM_COUNT(FUNCTION, PARAM_COUNT) \
-    const char *scsf_buffer = ScriptSprintf(ScSfBuffer, 3000, get_translation(params[PARAM_COUNT - 1].Ptr), params + PARAM_COUNT, param_count - PARAM_COUNT)
+    const char *scsf_buffer = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, get_translation(params[PARAM_COUNT - 1].Ptr), params + PARAM_COUNT, param_count - PARAM_COUNT)
 
 #define API_OBJCALL_SCRIPT_SPRINTF(METHOD, PARAM_COUNT) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, PARAM_COUNT) \
-    const char *scsf_buffer = ScriptSprintf(ScSfBuffer, 3000, get_translation(params[PARAM_COUNT - 1].Ptr), params + PARAM_COUNT, param_count - PARAM_COUNT)
+    const char *scsf_buffer = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, get_translation(params[PARAM_COUNT - 1].Ptr), params + PARAM_COUNT, param_count - PARAM_COUNT)
+
+//-----------------------------------------------------------------------------
+// Calls to ScriptSprintfV (unsafe plugin variant)
+
+#define API_PLUGIN_SCRIPT_SPRINTF(FORMAT_STR) \
+    va_list args; \
+    va_start(args, FORMAT_STR); \
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, STD_BUFFER_SIZE, get_translation(FORMAT_STR), args); \
+    va_end(args)
 
 //-----------------------------------------------------------------------------
 // Calls to static functions
 
 #define API_SCALL_VOID(FUNCTION) \
     FUNCTION(); \
+    return RuntimeScriptValue()
+
+#define API_SCALL_VOID_PBOOL(FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 1) \
+    FUNCTION(params[0].GetAsBool()); \
     return RuntimeScriptValue()
 
 #define API_SCALL_VOID_PINT(FUNCTION) \
@@ -144,6 +159,11 @@ extern char ScSfBuffer[3000];
 #define API_SCALL_VOID_PINT4_POBJ(FUNCTION, P1CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 5) \
     FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue, (P1CLASS*)params[4].Ptr); \
+    return RuntimeScriptValue()
+
+#define API_SCALL_VOID_PFLOAT2(FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 2) \
+    FUNCTION(params[0].FValue, params[1].FValue); \
     return RuntimeScriptValue()
 
 #define API_SCALL_VOID_POBJ(FUNCTION, P1CLASS) \
@@ -212,6 +232,9 @@ extern char ScSfBuffer[3000];
 #define API_SCALL_INT_PINT_POBJ(FUNCTION, P1CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 2) \
     return RuntimeScriptValue().SetInt32(FUNCTION(params[0].IValue, (P1CLASS*)params[1].Ptr))
+
+#define API_SCALL_FLOAT(FUNCTION) \
+    return RuntimeScriptValue().SetFloat(FUNCTION())
 
 #define API_SCALL_BOOL(FUNCTION) \
     return RuntimeScriptValue().SetInt32AsBool(FUNCTION())

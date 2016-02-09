@@ -1,0 +1,74 @@
+
+                            AllegroFont v1.5
+                           ==================
+
+               AllegroFont (c) 2001, 2002 Javier Gonzalez
+
+              FreeType project Copyright (c) 1996-2000 by
+            David Turner, Robert Wilhelm, and Werner Lemberg
+
+
+
+AllegroFont is an Allegro wrapper for the wonderful FreeType2 library
+that makes Allegro (amongst other things) able to load and render TTF
+and many other famous font formats. Other feature is that it is able
+to render the fonts antialiased.
+AllegroFont is distributed under the GNU Lesser General Public License
+Version 2.1 (see file COPYING).
+
+Note I am NOT responsable of the contents of the freetype-2.0.5 directory.
+
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+
+AllegroFont uses code from:
+  - The FreeType project (www.freetype.org)
+
+
+How to compile the library and example code:
+
+  If you are running under a un*x system first run fixunix.sh
+  If you want to use the DOS/Windows the pack is ready to be used
+  as is right now, no conversion needed. fixdos.bat is only provided
+  to be used if you used fixunix.sh to change file formats to unix one
+  and you want them to be DOS format back again. Note that to use fixdos.bat
+  you will need utod.exe.
+
+
+  In case you are using GCC (DJGPP, MINGW32):
+
+  Then edit the makefile and uncomment the target you want to compile to then run in the command
+  line "make" and that's all.
+
+  It will generate a library (libalfont.a) ready to use in your programs
+
+  After that, if you want to compile the examples, get inside the directory
+  examples, edit the makefile uncommenting the target you want to compile to
+  and type "make".
+
+
+  In case you are using Microsoft Visual C++:
+
+  Open the project file and build whatever you choose. There are three
+  possible library targets: SingleThreaded (ML), MultiThreaded (MT) and
+  Multithreaded DLL (MD). Use the one you may wish.
+
+How to contact me:
+
+  xaviergonz@hotmail.com
+
+

@@ -368,14 +368,8 @@ void DrawingSurface_DrawTriangle(ScriptDrawingSurface *sds, int x1, int y1, int 
     sds->FinishedDrawing();
 }
 
-void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int font, const char* texx, ...)
+void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int font, const char* text)
 {
-    char displbuf[STD_BUFFER_SIZE];
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(displbuf, get_translation(texx), ap);
-    va_end(ap);
-    
     sds->MultiplyCoordinates(&xx, &yy);
     Bitmap *ds = sds->StartDrawing();
     // don't use wtextcolor because it will do a 16->32 conversion
@@ -384,7 +378,7 @@ void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int fo
         text_color = ds->GetCompatibleColor(1);
         debug_log ("RawPrint: Attempted to use hi-color on 256-col background");
     }
-    wouttext_outline(ds, xx, yy, font, text_color, displbuf);
+    wouttext_outline(ds, xx, yy, font, text_color, text);
     sds->FinishedDrawing();
 }
 
@@ -553,7 +547,7 @@ RuntimeScriptValue Sc_DrawingSurface_DrawRectangle(void *self, const RuntimeScri
 RuntimeScriptValue Sc_DrawingSurface_DrawString(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_SCRIPT_SPRINTF(DrawingSurface_DrawString, 4);
-    DrawingSurface_DrawString((ScriptDrawingSurface*)self, params[0].IValue, params[1].IValue, params[2].IValue, "%s", scsf_buffer);
+    DrawingSurface_DrawString((ScriptDrawingSurface*)self, params[0].IValue, params[1].IValue, params[2].IValue, scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -632,11 +626,8 @@ RuntimeScriptValue Sc_DrawingSurface_GetWidth(void *self, const RuntimeScriptVal
 // void (ScriptDrawingSurface *sds, int xx, int yy, int font, const char* texx, ...)
 void ScPl_DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int font, const char* texx, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
-    va_end(arg_ptr);
-    DrawingSurface_DrawString(sds, xx, yy, font, "%s", scsf_buffer);
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
+    DrawingSurface_DrawString(sds, xx, yy, font, scsf_buffer);
 }
 
 void RegisterDrawingSurfaceAPI()

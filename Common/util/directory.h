@@ -22,6 +22,7 @@
 
 #if defined (WINDOWS_VERSION)
 // undef the declarations from winbase.h
+#undef CreateDirectory
 #undef SetCurrentDirectory
 #undef GetCurrentDirectory
 #endif
@@ -33,6 +34,8 @@ namespace Common
 
 namespace Directory
 {
+    // Creates new directory (if it does not exist)
+    bool   CreateDirectory(const String &path);
     // Sets current working directory, returns the resulting path
     String SetCurrentDirectory(const String &path);
     // Gets current working directory

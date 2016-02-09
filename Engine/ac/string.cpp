@@ -181,17 +181,6 @@ const char* String_UpperCase(const char *thisString) {
     return CreateNewScriptString(buffer, false);
 }
 
-const char* String_Format(const char *texx, ...) {
-    char displbuf[STD_BUFFER_SIZE];
-
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(displbuf, get_translation(texx), ap);
-    va_end(ap);
-
-    return CreateNewScriptString(displbuf);
-}
-
 int String_GetChars(const char *texx, int index) {
     if ((index < 0) || (index >= (int)strlen(texx)))
         return 0;
@@ -381,7 +370,7 @@ RuntimeScriptValue Sc_String_EndsWith(void *self, const RuntimeScriptValue *para
 RuntimeScriptValue Sc_String_Format(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(String_Format, 1);
-    return RuntimeScriptValue().SetDynamicObject((void*)String_Format("%s", scsf_buffer), &myScriptStringImpl);
+    return RuntimeScriptValue().SetDynamicObject((void*)CreateNewScriptString(scsf_buffer), &myScriptStringImpl);
 }
 
 // const char* (const char *thisString)
@@ -459,11 +448,8 @@ RuntimeScriptValue Sc_strlen(void *self, const RuntimeScriptValue *params, int32
 // const char* (const char *texx, ...)
 const char *ScPl_String_Format(const char *texx, ...)
 {
-    va_list arg_ptr;
-    va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
-    va_end(arg_ptr);
-    return String_Format("%s", scsf_buffer);
+    API_PLUGIN_SCRIPT_SPRINTF(texx);
+    return CreateNewScriptString(scsf_buffer);
 }
 
 

@@ -1,88 +1,79 @@
-DISTRIB_NAME = AGS_Runtime_for_PSP_3.21_R9
-PSP_AGS_FOLDER = "j:/psp/game/ags"
+DISTRIB_NAME?=AGS_Runtime_for_PSP_3.21_R9
+PSP_AGS_FOLDER?=j:/psp/game/ags
+COPY?=0
+
+export DISTRIB_NAME
+export PSP_AGS_FOLDER
+export COPY
+
+DIST_PREFIX=../PSP/dist/$(DISTRIB_NAME)
 
 .PHONY: kernelprx exceptionprx launchereboot engineprx allplugins \
         cleankernelprx cleanexceptionprx cleanlaunchereboot cleanengineprx cleanallplugins \
         distrib
 
-all:
-	make kernelprx
-	make exceptionprx
-	make launchereboot
-	make engineprx
-	make allplugins
+all: kernelprx exceptionprx launchereboot engineprx allplugins
 
 kernelprx:
-	@make -C "kernel"
+	@$(MAKE) -C "kernel"
 	@cp "kernel/kernel.prx" "bin"
 ifeq ($(COPY), 1)
 	@cp "kernel/kernel.prx" $(PSP_AGS_FOLDER)
 endif
 
 exceptionprx:
-	@make -C "exception/prx"
+	@$(MAKE) -C "exception/prx"
 	@cp "exception/prx/exception.prx" "bin"
 ifeq ($(COPY), 1)
 	@cp "exception/prx/exception.prx" $(PSP_AGS_FOLDER)
 endif
 
 launchereboot:
-	@make -C "launcher"
+	@$(MAKE) -C "launcher"
 	@cp "launcher/EBOOT.PBP" "bin"
 ifeq ($(COPY), 1)
 	@cp "launcher/EBOOT.PBP" $(PSP_AGS_FOLDER)
 endif
 
 engineprx:
-	@make -C "../Engine" -f Makefile.psp
+	@$(MAKE) -C "../Engine" -f Makefile.psp
 	@cp "../Engine/ags321.prx" "bin"
 ifeq ($(COPY), 1)
 	@cp "../Engine/ags321.prx" $(PSP_AGS_FOLDER)
 endif
 
 allplugins:
-ifeq ($(COPY), 1)
-	@make -C "../Plugins" -f Makefile.psp COPY=1
-else
-	@make -C "../Plugins" -f Makefile.psp
-endif
-	
+	@$(MAKE) -C "../Plugins" -f Makefile.psp
 
 cleankernelprx:
-	@make clean -C "kernel"
+	@$(MAKE) -C "kernel" clean
 	@rm -f "bin/kernel.prx"
-	
+
 cleanexceptionprx:
-	@make clean -C "exception/prx"
+	@$(MAKE) -C "exception/prx" clean
 	@rm -f "bin/exception.prx"
 
 cleanlaunchereboot:
-	@make clean -C "launcher"
+	@$(MAKE) -C "launcher" clean
 	@rm -f "bin/EBOOT.PBP"
 
 cleanengineprx:
-	@make clean -C "../Engine" -f Makefile.psp
+	@$(MAKE) C "../Engine" -f Makefile.psp clean
 	@rm -f "bin/ags321.prx"
 
 cleanallplugins:
-	@make clean -C "../Plugins" -f Makefile.psp
+	@$(MAKE) -C "../Plugins" -f Makefile.psp clean
 
 distrib: all
-	@mkdir "dist" || true
-	@mkdir "dist/$(DISTRIB_NAME)" || true
-	@cp "bin/EBOOT.PBP" "dist/$(DISTRIB_NAME)/EBOOT.PBP"
-	@cp "bin/ags321.prx" "dist/$(DISTRIB_NAME)/ags321.prx"
-	@cp "bin/kernel.prx" "dist/$(DISTRIB_NAME)/kernel.prx"
-	@cp "bin/exception.prx" "dist/$(DISTRIB_NAME)/exception.prx"
-	@cp "bin/psp.cfg" "dist/$(DISTRIB_NAME)/psp.cfg"
-	@cp "readme.md" "dist/$(DISTRIB_NAME)/readme.txt"
-	@cp "../License.txt" "dist/$(DISTRIB_NAME)/License.txt"
-	@cp "../Copyright.txt" "dist/$(DISTRIB_NAME)/License.txt"
-	@make distrib -C "../Plugins" -f Makefile.psp
+	@mkdir -p "$(DIST_PREFIX)"
+	@cp "bin/EBOOT.PBP" "$(DIST_PREFIX)/EBOOT.PBP"
+	@cp "bin/ags321.prx" "$(DIST_PREFIX)/ags321.prx"
+	@cp "bin/kernel.prx" "$(DIST_PREFIX)/kernel.prx"
+	@cp "bin/exception.prx" "$(DIST_PREFIX)/exception.prx"
+	@cp "bin/psp.cfg" "$(DIST_PREFIX)/psp.cfg"
+	@cp "README.md" "$(DIST_PREFIX)/readme.txt"
+	@cp "../License.txt" "$(DIST_PREFIX)/License.txt"
+	@cp "../Copyright.txt" "$(DIST_PREFIX)/License.txt"
+	@$(MAKE) -C "../Plugins" -f Makefile.psp distrib
 
-clean:
-	make cleankernelprx
-	make cleanexceptionprx
-	make cleanlaunchereboot
-	make cleanengineprx
-	make cleanallplugins
+clean: cleankernelprx cleanexceptionprx cleanlaunchereboot cleanengineprx cleanallplugins

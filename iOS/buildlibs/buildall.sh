@@ -1,15 +1,23 @@
 #!/bin/bash
 
-for i in armv6 armv7 i386
+set -e
+
+pushd ../../libsrc
+./download.sh
+popd
+
+for arch in armv7 armv7s arm64 i386 x86_64
 do
-	cd $i
+	rm -rf ../nativelibs/$arch
+	mkdir -p ../nativelibs/$arch
+	pushd $arch
 	chmod +x *.sh
+	./lua.sh
 	./freetype.sh
 	./ogg.sh
 	./tremor.sh
-	./theora-svn.sh
+	./theora.sh
 	./allegro.sh
 	./dumb.sh
-	./lua.sh
-	cd ..
+	popd
 done

@@ -1,25 +1,24 @@
 #!/bin/bash
 
-# Set up build environment
-source ../setenv.sh i686-android-linux
+set -e 
 
-# Download and extract the library source
-FILENAME=libogg-1.3.0
-EXTENSION=tar.gz
-wget -c http://downloads.xiph.org/releases/ogg/$FILENAME.$EXTENSION -O ../$FILENAME.$EXTENSION
-tar -zxf ../$FILENAME.$EXTENSION
+source ./ndkenv
 
-# Get the newest config files for autotools
-source ../update-config.sh $FILENAME
+SRC_DIR=libogg-1.3.2
+rm -rf $SRC_DIR
+mkdir $SRC_DIR
+tar xf ../../../libsrc/libogg-1.3.2.tar.gz --strip-components=1 -C $SRC_DIR
 
-# Build and install library
-cd $FILENAME
+pushd $SRC_DIR
 
-export LDFLAGS="-Wl,-L$NDK_ADDITIONAL_LIBRARY_PATH/lib"
-export CFLAGS="-I$NDK_ADDITIONAL_LIBRARY_PATH/include"
-export LIBS="-lc"
+export CFLAGS="$NDK_CFLAGS -fsigned-char"
+export LDFLAGS="$NDK_LDFLAGS"
 
-./configure --host=$NDK_HOST_NAME --prefix=$NDK_ADDITIONAL_LIBRARY_PATH
+./configure --host=$NDK_HOST_NAME --prefix=$NDK_ADDITIONAL_LIBRARY_PATH --disable-shared
 
 make
 make install
+
+popd 
+
+rm -rf $SRC_DIR

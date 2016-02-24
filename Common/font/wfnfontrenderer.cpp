@@ -164,6 +164,7 @@ bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 
 void WFNFontRenderer::FreeMemory(int fontNumber)
 {
+  delete _fontData[fontNumber];
   _fontData.erase(fontNumber);
 }
 

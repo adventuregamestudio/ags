@@ -18,6 +18,8 @@
 #include "font/agsfontrenderer.h"
 #include "font/wfnfont.h"
 
+#include <map>
+
 class WFNFontRenderer : public IAGSFontRenderer {
 public:
   virtual bool LoadFromDisk(int fontNumber, int fontSize);
@@ -30,13 +32,7 @@ public:
   virtual void EnsureTextValidForFont(char *text, int fontNumber);
 
 private:
-  inline unsigned char GetCharCode(unsigned char wanted_code, const WFNFont *font) const
-  {
-    return wanted_code < font->GetCharCount() ? wanted_code : '?';
-  }
-  int RenderChar(Common::Bitmap *ds, const int at_x, const int at_y, const WFNChar &wfn_char, const color_t text_color);
+  std::map<int, WFNFont*> _fontData;
 };
-
-extern WFNFontRenderer wfnRenderer;
 
 #endif // __AC_WFNFONTRENDERER_H

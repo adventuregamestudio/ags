@@ -115,7 +115,6 @@ extern color palette[256];
 extern int offsetx, offsety;
 extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
 extern int numPluginReaders;
-extern IAGSFontRenderer* fontRenderers[MAX_FONTS];
 extern RuntimeScriptValue GlobalReturnValue;
 extern ScriptString myScriptStringImpl;
 
@@ -551,7 +550,7 @@ int IAGSEngine::GetFontType(int32 fontNum) {
     if ((fontNum < 0) || (fontNum >= game.numfonts))
         return FNT_INVALID;
 
-    if (fontRenderers[fontNum]->SupportsExtendedCharacters(fontNum))
+    if (font_supports_extended_characters(fontNum))
         return FNT_TTF;
 
     return FNT_SCI;
@@ -755,9 +754,7 @@ void IAGSEngine::BreakIntoDebugger()
 
 IAGSFontRenderer* IAGSEngine::ReplaceFontRenderer(int fontNumber, IAGSFontRenderer *newRenderer)
 {
-    IAGSFontRenderer* oldOne = fontRenderers[fontNumber];
-    fontRenderers[fontNumber] = newRenderer;
-    return oldOne;
+    return font_replace_renderer(fontNumber, newRenderer);
 }
 
 

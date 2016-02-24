@@ -29,7 +29,14 @@
 
 using namespace AGS::Common;
 
-WFNFontRenderer wfnRenderer;
+const char *WFN_FILE_SIGNATURE = "WGT Font File  ";
+
+static unsigned char GetCharCode(unsigned char wanted_code, const WFNFont* font)
+{
+    return wanted_code < font->GetCharCount() ? wanted_code : '?';
+}
+
+static int RenderChar(Common::Bitmap *ds, const int at_x, const int at_y, const WFNChar &wfn_char, const color_t text_color);
 
 void WFNFontRenderer::AdjustYCoordinateForFont(int *ycoord, int fontNumber)
 {
@@ -38,7 +45,7 @@ void WFNFontRenderer::AdjustYCoordinateForFont(int *ycoord, int fontNumber)
 
 void WFNFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 {
-  const WFNFont *font = (WFNFont*)fonts[fontNumber];
+  const WFNFont* font = _fontData[fontNumber];
   // replace any extended characters with question marks
   for (; *text; ++text)
   {
@@ -51,7 +58,7 @@ void WFNFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 
 int WFNFontRenderer::GetTextWidth(const char *text, int fontNumber)
 {
-  const WFNFont *font = (WFNFont*)fonts[fontNumber];
+  const WFNFont* font = _fontData[fontNumber];
   int text_width = 0;
 
   for (; *text; ++text)
@@ -64,7 +71,7 @@ int WFNFontRenderer::GetTextWidth(const char *text, int fontNumber)
 
 int WFNFontRenderer::GetTextHeight(const char *text, int fontNumber)
 {
-  const WFNFont *font = (WFNFont*)fonts[fontNumber];
+  const WFNFont* font = _fontData[fontNumber];
   int max_height = 0;
 
   for (; *text; ++text) 
@@ -83,7 +90,7 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
   int oldeip = get_our_eip();
   set_our_eip(415);
 
-  const WFNFont *font = (WFNFont*)fonts[fontNumber];
+  const WFNFont* font = _fontData[fontNumber];
   render_wrapper.WrapAllegroBitmap(destination, true);
 
   for (; *text; ++text)
@@ -92,7 +99,7 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
   set_our_eip(oldeip);
 }
 
-int WFNFontRenderer::RenderChar(Common::Bitmap *ds, const int at_x, const int at_y, const WFNChar &wfn_char, const color_t text_color)
+int RenderChar(Common::Bitmap *ds, const int at_x, const int at_y, const WFNChar &wfn_char, const color_t text_color)
 {
   const int width = wfn_char.Width;
   const int height = wfn_char.Height;
@@ -151,18 +158,16 @@ bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
     delete font;
     return false;
   }
-  fonts[fontNumber] = (IFont*)font;
+  _fontData[fontNumber] = font;
   return true;
 }
 
 void WFNFontRenderer::FreeMemory(int fontNumber)
 {
-  delete (WFNFont*)fonts[fontNumber];
-  fonts[fontNumber] = NULL;
+  _fontData.erase(fontNumber);
 }
 
 bool WFNFontRenderer::SupportsExtendedCharacters(int fontNumber)
 {
-  const WFNFont *font = (WFNFont*)fonts[fontNumber];
-  return font->GetCharCount() > 128;
+  return _fontData[fontNumber]->GetCharCount() > 128;
 }

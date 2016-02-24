@@ -83,7 +83,7 @@ namespace AGS.Editor
                 {
                     DialogResult ignore = MessageBox.Show("WARNING! The plugin '" + plugin.FileName +
                         "' does not have a Linux equivalent ('" + soName +
-                        "' (" + (has32bit ? "" : "32-bit") + (has64bit ? "" : (has32bit ? ", " : "") + "64-bit") + ")" +
+                        "' (" + (has32bit ? "" : "32-bit") + (has64bit ? "" : (has32bit ? "" : ", ") + "64-bit") + ")" +
                         ") available. Your game may not run or function properly without it. Do you wish to continue building for Linux anyway?",
                         "Missing plugin for Linux",
                         MessageBoxButtons.YesNo,

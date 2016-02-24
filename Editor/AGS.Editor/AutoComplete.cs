@@ -80,26 +80,33 @@ namespace AGS.Editor
 
         private static bool IncrementIndexToSkipAnyComments(FastString script, ref int index)
         {
-            if (index < script.Length - 1)
+            while (index < script.Length - 1 && (script[index] == '/'))
             {
-                if ((script[index] == '/') && (script[index + 1] == '/'))
+                if ((script[index + 1] == '/'))
                 {
-                    while ((script[index] != '\r') && (index < script.Length - 1))
-                    {
-                        index++;
-                    }
-                }
-                if ((script[index] == '/') && (script[index + 1] == '*'))
-                {
-                    index = script.IndexOf("*/", index + 2);
+                    index = script.IndexOf('\r', index + 2);
                     if (index < 0)
                     {
-                        index = script.Length - 1;
-                        return true;
+                        index = script.Length;
+                    }
+                }
+                else
+                {
+                    if ((script[index + 1] == '*'))
+                    {
+                        index = script.IndexOf("*/", index + 2);
+                        if (index < 0)
+                        {
+                            index = script.Length;
+                        }
+                    }
+                    else
+                    {
+                        break;
                     }
                 }
             }
-            return false;
+            return index == script.Length;
         }
 
         private static void SkipUntilMatchingClosingBrace(ref FastString script)

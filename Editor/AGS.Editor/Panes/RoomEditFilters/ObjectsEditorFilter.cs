@@ -55,17 +55,20 @@ namespace AGS.Editor
 		public bool KeyPressed(Keys key)
 		{
             if (_selectedObject == null) return false;
-            int step = GetArrowMoveStepSize();
-            switch (key)
+            if (!_selectedObject.Locked)
             {
-                case Keys.Right:
-                    return MoveObject(_selectedObject.StartX + step, _selectedObject.StartY);                    
-                case Keys.Left:
-                    return MoveObject(_selectedObject.StartX - step, _selectedObject.StartY);                    
-                case Keys.Down:
-                    return MoveObject(_selectedObject.StartX, _selectedObject.StartY + step);
-                case Keys.Up:
-                    return MoveObject(_selectedObject.StartX, _selectedObject.StartY - step);                    
+                int step = GetArrowMoveStepSize();
+                switch (key)
+                {
+                    case Keys.Right:
+                        return MoveObject(_selectedObject.StartX + step, _selectedObject.StartY);
+                    case Keys.Left:
+                        return MoveObject(_selectedObject.StartX - step, _selectedObject.StartY);
+                    case Keys.Down:
+                        return MoveObject(_selectedObject.StartX, _selectedObject.StartY + step);
+                    case Keys.Up:
+                        return MoveObject(_selectedObject.StartX, _selectedObject.StartY - step);
+                }
             }
             return false;
 		}
@@ -128,12 +131,15 @@ namespace AGS.Editor
 
         public virtual void Paint(Graphics graphics, RoomEditorState state)
         {
+            int xPos;
+            int yPos;
+
             if (_selectedObject != null)
             {
                 int width = GetSpriteWidthForGameResolution(_selectedObject.Image);
 				int height = GetSpriteHeightForGameResolution(_selectedObject.Image);
-				int xPos = AdjustXCoordinateForWindowScroll(_selectedObject.StartX, state);
-				int yPos = AdjustYCoordinateForWindowScroll(_selectedObject.StartY, state) - (height * state.ScaleFactor);
+				xPos = AdjustXCoordinateForWindowScroll(_selectedObject.StartX, state);
+				yPos = AdjustYCoordinateForWindowScroll(_selectedObject.StartY, state) - (height * state.ScaleFactor);
                 Pen pen = new Pen(Color.Goldenrod);
                 pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
                 graphics.DrawRectangle(pen, xPos, yPos, width * state.ScaleFactor, height * state.ScaleFactor);
@@ -150,6 +156,18 @@ namespace AGS.Editor
 
                     graphics.DrawString(toDraw, font, pen.Brush, (float)scaledx, (float)scaledy);
                 }
+                else
+                    if (_selectedObject.Locked)
+                    {
+                        pen = new Pen(Color.Goldenrod, 2);
+                        xPos = AdjustXCoordinateForWindowScroll(_selectedObject.StartX, state) + (GetSpriteWidthForGameResolution(_selectedObject.Image) / 2 * state.ScaleFactor);
+                        yPos = AdjustYCoordinateForWindowScroll(_selectedObject.StartY, state) - (GetSpriteHeightForGameResolution(_selectedObject.Image) / 2 * state.ScaleFactor);
+                        Point center = new Point(xPos, yPos);
+
+                        graphics.DrawLine(pen, center.X - 3, center.Y - 3, center.X + 3, center.Y + 3);
+                        graphics.DrawLine(pen, center.X - 3, center.Y + 3, center.X + 3, center.Y - 3);
+
+                    }
             }
         }
 
@@ -184,11 +202,12 @@ namespace AGS.Editor
                         ShowContextMenu(e, state);
                     }
                     else
-                    {
-                        _movingObjectWithMouse = true;
-                        _mouseOffsetX = x - obj.StartX;
-                        _mouseOffsetY = y - obj.StartY;
-                    }
+                        if (!obj.Locked)
+                        {
+                            _movingObjectWithMouse = true;
+                            _mouseOffsetX = x - obj.StartX;
+                            _mouseOffsetY = y - obj.StartY;
+                        }
                     break;
                 }
             }

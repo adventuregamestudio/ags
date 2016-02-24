@@ -115,7 +115,7 @@
 #define OBJF_USEREGIONTINTS    8  // obey region tints/light areas
 #define OBJF_USEROOMSCALING 0x10  // obey room scaling areas
 #define OBJF_SOLID          0x20  // blocks characters from moving
-#define OBJF_DELETED        0x40  // object has been deleted
+#define OBJF_LOCKED         0x40  // object position is locked in the editor
 #define OBJF_HASLIGHT       0x80  // the tint_light is valid and treated as brightness
 
 #endif // __AC_DEFINES_H

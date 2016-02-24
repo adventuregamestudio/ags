@@ -234,6 +234,17 @@ int String::FindCharReverse(char c, int from) const
     return -1;
 }
 
+int String::FindString(const char *cstr, int from) const
+{
+    if (_meta && cstr && from < _meta->Length)
+    {
+        from = from >= 0 ? from : 0;
+        const char * found_cstr = strstr(_meta->CStr + from, cstr);
+        return found_cstr ? found_cstr - _meta->CStr : -1;
+    }
+    return -1;
+}
+
 bool String::FindSection(char separator, int first, int last, bool exclude_first_sep, bool exclude_last_sep,
                         int &from, int &to) const
 {
@@ -661,6 +672,21 @@ void String::Replace(char what, char with)
             }
             rep_ptr++;
         }
+    }
+}
+
+void String::ReplaceMid(int from, int count, const char *cstr)
+{
+    if (!cstr)
+        cstr = "";
+    int length = strlen(cstr);
+    Math::ClampLength(0, GetLength(), from, count);
+    if (count >= 0)
+    {
+        ReserveAndShift(false, Math::Max(0, length - count));
+        memmove(_meta->CStr + from + length, _meta->CStr + from + count, GetLength() - (from + count) + 1);
+        memcpy(_meta->CStr + from, cstr, length);
+        _meta->Length += length - count;
     }
 }
 

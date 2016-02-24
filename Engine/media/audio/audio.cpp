@@ -202,12 +202,16 @@ int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool interruptE
     return channelToUse;
 }
 
+bool is_audiotype_allowed_to_play(AudioFileType type)
+{
+    return type == eAudioFileMIDI && usetup.midicard != MIDI_NONE ||
+           type != eAudioFileMIDI && usetup.digicard != DIGI_NONE;
+}
+
 SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
 {
     const char *clipFileName = get_audio_clip_file_name(audioClip);
-    if ((clipFileName == NULL) ||
-        (audioClip->fileType == eAudioFileMIDI && usetup.midicard == MIDI_NONE) ||
-        (audioClip->fileType != eAudioFileMIDI && usetup.digicard == DIGI_NONE))
+    if ((clipFileName == NULL) || !is_audiotype_allowed_to_play((AudioFileType)audioClip->fileType))
     {
         return NULL;
     }
@@ -621,9 +625,9 @@ void update_ambient_sound_vol () {
     }
 }
 
-SOUNDCLIP *load_sound_from_path(int soundNumber, int volume, bool repeat) 
+SOUNDCLIP *load_sound_and_play(ScriptAudioClip *aclip, bool repeat)
 {
-    SOUNDCLIP *soundfx = load_sound_clip_from_old_style_number(false, soundNumber, repeat);
+    SOUNDCLIP *soundfx = load_sound_clip(aclip, repeat);
 
     if (soundfx != NULL) {
         if (soundfx->play() == 0)
@@ -1039,6 +1043,13 @@ int prepare_for_new_music () {
     return useChannel;
 }
 
+ScriptAudioClip *get_audio_clip_for_music(int mnum)
+{
+    if (mnum >= QUEUED_MUSIC_REPEAT)
+        mnum -= QUEUED_MUSIC_REPEAT;
+    return get_audio_clip_for_old_style_number(true, mnum);
+}
+
 SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat) {
 
     if (mnum >= QUEUED_MUSIC_REPEAT) {
@@ -1061,13 +1072,15 @@ SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat) {
 void play_new_music(int mnum, SOUNDCLIP *music) {
     if (debug_flags & DBG_NOMUSIC)
         return;
-    if (usetup.midicard == MIDI_NONE)
-        return;
 
     if ((play.cur_music_number == mnum) && (music == NULL)) {
         DEBUG_CONSOLE("PlayMusic %d but already playing", mnum);
         return;  // don't play the music if it's already playing
     }
+
+    ScriptAudioClip *aclip = get_audio_clip_for_music(mnum);
+    if (aclip && !is_audiotype_allowed_to_play((AudioFileType)aclip->fileType))
+        return;
 
     int useChannel = SCHAN_MUSIC;
     DEBUG_CONSOLE("Playing music %d", mnum);

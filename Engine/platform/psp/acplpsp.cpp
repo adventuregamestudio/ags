@@ -32,6 +32,7 @@
 #include <allegro.h>
 
 #include "ac/runtime_defines.h"
+#include "main/config.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 
@@ -47,7 +48,7 @@ extern "C" {
 
 #include <util/string.h>
 
-using AGS::Common::String;
+using namespace AGS::Common;
 
 
 #ifdef PSP_ENABLE_PROFILING
@@ -70,11 +71,8 @@ struct AGSPSP : AGSPlatformDriver {
   virtual int  InitializeCDPlayer();
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroExit();
-  virtual int  RunSetup();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
-  virtual void WriteConsole(const char*, ...);
-  virtual void WriteDebugString(const char* texx, ...);
 };
 
 
@@ -82,10 +80,6 @@ String pspOutputDirectory;
 
 int psp_standalone;
 char psp_game_file_name[256];
-extern char filetouse[];
-
-char *INIreaditem(const char *sectn, const char *entry);
-int INIreadint (const char *sectn, const char *item, int errornosect = 1);
 
 extern void clear_sound_cache();
 
@@ -208,7 +202,7 @@ char* psp_buttons_name[] =
 };
 
 
-int GetScancodeFromKeyname(char* keyname)
+int GetScancodeFromKeyname(const char* keyname)
 {
   if (!keyname)
     return -1;
@@ -236,16 +230,14 @@ void ResetButtonConfiguration()
 }
 
 
-void ReadButtonMapping(char* section, psp_button_mapping_t* button_mapping, unsigned int &button_mapping_count, psp_mouse_config_t* mouse_mapping, psp_keyboard_config_t* keyboard_mapping)
+void ReadButtonMapping(const ConfigTree &cfg, char* section, psp_button_mapping_t* button_mapping, unsigned int &button_mapping_count, psp_mouse_config_t* mouse_mapping, psp_keyboard_config_t* keyboard_mapping)
 {
-  char* value;
+  String value;
   int scancode;
 
   for (int i = 0; i < sizeof(psp_buttons_value) / 4; i++)
   {
-    value = INIreaditem(section, psp_buttons_name[i]);
-
-    if (!value)
+    if (!INIreaditem(cfg, section, psp_buttons_name[i], value))
       continue;
 
     // Check for key command
@@ -255,7 +247,7 @@ void ReadButtonMapping(char* section, psp_button_mapping_t* button_mapping, unsi
       button_mapping[button_mapping_count].button = psp_buttons_value[i];
       button_mapping[button_mapping_count].scancode = scancode;
       button_mapping_count++;
-      printf("%s = %s (%d)\n", psp_buttons_name[i], value, scancode);
+      printf("%s = %s (%d)\n", psp_buttons_name[i], value.GetCStr(), scancode);
       continue;
     }    
 
@@ -293,15 +285,13 @@ void ReadButtonMapping(char* section, psp_button_mapping_t* button_mapping, unsi
       else if (stricmp(value, "keyboard_previous_keyset") == 0)
         keyboard_mapping->previous_keyset = psp_buttons_value[i];
     }
-
-    free(value);
   }
 }
 
 
-int ReadInteger(int* variable, char* section, char* name, int minimum, int maximum, int default_value)
+int ReadInteger(int* variable, const ConfigTree &cfg, char* section, char* name, int minimum, int maximum, int default_value)
 {
-  int temp = INIreadint(section, name);
+  int temp = INIreadint(cfg, section, name);
 
   if (temp == -1)
     return 0;
@@ -316,11 +306,10 @@ int ReadInteger(int* variable, char* section, char* name, int minimum, int maxim
 
 
 
-int ReadString(char* variable, char* section, char* name, char* default_value)
+int ReadString(char* variable, const ConfigTree &cfg, char* section, char* name, char* default_value)
 {
-  char* temp = INIreaditem(section, name);
-
-  if (temp == NULL)
+  String temp;
+  if (!INIreaditem(cfg, section, name, temp))
     temp = default_value;
 
   strcpy(variable, temp);
@@ -333,55 +322,50 @@ int ReadString(char* variable, char* section, char* name, char* default_value)
 
 void ReadConfiguration(char* filename)
 {
-  FILE* test = fopen(filename, "rb");
-  if (test)
+  ConfigTree cfg;
+  if (IniUtil::Read(filename, cfg))
   {
-    fclose(test);
-    strcpy(filetouse, filename);
-
     ResetButtonConfiguration();
 
-    ReadButtonMapping("button_mapping", psp_to_scancode, psp_to_scancode_count, &psp_mouse_mapping, NULL);
-    ReadButtonMapping("onscreen_keyboard", psp_to_scancode_osk, psp_to_scancode_osk_count, &psp_mouse_mapping_osk, &psp_keyboard_mapping);
+    ReadButtonMapping(cfg, "button_mapping", psp_to_scancode, psp_to_scancode_count, &psp_mouse_mapping, NULL);
+    ReadButtonMapping(cfg, "onscreen_keyboard", psp_to_scancode_osk, psp_to_scancode_osk_count, &psp_mouse_mapping_osk, &psp_keyboard_mapping);
 
-    ReadString(&psp_translation[0], "misc", "translation", "default");
+    ReadString(&psp_translation[0], cfg, "misc", "translation", "default");
 
-    ReadInteger((int*)&psp_disable_powersaving, "misc", "disable_power_saving", 0, 1, 1);
+    ReadInteger((int*)&psp_disable_powersaving, cfg, "misc", "disable_power_saving", 0, 1, 1);
 
-    ReadInteger((int*)&psp_return_to_menu, "misc", "return_to_menu", 0, 1, 1);
+    ReadInteger((int*)&psp_return_to_menu, cfg, "misc", "return_to_menu", 0, 1, 1);
 
-    ReadInteger(&display_fps, "misc", "show_fps", 0, 1, 0);
+    ReadInteger(&display_fps, cfg, "misc", "show_fps", 0, 1, 0);
     if (display_fps == 1)
       display_fps = 2;
 
-    ReadInteger((int*)&psp_ignore_acsetup_cfg_file, "compatibility", "ignore_acsetup_cfg_file", 0, 1, 0);
-    ReadInteger((int*)&psp_enable_extra_memory, "compatibility", "enable_extra_memory", 0, 1, 0);
-    ReadInteger((int*)&psp_clear_cache_on_room_change, "compatibility", "clear_cache_on_room_change", 0, 1, 0);
+    ReadInteger((int*)&psp_ignore_acsetup_cfg_file, cfg, "compatibility", "ignore_acsetup_cfg_file", 0, 1, 0);
+    ReadInteger((int*)&psp_enable_extra_memory, cfg, "compatibility", "enable_extra_memory", 0, 1, 0);
+    ReadInteger((int*)&psp_clear_cache_on_room_change, cfg, "compatibility", "clear_cache_on_room_change", 0, 1, 0);
 
-    ReadInteger((int*)&psp_audio_samplerate, "sound", "samplerate", 0, 44100, 44100);
-    ReadInteger((int*)&psp_audio_enabled, "sound", "enabled", 0, 1, 1);
-    ReadInteger((int*)&psp_audio_multithreaded, "sound", "threaded", 0, 1, 1);
+    ReadInteger((int*)&psp_audio_samplerate, cfg, "sound", "samplerate", 0, 44100, 44100);
+    ReadInteger((int*)&psp_audio_enabled, cfg, "sound", "enabled", 0, 1, 1);
+    ReadInteger((int*)&psp_audio_multithreaded, cfg, "sound", "threaded", 0, 1, 1);
 
-    ReadInteger((int*)&psp_midi_enabled, "midi", "enabled", 0, 1, 1);
-    ReadInteger((int*)&psp_midi_preload_patches, "midi", "preload_patches", 0, 1, 0);
+    ReadInteger((int*)&psp_midi_enabled, cfg, "midi", "enabled", 0, 1, 1);
+    ReadInteger((int*)&psp_midi_preload_patches, cfg, "midi", "preload_patches", 0, 1, 0);
 
     int audio_cachesize;
-    if (ReadInteger((int*)&audio_cachesize, "sound", "cache_size", 1, 50, 10));
+    if (ReadInteger((int*)&audio_cachesize, cfg, "sound", "cache_size", 1, 50, 10));
       psp_audio_cachesize = audio_cachesize;
 
     int mouse_sensitivity;
-    if (ReadInteger((int*)&mouse_sensitivity, "analog_stick", "sensitivity", 0, 500, 50))
+    if (ReadInteger((int*)&mouse_sensitivity, cfg, "analog_stick", "sensitivity", 0, 500, 50))
       psp_mouse_analog_sensitivity = (float)mouse_sensitivity / 25.0f;
 
-    ReadInteger((int*)&psp_mouse_analog_deadzone, "analog_stick", "deadzone", 0, 128, 20);
+    ReadInteger((int*)&psp_mouse_analog_deadzone, cfg, "analog_stick", "deadzone", 0, 128, 20);
 
-    ReadInteger((int*)&psp_video_framedrop, "video", "framedrop", 0, 1, 0);
+    ReadInteger((int*)&psp_video_framedrop, cfg, "video", "framedrop", 0, 1, 0);
 
-    ReadInteger((int*)&psp_gfx_smoothing, "graphics", "smoothing", 0, 1, 1);
-    ReadInteger((int*)&psp_gfx_scaling, "graphics", "scaling", 0, 1, 1);
-    ReadInteger((int*)&psp_gfx_smooth_sprites, "graphics", "smooth_sprites", 0, 1, 0);
-
-    strcpy(filetouse, "nofile");
+    ReadInteger((int*)&psp_gfx_smoothing, cfg, "graphics", "smoothing", 0, 1, 1);
+    ReadInteger((int*)&psp_gfx_scaling, cfg, "graphics", "scaling", 0, 1, 1);
+    ReadInteger((int*)&psp_gfx_smooth_sprites, cfg, "graphics", "smooth_sprites", 0, 1, 0);
   }
 }
 
@@ -477,17 +461,6 @@ void psp_initialize()
 
 
 
-void AGSPSP::WriteDebugString(const char* texx, ...) {
-  char displbuf[STD_BUFFER_SIZE] = "AGS: ";
-  va_list ap;
-  va_start(ap,texx);
-  vsprintf(&displbuf[5],texx,ap);
-  va_end(ap);
-  strcat(displbuf, "\n");
-
-  printf(displbuf);
-}
-
 int AGSPSP::CDPlayerCommand(int cmdd, int datt) {
   return 1;//cd_player_control(cmdd, datt);
 }
@@ -543,21 +516,8 @@ void AGSPSP::PostAllegroExit() {
   psp_quit();
 }
 
-int AGSPSP::RunSetup() {
-  return 0;
-}
-
 void AGSPSP::SetGameWindowIcon() {
   // do nothing
-}
-
-void AGSPSP::WriteConsole(const char *text, ...) {
-  char displbuf[2000];
-  va_list ap;
-  va_start(ap, text);
-  vsprintf(displbuf, text, ap);
-  va_end(ap);
-  printf("%s", displbuf);
 }
 
 void AGSPSP::ShutdownCDPlayer() {

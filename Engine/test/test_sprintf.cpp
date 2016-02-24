@@ -30,22 +30,22 @@ void Test_ScriptSprintf()
 
     // Correct format, extra placeholder
     const char *result = 
-        ScriptSprintf(ScSfBuffer, 3000,
+        ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE,
                       "testing ScriptSprintf:\nThis is int: %10d\nThis is float: %.4f\nThis is string: '%s'\nThis placeholder will be ignored: %d",
                       params, 3);
     assert(strcmp(result, "testing ScriptSprintf:\nThis is int:        123\nThis is float: 0.4560\nThis is string: 'string literal'\nThis placeholder will be ignored: %d") == 0);
     // Literal percent sign
-    result = ScriptSprintf(ScSfBuffer, 3000, "aaa%%aaa", params, 3);
+    result = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, "aaa%%aaa", params, 3);
     assert(strcmp(result, "aaa%aaa") == 0);
 
     // Invalid format
-    result = ScriptSprintf(ScSfBuffer, 3000, "%zzzzzz", params, 3);
+    result = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, "%zzzzzz", params, 3);
     assert(strcmp(result, "%zzzzzz") == 0);
-    result = ScriptSprintf(ScSfBuffer, 3000, "%12.34%d", params, 3);
+    result = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, "%12.34%d", params, 3);
     assert(strcmp(result, "%12.34123") == 0);
 
     // Not enough arguments
-    result = ScriptSprintf(ScSfBuffer, 3000, "%5d%0.5f%s", params, 0);
+    result = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, "%5d%0.5f%s", params, 0);
     assert(strcmp(result, "%5d%0.5f%s") == 0);
 
     // Not enough buffer space

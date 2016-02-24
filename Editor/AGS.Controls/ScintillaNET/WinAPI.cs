@@ -16,11 +16,15 @@ namespace Scintilla
     public class WinAPI
     {
         public const int WM_NOTIFY = 0x004e;
+<<<<<<< HEAD
         public const int WM_DESTROY = 0x02;
         public static readonly IntPtr HWND_MESSAGE = new IntPtr(-3);
 
         [DllImport("user32.dll")]
         public static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
+=======
+        public const int WM_SETCURSOR = 0x0020;
+>>>>>>> ba2cfa67681f7d3229e9b75635f3a69f9890c2b6
 
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool MessageBeep(BeepType type);

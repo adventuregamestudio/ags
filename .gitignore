@@ -1,3 +1,4 @@
+*~
 .pc
 *.ncb
 *.suo
@@ -37,14 +38,15 @@ Android/launcher_list/.classpath
 Android/launcher_list/.settings/
 Android/launcher_list/bin/
 Android/launcher_list/gen/
+Android/launcher_list/local.properties
 Android/library/.settings/
 Android/library/bin/
 Android/library/gen/
 Android/library/libs/
 Android/library/obj/
-Android/library/default.properties
-Android/library/project.properties
+Android/library/local.properties
 Android/library/.classpath
+Android/nativelibs
 Editor/References/AGS.Native.dll
 Solutions/Common.Lib/Debug_MD/
 Solutions/Common.Lib/Release_MD/
@@ -59,3 +61,10 @@ Manual/ags.hhc
 Manual/ags.hhk
 Manual/ags.hhp
 Manual/ags.htx
+iOS/nativelibs/armv6
+iOS/nativelibs/armv7
+iOS/nativelibs/armv7s
+iOS/nativelibs/arm64
+iOS/nativelibs/i386
+iOS/nativelibs/x86_64
+Solutions/Engine.App/test.ini

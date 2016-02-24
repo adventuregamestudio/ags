@@ -1,0 +1,75 @@
+
+                              AllegroMP3
+                             ============
+
+                  AllegroMP3 (c) 2001 Javier Gonzalez
+
+ MP3 Decoder Copyright (c) 1995-1997 Xing Technology Corp. (www.xingtech.com)
+      other portions of the decoder Copyright (C) 1998-1999 EMusic.com
+              see even more credits at decoder/AUTHORS file
+
+
+AllegroMP3 is an Allegro wrapper for the wonderful MP3 decoder originally
+from Xing Technology and now part of the FreeAmp source code.
+AllegroMP3 is distributed under the GNU Lesser General Public License
+Version 2.1 (see file COPYING).
+
+Note this library is able to use the GNU Lesser General Public License
+as legacy from the xingmp3-1.0.0-pre library available at
+http://obs.freeamp.org/download/xingmp3-1.0.0-pre1.tar.gz
+The full source code (very slightly modified to make it compatible
+with Allegro and DOS) of this one is available in the decoder directory.
+
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+
+AllegroMP3 uses code from:
+  - Xing Technology MPEG-Audio decoder part of
+  - xingmp3-1.0.0-pre library
+
+
+How to compile the library and example code:
+
+  If you are running under a un*x system first run fixunix.sh
+  If you want to use the DOS/Windows the pack is ready to be used
+  as is right now, no conversion needed. fixdos.bat is only provided
+  to be used if you used fixunix.sh to change file formats to unix one
+  and you want them to be DOS format back again. Note that to use fixdos.bat
+  you will need utod.exe.
+
+
+  In case you are using GCC (DJGPP, MINGW32):
+
+  Then edit the makefile and uncomment the target you want to compile to then run in the command
+  line "make" and that's all.
+
+  It will generate a library (libalmp3.a) ready to use in your programs
+
+  After that, if you want to compile the example, get inside the directory
+  example, edit the makefile uncommenting the target you want to compile to
+  and type "make".
+
+
+  In case you are using Microsoft Visual C++:
+
+  Open the project file and build, it will 
+
+How to contact me:
+
+  xaviergonz@hotmail.com
+
+

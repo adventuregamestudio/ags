@@ -52,7 +52,9 @@ sed -i -r "5s/.*/BIT=32/" $BASEPATH/debian/ags+libraries/hooks/B00_copy_libs.sh
 
 # Build the source package:
 cd $BASEPATH
-VERSION=$(dpkg-parsechangelog | grep -x "Version:.*" | sed 's@Version: \(.\+\)@\1@')
+CHANGELOG_VERSION=$(head -1 debian/changelog | sed 's/.*(\(.*\)).*/\1/')
+VERSION=$(grep '#define ACI_VERSION_STR' Common/core/def_version.h | sed 's/.*"\(.*\)".*/\1/')
+sed -i -- "s/$CHANGELOG_VERSION/$VERSION/" debian/changelog
 debian/rules get-orig-source
 debuild -us -uc -S
 
@@ -100,3 +102,6 @@ cd $BASEPATH && tar -cf - ags+libraries/ | xz -9 -c - > ags+libraries_$(date +%Y
 # Delete the ags+libraries folder, because some of the subfolders and files are owned by root.
 # Extracting the .tar.xz yields the folder with proper owner/permissions.
 sudo rm -rf $BASEPATH/ags+libraries/
+
+# Restore changelog version to prevent unnecessary commits
+sed -i -- "s/$VERSION/$CHANGELOG_VERSION/" $BASEPATH/debian/changelog

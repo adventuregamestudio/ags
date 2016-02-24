@@ -8,7 +8,7 @@
 \parskip=10pt%
 \parindent=0pt%
 \backgroundcolour{255;255;225}\textcolour{0;0;0}% Has an effect in HTML only
-\title{Adventure Game Studio 3.3.4}%
+\title{Adventure Game Studio 3.3.5}%
 \author{by Chris Jones et al.}%
 \makeindex%
 \begin{document}%
@@ -189,27 +189,92 @@ See Also: \helprefn{System.HardwareAcceleration property}{System.HardwareAcceler
 
 The engine Setup program allows the player to customize certain game settings.
 
-Firstly, they can change the game resolution. If they do so, all your game
-graphics will automatically be stretched or shrunk to fit, and the option is a
-handy way for the player to start the game if their system won't run at the default
-resolution for some reason.
+\bf{NOTE:} currently setup program is featured only for Windows.
 
-They can also select to run the game in a window on the desktop rather than full-screen.
-This will take a performance hit though, so it's always preferable to run full-screen.
+The options in setup are divided into two parts: common and advanced. Advanced
+options could be accessed by pressing "Advanced" button.
 
-"Enable side-borders" and "Enable top & bottom borders" options allow the game to choose from wider range of resolutions, including the ones which display game surrounded by horizontal and/or vertical borders (the so-called "letterboxed" and "pillarboxed" modes).
+\bf{Graphics options}
 
-"Smooth scaled sprites" will apply anti-aliasing to scaled characters, in order to
-give a smoother look to the resizing. This can slow down the game though, so it is off
-by default.
+\begin{description}
+\item [Run in the window instead of fullscreen]
+  If checked, the game will be run in windowed mode, as opposed to fullscreen.
+\item [Driver]
+  Lets player choose a graphics driver. Currently supported are DirectX 5 (old driver)
+and Direct3D 9 (newer and faster driver with hardware acceleration).
+\item [Filter]
+  Here player may choose a graphics scaling filter. Filter type defines the method of
+scaling (nearest-neighbour is most simple one), as well as scaling multiplier.
+  Selecting a filter with higher scaling multiplier will make game stretch to higher resolution.
+  The list of available filters depend on driver selection.
+\end{description}
 
-The "Downgrade 32-bit graphics to 16-bit" option is only available for 32-bit games.
-It allows people with slower PCs to choose to play the game at 16-bit instead, in order
-to boost performance. If they use this, the graphical quality will reduce, but it should at
-least allow them to play the game at a decent speed.
+\bf{Gameplay settings}
 
-Finally, the "Use 85 Hz display" option sets the monitor refresh rate to 85 Hz to run the game, which eliminates flicker. However, this does not work on all monitors, and not at all on flat
+\begin{description}
+\item [Game language]
+  Here player may choose one of the available game translations.
+\item [Custom game saves path]
+  When unchecked, the game will store its files - saved games, and custom runtime data - 
+in the default Windows folders: "C:/Users/<Username>/Saved Games/<Game Title>" and
+"C:/Program Data/Adventure Game Studio/<Game Title>" respectively.
+  Players may enable this option and define their own location to store game files.
+\end{description}
+
+\bf{Advanced graphics options}
+
+\begin{description}
+\item [Enable side-borders / Enable top & bottom borders]
+  These two options allow the game to choose from wider range of resolutions, including
+the ones which display game surrounded by horizontal and/or vertical borders (the
+so-called "letterboxed" and "pillarboxed" modes).
+\item [Smooth scaled sprites]
+  This option will apply anti-aliasing to scaled characters, in order to give
+a smoother look to the resizing. This can slow down the game though, so it is off by default.
+\item [Downgrade 32-bit graphics to 16-bit]
+  This option is only available for 32-bit games. It allows people with slower PCs
+to choose to play the game at 16-bit instead, in order to boost performance.
+If they use this, the graphical quality will reduce, but it should at least allow them to play
+the game at a decent speed.
+\item [Use 85 Hz display]
+  This option sets the monitor refresh rate to 85 Hz to run the game, which eliminates flicker. However, this does not work on all monitors, and not at all on flat
 panel displays, which is why it is disabled by default.
+\end{description}
+
+\bf{Sound options}
+
+\begin{description}
+\item [Digital sound]
+  Here player may choose the digital audio driver, or disable digital sound completely.
+\item [MIDI music]
+  Here player may choose the MIDI music playback method, or disable MIDI music completely.
+\item [Use voice pack is available]
+  When checked, this option enables voice speech in game (where available).
+\end{description}
+
+\bf{Mouse options}
+
+\begin{description}
+\item [Auto lock to window]
+  If this option is enabled, the mouse will be locked inside game window whenever player clicks on it or switches into game.
+The locked mouse cannot leave game window, making it impossible to switch out from the game by mistake (by clicking on desktop,
+for example). Naturally, this option only has importance if game is run in windowed mode; when in fullscreen the mouse is always
+locked.
+\item [Mouse speed]
+  This slider allows player to set up mouse cursor speed in game. It should be noted that this parameter is only applied if the
+game is run in fullscreen mode.
+\end{description}
+
+\bf{Other advanced settings}
+
+\begin{description}
+\item [Sprite cache max size]
+  This option limits the maximum amount of memory that the game will use for its sprite cache. Sprite cache is used to
+  keep a partition of all the game sprites loaded to the memory, thus reducing loading times between rooms and preventing
+  slowdowns during game play.
+  Of course, higher values make the game use more memory. Usually only high-resolution games with long animations need
+  to have this value increased.
+\end{description}
 
 
 \chapter{Tutorial}%
@@ -1339,27 +1404,33 @@ With AGS you can link a line of dialog to a speech file, to enable "talkie"-
 style games. Suppose you have a dialog script with the following:
 \begin{verbatim}
 ego: "Hi! How are you?"
-david: "I'm fine."
+michael: "I'm fine."
 \end{verbatim}
 Normally this would display the words in the speech text above the characters
 heads. However, you can add the special character '&' to symbolise that a
-voice file should also be played. The file name is made up of the \bf{first four
-letters} of the character's \bf{script name}, then an ID number. For example,
+voice file should also be played.
+
+The file name has format XXXXY.EXT, where XXXX is made of up to \bf{first four
+letters} of the character's script name (except the leading 'c'), the Y is the speech
+file number (with no leading or trailing zeroes or padding of any kind), and EXT is the file extension.
+
+For example, if you have dialog script:
 \begin{verbatim}
 ego: &10 "Hi! How are you?"
-david: &7 "I'm fine."
+michael: &7 "I'm fine."
 \end{verbatim}
-This would play EGO10.WAV with the first line, and DAVI7.WAV with the second.
+
+or common script using Say script function:
+\begin{verbatim}
+cEgo.Say("&10 Hi! How are you?");
+cMichael.Say("&7 I'm fine.");
+\end{verbatim}
+
+Both of those examples would play EGO10.WAV with the first line, and MICH7.WAV with the second.
 When a line of text has a voice linked to it, the text on the screen will not
 be removed until the voice file has finished playing. If the player interrupts
 it by clicking the mouse or pressing a key, the text and voice will be stopped.
 Voice files must be placed in the "Speech" sub-directory of the game folder.
-
-You can also use speech with Say script function.
-\begin{verbatim}
-cEgo.Say("&10 Hi! How are you?");
-cDavid.Say("&7 I'm fine.");
-\end{verbatim}
 
 \bf{NOTE:} WAV, OGG and MP3 format files can be used for speech.
 
@@ -1371,7 +1442,7 @@ from the rest of your game data so that you can offer it as an optional extra
 download to the player. The game will function correctly if the file is not
 present.
 
-\it{SeeAlso:} \helprefn{Speech.VoiceMode}{Speech.VoiceMode} script property.
+\it{SeeAlso:} \helprefn{Speech.VoiceMode}{Speech.VoiceMode}
 
 
 \subsection{The AudioCache folder}\label{AudioCache}\index{AudioCache folder}%
@@ -2417,179 +2488,6 @@ The Scripting Tutorial is online here:
 The Scripting Tutorial Part 2 is online here:
 \urlref{http://www.bigbluecup.com/actutor2.htm}{http://www.bigbluecup.com/actutor2.htm}
 
-\section{Upgrading to AGS 2.7}\label{UpgradingTo27}%
-
-The script language in AGS 2.7 has changed quite significantly from previous versions.
-Many of the script commands have become \it{object-based}, which has several advantages
-over the previous approach. This page will attempt to introduce you to the new method and
-explain its benefits.
-
-Firstly, so that you can get an idea of the changes, here's an example of some old-style
-script commands and their new equivalents:
-\begin{verbatim}
-AnimateObjectEx(0,2,0,0,0,1);
-ListBoxAdd(3, 5, "New item");
-\end{verbatim}
-becomes:
-\begin{verbatim}
-oWaterfall.Animate(2, 0, eOnce, eForwards, eBlock);
-lstTest.AddItem("New item");
-\end{verbatim}
-
-Just from looking at that example the advantages should be obvious; the script is more
-intuitive for people to learn, much easier to read (no guessing what all the numbers mean
-in the AnimateObjectEx call), and therefore you're less likely to make mistakes when using it.
-GUI controls having names brings it much more into line with Visual Basic-style GUI
-development, so you don't have to remember what control number all your buttons are.
-
-The script editor's autocomplete functionality has been significantly enhanced to aid
-in all this as well. You'll see as you start to experiment that autocomplete pops up more
-often and lists only the relevant commands thanks to object-based scripting.
-
-\bf{So does this mean I have to throw out all my scripts?}
-
-No, certainly not! The new version is fully backwards compatible, so all your existing
-scripts will continue to work just fine. However, for any new scripts that you write,
-it's strongly recommended that you use the new object-based commands.
-
-\bf{Ok, so uh... what's changed exactly?}
-
-The script language syntax hasn't changed at all (that's the way you use semicolons, brackets,
-and so on). It's still just like it was before, but with some new additions. Most
-significantly, most commands are now called \bf{on something}. For example, the old
-command:
-
-\verb$StopMoving(EGO);$
-
-Just from looking at that, it's not at all obvious what StopMoving does. Does it stop
-a character moving, an object moving, or does it stop the screen moving? It's not intuitive.
-So now, rather than supplying the character as a parameter to the function, you actually
-call the function \bf{on} the character. So:
-
-\verb$character[EGO].StopMoving();$
-
-Now it's perfectly clear that it's the character EGO that we want to stop moving.
-
-Suppose you're wondering what commands you can call on a character. Previously it was hard
-to tell, but now if you type  \verb$character[EGO].$  in the script editor, auto-complete will
-pop up and list all the valid functions and properties that you can access on the character.
-
-\bf{So I have to keep typing character[EGO] all the time? What a pain!}
-
-Not so fast! Most of the new object-based commands can be called in two ways -- either
-through the main array as we just saw, but also through what's called the character's
-\bf{Script O-Name}. This is a shorthand that allows you to directly access things, and
-for characters it is the script name in sentence case, with a "c" added to the beginning.
-So, in this example it would be:
-
-\verb$cEgo.StopMoving();$
-
-This line has an identical effect to the one with character[EGO] that we used above.
-
-Furthermore, the \it{player} variable is now kept up to date with the current player
-character, so it is actually useful. In a multi-character game, what you previously had
-to write like this:
-
-\verb$StopMoving(GetPlayerCharacter());$
-
-can now be done like this:
-
-\verb$player.StopMoving();$
-
-\bf{Hmm, I see... so what exactly has been object-ised?}
-
-Currently, the following object-based things are available:
-
-\begin{tabular}{|l|l|}
-\row{ \bf{ Global array } & \bf{ O-Name example }
-}\row{{ character[] } & { cEgo }
-}\row{{ object[] } & { oDoor }
-}\row{{ hotspot[] } & { hTree }
-}\row{{ gui[] } & { gInventory }
-}\row{{ inventory[] } & { iPinkPoster }
-}\row{{ region[] } & { (none) }
-}\end{tabular}
-
-GUI controls are handled slightly differently. They all have a script name,
-and are directly accessed via that. For example, if you set the script name of
-a list box to "lstSaves", then you would use "lstSaves." to access it. There is no
-global array of GUI controls.
-
-\bf{How do I find out the new equivalents of old functions?}
-
-The help file's index has been set up to automatically redirect you to the new commands.
-Just open the help file, go to the index and type in the name of an old command, and
-it will bring you to the new object-based equivalent (if there is one).
-
-\bf{Which commands haven't been changed?}
-
-Commands which don't operate on anything in particular (and therefore wouldn't really
-benefit from being object-based) have been left alone. For example, SaveGameSlot, QuitGame
-and so on have all remained identical to how they were in previous versions.
-
-\bf{What's the deal with these "eBlock" type things?}
-
-AGS now supports \bf{enumerated types}. Basically, in situations where you have to choose
-one from a list of possible options, an enumerated type (or \it{enum}) now steps in. In
-the past, you had commands with descriptions like this:
-
-"Pass 1 if you want the function to block, or 0 if you don't".
-
-This lead to lots of 1's and 0's in function calls, which are hard to read. Now, instead
-of this each number is represented by an easy-to-remember word (such as \it{eBlock} and
-\it{eNoBlock}). Even better, when you call a function that uses an enum parameter,
-auto-complete automatically pops up the list of options for you to choose from.
-
-See the \helprefn{enum keyword}{enum} description for information on how to create your own.
-
-\bf{So do I have to pass all these things like eBlock every time I call the function?}
-
-Nope! Many functions now support \bf{optional parameters}, where the most common options
-are selected automatically. If you look at the help for a function such as the
-\helprefn{Animate character command}{Character.Animate}, you'll see some of the parameters
-are defined as "optional". This means that you don't have to supply them; if you don't,
-the default option that will be chosen is described in the help for that command.
-
-\bf{So what else is new?}
-
-Well, 2.7 introduces the \it{float} data type, so AGS now finally supports floating-point
-arithmetic in your scripts. Also, for more advanced scripters, you can create your own
-member functions (including protected and static ones) to write cleaner script than just
-having a bunch of global functions.
-
-Also, the script editor is now much better at checking your script for errors. You may
-well find that a script which compiled fine before no longer works on 2.7. Hopefully
-the error message should direct you towards fixing any problems.
-
-\bf{Is there anything else I should watch out for?}
-
-Because of the new additions, the script language has more reserved words than before. For
-example, words like "gui", "object" and "hotspot" are now reserved (since they are used
-to access the global arrays). If your script uses any variables with these names, it will
-no longer work. You'll need to change the variable name in order to compile.
-
-Also, the script language now supports \it{pointers}. Because they are a fairly
-complex topic, there's a \helprefn{separate page}{Pointers} devoted to explaining what
-they are.
-
-\bf{Blimey, that's a lot to take in. Where do I start?}
-
-I'd recommend attempting to write your next section of script in the new way. Each time
-you're about to use an old-style command, simply look it up in the manual to find out
-what it's replacement is.
-
-Once you get used to the new system, I'm sure you'll agree that it is a significant
-improvement over the old scripting system and you'll start to enjoy the benefits of
-faster and more intuitive coding.
-
-As always, if there's something you really can't get your head round, post on the
-AGS Forums and we'll help you out as best we can!
-
-Have fun, ILBRK
-CJ
-
-\bf{Next:} \helprefn{Pointers in AGS}{Pointers}
-
 
 \section{Pointers in AGS}\label{Pointers}%
 
@@ -2745,70 +2643,6 @@ Because there is no \it{new} keyword, you cannot create object instances; rather
 are returned by static member functions in AGS, such as \helprefn{File.Open}{File.Open}
 and \helprefn{Hotspot.GetAtScreenXY}{Hotspot.GetAtScreenXY}. See the examples for the
 functions to get an idea of how to use them.
-
-
-\section{Upgrading to AGS 2.71}\label{UpgradingTo271}%
-
-AGS 2.71 adds new simple string support to the scripting language. Strings have long
-been a pain to use in AGS, but this is finally addressed by v2.71.
-
-There's a new String type (that's a capital 'S'). These new strings behave like Java/\verb$C#$
-strings in that you can easily assign to and manipulate them.
-
-For example, in 2.7 and previous versions, you had to do this: ILBRK
-\begin{verbatim}
-string text;
-StrCopy(text, "This is my text");
-\end{verbatim}
-in 2.71, you can now do:
-\begin{verbatim}
-String text = "This is my text";
-\end{verbatim}
-Furthermore, the == and != operators can be used to compare strings for equality (equivalent
-to using StrComp but much more intuitive). An additional benefit is that there is no longer
-a need for GetText() and SetText() methods -- instead, we can now just have Text properties.
-
-All the old-style functions that took a "string buffer" parameter have now been replaced with
-new ones that return a string instead. Where properties have been created, you should be able
-to use them like any other property, so:
-\begin{verbatim}
-lblLabel.Text = "Hello";
-String buttonValue = btnOK.Text;
-\end{verbatim}
-and so on.
-
-\bf{NOTE:} Some of the new functions are provided on the Game object -- for example, the new
-GetSaveSlotDescription function needs to be called like this:ILBRK
-\verb$String description = Game.GetSaveSlotDescription(10);$ ILBRK
-This is part of a move towards all built-in functions being object-based, but watch out for it
-as it could well cause some confusion. The manual will show you which functions require this.
-
-Rather than using old functions like StrCat and StrContains, you now call the functions
-directly on the strings:
-\begin{verbatim}
-String text = "Hello";
-text = text.Append("World");
-\end{verbatim}
-will mean that \it{text} now contains "HelloWorld". ILBRK
-Note the \bf{text =} in that expression. Functions like Append will return a modified version
-of the string, they won't actually change the original. Therefore, to update the \it{text}
-variable you need to assign the result to it.
-
-\bf{Backwards compatibility}
-
-In order to maintain backwards compatibility, a new "const" keyword has been added. This
-applies only to old-style strings, and allows them to interoperate with the new ones. A
-new-style String can be passed to a function that expects a "const string" (which means
-that it will not be allowed to change the string's contents), but cannot be passed to a
-function that expects a "string" (since it could overwrite the string data and mess things up).
-
-So, you may find that any custom functions you have that take a string parameter stop 
-working. If this is the case, change the parameter from "string" to "const string" and
-that should fix it.
-
-Apologies for the inconvenience, but this is the only way to allow new Strings to
-interoperate safely with old-style strings.
-
 
 
 \section{Calling global functions from local scripts}%
@@ -2967,6 +2801,7 @@ be called at the appropriate times just before the global script's function is:
 \item function on_mouse_click(MouseButton button) 
 \item function repeatedly_execute()
 \item function repeatedly_execute_always()
+\item function late_repeatedly_execute_always()
 \end{itemize}
 All other special functions, such as \verb$dialog_request$, will only be called in
 the Global Script, even if they exist in another script. If you need other scripts to
@@ -3047,7 +2882,7 @@ However, this is not the case. It is still the global thread that is calling Pro
 so the room script will actually be run on the global thread once it is free.
 
 Finally, we come onto the No-Block thread. This thread is only used to run the
-\it{repeatedly_execute_always} function. Because repeatedly_execute_always is not
+\it{repeatedly_execute_always} and \it{late_repeatedly_execute_always} functions. Because these two are not
 allowed to run any blocking functions, this ensures that the thread never gets blocked
 and so it will always run, even when the other threads are busy:
 
@@ -3266,8 +3101,13 @@ eEventRestoreGame
   See \helprefn{this help page}{RepExec} for more information.
 \item [repeatedly_execute_always()]
   Called every game cycle, even when a blocking routine (eg. speech/cutscene) is in
-  progress. You \bf{cannot} call any blocking functions from this event handler. 
+  progress. You \bf{cannot} call any blocking functions from this event handler.
+  \bf{repeatedly_execute_always} is called \bf{BEFORE} the game objects (characters, rooms, etc) get updated.
   See \helprefn{this help page}{RepExec} for more information.
+\item [late_repeatedly_execute_always()]
+  Called every game cycle, even when a blocking routine (eg. speech/cutscene) is in
+  progress. You \bf{cannot} call any blocking functions from this event handler. 
+  \bf{late_repeatedly_execute_always} is called \bf{AFTER} the game objects (characters, rooms, etc) got updated, but before game is redrawn on screen.
 \item [unhandled_event (int what, int type)]
   Called when an event occurs, but no handler is set up in the Events list.
   This could be used to display a default "I can't do that" type of message.
@@ -3317,7 +3157,7 @@ the keypress/mouseclick first, and then decide whether to pass it on to the glob
 script or not. See the \helprefn{ClaimEvent}{ClaimEvent} function for more.
 
 
-\section{repeatedly_execute (_always)}\label{RepExec}\index{repeatedly_execute}\index{repeatedly_execute_always}%
+\section{repeatedly_execute (_always)}\label{RepExec}\index{repeatedly_execute}\index{repeatedly_execute_always}\index{late_repeatedly_execute_always}%
 
 One of the most common things you'll need to do when scripting is to check if something
 has happened in the game -- and if so, then make the game do something in response.
@@ -3326,7 +3166,7 @@ For example, suppose that you want a bird to fly backwards and forwards across t
 in the background. You need a way of telling the bird to move in one direction, recognise
 when it has finished, and tell it to move back again.
 
-This is where \it{repeatedly_execute} and \it{repeatedly_execute_always} come in. 
+This is where \it{repeatedly_execute}, \it{repeatedly_execute_always} and \it{late_repeatedly_execute_always} come in. 
 
 \bf{What's the difference between them?}
 
@@ -3335,11 +3175,15 @@ second), but only when the game is not blocked. That means that it will run as l
 are no current blocking animations or moves going on (ie. a Walk or Animate command where
 \it{eBlock} has been specified as a parameter).
 
-On the other hand, \it{repeatedly_execute_always} is always run on every game loop, no matter
+On the other hand, \it{repeatedly_execute_always} and \it{late_repeatedly_execute_always} are always run on every game loop, no matter
 whether the game is blocked or not. This comes at a price though, which is that you cannot
 run any blocking code within it. So if you try to script a \it{player.Walk()} command that
 passes the \it{eBlock} parameter -- or even just try to use a \verb$Wait(1);$ command, these
-will fail within \it{repeatedly_execute_always}.
+will fail within \it{(late_)repeatedly_execute_always}.
+
+The difference between \it{repeatedly_execute_always} and \it{late_repeatedly_execute_always} is that first
+is run \bf{before} game updates itself, changing animation frames, moving objects into new position etc, while
+the second, "late" version, is run \bf{after} the game was updated, but before it redrew its new state on screen.
 
 \bf{What would I use each one for?}
 
@@ -3356,6 +3200,14 @@ repeatedly_execute would be the ideal place for it.
 On the other hand, in the case of our bird flying across the screen, because we don't want to
 block the game while the bird flies, and we just want it to happen in the background, 
 \it{repeatedly_execute_always} would be the place to put it.
+
+The \it{late_repeatedly_execute_always} is used in similar way to its "earlier" counterpart, but it may be
+essential if you need to precisely keep track of a game object movement. When \it{late_repeatedly_execute_always} is
+called all the objects are already updated to their new states, therefore you will have accurate information about
+them. On contrary, the \it{repeatedly_execute_always} will always be "one step behind" of the game state.
+
+In a nutshell, if you need to do something right before game state changes, use \it{repeatedly_execute_always}, if you
+need to do something right after game state has changed, use \it{late_repeatedly_execute_always}.
 
 \bf{How do I create them?}
 
@@ -6802,7 +6654,7 @@ that is, it will not return true for any characters talking with the SayBackgrou
 
 Since this property will only be true while the character is speaking, and speaking is
 a blocking command, this property will probably only be useful to access from
-the repeatedly_execute_always handler.
+the (late_)repeatedly_execute_always handler.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -6833,7 +6685,7 @@ if you attempt to call it when \helprefn{Character.Speaking}{Character.Speaking}
 \it{false} then it will raise an error.
 
 Since speaking is a blocking command, this property will probably only be useful 
-access from the repeatedly_execute_always handler.
+access from the (late_)repeatedly_execute_always handler.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -6935,7 +6787,7 @@ This property is read-only. It will \bf{only} return true for the active thinkin
 
 Since this property will only be true while the character is thinking, and thinking is
 a blocking command, this property will probably only be useful to access from
-the repeatedly_execute_always handler.
+the (late_)repeatedly_execute_always handler.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -6972,7 +6824,7 @@ if you attempt to call it when \helprefn{Character.Thinking}{Character.Thinking}
 \it{false} then it will raise an error.
 
 Since thinking is a blocking command, this property will probably only be useful 
-access from the repeatedly_execute_always handler.
+access from the (late_)repeatedly_execute_always handler.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -10683,7 +10535,9 @@ will quit the game without asking the player to confirm.
 Random (int max)
 \end{verbatim}
 Returns a random number between 0 and MAX. This could be useful to do
-various effects in your game.
+various effects in your game. MAX must be a positive value in range 0-32767.
+
+\bf{NOTE:} Because of the way Random is implemented in AGS, the return value will never be higher than 32767.
 
 \bf{NOTE:} The range returned is inclusive - ie. if you do  Random(3);  then it
 can return 0, 1, 2 or 3.
@@ -14804,6 +14658,27 @@ will change the Look cursor's view to ROLLEYES.
 \helprefn{Mouse.ChangeModeHotspot}{Mouse.ChangeModeHotspot}
 
 
+\subsection{ControlEnabled property}\label{Mouse.ControlEnabled}\index{Mouse.ControlEnabled}\index{ControlEnabled}%
+
+\begin{verbatim}
+readonly static bool Mouse.ControlEnabled;
+\end{verbatim}
+Tells if the mouse cursor movement is currently being controlled by AGS engine; otherwise it is controlled by operation system.
+This is usually true only when game is run in fullscreen mode.
+
+This property may be useful to know if custom mouse speed setting is applied or not.
+
+\fcol{red}{Example:}
+\begin{verbatim}
+sldMouseSpeed.Visible = Mouse.ControlEnabled;
+\end{verbatim}
+makes mouse speed slider visible only if the mouse is controlled by the game.
+
+\it{Compatibility:} Supported by \bf{AGS 3.3.5} and later versions.
+
+\it{See Also:} \helprefn{Mouse.Speed}{Mouse.Speed}
+
+
 \subsection{DisableMode}\label{Mouse.DisableMode}\index{Mouse.DisableMode}\index{DisableCursorMode}%
 
 \it{(Formerly known as DisableCursorMode, which is now obsolete)}
@@ -14989,6 +14864,33 @@ mouse.SetPosition(160, 100);
 will place the mouse cursor in the centre of the screen.
 
 \it{See Also:} \helprefn{Mouse.SetBounds}{Mouse.SetBounds}
+
+
+\subsection{Speed property (mouse)}\label{Mouse.Speed}\index{Mouse.Speed}\index{Speed}%
+
+\begin{verbatim}
+static float Mouse.Speed;
+\end{verbatim}
+Gets/sets in-game mouse cursor speed. 1.0 is default, values in the range 0-1 make cursor movement slower, values higher than 1 make cursor movement faster.
+
+Mouse speed changed this way will be saved to the configuration file when player exits the game. Next time game starts it will restore the last value you applied, unless player has modified it in the setup program.
+
+The custom mouse speed is only applied if mouse cursor movement is currently being controlled by the game, which is usually true only when game is run in fullscreen mode.
+Setting this property has no effect otherwise.
+You can use \helprefn{Mouse.ControlEnabled}{Mouse.ControlEnabled} to know if speed will be applied.
+
+\bf{NOTE:} It is strongly advised to \bf{NEVER} use this parameter to achieve gameplay effect (such as character's loss of coordination, and so forth).
+
+\fcol{red}{Example:}
+\begin{verbatim}
+Mouse.Speed = IntToFloat(sldMouseSpeed.Value) / 10.0;
+\end{verbatim}
+converts slider control's position into mouse speed.
+
+\it{Compatibility:} Supported by \bf{AGS 3.3.5} and later versions.
+
+\it{See Also:} \helprefn{Mouse.ControlEnabled}{Mouse.ControlEnabled},
+\helprefn{Mouse.SetPosition}{Mouse.SetPosition}
 
 
 \subsection{Update}\label{Mouse.Update}\index{Mouse.Update}\index{RefreshMouse}%
@@ -15352,6 +15254,8 @@ Changes the default volume of the specified \it{AudioType}. This allows you to
 change the volume of all audio clips of a particular type, so that you can
 easily control sound and music volume separately, for example.
 
+VOLUME ranges from 0-100, where 100 is the loudest, and 0 will mute sound of that type completely.
+
 Possible values for \it{ChangeVolumeType} are:
 \begin{verbatim}
 eVolChangeExisting      change the volume of currently playing audio clips
@@ -15359,6 +15263,8 @@ eVolSetFutureDefault    change the default volume for clips of this type
 eVolExistingAndFuture   change both currently playing and future audio
 \end{verbatim}
 
+Initially general AudioType volume is not set, meaning that all future audio will be
+playing using their own custom volumes.
 If you use the \it{eVolSetFutureDefault} or \it{eVolExistingAndFuture}, then
 the DefaultVolume property for all audio clips of this type will be overridden.
 This means that any DefaultVolume set up in the editor will be lost.
@@ -17289,7 +17195,7 @@ while (x<100) {
    x++; 
    Wait(1);
 }
-ReleaseViewPort();
+ReleaseViewport();
 \end{verbatim}
 will scroll the room 100 pixels to the right and then return the screen to its original position and unlock the screen viewport.
 
@@ -18560,7 +18466,11 @@ command.
 readonly int String.AsInt;
 \end{verbatim}
 Converts the string into an integer, and returns that value. Returns
-zero if the string does not contain a number.
+zero if the string does not present a number.
+
+\bf{NOTE:} This operation takes just the leading sequence of the characters from the string,
+if it contains digits and other symbols which could be a part of number. If the string has the
+valid number only in the middle, it will not work.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -18767,6 +18677,39 @@ if (System.HardwareAcceleration) {
 will display a message if the game is being run with hardware acceleration
 
 See Also: \helprefn{AGS Graphics Drivers}{GraphicsDriver}
+
+
+\subsection{HasInputFocus property}\label{System.HasInputFocus}\index{System.HasInputFocus}\index{HasInputFocus}%
+
+\begin{verbatim}
+readonly static bool System.HasInputFocus;
+\end{verbatim}
+Tells whether the game window currently has input focus, meaning it is active and player can control the game.
+
+If your game is made to continue running in the background, when the user switches out from game, you may use this property in scripts to know if that actually happened.
+
+\fcol{red}{Examples:}
+\begin{verbatim}
+if (!System.HasInputFocus)
+  return;
+\end{verbatim}
+skips the rest of the function if player has switched out from the game.
+
+\begin{verbatim}
+function repeatedly_execute()
+{
+  if (!System.HasInputFocus && IsGamePaused() == 0) {
+    PauseGame();
+  } else if (System.HasInputFocus && IsGamePaused() == 1) {
+    UnPauseGame();
+  }
+}
+\end{verbatim}
+pauses game when player switches out, and unpauses it when player switches back to game.
+
+\it{Compatibility:} Supported by \bf{AGS 3.3.5} and later versions.
+
+\it{See Also:} \helprefn{SetMultitaskingMode}{SetMultitaskingMode}
 
 
 \subsection{NumLock property}\label{System.NumLock}\index{System.NumLock}%
@@ -20089,6 +20032,241 @@ A. Because this file is your entire game, including the room files, when you
 
 
 
+\chapter{Upgrading to AGS 2.7}\label{UpgradingTo27}%
+
+The script language in AGS 2.7 has changed quite significantly from previous versions.
+Many of the script commands have become \it{object-based}, which has several advantages
+over the previous approach. This page will attempt to introduce you to the new method and
+explain its benefits.
+
+Firstly, so that you can get an idea of the changes, here's an example of some old-style
+script commands and their new equivalents:
+\begin{verbatim}
+AnimateObjectEx(0,2,0,0,0,1);
+ListBoxAdd(3, 5, "New item");
+\end{verbatim}
+becomes:
+\begin{verbatim}
+oWaterfall.Animate(2, 0, eOnce, eForwards, eBlock);
+lstTest.AddItem("New item");
+\end{verbatim}
+
+Just from looking at that example the advantages should be obvious; the script is more
+intuitive for people to learn, much easier to read (no guessing what all the numbers mean
+in the AnimateObjectEx call), and therefore you're less likely to make mistakes when using it.
+GUI controls having names brings it much more into line with Visual Basic-style GUI
+development, so you don't have to remember what control number all your buttons are.
+
+The script editor's autocomplete functionality has been significantly enhanced to aid
+in all this as well. You'll see as you start to experiment that autocomplete pops up more
+often and lists only the relevant commands thanks to object-based scripting.
+
+\bf{So does this mean I have to throw out all my scripts?}
+
+No, certainly not! The new version is fully backwards compatible, so all your existing
+scripts will continue to work just fine. However, for any new scripts that you write,
+it's strongly recommended that you use the new object-based commands.
+
+\bf{Ok, so uh... what's changed exactly?}
+
+The script language syntax hasn't changed at all (that's the way you use semicolons, brackets,
+and so on). It's still just like it was before, but with some new additions. Most
+significantly, most commands are now called \bf{on something}. For example, the old
+command:
+
+\verb$StopMoving(EGO);$
+
+Just from looking at that, it's not at all obvious what StopMoving does. Does it stop
+a character moving, an object moving, or does it stop the screen moving? It's not intuitive.
+So now, rather than supplying the character as a parameter to the function, you actually
+call the function \bf{on} the character. So:
+
+\verb$character[EGO].StopMoving();$
+
+Now it's perfectly clear that it's the character EGO that we want to stop moving.
+
+Suppose you're wondering what commands you can call on a character. Previously it was hard
+to tell, but now if you type  \verb$character[EGO].$  in the script editor, auto-complete will
+pop up and list all the valid functions and properties that you can access on the character.
+
+\bf{So I have to keep typing character[EGO] all the time? What a pain!}
+
+Not so fast! Most of the new object-based commands can be called in two ways -- either
+through the main array as we just saw, but also through what's called the character's
+\bf{Script O-Name}. This is a shorthand that allows you to directly access things, and
+for characters it is the script name in sentence case, with a "c" added to the beginning.
+So, in this example it would be:
+
+\verb$cEgo.StopMoving();$
+
+This line has an identical effect to the one with character[EGO] that we used above.
+
+Furthermore, the \it{player} variable is now kept up to date with the current player
+character, so it is actually useful. In a multi-character game, what you previously had
+to write like this:
+
+\verb$StopMoving(GetPlayerCharacter());$
+
+can now be done like this:
+
+\verb$player.StopMoving();$
+
+\bf{Hmm, I see... so what exactly has been object-ised?}
+
+Currently, the following object-based things are available:
+
+\begin{tabular}{|l|l|}
+\row{ \bf{ Global array } & \bf{ O-Name example }
+}\row{{ character[] } & { cEgo }
+}\row{{ object[] } & { oDoor }
+}\row{{ hotspot[] } & { hTree }
+}\row{{ gui[] } & { gInventory }
+}\row{{ inventory[] } & { iPinkPoster }
+}\row{{ region[] } & { (none) }
+}\end{tabular}
+
+GUI controls are handled slightly differently. They all have a script name,
+and are directly accessed via that. For example, if you set the script name of
+a list box to "lstSaves", then you would use "lstSaves." to access it. There is no
+global array of GUI controls.
+
+\bf{How do I find out the new equivalents of old functions?}
+
+The help file's index has been set up to automatically redirect you to the new commands.
+Just open the help file, go to the index and type in the name of an old command, and
+it will bring you to the new object-based equivalent (if there is one).
+
+\bf{Which commands haven't been changed?}
+
+Commands which don't operate on anything in particular (and therefore wouldn't really
+benefit from being object-based) have been left alone. For example, SaveGameSlot, QuitGame
+and so on have all remained identical to how they were in previous versions.
+
+\bf{What's the deal with these "eBlock" type things?}
+
+AGS now supports \bf{enumerated types}. Basically, in situations where you have to choose
+one from a list of possible options, an enumerated type (or \it{enum}) now steps in. In
+the past, you had commands with descriptions like this:
+
+"Pass 1 if you want the function to block, or 0 if you don't".
+
+This lead to lots of 1's and 0's in function calls, which are hard to read. Now, instead
+of this each number is represented by an easy-to-remember word (such as \it{eBlock} and
+\it{eNoBlock}). Even better, when you call a function that uses an enum parameter,
+auto-complete automatically pops up the list of options for you to choose from.
+
+See the \helprefn{enum keyword}{enum} description for information on how to create your own.
+
+\bf{So do I have to pass all these things like eBlock every time I call the function?}
+
+Nope! Many functions now support \bf{optional parameters}, where the most common options
+are selected automatically. If you look at the help for a function such as the
+\helprefn{Animate character command}{Character.Animate}, you'll see some of the parameters
+are defined as "optional". This means that you don't have to supply them; if you don't,
+the default option that will be chosen is described in the help for that command.
+
+\bf{So what else is new?}
+
+Well, 2.7 introduces the \it{float} data type, so AGS now finally supports floating-point
+arithmetic in your scripts. Also, for more advanced scripters, you can create your own
+member functions (including protected and static ones) to write cleaner script than just
+having a bunch of global functions.
+
+Also, the script editor is now much better at checking your script for errors. You may
+well find that a script which compiled fine before no longer works on 2.7. Hopefully
+the error message should direct you towards fixing any problems.
+
+\bf{Is there anything else I should watch out for?}
+
+Because of the new additions, the script language has more reserved words than before. For
+example, words like "gui", "object" and "hotspot" are now reserved (since they are used
+to access the global arrays). If your script uses any variables with these names, it will
+no longer work. You'll need to change the variable name in order to compile.
+
+Also, the script language now supports \it{pointers}. Because they are a fairly
+complex topic, there's a \helprefn{separate page}{Pointers} devoted to explaining what
+they are.
+
+\bf{Blimey, that's a lot to take in. Where do I start?}
+
+I'd recommend attempting to write your next section of script in the new way. Each time
+you're about to use an old-style command, simply look it up in the manual to find out
+what it's replacement is.
+
+Once you get used to the new system, I'm sure you'll agree that it is a significant
+improvement over the old scripting system and you'll start to enjoy the benefits of
+faster and more intuitive coding.
+
+As always, if there's something you really can't get your head round, post on the
+AGS Forums and we'll help you out as best we can!
+
+Have fun, ILBRK
+CJ
+
+
+\chapter{Upgrading to AGS 2.71}\label{UpgradingTo271}%
+
+AGS 2.71 adds new simple string support to the scripting language. Strings have long
+been a pain to use in AGS, but this is finally addressed by v2.71.
+
+There's a new String type (that's a capital 'S'). These new strings behave like Java/\verb$C#$
+strings in that you can easily assign to and manipulate them.
+
+For example, in 2.7 and previous versions, you had to do this: ILBRK
+\begin{verbatim}
+string text;
+StrCopy(text, "This is my text");
+\end{verbatim}
+in 2.71, you can now do:
+\begin{verbatim}
+String text = "This is my text";
+\end{verbatim}
+Furthermore, the == and != operators can be used to compare strings for equality (equivalent
+to using StrComp but much more intuitive). An additional benefit is that there is no longer
+a need for GetText() and SetText() methods -- instead, we can now just have Text properties.
+
+All the old-style functions that took a "string buffer" parameter have now been replaced with
+new ones that return a string instead. Where properties have been created, you should be able
+to use them like any other property, so:
+\begin{verbatim}
+lblLabel.Text = "Hello";
+String buttonValue = btnOK.Text;
+\end{verbatim}
+and so on.
+
+\bf{NOTE:} Some of the new functions are provided on the Game object -- for example, the new
+GetSaveSlotDescription function needs to be called like this:ILBRK
+\verb$String description = Game.GetSaveSlotDescription(10);$ ILBRK
+This is part of a move towards all built-in functions being object-based, but watch out for it
+as it could well cause some confusion. The manual will show you which functions require this.
+
+Rather than using old functions like StrCat and StrContains, you now call the functions
+directly on the strings:
+\begin{verbatim}
+String text = "Hello";
+text = text.Append("World");
+\end{verbatim}
+will mean that \it{text} now contains "HelloWorld". ILBRK
+Note the \bf{text =} in that expression. Functions like Append will return a modified version
+of the string, they won't actually change the original. Therefore, to update the \it{text}
+variable you need to assign the result to it.
+
+\bf{Backwards compatibility}
+
+In order to maintain backwards compatibility, a new "const" keyword has been added. This
+applies only to old-style strings, and allows them to interoperate with the new ones. A
+new-style String can be passed to a function that expects a "const string" (which means
+that it will not be allowed to change the string's contents), but cannot be passed to a
+function that expects a "string" (since it could overwrite the string data and mess things up).
+
+So, you may find that any custom functions you have that take a string parameter stop 
+working. If this is the case, change the parameter from "string" to "const string" and
+that should fix it.
+
+Apologies for the inconvenience, but this is the only way to allow new Strings to
+interoperate safely with old-style strings.
+
+
 \chapter{Upgrading to AGS 3.0}\label{UpgradeTo30}%
 
 If you've used AGS before, you'll probably be a bit confused and perhaps even
@@ -20427,6 +20605,28 @@ In the previous versions of AGS the ListBox items were never translated. A new "
 has been added to ListBox class, which forces engine to translate ListBox items. Default value is True
 but it is recommended to set it to False if you are using ListBox for listing savedgames.
 \bf{NOTE:} when older projects are imported, it is set to False automatically.
+
+
+\chapter{Upgrading to AGS 3.3.5}\label{UpgradeTo335}%
+
+Since 3.3.5 AGS does not allow to \bf{write} any files into other path rather than "$SAVEGAMEDIR$"
+(personal user saves directory) or "$APPDATADIR$" (all-users game data directory). An attempt to open
+file for \bf{writing} at any other path will result in script error.
+
+At the same time your players are allowed to set up their own custom path in game setup, where the game
+saves & data will be written. This is done in the game setup program.
+This works as if $SAVEGAMEDIR$ and $APPDATADIR$ were redirected to custom location. Redirection is done internally
+by the engine, you do not need to add anything to your game scripts to make it work.
+
+Opening files for reading still works the same way.
+
+Conceptually, AGS is gradually leaning towards using only "symbols of file locations" rather than actual,
+explicit locations on the filesystem.
+
+Furthermore, game setup will now write config file into game saves location, rather than game's installation directory.
+If config file is present in the game installation folder, then it is used as "default" read-only config file.
+The config in saves folder overrides default one.
+This way it should be totally safe to install AGS games into C:/Program Files, without having administrative rights.
 
 
 \chapter{Anonymous usage information}\label{AnonymousUsageInfo}%

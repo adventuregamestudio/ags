@@ -51,8 +51,8 @@ void GameSetupStructBase::SetCustomResolution(Size game_res)
 
 void GameSetupStructBase::ReadFromFile(Stream *in)
 {
-    in->Read(&gamename[0], 50);
-    in->ReadArrayOfInt32(options, 100);
+    in->Read(&gamename[0], GAME_NAME_LENGTH);
+    in->ReadArrayOfInt32(options, MAX_OPTIONS);
     in->Read(&paluses[0], 256);
     // colors are an array of chars
     in->Read(&defpal[0], sizeof(color)*256);
@@ -85,7 +85,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in)
 
     default_lipsync_frame = in->ReadInt32();
     invhotdotsprite = in->ReadInt32();
-    in->ReadArrayOfInt32(reserved, 17);
+    in->ReadArrayOfInt32(reserved, NUM_INTS_RESERVED);
     load_messages = new int32_t[MAXGLOBALMES];
     in->ReadArrayOfInt32(load_messages, MAXGLOBALMES);
 

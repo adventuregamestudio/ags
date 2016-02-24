@@ -7,15 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		16164DEB1BC52C5D004FE07F /* asset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 16164DE91BC52C5D004FE07F /* asset.cpp */; };
+		16164DEF1BC52C87004FE07F /* mutifilelib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 16164DEE1BC52C87004FE07F /* mutifilelib.cpp */; };
+		16A98D9E1BCA2ED700254F37 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 16A98D9D1BCA2ED700254F37 /* UIKit.framework */; };
+		16A98DA01BCA2EE700254F37 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 16A98D9F1BCA2EE700254F37 /* OpenGLES.framework */; };
+		16A98DA21BCA2F2D00254F37 /* libbz2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 16A98DA11BCA2F2D00254F37 /* libbz2.tbd */; };
+		16EA269B1BDC760300DADE0D /* ini_util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 16EA26971BDC760300DADE0D /* ini_util.cpp */; settings = {ASSET_TAGS = (); }; };
+		16EA269C1BDC760300DADE0D /* inifile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 16EA26991BDC760300DADE0D /* inifile.cpp */; settings = {ASSET_TAGS = (); }; };
 		1D3623260D0F684500981E51 /* agsAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1D3623250D0F684500981E51 /* agsAppDelegate.mm */; };
 		1D60589B0D05DD56006BFB54 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.mm */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
-		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 28AD733E0D9D9553002E5188 /* MainWindow.xib */; };
 		28EC4C5911D54ECE0027AA9F /* agsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 28EC4C5711D54ECE0027AA9F /* agsViewController.mm */; };
 		28EC4C5A11D54ECE0027AA9F /* agsViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 28EC4C5811D54ECE0027AA9F /* agsViewController.xib */; };
 		28FD14FE0DC6FC130079059D /* EAGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 28FD14FD0DC6FC130079059D /* EAGLView.m */; };
-		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
 		6007696216E9F56E00DCE88E /* test_version.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6007696116E9F56E00DCE88E /* test_version.cpp */; };
 		6007696416E9F57A00DCE88E /* test_sprintf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6007696316E9F57A00DCE88E /* test_sprintf.cpp */; };
@@ -29,8 +34,6 @@
 		6041A8671552E60600596310 /* libtheora.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6041A8611552E60600596310 /* libtheora.a */; };
 		6041A8681552E60600596310 /* libvorbisidec.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6041A8621552E60600596310 /* libvorbisidec.a */; };
 		6041A86A1552E63B00596310 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 6041A8691552E63B00596310 /* Icon.png */; };
-		6041A8881552E89E00596310 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 6041A8871552E89E00596310 /* libz.dylib */; };
-		6041A8981552E8C400596310 /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 6041A8971552E8C400596310 /* libbz2.dylib */; };
 		60661BB316847C3C0005B5CD /* directory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60661BAF16847C3C0005B5CD /* directory.cpp */; };
 		60661BB416847C3C0005B5CD /* path.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60661BB216847C3C0005B5CD /* path.cpp */; };
 		6080428E1614DE8F00D33732 /* assetmanager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6080428D1614DE8F00D33732 /* assetmanager.cpp */; };
@@ -336,18 +339,27 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		16164DE91BC52C5D004FE07F /* asset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = asset.cpp; sourceTree = "<group>"; };
+		16164DEA1BC52C5D004FE07F /* asset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asset.h; sourceTree = "<group>"; };
+		16164DED1BC52C87004FE07F /* multifilelib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = multifilelib.h; sourceTree = "<group>"; };
+		16164DEE1BC52C87004FE07F /* mutifilelib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mutifilelib.cpp; sourceTree = "<group>"; };
+		16A98D9D1BCA2ED700254F37 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.0.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
+		16A98D9F1BCA2EE700254F37 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.0.sdk/System/Library/Frameworks/OpenGLES.framework; sourceTree = DEVELOPER_DIR; };
+		16A98DA11BCA2F2D00254F37 /* libbz2.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libbz2.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.0.sdk/usr/lib/libbz2.tbd; sourceTree = DEVELOPER_DIR; };
+		16EA26971BDC760300DADE0D /* ini_util.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ini_util.cpp; sourceTree = "<group>"; };
+		16EA26981BDC760300DADE0D /* ini_util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ini_util.h; sourceTree = "<group>"; };
+		16EA26991BDC760300DADE0D /* inifile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = inifile.cpp; sourceTree = "<group>"; };
+		16EA269A1BDC760300DADE0D /* inifile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inifile.h; sourceTree = "<group>"; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1D3623240D0F684500981E51 /* agsAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = agsAppDelegate.h; sourceTree = "<group>"; };
 		1D3623250D0F684500981E51 /* agsAppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = agsAppDelegate.mm; sourceTree = "<group>"; };
 		1D6058910D05DD3D006BFB54 /* ags.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ags.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		28AD733E0D9D9553002E5188 /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
 		28EC4C5611D54ECE0027AA9F /* agsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = agsViewController.h; sourceTree = "<group>"; };
 		28EC4C5711D54ECE0027AA9F /* agsViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = agsViewController.mm; sourceTree = "<group>"; };
 		28EC4C5811D54ECE0027AA9F /* agsViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = agsViewController.xib; sourceTree = "<group>"; };
 		28FD14FC0DC6FC130079059D /* EAGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EAGLView.h; sourceTree = "<group>"; };
 		28FD14FD0DC6FC130079059D /* EAGLView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EAGLView.m; sourceTree = "<group>"; };
-		28FD14FF0DC6FC520079059D /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		28FD15070DC6FC5B0079059D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		29B97316FDCFA39411CA2CEA /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		32CA4F630368D1EE00C91783 /* ags_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ags_Prefix.pch; sourceTree = "<group>"; };
@@ -366,8 +378,6 @@
 		6041A8611552E60600596310 /* libtheora.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtheora.a; path = ../../nativelibs/fat/lib/libtheora.a; sourceTree = SOURCE_ROOT; };
 		6041A8621552E60600596310 /* libvorbisidec.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvorbisidec.a; path = ../../nativelibs/fat/lib/libvorbisidec.a; sourceTree = SOURCE_ROOT; };
 		6041A8691552E63B00596310 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
-		6041A8871552E89E00596310 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
-		6041A8971552E8C400596310 /* libbz2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libbz2.dylib; path = usr/lib/libbz2.dylib; sourceTree = SDKROOT; };
 		60661BAF16847C3C0005B5CD /* directory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = directory.cpp; sourceTree = "<group>"; };
 		60661BB016847C3C0005B5CD /* directory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = directory.h; sourceTree = "<group>"; };
 		60661BB116847C3C0005B5CD /* path.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = path.h; sourceTree = "<group>"; };
@@ -1038,19 +1048,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */,
-				1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */,
-				28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */,
 				28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */,
+				16A98D9E1BCA2ED700254F37 /* UIKit.framework in Frameworks */,
+				16A98DA01BCA2EE700254F37 /* OpenGLES.framework in Frameworks */,
 				60F49A4A155131E500A07887 /* AudioToolbox.framework in Frameworks */,
+				16A98DA21BCA2F2D00254F37 /* libbz2.tbd in Frameworks */,
 				60CE9D9C155272CD00A52D5A /* libfreetype.a in Frameworks */,
-				6041A8631552E60600596310 /* libaldmb.a in Frameworks */,
+				6041A8661552E60600596310 /* libogg.a in Frameworks */,
+				6041A8681552E60600596310 /* libvorbisidec.a in Frameworks */,
+				6041A8671552E60600596310 /* libtheora.a in Frameworks */,
 				6041A8641552E60600596310 /* liballeg.a in Frameworks */,
 				6041A8651552E60600596310 /* libdumb.a in Frameworks */,
-				6041A8661552E60600596310 /* libogg.a in Frameworks */,
-				6041A8671552E60600596310 /* libtheora.a in Frameworks */,
-				6041A8681552E60600596310 /* libvorbisidec.a in Frameworks */,
-				6041A8881552E89E00596310 /* libz.dylib in Frameworks */,
-				6041A8981552E8C400596310 /* libbz2.dylib in Frameworks */,
+				6041A8631552E60600596310 /* libaldmb.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1120,20 +1129,19 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				6041A85D1552E60600596310 /* libaldmb.a */,
-				6041A8971552E8C400596310 /* libbz2.dylib */,
+				1D30AB110D05D00D00671497 /* Foundation.framework */,
+				28FD15070DC6FC5B0079059D /* QuartzCore.framework */,
+				16A98D9D1BCA2ED700254F37 /* UIKit.framework */,
+				16A98D9F1BCA2EE700254F37 /* OpenGLES.framework */,
+				60F49A49155131E500A07887 /* AudioToolbox.framework */,
+				16A98DA11BCA2F2D00254F37 /* libbz2.tbd */,
+				60CE9D9B155272CD00A52D5A /* libfreetype.a */,
+				6041A8601552E60600596310 /* libogg.a */,
+				6041A8621552E60600596310 /* libvorbisidec.a */,
+				6041A8611552E60600596310 /* libtheora.a */,
 				6041A85E1552E60600596310 /* liballeg.a */,
 				6041A85F1552E60600596310 /* libdumb.a */,
-				6041A8601552E60600596310 /* libogg.a */,
-				6041A8611552E60600596310 /* libtheora.a */,
-				6041A8621552E60600596310 /* libvorbisidec.a */,
-				60CE9D9B155272CD00A52D5A /* libfreetype.a */,
-				28FD15070DC6FC5B0079059D /* QuartzCore.framework */,
-				28FD14FF0DC6FC520079059D /* OpenGLES.framework */,
-				1DF5F4DF0D08C38300B7A737 /* UIKit.framework */,
-				1D30AB110D05D00D00671497 /* Foundation.framework */,
-				60F49A49155131E500A07887 /* AudioToolbox.framework */,
-				6041A8871552E89E00596310 /* libz.dylib */,
+				6041A85D1552E60600596310 /* libaldmb.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -1323,6 +1331,8 @@
 		60CA39D0160713D200CFB3BD /* core */ = {
 			isa = PBXGroup;
 			children = (
+				16164DE91BC52C5D004FE07F /* asset.cpp */,
+				16164DEA1BC52C5D004FE07F /* asset.h */,
 				6080428D1614DE8F00D33732 /* assetmanager.cpp */,
 				6080428C1614DE8900D33732 /* assetmanager.h */,
 				60CA39D1160713D200CFB3BD /* types.h */,
@@ -1503,6 +1513,12 @@
 		60CA3A46160713D300CFB3BD /* util */ = {
 			isa = PBXGroup;
 			children = (
+				16EA26971BDC760300DADE0D /* ini_util.cpp */,
+				16EA26981BDC760300DADE0D /* ini_util.h */,
+				16EA26991BDC760300DADE0D /* inifile.cpp */,
+				16EA269A1BDC760300DADE0D /* inifile.h */,
+				16164DED1BC52C87004FE07F /* multifilelib.h */,
+				16164DEE1BC52C87004FE07F /* mutifilelib.cpp */,
 				600C369016C454C400D0CC4F /* stream.cpp */,
 				600C369116C454C400D0CC4F /* proxystream.h */,
 				600C369216C454C400D0CC4F /* proxystream.cpp */,
@@ -2259,7 +2275,6 @@
 				1D60588D0D05DD3D006BFB54 /* Resources */,
 				1D60588E0D05DD3D006BFB54 /* Sources */,
 				1D60588F0D05DD3D006BFB54 /* Frameworks */,
-				604B5533155C4F7400581284 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -2275,6 +2290,14 @@
 /* Begin PBXProject section */
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0700;
+				TargetAttributes = {
+					1D6058900D05DD3D006BFB54 = {
+						DevelopmentTeam = UXTG2QDPRA;
+					};
+				};
+			};
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "ags" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
@@ -2310,22 +2333,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		604B5533155C4F7400581284 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "export CODESIGN_ALLOCATE=/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/codesign_allocate\nif [ \"${PLATFORM_NAME}\" == \"iphoneos\" ]; then\n/Developer/iphoneentitlements401/gen_entitlements.py \"my.company.${PROJECT_NAME}\" \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/${PROJECT_NAME}.xcent\";\ncodesign -f -s \"iPhone Developer\" --entitlements \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/${PROJECT_NAME}.xcent\" \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/\"\nfi";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1D60588E0D05DD3D006BFB54 /* Sources */ = {
@@ -2430,6 +2437,7 @@
 				60CA3D58160713FF00CFB3BD /* gamestate.cpp in Sources */,
 				60CA3D59160713FF00CFB3BD /* global_audio.cpp in Sources */,
 				60CA3D5A160713FF00CFB3BD /* global_button.cpp in Sources */,
+				16EA269B1BDC760300DADE0D /* ini_util.cpp in Sources */,
 				60CA3D5B160713FF00CFB3BD /* global_character.cpp in Sources */,
 				60CA3D5C160713FF00CFB3BD /* global_datetime.cpp in Sources */,
 				60CA3D5D160713FF00CFB3BD /* global_debug.cpp in Sources */,
@@ -2617,6 +2625,7 @@
 				60898DCC160785DD009E152F /* gfxfilter_hq3x.cpp in Sources */,
 				60898DD6160787FF009E152F /* hq2x3x.cpp in Sources */,
 				6080428E1614DE8F00D33732 /* assetmanager.cpp in Sources */,
+				16EA269C1BDC760300DADE0D /* inifile.cpp in Sources */,
 				608B4E57163BF27B00547FAA /* libc.c in Sources */,
 				60DC154116675B2B002D0474 /* cc_error_engine.cpp in Sources */,
 				60DC154216675B2B002D0474 /* cc_instance.cpp in Sources */,
@@ -2637,6 +2646,8 @@
 				608D787C176B82D300E48976 /* speech.cpp in Sources */,
 				608D788B176B832C00E48976 /* gfx_util.cpp in Sources */,
 				608B20641866295B005B3BCD /* logfile.cpp in Sources */,
+				16164DEB1BC52C5D004FE07F /* asset.cpp in Sources */,
+				16164DEF1BC52C87004FE07F /* mutifilelib.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2647,20 +2658,20 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				COPY_PHASE_STRIP = NO;
+				ARCHS = (
+					"$(ARCHS_STANDARD)",
+					armv7s,
+				);
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = ags_Prefix.pch;
-				"GCC_THUMB_SUPPORT[arch=armv6]" = "";
 				INFOPLIST_FILE = "ags-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../nativelibs/fat/lib\"",
 					"\"$(SRCROOT)/../../../Engine\"",
-					"\"$(SRCROOT)/../../../Plugins/agslua/agslua/zlib\"",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bigbluecup.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = ags;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -2671,32 +2682,28 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				COPY_PHASE_STRIP = YES;
+				ARCHS = (
+					"$(ARCHS_STANDARD)",
+					armv7s,
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = ags_Prefix.pch;
-				"GCC_THUMB_SUPPORT[arch=armv6]" = "";
 				INFOPLIST_FILE = "ags-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../nativelibs/fat/lib\"",
 					"\"$(SRCROOT)/../../../Engine\"",
-					"\"$(SRCROOT)/../../../Plugins/agslua/agslua/zlib\"",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bigbluecup.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = ags;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
 		C01FCF4F08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				CODE_SIGN_IDENTITY = "Don't Code Sign";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Don't Code Sign";
-				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					USE_TREMOR,
 					DISABLE_MPEG_AUDIO,
@@ -2704,8 +2711,8 @@
 					IOS_VERSION,
 					BUILTIN_PLUGINS,
 					DEBUG,
+					ALFONT_LINUX,
 				);
-				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
@@ -2717,12 +2724,8 @@
 					"${SOURCE_ROOT}/../../nativelibs/fat/include/freetype2",
 				);
 				LIBRARY_SEARCH_PATHS = "${SOURCE_ROOT}/../../nativelibs/fat/lib";
-				OTHER_CODE_SIGN_FLAGS = "-gta";
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				PREBINDING = NO;
-				PROVISIONING_PROFILE = "";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
-				SDKROOT = iphoneos;
 				USER_HEADER_SEARCH_PATHS = "${SOURCE_ROOT}/../../../Plugins ${SOURCE_ROOT}/../../../Common ${SOURCE_ROOT}/../../../Common/libinclude ${SOURCE_ROOT}/../../../Engine ${SOURCE_ROOT}/../../../iOS/nativelibs/fat/include ${SOURCE_ROOT}/../../nativelibs/fat/include/freetype2";
 			};
 			name = Debug;
@@ -2730,20 +2733,18 @@
 		C01FCF5008A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				CODE_SIGN_IDENTITY = "Don't Code Sign";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Don't Code Sign";
-				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					USE_TREMOR,
 					DISABLE_MPEG_AUDIO,
 					AGS_INVERTED_COLOR_ORDER,
 					IOS_VERSION,
 					BUILTIN_PLUGINS,
+					ALFONT_LINUX,
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
+					"${SOURCE_ROOT}/../../../Plugins",
 					"${SOURCE_ROOT}/../../../Common",
 					"${SOURCE_ROOT}/../../../Common/libinclude",
 					"${SOURCE_ROOT}/../../../Engine",
@@ -2754,10 +2755,7 @@
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				PREBINDING = NO;
-				PROVISIONING_PROFILE = "";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
-				SDKROOT = iphoneos;
-				USER_HEADER_SEARCH_PATHS = "${SOURCE_ROOT}/../../../Common ${SOURCE_ROOT}/../../../Common/libinclude ${SOURCE_ROOT}/../../../Engine ${SOURCE_ROOT}/../../../iOS/nativelibs/fat/include ${SOURCE_ROOT}/../../nativelibs/fat/include/freetype2";
+				USER_HEADER_SEARCH_PATHS = "${SOURCE_ROOT}/../../../Plugins ${SOURCE_ROOT}/../../../Common ${SOURCE_ROOT}/../../../Common/libinclude ${SOURCE_ROOT}/../../../Engine ${SOURCE_ROOT}/../../../iOS/nativelibs/fat/include ${SOURCE_ROOT}/../../nativelibs/fat/include/freetype2";
 			};
 			name = Release;
 		};

@@ -20,6 +20,8 @@
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_audioclip.h"
+#include "ac/draw.h"
+#include "ac/game_version.h"
 
 using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
@@ -157,11 +159,28 @@ void CheckViewFrame (int view, int loop, int frame) {
 }
 
 // draws a view frame, flipped if appropriate
-void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y) {
-    if (vframe->flags & VFLG_FLIPSPRITE)
-        ds->FlipBlt(spriteset[vframe->pic], x, y, Common::kBitmap_HFlip);
+void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y, bool alpha_blend)
+{
+    if (alpha_blend && (loaded_game_file_version >= kGameVersion_330))
+    {
+        Bitmap *vf_bmp = spriteset[vframe->pic];
+        Bitmap *src = vf_bmp;
+        if (vframe->flags & VFLG_FLIPSPRITE)
+        {
+            src = new Bitmap(vf_bmp->GetWidth(), vf_bmp->GetHeight(), vf_bmp->GetColorDepth());
+            src->FlipBlt(vf_bmp, 0, 0, Common::kBitmap_HFlip);
+        }
+        draw_sprite_support_alpha(ds, true, x, y, src, (game.spriteflags[vframe->pic] & SPF_ALPHACHANNEL) != 0);
+        if (src != vf_bmp)
+            delete src;
+    }
     else
-        ds->Blit(spriteset[vframe->pic], x, y, Common::kBitmap_Transparency);
+    {
+        if (vframe->flags & VFLG_FLIPSPRITE)
+            ds->FlipBlt(spriteset[vframe->pic], x, y, Common::kBitmap_HFlip);
+        else
+            ds->Blit(spriteset[vframe->pic], x, y, Common::kBitmap_Transparency);
+    }
 }
 
 //=============================================================================

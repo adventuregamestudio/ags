@@ -1,7 +1,7 @@
 /* AllegroFont - a wrapper for FreeType 2 */
 /* to render TTF and other font formats with Allegro */
 
-            
+
 /* FreeType 2 is copyright (c) 1996-2000 */
 /* David Turner, Robert Wilhelm, and Werner Lemberg */
 /* AllegroFont is copyright (c) 2001, 2002 Javier Gonz lez */
@@ -30,6 +30,11 @@
 #include FT_GLYPH_H
 
 #define _msize malloc_usable_size
+
+#ifdef IOS_VERSION
+// Defined in libc.c as a stub method
+size_t malloc_usable_size (void *ptr);
+#endif
 
 /* structs */
 
@@ -123,7 +128,7 @@ unsigned long __skiptranspixels_blender_trans16(unsigned long x, unsigned long y
 
    if ((y & 0xFFFF) == 0xF81F)
       return x;
-   
+
    if (n)
       n = (n + 1) / 8;
 
@@ -139,12 +144,12 @@ unsigned long __skiptranspixels_blender_trans16(unsigned long x, unsigned long y
 unsigned long __preservedalpha_blender_trans24(unsigned long x, unsigned long y, unsigned long n)
 {
    unsigned long res, g, alpha;
-   
+
    alpha = (y & 0xFF000000);
-   
+
    if ((y & 0xFFFFFF) == 0xFF00FF)
       return ((x & 0xFFFFFF) | (n << 24));
-   
+
    if (n)
       n++;
 
@@ -319,7 +324,7 @@ static void _alfont_cache_glyph(ALFONT_FONT *f, int glyph_number) {
       FT_Bitmap *ft_bmp;
       FT_Glyph glyph;
       FT_BitmapGlyph bmp_glyph;
-    
+
       FT_Glyph_Copy(new_glyph, &glyph);
 
       /* only render glyph if it is not already a bitmap */
@@ -445,7 +450,7 @@ int alfont_set_font_size(ALFONT_FONT *f, int h) {
       else
         direction = 1;
     }
-    
+
     /* check we didn't overpass it */
     else if ((direction > 0) && (real_height > h)) {
       /* decrease one and found */
@@ -511,7 +516,7 @@ int alfont_init(void) {
 
     if (!error)
       alfont_inited = 1;
-      
+
     return error;
   }
 }
@@ -532,7 +537,7 @@ ALFONT_FONT *alfont_load_font(const char *filepathname) {
 
   /* we are loading from file, no mem buffer needed */
   font->data = NULL;
-  font->data_size = 0; 
+  font->data_size = 0;
 
   /* load the font */
   error = FT_New_Face(ft_library, filepathname, 0, &font->face);
@@ -691,11 +696,11 @@ void alfont_destroy_font(ALFONT_FONT *f) {
   /* deallocate the data */
   if (f->data)
     free(f->data);
-    
+
   /* deallocate the language string*/
   if (f->language)
     free(f->language);
-	
+
   free(f);
 }
 
@@ -722,7 +727,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
   int curr_uformat;
   int first_flag=TRUE; //First Char flag
   BITMAP *masked_bmp; //the masked bmp used by Font hollow
-  
+
   #ifdef ALFONT_DOS
   iconv_t c_pt;
   size_t fromlen, tolen;
@@ -732,12 +737,12 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
   if (s == NULL) {
 	return;
   }
-  
+
   nLen = strlen(s) + 1;
   s_pointer = (char *)malloc(nLen*sizeof(char));
   memset(s_pointer, 0, nLen);
   strcpy(s_pointer, s);
-  
+
   //Auto Fix for cutted string
   //For ASCII convert to unicode
   //Add the previous character to the s string
@@ -748,17 +753,17 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 
 		#ifdef ALFONT_DOS
 		if ((c_pt = iconv_open("UTF-16LE", f->language)) != (iconv_t)-1) {
-  			
+
 			fromlen  = strlen(s) + 1;
 			tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
-			
+
 			//add the previous character to the s string
 			if (f->precedingchar != 0) {
 				free(s_pointer);
 				fromlen  = strlen(s) + 1 + 1;
 				tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
 				s_pointer = (char *)malloc(tolen*sizeof(char));
-				memset(s_pointer, 0, tolen);		
+				memset(s_pointer, 0, tolen);
 				precedingchar_pointer=(char *)malloc(2*sizeof(char));
 				memset(precedingchar_pointer, 0, 2);
 				sprintf(precedingchar_pointer, "%c", f->precedingchar);
@@ -799,14 +804,14 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 			}
   		}
 		#else
-		
+
 
 		#ifdef ALFONT_LINUX
 		nLen = strlen(s_pointer) * 5 + 1;
 		#else
 		nLen = strlen(s_pointer) + 1;
 		#endif
-		
+
 		//add the previous character to the s string
 		if (f->precedingchar != 0) {
 			free(s_pointer);
@@ -824,7 +829,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 			strcat(s_pointer, s);
 			f->precedingchar = 0;
 		}
-		
+
 		setlocale(LC_CTYPE,f->language);
 		set_uformat(U_UNICODE);
 
@@ -890,9 +895,9 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
   }
   else if(f->type==2) {
   	curr_uformat=get_uformat();
-  	
+
   	#ifdef ALFONT_DOS
-	if ((c_pt = iconv_open("UTF-16LE", f->language)) == (iconv_t)-1) {	
+	if ((c_pt = iconv_open("UTF-16LE", f->language)) == (iconv_t)-1) {
      	lpszW = (char *)s_pointer;
   	}
   	else {
@@ -916,7 +921,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 	#else
 	setlocale(LC_CTYPE,f->language);
 	set_uformat(U_UNICODE);
-	
+
 	#ifdef ALFONT_LINUX
 	nLen = strlen(s_pointer) * 5 + 1;
 	#else
@@ -957,7 +962,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
   if (backg >= 0) {
     int i, r, g, b, br, bg, bb, ir, ig, ib;
     int blendr, blendg, blendb;
-    
+
 	if(f->background==TRUE) {
 		rectfill(bmp, x, y, x + alfont_text_length(f, s_pointer) - 1, y + f->face_h - 1, backg);
 	}
@@ -965,7 +970,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 	/* get the color rgb */
     r = getr(color); g = getg(color); b = getb(color);
 
-    /* get the background rgb */   
+    /* get the background rgb */
     br = getr(backg); bg = getg(backg); bb = getb(backg);
 
     /* get increments */
@@ -976,7 +981,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
     blendr = br << 8;
     blendg = bg << 8;
     blendb = bb << 8;
-    
+
     /* blend both values and make our alpha table */
     for (i = 0; i < 256; i++) {
       alpha_table[i] = makecol(blendr >> 8, blendg >> 8, blendb >> 8);
@@ -997,7 +1002,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
     max_advancex = 0;
 
 	_alfont_uncache_glyphs(f);
-  
+
   #ifdef ALFONT_LINUX //Fix for Linux Unicode System(be converted)
     for (character = ugetxc((const char**)&lpszW_tmp); character != 0; character = ugetxc((const char**)&lpszW_tmp),character = ugetxc((const char**)&lpszW_tmp)) {
   #else
@@ -1020,7 +1025,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 		  glyph_index_tmp = FT_Get_Char_Index(f->face, character);
 	  else
 		  glyph_index_tmp = character;
-	
+
 	  /* cache the glyph */
 	  _alfont_cache_glyph(f, glyph_index_tmp);
 	  cglyph_tmp = f->cached_glyphs[glyph_index_tmp];
@@ -1039,16 +1044,16 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
   for (character = ugetxc((const char**)&lpszW); character != 0; character = ugetxc((const char**)&lpszW),character = ugetxc((const char**)&lpszW)) {
 #else
   for (character = ugetxc((const char**)&lpszW); character != 0; character = ugetxc((const char**)&lpszW)) {
-#endif	
+#endif
 	int real_x, real_y, glyph_index;
 	struct _ALFONT_CACHED_GLYPH cglyph;
-    	
+
     	#ifdef ALFONT_LINUX //Recover for Linux Unicode System Fixed
     		if(f->type!=2) {
     			lpszW--;
     		}
     	#endif
-    	
+
 	/* if left side of char farther than right side of clipping, we are done */
 	if (x > bmp->cr)
 		break;
@@ -1081,7 +1086,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 
 	/* draw only if exists */
 	if ((cglyph.aa_available) && (cglyph.aabmp)) {
-        
+
 		int bmp_x, bmp_y,outline_w;
 		unsigned char *bmp_p = cglyph.aabmp;
 		const int max_bmp_x = cglyph.aawidth + real_x;
@@ -1090,7 +1095,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 		if (first_flag==TRUE) {
 			first_x= max_bmp_x;
 		}
-      
+
 		/* if in opaque mode */
 		if (backg >= 0) {
 			if(f->outline_hollow==TRUE) { //Set masked region
@@ -1195,8 +1200,8 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 												if(final_x<(bmp_x+(outline_w+1)+((max_bmp_y-bmp_y)/2)+1)) final_x=bmp_x+(outline_w+1)+((max_bmp_y-bmp_y)/2)+1;
 											}
 											putpixel(bmp, bmp_x+(outline_w+1)+((max_bmp_y-bmp_y)/2)+1, bmp_y, f->outline_color);
-										}	
-										else {	
+										}
+										else {
 											if(f->underline_right==TRUE) {
 												if(final_x<(bmp_x+(outline_w+1))) final_x=bmp_x+(outline_w+1);
 											}
@@ -1218,7 +1223,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 										else if(f->style==3) {
 											putpixel(bmp, bmp_x+((max_bmp_y-bmp_y)/2)+1, bmp_y+(outline_w+1), f->outline_color);
 											putpixel(bmp, bmp_x+((max_bmp_y-bmp_y)/2), bmp_y+(outline_w+1), f->outline_color);
-										}	
+										}
 										else {
 											putpixel(bmp, bmp_x, bmp_y+(outline_w+1), f->outline_color);
 										}
@@ -1245,7 +1250,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 												if(first_x>(bmp_x+((max_bmp_y-bmp_y)/2)-(outline_w+1))) first_x=bmp_x+((max_bmp_y-bmp_y)/2)-(outline_w+1);
 											}
 											putpixel(bmp, bmp_x+((max_bmp_y-bmp_y)/2)-(outline_w+1), bmp_y, f->outline_color);
-										}	
+										}
 										else {
 											if(f->underline_left==TRUE) {
 												if(first_x>(bmp_x-(outline_w+1))) first_x=bmp_x-(outline_w+1);
@@ -1268,7 +1273,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 										else if(f->style==3) {
 											putpixel(bmp, bmp_x+((max_bmp_y-bmp_y)/2)+1, bmp_y-(outline_w+1), f->outline_color);
 											putpixel(bmp, bmp_x+((max_bmp_y-bmp_y)/2), bmp_y-(outline_w+1), f->outline_color);
-										}	
+										}
 										else {
 											putpixel(bmp, bmp_x, bmp_y-(outline_w+1), f->outline_color);
 										}
@@ -1284,7 +1289,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 				for (bmp_y = real_y; bmp_y < max_bmp_y; bmp_y++) {
 					for (bmp_x = real_x; bmp_x < max_bmp_x; bmp_x++) {
 						const int alpha = *bmp_p++;
-            
+
 						if (alpha) {
 							if(first_x>bmp_x) first_x=bmp_x;
 							if(final_x<bmp_x) final_x=bmp_x;
@@ -1324,7 +1329,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 							}
 							else {
 								putpixel(bmp, bmp_x, bmp_y, alpha_table[alpha]);
-							}	
+							}
 						}
 					}
 				}
@@ -1465,8 +1470,8 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 												if(final_x<(bmp_x+(outline_w+1)+((max_bmp_y-bmp_y)/2)+1)) final_x=bmp_x+(outline_w+1)+((max_bmp_y-bmp_y)/2)+1;
 											}
 											putpixel(bmp, bmp_x+(outline_w+1)+((max_bmp_y-bmp_y)/2)+1, bmp_y, f->outline_color);
-										}	
-										else {	
+										}
+										else {
 											if(f->underline_right==TRUE) {
 												if(final_x<(bmp_x+(outline_w+1))) final_x=bmp_x+(outline_w+1);
 											}
@@ -1488,7 +1493,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 										else if(f->style==3) {
 											putpixel(bmp, bmp_x+((max_bmp_y-bmp_y)/2)+1, bmp_y+(outline_w+1), f->outline_color);
 											putpixel(bmp, bmp_x+((max_bmp_y-bmp_y)/2), bmp_y+(outline_w+1), f->outline_color);
-										}	
+										}
 										else {
 											putpixel(bmp, bmp_x, bmp_y+(outline_w+1), f->outline_color);
 										}
@@ -1515,7 +1520,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 												if(first_x>(bmp_x+((max_bmp_y-bmp_y)/2)-(outline_w+1))) first_x=bmp_x+((max_bmp_y-bmp_y)/2)-(outline_w+1);
 											}
 											putpixel(bmp, bmp_x+((max_bmp_y-bmp_y)/2)-(outline_w+1), bmp_y, f->outline_color);
-										}	
+										}
 										else {
 											if(f->underline_left==TRUE) {
 												if(first_x>(bmp_x-(outline_w+1))) first_x=bmp_x-(outline_w+1);
@@ -1538,7 +1543,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 										else if(f->style==3) {
 											putpixel(bmp, bmp_x+((max_bmp_y-bmp_y)/2)+1, bmp_y-(outline_w+1), f->outline_color);
 											putpixel(bmp, bmp_x+((max_bmp_y-bmp_y)/2), bmp_y-(outline_w+1), f->outline_color);
-										}	
+										}
 										else {
 											putpixel(bmp, bmp_x, bmp_y-(outline_w+1), f->outline_color);
 										}
@@ -1554,7 +1559,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 				for (bmp_y = real_y; bmp_y < max_bmp_y; bmp_y++) {
 					for (bmp_x = real_x; bmp_x < max_bmp_x; bmp_x++) {
 						const int alpha = *bmp_p++;
-            
+
 						if (alpha) {
 							if (alpha >= 255)
 								solid_mode();
@@ -1657,7 +1662,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 					drawing_mode(DRAW_MODE_SOLID,NULL,0,0);
 				}
 			}
-			if(f->underline_right==TRUE) { //If the underline_right is TRUE,extend right underline 
+			if(f->underline_right==TRUE) { //If the underline_right is TRUE,extend right underline
 				masked_bmp= create_bitmap_ex(bitmap_color_depth(bmp),final_x+f->ch_spacing-first_x+1, final_y+((f->real_face_h)>>5)-final_y+1);
 				clear_to_color(masked_bmp,bitmap_mask_color(bmp));
 				for (bmp_y = final_y; bmp_y <= final_y+((f->real_face_h)>>5); bmp_y++) {
@@ -1666,7 +1671,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 					}
 				}
 			}
-			else { //If the underline_right is not TRUE,just draw underline 
+			else { //If the underline_right is not TRUE,just draw underline
 				masked_bmp= create_bitmap_ex(bitmap_color_depth(bmp),final_x-first_x+1, final_y+((f->real_face_h)>>5)-final_y+1);
 				clear_to_color(masked_bmp,bitmap_mask_color(bmp));
 				for (bmp_y = final_y; bmp_y <= final_y+((f->real_face_h)>>5); bmp_y++) {
@@ -1852,11 +1857,11 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
   if (s_pointer) {
 	free(s_pointer);
   }
-  
+
   #ifndef ALFONT_DOS
   setlocale(LC_CTYPE,"");
   #endif
-  
+
   if (f->type==2) {
 	set_uformat(curr_uformat);
   }
@@ -1890,16 +1895,16 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
   size_t fromlen, tolen;
   char *sin, *sout;
   #endif
-  
+
   if (s == NULL) {
 	return;
   }
-  
+
   nLen = strlen(s) + 1;
   s_pointer = (char *)malloc(nLen*sizeof(char));
   memset(s_pointer, 0, nLen);
   strcpy(s_pointer, s);
-  
+
   //Auto Fix for cutted string
   //For ASCII convert to unicode
   //Add the previous character to the s string
@@ -1910,17 +1915,17 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
 
 		#ifdef ALFONT_DOS
 		if ((c_pt = iconv_open("UTF-16LE", f->language)) != (iconv_t)-1) {
-  			
+
 			fromlen  = strlen(s) + 1;
 			tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
-			
+
 			//add the previous character to the s string
 			if (f->precedingchar != 0) {
 				free(s_pointer);
 				fromlen  = strlen(s) + 1 + 1;
 				tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
 				s_pointer = (char *)malloc(tolen*sizeof(char));
-				memset(s_pointer, 0, tolen);		
+				memset(s_pointer, 0, tolen);
 				precedingchar_pointer=(char *)malloc(2*sizeof(char));
 				memset(precedingchar_pointer, 0, 2);
 				sprintf(precedingchar_pointer, "%c", f->precedingchar);
@@ -1961,14 +1966,14 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
 			}
   		}
 		#else
-		
+
 
 		#ifdef ALFONT_LINUX
 		nLen = strlen(s_pointer) * 5 + 1;
 		#else
 		nLen = strlen(s_pointer) + 1;
 		#endif
-		
+
 		//add the previous character to the s string
 		if (f->precedingchar != 0) {
 			free(s_pointer);
@@ -1986,7 +1991,7 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
 			strcat(s_pointer, s);
 			f->precedingchar = 0;
 		}
-		
+
 		setlocale(LC_CTYPE,f->language);
 		set_uformat(U_UNICODE);
 
@@ -2022,7 +2027,7 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
   //Font Code Convert
 
   if (f->type==1) {
-  	
+
 	#ifdef ALFONT_DOS
 	if ((c_pt = iconv_open(f->language, "UTF-16LE")) == (iconv_t)-1) {
      	lpszW = (char *)s_pointer;
@@ -2053,9 +2058,9 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
   }
   else if(f->type==2) {
   	curr_uformat=get_uformat();
-  	
+
   	#ifdef ALFONT_DOS
-	if ((c_pt = iconv_open("UTF-16LE", f->language)) == (iconv_t)-1) {	
+	if ((c_pt = iconv_open("UTF-16LE", f->language)) == (iconv_t)-1) {
      	lpszW = (char *)s_pointer;
   	}
   	else {
@@ -2079,7 +2084,7 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
 	#else
 	setlocale(LC_CTYPE,f->language);
 	set_uformat(U_UNICODE);
-	
+
 	#ifdef ALFONT_LINUX
 	nLen = strlen(s_pointer) * 5 + 1;
 	#else
@@ -2104,7 +2109,7 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
      we can assume the string is clipped */
   if ((y + f->face_h < bmp->ct) || (y > bmp->cb) || (x > bmp->cr))
     return;
-  
+
   //build transparency
   if (f->transparency!=255) {
 	  if (bitmap_color_depth(bmp)>8) {
@@ -2127,13 +2132,13 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
   acquire_bitmap(bmp);
   last_glyph_index = 0;
 
-  
+
   if (f->fixed_width == TRUE)
   {
     lpszW_tmp = lpszW;
     x_tmp = x;
     max_advancex = 0;
-	
+
 	_alfont_uncache_glyphs(f);
 
   #ifdef ALFONT_LINUX //Fix for Linux Unicode System(be converted)
@@ -2158,7 +2163,7 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
 		  glyph_index_tmp = FT_Get_Char_Index(f->face, character);
 	  else
 		  glyph_index_tmp = character;
-	
+
 	  /* cache the glyph */
 	  _alfont_cache_glyph(f, glyph_index_tmp);
 	  cglyph_tmp = f->cached_glyphs[glyph_index_tmp];
@@ -2176,16 +2181,16 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
   for (character = ugetxc((const char**)&lpszW); character != 0; character = ugetxc((const char**)&lpszW),character = ugetxc((const char**)&lpszW)) {
 #else
   for (character = ugetxc((const char**)&lpszW); character != 0; character = ugetxc((const char**)&lpszW)) {
-#endif	
+#endif
 	int real_x, real_y, glyph_index;
 	struct _ALFONT_CACHED_GLYPH cglyph;
-    
+
     	#ifdef ALFONT_LINUX //Recover for Linux Unicode System Fixed
     		if(f->type!=2) {
     			lpszW--;
     		}
     	#endif
-    	
+
 	/* if left side of char farther than right side of clipping, we are done */
 	if (x > bmp->cr)
 		break;
@@ -2225,7 +2230,7 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
 		/* copy the character bitmap to our allegro one */
 		const int max_bmp_x = cglyph.width + real_x;
 		const int max_bmp_y = cglyph.height + real_y;
-			
+
 		if (first_flag==TRUE) {
 			first_x= max_bmp_x;
 		}
@@ -2331,8 +2336,8 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
 											if(final_x<(bmp_x+(outline_w+1)+((max_bmp_y-bmp_y)/2)+1)) final_x=bmp_x+(outline_w+1)+((max_bmp_y-bmp_y)/2)+1;
 										}
 										putpixel(bmp, bmp_x+(outline_w+1)+((max_bmp_y-bmp_y)/2)+1, bmp_y, f->outline_color);
-									}	
-									else {	
+									}
+									else {
 										if(f->underline_right==TRUE) {
 											if(final_x<(bmp_x+(outline_w+1))) final_x=bmp_x+(outline_w+1);
 										}
@@ -2355,7 +2360,7 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
 
 										putpixel(bmp, bmp_x+((max_bmp_y-bmp_y)/2)+1, bmp_y+(outline_w+1), f->outline_color);
 										putpixel(bmp, bmp_x+((max_bmp_y-bmp_y)/2), bmp_y+(outline_w+1), f->outline_color);
-									}	
+									}
 									else {
 										putpixel(bmp, bmp_x, bmp_y+(outline_w+1), f->outline_color);
 									}
@@ -2382,7 +2387,7 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
 											if(first_x>(bmp_x+((max_bmp_y-bmp_y)/2)-(outline_w+1))) first_x=bmp_x+((max_bmp_y-bmp_y)/2)-(outline_w+1);
 										}
 										putpixel(bmp, bmp_x+((max_bmp_y-bmp_y)/2)-(outline_w+1), bmp_y, f->outline_color);
-									}	
+									}
 									else {
 										if(f->underline_left==TRUE) {
 											if(first_x>(bmp_x-(outline_w+1))) first_x=bmp_x-(outline_w+1);
@@ -2405,7 +2410,7 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
 									else if(f->style==3) {
 										putpixel(bmp, bmp_x+((max_bmp_y-bmp_y)/2)+1, bmp_y-(outline_w+1), f->outline_color);
 										putpixel(bmp, bmp_x+((max_bmp_y-bmp_y)/2), bmp_y-(outline_w+1), f->outline_color);
-									}	
+									}
 									else {
 										putpixel(bmp, bmp_x, bmp_y-(outline_w+1), f->outline_color);
 									}
@@ -2707,7 +2712,7 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
   if(s_pointer) {
 	free(s_pointer);
   }
-  
+
   #ifndef ALFONT_DOS
   setlocale(LC_CTYPE,"");
   #endif
@@ -2747,12 +2752,12 @@ int alfont_text_length(ALFONT_FONT *f, const char *str) {
   if (str == NULL) {
 	return 0;
   }
-  
+
   nLen = strlen(str) + 1;
   str_pointer = (char *)malloc(nLen*sizeof(char));
   memset(str_pointer, 0, nLen);
   strcpy(str_pointer, str);
-  
+
   //Auto Fix for cutted string
   //For ASCII convert to unicode
   //Add the previous character to the str string
@@ -2763,7 +2768,7 @@ int alfont_text_length(ALFONT_FONT *f, const char *str) {
 
 		#ifdef ALFONT_DOS
 		if ((c_pt = iconv_open("UTF-16LE", f->language)) != (iconv_t)-1) {
-  			
+
 			fromlen  = strlen(str) + 1;
 			tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
 
@@ -2773,7 +2778,7 @@ int alfont_text_length(ALFONT_FONT *f, const char *str) {
 				fromlen  = strlen(str) + 1 + 1;
 				tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
 				str_pointer = (char *)malloc(tolen*sizeof(char));
-				memset(str_pointer, 0, tolen);		
+				memset(str_pointer, 0, tolen);
 				precedingchar_pointer=(char *)malloc(2*sizeof(char));
 				memset(precedingchar_pointer, 0, 2);
 				sprintf(precedingchar_pointer, "%c", f->precedingchar);
@@ -2814,14 +2819,14 @@ int alfont_text_length(ALFONT_FONT *f, const char *str) {
 			}
   		}
 		#else
-		
+
 
 		#ifdef ALFONT_LINUX
 		nLen = strlen(str_pointer) * 5 + 1;
 		#else
 		nLen = strlen(str_pointer) + 1;
 		#endif
-		
+
 		//add the previous character to the str string
 		if (f->precedingchar != 0) {
 			free(str_pointer);
@@ -2839,7 +2844,7 @@ int alfont_text_length(ALFONT_FONT *f, const char *str) {
 			strcat(str_pointer, str);
 			f->precedingchar = 0;
 		}
-		
+
 		setlocale(LC_CTYPE,f->language);
 		set_uformat(U_UNICODE);
 
@@ -2876,7 +2881,7 @@ int alfont_text_length(ALFONT_FONT *f, const char *str) {
 
 
   if (f->type==1) {
-  	
+
   	#ifdef ALFONT_DOS
 	if ((c_pt = iconv_open(f->language, "UTF-16LE")) == (iconv_t)-1) {
      	lpszW = (char *)str_pointer;
@@ -2907,9 +2912,9 @@ int alfont_text_length(ALFONT_FONT *f, const char *str) {
   }
   else if(f->type==2) {
   	curr_uformat=get_uformat();
-  	
+
   	#ifdef ALFONT_DOS
-	if ((c_pt = iconv_open("UTF-16LE", f->language)) == (iconv_t)-1) {	
+	if ((c_pt = iconv_open("UTF-16LE", f->language)) == (iconv_t)-1) {
      	lpszW = (char *)str_pointer;
   	}
   	else {
@@ -2933,7 +2938,7 @@ int alfont_text_length(ALFONT_FONT *f, const char *str) {
 	#else
 	setlocale(LC_CTYPE,f->language);
 	set_uformat(U_UNICODE);
-	
+
 	#ifdef ALFONT_LINUX
 	nLen = strlen(str_pointer) * 5 + 1;
 	#else
@@ -2961,7 +2966,7 @@ int alfont_text_length(ALFONT_FONT *f, const char *str) {
   {
     lpszW_tmp = lpszW;
     max_advancex = 0;
-  
+
 	_alfont_uncache_glyphs(f);
 
   #ifdef ALFONT_LINUX //Fix for Linux Unicode System(be converted)
@@ -2969,8 +2974,8 @@ int alfont_text_length(ALFONT_FONT *f, const char *str) {
   #else
     for (character = ugetxc((const char**)&lpszW_tmp); character != 0; character = ugetxc((const char**)&lpszW_tmp)) {
   #endif
-	/* get the character out of the font */    
-	
+	/* get the character out of the font */
+
 	  #ifdef ALFONT_LINUX //Recover for Linux Unicode System Fixed
         	  if(f->type!=2) {
     	          lpszW_tmp--;
@@ -2982,7 +2987,7 @@ int alfont_text_length(ALFONT_FONT *f, const char *str) {
 		  glyph_index_tmp = FT_Get_Char_Index(f->face, character);
 	  else
 		  glyph_index_tmp = character;
-	
+
 	  /* cache the glyph */
 	  _alfont_cache_glyph(f, glyph_index_tmp);
 	  if (max_advancex < f->cached_glyphs[glyph_index_tmp].advancex)
@@ -2994,7 +2999,7 @@ int alfont_text_length(ALFONT_FONT *f, const char *str) {
   for (character = ugetxc((const char**)&lpszW); character != 0; character = ugetxc((const char**)&lpszW),character = ugetxc((const char**)&lpszW)) {
 #else
   for (character = ugetxc((const char**)&lpszW); character != 0; character = ugetxc((const char**)&lpszW)) {
-#endif	
+#endif
 	/* get the character out of the font */
 
 	#ifdef ALFONT_LINUX //Recover for Linux Unicode System Fixed
@@ -3002,12 +3007,12 @@ int alfont_text_length(ALFONT_FONT *f, const char *str) {
     			lpszW--;
     		}
     	#endif
-    	
+
 	if (f->face->charmap)
 		glyph_index = FT_Get_Char_Index(f->face, character);
 	else
 		glyph_index = character;
-    
+
 	/* apply kerning */
 	/*if (last_glyph_index) {
 		FT_Vector v;
@@ -3035,7 +3040,7 @@ int alfont_text_length(ALFONT_FONT *f, const char *str) {
   	if (lpszW_pointer)
 	free(lpszW_pointer);
   }
-  
+
   if(str_pointer) {
 	free(str_pointer);
   }
@@ -3083,7 +3088,7 @@ int alfont_char_length(ALFONT_FONT *f, int character) {
 
 
   /* get the character out of the font */
-    
+
   if (f->face->charmap)
 	glyph_index = FT_Get_Char_Index(f->face, character);
   else
@@ -3149,7 +3154,7 @@ int alfont_text_count(ALFONT_FONT *f, const char *str) {
   str_pointer = (char *)malloc(nLen*sizeof(char));
   memset(str_pointer, 0, nLen);
   strcpy(str_pointer, str);
-  
+
   //Auto Fix for cutted string
   //For ASCII convert to unicode
   //Add the previous character to the str string
@@ -3160,7 +3165,7 @@ int alfont_text_count(ALFONT_FONT *f, const char *str) {
 
 		#ifdef ALFONT_DOS
 		if ((c_pt = iconv_open("UTF-16LE", f->language)) != (iconv_t)-1) {
-  			
+
 			fromlen  = strlen(str) + 1;
 			tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
 
@@ -3170,7 +3175,7 @@ int alfont_text_count(ALFONT_FONT *f, const char *str) {
 				fromlen  = strlen(str) + 1 + 1;
 				tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
 				str_pointer = (char *)malloc(tolen*sizeof(char));
-				memset(str_pointer, 0, tolen);		
+				memset(str_pointer, 0, tolen);
 				precedingchar_pointer=(char *)malloc(2*sizeof(char));
 				memset(precedingchar_pointer, 0, 2);
 				sprintf(precedingchar_pointer, "%c", f->precedingchar);
@@ -3211,14 +3216,14 @@ int alfont_text_count(ALFONT_FONT *f, const char *str) {
 			}
   		}
 		#else
-		
+
 
 		#ifdef ALFONT_LINUX
 		nLen = strlen(str_pointer) * 5 + 1;
 		#else
 		nLen = strlen(str_pointer) + 1;
 		#endif
-		
+
 		//add the previous character to the str string
 		if (f->precedingchar != 0) {
 			free(str_pointer);
@@ -3236,7 +3241,7 @@ int alfont_text_count(ALFONT_FONT *f, const char *str) {
 			strcat(str_pointer, str);
 			f->precedingchar = 0;
 		}
-		
+
 		setlocale(LC_CTYPE,f->language);
 		set_uformat(U_UNICODE);
 
@@ -3271,7 +3276,7 @@ int alfont_text_count(ALFONT_FONT *f, const char *str) {
 
   //Font Code Convert
 
-  
+
   if (f->type==1) {
   	#ifdef ALFONT_DOS
 	if ((c_pt = iconv_open(f->language, "UTF-16LE")) == (iconv_t)-1) {
@@ -3305,9 +3310,9 @@ int alfont_text_count(ALFONT_FONT *f, const char *str) {
   }
   else if(f->type==2) {
   	curr_uformat=get_uformat();
-  	
+
   	#ifdef ALFONT_DOS
-	if ((c_pt = iconv_open("UTF-16LE", f->language)) == (iconv_t)-1) {	
+	if ((c_pt = iconv_open("UTF-16LE", f->language)) == (iconv_t)-1) {
      	lpszW = (char *)str_pointer;
      	string_count = strlen(lpszW);
   	}
@@ -3334,13 +3339,13 @@ int alfont_text_count(ALFONT_FONT *f, const char *str) {
 	#else
 	setlocale(LC_CTYPE,f->language);
 	set_uformat(U_UNICODE);
-	
+
 	#ifdef ALFONT_LINUX
 	nLen = strlen(str_pointer) * 5 + 1;
 	#else
 	nLen= strlen(str_pointer) + 1;
 	#endif
-	
+
 	lpszW = (char *)malloc(nLen*sizeof(wchar_t));
 	memset(lpszW, 0, nLen);
 	lpszW_pointer = lpszW;
@@ -3356,7 +3361,7 @@ int alfont_text_count(ALFONT_FONT *f, const char *str) {
     	string_count = strlen(str_pointer);
     #endif
     lpszW = (char *)str_pointer;
-    
+
   }
 
   if ((f->type==1)||(f->type==2)) {
@@ -3367,11 +3372,11 @@ int alfont_text_count(ALFONT_FONT *f, const char *str) {
   if(str_pointer) {
 	free(str_pointer);
   }
-  
+
   #ifndef ALFONT_DOS
   setlocale(LC_CTYPE,"");
   #endif
-  
+
   if (f->type==2) {
 	set_uformat(curr_uformat);
   }
@@ -3394,16 +3399,16 @@ int alfont_ugetc(ALFONT_FONT *f, const char *s) {
   size_t fromlen, tolen;
   char *sin, *sout;
   #endif
-  
+
   if (s == NULL) {
 	return 0;
   }
-  
+
   nLen = strlen(s) + 1;
   s_pointer = (char *)malloc(nLen*sizeof(char));
   memset(s_pointer, 0, nLen);
   strcpy(s_pointer, s);
-  
+
   //Auto Fix for cutted string
   //For ASCII convert to unicode
   //Add the previous character to the s string
@@ -3414,17 +3419,17 @@ int alfont_ugetc(ALFONT_FONT *f, const char *s) {
 
 		#ifdef ALFONT_DOS
 		if ((c_pt = iconv_open("UTF-16LE", f->language)) != (iconv_t)-1) {
-  			
+
 			fromlen  = strlen(s) + 1;
 			tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
-			
+
 			//add the previous character to the s string
 			if (f->precedingchar != 0) {
 				free(s_pointer);
 				fromlen  = strlen(s) + 1 + 1;
 				tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
 				s_pointer = (char *)malloc(tolen*sizeof(char));
-				memset(s_pointer, 0, tolen);		
+				memset(s_pointer, 0, tolen);
 				precedingchar_pointer=(char *)malloc(2*sizeof(char));
 				memset(precedingchar_pointer, 0, 2);
 				sprintf(precedingchar_pointer, "%c", f->precedingchar);
@@ -3465,14 +3470,14 @@ int alfont_ugetc(ALFONT_FONT *f, const char *s) {
 			}
   		}
 		#else
-		
+
 
 		#ifdef ALFONT_LINUX
 		nLen = strlen(s_pointer) * 5 + 1;
 		#else
 		nLen = strlen(s_pointer) + 1;
 		#endif
-		
+
 		//add the previous character to the s string
 		if (f->precedingchar != 0) {
 			free(s_pointer);
@@ -3490,7 +3495,7 @@ int alfont_ugetc(ALFONT_FONT *f, const char *s) {
 			strcat(s_pointer, s);
 			f->precedingchar = 0;
 		}
-		
+
 		setlocale(LC_CTYPE,f->language);
 		set_uformat(U_UNICODE);
 
@@ -3525,9 +3530,9 @@ int alfont_ugetc(ALFONT_FONT *f, const char *s) {
 
   //Font Code Convert
 
-  
+
   if (f->type==1) {
-  	
+
 	#ifdef ALFONT_DOS
 	if ((c_pt = iconv_open(f->language, "UTF-16LE")) == (iconv_t)-1) {
      	lpszW = (char *)s_pointer;
@@ -3556,9 +3561,9 @@ int alfont_ugetc(ALFONT_FONT *f, const char *s) {
   }
   else if(f->type==2) {
   	curr_uformat=get_uformat();
-  	
+
   	#ifdef ALFONT_DOS
-	if ((c_pt = iconv_open("UTF-16LE", f->language)) == (iconv_t)-1) {	
+	if ((c_pt = iconv_open("UTF-16LE", f->language)) == (iconv_t)-1) {
      	lpszW = (char *)s_pointer;
   	}
   	else {
@@ -3581,7 +3586,7 @@ int alfont_ugetc(ALFONT_FONT *f, const char *s) {
 	#else
 	setlocale(LC_CTYPE,f->language);
 	set_uformat(U_UNICODE);
-	
+
 	#ifdef ALFONT_LINUX
 	nLen = strlen(s_pointer) * 5 + 1;
 	#else
@@ -3602,12 +3607,12 @@ int alfont_ugetc(ALFONT_FONT *f, const char *s) {
   }
 
   character = ugetc((const char*)lpszW);
-	
+
   if ((f->type==1)||(f->type==2)) {
   	if (lpszW)
 	free(lpszW);
   }
-  
+
   if(s_pointer) {
 	free(s_pointer);
   }
@@ -3645,18 +3650,18 @@ int alfont_ugetx(ALFONT_FONT *f, char **s) {
   size_t fromlen, tolen;
   char *sin, *sout;
   #endif
-  
+
   if (*s == NULL) {
 	return 0;
   }
-  
+
   sLen = strlen(*s);
 
   nLen = strlen(*s) + 1;
   s_pointer = (char *)malloc(nLen*sizeof(char));
   memset(s_pointer, 0, nLen);
   strcpy(s_pointer, *s);
-  
+
   //Auto Fix for cutted string
   //For ASCII convert to unicode
   //Add the previous character to the *s string
@@ -3667,17 +3672,17 @@ int alfont_ugetx(ALFONT_FONT *f, char **s) {
 
 		#ifdef ALFONT_DOS
 		if ((c_pt = iconv_open("UTF-16LE", f->language)) != (iconv_t)-1) {
-  			
+
 			fromlen  = strlen(*s) + 1;
 			tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
-			
+
 			//add the previous character to the *s string
 			if (f->precedingchar != 0) {
 				free(s_pointer);
 				fromlen  = strlen(*s) + 1 + 1;
 				tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
 				s_pointer = (char *)malloc(tolen*sizeof(char));
-				memset(s_pointer, 0, tolen);		
+				memset(s_pointer, 0, tolen);
 				precedingchar_pointer=(char *)malloc(2*sizeof(char));
 				memset(precedingchar_pointer, 0, 2);
 				sprintf(precedingchar_pointer, "%c", f->precedingchar);
@@ -3718,14 +3723,14 @@ int alfont_ugetx(ALFONT_FONT *f, char **s) {
 			}
   		}
 		#else
-		
+
 
 		#ifdef ALFONT_LINUX
 		nLen = strlen(s_pointer) * 5 + 1;
 		#else
 		nLen = strlen(s_pointer) + 1;
 		#endif
-		
+
 		//add the previous character to the *s string
 		if (f->precedingchar != 0) {
 			free(s_pointer);
@@ -3743,7 +3748,7 @@ int alfont_ugetx(ALFONT_FONT *f, char **s) {
 			strcat(s_pointer, *s);
 			f->precedingchar = 0;
 		}
-		
+
 		setlocale(LC_CTYPE,f->language);
 		set_uformat(U_UNICODE);
 
@@ -3778,9 +3783,9 @@ int alfont_ugetx(ALFONT_FONT *f, char **s) {
 
   //Font Code Convert
 
-  
+
   if (f->type==1) {
-  	
+
 	#ifdef ALFONT_DOS
 	if ((c_pt = iconv_open(f->language, "UTF-16LE")) == (iconv_t)-1) {
      	lpszW = (char *)s_pointer;
@@ -3809,9 +3814,9 @@ int alfont_ugetx(ALFONT_FONT *f, char **s) {
   }
   else if(f->type==2) {
   	curr_uformat=get_uformat();
-  	
+
   	#ifdef ALFONT_DOS
-	if ((c_pt = iconv_open("UTF-16LE", f->language)) == (iconv_t)-1) {	
+	if ((c_pt = iconv_open("UTF-16LE", f->language)) == (iconv_t)-1) {
      	lpszW = (char *)s_pointer;
   	}
   	else {
@@ -3834,7 +3839,7 @@ int alfont_ugetx(ALFONT_FONT *f, char **s) {
 	#else
 	setlocale(LC_CTYPE,f->language);
 	set_uformat(U_UNICODE);
-	
+
 	#ifdef ALFONT_LINUX
 	nLen = strlen(s_pointer) * 5 + 1;
 	#else
@@ -3899,7 +3904,7 @@ int alfont_ugetx(ALFONT_FONT *f, char **s) {
 	wcstombs(lpszWA, (const wchar_t *)lpszWS, nLen);
 	aLen = strlen(lpszWA);
 	#endif
- 
+
 	for (lIndex = 0; lIndex < sLen - aLen; lIndex++)
 	{
 		(*(*s)++);
@@ -3961,18 +3966,18 @@ int alfont_ugetxc(ALFONT_FONT *f, const char **s) {
   size_t fromlen, tolen;
   char *sin, *sout;
   #endif
-  
+
   if (*s == NULL) {
 	return 0;
   }
-  
+
   sLen = strlen(*s);
 
   nLen = strlen(*s) + 1;
   s_pointer = (char *)malloc(nLen*sizeof(char));
   memset(s_pointer, 0, nLen);
   strcpy(s_pointer, *s);
-  
+
   //Auto Fix for cutted string
   //For ASCII convert to unicode
   //Add the previous character to the *s string
@@ -3983,17 +3988,17 @@ int alfont_ugetxc(ALFONT_FONT *f, const char **s) {
 
 		#ifdef ALFONT_DOS
 		if ((c_pt = iconv_open("UTF-16LE", f->language)) != (iconv_t)-1) {
-  			
+
 			fromlen  = strlen(*s) + 1;
 			tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
-			
+
 			//add the previous character to the *s string
 			if (f->precedingchar != 0) {
 				free(s_pointer);
 				fromlen  = strlen(*s) + 1 + 1;
 				tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
 				s_pointer = (char *)malloc(tolen*sizeof(char));
-				memset(s_pointer, 0, tolen);		
+				memset(s_pointer, 0, tolen);
 				precedingchar_pointer=(char *)malloc(2*sizeof(char));
 				memset(precedingchar_pointer, 0, 2);
 				sprintf(precedingchar_pointer, "%c", f->precedingchar);
@@ -4034,14 +4039,14 @@ int alfont_ugetxc(ALFONT_FONT *f, const char **s) {
 			}
   		}
 		#else
-		
+
 
 		#ifdef ALFONT_LINUX
 		nLen = strlen(s_pointer) * 5 + 1;
 		#else
 		nLen = strlen(s_pointer) + 1;
 		#endif
-		
+
 		//add the previous character to the *s string
 		if (f->precedingchar != 0) {
 			free(s_pointer);
@@ -4059,7 +4064,7 @@ int alfont_ugetxc(ALFONT_FONT *f, const char **s) {
 			strcat(s_pointer, *s);
 			f->precedingchar = 0;
 		}
-		
+
 		setlocale(LC_CTYPE,f->language);
 		set_uformat(U_UNICODE);
 
@@ -4094,9 +4099,9 @@ int alfont_ugetxc(ALFONT_FONT *f, const char **s) {
 
   //Font Code Convert
 
-  
+
   if (f->type==1) {
-  	
+
 	#ifdef ALFONT_DOS
 	if ((c_pt = iconv_open(f->language, "UTF-16LE")) == (iconv_t)-1) {
      	lpszW = (char *)s_pointer;
@@ -4125,9 +4130,9 @@ int alfont_ugetxc(ALFONT_FONT *f, const char **s) {
   }
   else if(f->type==2) {
   	curr_uformat=get_uformat();
-  	
+
   	#ifdef ALFONT_DOS
-	if ((c_pt = iconv_open("UTF-16LE", f->language)) == (iconv_t)-1) {	
+	if ((c_pt = iconv_open("UTF-16LE", f->language)) == (iconv_t)-1) {
      	lpszW = (char *)s_pointer;
   	}
   	else {
@@ -4150,7 +4155,7 @@ int alfont_ugetxc(ALFONT_FONT *f, const char **s) {
 	#else
 	setlocale(LC_CTYPE,f->language);
 	set_uformat(U_UNICODE);
-	
+
 	#ifdef ALFONT_LINUX
 	nLen = strlen(s_pointer) * 5 + 1;
 	#else
@@ -4215,7 +4220,7 @@ int alfont_ugetxc(ALFONT_FONT *f, const char **s) {
 	wcstombs(lpszWA, (const wchar_t *)lpszWS, nLen);
 	aLen = strlen(lpszWA);
 	#endif
- 
+
 	for (lIndex = 0; lIndex < sLen - aLen; lIndex++)
 	{
 		(*(*s)++);
@@ -4270,7 +4275,7 @@ void alfont_get_string(ALFONT_FONT *f, const char *s , char **out){
   size_t fromlen, tolen;
   char *sin, *sout;
   #endif
-  
+
   if (s == NULL) {
 	return;
   }
@@ -4279,7 +4284,7 @@ void alfont_get_string(ALFONT_FONT *f, const char *s , char **out){
   s_pointer = (char *)malloc(nLen*sizeof(char));
   memset(s_pointer, 0, nLen);
   strcpy(s_pointer, s);
-  
+
   //Auto Fix for cutted string
   //For ASCII convert to unicode
   //Add the previous character to the s string
@@ -4290,17 +4295,17 @@ void alfont_get_string(ALFONT_FONT *f, const char *s , char **out){
 
 		#ifdef ALFONT_DOS
 		if ((c_pt = iconv_open("UTF-16LE", f->language)) != (iconv_t)-1) {
-  			
+
 			fromlen  = strlen(s) + 1;
 			tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
-			
+
 			//add the previous character to the s string
 			if (f->precedingchar != 0) {
 				free(s_pointer);
 				fromlen  = strlen(s) + 1 + 1;
 				tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
 				s_pointer = (char *)malloc(tolen*sizeof(char));
-				memset(s_pointer, 0, tolen);		
+				memset(s_pointer, 0, tolen);
 				precedingchar_pointer=(char *)malloc(2*sizeof(char));
 				memset(precedingchar_pointer, 0, 2);
 				sprintf(precedingchar_pointer, "%c", f->precedingchar);
@@ -4341,14 +4346,14 @@ void alfont_get_string(ALFONT_FONT *f, const char *s , char **out){
 			}
   		}
 		#else
-		
+
 
 		#ifdef ALFONT_LINUX
 		nLen = strlen(s_pointer) * 5 + 1;
 		#else
 		nLen = strlen(s_pointer) + 1;
 		#endif
-		
+
 		//add the previous character to the s string
 		if (f->precedingchar != 0) {
 			free(s_pointer);
@@ -4366,7 +4371,7 @@ void alfont_get_string(ALFONT_FONT *f, const char *s , char **out){
 			strcat(s_pointer, s);
 			f->precedingchar = 0;
 		}
-		
+
 		setlocale(LC_CTYPE,f->language);
 		set_uformat(U_UNICODE);
 
@@ -4401,9 +4406,9 @@ void alfont_get_string(ALFONT_FONT *f, const char *s , char **out){
 
   //Font Code Convert
 
-  
+
   if (f->type==1) {
-  	
+
 	#ifdef ALFONT_DOS
 	if ((c_pt = iconv_open(f->language, "UTF-16LE")) == (iconv_t)-1) {
      	lpszW = (char *)s_pointer;
@@ -4432,9 +4437,9 @@ void alfont_get_string(ALFONT_FONT *f, const char *s , char **out){
   }
   else if(f->type==2) {
   	curr_uformat=get_uformat();
-  	
+
   	#ifdef ALFONT_DOS
-	if ((c_pt = iconv_open("UTF-16LE", f->language)) == (iconv_t)-1) {	
+	if ((c_pt = iconv_open("UTF-16LE", f->language)) == (iconv_t)-1) {
      	lpszW = (char *)s_pointer;
   	}
   	else {
@@ -4457,7 +4462,7 @@ void alfont_get_string(ALFONT_FONT *f, const char *s , char **out){
 	#else
 	setlocale(LC_CTYPE,f->language);
 	set_uformat(U_UNICODE);
-	
+
 	#ifdef ALFONT_LINUX
 	nLen = strlen(s_pointer) * 5 + 1;
 	#else
@@ -4528,7 +4533,7 @@ int alfont_need_uconvert(ALFONT_FONT *f, const char *str) {
   str_pointer = (char *)malloc(nLen*sizeof(char));
   memset(str_pointer, 0, nLen);
   strcpy(str_pointer, str);
-  
+
   //Auto Fix for cutted string
   //For ASCII convert to unicode
   //Add the previous character to the str string
@@ -4539,7 +4544,7 @@ int alfont_need_uconvert(ALFONT_FONT *f, const char *str) {
 
 		#ifdef ALFONT_DOS
 		if ((c_pt = iconv_open("UTF-16LE", f->language)) != (iconv_t)-1) {
-  			
+
 			fromlen  = strlen(str) + 1;
 			tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
 
@@ -4549,7 +4554,7 @@ int alfont_need_uconvert(ALFONT_FONT *f, const char *str) {
 				fromlen  = strlen(str) + 1 + 1;
 				tolen = MB_CUR_MAX * fromlen * (sizeof(wchar_t) + 1);
 				str_pointer = (char *)malloc(tolen*sizeof(char));
-				memset(str_pointer, 0, tolen);		
+				memset(str_pointer, 0, tolen);
 				precedingchar_pointer=(char *)malloc(2*sizeof(char));
 				memset(precedingchar_pointer, 0, 2);
 				sprintf(precedingchar_pointer, "%c", f->precedingchar);
@@ -4590,14 +4595,14 @@ int alfont_need_uconvert(ALFONT_FONT *f, const char *str) {
 			}
   		}
 		#else
-		
+
 
 		#ifdef ALFONT_LINUX
 		nLen = strlen(str_pointer) * 5 + 1;
 		#else
 		nLen = strlen(str_pointer) + 1;
 		#endif
-		
+
 		//add the previous character to the str string
 		if (f->precedingchar != 0) {
 			free(str_pointer);
@@ -4615,7 +4620,7 @@ int alfont_need_uconvert(ALFONT_FONT *f, const char *str) {
 			strcat(str_pointer, str);
 			f->precedingchar = 0;
 		}
-		
+
 		setlocale(LC_CTYPE,f->language);
 		set_uformat(U_UNICODE);
 
@@ -4647,7 +4652,7 @@ int alfont_need_uconvert(ALFONT_FONT *f, const char *str) {
 	}
   }
 
-  
+
   if (f->type==1) {
   	need_unicode_convert=FALSE;
   }
@@ -4665,7 +4670,7 @@ int alfont_need_uconvert(ALFONT_FONT *f, const char *str) {
   if(str_pointer) {
 	free(str_pointer);
   }
-  
+
   #ifndef ALFONT_DOS
   setlocale(LC_CTYPE,"");
   #endif

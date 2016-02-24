@@ -49,7 +49,7 @@ void    Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi);
 void    Character_PlaceOnWalkableArea(CharacterInfo *chap);
 void    Character_RemoveTint(CharacterInfo *chaa);
 int     Character_GetHasExplicitTint(CharacterInfo *chaa);
-void    Character_Say(CharacterInfo *chaa, const char *texx, ...);
+void    Character_Say(CharacterInfo *chaa, const char *text);
 void    Character_SayAt(CharacterInfo *chaa, int x, int y, int width, const char *texx);
 ScriptOverlay* Character_SayBackground(CharacterInfo *chaa, const char *texx);
 void    Character_SetAsPlayer(CharacterInfo *chaa);
@@ -58,7 +58,7 @@ void    Character_SetOption(CharacterInfo *chaa, int flag, int yesorno);
 void    Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed);
 void    Character_StopMoving(CharacterInfo *charp);
 void    Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opacity, int luminance);
-void    Character_Think(CharacterInfo *chaa, const char *texx, ...);
+void    Character_Think(CharacterInfo *chaa, const char *text);
 void    Character_UnlockView(CharacterInfo *chaa);
 void    Character_Walk(CharacterInfo *chaa, int x, int y, int blocking, int direct);
 void    Character_Move(CharacterInfo *chaa, int x, int y, int blocking, int direct);
@@ -186,12 +186,12 @@ int my_getpixel(Common::Bitmap *blk, int x, int y);
 // X and Y co-ordinates must be in 320x200 format
 int check_click_on_character(int xx,int yy,int mood);
 int is_pos_on_character(int xx,int yy);
-void _DisplaySpeechCore(int chid, char *displbuf);
+void _DisplaySpeechCore(int chid, const char *displbuf);
 void _DisplayThoughtCore(int chid, const char *displbuf);
 
-void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThought);
+void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int isThought);
 int get_character_currently_talking();
-void DisplaySpeech(char*texx, int aschar);
+void DisplaySpeech(const char*texx, int aschar);
 
 int update_lip_sync(int talkview, int talkloop, int *talkframeptr);
 

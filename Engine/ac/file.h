@@ -20,6 +20,9 @@
 
 #include "ac/dynobj/scriptfile.h"
 #include "ac/runtime_defines.h"
+#include "util/string.h"
+
+using AGS::Common::String;
 
 int		File_Exists(const char *fnmm);
 int		File_Delete(const char *fnmm);
@@ -41,8 +44,32 @@ int		File_GetEOF(sc_File *fil);
 int		File_GetError(sc_File *fil);
 int     File_GetPosition(sc_File *fil);
 
+// Filepath tokens, which are replaced by platform-specific directory names
+extern const String UserSavedgamesRootToken;
+extern const String GameSavedgamesDirToken;
+extern const String GameDataDirToken;
+
+inline const char *PathOrCurDir(const char *path)
+{
+    return path ? path : ".";
+}
+
+// Subsitutes illegal characters with '_'. This function uses illegal chars array
+// specific to current platform.
+void FixupFilename(char *filename);
+// Creates a directory path by combining absolute path to special directory with
+// custom game's directory name.
+// If the path is relative, keeps it unmodified (no extra subdir added).
+String MakeSpecialSubDir(const String &sp_dir);
+// Resolves a file path provided by user (e.g. script) into actual file path,
+// by substituting special keywords with actual platform-specific directory names.
+// Sets a primary and alternate paths; the latter is for backwards compatibility only.
+// Returns 'true' on success, and 'false' if either path is impossible to resolve
+// or if the file path is forbidden to be accessed in current situation.
+bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, String &alt_path);
+
+String  get_current_dir();
 void	get_current_dir_path(char* buffer, const char *fileName);
-bool	validate_user_file_path(const char *fnmm, char *output, bool currentDirOnly);
 
 struct ScriptFileHandle
 {

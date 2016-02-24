@@ -20,6 +20,7 @@
 #include "util/wgt2allg.h"
 #include "platform/base/agsplatformdriver.h"
 #include "ac/common.h"
+#include "ac/runtime_defines.h"
 #include "util/string_utils.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
@@ -38,7 +39,6 @@ AGSPlatformDriver *platform = NULL;
 
 // ******** DEFAULT IMPLEMENTATIONS *******
 
-void AGSPlatformDriver::WriteDebugString(const char*, ...) { }
 void AGSPlatformDriver::AboutToQuitGame() { }
 void AGSPlatformDriver::PostAllegroInit(bool windowed) { }
 void AGSPlatformDriver::DisplaySwitchOut() { }
@@ -66,25 +66,16 @@ void AGSPlatformDriver::GetSystemTime(ScriptDateTime *sdt) {
     sdt->year = newtime->tm_year + 1900;
 }
 
-void AGSPlatformDriver::YieldCPU() {
-    this->Delay(1);
+void AGSPlatformDriver::WriteStdOut(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
+    printf("\n");
 }
 
-void AGSPlatformDriver::ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize) {
-
-    // For platforms with no special folders, just redirect it back to current folder
-    if (strnicmp(sourcePath, "$MYDOCS$", 8) == 0)
-    {
-        snprintf(destPath, destSize, ".%s", sourcePath + 8);
-    }
-    else if (strnicmp(sourcePath, "$APPDATADIR$", 12) == 0) 
-    {
-        snprintf(destPath, destSize, ".%s", sourcePath + 12);
-    }
-    else
-    {
-        snprintf(destPath, destSize, "%s", sourcePath);
-    }
+void AGSPlatformDriver::YieldCPU() {
+    this->Delay(1);
 }
 
 void AGSPlatformDriver::ReadPluginsFromDisk(AGS::Common::Stream *iii) {
@@ -147,11 +138,14 @@ int AGSPlatformDriver::ConvertKeycodeToScanCode(int keycode)
     return keycode;
 }
 
+bool AGSPlatformDriver::LockMouseToWindow() { return false; }
+void AGSPlatformDriver::UnlockMouse() { }
+
 //-----------------------------------------------
 // IOutputTarget implementation
 //-----------------------------------------------
 void AGSPlatformDriver::Out(const char *sz_fullmsg) {
-    this->WriteDebugString(sz_fullmsg);
+    this->WriteStdOut("%s", sz_fullmsg);
 }
 
 // ********** CD Player Functions common to Win and Linux ********

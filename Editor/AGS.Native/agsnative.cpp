@@ -4912,6 +4912,7 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	thisgame.options[OPT_NATIVECOORDINATES] = !game->Settings->UseLowResCoordinatesInScript;
 	thisgame.options[OPT_WALKONLOOK] = game->Settings->WalkInLookMode;
 	thisgame.options[OPT_DISABLEOFF] = (int)game->Settings->WhenInterfaceDisabled;
+    thisgame.options[OPT_SAFEFILEPATHS] = 1; // always use safe file paths in new games
 	thisgame.uniqueid = game->Settings->UniqueID;
   ConvertStringToCharArray(game->Settings->GUIDAsString, thisgame.guid, MAX_GUID_LENGTH);
   ConvertStringToCharArray(game->Settings->SaveGameFolderName, thisgame.saveGameFolderName, MAX_SG_FOLDER_LEN);

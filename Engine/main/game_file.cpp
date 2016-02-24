@@ -135,7 +135,7 @@ Stream * game_file_open()
 	return in;
 }
 
-int game_file_read_version(Stream *in)
+GameFileError game_file_read_version(Stream *in)
 {
 	char teststr[31];
 
@@ -149,7 +149,7 @@ int game_file_read_version(Stream *in)
         if (filever < kGameVersion_250) // < 2.5.0
         {
             delete in;
-            return -2;
+            return kGameFile_UnsupportedOldFormat;
         }
         psp_is_old_datafile = 1;
     }
@@ -160,19 +160,18 @@ int game_file_read_version(Stream *in)
     Out::FPrint("Requested engine version: %s", requested_engine_version.LongString.GetCStr());
 
     if (filever > kGameVersion_Current) {
-        platform->DisplayAlert("This game requires a newer version of AGS (%s). It cannot be run.",
+        platform->DisplayAlert("This game requires a different version of AGS (%s). It cannot be run.",
             requested_engine_version.LongString.GetCStr());
         delete in;
-        return -2;
+        return kGameFile_UnsupportedNewFormat;
     }
 
     if (requested_engine_version > EngineVersion)
-        platform->DisplayAlert("This game requires a newer version of AGS (%s). It may not run correctly.",
+        platform->DisplayAlert("This game suggests a different version of AGS (%s). It may not run correctly.",
         requested_engine_version.LongString.GetCStr());
 
     loaded_game_file_version = filever;
-
-	return RETURN_CONTINUE;
+    return kGameFile_NoError;
 }
 
 void game_file_read_dialog_script(Stream *in)
@@ -578,10 +577,55 @@ void WriteGameSetupStructBase_Aligned(Stream *out)
     gameBase->WriteToFile(&align_s);
 }
 
-int load_game_file() {
+void PreReadSaveFileInfo(Stream *in)
+{
+    GameSetupStruct::GAME_STRUCT_READ_DATA read_data;
+    read_data.filever        = filever;
+    read_data.saveGameSuffix = saveGameSuffix;
+    game.read_savegame_info(in, read_data);
+}
 
-	int res;    
+void fixup_save_directory()
+{
+    // If the save game folder was not specified by game author, create one of
+    // the game name, game GUID, or data file name, as a last resort
+    if (!game.saveGameFolderName[0])
+    {
+        if (game.gamename[0])
+            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN - 1, "%s", game.gamename);
+        else if (game.guid[0])
+            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN - 1, "%s", game.guid);
+        else
+            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN - 1, "AGS-Game-%d", game.uniqueid);
+    }
+    // Lastly, fixup folder name by removing any illegal characters
+    FixupFilename(game.saveGameFolderName);
+}
 
+GameFileError preload_game_data()
+{
+    Stream *in = game_file_open();
+    if (!in)
+        return kGameFile_NoMainData;
+
+    GameFileError err = game_file_read_version(in);
+    if (err != kGameFile_NoError)
+        return err;
+
+    {
+        AlignedStream align_s(in, Common::kAligned_Read);
+        game.ReadFromFile(&align_s);
+        // Discard game messages we do not need here
+        delete [] game.load_messages;
+        game.load_messages = NULL;
+    }
+    PreReadSaveFileInfo(in);
+    fixup_save_directory();
+    return kGameFile_NoError;
+}
+
+GameFileError load_game_file()
+{
     game_paused = 0;  // reset the game paused flag
     ifacepopped = -1;
 
@@ -590,8 +634,8 @@ int load_game_file() {
 	//-----------------------------------------------------------
 
     Stream *in = game_file_open();
-	if (in==NULL)
-		return -1;
+    if (in==NULL)
+        return kGameFile_NoMainData;
 
     our_eip=-18;
 
@@ -599,10 +643,9 @@ int load_game_file() {
 
     our_eip=-16;
 
-	res = game_file_read_version(in);
-	if (res != RETURN_CONTINUE) {
-		return res;
-	}
+    GameFileError err = game_file_read_version(in);
+    if (err != kGameFile_NoError)
+        return err;
 
     game.charScripts = NULL;
     game.invScripts = NULL;
@@ -720,10 +763,12 @@ int load_game_file() {
 	// Reading from file is finished here
 	//-----------------------------------------------------------
 
+    fixup_save_directory();
+
     update_gui_zorder();
 
     if (game.numfonts == 0)
-        return -2;  // old v2.00 version
+        return kGameFile_UnsupportedOldFormat;  // old v2.00 version
 
     our_eip=-11;
 
@@ -739,7 +784,28 @@ int load_game_file() {
     ccSetStringClassImpl(&myScriptStringImpl);
 
     if (create_global_script())
-        return -3;
+        return kGameFile_ScriptLinkFailed;
 
-    return 0;
+    return kGameFile_NoError;
+}
+
+void display_game_file_error(GameFileError err)
+{
+    String err_str;
+    switch (err)
+    {
+    case kGameFile_NoMainData:
+        err_str = "Main game file not found. The file may be corrupt, or from unsupported version of AGS.\n";
+        break;
+    case kGameFile_UnsupportedOldFormat:
+        err_str = "Unsupported file format. The file may be corrupt, or from very old version of AGS.\nThis engine can only run games made with AGS 2.5 or later.\n";
+        break;
+    case kGameFile_UnsupportedNewFormat:
+        err_str = "Unsupported file format. The file may be corrupt, or from newer version of AGS.\n";
+        break;
+    case kGameFile_ScriptLinkFailed:
+        err_str.Format("Script link failed: %s\n", ccErrorString);
+        break;
+    }
+    platform->DisplayAlert(err_str);
 }

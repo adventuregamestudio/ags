@@ -5,7 +5,7 @@ diff -Naur cmake/FileList.cmake cmake/FileList.cmake
          src/psp/pvram.c
          src/psp/pvtable8.c
          )
-+		
++
 +set(ALLEGRO_SRC_IOS_FILES
 +        src/ios/idrivers.c
 +        src/ios/isound.c
@@ -18,7 +18,7 @@ diff -Naur cmake/FileList.cmake cmake/FileList.cmake
 +        src/ios/ithreads.c
 +        src/misc/colconv.c
 +        )
- 
+
  set(ALLEGRO_INCLUDE_ALLEGRO_FILES
          include/allegro/3d.h
 @@ -400,6 +413,7 @@
@@ -47,7 +47,7 @@ diff -Naur include/allegro/internal/alconfig.h include/allegro/internal/alconfig
   */
 -
 +#define ALLEGRO_IOS
- 
+
  /* which color depths to include? */
  #define ALLEGRO_COLOR8
 @@ -62,6 +62,8 @@
@@ -55,7 +55,7 @@ diff -Naur include/allegro/internal/alconfig.h include/allegro/internal/alconfig
     #elif defined ALLEGRO_PSP
        #include "allegro/platform/alpspcfg.h"
 +   #elif defined ALLEGRO_IOS
-+      #include "allegro/platform/alioscfg.h"   
++      #include "allegro/platform/alioscfg.h"
     #else
        #error platform not supported
     #endif
@@ -245,7 +245,7 @@ diff -Naur include/allegro/system.h include/allegro/system.h
  #define OSTYPE_MACOSX      AL_ID('M','A','C','X')
  #define OSTYPE_PSP         AL_ID('K','P','S','P')
 +#define OSTYPE_IOS         AL_ID('I','O','S',' ')
- 
+
  AL_VAR(int, os_type);
  AL_VAR(int, os_version);
 diff -Naur src/digmid.c src/digmid.c
@@ -259,7 +259,7 @@ diff -Naur src/digmid.c src/digmid.c
 + *
   *      See readme.txt for copyright information.
   */
- 
+
 @@ -520,7 +522,7 @@
  {
     PACKFILE *f;
@@ -273,27 +273,27 @@ diff -Naur src/digmid.c src/digmid.c
     int drum_start = 0;
     int type, size;
     int i, j, c;
-+   
++
 +   for (i = 0; i < 256; i++)
 +      todo[i] = (char*)malloc(1024);
- 
+
     if (!_digmid_find_patches(dir, sizeof(dir), file, sizeof(file)))
 -      return -1;
 +      goto error_exit;
- 
+
     for (i=0; i<256; i++)
        usetc(todo[i], 0);
 @@ -542,7 +547,7 @@
- 
+
     f = pack_fopen(buf, F_READ);
     if (!f)
 -      return -1;
 +      goto error_exit;
- 
+
     while (pack_fgets(buf, sizeof(buf), f) != 0) {
        argc = parse_string(buf, argv);
 @@ -584,7 +589,7 @@
- 
+
  		  if (!patch[patchnum]) {
  		     /* need to load this sample */
 -		     ustrzcpy(todo[patchnum], sizeof(todo[patchnum]), argv[1]);
@@ -302,12 +302,12 @@ diff -Naur src/digmid.c src/digmid.c
  	       }
  	    }
 @@ -608,13 +613,13 @@
- 
+
        f = pack_fopen(dir, F_READ_PACKED);
        if (!f)
 -	 return -1;
 +	 goto error_exit;
- 
+
        if (((ugetc(dir) == '#') && (ustrlen(dir) == 1)) || (!ustrchr(dir, '#'))) {
  	 type = pack_mgetl(f);
  	 if (type != DAT_MAGIC) {
@@ -316,7 +316,7 @@ diff -Naur src/digmid.c src/digmid.c
 +	    goto error_exit;
  	 }
        }
- 
+
 @@ -675,6 +680,7 @@
  	    pack_fseek(f, size+4);
  	 }
@@ -328,7 +328,7 @@ diff -Naur src/digmid.c src/digmid.c
 @@ -706,7 +712,16 @@
        }
     }
- 
+
 +   for (i = 0; i < 256; i++)
 +      free(todo[i]);
 +
@@ -340,13 +340,13 @@ diff -Naur src/digmid.c src/digmid.c
 +       free(todo[i]);
 +   return -1;
  }
- 
- 
+
+
 diff -Naur src/file.c src/file.c
 --- src/file.c	Thu Mar 24 23:18:25 2011
 +++ src/file.c	Sun Dec 30 08:53:59 2012
 @@ -1808,7 +1808,7 @@
-  *  it returns NULL and stores an error code in errno. An attempt to read a 
+  *  it returns NULL and stores an error code in errno. An attempt to read a
   *  normal file in packed mode will cause errno to be set to EDOM.
   */
 -PACKFILE *pack_fopen(AL_CONST char *filename, AL_CONST char *mode)
@@ -437,9 +437,9 @@ diff -Naur src/ios/ifile.c src/ios/ifile.c
 --- src/ios/ifile.c	Thu Jan  1 00:00:00 1970
 +++ src/ios/ifile.c	Sun Dec 30 08:53:59 2012
 @@ -0,0 +1,536 @@
-+/*         ______   ___    ___ 
-+ *        /\  _  \ /\_ \  /\_ \ 
-+ *        \ \ \L\ \\//\ \ \//\ \      __     __   _ __   ___ 
++/*         ______   ___    ___
++ *        /\  _  \ /\_ \  /\_ \
++ *        \ \ \L\ \\//\ \ \//\ \      __     __   _ __   ___
 + *         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
 + *          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
 + *           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
@@ -657,8 +657,8 @@ diff -Naur src/ios/ifile.c src/ios/ifile.c
 +            data[index].type = FF_MATCH_TRY;
 +         }
 +         /* do case insensitive matching */
-+         else if ((c2 == '?') || (c1 == c2) 
-+           || ((c1 <= 90) && (c1 >= 65) && (c2 == c1 + 32)) 
++         else if ((c2 == '?') || (c1 == c2)
++           || ((c1 <= 90) && (c1 >= 65) && (c2 == c1 + 32))
 +           || ((c2 <= 90) && (c2 >= 65) && (c1 == c2 + 32))) {
 +            /* try to match the rest */
 +            data[index++].type = FF_MATCH_ONE;
@@ -1114,7 +1114,7 @@ diff -Naur src/ios/igfx.c src/ios/igfx.c
 +   gfx_ios_enable_acceleration(vtable);
 +
 +   ios_create_screen();
-+   
++
 +   return displayed_video_bitmap;
 +}
 +
@@ -1197,26 +1197,26 @@ diff -Naur src/ios/igfx.c src/ios/igfx.c
 +      {
 +         ios_vertices[2] = ios_vertices[6] = ios_screen_physical_width - 1;
 +         ios_vertices[5] = ios_vertices[7] = ios_screen_physical_width * ((float)ios_screen_height / (float)ios_screen_width);
-+         
++
 +        ios_mouse_setup(
-+            0, 
-+            ios_screen_physical_width - 1, 
-+            (ios_screen_physical_height - ios_vertices[5]) / 2, 
-+            ios_screen_physical_height - ((ios_screen_physical_height - ios_vertices[5]) / 2), 
-+            (float)ios_screen_width / (float)ios_screen_physical_width, 
++            0,
++            ios_screen_physical_width - 1,
++            (ios_screen_physical_height - ios_vertices[5]) / 2,
++            ios_screen_physical_height - ((ios_screen_physical_height - ios_vertices[5]) / 2),
++            (float)ios_screen_width / (float)ios_screen_physical_width,
 +            (float)ios_screen_height / ios_vertices[5]);
 +      }
 +      else
 +      {
 +         ios_vertices[2] = ios_vertices[6] = ios_screen_physical_height * ((float)ios_screen_width / (float)ios_screen_height);
 +         ios_vertices[5] = ios_vertices[7] = ios_screen_physical_height - 1;
-+         
++
 +         ios_mouse_setup(
 +            (ios_screen_physical_width - ios_vertices[2]) / 2,
 +            ios_screen_physical_width - ((ios_screen_physical_width - ios_vertices[2]) / 2),
 +            0,
 +            ios_screen_physical_height - 1,
-+            (float)ios_screen_width / ios_vertices[2], 
++            (float)ios_screen_width / ios_vertices[2],
 +            (float)ios_screen_height / (float)ios_screen_physical_height);
 +      }
 +   }
@@ -1224,27 +1224,27 @@ diff -Naur src/ios/igfx.c src/ios/igfx.c
 +   {
 +      ios_vertices[2] = ios_vertices[6] = ios_screen_physical_width - 1;
 +      ios_vertices[5] = ios_vertices[7] = ios_screen_physical_height - 1;
-+      
++
 +      ios_mouse_setup(
-+         0, 
-+         ios_screen_physical_width - 1, 
-+         0, 
-+         ios_screen_physical_width - 1, 
-+         (float)ios_screen_width / (float)ios_screen_physical_width, 
-+         (float)ios_screen_height / (float)ios_screen_physical_height);     
-+   }   
++         0,
++         ios_screen_physical_width - 1,
++         0,
++         ios_screen_physical_width - 1,
++         (float)ios_screen_width / (float)ios_screen_physical_width,
++         (float)ios_screen_height / (float)ios_screen_physical_height);
++   }
 +   else
 +   {
 +      ios_vertices[0] = ios_vertices[4] = ios_screen_width * (-0.5f);
 +      ios_vertices[2] = ios_vertices[6] = ios_screen_width * 0.5f;
 +      ios_vertices[5] = ios_vertices[7] = ios_screen_height * 0.5f;
 +      ios_vertices[1] = ios_vertices[3] = ios_screen_height * (-0.5f);
-+      
++
 +      ios_mouse_setup(
 +         (ios_screen_physical_width - ios_screen_width) / 2,
 +         ios_screen_physical_width - ((ios_screen_physical_width - ios_screen_width) / 2),
-+         (ios_screen_physical_height - ios_screen_height) / 2, 
-+         ios_screen_physical_height - ((ios_screen_physical_height - ios_screen_height) / 2), 
++         (ios_screen_physical_height - ios_screen_height) / 2,
++         ios_screen_physical_height - ((ios_screen_physical_height - ios_screen_height) / 2),
 +         1.0f,
 +         1.0f);
 +   }
@@ -1352,7 +1352,7 @@ diff -Naur src/ios/igfx.c src/ios/igfx.c
 +
 +   glFinish();
 +
-+   ios_swap_buffers();	  
++   ios_swap_buffers();
 +}
 diff -Naur src/ios/ikey.c src/ios/ikey.c
 --- src/ios/ikey.c	Thu Jan  1 00:00:00 1970
@@ -1576,20 +1576,20 @@ diff -Naur src/ios/ikey.c src/ios/ikey.c
 +{
 +   int ascii_code;
 +   int allegro_keycode;
-+   
++
 +   // Hold the key down till the next keyboard poll
 +   if (ios_last_scancode != -1)
 +   {
-+      _handle_key_release(ios_last_scancode); 
++      _handle_key_release(ios_last_scancode);
 +      ios_last_scancode = -1;
-+   }   
-+   
++   }
++
 +   ascii_code = ios_get_last_keypress();
 +   if (ascii_code < 1)
 +      return;
-+   
++
 +   allegro_keycode = ios_ascii_to_allegro_keycode(&ascii_code);
-+   
++
 +   if (allegro_keycode == -1)
 +      return;
 +
@@ -1737,17 +1737,17 @@ diff -Naur src/ios/imouse.c src/ios/imouse.c
 +   {
 +      ios_poll_mouse_relative(&new_x, &new_y);
 +      ios_scale_mouse(&new_x, &new_y);
-+   
++
 +      new_x += _mouse_x;
 +      new_y += _mouse_y;
 +   }
 +   else
 +   {
 +      ios_poll_mouse_absolute(&new_x, &new_y);
-+      ios_clip_mouse(&new_x, &new_y);	
++      ios_clip_mouse(&new_x, &new_y);
 +      ios_scale_mouse(&new_x, &new_y);
 +   }
-+   
++
 +   if (new_x < mouse_minx)
 +      new_x = mouse_minx;
 +
@@ -1762,15 +1762,15 @@ diff -Naur src/ios/imouse.c src/ios/imouse.c
 +
 +   _mouse_x = new_x;
 +   _mouse_y = new_y;
-+   
-+   
++
++
 +   if (new_click == 1)
 +      ios_left_mouse_stay = 10;
 +   else if (new_click == 2)
 +      ios_right_mouse_stay = 10;
 +   else if (new_click == 10)
 +      ios_left_mouse_stay = 10 * 1000 * 1000;
-+   
++
 +   if (ios_left_mouse_stay > 0)
 +      ios_left_mouse_stay--;
 +
@@ -1943,9 +1943,9 @@ diff -Naur src/ios/isound.c src/ios/isound.c
 +}
 +
 +
-+void digi_ios_interruption_handler(void *inUserData, UInt32 interruptionState) 
++void digi_ios_interruption_handler(void *inUserData, UInt32 interruptionState)
 +{
-+   if (interruptionState == kAudioSessionBeginInterruption) 
++   if (interruptionState == kAudioSessionBeginInterruption)
 +   {
 +      ios_audio_interrupted = 1;
 +      AudioQueueStop(ios_queue, 1);
@@ -1961,7 +1961,7 @@ diff -Naur src/ios/isound.c src/ios/isound.c
 +void digi_ios_audio_callback(void* inUserData, AudioQueueRef inAQ, AudioQueueBufferRef inBuffer)
 +{
 +   void* bufptr = &sound_buffer[curr_buffer];
-+   
++
 +   if (!ios_audio_playing || ios_audio_interrupted)
 +      return;
 +
@@ -1970,7 +1970,7 @@ diff -Naur src/ios/isound.c src/ios/isound.c
 +
 +   /* Send mixed buffer to sound card */
 +   memcpy(inBuffer->mAudioData, bufptr, SAMPLES_PER_BUFFER * 2 * 2);
-+   inBuffer->mAudioDataByteSize = SAMPLES_PER_BUFFER * 2 * 2;   
++   inBuffer->mAudioDataByteSize = SAMPLES_PER_BUFFER * 2 * 2;
 +   AudioQueueEnqueueBuffer(ios_queue, inBuffer, 0, NULL);
 +
 +   curr_buffer = !curr_buffer;
@@ -1982,7 +1982,7 @@ diff -Naur src/ios/isound.c src/ios/isound.c
 +static void ios_start_audio_queue()
 +{
 +   int i;
-+   
++
 +   AudioQueueNewOutput(&ios_data_format, digi_ios_audio_callback, NULL, NULL, NULL, 0, &ios_queue);
 +
 +   for (i = 0; i < 3; i++)
@@ -2012,11 +2012,11 @@ diff -Naur src/ios/isound.c src/ios/isound.c
 +{
 +   _sound_bits = 16;
 +   _sound_stereo = TRUE;
-+   _sound_freq = 44100;  
-+  
++   _sound_freq = 44100;
++
 +   digi_ios.voices = voices;
 +
-+   ios_data_format.mSampleRate = _sound_freq;    
++   ios_data_format.mSampleRate = _sound_freq;
 +   ios_data_format.mFormatID = kAudioFormatLinearPCM;
 +   ios_data_format.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked;
 +   ios_data_format.mBytesPerPacket = 4;
@@ -2139,7 +2139,7 @@ diff -Naur src/ios/isystem.c src/ios/isystem.c
 +
 +static void ios_sys_exit(void)
 +{
-+   
++
 +}
 +
 +
@@ -2246,7 +2246,7 @@ diff -Naur src/ios/ithreads.c src/ios/ithreads.c
 +
 +   if (mx->owner != pthread_self()) {
 +      pthread_mutex_lock(&mx->actual_mutex);
-+      mx->owner = pthread_self();      
++      mx->owner = pthread_self();
 +   }
 +
 +   mx->lock_count++;

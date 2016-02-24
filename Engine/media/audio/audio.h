@@ -56,7 +56,11 @@ void        force_audiostream_include();
 int         get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxDist);
 void        update_directional_sound_vol();
 void        update_ambient_sound_vol ();
-SOUNDCLIP *load_sound_from_path(int soundNumber, int volume, bool repeat);
+// Tells if the audio type is allowed to play with regards to current sound config
+bool        is_audiotype_allowed_to_play(AudioFileType type);
+// Loads sound data referenced by audio clip item, and starts playback;
+// returns NULL on failure
+SOUNDCLIP * load_sound_and_play(ScriptAudioClip *aclip, bool repeat);
 void        stop_all_sound_and_music();
 void        shutdown_sound();
 int         play_sound_priority (int val1, int priority);
@@ -79,6 +83,8 @@ void        stopmusic();
 void        update_music_volume();
 void        post_new_music_check (int newchannel);
 int         prepare_for_new_music ();
+// Gets audio clip from legacy music number, which also may contain queue flag
+ScriptAudioClip *get_audio_clip_for_music(int mnum);
 SOUNDCLIP * load_music_from_disk(int mnum, bool doRepeat);
 void        play_new_music(int mnum, SOUNDCLIP *music);
 void        newmusic(int mnum);

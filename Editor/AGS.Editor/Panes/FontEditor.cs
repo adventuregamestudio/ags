@@ -61,7 +61,7 @@ namespace AGS.Editor
                     }
                     Factory.NativeProxy.ReloadTTFFont(_item.ID);
                     _item.PointSize = fontSize;
-                    _item.SourceFilename = fileName;
+                    _item.SourceFilename = Utilities.GetRelativeToProjectPath(fileName);
                 }
                 catch (AGSEditorException ex)
                 {
@@ -81,7 +81,7 @@ namespace AGS.Editor
                 }
                 Factory.NativeProxy.ImportSCIFont(fileName, _item.ID);
                 _item.PointSize = 0;
-                _item.SourceFilename = fileName;
+                _item.SourceFilename = Utilities.GetRelativeToProjectPath(fileName);
             }
             catch (AGSEditorException ex)
             {
@@ -96,13 +96,13 @@ namespace AGS.Editor
                 string newTTFName = "agsfnt" + _item.ID + ".ttf";
                 string newWFNName = "agsfnt" + _item.ID + ".wfn";
 
-				List<string> filesToCheck = new List<string>();
-				filesToCheck.Add(newTTFName);
-				filesToCheck.Add(newWFNName);
-				if (!Factory.AGSEditor.AttemptToGetWriteAccess(filesToCheck))
-				{
-					return;
-				}
+                List<string> filesToCheck = new List<string>();
+                filesToCheck.Add(newTTFName);
+                filesToCheck.Add(newWFNName);
+                if (!Factory.AGSEditor.AttemptToGetWriteAccess(filesToCheck))
+                {
+                    return;
+                }
 
                 if (fileName.ToLower().EndsWith(".ttf"))
                 {

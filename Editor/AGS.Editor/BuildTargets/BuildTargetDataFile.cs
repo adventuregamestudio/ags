@@ -27,7 +27,7 @@ namespace AGS.Editor
             }
         }
 
-        private string[] ConstructFileListForEXE()
+        private string[] ConstructFileListForDataFile()
         {
             List<string> files = new List<string>();
             Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;
@@ -103,12 +103,24 @@ namespace AGS.Editor
                 // updating the Vista game explorer resources after the EXE is fully created is deleting the data file,
                 // corrupting the game resources
                 targetWindows.UpdateWindowsEXE(newExeName, errors);
-                // finally, doing this here eliminates the need to directly call BuildTargetWindows.Build, as this is the
-                // last thing we need it for, and the rest (above) all needs to be done here anyway
+                // the above all needs to be done here anyway, so finish up by creating the setup EXE and copying plugins
                 targetWindows.CreateCompiledSetupProgram();
+                targetWindows.CopyPlugins(errors);
+                Factory.NativeProxy.CreateGameEXE(ConstructFileListForDataFile(), Factory.AGSEditor.CurrentGame, Factory.AGSEditor.BaseGameFileName);
             }
-            else DataFileWriter.SaveThisGameToFile(AGSEditor.COMPILED_DTA_FILE_NAME, Factory.AGSEditor.CurrentGame);
-            Factory.NativeProxy.CreateGameEXE(ConstructFileListForEXE(), Factory.AGSEditor.CurrentGame, Factory.AGSEditor.BaseGameFileName);
+            else
+            {
+                if (!DataFileWriter.SaveThisGameToFile(AGSEditor.COMPILED_DTA_FILE_NAME, Factory.AGSEditor.CurrentGame, errors))
+                {
+                    return false;
+                }
+                string errorMsg = DataFileWriter.MakeDataFile(ConstructFileListForDataFile(), Factory.AGSEditor.CurrentGame.Settings.SplitResources * 1000000,
+                    Factory.AGSEditor.BaseGameFileName, true);
+                if (errorMsg != null)
+                {
+                    errors.Add(new CompileError(errorMsg));
+                }
+            }
             File.Delete(AGSEditor.COMPILED_DTA_FILE_NAME);
             CreateAudioVOXFile(forceRebuild);
             // Update config file with current game parameters

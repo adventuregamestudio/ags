@@ -39,7 +39,11 @@ namespace AGS.Editor
             Factory.AGSEditor.SetMODMusicFlag();
             if (!Factory.AGSEditor.Preferences.UseLegacyCompiler)
             {
-                DataFileWriter.SaveThisGameToFile(AGSEditor.COMPILED_DTA_FILE_NAME, Factory.AGSEditor.CurrentGame);
+                CompileMessages errors = (parameter as CompileMessages);
+                if (!DataFileWriter.SaveThisGameToFile(AGSEditor.COMPILED_DTA_FILE_NAME, Factory.AGSEditor.CurrentGame, errors))
+                {
+                    return null;
+                }
             }
             else Factory.NativeProxy.CompileGameToDTAFile(Factory.AGSEditor.CurrentGame, AGSEditor.COMPILED_DTA_FILE_NAME);
             Factory.NativeProxy.CreateDebugMiniEXE(new string[] { AGSEditor.COMPILED_DTA_FILE_NAME },
@@ -60,7 +64,11 @@ namespace AGS.Editor
                 string sourceEXE = Path.Combine(Factory.AGSEditor.EditorDirectory, AGSEditor.ENGINE_EXE_FILE_NAME);
                 Utilities.DeleteFileIfExists(compiledEXE);
                 File.Copy(sourceEXE, exeFileName, true);
-                BusyDialog.Show("Please wait while we prepare to run the game...", new BusyDialog.ProcessingHandler(CreateDebugFiles), null);
+                BusyDialog.Show("Please wait while we prepare to run the game...", new BusyDialog.ProcessingHandler(CreateDebugFiles), errors);
+                if (errors.HasErrors)
+                {
+                    return false;
+                }
                 Utilities.DeleteFileIfExists(GetDebugPath(exeFileName));
                 File.Move(exeFileName, GetDebugPath(exeFileName));
                 // copy configuration from Compiled folder to use with Debugging

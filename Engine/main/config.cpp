@@ -352,7 +352,8 @@ void save_config_file()
 {
     ConfigTree cfg;
 
-    cfg["mouse"]["speed"] = String::FromFormat("%f", Mouse::GetSpeed());
+    if (Mouse::IsControlEnabled())
+        cfg["mouse"]["speed"] = String::FromFormat("%f", Mouse::GetSpeed());
 
     IniUtil::Merge(ac_config_file, cfg);
 }

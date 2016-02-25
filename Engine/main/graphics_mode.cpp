@@ -987,8 +987,19 @@ int create_gfx_driver_and_init_mode(const String &gfx_driver_id, Size &game_size
     if (!result)
         return EXIT_NORMAL;
 
-    // Assign mouse control parameters
-    const bool control_sens = !usetup.windowed;
+    // Assign mouse control parameters.
+    //
+    // Whether mouse movement should be controlled by the engine - this is
+    // declared here for the sake of distinction; this definition may be
+    // replaced with e.g. config option if necessary. Currently it is assumed
+    // that mouse movement should be controlled only in fullscreen.
+    const bool should_control_mouse = !usetup.windowed;
+    // Whether mouse movement control is supported by the engine - this is
+    // determined on per platform basis. Some builds may not have such
+    // capability, e.g. because of how backend library implements mouse utils.
+    const bool can_control_mouse = platform->IsMouseControlSupported(usetup.windowed);
+    // The resulting choice is made based on two aforementioned factors.
+    const bool control_sens = should_control_mouse && can_control_mouse;
     if (control_sens)
     {
         Mouse::EnableControl(!usetup.windowed);

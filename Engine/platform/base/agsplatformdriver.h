@@ -67,6 +67,8 @@ struct AGSPlatformDriver
     virtual const char *GetGraphicsTroubleshootingText() { return ""; }
     virtual unsigned long GetDiskFreeSpaceMB() = 0;
     virtual const char* GetNoMouseErrorString() = 0;
+    // Tells whether build is capable of controlling mouse movement properly
+    virtual bool IsMouseControlSupported(bool windowed) { return false; }
     virtual const char* GetAllegroFailUserHint();
     virtual eScriptSystemOSID GetSystemOSID() = 0;
     virtual void GetSystemTime(ScriptDateTime*);

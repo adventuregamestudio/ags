@@ -1,5 +1,5 @@
 Adventure Game Studio Engine and Tools
-Copyright (c) 1999-2011 Chris Jones and 2011-2015 various contributors.
+Copyright (c) 1999-2011 Chris Jones and 2011-2016 various contributors.
 
 It is recommended that you do not install this to the same folder as any previous versions of AGS, in case you need to go back for some reason.
 

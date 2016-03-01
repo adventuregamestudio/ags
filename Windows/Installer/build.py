@@ -7,11 +7,15 @@ import os
 import os.path
 import subprocess
 import shutil
+import json
+from collections import namedtuple
 
 ISCC="C:/Program Files (x86)/Inno Setup 5/iscc.exe"
 
 SCRIPT_LOC=os.path.dirname(os.path.realpath(__file__))
 WORKSPACE_DIR=os.path.join(SCRIPT_LOC, "../..")
+
+AgsVersion = namedtuple('AgsVersion', ['version', 'version_friendly', 'app_id'])
 
 def main():
     docs_dir = workspace_rel("Windows/Installer/Source/Docs")
@@ -19,10 +23,19 @@ def main():
         os.makedirs(docs_dir)
     shutil.copy2(workspace_rel("Changes.txt"), docs_dir)
 
-    ver = get_version_number(workspace_rel("Windows/Installer/Source/AGSEditor.exe"))
-    ver_str = ".".join(str(x) for x in ver[0:3])
+    editor_ver = get_editor_version_number(workspace_rel("Windows/Installer/Source/AGSEditor.exe"))
+    project_ver = load_project_version(workspace_rel("version.json"))
 
-    compile_installer("ags.iss", {"AgsVersion": ver_str})
+    editor_ver_check = ".".join(str(x) for x in editor_ver)
+    project_ver_check = ".".join(project_ver.version)
+
+    if project_ver_check != editor_ver_check:
+        raise Exception("Versions differ - editor:{0} version.json:{1}".format(editor_ver_check, project_ver_check))
+
+    project_ver_str = ".".join(project_ver.version_friendly)
+    project_app_id = ".".join(project_ver.app_id)
+
+    compile_installer("ags.iss", {"AgsVersion": project_ver_str, "AgsAppId": project_app_id})
 
 def workspace_rel(path):
     return os.path.join(workspace_dir(), path)
@@ -30,7 +43,7 @@ def workspace_rel(path):
 def workspace_dir():
     return WORKSPACE_DIR
 
-def get_version_number (filename):
+def get_editor_version_number (filename):
     try:
         info = GetFileVersionInfo (filename, "\\")
         ms = info['FileVersionMS']
@@ -38,6 +51,15 @@ def get_version_number (filename):
         return HIWORD (ms), LOWORD (ms), HIWORD (ls), LOWORD (ls)
     except Exception, e:
         raise Exception("{0}: could not get file version info: {1}".format(filename, e.strerror))
+
+def load_project_version(path):
+    with open(path, "r") as f:
+        j = json.load(f)
+
+    version = j['version'].split('.')
+    version_friendly = j['versionFriendly'].split('.')
+    app_id = j['appID']
+    return AgsVersion(version, version_friendly, app_id)
 
 def compile_installer(script, params):
     with dir_context(workspace_rel("Windows/Installer")):

@@ -8,7 +8,7 @@
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{5654BCFF-3D29-4D13-BBDE-81C59BADFECD}
+AppId={#AgsAppId}
 AppName={#AgsName} {#AgsVersion}
 AppVersion={#AgsVersion}
 AppVerName={#AgsName} {#AgsVersion}
@@ -40,6 +40,13 @@ InstallDemoGame=Install the Demo Game
 AssociateFiles=Associate AGF files with the editor
 
 
+[Components]
+Name: "main"; Description: "Main files"; Types: full compact custom; Flags: fixed
+Name: "engine"; Description: "Engines"; Types: full compact custom; Flags: fixed
+Name: "engine\default"; Description: "Engine"; Types: full compact; Flags: exclusive
+Name: "engine\nomp3"; Description: "Engine (no MP3 support)"; Flags: exclusive
+
+
 [Tasks]
 Name: "vcredist"; Description: "{cm:InstallVCRedist}"; GroupDescription: "{cm:InstallOptions}"; Check: VCRedistNeedsInstall;
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:InstallOptions}"
@@ -54,7 +61,8 @@ Name: "{app}\Templates";
 
 
 [Files]
-Source: "Source\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Source\engine\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\default
+Source: "Source\engine-no-mp3\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\nomp3
 Source: "Source\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Source\ags-help.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Source\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion

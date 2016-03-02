@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.3.5, January 2015
+VERSION 3.3.5, March 2016
 
 Editor Features:
 - Path to resource's (sprite, audio) source file is now saved as relative one if the file is
@@ -27,7 +27,7 @@ Engine Features:
   may use Ctrl+Alt combination to lock/release mouse at any time.
 - Restricted writing game files to special system directories
   (game is forbidden to write files into installation directiory or by absolute path).
-  For old games unsafe paths are remapped.
+  Unsafe paths are either remapped (when possible) or rejected.
 - Support for player defined saves & game file directory.
 - -v/--version command line argument makes engine display its version and bail.
 

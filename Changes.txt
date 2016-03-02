@@ -40,6 +40,9 @@ Engine Bug Fixes:
 - Fixed "--help" command line argument not working all times depending on its order.
 - Fixed engine did not always properly closed application window when running debug build.
 
+Linux:
+- Added patch that fixes mouse lag for mouses with high polling rate.
+
 Script API:
 - Supported late_repeatedly_execute_always() callback in script, called after game has updated, but
   before it is drawn.

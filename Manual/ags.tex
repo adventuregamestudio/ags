@@ -9126,24 +9126,22 @@ This function returns a File object, which you use to perform operations on the
 file. \it{null} is returned if there was a problem (eg. file not existing when MODE
 is eFileRead).
 
+When specifying file path you may use two special location tags: ILBRK
+\verb^$SAVEGAMEDIR$^, which allows you to access files in the save game directory. ILBRK
+\verb^$APPDATADIR$^, which allows you to write/read files to a folder on the system which
+is accessible by and shared by all users.
+The example of their use is below.
+
+\bf{IMPORTANT}: For security reasons, if you open the file for writing, then you can ONLY work with
+files in either \verb^$SAVEGAMEDIR$^ or \verb^$APPDATADIR$^ locations.
+An attempt to write file into game installation directory will make AGS to automatically
+remap such path into \verb^$APPDATADIR$^.
+On other hand, if you open file for writing using an absolute path, or relative path that points to location outside of game directory, it will
+automatically be rejected, and \it{null} is returned.
+
 \bf{NOTE:} You \bf{MUST} close the file with the Close function when you have finished
 using it. There are only a limited number of file handles, and forgetting to
 close the file can lead to problems later on.
-
-\bf{IMPORTANT}: If you open the file for writing, then you can ONLY work with
-files in the game directory.
-You CANNOT use a path, so any filename with "\verb$\$" or "\verb$/$" in it will
-automatically be rejected, for security reasons.
-
-The only exceptions to this rule are the special tags: ILBRK
-\verb^$SAVEGAMEDIR$^, which allows you to access files in the save game directory. ILBRK
-\verb^$APPDATADIR$^, which allows you to write/read files to a folder on the system which
-is accessible by and shared by all users
-
-\bf{IMPORTANT}: On Windows Vista and later, if your game is installed to Program Files then
-it may not be able to write files into the game's installation directory. To be sure
-that your game won't have problems, \bf{always} write files to the Save Game Folder
-or the App Data Folder using the special tags. An example is below.
 
 \bf{NOTE:} Open file pointers are not persisted across save games. That is, if you open
 a file, then save the game; then when you restore the game, the File will not be usable
@@ -9197,22 +9195,16 @@ static File.Delete(string filename)
 \end{verbatim}
 Deletes the specified file from the disk.
 
-This command only works with files in the game directory.
-You CANNOT use a path, so any filename with "\verb$\$" or "\verb$/$" in it will
-automatically be rejected, for security reasons.
-
-The only exception to this rule is the special tag \verb^$SAVEGAMEDIR$^, which allows
-you to access files in the save game directory. This is especially important with
-the move to Windows Vista or later versions, in which you may not have access to the main game folder.
+For security reasons this command only works with files in the \verb^$SAVEGAMEDIR$^ and \verb^$APPDATADIR$^ directories.
 
 \bf{NOTE:} This is a static function, therefore you don't need an open File pointer
 to use it. See the example below.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-File.Delete("temp.tmp");
+File.Delete("$APPDATADIR$/temp.tmp");
 \end{verbatim}
-will delete the file "temp.tmp" from the game directory, if it exists.
+will delete the file "temp.tmp" from the app data directory, if it exists.
 
 \it{Compatibility:} Supported by \bf{AGS 3.0.1} and later versions.
 
@@ -9226,9 +9218,10 @@ static bool File.Exists(string filename)
 \end{verbatim}
 Checks if the specified file exists on the file system.
 
-This command supports the special tag \verb^$SAVEGAMEDIR$^, which allows
-you to access files in the save game directory. This is especially important with
-the move to Windows Vista or later versions, in which you may not have access to the main game folder.
+When specifying file path you may use two special location tags: ILBRK
+\verb^$SAVEGAMEDIR$^, which allows you to access files in the save game directory. ILBRK
+\verb^$APPDATADIR$^, which allows you to write/read files to a folder on the system which
+is accessible by and shared by all users.
 
 \bf{NOTE:} This is a static function, therefore you don't need an open File pointer
 to use it. See the example below.
@@ -13130,9 +13123,10 @@ data files and the player can choose which one to load.
 FILEMASK is a standard DOS/Windows search expression such as "*.dat"
 or "data*.*"
 
-This command supports the special tag \verb^$SAVEGAMEDIR$^, which allows
-you to access files in the save game directory. This is especially important with
-the move to Windows Vista or later versions, in which you may not have access to the main game folder.
+When specifying file path you may use two special location tags: ILBRK
+\verb^$SAVEGAMEDIR$^, which allows you to access files in the save game directory. ILBRK
+\verb^$APPDATADIR$^, which allows you to write/read files to a folder on the system which
+is accessible by and shared by all users.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -20609,13 +20603,14 @@ but it is recommended to set it to False if you are using ListBox for listing sa
 
 \chapter{Upgrading to AGS 3.3.5}\label{UpgradeTo335}%
 
-Since 3.3.5 AGS does not allow to \bf{write} any files into other path rather than "$SAVEGAMEDIR$"
-(personal user saves directory) or "$APPDATADIR$" (all-users game data directory). An attempt to open
-file for \bf{writing} at any other path will result in script error.
+Since 3.3.5 AGS does not allow to \bf{write} any files into other path rather than "\verb^$SAVEGAMEDIR$^"
+(personal user saves directory) or "\verb^$APPDATADIR$^" (all-users game data directory). If you attempt to open
+file for \bf{writing} in the game installation directory, the filepath will be automatically remapped to
+\verb^$APPDATADIR$^ location.
 
 At the same time your players are allowed to set up their own custom path in game setup, where the game
 saves & data will be written. This is done in the game setup program.
-This works as if $SAVEGAMEDIR$ and $APPDATADIR$ were redirected to custom location. Redirection is done internally
+This works as if \verb^$SAVEGAMEDIR$^ and \verb^$APPDATADIR$^ were redirected to custom location. Redirection is done internally
 by the engine, you do not need to add anything to your game scripts to make it work.
 
 Opening files for reading still works the same way.

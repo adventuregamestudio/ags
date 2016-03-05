@@ -1,19 +1,21 @@
 #!/bin/bash
 
-# Set up build environment
-source ../setenv.sh i686-android-linux
+set -e 
 
-# Download and extract the library source
-FILENAME=dumb-0.9.3
-EXTENSION=tar.gz
-wget -c http://downloads.sourceforge.net/project/dumb/dumb/0.9.3/dumb-0.9.3.tar.gz -O ../$FILENAME.$EXTENSION
-tar -zxf ../$FILENAME.$EXTENSION
+source ./ndkenv
 
-# Build and install library
-cd $FILENAME
+SRC_DIR=dumb-0.9.3
+rm -rf $SRC_DIR
+mkdir $SRC_DIR
+tar xf ../../../libsrc/dumb-0.9.3.tar.gz --strip-components=1 -C $SRC_DIR
 
-# Apply platform patch
-patch -p0 < ../../../patches/$NDK_PLATFORM_NAME/libdumb-0.9.3.patch
+pushd $SRC_DIR
+
+patch -p1 < ../../../patches/libdumb-0.9.3.patch
 
 make
 make install
+
+popd
+
+rm -rf $SRC_DIR

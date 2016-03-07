@@ -23,7 +23,6 @@
 #include <xalleg.h>
 #include "gfx/ali3d.h"
 #include "ac/runtime_defines.h"
-#include "debug/out.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "util/string.h"
@@ -32,7 +31,7 @@
 #include <pwd.h>
 #include <sys/stat.h>
 
-using namespace AGS::Common;
+using AGS::Common::String;
 
 
 // Replace the default Allegro icon. The original defintion is in the
@@ -54,7 +53,6 @@ struct AGSLinux : AGSPlatformDriver {
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
   virtual void PlayVideo(const char* name, int skip, int flags);
-  virtual void PostAllegroInit(bool windowed);
   virtual void PostAllegroExit();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
@@ -156,36 +154,6 @@ int AGSLinux::InitializeCDPlayer() {
 
 void AGSLinux::PlayVideo(const char *name, int skip, int flags) {
   // do nothing
-}
-
-//
-// Quoting Benoit Pierre:
-// When using a high polling rate mouse on Linux with X11, the mouse cursor
-// lags. This is due to the fact that Allegro will only process up-to 5
-// X11 events at a time, and so mouse motion events will pile up and the
-// mouse cursor will lag. It's possible to fix it without patching Allegro
-// by setting a custom Allegro X11 input handler that will make sure all
-// currently queued X11 events are processed.
-//
-// NOTE: this refers specifically to Allegro 4.
-// TODO: if AGS ever uses patched Allegro version, this custom handler may
-// be removed.
-//
-static void XWinInputHandler(void)
-{
-  if (!_xwin.display)
-    return;
-
-  // Repeat the call to Allegro's internal input handler until all the event
-  // queue was processed
-  while (XQLength(_xwin.display) > 0)
-    _xwin_private_handle_input();
-}
-
-void AGSLinux::PostAllegroInit(bool windowed)
-{
-  _xwin_input_handler = XWinInputHandler;
-  Out::FPrint("Set up the custom XWin input handler");
 }
 
 void AGSLinux::PostAllegroExit() {

@@ -49,6 +49,7 @@ struct AGSLinux : AGSPlatformDriver {
   virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
+  virtual bool IsMouseControlSupported(bool windowed);
   virtual const char* GetAllegroFailUserHint();
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
@@ -137,6 +138,11 @@ unsigned long AGSLinux::GetDiskFreeSpaceMB() {
 
 const char* AGSLinux::GetNoMouseErrorString() {
   return "This game requires a mouse. You need to configure and setup your mouse to play this game.\n";
+}
+
+bool AGSLinux::IsMouseControlSupported(bool windowed)
+{
+  return true; // supported for both fullscreen and windowed modes
 }
 
 const char* AGSLinux::GetAllegroFailUserHint()

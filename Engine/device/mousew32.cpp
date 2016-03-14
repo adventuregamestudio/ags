@@ -97,7 +97,7 @@ void mgraphconfine(int x1, int y1, int x2, int y2)
 {
   Mouse::ControlRect = Rect(x1 + game_frame_x_offset, y1 + game_frame_y_offset,
       x2 + game_frame_x_offset, y2 + game_frame_y_offset);
-  set_mouse_range(x1, y1, x2, y2);
+  set_mouse_range(Mouse::ControlRect.Left, Mouse::ControlRect.Top, Mouse::ControlRect.Right, Mouse::ControlRect.Bottom);
 }
 
 void mgetgraphpos()

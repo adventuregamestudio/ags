@@ -116,7 +116,8 @@ namespace AGS.Editor
 
         public static string GetRelativeToProjectPath(string absolutePath)
         {
-            if (!absolutePath.Contains(Factory.AGSEditor.CurrentGame.DirectoryPath))
+            if (String.IsNullOrEmpty(absolutePath) ||
+                !absolutePath.Contains(Factory.AGSEditor.CurrentGame.DirectoryPath))
             {
                 return absolutePath;
             }

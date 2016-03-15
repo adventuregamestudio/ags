@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\Common;..\..\Compiler;$(CATCH_INCLUDE_DIR)"
+				AdditionalIncludeDirectories="..\..\Common;..\..\Compiler;..\..\Common\libsrc\googletest\include;..\..\Common\libsrc\googletest"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;WINDOWS_VERSION"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -117,7 +117,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\Common;..\..\Compiler;$(CATCH_INCLUDE_DIR)"
+				AdditionalIncludeDirectories="..\..\Common;..\..\Compiler;..\..\Common\libsrc\googletest\include;..\..\Common\libsrc\googletest"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;WINDOWS_VERSION"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -190,6 +190,22 @@
 			</File>
 			<File
 				RelativePath="..\..\Compiler\test\main.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Compiler\test\cs_parser_test.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\libsrc\googletest\src\gtest-all.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\libsrc\googletest\src\gtest_main.cc"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\util\stream.cpp"
 				>
 			</File>
 		</Filter>

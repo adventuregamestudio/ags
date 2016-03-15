@@ -14,7 +14,7 @@ Both Editor and Engine are licensed under the Artistic License 2.0; for more det
 To get started building the AGS engine, see the platform specific instructions or forum threads:
 
 -    [Linux](debian/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46152.0))
--    Windows ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46847.0))
+-    [Windows](Windows/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46847.0)) ([wiki](http://www.adventuregamestudio.co.uk/wiki/Compiling_AGS))
 -    [Android](Android/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=44768.0))
 -    [iOS](iOS/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46040.0))
 -    [PSP](PSP/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=43998.0))
@@ -51,7 +51,7 @@ following restrictions:
 
 -   Supported AGS versions right now are all starting from 2.50; games between 2.5 and
     3.2 are supported in theory, but may have yet unknown compatibility issues.
-    You can check the version of AGS a game was made with by examining the properties 
+    You can check the version of AGS a game was made with by examining the properties
     of the game executable.
     If you try to run a game made with a newer or older version of AGS, you will
     receive an error when trying to launch the game.

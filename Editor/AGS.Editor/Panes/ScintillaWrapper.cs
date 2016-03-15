@@ -203,6 +203,38 @@ namespace AGS.Editor
             this.scintillaControl1.MarginClick += new EventHandler<Scintilla.MarginClickEventArgs>(scintillaControl1_MarginClick);
 
             this.scintillaControl1.SetFolding();
+
+            // Prettier folding markers
+            this.scintillaControl1.MarkerDefine(Scintilla.Constants.SC_MARKNUM_FOLDER, (int)Scintilla.Constants.SC_MARK_BOXPLUS);
+            this.scintillaControl1.MarkerDefine(Scintilla.Constants.SC_MARKNUM_FOLDEROPEN, (int)Scintilla.Constants.SC_MARK_BOXMINUS);
+            this.scintillaControl1.MarkerDefine(Scintilla.Constants.SC_MARKNUM_FOLDEREND, (int)Scintilla.Constants.SC_MARK_BOXPLUSCONNECTED);
+            this.scintillaControl1.MarkerDefine(Scintilla.Constants.SC_MARKNUM_FOLDERMIDTAIL, (int)Scintilla.Constants.SC_MARK_TCORNER);
+            this.scintillaControl1.MarkerDefine(Scintilla.Constants.SC_MARKNUM_FOLDEROPENMID, (int)Scintilla.Constants.SC_MARK_BOXMINUSCONNECTED);
+            this.scintillaControl1.MarkerDefine(Scintilla.Constants.SC_MARKNUM_FOLDERSUB, (int)Scintilla.Constants.SC_MARK_VLINE);
+            this.scintillaControl1.MarkerDefine(Scintilla.Constants.SC_MARKNUM_FOLDERTAIL, (int)Scintilla.Constants.SC_MARK_LCORNER);
+
+            Color FoldingForeColor = ColorTranslator.FromHtml("#F3F3F3");
+            Color FoldingBackColor = ColorTranslator.FromHtml("#808080");
+            this.scintillaControl1.MarkerSetFore((int)Scintilla.Constants.SC_MARKNUM_FOLDER, FoldingForeColor);
+            this.scintillaControl1.MarkerSetBack((int)Scintilla.Constants.SC_MARKNUM_FOLDER, FoldingBackColor);
+            this.scintillaControl1.MarkerSetFore((int)Scintilla.Constants.SC_MARKNUM_FOLDEREND, FoldingForeColor );
+            this.scintillaControl1.MarkerSetBack((int)Scintilla.Constants.SC_MARKNUM_FOLDEREND, FoldingBackColor);
+            this.scintillaControl1.MarkerSetFore((int)Scintilla.Constants.SC_MARKNUM_FOLDEROPEN, FoldingForeColor);
+            this.scintillaControl1.MarkerSetBack((int)Scintilla.Constants.SC_MARKNUM_FOLDEROPEN, FoldingBackColor);
+            this.scintillaControl1.MarkerSetFore((int)Scintilla.Constants.SC_MARKNUM_FOLDEROPENMID, FoldingForeColor);
+            this.scintillaControl1.MarkerSetBack((int)Scintilla.Constants.SC_MARKNUM_FOLDEROPENMID, FoldingBackColor);
+            this.scintillaControl1.MarkerSetFore((int)Scintilla.Constants.SC_MARKNUM_FOLDERMIDTAIL, FoldingForeColor);
+            this.scintillaControl1.MarkerSetBack((int)Scintilla.Constants.SC_MARKNUM_FOLDERMIDTAIL, FoldingBackColor);
+            this.scintillaControl1.MarkerSetFore((int)Scintilla.Constants.SC_MARKNUM_FOLDEREND, FoldingForeColor);
+            this.scintillaControl1.MarkerSetBack((int)Scintilla.Constants.SC_MARKNUM_FOLDEREND, FoldingBackColor);
+            this.scintillaControl1.MarkerSetFore((int)Scintilla.Constants.SC_MARKNUM_FOLDERSUB, FoldingForeColor);
+            this.scintillaControl1.MarkerSetBack((int)Scintilla.Constants.SC_MARKNUM_FOLDERSUB, FoldingBackColor);
+            this.scintillaControl1.MarkerSetFore((int)Scintilla.Constants.SC_MARKNUM_FOLDERTAIL, FoldingForeColor);
+            this.scintillaControl1.MarkerSetBack((int)Scintilla.Constants.SC_MARKNUM_FOLDERTAIL, FoldingBackColor);
+            
+            // Indentation guides
+            this.scintillaControl1.SetIndentationGuides(3);
+            this.scintillaControl1.StyleSetFore(Cpp.IndentGuide, ColorTranslator.FromHtml("#DDDDDD"));
             
 
             this.scintillaControl1.IsReadOnly = true;

@@ -565,7 +565,7 @@ INT_PTR WinSetupDialog::OnInitDialog()
     }
     SetCurSelToItemData(_hDigiDriverList, digiwin_drv);
 
-    AddString(_hMidiDriverList, "Disable music", MIDI_NONE);
+    AddString(_hMidiDriverList, "Disable MIDI music", MIDI_NONE);
     AddString(_hMidiDriverList, "Default MCI Music Device", MIDI_AUTODETECT);
     AddString(_hMidiDriverList, "Win32 MIDI Mapper", MIDI_WIN32MAPPER);
     // converting from legacy hard-coded indexes

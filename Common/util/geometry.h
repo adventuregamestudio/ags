@@ -151,8 +151,8 @@ struct Size
 
     inline Size &operator /=(int x)
     {
-        Width *= x;
-        Height *= x;
+        Width /= x;
+        Height /= x;
         return *this;
     }
 };

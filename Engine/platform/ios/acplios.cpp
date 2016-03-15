@@ -128,8 +128,7 @@ struct AGSIOS : AGSPlatformDriver {
   virtual int  RunSetup();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
-  virtual void WriteConsole(const char*, ...);
-  virtual void WriteDebugString(const char* texx, ...);
+  virtual void WriteStdOut(const char*, ...);
 };
 
 
@@ -546,26 +545,16 @@ bool ReadConfiguration(char* filename, bool read_everything)
 extern void ios_show_message_box(char* buffer);
 volatile int ios_wait_for_ui = 0;
 
-void AGSIOS::WriteDebugString(const char* texx, ...)
+void AGSIOS::WriteStdOut(const char *text, ...)
 {
   {
-    char displbuf[2000] = "AGS: ";
+    char displbuf[STD_BUFFER_SIZE] = "AGS: ";
     va_list ap;
-    va_start(ap,texx);
-    vsprintf(&displbuf[5],texx,ap);
+    va_start(ap,text);
+    vsprintf(&displbuf[5],text,ap);
     va_end(ap);
     printf("%s\n", displbuf);
   }
-}
-
-
-void AGSIOS::WriteConsole(const char *text, ...) {
-  char displbuf[2000];
-  va_list ap;
-  va_start(ap, text);
-  vsprintf(displbuf, text, ap);
-  va_end(ap);
-  printf("%s\n", displbuf);
 }
 
 

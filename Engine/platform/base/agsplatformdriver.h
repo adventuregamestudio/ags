@@ -56,8 +56,7 @@ struct AGSPlatformDriver
     virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize);
     virtual int  RunSetup() = 0;
     virtual void SetGameWindowIcon();
-    virtual void WriteConsole(const char*, ...) = 0;
-    virtual void WriteDebugString(const char*, ...);
+    virtual void WriteStdOut(const char*, ...) = 0;
     virtual void YieldCPU();
     virtual void DisplaySwitchOut();
     virtual void DisplaySwitchIn();

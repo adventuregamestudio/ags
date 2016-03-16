@@ -189,10 +189,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Compiler\test\main.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Compiler\test\cs_parser_test.cpp"
 				>
 			</File>

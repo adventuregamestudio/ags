@@ -1,215 +1,215 @@
-#include "catch.hpp"
+#include "gtest/gtest.h"
 #include "script/cc_symboltable.h"
 #include "script/cc_symboldef.h"
 
-TEST_CASE("get_name - non-existent", "[cc_symboltable]") {
+TEST(SymbolTable, GetNameNonExistent) {
+    symbolTable testSym;
+
+    // symbol must be >= 0. Max symbols 0x10000000 due to type flags
+    EXPECT_EQ (NULL, testSym.get_name(0));
+    EXPECT_EQ (NULL, testSym.get_name(1));
+    EXPECT_EQ (NULL, testSym.get_name(2));
+
+    // check edge conditions. index immediately after 'c' should be null
+    int a_sym = testSym.add_ex("a",0,0);
+    int b_sym = testSym.add_ex("b",0,0);
+    int c_sym = testSym.add_ex("c",0,0);
+    EXPECT_EQ (NULL, testSym.get_name(c_sym + 1));
+}
+
+TEST(SymbolTable, GetNameNormal) {
+    symbolTable testSym;
+
+    int foo_sym = testSym.add_ex("foo",0,0);
+
+    EXPECT_STREQ("foo", testSym.get_name(foo_sym));
+}
+
+TEST(SymbolTable, GetNameFlags) {
+    symbolTable testSym;
+
+    int foo_sym = testSym.add_ex("foo",0,0);
+
+    // const
+    EXPECT_STREQ("const foo", testSym.get_name(foo_sym | STYPE_CONST));
+
+    // dynarray
+    EXPECT_STREQ("foo[]", testSym.get_name(foo_sym | STYPE_DYNARRAY));
+
+    // dynarray + pointer is just a dynarray
+    EXPECT_STREQ("foo[]", testSym.get_name(foo_sym | STYPE_DYNARRAY | STYPE_POINTER));
+
+    // pointer
+    EXPECT_STREQ("foo*", testSym.get_name(foo_sym | STYPE_POINTER));
+
+
+    int bar_sym = testSym.add_ex("bar",0,0);
+
+    // const dynarray
+    EXPECT_STREQ("const bar[]", testSym.get_name(bar_sym | STYPE_CONST | STYPE_DYNARRAY));
+
+    // const pointer
+    EXPECT_STREQ("const bar*", testSym.get_name(bar_sym | STYPE_CONST | STYPE_POINTER));
+
+    // const dynarray/pointer
+    EXPECT_STREQ("const bar[]", testSym.get_name(bar_sym | STYPE_CONST | STYPE_DYNARRAY | STYPE_POINTER));
+}
+
+
+TEST(SymbolTable, GetNameNonExistentFlags) {
+    symbolTable testSym;
+
+    int no_exist_sym = 5000;
+
+    // on their own
+    // -------------------
+
+    // normal
+    EXPECT_EQ (NULL, testSym.get_name(no_exist_sym));
+
+    // const
+    EXPECT_EQ (NULL, testSym.get_name(no_exist_sym | STYPE_CONST));
+
+    // dynarray
+    EXPECT_EQ (NULL, testSym.get_name(no_exist_sym | STYPE_DYNARRAY));
+
+    // dynarray + pointer is just a dynarray
+    EXPECT_EQ (NULL, testSym.get_name(no_exist_sym | STYPE_DYNARRAY | STYPE_POINTER));
+
+    // pointer
+    EXPECT_EQ (NULL, testSym.get_name(no_exist_sym | STYPE_POINTER));
+
+    // combinations
+    // -------------------
+
+    // const dynarray
+    EXPECT_EQ (NULL, testSym.get_name(no_exist_sym | STYPE_CONST | STYPE_DYNARRAY));
+
+    // const pointer
+    EXPECT_EQ (NULL, testSym.get_name(no_exist_sym | STYPE_CONST | STYPE_POINTER));
+
+    // const dynarray/pointer
+    EXPECT_EQ (NULL, testSym.get_name(no_exist_sym | STYPE_CONST | STYPE_DYNARRAY | STYPE_POINTER));
+}
+
+TEST(SymbolTable, AddExAlreadyExists) {
 	symbolTable testSym;
 
-	// symbol must be >= 0. Max symbols 0x10000000 due to type flags
-	REQUIRE (testSym.get_name(0) == NULL);
-	REQUIRE (testSym.get_name(1) == NULL);
-	REQUIRE (testSym.get_name(2) == NULL);
+	int a_sym = testSym.add_ex("a",0,0);
+	ASSERT_TRUE(testSym.add_ex("a",0,0) == -1);
+}
 
-	// check edge conditions. index immediately after 'c' should be null
+TEST(SymbolTable, AddExUnique) {
+	symbolTable testSym;
+
 	int a_sym = testSym.add_ex("a",0,0);
 	int b_sym = testSym.add_ex("b",0,0);
-	int c_sym = testSym.add_ex("c",0,0);
-	REQUIRE (testSym.get_name(c_sym + 1) == NULL);
-}
-
-TEST_CASE("get_name - normal", "[cc_symboltable]") {
-	symbolTable testSym;
-
-	int foo_sym = testSym.add_ex("foo",0,0);
-
-	REQUIRE (strcmp(testSym.get_name(foo_sym), "foo")== 0);
-}
-
-TEST_CASE("get_name - flags", "[cc_symboltable]") {
-	symbolTable testSym;
-
-	int foo_sym = testSym.add_ex("foo",0,0);
-
-	// const
-	REQUIRE (strcmp(testSym.get_name(foo_sym | STYPE_CONST), "const foo")== 0);
-	
-	// dynarray
-	REQUIRE (strcmp(testSym.get_name(foo_sym | STYPE_DYNARRAY), "foo[]")== 0);
-
-	// dynarray + pointer is just a dynarray
-	REQUIRE (strcmp(testSym.get_name(foo_sym | STYPE_DYNARRAY | STYPE_POINTER), "foo[]")== 0);
-
-	// pointer
-	REQUIRE (strcmp(testSym.get_name(foo_sym | STYPE_POINTER), "foo*")== 0);
-
-
-	int bar_sym = testSym.add_ex("bar",0,0);
-
-	// const dynarray
-	REQUIRE (strcmp(testSym.get_name(bar_sym | STYPE_CONST | STYPE_DYNARRAY), "const bar[]")== 0);
-
-	// const pointer
-	REQUIRE (strcmp(testSym.get_name(bar_sym | STYPE_CONST | STYPE_POINTER), "const bar*")== 0);
-
-	// const dynarray/pointer
-	REQUIRE (strcmp(testSym.get_name(bar_sym | STYPE_CONST | STYPE_DYNARRAY | STYPE_POINTER), "const bar[]")== 0);
-}
-
-
-TEST_CASE("get_name - flags of non-existent", "[cc_symboltable]") {
-	symbolTable testSym;
-
-	int no_exist_sym = 5000;
-
-	// on their own
-	// -------------------
-
-	// normal
-	REQUIRE (testSym.get_name(no_exist_sym) == NULL);
-
-	// const
-	REQUIRE (testSym.get_name(no_exist_sym | STYPE_CONST) == NULL);
-	
-	// dynarray
-	REQUIRE (testSym.get_name(no_exist_sym | STYPE_DYNARRAY) == NULL);
-
-	// dynarray + pointer is just a dynarray
-	REQUIRE (testSym.get_name(no_exist_sym | STYPE_DYNARRAY | STYPE_POINTER) == NULL);
-
-	// pointer
-	REQUIRE (testSym.get_name(no_exist_sym | STYPE_POINTER) == NULL);
-
-	// combinations
-	// -------------------
-
-	// const dynarray
-	REQUIRE (testSym.get_name(no_exist_sym | STYPE_CONST | STYPE_DYNARRAY) == NULL);
-
-	// const pointer
-	REQUIRE (testSym.get_name(no_exist_sym | STYPE_CONST | STYPE_POINTER) == NULL);
-
-	// const dynarray/pointer
-	REQUIRE (testSym.get_name(no_exist_sym | STYPE_CONST | STYPE_DYNARRAY | STYPE_POINTER) == NULL);
-}
-
-TEST_CASE("add_ex - already exists", "[cc_symboltable]") {
-	symbolTable testSym;
-
-	int a_sym = testSym.add_ex("a",0,0);
-	REQUIRE(testSym.add_ex("a",0,0) == -1);
-}
-
-TEST_CASE("add_ex - unique", "[cc_symboltable]") {
-	symbolTable testSym;
-
-	int a_sym = testSym.add_ex("a",0,0);
-	int b_sym = testSym.add_ex("b",0,0);
-	REQUIRE(a_sym != b_sym);
+	ASSERT_TRUE(a_sym != b_sym);
 }
 	
-TEST_CASE("add_ex - default values", "[cc_symboltable]") {
+TEST(SymbolTable, AddExDefaultValues) {
 	symbolTable testSym;
 
 	int typo = 1;
 	int sizee = 2;
 	int a_sym = testSym.add_ex("a", typo, sizee);
 
-	REQUIRE(testSym.entries[a_sym].sname == std::string("a"));
-	REQUIRE(testSym.entries[a_sym].stype == typo);
-	REQUIRE(testSym.entries[a_sym].flags == 0);
-	REQUIRE(testSym.entries[a_sym].vartype == 0);
-	REQUIRE(testSym.entries[a_sym].soffs == 0);
-	REQUIRE(testSym.entries[a_sym].ssize == sizee);
-	REQUIRE(testSym.entries[a_sym].sscope == 0);
-	REQUIRE(testSym.entries[a_sym].arrsize == 0);
-	REQUIRE(testSym.entries[a_sym].extends == 0);
-	REQUIRE(testSym.entries[a_sym].get_num_args() == 0);
+	ASSERT_TRUE(testSym.entries[a_sym].sname == std::string("a"));
+	ASSERT_TRUE(testSym.entries[a_sym].stype == typo);
+	ASSERT_TRUE(testSym.entries[a_sym].flags == 0);
+	ASSERT_TRUE(testSym.entries[a_sym].vartype == 0);
+	ASSERT_TRUE(testSym.entries[a_sym].soffs == 0);
+	ASSERT_TRUE(testSym.entries[a_sym].ssize == sizee);
+	ASSERT_TRUE(testSym.entries[a_sym].sscope == 0);
+	ASSERT_TRUE(testSym.entries[a_sym].arrsize == 0);
+	ASSERT_TRUE(testSym.entries[a_sym].extends == 0);
+	ASSERT_TRUE(testSym.entries[a_sym].get_num_args() == 0);
 }
 
-TEST_CASE("add_ex - available afterwards", "[cc_symboltable]") {
+TEST(SymbolTable, AddExAvailableAfterwards) {
 	symbolTable testSym;
 
 	int a_sym = testSym.add_ex("x",0,0);
 
 	// no test is available.. but we can try to get name.
 	char *name = testSym.get_name(a_sym);
-	REQUIRE(name != 0);
+	ASSERT_TRUE(name != 0);
 }
 
-TEST_CASE("entries - ensure modifiable", "[cc_symboltable]") {
+TEST(SymbolTable, EntriesEnsureModifiable) {
 	symbolTable testSym;
 
 	// ensure reading and writing to entries actually works!
 	int a_sym = testSym.add_ex("x",0,0);
 	testSym.entries[a_sym].flags = 10;
-	REQUIRE(testSym.entries[a_sym].flags == 10);
+	ASSERT_TRUE(testSym.entries[a_sym].flags == 10);
 }
 
-TEST_CASE("get_num_args", "[cc_symboltable]") {
+TEST(SymbolTable, GetNumArgs) {
 	symbolTable testSym;
 	int sym_01 = testSym.add("yellow");
 
 	testSym.entries[sym_01].sscope = 0;
-	REQUIRE(testSym.entries[sym_01].get_num_args() == 0);
+	ASSERT_TRUE(testSym.entries[sym_01].get_num_args() == 0);
 	testSym.entries[sym_01].sscope = 1;
-	REQUIRE(testSym.entries[sym_01].get_num_args() == 1);
+	ASSERT_TRUE(testSym.entries[sym_01].get_num_args() == 1);
 	testSym.entries[sym_01].sscope = 2;
-	REQUIRE(testSym.entries[sym_01].get_num_args() == 2);
+	ASSERT_TRUE(testSym.entries[sym_01].get_num_args() == 2);
 
 	testSym.entries[sym_01].sscope = 100;
-	REQUIRE(testSym.entries[sym_01].get_num_args() == 0);
+	ASSERT_TRUE(testSym.entries[sym_01].get_num_args() == 0);
 	testSym.entries[sym_01].sscope = 101;
-	REQUIRE(testSym.entries[sym_01].get_num_args() == 1);
+	ASSERT_TRUE(testSym.entries[sym_01].get_num_args() == 1);
 	testSym.entries[sym_01].sscope = 102;
-	REQUIRE(testSym.entries[sym_01].get_num_args() == 2);
+	ASSERT_TRUE(testSym.entries[sym_01].get_num_args() == 2);
 }
 
-TEST_CASE("is_loadable_variable", "[cc_symboltable]") {
+TEST(SymbolTable, IsLoadableVariable) {
 	symbolTable testSym;
 	int sym_01 = testSym.add("supergreen");
 
-	REQUIRE(!testSym.entries[sym_01].is_loadable_variable());
+	ASSERT_TRUE(!testSym.entries[sym_01].is_loadable_variable());
 
 	testSym.entries[sym_01].stype = SYM_GLOBALVAR;
-	REQUIRE(testSym.entries[sym_01].is_loadable_variable());
+	ASSERT_TRUE(testSym.entries[sym_01].is_loadable_variable());
 	testSym.entries[sym_01].stype = SYM_LOCALVAR;
-	REQUIRE(testSym.entries[sym_01].is_loadable_variable());
+	ASSERT_TRUE(testSym.entries[sym_01].is_loadable_variable());
 	testSym.entries[sym_01].stype = SYM_CONSTANT;
-	REQUIRE(testSym.entries[sym_01].is_loadable_variable());
+	ASSERT_TRUE(testSym.entries[sym_01].is_loadable_variable());
 }
 
-TEST_CASE("propfuncs", "[cc_symboltable]") {
+TEST(SymbolTable, PropFuncs) {
 
 	symbolTable testSym;
 	int sym_01 = testSym.add("cup");
 
 	testSym.entries[sym_01].set_propfuncs(0, 0);
-	REQUIRE(testSym.entries[sym_01].get_propget() == 0);
-	REQUIRE(testSym.entries[sym_01].get_propset() == 0);
+	ASSERT_TRUE(testSym.entries[sym_01].get_propget() == 0);
+	ASSERT_TRUE(testSym.entries[sym_01].get_propset() == 0);
 
 	testSym.entries[sym_01].set_propfuncs(1, 2);
-	REQUIRE(testSym.entries[sym_01].get_propget() == 1);
-	REQUIRE(testSym.entries[sym_01].get_propset() == 2);
+	ASSERT_TRUE(testSym.entries[sym_01].get_propget() == 1);
+	ASSERT_TRUE(testSym.entries[sym_01].get_propset() == 2);
 
 	testSym.entries[sym_01].set_propfuncs(100, 200);
-	REQUIRE(testSym.entries[sym_01].get_propget() == 100);
-	REQUIRE(testSym.entries[sym_01].get_propset() == 200);
+	ASSERT_TRUE(testSym.entries[sym_01].get_propget() == 100);
+	ASSERT_TRUE(testSym.entries[sym_01].get_propset() == 200);
 
 	testSym.entries[sym_01].set_propfuncs(0xFFFF, 0xFFFF);
-	REQUIRE(testSym.entries[sym_01].get_propget() == -1);
-	REQUIRE(testSym.entries[sym_01].get_propset() == -1);
+	ASSERT_TRUE(testSym.entries[sym_01].get_propget() == -1);
+	ASSERT_TRUE(testSym.entries[sym_01].get_propset() == -1);
 }
 
-TEST_CASE("operatorToVCPUCmd", "[cc_symboltable]") {
+TEST(SymbolTable, OperatorToVCPUCmd) {
 	symbolTable testSym;
 	int sym_01 = testSym.add("grassgreen");
 
 	testSym.entries[sym_01].vartype = 0;
-	REQUIRE(testSym.entries[sym_01].operatorToVCPUCmd() == 0);
+	ASSERT_TRUE(testSym.entries[sym_01].operatorToVCPUCmd() == 0);
 	testSym.entries[sym_01].vartype = 1;
-	REQUIRE(testSym.entries[sym_01].operatorToVCPUCmd() == 1);
+	ASSERT_TRUE(testSym.entries[sym_01].operatorToVCPUCmd() == 1);
 	testSym.entries[sym_01].vartype = 10;
-	REQUIRE(testSym.entries[sym_01].operatorToVCPUCmd() == 10);
+	ASSERT_TRUE(testSym.entries[sym_01].operatorToVCPUCmd() == 10);
 	testSym.entries[sym_01].vartype = 100;
-	REQUIRE(testSym.entries[sym_01].operatorToVCPUCmd() == 100);
+	ASSERT_TRUE(testSym.entries[sym_01].operatorToVCPUCmd() == 100);
 }

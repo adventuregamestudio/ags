@@ -990,10 +990,9 @@ int create_gfx_driver_and_init_mode(const String &gfx_driver_id, Size &game_size
     // Assign mouse control parameters.
     //
     // Whether mouse movement should be controlled by the engine - this is
-    // declared here for the sake of distinction; this definition may be
-    // replaced with e.g. config option if necessary. Currently it is assumed
-    // that mouse movement should be controlled only in fullscreen.
-    const bool should_control_mouse = !usetup.windowed;
+    // determined based on related config option.
+    const bool should_control_mouse = usetup.mouse_control == kMouseCtrl_Always ||
+        usetup.mouse_control == kMouseCtrl_Fullscreen && !usetup.windowed;
     // Whether mouse movement control is supported by the engine - this is
     // determined on per platform basis. Some builds may not have such
     // capability, e.g. because of how backend library implements mouse utils.

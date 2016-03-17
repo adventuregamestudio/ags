@@ -275,12 +275,25 @@ void read_config(const ConfigTree &cfg)
         usetup.mouse_speed = INIreadfloat(cfg, "mouse", "speed", 1.f);
         if (usetup.mouse_speed <= 0.f)
             usetup.mouse_speed = 1.f;
+        const char *mouse_ctrl_options[kNumMouseCtrlOptions] = { "never", "fullscreen", "always" };
+        String mouse_str = INIreadstring(cfg, "mouse", "control", "fullscreen");
+        for (int i = 0; i < kNumMouseCtrlOptions; ++i)
+        {
+            if (mouse_str.CompareNoCase(mouse_ctrl_options[i]) == 0)
+            {
+                usetup.mouse_control = (MouseControl)i;
+                break;
+            }
+        }
         const char *mouse_speed_options[kNumMouseSpeedDefs] = { "absolute", "current_display" };
-        String mouse_str = INIreadstring(cfg, "mouse", "speed_def", "current_display");
+        mouse_str = INIreadstring(cfg, "mouse", "speed_def", "current_display");
         for (int i = 0; i < kNumMouseSpeedDefs; ++i)
         {
             if (mouse_str.CompareNoCase(mouse_speed_options[i]) == 0)
+            {
                 usetup.mouse_speed_def = (MouseSpeedDef)i;
+                break;
+            }
         }
 
         usetup.override_multitasking = INIreadint(cfg, "override", "multitasking");

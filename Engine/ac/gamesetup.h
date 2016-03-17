@@ -17,6 +17,15 @@
 
 #include "util/string.h"
 
+// Mouse control activation type
+enum MouseControl
+{
+    kMouseCtrl_Never,       // never control mouse (track system mouse position)
+    kMouseCtrl_Fullscreen,  // control mouse in fullscreen only
+    kMouseCtrl_Always,      // always control mouse (fullscreen and windowed)
+    kNumMouseCtrlOptions
+};
+
 // Mouse speed definition, specifies how the speed setting is applied to the mouse movement
 enum MouseSpeedDef
 {
@@ -53,6 +62,7 @@ struct GameSetup {
     char  override_multitasking;
     bool  override_upscale;
     float mouse_speed;
+    MouseControl mouse_control;
     MouseSpeedDef mouse_speed_def;
     GameSetup();
 };

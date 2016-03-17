@@ -37,5 +37,6 @@ GameSetup::GameSetup()
     override_multitasking = -1;
     override_upscale = false;
     mouse_speed = 1.f;
+    mouse_control = kMouseCtrl_Fullscreen;
     mouse_speed_def = kMouseSpeed_CurrentDisplay;
 }

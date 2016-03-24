@@ -33,25 +33,29 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 
 [CustomMessages]
+ComponentMain=Main files
+ComponentEngines=Engines
+ComponentEngineDefault=Engine (default)
+ComponentEngineNoMP3=Engine (no MP3 support)
+ComponentDemoGame=Demo Game
 InstallOptions=Install options
 InstallVCRedist=Install Visual C++ Redistributable 2008 SP1
 CreateDesktopIcon=Create a &desktop icon
-InstallDemoGame=Install the Demo Game
 AssociateFiles=Associate AGF files with the editor
 
 
 [Components]
-Name: "main"; Description: "Main files"; Types: full compact custom; Flags: fixed
-Name: "engine"; Description: "Engines"; Types: full compact custom; Flags: fixed
-Name: "engine\default"; Description: "Engine"; Types: full compact; Flags: exclusive
-Name: "engine\nomp3"; Description: "Engine (no MP3 support)"; Flags: exclusive
+Name: "main"; Description: "{cm:ComponentMain}"; Types: full compact custom; Flags: fixed
+Name: "engine"; Description: "{cm:ComponentEngines}"; Types: full compact custom; Flags: fixed
+Name: "engine\default"; Description: "{cm:ComponentEngineDefault}"; Types: full compact; Flags: exclusive
+Name: "engine\nomp3"; Description: "{cm:ComponentEngineNoMP3}"; Flags: exclusive
+Name: "demogame"; Description: "{cm:ComponentDemoGame}"; Types: full custom
 
 
 [Tasks]
 Name: "vcredist"; Description: "{cm:InstallVCRedist}"; GroupDescription: "{cm:InstallOptions}"; Check: VCRedistNeedsInstall;
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:InstallOptions}"
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:InstallOptions}"; Flags: unchecked;
-Name: "demogame"; Description: "{cm:InstallDemoGame}"; GroupDescription: "{cm:InstallOptions}"
 Name: "associate"; Description: "{cm:AssociateFiles}"; GroupDescription: "{cm:InstallOptions}"
 
 
@@ -68,7 +72,7 @@ Source: "Source\ags-help.chm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Source\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion
 Source: "Source\Docs\*"; DestDir: "{app}\Docs"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Source\Templates\*"; DestDir: "{app}\Templates"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "Source\Demo Game\*"; DestDir: "{app}\Demo Game"; Flags: ignoreversion recursesubdirs createallsubdirs; Tasks: demogame
+Source: "Source\Demo Game\*"; DestDir: "{app}\Demo Game"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: demogame
 Source: "{#VcRedistInstaller}"; DestDir: {tmp}; Flags: deleteafterinstall; Check: VCRedistNeedsInstall;
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 

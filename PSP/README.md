@@ -1,4 +1,4 @@
-#Adventure Game Studio runtime PSP port - version 3.21.1115
+#Adventure Game Studio runtime PSP port
 
 Licensed under the Artistic License 2.0, see License.txt in the Engine folder.
 
@@ -158,7 +158,7 @@ the game directory will overwrite the settings from the global configuration fil
     A ... Z, 0 ... 9, 0_PAD ... 9_PAD, F1 ... F12
     ESC, TILDE, MINUS, EQUALS, BACKSPACE, TAB, OPENBRACE, CLOSEBRACE, ENTER, COLON, QUOTE, BACKSLASH,
     BACKSLASH2, COMMA, STOP, SLASH, SPACE, INSERT, DEL, HOME, END, PGUP, PGDN, LEFT, RIGHT, UP, DOWN
-    SLASH_PAD, ASTERISK, MINUS_PAD, PLUS_PAD, DEL_PAD, ENTER_PAD, PRTSCR, PAUSE, ABNT_C1, YEN, KANA, 
+    SLASH_PAD, ASTERISK, MINUS_PAD, PLUS_PAD, DEL_PAD, ENTER_PAD, PRTSCR, PAUSE, ABNT_C1, YEN, KANA,
     CONVERT, NOCONVERT, AT, CIRCUMFLEX, COLON2, KANJI, LSHIFT, RSHIFT, LCONTROL, RCONTROL, ALT, ALTGR,
     LWIN, RWIN, MENU, SCRLOCK, NUMLOCK, CAPSLOCK EQUALS_PAD, BACKQUOTE, SEMICOLON, COMMAND
 
@@ -194,7 +194,7 @@ the game directory will overwrite the settings from the global configuration fil
     32 bit graphics to the correct format.
 -   Alfont seems to use wrong ascender and descender values for TTF fonts, there is a
     workaround written for it.
--   Sound decoding and playing is handled in a separate thread to reduce 
+-   Sound decoding and playing is handled in a separate thread to reduce
     audio stuttering.
 -   Function imports for some plugins are implemented as stubs. Therefore games using
     them will load and play but will lack certain visual effects. Stubbed functions

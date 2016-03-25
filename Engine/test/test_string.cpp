@@ -16,10 +16,27 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "util/path.h"
 #include "util/string.h"
 #include "debug/assert.h"
 
-using AGS::Common::String;
+using namespace AGS::Common;
+
+void Test_Path()
+{
+    assert(Path::IsSameOrSubDir(".", "dir1/") == true);
+    assert(Path::IsSameOrSubDir(".", "dir1/dir2/dir3/") == true);
+    assert(Path::IsSameOrSubDir(".", "dir1/../") == true);
+    assert(Path::IsSameOrSubDir(".", "dir1/dir2/../../") == true);
+    assert(Path::IsSameOrSubDir(".", "dir1/../dir2/../dir3/") == true);
+    assert(Path::IsSameOrSubDir(".", "..dir/") == true);
+
+    assert(Path::IsSameOrSubDir(".", "../") == false);
+    assert(Path::IsSameOrSubDir(".", "../") == false);
+    assert(Path::IsSameOrSubDir(".", "/dir1/") == false);
+    assert(Path::IsSameOrSubDir(".", "dir1/../../") == false);
+    assert(Path::IsSameOrSubDir(".", "dir1/../dir2/../../dir3/") == false);
+}
 
 void Test_String()
 {
@@ -299,6 +316,21 @@ void Test_String()
         assert(strcmp(s1, " !make it bigger - a string to enlarge") == 0);
         s1.Prepend("much much bigger!");
         assert(strcmp(s1, "much much bigger! !make it bigger - a string to enlarge") == 0);
+    }
+
+    // Test ReplaceMid
+    {
+        String s1 = "we need to replace PRECISELY THIS PART in this string";
+        String s2 = s1;
+        String new_long = "WITH A NEW TAD LONGER SUBSTRING";
+        String new_short = "SMALL STRING";
+        s1.ReplaceMid(19, 19, new_long);
+        assert(strcmp(s1, "we need to replace WITH A NEW TAD LONGER SUBSTRING in this string") == 0);
+        s2.ReplaceMid(19, 19, new_short);
+        assert(strcmp(s2, "we need to replace SMALL STRING in this string") == 0);
+        String s3 = "insert new string here: ";
+        s3.ReplaceMid(s3.GetLength(), 0, "NEW STRING");
+        assert(strcmp(s3, "insert new string here: NEW STRING") == 0);
     }
 
     // Test SetAt

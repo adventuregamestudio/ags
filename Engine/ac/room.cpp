@@ -63,6 +63,7 @@
 #include "gfx/bitmap.h"
 #include "util/math.h"
 #include "main/graphics_mode.h"
+#include "device/mousew32.h"
 
 using AGS::Common::Bitmap;
 using AGS::Common::Stream;
@@ -249,7 +250,7 @@ void unload_old_room() {
     if (displayed_room < 0)
         return;
 
-    Out::FPrint("Unloading room %d", displayed_room);
+    DEBUG_CONSOLE("Unloading room %d", displayed_room);
 
     current_fade_out_effect();
 
@@ -395,7 +396,7 @@ extern int convert_16bit_bgr;
 // forchar = playerchar on NewRoom, or NULL if restore saved game
 void load_new_room(int newnum, CharacterInfo*forchar) {
 
-    Out::FPrint("Loading room %d", newnum);
+    DEBUG_CONSOLE("Loading room %d", newnum);
 
     String room_filename;
     int cc;
@@ -541,6 +542,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
 		scrnhit = BitmapHelper::GetScreenBitmap()->GetHeight();
         vesa_yres = scrnhit;
+        game_frame_x_offset = (final_scrn_wid - scrnwid) / 2;
         game_frame_y_offset = (final_scrn_hit - scrnhit) / 2;
 
         filter->SetMouseArea(0,0, scrnwid-1, vesa_yres-1);
@@ -967,7 +969,7 @@ extern int psp_clear_cache_on_room_change;
 void new_room(int newnum,CharacterInfo*forchar) {
     EndSkippingUntilCharStops();
 
-    Out::FPrint("Room change requested to room %d", newnum);
+    DEBUG_CONSOLE("Room change requested to room %d", newnum);
 
     update_polled_stuff_if_runtime();
 
@@ -1076,6 +1078,7 @@ void compile_room_script() {
         quitprintf("Unable to create forked room instance: %s", ccErrorString);
 
     repExecAlways.roomHasFunction = true;
+    lateRepExecAlways.roomHasFunction = true;
     getDialogOptionsDimensionsFunc.roomHasFunction = true;
 }
 

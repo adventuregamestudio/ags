@@ -28,7 +28,7 @@ extern int break_on_next_script_step;
 
 int check_for_messages_from_editor();
 bool send_message_to_editor(const char *msg);
-bool send_exception_to_editor(char *qmsg);
+bool send_exception_to_editor(const char *qmsg);
 const char *get_cur_script(int numberOfLinesOfCallStack);
 bool get_script_position(ScriptPosition &script_pos);
 void check_debug_keys();

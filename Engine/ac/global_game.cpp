@@ -54,6 +54,7 @@
 #include "gfx/graphicsdriver.h"
 #include "core/assetmanager.h"
 #include "main/game_file.h"
+#include "util/string_utils.h"
 
 using AGS::Common::String;
 using AGS::Common::Bitmap;
@@ -87,6 +88,7 @@ extern IGraphicsDriver *gfxDriver;
 extern int scrnwid,scrnhit;
 extern color palette[256];
 extern Bitmap *virtual_screen;
+extern int psp_gfx_renderer;
 
 void GiveScore(int amnt) 
 {
@@ -749,7 +751,13 @@ int SaveScreenShot(const char*namm) {
 
     if (gfxDriver->RequiresFullRedrawEachFrame()) 
     {
-        Bitmap *buffer = BitmapHelper::CreateBitmap(scrnwid, scrnhit, 32);
+        // FIXME this weird stuff! (related to incomplete OpenGL renderer)
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
+        int color_depth = (psp_gfx_renderer > 0) ? 32 : final_col_dep;
+#else
+        int color_depth = final_col_dep;
+#endif
+        Bitmap *buffer = BitmapHelper::CreateBitmap(scrnwid, scrnhit, color_depth);
         gfxDriver->GetCopyOfScreenIntoBitmap(buffer);
 
 		if (!buffer->SaveToFile(fileName, palette)!=0)
@@ -782,12 +790,14 @@ void SetMultitasking (int mode) {
         if (set_display_switch_mode(SWITCH_PAUSE) == -1)
             set_display_switch_mode(SWITCH_AMNESIA);
         // install callbacks to stop the sound when switching away
-        set_display_switch_callback(SWITCH_IN, display_switch_in);
-        set_display_switch_callback(SWITCH_OUT, display_switch_out);
+        set_display_switch_callback(SWITCH_IN, display_switch_in_resume);
+        set_display_switch_callback(SWITCH_OUT, display_switch_out_suspend);
     }
     else {
         if (set_display_switch_mode (SWITCH_BACKGROUND) == -1)
             set_display_switch_mode(SWITCH_BACKAMNESIA);
+        set_display_switch_callback(SWITCH_IN, display_switch_in);
+        set_display_switch_callback(SWITCH_OUT, display_switch_out);
     }
 }
 
@@ -883,13 +893,9 @@ void SetNormalFont (int fontnum) {
     play.normal_font = fontnum;
 }
 
-void _sc_AbortGame(const char*texx, ...) {
+void _sc_AbortGame(const char* text) {
     char displbuf[STD_BUFFER_SIZE] = "!?";
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(&displbuf[2], get_translation(texx), ap);
-    va_end(ap);
-
+    snprintf(&displbuf[2], STD_BUFFER_SIZE - 3, "%s", text);
     quit(displbuf);
 }
 

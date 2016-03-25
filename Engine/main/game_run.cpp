@@ -22,6 +22,7 @@
 #include "ac/draw.h"
 #include "ac/event.h"
 #include "ac/game.h"
+#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
 #include "ac/global_debug.h"
@@ -149,6 +150,15 @@ void game_loop_check_new_room()
     check_new_room ();
 }
 
+void game_loop_do_late_update()
+{
+    if (in_new_room == 0)
+    {
+        // Run the room and game script late_repeatedly_execute
+        run_function_on_non_blocking_thread(&lateRepExecAlways);
+    }
+}
+
 int game_loop_check_ground_level_interactions()
 {
     if ((play.ground_level_areas_disabled & GLED_INTERACTION) == 0) {
@@ -194,6 +204,23 @@ int game_loop_check_ground_level_interactions()
     } // end if checking ground level interactions
 
     return RETURN_CONTINUE;
+}
+
+void lock_mouse_on_click()
+{
+    if (usetup.mouse_auto_lock && usetup.windowed)
+        Mouse::TryLockToWindow();
+}
+
+void toggle_mouse_lock()
+{
+    if (usetup.windowed)
+    {
+        if (Mouse::IsLockedToWindow())
+            Mouse::UnlockFromWindow();
+        else
+            Mouse::TryLockToWindow();
+    }
 }
 
 // check_controls: checks mouse & keyboard interface
@@ -293,6 +320,8 @@ void check_controls() {
 
     aa=mgetbutton();
     if (aa>NONE) {
+        lock_mouse_on_click();
+
         if ((play.in_cutscene == 3) || (play.in_cutscene == 4))
             start_skipping_cutscene();
         if ((play.in_cutscene == 5) && (aa == RIGHT))
@@ -327,12 +356,15 @@ void check_controls() {
         //    else RunTextScriptIParam(gameinst,"on_mouse_click",aa+1);
     }
     aa = check_mouse_wheel();
+    if (aa !=0)
+        lock_mouse_on_click();
     if (aa < 0)
         setevent (EV_TEXTSCRIPT, TS_MCLICK, 9);
     else if (aa > 0)
         setevent (EV_TEXTSCRIPT, TS_MCLICK, 8);
 
     // check keypresses
+    static int old_key_shifts = 0;
     if (kbhit()) {
         // in case they press the finish-recording button, make sure we know
         int was_playing = play.playback;
@@ -489,6 +521,17 @@ void check_controls() {
             }
         }
         //    RunTextScriptIParam(gameinst,"on_key_press",kgn);
+    }
+    // check extended keys
+    else
+    {
+        // Toggle mouse lock on Ctrl + Alt release
+        if (!key[KEY_ALT] && !(key[KEY_LCONTROL] || key[KEY_RCONTROL]) &&
+            old_key_shifts == (KB_ALT_FLAG | KB_CTRL_FLAG))
+        {
+            toggle_mouse_lock();
+        }
+        old_key_shifts = key_shifts & ~(KB_SCROLOCK_FLAG | KB_NUMLOCK_FLAG | KB_CAPSLOCK_FLAG);
     }
 
     if ((IsInterfaceEnabled()) && (IsGamePaused() == 0) &&
@@ -714,6 +757,8 @@ void mainloop(bool checkControls, IDriverDependantBitmap *extraBitmap, int extra
     game_loop_do_update();
 
     game_loop_update_animated_buttons();
+
+    game_loop_do_late_update();
 
     update_polled_audio_and_crossfade();
 

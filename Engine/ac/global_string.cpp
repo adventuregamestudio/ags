@@ -46,11 +46,6 @@ void _sc_strcat(char*s1, const char*s2) {
     my_strncpy(&s1[strlen(s1)], s2, mosttocopy);
 }
 
-void _sc_strcpy(char*s1, const char*s2) {
-    check_strlen(s1);
-    my_strncpy(s1, s2, MAXSTRLEN - 1);
-}
-
 void _sc_strlower (char *desbuf) {
     VALIDATE_STRING(desbuf);
     check_strlen (desbuf);
@@ -71,14 +66,8 @@ int _sc_stricmp (char *s1, char *s2) {
 return stricmp (get_translation (s1), get_translation(s2));
 }*/
 
-void _sc_sprintf(char*destt, const char*texx, ...) {
-    char displbuf[STD_BUFFER_SIZE];
+void _sc_strcpy(char*destt, const char *text) {
     VALIDATE_STRING(destt);
     check_strlen(destt);
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(displbuf, get_translation(texx), ap);
-    va_end(ap);
-
-    my_strncpy(destt, displbuf, MAXSTRLEN - 1);
+    my_strncpy(destt, text, MAXSTRLEN - 1);
 }

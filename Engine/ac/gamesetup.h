@@ -17,10 +17,23 @@
 
 #include "util/string.h"
 
-// game setup, read in from CFG file
-// this struct is redefined in acdialog.cpp, any changes might
-// need to be reflected there
-// [IKM] 2012-06-27: now it isn't
+// Mouse control activation type
+enum MouseControl
+{
+    kMouseCtrl_Never,       // never control mouse (track system mouse position)
+    kMouseCtrl_Fullscreen,  // control mouse in fullscreen only
+    kMouseCtrl_Always,      // always control mouse (fullscreen and windowed)
+    kNumMouseCtrlOptions
+};
+
+// Mouse speed definition, specifies how the speed setting is applied to the mouse movement
+enum MouseSpeedDef
+{
+    kMouseSpeed_Absolute,       // apply speed multiplier directly
+    kMouseSpeed_CurrentDisplay, // keep speed/resolution relation based on current system display mode
+    kNumMouseSpeedDefs
+};
+
 struct GameSetup {
     int digicard;
     int midicard;
@@ -40,12 +53,17 @@ struct GameSetup {
     bool  prefer_letterbox;  // defines whether it is preferred to have letterbox
     AGS::Common::String data_files_dir;
     AGS::Common::String main_data_filename;
-    char *translation;
+    AGS::Common::String user_data_dir; // directory to write savedgames and custom files to
+    AGS::Common::String translation;
     AGS::Common::String gfxFilterID;
     AGS::Common::String gfxDriverID;
+    bool  mouse_auto_lock;
     int   override_script_os;
     char  override_multitasking;
     bool  override_upscale;
+    float mouse_speed;
+    MouseControl mouse_control;
+    MouseSpeedDef mouse_speed_def;
     GameSetup();
 };
 

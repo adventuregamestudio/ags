@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <allegro.h>
+#include <xalleg.h>
 #include "gfx/ali3d.h"
 #include "ac/runtime_defines.h"
 #include "platform/base/agsplatformdriver.h"
@@ -44,36 +45,25 @@ struct AGSLinux : AGSPlatformDriver {
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
+  virtual const char *GetUserSavedgamesDirectory();
   virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
+  virtual bool IsMouseControlSupported(bool windowed);
   virtual const char* GetAllegroFailUserHint();
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroExit();
-  virtual int  RunSetup();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
-  virtual void WriteConsole(const char*, ...);
-  virtual void WriteDebugString(const char* texx, ...);
-  virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize);
+  virtual bool LockMouseToWindow();
+  virtual void UnlockMouse();
 };
 
 
 int AGSLinux::CDPlayerCommand(int cmdd, int datt) {
   return cd_player_control(cmdd, datt);
-}
-
-void AGSLinux::WriteDebugString(const char* texx, ...) {
-  char displbuf[STD_BUFFER_SIZE] = "AGS: ";
-  va_list ap;
-  va_start(ap,texx);
-  vsprintf(&displbuf[5],texx,ap);
-  va_end(ap);
-  strcat(displbuf, "\n");
-
-  printf(displbuf);
 }
 
 void AGSLinux::DisplayAlert(const char *text, ...) {
@@ -125,6 +115,12 @@ void DetermineAppOutputDirectory()
     LinuxOutputDirectory = "/tmp";
 }
 
+const char *AGSLinux::GetUserSavedgamesDirectory()
+{
+  DetermineAppOutputDirectory();
+  return LinuxOutputDirectory;
+}
+
 const char *AGSLinux::GetAppOutputDirectory()
 {
   DetermineAppOutputDirectory();
@@ -142,6 +138,11 @@ unsigned long AGSLinux::GetDiskFreeSpaceMB() {
 
 const char* AGSLinux::GetNoMouseErrorString() {
   return "This game requires a mouse. You need to configure and setup your mouse to play this game.\n";
+}
+
+bool AGSLinux::IsMouseControlSupported(bool windowed)
+{
+  return true; // supported for both fullscreen and windowed modes
 }
 
 const char* AGSLinux::GetAllegroFailUserHint()
@@ -165,21 +166,8 @@ void AGSLinux::PostAllegroExit() {
   // do nothing
 }
 
-int AGSLinux::RunSetup() {
-  return 0;
-}
-
 void AGSLinux::SetGameWindowIcon() {
   // do nothing
-}
-
-void AGSLinux::WriteConsole(const char *text, ...) {
-  char displbuf[2000];
-  va_list ap;
-  va_start(ap, text);
-  vsprintf(displbuf, text, ap);
-  va_end(ap);
-  printf("%s", displbuf);
 }
 
 void AGSLinux::ShutdownCDPlayer() {
@@ -192,28 +180,14 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
   return instance;
 }
 
-void AGSLinux::ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize) {
-  
-  static const char *special_paths[3] = {"$MYDOCS$", "$SAVEGAMEDIR$", "$APPDATADIR$"};
-  static const size_t sp_path_len[3] = {8, 13, 12};
-  int use_sp_path = -1;
-  for (int i = 0; i < 3; ++i)
-  {
-    if (strncasecmp(sourcePath, special_paths[i], sp_path_len[i]) == 0)
-    {
-      use_sp_path = i;
-      break;
-    }
-  }
-  
-  if (use_sp_path >= 0)
-  {
-    size_t l = BuildXDGPath(destPath, destSize);
-    snprintf(destPath + l, destSize - l, "%s", sourcePath + sp_path_len[use_sp_path]);
-    mkdir(destPath, 0755);
-  }
-  else
-  {
-    snprintf(destPath, destSize, "%s", sourcePath);
-  }
+bool AGSLinux::LockMouseToWindow()
+{
+    return XGrabPointer(_xwin.display, _xwin.window, False,
+        PointerMotionMask | ButtonPressMask | ButtonReleaseMask,
+        GrabModeAsync, GrabModeAsync, _xwin.window, None, CurrentTime) == GrabSuccess;
+}
+
+void AGSLinux::UnlockMouse()
+{
+    XUngrabPointer(_xwin.display, CurrentTime);
 }

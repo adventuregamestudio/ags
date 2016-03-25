@@ -68,10 +68,11 @@ namespace Scintilla
             this.SendMessageDirect(Constants.SCI_SETFOLDFLAGS, 16, 0); // 16  	Draw line below if not expanded
 
             SetMarginSensitivity(2, 1);
+        }
 
-
-            
-
+        public void SetIndentationGuides(int flag)
+        {
+            this.SendMessageDirect(Constants.SCI_SETINDENTATIONGUIDES, flag);
         }
 
         private bool isNumeric(char token)
@@ -639,12 +640,18 @@ namespace Scintilla
         #region Event Dispatch Mechanism
         protected override void WndProc(ref Message m)
         {
-            //	Uh-oh. Code based on undocumented unsupported .NET behavior coming up!
-            //	Windows Forms Sends Notify messages back to the originating
-            //	control ORed with 0x2000. This is way cool becuase we can listen for
-            //	WM_NOTIFY messages originating form our own hWnd (from Scintilla)
-            if ((m.Msg ^ 0x2000) != WinAPI.WM_NOTIFY)
+            if (m.Msg == WinAPI.WM_SETCURSOR)
             {
+                base.DefWndProc(ref m); // Make sure message is sent to Scintilla
+                return;
+            }
+            else if ((m.Msg ^ 0x2000) != WinAPI.WM_NOTIFY)
+            {
+                //	Uh-oh. Code based on undocumented unsupported .NET behavior coming up!
+                //	Windows Forms Sends Notify messages back to the originating
+                //	control ORed with 0x2000. This is way cool becuase we can listen for
+                //	WM_NOTIFY messages originating form our own hWnd (from Scintilla)
+
                 base.WndProc(ref m);
                 return;
             }

@@ -29,7 +29,7 @@ void RawDrawFrameTransparent (int frame, int translev);
 void RawClear (int clr);
 void RawSetColor (int clr);
 void RawSetColorRGB(int red, int grn, int blu);
-void RawPrint (int xx, int yy, const char*texx, ...);
+void RawPrint (int xx, int yy, const char *text);
 void RawPrintMessageWrapped (int xx, int yy, int wid, int font, int msgm);
 void RawDrawImageCore(int xx, int yy, int slot, int alpha = 0xFF);
 void RawDrawImage(int xx, int yy, int slot);

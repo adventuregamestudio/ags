@@ -1144,6 +1144,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\test\test_inifile.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\test\test_sprintf.cpp"
 					>
 				</File>
@@ -2178,6 +2182,10 @@
 			</File>
 			<File
 				RelativePath="..\..\Engine\resource\game-1.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Engine\resource\resource.h"
 				>
 			</File>
 			<File

@@ -7,6 +7,11 @@
 #include "util/path.h"
 #include "allegro/file.h"
 
+// TODO: implement proper portable path length
+#ifndef MAX_PATH
+#define MAX_PATH 512
+#endif
+
 namespace AGS
 {
 namespace Common
@@ -55,6 +60,25 @@ int ComparePaths(const String &path1, const String &path2)
         fixed_path1.CompareNoCase(fixed_path2);
 #endif // AGS_CASE_SENSITIVE_FILESYSTEM
     return cmp_result;
+}
+
+bool IsSameOrSubDir(const String &parent, const String &path)
+{
+    char can_parent[MAX_PATH];
+    char can_path[MAX_PATH];
+    char relative[MAX_PATH];
+    canonicalize_filename(can_parent, parent, MAX_PATH);
+    canonicalize_filename(can_path, path, MAX_PATH);
+    const char *pstr = make_relative_filename(relative, can_parent, can_path, MAX_PATH);
+    if (!pstr)
+        return false;
+    for (pstr = strstr(pstr, ".."); pstr && *pstr; pstr = strstr(pstr, ".."))
+    {
+        pstr += 2;
+        if (*pstr == '/' || *pstr == '\\' || *pstr == 0)
+            return false;
+    }
+    return true;
 }
 
 void FixupPath(String &path)

@@ -67,29 +67,57 @@ namespace AGS.Editor.Components
 
         public override void CommandClick(string controlID)
         {
-            if (controlID == ABOUT_AGS_COMMAND)
+            if (controlID == CRASH_EDITOR_COMMAND)
+            {
+                throw new AGSEditorException("Crash test");
+            }
+            else if (controlID == ABOUT_AGS_COMMAND)
             {
                 AboutDialog dialog = new AboutDialog();
                 dialog.ShowDialog();
                 dialog.Dispose();
+                return;
             }
             else if (controlID == VISIT_AGS_WEBSITE)
             {
                 LaunchBrowserAtAGSWebsite();
+                return;
             }
             else if (controlID == VISIT_AGS_FORUMS)
             {
                 LaunchBrowserAtAGSForums();
+                return;
             }
             else if (controlID == CHECK_FOR_UPDATES)
             {
                 CheckForUpdates();
+                return;
             }
             else if (!File.Exists(_helpFileName))
             {
                 _guiController.ShowMessage("The help file '" + _helpFileName + "' is missing. You may need to reinstall AGS.", MessageBoxIcon.Warning);
+                return;
             }
-            else if (controlID == LAUNCH_HELP_COMMAND)
+            else if (Utils.AlternateStreams.GetZoneIdentifier(_helpFileName) > Utils.AlternateStreams.URLZONE_LOCAL_MACHINE)
+            {
+                if (_guiController.ShowQuestion("The help file '" + _helpFileName + "' has a restrictive Zone Identifier which needs to be removed." + Environment.NewLine + Environment.NewLine + "Do you want to try unblocking this file?") == DialogResult.Yes)
+                {
+                    if (Utils.AlternateStreams.DeleteZoneIdentifier(_helpFileName))
+                    {
+                        _guiController.ShowMessage("The help file was unblocked successfully.", MessageBoxIcon.Warning);
+                    }
+                    else
+                    {
+                        _guiController.ShowMessage("The help file couldn't be unblocked. Please try running the AGS editor using 'Run as administrator' and try to unblock the file again.", MessageBoxIcon.Warning);
+                        return;
+                    }
+                }
+                else
+                {
+                    return;
+                }
+            }
+            if (controlID == LAUNCH_HELP_COMMAND)
             {
                 string keyword = string.Empty;
                 if (_guiController.ActivePane != null)
@@ -105,10 +133,6 @@ namespace AGS.Editor.Components
             else if (controlID == HELP_INDEX_COMMAND)
             {
                 Help.ShowHelpIndex(GetHelpParentWindow(), _helpFileName);
-            }
-            else if (controlID == CRASH_EDITOR_COMMAND)
-            {
-                throw new AGSEditorException("Crash test");
             }
         }
 

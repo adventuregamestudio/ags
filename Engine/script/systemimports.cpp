@@ -53,8 +53,6 @@ int SystemImports::add(const char *name, const RuntimeScriptValue &value, ccInst
 
     if (ixof >= this->bufferSize)
     {
-        if (this->bufferSize > 50000)
-            return -1;  // something has gone badly wrong
         this->bufferSize += 1000;
         this->imports = (ScriptImport*)realloc(this->imports, sizeof(ScriptImport) * this->bufferSize);
     }

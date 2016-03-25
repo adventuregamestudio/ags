@@ -36,35 +36,17 @@
 #define FALSE 0
 #endif
 
+#include "ac/system.h"
+#include "debug/out.h"
 #include "device/mousew32.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_util.h"
+#include "main/graphics_mode.h"
+#include "platform/base/agsplatformdriver.h"
+#include "util/math.h"
 
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
 
-
-/*
-int  minstalled();    // this returns number of buttons (or 0)
-void minst();   // this exits if not installed
-void mshow();
-void mhide();
-int  mgetbutton();
-void mchangestyle(int,int);
-void mgetpos();
-void mgetgraphpos();
-void msetpos(int,int);
-void mconfine(int,int,int,int); // left top right bottom
-void mgraphconfine(int,int,int,int);
-int  mbutrelease(int);
-void domouse(int=0);   // graphics mode cursor
-void mfreemem();
-void mloadcursor(char*);  // load from file
-void mloadwcursor(char*);
-void mnewcursor(char);
-int  ismouseinbox(int,int,int,int);
-void msethotspot(int,int);   // Graphics mode only. Useful for crosshair.
-*/
-void msetgraphpos(int,int);
 
 extern char lib_file_name[13];
 
@@ -72,7 +54,10 @@ char *mouselibcopyr = "MouseLib32 (c) 1994, 1998 Chris Jones";
 const int NONE = -1, LEFT = 0, RIGHT = 1, MIDDLE = 2;
 int aa;
 char mouseturnedon = FALSE, currentcursor = 0;
+// virtual mouse cursor coordinates
 int mousex = 0, mousey = 0, numcurso = -1, hotx = 0, hoty = 0;
+// real mouse coordinates and bounds
+int real_mouse_x = 0, real_mouse_y = 0;
 int boundx1 = 0, boundx2 = 99999, boundy1 = 0, boundy2 = 99999;
 int disable_mgetgraphpos = 0;
 char ignore_bounds = 0;
@@ -80,9 +65,30 @@ extern char alpha_blend_cursor ;
 Bitmap *savebk = NULL, *mousecurs[MAXCURSORS];
 extern int vesa_xres, vesa_yres;
 extern color palette[256];
+extern volatile bool switched_away;
 
 
 IMouseGetPosCallback *callback = NULL;
+
+namespace Mouse
+{
+    // Tells whether mouse was locked to the game window
+    bool LockedToWindow = false;
+
+    // Screen rectangle, in which the mouse movement is controlled by engine
+    Rect  ControlRect;
+    // Mouse control enabled flag
+    bool  ControlEnabled = false;
+    // Flag that tells whether the mouse must be forced to stay inside control rect
+    bool  ConfineInCtrlRect = false;
+    // Mouse speed value provided by user
+    float SpeedVal = 1.f;
+    // Mouse speed unit
+    float SpeedUnit = 1.f;
+    // Actual speed factor (cached)
+    float Speed = 1.f;
+}
+
 
 void msetcallback(IMouseGetPosCallback *gpCallback) {
   callback = gpCallback;
@@ -90,46 +96,104 @@ void msetcallback(IMouseGetPosCallback *gpCallback) {
 
 void mgraphconfine(int x1, int y1, int x2, int y2)
 {
-  set_mouse_range(x1, y1, x2, y2);
+  Mouse::ControlRect = Rect(x1 + game_frame_x_offset, y1 + game_frame_y_offset,
+      x2 + game_frame_x_offset, y2 + game_frame_y_offset);
+  set_mouse_range(Mouse::ControlRect.Left, Mouse::ControlRect.Top, Mouse::ControlRect.Right, Mouse::ControlRect.Bottom);
+  Out::FPrint("Mouse confined: (%d,%d)-(%d,%d) (%dx%d)",
+      Mouse::ControlRect.Left, Mouse::ControlRect.Top, Mouse::ControlRect.Right, Mouse::ControlRect.Bottom,
+      Mouse::ControlRect.GetWidth(), Mouse::ControlRect.GetHeight());
 }
 
 void mgetgraphpos()
 {
-  poll_mouse();
-  if (!disable_mgetgraphpos) {
-    mousex = mouse_x;
-    mousey = mouse_y;
-  }
-
-  if (!ignore_bounds) {
-
-    if (mousex < boundx1) {
-      mousex = boundx1;
-      msetgraphpos(mousex, mousey);
-    }
-    if (mousey < boundy1) {
-      mousey = boundy1;
-      msetgraphpos(mousex, mousey);
-    }
-    if (mousex > boundx2) {
-      mousex = boundx2;
-      msetgraphpos(mousex, mousey);
-    }
-    if (mousey > boundy2) {
-      mousey = boundy2;
-      msetgraphpos(mousex, mousey);
+    poll_mouse();
+    if (disable_mgetgraphpos)
+    {
+        // The cursor coordinates are provided from alternate source;
+        // in this case we completely ignore actual cursor movement.
+        if (!ignore_bounds &&
+            (mousex < boundx1 || mousey < boundy1 || mousex > boundx2 || mousey > boundy2))
+        {
+            mousex = Math::Clamp(boundx1, boundx2, mousex);
+            mousey = Math::Clamp(boundy1, boundy2, mousey);
+            msetgraphpos(mousex, mousey);
+        }
+        return;
     }
 
-  }
+    if (!switched_away && Mouse::ControlEnabled)
+    {
+        // Control mouse movement by querying mouse mickeys (movement deltas)
+        // and applying them to saved mouse coordinates.
+        int mickey_x, mickey_y;
+        get_mouse_mickeys(&mickey_x, &mickey_y);
+        
+        // Apply mouse speed
+        int dx = Mouse::Speed * mickey_x;
+        int dy = Mouse::Speed * mickey_y;
 
-  if ((callback) && (!disable_mgetgraphpos))
-    callback->AdjustPosition(&mousex, &mousey);
+        //
+        // Perform actual cursor update
+        //---------------------------------------------------------------------
+        // If the real cursor is inside the control rectangle (read - game window),
+        // then apply sensitivity factors and adjust real cursor position
+        if (Mouse::ControlRect.IsInside(real_mouse_x + dx, real_mouse_y + dy))
+        {
+            real_mouse_x += dx;
+            real_mouse_y += dy;
+            position_mouse(real_mouse_x, real_mouse_y);
+        }
+        // Otherwise, if real cursor was moved outside the control rect, yet we
+        // are required to confine cursor inside one, then adjust cursor position
+        // to stay inside the rect's bounds.
+        else if (Mouse::ConfineInCtrlRect)
+        {
+            real_mouse_x = Math::Clamp(Mouse::ControlRect.Left, Mouse::ControlRect.Right, real_mouse_x + dx);
+            real_mouse_y = Math::Clamp(Mouse::ControlRect.Top, Mouse::ControlRect.Bottom, real_mouse_y + dy);
+            position_mouse(real_mouse_x, real_mouse_y);
+        }
+        // Lastly, if the real cursor is out of the control rect, simply add
+        // actual movement to keep up with the system cursor coordinates.
+        else
+        {
+            real_mouse_x += mickey_x;
+            real_mouse_y += mickey_y;
+        }
+
+        // Do not update the game cursor if the real cursor is beyond the control rect
+        if (!Mouse::ControlRect.IsInside(real_mouse_x, real_mouse_y))
+            return;
+    }
+    else
+    {
+        // Save real cursor coordinates provided by system
+        real_mouse_x = mouse_x;
+        real_mouse_y = mouse_y;
+    }
+
+    // Set new in-game cursor position
+    mousex = real_mouse_x;
+    mousey = real_mouse_y;
+
+    // Convert to zero-based coordinates by subtracting left-top corner of the control frame
+    mousex -= Mouse::ControlRect.Left;
+    mousey -= Mouse::ControlRect.Top;
+
+    if (!ignore_bounds &&
+        (mousex < boundx1 || mousey < boundy1 || mousex > boundx2 || mousey > boundy2))
+    {
+        mousex = Math::Clamp(boundx1, boundx2, mousex);
+        mousey = Math::Clamp(boundy1, boundy2, mousey);
+        msetgraphpos(mousex, mousey);
+    }
+
+    // Convert to virtual coordinates
+    if (callback)
+        callback->AdjustPosition(&mousex, &mousey);
 }
 
 void msetcursorlimit(int x1, int y1, int x2, int y2)
 {
-  // like graphconfine, but don't actually pass it to the driver
-  // - stops the Windows cursor showing when out of the area
   boundx1 = x1;
   boundy1 = y1;
   boundx2 = x2;
@@ -262,8 +326,10 @@ int misbuttondown(int buno)
 }
 
 void msetgraphpos(int xa, int ya)
-{ 
-  position_mouse(xa, ya); // xa -= hotx; ya -= hoty;
+{
+  real_mouse_x = xa + Mouse::ControlRect.Left;
+  real_mouse_y = ya + Mouse::ControlRect.Top;
+  position_mouse(real_mouse_x, real_mouse_y); // xa -= hotx; ya -= hoty;
 }
 
 void msethotspot(int xx, int yy)
@@ -283,4 +349,68 @@ int minstalled()
     nbuts = 2;
 
   return nbuts;
+}
+
+bool Mouse::IsLockedToWindow()
+{
+    return LockedToWindow;
+}
+
+bool Mouse::TryLockToWindow()
+{
+    if (!LockedToWindow)
+        LockedToWindow = platform->LockMouseToWindow();
+    return LockedToWindow;
+}
+
+void Mouse::UnlockFromWindow()
+{
+    platform->UnlockMouse();
+    LockedToWindow = false;
+}
+
+void Mouse::EnableControl(bool confine)
+{
+    ControlEnabled = true;
+    ConfineInCtrlRect = confine;
+}
+
+void Mouse::DisableControl()
+{
+    ControlEnabled = false;
+    ConfineInCtrlRect = false;
+    SpeedVal = 1.f;
+    SpeedUnit = 1.f;
+    Speed = 1.f;
+}
+
+bool Mouse::IsControlEnabled()
+{
+    return ControlEnabled;
+}
+
+void Mouse::SetSpeedUnit(float f)
+{
+    if (!ControlEnabled)
+        return;
+    SpeedUnit = f;
+    Speed = SpeedVal / SpeedUnit;
+}
+
+float Mouse::GetSpeedUnit()
+{
+    return SpeedUnit;
+}
+
+void Mouse::SetSpeed(float speed)
+{
+    if (!ControlEnabled)
+        return;
+    SpeedVal = Math::Max(0.f, speed);
+    Speed = SpeedUnit * SpeedVal;
+}
+
+float Mouse::GetSpeed()
+{
+    return SpeedVal;
 }

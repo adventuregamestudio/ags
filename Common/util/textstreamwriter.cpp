@@ -22,6 +22,13 @@ namespace AGS
 namespace Common
 {
 
+#if defined (WINDOWS_VERSION)
+static const char Endl[2] = {'\r', '\n'};
+#else
+static const char Endl[1] = {'\n'};
+#endif
+
+
 TextStreamWriter::TextStreamWriter(Stream *stream)
     : _stream(stream)
 {
@@ -55,13 +62,6 @@ bool TextStreamWriter::EOS() const
 
 void TextStreamWriter::WriteChar(char c)
 {
-    // Substitute line-feed character with platform-specific line break
-    if (c == '\n')
-    {
-        WriteLineBreak();
-        return;
-    }
-
     if (_stream)
     {
         _stream->WriteByte(c);
@@ -86,7 +86,7 @@ void TextStreamWriter::WriteLine(const String &str)
 
     // TODO: replace line-feed characters in string with platform-specific line break
     _stream->Write(str.GetCStr(), str.GetLength());
-    WriteLineBreak();
+    _stream->Write(Endl, sizeof(Endl));
 }
 
 void TextStreamWriter::WriteFormat(const char *fmt, ...)
@@ -113,11 +113,7 @@ void TextStreamWriter::WriteFormat(const char *fmt, ...)
 void TextStreamWriter::WriteLineBreak()
 {
     if (_stream)
-    {
-        // CHECKME: should this be platform-dependant?
-        // carriage-return & line-feed
-        _stream->Write("\r\n", 2);
-    }
+        _stream->Write(Endl, sizeof(Endl));
 }
 
 } // namespace Common

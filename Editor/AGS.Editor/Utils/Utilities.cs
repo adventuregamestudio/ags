@@ -16,8 +16,8 @@ namespace AGS.Editor
     {
         private const int ERROR_NO_MORE_FILES = 18;
 
-		[DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Winapi)]
-		internal static extern IntPtr GetFocus();
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Winapi)]
+        internal static extern IntPtr GetFocus();
 
         //[DllImport("kernel32.dll")]
         //internal static extern void RtlMoveMemory(IntPtr dest, IntPtr src, uint len);
@@ -69,17 +69,17 @@ namespace AGS.Editor
             return (System.Windows.Forms.Control.ModifierKeys & Keys.Control) == Keys.Control;
         }
 
-		public static Control GetControlThatHasFocus()
-		{            
-			Control focusControl = null;
-			IntPtr focusHandle = GetFocus();
-			if (focusHandle != IntPtr.Zero)
-			{
-				// returns null if handle is not to a .NET control
-				focusControl = Control.FromHandle(focusHandle);
-			}
-			return focusControl;
-		}
+        public static Control GetControlThatHasFocus()
+        {
+            Control focusControl = null;
+            IntPtr focusHandle = GetFocus();
+            if (focusHandle != IntPtr.Zero)
+            {
+                // returns null if handle is not to a .NET control
+                focusControl = Control.FromHandle(focusHandle);
+            }
+            return focusControl;
+        }
 
         public static void EnsureStandardSubFoldersExist()
         {
@@ -112,6 +112,20 @@ namespace AGS.Editor
                     list.Add(fileName.Substring(currentDirectory.Length + 1));
                 }
             }
+        }
+
+        public static string GetRelativeToProjectPath(string absolutePath)
+        {
+            if (String.IsNullOrEmpty(absolutePath) ||
+                !absolutePath.Contains(Factory.AGSEditor.CurrentGame.DirectoryPath))
+            {
+                return absolutePath;
+            }
+
+            Uri currentProjectUri = new Uri(Factory.AGSEditor.CurrentGame.DirectoryPath + Path.DirectorySeparatorChar);
+            Uri currentPathUri = new Uri(absolutePath);
+
+            return Uri.UnescapeDataString(currentProjectUri.MakeRelativeUri(currentPathUri).OriginalString);
         }
 
         /// <summary>
@@ -147,10 +161,10 @@ namespace AGS.Editor
             }
         }
 
-		/// <summary>
-		/// Returns whether the sourceFile is newer than the destinationFile or
-		/// if the destinationFile doesn't exist.
-		/// </summary>
+        /// <summary>
+        /// Returns whether the sourceFile is newer than the destinationFile or
+        /// if the destinationFile doesn't exist.
+        /// </summary>
         public static bool DoesFileNeedRecompile(string sourceFile, string destinationFile)
         {
             if (!File.Exists(sourceFile))
@@ -164,13 +178,13 @@ namespace AGS.Editor
             return (File.GetLastWriteTime(sourceFile) > File.GetLastWriteTime(destinationFile));
         }
 
-		public static void DeleteFileIfExists(string fileName)
-		{
-			if (File.Exists(fileName))
-			{
-				File.Delete(fileName);
-			}
-		}
+        public static void DeleteFileIfExists(string fileName)
+        {
+            if (File.Exists(fileName))
+            {
+                File.Delete(fileName);
+            }
+        }
 
         /// <summary>
         /// Copies the source to destination, and makes sure that the newly
@@ -206,13 +220,13 @@ namespace AGS.Editor
             if (File.Exists("agsfnt" + fromSlot + ".wfn"))
             {
                 File.Copy("agsfnt" + fromSlot + ".wfn", "agsfnt" + toSlot + ".wfn", true);
-				// if a read-only file was copied, make the new one normal
-				File.SetAttributes("agsfnt" + toSlot + ".wfn", FileAttributes.Archive);
+                // if a read-only file was copied, make the new one normal
+                File.SetAttributes("agsfnt" + toSlot + ".wfn", FileAttributes.Archive);
             }
             else if (File.Exists("agsfnt" + fromSlot + ".ttf"))
             {
                 File.Copy("agsfnt" + fromSlot + ".ttf", "agsfnt" + toSlot + ".ttf", true);
-				File.SetAttributes("agsfnt" + toSlot + ".ttf", FileAttributes.Archive);
+                File.SetAttributes("agsfnt" + toSlot + ".ttf", FileAttributes.Archive);
             }
             else
             {
@@ -220,54 +234,54 @@ namespace AGS.Editor
             }
         }
 
-		public static Bitmap GetBitmapForSpriteResizedKeepingAspectRatio(Sprite sprite, int width, int height, bool centreInNewCanvas, bool drawOutline, Color backgroundColour)
-		{
-			float targetWidthHeightRatio = (float)width / (float)height;
-			float spriteWidthHeightRatio = (float)sprite.Width / (float)sprite.Height;
-			int newWidth, newHeight;
+        public static Bitmap GetBitmapForSpriteResizedKeepingAspectRatio(Sprite sprite, int width, int height, bool centreInNewCanvas, bool drawOutline, Color backgroundColour)
+        {
+            float targetWidthHeightRatio = (float)width / (float)height;
+            float spriteWidthHeightRatio = (float)sprite.Width / (float)sprite.Height;
+            int newWidth, newHeight;
 
-			if ((sprite.Width < width / 2) && (sprite.Height < height / 2))
-			{
-				newWidth = sprite.Width * 2;
-				newHeight = sprite.Height * 2;
-			}
-			else if (spriteWidthHeightRatio > targetWidthHeightRatio)
-			{
-				newWidth = width;
-				newHeight = (int)(((float)width / (float)sprite.Width) * (float)sprite.Height);
-			}
-			else
-			{
-				newHeight = height;
-				newWidth = (int)(((float)height / (float)sprite.Height) * (float)sprite.Width);
-			}
+            if ((sprite.Width < width / 2) && (sprite.Height < height / 2))
+            {
+                newWidth = sprite.Width * 2;
+                newHeight = sprite.Height * 2;
+            }
+            else if (spriteWidthHeightRatio > targetWidthHeightRatio)
+            {
+                newWidth = width;
+                newHeight = (int)(((float)width / (float)sprite.Width) * (float)sprite.Height);
+            }
+            else
+            {
+                newHeight = height;
+                newWidth = (int)(((float)height / (float)sprite.Height) * (float)sprite.Width);
+            }
 
-			// correct size if a very wide/tall image (eg. 400x2) is shrunk
-			if (newWidth < 1) newWidth = 1;
-			if (newHeight < 1) newHeight = 1;
+            // correct size if a very wide/tall image (eg. 400x2) is shrunk
+            if (newWidth < 1) newWidth = 1;
+            if (newHeight < 1) newHeight = 1;
 
-			Bitmap newBmp = new Bitmap(width, height, PixelFormat.Format32bppRgb);
-			Graphics g = Graphics.FromImage(newBmp);
-			g.Clear(backgroundColour);
-			Bitmap bitmapToDraw = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, newWidth, newHeight);
+            Bitmap newBmp = new Bitmap(width, height, PixelFormat.Format32bppRgb);
+            Graphics g = Graphics.FromImage(newBmp);
+            g.Clear(backgroundColour);
+            Bitmap bitmapToDraw = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, newWidth, newHeight);
 
-			int x = 0, y = 0;
-			if (centreInNewCanvas)
-			{
-				x = width / 2 - bitmapToDraw.Width / 2;
-				y = height - bitmapToDraw.Height;
-			}
+            int x = 0, y = 0;
+            if (centreInNewCanvas)
+            {
+                x = width / 2 - bitmapToDraw.Width / 2;
+                y = height - bitmapToDraw.Height;
+            }
 
-			g.DrawImage(bitmapToDraw, x, y, bitmapToDraw.Width, bitmapToDraw.Height);
+            g.DrawImage(bitmapToDraw, x, y, bitmapToDraw.Width, bitmapToDraw.Height);
 
-			if (drawOutline)
-			{
-				g.DrawRectangle(Pens.Brown, x, y, newWidth - 1, newHeight - 1);
-			}
+            if (drawOutline)
+            {
+                g.DrawRectangle(Pens.Brown, x, y, newWidth - 1, newHeight - 1);
+            }
 
-			g.Dispose();
-			return newBmp;
-		}
+            g.Dispose();
+            return newBmp;
+        }
 
         /// <summary>
         /// Gets the size at which the sprite will be rendered in the game.

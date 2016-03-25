@@ -1,0 +1,17 @@
+Adventure Game Studio Engine and Tools
+Copyright (c) 1999-2011 Chris Jones and 2011-2016 various contributors.
+
+It is recommended that you do not install this to the same folder as any previous versions of AGS, in case you need to go back for some reason.
+
+The software is provided under Artistic License 2.0 (http://www.opensource.org/licenses/artistic-license-2.0.php).
+Adventure Game Studio is an open source software, its source code is available at https://github.com/adventuregamestudio/ags.
+
+This package is distributed without any warranty, without even the implied warranty of merchantibility or fitness for a particular purpose.
+
+This installation setup program is Inno Setup v5.5.6 (http://www.innosetup.com), an excellent freeware installer. Copyright (C) 1997-2013 Jordan Russell, portions copyright (C) 2000-2013 Martijn Laan, all rights reserved.
+
+AGS is an adventure game creation system. As such, it is provided to you in good faith by its authors. Neither Chris Jones nor any of the contributors can be held responsible for the contents of any works created with AGS, including but not limited to any which infringe on copyright, are libellous or contain offensive material. Please use AGS responsibly.
+
+AGS allows user-made "Plugins" to be incorporated into games created by the system. These Plugins can access all standard Windows functionality and are therefore not protected from system functions as the scripting language is. Neither Chris Jones nor any of the contributors can be held responsible for any Plugins for AGS which you use in your game. Any problems with the Plugin should be addressed to its author.
+
+You must accept these terms and conditions before proceeding with installation.

@@ -19,8 +19,10 @@
 #ifndef __AGS_EE_PLATFORM__AGSPLATFORMDRIVER_H
 #define __AGS_EE_PLATFORM__AGSPLATFORMDRIVER_H
 
+#include <errno.h>
 #include "ac/datetime.h"
 #include "debug/outputtarget.h"
+#include "util/ini_util.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
@@ -36,6 +38,13 @@ enum eScriptSystemOSID {
     eOS_Mac = 4
 };
 
+enum SetupReturnValue
+{
+    kSetup_Cancel,
+    kSetup_Done,
+    kSetup_RunGame
+};
+
 struct AGSPlatformDriver
     // be used as a output target for logging system
     : public AGS::Common::Out::IOutputTarget
@@ -43,11 +52,23 @@ struct AGSPlatformDriver
     virtual void AboutToQuitGame();
     virtual void Delay(int millis) = 0;
     virtual void DisplayAlert(const char*, ...) = 0;
-    virtual const char *GetAllUsersDataDirectory() { return NULL; }
+    virtual int  GetLastSystemError() { return errno; }
+    // Get directory for storing shared game data
+    virtual const char *GetAllUsersDataDirectory() { return "."; }
+    // Get directory for storing user's saved games
+    virtual const char *GetUserSavedgamesDirectory() { return "."; }
+    // Get directory for storing user configuration files
+    virtual const char *GetUserConfigDirectory() { return "."; }
     // Get default directory for program output (logs)
     virtual const char *GetAppOutputDirectory() { return "."; }
+    // Returns array of characters illegal to use in file names
+    virtual const char *GetIllegalFileChars() { return "\\/"; }
+    virtual const char *GetFileWriteTroubleshootingText() { return ""; }
+    virtual const char *GetGraphicsTroubleshootingText() { return ""; }
     virtual unsigned long GetDiskFreeSpaceMB() = 0;
     virtual const char* GetNoMouseErrorString() = 0;
+    // Tells whether build is capable of controlling mouse movement properly
+    virtual bool IsMouseControlSupported(bool windowed) { return false; }
     virtual const char* GetAllegroFailUserHint();
     virtual eScriptSystemOSID GetSystemOSID() = 0;
     virtual void GetSystemTime(ScriptDateTime*);
@@ -56,11 +77,11 @@ struct AGSPlatformDriver
     virtual void PostAllegroInit(bool windowed);
     virtual void PostAllegroExit() = 0;
     virtual void FinishedUsingGraphicsMode();
-    virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize);
-    virtual int  RunSetup() = 0;
+    virtual SetupReturnValue RunSetup(Common::ConfigTree &cfg) { return kSetup_Cancel; }
     virtual void SetGameWindowIcon();
-    virtual void WriteConsole(const char*, ...) = 0;
-    virtual void WriteDebugString(const char*, ...);
+    // Formats message and writes to standard platform's output;
+    // Always adds trailing '\n' after formatted string
+    virtual void WriteStdOut(const char *fmt, ...);
     virtual void YieldCPU();
     virtual void DisplaySwitchOut();
     virtual void DisplaySwitchIn();
@@ -79,11 +100,15 @@ struct AGSPlatformDriver
     virtual int  RunPluginDebugHooks(const char *scriptfile, int linenum);
     virtual void ShutdownPlugins();
 
+    virtual bool LockMouseToWindow();
+    virtual void UnlockMouse();
+
     static AGSPlatformDriver *GetDriver();
 
     //-----------------------------------------------
     // IOutputTarget implementation
     //-----------------------------------------------
+    // Writes to the standard platform's output, prepending "AGS: " prefix to the message
     virtual void Out(const char *sz_fullmsg);
 
 private:

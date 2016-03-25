@@ -28,6 +28,7 @@
 #include "ac/global_display.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
+#include "debug/out.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "main/engine.h"
@@ -38,9 +39,7 @@
 #include "util/stream.h"
 #include "util/string_utils.h"
 
-using AGS::Common::Stream;
-using AGS::Common::String;
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern GameSetup usetup;
@@ -90,7 +89,7 @@ extern void dxmedia_abort_video();
 extern void dxmedia_pause_video();
 extern void dxmedia_resume_video();
 extern char lastError[200];
-extern int acwsetup(const char*, const char*);
+extern SetupReturnValue acwsetup(ConfigTree &cfg, const String &game_data_dir, const char*, const char*);
 extern void set_icon();
 
 struct AGSWin32 : AGSPlatformDriver {
@@ -100,27 +99,34 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
+  virtual int  GetLastSystemError();
   virtual const char *GetAllUsersDataDirectory();
+  virtual const char *GetUserSavedgamesDirectory();
+  virtual const char *GetUserConfigDirectory();
   virtual const char *GetAppOutputDirectory();
+  virtual const char *GetIllegalFileChars();
+  virtual const char *GetFileWriteTroubleshootingText();
+  virtual const char *GetGraphicsTroubleshootingText();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
+  virtual bool IsMouseControlSupported(bool windowed);
   virtual const char* GetAllegroFailUserHint();
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroInit(bool windowed);
   virtual void PostAllegroExit();
-  virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize);
-  virtual int  RunSetup();
+  virtual SetupReturnValue RunSetup(ConfigTree &cfg);
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
-  virtual void WriteConsole(const char*, ...);
-  virtual void WriteDebugString(const char*, ...);
+  virtual void WriteStdOut(const char *fmt, ...);
   virtual void DisplaySwitchOut() ;
   virtual void DisplaySwitchIn() ;
   virtual void RegisterGameWithGameExplorer();
   virtual void UnRegisterGameWithGameExplorer();
   virtual int  ConvertKeycodeToScanCode(int keyCode);
+  virtual bool LockMouseToWindow();
+  virtual void UnlockMouse();
 
 private:
   void add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
@@ -131,9 +137,12 @@ private:
   void create_shortcut(const char *pathToEXE, const char *workingFolder, const char *arguments, const char *shortcutPath);
   void register_file_extension(const char *exePath);
   void unregister_file_extension();
+
+  bool _isDebuggerPresent; // indicates if the win app is running in the context of a debugger
 };
 
 AGSWin32::AGSWin32() {
+  _isDebuggerPresent = ::IsDebuggerPresent() != FALSE;
   allegro_wnd = NULL;
 }
 
@@ -380,7 +389,7 @@ void AGSWin32::update_game_explorer(bool add)
   HRESULT hr = CoCreateInstance( __uuidof(GameExplorer), NULL, CLSCTX_INPROC_SERVER, __uuidof(IGameExplorer), (void**)&pFwGameExplorer);
   if( FAILED(hr) || pFwGameExplorer == NULL ) 
   {
-    OutputDebugString("AGS: Game Explorer not found to register game, Windows Vista required");
+    Out::FPrint("Game Explorer not found to register game, Windows Vista required");
   }
   else 
   {
@@ -515,7 +524,7 @@ void AGSWin32::PostAllegroInit(bool windowed)
   // Sleep() don't take more time than specified
   MMRESULT result = timeBeginPeriod(win32TimerPeriod);
   if (result != TIMERR_NOERROR)
-    platform->WriteDebugString("Failed to set the timer resolution to %d ms", win32TimerPeriod);
+    Out::FPrint("Failed to set the timer resolution to %d ms", win32TimerPeriod);
 }
 
 typedef UINT (CALLBACK* Dynamic_SHGetKnownFolderPathType) (GUID& rfid, DWORD dwFlags, HANDLE hToken, PWSTR *ppszPath); 
@@ -616,34 +625,51 @@ void DetermineAppOutputDirectory()
   }
 }
 
-void AGSWin32::ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize) {
-
-  if (strnicmp(sourcePath, "$MYDOCS$", 8) == 0) 
-  {
-    determine_saved_games_folder();
-    snprintf(destPath, destSize, "%s%s", win32SavedGamesDirectory, sourcePath + 8);
-  }
-  else if (strnicmp(sourcePath, "$APPDATADIR$", 12) == 0) 
-  {
-    determine_app_data_folder();
-    snprintf(destPath, destSize, "%s%s", win32AppDataDirectory, sourcePath + 12);
-  }
-  else
-  {
-    snprintf(destPath, destSize, "%s", sourcePath);
-  }
-}
-
 const char* AGSWin32::GetAllUsersDataDirectory() 
 {
   determine_app_data_folder();
   return &win32AppDataDirectory[0];
 }
 
+const char *AGSWin32::GetUserSavedgamesDirectory()
+{
+  determine_saved_games_folder();
+  return win32SavedGamesDirectory;
+}
+
+const char *AGSWin32::GetUserConfigDirectory()
+{
+  determine_saved_games_folder();
+  return win32SavedGamesDirectory;
+}
+
 const char *AGSWin32::GetAppOutputDirectory()
 {
   DetermineAppOutputDirectory();
   return win32OutputDirectory;
+}
+
+const char *AGSWin32::GetIllegalFileChars()
+{
+    return "\\/:?\"<>|*";
+}
+
+const char *AGSWin32::GetFileWriteTroubleshootingText()
+{
+    return "If you are using Windows Vista or higher, you may need to right-click and Run as Administrator on the Setup application.";
+}
+
+const char *AGSWin32::GetGraphicsTroubleshootingText()
+{
+  return "\n\nPossible causes:\n"
+    "* your graphics card drivers do not support this resolution. "
+    "Run the game setup program and try another resolution.\n"
+    "* the graphics driver you have selected does not work. Try switching between Direct3D and DirectDraw.\n"
+    "* the graphics filter you have selected does not work. Try another filter.\n"
+    "* your graphics card drivers are out of date. "
+    "Try downloading updated graphics card drivers from your manufacturer's website.\n"
+    "* there is a problem with your graphics card driver configuration. "
+    "Run DXDiag using the Run command (Start->Run, type \"dxdiag.exe\") and correct any problems reported there.";
 }
 
 void AGSWin32::DisplaySwitchOut() {
@@ -669,6 +695,11 @@ void AGSWin32::DisplayAlert(const char *text, ...) {
   vsprintf(displbuf, text, ap);
   va_end(ap);
   MessageBox(allegro_wnd, displbuf, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);
+}
+
+int AGSWin32::GetLastSystemError()
+{
+  return ::GetLastError();
 }
 
 void AGSWin32::Delay(int millis) 
@@ -713,6 +744,11 @@ unsigned long AGSWin32::GetDiskFreeSpaceMB() {
 
 const char* AGSWin32::GetNoMouseErrorString() {
   return "No mouse was detected on your system, or your mouse is not configured to work with DirectInput. You must have a mouse to play this game.";
+}
+
+bool AGSWin32::IsMouseControlSupported(bool windowed)
+{
+  return true; // supported for both fullscreen and windowed modes
 }
 
 const char* AGSWin32::GetAllegroFailUserHint()
@@ -792,30 +828,36 @@ void AGSWin32::PostAllegroExit() {
   timeEndPeriod(win32TimerPeriod);
 }
 
-int AGSWin32::RunSetup() {
+SetupReturnValue AGSWin32::RunSetup(ConfigTree &cfg)
+{
   const char *engineVersion = get_engine_version();
   char titleBuffer[200];
   sprintf(titleBuffer, "Adventure Game Studio v%s setup", engineVersion);
-  return acwsetup(titleBuffer, engineVersion);
+  return acwsetup(cfg, usetup.data_files_dir, titleBuffer, engineVersion);
 }
 
 void AGSWin32::SetGameWindowIcon() {
   set_icon();
 }
 
-void AGSWin32::WriteConsole(const char *text, ...) {
-  // Do nothing (Windows GUI app)
-}
-
-void AGSWin32::WriteDebugString(const char* texx, ...) {
-  char displbuf[STD_BUFFER_SIZE] = "AGS: ";
+void AGSWin32::WriteStdOut(const char *fmt, ...) {
   va_list ap;
-  va_start(ap,texx);
-  vsprintf(&displbuf[5],texx,ap);
+  va_start(ap, fmt);
+  if (_isDebuggerPresent)
+  {
+    // Add "AGS:" prefix when outputting to debugger, to make it clear that this
+    // is a text from the program log
+    char buf[STD_BUFFER_SIZE] = "AGS: ";
+    vsnprintf(buf + 5, STD_BUFFER_SIZE - 5, fmt, ap);
+    OutputDebugString(buf);
+    OutputDebugString("\n");
+  }
+  else
+  {
+    vprintf(fmt, ap);
+    printf("\n");
+  }
   va_end(ap);
-  strcat(displbuf, "\n");
-
-  OutputDebugString(displbuf);
 }
 
 void AGSWin32::ShutdownCDPlayer() {
@@ -838,6 +880,22 @@ int AGSWin32::ConvertKeycodeToScanCode(int keycode)
   if ((scancode >= 0) && (scancode < 256))
     keycode = hw_to_mycode[scancode];
   return keycode;
+}
+
+bool AGSWin32::LockMouseToWindow()
+{
+    RECT rc;
+    GetClientRect(allegro_wnd, &rc);
+    ClientToScreen(allegro_wnd, (POINT*)&rc);
+    ClientToScreen(allegro_wnd, (POINT*)&rc.right);
+    --rc.right;
+    --rc.bottom;
+    return ::ClipCursor(&rc) != 0;
+}
+
+void AGSWin32::UnlockMouse()
+{
+    ::ClipCursor(NULL);
 }
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {

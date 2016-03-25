@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-// General Information about an assembly is controlled through the following 
+// General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("AGSTypes")]
@@ -22,9 +22,9 @@ namespace AGS.Types
 	public class Version
 	{
         public static readonly bool IS_BETA_VERSION = false;
-        public const string AGS_EDITOR_DATE = "July 2015";
-        public const string AGS_EDITOR_FRIENDLY_VERSION = "3.3.4";
-        public const string AGS_EDITOR_VERSION = "3.3.4.2";
-        public const string AGS_EDITOR_COPYRIGHT = "Copyright © 2006-2011 Chris Jones and 2011-2015 others.";
+        public const string AGS_EDITOR_DATE = "February 2016";
+        public const string AGS_EDITOR_FRIENDLY_VERSION = "3.3.5";
+        public const string AGS_EDITOR_VERSION = "3.3.5.4";
+        public const string AGS_EDITOR_COPYRIGHT = "Copyright © 2006-2011 Chris Jones and 2011-2016 others.";
 	}
 }

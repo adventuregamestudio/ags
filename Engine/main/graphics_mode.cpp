@@ -255,7 +255,8 @@ void engine_init_screen_settings(Size &game_size, Size &screen_size)
 
     Out::FPrint("Game native resolution: %d x %d (%d bit)%s", scrnwid, scrnhit, firstDepth,
         game.options[OPT_LETTERBOX] == 0 ? "": " letterbox-by-design");
-    Out::FPrint("Game settings: letterbox %s, side borders %s",
+    Out::FPrint("Game settings: %s, letterbox %s, side borders %s",
+        usetup.windowed ? "windowed" : "fullscreen",
         usetup.prefer_letterbox ? "acceptable" : "undesirable", usetup.prefer_sideborders ? "acceptable" : "undesirable");
 
     adjust_sizes_for_resolution(loaded_game_file_version);
@@ -655,7 +656,7 @@ int try_find_max_supported_uniform_scaling(const Size &base_size, Size &found_si
     return multiplier;
 }
 
-int engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color_depth)
+bool engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color_depth)
 {
     Out::FPrint("Initializing gfx filters");
     if (force_gfxfilter[0])
@@ -701,7 +702,7 @@ int engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color_
     if (!filter)
     {
         set_allegro_error("Failed to find acceptable graphics filter");
-        return EXIT_NORMAL;
+        return false;
     }
 
     // On success apply filter and define game frame
@@ -711,12 +712,12 @@ int engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color_
     game_size.Height = screen_size.Height / filter->GetScalingFactor();
     Out::FPrint("Chosen gfx resolution: %d x %d (%d bit), game frame: %d x %d",
         screen_size.Width, screen_size.Height, color_depth, game_size.Width, game_size.Height);
-    return RETURN_CONTINUE;
+    return true;
 }
 
 bool create_gfx_driver(const String &gfx_driver_id)
 {
-    Out::FPrint("Init gfx driver");
+    Out::FPrint("Init gfx driver: %s", gfx_driver_id.GetCStr());
     if (!pre_create_gfx_driver(gfx_driver_id))
         return false;
 
@@ -743,6 +744,7 @@ bool init_gfx_mode(const Size &game_size, const Size &screen_size, int cdep)
     final_scrn_wid = game_size.Width;
     final_scrn_hit = game_size.Height;
     final_col_dep = cdep;
+    game_frame_x_offset = (final_scrn_wid - scrnwid) / 2;
     game_frame_y_offset = (final_scrn_hit - scrnhit) / 2;
     usetup.want_letterbox = final_scrn_hit > scrnhit;
 
@@ -763,7 +765,9 @@ bool init_gfx_mode(const Size &game_size, const Size &screen_size, int cdep)
         return true;
     }
     else
-        Out::FPrint("Failed, resolution not supported");
+    {
+        Out::FPrint("Failed. %s", get_allegro_error());
+    }
     return false;
 }
 
@@ -772,25 +776,27 @@ bool switch_to_graphics_mode(const Size &game_size, const Size &screen_size)
     bool result = init_gfx_mode(game_size, screen_size, firstDepth);
     if (!result && firstDepth != secondDepth)
         result = init_gfx_mode(game_size, screen_size, secondDepth);
-    if (!result && editor_debugging_enabled == 0)
-    {
-        usetup.windowed = !usetup.windowed;
-        result = init_gfx_mode(game_size, screen_size, firstDepth);
-        if (!result && firstDepth != secondDepth)
-            result = init_gfx_mode(game_size, screen_size, secondDepth);
-    }
     return result;
 }
 
-int engine_init_graphics_mode(const Size &game_size, const Size &screen_size)
+bool create_gfx_filter_and_init_mode(Size &game_size, Size &screen_size)
 {
+    Size final_game_size = game_size;
+    Size final_screen_size = screen_size;
+
+    Out::FPrint("Trying to setup %s mode", usetup.windowed ? "windowed" : "fullscreen");
+
+    if (!engine_init_gfx_filters(final_game_size, final_screen_size, firstDepth))
+        return false;
+
     Out::FPrint("Switching to graphics mode");
 
-    if (!switch_to_graphics_mode(game_size, screen_size))
-    {
-        return EXIT_NORMAL;
-    }
-    return RETURN_CONTINUE;
+    if (!switch_to_graphics_mode(final_game_size, final_screen_size))
+        return false;
+
+    game_size = final_game_size;
+    screen_size = final_screen_size;
+    return true;
 }
 
 void CreateBlankImage()
@@ -962,24 +968,50 @@ void log_out_driver_modes(const int color_depth)
 
 int create_gfx_driver_and_init_mode(const String &gfx_driver_id, Size &game_size, Size &screen_size)
 {
+    Size init_desktop;
+    get_desktop_resolution(&init_desktop.Width, &init_desktop.Height);
+
     if (!create_gfx_driver(gfx_driver_id))
         return EXIT_NORMAL;
     // Log out supported driver modes
     log_out_driver_modes(firstDepth);
     if (firstDepth != secondDepth)
         log_out_driver_modes(secondDepth);
-    
-    int res = engine_init_gfx_filters(game_size, screen_size, firstDepth);
-    if (res != RETURN_CONTINUE)
-    {
-        return res;
-    }
 
-    res = engine_init_graphics_mode(game_size, screen_size);
-    if (res != RETURN_CONTINUE)
+    bool result = create_gfx_filter_and_init_mode(game_size, screen_size);
+    if (!result && editor_debugging_enabled == 0)
     {
-        return res;
+        usetup.windowed = !usetup.windowed;
+        result = create_gfx_filter_and_init_mode(game_size, screen_size);
     }
+    if (!result)
+        return EXIT_NORMAL;
+
+    // Assign mouse control parameters.
+    //
+    // Whether mouse movement should be controlled by the engine - this is
+    // determined based on related config option.
+    const bool should_control_mouse = usetup.mouse_control == kMouseCtrl_Always ||
+        usetup.mouse_control == kMouseCtrl_Fullscreen && !usetup.windowed;
+    // Whether mouse movement control is supported by the engine - this is
+    // determined on per platform basis. Some builds may not have such
+    // capability, e.g. because of how backend library implements mouse utils.
+    const bool can_control_mouse = platform->IsMouseControlSupported(usetup.windowed);
+    // The resulting choice is made based on two aforementioned factors.
+    const bool control_sens = should_control_mouse && can_control_mouse;
+    if (control_sens)
+    {
+        Mouse::EnableControl(!usetup.windowed);
+        if (usetup.mouse_speed_def == kMouseSpeed_CurrentDisplay)
+        {
+            Size cur_desktop;
+            get_desktop_resolution(&cur_desktop.Width, &cur_desktop.Height);
+            Mouse::SetSpeedUnit(Math::Max((float)cur_desktop.Width / (float)init_desktop.Width, (float)cur_desktop.Height / (float)init_desktop.Height));
+        }
+        Mouse::SetSpeed(usetup.mouse_speed);
+    }
+    Out::FPrint("Mouse control: %s, base: %f, speed: %f", Mouse::IsControlEnabled() ? "on" : "off",
+        Mouse::GetSpeedUnit(), Mouse::GetSpeed());
     return RETURN_CONTINUE;
 }
 
@@ -998,12 +1030,9 @@ void display_gfx_mode_error(const Size &game_size, const Size &screen_size)
 
     platform->DisplayAlert("%s\n"
             "(Problem: '%s')\n"
-            "Try to correct the problem, or seek help from the AGS homepage.\n"
-            "\nPossible causes:\n* your graphics card drivers do not support this resolution. "
-            "Run the game setup program and try the other resolution.\n"
-            "* the graphics driver you have selected does not work. Try switching between Direct3D and DirectDraw.\n"
-            "* the graphics filter you have selected does not work. Try another filter.",
-            main_error.GetCStr(), get_allegro_error());
+            "Try to correct the problem, or seek help from the AGS homepage."
+            "%s",
+            main_error.GetCStr(), get_allegro_error(), platform->GetGraphicsTroubleshootingText());
 }
 
 int graphics_mode_init()

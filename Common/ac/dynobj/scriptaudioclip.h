@@ -21,6 +21,15 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
+enum AudioFileType {
+    eAudioFileOGG = 1,
+    eAudioFileMP3 = 2,
+    eAudioFileWAV = 3,
+    eAudioFileVOC = 4,
+    eAudioFileMIDI = 5,
+    eAudioFileMOD = 6
+};
+
 #define SCRIPTAUDIOCLIP_SCRIPTNAMELENGTH    30
 #define SCRIPTAUDIOCLIP_FILENAMELENGTH      15
 struct ScriptAudioClip {

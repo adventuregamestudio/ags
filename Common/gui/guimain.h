@@ -118,7 +118,7 @@ extern AGS_INLINE void multiply_up_coordinates(int *x, int *y);
 extern AGS_INLINE int get_fixed_pixel_size(int pixels);
 
 // Those function have distinct implementations in Engine and Editor
-extern void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, char *texx);
+extern void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx);
 extern int wgettextwidth_compensate(Common::Bitmap *ds, const char *tex, int font) ;
 extern void check_font(int *fontnum);
 

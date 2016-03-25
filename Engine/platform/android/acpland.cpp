@@ -20,6 +20,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/override_defines.h"
 #include "ac/runtime_defines.h"
+#include "main/config.h"
 #include "plugin/agsplugin.h"
 #include <stdio.h>
 #include <dirent.h>
@@ -33,12 +34,10 @@
 #include <jni.h>
 #include <android/log.h>
 
+using namespace AGS::Common;
 
 #define ANDROID_CONFIG_FILENAME "android.cfg"
 
-extern char filetouse[];
-char *INIreaditem(const char *sectn, const char *entry);
-int INIreadint (const char *sectn, const char *item, int errornosect = 1);
 bool ReadConfiguration(char* filename, bool read_everything);
 void ResetConfiguration();
 
@@ -54,11 +53,9 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual int  InitializeCDPlayer();
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroExit();
-  virtual int  RunSetup();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
-  virtual void WriteConsole(const char*, ...);
-  virtual void WriteDebugString(const char* texx, ...);
+  virtual void WriteStdOut(const char *fmt, ...);
 };
 
 
@@ -555,7 +552,7 @@ void selectLatestSavegame()
 }
 
 
-int ReadInteger(int* variable, char* section, char* name, int minimum, int maximum, int default_value)
+int ReadInteger(int* variable, const ConfigTree &cfg, char* section, char* name, int minimum, int maximum, int default_value)
 {
   if (reset_configuration)
   {
@@ -563,7 +560,7 @@ int ReadInteger(int* variable, char* section, char* name, int minimum, int maxim
     return 0;
   }
 
-  int temp = INIreadint(section, name);
+  int temp = INIreadint(cfg, section, name);
 
   if (temp == -1)
     return 0;
@@ -578,7 +575,7 @@ int ReadInteger(int* variable, char* section, char* name, int minimum, int maxim
 
 
 
-int ReadString(char* variable, char* section, char* name, char* default_value)
+int ReadString(char* variable, const ConfigTree &cfg, char* section, char* name, char* default_value)
 {
   if (reset_configuration)
   {
@@ -586,9 +583,8 @@ int ReadString(char* variable, char* section, char* name, char* default_value)
     return 0;
   }
 
-  char* temp = INIreaditem(section, name);
-
-  if (temp == NULL)
+  String temp;
+  if (!INIreaditem(cfg, section, name, temp))
     temp = default_value;
 
   strcpy(variable, temp);
@@ -611,54 +607,47 @@ void ResetConfiguration()
 
 bool ReadConfiguration(char* filename, bool read_everything)
 {
-  FILE* test = fopen(filename, "rb");
-  if (test || reset_configuration)
+  ConfigTree cfg;
+  if (IniUtil::Read(filename, cfg) || reset_configuration)
   {
-    if (test)
-      fclose(test);
-
-    strcpy(filetouse, filename);
-
 //    ReadInteger((int*)&psp_disable_powersaving, "misc", "disable_power_saving", 0, 1, 1);
 
 //    ReadInteger((int*)&psp_return_to_menu, "misc", "return_to_menu", 0, 1, 1);
 
-    ReadString(&psp_translation[0], "misc", "translation", "default");
+    ReadString(&psp_translation[0], cfg, "misc", "translation", "default");
 
-    ReadInteger((int*)&psp_config_enabled, "misc", "config_enabled", 0, 1, 0);
+    ReadInteger((int*)&psp_config_enabled, cfg, "misc", "config_enabled", 0, 1, 0);
     if (!psp_config_enabled && !read_everything)
       return true;
 
-    ReadInteger(&psp_debug_write_to_logcat, "debug", "logging", 0, 1, 0);
-    ReadInteger(&display_fps, "debug", "show_fps", 0, 1, 0);
+    ReadInteger(&psp_debug_write_to_logcat, cfg, "debug", "logging", 0, 1, 0);
+    ReadInteger(&display_fps, cfg, "debug", "show_fps", 0, 1, 0);
     if (display_fps == 1)
       display_fps = 2;
 
-    ReadInteger((int*)&psp_rotation, "misc", "rotation", 0, 2, 0);
+    ReadInteger((int*)&psp_rotation, cfg, "misc", "rotation", 0, 2, 0);
 
 //    ReadInteger((int*)&psp_ignore_acsetup_cfg_file, "compatibility", "ignore_acsetup_cfg_file", 0, 1, 0);
-    ReadInteger((int*)&psp_clear_cache_on_room_change, "compatibility", "clear_cache_on_room_change", 0, 1, 0);
+    ReadInteger((int*)&psp_clear_cache_on_room_change, cfg, "compatibility", "clear_cache_on_room_change", 0, 1, 0);
 
-    ReadInteger((int*)&psp_audio_samplerate, "sound", "samplerate", 0, 44100, 44100);
-    ReadInteger((int*)&psp_audio_enabled, "sound", "enabled", 0, 1, 1);
-    ReadInteger((int*)&psp_audio_multithreaded, "sound", "threaded", 0, 1, 1);
-    ReadInteger((int*)&psp_audio_cachesize, "sound", "cache_size", 1, 50, 10);
+    ReadInteger((int*)&psp_audio_samplerate, cfg, "sound", "samplerate", 0, 44100, 44100);
+    ReadInteger((int*)&psp_audio_enabled, cfg, "sound", "enabled", 0, 1, 1);
+    ReadInteger((int*)&psp_audio_multithreaded, cfg, "sound", "threaded", 0, 1, 1);
+    ReadInteger((int*)&psp_audio_cachesize, cfg, "sound", "cache_size", 1, 50, 10);
 
-    ReadInteger((int*)&psp_midi_enabled, "midi", "enabled", 0, 1, 1);
-    ReadInteger((int*)&psp_midi_preload_patches, "midi", "preload_patches", 0, 1, 0);
+    ReadInteger((int*)&psp_midi_enabled, cfg, "midi", "enabled", 0, 1, 1);
+    ReadInteger((int*)&psp_midi_preload_patches, cfg, "midi", "preload_patches", 0, 1, 0);
 
-    ReadInteger((int*)&psp_video_framedrop, "video", "framedrop", 0, 1, 0);
+    ReadInteger((int*)&psp_video_framedrop, cfg, "video", "framedrop", 0, 1, 0);
 
-    ReadInteger((int*)&psp_gfx_renderer, "graphics", "renderer", 0, 2, 0);
-    ReadInteger((int*)&psp_gfx_smoothing, "graphics", "smoothing", 0, 1, 1);
-    ReadInteger((int*)&psp_gfx_scaling, "graphics", "scaling", 0, 2, 1);
-    ReadInteger((int*)&psp_gfx_super_sampling, "graphics", "super_sampling", 0, 1, 0);
-    ReadInteger((int*)&psp_gfx_smooth_sprites, "graphics", "smooth_sprites", 0, 1, 0);
+    ReadInteger((int*)&psp_gfx_renderer, cfg, "graphics", "renderer", 0, 2, 0);
+    ReadInteger((int*)&psp_gfx_smoothing, cfg, "graphics", "smoothing", 0, 1, 1);
+    ReadInteger((int*)&psp_gfx_scaling, cfg, "graphics", "scaling", 0, 2, 1);
+    ReadInteger((int*)&psp_gfx_super_sampling, cfg, "graphics", "super_sampling", 0, 1, 0);
+    ReadInteger((int*)&psp_gfx_smooth_sprites, cfg, "graphics", "smooth_sprites", 0, 1, 0);
 
-    ReadInteger((int*)&config_mouse_control_mode, "controls", "mouse_method", 0, 1, 0);
-    ReadInteger((int*)&config_mouse_longclick, "controls", "mouse_longclick", 0, 1, 1);
-
-    strcpy(filetouse, "nofile");
+    ReadInteger((int*)&config_mouse_control_mode, cfg, "controls", "mouse_method", 0, 1, 0);
+    ReadInteger((int*)&config_mouse_longclick, cfg, "controls", "mouse_longclick", 0, 1, 1);
 
     return true;
   }
@@ -667,19 +656,6 @@ bool ReadConfiguration(char* filename, bool read_everything)
 }
 
 
-
-void AGSAndroid::WriteDebugString(const char* texx, ...)
-{
-  if (psp_debug_write_to_logcat)
-  {
-    char displbuf[STD_BUFFER_SIZE] = "AGS: ";
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(&displbuf[5],texx,ap);
-    va_end(ap);
-    __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", "%s", displbuf);
-  }
-}
 
 int AGSAndroid::CDPlayerCommand(int cmdd, int datt) {
   return 1;//cd_player_control(cmdd, datt);
@@ -736,21 +712,21 @@ void AGSAndroid::PostAllegroExit() {
   java_environment->DeleteGlobalRef(java_class);
 }
 
-int AGSAndroid::RunSetup() {
-  return 0;
-}
-
 void AGSAndroid::SetGameWindowIcon() {
   // do nothing
 }
 
-void AGSAndroid::WriteConsole(const char *text, ...) {
-  char displbuf[2000];
-  va_list ap;
-  va_start(ap, text);
-  vsprintf(displbuf, text, ap);
-  va_end(ap);
-  __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", "%s", displbuf);  
+void AGSAndroid::WriteStdOut(const char *fmt, ...)
+{
+  // TODO: this check should probably be done once when setting up output targets for logging
+  if (psp_debug_write_to_logcat)
+  {
+    va_list args;
+    va_start(args, fmt);
+    __android_log_vprint(ANDROID_LOG_DEBUG, "AGSNative", fmt, args);
+    // NOTE: __android_log_* functions add trailing '\n'
+    va_end(args);
+  }
 }
 
 void AGSAndroid::ShutdownCDPlayer() {

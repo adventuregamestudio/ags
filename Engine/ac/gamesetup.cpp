@@ -32,7 +32,11 @@ GameSetup::GameSetup()
     prefer_letterbox = true;
     base_width = 320;
     base_height = 200;
+    mouse_auto_lock = false;
     override_script_os = -1;
     override_multitasking = -1;
     override_upscale = false;
+    mouse_speed = 1.f;
+    mouse_control = kMouseCtrl_Fullscreen;
+    mouse_speed_def = kMouseSpeed_CurrentDisplay;
 }

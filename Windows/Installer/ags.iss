@@ -73,7 +73,7 @@ Source: "Source\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion; C
 Source: "Source\Docs\*"; DestDir: "{app}\Docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 Source: "Source\Templates\*"; DestDir: "{app}\Templates"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 Source: "Source\Demo Game\*"; DestDir: "{code:GetDemoGameDir}"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: demogame
-Source: "{#VcRedistInstaller}"; DestDir: {tmp}; Flags: deleteafterinstall; Check: VCRedistNeedsInstall;
+Source: "{#VcRedistInstaller}"; DestDir: {tmp}; Flags: deleteafterinstall; Tasks: vcredist
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 
@@ -98,8 +98,7 @@ Root: HKCR; Subkey: "AGSGameSource\shell\open\command"; ValueType: string; Value
 [Run]
 ; "How to perform a silent install of the Visual C++ 2008 redistributable packages"
 ;   http://blogs.msdn.com/b/astebner/archive/2010/10/18/9513328.aspx
-Filename: "{tmp}\{#VcRedistInstaller}"; Parameters: "/qb"; Check: VCRedistNeedsInstall; Flags: skipifdoesntexist; Tasks: vcredist
-
+Filename: "{tmp}\{#VcRedistInstaller}"; Parameters: "/qb"; Flags: skipifdoesntexist; Tasks: vcredist
 Filename: "{app}\AGSEditor.exe"; Description: "{cm:LaunchProgram,Adventure Game Studio}"; Flags: nowait postinstall skipifsilent;
 
 

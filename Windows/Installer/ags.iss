@@ -26,6 +26,7 @@ SolidCompression=yes
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\AGSEditor.exe
+ShowComponentSizes=yes
 
 
 [Languages]
@@ -66,11 +67,11 @@ Name: "{app}\Templates";
 [Files]
 Source: "Source\engine\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\default
 Source: "Source\engine-no-mp3\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\nomp3
-Source: "Source\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Source\ags-help.chm"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Source\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion
-Source: "Source\Docs\*"; DestDir: "{app}\Docs"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "Source\Templates\*"; DestDir: "{app}\Templates"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "Source\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\ags-help.chm"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion; Components: main
+Source: "Source\Docs\*"; DestDir: "{app}\Docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+Source: "Source\Templates\*"; DestDir: "{app}\Templates"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
 Source: "Source\Demo Game\*"; DestDir: "{code:GetDemoGameDir}"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: demogame
 Source: "{#VcRedistInstaller}"; DestDir: {tmp}; Flags: deleteafterinstall; Check: VCRedistNeedsInstall;
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files

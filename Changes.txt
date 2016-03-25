@@ -20,7 +20,7 @@ Editor Bug Fixes:
 - Fixed mouse cursor flicker above the script editor.
 
 Engine Features:
-- Removed unconfigurable mouse cursor's acceleration.
+- Removed unconfigurable mouse cursor's acceleration (Windows).
 - Support for mouse cursor speed control: may be defined in configuration and changed in script.
 - A config option for keeping consistent cursor speed relative to user's desktop resolution.
 - Support for locking mouse inside window: automatic lock is enabled in configuration, and user
@@ -39,9 +39,6 @@ Engine Bug Fixes:
 - Fixed game was run in smallest possible window if graphics driver failed to initialize fullscreen mode.
 - Fixed "--help" command line argument not working all times depending on its order.
 - Fixed engine did not always properly closed application window when running debug build.
-
-Linux:
-- Added patch that fixes mouse lag for mouses with high polling rate.
 
 Script API:
 - Supported late_repeatedly_execute_always() callback in script, called after game has updated, but

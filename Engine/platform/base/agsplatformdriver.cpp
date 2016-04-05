@@ -26,9 +26,7 @@
 #include "gfx/bitmap.h"
 #include "plugin/agsplugin.h"
 
-using AGS::Common::Stream;
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
 
 #if defined (AGS_HAS_CD_AUDIO)
 #include "libcda.h"
@@ -126,6 +124,11 @@ void AGSPlatformDriver::InitialiseAbufAtStartup()
 void AGSPlatformDriver::FinishedUsingGraphicsMode()
 {
     // don't need to do anything on any OS except DOS
+}
+
+SetupReturnValue AGSPlatformDriver::RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out)
+{
+    return kSetup_Cancel;
 }
 
 void AGSPlatformDriver::SetGameWindowIcon() {

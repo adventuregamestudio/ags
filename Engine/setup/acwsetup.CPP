@@ -47,7 +47,7 @@ using namespace AGS::Common;
 extern "C" HWND allegro_wnd;
 extern void fgetstring_limit (char *, Stream *, int);
 const char*setupstring, *enginever;
-int curscrn=-1,csendto,curdigi=0,curmidi=0,windowed=0,useletterbox = 0;
+int curdigi=0,curmidi=0,windowed=0,useletterbox = 0;
 GameResolutionType defaultRes = kGameResolution_Undefined;
 int gameColDep = 0;
 int refresh = 0, antialias = 0, reduce32to16 = 0;
@@ -64,7 +64,8 @@ GFXFilter **filterList = NULL;
 const int specialFilterListIndex = 1;
 const char *specialFilterName = "Max nearest-neighbour filter";
 const char *specialFilterID = "max";
-ConfigTree *wincfg;
+const ConfigTree *wincfg_in;
+ConfigTree *wincfg_out;
 
 void MakeFullLongPath(const char *path, char *out_buf, int buf_len)
 {
@@ -100,7 +101,7 @@ const char *get_filter_id(int list_index)
 
 void update_resolution_texts(HWND hDlg) {
   
-  bool letterbox_by_design = INIreadint(*wincfg, "misc", "letterbox") > 0;
+  bool letterbox_by_design = INIreadint(*wincfg_in, "misc", "letterbox") > 0;
   Size res_size = ResolutionTypeToSize(defaultRes, letterbox_by_design);
   int resx = res_size.Width;
   int resy = res_size.Height;
@@ -150,7 +151,7 @@ void populate_drop_down_with_filters(HWND hDlg)
   int selected_filter = 0;
   while (thisFilter != NULL) {
 
-    if ((idx != 0) && (INIreadint(*wincfg, "disabled", thisFilter->GetFilterID()) == 1)) {
+    if ((idx != 0) && (INIreadint(*wincfg_in, "disabled", thisFilter->GetFilterID()) == 1)) {
       // this filter is disabled
       delete thisFilter;
       // remove from list of filters
@@ -272,7 +273,7 @@ void InitializeDialog(HWND hDlg) {
   }
 
   // Custom save dir controls
-  String custom_save_dir = INIreadstring(*wincfg, "misc", "user_data_dir");
+  String custom_save_dir = INIreadstring(*wincfg_in, "misc", "user_data_dir");
   bool has_save_dir = !custom_save_dir.IsEmpty();
   if (!has_save_dir)
       custom_save_dir = curdatadir;
@@ -283,13 +284,13 @@ void InitializeDialog(HWND hDlg) {
   EnableWindow(GetDlgItem(hDlg, IDC_CUSTOMSAVEDIR), has_save_dir ? TRUE : FALSE);
   EnableWindow(GetDlgItem(hDlg, IDC_CUSTOMSAVEDIRBTN), has_save_dir ? TRUE : FALSE);
 
-  bool mouse_autolock = INIreadint(*wincfg, "mouse", "auto_lock") > 0;
+  bool mouse_autolock = INIreadint(*wincfg_in, "mouse", "auto_lock") > 0;
   if (mouse_autolock)
       SendDlgItemMessage(hDlg, IDC_MOUSE_AUTOLOCK, BM_SETCHECK, BST_CHECKED, 0);
 
   SendDlgItemMessage(hDlg, IDC_MOUSESPEED, TBM_SETRANGE, (WPARAM)TRUE,
       (LPARAM)MAKELONG(MOUSE_SPEED_MIN, MOUSE_SPEED_MAX));
-  float mouse_speed = INIreadfloat(*wincfg, "mouse", "speed", 1.f);
+  float mouse_speed = INIreadfloat(*wincfg_in, "mouse", "speed", 1.f);
   if (mouse_speed <= 0.f)
       mouse_speed = 1.f;
   int slider_pos = (int)(mouse_speed * 10.f + .5f);
@@ -346,13 +347,13 @@ void InitializeDialog(HWND hDlg) {
   if (!File::TestReadFile("speech.vox"))
     EnableWindow (GetDlgItem (hDlg, IDC_SPEECHPACK), FALSE);
 
-  if (INIreadint(*wincfg, "disabled", "speechvox") == 1)
+  if (INIreadint(*wincfg_in, "disabled", "speechvox") == 1)
     EnableWindow (GetDlgItem (hDlg, IDC_SPEECHPACK), FALSE);
 
-  if (INIreadint(*wincfg, "disabled", "16bit") == 1)
+  if (INIreadint(*wincfg_in, "disabled", "16bit") == 1)
     EnableWindow (GetDlgItem (hDlg, IDC_REDUCESPR), FALSE);
 
-  if (INIreadint(*wincfg, "disabled", "filters") == 1)
+  if (INIreadint(*wincfg_in, "disabled", "filters") == 1)
     EnableWindow (GetDlgItem(hDlg, IDC_GFXFILTER), FALSE);
 
   RECT win_rect, client_rect;
@@ -481,24 +482,15 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
       if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL || LOWORD(wParam) == IDOKRUN) {
         if ((LOWORD(wParam) == IDOK) || (LOWORD(wParam) == IDOKRUN)) {
 
-          csendto = 0;
-
-          if (IsHiRes(defaultRes)) 
-          {
-            csendto = 1;
-          }
-
-          sprintf(tbuf,"%d",csendto);
-          INIwritestring(*wincfg, "misc","screenres",tbuf);
           sprintf(tbuf,"-1");
-          INIwritestring(*wincfg, "sound","digiid",tbuf);
-          INIwritestring(*wincfg, "sound","midiid",tbuf);
+          INIwritestring(*wincfg_out, "sound","digiid",tbuf);
+          INIwritestring(*wincfg_out, "sound","midiid",tbuf);
           sprintf(tbuf,"0");
-          INIwritestring(*wincfg, "sound","digiindx",tbuf);
-          INIwritestring(*wincfg, "sound","midiindx",tbuf);
+          INIwritestring(*wincfg_out, "sound","digiindx",tbuf);
+          INIwritestring(*wincfg_out, "sound","midiindx",tbuf);
           int idx=SendDlgItemMessage(hDlg,IDC_COMBO1,CB_GETCURSEL,0,0);
           sprintf(tbuf,"%d",idx);
-          INIwritestring(*wincfg, "sound","digiwinindx",tbuf);
+          INIwritestring(*wincfg_out, "sound","digiwinindx",tbuf);
           if (idx == 0)
             idx = DIGI_DIRECTAMX(0);
           else if (idx == 1)
@@ -507,18 +499,18 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
             idx = DIGI_DIRECTX(0);
           else idx = DIGI_NONE;
           sprintf(tbuf,"%d",idx);
-          INIwritestring(*wincfg, "sound","digiwin",tbuf);
+          INIwritestring(*wincfg_out, "sound","digiwin",tbuf);
 
           idx=SendDlgItemMessage(hDlg,IDC_COMBO2,CB_GETCURSEL,0,0);
           sprintf(tbuf,"%d",idx);
-          INIwritestring(*wincfg, "sound","midiwinindx",tbuf);
+          INIwritestring(*wincfg_out, "sound","midiwinindx",tbuf);
           if (idx == 0)
             idx = MIDI_AUTODETECT;
           else if (idx == 1)
             idx = MIDI_NONE;
           else idx = MIDI_WIN32MAPPER;
           sprintf(tbuf,"%d",idx);
-          INIwritestring(*wincfg, "sound","midiwin",tbuf);
+          INIwritestring(*wincfg_out, "sound","midiwin",tbuf);
 
           idx = SendDlgItemMessage(hDlg,IDC_COMBO3,CB_GETCURSEL,0,0);
           if (idx > 0) {
@@ -530,7 +522,7 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
           else
             curtranslation.Empty();
 
-          INIwritestring (*wincfg, "language", "translation",
+          INIwritestring (*wincfg_out, "language", "translation",
               (idx == 0) ? NULL : curtranslation);
 
           idx = SendDlgItemMessage(hDlg,IDC_COMBO4,CB_GETCURSEL,0,0);
@@ -541,51 +533,51 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
           // if it's the default, erase from config file
           if (idx == 20)
             toWrite = NULL;
-          INIwritestring(*wincfg, "misc","cachemax", toWrite);
+          INIwritestring(*wincfg_out, "misc","cachemax", toWrite);
 
           if (SendDlgItemMessage(hDlg,IDC_SPEECHPACK,BM_GETCHECK,0,0) == BST_CHECKED)
-            INIwritestring (*wincfg, "sound", "usespeech", "1");
+            INIwritestring (*wincfg_out, "sound", "usespeech", "1");
           else
-            INIwritestring (*wincfg, "sound", "usespeech", "0");
+            INIwritestring (*wincfg_out, "sound", "usespeech", "0");
 
           if (SendDlgItemMessage(hDlg,IDC_WINDOWED,BM_GETCHECK,0,0) == BST_CHECKED)
-            INIwritestring(*wincfg, "misc","windowed","1");
+            INIwritestring(*wincfg_out, "misc","windowed","1");
           else
-            INIwritestring(*wincfg, "misc","windowed","0");
+            INIwritestring(*wincfg_out, "misc","windowed","0");
 
           if (SendDlgItemMessage(hDlg,IDC_ANTIALIAS,BM_GETCHECK,0,0) == BST_CHECKED)
-            INIwritestring(*wincfg, "misc","antialias","1");
+            INIwritestring(*wincfg_out, "misc","antialias","1");
           else
-            INIwritestring(*wincfg, "misc","antialias",NULL);
+            INIwritestring(*wincfg_out, "misc","antialias",NULL);
 
           if (SendDlgItemMessage(hDlg, IDC_SIDEBORDERS, BM_GETCHECK,0,0) == BST_CHECKED)
-            INIwritestring(*wincfg, "misc","prefer_sideborders","1");
+            INIwritestring(*wincfg_out, "misc","prefer_sideborders","1");
           else
-            INIwritestring(*wincfg, "misc","prefer_sideborders","0");
+            INIwritestring(*wincfg_out, "misc","prefer_sideborders","0");
 
           if (SendDlgItemMessage(hDlg,IDC_REFRESH,BM_GETCHECK,0,0) == BST_CHECKED)
-            INIwritestring(*wincfg, "misc","refresh","85");
+            INIwritestring(*wincfg_out, "misc","refresh","85");
           else
-            INIwritestring(*wincfg, "misc","refresh","0");
+            INIwritestring(*wincfg_out, "misc","refresh","0");
 
           if (SendDlgItemMessage(hDlg,IDC_LETTERBOX,BM_GETCHECK,0,0) == BST_CHECKED)
-            INIwritestring (*wincfg, "misc", "prefer_letterbox", "1");
+            INIwritestring (*wincfg_out, "misc", "prefer_letterbox", "1");
           else
-            INIwritestring (*wincfg, "misc", "prefer_letterbox", "0");
+            INIwritestring (*wincfg_out, "misc", "prefer_letterbox", "0");
 
           if (SendDlgItemMessage(hDlg, IDC_REDUCESPR, BM_GETCHECK,0,0) == BST_CHECKED)
-            INIwritestring (*wincfg, "misc", "notruecolor", "1");
+            INIwritestring (*wincfg_out, "misc", "notruecolor", "1");
           else
-            INIwritestring (*wincfg, "misc", "notruecolor", NULL);
+            INIwritestring (*wincfg_out, "misc", "notruecolor", NULL);
 
           if (SendDlgItemMessage(hDlg, IDC_GFXDRIVER, CB_GETCURSEL,0,0) == 0)
-            INIwritestring (*wincfg, "misc", "gfxdriver", "DX5");
+            INIwritestring (*wincfg_out, "misc", "gfxdriver", "DX5");
           else
-            INIwritestring (*wincfg, "misc", "gfxdriver", "D3D9");
+            INIwritestring (*wincfg_out, "misc", "gfxdriver", "D3D9");
 
           idx = SendDlgItemMessage(hDlg, IDC_GFXFILTER, CB_GETCURSEL, 0, 0);
           const char *filter_id = get_filter_id(idx);
-          INIwritestring(*wincfg, "misc", "gfxfilter", filter_id);
+          INIwritestring(*wincfg_out, "misc", "gfxfilter", filter_id);
 
           bool custom_save_dir = SendDlgItemMessage(hDlg, IDC_CUSTOMSAVEDIRCHECK, BM_GETCHECK, 0, 0) == BST_CHECKED;
           if (custom_save_dir)
@@ -604,24 +596,24 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
               if (PathRelativePathTo(rel_save_dir, full_data_dir, FILE_ATTRIBUTE_DIRECTORY, full_save_dir, FILE_ATTRIBUTE_DIRECTORY) &&
                   strstr(rel_save_dir, "..") == NULL)
               {
-                INIwritestring(*wincfg, "misc", "user_data_dir", rel_save_dir);
+                INIwritestring(*wincfg_out, "misc", "user_data_dir", rel_save_dir);
               }
               else
               {
-                INIwritestring(*wincfg, "misc", "user_data_dir", save_dir);
+                INIwritestring(*wincfg_out, "misc", "user_data_dir", save_dir);
               }
           }
           else
           {
-              INIwritestring(*wincfg, "misc", "user_data_dir", "");
+              INIwritestring(*wincfg_out, "misc", "user_data_dir", "");
           }
 
           bool mouse_autolock = SendDlgItemMessage(hDlg, IDC_MOUSE_AUTOLOCK, BM_GETCHECK, 0, 0) == BST_CHECKED;
-          INIwritestring(*wincfg, "mouse", "auto_lock", mouse_autolock ? "1" : "0");
+          INIwritestring(*wincfg_out, "mouse", "auto_lock", mouse_autolock ? "1" : "0");
           int slider_pos = SendDlgItemMessage(hDlg,IDC_MOUSESPEED, TBM_GETPOS, 0, 0);
           float mouse_speed = (float)slider_pos / 10.f;
           sprintf(tbuf, "%0.1f", mouse_speed);
-          INIwritestring(*wincfg, "mouse", "speed", tbuf);
+          INIwritestring(*wincfg_out, "mouse", "speed", tbuf);
         }
 	EndDialog(hDlg, LOWORD(wParam));
  	return TRUE;
@@ -636,58 +628,57 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
   }
 
 
-SetupReturnValue acwsetup(ConfigTree &cfg, const String &game_data_dir, const char*vername, const char*enbuild)
+SetupReturnValue acwsetup(const ConfigTree &cfg_in, ConfigTree &cfg_out,
+                          const String &game_data_dir, const char*vername, const char*enbuild)
 {
   curdatadir = game_data_dir;
   setupstring = vername;
   enginever = enbuild;
-  wincfg = &cfg;
-  if (wincfg->size() > 0) {
-    curscrn=INIreadint(*wincfg, "misc","screenres");
-    if (curscrn > 1)
-      curscrn = 1;
-    defaultRes = (GameResolutionType)INIreadint (*wincfg, "misc", "defaultres");
+  wincfg_in  = &cfg_in;
+  wincfg_out = &cfg_out;
+  if (wincfg_in->size() > 0) {
+    defaultRes = (GameResolutionType)INIreadint (*wincfg_in, "misc", "defaultres");
     if (defaultRes < 1)
       defaultRes = kGameResolution_Default;
 
-    curdigi=INIreadint(*wincfg, "sound","digiwinindx");
-    curmidi=INIreadint(*wincfg, "sound","midiwinindx");
+    curdigi=INIreadint(*wincfg_in, "sound","digiwinindx");
+    curmidi=INIreadint(*wincfg_in, "sound","midiwinindx");
 
     if (curdigi < 0) curdigi=0;
     if (curdigi > 3) curdigi = 0;
     if (curmidi < 0) curmidi=0;
 
-    windowed = INIreadint(*wincfg, "misc","windowed");
-    useletterbox = INIreadint(*wincfg, "misc","prefer_letterbox") != 0;
+    windowed = INIreadint(*wincfg_in, "misc","windowed");
+    useletterbox = INIreadint(*wincfg_in, "misc","prefer_letterbox") != 0;
 
-    reduce32to16 = INIreadint(*wincfg, "misc","notruecolor");
+    reduce32to16 = INIreadint(*wincfg_in, "misc","notruecolor");
     if (reduce32to16 < 0)
       reduce32to16 = 0;
 
-    gameColDep = INIreadint(*wincfg, "misc", "gamecolordepth");
+    gameColDep = INIreadint(*wincfg_in, "misc", "gamecolordepth");
     if (gameColDep < 0)
       gameColDep = 0;
 
-    refresh = INIreadint(*wincfg, "misc","refresh");
+    refresh = INIreadint(*wincfg_in, "misc","refresh");
     if (refresh < 1)
       refresh = 0;
-    antialias = INIreadint(*wincfg, "misc","antialias");
+    antialias = INIreadint(*wincfg_in, "misc","antialias");
     if (antialias < 1)
       antialias = 0;
 
-    sideBorders = INIreadint(*wincfg, "misc","prefer_sideborders") != 0;
+    sideBorders = INIreadint(*wincfg_in, "misc","prefer_sideborders") != 0;
 
-    int cacheval = INIreadint (*wincfg, "misc", "cachemax");
+    int cacheval = INIreadint (*wincfg_in, "misc", "cachemax");
     if (cacheval > 0)
       curmaxcache = cacheval;
-    curusespeech = INIreadint (*wincfg, "sound", "usespeech");
+    curusespeech = INIreadint (*wincfg_in, "sound", "usespeech");
     if (curusespeech < 0)
       curusespeech = 1;
 
-    curtranslation = INIreadstring(*wincfg, "language", "translation", "");
-    curFilter = INIreadstring(*wincfg, "misc", "gfxfilter", "None");
-    curGfxDriver = INIreadstring(*wincfg, "misc", "gfxdriver", "D3D9");
-    gameNameForTitleBar = INIreadstring(*wincfg, "misc", "titletext", "Game Setup");
+    curtranslation = INIreadstring(*wincfg_in, "language", "translation", "");
+    curFilter = INIreadstring(*wincfg_in, "misc", "gfxfilter", "None");
+    curGfxDriver = INIreadstring(*wincfg_in, "misc", "gfxdriver", "D3D9");
+    gameNameForTitleBar = INIreadstring(*wincfg_in, "misc", "titletext", "Game Setup");
   }
   INT_PTR res = DialogBox(GetModuleHandle(NULL), (LPCTSTR)IDD_DIALOG1,allegro_wnd,(DLGPROC)callback_settings);
   if (res == IDOKRUN)

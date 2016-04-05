@@ -33,7 +33,6 @@ void read_config(const AGS::Common::ConfigTree &cfg);
 // Fixup game setup parameters
 void post_config();
 
-void read_config_file(ConfigTree &cfg, const char *alt_cfg_file);
 void save_config_file();
 
 bool INIreaditem(const ConfigTree &cfg, const String &sectn, const String &item, String &value);

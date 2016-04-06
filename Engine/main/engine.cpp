@@ -178,6 +178,11 @@ bool engine_check_run_setup(ConfigTree &cfg, int argc,char*argv[])
     {
             Out::FPrint("Running Setup");
 
+            // Add information about game resolution and let setup application
+            // display some properties to the user
+            INIwriteint(cfg, "misc", "defaultres", game.default_resolution);
+            INIwriteint(cfg, "misc", "letterbox", game.options[OPT_LETTERBOX]);
+
             ConfigTree cfg_out;
             SetupReturnValue res = platform->RunSetup(cfg, cfg_out);
             if (res != kSetup_Cancel)

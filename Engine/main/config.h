@@ -40,6 +40,7 @@ String INIreadstring(const ConfigTree &cfg, const String &sectn, const String &i
 int INIreadint(const ConfigTree &cfg, const String &sectn, const String &item);
 float INIreadfloat(const ConfigTree &cfg, const String &sectn, const String &item, float def_value = 0.f);
 void INIwritestring(ConfigTree &cfg, const String &sectn, const String &item, const String &value);
+void INIwriteint(ConfigTree &cfg, const String &sectn, const String &item, int value);
 
 
 #endif // __AGS_EE_MAIN__CONFIG_H

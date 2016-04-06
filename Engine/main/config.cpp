@@ -122,6 +122,11 @@ void INIwritestring(ConfigTree &cfg, const String &sectn, const String &item, co
     cfg[sectn][item] = value;
 }
 
+void INIwriteint(ConfigTree &cfg, const String &sectn, const String &item, int value)
+{
+    cfg[sectn][item] = String::FromFormat("%d", value);
+}
+
 void find_default_cfg_file(const char *alt_cfg_file)
 {
     // Try current directory for config first; else try exe dir

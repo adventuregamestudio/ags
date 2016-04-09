@@ -47,6 +47,11 @@ void cc_error_at_line(char *buffer, const char *error_msg)
     }
 }
 
+void cc_error_without_line(char *buffer, const char *error_msg)
+{
+    sprintf(ccErrorString, "Runtime error: %s", error_msg);
+}
+
 void save_script_configuration(Stream *out)
 {
     quit("ScriptEdit: run-time version can't save");

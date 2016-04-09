@@ -19,6 +19,7 @@
 #include "script/script_common.h"  // current_line
 
 extern void cc_error_at_line(char *buffer, const char *error_msg);
+extern void cc_error_without_line(char *buffer, const char *error_msg);
 
 int ccError = 0;
 int ccErrorLine = 0;
@@ -49,7 +50,7 @@ void cc_error(const char *descr, ...)
         cc_error_at_line(ccErrorString, displbuf);
     }
     else
-        sprintf(ccErrorString, "Runtime error: %s", displbuf);
+        cc_error_without_line(ccErrorString, displbuf);
 
     ccError = 1;
     ccErrorLine = currentline;

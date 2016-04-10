@@ -211,8 +211,8 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
             if (bracedepth <= 0)
                 in_struct_declr = -1;
         }
-        else if ((sym.entries[towrite].stype == 0 || sym.entries[towrite].stype == SYM_FUNCTION) && (in_struct_declr >= 0) &&
-            (parenthesisdepth == 0) && (bracedepth > 0)) {
+        else if ((sym.entries[towrite].stype == 0 || sym.entries[towrite].stype == SYM_FUNCTION || sym.entries[towrite].stype == SYM_GLOBALVAR) &&
+            (in_struct_declr >= 0) && (parenthesisdepth == 0) && (bracedepth > 0)) {
                 // change the name of structure members so that the same member name
                 // can be used in multiple structs
                 // (but only if not currently in a function params list

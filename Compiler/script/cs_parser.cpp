@@ -682,6 +682,23 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
 		  targ.getnext();
 	  }
   }
+  else if(sym.get_type(funcsym) == SYM_VARTYPE) {
+      // Attempt to prefix a vartype with the struct name
+      // e.g. MyStruct::Object
+      if(isMemberFunction)
+      {
+          sprintf(functionName, "%s::%s", sym.get_name(isMemberFunction), sym.get_name(funcsym));
+          funcsym = sym.find(functionName);
+          if (funcsym < 0)
+              funcsym = sym.add(functionName);
+          *funcsymptr = funcsym;
+      }
+      if (sym.entries[funcsym].stype != 0) 
+      {
+          cc_error("function '%s' is already defined", functionName);
+          return -1;
+      }
+  }
 
   sym.entries[funcsym].stype = SYM_FUNCTION;
   sym.entries[funcsym].ssize = varsize;  // save return type size
@@ -3690,6 +3707,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 do {
                     int vname = targ.getnext();
                     bool isDynamicArray = false;
+                    bool isFunction = sym.get_type(targ.peeknext()) == SYM_OPENPARENTHESIS;
                     if (sym.get_type(vname) == SYM_COMMA)
                         vname = targ.getnext();
 
@@ -3698,7 +3716,13 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         targ.getnext();
                         vname = targ.getnext();
                     }
-                    if (sym.get_type(vname) != 0) {
+                    const char *memberExt = sym.get_name(vname);
+                    memberExt = strstr(memberExt, "::");
+                    if (!isFunction && sym.get_type(vname) == SYM_VARTYPE && vname > sym.normalFloatSym && memberExt == NULL) {
+                        const char *new_name = get_member_full_name(stname, vname);
+                        vname = sym_find_or_add(sym, new_name);
+                    }
+                    if (sym.get_type(vname) != 0 && (sym.get_type(vname) != SYM_VARTYPE || vname <= sym.normalFloatSym)) {
                         cc_error("'%s' is already defined",sym.get_friendly_name(vname).c_str());
                         return -1;
                     }
@@ -3706,8 +3730,6 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         // check that we haven't already inherited a member
                         // with the same name
                         long member = vname;
-                        const char *memberExt = sym.get_name(vname);
-                        memberExt = strstr(memberExt, "::");
                         if (memberExt == NULL) {
                             cc_error("Internal compiler error dbc");
                             return -1;
@@ -3730,7 +3752,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         ccError = 0;
                     }
 
-                    if (sym.get_type(targ.peeknext()) == SYM_OPENPARENTHESIS) {
+                    if (isFunction) {
                         // member function
                         if (!member_is_import) {
                             cc_error("function in a struct requires the import keyword");
@@ -4204,12 +4226,13 @@ startvarbit:
 
             SymbolDef oldDefinition;
             oldDefinition.stype = 0;
+            bool isFunction = next_type == SYM_OPENPARENTHESIS;
 
             if (next_is_import != 1) {
                 if (scrip->remove_any_import(sym.get_name(cursym), &oldDefinition))
                     return -1;
             }
-            if (sym.get_type(cursym) != 0) {
+            if (sym.get_type(cursym) != 0 && (!isFunction && !isMemberFunction || sym.get_type(cursym) != SYM_VARTYPE || cursym <= sym.normalFloatSym)) {
                 cc_error("Variable '%s' is already defined",sym.get_friendly_name(cursym).c_str());
                 return -1;
             }
@@ -4218,7 +4241,7 @@ startvarbit:
             if (next_is_import)
                 isglobal = 2;
 
-            if (next_type == SYM_OPENPARENTHESIS) {
+            if (isFunction) {
                 // it's a function
                 if (process_function_declaration(targ, scrip, &cursym, vtwas, in_func,
                     nested_level, next_is_readonly, next_is_import, structSym,

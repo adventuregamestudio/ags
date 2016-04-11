@@ -158,7 +158,8 @@ int run_interaction_event (Interaction *nint, int evnt, int chkAny, int isInv) {
         // If there is a response for "Any Click", then abort now so as to
         // run that instead
         if (chkAny < 0) ;
-        else if ((nint->Events[chkAny].Response.get() != NULL) && (nint->Events[chkAny].Response->Cmds.size() > 0))
+        else if (chkAny < nint->Events.size() &&
+                (nint->Events[chkAny].Response.get() != NULL) && (nint->Events[chkAny].Response->Cmds.size() > 0))
             return 0;
 
         // Otherwise, run unhandled_event

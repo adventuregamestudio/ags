@@ -1234,7 +1234,6 @@ void engine_init_game_settings()
     currentcursor=0;
     our_eip=-4;
     mousey=100;  // stop icon bar popping up
-    init_invalid_regions(game.size.Height);
 }
 
 void engine_setup_scsystem()
@@ -1262,6 +1261,7 @@ void engine_setup_scsystem()
 void engine_setup_graphic_area()
 {
     Mouse::SetGraphicArea();
+    init_invalid_regions(game.size.Height);
     SetVirtualScreen(virtual_screen);
     our_eip = -41;
 
@@ -1302,6 +1302,7 @@ void engine_prepare_to_start_game()
 {
     Out::FPrint("Prepare to start game");
 
+    engine_setup_scsystem();
     engine_setup_graphic_area();
     engine_start_multithreaded_audio();
 

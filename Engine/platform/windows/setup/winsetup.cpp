@@ -314,12 +314,15 @@ DWORD_PTR GetCurItemData(HWND hwnd, DWORD_PTR def_value = 0)
 
 String GetText(HWND hwnd)
 {
+    TCHAR short_buf[MAX_PATH + 1];
     int len = SendMessage(hwnd, WM_GETTEXTLENGTH, 0, 0);
     if (len > 0)
     {
-        TCHAR *buf = new TCHAR[len + 1];
+        TCHAR *buf = len >= sizeof(short_buf) ? new TCHAR[len + 1] : short_buf;
         SendMessage(hwnd, WM_GETTEXT, len + 1, (LPARAM)buf);
         String s = buf;
+        if (buf != short_buf)
+            delete [] buf;
         return s;
     }
     return "";

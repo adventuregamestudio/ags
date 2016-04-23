@@ -404,7 +404,7 @@ bool BrowseForFolder(char *dir_buf, int buf_max)
         char path[MAX_PATH];
         if (SHGetPathFromIDList(pidl, path) != FALSE)
         {
-            _snprintf(dir_buf, buf_max - 1, path);
+            _snprintf(dir_buf, buf_max - 1, "%s", path);
             res = true;
         }
         CoTaskMemFree(pidl);

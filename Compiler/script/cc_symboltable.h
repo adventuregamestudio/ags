@@ -3,10 +3,10 @@
 
 #include "cs_parser_common.h"   // macro definitions
 #include "script/cc_treemap.h"
-#include <vector>
+
 #include <map>
 #include <string>
-
+#include <vector>
 
 // So there's another symbol definition in cc_symboldef.h
 struct SymbolTableEntry {
@@ -21,7 +21,8 @@ struct SymbolTableEntry {
 	short extends; // inherits another class (classes) / owning class (member vars)
     // functions only, save types of return value and all parameters
     std::vector<unsigned long> funcparamtypes;
-    std::vector<short> funcParamDefaultValues;
+    std::vector<int> funcParamDefaultValues;
+    std::vector<bool> funcParamHasDefaultValues;
 
 	int get_num_args();
 
@@ -49,20 +50,24 @@ struct symbolTable {
     symbolTable();
     void reset();    // clears table
     int  find(const char*);  // returns ID of symbol, or -1
-    int  add_ex(char*,int,char);  // adds new symbol of type and size
-    int  add(char*);   // adds new symbol, returns -1 if already exists
-    char *get_name(int); // gets symbol name of index
-	std::string get_name_string(int idx);
+    int  add_ex(const char*,int,char);  // adds new symbol of type and size
+    int  add(const char*);   // adds new symbol, returns -1 if already exists
+
+    std::string symbolTable::get_friendly_name(int idx);  // inclue ptr
+    std::string symbolTable::get_name_string(int idx);
+    const char *get_name(int idx); // gets symbol name of index
+
     int  get_type(int ii);
 
 
-private: 
+private:
 
     std::map<int, char *> nameGenCache;
 
     ccTreeMap symbolTree;
+    std::vector<char *> symbolTreeNames;
 
-    int  add_operator(char*, int priority, int vcpucmd); // adds new operator
+    int  add_operator(const char*, int priority, int vcpucmd); // adds new operator
 };
 
 

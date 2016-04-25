@@ -1,7 +1,9 @@
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cerrno>
+#include <string>
 #include "cs_parser.h"
 #include "cc_internallist.h"    // ccInternalList
 #include "cs_parser_common.h"
@@ -99,6 +101,13 @@ const char *get_member_full_name(int structSym, int memberSym) {
     return constructedMemberName;
 }
 
+int sym_find_or_add(symbolTable &sym, const char *sname) {
+    int symdex = sym.find(sname);
+    if (symdex < 0) {
+        symdex = sym.add(sname);
+    }
+    return symdex;
+}
 
 int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
     // *** create the symbol table and parse the text code into symbol code
@@ -149,17 +158,16 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
         }
 
         if (sym.entries[last_time].stype == SYM_DOT) {
-            // mangle member variable accesses so that you can have a 
+            // mangle member variable accesses so that you can have a
             // struct called Room but also a member property called Room
             char thissymbol_mangled[MAX_SYM_LEN + 1];
             sprintf(thissymbol_mangled, ".%s", thissymbol);
             strcpy(thissymbol, thissymbol_mangled);
         }
 
-        int towrite = sym.find(thissymbol);
-        if (towrite < 0) towrite = sym.add(thissymbol);
+        int towrite = sym_find_or_add(sym, thissymbol);
         if (towrite < 0) {
-            cc_error("symbol table overflow - too many symbols defined");
+            cc_error("symbol table overflow - could not ensure new symbol.");
             return -1;
         }
         if ((thissymbol[0] >= '0') && (thissymbol[0] <= '9')) {
@@ -221,9 +229,12 @@ int cc_tokenize(const char*inpl, ccInternalList*targ, ccCompiledScript*scrip) {
                     (sym.entries[last_time].stype != SYM_OPENBRACKET) &&
                     (towrite != in_struct_declr)) {
                         const char *new_name = get_member_full_name(in_struct_declr, towrite);
-                        //      printf("changed '%s' to '%s'\n",sym.get_name(towrite),new_name);
-                        towrite = sym.find((char *) new_name);
-                        if (towrite < 0) towrite = sym.add((char *) new_name);
+                        //      printf("changed '%s' to '%s'\n",sym.get_friendly_name(towrite).c_str(),new_name);
+                        towrite = sym_find_or_add(sym, new_name);
+                        if (towrite < 0) {
+                            cc_error("symbol table error - could not ensure new struct symbol.");
+                            return -1;
+                        }
                 }
         }
 
@@ -316,7 +327,7 @@ int remove_locals(int from_level, int just_count, ccCompiledScript *scrip) {
             if ((sym.entries[cc].flags & SFLG_PARAMETER)==0) {
                 if (sym.entries[cc].flags & SFLG_DYNAMICARRAY)
                     totalsub += 4;
-                else 
+                else
                 {
                     totalsub += sym.entries[cc].ssize;
                     // remove all elements if array
@@ -329,7 +340,7 @@ int remove_locals(int from_level, int just_count, ccCompiledScript *scrip) {
             // release the pointer reference if applicable
             if (sym.entries[cc].flags & SFLG_THISPTR) { }
             else if (((sym.entries[cc].flags & SFLG_POINTER) != 0) ||
-                ((sym.entries[cc].flags & SFLG_DYNAMICARRAY) != 0)) 
+                ((sym.entries[cc].flags & SFLG_DYNAMICARRAY) != 0))
             {
                 free_pointer(scrip->cur_sp - sym.entries[cc].soffs, zeroPtrCmd, cc, scrip);
             }
@@ -452,7 +463,7 @@ int find_member_sym(int structSym, long *memSym, int allowProtected) {
     int oriname = *memSym;
     const char *possname = get_member_full_name(structSym, oriname);
 
-    oriname = sym.find((char*)possname);
+    oriname = sym.find(possname);
     if (oriname < 0) {
         if (sym.entries[structSym].extends > 0) {
             // walk the inheritance tree to find the member
@@ -461,24 +472,58 @@ int find_member_sym(int structSym, long *memSym, int allowProtected) {
             // the inherited member was not found, so fall through to
             // the error message
         }
-        cc_error("'%s' is not a public member of '%s'. Are you sure you spelt it correctly (remember, capital letters are important)?",sym.get_name(*memSym),sym.get_name(structSym));
+        cc_error("'%s' is not a public member of '%s'. Are you sure you spelt it correctly (remember, capital letters are important)?",sym.get_friendly_name(*memSym).c_str(),sym.get_friendly_name(structSym).c_str());
         return -1;
     }
     if ((!allowProtected) && (sym.entries[oriname].flags & SFLG_PROTECTED)) {
-        cc_error("Cannot access protected member '%s'", sym.get_name(oriname));
+        cc_error("Cannot access protected member '%s'", sym.get_friendly_name(oriname).c_str());
         return -1;
     }
     *memSym = oriname;
     return 0;
 }
 
-int get_literal_value(int fromSym, int *theValue, const char *errorMsg) {
+std::string friendly_int_symbol(int symidx, bool isNegative) {
+    if (isNegative) {
+        return "-" + sym.get_friendly_name(symidx);
+    } else {
+        return sym.get_friendly_name(symidx);
+    }
+}
 
+int accept_literal_or_constant_value(int fromSym, int &theValue, bool isNegative, const char *errorMsg) {
   if (sym.get_type(fromSym) == SYM_LITERALVALUE) {
-    *theValue = atoi(sym.get_name(fromSym));
+
+    // Prepend '-' so we can parse -2147483648
+    std::string literalStrValue = std::string(sym.get_name(fromSym));
+    if (isNegative) {
+        literalStrValue = '-' + literalStrValue;
+    }
+
+    errno = 0;
+    char *endptr = 0;
+    const long longValue = strtol(literalStrValue.c_str(), &endptr, 10);
+
+    if ((longValue == LONG_MIN || longValue == LONG_MAX) && errno == ERANGE) {
+        cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(fromSym, isNegative).c_str());
+        return -1;
+    }
+    if (endptr[0] != 0) {
+        cc_error("Could not parse integer symbol '%s' because the whole buffer wasn't converted.", friendly_int_symbol(fromSym, isNegative).c_str());
+        return -1;
+    }
+    if (longValue > INT_MAX || longValue < INT_MIN) {
+        cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(fromSym, isNegative).c_str());
+        return -1;
+    }
+
+    theValue = static_cast<int>(longValue);
   }
   else if (sym.get_type(fromSym) == SYM_CONSTANT) {
-    *theValue = sym.entries[fromSym].soffs;
+    theValue = sym.entries[fromSym].soffs;
+    if (isNegative) {
+        theValue = -theValue;
+    }
   }
   else {
     cc_error((char*)errorMsg);
@@ -493,36 +538,30 @@ int check_for_default_value(ccInternalList &targ, int funcsym, int numparams) {
         // parameter has default value
         targ.getnext();
         int defValSym = targ.getnext();
-        int negateIt = 0;
+        bool negateIt = false;
 
         if (sym.get_name(defValSym)[0] == '-') {
             // allow negative default value
-            negateIt = 1;
+            negateIt = true;
             defValSym = targ.getnext();
         }
 
         int defaultValue;
 
         // extract the default value
-        if (get_literal_value(defValSym, &defaultValue, "Parameter default value must be literal"))
-            return -1;
-
-        if (negateIt)
-            defaultValue = -defaultValue;
-
-        if ((defaultValue <= -32000) || (defaultValue > 32000)) {
-            cc_error("default parameter out of range");
+        if (accept_literal_or_constant_value(defValSym, defaultValue, negateIt, "Parameter default value must be literal") < 0) {
             return -1;
         }
 
         sym.entries[funcsym].funcParamDefaultValues[numparams % 100] = defaultValue;
+        sym.entries[funcsym].funcParamHasDefaultValues[numparams % 100] = true;
 
     }
 
     return 0;
 }
 
-int check_for_dynamic_array_declaration(ccInternalList &targ, int typeSym)
+int check_for_dynamic_array_declaration(ccInternalList &targ, int typeSym, bool isPointer)
 {
   if (sym.get_type(targ.peeknext()) == SYM_OPENBRACKET)
   {
@@ -533,11 +572,15 @@ int check_for_dynamic_array_declaration(ccInternalList &targ, int typeSym)
       cc_error("fixed size array cannot be used in this way");
       return -1;
     }
-    if (((sym.entries[typeSym].flags & SFLG_STRUCTTYPE) != 0) &&
-        ((sym.entries[typeSym].flags & SFLG_MANAGED) == 0))
-    {
-      cc_error("cannot pass non-managed struct array");
-      return -1;
+    if (sym.entries[typeSym].flags & SFLG_STRUCTTYPE) {
+        if (!(sym.entries[typeSym].flags & SFLG_MANAGED)) {
+            cc_error("cannot pass non-managed struct array");
+            return -1;
+        }
+        if (!isPointer) {
+            cc_error("cannot pass non-pointer struct array");
+            return -1;
+        }
     }
     return 1;
   }
@@ -583,7 +626,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
 	      cc_error("'this' cannot be used with primitive types");
 	    return -1;
 	  }
-	  if (strchr(functionName, ':') != NULL) 
+	  if (strchr(functionName, ':') != NULL)
 	  {
 	    cc_error("extender functions cannot be part of a struct");
 	    return -1;
@@ -607,17 +650,18 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
         return -1;
     }
 
-	  if (sym.entries[funcsym].stype != 0) 
+	  if (sym.entries[funcsym].stype != 0)
 	  {
 	    cc_error("function '%s' is already defined", functionName);
 	    return -1;
 	  }
 	  sym.entries[funcsym].flags = SFLG_STRUCTMEMBER;
-	  if(func_is_static)
+	  if(func_is_static) {
 	    sym.entries[funcsym].flags |= SFLG_STATIC;
-  	
+      }
+
 	  targ.getnext();
-	  if (!func_is_static && strcmp(sym.get_name(targ.getnext()), "*") != 0) 
+	  if (!func_is_static && strcmp(sym.get_name(targ.getnext()), "*") != 0)
 	  {
 	    cc_error("instance extender function must be pointer");
 	    return -1;
@@ -652,8 +696,8 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
     sym.entries[funcsym].funcparamtypes[0] |= STYPE_DYNARRAY;
   }
 
-  if ((!returnsPointer) && (!returnsDynArray) && 
-      ((sym.entries[vtwas].flags & SFLG_STRUCTTYPE) != 0)) 
+  if ((!returnsPointer) && (!returnsDynArray) &&
+      ((sym.entries[vtwas].flags & SFLG_STRUCTTYPE) != 0))
   {
     cc_error("Cannot return entire struct from function");
     return -1;
@@ -716,7 +760,8 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       int isPointerParam = 0;
       // save the parameter type (numparams starts from 1)
       sym.entries[funcsym].funcparamtypes[numparams % 100] = cursym;
-      sym.entries[funcsym].funcParamDefaultValues[numparams % 100] = PARAM_NO_DEFAULT_VALUE;
+      sym.entries[funcsym].funcParamDefaultValues[numparams % 100] = 0;
+      sym.entries[funcsym].funcParamHasDefaultValues[numparams % 100] = false;
 
       if (next_is_const)
         sym.entries[funcsym].funcparamtypes[numparams % 100] |= STYPE_CONST;
@@ -731,11 +776,11 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
         if ((sym.entries[cursym].flags & SFLG_MANAGED) == 0) {
           // can only point to managed structs
           cc_error("Cannot declare pointer to non-managed type");
-          return -1; 
+          return -1;
         }
         if (sym.entries[cursym].flags & SFLG_AUTOPTR) {
           cc_error("Invalid use of pointer");
-          return -1; 
+          return -1;
         }
       }
 
@@ -799,7 +844,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
         scrip->write_cmd2(SCMD_ADD,SREG_SP,oldsize);*/
       }
 
-      int dynArrayStatus = check_for_dynamic_array_declaration(targ, cursym);
+      int dynArrayStatus = check_for_dynamic_array_declaration(targ, cursym, !!isPointerParam);
       if (dynArrayStatus < 0)
       {
         return -1;
@@ -807,7 +852,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       else if (dynArrayStatus > 0)
       {
         sym.entries[funcsym].funcparamtypes[(numparams - 1) % 100] |= STYPE_DYNARRAY;
-        if (createdLocalVar) 
+        if (createdLocalVar)
         {
           sym.entries[cursym].flags |= SFLG_DYNAMICARRAY | SFLG_ARRAY;
         }
@@ -816,11 +861,11 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
       next_type = sym.get_type(cursym=targ.getnext());
       if (next_type == SYM_CLOSEPARENTHESIS) break;
       else if (next_type == SYM_GLOBALVAR) {
-        cc_error("'%s' is a global var; cannot use as name for local",sym.get_name(cursym));
+        cc_error("'%s' is a global var; cannot use as name for local",sym.get_friendly_name(cursym).c_str());
         return -1;
       }
       else if (next_type != SYM_COMMA) {
-        cc_error("PE02: Parse error at '%s'",sym.get_name(cursym));
+        cc_error("PE02: Parse error at '%s'",sym.get_friendly_name(cursym).c_str());
         return -1;
       }
 
@@ -828,7 +873,7 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
     }
     else {
       // something odd was inside the parentheses
-      cc_error("PE03: Parse error at '%s'",sym.get_name(cursym));
+      cc_error("PE03: Parse error at '%s'",sym.get_friendly_name(cursym).c_str());
       return -1;
     }
   }
@@ -910,7 +955,7 @@ int find_lowest_bonding_operator(long*slist,int listlen) {
     else if (thisType == SYM_CLOSEPARENTHESIS)
       plevel--;
 
-    if (((thisType == SYM_OPERATOR) || (thisType == SYM_NEW)) && 
+    if (((thisType == SYM_OPERATOR) || (thisType == SYM_NEW)) &&
         (plevel == 0) && (blevel == 0)) {
       // .ssize stores the precedence
       int thisIsTheOperator = 0;
@@ -923,7 +968,7 @@ int find_lowest_bonding_operator(long*slist,int listlen) {
       else {
         // right-to-left; find the left-most operator, then
         // they will be recursively processed right
-        if (sym.entries[slist[k]].ssize > lowestis) 
+        if (sym.entries[slist[k]].ssize > lowestis)
           thisIsTheOperator = 1;
       }
       if (thisIsTheOperator) {
@@ -1127,7 +1172,7 @@ int check_type_mismatch(int typeIs, int typeWantsToBe, int orderMatters) {
         return -1;
     }
     else {
-      cc_error("Type mismatch: cannot convert '%s' to '%s'", sym.get_name(typeIsOriginally), sym.get_name(typeWantsToBeOriginally));
+      cc_error("Type mismatch: cannot convert '%s' to '%s'", sym.get_friendly_name(typeIsOriginally).c_str(), sym.get_friendly_name(typeWantsToBeOriginally).c_str());
       return -1;
     }
   }
@@ -1282,12 +1327,12 @@ long extract_variable_name(int fsym, ccInternalList*targ,long*slist, int *funcAt
         return -1;
         }
       if ((sym.entries[slist[sslen-2]].flags & SFLG_ARRAY)==0) {
-        cc_error("%s is not an array",sym.get_name(slist[sslen-2]));
+        cc_error("%s is not an array",sym.get_friendly_name(slist[sslen-2]).c_str());
         return -1;
         }
       int braclevel = 0, linenumWas = currentline;
       // extract the contents of the brackets
-      // comma is allowed because you can have like array[func(a,b)] 
+      // comma is allowed because you can have like array[func(a,b)]
       // vartype is allowed to permit access to static members, e.g. array[Game.GetColorFromRGB(0, 0, 0)]
       while ((sym.get_type(slist[sslen]) < NOTEXPRESSION) ||
              (sym.get_type(slist[sslen]) == SYM_COMMA) ||
@@ -1354,7 +1399,7 @@ void set_ax_scope(ccCompiledScript *scrip, int syoffs) {
   // this allows it to be returned back from the function
   else if (sym.entries[syoffs].flags & SFLG_PARAMETER)
     scrip->ax_val_scope = SYM_GLOBALVAR;
-  else    
+  else
     scrip->ax_val_scope = sym.entries[syoffs].stype;
 }
 
@@ -1475,14 +1520,14 @@ int get_array_index_into_ax(ccCompiledScript *scrip, long *symlist, int openBrac
   int arrSym = symlist[openBracketOffs - 1];
 
   if ((sym.entries[arrSym].flags & SFLG_ARRAY) == 0) {
-    cc_error("Internal error: not an array: '%s'", sym.get_name(arrSym));
+    cc_error("Internal error: not an array: '%s'", sym.get_friendly_name(arrSym).c_str());
     return -1;
   }
 
   if (checkBounds) {
     // check the array bounds that have been calculated in AX,
     // before they are added to the overall offset
-    if ((sym.entries[arrSym].flags & SFLG_DYNAMICARRAY) == 0) 
+    if ((sym.entries[arrSym].flags & SFLG_DYNAMICARRAY) == 0)
     {
       scrip->write_cmd2(SCMD_CHECKBOUNDS, SREG_AX, sym.entries[arrSym].arrsize);
     }
@@ -1522,7 +1567,7 @@ int parseArrayIndexOffsets(ccCompiledScript *scrip, VariableSymlist *thisClause,
       if (sym.entries[thisClause->syml[0]].flags & SFLG_PROPERTY)
         checkBounds = false;
     }
-    
+
     // the value to write is in AX; preserve it
     if (writingOperation)
       scrip->push_reg(SREG_AX);
@@ -1622,7 +1667,7 @@ int process_arrays_and_members(int slilen,long*syml,int*soffset,int*extraoffset,
         }
         else if (iswrite) {
           if (sym.entries[syml[onoffs+1]].flags & SFLG_READONLY) {
-            cc_error("property '%s' is read-only", sym.get_name(syml[onoffs + 1]));
+            cc_error("property '%s' is read-only", sym.get_friendly_name(syml[onoffs + 1]).c_str());
             return -1;
           }
         }
@@ -1645,7 +1690,7 @@ int process_arrays_and_members(int slilen,long*syml,int*soffset,int*extraoffset,
         // if one of the struct members in the path is read-only, don't allow it
         if ((iswrite) || (mustBeWritable)) {
           if (sym.entries[syml[onoffs+1]].flags & SFLG_READONLY) {
-            cc_error("variable '%s' is read-only", sym.get_name(syml[onoffs + 1]));
+            cc_error("variable '%s' is read-only", sym.get_friendly_name(syml[onoffs + 1]).c_str());
             return -1;
           }
         }
@@ -1671,26 +1716,26 @@ int call_property_func(ccCompiledScript *scrip, int propSym, int isWrite) {
 
   if (isWrite) {
     // BX contains the new value
-    if (sym.entries[propSym].flags & SFLG_IMPORTED) 
+    if (sym.entries[propSym].flags & SFLG_IMPORTED)
       scrip->write_cmd1(SCMD_PUSHREAL, SREG_BX);
     else {
       cc_error("internal error: prop is not import");
       return -1;
     }
-    
+
     numargs++;
   }
 
   if (sym.entries[propSym].flags & SFLG_ARRAY) {
     // array indexer is in DX
-    if (sym.entries[propSym].flags & SFLG_IMPORTED) 
+    if (sym.entries[propSym].flags & SFLG_IMPORTED)
       scrip->write_cmd1(SCMD_PUSHREAL, SREG_DX);
     else {
       cc_error("internal error: prop is not import");
       return -1;
     }
 
-    numargs++; 
+    numargs++;
   }
 
   if (sym.entries[propSym].flags & SFLG_IMPORTED) {
@@ -1750,6 +1795,28 @@ int call_property_func(ccCompiledScript *scrip, int propSym, int isWrite) {
   return 0;
 }
 
+int accept_literal_value(int &value, int symidx) {
+    errno = 0;
+    char *endptr = 0;
+    const long longValue = strtol(sym.get_name(symidx), &endptr, 10);
+
+    if ((longValue == LONG_MIN || longValue == LONG_MAX) && errno == ERANGE) {
+        cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(symidx, false).c_str());
+        return -1;
+    }
+    if (endptr[0] != 0) {
+        cc_error("Could not parse integer symbol '%s' because the whole buffer wasn't converted.", friendly_int_symbol(symidx, false).c_str());
+        return -1;
+    }
+    if (longValue > INT_MAX || longValue < INT_MIN) {
+        cc_error("Could not parse integer symbol '%s' because of overflow.", friendly_int_symbol(symidx, false).c_str());
+        return -1;
+    }
+
+    value = static_cast<int>(longValue);
+    return 0;
+}
+
 int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
                               int variableSymType, bool isProperty,
                               int writing, int mustBeWritable,
@@ -1780,7 +1847,12 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
       cc_error("cannot write to a literal value");
       return -1;
     }
-    scrip->write_cmd2(SCMD_LITTOREG,SREG_AX, atoi(sym.get_name(variableSym)));
+    int varSymValue;
+    if (accept_literal_value(varSymValue, variableSym) < 0) {
+      cc_error("Error while parsing integer symbol '%s'.", sym.get_friendly_name(variableSym).c_str());
+      return -1;
+    }
+    scrip->write_cmd2(SCMD_LITTOREG,SREG_AX, varSymValue);
     gotValType = sym.normalIntSym;
   }
   else if (mainVariableType == SYM_LITERALFLOAT) {
@@ -1835,7 +1907,7 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
 
     if (extraoffset)
     {
-      if (isDynamicArray) 
+      if (isDynamicArray)
       {
         scrip->write_cmd1(SCMD_MEMREADPTR, SREG_MAR);
         scrip->write_cmd(SCMD_CHECKNULL);
@@ -1844,7 +1916,7 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
 
       scrip->write_cmd2(SCMD_ADDREG,SREG_MAR,SREG_CX);
     }
-    else if (isDynamicArray) 
+    else if (isDynamicArray)
     {
       // not accessing an element of it, must be whole thing
       wholePointerAccess = true;
@@ -1871,7 +1943,7 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
     gotValType = sym.normalStringSym | STYPE_CONST;
   }
   else if (mainVariableType == SYM_STRUCTMEMBER) {
-    cc_error("must include parent structure of member '%s'",sym.get_name(mainVariableSym));
+    cc_error("must include parent structure of member '%s'",sym.get_friendly_name(mainVariableSym).c_str());
     return -1;
     }
   else if (mainVariableType == SYM_NULL) {
@@ -1883,7 +1955,7 @@ int do_variable_memory_access(ccCompiledScript *scrip, int variableSym,
     gotValType = sym.nullSym | STYPE_POINTER;
   }
   else {
-    cc_error("read/write ax called with non-variable parameter ('%s')",sym.get_name(variableSym));
+    cc_error("read/write ax called with non-variable parameter ('%s')",sym.get_friendly_name(variableSym).c_str());
     return -1;
     }
 
@@ -1996,7 +2068,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
         // normally, the whole array can be used as a pointer.
         // this is not the case with an property array, so catch
         // it here and give an error
-        cc_error("Expected array index after '%s'", sym.get_name(variableSym));
+        cc_error("Expected array index after '%s'", sym.get_friendly_name(variableSym).c_str());
         return -1;
       }
 
@@ -2013,7 +2085,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
       else if (writing) {
 
         if ((writingThisTime) && (sym.entries[variableSym].flags & SFLG_READONLY)) {
-          cc_error("property '%s' is read-only", sym.get_name(variableSym));
+          cc_error("property '%s' is read-only", sym.get_friendly_name(variableSym).c_str());
           return -1;
         }
 
@@ -2040,7 +2112,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
           }
           else
           {
-            cc_error("Expected array index after '%s'", sym.get_name(variableSym));
+            cc_error("Expected array index after '%s'", sym.get_friendly_name(variableSym).c_str());
             return -1;
           }
         }
@@ -2105,11 +2177,11 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
         }
 
         // if an array, the array indexer was put into DX
-        if (isArrayOfPointers) 
+        if (isArrayOfPointers)
         {
           scrip->write_cmd2(SCMD_MUL, SREG_DX, 4);
 
-          if (sym.entries[variableSym].flags & SFLG_DYNAMICARRAY) 
+          if (sym.entries[variableSym].flags & SFLG_DYNAMICARRAY)
           {
             // pointer to an array -- dereference the pointer
             scrip->write_cmd1(SCMD_MEMREADPTR, SREG_MAR);
@@ -2133,7 +2205,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
     }
     else {
 
-      if (sym.entries[variableSym].flags & SFLG_DYNAMICARRAY) 
+      if (sym.entries[variableSym].flags & SFLG_DYNAMICARRAY)
       {
         isDynamicArray = true;
       }
@@ -2149,15 +2221,15 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
       // a property being accessed
       if ((sym.entries[variableSym].flags & SFLG_POINTER) && (!isLastClause)) { }
       else if (sym.entries[variableSym].flags & SFLG_READONLY) {
-        cc_error("variable '%s' is read-only", sym.get_name(variableSym));
+        cc_error("variable '%s' is read-only", sym.get_friendly_name(variableSym).c_str());
         return -1;
       }
       else if (sym.entries[variableSym].flags & SFLG_WRITEPROTECTED) {
-        // write-protected variables can only be written by 
+        // write-protected variables can only be written by
         // the this ptr
         if ((ee > 0) && (sym.entries[variablePath[ee - 1].syml[0]].flags & SFLG_THISPTR)) { }
         else {
-          cc_error("variable '%s' is write-protected", sym.get_name(variableSym));
+          cc_error("variable '%s' is write-protected", sym.get_friendly_name(variableSym).c_str());
           return -1;
         }
 
@@ -2170,7 +2242,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
       if ((thisClause->len == 1) ||
           (sym.get_type(thisClause->syml[1]) != SYM_OPENBRACKET)) {
 
-        if ((sym.entries[variableSym].flags & SFLG_DYNAMICARRAY) == 0) 
+        if ((sym.entries[variableSym].flags & SFLG_DYNAMICARRAY) == 0)
         {
           getAddressOnlyIntoAX = true;
           cannotAssign = true;
@@ -2182,9 +2254,9 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
     if (sym.entries[variableSym].flags & SFLG_POINTER) { }
     else if (sym.entries[sym.entries[variableSym].vartype].flags & SFLG_STRUCTTYPE) {
       // struct variable without member access
-      if (isLastClause) 
+      if (isLastClause)
       {
-        if ((sym.entries[variableSym].flags & SFLG_DYNAMICARRAY) == 0) 
+        if ((sym.entries[variableSym].flags & SFLG_DYNAMICARRAY) == 0)
         {
           getAddressOnlyIntoAX = true;
           cannotAssign = true;
@@ -2194,7 +2266,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
 
     if ((writing) && (cannotAssign)) {
       // an entire array or struct cannot be assigned to
-      cc_error("cannot assign to '%s'", sym.get_name(variableSym));
+      cc_error("cannot assign to '%s'", sym.get_friendly_name(variableSym).c_str());
       return -1;
     }
 
@@ -2251,7 +2323,7 @@ int do_variable_ax(int slilen,long*syml,ccCompiledScript*scrip,int writing, int 
           isPointer = true;
         }
         else {
-          cc_error("Invalid pathing: unexpected '%s'", sym.get_name(variablePath[ee + 1].syml[0]));
+          cc_error("Invalid pathing: unexpected '%s'", sym.get_friendly_name(variablePath[ee + 1].syml[0]).c_str());
           return -1;
         }
 
@@ -2287,7 +2359,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
 /*  printf("Parse expression: '");
   int j;
   for (j=0;j<listlen;j++)
-    printf("%s ",sym.get_name(symlist[j]));
+    printf("%s ",sym.get_friendly_name(symlist[j]).c_str());
   printf("'\n");*/
 
   if (listlen == 0) {
@@ -2299,7 +2371,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
 
   if (oploc == 0) {
     // The operator is the first thing in the expression
-    if (sym.get_type(symlist[oploc]) == SYM_NEW) 
+    if (sym.get_type(symlist[oploc]) == SYM_NEW)
     {
       if (listlen < 2 || sym.get_type(symlist[oploc + 1]) != SYM_VARTYPE)
       {
@@ -2326,7 +2398,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
           {
             isManagedType = true;
             size = 4;
-          }   
+          }
           else if (sym.entries[arrayType].flags & SFLG_STRUCTTYPE)
           {
             cc_error("cannot create dynamic array of unmanaged struct");
@@ -2389,7 +2461,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
     }
     else {
       // this operator needs a left hand side
-      cc_error("Parse error: unexpected operator '%s'",sym.get_name(symlist[oploc]));
+      cc_error("Parse error: unexpected operator '%s'",sym.get_friendly_name(symlist[oploc]).c_str());
       return -1;
     }
   }
@@ -2409,7 +2481,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
 
     if (oploc + 1 >= listlen) {
       // there is no right hand side for the expression
-      cc_error("Parse error: invalid use of operator '%s'",sym.get_name(symlist[oploc]));
+      cc_error("Parse error: invalid use of operator '%s'",sym.get_friendly_name(symlist[oploc]).c_str());
       return -1;
     }
 
@@ -2430,7 +2502,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       scrip->write_cmd1(SCMD_JNZ, 0);
       jumpLocationOffset = scrip->codesize;
     }
-    
+
     int valtypewas = scrip->ax_val_type;
 
     scrip->push_reg(SREG_AX);
@@ -2438,7 +2510,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       return -1;
     scrip->pop_reg(SREG_BX);
 
-    if (check_type_mismatch(scrip->ax_val_type, valtypewas, 0)) 
+    if (check_type_mismatch(scrip->ax_val_type, valtypewas, 0))
       return -1;
     if (check_operator_valid_for_type(&vcpuOperator, scrip->ax_val_type, valtypewas))
       return -1;
@@ -2476,7 +2548,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
   if (lilen < 0)
     return -1;
 /*  printf("lilen: %d, list is ");
-  for (j=0;j<lilen;j++) printf("%s ",sym.get_name(vnlist[j]));
+  for (j=0;j<lilen;j++) printf("%s ",sym.get_friendly_name(vnlist[j]).c_str());
   printf("\n");*/
 
   if (sym.get_type(symlist[0]) == SYM_OPENPARENTHESIS) {
@@ -2512,7 +2584,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       scrip->push_reg(SREG_AX);
       int op = symlist[0];
       if (sym.get_type(op) != SYM_OPERATOR) {
-        cc_error("expected operator, not '%s'",sym.get_name(op));
+        cc_error("expected operator, not '%s'",sym.get_friendly_name(op).c_str());
         return -1;
         }
       if (parse_sub_expr(&symlist[1],listlen-1,scrip) < 0) return -1;
@@ -2525,11 +2597,11 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
     return 0;
     }
   else if (sym.get_type(symlist[0]) == 0) {
-    cc_error("undefined symbol '%s'",sym.get_name(symlist[0]));
+    cc_error("undefined symbol '%s'",sym.get_friendly_name(symlist[0]).c_str());
     return -1;
     }
   else if (sym.get_type(symlist[0]) == SYM_OPERATOR) {
-    cc_error("Parse error: unexpected '%s'",sym.get_name(symlist[0]));
+    cc_error("Parse error: unexpected '%s'",sym.get_friendly_name(symlist[0]).c_str());
     return -1;
     }
   else if ((sym.get_type(symlist[0]) == SYM_FUNCTION) || (funcAtOffs > 0)) {
@@ -2594,7 +2666,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       num_supplied_args = 0;
 
     if (bdepth >= 0) {
-      cc_error("parser confused near '%s'",sym.get_name(usingList[-2]));
+      cc_error("parser confused near '%s'",sym.get_friendly_name(usingList[-2]).c_str());
       return -1;
     }
 
@@ -2613,7 +2685,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
       // not enough arguments -- see if we can supply default values
       for (int ii = func_args; ii > num_supplied_args; ii--) {
 
-        if (sym.entries[funcsym].funcParamDefaultValues[ii] == PARAM_NO_DEFAULT_VALUE) {
+        if (!sym.entries[funcsym].funcParamHasDefaultValues[ii]) {
           cc_error("Not enough parameters in call to function");
           return -1;
         }
@@ -2694,7 +2766,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
     if ((sym.entries[funcsym].sscope >= 100) && (numargs >= sym.entries[funcsym].sscope - 100)) ;
     else if (sym.entries[funcsym].sscope == numargs) ;
     else {
-      cc_error("wrong number of parameters in call to '%s'",sym.get_name(funcsym));
+      cc_error("wrong number of parameters in call to '%s'",sym.get_friendly_name(funcsym).c_str());
       return -1;
       }
     sym.entries[funcsym].flags |= SFLG_ACCESSED;
@@ -2738,7 +2810,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
 
     // make sure there's nothing left to process in this clause
     if (usingListLen > 0) {
-      cc_error("expected semicolon after '%s'",sym.get_name(usingList[-1]));
+      cc_error("expected semicolon after '%s'",sym.get_friendly_name(usingList[-1]).c_str());
       return -1;
     }
   }
@@ -2749,7 +2821,7 @@ int parse_sub_expr(long*symlist,int listlen,ccCompiledScript*scrip) {
     if (read_variable_into_ax(1,&symlist[0],scrip)) return -1;
     }
   else {
-    cc_error("Parse error in expr near '%s'",sym.get_name(symlist[0]));
+    cc_error("Parse error in expr near '%s'",sym.get_friendly_name(symlist[0]).c_str());
     return -1;
     }
 
@@ -2778,7 +2850,7 @@ int evaluate_expression(ccInternalList*targ,ccCompiledScript*scrip,int countbrac
   int j,ourlen=0,brackdepth=0;
   int hadMetaOnly = 1;
   bool lastWasNew = false;
-  
+
   for (j=targ->pos; j < targ->length; j++) {
     if (targ->script[j] == SCODE_META) {
       j+=2;
@@ -2804,7 +2876,7 @@ int evaluate_expression(ccInternalList*targ,ccCompiledScript*scrip,int countbrac
           || sym.get_type(targ->script[j]) == SYM_CLOSEPARENTHESIS) {
       ourlen = j - targ->pos;
       if ((ourlen < 1) || (hadMetaOnly == 1)) {
-        cc_error("PE01: Parse error at '%s'",sym.get_name(targ->script[j]));
+        cc_error("PE01: Parse error at '%s'",sym.get_friendly_name(targ->script[j]).c_str());
         return -1;
         }
       ours.script = (long*)malloc(ourlen * sizeof(long));
@@ -2978,7 +3050,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     // managed structs must be allocated via ccRegisterObject,
     // and cannot be declared normally in the script (unless imported)
     cc_error("Cannot declare local instance of managed type");
-    return -1; 
+    return -1;
   }
 
   if (vtwas == sym.normalVoidSym) {
@@ -3000,7 +3072,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
   if (((sym.entries[vtwas].flags & SFLG_MANAGED) == 0) && (isPointer) && (isglobal != 2)) {
     // can only point to managed structs
     cc_error("Cannot declare pointer to non-managed type");
-    return -1; 
+    return -1;
   }
 
   if (next_type[0] == SYM_OPENBRACKET) {
@@ -3018,8 +3090,9 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     {
       int nextt = targ->getnext();
 
-      if (get_literal_value(nextt, &array_size, "Array size must be constant value"))
+      if (accept_literal_or_constant_value(nextt, array_size, false, "Array size must be constant value") < 0) {
         return -1;
+      }
 
       if (array_size < 1) {
         cc_error("Array size must be >=1");
@@ -3112,9 +3185,9 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
         cc_error("cannot assign initial value to global pointer");
         return -1;
       }
-      int is_neg = 0;
+      bool is_neg = false;
       if (sym.get_name(targ->peeknext())[0] == '-') {
-        is_neg = 1;
+        is_neg = true;
         targ->getnext();
       }
       if (sym.entries[cursym].vartype == sym.normalFloatSym) {
@@ -3133,14 +3206,12 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
         return -1;
       }
       else {
-        // initialize int
-        // warning: cast long* to int*; they are both 32-bit but
-        // this can't be guaranteed
-        if (get_literal_value(targ->getnext(), (int*)getsvalue, "Expected integer value after '='"))
+        int getsvalue_int;
+        if (accept_literal_or_constant_value(targ->getnext(), getsvalue_int, is_neg, "Expected integer value after '='") < 0) {
           return -1;
+        }
+        getsvalue[0] = (long)getsvalue_int;
 
-        if (is_neg)
-          getsvalue[0] = -getsvalue[0];
       }
     }
     else {
@@ -3156,7 +3227,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     }
     next_type[0] = sym.get_type(targ->peeknext());
   }
-  
+
   if (isglobal == 2) {
     // an imported variable
     sym.entries[cursym].soffs = scrip->add_new_import(sym.get_name(cursym));
@@ -3168,7 +3239,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     }
   else if (isglobal) {
     // a global variable
-    sym.entries[cursym].soffs = scrip->add_global(varsize,(char*)&getsvalue[0]);
+    sym.entries[cursym].soffs = scrip->add_global(varsize,reinterpret_cast<const char*>(&getsvalue[0]));
     if (sym.entries[cursym].soffs < 0)
       return -1;
     if (need_fixup == 1) scrip->add_fixup(sym.entries[cursym].soffs,FIXUP_DATADATA);
@@ -3179,7 +3250,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     scrip->write_cmd2(SCMD_REGTOREG,SREG_SP,SREG_MAR);
     if (need_fixup == 2) {
       // expression worked out into ax
-      if ((sym.entries[cursym].flags & (SFLG_POINTER | SFLG_DYNAMICARRAY)) != 0) 
+      if ((sym.entries[cursym].flags & (SFLG_POINTER | SFLG_DYNAMICARRAY)) != 0)
       {
         scrip->write_cmd1(SCMD_MEMINITPTR, SREG_AX);
       }
@@ -3206,7 +3277,7 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     return 2;
     }
   if (next_type[0] != SYM_SEMICOLON) {
-    cc_error("Expected ',' or ';', not '%s'",sym.get_name(targ->peeknext()));
+    cc_error("Expected ',' or ';', not '%s'",sym.get_friendly_name(targ->peeknext()).c_str());
     return -1;
     }
   targ->getnext();  // skip the semicolon
@@ -3428,7 +3499,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             int stname = targ.getnext();
             if ((sym.get_type(stname) != 0) &&
                 (sym.get_type(stname) != SYM_UNDEFINEDSTRUCT)) {
-                    cc_error("'%s' is already defined",sym.get_name(stname));
+                    cc_error("'%s' is already defined",sym.get_friendly_name(stname).c_str());
                     return -1;
             }
             int size_so_far = 0;
@@ -3511,35 +3582,52 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 int member_is_protected = 0;
                 int member_is_writeprotected = 0;
 
-                if (sym.get_type(cursym) == SYM_PROTECTED) {
-                    // protected
-                    member_is_protected = 1;
-                    cursym = targ.getnext();
+                // loop for all qualifiers.
+                bool foundQualifier;
+                do {
+                    foundQualifier = false;
+
+                    if (sym.get_type(cursym) == SYM_PROTECTED) {
+                        // protected
+                        member_is_protected = 1;
+                        foundQualifier = true;
+                        cursym = targ.getnext();
+                    }
+                    if (sym.get_type(cursym) == SYM_WRITEPROTECTED) {
+                        // write-protected
+                        member_is_writeprotected = 1;
+                        foundQualifier = true;
+                        cursym = targ.getnext();
+                    }
+                    if (sym.get_type(cursym) == SYM_READONLY) {
+                        // read only member, carry on
+                        member_is_readonly = 1;
+                        foundQualifier = true;
+                        cursym = targ.getnext();
+                    }
+                    if (sym.get_type(cursym) == SYM_IMPORT) {
+                        member_is_import = 1;
+                        foundQualifier = true;
+                        cursym = targ.getnext();
+                    }
+                    if (sym.get_type(cursym) == SYM_STATIC) {
+                        member_is_static = 1;
+                        foundQualifier = true;
+                        cursym = targ.getnext();
+                    }
+                    if (sym.get_type(cursym) == SYM_PROPERTY) {
+                        // a "property" is a member variable that is actually a pair of functions
+                        member_is_property = 1;
+                        foundQualifier = true;
+                        cursym = targ.getnext();
+                    }
+                } while (foundQualifier);
+
+                if (member_is_protected && member_is_writeprotected) {
+                    cc_error("Field cannot be both protected and write-protected.");
+                    return -1;
                 }
-                else if (sym.get_type(cursym) == SYM_WRITEPROTECTED) {
-                    // write-protected
-                    member_is_writeprotected = 1;
-                    cursym = targ.getnext();
-                }
-                if (sym.get_type(cursym) == SYM_READONLY) {
-                    // read only member, carry on
-                    member_is_readonly = 1;
-                    cursym = targ.getnext();
-                }
-                if (sym.get_type(cursym) == SYM_IMPORT) {
-                    member_is_import = 1;
-                    cursym = targ.getnext();
-                }
-                if (sym.get_type(cursym) == SYM_STATIC) {
-                    member_is_static = 1;
-                    cursym = targ.getnext();
-                }
-                // a "property" is a member variable that is actually
-                // a pair of functions
-                if (sym.get_type(cursym) == SYM_PROPERTY) {
-                    member_is_property = 1;
-                    cursym = targ.getnext();
-                }
+
                 if ((sym.get_type(cursym) != SYM_VARTYPE) &&
                     (sym.get_type(cursym) != SYM_UNDEFINEDSTRUCT)) {
 
@@ -3570,7 +3658,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 }
 
                 if (targ.peeknext() < 0) {
-                    cc_error("Invalid syntax near '%s'", sym.get_name(cursym));
+                    cc_error("Invalid syntax near '%s'", sym.get_friendly_name(cursym).c_str());
                     return -1;
                 }
 
@@ -3596,11 +3684,11 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 }
                 else if ((sym.entries[cursym].flags & SFLG_MANAGED) && (!member_is_pointer)) {
                     cc_error("Cannot declare non-pointer of managed type");
-                    return -1; 
+                    return -1;
                 }
                 else if (((sym.entries[cursym].flags & SFLG_MANAGED) == 0) && (member_is_pointer)) {
                     cc_error("Cannot declare pointer to non-managed type");
-                    return -1; 
+                    return -1;
                 }
 
                 // run through all variables declared on this line
@@ -3616,14 +3704,14 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         vname = targ.getnext();
                     }
                     if (sym.get_type(vname) != 0) {
-                        cc_error("'%s' is already defined",sym.get_name(vname));
+                        cc_error("'%s' is already defined",sym.get_friendly_name(vname).c_str());
                         return -1;
                     }
                     if (extendsWhat > 0) {
                         // check that we haven't already inherited a member
                         // with the same name
                         long member = vname;
-                        char *memberExt = sym.get_name(vname);
+                        const char *memberExt = sym.get_name(vname);
                         memberExt = strstr(memberExt, "::");
                         if (memberExt == NULL) {
                             cc_error("Internal compiler error dbc");
@@ -3639,7 +3727,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         }
 
                         if (find_member_sym(extendsWhat, &member, true) == 0) {
-                            cc_error("'%s' already defined by inherited class", sym.get_name(member));
+                            cc_error("'%s' already defined by inherited class", sym.get_friendly_name(member).c_str());
                             return -1;
                         }
                         // not found -- a good thing, but find_member_sym will
@@ -3690,7 +3778,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     else if ((cursym == stname) && (!member_is_pointer)) {
                         // cannot do  struct A { A a; }
                         // since we don't know the size of A, recursiveness
-                        cc_error("struct '%s' cannot be a member of itself", sym.get_name(cursym));
+                        cc_error("struct '%s' cannot be a member of itself", sym.get_friendly_name(cursym).c_str());
                         return -1;
                     }
                     else {
@@ -3740,7 +3828,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                             }
                             // the variable name will have been jibbled with
                             // the struct name added to it -- strip it back off
-                            char *memberPart = strstr(sym.get_name(vname), "::");
+                            const char *memberPart = strstr(sym.get_name(vname), "::");
                             if (memberPart == NULL) {
                                 cc_error("internal error: property has no struct name");
                                 return -1;
@@ -3777,8 +3865,9 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                                 size_so_far += 4;
                             }
                             else {
-                                if (get_literal_value(nextt, &array_size, "Array size must be constant value"))
+                                if (accept_literal_or_constant_value(nextt, array_size, false, "Array size must be constant value") < 0) {
                                     return -1;
+                                }
 
                                 if (array_size < 1) {
                                     cc_error("array size cannot be less than 1");
@@ -3830,7 +3919,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
 
             int enumName = targ.getnext();
             if (sym.get_type(enumName) != 0) {
-                cc_error("'%s' is already defined",sym.get_name(enumName));
+                cc_error("'%s' is already defined",sym.get_friendly_name(enumName).c_str());
                 return -1;
             }
             sym.entries[enumName].stype = SYM_VARTYPE;
@@ -3866,10 +3955,18 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
 
                     if (sym.get_type(nextSym) == SYM_ASSIGN) {
                         // a specifically indexed entry
+
+                        bool is_neg = false;
+                        if (sym.get_name(targ.peeknext())[0] == '-') {
+                            is_neg = true;
+                            targ.getnext();
+                        }
+
                         nextSym = targ.getnext();
 
-                        if (get_literal_value(nextSym, &currentValue, "enum must be set to literal value"))
+                        if (accept_literal_or_constant_value(nextSym, currentValue, is_neg, "enum must be set to literal value") < 0) {
                             return -1;
+                        }
 
                         nextSym = targ.getnext();
                     }
@@ -3891,13 +3988,13 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         break;
                     }
                     else if (sym.get_type(nextSym) != SYM_COMMA) {
-                        cc_error("enum parse error at '%s'", sym.get_name(nextSym));
+                        cc_error("enum parse error at '%s'", sym.get_friendly_name(nextSym).c_str());
                         return -1;
                     }
 
                 }
                 else {
-                    cc_error("unexpected '%s'", sym.get_name(nextOne));
+                    cc_error("unexpected '%s'", sym.get_friendly_name(nextOne).c_str());
                     return -1;
                 }
             }
@@ -3953,7 +4050,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
 
             if ((sym.get_type(targ.peeknext()) != SYM_VARTYPE) &&
                 (sym.get_type(targ.peeknext()) != SYM_READONLY)) {
-                    cc_error("expected variable or function after import, not '%s'", sym.get_name(targ.peeknext()));
+                    cc_error("expected variable or function after import, not '%s'", sym.get_friendly_name(targ.peeknext()).c_str());
                     return -1;
             }
         }
@@ -3999,11 +4096,11 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             while (sym.get_type(cursym) != SYM_SEMICOLON) {
                 int nextype = sym.get_type(cursym);
                 if (nextype == 0) {
-                    cc_error("cannot export undefined symbol '%s'",sym.get_name(cursym));
+                    cc_error("cannot export undefined symbol '%s'",sym.get_friendly_name(cursym).c_str());
                     return -1;
                 }
                 if ((nextype != SYM_GLOBALVAR) && (nextype != SYM_FUNCTION)) {
-                    cc_error("invalid export symbol '%s'",sym.get_name(cursym));
+                    cc_error("invalid export symbol '%s'",sym.get_friendly_name(cursym).c_str());
                     return -1;
                 }
                 if (sym.entries[cursym].flags & SFLG_IMPORTED) {
@@ -4025,7 +4122,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 cursym = targ.getnext();
                 if (sym.get_type(cursym) == SYM_SEMICOLON) break;
                 if (sym.get_type(cursym) != SYM_COMMA) {
-                    cc_error("export parse error at '%s'",sym.get_name(cursym));
+                    cc_error("export parse error at '%s'",sym.get_friendly_name(cursym).c_str());
                     return -1;
                 }
                 cursym = targ.getnext();
@@ -4038,7 +4135,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             if ((nested_type[nested_level] == NEST_IFSINGLE) ||
                 (nested_type[nested_level] == NEST_ELSESINGLE) ||
                 (nested_type[nested_level] == NEST_DOSINGLE)) {
-                    cc_error("Unexpected '%s'",sym.get_name(cursym));
+                    cc_error("Unexpected '%s'",sym.get_friendly_name(cursym).c_str());
                     return -1;
             }
             if ((nested_type[nested_level] == NEST_SWITCH)) {
@@ -4068,7 +4165,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             if (sym.entries[vtwas].flags & SFLG_AUTOPTR)
                 isPointer = 1;
 
-            int dynArrayStatus = check_for_dynamic_array_declaration(targ, vtwas);
+            int dynArrayStatus = check_for_dynamic_array_declaration(targ, vtwas, !!isPointer);
             if (dynArrayStatus < 0) return -1;
             if (dynArrayStatus > 0)
             {
@@ -4100,9 +4197,9 @@ startvarbit:
                 structSym = cursym;
                 // change cursym to be the full function name
                 const char *mfullname = get_member_full_name(cursym, whichmember);
-                cursym = sym.find((char*)mfullname);
+                cursym = sym.find(mfullname);
                 if (cursym < 0) {
-                    cc_error("'%s' does not contain a function '%s'", sym.get_name(structSym), sym.get_name(whichmember));
+                    cc_error("'%s' does not contain a function '%s'", sym.get_friendly_name(structSym).c_str(), sym.get_friendly_name(whichmember).c_str());
                     return -1;
                 }
                 isMemberFunction = structSym;
@@ -4118,7 +4215,7 @@ startvarbit:
                     return -1;
             }
             if (sym.get_type(cursym) != 0) {
-                cc_error("Variable '%s' is already defined",sym.get_name(cursym));
+                cc_error("Variable '%s' is already defined",sym.get_friendly_name(cursym).c_str());
                 return -1;
             }
 
@@ -4225,7 +4322,7 @@ startvarbit:
             continue;
         }
         else if (in_func < 0) {
-            cc_error("Parse error: unexpected '%s'",sym.get_name(cursym));
+            cc_error("Parse error: unexpected '%s'",sym.get_friendly_name(cursym).c_str());
             return -1;
         }
         else if (symType == 0) {
@@ -4268,8 +4365,10 @@ startvarbit:
                 (sym.get_type(targ.peeknext()) == SYM_MASSIGN) ||
                 (sym.get_type(targ.peeknext()) == SYM_SASSIGN)) {
                     // it's an assignment = or += -=
-                    if (evaluate_assignment(&targ, scrip, false, cursym, lilen, vnlist, false))
+                    if (evaluate_assignment(&targ, scrip, false, cursym, lilen, vnlist, false)) {
                         return -1;
+                    }
+                    
 
             }
             else if (sym.get_type(cursym) == SYM_RETURN) {
@@ -4298,7 +4397,7 @@ startvarbit:
                     }
                 }
                 else if ((functionReturnType != sym.normalIntSym) && (functionReturnType != sym.normalVoidSym)) {
-                    cc_error("Must return a '%s' value from function", sym.get_name(functionReturnType));
+                    cc_error("Must return a '%s' value from function", sym.get_friendly_name(functionReturnType).c_str());
                     return -1;
                 }
                 else {
@@ -4576,7 +4675,7 @@ startvarbit:
                         scrip->code[nested_assign_addr[nested_level]] = (scrip->codesize - nested_assign_addr[nested_level]) - 1;
                     if (evaluate_expression(&targ,scrip,0,false)) // case n: label expression, result is in AX
                         return -1;
-                    if (check_type_mismatch(scrip->ax_val_type, nested_info[nested_level], 0)) 
+                    if (check_type_mismatch(scrip->ax_val_type, nested_info[nested_level], 0))
                         return -1;
                     if (check_operator_valid_for_type(&vcpuOperator, scrip->ax_val_type, nested_info[nested_level]))
                         return -1;
@@ -4660,7 +4759,7 @@ startvarbit:
                 }
             }
             else {
-                cc_error("PE04: parse error at '%s'",sym.get_name(cursym));
+                cc_error("PE04: parse error at '%s'",sym.get_friendly_name(cursym).c_str());
                 return -1;
             }
             // sort out jumps when a single-line if or else has finished

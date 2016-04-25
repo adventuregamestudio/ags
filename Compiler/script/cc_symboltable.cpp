@@ -7,7 +7,7 @@
 #include "cc_symboldef.h"   // macro definitions
 
 symbolTable::symbolTable() {
-	stringStructSym = 0; 
+	stringStructSym = 0;
 }
 
 int SymbolTableEntry::get_num_args() {
@@ -51,7 +51,7 @@ void symbolTable::reset() {
 		free(it->second);
 	}
 	nameGenCache.clear();
-    
+
 	entries.clear();
 
     stringStructSym = 0;
@@ -148,6 +148,24 @@ int symbolTable::find(const char*ntf) {
     return symbolTree.findValue(ntf);
 }
 
+std::string symbolTable::get_friendly_name(int idx) {
+    std::string result = entries[idx & STYPE_MASK].sname;
+
+    if (idx & STYPE_POINTER) {
+        result = result + std::string("*");
+    }
+
+    if (idx & STYPE_DYNARRAY) {
+        result = result + std::string("[]");
+    }
+
+    if (idx & STYPE_CONST) {
+        result = std::string("const ") + result;
+    }
+
+    return result;
+}
+
 std::string symbolTable::get_name_string(int idx) {
 	if (idx & STYPE_CONST) {
         idx &= ~STYPE_CONST;
@@ -167,12 +185,12 @@ std::string symbolTable::get_name_string(int idx) {
     return entries[idx].sname;
 }
 
-char *symbolTable::get_name(int idx) {
+const char *symbolTable::get_name(int idx) {
 	if (nameGenCache.count(idx) > 0) {
 		return nameGenCache[idx];
 	}
 
-	int actualIdx = idx & STYPE_MASK;
+	std::size_t actualIdx = idx & STYPE_MASK;
 	if (actualIdx < 0 || actualIdx >= entries.size()) { return NULL; }
 
 	std::string resultString = get_name_string(idx);
@@ -182,10 +200,10 @@ char *symbolTable::get_name(int idx) {
 	return result;
 }
 
-int symbolTable::add(char*nta) {
+int symbolTable::add(const char*nta) {
     return add_ex(nta,0,0);
 }
-int symbolTable::add_ex (char*nta,int typo,char sizee) {
+int symbolTable::add_ex(const char*nta,int typo,char sizee) {
 	if (find(nta) >= 0) {
 		return -1;
 	}
@@ -203,13 +221,14 @@ int symbolTable::add_ex (char*nta,int typo,char sizee) {
     entry.arrsize = 0;
     entry.extends = 0;
 	entry.funcparamtypes = std::vector<unsigned long>(MAX_FUNCTION_PARAMETERS + 1);
-	entry.funcParamDefaultValues = std::vector<short>(MAX_FUNCTION_PARAMETERS + 1);
+    entry.funcParamDefaultValues = std::vector<int>(MAX_FUNCTION_PARAMETERS + 1);
+	entry.funcParamHasDefaultValues = std::vector<bool>(MAX_FUNCTION_PARAMETERS + 1);
 	entries.push_back(entry);
 
     symbolTree.addEntry(nta, p_value);
     return p_value;
 }
-int symbolTable::add_operator(char *nta, int priority, int vcpucmd) {
+int symbolTable::add_operator(const char *nta, int priority, int vcpucmd) {
     int nss = add_ex(nta, SYM_OPERATOR, priority);
 	if (nss >= 0) {
         entries[nss].vartype = vcpucmd;

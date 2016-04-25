@@ -1,4 +1,5 @@
 #include "gtest/gtest.h"
+
 #include "script/cc_symboltable.h"
 #include "script/cc_symboldef.h"
 
@@ -106,7 +107,7 @@ TEST(SymbolTable, AddExUnique) {
 	int b_sym = testSym.add_ex("b",0,0);
 	ASSERT_TRUE(a_sym != b_sym);
 }
-	
+
 TEST(SymbolTable, AddExDefaultValues) {
 	symbolTable testSym;
 
@@ -132,7 +133,7 @@ TEST(SymbolTable, AddExAvailableAfterwards) {
 	int a_sym = testSym.add_ex("x",0,0);
 
 	// no test is available.. but we can try to get name.
-	char *name = testSym.get_name(a_sym);
+	const char *name = testSym.get_name(a_sym);
 	ASSERT_TRUE(name != 0);
 }
 

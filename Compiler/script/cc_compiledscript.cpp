@@ -47,7 +47,7 @@ ccCompiledScript::~ccCompiledScript() {
     shutdown();
 }
 
-int ccCompiledScript::add_global(int siz,char*vall) {
+int ccCompiledScript::add_global(int siz,const char*vall) {
     //  printf("Add global size %d at %d\n",siz,globaldatasize);
     //  if (remove_any_import (vall)) return -2;
     globaldata = (char*)realloc(globaldata, globaldatasize + siz);
@@ -58,20 +58,22 @@ int ccCompiledScript::add_global(int siz,char*vall) {
     globaldatasize += siz;
     return toret;
 }
-int ccCompiledScript::add_string(char*strr) {
+int ccCompiledScript::add_string(const char*strr) {
     strings = (char*)realloc(strings, stringssize + strlen(strr) + 5);
     unsigned int la,opi=0;
     for (la = 0; la <= strlen(strr); la++) {
+        char ch = strr[la];
         if (strr[la]=='\\') {
             la++;
-            if (strr[la] == 'n') strr[la]=10;
-            else if (strr[la] == 'r') strr[la]=13;
+            ch = strr[la];
+            if (strr[la] == 'n') {ch=10;}
+            else if (strr[la] == 'r') {ch=13;}
             else if (strr[la] == '[') { // pass through as \[
                 strings[stringssize + opi] = '\\';
                 opi++;
             }
         }
-        strings[stringssize+opi]=strr[la];
+        strings[stringssize+opi]=ch;
         opi++;
     }
     //  memcpy(&strings[stringssize],strr,strlen(strr)+1);
@@ -89,7 +91,7 @@ void ccCompiledScript::add_fixup(int32_t locc, char ftype) {
 void ccCompiledScript::fixup_previous(char ftype) {
     add_fixup(codesize-1,ftype);
 }
-int ccCompiledScript::add_new_function(char*namm, int *idx) {
+int ccCompiledScript::add_new_function(const char*namm, int *idx) {
     if (numfunctions >= MAX_FUNCTIONS) return -1;
     //  if (remove_any_import (namm)) return -2;
     functions[numfunctions] = (char*)malloc(strlen(namm)+20);
@@ -102,9 +104,9 @@ int ccCompiledScript::add_new_function(char*namm, int *idx) {
     numfunctions++;
     return codesize;
 }
-int ccCompiledScript::add_new_import(char*namm) 
+int ccCompiledScript::add_new_import(const char*namm)
 {
-    if (numimports >= importsCapacity) 
+    if (numimports >= importsCapacity)
     {
         importsCapacity += 1000;
         imports = (char**)realloc(imports, sizeof(char*) * importsCapacity);
@@ -114,7 +116,7 @@ int ccCompiledScript::add_new_import(char*namm)
     numimports++;
     return numimports-1;
 }
-int ccCompiledScript::remove_any_import (char*namm, SymbolDef *oldSym) {
+int ccCompiledScript::remove_any_import (const char*namm, SymbolDef *oldSym) {
     // Remove any import with the specified name
     int i, sidx;
     sidx = sym.find(namm);
@@ -152,6 +154,7 @@ int ccCompiledScript::remove_any_import (char*namm, SymbolDef *oldSym) {
             for (i = 0; i <= sym.entries[sidx].get_num_args(); i++) {
                 oldSym->funcparamtypes[i] = sym.entries[sidx].funcparamtypes[i];
                 oldSym->funcParamDefaultValues[i] = sym.entries[sidx].funcParamDefaultValues[i];
+                oldSym->funcParamHasDefaultValues[i] = sym.entries[sidx].funcParamHasDefaultValues[i];
             }
         }
     }
@@ -181,9 +184,9 @@ int ccCompiledScript::remove_any_import (char*namm, SymbolDef *oldSym) {
     return 0;
 }
 
-int ccCompiledScript::add_new_export(char*namm,int etype,long eoffs, int numArgs) 
+int ccCompiledScript::add_new_export(const char*namm,int etype,long eoffs, int numArgs)
 {
-    if (numexports >= exportsCapacity) 
+    if (numexports >= exportsCapacity)
     {
         exportsCapacity += 1000;
         exports = (char**)realloc(exports, sizeof(char*) * exportsCapacity);
@@ -280,7 +283,7 @@ void ccCompiledScript::write_chunk(intptr_t **nested_chunk, int index, intptr_t 
 
 const char* ccCompiledScript::start_new_section(const char *name) {
 
-    if ((numSections == 0) || 
+    if ((numSections == 0) ||
         (codesize != sectionOffsets[numSections - 1]))
     {
         if (numSections >= capacitySections)

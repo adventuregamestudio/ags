@@ -376,7 +376,7 @@ bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, Stri
         parent_dir = MakeAppDataPath();
         // Set alternate non-remapped "unsafe" path for read-only operations
         if (read_only)
-            alt_path = sc_path;
+            alt_path = String::FromFormat("%s%s", get_current_dir().GetCStr(), sc_path.GetCStr());
 
         // For games made in the safe-path-aware versions of AGS, report a warning
         // if the unsafe path is used for write operation

@@ -1,5 +1,21 @@
 REVISION HISTORY
 ================
+VERSION 3.3.5 - Patch 1, April 2016
+
+Engine:
+- Added support for $INSTALLDIR$ location tag in the filepaths
+  used in the script.
+- Fixed game could not find files in the current directory when
+  run from the Editor.
+
+WinSetup:
+- Fixed error that could occur if choosed custom save path
+  contained "%" symbol.
+- Read correct game's resolution from game data instead of config file.
+- Do not write all default config contents to user config, save only options
+  that are set by setup program.
+
+
 VERSION 3.3.5, March 2016
 
 Editor Features:

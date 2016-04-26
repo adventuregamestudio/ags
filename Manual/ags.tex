@@ -9126,16 +9126,18 @@ This function returns a File object, which you use to perform operations on the
 file. \it{null} is returned if there was a problem (eg. file not existing when MODE
 is eFileRead).
 
-When specifying file path you may use two special location tags: ILBRK
-\verb^$SAVEGAMEDIR$^, which allows you to access files in the save game directory. ILBRK
+When specifying file path you may use special location tags: ILBRK
+\verb^$INSTALLDIR$^, which allows you to explicitly read files in the game installation directory. ILBRK
+\verb^$SAVEGAMEDIR$^, which allows you to write/read files in the save game directory. ILBRK
 \verb^$APPDATADIR$^, which allows you to write/read files to a folder on the system which
 is accessible by and shared by all users.
 The example of their use is below.
 
 \bf{IMPORTANT}: For security reasons, if you open the file for writing, then you can ONLY work with
 files in either \verb^$SAVEGAMEDIR$^ or \verb^$APPDATADIR$^ locations.
-An attempt to write file into game installation directory will make AGS to automatically
-remap such path into \verb^$APPDATADIR$^.
+An attempt to write file in \verb^$INSTALLDIR$^ will result in failure, and \it{null} is returned.
+An attempt to write file into relative path without specifying any location tag will make AGS to automatically
+remap such path into \verb^$APPDATADIR$^. This is done for backwards-compatibility.
 On other hand, if you open file for writing using an absolute path, or relative path that points to location outside of game directory, it will
 automatically be rejected, and \it{null} is returned.
 
@@ -9218,7 +9220,8 @@ static bool File.Exists(string filename)
 \end{verbatim}
 Checks if the specified file exists on the file system.
 
-When specifying file path you may use two special location tags: ILBRK
+When specifying file path you may use special location tags: ILBRK
+\verb^$INSTALLDIR$^, which allows you to explicitly read files in the game installation directory. ILBRK
 \verb^$SAVEGAMEDIR$^, which allows you to access files in the save game directory. ILBRK
 \verb^$APPDATADIR$^, which allows you to write/read files to a folder on the system which
 is accessible by and shared by all users.
@@ -13127,9 +13130,10 @@ data files and the player can choose which one to load.
 FILEMASK is a standard DOS/Windows search expression such as "*.dat"
 or "data*.*"
 
-When specifying file path you may use two special location tags: ILBRK
+When specifying file path you may use special location tags: ILBRK
+\verb^$INSTALLDIR$^, which allows you to explicitly access files in the game installation directory. ILBRK
 \verb^$SAVEGAMEDIR$^, which allows you to access files in the save game directory. ILBRK
-\verb^$APPDATADIR$^, which allows you to write/read files to a folder on the system which
+\verb^$APPDATADIR$^, which allows you to access files to a folder on the system which
 is accessible by and shared by all users.
 
 \fcol{red}{Example:}
@@ -20609,15 +20613,22 @@ but it is recommended to set it to False if you are using ListBox for listing sa
 
 Since 3.3.5 AGS does not allow to \bf{write} any files into other path rather than "\verb^$SAVEGAMEDIR$^"
 (personal user saves directory) or "\verb^$APPDATADIR$^" (all-users game data directory). If you attempt to open
-file for \bf{writing} in the game installation directory, the filepath will be automatically remapped to
+file for \bf{writing} using relative path without location tag, the filepath will be automatically remapped to
 \verb^$APPDATADIR$^ location.
 
-At the same time your players are allowed to set up their own custom path in game setup, where the game
-saves & data will be written. This is done in the game setup program.
-This works as if \verb^$SAVEGAMEDIR$^ and \verb^$APPDATADIR$^ were redirected to custom location. Redirection is done internally
-by the engine, you do not need to add anything to your game scripts to make it work.
+Because of that, for backwards compatibility reasons, when you try to open file for reading using relative path
+without location tag, AGS will first look for that file in \verb^$APPDATADIR$^, and only if no matching file is
+found there, then the game installation directory will be checked.
 
-Opening files for reading still works the same way.
+To force opening file in the game installation directory (for reading) a new location tag was introduced: 
+"\verb^$INSTALLDIR$^". When using this tag you will explicitly tell AGS to look in and only in the game's
+installation directory. However, if you try opening file for writing at such location, that will result in
+failure.
+
+Players are now allowed to set up their own custom path in game setup, where the game
+saves & data will be written. This is done in the game setup program.
+This works as if \verb^$SAVEGAMEDIR$^ and \verb^$APPDATADIR$^ were redirected to custom location.
+Redirection is done internally by the engine, you do not need to add anything to your game scripts to make it work.
 
 Conceptually, AGS is gradually leaning towards using only "symbols of file locations" rather than actual,
 explicit locations on the filesystem.

@@ -1236,7 +1236,7 @@ void engine_init_game_settings()
     mousey=100;  // stop icon bar popping up
 }
 
-void engine_setup_scsystem()
+void engine_setup_scsystem_screen()
 {
     DisplayMode dm = gfxDriver->GetDisplayMode();
     scsystem.width = game.size.Width;
@@ -1246,6 +1246,10 @@ void engine_setup_scsystem()
     scsystem.vsync = dm.Vsync;
     scsystem.viewport_width = divide_down_coordinate(play.viewport.GetWidth());
     scsystem.viewport_height = divide_down_coordinate(play.viewport.GetHeight());
+}
+
+void engine_setup_scsystem_auxiliary()
+{
     // ScriptSystem::aci_version is only 10 chars long
     strncpy(scsystem.aci_version, EngineVersion.LongString, 10);
     if (usetup.override_script_os >= 0)
@@ -1302,7 +1306,7 @@ void engine_prepare_to_start_game()
 {
     Out::FPrint("Prepare to start game");
 
-    engine_setup_scsystem();
+    engine_setup_scsystem_auxiliary();
     engine_setup_graphic_area();
     engine_start_multithreaded_audio();
 
@@ -1467,8 +1471,9 @@ int initialize_engine(int argc,char*argv[])
         return EXIT_NORMAL;
 
     engine_post_gfxmode_setup();
+    engine_setup_scsystem_screen();
 
-    platform->PostAllegroInit(usetup.Screen.Windowed);
+    platform->PostAllegroInit(scsystem.windowed != 0);
 
     SetMultitasking(0);
 

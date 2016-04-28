@@ -14,31 +14,32 @@
 
 #include "video.h"
 #include "apeg.h"
+#include "debug/debug_log.h"
+#include "debug/out.h"
 #include "ac/common.h"
 #include "ac/draw.h"
-#include "ac/file.h"
+#include "ac/game_version.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "ac/global_audio.h"
 #include "ac/global_display.h"
 #include "ac/mouse.h"
 #include "ac/record.h"
-#include "media/audio/audio.h"
-#include "platform/base/agsplatformdriver.h"
+#include "ac/runtime_defines.h"
+#include "core/assetmanager.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 #include "main/graphics_mode.h"
+#include "media/audio/audio.h"
+#include "util/stream.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
 
 extern GameSetupStruct game;
-extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap *virtual_screen;
-
 extern int psp_video_framedrop;
 
 
@@ -90,6 +91,91 @@ extern "C" int fli_callback() {
     return check_if_user_input_should_cancel_video();
 }
 
+void play_flc_file(int numb,int playflags) {
+    color oldpal[256];
+
+    // AGS 2.x: If the screen is faded out, fade in again when playing a movie.
+    if (loaded_game_file_version <= kGameVersion_272)
+        play.screen_is_faded_out = 0;
+
+    if (play.fast_forward)
+        return;
+
+    get_palette_range(oldpal, 0, 255);
+
+    int clearScreenAtStart = 1;
+    canabort = playflags % 10;
+    playflags -= canabort;
+
+    if (canabort == 2) // convert to PlayVideo-compatible setting
+        canabort = 3;
+
+    if (playflags % 100 == 0)
+        stretch_flc = 1;
+    else
+        stretch_flc = 0;
+
+    if (playflags / 100)
+        clearScreenAtStart = 0;
+
+    char flicnam[20]; sprintf(flicnam,"flic%d.flc",numb);
+    Stream*in=Common::AssetManager::OpenAsset(flicnam);
+    if (in==NULL) { sprintf(flicnam,"flic%d.fli",numb);
+    in=Common::AssetManager::OpenAsset(flicnam); }
+    if (in==NULL) {
+        debug_log("FLIC animation FLIC%d.FLC not found",numb);
+        return;
+    }
+    in->Seek(8);
+    fliwidth = in->ReadInt16();
+    fliheight = in->ReadInt16();
+    delete in;
+    if (game.color_depth > 1) {
+        hicol_buf=BitmapHelper::CreateBitmap(fliwidth,fliheight,ScreenResolution.ColorDepth);
+        hicol_buf->Clear();
+    }
+    // override the stretch option if necessary
+    if ((fliwidth==play.viewport.GetWidth()) && (fliheight==play.viewport.GetHeight()))
+        stretch_flc = 0;
+    else if ((fliwidth > play.viewport.GetWidth()) || (fliheight > play.viewport.GetHeight()))
+        stretch_flc = 1;
+    fli_buffer=BitmapHelper::CreateBitmap(fliwidth,fliheight,8); //640,400); //play.viewport.GetWidth(),play.viewport.GetHeight());
+    if (fli_buffer==NULL) quit("Not enough memory to play animation");
+    fli_buffer->Clear();
+
+    Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
+
+    if (clearScreenAtStart) {
+        screen_bmp->Clear();
+        render_to_screen(screen_bmp, 0, 0);
+    }
+
+    fli_target = BitmapHelper::CreateBitmap(screen_bmp->GetWidth(), screen_bmp->GetHeight(), ScreenResolution.ColorDepth);
+    fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
+
+    if (play_fli(flicnam,(BITMAP*)fli_buffer->GetAllegroBitmap(),0,fli_callback)==FLI_ERROR)
+    {
+        // This is not a fatal error that should prevent the game from continuing
+        //quit("FLI/FLC animation play error");
+        Out::FPrint("FLI/FLC animation play error");
+    }
+
+    delete fli_buffer;
+    screen_bmp->Clear();
+    set_palette_range(oldpal, 0, 255, 0);
+    render_to_screen(screen_bmp, 0, 0);
+
+    delete fli_target;
+    gfxDriver->DestroyDDB(fli_ddb);
+    fli_ddb = NULL;
+
+
+    delete hicol_buf;
+    hicol_buf=NULL;
+    //  SetVirtualScreen(screen); wputblock(0,0,backbuffer,0);
+    while (mgetbutton()!=NONE) ;
+    invalidate_screen();
+}
 
 // FLIC player end
 
@@ -245,36 +331,4 @@ void play_theora_video(const char *name, int skip, int flags)
     gfxDriver->DestroyDDB(fli_ddb);
     fli_ddb = NULL;
     invalidate_screen();
-}
-
-void pause_sound_if_necessary_and_play_video(const char *name, int skip, int flags)
-{
-    int musplaying = play.cur_music_number, i;
-    int ambientWas[MAX_SOUND_CHANNELS];
-    for (i = 1; i < MAX_SOUND_CHANNELS; i++)
-        ambientWas[i] = ambient[i].channel;
-
-    if ((strlen(name) > 3) && (stricmp(&name[strlen(name) - 3], "ogv") == 0))
-    {
-        play_theora_video(name, skip, flags);
-    }
-    else
-    {
-        char videoFilePath[MAX_PATH];
-        get_current_dir_path(videoFilePath, name);
-
-        platform->PlayVideo(videoFilePath, skip, flags);
-    }
-
-    if (flags < 10) 
-    {
-        update_music_volume();
-        // restart the music
-        if (musplaying >= 0)
-            newmusic (musplaying);
-        for (i = 1; i < MAX_SOUND_CHANNELS; i++) {
-            if (ambientWas[i] > 0)
-                PlayAmbientSound(ambientWas[i], ambient[i].num, ambient[i].vol, ambient[i].x, ambient[i].y);
-        }
-    }
 }

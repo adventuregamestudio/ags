@@ -31,6 +31,7 @@
 #include "gui/guiinv.h"
 #include "main/graphics_mode.h"
 #include "main/engine_setup.h"
+#include "media/video/video.h"
 #include "platform/base/agsplatformdriver.h"
 
 using namespace AGS::Common;
@@ -449,6 +450,8 @@ void engine_post_gfxmode_setup(const Size &init_desktop)
     // has anything to do with graphics mode at all. It is quite possible
     // that we may split it into two functions, or remove parameter.
     platform->PostAllegroInit(scsystem.windowed != 0);
+
+    video_on_gfxmode_changed();
 }
 
 void engine_pre_gfxmode_shutdown()

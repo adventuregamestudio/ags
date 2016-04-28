@@ -21,4 +21,7 @@
 void play_theora_video(const char *name, int skip, int flags);
 void play_flc_file(int numb,int playflags);
 
+// Update video playback if the display mode has changed
+void video_on_gfxmode_changed();
+
 #endif // __AGS_EE_MEDIA__VIDEO_H

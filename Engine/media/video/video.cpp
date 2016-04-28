@@ -42,6 +42,14 @@ extern IGraphicsDriver *gfxDriver;
 extern Bitmap *virtual_screen;
 extern int psp_video_framedrop;
 
+enum VideoPlaybackType
+{
+    kVideoNone,
+    kVideoFlic,
+    kVideoTheora
+};
+
+VideoPlaybackType video_type = kVideoNone;
 
 // FLIC player start
 Bitmap *fli_buffer = NULL;
@@ -150,6 +158,7 @@ void play_flc_file(int numb,int playflags) {
         render_to_screen(screen_bmp, 0, 0);
     }
 
+    video_type = kVideoFlic;
     fli_target = BitmapHelper::CreateBitmap(screen_bmp->GetWidth(), screen_bmp->GetHeight(), ScreenResolution.ColorDepth);
     fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
 
@@ -160,8 +169,11 @@ void play_flc_file(int numb,int playflags) {
         Out::FPrint("FLI/FLC animation play error");
     }
 
+    video_type = kVideoNone;
     delete fli_buffer;
     fli_buffer = NULL;
+    // NOTE: the screen bitmap could change in the meanwhile, if the display mode has changed
+    screen_bmp = BitmapHelper::GetScreenBitmap();
     screen_bmp->Clear();
     set_palette_range(oldpal, 0, 255, 0);
     render_to_screen(screen_bmp, 0, 0);
@@ -321,11 +333,13 @@ void play_theora_video(const char *name, int skip, int flags)
 
     virtual_screen->Clear();
 
+    video_type = kVideoTheora;
     if (apeg_play_apeg_stream(oggVid, NULL, 0, theora_playing_callback) == APEG_ERROR)
     {
         Display("Error playing theora video '%s'", name);
     }
     apeg_close_stream(oggVid);
+    video_type = kVideoNone;
 
     //destroy_bitmap(fli_buffer);
     delete fli_target;
@@ -333,4 +347,13 @@ void play_theora_video(const char *name, int skip, int flags)
     fli_target = NULL;
     fli_ddb = NULL;
     invalidate_screen();
+}
+
+void video_on_gfxmode_changed()
+{
+    if (video_type == kVideoFlic)
+    {
+        // If the FLIC video is playing, restore its palette
+        set_palette_range(fli_palette, 0, 255, 0);
+    }
 }

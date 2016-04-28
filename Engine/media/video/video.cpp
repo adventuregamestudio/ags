@@ -44,12 +44,12 @@ extern int psp_video_framedrop;
 
 
 // FLIC player start
-Bitmap *fli_buffer;
+Bitmap *fli_buffer = NULL;
 short fliwidth,fliheight;
 int canabort=0, stretch_flc = 1;
 Bitmap *hicol_buf=NULL;
-IDriverDependantBitmap *fli_ddb;
-Bitmap *fli_target;
+IDriverDependantBitmap *fli_ddb = NULL;
+Bitmap *fli_target = NULL;
 int fliTargetWidth, fliTargetHeight;
 int check_if_user_input_should_cancel_video()
 {
@@ -161,12 +161,14 @@ void play_flc_file(int numb,int playflags) {
     }
 
     delete fli_buffer;
+    fli_buffer = NULL;
     screen_bmp->Clear();
     set_palette_range(oldpal, 0, 255, 0);
     render_to_screen(screen_bmp, 0, 0);
 
     delete fli_target;
     gfxDriver->DestroyDDB(fli_ddb);
+    fli_target = NULL;
     fli_ddb = NULL;
 
 
@@ -295,7 +297,6 @@ void play_theora_video(const char *name, int skip, int flags)
         stop_all_sound_and_music();
     }
 
-    fli_target = NULL;
     //fli_buffer = BitmapHelper::CreateBitmap_(ScreenResolution.ColorDepth, videoWidth, videoHeight);
     calculate_destination_size_maintain_aspect_ratio(videoWidth, videoHeight, &fliTargetWidth, &fliTargetHeight);
 
@@ -329,6 +330,7 @@ void play_theora_video(const char *name, int skip, int flags)
     //destroy_bitmap(fli_buffer);
     delete fli_target;
     gfxDriver->DestroyDDB(fli_ddb);
+    fli_target = NULL;
     fli_ddb = NULL;
     invalidate_screen();
 }

@@ -803,6 +803,12 @@ void D3DGraphicsDriver::UnInit()
   dxmedia_shutdown_3d();
   gfx_driver = NULL;
 
+  if (vertexbuffer)
+  {
+    vertexbuffer->Release();
+    vertexbuffer = NULL;
+  }
+
   if (pixelShader)
   {
     pixelShader->Release();

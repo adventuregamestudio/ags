@@ -119,6 +119,8 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void UnRegisterGameWithGameExplorer();
   virtual int  ConvertKeycodeToScanCode(int keyCode);
   virtual void ValidateWindowSize(int &x, int &y, bool borderless) const;
+  virtual bool LockMouseToWindow();
+  virtual void UnlockMouse();
 
 private:
   void add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
@@ -872,6 +874,22 @@ void AGSWin32::ValidateWindowSize(int &x, int &y, bool borderless) const
     }
     x = Math::Clamp(1, cx, x);
     y = Math::Clamp(1, cy, y);
+}
+
+bool AGSWin32::LockMouseToWindow()
+{
+    RECT rc;
+    GetClientRect(allegro_wnd, &rc);
+    ClientToScreen(allegro_wnd, (POINT*)&rc);
+    ClientToScreen(allegro_wnd, (POINT*)&rc.right);
+    --rc.right;
+    --rc.bottom;
+    return ::ClipCursor(&rc) != 0;
+}
+
+void AGSWin32::UnlockMouse()
+{
+    ::ClipCursor(NULL);
 }
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {

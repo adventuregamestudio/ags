@@ -77,6 +77,9 @@ struct AGSPlatformDriver
     virtual int  RunPluginDebugHooks(const char *scriptfile, int linenum);
     virtual void ShutdownPlugins();
 
+    virtual bool LockMouseToWindow();
+    virtual void UnlockMouse();
+
     static AGSPlatformDriver *GetDriver();
 
     //-----------------------------------------------

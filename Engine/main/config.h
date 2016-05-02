@@ -21,11 +21,13 @@
 #include "util/ini_util.h"
 
 void read_config_file(char *argv0);
+void save_config_file();
 uint32_t parse_scaling_factor(const AGS::Common::String &scaling_option);
 
 bool INIreaditem(const AGS::Common::ConfigTree &cfg, const AGS::Common::String &sectn, const AGS::Common::String &item, AGS::Common::String &value);
 int INIreadint(const AGS::Common::ConfigTree &cfg, const AGS::Common::String &sectn, const AGS::Common::String &item, int def_value = 0);
-AGS::Common::String INIreadstring(const AGS::Common::ConfigTree &cfg, const AGS::Common::String &sectn, const AGS::Common::String &item, const char *def_value = "");
+float INIreadfloat(const AGS::Common::ConfigTree &cfg, const AGS::Common::String &sectn, const AGS::Common::String &item, float def_value = 0.f);
+AGS::Common::String INIreadstring(const AGS::Common::ConfigTree &cfg, const AGS::Common::String &sectn, const AGS::Common::String &item, const AGS::Common::String &def_value = "");
 
 
 #endif // __AGS_EE_MAIN__CONFIG_H

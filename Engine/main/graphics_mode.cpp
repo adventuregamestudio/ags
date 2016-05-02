@@ -454,6 +454,9 @@ void log_out_driver_modes(const int color_depth)
 bool create_gfx_driver_and_init_mode(const String &gfx_driver_id, const GameSizeDef &game_size,
                                      const ScreenSetup &setup, const ColorDepthOption color_depths, const bool windowed)
 {
+    Size init_desktop;
+    get_desktop_resolution(&init_desktop.Width, &init_desktop.Height);
+
     if (!create_gfx_driver(gfx_driver_id))
         return false;
     // Log out supported driver modes

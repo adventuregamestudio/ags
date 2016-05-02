@@ -100,7 +100,16 @@ int INIreadint(const ConfigTree &cfg, const String &sectn, const String &item, i
     return atoi(str);
 }
 
-String INIreadstring(const ConfigTree &cfg, const String &sectn, const String &item, const char *def_value)
+float INIreadfloat(const ConfigTree &cfg, const String &sectn, const String &item, float def_value)
+{
+    String str;
+    if (!INIreaditem(cfg, sectn, item, str))
+        return def_value;
+
+    return atof(str);
+}
+
+String INIreadstring(const ConfigTree &cfg, const String &sectn, const String &item, const String &def_value)
 {
     String str;
     if (!INIreaditem(cfg, sectn, item, str))
@@ -296,6 +305,19 @@ void read_config_file(char *argv0) {
         else
             play.playback = 0;
 
+        usetup.mouse_auto_lock = INIreadint(cfg, "mouse", "auto_lock") > 0;
+
+        usetup.mouse_speed = INIreadfloat(cfg, "mouse", "speed", 1.f);
+        if (usetup.mouse_speed <= 0.f)
+            usetup.mouse_speed = 1.f;
+        const char *mouse_speed_options[kNumMouseSpeedDefs] = { "absolute", "current_display" };
+        String mouse_str = INIreadstring(cfg, "mouse", "speed_def", "current_display");
+        for (int i = 0; i < kNumMouseSpeedDefs; ++i)
+        {
+            if (mouse_str.CompareNoCase(mouse_speed_options[i]) == 0)
+                usetup.mouse_speed_def = (MouseSpeedDef)i;
+        }
+
         usetup.override_multitasking = INIreadint(cfg, "override", "multitasking", -1);
         String override_os = INIreadstring(cfg, "override", "os");
         usetup.override_script_os = -1;
@@ -345,4 +367,13 @@ void read_config_file(char *argv0) {
         usetup.Screen.Filter.ScaleX = kUnit;
         usetup.Screen.Filter.ScaleY = kUnit;
     }
+}
+
+void save_config_file()
+{
+    ConfigTree cfg;
+
+    cfg["mouse"]["speed"] = String::FromFormat("%f", Mouse::GetSpeed());
+
+    IniUtil::Merge(ac_config_file, cfg);
 }

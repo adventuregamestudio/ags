@@ -21,6 +21,8 @@
 //
 //=============================================================================
 
+#include "util/geometry.h"
+
 #define MAXCURSORS 20
 
 #include "util/geometry.h"
@@ -44,6 +46,30 @@ void msetgraphpos(int xa, int ya);
 void msethotspot(int xx, int yy);
 int minstalled();
 
+namespace Mouse
+{
+    // Get if mouse is locked to the game window
+    bool IsLockedToWindow();
+    // Try locking mouse to the game window
+    bool TryLockToWindow();
+    // Unlock mouse from the game window
+    void UnlockFromWindow();
+
+    // Enable mouse movement control
+    void EnableControl(bool confine);
+    // Disable mouse movement control
+    void DisableControl();
+    // Tell if the mouse movement control is enabled
+    bool IsControlEnabled();
+    // Set base speed factor, which would serve as a mouse speed unit
+    void SetSpeedUnit(float f);
+    // Get base speed factor
+    float GetSpeedUnit();
+    // Set speed factors
+    void SetSpeed(float speed);
+    // Get speed factor
+    float GetSpeed();
+}
 
 namespace Mouse
 {

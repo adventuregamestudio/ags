@@ -27,6 +27,7 @@
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "font/fonts.h"
+#include "main/config.h"
 #include "main/graphics_mode.h"
 #include "main/main.h"
 #include "main/mainheader.h"
@@ -97,6 +98,8 @@ void quit_check_dynamic_sprites(char *qmsg)
 
 void quit_shutdown_platform(char *qmsg)
 {
+    // Be sure to unlock mouse on exit, or users will hate us
+    platform->UnlockMouse();
     platform->AboutToQuitGame();
 
     our_eip = 9016;
@@ -255,6 +258,8 @@ void quit(const char *quitmsg) {
     strncpy(qmsgbufr, quitmsg, STD_BUFFER_SIZE);
     qmsgbufr[STD_BUFFER_SIZE - 1] = 0;
     char *qmsg = &qmsgbufr[0];
+
+    save_config_file();
 
 	allegro_bitmap_test_release();
 

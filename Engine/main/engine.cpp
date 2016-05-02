@@ -137,6 +137,12 @@ int engine_init_allegro()
             user_hint);
         return EXIT_NORMAL;
     }
+
+    // Setup allegro using constructed config string
+    String al_config_data = "[mouse]\n";
+    al_config_data.Append(String::FromFormat("mouse_accel_factor = %d\n", 0));
+    set_config_data(al_config_data, al_config_data.GetLength());
+
     return RETURN_CONTINUE;
 }
 
@@ -1466,16 +1472,22 @@ int initialize_engine(int argc,char*argv[])
     ColorDepthOption color_depths;
     engine_init_resolution_settings(game.size, color_depths);
 
+    const Size init_desktop = get_desktop_size();
+
     // Attempt to initialize graphics mode
     if (!graphics_mode_init(usetup.Screen, color_depths))
         return EXIT_NORMAL;
 
-    engine_post_gfxmode_setup();
+    engine_post_gfxmode_setup(init_desktop);
     engine_setup_scsystem_screen();
 
-    platform->PostAllegroInit(scsystem.windowed != 0);
+    platform->PostAllegroInit(scsystem.windowed);
 
     SetMultitasking(0);
+
+    // If auto lock option is set, lock mouse to the game window
+    if (usetup.mouse_auto_lock && scsystem.windowed)
+        Mouse::TryLockToWindow();
 
     engine_show_preload();
 

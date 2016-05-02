@@ -91,6 +91,11 @@ extern char ScSfBuffer[3000];
     FUNCTION(); \
     return RuntimeScriptValue()
 
+#define API_SCALL_VOID_PBOOL(FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 1) \
+    FUNCTION(params[0].GetAsBool()); \
+    return RuntimeScriptValue()
+
 #define API_SCALL_VOID_PINT(FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 1) \
     FUNCTION(params[0].IValue); \
@@ -144,6 +149,11 @@ extern char ScSfBuffer[3000];
 #define API_SCALL_VOID_PINT4_POBJ(FUNCTION, P1CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 5) \
     FUNCTION(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue, (P1CLASS*)params[4].Ptr); \
+    return RuntimeScriptValue()
+
+#define API_SCALL_VOID_PFLOAT2(FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 2) \
+    FUNCTION(params[0].FValue, params[1].FValue); \
     return RuntimeScriptValue()
 
 #define API_SCALL_VOID_POBJ(FUNCTION, P1CLASS) \
@@ -212,6 +222,9 @@ extern char ScSfBuffer[3000];
 #define API_SCALL_INT_PINT_POBJ(FUNCTION, P1CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 2) \
     return RuntimeScriptValue().SetInt32(FUNCTION(params[0].IValue, (P1CLASS*)params[1].Ptr))
+
+#define API_SCALL_FLOAT(FUNCTION) \
+    return RuntimeScriptValue().SetFloat(FUNCTION())
 
 #define API_SCALL_BOOL(FUNCTION) \
     return RuntimeScriptValue().SetInt32AsBool(FUNCTION())

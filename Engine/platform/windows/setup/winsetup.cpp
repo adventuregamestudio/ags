@@ -91,6 +91,9 @@ struct WinConfig
     int    MidiWinIdx;
     bool   UseVoicePack;
 
+    bool   MouseAutoLock;
+    float  MouseSpeed;
+
     int    SpriteCacheSize;
     String DefaultLanguageName;
     String Language;
@@ -125,6 +128,9 @@ void WinConfig::SetDefaults()
     VSync = false;
     AntialiasSprites = false;
     Reduce32to16 = false;
+
+    MouseAutoLock = false;
+    MouseSpeed = 1.f;
 
     DigiWinIdx = 0;
     MidiWinIdx = 0;
@@ -193,6 +199,11 @@ void WinConfig::Load(const ConfigTree &cfg)
     MidiWinIdx = INIreadint(cfg, "sound", "midiwinindx", MidiWinIdx);
     UseVoicePack = INIreadint(cfg, "sound", "usespeech", UseVoicePack ? 1 : 0) != 0;
 
+    MouseAutoLock = INIreadint(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0) != 0;
+    MouseSpeed = INIreadfloat(cfg, "mouse", "speed", 1.f);
+    if (MouseSpeed <= 0.f)
+        MouseSpeed = 1.f;
+
     SpriteCacheSize = INIreadint(cfg, "misc", "cachemax", SpriteCacheSize);
     Language = INIreadstring(cfg, "language", "translation", Language);
     DefaultLanguageName = INIreadstring(cfg, "language", "default_translation_name", DefaultLanguageName);
@@ -220,6 +231,9 @@ void WinConfig::Save(ConfigTree &cfg)
     WritePPInt("sound", "digiwinindx", DigiWinIdx);
     WritePPInt("sound", "midiwinindx", MidiWinIdx);
     WritePPInt("sound", "usespeech", UseVoicePack ? 1 : 0);
+
+    WritePPInt("mouse", "auto_lock", MouseAutoLock ? 1 : 0);
+    WritePPString("mouse", "speed", String::FromFormat("%0.1f", MouseSpeed));
 
     WritePPInt("misc", "cachemax", SpriteCacheSize);
     WritePPString("language", "translation", Language);
@@ -324,6 +338,21 @@ void ResetContent(HWND hwnd)
     SendMessage(hwnd, CB_RESETCONTENT, 0, 0);
 }
 
+void SetSliderRange(HWND hwnd, int min, int max)
+{
+    SendMessage(hwnd, TBM_SETRANGE, (WPARAM)TRUE, (LPARAM)MAKELONG(min, max));
+}
+
+int GetSliderPos(HWND hwnd)
+{
+    return SendMessage(hwnd, TBM_GETPOS, 0, 0);
+}
+
+void SetSliderPos(HWND hwnd, int pos)
+{
+    SendMessage(hwnd, TBM_SETPOS, (WPARAM)TRUE, (LPARAM)pos);
+}
+
 //=============================================================================
 //
 // WinSetupDialog, handles the dialog UI.
@@ -356,6 +385,9 @@ public:
         kFilterScaling_MaxFit,
         kNumFilterScalingSpecials
     };
+
+    static const int MouseSpeedMin = 1;
+    static const int MouseSpeedMax = 100;
 
 public:
     WinSetupDialog(HWND hwnd, const String version_str);
@@ -404,6 +436,7 @@ private:
     void SelectNearestGfxMode(const Size screen_size, GfxModeSpecial gfx_mode_spec);
     void SetFramePlacement(const String &frame_place);
     void SetGfxModeText();
+    void UpdateMouseSpeedText();
 
     // Dialog singleton and properties
     static WinSetupDialog *_dlg;
@@ -446,6 +479,9 @@ private:
     HWND _hGfxModeText;
     HWND _hStretchToScreen;
     HWND _hKeepAspectRatio;
+    HWND _hMouseLock;
+    HWND _hMouseSpeed;
+    HWND _hMouseSpeedText;
 };
 
 WinSetupDialog *WinSetupDialog::_dlg = NULL;
@@ -496,6 +532,9 @@ INT_PTR WinSetupDialog::OnInitDialog()
     _hGfxModeText           = GetDlgItem(_hwnd, IDC_GFXMODETEXT);
     _hStretchToScreen       = GetDlgItem(_hwnd, IDC_STRETCHTOSCREEN);
     _hKeepAspectRatio       = GetDlgItem(_hwnd, IDC_ASPECTRATIO);
+    _hMouseLock             = GetDlgItem(_hwnd, IDC_MOUSE_AUTOLOCK);
+    _hMouseSpeed            = GetDlgItem(_hwnd, IDC_MOUSESPEED);
+    _hMouseSpeedText        = GetDlgItem(_hwnd, IDC_MOUSESPEED_TEXT);
 
     _desktopSize = get_desktop_size();
     _maxWindowSize = _desktopSize;
@@ -570,6 +609,13 @@ INT_PTR WinSetupDialog::OnInitDialog()
 
     FillLanguageList();
 
+    SetCheck(_hMouseLock, _winCfg.MouseAutoLock);
+
+    SetSliderRange(_hMouseSpeed, MouseSpeedMin, MouseSpeedMax);
+    int slider_pos = (int)(_winCfg.MouseSpeed * 10.f + .5f);
+    SetSliderPos(_hMouseSpeed, slider_pos);
+    UpdateMouseSpeedText();
+
     AddString(_hSpriteCacheList, "10 MB", 10);
     AddString(_hSpriteCacheList, "20 MB (default)", 20);
     AddString(_hSpriteCacheList, "50 MB", 50);
@@ -604,7 +650,7 @@ INT_PTR WinSetupDialog::OnInitDialog()
     _winSize.Height = win_rect.bottom - win_rect.top;
     GetWindowRect(_hAdvanced, &adv_rect);
     _baseSize.Width = (adv_rect.right + (gfx_rect.left - win_rect.left)) - win_rect.left;
-    _baseSize.Height = win_rect.bottom - win_rect.top;
+    _baseSize.Height = adv_rect.bottom + (adv_rect.bottom - adv_rect.top) / 2 - win_rect.top;
 
     MoveWindow(_hwnd, max(0, win_rect.left + (_winSize.Width - _baseSize.Width) / 2),
                       max(0, win_rect.top + (_winSize.Height - _baseSize.Height) / 2),
@@ -795,6 +841,9 @@ INT_PTR CALLBACK WinSetupDialog::DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wPar
         if (HIWORD(wParam) == CBN_SELCHANGE)
             return _dlg->OnListSelection(LOWORD(wParam));
         return _dlg->OnCommand(LOWORD(wParam));
+    case WM_HSCROLL:
+        _dlg->UpdateMouseSpeedText();
+        return TRUE;
     case WM_DESTROY:
         _ASSERT(_dlg != NULL);
         delete _dlg;
@@ -1047,6 +1096,10 @@ void WinSetupDialog::SaveSetup()
     _winCfg.Reduce32to16 = GetCheck(_hReduce32to16);
     _winCfg.GfxFilterId = (LPCTSTR)GetCurItemData(_hGfxFilterList);
 
+    _winCfg.MouseAutoLock = GetCheck(_hMouseLock);
+    int slider_pos = GetSliderPos(_hMouseSpeed);
+    _winCfg.MouseSpeed = (float)slider_pos / 10.f;
+
     if (File::TestWriteFile(ac_config_file))
         _winCfg.Save(_cfgTree);
     else
@@ -1125,6 +1178,14 @@ void WinSetupDialog::SetGfxModeText()
     }
     String text = String::FromFormat("%d x %d", width, height);
     SetText(_hGfxModeText, text);
+}
+
+void WinSetupDialog::UpdateMouseSpeedText()
+{
+    int slider_pos = GetSliderPos(_hMouseSpeed);
+    float mouse_speed = (float)slider_pos / 10.f;
+    String text = mouse_speed == 1.f ? "Mouse speed: x 1.0 (Default)" : String::FromFormat("Mouse speed: x %0.1f", mouse_speed);
+    SetText(_hMouseSpeedText, text);
 }
 
 //=============================================================================

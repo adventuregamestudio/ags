@@ -22,6 +22,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/walkbehind.h"
 #include "debug/out.h"
+#include "device/mousew32.h"
 #include "font/fonts.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/graphicsdriver.h"
@@ -329,9 +330,31 @@ void engine_set_color_conversions()
     set_color_conversion(COLORCONV_MOST | COLORCONV_EXPAND_256 | COLORCONV_REDUCE_16_TO_15);
 }
 
-void engine_post_gfxmode_setup()
+void engine_set_mouse_control(const Size &init_desktop)
+{
+    DisplayMode dm = gfxDriver->GetDisplayMode();
+    // Assign mouse control parameters
+    const bool control_sens = !dm.Windowed;
+    if (control_sens)
+    {
+        Mouse::EnableControl(!dm.Windowed);
+        if (usetup.mouse_speed_def == kMouseSpeed_CurrentDisplay)
+        {
+            Size cur_desktop;
+            get_desktop_resolution(&cur_desktop.Width, &cur_desktop.Height);
+            Mouse::SetSpeedUnit(Math::Max((float)cur_desktop.Width / (float)init_desktop.Width, (float)cur_desktop.Height / (float)init_desktop.Height));
+        }
+        Mouse::SetSpeed(usetup.mouse_speed);
+    }
+    Out::FPrint("Mouse control: %s, base: %f, speed: %f", Mouse::IsControlEnabled() ? "on" : "off",
+        Mouse::GetSpeedUnit(), Mouse::GetSpeed());
+}
+
+void engine_post_gfxmode_setup(const Size &init_desktop)
 {
     engine_prepare_screen();
     engine_set_gfx_driver_callbacks();
     engine_set_color_conversions();
+
+    engine_set_mouse_control(init_desktop);
 }

@@ -22,6 +22,7 @@
 #include "ac/draw.h"
 #include "ac/event.h"
 #include "ac/game.h"
+#include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_debug.h"
 #include "ac/global_display.h"
@@ -176,6 +177,23 @@ int game_loop_check_ground_level_interactions()
     return RETURN_CONTINUE;
 }
 
+void lock_mouse_on_click()
+{
+    if (usetup.mouse_auto_lock && scsystem.windowed)
+        Mouse::TryLockToWindow();
+}
+
+void toggle_mouse_lock()
+{
+    if (scsystem.windowed)
+    {
+        if (Mouse::IsLockedToWindow())
+            Mouse::UnlockFromWindow();
+        else
+            Mouse::TryLockToWindow();
+    }
+}
+
 // check_controls: checks mouse & keyboard interface
 void check_controls() {
     int numevents_was = numevents;
@@ -203,6 +221,8 @@ void check_controls() {
 
     aa=mgetbutton();
     if (aa>NONE) {
+        lock_mouse_on_click();
+
         if ((play.in_cutscene == 3) || (play.in_cutscene == 4))
             start_skipping_cutscene();
         if ((play.in_cutscene == 5) && (aa == RIGHT))
@@ -231,12 +251,15 @@ void check_controls() {
         //    else RunTextScriptIParam(gameinst,"on_mouse_click",aa+1);
     }
     aa = check_mouse_wheel();
+    if (aa !=0)
+        lock_mouse_on_click();
     if (aa < 0)
         setevent (EV_TEXTSCRIPT, TS_MCLICK, 9);
     else if (aa > 0)
         setevent (EV_TEXTSCRIPT, TS_MCLICK, 8);
 
     // check keypresses
+    static int old_key_shifts = 0;
     if (kbhit()) {
         // in case they press the finish-recording button, make sure we know
         int was_playing = play.playback;
@@ -393,6 +416,17 @@ void check_controls() {
             }
         }
         //    RunTextScriptIParam(gameinst,"on_key_press",kgn);
+    }
+    // check extended keys
+    else
+    {
+        // Toggle mouse lock on Ctrl + Alt release
+        if (!key[KEY_ALT] && !(key[KEY_LCONTROL] || key[KEY_RCONTROL]) &&
+            old_key_shifts == (KB_ALT_FLAG | KB_CTRL_FLAG))
+        {
+            toggle_mouse_lock();
+        }
+        old_key_shifts = key_shifts & ~(KB_SCROLOCK_FLAG | KB_NUMLOCK_FLAG | KB_CAPSLOCK_FLAG);
     }
 
     if ((IsInterfaceEnabled()) && (IsGamePaused() == 0) &&

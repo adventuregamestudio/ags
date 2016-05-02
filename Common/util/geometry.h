@@ -205,9 +205,14 @@ struct Rect
         return Right < Left || Bottom < Top;
     }
 
+    inline bool IsInside(int x, int y) const
+    {
+        return x >= Left && y >= Top && (x <= Right) && (y <= Bottom);
+    }
+
     inline bool IsInside(const Point &pt) const
     {
-        return pt.X >= Left && pt.Y >= Top && (pt.X <= Right) && (pt.Y <= Bottom);
+        return IsInside(pt.X, pt.Y);
     }
 
     inline void MoveToX(int x)

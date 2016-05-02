@@ -788,12 +788,14 @@ void SetMultitasking (int mode) {
         if (set_display_switch_mode(SWITCH_PAUSE) == -1)
             set_display_switch_mode(SWITCH_AMNESIA);
         // install callbacks to stop the sound when switching away
-        set_display_switch_callback(SWITCH_IN, display_switch_in);
-        set_display_switch_callback(SWITCH_OUT, display_switch_out);
+        set_display_switch_callback(SWITCH_IN, display_switch_in_resume);
+        set_display_switch_callback(SWITCH_OUT, display_switch_out_suspend);
     }
     else {
         if (set_display_switch_mode (SWITCH_BACKGROUND) == -1)
             set_display_switch_mode(SWITCH_BACKAMNESIA);
+        set_display_switch_callback(SWITCH_IN, display_switch_in);
+        set_display_switch_callback(SWITCH_OUT, display_switch_out);
     }
 }
 

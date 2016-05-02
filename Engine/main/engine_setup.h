@@ -22,6 +22,6 @@ struct ColorDepthOption;
 // user config; fills in color depth options.
 void engine_init_resolution_settings(const Size game_size, ColorDepthOption &color_depths);
 // Setup rendering callbacks and color conversions depending on initialized gfx mode
-void engine_post_gfxmode_setup();
+void engine_post_gfxmode_setup(const Size &init_desktop);
 
 #endif // __AGS_EE_MAIN__ENGINESETUP_H

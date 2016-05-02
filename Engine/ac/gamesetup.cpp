@@ -25,9 +25,12 @@ GameSetup::GameSetup()
     enable_antialiasing = false;
     force_hicolor_mode = false;
     disable_exception_handling = false;
+    mouse_auto_lock = false;
     override_script_os = -1;
     override_multitasking = -1;
     override_upscale = false;
+    mouse_speed = 1.f;
+    mouse_speed_def = kMouseSpeed_CurrentDisplay;
 
     Screen.MatchDeviceRatio = false;
     Screen.SizeDef = kScreenDef_MaxDisplay;

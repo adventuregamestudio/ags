@@ -19,6 +19,7 @@ void Test_DoAllTests();
 void Test_Math();
 // File tests
 void Test_File();
+void Test_IniFile();
 // Graphics tests
 void Test_Gfx();
 // Memory / bit-byte operations

@@ -25,6 +25,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/override_defines.h" //_getcwd()
 #include "util/filestream.h"
+#include "util/ini_util.h"
 #include "util/textstreamreader.h"
 #include "util/path.h"
 #include "util/string_utils.h"
@@ -53,8 +54,6 @@ char ac_conf_file_defname[MAX_PATH] = "acsetup.cfg";
 char *ac_config_file = &ac_conf_file_defname[0];
 char conffilebuf[512];
 
-char filetouse[MAX_PATH] = "nofile";
-
 // Replace the filename part of complete path WASGV with INIFIL
 void INIgetdirec(char *wasgv, char *inifil) {
     int u = strlen(wasgv) - 1;
@@ -77,72 +76,35 @@ void INIgetdirec(char *wasgv, char *inifil) {
 
 }
 
-char *INIreaditem(const char *sectn, const char *entry) {
-    Stream *fin = Common::File::OpenFileRead(filetouse);
-    if (fin == NULL)
-        return NULL;
-    TextStreamReader reader(fin);
-
-    //char templine[200];
-    char wantsect[100];
-    sprintf (wantsect, "[%s]", sectn);
-
-    // NOTE: the string is used as a raw buffer down there;
-    // FIXME that as soon as string class is optimized for common use
-    String line;
-
-    while (!reader.EOS()) {
-        //fgets (templine, 199, fin);
-        line = reader.ReadLine();
-
-        // find the section
-        if (strnicmp (wantsect, line.GetCStr(), strlen(wantsect)) == 0) {
-            while (!reader.EOS()) {
-                // we're in the right section, find the entry
-                //fgets (templine, 199, fin);
-                line = reader.ReadLine();
-                if (line.IsEmpty())
-                    continue;
-                if (line[0] == '[')
-                    break;
-                // Have we found the entry?
-                if (strnicmp (line.GetCStr(), entry, strlen(entry)) == 0) {
-                    const char *pptr = &line.GetCStr()[strlen(entry)];
-                    while ((pptr[0] == ' ') || (pptr[0] == '\t'))
-                        pptr++;
-                    if (pptr[0] == '=') {
-                        pptr++;
-                        while ((pptr[0] == ' ') || (pptr[0] == '\t'))
-                            pptr++;
-                        char *toret = (char*)malloc (strlen(pptr) + 5);
-                        strcpy (toret, pptr);
-                        return toret;
-                    }
-                }
-            }
+bool INIreaditem(const ConfigTree &cfg, const String &sectn, const String &item, String &value)
+{
+    ConfigNode sec_it = cfg.find(sectn);
+    if (sec_it != cfg.end())
+    {
+        StrStrOIter item_it = sec_it->second.find(item);
+        if (item_it != sec_it->second.end())
+        {
+            value = item_it->second;
+            return true;
         }
     }
-    return NULL;
+    return false;
 }
 
-int INIreadint (const char *sectn, const char *item, int def_value = 0) {
-    char *tempstr = INIreaditem (sectn, item);
-    if (tempstr == NULL)
-        return def_value;
-
-    int toret = atoi(tempstr);
-    free (tempstr);
-    return toret;
-}
-
-String INIreadstring(const char *sectn, const char *entry, const char *def_value = "")
+int INIreadint(const ConfigTree &cfg, const String &sectn, const String &item, int def_value)
 {
-    char *tempstr = INIreaditem(sectn, entry);
-    if (tempstr == NULL)
+    String str;
+    if (!INIreaditem(cfg, sectn, item, str))
         return def_value;
 
-    String str = tempstr;
-    free(tempstr);
+    return atoi(str);
+}
+
+String INIreadstring(const ConfigTree &cfg, const String &sectn, const String &item, const char *def_value)
+{
+    String str;
+    if (!INIreaditem(cfg, sectn, item, str))
+        return def_value;
     return str;
 }
 
@@ -200,13 +162,14 @@ void read_config_file(char *argv0) {
         return;
     }
 
-    if (Common::File::TestReadFile(ac_config_file)) {
-        strcpy(filetouse,ac_config_file);
+    ConfigTree cfg;
+    if (IniUtil::Read(ac_config_file, cfg))
+    {
 #ifndef WINDOWS_VERSION
-        usetup.digicard=INIreadint("sound","digiid", DIGI_AUTODETECT);
-        usetup.midicard=INIreadint("sound","midiid", MIDI_AUTODETECT);
+        usetup.digicard=INIreadint(cfg, "sound","digiid", DIGI_AUTODETECT);
+        usetup.midicard=INIreadint(cfg, "sound","midiid", MIDI_AUTODETECT);
 #else
-        int idx = INIreadint("sound","digiwinindx", -1);
+        int idx = INIreadint(cfg, "sound","digiwinindx", -1);
         if (idx == 0)
             idx = DIGI_DIRECTAMX(0);
         else if (idx == 1)
@@ -219,7 +182,7 @@ void read_config_file(char *argv0) {
             idx = DIGI_AUTODETECT;
         usetup.digicard = idx;
 
-        idx = INIreadint("sound","midiwinindx", -1);
+        idx = INIreadint(cfg, "sound","midiwinindx", -1);
         if (idx == 1)
             idx = MIDI_NONE;
         else if (idx == 2)
@@ -229,19 +192,19 @@ void read_config_file(char *argv0) {
         usetup.midicard = idx;
 #endif
 #if !defined (LINUX_VERSION)
-        psp_audio_multithreaded = INIreadint("sound", "threaded", psp_audio_multithreaded);
+        psp_audio_multithreaded = INIreadint(cfg, "sound", "threaded", psp_audio_multithreaded);
 #endif
 
         // Graphics mode
 #if defined (WINDOWS_VERSION)
-        usetup.Screen.DriverID = INIreadstring("graphics", "driver");
+        usetup.Screen.DriverID = INIreadstring(cfg, "graphics", "driver");
 #else
         usetup.Screen.DriverID = "DX5";
 #endif
-        usetup.Screen.Windowed = INIreadint("graphics", "windowed") > 0;
+        usetup.Screen.Windowed = INIreadint(cfg, "graphics", "windowed") > 0;
         const char *screen_sz_def_options[kNumScreenDef] = { "explicit", "scaling", "max" };
         usetup.Screen.SizeDef = kScreenDef_MaxDisplay;
-        String screen_sz_def_str = INIreadstring("graphics", "screen_def");
+        String screen_sz_def_str = INIreadstring(cfg, "graphics", "screen_def");
         for (int i = 0; i < kNumScreenDef; ++i)
         {
             if (screen_sz_def_str.CompareNoCase(screen_sz_def_options[i]) == 0)
@@ -250,19 +213,19 @@ void read_config_file(char *argv0) {
                 break;
             }
         }
-            
-        usetup.Screen.Size.Width = INIreadint("graphics", "screen_width");
-        usetup.Screen.Size.Height = INIreadint("graphics", "screen_height");
-        usetup.Screen.MatchDeviceRatio = INIreadint("graphics", "match_device_ratio", 1) != 0;
+
+        usetup.Screen.Size.Width = INIreadint(cfg, "graphics", "screen_width");
+        usetup.Screen.Size.Height = INIreadint(cfg, "graphics", "screen_height");
+        usetup.Screen.MatchDeviceRatio = INIreadint(cfg, "graphics", "match_device_ratio", 1) != 0;
 #if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
         // PSP: No graphic filters are available.
         usetup.Screen.Filter.ID = "";
 #else
         if (usetup.Screen.Filter.ID.IsEmpty())
         {
-            usetup.Screen.Filter.ID = INIreadstring("graphics", "filter", "StdScale");
+            usetup.Screen.Filter.ID = INIreadstring(cfg, "graphics", "filter", "StdScale");
             String gfx_scaling_both, gfx_scaling_x, gfx_scaling_y;
-            gfx_scaling_both = INIreadstring("graphics", "filter_scaling", "max");
+            gfx_scaling_both = INIreadstring(cfg, "graphics", "filter_scaling", "max");
             if (gfx_scaling_both.CompareNoCase("max") == 0)
             {
                 usetup.Screen.Filter.MaxUniform = true;
@@ -271,8 +234,8 @@ void read_config_file(char *argv0) {
             }
             else
             {
-                gfx_scaling_x = INIreadstring("graphics", "filter_scaling_x", gfx_scaling_both);
-                gfx_scaling_y = INIreadstring("graphics", "filter_scaling_y", gfx_scaling_both);
+                gfx_scaling_x = INIreadstring(cfg, "graphics", "filter_scaling_x", gfx_scaling_both);
+                gfx_scaling_y = INIreadstring(cfg, "graphics", "filter_scaling_y", gfx_scaling_both);
                 usetup.Screen.Filter.MaxUniform = false;
                 usetup.Screen.Filter.ScaleX = parse_scaling_factor(gfx_scaling_x);
                 usetup.Screen.Filter.ScaleY = parse_scaling_factor(gfx_scaling_y);
@@ -282,7 +245,7 @@ void read_config_file(char *argv0) {
 
         const char *game_frame_options[kNumRectPlacement] = { "offset", "center", "stretch", "proportional" };
         usetup.Screen.FramePlacement = kPlaceCenter;
-        String game_frame_str = INIreadstring("graphics", "game_frame", "center");
+        String game_frame_str = INIreadstring(cfg, "graphics", "game_frame", "center");
         for (int i = 0; i < kNumRectPlacement; ++i)
         {
             if (game_frame_str.CompareNoCase(game_frame_options[i]) == 0)
@@ -291,16 +254,16 @@ void read_config_file(char *argv0) {
                 break;
             }
         }
-        usetup.Screen.RefreshRate = INIreadint ("graphics", "refresh");
-        usetup.Screen.VSync = INIreadint("graphics", "vsync") > 0;
+        usetup.Screen.RefreshRate = INIreadint(cfg, "graphics", "refresh");
+        usetup.Screen.VSync = INIreadint(cfg, "graphics", "vsync") > 0;
 
-        usetup.enable_antialiasing = INIreadint ("misc", "antialias") > 0;
-        usetup.force_hicolor_mode = INIreadint("misc", "notruecolor") > 0;
+        usetup.enable_antialiasing = INIreadint(cfg, "misc", "antialias") > 0;
+        usetup.force_hicolor_mode = INIreadint(cfg, "misc", "notruecolor") > 0;
 
         // This option is backwards (usevox is 0 if no_speech_pack)
-        usetup.no_speech_pack = INIreadint ("sound", "usespeech", 1) == 0;
+        usetup.no_speech_pack = INIreadint(cfg, "sound", "usespeech") == 0;
 
-        usetup.data_files_dir = INIreadstring("misc","datadir");
+        usetup.data_files_dir = INIreadstring(cfg, "misc","datadir");
         if (usetup.data_files_dir.IsEmpty())
             usetup.data_files_dir = ".";
         // strip any trailing slash
@@ -315,27 +278,26 @@ void read_config_file(char *argv0) {
 #else
         usetup.data_files_dir.TrimRight('/');
 #endif
-        usetup.main_data_filename = INIreadstring ("misc", "datafile");
+        usetup.main_data_filename = INIreadstring(cfg, "misc", "datafile");
 
-        usetup.translation = INIreaditem ("language", "translation");
+        usetup.translation = INIreadstring(cfg, "language", "translation");
 
         // PSP: Don't let the setup determine the cache size as it is always too big.
 #if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
         // the config file specifies cache size in KB, here we convert it to bytes
-        spriteset.maxCacheSize = INIreadint ("misc", "cachemax", DEFAULTCACHESIZE / 1024) * 1024;
+        spriteset.maxCacheSize = INIreadint (cfg, "misc", "cachemax", DEFAULTCACHESIZE / 1024) * 1024;
 #endif
 
-        char *repfile = INIreaditem ("misc", "replay");
+        String repfile = INIreadstring(cfg, "misc", "replay");
         if (repfile != NULL) {
             strcpy (replayfile, repfile);
-            free (repfile);
             play.playback = 1;
         }
         else
             play.playback = 0;
 
-        usetup.override_multitasking = INIreadint("override", "multitasking", -1);
-        String override_os = INIreadstring("override", "os");
+        usetup.override_multitasking = INIreadint(cfg, "override", "multitasking", -1);
+        String override_os = INIreadstring(cfg, "override", "os");
         usetup.override_script_os = -1;
         if (override_os.CompareNoCase("dos") == 0)
         {
@@ -353,7 +315,7 @@ void read_config_file(char *argv0) {
         {
             usetup.override_script_os = eOS_Mac;
         }
-        usetup.override_upscale = INIreadint("override", "upscale") > 0;
+        usetup.override_upscale = INIreadint(cfg, "override", "upscale") > 0;
 
         // NOTE: at the moment AGS provide little means to determine whether an
         // option was overriden by command line, and since command line args
@@ -361,7 +323,7 @@ void read_config_file(char *argv0) {
         // default before applying value from config file.
         if (!enable_log_file && !disable_log_file)
         {
-            enable_log_file = INIreadint ("misc", "log") != 0;
+            enable_log_file = INIreadint (cfg, "misc", "log") != 0;
         }
     }
     else if (usetup.Screen.Filter.ID.IsEmpty())

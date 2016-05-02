@@ -101,8 +101,6 @@ String TextStreamReader::ReadLine()
     {
         chars_read_last = _stream->Read(char_buffer, single_chunk_length);
         char *seek_ptr = char_buffer;
-        // CHECKME: is finding '\n' is enough to deduce line end?
-        // Should it be strict "\r\n" instead? Or platform-dependant line-break?
         int c;
         for (c = 0; c < chars_read_last && *seek_ptr != '\n'; ++c, ++seek_ptr);
 
@@ -138,7 +136,7 @@ String TextStreamReader::ReadLine()
         _stream->Seek(line_break_position - chars_read_last + 1 /* beyond line feed */);
     }
 
-    str.TrimRight('\r');
+    str.TrimRight('\r'); // skip carriage-return, if any
     return str;
 }
 

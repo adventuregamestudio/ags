@@ -664,6 +664,21 @@ void String::Replace(char what, char with)
     }
 }
 
+void String::ReplaceMid(int from, int count, const char *cstr)
+{
+    if (!cstr)
+        cstr = "";
+    int length = strlen(cstr);
+    Math::ClampLength(0, GetLength(), from, count);
+    if (count >= 0)
+    {
+        ReserveAndShift(false, Math::Max(0, length - count));
+        memmove(_meta->CStr + from + length, _meta->CStr + from + count, GetLength() - (from + count) + 1);
+        memcpy(_meta->CStr + from, cstr, length);
+        _meta->Length += length - count;
+    }
+}
+
 void String::SetAt(int index, char c)
 {
     if (_meta && index >= 0 && index < GetLength() && c)

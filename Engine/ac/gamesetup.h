@@ -30,7 +30,7 @@ struct GameSetup {
     bool  disable_exception_handling;
     AGS::Common::String data_files_dir;
     AGS::Common::String main_data_filename;
-    char *translation;
+    AGS::Common::String translation;
     int   override_script_os;
     char  override_multitasking;
     bool  override_upscale;

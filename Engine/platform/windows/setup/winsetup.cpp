@@ -97,8 +97,8 @@ struct WinConfig
 
     WinConfig();
     void SetDefaults();
-    void Load();
-    void Save();
+    void Load(const ConfigTree &cfg);
+    void Save(ConfigTree &cfg);
 };
 
 WinConfig::WinConfig()
@@ -136,20 +136,6 @@ void WinConfig::SetDefaults()
     Title = "Game Setup";
 }
 
-LPCTSTR ReadPPString(LPCTSTR section, LPCTSTR item, LPCTSTR def_value)
-{
-    static CHAR buf[1024];
-    GetPrivateProfileString(section, item, def_value, buf, sizeof(buf), ac_config_file);
-    return buf;
-}
-
-int ReadPPInt(LPCTSTR section, LPCTSTR item, const int def_value)
-{
-    static CHAR buf[16];
-    itoa(def_value, buf, 10);
-    LPCTSTR value_str = ReadPPString(section, item, buf);
-    return atoi(value_str);
-}
 
 void WritePPString(LPCTSTR section, LPCTSTR item, LPCTSTR value)
 {
@@ -175,46 +161,46 @@ int ParseScalingFactor(const String &s)
     return StrUtil::StringToInt(s);
 }
 
-void WinConfig::Load()
+void WinConfig::Load(const ConfigTree &cfg)
 {
-    DataDirectory = ReadPPString("misc", "datadir", DataDirectory);
+    DataDirectory = INIreadstring(cfg, "misc", "datadir", DataDirectory);
     // Backward-compatible resolution type
-    GameResType = (GameResolutionType)ReadPPInt("misc", "defaultres", GameResType);
+    GameResType = (GameResolutionType)INIreadint(cfg, "misc", "defaultres", GameResType);
     if (GameResType < kGameResolution_Undefined || GameResType >= kNumGameResolutions)
         GameResType = kGameResolution_Undefined;
-    GameResolution.Width = ReadPPInt("misc", "game_width", GameResolution.Width);
-    GameResolution.Height = ReadPPInt("misc", "game_height", GameResolution.Height);
-    GameColourDepth = ReadPPInt("misc", "gamecolordepth", GameColourDepth);
-    LetterboxByDesign = ReadPPInt("misc", "letterbox", 0) != 0;
+    GameResolution.Width = INIreadint(cfg, "misc", "game_width", GameResolution.Width);
+    GameResolution.Height = INIreadint(cfg, "misc", "game_height", GameResolution.Height);
+    GameColourDepth = INIreadint(cfg, "misc", "gamecolordepth", GameColourDepth);
+    LetterboxByDesign = INIreadint(cfg, "misc", "letterbox", 0) != 0;
 
-    GfxDriverId = ReadPPString("graphics", "driver", GfxDriverId);
-    GfxFilterId = ReadPPString("graphics", "filter", GfxFilterId);
-    String screen_def = ReadPPString("graphics", "screen_def", "max");
+    GfxDriverId = INIreadstring(cfg, "graphics", "driver", GfxDriverId);
+    GfxFilterId = INIreadstring(cfg, "graphics", "filter", GfxFilterId);
+    String screen_def = INIreadstring(cfg, "graphics", "screen_def", "max");
     ScreenSizeFromScaling = screen_def.CompareNoCase("scaling") == 0;
-    MatchDeviceAspectRatio = ReadPPInt("graphics", "match_device_ratio", 1) != 0;
-    ScreenSize.Width = ReadPPInt("graphics", "screen_width", ScreenSize.Width);
-    ScreenSize.Height = ReadPPInt("graphics", "screen_height", ScreenSize.Height);
-    FilterScaling = ParseScalingFactor(ReadPPString("graphics", "filter_scaling", MakeScalingFactorString(FilterScaling)));
-    FramePlacement = ReadPPString("graphics", "game_frame", FramePlacement);
-    RefreshRate = ReadPPInt("graphics", "refresh", RefreshRate);
-    Windowed = ReadPPInt("graphics", "windowed", Windowed ? 1 : 0) != 0;
-    VSync = ReadPPInt("graphics", "vsync", VSync ? 1 : 0) != 0;
+    MatchDeviceAspectRatio = INIreadint(cfg, "graphics", "match_device_ratio", 1) != 0;
+    ScreenSize.Width = INIreadint(cfg, "graphics", "screen_width", ScreenSize.Width);
+    ScreenSize.Height = INIreadint(cfg, "graphics", "screen_height", ScreenSize.Height);
+    FilterScaling = ParseScalingFactor(INIreadstring(cfg, "graphics", "filter_scaling", MakeScalingFactorString(FilterScaling)));
+    FramePlacement = INIreadstring(cfg, "graphics", "game_frame", FramePlacement);
+    RefreshRate = INIreadint(cfg, "graphics", "refresh", RefreshRate);
+    Windowed = INIreadint(cfg, "graphics", "windowed", Windowed ? 1 : 0) != 0;
+    VSync = INIreadint(cfg, "graphics", "vsync", VSync ? 1 : 0) != 0;
 
-    Reduce32to16 = ReadPPInt("misc","notruecolor", Reduce32to16 ? 1 : 0) != 0;
-    AntialiasSprites = ReadPPInt("misc", "antialias", AntialiasSprites ? 1 : 0) != 0;
+    Reduce32to16 = INIreadint(cfg, "misc","notruecolor", Reduce32to16 ? 1 : 0) != 0;
+    AntialiasSprites = INIreadint(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0) != 0;
 
-    DigiWinIdx = ReadPPInt("sound", "digiwinindx", DigiWinIdx);
-    MidiWinIdx = ReadPPInt("sound", "midiwinindx", MidiWinIdx);
-    UseVoicePack = ReadPPInt("sound", "usespeech", UseVoicePack ? 1 : 0) != 0;
+    DigiWinIdx = INIreadint(cfg, "sound", "digiwinindx", DigiWinIdx);
+    MidiWinIdx = INIreadint(cfg, "sound", "midiwinindx", MidiWinIdx);
+    UseVoicePack = INIreadint(cfg, "sound", "usespeech", UseVoicePack ? 1 : 0) != 0;
 
-    SpriteCacheSize = ReadPPInt("misc", "cachemax", SpriteCacheSize);
-    Language = ReadPPString("language", "translation", Language);
-    DefaultLanguageName = ReadPPString("language", "default_translation_name", DefaultLanguageName);
+    SpriteCacheSize = INIreadint(cfg, "misc", "cachemax", SpriteCacheSize);
+    Language = INIreadstring(cfg, "language", "translation", Language);
+    DefaultLanguageName = INIreadstring(cfg, "language", "default_translation_name", DefaultLanguageName);
 
-    Title = ReadPPString("misc", "titletext", Title);
+    Title = INIreadstring(cfg, "misc", "titletext", Title);
 }
 
-void WinConfig::Save()
+void WinConfig::Save(ConfigTree &cfg)
 {
     WritePPString("graphics", "driver", GfxDriverId);
     WritePPString("graphics", "filter", GfxFilterId);
@@ -423,6 +409,7 @@ private:
     static WinSetupDialog *_dlg;
     HWND _hwnd;
     WinConfig _winCfg;
+    ConfigTree _cfgTree;
     // Window size
     Size _winSize;
     Size _baseSize;
@@ -516,8 +503,8 @@ INT_PTR WinSetupDialog::OnInitDialog()
     _minGameSize = Size(320, 200);
     _maxGameScale = 1;
 
-    if (File::TestReadFile(ac_config_file))
-        _winCfg.Load();
+    if (IniUtil::Read(ac_config_file, _cfgTree))
+        _winCfg.Load(_cfgTree);
 
     if (_winCfg.GameResolution.IsNull() &&
           (_winCfg.GameResType == kGameResolution_Undefined || _winCfg.GameResType == kGameResolution_Custom) ||
@@ -603,11 +590,11 @@ INT_PTR WinSetupDialog::OnInitDialog()
     else
         SetCheck(_hUseVoicePack, _winCfg.UseVoicePack);
 
-    if (ReadPPInt("disabled", "speechvox", 0) != 0)
+    if (INIreadint(_cfgTree, "disabled", "speechvox", 0) != 0)
         EnableWindow(_hUseVoicePack, FALSE);
-    if (ReadPPInt("disabled", "16bit", 0) != 0)
+    if (INIreadint(_cfgTree, "disabled", "16bit", 0) != 0)
         EnableWindow(_hReduce32to16, FALSE);
-    if (ReadPPInt("disabled", "filters", 0) != 0)
+    if (INIreadint(_cfgTree, "disabled", "filters", 0) != 0)
         EnableWindow(_hGfxFilterList, FALSE);
 
     RECT win_rect, gfx_rect, adv_rect;
@@ -860,7 +847,7 @@ void WinSetupDialog::FillGfxFilterList()
     for (size_t i = 0; i < _drvDesc->FilterList.size(); ++i)
     {
         const GfxFilterInfo &info = _drvDesc->FilterList[i];
-        if (ReadPPInt("disabled", info.Id, 0) == 0)
+        if (INIreadint(_cfgTree, "disabled", info.Id, 0) == 0)
             AddString(_hGfxFilterList, info.Name, (DWORD_PTR)info.Id.GetCStr());
     }
 
@@ -1061,7 +1048,7 @@ void WinSetupDialog::SaveSetup()
     _winCfg.GfxFilterId = (LPCTSTR)GetCurItemData(_hGfxFilterList);
 
     if (File::TestWriteFile(ac_config_file))
-        _winCfg.Save();
+        _winCfg.Save(_cfgTree);
     else
     {
         DWORD err_code = GetLastError();

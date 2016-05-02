@@ -17,6 +17,7 @@ namespace Scintilla
     {
         public const int WM_NOTIFY = 0x004e;
         public const int WM_DESTROY = 0x02;
+        public const int WM_SETCURSOR = 0x0020;
         public static readonly IntPtr HWND_MESSAGE = new IntPtr(-3);
 
         [DllImport("user32.dll")]

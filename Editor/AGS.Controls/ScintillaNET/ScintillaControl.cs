@@ -661,9 +661,14 @@ namespace Scintilla
             //	Windows Forms Sends Notify messages back to the originating
             //	control ORed with 0x2000. This is way cool becuase we can listen for
             //	WM_NOTIFY messages originating form our own hWnd (from Scintilla)
-            if ((m.Msg ^ 0x2000) != WinAPI.WM_NOTIFY)
+            else if ((m.Msg ^ 0x2000) != WinAPI.WM_NOTIFY)
             {
                 base.WndProc(ref m);
+                return;
+            }
+            else if (m.Msg == WinAPI.WM_SETCURSOR)
+            {
+                base.DefWndProc(ref m); // Make sure message is sent to Scintilla
                 return;
             }
 

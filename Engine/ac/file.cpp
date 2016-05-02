@@ -27,6 +27,7 @@
 #include "util/stream.h"
 #include "core/assetmanager.h"
 #include "main/game_file.h"
+#include "util/path.h"
 #include "util/string.h"
 
 using namespace AGS::Common;
@@ -62,27 +63,25 @@ extern int MAXSTRLEN;
 // object-based File routines
 
 int File_Exists(const char *fnmm) {
-  char fileToCheck[MAX_PATH];
 
-  if (!validate_user_file_path(fnmm, fileToCheck, false))
+  String path, alt_path;
+  if (!ResolveScriptPath(fnmm, true, path, alt_path))
     return 0;
 
-  if (!Common::File::TestReadFile(fileToCheck))
-    return 0;
-
-  return 1;
+  return (File::TestReadFile(path) || File::TestReadFile(alt_path)) ? 1 : 0;
 }
 
 int File_Delete(const char *fnmm) {
 
-  char fileToDelete[MAX_PATH];
-
-  if (!validate_user_file_path(fnmm, fileToDelete, true))
+  String path, alt_path;
+  if (!ResolveScriptPath(fnmm, false, path, alt_path))
     return 0;
 
-  unlink(fileToDelete);
-
-  return 1;
+  if (unlink(path) == 0)
+      return 1;
+  if (errno == ENOENT && !alt_path.IsEmpty() && alt_path.Compare(path) != 0)
+      return unlink(alt_path) == 0 ? 1 : 0;
+  return 0;
 }
 
 void *sc_OpenFile(const char *fnmm, int mode) {
@@ -297,7 +296,139 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
 // end packfile functions
 
 
+const String UserSavedgamesRootToken = "$MYDOCS$";
+const String GameSavedgamesDirToken  = "$SAVEGAMEDIR$";
+const String GameDataDirToken        = "$APPDATADIR$";
 
+void FixupFilename(char *filename)
+{
+    const char *illegal = platform->GetIllegalFileChars();
+    for (char *name_ptr = filename; *name_ptr; ++name_ptr)
+    {
+        if (*name_ptr < ' ')
+        {
+            *name_ptr = '_';
+        }
+        else
+        {
+            for (const char *ch_ptr = illegal; *ch_ptr; ++ch_ptr)
+                if (*name_ptr == *ch_ptr)
+                    *name_ptr = '_';
+        }
+    }
+}
+
+String MakeSpecialSubDir(const String &sp_dir)
+{
+    if (is_relative_filename(sp_dir))
+        return sp_dir;
+    String full_path = sp_dir;
+    if (full_path.GetLast() != '/' && full_path.GetLast() != '\\')
+        full_path.AppendChar('/');
+    full_path.Append(game.saveGameFolderName);
+    return full_path;
+}
+
+String MakeAppDataPath()
+{
+    String app_data_path;
+    if (usetup.user_data_dir.IsEmpty())
+        app_data_path = MakeSpecialSubDir(PathOrCurDir(platform->GetAllUsersDataDirectory()));
+    else
+        app_data_path.Format("%s/Data", usetup.user_data_dir.GetCStr());
+    mkdir(app_data_path
+#if !defined (WINDOWS_VERSION)
+        , 0755
+#endif
+        );
+    app_data_path.AppendChar('/');
+    return app_data_path;
+}
+
+bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, String &alt_path)
+{
+    path.Empty();
+    alt_path.Empty();
+
+    bool is_absolute = !is_relative_filename(sc_path);
+    if (is_absolute && !read_only)
+    {
+        debug_log("Attempt to access file '%s' denied (cannot write to absolute path)", sc_path.GetCStr());
+        return false;
+    }
+
+    String parent_dir;
+    String child_path;
+
+    if (is_absolute)
+    {
+        path = sc_path;
+        return true;
+    }
+    
+    if (sc_path.CompareLeft(GameSavedgamesDirToken, GameSavedgamesDirToken.GetLength()) == 0)
+    {
+        parent_dir = saveGameDirectory;
+        child_path = sc_path.Mid(GameSavedgamesDirToken.GetLength());
+    }
+    else if (sc_path.CompareLeft(GameDataDirToken, GameDataDirToken.GetLength()) == 0)
+    {
+        parent_dir = MakeAppDataPath();
+        child_path = sc_path.Mid(GameDataDirToken.GetLength());
+    }
+    else
+    {
+        // Only let non-ready-only access to local dir paths in backwards-compatible mode
+        if (!read_only && game.options[OPT_SAFEFILEPATHS])
+        {
+            debug_log("Attempt to access file '%s' denied (cannot write to game installation directory)", sc_path.GetCStr());
+            return false;
+        }
+
+        child_path = sc_path;
+        if (!game.options[OPT_SAFEFILEPATHS])
+        {
+            // For old games, which were made without having safe paths in mind,
+            // provide two paths: a path to the local directory and a path to
+            // AppData directory.
+            // This is done in case game writes a file by local path, and would
+            // like to read it back later. Since AppData path has higher priority,
+            // game will first check the AppData location and find a previously
+            // written file.
+            // If no file was written yet, but game is trying to read a pre-created
+            // file in the installation directory, then such file will be found
+            // following the 'alt_path'.
+            parent_dir = MakeAppDataPath();
+            // Set alternate non-remapped "unsafe" path for read-only operations
+            if (read_only)
+                alt_path = sc_path;
+        }
+    }
+
+    if (child_path[0] == '\\' || child_path[0] == '/')
+        child_path.ClipLeft(1);
+
+    path = String::FromFormat("%s%s", parent_dir.GetCStr(), child_path.GetCStr());
+    // don't allow write operations for relative paths outside game dir
+    if (!read_only)
+    {
+        if (!Path::IsSameOrSubDir(parent_dir, path))
+        {
+            debug_log("Attempt to access file '%s' denied (outside of game directory)", sc_path.GetCStr());
+            path = "";
+            return false;
+        }
+    }
+    return true;
+}
+
+
+String get_current_dir()
+{
+    if (use_compiled_folder_as_current_dir)
+        return "Compiled/";
+    return "./";
+}
 
 void get_current_dir_path(char* buffer, const char *fileName)
 {
@@ -355,51 +486,6 @@ Stream *get_valid_file_stream_from_handle(int32_t handle, const char *operation_
 {
     ScriptFileHandle *sc_handle = check_valid_file_handle_int32(handle, operation_name);
     return sc_handle ? sc_handle->stream : NULL;
-}
-
-bool validate_user_file_path(const char *fnmm, char *output, bool currentDirOnly)
-{
-  if (strncmp(fnmm, "$SAVEGAMEDIR$", 13) == 0) 
-  {
-    fnmm += 14;
-    sprintf(output, "%s%s", saveGameDirectory, fnmm);
-  }
-  else if (strncmp(fnmm, "$APPDATADIR$", 12) == 0) 
-  {
-    fnmm += 13;
-    const char *appDataDir = platform->GetAllUsersDataDirectory();
-    if (appDataDir == NULL) appDataDir = ".";
-    if (game.saveGameFolderName[0] != 0)
-    {
-      sprintf(output, "%s/%s", appDataDir, game.saveGameFolderName);
-      fix_filename_slashes(output);
-      mkdir(output
-#if !defined (WINDOWS_VERSION)
-                  , 0755
-#endif
-      );
-    }
-    else 
-    {
-      strcpy(output, appDataDir);
-    }
-    put_backslash(output);
-    strcat(output, fnmm);
-  }
-  else
-  {
-    get_current_dir_path(output, fnmm);
-  }
-
-  // don't allow access to files outside current dir
-  if (!currentDirOnly) { }
-  else if ((strchr (fnmm, '/') != NULL) || (strchr(fnmm, '\\') != NULL) ||
-    (strstr(fnmm, "..") != NULL) || (strchr(fnmm, ':') != NULL)) {
-    debug_log("Attempt to access file '%s' denied (not current directory)", fnmm);
-    return false;
-  }
-
-  return true;
 }
 
 //=============================================================================

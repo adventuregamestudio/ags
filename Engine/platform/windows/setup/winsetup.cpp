@@ -19,6 +19,7 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <crtdbg.h>
+#include <shlobj.h>
 #include <shlwapi.h>
 #include <vector>
 #include "ac/gamestructdefines.h"
@@ -48,7 +49,6 @@
 #define MIDI_NONE             0 
 #define MIDI_WIN32MAPPER         AL_ID('W','3','2','M')
 
-extern char* ac_config_file;
 extern "C" HWND allegro_wnd;
 
 namespace AGS
@@ -69,6 +69,7 @@ struct WinConfig
     String VersionString;
 
     String DataDirectory;
+    String UserSaveDir;
     GameResolutionType GameResType;
     Size   GameResolution;
     int    GameColourDepth;
@@ -142,19 +143,6 @@ void WinConfig::SetDefaults()
     Title = "Game Setup";
 }
 
-
-void WritePPString(LPCTSTR section, LPCTSTR item, LPCTSTR value)
-{
-    WritePrivateProfileString(section, item, value, ac_config_file);
-}
-
-void WritePPInt(LPCTSTR section, LPCTSTR item, const int value)
-{
-    static CHAR buf[16];
-    itoa(value, buf, 10);
-    WritePrivateProfileString(section, item, buf, ac_config_file);
-}
-
 String MakeScalingFactorString(int scaling)
 {
     return scaling == 0 ? "max" : String::FromFormat("%d", scaling);
@@ -170,6 +158,7 @@ int ParseScalingFactor(const String &s)
 void WinConfig::Load(const ConfigTree &cfg)
 {
     DataDirectory = INIreadstring(cfg, "misc", "datadir", DataDirectory);
+    UserSaveDir = INIreadstring(cfg, "misc", "user_data_dir");
     // Backward-compatible resolution type
     GameResType = (GameResolutionType)INIreadint(cfg, "misc", "defaultres", GameResType);
     if (GameResType < kGameResolution_Undefined || GameResType >= kNumGameResolutions)
@@ -213,31 +202,34 @@ void WinConfig::Load(const ConfigTree &cfg)
 
 void WinConfig::Save(ConfigTree &cfg)
 {
-    WritePPString("graphics", "driver", GfxDriverId);
-    WritePPString("graphics", "filter", GfxFilterId);
-    WritePPString("graphics", "screen_def", ScreenSizeFromScaling ? "scaling" : "explicit");
-    WritePPInt("graphics", "match_device_ratio", MatchDeviceAspectRatio ? 1 : 0);
-    WritePPInt("graphics", "screen_width", ScreenSize.Width);
-    WritePPInt("graphics", "screen_height", ScreenSize.Height);
-    WritePPString("graphics", "filter_scaling", MakeScalingFactorString(FilterScaling));
-    WritePPString("graphics", "game_frame", FramePlacement);
-    WritePPInt("graphics", "refresh", RefreshRate);
-    WritePPInt("graphics", "windowed", Windowed ? 1 : 0);
-    WritePPInt("graphics", "vsync", VSync ? 1 : 0);
+    INIwritestring(cfg, "misc", "user_data_dir", UserSaveDir);
 
-    WritePPInt("misc", "notruecolor", Reduce32to16 ? 1 : 0);
-    WritePPInt("misc", "antialias", AntialiasSprites ? 1 : 0);
+    INIwritestring(cfg, "graphics", "driver", GfxDriverId);
+    INIwritestring(cfg, "graphics", "filter", GfxFilterId);
+    INIwritestring(cfg, "graphics", "screen_def", ScreenSizeFromScaling ? "scaling" : "explicit");
+    INIwriteint(cfg, "graphics", "match_device_ratio", MatchDeviceAspectRatio ? 1 : 0);
+    INIwriteint(cfg, "graphics", "screen_width", ScreenSize.Width);
+    INIwriteint(cfg, "graphics", "screen_height", ScreenSize.Height);
+    INIwritestring(cfg, "graphics", "filter_scaling", MakeScalingFactorString(FilterScaling));
+    INIwritestring(cfg, "graphics", "game_frame", FramePlacement);
+    INIwriteint(cfg, "graphics", "refresh", RefreshRate);
+    INIwriteint(cfg, "graphics", "windowed", Windowed ? 1 : 0);
+    INIwriteint(cfg, "graphics", "vsync", VSync ? 1 : 0);
 
-    WritePPInt("sound", "digiwinindx", DigiWinIdx);
-    WritePPInt("sound", "midiwinindx", MidiWinIdx);
-    WritePPInt("sound", "usespeech", UseVoicePack ? 1 : 0);
+    INIwriteint(cfg, "misc", "notruecolor", Reduce32to16 ? 1 : 0);
+    INIwriteint(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0);
 
-    WritePPInt("mouse", "auto_lock", MouseAutoLock ? 1 : 0);
-    WritePPString("mouse", "speed", String::FromFormat("%0.1f", MouseSpeed));
+    INIwriteint(cfg, "sound", "digiwinindx", DigiWinIdx);
+    INIwriteint(cfg, "sound", "midiwinindx", MidiWinIdx);
+    INIwriteint(cfg, "sound", "usespeech", UseVoicePack ? 1 : 0);
 
-    WritePPInt("misc", "cachemax", SpriteCacheSize);
-    WritePPString("language", "translation", Language);
+    INIwriteint(cfg, "mouse", "auto_lock", MouseAutoLock ? 1 : 0);
+    INIwritestring(cfg, "mouse", "speed", String::FromFormat("%0.1f", MouseSpeed));
+
+    INIwriteint(cfg, "misc", "cachemax", SpriteCacheSize);
+    INIwritestring(cfg, "language", "translation", Language);
 }
+
 
 //=============================================================================
 //
@@ -353,6 +345,56 @@ void SetSliderPos(HWND hwnd, int pos)
     SendMessage(hwnd, TBM_SETPOS, (WPARAM)TRUE, (LPARAM)pos);
 }
 
+void MakeFullLongPath(const char *path, char *out_buf, int buf_len)
+{
+    GetFullPathName(path, buf_len, out_buf, NULL);
+    GetLongPathName(out_buf, out_buf, buf_len);
+}
+
+
+//=============================================================================
+//
+// Browse-for-folder dialog
+//
+//=============================================================================
+
+int CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData)
+{
+    if (uMsg == BFFM_INITIALIZED)
+    {
+        // Set initial selection
+        SendMessage(hwnd, BFFM_SETSELECTION, TRUE, (LPARAM)lpData);
+    }
+    return 0;
+}
+
+bool BrowseForFolder(String &dir_buf)
+{
+    bool res = false;
+    CoInitialize(NULL);
+
+    BROWSEINFO bi = { 0 };
+    bi.lpszTitle = "Select location for game saves and custom data files";
+    bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_RETURNFSANCESTORS;
+    bi.lpfn = BrowseCallbackProc;
+    bi.lParam = (LPARAM)dir_buf.GetCStr();
+    LPITEMIDLIST pidl = SHBrowseForFolder ( &bi );
+    if (pidl)
+    {
+        char path[MAX_PATH];
+        if (SHGetPathFromIDList(pidl, path) != FALSE)
+        {
+            dir_buf = path;
+            res = true;
+        }
+        CoTaskMemFree(pidl);
+    }
+
+    CoUninitialize();
+    return res;
+}
+
+
 //=============================================================================
 //
 // WinSetupDialog, handles the dialog UI.
@@ -361,13 +403,6 @@ void SetSliderPos(HWND hwnd, int pos)
 class WinSetupDialog
 {
 public:
-    enum ReturnValue
-    {
-        kResult_Save,
-        kResult_SaveAndRun,
-        kResult_Cancel
-    };
-
     enum GfxModeSpecial
     {
         kGfxMode_NoSpecial      = -1,
@@ -390,17 +425,19 @@ public:
     static const int MouseSpeedMax = 100;
 
 public:
-    WinSetupDialog(HWND hwnd, const String version_str);
+    WinSetupDialog(ConfigTree &cfg_tree, const String &data_dir, const String &version_str);
     ~WinSetupDialog();
-    static ReturnValue ShowModal(const String version_str);
+    static SetupReturnValue ShowModal(ConfigTree &cfg_tree, const String &data_dir, const String &version_str);
 
 private:
     static INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
     // Event handlers
-    INT_PTR OnInitDialog();
+    INT_PTR OnInitDialog(HWND hwnd);
     INT_PTR OnCommand(WORD id);
     INT_PTR OnListSelection(WORD id);
+    void OnCustomSaveDirBtn();
+    void OnCustomSaveDirCheck();
     void OnFramePlacement();
     void OnGfxDriverUpdate();
     void OnGfxFilterUpdate();
@@ -442,7 +479,7 @@ private:
     static WinSetupDialog *_dlg;
     HWND _hwnd;
     WinConfig _winCfg;
-    ConfigTree _cfgTree;
+    ConfigTree &_cfgTree;
     // Window size
     Size _winSize;
     Size _baseSize;
@@ -460,6 +497,9 @@ private:
 
     // Dialog controls
     HWND _hVersionText;
+    HWND _hCustomSaveDir;
+    HWND _hCustomSaveDirBtn;
+    HWND _hCustomSaveDirCheck;
     HWND _hGfxDriverList;
     HWND _hGfxModeList;
     HWND _hGfxFilterList;
@@ -486,11 +526,13 @@ private:
 
 WinSetupDialog *WinSetupDialog::_dlg = NULL;
 
-WinSetupDialog::WinSetupDialog(HWND hwnd, const String version_str)
-    : _hwnd(hwnd)
+WinSetupDialog::WinSetupDialog(ConfigTree &cfg_tree, const String &data_dir, const String &version_str)
+    : _hwnd(NULL)
+    , _cfgTree(cfg_tree)
     , _drvDesc(NULL)
     , _gfxFilterInfo(NULL)
 {
+    _winCfg.DataDirectory = data_dir;
     _winCfg.VersionString = version_str;
 }
 
@@ -498,21 +540,29 @@ WinSetupDialog::~WinSetupDialog()
 {
 }
 
-WinSetupDialog::ReturnValue WinSetupDialog::ShowModal(const String version_str)
+SetupReturnValue WinSetupDialog::ShowModal(ConfigTree &cfg_tree, const String &data_dir, const String &version_str)
 {
+    _dlg = new WinSetupDialog(cfg_tree, data_dir, version_str);
     INT_PTR dlg_res = DialogBoxParam(GetModuleHandle(NULL), (LPCTSTR)IDD_SETUP, allegro_wnd,
-        (DLGPROC)WinSetupDialog::DialogProc, (LPARAM)&version_str);
+        (DLGPROC)WinSetupDialog::DialogProc, 0L);
+    delete _dlg;
+    _dlg = NULL;
+
     switch (dlg_res)
     {
-    case IDOKRUN: return kResult_SaveAndRun;
-    case IDOK: return kResult_Save;
-    default: return kResult_Cancel;
+    case IDOKRUN: return kSetup_RunGame;
+    case IDOK: return kSetup_Done;
+    default: return kSetup_Cancel;
     }
 }
 
-INT_PTR WinSetupDialog::OnInitDialog()
+INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
 {
+    _hwnd                   = hwnd;
     _hVersionText           = GetDlgItem(_hwnd, IDC_VERSION);
+    _hCustomSaveDir         = GetDlgItem(_hwnd, IDC_CUSTOMSAVEDIR);
+    _hCustomSaveDirBtn      = GetDlgItem(_hwnd, IDC_CUSTOMSAVEDIRBTN);
+    _hCustomSaveDirCheck    = GetDlgItem(_hwnd, IDC_CUSTOMSAVEDIRCHECK);
     _hGfxDriverList         = GetDlgItem(_hwnd, IDC_GFXDRIVER);
     _hGfxModeList           = GetDlgItem(_hwnd, IDC_GFXMODE);
     _hGfxFilterList         = GetDlgItem(_hwnd, IDC_GFXFILTER);
@@ -542,9 +592,21 @@ INT_PTR WinSetupDialog::OnInitDialog()
     _minGameSize = Size(320, 200);
     _maxGameScale = 1;
 
-    if (IniUtil::Read(ac_config_file, _cfgTree))
-        _winCfg.Load(_cfgTree);
+    _winCfg.Load(_cfgTree);
 
+    // Custom save dir controls
+    String custom_save_dir = _winCfg.UserSaveDir;
+    bool has_save_dir = !custom_save_dir.IsEmpty();
+    if (!has_save_dir)
+        custom_save_dir = _winCfg.DataDirectory;
+    SetCheck(_hCustomSaveDirCheck, has_save_dir);
+    char full_save_dir[MAX_PATH] = {0};
+    MakeFullLongPath(custom_save_dir, full_save_dir, MAX_PATH);
+    SetText(_hCustomSaveDir, full_save_dir);
+    EnableWindow(_hCustomSaveDir, has_save_dir ? TRUE : FALSE);
+    EnableWindow(_hCustomSaveDirBtn, has_save_dir ? TRUE : FALSE);
+
+    // Resolution controls
     if (_winCfg.GameResolution.IsNull() &&
           (_winCfg.GameResType == kGameResolution_Undefined || _winCfg.GameResType == kGameResolution_Custom) ||
           _winCfg.GameColourDepth == 0)
@@ -650,7 +712,7 @@ INT_PTR WinSetupDialog::OnInitDialog()
     _winSize.Height = win_rect.bottom - win_rect.top;
     GetWindowRect(_hAdvanced, &adv_rect);
     _baseSize.Width = (adv_rect.right + (gfx_rect.left - win_rect.left)) - win_rect.left;
-    _baseSize.Height = adv_rect.bottom + (adv_rect.bottom - adv_rect.top) / 2 - win_rect.top;
+    _baseSize.Height = win_rect.bottom - win_rect.top;
 
     MoveWindow(_hwnd, max(0, win_rect.left + (_winSize.Width - _baseSize.Width) / 2),
                       max(0, win_rect.top + (_winSize.Height - _baseSize.Height) / 2),
@@ -667,6 +729,8 @@ INT_PTR WinSetupDialog::OnCommand(WORD id)
     case IDC_WINDOWED:  OnWindowedUpdate(); break;
     case IDC_STRETCHTOSCREEN: OnFramePlacement(); break;
     case IDC_ASPECTRATIO: OnFramePlacement(); break;
+    case IDC_CUSTOMSAVEDIRBTN: OnCustomSaveDirBtn(); break;
+    case IDC_CUSTOMSAVEDIRCHECK: OnCustomSaveDirCheck(); break;
     case IDOK:
     case IDOKRUN:
         SaveSetup();
@@ -692,6 +756,22 @@ INT_PTR WinSetupDialog::OnListSelection(WORD id)
         return FALSE;
     }
     return TRUE;
+}
+
+void WinSetupDialog::OnCustomSaveDirBtn()
+{
+    String save_dir = GetText(_hCustomSaveDir);
+    if (BrowseForFolder(save_dir))
+    {
+        SetText(_hCustomSaveDir, save_dir);
+    }
+}
+
+void WinSetupDialog::OnCustomSaveDirCheck()
+{
+    bool custom_save_dir = GetCheck(_hCustomSaveDirCheck);
+    EnableWindow(_hCustomSaveDir, custom_save_dir ? TRUE : FALSE);
+    EnableWindow(_hCustomSaveDirBtn, custom_save_dir ? TRUE : FALSE);
 }
 
 void WinSetupDialog::OnFramePlacement()
@@ -833,21 +913,16 @@ INT_PTR CALLBACK WinSetupDialog::DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wPar
     switch (uMsg)
     {
     case WM_INITDIALOG:
-        _ASSERT(_dlg == NULL);
-        _dlg = new WinSetupDialog(hwndDlg, *(String*)lParam);
-        return _dlg->OnInitDialog();
+        _ASSERT(_dlg != NULL && _dlg->_hwnd == NULL);
+        return _dlg->OnInitDialog(hwndDlg);
     case WM_COMMAND:
-        _ASSERT(_dlg != NULL);
+        _ASSERT(_dlg != NULL && _dlg->_hwnd != NULL);
         if (HIWORD(wParam) == CBN_SELCHANGE)
             return _dlg->OnListSelection(LOWORD(wParam));
         return _dlg->OnCommand(LOWORD(wParam));
     case WM_HSCROLL:
+        _ASSERT(_dlg != NULL && _dlg->_hwnd != NULL);
         _dlg->UpdateMouseSpeedText();
-        return TRUE;
-    case WM_DESTROY:
-        _ASSERT(_dlg != NULL);
-        delete _dlg;
-        _dlg = NULL;
         return TRUE;
     default:
         return FALSE;
@@ -1065,6 +1140,35 @@ void WinSetupDialog::InitDriverDescFromFactory(const String &id, DriverDesc &drv
 
 void WinSetupDialog::SaveSetup()
 {
+    const bool custom_save_dir = GetCheck(_hCustomSaveDirCheck);
+    if (custom_save_dir)
+    {
+        // Compare user path with the game data directory. If user chose
+        // path pointing inside game's directory, then store relative
+        // path instead; thus the path will keep pointing at game's
+        // directory if user moves game elsewhere.
+        String save_dir;
+        save_dir = GetText(_hCustomSaveDir);
+        char full_data_dir[MAX_PATH] = {0};
+        char full_save_dir[MAX_PATH] = {0};
+        MakeFullLongPath(_winCfg.DataDirectory, full_data_dir, MAX_PATH);
+        MakeFullLongPath(save_dir, full_save_dir, MAX_PATH);
+        char rel_save_dir[MAX_PATH] = {0};
+        if (PathRelativePathTo(rel_save_dir, full_data_dir, FILE_ATTRIBUTE_DIRECTORY, full_save_dir, FILE_ATTRIBUTE_DIRECTORY) &&
+            strstr(rel_save_dir, "..") == NULL)
+        {
+            _winCfg.UserSaveDir = rel_save_dir;
+        }
+        else
+        {
+            _winCfg.UserSaveDir = save_dir;
+        }
+    }
+    else
+    {
+        _winCfg.UserSaveDir = "";
+    }
+
     int digiwin_drv = GetCurItemData(_hDigiDriverList);
     // converting to legacy hard-coded indexes
     switch (digiwin_drv)
@@ -1100,14 +1204,7 @@ void WinSetupDialog::SaveSetup()
     int slider_pos = GetSliderPos(_hMouseSpeed);
     _winCfg.MouseSpeed = (float)slider_pos / 10.f;
 
-    if (File::TestWriteFile(ac_config_file))
-        _winCfg.Save(_cfgTree);
-    else
-    {
-        DWORD err_code = GetLastError();
-        String err_str = String::FromFormat("Unable to write to the configuration file (error code 0x%08X). If you are using Windows Vista, you may need to right-click and Run as Administrator on the Setup application.", err_code);
-        MessageBox(_hwnd, err_str, "Save error", MB_OK | MB_ICONEXCLAMATION);
-    }
+    _winCfg.Save(_cfgTree);
 }
 
 void WinSetupDialog::SelectNearestGfxMode(const Size screen_size, GfxModeSpecial gfx_mode_spec)
@@ -1199,12 +1296,9 @@ void SetWinIcon()
         (LONG) LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON))); 
 }
 
-bool WinSetup(const String &version_str)
+SetupReturnValue WinSetup(ConfigTree &cfg, const String &game_data_dir, const String &version_str)
 {
-    WinSetupDialog::ReturnValue rvalue = WinSetupDialog::ShowModal(version_str);
-    if (rvalue == WinSetupDialog::kResult_Cancel)
-        return false;
-    return rvalue == WinSetupDialog::kResult_SaveAndRun;
+    return WinSetupDialog::ShowModal(cfg, game_data_dir, version_str);
 }
 
 } // namespace Engine

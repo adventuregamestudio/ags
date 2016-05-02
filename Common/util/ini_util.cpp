@@ -96,7 +96,7 @@ void IniUtil::Write(const String &file, const ConfigTree &tree)
     writer.ReleaseStream();
 }
 
-void IniUtil::Merge(const String &file, const ConfigTree &tree)
+bool IniUtil::Merge(const String &file, const ConfigTree &tree)
 {
     // Read ini content
     IniFile ini;
@@ -168,7 +168,10 @@ void IniUtil::Merge(const String &file, const ConfigTree &tree)
 
     // Write the resulting set of lines
     AStream fs(File::CreateFile(file));
+    if (!fs.get())
+        return false;
     ini.Write(fs.get());
+    return true;
 }
 
 } // namespace Common

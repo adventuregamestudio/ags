@@ -30,4 +30,8 @@ extern AGS::Common::String game_file_name;
 extern const AGS::Common::String MainGameAssetName_v3;
 extern const AGS::Common::String MainGameAssetName_v2;
 
+// Preload particular game-describing parameters from the game data header (title, save game dir name, etc)
+bool preload_game_data();
+int load_game_file();
+
 #endif // __AGS_EE_MAIN__GAMEFILE_H

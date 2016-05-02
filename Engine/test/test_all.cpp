@@ -20,6 +20,7 @@ void Test_DoAllTests()
 {
     Test_Math();
     Test_Memory();
+    Test_Path();
     Test_ScriptSprintf();
     Test_String();
     Test_Version();

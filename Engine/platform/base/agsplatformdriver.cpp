@@ -69,23 +69,6 @@ void AGSPlatformDriver::YieldCPU() {
     this->Delay(1);
 }
 
-void AGSPlatformDriver::ReplaceSpecialPaths(const char *sourcePath, char *destPath, size_t destSize) {
-
-    // For platforms with no special folders, just redirect it back to current folder
-    if (strnicmp(sourcePath, "$MYDOCS$", 8) == 0)
-    {
-        snprintf(destPath, destSize, ".%s", sourcePath + 8);
-    }
-    else if (strnicmp(sourcePath, "$APPDATADIR$", 12) == 0) 
-    {
-        snprintf(destPath, destSize, ".%s", sourcePath + 12);
-    }
-    else
-    {
-        snprintf(destPath, destSize, "%s", sourcePath);
-    }
-}
-
 void AGSPlatformDriver::ReadPluginsFromDisk(AGS::Common::Stream *iii) {
 #if 1
   pl_read_plugins_from_disk(iii);

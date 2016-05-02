@@ -19,7 +19,7 @@
 #ifndef __AGS_EE_SETUP__WINSETUP_H
 #define __AGS_EE_SETUP__WINSETUP_H
 
-#include "util/string.h"
+#include "util/ini_util.h"
 
 namespace AGS
 {
@@ -27,7 +27,7 @@ namespace Engine
 {
 
 void SetWinIcon();
-bool WinSetup(const Common::String &version_str);
+SetupReturnValue WinSetup(Common::ConfigTree &cfg, const Common::String &game_data_dir, const Common::String &version_str);
 
 } // namespace Engine
 } // namespace AGS

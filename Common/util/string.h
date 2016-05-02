@@ -136,6 +136,7 @@ public:
 
     int     FindChar(char c, int from = 0) const;
     int     FindCharReverse(char c, int from = -1) const;
+    int     FindString(const char *cstr, int from = 0) const;
 
     // Section methods treat string as a sequence of 'fields', separated by
     // special character. They search for a substring consisting of all such

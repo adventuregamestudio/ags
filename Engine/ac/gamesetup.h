@@ -38,6 +38,7 @@ struct GameSetup {
     bool  disable_exception_handling;
     AGS::Common::String data_files_dir;
     AGS::Common::String main_data_filename;
+    AGS::Common::String user_data_dir; // directory to write savedgames and custom files to
     AGS::Common::String translation;
     bool  mouse_auto_lock;
     int   override_script_os;

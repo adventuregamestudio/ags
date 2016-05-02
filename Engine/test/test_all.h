@@ -27,6 +27,7 @@ void Test_Memory();
 // String tests
 void Test_ScriptSprintf();
 void Test_String();
+void Test_Path();
 void Test_Version();
 
 #endif // _DEBUG

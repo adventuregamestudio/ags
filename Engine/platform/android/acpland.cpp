@@ -53,7 +53,6 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual int  InitializeCDPlayer();
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroExit();
-  virtual int  RunSetup();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char*, ...);
@@ -711,10 +710,6 @@ void AGSAndroid::PlayVideo(const char *name, int skip, int flags) {
 
 void AGSAndroid::PostAllegroExit() {
   java_environment->DeleteGlobalRef(java_class);
-}
-
-int AGSAndroid::RunSetup() {
-  return 0;
 }
 
 void AGSAndroid::SetGameWindowIcon() {

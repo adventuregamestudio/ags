@@ -29,6 +29,9 @@
 #define IDC_MOUSESPEED                  1036
 #define IDC_MOUSESPEED_TEXT             1037
 #define IDC_MOUSE_AUTOLOCK              1038
+#define IDC_CUSTOMSAVEDIRCHECK          1039
+#define IDC_CUSTOMSAVEDIR               1040
+#define IDC_CUSTOMSAVEDIRBTN            1041
 
 // Next default values for new objects
 // 

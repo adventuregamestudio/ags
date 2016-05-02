@@ -125,7 +125,6 @@ struct AGSIOS : AGSPlatformDriver {
   virtual int  InitializeCDPlayer();
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroExit();
-  virtual int  RunSetup();
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char*, ...);
@@ -637,10 +636,6 @@ void AGSIOS::PlayVideo(const char *name, int skip, int flags) {
 
 void AGSIOS::PostAllegroExit() {
   // do nothing
-}
-
-int AGSIOS::RunSetup() {
-  return 0;
 }
 
 void AGSIOS::SetGameWindowIcon() {

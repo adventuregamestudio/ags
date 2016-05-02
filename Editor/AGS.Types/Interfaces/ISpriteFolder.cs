@@ -38,5 +38,13 @@ namespace AGS.Types
         /// </summary>
         /// <param name="spriteNumber">Sprite number to look for</param>
         SpriteFolder FindFolderThatContainsSprite(int spriteNumber);
+
+        /// <summary>
+        /// Assembles a list of all the sprites in the current folder and sub-folders
+        /// </summary>
+        /// <returns>
+        /// Returns an IList with all sprites from this folder and sub-folders
+        /// </returns>
+        IList<Sprite> GetAllSpritesFromAllSubFolders();
     }
 }

@@ -6,58 +6,68 @@ using System.Xml;
 
 namespace AGS.Editor
 {
-	internal class EditorEvents
-	{
-		public delegate void ParameterlessDelegate();
-		public event ParameterlessDelegate GameSettingsChanged;
-		public event ParameterlessDelegate ImportedOldGame;
-		public event ParameterlessDelegate RefreshAllComponentsFromGame;
-		public delegate void GameLoadHandler(XmlNode rootNode);
-		public event GameLoadHandler GameLoad;
-		public delegate void SavingGameHandler(XmlTextWriter writer);
-		public event SavingGameHandler SavingGame;
+    internal class EditorEvents
+    {
+        public delegate void ParameterlessDelegate();
+        public event ParameterlessDelegate GameSettingsChanged;
+        public event ParameterlessDelegate ImportedOldGame;
+        public event ParameterlessDelegate RefreshAllComponentsFromGame;
+        public delegate void GameLoadHandler(XmlNode rootNode);
+        public event GameLoadHandler GameLoad;
+        public delegate void GamePostLoadHandler();
+        public event GamePostLoadHandler GamePostLoad;
+        public delegate void SavingGameHandler(XmlTextWriter writer);
+        public event SavingGameHandler SavingGame;
         public delegate void SavingUserDataHandler(XmlTextWriter writer);
         public event SavingUserDataHandler SavingUserData;
         public delegate void LoadedUserDataHandler(XmlNode rootNode);
         public event LoadedUserDataHandler LoadedUserData;
         public delegate void GetAboutDialogTextHandler(GetAboutDialogTextEventArgs evArgs);
-		public event GetAboutDialogTextHandler GetAboutDialogText;
+        public event GetAboutDialogTextHandler GetAboutDialogText;
         public delegate void ShowSpriteManagerHandler(int spriteNumber, ref bool successful);
         public event ShowSpriteManagerHandler ShowSpriteManager;
         public delegate void FileChangedInGameFolderHandler(string fileName);
         public event FileChangedInGameFolderHandler FileChangedInGameFolder;
 
-		public void OnGameSettingsChanged()
-		{
-			if (GameSettingsChanged != null)
-			{
-				GameSettingsChanged();
-			}
-		}
+        public void OnGameSettingsChanged()
+        {
+            if (GameSettingsChanged != null)
+            {
+                GameSettingsChanged();
+            }
+        }
 
-		public void OnImportedOldGame()
-		{
-			if (ImportedOldGame != null)
-			{
-				ImportedOldGame();
-			}
-		}
+        public void OnImportedOldGame()
+        {
+            if (ImportedOldGame != null)
+            {
+                ImportedOldGame();
+            }
+        }
 
-		public void OnGameLoad(XmlNode rootNode)
-		{
-			if (GameLoad != null)
-			{
-				GameLoad(rootNode);
-			}
-		}
+        public void OnGameLoad(XmlNode rootNode)
+        {
+            if (GameLoad != null)
+            {
+                GameLoad(rootNode);
+            }
+        }
 
-		public void OnSavingGame(XmlTextWriter writer)
-		{
-			if (SavingGame != null)
-			{
-				SavingGame(writer);
-			}
-		}
+        public void OnGamePostLoad()
+        {
+            if (GamePostLoad != null)
+            {
+                GamePostLoad();
+            }
+        }
+
+        public void OnSavingGame(XmlTextWriter writer)
+        {
+            if (SavingGame != null)
+            {
+                SavingGame(writer);
+            }
+        }
 
         public void OnSavingUserData(XmlTextWriter writer)
         {
@@ -74,22 +84,22 @@ namespace AGS.Editor
                 LoadedUserData(rootNode);
             }
         }
-        
-        public void OnRefreshAllComponentsFromGame()
-		{
-			if (RefreshAllComponentsFromGame != null)
-			{
-				RefreshAllComponentsFromGame();
-			}
-		}
 
-		public void OnGetAboutDialogText(GetAboutDialogTextEventArgs evArgs)
-		{
-			if (GetAboutDialogText != null)
-			{
-				GetAboutDialogText(evArgs);
-			}
-		}
+        public void OnRefreshAllComponentsFromGame()
+        {
+            if (RefreshAllComponentsFromGame != null)
+            {
+                RefreshAllComponentsFromGame();
+            }
+        }
+
+        public void OnGetAboutDialogText(GetAboutDialogTextEventArgs evArgs)
+        {
+            if (GetAboutDialogText != null)
+            {
+                GetAboutDialogText(evArgs);
+            }
+        }
 
         public bool OnShowSpriteManager(int spriteNumber)
         {
@@ -109,18 +119,18 @@ namespace AGS.Editor
             }
         }
 
-		private static EditorEvents _instance;
+        private static EditorEvents _instance;
 
-		public static EditorEvents Instance
-		{
-			get
-			{
-				if (_instance == null)
-				{
-					_instance = new EditorEvents();
-				}
-				return _instance;
-			}
-		}
-	}
+        public static EditorEvents Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new EditorEvents();
+                }
+                return _instance;
+            }
+        }
+    }
 }

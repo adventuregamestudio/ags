@@ -130,6 +130,15 @@ void game_loop_check_new_room()
     check_new_room ();
 }
 
+void game_loop_do_late_update()
+{
+    if (in_new_room == 0)
+    {
+        // Run the room and game script late_repeatedly_execute
+        run_function_on_non_blocking_thread(&lateRepExecAlways);
+    }
+}
+
 int game_loop_check_ground_level_interactions()
 {
     if ((play.ground_level_areas_disabled & GLED_INTERACTION) == 0) {
@@ -655,6 +664,8 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     game_loop_do_update();
 
     game_loop_update_animated_buttons();
+
+    game_loop_do_late_update();
 
     update_polled_audio_and_crossfade();
 

@@ -27,6 +27,7 @@
 #include "util/stream.h"
 #include "core/assetmanager.h"
 #include "main/game_file.h"
+#include "util/directory.h"
 #include "util/path.h"
 #include "util/string.h"
 
@@ -326,6 +327,7 @@ String MakeSpecialSubDir(const String &sp_dir)
     if (full_path.GetLast() != '/' && full_path.GetLast() != '\\')
         full_path.AppendChar('/');
     full_path.Append(game.saveGameFolderName);
+    Directory::CreateDirectory(full_path);
     return full_path;
 }
 
@@ -336,11 +338,7 @@ String MakeAppDataPath()
         app_data_path = MakeSpecialSubDir(PathOrCurDir(platform->GetAllUsersDataDirectory()));
     else
         app_data_path.Format("%s/Data", usetup.user_data_dir.GetCStr());
-    mkdir(app_data_path
-#if !defined (WINDOWS_VERSION)
-        , 0755
-#endif
-        );
+    Directory::CreateDirectory(app_data_path);
     app_data_path.AppendChar('/');
     return app_data_path;
 }

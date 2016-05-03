@@ -12,9 +12,6 @@
 //
 //=============================================================================
 
-#if !defined (WINDOWS_VERSION)
-#include <sys/stat.h>                      //mkdir
-#endif
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/audiochannel.h"
@@ -81,6 +78,7 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "util/alignedstream.h"
+#include "util/directory.h"
 #include "util/filestream.h"
 #include "util/string_utils.h"
 
@@ -386,12 +384,7 @@ int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
     if (newSaveGameDir.IsEmpty())
         return 0;
 
-#if defined (WINDOWS_VERSION)
-    mkdir(newSaveGameDir);
-#else
-    mkdir(newSaveGameDir, 0755);
-#endif
-
+    Directory::CreateDirectory(newSaveGameDir);
     newSaveGameDir.AppendChar('/');
 
     char newFolderTempFile[260];
@@ -607,6 +600,7 @@ void unload_game_file() {
     moduleInst.resize(0);
     scriptModules.resize(0);
     repExecAlways.moduleHasFunction.resize(0);
+    lateRepExecAlways.moduleHasFunction.resize(0);
     getDialogOptionsDimensionsFunc.moduleHasFunction.resize(0);
     renderDialogOptionsFunc.moduleHasFunction.resize(0);
     getDialogOptionUnderCursorFunc.moduleHasFunction.resize(0);

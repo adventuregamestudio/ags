@@ -40,6 +40,7 @@
 #include "ac/spritecache.h"
 #include "gfx/gfx_util.h"
 #include "main/graphics_mode.h"
+#include "util/string_utils.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -69,12 +70,14 @@ int texthit;
 // Pass yy = -1 to find Y co-ord automatically
 // allowShrink = 0 for none, 1 for leftwards, 2 for rightwards
 // pass blocking=2 to create permanent overlay
-int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,int asspch, int isThought, int allowShrink, bool overlayPositionFixed) 
+int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfont,int asspch, int isThought, int allowShrink, bool overlayPositionFixed) 
 {
     const bool use_speech_textwindow = (asspch < 0) && (game.options[OPT_SPEECHTYPE] >= 2);
     const bool use_thought_gui = (isThought) && (game.options[OPT_THOUGHTGUI] > 0);
 
     bool alphaChannel = false;
+    char todis[STD_BUFFER_SIZE];
+    snprintf(todis, STD_BUFFER_SIZE - 1, "%s", text);
     int usingGui = -1;
     if (use_speech_textwindow)
 	    usingGui = play.speech_textwindow_gui;
@@ -340,7 +343,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
     return 0;
 }
 
-void _display_at(int xx,int yy,int wii,char*todis,int blocking,int asspch, int isThought, int allowShrink, bool overlayPositionFixed) {
+void _display_at(int xx,int yy,int wii,const char*todis,int blocking,int asspch, int isThought, int allowShrink, bool overlayPositionFixed) {
     int usingfont=FONT_NORMAL;
     if (asspch) usingfont=FONT_SPEECH;
     int needStopSpeech = 0;
@@ -420,7 +423,7 @@ bool ShouldAntiAliasText() {
     return (game.options[OPT_ANTIALIASFONTS] != 0);
 }
 
-void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, char*texx) {
+void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char*texx) {
     
     color_t outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
     if (game.fontoutline[usingfont] >= 0) {

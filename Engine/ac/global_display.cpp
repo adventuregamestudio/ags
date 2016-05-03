@@ -49,15 +49,14 @@ void Display(const char*texx, ...) {
     DisplayAtY (-1, displbuf);
 }
 
-void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const char*texx, ...) {
+void DisplaySimple(const char *text)
+{
+    DisplayAtY (-1, text);
+}
+
+void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const char*text) {
 
     strcpy(topBar.text, get_translation(title));
-
-    char displbuf[3001];
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(displbuf, get_translation(texx), ap);
-    va_end(ap);
 
     if (ypos > 0)
         play.top_bar_ypos = ypos;
@@ -77,16 +76,16 @@ void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const 
 
     // DisplaySpeech normally sets this up, but since we're not going via it...
     if (play.cant_skip_speech & SKIP_AUTOTIMER)
-        play.messagetime = GetTextDisplayTime(texx);
+        play.messagetime = GetTextDisplayTime(text);
 
-    DisplayAtY(play.top_bar_ypos, displbuf);
+    DisplayAtY(play.top_bar_ypos, text);
 }
 
 // Display a room/global message in the bar
 void DisplayMessageBar(int ypos, int ttexcol, int backcol, const char *title, int msgnum) {
     char msgbufr[3001];
     get_message_text(msgnum, msgbufr);
-    DisplayTopBar(ypos, ttexcol, backcol, title, "%s", msgbufr);
+    DisplayTopBar(ypos, ttexcol, backcol, title, msgbufr);
 }
 
 void DisplayMessageAtY(int msnum, int ypos) {
@@ -139,19 +138,13 @@ void DisplayMessage(int msnum) {
     DisplayMessageAtY (msnum, -1);
 }
 
-void DisplayAt(int xxp,int yyp,int widd, const char*texx, ...) {
-    char displbuf[STD_BUFFER_SIZE];
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(displbuf, get_translation(texx), ap);
-    va_end(ap);
-
+void DisplayAt(int xxp,int yyp,int widd, const char* text) {
     multiply_up_coordinates(&xxp, &yyp);
     widd = multiply_up_coordinate(widd);
 
     if (widd<1) widd=play.viewport.GetWidth()/2;
     if (xxp<0) xxp=play.viewport.GetWidth()/2-widd/2;
-    _display_at(xxp,yyp,widd,displbuf,1,0, 0, 0, false);
+    _display_at(xxp,yyp,widd,text,1,0, 0, 0, false);
 }
 
 void DisplayAtY (int ypos, const char *texx) {

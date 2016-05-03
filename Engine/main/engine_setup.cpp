@@ -30,6 +30,7 @@
 #include "gui/guiinv.h"
 #include "main/graphics_mode.h"
 #include "main/engine_setup.h"
+#include "platform/base/agsplatformdriver.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -333,8 +334,19 @@ void engine_set_color_conversions()
 void engine_set_mouse_control(const Size &init_desktop)
 {
     DisplayMode dm = gfxDriver->GetDisplayMode();
-    // Assign mouse control parameters
-    const bool control_sens = !dm.Windowed;
+    // Assign mouse control parameters.
+    //
+    // Whether mouse movement should be controlled by the engine - this is
+    // declared here for the sake of distinction; this definition may be
+    // replaced with e.g. config option if necessary. Currently it is assumed
+    // that mouse movement should be controlled only in fullscreen.
+    const bool should_control_mouse = !dm.Windowed;
+    // Whether mouse movement control is supported by the engine - this is
+    // determined on per platform basis. Some builds may not have such
+    // capability, e.g. because of how backend library implements mouse utils.
+    const bool can_control_mouse = platform->IsMouseControlSupported(dm.Windowed);
+    // The resulting choice is made based on two aforementioned factors.
+    const bool control_sens = should_control_mouse && can_control_mouse;
     if (control_sens)
     {
         Mouse::EnableControl(!dm.Windowed);

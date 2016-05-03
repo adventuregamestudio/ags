@@ -350,7 +350,7 @@ String MakeSaveGameDir(const char *newFolder, bool allowAbsolute)
 {
     // if end-user specified custom save folder, use it instead
     if (!usetup.user_data_dir.IsEmpty())
-        return String::FromFormat("%s/Saves", usetup.user_data_dir.GetCStr());
+        return String::FromFormat("%s/UserSaves", usetup.user_data_dir.GetCStr());
 
     // don't allow them to go to another folder
     bool is_path_absolute = !is_relative_filename(newFolder);

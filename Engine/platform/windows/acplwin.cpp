@@ -109,6 +109,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual const char *GetGraphicsTroubleshootingText();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
+  virtual bool IsMouseControlSupported(bool windowed);
   virtual const char* GetAllegroFailUserHint();
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
@@ -744,6 +745,11 @@ unsigned long AGSWin32::GetDiskFreeSpaceMB() {
 
 const char* AGSWin32::GetNoMouseErrorString() {
   return "No mouse was detected on your system, or your mouse is not configured to work with DirectInput. You must have a mouse to play this game.";
+}
+
+bool AGSWin32::IsMouseControlSupported(bool windowed)
+{
+  return true; // supported for both fullscreen and windowed modes
 }
 
 const char* AGSWin32::GetAllegroFailUserHint()

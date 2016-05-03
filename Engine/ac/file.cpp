@@ -337,7 +337,7 @@ String MakeAppDataPath()
     if (usetup.user_data_dir.IsEmpty())
         app_data_path = MakeSpecialSubDir(PathOrCurDir(platform->GetAllUsersDataDirectory()));
     else
-        app_data_path.Format("%s/Data", usetup.user_data_dir.GetCStr());
+        app_data_path.Format("%s/AppData", usetup.user_data_dir.GetCStr());
     Directory::CreateDirectory(app_data_path);
     app_data_path.AppendChar('/');
     return app_data_path;

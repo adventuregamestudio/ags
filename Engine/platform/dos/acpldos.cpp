@@ -38,7 +38,6 @@ struct AGSDOS : AGSPlatformDriver {
   virtual void PostAllegroExit();
   virtual int  RunSetup();
   virtual void ShutdownCDPlayer();
-  virtual void WriteStdOut(const char*, ...);
   virtual void YieldCPU();
   virtual void InitialiseAbufAtStartup();
   virtual void FinishedUsingGraphicsMode();
@@ -149,16 +148,6 @@ int AGSDOS::RunSetup() {
 
 void AGSDOS::ShutdownCDPlayer() {
   cd_exit();
-}
-
-void AGSDOS::WriteStdOut(const char *text, ...) {
-  char displbuf[2000];
-  va_list ap;
-  va_start(ap, text);
-  vsprintf(displbuf, text, ap);
-  va_end(ap);
-  
-  printf("%s", displbuf);
 }
 
 void AGSDOS::YieldCPU() {

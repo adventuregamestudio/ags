@@ -27,6 +27,7 @@
 #include "ac/global_display.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
+#include "debug/out.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "main/engine.h"
@@ -117,7 +118,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual SetupReturnValue RunSetup(ConfigTree &cfg);
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
-  virtual void WriteStdOut(const char*, ...);
+  virtual void WriteStdOut(const char *fmt, ...);
   virtual void DisplaySwitchOut() ;
   virtual void DisplaySwitchIn() ;
   virtual void RegisterGameWithGameExplorer();
@@ -136,9 +137,12 @@ private:
   void create_shortcut(const char *pathToEXE, const char *workingFolder, const char *arguments, const char *shortcutPath);
   void register_file_extension(const char *exePath);
   void unregister_file_extension();
+
+  bool _isDebuggerPresent; // indicates if the win app is running in the context of a debugger
 };
 
 AGSWin32::AGSWin32() {
+  _isDebuggerPresent = ::IsDebuggerPresent() != FALSE;
   allegro_wnd = NULL;
 }
 
@@ -385,7 +389,7 @@ void AGSWin32::update_game_explorer(bool add)
   HRESULT hr = CoCreateInstance( __uuidof(GameExplorer), NULL, CLSCTX_INPROC_SERVER, __uuidof(IGameExplorer), (void**)&pFwGameExplorer);
   if( FAILED(hr) || pFwGameExplorer == NULL ) 
   {
-    OutputDebugString("AGS: Game Explorer not found to register game, Windows Vista required");
+    Out::FPrint("Game Explorer not found to register game, Windows Vista required");
   }
   else 
   {
@@ -520,7 +524,7 @@ void AGSWin32::PostAllegroInit(bool windowed)
   // Sleep() don't take more time than specified
   MMRESULT result = timeBeginPeriod(win32TimerPeriod);
   if (result != TIMERR_NOERROR)
-    platform->WriteStdOut("Failed to set the timer resolution to %d ms", win32TimerPeriod);
+    Out::FPrint("Failed to set the timer resolution to %d ms", win32TimerPeriod);
 }
 
 typedef UINT (CALLBACK* Dynamic_SHGetKnownFolderPathType) (GUID& rfid, DWORD dwFlags, HANDLE hToken, PWSTR *ppszPath); 
@@ -829,15 +833,24 @@ void AGSWin32::SetGameWindowIcon() {
   SetWinIcon();
 }
 
-void AGSWin32::WriteStdOut(const char *text, ...) {
-  char displbuf[STD_BUFFER_SIZE] = "AGS: ";
+void AGSWin32::WriteStdOut(const char *fmt, ...) {
   va_list ap;
-  va_start(ap,text);
-  vsprintf(&displbuf[5],text,ap);
+  va_start(ap, fmt);
+  if (_isDebuggerPresent)
+  {
+    // Add "AGS:" prefix when outputting to debugger, to make it clear that this
+    // is a text from the program log
+    char buf[STD_BUFFER_SIZE] = "AGS: ";
+    vsnprintf(buf + 5, STD_BUFFER_SIZE - 5, fmt, ap);
+    OutputDebugString(buf);
+    OutputDebugString("\n");
+  }
+  else
+  {
+    vprintf(fmt, ap);
+    printf("\n");
+  }
   va_end(ap);
-  strcat(displbuf, "\n");
-
-  OutputDebugString(displbuf);
 }
 
 void AGSWin32::ShutdownCDPlayer() {

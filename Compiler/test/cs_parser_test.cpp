@@ -178,7 +178,7 @@ TEST(Compile, ParsingIntOverflow) {
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Error while parsing integer symbol '4200000000000000000000'.", last_seen_cc_error);
+    EXPECT_STREQ("Could not parse integer symbol '4200000000000000000000' because of overflow.", last_seen_cc_error);
 }
 
 TEST(Compile, ParsingNegIntOverflow) {
@@ -191,7 +191,7 @@ TEST(Compile, ParsingNegIntOverflow) {
     last_seen_cc_error = 0;
     int compileResult = cc_compile(inpl, scrip);
     ASSERT_EQ(-1, compileResult);
-    EXPECT_STREQ("Error while parsing integer symbol '-4200000000000000000000'.", last_seen_cc_error);
+    EXPECT_STREQ("Could not parse integer symbol '-4200000000000000000000' because of overflow.", last_seen_cc_error);
 }
 
 
@@ -288,4 +288,94 @@ TEST(Compile, DefaultParametersLargeInts) {
 
     EXPECT_EQ(true, sym.entries[funcidx].funcParamHasDefaultValues[9]);
     EXPECT_EQ(-2, sym.entries[funcidx].funcParamDefaultValues[9]);
+}
+
+TEST(Compile, DoubleNegatedConstant) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        import int MyFunction(\
+            int data0 = - -69\
+            );\
+        ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(-1, compileResult);
+    EXPECT_STREQ("Parameter default value must be literal", last_seen_cc_error);
+}
+
+TEST(Compile, SubtractionWithoutSpaces) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        int MyFunction()\
+        {\
+            int data0 = 2-4;\
+        }\
+        ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(0, compileResult);
+}
+
+TEST(Compile, NegationLHSOfExpression) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        enum MyEnum\
+        {\
+            cat\
+        };\
+        \
+        int MyFunctionA()\
+        {\
+            return 0;\
+        }\
+        \
+        int MyFunctionB()\
+        {\
+            int data0 = - 4 * 4;\
+            int data1 = - MyFunctionA() * 4;\
+            int data2 = -cat * 4;\
+            \
+            return 0;\
+        }\
+        ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    printf("Error: %s\n", last_seen_cc_error);
+    ASSERT_EQ(0, compileResult);
+}
+
+TEST(Compile, NegationRHSOfExpression) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        enum MyEnum\
+        {\
+            cat\
+        };\
+        \
+        int MyFunctionA()\
+        {\
+            return 0;\
+        }\
+        \
+        int MyFunctionB()\
+        {\
+            int data0 = 3 - - 4 * 4;\
+            int data1 = 3 - - MyFunctionA() * 4;\
+            int data2 = 3 - -cat * 4;\
+            \
+            return 0;\
+        }\
+        ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    printf("Error: %s\n", last_seen_cc_error);
+    ASSERT_EQ(0, compileResult);
 }

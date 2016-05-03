@@ -33,7 +33,6 @@ void read_config(const AGS::Common::ConfigTree &cfg);
 // Fixup game setup parameters
 void post_config();
 
-void read_config_file(ConfigTree &cfg, const char *alt_cfg_file);
 void save_config_file();
 uint32_t parse_scaling_factor(const AGS::Common::String &scaling_option);
 
@@ -43,6 +42,7 @@ float INIreadfloat(const ConfigTree &cfg, const String &sectn, const String &ite
 String INIreadstring(const ConfigTree &cfg, const String &sectn, const String &item, const String &def_value = "");
 void INIwriteint(ConfigTree &cfg, const String &sectn, const String &item, int value);
 void INIwritestring(ConfigTree &cfg, const String &sectn, const String &item, const String &value);
+void INIwriteint(ConfigTree &cfg, const String &sectn, const String &item, int value);
 
 
 #endif // __AGS_EE_MAIN__CONFIG_H

@@ -170,10 +170,19 @@ bool engine_check_run_setup(ConfigTree &cfg, int argc,char*argv[])
     {
             Out::FPrint("Running Setup");
 
-            SetupReturnValue res = platform->RunSetup(cfg);
+            // Add information about game resolution and let setup application
+            // display some properties to the user
+            INIwriteint(cfg, "misc", "defaultres", game.GetDefaultResolution());
+            INIwriteint(cfg, "misc", "letterbox", game.options[OPT_LETTERBOX]);
+            INIwriteint(cfg, "misc", "game_width", game.size.Width);
+            INIwriteint(cfg, "misc", "game_height", game.size.Height);
+            INIwriteint(cfg, "misc", "gamecolordepth", game.color_depth * 8);
+
+            ConfigTree cfg_out;
+            SetupReturnValue res = platform->RunSetup(cfg, cfg_out);
             if (res != kSetup_Cancel)
             {
-                if (!IniUtil::Merge(ac_config_file, cfg))
+                if (!IniUtil::Merge(ac_config_file, cfg_out))
                 {
                     platform->DisplayAlert("Unable to write to the configuration file (error code 0x%08X).\n%s",
                         platform->GetLastSystemError(), platform->GetFileWriteTroubleshootingText());
@@ -190,7 +199,6 @@ bool engine_check_run_setup(ConfigTree &cfg, int argc,char*argv[])
             char quotedpath[255];
             sprintf (quotedpath, "\"%s\"", argv[0]);
             _spawnl (_P_OVERLAY, argv[0], quotedpath, NULL);
-            //read_config_file(argv[0]);
     }
 #endif
 

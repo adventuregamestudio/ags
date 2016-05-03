@@ -73,7 +73,7 @@ struct AGSPlatformDriver
     virtual void PostAllegroInit(bool windowed);
     virtual void PostAllegroExit() = 0;
     virtual void FinishedUsingGraphicsMode();
-    virtual SetupReturnValue RunSetup(Common::ConfigTree &cfg) { return kSetup_Cancel; }
+    virtual SetupReturnValue RunSetup(const Common::ConfigTree &cfg_in, Common::ConfigTree &cfg_out);
     virtual void SetGameWindowIcon();
     // Formats message and writes to standard platform's output;
     // Always adds trailing '\n' after formatted string

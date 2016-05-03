@@ -90,7 +90,7 @@ extern void dxmedia_abort_video();
 extern void dxmedia_pause_video();
 extern void dxmedia_resume_video();
 extern char lastError[200];
-extern SetupReturnValue acwsetup(ConfigTree &cfg, const String &game_data_dir, const char*, const char*);
+extern SetupReturnValue acwsetup(const ConfigTree &cfg_in, ConfigTree &cfg_out, const String &game_data_dir, const char*, const char*);
 
 struct AGSWin32 : AGSPlatformDriver {
   AGSWin32();
@@ -116,7 +116,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroInit(bool windowed);
   virtual void PostAllegroExit();
-  virtual SetupReturnValue RunSetup(ConfigTree &cfg);
+  virtual SetupReturnValue RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out);
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char *fmt, ...);
@@ -829,10 +829,10 @@ void AGSWin32::PostAllegroExit() {
   timeEndPeriod(win32TimerPeriod);
 }
 
-SetupReturnValue AGSWin32::RunSetup(ConfigTree &cfg)
+SetupReturnValue AGSWin32::RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out)
 {
   String version_str = String::FromFormat("Adventure Game Studio v%s setup", get_engine_version());
-  return AGS::Engine::WinSetup(cfg, usetup.data_files_dir, version_str);
+  return AGS::Engine::WinSetup(cfg_in, cfg_out, usetup.data_files_dir, version_str);
 }
 
 void AGSWin32::SetGameWindowIcon() {

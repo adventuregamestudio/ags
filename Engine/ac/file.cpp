@@ -297,6 +297,7 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
 // end packfile functions
 
 
+const String GameInstallRootToken    = "$INSTALLDIR$";
 const String UserSavedgamesRootToken = "$MYDOCS$";
 const String GameSavedgamesDirToken  = "$SAVEGAMEDIR$";
 const String GameDataDirToken        = "$APPDATADIR$";
@@ -364,7 +365,18 @@ bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, Stri
         return true;
     }
     
-    if (sc_path.CompareLeft(GameSavedgamesDirToken, GameSavedgamesDirToken.GetLength()) == 0)
+    if (sc_path.CompareLeft(GameInstallRootToken, GameInstallRootToken.GetLength()) == 0)
+    {
+        if (!read_only)
+        {
+            debug_log("Attempt to access file '%s' denied (cannot write to game installation directory)",
+                sc_path.GetCStr());
+            return false;
+        }
+        parent_dir = get_current_dir();
+        child_path = sc_path.Mid(GameInstallRootToken.GetLength());
+    }
+    else if (sc_path.CompareLeft(GameSavedgamesDirToken, GameSavedgamesDirToken.GetLength()) == 0)
     {
         parent_dir = saveGameDirectory;
         child_path = sc_path.Mid(GameSavedgamesDirToken.GetLength());
@@ -391,7 +403,7 @@ bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, Stri
         parent_dir = MakeAppDataPath();
         // Set alternate non-remapped "unsafe" path for read-only operations
         if (read_only)
-            alt_path = sc_path;
+            alt_path = String::FromFormat("%s%s", get_current_dir().GetCStr(), sc_path.GetCStr());
 
         // For games made in the safe-path-aware versions of AGS, report a warning
         // if the unsafe path is used for write operation

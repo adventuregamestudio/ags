@@ -425,9 +425,10 @@ public:
     static const int MouseSpeedMax = 100;
 
 public:
-    WinSetupDialog(ConfigTree &cfg_tree, const String &data_dir, const String &version_str);
+    WinSetupDialog(const ConfigTree &cfg_in, ConfigTree &cfg_out, const String &data_dir, const String &version_str);
     ~WinSetupDialog();
-    static SetupReturnValue ShowModal(ConfigTree &cfg_tree, const String &data_dir, const String &version_str);
+    static SetupReturnValue ShowModal(const ConfigTree &cfg_in, ConfigTree &cfg_out,
+                                      const String &data_dir, const String &version_str);
 
 private:
     static INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -479,7 +480,8 @@ private:
     static WinSetupDialog *_dlg;
     HWND _hwnd;
     WinConfig _winCfg;
-    ConfigTree &_cfgTree;
+    const ConfigTree &_cfgIn;
+    ConfigTree &_cfgOut;
     // Window size
     Size _winSize;
     Size _baseSize;
@@ -526,9 +528,10 @@ private:
 
 WinSetupDialog *WinSetupDialog::_dlg = NULL;
 
-WinSetupDialog::WinSetupDialog(ConfigTree &cfg_tree, const String &data_dir, const String &version_str)
+WinSetupDialog::WinSetupDialog(const ConfigTree &cfg_in, ConfigTree &cfg_out, const String &data_dir, const String &version_str)
     : _hwnd(NULL)
-    , _cfgTree(cfg_tree)
+    , _cfgIn(cfg_in)
+    , _cfgOut(cfg_out)
     , _drvDesc(NULL)
     , _gfxFilterInfo(NULL)
 {
@@ -540,9 +543,10 @@ WinSetupDialog::~WinSetupDialog()
 {
 }
 
-SetupReturnValue WinSetupDialog::ShowModal(ConfigTree &cfg_tree, const String &data_dir, const String &version_str)
+SetupReturnValue WinSetupDialog::ShowModal(const ConfigTree &cfg_in, ConfigTree &cfg_out,
+                                           const String &data_dir, const String &version_str)
 {
-    _dlg = new WinSetupDialog(cfg_tree, data_dir, version_str);
+    _dlg = new WinSetupDialog(cfg_in, cfg_out, data_dir, version_str);
     INT_PTR dlg_res = DialogBoxParam(GetModuleHandle(NULL), (LPCTSTR)IDD_SETUP, allegro_wnd,
         (DLGPROC)WinSetupDialog::DialogProc, 0L);
     delete _dlg;
@@ -592,7 +596,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     _minGameSize = Size(320, 200);
     _maxGameScale = 1;
 
-    _winCfg.Load(_cfgTree);
+    _winCfg.Load(_cfgIn);
 
     // Custom save dir controls
     String custom_save_dir = _winCfg.UserSaveDir;
@@ -698,11 +702,11 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     else
         SetCheck(_hUseVoicePack, _winCfg.UseVoicePack);
 
-    if (INIreadint(_cfgTree, "disabled", "speechvox", 0) != 0)
+    if (INIreadint(_cfgIn, "disabled", "speechvox", 0) != 0)
         EnableWindow(_hUseVoicePack, FALSE);
-    if (INIreadint(_cfgTree, "disabled", "16bit", 0) != 0)
+    if (INIreadint(_cfgIn, "disabled", "16bit", 0) != 0)
         EnableWindow(_hReduce32to16, FALSE);
-    if (INIreadint(_cfgTree, "disabled", "filters", 0) != 0)
+    if (INIreadint(_cfgIn, "disabled", "filters", 0) != 0)
         EnableWindow(_hGfxFilterList, FALSE);
 
     RECT win_rect, gfx_rect, adv_rect;
@@ -971,7 +975,7 @@ void WinSetupDialog::FillGfxFilterList()
     for (size_t i = 0; i < _drvDesc->FilterList.size(); ++i)
     {
         const GfxFilterInfo &info = _drvDesc->FilterList[i];
-        if (INIreadint(_cfgTree, "disabled", info.Id, 0) == 0)
+        if (INIreadint(_cfgIn, "disabled", info.Id, 0) == 0)
             AddString(_hGfxFilterList, info.Name, (DWORD_PTR)info.Id.GetCStr());
     }
 
@@ -1204,7 +1208,7 @@ void WinSetupDialog::SaveSetup()
     int slider_pos = GetSliderPos(_hMouseSpeed);
     _winCfg.MouseSpeed = (float)slider_pos / 10.f;
 
-    _winCfg.Save(_cfgTree);
+    _winCfg.Save(_cfgOut);
 }
 
 void WinSetupDialog::SelectNearestGfxMode(const Size screen_size, GfxModeSpecial gfx_mode_spec)
@@ -1296,9 +1300,10 @@ void SetWinIcon()
         (LONG) LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON))); 
 }
 
-SetupReturnValue WinSetup(ConfigTree &cfg, const String &game_data_dir, const String &version_str)
+SetupReturnValue WinSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out,
+                          const String &game_data_dir, const String &version_str)
 {
-    return WinSetupDialog::ShowModal(cfg, game_data_dir, version_str);
+    return WinSetupDialog::ShowModal(cfg_in, cfg_out, game_data_dir, version_str);
 }
 
 } // namespace Engine

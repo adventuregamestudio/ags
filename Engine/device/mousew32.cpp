@@ -37,6 +37,7 @@
 #endif
 
 #include "ac/gamestate.h"
+#include "debug/out.h"
 #include "device/mousew32.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_util.h"
@@ -91,7 +92,10 @@ namespace Mouse
 void mgraphconfine(int x1, int y1, int x2, int y2)
 {
   Mouse::ControlRect = Rect(x1, y1, x2, y2);
-  set_mouse_range(x1, y1, x2, y2);
+  set_mouse_range(Mouse::ControlRect.Left, Mouse::ControlRect.Top, Mouse::ControlRect.Right, Mouse::ControlRect.Bottom);
+  Out::FPrint("Mouse confined: (%d,%d)-(%d,%d) (%dx%d)",
+      Mouse::ControlRect.Left, Mouse::ControlRect.Top, Mouse::ControlRect.Right, Mouse::ControlRect.Bottom,
+      Mouse::ControlRect.GetWidth(), Mouse::ControlRect.GetHeight());
 }
 
 void mgetgraphpos()
@@ -161,7 +165,7 @@ void mgetgraphpos()
         real_mouse_y = mouse_y;
     }
 
-    // Set game cursor position, and apply real->virtual coordinate translation
+    // Set new in-game cursor position
     mousex = real_mouse_x;
     mousey = real_mouse_y;
 
@@ -173,17 +177,18 @@ void mgetgraphpos()
         msetgraphpos(mousex, mousey);
     }
 
+    // Convert to virtual coordinates
     Mouse::AdjustPosition(mousex, mousey);
 }
 
 void msetcursorlimit(int x1, int y1, int x2, int y2)
 {
-  // like graphconfine, but don't actually pass it to the driver
-  // - stops the Windows cursor showing when out of the area
   boundx1 = x1;
   boundy1 = y1;
   boundx2 = x2;
   boundy2 = y2;
+
+  Out::FPrint("Custom mouse cursor bounds: (%d,%d)-(%d,%d)", x1, y1, x2, y2);
 }
 
 void drawCursor(Bitmap *ds) {
@@ -388,6 +393,10 @@ void Mouse::EnableControl(bool confine)
 void Mouse::DisableControl()
 {
     ControlEnabled = false;
+    ConfineInCtrlRect = false;
+    SpeedVal = 1.f;
+    SpeedUnit = 1.f;
+    Speed = 1.f;
 }
 
 bool Mouse::IsControlEnabled()
@@ -397,6 +406,8 @@ bool Mouse::IsControlEnabled()
 
 void Mouse::SetSpeedUnit(float f)
 {
+    if (!ControlEnabled)
+        return;
     SpeedUnit = f;
     Speed = SpeedVal / SpeedUnit;
 }
@@ -408,6 +419,8 @@ float Mouse::GetSpeedUnit()
 
 void Mouse::SetSpeed(float speed)
 {
+    if (!ControlEnabled)
+        return;
     SpeedVal = Math::Max(0.f, speed);
     Speed = SpeedUnit * SpeedVal;
 }

@@ -370,10 +370,13 @@ String MakeSaveGameDir(const char *newFolder, bool allowAbsolute)
     }
     else if (!is_path_absolute)
     {
-        // Only remap local dir paths in backwards-compatible mode
-        if (game.options[OPT_SAFEFILEPATHS])
-            return "";
         newSaveGameDir.Format("%s/%s", PathOrCurDir(platform->GetUserSavedgamesDirectory()), newFolder);
+        // For games made in the safe-path-aware versions of AGS, report a warning
+        if (game.options[OPT_SAFEFILEPATHS])
+        {
+            debug_log("Attempt to explicitly set savegame location relative to the game installation directory ('%s') denied;\nPath will be remapped to the user documents directory: '%s'",
+                newFolder, newSaveGameDir.GetCStr());
+        }
     }
     return newSaveGameDir;
 }

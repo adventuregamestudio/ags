@@ -1339,27 +1339,33 @@ With AGS you can link a line of dialog to a speech file, to enable "talkie"-
 style games. Suppose you have a dialog script with the following:
 \begin{verbatim}
 ego: "Hi! How are you?"
-david: "I'm fine."
+michael: "I'm fine."
 \end{verbatim}
 Normally this would display the words in the speech text above the characters
 heads. However, you can add the special character '&' to symbolise that a
-voice file should also be played. The file name is made up of the \bf{first four
-letters} of the character's \bf{script name}, then an ID number. For example,
+voice file should also be played.
+
+The file name has format XXXXY.EXT, where XXXX is made of up to \bf{first four
+letters} of the character's script name (except the leading 'c'), the Y is the speech
+file number (with no leading or trailing zeroes or padding of any kind), and EXT is the file extension.
+
+For example, if you have dialog script:
 \begin{verbatim}
 ego: &10 "Hi! How are you?"
-david: &7 "I'm fine."
+michael: &7 "I'm fine."
 \end{verbatim}
-This would play EGO10.WAV with the first line, and DAVI7.WAV with the second.
+
+or common script using Say script function:
+\begin{verbatim}
+cEgo.Say("&10 Hi! How are you?");
+cMichael.Say("&7 I'm fine.");
+\end{verbatim}
+
+Both of those examples would play EGO10.WAV with the first line, and MICH7.WAV with the second.
 When a line of text has a voice linked to it, the text on the screen will not
 be removed until the voice file has finished playing. If the player interrupts
 it by clicking the mouse or pressing a key, the text and voice will be stopped.
 Voice files must be placed in the "Speech" sub-directory of the game folder.
-
-You can also use speech with Say script function.
-\begin{verbatim}
-cEgo.Say("&10 Hi! How are you?");
-cDavid.Say("&7 I'm fine.");
-\end{verbatim}
 
 \bf{NOTE:} WAV, OGG and MP3 format files can be used for speech.
 
@@ -1371,7 +1377,7 @@ from the rest of your game data so that you can offer it as an optional extra
 download to the player. The game will function correctly if the file is not
 present.
 
-\it{SeeAlso:} \helprefn{Speech.VoiceMode}{Speech.VoiceMode} script property.
+\it{SeeAlso:} \helprefn{Speech.VoiceMode}{Speech.VoiceMode}
 
 
 \subsection{The AudioCache folder}\label{AudioCache}\index{AudioCache folder}%
@@ -10683,7 +10689,9 @@ will quit the game without asking the player to confirm.
 Random (int max)
 \end{verbatim}
 Returns a random number between 0 and MAX. This could be useful to do
-various effects in your game.
+various effects in your game. MAX must be a positive value in range 0-32767.
+
+\bf{NOTE:} Because of the way Random is implemented in AGS, the return value will never be higher than 32767.
 
 \bf{NOTE:} The range returned is inclusive - ie. if you do  Random(3);  then it
 can return 0, 1, 2 or 3.
@@ -15352,6 +15360,8 @@ Changes the default volume of the specified \it{AudioType}. This allows you to
 change the volume of all audio clips of a particular type, so that you can
 easily control sound and music volume separately, for example.
 
+VOLUME ranges from 0-100, where 100 is the loudest, and 0 will muting sound of that type completely.
+
 Possible values for \it{ChangeVolumeType} are:
 \begin{verbatim}
 eVolChangeExisting      change the volume of currently playing audio clips
@@ -15359,6 +15369,8 @@ eVolSetFutureDefault    change the default volume for clips of this type
 eVolExistingAndFuture   change both currently playing and future audio
 \end{verbatim}
 
+Initially general AudioType volume is not set, meaning that all future audio will be
+playing using their own custom volumes.
 If you use the \it{eVolSetFutureDefault} or \it{eVolExistingAndFuture}, then
 the DefaultVolume property for all audio clips of this type will be overridden.
 This means that any DefaultVolume set up in the editor will be lost.
@@ -17289,7 +17301,7 @@ while (x<100) {
    x++; 
    Wait(1);
 }
-ReleaseViewPort();
+ReleaseViewport();
 \end{verbatim}
 will scroll the room 100 pixels to the right and then return the screen to its original position and unlock the screen viewport.
 
@@ -18560,7 +18572,11 @@ command.
 readonly int String.AsInt;
 \end{verbatim}
 Converts the string into an integer, and returns that value. Returns
-zero if the string does not contain a number.
+zero if the string does not present a number.
+
+\bf{NOTE:} This operation takes just the leading sequence of the characters from the string,
+if it contains digits and other symbols which could be a part of number. If the string has the
+valid number only in the middle, it will not work.
 
 \fcol{red}{Example:}
 \begin{verbatim}

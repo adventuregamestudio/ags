@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.3.5, November 2015
+VERSION 3.3.5, January 2015
 
 Editor Features:
 - Path to resource's (sprite, audio) source file is now saved as relative one if the file is
@@ -17,26 +17,39 @@ Editor Bug Fixes:
 - Fixed compiler crash if unknown keyword used after "readonly".
 - Fixed compiler did not properly report incorrect type of dynamic array in function declaration.
 - Fixed compiler did not report proper type name in case of syntax error sometimes.
+- Fixed mouse cursor flicker above the script editor.
 
 Engine Features:
 - Removed unconfigurable mouse cursor's acceleration.
 - Support for mouse cursor speed control: may be defined in configuration and changed in script).
+- A config option for keeping consistent cursor speed relative to user's desktop resolution.
 - Support for locking mouse inside window: automatic lock is enabled in configuration, and user
   may use Ctrl+Alt combination to lock/release mouse at any time.
+- Restricted writing game files to special system directories
+  (game is forbidden to write files into installation directiory or by absolute path).
+  For old games unsafe paths are remapped.
+- Support for player defined saves & game file directory.
+- -v/--version command line argument makes engine display its version and bail.
 
 Engine Bug Fixes:
 - Fixed crash if screenshot is taken while game window was minimized or moving.
 - Fixed alpha blend did not work properly for speech portrait if blinking frame did not have alpha channel.
+- Fixed Display and Say script commands were displaying text for minimal amount of time under certain conditions.
 - Fixed legacy audio functions did not start digital music playback if MIDI driver failed to initialize.
+- Fixed game was run in smallest possible window if graphics driver failed to initialize fullscreen mode.
 - Fixed "--help" command line argument not working all times depending on its order.
+- Fixed engine did not always properly closed application window when running debug build.
 
 Script API:
+- Supported late_repeatedly_execute_always() callback in script, called after game has updated, but
+  before it is drawn.
 - Added Mouse.ControlEnabled (readonly) and Mouse.Speed properties.
 - Added System.HasInputFocus property which tells if game currently has focus or runs at background.
 
 Cosmetics & convenience:
 - Clarified disabled MIDI option name in WinSetup.
 - Extended information displayed if graphics driver failed to initialize.
+- Clarified error messages for running unsupported games.
 
 
 VERSION 3.3.4, July 2015

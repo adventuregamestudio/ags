@@ -12,7 +12,7 @@ AppId={#AgsAppId}
 AppName={#AgsName} {#AgsVersion}
 AppVersion={#AgsVersion}
 AppVerName={#AgsName} {#AgsVersion}
-AppPublisher=Chris Jones
+AppPublisher=AGS Project Team
 AppPublisherURL={#AgsUrl}
 AppSupportURL={#AgsUrl}
 AppUpdatesURL={#AgsUrl}
@@ -26,6 +26,7 @@ SolidCompression=yes
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\AGSEditor.exe
+ShowComponentSizes=yes
 
 
 [Languages]
@@ -33,49 +34,52 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 
 [CustomMessages]
+ComponentMain=Main files
+ComponentEngines=Engines
+ComponentEngineDefault=Engine (default)
+ComponentEngineNoMP3=Engine (no MP3 support)
+ComponentDemoGame=Demo Game
 InstallOptions=Install options
 InstallVCRedist=Install Visual C++ Redistributable 2008 SP1
 CreateDesktopIcon=Create a &desktop icon
-InstallDemoGame=Install the Demo Game
 AssociateFiles=Associate AGF files with the editor
 
 
 [Components]
-Name: "main"; Description: "Main files"; Types: full compact custom; Flags: fixed
-Name: "engine"; Description: "Engines"; Types: full compact custom; Flags: fixed
-Name: "engine\default"; Description: "Engine"; Types: full compact; Flags: exclusive
-Name: "engine\nomp3"; Description: "Engine (no MP3 support)"; Flags: exclusive
+Name: "main"; Description: "{cm:ComponentMain}"; Types: full compact custom; Flags: fixed
+Name: "engine"; Description: "{cm:ComponentEngines}"; Types: full compact custom; Flags: fixed
+Name: "engine\default"; Description: "{cm:ComponentEngineDefault}"; Types: full compact; Flags: exclusive
+Name: "engine\nomp3"; Description: "{cm:ComponentEngineNoMP3}"; Flags: exclusive
+Name: "demogame"; Description: "{cm:ComponentDemoGame}"; Types: full custom
 
 
 [Tasks]
 Name: "vcredist"; Description: "{cm:InstallVCRedist}"; GroupDescription: "{cm:InstallOptions}"; Check: VCRedistNeedsInstall;
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:InstallOptions}"
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:InstallOptions}"; Flags: unchecked;
-Name: "demogame"; Description: "{cm:InstallDemoGame}"; GroupDescription: "{cm:InstallOptions}"
 Name: "associate"; Description: "{cm:AssociateFiles}"; GroupDescription: "{cm:InstallOptions}"
 
 
 [Dirs]
-Name: "{app}\Demo Game";
 Name: "{app}\Templates";
 
 
 [Files]
 Source: "Source\engine\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\default
 Source: "Source\engine-no-mp3\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\nomp3
-Source: "Source\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Source\ags-help.chm"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Source\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion
-Source: "Source\Docs\*"; DestDir: "{app}\Docs"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "Source\Templates\*"; DestDir: "{app}\Templates"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "Source\Demo Game\*"; DestDir: "{app}\Demo Game"; Flags: ignoreversion recursesubdirs createallsubdirs; Tasks: demogame
-Source: "{#VcRedistInstaller}"; DestDir: {tmp}; Flags: deleteafterinstall; Check: VCRedistNeedsInstall;
+Source: "Source\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\ags-help.chm"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion; Components: main
+Source: "Source\Docs\*"; DestDir: "{app}\Docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+Source: "Source\Templates\*"; DestDir: "{app}\Templates"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main
+Source: "Source\Demo Game\*"; DestDir: "{code:GetDemoGameDir}"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: demogame
+Source: "{#VcRedistInstaller}"; DestDir: {tmp}; Flags: deleteafterinstall; Tasks: vcredist
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 
 [Icons]
 Name: "{group}\AGS Editor"; Filename: "{app}\AGSEditor.exe"; Comment: "What are you waiting for? Fire it up and start making the best game ever!";
-Name: "{group}\Demo Game"; Filename: "{app}\Demo Game\game.agf"; Comment: "Here's one we made earlier! If you want a sneak peak at a working game, check it out."
+Name: "{group}\Demo Game"; Filename: "{code:GetDemoGameDir}\game.agf"; Comment: "Here's one we made earlier! If you want a sneak peak at a working game, check it out."; Components: demogame
 Name: "{group}\AGS Manual"; Filename: "{app}\ags-help.chm"; Comment: "Online help, tutorials and reference. THIS IS YOUR BIBLE NOW!"
 Name: "{group}\{cm:UninstallProgram,Adventure Game Studio}"; Filename: "{uninstallexe}"; Comment: ":~(  Ah well, nothing lasts forever. Turn off the light on your way out."
 Name: "{group}\Visit the AGS Website"; Filename: "{app}\Docs\AGS Website.url"; Comment: "See the latest AGS-related news. Find games to play."
@@ -94,9 +98,49 @@ Root: HKCR; Subkey: "AGSGameSource\shell\open\command"; ValueType: string; Value
 [Run]
 ; "How to perform a silent install of the Visual C++ 2008 redistributable packages"
 ;   http://blogs.msdn.com/b/astebner/archive/2010/10/18/9513328.aspx
-Filename: "{tmp}\{#VcRedistInstaller}"; Parameters: "/qb"; Check: VCRedistNeedsInstall; Flags: skipifdoesntexist; Tasks: vcredist
-
+Filename: "{tmp}\{#VcRedistInstaller}"; Parameters: "/qb"; Flags: skipifdoesntexist; Tasks: vcredist
 Filename: "{app}\AGSEditor.exe"; Description: "{cm:LaunchProgram,Adventure Game Studio}"; Flags: nowait postinstall skipifsilent;
+
+
+[Code]
+
+// Letting user choose destination for the Demo Game
+
+var
+  DemoGameDirPage: TInputDirWizardPage;
+
+function GetDemoGameDir(Param: String): String;
+begin
+  Result := DemoGameDirPage.Values[0];
+end;
+
+procedure InitializeWizard();
+begin
+  // create a directory input page
+  DemoGameDirPage := CreateInputDirPage(wpSelectComponents, 'Select Demo Game installation folder', 'Where should the Demo Game be installed', 'Demo Game will be installed in the following folder.'#13#10#13#10 +
+    'To continue, click Next. If you would like to select a different folder, click Browse.', True, 'Demo Game');
+  // add directory input page items
+  DemoGameDirPage.Add('');
+  // assign default directories for the items from the previously stored data; if
+  // there are no data stored from the previous installation, use default folders
+  // of your choice
+  DemoGameDirPage.Values[0] := GetPreviousData('DemoGamePath', ExpandConstant('{commondocs}/Demo Game'));
+end;
+
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  case PageID of
+  // skip demo game's install path page, if the component was not selected
+  DemoGameDirPage.ID: Result := not IsComponentSelected('demogame');
+  else Result := False;
+  end;
+end;
+
+procedure RegisterPreviousData(PreviousDataKey: Integer);
+begin
+  // store chosen directories for the next run of the setup
+  SetPreviousData(PreviousDataKey, 'DemoGamePath', DemoGameDirPage.Values[0]);
+end;
 
 
 [Code]

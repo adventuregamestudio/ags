@@ -187,8 +187,6 @@ void msetcursorlimit(int x1, int y1, int x2, int y2)
   boundy1 = y1;
   boundx2 = x2;
   boundy2 = y2;
-
-  Out::FPrint("Custom mouse cursor bounds: (%d,%d)-(%d,%d)", x1, y1, x2, y2);
 }
 
 void drawCursor(Bitmap *ds) {

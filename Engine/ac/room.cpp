@@ -272,7 +272,7 @@ void unload_old_room() {
     if (displayed_room < 0)
         return;
 
-    Out::FPrint("Unloading room %d", displayed_room);
+    DEBUG_CONSOLE("Unloading room %d", displayed_room);
 
     current_fade_out_effect();
 
@@ -435,7 +435,7 @@ void copy_properties_to_current_room_state()
 // forchar = playerchar on NewRoom, or NULL if restore saved game
 void load_new_room(int newnum, CharacterInfo*forchar) {
 
-    Out::FPrint("Loading room %d", newnum);
+    DEBUG_CONSOLE("Loading room %d", newnum);
 
     String room_filename;
     int cc;
@@ -1021,7 +1021,7 @@ extern int psp_clear_cache_on_room_change;
 void new_room(int newnum,CharacterInfo*forchar) {
     EndSkippingUntilCharStops();
 
-    Out::FPrint("Room change requested to room %d", newnum);
+    DEBUG_CONSOLE("Room change requested to room %d", newnum);
 
     update_polled_stuff_if_runtime();
 

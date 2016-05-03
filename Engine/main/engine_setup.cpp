@@ -337,10 +337,9 @@ void engine_set_mouse_control(const Size &init_desktop)
     // Assign mouse control parameters.
     //
     // Whether mouse movement should be controlled by the engine - this is
-    // declared here for the sake of distinction; this definition may be
-    // replaced with e.g. config option if necessary. Currently it is assumed
-    // that mouse movement should be controlled only in fullscreen.
-    const bool should_control_mouse = !dm.Windowed;
+    // determined based on related config option.
+    const bool should_control_mouse = usetup.mouse_control == kMouseCtrl_Always ||
+        usetup.mouse_control == kMouseCtrl_Fullscreen && !dm.Windowed;
     // Whether mouse movement control is supported by the engine - this is
     // determined on per platform basis. Some builds may not have such
     // capability, e.g. because of how backend library implements mouse utils.

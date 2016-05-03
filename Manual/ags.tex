@@ -10953,9 +10953,13 @@ the player might have installed your game to any folder, and they might not be r
 Therefore, only two types of path are supported: ILBRK
 1. Relative paths (eg. "Saves"). This will create a "Saves" folder inside your game folder ILBRK
 2. The special tag \verb!$MYDOCS$! which allows you to create a folder for your save games
-inside the user's documents folder. On Vista and later, this is the "Saved Games" folder;
-on Windows XP and earlier, this is "My Documents". On Mac and Linux, currently this just points
-to the game folder.
+inside the user's documents folder.
+
+The actual folder referenced with \verb!$MYDOCS$! is different on every platform:
+Windows XP: "My Documents"ILBRK
+Windows Vista and later: "Saved Games"ILBRK
+Linux: \verb!$XDG_DATA_HOME!/agsILBRK
+MacOS: game installation folder.
 
 Returns \it{true} if the save game directory has been changed successfully; \it{false} if not.
 
@@ -20732,6 +20736,7 @@ The AGS forum:   http://www.adventuregamestudio.co.uk/forum/
 \item The latter versions and engine ports to various platforms are product of collaborative work of the following people (in alphabetic order):
 \begin{verbatim}
   Benjamin Penney
+  Benoit Pierre
   Bernhard Rosenkraenzer
   Cristian Morales Vega
   Francesco Ariis
@@ -20740,6 +20745,9 @@ The AGS forum:   http://www.adventuregamestudio.co.uk/forum/
   Janet Gilbert
   Jochen Schleu
   Michael Rittenhouse
+  Morgan Willcock
+  Nick Sonneveld
+  Ori Avtalion
   Paul Wilkinson
   Per Olav Flaten
   Piotr Wieczorek

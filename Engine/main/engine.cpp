@@ -756,18 +756,12 @@ int engine_load_game_data()
     Out::FPrint("Load game data");
 
     our_eip=-17;
-    int ee=load_game_file();
-    if (ee != 0) {
+    GameFileError err = load_game_file();
+    if (err != kGameFile_NoError) {
         proper_exit=1;
         platform->FinishedUsingGraphicsMode();
 
-        if (ee==-1)
-            platform->DisplayAlert("Main game file not found. This may be from a different AGS version, or the file may have got corrupted.\n");
-        else if (ee==-2)
-            platform->DisplayAlert("Invalid file format. The file may be corrupt, or from a different\n"
-            "version of AGS.\nThis engine can only run games made with AGS 2.5 or later.\n");
-        else if (ee==-3)
-            platform->DisplayAlert("Script link failed: %s\n",ccErrorString);
+        display_game_file_error(err);
         return EXIT_NORMAL;
     }
 
@@ -1342,8 +1336,12 @@ bool engine_read_config(ConfigTree &cfg, int argc,char*argv[])
     // TODO: research if that is possible to avoid this step and just
     // read the full head game data at this point. This might require
     // further changes of the order of initialization.
-    if (!preload_game_data())
+    GameFileError err = preload_game_data();
+    if (err != kGameFile_NoError)
+    {
+        display_game_file_error(err);
         return false;
+    }
 
     // Read user configuration file
     load_user_config_file(cfg);

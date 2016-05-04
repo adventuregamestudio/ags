@@ -4774,6 +4774,7 @@ startvarbit:
         }
     }
     if ((in_func >= 0) || (nested_level > 0)) {
+        currentline = targ.lineAtEnd;
         cc_error("Function still open, missing }");
         return -1;
     }

@@ -11,3 +11,8 @@ void cc_error_at_line(char *buffer, const char *error_msg)
 {
     sprintf(ccErrorString, "Error (line %d): %s", currentline, error_msg);
 }
+
+void cc_error_without_line(char *buffer, const char *error_msg)
+{
+    sprintf(ccErrorString, "Error (line unknown): %s", error_msg);
+}

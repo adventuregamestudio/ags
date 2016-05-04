@@ -13,6 +13,11 @@ void cc_error_at_line(char *buffer, const char *error_msg)
     last_seen_cc_error = _strdup(error_msg);
 }
 
+void cc_error_without_line(char *buffer, const char *error_msg)
+{
+    last_seen_cc_error = _strdup(error_msg);
+}
+
 ccCompiledScript *newScriptFixture() {
     // TODO: investigate proper google test fixtures.
     ccCompiledScript *scrip = new ccCompiledScript();

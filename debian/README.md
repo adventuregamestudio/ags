@@ -47,7 +47,7 @@ Download the sources with git and change into the **ags** directory:
 Build the package and install it with gdebi:
 
     fakeroot debian/rules binary
-    sudo gdebi ../ags_3.30.0-1_*.deb
+    sudo gdebi ../ags_3~git-1_*.deb
 
 #Using the engine
 To start an AGS game, just run ags with the game directory or the game
@@ -165,4 +165,4 @@ Build the package with pbuilder and install it and its dependencies with gdebi:
 
     cd ags
     pdebuild
-    sudo gdebi /var/cache/pbuilder/result/ags_3.30.0-1_i386.deb
+    sudo gdebi /var/cache/pbuilder/result/ags_3~git-1_i386.deb

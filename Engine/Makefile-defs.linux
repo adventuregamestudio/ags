@@ -16,7 +16,7 @@ else
 endif
 LIBS += $(shell pkg-config --libs vorbisfile)
 LIBS += $(shell pkg-config --libs freetype2)
-LIBS += -ldl -lpthread -lc -lstdc++
+LIBS += -ldl -lpthread -lc -lm -lstdc++
 
 ifeq ($(ALLEGRO_MAGIC_DRV), 1)
   CFLAGS += -DALLEGRO_MAGIC_DRV

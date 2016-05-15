@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include "util/bbop.h"
 #include "util/multifilelib.h"
 #include "util/stream.h"
 #include "util/string_utils.h"

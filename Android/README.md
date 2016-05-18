@@ -63,6 +63,11 @@ http://www.eglebbk.dds.nl/program/download/digmid.dat
 Rename that file to **patches.dat** and place it into the **ags**
 directory alongside your games.
 
+*If MIDI music fails to play, attempt using an archive manager such as 7-Zip to extract the patches.dat file.
+    Extract the patches[1] file from patches.dat into the AGS directory
+    Remove patches.dat from the AGS directory
+    Rename the patches[1] file to patches.dat
+This method should fix MIDI playback due to compression on the raw files.
 
 
 #Building the engine

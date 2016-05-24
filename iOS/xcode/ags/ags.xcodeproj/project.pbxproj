@@ -297,7 +297,7 @@
 		60CA3E4C160713FF00CFB3BD /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C92160713FF00CFB3BD /* main.cpp */; };
 		60CA3E4D160713FF00CFB3BD /* minidump.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C96160713FF00CFB3BD /* minidump.cpp */; };
 		60CA3E4E160713FF00CFB3BD /* quit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C97160713FF00CFB3BD /* quit.cpp */; };
-		60CA3E4F160713FF00CFB3BD /* udpate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C99160713FF00CFB3BD /* udpate.cpp */; };
+		60CA3E4F160713FF00CFB3BD /* update.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C99160713FF00CFB3BD /* update.cpp */; };
 		60CA3E55160713FF00CFB3BD /* ambientsound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3CA2160713FF00CFB3BD /* ambientsound.cpp */; };
 		60CA3E56160713FF00CFB3BD /* audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3CA4160713FF00CFB3BD /* audio.cpp */; };
 		60CA3E57160713FF00CFB3BD /* clip_mydumbmod.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3CA8160713FF00CFB3BD /* clip_mydumbmod.cpp */; };
@@ -954,7 +954,7 @@
 		60CA3C96160713FF00CFB3BD /* minidump.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = minidump.cpp; sourceTree = "<group>"; };
 		60CA3C97160713FF00CFB3BD /* quit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = quit.cpp; sourceTree = "<group>"; };
 		60CA3C98160713FF00CFB3BD /* quit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = quit.h; sourceTree = "<group>"; };
-		60CA3C99160713FF00CFB3BD /* udpate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = udpate.cpp; sourceTree = "<group>"; };
+		60CA3C99160713FF00CFB3BD /* update.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = update.cpp; sourceTree = "<group>"; };
 		60CA3C9A160713FF00CFB3BD /* update.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = update.h; sourceTree = "<group>"; };
 		60CA3CA2160713FF00CFB3BD /* ambientsound.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ambientsound.cpp; sourceTree = "<group>"; };
 		60CA3CA3160713FF00CFB3BD /* ambientsound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ambientsound.h; sourceTree = "<group>"; };
@@ -2086,7 +2086,7 @@
 				60CA3C96160713FF00CFB3BD /* minidump.cpp */,
 				60CA3C97160713FF00CFB3BD /* quit.cpp */,
 				60CA3C98160713FF00CFB3BD /* quit.h */,
-				60CA3C99160713FF00CFB3BD /* udpate.cpp */,
+				60CA3C99160713FF00CFB3BD /* update.cpp */,
 				60CA3C9A160713FF00CFB3BD /* update.h */,
 			);
 			path = main;
@@ -2577,7 +2577,7 @@
 				60CA3E4C160713FF00CFB3BD /* main.cpp in Sources */,
 				60CA3E4D160713FF00CFB3BD /* minidump.cpp in Sources */,
 				60CA3E4E160713FF00CFB3BD /* quit.cpp in Sources */,
-				60CA3E4F160713FF00CFB3BD /* udpate.cpp in Sources */,
+				60CA3E4F160713FF00CFB3BD /* update.cpp in Sources */,
 				60CA3E55160713FF00CFB3BD /* ambientsound.cpp in Sources */,
 				60CA3E56160713FF00CFB3BD /* audio.cpp in Sources */,
 				60CA3E57160713FF00CFB3BD /* clip_mydumbmod.cpp in Sources */,

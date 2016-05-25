@@ -16,12 +16,6 @@ but a workalike plugin created by JJS for the AGS engine PSP port.
 #define THIS_IS_THE_PLUGIN
 #endif
 
-#include "plugin/agsplugin.h"
-
-#if defined(BUILTIN_PLUGINS)
-namespace agsflashlight {
-#endif
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -32,6 +26,12 @@ namespace agsflashlight {
 #include <pspmath.h>
 #include <pspdisplay.h>
 #define sin(x) vfpu_sinf(x)
+#endif
+
+#include "plugin/agsplugin.h"
+
+#if defined(BUILTIN_PLUGINS)
+namespace agsflashlight {
 #endif
 
 #if defined(__GNUC__)
@@ -946,5 +946,5 @@ void AGS_EditorLoadGame(char* buffer, int bufsize)
 
 
 #if defined(BUILTIN_PLUGINS)
-}
+} // namespace agsflashlight
 #endif

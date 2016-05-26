@@ -73,7 +73,7 @@ void GameSetupStructBase::ReadFromFile(Stream *in)
     numgui = in->ReadInt32();
     numcursors = in->ReadInt32();
     GameResolutionType resolution_type = (GameResolutionType)in->ReadInt32();
-    if (resolution_type == kGameResolution_Custom && loaded_game_file_version >= kGameVersion_340_1)
+    if (resolution_type == kGameResolution_Custom && loaded_game_file_version >= kGameVersion_331)
     {
         Size game_size;
         game_size.Width = in->ReadInt32();

@@ -267,11 +267,7 @@ void set_game_frame_after_screen_size(const GameSizeDef &game_size, const Size s
     const uint32_t max_scaling_x = (screen_size.Width / game_size.Box.Width) << kShift;
     const uint32_t max_scaling_y = (screen_size.Height / game_size.Box.Height) << kShift;
     int scale_x, scale_y;
-    if (filter->GetInfo().FixedScale != 0)
-    {
-        scale_x = scale_y = (filter->GetInfo().FixedScale) << kShift;
-    }
-    else if (setup.MaxUniform)
+    if (setup.MaxUniform)
     {
         scale_x = scale_y = Math::Min(max_scaling_x, max_scaling_y);
     }

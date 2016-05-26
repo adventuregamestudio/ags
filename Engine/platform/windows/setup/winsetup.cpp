@@ -595,6 +595,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     AGSPlatformDriver::GetDriver()->ValidateWindowSize(_maxWindowSize.Width, _maxWindowSize.Height, false);
     _minGameSize = Size(320, 200);
     _maxGameScale = 1;
+    _specialGfxMode = kGfxMode_NoSpecial;
 
     _winCfg.Load(_cfgIn);
 
@@ -618,11 +619,6 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
 
     if (_winCfg.GameResolution.IsNull())
         _winCfg.GameResolution = ResolutionTypeToSize(_winCfg.GameResType, _winCfg.LetterboxByDesign);
-
-    if (!_winCfg.Windowed && _winCfg.ScreenSizeFromScaling)
-        _specialGfxMode = _winCfg.MatchDeviceAspectRatio ? kGfxMode_FromScaling_KeepDeviceRatio : kGfxMode_FromScaling;
-    else
-        _specialGfxMode = kGfxMode_NoSpecial;
 
     SetText(_hwnd, _winCfg.Title);
     SetText(allegro_wnd, _winCfg.Title);
@@ -831,7 +827,7 @@ void WinSetupDialog::OnGfxModeUpdate()
 {
     DWORD_PTR sel = GetCurItemData(_hGfxModeList);
 
-    _winCfg.ScreenSizeFromScaling = _winCfg.Windowed;
+    _winCfg.ScreenSizeFromScaling = false;
     _winCfg.MatchDeviceAspectRatio = false;
     if (sel >= kGfxMode_FirstSpecial && sel <= kGfxMode_LastSpecial)
     {
@@ -985,10 +981,7 @@ void WinSetupDialog::FillGfxFilterList()
 
 void WinSetupDialog::FillGfxModeList()
 {
-    DWORD_PTR old_sel = GetCurItemData(_hGfxModeList, kGfxMode_NoSpecial);
-    // special case for initial UI setup
-    if (old_sel == kGfxMode_NoSpecial && _specialGfxMode != kGfxMode_NoSpecial)
-        old_sel = _specialGfxMode;
+    DWORD_PTR old_sel = GetCurItemData(_hGfxModeList);
     ResetContent(_hGfxModeList);
 
     if (!_drvDesc)

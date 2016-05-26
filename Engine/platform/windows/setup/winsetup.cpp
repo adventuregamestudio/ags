@@ -77,8 +77,6 @@ struct WinConfig
 
     String GfxDriverId;
     String GfxFilterId;
-    bool   ScreenSizeFromScaling;
-    bool   MatchDeviceAspectRatio;
     Size   ScreenSize;
     int    FilterScaling;
     String FramePlacement;
@@ -119,8 +117,6 @@ void WinConfig::SetDefaults()
 
     GfxFilterId = "StdScale";
     GfxDriverId = "D3D9";
-    ScreenSizeFromScaling = false;
-    MatchDeviceAspectRatio = false;
     ScreenSize = get_desktop_size();
     FilterScaling = 0;
     FramePlacement = "center";
@@ -170,9 +166,6 @@ void WinConfig::Load(const ConfigTree &cfg)
 
     GfxDriverId = INIreadstring(cfg, "graphics", "driver", GfxDriverId);
     GfxFilterId = INIreadstring(cfg, "graphics", "filter", GfxFilterId);
-    String screen_def = INIreadstring(cfg, "graphics", "screen_def", "max");
-    ScreenSizeFromScaling = screen_def.CompareNoCase("scaling") == 0;
-    MatchDeviceAspectRatio = INIreadint(cfg, "graphics", "match_device_ratio", 1) != 0;
     ScreenSize.Width = INIreadint(cfg, "graphics", "screen_width", ScreenSize.Width);
     ScreenSize.Height = INIreadint(cfg, "graphics", "screen_height", ScreenSize.Height);
     FilterScaling = ParseScalingFactor(INIreadstring(cfg, "graphics", "filter_scaling", MakeScalingFactorString(FilterScaling)));
@@ -206,8 +199,7 @@ void WinConfig::Save(ConfigTree &cfg)
 
     INIwritestring(cfg, "graphics", "driver", GfxDriverId);
     INIwritestring(cfg, "graphics", "filter", GfxFilterId);
-    INIwritestring(cfg, "graphics", "screen_def", ScreenSizeFromScaling ? "scaling" : "explicit");
-    INIwriteint(cfg, "graphics", "match_device_ratio", MatchDeviceAspectRatio ? 1 : 0);
+    INIwritestring(cfg, "graphics", "screen_def", Windowed ? "scaling" : "explicit");
     INIwriteint(cfg, "graphics", "screen_width", ScreenSize.Width);
     INIwriteint(cfg, "graphics", "screen_height", ScreenSize.Height);
     INIwritestring(cfg, "graphics", "filter_scaling", MakeScalingFactorString(FilterScaling));
@@ -296,12 +288,12 @@ int SetCurSelToItemDataStr(HWND hwnd, LPCTSTR text, int def_sel = -1)
     return SetCurSelToItemData(hwnd, (DWORD_PTR)text, CmpICBItemDataAsStr, def_sel);
 }
 
-DWORD_PTR GetCurItemData(HWND hwnd, DWORD_PTR def_value = 0)
+DWORD_PTR GetCurItemData(HWND hwnd)
 {
     int index = SendMessage(hwnd, CB_GETCURSEL, 0, 0);
     if (index >= 0)
         return SendMessage(hwnd, CB_GETITEMDATA, index, 0);
-    return def_value;
+    return 0;
 }
 
 String GetText(HWND hwnd)
@@ -405,13 +397,9 @@ class WinSetupDialog
 public:
     enum GfxModeSpecial
     {
-        kGfxMode_NoSpecial      = -1,
-        kGfxMode_Desktop        =  0,
+        kGfxMode_Desktop,
         kGfxMode_GameRes,
-        kGfxMode_FromScaling,
-        kGfxMode_FromScaling_KeepDeviceRatio,
-        kGfxMode_FirstSpecial   = kGfxMode_Desktop,
-        kGfxMode_LastSpecial    = kGfxMode_FromScaling_KeepDeviceRatio
+        kNumGfxModeSpecials
     };
 
     enum FilterScalingSpecial
@@ -471,7 +459,7 @@ private:
     void InitGfxModes();
     void InitDriverDescFromFactory(const String &id, DriverDesc &drv_desc);
     void SaveSetup();
-    void SelectNearestGfxMode(const Size screen_size, GfxModeSpecial gfx_mode_spec);
+    void SelectNearestGfxMode(const Size screen_size, GfxModeSpecial gfx_mode_spec = kNumGfxModeSpecials);
     void SetFramePlacement(const String &frame_place);
     void SetGfxModeText();
     void UpdateMouseSpeedText();
@@ -495,7 +483,6 @@ private:
     Size _maxWindowSize;
     Size _minGameSize;
     int _maxGameScale;
-    GfxModeSpecial _specialGfxMode; // remember last selected special gfx mode
 
     // Dialog controls
     HWND _hVersionText;
@@ -595,7 +582,6 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     AGSPlatformDriver::GetDriver()->ValidateWindowSize(_maxWindowSize.Width, _maxWindowSize.Height, false);
     _minGameSize = Size(320, 200);
     _maxGameScale = 1;
-    _specialGfxMode = kGfxMode_NoSpecial;
 
     _winCfg.Load(_cfgIn);
 
@@ -826,33 +812,14 @@ void WinSetupDialog::OnGfxFilterUpdate()
 void WinSetupDialog::OnGfxModeUpdate()
 {
     DWORD_PTR sel = GetCurItemData(_hGfxModeList);
-
-    _winCfg.ScreenSizeFromScaling = false;
-    _winCfg.MatchDeviceAspectRatio = false;
-    if (sel >= kGfxMode_FirstSpecial && sel <= kGfxMode_LastSpecial)
-    {
-        _specialGfxMode = (GfxModeSpecial)sel;
-        if (sel == kGfxMode_Desktop)
-            _winCfg.ScreenSize = _desktopSize;
-        else if (sel == kGfxMode_GameRes)
-            _winCfg.ScreenSize = _winCfg.GameResolution;
-        else if (sel == kGfxMode_FromScaling || sel == kGfxMode_FromScaling_KeepDeviceRatio)
-        {
-            _winCfg.ScreenSize = _desktopSize;
-            _winCfg.ScreenSizeFromScaling = true;
-            _winCfg.MatchDeviceAspectRatio = sel == kGfxMode_FromScaling_KeepDeviceRatio;
-        }
-    }
+    if (sel == kGfxMode_Desktop)
+        _winCfg.ScreenSize = _desktopSize;
+    else if (sel == kGfxMode_GameRes)
+        _winCfg.ScreenSize = _winCfg.GameResolution;
     else
     {
-        _specialGfxMode = kGfxMode_NoSpecial;
-        if (sel == NULL)
-            _winCfg.ScreenSize = Size();
-        else
-        {
-            const DisplayMode &mode = *(const DisplayMode*)sel;
-            _winCfg.ScreenSize = Size(mode.Width, mode.Height);
-        }
+        const DisplayMode &mode = *(const DisplayMode*)sel;
+        _winCfg.ScreenSize = Size(mode.Width, mode.Height);
     }
     
     if (_gfxFilterInfo)
@@ -877,14 +844,14 @@ void WinSetupDialog::OnWindowedUpdate()
         SetCheck(_hStretchToScreen, true);
         SetCheck(_hKeepAspectRatio, true);
         SetGfxModeText();
-        SelectNearestGfxMode(_winCfg.ScreenSize, _specialGfxMode);
+        SelectNearestGfxMode(_winCfg.ScreenSize);
     }
     else
     {
         ShowWindow(_hGfxModeList, SW_SHOW);
         ShowWindow(_hGfxModeText, SW_HIDE);
         SetFramePlacement(_winCfg.FramePlacement);
-        SelectNearestGfxMode(_winCfg.ScreenSize, _specialGfxMode);
+        SelectNearestGfxMode(_winCfg.ScreenSize);
     }
 }
 
@@ -994,8 +961,6 @@ void WinSetupDialog::FillGfxModeList()
         _desktopSize.Width, _desktopSize.Height), (DWORD_PTR)kGfxMode_Desktop);
     AddString(_hGfxModeList, String::FromFormat("Game resolution (%d x %d)",
         _winCfg.GameResolution.Width, _winCfg.GameResolution.Height), (DWORD_PTR)kGfxMode_GameRes);
-    AddString(_hGfxModeList, "Bind to game scaling", (DWORD_PTR)kGfxMode_FromScaling);
-    AddString(_hGfxModeList, "Bind to game scaling (force desktop ratio)", (DWORD_PTR)kGfxMode_FromScaling_KeepDeviceRatio);
 
     const std::vector<DisplayMode> &modes = _drvDesc->GfxModeList.Modes;
     const int use_colour_depth = _winCfg.GameColourDepth ? _winCfg.GameColourDepth : 32;
@@ -1207,8 +1172,8 @@ void WinSetupDialog::SelectNearestGfxMode(const Size screen_size, GfxModeSpecial
         return;
     }
 
-    if (gfx_mode_spec >= kGfxMode_FirstSpecial && gfx_mode_spec <= kGfxMode_LastSpecial)
-        SetCurSelToItemData(_hGfxModeList, gfx_mode_spec, NULL, kGfxMode_Desktop);
+    if (gfx_mode_spec < kNumGfxModeSpecials)
+        SetCurSel(_hGfxModeList, gfx_mode_spec);
     else
     {
         // Look up for the nearest supported mode
@@ -1219,7 +1184,7 @@ void WinSetupDialog::SelectNearestGfxMode(const Size screen_size, GfxModeSpecial
             SetCurSelToItemData(_hGfxModeList, (DWORD_PTR)&_drvDesc->GfxModeList.Modes[index], NULL, kGfxMode_Desktop);
         }
         else
-            SetCurSelToItemData(_hGfxModeList, kGfxMode_Desktop);
+            SetCurSel(_hGfxModeList, kGfxMode_Desktop);
     }
     OnGfxModeUpdate();
 }

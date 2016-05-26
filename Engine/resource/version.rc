@@ -107,7 +107,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON                ICON                    "game-1.ico"
+IDI_ICON               ICON                    "game-1.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -126,11 +126,11 @@ BEGIN
     CONTROL         "&Run in a window instead of full-screen",IDC_WINDOWED,
                     "Button",BS_AUTOCHECKBOX | BS_LEFT | BS_VCENTER | WS_TABSTOP,14,49,172,9
     CONTROL         "Mode:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,14,66,21,8
-    COMBOBOX        IDC_GFXMODE,50,64,207,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_GFXMODE,50,64,136,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "",IDC_GFXMODETEXT,50,66,135,8
-    CONTROL         "Filter:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,14,83,35,10
-    COMBOBOX        IDC_GFXFILTER,50,82,207,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Scaling:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,14,101,35,10
+    CONTROL         "Filter:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,14,84,35,10
+    COMBOBOX        IDC_GFXFILTER,50,82,136,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Scaling:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,14,102,35,10
     COMBOBOX        IDC_GFXFILTERSCALING,50,99,67,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Gameplay settings",IDC_STATIC,7,123,259,33
     CONTROL         "Game language:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,15,137,56,10

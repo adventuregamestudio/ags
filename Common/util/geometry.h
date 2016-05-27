@@ -244,6 +244,12 @@ inline Rect RectWH(int x, int y, int width, int height)
 	return Rect(x, y, x + width - 1, y + height - 1);
 }
 
+inline Rect RectWH(const Size &sz)
+{
+    return Rect(0, 0, sz.Width - 1, sz.Height - 1);
+}
+
+
 struct Triangle
 {
 	int X1;
@@ -297,7 +303,11 @@ struct Circle
 };
 
 
+Size ProportionalStretch(int dest_w, int dest_h, int item_w, int item_h);
+Size ProportionalStretch(const Size &dest, const Size &item);
+
 Rect OffsetRect(const Rect &r, const Point off);
+Rect CenterInRect(const Rect &place, const Rect &item);
 Rect PlaceInRect(const Rect &place, const Rect &item, const RectPlacement &placement);
 //} // namespace Common
 //} // namespace AGS

@@ -45,10 +45,22 @@ struct GfxFilterSetup
 {
     String ID;          // internal filter ID
     String UserRequest; // filter name, requested by user
+};
 
-    bool   MaxUniform;    // calculate maximal uniform scaling factor based on display resolution
-    int    ScaleX;        // distinct X scaling
-    int    ScaleY;        // distinct Y scaling
+enum FrameScaleDefinition
+{
+    kFrame_IntScale,        // explicit integer scaling x/y factors
+    kFrame_MaxRound,        // calculate max round uniform scaling factor
+    kFrame_MaxStretch,      // resize to maximal possible inside the display box
+    kFrame_MaxProportional, // same as stretch, but keep game's aspect ratio
+    kNumFrameScaleDef
+};
+
+// Game frame configuration
+struct GameFrameSetup
+{
+    FrameScaleDefinition ScaleDef;    // a method used to determine game frame scaling
+    int                  ScaleFactor; // explicit scale factor
 };
 
 enum ScreenSizeDefinition
@@ -71,8 +83,8 @@ struct ScreenSetup
     bool                 VSync;         // vertical sync
     bool                 Windowed;      // is mode windowed
 
-    RectPlacement        FramePlacement;// a method used to determine frame position on screen
-    GfxFilterSetup       Filter;        // scaling filter definition
+    GfxFilterSetup       Filter;        // graphics filter definition
+    GameFrameSetup       GameFrame;     // definition of the game frame's position on screen
 };
 
 struct ColorDepthOption

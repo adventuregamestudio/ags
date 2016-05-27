@@ -127,15 +127,52 @@ void INIwritestring(ConfigTree &cfg, const String &sectn, const String &item, co
     cfg[sectn][item] = value;
 }
 
-uint32_t parse_scaling_factor(const String &scaling_option)
+void parse_scaling_option(const String &scaling_option, FrameScaleDefinition &scale_def, int &scale_factor)
 {
-    if (scaling_option.CompareNoCase("max") == 0)
-        return 0;
-    int gfx_scaling = StrUtil::StringToInt(scaling_option);
-    if (gfx_scaling >= 0)
-        return gfx_scaling <<= kShift;
+    const char *game_scale_options[kNumFrameScaleDef - 1] = { "max_round", "stretch", "proportional" };
+    scale_def = kFrame_IntScale;
+    for (int i = 0; i < kNumFrameScaleDef - 1; ++i)
+    {
+        if (scaling_option.CompareNoCase(game_scale_options[i]) == 0)
+        {
+            scale_def = (FrameScaleDefinition)(i + 1);
+            break;
+        }
+    }
+
+    if (scale_def == kFrame_IntScale)
+        scale_factor = StrUtil::StringToInt(scaling_option);
     else
-        return kUnit / abs(gfx_scaling);
+        scale_factor = 0;
+}
+
+String make_scaling_option(FrameScaleDefinition scale_def, int scale_factor)
+{
+    switch (scale_def)
+    {
+    case kFrame_MaxRound:
+        return "max_round";
+    case kFrame_MaxStretch:
+        return "stretch";
+    case kFrame_MaxProportional:
+        return "proportional";
+    }
+    return String::FromFormat("%d", scale_factor);
+}
+
+uint32_t convert_scaling_to_fp(int scale_factor)
+{
+    if (scale_factor >= 0)
+        return scale_factor <<= kShift;
+    else
+        return kUnit / abs(scale_factor);
+}
+
+int convert_fp_to_scaling(uint32_t scaling)
+{
+    if (scaling == 0)
+        return 0;
+    return scaling >= kUnit ? (scaling >> kShift) : -kUnit / (int32_t)scaling;
 }
 
 void find_default_cfg_file(const char *alt_cfg_file)
@@ -243,36 +280,13 @@ void read_config(const ConfigTree &cfg)
         if (usetup.Screen.Filter.ID.IsEmpty())
         {
             usetup.Screen.Filter.ID = INIreadstring(cfg, "graphics", "filter", "StdScale");
-            String gfx_scaling_both, gfx_scaling_x, gfx_scaling_y;
-            gfx_scaling_both = INIreadstring(cfg, "graphics", "filter_scaling", "max");
-            if (gfx_scaling_both.CompareNoCase("max") == 0)
-            {
-                usetup.Screen.Filter.MaxUniform = true;
-                usetup.Screen.Filter.ScaleX = 0;
-                usetup.Screen.Filter.ScaleY = 0;
-            }
-            else
-            {
-                gfx_scaling_x = INIreadstring(cfg, "graphics", "filter_scaling_x", gfx_scaling_both);
-                gfx_scaling_y = INIreadstring(cfg, "graphics", "filter_scaling_y", gfx_scaling_both);
-                usetup.Screen.Filter.MaxUniform = false;
-                usetup.Screen.Filter.ScaleX = parse_scaling_factor(gfx_scaling_x);
-                usetup.Screen.Filter.ScaleY = parse_scaling_factor(gfx_scaling_y);
-            }
+            int scale_factor;
+            parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale"),
+                usetup.Screen.GameFrame.ScaleDef, scale_factor);
+            usetup.Screen.GameFrame.ScaleFactor = convert_scaling_to_fp(scale_factor);
         }
 #endif
 
-        const char *game_frame_options[kNumRectPlacement] = { "offset", "center", "stretch", "proportional" };
-        usetup.Screen.FramePlacement = kPlaceCenter;
-        String game_frame_str = INIreadstring(cfg, "graphics", "game_frame", "center");
-        for (int i = 0; i < kNumRectPlacement; ++i)
-        {
-            if (game_frame_str.CompareNoCase(game_frame_options[i]) == 0)
-            {
-                usetup.Screen.FramePlacement = (RectPlacement)i;
-                break;
-            }
-        }
         usetup.Screen.RefreshRate = INIreadint(cfg, "graphics", "refresh");
         usetup.Screen.VSync = INIreadint(cfg, "graphics", "vsync") > 0;
 
@@ -385,9 +399,8 @@ void post_config()
     if (usetup.Screen.Filter.ID.IsEmpty() || usetup.Screen.Filter.ID.CompareNoCase("none") == 0)
     {
         usetup.Screen.Filter.ID = "StdScale";
-        usetup.Screen.Filter.MaxUniform = false;
-        usetup.Screen.Filter.ScaleX = kUnit;
-        usetup.Screen.Filter.ScaleY = kUnit;
+        usetup.Screen.GameFrame.ScaleDef = kFrame_IntScale;
+        usetup.Screen.GameFrame.ScaleFactor = kUnit;
     }
 }
 

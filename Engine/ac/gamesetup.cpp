@@ -38,8 +38,6 @@ GameSetup::GameSetup()
     Screen.RefreshRate = 0;
     Screen.VSync = false;
     Screen.Windowed = false;
-    Screen.Filter.MaxUniform = true;
-    Screen.Filter.ScaleX = 0;
-    Screen.Filter.ScaleY = 0;
-    Screen.FramePlacement = kPlaceCenter;
+    Screen.GameFrame.ScaleDef = kFrame_MaxRound;
+    Screen.GameFrame.ScaleFactor = 0;
 }

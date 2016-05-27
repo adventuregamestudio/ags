@@ -26,6 +26,7 @@
 #include "gfx/gfxdriverfactory.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/graphicsdriver.h"
+#include "main/config.h"
 #include "main/graphics_mode.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
@@ -63,20 +64,12 @@ Size get_desktop_size()
     return sz;
 }
 
-String make_scaling_factor_string(uint32_t scaling)
+Size get_max_display_size(bool windowed)
 {
-    if (scaling == 0)
-        return "max";
-    return String::FromFormat("%d", scaling >= kUnit ? (scaling >> kShift) : -kUnit / (int32_t)scaling);
-}
-
-String make_scaling_factor_string(const GfxFilterSetup &setup)
-{
-    if (setup.MaxUniform)
-        return "max uniform";
-    return String::FromFormat("%s x %s",
-        make_scaling_factor_string(setup.ScaleX).GetCStr(),
-        make_scaling_factor_string(setup.ScaleY).GetCStr());
+    Size device_size = get_desktop_size();
+    if (windowed)
+        platform->ValidateWindowSize(device_size.Width, device_size.Height, false);
+    return device_size;
 }
 
 bool initialize_graphics_filter(const String filter_id, const int color_depth)
@@ -118,8 +111,7 @@ bool pre_create_gfx_driver(const String &gfx_driver_id)
 
 bool engine_set_gfx_filter(const GfxFilterSetup &setup, const int color_depth)
 {
-    Out::FPrint("Requested gfx filter: %s, filter scaling: %s", setup.UserRequest.GetCStr(),
-        make_scaling_factor_string(setup).GetCStr());
+    Out::FPrint("Requested gfx filter: %s", setup.UserRequest.GetCStr());
     if (!initialize_graphics_filter(setup.ID, color_depth))
     {
         String def_filter = GfxFactory->GetDefaultFilterID();
@@ -230,16 +222,16 @@ bool create_gfx_driver(const String &gfx_driver_id)
     return true;
 }
 
-bool init_gfx_mode(const GameSizeDef &game_size, const Size &screen_size, const GameSizeDef &frame_size, const RectPlacement frame_place,
+bool init_gfx_mode(const GameSizeDef &game_size, const Size &screen_size, const GameSizeDef &frame_size,
                    const ScreenSetup setup, const int color_depth, const bool windowed)
 {
     int width = screen_size.Width;
     int height = screen_size.Height;
 
     const char *frame_placement[kNumRectPlacement] = { "offset", "center", "stretch", "proportional" };
-    Out::FPrint("Attempt to switch gfx mode to %d x %d (%d-bit) %s; game frame: %d x %d, frame placement: %s",
+    Out::FPrint("Attempt to switch gfx mode to %d x %d (%d-bit) %s; game frame: %d x %d",
         width, height, color_depth, windowed ? "windowed" : "fullscreen",
-        frame_size.Box.Width, frame_size.Box.Height, frame_placement[frame_place]);
+        frame_size.Box.Width, frame_size.Box.Height);
 
     // CHECKME: why 50? Do we need this if we are not using allegro software driver?
     if (setup.RefreshRate >= 50)
@@ -248,7 +240,7 @@ bool init_gfx_mode(const GameSizeDef &game_size, const Size &screen_size, const 
     const DisplayMode mode = DisplayMode(GraphicResolution(width, height, color_depth), windowed, setup.RefreshRate, setup.VSync);
     const Size src_size = game_size.Game;
     const Rect screen_rect = RectWH(0, 0, screen_size.Width, screen_size.Height);
-    Rect dst_rect = PlaceInRect(screen_rect, RectWH(0, 0, frame_size.Box.Width, frame_size.Box.Height), frame_place);
+    Rect dst_rect = CenterInRect(screen_rect, RectWH(frame_size.Box));
     // If requested bounding box is larger than game frame, then position the frame centered inside bounding box
     if (frame_size.Box != frame_size.Game)
         dst_rect = PlaceInRect(dst_rect, RectWH(0, 0, frame_size.Game.Width, frame_size.Game.Height), kPlaceCenter);
@@ -261,35 +253,49 @@ bool init_gfx_mode(const GameSizeDef &game_size, const Size &screen_size, const 
 }
 
 void set_game_frame_after_screen_size(const GameSizeDef &game_size, const Size screen_size,
-                                      const GfxFilterSetup &setup, GameSizeDef &frame_size)
+                                      const GameFrameSetup &setup, GameSizeDef &frame_size)
 {
-    // Set game frame as native game resolution scaled by custom factor
-    const uint32_t max_scaling_x = (screen_size.Width / game_size.Box.Width) << kShift;
-    const uint32_t max_scaling_y = (screen_size.Height / game_size.Box.Height) << kShift;
-    int scale_x, scale_y;
-    if (setup.MaxUniform)
+    // Set game frame as native game resolution scaled by particular method
+    Size new_box;
+
+    if (setup.ScaleDef == kFrame_MaxStretch)
     {
-        scale_x = scale_y = Math::Min(max_scaling_x, max_scaling_y);
+        new_box = screen_size;
+    }
+    else if (setup.ScaleDef == kFrame_MaxProportional)
+    {
+        new_box = ProportionalStretch(screen_size, game_size.Box);
     }
     else
     {
-        scale_x = setup.ScaleX == 0 ? max_scaling_x : setup.ScaleX;
-        scale_y = setup.ScaleY == 0 ? max_scaling_y : setup.ScaleY;
+        int scale;
+        if (setup.ScaleDef == kFrame_MaxRound)
+            scale = Math::Min((screen_size.Width / game_size.Box.Width) << kShift,
+                              (screen_size.Height / game_size.Box.Height) << kShift);
+        else
+            scale = setup.ScaleFactor;
+
+        // Ensure scaling factors are sane
+        if (scale <= 0)
+            scale = kUnit;
+
+        new_box = Size((game_size.Box.Width * scale) >> kShift, (game_size.Box.Height * scale) >> kShift);
+        // If the scaled game size appear larger than the screen,
+        // use "proportional stretch" method instead
+        if (new_box.ExceedsByAny(screen_size))
+            new_box = ProportionalStretch(screen_size, game_size.Box);
     }
-    // Ensure scaling factors are sane
-    if (scale_x <= 0)
-        scale_x = kUnit;
-    if (scale_y <= 0)
-        scale_y = kUnit;
-    frame_size.Game = Size((game_size.Game.Width * scale_x) >> kShift, (game_size.Game.Height * scale_y) >> kShift);
-    frame_size.Box = Size((game_size.Box.Width * scale_x) >> kShift, (game_size.Box.Height * scale_y) >> kShift);
+
+    frame_size.Game.Width = game_size.Game.Width * new_box.Width / game_size.Box.Width;
+    frame_size.Game.Height = game_size.Game.Height * new_box.Height / game_size.Box.Height;
+    frame_size.Box = new_box;
 }
 
 void precalc_render_screen_and_frame(const GameSizeDef &game_size, const ScreenSetup &setup,
                                      Size &screen_size, GameSizeDef &frame_size,
                                      const int color_depth, const bool windowed)
 {
-    Size device_size = get_desktop_size();
+    Size device_size = get_max_display_size(windowed);
 
     // Set requested screen (window) size, depending on screen definition option
     switch (setup.SizeDef)
@@ -301,7 +307,7 @@ void precalc_render_screen_and_frame(const GameSizeDef &game_size, const ScreenS
         {
             // If the configuration did not define proper screen size,
             // use the scaled game size instead
-            set_game_frame_after_screen_size(game_size, device_size, setup.Filter, frame_size);
+            set_game_frame_after_screen_size(game_size, device_size, setup.GameFrame, frame_size);
             if (screen_size.Width <= 0)
                 screen_size.Width = frame_size.Box.Width;
             if (screen_size.Height <= 0)
@@ -310,7 +316,7 @@ void precalc_render_screen_and_frame(const GameSizeDef &game_size, const ScreenS
         break;
     case kScreenDef_ByGameScaling:
         // Use game frame (scaled game) size
-        set_game_frame_after_screen_size(game_size, device_size, setup.Filter, frame_size);
+        set_game_frame_after_screen_size(game_size, device_size, setup.GameFrame, frame_size);
         screen_size = frame_size.Box;
         break;
     case kScreenDef_MaxDisplay:
@@ -321,21 +327,12 @@ void precalc_render_screen_and_frame(const GameSizeDef &game_size, const ScreenS
 }
 
 void setup_render_frame(const GameSizeDef &game_size, const Size screen_size, const ScreenSetup &setup,
-                        GameSizeDef &frame_size, RectPlacement &frame_place)
+                        GameSizeDef &frame_size)
 {
     // Setup final render frame, depending on defined screen size
     if (setup.SizeDef != kScreenDef_ByGameScaling)
     {
-        set_game_frame_after_screen_size(game_size, screen_size, setup.Filter, frame_size);
-    }
-
-    frame_place = setup.FramePlacement;
-    // If the scaled game size appear larger than the window,
-    // do not apply a "centered" style, use "proportional stretch" instead
-    if (frame_place == kPlaceCenter || frame_place == kPlaceOffset)
-    {
-        if (frame_size.Box.ExceedsByAny(screen_size))
-            frame_place = kPlaceStretchProportional;
+        set_game_frame_after_screen_size(game_size, screen_size, setup.GameFrame, frame_size);
     }
 }
 
@@ -345,7 +342,7 @@ bool try_init_gfx_mode(const GameSizeDef &game_size, const Size screen_size, con
     // Find nearest compatible mode and init that
     Out::FPrint("Attempting to find nearest supported resolution for screen size %d x %d (%d-bit) %s",
         screen_size.Width, screen_size.Height, color_depth, windowed ? "windowed" : "fullscreen");
-    Size device_size = get_desktop_size();
+    Size device_size = get_max_display_size(windowed);
     Size fixed_screen_size = screen_size;
     GameSizeDef fixed_frame = frame_size;
     bool mode_found = false;
@@ -354,7 +351,7 @@ bool try_init_gfx_mode(const GameSizeDef &game_size, const Size screen_size, con
     if (windowed)
     {
         // If windowed mode, make the resolution stay in the generally supported limits
-        platform->ValidateWindowSize(fixed_screen_size.Width, fixed_screen_size.Height, false);
+        fixed_screen_size.Clamp(fixed_screen_size, device_size);
         mode_found = true;
     }
     // Fullscreen mode
@@ -373,17 +370,16 @@ bool try_init_gfx_mode(const GameSizeDef &game_size, const Size screen_size, con
         return false;
     }
 
-    RectPlacement frame_place;
-    setup_render_frame(game_size, fixed_screen_size, setup, fixed_frame, frame_place);
-    bool result = init_gfx_mode(game_size, fixed_screen_size, fixed_frame, frame_place, setup, color_depth, windowed);
+    setup_render_frame(game_size, fixed_screen_size, setup, fixed_frame);
+    bool result = init_gfx_mode(game_size, fixed_screen_size, fixed_frame, setup, color_depth, windowed);
 
     if (!result && windowed)
     {
         // When initializing windowed mode we could start with any random window size;
-        // if that did not work, try to find nearest supported mode, as with fullscreen mode
-        platform->ValidateWindowSize(device_size.Width, device_size.Height, false);
+        // if that did not work, try to find nearest supported mode, as with fullscreen mode,
+        // except refering to max window size as an upper bound
         find_nearest_supported_mode(fixed_screen_size, color_depth, NULL, &device_size);
-        result = init_gfx_mode(game_size, fixed_screen_size, fixed_frame, frame_place, setup, color_depth, true);
+        result = init_gfx_mode(game_size, fixed_screen_size, fixed_frame, setup, color_depth, true);
     }
     return result;
 }
@@ -499,12 +495,11 @@ bool graphics_mode_init(const ScreenSetup &setup, const ColorDepthOption &color_
         Out::FPrint("Unable to obtain device resolution");
 
     const char *screen_sz_def_options[kNumScreenDef] = { "explicit", "scaling", "max" };
-    const char *game_frame_options[kNumRectPlacement] = { "offset", "center", "stretch", "proportional" };
     const bool ignore_device_ratio = setup.Windowed || setup.SizeDef == kScreenDef_Explicit;
-    Out::FPrint("Game settings: windowed = %s, screen def: %s, screen size: %d x %d, match device ratio: %s, frame placement: %s",
+    const String scale_option = make_scaling_option(setup.GameFrame.ScaleDef, convert_fp_to_scaling(setup.GameFrame.ScaleFactor));
+    Out::FPrint("Game settings: windowed = %s, screen def: %s, screen size: %d x %d, match device ratio: %s, game scale: %s",
         setup.Windowed ? "yes" : "no", screen_sz_def_options[setup.SizeDef], setup.Size.Width, setup.Size.Height,
-        ignore_device_ratio ? "ignore" : (setup.MatchDeviceRatio ? "yes" : "no"),
-        game_frame_options[setup.FramePlacement]);
+        ignore_device_ratio ? "ignore" : (setup.MatchDeviceRatio ? "yes" : "no"), scale_option.GetCStr());
 
     // Game size is used when defining resolution base and proper scaling;
     // Box size specifies minimal wanted screen size for the game (unscaled),

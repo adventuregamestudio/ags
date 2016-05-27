@@ -18,9 +18,33 @@
 //namespace Common
 //{
 
+Size ProportionalStretch(int dest_w, int dest_h, int item_w, int item_h)
+{
+    int width = item_w ? dest_w : 0;
+    int height = item_w ? (dest_w * item_h / item_w) : 0;
+    if (height > dest_h)
+    {
+        width  = item_h ? (dest_h * item_w / item_h) : 0;
+        height = dest_h;
+    }
+    return Size(width, height);
+}
+
+Size ProportionalStretch(const Size &dest, const Size &item)
+{
+    return ProportionalStretch(dest.Width, dest.Height, item.Width, item.Height);
+}
+
 Rect OffsetRect(const Rect &r, const Point off)
 {
     return Rect(r.Left + off.X, r.Top + off.Y, r.Right + off.X, r.Bottom + off.Y);
+}
+
+Rect CenterInRect(const Rect &place, const Rect &item)
+{
+    return RectWH((place.GetWidth() >> 1) - (item.GetWidth() >> 1),
+        (place.GetHeight() >> 1) - (item.GetHeight() >> 1),
+        item.GetWidth(), item.GetHeight());
 }
 
 Rect PlaceInRect(const Rect &place, const Rect &item, const RectPlacement &placement)
@@ -28,27 +52,12 @@ Rect PlaceInRect(const Rect &place, const Rect &item, const RectPlacement &place
     switch (placement)
     {
     case kPlaceCenter:
-        return RectWH((place.GetWidth() >> 1) - (item.GetWidth() >> 1),
-                      (place.GetHeight() >> 1) - (item.GetHeight() >> 1),
-                      item.GetWidth(), item.GetHeight());
+        return CenterInRect(place, item);
     case kPlaceStretch:
         return place;
     case kPlaceStretchProportional:
-        {
-            const int place_w = place.GetWidth();
-            const int place_h = place.GetHeight();
-            const int item_w  = item.GetWidth();
-            const int item_h  = item.GetHeight();
-
-            int width = item_w ? place_w : 0;
-            int height = item_w ? (place_w * item_h / item_w) : 0;
-            if (height > place_h)
-            {
-                width  = item_h ? (place_h * item_w / item_h) : 0;
-                height = place_h;
-            }
-            return RectWH((place_w - width) >> 1, (place_h - height) >> 1, width, height);
-        }
+        return CenterInRect(place,
+            RectWH(ProportionalStretch(place.GetWidth(), place.GetHeight(), item.GetWidth(), item.GetHeight())));
     default:
         return RectWH(place.Left + item.Left, place.Top + item.Top, item.GetWidth(), item.GetHeight());
     }

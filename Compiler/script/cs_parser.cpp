@@ -484,17 +484,37 @@ int deal_with_end_of_do (long *nested_info, long *nested_start, ccCompiledScript
     return 0;
 }
 
-int deal_with_end_of_switch (int32_t *nested_assign_addr, long *nested_start, ccCompiledScript *scrip, ccInternalList *targ, int *nestlevel) {
+int deal_with_end_of_switch (int32_t *nested_assign_addr, long *nested_start, std::vector<ccChunk> *nested_chunk, ccCompiledScript *scrip, ccInternalList *targ, int *nestlevel) {
+    int index;
+    int limit = nested_chunk->size();
     int nested_level = nestlevel[0];
-    if(nested_assign_addr[nested_level] > -1) {
-        // Write the jump location for the previous case
-        scrip->code[nested_assign_addr[nested_level]] = (scrip->codesize - nested_assign_addr[nested_level]) - 1;
+    int skip;
+    if(scrip->code[scrip->codesize - 2] != SCMD_JMP || scrip->code[scrip->codesize - 1] != nested_start[nested_level] - scrip->codesize + 2) {
+        // If there was no terminating break, write a jump at the end of the last case
+        scrip->write_cmd1(SCMD_JMP, 0);
     }
-    // Write the jump location for the start of the switch block
-    // This is the location that will be used for all break statements in the switch block
+    skip = scrip->codesize - 2;
+    // Write the location for the jump to this point (the jump table)
     scrip->code[nested_start[nested_level] + 1] = (scrip->codesize - nested_start[nested_level]) - 2;
-    // Discard the result of the switch() expression
-    scrip->pop_reg(SREG_AX);
+    for(index = 0; index < limit; index++) {
+        // Push the switch variable onto the stack
+        scrip->push_reg(SREG_BX);
+        // Put the result of the expression into AX
+        write_chunk(scrip, (*nested_chunk)[index]);
+        // Pop the switch variable, ready for comparison
+        scrip->pop_reg(SREG_BX);
+        // Do the comparison
+        scrip->write_cmd2(SCMD_NOTEQUAL, SREG_AX, SREG_BX);
+        scrip->write_cmd1(SCMD_JZ, (*nested_chunk)[index].codeoffset - scrip->codesize - 2);
+    }
+    // Write the default jump if necessary
+    if(nested_assign_addr[nested_level] != -1)
+        scrip->write_cmd1(SCMD_JMP, nested_assign_addr[nested_level] - scrip->codesize - 2);
+    // Write the location for the jump to the end of the switch block (for break statements)
+    scrip->code[nested_start[nested_level] + 3] = scrip->codesize - nested_start[nested_level] - 2;
+    // Write the jump for the end of the switch block
+    scrip->code[skip + 1] = scrip->codesize - skip;
+    clear_chunk_list(nested_chunk);
     nestlevel[0]--;
 
     return 0;
@@ -3340,7 +3360,6 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
     long nested_info[MAX_NESTED_LEVEL];
     long nested_start[MAX_NESTED_LEVEL];
     std::vector<ccChunk> nested_chunk[MAX_NESTED_LEVEL];
-    int nested_fixup_start[MAX_NESTED_LEVEL];
     int32_t nested_assign_addr[MAX_NESTED_LEVEL];
     char next_is_import = 0, next_is_readonly = 0;
     char next_is_managed = 0, next_is_static = 0;
@@ -3505,7 +3524,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     else
                         if (nested_type[nested_level] == NEST_SWITCH)
                         {
-                        	if (deal_with_end_of_switch(nested_assign_addr,nested_start,scrip,&targ,&nested_level))
+                        	if (deal_with_end_of_switch(nested_assign_addr,nested_start,&nested_chunk[nested_level],scrip,&targ,&nested_level))
                                 return -1;
                         }
                         else
@@ -4648,26 +4667,23 @@ startvarbit:
                     cc_error("expected '('");
                     return -1;
                 }
-                // Jump over the break jump
-                scrip->write_cmd1(SCMD_JMP, 2);
-                long oriaddr = scrip->codesize;
-                scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to the end of the switch statement (for break)
                 INC_NESTED_LEVEL;
                 if (evaluate_expression(&targ,scrip,1,false)) // switch() expression
                     return -1;
-                // Store the stack pointer so we can fetch the switch() expression result later
-                nested_fixup_start[nested_level] = scrip->cur_sp;
-                // Push the result in the AX register onto the stack to use it for later case statements
-                scrip->push_reg(SREG_AX);
+                // Store the variable type to enforce it later
+                nested_info[nested_level] = scrip->ax_val_type;
+                nested_type[nested_level] = NEST_SWITCH;
+                // Copy the result to the BX register, ready for case statements
+                scrip->write_cmd2(SCMD_REGTOREG, SREG_AX, SREG_BX);
+                scrip->flush_line_numbers();
+                nested_start[nested_level] = scrip->codesize;
+                scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to the lookup table
+                scrip->write_cmd1(SCMD_JMP, 0); // Placeholder for a jump to beyond the switch statement (for break)
                 if(sym.get_type(targ.peeknext()) != SYM_OPENBRACE) {
                     cc_error("expected '{'");
                     return -1;
                 }
-                // Store the variable type to enforce it later
-                nested_info[nested_level] = scrip->ax_val_type;
-                nested_type[nested_level] = NEST_SWITCH;
-                nested_start[nested_level] = oriaddr;
-                nested_assign_addr[nested_level] = -1;
+                nested_assign_addr[nested_level] = -1; // Location of default: label
                 targ.getnext();
                 if(targ.peeknext() == SCODE_META) {
                     currentline = targ.lineAtEnd;
@@ -4685,47 +4701,24 @@ startvarbit:
                     cc_error("Case label not valid outside switch statement block");
                     return -1;
                 }
-                bool hasCondition = sym.get_type(cursym) == SYM_CASE;
-                bool hasPrevious = nested_assign_addr[nested_level] > -1;
-                int fallthrough;
-                if(hasCondition) {
-                    if(hasPrevious) {
-                        // Write the jump to handle fallthrough
-                        // We'll fix it up later
-                        scrip->write_cmd1(SCMD_JMP, 0);
-                        fallthrough = scrip->codesize - 1;
+                if (sym.get_type(cursym) == SYM_DEFAULT) {
+                    if(nested_assign_addr[nested_level] != -1) {
+                        cc_error("Multiple default labels in a switch statement block");
+                        return -1;
                     }
-                    else
-                        fallthrough = -1;
+                    nested_assign_addr[nested_level] = scrip->codesize;
+                }
+                else {
+                    int oriaddr = scrip->codesize;
+                    int orifixupcount = scrip->numfixups;
                     int vcpuOperator = SCMD_ISEQUAL;
-                    if(hasPrevious) // Write the jump location for the previous case if necessary
-                        scrip->code[nested_assign_addr[nested_level]] = (scrip->codesize - nested_assign_addr[nested_level]) - 1;
                     if (evaluate_expression(&targ,scrip,0,false)) // case n: label expression, result is in AX
                         return -1;
                     if (check_type_mismatch(scrip->ax_val_type, nested_info[nested_level], 0))
                         return -1;
                     if (check_operator_valid_for_type(&vcpuOperator, scrip->ax_val_type, nested_info[nested_level]))
                         return -1;
-                    // Load the result of the switch() part into the BX register, ready for comparison
-                    scrip->write_cmd1(SCMD_LOADSPOFFS, scrip->cur_sp - nested_fixup_start[nested_level]);
-                    scrip->write_cmd1(SCMD_MEMREAD, SREG_BX);
-                    // Do the comparison
-                    scrip->write_cmd2(vcpuOperator, SREG_AX, SREG_BX);
-                    // Use the result (in AX) to determine whether to jump
-                    // The address will be filled in later
-                    scrip->write_cmd1(SCMD_JZ,0);
-                    // Store the location of this case's bypassing jump
-                    nested_assign_addr[nested_level] = scrip->codesize - 1;
-                    // Write in the address that the fallthrough should jump to
-                    // (The point immediately after the condition is evaluated)
-                    if(fallthrough > -1)
-                        scrip->code[fallthrough] = scrip->codesize - fallthrough - 1;
-                }
-                else {
-                    if(hasPrevious) // Write the jump location for the previous case if necessary
-                        scrip->code[nested_assign_addr[nested_level]] = (scrip->codesize - nested_assign_addr[nested_level]) - 1;
-                    // Flag that this case was a default (no condition)
-                    nested_assign_addr[nested_level] = -1;
+                    yank_chunk(scrip, &nested_chunk[nested_level], oriaddr, orifixupcount);
                 }
                 if(sym.get_type(targ.peeknext()) != SYM_LABEL) {
                     cc_error("expected ':'");
@@ -4749,7 +4742,7 @@ startvarbit:
                     scrip->flush_line_numbers();
                     scrip->write_cmd2(SCMD_LITTOREG,SREG_AX,0); // Clear out the AX register so that the jump works correctly
                     if (nested_type[loop_level] == NEST_SWITCH)
-                        scrip->write_cmd1(SCMD_JMP, -(scrip->codesize - nested_start[loop_level] + 2)); // Jump to the known break point
+                        scrip->write_cmd1(SCMD_JMP, -(scrip->codesize - nested_start[loop_level])); // Jump to the known break point
                     else
                         scrip->write_cmd1(SCMD_JMP, -(scrip->codesize - nested_info[loop_level] + 3)); // Jump to the known break point
                 }

@@ -4754,9 +4754,9 @@ startvarbit:
             else if (sym.get_type(cursym) == SYM_CONTINUE) {
                 int loop_level;
                 loop_level = nested_level;
-                while(loop_level > 0 && nested_start[loop_level] == 0)
+                while(loop_level > 0 && (nested_start[loop_level] == 0 || nested_type[loop_level] == NEST_SWITCH))
                     loop_level--;
-                if (loop_level > 0 && nested_type[loop_level] != NEST_SWITCH) {
+                if (loop_level > 0) {
                     if (sym.get_type(targ.getnext()) != SYM_SEMICOLON) {
                         cc_error("expected ';'");
                         return -1;

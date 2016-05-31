@@ -21,10 +21,8 @@
 #define IDC_RESOLUTION                  1025
 #define IDC_GFXMODE                     1028
 #define IDC_GFXMODETEXT                 1029
-#define IDC_ASPECTRATIO                 1030
 #define IDC_VSYNC                       1031
-#define IDC_STRETCHTOSCREEN             1032
-#define IDC_GFXFILTERSCALING            1033
+#define IDC_GAMESCALING                 1033
 #define IDC_GFXOPTIONS                  1035
 #define IDC_MOUSESPEED                  1036
 #define IDC_MOUSESPEED_TEXT             1037

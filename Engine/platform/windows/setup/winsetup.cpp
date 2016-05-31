@@ -1068,12 +1068,6 @@ void WinSetupDialog::FillScalingList()
         return;
     }
 
-    if (_gfxFilterInfo->FixedScale != 0)
-    {
-        AddScalingString(_gfxFilterInfo->FixedScale);
-        SetCurSel(_hGfxFilterScalingList, 0);
-    }
-    else
     {
         AddString(_hGfxFilterScalingList, "None", 1);
         AddString(_hGfxFilterScalingList, "Max fit", 0);
@@ -1085,7 +1079,8 @@ void WinSetupDialog::FillScalingList()
             const int max_scale = min(max_size.Width / _winCfg.GameResolution.Width, max_size.Height / _winCfg.GameResolution.Height);
 
             // upscales
-            for (int scale = 2; scale <= max_scale; ++scale)
+            const int upscale_from = _gfxFilterInfo && _gfxFilterInfo->MinScale > 2 ? _gfxFilterInfo->MinScale : 2;
+            for (int scale = upscale_from; scale <= max_scale; ++scale)
                 AddScalingString(scale);
             // downscales
             for (int scale = 2; scale <= min_scale; ++scale)

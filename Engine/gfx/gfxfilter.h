@@ -33,14 +33,16 @@ struct GfxFilterInfo
 {
     String   Id;
     String   Name;
-    uint32_t FixedScale;
+    int      MinScale;
+    int      MaxScale;
 
     GfxFilterInfo()
     {}
-    GfxFilterInfo(String id, String name, uint32_t fixed_scale = 0)
+    GfxFilterInfo(String id, String name, int min_scale = 0, int max_scale = 0)
         : Id(id)
         , Name(name)
-        , FixedScale(fixed_scale)
+        , MinScale(min_scale)
+        , MaxScale(max_scale)
     {}
 };
 

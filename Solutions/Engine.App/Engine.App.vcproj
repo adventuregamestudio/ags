@@ -836,11 +836,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\gfx\gfxfilter_hq2x.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\gfxfilter_hq3x.cpp"
+					RelativePath="..\..\Engine\gfx\gfxfilter_hqx.cpp"
 					>
 				</File>
 				<File
@@ -1822,11 +1818,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\gfx\gfxfilter_hq2x.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\gfxfilter_hq3x.h"
+					RelativePath="..\..\Engine\gfx\gfxfilter_hqx.h"
 					>
 				</File>
 				<File

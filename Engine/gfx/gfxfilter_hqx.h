@@ -12,12 +12,12 @@
 //
 //=============================================================================
 //
-// High quality x3 scaling filter
+// High quality x2 scaling filter
 //
 //=============================================================================
 
-#ifndef __AGS_EE_GFX__HQ3XGFXFILTER_H
-#define __AGS_EE_GFX__HQ3XGFXFILTER_H
+#ifndef __AGS_EE_GFX__HQ2XGFXFILTER_H
+#define __AGS_EE_GFX__HQ2XGFXFILTER_H
 
 #include "gfx/gfxfilter_allegro.h"
 
@@ -28,9 +28,12 @@ namespace Engine
 namespace ALSW
 {
 
-class Hq3xGfxFilter : public AllegroGfxFilter
+class HqxGfxFilter : public AllegroGfxFilter
 {
 public:
+    HqxGfxFilter();
+    ~HqxGfxFilter();
+
     virtual const GfxFilterInfo &GetInfo() const;
 
     virtual bool Initialize(const int color_depth, String &err_str);
@@ -42,11 +45,14 @@ public:
 protected:
     virtual Bitmap *PreRenderPass(Bitmap *toRender);
 
-    Bitmap *_hq3xScalingBuffer;
+    typedef void (*PfnHqx)(unsigned char *in, unsigned char *out, int src_w, int src_h, int bpl);
+
+    PfnHqx  _pfnHqx;
+    Bitmap *_hqxScalingBuffer;
 };
 
 } // namespace ALSW
 } // namespace Engine
 } // namespace AGS
 
-#endif // __AGS_EE_GFX__HQ3XGFXFILTER_H
+#endif // __AGS_EE_GFX__HQ2XGFXFILTER_H

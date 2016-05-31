@@ -19,8 +19,7 @@
 #include "gfx/ali3dexception.h"
 #include "gfx/ali3dsw.h"
 #include "gfx/gfxfilter_allegro.h"
-#include "gfx/gfxfilter_hq2x.h"
-#include "gfx/gfxfilter_hq3x.h"
+#include "gfx/gfxfilter_hqx.h"
 #include "gfx/gfx_util.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
@@ -646,7 +645,7 @@ ALSWGraphicsFactory::~ALSWGraphicsFactory()
 
 size_t ALSWGraphicsFactory::GetFilterCount() const
 {
-    return 3;
+    return 2;
 }
 
 const GfxFilterInfo *ALSWGraphicsFactory::GetFilterInfo(size_t index) const
@@ -656,9 +655,7 @@ const GfxFilterInfo *ALSWGraphicsFactory::GetFilterInfo(size_t index) const
     case 0:
         return &AllegroGfxFilter::FilterInfo;
     case 1:
-        return &Hq2xGfxFilter::FilterInfo;
-    case 2:
-        return &Hq3xGfxFilter::FilterInfo;
+        return &HqxGfxFilter::FilterInfo;
     default:
         return NULL;
     }
@@ -687,10 +684,8 @@ AllegroGfxFilter *ALSWGraphicsFactory::CreateFilter(const String &id)
 {
     if (AllegroGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
         return new AllegroGfxFilter();
-    else if (Hq2xGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
-        return new Hq2xGfxFilter();
-    else if (Hq3xGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
-        return new Hq3xGfxFilter();
+    else if (HqxGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
+        return new HqxGfxFilter();
     return NULL;
 }
 

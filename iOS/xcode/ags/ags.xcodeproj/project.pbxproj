@@ -56,8 +56,7 @@
 		60898D94160779DB009E152F /* ags_snowrain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60898CF2160779DB009E152F /* ags_snowrain.cpp */; };
 		60898DA91607816F009E152F /* mpg123.c in Sources */ = {isa = PBXBuildFile; fileRef = 60898DA81607816F009E152F /* mpg123.c */; };
 		60898DC416078501009E152F /* aaudio.c in Sources */ = {isa = PBXBuildFile; fileRef = 60898DC316078501009E152F /* aaudio.c */; };
-		60898DCA160785CB009E152F /* gfxfilter_hq2x.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60898DC9160785CB009E152F /* gfxfilter_hq2x.cpp */; };
-		60898DCC160785DD009E152F /* gfxfilter_hq3x.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60898DCB160785DD009E152F /* gfxfilter_hq3x.cpp */; };
+		60898DCA160785CB009E152F /* gfxfilter_hqx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60898DC9160785CB009E152F /* gfxfilter_hqx.cpp */; };
 		60898DD6160787FF009E152F /* hq2x3x.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60898DD4160787FF009E152F /* hq2x3x.cpp */; };
 		608B20641866295B005B3BCD /* logfile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 608B20631866295B005B3BCD /* logfile.cpp */; };
 		608B4E57163BF27B00547FAA /* libc.c in Sources */ = {isa = PBXBuildFile; fileRef = 608B4E56163BF27B00547FAA /* libc.c */; };
@@ -415,8 +414,7 @@
 		60898CF4160779DB009E152F /* ags_snowrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ags_snowrain.h; sourceTree = "<group>"; };
 		60898DA81607816F009E152F /* mpg123.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mpg123.c; sourceTree = "<group>"; };
 		60898DC316078501009E152F /* aaudio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = aaudio.c; sourceTree = "<group>"; };
-		60898DC9160785CB009E152F /* gfxfilter_hq2x.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gfxfilter_hq2x.cpp; sourceTree = "<group>"; };
-		60898DCB160785DD009E152F /* gfxfilter_hq3x.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gfxfilter_hq3x.cpp; sourceTree = "<group>"; };
+		60898DC9160785CB009E152F /* gfxfilter_hqx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gfxfilter_hqx.cpp; sourceTree = "<group>"; };
 		60898DD4160787FF009E152F /* hq2x3x.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = hq2x3x.cpp; sourceTree = "<group>"; };
 		608B20621866295B005B3BCD /* logfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = logfile.h; sourceTree = "<group>"; };
 		608B20631866295B005B3BCD /* logfile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = logfile.cpp; sourceTree = "<group>"; };
@@ -863,8 +861,7 @@
 		60CA3BCC160713FE00CFB3BD /* gfxfilter_allegro.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gfxfilter_allegro.h; sourceTree = "<group>"; };
 		60CA3BCD160713FE00CFB3BD /* gfxfilter_d3d.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gfxfilter_d3d.cpp; sourceTree = "<group>"; };
 		60CA3BCE160713FE00CFB3BD /* gfxfilter_d3d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gfxfilter_d3d.h; sourceTree = "<group>"; };
-		60CA3BD0160713FE00CFB3BD /* gfxfilter_hq2x.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gfxfilter_hq2x.h; sourceTree = "<group>"; };
-		60CA3BD2160713FE00CFB3BD /* gfxfilter_hq3x.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gfxfilter_hq3x.h; sourceTree = "<group>"; };
+		60CA3BD0160713FE00CFB3BD /* gfxfilter_hqx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gfxfilter_hqx.h; sourceTree = "<group>"; };
 		60CA3BD3160713FE00CFB3BD /* gfxfilter_scaling.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gfxfilter_scaling.cpp; sourceTree = "<group>"; };
 		60CA3BD4160713FE00CFB3BD /* gfxfilter_scaling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gfxfilter_scaling.h; sourceTree = "<group>"; };
 		60CA3BD5160713FE00CFB3BD /* gfxfilter_scalingallegro.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gfxfilter_scalingallegro.cpp; sourceTree = "<group>"; };
@@ -1894,8 +1891,7 @@
 			children = (
 				608D7889176B832C00E48976 /* gfx_util.cpp */,
 				608D788A176B832C00E48976 /* gfx_util.h */,
-				60898DCB160785DD009E152F /* gfxfilter_hq3x.cpp */,
-				60898DC9160785CB009E152F /* gfxfilter_hq2x.cpp */,
+				60898DCB160785DD009E152F /* gfxfilter_hqx.cpp */,
 				60CA3BBE160713FE00CFB3BD /* ali3d.h */,
 				60CA3BBF160713FE00CFB3BD /* ali3dogl.cpp */,
 				60CA3BC0160713FE00CFB3BD /* ali3dsw.cpp */,
@@ -1913,8 +1909,7 @@
 				60CA3BCC160713FE00CFB3BD /* gfxfilter_allegro.h */,
 				60CA3BCD160713FE00CFB3BD /* gfxfilter_d3d.cpp */,
 				60CA3BCE160713FE00CFB3BD /* gfxfilter_d3d.h */,
-				60CA3BD0160713FE00CFB3BD /* gfxfilter_hq2x.h */,
-				60CA3BD2160713FE00CFB3BD /* gfxfilter_hq3x.h */,
+				60CA3BD0160713FE00CFB3BD /* gfxfilter_hqx.h */,
 				60CA3BD3160713FE00CFB3BD /* gfxfilter_scaling.cpp */,
 				60CA3BD4160713FE00CFB3BD /* gfxfilter_scaling.h */,
 				60CA3BD5160713FE00CFB3BD /* gfxfilter_scalingallegro.cpp */,
@@ -2621,8 +2616,7 @@
 				60898D94160779DB009E152F /* ags_snowrain.cpp in Sources */,
 				60898DA91607816F009E152F /* mpg123.c in Sources */,
 				60898DC416078501009E152F /* aaudio.c in Sources */,
-				60898DCA160785CB009E152F /* gfxfilter_hq2x.cpp in Sources */,
-				60898DCC160785DD009E152F /* gfxfilter_hq3x.cpp in Sources */,
+				60898DCA160785CB009E152F /* gfxfilter_hqx.cpp in Sources */,
 				60898DD6160787FF009E152F /* hq2x3x.cpp in Sources */,
 				6080428E1614DE8F00D33732 /* assetmanager.cpp in Sources */,
 				16EA269C1BDC760300DADE0D /* inifile.cpp in Sources */,

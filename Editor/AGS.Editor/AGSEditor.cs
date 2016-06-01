@@ -793,6 +793,10 @@ namespace AGS.Editor
             {
                 preprocessor.DefineMacro("STRICT_AUDIO", "1");
             }
+            if (!_game.Settings.UseOldCustomDialogOptionsAPI)
+            {
+                preprocessor.DefineMacro("NEW_DIALOGOPTS_API", "1");
+            }
         }
 
 		/// <summary>

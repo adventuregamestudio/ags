@@ -1695,6 +1695,14 @@ namespace AGS.Editor
             {
                 return false;
             }
+            if ((token.IfNDefOnly == "NEW_DIALOGOPTS_API") && (gameSettings.EnforceNewAudio))
+            {
+                return false;
+            }
+            if ((token.IfDefOnly == "NEW_DIALOGOPTS_API") && (!gameSettings.EnforceNewAudio))
+            {
+                return false;
+            }
             return true;
         }
 

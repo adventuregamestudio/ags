@@ -55,6 +55,7 @@ namespace AGS.Types
         private bool _leftToRightPrecedence = true;
         private bool _enforceNewStrings = true;
         private bool _enforceNewAudio = true;
+        private bool _oldCustomDlgOptsAPI = false;
         private int _playSoundOnScore = 0;
         private CrossfadeSpeed _crossfadeMusic = CrossfadeSpeed.No;
         private int _dialogOptionsGUI = 0;
@@ -557,6 +558,16 @@ namespace AGS.Types
         {
             get { return _enforceNewAudio; }
             set { _enforceNewAudio = value; }
+        }
+
+        [DisplayName("Use old-style custom dialog options API")]
+        [Description("Use pre-3.4.0 callback functions to handle custom dialog options GUI")]
+        [DefaultValue(false)]
+        [Category("Backwards Compatibility")]
+        public bool UseOldCustomDialogOptionsAPI
+        {
+            get { return _oldCustomDlgOptsAPI; }
+            set { _oldCustomDlgOptsAPI = value; }
         }
 
         [DisplayName("Left-to-right operator precedence")]

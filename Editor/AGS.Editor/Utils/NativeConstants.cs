@@ -127,6 +127,7 @@ namespace AGS.Editor
             public static readonly int OPT_GLOBALTALKANIMSPD = (int)Factory.NativeProxy.GetNativeConstant("OPT_GLOBALTALKANIMSPD");
             public static readonly int OPT_SPRITEALPHA = (int)Factory.NativeProxy.GetNativeConstant("OPT_SPRITEALPHA");
             public static readonly int OPT_SAFEFILEPATHS = (int)Factory.NativeProxy.GetNativeConstant("OPT_SAFEFILEPATHS");
+            public static readonly int OPT_DIALOGOPTIONSAPI = (int)Factory.NativeProxy.GetNativeConstant("OPT_DIALOGOPTIONSAPI");
             public static readonly int OPT_LIPSYNCTEXT = (int)Factory.NativeProxy.GetNativeConstant("OPT_LIPSYNCTEXT");
         }
     }

@@ -685,6 +685,10 @@ GameFileError load_game_file()
         game.options[OPT_GLOBALTALKANIMSPD] = game.options[OPT_GLOBALTALKANIMSPD] != 0 ? 5 : (-5 - 1);
     }
 
+    // Define old dialog options API for pre-3.4.0.2 games
+    if (filever < kGameVersion_340_2)
+        game.options[OPT_DIALOGOPTIONSAPI] = -1;
+
     if (game.numfonts > MAX_FONTS)
         quit("!This game requires a newer version of AGS. Too many fonts for this version to handle.");
 

@@ -856,7 +856,7 @@ void DialogOptions::Redraw()
 
 bool DialogOptions::Run()
 {
-    const bool new_custom_render = loaded_game_file_version >= kGameVersion_340_2 && usingCustomRendering;
+    const bool new_custom_render = usingCustomRendering && game.options[OPT_DIALOGOPTIONSAPI] >= 0;
 
       if (runGameLoopsInBackground)
       {

@@ -527,6 +527,12 @@ int ccInstance::Run(int32_t curpc)
         codeOp.Instruction.InstanceId	= (codeOp.Instruction.Code >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
         codeOp.Instruction.Code		   &= INSTANCE_ID_REMOVEMASK; // now this is pure instruction code
 
+        if (codeOp.Instruction.Code < 0 || codeOp.Instruction.Code >= CC_NUM_SCCMDS)
+        {
+            cc_error("invalid instruction %d found in code stream", codeOp.Instruction.Code);
+            return -1;
+        }
+
         codeOp.ArgCount = sccmd_info[codeOp.Instruction.Code].ArgCount;
         if (pc + codeOp.ArgCount >= codeInst->codesize)
         {
@@ -1364,7 +1370,7 @@ int ccInstance::Run(int32_t curpc)
               loopIterationCheckDisabled++;
           break;
       default:
-          cc_error("invalid instruction %d found in code stream", codeOp.Instruction.Code);
+          cc_error("instruction %d is not implemented", codeOp.Instruction.Code);
           return -1;
         }
 

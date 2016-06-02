@@ -60,8 +60,9 @@ A direct link is here:
 
 http://www.eglebbk.dds.nl/program/download/digmid.dat
 
-Rename that file to **patches.dat** and place it into the **ags**
-directory alongside your games.
+This 'digmid.dat' is, in fact, a **bzip2** archive, containing actual data file,
+which should be about 25 MB large. Extract that file, rename it to **patches.dat**
+and place it into the  **ags** directory alongside your games.
 
 
 

@@ -76,7 +76,9 @@ A direct link is here:
 
 http://www.eglebbk.dds.nl/program/download/digmid.dat
 
-Rename that file to **patches.dat**. You can now place it:
+This 'digmid.dat' is, in fact, a **bzip2** archive, containing actual data file,
+which should be about 25 MB large. Extract that file and rename it to **patches.dat**.
+You can now place it:
 
 -   in the directory pointed to by the ALLEGRO environment variable; or
 -   if $ALLEGRO is not defined, in $HOME; or

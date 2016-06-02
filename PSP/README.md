@@ -79,7 +79,10 @@ is available on official firmwares. It also requires kernel mode if run with the
 
     http://www.eglebbk.dds.nl/program/download/digmid.dat
 
-    Rename that file to **patches.dat** and place it in the same directory as the Eboot.
+    This 'digmid.dat' is, in fact, a **bzip2** archive, containing actual data file,
+    which should be about 25 MB large. Extract that file, rename it to **patches.dat**
+    and place it in the same directory as the Eboot.
+
     Advanced users can also download other patchsets. The configuration file
     must be named **default.cfg** and placed in the Eboot directory.
 

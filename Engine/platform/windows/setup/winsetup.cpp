@@ -133,7 +133,7 @@ void WinConfig::SetDefaults()
     MidiWinIdx = 0;
     UseVoicePack = true;
 
-    SpriteCacheSize = 1024 * 20;
+    SpriteCacheSize = 1024 * 128;
     DefaultLanguageName = "Game Default";
 
     Title = "Game Setup";
@@ -648,11 +648,14 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     SetSliderPos(_hMouseSpeed, slider_pos);
     UpdateMouseSpeedText();
 
-    AddString(_hSpriteCacheList, "10 MB", 10);
-    AddString(_hSpriteCacheList, "20 MB (default)", 20);
-    AddString(_hSpriteCacheList, "50 MB", 50);
-    AddString(_hSpriteCacheList, "100 MB", 100);
-    SetCurSelToItemData(_hSpriteCacheList, _winCfg.SpriteCacheSize / 1024);
+    AddString(_hSpriteCacheList, "16 MB", 16);
+    AddString(_hSpriteCacheList, "32 MB", 32);
+    AddString(_hSpriteCacheList, "64 MB", 64);
+    AddString(_hSpriteCacheList, "128 MB (default)", 128);
+    AddString(_hSpriteCacheList, "256 MB", 256);
+    AddString(_hSpriteCacheList, "384 MB", 384);
+    AddString(_hSpriteCacheList, "512 MB", 512);
+    SetCurSelToItemData(_hSpriteCacheList, _winCfg.SpriteCacheSize / 1024, NULL, 3);
 
     SetCheck(_hRefresh85Hz, _winCfg.RefreshRate == 85);
     SetCheck(_hAntialiasSprites, _winCfg.AntialiasSprites);

@@ -317,7 +317,7 @@ void read_config(const ConfigTree &cfg)
         usetup.translation = INIreadstring(cfg, "language", "translation");
 
         // PSP: Don't let the setup determine the cache size as it is always too big.
-#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+#if !defined(PSP_VERSION)
         // the config file specifies cache size in KB, here we convert it to bytes
         spriteset.maxCacheSize = INIreadint (cfg, "misc", "cachemax", DEFAULTCACHESIZE / 1024) * 1024;
 #endif

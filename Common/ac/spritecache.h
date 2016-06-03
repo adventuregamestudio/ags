@@ -29,11 +29,14 @@ using namespace AGS; // FIXME later
 // a definite way of knowing whether the sprite existed in the sprite file.
 #define SPRCACHEFLAG_DOESNOTEXIST 1
 
-// PSP: Use smaller sprite cache due to limited total memory.
+// Max size of the sprite cache, in bytes
 #if defined (PSP_VERSION)
-#define DEFAULTCACHESIZE 5000000
+// PSP: Use smaller sprite cache due to limited total memory.
+#define DEFAULTCACHESIZE 5 * 1024 * 1024
+#elif defined (ANDROID_VERSION) || defined (IOS_VERSION)
+#define DEFAULTCACHESIZE 32 * 1024 * 1024
 #else
-#define DEFAULTCACHESIZE 20 * 1024 * 1024 // max size, in bytes (20 MB)
+#define DEFAULTCACHESIZE 128 * 1024 * 1024
 #endif
 
 class SpriteCache

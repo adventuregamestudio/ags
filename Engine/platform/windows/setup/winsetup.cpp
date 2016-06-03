@@ -678,14 +678,16 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     if (INIreadint(_cfgIn, "disabled", "filters", 0) != 0)
         EnableWindow(_hGfxFilterList, FALSE);
 
-    RECT win_rect, gfx_rect, adv_rect;
+    RECT win_rect, gfx_rect, adv_rect, border;
     GetWindowRect(_hwnd, &win_rect);
     GetWindowRect(GetDlgItem(_hwnd, IDC_GFXOPTIONS), &gfx_rect);
     _winSize.Width = win_rect.right - win_rect.left;
     _winSize.Height = win_rect.bottom - win_rect.top;
     GetWindowRect(_hAdvanced, &adv_rect);
+    border.left = border.top = border.right = border.bottom = 9;
+    MapDialogRect(_hwnd, &border);
     _baseSize.Width = (adv_rect.right + (gfx_rect.left - win_rect.left)) - win_rect.left;
-    _baseSize.Height = win_rect.bottom - win_rect.top;
+    _baseSize.Height = adv_rect.bottom - win_rect.top + border.bottom;
 
     MoveWindow(_hwnd, max(0, win_rect.left + (_winSize.Width - _baseSize.Width) / 2),
                       max(0, win_rect.top + (_winSize.Height - _baseSize.Height) / 2),
@@ -839,20 +841,24 @@ void WinSetupDialog::ShowAdvancedOptions()
 {
     // Reveal the advanced bit of the window
     ShowWindow(_hAdvanced, SW_HIDE);
-    ShowWindow(_hDigiDriverList, SW_SHOW);
-    ShowWindow(_hMidiDriverList, SW_SHOW);
-    ShowWindow(_hUseVoicePack, SW_SHOW);
-    ShowWindow(_hVSync, SW_SHOW);
-    ShowWindow(_hRefresh85Hz, SW_SHOW);
-    ShowWindow(_hAntialiasSprites, SW_SHOW);
-    ShowWindow(_hReduce32to16, SW_SHOW);
-    ShowWindow(_hSpriteCacheList, SW_SHOW);
 
     RECT win_rect;
     GetWindowRect(_hwnd, &win_rect);
     MoveWindow(_hwnd, max(0, win_rect.left + (_baseSize.Width - _winSize.Width) / 2),
                       max(0, win_rect.top + (_baseSize.Height - _winSize.Height) / 2),
                       _winSize.Width, _winSize.Height, TRUE);
+
+    int offset = _winSize.Height - _baseSize.Height;
+    RECT rc;
+    int ctrl_ids[] = { IDC_VERSION, IDOK, IDOKRUN, IDCANCEL, 0 };
+    for (int i = 0; ctrl_ids[i]; ++i)
+    {
+        HWND hctrl = GetDlgItem(_hwnd, ctrl_ids[i]);
+        GetWindowRect(hctrl, &rc);
+        ScreenToClient(_hwnd, (POINT*)&rc);
+        ScreenToClient(_hwnd, (POINT*)&rc.right);
+        MoveWindow(hctrl, rc.left, rc.top + offset, rc.right - rc.left, rc.bottom - rc.top, TRUE);
+    }
 }
 
 INT_PTR CALLBACK WinSetupDialog::DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)

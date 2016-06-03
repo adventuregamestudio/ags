@@ -1,5 +1,12 @@
 REVISION HISTORY
 ================
+VERSION 3.3.5 - Patch 2, June 2016
+
+Engine:
+- Fixed compilation on big-endian systems.
+- Fixed compilation with GCC 6.
+
+
 VERSION 3.3.5 - Patch 1, April 2016
 
 Engine:

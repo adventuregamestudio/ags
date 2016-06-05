@@ -235,52 +235,6 @@ void ccCompiledScript::write_code(intptr_t byy) {
     codesize++;
 }
 
-intptr_t ccCompiledScript::yank_chunk(int32_t start, intptr_t **nested_chunk, int index) {
-    intptr_t chunk_size;
-    intptr_t chunk_index;
-
-    if (start < codesize) {
-        chunk_index = chunk_size = codesize - start;
-        nested_chunk[index] = (intptr_t *) malloc(chunk_size * sizeof(intptr_t));
-        while(chunk_index-- > 0) // speed up with memcpy?
-            nested_chunk[index][chunk_index] = code[start + chunk_index];
-        codesize = start;
-    }
-    else
-        chunk_size = 0;
-
-    return chunk_size;
-}
-
-void ccCompiledScript::write_chunk(intptr_t **nested_chunk, int index, intptr_t chunk_size, bool dispose, int fixup_start, int fixup_stop, int32_t adjust) {
-    intptr_t chunk_index;
-    if(chunk_size > 0)
-    {
-        if(codesize + chunk_size >= codeallocated) {
-            codeallocated += chunk_size + 500;
-            code = (intptr_t *) realloc(code, codeallocated * sizeof(intptr_t));
-        }
-        chunk_index = chunk_size;
-        while(chunk_index-- > 0) // speed up with memcpy?
-            code[codesize + chunk_index] = nested_chunk[index][chunk_index];
-        codesize += chunk_size;
-        if(dispose)
-            free(nested_chunk[index]);
-    }
-    if(dispose)
-        while(fixup_start < fixup_stop)
-        {
-            fixups[fixup_start] += adjust;
-            fixup_start++;
-        }
-    else
-        while(fixup_start < fixup_stop)
-        {
-            add_fixup(fixups[fixup_start] + adjust, fixuptypes[fixup_start]);
-            fixup_start++;
-        }
-}
-
 const char* ccCompiledScript::start_new_section(const char *name) {
 
     if ((numSections == 0) ||

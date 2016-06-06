@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -500,7 +500,6 @@
       <SubType>Designer</SubType>
       <DependentUpon>CustomPropertySchemaItemEditor.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\splash.bmp" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\License.txt">
@@ -577,6 +576,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\CustomResolutionDialog.resx">
       <DependentUpon>CustomResolutionDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\SplashPage.resx">
+      <DependentUpon>SplashPage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GUI\StartNewGameWizardPage2.resx">
       <DependentUpon>StartNewGameWizardPage2.cs</DependentUpon>
@@ -672,6 +674,7 @@
     <Content Include="ikpMP3.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <EmbeddedResource Include="Resources\ags_cup.png" />
     <Content Include="Resources\audio_player-pause.ico" />
     <Content Include="Resources\audio_player-play.ico" />
     <Content Include="Resources\audio_player-stop.ico" />
@@ -817,6 +820,12 @@
     </Compile>
     <Compile Include="GUI\CustomResolutionDialog.Designer.cs">
       <DependentUpon>CustomResolutionDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\SplashPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\SplashPage.Designer.cs">
+      <DependentUpon>SplashPage.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\ToolStripExtended.cs">
       <SubType>Component</SubType>

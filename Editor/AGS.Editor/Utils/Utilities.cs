@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Drawing.Text;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
@@ -559,6 +560,46 @@ namespace AGS.Editor
                 process.Close();
             }
             return result;
+        }
+
+        /// <summary>
+        /// Iterates given array of font family names and return the first
+        /// FontFamily object that is installed in the system. If none was
+        /// found, returns generic Sans-Serif system font.
+        /// </summary>
+        /// <param name="fontNames"></param>
+        /// <returns></returns>
+        public static FontFamily FindExistingFont(string[] fontNames)
+        {
+            FontFamily fontfam = null;
+            foreach (string name in fontNames)
+            {
+                try
+                {
+                    fontfam = new FontFamily(name);
+                }
+                catch (System.ArgumentException)
+                {
+                    continue;
+                }
+                if (fontfam.Name == name)
+                    return fontfam;
+            }
+            return new FontFamily(GenericFontFamilies.SansSerif);
+        }
+
+        /// <summary>
+        /// Returns relation between current graphics resolution and default DpiY (96.0).
+        /// Can be used when arranging controls and resizing forms.
+        /// </summary>
+        /// <param name="control"></param>
+        /// <returns></returns>
+        public static float CalculateGraphicsProportion(Control control)
+        {
+            Graphics graphics = control.CreateGraphics();
+            float proportion = (float)(graphics.DpiY / 96.0);
+            graphics.Dispose();
+            return proportion;
         }
     }
 }

@@ -44,7 +44,6 @@ namespace AGS.Editor
 #endif
 
                 SplashScreen splash = new SplashScreen();
-                splash.Size = splash.BackgroundImage.Size;
                 splash.Load += new EventHandler(splash_Load);
                 Application.Run(splash);
 

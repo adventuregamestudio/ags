@@ -63,46 +63,25 @@ namespace AGS.Editor
             "Thou shalt not commit adultery"
         };*/
 
-
         public SplashScreen()
         {
             InitializeComponent();
-			if ((DateTime.Now.Month == 2) && (DateTime.Now.Day == 14))
-			{
-				this.BackgroundImage = Resources.ResourceManager.GetBitmap("splash-valentine-2.jpg");
-				lblTagLine.Text = "Happy Valentine's Day!";
-				lblTagLine.ForeColor = Color.Yellow;
-			}
-			else if ((DateTime.Now.Month == 12) && (DateTime.Now.Day == 25))
-			{
-				this.BackgroundImage = Resources.ResourceManager.GetBitmap("splash-xmas.jpg");
-				lblTagLine.Text = "Happy Christmas!";
-				lblTagLine.ForeColor = Color.LightGreen;
-			}
-			else
-			{
-				this.BackgroundImage = Resources.ResourceManager.GetBitmap("splash.bmp");
-				int tickCount = Math.Abs(Environment.TickCount);
-				lblTagLine.Text = TagLines[(tickCount / 1000) % TagLines.Length];
-			}
-        }
 
-        private void SplashScreen_Load(object sender, EventArgs e)
-        {
-            // For some reason the automatic .NET DPI-stretching doesn't
-            // resize this form itself, so do it manually instead
-            Graphics graphics = this.CreateGraphics();
-            float proportion = (float)(graphics.DpiY / 96.0);
-            graphics.Dispose();
+            if ((DateTime.Now.Month == 2) && (DateTime.Now.Day == 14))
+            {
+                splashPage.ConstructSpecial("splash-valentine-2.jpg", ImageLayout.None, "Happy Valentine's Day!", Color.Yellow);
+            }
+            else if ((DateTime.Now.Month == 12) && (DateTime.Now.Day == 25))
+            {
+                splashPage.ConstructSpecial("splash-xmas.jpg", ImageLayout.None, "Happy Christmas!", Color.LightGreen);
+            }
+            else
+            {
+                int tickCount = Math.Abs(Environment.TickCount);
+                splashPage.ConstructFull(TagLines[(tickCount / 1000) % TagLines.Length]);
+            }
 
-            this.Size = new Size((int)(this.Width * proportion), (int)(this.Height * proportion));
-            this.Left -= (int)(this.Left * proportion) - this.Left;
-            this.Top -= (int)(this.Top * proportion) - this.Top;
-        }
-
-        private void SplashScreen_Paint(object sender, PaintEventArgs e)
-        {
-            e.Graphics.DrawRectangle(Pens.Black, 0, 0, this.ClientSize.Width - 1, this.ClientSize.Height - 1);
+            Size = splashPage.Size;
         }
     }
 }

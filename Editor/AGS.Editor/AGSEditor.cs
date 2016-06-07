@@ -949,6 +949,19 @@ namespace AGS.Editor
             bool forceRebuild = parameters.RebuildAll;
             IBuildTarget targetDataFile = BuildTargetsInfo.FindBuildTargetByName(BuildTargetsInfo.DATAFILE_TARGET_NAME);
             targetDataFile.Build(errors, forceRebuild); // ensure that data file is built first
+            if (ExtraOutputCreationStep != null)
+            {
+                ExtraOutputCreationStep();
+            }
+
+            // TODO: As of now the build targets other than DataFile and Debug do DEPLOYMENT rather than BUILDING
+            // (BuildTargetDebug, - which is never used right here, - seem to combine both operations:
+            // building and preparing game to run under Windows).
+            // This is why the BuildTargetDataFile is called explicitly at the start.
+            // And that is why the rest must be called AFTER the ExtraOutputCreationStep.
+            //
+            // It may be a better idea to split BuildTarget and DeployTarget interfaces (names are given for example)
+            // to make the building logic cleaner.
             if (!Factory.AGSEditor.Preferences.UseLegacyCompiler)
             {
                 foreach (IBuildTarget target in BuildTargetsInfo.GetSelectedBuildTargets())
@@ -956,10 +969,6 @@ namespace AGS.Editor
                     if (target != targetDataFile) target.Build(errors, forceRebuild);
                     Utilities.SetDirectoryFilesAccess(Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, AGSEditor.OUTPUT_DIRECTORY));
                 }
-            }
-            if (ExtraOutputCreationStep != null)
-            {
-                ExtraOutputCreationStep();
             }
             return null;
         }

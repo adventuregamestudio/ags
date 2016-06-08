@@ -14,7 +14,8 @@ namespace AGS.Editor
         public AboutDialog()
         {
             InitializeComponent();
-            pictureBox.Image = Resources.ResourceManager.GetBitmap("splash.bmp");
+
+            splashPage.ConstructSimple();
 
             txtInfo.Text = "AGS Editor .NET (Build " + AGS.Types.Version.AGS_EDITOR_VERSION + ")";
             if (AGS.Types.Version.IS_BETA_VERSION)
@@ -77,7 +78,7 @@ namespace AGS.Editor
 		{
 			if (Utilities.IsShiftPressed())
 			{
-				pictureBox.Image = Resources.ResourceManager.GetBitmap("splash-mittens.bmp");
+				splashPage.ConstructSpecial("splash-mittens.bmp", ImageLayout.Zoom, "", Color.White);
 				this.Text = "The cast and crew of Mittens 2007 Canada";
 				txtInfo.Text = "Greetings from the cast of Mittens VI. One Fop to rule them all ... One Fop to find them, One Fop to come to them all and in darkness be drowned by them.";
 				this.DialogResult = DialogResult.None;

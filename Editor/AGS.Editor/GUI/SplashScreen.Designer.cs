@@ -28,29 +28,25 @@ namespace AGS.Editor
         /// </summary>
         private void InitializeComponent()
         {
-            this.lblTagLine = new System.Windows.Forms.Label();
+            this.splashPage = new AGS.Editor.SplashPage();
             this.SuspendLayout();
             // 
-            // lblTagLine
+            // splashPage
             // 
-            this.lblTagLine.BackColor = System.Drawing.Color.Transparent;
-            this.lblTagLine.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTagLine.ForeColor = System.Drawing.Color.White;
-            this.lblTagLine.Location = new System.Drawing.Point(15, 225);
-            this.lblTagLine.Name = "lblTagLine";
-            this.lblTagLine.Size = new System.Drawing.Size(379, 19);
-            this.lblTagLine.TabIndex = 0;
-            this.lblTagLine.Text = "label1";
-            this.lblTagLine.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.splashPage.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(59)))), ((int)(((byte)(130)))), ((int)(((byte)(210)))));
+            this.splashPage.Location = new System.Drawing.Point(0, 0);
+            this.splashPage.Margin = new System.Windows.Forms.Padding(0);
+            this.splashPage.Name = "splashPage";
+            this.splashPage.Size = new System.Drawing.Size(620, 300);
+            this.splashPage.TabIndex = 0;
             // 
             // SplashScreen
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ClientSize = new System.Drawing.Size(400, 250);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(620, 300);
             this.ControlBox = false;
-            this.Controls.Add(this.lblTagLine);
+            this.Controls.Add(this.splashPage);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -59,14 +55,14 @@ namespace AGS.Editor
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "SplashScreen";
-            this.Paint += new System.Windows.Forms.PaintEventHandler(this.SplashScreen_Paint);
-            this.Load += new System.EventHandler(this.SplashScreen_Load);
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.Label lblTagLine;
+        private SplashPage splashPage;
+
+
     }
 }

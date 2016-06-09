@@ -441,7 +441,7 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
     in->ReadArrayOfInt32 (&rstruc->regionTintLevel[0], rstruc->numRegions);
   }
 
-  if (rfh.version < kRoomVersion_334)
+  if (rfh.version < kRoomVersion_3404)
   {
     // Convert the old format tint saturation
     for (int i = 0; i < MAX_REGIONS; ++i)

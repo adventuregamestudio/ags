@@ -55,7 +55,7 @@ using AGS::Common::InteractionVariable;
 27:  v3.0 - store Y of bottom of object, not top
 28:  v3.0.3 - remove hotspot name length limit
 29:  v3.0.3 - high-res coords for object x/y, edges and hotspot walk-to point
-30:  v3.3.4 - tint luminance for regions
+30:  v3.4.0.4 - tint luminance for regions
 */
 enum RoomFileVersion
 {
@@ -86,8 +86,8 @@ enum RoomFileVersion
     kRoomVersion_300b       = 27,
     kRoomVersion_303a       = 28,
     kRoomVersion_303b       = 29,
-    kRoomVersion_334        = 30,
-    kRoomVersion_Current    = kRoomVersion_334
+    kRoomVersion_3404       = 30,
+    kRoomVersion_Current    = kRoomVersion_3404
 };
 
 // thisroom.options[0] = startup music

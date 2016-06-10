@@ -63,6 +63,7 @@
 #include "debug/out.h"
 #include "device/mousew32.h"
 #include "font/fonts.h"
+#include "game/savegame.h"
 #include "gui/animatingguibutton.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxfilter.h"
@@ -80,6 +81,7 @@
 #include "util/alignedstream.h"
 #include "util/directory.h"
 #include "util/filestream.h"
+#include "util/path.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
@@ -429,28 +431,13 @@ int Game_SetSaveGameDirectory(const char *newFolder)
 
 const char* Game_GetSaveSlotDescription(int slnum) {
     String description;
-    if (read_savedgame_description(get_save_game_path(slnum), description) == 0)
+    if (read_savedgame_description(get_save_game_path(slnum), description))
     {
         return CreateNewScriptString(description);
     }
     return NULL;
 }
 
-
-
-
-int load_game_and_print_error(int toload) {
-    int ecret = load_game(toload);
-    if (ecret < 0) {
-        // disable speech in case there are dynamic graphics that
-        // have been freed
-        int oldalways = game.options[OPT_ALWAYSSPCH];
-        game.options[OPT_ALWAYSSPCH] = 0;
-        Display("Unable to load game (error: %s).",load_game_errors[-ecret]);
-        game.options[OPT_ALWAYSSPCH] = oldalways;
-    }
-    return ecret;
-}
 
 void restore_game_dialog() {
     can_run_delayed_command();
@@ -974,23 +961,9 @@ ScriptAudioClip *Game_GetAudioClip(int index)
 
 // save game functions
 
-//-----------------------------------------------------------------------------
-// Saved game version history
-//
-// 8      original format (3.2.1)
-//-----------------------------------------------------------------------------
-enum SavedGameVersion
-{
-    kSvgVersion_Undefined = 0,
-    kSvgVersion_321       = 8,
-    kSvgVersion_Current   = kSvgVersion_321,
-    kSvgVersion_LowestSupported = kSvgVersion_321
-};
 
-char*sgsig="Adventure Game Studio saved game";
-int sgsiglen=32;
 
-void serialize_bitmap(Common::Bitmap *thispic, Stream *out) {
+void serialize_bitmap(const Common::Bitmap *thispic, Stream *out) {
     if (thispic != NULL) {
         out->WriteInt32(thispic->GetWidth());
         out->WriteInt32(thispic->GetHeight());
@@ -1014,18 +987,6 @@ void serialize_bitmap(Common::Bitmap *thispic, Stream *out) {
           }
         }
     }
-}
-
-// Some people have been having crashes with the save game list,
-// so make sure the game name is valid
-void safeguard_string (unsigned char *descript) {
-    int it;
-    for (it = 0; it < 50; it++) {
-        if ((descript[it] < 1) || (descript[it] > 127))
-            break;
-    }
-    if (descript[it] != 0)
-        descript[it] = 0;
 }
 
 // On Windows we could just use IIDFromString but this is platform-independant
@@ -1085,6 +1046,16 @@ Bitmap *read_serialized_bitmap(Stream *in) {
     return thispic;
 }
 
+void skip_serialized_bitmap(Stream *in)
+{
+    int picwid = in->ReadInt32();
+    int pichit = in->ReadInt32();
+    int piccoldep = in->ReadInt32();
+    // CHECKME: originally, AGS does not use real BPP here, but simply divides color depth by 8
+    int bpp = piccoldep / 8;
+    in->Seek(picwid * pichit * bpp);
+}
+
 long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
 {
     long fileSize = 0;
@@ -1109,31 +1080,6 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
         free(buffer);
     }
     return fileSize;
-}
-
-
-void save_game_screenshot(Stream *out, Bitmap *screenshot)
-{
-    // store the screenshot at the start to make it easily accesible
-    out->WriteInt32((screenshot == NULL) ? 0 : 1);
-
-    if (screenshot)
-        serialize_bitmap(screenshot, out);
-}
-
-void save_game_header(Stream *out)
-{
-    // Write lowest forward-compatible version string, so that
-    // earlier versions could load savedgames made by current engine
-    if (SavedgameLowestForwardCompatVersion <= Version::LastOldFormatVersion)
-    {
-        fputstring(SavedgameLowestForwardCompatVersion.BackwardCompatibleString, out);
-    }
-    else
-    {
-        fputstring(SavedgameLowestForwardCompatVersion.LongString, out);
-    }
-    fputstring(usetup.main_data_filename, out);
 }
 
 void save_game_head_dynamic_values(Stream *out)
@@ -1428,13 +1374,8 @@ void WriteGameState_Aligned(Stream *out)
 
 #define MAGICNUMBER 0xbeefcafe
 // Write the save game position to the file
-void save_game_data (Stream *out, Bitmap *screenshot) {
-
-    platform->RunPluginHooks(AGSE_PRESAVEGAME, 0);
-    out->WriteInt32(kSvgVersion_Current);
-
-    save_game_screenshot(out, screenshot);
-    save_game_header(out);
+void save_game_data(Stream *out)
+{
     save_game_head_dynamic_values(out);
     save_game_spriteset(out);
     save_game_scripts(out);
@@ -1562,50 +1503,19 @@ void save_game(int slotn, const char*descript) {
     String nametouse;
     nametouse = get_save_game_path(slotn);
 
-    Stream *out = Common::File::CreateFile(nametouse);
-    if (out == NULL)
-        quit("save_game: unable to open savegame file for writing");
-
-    // Initialize and write Vista header
-    RICH_GAME_MEDIA_HEADER vistaHeader;
-    memset(&vistaHeader, 0, sizeof(RICH_GAME_MEDIA_HEADER));
-    memcpy(&vistaHeader.dwMagicNumber, RM_MAGICNUMBER, sizeof(int));
-    vistaHeader.dwHeaderVersion = 1;
-    vistaHeader.dwHeaderSize = sizeof(RICH_GAME_MEDIA_HEADER);
-    vistaHeader.dwThumbnailOffsetHigherDword = 0;
-    vistaHeader.dwThumbnailOffsetLowerDword = 0;
-    vistaHeader.dwThumbnailSize = 0;
-    convert_guid_from_text_to_binary(game.guid, &vistaHeader.guidGameId[0]);
-    uconvert(game.gamename, U_ASCII, (char*)&vistaHeader.szGameName[0], U_UNICODE, RM_MAXLENGTH);
-    uconvert(descript, U_ASCII, (char*)&vistaHeader.szSaveName[0], U_UNICODE, RM_MAXLENGTH);
-    vistaHeader.szLevelName[0] = 0;
-    vistaHeader.szComments[0] = 0;
-
-    //===================================================================
-    // Started writing to the file here
-
-    // Extended savegame info for Win Vista and higher
-    vistaHeader.WriteToFile(out);
-
-    // Savegame signature
-    out->Write(sgsig,sgsiglen);
-
-    safeguard_string ((unsigned char*)descript);
-
-    fputstring((char*)descript, out);
-
     Bitmap *screenShot = NULL;
 
     // Screenshot
     create_savegame_screenshot(screenShot);
 
+    Stream *out = StartSavegame(nametouse, descript, screenShot);
+    if (out == NULL)
+        quit("save_game: unable to open savegame file for writing");
+
     update_polled_stuff_if_runtime();
 
     // Actual dynamic game data is saved here
-    save_game_data(out, screenShot);
-
-    // End writing to the file here
-    //===================================================================
+    save_game_data(out);
 
     if (screenShot != NULL)
     {
@@ -1630,43 +1540,14 @@ void save_game(int slotn, const char*descript) {
 
 char rbuffer[200];
 
-Bitmap *restore_game_screenshot(Stream *in)
-{
-    int isScreen = in->ReadInt32();
-    if (isScreen) {
-        return read_serialized_bitmap(in);
-    }
-    return NULL;
-}
-
-int restore_game_header(Stream *in)
-{
-    String version_string = String::FromStream(in, 200);
-    AGS::Engine::Version requested_engine_version(version_string);
-    if (requested_engine_version > EngineVersion ||
-        requested_engine_version < SavedgameLowestBackwardCompatVersion)
-    {
-        // Version is either non-forward or non-backward compatible
-        // TODO: distinct error codes
-        return -4;
-    }
-    fgetstring_limit (rbuffer, in, 180);
-    rbuffer[180] = 0;
-    if (stricmp (rbuffer, usetup.main_data_filename)) {
-        return -5;
-    }
-
-    return 0;
-}
-
-int restore_game_head_dynamic_values(Stream *in, int &sg_cur_mode, int &sg_cur_cursor)
+SavegameError restore_game_head_dynamic_values(Stream *in, int &sg_cur_mode, int &sg_cur_cursor)
 {
     in->ReadInt32(); // gamescrnhit, was used to check display resolution
 
 	// CHECKME: is this still essential? if yes, is there possible workaround?
     if (in->ReadInt32() != ScreenResolution.ColorDepth) {
         Display("This game was saved with the engine running at a different colour depth. It cannot be restored.");
-        return -7;
+        return kSvgErr_DifferentColorDepth;
     }
 
     unload_old_room();
@@ -1680,7 +1561,7 @@ int restore_game_head_dynamic_values(Stream *in, int &sg_cur_mode, int &sg_cur_c
     offsety = in->ReadInt32();
     loopcounter = in->ReadInt32();
 
-    return 0;
+    return kSvgErr_NoError;
 }
 
 void restore_game_spriteset(Stream *in)
@@ -2130,15 +2011,14 @@ void restore_game_audioclips_and_crossfade(Stream *in, int crossfadeInChannelWas
     crossFadeVolumeAtStart = in->ReadInt32();
 }
 
-int restore_game_data (Stream *in, SavedGameVersion svg_version)
+SavegameError restore_game_data(Stream *in, SavegameVersion svg_version)
 {
     int bb, vv;
 
     int sg_cur_mode = 0, sg_cur_cursor = 0;
-    int res = restore_game_head_dynamic_values(in, /*out*/ sg_cur_mode, sg_cur_cursor);
-    if (res != 0) {
-        return res;
-    }
+    SavegameError err = restore_game_head_dynamic_values(in, /*out*/ sg_cur_mode, sg_cur_cursor);
+    if (err != kSvgErr_NoError)
+        return err;
 
     restore_game_spriteset(in);
 
@@ -2418,163 +2298,89 @@ int restore_game_data (Stream *in, SavedGameVersion svg_version)
         cachedQueuedMusic = load_music_from_disk(play.music_queue[0], 0);
     }
 
-    return 0;
-}
-
-int restore_game_data(Common::Stream *in)
-{
-    return restore_game_data(in, kSvgVersion_321);
+    return kSvgErr_NoError;
 }
 
 int gameHasBeenRestored = 0;
 int oldeip;
 
-Stream *open_savedgame(const char *savedgame, int &error_code, SavedGameVersion *out_svg_version = NULL)
+bool read_savedgame_description(const String &savedgame, String &description)
 {
-    error_code = 0;
-    Stream *in = Common::File::OpenFileRead(savedgame);
-    if (!in)
+    SavegameDescription desc;
+    SavegameError err = OpenSavegame(savedgame, desc, kSvgDesc_UserText);
+    if (err == kSvgErr_NoError)
     {
-        error_code = -1;
-        return in;
+        description = desc.UserText;
+        return true;
     }
-
-    // skip Vista header
-    RICH_GAME_MEDIA_HEADER rich_media_header;
-    rich_media_header.ReadFromFile(in);
-
-    // check saved game signature
-    in->Read(rbuffer, sgsiglen);
-    rbuffer[sgsiglen] = 0;
-    if (strcmp(rbuffer, sgsig) != 0) {
-        // not a save game
-        delete in;
-        error_code = -2;
-        return NULL;
-    }
-
-    int oldeip = our_eip;
-    our_eip = 2050;
-
-    // read description
-    fgetstring_limit(rbuffer, in, 180);
-    rbuffer[180] = 0;
-    safeguard_string ((unsigned char*)rbuffer);
-
-    // check saved game format version
-    SavedGameVersion svg_version = (SavedGameVersion)in->ReadInt32();
-    if (out_svg_version)
-    {
-        *out_svg_version = svg_version;
-    }
-    if (svg_version < kSvgVersion_LowestSupported || svg_version > kSvgVersion_Current)
-    {
-        delete in;
-        error_code = -3;
-        return NULL;
-    }
-
-    return in;
+    return false;
 }
 
-int read_savedgame_description(const String &savedgame, String &description)
-{
-    int error_code;
-    // yeah, I know what you think... this will be remade someday
-    delete open_savedgame(savedgame, error_code);
-    if (error_code == 0)
-    {
-        description = rbuffer;
-        our_eip = oldeip;
-    }
-    return error_code;
-}
-
-int read_savedgame_screenshot(const String &savedgame, int &want_shot)
+bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
 {
     want_shot = 0;
 
-    int error_code;
-    Stream *in = open_savedgame(savedgame, error_code);
-    if (!in)
-    {
-        return error_code;
-    }
+    SavegameDescription desc;
+    SavegameError err = OpenSavegame(savedgame, desc, kSvgDesc_UserImage);
+    if (err != kSvgErr_NoError)
+        return false;
 
-    Bitmap *screenshot = restore_game_screenshot(in);
-    if (screenshot)
+    if (desc.UserImage.get())
     {
         int slot = spriteset.findFreeSlot();
         if (slot > 0)
         {
             // add it into the sprite set
-            add_dynamic_sprite(slot, gfxDriver->ConvertBitmapToSupportedColourDepth(screenshot));
+            add_dynamic_sprite(slot, ReplaceBitmapWithSupportedFormat(desc.UserImage.release()));
             want_shot = slot;
         }
-        else
-        {
-            delete screenshot;
-        }
     }
-
-    delete in;
-    our_eip = oldeip;
-    return 0;
+    return true;
 }
 
-int load_game(int slotNumber)
-{
-    return load_game(get_save_game_path(slotNumber), slotNumber);
-}
-
-int load_game(const Common::String &path, int slotNumber)
+SavegameError load_game(const String &path, int slotNumber)
 {
     gameHasBeenRestored++;
 
-    SavedGameVersion svg_version;
-    int error_code;    
-    Stream *in = open_savedgame(path, error_code, &svg_version);
-    if (!in)
-    {
-        return error_code;
-    }
+    oldeip = our_eip;
+    our_eip = 2050;
+
+    SavegameError err;
+    SavegameSource src;
+    SavegameDescription desc;
+    err = OpenSavegame(path, src, desc, kSvgDesc_EnvInfo);
 
     our_eip = 2051;
 
-    delete restore_game_screenshot(in);  // [IKM] how very appropriate
-
-    error_code = restore_game_header(in);
-
     // saved in different game
-    if (error_code == -5) {
+    if (err != kSvgErr_NoError)
+        return err;
+    else if (!src.InputStream.get())
+        return kSvgErr_NoStream;
+
+    if (Path::ComparePaths(desc.MainDataFilename, usetup.main_data_filename))
+    {
         // [IKM] 2012-11-26: this is a workaround, indeed.
         // Try to find wanted game's executable; if it does not exist,
         // continue loading savedgame in current game, and pray for the best
-        get_current_dir_path(gamefilenamebuf, rbuffer);
+        get_current_dir_path(gamefilenamebuf, desc.MainDataFilename);
         if (Common::File::TestReadFile(gamefilenamebuf))
         {
-            delete in;
-            RunAGSGame (rbuffer, 0, 0);
+            RunAGSGame (desc.MainDataFilename, 0, 0);
             load_new_game_restore = slotNumber;
-            return 0;
+            return kSvgErr_NoError;
         }
-        Common::Out::FPrint("WARNING: the saved game '%s' references game file '%s', but it cannot be found in the current directory.", path.GetCStr(), gamefilenamebuf);
+        Common::Out::FPrint("WARNING: the saved game '%s' references game file '%s', but it cannot be found in the current directory.", path.GetCStr(), desc.MainDataFilename.GetCStr());
         Common::Out::FPrint("Trying to restore in the running game instead.");
-    }
-    else if (error_code != 0) {
-        delete in;
-        return error_code;
     }
 
     // do the actual restore
-    error_code = restore_game_data(in, svg_version);
-    delete in;
+    err = RestoreGameState(src.InputStream.get(), src.Version);
+    src.InputStream.reset();
     our_eip = oldeip;
 
-    if (error_code)
-    {
-        return error_code;
-    }
+    if (err != kSvgErr_NoError)
+        return err;
 
     run_on_event (GE_RESTORE_GAME, RuntimeScriptValue().SetInt32(slotNumber));
 
@@ -2582,7 +2388,39 @@ int load_game(const Common::String &path, int slotNumber)
     // use the raw versions rather than the rec_ versions so we don't
     // interfere with the replay sync
     while (keypressed()) readkey();
-    return 0;
+    return kSvgErr_NoError;
+}
+
+bool load_game_and_print_error(int slot)
+{
+    SavegameError err = load_game(get_save_game_path(slot), slot);
+    if (err != kSvgErr_NoError)
+    {
+        // disable speech in case there are dynamic graphics that
+        // have been freed
+        int oldalways = game.options[OPT_ALWAYSSPCH];
+        game.options[OPT_ALWAYSSPCH] = 0;
+        Display("Unable to load game (error: %s).", GetSavegameErrorText(err).GetCStr());
+        game.options[OPT_ALWAYSSPCH] = oldalways;
+        return false;
+    }
+    return true;
+}
+
+bool load_game_or_quit(int slot)
+{
+    return load_game_or_quit(get_save_game_path(slot), slot);
+}
+
+bool load_game_or_quit(const Common::String &path, int slot)
+{
+    SavegameError err = load_game(path, slot);
+    if (err != kSvgErr_NoError)
+    {
+        quitprintf("Unable to restore game:\n%s", GetSavegameErrorText(err).GetCStr());
+        return false;
+    }
+    return true;
 }
 
 void start_skipping_cutscene () {

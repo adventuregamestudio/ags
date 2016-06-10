@@ -34,6 +34,9 @@ extern AGS::Engine::Version SavedgameLowestForwardCompatVersion;
 //=============================================================================
 
 #ifdef WINDOWS_VERSION
+#ifndef _WINNT_
+typedef void *LPWSTR;
+#endif
 extern int wArgc;
 extern LPWSTR *wArgv;
 #endif

@@ -1176,6 +1176,14 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="game"
+				>
+				<File
+					RelativePath="..\..\Engine\game\savegame.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -2211,6 +2219,14 @@
 				>
 				<File
 					RelativePath="..\..\Engine\platform\windows\setup\winsetup.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="game"
+				>
+				<File
+					RelativePath="..\..\Engine\game\savegame.h"
 					>
 				</File>
 			</Filter>

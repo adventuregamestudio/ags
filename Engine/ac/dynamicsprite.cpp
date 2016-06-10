@@ -349,7 +349,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
     }
 
     // replace the bitmap in the sprite set
-    add_dynamic_sprite(gotSlot, gfxDriver->ConvertBitmapToSupportedColourDepth(newPic));
+    add_dynamic_sprite(gotSlot, ReplaceBitmapWithSupportedFormat(newPic));
     ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(gotSlot);
     return new_spr;
 }
@@ -421,7 +421,7 @@ ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChanne
     if ((alphaChannel) && (ScreenResolution.ColorDepth < 32))
         alphaChannel = false;
 
-    add_dynamic_sprite(gotSlot, gfxDriver->ConvertBitmapToSupportedColourDepth(newPic), alphaChannel != 0);
+    add_dynamic_sprite(gotSlot, ReplaceBitmapWithSupportedFormat(newPic), alphaChannel != 0);
     ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(gotSlot);
     return new_spr;
 }

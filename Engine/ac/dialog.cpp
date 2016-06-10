@@ -821,7 +821,7 @@ void DialogOptions::Redraw()
     update_polled_stuff_if_runtime();
 
     subBitmap = recycle_bitmap(subBitmap, tempScrn->GetColorDepth(), dirtywidth, dirtyheight);
-    subBitmap = gfxDriver->ConvertBitmapToSupportedColourDepth(subBitmap);
+    subBitmap = ReplaceBitmapWithSupportedFormat(subBitmap);
 
     update_polled_stuff_if_runtime();
 

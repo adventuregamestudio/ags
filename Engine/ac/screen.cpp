@@ -89,7 +89,7 @@ IDriverDependantBitmap* prepare_screen_for_transition_in()
     if (temp_virtual == NULL)
         quit("Crossfade: buffer is null attempting transition");
 
-    temp_virtual = gfxDriver->ConvertBitmapToSupportedColourDepth(temp_virtual);
+    temp_virtual = ReplaceBitmapWithSupportedFormat(temp_virtual);
     if (temp_virtual->GetHeight() < play.viewport.GetHeight())
     {
         Bitmap *enlargedBuffer = BitmapHelper::CreateBitmap(temp_virtual->GetWidth(), play.viewport.GetHeight(), temp_virtual->GetColorDepth());

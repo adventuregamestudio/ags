@@ -2418,7 +2418,7 @@ int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_v
 
     for (vv = 0; vv < game.numgui; vv++) {
         guibg[vv] = BitmapHelper::CreateBitmap (guis[vv].Width, guis[vv].Height, ScreenResolution.ColorDepth);
-        guibg[vv] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[vv]);
+        guibg[vv] = ReplaceBitmapWithSupportedFormat(guibg[vv]);
     }
 
     if (gfxDriver->SupportsGammaControl())

@@ -345,7 +345,13 @@ Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
     return tempbl;
 }
 
-
+Bitmap *ReplaceBitmapWithSupportedFormat(Bitmap *bitmap)
+{
+    Bitmap *new_bitmap = gfxDriver->ConvertBitmapToSupportedColourDepth(bitmap);
+    if (new_bitmap != bitmap)
+        delete bitmap;
+    return new_bitmap;
+}
 
 
 
@@ -2118,7 +2124,7 @@ void draw_fps()
     if (fpsDisplay == NULL)
     {
         fpsDisplay = BitmapHelper::CreateBitmap(get_fixed_pixel_size(100), (wgetfontheight(FONT_SPEECH) + get_fixed_pixel_size(5)), ScreenResolution.ColorDepth);
-        fpsDisplay = gfxDriver->ConvertBitmapToSupportedColourDepth(fpsDisplay);
+        fpsDisplay = ReplaceBitmapWithSupportedFormat(fpsDisplay);
     }
     fpsDisplay->ClearTransparent();
     //Bitmap *oldAbuf = ds;

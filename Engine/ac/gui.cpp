@@ -510,7 +510,7 @@ void recreate_guibg_image(GUIMain *tehgui)
   guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->Width, tehgui->Height, ScreenResolution.ColorDepth);
   if (guibg[ifn] == NULL)
     quit("SetGUISize: internal error: unable to reallocate gui cache");
-  guibg[ifn] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[ifn]);
+  guibg[ifn] = ReplaceBitmapWithSupportedFormat(guibg[ifn]);
 
   if (guibgbmp[ifn] != NULL)
   {

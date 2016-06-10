@@ -14,6 +14,7 @@
 
 #include "ac/global_dynamicsprite.h"
 #include "util/wgt2allg.h" // Allegro RGB, PALETTE
+#include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/file.h"
 #include "ac/spritecache.h"
@@ -41,7 +42,7 @@ int LoadImageFile(const char *filename) {
     if (gotSlot <= 0)
         return 0;
 
-    add_dynamic_sprite(gotSlot, gfxDriver->ConvertBitmapToSupportedColourDepth(loadedFile));
+    add_dynamic_sprite(gotSlot, ReplaceBitmapWithSupportedFormat(loadedFile));
 
     return gotSlot;
 }

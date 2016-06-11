@@ -2454,12 +2454,6 @@ int restore_game_data (Common::Stream *in, const char *nametouse)
 int gameHasBeenRestored = 0;
 int oldeip;
 
-void ReadRichMediaHeader_Aligned(RICH_GAME_MEDIA_HEADER &rich_media_header, Stream *in)
-{
-    AlignedStream align_s(in, Common::kAligned_Read);
-    rich_media_header.ReadFromFile(&align_s);
-}
-
 Stream *open_savedgame(const char *savedgame, int &error_code, SavedGameVersion *out_svg_version = NULL)
 {
     error_code = 0;
@@ -2472,7 +2466,7 @@ Stream *open_savedgame(const char *savedgame, int &error_code, SavedGameVersion 
 
     // skip Vista header
     RICH_GAME_MEDIA_HEADER rich_media_header;
-    ReadRichMediaHeader_Aligned(rich_media_header, in);
+    rich_media_header.ReadFromFile(in);
 
     // check saved game signature
     in->Read(rbuffer, sgsiglen);

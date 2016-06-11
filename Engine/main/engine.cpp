@@ -1338,6 +1338,7 @@ bool engine_read_config(ConfigTree &cfg, int argc,char*argv[])
     // Read default configuration file
     our_eip = -200;
     load_default_config_file(cfg, argv[0]);
+    read_game_data_location(cfg);
     // Deduce the game data file location
     if (!engine_init_game_data())
         return false;

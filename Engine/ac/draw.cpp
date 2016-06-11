@@ -2424,7 +2424,10 @@ void update_screen() {
         int barheight = (DEBUG_CONSOLE_NUMLINES - 1) * txtheight + 4;
 
         if (debugConsoleBuffer == NULL)
+        {
             debugConsoleBuffer = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), barheight,ScreenResolution.ColorDepth);
+            debugConsoleBuffer = gfxDriver->ConvertBitmapToSupportedColourDepth(debugConsoleBuffer);
+        }
 
         //Bitmap *ds = GetVirtualScreen();
         //push_screen(ds);

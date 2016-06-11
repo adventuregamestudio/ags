@@ -2445,7 +2445,10 @@ void update_screen() {
         int barheight = (DEBUG_CONSOLE_NUMLINES - 1) * txtheight + 4;
 
         if (debugConsoleBuffer == NULL)
+        {
             debugConsoleBuffer = BitmapHelper::CreateBitmap(scrnwid, barheight,final_col_dep);
+            debugConsoleBuffer = gfxDriver->ConvertBitmapToSupportedColourDepth(debugConsoleBuffer);
+        }
 
         //Bitmap *ds = GetVirtualScreen();
         //push_screen(ds);

@@ -162,8 +162,6 @@ void find_user_cfg_file()
 
 void config_defaults()
 {
-    // set default dir if no config file
-    usetup.data_files_dir = ".";
 #ifdef WINDOWS_VERSION
     usetup.digicard = DIGI_DIRECTAMX(0);
 #endif
@@ -172,20 +170,21 @@ void config_defaults()
 void read_game_data_location(const ConfigTree &cfg)
 {
     usetup.data_files_dir = INIreadstring(cfg, "misc", "datadir", usetup.data_files_dir);
-    if (usetup.data_files_dir.IsEmpty())
-        usetup.data_files_dir = ".";
-    // strip any trailing slash
-    // TODO: move this to Path namespace later
-    AGS::Common::Path::FixupPath(usetup.data_files_dir);
-#if defined (WINDOWS_VERSION)
-    // if the path is just x:\ don't strip the slash
-    if (!(usetup.data_files_dir.GetLength() < 4 && usetup.data_files_dir[1] == ':'))
+    if (!usetup.data_files_dir.IsEmpty())
     {
-        usetup.data_files_dir.TrimRight('/');
-    }
+        // strip any trailing slash
+        // TODO: move this to Path namespace later
+        AGS::Common::Path::FixupPath(usetup.data_files_dir);
+#if defined (WINDOWS_VERSION)
+        // if the path is just x:\ don't strip the slash
+        if (!(usetup.data_files_dir.GetLength() < 4 && usetup.data_files_dir[1] == ':'))
+        {
+            usetup.data_files_dir.TrimRight('/');
+        }
 #else
-    usetup.data_files_dir.TrimRight('/');
+        usetup.data_files_dir.TrimRight('/');
 #endif
+    }
     usetup.main_data_filename = INIreadstring(cfg, "misc", "datafile", usetup.main_data_filename);
 }
 

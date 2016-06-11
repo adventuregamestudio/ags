@@ -313,9 +313,25 @@ void initialise_game_file_name()
         }
     }
     // 2. From setup
+    // 2.1. Use the provided data dir and filename
     else if (!usetup.main_data_filename.IsEmpty())
     {
-        game_file_name = usetup.main_data_filename;
+        if (!usetup.data_files_dir.IsEmpty() && is_relative_filename(usetup.main_data_filename))
+        {
+            game_file_name = usetup.data_files_dir;
+            if (game_file_name.GetLast() != '/' && game_file_name.GetLast() != '\\')
+                game_file_name.AppendChar('/');
+            game_file_name.Append(usetup.main_data_filename);
+        }
+        else
+        {
+            game_file_name = usetup.main_data_filename;
+        }
+    }
+    // 2.2. Search in the provided data dir
+    else if (!usetup.data_files_dir.IsEmpty())
+    {
+        game_file_name = find_game_data_in_directory(usetup.data_files_dir);
     }
     // 3. Look in known locations
     else
@@ -396,7 +412,7 @@ bool engine_init_game_data()
     usetup.main_data_filename = get_filename(game_file_name);
     // There is a path in the game file name (and the user/ has not specified
     // another one) save the path, so that it can load the VOX files, etc
-    if (usetup.data_files_dir.Compare(".") == 0)
+    if (usetup.data_files_dir.IsEmpty())
     {
         int ichar = game_file_name.FindCharReverse('/');
         if (ichar >= 0)

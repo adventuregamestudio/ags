@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -243,6 +243,7 @@
     <Compile Include="BuildTargetsInfo.cs" />
     <Compile Include="Enums\BuildConfiguration.cs" />
     <Compile Include="Enums\DialogOptionsNumbering.cs" />
+    <Compile Include="Enums\ScriptAPIVersion.cs" />
     <Compile Include="Enums\SpriteAlphaStyle.cs" />
     <Compile Include="HelperTypes\BindingListWithRemoving.cs" />
     <Compile Include="CharacterFolder.cs" />

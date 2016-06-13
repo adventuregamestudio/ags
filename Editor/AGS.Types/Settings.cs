@@ -51,6 +51,7 @@ namespace AGS.Types
         private bool _inventoryCursors = true;
         private bool _handleInvInScript = false;
         private bool _displayMultipleInv = false;
+        private ScriptAPIVersion _scriptAPIVersion = ScriptAPIVersion.v340;
         private bool _enforceObjectScripting = true;
         private bool _leftToRightPrecedence = true;
         private bool _enforceNewStrings = true;
@@ -528,6 +529,17 @@ namespace AGS.Types
         {
             get { return _displayMultipleInv; }
             set { _displayMultipleInv = value; }
+        }
+
+        [DisplayName("Script API version")]
+        [Description("Choose the version of the script API to use in your scripts")]
+        [DefaultValue(ScriptAPIVersion.v340)]
+        [Category("Backwards Compatibility")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public ScriptAPIVersion ScriptAPIVersion
+        {
+            get { return _scriptAPIVersion; }
+            set { _scriptAPIVersion = value; }
         }
 
         [DisplayName("Enforce object-based scripting")]

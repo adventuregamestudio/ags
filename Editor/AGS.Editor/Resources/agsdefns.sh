@@ -689,14 +689,16 @@ struct Mouse {
   import static void UseDefaultGraphic();
   /// Changes the mouse cursor to use the graphic for a different non-active cursor mode.
   import static void UseModeGraphic(CursorMode);
-  /// Gets/sets whether the user-defined factors are applied to mouse movement
-  readonly import static attribute bool ControlEnabled;
   /// Gets/sets the current mouse cursor mode.
   import static attribute CursorMode Mode;
-  /// Gets/sets the mouse speed
-  import static attribute float Speed;
   /// Gets/sets whether the mouse cursor is visible.
   import static attribute bool Visible;
+#ifdef SCRIPT_API_v335
+  /// Gets/sets whether the user-defined factors are applied to mouse movement
+  readonly import static attribute bool ControlEnabled;
+  /// Gets/sets the mouse speed
+  import static attribute float Speed;
+#endif
   /// Gets the current mouse position.
   readonly int  x,y;
 };
@@ -1848,8 +1850,6 @@ builtin struct System {
   import static attribute int  Gamma;
   /// Gets whether the game is running with 3D Hardware Acceleration.
   readonly import static attribute bool HardwareAcceleration;
-  /// Gets whether the game window has input focus
-  readonly import static attribute bool HasInputFocus;
   /// Gets whether Num Lock is currently on.
   readonly import static attribute bool NumLock;
   /// Gets which operating system the game is running on.
@@ -1876,6 +1876,10 @@ builtin struct System {
   readonly import static attribute bool Windowed;
   /// Gets a report about the runtime engine the game is running under.
   readonly import static attribute String RuntimeInfo;
+#ifdef SCRIPT_API_v335
+  /// Gets whether the game window has input focus
+  readonly import static attribute bool HasInputFocus;
+#endif
 };
 
 enum BlockingStyle {

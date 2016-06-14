@@ -1,15 +1,24 @@
 // temporarily removed palette functions cos the compiler
 // doesnt support typedefs
+
+#ifdef SCRIPT_API_v330
+#ifdef STRICT
+#define STRICT_IN_v330
+#endif
+#endif
+
 #define function int  // $AUTOCOMPLETEIGNORE$
 // CursorMode isn't actually defined yet, but int will do
 #define CursorMode int
 #define FontType int
 #define AudioType int
 #define MAX_INV 301
-#define MAX_ROOM_OBJECTS    40
-#define MAX_LEGACY_GLOBAL_VARS  50
-#define MAX_LISTBOX_SAVED_GAMES 50
-#define PALETTE_SIZE       256
+#ifdef SCRIPT_API_v330
+  #define MAX_ROOM_OBJECTS    40
+  #define MAX_LEGACY_GLOBAL_VARS  50
+  #define MAX_LISTBOX_SAVED_GAMES 50
+  #define PALETTE_SIZE       256
+#endif
 #define FOLLOW_EXACTLY 32766
 #define NARRATOR -1
 #define OPT_WALKONLOOK       2
@@ -162,7 +171,9 @@ enum VideoSkipStyle
 
 enum eKeyCode
 {
+#ifdef SCRIPT_API_v330
   eKeyNone  = 0,
+#endif
   eKeyCtrlA = 1,
   eKeyCtrlB = 2,
   eKeyCtrlC = 3,
@@ -984,7 +995,7 @@ import void StopDialog();
 /// Determines whether two objects or characters are overlapping each other.
 import int  AreThingsOverlapping(int thing1, int thing2);
 
-#ifndef STRICT
+#ifndef STRICT_IN_v330
 /// Sets whether voice and/or text are used in the game.
 import void SetVoiceMode(eVoiceMode);
 /// Sets how the player can skip speech lines.
@@ -1661,8 +1672,6 @@ builtin managed struct Dialog {
   import String GetOptionText(int option);
   /// Checks whether the player has chosen this option before.
   import bool HasOptionBeenChosen(int option);
-  /// Manually marks whether the option was chosen before or not.
-  import void SetHasOptionBeenChosen(int option, bool chosen);
   /// Sets the enabled state of the specified option in this dialog.
   import void SetOptionState(int option, DialogOptionState);
   /// Runs the dialog interactively.
@@ -1673,6 +1682,10 @@ builtin managed struct Dialog {
   readonly import attribute int OptionCount;
   /// Gets whether this dialog allows the player to type in text.
   readonly import attribute bool ShowTextParser;
+#ifdef SCRIPT_API_v330
+  /// Manually marks whether the option was chosen before or not.
+  import void SetHasOptionBeenChosen(int option, bool chosen);
+#endif
   
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
@@ -1763,8 +1776,10 @@ builtin managed struct DialogOptionsRenderingInfo {
   import attribute int X;
   /// The Y co-ordinate of the top-left corner of the dialog options
   import attribute int Y;
+#ifdef SCRIPT_API_v330
   /// Should the drawing surface have alpha channel
   import attribute bool HasAlphaChannel;
+#endif
 };
 
 builtin managed struct AudioChannel {
@@ -2187,7 +2202,12 @@ builtin struct GameState {
   int  disabled_user_interface;
   int  gscript_timer;
   int  debug_mode;
+#ifdef SCRIPT_API_v330
   int  globalvars[MAX_LEGACY_GLOBAL_VARS];
+#endif
+#ifndef SCRIPT_API_v330
+  int  globalvars[50];
+#endif
   int  messagetime;   // for auto-remove messages
   int  usedinv;
 #ifdef STRICT
@@ -2234,10 +2254,10 @@ builtin struct GameState {
   int  narrator_speech;
   int  ambient_sounds_persist;
   int  lipsync_speed;
-#ifdef STRICT
+#ifdef STRICT_IN_v330
   int  reserved__4;   // $AUTOCOMPLETEIGNORE$
 #endif
-#ifndef STRICT
+#ifndef STRICT_IN_v330
   int  close_mouth_end_speech_time;
 #endif
   int  disable_antialiasing;
@@ -2255,18 +2275,18 @@ builtin struct GameState {
   int  screenshot_width;
   int  screenshot_height;
   int  top_bar_font;
-#ifdef STRICT
+#ifdef STRICT_IN_v330
   int  reserved__2;   // $AUTOCOMPLETEIGNORE$
 #endif
-#ifndef STRICT
+#ifndef STRICT_IN_v330
   int  speech_text_align;
 #endif
   int  auto_use_walkto_points;
   int  inventory_greys_out;
-#ifdef STRICT
+#ifdef STRICT_IN_v330
   int  reserved__3;   // $AUTOCOMPLETEIGNORE$
 #endif
-#ifndef STRICT
+#ifndef STRICT_IN_v330
   int  skip_speech_specific_key;
 #endif
   int  abort_key;
@@ -2284,6 +2304,7 @@ builtin struct GameState {
   int  dialog_options_highlight_color;
   };
   
+#ifdef SCRIPT_API_v330
 enum SkipSpeechStyle {
   eSkipKeyMouseTime = 0,
   eSkipKeyTime      = 1,
@@ -2320,16 +2341,25 @@ builtin struct Speech {
   /// Gets/sets whether voice and/or text are used in the game.
   import static attribute eVoiceMode      VoiceMode;
 };
+#endif
 
 
 import readonly Character *player;
-import Object object[MAX_ROOM_OBJECTS];
 import Mouse mouse;
 import System system;
 import GameState  game;
+#ifdef SCRIPT_API_v330
+import Object object[MAX_ROOM_OBJECTS];
 import int   gs_globals[MAX_LEGACY_GLOBAL_VARS];
 import short savegameindex[MAX_LISTBOX_SAVED_GAMES];
 import ColorType palette[PALETTE_SIZE];
+#endif
+#ifndef SCRIPT_API_v330
+import Object object[40];
+import int   gs_globals[50];
+import short savegameindex[50];
+import ColorType palette[256];
+#endif
 
 #undef CursorMode
 #undef FontType

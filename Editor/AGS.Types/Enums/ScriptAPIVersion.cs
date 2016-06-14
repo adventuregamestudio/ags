@@ -12,6 +12,8 @@ namespace AGS.Types
     {
         [Description("3.2.1")]
         v321,
+        [Description("3.3.0")]
+        v330,
         [Description("3.4.0")]
         v340
     }

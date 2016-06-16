@@ -295,6 +295,28 @@ TEST(Compile, DefaultParametersLargeInts) {
     EXPECT_EQ(-2, sym.entries[funcidx].funcParamDefaultValues[9]);
 }
 
+TEST(Compile, ImportFunctionReturningDynamicArray) {
+    ccCompiledScript *scrip = newScriptFixture();
+
+    char *inpl = "\
+        struct A\
+        {\
+            import static int[] MyFunc();\
+        };\
+        ";
+
+    last_seen_cc_error = 0;
+    int compileResult = cc_compile(inpl, scrip);
+    ASSERT_EQ(0, compileResult);
+
+    int funcidx;
+    funcidx = sym.find("A::MyFunc");
+
+    ASSERT_TRUE(funcidx != -1);
+
+    EXPECT_EQ(STYPE_DYNARRAY, sym.entries[funcidx].funcparamtypes[0] & STYPE_DYNARRAY);
+}
+
 TEST(Compile, DoubleNegatedConstant) {
     ccCompiledScript *scrip = newScriptFixture();
 

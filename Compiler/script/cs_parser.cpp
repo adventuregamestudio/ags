@@ -3764,7 +3764,6 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                 do {
                     int vname = targ.getnext();
                     bool isDynamicArray = false;
-                    bool isFunction = sym.get_type(targ.peeknext()) == SYM_OPENPARENTHESIS;
                     if (sym.get_type(vname) == SYM_COMMA)
                         vname = targ.getnext();
 
@@ -3773,6 +3772,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                         targ.getnext();
                         vname = targ.getnext();
                     }
+                    bool isFunction = sym.get_type(targ.peeknext()) == SYM_OPENPARENTHESIS;
                     const char *memberExt = sym.get_name(vname);
                     memberExt = strstr(memberExt, "::");
                     if (!isFunction && sym.get_type(vname) == SYM_VARTYPE && vname > sym.normalFloatSym && memberExt == NULL) {

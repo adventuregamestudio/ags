@@ -14,6 +14,7 @@ Benjamin Penney
 Benoit Pierre
 Bernhard Rosenkraenzer
 Cristian Morales Vega
+Ferdinand Thiessen
 Francesco Ariis
 Gilad Shaham
 Ivan Mogilko

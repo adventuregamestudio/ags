@@ -29,6 +29,8 @@ extern String ac_config_file;
 void load_default_config_file(AGS::Common::ConfigTree &cfg, const char *alt_cfg_file);
 // Find and load user configuration file (located into writable user location)
 void load_user_config_file(AGS::Common::ConfigTree &cfg);
+// Read optional data file name and location from config
+void read_game_data_location(const AGS::Common::ConfigTree &cfg);
 // Setup game using final config tree
 void read_config(const AGS::Common::ConfigTree &cfg);
 // Fixup game setup parameters

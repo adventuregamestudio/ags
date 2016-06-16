@@ -1,5 +1,22 @@
 REVISION HISTORY
 ================
+VERSION 3.3.5 - Patch 3, June 2016
+
+Engine:
+- Fixed "datafile" config option was ignored.
+- Fixed "datadir" config option was never used when searching for possible game location
+  (this was broken for several years!).
+- Fixed Game.FileName property return empty string.
+- Fixed built-in console making Direct3D9 graphics driver crash in 16-bit games.
+
+
+VERSION 3.3.5 - Patch 2, June 2016
+
+Engine:
+- Fixed compilation on big-endian systems.
+- Fixed compilation with GCC 6.
+
+
 VERSION 3.3.5 - Patch 1, April 2016
 
 Engine:

@@ -16,16 +16,16 @@ but a workalike plugin created by JJS for the AGS engine ports.
 #define THIS_IS_THE_PLUGIN
 #endif
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+
 #include "plugin/agsplugin.h"
 
 #if defined(BUILTIN_PLUGINS)
 namespace ags_parallax {
 #endif
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
 
 //#define DEBUG
 //#define ENABLE_SAVING // The original plugin does not save any data!
@@ -343,5 +343,5 @@ void AGS_EditorLoadGame(char* buffer, int bufsize)
 
 
 #if defined(BUILTIN_PLUGINS)
-}
+} // namespace ags_parallax
 #endif

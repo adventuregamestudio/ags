@@ -11,7 +11,7 @@ namespace AGS.Types
     public enum ScriptAPIVersion
     {
         [Description("3.2.1")]
-        v321,
+        v321 = 0,
         [Description("3.3.0")]
         v330,
         [Description("3.3.4")]

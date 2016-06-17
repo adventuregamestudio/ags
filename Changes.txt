@@ -1,5 +1,137 @@
 REVISION HISTORY
 ================
+VERSION 3.4.0, 2016
+
+Common features:
+ - Added support for building game for multiple platforms (Windows and Linux
+   options are maintained now).
+ - Added custom game resolutions.
+ - Added extended WFN font support (up to 256 characters).
+ - Made custom property values modifiable at runtime.
+ - Removed limit on custom properties number (was 30 properties per project),
+   increased maximal property name and value length.
+ - Removed limit on GUI Control number (was 30 per GUI),
+   increased maximal control name length.
+ - Removed limit on script modules number (was 50).
+ - Added Locked property to room Objects.
+ - Added Padding property for TextWindow GUI.
+
+Editor features:
+ - Exposed Clickable property for room Objects in the Editor.
+ - Exposed TintLuminance property for room Regions in the Editor.
+ - Added "Close all tabs" command for the pane's context menu.
+ - Added Preferences option "Prompt dialog on closing multiple tabs".
+ - The sprite editor now highlights drop targets when you drag sprites around.
+
+Editor Plugin API:
+ - Exposed GUI Panes to plugin API.
+
+Engine features:
+ - Added support for any runtime display resolution (now restricted only
+   by your system specifics).
+ - Added support for vertical sync in Direct3D rendering mode.
+ - Made engine try to use all implemented graphic renderers in the
+   order of priority, if user selection failed to initialize.
+
+Scripting features:
+ - Added managed user structs; although currently limited to containing only
+   non-pointer variables in them.
+ - Added support for dynamic arrays in non-managed structs.
+ - Added support for dynamic array as return value of the struct's
+   member function.
+ - Added support for static extender functions.
+ - Added "do..while" kind of loop, in addition to previously existing "while".
+ - Added "for" operator and related loop construct.
+ - Added "switch" and "case" operators and related branching construct.
+ - Added "break" and "continue" operators working in any loop or switch.
+ - Added missing compound assignment operators (*=, /=, and so on).
+ - Made preprocessor macros usable in definition of another macro.
+ - Added "#region" and "#endregion" preprocessor commands.
+
+Script API:
+ - Added AudioChannel.Speed property.
+ - Added CharacterDirection enum and optional "direction" parameter
+   for Character.ChangeRoom().
+ - Added Character.FaceDirection().
+ - Added Character.DestinationX and Character.DestinationY properties.
+ - Added RunActiveOption() and Update() member functions to the
+   DialogOptionsRenderingInfo type.
+ - Added support for dialog_options_repexec() and dialog_options_key_press()
+   functions to improve handling of the custom dialog options.
+ - Added game.dialog_options_highlight_color variable.
+ - Added File.Seek() function and File.Position property.
+ - Added IsInteractionAvailable() method to Hotspot, Object and
+   Character types.
+ - Added Game.AudioClipCount property and Game.AudioClips[n] array.
+ - Added Game.IsPluginLoaded().
+ - Added GUIControl.ZOrder property.
+ - Added GUI.Click() and Button.Click() functions which call
+   OnClick event handler of corresponding GUI or button.
+ - Added GUI.ProcessClick() function that processes click on GUI only,
+   similarily to how old ProcessClick processed click on room objects only.
+ - Added Mouse.Click() function to simulate mouse click on screen.
+ - Added Room.GetProperty() to substitute global GetRoomProperty().
+ - Added Room.ProcessClick() to substitute global ProcessClick().
+ - Added SetProperty() and SetTextProperty() functions to Room, InventoryItem,
+   Hotspot, Object and Character types.
+ - Added optional "luminance" parameter to Region.Tint().
+ - Added SetAmbientLightLevel() to set global light level for
+   anything in the room.
+ - Added Character.SetLightLevel() and Object.SetLightLevel() functions to
+   set individual light levels. Negative light levels can be used
+   in 8-bit games to produce darkening effect.
+ - Added System.RuntimeInfo property which returns a short description of
+   current graphics mode, scaling filter and enabled game resources.
+
+Editor bug fixes:
+ - Fixed Undo history was deleted when an Editor panel changes
+   its docked state.
+ - Fixed crashes under certain circumstances when a script editor is closed.
+ - Fixed crash if selecting a character without a normal view
+   in the room editor.
+ - Fixed Ctrl+Tab did not work for the first time when cycling
+   through opened editor tabs.
+ - Fixed "Go to Line..." command did not always move cursor to correct line.
+   Also, do not select that line.
+ - Made the project completely rebuild itself whenever "Enable Debug Mode"
+   value in the General Settings differs from the setting used for
+   the last build, to prevent inconsistency in compiled scripts.
+ - Fixed a crash when trying to run game setup from the Editor
+   while "Compiled" folder does not exist.
+ - Fixed project items could sometimes get incorrectly arranged
+   inside the folder.
+ - Fixed writing faulty timestamps in project file on some occasions that
+   could spoil usage of file versioning control.
+ - Fixed Help window positioning on multi-monitor desktop.
+ - Fixed error in autocomplete occuring when there is a single-line comment
+   in the end of the script.
+ - Fixed incorrect compiler parsing of a static function call inside
+   array index brackets.
+ - Fixed compiling of struct member functions having name identical to existing
+   global function.
+ - Corrected few error messages related to struct's function declaration.
+ 
+Engine bug fixes:
+ - Fixed result of using transparency parameter of the
+   DrawingSurface.DrawImage() in 32-bit games when drawing opaque sprites
+   over surfaces with alpha channel.
+ - Fixed DynamicSprite.CopyTransparencyMask() was overwriting magic transparent
+   pixels on destination with alpha values from mask.
+ - Fixed the speech portrait position was not adjusted for character walking
+   between its lines, when BasedOnCharacterPosition portrait placement is used.
+ - Fixed occasional pathfinding failure on straight lines with complex
+   walkable areas.
+ - Fixed using '[' special character in Display-like commands discarded all of
+   the backslashes before it (e.g. "\\[" should now print \[ as expected).
+ - Fixed WAVE audio not looping after restoring a game
+ - Fixed a bug that caused MP3 clip continuously increase its base volume if
+   the directional volume modifier was applied.
+
+WinSetup:
+ - Added support for "default_translation_name" option in the "[language]"
+   section of the config file.
+
+
 VERSION 3.3.5 - Patch 3, June 2016
 
 Engine:

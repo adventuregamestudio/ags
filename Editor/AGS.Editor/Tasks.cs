@@ -169,6 +169,8 @@ namespace AGS.Editor
                     dialog.Script = RemoveAllLeadingSpacesFromLines(dialog.Script);
                 }
             }
+
+            game.SetScriptAPIForOldProject();
         }
 
         private string RemoveAllLeadingSpacesFromLines(string script)

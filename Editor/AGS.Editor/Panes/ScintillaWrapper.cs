@@ -1703,6 +1703,20 @@ namespace AGS.Editor
             {
                 return false;
             }
+            if (token.IfNDefOnly != null && token.IfNDefOnly.StartsWith("SCRIPT_API_"))
+            {
+                ScriptAPIVersion? v = AGSEditor.GetScriptAPIVersionFromMacro(token.IfDefOnly);
+                if (v.HasValue)
+                    return v > gameSettings.ScriptAPIVersion;
+                return true;
+            }
+            if (token.IfDefOnly != null && token.IfDefOnly.StartsWith("SCRIPT_API_"))
+            {
+                ScriptAPIVersion? v = AGSEditor.GetScriptAPIVersionFromMacro(token.IfDefOnly);
+                if (v.HasValue)
+                    return v <= gameSettings.ScriptAPIVersion;
+                return true;
+            }
             return true;
         }
 

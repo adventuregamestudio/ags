@@ -1,15 +1,27 @@
 // temporarily removed palette functions cos the compiler
 // doesnt support typedefs
+
+#ifdef STRICT
+#ifdef SCRIPT_API_v330
+#define STRICT_IN_v330
+#endif
+#ifdef SCRIPT_API_v340
+#define STRICT_IN_v340
+#endif
+#endif
+
 #define function int  // $AUTOCOMPLETEIGNORE$
 // CursorMode isn't actually defined yet, but int will do
 #define CursorMode int
 #define FontType int
 #define AudioType int
 #define MAX_INV 301
-#define MAX_ROOM_OBJECTS    40
-#define MAX_LEGACY_GLOBAL_VARS  50
-#define MAX_LISTBOX_SAVED_GAMES 50
-#define PALETTE_SIZE       256
+#ifdef SCRIPT_API_v330
+  #define MAX_ROOM_OBJECTS    40
+  #define MAX_LEGACY_GLOBAL_VARS  50
+  #define MAX_LISTBOX_SAVED_GAMES 50
+  #define PALETTE_SIZE       256
+#endif
 #define FOLLOW_EXACTLY 32766
 #define NARRATOR -1
 #define OPT_WALKONLOOK       2
@@ -162,7 +174,9 @@ enum VideoSkipStyle
 
 enum eKeyCode
 {
+#ifdef SCRIPT_API_v330
   eKeyNone  = 0,
+#endif
   eKeyCtrlA = 1,
   eKeyCtrlB = 2,
   eKeyCtrlC = 3,
@@ -310,6 +324,7 @@ enum ChangeVolumeType {
   eVolExistingAndFuture = 1680
 };
 
+#ifdef SCRIPT_API_v340
 enum CharacterDirection {
   eDirectionDown = 0,
   eDirectionLeft,
@@ -321,6 +336,7 @@ enum CharacterDirection {
   eDirectionUpLeft,
   eDirectionNone = SCR_NO_VALUE
 };
+#endif
 
 internalstring autoptr builtin managed struct String {
   /// Creates a formatted string using the supplied parameters.
@@ -425,18 +441,10 @@ builtin managed struct DrawingSurface {
 };
 
 builtin managed struct Room {
-  /// Gets a Custom Property associated with this room.
-  import static int GetProperty(const string property);
   /// Gets a custom text property associated with this room.
   import static String GetTextProperty(const string property);
-  /// Sets an integer custom property associated with this room.
-  import static bool SetProperty(const string property, int value);
-  /// Sets a text custom property associated with this room.
-  import static bool SetTextProperty(const string property, const string value);
   /// Gets a drawing surface that allows you to manipulate the room background.
   import static DrawingSurface* GetDrawingSurfaceForBackground(int backgroundNumber=SCR_NO_VALUE);
-  /// Performs default processing of a mouse click at the specified co-ordinates.
-  import static void ProcessClick(int x, int y, CursorMode);
   /// Gets the Y co-ordinate of the bottom edge of the room.
   readonly import static attribute int BottomEdge;
   /// Gets the colour depth of the room background.
@@ -457,6 +465,16 @@ builtin managed struct Room {
   readonly import static attribute int TopEdge;
   /// Gets the width of the room background.
   readonly import static attribute int Width;
+#ifdef SCRIPT_API_v340
+  /// Gets a Custom Property associated with this room.
+  import static int GetProperty(const string property);
+  /// Sets an integer custom property associated with this room.
+  import static bool SetProperty(const string property, int value);
+  /// Sets a text custom property associated with this room.
+  import static bool SetTextProperty(const string property, const string value);
+  /// Performs default processing of a mouse click at the specified co-ordinates.
+  import static void ProcessClick(int x, int y, CursorMode);
+#endif
 };
 
 builtin managed struct Game {
@@ -496,8 +514,6 @@ builtin managed struct Game {
   /// Stops all currently playing sound effects.
   import static void   StopSound(bool includeAmbientSounds=false);   // $AUTOCOMPLETEIGNORE$
 #endif
-  /// Returns true if the given plugin is currently loaded.
-  import static bool   IsPluginLoaded(const string name);
   /// Gets the number of characters in the game.
   readonly import static attribute int CharacterCount;
   /// Gets the number of dialogs in the game.
@@ -542,10 +558,14 @@ builtin managed struct Game {
   readonly import static attribute bool UseNativeCoordinates;
   /// Gets the number of views in the game.
   readonly import static attribute int ViewCount;
+#ifdef SCRIPT_API_v340
+  /// Returns true if the given plugin is currently loaded.
+  import static bool   IsPluginLoaded(const string name);
   /// Gets the number of audio clips in the game.
   readonly import static attribute int AudioClipCount;
   /// Accesses the audio clips collection.
   readonly import static attribute AudioClip *AudioClips[];
+#endif
 };
 
 builtin managed struct Parser {
@@ -578,7 +598,7 @@ import void DisplayMessageBar(int y, int textColor, int backColor, const string 
 import void ResetRoom(int roomNumber);
 /// Checks whether the player has been in the specified room yet.
 import int  HasPlayerBeenInRoom(int roomNumber);
-#ifndef STRICT
+#ifndef STRICT_IN_v340
 /// Performs default processing of a mouse click at the specified co-ordinates.
 import void ProcessClick(int x, int y, CursorMode);
 #endif
@@ -624,7 +644,7 @@ import LocationType GetLocationType(int x, int y);
 import int  GetWalkableAreaAt(int screenX, int screenY);
 /// Returns the scaling level at the specified position within the room.
 import int  GetScalingAt (int x, int y);
-#ifndef STRICT
+#ifndef STRICT_IN_v340
 /// Gets the specified Custom Property for the current room.
 import int  GetRoomProperty(const string property);
 #endif
@@ -654,8 +674,6 @@ struct Mouse {
   import static void ChangeModeHotspot(CursorMode, int x, int y);
   /// Changes the view used to animate the specified mouse cursor.
   import static void ChangeModeView(CursorMode, int view);
-  /// Fires mouse click event at current mouse position.
-  import static void Click(MouseButton);
   /// Disables the specified cursor mode.
   import static void DisableMode(CursorMode);
   /// Re-enables the specified cursor mode.
@@ -678,14 +696,20 @@ struct Mouse {
   import static void UseDefaultGraphic();
   /// Changes the mouse cursor to use the graphic for a different non-active cursor mode.
   import static void UseModeGraphic(CursorMode);
-  /// Gets/sets whether the user-defined factors are applied to mouse movement
-  readonly import static attribute bool ControlEnabled;
   /// Gets/sets the current mouse cursor mode.
   import static attribute CursorMode Mode;
-  /// Gets/sets the mouse speed
-  import static attribute float Speed;
   /// Gets/sets whether the mouse cursor is visible.
   import static attribute bool Visible;
+#ifdef SCRIPT_API_v335
+  /// Gets/sets whether the user-defined factors are applied to mouse movement
+  readonly import static attribute bool ControlEnabled;
+  /// Gets/sets the mouse speed
+  import static attribute float Speed;
+#endif
+#ifdef SCRIPT_API_v340
+  /// Fires mouse click event at current mouse position.
+  import static void Click(MouseButton);
+#endif
   /// Gets the current mouse position.
   readonly int  x,y;
 };
@@ -984,7 +1008,7 @@ import void StopDialog();
 /// Determines whether two objects or characters are overlapping each other.
 import int  AreThingsOverlapping(int thing1, int thing2);
 
-#ifndef STRICT
+#ifndef STRICT_IN_v330
 /// Sets whether voice and/or text are used in the game.
 import void SetVoiceMode(eVoiceMode);
 /// Sets how the player can skip speech lines.
@@ -1011,11 +1035,13 @@ enum FileMode {
   eFileAppend = 3
 };
 
+#ifdef SCRIPT_API_v340
 enum FileSeek {
   eSeekBegin = 0,
   eSeekCurrent = 1,
   eSeekEnd = 2
 };
+#endif
 
 builtin managed struct File {
   /// Delets the specified file from the disk.
@@ -1048,14 +1074,16 @@ builtin managed struct File {
   import void WriteRawLine(const string text);
   /// Writes a string to the file.
   import void WriteString(const string text);
-  /// Moves file cursor by specified offset, returns new position.
-  import int Seek(int offset, FileSeek origin = eSeekCurrent);
   /// Gets whether you have reached the end of the file.
   readonly import attribute bool EOF;
   /// Gets whether any errors occurred reading or writing the file.
   readonly import attribute bool Error;
+#ifdef SCRIPT_API_v340
+  /// Moves file cursor by specified offset, returns new position.
+  import int Seek(int offset, FileSeek origin = eSeekCurrent);
   /// Gets current cursor position inside the file.
   readonly import attribute int Position;
+#endif
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
@@ -1066,10 +1094,6 @@ builtin managed struct InventoryItem {
   import int  GetProperty(const string property);
   /// Gets a text custom property for this item.
   import String GetTextProperty(const string property);
-  /// Sets an integer custom property for this item.
-  import bool SetProperty(const string property, int value);
-  /// Sets a text custom property for this item.
-  import bool SetTextProperty(const string property, const string value);
   /// Checks whether an event handler has been registered for clicking on this item in the specified cursor mode.
   import int  IsInteractionAvailable(CursorMode);
   /// Runs the registered event handler for this item.
@@ -1082,6 +1106,12 @@ builtin managed struct InventoryItem {
   readonly import attribute int ID;
   /// Gets/sets the name of the inventory item.
   import attribute String Name;
+#ifdef SCRIPT_API_v340
+  /// Sets an integer custom property for this item.
+  import bool SetProperty(const string property, int value);
+  /// Sets a text custom property for this item.
+  import bool SetTextProperty(const string property, const string value);
+#endif
 #ifndef STRICT_STRINGS
   import void GetName(string buffer);
   import void GetPropertyText(const string property, string buffer);
@@ -1167,8 +1197,6 @@ import void UpdatePalette();
 import void TintScreen (int red, int green, int blue);
 /// Sets an ambient tint that affects all objects and characters in the room.
 import void SetAmbientTint(int red, int green, int blue, int saturation, int luminance);
-/// Sets an ambient light level that affects all objects and characters in the room.
-import void SetAmbientLightLevel(int light_level);
 /// Returns a random number between 0 and MAX, inclusive.
 import int  Random(int max);
 /// Locks the current room to the specified background.
@@ -1205,6 +1233,10 @@ import int  CDAudio(eCDAudioFunction, int data);
 import void PlayFlic(int flcNumber, int options);
 /// Plays an AVI/MPG video.
 import void PlayVideo(const string filename, VideoSkipStyle, int flags);
+#ifdef SCRIPT_API_v340
+/// Sets an ambient light level that affects all objects and characters in the room.
+import void SetAmbientLightLevel(int light_level);
+#endif
 
 #ifndef STRICT_AUDIO
 // **** OLD MUSIC/SOUND FUNCTIONS ****
@@ -1416,8 +1448,10 @@ builtin managed struct GUIControl {
   import attribute int  X;
   /// Gets/sets the Y position of the control's top-left corner.
   import attribute int  Y;
+#ifdef SCRIPT_API_v340
   /// Gets/sets the control's z-order relative to other controls within the same owning GUI.
   import attribute int  ZOrder;
+#endif
 };
 
 builtin managed struct Label extends GUIControl {
@@ -1436,8 +1470,6 @@ builtin managed struct Label extends GUIControl {
 builtin managed struct Button extends GUIControl {
   /// Animates the button graphic using the specified view loop.
   import void Animate(int view, int loop, int delay, RepeatStyle);
-  /// Runs the OnClick event handler for this Button.
-  import void Click(MouseButton);
 #ifndef STRICT_STRINGS
   import void GetText(string buffer);
   import void SetText(const string text);
@@ -1458,6 +1490,10 @@ builtin managed struct Button extends GUIControl {
   import attribute int  TextColor;
   /// Gets/sets the text to be drawn on the button.
   import attribute String Text;
+#ifdef SCRIPT_API_v340
+  /// Runs the OnClick event handler for this Button.
+  import void Click(MouseButton);
+#endif
 };
 
 builtin managed struct Slider extends GUIControl {
@@ -1557,12 +1593,8 @@ builtin managed struct ListBox extends GUIControl {
 builtin managed struct GUI {
   /// Moves the GUI to be centred on the screen.
   import void Centre();
-  /// Runs the OnClick event handler for this GUI.
-  import void Click(MouseButton);
   /// Gets the topmost GUI visible on the screen at the specified co-ordinates.
   import static GUI* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
-  /// Performs default processing of a mouse click at the specified co-ordinates.
-  import static void ProcessClick(int x, int y, MouseButton);
   /// Moves the GUI to have its top-left corner at the specified position.
   import void SetPosition(int x, int y);
   /// Changes the size of the GUI.
@@ -1591,6 +1623,13 @@ builtin managed struct GUI {
   import attribute int  Y;
   /// Gets/sets the GUI's z-order relative to other GUIs.
   import attribute int  ZOrder;
+#ifdef SCRIPT_API_v340
+  /// Runs the OnClick event handler for this GUI.
+  import void Click(MouseButton);
+  /// Performs default processing of a mouse click at the specified co-ordinates.
+  import static void ProcessClick(int x, int y, MouseButton);
+#endif
+  
   int   reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
@@ -1605,14 +1644,8 @@ builtin managed struct Hotspot {
   import int  GetProperty(const string property);
   /// Gets a text Custom Property for this hotspot.
   import String GetTextProperty(const string property);
-  /// Sets an integer custom property for this hotspot.
-  import bool SetProperty(const string property, int value);
-  /// Sets a text custom property for this hotspot.
-  import bool SetTextProperty(const string property, const string value);
   /// Runs the specified event handler for this hotspot.
   import void RunInteraction(CursorMode);
-  /// Checks whether an event handler has been registered for clicking on this hotspot in the specified cursor mode.
-  import bool IsInteractionAvailable(CursorMode);
   /// Gets/sets whether this hotspot is enabled.
   import attribute bool Enabled;
   /// Gets the ID of the hotspot.
@@ -1623,6 +1656,14 @@ builtin managed struct Hotspot {
   readonly import attribute int WalkToX;
   /// Gets the Y co-ordinate of the walk-to point for this hotspot.
   readonly import attribute int WalkToY;
+#ifdef SCRIPT_API_v340
+  /// Checks whether an event handler has been registered for clicking on this hotspot in the specified cursor mode.
+  import bool IsInteractionAvailable(CursorMode);
+  /// Sets an integer custom property for this hotspot.
+  import bool SetProperty(const string property, int value);
+  /// Sets a text custom property for this hotspot.
+  import bool SetTextProperty(const string property, const string value);
+#endif
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
@@ -1661,8 +1702,6 @@ builtin managed struct Dialog {
   import String GetOptionText(int option);
   /// Checks whether the player has chosen this option before.
   import bool HasOptionBeenChosen(int option);
-  /// Manually marks whether the option was chosen before or not.
-  import void SetHasOptionBeenChosen(int option, bool chosen);
   /// Sets the enabled state of the specified option in this dialog.
   import void SetOptionState(int option, DialogOptionState);
   /// Runs the dialog interactively.
@@ -1673,6 +1712,10 @@ builtin managed struct Dialog {
   readonly import attribute int OptionCount;
   /// Gets whether this dialog allows the player to type in text.
   readonly import attribute bool ShowTextParser;
+#ifdef SCRIPT_API_v330
+  /// Manually marks whether the option was chosen before or not.
+  import void SetHasOptionBeenChosen(int option, bool chosen);
+#endif
   
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
@@ -1739,10 +1782,6 @@ builtin managed struct DateTime {
 };
 
 builtin managed struct DialogOptionsRenderingInfo {
-  /// Runs the active dialog option
-  import bool RunActiveOption();
-  /// Forces dialog options to redraw itself
-  import void Update();
   /// The option that the mouse is currently positioned over
   import attribute int ActiveOptionID;
   /// The dialog that is to have its options rendered
@@ -1763,8 +1802,16 @@ builtin managed struct DialogOptionsRenderingInfo {
   import attribute int X;
   /// The Y co-ordinate of the top-left corner of the dialog options
   import attribute int Y;
+#ifdef SCRIPT_API_v330
   /// Should the drawing surface have alpha channel
   import attribute bool HasAlphaChannel;
+#endif
+#ifdef SCRIPT_API_v340
+  /// Runs the active dialog option
+  import bool RunActiveOption();
+  /// Forces dialog options to redraw itself
+  import void Update();
+#endif
 };
 
 builtin managed struct AudioChannel {
@@ -1790,8 +1837,10 @@ builtin managed struct AudioChannel {
   readonly import attribute int PositionMs;
   /// The volume of this sound channel, from 0 to 100.
   import attribute int Volume;
+#ifdef SCRIPT_API_v340
   /// The speed of playing, in clip milliseconds per second (1000 is default).
   import attribute int Speed;
+#endif
 };
 
 builtin managed struct AudioClip {
@@ -1833,8 +1882,6 @@ builtin struct System {
   import static attribute int  Gamma;
   /// Gets whether the game is running with 3D Hardware Acceleration.
   readonly import static attribute bool HardwareAcceleration;
-  /// Gets whether the game window has input focus
-  readonly import static attribute bool HasInputFocus;
   /// Gets whether Num Lock is currently on.
   readonly import static attribute bool NumLock;
   /// Gets which operating system the game is running on.
@@ -1859,8 +1906,14 @@ builtin struct System {
   import static attribute bool VSync;
   /// Gets whether the game is running in a window.
   readonly import static attribute bool Windowed;
+#ifdef SCRIPT_API_v335
+  /// Gets whether the game window has input focus
+  readonly import static attribute bool HasInputFocus;
+#endif
+#ifdef SCRIPT_API_v340
   /// Gets a report about the runtime engine the game is running under.
   readonly import static attribute String RuntimeInfo;
+#endif
 };
 
 enum BlockingStyle {
@@ -1889,10 +1942,6 @@ builtin managed struct Object {
   import function GetProperty(const string property);
   /// Gets a text Custom Property for this object.
   import String   GetTextProperty(const string property);
-  /// Sets an integer custom property for this object.
-  import bool SetProperty(const string property, int value);
-  /// Sets a text custom property for this object.
-  import bool SetTextProperty(const string property, const string value);
   /// Checks whether this object is colliding with another.
   import bool IsCollidingWithObject(Object*);
   /// Merges the object's image into the room background, and disables the object.
@@ -1903,10 +1952,6 @@ builtin managed struct Object {
   import function RemoveTint();
   /// Runs the event handler for the specified event.
   import function RunInteraction(CursorMode);
-  /// Checks whether an event handler has been registered for clicking on this object in the specified cursor mode.
-  import bool     IsInteractionAvailable(CursorMode);
-  /// Sets the individual light level for this object.
-  import function SetLightLevel(int light_level);
   /// Instantly moves the object to have its bottom-left at the new co-ordinates.
   import function SetPosition(int x, int y);
   /// Sets the object to use the specified view, ahead of doing an animation.
@@ -1955,6 +2000,16 @@ builtin managed struct Object {
   import attribute int  X;
   /// Gets/sets the Y co-ordinate of the object's bottom-left hand corner.
   import attribute int  Y;
+#ifdef SCRIPT_API_v340
+  /// Checks whether an event handler has been registered for clicking on this object in the specified cursor mode.
+  import bool     IsInteractionAvailable(CursorMode);
+  /// Sets the individual light level for this object.
+  import function SetLightLevel(int light_level);
+  /// Sets an integer custom property for this object.
+  import bool SetProperty(const string property, int value);
+  /// Sets a text custom property for this object.
+  import bool SetTextProperty(const string property, const string value);
+#endif
 
   int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
@@ -1967,7 +2022,11 @@ builtin managed struct Character {
   /// Animates the character using its current locked view.
   import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards);
   /// Moves the character to another room. If this is the player character, the game will also switch to that room.
-  import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, CharacterDirection direction=eDirectionNone);
+  import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE
+#ifdef SCRIPT_API_v340
+    , CharacterDirection direction=eDirectionNone
+#endif
+    );
   /// Moves the character to another room, using the old-style position variable
   import function ChangeRoomAutoPosition(int room, int position=0);
   /// Changes the character's normal walking view.
@@ -1976,8 +2035,6 @@ builtin managed struct Character {
   import function FaceCharacter(Character* , BlockingStyle=eBlock);
   /// Turns this character to face the specified location in the room.
   import function FaceLocation(int x, int y, BlockingStyle=eBlock);
-  /// Turns this character to face the specified direction.
-  import function FaceDirection(CharacterDirection direction, BlockingStyle=eBlock);
   /// Turns this character to face the specified object.
   import function FaceObject(Object* , BlockingStyle=eBlock);
   /// Starts this character following the other character.
@@ -1991,18 +2048,12 @@ builtin managed struct Character {
 #endif
   /// Gets a text custom property for this character.
   import String   GetTextProperty(const string property);
-  /// Sets an integer custom property for this character.
-  import bool SetProperty(const string property, int value);
-  /// Sets a text custom property for this character.
-  import bool SetTextProperty(const string property, const string value);
   /// Checks whether the character currently has the specified inventory item.
   import bool     HasInventory(InventoryItem *item);
   /// Checks whether this character is in collision with the other character.
   import function IsCollidingWithChar(Character*);
   /// Checks whether this character is in collision with the object.
   import function IsCollidingWithObject(Object* );
-  /// Checks whether an event handler has been registered for clicking on this character in the specified cursor mode.
-  import bool     IsInteractionAvailable(CursorMode);
   /// Locks the character to this view, ready for doing animations.
   import function LockView(int view);
   /// Locks the character to this view, and aligns it against one side of the existing sprite.
@@ -2031,8 +2082,6 @@ builtin managed struct Character {
   import function SetAsPlayer();
   /// Changes the character's idle view.
   import function SetIdleView(int view, int delay);
-  /// Sets the individual light level for this character.
-  import function SetLightLevel(int light_level);
   /// Changes the character's movement speed.
   import function SetWalkSpeed(int x, int y);
   /// Stops the character from moving.
@@ -2067,10 +2116,6 @@ builtin managed struct Character {
   import attribute int  BlockingWidth;
   /// Gets/sets whether the mouse can be clicked on the character, or whether it passes straight through.
   import attribute bool Clickable;
-  /// Gets the X position this character is currently moving towards.
-  readonly import attribute int DestinationX;
-  /// Gets the Y position this character is currently moving towards.
-  readonly import attribute int DestinationY;
   /// Gets/sets whether this character has an 8-loop walking view with diagonal loops.
   import attribute bool DiagonalLoops;
   /// Gets/sets the character's current frame number within its current view.
@@ -2122,10 +2167,6 @@ builtin managed struct Character {
   import attribute int  SpeechColor;
   /// Gets/sets the character's speech view.
   import attribute int  SpeechView;
-  /// Gets whether the character is currently in the middle of a Think command.
-  readonly import attribute bool Thinking;
-  /// Gets the current frame of the character's thinking animation (only valid when Thinking is true)
-  readonly import attribute int ThinkingFrame;
   /// Gets/sets the character's thinking view.
   import attribute int  ThinkView;
   /// Gets/sets the character's current transparency level.
@@ -2138,6 +2179,28 @@ builtin managed struct Character {
   readonly import attribute int WalkSpeedX;
   /// Gets the character's Y movement speed.
   readonly import attribute int WalkSpeedY;
+#ifdef SCRIPT_API_v334
+  /// Gets whether the character is currently in the middle of a Think command.
+  readonly import attribute bool Thinking;
+  /// Gets the current frame of the character's thinking animation (only valid when Thinking is true)
+  readonly import attribute int ThinkingFrame;
+#endif
+#ifdef SCRIPT_API_v340
+  /// Turns this character to face the specified direction.
+  import function FaceDirection(CharacterDirection direction, BlockingStyle=eBlock);
+  /// Sets an integer custom property for this character.
+  import bool SetProperty(const string property, int value);
+  /// Sets a text custom property for this character.
+  import bool SetTextProperty(const string property, const string value);
+  /// Checks whether an event handler has been registered for clicking on this character in the specified cursor mode.
+  import bool     IsInteractionAvailable(CursorMode);
+  /// Sets the individual light level for this character.
+  import function SetLightLevel(int light_level);
+  /// Gets the X position this character is currently moving towards.
+  readonly import attribute int DestinationX;
+  /// Gets the Y position this character is currently moving towards.
+  readonly import attribute int DestinationY;
+#endif
 #ifdef STRICT
   /// The character's current X-position.
   import attribute int  x;
@@ -2187,7 +2250,12 @@ builtin struct GameState {
   int  disabled_user_interface;
   int  gscript_timer;
   int  debug_mode;
+#ifdef SCRIPT_API_v330
   int  globalvars[MAX_LEGACY_GLOBAL_VARS];
+#endif
+#ifndef SCRIPT_API_v330
+  int  globalvars[50];
+#endif
   int  messagetime;   // for auto-remove messages
   int  usedinv;
 #ifdef STRICT
@@ -2234,10 +2302,10 @@ builtin struct GameState {
   int  narrator_speech;
   int  ambient_sounds_persist;
   int  lipsync_speed;
-#ifdef STRICT
+#ifdef STRICT_IN_v330
   int  reserved__4;   // $AUTOCOMPLETEIGNORE$
 #endif
-#ifndef STRICT
+#ifndef STRICT_IN_v330
   int  close_mouth_end_speech_time;
 #endif
   int  disable_antialiasing;
@@ -2255,18 +2323,18 @@ builtin struct GameState {
   int  screenshot_width;
   int  screenshot_height;
   int  top_bar_font;
-#ifdef STRICT
+#ifdef STRICT_IN_v330
   int  reserved__2;   // $AUTOCOMPLETEIGNORE$
 #endif
-#ifndef STRICT
+#ifndef STRICT_IN_v330
   int  speech_text_align;
 #endif
   int  auto_use_walkto_points;
   int  inventory_greys_out;
-#ifdef STRICT
+#ifdef STRICT_IN_v330
   int  reserved__3;   // $AUTOCOMPLETEIGNORE$
 #endif
-#ifndef STRICT
+#ifndef STRICT_IN_v330
   int  skip_speech_specific_key;
 #endif
   int  abort_key;
@@ -2277,13 +2345,16 @@ builtin struct GameState {
   int  keep_screen_during_instant_transition;
   int  read_dialog_option_color;
   int  stop_dialog_at_end;   // $AUTOCOMPLETEIGNORE$
+#ifdef SCRIPT_API_v340
   int  reserved__5;   // $AUTOCOMPLETEIGNORE$
   int  reserved__6;   // $AUTOCOMPLETEIGNORE$
   int  reserved__7;   // $AUTOCOMPLETEIGNORE$
   int  reserved__8;   // $AUTOCOMPLETEIGNORE$
   int  dialog_options_highlight_color;
+#endif
   };
   
+#ifdef SCRIPT_API_v330
 enum SkipSpeechStyle {
   eSkipKeyMouseTime = 0,
   eSkipKeyTime      = 1,
@@ -2320,16 +2391,25 @@ builtin struct Speech {
   /// Gets/sets whether voice and/or text are used in the game.
   import static attribute eVoiceMode      VoiceMode;
 };
+#endif
 
 
 import readonly Character *player;
-import Object object[MAX_ROOM_OBJECTS];
 import Mouse mouse;
 import System system;
 import GameState  game;
+#ifdef SCRIPT_API_v330
+import Object object[MAX_ROOM_OBJECTS];
 import int   gs_globals[MAX_LEGACY_GLOBAL_VARS];
 import short savegameindex[MAX_LISTBOX_SAVED_GAMES];
 import ColorType palette[PALETTE_SIZE];
+#endif
+#ifndef SCRIPT_API_v330
+import Object object[40];
+import int   gs_globals[50];
+import short savegameindex[50];
+import ColorType palette[256];
+#endif
 
 #undef CursorMode
 #undef FontType

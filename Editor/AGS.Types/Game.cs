@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
@@ -67,6 +69,7 @@ namespace AGS.Types
 		private string _savedXmlVersion = null;
         private int? _savedXmlVersionIndex = null;
         private string _savedXmlEditorVersion = null;
+        private const string _firstScriptAPICompatibleVersion = "3.4.0";
 
         public Game()
         {
@@ -1078,6 +1081,39 @@ namespace AGS.Types
             palInput.Close();
 
             SetPaletteFromRawPAL(rawPalette, true);
+        }
+
+        public void SetScriptAPIForOldProject()
+        {
+            // Try to find corresponding ScriptAPI for older version game project that did not have such setting
+            System.Version projectVersion = _savedXmlEditorVersion != null ? new System.Version(_savedXmlEditorVersion) : null;
+            System.Version firstCompatibleVersion = new System.Version(_firstScriptAPICompatibleVersion);
+            if (projectVersion == null)
+            {
+                _settings.ScriptAPIVersion = ScriptAPIVersion.v321;
+            }
+            else if (projectVersion < firstCompatibleVersion)
+            {
+                // Devise the API version from enum values Description attribute
+                // and find the first version equal or higher than project's one.
+                Type t = typeof(ScriptAPIVersion);
+                string[] names = Enum.GetNames(t);
+                foreach (string n in names)
+                {
+                    FieldInfo fi = t.GetField(n);
+                    DescriptionAttribute[] attributes =
+                      (DescriptionAttribute[])fi.GetCustomAttributes(
+                      typeof(DescriptionAttribute), false);
+                    if (attributes.Length == 0)
+                        continue;
+                    System.Version v = new System.Version(attributes[0].Description);
+                    if (projectVersion <= v)
+                    {
+                        _settings.ScriptAPIVersion = (ScriptAPIVersion)Enum.Parse(t, n);
+                        break;
+                    }
+                }
+            }
         }
 
         /// <summary>

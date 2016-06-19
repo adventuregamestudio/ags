@@ -17,6 +17,7 @@ Common features:
  - Added Padding property for TextWindow GUI.
 
 Editor features:
+ - New splash screen.
  - Exposed Clickable property for room Objects in the Editor.
  - Exposed TintLuminance property for room Regions in the Editor.
  - Added "Close all tabs" command for the pane's context menu.
@@ -32,6 +33,7 @@ Engine features:
  - Added support for vertical sync in Direct3D rendering mode.
  - Made engine try to use all implemented graphic renderers in the
    order of priority, if user selection failed to initialize.
+ - Rised default sprite cache limit for desktop platforms to 100 MB (was 20).
 
 Scripting features:
  - Added managed user structs; although currently limited to containing only
@@ -49,6 +51,9 @@ Scripting features:
  - Added "#region" and "#endregion" preprocessor commands.
 
 Script API:
+ - Added Script API version switch to the project's General Settings. For every
+   supported API version a "SCRIPT_API_vXXX" macro is introduced, where XXX are
+   version numbers.
  - Added AudioChannel.Speed property.
  - Added CharacterDirection enum and optional "direction" parameter
    for Character.ChangeRoom().
@@ -56,8 +61,10 @@ Script API:
  - Added Character.DestinationX and Character.DestinationY properties.
  - Added RunActiveOption() and Update() member functions to the
    DialogOptionsRenderingInfo type.
- - Added support for dialog_options_repexec() and dialog_options_key_press()
-   functions to improve handling of the custom dialog options.
+ - Extended Dialog Options API: added support for dialog_options_repexec() and
+   dialog_options_key_press() functions to improve handling of the custom
+   dialog options; added related compatibility project option and support for
+   "NEW_DIALOGOPTS_API" macro in scripts.
  - Added game.dialog_options_highlight_color variable.
  - Added File.Seek() function and File.Position property.
  - Added IsInteractionAvailable() method to Hotspot, Object and
@@ -107,9 +114,14 @@ Editor bug fixes:
    in the end of the script.
  - Fixed incorrect compiler parsing of a static function call inside
    array index brackets.
- - Fixed compiling of struct member functions having name identical to existing
-   global function.
+ - Fixed compilation of struct member functions having name identical
+   to existing global function.
+ - Fixed compilation of structs having members with names identical
+   to non-basic types, global variables and game entities (such as characters,
+   GUI, etc).
  - Corrected few error messages related to struct's function declaration.
+ - Fixed compiler reporting errors as "runtime errors" under
+   certain circumstances.
  
 Engine bug fixes:
  - Fixed result of using transparency parameter of the

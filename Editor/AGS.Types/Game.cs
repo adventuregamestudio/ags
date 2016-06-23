@@ -1090,7 +1090,7 @@ namespace AGS.Types
             System.Version firstCompatibleVersion = new System.Version(_firstScriptAPICompatibleVersion);
             if (projectVersion == null)
             {
-                _settings.ScriptAPIVersion = ScriptAPIVersion.v321;
+                _settings.ScriptCompatLevel = ScriptAPIVersion.v321;
             }
             else if (projectVersion < firstCompatibleVersion)
             {
@@ -1109,7 +1109,7 @@ namespace AGS.Types
                     System.Version v = new System.Version(attributes[0].Description);
                     if (projectVersion <= v)
                     {
-                        _settings.ScriptAPIVersion = (ScriptAPIVersion)Enum.Parse(t, n);
+                        _settings.ScriptCompatLevel = (ScriptAPIVersion)Enum.Parse(t, n);
                         break;
                     }
                 }

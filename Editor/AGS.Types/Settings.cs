@@ -25,6 +25,8 @@ namespace AGS.Types
 		private const string DEFAULT_GENRE = "Adventure";
         private const string DEFAULT_VERSION = "1.0.0.0";
 
+        private const ScriptAPIVersion DEFAULT_SCRIPT_API = ScriptAPIVersion.v340;
+
         public Settings()
         {
 			GenerateNewGameID();
@@ -51,7 +53,8 @@ namespace AGS.Types
         private bool _inventoryCursors = true;
         private bool _handleInvInScript = false;
         private bool _displayMultipleInv = false;
-        private ScriptAPIVersion _scriptAPIVersion = ScriptAPIVersion.v340;
+        private ScriptAPIVersion _scriptAPIVersion = DEFAULT_SCRIPT_API;
+        private ScriptAPIVersion _scriptCompatLevel = DEFAULT_SCRIPT_API;
         private bool _enforceObjectScripting = true;
         private bool _leftToRightPrecedence = true;
         private bool _enforceNewStrings = true;
@@ -533,13 +536,34 @@ namespace AGS.Types
 
         [DisplayName("Script API version")]
         [Description("Choose the version of the script API to use in your scripts")]
-        [DefaultValue(ScriptAPIVersion.v340)]
+        [DefaultValue(DEFAULT_SCRIPT_API)]
         [Category("Backwards Compatibility")]
         [TypeConverter(typeof(EnumTypeConverter))]
         public ScriptAPIVersion ScriptAPIVersion
         {
             get { return _scriptAPIVersion; }
-            set { _scriptAPIVersion = value; }
+            set
+            {
+                _scriptAPIVersion = value;
+                if (_scriptAPIVersion < _scriptCompatLevel)
+                    _scriptCompatLevel = _scriptAPIVersion;
+            }
+        }
+
+        [DisplayName("Script compatibility level")]
+        [Description("Lowest version of the obsoleted script API to support in your script")]
+        [DefaultValue(DEFAULT_SCRIPT_API)]
+        [Category("Backwards Compatibility")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public ScriptAPIVersion ScriptCompatLevel
+        {
+            get { return _scriptCompatLevel; }
+            set
+            {
+                _scriptCompatLevel = value;
+                if (_scriptCompatLevel > _scriptAPIVersion)
+                    _scriptAPIVersion = _scriptCompatLevel;
+            }
         }
 
         [DisplayName("Enforce object-based scripting")]

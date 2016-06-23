@@ -115,6 +115,7 @@ namespace AGS.Editor
         private FileStream _lockFile = null;
 
         private static readonly string[] _scriptAPIVersionMacros;
+        private static readonly string[] _scriptCompatLevelMacros;
 
         private static AGSEditor _instance;
 
@@ -145,6 +146,11 @@ namespace AGS.Editor
             foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
             {
                 _scriptAPIVersionMacros[(int)v] = "SCRIPT_API_" + v.ToString();
+            }
+            _scriptCompatLevelMacros = new string[Enum.GetNames(typeof(ScriptAPIVersion)).Length];
+            foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
+            {
+                _scriptCompatLevelMacros[(int)v] = "SCRIPT_COMPAT_" + v.ToString();
             }
         }
 
@@ -781,21 +787,6 @@ namespace AGS.Editor
             Factory.Events.OnFileChangedInGameFolder(e.Name);
         }
 
-        public static string GetMacroNameForScriptAPIVersion(ScriptAPIVersion v)
-        {
-            return _scriptAPIVersionMacros[(int)v];
-        }
-
-        public static ScriptAPIVersion? GetScriptAPIVersionFromMacro(string macro)
-        {
-            foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
-            {
-                if (_scriptAPIVersionMacros[(int)v] == macro)
-                    return v;
-            }
-            return null;
-        }
-
 		private void DefineMacrosAccordingToGameSettings(IPreprocessor preprocessor)
 		{
 			preprocessor.DefineMacro("AGS_NEW_STRINGS", "1");
@@ -830,6 +821,12 @@ namespace AGS.Editor
                 if (v > _game.Settings.ScriptAPIVersion)
                     break;
                 preprocessor.DefineMacro(_scriptAPIVersionMacros[(int)v], "1");
+            }
+            foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
+            {
+                if (v < _game.Settings.ScriptCompatLevel)
+                    continue;
+                preprocessor.DefineMacro(_scriptCompatLevelMacros[(int)v], "1");
             }
         }
 

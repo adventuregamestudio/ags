@@ -1668,7 +1668,19 @@ namespace AGS.Editor
             return false;
         }
 
-        private bool ShouldShowThis(ScriptToken token)
+        private ScriptAPIVersion? GetAPIVersionFromString(String s)
+        {
+            try
+            {
+                return (ScriptAPIVersion)Enum.Parse(typeof(ScriptAPIVersion), s);
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
+        }
+
+        private bool ShouldShowThis(ScriptToken token, List<ScriptDefine> defines)
         {
             Settings gameSettings = Factory.AGSEditor.CurrentGame.Settings;
             if ((token.IfNDefOnly == "STRICT") && (gameSettings.EnforceObjectBasedScript))
@@ -1705,14 +1717,43 @@ namespace AGS.Editor
             }
             if (token.IfNDefOnly != null && token.IfNDefOnly.StartsWith("SCRIPT_API_"))
             {
-                ScriptAPIVersion? v = AGSEditor.GetScriptAPIVersionFromMacro(token.IfDefOnly);
+                ScriptAPIVersion? v = GetAPIVersionFromString(token.IfNDefOnly.Substring("SCRIPT_API_".Length));
                 if (v.HasValue && v <= gameSettings.ScriptAPIVersion)
                     return false;
             }
             if (token.IfDefOnly != null && token.IfDefOnly.StartsWith("SCRIPT_API_"))
             {
-                ScriptAPIVersion? v = AGSEditor.GetScriptAPIVersionFromMacro(token.IfDefOnly);
+                ScriptAPIVersion? v = GetAPIVersionFromString(token.IfDefOnly.Substring("SCRIPT_API_".Length));
                 if (v.HasValue && v > gameSettings.ScriptAPIVersion)
+                    return false;
+            }
+            if (token.IfNDefOnly != null && token.IfNDefOnly.StartsWith("SCRIPT_COMPAT_"))
+            {
+                ScriptAPIVersion? v = GetAPIVersionFromString(token.IfNDefOnly.Substring("SCRIPT_COMPAT_".Length));
+                if (v.HasValue && v >= gameSettings.ScriptCompatLevel)
+                    return false;
+            }
+            if (token.IfDefOnly != null && token.IfDefOnly.StartsWith("SCRIPT_COMPAT_"))
+            {
+                ScriptAPIVersion? v = GetAPIVersionFromString(token.IfDefOnly.Substring("SCRIPT_COMPAT_".Length));
+                if (v.HasValue && v < gameSettings.ScriptCompatLevel)
+                    return false;
+            }
+            // TODO: AutoComplete feature in AGS is implemented in confusing and messy way. Thus, it does not
+            // use same technique for knowing which parts of the script should be disabled (by ifdef/ifndef)
+            // as precompiler. Instead it makes its own parsing, and somewhat limits perfomance and capabilities.
+            // This is (one) reason why all those checks are made here explicitly, instead of relying on some
+            // prefetched macro list.
+            if (token.IfNDefOnly != null && token.IfNDefOnly.StartsWith("STRICT_IN_"))
+            {
+                ScriptAPIVersion? v = GetAPIVersionFromString(token.IfNDefOnly.Substring("STRICT_IN_".Length));
+                if (v.HasValue && (gameSettings.EnforceObjectBasedScript && v <= gameSettings.ScriptCompatLevel))
+                    return false;
+            }
+            if (token.IfDefOnly != null && token.IfDefOnly.StartsWith("STRICT_IN_"))
+            {
+                ScriptAPIVersion? v = GetAPIVersionFromString(token.IfDefOnly.Substring("STRICT_IN_".Length));
+                if (v.HasValue && !(gameSettings.EnforceObjectBasedScript && v <= gameSettings.ScriptCompatLevel))
                     return false;
             }
             return true;
@@ -1728,11 +1769,12 @@ namespace AGS.Editor
 
         private void AddGlobalsFromScript(List<string> globalsList, IScript script, Dictionary<string, object> addedNames, int onlyShowIfDefinitionBeforePos)
         {
+            List<ScriptDefine> defines = script.AutoCompleteData.Defines;
             foreach (ScriptVariable sv in script.AutoCompleteData.Variables)
             {
                 if (!addedNames.ContainsKey(sv.VariableName))
                 {
-                    if (ShouldShowThis(sv))
+                    if (ShouldShowThis(sv, defines))
                     {
                         globalsList.Add(sv.VariableName + "?" + IMAGE_INDEX_GLOBAL_VARIABLE);
                         addedNames.Add(sv.VariableName, null);
@@ -1743,7 +1785,7 @@ namespace AGS.Editor
             {
                 if (!addedNames.ContainsKey(sf.FunctionName))
                 {
-                    if ((ShouldShowThis(sf)) &&
+                    if ((ShouldShowThis(sf, defines)) &&
                         (sf.StartsAtCharacterIndex < onlyShowIfDefinitionBeforePos) &&
                         (!sf.HideOnMainFunctionList))
                     {
@@ -1754,21 +1796,21 @@ namespace AGS.Editor
             }
             foreach (ScriptDefine sd in script.AutoCompleteData.Defines)
             {
-                if (ShouldShowThis(sd))
+                if (ShouldShowThis(sd, defines))
                 {
                     globalsList.Add(sd.Name + "?" + IMAGE_INDEX_DEFINE);
                 }
             }
             foreach (ScriptEnum se in script.AutoCompleteData.Enums)
             {
-                if (ShouldShowThis(se))
+                if (ShouldShowThis(se, defines))
                 {
                     AddEnumValuesToAutocompleteList(globalsList, se);
                 }
             }
             foreach (ScriptStruct ss in script.AutoCompleteData.Structs)
             {
-                if ((ShouldShowThis(ss)) && (ss.FullDefinition))
+                if ((ShouldShowThis(ss, defines)) && (ss.FullDefinition))
                 {
                     globalsList.Add(ss.Name + "?" + IMAGE_INDEX_STRUCT);
                 }
@@ -1786,7 +1828,7 @@ namespace AGS.Editor
                     if (((sf.IsStatic) || (!staticOnly)) &&
                         ((!sf.IsStaticOnly) || (staticOnly)) &&
                         ((!sf.IsProtected) || (isThis)) &&
-                        ShouldShowThis(sf) &&
+                        ShouldShowThis(sf, null) &&
                         !alreadyAdded.ContainsKey(sf.FunctionName))
                     {
                         int imageIndex = IMAGE_INDEX_METHOD;
@@ -1807,7 +1849,7 @@ namespace AGS.Editor
                     if (((sv.IsStatic) || (!staticOnly)) &&
                         ((!sv.IsStaticOnly) || (staticOnly)) &&
                         ((!sv.IsProtected) || (isThis)) &&
-                        ShouldShowThis(sv))
+                        ShouldShowThis(sv, null))
                     {
                         autoCompleteList.Add(sv.VariableName + "?" + (sv.IsStatic ? IMAGE_INDEX_STATIC_PROPERTY : IMAGE_INDEX_PROPERTY));
                     }

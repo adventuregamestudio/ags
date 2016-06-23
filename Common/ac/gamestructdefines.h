@@ -73,7 +73,8 @@
 #define OPT_HIGHESTOPTION_335 OPT_SAFEFILEPATHS
 #define OPT_DIALOGOPTIONSAPI 42 // version of dialog options API (-1 for pre-3.4.0 API)
 #define OPT_BASESCRIPTAPI   43 // version of the Script API used to compile game script
-#define OPT_HIGHESTOPTION   OPT_BASESCRIPTAPI
+#define OPT_SCRIPTCOMPATLEV 44 // level of API compatibility used to compile game script
+#define OPT_HIGHESTOPTION   OPT_SCRIPTCOMPATLEV
 #define OPT_NOMODMUSIC      98
 #define OPT_LIPSYNCTEXT     99
 #define PORTRAIT_LEFT       0

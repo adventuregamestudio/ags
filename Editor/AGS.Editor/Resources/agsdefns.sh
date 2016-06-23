@@ -1,13 +1,36 @@
+// CHECKME: what does following commentary mean, and is it still applicable?
+// >>>
 // temporarily removed palette functions cos the compiler
 // doesnt support typedefs
 
+// The available script API is determined by two bounds: upper bound
+// determines which new API parts will be enabled, and lower bound
+// determines which obsolete API parts will be disabled.
+//
+// Upper bound depends on defined SCRIPT_API_vXXX macros. For every macro
+// defined the corresponding API contents should be enabled. If certain
+// macro is not defined, then those API version contents stay disabled.
+//
+// Lower bound depends on defined SCRIPT_COMPAT_vXXX macros. For every
+// macro defined the deprecated API contents that were still active in
+// corresponding version are kept enabled; otherwise these are disabled.
+
+// Configure STRICT macros: if STRICT compilation mode is enabled
+// setup separate STRICT* modes for thos non-object-oriented API parts
+// that became obsoleted in corresponding version of API.
+// Take compatibility level into consideration here: if the compatibility
+// level is low enough then do NOT declare STRICT* macro.
 #ifdef STRICT
-#ifdef SCRIPT_API_v330
-#define STRICT_IN_v330
-#endif
-#ifdef SCRIPT_API_v340
-#define STRICT_IN_v340
-#endif
+  #ifdef SCRIPT_API_v330
+    #ifndef SCRIPT_COMPAT_v321
+      #define STRICT_IN_v330
+    #endif
+  #endif
+  #ifdef SCRIPT_API_v340
+    #ifndef SCRIPT_COMPAT_v335
+      #define STRICT_IN_v340
+    #endif
+  #endif
 #endif
 
 #define function int  // $AUTOCOMPLETEIGNORE$

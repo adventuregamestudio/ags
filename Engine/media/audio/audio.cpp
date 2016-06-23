@@ -407,6 +407,21 @@ void remove_clips_of_type_from_queue(int audioType)
     }
 }
 
+void update_queued_clips_volume(int audioType, int new_vol)
+{
+    for (int i = 0; i < play.new_music_queue_size; ++i)
+    {
+        // NOTE: if clip is uncached, the volume will be set from defaults when it is loaded
+        SOUNDCLIP *sndclip = play.new_music_queue[i].cachedClip;
+        if (sndclip)
+        {
+            ScriptAudioClip *clip = &game.audioClips[play.new_music_queue[i].audioClipIndex];
+            if (clip->type == audioType)
+                sndclip->set_volume_origin(new_vol);
+        }
+    }
+}
+
 ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int repeat, int fromOffset, bool queueIfNoChannel)
 {
     if (!queueIfNoChannel)

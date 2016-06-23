@@ -289,6 +289,9 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
         (changeType == VOL_BOTH))
     {
         play.default_audio_type_volumes[audioType] = volume;
+
+        // update queued clip volumes
+        update_queued_clips_volume(audioType, volume);
     }
 
 }

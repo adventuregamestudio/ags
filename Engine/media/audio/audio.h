@@ -38,6 +38,7 @@ void        audio_update_polled_stuff();
 void        queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat);
 ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *cachedClip = NULL);
 void        remove_clips_of_type_from_queue(int audioType);
+void        update_queued_clips_volume(int audioType, int new_vol);
 ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int repeat, int fromOffset, bool queueIfNoChannel);
 void        play_audio_clip_by_index(int audioClipIndex);
 ScriptAudioClip* get_audio_clip_for_old_style_number(bool isMusic, int indexNumber);

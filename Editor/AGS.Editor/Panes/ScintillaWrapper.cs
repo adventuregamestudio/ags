@@ -1695,11 +1695,11 @@ namespace AGS.Editor
             {
                 return false;
             }
-            if ((token.IfNDefOnly == "NEW_DIALOGOPTS_API") && (gameSettings.EnforceNewAudio))
+            if ((token.IfNDefOnly == "NEW_DIALOGOPTS_API") && (!gameSettings.UseOldCustomDialogOptionsAPI))
             {
                 return false;
             }
-            if ((token.IfDefOnly == "NEW_DIALOGOPTS_API") && (!gameSettings.EnforceNewAudio))
+            if ((token.IfDefOnly == "NEW_DIALOGOPTS_API") && (gameSettings.UseOldCustomDialogOptionsAPI))
             {
                 return false;
             }

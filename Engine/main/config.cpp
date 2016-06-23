@@ -18,6 +18,7 @@
 
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
+#include "ac/global_translation.h"
 #include "debug/debug_log.h"
 #include "main/mainheader.h"
 #include "main/config.h"
@@ -434,10 +435,14 @@ void load_user_config_file(AGS::Common::ConfigTree &cfg)
 
 void save_config_file()
 {
+    char buffer[STD_BUFFER_SIZE];
     ConfigTree cfg;
 
     if (Mouse::IsControlEnabled())
         cfg["mouse"]["speed"] = String::FromFormat("%f", Mouse::GetSpeed());
+    bool is_available = GetTranslationName(buffer) != 0 || !buffer[0];
+    if (is_available)
+        cfg["language"]["translation"] = buffer;
 
     IniUtil::Merge(ac_config_file, cfg);
 }

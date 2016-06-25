@@ -19774,7 +19774,6 @@ There are maximum...
      299  state-saving rooms per game
      300  inventory items
    30000  imported sprites
-      30  controls on each GUI
      500  dialog topics
       30  options per dialog topic
       20  screen overlays at a time
@@ -19787,12 +19786,14 @@ unlimited words in the text parser dictionary
 unlimited characters
 unlimited views
 unlimited GUIs
+unlimited controls on each GUI
 unlimited loops per view
 unlimited frames per loop
+unlimited custom properties
 \end{verbatim}
 
-If you think any of these limits is a serious problem, contact me and I can
-probably increase it.
+We are working on removing existing limitations in the AGS, so some of the remaining
+restrictions might be loosened or eliminated in the following updates.
 
 \section{Keyboard Shortcuts}\label{KeyboardShortcuts}%
 
@@ -20637,6 +20638,162 @@ Furthermore, game setup will now write config file into game saves location, rat
 If config file is present in the game installation folder, then it is used as "default" read-only config file.
 The config in saves folder overrides default one.
 This way it should be totally safe to install AGS games into C:/Program Files, without having administrative rights.
+
+
+\chapter{Upgrading to AGS 3.4}\label{UpgradeTo34}%
+
+AGS 3.4 introduces a number of significant enhancements to game creation process.
+
+\bf{Building game for multiple platforms}
+
+AGS can now compile and deploy your game for more than one target platform. Currently Windows and
+Linux are officially supported, but other may be added in following updates. Check the "Built target platforms"
+option in the "Compiler" section of the General Settings.
+
+\bf{NOTE:} for deploying your game for Linux you need to have a Linux-related utilities to be placed in the
+"Linux" folder at your AGS Editor installation. Those files are distributed along with the official AGS
+release.
+
+\bf{Custom game resolution}
+
+Your native game resolution can now be anything, not limited to predefined variants anymore.
+
+Similarily, the engine is now capable of running any game in any display mode your system supports.
+To achieve this it uses scaling filter of player's choice, and additional simple image stretching
+when required. The setup program has been altered to reflect this feature.
+
+\bf{Script API selector}
+
+You can now choose the variant of Script API (built-in functions and properties available for use)
+with two switches in the "Backwards Compatibility" section of the General Settings.
+
+One switch is called "Script API version" and defines the topmost level of built-in script content
+that you want to enable for your project. It is suggested to set this to the highest possible
+value. However, there may be cases when you load an lder project in the newer version of AGS,
+and new built-in function names conflict with names in some of the scripts you used in your
+project. In such cases you may decide between fixing your script or lowering AGS API version.
+The latter will let you compile game scripts without any changes, at the price of not being able
+to use newer built-in functions.
+
+Second switch is called "Script Compatibility Level" and defines the lowest level of built-in
+content. It is useful if you wish to keep using some of the old functions that were declared
+obsolete by newer version of AGS. You do so by setting this switch to version that still had
+those functions.
+
+\bf{NOTE:} You may change those two settings anytime if you'd like to experiment, or your plans
+has changed. It is recommended to do full game rebuild after you do so though.
+
+\bf{Mutable custom properties}
+
+Since introduction Custom Properties could not be changed at runtime, they had to keep their
+default values set in the Editor throughout the course of the game.
+Now this restriction was eliminated and you can change any existing custom property in game
+script, using appropriate SetProperty and SetTextProperty functions:
+
+\helprefn{Character.SetProperty}{Character.SetProperty},
+\helprefn{Character.SetTextProperty}{Character.SetTextProperty},
+\helprefn{Hotspot.SetProperty}{Hotspot.SetProperty},
+\helprefn{Hotspot.SetTextProperty}{Hotspot.SetTextProperty},
+\helprefn{InventoryItem.SetProperty}{InventoryItem.SetProperty},
+\helprefn{InventoryItem.SetTextProperty}{InventoryItem.SetTextProperty},
+\helprefn{Object.SetProperty}{Object.SetProperty},
+\helprefn{Object.SetTextProperty}{Object.SetTextProperty},
+\helprefn{Room.SetProperty}{Room.SetProperty},
+\helprefn{Room.SetTextProperty}{Room.SetTextProperty}
+
+Besides, the number of properties is no longer limited by 30, you may make as much of them as
+you need for your game.
+
+\bf{Extended WFN fonts}
+
+WFN (bitmap fonts) can now have up to 256 characters (as opposed to previously supported 128). You
+may need a specialized editor to create such fonts (for example, there is a good Editor plugin
+around meant for this task), and AGS will properly draw any of the 256 characters.
+
+\bf{New script commands}
+
+You can now have some new forms of loop in your script, in addition to previously existing \verb$while$.
+First is \verb$do..while$ kind of loop that always performs its commands at least once before checking
+end condition.
+
+\begin{verbatim}
+int a;
+do
+{
+  Display("a is %d", a);
+  a++;
+}
+while (a < 5);
+\end{verbatim}
+
+Second is \verb$for$ loop that lets you initialize internal variable, define end condition and write
+iteration just in its header:
+
+\begin{verbatim}
+for (int a = 0; a < 5; a++)
+{
+  Display("a is %d", a);
+}
+\end{verbatim}
+
+Another introduced command is \verb$switch$. One \verb$switch$ can replace a long list of \verb$if$ and \verb$else if$
+blocks:
+
+\begin{verbatim}
+switch (player)
+{
+case cEgo: Display("cEgo is player character now"); break;
+case cJohn: Display("What do you know, player is controlling John now"); break;
+case cMary: Display("Mary is under player control at this point"); break;
+default:
+  Display("I am not really sure who is player controlling, this might be a bug");
+  break;
+}
+\end{verbatim}
+
+\bf{Custom Dialog Options rendering extended}
+
+In the past the custom dialog rendering was strictly tied to mouse movement and clicks. Now it is
+extended to give you more freedom in setting it up.
+
+Two more related callbacks are added: \verb$dialog_options_repexec$ - that is an analogue of
+\verb$repeatedly_execute$ function, but is called only while dialog options are displayed, and
+\verb$dialog_options_key_press$ function, which is called whenever player presses a key when dialog
+options are on screen.
+
+The \verb$dialog_options_mouse_click$ will now be called always, even if user clicks on the option, but
+on other hand option won't be run without explicit command: \helprefn{RunActiveOption}{DialogOptionsRenderingInfo.RunActiveOption}.
+
+Along with RunActiveOption, \helprefn{DialogOptionsRenderingInfo}{DialogOptionsRenderingInfo} struct
+received another member function: \helprefn{Update}{DialogOptionsRenderingInfo.Update}. It forces
+options GUI to redraw itself, hence may be used to implement custom animation, or similar behavior.
+
+\bf{IMPORTANT:} The \verb$dialog_options_get_active$ callback was deprecated and won't be called, at all.
+You will need to slightly change the logic of your script. In most cases it may be enough to simply rename
+\verb$dialog_options_get_active$ to \verb$dialog_options_repexec$.
+
+\bf{NOTE:} For backwards compatibility you may use an option in General Settings called "Use old-style
+custom dialog options API". This will disable all the new stuff, but return \verb$dialog_options_get_active$
+and make \verb$dialog_options_mouse_click$ behave as it did before.
+
+For detailed information see: \helprefn{Custom dialog options rendering}{Dialog options, custom rendering}.
+
+\bf{Some functions object-ised}
+
+\begin{tabular}{|l|l|}
+\row{ {\bf obsolete function/variable }&{\bf replace with } }
+\row{ { GetRoomProperty }&{ \helprefn{Room.GetProperty}{Room.GetProperty} }}
+\row{ { ProcessClick }&{ \helprefn{Room.ProcessClick}{Room.ProcessClick} }}
+\end{tabular}
+
+\bf{REMINDER:} you can also use "Script Compatibility Level" switch to enable old functions.
+
+\bf{System limits update}
+
+The maximal number of GUI Controls per GUI is no longer limited.
+The maximal number of script modules is no longer limited.
+
+
 
 
 \chapter{Anonymous usage information}\label{AnonymousUsageInfo}%

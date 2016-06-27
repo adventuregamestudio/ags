@@ -34,6 +34,8 @@ Engine features:
  - Made engine try to use all implemented graphic renderers in the
    order of priority, if user selection failed to initialize.
  - Rised default sprite cache limit for desktop platforms to 100 MB (was 20).
+ - Game writes latest translation and mouse speed setting to config file
+   on exit.
 
 Scripting features:
  - Added managed user structs; although currently limited to containing only
@@ -54,6 +56,8 @@ Script API:
  - Added Script API version switch to the project's General Settings. For every
    supported API version a "SCRIPT_API_vXXX" macro is introduced, where XXX are
    version numbers.
+ - Added Script Compatibility Level switch to General Settings. For every
+   compatible version a "SCRIPT_COMPAT_vXXX" macro is introduced.
  - Added AudioChannel.Speed property.
  - Added CharacterDirection enum and optional "direction" parameter
    for Character.ChangeRoom().
@@ -138,6 +142,8 @@ Engine bug fixes:
  - Fixed WAVE audio not looping after restoring a game
  - Fixed a bug that caused MP3 clip continuously increase its base volume if
    the directional volume modifier was applied.
+ - Fixed queued audio clips did not update their volume when default
+   audio type volume changes.
 
 WinSetup:
  - Added support for "default_translation_name" option in the "[language]"

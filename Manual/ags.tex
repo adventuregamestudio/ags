@@ -194,19 +194,39 @@ The engine Setup program allows the player to customize certain game settings.
 The options in setup are divided into two parts: common and advanced. Advanced
 options could be accessed by pressing "Advanced" button.
 
-\bf{Graphics options}
+\bf{Graphics settings}
 
 \begin{description}
-\item [Run in the window instead of fullscreen]
-  If checked, the game will be run in windowed mode, as opposed to fullscreen.
 \item [Driver]
   Lets player choose a graphics driver. Currently supported are DirectX 5 (old driver)
 and Direct3D 9 (newer and faster driver with hardware acceleration).
+\item [Run in the window instead of fullscreen]
+  If checked, the game will be run in windowed mode, as opposed to fullscreen.
+\item [Mode]
+  Lets choose a fullscreen display mode (otherwise shows the approximate size of
+window the game will be running in). The list of modes depends on graphic card and
+system capabilities.
+\item [Scaling]
+  Determines the method game will be scaled (when required):
+  \begin{description}
+  \item \bf{None}. The game will be shown in its native resolution. Note that low-resolution games will
+be running in a tiniest window on modern monitors, so this choice is more suitable for
+high-resolution games.
+  \item \bf{Max round multiplier}. The game will be scaled up using a maximal round integer (2, 3, 4, etc)
+multiplier with which it still fits inside the screen.
+  \item \bf{Stretch to fit screen}. The game will be stretched to fill whole screen. Note that if
+the game's native aspect ratio is different from screen one's, the game image will appear deformed.
+  \item \bf{Stretch to fit screen (preserve aspect ratio)}. The game will be stretched to screen borders
+while respecting game's native aspect ratio (width/height proportions). This ensures that game image will
+always look correct, but may cause black borders appear at the left & right or top & bottom sides of the
+screen.
+  \end{description}
 \item [Filter]
   Here player may choose a graphics scaling filter. Filter type defines the method of
-scaling (nearest-neighbour is most simple one), as well as scaling multiplier.
-  Selecting a filter with higher scaling multiplier will make game stretch to higher resolution.
-  The list of available filters depend on driver selection.
+scaling (nearest-neighbour is most simple one). Some of the filters (notably Hqx filter) are restricted
+to which scaling multiplier they may use; if the filter own scaling is not enough to resize the game,
+the most basic image scaling method will be applied additionally.
+  The list of available filters depend on graphics driver selection.
 \end{description}
 
 \bf{Gameplay settings}
@@ -214,20 +234,16 @@ scaling (nearest-neighbour is most simple one), as well as scaling multiplier.
 \begin{description}
 \item [Game language]
   Here player may choose one of the available game translations.
-\item [Custom game saves path]
-  When unchecked, the game will store its files - saved games, and custom runtime data -
-in the default Windows folders: "C:/Users/<Username>/Saved Games/<Game Title>" and
-"C:/Program Data/Adventure Game Studio/<Game Title>" respectively.
-  Players may enable this option and define their own location to store game files.
 \end{description}
 
 \bf{Advanced graphics options}
 
 \begin{description}
-\item [Enable side-borders / Enable top & bottom borders]
-  These two options allow the game to choose from wider range of resolutions, including
-the ones which display game surrounded by horizontal and/or vertical borders (the
-so-called "letterboxed" and "pillarboxed" modes).
+\item [Vertical sync]
+  This option enables vertical synchronisation mode, which reduces "tearing" effect on game image, but may decrease the game running speed.
+\item [Use 85 Hz display]
+  This option sets the monitor refresh rate to 85 Hz to run the game, which eliminates flicker. However, this does not work on all monitors, and not at all on flat
+panel displays, which is why it is disabled by default.
 \item [Smooth scaled sprites]
   This option will apply anti-aliasing to scaled characters, in order to give
 a smoother look to the resizing. This can slow down the game though, so it is off by default.
@@ -236,9 +252,6 @@ a smoother look to the resizing. This can slow down the game though, so it is of
 to choose to play the game at 16-bit instead, in order to boost performance.
 If they use this, the graphical quality will reduce, but it should at least allow them to play
 the game at a decent speed.
-\item [Use 85 Hz display]
-  This option sets the monitor refresh rate to 85 Hz to run the game, which eliminates flicker. However, this does not work on all monitors, and not at all on flat
-panel displays, which is why it is disabled by default.
 \end{description}
 
 \bf{Sound options}
@@ -274,6 +287,11 @@ game is run in fullscreen mode.
   slowdowns during game play.
   Of course, higher values make the game use more memory. Usually only high-resolution games with long animations need
   to have this value increased.
+\item [Custom game saves path]
+  When unchecked, the game will store its files - saved games, and custom runtime data -
+in the default Windows folders: "C:/Users/<Username>/Saved Games/<Game Title>" and
+"C:/Program Data/Adventure Game Studio/<Game Title>" respectively.
+  Players may enable this option and define their own location to store game files.
 \end{description}
 
 

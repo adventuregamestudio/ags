@@ -1594,6 +1594,9 @@ make sure that it fills up the whole window.
 To set the text colour in the window, simply set the Foreground Colour of
 the GUI and that will be used to print the message text in.
 
+Additionally, you may configure padding - the distance kept between text
+window's border and text inside of it.
+
 \subsection{Custom inventory}\index{Inventory, Lucasarts-style}%
 
 Another option you may have noticed in the GUI editor is the Add Inventory
@@ -2010,19 +2013,24 @@ All types of game item share the same schema. That is, if you create a "Jibble" 
 in the schema editor for a hotspot, it will also appear in the properties window for
 characters, objects, and so on.
 
-\bf{Getting values in the script}
+\bf{Getting and setting values in the script}
 
 To access the properties from the script, there are various script functions. See
 their descriptions for how they work:
 
 \helprefn{Character.GetProperty}{Character.GetProperty}, \helprefn{Character.GetTextProperty}{Character.GetTextProperty} ILBRK
+\helprefn{Character.SetProperty}{Character.SetProperty}, \helprefn{Character.SetTextProperty}{Character.SetTextProperty} ILBRK
 \helprefn{Hotspot.GetProperty}{Hotspot.GetProperty}, \helprefn{Hotspot.GetTextProperty}{Hotspot.GetTextProperty} ILBRK
+\helprefn{Hotspot.SetProperty}{Hotspot.SetProperty}, \helprefn{Hotspot.SetTextProperty}{Hotspot.SetTextProperty} ILBRK
 \helprefn{InventoryItem.GetProperty}{InventoryItem.GetProperty}, \helprefn{InventoryItem.GetTextProperty}{InventoryItem.GetTextProperty} ILBRK
+\helprefn{InventoryItem.SetProperty}{InventoryItem.SetProperty}, \helprefn{InventoryItem.SetTextProperty}{InventoryItem.SetTextProperty} ILBRK
 \helprefn{Object.GetProperty}{Object.GetProperty}, \helprefn{Object.GetTextProperty}{Object.GetTextProperty} ILBRK
-\helprefn{GetRoomProperty}{GetRoomProperty}, \helprefn{Room.GetTextProperty}{Room.GetTextProperty}
+\helprefn{Object.SetProperty}{Object.SetProperty}, \helprefn{Object.SetTextProperty}{Object.SetTextProperty} ILBRK
+\helprefn{Room.GetProperty}{Room.GetProperty}, \helprefn{Room.GetTextProperty}{Room.GetTextProperty} ILBRK
+\helprefn{Room.SetProperty}{Room.SetProperty}, \helprefn{Room.SetTextProperty}{Room.SetTextProperty} 
 
-Custom property values cannot currently be set from within the game script - they are read-only
-at runtime.
+\bf{NOTE:} Calling \helprefn{ResetRoom}{ResetRoom} will reset that room's properties to default values, as well as that room's
+hotspot and object properties.
 
 \section{Plugins}%
 

@@ -2939,8 +2939,8 @@ to access the array. You can change the size of an array by simply using another
 \verb$new$ command with a different size; but this will erase the contents of the
 array in the process.
 
-Currently dynamic arrays are supported as global and local variables, but
-you can't put one inside a struct.
+Currently dynamic arrays are supported as global and local variables, or members of
+normal (not managed) structs.
 Also, at present you can create arrays of basic types (int, char, etc) and
 of built-in types (String, Character, etc) but not of custom structs.
 
@@ -4297,6 +4297,117 @@ weapons[1].price = 80;
 weapons[1].name = "Poison dagger";
 \end{verbatim}
 structs are essential if you have complex data that you need to store in your scripts.
+
+
+\subsection{managed (struct)}\label{managedmodifier}%
+
+\bf{managed} \it{name} \verb${$
+
+\bf{Managed} is a modifier that can be applied to \bf{struct} declaration to make them
+managed structs.
+
+Managed structs are special in the way that objects of their types are created in dynamic pool
+as opposed to global variables, that exist from the game start to when the game is shut down,
+and local variables, that exist only when their function is run. You cannot declare a variable
+of managed struct, but only a pointer variable.
+
+The advantage of such managed (or dynamic) objects is that they are created only when needed
+and disposed of when no longer needed. Also, since you work with pointer to object instead of
+object itself, you may assign them to another variable without copying object itself, pass them
+to function as parameter, or return from the function.
+
+\bf{IMPORTANT:} there is a big limitation for user-defined managed structs now, it is that they
+themselves cannot have members of pointer types (or dynamic arrays).
+
+Example:
+
+\begin{verbatim}
+managed struct Apple {
+  int color;
+  int freshness;
+}
+\end{verbatim}
+This declares managed struct. To declare a pointer to such struct you do:
+
+\begin{verbatim}
+Apple* my_apple;
+\end{verbatim}
+This creates a pointer variable \verb$my_apple$ of managed type \verb$Apple$.
+
+However, this does \bf{not} create an object itself yet, and \verb$my_apple$ is assigned
+\bf{null} value now. If you try to access struct members using \verb$my_apple$ now, you will
+get errors.
+To create an actual object you need to use a \helprefn{new}{newstatement} keyword:
+
+\begin{verbatim}
+my_apple = new Apple;
+\end{verbatim}
+
+The object is now created in the dynamic memory pool, and variable \verb$my_apple$
+\bf{points} to it. This lets us access object contents:
+
+\begin{verbatim}
+my_apple.color = Game.GetColorFromRGB(255, 0, 0);
+my_apple.freshness = 100;
+\end{verbatim}
+
+You may copy pointer to another variable of same type:
+\begin{verbatim}
+Apple* apple2 = my_apple;
+\end{verbatim}
+
+This does \bf{not} copy object itself, only its address in dynamic pool, meaning both
+variables - \verb$my_apple$ and \verb$appl2$ - point to same object!
+
+You may write a function that take such pointer as parameter:
+
+\begin{verbatim}
+function DisplayAppleDescription(Apple* apple) {
+  String s = String.Format("Apple has color %d and freshness %d", apple.color, apple.freshness);
+  Display(s);
+}
+\end{verbatim}
+
+or even a function that returns apple:
+
+\begin{verbatim}
+Apple* CreateYellowApple(int fresh) {
+  Apple* apple = new Apple;
+  apple.color = Game.GetColorFromRGB(255, 0, 255);
+  apple.freshness = fresh;
+  return apple;
+}
+\end{verbatim}
+
+and then use such function just like:
+
+\begin{verbatim}
+Apple *my_apple = CreateYellowApple(50);
+\end{verbatim}
+
+
+\bf{When does the dynamic object gets destroyed?}
+After you created dynamic object as described above, it will exist in memory as long as
+\it{there is at least one pointer variable pointing to it}. As soon as the last pointer
+gets destroyed itself (for example, if it was local function variable, and function ended),
+or is assigned another object, or simply assigned \verb$null$, then the dynamic object is
+removed from your game forever.
+
+See Also: \helprefn{Pointers in AGS}{Pointers}
+
+
+\subsection{new}\label{newstatement}%
+
+\it{pointer variable} = \bf{new} \it{managed type};
+
+Creates a new dynamic (managed) object of \it{managed type} and assigns it to \it{pointer variable}.
+
+For more information on creating and using dynamic objects see:
+\helprefn{Pointers in AGS}{Pointers}
+\helprefn{managed (struct)}{managedmodifier}
+
+
+See Also: \helprefn{Pointers in AGS}{Pointers}
 
 
 \subsection{enum}\label{enum}%
@@ -20947,7 +21058,14 @@ WFN (bitmap fonts) can now have up to 256 characters (as opposed to previously s
 may need a specialized editor to create such fonts (for example, there is a good Editor plugin
 around meant for this task), and AGS will properly draw any of the 256 characters.
 
-\bf{New script commands}
+\bf{New script features}
+
+First of all, you can now create your own managed structs and objects of their type in script. The
+difference from common structs is that you use pointers to work with these objects, and can pass them
+around as function parameters and function return values as well.
+\bf{IMPORTANT:} there is a big limitation for user-defined managed structs now, it is that they themselves
+cannot have members of pointer types (or dynamic arrays). We suppose that this restriction is only
+temporary and hope to remove it in future updates.
 
 You can now have some new forms of loop in your script, in addition to previously existing \verb$while$.
 First is \verb$do..while$ kind of loop that always performs its commands at least once before checking

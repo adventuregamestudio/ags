@@ -727,7 +727,7 @@ you exported earlier. A new character slot will be created and all the settings 
 \it{NOTE: Because importing always creates a new slot, you cannot use it to
 overwrite an existing character.}
 
-\subsection{Conversations}\index{Dialogs}\index{run-script}\index{add-inv}\index{goto-dialog}\index{new-room}\index{option-off}\index{option-on}\index{option-off-forever}\index{play-sound}\index{return}%
+\subsection{Conversations}\index{Dialogs}\index{run-script}\index{add-inv}\index{goto-dialog}\index{new-room}\index{option-off}\index{option-on}\index{option-off-forever}\index{play-sound}\index{return (dialog script)}%
 
 While the old Sierra games were mainly based on action and not talking, the
 Lucasarts games took the opposite approach.
@@ -3874,14 +3874,16 @@ The following predefined macros are available in your scripts:
 \begin{tabular}{|l|l|}
 \row{ \bf{ Name } & \bf{ Description }
 }\row{{ DEBUG } & { Defined if the game is being compiled in debug mode, not defined otherwise }
-}\row{{ STRICT } & { Defined if "Enforce Object Based Scripting" is ticked, not defined otherwise }
-}\row{{ STRICT_STRINGS } & { Defined if "Enforce new-style strings" is ticked, not defined otherwise }
-}\row{{ STRICT_AUDIO } & { Defined if "Enforce new-style audio scripting" is ticked, not defined otherwise }
-}\row{{ LRPRECEDENCE } & { Defined if "Left-to-right operator precedence" is ticked, not defined otherwise }
+}\row{{ SCRIPT_API_vXXX } & { Defined if corresponding version of script API is enabled (e.g. SCRIPT_API_v340) }
+}\row{{ SCRIPT_COMPAT_vXXX } & { Defined if certain compatibility level is enabled (e.g. SCRIPT_COMPAT_v321) }
+}\row{{ STRICT } & { Defined if "Enforce Object Based Scripting" is enabled, not defined otherwise }
+}\row{{ STRICT_STRINGS } & { Defined if "Enforce new-style strings" is enabled, not defined otherwise }
+}\row{{ STRICT_AUDIO } & { Defined if "Enforce new-style audio scripting" is enabled, not defined otherwise }
+}\row{{ LRPRECEDENCE } & { Defined if "Left-to-right operator precedence" is enabled, not defined otherwise }
 }\row{{ AGS_NEW_STRINGS } & { Defined if AGS 2.71 or later (with new-String support), not defined otherwise }
+}\row{{ NEW_DIALOGOPTS_API } & { Defined if "Use old-style dialog options rendering API" is disabled }
 }\row{{ AGS_SUPPORTS_IFVER } & { Defined if AGS 2.72 or later (with \verb$#ifver$ support), not defined otherwise }
 }\row{{ AGS_MAX_INV_ITEMS } & { The maximum number of inventory items }
-}\row{{ AGS_MAX_CONTROLS_PER_GUI } & { The maximum number of controls on a GUI }
 }\row{{ AGS_MAX_OBJECTS } & { The maximum objects per room }
 }\row{{ AGS_MAX_HOTSPOTS } & { The maximum hotspots per room }
 }\row{{ AGS_MAX_REGIONS } & { The maximum regions per room }
@@ -3980,6 +3982,69 @@ else {
 \end{verbatim}
 
 
+\subsection{switch, case statements}\label{switchstatement}\index{case statement}%
+
+\bf{switch (} \it{expression} \bf{)}  \verb${$ ILBRK
+  [
+  \bf{case} \it{constant expression}: ILBRK
+    \it{statements} ILBRK
+    [ \bf{break}; ]
+  ]
+  [
+  \bf{default:} ILBRK
+    \it{statements} ILBRK
+    [ \bf{break}; ]
+  ]
+\verb$}$
+
+Calculates first \it{expression} in the \bf{switch} header, then finds a \bf{case} statement
+which \it{constant expression} matches the \it{result} of the previous calculation, and begins
+executing statements under that \bf{case}. When doing so, it ignores any other \bf{case} statements,
+but runs all the statements under them. Stops only when reaching the switch's end, or \bf{break}
+statement.
+If the result of \it{expression} is not found in any of the \bf{case} lines, then goes to \bf{default}
+line and runs statements from that point. If no \bf{default} statement found in the switch, then
+the whole switch is skipped.
+\bf{Switch} may have any number of \bf{case} statements and only one \bf{default} statement, but
+they may be arranged in any order.
+
+Unlike many programming languages, AGS allows expression result of any type (integer, boolean,
+string, pointers).
+
+Example:
+
+\begin{verbatim}
+switch (player)
+{
+case cEgo: Display("Hello, my name is Ego, default player controlled character."); break;
+case cJohn: Display("Greetings, I am John, the male character."); break;
+case cMary: Display("Hi there, I am Mary, the female character."); break;
+default:
+  Display("I am not really sure what character the player is controlling, this might be a bug");
+  break;
+}
+\end{verbatim}
+
+Example with "fall-through" cases:
+
+\begin{verbatim}
+switch (player)
+{
+case cJohn:
+case cMary:
+  player.Say("I like oranges.")
+  break;
+case cEgo:
+  player.Say("I like apples.");
+default:
+  player.Say("I would like some berries.");
+}
+\end{verbatim}
+In the above example both cJohn and cMary cases lead to "I like oranges" line.
+cEgo sais "I like apples" and then also "I would like some berries". If there were any other player
+controlled character, not mentioned in this switch, they would go straight to default line.
+
+
 \subsection{while}\label{whilestatement}%
 
 \bf{while (} \it{expression} \bf{)}  \verb${$ ILBRK
@@ -3998,6 +4063,119 @@ while (cEgo.Moving) {
 
 will run the script \verb$Wait(1);$ repeatedly, as long as \verb$cEgo.Moving$ is
 not zero. Once it is zero, the \bf{while} statement will exit at the end of the loop.
+
+
+\subsection{do..while}\label{dowhilestatement}%
+
+\bf{do}  \verb${$ ILBRK
+  \it{statements} ILBRK
+\verb$}$
+\bf{while (} \it{expression} \bf{);}
+
+Similarily to \helprefn{while}{whilestatement} runs \it{statements} continuously, so long as \it{expression} is true,
+but unlike \bf{while} it checks the expression AFTER executing statements, not before. This also means that the statements
+will be executed at least once.
+
+For example:
+
+\begin{verbatim}
+do
+{
+  cEgo.Move(cEgo.x + 1, cEgo.y);
+}
+while (IsKeyPressed(eKeyRightArrow));
+\end{verbatim}
+
+will run the script \verb$cEgo.Move(cEgo.x + 1, cEgo.y);$ once, and then continue run it repeatedly, as long as the right
+arrow key is pressed by player.
+
+
+\subsection{for}\label{forstatement}%
+
+\bf{for (} [\it{initialization}]\bf{;} [\it{expression}]\bf{;} [\it{iteration}] \bf{)}  \verb${$ ILBRK
+  \it{statements} ILBRK
+\verb$}$
+
+This loop command first performs \it{initialization} statements, then runs \it{statements} inside curved brackets continuously.
+Each time before executing these statements it checks whether \it{expression} is true, and if not - ends the loop.
+Each time after statements were executed it additionally runs \it{iteration} statements.
+
+\it{Initialization} is commonly used to declare variables or setting up existing variable values. If a new variable is declared
+in \it{initialization} - such variable will exist and may be used only inside the loop.
+\it{Iteration} step is usually meant to "move" to the next step, by changing some variable value.
+Every part of the command header - \it{initialization}, \it{expression} and \it{iteration} - is optional: there may be \bf{for}
+command without initialization, or without iteration, or even without conditional expression (in which case loop should be ended
+with either \helprefn{break}{breakstatement} or \helprefn{return}{returnstatement} statement).
+
+For example:
+
+\begin{verbatim}
+for (int i = 0; i < Game.CharacterCount; i++)
+{
+  Display("My name is %s", character[i].Name);
+}
+\end{verbatim}
+
+will look over every character in game and display their names.
+
+
+Another example (note missing initialization and iteration):
+
+\begin{verbatim}
+for (; cEgo.x < 100;)
+{
+  Wait(1);
+}
+\end{verbatim}
+
+This will repeat \verb$Wait(1);$ until cEgo character does not move beyond coordinate x = 100.
+
+
+\subsection{break}\label{breakstatement}%
+
+\bf{break};
+
+\verb$break$ statement ends the execution of most inner loop or \helprefn{switch}{switchstatement}
+immediately. After this script continues running from the next line after loop or switch.
+
+For example:
+
+\begin{verbatim}
+while (cEgo.Moving) {
+  if (IsKeyPressed(eKeyEscape))
+    break;
+
+  Wait(1);
+}
+\end{verbatim}
+
+will run the script \verb$Wait(1);$ repeatedly, as long as \verb$cEgo.Moving$ is
+not zero. If player presses Escape key, the loop is terminated immediately.
+
+
+\subsection{continue}\label{continuestatement}%
+
+\bf{continue};
+
+\verb$continue$ statement makes the loop skip remaining statements in current iteration and proceed to the next end-condition check,
+followed by the loop restart, if condition is still met, or loop end.
+If in \helprefn{for}{forstatement} kind of loop, the \it{iteration} statement is executed right before that.
+
+For example:
+
+\begin{verbatim}
+for (int i = 0; i < 100; i++)
+{
+  // multiple statements here
+  
+  if (i > 50)
+    continue;
+  
+  // more statements following
+}
+\end{verbatim}
+
+will run first part of the loop statements always, and second part only when \verb$i <= 50$.
 
 
 \subsection{function}\label{function}%
@@ -4041,6 +4219,39 @@ parameter. If the caller does not supply the second parameter, it will default t
 \bf{NOTE:} To use optional parameters, you need to have an "import" declaration for the function
 in the script header. The default values cannot be specified in the actual function declaration
 itself.
+
+
+\subsection{return}\label{returnstatement}\index{return (game script)}%
+
+\bf{return};
+
+Immediately quits currently run function and returns to the previous script function current one
+was called from, if there was any, otherwise passes execution to engine.
+\bf{return} can be put in any place in the the function, no matter if it is inside the
+if/else statement group, loop or switch - it will still work as immediate function exit.
+
+If the function is declared with return type other than \bf{void} (or simply like \verb$function$),
+then the \bf{return} statement \bf{has} to specify \bf{return value}.
+
+\begin{verbatim}
+int GetHowManyTradeGoodsShopkeeperHas() {
+  return 2;
+}
+\end{verbatim}
+
+Alternatively, when function is not supposed to have any return value, sometimes you may want to break
+out of current function before it ends naturally:
+
+\begin{verbatim}
+function DoThisAndOptionallyThat(bool do_all) {
+  // multiple statements here
+  
+  if (!do_all)
+    return; // quit the function prematurely
+    
+  // more statements following
+}
+\end{verbatim}
 
 
 \subsection{struct}\label{struct}\index{class}%
@@ -20740,42 +20951,19 @@ around meant for this task), and AGS will properly draw any of the 256 character
 
 You can now have some new forms of loop in your script, in addition to previously existing \verb$while$.
 First is \verb$do..while$ kind of loop that always performs its commands at least once before checking
-end condition.
-
-\begin{verbatim}
-int a;
-do
-{
-  Display("a is %d", a);
-  a++;
-}
-while (a < 5);
-\end{verbatim}
-
-Second is \verb$for$ loop that lets you initialize internal variable, define end condition and write
-iteration just in its header:
-
-\begin{verbatim}
-for (int a = 0; a < 5; a++)
-{
-  Display("a is %d", a);
-}
-\end{verbatim}
-
+end condition, second is \verb$for$ loop that lets you initialize internal variable, define end condition
+and write iteration - all in its header.
 Another introduced command is \verb$switch$. One \verb$switch$ can replace a long list of \verb$if$ and \verb$else if$
-blocks:
+blocks.
 
-\begin{verbatim}
-switch (player)
-{
-case cEgo: Display("cEgo is player character now"); break;
-case cJohn: Display("What do you know, player is controlling John now"); break;
-case cMary: Display("Mary is under player control at this point"); break;
-default:
-  Display("I am not really sure who is player controlling, this might be a bug");
-  break;
-}
-\end{verbatim}
+See:
+\helprefn{switch}{switchstatement},
+\helprefn{do..while}{dowhilestatement},
+\helprefn{for}{forstatement},
+\helprefn{break}{breakstatement},
+\helprefn{continue}{continuestatement},
+\helprefn{managed}{managedmodifier},
+\helprefn{new}{newstatement}
 
 \bf{Custom Dialog Options rendering extended}
 

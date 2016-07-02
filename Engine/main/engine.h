@@ -27,4 +27,9 @@ int			initialize_engine_with_exception_handling(int argc,char*argv[]);
 extern char *music_file;
 extern char *speech_file;
 
+// Register a callback that will be called before engine is initialised.
+// Used for apps to register their own plugins and other configuration
+typedef void (*t_engine_pre_init_callback)(void);
+extern void engine_set_pre_init_callback(t_engine_pre_init_callback callback);
+
 #endif // __AGS_EE_MAIN__ENGINE_H

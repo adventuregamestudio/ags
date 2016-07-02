@@ -12,6 +12,8 @@
 //
 //=============================================================================
 
+#include <vector>
+
 #include "util/wgt2allg.h"
 #include "plugin/agsplugin.h"
 #include "gfx/ali3d.h"
@@ -158,6 +160,8 @@ struct EnginePlugin {
 EnginePlugin plugins[MAXPLUGINS];
 int numPlugins = 0;
 int pluginsWantingDebugHooks = 0;
+
+std::vector<InbuiltPluginDetails> _registered_builtin_plugins;
 
 void IAGSEngine::AbortGame (const char *reason) {
     quit ((char*)reason);
@@ -860,6 +864,11 @@ void pl_run_plugin_init_gfx_hooks (const char *driverName, void *data) {
     }
 }
 
+int pl_register_builtin_plugin(InbuiltPluginDetails details) {
+    _registered_builtin_plugins.push_back(details);
+    return 0;
+}
+
 bool pl_use_builtin_plugin(EnginePlugin* apl)
 {
 #if defined(BUILTIN_PLUGINS)
@@ -922,6 +931,19 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
 #endif // IOS_VERSION
 #endif // BUILTIN_PLUGINS
 
+    for(std::vector<InbuiltPluginDetails>::iterator it = _registered_builtin_plugins.begin(); it != _registered_builtin_plugins.end(); ++it) {
+        if (strncmp(apl->filename, it->filename, strlen(it->filename)) == 0) {
+            apl->engineStartup = it->engineStartup;
+            apl->engineShutdown = it->engineShutdown;
+            apl->onEvent = it->onEvent;
+            apl->debugHook = it->debugHook;
+            apl->initGfxHook = it->initGfxHook;
+            apl->available = true;
+            apl->builtin = true;
+            return true;
+        }
+    }
+    
     AGS::Common::Out::FPrint("No built-in plugin found. Plugin loading failed!");
     return false;
 }

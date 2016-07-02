@@ -101,6 +101,8 @@ char *speech_file;
 
 Common::AssetError errcod;
 
+t_engine_pre_init_callback engine_pre_init_callback = 0;
+
 extern "C" HWND allegro_wnd;
 
 #define ALLEGRO_KEYBOARD_HANDLER
@@ -1394,6 +1396,10 @@ bool engine_do_config(int argc, char*argv[])
 
 int initialize_engine(int argc,char*argv[])
 {
+    if (engine_pre_init_callback) {
+        engine_pre_init_callback();
+    }
+    
     int res;
     if (!engine_init_allegro())
         return EXIT_NORMAL;
@@ -1592,4 +1598,8 @@ int initialize_engine_with_exception_handling(int argc,char*argv[])
 
 const char *get_engine_version() {
     return EngineVersion.LongString.GetCStr();
+}
+
+void engine_set_pre_init_callback(t_engine_pre_init_callback callback) {
+    engine_pre_init_callback = callback;
 }

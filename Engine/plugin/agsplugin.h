@@ -582,4 +582,18 @@ void pl_run_plugin_init_gfx_hooks(const char *driverName, void *data);
 int  pl_run_plugin_debug_hooks (const char *scriptfile, int linenum);
 void pl_read_plugins_from_disk (Common::Stream *in);
 
+//  Initial implementation for apps to register their own inbuilt plugins
+
+struct InbuiltPluginDetails {
+    char      filename[50];
+    void      (*engineStartup) (IAGSEngine *);
+    void      (*engineShutdown) ();
+    int       (*onEvent) (int, int);
+    void      (*initGfxHook) (const char *driverName, void *data);
+    int       (*debugHook) (const char * whichscript, int lineNumber, int reserved);
+};
+
+// Register a builtin plugin.
+int pl_register_builtin_plugin(InbuiltPluginDetails details);
+
 #endif

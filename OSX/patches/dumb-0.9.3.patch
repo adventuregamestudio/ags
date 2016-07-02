@@ -1,0 +1,33 @@
+diff -rNu dumb-0.9.3-orig/Makefile dumb-0.9.3/Makefile
+--- dumb-0.9.3-orig/Makefile	2005-08-07 19:18:41.000000000 -0500
++++ dumb-0.9.3/Makefile	2013-10-16 11:09:02.000000000 -0400
+@@ -231,8 +231,8 @@
+ endif
+ endif
+ 
+-CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS)
+-CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS)
++CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS) $(PLAT_CFLAGS)
++CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS) $(PLAT_CFLAGS)
+ 
+ LDFLAGS := -s
+ 
+diff -rNu dumb-0.9.3-orig/Makefile.rdy dumb-0.9.3/Makefile.rdy
+--- dumb-0.9.3-orig/Makefile.rdy	2005-08-07 19:18:39.000000000 -0500
++++ dumb-0.9.3/Makefile.rdy	2013-10-16 11:08:56.000000000 -0400
+@@ -231,8 +231,8 @@
+ endif
+ endif
+ 
+-CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS)
+-CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS)
++CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS) $(PLAT_CFLAGS)
++CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS) $(PLAT_CFLAGS)
+ 
+ LDFLAGS := -s
+ 
+Binary files dumb-0.9.3-orig/lib/unix/libaldmb.a and dumb-0.9.3/lib/unix/libaldmb.a differ
+Binary files dumb-0.9.3-orig/lib/unix/libaldmd.a and dumb-0.9.3/lib/unix/libaldmd.a differ
+Binary files dumb-0.9.3-orig/lib/unix/libdumb.a and dumb-0.9.3/lib/unix/libdumb.a differ
+Binary files dumb-0.9.3-orig/lib/unix/libdumbd.a and dumb-0.9.3/lib/unix/libdumbd.a differ
+diff -rNu dumb-0.9.3-orig/make/config.txt dumb-0.9.3/make/config.txt

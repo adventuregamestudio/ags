@@ -6,6 +6,7 @@ Original Linux port by berolinux (http://gitorious.org/ags); additional code by 
 PSP Eboot artwork by Paul Wilkinson (subspark).
 AGSBlend plugin by Steven Poulton (see License_AGSBlend.txt).
 PSP, Android, iOS ports created by Jochen Schleu (JJS).
+OSX port created by Edward Rudd.
 
 
 The latter versions and engine ports to various platforms are product of collaborative work of the following people (in alphabetic order): 
@@ -14,6 +15,7 @@ Benjamin Penney
 Benoit Pierre
 Bernhard Rosenkraenzer
 Cristian Morales Vega
+Edward Rudd
 Ferdinand Thiessen
 Francesco Ariis
 Gilad Shaham
@@ -38,7 +40,6 @@ Sunit Das
 Tobias Hansen
 Tom Vandepoele
 Tzach Shabtay
-
 
 Members of development team would like to thank:
 

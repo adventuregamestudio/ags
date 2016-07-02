@@ -33,7 +33,6 @@ Engine/resource/version.aps
 *.o
 *.d
 common.a
-ags
 Android/launcher_list/.classpath
 Android/launcher_list/.settings/
 Android/launcher_list/bin/
@@ -68,3 +67,36 @@ iOS/nativelibs/arm64
 iOS/nativelibs/i386
 iOS/nativelibs/x86_64
 Solutions/Engine.App/test.ini
+
+libsrc/*.tar*
+libsrc/*.zip
+
+ac2game.dat
+audio.vox
+speech.vox
+
+OSX/buildlibs/opt/
+OSX/buildlibs/build/
+OSX/include/
+OSX/lib/
+
+## Xcode Build generated
+build/
+DerivedData/
+
+## Xcode Various settings
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+
+## Xcode Other
+*.moved-aside
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint

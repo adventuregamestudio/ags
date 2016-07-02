@@ -44,6 +44,9 @@
 #include "main/graphics_mode.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/math.h"
+#if defined(MAC_VERSION)
+#include "ac/global_game.h" // j for IsKeyPressed
+#endif
 
 using namespace AGS::Common;
 
@@ -306,7 +309,16 @@ int mgetbutton()
     return NONE;  // don't allow holding button down
 
   if (butis & 1)
+  {
     toret = LEFT;
+#if defined(MAC_VERSION)
+    // j Ctrl-left click should be right-click
+    if (IsKeyPressed(405) || IsKeyPressed(406))
+    {
+      toret = RIGHT;
+    }
+#endif
+  }
   else if (butis & 2)
     toret = RIGHT;
   else if (butis & 4)

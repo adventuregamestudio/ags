@@ -13,8 +13,10 @@ PLAT_FLAGS:=-mmacosx-version-min=10.7 -arch i386 -arch x86_64
 libs: lua freetype ogg vorbis theora allegro dumb
 
 install: libs
-	cp $(PREFIX)/lib/*.a ../lib
+	rm -rf ../lib
 	rm -rf ../include
+	mkdir -p ../lib
+	cp $(PREFIX)/lib/*.a ../lib
 	cp -a $(PREFIX)/include ../include
 
 prepare:

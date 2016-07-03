@@ -1873,10 +1873,19 @@ index 04b82af..c823e84 100644
  
  
 diff --git a/src/file.c b/src/file.c
-index c89024c..0360318 100644
+index c89024c..4abecdc 100644
 --- a/src/file.c
 +++ b/src/file.c
-@@ -1808,7 +1808,7 @@ PACKFILE *_pack_fdopen(int fd, AL_CONST char *mode)
+@@ -21,6 +21,8 @@
+  *      Peter Wang added support for packfile vtables.
+  *
+  *      See readme.txt for copyright information.
++ *
++ * ****** CJ CHANGES IN THIS FILE: Renamed pack_fopen to __old_pack_fopen
+  */
+ 
+ 
+@@ -1808,7 +1810,7 @@ PACKFILE *_pack_fdopen(int fd, AL_CONST char *mode)
   *  it returns NULL and stores an error code in errno. An attempt to read a 
   *  normal file in packed mode will cause errno to be set to EDOM.
   */
@@ -6777,10 +6786,63 @@ index 655cb21..61abf3a 100644
        return -1;
  
 diff --git a/src/win/wkeybd.c b/src/win/wkeybd.c
-index d85f079..429b23d 100644
+index d85f079..f8ab424 100644
 --- a/src/win/wkeybd.c
 +++ b/src/win/wkeybd.c
-@@ -676,7 +676,7 @@ static int key_dinput_init(void)
+@@ -13,6 +13,9 @@
+  *      By Stefan Schimanski, hacked up by Peter Wang and Elias Pschernig.
+  *
+  *      See readme.txt for copyright information.
++ *
++ ****** CJ CHANGE SIN THIS FILE: Made hw_to_mycode non-static;
++                               changed key_dinput_handle_scancode to ignore windows key on Vista
+  */
+ 
+ 
+@@ -40,12 +43,12 @@
+ static HANDLE key_input_event = NULL;
+ static HANDLE key_input_processed_event = NULL;
+ static LPDIRECTINPUT key_dinput = NULL;
+-static LPDIRECTINPUTDEVICE key_dinput_device = NULL;
++LPDIRECTINPUTDEVICE key_dinput_device = NULL;
+ 
+ 
+ /* lookup table for converting DIK_* scancodes into Allegro KEY_* codes */
+ /* this table was from pckeys.c  */
+-static const unsigned char hw_to_mycode[256] = {
++const unsigned char hw_to_mycode[256] = {
+    /* 0x00 */ 0, KEY_ESC, KEY_1, KEY_2,
+    /* 0x04 */ KEY_3, KEY_4, KEY_5, KEY_6,
+    /* 0x08 */ KEY_7, KEY_8, KEY_9, KEY_0,
+@@ -322,11 +325,26 @@ static void key_dinput_handle_scancode(unsigned char scancode, int pressed)
+ {
+    HWND allegro_wnd = win_get_window();
+    static int ignore_three_finger_flag = FALSE;
++   
++   static BOOL just_pressed_alt = FALSE;
++   if (scancode == DIK_LMENU)
++   {
++     just_pressed_alt = TRUE;
++   }
++   else if (scancode != DIK_TAB)
++   {
++     just_pressed_alt = FALSE;
++   }
++
+    /* ignore special Windows keys (alt+tab, alt+space, (ctrl|alt)+esc) */
+    if (((scancode == DIK_TAB) && (_key_shifts & KB_ALT_FLAG))
+        || ((scancode == DIK_SPACE) && (_key_shifts & KB_ALT_FLAG))
+-       || ((scancode == DIK_ESCAPE) && (_key_shifts & (KB_CTRL_FLAG | KB_ALT_FLAG))))
++       || ((scancode == DIK_ESCAPE) && (_key_shifts & (KB_CTRL_FLAG | KB_ALT_FLAG)))
++       || ((scancode == DIK_TAB) && (just_pressed_alt)))
++   {
++     just_pressed_alt = FALSE;
+       return;
++   }
+ 
+    /* alt+F4 triggers a WM_CLOSE under Windows */
+    if ((scancode == DIK_F4) && (_key_shifts & KB_ALT_FLAG)) {
+@@ -676,7 +694,7 @@ static int key_dinput_init(void)
     };
  
     /* Get DirectInput interface */
@@ -6789,7 +6851,7 @@ index d85f079..429b23d 100644
     if (FAILED(hr))
        goto Error;
  
-@@ -685,7 +685,7 @@ static int key_dinput_init(void)
+@@ -685,7 +703,7 @@ static int key_dinput_init(void)
        goto Error;
  
     /* Create the keyboard device */
@@ -6799,7 +6861,7 @@ index d85f079..429b23d 100644
        goto Error;
  
 diff --git a/src/win/wmouse.c b/src/win/wmouse.c
-index ff85b73..e8fed7e 100644
+index ff85b73..b3d599d 100644
 --- a/src/win/wmouse.c
 +++ b/src/win/wmouse.c
 @@ -1,6 +1,6 @@
@@ -6812,6 +6874,15 @@ index ff85b73..e8fed7e 100644
   *         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
   *          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
   *           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
+@@ -82,7 +82,7 @@ HCURSOR _win_hcursor = NULL;	/* Hardware cursor to display */
+ #define DINPUT_BUFFERSIZE 256
+ static HANDLE mouse_input_event = NULL;
+ static LPDIRECTINPUT mouse_dinput = NULL;
+-static LPDIRECTINPUTDEVICE mouse_dinput_device = NULL;
++LPDIRECTINPUTDEVICE mouse_dinput_device = NULL;
+ 
+ static int dinput_buttons = 0;
+ static int dinput_wheel = FALSE;
 @@ -234,7 +234,7 @@ static void mouse_dinput_handle_event(int ofs, int data)
                 mag = last_data_x*last_data_x + last_data_y*last_data_y;
                 if (mag >= mouse_accel_thr2)
@@ -6904,7 +6975,7 @@ index 45008c4..7a34080 100644
     memcpy(argbuf, cmdline, i);
  
 diff --git a/src/win/wwnd.c b/src/win/wwnd.c
-index fc19076..f5eccaa 100644
+index fc19076..96d0cdd 100644
 --- a/src/win/wwnd.c
 +++ b/src/win/wwnd.c
 @@ -1,6 +1,6 @@
@@ -6917,7 +6988,25 @@ index fc19076..f5eccaa 100644
   *         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
   *          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
   *           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
-@@ -189,7 +189,7 @@ static void exit_window_modules(struct WINDOW_MODULES *wm)
+@@ -13,6 +13,8 @@
+  *      By Stefan Schimanski.
+  *
+  *      See readme.txt for copyright information.
++ *
++ ****** CJ CHANGES: Made allegro_wnd non-static
+  */
+ 
+ 
+@@ -36,7 +38,7 @@
+ 
+ 
+ /* general */
+-static HWND allegro_wnd = NULL;
++HWND allegro_wnd = NULL;
+ char wnd_title[WND_TITLE_SIZE];  /* ASCII string */
+ int wnd_x = 0;
+ int wnd_y = 0;
+@@ -189,7 +191,7 @@ static void exit_window_modules(struct WINDOW_MODULES *wm)
   */
  int wnd_call_proc(int (*proc) (void))
  {
@@ -6926,7 +7015,7 @@ index fc19076..f5eccaa 100644
  }
  
  
-@@ -200,7 +200,7 @@ int wnd_call_proc(int (*proc) (void))
+@@ -200,7 +202,7 @@ int wnd_call_proc(int (*proc) (void))
   */
  void wnd_schedule_proc(int (*proc) (void))
  {
@@ -6935,7 +7024,7 @@ index fc19076..f5eccaa 100644
  }
  
  
-@@ -213,7 +213,7 @@ static LRESULT CALLBACK directx_wnd_proc(HWND wnd, UINT message, WPARAM wparam,
+@@ -213,7 +215,7 @@ static LRESULT CALLBACK directx_wnd_proc(HWND wnd, UINT message, WPARAM wparam,
     PAINTSTRUCT ps;
  
     if (message == msg_call_proc)
@@ -6944,7 +7033,7 @@ index fc19076..f5eccaa 100644
  
     if (message == msg_suicide) {
        DestroyWindow(wnd);
-@@ -224,7 +224,7 @@ static LRESULT CALLBACK directx_wnd_proc(HWND wnd, UINT message, WPARAM wparam,
+@@ -224,7 +226,7 @@ static LRESULT CALLBACK directx_wnd_proc(HWND wnd, UINT message, WPARAM wparam,
     if (wnd_msg_pre_proc){
        int retval = 0;
        if (wnd_msg_pre_proc(wnd, message, wparam, lparam, &retval) == 0)
@@ -6953,7 +7042,7 @@ index fc19076..f5eccaa 100644
     }
  
     /* See get_reverse_mapping() in wkeybd.c to see what this is for. */
-@@ -373,7 +373,7 @@ static LRESULT CALLBACK directx_wnd_proc(HWND wnd, UINT message, WPARAM wparam,
+@@ -373,7 +375,7 @@ static LRESULT CALLBACK directx_wnd_proc(HWND wnd, UINT message, WPARAM wparam,
  
        case WM_MENUCHAR :
           return (MNC_CLOSE<<16)|(wparam&0xffff);
@@ -6962,7 +7051,7 @@ index fc19076..f5eccaa 100644
        case WM_CLOSE:
           if (!user_wnd_proc) {
              if (user_close_proc)
-@@ -456,7 +456,7 @@ static HWND create_directx_window(void)
+@@ -456,7 +458,7 @@ static HWND create_directx_window(void)
   */
  static void wnd_thread_proc(HANDLE setup_event)
  {
@@ -6971,7 +7060,7 @@ index fc19076..f5eccaa 100644
     MSG msg;
  
     _win_thread_init();
-@@ -477,7 +477,7 @@ static void wnd_thread_proc(HANDLE setup_event)
+@@ -477,7 +479,7 @@ static void wnd_thread_proc(HANDLE setup_event)
     /* message loop */
     while (TRUE) {
        result = MsgWaitForMultipleObjects(_win_input_events, _win_input_event_id, FALSE, INFINITE, QS_ALLINPUT);
@@ -6980,7 +7069,7 @@ index fc19076..f5eccaa 100644
           /* one of the registered events is in signaled state */
           (*_win_input_event_handler[result - WAIT_OBJECT_0])();
        }
-@@ -523,7 +523,7 @@ int init_directx_window(void)
+@@ -523,7 +525,7 @@ int init_directx_window(void)
        _win_input_init(TRUE);
  
        /* hook the user window */
@@ -6989,7 +7078,7 @@ index fc19076..f5eccaa 100644
        if (!user_wnd_proc)
           return -1;
  
-@@ -557,7 +557,7 @@ int init_directx_window(void)
+@@ -557,7 +559,7 @@ int init_directx_window(void)
  
  	 default:               /* thread failed to create window */
  	    return -1;
@@ -6998,7 +7087,7 @@ index fc19076..f5eccaa 100644
     }
  
     /* initialize gfx critical section */
-@@ -579,7 +579,7 @@ void exit_directx_window(void)
+@@ -579,7 +581,7 @@ void exit_directx_window(void)
  {
     if (user_wnd) {
        /* restore old window proc */
@@ -7007,7 +7096,7 @@ index fc19076..f5eccaa 100644
        user_wnd_proc = NULL;
        user_wnd = NULL;
        allegro_wnd = NULL;
-@@ -598,7 +598,7 @@ void exit_directx_window(void)
+@@ -598,7 +600,7 @@ void exit_directx_window(void)
     DeleteCriticalSection(&gfx_crit_sect);
  
     _win_input_exit();
@@ -7016,7 +7105,7 @@ index fc19076..f5eccaa 100644
     window_is_initialized = FALSE;
  }
  
-@@ -651,11 +651,11 @@ int adjust_window(int w, int h)
+@@ -651,11 +653,11 @@ int adjust_window(int w, int h)
           }
           if (!user32_handle || !get_title_bar_info)
              tb_height = GetSystemMetrics(SM_CYSIZE);
@@ -7030,7 +7119,7 @@ index fc19076..f5eccaa 100644
  	 if (last_wnd_x + w >= working_area.right)
  	    last_wnd_x = working_area.right - w;
  	 if (last_wnd_y + h >= working_area.bottom)
-@@ -680,7 +680,7 @@ int adjust_window(int w, int h)
+@@ -680,7 +682,7 @@ int adjust_window(int w, int h)
  
        /* retrieve the size of the decorated window */
        AdjustWindowRect(&win_size, GetWindowLong(allegro_wnd, GWL_STYLE), FALSE);
@@ -7039,7 +7128,7 @@ index fc19076..f5eccaa 100644
        /* display the window */
        MoveWindow(allegro_wnd, win_size.left, win_size.top,
                   win_size.right - win_size.left, win_size.bottom - win_size.top, TRUE);
-@@ -702,7 +702,7 @@ int adjust_window(int w, int h)
+@@ -702,7 +704,7 @@ int adjust_window(int w, int h)
  
  
  /* save_window_pos:
@@ -7048,7 +7137,7 @@ index fc19076..f5eccaa 100644
   *  it can be used as the initial position for the next window.
   */
  void save_window_pos(void)
-@@ -746,7 +746,7 @@ void win_set_window(HWND wnd)
+@@ -746,7 +748,7 @@ void win_set_window(HWND wnd)
        init_directx_window();
        init_window_modules(&wm);
     }

@@ -78,7 +78,7 @@ theora: prepare ogg vorbis
 		make install
 
 # - you can add `-DCMAKE_BUILD_TYPE=Debug` to the cmake options but remember it will produce the file `liballeg-debug.a`
-# - to update patch: git diff 4.4.2 > ../ags/OSX/patches/allegro-4.4.2.patch
+# - to update patch: git diff 4.4.2..osx-update > ../ags/OSX/patches/allegro-4.4.2.patch
 allegro: prepare
 	rm -rf $(BUILD)/allegro-4.4.2
 	tar xf $(LIBSRCDIR)/allegro-4.4.2.tar.gz -C $(BUILD)

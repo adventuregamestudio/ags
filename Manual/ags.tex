@@ -3534,7 +3534,7 @@ enum CharacterDirection {
 };
 \end{verbatim}
 \it{Used by:} \helprefn{Character.ChangeRoom}{Character.ChangeRoom},
-\helprefn{Object.FaceDirection}{Object.FaceDirection}
+\helprefn{Character.FaceDirection}{Character.FaceDirection}
 
 \begin{verbatim}
 enum Direction {
@@ -4095,12 +4095,12 @@ else {
   \bf{case} \it{constant expression}: ILBRK
     \it{statements} ILBRK
     [ \bf{break}; ]
-  ]
+  ] ILBRK
   [
   \bf{default:} ILBRK
     \it{statements} ILBRK
     [ \bf{break}; ]
-  ]
+  ]  ILBRK
 \verb$}$
 
 Calculates first \it{expression} in the \bf{switch} header, then finds a \bf{case} statement
@@ -4407,7 +4407,7 @@ structs are essential if you have complex data that you need to store in your sc
 
 \subsection{managed (struct)}\label{managedmodifier}%
 
-\bf{managed} \it{name} \verb${$
+\bf{managed struct} \it{name} \verb${$
 
 \bf{Managed} is a modifier that can be applied to \bf{struct} declaration to make them
 managed structs.
@@ -4431,7 +4431,7 @@ Example:
 managed struct Apple {
   int color;
   int freshness;
-}
+};
 \end{verbatim}
 This declares managed struct. To declare a pointer to such struct you do:
 
@@ -4474,7 +4474,12 @@ function DisplayAppleDescription(Apple* apple) {
 }
 \end{verbatim}
 
-or even a function that returns apple:
+and then call it like:
+\begin{verbatim}
+DisplayAppleDescription(my_apple);
+\end{verbatim}
+
+You may write a function that returns pointer to apple:
 
 \begin{verbatim}
 Apple* CreateYellowApple(int fresh) {
@@ -4499,21 +4504,38 @@ gets destroyed itself (for example, if it was local function variable, and funct
 or is assigned another object, or simply assigned \verb$null$, then the dynamic object is
 removed from your game forever.
 
-See Also: \helprefn{Pointers in AGS}{Pointers}
+See Also: \helprefn{new}{newstatement},
+\helprefn{Pointers in AGS}{Pointers}
 
 
 \subsection{new}\label{newstatement}%
 
-\it{pointer variable} = \bf{new} \it{managed type};
+\it{pointer_variable} = \bf{new} \it{managed_type};
 
-Creates a new dynamic (managed) object of \it{managed type} and assigns it to \it{pointer variable}.
+Creates a new dynamic (managed) object of \it{managed_type} and assigns it to \it{pointer_variable}.
 
-For more information on creating and using dynamic objects see:
+Example:
+
+\begin{verbatim}
+// Here we declare a managed struct for Apple
+managed struct Apple {
+  int color;
+  int freshness;
+};
+
+// ...and declare a global pointer to Apple
+Apple* SomeApple;
+
+// At the game start we create a new dynamic object of Apple type
+// and assign its address to the pointer variable
+function game_start()
+{
+  SomeApple = new Apple;
+}
+\end{verbatim}
+
+See Also: \helprefn{managed (struct)}{managedmodifier},
 \helprefn{Pointers in AGS}{Pointers}
-\helprefn{managed (struct)}{managedmodifier}
-
-
-See Also: \helprefn{Pointers in AGS}{Pointers}
 
 
 \subsection{enum}\label{enum}%
@@ -4763,7 +4785,7 @@ room object.
 \it{See Also:} \helprefn{AudioChannel.Volume}{AudioChannel.Volume}
 
 
-\subsection{Speed property}\label{AudioChannel.Speed}\index{AudioChannel.Speed}%
+\subsection{Speed property (audio channel)}\label{AudioChannel.Speed}\index{AudioChannel.Speed}%
 
 \begin{verbatim}
 int AudioChannel.Speed
@@ -4772,6 +4794,13 @@ Gets/sets the playing audio clip's playback speed. The value is defined in clip'
 1000 is default, meaning 1000 of clip's ms in 1 real second (scale 1:1). Set < 1000 for slower play and > 1000
 for faster play.
 \bf{NOTE:} currently works for MP3 and OGG audio clips only.
+
+\fcol{red}{Example:}
+\begin{verbatim}
+AudioChannel *channel = aFunnyTalk.Play();
+channel.Speed = 2000;
+\end{verbatim}
+plays \it{aFunnyTalk} clip at the double speed.
 
 \it{Compatibility:} Supported by \bf{AGS 3.4.0} and later versions.
 
@@ -5748,7 +5777,7 @@ will change EGO's "description" property.
 
 \it{Compatibility:} Supported by \bf{AGS 3.4.0} and later versions.
 
-\it{See Also:} \helprefn{Character.SetTextProperty}{Character.SetTextProperty}
+\it{See Also:} \helprefn{Character.SetProperty}{Character.SetProperty}
 
 
 \subsection{HasInventory}\label{Character.HasInventory}\index{Character.HasInventory}%
@@ -6277,9 +6306,9 @@ This will give character EGO maximal individual brightness.
 
 \it{Compatibility:} Supported by \bf{AGS 3.4.0} and later versions.
 
-\it{See Also:} \helprefn{Character.Tint}{Character.Tint}
-\helprefn{SetAmbientLightLevel}{SetAmbientLightLevel}
-\helprefn{Object.SetLightLevel}{Object.SetLightLevel}
+\it{See Also:} \helprefn{Character.Tint}{Character.Tint},
+\helprefn{SetAmbientLightLevel}{SetAmbientLightLevel},
+\helprefn{Object.SetLightLevel}{Object.SetLightLevel},
 \helprefn{Region.LightLevel}{Region.LightLevel}
 
 
@@ -8196,8 +8225,7 @@ described in the linked page.
 \begin{verbatim}
 bool DialogOptionsRenderingInfo.RunActiveOption();
 \end{verbatim}
-Runs the currently selection dialog option, the one set by \helprefn{DialogOptionsRenderingInfo.ActiveOptionID}{DialogOptionsRenderingInfo.ActiveOptionID},
-and returns \bf{true} on success.
+Runs the currently selected dialog option, the one set in ActiveOptionID, and returns \bf{true} on success.
 
 As of AGS 3.4.0 you must call this function for conversation to continue, most common places
 for such call are \verb$dialog_options_mouse_click$ and \verb$dialog_options_key_press$ functions.
@@ -8214,7 +8242,7 @@ runs selected dialog option when player presses Enter/Return key.
 
 \it{Compatibility:} Supported by \bf{AGS 3.4.0} and later versions.
 
-\it{See Also:} \helprefn{Dialog.ActiveOptionID}{Dialog.ActiveOptionID}
+\it{See Also:} \helprefn{DialogOptionsRenderingInfo.ActiveOptionID}{DialogOptionsRenderingInfo.ActiveOptionID}
 
 
 \subsection{Update}\label{DialogOptionsRenderingInfo.Update}\index{DialogOptionsRenderingInfo.Update}%
@@ -8262,7 +8290,7 @@ always selects the first option
 
 \it{Compatibility:} Supported by \bf{AGS 3.1.0} and later versions.
 
-\it{See Also:} \helprefn{Dialog.RunActiveOption}{Dialog.RunActiveOption},
+\it{See Also:} \helprefn{DialogOptionsRenderingInfo.RunActiveOption}{DialogOptionsRenderingInfo.RunActiveOption},
 \helprefn{Dialog.GetOptionState}{Dialog.GetOptionState}
 
 
@@ -8306,7 +8334,7 @@ creates a 300x150 size area with alpha channel to draw the dialog options in.
 \it{Compatibility:} Supported by \bf{AGS 3.3.0} and later versions.
 
 \it{See Also:}
-\helprefn{DialogOptionsRenderingInfo.Height}{DialogOptionsRenderingInfo.Height}
+\helprefn{DialogOptionsRenderingInfo.Height}{DialogOptionsRenderingInfo.Height},
 \helprefn{DialogOptionsRenderingInfo.Width}{DialogOptionsRenderingInfo.Width}
 
 
@@ -10077,9 +10105,9 @@ This is usually used when you are reading file and want to skip over some data, 
 and want to move back and overwrite a piece of data in the previous section for some reason.
 
 The \it{origin} is determined by one of the FileSeek types:
-eSeekBegin - counts \it{offset} bytes starting from the file's beginning; \it{offset} must be positive.
+eSeekBegin - counts \it{offset} bytes starting from the file's beginning; \it{offset} must be positive. ILBRK
 eSeekCurrent - counts \it{offset} bytes starting from the current position; \it{offset} may be either
-positive or negative.
+positive or negative. ILBRK
 eSeekEnd - counts \it{offset} bytes starting from the file's end, going backwards; \it{offset} must be positive.
 
 If optional \it{origin} parameter is not specified, eSeekCurrent type is used by default.
@@ -11136,7 +11164,7 @@ will move the character EGO upwards 3 pixels when the up arrow is pressed.
 \subsection{IsPluginLoaded}\label{IsPluginLoaded}%
 
 \begin{verbatim}
-static bool IsPluginLoaded(const string name)
+static bool Game.IsPluginLoaded(const string name)
 \end{verbatim}
 Checks whether the plugin of the given \it{name} was present and loaded for the game.
 
@@ -11147,7 +11175,7 @@ that are not interacted with from game script, but just run on their own.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-if (IsPluginLoaded("my_plugin")) {
+if (Game.IsPluginLoaded("my_plugin")) {
   Display("My plugin is found and running!");
 }
 \end{verbatim}
@@ -12627,9 +12655,9 @@ prepended to them). Usually these are eModeWalkto, eModeLookat, etc.
 
 \fcol{red}{Example:}
 \begin{verbatim}
-ProcessClick(mouse.x,mouse.y, eModePointer);
+ProcessClick(100, 50, eModePointer);
 \end{verbatim}
-will simulate clicking the mouse on co-ordinates (100,50) in the Pointer mode,
+will simulate clicking the mouse on co-ordinates (100, 50) in the Pointer mode,
 which will ignore anything but interface.
 
 \it{Compatibility:} Supported by \bf{AGS 3.4.0} and later versions.
@@ -14797,7 +14825,7 @@ will change Door's "description" property.
 
 \it{Compatibility:} Supported by \bf{AGS 3.4.0} and later versions.
 
-\it{See Also:} \helprefn{Hotspot.SetTextProperty}{Hotspot.SetTextProperty}
+\it{See Also:} \helprefn{Hotspot.SetProperty}{Hotspot.SetProperty}
 
 
 
@@ -15088,7 +15116,7 @@ will change key's "description" property.
 
 \it{Compatibility:} Supported by \bf{AGS 3.4.0} and later versions.
 
-\it{See Also:} \helprefn{InventoryItem.SetTextProperty}{InventoryItem.SetTextProperty}
+\it{See Also:} \helprefn{InventoryItem.SetProperty}{InventoryItem.SetProperty}
 
 
 \subsection{IsInteractionAvailable (inventory)}\label{InventoryItem.IsInteractionAvailable}\index{InventoryItem.IsInteractionAvailable}\index{IsInventoryInteractionAvailable}%
@@ -15953,7 +15981,7 @@ will place the mouse cursor in the centre of the screen.
 \it{See Also:} \helprefn{Mouse.SetBounds}{Mouse.SetBounds}
 
 
-\subsection{Speed property (mouse)}\label{Mouse.Speed}\index{Mouse.Speed}\index{Speed}%
+\subsection{Speed property (mouse)}\label{Mouse.Speed}\index{Mouse.Speed}%
 
 \begin{verbatim}
 static float Mouse.Speed;
@@ -16581,7 +16609,7 @@ will change table's "description" property.
 
 \it{Compatibility:} Supported by \bf{AGS 3.4.0} and later versions.
 
-\it{See Also:} \helprefn{Object.SetTextProperty}{Object.SetTextProperty}
+\it{See Also:} \helprefn{Object.SetProperty}{Object.SetProperty}
 
 
 \subsection{IsCollidingWithObject (object)}\label{Object.IsCollidingWithObject}\index{Object.IsCollidingWithObject}\index{AreObjectsColliding}%
@@ -16765,9 +16793,9 @@ This will give the lamp maximal individual brightness.
 
 \it{Compatibility:} Supported by \bf{AGS 3.4.0} and later versions.
 
-\it{See Also:} \helprefn{Object.Tint}{Object.Tint}
-\helprefn{SetAmbientLightLevel}{SetAmbientLightLevel}
-\helprefn{Character.SetLightLevel}{Character.SetLightLevel}
+\it{See Also:} \helprefn{Object.Tint}{Object.Tint},
+\helprefn{SetAmbientLightLevel}{SetAmbientLightLevel},
+\helprefn{Character.SetLightLevel}{Character.SetLightLevel},
 \helprefn{Region.LightLevel}{Region.LightLevel}
 
 
@@ -17841,7 +17869,8 @@ will set region 2's RGB tint to (180, 20, 20) with 50\verb$%$ opacity.
 
 \it{Compatibility:} Optional \it{luminance} parameter is supported only by \bf{AGS 3.4.0} and later versions.
 
-\it{See Also:} \helprefn{Region.LightLevel}{Region.LightLevel}
+\it{See Also:} \helprefn{Region.LightLevel}{Region.LightLevel},
+\helprefn{SetAmbientTint}{SetAmbientTint}
 
 
 
@@ -17923,9 +17952,9 @@ if (GetGlobalInt(10)==1)
 \end{verbatim}
 will set region 2's level light to 100 if the Global Integer 10 is 1.
 
-\it{See Also:} \helprefn{Region.Tint}{Region.Tint}
-\helprefn{SetAmbientLightLevel}{SetAmbientLightLevel}
-\helprefn{Character.SetLightLevel}{Character.SetLightLevel}
+\it{See Also:} \helprefn{Region.Tint}{Region.Tint},
+\helprefn{SetAmbientLightLevel}{SetAmbientLightLevel},
+\helprefn{Character.SetLightLevel}{Character.SetLightLevel},
 \helprefn{Object.SetLightLevel}{Object.SetLightLevel}
 
 
@@ -18315,7 +18344,7 @@ will change room's "description" property.
 
 \it{Compatibility:} Supported by \bf{AGS 3.4.0} and later versions.
 
-\it{See Also:} \helprefn{Room.SetTextProperty}{Room.SetTextProperty}
+\it{See Also:} \helprefn{Room.SetProperty}{Room.SetProperty}
 
 
 \subsection{GetScalingAt}\label{GetScalingAt}%
@@ -18457,8 +18486,6 @@ prepended to them). Usually these are eModeWalkto, eModeLookat, etc.
 Room.ProcessClick(100, 50, eModeLookat);
 \end{verbatim}
 will simulate a click in the Look mode on co-ordinates (100, 50).
-
-\it{Compatibility:} Supported by \bf{AGS 3.4.0} and later versions.
 
 \it{See Also:} \helprefn{GUI.ProcessClick}{GUI.ProcessClick},
 \helprefn{Mouse.Click}{Mouse.Click},
@@ -20074,7 +20101,7 @@ function on_key_press(eKeyCode keycode) {
 
 \it{Compatibility:} Supported by \bf{AGS 3.4.0} and later versions.
 
-\it{See Also:} \helprefn{Debug}{Debug},
+\it{See Also:} \helprefn{Debug}{Debug}
 
 
 \subsection{ScreenHeight property}\label{System.ScreenHeight}\index{System.ScreenHeight}%

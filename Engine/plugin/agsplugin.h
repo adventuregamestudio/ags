@@ -82,6 +82,8 @@ typedef int HWND;
 // MASK_REGIONS is interface version 11 and above only
 #define MASK_REGIONS    4
 
+#define PLUGIN_FILENAME_MAX (49)
+
 // **** WARNING: DO NOT ALTER THESE CLASSES IN ANY WAY!
 // **** CHANGING THE ORDER OF THE FUNCTIONS OR ADDING ANY VARIABLES
 // **** WILL CRASH THE SYSTEM.
@@ -585,7 +587,7 @@ void pl_read_plugins_from_disk (Common::Stream *in);
 //  Initial implementation for apps to register their own inbuilt plugins
 
 struct InbuiltPluginDetails {
-    char      filename[50];
+    char      filename[PLUGIN_FILENAME_MAX+1];
     void      (*engineStartup) (IAGSEngine *);
     void      (*engineShutdown) ();
     int       (*onEvent) (int, int);
@@ -594,6 +596,6 @@ struct InbuiltPluginDetails {
 };
 
 // Register a builtin plugin.
-int pl_register_builtin_plugin(InbuiltPluginDetails details);
+int pl_register_builtin_plugin(InbuiltPluginDetails const &details);
 
 #endif

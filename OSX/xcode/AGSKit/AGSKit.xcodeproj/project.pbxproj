@@ -601,7 +601,6 @@
 		521C562F1D1E579300BD619E /* alogg.h in Headers */ = {isa = PBXBuildFile; fileRef = 521C556E1D1E579300BD619E /* alogg.h */; };
 		521C56301D1E579300BD619E /* aloggdll.h in Headers */ = {isa = PBXBuildFile; fileRef = 521C556F1D1E579300BD619E /* aloggdll.h */; };
 		521C56311D1E579300BD619E /* apeg.h in Headers */ = {isa = PBXBuildFile; fileRef = 521C55701D1E579300BD619E /* apeg.h */; };
-		521C56321D1E579300BD619E /* bealleg.h in Headers */ = {isa = PBXBuildFile; fileRef = 521C55711D1E579300BD619E /* bealleg.h */; };
 		521C56331D1E579300BD619E /* common.h in Headers */ = {isa = PBXBuildFile; fileRef = 521C55721D1E579300BD619E /* common.h */; };
 		521C56351D1E579300BD619E /* genre.h in Headers */ = {isa = PBXBuildFile; fileRef = 521C55741D1E579300BD619E /* genre.h */; };
 		521C56361D1E579300BD619E /* getbits.h in Headers */ = {isa = PBXBuildFile; fileRef = 521C55751D1E579300BD619E /* getbits.h */; };
@@ -1299,7 +1298,6 @@
 		521C556E1D1E579300BD619E /* alogg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = alogg.h; sourceTree = "<group>"; };
 		521C556F1D1E579300BD619E /* aloggdll.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aloggdll.h; sourceTree = "<group>"; };
 		521C55701D1E579300BD619E /* apeg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = apeg.h; sourceTree = "<group>"; };
-		521C55711D1E579300BD619E /* bealleg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bealleg.h; sourceTree = "<group>"; };
 		521C55721D1E579300BD619E /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
 		521C55741D1E579300BD619E /* genre.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = genre.h; sourceTree = "<group>"; };
 		521C55751D1E579300BD619E /* getbits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = getbits.h; sourceTree = "<group>"; };
@@ -2453,7 +2451,6 @@
 				521C556E1D1E579300BD619E /* alogg.h */,
 				521C556F1D1E579300BD619E /* aloggdll.h */,
 				521C55701D1E579300BD619E /* apeg.h */,
-				521C55711D1E579300BD619E /* bealleg.h */,
 				521C55721D1E579300BD619E /* common.h */,
 				521C55741D1E579300BD619E /* genre.h */,
 				521C55751D1E579300BD619E /* getbits.h */,
@@ -2861,7 +2858,6 @@
 				521C53501D1E570D00BD619E /* mytextbox.h in Headers */,
 				521C52BB1D1E570D00BD619E /* guicontrol.h in Headers */,
 				521C531B1D1E570D00BD619E /* filebasedagsdebugger.h in Headers */,
-				521C56321D1E579300BD619E /* bealleg.h in Headers */,
 				521C52DC1D1E570D00BD619E /* properties.h in Headers */,
 				521C56851D1E579300BD619E /* string.h in Headers */,
 				521C55D81D1E579300BD619E /* animationstruct.h in Headers */,

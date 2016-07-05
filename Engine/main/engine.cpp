@@ -1530,6 +1530,10 @@ int initialize_engine(int argc,char*argv[])
 
     SetMultitasking(0);
 
+    // [ER] 2014-03-13
+    // Hide the system cursor via allegro
+    show_os_cursor(MOUSE_CURSOR_NONE);
+    
     // If auto lock option is set, lock mouse to the game window
     if (usetup.mouse_auto_lock && usetup.windowed)
         Mouse::TryLockToWindow();

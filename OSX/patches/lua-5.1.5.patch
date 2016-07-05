@@ -24,38 +24,3 @@ diff -ur lua-5.1.5/src/Makefile lua-5.1.5-patched/src/Makefile
  
  clean:
  	$(RM) $(ALL_T) $(ALL_O)
-Only in lua-5.1.5-patched/src: lapi.o
-Only in lua-5.1.5-patched/src: lauxlib.o
-Only in lua-5.1.5-patched/src: lbaselib.o
-Only in lua-5.1.5-patched/src: lcode.o
-Only in lua-5.1.5-patched/src: ldblib.o
-Only in lua-5.1.5-patched/src: ldebug.o
-Only in lua-5.1.5-patched/src: ldo.o
-Only in lua-5.1.5-patched/src: ldump.o
-Only in lua-5.1.5-patched/src: lfunc.o
-Only in lua-5.1.5-patched/src: lgc.o
-Only in lua-5.1.5-patched/src: liblua.a
-Only in lua-5.1.5-patched/src: linit.o
-Only in lua-5.1.5-patched/src: liolib.o
-Only in lua-5.1.5-patched/src: llex.o
-Only in lua-5.1.5-patched/src: lmathlib.o
-Only in lua-5.1.5-patched/src: lmem.o
-Only in lua-5.1.5-patched/src: loadlib.o
-Only in lua-5.1.5-patched/src: lobject.o
-Only in lua-5.1.5-patched/src: lopcodes.o
-Only in lua-5.1.5-patched/src: loslib.o
-Only in lua-5.1.5-patched/src: lparser.o
-Only in lua-5.1.5-patched/src: lstate.o
-Only in lua-5.1.5-patched/src: lstring.o
-Only in lua-5.1.5-patched/src: lstrlib.o
-Only in lua-5.1.5-patched/src: ltable.o
-Only in lua-5.1.5-patched/src: ltablib.o
-Only in lua-5.1.5-patched/src: ltm.o
-Only in lua-5.1.5-patched/src: lua
-Only in lua-5.1.5-patched/src: lua.o
-Only in lua-5.1.5-patched/src: luac
-Only in lua-5.1.5-patched/src: luac.o
-Only in lua-5.1.5-patched/src: lundump.o
-Only in lua-5.1.5-patched/src: lvm.o
-Only in lua-5.1.5-patched/src: lzio.o
-Only in lua-5.1.5-patched/src: print.o

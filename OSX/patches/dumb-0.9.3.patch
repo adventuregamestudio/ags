@@ -26,8 +26,4 @@ diff -rNu dumb-0.9.3-orig/Makefile.rdy dumb-0.9.3/Makefile.rdy
  
  LDFLAGS := -s
  
-Binary files dumb-0.9.3-orig/lib/unix/libaldmb.a and dumb-0.9.3/lib/unix/libaldmb.a differ
-Binary files dumb-0.9.3-orig/lib/unix/libaldmd.a and dumb-0.9.3/lib/unix/libaldmd.a differ
-Binary files dumb-0.9.3-orig/lib/unix/libdumb.a and dumb-0.9.3/lib/unix/libdumb.a differ
-Binary files dumb-0.9.3-orig/lib/unix/libdumbd.a and dumb-0.9.3/lib/unix/libdumbd.a differ
 diff -rNu dumb-0.9.3-orig/make/config.txt dumb-0.9.3/make/config.txt

@@ -12,6 +12,8 @@
 //
 //=============================================================================
 
+#include <vector>
+
 #include "util/wgt2allg.h"
 #include "plugin/agsplugin.h"
 #include "gfx/ali3d.h"
@@ -72,7 +74,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 #endif // BUILTIN_PLUGINS
 
 #if defined(MAC_VERSION)
-extern char dataDirectory[512];
 extern char appDirectory[512];
 extern "C"
 {
@@ -130,7 +131,7 @@ extern ScriptString myScriptStringImpl;
 
 
 struct EnginePlugin {
-    char        filename[50];
+    char        filename[PLUGIN_FILENAME_MAX+1];
     AGS::Engine::Library   library;
     bool       available;
     char       *savedata;
@@ -158,6 +159,8 @@ struct EnginePlugin {
 EnginePlugin plugins[MAXPLUGINS];
 int numPlugins = 0;
 int pluginsWantingDebugHooks = 0;
+
+std::vector<InbuiltPluginDetails> _registered_builtin_plugins;
 
 void IAGSEngine::AbortGame (const char *reason) {
     quit ((char*)reason);
@@ -860,10 +863,15 @@ void pl_run_plugin_init_gfx_hooks (const char *driverName, void *data) {
     }
 }
 
+int pl_register_builtin_plugin(InbuiltPluginDetails const &details) {
+    _registered_builtin_plugins.push_back(details);
+    return 0;
+}
+
 bool pl_use_builtin_plugin(EnginePlugin* apl)
 {
 #if defined(BUILTIN_PLUGINS)
-    if (strncmp(apl->filename, "agsflashlight", strlen("agsflashlight")) == 0)
+    if (stricmp(apl->filename, "agsflashlight") == 0)
     {
         apl->engineStartup = agsflashlight::AGS_EngineStartup;
         apl->engineShutdown = agsflashlight::AGS_EngineShutdown;
@@ -874,7 +882,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
-    else if (strncmp(apl->filename, "agsblend", strlen("agsblend")) == 0)
+    else if (stricmp(apl->filename, "agsblend") == 0)
     {
         apl->engineStartup = agsblend::AGS_EngineStartup;
         apl->engineShutdown = agsblend::AGS_EngineShutdown;
@@ -885,7 +893,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
-    else if (strncmp(apl->filename, "ags_snowrain", strlen("ags_snowrain")) == 0)
+    else if (stricmp(apl->filename, "ags_snowrain") == 0)
     {
         apl->engineStartup = ags_snowrain::AGS_EngineStartup;
         apl->engineShutdown = ags_snowrain::AGS_EngineShutdown;
@@ -896,7 +904,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
-    else if (strncmp(apl->filename, "ags_parallax", strlen("ags_parallax")) == 0)
+    else if (stricmp(apl->filename, "ags_parallax") == 0)
     {
         apl->engineStartup = ags_parallax::AGS_EngineStartup;
         apl->engineShutdown = ags_parallax::AGS_EngineShutdown;
@@ -908,7 +916,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         return true;
     }
 #if defined(IOS_VERSION)
-    else if (strncmp(apl->filename, "agstouch", strlen("agstouch")) == 0)
+    else if (stricmp(apl->filename, "agstouch") == 0)
     {
         apl->engineStartup = agstouch::AGS_EngineStartup;
         apl->engineShutdown = agstouch::AGS_EngineShutdown;
@@ -922,6 +930,19 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
 #endif // IOS_VERSION
 #endif // BUILTIN_PLUGINS
 
+    for(std::vector<InbuiltPluginDetails>::iterator it = _registered_builtin_plugins.begin(); it != _registered_builtin_plugins.end(); ++it) {
+        if (stricmp(apl->filename, it->filename) == 0) {
+            apl->engineStartup = it->engineStartup;
+            apl->engineShutdown = it->engineShutdown;
+            apl->onEvent = it->onEvent;
+            apl->debugHook = it->debugHook;
+            apl->initGfxHook = it->initGfxHook;
+            apl->available = true;
+            apl->builtin = true;
+            return true;
+        }
+    }
+    
     AGS::Common::Out::FPrint("No built-in plugin found. Plugin loading failed!");
     return false;
 }
@@ -930,19 +951,20 @@ void pl_read_plugins_from_disk (Stream *in) {
     if (in->ReadInt32() != 1)
         quit("ERROR: unable to load game, invalid version of plugin data");
 
-    int a, datasize;
-    char buffer[200];
     numPlugins = in->ReadInt32();
 
     if (numPlugins > MAXPLUGINS)
         quit("Too many plugins used by this game");
 
-    for (a = 0; a < numPlugins; a++) {
+    for (int a = 0; a < numPlugins; a++) {
+        char pluginNameBuffer[200];
+        int datasize;
+        
         // read the plugin name
-        fgetstring (buffer, in);
+        fgetstring (pluginNameBuffer, in);
         datasize = in->ReadInt32();
 
-        if (buffer[strlen(buffer) - 1] == '!') {
+        if (pluginNameBuffer[strlen(pluginNameBuffer) - 1] == '!') {
             // editor-only plugin, ignore it
             in->Seek(Common::kSeekCurrent, datasize);
             a--;
@@ -956,26 +978,38 @@ void pl_read_plugins_from_disk (Stream *in) {
 
         // load the actual plugin from disk
         EnginePlugin *apl = &plugins[a];
-        strncpy(apl->filename, buffer, strlen(buffer) - strlen(".dll"));
-
+        
+        // remove extension (examples of extension could be .dll, .dylib, .so, .so.1, etc)
+        {
+            char *ext = strchr(pluginNameBuffer, '.');
+            if (ext) {
+                *ext = 0;
+            }
+        }
+        
+        if (strlen(pluginNameBuffer) > PLUGIN_FILENAME_MAX) {
+            quitprintf("Plugin '%s' is not a valid AGS plugin because the filename is invalid.", pluginNameBuffer);
+        }
+        
+        strncpy(apl->filename, pluginNameBuffer, PLUGIN_FILENAME_MAX+1);
+        
         // Compatibility with the old SnowRain module
-        if (stricmp(apl->filename, "ags_SnowRain20") == 0)
+        if (stricmp(apl->filename, "ags_SnowRain20") == 0) {
             strcpy(apl->filename, "ags_snowrain");
+        }
 
         if (apl->library.Load(apl->filename))
         {
           AGS::Common::Out::FPrint("Plugin loading succeeded, resolving imports...");
 
           if (apl->library.GetFunctionAddress("AGS_PluginV2") == NULL) {
-              sprintf(buffer, "Plugin '%s' is an old incompatible version.", apl->filename);
-              quit(buffer);
+              quitprintf("Plugin '%s' is an old incompatible version.", apl->filename);
           }
           apl->engineStartup = (void(*)(IAGSEngine*))apl->library.GetFunctionAddress("AGS_EngineStartup");
           apl->engineShutdown = (void(*)())apl->library.GetFunctionAddress("AGS_EngineShutdown");
 
           if (apl->engineStartup == NULL) {
-              sprintf(buffer, "Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename);
-              quit(buffer);
+              quitprintf("Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename);
           }
           apl->onEvent = (int(*)(int,int))apl->library.GetFunctionAddress("AGS_EngineOnEvent");
           apl->debugHook = (int(*)(const char*,int,int))apl->library.GetFunctionAddress("AGS_EngineDebugHook");
@@ -984,7 +1018,6 @@ void pl_read_plugins_from_disk (Stream *in) {
         else
         {
           AGS::Common::Out::FPrint("Plugin loading failed, trying built-in plugins...");
-          strlwr(apl->filename);
           if (!pl_use_builtin_plugin(apl))
           {
             // Plugin loading has failed at this point, try using built-in plugin function stubs

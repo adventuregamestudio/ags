@@ -82,6 +82,8 @@ typedef int HWND;
 // MASK_REGIONS is interface version 11 and above only
 #define MASK_REGIONS    4
 
+#define PLUGIN_FILENAME_MAX (49)
+
 // **** WARNING: DO NOT ALTER THESE CLASSES IN ANY WAY!
 // **** CHANGING THE ORDER OF THE FUNCTIONS OR ADDING ANY VARIABLES
 // **** WILL CRASH THE SYSTEM.
@@ -581,5 +583,19 @@ int  pl_run_plugin_hooks (int event, long data);
 void pl_run_plugin_init_gfx_hooks(const char *driverName, void *data);
 int  pl_run_plugin_debug_hooks (const char *scriptfile, int linenum);
 void pl_read_plugins_from_disk (Common::Stream *in);
+
+//  Initial implementation for apps to register their own inbuilt plugins
+
+struct InbuiltPluginDetails {
+    char      filename[PLUGIN_FILENAME_MAX+1];
+    void      (*engineStartup) (IAGSEngine *);
+    void      (*engineShutdown) ();
+    int       (*onEvent) (int, int);
+    void      (*initGfxHook) (const char *driverName, void *data);
+    int       (*debugHook) (const char * whichscript, int lineNumber, int reserved);
+};
+
+// Register a builtin plugin.
+int pl_register_builtin_plugin(InbuiltPluginDetails const &details);
 
 #endif

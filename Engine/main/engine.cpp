@@ -101,6 +101,8 @@ char *speech_file;
 
 Common::AssetError errcod;
 
+t_engine_pre_init_callback engine_pre_init_callback = 0;
+
 extern "C" HWND allegro_wnd;
 
 #define ALLEGRO_KEYBOARD_HANDLER
@@ -222,7 +224,7 @@ void engine_force_window()
 void init_game_file_name_from_cmdline()
 {
     game_file_name.Empty();
-#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
+#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(MAC_VERSION)
     game_file_name = psp_game_file_name;
 #else
     game_file_name = GetPathFromCmdArg(datafile_argv);
@@ -1394,6 +1396,10 @@ bool engine_do_config(int argc, char*argv[])
 
 int initialize_engine(int argc,char*argv[])
 {
+    if (engine_pre_init_callback) {
+        engine_pre_init_callback();
+    }
+    
     int res;
     if (!engine_init_allegro())
         return EXIT_NORMAL;
@@ -1524,6 +1530,10 @@ int initialize_engine(int argc,char*argv[])
 
     SetMultitasking(0);
 
+    // [ER] 2014-03-13
+    // Hide the system cursor via allegro
+    show_os_cursor(MOUSE_CURSOR_NONE);
+    
     // If auto lock option is set, lock mouse to the game window
     if (usetup.mouse_auto_lock && usetup.windowed)
         Mouse::TryLockToWindow();
@@ -1592,4 +1602,8 @@ int initialize_engine_with_exception_handling(int argc,char*argv[])
 
 const char *get_engine_version() {
     return EngineVersion.LongString.GetCStr();
+}
+
+void engine_set_pre_init_callback(t_engine_pre_init_callback callback) {
+    engine_pre_init_callback = callback;
 }

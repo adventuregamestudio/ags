@@ -685,7 +685,7 @@ bool engine_init_gfx_filters(Size &game_size, Size &screen_size, const int color
     {
         String filter_name;
         int scaling_factor;
-#if defined (WINDOWS_VERSION) || defined (LINUX_VERSION)
+#if (defined (WINDOWS_VERSION) || defined (LINUX_VERSION))
         scaling_factor = try_find_max_supported_uniform_scaling(game_size, screen_size, color_depth,
                             usetup.windowed, usetup.prefer_sideborders, usetup.prefer_letterbox);
         if (scaling_factor == 0)
@@ -865,8 +865,7 @@ void engine_prepare_screen()
     if (final_col_dep > 16) {
         // when we're using 32-bit colour, it converts hi-color images
         // the wrong way round - so fix that
-
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(PSP_VERSION)
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(PSP_VERSION) || defined(MAC_VERSION)
         _rgb_b_shift_16 = 0;
         _rgb_g_shift_16 = 5;
         _rgb_r_shift_16 = 11;

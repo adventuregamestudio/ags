@@ -541,7 +541,14 @@ int my_readkey() {
         else if (gott==346) gott=373;
     }
     else
-        gott = gott & 0x00ff;
+    {
+      gott = gott & 0x00ff;
+#if defined(MAC_VERSION)
+      if (scancode==KEY_BACKSPACE) {
+        gott = 8; //j backspace on mac
+      }
+#endif
+    }
 
     // Alt+X, abort (but only once game is loaded)
     if ((gott == play.abort_key) && (displayed_room >= 0)) {

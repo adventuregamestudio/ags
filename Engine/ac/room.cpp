@@ -82,7 +82,6 @@ extern RoomStatus*croom;
 extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
 extern int displayed_room;
 extern RoomObject*objs;
-extern roomstruct thisroom;
 extern ccInstance *roominst;
 extern AGSPlatformDriver *platform;
 extern int numevents;

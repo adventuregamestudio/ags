@@ -253,14 +253,6 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
     return soundClip;
 }
 
-void recache_queued_clips_after_loading_save_game()
-{
-    for (int i = 0; i < play.new_music_queue_size; i++)
-    {
-        play.new_music_queue[i].cachedClip = NULL;
-    }
-}
-
 void audio_update_polled_stuff()
 {
     play.crossfade_step++;

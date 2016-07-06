@@ -39,4 +39,7 @@ void get_overlay_position(int overlayidx, int *x, int *y);
 int  add_screen_overlay(int x,int y,int type,Common::Bitmap *piccy, bool alphaChannel = false);
 void remove_screen_overlay_index(int cc);
 
+extern int is_complete_overlay;
+extern int is_text_overlay;
+
 #endif // __AGS_EE_AC__OVERLAY_H

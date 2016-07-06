@@ -15,6 +15,20 @@
 #ifndef __AGS_EE_GAME__SAVEGAME_H
 #define __AGS_EE_GAME__SAVEGAME_H
 
+#if __cplusplus >= 201103L
+#include <memory>
+namespace stdtr1compat = std;
+#else
+#if defined (_MSC_VER)
+#include <memory>
+#elif defined (__GNUC__)
+#include <tr1/memory>
+#endif
+namespace stdtr1compat = std::tr1;
+#endif
+
+#include "ac/common_defines.h"
+#include "media/audio/audiodefines.h"
 #include "main/version.h"
 
 
@@ -53,6 +67,7 @@ enum SavegameError
     kSvgErr_FormatVersionNotSupported,
     kSvgErr_IncompatibleEngine,
     kSvgErr_DifferentColorDepth,
+    kSvgErr_GameObjectInitFailed,
     kNumSavegameError
 };
 
@@ -96,6 +111,38 @@ struct SavegameDescription
     
     String              UserText;
     ABitmap             UserImage;
+};
+
+// RestoredData keeps certain temporary data to help with
+// the restoration process
+struct RestoredData
+{
+    // Unserialized bitmaps for dynamic surfaces
+    std::vector<Bitmap*>    DynamicSurfaces;
+    // Scripts global data
+    struct ScriptData
+    {
+        stdtr1compat::shared_ptr<char> Data;
+        size_t              Len;
+
+        ScriptData();
+    };
+    ScriptData              GlobalScript;
+    std::vector<ScriptData> ScriptModules;
+    // Room data (has to be be preserved until room is loaded)
+    Bitmap                 *RoomBkgScene[MAX_BSCENE];
+    short                   RoomLightLevels[MAX_REGIONS];
+    int                     RoomTintLevels[MAX_REGIONS];
+    short                   RoomZoomLevels1[MAX_WALK_AREAS + 1];
+    short                   RoomZoomLevels2[MAX_WALK_AREAS + 1];
+    int                     RoomVolume;
+    // Mouse cursor parameters
+    int                     CursorID;
+    int                     CursorMode;
+    // Ambient sounds
+    int                     DoAmbient[MAX_SOUND_CHANNELS];
+
+    RestoredData();
 };
 
 

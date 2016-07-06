@@ -12,16 +12,39 @@
 //
 //=============================================================================
 
+#include "ac/character.h"
+#include "ac/common.h"
+#include "ac/draw.h"
+#include "ac/dynamicsprite.h"
+#include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/richgamemedia.h"
+#include "ac/gamestate.h"
 #include "ac/gamesetup.h"
+#include "ac/global_audio.h"
+#include "ac/global_character.h"
+#include "ac/gui.h"
+#include "ac/mouse.h"
+#include "ac/overlay.h"
+#include "ac/region.h"
+#include "ac/richgamemedia.h"
+#include "ac/room.h"
+#include "ac/roomstatus.h"
+#include "ac/spritecache.h"
+#include "ac/system.h"
+#include "debug/out.h"
+#include "device/mousew32.h"
 #include "gfx/bitmap.h"
+#include "gfx/ddb.h"
+#include "gfx/graphicsdriver.h"
 #include "game/savegame.h"
 #include "main/main.h"
 #include "main/version.h"
+#include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
+#include "script/script.h"
+#include "script/cc_error.h"
 #include "util/alignedstream.h"
 #include "util/file.h"
 #include "util/stream.h"
@@ -31,8 +54,12 @@ using namespace Common;
 using namespace Engine;
 
 // function is currently implemented in game.cpp
-AGS::Engine::SavegameError restore_game_data(Stream *in, SavegameVersion svg_version);
+AGS::Engine::SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, RestoredData &r_data);
 extern GameSetupStruct game;
+extern Bitmap **guibg;
+extern AGS::Engine::IDriverDependantBitmap **guibgbmp;
+extern AGS::Engine::IGraphicsDriver *gfxDriver;
+extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 
 namespace AGS
@@ -42,6 +69,24 @@ namespace Engine
 
 const String SavegameSource::Signature = "Adventure Game Studio saved game";
 
+
+RestoredData::ScriptData::ScriptData()
+    : Len(0)
+{
+}
+
+RestoredData::RestoredData()
+    : RoomVolume(0)
+    , CursorID(0)
+    , CursorMode(0)
+{
+    memset(RoomBkgScene, 0, sizeof(RoomBkgScene));
+    memset(RoomLightLevels, 0, sizeof(RoomLightLevels));
+    memset(RoomTintLevels, 0, sizeof(RoomTintLevels));
+    memset(RoomZoomLevels1, 0, sizeof(RoomZoomLevels1));
+    memset(RoomZoomLevels2, 0, sizeof(RoomZoomLevels2));
+    memset(DoAmbient, 0, sizeof(DoAmbient));
+}
 
 String GetSavegameErrorText(SavegameError err)
 {
@@ -56,9 +101,11 @@ String GetSavegameErrorText(SavegameError err)
     case kSvgErr_FormatVersionNotSupported:
         return "Save format version not supported";
     case kSvgErr_IncompatibleEngine:
-        return "Saved game was written by incompatible interpreter";
+        return "Save was written by incompatible engine, or file is corrupted";
     case kSvgErr_DifferentColorDepth:
         return "Saved with different colour depth";
+    case kSvgErr_GameObjectInitFailed:
+        return "Game object initialization failed after save restoration";
     }
     return "Unknown error";
 }
@@ -156,9 +203,225 @@ SavegameError OpenSavegame(const String &filename, SavegameDescription &desc, Sa
     return OpenSavegameBase(filename, NULL, &desc, elems);
 }
 
+// Prepares engine for actual save restore (stops processes, cleans up memory)
+void DoBeforeRestore(RestoredData &r_data)
+{
+    unload_old_room();
+    remove_screen_overlay(-1);
+    is_complete_overlay = 0;
+    is_text_overlay = 0;
+
+    // cleanup dynamic sprites
+    for (int i = 1; i < spriteset.elements; ++i)
+    {
+        if (game.spriteflags[i] & SPF_DYNAMICALLOC)
+        {
+            // do this early, so that it changing guibuts doesn't
+            // affect the restored data
+            free_dynamic_sprite(i);
+        }
+    }
+
+    // cleanup GUI backgrounds
+    for (int i = 0; i < game.numgui; ++i)
+    {
+        delete guibg[i];
+        guibg[i] = NULL;
+
+        if (guibgbmp[i])
+            gfxDriver->DestroyDDB(guibgbmp[i]);
+        guibgbmp[i] = NULL;
+    }
+
+    // preserve script data sizes and cleanup scripts
+    r_data.GlobalScript.Len = gameinst->globaldatasize;
+    delete gameinstFork;
+    delete gameinst;
+    gameinstFork = NULL;
+    gameinst = NULL;
+    r_data.ScriptModules.resize(numScriptModules);
+    for (int i = 0; i < numScriptModules; ++i)
+    {
+        r_data.ScriptModules[i].Len = moduleInst[i]->globaldatasize;
+        delete moduleInstFork[i];
+        delete moduleInst[i];
+        moduleInst[i] = NULL;
+    }
+
+    if (dialogScriptsInst != NULL)
+    {
+        delete dialogScriptsInst;
+        dialogScriptsInst = NULL;
+    }
+
+    resetRoomStatuses();
+    free_do_once_tokens();
+
+    // unregister gui controls from API exports
+    for (int i = 0; i < game.numgui; ++i)
+    {
+        unexport_gui_controls(i);
+    }
+
+    for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
+    {
+        stop_and_destroy_channel_ex(i, false);
+    }
+
+    clear_music_cache();
+}
+
+// Final processing after successfully restoring from save
+SavegameError DoAfterRestore(RestoredData &r_data)
+{
+    // recache queued clips
+    for (int i = 0; i < play.new_music_queue_size; ++i)
+    {
+        play.new_music_queue[i].cachedClip = NULL;
+    }
+
+    // restore these to the ones retrieved from the save game
+    const size_t dynsurf_num = Math::Min((size_t)MAX_DYNAMIC_SURFACES, r_data.DynamicSurfaces.size());
+    for (size_t i = 0; i < dynsurf_num; ++i)
+    {
+        dynamicallyCreatedSurfaces[i] = r_data.DynamicSurfaces[i];
+    }
+    r_data.DynamicSurfaces.clear();
+
+    if (create_global_script())
+    {
+        Out::FPrint("Restore game error: unable to recreate global script: %s", ccErrorString);
+        return kSvgErr_GameObjectInitFailed;
+    }
+
+    // read the global data into the newly created script
+    if (r_data.GlobalScript.Data.get())
+        memcpy(gameinst->globaldata, r_data.GlobalScript.Data.get(), r_data.GlobalScript.Len);
+
+    // restore the script module data
+    for (int i = 0; i < numScriptModules; ++i)
+    {
+        if (r_data.ScriptModules[i].Data.get())
+            memcpy(moduleInst[i]->globaldata, r_data.ScriptModules[i].Data.get(), r_data.ScriptModules[i].Len);
+    }
+
+    setup_player_character(game.playercharacter);
+
+    // Save some parameters to restore them after room load
+    int gstimer=play.gscript_timer;
+    int oldx1 = play.mboundx1, oldx2 = play.mboundx2;
+    int oldy1 = play.mboundy1, oldy2 = play.mboundy2;
+
+    // disable the queue momentarily
+    int queuedMusicSize = play.music_queue_size;
+    play.music_queue_size = 0;
+
+    update_polled_stuff_if_runtime();
+
+    // load the room the game was saved in
+    if (displayed_room >= 0)
+        load_new_room(displayed_room, NULL);
+
+    update_polled_stuff_if_runtime();
+
+    play.gscript_timer=gstimer;
+    // restore the correct room volume (they might have modified
+    // it with SetMusicVolume)
+    thisroom.options[ST_VOLUME] = r_data.RoomVolume;
+
+    Mouse::SetMoveLimit(Rect(oldx1, oldy1, oldx2, oldy2));
+
+    set_cursor_mode(r_data.CursorMode);
+    set_mouse_cursor(r_data.CursorID);
+    if (r_data.CursorMode == MODE_USE)
+        SetActiveInventory(playerchar->activeinv);
+    // ensure that the current cursor is locked
+    spriteset.precache(game.mcurs[r_data.CursorID].pic);
+
+#if (ALLEGRO_DATE > 19990103)
+    set_window_title(play.game_name);
+#endif
+
+    update_polled_stuff_if_runtime();
+
+    if (displayed_room >= 0)
+    {
+        for (int i = 0; i < MAX_BSCENE; ++i)
+        {
+            if (r_data.RoomBkgScene[i])
+            {
+                delete thisroom.ebscene[i];
+                thisroom.ebscene[i] = r_data.RoomBkgScene[i];
+            }
+        }
+
+        in_new_room=3;  // don't run "enters screen" events
+        // now that room has loaded, copy saved light levels in
+        memcpy(thisroom.regionLightLevel, r_data.RoomLightLevels, sizeof(short) * MAX_REGIONS);
+        memcpy(thisroom.regionTintLevel, r_data.RoomTintLevels, sizeof(int) * MAX_REGIONS);
+        generate_light_table();
+
+        memcpy(thisroom.walk_area_zoom, r_data.RoomZoomLevels1, sizeof(short) * (MAX_WALK_AREAS + 1));
+        memcpy(thisroom.walk_area_zoom2, r_data.RoomZoomLevels2, sizeof(short) * (MAX_WALK_AREAS + 1));
+
+        on_background_frame_change();
+    }
+
+    gui_disabled_style = convert_gui_disabled_style(game.options[OPT_DISABLEOFF]);
+
+    // restore the queue now that the music is playing
+    play.music_queue_size = queuedMusicSize;
+
+    if (play.digital_master_volume >= 0)
+        System_SetVolume(play.digital_master_volume);
+
+    for (int i = 1; i < MAX_SOUND_CHANNELS; ++i)
+    {
+        if (r_data.DoAmbient[i])
+            PlayAmbientSound(i, r_data.DoAmbient[i], ambient[i].vol, ambient[i].x, ambient[i].y);
+    }
+
+    for (int i = 0; i < game.numgui; ++i)
+    {
+        guibg[i] = BitmapHelper::CreateBitmap(guis[i].Width, guis[i].Height, ScreenResolution.ColorDepth);
+        guibg[i] = ReplaceBitmapWithSupportedFormat(guibg[i]);
+    }
+
+    if (gfxDriver->SupportsGammaControl())
+        gfxDriver->SetGamma(play.gamma_adjustment);
+
+    guis_need_update = 1;
+
+    play.ignore_user_input_until_time = 0;
+    update_polled_stuff_if_runtime();
+
+    platform->RunPluginHooks(AGSE_POSTRESTOREGAME, 0);
+
+    if (displayed_room < 0)
+    {
+        // the restart point, no room was loaded
+        load_new_room(playerchar->room, playerchar);
+        playerchar->prevroom = -1;
+
+        first_room_initialization();
+    }
+
+    if ((play.music_queue_size > 0) && (cachedQueuedMusic == NULL))
+    {
+        cachedQueuedMusic = load_music_from_disk(play.music_queue[0], 0);
+    }
+
+    return kSvgErr_NoError;
+}
+
 SavegameError RestoreGameState(Stream *in, SavegameVersion svg_version)
 {
-    return restore_game_data(in, svg_version);
+    RestoredData r_data;
+    DoBeforeRestore(r_data);
+    SavegameError err = restore_game_data(in, svg_version, r_data);
+    if (err != kSvgErr_NoError)
+        return err;
+    return DoAfterRestore(r_data);
 }
 
 void WriteSaveImage(Stream *out, const Bitmap *screenshot)

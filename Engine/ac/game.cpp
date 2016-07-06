@@ -1540,23 +1540,19 @@ void save_game(int slotn, const char*descript) {
 
 char rbuffer[200];
 
-SavegameError restore_game_head_dynamic_values(Stream *in, int &sg_cur_mode, int &sg_cur_cursor)
+SavegameError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
 {
     in->ReadInt32(); // gamescrnhit, was used to check display resolution
 
-	// CHECKME: is this still essential? if yes, is there possible workaround?
+    // CHECKME: is this still essential? if yes, is there possible workaround?
     if (in->ReadInt32() != ScreenResolution.ColorDepth) {
         Display("This game was saved with the engine running at a different colour depth. It cannot be restored.");
         return kSvgErr_DifferentColorDepth;
     }
 
-    unload_old_room();
-
-    remove_screen_overlay(-1);
-    is_complete_overlay=0; is_text_overlay=0;
     set_game_speed(in->ReadInt32());
-    sg_cur_mode=in->ReadInt32();
-    sg_cur_cursor=in->ReadInt32();
+    r_data.CursorMode = in->ReadInt32();
+    r_data.CursorID = in->ReadInt32();
     offsetx = in->ReadInt32();
     offsety = in->ReadInt32();
     loopcounter = in->ReadInt32();
@@ -1566,13 +1562,6 @@ SavegameError restore_game_head_dynamic_values(Stream *in, int &sg_cur_mode, int
 
 void restore_game_spriteset(Stream *in)
 {
-    for (int bb = 1; bb < spriteset.elements; bb++) {
-        if (game.spriteflags[bb] & SPF_DYNAMICALLOC) {
-            // do this early, so that it changing guibuts doesn't
-            // affect the restored data
-            free_dynamic_sprite(bb);
-        }
-    }
     // ensure the sprite set is at least as large as it was
     // when the game was saved
     spriteset.enlargeTo(in->ReadInt32());
@@ -1586,50 +1575,27 @@ void restore_game_spriteset(Stream *in)
     }
 }
 
-void restore_game_clean_gfx()
-{
-    for (int vv = 0; vv < game.numgui; vv++) {
-        delete guibg[vv];
-        guibg[vv] = NULL;
-
-        if (guibgbmp[vv])
-            gfxDriver->DestroyDDB(guibgbmp[vv]);
-        guibgbmp[vv] = NULL;
-    }
-}
-
-void restore_game_clean_scripts()
-{
-    delete gameinstFork;
-    delete gameinst;
-    gameinstFork = NULL;
-    gameinst = NULL;
-    for (int vv = 0; vv < numScriptModules; vv++) {
-        delete moduleInstFork[vv];
-        delete moduleInst[vv];
-        moduleInst[vv] = NULL;
-    }
-
-    if (dialogScriptsInst != NULL)
-    {
-        delete dialogScriptsInst;
-        dialogScriptsInst = NULL;
-    }
-}
-
-void restore_game_scripts(Stream *in, int &gdatasize, char **newglobaldatabuffer,
-                          std::vector<char *> &scriptModuleDataBuffers, std::vector<int> &scriptModuleDataSize)
+void restore_game_scripts(Stream *in, RestoredData &r_data)
 {
     // read the global script data segment
-    gdatasize = in->ReadInt32();
-    *newglobaldatabuffer = (char*)malloc(gdatasize);
-    in->Read(*newglobaldatabuffer, gdatasize);
+    int gdatasize = in->ReadInt32();
+
+    if (r_data.GlobalScript.Len != gdatasize)
+        quit("!Restore_game: Global script changed, cannot restore game");
+
+    r_data.GlobalScript.Data.reset(new char[gdatasize]);
+    in->Read(r_data.GlobalScript.Data.get(), gdatasize);
     if (in->ReadInt32() != numScriptModules)
         quit("wrong script module count; cannot restore game");
-    for (int vv = 0; vv < numScriptModules; vv++) {
-        scriptModuleDataSize[vv] = in->ReadInt32();
-        scriptModuleDataBuffers[vv] = (char*)malloc(scriptModuleDataSize[vv]);
-        in->Read(&scriptModuleDataBuffers[vv][0], scriptModuleDataSize[vv]);
+    for (int i = 0; i < numScriptModules; ++i)
+    {
+        size_t module_size = in->ReadInt32();
+
+        if (module_size != r_data.ScriptModules[i].Len)
+            quit("!Restore Game: script module global data changed, unable to restore");
+
+        r_data.ScriptModules[i].Data.reset(new char[module_size]);
+        in->Read(r_data.ScriptModules[i].Data.get(), module_size);
     }
 }
 
@@ -1644,9 +1610,6 @@ void restore_game_room_state(Stream *in)
     int vv;
 
     displayed_room = in->ReadInt32();
-
-    // now the rooms
-    resetRoomStatuses();
 
     // read the room state for all the rooms the player has been in
     RoomStatus* roomstat;
@@ -1704,8 +1667,6 @@ void restore_game_play(Stream *in)
     int roomchanges_was = play.room_changes;
     // make sure the pointer is preserved
     int *gui_draw_order_was = play.gui_draw_order;
-
-    free_do_once_tokens();
 
     ReadGameState_Aligned(in);
 
@@ -1785,8 +1746,6 @@ void ReadAnimatedButtons_Aligned(Stream *in)
 void restore_game_gui(Stream *in, int numGuisWas)
 {
     int vv;
-    for (vv = 0; vv < game.numgui; vv++)
-        unexport_gui_controls(vv);
 
     read_gui(in,guis,&game);
 
@@ -1811,26 +1770,17 @@ void restore_game_audiocliptypes(Stream *in)
     }
 }
 
-void restore_game_thisroom(Stream *in, short *saved_light_levels, int *saved_tint_levels,
-                           short *saved_zoom_levels1, short *saved_zoom_levels2)
+void restore_game_thisroom(Stream *in, RestoredData &r_data)
 {
-    in->ReadArrayOfInt16(&saved_light_levels[0],MAX_REGIONS);
-    in->ReadArrayOfInt32(&saved_tint_levels[0], MAX_REGIONS);
-    in->ReadArrayOfInt16(&saved_zoom_levels1[0],MAX_WALK_AREAS + 1);
-    in->ReadArrayOfInt16(&saved_zoom_levels2[0],MAX_WALK_AREAS + 1);
+    in->ReadArrayOfInt16(r_data.RoomLightLevels, MAX_REGIONS);
+    in->ReadArrayOfInt32(r_data.RoomTintLevels, MAX_REGIONS);
+    in->ReadArrayOfInt16(r_data.RoomZoomLevels1, MAX_WALK_AREAS + 1);
+    in->ReadArrayOfInt16(r_data.RoomZoomLevels2, MAX_WALK_AREAS + 1);
 }
 
-void restore_game_ambientsounds(Stream *in, int crossfadeInChannelWas, int crossfadeOutChannelWas,
-                                int *doAmbient)
+void restore_game_ambientsounds(Stream *in, RestoredData &r_data)
 {
     int bb;
-    for (bb = 0; bb <= MAX_SOUND_CHANNELS; bb++)
-    {
-        stop_and_destroy_channel_ex(bb, false);
-    }
-
-    play.crossfading_in_channel = crossfadeInChannelWas;
-    play.crossfading_out_channel = crossfadeOutChannelWas;
 
     for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
     {
@@ -1839,9 +1789,9 @@ void restore_game_ambientsounds(Stream *in, int crossfadeInChannelWas, int cross
 
     for (bb = 1; bb < MAX_SOUND_CHANNELS; bb++) {
         if (ambient[bb].channel == 0)
-            doAmbient[bb] = 0;
+            r_data.DoAmbient[bb] = 0;
         else {
-            doAmbient[bb] = ambient[bb].num;
+            r_data.DoAmbient[bb] = ambient[bb].num;
             ambient[bb].channel = 0;
         }
     }
@@ -1870,28 +1820,29 @@ void restore_game_overlays(Stream *in)
     }
 }
 
-void restore_game_dynamic_surfaces(Stream *in, Bitmap **dynamicallyCreatedSurfacesFromSaveGame)
+void restore_game_dynamic_surfaces(Stream *in, RestoredData &r_data)
 {
     // load into a temp array since ccUnserialiseObjects will destroy
     // it otherwise
-    for (int bb = 0; bb < MAX_DYNAMIC_SURFACES; bb++)
+    r_data.DynamicSurfaces.resize(MAX_DYNAMIC_SURFACES);
+    for (int i = 0; i < MAX_DYNAMIC_SURFACES; ++i)
     {
         if (in->ReadInt8() == 0)
         {
-            dynamicallyCreatedSurfacesFromSaveGame[bb] = NULL;
+            r_data.DynamicSurfaces[i] = NULL;
         }
         else
         {
-            dynamicallyCreatedSurfacesFromSaveGame[bb] = read_serialized_bitmap(in);
+            r_data.DynamicSurfaces[i] = read_serialized_bitmap(in);
         }
     }
 }
 
-void restore_game_displayed_room_status(Stream *in, Bitmap **newbscene)
+void restore_game_displayed_room_status(Stream *in, RestoredData &r_data)
 {
     int bb;
     for (bb = 0; bb < MAX_BSCENE; bb++)
-        newbscene[bb] = NULL;
+        r_data.RoomBkgScene[bb] = NULL;
 
     troom.FreeScriptData();
     troom.FreeProperties();
@@ -1899,9 +1850,9 @@ void restore_game_displayed_room_status(Stream *in, Bitmap **newbscene)
     if (displayed_room >= 0) {
 
         for (bb = 0; bb < MAX_BSCENE; bb++) {
-            newbscene[bb] = NULL;
+            r_data.RoomBkgScene[bb] = NULL;
             if (play.raw_modified[bb]) {
-                newbscene[bb] = read_serialized_bitmap (in);
+                r_data.RoomBkgScene[bb] = read_serialized_bitmap (in);
             }
         }
         bb = in->ReadInt32();
@@ -1951,13 +1902,17 @@ void restore_game_views(Stream *in)
     }
 }
 
-void restore_game_audioclips_and_crossfade(Stream *in, int crossfadeInChannelWas, int crossfadeOutChannelWas)
+void restore_game_audioclips_and_crossfade(Stream *in)
 {
     int bb;
 
     if (in->ReadInt32() != game.audioClipCount)
         quit("Game has changed: different audio clip count");
 
+    // these two crossfading parameters have to be reset before
+    // restarting audio clips on channels
+    const int cf_in_chan = play.crossfading_in_channel;
+    const int cf_out_chan = play.crossfading_out_channel;
     play.crossfading_in_channel = 0;
     play.crossfading_out_channel = 0;
     int channelPositions[MAX_SOUND_CHANNELS + 1];
@@ -1991,10 +1946,10 @@ void restore_game_audioclips_and_crossfade(Stream *in, int crossfadeInChannelWas
             }
         }
     }
-    if ((crossfadeInChannelWas > 0) && (channels[crossfadeInChannelWas] != NULL))
-        play.crossfading_in_channel = crossfadeInChannelWas;
-    if ((crossfadeOutChannelWas > 0) && (channels[crossfadeOutChannelWas] != NULL))
-        play.crossfading_out_channel = crossfadeOutChannelWas;
+    if ((cf_in_chan > 0) && (channels[cf_in_chan] != NULL))
+        play.crossfading_in_channel = cf_in_chan;
+    if ((cf_out_chan > 0) && (channels[cf_out_chan] != NULL))
+        play.crossfading_out_channel = cf_out_chan;
 
     // If there were synced audio tracks, the time taken to load in the
     // different channels will have thrown them out of sync, so re-time it
@@ -2011,33 +1966,19 @@ void restore_game_audioclips_and_crossfade(Stream *in, int crossfadeInChannelWas
     crossFadeVolumeAtStart = in->ReadInt32();
 }
 
-SavegameError restore_game_data(Stream *in, SavegameVersion svg_version)
+SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, RestoredData &r_data)
 {
-    int bb, vv;
+    int vv;
 
-    int sg_cur_mode = 0, sg_cur_cursor = 0;
-    SavegameError err = restore_game_head_dynamic_values(in, /*out*/ sg_cur_mode, sg_cur_cursor);
+    SavegameError err = restore_game_head_dynamic_values(in, r_data);
     if (err != kSvgErr_NoError)
         return err;
 
     restore_game_spriteset(in);
 
-    clear_music_cache();
-    restore_game_clean_gfx();
-
     update_polled_stuff_if_runtime();
 
-    restore_game_clean_scripts();
-
-    update_polled_stuff_if_runtime();
-
-    int gdatasize = 0;
-    char*newglobaldatabuffer;
-    std::vector<char *> scriptModuleDataBuffers;
-    std::vector<int> scriptModuleDataSize;
-    scriptModuleDataBuffers.resize(numScriptModules);
-    scriptModuleDataSize.resize(numScriptModules);
-    restore_game_scripts(in, /*out*/ gdatasize,&newglobaldatabuffer, scriptModuleDataBuffers, scriptModuleDataSize);
+    restore_game_scripts(in, r_data);
     restore_game_room_state(in);
 
     restore_game_play(in);
@@ -2085,36 +2026,25 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version)
     restore_game_gui(in, numGuisWas);
     restore_game_audiocliptypes(in);
 
-    short saved_light_levels[MAX_REGIONS];
-    int   saved_tint_levels[MAX_REGIONS];
-    short saved_zoom_levels1[MAX_WALK_AREAS + 1];
-    short saved_zoom_levels2[MAX_WALK_AREAS + 1];
-    restore_game_thisroom(in, saved_light_levels, saved_tint_levels, saved_zoom_levels1, saved_zoom_levels2);
+    restore_game_thisroom(in, r_data);
 
-    int crossfadeInChannelWas = play.crossfading_in_channel;
-    int crossfadeOutChannelWas = play.crossfading_out_channel;
-    int doAmbient[MAX_SOUND_CHANNELS];
-    restore_game_ambientsounds(in, crossfadeInChannelWas, crossfadeOutChannelWas, doAmbient);
+    restore_game_ambientsounds(in, r_data);
     restore_game_overlays(in);
 
     update_polled_stuff_if_runtime();
 
-    Bitmap *dynamicallyCreatedSurfacesFromSaveGame[MAX_DYNAMIC_SURFACES];
-    restore_game_dynamic_surfaces(in, dynamicallyCreatedSurfacesFromSaveGame);
+    restore_game_dynamic_surfaces(in, r_data);
 
     update_polled_stuff_if_runtime();
 
-    Bitmap *newbscene[MAX_BSCENE];
-    restore_game_displayed_room_status(in, newbscene);
+    restore_game_displayed_room_status(in, r_data);
     restore_game_globalvars(in);
     restore_game_views(in);
 
     if (in->ReadInt32() != MAGICNUMBER+1)
         quit("!Game has been modified since save; unable to restore (GV03)");
 
-    restore_game_audioclips_and_crossfade(in, crossfadeInChannelWas, crossfadeOutChannelWas);
-
-    recache_queued_clips_after_loading_save_game();
+    restore_game_audioclips_and_crossfade(in);
 
     // [IKM] Plugins expect FILE pointer! // TODO something with this later
     platform->RunPluginHooks(AGSE_RESTOREGAME, (long)((Common::FileStream*)in)->GetHandle());
@@ -2122,7 +2052,7 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version)
         quit("!One of the game plugins did not restore its game data correctly.");
 
     // save the new room music vol for later use
-    int newRoomVol = in->ReadInt32();
+    r_data.RoomVolume = in->ReadInt32();
 
     if (ccUnserializeAllObjects(in, &ccUnserializer))
         quitprintf("LoadGame: Error during deserialization: %s", ccErrorString);
@@ -2137,165 +2067,6 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version)
         {
             current_music_type = 0;
         }
-    }
-
-    // restore these to the ones retrieved from the save game
-    for (bb = 0; bb < MAX_DYNAMIC_SURFACES; bb++)
-    {
-        dynamicallyCreatedSurfaces[bb] = dynamicallyCreatedSurfacesFromSaveGame[bb];
-    }
-
-    if (create_global_script())
-        quitprintf("Unable to recreate global script: %s", ccErrorString);
-
-    if (gameinst->globaldatasize != gdatasize)
-        quit("!Restore_game: Global script changed, cannot restore game");
-
-    // read the global data into the newly created script
-    memcpy(&gameinst->globaldata[0], newglobaldatabuffer, gdatasize);
-    free(newglobaldatabuffer);
-
-    // restore the script module data
-    for (bb = 0; bb < numScriptModules; bb++) {
-        if (scriptModuleDataSize[bb] != moduleInst[bb]->globaldatasize)
-            quit("!Restore Game: script module global data changed, unable to restore");
-        memcpy(&moduleInst[bb]->globaldata[0], scriptModuleDataBuffers[bb], scriptModuleDataSize[bb]);
-        free(scriptModuleDataBuffers[bb]);
-    }
-
-
-    setup_player_character(game.playercharacter);
-
-    int gstimer=play.gscript_timer;
-    int oldx1 = play.mboundx1, oldx2 = play.mboundx2;
-    int oldy1 = play.mboundy1, oldy2 = play.mboundy2;
-    int musicWasRepeating = play.current_music_repeating;
-    int newms = play.cur_music_number;
-
-    // disable the queue momentarily
-    int queuedMusicSize = play.music_queue_size;
-    play.music_queue_size = 0;
-
-    update_polled_stuff_if_runtime();
-
-    if (displayed_room >= 0)
-        load_new_room(displayed_room,NULL);//&game.chars[game.playercharacter]);
-
-    update_polled_stuff_if_runtime();
-
-    play.gscript_timer=gstimer;
-
-    // restore the correct room volume (they might have modified
-    // it with SetMusicVolume)
-    thisroom.options[ST_VOLUME] = newRoomVol;
-
-    Mouse::SetMoveLimit(Rect(oldx1, oldy1, oldx2, oldy2));
-
-    set_cursor_mode(sg_cur_mode);
-    set_mouse_cursor(sg_cur_cursor);
-    if (sg_cur_mode == MODE_USE)
-        SetActiveInventory (playerchar->activeinv);
-    // ensure that the current cursor is locked
-    spriteset.precache(game.mcurs[sg_cur_cursor].pic);
-
-#if (ALLEGRO_DATE > 19990103)
-    set_window_title(play.game_name);
-#endif
-
-    update_polled_stuff_if_runtime();
-
-    if (displayed_room >= 0) {
-
-        for (bb = 0; bb < MAX_BSCENE; bb++) {
-            if (newbscene[bb]) {
-                delete thisroom.ebscene[bb];
-                thisroom.ebscene[bb] = newbscene[bb];
-            }
-        }
-
-        in_new_room=3;  // don't run "enters screen" events
-        // now that room has loaded, copy saved light levels in
-        memcpy(&thisroom.regionLightLevel[0],&saved_light_levels[0],sizeof(short)*MAX_REGIONS);
-        memcpy(&thisroom.regionTintLevel[0],&saved_tint_levels[0],sizeof(int)*MAX_REGIONS);
-        generate_light_table();
-
-        memcpy(&thisroom.walk_area_zoom[0], &saved_zoom_levels1[0], sizeof(short) * (MAX_WALK_AREAS + 1));
-        memcpy(&thisroom.walk_area_zoom2[0], &saved_zoom_levels2[0], sizeof(short) * (MAX_WALK_AREAS + 1));
-
-        on_background_frame_change();
-
-    }
-
-    gui_disabled_style = convert_gui_disabled_style(game.options[OPT_DISABLEOFF]);
-    /*
-    play_sound(-1);
-
-    stopmusic();
-    // use the repeat setting when the current track was started
-    int musicRepeatSetting = play.music_repeat;
-    SetMusicRepeat(musicWasRepeating);
-    if (newms>=0) {
-    // restart the background music
-    if (newms == 1000)
-    PlayMP3File (play.playmp3file_name);
-    else {
-    play.cur_music_number=2000;  // make sure it gets played
-    newmusic(newms);
-    }
-    }
-    SetMusicRepeat(musicRepeatSetting);
-    if (play.silent_midi)
-    PlaySilentMIDI (play.silent_midi);
-    SeekMIDIPosition(midipos);
-    //SeekMODPattern (modtrack);
-    //SeekMP3PosMillis (mp3mpos);
-
-    if (musicpos > 0) {
-    // For some reason, in Prodigal after this Seek line is called
-    // it can cause the next update_polled_mp3 to crash;
-    // must be some sort of bug in AllegroMP3
-    if ((crossFading > 0) && (channels[crossFading] != NULL))
-    channels[crossFading]->seek(musicpos);
-    else if (channels[SCHAN_MUSIC] != NULL)
-    channels[SCHAN_MUSIC]->seek(musicpos);
-    }*/
-
-    // restore the queue now that the music is playing
-    play.music_queue_size = queuedMusicSize;
-
-    if (play.digital_master_volume >= 0)
-        System_SetVolume(play.digital_master_volume);
-
-    for (vv = 1; vv < MAX_SOUND_CHANNELS; vv++) {
-        if (doAmbient[vv])
-            PlayAmbientSound(vv, doAmbient[vv], ambient[vv].vol, ambient[vv].x, ambient[vv].y);
-    }
-
-    for (vv = 0; vv < game.numgui; vv++) {
-        guibg[vv] = BitmapHelper::CreateBitmap (guis[vv].Width, guis[vv].Height, ScreenResolution.ColorDepth);
-        guibg[vv] = ReplaceBitmapWithSupportedFormat(guibg[vv]);
-    }
-
-    if (gfxDriver->SupportsGammaControl())
-        gfxDriver->SetGamma(play.gamma_adjustment);
-
-    guis_need_update = 1;
-
-    play.ignore_user_input_until_time = 0;
-    update_polled_stuff_if_runtime();
-
-    platform->RunPluginHooks(AGSE_POSTRESTOREGAME, 0);
-
-    if (displayed_room < 0) {
-        // the restart point, no room was loaded
-        load_new_room(playerchar->room, playerchar);
-        playerchar->prevroom = -1;
-
-        first_room_initialization();
-    }
-
-    if ((play.music_queue_size > 0) && (cachedQueuedMusic == NULL)) {
-        cachedQueuedMusic = load_music_from_disk(play.music_queue[0], 0);
     }
 
     return kSvgErr_NoError;
@@ -2376,18 +2147,17 @@ SavegameError load_game(const String &path, int slotNumber)
 
     // do the actual restore
     err = RestoreGameState(src.InputStream.get(), src.Version);
-    src.InputStream.reset();
-    our_eip = oldeip;
-
     if (err != kSvgErr_NoError)
         return err;
-
-    run_on_event (GE_RESTORE_GAME, RuntimeScriptValue().SetInt32(slotNumber));
+    src.InputStream.reset();
+    our_eip = oldeip;
 
     // ensure keyboard buffer is clean
     // use the raw versions rather than the rec_ versions so we don't
     // interfere with the replay sync
     while (keypressed()) readkey();
+    // call "After Restore" event callback
+    run_on_event(GE_RESTORE_GAME, RuntimeScriptValue().SetInt32(slotNumber));
     return kSvgErr_NoError;
 }
 

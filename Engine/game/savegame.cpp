@@ -112,6 +112,12 @@ String GetSavegameErrorText(SavegameError err)
         return "Save format version not supported";
     case kSvgErr_IncompatibleEngine:
         return "Save was written by incompatible engine, or file is corrupted";
+    case kSvgErr_InconsistentFormat:
+        return "Inconsistent format, or file is corrupted";
+    case kSvgErr_GameContentAssertion:
+        return "Saved content does not match current game";
+    case kSvgErr_InconsistentPlugin:
+        return "One of the game plugins did not restore its game data correctly.";
     case kSvgErr_DifferentColorDepth:
         return "Saved with different colour depth";
     case kSvgErr_GameObjectInitFailed:

@@ -1575,28 +1575,38 @@ void restore_game_spriteset(Stream *in)
     }
 }
 
-void restore_game_scripts(Stream *in, RestoredData &r_data)
+SavegameError restore_game_scripts(Stream *in, RestoredData &r_data)
 {
     // read the global script data segment
     int gdatasize = in->ReadInt32();
 
     if (r_data.GlobalScript.Len != gdatasize)
-        quit("!Restore_game: Global script changed, cannot restore game");
+    {
+        Out::FPrint("Restore game error: mismatching size of global script data");
+        return kSvgErr_GameContentAssertion;
+    }
 
     r_data.GlobalScript.Data.reset(new char[gdatasize]);
     in->Read(r_data.GlobalScript.Data.get(), gdatasize);
     if (in->ReadInt32() != numScriptModules)
-        quit("wrong script module count; cannot restore game");
+    {
+        Out::FPrint("Restore game error: mismatching number of script modules");
+        return kSvgErr_GameContentAssertion;
+    }
     for (int i = 0; i < numScriptModules; ++i)
     {
         size_t module_size = in->ReadInt32();
 
         if (module_size != r_data.ScriptModules[i].Len)
-            quit("!Restore Game: script module global data changed, unable to restore");
+        {
+            Out::FPrint("Restore game error: mismatching size of script module data, module %d", i);
+            return kSvgErr_GameContentAssertion;
+        }
 
         r_data.ScriptModules[i].Data.reset(new char[module_size]);
         in->Read(r_data.ScriptModules[i].Data.get(), module_size);
     }
+    return kSvgErr_NoError;
 }
 
 void ReadRoomStatus_Aligned(RoomStatus *roomstat, Stream *in)
@@ -1729,26 +1739,34 @@ void ReadAnimatedButtons_Aligned(Stream *in)
     }
 }
 
-void restore_game_gui(Stream *in, int numGuisWas)
+SavegameError restore_game_gui(Stream *in, int numGuisWas)
 {
     read_gui(in,guis,&game);
 
     if (numGuisWas != game.numgui)
-        quit("!Restore_Game: Game has changed (GUIs), unable to restore position");
+    {
+        Out::FPrint("Restore game error: mismatching number of GUI");
+        return kSvgErr_GameContentAssertion;
+    }
 
     numAnimButs = in->ReadInt32();
     ReadAnimatedButtons_Aligned(in);
+    return kSvgErr_NoError;
 }
 
-void restore_game_audiocliptypes(Stream *in)
+SavegameError restore_game_audiocliptypes(Stream *in)
 {
     if (in->ReadInt32() != game.audioClipTypeCount)
-        quit("!Restore_Game: game has changed (audio types), unable to restore");
+    {
+        Out::FPrint("Restore game error: mismatching number of Audio Clip Types");
+        return kSvgErr_GameContentAssertion;
+    }
 
     for (int i = 0; i < game.audioClipTypeCount; ++i)
     {
         game.audioClipTypes[i].ReadFromFile(in);
     }
+    return kSvgErr_NoError;
 }
 
 void restore_game_thisroom(Stream *in, RestoredData &r_data)
@@ -1847,21 +1865,28 @@ void restore_game_displayed_room_status(Stream *in, RestoredData &r_data)
     }
 }
 
-void restore_game_globalvars(Stream *in)
+SavegameError restore_game_globalvars(Stream *in)
 {
     if (in->ReadInt32() != numGlobalVars)
-        quit("!Game has been modified since save; unable to restore game (GM01)");
+    {
+        Out::FPrint("Restore game error: mismatching number of Global Variables");
+        return kSvgErr_GameContentAssertion;
+    }
 
     for (int i = 0; i < numGlobalVars; ++i)
     {
         globalvars[i].Read(in);
     }
+    return kSvgErr_NoError;
 }
 
-void restore_game_views(Stream *in)
+SavegameError restore_game_views(Stream *in)
 {
     if (in->ReadInt32() != game.numviews)
-        quit("!Game has been modified since save; unable to restore (GV02)");
+    {
+        Out::FPrint("Restore game error: mismatching number of Views");
+        return kSvgErr_GameContentAssertion;
+    }
 
     for (int bb = 0; bb < game.numviews; bb++) {
         for (int cc = 0; cc < views[bb].numLoops; cc++) {
@@ -1872,12 +1897,16 @@ void restore_game_views(Stream *in)
             }
         }
     }
+    return kSvgErr_NoError;
 }
 
-void restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_data)
+SavegameError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_data)
 {
     if (in->ReadInt32() != game.audioClipCount)
-        quit("Game has changed: different audio clip count");
+    {
+        Out::FPrint("Restore game error: mismatching number of Audio Clips");
+        return kSvgErr_GameContentAssertion;
+    }
 
     for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
     {
@@ -1887,7 +1916,10 @@ void restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_data)
         if (chan_info.ClipID >= 0)
         {
             if (chan_info.ClipID >= game.audioClipCount)
-                quit("save game error: invalid audio clip index");
+            {
+                Out::FPrint("Restore game error: invalid audio clip index");
+                return kSvgErr_GameObjectInitFailed;
+            }
 
             chan_info.Pos = in->ReadInt32();
             if (chan_info.Pos < 0)
@@ -1907,6 +1939,7 @@ void restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_data)
     crossFadeVolumePerStep = in->ReadInt32();
     crossFadeStep = in->ReadInt32();
     crossFadeVolumeAtStart = in->ReadInt32();
+    return kSvgErr_NoError;
 }
 
 SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, RestoredData &r_data)
@@ -1916,16 +1949,15 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, Restore
     SavegameError err = restore_game_head_dynamic_values(in, r_data);
     if (err != kSvgErr_NoError)
         return err;
-
     restore_game_spriteset(in);
 
     update_polled_stuff_if_runtime();
 
-    restore_game_scripts(in, r_data);
+    err = restore_game_scripts(in, r_data);
+    if (err != kSvgErr_NoError)
+        return err;
     restore_game_room_state(in);
-
     restore_game_play(in);
-
     ReadMoveList_Aligned(in);
 
     // save pointer members before reading
@@ -1944,11 +1976,25 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, Restore
     ReadGameSetupStructBase_Aligned(in);
 
     if (game.numdialog!=numdiwas)
-        quit("!Restore_Game: Game has changed (dlg), unable to restore");
-    if ((numchwas != game.numcharacters) || (numinvwas != game.numinvitems))
-        quit("!Restore_Game: Game has changed (inv), unable to restore position");
+    {
+        Out::FPrint("Restore game error: mismatching number of Dialogs");
+        return kSvgErr_GameContentAssertion;
+    }
+    if (numchwas != game.numcharacters)
+    {
+        Out::FPrint("Restore game error: mismatching number of Characters");
+        return kSvgErr_GameContentAssertion;
+    }
+    if (numinvwas != game.numinvitems)
+    {
+        Out::FPrint("Restore game error: mismatching number of Inventory Items");
+        return kSvgErr_GameContentAssertion;
+    }
     if (game.numviews != numviewswas)
-        quit("!Restore_Game: Game has changed (views), unable to restore position");
+    {
+        Out::FPrint("Restore game error: mismatching number of Views");
+        return kSvgErr_GameContentAssertion;
+    }
 
     game.ReadFromSaveGame_v321(in, gswas, compsc, chwas, olddict, mesbk);
 
@@ -1959,12 +2005,13 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, Restore
     restore_game_palette(in);
     restore_game_dialogs(in);
     restore_game_more_dynamic_values(in);
-
-    restore_game_gui(in, numGuisWas);
-    restore_game_audiocliptypes(in);
-
+    err = restore_game_gui(in, numGuisWas);
+    if (err != kSvgErr_NoError)
+        return err;
+    err = restore_game_audiocliptypes(in);
+    if (err != kSvgErr_NoError)
+        return err;
     restore_game_thisroom(in, r_data);
-
     restore_game_ambientsounds(in, r_data);
     restore_game_overlays(in);
 
@@ -1975,24 +2022,36 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, Restore
     update_polled_stuff_if_runtime();
 
     restore_game_displayed_room_status(in, r_data);
-    restore_game_globalvars(in);
-    restore_game_views(in);
+    err = restore_game_globalvars(in);
+    if (err != kSvgErr_NoError)
+        return err;
+    err = restore_game_views(in);
+    if (err != kSvgErr_NoError)
+        return err;
 
     if (in->ReadInt32() != MAGICNUMBER+1)
-        quit("!Game has been modified since save; unable to restore (GV03)");
+    {
+        Out::FPrint("Restore game error: MAGICNUMBER not found before Audio Clips");
+        return kSvgErr_InconsistentFormat;
+    }
 
-    restore_game_audioclips_and_crossfade(in, r_data);
+    err = restore_game_audioclips_and_crossfade(in, r_data);
+    if (err != kSvgErr_NoError)
+        return err;
 
     // [IKM] Plugins expect FILE pointer! // TODO something with this later
     platform->RunPluginHooks(AGSE_RESTOREGAME, (long)((Common::FileStream*)in)->GetHandle());
     if (in->ReadInt32() != (unsigned)MAGICNUMBER)
-        quit("!One of the game plugins did not restore its game data correctly.");
+        return kSvgErr_InconsistentPlugin;
 
     // save the new room music vol for later use
     r_data.RoomVolume = in->ReadInt32();
 
     if (ccUnserializeAllObjects(in, &ccUnserializer))
-        quitprintf("LoadGame: Error during deserialization: %s", ccErrorString);
+    {
+        Out::FPrint("Restore game error: managed pool deserialization failed: %s", ccErrorString);
+        return kSvgErr_GameObjectInitFailed;
+    }
 
     // preserve legacy music type setting
     current_music_type = in->ReadInt32();

@@ -66,6 +66,9 @@ enum SavegameError
     kSvgErr_SignatureFailed,
     kSvgErr_FormatVersionNotSupported,
     kSvgErr_IncompatibleEngine,
+    kSvgErr_InconsistentFormat,
+    kSvgErr_GameContentAssertion,
+    kSvgErr_InconsistentPlugin,
     kSvgErr_DifferentColorDepth,
     kSvgErr_GameObjectInitFailed,
     kNumSavegameError

@@ -93,7 +93,7 @@ void start_game_load_savegame_on_startup()
             sscanf(sgName, "agssave.%03d", &saveGameNumber);
         }
         current_fade_out_effect();
-        load_game_or_quit(loadSaveGameOnStartup, saveGameNumber);
+        try_restore_save(loadSaveGameOnStartup, saveGameNumber);
     }
 }
 

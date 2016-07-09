@@ -128,9 +128,10 @@ void save_game_data(Common::Stream *out);
 void save_game(int slotn, const char*descript);
 bool read_savedgame_description(const Common::String &savedgame, Common::String &description);
 bool read_savedgame_screenshot(const Common::String &savedgame, int &want_shot);
-bool load_game_and_print_error(int slot);
-bool load_game_or_quit(int slot);
-bool load_game_or_quit(const Common::String &path, int slot);
+// Tries to restore saved game and displays an error on failure; if the error occured
+// too late, when the game data was already overwritten, shuts engine down.
+bool try_restore_save(int slot);
+bool try_restore_save(const Common::String &path, int slot);
 void serialize_bitmap(const Common::Bitmap *thispic, Common::Stream *out);
 // On Windows we could just use IIDFromString but this is platform-independant
 void convert_guid_from_text_to_binary(const char *guidText, unsigned char *buffer);

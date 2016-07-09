@@ -453,7 +453,7 @@ void restore_game_dialog() {
     int toload=loadgamedialog();
     restore_after_dialog();
     if (toload>=0) {
-        load_game_and_print_error(toload);
+        try_restore_save(toload);
     }
 }
 
@@ -2096,8 +2096,9 @@ bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
     return true;
 }
 
-SavegameError load_game(const String &path, int slotNumber)
+SavegameError load_game(const String &path, int slotNumber, bool &data_overwritten)
 {
+    data_overwritten = false;
     gameHasBeenRestored++;
 
     oldeip = our_eip;
@@ -2134,6 +2135,7 @@ SavegameError load_game(const String &path, int slotNumber)
 
     // do the actual restore
     err = RestoreGameState(src.InputStream.get(), src.Version);
+    data_overwritten = true;
     if (err != kSvgErr_NoError)
         return err;
     src.InputStream.reset();
@@ -2148,33 +2150,25 @@ SavegameError load_game(const String &path, int slotNumber)
     return kSvgErr_NoError;
 }
 
-bool load_game_and_print_error(int slot)
+bool try_restore_save(int slot)
 {
-    SavegameError err = load_game(get_save_game_path(slot), slot);
-    if (err != kSvgErr_NoError)
-    {
-        // disable speech in case there are dynamic graphics that
-        // have been freed
-        int oldalways = game.options[OPT_ALWAYSSPCH];
-        game.options[OPT_ALWAYSSPCH] = 0;
-        Display("Unable to load game (error: %s).", GetSavegameErrorText(err).GetCStr());
-        game.options[OPT_ALWAYSSPCH] = oldalways;
-        return false;
-    }
-    return true;
+    return try_restore_save(get_save_game_path(slot), slot);
 }
 
-bool load_game_or_quit(int slot)
+bool try_restore_save(const Common::String &path, int slot)
 {
-    return load_game_or_quit(get_save_game_path(slot), slot);
-}
-
-bool load_game_or_quit(const Common::String &path, int slot)
-{
-    SavegameError err = load_game(path, slot);
+    bool data_overwritten;
+    SavegameError err = load_game(path, slot, data_overwritten);
     if (err != kSvgErr_NoError)
     {
-        quitprintf("Unable to restore game:\n%s", GetSavegameErrorText(err).GetCStr());
+        String error = String::FromFormat("Unable to restore game:\n%s", GetSavegameErrorText(err).GetCStr());
+        // currently AGS cannot properly revert to stable state if some of the
+        // game data was released or overwritten by the data from save file,
+        // this is why we tell engine to shutdown if that happened.
+        if (data_overwritten)
+            quitprintf(error);
+        else
+            Display(error);
         return false;
     }
     return true;

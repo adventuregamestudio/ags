@@ -106,7 +106,7 @@ void restart_game() {
         curscript->queue_action(ePSARestartGame, 0, "RestartGame");
         return;
     }
-    load_game_or_quit(RESTART_POINT_SAVE_GAME_NUMBER);
+    try_restore_save(RESTART_POINT_SAVE_GAME_NUMBER);
 }
 
 void RestoreGameSlot(int slnum) {
@@ -118,7 +118,7 @@ void RestoreGameSlot(int slnum) {
         curscript->queue_action(ePSARestoreGame, slnum, "RestoreGameSlot");
         return;
     }
-    load_game_and_print_error(slnum);
+    try_restore_save(slnum);
 }
 
 void DeleteSaveSlot (int slnum) {
@@ -292,7 +292,7 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     play.screen_is_faded_out = 1;
 
     if (load_new_game_restore >= 0) {
-        load_game_and_print_error(load_new_game_restore);
+        try_restore_save(load_new_game_restore);
         load_new_game_restore = -1;
     }
     else

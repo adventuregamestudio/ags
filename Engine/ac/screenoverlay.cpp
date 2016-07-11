@@ -20,6 +20,8 @@ using AGS::Common::Stream;
 void ScreenOverlay::ReadFromFile(Stream *in)
 {
     // Skipping bmp and pic pointer values
+    bmp = NULL;
+    pic = NULL;
     in->ReadInt32(); // bmp
     hasSerializedBitmap = in->ReadInt32() != 0;
     type = in->ReadInt32();

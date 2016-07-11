@@ -465,6 +465,8 @@ SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_da
         guibg[i] = ReplaceBitmapWithSupportedFormat(guibg[i]);
     }
 
+    recreate_overlay_ddbs();
+
     if (gfxDriver->SupportsGammaControl())
         gfxDriver->SetGamma(play.gamma_adjustment);
 

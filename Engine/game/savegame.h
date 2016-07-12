@@ -116,6 +116,9 @@ SavegameError  RestoreGameState(Stream *in, SavegameVersion svg_version);
 // Opens savegame for writing and puts in savegame description
 Stream        *StartSavegame(const String &filename, const String &desc, const Bitmap *image);
 
+// Prepares game for saving state and writes data into the save stream
+void           SaveGameState(Stream *out);
+
 } // namespace Engine
 } // namespace AGS
 

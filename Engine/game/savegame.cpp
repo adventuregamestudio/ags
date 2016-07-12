@@ -57,6 +57,8 @@ using namespace Engine;
 
 // function is currently implemented in game.cpp
 SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
+void save_game_data(Stream *out);
+
 extern GameSetupStruct game;
 extern Bitmap **guibg;
 extern AGS::Engine::IDriverDependantBitmap **guibgbmp;
@@ -64,6 +66,7 @@ extern AGS::Engine::IGraphicsDriver *gfxDriver;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern Bitmap *raw_saved_screen;
 extern RoomStatus troom;
+extern RoomStatus *croom;
 
 
 namespace AGS
@@ -580,6 +583,32 @@ Stream *StartSavegame(const String &filename, const String &desc, const Bitmap *
     StrUtil::WriteCStr(compat_version, out);
     StrUtil::WriteCStr(usetup.main_data_filename, out);
     return out;
+}
+
+void DoBeforeSave()
+{
+    if (play.cur_music_number >= 0)
+    {
+        if (IsMusicPlaying() == 0)
+            play.cur_music_number = -1;
+    }
+
+    if (displayed_room >= 0)
+    {
+        // update the current room script's data segment copy
+        if (roominst)
+            save_room_data_segment();
+
+        // Update the saved interaction variable values
+        for (int i = 0; i < thisroom.numLocalVars; ++i)
+            croom->interactionVariableValues[i] = thisroom.localvars[i].Value;
+    }
+}
+
+void SaveGameState(Stream *out)
+{
+    DoBeforeSave();
+    save_game_data(out);
 }
 
 } // namespace Engine

@@ -338,7 +338,7 @@ void start_recording() {
 
 void start_replay_record () {
     Stream *replay_s = Common::File::CreateFile(replayTempFile);
-    save_game_data(replay_s);
+    SaveGameState(replay_s);
     delete replay_s;
     start_recording();
     play.recording = 1;

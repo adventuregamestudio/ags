@@ -124,7 +124,6 @@ GameFileError load_game_file();
 void free_do_once_tokens();
 // Free all the memory associated with the game
 void unload_game_file();
-void save_game_data(Common::Stream *out);
 void save_game(int slotn, const char*descript);
 bool read_savedgame_description(const Common::String &savedgame, Common::String &description);
 bool read_savedgame_screenshot(const Common::String &savedgame, int &want_shot);

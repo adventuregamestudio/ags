@@ -1135,15 +1135,6 @@ void WriteRoomStatus_Aligned(RoomStatus *roomstat, Stream *out)
 void save_game_room_state(Stream *out)
 {
     out->WriteInt32(displayed_room);
-    if (displayed_room >= 0) {
-        // update the current room script's data segment copy
-        if (roominst!=NULL)
-            save_room_data_segment();
-
-        // Update the saved interaction variable values
-        for (int ff = 0; ff < thisroom.numLocalVars; ff++)
-            croom->interactionVariableValues[ff] = thisroom.localvars[ff].Value;
-    }
 
     // write the room state for all the rooms the player has been in
     RoomStatus* roomstat;
@@ -1384,11 +1375,6 @@ void save_game_data(Stream *out)
 
     update_polled_stuff_if_runtime();
 
-    if (play.cur_music_number >= 0) {
-        if (IsMusicPlaying() == 0)
-            play.cur_music_number = -1;
-    }
-
     //----------------------------------------------------------------
     WriteGameState_Aligned(out);
 
@@ -1516,7 +1502,7 @@ void save_game(int slotn, const char*descript) {
     update_polled_stuff_if_runtime();
 
     // Actual dynamic game data is saved here
-    save_game_data(out);
+    SaveGameState(out);
 
     if (screenShot != NULL)
     {

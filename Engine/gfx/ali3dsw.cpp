@@ -78,7 +78,7 @@ bool ALSoftwareGraphicsDriver::IsModeSupported(const DisplayMode &mode)
     set_allegro_error("Invalid resolution parameters: %d x %d x %d", mode.Width, mode.Height, mode.ColorDepth);
     return false;
   }
-#if defined(ANDROID_VERSION) || defined(PSP_VERSION) || defined(IOS_VERSION)
+#if defined(ANDROID_VERSION) || defined(PSP_VERSION) || defined(IOS_VERSION) || defined(MAC_VERSION)
   // Everything is drawn to a virtual screen, so all resolutions are supported.
   return true;
 #endif

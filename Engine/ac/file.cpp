@@ -231,7 +231,7 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
     // MACPORT FIX 9/6/5: changed from NULL TO '\0'
     gfname[ii] = '\0';
 /*    char useloc[250];
-#ifdef LINUX_VERSION
+#ifdef LINUX_VERSION || defined MAC_VERSION
     sprintf(useloc,"%s/%s",usetup.data_files_dir,gfname);
 #else
     sprintf(useloc,"%s\\%s",usetup.data_files_dir,gfname);

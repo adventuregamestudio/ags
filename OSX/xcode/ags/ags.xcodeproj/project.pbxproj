@@ -1,0 +1,376 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		523AB9711D27DA40002B98F0 /* AGSKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 523AB9701D27DA40002B98F0 /* AGSKit.framework */; };
+		52B8A6221D27785A00FA453F /* libz.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52B8A6141D27785A00FA453F /* libz.1.dylib */; };
+		52B8A6231D27785A00FA453F /* libbz2.1.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52B8A6151D27785A00FA453F /* libbz2.1.0.dylib */; };
+		52B8A6241D27785A00FA453F /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52B8A6161D27785A00FA453F /* CoreVideo.framework */; };
+		52B8A6251D27785A00FA453F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52B8A6171D27785A00FA453F /* Cocoa.framework */; };
+		52B8A6271D27785A00FA453F /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52B8A6191D27785A00FA453F /* IOKit.framework */; };
+		52B8A6281D27785A00FA453F /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52B8A61A1D27785A00FA453F /* CoreAudio.framework */; };
+		52B8A6291D27785A00FA453F /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52B8A61B1D27785A00FA453F /* AudioUnit.framework */; };
+		52B8A62A1D27785A00FA453F /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52B8A61C1D27785A00FA453F /* AppKit.framework */; };
+		52B8A62B1D27785A00FA453F /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52B8A61D1D27785A00FA453F /* OpenGL.framework */; };
+		52B8A62C1D27785A00FA453F /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52B8A61E1D27785A00FA453F /* AudioToolbox.framework */; };
+		52C5BFAE1D277B43001E3B10 /* ac2game.dat in Resources */ = {isa = PBXBuildFile; fileRef = 52C5BFAA1D277B43001E3B10 /* ac2game.dat */; };
+		52C5BFAF1D277B43001E3B10 /* acsetup.cfg in Resources */ = {isa = PBXBuildFile; fileRef = 52C5BFAB1D277B43001E3B10 /* acsetup.cfg */; };
+		52C5BFB01D277B43001E3B10 /* audio.vox in Resources */ = {isa = PBXBuildFile; fileRef = 52C5BFAC1D277B43001E3B10 /* audio.vox */; };
+		52C5BFB11D277B43001E3B10 /* speech.vox in Resources */ = {isa = PBXBuildFile; fileRef = 52C5BFAD1D277B43001E3B10 /* speech.vox */; };
+		52C5BFB41D277B98001E3B10 /* plugin_registration.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 52C5BFB21D277B98001E3B10 /* plugin_registration.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		DBCDB734180EDC2A00FF80B1 /* Copy Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Copy Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		1D6058910D05DD3D006BFB54 /* AGS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AGS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		32CA4F630368D1EE00C91783 /* ags_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ags_Prefix.pch; sourceTree = "<group>"; };
+		523AB9701D27DA40002B98F0 /* AGSKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = AGSKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		52B8A6141D27785A00FA453F /* libz.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.dylib; path = /usr/lib/libz.1.dylib; sourceTree = "<absolute>"; };
+		52B8A6151D27785A00FA453F /* libbz2.1.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libbz2.1.0.dylib; path = /usr/lib/libbz2.1.0.dylib; sourceTree = "<absolute>"; };
+		52B8A6161D27785A00FA453F /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/CoreVideo.framework; sourceTree = "<absolute>"; };
+		52B8A6171D27785A00FA453F /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		52B8A6181D27785A00FA453F /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/QuickTime.framework; sourceTree = "<absolute>"; };
+		52B8A6191D27785A00FA453F /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/IOKit.framework; sourceTree = "<absolute>"; };
+		52B8A61A1D27785A00FA453F /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
+		52B8A61B1D27785A00FA453F /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
+		52B8A61C1D27785A00FA453F /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
+		52B8A61D1D27785A00FA453F /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
+		52B8A61E1D27785A00FA453F /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
+		52C5BFAA1D277B43001E3B10 /* ac2game.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = ac2game.dat; path = game_files/ac2game.dat; sourceTree = "<group>"; };
+		52C5BFAB1D277B43001E3B10 /* acsetup.cfg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = acsetup.cfg; path = game_files/acsetup.cfg; sourceTree = "<group>"; };
+		52C5BFAC1D277B43001E3B10 /* audio.vox */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = audio.vox; path = game_files/audio.vox; sourceTree = "<group>"; };
+		52C5BFAD1D277B43001E3B10 /* speech.vox */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = speech.vox; path = game_files/speech.vox; sourceTree = "<group>"; };
+		52C5BFB21D277B98001E3B10 /* plugin_registration.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = plugin_registration.cpp; sourceTree = "<group>"; };
+		52C5BFB31D277B98001E3B10 /* plugin_registration.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = plugin_registration.hpp; sourceTree = "<group>"; };
+		52C5BFB51D277BDA001E3B10 /* agsplugin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = agsplugin.h; path = ../../../Engine/plugin/agsplugin.h; sourceTree = "<group>"; };
+		8D1107310486CEB800E47090 /* ags-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "ags-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1D60588F0D05DD3D006BFB54 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				52B8A6281D27785A00FA453F /* CoreAudio.framework in Frameworks */,
+				52B8A6231D27785A00FA453F /* libbz2.1.0.dylib in Frameworks */,
+				52B8A6271D27785A00FA453F /* IOKit.framework in Frameworks */,
+				52B8A62C1D27785A00FA453F /* AudioToolbox.framework in Frameworks */,
+				52B8A62B1D27785A00FA453F /* OpenGL.framework in Frameworks */,
+				52B8A6291D27785A00FA453F /* AudioUnit.framework in Frameworks */,
+				52B8A62A1D27785A00FA453F /* AppKit.framework in Frameworks */,
+				52B8A6251D27785A00FA453F /* Cocoa.framework in Frameworks */,
+				52B8A6221D27785A00FA453F /* libz.1.dylib in Frameworks */,
+				523AB9711D27DA40002B98F0 /* AGSKit.framework in Frameworks */,
+				52B8A6241D27785A00FA453F /* CoreVideo.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		080E96DDFE201D6D7F000001 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Classes;
+			sourceTree = "<group>";
+		};
+		19C28FACFE9D520D11CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1D6058910D05DD3D006BFB54 /* AGS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
+			isa = PBXGroup;
+			children = (
+				52C5BFB51D277BDA001E3B10 /* agsplugin.h */,
+				52C5BFB21D277B98001E3B10 /* plugin_registration.cpp */,
+				52C5BFB31D277B98001E3B10 /* plugin_registration.hpp */,
+				080E96DDFE201D6D7F000001 /* Classes */,
+				29B97315FDCFA39411CA2CEA /* Other Sources */,
+				29B97317FDCFA39411CA2CEA /* Resources */,
+				29B97323FDCFA39411CA2CEA /* Frameworks */,
+				19C28FACFE9D520D11CA2CBB /* Products */,
+			);
+			indentWidth = 2;
+			name = CustomTemplate;
+			sourceTree = "<group>";
+			tabWidth = 2;
+		};
+		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
+			isa = PBXGroup;
+			children = (
+				32CA4F630368D1EE00C91783 /* ags_Prefix.pch */,
+			);
+			name = "Other Sources";
+			sourceTree = "<group>";
+		};
+		29B97317FDCFA39411CA2CEA /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				8D1107310486CEB800E47090 /* ags-Info.plist */,
+				52C5BFAA1D277B43001E3B10 /* ac2game.dat */,
+				52C5BFAB1D277B43001E3B10 /* acsetup.cfg */,
+				52C5BFAC1D277B43001E3B10 /* audio.vox */,
+				52C5BFAD1D277B43001E3B10 /* speech.vox */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				523AB9701D27DA40002B98F0 /* AGSKit.framework */,
+				52B8A61F1D27785A00FA453F /* System Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		52B8A61F1D27785A00FA453F /* System Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				52B8A6141D27785A00FA453F /* libz.1.dylib */,
+				52B8A6151D27785A00FA453F /* libbz2.1.0.dylib */,
+				52B8A6161D27785A00FA453F /* CoreVideo.framework */,
+				52B8A6171D27785A00FA453F /* Cocoa.framework */,
+				52B8A6181D27785A00FA453F /* QuickTime.framework */,
+				52B8A6191D27785A00FA453F /* IOKit.framework */,
+				52B8A61A1D27785A00FA453F /* CoreAudio.framework */,
+				52B8A61B1D27785A00FA453F /* AudioUnit.framework */,
+				52B8A61C1D27785A00FA453F /* AppKit.framework */,
+				52B8A61D1D27785A00FA453F /* OpenGL.framework */,
+				52B8A61E1D27785A00FA453F /* AudioToolbox.framework */,
+			);
+			name = "System Frameworks";
+			path = ../../lib;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1D6058900D05DD3D006BFB54 /* ags */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1D6058960D05DD3E006BFB54 /* Build configuration list for PBXNativeTarget "ags" */;
+			buildPhases = (
+				1D60588D0D05DD3D006BFB54 /* Resources */,
+				1D60588E0D05DD3D006BFB54 /* Sources */,
+				1D60588F0D05DD3D006BFB54 /* Frameworks */,
+				DBCDB734180EDC2A00FF80B1 /* Copy Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ags;
+			productName = ags;
+			productReference = 1D6058910D05DD3D006BFB54 /* AGS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		29B97313FDCFA39411CA2CEA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0720;
+			};
+			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "ags" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+				en,
+				Base,
+			);
+			mainGroup = 29B97314FDCFA39411CA2CEA /* CustomTemplate */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1D6058900D05DD3D006BFB54 /* ags */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1D60588D0D05DD3D006BFB54 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				52C5BFAF1D277B43001E3B10 /* acsetup.cfg in Resources */,
+				52C5BFB11D277B43001E3B10 /* speech.vox in Resources */,
+				52C5BFB01D277B43001E3B10 /* audio.vox in Resources */,
+				52C5BFAE1D277B43001E3B10 /* ac2game.dat in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1D60588E0D05DD3D006BFB54 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				52C5BFB41D277B98001E3B10 /* plugin_registration.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1D6058940D05DD3E006BFB54 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = ags_Prefix.pch;
+				INFOPLIST_FILE = "ags-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "uk.co.adventuregamestudio.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = AGS;
+			};
+			name = Debug;
+		};
+		1D6058950D05DD3E006BFB54 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = ags_Prefix.pch;
+				INFOPLIST_FILE = "ags-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "uk.co.adventuregamestudio.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = AGS;
+			};
+			name = Release;
+		};
+		C01FCF4F08A954540054247B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++98";
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					DISABLE_MPEG_AUDIO,
+					AGS_INVERTED_COLOR_ORDER,
+					MAC_VERSION,
+					BUILTIN_PLUGINS,
+					DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		C01FCF5008A954540054247B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++98";
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					DISABLE_MPEG_AUDIO,
+					AGS_INVERTED_COLOR_ORDER,
+					MAC_VERSION,
+					BUILTIN_PLUGINS,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1D6058960D05DD3E006BFB54 /* Build configuration list for PBXNativeTarget "ags" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1D6058940D05DD3E006BFB54 /* Debug */,
+				1D6058950D05DD3E006BFB54 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C01FCF4E08A954540054247B /* Build configuration list for PBXProject "ags" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C01FCF4F08A954540054247B /* Debug */,
+				C01FCF5008A954540054247B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 29B97313FDCFA39411CA2CEA /* Project object */;
+}

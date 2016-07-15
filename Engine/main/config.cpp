@@ -342,6 +342,9 @@ void post_config()
 {
     if (usetup.gfxDriverID.IsEmpty())
         usetup.gfxDriverID = "DX5";
+
+    if (usetup.user_data_dir.GetLast() == '/' || usetup.user_data_dir.GetLast() == '\\')
+        usetup.user_data_dir.ClipRight(1);
 }
 
 void load_default_config_file(ConfigTree &cfg, const char *alt_cfg_file)

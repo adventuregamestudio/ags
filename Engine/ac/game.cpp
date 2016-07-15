@@ -376,7 +376,7 @@ String MakeSaveGameDir(const char *newFolder)
 
 bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
 {
-    String newSaveGameDir = explicit_path ? newFolder : MakeSaveGameDir(newFolder);
+    String newSaveGameDir = explicit_path ? String(newFolder) : MakeSaveGameDir(newFolder);
     if (newSaveGameDir.IsEmpty())
         return false;
 

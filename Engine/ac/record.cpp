@@ -100,7 +100,7 @@ int rec_getch () {
     }
     int result = my_readkey();
     if (play.recording) {
-        short buff[1] = {result};
+        short buff[1] = {static_cast<short>(result)};
         write_record_event (REC_GETCH, 1, buff);
     }
 
@@ -154,7 +154,7 @@ int rec_iskeypressed (int keycode) {
 
     if (play.recording) {
         if (toret != playback_keystate[keycode]) {
-            short buff[2] = {keycode, toret};
+            short buff[2] = {static_cast<short>(keycode), static_cast<short>(toret)};
             write_record_event (REC_KEYDOWN, 2, buff);
             playback_keystate[keycode] = toret;
         }
@@ -194,7 +194,7 @@ int rec_misbuttondown (int but) {
     int result = misbuttondown (but);
     if (play.recording) {
         if (result != recbutstate[but]) {
-            short buff[2] = {but, result};
+            short buff[2] = {static_cast<short>(but), static_cast<short>(result)};
             write_record_event (REC_MOUSEDOWN, 2, buff);
             recbutstate[but] = result;
         }
@@ -241,7 +241,7 @@ int rec_mgetbutton() {
 
     if (play.recording) {
         if (result >= 0) {
-            short buff[3] = {result, mousex, mousey};
+            short buff[3] = {static_cast<short>(result), static_cast<short>(mousex), static_cast<short>(mousey)};
             write_record_event (REC_MOUSECLICK, 3, buff);
         }
         if (loopcounter >= replay_last_second + 40) {
@@ -265,7 +265,7 @@ void rec_domouse (int what) {
             // don't divide down the co-ordinates, because we lose
             // the precision, and it might click the wrong thing
             // if eg. hi-res 71 -> 35 in record file -> 70 in playback
-            short buff[2] = {mousex, mousey};
+            short buff[2] = {static_cast<short>(mousex), static_cast<short>(mousey)};
             write_record_event (REC_MOUSEMOVE, 2, buff);
         }
         return;
@@ -309,7 +309,7 @@ int check_mouse_wheel () {
     }
 
     if ((play.recording) && (result)) {
-        short buff[1] = {result};
+        short buff[1] = {static_cast<short>(result)};
         write_record_event (REC_MOUSEWHEEL, 1, buff);
     }
 

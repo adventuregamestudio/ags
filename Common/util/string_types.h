@@ -15,16 +15,24 @@
 #define __AGS_CN_UTIL__STRINGTYPES_H
 
 #include <cctype>
+
+#if __cplusplus >= 201103L
+#include <functional>
+#include <unordered_map>
+namespace stdtr1compat = std;
+#else
 #if defined (_MSC_VER)
 #include <functional>
 #include <unordered_map>
-#elif defined (__GNUC__)
+#else
 #include <tr1/functional>
 #include <tr1/unordered_map>
 #endif
+namespace stdtr1compat = std::tr1;
+#endif
+
 #include <vector>
 #include "util/string.h"
-
 
 namespace FNV
 {
@@ -51,11 +59,13 @@ inline size_t Hash_LowerCase(const char *data, const size_t len)
 } // namespace FNV
 
 
+// A std::hash specialization for AGS String
 namespace std
 {
-namespace tr1 // TODO: change to std:: if moved to C++11
+#if __cplusplus < 201103L
+namespace tr1
 {
-// A std::hash specialization for AGS String
+#endif
 template<>
 struct hash<AGS::Common::String> : public unary_function<AGS::Common::String, size_t>
 {
@@ -64,8 +74,10 @@ struct hash<AGS::Common::String> : public unary_function<AGS::Common::String, si
         return FNV::Hash(key.GetCStr(), key.GetLength());
     }
 };
-} // namespace tr1
-} // namespace std
+#if __cplusplus < 201103L
+}
+#endif
+}
 
 
 namespace AGS
@@ -90,8 +102,8 @@ struct HashStrNoCase : public std::unary_function<String, size_t>
 };
 
 typedef std::vector<String> StringV;
-typedef std::tr1::unordered_map<String, String> StringMap;
-typedef std::tr1::unordered_map<String, String, HashStrNoCase, StrCmpNoCase> StringIMap;
+typedef stdtr1compat::unordered_map<String, String> StringMap;
+typedef stdtr1compat::unordered_map<String, String, HashStrNoCase, StrCmpNoCase> StringIMap;
 
 } // namespace Common
 } // namespace AGS

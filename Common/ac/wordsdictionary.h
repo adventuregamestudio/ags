@@ -33,7 +33,7 @@ struct WordsDictionary {
     int   find_index (const char *);
 };
 
-extern char *passwencstring;
+extern const char *passwencstring;
 
 extern void decrypt_text(char*toenc);
 extern void read_string_decrypt(Common::Stream *in, char *sss);

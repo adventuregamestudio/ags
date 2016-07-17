@@ -79,7 +79,7 @@ int WordsDictionary::find_index (const char*wrem) {
     return -1;
 }
 
-char *passwencstring = "Avis Durgan";
+const char *passwencstring = "Avis Durgan";
 
 void decrypt_text(char*toenc) {
   int adx = 0;

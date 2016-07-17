@@ -37,8 +37,8 @@ int waspossible = 1;
 int suggestx, suggesty;
 fixed move_speed_x, move_speed_y;
 
-extern void Display(char *, ...);
-extern void write_log(char *);
+extern void Display(const char *, ...);
+extern void write_log(const char *);
 extern void update_polled_stuff_if_runtime();
 
 extern MoveList *mls;

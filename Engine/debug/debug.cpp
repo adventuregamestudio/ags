@@ -154,7 +154,7 @@ void quitprintf(const char *texx, ...) {
     quit(displbuf);
 }
 
-void write_log(char*msg) {
+void write_log(const char*msg) {
     /*
     FILE*ooo=fopen("ac.log","at");
     fprintf(ooo,"%s\n",msg);

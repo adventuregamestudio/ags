@@ -2,25 +2,36 @@
 #define AgsName "Adventure Game Studio"
 #define AgsUrl "http://www.adventuregamestudio.co.uk/"
 #define VcRedistInstaller "vcredist_x86-9.0.30729.6161.exe"
-; requires AgsVersion to be passed in since innosetup is interested in 4 digit version numbers
+; requires following macros to be passed by command line:
+;   AgsVersion - 4 digit version number
+;   AgsFriendlyVersion - 3 digit 'user-friendly' version number
+;   AgsSpVersion - special version tag (can be empty)
+
+#if "" == AgsSpVersion
+#define AgsVerNameStr AgsName + ' ' + AgsFriendlyVersion
+#define AgsOutputFile 'AGS-' + AgsFriendlyVersion
+#else
+#define AgsVerNameStr AgsName + ' ' + AgsFriendlyVersion + ' ' + AgsSpVersion
+#define AgsOutputFile 'AGS-' + AgsFriendlyVersion + '-' + AgsSpVersion
+#endif 
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={#AgsAppId}
-AppName={#AgsName} {#AgsVersion}
-AppVersion={#AgsVersion}
-AppVerName={#AgsName} {#AgsVersion}
+AppName={#AgsName} {#AgsFriendlyVersion}
+AppVersion={#AgsFullVersion}
+AppVerName={#AgsVerNameStr}
 AppPublisher=AGS Project Team
 AppPublisherURL={#AgsUrl}
 AppSupportURL={#AgsUrl}
 AppUpdatesURL={#AgsUrl}
-DefaultDirName={pf}\{#AgsName} {#AgsVersion}
-DefaultGroupName={#AgsName} {#AgsVersion}
+DefaultDirName={pf}\{#AgsName} {#AgsFriendlyVersion}
+DefaultGroupName={#AgsVerNameStr}
 AllowNoIcons=yes
 LicenseFile=License.txt
-OutputBaseFilename=AGS-{#AgsVersion}
+OutputBaseFilename={#AgsOutputFile}
 Compression=lzma
 SolidCompression=yes
 ChangesAssociations=yes
@@ -84,8 +95,8 @@ Name: "{group}\AGS Manual"; Filename: "{app}\ags-help.chm"; Comment: "Online hel
 Name: "{group}\{cm:UninstallProgram,Adventure Game Studio}"; Filename: "{uninstallexe}"; Comment: ":~(  Ah well, nothing lasts forever. Turn off the light on your way out."
 Name: "{group}\Visit the AGS Website"; Filename: "{app}\Docs\AGS Website.url"; Comment: "See the latest AGS-related news. Find games to play."
 Name: "{group}\Visit the AGS Forums"; Filename: "{app}\Docs\AGS Forums.url"; Comment: "Join the madness! Come on down and party on the forums."
-Name: "{commondesktop}\AGS {#AgsVersion}"; Filename: "{app}\AGSEditor.exe"; Tasks: desktopicon
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\AGS {#AgsVersion}"; Filename: "{app}\AGSEditor.exe"; Tasks: quicklaunchicon
+Name: "{commondesktop}\AGS {#AgsFriendlyVersion}"; Filename: "{app}\AGSEditor.exe"; Tasks: desktopicon
+Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\AGS {#AgsFriendlyVersion}"; Filename: "{app}\AGSEditor.exe"; Tasks: quicklaunchicon
 
 
 [Registry]

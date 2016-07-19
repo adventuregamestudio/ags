@@ -29,7 +29,7 @@ def workspace_rel(path):
     return os.path.join(workspace_dir(), path)
 
 
-AgsVersion = namedtuple('AgsVersion', ['version', 'version_friendly', 'app_id'])
+AgsVersion = namedtuple('AgsVersion', ['version', 'version_friendly', 'version_sp', 'app_id'])
 
 def load_version(path):
     with open(path, "r") as f:
@@ -37,8 +37,9 @@ def load_version(path):
 
     version = (int(x) for x in j['version'].split('.'))
     version_friendly = (int(x) for x in j['versionFriendly'].split('.'))
+    version_sp = j['versionSp']
     app_id = j['appID']
-    return AgsVersion(version, version_friendly, app_id)
+    return AgsVersion(version, version_friendly, version_sp, app_id)
 
 
 def retry_rmtree(path):
@@ -124,14 +125,22 @@ def create_checksums(path):
     with file(path+".sha256", "w") as f:
         print("{0} {1}".format(hash_sha256.hexdigest(), os.path.basename(path)), file=f)
 
-def transfer_installer(output_path, staging_path, ver_str):
-    installer_src = workspace_rel("AGS-{0}.exe".format(ver_str))
-    installer_dest = os.path.join(output_path, "AGS-{0}.exe".format(ver_str))
+def package_name(ver_str, ver_sp):
+    if not ver_sp:
+        return "AGS-{0}".format(ver_str)
+    else:
+        return "AGS-{0}-{1}".format(ver_str, ver_sp)
+
+def transfer_installer(output_path, staging_path, ver_str, ver_sp):
+    
+    exe_name = "{0}.exe".format(package_name(ver_str, ver_sp))
+    installer_src = workspace_rel(exe_name)
+    installer_dest = os.path.join(output_path, exe_name)
     shutil.copy(installer_src, installer_dest)
     create_checksums(installer_dest)
 
 
-def build_ags_zip(output_path, staging_path, ver_str):
+def build_ags_zip(output_path, staging_path, ver_str, ver_sp):
 
     shutil.copytree(workspace_rel("Windows/Installer/Source/Docs"), os.path.join(staging_path,"Docs"))
 
@@ -142,25 +151,25 @@ def build_ags_zip(output_path, staging_path, ver_str):
 
     delete_pdbs (staging_path)
 
-    zip_path = os.path.join(output_path, "AGS-{0}.zip".format(ver_str))
+    zip_path = os.path.join(output_path, "{0}.zip".format(package_name(ver_str, ver_sp)))
     zip_from_dir(zip_path, staging_path)
 
     create_checksums(zip_path)
 
 
-def build_nomp3_zip(output_path, staging_path, ver_str):
+def build_nomp3_zip(output_path, staging_path, ver_str, ver_sp):
 
     extract_into(staging_path, workspace_rel("engine-no-mp3.zip"))
 
     delete_pdbs (staging_path)
 
-    zip_path = os.path.join(output_path, "AGS-{0}-noMP3.zip".format(ver_str))
+    zip_path = os.path.join(output_path, "{0}-noMP3.zip".format(package_name(ver_str, ver_sp)))
     zip_from_dir(zip_path, staging_path)
 
     create_checksums(zip_path)
 
 
-def build_pdb_zip(output_path, staging_path, ver_str):
+def build_pdb_zip(output_path, staging_path, ver_str, ver_sp):
 
     extract_into(staging_path, workspace_rel("editor.zip"))
     extract_into(staging_path, workspace_rel("engine.zip"))
@@ -168,7 +177,7 @@ def build_pdb_zip(output_path, staging_path, ver_str):
 
     only_pdbs(staging_path)
 
-    zip_path = os.path.join(output_path, "AGS-{0}-PDB.zip".format(ver_str))
+    zip_path = os.path.join(output_path, "{0}-PDB.zip".format(package_name(ver_str, ver_sp)))
     zip_from_dir(zip_path, staging_path)
 
     create_checksums(zip_path)
@@ -183,18 +192,19 @@ def main():
 
     version = load_version(workspace_rel("version.json"))
     ver_str = ".".join(str(x) for x in version.version_friendly)
+    ver_sp = version.version_sp
 
     staging_path = refresh_staging()
-    transfer_installer(output_path, staging_path, ver_str)
+    transfer_installer(output_path, staging_path, ver_str, ver_sp)
 
     staging_path = refresh_staging()
-    build_ags_zip(output_path, staging_path, ver_str)
+    build_ags_zip(output_path, staging_path, ver_str, ver_sp)
 
     staging_path = refresh_staging()
-    build_nomp3_zip(output_path, staging_path, ver_str)
+    build_nomp3_zip(output_path, staging_path, ver_str, ver_sp)
 
     staging_path = refresh_staging()
-    build_pdb_zip(output_path, staging_path, ver_str)
+    build_pdb_zip(output_path, staging_path, ver_str, ver_sp)
 
 
 

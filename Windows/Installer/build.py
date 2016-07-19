@@ -15,7 +15,7 @@ ISCC="C:/Program Files (x86)/Inno Setup 5/iscc.exe"
 SCRIPT_LOC=os.path.dirname(os.path.realpath(__file__))
 WORKSPACE_DIR=os.path.join(SCRIPT_LOC, "../..")
 
-AgsVersion = namedtuple('AgsVersion', ['version', 'version_friendly', 'app_id'])
+AgsVersion = namedtuple('AgsVersion', ['version', 'version_friendly', 'version_sp', 'app_id'])
 
 def main():
     docs_dir = workspace_rel("Windows/Installer/Source/Docs")
@@ -32,10 +32,12 @@ def main():
     if project_ver_check != editor_ver_check:
         raise Exception("Versions differ - editor:{0} version.json:{1}".format(editor_ver_check, project_ver_check))
 
-    project_ver_str = ".".join(project_ver.version_friendly)
+    project_titlever_str = ".".join(project_ver.version_friendly)
+    project_fullver_str = ".".join(project_ver.version)
+    project_spver_str = project_ver.version_sp
     project_app_id = ".".join(project_ver.app_id)
 
-    compile_installer("ags.iss", {"AgsVersion": project_ver_str, "AgsAppId": project_app_id})
+    compile_installer("ags.iss", {"AgsFriendlyVersion": project_titlever_str, "AgsFullVersion": project_fullver_str, "AgsSpVersion": project_spver_str, "AgsAppId": project_app_id})
 
 def workspace_rel(path):
     return os.path.join(workspace_dir(), path)
@@ -58,8 +60,9 @@ def load_project_version(path):
 
     version = j['version'].split('.')
     version_friendly = j['versionFriendly'].split('.')
+    version_sp = j['versionSp']
     app_id = j['appID']
-    return AgsVersion(version, version_friendly, app_id)
+    return AgsVersion(version, version_friendly, version_sp, app_id)
 
 def compile_installer(script, params):
     with dir_context(workspace_rel("Windows/Installer")):

@@ -46,7 +46,7 @@ public:
     Unload();
   };
 
-  AGS::Common::String BuildPath(char *path, AGS::Common::String libraryName)
+  AGS::Common::String BuildPath(const char *path, AGS::Common::String libraryName)
   {
     AGS::Common::String platformLibraryName = "";
     if (path)
@@ -87,9 +87,9 @@ public:
     if (_library == NULL)
     {
       // Try the engine directory
-      char buffer[200];
 
 #if defined (ANDROID_VERSION)
+      char buffer[200];
       sprintf(buffer, "%s%s", android_app_directory, "/lib");
       _library = dlopen(BuildPath(buffer, libraryName).GetCStr(), RTLD_LAZY);
 #else

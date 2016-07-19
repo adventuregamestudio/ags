@@ -114,7 +114,7 @@ int BaseColorDepth;
 bool reload_font(int curFont);
 void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, int scaleFactor);
 // this is to shut up the linker, it's used by CSRUN.CPP
-void write_log(char *) { }
+void write_log(const char *) { }
 
 void GUIInv::Draw(Common::Bitmap *ds) {
   color_t draw_color = ds->GetCompatibleColor(15);

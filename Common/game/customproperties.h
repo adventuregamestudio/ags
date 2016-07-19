@@ -25,11 +25,18 @@
 #ifndef __AGS_CN_GAME__CUSTOMPROPERTIES_H
 #define __AGS_CN_GAME__CUSTOMPROPERTIES_H
 
+#if __cplusplus >= 201103L
+#include <unordered_map>
+namespace stdtr1compat = std;
+#else
 #if defined (_MSC_VER)
 #include <unordered_map>
-#elif defined (__GNUC__)
+#else
 #include <tr1/unordered_map>
 #endif
+namespace stdtr1compat = std::tr1;
+#endif
+
 #include "util/string.h"
 #include "util/string_types.h"
 
@@ -84,7 +91,7 @@ struct PropertyDesc
 
 // NOTE: AGS has case-insensitive property IDs
 // Schema - a map of property descriptions
-typedef std::tr1::unordered_map<String, PropertyDesc, HashStrNoCase, StrCmpNoCase> PropertySchema;
+typedef stdtr1compat::unordered_map<String, PropertyDesc, HashStrNoCase, StrCmpNoCase> PropertySchema;
 
 
 namespace Properties

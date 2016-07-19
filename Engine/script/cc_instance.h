@@ -19,12 +19,19 @@
 #ifndef __CC_INSTANCE_H
 #define __CC_INSTANCE_H
 
+#if __cplusplus >= 201103L
+#include <unordered_map>
+namespace stdtr1compat = std;
+#else
 #if defined (_MSC_VER)
 #include <unordered_map>
-#elif defined (__GNUC__)
+#else
 #include <tr1/memory>
 #include <tr1/unordered_map>
 #endif
+namespace stdtr1compat = std::tr1;
+#endif
+
 #include "script/script_common.h"
 #include "script/cc_script.h"  // ccScript
 #include "script/nonblockingscriptfunction.h"
@@ -110,8 +117,8 @@ struct ccInstance
 {
 public:
     // TODO: change to std:: if moved to C++11
-    typedef std::tr1::unordered_map<int32_t, ScriptVariable> ScVarMap;
-    typedef std::tr1::shared_ptr<ScVarMap>                   PScVarMap;
+    typedef stdtr1compat::unordered_map<int32_t, ScriptVariable> ScVarMap;
+    typedef stdtr1compat::shared_ptr<ScVarMap>                   PScVarMap;
 public:
     int32_t flags;
     PScVarMap globalvars;

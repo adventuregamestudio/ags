@@ -33,7 +33,7 @@ def main():
         raise Exception("Versions differ - editor:{0} version.json:{1}".format(editor_ver_check, project_ver_check))
 
     project_ver_str = ".".join(project_ver.version_friendly)
-    project_app_id = ".".join(project_ver.app_id)
+    project_app_id = project_ver.app_id
 
     compile_installer("ags.iss", {"AgsVersion": project_ver_str, "AgsAppId": project_app_id})
 

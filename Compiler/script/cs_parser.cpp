@@ -450,6 +450,17 @@ int accept_literal_or_constant_value(int fromSym, int &theValue, bool isNegative
   return 0;
 }
 
+int check_not_eof(ccInternalList &targ) {
+  if (targ.peeknext() == SCODE_INVALID) {
+    // We are past the last symbol in the file
+    targ.getnext();
+    currentline = targ.lineAtEnd;
+    cc_error("Unexpected end of file");
+    return -1;
+  }
+  return 0;
+}
+
 int check_for_default_value(ccInternalList &targ, int funcsym, int numparams) {
 
     if (sym.get_type(targ.peeknext()) == SYM_ASSIGN) {
@@ -522,6 +533,8 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
   char functionName[MAX_SYM_LEN];
   strcpy(functionName, sym.get_name(funcsym));
 
+  if (check_not_eof(targ))
+    return -1;
   if (strcmp(sym.get_name(targ.peeknext()), "this") == 0)
   {
     // extender function, eg.  function GoAway(this Character *someone)
@@ -672,6 +685,8 @@ int process_function_declaration(ccInternalList &targ, ccCompiledScript*scrip,
 
       functype[strlen(functype)+1] = 0;
       functype[strlen(functype)] = (char)cursym;  // save variable type
+      if (check_not_eof(targ))
+        return -1;
       if (strcmp(sym.get_name(targ.peeknext()), "*") == 0) {
         // pointer
         sym.funcparamtypes[funcsym][numparams % 100] |= STYPE_POINTER;
@@ -1200,11 +1215,9 @@ long extract_variable_name(int fsym, ccInternalList*targ,long*slist, int *funcAt
         // include the member function params in the returned value
         int bdepth = 1;
         while (bdepth > 0) {
-          slist[sslen] = targ->getnext();
-          if (slist[sslen] == SCODE_INVALID) {
-            cc_error("unexpected eof");
+          if (check_not_eof(*targ))
             return -1;
-          }
+          slist[sslen] = targ->getnext();
           if (sslen >= TEMP_SYMLIST_LENGTH - 1)
           {
             cc_error("buffer exceeded: you probably have a missing closing bracket on a previous line");
@@ -3382,6 +3395,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     return -1;
                 }
 
+                if (check_not_eof(targ))
+                    return -1;
                 if (sym.flags[cursym] & SFLG_AUTOPTR) {
                     member_is_pointer = 1;
                 }
@@ -3627,13 +3642,11 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             int currentValue = 0;
 
             while (1) {
+                if (check_not_eof(targ))
+                    return -1;
                 int nextOne = targ.getnext();
 
-                if (nextOne == SCODE_INVALID) {
-                    cc_error("unexpected EOF");
-                    return -1;
-                }
-                else if (sym.get_type(nextOne) == SYM_CLOSEBRACE) {
+                if (sym.get_type(nextOne) == SYM_CLOSEBRACE) {
                     break;
                 }
                 else if (sym.get_type(nextOne) == 0) {
@@ -3828,6 +3841,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             bool isDynamicArray = 0;
             int loopCheckOff = 0;
 
+            if (check_not_eof(targ))
+                return -1;
             if (strcmp(sym.get_name(targ.peeknext()), "*") == 0) {
                 // only allow pointers to structs
                 if ((sym.flags[vtwas] & SFLG_STRUCTTYPE) == 0) {
@@ -3858,13 +3873,9 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
             }
 
 startvarbit:
-            cursym = targ.getnext();
-            if (cursym == SCODE_META) {
-                // eg. "int" was the last word in the file
-                currentline = targ.lineAtEnd;
-                cc_error("Unexpected end of file");
+            if (check_not_eof(targ))
                 return -1;
-            }
+            cursym = targ.getnext();
 
             int member_function_definition = 0;
             int structSym = 0;

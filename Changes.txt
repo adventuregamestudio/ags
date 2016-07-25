@@ -2,6 +2,10 @@ REVISION HISTORY
 ================
 VERSION 3.3.5 - Patch 4, July 2016
 
+Compiler:
+- Fixed crash occuring when there is an incomplete declaration in the end
+  of script.
+
 Engine:
 - Engine will fall back to using default system paths if it failed using
   user-defined custom save path for any reason.

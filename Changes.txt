@@ -149,7 +149,23 @@ WinSetup:
  - Added support for "default_translation_name" option in the "[language]"
    section of the config file.
 
+   
+VERSION 3.3.5 - Patch 4, July 2016
 
+Compiler:
+- Fixed crash occuring when there is an incomplete declaration in the end
+  of script.
+
+Engine:
+- Engine will fall back to using default system paths if it failed using
+  user-defined custom save path for any reason.
+- Fixed engine displaying same warning twice if the loaded game was compiled
+  for higher version of AGS.
+
+WinSetup:
+- Only let user choose actually existing folders for custom save paths.
+   
+   
 VERSION 3.3.5 - Patch 3, June 2016
 
 Engine:

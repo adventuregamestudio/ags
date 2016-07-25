@@ -349,15 +349,11 @@ String get_save_game_path(int slotNum) {
     return path;
 }
 
-String MakeSaveGameDir(const char *newFolder, bool allowAbsolute)
+// Convert a path possibly containing path tags into acceptable save path
+String MakeSaveGameDir(const char *newFolder)
 {
-    // if end-user specified custom save folder, use it instead
-    if (!usetup.user_data_dir.IsEmpty())
-        return String::FromFormat("%s/UserSaves", usetup.user_data_dir.GetCStr());
-
-    // don't allow them to go to another folder
-    bool is_path_absolute = !is_relative_filename(newFolder);
-    if (!allowAbsolute && is_path_absolute)
+    // don't allow absolute paths
+    if (!is_relative_filename(newFolder))
         return "";
 
     String newSaveGameDir = newFolder;
@@ -371,7 +367,7 @@ String MakeSaveGameDir(const char *newFolder, bool allowAbsolute)
         newSaveGameDir.ReplaceMid(0, GameDataDirToken.GetLength(),
             PathOrCurDir(platform->GetAllUsersDataDirectory()));
     }
-    else if (!is_path_absolute)
+    else
     {
         newSaveGameDir.Format("%s/%s", PathOrCurDir(platform->GetUserSavedgamesDirectory()), newFolder);
         // For games made in the safe-path-aware versions of AGS, report a warning
@@ -384,23 +380,21 @@ String MakeSaveGameDir(const char *newFolder, bool allowAbsolute)
     return newSaveGameDir;
 }
 
-int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
+bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
 {
-    String newSaveGameDir = MakeSaveGameDir(newFolder, allowAbsolute);
+    String newSaveGameDir = explicit_path ? String(newFolder) : MakeSaveGameDir(newFolder);
     if (newSaveGameDir.IsEmpty())
-        return 0;
+        return false;
 
-    Directory::CreateDirectory(newSaveGameDir);
+    if (!Directory::CreateDirectory(newSaveGameDir))
+        return false;
     newSaveGameDir.AppendChar('/');
 
     char newFolderTempFile[260];
     strcpy(newFolderTempFile, newSaveGameDir);
     strcat(newFolderTempFile, "agstmp.tmp");
-
     if (!Common::File::TestCreateFile(newFolderTempFile))
-	{
-        return 0;
-    }
+        return false;
 
     // copy the Restart Game file, if applicable
     char restartGamePath[260];
@@ -421,15 +415,17 @@ int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
     }
 
     strcpy(saveGameDirectory, newSaveGameDir);
-    return 1;
+    return true;
 }
 
 int Game_SetSaveGameDirectory(const char *newFolder)
 {
-	return SetSaveGameDirectoryPath(newFolder, false);
+    // Had the user specified custom save path, it should
+    // override any paths set from game script
+    if (usetup.user_data_dir.IsEmpty())
+        return SetSaveGameDirectoryPath(newFolder, false) ? 1 : 0;
+    return 1;
 }
-
-
 
 const char* Game_GetSaveSlotDescription(int slnum) {
     String description;

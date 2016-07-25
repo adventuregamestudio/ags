@@ -135,7 +135,7 @@ Stream * game_file_open()
 	return in;
 }
 
-GameFileError game_file_read_version(Stream *in)
+GameFileError game_file_read_version(Stream *in, bool silent_warn = false)
 {
 	char teststr[31];
 
@@ -166,7 +166,7 @@ GameFileError game_file_read_version(Stream *in)
         return kGameFile_UnsupportedNewFormat;
     }
 
-    if (requested_engine_version > EngineVersion)
+    if (requested_engine_version > EngineVersion && !silent_warn)
         platform->DisplayAlert("This game suggests a different version of AGS (%s). It may not run correctly.",
         requested_engine_version.LongString.GetCStr());
 
@@ -609,7 +609,7 @@ GameFileError preload_game_data()
     if (!in)
         return kGameFile_NoMainData;
 
-    GameFileError err = game_file_read_version(in);
+    GameFileError err = game_file_read_version(in, true);
     if (err != kGameFile_NoError)
         return err;
 

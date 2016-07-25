@@ -406,6 +406,9 @@ void post_config()
         usetup.Screen.GameFrame.ScaleDef = kFrame_IntScale;
         usetup.Screen.GameFrame.ScaleFactor = kUnit;
     }
+    
+    if (usetup.user_data_dir.GetLast() == '/' || usetup.user_data_dir.GetLast() == '\\')
+        usetup.user_data_dir.ClipRight(1);
 }
 
 void load_default_config_file(ConfigTree &cfg, const char *alt_cfg_file)

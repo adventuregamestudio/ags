@@ -136,9 +136,9 @@ bool engine_init_allegro()
 void engine_setup_allegro()
 {
     // Setup allegro using constructed config string
-    String al_config_data = "[mouse]\n";
-    al_config_data.Append(String::FromFormat("mouse_accel_factor = %d\n", 0));
-    set_config_data(al_config_data, al_config_data.GetLength());
+    const char *al_config_data = "[mouse]\n"
+        "mouse_accel_factor = 0\n";
+    override_config_data(al_config_data, ustrsize(al_config_data));
 }
 
 void winclosehook() {

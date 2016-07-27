@@ -1773,7 +1773,6 @@ void restore_game_room_state(Stream *in, const char *nametouse)
         if (beenhere)
         {
             roomstat = getRoomStatus(vv);
-            roomstat->FreeScriptData();
             roomstat->beenhere = beenhere;
 
             if (roomstat->beenhere)

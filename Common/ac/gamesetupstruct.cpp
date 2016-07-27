@@ -498,12 +498,16 @@ void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* c
 
     if (loaded_game_file_version >= kGameVersion_340_4)
     {
+        // We explicitly clear property values here, because the save
+        // may be of older game version and contain different property set
         for (int i = 0; i < numcharacters; ++i)
         {
+            charProps[i].clear();
             Properties::ReadValues(charProps[i], in);
         }
         for (int i = 0; i < numinvitems; ++i)
         {
+            invProps[i].clear();
             Properties::ReadValues(invProps[i], in);
         }
     }

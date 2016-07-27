@@ -99,12 +99,17 @@ namespace Properties
     PropertyError ReadSchema(PropertySchema &schema, Stream *in);
     void          WriteSchema(const PropertySchema &schema, Stream *out);
 
+    // Reads property values from the stream and assign them to map.
+    // The non-matching existing map items, if any, are NOT erased.
     PropertyError ReadValues(StringIMap &map, Stream *in);
+    // Writes property values chunk to the stream
     void          WriteValues(const StringIMap &map, Stream *out);
 
-    // Compares two property maps and copies missing properties from base to child
+    // Compares two property maps and copies missing base properties
+    // to the child map
     void          CopyMissing(StringIMap &child, const StringIMap &base);
-    // Compares two property maps and removes properties with matching values from child
+    // Compares two property maps and removes properties with matching values
+    // from the child; only properties from the PropertySchema are processed
     void          RemoveMatching(StringIMap &child, const PropertySchema &schema, const StringIMap &base);
 
 } // namespace Properties

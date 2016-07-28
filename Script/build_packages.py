@@ -134,6 +134,7 @@ def transfer_installer(output_path, staging_path, ver_str):
 def build_ags_zip(output_path, staging_path, ver_str):
 
     shutil.copytree(workspace_rel("Windows/Installer/Source/Docs"), os.path.join(staging_path,"Docs"))
+    shutil.copy2(workspace_rel("Changes.txt"), os.path.join(staging_path,"Docs"))
 
     extract_into(staging_path, workspace_rel("editor.zip"))
     extract_into(os.path.join(staging_path,"Templates"), workspace_rel("templates.zip"))

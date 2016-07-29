@@ -1598,8 +1598,14 @@ void save_game(int slotn, const char*descript) {
 
     update_polled_stuff_if_runtime();
 
+    // Do not save unmodified custom properties in current room
+    remove_unchanged_properties_from_croom();
+
     // Actual dynamic game data is saved here
     save_game_data(out, screenShot);
+
+    // Restore custom properties in current room
+    copy_properties_to_current_room_state();
 
     // End writing to the file here
     //===================================================================

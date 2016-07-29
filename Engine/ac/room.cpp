@@ -253,6 +253,8 @@ void save_room_data_segment () {
 
 void remove_unchanged_properties_from_croom()
 {
+    if (!croom)
+        return;
     // Remove properties with default values
     Properties::RemoveMatching(croom->roomProps, game.propSchema, thisroom.roomProps);
     for (int i = 0; i < MAX_HOTSPOTS; ++i)
@@ -419,6 +421,8 @@ extern int convert_16bit_bgr;
 
 void copy_properties_to_current_room_state()
 {
+    if (!croom)
+        return;
     // Copy properties with default values
     Properties::CopyMissing(croom->roomProps, thisroom.roomProps);
     for (int i = 0; i < MAX_HOTSPOTS; ++i)

@@ -2026,6 +2026,7 @@ void restore_game_displayed_room_status(Stream *in, Bitmap **newbscene)
             raw_saved_screen = read_serialized_bitmap(in);
 
         troom.FreeScriptData();
+        troom.FreeProperties();
 
         // get the current troom, in case they save in room 600 or whatever
         ReadRoomStatus_Aligned(&troom, in);

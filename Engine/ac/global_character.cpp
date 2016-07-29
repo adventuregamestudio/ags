@@ -427,7 +427,7 @@ int AreCharactersColliding(int cchar1,int cchar2) {
 int GetCharacterProperty (int cha, const char *property) {
     if (!is_valid_character(cha))
         quit("!GetCharacterProperty: invalid character");
-    return get_int_property (game.charProps[cha], property);
+    return get_int_property (game.charProps[cha].Runtime, property);
 }
 
 void SetCharacterProperty (int who, int flag, int yesorno) {
@@ -438,7 +438,7 @@ void SetCharacterProperty (int who, int flag, int yesorno) {
 }
 
 void GetCharacterPropertyText (int item, const char *property, char *bufer) {
-    get_text_property (game.charProps[item], property, bufer);
+    get_text_property (game.charProps[item].Runtime, property, bufer);
 }
 
 int GetCharacterAt (int xx, int yy) {

@@ -356,10 +356,18 @@ void GameSetupStruct::read_customprops(Common::Stream *in, GAME_STRUCT_READ_DATA
         int errors = 0;
         int bb;
 
-        for (bb = 0; bb < numcharacters; bb++)
-            errors += Properties::ReadValues(charProps[bb], in);
-        for (bb = 0; bb < numinvitems; bb++)
-            errors += Properties::ReadValues(invProps[bb], in);
+        // Since we use reference-counted strings, unchanged runtime properties
+        // should reference same data as defaults
+        for (int i = 0; i < numcharacters; ++i)
+        {
+            errors += Properties::ReadValues(charProps[i].Defaults, in);
+            charProps[i].Runtime = charProps[i].Defaults;
+        }
+        for (int i = 0; i < numinvitems; ++i)
+        {
+            errors += Properties::ReadValues(invProps[i].Defaults, in);
+            invProps[i].Runtime = invProps[i].Defaults;
+        }
 
         if (errors > 0)
             quit("LoadGame: errors encountered reading custom props");
@@ -498,17 +506,21 @@ void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* c
 
     if (loaded_game_file_version >= kGameVersion_340_4)
     {
-        // We explicitly clear property values here, because the save
-        // may be of older game version and contain different property set
+        // After runtime property values were read we also copy missing default,
+        // because we do not keep defaults in the saved game, and also in case
+        // this save is made by an older game version which had different
+        // properties.
         for (int i = 0; i < numcharacters; ++i)
         {
-            charProps[i].clear();
-            Properties::ReadValues(charProps[i], in);
+            charProps[i].Runtime.clear();
+            Properties::ReadValues(charProps[i].Runtime, in);
+            Properties::CopyMissing(charProps[i].Runtime, charProps[i].Defaults);
         }
         for (int i = 0; i < numinvitems; ++i)
         {
-            invProps[i].clear();
-            Properties::ReadValues(invProps[i], in);
+            invProps[i].Runtime.clear();
+            Properties::ReadValues(invProps[i].Runtime, in);
+            Properties::CopyMissing(invProps[i].Runtime, invProps[i].Defaults);
         }
     }
 }
@@ -534,13 +546,20 @@ void GameSetupStruct::WriteForSaveGame_v321(Stream *out)
 
     if (loaded_game_file_version >= kGameVersion_340_4)
     {
+        // We temporarily remove properties that kept default values
+        // just for the saving data time to avoid getting lots of 
+        // redundant data into saved games
         for (int i = 0; i < numcharacters; ++i)
         {
-            Properties::WriteValues(charProps[i], out);
+            Properties::RemoveMatching(charProps[i].Runtime, propSchema, charProps[i].Defaults);
+            Properties::WriteValues(charProps[i].Runtime, out);
+            Properties::CopyMissing(charProps[i].Runtime, charProps[i].Defaults);
         }
         for (int i = 0; i < numinvitems; ++i)
         {
-            Properties::WriteValues(invProps[i], out);
+            Properties::RemoveMatching(invProps[i].Runtime, propSchema, invProps[i].Defaults);
+            Properties::WriteValues(invProps[i].Runtime, out);
+            Properties::CopyMissing(invProps[i].Runtime, invProps[i].Defaults);
         }
     }
 }

@@ -135,9 +135,9 @@ int IsInventoryInteractionAvailable (int item, int mood) {
 }
 
 int GetInvProperty (int item, const char *property) {
-    return get_int_property (game.invProps[item], property);
+    return get_int_property (game.invProps[item].Runtime, property);
 }
 
 void GetInvPropertyText (int item, const char *property, char *bufer) {
-    get_text_property (game.invProps[item], property, bufer);
+    get_text_property (game.invProps[item].Runtime, property, bufer);
 }

@@ -1015,24 +1015,24 @@ void Character_RunInteraction(CharacterInfo *chaa, int mood) {
 
 int Character_GetProperty(CharacterInfo *chaa, const char *property) {
 
-    return get_int_property(game.charProps[chaa->index_id], property);
+    return get_int_property(game.charProps[chaa->index_id].Runtime, property);
 
 }
 void Character_GetPropertyText(CharacterInfo *chaa, const char *property, char *bufer) {
-    get_text_property(game.charProps[chaa->index_id], property, bufer);
+    get_text_property(game.charProps[chaa->index_id].Runtime, property, bufer);
 }
 const char* Character_GetTextProperty(CharacterInfo *chaa, const char *property) {
-    return get_text_property_dynamic_string(game.charProps[chaa->index_id], property);
+    return get_text_property_dynamic_string(game.charProps[chaa->index_id].Runtime, property);
 }
 
 bool Character_SetProperty(CharacterInfo *chaa, const char *property, int value)
 {
-    return set_int_property(game.charProps[chaa->index_id], property, value);
+    return set_int_property(game.charProps[chaa->index_id].Runtime, property, value);
 }
 
 bool Character_SetTextProperty(CharacterInfo *chaa, const char *property, const char *value)
 {
-    return set_text_property(game.charProps[chaa->index_id], property, value);
+    return set_text_property(game.charProps[chaa->index_id].Runtime, property, value);
 }
 
 ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {

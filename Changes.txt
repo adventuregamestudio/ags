@@ -150,6 +150,12 @@ WinSetup:
    section of the config file.
 
    
+VERSION 3.3.5 - Patch 5, July 2016
+
+Engine:
+- Fixed user's allegro.cfg was ignored.
+
+
 VERSION 3.3.5 - Patch 4, July 2016
 
 Compiler:

@@ -15,9 +15,11 @@
 #ifndef __AC_GAMESTATE_H
 #define __AC_GAMESTATE_H
 
+#include "ac/characterinfo.h"
 #include "ac/runtime_defines.h"
 #include "media/audio/queuedaudioitem.h"
 #include "util/geometry.h"
+#include "util/string_types.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
@@ -190,6 +192,10 @@ struct GameState {
     unsigned long ignore_user_input_until_time;
     int   default_audio_type_volumes[MAX_AUDIO_TYPES];
 
+    // Dynamic custom property values for characters and items
+    std::vector<AGS::Common::StringIMap> charProps;
+    AGS::Common::StringIMap invProps[MAX_INV];
+
     // These variables are not serialized
     bool  speech_in_post_state;
     // Viewport defines the current position of the playable area;
@@ -205,6 +211,8 @@ struct GameState {
     void WriteToFile_v321(Common::Stream *out);
     void ReadQueuedAudioItems_Aligned(Common::Stream *in);
     void WriteQueuedAudioItems_Aligned(Common::Stream *out);
+    void ReadCustomProperties(Common::Stream *in);
+    void WriteCustomProperties(Common::Stream *out);
 };
 
 extern GameState play;

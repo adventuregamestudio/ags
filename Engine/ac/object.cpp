@@ -382,7 +382,7 @@ void Object_GetPropertyText(ScriptObject *objj, const char *property, char *bufe
 
 const char* Object_GetTextProperty(ScriptObject *objj, const char *property)
 {
-    return get_text_property_dynamic_string(croom->objProps[objj->id], property);
+    return get_text_property_dynamic_string(thisroom.objProps[objj->id], croom->objProps[objj->id], property);
 }
 
 bool Object_SetProperty(ScriptObject *objj, const char *property, int value)

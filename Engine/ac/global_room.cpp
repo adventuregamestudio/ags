@@ -195,7 +195,7 @@ int HasBeenToRoom (int roomnum) {
 
 void GetRoomPropertyText (const char *property, char *bufer)
 {
-    get_text_property(croom->roomProps, property, bufer);
+    get_text_property(thisroom.roomProps, croom->roomProps, property, bufer);
 }
 
 void SetBackgroundFrame(int frnum) {

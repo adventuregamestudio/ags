@@ -724,6 +724,7 @@ GameFileError load_game_file()
     actspswbbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
     actspswbcache = (CachedActSpsData*)calloc(actSpsCount, sizeof(CachedActSpsData));
     game.charProps.resize(game.numcharacters);
+    play.charProps.resize(game.numcharacters);
 
     allocate_memory_for_views(game.numviews);
     int iteratorCount = 0;

@@ -15,11 +15,11 @@
 #include "ac/game_version.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
+#include "game/customproperties.h"
 #include "util/alignedstream.h"
 #include "util/string_utils.h"
 
-using AGS::Common::AlignedStream;
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 extern GameSetupStruct game;
 
@@ -425,5 +425,44 @@ void GameState::WriteQueuedAudioItems_Aligned(Common::Stream *out)
     {
         new_music_queue[i].WriteToFile(&align_s);
         align_s.Reset();
+    }
+}
+
+void GameState::ReadCustomProperties(Common::Stream *in)
+{
+    if (loaded_game_file_version >= kGameVersion_340_4)
+    {
+        // After runtime property values were read we also copy missing default,
+        // because we do not keep defaults in the saved game, and also in case
+        // this save is made by an older game version which had different
+        // properties.
+        for (int i = 0; i < game.numcharacters; ++i)
+        {
+            charProps[i].clear();
+            Properties::ReadValues(charProps[i], in);
+        }
+        for (int i = 0; i < game.numinvitems; ++i)
+        {
+            invProps[i].clear();
+            Properties::ReadValues(invProps[i], in);
+        }
+    }
+}
+
+void GameState::WriteCustomProperties(Common::Stream *out)
+{
+    if (loaded_game_file_version >= kGameVersion_340_4)
+    {
+        // We temporarily remove properties that kept default values
+        // just for the saving data time to avoid getting lots of 
+        // redundant data into saved games
+        for (int i = 0; i < game.numcharacters; ++i)
+        {
+            Properties::WriteValues(charProps[i], out);
+        }
+        for (int i = 0; i < game.numinvitems; ++i)
+        {
+            Properties::WriteValues(invProps[i], out);
+        }
     }
 }

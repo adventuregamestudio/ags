@@ -188,12 +188,12 @@ int Room_GetMusicOnLoad() {
 
 int Room_GetProperty(const char *property)
 {
-    return get_int_property(croom->roomProps, property);
+    return get_int_property(thisroom.roomProps, croom->roomProps, property);
 }
 
 const char* Room_GetTextProperty(const char *property)
 {
-    return get_text_property_dynamic_string(croom->roomProps, property);
+    return get_text_property_dynamic_string(thisroom.roomProps, croom->roomProps, property);
 }
 
 bool Room_SetProperty(const char *property, int value)
@@ -251,22 +251,6 @@ void save_room_data_segment () {
 
 }
 
-void remove_unchanged_properties_from_croom()
-{
-    if (!croom)
-        return;
-    // Remove properties with default values
-    Properties::RemoveMatching(croom->roomProps, game.propSchema, thisroom.roomProps);
-    for (int i = 0; i < MAX_HOTSPOTS; ++i)
-    {
-        Properties::RemoveMatching(croom->hsProps[i], game.propSchema, thisroom.hsProps[i]);
-    }
-    for (int i = 0; i < MAX_INIT_SPR; ++i)
-    {
-        Properties::RemoveMatching(croom->objProps[i], game.propSchema, thisroom.objProps[i]);
-    }
-}
-
 void unload_old_room() {
     int ff;
 
@@ -317,8 +301,6 @@ void unload_old_room() {
         play.raw_modified[ff] = 0;
     for (ff = 0; ff < thisroom.numLocalVars; ff++)
         croom->interactionVariableValues[ff] = thisroom.localvars[ff].Value;
-
-    remove_unchanged_properties_from_croom();
 
     // wipe the character cache when we change rooms
     for (ff = 0; ff < game.numcharacters; ff++) {
@@ -418,22 +400,6 @@ void convert_room_coordinates_to_low_res(roomstruct *rstruc)
 }
 
 extern int convert_16bit_bgr;
-
-void copy_properties_to_current_room_state()
-{
-    if (!croom)
-        return;
-    // Copy properties with default values
-    Properties::CopyMissing(croom->roomProps, thisroom.roomProps);
-    for (int i = 0; i < MAX_HOTSPOTS; ++i)
-    {
-        Properties::CopyMissing(croom->hsProps[i], thisroom.hsProps[i]);
-    }
-    for (int i = 0; i < MAX_INIT_SPR; ++i)
-    {
-        Properties::CopyMissing(croom->objProps[i], thisroom.objProps[i]);
-    }
-}
 
 #define NO_GAME_ID_IN_ROOM_FILE 16325
 // forchar = playerchar on NewRoom, or NULL if restore saved game
@@ -754,8 +720,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         for (cc=0;cc<MAX_REGIONS;cc++)
             croom->intrRegion[cc] = thisroom.intrRegion[cc][0];
     }
-
-    copy_properties_to_current_room_state();
 
     objs=&croom->obj[0];
 

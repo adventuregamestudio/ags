@@ -88,18 +88,18 @@ void Hotspot_RunInteraction (ScriptHotspot *hss, int mood) {
 
 int Hotspot_GetProperty (ScriptHotspot *hss, const char *property)
 {
-    return get_int_property(croom->hsProps[hss->id], property);
+    return get_int_property(thisroom.hsProps[hss->id], croom->hsProps[hss->id], property);
 }
 
 void Hotspot_GetPropertyText (ScriptHotspot *hss, const char *property, char *bufer)
 {
-    get_text_property(croom->hsProps[hss->id], property, bufer);
+    get_text_property(thisroom.hsProps[hss->id], croom->hsProps[hss->id], property, bufer);
 
 }
 
 const char* Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property)
 {
-    return get_text_property_dynamic_string(croom->hsProps[hss->id], property);
+    return get_text_property_dynamic_string(thisroom.hsProps[hss->id], croom->hsProps[hss->id], property);
 }
 
 bool Hotspot_SetProperty(ScriptHotspot *hss, const char *property, int value)

@@ -1460,6 +1460,9 @@ void save_game_data (Stream *out, Bitmap *screenshot) {
     //----------------------------------------------------------------
     game.WriteForSaveGame_v321(out);
 
+    // Modified custom properties are written separately to keep existing save format
+    play.WriteCustomProperties(out);
+
     WriteCharacterExtras_Aligned(out);
     save_game_palette(out);
     save_game_dialogs(out);
@@ -1598,14 +1601,8 @@ void save_game(int slotn, const char*descript) {
 
     update_polled_stuff_if_runtime();
 
-    // Do not save unmodified custom properties in current room
-    remove_unchanged_properties_from_croom();
-
     // Actual dynamic game data is saved here
     save_game_data(out, screenShot);
-
-    // Restore custom properties in current room
-    copy_properties_to_current_room_state();
 
     // End writing to the file here
     //===================================================================
@@ -2190,6 +2187,10 @@ int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_v
         quit("!Restore_Game: Game has changed (views), unable to restore position");
 
     game.ReadFromSaveGame_v321(in, gswas, compsc, chwas, olddict, mesbk);
+
+    // Modified custom properties are read separately to keep existing save format
+    play.ReadCustomProperties(in);
+
     //
     //in->ReadArray(&game.invinfo[0], sizeof(InventoryItemInfo), game.numinvitems);
     //in->ReadArray(&game.mcurs[0], sizeof(MouseCursor), game.numcursors);

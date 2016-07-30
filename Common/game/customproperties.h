@@ -105,13 +105,6 @@ namespace Properties
     // Writes property values chunk to the stream
     void          WriteValues(const StringIMap &map, Stream *out);
 
-    // Compares two property maps and copies missing base properties
-    // to the child map
-    void          CopyMissing(StringIMap &child, const StringIMap &base);
-    // Compares two property maps and removes properties with matching values
-    // from the child; only properties from the PropertySchema are processed
-    void          RemoveMatching(StringIMap &child, const PropertySchema &schema, const StringIMap &base);
-
 } // namespace Properties
 
 } // namespace Common

@@ -30,12 +30,6 @@
 using AGS::Common::Interaction;
 using AGS::Common::InteractionScripts;
 
-struct CustomPropValues
-{
-    AGS::Common::StringIMap Defaults;
-    AGS::Common::StringIMap Runtime;
-};
-
 struct GameSetupStruct: public GameSetupStructBase {
     unsigned char     fontflags[MAX_FONTS];
     char              fontoutline[MAX_FONTS];
@@ -49,8 +43,8 @@ struct GameSetupStruct: public GameSetupStructBase {
     int               filever;  // just used by editor
     char              lipSyncFrameLetters[MAXLIPSYNCFRAMES][50];
     AGS::Common::PropertySchema propSchema;
-    std::vector<CustomPropValues> charProps;
-    CustomPropValues  invProps[MAX_INV];
+    std::vector<AGS::Common::StringIMap> charProps;
+    AGS::Common::StringIMap invProps[MAX_INV];
     char              **viewNames;
     char              invScriptNames[MAX_INV][MAX_SCRIPT_NAME_LEN];
     char              dialogScriptNames[MAX_DIALOG][MAX_SCRIPT_NAME_LEN];

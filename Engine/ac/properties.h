@@ -20,11 +20,18 @@
 
 #include "game/customproperties.h"
 
-int get_int_property (const AGS::Common::StringIMap &cprop, const char *property);
-void get_text_property (const AGS::Common::StringIMap &cprop, const char *property, char *bufer);
-const char* get_text_property_dynamic_string(const AGS::Common::StringIMap &cprop, const char *property);
+using AGS::Common::StringIMap;
 
-bool set_int_property(AGS::Common::StringIMap &cprop, const char *property, int value);
-bool set_text_property(AGS::Common::StringIMap &cprop, const char *property, const char* value);
+// Getting a property value requires static and runtime property maps.
+// Key is first searched in runtime map, if not found - static map is taken,
+// which contains original property values for particular game entity.
+// Lastly, if the key is still not found, then the default schema value is
+// returned for the given property.
+int get_int_property(const StringIMap &st_prop, const StringIMap &rt_prop, const char *property);
+void get_text_property(const StringIMap &st_prop, const StringIMap &rt_prop, const char *property, char *bufer);
+const char* get_text_property_dynamic_string(const StringIMap &st_prop, const StringIMap &rt_prop, const char *property);
+
+bool set_int_property(StringIMap &rt_prop, const char *property, int value);
+bool set_text_property(StringIMap &rt_prop, const char *property, const char* value);
 
 #endif // __AGS_EE_AC__PROPERTIES_H

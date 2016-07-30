@@ -50,9 +50,5 @@ void  first_room_initialization();
 void  check_new_room();
 void  compile_room_script();
 void  on_background_frame_change ();
-// Copy missing properties from the main room struct into the room state
-void  copy_properties_to_current_room_state();
-// Remove unmodified property values from the room state
-void  remove_unchanged_properties_from_croom();
 
 #endif // __AGS_EE_AC__ROOM_H

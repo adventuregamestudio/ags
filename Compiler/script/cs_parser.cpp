@@ -3180,6 +3180,11 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
         return -1;
       }
 
+      if (sym.entries[vtwas].flags & SFLG_HASDYNAMICARRAY) {
+        cc_error("Cannot declare an array of a type containing dynamic array(s)");
+        return -1;
+      }
+
       if (array_size < 1) {
         cc_error("Array size must be >=1");
         return -1;
@@ -3949,6 +3954,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                                     cc_error("Member variable of managed struct cannot be dynamic array");
                                     return -1;
                                 }
+                                sym.entries[stname].flags |= SFLG_HASDYNAMICARRAY;
                                 sym.entries[vname].flags |= SFLG_DYNAMICARRAY;
                                 array_size = 0;
                                 size_so_far += 4;

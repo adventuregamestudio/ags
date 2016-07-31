@@ -97,6 +97,12 @@
 #define SFLG_AUTOPTR   0x20000  // automatically convert definition to pointer
 #define SFLG_DYNAMICARRAY 0x40000  // array allocated at runtime
 #define SFLG_BUILTIN   0x80000  // direct instantiation/extension not allowed
+/*
+   The flag below is only present because the variable path parser
+   (e.g. something[2].something[3].something = 17) cannot yet handle
+   arrays within arrays
+*/
+#define SFLG_HASDYNAMICARRAY  0x100000
 #define TEMP_SYMLIST_LENGTH 100
 
 extern int is_whitespace(char cht);

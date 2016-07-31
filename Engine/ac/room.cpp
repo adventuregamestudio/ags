@@ -628,7 +628,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     if (forchar != NULL) {
         // if not restoring a game, always reset this room
         troom.beenhere=0;  
-        troom.tsdatasize=0;
+        troom.FreeScriptData();
+        troom.FreeProperties();
         memset(&troom.hotspot_enabled[0],1,MAX_HOTSPOTS);
         memset(&troom.region_enabled[0], 1, MAX_REGIONS);
     }

@@ -2012,6 +2012,9 @@ void restore_game_displayed_room_status(Stream *in, Bitmap **newbscene)
     for (bb = 0; bb < MAX_BSCENE; bb++)
         newbscene[bb] = NULL;
 
+    troom.FreeScriptData();
+    troom.FreeProperties();
+
     if (displayed_room >= 0) {
 
         for (bb = 0; bb < MAX_BSCENE; bb++) {
@@ -2027,9 +2030,6 @@ void restore_game_displayed_room_status(Stream *in, Bitmap **newbscene)
 
         if (bb)
             raw_saved_screen = read_serialized_bitmap(in);
-
-        troom.FreeScriptData();
-        troom.FreeProperties();
 
         // get the current troom, in case they save in room 600 or whatever
         ReadRoomStatus_Aligned(&troom, in);

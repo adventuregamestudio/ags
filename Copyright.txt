@@ -22,6 +22,7 @@ Gilad Shaham
 Ivan Mogilko
 Janet Gilbert
 Jochen Schleu
+Joe Lee
 Michael Rittenhouse
 Morgan Willcock
 Nick Sonneveld

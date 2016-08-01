@@ -52,7 +52,7 @@ namespace AGS.Editor
 
         private void lnkUpgrading_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            _guiContoller.LaunchHelpForKeyword("Upgrading to AGS 3.0");
+            _guiContoller.LaunchHelpForKeyword("Upgrading to AGS 3.4");
         }
 
         private void WelcomePane_Resize(object sender, EventArgs e)
@@ -63,10 +63,8 @@ namespace AGS.Editor
             lblUpgradingInfo.MaximumSize = new Size(pnlRight.ClientRectangle.Width - lblUpgradingInfo.Left - 10, 0);
             lnkUpgrading.MaximumSize = new Size(pnlRight.ClientRectangle.Width - lnkUpgrading.Left - 10, 0);
             lnkUpgrading.Top = lblUpgradingInfo.Bottom + 10;
-            lnkUpgradingFrom302.MaximumSize = new Size(pnlRight.ClientRectangle.Width - lnkUpgrading.Left - 10, 0);
-            lnkUpgradingFrom302.Top = lnkUpgrading.Bottom + 5;
             lblUpgradingInfo3.MaximumSize = new Size(pnlRight.ClientRectangle.Width - lblUpgradingInfo3.Left - 10, 0);
-            lblUpgradingInfo3.Top = lnkUpgradingFrom302.Bottom + 10;
+            lblUpgradingInfo3.Top = lnkUpgrading.Bottom + 10;
             pnlRight.Height = lblUpgradingInfo3.Bottom + 10;
         }
 

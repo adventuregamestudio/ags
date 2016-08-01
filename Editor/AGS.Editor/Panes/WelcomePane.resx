@@ -118,14 +118,18 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="lblUpgradingInfo3.Text" xml:space="preserve">
-    <value>Some of the new features in AGS 3.3 include:
-* Set the layout that you desire by moving and docking the panels as you see fit!
-* Manage your scripts, rooms, characters, views, dialogs, guis and inventory items in folders
-* Find where your characters, dialogs, views, inventory items and global variables are used using a simple menu click
-* Easy navigation from an open document to its location in the tree using a simple menu click
-* New shortcuts in the script editor to navigate to a specific line (Ctrl+G) and switch between header and script (Ctrl+M)
-* The engine runs games made with previous versions of AGS as old as 2.5
-* Run games with x5, x6 ,x7 or x8 graphics scaling filter
-* And loads more!</value>
+    <value>Some of the new features in AGS 3.4 include:
+* Custom game resolutions: give your game any size and aspect ratio you want
+* Optionally prepare a game distributive for common Linux systems.
+* WFN (bitmap) fonts now support 256 characters.
+* User-defined managed types can be declared in script and passed around with the use of pointers.
+* Custom properties values can be modified at runtime with SetProperty and SetTextProperty functions.
+* Give characters and objects individual lighting with SetLightLevel function.
+* Improved dialog options rendering: script mouse and/or keyboard controlled dialog options to match your desire.
+* And loads more!
+</value>
+  </data>
+  <data name="lnkUpgrading.Text" xml:space="preserve">
+    <value>If you've come from a much older version of AGS (especially from AGS 2.72 and earlier) be sure to read "Upgrading to ..." articles in the manual. "Upgrading to AGS 3.4" page gives insight into most important changes in current version.</value>
   </data>
 </root>

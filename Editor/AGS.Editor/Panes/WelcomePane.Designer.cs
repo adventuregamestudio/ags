@@ -36,7 +36,6 @@ namespace AGS.Editor
             this.lnkTutorial = new System.Windows.Forms.LinkLabel();
             this.label2 = new System.Windows.Forms.Label();
             this.pnlRight = new System.Windows.Forms.Panel();
-            this.lnkUpgradingFrom302 = new System.Windows.Forms.LinkLabel();
             this.lblUpgradingInfo3 = new System.Windows.Forms.Label();
             this.lblUpgradingInfo = new System.Windows.Forms.Label();
             this.lnkUpgrading = new System.Windows.Forms.LinkLabel();
@@ -122,7 +121,6 @@ namespace AGS.Editor
             // pnlRight
             // 
             this.pnlRight.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(201)))), ((int)(((byte)(231)))), ((int)(((byte)(252)))));
-            this.pnlRight.Controls.Add(this.lnkUpgradingFrom302);
             this.pnlRight.Controls.Add(this.lblUpgradingInfo3);
             this.pnlRight.Controls.Add(this.lblUpgradingInfo);
             this.pnlRight.Controls.Add(this.lnkUpgrading);
@@ -133,28 +131,13 @@ namespace AGS.Editor
             this.pnlRight.Size = new System.Drawing.Size(443, 236);
             this.pnlRight.TabIndex = 2;
             // 
-            // lnkUpgradingFrom302
-            // 
-            this.lnkUpgradingFrom302.AutoSize = true;
-            this.lnkUpgradingFrom302.LinkArea = new System.Windows.Forms.LinkArea(34, 9);
-            this.lnkUpgradingFrom302.Location = new System.Drawing.Point(15, 111);
-            this.lnkUpgradingFrom302.MaximumSize = new System.Drawing.Size(400, 0);
-            this.lnkUpgradingFrom302.Name = "lnkUpgradingFrom302";
-            this.lnkUpgradingFrom302.Size = new System.Drawing.Size(384, 34);
-            this.lnkUpgradingFrom302.TabIndex = 4;
-            this.lnkUpgradingFrom302.TabStop = true;
-            this.lnkUpgradingFrom302.Text = "If you were using AGS 3.1.2, read this page which tells you the main breaking cha" +
-                "nges in AGS 3.2.";
-            this.lnkUpgradingFrom302.UseCompatibleTextRendering = true;
-            this.lnkUpgradingFrom302.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkUpgradingFrom302_LinkClicked);
-            // 
             // lblUpgradingInfo3
             // 
             this.lblUpgradingInfo3.AutoSize = true;
             this.lblUpgradingInfo3.Location = new System.Drawing.Point(15, 150);
             this.lblUpgradingInfo3.MaximumSize = new System.Drawing.Size(340, 0);
             this.lblUpgradingInfo3.Name = "lblUpgradingInfo3";
-            this.lblUpgradingInfo3.Size = new System.Drawing.Size(312, 98);
+            this.lblUpgradingInfo3.Size = new System.Drawing.Size(340, 210);
             this.lblUpgradingInfo3.TabIndex = 3;
             this.lblUpgradingInfo3.Text = resources.GetString("lblUpgradingInfo3.Text");
             // 
@@ -164,24 +147,22 @@ namespace AGS.Editor
             this.lblUpgradingInfo.Location = new System.Drawing.Point(12, 39);
             this.lblUpgradingInfo.MaximumSize = new System.Drawing.Size(300, 0);
             this.lblUpgradingInfo.Name = "lblUpgradingInfo";
-            this.lblUpgradingInfo.Size = new System.Drawing.Size(292, 28);
+            this.lblUpgradingInfo.Size = new System.Drawing.Size(298, 28);
             this.lblUpgradingInfo.TabIndex = 2;
-            // TODO: replace this line with something more generic for the next version; this one is for 3.3 only
-            this.lblUpgradingInfo.Text = "This is the first version of AGS ever released as the collaborative work of" +
-                " community members and fellow contributors.";
+            this.lblUpgradingInfo.Text = "With AGS 3.4 you can make games of any visual size you want (even vertically orie" +
+                "nted)!";
             // 
             // lnkUpgrading
             // 
             this.lnkUpgrading.AutoSize = true;
-            this.lnkUpgrading.LinkArea = new System.Windows.Forms.LinkArea(35, 23);
+            this.lnkUpgrading.LinkArea = new System.Windows.Forms.LinkArea(146, 22);
             this.lnkUpgrading.Location = new System.Drawing.Point(15, 77);
             this.lnkUpgrading.MaximumSize = new System.Drawing.Size(400, 0);
             this.lnkUpgrading.Name = "lnkUpgrading";
-            this.lnkUpgrading.Size = new System.Drawing.Size(391, 34);
+            this.lnkUpgrading.Size = new System.Drawing.Size(398, 63);
             this.lnkUpgrading.TabIndex = 1;
             this.lnkUpgrading.TabStop = true;
-            this.lnkUpgrading.Text = "If you\'ve come from AGS 2.72, read this page in the manual to get up to speed wit" +
-                "h the new AGS 3 editor.";
+            this.lnkUpgrading.Text = resources.GetString("lnkUpgrading.Text");
             this.lnkUpgrading.UseCompatibleTextRendering = true;
             this.lnkUpgrading.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkUpgrading_LinkClicked);
             // 
@@ -193,7 +174,7 @@ namespace AGS.Editor
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(154, 14);
             this.label5.TabIndex = 0;
-            this.label5.Text = "What\'s new in AGS 3.3?";
+            this.label5.Text = "What\'s new in AGS 3.4?";
             // 
             // pnlTipOfTheDay
             // 
@@ -283,7 +264,6 @@ namespace AGS.Editor
         private System.Windows.Forms.LinkLabel lnkUpgrading;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label lblUpgradingInfo3;
-        private System.Windows.Forms.LinkLabel lnkUpgradingFrom302;
         private System.Windows.Forms.Panel pnlTipOfTheDay;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.LinkLabel lnkNextTip;

@@ -55,7 +55,7 @@ using namespace Common;
 using namespace Engine;
 
 // function is currently implemented in game.cpp
-AGS::Engine::SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, RestoredData &r_data);
+SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
 extern GameSetupStruct game;
 extern Bitmap **guibg;
 extern AGS::Engine::IDriverDependantBitmap **guibgbmp;
@@ -220,7 +220,7 @@ SavegameError OpenSavegame(const String &filename, SavegameDescription &desc, Sa
 }
 
 // Prepares engine for actual save restore (stops processes, cleans up memory)
-void DoBeforeRestore(PreservedParams &pp, RestoredData &r_data)
+void DoBeforeRestore(PreservedParams &pp)
 {
     pp.SpeechVOX = play.want_speech;
     pp.MusicVOX = play.separate_music_lib;
@@ -255,15 +255,15 @@ void DoBeforeRestore(PreservedParams &pp, RestoredData &r_data)
     }
 
     // preserve script data sizes and cleanup scripts
-    r_data.GlobalScript.Len = gameinst->globaldatasize;
+    pp.GlScDataSize = gameinst->globaldatasize;
     delete gameinstFork;
     delete gameinst;
     gameinstFork = NULL;
     gameinst = NULL;
-    r_data.ScriptModules.resize(numScriptModules);
+    pp.ScMdDataSize.resize(numScriptModules);
     for (int i = 0; i < numScriptModules; ++i)
     {
-        r_data.ScriptModules[i].Len = moduleInst[i]->globaldatasize;
+        pp.ScMdDataSize[i] = moduleInst[i]->globaldatasize;
         delete moduleInstFork[i];
         delete moduleInst[i];
         moduleInst[i] = NULL;
@@ -340,13 +340,15 @@ SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_da
 
     // read the global data into the newly created script
     if (r_data.GlobalScript.Data.get())
-        memcpy(gameinst->globaldata, r_data.GlobalScript.Data.get(), r_data.GlobalScript.Len);
+        memcpy(gameinst->globaldata, r_data.GlobalScript.Data.get(),
+                Math::Min((size_t)gameinst->globaldatasize, r_data.GlobalScript.Len));
 
     // restore the script module data
     for (int i = 0; i < numScriptModules; ++i)
     {
         if (r_data.ScriptModules[i].Data.get())
-            memcpy(moduleInst[i]->globaldata, r_data.ScriptModules[i].Data.get(), r_data.ScriptModules[i].Len);
+            memcpy(moduleInst[i]->globaldata, r_data.ScriptModules[i].Data.get(),
+                    Math::Min((size_t)moduleInst[i]->globaldatasize, r_data.ScriptModules[i].Len));
     }
 
     setup_player_character(game.playercharacter);
@@ -518,8 +520,8 @@ SavegameError RestoreGameState(Stream *in, SavegameVersion svg_version)
 {
     PreservedParams pp;
     RestoredData r_data;
-    DoBeforeRestore(pp, r_data);
-    SavegameError err = restore_game_data(in, svg_version, r_data);
+    DoBeforeRestore(pp);
+    SavegameError err = restore_game_data(in, svg_version, pp, r_data);
     if (err != kSvgErr_NoError)
         return err;
     return DoAfterRestore(pp, r_data);

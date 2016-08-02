@@ -1575,34 +1575,34 @@ void restore_game_spriteset(Stream *in)
     }
 }
 
-SavegameError restore_game_scripts(Stream *in, RestoredData &r_data)
+SavegameError restore_game_scripts(Stream *in, const PreservedParams &pp, RestoredData &r_data)
 {
     // read the global script data segment
     int gdatasize = in->ReadInt32();
-
-    if (r_data.GlobalScript.Len != gdatasize)
+    if (pp.GlScDataSize != gdatasize)
     {
         Out::FPrint("Restore game error: mismatching size of global script data");
         return kSvgErr_GameContentAssertion;
     }
-
+    r_data.GlobalScript.Len = gdatasize;
     r_data.GlobalScript.Data.reset(new char[gdatasize]);
     in->Read(r_data.GlobalScript.Data.get(), gdatasize);
+
     if (in->ReadInt32() != numScriptModules)
     {
         Out::FPrint("Restore game error: mismatching number of script modules");
         return kSvgErr_GameContentAssertion;
     }
+    r_data.ScriptModules.resize(numScriptModules);
     for (int i = 0; i < numScriptModules; ++i)
     {
         size_t module_size = in->ReadInt32();
-
-        if (module_size != r_data.ScriptModules[i].Len)
+        if (pp.ScMdDataSize[i] != module_size)
         {
             Out::FPrint("Restore game error: mismatching size of script module data, module %d", i);
             return kSvgErr_GameContentAssertion;
         }
-
+        r_data.ScriptModules[i].Len = module_size;
         r_data.ScriptModules[i].Data.reset(new char[module_size]);
         in->Read(r_data.ScriptModules[i].Data.get(), module_size);
     }
@@ -1942,7 +1942,7 @@ SavegameError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_
     return kSvgErr_NoError;
 }
 
-SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, RestoredData &r_data)
+SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data)
 {
     int vv;
 
@@ -1953,7 +1953,7 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, Restore
 
     update_polled_stuff_if_runtime();
 
-    err = restore_game_scripts(in, r_data);
+    err = restore_game_scripts(in, pp, r_data);
     if (err != kSvgErr_NoError)
         return err;
     restore_game_room_state(in);

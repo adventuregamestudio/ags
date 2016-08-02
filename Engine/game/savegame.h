@@ -125,6 +125,9 @@ struct PreservedParams
     // Whether speech and audio packages available
     int SpeechVOX;
     int MusicVOX;
+    // Script global data sizes
+    int GlScDataSize;
+    std::vector<int> ScMdDataSize;
 
     PreservedParams();
 };

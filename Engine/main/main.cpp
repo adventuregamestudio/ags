@@ -189,7 +189,6 @@ void main_print_help() {
            "  --windowed                   Force display mode to windowed\n"
            "  --fullscreen                 Force display mode to fullscreen\n"
            "  --hicolor                    Downmix 32bit colors to 16bit\n"
-           "  --letterbox                  Enable letterbox mode\n"
            "  --gfxfilter <filter> [<scaling>]\n"
            "                               Request graphics filter. Available options:\n"
            "                                 none, stdscale, hq2x, hq3x;\n"

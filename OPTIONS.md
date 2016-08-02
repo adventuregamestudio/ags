@@ -77,7 +77,7 @@ Following OPTIONS are supported when running from command line:
 * --no-log - prevent from writing to log file.
 * --fullscreen - run in fullscreen mode.
 * --windowed - run in windowed mode.
-* --gfxfilter <name> [ < game_scaling > ] - use specified graphics filter and scaling factor (see explanation above).
+* --gfxfilter \<name\> [ \<game_scaling\> ] - use specified graphics filter and scaling factor (see explanation above).
 * --hicolor - force hicolor (16-bit) mode when running 32-bit games. This option may only be useful on old low-end machines.
 * --fps - display fps counter.
 

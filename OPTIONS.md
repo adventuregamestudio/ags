@@ -2,6 +2,31 @@
 
 ## Configuration file
 
+* **\[graphics\]** - display mode and various graphics options
+  * gfxdriver = \[string\] - id of the graphics renderer to use. Supported names are:
+    * DX5 - software renderer.
+    * D3D9 - Direct3D9 (MS Windows version only).
+    * OGL - OpenGL (iOS and Android versions only).
+  * windowed = \[0; 1\] - when enabled, runs game in windowed mode.
+  * screen_def = \[string\] - determines how display mode is deduced:
+    * explicit - use screen_width and screen_height parameters;
+    * scaling - sets equal to scaled game size;
+    * max - sets equal to device/desktop size;
+  * screen_width = \[integer\] - if screen_def is 'explicit', defines display mode width; otherwise ignored.
+  * screen_height = \[integer\] - if screen_def is 'explicit', defines display mode height; otherwise ignored.
+  * match_device_ratio = \[0; 1\] - when looking for appropriate fullscreen mode, prioritise ones which have same aspect ration as current device/desktop mode.
+  * game_scale = \[string | integer\] - game scaling rule:
+    * any integer number - positive number means upscale multiplier, negative number means downscale divisor;
+    * max_round - deduce maximal integer multiplier that fits in current desktop/device size;
+    * stretch - stretch to current desktop/device size;
+    * proportional - similar to stretch, but keep game's aspect ratio;
+  * gfxfilter = \[string\] - id of the scaling filter to use. Supported filter names are:
+    * none - run in native game size;
+    * stdscale - nearest-neighbour scaling;
+    * hqx - high quality scaling filter; only usable in 32-bit games with software renderer;
+    * linear - anti-aliased scaling; only usable with hardware-accelerated renderer;
+  * refresh = \[integer\] - refresh rate for the display mode.
+  * vsync = \[0; 1\] - enable or disable vertical sync.
 * **\[sound\]** - sound options
   * digiid = \[integer\] - digital driver id.
   * midiid = \[integer\] - MIDI driver id.
@@ -24,20 +49,6 @@
   * datafile = \[string\] - path to the game file.
   * datadir = \[string\] - path to the game directory.
   * user_data_dir = \[string\] - custom path to savedgames and written appdata location.
-  * windowed = \[0; 1\] - when enabled, runs game in windowed mode.
-  * gfxdriver = \[string\] - id of the graphics renderer to use. Supported names are:
-    * DX5 - software renderer.
-    * D3D9 - Direct3D9 (MS Windows version only).
-    * OGL - OpenGL (iOS and Android versions only).
-  * gfxfilter = \[string\] - id of the scaling filter to use. Supported filter names are:
-    * max - use highest supported nearest-neighbour scaling;
-    * none - run in native game size;
-    * stdscaleN, where N is between 2 and 8 - nearest-neighbour scaling with N multiplier;
-    * hq2x, hq3x - high quality scaling filter (x2 and x3 scaling correspondingly); only usable with software renderer;
-    * aaxN, where N is between 2 and 8 - anti-aliased scaling with N multiplier; only usable with hardware-accelerated renderer;
-  * refresh = \[integer\] - refresh rate for the display mode.
-  * prefer_letterbox = \[0; 1\] - engine will prefer letterboxed resolutions when looking for best display mode.
-  * prefer_sideborders = \[0; 1\] - engine will prefer resolutions with side borders when looking for best display mode.
   * antialias = \[0; 1\] - anti-alias scaled sprites.
   * notruecolor = \[0; 1\] - run 32-bit games in 16-bit mode. This option may only be useful on old low-end machines.
   * cachemax = \[integer\] - size of the engine's sprite cache, in kilobytes. Default is 20480 (20 MB).
@@ -66,8 +77,7 @@ Following OPTIONS are supported when running from command line:
 * --no-log - prevent from writing to log file.
 * --fullscreen - run in fullscreen mode.
 * --windowed - run in windowed mode.
-* --gfxfilter <name> - use specified graphics filter.
-* --letterbox - tell engine to prefer letterboxed resolutions when looking for best display mode.
+* --gfxfilter <name> [ < game_scaling > ] - use specified graphics filter and scaling factor (see explanation above).
 * --hicolor - force hicolor (16-bit) mode when running 32-bit games. This option may only be useful on old low-end machines.
 * --fps - display fps counter.
 

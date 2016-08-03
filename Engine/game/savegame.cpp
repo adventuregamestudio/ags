@@ -263,6 +263,8 @@ void DoBeforeRestore(PreservedParams &pp, RestoredData &r_data)
         moduleInst[i] = NULL;
     }
 
+    play.FreeProperties();
+
     delete roominstFork;
     delete roominst;
     roominstFork = NULL;

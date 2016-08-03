@@ -41,6 +41,7 @@
 #include "main/main.h"
 #include "main/version.h"
 #include "media/audio/audio.h"
+#include "media/audio/soundclip.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "script/script.h"
@@ -60,6 +61,8 @@ extern Bitmap **guibg;
 extern AGS::Engine::IDriverDependantBitmap **guibgbmp;
 extern AGS::Engine::IGraphicsDriver *gfxDriver;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
+extern Bitmap *raw_saved_screen;
+extern RoomStatus troom;
 
 
 namespace AGS
@@ -70,13 +73,20 @@ namespace Engine
 const String SavegameSource::Signature = "Adventure Game Studio saved game";
 
 
+PreservedParams::PreservedParams()
+    : SpeechVOX(0)
+    , MusicVOX(0)
+{
+}
+
 RestoredData::ScriptData::ScriptData()
     : Len(0)
 {
 }
 
 RestoredData::RestoredData()
-    : RoomVolume(0)
+    : FPS(0)
+    , RoomVolume(0)
     , CursorID(0)
     , CursorMode(0)
 {
@@ -204,9 +214,14 @@ SavegameError OpenSavegame(const String &filename, SavegameDescription &desc, Sa
 }
 
 // Prepares engine for actual save restore (stops processes, cleans up memory)
-void DoBeforeRestore(RestoredData &r_data)
+void DoBeforeRestore(PreservedParams &pp, RestoredData &r_data)
 {
+    pp.SpeechVOX = play.want_speech;
+    pp.MusicVOX = play.separate_music_lib;
+
     unload_old_room();
+    delete raw_saved_screen;
+    raw_saved_screen = NULL;
     remove_screen_overlay(-1);
     is_complete_overlay = 0;
     is_text_overlay = 0;
@@ -248,13 +263,17 @@ void DoBeforeRestore(RestoredData &r_data)
         moduleInst[i] = NULL;
     }
 
-    if (dialogScriptsInst != NULL)
-    {
-        delete dialogScriptsInst;
-        dialogScriptsInst = NULL;
-    }
+    delete roominstFork;
+    delete roominst;
+    roominstFork = NULL;
+    roominst = NULL;
+
+    delete dialogScriptsInst;
+    dialogScriptsInst = NULL;
 
     resetRoomStatuses();
+    troom.FreeScriptData();
+    troom.FreeProperties();
     free_do_once_tokens();
 
     // unregister gui controls from API exports
@@ -272,8 +291,22 @@ void DoBeforeRestore(RestoredData &r_data)
 }
 
 // Final processing after successfully restoring from save
-SavegameError DoAfterRestore(RestoredData &r_data)
+SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 {
+    // Use a yellow dialog highlight for older game versions
+    // CHECKME: it is dubious that this should be right here
+    if(loaded_game_file_version < kGameVersion_331)
+        play.dialog_options_highlight_color = DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT;
+
+    // Preserve whether the music vox is available
+    play.separate_music_lib = pp.MusicVOX;
+    // If they had the vox when they saved it, but they don't now
+    if ((pp.SpeechVOX < 0) && (play.want_speech >= 0))
+        play.want_speech = (-play.want_speech) - 1;
+    // If they didn't have the vox before, but now they do
+    else if ((pp.SpeechVOX >= 0) && (play.want_speech < 0))
+        play.want_speech = (-play.want_speech) - 1;
+
     // recache queued clips
     for (int i = 0; i < play.new_music_queue_size; ++i)
     {
@@ -286,7 +319,10 @@ SavegameError DoAfterRestore(RestoredData &r_data)
     {
         dynamicallyCreatedSurfaces[i] = r_data.DynamicSurfaces[i];
     }
-    r_data.DynamicSurfaces.clear();
+
+    for (int i = 0; i < game.numgui; ++i)
+        export_gui_controls(i);
+    update_gui_zorder();
 
     if (create_global_script())
     {
@@ -375,6 +411,48 @@ SavegameError DoAfterRestore(RestoredData &r_data)
     if (play.digital_master_volume >= 0)
         System_SetVolume(play.digital_master_volume);
 
+    // Run audio clips on channels
+    // these two crossfading parameters have to be temporarily reset
+    const int cf_in_chan = play.crossfading_in_channel;
+    const int cf_out_chan = play.crossfading_out_channel;
+    play.crossfading_in_channel = 0;
+    play.crossfading_out_channel = 0;
+    for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
+    {
+        const RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
+        if (chan_info.ClipID < 0)
+            continue;
+        if (chan_info.ClipID >= game.audioClipCount)
+        {
+            Out::FPrint("Restore game error: invalid audio clip index: %d (clip count: %d)", chan_info.ClipID, game.audioClipCount);
+            return kSvgErr_GameObjectInitFailed;
+        }
+        play_audio_clip_on_channel(i, &game.audioClips[chan_info.ClipID],
+            chan_info.Priority, chan_info.Repeat, chan_info.Pos);
+        if (channels[i] != NULL)
+        {
+            channels[i]->set_volume_alternate(chan_info.VolAsPercent, chan_info.Vol);
+            channels[i]->set_speed(chan_info.Speed);
+            channels[i]->set_panning(chan_info.Pan);
+            channels[i]->panningAsPercentage = chan_info.PanAsPercent;
+        }
+    }
+    if ((cf_in_chan > 0) && (channels[cf_in_chan] != NULL))
+        play.crossfading_in_channel = cf_in_chan;
+    if ((cf_out_chan > 0) && (channels[cf_out_chan] != NULL))
+        play.crossfading_out_channel = cf_out_chan;
+
+    // If there were synced audio tracks, the time taken to load in the
+    // different channels will have thrown them out of sync, so re-time it
+    for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
+    {
+        int pos = r_data.AudioChans[i].Pos;
+        if ((pos > 0) && (channels[i] != NULL) && (channels[i]->done == 0))
+        {
+            channels[i]->seek(pos);
+        }
+    }
+
     for (int i = 1; i < MAX_SOUND_CHANNELS; ++i)
     {
         if (r_data.DoAmbient[i])
@@ -411,17 +489,30 @@ SavegameError DoAfterRestore(RestoredData &r_data)
         cachedQueuedMusic = load_music_from_disk(play.music_queue[0], 0);
     }
 
+    // test if the playing music was properly loaded
+    if (current_music_type > 0)
+    {
+        if (crossFading > 0 && !channels[crossFading] ||
+            crossFading <= 0 && !channels[SCHAN_MUSIC])
+        {
+            current_music_type = 0;
+        }
+    }
+
+    set_game_speed(r_data.FPS);
+
     return kSvgErr_NoError;
 }
 
 SavegameError RestoreGameState(Stream *in, SavegameVersion svg_version)
 {
+    PreservedParams pp;
     RestoredData r_data;
-    DoBeforeRestore(r_data);
+    DoBeforeRestore(pp, r_data);
     SavegameError err = restore_game_data(in, svg_version, r_data);
     if (err != kSvgErr_NoError)
         return err;
-    return DoAfterRestore(r_data);
+    return DoAfterRestore(pp, r_data);
 }
 
 void WriteSaveImage(Stream *out, const Bitmap *screenshot)

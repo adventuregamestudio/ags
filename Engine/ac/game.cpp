@@ -1550,7 +1550,7 @@ SavegameError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
         return kSvgErr_DifferentColorDepth;
     }
 
-    set_game_speed(in->ReadInt32());
+    r_data.FPS = in->ReadInt32();
     r_data.CursorMode = in->ReadInt32();
     r_data.CursorID = in->ReadInt32();
     offsetx = in->ReadInt32();
@@ -1659,7 +1659,6 @@ void restore_game_play_ex_data(Stream *in)
 
 void restore_game_play(Stream *in)
 {
-    int speech_was = play.want_speech, musicvox = play.separate_music_lib;
     // preserve the replay settings
     int playback_was = play.playback, recording_was = play.recording;
     int gamestep_was = play.gamestep;
@@ -1669,19 +1668,6 @@ void restore_game_play(Stream *in)
     int *gui_draw_order_was = play.gui_draw_order;
 
     ReadGameState_Aligned(in);
-
-    // Use a yellow dialog highlight for older game versions
-    if(loaded_game_file_version < kGameVersion_331)
-        play.dialog_options_highlight_color = DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT;
-
-    // Preserve whether the music vox is available
-    play.separate_music_lib = musicvox;
-    // If they had the vox when they saved it, but they don't now
-    if ((speech_was < 0) && (play.want_speech >= 0))
-        play.want_speech = (-play.want_speech) - 1;
-    // If they didn't have the vox before, but now they do
-    else if ((speech_was >= 0) && (play.want_speech < 0))
-        play.want_speech = (-play.want_speech) - 1;
 
     play.screen_is_faded_out = screenfadedout_was;
     play.playback = playback_was;
@@ -1745,15 +1731,10 @@ void ReadAnimatedButtons_Aligned(Stream *in)
 
 void restore_game_gui(Stream *in, int numGuisWas)
 {
-    int vv;
-
     read_gui(in,guis,&game);
 
     if (numGuisWas != game.numgui)
         quit("!Restore_Game: Game has changed (GUIs), unable to restore position");
-
-    for (vv = 0; vv < game.numgui; vv++)
-        export_gui_controls(vv);
 
     numAnimButs = in->ReadInt32();
     ReadAnimatedButtons_Aligned(in);
@@ -1844,9 +1825,6 @@ void restore_game_displayed_room_status(Stream *in, RestoredData &r_data)
     for (bb = 0; bb < MAX_BSCENE; bb++)
         r_data.RoomBkgScene[bb] = NULL;
 
-    troom.FreeScriptData();
-    troom.FreeProperties();
-
     if (displayed_room >= 0) {
 
         for (bb = 0; bb < MAX_BSCENE; bb++) {
@@ -1856,9 +1834,6 @@ void restore_game_displayed_room_status(Stream *in, RestoredData &r_data)
             }
         }
         bb = in->ReadInt32();
-
-        delete raw_saved_screen;
-        raw_saved_screen = NULL;
 
         if (bb)
             raw_saved_screen = read_serialized_bitmap(in);
@@ -1902,62 +1877,33 @@ void restore_game_views(Stream *in)
     }
 }
 
-void restore_game_audioclips_and_crossfade(Stream *in)
+void restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_data)
 {
-    int bb;
-
     if (in->ReadInt32() != game.audioClipCount)
         quit("Game has changed: different audio clip count");
 
-    // these two crossfading parameters have to be reset before
-    // restarting audio clips on channels
-    const int cf_in_chan = play.crossfading_in_channel;
-    const int cf_out_chan = play.crossfading_out_channel;
-    play.crossfading_in_channel = 0;
-    play.crossfading_out_channel = 0;
-    int channelPositions[MAX_SOUND_CHANNELS + 1];
-    for (bb = 0; bb <= MAX_SOUND_CHANNELS; bb++)
+    for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
     {
-        channelPositions[bb] = 0;
-        int audioClipIndex = in->ReadInt32();
-        if (audioClipIndex >= 0)
+        RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
+        chan_info.Pos = 0;
+        chan_info.ClipID = in->ReadInt32();
+        if (chan_info.ClipID >= 0)
         {
-            if (audioClipIndex >= game.audioClipCount)
+            if (chan_info.ClipID >= game.audioClipCount)
                 quit("save game error: invalid audio clip index");
 
-            channelPositions[bb] = in->ReadInt32();
-            if (channelPositions[bb] < 0) channelPositions[bb] = 0;
-            int priority = in->ReadInt32();
-            int repeat = in->ReadInt32();
-            int vol = in->ReadInt32();
-            int pan = in->ReadInt32();
-            int volAsPercent = in->ReadInt32();
-            int panAsPercent = in->ReadInt32();
-            int speed = 1000;
+            chan_info.Pos = in->ReadInt32();
+            if (chan_info.Pos < 0)
+                chan_info.Pos = 0;
+            chan_info.Priority = in->ReadInt32();
+            chan_info.Repeat = in->ReadInt32();
+            chan_info.Vol = in->ReadInt32();
+            chan_info.Pan = in->ReadInt32();
+            chan_info.VolAsPercent = in->ReadInt32();
+            chan_info.PanAsPercent = in->ReadInt32();
+            chan_info.Speed = 1000;
             if (loaded_game_file_version >= kGameVersion_340_2)
-                speed = in->ReadInt32();
-            play_audio_clip_on_channel(bb, &game.audioClips[audioClipIndex], priority, repeat, channelPositions[bb]);
-            if (channels[bb] != NULL)
-            {
-                channels[bb]->set_panning(pan);
-                channels[bb]->set_volume_alternate(volAsPercent, vol);
-                channels[bb]->set_speed(speed);
-                channels[bb]->panningAsPercentage = panAsPercent;
-            }
-        }
-    }
-    if ((cf_in_chan > 0) && (channels[cf_in_chan] != NULL))
-        play.crossfading_in_channel = cf_in_chan;
-    if ((cf_out_chan > 0) && (channels[cf_out_chan] != NULL))
-        play.crossfading_out_channel = cf_out_chan;
-
-    // If there were synced audio tracks, the time taken to load in the
-    // different channels will have thrown them out of sync, so re-time it
-    for (bb = 0; bb <= MAX_SOUND_CHANNELS; bb++)
-    {
-        if ((channelPositions[bb] > 0) && (channels[bb] != NULL) && (channels[bb]->done == 0))
-        {
-            channels[bb]->seek(channelPositions[bb]);
+                chan_info.Speed = in->ReadInt32();
         }
     }
     crossFading = in->ReadInt32();
@@ -2013,12 +1959,6 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, Restore
     play.ReadCustomProperties(in);
 
     ReadCharacterExtras_Aligned(in);
-    if (roominst!=NULL) {  // so it doesn't overwrite the tsdata
-        delete roominstFork;
-        delete roominst;
-        roominstFork = NULL;
-        roominst=NULL;
-    }
     restore_game_palette(in);
     restore_game_dialogs(in);
     restore_game_more_dynamic_values(in);
@@ -2044,7 +1984,7 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, Restore
     if (in->ReadInt32() != MAGICNUMBER+1)
         quit("!Game has been modified since save; unable to restore (GV03)");
 
-    restore_game_audioclips_and_crossfade(in);
+    restore_game_audioclips_and_crossfade(in, r_data);
 
     // [IKM] Plugins expect FILE pointer! // TODO something with this later
     platform->RunPluginHooks(AGSE_RESTOREGAME, (long)((Common::FileStream*)in)->GetHandle());
@@ -2059,15 +1999,6 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, Restore
 
     // preserve legacy music type setting
     current_music_type = in->ReadInt32();
-    // test if the playing music was properly loaded
-    if (current_music_type > 0)
-    {
-        if (crossFading > 0 && !channels[crossFading] ||
-            crossFading <= 0 && !channels[SCHAN_MUSIC])
-        {
-            current_music_type = 0;
-        }
-    }
 
     return kSvgErr_NoError;
 }

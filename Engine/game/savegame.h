@@ -113,10 +113,24 @@ struct SavegameDescription
     ABitmap             UserImage;
 };
 
+// PreservedParams keeps old values of particular gameplay
+// parameters that are saved before the save restoration
+// and either applied or compared to new values after
+// loading save data
+struct PreservedParams
+{
+    // Whether speech and audio packages available
+    int SpeechVOX;
+    int MusicVOX;
+
+    PreservedParams();
+};
+
 // RestoredData keeps certain temporary data to help with
 // the restoration process
 struct RestoredData
 {
+    int                     FPS;
     // Unserialized bitmaps for dynamic surfaces
     std::vector<Bitmap*>    DynamicSurfaces;
     // Scripts global data
@@ -139,6 +153,20 @@ struct RestoredData
     // Mouse cursor parameters
     int                     CursorID;
     int                     CursorMode;
+    // General audio
+    struct ChannelInfo
+    {
+        int ClipID;
+        int Pos;
+        int Priority;
+        int Repeat;
+        int Vol;
+        int VolAsPercent;
+        int Pan;
+        int PanAsPercent;
+        int Speed;
+    };
+    ChannelInfo             AudioChans[MAX_SOUND_CHANNELS + 1];
     // Ambient sounds
     int                     DoAmbient[MAX_SOUND_CHANNELS];
 

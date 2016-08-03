@@ -2191,31 +2191,6 @@ int restore_game_data (Stream *in, SavedGameVersion svg_version)
     // Modified custom properties are read separately to keep existing save format
     play.ReadCustomProperties(in);
 
-    //
-    //in->ReadArray(&game.invinfo[0], sizeof(InventoryItemInfo), game.numinvitems);
-    //in->ReadArray(&game.mcurs[0], sizeof(MouseCursor), game.numcursors);
-    //
-    //if (game.invScripts == NULL)
-    //{
-    //  for (bb = 0; bb < game.numinvitems; bb++)
-    //    in->ReadArray (&game.intrInv[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS);
-    //  for (bb = 0; bb < game.numcharacters; bb++)
-    //    in->ReadArray (&game.intrChar[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS);
-    //}
-    //
-    //// restore pointer members
-    //game.globalscript=gswas;
-    //game.compiled_script=compsc;
-    //game.chars=chwas;
-    //game.dict = olddict;
-    //for (vv=0;vv<MAXGLOBALMES;vv++) game.messages[vv]=mesbk[vv];
-    //
-    //in->ReadArray(&game.options[0], sizeof(int), OPT_HIGHESTOPTION+1);
-    //game.options[OPT_LIPSYNCTEXT] = in->ReadByte();
-    //
-    //in->ReadArray(&game.chars[0],sizeof(CharacterInfo),game.numcharacters);
-    //
-
     ReadCharacterExtras_Aligned(in);
     if (roominst!=NULL) {  // so it doesn't overwrite the tsdata
         delete roominstFork;

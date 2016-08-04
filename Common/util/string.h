@@ -155,7 +155,7 @@ public:
     // Get Nth character with bounds check (as opposed to subscript operator)
     inline char GetAt(int index) const
     {
-        return (_meta && index >= 0 && index <= _meta->Length) ? _meta->CStr[index] : 0;
+        return (_meta && index >= 0 && index < _meta->Length) ? _meta->CStr[index] : 0;
     }
     inline char GetLast() const
     {
@@ -302,7 +302,7 @@ public:
     String &operator=(const char *cstr);
     inline char operator[](int index) const
     {
-        assert(_meta && index >= 0 && index <= _meta->Length);
+        assert(_meta && index >= 0 && index < _meta->Length);
         return _meta->CStr[index];
     }
     inline bool operator==(const char *cstr) const

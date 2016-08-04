@@ -414,7 +414,7 @@ bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, Stri
         }
     }
 
-    if (child_path[0] == '\\' || child_path[0] == '/')
+    if (child_path[0u] == '\\' || child_path[0u] == '/')
         child_path.ClipLeft(1);
 
     path = String::FromFormat("%s%s", parent_dir.GetCStr(), child_path.GetCStr());

@@ -53,13 +53,13 @@ String::String(const char *cstr)
     *this = cstr;
 }
 
-String::String(const char *cstr, int length)
+String::String(const char *cstr, size_t length)
     : _data(NULL)
 {
     SetString(cstr, length);
 }
 
-String::String(char c, int count)
+String::String(char c, size_t count)
     : _data(NULL)
 {
     FillString(c, count);
@@ -70,21 +70,20 @@ String::~String()
     Free();
 }
 
-void String::Read(Stream *in, int max_chars, bool stop_at_limit)
+void String::Read(Stream *in, size_t max_chars, bool stop_at_limit)
 {
     Empty();
     if (!in)
     {
         return;
     }
-    max_chars = max_chars >= 0 ? max_chars : 0;
-    if (!max_chars && stop_at_limit)
+    if (max_chars == 0 && stop_at_limit)
     {
         return;
     }
 
     char *read_ptr = _internalBuffer;
-    int read_size = 0;
+    size_t read_size = 0;
     int ichar;
     do
     {
@@ -109,7 +108,7 @@ void String::Read(Stream *in, int max_chars, bool stop_at_limit)
     while(ichar > 0 && !(stop_at_limit && read_size == max_chars));
 }
 
-void String::ReadCount(Stream *in, int count)
+void String::ReadCount(Stream *in, size_t count)
 {
     Empty();
     if (in && count > 0)
@@ -129,14 +128,14 @@ void String::Write(Stream *out) const
     }
 }
 
-void String::WriteCount(Stream *out, int count) const
+void String::WriteCount(Stream *out, size_t count) const
 {
     if (out)
     {
-        int str_out_len = Math::Min(count - 1, GetLength());
+        size_t str_out_len = Math::Min(count - 1, GetLength());
         if (str_out_len > 0)
             out->Write(GetCStr(), str_out_len);
-        int null_out_len = count - str_out_len;
+        size_t null_out_len = count - str_out_len;
         if (null_out_len > 0)
             out->WriteByteCount(0, null_out_len);
     }
@@ -161,67 +160,66 @@ int String::CompareNoCase(const char *cstr) const
     return stricmp(GetCStr(), cstr ? cstr : "");
 }
 
-int String::CompareLeft(const char *cstr, int count) const
+int String::CompareLeft(const char *cstr, size_t count) const
 {
     cstr = cstr ? cstr : "";
-    return strncmp(GetCStr(), cstr, count >= 0 ? count : strlen(cstr));
+    return strncmp(GetCStr(), cstr, count != -1 ? count : strlen(cstr));
 }
 
-int String::CompareLeftNoCase(const char *cstr, int count) const
+int String::CompareLeftNoCase(const char *cstr, size_t count) const
 {
     cstr = cstr ? cstr : "";
-    return strnicmp(GetCStr(), cstr, count >= 0 ? count : strlen(cstr));
+    return strnicmp(GetCStr(), cstr, count != -1 ? count : strlen(cstr));
 }
 
-int String::CompareMid(const char *cstr, int from, int count) const
-{
-    cstr = cstr ? cstr : "";
-    from = Math::Min(from, GetLength());
-    return strncmp(GetCStr() + from, cstr, count >= 0 ? count : strlen(cstr));
-}
-
-int String::CompareMidNoCase(const char *cstr, int from, int count) const
+int String::CompareMid(const char *cstr, size_t from, size_t count) const
 {
     cstr = cstr ? cstr : "";
     from = Math::Min(from, GetLength());
-    return strnicmp(GetCStr() + from, cstr, count >= 0 ? count : strlen(cstr));
+    return strncmp(GetCStr() + from, cstr, count != -1 ? count : strlen(cstr));
 }
 
-int String::CompareRight(const char *cstr, int count) const
+int String::CompareMidNoCase(const char *cstr, size_t from, size_t count) const
 {
     cstr = cstr ? cstr : "";
-    count = count >= 0 ? count : strlen(cstr);
-    int from = Math::Max(0, GetLength() - count);
-    return strncmp(GetCStr() + from, cstr, count);
+    from = Math::Min(from, GetLength());
+    return strnicmp(GetCStr() + from, cstr, count != -1 ? count : strlen(cstr));
 }
 
-int String::CompareRightNoCase(const char *cstr, int count) const
+int String::CompareRight(const char *cstr, size_t count) const
 {
     cstr = cstr ? cstr : "";
-    count = count >= 0 ? count : strlen(cstr);
-    int from = Math::Max(0, GetLength() - count);
-    return strnicmp(GetCStr() + from, cstr, count);
+    count = count != -1 ? count : strlen(cstr);
+    size_t off = Math::Min(GetLength(), count);
+    return strncmp(GetCStr() + GetLength() - off, cstr, count);
 }
 
-int String::FindChar(char c, int from) const
+int String::CompareRightNoCase(const char *cstr, size_t count) const
+{
+    cstr = cstr ? cstr : "";
+    count = count != -1 ? count : strlen(cstr);
+    size_t off = Math::Min(GetLength(), count);
+    return strnicmp(GetCStr() + GetLength() - off, cstr, count);
+}
+
+size_t String::FindChar(char c, size_t from) const
 {
     if (_meta && c && from < _meta->Length)
     {
-        from = from >= 0 ? from : 0;
         const char * found_cstr = strchr(_meta->CStr + from, c);
         return found_cstr ? found_cstr - _meta->CStr : -1;
     }
     return -1;
 }
 
-int String::FindCharReverse(char c, int from) const
+size_t String::FindCharReverse(char c, size_t from) const
 {
     if (!_meta || !c)
     {
         return -1;
     }
 
-    from = from >= 0 ? Math::Min(from, _meta->Length - 1) : _meta->Length - 1;
+    from = Math::Min(from, _meta->Length - 1);
     const char *seek_ptr = _meta->CStr + from;
     while (seek_ptr >= _meta->CStr)
     {
@@ -234,19 +232,18 @@ int String::FindCharReverse(char c, int from) const
     return -1;
 }
 
-int String::FindString(const char *cstr, int from) const
+size_t String::FindString(const char *cstr, size_t from) const
 {
     if (_meta && cstr && from < _meta->Length)
     {
-        from = from >= 0 ? from : 0;
         const char * found_cstr = strstr(_meta->CStr + from, cstr);
         return found_cstr ? found_cstr - _meta->CStr : -1;
     }
     return -1;
 }
 
-bool String::FindSection(char separator, int first, int last, bool exclude_first_sep, bool exclude_last_sep,
-                        int &from, int &to) const
+bool String::FindSection(char separator, size_t first, size_t last, bool exclude_first_sep, bool exclude_last_sep,
+                        size_t &from, size_t &to) const
 {
     if (!_meta || !separator)
     {
@@ -257,14 +254,14 @@ bool String::FindSection(char separator, int first, int last, bool exclude_first
         return false;
     }
 
-    int this_field = 0;
-    int slice_from = 0;
-    int slice_to = 0;
-    int slice_at = -1;
+    size_t this_field = 0;
+    size_t slice_from = 0;
+    size_t slice_to = 0;
+    size_t slice_at = -1;
     do
     {
         slice_at = FindChar(separator, slice_at + 1);
-        if (slice_at < 0)
+        if (slice_at == -1)
             slice_at = _meta->Length;
         // found where previous field ends
         if (this_field == last)
@@ -291,8 +288,8 @@ bool String::FindSection(char separator, int first, int last, bool exclude_first
     {
         // correct the indices to stay in the [0; length] range
         assert(slice_from <= slice_to);
-        from = Math::Clamp(0, _meta->Length, slice_from);
-        to   = Math::Clamp(0, _meta->Length, slice_to);
+        from = Math::Clamp((size_t)0, _meta->Length, slice_from);
+        to   = Math::Clamp((size_t)0, _meta->Length, slice_to);
         return true;
     }
     return false;
@@ -309,7 +306,7 @@ int String::ToInt() const
     String str;
     va_list argptr;
     va_start(argptr, fcstr);
-    int length = vsnprintf(NULL, 0, fcstr, argptr);
+    int length = vsnprintf(NULL, 0u, fcstr, argptr);
     str.ReserveAndShift(false, length);
     va_start(argptr, fcstr);
     vsprintf(str._meta->CStr, fcstr, argptr);
@@ -319,14 +316,14 @@ int String::ToInt() const
     return str;
 }
 
-/* static */ String String::FromStream(Stream *in, int max_chars, bool stop_at_limit)
+/* static */ String String::FromStream(Stream *in, size_t max_chars, bool stop_at_limit)
 {
     String str;
     str.Read(in, max_chars, stop_at_limit);
     return str;
 }
 
-/* static */ String String::FromStreamCount(Stream *in, int count)
+/* static */ String String::FromStreamCount(Stream *in, size_t count)
 {
     String str;
     str.ReadCount(in, count);
@@ -347,22 +344,21 @@ String String::Upper() const
     return str;
 }
 
-String String::Left(int count) const
+String String::Left(size_t count) const
 {
-    count = count >= 0 ? Math::Min(count, GetLength()) : GetLength();
+    count = Math::Min(count, GetLength());
     return count == GetLength() ? *this : String(GetCStr(), count);
 }
 
-String String::Mid(int from, int count) const
+String String::Mid(size_t from, size_t count) const
 {
-    count = count >= 0 ? count : GetLength();
-    Math::ClampLength(0, GetLength(), from, count);
+    Math::ClampLength((size_t)0, GetLength(), from, count);
     return count == GetLength() ? *this : String(GetCStr() + from, count);
 }
 
-String String::Right(int count) const
+String String::Right(size_t count) const
 {
-    count = count >= 0 ? Math::Min(count, GetLength()) : GetLength();
+    count = Math::Min(count, GetLength());
     return count == GetLength() ? *this : String(GetCStr() + GetLength() - count, count);
 }
 
@@ -370,8 +366,8 @@ String String::LeftSection(char separator, bool exclude_separator) const
 {
     if (_meta && separator)
     {
-        int slice_at = FindChar(separator);
-        if (slice_at >= 0)
+        size_t slice_at = FindChar(separator);
+        if (slice_at != -1)
         {
             slice_at = exclude_separator ? slice_at : slice_at + 1;
             return Left(slice_at);
@@ -384,17 +380,17 @@ String String::RightSection(char separator, bool exclude_separator) const
 {
     if (_meta && separator)
     {
-        int slice_at = FindCharReverse(separator);
-        if (slice_at >= 0)
+        size_t slice_at = FindCharReverse(separator);
+        if (slice_at != -1)
         {
-            int count = exclude_separator ? _meta->Length - slice_at - 1 : _meta->Length - slice_at;
+            size_t count = exclude_separator ? _meta->Length - slice_at - 1 : _meta->Length - slice_at;
             return Right(count);
         }
     }
     return *this;
 }
 
-String String::Section(char separator, int first, int last,
+String String::Section(char separator, size_t first, size_t last,
                           bool exclude_first_sep, bool exclude_last_sep) const
 {
     if (!_meta || !separator)
@@ -402,8 +398,8 @@ String String::Section(char separator, int first, int last,
         return String();
     }
 
-    int slice_from;
-    int slice_to;
+    size_t slice_from;
+    size_t slice_to;
     if (FindSection(separator, first, last, exclude_first_sep, exclude_last_sep,
         slice_from, slice_to))
     {
@@ -412,15 +408,14 @@ String String::Section(char separator, int first, int last,
     return String();
 }
 
-void String::Reserve(int max_length)
+void String::Reserve(size_t max_length)
 {
-    max_length = max_length >= 0 ? max_length : 0;
     if (_meta)
     {
         if (max_length > _meta->Capacity)
         {
-            // grow by 50% or at least to total_size
-            int grow_length = _meta->Capacity + (_meta->Capacity >> 1);
+            // grow by 50%
+            size_t grow_length = _meta->Capacity + (_meta->Capacity / 2);
             Copy(Math::Max(max_length, grow_length));
         }
     }
@@ -430,7 +425,7 @@ void String::Reserve(int max_length)
     }
 }
 
-void String::ReserveMore(int more_length)
+void String::ReserveMore(size_t more_length)
 {
     Reserve(GetLength() + more_length);
 }
@@ -447,7 +442,7 @@ void String::Append(const char *cstr)
 {
     if (cstr)
     {
-        int length = strlen(cstr);
+        size_t length = strlen(cstr);
         if (length > 0)
         {
             ReserveAndShift(false, length);
@@ -468,7 +463,7 @@ void String::AppendChar(char c)
     }
 }
 
-void String::ClipLeft(int count)
+void String::ClipLeft(size_t count)
 {
     if (_meta && _meta->Length > 0 && count > 0)
     {
@@ -479,12 +474,11 @@ void String::ClipLeft(int count)
     }
 }
 
-void String::ClipMid(int from, int count)
+void String::ClipMid(size_t from, size_t count)
 {
-    if (_meta && _meta->Length > 0)
+    if (_meta && from < _meta->Length)
     {
-        count = count >= 0 ? count : _meta->Length - from;
-        Math::ClampLength(0, _meta->Length, from, count);
+        count = Math::Min(count, _meta->Length - from);
         if (count > 0)
         {
             BecomeUnique();
@@ -508,7 +502,7 @@ void String::ClipMid(int from, int count)
     }
 }
 
-void String::ClipRight(int count)
+void String::ClipRight(size_t count)
 {
     if (_meta && count > 0)
     {
@@ -523,8 +517,8 @@ void String::ClipLeftSection(char separator, bool include_separator)
 {
     if (_meta && separator)
     {
-        int slice_at = FindChar(separator);
-        if (slice_at >= 0)
+        size_t slice_at = FindChar(separator);
+        if (slice_at != -1)
         {
             ClipLeft(include_separator ? slice_at + 1 : slice_at);
         }
@@ -537,8 +531,8 @@ void String::ClipRightSection(char separator, bool include_separator)
 {
     if (_meta && separator)
     {
-        int slice_at = FindCharReverse(separator);
-        if (slice_at >= 0)
+        size_t slice_at = FindCharReverse(separator);
+        if (slice_at != -1)
         {
             ClipRight(include_separator ? _meta->Length - slice_at : _meta->Length - slice_at - 1);
         }
@@ -547,7 +541,7 @@ void String::ClipRightSection(char separator, bool include_separator)
     }
 }
 
-void String::ClipSection(char separator, int first, int last,
+void String::ClipSection(char separator, size_t first, size_t last,
                               bool include_first_sep, bool include_last_sep)
 {
     if (!_meta || !separator)
@@ -555,8 +549,8 @@ void String::ClipSection(char separator, int first, int last,
         return;
     }
 
-    int slice_from;
-    int slice_to;
+    size_t slice_from;
+    size_t slice_to;
     if (FindSection(separator, first, last, !include_first_sep, !include_last_sep,
         slice_from, slice_to))
     {
@@ -574,7 +568,7 @@ void String::Empty()
     }
 }
 
-void String::FillString(char c, int count)
+void String::FillString(char c, size_t count)
 {
     Empty();
     if (count > 0)
@@ -591,8 +585,8 @@ void String::Format(const char *fcstr, ...)
     fcstr = fcstr ? fcstr : "";
     va_list argptr;
     va_start(argptr, fcstr);
-    int length = vsnprintf(NULL, 0, fcstr, argptr);
-    ReserveAndShift(false, Math::Max(0, length - GetLength()));
+    size_t length = vsnprintf(NULL, 0u, fcstr, argptr);
+    ReserveAndShift(false, Math::Surplus(length, GetLength()));
     va_start(argptr, fcstr);
     vsprintf(_meta->CStr, fcstr, argptr);
     _meta->Length = length;
@@ -636,7 +630,7 @@ void String::Prepend(const char *cstr)
 {
     if (cstr)
     {
-        int length = strlen(cstr);
+        size_t length = strlen(cstr);
         if (length > 0)
         {
             ReserveAndShift(true, length);
@@ -675,38 +669,35 @@ void String::Replace(char what, char with)
     }
 }
 
-void String::ReplaceMid(int from, int count, const char *cstr)
+void String::ReplaceMid(size_t from, size_t count, const char *cstr)
 {
     if (!cstr)
         cstr = "";
-    int length = strlen(cstr);
-    Math::ClampLength(0, GetLength(), from, count);
-    if (count >= 0)
-    {
-        ReserveAndShift(false, Math::Max(0, length - count));
-        memmove(_meta->CStr + from + length, _meta->CStr + from + count, GetLength() - (from + count) + 1);
-        memcpy(_meta->CStr + from, cstr, length);
-        _meta->Length += length - count;
-    }
+    size_t length = strlen(cstr);
+    Math::ClampLength((size_t)0, GetLength(), from, count);
+    ReserveAndShift(false, Math::Surplus(length, count));
+    memmove(_meta->CStr + from + length, _meta->CStr + from + count, GetLength() - (from + count) + 1);
+    memcpy(_meta->CStr + from, cstr, length);
+    _meta->Length += length - count;
 }
 
-void String::SetAt(int index, char c)
+void String::SetAt(size_t index, char c)
 {
-    if (_meta && index >= 0 && index < GetLength() && c)
+    if (_meta && index < GetLength() && c)
     {
         BecomeUnique();
         _meta->CStr[index] = c;
     }
 }
 
-void String::SetString(const char *cstr, int length)
+void String::SetString(const char *cstr, size_t length)
 {
     if (cstr)
     {
-        length = length >= 0 ? Math::Min((size_t)length, strlen(cstr)) : strlen(cstr);
+        length = Math::Min(length, strlen(cstr));
         if (length > 0)
         {
-            ReserveAndShift(false, Math::Max(0, length - GetLength()));
+            ReserveAndShift(false, Math::Surplus(length, GetLength()));
             memcpy(_meta->CStr, cstr, length);
             _meta->Length = length;
             _meta->CStr[length] = 0;
@@ -742,7 +733,7 @@ void String::TrimLeft(char c)
     {
         trim_ptr++;
     }
-    int trimmed = trim_ptr - _meta->CStr;
+    size_t trimmed = trim_ptr - _meta->CStr;
     if (trimmed > 0)
     {
         BecomeUnique();
@@ -765,7 +756,7 @@ void String::TrimRight(char c)
     {
         trim_ptr--;
     }
-    int trimmed = (_meta->CStr + _meta->Length - 1) - trim_ptr;
+    size_t trimmed = (_meta->CStr + _meta->Length - 1) - trim_ptr;
     if (trimmed > 0)
     {
         BecomeUnique();
@@ -774,9 +765,9 @@ void String::TrimRight(char c)
     }
 }
 
-void String::TruncateToLeft(int count)
+void String::TruncateToLeft(size_t count)
 {
-    if (_meta && count >= 0)
+    if (_meta)
     {
         count = Math::Min(count, _meta->Length);
         if (count < _meta->Length)
@@ -788,12 +779,11 @@ void String::TruncateToLeft(int count)
     }
 }
 
-void String::TruncateToMid(int from, int count)
+void String::TruncateToMid(size_t from, size_t count)
 {
     if (_meta)
     {
-        count = count >= 0 ? count : _meta->Length - from;
-        Math::ClampLength(0, _meta->Length, from, count);
+        Math::ClampLength((size_t)0, _meta->Length, from, count);
         if (from > 0 || count < _meta->Length)
         {
             BecomeUnique();
@@ -804,9 +794,9 @@ void String::TruncateToMid(int from, int count)
     }
 }
 
-void String::TruncateToRight(int count)
+void String::TruncateToRight(size_t count)
 {
-    if (_meta && count >= 0)
+    if (_meta)
     {
         count = Math::Min(count, GetLength());
         if (count < _meta->Length)
@@ -822,8 +812,8 @@ void String::TruncateToLeftSection(char separator, bool exclude_separator)
 {
     if (_meta && separator)
     {
-        int slice_at = FindChar(separator);
-        if (slice_at >= 0)
+        size_t slice_at = FindChar(separator);
+        if (slice_at != -1)
         {
             TruncateToLeft(exclude_separator ? slice_at : slice_at + 1);
         }
@@ -834,15 +824,15 @@ void String::TruncateToRightSection(char separator, bool exclude_separator)
 {
     if (_meta && separator)
     {
-        int slice_at = FindCharReverse(separator);
-        if (slice_at >= 0)
+        size_t slice_at = FindCharReverse(separator);
+        if (slice_at != -1)
         {
             TruncateToRight(exclude_separator ? _meta->Length - slice_at - 1 : _meta->Length - slice_at);
         }
     }
 }
 
-void String::TruncateToSection(char separator, int first, int last,
+void String::TruncateToSection(char separator, size_t first, size_t last,
                           bool exclude_first_sep, bool exclude_last_sep)
 {
     if (!_meta || !separator)
@@ -850,8 +840,8 @@ void String::TruncateToSection(char separator, int first, int last,
         return;
     }
 
-    int slice_from;
-    int slice_to;
+    size_t slice_from;
+    size_t slice_to;
     if (FindSection(separator, first, last, exclude_first_sep, exclude_last_sep,
         slice_from, slice_to))
     {
@@ -886,7 +876,7 @@ String &String::operator=(const char *cstr)
     return *this;
 }
 
-void String::Create(int max_length)
+void String::Create(size_t max_length)
 {
     _data = new char[sizeof(String::Header) + max_length + 1];
     _meta->RefCount = 1;
@@ -896,7 +886,7 @@ void String::Create(int max_length)
     _meta->CStr[_meta->Length] = 0;
 }
 
-void String::Copy(int max_length, int offset)
+void String::Copy(size_t max_length, size_t offset)
 {
     if (!_meta)
     {
@@ -907,7 +897,7 @@ void String::Copy(int max_length, int offset)
     // remember, that _meta->CStr may point to any address in buffer
     char *cstr_head = new_data + sizeof(String::Header) + offset;
     memcpy(new_data, _data, sizeof(String::Header));
-    int copy_length = Math::Min(_meta->Length, max_length);
+    size_t copy_length = Math::Min(_meta->Length, max_length);
     memcpy(cstr_head, _meta->CStr, copy_length);
     Free();
     _data = new_data;
@@ -918,7 +908,7 @@ void String::Copy(int max_length, int offset)
     _meta->CStr[_meta->Length] = 0;
 }
 
-void String::Align(int offset)
+void String::Align(size_t offset)
 {
     char *cstr_head = _data + sizeof(String::Header) + offset;
     memmove(cstr_head, _meta->CStr, _meta->Length + 1);
@@ -933,26 +923,26 @@ void String::BecomeUnique()
     }
 }
 
-void String::ReserveAndShift(bool left, int more_length)
+void String::ReserveAndShift(bool left, size_t more_length)
 {
     if (_meta)
     {
-        int total_length = _meta->Length + more_length;
+        size_t total_length = _meta->Length + more_length;
         if (_meta->Capacity < total_length)
         {
             // grow by 50% or at least to total_size
-            int grow_length = _meta->Capacity + (_meta->Capacity >> 1);
-            Copy(Math::Max(total_length, grow_length), left ? more_length : 0);
+            size_t grow_length = _meta->Capacity + (_meta->Capacity >> 1);
+            Copy(Math::Max(total_length, grow_length), left ? more_length : 0u);
         }
         else if (_meta->RefCount > 1)
         {
-            Copy(total_length, left ? more_length : 0);
+            Copy(total_length, left ? more_length : 0u);
         }
         else
         {
             // make sure we make use of all of our space
             const char *cstr_head = _data + sizeof(String::Header);
-            int free_space = left ?
+            size_t free_space = left ?
                 _meta->CStr - cstr_head :
                 (cstr_head + _meta->Capacity) - (_meta->CStr + _meta->Length);
             if (free_space < more_length)

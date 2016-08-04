@@ -227,7 +227,7 @@ void read_game_data_location(const ConfigTree &cfg)
         AGS::Common::Path::FixupPath(usetup.data_files_dir);
 #if defined (WINDOWS_VERSION)
         // if the path is just x:\ don't strip the slash
-        if (!(usetup.data_files_dir.GetLength() < 4 && usetup.data_files_dir[1] == ':'))
+        if (!(usetup.data_files_dir.GetLength() < 4 && usetup.data_files_dir[1u] == ':'))
         {
             usetup.data_files_dir.TrimRight('/');
         }

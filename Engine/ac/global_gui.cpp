@@ -45,7 +45,7 @@ int FindGUIID (const char* GUIName) {
             continue;
         if (strcmp(guis[ii].Name, GUIName) == 0)
             return ii;
-        if ((guis[ii].Name[0] == 'g') && (stricmp(guis[ii].Name.GetCStr() + 1, GUIName) == 0))
+        if ((guis[ii].Name[0u] == 'g') && (stricmp(guis[ii].Name.GetCStr() + 1, GUIName) == 0))
             return ii;
     }
     quit("FindGUIID: No matching GUI found: GUI may have been deleted");

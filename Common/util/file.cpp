@@ -88,7 +88,7 @@ bool File::GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, F
     // Default mode is open/read for safety reasons
     open_mode = kFile_Open;
     work_mode = kFile_Read;
-    for (int c = 0; c < cmode.GetLength(); ++c)
+    for (size_t c = 0; c < cmode.GetLength(); ++c)
     {
         if (read_base_mode)
         {

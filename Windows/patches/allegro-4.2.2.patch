@@ -1,0 +1,100 @@
+diff --git a/src/file.c b/src/file.c
+index 401df65..ee97c44 100644
+--- a/src/file.c
++++ b/src/file.c
+@@ -1805,7 +1805,7 @@ PACKFILE *_pack_fdopen(int fd, AL_CONST char *mode)
+  *  it returns NULL and stores an error code in errno. An attempt to read a 
+  *  normal file in packed mode will cause errno to be set to EDOM.
+  */
+-PACKFILE *pack_fopen(AL_CONST char *filename, AL_CONST char *mode)
++PACKFILE *__old_pack_fopen(AL_CONST char *filename, AL_CONST char *mode)
+ {
+    char tmp[1024];
+    int fd;
+diff --git a/src/win/wdsound.c b/src/win/wdsound.c
+index 0bfdd6f..9ff67f6 100644
+--- a/src/win/wdsound.c
++++ b/src/win/wdsound.c
+@@ -151,7 +151,7 @@ static DIGI_DRIVER digi_directsound =
+ 
+ 
+ /* sound driver globals */
+-static LPDIRECTSOUND directsound = NULL;
++LPDIRECTSOUND directsound = NULL;
+ static LPDIRECTSOUNDBUFFER prim_buf = NULL;
+ static long int initial_volume;
+ static int _freq, _bits, _stereo;
+diff --git a/src/win/wkeybd.c b/src/win/wkeybd.c
+index 8f12640..17cc72d 100644
+--- a/src/win/wkeybd.c
++++ b/src/win/wkeybd.c
+@@ -40,12 +40,12 @@
+ static HANDLE key_input_event = NULL;
+ static HANDLE key_input_processed_event = NULL;
+ static LPDIRECTINPUT key_dinput = NULL;
+-static LPDIRECTINPUTDEVICE key_dinput_device = NULL;
++LPDIRECTINPUTDEVICE key_dinput_device = NULL;
+ 
+ 
+ /* lookup table for converting DIK_* scancodes into Allegro KEY_* codes */
+ /* this table was from pckeys.c  */
+-static const unsigned char hw_to_mycode[256] = {
++const unsigned char hw_to_mycode[256] = {
+    /* 0x00 */ 0, KEY_ESC, KEY_1, KEY_2,
+    /* 0x04 */ KEY_3, KEY_4, KEY_5, KEY_6,
+    /* 0x08 */ KEY_7, KEY_8, KEY_9, KEY_0,
+@@ -321,11 +321,26 @@ static void key_dinput_handle_scancode(unsigned char scancode, int pressed)
+ {
+    HWND allegro_wnd = win_get_window();
+    static int ignore_three_finger_flag = FALSE;
++   static BOOL just_pressed_alt = FALSE;
++
++   if (scancode == DIK_LMENU)
++   {
++     just_pressed_alt = TRUE;
++   }
++   else if (scancode != DIK_TAB)
++   {
++     just_pressed_alt = FALSE;
++   }
++
+    /* ignore special Windows keys (alt+tab, alt+space, (ctrl|alt)+esc) */
+    if (((scancode == DIK_TAB) && (_key_shifts & KB_ALT_FLAG))
+        || ((scancode == DIK_SPACE) && (_key_shifts & KB_ALT_FLAG))
+-       || ((scancode == DIK_ESCAPE) && (_key_shifts & (KB_CTRL_FLAG | KB_ALT_FLAG))))
+-      return;
++       || ((scancode == DIK_ESCAPE) && (_key_shifts & (KB_CTRL_FLAG | KB_ALT_FLAG)))
++       || ((scancode == DIK_TAB) && (just_pressed_alt)))
++   {
++     just_pressed_alt = FALSE;
++     return;
++   }
+ 
+    /* alt+F4 triggers a WM_CLOSE under Windows */
+    if ((scancode == DIK_F4) && (_key_shifts & KB_ALT_FLAG)) {
+diff --git a/src/win/wmouse.c b/src/win/wmouse.c
+index b56b983..5937380 100644
+--- a/src/win/wmouse.c
++++ b/src/win/wmouse.c
+@@ -82,7 +82,7 @@ HCURSOR _win_hcursor = NULL;	/* Hardware cursor to display */
+ #define DINPUT_BUFFERSIZE 256
+ static HANDLE mouse_input_event = NULL;
+ static LPDIRECTINPUT mouse_dinput = NULL;
+-static LPDIRECTINPUTDEVICE mouse_dinput_device = NULL;
++LPDIRECTINPUTDEVICE mouse_dinput_device = NULL;
+ 
+ static int dinput_buttons = 0;
+ static int dinput_wheel = FALSE;
+diff --git a/src/win/wwnd.c b/src/win/wwnd.c
+index fe46e05..2e2f08e 100644
+--- a/src/win/wwnd.c
++++ b/src/win/wwnd.c
+@@ -36,7 +36,7 @@
+ 
+ 
+ /* general */
+-static HWND allegro_wnd = NULL;
++HWND allegro_wnd = NULL;
+ char wnd_title[WND_TITLE_SIZE];  /* ASCII string */
+ int wnd_x = 0;
+ int wnd_y = 0;

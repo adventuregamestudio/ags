@@ -380,19 +380,9 @@ namespace AGS.Editor
             _native.CompileScript(script, preProcessedData, game, isRoomScript);
         }
 
-        public void CompileGameToDTAFile(Game game, string fileName)
-        {
-            _native.CompileGameToDTAFile(game, fileName);
-        }
-
         public void CreateDataFile(string[] fileList, int splitSize, string baseFileName, bool isGameEXE)
         {
             _native.CreateDataFile(fileList, splitSize, baseFileName, isGameEXE);
-        }
-
-        public void CreateGameEXE(string[] fileList, Game game, string baseFileName)
-        {
-            CreateDataFile(fileList, game.Settings.SplitResources * 1000000, baseFileName, true);
         }
 
         public void CreateDebugMiniEXE(string[] fileList, string exeFileName)

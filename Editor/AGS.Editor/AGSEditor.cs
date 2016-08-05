@@ -991,15 +991,12 @@ namespace AGS.Editor
             // This is why the BuildTargetDataFile is called explicitly at the start.
             // And that is why the rest must be called AFTER the ExtraOutputCreationStep.
             //
-            // It may be a better idea to split BuildTarget and DeployTarget interfaces (names are given for example)
-            // to make the building logic cleaner.
-            if (!Factory.AGSEditor.Preferences.UseLegacyCompiler)
+            // Possible solution that could improve situation could be to develop some kind of a BuildStep interface,
+            // having BuildTargets providing their build steps of corresponding type and execution order.
+            foreach (IBuildTarget target in BuildTargetsInfo.GetSelectedBuildTargets())
             {
-                foreach (IBuildTarget target in BuildTargetsInfo.GetSelectedBuildTargets())
-                {
-                    if (target != targetDataFile) target.Build(errors, forceRebuild);
-                    Utilities.SetDirectoryFilesAccess(Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, AGSEditor.OUTPUT_DIRECTORY));
-                }
+                if (target != targetDataFile) target.Build(errors, forceRebuild);
+                Utilities.SetDirectoryFilesAccess(Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, AGSEditor.OUTPUT_DIRECTORY));
             }
             return null;
         }

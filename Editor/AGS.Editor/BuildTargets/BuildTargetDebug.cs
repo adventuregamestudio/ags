@@ -37,15 +37,11 @@ namespace AGS.Editor
         private object CreateDebugFiles(object parameter)
         {
             Factory.AGSEditor.SetMODMusicFlag();
-            if (!Factory.AGSEditor.Preferences.UseLegacyCompiler)
+            CompileMessages errors = (parameter as CompileMessages);
+            if (!DataFileWriter.SaveThisGameToFile(AGSEditor.COMPILED_DTA_FILE_NAME, Factory.AGSEditor.CurrentGame, errors))
             {
-                CompileMessages errors = (parameter as CompileMessages);
-                if (!DataFileWriter.SaveThisGameToFile(AGSEditor.COMPILED_DTA_FILE_NAME, Factory.AGSEditor.CurrentGame, errors))
-                {
-                    return null;
-                }
+                return null;
             }
-            else Factory.NativeProxy.CompileGameToDTAFile(Factory.AGSEditor.CurrentGame, AGSEditor.COMPILED_DTA_FILE_NAME);
             Factory.NativeProxy.CreateDebugMiniEXE(new string[] { AGSEditor.COMPILED_DTA_FILE_NAME },
                 Factory.AGSEditor.BaseGameFileName + ".exe");
             File.Delete(AGSEditor.COMPILED_DTA_FILE_NAME);
@@ -73,12 +69,9 @@ namespace AGS.Editor
                 File.Move(exeFileName, GetDebugPath(exeFileName));
                 // copy configuration from Compiled folder to use with Debugging
                 string cfgFilePath = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.CONFIG_FILE_NAME);
-                if (!Factory.AGSEditor.Preferences.UseLegacyCompiler)
-                {
-                    IBuildTarget targetWin = BuildTargetsInfo.FindBuildTargetByName("Windows");
-                    if (targetWin != null)
-                        cfgFilePath = targetWin.GetCompiledPath(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.CONFIG_FILE_NAME);
-                }
+                IBuildTarget targetWin = BuildTargetsInfo.FindBuildTargetByName("Windows");
+                if (targetWin != null)
+                    cfgFilePath = targetWin.GetCompiledPath(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.CONFIG_FILE_NAME);
                 if (File.Exists(cfgFilePath))
                 {
                     File.Copy(cfgFilePath, GetDebugPath(AGSEditor.CONFIG_FILE_NAME), true);

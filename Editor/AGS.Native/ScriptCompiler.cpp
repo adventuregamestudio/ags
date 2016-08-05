@@ -20,7 +20,6 @@ see the license.txt for details.
 
 extern char editorVersionNumber[50];
 extern void ConvertFileNameToCharArray(System::String^ clrString, char *textBuffer);
-extern void save_game_to_dta_file(Game^ game, const char *fileName);
 extern const char* make_data_file(int numFiles, char * const*fileNames, long splitSize, const char *baseFileName, bool makeFileNameAssumptionsForEXE);
 extern void ReplaceIconFromFile(const char *iconName, const char *exeName);
 extern void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType);
@@ -104,13 +103,6 @@ namespace AGS
 			  }
 
 			  script->CompiledData = gcnew CompiledScript(scrpt);
-		}
-
-		void NativeMethods::CompileGameToDTAFile(Game ^game, String^ fileName)
-		{
-			char fileNameBuffer[MAX_PATH];
-			ConvertFileNameToCharArray(fileName, fileNameBuffer);
-			save_game_to_dta_file(game, fileNameBuffer);
 		}
 
 		void NativeMethods::CreateDataFile(cli::array<String^> ^fileList, long splitSize, String ^baseFileName, bool isGameEXE)

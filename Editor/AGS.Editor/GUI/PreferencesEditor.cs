@@ -46,7 +46,6 @@ namespace AGS.Editor
             chkRemapBgImport.Checked = _preferences.RemapPalettizedBackgrounds;
             chkKeepHelpOnTop.Checked = _preferences.KeepHelpOnTop;
             chkPromptDialogOnTabsClose.Checked = _preferences.DialogOnMultibleTabsClose;
-            chkUseLegacyCompiler.Checked = _preferences.UseLegacyCompiler;
             Utilities.CheckLabelWidthsOnForm(this);
 		}
 
@@ -84,7 +83,6 @@ namespace AGS.Editor
             _preferences.RemapPalettizedBackgrounds = chkRemapBgImport.Checked;
             _preferences.KeepHelpOnTop = chkKeepHelpOnTop.Checked;
             _preferences.DialogOnMultibleTabsClose = chkPromptDialogOnTabsClose.Checked;
-            _preferences.UseLegacyCompiler = chkUseLegacyCompiler.Checked;
 		}
 
 		private void radFolderPath_CheckedChanged(object sender, EventArgs e)

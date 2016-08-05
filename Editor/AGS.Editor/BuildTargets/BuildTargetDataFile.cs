@@ -92,34 +92,15 @@ namespace AGS.Editor
             if (!base.Build(errors, forceRebuild)) return false;
             Factory.AGSEditor.SetMODMusicFlag();
             DeleteAnyExistingSplitResourceFiles();
-            if (Factory.AGSEditor.Preferences.UseLegacyCompiler)
+            if (!DataFileWriter.SaveThisGameToFile(AGSEditor.COMPILED_DTA_FILE_NAME, Factory.AGSEditor.CurrentGame, errors))
             {
-                Factory.NativeProxy.CompileGameToDTAFile(Factory.AGSEditor.CurrentGame, AGSEditor.COMPILED_DTA_FILE_NAME);
-                // if using the legacy compiler, make sure engine EXE is copied before calling CreateGameEXE
-                string newExeName = GetCompiledPath(Factory.AGSEditor.BaseGameFileName + ".exe");
-                string sourceEXE = Path.Combine(Factory.AGSEditor.EditorDirectory, AGSEditor.ENGINE_EXE_FILE_NAME);
-                File.Copy(sourceEXE, newExeName, true);
-                BuildTargetWindows targetWindows = (BuildTargetsInfo.FindBuildTargetByName("Windows") as BuildTargetWindows);
-                // updating the Vista game explorer resources after the EXE is fully created is deleting the data file,
-                // corrupting the game resources
-                targetWindows.UpdateWindowsEXE(newExeName, errors);
-                // the above all needs to be done here anyway, so finish up by creating the setup EXE and copying plugins
-                targetWindows.CreateCompiledSetupProgram();
-                targetWindows.CopyPlugins(errors);
-                Factory.NativeProxy.CreateGameEXE(ConstructFileListForDataFile(), Factory.AGSEditor.CurrentGame, Factory.AGSEditor.BaseGameFileName);
+                return false;
             }
-            else
+            string errorMsg = DataFileWriter.MakeDataFile(ConstructFileListForDataFile(), Factory.AGSEditor.CurrentGame.Settings.SplitResources * 1000000,
+                Factory.AGSEditor.BaseGameFileName, true);
+            if (errorMsg != null)
             {
-                if (!DataFileWriter.SaveThisGameToFile(AGSEditor.COMPILED_DTA_FILE_NAME, Factory.AGSEditor.CurrentGame, errors))
-                {
-                    return false;
-                }
-                string errorMsg = DataFileWriter.MakeDataFile(ConstructFileListForDataFile(), Factory.AGSEditor.CurrentGame.Settings.SplitResources * 1000000,
-                    Factory.AGSEditor.BaseGameFileName, true);
-                if (errorMsg != null)
-                {
-                    errors.Add(new CompileError(errorMsg));
-                }
+                errors.Add(new CompileError(errorMsg));
             }
             File.Delete(AGSEditor.COMPILED_DTA_FILE_NAME);
             CreateAudioVOXFile(forceRebuild);

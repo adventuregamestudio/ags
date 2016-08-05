@@ -29,10 +29,6 @@ namespace AGS.Editor
             try
             {
                 string outputDir = GetCompiledPath();
-                if (Factory.AGSEditor.Preferences.UseLegacyCompiler)
-                {
-                    outputDir = AGSEditor.OUTPUT_DIRECTORY;
-                }
                 foreach (Plugin plugin in Factory.AGSEditor.CurrentGame.Plugins)
                 {
                     File.Copy(Path.Combine(Factory.AGSEditor.EditorDirectory, plugin.FileName), Path.Combine(outputDir, plugin.FileName), true);
@@ -252,8 +248,7 @@ namespace AGS.Editor
         {
             get
             {
-                if (Factory.AGSEditor.Preferences.UseLegacyCompiler) return "";
-                else return WINDOWS_DIRECTORY;
+                return WINDOWS_DIRECTORY;
             }
         }
     }

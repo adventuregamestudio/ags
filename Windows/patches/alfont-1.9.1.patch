@@ -1,0 +1,132 @@
+Index: src/alfont.c
+===================================================================
+diff --git a/trunk/src/alfont.c b/trunk/src/alfont.c
+--- a/trunk/src/alfont.c	(revision 12)
++++ b/trunk/src/alfont.c	(working copy)
+@@ -50,6 +50,82 @@
+ static int alfont_inited = 0;
+ 
+ 
++/*
++   JJS: These functions replace the standard Allegro blender.
++   Code is reverse-engineered from the alfont MSVC library.
++   The blender functions are based on the originals with small modifications
++   that enable correct drawing of anti-aliased fonts.
++*/
++
++/* original: _blender_trans15 in colblend.c */
++unsigned long __skiptranspixels_blender_trans15(unsigned long x, unsigned long y, unsigned long n)
++{
++   unsigned long result;
++
++   if ((y & 0xFFFF) == 0x7C1F)
++      return x;
++
++   if (n)
++      n = (n + 1) / 8;
++
++   x = ((x & 0xFFFF) | (x << 16)) & 0x3E07C1F;
++   y = ((y & 0xFFFF) | (y << 16)) & 0x3E07C1F;
++
++   result = ((x - y) * n / 32 + y) & 0x3E07C1F;
++
++   return ((result & 0xFFFF) | (result >> 16));
++}
++
++/* original: _blender_trans16 in colblend.c */
++unsigned long __skiptranspixels_blender_trans16(unsigned long x, unsigned long y, unsigned long n)
++{
++   unsigned long result;
++
++   if ((y & 0xFFFF) == 0xF81F)
++      return x;
++
++   if (n)
++      n = (n + 1) / 8;
++
++   x = ((x & 0xFFFF) | (x << 16)) & 0x7E0F81F;
++   y = ((y & 0xFFFF) | (y << 16)) & 0x7E0F81F;
++
++   result = ((x - y) * n / 32 + y) & 0x7E0F81F;
++
++   return ((result & 0xFFFF) | (result >> 16));
++}
++
++/* original: _blender_trans24 in colblend.c */
++unsigned long __preservedalpha_blender_trans24(unsigned long x, unsigned long y, unsigned long n)
++{
++   unsigned long res, g, alpha;
++
++   alpha = (y & 0xFF000000);
++
++   if ((y & 0xFFFFFF) == 0xFF00FF)
++      return ((x & 0xFFFFFF) | (n << 24));
++
++   if (n)
++      n++;
++
++   res = ((x & 0xFF00FF) - (y & 0xFF00FF)) * n / 256 + y;
++   y &= 0xFF00;
++   x &= 0xFF00;
++   g = (x - y) * n / 256 + y;
++
++   res &= 0xFF00FF;
++   g &= 0xFF00;
++
++   return res | g | alpha;
++}
++
++/* replaces set_trans_blender() */
++void set_preservedalpha_trans_blender(int r, int g, int b, int a)
++{
++  set_blender_mode(__skiptranspixels_blender_trans15, __skiptranspixels_blender_trans16, __preservedalpha_blender_trans24, r, g, b, a);
++}
++
++
+ /* helpers */
+ 
+ static void _alfont_reget_fixed_sizes(ALFONT_FONT *f) {
+@@ -292,6 +368,11 @@
+ 
+     /* compare real height with asked height */
+     real_height = abs(f->face->size->metrics.ascender >> 6) + abs(f->face->size->metrics.descender >> 6);
++
++    /* Reverse-engineered modification, originally by Chris Jones */
++    // The first test is always right
++    break;
++
+     if (real_height == h) {
+       /* we found the wanted height */
+       break;
+@@ -332,8 +413,20 @@
+   if (!error) {
+     _alfont_uncache_glyphs(f);
+     f->face_h = h;
+-    f->real_face_h = test_h;
+-    f->face_ascender = f->face->size->metrics.ascender >> 6;
++
++    /* Modification by JJS, in attempt to emulate changes by Chris Jones */
++    /* Quoting Chris Jones -
++    *  http://www.adventuregamestudio.co.uk/forums/index.php?topic=45990.msg617718#msg617718
++    * 
++    *  "...basically at some stage a new version of alfont changed the meaning
++    *   of set_height but for backwards compatibility I didn't want this since
++    *   it broke the font sizes that people were using in AGS, so I hacked it
++    *   back to use its old-style font sizes."
++    *
++    */
++    f->real_face_h = h; //test_h;
++    f->face_ascender = h; //f->face->size->metrics.ascender >> 6;
++
+     return ALFONT_OK;
+   }
+   else {
+@@ -627,7 +720,7 @@
+                  solid_mode();
+                else {
+                  drawing_mode(DRAW_MODE_TRANS, NULL, 0, 0);
+-                 set_trans_blender(0, 0, 0, alpha);
++                 set_preservedalpha_trans_blender(0, 0, 0, alpha);
+                }
+                putpixel(bmp, bmp_x, bmp_y, color);
+             }

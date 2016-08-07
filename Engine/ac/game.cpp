@@ -1758,7 +1758,7 @@ void ReadRoomStatus_Aligned(RoomStatus *roomstat, Stream *in)
     roomstat->ReadFromFile_v321(&align_s);
 }
 
-void restore_game_room_state(Stream *in, const char *nametouse)
+void restore_game_room_state(Stream *in)
 {
     int vv;
 
@@ -2130,8 +2130,8 @@ void restore_game_audioclips_and_crossfade(Stream *in, int crossfadeInChannelWas
     crossFadeVolumeAtStart = in->ReadInt32();
 }
 
-int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_version) {
-
+int restore_game_data (Stream *in, SavedGameVersion svg_version)
+{
     int bb, vv;
 
     int sg_cur_mode = 0, sg_cur_cursor = 0;
@@ -2158,7 +2158,7 @@ int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_v
     scriptModuleDataBuffers.resize(numScriptModules);
     scriptModuleDataSize.resize(numScriptModules);
     restore_game_scripts(in, /*out*/ gdatasize,&newglobaldatabuffer, scriptModuleDataBuffers, scriptModuleDataSize);
-    restore_game_room_state(in, nametouse);
+    restore_game_room_state(in);
 
     restore_game_play(in);
 
@@ -2446,9 +2446,9 @@ int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_v
     return 0;
 }
 
-int restore_game_data (Common::Stream *in, const char *nametouse)
+int restore_game_data(Common::Stream *in)
 {
-    return restore_game_data (in, nametouse, kSvgVersion_321);
+    return restore_game_data(in, kSvgVersion_321);
 }
 
 int gameHasBeenRestored = 0;
@@ -2592,7 +2592,7 @@ int load_game(const Common::String &path, int slotNumber)
     }
 
     // do the actual restore
-    error_code = restore_game_data(in, path, svg_version);
+    error_code = restore_game_data(in, svg_version);
     delete in;
     our_eip = oldeip;
 

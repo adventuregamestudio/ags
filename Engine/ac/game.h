@@ -127,7 +127,7 @@ void free_do_once_tokens();
 void unload_game_file();
 void save_game_data (Common::Stream *out, Common::Bitmap *screenshot);
 void save_game(int slotn, const char*descript);
-int  restore_game_data (Common::Stream *in, const char *nametouse);
+int  restore_game_data(Common::Stream *in);
 int read_savedgame_description(const Common::String &savedgame, Common::String &description);
 int read_savedgame_screenshot(const Common::String &savedgame, int &want_shot);
 int  load_game(int slotNumber);

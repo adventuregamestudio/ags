@@ -465,7 +465,7 @@ void start_playback()
             if (replayver >= 3) {
                 int issave = in->ReadInt32();
                 if (issave) {
-                    if (restore_game_data (in, replayfile))
+                    if (restore_game_data(in))
                         quit("!Error running replay... could be incorrect game version");
                     replay_last_second = loopcounter;
                 }

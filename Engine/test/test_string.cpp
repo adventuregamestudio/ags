@@ -205,8 +205,8 @@ void Test_String()
     // Test Section
     {
         String s = "_123_567_";
-        int from;
-        int to;
+        size_t from;
+        size_t to;
         assert(s.FindSection('_', 0, 0, true, true, from, to));
         assert(from == 0 && to == 0);
         assert(s.FindSection('_', 0, 0, false, true, from, to));
@@ -258,7 +258,7 @@ void Test_String()
         str2.ClipRight(6);
         str3.ClipMid(5, 12);
         str4.ClipMid(5, 0);
-        str5.ClipMid(-1);
+        str5.ClipMid(0);
         assert(strcmp(str1, " truncateable string") == 0);
         assert(strcmp(str2, "long truncateable ") == 0);
         assert(strcmp(str3, "long  string") == 0);
@@ -405,7 +405,7 @@ void Test_String()
         str2.TruncateToRight(6);
         str3.TruncateToMid(5, 12);
         str4.TruncateToMid(5, 0);
-        str5.TruncateToMid(-1);
+        str5.TruncateToMid(0);
         assert(strcmp(str1, "long") == 0);
         assert(strcmp(str2, "string") == 0);
         assert(strcmp(str3, "truncateable") == 0);

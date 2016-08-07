@@ -61,7 +61,13 @@ namespace Math
         length = Min<T>(length, height - from);
     }
 
-
+    // Get a measure of how value A is greater than value B;
+    // if A is smaller than or equal to B, returns 0.
+    template <class T>
+    inline T Surplus(const T &larger, const T &smaller)
+    {
+        return larger > smaller ? larger - smaller : 0;
+    }
 } // namespace Math
 
 } // namespace Common

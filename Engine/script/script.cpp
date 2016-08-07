@@ -190,12 +190,12 @@ int run_interaction_event (Interaction *nint, int evnt, int chkAny, int isInv) {
 // (eg. a room change occured)
 int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int isInv) {
 
-    if ((nint->ScriptFuncNames[evnt] == NULL) || (nint->ScriptFuncNames[evnt][0] == 0)) {
+    if ((nint->ScriptFuncNames[evnt] == NULL) || (nint->ScriptFuncNames[evnt][0u] == 0)) {
         // no response defined for this event
         // If there is a response for "Any Click", then abort now so as to
         // run that instead
         if (chkAny < 0) ;
-        else if ((nint->ScriptFuncNames[chkAny] != NULL) && (nint->ScriptFuncNames[chkAny][0] != 0))
+        else if ((nint->ScriptFuncNames[chkAny] != NULL) && (nint->ScriptFuncNames[chkAny][0u] != 0))
             return 0;
 
         // Otherwise, run unhandled_event

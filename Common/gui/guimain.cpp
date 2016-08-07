@@ -46,8 +46,8 @@ namespace Common
 
 /* static */ String GUIMain::FixupGUIName(const String &name)
 {
-    if (name.GetLength() > 0 && name[0] != 'g')
-        return String::FromFormat("g%c%s", name[0], name.Mid(1).Lower().GetCStr());
+    if (name.GetLength() > 0 && name[0u] != 'g')
+        return String::FromFormat("g%c%s", name[0u], name.Mid(1).Lower().GetCStr());
     return name;
 }
 

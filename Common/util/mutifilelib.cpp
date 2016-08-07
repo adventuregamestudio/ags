@@ -112,14 +112,14 @@ MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, int *p_lib_version, lo
     if (HeadSig.Compare(sig) != 0)
     {
         // signature not found, check signature at the end of file
-        in->Seek(-TailSig.GetLength(), kSeekEnd);
+        in->Seek(-(int)TailSig.GetLength(), kSeekEnd);
         sig.ReadCount(in, TailSig.GetLength());
         // signature not found, return error code
         if (TailSig.Compare(sig) != 0)
             return kMFLErrNoLibSig;
 
         // it's an appended-to-end-of-exe thing
-        in->Seek(-TailSig.GetLength() - sizeof(int32_t), kSeekEnd);
+        in->Seek(-(int)TailSig.GetLength() - sizeof(int32_t), kSeekEnd);
         // read multifile lib offset value
         abs_offset = in->ReadInt32();
         in->Seek(abs_offset + HeadSig.GetLength(), kSeekBegin);
@@ -303,7 +303,7 @@ MFLUtil::MFLError MFLUtil::ReadV21(AssetLibInfo &lib, Stream *in)
 
 void MFLUtil::DecryptText(char *text)
 {
-    int adx = 0;
+    size_t adx = 0;
     while (true)
     {
         text[0] -= EncryptionString[adx];

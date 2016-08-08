@@ -1713,6 +1713,8 @@ builtin managed struct Region {
   readonly import attribute int  TintRed;
   /// Gets the Saturation of this region's colour tint.
   readonly import attribute int  TintSaturation;
+  /// Gets the Luminance of this region's colour tint.
+  readonly import attribute int  TintLuminance;
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 

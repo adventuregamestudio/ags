@@ -43,7 +43,7 @@ void Region_SetLightLevel(ScriptRegion *ssr, int brightness) {
 }
 
 int Region_GetLightLevel(ScriptRegion *ssr) {
-    return thisroom.regionLightLevel[ssr->id];
+    return thisroom.has_region_lightlevel(ssr->id) ? thisroom.regionLightLevel[ssr->id] : 0;
 }
 
 int Region_GetTintEnabled(ScriptRegion *srr) {

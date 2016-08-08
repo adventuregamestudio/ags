@@ -202,6 +202,9 @@ struct roomstruct {
     roomstruct();
     void freemessage();
     void freescripts();
+
+    bool has_region_lightlevel(int id) const;
+    bool has_region_tint(int id) const;
 };
 
 #define BLOCKTYPE_MAIN        1

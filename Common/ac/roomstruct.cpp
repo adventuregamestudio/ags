@@ -132,6 +132,20 @@ void roomstruct::freescripts()
     }
 }
 
+bool roomstruct::has_region_lightlevel(int id) const
+{
+    if (id >= 0 && id < MAX_REGIONS)
+        return regionTintLevel[id] == 0;
+    return false;
+}
+
+bool roomstruct::has_region_tint(int id) const
+{
+    if (id >= 0 && id < MAX_REGIONS)
+        return regionTintLevel[id] != 0;
+    return false;
+}
+
 void room_file_header::ReadFromFile(Stream *in)
 {
     version = (RoomFileVersion)in->ReadInt16();

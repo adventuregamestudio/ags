@@ -4428,8 +4428,13 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		area->BlueTint = (thisroom.regionTintLevel[i] >> 16) & 0x00ff;
 		area->GreenTint = (thisroom.regionTintLevel[i] >> 8) & 0x00ff;
 		area->RedTint = thisroom.regionTintLevel[i] & 0x00ff;
-		area->TintSaturation = (thisroom.regionTintLevel[i] >> 24) & 0xFF;
-		area->TintLuminance = thisroom.get_region_tintluminance(i);
+		// Set saturation's and luminance's default values in the editor if it is disabled in room data
+		int saturation = (thisroom.regionTintLevel[i] >> 24) & 0xFF;
+		area->TintSaturation = (saturation > 0 && area->UseColourTint) ? saturation :
+			Utilities::GetDefaultValue(area->GetType(), "TintSaturation", 0);
+		int luminance = thisroom.get_region_tintluminance(i);
+		area->TintLuminance = area->UseColourTint ? luminance :
+			Utilities::GetDefaultValue(area->GetType(), "TintLuminance", 0);
 
 		if (thisroom.wasversion < kRoomVersion_300a)
 		{

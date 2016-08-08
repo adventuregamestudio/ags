@@ -43,7 +43,7 @@ void Region_SetLightLevel(ScriptRegion *ssr, int brightness) {
 }
 
 int Region_GetLightLevel(ScriptRegion *ssr) {
-    return thisroom.has_region_lightlevel(ssr->id) ? thisroom.regionLightLevel[ssr->id] : 0;
+    return thisroom.get_region_lightlevel(ssr->id);
 }
 
 int Region_GetTintEnabled(ScriptRegion *srr) {
@@ -74,7 +74,7 @@ int Region_GetTintSaturation(ScriptRegion *srr) {
 
 int Region_GetTintLuminance(ScriptRegion *srr)
 {
-    return thisroom.has_region_tint(srr->id) ? (thisroom.regionLightLevel[srr->id] * 10) / 25 : 0;
+    return thisroom.get_region_tintluminance(srr->id);
 }
 
 void Region_Tint(ScriptRegion *srr, int red, int green, int blue, int amount, int luminance)

@@ -237,6 +237,7 @@ void DoBeforeRestore(PreservedParams &pp)
     is_text_overlay = 0;
 
     // cleanup dynamic sprites
+    // NOTE: sprite 0 is a special constant sprite that cannot be dynamic
     for (int i = 1; i < spriteset.elements; ++i)
     {
         if (game.spriteflags[i] & SPF_DYNAMICALLOC)
@@ -294,6 +295,7 @@ void DoBeforeRestore(PreservedParams &pp)
         unexport_gui_controls(i);
     }
 
+    // NOTE: channels are array of MAX_SOUND_CHANNELS+1 size
     for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
     {
         stop_and_destroy_channel_ex(i, false);
@@ -431,6 +433,7 @@ SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_da
     const int cf_out_chan = play.crossfading_out_channel;
     play.crossfading_in_channel = 0;
     play.crossfading_out_channel = 0;
+    // NOTE: channels are array of MAX_SOUND_CHANNELS+1 size
     for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
     {
         const RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
@@ -458,6 +461,7 @@ SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_da
 
     // If there were synced audio tracks, the time taken to load in the
     // different channels will have thrown them out of sync, so re-time it
+    // NOTE: channels are array of MAX_SOUND_CHANNELS+1 size
     for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
     {
         int pos = r_data.AudioChans[i].Pos;
@@ -467,6 +471,7 @@ SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_da
         }
     }
 
+    // TODO: investigate loop range
     for (int i = 1; i < MAX_SOUND_CHANNELS; ++i)
     {
         if (r_data.DoAmbient[i])

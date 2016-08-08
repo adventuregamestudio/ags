@@ -38,6 +38,7 @@
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 #include "game/savegame.h"
+#include "game/savegame_internal.h"
 #include "main/main.h"
 #include "main/version.h"
 #include "media/audio/audio.h"

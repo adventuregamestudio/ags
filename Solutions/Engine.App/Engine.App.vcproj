@@ -2229,6 +2229,10 @@
 					RelativePath="..\..\Engine\game\savegame.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Engine\game\savegame_internal.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter

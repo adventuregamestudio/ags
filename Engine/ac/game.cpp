@@ -64,6 +64,7 @@
 #include "device/mousew32.h"
 #include "font/fonts.h"
 #include "game/savegame.h"
+#include "game/savegame_internal.h"
 #include "gui/animatingguibutton.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxfilter.h"

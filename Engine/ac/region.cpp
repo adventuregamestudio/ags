@@ -69,7 +69,7 @@ int Region_GetTintBlue(ScriptRegion *srr) {
 
 int Region_GetTintSaturation(ScriptRegion *srr) {
 
-    return thisroom.regionLightLevel[srr->id];
+    return (thisroom.regionTintLevel[srr->id] >> 24) & 0xFF;
 }
 
 void Region_Tint(ScriptRegion *srr, int red, int green, int blue, int amount, int luminance)

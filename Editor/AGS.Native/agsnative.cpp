@@ -4687,3 +4687,19 @@ void update_polled_stuff_if_runtime()
 {
 	// do nothing
 }
+
+// Windows port of the AGS engine has its own pack_fopen implementation and
+// currently requires Allegro to be patched and its pack_fopen renamed to
+// __old_pack_fopen, because the library is presumed to be statically linked.
+// Since we suppose that both Engine and Editor use same instance of Allegro
+// library, until this situation is resolved, AGS.Native must define its own
+// implementation to pack_fopen. Here it simply calls Allegro's internal one.
+extern "C" {
+typedef const char * PFO_PARAM;
+extern PACKFILE *__old_pack_fopen(PFO_PARAM, PFO_PARAM);
+}
+
+PACKFILE *pack_fopen(const char *filnam, const char *modd)
+{
+    return __old_pack_fopen(filnam, modd);
+}

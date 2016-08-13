@@ -75,6 +75,8 @@ struct SavegameSource
     SavegameVersion     Version;
     // A ponter to the opened stream
     AStream             InputStream;
+
+    SavegameSource();
 };
 
 // Supported elements of savegame description;
@@ -97,9 +99,14 @@ struct SavegameDescription
     // Name of the main data file used; this is needed to properly
     // load saves made by "minigames"
     String              MainDataFilename;
+    // Color depth the engine was running in; this is required to
+    // properly restore dynamic graphics from the save
+    int                 ColorDepth;
     
     String              UserText;
     ABitmap             UserImage;
+
+    SavegameDescription();
 };
 
 

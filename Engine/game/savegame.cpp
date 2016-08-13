@@ -77,6 +77,16 @@ namespace Engine
 const String SavegameSource::Signature = "Adventure Game Studio saved game";
 
 
+SavegameSource::SavegameSource()
+    : Version(kSvgVersion_Undefined)
+{
+}
+
+SavegameDescription::SavegameDescription()
+    : ColorDepth(0)
+{
+}
+
 PreservedParams::PreservedParams()
     : SpeechVOX(0)
     , MusicVOX(0)
@@ -121,9 +131,9 @@ String GetSavegameErrorText(SavegameError err)
     case kSvgErr_GameContentAssertion:
         return "Saved content does not match current game";
     case kSvgErr_InconsistentPlugin:
-        return "One of the game plugins did not restore its game data correctly.";
+        return "One of the game plugins did not restore its game data correctly";
     case kSvgErr_DifferentColorDepth:
-        return "Saved with different colour depth";
+        return "Saved with the engine running at a different colour depth";
     case kSvgErr_GameObjectInitFailed:
         return "Game object initialization failed after save restoration";
     }
@@ -187,10 +197,19 @@ SavegameError OpenSavegameBase(const String &filename, SavegameSource *src, Save
         return kSvgErr_IncompatibleEngine;
     }
     String main_file;
+    int color_depth;
     if (desc && elems == kSvgDesc_EnvInfo)
+    {
         main_file.Read(in.get());
+        in->ReadInt32(); // unscaled game height with borders, now obsolete
+        color_depth = in->ReadInt32();
+    }
     else
+    {
         for (; in->ReadByte(); ); // skip until null terminator
+        in->ReadInt32(); // unscaled game height with borders, now obsolete
+        in->ReadInt32(); // color depth
+    }
 
     if (src)
     {
@@ -204,6 +223,7 @@ SavegameError OpenSavegameBase(const String &filename, SavegameSource *src, Save
         {
             desc->EngineVersion = eng_version;
             desc->MainDataFilename = main_file;
+            desc->ColorDepth = color_depth;
         }
         if (elems == kSvgDesc_UserText)
             desc->UserText = desc_text;
@@ -587,6 +607,10 @@ Stream *StartSavegame(const String &filename, const String &desc, const Bitmap *
         compat_version = SavedgameLowestForwardCompatVersion.LongString;
     StrUtil::WriteCStr(compat_version, out);
     StrUtil::WriteCStr(usetup.main_data_filename, out);
+
+    // Write current display mode parameters
+    out->WriteInt32(play.viewport.GetHeight()); // for compatibility with old engines
+    out->WriteInt32(ScreenResolution.ColorDepth);
     return out;
 }
 

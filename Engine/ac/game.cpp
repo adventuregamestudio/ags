@@ -1085,8 +1085,6 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
 
 void save_game_head_dynamic_values(Stream *out)
 {
-    out->WriteInt32(play.viewport.GetHeight());
-    out->WriteInt32(ScreenResolution.ColorDepth);
     out->WriteInt32(frames_per_second);
     out->WriteInt32(cur_mode);
     out->WriteInt32(cur_cursor);
@@ -1529,14 +1527,6 @@ char rbuffer[200];
 
 SavegameError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
 {
-    in->ReadInt32(); // gamescrnhit, was used to check display resolution
-
-    // CHECKME: is this still essential? if yes, is there possible workaround?
-    if (in->ReadInt32() != ScreenResolution.ColorDepth) {
-        Display("This game was saved with the engine running at a different colour depth. It cannot be restored.");
-        return kSvgErr_DifferentColorDepth;
-    }
-
     r_data.FPS = in->ReadInt32();
     r_data.CursorMode = in->ReadInt32();
     r_data.CursorID = in->ReadInt32();
@@ -2098,12 +2088,16 @@ SavegameError load_game(const String &path, int slotNumber, bool &data_overwritt
 
     our_eip = 2051;
 
-    // saved in different game
+    // saved in incompatible enviroment
     if (err != kSvgErr_NoError)
         return err;
+    // CHECKME: is this color depth test still essential? if yes, is there possible workaround?
+    else if (desc.ColorDepth != ScreenResolution.ColorDepth)
+        return kSvgErr_DifferentColorDepth;
     else if (!src.InputStream.get())
         return kSvgErr_NoStream;
 
+    // saved with different game file
     if (Path::ComparePaths(desc.MainDataFilename, usetup.main_data_filename))
     {
         // [IKM] 2012-11-26: this is a workaround, indeed.

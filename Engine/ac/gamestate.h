@@ -213,6 +213,7 @@ struct GameState {
     void WriteQueuedAudioItems_Aligned(Common::Stream *out);
     void ReadCustomProperties(Common::Stream *in);
     void WriteCustomProperties(Common::Stream *out);
+    void FreeProperties();
 };
 
 extern GameState play;

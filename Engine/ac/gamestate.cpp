@@ -428,6 +428,14 @@ void GameState::WriteQueuedAudioItems_Aligned(Common::Stream *out)
     }
 }
 
+void GameState::FreeProperties()
+{
+    for (int i = 0; i < game.numcharacters; ++i)
+        charProps[i].clear();
+    for (int i = 0; i < game.numinvitems; ++i)
+        invProps[i].clear();
+}
+
 void GameState::ReadCustomProperties(Common::Stream *in)
 {
     if (loaded_game_file_version >= kGameVersion_340_4)
@@ -437,15 +445,9 @@ void GameState::ReadCustomProperties(Common::Stream *in)
         // this save is made by an older game version which had different
         // properties.
         for (int i = 0; i < game.numcharacters; ++i)
-        {
-            charProps[i].clear();
             Properties::ReadValues(charProps[i], in);
-        }
         for (int i = 0; i < game.numinvitems; ++i)
-        {
-            invProps[i].clear();
             Properties::ReadValues(invProps[i], in);
-        }
     }
 }
 
@@ -457,12 +459,8 @@ void GameState::WriteCustomProperties(Common::Stream *out)
         // just for the saving data time to avoid getting lots of 
         // redundant data into saved games
         for (int i = 0; i < game.numcharacters; ++i)
-        {
             Properties::WriteValues(charProps[i], out);
-        }
         for (int i = 0; i < game.numinvitems; ++i)
-        {
             Properties::WriteValues(invProps[i], out);
-        }
     }
 }

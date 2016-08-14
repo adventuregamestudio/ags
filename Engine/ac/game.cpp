@@ -63,6 +63,8 @@
 #include "debug/out.h"
 #include "device/mousew32.h"
 #include "font/fonts.h"
+#include "game/savegame.h"
+#include "game/savegame_internal.h"
 #include "gui/animatingguibutton.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxfilter.h"
@@ -80,6 +82,7 @@
 #include "util/alignedstream.h"
 #include "util/directory.h"
 #include "util/filestream.h"
+#include "util/path.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
@@ -429,28 +432,13 @@ int Game_SetSaveGameDirectory(const char *newFolder)
 
 const char* Game_GetSaveSlotDescription(int slnum) {
     String description;
-    if (read_savedgame_description(get_save_game_path(slnum), description) == 0)
+    if (read_savedgame_description(get_save_game_path(slnum), description))
     {
         return CreateNewScriptString(description);
     }
     return NULL;
 }
 
-
-
-
-int load_game_and_print_error(int toload) {
-    int ecret = load_game(toload);
-    if (ecret < 0) {
-        // disable speech in case there are dynamic graphics that
-        // have been freed
-        int oldalways = game.options[OPT_ALWAYSSPCH];
-        game.options[OPT_ALWAYSSPCH] = 0;
-        Display("Unable to load game (error: %s).",load_game_errors[-ecret]);
-        game.options[OPT_ALWAYSSPCH] = oldalways;
-    }
-    return ecret;
-}
 
 void restore_game_dialog() {
     can_run_delayed_command();
@@ -466,7 +454,7 @@ void restore_game_dialog() {
     int toload=loadgamedialog();
     restore_after_dialog();
     if (toload>=0) {
-        load_game_and_print_error(toload);
+        try_restore_save(toload);
     }
 }
 
@@ -974,23 +962,9 @@ ScriptAudioClip *Game_GetAudioClip(int index)
 
 // save game functions
 
-//-----------------------------------------------------------------------------
-// Saved game version history
-//
-// 8      original format (3.2.1)
-//-----------------------------------------------------------------------------
-enum SavedGameVersion
-{
-    kSvgVersion_Undefined = 0,
-    kSvgVersion_321       = 8,
-    kSvgVersion_Current   = kSvgVersion_321,
-    kSvgVersion_LowestSupported = kSvgVersion_321
-};
 
-char*sgsig="Adventure Game Studio saved game";
-int sgsiglen=32;
 
-void serialize_bitmap(Common::Bitmap *thispic, Stream *out) {
+void serialize_bitmap(const Common::Bitmap *thispic, Stream *out) {
     if (thispic != NULL) {
         out->WriteInt32(thispic->GetWidth());
         out->WriteInt32(thispic->GetHeight());
@@ -1014,18 +988,6 @@ void serialize_bitmap(Common::Bitmap *thispic, Stream *out) {
           }
         }
     }
-}
-
-// Some people have been having crashes with the save game list,
-// so make sure the game name is valid
-void safeguard_string (unsigned char *descript) {
-    int it;
-    for (it = 0; it < 50; it++) {
-        if ((descript[it] < 1) || (descript[it] > 127))
-            break;
-    }
-    if (descript[it] != 0)
-        descript[it] = 0;
 }
 
 // On Windows we could just use IIDFromString but this is platform-independant
@@ -1085,6 +1047,16 @@ Bitmap *read_serialized_bitmap(Stream *in) {
     return thispic;
 }
 
+void skip_serialized_bitmap(Stream *in)
+{
+    int picwid = in->ReadInt32();
+    int pichit = in->ReadInt32();
+    int piccoldep = in->ReadInt32();
+    // CHECKME: originally, AGS does not use real BPP here, but simply divides color depth by 8
+    int bpp = piccoldep / 8;
+    in->Seek(picwid * pichit * bpp);
+}
+
 long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
 {
     long fileSize = 0;
@@ -1111,35 +1083,8 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
     return fileSize;
 }
 
-
-void save_game_screenshot(Stream *out, Bitmap *screenshot)
-{
-    // store the screenshot at the start to make it easily accesible
-    out->WriteInt32((screenshot == NULL) ? 0 : 1);
-
-    if (screenshot)
-        serialize_bitmap(screenshot, out);
-}
-
-void save_game_header(Stream *out)
-{
-    // Write lowest forward-compatible version string, so that
-    // earlier versions could load savedgames made by current engine
-    if (SavedgameLowestForwardCompatVersion <= Version::LastOldFormatVersion)
-    {
-        fputstring(SavedgameLowestForwardCompatVersion.BackwardCompatibleString, out);
-    }
-    else
-    {
-        fputstring(SavedgameLowestForwardCompatVersion.LongString, out);
-    }
-    fputstring(usetup.main_data_filename, out);
-}
-
 void save_game_head_dynamic_values(Stream *out)
 {
-    out->WriteInt32(play.viewport.GetHeight());
-    out->WriteInt32(ScreenResolution.ColorDepth);
     out->WriteInt32(frames_per_second);
     out->WriteInt32(cur_mode);
     out->WriteInt32(cur_cursor);
@@ -1188,15 +1133,6 @@ void WriteRoomStatus_Aligned(RoomStatus *roomstat, Stream *out)
 void save_game_room_state(Stream *out)
 {
     out->WriteInt32(displayed_room);
-    if (displayed_room >= 0) {
-        // update the current room script's data segment copy
-        if (roominst!=NULL)
-            save_room_data_segment();
-
-        // Update the saved interaction variable values
-        for (int ff = 0; ff < thisroom.numLocalVars; ff++)
-            croom->interactionVariableValues[ff] = thisroom.localvars[ff].Value;
-    }
 
     // write the room state for all the rooms the player has been in
     RoomStatus* roomstat;
@@ -1428,24 +1364,14 @@ void WriteGameState_Aligned(Stream *out)
 
 #define MAGICNUMBER 0xbeefcafe
 // Write the save game position to the file
-void save_game_data (Stream *out, Bitmap *screenshot) {
-
-    platform->RunPluginHooks(AGSE_PRESAVEGAME, 0);
-    out->WriteInt32(kSvgVersion_Current);
-
-    save_game_screenshot(out, screenshot);
-    save_game_header(out);
+void save_game_data(Stream *out)
+{
     save_game_head_dynamic_values(out);
     save_game_spriteset(out);
     save_game_scripts(out);
     save_game_room_state(out);
 
     update_polled_stuff_if_runtime();
-
-    if (play.cur_music_number >= 0) {
-        if (IsMusicPlaying() == 0)
-            play.cur_music_number = -1;
-    }
 
     //----------------------------------------------------------------
     WriteGameState_Aligned(out);
@@ -1562,50 +1488,19 @@ void save_game(int slotn, const char*descript) {
     String nametouse;
     nametouse = get_save_game_path(slotn);
 
-    Stream *out = Common::File::CreateFile(nametouse);
-    if (out == NULL)
-        quit("save_game: unable to open savegame file for writing");
-
-    // Initialize and write Vista header
-    RICH_GAME_MEDIA_HEADER vistaHeader;
-    memset(&vistaHeader, 0, sizeof(RICH_GAME_MEDIA_HEADER));
-    memcpy(&vistaHeader.dwMagicNumber, RM_MAGICNUMBER, sizeof(int));
-    vistaHeader.dwHeaderVersion = 1;
-    vistaHeader.dwHeaderSize = sizeof(RICH_GAME_MEDIA_HEADER);
-    vistaHeader.dwThumbnailOffsetHigherDword = 0;
-    vistaHeader.dwThumbnailOffsetLowerDword = 0;
-    vistaHeader.dwThumbnailSize = 0;
-    convert_guid_from_text_to_binary(game.guid, &vistaHeader.guidGameId[0]);
-    uconvert(game.gamename, U_ASCII, (char*)&vistaHeader.szGameName[0], U_UNICODE, RM_MAXLENGTH);
-    uconvert(descript, U_ASCII, (char*)&vistaHeader.szSaveName[0], U_UNICODE, RM_MAXLENGTH);
-    vistaHeader.szLevelName[0] = 0;
-    vistaHeader.szComments[0] = 0;
-
-    //===================================================================
-    // Started writing to the file here
-
-    // Extended savegame info for Win Vista and higher
-    vistaHeader.WriteToFile(out);
-
-    // Savegame signature
-    out->Write(sgsig,sgsiglen);
-
-    safeguard_string ((unsigned char*)descript);
-
-    fputstring((char*)descript, out);
-
     Bitmap *screenShot = NULL;
 
     // Screenshot
     create_savegame_screenshot(screenShot);
 
+    Stream *out = StartSavegame(nametouse, descript, screenShot);
+    if (out == NULL)
+        quit("save_game: unable to open savegame file for writing");
+
     update_polled_stuff_if_runtime();
 
     // Actual dynamic game data is saved here
-    save_game_data(out, screenShot);
-
-    // End writing to the file here
-    //===================================================================
+    SaveGameState(out);
 
     if (screenShot != NULL)
     {
@@ -1630,68 +1525,20 @@ void save_game(int slotn, const char*descript) {
 
 char rbuffer[200];
 
-Bitmap *restore_game_screenshot(Stream *in)
+SavegameError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
 {
-    int isScreen = in->ReadInt32();
-    if (isScreen) {
-        return read_serialized_bitmap(in);
-    }
-    return NULL;
-}
-
-int restore_game_header(Stream *in)
-{
-    String version_string = String::FromStream(in, 200);
-    AGS::Engine::Version requested_engine_version(version_string);
-    if (requested_engine_version > EngineVersion ||
-        requested_engine_version < SavedgameLowestBackwardCompatVersion)
-    {
-        // Version is either non-forward or non-backward compatible
-        // TODO: distinct error codes
-        return -4;
-    }
-    fgetstring_limit (rbuffer, in, 180);
-    rbuffer[180] = 0;
-    if (stricmp (rbuffer, usetup.main_data_filename)) {
-        return -5;
-    }
-
-    return 0;
-}
-
-int restore_game_head_dynamic_values(Stream *in, int &sg_cur_mode, int &sg_cur_cursor)
-{
-    in->ReadInt32(); // gamescrnhit, was used to check display resolution
-
-	// CHECKME: is this still essential? if yes, is there possible workaround?
-    if (in->ReadInt32() != ScreenResolution.ColorDepth) {
-        Display("This game was saved with the engine running at a different colour depth. It cannot be restored.");
-        return -7;
-    }
-
-    unload_old_room();
-
-    remove_screen_overlay(-1);
-    is_complete_overlay=0; is_text_overlay=0;
-    set_game_speed(in->ReadInt32());
-    sg_cur_mode=in->ReadInt32();
-    sg_cur_cursor=in->ReadInt32();
+    r_data.FPS = in->ReadInt32();
+    r_data.CursorMode = in->ReadInt32();
+    r_data.CursorID = in->ReadInt32();
     offsetx = in->ReadInt32();
     offsety = in->ReadInt32();
     loopcounter = in->ReadInt32();
 
-    return 0;
+    return kSvgErr_NoError;
 }
 
 void restore_game_spriteset(Stream *in)
 {
-    for (int bb = 1; bb < spriteset.elements; bb++) {
-        if (game.spriteflags[bb] & SPF_DYNAMICALLOC) {
-            // do this early, so that it changing guibuts doesn't
-            // affect the restored data
-            free_dynamic_sprite(bb);
-        }
-    }
     // ensure the sprite set is at least as large as it was
     // when the game was saved
     spriteset.enlargeTo(in->ReadInt32());
@@ -1705,51 +1552,38 @@ void restore_game_spriteset(Stream *in)
     }
 }
 
-void restore_game_clean_gfx()
-{
-    for (int vv = 0; vv < game.numgui; vv++) {
-        delete guibg[vv];
-        guibg[vv] = NULL;
-
-        if (guibgbmp[vv])
-            gfxDriver->DestroyDDB(guibgbmp[vv]);
-        guibgbmp[vv] = NULL;
-    }
-}
-
-void restore_game_clean_scripts()
-{
-    delete gameinstFork;
-    delete gameinst;
-    gameinstFork = NULL;
-    gameinst = NULL;
-    for (int vv = 0; vv < numScriptModules; vv++) {
-        delete moduleInstFork[vv];
-        delete moduleInst[vv];
-        moduleInst[vv] = NULL;
-    }
-
-    if (dialogScriptsInst != NULL)
-    {
-        delete dialogScriptsInst;
-        dialogScriptsInst = NULL;
-    }
-}
-
-void restore_game_scripts(Stream *in, int &gdatasize, char **newglobaldatabuffer,
-                          std::vector<char *> &scriptModuleDataBuffers, std::vector<int> &scriptModuleDataSize)
+SavegameError restore_game_scripts(Stream *in, const PreservedParams &pp, RestoredData &r_data)
 {
     // read the global script data segment
-    gdatasize = in->ReadInt32();
-    *newglobaldatabuffer = (char*)malloc(gdatasize);
-    in->Read(*newglobaldatabuffer, gdatasize);
-    if (in->ReadInt32() != numScriptModules)
-        quit("wrong script module count; cannot restore game");
-    for (int vv = 0; vv < numScriptModules; vv++) {
-        scriptModuleDataSize[vv] = in->ReadInt32();
-        scriptModuleDataBuffers[vv] = (char*)malloc(scriptModuleDataSize[vv]);
-        in->Read(&scriptModuleDataBuffers[vv][0], scriptModuleDataSize[vv]);
+    int gdatasize = in->ReadInt32();
+    if (pp.GlScDataSize != gdatasize)
+    {
+        Out::FPrint("Restore game error: mismatching size of global script data");
+        return kSvgErr_GameContentAssertion;
     }
+    r_data.GlobalScript.Len = gdatasize;
+    r_data.GlobalScript.Data.reset(new char[gdatasize]);
+    in->Read(r_data.GlobalScript.Data.get(), gdatasize);
+
+    if (in->ReadInt32() != numScriptModules)
+    {
+        Out::FPrint("Restore game error: mismatching number of script modules");
+        return kSvgErr_GameContentAssertion;
+    }
+    r_data.ScriptModules.resize(numScriptModules);
+    for (int i = 0; i < numScriptModules; ++i)
+    {
+        size_t module_size = in->ReadInt32();
+        if (pp.ScMdDataSize[i] != module_size)
+        {
+            Out::FPrint("Restore game error: mismatching size of script module data, module %d", i);
+            return kSvgErr_GameContentAssertion;
+        }
+        r_data.ScriptModules[i].Len = module_size;
+        r_data.ScriptModules[i].Data.reset(new char[module_size]);
+        in->Read(r_data.ScriptModules[i].Data.get(), module_size);
+    }
+    return kSvgErr_NoError;
 }
 
 void ReadRoomStatus_Aligned(RoomStatus *roomstat, Stream *in)
@@ -1758,14 +1592,11 @@ void ReadRoomStatus_Aligned(RoomStatus *roomstat, Stream *in)
     roomstat->ReadFromFile_v321(&align_s);
 }
 
-void restore_game_room_state(Stream *in, const char *nametouse)
+void restore_game_room_state(Stream *in)
 {
     int vv;
 
     displayed_room = in->ReadInt32();
-
-    // now the rooms
-    resetRoomStatuses();
 
     // read the room state for all the rooms the player has been in
     RoomStatus* roomstat;
@@ -1815,7 +1646,6 @@ void restore_game_play_ex_data(Stream *in)
 
 void restore_game_play(Stream *in)
 {
-    int speech_was = play.want_speech, musicvox = play.separate_music_lib;
     // preserve the replay settings
     int playback_was = play.playback, recording_was = play.recording;
     int gamestep_was = play.gamestep;
@@ -1824,22 +1654,7 @@ void restore_game_play(Stream *in)
     // make sure the pointer is preserved
     int *gui_draw_order_was = play.gui_draw_order;
 
-    free_do_once_tokens();
-
     ReadGameState_Aligned(in);
-
-    // Use a yellow dialog highlight for older game versions
-    if(loaded_game_file_version < kGameVersion_331)
-        play.dialog_options_highlight_color = DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT;
-
-    // Preserve whether the music vox is available
-    play.separate_music_lib = musicvox;
-    // If they had the vox when they saved it, but they don't now
-    if ((speech_was < 0) && (play.want_speech >= 0))
-        play.want_speech = (-play.want_speech) - 1;
-    // If they didn't have the vox before, but now they do
-    else if ((speech_was >= 0) && (play.want_speech < 0))
-        play.want_speech = (-play.want_speech) - 1;
 
     play.screen_is_faded_out = screenfadedout_was;
     play.playback = playback_was;
@@ -1901,55 +1716,47 @@ void ReadAnimatedButtons_Aligned(Stream *in)
     }
 }
 
-void restore_game_gui(Stream *in, int numGuisWas)
+SavegameError restore_game_gui(Stream *in, int numGuisWas)
 {
-    int vv;
-    for (vv = 0; vv < game.numgui; vv++)
-        unexport_gui_controls(vv);
-
     read_gui(in,guis,&game);
 
     if (numGuisWas != game.numgui)
-        quit("!Restore_Game: Game has changed (GUIs), unable to restore position");
-
-    for (vv = 0; vv < game.numgui; vv++)
-        export_gui_controls(vv);
+    {
+        Out::FPrint("Restore game error: mismatching number of GUI");
+        return kSvgErr_GameContentAssertion;
+    }
 
     numAnimButs = in->ReadInt32();
     ReadAnimatedButtons_Aligned(in);
+    return kSvgErr_NoError;
 }
 
-void restore_game_audiocliptypes(Stream *in)
+SavegameError restore_game_audiocliptypes(Stream *in)
 {
     if (in->ReadInt32() != game.audioClipTypeCount)
-        quit("!Restore_Game: game has changed (audio types), unable to restore");
+    {
+        Out::FPrint("Restore game error: mismatching number of Audio Clip Types");
+        return kSvgErr_GameContentAssertion;
+    }
 
     for (int i = 0; i < game.audioClipTypeCount; ++i)
     {
         game.audioClipTypes[i].ReadFromFile(in);
     }
+    return kSvgErr_NoError;
 }
 
-void restore_game_thisroom(Stream *in, short *saved_light_levels, int *saved_tint_levels,
-                           short *saved_zoom_levels1, short *saved_zoom_levels2)
+void restore_game_thisroom(Stream *in, RestoredData &r_data)
 {
-    in->ReadArrayOfInt16(&saved_light_levels[0],MAX_REGIONS);
-    in->ReadArrayOfInt32(&saved_tint_levels[0], MAX_REGIONS);
-    in->ReadArrayOfInt16(&saved_zoom_levels1[0],MAX_WALK_AREAS + 1);
-    in->ReadArrayOfInt16(&saved_zoom_levels2[0],MAX_WALK_AREAS + 1);
+    in->ReadArrayOfInt16(r_data.RoomLightLevels, MAX_REGIONS);
+    in->ReadArrayOfInt32(r_data.RoomTintLevels, MAX_REGIONS);
+    in->ReadArrayOfInt16(r_data.RoomZoomLevels1, MAX_WALK_AREAS + 1);
+    in->ReadArrayOfInt16(r_data.RoomZoomLevels2, MAX_WALK_AREAS + 1);
 }
 
-void restore_game_ambientsounds(Stream *in, int crossfadeInChannelWas, int crossfadeOutChannelWas,
-                                int *doAmbient)
+void restore_game_ambientsounds(Stream *in, RestoredData &r_data)
 {
     int bb;
-    for (bb = 0; bb <= MAX_SOUND_CHANNELS; bb++)
-    {
-        stop_and_destroy_channel_ex(bb, false);
-    }
-
-    play.crossfading_in_channel = crossfadeInChannelWas;
-    play.crossfading_out_channel = crossfadeOutChannelWas;
 
     for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
     {
@@ -1958,9 +1765,9 @@ void restore_game_ambientsounds(Stream *in, int crossfadeInChannelWas, int cross
 
     for (bb = 1; bb < MAX_SOUND_CHANNELS; bb++) {
         if (ambient[bb].channel == 0)
-            doAmbient[bb] = 0;
+            r_data.DoAmbient[bb] = 0;
         else {
-            doAmbient[bb] = ambient[bb].num;
+            r_data.DoAmbient[bb] = ambient[bb].num;
             ambient[bb].channel = 0;
         }
     }
@@ -1982,51 +1789,43 @@ void restore_game_overlays(Stream *in)
     ReadOverlays_Aligned(in);
     for (int bb=0;bb<numscreenover;bb++) {
         if (screenover[bb].hasSerializedBitmap)
-        {
             screenover[bb].pic = read_serialized_bitmap(in);
-            screenover[bb].bmp = gfxDriver->CreateDDBFromBitmap(screenover[bb].pic, false);
-        }
     }
 }
 
-void restore_game_dynamic_surfaces(Stream *in, Bitmap **dynamicallyCreatedSurfacesFromSaveGame)
+void restore_game_dynamic_surfaces(Stream *in, RestoredData &r_data)
 {
     // load into a temp array since ccUnserialiseObjects will destroy
     // it otherwise
-    for (int bb = 0; bb < MAX_DYNAMIC_SURFACES; bb++)
+    r_data.DynamicSurfaces.resize(MAX_DYNAMIC_SURFACES);
+    for (int i = 0; i < MAX_DYNAMIC_SURFACES; ++i)
     {
         if (in->ReadInt8() == 0)
         {
-            dynamicallyCreatedSurfacesFromSaveGame[bb] = NULL;
+            r_data.DynamicSurfaces[i] = NULL;
         }
         else
         {
-            dynamicallyCreatedSurfacesFromSaveGame[bb] = read_serialized_bitmap(in);
+            r_data.DynamicSurfaces[i] = read_serialized_bitmap(in);
         }
     }
 }
 
-void restore_game_displayed_room_status(Stream *in, Bitmap **newbscene)
+void restore_game_displayed_room_status(Stream *in, RestoredData &r_data)
 {
     int bb;
     for (bb = 0; bb < MAX_BSCENE; bb++)
-        newbscene[bb] = NULL;
-
-    troom.FreeScriptData();
-    troom.FreeProperties();
+        r_data.RoomBkgScene[bb] = NULL;
 
     if (displayed_room >= 0) {
 
         for (bb = 0; bb < MAX_BSCENE; bb++) {
-            newbscene[bb] = NULL;
+            r_data.RoomBkgScene[bb] = NULL;
             if (play.raw_modified[bb]) {
-                newbscene[bb] = read_serialized_bitmap (in);
+                r_data.RoomBkgScene[bb] = read_serialized_bitmap (in);
             }
         }
         bb = in->ReadInt32();
-
-        delete raw_saved_screen;
-        raw_saved_screen = NULL;
 
         if (bb)
             raw_saved_screen = read_serialized_bitmap(in);
@@ -2043,21 +1842,28 @@ void restore_game_displayed_room_status(Stream *in, Bitmap **newbscene)
     }
 }
 
-void restore_game_globalvars(Stream *in)
+SavegameError restore_game_globalvars(Stream *in)
 {
     if (in->ReadInt32() != numGlobalVars)
-        quit("!Game has been modified since save; unable to restore game (GM01)");
+    {
+        Out::FPrint("Restore game error: mismatching number of Global Variables");
+        return kSvgErr_GameContentAssertion;
+    }
 
     for (int i = 0; i < numGlobalVars; ++i)
     {
         globalvars[i].Read(in);
     }
+    return kSvgErr_NoError;
 }
 
-void restore_game_views(Stream *in)
+SavegameError restore_game_views(Stream *in)
 {
     if (in->ReadInt32() != game.numviews)
-        quit("!Game has been modified since save; unable to restore (GV02)");
+    {
+        Out::FPrint("Restore game error: mismatching number of Views");
+        return kSvgErr_GameContentAssertion;
+    }
 
     for (int bb = 0; bb < game.numviews; bb++) {
         for (int cc = 0; cc < views[bb].numLoops; cc++) {
@@ -2068,100 +1874,67 @@ void restore_game_views(Stream *in)
             }
         }
     }
+    return kSvgErr_NoError;
 }
 
-void restore_game_audioclips_and_crossfade(Stream *in, int crossfadeInChannelWas, int crossfadeOutChannelWas)
+SavegameError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_data)
 {
-    int bb;
-
     if (in->ReadInt32() != game.audioClipCount)
-        quit("Game has changed: different audio clip count");
-
-    play.crossfading_in_channel = 0;
-    play.crossfading_out_channel = 0;
-    int channelPositions[MAX_SOUND_CHANNELS + 1];
-    for (bb = 0; bb <= MAX_SOUND_CHANNELS; bb++)
     {
-        channelPositions[bb] = 0;
-        int audioClipIndex = in->ReadInt32();
-        if (audioClipIndex >= 0)
-        {
-            if (audioClipIndex >= game.audioClipCount)
-                quit("save game error: invalid audio clip index");
-
-            channelPositions[bb] = in->ReadInt32();
-            if (channelPositions[bb] < 0) channelPositions[bb] = 0;
-            int priority = in->ReadInt32();
-            int repeat = in->ReadInt32();
-            int vol = in->ReadInt32();
-            int pan = in->ReadInt32();
-            int volAsPercent = in->ReadInt32();
-            int panAsPercent = in->ReadInt32();
-            int speed = 1000;
-            if (loaded_game_file_version >= kGameVersion_340_2)
-                speed = in->ReadInt32();
-            play_audio_clip_on_channel(bb, &game.audioClips[audioClipIndex], priority, repeat, channelPositions[bb]);
-            if (channels[bb] != NULL)
-            {
-                channels[bb]->set_panning(pan);
-                channels[bb]->set_volume_alternate(volAsPercent, vol);
-                channels[bb]->set_speed(speed);
-                channels[bb]->panningAsPercentage = panAsPercent;
-            }
-        }
+        Out::FPrint("Restore game error: mismatching number of Audio Clips");
+        return kSvgErr_GameContentAssertion;
     }
-    if ((crossfadeInChannelWas > 0) && (channels[crossfadeInChannelWas] != NULL))
-        play.crossfading_in_channel = crossfadeInChannelWas;
-    if ((crossfadeOutChannelWas > 0) && (channels[crossfadeOutChannelWas] != NULL))
-        play.crossfading_out_channel = crossfadeOutChannelWas;
 
-    // If there were synced audio tracks, the time taken to load in the
-    // different channels will have thrown them out of sync, so re-time it
-    for (bb = 0; bb <= MAX_SOUND_CHANNELS; bb++)
+    for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
     {
-        if ((channelPositions[bb] > 0) && (channels[bb] != NULL) && (channels[bb]->done == 0))
+        RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
+        chan_info.Pos = 0;
+        chan_info.ClipID = in->ReadInt32();
+        if (chan_info.ClipID >= 0)
         {
-            channels[bb]->seek(channelPositions[bb]);
+            if (chan_info.ClipID >= game.audioClipCount)
+            {
+                Out::FPrint("Restore game error: invalid audio clip index");
+                return kSvgErr_GameObjectInitFailed;
+            }
+
+            chan_info.Pos = in->ReadInt32();
+            if (chan_info.Pos < 0)
+                chan_info.Pos = 0;
+            chan_info.Priority = in->ReadInt32();
+            chan_info.Repeat = in->ReadInt32();
+            chan_info.Vol = in->ReadInt32();
+            chan_info.Pan = in->ReadInt32();
+            chan_info.VolAsPercent = in->ReadInt32();
+            chan_info.PanAsPercent = in->ReadInt32();
+            chan_info.Speed = 1000;
+            if (loaded_game_file_version >= kGameVersion_340_2)
+                chan_info.Speed = in->ReadInt32();
         }
     }
     crossFading = in->ReadInt32();
     crossFadeVolumePerStep = in->ReadInt32();
     crossFadeStep = in->ReadInt32();
     crossFadeVolumeAtStart = in->ReadInt32();
+    return kSvgErr_NoError;
 }
 
-int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_version) {
+SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data)
+{
+    int vv;
 
-    int bb, vv;
-
-    int sg_cur_mode = 0, sg_cur_cursor = 0;
-    int res = restore_game_head_dynamic_values(in, /*out*/ sg_cur_mode, sg_cur_cursor);
-    if (res != 0) {
-        return res;
-    }
-
+    SavegameError err = restore_game_head_dynamic_values(in, r_data);
+    if (err != kSvgErr_NoError)
+        return err;
     restore_game_spriteset(in);
 
-    clear_music_cache();
-    restore_game_clean_gfx();
-
     update_polled_stuff_if_runtime();
 
-    restore_game_clean_scripts();
-
-    update_polled_stuff_if_runtime();
-
-    int gdatasize = 0;
-    char*newglobaldatabuffer;
-    std::vector<char *> scriptModuleDataBuffers;
-    std::vector<int> scriptModuleDataSize;
-    scriptModuleDataBuffers.resize(numScriptModules);
-    scriptModuleDataSize.resize(numScriptModules);
-    restore_game_scripts(in, /*out*/ gdatasize,&newglobaldatabuffer, scriptModuleDataBuffers, scriptModuleDataSize);
-    restore_game_room_state(in, nametouse);
-
+    err = restore_game_scripts(in, pp, r_data);
+    if (err != kSvgErr_NoError)
+        return err;
+    restore_game_room_state(in);
     restore_game_play(in);
-
     ReadMoveList_Aligned(in);
 
     // save pointer members before reading
@@ -2180,440 +1953,206 @@ int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_v
     ReadGameSetupStructBase_Aligned(in);
 
     if (game.numdialog!=numdiwas)
-        quit("!Restore_Game: Game has changed (dlg), unable to restore");
-    if ((numchwas != game.numcharacters) || (numinvwas != game.numinvitems))
-        quit("!Restore_Game: Game has changed (inv), unable to restore position");
+    {
+        Out::FPrint("Restore game error: mismatching number of Dialogs");
+        return kSvgErr_GameContentAssertion;
+    }
+    if (numchwas != game.numcharacters)
+    {
+        Out::FPrint("Restore game error: mismatching number of Characters");
+        return kSvgErr_GameContentAssertion;
+    }
+    if (numinvwas != game.numinvitems)
+    {
+        Out::FPrint("Restore game error: mismatching number of Inventory Items");
+        return kSvgErr_GameContentAssertion;
+    }
     if (game.numviews != numviewswas)
-        quit("!Restore_Game: Game has changed (views), unable to restore position");
+    {
+        Out::FPrint("Restore game error: mismatching number of Views");
+        return kSvgErr_GameContentAssertion;
+    }
 
     game.ReadFromSaveGame_v321(in, gswas, compsc, chwas, olddict, mesbk);
 
     // Modified custom properties are read separately to keep existing save format
     play.ReadCustomProperties(in);
 
-    //
-    //in->ReadArray(&game.invinfo[0], sizeof(InventoryItemInfo), game.numinvitems);
-    //in->ReadArray(&game.mcurs[0], sizeof(MouseCursor), game.numcursors);
-    //
-    //if (game.invScripts == NULL)
-    //{
-    //  for (bb = 0; bb < game.numinvitems; bb++)
-    //    in->ReadArray (&game.intrInv[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS);
-    //  for (bb = 0; bb < game.numcharacters; bb++)
-    //    in->ReadArray (&game.intrChar[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS);
-    //}
-    //
-    //// restore pointer members
-    //game.globalscript=gswas;
-    //game.compiled_script=compsc;
-    //game.chars=chwas;
-    //game.dict = olddict;
-    //for (vv=0;vv<MAXGLOBALMES;vv++) game.messages[vv]=mesbk[vv];
-    //
-    //in->ReadArray(&game.options[0], sizeof(int), OPT_HIGHESTOPTION+1);
-    //game.options[OPT_LIPSYNCTEXT] = in->ReadByte();
-    //
-    //in->ReadArray(&game.chars[0],sizeof(CharacterInfo),game.numcharacters);
-    //
-
     ReadCharacterExtras_Aligned(in);
-    if (roominst!=NULL) {  // so it doesn't overwrite the tsdata
-        delete roominstFork;
-        delete roominst;
-        roominstFork = NULL;
-        roominst=NULL;
-    }
     restore_game_palette(in);
     restore_game_dialogs(in);
     restore_game_more_dynamic_values(in);
-
-    restore_game_gui(in, numGuisWas);
-    restore_game_audiocliptypes(in);
-
-    short saved_light_levels[MAX_REGIONS];
-    int   saved_tint_levels[MAX_REGIONS];
-    short saved_zoom_levels1[MAX_WALK_AREAS + 1];
-    short saved_zoom_levels2[MAX_WALK_AREAS + 1];
-    restore_game_thisroom(in, saved_light_levels, saved_tint_levels, saved_zoom_levels1, saved_zoom_levels2);
-
-    int crossfadeInChannelWas = play.crossfading_in_channel;
-    int crossfadeOutChannelWas = play.crossfading_out_channel;
-    int doAmbient[MAX_SOUND_CHANNELS];
-    restore_game_ambientsounds(in, crossfadeInChannelWas, crossfadeOutChannelWas, doAmbient);
+    err = restore_game_gui(in, numGuisWas);
+    if (err != kSvgErr_NoError)
+        return err;
+    err = restore_game_audiocliptypes(in);
+    if (err != kSvgErr_NoError)
+        return err;
+    restore_game_thisroom(in, r_data);
+    restore_game_ambientsounds(in, r_data);
     restore_game_overlays(in);
 
     update_polled_stuff_if_runtime();
 
-    Bitmap *dynamicallyCreatedSurfacesFromSaveGame[MAX_DYNAMIC_SURFACES];
-    restore_game_dynamic_surfaces(in, dynamicallyCreatedSurfacesFromSaveGame);
+    restore_game_dynamic_surfaces(in, r_data);
 
     update_polled_stuff_if_runtime();
 
-    Bitmap *newbscene[MAX_BSCENE];
-    restore_game_displayed_room_status(in, newbscene);
-    restore_game_globalvars(in);
-    restore_game_views(in);
+    restore_game_displayed_room_status(in, r_data);
+    err = restore_game_globalvars(in);
+    if (err != kSvgErr_NoError)
+        return err;
+    err = restore_game_views(in);
+    if (err != kSvgErr_NoError)
+        return err;
 
     if (in->ReadInt32() != MAGICNUMBER+1)
-        quit("!Game has been modified since save; unable to restore (GV03)");
+    {
+        Out::FPrint("Restore game error: MAGICNUMBER not found before Audio Clips");
+        return kSvgErr_InconsistentFormat;
+    }
 
-    restore_game_audioclips_and_crossfade(in, crossfadeInChannelWas, crossfadeOutChannelWas);
-
-    recache_queued_clips_after_loading_save_game();
+    err = restore_game_audioclips_and_crossfade(in, r_data);
+    if (err != kSvgErr_NoError)
+        return err;
 
     // [IKM] Plugins expect FILE pointer! // TODO something with this later
     platform->RunPluginHooks(AGSE_RESTOREGAME, (long)((Common::FileStream*)in)->GetHandle());
     if (in->ReadInt32() != (unsigned)MAGICNUMBER)
-        quit("!One of the game plugins did not restore its game data correctly.");
+        return kSvgErr_InconsistentPlugin;
 
     // save the new room music vol for later use
-    int newRoomVol = in->ReadInt32();
+    r_data.RoomVolume = in->ReadInt32();
 
     if (ccUnserializeAllObjects(in, &ccUnserializer))
-        quitprintf("LoadGame: Error during deserialization: %s", ccErrorString);
+    {
+        Out::FPrint("Restore game error: managed pool deserialization failed: %s", ccErrorString);
+        return kSvgErr_GameObjectInitFailed;
+    }
 
     // preserve legacy music type setting
     current_music_type = in->ReadInt32();
-    // test if the playing music was properly loaded
-    if (current_music_type > 0)
-    {
-        if (crossFading > 0 && !channels[crossFading] ||
-            crossFading <= 0 && !channels[SCHAN_MUSIC])
-        {
-            current_music_type = 0;
-        }
-    }
 
-    // restore these to the ones retrieved from the save game
-    for (bb = 0; bb < MAX_DYNAMIC_SURFACES; bb++)
-    {
-        dynamicallyCreatedSurfaces[bb] = dynamicallyCreatedSurfacesFromSaveGame[bb];
-    }
-
-    if (create_global_script())
-        quitprintf("Unable to recreate global script: %s", ccErrorString);
-
-    if (gameinst->globaldatasize != gdatasize)
-        quit("!Restore_game: Global script changed, cannot restore game");
-
-    // read the global data into the newly created script
-    memcpy(&gameinst->globaldata[0], newglobaldatabuffer, gdatasize);
-    free(newglobaldatabuffer);
-
-    // restore the script module data
-    for (bb = 0; bb < numScriptModules; bb++) {
-        if (scriptModuleDataSize[bb] != moduleInst[bb]->globaldatasize)
-            quit("!Restore Game: script module global data changed, unable to restore");
-        memcpy(&moduleInst[bb]->globaldata[0], scriptModuleDataBuffers[bb], scriptModuleDataSize[bb]);
-        free(scriptModuleDataBuffers[bb]);
-    }
-
-
-    setup_player_character(game.playercharacter);
-
-    int gstimer=play.gscript_timer;
-    int oldx1 = play.mboundx1, oldx2 = play.mboundx2;
-    int oldy1 = play.mboundy1, oldy2 = play.mboundy2;
-    int musicWasRepeating = play.current_music_repeating;
-    int newms = play.cur_music_number;
-
-    // disable the queue momentarily
-    int queuedMusicSize = play.music_queue_size;
-    play.music_queue_size = 0;
-
-    update_polled_stuff_if_runtime();
-
-    if (displayed_room >= 0)
-        load_new_room(displayed_room,NULL);//&game.chars[game.playercharacter]);
-
-    update_polled_stuff_if_runtime();
-
-    play.gscript_timer=gstimer;
-
-    // restore the correct room volume (they might have modified
-    // it with SetMusicVolume)
-    thisroom.options[ST_VOLUME] = newRoomVol;
-
-    Mouse::SetMoveLimit(Rect(oldx1, oldy1, oldx2, oldy2));
-
-    set_cursor_mode(sg_cur_mode);
-    set_mouse_cursor(sg_cur_cursor);
-    if (sg_cur_mode == MODE_USE)
-        SetActiveInventory (playerchar->activeinv);
-    // ensure that the current cursor is locked
-    spriteset.precache(game.mcurs[sg_cur_cursor].pic);
-
-#if (ALLEGRO_DATE > 19990103)
-    set_window_title(play.game_name);
-#endif
-
-    update_polled_stuff_if_runtime();
-
-    if (displayed_room >= 0) {
-
-        for (bb = 0; bb < MAX_BSCENE; bb++) {
-            if (newbscene[bb]) {
-                delete thisroom.ebscene[bb];
-                thisroom.ebscene[bb] = newbscene[bb];
-            }
-        }
-
-        in_new_room=3;  // don't run "enters screen" events
-        // now that room has loaded, copy saved light levels in
-        memcpy(&thisroom.regionLightLevel[0],&saved_light_levels[0],sizeof(short)*MAX_REGIONS);
-        memcpy(&thisroom.regionTintLevel[0],&saved_tint_levels[0],sizeof(int)*MAX_REGIONS);
-        generate_light_table();
-
-        memcpy(&thisroom.walk_area_zoom[0], &saved_zoom_levels1[0], sizeof(short) * (MAX_WALK_AREAS + 1));
-        memcpy(&thisroom.walk_area_zoom2[0], &saved_zoom_levels2[0], sizeof(short) * (MAX_WALK_AREAS + 1));
-
-        on_background_frame_change();
-
-    }
-
-    gui_disabled_style = convert_gui_disabled_style(game.options[OPT_DISABLEOFF]);
-    /*
-    play_sound(-1);
-
-    stopmusic();
-    // use the repeat setting when the current track was started
-    int musicRepeatSetting = play.music_repeat;
-    SetMusicRepeat(musicWasRepeating);
-    if (newms>=0) {
-    // restart the background music
-    if (newms == 1000)
-    PlayMP3File (play.playmp3file_name);
-    else {
-    play.cur_music_number=2000;  // make sure it gets played
-    newmusic(newms);
-    }
-    }
-    SetMusicRepeat(musicRepeatSetting);
-    if (play.silent_midi)
-    PlaySilentMIDI (play.silent_midi);
-    SeekMIDIPosition(midipos);
-    //SeekMODPattern (modtrack);
-    //SeekMP3PosMillis (mp3mpos);
-
-    if (musicpos > 0) {
-    // For some reason, in Prodigal after this Seek line is called
-    // it can cause the next update_polled_mp3 to crash;
-    // must be some sort of bug in AllegroMP3
-    if ((crossFading > 0) && (channels[crossFading] != NULL))
-    channels[crossFading]->seek(musicpos);
-    else if (channels[SCHAN_MUSIC] != NULL)
-    channels[SCHAN_MUSIC]->seek(musicpos);
-    }*/
-
-    // restore the queue now that the music is playing
-    play.music_queue_size = queuedMusicSize;
-
-    if (play.digital_master_volume >= 0)
-        System_SetVolume(play.digital_master_volume);
-
-    for (vv = 1; vv < MAX_SOUND_CHANNELS; vv++) {
-        if (doAmbient[vv])
-            PlayAmbientSound(vv, doAmbient[vv], ambient[vv].vol, ambient[vv].x, ambient[vv].y);
-    }
-
-    for (vv = 0; vv < game.numgui; vv++) {
-        guibg[vv] = BitmapHelper::CreateBitmap (guis[vv].Width, guis[vv].Height, ScreenResolution.ColorDepth);
-        guibg[vv] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[vv]);
-    }
-
-    if (gfxDriver->SupportsGammaControl())
-        gfxDriver->SetGamma(play.gamma_adjustment);
-
-    guis_need_update = 1;
-
-    play.ignore_user_input_until_time = 0;
-    update_polled_stuff_if_runtime();
-
-    platform->RunPluginHooks(AGSE_POSTRESTOREGAME, 0);
-
-    if (displayed_room < 0) {
-        // the restart point, no room was loaded
-        load_new_room(playerchar->room, playerchar);
-        playerchar->prevroom = -1;
-
-        first_room_initialization();
-    }
-
-    if ((play.music_queue_size > 0) && (cachedQueuedMusic == NULL)) {
-        cachedQueuedMusic = load_music_from_disk(play.music_queue[0], 0);
-    }
-
-    return 0;
-}
-
-int restore_game_data (Common::Stream *in, const char *nametouse)
-{
-    return restore_game_data (in, nametouse, kSvgVersion_321);
+    return kSvgErr_NoError;
 }
 
 int gameHasBeenRestored = 0;
 int oldeip;
 
-void ReadRichMediaHeader_Aligned(RICH_GAME_MEDIA_HEADER &rich_media_header, Stream *in)
+bool read_savedgame_description(const String &savedgame, String &description)
 {
-    AlignedStream align_s(in, Common::kAligned_Read);
-    rich_media_header.ReadFromFile(&align_s);
+    SavegameDescription desc;
+    SavegameError err = OpenSavegame(savedgame, desc, kSvgDesc_UserText);
+    if (err == kSvgErr_NoError)
+    {
+        description = desc.UserText;
+        return true;
+    }
+    return false;
 }
 
-Stream *open_savedgame(const char *savedgame, int &error_code, SavedGameVersion *out_svg_version = NULL)
-{
-    error_code = 0;
-    Stream *in = Common::File::OpenFileRead(savedgame);
-    if (!in)
-    {
-        error_code = -1;
-        return in;
-    }
-
-    // skip Vista header
-    RICH_GAME_MEDIA_HEADER rich_media_header;
-    ReadRichMediaHeader_Aligned(rich_media_header, in);
-
-    // check saved game signature
-    in->Read(rbuffer, sgsiglen);
-    rbuffer[sgsiglen] = 0;
-    if (strcmp(rbuffer, sgsig) != 0) {
-        // not a save game
-        delete in;
-        error_code = -2;
-        return NULL;
-    }
-
-    int oldeip = our_eip;
-    our_eip = 2050;
-
-    // read description
-    fgetstring_limit(rbuffer, in, 180);
-    rbuffer[180] = 0;
-    safeguard_string ((unsigned char*)rbuffer);
-
-    // check saved game format version
-    SavedGameVersion svg_version = (SavedGameVersion)in->ReadInt32();
-    if (out_svg_version)
-    {
-        *out_svg_version = svg_version;
-    }
-    if (svg_version < kSvgVersion_LowestSupported || svg_version > kSvgVersion_Current)
-    {
-        delete in;
-        error_code = -3;
-        return NULL;
-    }
-
-    return in;
-}
-
-int read_savedgame_description(const String &savedgame, String &description)
-{
-    int error_code;
-    // yeah, I know what you think... this will be remade someday
-    delete open_savedgame(savedgame, error_code);
-    if (error_code == 0)
-    {
-        description = rbuffer;
-        our_eip = oldeip;
-    }
-    return error_code;
-}
-
-int read_savedgame_screenshot(const String &savedgame, int &want_shot)
+bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
 {
     want_shot = 0;
 
-    int error_code;
-    Stream *in = open_savedgame(savedgame, error_code);
-    if (!in)
-    {
-        return error_code;
-    }
+    SavegameDescription desc;
+    SavegameError err = OpenSavegame(savedgame, desc, kSvgDesc_UserImage);
+    if (err != kSvgErr_NoError)
+        return false;
 
-    Bitmap *screenshot = restore_game_screenshot(in);
-    if (screenshot)
+    if (desc.UserImage.get())
     {
         int slot = spriteset.findFreeSlot();
         if (slot > 0)
         {
             // add it into the sprite set
-            add_dynamic_sprite(slot, gfxDriver->ConvertBitmapToSupportedColourDepth(screenshot));
+            add_dynamic_sprite(slot, ReplaceBitmapWithSupportedFormat(desc.UserImage.release()));
             want_shot = slot;
         }
-        else
-        {
-            delete screenshot;
-        }
     }
-
-    delete in;
-    our_eip = oldeip;
-    return 0;
+    return true;
 }
 
-int load_game(int slotNumber)
+SavegameError load_game(const String &path, int slotNumber, bool &data_overwritten)
 {
-    return load_game(get_save_game_path(slotNumber), slotNumber);
-}
-
-int load_game(const Common::String &path, int slotNumber)
-{
+    data_overwritten = false;
     gameHasBeenRestored++;
 
-    SavedGameVersion svg_version;
-    int error_code;    
-    Stream *in = open_savedgame(path, error_code, &svg_version);
-    if (!in)
-    {
-        return error_code;
-    }
+    oldeip = our_eip;
+    our_eip = 2050;
+
+    SavegameError err;
+    SavegameSource src;
+    SavegameDescription desc;
+    err = OpenSavegame(path, src, desc, kSvgDesc_EnvInfo);
 
     our_eip = 2051;
 
-    delete restore_game_screenshot(in);  // [IKM] how very appropriate
+    // saved in incompatible enviroment
+    if (err != kSvgErr_NoError)
+        return err;
+    // CHECKME: is this color depth test still essential? if yes, is there possible workaround?
+    else if (desc.ColorDepth != ScreenResolution.ColorDepth)
+        return kSvgErr_DifferentColorDepth;
+    else if (!src.InputStream.get())
+        return kSvgErr_NoStream;
 
-    error_code = restore_game_header(in);
-
-    // saved in different game
-    if (error_code == -5) {
+    // saved with different game file
+    if (Path::ComparePaths(desc.MainDataFilename, usetup.main_data_filename))
+    {
         // [IKM] 2012-11-26: this is a workaround, indeed.
         // Try to find wanted game's executable; if it does not exist,
         // continue loading savedgame in current game, and pray for the best
-        get_current_dir_path(gamefilenamebuf, rbuffer);
+        get_current_dir_path(gamefilenamebuf, desc.MainDataFilename);
         if (Common::File::TestReadFile(gamefilenamebuf))
         {
-            delete in;
-            RunAGSGame (rbuffer, 0, 0);
+            RunAGSGame (desc.MainDataFilename, 0, 0);
             load_new_game_restore = slotNumber;
-            return 0;
+            return kSvgErr_NoError;
         }
-        Common::Out::FPrint("WARNING: the saved game '%s' references game file '%s', but it cannot be found in the current directory.", path.GetCStr(), gamefilenamebuf);
+        Common::Out::FPrint("WARNING: the saved game '%s' references game file '%s', but it cannot be found in the current directory.", path.GetCStr(), desc.MainDataFilename.GetCStr());
         Common::Out::FPrint("Trying to restore in the running game instead.");
-    }
-    else if (error_code != 0) {
-        delete in;
-        return error_code;
     }
 
     // do the actual restore
-    error_code = restore_game_data(in, path, svg_version);
-    delete in;
+    err = RestoreGameState(src.InputStream.get(), src.Version);
+    data_overwritten = true;
+    if (err != kSvgErr_NoError)
+        return err;
+    src.InputStream.reset();
     our_eip = oldeip;
-
-    if (error_code)
-    {
-        return error_code;
-    }
-
-    run_on_event (GE_RESTORE_GAME, RuntimeScriptValue().SetInt32(slotNumber));
 
     // ensure keyboard buffer is clean
     // use the raw versions rather than the rec_ versions so we don't
     // interfere with the replay sync
     while (keypressed()) readkey();
-    return 0;
+    // call "After Restore" event callback
+    run_on_event(GE_RESTORE_GAME, RuntimeScriptValue().SetInt32(slotNumber));
+    return kSvgErr_NoError;
+}
+
+bool try_restore_save(int slot)
+{
+    return try_restore_save(get_save_game_path(slot), slot);
+}
+
+bool try_restore_save(const Common::String &path, int slot)
+{
+    bool data_overwritten;
+    SavegameError err = load_game(path, slot, data_overwritten);
+    if (err != kSvgErr_NoError)
+    {
+        String error = String::FromFormat("Unable to restore game:\n%s", GetSavegameErrorText(err).GetCStr());
+        // currently AGS cannot properly revert to stable state if some of the
+        // game data was released or overwritten by the data from save file,
+        // this is why we tell engine to shutdown if that happened.
+        if (data_overwritten)
+            quitprintf(error);
+        else
+            Display(error);
+        return false;
+    }
+    return true;
 }
 
 void start_skipping_cutscene () {

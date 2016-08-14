@@ -82,7 +82,6 @@ extern RoomStatus*croom;
 extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
 extern int displayed_room;
 extern RoomObject*objs;
-extern roomstruct thisroom;
 extern ccInstance *roominst;
 extern AGSPlatformDriver *platform;
 extern int numevents;
@@ -497,7 +496,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             thisroom.ebscene[cc] = convert_32_to_32bgr(thisroom.ebscene[cc]);
 #endif
 
-        thisroom.ebscene[cc] = gfxDriver->ConvertBitmapToSupportedColourDepth(thisroom.ebscene[cc]);
+        thisroom.ebscene[cc] = ReplaceBitmapWithSupportedFormat(thisroom.ebscene[cc]);
     }
 
     if ((thisroom.ebscene[0]->GetColorDepth() == 8) &&

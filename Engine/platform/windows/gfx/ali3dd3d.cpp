@@ -1386,7 +1386,6 @@ Bitmap *D3DGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
      // Most 3D cards don't support 8-bit; and we need 15-bit colour
      Bitmap *tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 15);
      tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
-     delete bitmap;
      set_color_conversion(colorConv);
      return tempBmp;
    }
@@ -1395,7 +1394,6 @@ Bitmap *D3DGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
      // we need 32-bit colour
      Bitmap* tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
      tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
-     delete bitmap;
      set_color_conversion(colorConv);
      return tempBmp;
    }

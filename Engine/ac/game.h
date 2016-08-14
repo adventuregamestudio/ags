@@ -117,7 +117,6 @@ void set_game_speed(int fps);
 void setup_for_dialog();
 void restore_after_dialog();
 Common::String get_save_game_path(int slotNum);
-int  load_game_and_print_error(int toload);
 void restore_game_dialog();
 void save_game_dialog();
 void setup_sierra_interface();
@@ -125,18 +124,18 @@ GameFileError load_game_file();
 void free_do_once_tokens();
 // Free all the memory associated with the game
 void unload_game_file();
-void save_game_data (Common::Stream *out, Common::Bitmap *screenshot);
 void save_game(int slotn, const char*descript);
-int  restore_game_data (Common::Stream *in, const char *nametouse);
-int read_savedgame_description(const Common::String &savedgame, Common::String &description);
-int read_savedgame_screenshot(const Common::String &savedgame, int &want_shot);
-int  load_game(int slotNumber);
-int  load_game(const Common::String &path, int slotNumber);
-void serialize_bitmap(Common::Bitmap *thispic, Common::Stream *out);
-void safeguard_string (Common::String &descript);
+bool read_savedgame_description(const Common::String &savedgame, Common::String &description);
+bool read_savedgame_screenshot(const Common::String &savedgame, int &want_shot);
+// Tries to restore saved game and displays an error on failure; if the error occured
+// too late, when the game data was already overwritten, shuts engine down.
+bool try_restore_save(int slot);
+bool try_restore_save(const Common::String &path, int slot);
+void serialize_bitmap(const Common::Bitmap *thispic, Common::Stream *out);
 // On Windows we could just use IIDFromString but this is platform-independant
 void convert_guid_from_text_to_binary(const char *guidText, unsigned char *buffer);
 Common::Bitmap *read_serialized_bitmap(Common::Stream *in);
+void skip_serialized_bitmap(Common::Stream *in);
 long write_screen_shot_for_vista(Common::Stream *out, Common::Bitmap *screenshot);
 
 void start_skipping_cutscene ();
@@ -162,7 +161,9 @@ void get_message_text (int msnum, char *buffer, char giveErr = 1);
 void register_audio_script_objects();
 bool unserialize_audio_script_object(int index, const char *objectType, const char *serializedData, int dataSize);
 
+extern int in_new_room;
 extern int new_room_pos;
 extern int new_room_x, new_room_y, new_room_loop;
+extern int displayed_room;
 
 #endif // __AGS_EE_AC__GAME_H

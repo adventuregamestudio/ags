@@ -15,6 +15,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include "gui/guidefines.h"
+#include "util/math.h"
 #include "util/string_utils.h"
 #include "util/stream.h"
 
@@ -201,6 +202,11 @@ void StrUtil::WriteString(const String &s, Stream *out)
     out->WriteInt32(len);
     if (len > 0)
         out->Write(s.GetCStr(), len);
+}
+
+void StrUtil::WriteCStr(const String &s, Stream *out)
+{
+    out->Write(s.GetCStr(), s.GetLength() + 1);
 }
 
 } // namespace Common

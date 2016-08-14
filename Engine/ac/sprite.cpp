@@ -244,7 +244,7 @@ void initialize_sprite (int ee) {
         if ((spcoldep == 8) && (ScreenResolution.ColorDepth > 8))
             select_palette(palette);
 
-        spriteset.set(ee, gfxDriver->ConvertBitmapToSupportedColourDepth(spriteset[ee]));
+        spriteset.set(ee, ReplaceBitmapWithSupportedFormat(spriteset[ee]));
 
         if ((spcoldep == 8) && (ScreenResolution.ColorDepth > 8))
             unselect_palette();

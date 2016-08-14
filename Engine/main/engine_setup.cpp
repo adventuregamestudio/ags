@@ -195,7 +195,7 @@ void CreateBlankImage()
     try
     {
         Bitmap *blank = BitmapHelper::CreateBitmap(16, 16, ScreenResolution.ColorDepth);
-        blank = gfxDriver->ConvertBitmapToSupportedColourDepth(blank);
+        blank = ReplaceBitmapWithSupportedFormat(blank);
         blank->Clear();
         blankImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
         blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);

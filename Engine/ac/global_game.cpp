@@ -106,10 +106,7 @@ void restart_game() {
         curscript->queue_action(ePSARestartGame, 0, "RestartGame");
         return;
     }
-    int errcod;
-    if ((errcod = load_game(RESTART_POINT_SAVE_GAME_NUMBER))!=0)
-        quitprintf("unable to restart game (error:%s)", load_game_errors[-errcod]);
-
+    try_restore_save(RESTART_POINT_SAVE_GAME_NUMBER);
 }
 
 void RestoreGameSlot(int slnum) {
@@ -121,7 +118,7 @@ void RestoreGameSlot(int slnum) {
         curscript->queue_action(ePSARestoreGame, slnum, "RestoreGameSlot");
         return;
     }
-    load_game(slnum);
+    try_restore_save(slnum);
 }
 
 void DeleteSaveSlot (int slnum) {
@@ -161,7 +158,7 @@ int IsGamePaused() {
 int GetSaveSlotDescription(int slnum,char*desbuf) {
     VALIDATE_STRING(desbuf);
     String description;
-    if (read_savedgame_description(get_save_game_path(slnum), description) == 0)
+    if (read_savedgame_description(get_save_game_path(slnum), description))
     {
         strcpy(desbuf, description);
         return 1;
@@ -174,7 +171,7 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
     int gotSlot;
     multiply_up_coordinates(&width, &height);
 
-    if (read_savedgame_screenshot(get_save_game_path(slnum), gotSlot) != 0)
+    if (!read_savedgame_screenshot(get_save_game_path(slnum), gotSlot))
         return 0;
 
     if (gotSlot == 0)
@@ -295,7 +292,7 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     play.screen_is_faded_out = 1;
 
     if (load_new_game_restore >= 0) {
-        load_game (load_new_game_restore);
+        try_restore_save(load_new_game_restore);
         load_new_game_restore = -1;
     }
     else

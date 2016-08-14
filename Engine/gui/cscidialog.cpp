@@ -15,6 +15,7 @@
 #include <cctype>
 #include "util/wgt2allg.h"
 #include "ac/common.h"
+#include "ac/draw.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "ac/gui.h"
@@ -145,7 +146,7 @@ int WINAPI _export CSCIWaitMessage(Bitmap *ds, CSCIMessage * cscim)
     }
 
     windowBuffer = BitmapHelper::CreateBitmap(windowPosWidth, windowPosHeight, ds->GetColorDepth());
-    windowBuffer = gfxDriver->ConvertBitmapToSupportedColourDepth(windowBuffer);
+    windowBuffer = ReplaceBitmapWithSupportedFormat(windowBuffer);
     dialogBmp = gfxDriver->CreateDDBFromBitmap(windowBuffer, false, true);
 
     while (1) {

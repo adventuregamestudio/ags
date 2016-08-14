@@ -259,6 +259,19 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
     *y = tdyp;
 }
 
+void recreate_overlay_ddbs()
+{
+    for (int i = 0; i < numscreenover; ++i)
+    {
+        if (screenover[i].bmp)
+            gfxDriver->DestroyDDB(screenover[i].bmp);
+        if (screenover[i].pic)
+            screenover[i].bmp = gfxDriver->CreateDDBFromBitmap(screenover[i].pic, false);
+        else
+            screenover[i].bmp = NULL;
+    }
+}
+
 //=============================================================================
 //
 // Script API Functions

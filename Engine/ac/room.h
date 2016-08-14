@@ -51,4 +51,6 @@ void  check_new_room();
 void  compile_room_script();
 void  on_background_frame_change ();
 
+extern roomstruct thisroom;
+
 #endif // __AGS_EE_AC__ROOM_H

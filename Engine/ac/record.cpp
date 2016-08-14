@@ -23,6 +23,7 @@
 #include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/record.h"
+#include "game/savegame.h"
 #include "main/main.h"
 #include "media/audio/soundclip.h"
 #include "util/string_utils.h"
@@ -30,8 +31,8 @@
 #include "device/mousew32.h"
 #include "util/filestream.h"
 
-using AGS::Common::Stream;
-using AGS::Common::String;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern GameState play;
@@ -337,7 +338,7 @@ void start_recording() {
 
 void start_replay_record () {
     Stream *replay_s = Common::File::CreateFile(replayTempFile);
-    save_game_data (replay_s, NULL);
+    SaveGameState(replay_s);
     delete replay_s;
     start_recording();
     play.recording = 1;
@@ -465,7 +466,7 @@ void start_playback()
             if (replayver >= 3) {
                 int issave = in->ReadInt32();
                 if (issave) {
-                    if (restore_game_data (in, replayfile))
+                    if (RestoreGameState(in, kSvgVersion_321) != kSvgErr_NoError)
                         quit("!Error running replay... could be incorrect game version");
                     replay_last_second = loopcounter;
                 }

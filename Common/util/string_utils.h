@@ -57,9 +57,15 @@ void split_lines(const char *todis, int wii, int fonnt);
 
 //=============================================================================
 
-// FIXME: remove later when arrays of chars are replaced by string class
+// TODO: remove later when arrays of chars are replaced by string class
+// fputstring writes c-string with null terminator
 void fputstring(const char *sss, Common::Stream *out);
+// fgetstring_limit limits number of bytes stored in the buffer, but it does NOT limit
+// number of bytes being read; the string is continued to be read until null terminator
+// is reached
 void fgetstring_limit(char *sss, Common::Stream *in, int bufsize);
+// fgestring is similar to fgetstring_limit, but it assumes very large arbitrary buffer limit
+// TODO: replace this function, because it should not exist >:[
 void fgetstring(char *sss, Common::Stream *in);
 
 #include "util/string.h"
@@ -92,6 +98,9 @@ namespace StrUtil
     // length is presented as int32 integer
     String          ReadString(Stream *in);
     void            WriteString(const String &s, Stream *out);
+
+    // Serializes string as c-string (null-terminated sequence)
+    void            WriteCStr(const String &s, Stream *out);
 }
 } // namespace Common
 } // namespace AGS

@@ -6,6 +6,7 @@ ac/statobj \
 debug \
 device \
 font \
+game \
 gfx \
 gui \
 main \

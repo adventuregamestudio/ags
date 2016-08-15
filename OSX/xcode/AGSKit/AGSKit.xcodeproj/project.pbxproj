@@ -740,6 +740,9 @@
 		526F28EB1D3B5CC300EF4E1F /* thread_windows.h in Headers */ = {isa = PBXBuildFile; fileRef = 526F26991D3B5CC300EF4E1F /* thread_windows.h */; };
 		52A7D3291D1E644700D88BEE /* libz.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52A7D3251D1E641F00D88BEE /* libz.1.dylib */; };
 		52A7D32A1D1E645200D88BEE /* libbz2.1.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52A7D3271D1E643800D88BEE /* libbz2.1.0.dylib */; };
+		52D12C1F1D61C0950077B784 /* savegame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 52D12C1C1D61C0950077B784 /* savegame.cpp */; };
+		52D12C201D61C0950077B784 /* savegame.h in Headers */ = {isa = PBXBuildFile; fileRef = 52D12C1D1D61C0950077B784 /* savegame.h */; };
+		52D12C211D61C0950077B784 /* savegame_internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 52D12C1E1D61C0950077B784 /* savegame_internal.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -1480,6 +1483,9 @@
 		526F26991D3B5CC300EF4E1F /* thread_windows.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = thread_windows.h; sourceTree = "<group>"; };
 		52A7D3251D1E641F00D88BEE /* libz.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.dylib; path = ../../../../../../../../usr/lib/libz.1.dylib; sourceTree = "<group>"; };
 		52A7D3271D1E643800D88BEE /* libbz2.1.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libbz2.1.0.dylib; path = ../../../../../../../../usr/lib/libbz2.1.0.dylib; sourceTree = "<group>"; };
+		52D12C1C1D61C0950077B784 /* savegame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = savegame.cpp; sourceTree = "<group>"; };
+		52D12C1D1D61C0950077B784 /* savegame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = savegame.h; sourceTree = "<group>"; };
+		52D12C1E1D61C0950077B784 /* savegame_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = savegame_internal.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1548,6 +1554,7 @@
 				526F251F1D3B5CC300EF4E1F /* debug */,
 				526F252B1D3B5CC300EF4E1F /* device */,
 				526F252E1D3B5CC300EF4E1F /* font */,
+				52D12C1B1D61C0950077B784 /* game */,
 				526F25301D3B5CC300EF4E1F /* gfx */,
 				526F25521D3B5CC300EF4E1F /* gui */,
 				526F25671D3B5CC300EF4E1F /* libsrc */,
@@ -2738,6 +2745,16 @@
 			path = util;
 			sourceTree = "<group>";
 		};
+		52D12C1B1D61C0950077B784 /* game */ = {
+			isa = PBXGroup;
+			children = (
+				52D12C1C1D61C0950077B784 /* savegame.cpp */,
+				52D12C1D1D61C0950077B784 /* savegame.h */,
+				52D12C1E1D61C0950077B784 /* savegame_internal.h */,
+			);
+			path = game;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -2975,12 +2992,14 @@
 				526F27021D3B5CC300EF4E1F /* global_character.h in Headers */,
 				526F27101D3B5CC300EF4E1F /* global_file.h in Headers */,
 				526F274C1D3B5CC300EF4E1F /* hotspot.h in Headers */,
+				52D12C211D61C0950077B784 /* savegame_internal.h in Headers */,
 				521C54C11D1E572B00BD619E /* ags_parallax.h in Headers */,
 				526F26B61D3B5CC300EF4E1F /* dynamicsprite.h in Headers */,
 				526F23EE1D3B5C4900EF4E1F /* textreader.h in Headers */,
 				526F286D1D3B5CC300EF4E1F /* mainheader.h in Headers */,
 				526F28EB1D3B5CC300EF4E1F /* thread_windows.h in Headers */,
 				526F22F71D3B5C4900EF4E1F /* aloggdll.h in Headers */,
+				52D12C201D61C0950077B784 /* savegame.h in Headers */,
 				526F26EC1D3B5CC300EF4E1F /* scriptstring.h in Headers */,
 				526F22D81D3B5C4900EF4E1F /* interactions.h in Headers */,
 				526F22B21D3B5C4900EF4E1F /* messageinfo.h in Headers */,
@@ -3356,6 +3375,7 @@
 				526F28D51D3B5CC300EF4E1F /* test_math.cpp in Sources */,
 				526F27631D3B5CC300EF4E1F /* overlay.cpp in Sources */,
 				526F22D91D3B5C4900EF4E1F /* allegrobitmap.cpp in Sources */,
+				52D12C1F1D61C0950077B784 /* savegame.cpp in Sources */,
 				526F26EE1D3B5CC300EF4E1F /* scriptuserobject.cpp in Sources */,
 				526F27C71D3B5CC300EF4E1F /* gfxfilter_hqx.cpp in Sources */,
 				526F22E31D3B5C4900EF4E1F /* guilabel.cpp in Sources */,

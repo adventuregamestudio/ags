@@ -20,10 +20,12 @@
 #define __CC_INSTANCE_H
 
 #if __cplusplus >= 201103L
+#include <memory>
 #include <unordered_map>
 namespace stdtr1compat = std;
 #else
 #if defined (_MSC_VER)
+#include <memory>
 #include <unordered_map>
 #else
 #include <tr1/memory>

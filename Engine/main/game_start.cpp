@@ -39,7 +39,6 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern int our_eip, displayed_room;
-extern const char *load_game_errors[9];
 extern volatile char want_exit, abort_engine;
 extern GameSetupStruct game;
 extern GameState play;

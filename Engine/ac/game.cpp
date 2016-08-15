@@ -202,12 +202,6 @@ char pexbuf[STD_BUFFER_SIZE];
 unsigned int load_new_game = 0;
 int load_new_game_restore = -1;
 
-const char *load_game_errors[9] =
-{"No error","File not found","Not an AGS save game",
-"Invalid save game version","Saved with different interpreter",
-"Saved under a different game", "Resolution mismatch",
-"Colour depth mismatch", ""};
-
 int getloctype_index = 0, getloctype_throughgui = 0;
 
 //=============================================================================

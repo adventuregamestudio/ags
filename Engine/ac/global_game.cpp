@@ -65,7 +65,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameState play;
 extern ExecutingScript*curscript;
-extern const char *load_game_errors[9];
 extern int displayed_room;
 extern int game_paused;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];

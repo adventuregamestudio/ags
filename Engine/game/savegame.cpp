@@ -120,6 +120,8 @@ String GetSavegameErrorText(SavegameError err)
         return "No error";
     case kSvgErr_FileNotFound:
         return "File not found";
+    case kSvgErr_NoStream:
+        return "Failed to open input stream";
     case kSvgErr_SignatureFailed:
         return "Not an AGS saved game or unsupported format";
     case kSvgErr_FormatVersionNotSupported:

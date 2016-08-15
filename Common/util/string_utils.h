@@ -45,9 +45,7 @@ extern "C" char *strupr(char *s);
 
 #else
 
-#if !defined (snprintf)
-#define snprintf _snprintf
-#endif
+#include "util/c99_snprintf.h"
 
 #endif // !WINDOWS_VERSION
 

@@ -51,6 +51,12 @@
 #endif
 
 #if defined(WINDOWS_VERSION)
+#if defined(_MSC_VER) && (_MSC_VER >= 1900)
+
+#include <stdint.h>
+
+#else
+
 #define int8_t       signed char
 #define uint8_t      unsigned char
 #define int16_t      signed short
@@ -70,6 +76,8 @@
 // tell Windows headers that we already have defined out intptr_t types
 #define _INTPTR_T_DEFINED
 #define _UINTPTR_T_DEFINED
+
+#endif // _MSC_VER >= 1900
 
 #endif // WINDOWS_VERSION
 

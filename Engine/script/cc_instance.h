@@ -19,18 +19,9 @@
 #ifndef __CC_INSTANCE_H
 #define __CC_INSTANCE_H
 
-#if __cplusplus >= 201103L
-#include <unordered_map>
-namespace stdtr1compat = std;
-#else
-#if defined (_MSC_VER)
-#include <unordered_map>
-#else
-#include <tr1/memory>
-#include <tr1/unordered_map>
-#endif
-namespace stdtr1compat = std::tr1;
-#endif
+#include "util/stdtr1compat.h"
+#include TR1INCLUDE(memory)
+#include TR1INCLUDE(unordered_map)
 
 #include "script/script_common.h"
 #include "script/cc_script.h"  // ccScript

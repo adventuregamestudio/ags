@@ -25,17 +25,8 @@
 #ifndef __AGS_CN_GAME__CUSTOMPROPERTIES_H
 #define __AGS_CN_GAME__CUSTOMPROPERTIES_H
 
-#if __cplusplus >= 201103L
-#include <unordered_map>
-namespace stdtr1compat = std;
-#else
-#if defined (_MSC_VER)
-#include <unordered_map>
-#else
-#include <tr1/unordered_map>
-#endif
-namespace stdtr1compat = std::tr1;
-#endif
+#include "util/stdtr1compat.h"
+#include TR1INCLUDE(unordered_map)
 
 #include "util/string.h"
 #include "util/string_types.h"

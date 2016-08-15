@@ -850,6 +850,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\stdtr1compat.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\stream.h"
 					>
 				</File>

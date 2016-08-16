@@ -40,7 +40,6 @@
 #include "game/savegame.h"
 #include "game/savegame_internal.h"
 #include "main/main.h"
-#include "main/version.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
 #include "platform/base/agsplatformdriver.h"
@@ -51,6 +50,7 @@
 #include "util/file.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
+#include "util/version.h"
 
 using namespace Common;
 using namespace Engine;

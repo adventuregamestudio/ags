@@ -15,7 +15,7 @@
 #ifndef __AGS_EE_GAME__SAVEGAME_H
 #define __AGS_EE_GAME__SAVEGAME_H
 
-#include "main/version.h"
+#include "util/version.h"
 
 
 namespace AGS
@@ -29,6 +29,7 @@ namespace Engine
 using Common::Bitmap;
 using Common::Stream;
 using Common::String;
+using Common::Version;
 
 //-----------------------------------------------------------------------------
 // Savegame version history

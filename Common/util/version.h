@@ -12,17 +12,17 @@
 //
 //=============================================================================
 //
-//
+// Class, depicting version of the AGS engine
 //
 //=============================================================================
-#ifndef __AGS_EE_MAIN__VERSION_H
-#define __AGS_EE_MAIN__VERSION_H
+#ifndef __AGS_CN_MAIN__VERSION_H
+#define __AGS_CN_MAIN__VERSION_H
 
 #include "util/string.h"
 
 namespace AGS
 {
-namespace Engine
+namespace Common
 {
 
 using Common::String;
@@ -101,7 +101,7 @@ private:
     void MakeString();
 };
 
-} // namespace Engine
+} // namespace Common
 } // namespace AGS
 
-#endif // __AGS_EE_MAIN__VERSION_H
+#endif // __AGS_CN_MAIN__VERSION_H

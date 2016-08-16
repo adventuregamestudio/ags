@@ -156,7 +156,7 @@ GameFileError game_file_read_version(Stream *in, bool silent_warn = false)
 
 	int engineverlen = in->ReadInt32();
     String version_string = String::FromStreamCount(in, engineverlen);
-    AGS::Engine::Version requested_engine_version(version_string);
+    AGS::Common::Version requested_engine_version(version_string);
     Out::FPrint("Requested engine version: %s", requested_engine_version.LongString.GetCStr());
 
     if (filever > kGameVersion_Current) {

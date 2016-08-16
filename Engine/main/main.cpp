@@ -132,11 +132,11 @@ void main_create_platform_driver()
 #define SVG_VERSION_FWCOMPAT_REVISION   1111
 
 // Current engine version
-AGS::Engine::Version EngineVersion;
+AGS::Common::Version EngineVersion;
 // Lowest savedgame version, accepted by this engine
-AGS::Engine::Version SavedgameLowestBackwardCompatVersion;
+AGS::Common::Version SavedgameLowestBackwardCompatVersion;
 // Lowest engine version, which would accept current savedgames
-AGS::Engine::Version SavedgameLowestForwardCompatVersion;
+AGS::Common::Version SavedgameLowestForwardCompatVersion;
 
 void main_init()
 {

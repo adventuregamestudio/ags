@@ -540,6 +540,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\version.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\wgt2allg.cpp"
 					>
 				</File>
@@ -891,6 +895,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\util\textwriter.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\version.h"
 					>
 				</File>
 				<File

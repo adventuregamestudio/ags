@@ -16,9 +16,9 @@
 
 #include <string.h>
 #include "debug/assert.h"
-#include "main/version.h"
+#include "util/version.h"
 
-using AGS::Engine::Version;
+using AGS::Common::Version;
 
 void Test_Version()
 {

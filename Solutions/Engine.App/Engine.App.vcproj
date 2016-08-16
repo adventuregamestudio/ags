@@ -1075,10 +1075,6 @@
 					RelativePath="..\..\Engine\main\update.cpp"
 					>
 				</File>
-				<File
-					RelativePath="..\..\Engine\main\version.cpp"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="platform"
@@ -2083,10 +2079,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\main\update.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\main\version.h"
 					>
 				</File>
 			</Filter>

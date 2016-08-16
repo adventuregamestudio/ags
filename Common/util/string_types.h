@@ -15,21 +15,9 @@
 #define __AGS_CN_UTIL__STRINGTYPES_H
 
 #include <cctype>
-
-#if __cplusplus >= 201103L
-#include <functional>
-#include <unordered_map>
-namespace stdtr1compat = std;
-#else
-#if defined (_MSC_VER)
-#include <functional>
-#include <unordered_map>
-#else
-#include <tr1/functional>
-#include <tr1/unordered_map>
-#endif
-namespace stdtr1compat = std::tr1;
-#endif
+#include "util/stdtr1compat.h"
+#include TR1INCLUDE(functional)
+#include TR1INCLUDE(unordered_map)
 
 #include <vector>
 #include "util/string.h"
@@ -62,7 +50,7 @@ inline size_t Hash_LowerCase(const char *data, const size_t len)
 // A std::hash specialization for AGS String
 namespace std
 {
-#if __cplusplus < 201103L
+#ifdef AGS_NEEDS_TR1
 namespace tr1
 {
 #endif
@@ -74,7 +62,7 @@ struct hash<AGS::Common::String> : public unary_function<AGS::Common::String, si
         return FNV::Hash(key.GetCStr(), key.GetLength());
     }
 };
-#if __cplusplus < 201103L
+#ifdef AGS_NEEDS_TR1
 }
 #endif
 }

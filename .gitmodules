@@ -4,7 +4,3 @@
 [submodule "Common/libsrc/googletest"]
 	path = Common/libsrc/googletest
 	url = https://github.com/google/googletest.git
-[submodule "Editor/templates"]
-	path = Editor/templates
-	url = https://github.com/adventuregamestudio/ags-templates.git
-	branch = release-3.3.5

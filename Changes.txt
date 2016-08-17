@@ -1,5 +1,12 @@
 REVISION HISTORY
 ================
+VERSION 3.3.5 - Patch 6, August 2016
+
+Engine:
+- Fixed Display script functions displaying different text if there is any
+  variadic text formatting function called in repeatedly_execute().
+
+
 VERSION 3.3.5 - Patch 5, July 2016
 
 Engine:

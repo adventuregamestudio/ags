@@ -264,20 +264,7 @@ namespace AGS.Editor
 
         public bool SelectTabInPropertyGrid(string tabName)
         {
-            int tabIndex = 0;
-            foreach (System.Windows.Forms.Design.PropertyTab propertyTab in propertiesPanel.propertiesGrid.PropertyTabs)
-            {
-                if (propertyTab.TabName == tabName)
-                {
-                    if (propertyTab != propertiesPanel.propertiesGrid.SelectedTab)
-                    {
-                    	Hacks.SetSelectedTabInPropertyGrid(propertiesPanel.propertiesGrid, tabIndex);
-                    }
-                    return true;
-                }
-                tabIndex++;
-            }
-            return false;
+            return propertiesPanel.SelectTabInPropertyGrid(tabName);
         }
 
         public Point GetPropertyGridScreenCoordinates()

@@ -35,7 +35,6 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
 // Variadic sprintf (needed, because all arguments are pushed as pointer-sized values). Currently used only when plugin calls
 // exported engine function. Should be removed when this plugin issue is resolved.
 const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *format, va_list &arg_ptr);
-extern char ScSfBuffer[STD_BUFFER_SIZE];
 
 // Helper macros for script functions
 #define ASSERT_SELF(METHOD) \
@@ -79,10 +78,12 @@ extern char ScSfBuffer[STD_BUFFER_SIZE];
 
 #define API_SCALL_SCRIPT_SPRINTF(FUNCTION, PARAM_COUNT) \
     ASSERT_PARAM_COUNT(FUNCTION, PARAM_COUNT) \
+    char ScSfBuffer[STD_BUFFER_SIZE]; \
     const char *scsf_buffer = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, get_translation(params[PARAM_COUNT - 1].Ptr), params + PARAM_COUNT, param_count - PARAM_COUNT)
 
 #define API_OBJCALL_SCRIPT_SPRINTF(METHOD, PARAM_COUNT) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, PARAM_COUNT) \
+    char ScSfBuffer[STD_BUFFER_SIZE]; \
     const char *scsf_buffer = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, get_translation(params[PARAM_COUNT - 1].Ptr), params + PARAM_COUNT, param_count - PARAM_COUNT)
 
 //-----------------------------------------------------------------------------
@@ -91,6 +92,7 @@ extern char ScSfBuffer[STD_BUFFER_SIZE];
 #define API_PLUGIN_SCRIPT_SPRINTF(FORMAT_STR) \
     va_list args; \
     va_start(args, FORMAT_STR); \
+    char ScSfBuffer[STD_BUFFER_SIZE]; \
     const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, STD_BUFFER_SIZE, get_translation(FORMAT_STR), args); \
     va_end(args)
 

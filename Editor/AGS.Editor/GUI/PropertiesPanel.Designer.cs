@@ -63,6 +63,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "PropertiesPanel";
             this.Padding = new System.Windows.Forms.Padding(1, 20, 1, 1);
+            this.VisibleChanged += new System.EventHandler(this.PropertiesPanel_VisibleChanged);
             this.ResumeLayout(false);
 
         }

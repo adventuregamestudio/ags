@@ -23,7 +23,7 @@
 namespace Math = AGS::Common::Math;
 
 #if defined (WINDOWS_VERSION)
-#define snprintf _snprintf
+#include "util/c99_snprintf.h"
 #endif
 
 char ScSfBuffer[STD_BUFFER_SIZE];

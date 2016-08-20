@@ -790,6 +790,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\c99_snprintf.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\compress.h"
 					>
 				</File>

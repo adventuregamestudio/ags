@@ -2,6 +2,10 @@ REVISION HISTORY
 ================
 VERSION 3.3.5 - Patch 6, August 2016
 
+Editor:
+- Fixed properties buttons dissapearing from the Properties panel if the
+  object was selected while the panel was not visible.
+
 Engine:
 - Fixed Display script functions displaying different text if there is any
   variadic text formatting function called in repeatedly_execute().

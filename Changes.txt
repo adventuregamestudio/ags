@@ -85,7 +85,8 @@ Script API:
  - Added Room.ProcessClick() to substitute global ProcessClick().
  - Added SetProperty() and SetTextProperty() functions to Room, InventoryItem,
    Hotspot, Object and Character types.
- - Added optional "luminance" parameter to Region.Tint().
+ - Added optional "luminance" parameter to Region.Tint() and
+   Region.TintLuminance readonly property.
  - Added SetAmbientLightLevel() to set global light level for
    anything in the room.
  - Added Character.SetLightLevel() and Object.SetLightLevel() functions to

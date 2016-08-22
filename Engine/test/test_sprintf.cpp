@@ -36,8 +36,10 @@ void Test_ScriptSprintf()
                       params, 3);
     assert(strcmp(result, "testing ScriptSprintf:\nThis is int:        123\nThis is float: 0.4560\nThis is string: 'string literal'\nThis placeholder will be ignored: %d") == 0);
     // Literal percent sign
-    result = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, "aaa%%aaa", params, 3);
-    assert(strcmp(result, "aaa%aaa") == 0);
+    result = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, "%d%%", params, 3);
+    assert(strcmp(result, "123%") == 0);
+    result = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, "123%%", NULL, 0);
+    assert(strcmp(result, "123%") == 0);
 
     // Invalid format
     result = ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE, "%zzzzzz", params, 3);

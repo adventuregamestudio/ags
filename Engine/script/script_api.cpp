@@ -81,14 +81,14 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
     while (*fmt_ptr && out_ptr != out_endptr)
     {
         // Try to put argument into placeholder
-        if (*fmt_ptr == '%' && arg_idx < argc)
+        if (*fmt_ptr == '%')
         {
             avail_outbuf = out_endptr - out_ptr;
             fmt_bufptr = fmtbuf;
             *(fmt_bufptr++) = '%';
             snprintf_res = 0;
             fmt_done = kFormatParseNone;
-            const RuntimeScriptValue &arg = args[arg_idx];
+            const RuntimeScriptValue *arg = arg_idx < argc ? &args[arg_idx] : NULL;
 
             // Parse placeholder
             while (*(++fmt_ptr) && fmt_done == kFormatParseNone && fmt_bufptr != fmt_bufendptr)
@@ -104,9 +104,16 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
                 case 'X':
                 case 'c':
                     // Print integer
-                    *fmt_bufptr = 0;
-                    snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, arg.IValue);
-                    fmt_done = kFormatParseArgument;
+                    if (arg)
+                    {
+                        *fmt_bufptr = 0;
+                        snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, arg->IValue);
+                        fmt_done = kFormatParseArgument;
+                    }
+                    else
+                    {
+                        fmt_done = kFormatParseInvalid;
+                    }
                     break;
                 case 'e':
                 case 'E':
@@ -116,13 +123,20 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
                 case 'G':
                 case 'a':
                 case 'A':
-                    // Print float
-                    *fmt_bufptr = 0;
-                    snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, arg.FValue);
-                    fmt_done = kFormatParseArgument;
+                    if (arg)
+                    {
+                        // Print float
+                        *fmt_bufptr = 0;
+                        snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, arg->FValue);
+                        fmt_done = kFormatParseArgument;
+                    }
+                    else
+                    {
+                        fmt_done = kFormatParseInvalid;
+                    }
                     break;
                 case 's':
-                    if (!arg.Ptr)
+                    if (arg && !arg->Ptr)
                     {
                         if (loaded_game_file_version < kGameVersion_320)
                         {
@@ -142,7 +156,7 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
                             return "";
                         }
                     }
-                    else if (arg.Ptr == buffer)
+                    else if (arg && arg->Ptr == buffer)
                     {
                         cc_error("ScriptSprintf: argument %d is a pointer to output buffer", arg_idx);
                         return "";
@@ -150,9 +164,16 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
                     // fall through intended ---
                 case 'p':
                     // Print string, or pointer value
-                    *fmt_bufptr = 0;
-                    snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, arg.Ptr);
-                    fmt_done = kFormatParseArgument;
+                    if (arg)
+                    {
+                        *fmt_bufptr = 0;
+                        snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, arg->Ptr);
+                        fmt_done = kFormatParseArgument;
+                    }
+                    else
+                    {
+                        fmt_done = kFormatParseInvalid;
+                    }
                     break;
                 case '%':
                     // This may be a literal percent sign ('%%')

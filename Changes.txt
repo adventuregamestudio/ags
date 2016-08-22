@@ -9,6 +9,7 @@ Editor:
 Engine:
 - Fixed Display script functions displaying different text if there is any
   variadic text formatting function called in repeatedly_execute().
+- Fixed text formatting functions did not parse "%%" format properly.
 
 
 VERSION 3.3.5 - Patch 5, July 2016

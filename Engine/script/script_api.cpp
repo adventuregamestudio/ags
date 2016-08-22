@@ -26,8 +26,6 @@ namespace Math = AGS::Common::Math;
 #include "util/c99_snprintf.h"
 #endif
 
-char ScSfBuffer[STD_BUFFER_SIZE];
-
 enum FormatParseResult
 {
     kFormatParseNone,

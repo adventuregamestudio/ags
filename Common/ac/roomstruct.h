@@ -202,6 +202,15 @@ struct roomstruct {
     roomstruct();
     void freemessage();
     void freescripts();
+
+    // Gets if the given region has light level set
+    bool has_region_lightlevel(int id) const;
+    // Gets if the given region has a tint set
+    bool has_region_tint(int id) const;
+    // Gets region's light level in -100 to 100 range value; returns 0 (default level) if region's tint is set
+    int  get_region_lightlevel(int id) const;
+    // Gets region's tint luminance in 0 to 100 range value; returns 0 if region's light level is set
+    int  get_region_tintluminance(int id) const;
 };
 
 #define BLOCKTYPE_MAIN        1

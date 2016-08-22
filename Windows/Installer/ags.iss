@@ -49,6 +49,7 @@ ComponentMain=Main files
 ComponentEngines=Engines
 ComponentEngineDefault=Engine (default)
 ComponentEngineNoMP3=Engine (no MP3 support)
+ComponentLinuxBuild=Linux build component
 ComponentDemoGame=Demo Game
 InstallOptions=Install options
 InstallVCRedist=Install Visual C++ Redistributable 2008 SP1
@@ -61,6 +62,7 @@ Name: "main"; Description: "{cm:ComponentMain}"; Types: full compact custom; Fla
 Name: "engine"; Description: "{cm:ComponentEngines}"; Types: full compact custom; Flags: fixed
 Name: "engine\default"; Description: "{cm:ComponentEngineDefault}"; Types: full compact; Flags: exclusive
 Name: "engine\nomp3"; Description: "{cm:ComponentEngineNoMP3}"; Flags: exclusive
+Name: "linux"; Description: "{cm:ComponentLinuxBuild}"; Types: full custom
 Name: "demogame"; Description: "{cm:ComponentDemoGame}"; Types: full custom
 
 
@@ -79,6 +81,7 @@ Name: "{app}\Templates";
 Source: "Source\engine\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\default
 Source: "Source\engine-no-mp3\acwin.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: engine\nomp3
 Source: "Source\AGSEditor.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: main
+Source: "Source\Linux\*"; DestDir: "{app}\Linux"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: linux
 Source: "Source\ags-help.chm"; DestDir: "{app}"; Flags: ignoreversion; Components: main
 Source: "Source\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion; Components: main
 Source: "Source\Docs\*"; DestDir: "{app}\Docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: main

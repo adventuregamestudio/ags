@@ -3,11 +3,19 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Text;
+using System.Reflection;
 
 namespace AGS.Types
 {
     public static class Utilities
     {
+        public static T GetDefaultValue<T>(Type type, string propertyName, T defaultValue)
+        {
+            PropertyInfo property = type.GetProperty(propertyName);
+            DefaultValueAttribute[] defaults = (DefaultValueAttribute[])property.GetCustomAttributes(typeof(DefaultValueAttribute), false);
+            return (defaults.Length > 0) ? (T)defaults[0].Value : defaultValue;
+        }
+
         public static string RemoveInvalidCharactersFromScriptName(string name)
         {
             StringBuilder sb = new StringBuilder();

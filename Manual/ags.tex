@@ -90,8 +90,16 @@ To get started, \helprefn{read the tutorial}{StartingOff}.
 
 \section{System Requirements}%
 
-To run the Editor, you need a Windows-based PC with at least 128 MB RAM and
-the .NET 2.0 Framework installed (games you create do \bf{NOT} require the framework).
+To work with the Editor, you need following:
+
+\begin{itemize}\itemsep=0pt
+\item Windows XP or higher
+\item At least 128 Mb RAM
+\item .NET 2.0 Framework
+\item Microsoft Visual C++ 2008 Service Pack 1 Redistributable
+\end{itemize}
+
+Note that games you create do \bf{NOT} require .NET nor Visual C++ redistributable.
 
 Any games you create have at least these system requirements:
 
@@ -17968,7 +17976,7 @@ Gets whether the region currently has an RGB tint enabled for it.
 Returns \it{true} if it does, and \it{false} if it does not. If it does not, then
 the LightLevel property reflects the region lighting.
 
-If this property is \it{false}, then the TintRed, TintGreen, TintBlue and TintSaturation
+If this property is \it{false}, then the TintRed, TintGreen, TintBlue, TintSaturation and TintLuminance
 properties are invalid.
 
 \fcol{red}{Example:}
@@ -18005,7 +18013,8 @@ if (region[4].TintEnabled) {
 will display a message with the region's tints.
 
 \it{See Also:} \helprefn{Region.Tint}{Region.Tint}, \helprefn{Region.TintEnabled}{Region.TintEnabled},
-\helprefn{Region.TintGreen}{Region.TintGreen}, \helprefn{Region.TintRed}{Region.TintRed}
+\helprefn{Region.TintGreen}{Region.TintGreen}, \helprefn{Region.TintRed}{Region.TintRed},
+\helprefn{Region.TintLuminance}{Region.TintLuminance}
 
 
 \subsection{TintGreen property}\label{Region.TintGreen}\index{Region.TintGreen}%
@@ -18031,7 +18040,8 @@ if (region[4].TintEnabled) {
 will display a message with the region's tints.
 
 \it{See Also:} \helprefn{Region.Tint}{Region.Tint}, \helprefn{Region.TintEnabled}{Region.TintEnabled},
-\helprefn{Region.TintBlue}{Region.TintBlue}, \helprefn{Region.TintRed}{Region.TintRed}
+\helprefn{Region.TintBlue}{Region.TintBlue}, \helprefn{Region.TintRed}{Region.TintRed},
+\helprefn{Region.TintSaturation}{Region.TintSaturation}, \helprefn{Region.TintLuminance}{Region.TintLuminance}
 
 
 \subsection{TintRed property}\label{Region.TintRed}\index{Region.TintRed}%
@@ -18057,7 +18067,8 @@ if (region[4].TintEnabled) {
 will display a message with the region's tints.
 
 \it{See Also:} \helprefn{Region.Tint}{Region.Tint}, \helprefn{Region.TintEnabled}{Region.TintEnabled},
-\helprefn{Region.TintBlue}{Region.TintBlue}, \helprefn{Region.TintGreen}{Region.TintGreen}
+\helprefn{Region.TintBlue}{Region.TintBlue}, \helprefn{Region.TintGreen}{Region.TintGreen},
+\helprefn{Region.TintSaturation}{Region.TintSaturation}, \helprefn{Region.TintLuminance}{Region.TintLuminance}
 
 
 \subsection{TintSaturation property}\label{Region.TintSaturation}\index{Region.TintSaturation}%
@@ -18083,8 +18094,26 @@ if (region[4].TintEnabled) {
 will display a message with the region's tints.
 
 \it{See Also:} \helprefn{Region.Tint}{Region.Tint}, \helprefn{Region.TintEnabled}{Region.TintEnabled},
-\helprefn{Region.TintBlue}{Region.TintBlue}, \helprefn{Region.TintGreen}{Region.TintGreen}
-, \helprefn{Region.TintRed}{Region.TintRed}
+\helprefn{Region.TintBlue}{Region.TintBlue}, \helprefn{Region.TintGreen}{Region.TintGreen},
+\helprefn{Region.TintRed}{Region.TintRed}, \helprefn{Region.TintLuminance}{Region.TintLuminance}
+
+
+\subsection{TintLuminance property}\label{Region.TintLuminance}\index{Region.TintLuminance}%
+
+\begin{verbatim}
+readonly int Region.TintLuminance
+\end{verbatim}
+Gets the \it{luminance} setting for the region's current tint.
+
+This property is read-only; to change it, use the \helprefn{Region.Tint}{Region.Tint} command.
+
+\bf{NOTE:} If the \helprefn{Region.TintEnabled}{Region.TintEnabled} property is false, then
+this value is meaningless.
+
+
+\it{See Also:} \helprefn{Region.Tint}{Region.Tint}, \helprefn{Region.TintEnabled}{Region.TintEnabled},
+\helprefn{Region.TintBlue}{Region.TintBlue}, \helprefn{Region.TintGreen}{Region.TintGreen},
+\helprefn{Region.TintRed}{Region.TintRed}, \helprefn{Region.TintSaturation}{Region.TintSaturation}
 
 
 

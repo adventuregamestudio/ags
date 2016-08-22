@@ -43,7 +43,7 @@ void Region_SetLightLevel(ScriptRegion *ssr, int brightness) {
 }
 
 int Region_GetLightLevel(ScriptRegion *ssr) {
-    return thisroom.regionLightLevel[ssr->id];
+    return thisroom.get_region_lightlevel(ssr->id);
 }
 
 int Region_GetTintEnabled(ScriptRegion *srr) {
@@ -69,7 +69,12 @@ int Region_GetTintBlue(ScriptRegion *srr) {
 
 int Region_GetTintSaturation(ScriptRegion *srr) {
 
-    return thisroom.regionLightLevel[srr->id];
+    return (thisroom.regionTintLevel[srr->id] >> 24) & 0xFF;
+}
+
+int Region_GetTintLuminance(ScriptRegion *srr)
+{
+    return thisroom.get_region_tintluminance(srr->id);
 }
 
 void Region_Tint(ScriptRegion *srr, int red, int green, int blue, int amount, int luminance)
@@ -205,6 +210,11 @@ RuntimeScriptValue Sc_Region_GetTintSaturation(void *self, const RuntimeScriptVa
     API_OBJCALL_INT(ScriptRegion, Region_GetTintSaturation);
 }
 
+RuntimeScriptValue Sc_Region_GetTintLuminance(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptRegion, Region_GetTintLuminance);
+}
+
 
 
 void RegisterRegionAPI()
@@ -223,6 +233,7 @@ void RegisterRegionAPI()
     ccAddExternalObjectFunction("Region::get_TintGreen",        Sc_Region_GetTintGreen);
     ccAddExternalObjectFunction("Region::get_TintRed",          Sc_Region_GetTintRed);
     ccAddExternalObjectFunction("Region::get_TintSaturation",   Sc_Region_GetTintSaturation);
+    ccAddExternalObjectFunction("Region::get_TintLuminance",    Sc_Region_GetTintLuminance);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

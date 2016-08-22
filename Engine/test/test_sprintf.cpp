@@ -28,6 +28,7 @@ void Test_ScriptSprintf()
     params[1].SetFloat(0.456F);
     params[2].SetStringLiteral("string literal");
 
+    char ScSfBuffer[STD_BUFFER_SIZE];
     // Correct format, extra placeholder
     const char *result = 
         ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE,

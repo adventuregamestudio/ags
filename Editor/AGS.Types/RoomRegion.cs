@@ -83,16 +83,23 @@ namespace AGS.Types
             set { _blueTint = value; }
         }
 
-        [Description("The saturation of the region tint (0=no tint, 100=fully colourize)")]
+        [Description("The saturation of the region tint (1=minimal tint, 100=fully colourize)")]
         [Category("Lighting")]
+        [DefaultValue(50)]
         public int TintSaturation
         {
             get { return _tintAmount; }
-            set { _tintAmount = value; }
+            set
+            {
+                if (value == 0)
+                    throw new ArgumentOutOfRangeException("Saturation cannot be 0, disable colour tint instead");
+                _tintAmount = value;
+            }
         }
 
         [Description("The luminance of the region tint (0=pitch black, 100=original lighting)")]
         [Category("Lighting")]
+        [DefaultValue(100)]
         public int TintLuminance
         {
             get { return _tintLuminance; }

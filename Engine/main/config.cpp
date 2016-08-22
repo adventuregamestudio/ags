@@ -301,7 +301,7 @@ void read_config(const ConfigTree &cfg)
         {
             usetup.Screen.Filter.ID = INIreadstring(cfg, "graphics", "filter", "StdScale");
             int scale_factor;
-            parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale"),
+            parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale", "max_round"),
                 usetup.Screen.GameFrame.ScaleDef, scale_factor);
             usetup.Screen.GameFrame.ScaleFactor = convert_scaling_to_fp(scale_factor);
         }

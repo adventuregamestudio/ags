@@ -85,7 +85,8 @@ Script API:
  - Added Room.ProcessClick() to substitute global ProcessClick().
  - Added SetProperty() and SetTextProperty() functions to Room, InventoryItem,
    Hotspot, Object and Character types.
- - Added optional "luminance" parameter to Region.Tint().
+ - Added optional "luminance" parameter to Region.Tint() and
+   Region.TintLuminance readonly property.
  - Added SetAmbientLightLevel() to set global light level for
    anything in the room.
  - Added Character.SetLightLevel() and Object.SetLightLevel() functions to
@@ -150,6 +151,17 @@ WinSetup:
    section of the config file.
 
    
+VERSION 3.3.5 - Patch 6, August 2016
+
+Editor:
+- Fixed properties buttons dissapearing from the Properties panel if the
+  object was selected while the panel was not visible.
+
+Engine:
+- Fixed Display script functions displaying different text if there is any
+  variadic text formatting function called in repeatedly_execute().
+
+
 VERSION 3.3.5 - Patch 5, July 2016
 
 Engine:

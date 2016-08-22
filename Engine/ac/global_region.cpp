@@ -86,6 +86,7 @@ void SetRegionTint (int area, int red, int green, int blue, int amount, int lumi
     }
 
     // originally the value was passed as 0
+    // TODO: find out which versions had this; fixup only for past versions in the future!
     if (amount == 0)
         amount = 100;
 
@@ -100,14 +101,10 @@ void SetRegionTint (int area, int red, int green, int blue, int amount, int lumi
     green -= 100;
     blue -= 100;*/
 
-    unsigned char rred = red;
-    unsigned char rgreen = green;
-    unsigned char rblue = blue;
-
-    thisroom.regionTintLevel[area] |= rred & 0x000000ff;
-    thisroom.regionTintLevel[area] |= (int(rgreen) << 8) & 0x0000ff00;
-    thisroom.regionTintLevel[area] |= (int(rblue) << 16) & 0x00ff0000;
-    thisroom.regionTintLevel[area] |= ((amount & 0xFF) << 24);
+    thisroom.regionTintLevel[area] = red & 0xFF |
+                                   ((green & 0xFF) << 8) |
+                                   ((blue & 0XFF) << 16) |
+                                   ((amount & 0xFF) << 24);
     thisroom.regionLightLevel[area] = (luminance * 25) / 10;
 }
 

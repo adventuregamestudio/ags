@@ -4399,13 +4399,21 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	{
 		RoomRegion ^area = room->Regions[i];
 		area->ID = i;
-        area->LightLevel = thisroom.regionLightLevel[i] + 100;
-        area->TintSaturation = (thisroom.regionTintLevel[i] >> 24) & 0xFF;
-        area->UseColourTint = area->TintSaturation != 0;
-        area->TintLuminance = area->UseColourTint ? thisroom.regionLightLevel[i] : 100;
+		// NOTE: Region's light level value exposed in editor is always 100 units higher,
+		// for compatibility with older versions of the editor.
+		// TODO: probably we could remove this behavior? Need to consider possible compat mode
+		area->LightLevel = thisroom.get_region_lightlevel(i) + 100;
+		area->UseColourTint = thisroom.has_region_tint(i);
 		area->BlueTint = (thisroom.regionTintLevel[i] >> 16) & 0x00ff;
 		area->GreenTint = (thisroom.regionTintLevel[i] >> 8) & 0x00ff;
 		area->RedTint = thisroom.regionTintLevel[i] & 0x00ff;
+		// Set saturation's and luminance's default values in the editor if it is disabled in room data
+		int saturation = (thisroom.regionTintLevel[i] >> 24) & 0xFF;
+		area->TintSaturation = (saturation > 0 && area->UseColourTint) ? saturation :
+			Utilities::GetDefaultValue(area->GetType(), "TintSaturation", 0);
+		int luminance = thisroom.get_region_tintluminance(i);
+		area->TintLuminance = area->UseColourTint ? luminance :
+			Utilities::GetDefaultValue(area->GetType(), "TintLuminance", 0);
 
 		if (thisroom.wasversion < kRoomVersion_300a)
 		{
@@ -4548,12 +4556,14 @@ void save_crm_file(Room ^room)
 		thisroom.regionTintLevel[i] = 0;
 		if (area->UseColourTint) 
 		{
-            thisroom.regionTintLevel[i] |= area->RedTint | (area->GreenTint << 8) | (area->BlueTint << 16) | (area->TintSaturation << 24);
+            thisroom.regionTintLevel[i]  = area->RedTint | (area->GreenTint << 8) | (area->BlueTint << 16) | (area->TintSaturation << 24);
             thisroom.regionLightLevel[i] = (area->TintLuminance * 25) / 10;
 		}
 		else 
 		{
             thisroom.regionTintLevel[i] = 0;
+			// NOTE: Region's light level value exposed in editor is always 100 units higher,
+			// for compatibility with older versions of the editor.
 			thisroom.regionLightLevel[i] = area->LightLevel - 100;
 		}
 	}

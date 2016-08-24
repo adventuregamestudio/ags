@@ -15,17 +15,8 @@
 #ifndef __AGS_EE_GAME__SAVEGAMEINTERNAL_H
 #define __AGS_EE_GAME__SAVEGAMEINTERNAL_H
 
-#if __cplusplus >= 201103L
-#include <memory>
-namespace stdtr1compat = std;
-#else
-#if defined (_MSC_VER)
-#include <memory>
-#elif defined (__GNUC__)
-#include <tr1/memory>
-#endif
-namespace stdtr1compat = std::tr1;
-#endif
+#include "util/stdtr1compat.h"
+#include TR1INCLUDE(memory)
 
 #include "media/audio/audiodefines.h"
 

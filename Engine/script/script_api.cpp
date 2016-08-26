@@ -222,7 +222,7 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format,
                 if (snprintf_res >= 0)
                 {
                     // snprintf returns maximal number of characters, so limit it with buffer size
-                    out_ptr += Math::Min(snprintf_res, avail_outbuf);
+                    out_ptr += Math::Min<ptrdiff_t>(snprintf_res, avail_outbuf);
                     continue;
                 }
                 // -- pass further to invalid format case

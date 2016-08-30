@@ -34,7 +34,7 @@ namespace AGS.Editor
 
 		public const string BUILT_IN_HEADER_FILE_NAME = "_BuiltInScriptHeader.ash";
         public const string OUTPUT_DIRECTORY = "Compiled";
-        public const string DATA_OUTPUT_DIRECTORY = ""; // subfolder in OUTPUT_DIRECTORY for data file outputs (TODO: change to "Data")
+        public const string DATA_OUTPUT_DIRECTORY = "Data"; // subfolder in OUTPUT_DIRECTORY for data file outputs
         public const string DEBUG_OUTPUT_DIRECTORY = "_Debug";
         //public const string DEBUG_EXE_FILE_NAME = "_debug.exe";
         public const string GAME_FILE_NAME = "Game.agf";
@@ -136,10 +136,6 @@ namespace AGS.Editor
         private AGSEditor()
         {
             _editorExePath = Process.GetCurrentProcess().MainModule.FileName;
-            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDataFile());
-            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetWindows());
-            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDebug());
-            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetLinux());
         }
 
         static AGSEditor()
@@ -154,6 +150,10 @@ namespace AGS.Editor
             {
                 _scriptCompatLevelMacros[(int)v] = "SCRIPT_COMPAT_" + v.ToString();
             }
+            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDataFile());
+            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetWindows());
+            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDebug());
+            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetLinux());
         }
 
         public Game CurrentGame
@@ -937,7 +937,8 @@ namespace AGS.Editor
 
         private void DeleteAnyExistingSplitResourceFiles()
         {
-            foreach (string fileName in Utilities.GetDirectoryFileList(OUTPUT_DIRECTORY, this.BaseGameFileName + ".0*"))
+            string dir = Path.Combine(OUTPUT_DIRECTORY, DATA_OUTPUT_DIRECTORY);
+            foreach (string fileName in Utilities.GetDirectoryFileList(dir, this.BaseGameFileName + ".0*"))
             {
                 File.Delete(fileName);
             }
@@ -1513,7 +1514,7 @@ namespace AGS.Editor
 
         private object SaveGameFilesProcess(object parameter)
         {
-			WriteConfigFile(OUTPUT_DIRECTORY);
+			WriteConfigFile(Path.Combine(OUTPUT_DIRECTORY, DATA_OUTPUT_DIRECTORY));
 
             SaveUserDataFile();
 

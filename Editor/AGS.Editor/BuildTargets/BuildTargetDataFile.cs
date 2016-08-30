@@ -21,7 +21,7 @@ namespace AGS.Editor
 
         private void DeleteAnyExistingSplitResourceFiles()
         {
-            foreach (string fileName in Utilities.GetDirectoryFileList(AGSEditor.OUTPUT_DIRECTORY, Factory.AGSEditor.BaseGameFileName + ".0*"))
+            foreach (string fileName in Utilities.GetDirectoryFileList(GetCompiledPath(), Factory.AGSEditor.BaseGameFileName + ".0*"))
             {
                 File.Delete(fileName);
             }
@@ -106,7 +106,7 @@ namespace AGS.Editor
             File.Delete(AGSEditor.COMPILED_DTA_FILE_NAME);
             CreateAudioVOXFile(forceRebuild);
             // Update config file with current game parameters
-            Factory.AGSEditor.WriteConfigFile(AGSEditor.OUTPUT_DIRECTORY);
+            Factory.AGSEditor.WriteConfigFile(GetCompiledPath());
             return true;
         }
 

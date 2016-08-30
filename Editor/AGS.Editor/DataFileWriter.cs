@@ -288,9 +288,10 @@ namespace AGS.Editor
             long mainHeaderOffset = 0;
             string outputFileName;
             string firstDataFileFullPath = null;
+            string outputDir = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.DATA_OUTPUT_DIRECTORY);
             if (makeFileNameAssumptions)
             {
-                Directory.CreateDirectory("Compiled");
+                Directory.CreateDirectory(outputDir);
             }
             // First, set up ourlib.data_filenames array with all the filenames
             // so that write_clib_header will write the correct amount of data
@@ -325,7 +326,7 @@ namespace AGS.Editor
             {
                 if (makeFileNameAssumptions)
                 {
-                    outputFileName = Path.Combine("Compiled", ourlib.DataFilenames[i]);
+                    outputFileName = Path.Combine(outputDir, ourlib.DataFilenames[i]);
                 }
                 else
                 {

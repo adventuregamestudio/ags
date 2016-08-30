@@ -59,7 +59,8 @@ namespace AGS.Editor
         private void CreateAudioVOXFile(bool forceRebuild)
         {
             List<string> fileListForVox = new List<string>();
-            bool rebuildVox = (!File.Exists(AGSEditor.AUDIO_VOX_FILE_NAME)) || (forceRebuild);
+            string audioVox = GetCompiledPath(AGSEditor.AUDIO_VOX_FILE_NAME);
+            bool rebuildVox = (!File.Exists(audioVox)) || (forceRebuild);
 
             foreach (AudioClip clip in Factory.AGSEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders())
             {
@@ -75,15 +76,15 @@ namespace AGS.Editor
                 }
             }
 
-            if (File.Exists(AGSEditor.AUDIO_VOX_FILE_NAME) &&
+            if (File.Exists(audioVox) &&
                 (fileListForVox.Count == 0) || (rebuildVox))
             {
-                File.Delete(AGSEditor.AUDIO_VOX_FILE_NAME);
+                File.Delete(audioVox);
             }
 
             if ((rebuildVox) && (fileListForVox.Count > 0))
             {
-                Factory.NativeProxy.CreateVOXFile(AGSEditor.AUDIO_VOX_FILE_NAME, fileListForVox.ToArray());
+                Factory.NativeProxy.CreateVOXFile(audioVox, fileListForVox.ToArray());
             }
         }
 
@@ -129,7 +130,7 @@ namespace AGS.Editor
         {
             get
             {
-                return "";
+                return AGSEditor.DATA_OUTPUT_DIRECTORY;
             }
         }
     }

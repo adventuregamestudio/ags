@@ -308,7 +308,8 @@ namespace AGS.Editor.Components
                 newClip.FileType = _fileTypeMappings[fileExtension];
                 newClip.FileLastModifiedDate = File.GetLastWriteTimeUtc(sourceFileName);
                 Utilities.CopyFileAndSetDestinationWritable(sourceFileName, newClip.CacheFileName);
-                Utilities.DeleteFileIfExists(AGSEditor.AUDIO_VOX_FILE_NAME);
+                Utilities.DeleteFileIfExists(Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
+                    Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, AGSEditor.AUDIO_VOX_FILE_NAME)));
                 _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
                 return newClip;
             }
@@ -732,7 +733,8 @@ namespace AGS.Editor.Components
             }
             _agsEditor.DeleteFileOnDiskAndSourceControl(filesToDelete.ToArray());
             _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
-            Utilities.DeleteFileIfExists(AGSEditor.AUDIO_VOX_FILE_NAME);
+            Utilities.DeleteFileIfExists(Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
+                Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, AGSEditor.AUDIO_VOX_FILE_NAME)));
         }
     }
 }

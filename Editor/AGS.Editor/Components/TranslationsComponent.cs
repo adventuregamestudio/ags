@@ -76,7 +76,8 @@ namespace AGS.Editor.Components
             {
                 if (File.Exists(translation.FileName))
                 {
-                    string compiledPath = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, translation.CompiledFileName);
+                    string compiledPath = Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
+                        Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, translation.CompiledFileName));
 
                     if ((evArgs.ForceRebuild) ||
 						(Utilities.DoesFileNeedRecompile(translation.FileName, compiledPath)))
@@ -103,7 +104,8 @@ namespace AGS.Editor.Components
                 return;
             }
 
-            string compiledFile = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, translation.CompiledFileName);
+            string compiledFile = Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
+                Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, translation.CompiledFileName));
             bool foundTranslatedLine = false;
 
             using (BinaryWriter bw = new BinaryWriter(new FileStream(compiledFile, FileMode.Create, FileAccess.Write)))

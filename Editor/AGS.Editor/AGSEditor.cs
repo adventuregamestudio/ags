@@ -34,6 +34,7 @@ namespace AGS.Editor
 
 		public const string BUILT_IN_HEADER_FILE_NAME = "_BuiltInScriptHeader.ash";
         public const string OUTPUT_DIRECTORY = "Compiled";
+        public const string DATA_OUTPUT_DIRECTORY = ""; // subfolder in OUTPUT_DIRECTORY for data file outputs (TODO: change to "Data")
         public const string DEBUG_OUTPUT_DIRECTORY = "_Debug";
         //public const string DEBUG_EXE_FILE_NAME = "_debug.exe";
         public const string GAME_FILE_NAME = "Game.agf";
@@ -80,7 +81,7 @@ namespace AGS.Editor
          * 2: 3.4.0.1    - WorkspaceState section
         */
         public const int LATEST_USER_DATA_XML_VERSION_INDEX = 2;
-        public static readonly string AUDIO_VOX_FILE_NAME = OUTPUT_DIRECTORY + Path.DirectorySeparatorChar + "audio.vox";
+        public const string AUDIO_VOX_FILE_NAME = "audio.vox";
 
         private const string USER_DATA_FILE_NAME = GAME_FILE_NAME + USER_DATA_FILE_SUFFIX;
         private const string USER_DATA_FILE_SUFFIX = ".user";
@@ -945,7 +946,8 @@ namespace AGS.Editor
         private void CreateAudioVOXFile(bool forceRebuild)
         {
             List<string> fileListForVox = new List<string>();
-            bool rebuildVox = (!File.Exists(AUDIO_VOX_FILE_NAME)) || (forceRebuild);
+            string audioVox = Path.Combine(OUTPUT_DIRECTORY, Path.Combine(DATA_OUTPUT_DIRECTORY, AUDIO_VOX_FILE_NAME));
+            bool rebuildVox = (!File.Exists(audioVox)) || (forceRebuild);
 
             foreach (AudioClip clip in _game.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders())
             {
@@ -961,15 +963,15 @@ namespace AGS.Editor
                 }
             }
 
-            if (File.Exists(AUDIO_VOX_FILE_NAME) && 
+            if (File.Exists(audioVox) && 
                 (fileListForVox.Count == 0) || (rebuildVox))
             {
-                File.Delete(AUDIO_VOX_FILE_NAME);
+                File.Delete(audioVox);
             }
 
             if ((rebuildVox) && (fileListForVox.Count > 0))
             {
-                Factory.NativeProxy.CreateVOXFile(AUDIO_VOX_FILE_NAME, fileListForVox.ToArray());
+                Factory.NativeProxy.CreateVOXFile(audioVox, fileListForVox.ToArray());
             }
         }
 

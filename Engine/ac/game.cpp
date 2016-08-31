@@ -356,14 +356,12 @@ String MakeSaveGameDir(const char *newFolder)
         newSaveGameDir.ReplaceMid(0, UserSavedgamesRootToken.GetLength(),
             PathOrCurDir(platform->GetUserSavedgamesDirectory()));
     }
-    else if (newSaveGameDir.CompareLeft(GameDataDirToken, GameDataDirToken.GetLength()) == 0)
-    {
-        newSaveGameDir.ReplaceMid(0, GameDataDirToken.GetLength(),
-            PathOrCurDir(platform->GetAllUsersDataDirectory()));
-    }
     else
     {
-        newSaveGameDir.Format("%s/%s", PathOrCurDir(platform->GetUserSavedgamesDirectory()), newFolder);
+        // Convert the path relative to installation folder into path relative to the
+        // safe save path with default name
+        newSaveGameDir.Format("%s/%s/%s", PathOrCurDir(platform->GetUserSavedgamesDirectory()),
+            game.saveGameFolderName, newFolder);
         // For games made in the safe-path-aware versions of AGS, report a warning
         if (game.options[OPT_SAFEFILEPATHS])
         {
@@ -376,6 +374,8 @@ String MakeSaveGameDir(const char *newFolder)
 
 bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
 {
+    if (!newFolder || newFolder[0] == 0)
+        newFolder = ".";
     String newSaveGameDir = explicit_path ? String(newFolder) : MakeSaveGameDir(newFolder);
     if (newSaveGameDir.IsEmpty())
         return false;

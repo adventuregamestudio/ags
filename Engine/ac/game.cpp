@@ -77,6 +77,7 @@
 #include "util/alignedstream.h"
 #include "util/directory.h"
 #include "util/filestream.h"
+#include "util/path.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
@@ -185,6 +186,8 @@ MoveList *mls = NULL;
 //=============================================================================
 
 char saveGameDirectory[260] = "./";
+// Custom save game parent directory
+String saveGameParent;
 int want_quit = 0;
 
 const char* sgnametemplate = "agssave.%03d";
@@ -351,17 +354,32 @@ String MakeSaveGameDir(const char *newFolder)
         return "";
 
     String newSaveGameDir = newFolder;
+    Path::FixupPath(newSaveGameDir);
     if (newSaveGameDir.CompareLeft(UserSavedgamesRootToken, UserSavedgamesRootToken.GetLength()) == 0)
     {
-        newSaveGameDir.ReplaceMid(0, UserSavedgamesRootToken.GetLength(),
-            PathOrCurDir(platform->GetUserSavedgamesDirectory()));
+        if (saveGameParent.IsEmpty())
+        {
+            newSaveGameDir.ReplaceMid(0, UserSavedgamesRootToken.GetLength(),
+                PathOrCurDir(platform->GetUserSavedgamesDirectory()));
+        }
+        else
+        {
+            // If there is a custom save parent directory, then replace
+            // not only root token, but also first subdirectory
+            newSaveGameDir.ClipLeftSection('/');
+            newSaveGameDir.ClipLeftSection('/', false);
+            newSaveGameDir.Prepend(saveGameParent);
+        }
     }
     else
     {
         // Convert the path relative to installation folder into path relative to the
         // safe save path with default name
-        newSaveGameDir.Format("%s/%s/%s", PathOrCurDir(platform->GetUserSavedgamesDirectory()),
-            game.saveGameFolderName, newFolder);
+        if (saveGameParent.IsEmpty())
+            newSaveGameDir.Format("%s/%s/%s", PathOrCurDir(platform->GetUserSavedgamesDirectory()),
+                game.saveGameFolderName, newFolder);
+        else
+            newSaveGameDir.Format("%s/%s", saveGameParent.GetCStr(), newFolder);
         // For games made in the safe-path-aware versions of AGS, report a warning
         if (game.options[OPT_SAFEFILEPATHS])
         {
@@ -370,6 +388,16 @@ String MakeSaveGameDir(const char *newFolder)
         }
     }
     return newSaveGameDir;
+}
+
+bool SetCustomSaveParent(const String &path)
+{
+    if (SetSaveGameDirectoryPath(path, true))
+    {
+        saveGameParent = path;
+        return true;
+    }
+    return false;
 }
 
 bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
@@ -414,11 +442,7 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
 
 int Game_SetSaveGameDirectory(const char *newFolder)
 {
-    // Had the user specified custom save path, it should
-    // override any paths set from game script
-    if (usetup.user_data_dir.IsEmpty())
-        return SetSaveGameDirectoryPath(newFolder, false) ? 1 : 0;
-    return 1;
+    return SetSaveGameDirectoryPath(newFolder, false) ? 1 : 0;
 }
 
 const char* Game_GetSaveSlotDescription(int slnum) {

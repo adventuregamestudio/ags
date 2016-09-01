@@ -839,7 +839,7 @@ void engine_init_directories()
     bool res = false;
     if (!usetup.user_data_dir.IsEmpty())
     {
-        res = SetSaveGameDirectoryPath(String::FromFormat("%s/UserSaves", usetup.user_data_dir.GetCStr()), true);
+        res = SetCustomSaveParent(String::FromFormat("%s/UserSaves", usetup.user_data_dir.GetCStr()));
         if (!res)
         {
             Out::FPrint("WARNING: custom user save path failed, using default system paths");
@@ -878,7 +878,7 @@ int check_write_access() {
 	  sprintf(tempPath, "%s""tmptest.tmp", android_base_directory);
 	  temp_s = Common::File::CreateFile(tempPath);
 	  if (temp_s == NULL) return 0;
-	  else SetSaveGameDirectoryPath(android_base_directory, true);
+	  else SetCustomSaveParent(android_base_directory);
   }
 #else
     return 0;

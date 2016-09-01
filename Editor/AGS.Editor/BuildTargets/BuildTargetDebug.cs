@@ -55,8 +55,13 @@ namespace AGS.Editor
             {
                 string baseGameFileName = Factory.AGSEditor.BaseGameFileName;
                 string exeFileName = baseGameFileName + ".exe";
-                string compiledEXE = Path.Combine(Path.Combine(AGSEditor.OUTPUT_DIRECTORY,
-                    BuildTargetWindows.WINDOWS_DIRECTORY), exeFileName);
+                IBuildTarget targetWin = BuildTargetsInfo.FindBuildTargetByName("Windows");
+                if (targetWin == null)
+                {
+                    errors.Add(new CompileError("Debug build depends on Windows build target being available! Your AGS installation may be corrupted!"));
+                    return false;
+                }
+                string compiledEXE = targetWin.GetCompiledPath(exeFileName);
                 string sourceEXE = Path.Combine(Factory.AGSEditor.EditorDirectory, AGSEditor.ENGINE_EXE_FILE_NAME);
                 Utilities.DeleteFileIfExists(compiledEXE);
                 File.Copy(sourceEXE, exeFileName, true);
@@ -68,13 +73,18 @@ namespace AGS.Editor
                 Utilities.DeleteFileIfExists(GetDebugPath(exeFileName));
                 File.Move(exeFileName, GetDebugPath(exeFileName));
                 // copy configuration from Compiled folder to use with Debugging
-                string cfgFilePath = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.CONFIG_FILE_NAME);
-                IBuildTarget targetWin = BuildTargetsInfo.FindBuildTargetByName("Windows");
-                if (targetWin != null)
-                    cfgFilePath = targetWin.GetCompiledPath(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.CONFIG_FILE_NAME);
+                string cfgFilePath = targetWin.GetCompiledPath(AGSEditor.CONFIG_FILE_NAME);
                 if (File.Exists(cfgFilePath))
                 {
                     File.Copy(cfgFilePath, GetDebugPath(AGSEditor.CONFIG_FILE_NAME), true);
+                }
+                else
+                {
+                    cfgFilePath = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, AGSEditor.CONFIG_FILE_NAME));
+                    if (File.Exists(cfgFilePath))
+                    {
+                        File.Copy(cfgFilePath, GetDebugPath(AGSEditor.CONFIG_FILE_NAME), true);
+                    }
                 }
                 foreach (Plugin plugin in Factory.AGSEditor.CurrentGame.Plugins)
                 {

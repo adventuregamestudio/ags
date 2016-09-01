@@ -191,7 +191,7 @@ namespace AGS.Editor
         public override bool Build(CompileMessages errors, bool forceRebuild)
         {
             if (!base.Build(errors, forceRebuild)) return false;
-            string compiledDir = AGSEditor.OUTPUT_DIRECTORY;
+            string compiledDataDir = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.DATA_OUTPUT_DIRECTORY);
             string baseGameFileName = Factory.AGSEditor.BaseGameFileName;
             string newExeName = GetCompiledPath(baseGameFileName + ".exe");
             string sourceEXE = Path.Combine(Factory.AGSEditor.EditorDirectory, AGSEditor.ENGINE_EXE_FILE_NAME);
@@ -199,7 +199,7 @@ namespace AGS.Editor
             UpdateWindowsEXE(newExeName, errors);
             CreateCompiledSetupProgram();
             Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;
-            foreach (string fileName in Utilities.GetDirectoryFileList(compiledDir, "*"))
+            foreach (string fileName in Utilities.GetDirectoryFileList(compiledDataDir, "*"))
             {
                 if (fileName.EndsWith(".ags"))
                 {

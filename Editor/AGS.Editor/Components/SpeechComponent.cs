@@ -19,7 +19,7 @@ namespace AGS.Editor.Components
         private static readonly string MP3_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.mp3";
         private static readonly string WAVEFORM_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.wav";
         private const string LIP_SYNC_DATA_OUTPUT = "syncdata.dat";
-        private static readonly string SPEECH_VOX_FILE_NAME = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, "speech.vox");
+        private static readonly string SPEECH_VOX_FILE_NAME = "speech.vox";
 
         private Dictionary<string, DateTime> _speechVoxStatus = new Dictionary<string, DateTime>();
 		private Dictionary<string, DateTime> _pamFileStatus = new Dictionary<string, DateTime>();
@@ -59,7 +59,8 @@ namespace AGS.Editor.Components
         private void _agsEditor_ExtraOutputCreationStep()
         {
             string[] speechFileList = ConstructFileListForSpeechVOX();
-            RebuildVOXFileIfRequired(SPEECH_VOX_FILE_NAME, speechFileList, _speechVoxStatus);
+            RebuildVOXFileIfRequired(Path.Combine(AGSEditor.OUTPUT_DIRECTORY, Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, SPEECH_VOX_FILE_NAME)),
+                speechFileList, _speechVoxStatus);
         }
 
         public override string ComponentID

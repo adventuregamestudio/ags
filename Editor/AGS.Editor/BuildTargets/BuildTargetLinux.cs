@@ -120,7 +120,7 @@ namespace AGS.Editor
                 errors.Add(new CompileError("Could not build for Linux due to missing plugins."));
                 return false;
             }
-            foreach (string fileName in Directory.GetFiles(AGSEditor.OUTPUT_DIRECTORY))
+            foreach (string fileName in Directory.GetFiles(Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.DATA_OUTPUT_DIRECTORY)))
             {
                 if ((!fileName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) &&
                     (!Path.GetFileName(fileName).Equals("winsetup.exe", StringComparison.OrdinalIgnoreCase)) &&

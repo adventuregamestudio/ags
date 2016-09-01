@@ -34,6 +34,7 @@ namespace AGS.Editor
 
 		public const string BUILT_IN_HEADER_FILE_NAME = "_BuiltInScriptHeader.ash";
         public const string OUTPUT_DIRECTORY = "Compiled";
+        public const string DATA_OUTPUT_DIRECTORY = "Data"; // subfolder in OUTPUT_DIRECTORY for data file outputs
         public const string DEBUG_OUTPUT_DIRECTORY = "_Debug";
         //public const string DEBUG_EXE_FILE_NAME = "_debug.exe";
         public const string GAME_FILE_NAME = "Game.agf";
@@ -80,7 +81,7 @@ namespace AGS.Editor
          * 2: 3.4.0.1    - WorkspaceState section
         */
         public const int LATEST_USER_DATA_XML_VERSION_INDEX = 2;
-        public static readonly string AUDIO_VOX_FILE_NAME = OUTPUT_DIRECTORY + Path.DirectorySeparatorChar + "audio.vox";
+        public const string AUDIO_VOX_FILE_NAME = "audio.vox";
 
         private const string USER_DATA_FILE_NAME = GAME_FILE_NAME + USER_DATA_FILE_SUFFIX;
         private const string USER_DATA_FILE_SUFFIX = ".user";
@@ -135,10 +136,6 @@ namespace AGS.Editor
         private AGSEditor()
         {
             _editorExePath = Process.GetCurrentProcess().MainModule.FileName;
-            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDataFile());
-            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetWindows());
-            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDebug());
-            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetLinux());
         }
 
         static AGSEditor()
@@ -153,6 +150,10 @@ namespace AGS.Editor
             {
                 _scriptCompatLevelMacros[(int)v] = "SCRIPT_COMPAT_" + v.ToString();
             }
+            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDataFile());
+            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetWindows());
+            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDebug());
+            BuildTargetsInfo.RegisterBuildTarget(new BuildTargetLinux());
         }
 
         public Game CurrentGame
@@ -936,7 +937,8 @@ namespace AGS.Editor
 
         private void DeleteAnyExistingSplitResourceFiles()
         {
-            foreach (string fileName in Utilities.GetDirectoryFileList(OUTPUT_DIRECTORY, this.BaseGameFileName + ".0*"))
+            string dir = Path.Combine(OUTPUT_DIRECTORY, DATA_OUTPUT_DIRECTORY);
+            foreach (string fileName in Utilities.GetDirectoryFileList(dir, this.BaseGameFileName + ".0*"))
             {
                 File.Delete(fileName);
             }
@@ -945,7 +947,8 @@ namespace AGS.Editor
         private void CreateAudioVOXFile(bool forceRebuild)
         {
             List<string> fileListForVox = new List<string>();
-            bool rebuildVox = (!File.Exists(AUDIO_VOX_FILE_NAME)) || (forceRebuild);
+            string audioVox = Path.Combine(OUTPUT_DIRECTORY, Path.Combine(DATA_OUTPUT_DIRECTORY, AUDIO_VOX_FILE_NAME));
+            bool rebuildVox = (!File.Exists(audioVox)) || (forceRebuild);
 
             foreach (AudioClip clip in _game.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders())
             {
@@ -961,15 +964,15 @@ namespace AGS.Editor
                 }
             }
 
-            if (File.Exists(AUDIO_VOX_FILE_NAME) && 
+            if (File.Exists(audioVox) && 
                 (fileListForVox.Count == 0) || (rebuildVox))
             {
-                File.Delete(AUDIO_VOX_FILE_NAME);
+                File.Delete(audioVox);
             }
 
             if ((rebuildVox) && (fileListForVox.Count > 0))
             {
-                Factory.NativeProxy.CreateVOXFile(AUDIO_VOX_FILE_NAME, fileListForVox.ToArray());
+                Factory.NativeProxy.CreateVOXFile(audioVox, fileListForVox.ToArray());
             }
         }
 
@@ -1511,7 +1514,7 @@ namespace AGS.Editor
 
         private object SaveGameFilesProcess(object parameter)
         {
-			WriteConfigFile(OUTPUT_DIRECTORY);
+			WriteConfigFile(Path.Combine(OUTPUT_DIRECTORY, DATA_OUTPUT_DIRECTORY));
 
             SaveUserDataFile();
 

@@ -353,8 +353,8 @@ String MakeSaveGameDir(const char *newFolder)
     if (!is_relative_filename(newFolder))
         return "";
 
-    String newSaveGameDir = newFolder;
-    Path::FixupPath(newSaveGameDir);
+    String newSaveGameDir = FixSlashAfterToken(newFolder);
+
     if (newSaveGameDir.CompareLeft(UserSavedgamesRootToken, UserSavedgamesRootToken.GetLength()) == 0)
     {
         if (saveGameParent.IsEmpty())

@@ -55,6 +55,10 @@ inline const char *PathOrCurDir(const char *path)
 // Subsitutes illegal characters with '_'. This function uses illegal chars array
 // specific to current platform.
 void FixupFilename(char *filename);
+// Checks if there is a slash after special token in the beginning of the
+// file path, and adds one if it is missing. If no token is found, string is
+// returned unchanged.
+String FixSlashAfterToken(const String &path);
 // Creates a directory path by combining absolute path to special directory with
 // custom game's directory name.
 // If the path is relative, keeps it unmodified (no extra subdir added).

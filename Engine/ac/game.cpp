@@ -366,8 +366,9 @@ String MakeSaveGameDir(const char *newFolder)
         {
             // If there is a custom save parent directory, then replace
             // not only root token, but also first subdirectory
-            newSaveGameDir.ClipLeftSection('/');
-            newSaveGameDir.ClipLeftSection('/', false);
+            newSaveGameDir.ClipSection('/', 0, 2);
+            if (!newSaveGameDir.IsEmpty())
+                newSaveGameDir.PrependChar('/');
             newSaveGameDir.Prepend(saveGameParent);
         }
     }

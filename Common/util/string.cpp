@@ -263,6 +263,11 @@ bool String::FindSection(char separator, int first, int last, bool exclude_first
                 break;
             }
         }
+        else if (slice_from < 0 && sep_count > first)
+        {
+            slice_from = 0;
+        }
+
         if (sep_count == last)
         {
             slice_to = exclude_last_sep ? slice_at - 1 : slice_at;

@@ -435,18 +435,11 @@ void engine_init_fonts()
 
 int engine_init_mouse()
 {
-    Out::FPrint("Initializing mouse");
-
-#ifdef _DEBUG
-    // Quantify fails with the mouse for some reason
-    minstalled();
-#else
-    if (minstalled()==0) {
-        platform->DisplayAlert(platform->GetNoMouseErrorString());
-        return EXIT_NORMAL;
-    }
-#endif // DEBUG
-
+    int res = minstalled();
+    if (res < 0)
+        Out::FPrint("Initializing mouse: failed");
+    else
+        Out::FPrint("Initializing mouse: number of buttons reported is %d", res);
 	return RETURN_CONTINUE;
 }
 

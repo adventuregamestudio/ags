@@ -2148,6 +2148,7 @@ int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_v
     restore_game_scripts(in, /*out*/ gdatasize,&newglobaldatabuffer, scriptModuleDataBuffers, scriptModuleDataSize);
     restore_game_room_state(in, nametouse);
 
+    int old_gamma_value = play.gamma_adjustment;
     restore_game_play(in);
 
     ReadMoveList_Aligned(in);
@@ -2405,8 +2406,9 @@ int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_v
         guibg[vv] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[vv]);
     }
 
-    if (gfxDriver->SupportsGammaControl())
-        gfxDriver->SetGamma(play.gamma_adjustment);
+    int new_gamma_value = play.gamma_adjustment;
+    play.gamma_adjustment = old_gamma_value;
+    System_SetGamma(new_gamma_value);
 
     guis_need_update = 1;
 

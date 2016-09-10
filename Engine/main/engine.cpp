@@ -433,18 +433,11 @@ void engine_init_fonts()
 
 int engine_init_mouse()
 {
-    Out::FPrint("Initializing mouse");
-
-#ifdef _DEBUG
-    // Quantify fails with the mouse for some reason
-    minstalled();
-#else
-    if (minstalled()==0) {
-        platform->DisplayAlert(platform->GetNoMouseErrorString());
-        return EXIT_NORMAL;
-    }
-#endif // DEBUG
-
+    int res = minstalled();
+    if (res < 0)
+        Out::FPrint("Initializing mouse: failed");
+    else
+        Out::FPrint("Initializing mouse: number of buttons reported is %d", res);
 	return RETURN_CONTINUE;
 }
 
@@ -837,7 +830,7 @@ void engine_init_directories()
     bool res = false;
     if (!usetup.user_data_dir.IsEmpty())
     {
-        res = SetSaveGameDirectoryPath(String::FromFormat("%s/UserSaves", usetup.user_data_dir.GetCStr()), true);
+        res = SetCustomSaveParent(String::FromFormat("%s/UserSaves", usetup.user_data_dir.GetCStr()));
         if (!res)
         {
             Out::FPrint("WARNING: custom user save path failed, using default system paths");
@@ -876,7 +869,7 @@ int check_write_access() {
 	  sprintf(tempPath, "%s""tmptest.tmp", android_base_directory);
 	  temp_s = Common::File::CreateFile(tempPath);
 	  if (temp_s == NULL) return 0;
-	  else SetSaveGameDirectoryPath(android_base_directory, true);
+	  else SetCustomSaveParent(android_base_directory);
   }
 #else
     return 0;

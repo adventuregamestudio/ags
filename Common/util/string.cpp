@@ -259,7 +259,7 @@ bool String::FindSection(char separator, int first, int last, bool exclude_first
 
     int this_field = 0;
     int slice_from = 0;
-    int slice_to = 0;
+    int slice_to = _meta->Length;
     int slice_at = -1;
     do
     {

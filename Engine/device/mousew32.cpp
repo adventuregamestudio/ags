@@ -341,14 +341,8 @@ void msethotspot(int xx, int yy)
 
 int minstalled()
 {
-  int nbuts;
-  if ((nbuts = install_mouse()) < 1)
-    return 0;
-
+  int nbuts = install_mouse();
   mgraphconfine(0, 0, 319, 199);  // use 320x200 co-ord system
-  if (nbuts < 2)
-    nbuts = 2;
-
   return nbuts;
 }
 

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace AGS.Types
 {
-    public abstract class CompileMessage : ApplicationException
+    public abstract class CompileMessage : ApplicationException, ICompileMessage
     {
         private string _scriptName;
         private int _lineNumber;

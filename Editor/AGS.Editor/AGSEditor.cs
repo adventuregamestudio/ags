@@ -1014,7 +1014,7 @@ namespace AGS.Editor
 				}
 				Factory.GUIController.ShowCuppit("There was a problem creating your game. Look in the output window at the bottom of the screen to see what the error is. If it's a script error, you can double-click on it to be taken to that place in the script.", "Script errors");
 			}
-			else if (errors.Count > 0)
+			else if (errors.HasWarnings)
 			{
 				if (_preferences.MessageBoxOnCompileErrors == MessageBoxOnCompile.WarningsAndErrors)
 				{

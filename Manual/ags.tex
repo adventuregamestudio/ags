@@ -10962,8 +10962,8 @@ You cannot use fully qualified directories with this command (eg. \verb$C:\Games
 the player might have installed your game to any folder, and they might not be running Windows.
 
 Therefore, only two types of path are supported: ILBRK
-1. Relative paths (eg. "Saves"). This will create a "Saves" folder inside your game folder ILBRK
-2. The special tag \verb!$MYDOCS$! which allows you to create a folder for your save games
+1. Relative paths (eg. "Saves"). This will create a subfolder inside \bf{default game save folder} ILBRK
+2. The special tag \verb!$MYDOCS$! which allows you to explicitly create a different folder for your save games
 inside the user's documents folder.
 
 The actual folder referenced with \verb!$MYDOCS$! is different on every platform:
@@ -10974,9 +10974,8 @@ MacOS: game installation folder.
 
 Returns \it{true} if the save game directory has been changed successfully; \it{false} if not.
 
-\bf{NOTE:} It is recommended that you do not use this function. Instead, set the "Save games
-folder name" property in the General Settings of the editor, which allows the save games to be
-detected by Windows Game Explorer, and avoids problems writing to the Program Files folder.
+\bf{NOTE:} We advise you against using this function without strong need. In the most cases setting the
+"Save games folder name" property in the General Settings of the editor should be sufficient.
 
 \fcol{red}{Example:}
 \begin{verbatim}

@@ -1,5 +1,24 @@
 REVISION HISTORY
 ================
+VERSION 3.3.5 - Patch 7, September 2016
+
+Editor:
+- Fixed "Check for updates" feature, which should now be compatible with
+  the new website.
+
+Engine:
+- Allow to run game without mouse installed (game won't abort).
+- Fixed SetSavegameDirectory() to be compliant with the new script path rules.
+  Now if you pass a save directory without specifying $MYDOCS$ tag, the
+  directory will be created as a subdirectory of default saves path. If the
+  player has configured a custom save path, SetSavegameDirectory() will
+  properly keep subdirectories after remapping paths.
+- Fixed missing slash after special directory token in the script file paths
+  could case a creation of directory outside of permitted location.
+- Fixed plugins with dot (".") in their name failed to load (regression).
+- Fixed display gamma forcedly reapplied every time save is restored.
+
+
 VERSION 3.3.5 - Patch 6, August 2016
 
 Editor:

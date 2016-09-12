@@ -341,9 +341,7 @@ void msethotspot(int xx, int yy)
 
 int minstalled()
 {
-  int nbuts = install_mouse();
-  mgraphconfine(0, 0, 319, 199);  // use 320x200 co-ord system
-  return nbuts;
+  return install_mouse();
 }
 
 void Mouse::AdjustPosition(int &x, int &y)

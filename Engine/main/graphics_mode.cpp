@@ -557,4 +557,7 @@ void graphics_mode_shutdown()
 
     delete filter;
     filter = NULL;
+
+    // Tell Allegro that we are no longer in graphics mode
+    set_gfx_mode(GFX_TEXT, 0, 0, 0, 0);
 }

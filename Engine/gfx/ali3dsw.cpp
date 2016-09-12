@@ -250,9 +250,6 @@ void ALSoftwareGraphicsDriver::UnInit()
   // not change allegro screen pointer (at this moment it should point at the
   // original internally created allegro bitmap which will be destroyed by Allegro).
   BitmapHelper::SetScreenBitmap(NULL);
-
-  // Tell Allegro that we are no longer in graphics mode
-  set_gfx_mode(GFX_TEXT, 0, 0, 0, 0);
 }
 
 bool ALSoftwareGraphicsDriver::SupportsGammaControl() 

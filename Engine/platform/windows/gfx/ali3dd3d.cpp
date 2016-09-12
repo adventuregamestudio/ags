@@ -1754,6 +1754,7 @@ void D3DGraphicsDriver::SetScreenTint(int red, int green, int blue)
 
 
 D3DGraphicsFactory *D3DGraphicsFactory::_factory = NULL;
+Library D3DGraphicsFactory::_library;
 
 D3DGraphicsFactory::~D3DGraphicsFactory()
 {
@@ -1851,12 +1852,14 @@ bool D3DGraphicsFactory::Init()
     D3D9CreateFn *lpDirect3DCreate9 = (D3D9CreateFn*)_library.GetFunctionAddress("Direct3DCreate9");
     if (!lpDirect3DCreate9)
     {
+        _library.Unload();
         set_allegro_error("Entry point not found in d3d9.dll");
         return false;
     }
     _direct3d = lpDirect3DCreate9(D3D_SDK_VERSION);
     if (!_direct3d)
     {
+        _library.Unload();
         set_allegro_error("Direct3DCreate failed!");
         return false;
     }

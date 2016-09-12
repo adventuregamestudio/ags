@@ -295,7 +295,14 @@ private:
     // are unclear), which causes errors during Allegro deinitialization.
     //
     // Curiously, this problem was only confirmed under WinXP so far.
-    Library             _library;
+    //
+    // For the purpose of avoiding this problem, we have a static library wrapper
+    // that unloads library only at the very program exit (except cases of device
+    // creation failure).
+    //
+    // TODO: find out if there is better solution.
+    // 
+    static Library      _library;
     IDirect3D9         *_direct3d;
 };
 

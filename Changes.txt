@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.4.0, August 2016
+VERSION 3.4.0, September 2016
 
 Common features:
  - Added support for building game for multiple platforms (Windows and Linux

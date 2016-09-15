@@ -1690,14 +1690,22 @@ You may wish to ignore this or to do something useful with it.
 \section{Distributing your game}\label{DistGame}\index{Compiling the game}\index{Splash screen, creating}\index{Loading screen, creating}%
 
 When you choose the "Build EXE" option in the Editor, a "Compiled" sub-directory
-is created in your game's folder, with all the files that you need to distribute
-your game. At its simplest this will just be your game executable and the setup
+is created in your game's folder, where more subdirectories are created in turn
+for every target platform you are building the game for. For example, "Compiled/Windows"
+subfolder will be created if you have Windows build checked in General Settings, and
+"Compiled/Linux" subfolder if you have Linux build enabled.
+The "Compiled" folder itself will contain all the "raw" game files that cannot be
+run on their own, but distinct subfolders will contain a runnable variant of the compiled
+game for corresponding operating system.
+For example, if you want to distribute Windows version of your game, you need to
+take the contents of "Windows" subfolder.
+At its simplest this will just be your game executable and the setup
 program, but you may also have audio and speech libraries (AUDIO.VOX and
 SPEECH.VOX); and if you have selected to split resources files, you will also
 have several files named "game.001", "game.002", and so forth.
 
 So, when you want to upload your game to the internet, just zip up the files in
-the Compiled folder, and there you go!
+the "Windows" folder, and there you go!
 
 \it{NOTE: It is not possible to load the exe file back into the AGS Editor. This
 means two things when only the EXE file is available: (1) other people can't

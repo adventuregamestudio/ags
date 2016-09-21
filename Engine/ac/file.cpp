@@ -320,6 +320,33 @@ void FixupFilename(char *filename)
     }
 }
 
+// Tests if there is a special path token in the beginning of the given path;
+// if there is and there is no slash between token and the rest of the string,
+// then assigns new string that has such slash.
+// Returns TRUE if the new string was created, and FALSE if the path was good.
+bool FixSlashAfterToken(const String &path, const String &token, String &new_path)
+{
+    if (path.CompareLeft(token) == 0 && path.GetLength() > token.GetLength() &&
+        path[token.GetLength()] != '/')
+    {
+        new_path = String::FromFormat("%s/%s", token.GetCStr(), path.Mid(token.GetLength()).GetCStr());
+        return true;
+    }
+    return false;
+}
+
+String FixSlashAfterToken(const String &path)
+{
+    String fixed_path = path;
+    Path::FixupPath(fixed_path);
+    if (FixSlashAfterToken(fixed_path, GameInstallRootToken,    fixed_path) ||
+        FixSlashAfterToken(fixed_path, UserSavedgamesRootToken, fixed_path) ||
+        FixSlashAfterToken(fixed_path, GameSavedgamesDirToken,  fixed_path) ||
+        FixSlashAfterToken(fixed_path, GameDataDirToken,        fixed_path))
+        return fixed_path;
+    return path;
+}
+
 String MakeSpecialSubDir(const String &sp_dir)
 {
     if (is_relative_filename(sp_dir))
@@ -344,15 +371,15 @@ String MakeAppDataPath()
     return app_data_path;
 }
 
-bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, String &alt_path)
+bool ResolveScriptPath(const String &orig_sc_path, bool read_only, String &path, String &alt_path)
 {
     path.Empty();
     alt_path.Empty();
 
-    bool is_absolute = !is_relative_filename(sc_path);
+    bool is_absolute = !is_relative_filename(orig_sc_path);
     if (is_absolute && !read_only)
     {
-        debug_log("Attempt to access file '%s' denied (cannot write to absolute path)", sc_path.GetCStr());
+        debug_log("Attempt to access file '%s' denied (cannot write to absolute path)", orig_sc_path.GetCStr());
         return false;
     }
 
@@ -361,9 +388,11 @@ bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, Stri
 
     if (is_absolute)
     {
-        path = sc_path;
+        path = orig_sc_path;
         return true;
     }
+
+    String sc_path = FixSlashAfterToken(orig_sc_path);
     
     if (sc_path.CompareLeft(GameInstallRootToken, GameInstallRootToken.GetLength()) == 0)
     {

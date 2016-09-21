@@ -48,7 +48,7 @@ namespace AGS.Editor.Components
         private const string ABOUT_AGS_COMMAND = "AboutAGS";
         private const string CRASH_EDITOR_COMMAND = "CrashEditor";
 
-        private const string UPDATES_URL = "http://www.adventuregamestudio.co.uk/updatecheck.php";
+        private const string UPDATES_URL = "http://www.adventuregamestudio.co.uk/releases/versions.xml";
 
         private string _helpFileName;
         private Form _dummyHelpForm;
@@ -201,9 +201,19 @@ namespace AGS.Editor.Components
             System.Diagnostics.Process.Start("http://www.adventuregamestudio.co.uk");
         }
 
+        private void LaunchBrowserAtAGSDownloadPage()
+        {
+            System.Diagnostics.Process.Start("http://www.adventuregamestudio.co.uk/site/ags/");
+        }
+
         private void LaunchBrowserAtAGSForums()
         {
             System.Diagnostics.Process.Start("http://www.adventuregamestudio.co.uk/forums/index.php");
+        }
+
+        private void LaunchBrowserAtPage(string url)
+        {
+            System.Diagnostics.Process.Start(url);
         }
 
         private object DownloadUpdateStatusThread(object parameter)
@@ -224,30 +234,30 @@ namespace AGS.Editor.Components
                 XmlDocument doc = new XmlDocument();
                 doc.LoadXml(dataDownload);
                 string newVersionName;
-                VersionCheckStatus status = CompareVersionWithXML(doc, "CurrentVersion", out newVersionName);
 
+                VersionCheckStatus status = CompareVersionWithXML(doc, "latest_version_number_full", "latest_version_number", out newVersionName);
                 if (status == VersionCheckStatus.ServerNewer)
                 {
                     if (_guiController.ShowQuestion("A newer version of AGS (" + newVersionName + ") is available on the AGS website. Would you like to go there now?") == DialogResult.Yes)
                     {
-                        LaunchBrowserAtAGSWebsite();
+                        LaunchBrowserAtAGSDownloadPage();
                     }
                 }
                 else if (status == VersionCheckStatus.ThisNewer)
                 {
                     // This is newer than the website version, so it must be a beta
                     // version. So, see if a newer beta is available.
-                    status = CompareVersionWithXML(doc, "BetaVersion", out newVersionName);
+                    status = CompareVersionWithXML(doc, "development_version_number_full", "development_version_number", out newVersionName);
                     if (status == VersionCheckStatus.ServerNewer)
                     {
-                        if (_guiController.ShowQuestion("A newer beta version of AGS (" + newVersionName + ") is available on the AGS forums. Would you like to go there now?") == DialogResult.Yes)
+                        if (_guiController.ShowQuestion("A newer in-development version of AGS (" + newVersionName + ") is available on the AGS forums. Would you like to go there now?") == DialogResult.Yes)
                         {
-                            LaunchBrowserAtAGSForums();
+                            LaunchBrowserAtPage(GetPageURL(doc, "development_version_thread"));
                         }
                     }
                     else
                     {
-                        _guiController.ShowMessage("There are no further beta updates at this time.", MessageBoxIcon.Information);
+                        _guiController.ShowMessage("There are no further in-development updates at this time.", MessageBoxIcon.Information);
                     }
                 }
                 else
@@ -257,20 +267,27 @@ namespace AGS.Editor.Components
             }
             catch (Exception ex)
             {
-                _guiController.ShowMessage("Unable to check for updates. Your internet connection may be down.\nPlease visit the AGS website to see if an updated version is available.\n\nError details: " + ex.Message, MessageBoxIcon.Warning);
+                _guiController.ShowMessage("Unable to check for updates. Your internet connection may be down, or server response had mistakes.\nPlease visit the AGS website to see if an updated version is available.\n\nError details: " + ex.Message, MessageBoxIcon.Warning);
             }
         }
 
-        private VersionCheckStatus CompareVersionWithXML(XmlDocument doc, string xmlElementName, out string newVersionText)
+        private string GetPageURL(XmlDocument doc, string xmlElementName)
         {
-            XmlNode serverVersionNode = doc.DocumentElement.SelectSingleNode(xmlElementName);
+            XmlNode urlNode = doc.DocumentElement.SelectSingleNode(xmlElementName);
+            return urlNode.InnerText;
+        }
+
+        private VersionCheckStatus CompareVersionWithXML(XmlDocument doc, string xmlElVersionFull, string xmlElVersionFriendly, out string newVersionText)
+        {
+            XmlNode serverVersionNode = doc.DocumentElement.SelectSingleNode(xmlElVersionFull);
             string serverVersionText = serverVersionNode.InnerText;
             VersionCheckStatus status = CompareSoftwareVersions(serverVersionText);
             newVersionText = serverVersionText;
 
-            if (serverVersionNode.Attributes["Name"] != null)
+            serverVersionNode = doc.DocumentElement.SelectSingleNode(xmlElVersionFriendly);
+            if (serverVersionNode != null && !String.IsNullOrEmpty(serverVersionNode.InnerText))
             {
-                newVersionText = serverVersionNode.Attributes["Name"].Value;
+                newVersionText = serverVersionNode.InnerText;
             }
 
             return status;

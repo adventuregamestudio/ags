@@ -928,7 +928,8 @@ void pl_read_plugins_from_disk (Stream *in) {
         fgetstring (pluginNameBuffer, in);
         datasize = in->ReadInt32();
 
-        if (pluginNameBuffer[strlen(pluginNameBuffer) - 1] == '!') {
+        size_t name_len = strlen(pluginNameBuffer);
+        if (pluginNameBuffer[name_len - 1] == '!') {
             // editor-only plugin, ignore it
             in->Seek(datasize);
             a--;
@@ -940,20 +941,19 @@ void pl_read_plugins_from_disk (Stream *in) {
         if ((datasize < 0) || (datasize > 10247680))
             quit("Too much plugin save data for this engine");
 
-        // load the actual plugin from disk
-        EnginePlugin *apl = &plugins[a];
-        
-        // remove extension (examples of extension could be .dll, .dylib, .so, .so.1, etc)
-        {
-            char *ext = strchr(pluginNameBuffer, '.');
-            if (ext) {
-                *ext = 0;
-            }
-        }
-        
-        if (strlen(pluginNameBuffer) > PLUGIN_FILENAME_MAX) {
+        // AGS Editor currently saves plugin names in game data with
+        // ".dll" extension appended; we need to take care of that
+        const char *name_ext = ".dll";
+        const size_t ext_len = strlen(name_ext);
+        if (name_len <= ext_len || name_len > PLUGIN_FILENAME_MAX + ext_len ||
+            stricmp(&pluginNameBuffer[name_len - ext_len], name_ext)) {
             quitprintf("Plugin '%s' is not a valid AGS plugin because the filename is invalid.", pluginNameBuffer);
         }
+        // remove ".dll" from plugin's name
+        pluginNameBuffer[name_len - ext_len] = 0;
+
+        // load the actual plugin from disk
+        EnginePlugin *apl = &plugins[a];
         
         strncpy(apl->filename, pluginNameBuffer, PLUGIN_FILENAME_MAX+1);
         

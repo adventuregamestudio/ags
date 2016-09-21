@@ -256,7 +256,7 @@ bool String::FindSection(char separator, size_t first, size_t last, bool exclude
 
     size_t this_field = 0;
     size_t slice_from = 0;
-    size_t slice_to = 0;
+    size_t slice_to = _meta->Length;
     size_t slice_at = -1;
     do
     {

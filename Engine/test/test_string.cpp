@@ -278,6 +278,7 @@ void Test_String()
         String str8 = str1;
         String str9 = str1;
         String str10 = str1;
+        String str11 = str1;
 
         str1.ClipLeftSection('\\');
         str2.ClipLeftSection('\\', false);
@@ -289,6 +290,7 @@ void Test_String()
         str8.ClipSection('\\', 0, 2);
         str9.ClipSection('\\', 1, 3);
         str10.ClipSection('\\', 3, 1);
+        str11.ClipSection('\\', 0, 4);
         assert(strcmp(str1, "Games\\AGS\\MyNewGame") == 0);
         assert(strcmp(str2, "\\Games\\AGS\\MyNewGame") == 0);
         assert(strcmp(str3, "C:\\Games\\AGS") == 0);
@@ -299,6 +301,7 @@ void Test_String()
         assert(strcmp(str8, "MyNewGame") == 0);
         assert(strcmp(str9, "C:") == 0);
         assert(strcmp(str10, "C:\\Games\\AGS\\MyNewGame") == 0);
+        assert(strcmp(str11, "") == 0);
     }
 
     // Test making new string

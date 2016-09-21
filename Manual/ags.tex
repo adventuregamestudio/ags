@@ -1690,14 +1690,22 @@ You may wish to ignore this or to do something useful with it.
 \section{Distributing your game}\label{DistGame}\index{Compiling the game}\index{Splash screen, creating}\index{Loading screen, creating}%
 
 When you choose the "Build EXE" option in the Editor, a "Compiled" sub-directory
-is created in your game's folder, with all the files that you need to distribute
-your game. At its simplest this will just be your game executable and the setup
+is created in your game's folder, where more subdirectories are created in turn
+for every target platform you are building the game for. For example, "Compiled/Windows"
+subfolder will be created if you have Windows build checked in General Settings, and
+"Compiled/Linux" subfolder if you have Linux build enabled.
+The "Compiled" folder itself will contain all the "raw" game files that cannot be
+run on their own, but distinct subfolders will contain a runnable variant of the compiled
+game for corresponding operating system.
+For example, if you want to distribute Windows version of your game, you need to
+take the contents of "Windows" subfolder.
+At its simplest this will just be your game executable and the setup
 program, but you may also have audio and speech libraries (AUDIO.VOX and
 SPEECH.VOX); and if you have selected to split resources files, you will also
 have several files named "game.001", "game.002", and so forth.
 
 So, when you want to upload your game to the internet, just zip up the files in
-the Compiled folder, and there you go!
+the "Windows" folder, and there you go!
 
 \it{NOTE: It is not possible to load the exe file back into the AGS Editor. This
 means two things when only the EXE file is available: (1) other people can't
@@ -11788,8 +11796,8 @@ You cannot use fully qualified directories with this command (eg. \verb$C:\Games
 the player might have installed your game to any folder, and they might not be running Windows.
 
 Therefore, only two types of path are supported: ILBRK
-1. Relative paths (eg. "Saves"). This will create a "Saves" folder inside your game folder ILBRK
-2. The special tag \verb!$MYDOCS$! which allows you to create a folder for your save games
+1. Relative paths (eg. "Saves"). This will create a subfolder inside \bf{default game save folder} ILBRK
+2. The special tag \verb!$MYDOCS$! which allows you to explicitly create a different folder for your save games
 inside the user's documents folder.
 
 The actual folder referenced with \verb!$MYDOCS$! is different on every platform:
@@ -11800,9 +11808,8 @@ MacOS: game installation folder.
 
 Returns \it{true} if the save game directory has been changed successfully; \it{false} if not.
 
-\bf{NOTE:} It is recommended that you do not use this function. Instead, set the "Save games
-folder name" property in the General Settings of the editor, which allows the save games to be
-detected by Windows Game Explorer, and avoids problems writing to the Program Files folder.
+\bf{NOTE:} We advise you against using this function without strong need. In the most cases setting the
+"Save games folder name" property in the General Settings of the editor should be sufficient.
 
 \fcol{red}{Example:}
 \begin{verbatim}

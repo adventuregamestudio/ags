@@ -314,7 +314,7 @@ void read_config(const ConfigTree &cfg)
         usetup.force_hicolor_mode = INIreadint(cfg, "misc", "notruecolor") > 0;
 
         // This option is backwards (usevox is 0 if no_speech_pack)
-        usetup.no_speech_pack = INIreadint(cfg, "sound", "usespeech") == 0;
+        usetup.no_speech_pack = INIreadint(cfg, "sound", "usespeech", 1) == 0;
 
         usetup.user_data_dir = INIreadstring(cfg, "misc", "user_data_dir");
 

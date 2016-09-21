@@ -213,7 +213,7 @@ void GameState::ReadFromFile_v321(Stream *in)
     in->Read(game_name, 100);
     ground_level_areas_disabled = in->ReadInt32();
     next_screen_transition = in->ReadInt32();
-    gamma_adjustment = in->ReadInt32();
+    in->ReadInt32(); // gamma_adjustment -- do not apply gamma level from savegame
     temporarily_turned_off_character = in->ReadInt16();
     inv_backwards_compatibility = in->ReadInt16();
     in->ReadInt32(); // gui_draw_order

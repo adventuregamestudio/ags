@@ -508,9 +508,6 @@ SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_da
 
     recreate_overlay_ddbs();
 
-    if (gfxDriver->SupportsGammaControl())
-        gfxDriver->SetGamma(play.gamma_adjustment);
-
     guis_need_update = 1;
 
     play.ignore_user_input_until_time = 0;

@@ -439,7 +439,7 @@ void SetVoiceMode (int newmod) {
 
 int GetVoiceMode()
 {
-    return play.want_speech >= 0 ? play.want_speech : (-play.want_speech + 1);
+    return play.want_speech >= 0 ? play.want_speech : -(play.want_speech + 1);
 }
 
 int IsVoxAvailable() {

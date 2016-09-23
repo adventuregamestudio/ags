@@ -318,8 +318,7 @@ void ALSoftwareGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitma
 
 void ALSoftwareGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
 {
-  ALSoftwareBitmap* bmpToDelete = (ALSoftwareBitmap*)bitmap;
-  delete bmpToDelete;
+  delete bitmap;
 }
 
 void ALSoftwareGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)

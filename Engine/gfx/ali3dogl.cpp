@@ -1049,7 +1049,7 @@ void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
       drawListLastTime[i].skip = true;
     }
   }
-  delete ((OGLBitmap*)bitmap);
+  delete bitmap;
 }
 
 __inline void get_pixel_if_not_transparent15(unsigned short *pixel, unsigned short *red, unsigned short *green, unsigned short *blue, unsigned short *divisor)

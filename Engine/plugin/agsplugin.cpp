@@ -911,7 +911,8 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
     return false;
 }
 
-void pl_read_plugins_from_disk (Stream *in) {
+void pl_read_plugins(Stream *in)
+{
     if (in->ReadInt32() != 1)
         quit("ERROR: unable to load game, invalid version of plugin data");
 
@@ -923,7 +924,7 @@ void pl_read_plugins_from_disk (Stream *in) {
     for (int a = 0; a < numPlugins; a++) {
         char pluginNameBuffer[200];
         int datasize;
-        
+
         // read the plugin name
         fgetstring (pluginNameBuffer, in);
         datasize = in->ReadInt32();
@@ -940,7 +941,6 @@ void pl_read_plugins_from_disk (Stream *in) {
         // just check for silly datasizes
         if ((datasize < 0) || (datasize > 10247680))
             quit("Too much plugin save data for this engine");
-
         // AGS Editor currently saves plugin names in game data with
         // ".dll" extension appended; we need to take care of that
         const char *name_ext = ".dll";
@@ -952,10 +952,21 @@ void pl_read_plugins_from_disk (Stream *in) {
         // remove ".dll" from plugin's name
         pluginNameBuffer[name_len - ext_len] = 0;
 
+        EnginePlugin *apl = &plugins[a];
+        strncpy(apl->filename, pluginNameBuffer, PLUGIN_FILENAME_MAX+1);
+        if (datasize > 0) {
+            apl->savedata = (char*)malloc(datasize);
+            in->Read (apl->savedata, datasize);
+        }
+        apl->savedatasize = datasize;
+    }
+}
+
+void pl_register_plugins()
+{
+    for (int a = 0; a < numPlugins; a++) {
         // load the actual plugin from disk
         EnginePlugin *apl = &plugins[a];
-        
-        strncpy(apl->filename, pluginNameBuffer, PLUGIN_FILENAME_MAX+1);
         
         // Compatibility with the old SnowRain module
         if (stricmp(apl->filename, "ags_SnowRain20") == 0) {
@@ -994,15 +1005,9 @@ void pl_read_plugins_from_disk (Stream *in) {
           }
         }
 
-        if (datasize > 0) {
-            apl->savedata = (char*)malloc(datasize);
-            in->Read (apl->savedata, datasize);
-        }
-        apl->savedatasize = datasize;
         apl->eiface.pluginId = a;
         apl->eiface.version = 24;
         apl->wantHook = 0;
-
         apl->available = true;
     }
 

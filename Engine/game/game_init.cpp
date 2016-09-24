@@ -420,6 +420,7 @@ GameInitError InitGameState(GameDataVersion data_ver)
     //
     // 8. Start up plugins
     //
+    pl_register_plugins();
     pl_startup_plugins();
     return kGameInitErr_NoError;
 }

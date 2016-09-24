@@ -415,7 +415,7 @@ MainGameFileError load_game_file(Stream *in, GameDataVersion data_ver)
 
     if (data_ver >= kGameVersion_260)
     {
-        pl_read_plugins_from_disk(in);
+        pl_read_plugins(in);
     }
 
     err = game.ReadFromFile_Part3(in, data_ver);

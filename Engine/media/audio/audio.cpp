@@ -44,8 +44,6 @@ extern GameState play;
 extern roomstruct thisroom;
 extern CharacterInfo*playerchar;
 
-extern int psp_is_old_datafile;
-
 extern volatile int switching_away_from_game;
 
 #if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
@@ -134,7 +132,7 @@ const char* get_audio_clip_file_name(ScriptAudioClip *clip)
     }
     else
     {
-        sprintf(acaudio_buffer, (psp_is_old_datafile ? "~music.vox~%s" : "~audio.vox~%s"), game.audioClips[clip->id].fileName);
+        sprintf(acaudio_buffer, (is_old_audio_system() ? "~music.vox~%s" : "~audio.vox~%s"), game.audioClips[clip->id].fileName);
         PACKFILE *iii = pack_fopen(acaudio_buffer, "rb");
         if (iii != NULL)
         {
@@ -502,7 +500,7 @@ int get_old_style_number_for_sound(int sound_number)
 {
     int audio_clip_id = 0;
 
-    if (psp_is_old_datafile)
+    if (is_old_audio_system())
     {
         // No sound assigned.
         if (sound_number < 1)

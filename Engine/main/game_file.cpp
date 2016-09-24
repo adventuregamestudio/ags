@@ -115,8 +115,6 @@ StaticArray StaticRegionArray;
 StaticArray StaticInventoryArray;
 StaticArray StaticDialogArray;
 
-// TODO: get rid of this variable and use loaded_game_file_version instead
-int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
 String game_file_name;
 
 
@@ -616,10 +614,7 @@ MainGameFileError load_game_file()
     if (err != kMGFErr_NoError)
         return err;
     Stream *in = src.InputStream.get();
-    // Remember loaded data version
     const GameDataVersion data_ver = src.DataVersion;
-    if (src.DataVersion < kGameVersion_321)
-        psp_is_old_datafile = 1;
 
     our_eip=-18;
 

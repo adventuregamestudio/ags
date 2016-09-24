@@ -43,6 +43,12 @@ enum MainGameFileError
     // separate error given for "too old" format to provide clarifying message
     kMGFErr_FormatVersionTooOld,
     kMGFErr_FormatVersionNotSupported,
+    kMGFErr_InvalidNativeResolution,
+    kMGFErr_TooManyFonts,
+    kMGFErr_NoGlobalScript,
+    kMGFErr_CreateGlobalScriptFailed,
+    kMGFErr_CreateDialogScriptFailed,
+    kMGFErr_CreateScriptModuleFailed,
     // currently AGS requires at least one font to be present in game
     kMGFErr_NoFonts,
     kMGFErr_ScriptLinkFailed

@@ -156,21 +156,22 @@ MainGameFileError game_file_first_open(MainGameSource &src)
     return kMGFErr_NoError;
 }
 
-void game_file_read_dialog_script(Stream *in, GameDataVersion data_ver)
+MainGameFileError game_file_read_dialog_script(Stream *in, GameDataVersion data_ver)
 {
 	if (data_ver > kGameVersion_310) // 3.1.1+ dialog script
     {
         dialogScriptsScript = ccScript::CreateFromStream(in);
         if (dialogScriptsScript == NULL)
-            quit("Dialog scripts load failed; need newer version?");
+            return kMGFErr_CreateDialogScriptFailed;
     }
     else // 2.x and < 3.1.1 dialog
     {
         dialogScriptsScript = NULL;
     }
+    return kMGFErr_NoError;
 }
 
-void game_file_read_script_modules(Stream *in, GameDataVersion data_ver)
+MainGameFileError game_file_read_script_modules(Stream *in, GameDataVersion data_ver)
 {
 	if (data_ver >= kGameVersion_270) // 2.7.0+ script modules
     {
@@ -190,7 +191,7 @@ void game_file_read_script_modules(Stream *in, GameDataVersion data_ver)
         for (int bb = 0; bb < numScriptModules; bb++) {
             scriptModules[bb] = ccScript::CreateFromStream(in);
             if (scriptModules[bb] == NULL)
-                quit("Script module load failure; need newer version?");
+                return kMGFErr_CreateScriptModuleFailed;
             moduleRepExecAddr[bb].Invalidate();
         }
     }
@@ -198,6 +199,7 @@ void game_file_read_script_modules(Stream *in, GameDataVersion data_ver)
     {
         numScriptModules = 0;
     }
+    return kMGFErr_NoError;
 }
 
 void ReadViewStruct272_Aligned(ViewStruct272* oldv, Stream *in)
@@ -638,7 +640,7 @@ MainGameFileError load_game_file()
     ReadGameSetupStructBase_Aligned(in);
 
     if (game.size.IsNull())
-        quit("Unable to define native game resolution, could be unsupported game format.");
+        return kMGFErr_InvalidNativeResolution;
 
     // The earlier versions of AGS provided support for "upscaling" low-res
     // games (320x200 and 320x240) to hi-res (640x400 and 640x480
@@ -673,29 +675,27 @@ MainGameFileError load_game_file()
         game.options[OPT_DIALOGOPTIONSAPI] = -1;
 
     if (game.numfonts > MAX_FONTS)
-        quit("!This game requires a newer version of AGS. Too many fonts for this version to handle.");
+        return kMGFErr_TooManyFonts;
 
     GameSetupStruct::GAME_STRUCT_READ_DATA read_data;
     read_data.filever        = data_ver;
     read_data.saveGameSuffix = saveGameSuffix;
     read_data.max_audio_types= MAX_AUDIO_TYPES;
     read_data.game_file_name = game_file_name;
-
-    //-----------------------------------------------------
     game.ReadFromFile_Part1(in, read_data);
-    //-----------------------------------------------------
 
     if (!game.load_compiled_script)
-        quit("No global script in game; data load error");
+        return kMGFErr_NoGlobalScript;
 
     gamescript = ccScript::CreateFromStream(in);
     if (gamescript == NULL)
-        quit("Global script load failed; need newer version?");
-
-    game_file_read_dialog_script(in, data_ver);
-
-	game_file_read_script_modules(in, data_ver);
-
+        return kMGFErr_CreateGlobalScriptFailed;
+    err = game_file_read_dialog_script(in, data_ver);
+    if (err != kMGFErr_NoError)
+        return err;
+    err = game_file_read_script_modules(in, data_ver);
+    if (err != kMGFErr_NoError)
+        return err;
     our_eip=-15;
 
     charextra = (CharacterExtras*)calloc(game.numcharacters, sizeof(CharacterExtras));

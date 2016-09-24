@@ -49,6 +49,18 @@ String GetMainGameFileErrorText(MainGameFileError err)
         return "Format version is too old; this engine can only run games made with AGS 2.5 or later";
     case kMGFErr_FormatVersionNotSupported:
         return "Format version not supported";
+    case kMGFErr_InvalidNativeResolution:
+        return "Unable to determine native game resolution";
+    case kMGFErr_TooManyFonts:
+        return "Too many fonts for this engine to handle";
+    case kMGFErr_NoGlobalScript:
+        return "No global script in game";
+    case kMGFErr_CreateGlobalScriptFailed:
+        return String::FromFormat("Failed to load global script: %s", ccErrorString);
+    case kMGFErr_CreateDialogScriptFailed:
+        return String::FromFormat("Failed to load dialog script: %s", ccErrorString);
+    case kMGFErr_CreateScriptModuleFailed:
+        return String::FromFormat("Failed to load script module: %s", ccErrorString);
     case kMGFErr_NoFonts:
         return "No fonts specified to be used in this game";
     case kMGFErr_ScriptLinkFailed:

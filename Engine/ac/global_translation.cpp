@@ -43,7 +43,7 @@ char *get_translation (const char *text) {
     }
 
     // check if a plugin wants to translate it - if so, return that
-    char *plResult = (char*)platform->RunPluginHooks(AGSE_TRANSLATETEXT, (long)text);
+    char *plResult = (char*)pl_run_plugin_hooks(AGSE_TRANSLATETEXT, (long)text);
     if (plResult) {
 
 //  64bit: This is a wonky way to detect a valid pointer

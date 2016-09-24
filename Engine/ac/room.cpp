@@ -978,7 +978,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
     DEBUG_CONSOLE("Now in room %d", displayed_room);
     guis_need_update = 1;
-    platform->RunPluginHooks(AGSE_ENTERROOM, displayed_room);
+    pl_run_plugin_hooks(AGSE_ENTERROOM, displayed_room);
     //  MoveToWalkableArea(game.playercharacter);
     //  MSS_CHECK_ALL_BLOCKS;
 }
@@ -1001,7 +1001,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
     // Run the global OnRoomLeave event
     run_on_event (GE_LEAVE_ROOM, RuntimeScriptValue().SetInt32(displayed_room));
 
-    platform->RunPluginHooks(AGSE_LEAVEROOM, displayed_room);
+    pl_run_plugin_hooks(AGSE_LEAVEROOM, displayed_room);
 
     // update the new room number if it has been altered by OnLeave scripts
     newnum = in_leaves_screen;

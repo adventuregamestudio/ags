@@ -91,13 +91,6 @@ struct AGSPlatformDriver
     virtual int  CDPlayerCommand(int cmdd, int datt) = 0;
     virtual void ShutdownCDPlayer() = 0;
 
-    virtual void ReadPluginsFromDisk(Common::Stream *in);
-    virtual void StartPlugins();
-    virtual int  RunPluginHooks(int event, long data);
-    virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
-    virtual int  RunPluginDebugHooks(const char *scriptfile, int linenum);
-    virtual void ShutdownPlugins();
-
     virtual bool LockMouseToWindow();
     virtual void UnlockMouse();
 

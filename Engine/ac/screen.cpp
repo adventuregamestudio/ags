@@ -52,7 +52,7 @@ void my_fade_in(PALLETE p, int speed) {
 Bitmap *temp_virtual = NULL;
 color old_palette[256];
 void current_fade_out_effect () {
-    if (platform->RunPluginHooks(AGSE_TRANSITIONOUT, 0))
+    if (pl_run_plugin_hooks(AGSE_TRANSITIONOUT, 0))
         return;
 
     // get the screen transition type

@@ -33,6 +33,7 @@
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "media/audio/audio.h"
+#include "plugin/agsplugin.h"
 #include "script/cc_error.h"
 #include "script/exports.h"
 #include "script/script.h"
@@ -419,7 +420,7 @@ GameInitError InitGameState(GameDataVersion data_ver)
     //
     // 8. Start up plugins
     //
-    platform->StartPlugins();
+    pl_startup_plugins();
     return kGameInitErr_NoError;
 }
 

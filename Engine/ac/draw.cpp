@@ -2356,12 +2356,12 @@ bool GfxDriverNullSpriteCallback(int x, int y)
         // if no room loaded, various stuff won't be initialized yet
         return 1;
     }
-    return (platform->RunPluginHooks(x, y) != 0);
+    return (pl_run_plugin_hooks(x, y) != 0);
 }
 
 void GfxDriverOnInitCallback(void *data)
 {
-    platform->RunPluginInitGfxHooks(gfxDriver->GetDriverID(), data);
+    pl_run_plugin_init_gfx_hooks(gfxDriver->GetDriverID(), data);
 }
 
 
@@ -2521,7 +2521,7 @@ void construct_virtual_screen(bool fullRedraw)
 
     gfxDriver->UseSmoothScaling(IS_ANTIALIAS_SPRITES);
 
-    platform->RunPluginHooks(AGSE_PRERENDER, 0);
+    pl_run_plugin_hooks(AGSE_PRERENDER, 0);
 
     if (displayed_room >= 0) {
 

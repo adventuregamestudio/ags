@@ -245,7 +245,7 @@ void check_controls() {
                 remove_screen_overlay(OVER_TEXTMSG);
         }
         else if (!IsInterfaceEnabled()) ;  // blocking cutscene, ignore mouse
-        else if (platform->RunPluginHooks(AGSE_MOUSECLICK, aa+1)) {
+        else if (pl_run_plugin_hooks(AGSE_MOUSECLICK, aa+1)) {
             // plugin took the click
             DEBUG_CONSOLE("Plugin handled mouse button %d", aa+1);
         }
@@ -297,7 +297,7 @@ void check_controls() {
         check_skip_cutscene_keypress (kgn);
 
         if (play.fast_forward) { }
-        else if (platform->RunPluginHooks(AGSE_KEYPRESS, kgn)) {
+        else if (pl_run_plugin_hooks(AGSE_KEYPRESS, kgn)) {
             // plugin took the keypress
             DEBUG_CONSOLE("Keypress code %d taken by plugin", kgn);
         }

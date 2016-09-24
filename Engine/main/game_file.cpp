@@ -42,6 +42,7 @@
 #include "ac/gamesetup.h"
 #include "game/main_game_file.h"
 #include "game/game_init.h"
+#include "plugin/agsplugin.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -414,7 +415,7 @@ MainGameFileError load_game_file(Stream *in, GameDataVersion data_ver)
 
     if (data_ver >= kGameVersion_260)
     {
-        platform->ReadPluginsFromDisk(in);
+        pl_read_plugins_from_disk(in);
     }
 
     err = game.ReadFromFile_Part3(in, data_ver);

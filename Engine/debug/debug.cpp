@@ -23,6 +23,7 @@
 #include "debug/logfile.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
+#include "plugin/agsplugin.h"
 #include "script/script.h"
 #include "script/script_common.h"
 #include "script/cc_error.h"
@@ -473,7 +474,7 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
         // a plugin is handling the debugging
         char scname[40];
         ccinst->GetScriptName(scname);
-        platform->RunPluginDebugHooks(scname, linenum);
+        pl_run_plugin_debug_hooks(scname, linenum);
         return;
     }
 

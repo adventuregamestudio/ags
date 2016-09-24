@@ -513,7 +513,7 @@ SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_da
     play.ignore_user_input_until_time = 0;
     update_polled_stuff_if_runtime();
 
-    platform->RunPluginHooks(AGSE_POSTRESTOREGAME, 0);
+    pl_run_plugin_hooks(AGSE_POSTRESTOREGAME, 0);
 
     if (displayed_room < 0)
     {
@@ -593,7 +593,7 @@ Stream *StartSavegame(const String &filename, const String &desc, const Bitmap *
     // Description
     StrUtil::WriteCStr(desc, out);
 
-    platform->RunPluginHooks(AGSE_PRESAVEGAME, 0);
+    pl_run_plugin_hooks(AGSE_PRESAVEGAME, 0);
     out->WriteInt32(kSvgVersion_Current);
     WriteSaveImage(out, image);
 

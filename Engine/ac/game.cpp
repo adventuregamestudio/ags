@@ -685,7 +685,7 @@ void unload_game_file() {
     guis.clear();
     free(scrGui);
 
-    platform->ShutdownPlugins();
+    pl_stop_plugins();
     ccRemoveAllSymbols();
     ccUnregisterAllObjects();
 
@@ -1432,7 +1432,7 @@ void save_game_data(Stream *out)
     save_game_audioclips_and_crossfade(out);
 
     // [IKM] Plugins expect FILE pointer! // TODO something with this later...
-    platform->RunPluginHooks(AGSE_SAVEGAME, (long)((Common::FileStream*)out)->GetHandle());
+    pl_run_plugin_hooks(AGSE_SAVEGAME, (long)((Common::FileStream*)out)->GetHandle());
     out->WriteInt32 (MAGICNUMBER);  // to verify the plugins
 
     // save the room music volume
@@ -2035,7 +2035,7 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const P
         return err;
 
     // [IKM] Plugins expect FILE pointer! // TODO something with this later
-    platform->RunPluginHooks(AGSE_RESTOREGAME, (long)((Common::FileStream*)in)->GetHandle());
+    pl_run_plugin_hooks(AGSE_RESTOREGAME, (long)((Common::FileStream*)in)->GetHandle());
     if (in->ReadInt32() != (unsigned)MAGICNUMBER)
         return kSvgErr_InconsistentPlugin;
 

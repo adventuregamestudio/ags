@@ -19,6 +19,7 @@
 #define __AGS_CN_AC__GAMESETUPSTRUCT_H
 
 #include "ac/audiocliptype.h"        // AudioClipType
+#include "ac/game_version.h"
 #include "ac/inventoryiteminfo.h"   // InventoryItemInfo
 #include "ac/mousecursor.h"      // MouseCursor
 #include "ac/gamesetupstructbase.h"

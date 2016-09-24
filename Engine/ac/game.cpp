@@ -2437,25 +2437,6 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
     replace_tokens(get_translation(thisroom.message[msnum]), buffer, maxlen);
 }
 
-void register_audio_script_objects()
-{
-    int ee;
-    for (ee = 0; ee <= MAX_SOUND_CHANNELS; ee++) 
-    {
-        scrAudioChannel[ee].id = ee;
-        ccRegisterManagedObject(&scrAudioChannel[ee], &ccDynamicAudio);
-    }
-
-    for (ee = 0; ee < game.audioClipCount; ee++)
-    {
-        game.audioClips[ee].id = ee;
-        ccRegisterManagedObject(&game.audioClips[ee], &ccDynamicAudioClip);
-        ccAddExternalDynamicObject(game.audioClips[ee].scriptName, &game.audioClips[ee], &ccDynamicAudioClip);
-    }
-
-    calculate_reserved_channel_count();
-}
-
 bool unserialize_audio_script_object(int index, const char *objectType, const char *serializedData, int dataSize)
 {
     if (strcmp(objectType, "AudioChannel") == 0)

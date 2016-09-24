@@ -49,14 +49,10 @@ enum MainGameFileError
     kMGFErr_TooManyCursors,
     kMGFErr_InvalidPropertySchema,
     kMGFErr_InvalidPropertyValues,
-    kMGFErr_TooManyAudioTypes,
     kMGFErr_NoGlobalScript,
     kMGFErr_CreateGlobalScriptFailed,
     kMGFErr_CreateDialogScriptFailed,
-    kMGFErr_CreateScriptModuleFailed,
-    // currently AGS requires at least one font to be present in game
-    kMGFErr_NoFonts,
-    kMGFErr_ScriptLinkFailed
+    kMGFErr_CreateScriptModuleFailed
 };
 
 typedef stdtr1compat::shared_ptr<Stream> PStream;

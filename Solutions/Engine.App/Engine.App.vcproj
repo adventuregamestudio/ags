@@ -1176,6 +1176,10 @@
 				Name="game"
 				>
 				<File
+					RelativePath="..\..\Engine\game\game_init.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\game\savegame.cpp"
 					>
 				</File>
@@ -2217,6 +2221,10 @@
 			<Filter
 				Name="game"
 				>
+				<File
+					RelativePath="..\..\Engine\game\game_init.h"
+					>
+				</File>
 				<File
 					RelativePath="..\..\Engine\game\savegame.h"
 					>

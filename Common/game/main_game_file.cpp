@@ -61,8 +61,6 @@ String GetMainGameFileErrorText(MainGameFileError err)
         return "load room: unable to deserialize properties schema";
     case kMGFErr_InvalidPropertyValues:
         return "Errors encountered when reading custom properties";
-    case kMGFErr_TooManyAudioTypes:
-        return "Too many audio types for this engine to handle";
     case kMGFErr_NoGlobalScript:
         return "No global script in game";
     case kMGFErr_CreateGlobalScriptFailed:
@@ -71,10 +69,6 @@ String GetMainGameFileErrorText(MainGameFileError err)
         return String::FromFormat("Failed to load dialog script: %s", ccErrorString);
     case kMGFErr_CreateScriptModuleFailed:
         return String::FromFormat("Failed to load script module: %s", ccErrorString);
-    case kMGFErr_NoFonts:
-        return "No fonts specified to be used in this game";
-    case kMGFErr_ScriptLinkFailed:
-        return String::FromFormat("Script link failed: %s", ccErrorString);
     }
     return "Unknown error";
 }

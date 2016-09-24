@@ -29,25 +29,19 @@
 #include "ac/gamestructdefines.h"
 #include "ac/gui.h"
 #include "ac/viewframe.h"
-#include "ac/dynobj/all_dynamicclasses.h"
-#include "ac/dynobj/all_scriptclasses.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
-#include "font/fonts.h"
 #include "gui/guilabel.h"
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
-#include "script/exports.h"
-#include "script/script.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
 #include "gfx/blender.h"
 #include "core/assetmanager.h"
-#include "ac/statobj/agsstaticobject.h"
-#include "ac/statobj/staticarray.h"
 #include "util/alignedstream.h"
 #include "ac/gamesetup.h"
 #include "game/main_game_file.h"
+#include "game/game_init.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -61,59 +55,14 @@ extern int ifacepopped;
 extern GameSetupStruct game;
 extern ViewStruct*views;
 extern DialogTopic *dialog;
-extern CharacterCache *charcache;
-extern MoveList *mls;
-
-extern CCGUIObject ccDynamicGUIObject;
-extern CCCharacter ccDynamicCharacter;
-extern CCHotspot   ccDynamicHotspot;
-extern CCRegion    ccDynamicRegion;
-extern CCInventory ccDynamicInv;
-extern CCGUI       ccDynamicGUI;
-extern CCObject    ccDynamicObject;
-extern CCDialog    ccDynamicDialog;
-extern ScriptString myScriptStringImpl;
-extern ScriptObject scrObj[MAX_INIT_SPR];
-extern ScriptGUI    *scrGui;
-extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
-extern ScriptRegion scrRegion[MAX_REGIONS];
-extern ScriptInvItem scrInv[MAX_INV];
-extern ScriptDialog scrDialog[MAX_DIALOG];
-
-extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
-extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
 
 extern int our_eip;
-extern int game_paused;
 
 extern AGSPlatformDriver *platform;
 extern ccScript* gamescript;
 extern ccScript* dialogScriptsScript;
 extern std::vector<ccScript *> scriptModules;
-extern std::vector<ccInstance *> moduleInst;
-extern std::vector<ccInstance *> moduleInstFork;
-extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 extern int numScriptModules;
-extern GameState play;
-extern char **characterScriptObjNames;
-extern char objectScriptObjNames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5];
-extern char **guiScriptObjNames;
-extern int actSpsCount;
-extern Bitmap **actsps;
-extern IDriverDependantBitmap* *actspsbmp;
-extern Bitmap **actspswb;
-extern IDriverDependantBitmap* *actspswbbmp;
-extern CachedActSpsData* actspswbcache;
-
-extern AGSStaticObject GlobalStaticManager;
-
-StaticArray StaticCharacterArray;
-StaticArray StaticObjectArray;
-StaticArray StaticGUIArray;
-StaticArray StaticHotspotArray;
-StaticArray StaticRegionArray;
-StaticArray StaticInventoryArray;
-StaticArray StaticDialogArray;
 
 String game_file_name;
 
@@ -173,22 +122,10 @@ MainGameFileError game_file_read_script_modules(Stream *in, GameDataVersion data
     {
         numScriptModules = in->ReadInt32();
         scriptModules.resize(numScriptModules);
-        moduleInst.resize(numScriptModules, NULL);
-        moduleInstFork.resize(numScriptModules, NULL);
-        moduleRepExecAddr.resize(numScriptModules);
-        repExecAlways.moduleHasFunction.resize(numScriptModules, true);
-        lateRepExecAlways.moduleHasFunction.resize(numScriptModules, true);
-        getDialogOptionsDimensionsFunc.moduleHasFunction.resize(numScriptModules, true);
-        renderDialogOptionsFunc.moduleHasFunction.resize(numScriptModules, true);
-        getDialogOptionUnderCursorFunc.moduleHasFunction.resize(numScriptModules, true);
-        runDialogOptionMouseClickHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
-        runDialogOptionKeyPressHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
-        runDialogOptionRepExecFunc.moduleHasFunction.resize(numScriptModules, true);
         for (int bb = 0; bb < numScriptModules; bb++) {
             scriptModules[bb] = ccScript::CreateFromStream(in);
             if (scriptModules[bb] == NULL)
                 return kMGFErr_CreateScriptModuleFailed;
-            moduleRepExecAddr[bb].Invalidate();
         }
     }
     else
@@ -226,13 +163,17 @@ void game_file_read_views(Stream *in, GameDataVersion data_ver)
     }
 }
 
-void set_default_glmsg (int msgnum, const char* val) {
-    if (game.messages[msgnum-500] == NULL) {
-        game.messages[msgnum-500] = (char*)malloc (strlen(val)+5);
-        strcpy (game.messages[msgnum-500], val);
-    }
+// Assigns default global message at given index
+void set_default_glmsg (int msgnum, const char *val)
+{
+    // TODO: find out why the index should be lowered by 500
+    // (or rather if we may pass correct index right away)
+    msgnum -= 500;
+    if (game.messages[msgnum] == NULL)
+        game.messages[msgnum] = strdup(val);
 }
 
+// Sets up default global messages (these are used mainly in older games)
 void game_file_set_default_glmsg()
 {
     set_default_glmsg (983, "Sorry, not now.");
@@ -348,200 +289,21 @@ void game_file_read_gui(Stream *in)
     play.gui_draw_order = (int*)calloc(game.numgui * sizeof(int), 1);
 }
 
+// Adjusts score clip id, depending on game data version
 void game_file_set_score_sound(GameDataVersion data_ver)
 {
-    if (data_ver >= kGameVersion_320) {
-        play.score_sound = game.scoreClipID;
-    }
-    else {
-        play.score_sound = -1;
+    if (data_ver < kGameVersion_320)
+    {
+        game.scoreClipID = -1;
         if (game.options[OPT_SCORESOUND] > 0)
         {
             ScriptAudioClip* clip = get_audio_clip_for_old_style_number(false, game.options[OPT_SCORESOUND]);
             if (clip)
-                play.score_sound = clip->id;
+                game.scoreClipID = clip->id;
             else
-                play.score_sound = -1;
+                game.scoreClipID = -1;
         }
     }
-}
-
-void init_and_register_characters()
-{
-	characterScriptObjNames = (char**)malloc(sizeof(char*) * game.numcharacters);
-
-    for (int ee=0;ee<game.numcharacters;ee++) {
-        game.chars[ee].walking = 0;
-        game.chars[ee].animating = 0;
-        game.chars[ee].pic_xoffs = 0;
-        game.chars[ee].pic_yoffs = 0;
-        game.chars[ee].blinkinterval = 140;
-        game.chars[ee].blinktimer = game.chars[ee].blinkinterval;
-        game.chars[ee].index_id = ee;
-        game.chars[ee].blocking_width = 0;
-        game.chars[ee].blocking_height = 0;
-        game.chars[ee].prevroom = -1;
-        game.chars[ee].loop = 0;
-        game.chars[ee].frame = 0;
-        game.chars[ee].walkwait = -1;
-        ccRegisterManagedObject(&game.chars[ee], &ccDynamicCharacter);
-
-        // export the character's script object
-        characterScriptObjNames[ee] = (char*)malloc(strlen(game.chars[ee].scrname) + 5);
-        strcpy(characterScriptObjNames[ee], game.chars[ee].scrname);
-
-        ccAddExternalDynamicObject(characterScriptObjNames[ee], &game.chars[ee], &ccDynamicCharacter);
-    }
-}
-
-void init_and_register_hotspots()
-{
-	for (int ee = 0; ee < MAX_HOTSPOTS; ee++) {
-        scrHotspot[ee].id = ee;
-        scrHotspot[ee].reserved = 0;
-
-        ccRegisterManagedObject(&scrHotspot[ee], &ccDynamicHotspot);
-    }
-}
-
-void init_and_register_regions()
-{
-	for (int ee = 0; ee < MAX_REGIONS; ee++) {
-        scrRegion[ee].id = ee;
-        scrRegion[ee].reserved = 0;
-
-        ccRegisterManagedObject(&scrRegion[ee], &ccDynamicRegion);
-    }
-}
-
-void init_and_register_invitems()
-{
-	for (int ee = 0; ee < MAX_INV; ee++) {
-        scrInv[ee].id = ee;
-        scrInv[ee].reserved = 0;
-
-        ccRegisterManagedObject(&scrInv[ee], &ccDynamicInv);
-
-        if (game.invScriptNames[ee][0] != 0)
-            ccAddExternalDynamicObject(game.invScriptNames[ee], &scrInv[ee], &ccDynamicInv);
-    }
-}
-
-void init_and_register_dialogs()
-{
-	for (int ee = 0; ee < game.numdialog; ee++) {
-        scrDialog[ee].id = ee;
-        scrDialog[ee].reserved = 0;
-
-        ccRegisterManagedObject(&scrDialog[ee], &ccDynamicDialog);
-
-        if (game.dialogScriptNames[ee][0] != 0)
-            ccAddExternalDynamicObject(game.dialogScriptNames[ee], &scrDialog[ee], &ccDynamicDialog);
-    }
-}
-
-void init_and_register_guis()
-{
-	int ee;
-
-	scrGui = (ScriptGUI*)malloc(sizeof(ScriptGUI) * game.numgui);
-    for (ee = 0; ee < game.numgui; ee++) {
-        // 64 bit: Using the id instead
-        // scrGui[ee].gui = NULL;
-        scrGui[ee].id = -1;
-    }
-
-    guiScriptObjNames = (char**)malloc(sizeof(char*) * game.numgui);
-
-    for (ee=0;ee<game.numgui;ee++) {
-        guis[ee].RebuildArray();
-        if ((guis[ee].PopupStyle == kGUIPopupNone) || (guis[ee].PopupStyle == kGUIPopupNoAutoRemove))
-            guis[ee].SetVisibility(kGUIVisibility_On);
-        else
-            guis[ee].SetVisibility(kGUIVisibility_Off);
-
-        // export all the GUI's controls
-        export_gui_controls(ee);
-
-        // copy the script name to its own memory location
-        // because ccAddExtSymbol only keeps a reference
-        guiScriptObjNames[ee] = strdup(guis[ee].Name);
-
-        // 64 bit: Using the id instead
-        // scrGui[ee].gui = &guis[ee];
-        scrGui[ee].id = ee;
-
-        ccAddExternalDynamicObject(guiScriptObjNames[ee], &scrGui[ee], &ccDynamicGUI);
-        ccRegisterManagedObject(&scrGui[ee], &ccDynamicGUI);
-    }
-
-    //ccRegisterManagedObject(&dummygui, NULL);
-    //ccRegisterManagedObject(&dummyguicontrol, NULL);
-}
-
-void init_and_register_fonts()
-{
-	our_eip=-22;
-    for (int ee=0;ee<game.numfonts;ee++) 
-    {
-        int fontsize = game.fontflags[ee] & FFLG_SIZEMASK;
-        if (fontsize == 0)
-            fontsize = 8;
-
-        if ((game.options[OPT_NOSCALEFNT] == 0) && game.IsHiRes())
-            fontsize *= 2;
-
-        if (!wloadfont_size(ee, fontsize))
-            quitprintf("Unable to load font %d, no renderer could load a matching file", ee);
-    }
-}
-
-void init_and_register_game_objects()
-{
-	init_and_register_characters();
-	init_and_register_hotspots();
-	init_and_register_regions();
-	init_and_register_invitems();
-	init_and_register_dialogs();
-	init_and_register_guis();
-    init_and_register_fonts();    
-
-    play.fade_effect=game.options[OPT_FADETYPE];
-
-    our_eip=-21;
-
-    for (int ee = 0; ee < MAX_INIT_SPR; ee++) {
-        ccRegisterManagedObject(&scrObj[ee], &ccDynamicObject);
-    }
-
-    register_audio_script_objects();
-
-    ccRegisterManagedObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
-
-    dialogOptionsRenderingSurface = new ScriptDrawingSurface();
-    dialogOptionsRenderingSurface->isLinkedBitmapOnly = true;
-    long dorsHandle = ccRegisterManagedObject(dialogOptionsRenderingSurface, dialogOptionsRenderingSurface);
-    ccAddObjectReference(dorsHandle);
-
-    StaticCharacterArray.Create(&ccDynamicCharacter, sizeof(CharacterInfo), sizeof(CharacterInfo));
-    StaticObjectArray.Create(&ccDynamicObject, sizeof(ScriptObject), sizeof(ScriptObject));
-    StaticGUIArray.Create(&ccDynamicGUI, sizeof(ScriptGUI), sizeof(ScriptGUI));
-    StaticHotspotArray.Create(&ccDynamicHotspot, sizeof(ScriptHotspot), sizeof(ScriptHotspot));
-    StaticRegionArray.Create(&ccDynamicRegion, sizeof(ScriptRegion), sizeof(ScriptRegion));
-    StaticInventoryArray.Create(&ccDynamicInv, sizeof(ScriptInvItem), sizeof(ScriptInvItem));
-    StaticDialogArray.Create(&ccDynamicDialog, sizeof(ScriptDialog), sizeof(ScriptDialog));
-
-    ccAddExternalStaticArray("character",&game.chars[0], &StaticCharacterArray);
-    setup_player_character(game.playercharacter);
-    if (loaded_game_file_version >= kGameVersion_270) {
-        ccAddExternalStaticObject("player", &_sc_PlayerCharPtr, &GlobalStaticManager);
-    }
-    ccAddExternalStaticArray("object",&scrObj[0], &StaticObjectArray);
-    ccAddExternalStaticArray("gui",&scrGui[0], &StaticGUIArray);
-    ccAddExternalStaticArray("hotspot",&scrHotspot[0], &StaticHotspotArray);
-    ccAddExternalStaticArray("region",&scrRegion[0], &StaticRegionArray);
-    ccAddExternalStaticArray("inventory",&scrInv[0], &StaticInventoryArray);
-    ccAddExternalStaticArray("dialog", &scrDialog[0], &StaticDialogArray);
 }
 
 void ReadGameSetupStructBase_Aligned(Stream *in)
@@ -568,10 +330,11 @@ void PreReadSaveFileInfo(Stream *in, GameDataVersion data_ver)
     game.read_savegame_info(in, data_ver);
 }
 
+// Ensures that the game saves directory path is valid
 void fixup_save_directory()
 {
     // If the save game folder was not specified by game author, create one of
-    // the game name, game GUID, or data file name, as a last resort
+    // the game name, game GUID, or uniqueid, as a last resort
     if (!game.saveGameFolderName[0])
     {
         if (game.gamename[0])
@@ -600,28 +363,8 @@ bool preload_game_data(String &err_str)
     return true;
 }
 
-MainGameFileError load_game_file()
+MainGameFileError load_game_file(Stream *in, GameDataVersion data_ver)
 {
-    game_paused = 0;  // reset the game paused flag
-    ifacepopped = -1;
-
-	//-----------------------------------------------------------
-	// Start reading from file
-	//-----------------------------------------------------------
-
-    MainGameSource src;
-    MainGameFileError err = OpenMainGameFile(src);
-    if (err != kMGFErr_NoError)
-        return err;
-    Stream *in = src.InputStream.get();
-    const GameDataVersion data_ver = src.DataVersion;
-
-    our_eip=-18;
-
-    setup_script_exports();
-
-    our_eip=-16;
-
     game.charScripts = NULL;
     game.invScripts = NULL;
     memset(&game.spriteflags[0], 0, MAX_SPRITES);
@@ -630,54 +373,15 @@ MainGameFileError load_game_file()
 
     if (game.size.IsNull())
         return kMGFErr_InvalidNativeResolution;
-
-    // The earlier versions of AGS provided support for "upscaling" low-res
-    // games (320x200 and 320x240) to hi-res (640x400 and 640x480
-    // respectively). The script API has means for detecting if the game is
-    // running upscaled, and game developer could use this opportunity to setup
-    // game accordingly (e.g. assign hi-res fonts, etc).
-    // This feature is officially deprecated since 3.1.0, however the engine
-    // itself still supports it, technically.
-    // This overriding option re-enables "upscaling". It works ONLY for low-res
-    // resolutions, such as 320x200 and 320x240.
-    if (usetup.override_upscale)
-    {
-        if (game.GetDefaultResolution() == kGameResolution_320x200)
-            game.SetDefaultResolution(kGameResolution_640x400);
-        else if (game.GetDefaultResolution() == kGameResolution_320x240)
-            game.SetDefaultResolution(kGameResolution_640x480);
-    }
-
-    if (data_ver < kGameVersion_312)
-    {
-        // Fix animation speed for old formats
-		game.options[OPT_GLOBALTALKANIMSPD] = 5;
-    }
-    else if (data_ver < kGameVersion_330)
-    {
-        // Convert game option for 3.1.2 - 3.2 games
-        game.options[OPT_GLOBALTALKANIMSPD] = game.options[OPT_GLOBALTALKANIMSPD] != 0 ? 5 : (-5 - 1);
-    }
-
-    // Define old dialog options API for pre-3.4.0.2 games
-    if (data_ver < kGameVersion_340_2)
-        game.options[OPT_DIALOGOPTIONSAPI] = -1;
-
     if (game.numfonts > MAX_FONTS)
         return kMGFErr_TooManyFonts;
 
-    err = game.ReadFromFile_Part1(in, data_ver);
+    MainGameFileError err = game.ReadFromFile_Part1(in, data_ver);
     if (err != kMGFErr_NoError)
         return err;
 
-    if (game.saveGameFileExtension[0] != 0)
-        saveGameSuffix.Format(".%s", game.saveGameFileExtension);
-    else
-        saveGameSuffix = "";
-
     if (!game.load_compiled_script)
         return kMGFErr_NoGlobalScript;
-
     gamescript = ccScript::CreateFromStream(in);
     if (gamescript == NULL)
         return kMGFErr_CreateGlobalScriptFailed;
@@ -689,95 +393,73 @@ MainGameFileError load_game_file()
         return err;
     our_eip=-15;
 
-    charextra = (CharacterExtras*)calloc(game.numcharacters, sizeof(CharacterExtras));
-    mls = (MoveList*)calloc(game.numcharacters + MAX_INIT_SPR + 1, sizeof(MoveList));
-    actSpsCount = game.numcharacters + MAX_INIT_SPR + 2;
-    actsps = (Bitmap **)calloc(actSpsCount, sizeof(Bitmap *));
-    actspsbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
-    actspswb = (Bitmap **)calloc(actSpsCount, sizeof(Bitmap *));
-    actspswbbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
-    actspswbcache = (CachedActSpsData*)calloc(actSpsCount, sizeof(CachedActSpsData));
-    game.charProps.resize(game.numcharacters);
-    play.charProps.resize(game.numcharacters);
-
     allocate_memory_for_views(game.numviews);
-    int iteratorCount = 0;
-
 	game_file_read_views(in, data_ver);
-
     our_eip=-14;
 
-    if (data_ver <= kGameVersion_251) // <= 2.1 skip unknown data
+    if (data_ver <= kGameVersion_251)
     {
+        // skip unknown data
         int count = in->ReadInt32();
         in->Seek(count * 0x204);
     }
 
-    charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
-    //-----------------------------------------------------
     err = game.ReadFromFile_Part2(in, data_ver);
     if (err != kMGFErr_NoError)
         return err;
-    //-----------------------------------------------------
 
-    game_file_set_default_glmsg();
-    
     our_eip=-13;
+    game_file_read_dialogs(in, data_ver);
+    game_file_read_gui(in);
 
-	game_file_read_dialogs(in, data_ver);
-
-	game_file_read_gui(in);
-
-    if (data_ver >= kGameVersion_260) // >= 2.60
+    if (data_ver >= kGameVersion_260)
     {
         platform->ReadPluginsFromDisk(in);
     }
 
-    //-----------------------------------------------------
     err = game.ReadFromFile_Part3(in, data_ver);
     if (err != kMGFErr_NoError)
         return err;
-    //-----------------------------------------------------
-    if (game.audioClipTypeCount > MAX_AUDIO_TYPES)
-        return kMGFErr_TooManyAudioTypes;
 
+    //
+    // Convert and update old game settings.
+    //
     game_file_set_score_sound(data_ver);
-
-	//-----------------------------------------------------------
-	// Reading from file is finished here
-	//-----------------------------------------------------------
-
+    game_file_set_default_glmsg();
+    // Global talking animation speed
+    if (data_ver < kGameVersion_312)
+    {
+        // Fix animation speed for old formats
+        game.options[OPT_GLOBALTALKANIMSPD] = 5;
+    }
+    else if (data_ver < kGameVersion_330)
+    {
+        // Convert game option for 3.1.2 - 3.2 games
+        game.options[OPT_GLOBALTALKANIMSPD] = game.options[OPT_GLOBALTALKANIMSPD] != 0 ? 5 : (-5 - 1);
+    }
+    // Old dialog options API for pre-3.4.0.2 games
+    if (data_ver < kGameVersion_340_2)
+        game.options[OPT_DIALOGOPTIONSAPI] = -1;
     fixup_save_directory();
 
-    update_gui_zorder();
-
-    if (game.numfonts == 0)
-        return kMGFErr_NoFonts; // old v2.00 version (?)
-
-    our_eip=-11;
-
-	init_and_register_game_objects();    
-
-    our_eip = -23;
-
-    platform->StartPlugins();
-
-    our_eip = -24;
-
-    ccSetScriptAliveTimer(150000);
-    ccSetStringClassImpl(&myScriptStringImpl);
-
-    if (create_global_script())
-        return kMGFErr_ScriptLinkFailed;
     return kMGFErr_NoError;
 }
 
 bool load_game_file(String &err_str)
 {
-    MainGameFileError load_err = load_game_file();
+    MainGameSource src;
+    MainGameFileError load_err = OpenMainGameFile(src);
+    if (load_err == kMGFErr_NoError)
+        load_err = load_game_file(src.InputStream.get(), src.DataVersion);
     if (load_err != kMGFErr_NoError)
     {
         err_str = GetMainGameFileErrorText(load_err);
+        return false;
+    }
+    GameInitError init_err = InitGameState(src.DataVersion);
+    if (init_err != kGameInitErr_NoError)
+    {
+        err_str = GetGameInitErrorText(init_err);
         return false;
     }
     return true;

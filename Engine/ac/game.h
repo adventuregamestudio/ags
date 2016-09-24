@@ -161,7 +161,6 @@ void replace_tokens(char*srcmes,char*destm, int maxlen = 99999);
 char *get_global_message (int msnum);
 void get_message_text (int msnum, char *buffer, char giveErr = 1);
 
-void register_audio_script_objects();
 bool unserialize_audio_script_object(int index, const char *objectType, const char *serializedData, int dataSize);
 
 extern int in_new_room;
@@ -169,5 +168,6 @@ extern int new_room_pos;
 extern int new_room_x, new_room_y, new_room_loop;
 extern int displayed_room;
 extern Common::String saveGameSuffix;
+extern int game_paused;
 
 #endif // __AGS_EE_AC__GAME_H

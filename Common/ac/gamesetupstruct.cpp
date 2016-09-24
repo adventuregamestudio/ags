@@ -363,6 +363,7 @@ MainGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameData
         int errors = 0;
         int bb;
 
+        charProps.resize(numcharacters);
         for (int i = 0; i < numcharacters; ++i)
         {
             errors += Properties::ReadValues(charProps[i], in);

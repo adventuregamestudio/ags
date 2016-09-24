@@ -67,4 +67,6 @@ void    gui_on_mouse_hold(const int wasongui, const int wasbutdown);
 void    gui_on_mouse_up(const int wasongui, const int wasbutdown);
 void    gui_on_mouse_down(const int guin, const int mbut);
 
+extern int ifacepopped;
+
 #endif // __AGS_EE_AC__GUI_H

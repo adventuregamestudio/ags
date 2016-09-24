@@ -23,6 +23,9 @@
 #include TR1INCLUDE(memory)
 #include "util/string.h"
 
+// TODO: why 10 MB limit?
+#define PLUGIN_SAVEBUFFERSIZE 10247680
+
 namespace AGS
 {
 namespace Common

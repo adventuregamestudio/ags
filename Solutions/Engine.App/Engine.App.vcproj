@@ -296,7 +296,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\ac\characterinfo.cpp"
+					RelativePath="..\..\Engine\ac\characterinfo_engine.cpp"
 					>
 				</File>
 				<File
@@ -309,10 +309,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\dialogoptionsrendering.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\ac\dialogtopic.cpp"
 					>
 				</File>
 				<File
@@ -529,10 +525,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\inventoryitem.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\ac\inventoryiteminfo.cpp"
 					>
 				</File>
 				<File

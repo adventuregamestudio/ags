@@ -356,7 +356,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\ac\characterinfo.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\ac\common.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\dialogtopic.cpp"
 					>
 				</File>
 				<File
@@ -365,6 +373,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\gamesetupstructbase.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\inventoryiteminfo.cpp"
 					>
 				</File>
 				<File

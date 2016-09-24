@@ -19,6 +19,8 @@ int mousex, mousey;
 #include "ac/scriptmodule.h"
 #include "ac/gamesetupstruct.h"
 #include "font/fonts.h"
+#include "game/main_game_file.h"
+#include "game/plugininfo.h"
 #include "gui/guimain.h"
 #include "gui/guiinv.h"
 #include "gui/guibutton.h"
@@ -100,9 +102,8 @@ GameDataVersion loaded_game_file_version = kGameVersion_Current;
 int numScriptModules;
 ScriptModule* scModules = NULL;
 DialogTopic *dialog;
-char*dlgscript[MAX_DIALOG];
+std::vector<Common::String> dlgscript;
 std::vector<GUIMain> guis;
-ViewStruct272 *oldViews;
 ViewStruct *newViews;
 int numNewViews = 0;
 
@@ -1430,48 +1431,6 @@ bool reload_font(int curFont)
   return wloadfont_size(curFont, fsize);
 }
 
-void load_script_modules_compiled(Stream *inn) {
-
-  numScriptModules = inn->ReadInt32();
-  scModules = (ScriptModule*)realloc(scModules, sizeof(ScriptModule) * numScriptModules);
-  for (int i = 0; i < numScriptModules; i++) {
-    scModules[i].init();
-    scModules[i].compiled.reset(ccScript::CreateFromStream(inn));
-  }
-
-}
-
-void read_dialogs(Stream*iii, int filever, bool encrypted) {
-  int bb;
-  dialog = (DialogTopic*)malloc(sizeof(DialogTopic) * thisgame.numdialog);
-  iii->ReadArray(&dialog[0],sizeof(DialogTopic),thisgame.numdialog);
-  for (bb=0;bb<thisgame.numdialog;bb++) {
-    if (dialog[bb].optionscripts!=NULL) {
-      dialog[bb].optionscripts=(unsigned char*)malloc(dialog[bb].codesize+10);
-      iii->Read(&dialog[bb].optionscripts[0],dialog[bb].codesize);
-    }
-    int lenof=iii->ReadInt32();
-    if (lenof<=1) { iii->ReadByte();
-      dlgscript[bb]=NULL;
-      continue;
-    }
-    // add a large buffer because it will get added to if another option is added
-    dlgscript[bb]=(char*)malloc(lenof + 20000);
-    iii->Read(dlgscript[bb],lenof);
-    if (encrypted)
-      decrypt_text(dlgscript[bb]);
-  }
-  char stringbuffer[1000];
-  for (bb=0;bb<thisgame.numdlgmessage;bb++) {
-    if ((filever >= 26) && (encrypted))
-      read_string_decrypt(iii, stringbuffer);
-    else
-      fgetstring(stringbuffer, iii);
-
-    // don't actually do anything with the dlgmessage (it's an obsolete compiled artefact)
-  }
-}
-
 bool reset_sprite_file() {
   spriteset.reset();
   if (spriteset.initFile(sprsetname))
@@ -1480,202 +1439,71 @@ bool reset_sprite_file() {
   return true;
 }
 
-struct PluginData 
-{
-	char filename[50];
-	char data[SAVEBUFFERSIZE];
-	int dataSize;
-};
-PluginData thisgamePlugins[MAX_PLUGINS];
+Common::PluginInfo thisgamePlugins[MAX_PLUGINS];
 int numThisgamePlugins = 0;
 
-
-const char * read_plugins_from_disk (Stream *iii) {
-  if (iii->ReadInt32() != 1) {
-    return "ERROR: unable to load game, invalid version of plugin data";
-  }
-
-  numThisgamePlugins = iii->ReadInt32();
-
-  for (int a = 0; a < numThisgamePlugins; a++) {
-    // read the plugin name
-    fgetstring (thisgamePlugins[a].filename, iii);
-    int datasize = iii->ReadInt32();
-    if (datasize > SAVEBUFFERSIZE) {
-      return "Invalid plugin save data format, plugin data is lost";
+const char *init_game_after_import(const AGS::Common::LoadedGameEntities &ents, GameDataVersion data_ver)
+{
+    dlgscript = ents.OldDialogSources;
+    numNewViews = thisgame.numviews;
+    numScriptModules = (int)ents.ScriptModules.size();
+    scModules = (ScriptModule*)realloc(scModules, sizeof(ScriptModule) * numScriptModules);
+    for (int i = 0; i < numScriptModules; i++)
+    {
+        scModules[i].init();
+        scModules[i].compiled = ents.ScriptModules[i];
     }
-    // we don't care if it's an editor-only plugin or not
-    if (thisgamePlugins[a].filename[strlen(thisgamePlugins[a].filename) - 1] == '!')
-		thisgamePlugins[a].filename[strlen(thisgamePlugins[a].filename) - 1] = 0;
 
-	thisgamePlugins[a].dataSize = datasize;
-	if (datasize > 0)
-	  iii->Read (thisgamePlugins[a].data, datasize);
-  }
-  return NULL;
-}
+    numThisgamePlugins = (int)ents.PluginInfos.size();
+    for (int i = 0; i < numThisgamePlugins; ++i)
+    {
+        thisgamePlugins[i] = ents.PluginInfos[i];
+        // we don't care if it's an editor-only plugin or not
+        if (thisgamePlugins[i].Name.GetLast() == '!')
+            thisgamePlugins[i].Name.ClipRight(1);
+    }
 
-void allocate_memory_for_views(int viewCount)
-{
-  numNewViews = 0;
-	oldViews = (ViewStruct272*)calloc(sizeof(ViewStruct272) * viewCount, 1);
-  newViews = (ViewStruct*)calloc(sizeof(ViewStruct) * viewCount, 1);
-  thisgame.viewNames = (char**)malloc(sizeof(char*) * viewCount);
-  thisgame.viewNames[0] = (char*)calloc(MAXVIEWNAMELENGTH * viewCount, 1);
+    for (int i = 0; i < thisgame.numgui; ++i)
+    {
+        guis[i].RebuildArray();
+    }
 
-  for (int i = 1; i < viewCount; i++)
-  {
-    thisgame.viewNames[i] = thisgame.viewNames[0] + (MAXVIEWNAMELENGTH * i);
-  }
-}
+    // reset colour 0, it's possible for it to get corrupted
+    palette[0].r = 0;
+    palette[0].g = 0;
+    palette[0].b = 0;
+    set_palette_range(palette, 0, 255, 0);
 
-void ReadGameSetupStructBase_Aligned(Stream *in)
-{
-    GameSetupStructBase *gameBase = (GameSetupStructBase *)&thisgame;
-    AlignedStream align_s(in, Common::kAligned_Read);
-    gameBase->ReadFromFile(&align_s);
+    if (!reset_sprite_file())
+        return "The sprite file could not be loaded. Ensure that all your game files are intact and not corrupt. The game may require a newer version of AGS.";
+
+    for (int i = 0; i < MAX_FONTS; ++i)
+        wfreefont(i);
+    for (int i = 0; i < thisgame.numfonts; ++i)
+        reload_font(i);
+
+    update_abuf_coldepth();
+    spritesModified = false;
+    thisgame.filever = data_ver;
+    return NULL;
 }
 
 const char *load_dta_file_into_thisgame(const char *fileName)
 {
-  int bb;
-  Stream*iii=Common::File::OpenFileRead(fileName);
-  if (iii == NULL)
-    return "Unable to open file";
-
-  char buffer[40];
-  iii->Read(buffer,30);
-  buffer[30]=0;
-  if (strcmp(buffer,game_file_sig)!=0) {
-    delete iii;
-    return "File contains invalid data and is not an AGS game.";
-  }
-  int filever = iii->ReadInt32();
-  if (filever != 32) 
-  {
-	  delete iii;
-	  return "This game was saved by an old version of AGS. This version of the editor can only import games saved with AGS 2.72.";
-  }
-
-  loaded_game_file_version = (GameDataVersion)filever;
-
-  // skip required engine version
-  int stlen = iii->ReadInt32();
-  iii->Seek(stlen);
-
-  ReadGameSetupStructBase_Aligned(iii);
-
-  iii->Read(&thisgame.fontflags[0], thisgame.numfonts);
-  iii->Read(&thisgame.fontoutline[0], thisgame.numfonts);
-
-  int numSprites = iii->ReadInt32();
-  memset(&thisgame.spriteflags[0], 0, MAX_SPRITES);
-  iii->Read(&thisgame.spriteflags[0], numSprites);
-  iii->ReadArray(&thisgame.invinfo[0], sizeof(InventoryItemInfo), thisgame.numinvitems);
-  iii->ReadArray(&thisgame.mcurs[0], sizeof(MouseCursor), thisgame.numcursors);
-
-  thisgame.intrChar = (Interaction**)calloc(thisgame.numcharacters, sizeof(Interaction*));
-  for (bb = 0; bb < thisgame.numcharacters; bb++) {
-    thisgame.intrChar[bb] = Interaction::CreateFromStream(iii);
-  }
-  for (bb = 0; bb < thisgame.numinvitems; bb++) {
-    delete thisgame.intrInv[bb];
-    thisgame.intrInv[bb] = Interaction::CreateFromStream(iii);
-  }
-
-  numGlobalVars = iii->ReadInt32();
-  iii->ReadArray (&globalvars[0], sizeof (InteractionVariable), numGlobalVars);
-
-  if (thisgame.load_dictionary) {
-    thisgame.dict = (WordsDictionary*)malloc(sizeof(WordsDictionary));
-    read_dictionary (thisgame.dict, iii);
-  }
-
-  thisgame.globalscript = NULL;
-
-  if (thisgame.load_compiled_script)
-    thisgame.compiled_script = ccScript::CreateFromStream(iii);
-
-  load_script_modules_compiled(iii);
-
-  allocate_memory_for_views(thisgame.numviews);
-  iii->ReadArray (&oldViews[0], sizeof(ViewStruct272), thisgame.numviews);
-
-  thisgame.chars = (CharacterInfo*)calloc(sizeof(CharacterInfo) * thisgame.numcharacters, 1);
-  iii->ReadArray(&thisgame.chars[0],sizeof(CharacterInfo),thisgame.numcharacters);
-
-  iii->ReadArray (&thisgame.lipSyncFrameLetters[0][0], 20, 50);
-
-  for (bb=0;bb<MAXGLOBALMES;bb++) {
-    if (!thisgame.load_messages[bb]) continue;
-    thisgame.messages[bb]=(char*)malloc(500);
-    read_string_decrypt(iii, thisgame.messages[bb]);
-  }
-  delete [] thisgame.load_messages;
-  thisgame.load_messages = NULL;
-
-  read_dialogs(iii, filever, true);
-  read_gui(iii,guis,&thisgame);
-  const char *pluginError = read_plugins_from_disk (iii);
-  if (pluginError != NULL) return pluginError;
-
-  thisgame.charProps.resize(thisgame.numcharacters);
-
-  for (bb = 0; bb < thisgame.numcharacters; bb++)
-    thisgame.charProps[bb].clear();
-  for (bb = 0; bb < MAX_INV; bb++)
-    thisgame.invProps[bb].clear();
-
-  if (AGSProps::ReadSchema(thisgame.propSchema, iii))
-    return "unable to deserialize prop schema";
-
-  int errors = 0;
-
-  for (bb = 0; bb < thisgame.numcharacters; bb++)
-    errors += AGSProps::ReadValues(thisgame.charProps[bb], iii);
-  for (bb = 0; bb < thisgame.numinvitems; bb++)
-    errors += AGSProps::ReadValues(thisgame.invProps[bb], iii);
-
-  if (errors > 0)
-    return "errors encountered reading custom props";
-
-  for (bb = 0; bb < thisgame.numviews; bb++)
-    fgetstring_limit(thisgame.viewNames[bb], iii, MAXVIEWNAMELENGTH);
-
-  for (bb = 0; bb < thisgame.numinvitems; bb++)
-    fgetstring_limit(thisgame.invScriptNames[bb], iii, MAX_SCRIPT_NAME_LEN);
-
-  for (bb = 0; bb < thisgame.numdialog; bb++)
-    fgetstring_limit(thisgame.dialogScriptNames[bb], iii, MAX_SCRIPT_NAME_LEN);
-
-  delete iii;
-
-  for (bb = 0; bb < thisgame.numgui; bb++)
-  {
-	  guis[bb].RebuildArray();
-  }
-
-  // reset colour 0, it's possible for it to get corrupted
-  palette[0].r = 0;
-  palette[0].g = 0;
-  palette[0].b = 0;
-  set_palette_range(palette, 0, 255, 0);
-
-  if (!reset_sprite_file())
-    return "The sprite file could not be loaded. Ensure that all your game files are intact and not corrupt. The game may require a newer version of AGS.";
-
-  for (bb=0;bb<MAX_FONTS;bb++) {
-    wfreefont(bb);
-  }
-  for (bb=0;bb<thisgame.numfonts;bb++) {
-    reload_font (bb);
-  }
-
-  update_abuf_coldepth();
-  spritesModified = false;
-
-  thisgame.filever = filever;
-  return NULL;
+    AGS::Common::MainGameSource src;
+    AGS::Common::LoadedGameEntities ents(thisgame, dialog, newViews);
+    MainGameFileError load_err = AGS::Common::OpenMainGameFile(fileName, src);
+    if (load_err == Common::kMGFErr_NoError)
+    {
+        load_err = AGS::Common::ReadGameData(ents, src.InputStream.get(), src.DataVersion);
+        if (load_err == Common::kMGFErr_NoError)
+            load_err = AGS::Common::UpdateGameData(ents, src.DataVersion);
+    }
+    if (load_err != Common::kMGFErr_NoError)
+    {
+        return AGS::Common::GetMainGameFileErrorText(load_err);
+    }
+    return init_game_after_import(ents, src.DataVersion);
 }
 
 void free_script_module(int index) {
@@ -1726,7 +1554,6 @@ void free_old_game_data()
   }
   free(thisgame.viewNames[0]);
   free(thisgame.viewNames);
-  free(oldViews);
   free(newViews);
   guis.clear();
   free(thisgame.chars);
@@ -3806,13 +3633,14 @@ Game^ load_old_game_dta_file(const char *fileName)
 
 	for (i = 0; i < numThisgamePlugins; i++) 
 	{
-		cli::array<System::Byte> ^pluginData = gcnew cli::array<System::Byte>(thisgamePlugins[i].dataSize);
-		for (int j = 0; j < thisgamePlugins[i].dataSize; j++) 
+		cli::array<System::Byte> ^pluginData = gcnew cli::array<System::Byte>(thisgamePlugins[i].DataLen);
+		const char *data_ptr = thisgamePlugins[i].Data.get();
+		for (int j = 0; j < thisgamePlugins[i].DataLen; j++) 
 		{
-			pluginData[j] = thisgamePlugins[i].data[j];
+			pluginData[j] = data_ptr[j];
 		}
 		
-		AGS::Types::Plugin ^plugin = gcnew AGS::Types::Plugin(gcnew String(thisgamePlugins[i].filename), pluginData);
+		AGS::Types::Plugin ^plugin = gcnew AGS::Types::Plugin(gcnew String(thisgamePlugins[i].Name), pluginData);
 		game->Plugins->Add(plugin);
 	}
 
@@ -3830,28 +3658,21 @@ Game^ load_old_game_dta_file(const char *fileName)
 		view->Name = gcnew String(thisgame.viewNames[i]);
 		view->ID = i + 1;
 
-		for (int j = 0; j < oldViews[i].numloops; j++) 
+		for (int j = 0; j < newViews[i].numLoops; j++) 
 		{
 			ViewLoop^ newLoop = gcnew ViewLoop();
 			newLoop->ID = j;
+			newLoop->RunNextLoop = newViews[i].loops[j].flags & LOOPFLAG_RUNNEXTLOOP;
 
-			for (int k = 0; k < oldViews[i].numframes[j]; k++) 
+			for (int k = 0; k < newViews[i].loops[j].numFrames; k++) 
 			{
-				if (oldViews[i].frames[j][k].pic == -1) 
-				{
-					newLoop->RunNextLoop = true;
-				}
-				else 
-				{
-					AGS::Types::ViewFrame^ newFrame = gcnew AGS::Types::ViewFrame();
-					newFrame->ID = k;
-					newFrame->Flipped = (oldViews[i].frames[j][k].flags & VFLG_FLIPSPRITE);
-					newFrame->Image = oldViews[i].frames[j][k].pic;
-					newFrame->Sound = oldViews[i].frames[j][k].sound;
-					newFrame->Delay = oldViews[i].frames[j][k].speed;
-
-					newLoop->Frames->Add(newFrame);
-				}
+				AGS::Types::ViewFrame^ newFrame = gcnew AGS::Types::ViewFrame();
+				newFrame->ID = k;
+				newFrame->Flipped = (newViews[i].loops[j].frames[k].flags & VFLG_FLIPSPRITE);
+				newFrame->Image = newViews[i].loops[j].frames[k].pic;
+				newFrame->Sound = newViews[i].loops[j].frames[k].sound;
+				newFrame->Delay = newViews[i].loops[j].frames[k].speed;
+				newLoop->Frames->Add(newFrame);
 			}
 			
 			view->Loops->Add(newLoop);

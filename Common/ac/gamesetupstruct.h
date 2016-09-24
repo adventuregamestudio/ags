@@ -45,6 +45,8 @@ struct GameSetupStruct: public GameSetupStructBase {
     Interaction      *intrInv[MAX_INV];
     InteractionScripts **charScripts;
     InteractionScripts **invScripts;
+    // TODO: why we do not use this in the engine instead of
+    // loaded_game_file_version?
     int               filever;  // just used by editor
     char              lipSyncFrameLetters[MAXLIPSYNCFRAMES][50];
     AGS::Common::PropertySchema propSchema;

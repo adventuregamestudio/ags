@@ -12,6 +12,7 @@ see the license.txt for details.
 #include <windows.h>
 #include <stdlib.h>
 #include "NativeMethods.h"
+#include "game/plugininfo.h"
 #include "util/multifilelib.h"
 
 using namespace System::Runtime::InteropServices;
@@ -692,7 +693,7 @@ namespace AGS
             if (name->Equals("LOOPFLAG_RUNNEXTLOOP")) return LOOPFLAG_RUNNEXTLOOP;
             if (name->Equals("VFLG_FLIPSPRITE")) return VFLG_FLIPSPRITE;
             if (name->Equals("GUIMAGIC")) return GUIMAGIC;
-            if (name->Equals("SAVEBUFFERSIZE")) return SAVEBUFFERSIZE;
+            if (name->Equals("SAVEBUFFERSIZE")) return PLUGIN_SAVEBUFFERSIZE;
             if (name->Equals("GUIMAIN_NOCLICK")) return (int)Common::kGUIMain_NoClick;
             if (name->Equals("GUIF_CLIP")) return GUIF_CLIP;
             if (name->Equals("GUIF_TRANSLATED")) return GUIF_TRANSLATED;

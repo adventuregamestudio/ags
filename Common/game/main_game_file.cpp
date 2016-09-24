@@ -361,9 +361,7 @@ MainGameFileError ReadPlugins(std::vector<PluginInfo> &infos, Stream *in)
         String name = String::FromStream(in);
         size_t datasize = in->ReadInt32();
         // just check for silly datasizes
-        // TODO: replace with some constant, also why 10 MB limit?
-        // and why is it different from the limit in editor?
-        if (datasize > 10247680)
+        if (datasize > PLUGIN_SAVEBUFFERSIZE)
             return kMGFErr_PluginDataSizeTooLarge;
 
         PluginInfo info;

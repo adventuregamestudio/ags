@@ -56,7 +56,9 @@ public:
     static ccScript *CreateFromStream(Common::Stream *in);
 
     ccScript();
+    ccScript(const ccScript &src);
     virtual ~ccScript(); // there are few derived classes, so dtor should be virtual
+
     // write the script to disk (after compiling)
     void        Write(Common::Stream *out);
     // read back a script written with Write

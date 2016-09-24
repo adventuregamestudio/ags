@@ -1436,7 +1436,7 @@ void load_script_modules_compiled(Stream *inn) {
   scModules = (ScriptModule*)realloc(scModules, sizeof(ScriptModule) * numScriptModules);
   for (int i = 0; i < numScriptModules; i++) {
     scModules[i].init();
-    scModules[i].compiled = ccScript::CreateFromStream(inn);
+    scModules[i].compiled.reset(ccScript::CreateFromStream(inn));
   }
 
 }
@@ -1685,8 +1685,7 @@ void free_script_module(int index) {
   free(scModules[index].description);
   free(scModules[index].script);
   free(scModules[index].scriptHeader);
-  delete scModules[index].compiled;
-  scModules[index].compiled = NULL;
+  scModules[index].compiled.reset();
 }
 
 void free_script_modules() {
@@ -4572,7 +4571,6 @@ void save_crm_file(Room ^room)
 
 	thisroom.scripts = NULL;
 	thisroom.compiled_script = ((AGS::Native::CompiledScript^)room->Script->CompiledData)->Data;
-    thisroom.compiled_script_shared = true;
 
 	char roomFileNameBuffer[MAX_PATH];
 	ConvertStringToCharArray(room->FileName, roomFileNameBuffer);

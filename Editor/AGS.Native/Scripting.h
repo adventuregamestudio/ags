@@ -9,17 +9,18 @@ namespace AGS
 		public ref class CompiledScript : ICompiledScript
 		{
 		private:
-			ccScript* _compiledScript;
+			PScript* _compiledScript;
 		public:
-			CompiledScript(ccScript *script) 
+			CompiledScript(PScript script) 
 			{
-				_compiledScript = script;
+				_compiledScript = new PScript();
+				*_compiledScript = script;
 			}
 
-			property ccScript* Data
+			property PScript Data
 			{
-				ccScript* get() { return _compiledScript; }
-				void set(ccScript* newScript) { _compiledScript = newScript; }
+				PScript get() { return *_compiledScript; }
+				void set(PScript newScript) { *_compiledScript = newScript; }
 			}
 
 			~CompiledScript() 
@@ -29,13 +30,14 @@ namespace AGS
 
 			!CompiledScript()
 			{
+				_compiledScript->reset();
 				delete _compiledScript;
 				_compiledScript = NULL;
 			}
 
             virtual void __clrcall Write(System::IO::FileStream ^ostream, System::String ^scriptFileName)
             {
-                if (_compiledScript == NULL)
+                if (*_compiledScript == NULL)
                 {
                     throw gcnew AGS::Types::CompileError(gcnew System::String("Script has not been compiled: ") + scriptFileName);
                 }
@@ -45,56 +47,57 @@ namespace AGS
                     // the BinaryWriter seems to be treating CHAR as a 4-byte type here?
                     writer->Write((System::Byte)scfilesig[i]);
                 }
+                const ccScript *cs = _compiledScript->get();
                 writer->Write(SCOM_VERSION);
-                writer->Write(_compiledScript->globaldatasize);
-                writer->Write(_compiledScript->codesize);
-                writer->Write(_compiledScript->stringssize);
-                for (int i = 0; i < _compiledScript->globaldatasize; ++i)
+                writer->Write(cs->globaldatasize);
+                writer->Write(cs->codesize);
+                writer->Write(cs->stringssize);
+                for (int i = 0; i < cs->globaldatasize; ++i)
                 {
-                    writer->Write((System::Byte)_compiledScript->globaldata[i]);
+                    writer->Write((System::Byte)cs->globaldata[i]);
                 }
-                for (int i = 0; i < _compiledScript->codesize; ++i)
+                for (int i = 0; i < cs->codesize; ++i)
                 {
-                    writer->Write((int)_compiledScript->code[i]);
+                    writer->Write((int)cs->code[i]);
                 }
-                for (int i = 0; i < _compiledScript->stringssize; ++i)
+                for (int i = 0; i < cs->stringssize; ++i)
                 {
-                    writer->Write((System::Byte)_compiledScript->strings[i]);
+                    writer->Write((System::Byte)cs->strings[i]);
                 }
-                writer->Write(_compiledScript->numfixups);
-                for (int i = 0; i < _compiledScript->numfixups; ++i)
+                writer->Write(cs->numfixups);
+                for (int i = 0; i < cs->numfixups; ++i)
                 {
-                    writer->Write((System::Byte)_compiledScript->fixuptypes[i]);
+                    writer->Write((System::Byte)cs->fixuptypes[i]);
                 }
-                for (int i = 0; i < _compiledScript->numfixups; ++i)
+                for (int i = 0; i < cs->numfixups; ++i)
                 {
-                    writer->Write(_compiledScript->fixups[i]);
+                    writer->Write(cs->fixups[i]);
                 }
-                writer->Write(_compiledScript->numimports);
-                for (int i = 0; i < _compiledScript->numimports; ++i)
+                writer->Write(cs->numimports);
+                for (int i = 0; i < cs->numimports; ++i)
                 {
-                    for (int j = 0, len = strlen(_compiledScript->imports[i]); j <= len; ++j)
+                    for (int j = 0, len = strlen(cs->imports[i]); j <= len; ++j)
                     {
-                        writer->Write((System::Byte)_compiledScript->imports[i][j]);
+                        writer->Write((System::Byte)cs->imports[i][j]);
                     }
                 }
-                writer->Write(_compiledScript->numexports);
-                for (int i = 0; i < _compiledScript->numexports; ++i)
+                writer->Write(cs->numexports);
+                for (int i = 0; i < cs->numexports; ++i)
                 {
-                    for (int j = 0, len = strlen(_compiledScript->exports[i]); j <= len; ++j)
+                    for (int j = 0, len = strlen(cs->exports[i]); j <= len; ++j)
                     {
-                        writer->Write((System::Byte)_compiledScript->exports[i][j]);
+                        writer->Write((System::Byte)cs->exports[i][j]);
                     }
-                    writer->Write(_compiledScript->export_addr[i]);
+                    writer->Write(cs->export_addr[i]);
                 }
-                writer->Write(_compiledScript->numSections);
-                for (int i = 0; i < _compiledScript->numSections; ++i)
+                writer->Write(cs->numSections);
+                for (int i = 0; i < cs->numSections; ++i)
                 {
-                    for (int j = 0, len = strlen(_compiledScript->sectionNames[i]); j <= len; ++j)
+                    for (int j = 0, len = strlen(cs->sectionNames[i]); j <= len; ++j)
                     {
-                        writer->Write((System::Byte)_compiledScript->sectionNames[i][j]);
+                        writer->Write((System::Byte)cs->sectionNames[i][j]);
                     }
-                    writer->Write(_compiledScript->sectionOffsets[i]);
+                    writer->Write(cs->sectionOffsets[i]);
                 }
                 writer->Write(ENDFILESIG);
             }

@@ -76,6 +76,108 @@ ccScript::ccScript()
     capacitySections    = 0;
 }
 
+ccScript::ccScript(const ccScript &src)
+{
+    globaldatasize = src.globaldatasize;
+    if (globaldatasize > 0)
+    {
+        globaldata = (char*)malloc(globaldatasize);
+        memcpy(globaldata, src.globaldata, globaldatasize);
+    }
+    else
+    {
+        globaldata = NULL;
+    }
+
+    codesize = src.codesize;
+    if (codesize > 0)
+    {
+        code = (intptr_t*)malloc(codesize * sizeof(intptr_t));
+        memcpy(code, src.code, sizeof(intptr_t) * codesize);
+    }
+    else
+    {
+        code = NULL;
+    }
+
+    stringssize = src.stringssize;
+    if (stringssize > 0)
+    {
+        strings = (char*)malloc(stringssize);
+        memcpy(strings, src.strings, stringssize);
+    }
+    else
+    {
+        strings = NULL;
+    }
+
+    numfixups = src.numfixups;
+    if (numfixups > 0)
+    {
+        fixuptypes = (char*)malloc(numfixups);
+        fixups = (int32_t*)malloc(numfixups * sizeof(int32_t));
+        memcpy(fixuptypes, src.fixuptypes, numfixups);
+        memcpy(fixups, src.fixups, numfixups * sizeof(int32_t));
+    }
+    else
+    {
+        fixups = NULL;
+        fixuptypes = NULL;
+    }
+
+    importsCapacity = src.numimports;
+    numimports = src.numimports;
+    if (numimports > 0)
+    {
+        imports = (char**)malloc(sizeof(char*) * numimports);
+        for (int i = 0; i < numimports; ++i)
+            imports[i] = strdup(src.imports[i]);
+    }
+    else
+    {
+        imports = NULL;
+    }
+
+    exportsCapacity = src.numexports;
+    numexports = src.numexports;
+    if (numexports > 0)
+    {
+        exports = (char**)malloc(sizeof(char*) * numexports);
+        export_addr = (int32_t*)malloc(sizeof(int32_t) * numexports);
+        for (int i = 0; i < numexports; ++i)
+        {
+            exports[i] = strdup(src.exports[i]);
+            export_addr[i] = src.export_addr[i];
+        }
+    }
+    else
+    {
+        exports = NULL;
+        export_addr = NULL;
+    }
+
+    capacitySections = src.numSections;
+    numSections = src.numSections;
+    if (numSections > 0)
+    {
+        sectionNames = (char**)malloc(numSections * sizeof(char*));
+        sectionOffsets = (int32_t*)malloc(numSections * sizeof(int32_t));
+        for (int i = 0; i < numSections; ++i)
+        {
+            sectionNames[i] = strdup(src.sectionNames[i]);
+            sectionOffsets[i] = src.sectionOffsets[i];
+        }
+    }
+    else
+    {
+        numSections = 0;
+        sectionNames = NULL;
+        sectionOffsets = NULL;
+    }
+
+    instances = 0;
+}
+
 ccScript::~ccScript()
 {
     Free();

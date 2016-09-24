@@ -125,6 +125,8 @@ MainGameFileError  ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVe
 // Applies necessary updates, conversions and fixups to the loaded data
 // making it compatible with current engine
 MainGameFileError  UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver);
+// Ensures that the game saves directory path is valid
+void               FixupSaveDirectory(GameSetupStruct &game);
 
 } // namespace Common
 } // namespace AGS

@@ -22,6 +22,7 @@
 #include "gui/guimain.h"
 #include "script/cc_error.h"
 #include "util/alignedstream.h"
+#include "util/path.h"
 #include "util/string_utils.h"
 
 namespace AGS
@@ -377,6 +378,194 @@ MainGameFileError ReadPlugins(std::vector<PluginInfo> &infos, Stream *in)
     return kMGFErr_NoError;
 }
 
+// Create the missing audioClips data structure for 3.1.x games.
+// This is done by going through the data files and adding all music*.*
+// and sound*.* files to it.
+void BuildAudioClipArray(GameSetupStruct &game, const AssetLibInfo &lib)
+{
+    char temp_name[30];
+    int temp_number;
+    char temp_extension[10];
+
+    // TODO: this was done to simplify code transition; ideally we should be
+    // working with GameSetupStruct's getters and setters here
+    int &audioClipCount            = game.audioClipCount;
+    ScriptAudioClip *&audioClips   = game.audioClips;
+    int &audioClipTypeCount        = game.audioClipTypeCount;
+    AudioClipType *&audioClipTypes = game.audioClipTypes;
+
+    size_t number_of_files = lib.AssetInfos.size();
+    for (size_t i = 0; i < number_of_files; ++i)
+    {
+        if (sscanf(lib.AssetInfos[i].FileName, "%5s%d.%3s", temp_name, &temp_number, temp_extension) == 3)
+        {
+            if (stricmp(temp_name, "music") == 0)
+            {
+                sprintf(audioClips[audioClipCount].scriptName, "aMusic%d", temp_number);
+                sprintf(audioClips[audioClipCount].fileName, "music%d.%s", temp_number, temp_extension);
+                audioClips[audioClipCount].bundlingType = (stricmp(temp_extension, "mid") == 0) ? AUCL_BUNDLE_EXE : AUCL_BUNDLE_VOX;
+                audioClips[audioClipCount].type = 2;
+                audioClips[audioClipCount].defaultRepeat = 1;
+            }
+            else if (stricmp(temp_name, "sound") == 0)
+            {
+                sprintf(audioClips[audioClipCount].scriptName, "aSound%d", temp_number);
+                sprintf(audioClips[audioClipCount].fileName, "sound%d.%s", temp_number, temp_extension);
+                audioClips[audioClipCount].bundlingType = AUCL_BUNDLE_EXE;
+                audioClips[audioClipCount].type = 3;
+            }
+            else
+            {
+                continue;
+            }
+
+            audioClips[audioClipCount].defaultVolume = 100;
+            audioClips[audioClipCount].defaultPriority = 50;
+            audioClips[audioClipCount].id = audioClipCount;
+
+            if (stricmp(temp_extension, "mp3") == 0)
+                audioClips[audioClipCount].fileType = eAudioFileMP3;
+            else if (stricmp(temp_extension, "wav") == 0)
+                audioClips[audioClipCount].fileType = eAudioFileWAV;
+            else if (stricmp(temp_extension, "voc") == 0)
+                audioClips[audioClipCount].fileType = eAudioFileVOC;
+            else if (stricmp(temp_extension, "mid") == 0)
+                audioClips[audioClipCount].fileType = eAudioFileMIDI;
+            else if ((stricmp(temp_extension, "mod") == 0) || (stricmp(temp_extension, "xm") == 0)
+                || (stricmp(temp_extension, "s3m") == 0) || (stricmp(temp_extension, "it") == 0))
+                audioClips[audioClipCount].fileType = eAudioFileMOD;
+            else if (stricmp(temp_extension, "ogg") == 0)
+                audioClips[audioClipCount].fileType = eAudioFileOGG;
+
+            audioClipCount++;
+        }
+    }
+}
+
+// Convert audio data to the current version
+void UpgradeAudio(GameSetupStruct &game, GameDataVersion data_ver)
+{
+    if (data_ver >= kGameVersion_320)
+        return;
+
+    // An explanation of building audio clips array for pre-3.2 games.
+    //
+    // When AGS version 3.2 was released, it contained new audio system.
+    // In the nutshell, prior to 3.2 audio files had to be manually put
+    // to game project directory and their IDs were taken out of filenames.
+    // Since 3.2 this information is stored inside the game data.
+    // To make the modern engine compatible with pre-3.2 games, we have
+    // to scan game data packages for audio files, and enumerate them
+    // ourselves, then add this information to game struct.
+    //
+    // Some things below can be classified as "dirty hack" and should be
+    // fixed in the future.
+
+    // TODO: this was done to simplify code transition; ideally we should be
+    // working with GameSetupStruct's getters and setters here
+    int &audioClipCount            = game.audioClipCount;
+    ScriptAudioClip *&audioClips   = game.audioClips;
+    int &audioClipTypeCount        = game.audioClipTypeCount;
+    AudioClipType *&audioClipTypes = game.audioClipTypes;
+
+    // Create soundClips and audioClipTypes structures.
+    //
+    // TODO: 1000 is a maximal number of clip entries this code is
+    // supporting, but it is not clear whether that limit is covering
+    // all possibilities. In any way, this array should be replaced
+    // with vector.
+    audioClipCount = 1000;
+    audioClipTypeCount = 4;
+
+    audioClipTypes = (AudioClipType*)malloc(audioClipTypeCount * sizeof(AudioClipType));
+    memset(audioClipTypes, 0, audioClipTypeCount * sizeof(AudioClipType));
+
+    audioClips = (ScriptAudioClip*)malloc(audioClipCount * sizeof(ScriptAudioClip));
+    memset(audioClips, 0, audioClipCount * sizeof(ScriptAudioClip));
+
+    // TODO: find out what is 4
+    for (int i = 0; i < 4; i++)
+    {
+        audioClipTypes[i].reservedChannels = 1;
+        audioClipTypes[i].id = i;
+        audioClipTypes[i].volume_reduction_while_speech_playing = 10;
+    }
+    audioClipTypes[3].reservedChannels = 0;
+
+
+    audioClipCount = 0;
+
+    // Read audio clip names from "music.vox", then from main library
+    // TODO: this may become inconvenient that this code has to know about
+    // "music.vox"; there might be better ways to handle this.
+    // possibly making AssetManager download several libraries at once will
+    // resolve this (as well as make it unnecessary to switch between them)
+    AssetLibInfo music_lib;
+    if (AssetManager::ReadDataFileTOC("music.vox", music_lib) == kAssetNoError)
+        BuildAudioClipArray(game, music_lib);
+    const AssetLibInfo *game_lib = AssetManager::GetLibraryTOC();
+    if (game_lib)
+        BuildAudioClipArray(game, *game_lib);
+
+    audioClips = (ScriptAudioClip*)realloc(audioClips, audioClipCount * sizeof(ScriptAudioClip));
+    game.scoreClipID = -1;
+}
+
+// Convert character data to the current version
+void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
+{
+    // TODO: this was done to simplify code transition; ideally we should be
+    // working with GameSetupStruct's getters and setters here
+    CharacterInfo *&chars = game.chars;
+    const int numcharacters = game.numcharacters;
+
+    // Fixup charakter script names for 2.x (EGO -> cEgo)
+    if (data_ver <= kGameVersion_272)
+    {
+        char tempbuffer[200];
+        for (int i = 0; i < numcharacters; i++)
+        {
+            memset(tempbuffer, 0, 200);
+            tempbuffer[0] = 'c';
+            tempbuffer[1] = chars[i].scrname[0];
+            strcat(&tempbuffer[2], strlwr(&chars[i].scrname[1]));
+            strcpy(chars[i].scrname, tempbuffer);
+        }
+    }
+
+    // Fix character walk speed for < 3.1.1
+    if (data_ver <= kGameVersion_310)
+    {
+        for (int i = 0; i < numcharacters; i++)
+        {
+            if (game.options[OPT_ANTIGLIDE])
+                chars[i].flags |= CHF_ANTIGLIDE;
+        }
+    }
+
+    // Characters can always walk through each other on < 2.54
+    if (data_ver < kGameVersion_254)
+    {
+        for (int i = 0; i < numcharacters; i++)
+        {
+            chars[i].flags |= CHF_NOBLOCKING;
+        }
+    }
+}
+
+void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
+{
+    if (data_ver <= kGameVersion_272)
+    {
+        // Change cursor.view from 0 to -1 for non-animating cursors.
+        for (int i = 0; i < game.numcursors; ++i)
+        {
+            if (game.mcurs[i].view == 0)
+                game.mcurs[i].view = -1;
+        }
+    }
+}
+
 // Adjusts score clip id, depending on game data version
 void AdjustScoreSound(GameSetupStruct &game, GameDataVersion data_ver)
 {
@@ -422,7 +611,23 @@ void SetDefaultGlobalMessages(GameSetupStruct &game)
     SetDefaultGlmsg(game, 995, "Are you sure you want to quit?");
 }
 
-// Ensures that the game saves directory path is valid
+void FixupSaveDirectory(GameSetupStruct &game)
+{
+    // If the save game folder was not specified by game author, create one of
+    // the game name, game GUID, or uniqueid, as a last resort
+    if (!game.saveGameFolderName[0])
+    {
+        if (game.gamename[0])
+            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN, "%s", game.gamename);
+        else if (game.guid[0])
+            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN, "%s", game.guid);
+        else
+            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN, "AGS-Game-%d", game.uniqueid);
+    }
+    // Lastly, fixup folder name by removing any illegal characters
+    String s = Path::FixupSharedFilename(game.saveGameFolderName);
+    snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN, "%s", s.GetCStr());
+}
 
 MainGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver)
 {
@@ -499,7 +704,10 @@ MainGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVer
 MainGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     GameSetupStruct &game = ents.Game;
+    UpgradeAudio(game, data_ver);
     AdjustScoreSound(game, data_ver);
+    UpgradeCharacters(game, data_ver);
+    UpgradeMouseCursors(game, data_ver);
     SetDefaultGlobalMessages(game);
     // Global talking animation speed
     if (data_ver < kGameVersion_312)

@@ -82,29 +82,40 @@ void GameSetupStruct::BuildAudioClipArray()
 }
 
 
-void GameSetupStruct::ReadFromFile_Part1(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::ReadFromFile_Part1(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     read_savegame_info(in, read_data);
     read_font_flags(in, read_data);
-    read_sprite_flags(in, read_data);
+    MainGameFileError err = read_sprite_flags(in, read_data);
+    if (err != kMGFErr_NoError)
+        return err;
     ReadInvInfo_Aligned(in);
-    read_cursors(in, read_data);
+    err = read_cursors(in, read_data);
+    if (err != kMGFErr_NoError)
+        return err;
     read_interaction_scripts(in, read_data);
     read_words_dictionary(in, read_data);
+    return kMGFErr_NoError;
 }
 
-void GameSetupStruct::ReadFromFile_Part2(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::ReadFromFile_Part2(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
    read_characters(in, read_data);
    read_lipsync(in, read_data);
    read_messages(in, read_data);
+   return kMGFErr_NoError;
 }
 
-void GameSetupStruct::ReadFromFile_Part3(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::ReadFromFile_Part3(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-    read_customprops(in, read_data);
-    read_audio(in, read_data);
+    MainGameFileError err = read_customprops(in, read_data);
+    if (err != kMGFErr_NoError)
+        return err;
+    err = read_audio(in, read_data);
+    if (err != kMGFErr_NoError)
+        return err;
     read_room_names(in, read_data);
+    return kMGFErr_NoError;
 }
 
 //-----------------------------------------------------------------------------
@@ -131,7 +142,7 @@ void GameSetupStruct::read_font_flags(Common::Stream *in, GAME_STRUCT_READ_DATA 
     in->Read(&fontoutline[0], numfonts);
 }
 
-void GameSetupStruct::read_sprite_flags(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::read_sprite_flags(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     int numToRead;
     if (read_data.filever < kGameVersion_256)
@@ -139,10 +150,10 @@ void GameSetupStruct::read_sprite_flags(Common::Stream *in, GAME_STRUCT_READ_DAT
     else
         numToRead = in->ReadInt32();
 
-    if (numToRead > MAX_SPRITES) {
-        quit("Too many sprites; need newer AGS version");
-    }
+    if (numToRead > MAX_SPRITES)
+        return kMGFErr_TooManySprites;
     in->Read(&spriteflags[0], numToRead);
+    return kMGFErr_NoError;
 }
 
 void GameSetupStruct::ReadInvInfo_Aligned(Stream *in)
@@ -165,10 +176,10 @@ void GameSetupStruct::WriteInvInfo_Aligned(Stream *out)
     }
 }
 
-void GameSetupStruct::read_cursors(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::read_cursors(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     if (numcursors > MAX_CURSOR)
-        quit("Too many cursors: need newer AGS version");
+        return kMGFErr_TooManyCursors;
 
     ReadMouseCursors_Aligned(in);
 
@@ -182,6 +193,7 @@ void GameSetupStruct::read_cursors(Common::Stream *in, GAME_STRUCT_READ_DATA &re
                 mcurs[i].view = -1;
         }
     }
+    return kMGFErr_NoError;
 }
 
 void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
@@ -346,12 +358,12 @@ void GameSetupStruct::WriteCharacters_Aligned(Stream *out)
 //-----------------------------------------------------------------------------
 // Reading Part 3
 
-void GameSetupStruct::read_customprops(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     if (read_data.filever >= kGameVersion_260) // >= 2.60
     {
-        if (Properties::ReadSchema(propSchema, in))
-            quit("load room: unable to deserialize prop schema");
+        if (Properties::ReadSchema(propSchema, in) != kPropertyErr_NoError)
+            return kMGFErr_InvalidPropertySchema;
 
         int errors = 0;
         int bb;
@@ -366,7 +378,7 @@ void GameSetupStruct::read_customprops(Common::Stream *in, GAME_STRUCT_READ_DATA
         }
 
         if (errors > 0)
-            quit("LoadGame: errors encountered reading custom props");
+            return kMGFErr_InvalidPropertyValues;
 
         for (bb = 0; bb < numviews; bb++)
             fgetstring_limit(viewNames[bb], in, MAXVIEWNAMELENGTH);
@@ -377,9 +389,10 @@ void GameSetupStruct::read_customprops(Common::Stream *in, GAME_STRUCT_READ_DATA
         for (bb = 0; bb < numdialog; bb++)
             fgetstring_limit(dialogScriptNames[bb], in, MAX_SCRIPT_NAME_LEN);
     }
+    return kMGFErr_NoError;
 }
 
-void GameSetupStruct::read_audio(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::read_audio(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     int i;
     if (read_data.filever >= kGameVersion_320)
@@ -387,7 +400,7 @@ void GameSetupStruct::read_audio(Common::Stream *in, GAME_STRUCT_READ_DATA &read
         audioClipTypeCount = in->ReadInt32();
 
         if (audioClipTypeCount > read_data.max_audio_types)
-            quit("LoadGame: too many audio types");
+            return kMGFErr_TooManyAudioTypes;
 
         audioClipTypes = (AudioClipType*)malloc(audioClipTypeCount * sizeof(AudioClipType));
         for (i = 0; i < audioClipTypeCount; ++i)
@@ -434,6 +447,7 @@ void GameSetupStruct::read_audio(Common::Stream *in, GAME_STRUCT_READ_DATA &read
 
         audioClips = (ScriptAudioClip*)realloc(audioClips, audioClipCount * sizeof(ScriptAudioClip));
     }
+    return kMGFErr_NoError;
 }
 
 // Temporarily copied this from acruntim.h;

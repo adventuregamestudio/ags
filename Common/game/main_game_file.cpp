@@ -53,6 +53,16 @@ String GetMainGameFileErrorText(MainGameFileError err)
         return "Unable to determine native game resolution";
     case kMGFErr_TooManyFonts:
         return "Too many fonts for this engine to handle";
+    case kMGFErr_TooManySprites:
+        return "Too many sprites for this engine to handle";
+    case kMGFErr_TooManyCursors:
+        return "Too many cursors for this engine to handle";
+    case kMGFErr_InvalidPropertySchema:
+        return "load room: unable to deserialize properties schema";
+    case kMGFErr_InvalidPropertyValues:
+        return "Errors encountered when reading custom properties";
+    case kMGFErr_TooManyAudioTypes:
+        return "Too many audio types for this engine to handle";
     case kMGFErr_NoGlobalScript:
         return "No global script in game";
     case kMGFErr_CreateGlobalScriptFailed:

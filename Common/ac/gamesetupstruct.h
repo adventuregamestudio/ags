@@ -26,9 +26,11 @@
 #include "ac/dynobj/scriptaudioclip.h" // ScriptAudioClip
 #include "game/customproperties.h"
 #include "game/interactions.h"
+#include "game/main_game_file.h"
 
 using AGS::Common::Interaction;
 using AGS::Common::InteractionScripts;
+using AGS::Common::MainGameFileError;
 
 struct GameSetupStruct: public GameSetupStructBase {
     unsigned char     fontflags[MAX_FONTS];
@@ -88,17 +90,17 @@ struct GameSetupStruct: public GameSetupStructBase {
 
     void BuildAudioClipArray();
 
-    void ReadFromFile_Part1(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
-    void ReadFromFile_Part2(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
-    void ReadFromFile_Part3(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
+    MainGameFileError ReadFromFile_Part1(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
+    MainGameFileError ReadFromFile_Part2(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
+    MainGameFileError ReadFromFile_Part3(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
     //--------------------------------------------------------------------
     // Do not call these directly
     //------------------------------
     // Part 1
     void read_savegame_info(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
     void read_font_flags(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
-    void read_sprite_flags(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
-    void read_cursors(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
+    MainGameFileError read_sprite_flags(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
+    MainGameFileError read_cursors(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
     void read_interaction_scripts(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
     void read_words_dictionary(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
 
@@ -116,8 +118,8 @@ struct GameSetupStruct: public GameSetupStructBase {
     void WriteCharacters_Aligned(Common::Stream *out);
     //------------------------------
     // Part 3
-    void read_customprops(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
-    void read_audio(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
+    MainGameFileError read_customprops(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
+    MainGameFileError read_audio(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
     void read_room_names(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
 
     void ReadAudioClips_Aligned(Common::Stream *in);

@@ -682,7 +682,9 @@ MainGameFileError load_game_file()
     read_data.saveGameSuffix = saveGameSuffix;
     read_data.max_audio_types= MAX_AUDIO_TYPES;
     read_data.game_file_name = game_file_name;
-    game.ReadFromFile_Part1(in, read_data);
+    err = game.ReadFromFile_Part1(in, read_data);
+    if (err != kMGFErr_NoError)
+        return err;
 
     if (!game.load_compiled_script)
         return kMGFErr_NoGlobalScript;
@@ -724,7 +726,9 @@ MainGameFileError load_game_file()
 
     charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
     //-----------------------------------------------------
-    game.ReadFromFile_Part2(in, read_data);
+    err = game.ReadFromFile_Part2(in, read_data);
+    if (err != kMGFErr_NoError)
+        return err;
     //-----------------------------------------------------
 
     game_file_set_default_glmsg();
@@ -741,7 +745,9 @@ MainGameFileError load_game_file()
     }
 
     //-----------------------------------------------------
-    game.ReadFromFile_Part3(in, read_data);
+    err = game.ReadFromFile_Part3(in, read_data);
+    if (err != kMGFErr_NoError)
+        return err;
     //-----------------------------------------------------
 
     game_file_set_score_sound(read_data);

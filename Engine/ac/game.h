@@ -123,7 +123,6 @@ Common::String get_save_game_path(int slotNum);
 void restore_game_dialog();
 void save_game_dialog();
 void setup_sierra_interface();
-GameFileError load_game_file();
 void free_do_once_tokens();
 // Free all the memory associated with the game
 void unload_game_file();

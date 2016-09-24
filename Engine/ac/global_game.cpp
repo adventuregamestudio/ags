@@ -57,9 +57,7 @@
 #include "main/game_file.h"
 #include "util/string_utils.h"
 
-using AGS::Common::String;
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
 
 #define ALLEGRO_KEYBOARD_HANDLER
 
@@ -259,7 +257,7 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
         return 0;
     }
 
-    int result, ee;
+    int ee;
 
     unload_old_room();
     displayed_room = -10;
@@ -273,9 +271,9 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     ds->Fill(0);
     show_preload();
 
-    if ((result = load_game_file ()) != 0) {
-        quitprintf("!RunAGSGame: error %d loading new game file", result);
-    }
+    String err_str;
+    if (!load_game_file(err_str))
+        quitprintf("!RunAGSGame: error loading new game file:\n%s", err_str.GetCStr());
 
     spriteset.reset();
     if (spriteset.initFile ("acsprset.spr"))

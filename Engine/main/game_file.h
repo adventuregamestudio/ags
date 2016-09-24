@@ -27,21 +27,10 @@ extern void WriteGameSetupStructBase_Aligned(Common::Stream *out);
 
 extern AGS::Common::String game_file_name;
 
-extern const AGS::Common::String MainGameAssetName_v3;
-extern const AGS::Common::String MainGameAssetName_v2;
-
-enum GameFileError
-{
-    kGameFile_NoError,
-    kGameFile_NoMainData, // -1
-    kGameFile_UnsupportedOldFormat, // -2
-    kGameFile_UnsupportedNewFormat, // -2
-    kGameFile_ScriptLinkFailed // -3
-};
-
 // Preload particular game-describing parameters from the game data header (title, save game dir name, etc)
-GameFileError preload_game_data();
-GameFileError load_game_file();
-void          display_game_file_error(GameFileError err);
+bool preload_game_data(AGS::Common::String &err_str);
+// Loads game data and reinitializes the game state; assigns error message in case of failure
+bool load_game_file(AGS::Common::String &err_str);
+void display_game_file_error(const AGS::Common::String &err_str);
 
 #endif // __AGS_EE_MAIN__GAMEFILE_H

@@ -615,6 +615,10 @@
 					RelativePath="..\..\Common\game\interactions.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Common\game\main_game_file.cpp"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -1003,6 +1007,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\game\interactions.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\game\main_game_file.h"
 					>
 				</File>
 			</Filter>

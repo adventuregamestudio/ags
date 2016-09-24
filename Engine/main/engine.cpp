@@ -41,6 +41,7 @@
 #include "debug/out.h"
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
+#include "game/main_game_file.h"
 #include "main/config.h"
 #include "main/game_start.h"
 #include "main/engine.h"
@@ -59,7 +60,6 @@
 #include "util/path.h"
 #include "main/game_file.h"
 #include "debug/out.h"
-#include "core/asset.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -229,26 +229,6 @@ void init_game_file_name_from_cmdline()
 #endif
 }
 
-bool is_main_game_file(const String &filename)
-{
-    // We must not only detect if the given file is a correct AGS data library,
-    // we also have to assure that this library contains main game asset.
-    // Library may contain some optional data (digital audio, speech etc), but
-    // that is not what we want.
-    AssetLibInfo lib;
-    if (AssetManager::ReadDataFileTOC(filename, lib) != kAssetNoError)
-        return false;
-    for (size_t i = 0; i < lib.AssetInfos.size(); ++i)
-    {
-        if (lib.AssetInfos[i].FileName.CompareNoCase(MainGameAssetName_v3) == 0 ||
-            lib.AssetInfos[i].FileName.CompareNoCase(MainGameAssetName_v2) == 0)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
 String find_game_data_in_directory(const String &path)
 {
     al_ffblk ff;
@@ -281,7 +261,7 @@ String find_game_data_in_directory(const String &path)
         if (is_std_name || first_nonstd_fn.IsEmpty())
         {
             test_file.Format("%s/%s", path.GetCStr(), ff.name);
-            if (is_main_game_file(test_file))
+            if (IsMainGameLibrary(test_file))
             {
                 if (is_std_name)
                 {
@@ -365,7 +345,7 @@ void initialise_game_file_name()
     else
     {
         game_file_name = Path::MakeAbsolutePath(game_file_name);
-        Out::FPrint("Game data file: %s\n", game_file_name.GetCStr());
+        Out::FPrint("Located game data file: %s\n", game_file_name.GetCStr());
     }
 }
 
@@ -774,12 +754,12 @@ int engine_load_game_data()
     Out::FPrint("Load game data");
 
     our_eip=-17;
-    GameFileError err = load_game_file();
-    if (err != kGameFile_NoError) {
+    String err_str;
+    if (!load_game_file(err_str))
+    {
         proper_exit=1;
         platform->FinishedUsingGraphicsMode();
-
-        display_game_file_error(err);
+        display_game_file_error(err_str);
         return EXIT_NORMAL;
     }
 
@@ -1371,10 +1351,10 @@ bool engine_read_config(ConfigTree &cfg, int argc,char*argv[])
     // TODO: research if that is possible to avoid this step and just
     // read the full head game data at this point. This might require
     // further changes of the order of initialization.
-    GameFileError err = preload_game_data();
-    if (err != kGameFile_NoError)
+    String err_str;
+    if (!preload_game_data(err_str))
     {
-        display_game_file_error(err);
+        display_game_file_error(err_str);
         return false;
     }
 

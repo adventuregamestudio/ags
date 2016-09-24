@@ -352,9 +352,9 @@ void game_file_read_gui(Stream *in)
     play.gui_draw_order = (int*)calloc(game.numgui * sizeof(int), 1);
 }
 
-void game_file_set_score_sound(GameSetupStruct::GAME_STRUCT_READ_DATA &read_data)
+void game_file_set_score_sound(GameDataVersion data_ver, GameSetupStruct::GAME_STRUCT_READ_DATA &read_data)
 {
-    if (read_data.filever >= kGameVersion_320) {
+    if (data_ver >= kGameVersion_320) {
         play.score_sound = read_data.score_sound;
     }
     else {
@@ -571,9 +571,8 @@ void PreReadSaveFileInfo(Stream *in, GameDataVersion data_ver)
     game.load_messages = NULL;
 
     GameSetupStruct::GAME_STRUCT_READ_DATA read_data;
-    read_data.filever        = data_ver;
     read_data.saveGameSuffix = saveGameSuffix;
-    game.read_savegame_info(in, read_data);
+    game.read_savegame_info(in, data_ver, read_data);
 }
 
 void fixup_save_directory()
@@ -678,11 +677,8 @@ MainGameFileError load_game_file()
         return kMGFErr_TooManyFonts;
 
     GameSetupStruct::GAME_STRUCT_READ_DATA read_data;
-    read_data.filever        = data_ver;
     read_data.saveGameSuffix = saveGameSuffix;
-    read_data.max_audio_types= MAX_AUDIO_TYPES;
-    read_data.game_file_name = game_file_name;
-    err = game.ReadFromFile_Part1(in, read_data);
+    err = game.ReadFromFile_Part1(in, data_ver, read_data);
     if (err != kMGFErr_NoError)
         return err;
 
@@ -726,7 +722,7 @@ MainGameFileError load_game_file()
 
     charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
     //-----------------------------------------------------
-    err = game.ReadFromFile_Part2(in, read_data);
+    err = game.ReadFromFile_Part2(in, data_ver, read_data);
     if (err != kMGFErr_NoError)
         return err;
     //-----------------------------------------------------
@@ -745,12 +741,14 @@ MainGameFileError load_game_file()
     }
 
     //-----------------------------------------------------
-    err = game.ReadFromFile_Part3(in, read_data);
+    err = game.ReadFromFile_Part3(in, data_ver, read_data);
     if (err != kMGFErr_NoError)
         return err;
     //-----------------------------------------------------
+    if (game.audioClipTypeCount > MAX_AUDIO_TYPES)
+        return kMGFErr_TooManyAudioTypes;
 
-    game_file_set_score_sound(read_data);
+    game_file_set_score_sound(data_ver, read_data);
 
 	//-----------------------------------------------------------
 	// Reading from file is finished here

@@ -28,6 +28,8 @@
 #include "game/interactions.h"
 #include "game/main_game_file.h"
 
+namespace AGS { namespace Common { struct AssetLibInfo; } }
+
 using AGS::Common::Interaction;
 using AGS::Common::InteractionScripts;
 using AGS::Common::MainGameFileError;
@@ -78,30 +80,25 @@ struct GameSetupStruct: public GameSetupStructBase {
     // class regardless it is shared by both engine and editor or not.
     struct GAME_STRUCT_READ_DATA
     {
-        // in
-        int  filever;
-        int  max_audio_types;
-        AGS::Common::String game_file_name;
-
         // out
         char *saveGameSuffix;
         int  score_sound;
     };
 
-    void BuildAudioClipArray();
+    void BuildAudioClipArray(const AGS::Common::AssetLibInfo &lib);
 
-    MainGameFileError ReadFromFile_Part1(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
-    MainGameFileError ReadFromFile_Part2(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
-    MainGameFileError ReadFromFile_Part3(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
+    MainGameFileError ReadFromFile_Part1(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
+    MainGameFileError ReadFromFile_Part2(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
+    MainGameFileError ReadFromFile_Part3(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
     //--------------------------------------------------------------------
     // Do not call these directly
     //------------------------------
     // Part 1
-    void read_savegame_info(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
+    void read_savegame_info(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
     void read_font_flags(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
-    MainGameFileError read_sprite_flags(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
-    MainGameFileError read_cursors(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
-    void read_interaction_scripts(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
+    MainGameFileError read_sprite_flags(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
+    MainGameFileError read_cursors(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
+    void read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
     void read_words_dictionary(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
 
     void ReadInvInfo_Aligned(Common::Stream *in);
@@ -110,17 +107,17 @@ struct GameSetupStruct: public GameSetupStructBase {
     void WriteMouseCursors_Aligned(Common::Stream *out);
     //------------------------------
     // Part 2
-    void read_characters(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
-    void read_lipsync(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
-    void read_messages(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
+    void read_characters(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
+    void read_lipsync(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
+    void read_messages(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
 
     void ReadCharacters_Aligned(Common::Stream *in);
     void WriteCharacters_Aligned(Common::Stream *out);
     //------------------------------
     // Part 3
-    MainGameFileError read_customprops(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
-    MainGameFileError read_audio(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
-    void read_room_names(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
+    MainGameFileError read_customprops(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
+    MainGameFileError read_audio(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
+    void read_room_names(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
 
     void ReadAudioClips_Aligned(Common::Stream *in);
     //--------------------------------------------------------------------

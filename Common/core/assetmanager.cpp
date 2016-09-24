@@ -134,6 +134,12 @@ AssetError AssetManager::ReadDataFileTOC(const String &data_file, AssetLibInfo &
     return _theAssetManager ? _theAssetManager->_GetLibraryBaseFile() : "";
 }
 
+/* static */ const AssetLibInfo *AssetManager::GetLibraryTOC()
+{
+    assert(_theAssetManager != NULL);
+    return _theAssetManager ? &_theAssetManager->_GetLibraryTOC() : NULL;
+}
+
 /* static */ bool AssetManager::DoesAssetExist(const String &asset_name)
 {
     assert(_theAssetManager != NULL);
@@ -268,6 +274,11 @@ String AssetManager::_GetAssetFileByIndex(int index)
 String AssetManager::_GetLibraryBaseFile()
 {
     return _assetLib.BaseFileName;
+}
+
+const AssetLibInfo &AssetManager::_GetLibraryTOC() const
+{
+    return _assetLib;
 }
 
 bool AssetManager::_DoesAssetExist(const String &asset_name)

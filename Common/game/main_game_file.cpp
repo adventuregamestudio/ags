@@ -244,6 +244,7 @@ void ReadViews(GameSetupStruct &game, ViewStruct *&views, Stream *in, GameDataVe
 
 void ReadDialogs(DialogTopic *&dialog,
                  std::vector< stdtr1compat::shared_ptr<unsigned char> > &old_dialog_scripts,
+                 std::vector<String> &old_dialog_src,
                  std::vector<String> &old_speech_lines,
                  Stream *in, GameDataVersion data_ver, int dlg_count)
 {
@@ -258,23 +259,42 @@ void ReadDialogs(DialogTopic *&dialog,
     if (data_ver > kGameVersion_310)
         return;
 
-    // read old dialog scripts
     old_dialog_scripts.resize(dlg_count);
-
-    int i;
-    for (int i = 0; i < dlg_count; i++)
+    old_dialog_src.resize(dlg_count);
+    for (int i = 0; i < dlg_count; ++i)
     {
+        // NOTE: originally this was read into dialog[i].optionscripts
         old_dialog_scripts[i].reset(new unsigned char[dialog[i].codesize]);
         in->Read(old_dialog_scripts[i].get(), dialog[i].codesize);
 
-        // Skip encrypted text script
-        unsigned int script_size = in->ReadInt32();
-        in->Seek(script_size);
+        // Encrypted text script
+        int script_text_len = in->ReadInt32();
+        if (script_text_len > 1)
+        {
+            // Originally in the Editor +20000 bytes more were allocated, with comment:
+            //   "add a large buffer because it will get added to if another option is added"
+            // which probably refered to this data used by old editor directly to edit dialogs
+            std::auto_ptr<char> buffer(new char[script_text_len]);
+            in->Read(buffer.get(), script_text_len);
+            if (data_ver > kGameVersion_260)
+                decrypt_text(buffer.get());
+            old_dialog_src[i] = buffer.get();
+        }
     }
 
     // Read the dialog lines
-    i = 0;
-    // TODO: safer buffer reading
+    //
+    // TODO: investigate this: these strings were read much simplier in the editor, see code:
+    /*
+        char stringbuffer[1000];
+        for (bb=0;bb<thisgame.numdlgmessage;bb++) {
+            if ((filever >= 26) && (encrypted))
+                read_string_decrypt(iii, stringbuffer);
+            else
+                fgetstring(stringbuffer, iii);
+        }
+    */
+    int i = 0;
     char buffer[1000];
     if (data_ver <= kGameVersion_260)
     {
@@ -457,7 +477,8 @@ MainGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVer
     game.read_lipsync(in, data_ver);
     game.read_messages(in, data_ver);
 
-    ReadDialogs(ents.Dialogs, ents.OldDialogScripts, ents.OldSpeechLines, in, data_ver, game.numdialog);
+    ReadDialogs(ents.Dialogs, ents.OldDialogScripts, ents.OldDialogSources, ents.OldSpeechLines,
+                in, data_ver, game.numdialog);
     read_gui(in, guis, &game);
 
     if (data_ver >= kGameVersion_260)

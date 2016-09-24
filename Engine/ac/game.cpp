@@ -582,8 +582,7 @@ void unload_game_file() {
         gameinst = NULL;
     }
 
-    delete gamescript;
-    gamescript = NULL;
+    gamescript.reset();
 
     if ((dialogScriptsInst != NULL) && (dialogScriptsInst->pc != 0))
         quit("Error: unload_game called while dialog script still running");
@@ -593,16 +592,12 @@ void unload_game_file() {
         dialogScriptsInst = NULL;
     }
 
-    if (dialogScriptsScript != NULL)
-    {
-        delete dialogScriptsScript;
-        dialogScriptsScript = NULL;
-    }
+    dialogScriptsScript.reset();
 
     for (ee = 0; ee < numScriptModules; ee++) {
         delete moduleInstFork[ee];
         delete moduleInst[ee];
-        delete scriptModules[ee];
+        scriptModules[ee].reset();
     }
     moduleInstFork.resize(0);
     moduleInst.resize(0);

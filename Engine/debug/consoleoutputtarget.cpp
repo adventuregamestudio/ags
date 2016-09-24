@@ -18,10 +18,9 @@
 #include "ac/roomstruct.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
+#include "script/script.h"
 
 extern roomstruct thisroom;
-extern ccScript* gamescript;
-extern ccScript* dialogScriptsScript;
 extern int currentline;
 
 #define STD_BUFFER_SIZE 3000

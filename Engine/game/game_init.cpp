@@ -84,8 +84,6 @@ extern StaticArray StaticRegionArray;
 extern StaticArray StaticInventoryArray;
 extern StaticArray StaticDialogArray;
 
-extern ccScript* gamescript;
-
 extern std::vector<ccInstance *> moduleInst;
 extern std::vector<ccInstance *> moduleInstFork;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;

@@ -42,8 +42,6 @@ extern int displayed_room;
 extern roomstruct thisroom;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern volatile char want_exit, abort_engine;
-extern ccScript* gamescript;
-extern ccScript* dialogScriptsScript;
 
 
 int use_compiled_folder_as_current_dir = 0;

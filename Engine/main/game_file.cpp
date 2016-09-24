@@ -43,6 +43,7 @@
 #include "game/main_game_file.h"
 #include "game/game_init.h"
 #include "plugin/agsplugin.h"
+#include "script/script.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -60,9 +61,6 @@ extern DialogTopic *dialog;
 extern int our_eip;
 
 extern AGSPlatformDriver *platform;
-extern ccScript* gamescript;
-extern ccScript* dialogScriptsScript;
-extern std::vector<ccScript *> scriptModules;
 extern int numScriptModules;
 
 String game_file_name;
@@ -106,13 +104,13 @@ MainGameFileError game_file_read_dialog_script(Stream *in, GameDataVersion data_
 {
 	if (data_ver > kGameVersion_310) // 3.1.1+ dialog script
     {
-        dialogScriptsScript = ccScript::CreateFromStream(in);
+        dialogScriptsScript.reset(ccScript::CreateFromStream(in));
         if (dialogScriptsScript == NULL)
             return kMGFErr_CreateDialogScriptFailed;
     }
     else // 2.x and < 3.1.1 dialog
     {
-        dialogScriptsScript = NULL;
+        dialogScriptsScript.reset();
     }
     return kMGFErr_NoError;
 }
@@ -124,7 +122,7 @@ MainGameFileError game_file_read_script_modules(Stream *in, GameDataVersion data
         numScriptModules = in->ReadInt32();
         scriptModules.resize(numScriptModules);
         for (int bb = 0; bb < numScriptModules; bb++) {
-            scriptModules[bb] = ccScript::CreateFromStream(in);
+            scriptModules[bb].reset(ccScript::CreateFromStream(in));
             if (scriptModules[bb] == NULL)
                 return kMGFErr_CreateScriptModuleFailed;
         }
@@ -383,7 +381,7 @@ MainGameFileError load_game_file(Stream *in, GameDataVersion data_ver)
 
     if (!game.load_compiled_script)
         return kMGFErr_NoGlobalScript;
-    gamescript = ccScript::CreateFromStream(in);
+    gamescript.reset(ccScript::CreateFromStream(in));
     if (gamescript == NULL)
         return kMGFErr_CreateGlobalScriptFailed;
     err = game_file_read_dialog_script(in, data_ver);

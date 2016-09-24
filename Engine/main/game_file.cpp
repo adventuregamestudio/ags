@@ -48,9 +48,9 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-// Old dialog support
-extern unsigned char** old_dialog_scripts; // defined in ac_conversation
-extern char** old_speech_lines;
+// Old dialog support (defined in ac/dialog)
+extern std::vector< stdtr1compat::shared_ptr<unsigned char> > old_dialog_scripts;
+extern std::vector<String> old_speech_lines;
 
 extern int ifacepopped;
 
@@ -201,13 +201,13 @@ void game_file_read_dialogs(Stream *in, GameDataVersion data_ver)
 
     if (data_ver <= kGameVersion_310) // Dialog script
     {
-        old_dialog_scripts = (unsigned char**)malloc(game.numdialog * sizeof(unsigned char**));
+        old_dialog_scripts.resize(game.numdialog);
 
         int i;
         for (int i = 0; i < game.numdialog; i++)
         {
-            old_dialog_scripts[i] = (unsigned char*)malloc(dialog[i].codesize);
-            in->Read(old_dialog_scripts[i], dialog[i].codesize);
+            old_dialog_scripts[i].reset(new unsigned char[dialog[i].codesize]);
+            in->Read(old_dialog_scripts[i].get(), dialog[i].codesize);
 
             // Skip encrypted text script
             unsigned int script_size = in->ReadInt32();
@@ -215,13 +215,12 @@ void game_file_read_dialogs(Stream *in, GameDataVersion data_ver)
         }
 
         // Read the dialog lines
-        old_speech_lines = (char**)malloc(10000 * sizeof(char**));
         i = 0;
-
+        // TODO: safer buffer reading
+        char buffer[1000];
         if (data_ver <= kGameVersion_260)
         {
             // Plain text on <= 2.60
-            char buffer[1000];
             bool end_reached = false;
 
             while (!end_reached)
@@ -247,8 +246,7 @@ void game_file_read_dialogs(Stream *in, GameDataVersion data_ver)
                 if (end_reached)
                     break;
 
-                old_speech_lines[i] = (char*)malloc(strlen(buffer) + 1);
-                strcpy(old_speech_lines[i], buffer);
+                old_speech_lines.push_back(buffer);
                 i++;
             }
         }
@@ -264,15 +262,14 @@ void game_file_read_dialogs(Stream *in, GameDataVersion data_ver)
                     break;
                 }
 
-                old_speech_lines[i] = (char*)malloc(newlen + 1);
-                in->Read(old_speech_lines[i], newlen);
-                old_speech_lines[i][newlen] = 0;
-                decrypt_text(old_speech_lines[i]);
-
+                newlen = Math::Min(newlen, sizeof(buffer) - 1);
+                in->Read(buffer, newlen);
+                buffer[newlen] = 0;
+                decrypt_text(buffer);
+                old_speech_lines.push_back(buffer);
                 i++;
             }
         }
-        old_speech_lines = (char**)realloc(old_speech_lines, i * sizeof(char**));
     }
 }
 

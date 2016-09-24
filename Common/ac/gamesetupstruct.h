@@ -80,14 +80,9 @@ struct GameSetupStruct: public GameSetupStructBase {
     //
     // I also had to move BuildAudioClipArray from the engine and make it
     // GameSetupStruct member.
-    // Anyway, I believe that read/write/init functions should be in the
-    // class regardless it is shared by both engine and editor or not.
 
     void BuildAudioClipArray(const AGS::Common::AssetLibInfo &lib);
 
-    MainGameFileError ReadFromFile_Part1(Common::Stream *in, GameDataVersion data_ver);
-    MainGameFileError ReadFromFile_Part2(Common::Stream *in, GameDataVersion data_ver);
-    MainGameFileError ReadFromFile_Part3(Common::Stream *in, GameDataVersion data_ver);
     //--------------------------------------------------------------------
     // Do not call these directly
     //------------------------------
@@ -128,6 +123,11 @@ struct GameSetupStruct: public GameSetupStructBase {
 
 //=============================================================================
 
+// Game conversion, fixup and compatibility support functions
 void ConvertOldGameStruct (OldGameSetupStruct *ogss, GameSetupStruct *gss);
+// Finds an audio clip using legacy convention index
+ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_music, int num);
+// Ensures that the game saves directory path is valid
+void FixupSaveDirectory(GameSetupStruct &game);
 
 #endif // __AGS_CN_AC__GAMESETUPSTRUCT_H

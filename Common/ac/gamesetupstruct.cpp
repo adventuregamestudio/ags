@@ -20,6 +20,7 @@
 #include "util/string.h"
 #include "util/alignedstream.h"
 #include "util/math.h"
+#include "util/path.h"
 
 using namespace AGS::Common;
 
@@ -81,41 +82,38 @@ void GameSetupStruct::BuildAudioClipArray(const AssetLibInfo &lib)
     }
 }
 
-
-MainGameFileError GameSetupStruct::ReadFromFile_Part1(Common::Stream *in, GameDataVersion data_ver)
+ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_music, int num)
 {
-    read_savegame_info(in, data_ver);
-    read_font_flags(in);
-    MainGameFileError err = read_sprite_flags(in, data_ver);
-    if (err != kMGFErr_NoError)
-        return err;
-    ReadInvInfo_Aligned(in);
-    err = read_cursors(in, data_ver);
-    if (err != kMGFErr_NoError)
-        return err;
-    read_interaction_scripts(in, data_ver);
-    read_words_dictionary(in);
-    return kMGFErr_NoError;
+    String clip_name;
+    if (is_music)
+        clip_name.Format("aMusic%d", num);
+    else
+        clip_name.Format("aSound%d", num);
+
+    for (int i = 0; i < game.audioClipCount; ++i)
+    {
+        if (clip_name.Compare(game.audioClips[i].scriptName) == 0)
+            return &game.audioClips[i];
+    }
+    return NULL;
 }
 
-MainGameFileError GameSetupStruct::ReadFromFile_Part2(Common::Stream *in, GameDataVersion data_ver)
+void FixupSaveDirectory(GameSetupStruct &game)
 {
-   read_characters(in, data_ver);
-   read_lipsync(in, data_ver);
-   read_messages(in, data_ver);
-   return kMGFErr_NoError;
-}
-
-MainGameFileError GameSetupStruct::ReadFromFile_Part3(Common::Stream *in, GameDataVersion data_ver)
-{
-    MainGameFileError err = read_customprops(in, data_ver);
-    if (err != kMGFErr_NoError)
-        return err;
-    err = read_audio(in, data_ver);
-    if (err != kMGFErr_NoError)
-        return err;
-    read_room_names(in, data_ver);
-    return kMGFErr_NoError;
+    // If the save game folder was not specified by game author, create one of
+    // the game name, game GUID, or uniqueid, as a last resort
+    if (!game.saveGameFolderName[0])
+    {
+        if (game.gamename[0])
+            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN, "%s", game.gamename);
+        else if (game.guid[0])
+            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN, "%s", game.guid);
+        else
+            snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN, "AGS-Game-%d", game.uniqueid);
+    }
+    // Lastly, fixup folder name by removing any illegal characters
+    String s = Path::FixupSharedFilename(game.saveGameFolderName);
+    snprintf(game.saveGameFolderName, MAX_SG_FOLDER_LEN, "%s", s.GetCStr());
 }
 
 //-----------------------------------------------------------------------------
@@ -148,6 +146,7 @@ MainGameFileError GameSetupStruct::read_sprite_flags(Common::Stream *in, GameDat
     if (numToRead > MAX_SPRITES)
         return kMGFErr_TooManySprites;
     in->Read(&spriteflags[0], numToRead);
+    memset(spriteflags + numToRead, 0, MAX_SPRITES - numToRead);
     return kMGFErr_NoError;
 }
 
@@ -212,6 +211,8 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersi
     {
         int bb;
 
+        charScripts = NULL;
+        invScripts = NULL;
         intrChar = new Interaction*[numcharacters];
 
         for (bb = 0; bb < numcharacters; bb++) {

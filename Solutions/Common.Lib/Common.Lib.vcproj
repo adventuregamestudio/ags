@@ -1013,6 +1013,10 @@
 					RelativePath="..\..\Common\game\main_game_file.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Common\game\plugininfo.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter

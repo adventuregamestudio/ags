@@ -116,6 +116,26 @@ String MakeAbsolutePath(const String &path)
     return abs_path;
 }
 
+String FixupSharedFilename(const String &filename)
+{
+    const char *illegal_chars = "\\/:?\"<>|*";
+    String fixed_name = filename;
+    for (size_t i = 0; i < filename.GetLength(); ++i)
+    {
+        if (filename[i] < ' ')
+        {
+            fixed_name.SetAt(i, '_');
+        }
+        else
+        {
+            for (const char *ch_ptr = illegal_chars; *ch_ptr; ++ch_ptr)
+                if (filename[i] == *ch_ptr)
+                    fixed_name.SetAt(i, '_');
+        }
+    }
+    return fixed_name;
+}
+
 } // namespace Path
 
 } // namespace Common

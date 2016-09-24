@@ -442,25 +442,6 @@ void play_audio_clip_by_index(int audioClipIndex)
         AudioClip_Play(&game.audioClips[audioClipIndex], SCR_NO_VALUE, SCR_NO_VALUE);
 }
 
-ScriptAudioClip* get_audio_clip_for_old_style_number(bool isMusic, int indexNumber)
-{
-    char audioClipName[200];
-    if (isMusic)
-        sprintf(audioClipName, "aMusic%d", indexNumber);
-    else
-        sprintf(audioClipName, "aSound%d", indexNumber);
-
-    for (int bb = 0; bb < game.audioClipCount; bb++)
-    {
-        if (stricmp(game.audioClips[bb].scriptName, audioClipName) == 0)
-        {
-            return &game.audioClips[bb];
-        }
-    }
-
-    return NULL;
-}
-
 void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings) {
     if ((chid < 0) || (chid > MAX_SOUND_CHANNELS))
         quit("!StopChannel: invalid channel ID");
@@ -527,7 +508,7 @@ int get_old_style_number_for_sound(int sound_number)
 
 SOUNDCLIP *load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, bool repeat)
 {
-    ScriptAudioClip* audioClip = get_audio_clip_for_old_style_number(isMusic, indexNumber);
+    ScriptAudioClip* audioClip = GetAudioClipForOldStyleNumber(game, isMusic, indexNumber);
 
     if (audioClip != NULL)
     {
@@ -1052,7 +1033,7 @@ ScriptAudioClip *get_audio_clip_for_music(int mnum)
 {
     if (mnum >= QUEUED_MUSIC_REPEAT)
         mnum -= QUEUED_MUSIC_REPEAT;
-    return get_audio_clip_for_old_style_number(true, mnum);
+    return GetAudioClipForOldStyleNumber(game, true, mnum);
 }
 
 SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat) {

@@ -20,7 +20,7 @@
 #ifndef __AGS_EE_GAME__GAMEINIT_H
 #define __AGS_EE_GAME__GAMEINIT_H
 
-#include "ac/gamesetupstruct.h"
+#include "game/main_game_file.h"
 #include "util/string.h"
 
 namespace AGS
@@ -37,12 +37,14 @@ enum GameInitError
     // currently AGS requires at least one font to be present in game
     kGameInitErr_NoFonts,
     kGameInitErr_TooManyAudioTypes,
+    kGameInitErr_TooManyPlugins,
+    kGameInitErr_PluginNameInvalid,
     kGameInitErr_ScriptLinkFailed
 };
 
 String          GetGameInitErrorText(GameInitError err);
 // Sets up game state for play using preloaded data
-GameInitError   InitGameState(GameDataVersion data_ver);
+GameInitError   InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver);
 
 } // namespace Engine
 } // namespace AGS

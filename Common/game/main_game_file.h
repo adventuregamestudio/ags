@@ -24,9 +24,15 @@
 #include "util/stdtr1compat.h"
 #include TR1INCLUDE(memory)
 #include "ac/game_version.h"
+#include "game/plugininfo.h"
+#include "script/cc_script.h"
 #include "util/stream.h"
 #include "util/string.h"
 #include "util/version.h"
+
+struct GameSetupStruct;
+struct DialogTopic;
+struct ViewStruct;
 
 namespace AGS
 {
@@ -52,7 +58,9 @@ enum MainGameFileError
     kMGFErr_NoGlobalScript,
     kMGFErr_CreateGlobalScriptFailed,
     kMGFErr_CreateDialogScriptFailed,
-    kMGFErr_CreateScriptModuleFailed
+    kMGFErr_CreateScriptModuleFailed,
+    kMGFErr_PluginDataFmtNotSupported,
+    kMGFErr_PluginDataSizeTooLarge
 };
 
 typedef stdtr1compat::shared_ptr<Stream> PStream;
@@ -78,11 +86,38 @@ struct MainGameSource
     MainGameSource();
 };
 
+// LoadedGameEntities is meant for keeping objects loaded from the game file.
+// Because copying/assignment methods are not properly implemented for some
+// of these objects yet, they have to be attached using references to be read
+// directly. This is temporary solution that has to be resolved by the future
+// code refactoring.
+struct LoadedGameEntities
+{
+    GameSetupStruct        &Game;
+    DialogTopic           *&Dialogs;
+    ViewStruct            *&Views;
+    PScript                 GlobalScript;
+    PScript                 DialogScript;
+    std::vector<PScript>    ScriptModules;
+    std::vector<PluginInfo> PluginInfos;
+
+    // Old dialog support
+    std::vector< stdtr1compat::shared_ptr<unsigned char> > OldDialogScripts;
+    std::vector<String>     OldSpeechLines;
+
+    LoadedGameEntities(GameSetupStruct &game, DialogTopic *&dialogs, ViewStruct *&views);
+};
+
 String             GetMainGameFileErrorText(MainGameFileError err);
 // Tells if the given path (library filename) contains main game file
 bool               IsMainGameLibrary(const String &filename);
 // Opens main game file for reading
 MainGameFileError  OpenMainGameFile(MainGameSource &src);
+// Reads game data, applies necessary conversions to match current format version
+MainGameFileError  ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver);
+// Applies necessary updates, conversions and fixups to the loaded data
+// making it compatible with current engine
+MainGameFileError  UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver);
 
 } // namespace Common
 } // namespace AGS

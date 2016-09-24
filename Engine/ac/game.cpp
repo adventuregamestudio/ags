@@ -69,7 +69,6 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guidialog.h"
-#include "main/game_file.h"
 #include "main/graphics_mode.h"
 #include "main/main.h"
 #include "media/audio/audio.h"
@@ -1186,6 +1185,12 @@ void WriteMoveList_Aligned(Stream *out)
     }
 }
 
+void WriteGameSetupStructBase_Aligned(Stream *out)
+{
+    AlignedStream align_s(out, Common::kAligned_Write);
+    game.GameSetupStructBase::WriteToFile(&align_s);
+}
+
 void WriteCharacterExtras_Aligned(Stream *out)
 {
     AlignedStream align_s(out, Common::kAligned_Write);
@@ -1687,6 +1692,12 @@ void ReadMoveList_Aligned(Stream *in)
         mls[i].ReadFromFile(&align_s);
         align_s.Reset();
     }
+}
+
+void ReadGameSetupStructBase_Aligned(Stream *in)
+{
+    AlignedStream align_s(in, Common::kAligned_Read);
+    game.GameSetupStructBase::ReadFromFile(&align_s);
 }
 
 void ReadCharacterExtras_Aligned(Stream *in)

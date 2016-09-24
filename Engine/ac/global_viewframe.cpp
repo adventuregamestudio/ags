@@ -40,7 +40,7 @@ void SetFrameSound (int vii, int loop, int frame, int sound) {
     }
     else
     {
-        ScriptAudioClip* clip = get_audio_clip_for_old_style_number(false, sound);
+        ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, sound);
         if (clip == NULL)
             quitprintf("!SetFrameSound: audio clip aSound%d not found", sound);
 

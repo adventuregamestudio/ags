@@ -53,7 +53,7 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
     if ((vol < 1) || (vol > 255))
         quit("!PlayAmbientSound: volume must be 1 to 255");
 
-    ScriptAudioClip *aclip = get_audio_clip_for_old_style_number(false, sndnum);
+    ScriptAudioClip *aclip = GetAudioClipForOldStyleNumber(game, false, sndnum);
     if (aclip && !is_audiotype_allowed_to_play((AudioFileType)aclip->fileType))
         return;
 
@@ -120,7 +120,7 @@ int PlaySoundEx(int val1, int channel) {
     if (debug_flags & DBG_NOSFX)
         return -1;
 
-    ScriptAudioClip *aclip = get_audio_clip_for_old_style_number(false, val1);
+    ScriptAudioClip *aclip = GetAudioClipForOldStyleNumber(game, false, val1);
     if (aclip && !is_audiotype_allowed_to_play((AudioFileType)aclip->fileType))
         return -1; // if sound is off, ignore it
 

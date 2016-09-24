@@ -12,22 +12,34 @@
 //
 //=============================================================================
 //
-//
+// PluginInfo - a struct defining general information on game plugin.
 //
 //=============================================================================
-#ifndef __AGS_EE_MAIN__GAMEFILE_H
-#define __AGS_EE_MAIN__GAMEFILE_H
 
+#ifndef __AGS_CN_GAME__PLUGININFO_H
+#define __AGS_CN_GAME__PLUGININFO_H
+
+#include "util/stdtr1compat.h"
+#include TR1INCLUDE(memory)
 #include "util/string.h"
 
-void set_default_glmsg (int msgnum, const char* val);
+namespace AGS
+{
+namespace Common
+{
 
-extern AGS::Common::String game_file_name;
+struct PluginInfo
+{
+    // (File)name of plugin
+    String      Name;
+    // Custom data for plugin
+    stdtr1compat::shared_ptr<char> Data;
+    size_t      DataLen;
 
-// Preload particular game-describing parameters from the game data header (title, save game dir name, etc)
-bool preload_game_data(AGS::Common::String &err_str);
-// Loads game data and reinitializes the game state; assigns error message in case of failure
-bool load_game_file(AGS::Common::String &err_str);
-void display_game_file_error(const AGS::Common::String &err_str);
+    PluginInfo() : DataLen(0) {}
+};
 
-#endif // __AGS_EE_MAIN__GAMEFILE_H
+} // namespace Common
+} // namespace AGS
+
+#endif // __AGS_CN_GAME__PLUGININFO_H

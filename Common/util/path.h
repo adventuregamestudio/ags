@@ -46,6 +46,11 @@ namespace Path
     // with path, knowing it contains only one type of directory separators
     void    FixupPath(String &path);
     String  MakeAbsolutePath(const String &path);
+
+    // Subsitutes illegal characters with '_'. This function uses a combined set
+    // of illegal chars from all the supported platforms to make a name that
+    // could be copied across systems without problems.
+    String  FixupSharedFilename(const String &filename);
 } // namespace Path
 
 } // namespace Common

@@ -32,6 +32,7 @@
 #include "game/game_init.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
+#include "gui/guilabel.h"
 #include "media/audio/audio.h"
 #include "plugin/agsplugin.h"
 #include "script/cc_error.h"
@@ -88,6 +89,10 @@ extern std::vector<ccInstance *> moduleInst;
 extern std::vector<ccInstance *> moduleInstFork;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 
+// Old dialog support (defined in ac/dialog)
+extern std::vector< stdtr1compat::shared_ptr<unsigned char> > old_dialog_scripts;
+extern std::vector<String> old_speech_lines;
+
 StaticArray StaticCharacterArray;
 StaticArray StaticObjectArray;
 StaticArray StaticGUIArray;
@@ -112,6 +117,10 @@ String GetGameInitErrorText(GameInitError err)
         return "No fonts specified to be used in this game";
     case kGameInitErr_TooManyAudioTypes:
         return "Too many audio types for this engine to handle";
+    case kGameInitErr_TooManyPlugins:
+        return "Too many plugins for this engine to handle";
+    case kGameInitErr_PluginNameInvalid:
+        return "Plugin name is invalid";
     case kGameInitErr_ScriptLinkFailed:
         return String::FromFormat("Script link failed: %s", ccErrorString);
     }
@@ -338,7 +347,7 @@ void AllocScriptModules()
     }
 }
 
-GameInitError InitGameState(GameDataVersion data_ver)
+GameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     //
     // 1. Check that the loaded data is valid and compatible with the current
@@ -382,12 +391,19 @@ GameInitError InitGameState(GameDataVersion data_ver)
     actspswbbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
     actspswbcache = (CachedActSpsData*)calloc(actSpsCount, sizeof(CachedActSpsData));
     play.charProps.resize(game.numcharacters);
+    old_dialog_scripts = ents.OldDialogScripts;
+    old_speech_lines = ents.OldSpeechLines;
     InitAndRegisterGameEntities();
     LoadFonts();
 
     //
     // 4. Create game scripts
     //
+    gamescript = ents.GlobalScript;
+    dialogScriptsScript = ents.DialogScript;
+    numScriptModules = ents.ScriptModules.size();
+    scriptModules = ents.ScriptModules;
+
     ccSetScriptAliveTimer(150000);
     ccSetStringClassImpl(&myScriptStringImpl);
     setup_script_exports();
@@ -412,13 +428,19 @@ GameInitError InitGameState(GameDataVersion data_ver)
     //
     // 7. Initialize runtime state of certain game objects
     //
+    for (int i = 0; i < numguilabels; ++i)
+    {
+        // labels are not clickable by default
+        guilabels[i].SetClickable(false);
+    }
+    play.gui_draw_order = (int*)calloc(game.numgui * sizeof(int), 1);
     update_gui_zorder();
     calculate_reserved_channel_count();
 
     //
     // 8. Start up plugins
     //
-    pl_register_plugins();
+    pl_register_plugins(ents.PluginInfos);
     pl_startup_plugins();
     return kGameInitErr_NoError;
 }

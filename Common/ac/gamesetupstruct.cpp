@@ -82,67 +82,62 @@ void GameSetupStruct::BuildAudioClipArray(const AssetLibInfo &lib)
 }
 
 
-MainGameFileError GameSetupStruct::ReadFromFile_Part1(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::ReadFromFile_Part1(Common::Stream *in, GameDataVersion data_ver)
 {
-    read_savegame_info(in, data_ver, read_data);
-    read_font_flags(in, read_data);
-    MainGameFileError err = read_sprite_flags(in, data_ver, read_data);
+    read_savegame_info(in, data_ver);
+    read_font_flags(in);
+    MainGameFileError err = read_sprite_flags(in, data_ver);
     if (err != kMGFErr_NoError)
         return err;
     ReadInvInfo_Aligned(in);
-    err = read_cursors(in, data_ver, read_data);
+    err = read_cursors(in, data_ver);
     if (err != kMGFErr_NoError)
         return err;
-    read_interaction_scripts(in, data_ver, read_data);
-    read_words_dictionary(in, read_data);
+    read_interaction_scripts(in, data_ver);
+    read_words_dictionary(in);
     return kMGFErr_NoError;
 }
 
-MainGameFileError GameSetupStruct::ReadFromFile_Part2(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::ReadFromFile_Part2(Common::Stream *in, GameDataVersion data_ver)
 {
-   read_characters(in, data_ver, read_data);
-   read_lipsync(in, data_ver, read_data);
-   read_messages(in, data_ver, read_data);
+   read_characters(in, data_ver);
+   read_lipsync(in, data_ver);
+   read_messages(in, data_ver);
    return kMGFErr_NoError;
 }
 
-MainGameFileError GameSetupStruct::ReadFromFile_Part3(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::ReadFromFile_Part3(Common::Stream *in, GameDataVersion data_ver)
 {
-    MainGameFileError err = read_customprops(in, data_ver, read_data);
+    MainGameFileError err = read_customprops(in, data_ver);
     if (err != kMGFErr_NoError)
         return err;
-    err = read_audio(in, data_ver, read_data);
+    err = read_audio(in, data_ver);
     if (err != kMGFErr_NoError)
         return err;
-    read_room_names(in, data_ver, read_data);
+    read_room_names(in, data_ver);
     return kMGFErr_NoError;
 }
 
 //-----------------------------------------------------------------------------
 // Reading Part 1
 
-void GameSetupStruct::read_savegame_info(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_savegame_info(Common::Stream *in, GameDataVersion data_ver)
 {
     if (data_ver > kGameVersion_272) // only 3.x
     {
         in->Read(&guid[0], MAX_GUID_LENGTH);
         in->Read(&saveGameFileExtension[0], MAX_SG_EXT_LENGTH);
         in->Read(&saveGameFolderName[0], MAX_SG_FOLDER_LEN);
-
-        if (saveGameFileExtension[0] != 0)
-            sprintf(read_data.saveGameSuffix, ".%s", saveGameFileExtension);
-        else
-            read_data.saveGameSuffix[0] = 0;
     }
 }
 
-void GameSetupStruct::read_font_flags(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_font_flags(Common::Stream *in)
 {
     in->Read(&fontflags[0], numfonts);
     in->Read(&fontoutline[0], numfonts);
 }
 
-MainGameFileError GameSetupStruct::read_sprite_flags(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::read_sprite_flags(Common::Stream *in, GameDataVersion data_ver)
 {
     int numToRead;
     if (data_ver < kGameVersion_256)
@@ -176,7 +171,7 @@ void GameSetupStruct::WriteInvInfo_Aligned(Stream *out)
     }
 }
 
-MainGameFileError GameSetupStruct::read_cursors(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::read_cursors(Common::Stream *in, GameDataVersion data_ver)
 {
     if (numcursors > MAX_CURSOR)
         return kMGFErr_TooManyCursors;
@@ -196,7 +191,7 @@ MainGameFileError GameSetupStruct::read_cursors(Common::Stream *in, GameDataVers
     return kMGFErr_NoError;
 }
 
-void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver)
 {
     numGlobalVars = 0;
 
@@ -233,7 +228,7 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersi
     }
 }
 
-void GameSetupStruct::read_words_dictionary(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_words_dictionary(Common::Stream *in)
 {
     if (load_dictionary) {
         dict = (WordsDictionary*)malloc(sizeof(WordsDictionary));
@@ -264,7 +259,7 @@ void GameSetupStruct::WriteMouseCursors_Aligned(Stream *out)
 //-----------------------------------------------------------------------------
 // Reading Part 2
 
-void GameSetupStruct::read_characters(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_characters(Common::Stream *in, GameDataVersion data_ver)
 {
     chars=(CharacterInfo*)calloc(1,sizeof(CharacterInfo)*numcharacters+5);
 
@@ -304,13 +299,13 @@ void GameSetupStruct::read_characters(Common::Stream *in, GameDataVersion data_v
     }
 }
 
-void GameSetupStruct::read_lipsync(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_lipsync(Common::Stream *in, GameDataVersion data_ver)
 {
     if (data_ver >= kGameVersion_254) // lip syncing was introduced in 2.54
         in->ReadArray(&lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50);
 }
 
-void GameSetupStruct::read_messages(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_messages(Common::Stream *in, GameDataVersion data_ver)
 {
     for (int ee=0;ee<MAXGLOBALMES;ee++) {
         if (!load_messages[ee]) continue;
@@ -358,7 +353,7 @@ void GameSetupStruct::WriteCharacters_Aligned(Stream *out)
 //-----------------------------------------------------------------------------
 // Reading Part 3
 
-MainGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVersion data_ver)
 {
     if (data_ver >= kGameVersion_260) // >= 2.60
     {
@@ -392,7 +387,7 @@ MainGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameData
     return kMGFErr_NoError;
 }
 
-MainGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersion data_ver)
 {
     if (data_ver >= kGameVersion_320)
     {
@@ -408,8 +403,7 @@ MainGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersio
         audioClips = (ScriptAudioClip*)malloc(audioClipCount * sizeof(ScriptAudioClip));
         ReadAudioClips_Aligned(in);
         
-        //play.score_sound = in->ReadInt32();
-        read_data.score_sound = in->ReadInt32();
+        scoreClipID = in->ReadInt32();
     }
     else
     {
@@ -465,6 +459,7 @@ MainGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersio
             BuildAudioClipArray(*game_lib);
 
         audioClips = (ScriptAudioClip*)realloc(audioClips, audioClipCount * sizeof(ScriptAudioClip));
+        scoreClipID = -1;
     }
     return kMGFErr_NoError;
 }
@@ -473,7 +468,7 @@ MainGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersio
 // it is unknown if this should be defined for all solution, or only runtime
 #define STD_BUFFER_SIZE 3000
 
-void GameSetupStruct::read_room_names(Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_room_names(Stream *in, GameDataVersion data_ver)
 {
     if ((data_ver >= kGameVersion_301) && (options[OPT_DEBUGMODE] != 0))
     {

@@ -196,7 +196,7 @@ char saveGameDirectory[260] = "./";
 String saveGameParent;
 
 const char* sgnametemplate = "agssave.%03d";
-char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
+String saveGameSuffix;
 
 int game_paused=0;
 char pexbuf[STD_BUFFER_SIZE];
@@ -423,7 +423,7 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
 
     // copy the Restart Game file, if applicable
     char restartGamePath[260];
-    sprintf(restartGamePath, "%s""agssave.%d%s", saveGameDirectory, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix);
+    sprintf(restartGamePath, "%s""agssave.%d%s", saveGameDirectory, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
     Stream *restartGameFile = Common::File::OpenFileRead(restartGamePath);
     if (restartGameFile != NULL)
 	{
@@ -432,7 +432,7 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
         restartGameFile->Read(mbuffer, fileSize);
         delete restartGameFile;
 
-        sprintf(restartGamePath, "%s""agssave.%d%s", newSaveGameDir.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix);
+        sprintf(restartGamePath, "%s""agssave.%d%s", newSaveGameDir.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
         restartGameFile = Common::File::CreateFile(restartGamePath);
         restartGameFile->Write(mbuffer, fileSize);
         delete restartGameFile;

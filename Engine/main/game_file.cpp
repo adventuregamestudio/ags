@@ -52,8 +52,6 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
-
 // Old dialog support
 extern unsigned char** old_dialog_scripts; // defined in ac_conversation
 extern char** old_speech_lines;
@@ -352,10 +350,10 @@ void game_file_read_gui(Stream *in)
     play.gui_draw_order = (int*)calloc(game.numgui * sizeof(int), 1);
 }
 
-void game_file_set_score_sound(GameDataVersion data_ver, GameSetupStruct::GAME_STRUCT_READ_DATA &read_data)
+void game_file_set_score_sound(GameDataVersion data_ver)
 {
     if (data_ver >= kGameVersion_320) {
-        play.score_sound = read_data.score_sound;
+        play.score_sound = game.scoreClipID;
     }
     else {
         play.score_sound = -1;
@@ -569,10 +567,7 @@ void PreReadSaveFileInfo(Stream *in, GameDataVersion data_ver)
     // Discard game messages we do not need here
     delete [] game.load_messages;
     game.load_messages = NULL;
-
-    GameSetupStruct::GAME_STRUCT_READ_DATA read_data;
-    read_data.saveGameSuffix = saveGameSuffix;
-    game.read_savegame_info(in, data_ver, read_data);
+    game.read_savegame_info(in, data_ver);
 }
 
 void fixup_save_directory()
@@ -676,11 +671,14 @@ MainGameFileError load_game_file()
     if (game.numfonts > MAX_FONTS)
         return kMGFErr_TooManyFonts;
 
-    GameSetupStruct::GAME_STRUCT_READ_DATA read_data;
-    read_data.saveGameSuffix = saveGameSuffix;
-    err = game.ReadFromFile_Part1(in, data_ver, read_data);
+    err = game.ReadFromFile_Part1(in, data_ver);
     if (err != kMGFErr_NoError)
         return err;
+
+    if (game.saveGameFileExtension[0] != 0)
+        saveGameSuffix.Format(".%s", game.saveGameFileExtension);
+    else
+        saveGameSuffix = "";
 
     if (!game.load_compiled_script)
         return kMGFErr_NoGlobalScript;
@@ -722,7 +720,7 @@ MainGameFileError load_game_file()
 
     charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
     //-----------------------------------------------------
-    err = game.ReadFromFile_Part2(in, data_ver, read_data);
+    err = game.ReadFromFile_Part2(in, data_ver);
     if (err != kMGFErr_NoError)
         return err;
     //-----------------------------------------------------
@@ -741,14 +739,14 @@ MainGameFileError load_game_file()
     }
 
     //-----------------------------------------------------
-    err = game.ReadFromFile_Part3(in, data_ver, read_data);
+    err = game.ReadFromFile_Part3(in, data_ver);
     if (err != kMGFErr_NoError)
         return err;
     //-----------------------------------------------------
     if (game.audioClipTypeCount > MAX_AUDIO_TYPES)
         return kMGFErr_TooManyAudioTypes;
 
-    game_file_set_score_sound(data_ver, read_data);
+    game_file_set_score_sound(data_ver);
 
 	//-----------------------------------------------------------
 	// Reading from file is finished here

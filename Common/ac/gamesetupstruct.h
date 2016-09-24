@@ -62,6 +62,9 @@ struct GameSetupStruct: public GameSetupStructBase {
     ScriptAudioClip  *audioClips;
     int               audioClipTypeCount;
     AudioClipType    *audioClipTypes;
+    // A clip to play when player gains score in game
+    // TODO: find out why OPT_SCORESOUND option cannot be used to store this in >=3.2 games
+    int               scoreClipID;
 
 
 
@@ -78,28 +81,22 @@ struct GameSetupStruct: public GameSetupStructBase {
     // GameSetupStruct member.
     // Anyway, I believe that read/write/init functions should be in the
     // class regardless it is shared by both engine and editor or not.
-    struct GAME_STRUCT_READ_DATA
-    {
-        // out
-        char *saveGameSuffix;
-        int  score_sound;
-    };
 
     void BuildAudioClipArray(const AGS::Common::AssetLibInfo &lib);
 
-    MainGameFileError ReadFromFile_Part1(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
-    MainGameFileError ReadFromFile_Part2(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
-    MainGameFileError ReadFromFile_Part3(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
+    MainGameFileError ReadFromFile_Part1(Common::Stream *in, GameDataVersion data_ver);
+    MainGameFileError ReadFromFile_Part2(Common::Stream *in, GameDataVersion data_ver);
+    MainGameFileError ReadFromFile_Part3(Common::Stream *in, GameDataVersion data_ver);
     //--------------------------------------------------------------------
     // Do not call these directly
     //------------------------------
     // Part 1
-    void read_savegame_info(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
-    void read_font_flags(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
-    MainGameFileError read_sprite_flags(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
-    MainGameFileError read_cursors(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
-    void read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
-    void read_words_dictionary(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
+    void read_savegame_info(Common::Stream *in, GameDataVersion data_ver);
+    void read_font_flags(Common::Stream *in);
+    MainGameFileError read_sprite_flags(Common::Stream *in, GameDataVersion data_ver);
+    MainGameFileError read_cursors(Common::Stream *in, GameDataVersion data_ver);
+    void read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver);
+    void read_words_dictionary(Common::Stream *in);
 
     void ReadInvInfo_Aligned(Common::Stream *in);
     void WriteInvInfo_Aligned(Common::Stream *out);
@@ -107,17 +104,17 @@ struct GameSetupStruct: public GameSetupStructBase {
     void WriteMouseCursors_Aligned(Common::Stream *out);
     //------------------------------
     // Part 2
-    void read_characters(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
-    void read_lipsync(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
-    void read_messages(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
+    void read_characters(Common::Stream *in, GameDataVersion data_ver);
+    void read_lipsync(Common::Stream *in, GameDataVersion data_ver);
+    void read_messages(Common::Stream *in, GameDataVersion data_ver);
 
     void ReadCharacters_Aligned(Common::Stream *in);
     void WriteCharacters_Aligned(Common::Stream *out);
     //------------------------------
     // Part 3
-    MainGameFileError read_customprops(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
-    MainGameFileError read_audio(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
-    void read_room_names(Common::Stream *in, GameDataVersion data_ver, GAME_STRUCT_READ_DATA &read_data);
+    MainGameFileError read_customprops(Common::Stream *in, GameDataVersion data_ver);
+    MainGameFileError read_audio(Common::Stream *in, GameDataVersion data_ver);
+    void read_room_names(Common::Stream *in, GameDataVersion data_ver);
 
     void ReadAudioClips_Aligned(Common::Stream *in);
     //--------------------------------------------------------------------

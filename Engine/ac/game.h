@@ -21,9 +21,10 @@
 
 #include "ac/dynobj/scriptviewframe.h"
 #include "main/game_file.h"
+#include "util/string.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class Bitmap; class Stream; class String; } }
+namespace AGS { namespace Common { class Bitmap; class Stream; } }
 using namespace AGS; // FIXME later
 
 #define RAGMODE_PRESERVEGLOBALINT 1
@@ -167,5 +168,6 @@ extern int in_new_room;
 extern int new_room_pos;
 extern int new_room_x, new_room_y, new_room_loop;
 extern int displayed_room;
+extern Common::String saveGameSuffix;
 
 #endif // __AGS_EE_AC__GAME_H

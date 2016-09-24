@@ -111,8 +111,10 @@ struct LoadedGameEntities
 String             GetMainGameFileErrorText(MainGameFileError err);
 // Tells if the given path (library filename) contains main game file
 bool               IsMainGameLibrary(const String &filename);
-// Opens main game file for reading
-MainGameFileError  OpenMainGameFile(MainGameSource &src);
+// Opens main game file for reading from an arbitrary file
+MainGameFileError  OpenMainGameFile(const String &filename, MainGameSource &src);
+// Opens main game file for reading from the asset library (uses default asset name)
+MainGameFileError  OpenMainGameFileFromDefaultAsset(MainGameSource &src);
 // Reads game data, applies necessary conversions to match current format version
 MainGameFileError  ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver);
 // Applies necessary updates, conversions and fixups to the loaded data

@@ -109,21 +109,11 @@ bool IsMainGameLibrary(const String &filename)
     return false;
 }
 
-MainGameFileError OpenMainGameFile(MainGameSource &src)
+// Begins reading main game file from a generic stream
+MainGameFileError OpenMainGameFileBase(PStream &in, MainGameSource &src)
 {
-    // Cleanup source struct
-    src = MainGameSource();
-    // Try to find and open main game file
-    String filename = MainGameSource::DefaultFilename_v3;
-    PStream in(AssetManager::OpenAsset(filename));
     if (!in)
-    {
-        filename = MainGameSource::DefaultFilename_v2;
-        in = PStream(AssetManager::OpenAsset(filename));
-    }
-    if (!in)
-        return kMGFErr_FileNotFound;
-    src.Filename = filename;
+        return kMGFErr_NoStream;
     // Check data signature
     String data_sig = String::FromStreamCount(in.get(), MainGameSource::Signature.GetLength());
     if (data_sig.Compare(MainGameSource::Signature))
@@ -144,6 +134,37 @@ MainGameFileError OpenMainGameFile(MainGameSource &src)
     // game file is opened.
     loaded_game_file_version = src.DataVersion;
     return kMGFErr_NoError;
+}
+
+MainGameFileError OpenMainGameFile(const String &filename, MainGameSource &src)
+{
+    // Cleanup source struct
+    src = MainGameSource();
+    // Try to open given file
+    PStream in(File::OpenFileRead(filename));
+    if (!in)
+        return kMGFErr_FileNotFound;
+    src.Filename = filename;
+    return OpenMainGameFileBase(in, src);
+}
+
+MainGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src)
+{
+    // Cleanup source struct
+    src = MainGameSource();
+    // Try to find and open main game file
+    String filename = MainGameSource::DefaultFilename_v3;
+    PStream in(AssetManager::OpenAsset(filename));
+    if (!in)
+    {
+        filename = MainGameSource::DefaultFilename_v2;
+        in = PStream(AssetManager::OpenAsset(filename));
+    }
+    if (!in)
+        return kMGFErr_FileNotFound;
+
+    src.Filename = filename;
+    return OpenMainGameFileBase(in, src);
 }
 
 MainGameFileError ReadDialogScript(PScript &dialog_script, Stream *in, GameDataVersion data_ver)

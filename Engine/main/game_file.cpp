@@ -64,7 +64,7 @@ String game_file_name;
 // it logs information on data version and reports first found errors, if any.
 MainGameFileError game_file_first_open(MainGameSource &src)
 {
-    MainGameFileError err = OpenMainGameFile(src);
+    MainGameFileError err = OpenMainGameFileFromDefaultAsset(src);
     if (err == kMGFErr_NoError ||
         err == kMGFErr_SignatureFailed ||
         err == kMGFErr_FormatVersionTooOld ||
@@ -123,7 +123,7 @@ bool load_game_file(String &err_str)
 {
     MainGameSource src;
     LoadedGameEntities ents(game, dialog, views);
-    MainGameFileError load_err = OpenMainGameFile(src);
+    MainGameFileError load_err = OpenMainGameFileFromDefaultAsset(src);
     if (load_err == kMGFErr_NoError)
     {
         load_err = ReadGameData(ents, src.InputStream.get(), src.DataVersion);

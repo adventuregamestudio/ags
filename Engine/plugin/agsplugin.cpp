@@ -934,7 +934,7 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
 
         EnginePlugin *apl = &plugins[numPlugins++];
         // Copy plugin info
-        snprintf(apl->filename, sizeof(apl->filename), "%s", info.Name.GetCStr());
+        snprintf(apl->filename, sizeof(apl->filename), "%s", name.GetCStr());
         if (info.DataLen)
         {
             apl->savedata = (char*)malloc(info.DataLen);

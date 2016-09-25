@@ -397,22 +397,7 @@ GameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data
     LoadFonts();
 
     //
-    // 4. Create game scripts
-    //
-    gamescript = ents.GlobalScript;
-    dialogScriptsScript = ents.DialogScript;
-    numScriptModules = ents.ScriptModules.size();
-    scriptModules = ents.ScriptModules;
-
-    ccSetScriptAliveTimer(150000);
-    ccSetStringClassImpl(&myScriptStringImpl);
-    setup_script_exports();
-    AllocScriptModules();
-    if (create_global_script())
-        return kGameInitErr_ScriptLinkFailed;
-
-    //
-    // 5. Initialize certain runtime variables
+    // 4. Initialize certain runtime variables
     //
     game_paused = 0;  // reset the game paused flag
     ifacepopped = -1;
@@ -426,7 +411,7 @@ GameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data
     play.fade_effect = game.options[OPT_FADETYPE];
 
     //
-    // 7. Initialize runtime state of certain game objects
+    // 5. Initialize runtime state of certain game objects
     //
     for (int i = 0; i < numguilabels; ++i)
     {
@@ -438,10 +423,33 @@ GameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data
     calculate_reserved_channel_count();
 
     //
-    // 8. Start up plugins
+    // 6. Register engine API exports
+    // NOTE: we must do this before plugin start, because some plugins may
+    // require access to script API at initialization time.
+    //
+    ccSetScriptAliveTimer(150000);
+    ccSetStringClassImpl(&myScriptStringImpl);
+    setup_script_exports();
+
+    //
+    // 7. Start up plugins
     //
     pl_register_plugins(ents.PluginInfos);
     pl_startup_plugins();
+
+    //
+    // 8. Create script modules
+    // NOTE: we must do this after plugins, because some plugins may export
+    // script symbols too.
+    //
+    gamescript = ents.GlobalScript;
+    dialogScriptsScript = ents.DialogScript;
+    numScriptModules = ents.ScriptModules.size();
+    scriptModules = ents.ScriptModules;
+    AllocScriptModules();
+    if (create_global_script())
+        return kGameInitErr_ScriptLinkFailed;
+
     return kGameInitErr_NoError;
 }
 

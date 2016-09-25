@@ -281,6 +281,10 @@ void ReadDialogs(DialogTopic *&dialog,
                 decrypt_text(buffer.get());
             old_dialog_src[i] = buffer.get();
         }
+        else
+        {
+            in->Seek(script_text_len);
+        }
     }
 
     // Read the dialog lines

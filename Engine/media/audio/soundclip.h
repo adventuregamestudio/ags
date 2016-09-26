@@ -81,11 +81,14 @@ struct SOUNDCLIP
         return speed;
     }
 
+    // Gets clip's *origin* volume, as percentage (0 - 100)
     inline int get_volume() const
     {
         return originalVolAsPercentage;
     }
 
+    // Sets the current volume level, as percentage (0 - 100), that will also
+    // be preserved as "origin" whenever applying any adjustments.
     inline void set_volume_origin(int volume)
     {
         volAsPercentage = volume;
@@ -93,6 +96,8 @@ struct SOUNDCLIP
         set_volume((volume * 255) / 100);
     }
 
+    // Same as set_volume_origin, except it lets you to also explicitly define
+    // absolute volume value, without calculating it from given percentage.
     inline void set_volume_alternate(int vol_percent, int vol_absolute)
     {
         volAsPercentage = vol_percent;
@@ -100,23 +105,33 @@ struct SOUNDCLIP
         set_volume(vol_absolute);
     }
 
+    // Changes current volume percentage, while keeping volume's "origin"
+    // unchanged for future reference. This is useful for temporary
+    // altering volume of the playing clip.
     inline void set_volume_override(int volume)
     {
         volAsPercentage = volume;
         set_volume((volume * 255) / 100);
     }
 
+    // Resets current volume to the preserved "origin".
     inline void reset_volume_to_origin()
     {
         set_volume_origin(originalVolAsPercentage);
     }
 
+    // Apply arbitrary permanent volume modifier, in absolute units (0 - 255);
+    // this is distinct value that is used in conjunction with current volume
+    // (can be both positive and negative).
     inline void apply_volume_modifier(int mod)
     {
         volModifier = mod;
         adjust_volume();
     }
 
+    // Apply permanent directional volume modifier, in absolute units (0 - 255)
+    // this is distinct value that is used in conjunction with current volume
+    // (can be both positive and negative).
     inline void apply_directional_modifier(int mod)
     {
         directionalVolModifier = mod;

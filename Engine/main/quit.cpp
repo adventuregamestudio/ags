@@ -36,6 +36,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
+#include "plugin/agsplugin.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -102,7 +103,7 @@ void quit_shutdown_platform(QuitReason qreason)
 
     our_eip = 9016;
 
-    platform->ShutdownPlugins();
+    pl_stop_plugins();
 
     quit_check_dynamic_sprites(qreason);
 

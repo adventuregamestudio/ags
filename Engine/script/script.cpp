@@ -57,8 +57,8 @@ extern CharacterInfo*playerchar;
 ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
 ExecutingScript*curscript = NULL;
 
-ccScript* gamescript=NULL;
-ccScript* dialogScriptsScript = NULL;
+PScript gamescript;
+PScript dialogScriptsScript;
 ccInstance *gameinst = NULL, *roominst = NULL;
 ccInstance *dialogScriptsInst = NULL;
 ccInstance *gameinstFork = NULL, *roominstFork = NULL;
@@ -80,7 +80,7 @@ NonBlockingScriptFunction runDialogOptionRepExecFunc("dialog_options_repexec", 1
 
 ScriptSystem scsystem;
 
-std::vector<ccScript *> scriptModules;
+std::vector<PScript> scriptModules;
 std::vector<ccInstance *> moduleInst;
 std::vector<ccInstance *> moduleInstFork;
 std::vector<RuntimeScriptValue> moduleRepExecAddr;

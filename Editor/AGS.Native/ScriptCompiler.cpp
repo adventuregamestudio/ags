@@ -102,7 +102,7 @@ namespace AGS
 				  throw exceptionToThrow;
 			  }
 
-			  script->CompiledData = gcnew CompiledScript(scrpt);
+			  script->CompiledData = gcnew CompiledScript(PScript(scrpt));
 		}
 
 		void NativeMethods::CreateDataFile(cli::array<String^> ^fileList, long splitSize, String ^baseFileName, bool isGameEXE)

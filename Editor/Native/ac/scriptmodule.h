@@ -38,7 +38,7 @@ struct ScriptModule {
     int  uniqueKey;
     int  permissions;
     int  weAreOwner;
-    ccScript *compiled;
+    PScript compiled;
 
     void init();
 

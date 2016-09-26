@@ -23,6 +23,7 @@
 #include "debug/logfile.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
+#include "plugin/agsplugin.h"
 #include "script/script.h"
 #include "script/script_common.h"
 #include "script/cc_error.h"
@@ -41,8 +42,6 @@ extern int displayed_room;
 extern roomstruct thisroom;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern volatile char want_exit, abort_engine;
-extern ccScript* gamescript;
-extern ccScript* dialogScriptsScript;
 
 
 int use_compiled_folder_as_current_dir = 0;
@@ -473,7 +472,7 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
         // a plugin is handling the debugging
         char scname[40];
         ccinst->GetScriptName(scname);
-        platform->RunPluginDebugHooks(scname, linenum);
+        pl_run_plugin_debug_hooks(scname, linenum);
         return;
     }
 

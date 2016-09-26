@@ -67,8 +67,8 @@ void    can_run_delayed_command();
 extern ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
 extern ExecutingScript*curscript;
 
-extern ccScript* gamescript;
-extern ccScript* dialogScriptsScript;
+extern PScript gamescript;
+extern PScript dialogScriptsScript;
 extern ccInstance *gameinst, *roominst;
 extern ccInstance *dialogScriptsInst;
 extern ccInstance *gameinstFork, *roominstFork;
@@ -90,7 +90,7 @@ extern NonBlockingScriptFunction runDialogOptionRepExecFunc;
 
 extern ScriptSystem scsystem;
 
-extern std::vector<ccScript *> scriptModules;
+extern std::vector<PScript> scriptModules;
 extern std::vector<ccInstance *> moduleInst;
 extern std::vector<ccInstance *> moduleInstFork;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;

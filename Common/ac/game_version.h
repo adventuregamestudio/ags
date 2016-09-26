@@ -126,4 +126,10 @@ enum GameDataVersion
 
 extern GameDataVersion loaded_game_file_version;
 
+// Test if the game is made at the times of old audio system
+inline bool is_old_audio_system()
+{
+    return loaded_game_file_version < kGameVersion_320;
+}
+
 #endif // __AGS_CN_AC__GAMEVERSION_H

@@ -911,52 +911,37 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
     return false;
 }
 
-void pl_read_plugins_from_disk (Stream *in) {
-    if (in->ReadInt32() != 1)
-        quit("ERROR: unable to load game, invalid version of plugin data");
-
-    numPlugins = in->ReadInt32();
-
-    if (numPlugins > MAXPLUGINS)
-        quit("Too many plugins used by this game");
-
-    for (int a = 0; a < numPlugins; a++) {
-        char pluginNameBuffer[200];
-        int datasize;
-        
-        // read the plugin name
-        fgetstring (pluginNameBuffer, in);
-        datasize = in->ReadInt32();
-
-        size_t name_len = strlen(pluginNameBuffer);
-        if (pluginNameBuffer[name_len - 1] == '!') {
-            // editor-only plugin, ignore it
-            in->Seek(datasize);
-            a--;
-            numPlugins--;
-            continue;
-        }
-
-        // just check for silly datasizes
-        if ((datasize < 0) || (datasize > 10247680))
-            quit("Too much plugin save data for this engine");
-
+Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> &infos)
+{
+    numPlugins = 0;
+    for (size_t inf_index = 0; inf_index < infos.size(); ++inf_index)
+    {
+        const Common::PluginInfo &info = infos[inf_index];
+        String name = info.Name;
+        if (name.GetLast() == '!')
+            continue; // editor-only plugin, ignore it
+        if (numPlugins == MAXPLUGINS)
+            return kGameInitErr_TooManyPlugins;
         // AGS Editor currently saves plugin names in game data with
         // ".dll" extension appended; we need to take care of that
-        const char *name_ext = ".dll";
-        const size_t ext_len = strlen(name_ext);
-        if (name_len <= ext_len || name_len > PLUGIN_FILENAME_MAX + ext_len ||
-            stricmp(&pluginNameBuffer[name_len - ext_len], name_ext)) {
-            quitprintf("Plugin '%s' is not a valid AGS plugin because the filename is invalid.", pluginNameBuffer);
+        const String name_ext = ".dll";
+        if (name.GetLength() <= name_ext.GetLength() || name.GetLength() > PLUGIN_FILENAME_MAX + name_ext.GetLength() ||
+                name.CompareRightNoCase(name_ext, name_ext.GetLength())) {
+            return kGameInitErr_PluginNameInvalid;
         }
         // remove ".dll" from plugin's name
-        pluginNameBuffer[name_len - ext_len] = 0;
+        name.ClipRight(name_ext.GetLength());
 
-        // load the actual plugin from disk
-        EnginePlugin *apl = &plugins[a];
-        
-        strncpy(apl->filename, pluginNameBuffer, PLUGIN_FILENAME_MAX+1);
-        
+        EnginePlugin *apl = &plugins[numPlugins++];
+        // Copy plugin info
+        snprintf(apl->filename, sizeof(apl->filename), "%s", name.GetCStr());
+        if (info.DataLen)
+        {
+            apl->savedata = (char*)malloc(info.DataLen);
+            memcpy(apl->savedata, info.Data.get(), info.DataLen);
+        }
+        apl->savedatasize = info.DataLen;
+
         // Compatibility with the old SnowRain module
         if (stricmp(apl->filename, "ags_SnowRain20") == 0) {
             strcpy(apl->filename, "ags_snowrain");
@@ -994,18 +979,12 @@ void pl_read_plugins_from_disk (Stream *in) {
           }
         }
 
-        if (datasize > 0) {
-            apl->savedata = (char*)malloc(datasize);
-            in->Read (apl->savedata, datasize);
-        }
-        apl->savedatasize = datasize;
-        apl->eiface.pluginId = a;
+        apl->eiface.pluginId = numPlugins - 1;
         apl->eiface.version = 24;
         apl->wantHook = 0;
-
         apl->available = true;
     }
-
+    return kGameInitErr_NoError;
 }
 
 bool pl_is_plugin_loaded(const char *pl_name)

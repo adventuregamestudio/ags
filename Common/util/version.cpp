@@ -1,10 +1,10 @@
 
 #include <ctype.h>
-#include "main/version.h"
+#include "util/version.h"
 
 namespace AGS
 {
-namespace Engine
+namespace Common
 {
 
 const Version Version::LastOldFormatVersion(3, 2, 2, 1120);
@@ -133,5 +133,5 @@ void Version::MakeString()
     ShortString.Format("%d.%d", Major, Minor);
 }
 
-} // namespace Engine
+} // namespace Common
 } // namespace AGS

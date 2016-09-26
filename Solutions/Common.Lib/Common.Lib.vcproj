@@ -356,7 +356,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\ac\characterinfo.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\ac\common.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\dialogtopic.cpp"
 					>
 				</File>
 				<File
@@ -365,6 +373,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\gamesetupstructbase.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\inventoryiteminfo.cpp"
 					>
 				</File>
 				<File
@@ -540,6 +552,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\version.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\wgt2allg.cpp"
 					>
 				</File>
@@ -609,6 +625,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\game\interactions.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\game\main_game_file.cpp"
 					>
 				</File>
 			</Filter>
@@ -894,6 +914,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\version.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\wgt2allg.h"
 					>
 				</File>
@@ -995,6 +1019,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\game\interactions.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\game\main_game_file.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\game\plugininfo.h"
 					>
 				</File>
 			</Filter>

@@ -28,7 +28,6 @@ using AGS::Common::Graphics;
 
 extern GameSetupStruct game;
 extern ViewStruct*views;
-extern int psp_is_old_datafile;
 extern SpriteCache spriteset;
 extern CCAudioClip ccDynamicAudioClip;
 
@@ -79,11 +78,11 @@ void ViewFrame_SetSound(ScriptViewFrame *svf, int newSound)
   else
   {
     // convert sound number to audio clip
-    ScriptAudioClip* clip = get_audio_clip_for_old_style_number(false, newSound);
+    ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, newSound);
     if (clip == NULL)
       quitprintf("!SetFrameSound: audio clip aSound%d not found", newSound);
 
-    views[svf->view].loops[svf->loop].frames[svf->frame].sound = clip->id + (psp_is_old_datafile ? 0x10000000 : 0);
+    views[svf->view].loops[svf->loop].frames[svf->frame].sound = clip->id + (is_old_audio_system() ? 0x10000000 : 0);
   }
 }
 
@@ -105,18 +104,6 @@ int ViewFrame_GetFrame(ScriptViewFrame *svf) {
 
 //=============================================================================
 
-void allocate_memory_for_views(int viewCount)
-{
-    views = (ViewStruct*)calloc(sizeof(ViewStruct) * viewCount, 1);
-    game.viewNames = (char**)malloc(sizeof(char*) * viewCount);
-    game.viewNames[0] = (char*)malloc(MAXVIEWNAMELENGTH * viewCount);
-
-    for (int i = 1; i < viewCount; i++)
-    {
-        game.viewNames[i] = game.viewNames[0] + (MAXVIEWNAMELENGTH * i);
-    }
-}
-
 void precache_view(int view) 
 {
     if (view < 0) 
@@ -131,13 +118,13 @@ void precache_view(int view)
 // the specified frame has just appeared, see if we need
 // to play a sound or whatever
 void CheckViewFrame (int view, int loop, int frame) {
-    if (psp_is_old_datafile)
+    if (is_old_audio_system())
     {
         if (views[view].loops[loop].frames[frame].sound > 0)
         {
             if (views[view].loops[loop].frames[frame].sound < 0x10000000)
             {
-                ScriptAudioClip* clip = get_audio_clip_for_old_style_number(false, views[view].loops[loop].frames[frame].sound);
+                ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, views[view].loops[loop].frames[frame].sound);
                 if (clip)
                     views[view].loops[loop].frames[frame].sound = clip->id + 0x10000000;
                 else

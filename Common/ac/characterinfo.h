@@ -92,6 +92,9 @@ struct CharacterInfo {
 	// either because they use it to set some variables with it,
 	// or because they pass it further to other functions, that are called from various places
 	// and it would be too much to change them all simultaneously
+    //
+    // [IKM] 2016-08-26: these methods should NOT be in CharacterInfo class,
+    // bit in distinct runtime character class!
 	void UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, int &numSheep, int *followingAsSheep);
 	void UpdateFollowingExactlyCharacter();
 

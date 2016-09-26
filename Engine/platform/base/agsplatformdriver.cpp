@@ -76,44 +76,6 @@ void AGSPlatformDriver::YieldCPU() {
     this->Delay(1);
 }
 
-void AGSPlatformDriver::ReadPluginsFromDisk(AGS::Common::Stream *iii) {
-#if 1
-  pl_read_plugins_from_disk(iii);
-#else
-  if (iii->ReadInt32() != 1)
-      quit("ERROR: unable to load game, invalid version of plugin data");
-
-  int numPlug = iii->ReadInt32(), a, datasize;
-  String buffer;
-  for (a = 0; a < numPlug; a++) {
-      // read the plugin name
-      buffer = iii->ReadString();
-      datasize = iii->ReadInt32();
-      iii->Seek (datasize);
-  }
-#endif
-}
-
-void AGSPlatformDriver::StartPlugins() {
-  pl_startup_plugins();
-}
-
-void AGSPlatformDriver::ShutdownPlugins() {
-  pl_stop_plugins();
-}
-
-int AGSPlatformDriver::RunPluginHooks(int event, long data) {
-  return pl_run_plugin_hooks(event, data);
-}
-
-void AGSPlatformDriver::RunPluginInitGfxHooks(const char *driverName, void *data) {
-  pl_run_plugin_init_gfx_hooks(driverName, data);
-}
-
-int AGSPlatformDriver::RunPluginDebugHooks(const char *scriptfile, int linenum) {
-  return pl_run_plugin_debug_hooks(scriptfile, linenum);
-}
-
 void AGSPlatformDriver::InitialiseAbufAtStartup()
 {
     // because loading the game file accesses abuf, it must exist

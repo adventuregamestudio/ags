@@ -14,6 +14,7 @@
 
 #include "ac/gamesetupstruct.h"
 #include "ac/common.h"
+#include "core/asset.h"
 #include "core/assetmanager.h"
 #include "util/string_utils.h"      // fputstring, etc
 #include "util/string.h"
@@ -22,127 +23,54 @@
 
 using namespace AGS::Common;
 
-
-// Create the missing audioClips data structure for 3.1.x games.
-// This is done by going through the data files and adding all music*.*
-// and sound*.* files to it.
-void GameSetupStruct::BuildAudioClipArray()
+ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_music, int num)
 {
-    char temp_name[30];
-    int temp_number;
-    char temp_extension[10];
+    String clip_name;
+    if (is_music)
+        clip_name.Format("aMusic%d", num);
+    else
+        clip_name.Format("aSound%d", num);
 
-    int number_of_files = Common::AssetManager::GetAssetCount();
-    int i;
-    for (i = 0; i < number_of_files; i++)
+    for (int i = 0; i < game.audioClipCount; ++i)
     {
-        if (sscanf(Common::AssetManager::GetAssetFileByIndex(i), "%5s%d.%3s", temp_name, &temp_number, temp_extension) == 3)
-        {
-            if (stricmp(temp_name, "music") == 0)
-            {
-                sprintf(audioClips[audioClipCount].scriptName, "aMusic%d", temp_number);
-                sprintf(audioClips[audioClipCount].fileName, "music%d.%s", temp_number, temp_extension);
-                audioClips[audioClipCount].bundlingType = (stricmp(temp_extension, "mid") == 0) ? AUCL_BUNDLE_EXE : AUCL_BUNDLE_VOX;
-                audioClips[audioClipCount].type = 2;
-                audioClips[audioClipCount].defaultRepeat = 1;
-            }
-            else if (stricmp(temp_name, "sound") == 0)
-            {
-                sprintf(audioClips[audioClipCount].scriptName, "aSound%d", temp_number);
-                sprintf(audioClips[audioClipCount].fileName, "sound%d.%s", temp_number, temp_extension);
-                audioClips[audioClipCount].bundlingType = AUCL_BUNDLE_EXE;
-                audioClips[audioClipCount].type = 3;
-            }
-            else
-            {
-                continue;
-            }
-
-            audioClips[audioClipCount].defaultVolume = 100;
-            audioClips[audioClipCount].defaultPriority = 50;
-            audioClips[audioClipCount].id = audioClipCount;
-
-            if (stricmp(temp_extension, "mp3") == 0)
-                audioClips[audioClipCount].fileType = eAudioFileMP3;
-            else if (stricmp(temp_extension, "wav") == 0)
-                audioClips[audioClipCount].fileType = eAudioFileWAV;
-            else if (stricmp(temp_extension, "voc") == 0)
-                audioClips[audioClipCount].fileType = eAudioFileVOC;
-            else if (stricmp(temp_extension, "mid") == 0)
-                audioClips[audioClipCount].fileType = eAudioFileMIDI;
-            else if ((stricmp(temp_extension, "mod") == 0) || (stricmp(temp_extension, "xm") == 0)
-                || (stricmp(temp_extension, "s3m") == 0) || (stricmp(temp_extension, "it") == 0))
-                audioClips[audioClipCount].fileType = eAudioFileMOD;
-            else if (stricmp(temp_extension, "ogg") == 0)
-                audioClips[audioClipCount].fileType = eAudioFileOGG;
-
-            audioClipCount++;
-        }
+        if (clip_name.Compare(game.audioClips[i].scriptName) == 0)
+            return &game.audioClips[i];
     }
-}
-
-
-void GameSetupStruct::ReadFromFile_Part1(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
-{
-    read_savegame_info(in, read_data);
-    read_font_flags(in, read_data);
-    read_sprite_flags(in, read_data);
-    ReadInvInfo_Aligned(in);
-    read_cursors(in, read_data);
-    read_interaction_scripts(in, read_data);
-    read_words_dictionary(in, read_data);
-}
-
-void GameSetupStruct::ReadFromFile_Part2(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
-{
-   read_characters(in, read_data);
-   read_lipsync(in, read_data);
-   read_messages(in, read_data);
-}
-
-void GameSetupStruct::ReadFromFile_Part3(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
-{
-    read_customprops(in, read_data);
-    read_audio(in, read_data);
-    read_room_names(in, read_data);
+    return NULL;
 }
 
 //-----------------------------------------------------------------------------
 // Reading Part 1
 
-void GameSetupStruct::read_savegame_info(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_savegame_info(Common::Stream *in, GameDataVersion data_ver)
 {
-    if (read_data.filever > kGameVersion_272) // only 3.x
+    if (data_ver > kGameVersion_272) // only 3.x
     {
         in->Read(&guid[0], MAX_GUID_LENGTH);
         in->Read(&saveGameFileExtension[0], MAX_SG_EXT_LENGTH);
         in->Read(&saveGameFolderName[0], MAX_SG_FOLDER_LEN);
-
-        if (saveGameFileExtension[0] != 0)
-            sprintf(read_data.saveGameSuffix, ".%s", saveGameFileExtension);
-        else
-            read_data.saveGameSuffix[0] = 0;
     }
 }
 
-void GameSetupStruct::read_font_flags(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_font_flags(Common::Stream *in)
 {
     in->Read(&fontflags[0], numfonts);
     in->Read(&fontoutline[0], numfonts);
 }
 
-void GameSetupStruct::read_sprite_flags(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::read_sprite_flags(Common::Stream *in, GameDataVersion data_ver)
 {
     int numToRead;
-    if (read_data.filever < kGameVersion_256)
+    if (data_ver < kGameVersion_256)
         numToRead = 6000; // Fixed number of sprites on < 2.56
     else
         numToRead = in->ReadInt32();
 
-    if (numToRead > MAX_SPRITES) {
-        quit("Too many sprites; need newer AGS version");
-    }
+    if (numToRead > MAX_SPRITES)
+        return kMGFErr_TooManySprites;
     in->Read(&spriteflags[0], numToRead);
+    memset(spriteflags + numToRead, 0, MAX_SPRITES - numToRead);
+    return kMGFErr_NoError;
 }
 
 void GameSetupStruct::ReadInvInfo_Aligned(Stream *in)
@@ -165,30 +93,20 @@ void GameSetupStruct::WriteInvInfo_Aligned(Stream *out)
     }
 }
 
-void GameSetupStruct::read_cursors(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::read_cursors(Common::Stream *in, GameDataVersion data_ver)
 {
     if (numcursors > MAX_CURSOR)
-        quit("Too many cursors: need newer AGS version");
+        return kMGFErr_TooManyCursors;
 
     ReadMouseCursors_Aligned(in);
-
-    if (read_data.filever <= kGameVersion_272) // 2.x
-    {
-        // Change cursor.view from 0 to -1 for non-animating cursors.
-        int i;
-        for (i = 0; i < numcursors; i++)
-        {
-            if (mcurs[i].view == 0)
-                mcurs[i].view = -1;
-        }
-    }
+    return kMGFErr_NoError;
 }
 
-void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver)
 {
     numGlobalVars = 0;
 
-    if (read_data.filever > kGameVersion_272) // 3.x
+    if (data_ver > kGameVersion_272) // 3.x
     {
         int bb;
 
@@ -205,6 +123,8 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GAME_STRUCT_R
     {
         int bb;
 
+        charScripts = NULL;
+        invScripts = NULL;
         intrChar = new Interaction*[numcharacters];
 
         for (bb = 0; bb < numcharacters; bb++) {
@@ -221,7 +141,7 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GAME_STRUCT_R
     }
 }
 
-void GameSetupStruct::read_words_dictionary(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_words_dictionary(Common::Stream *in)
 {
     if (load_dictionary) {
         dict = (WordsDictionary*)malloc(sizeof(WordsDictionary));
@@ -252,62 +172,30 @@ void GameSetupStruct::WriteMouseCursors_Aligned(Stream *out)
 //-----------------------------------------------------------------------------
 // Reading Part 2
 
-void GameSetupStruct::read_characters(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_characters(Common::Stream *in, GameDataVersion data_ver)
 {
     chars=(CharacterInfo*)calloc(1,sizeof(CharacterInfo)*numcharacters+5);
 
     ReadCharacters_Aligned(in);
-
-    //charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*numcharacters+5);
-
-    if (read_data.filever <= kGameVersion_272) // fixup charakter script names for 2.x (EGO -> cEgo)
-    {
-        char tempbuffer[200];
-        for (int i = 0; i < numcharacters; i++)
-        {
-            memset(tempbuffer, 0, 200);
-            tempbuffer[0] = 'c';
-            tempbuffer[1] = chars[i].scrname[0];
-            strcat(&tempbuffer[2], strlwr(&chars[i].scrname[1]));
-            strcpy(chars[i].scrname, tempbuffer);
-        }
-    }
-
-    if (read_data.filever <= kGameVersion_310) // fix character walk speed for < 3.1.1
-    {
-        for (int i = 0; i < numcharacters; i++)
-        {
-            if (options[OPT_ANTIGLIDE])
-                chars[i].flags |= CHF_ANTIGLIDE;
-        }
-    }
-
-    // Characters can always walk through each other on < 2.54
-    if (read_data.filever < kGameVersion_254)
-    {
-        for (int i = 0; i < numcharacters; i++)
-        {
-            chars[i].flags |= CHF_NOBLOCKING;
-        }
-    }
 }
 
-void GameSetupStruct::read_lipsync(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_lipsync(Common::Stream *in, GameDataVersion data_ver)
 {
-    if (read_data.filever >= kGameVersion_254) // lip syncing was introduced in 2.54
+    if (data_ver >= kGameVersion_254) // lip syncing was introduced in 2.54
         in->ReadArray(&lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50);
 }
 
-void GameSetupStruct::read_messages(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_messages(Common::Stream *in, GameDataVersion data_ver)
 {
     for (int ee=0;ee<MAXGLOBALMES;ee++) {
         if (!load_messages[ee]) continue;
         messages[ee]=(char*)malloc(500);
 
-        if (read_data.filever < kGameVersion_261) // Global messages are not encrypted on < 2.61
+        if (data_ver < kGameVersion_261) // Global messages are not encrypted on < 2.61
         {
             char* nextchar = messages[ee];
 
+            // TODO: probably this is same as fgetstring
             while (1)
             {
                 *nextchar = in->ReadInt8();
@@ -346,16 +234,17 @@ void GameSetupStruct::WriteCharacters_Aligned(Stream *out)
 //-----------------------------------------------------------------------------
 // Reading Part 3
 
-void GameSetupStruct::read_customprops(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVersion data_ver)
 {
-    if (read_data.filever >= kGameVersion_260) // >= 2.60
+    if (data_ver >= kGameVersion_260) // >= 2.60
     {
-        if (Properties::ReadSchema(propSchema, in))
-            quit("load room: unable to deserialize prop schema");
+        if (Properties::ReadSchema(propSchema, in) != kPropertyErr_NoError)
+            return kMGFErr_InvalidPropertySchema;
 
         int errors = 0;
         int bb;
 
+        charProps.resize(numcharacters);
         for (int i = 0; i < numcharacters; ++i)
         {
             errors += Properties::ReadValues(charProps[i], in);
@@ -366,7 +255,7 @@ void GameSetupStruct::read_customprops(Common::Stream *in, GAME_STRUCT_READ_DATA
         }
 
         if (errors > 0)
-            quit("LoadGame: errors encountered reading custom props");
+            return kMGFErr_InvalidPropertyValues;
 
         for (bb = 0; bb < numviews; bb++)
             fgetstring_limit(viewNames[bb], in, MAXVIEWNAMELENGTH);
@@ -377,20 +266,17 @@ void GameSetupStruct::read_customprops(Common::Stream *in, GAME_STRUCT_READ_DATA
         for (bb = 0; bb < numdialog; bb++)
             fgetstring_limit(dialogScriptNames[bb], in, MAX_SCRIPT_NAME_LEN);
     }
+    return kMGFErr_NoError;
 }
 
-void GameSetupStruct::read_audio(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
+MainGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersion data_ver)
 {
-    int i;
-    if (read_data.filever >= kGameVersion_320)
+    if (data_ver >= kGameVersion_320)
     {
         audioClipTypeCount = in->ReadInt32();
 
-        if (audioClipTypeCount > read_data.max_audio_types)
-            quit("LoadGame: too many audio types");
-
         audioClipTypes = (AudioClipType*)malloc(audioClipTypeCount * sizeof(AudioClipType));
-        for (i = 0; i < audioClipTypeCount; ++i)
+        for (int i = 0; i < audioClipTypeCount; ++i)
         {
             audioClipTypes[i].ReadFromFile(in);
         }
@@ -399,50 +285,18 @@ void GameSetupStruct::read_audio(Common::Stream *in, GAME_STRUCT_READ_DATA &read
         audioClips = (ScriptAudioClip*)malloc(audioClipCount * sizeof(ScriptAudioClip));
         ReadAudioClips_Aligned(in);
         
-        //play.score_sound = in->ReadInt32();
-        read_data.score_sound = in->ReadInt32();
+        scoreClipID = in->ReadInt32();
     }
-    else
-    {
-        // Create soundClips and audioClipTypes structures.
-        audioClipCount = 1000;
-        audioClipTypeCount = 4;
-
-        audioClipTypes = (AudioClipType*)malloc(audioClipTypeCount * sizeof(AudioClipType));
-        memset(audioClipTypes, 0, audioClipTypeCount * sizeof(AudioClipType));
-
-        audioClips = (ScriptAudioClip*)malloc(audioClipCount * sizeof(ScriptAudioClip));
-        memset(audioClips, 0, audioClipCount * sizeof(ScriptAudioClip));
-
-        int i;
-        for (i = 0; i < 4; i++)
-        {
-            audioClipTypes[i].reservedChannels = 1;
-            audioClipTypes[i].id = i;
-            audioClipTypes[i].volume_reduction_while_speech_playing = 10;
-        }
-        audioClipTypes[3].reservedChannels = 0;
-
-
-        audioClipCount = 0;
-
-        if (Common::AssetManager::SetDataFile("music.vox") == Common::kAssetNoError)
-            BuildAudioClipArray();
-
-        Common::AssetManager::SetDataFile(read_data.game_file_name);
-        BuildAudioClipArray();
-
-        audioClips = (ScriptAudioClip*)realloc(audioClips, audioClipCount * sizeof(ScriptAudioClip));
-    }
+    return kMGFErr_NoError;
 }
 
 // Temporarily copied this from acruntim.h;
 // it is unknown if this should be defined for all solution, or only runtime
 #define STD_BUFFER_SIZE 3000
 
-void GameSetupStruct::read_room_names(Stream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_room_names(Stream *in, GameDataVersion data_ver)
 {
-    if ((read_data.filever >= kGameVersion_301) && (options[OPT_DEBUGMODE] != 0))
+    if ((data_ver >= kGameVersion_301) && (options[OPT_DEBUGMODE] != 0))
     {
         roomCount = in->ReadInt32();
         roomNumbers = (int*)malloc(roomCount * sizeof(int));

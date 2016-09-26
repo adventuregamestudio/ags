@@ -14,5 +14,5 @@ void ScriptModule::init() {
     uniqueKey = 0;
     permissions = 0;
     weAreOwner = 1;
-    compiled = NULL;
+    compiled.reset();
 }

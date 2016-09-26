@@ -82,6 +82,7 @@ public:
     // NOTE: this group of methods are only temporarily public
     static AssetError   SetDataFile(const String &data_file);
     static String       GetLibraryBaseFile();
+    static const AssetLibInfo *GetLibraryTOC();
     static int          GetAssetCount();
     static String       GetLibraryForAsset(const String &asset_name);
     static String       GetAssetFileByIndex(int index);
@@ -104,6 +105,7 @@ private:
     AssetSearchPriority _GetSearchPriority();
     AssetError  _SetDataFile(const String &data_file);
     String      _GetLibraryBaseFile();
+    const AssetLibInfo &_GetLibraryTOC() const;
     int         _GetAssetCount();    
     String      _GetLibraryForAsset(const String &asset_name);
     String      _GetAssetFileByIndex(int index);

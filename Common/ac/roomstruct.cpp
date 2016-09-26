@@ -43,8 +43,7 @@ roomstruct::roomstruct() {
     numhotspots = 0;
     memset(&objbaseline[0], 0xff, sizeof(int) * MAX_INIT_SPR);
     memset(&objectFlags[0], 0, sizeof(short) * MAX_INIT_SPR);
-    width = 320; height = 200; scripts = NULL; compiled_script = NULL;
-    compiled_script_shared = false;
+    width = 320; height = 200; scripts = NULL;
     cscriptsize = 0;
     memset(&walk_area_zoom[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
     memset(&walk_area_light[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
@@ -91,12 +90,7 @@ void roomstruct::freescripts()
         scripts = NULL;
     }
 
-    if (!compiled_script_shared)
-    {
-        delete compiled_script;
-    }
-    compiled_script = NULL;
-    compiled_script_shared = false;
+    compiled_script.reset();
 
     if (roomScripts != NULL) 
     {
@@ -637,8 +631,7 @@ void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes) {
         rstruc->scripts[hh] += passwencstring[hh % 11];
     }
     else if (thisblock == BLOCKTYPE_COMPSCRIPT3) {
-      rstruc->compiled_script = ccScript::CreateFromStream(opty);
-      rstruc->compiled_script_shared = false;
+      rstruc->compiled_script.reset(ccScript::CreateFromStream(opty));
       if (rstruc->compiled_script == NULL)
         quit("Load_room: Script load failed; need newer version?");
     }

@@ -69,7 +69,6 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guidialog.h"
-#include "main/game_file.h"
 #include "main/graphics_mode.h"
 #include "main/main.h"
 #include "media/audio/audio.h"
@@ -196,7 +195,7 @@ char saveGameDirectory[260] = "./";
 String saveGameParent;
 
 const char* sgnametemplate = "agssave.%03d";
-char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
+String saveGameSuffix;
 
 int game_paused=0;
 char pexbuf[STD_BUFFER_SIZE];
@@ -423,7 +422,7 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
 
     // copy the Restart Game file, if applicable
     char restartGamePath[260];
-    sprintf(restartGamePath, "%s""agssave.%d%s", saveGameDirectory, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix);
+    sprintf(restartGamePath, "%s""agssave.%d%s", saveGameDirectory, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
     Stream *restartGameFile = Common::File::OpenFileRead(restartGamePath);
     if (restartGameFile != NULL)
 	{
@@ -432,7 +431,7 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path)
         restartGameFile->Read(mbuffer, fileSize);
         delete restartGameFile;
 
-        sprintf(restartGamePath, "%s""agssave.%d%s", newSaveGameDir.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix);
+        sprintf(restartGamePath, "%s""agssave.%d%s", newSaveGameDir.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix.GetCStr());
         restartGameFile = Common::File::CreateFile(restartGamePath);
         restartGameFile->Write(mbuffer, fileSize);
         delete restartGameFile;
@@ -582,8 +581,7 @@ void unload_game_file() {
         gameinst = NULL;
     }
 
-    delete gamescript;
-    gamescript = NULL;
+    gamescript.reset();
 
     if ((dialogScriptsInst != NULL) && (dialogScriptsInst->pc != 0))
         quit("Error: unload_game called while dialog script still running");
@@ -593,16 +591,12 @@ void unload_game_file() {
         dialogScriptsInst = NULL;
     }
 
-    if (dialogScriptsScript != NULL)
-    {
-        delete dialogScriptsScript;
-        dialogScriptsScript = NULL;
-    }
+    dialogScriptsScript.reset();
 
     for (ee = 0; ee < numScriptModules; ee++) {
         delete moduleInstFork[ee];
         delete moduleInst[ee];
-        delete scriptModules[ee];
+        scriptModules[ee].reset();
     }
     moduleInstFork.resize(0);
     moduleInst.resize(0);
@@ -685,7 +679,7 @@ void unload_game_file() {
     guis.clear();
     free(scrGui);
 
-    platform->ShutdownPlugins();
+    pl_stop_plugins();
     ccRemoveAllSymbols();
     ccUnregisterAllObjects();
 
@@ -1191,6 +1185,12 @@ void WriteMoveList_Aligned(Stream *out)
     }
 }
 
+void WriteGameSetupStructBase_Aligned(Stream *out)
+{
+    AlignedStream align_s(out, Common::kAligned_Write);
+    game.GameSetupStructBase::WriteToFile(&align_s);
+}
+
 void WriteCharacterExtras_Aligned(Stream *out)
 {
     AlignedStream align_s(out, Common::kAligned_Write);
@@ -1432,7 +1432,7 @@ void save_game_data(Stream *out)
     save_game_audioclips_and_crossfade(out);
 
     // [IKM] Plugins expect FILE pointer! // TODO something with this later...
-    platform->RunPluginHooks(AGSE_SAVEGAME, (long)((Common::FileStream*)out)->GetHandle());
+    pl_run_plugin_hooks(AGSE_SAVEGAME, (long)((Common::FileStream*)out)->GetHandle());
     out->WriteInt32 (MAGICNUMBER);  // to verify the plugins
 
     // save the room music volume
@@ -1692,6 +1692,12 @@ void ReadMoveList_Aligned(Stream *in)
         mls[i].ReadFromFile(&align_s);
         align_s.Reset();
     }
+}
+
+void ReadGameSetupStructBase_Aligned(Stream *in)
+{
+    AlignedStream align_s(in, Common::kAligned_Read);
+    game.GameSetupStructBase::ReadFromFile(&align_s);
 }
 
 void ReadCharacterExtras_Aligned(Stream *in)
@@ -2035,7 +2041,7 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const P
         return err;
 
     // [IKM] Plugins expect FILE pointer! // TODO something with this later
-    platform->RunPluginHooks(AGSE_RESTOREGAME, (long)((Common::FileStream*)in)->GetHandle());
+    pl_run_plugin_hooks(AGSE_RESTOREGAME, (long)((Common::FileStream*)in)->GetHandle());
     if (in->ReadInt32() != (unsigned)MAGICNUMBER)
         return kSvgErr_InconsistentPlugin;
 
@@ -2435,25 +2441,6 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
 
     buffer[0]=0;
     replace_tokens(get_translation(thisroom.message[msnum]), buffer, maxlen);
-}
-
-void register_audio_script_objects()
-{
-    int ee;
-    for (ee = 0; ee <= MAX_SOUND_CHANNELS; ee++) 
-    {
-        scrAudioChannel[ee].id = ee;
-        ccRegisterManagedObject(&scrAudioChannel[ee], &ccDynamicAudio);
-    }
-
-    for (ee = 0; ee < game.audioClipCount; ee++)
-    {
-        game.audioClips[ee].id = ee;
-        ccRegisterManagedObject(&game.audioClips[ee], &ccDynamicAudioClip);
-        ccAddExternalDynamicObject(game.audioClips[ee].scriptName, &game.audioClips[ee], &ccDynamicAudioClip);
-    }
-
-    calculate_reserved_channel_count();
 }
 
 bool unserialize_audio_script_object(int index, const char *objectType, const char *serializedData, int dataSize)

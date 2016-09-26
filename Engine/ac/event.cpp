@@ -232,7 +232,7 @@ void process_event(EventHappened*evp) {
             play.next_screen_transition = -1;
         }
 
-        if (platform->RunPluginHooks(AGSE_TRANSITIONIN, 0))
+        if (pl_run_plugin_hooks(AGSE_TRANSITIONIN, 0))
             return;
 
         if (play.fast_forward)

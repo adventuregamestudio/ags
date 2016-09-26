@@ -19,6 +19,8 @@
 #ifndef __CC_SCRIPT_H
 #define __CC_SCRIPT_H
 
+#include "util/stdtr1compat.h"
+#include TR1INCLUDE(memory)
 #include "core/types.h"
 
 namespace AGS { namespace Common { class Stream; } }
@@ -54,7 +56,9 @@ public:
     static ccScript *CreateFromStream(Common::Stream *in);
 
     ccScript();
+    ccScript(const ccScript &src);
     virtual ~ccScript(); // there are few derived classes, so dtor should be virtual
+
     // write the script to disk (after compiling)
     void        Write(Common::Stream *out);
     // read back a script written with Write
@@ -66,5 +70,7 @@ protected:
     // script after calling this function
     void        Free();
 };
+
+typedef stdtr1compat::shared_ptr<ccScript> PScript;
 
 #endif // __CC_SCRIPT_H

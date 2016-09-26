@@ -256,7 +256,7 @@ void initialize_sprite (int ee) {
             game.spriteflags[ee] |= SPF_HADALPHACHANNEL;
         }
 
-        platform->RunPluginHooks(AGSE_SPRITELOAD, ee);
+        pl_run_plugin_hooks(AGSE_SPRITELOAD, ee);
         update_polled_stuff_if_runtime();
 
         our_eip = oldeip;

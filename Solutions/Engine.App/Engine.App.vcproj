@@ -296,7 +296,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\ac\characterinfo.cpp"
+					RelativePath="..\..\Engine\ac\characterinfo_engine.cpp"
 					>
 				</File>
 				<File
@@ -309,10 +309,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\dialogoptionsrendering.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\ac\dialogtopic.cpp"
 					>
 				</File>
 				<File
@@ -529,10 +525,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\inventoryitem.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\ac\inventoryiteminfo.cpp"
 					>
 				</File>
 				<File
@@ -1075,10 +1067,6 @@
 					RelativePath="..\..\Engine\main\update.cpp"
 					>
 				</File>
-				<File
-					RelativePath="..\..\Engine\main\version.cpp"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="platform"
@@ -1179,6 +1167,10 @@
 			<Filter
 				Name="game"
 				>
+				<File
+					RelativePath="..\..\Engine\game\game_init.cpp"
+					>
+				</File>
 				<File
 					RelativePath="..\..\Engine\game\savegame.cpp"
 					>
@@ -2085,10 +2077,6 @@
 					RelativePath="..\..\Engine\main\update.h"
 					>
 				</File>
-				<File
-					RelativePath="..\..\Engine\main\version.h"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="gui"
@@ -2225,6 +2213,10 @@
 			<Filter
 				Name="game"
 				>
+				<File
+					RelativePath="..\..\Engine\game\game_init.h"
+					>
+				</File>
 				<File
 					RelativePath="..\..\Engine\game\savegame.h"
 					>

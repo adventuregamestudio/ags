@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include "ac/inventoryiteminfo.h"
 #include "util/stream.h"
 

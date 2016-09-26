@@ -21,7 +21,6 @@
 
 extern GameSetupStruct game;
 extern ViewStruct*views;
-extern int psp_is_old_datafile;
 
 
 void SetFrameSound (int vii, int loop, int frame, int sound) {
@@ -41,10 +40,10 @@ void SetFrameSound (int vii, int loop, int frame, int sound) {
     }
     else
     {
-        ScriptAudioClip* clip = get_audio_clip_for_old_style_number(false, sound);
+        ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, sound);
         if (clip == NULL)
             quitprintf("!SetFrameSound: audio clip aSound%d not found", sound);
 
-        views[vii].loops[loop].frames[frame].sound = clip->id + (psp_is_old_datafile ? 0x10000000 : 0);
+        views[vii].loops[loop].frames[frame].sound = clip->id + (is_old_audio_system() ? 0x10000000 : 0);
     }
 }

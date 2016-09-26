@@ -202,12 +202,12 @@ ccInstance *ccInstance::GetCurrentInstance()
     return current_instance;
 }
 
-ccInstance *ccInstance::CreateFromScript(ccScript * scri)
+ccInstance *ccInstance::CreateFromScript(PScript scri)
 {
     return CreateEx(scri, NULL);
 }
 
-ccInstance *ccInstance::CreateEx(ccScript * scri, ccInstance * joined)
+ccInstance *ccInstance::CreateEx(PScript scri, ccInstance * joined)
 {
     // allocate and copy all the memory with data, code and strings across
     ccInstance *cinst = new ccInstance();
@@ -237,7 +237,6 @@ ccInstance::ccInstance()
     stackdatasize       = 0;
     pc                  = 0;
     line_number         = 0;
-    instanceof          = NULL;
     callStackSize       = 0;
     loadedInstanceId    = 0;
     returnValue         = 0;
@@ -1591,7 +1590,7 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
     // the writer will delete data stream internally
 }
 
-bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
+bool ccInstance::_Create(PScript scri, ccInstance * joined)
 {
     int i;
     currentline = -1;
@@ -1770,7 +1769,7 @@ void ccInstance::Free()
     code_fixups = NULL;
 }
 
-bool ccInstance::ResolveScriptImports(ccScript * scri)
+bool ccInstance::ResolveScriptImports(PScript scri)
 {
     // When the import is referenced in code, it's being addressed
     // by it's index in the script imports array. That index is
@@ -1809,7 +1808,7 @@ bool ccInstance::ResolveScriptImports(ccScript * scri)
 // certain accuracy after all global vars are registered. Each
 // global var's size would be limited by closest next var's ScAddress
 // and globaldatasize.
-bool ccInstance::CreateGlobalVars(ccScript * scri)
+bool ccInstance::CreateGlobalVars(PScript scri)
 {
     ScriptVariable glvar;
 
@@ -1899,7 +1898,7 @@ ScriptVariable *ccInstance::FindGlobalVar(int32_t var_addr)
     return it != globalvars->end() ? &it->second : NULL;
 }
 
-bool ccInstance::CreateRuntimeCodeFixups(ccScript * scri)
+bool ccInstance::CreateRuntimeCodeFixups(PScript scri)
 {
     code_fixups = new char[scri->codesize];
     memset(code_fixups, 0, scri->codesize);

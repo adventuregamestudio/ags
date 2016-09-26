@@ -15,6 +15,8 @@
 #ifndef __AC_VIEW_H
 #define __AC_VIEW_H
 
+#include <vector>
+
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
@@ -72,6 +74,6 @@ struct ViewStruct272 {
     void ReadFromFile(Common::Stream *in);
 };
 
-void Convert272ViewsToNew (int numof, ViewStruct272 *oldv, ViewStruct *newv);
+void Convert272ViewsToNew(const std::vector<ViewStruct272> &oldv, ViewStruct *newv);
 
 #endif // __AC_VIEW_H

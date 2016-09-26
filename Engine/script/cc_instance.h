@@ -132,7 +132,7 @@ public:
     RuntimeScriptValue registers[CC_NUM_REGISTERS];
     int32_t pc;                     // program counter
     int32_t line_number;            // source code line number
-    ccScript *instanceof;
+    PScript instanceof;
     int  loadedInstanceId;
     int  returnValue;
 
@@ -150,8 +150,8 @@ public:
     // returns the currently executing instance, or NULL if none
     static ccInstance *GetCurrentInstance(void);
     // create a runnable instance of the supplied script
-    static ccInstance *CreateFromScript(ccScript *script);
-    static ccInstance *CreateEx(ccScript * scri, ccInstance * joined);
+    static ccInstance *CreateFromScript(PScript script);
+    static ccInstance *CreateEx(PScript scri, ccInstance * joined);
 
     ccInstance();
     ~ccInstance();
@@ -181,15 +181,15 @@ public:
     void    DumpInstruction(const ScriptOperation &op);
 
 protected:
-    bool    _Create(ccScript * scri, ccInstance * joined);
+    bool    _Create(PScript scri, ccInstance * joined);
     // free the memory associated with the instance
     void    Free();
 
-    bool    ResolveScriptImports(ccScript * scri);
-    bool    CreateGlobalVars(ccScript * scri);
+    bool    ResolveScriptImports(PScript scri);
+    bool    CreateGlobalVars(PScript scri);
     bool    AddGlobalVar(const ScriptVariable &glvar);
     ScriptVariable *FindGlobalVar(int32_t var_addr);
-    bool    CreateRuntimeCodeFixups(ccScript * scri);
+    bool    CreateRuntimeCodeFixups(PScript scri);
 	//bool    ReadOperation(ScriptOperation &op, int32_t at_pc);
 
     // Runtime fixups

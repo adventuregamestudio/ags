@@ -889,6 +889,10 @@ void D3DGraphicsDriver::UnInit()
 
   // Restore allegro window styles in case we modified them
   restore_window_style();
+  // For uncertain reasons WS_EX_TOPMOST (applied when creating fullscreen)
+  // cannot be removed with style altering functions; here use SetWindowPos
+  // as a workaround
+  SetWindowPos(win_get_window(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 }
 
 D3DGraphicsDriver::~D3DGraphicsDriver()

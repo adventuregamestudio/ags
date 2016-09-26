@@ -259,8 +259,6 @@ private:
     int numToDrawLastTime;
     GlobalFlipType flipTypeLastTime;
 
-    LONG _allegroOriginalWindowStyle;
-
     // Called after new mode was successfully initialized
     virtual void OnInit(const DisplayMode &mode, volatile int *loopTimer);
 

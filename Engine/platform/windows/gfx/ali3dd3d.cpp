@@ -200,7 +200,6 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _screenTintSprite.y = 0;
   pixelShader = NULL;
   _legacyPixelShader = false;
-  _allegroOriginalWindowStyle = 0;
   set_up_default_vertices();
   pNativeSurface = NULL;
   _skipPresent = false;
@@ -505,12 +504,7 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
   {
     // Remove the border in full-screen mode, otherwise if the player
     // clicks near the edge of the screen it goes back to Windows
-    if (_allegroOriginalWindowStyle == 0)
-    {
-      _allegroOriginalWindowStyle = GetWindowLong(allegro_wnd, GWL_STYLE);
-    }
-    LONG windowStyle = WS_POPUP;
-    SetWindowLong(allegro_wnd, GWL_STYLE, windowStyle);
+    SetWindowLong(allegro_wnd, GWL_STYLE, WS_POPUP);
   }
 
   memset( &d3dpp, 0, sizeof(d3dpp) );
@@ -893,15 +887,8 @@ void D3DGraphicsDriver::UnInit()
     direct3ddevice = NULL;
   }
 
-  if (_allegroOriginalWindowStyle != 0)
-  {
-    HWND allegro_wnd = win_get_window();
-    if (allegro_wnd)
-    {
-      SetWindowLong(allegro_wnd, GWL_STYLE, _allegroOriginalWindowStyle);
-    }
-    _allegroOriginalWindowStyle = 0;
-  }
+  // Restore allegro window styles in case we modified them
+  restore_window_style();
 }
 
 D3DGraphicsDriver::~D3DGraphicsDriver()

@@ -290,6 +290,12 @@ void Character_ChangeView(CharacterInfo *chap, int vii) {
     if ((chap->flags & CHF_FIXVIEW) && (chap->idleleft >= 0))
         debug_log("Warning: ChangeCharacterView was used while the view was fixed - call ReleaseCharView first");
 
+    // if the idle animation is playing we should release the view
+    if ( chap->idleleft < 0) {
+      Character_UnlockView(chap);
+      chap->idleleft = chap->idletime;
+    }
+
     DEBUG_CONSOLE("%s: Change view to %d", chap->scrname, vii+1);
     chap->defview = vii;
     chap->view = vii;

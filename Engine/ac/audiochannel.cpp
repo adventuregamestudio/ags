@@ -132,7 +132,7 @@ int AudioChannel_SetVolume(ScriptAudioChannel *channel, int newVolume)
     if ((channels[channel->id] != NULL) &&
         (channels[channel->id]->done == 0))
     {
-        channels[channel->id]->set_volume_origin(newVolume);
+        channels[channel->id]->set_volume_percent(newVolume);
     }
     return 0;
 }

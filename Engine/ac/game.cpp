@@ -278,7 +278,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
             ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
             if ((clip != NULL) && (clip->type == audioType))
             {
-                channels[aa]->set_volume_origin(volume);
+                channels[aa]->set_volume_percent(volume);
             }
         }
     }
@@ -2218,11 +2218,9 @@ void stop_fast_forwarding() {
     // Restore actual volume of sounds
     for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
     {
-        if ((channels[aa] != NULL) && (!channels[aa]->done) &&
-            (channels[aa]->volAsPercentage == 0) &&
-            (channels[aa]->originalVolAsPercentage > 0))
+        if ((channels[aa] != NULL) && (!channels[aa]->done))
         {
-            channels[aa]->reset_volume_to_origin();
+            channels[aa]->set_mute(false);
         }
     }
 

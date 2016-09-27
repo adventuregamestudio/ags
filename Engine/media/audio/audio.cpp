@@ -244,7 +244,7 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
     }
     if (soundClip != NULL)
     {
-        soundClip->set_volume_origin(audioClip->defaultVolume);
+        soundClip->set_volume_percent(audioClip->defaultVolume);
         soundClip->soundType = audioClip->type;
         soundClip->sourceClip = audioClip;
     }
@@ -351,13 +351,13 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
 
     if (play.crossfading_in_channel == channel)
     {
-        soundfx->set_volume_origin(0);
+        soundfx->set_volume_percent(0);
     }
 
     // Mute the audio clip if fast-forwarding the cutscene
     if (play.fast_forward) 
     {
-        soundfx->set_volume_override(0);
+        soundfx->set_mute(true);
 
         // CHECKME!!
         // [IKM] According to the 3.2.1 logic the clip will restore
@@ -367,7 +367,7 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
         // channel for this audio type? It does not even check if
         // anything of this type is currently playing.
         if (game.audioClipTypes[clip->type].reservedChannels != 1)
-            soundfx->originalVolAsPercentage = 0;
+            soundfx->set_volume_percent(0);
     }
 
     if (soundfx->play_from(fromOffset) == 0)
@@ -407,7 +407,7 @@ void update_queued_clips_volume(int audioType, int new_vol)
         {
             ScriptAudioClip *clip = &game.audioClips[play.new_music_queue[i].audioClipIndex];
             if (clip->type == audioType)
-                sndclip->set_volume_origin(new_vol);
+                sndclip->set_volume_percent(new_vol);
         }
     }
 }

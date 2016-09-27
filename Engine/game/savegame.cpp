@@ -470,7 +470,7 @@ SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_da
             chan_info.Priority, chan_info.Repeat, chan_info.Pos);
         if (channels[i] != NULL)
         {
-            channels[i]->set_volume_alternate(chan_info.VolAsPercent, chan_info.Vol);
+            channels[i]->set_volume_direct(chan_info.VolAsPercent, chan_info.Vol);
             channels[i]->set_speed(chan_info.Speed);
             channels[i]->set_panning(chan_info.Pan);
             channels[i]->panningAsPercentage = chan_info.PanAsPercent;

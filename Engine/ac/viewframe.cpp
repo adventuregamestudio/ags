@@ -16,6 +16,7 @@
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
 #include "media/audio/audio.h"
+#include "media/audio/soundclip.h"
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
@@ -30,6 +31,7 @@ extern GameSetupStruct game;
 extern ViewStruct*views;
 extern SpriteCache spriteset;
 extern CCAudioClip ccDynamicAudioClip;
+extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 
 
 int ViewFrame_GetFlipped(ScriptViewFrame *svf) {
@@ -117,7 +119,8 @@ void precache_view(int view)
 
 // the specified frame has just appeared, see if we need
 // to play a sound or whatever
-void CheckViewFrame (int view, int loop, int frame) {
+void CheckViewFrame (int view, int loop, int frame, int sound_volume) {
+    ScriptAudioChannel *channel = NULL;
     if (is_old_audio_system())
     {
         if (views[view].loops[loop].frames[frame].sound > 0)
@@ -133,16 +136,19 @@ void CheckViewFrame (int view, int loop, int frame) {
                     return;
                 }
             }
-            play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound - 0x10000000);
+            channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound - 0x10000000);
         }
     }
     else
     {
         if (views[view].loops[loop].frames[frame].sound >= 0) {
             // play this sound (eg. footstep)
-            play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
+            channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
         }
     }
+    if (sound_volume != SCR_NO_VALUE && channel != NULL)
+        channels[channel->id]->set_volume_percent(channels[channel->id]->get_volume() * sound_volume / 100);
+    
 }
 
 // draws a view frame, flipped if appropriate

@@ -2076,7 +2076,7 @@ void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noi
 
 void CheckViewFrameForCharacter(CharacterInfo *chi) {
 
-    int soundVolumeWas = play.sound_volume;
+    int soundVolume = SCR_NO_VALUE;
 
     if (chi->flags & CHF_SCALEVOLUME) {
         // adjust the sound volume using the character's zoom level
@@ -2084,17 +2084,15 @@ void CheckViewFrameForCharacter(CharacterInfo *chi) {
         if (zoom_level == 0)
             zoom_level = 100;
 
-        play.sound_volume = (play.sound_volume * zoom_level) / 100;
+        soundVolume = zoom_level;
 
-        if (play.sound_volume < 0)
-            play.sound_volume = 0;
-        if (play.sound_volume > 255)
-            play.sound_volume = 255;
+        if (soundVolume < 0)
+            soundVolume = 0;
+        if (soundVolume > 100)
+            soundVolume = 100;
     }
 
-    CheckViewFrame(chi->view, chi->loop, chi->frame);
-
-    play.sound_volume = soundVolumeWas;
+    CheckViewFrame(chi->view, chi->loop, chi->frame, soundVolume);
 }
 
 Bitmap *GetCharacterImage(int charid, int *isFlipped) 

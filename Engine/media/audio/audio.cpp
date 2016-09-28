@@ -436,10 +436,12 @@ ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int rep
     return play_audio_clip_on_channel(channel, clip, priority, repeat, fromOffset);
 }
 
-void play_audio_clip_by_index(int audioClipIndex)
+ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex)
 {
     if ((audioClipIndex >= 0) && (audioClipIndex < game.audioClipCount))
-        AudioClip_Play(&game.audioClips[audioClipIndex], SCR_NO_VALUE, SCR_NO_VALUE);
+        return AudioClip_Play(&game.audioClips[audioClipIndex], SCR_NO_VALUE, SCR_NO_VALUE);
+    else 
+        return NULL;
 }
 
 void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings) {

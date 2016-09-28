@@ -40,7 +40,7 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
 void        remove_clips_of_type_from_queue(int audioType);
 void        update_queued_clips_volume(int audioType, int new_vol);
 ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int repeat, int fromOffset, bool queueIfNoChannel);
-void        play_audio_clip_by_index(int audioClipIndex);
+ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex);
 void        stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings);
 void        stop_and_destroy_channel (int chid);
 

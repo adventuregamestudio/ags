@@ -2520,6 +2520,7 @@ void construct_virtual_screen(bool fullRedraw)
     Bitmap *ds = GetVirtualScreen();
 
     gfxDriver->UseSmoothScaling(IS_ANTIALIAS_SPRITES);
+    gfxDriver->ScaleNativeResolution(usetup.Screen.ScaleNativeResolution);
 
     pl_run_plugin_hooks(AGSE_PRERENDER, 0);
 

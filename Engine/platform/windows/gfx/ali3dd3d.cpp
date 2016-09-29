@@ -1111,7 +1111,12 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
       direct3ddevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
       direct3ddevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
     }
-    else 
+    else if (!_scaleNativeResolution)
+    {
+      direct3ddevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+      direct3ddevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+    }
+    else
     {
       _filter->SetSamplerStateForStandardSprite(direct3ddevice);
     }
@@ -1130,6 +1135,34 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
 
 void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterwards)
 {
+  IDirect3DSurface9 *pBackBuffer = NULL;
+  IDirect3DSurface9 *pRenderTarget = NULL;
+
+  if (!_scaleNativeResolution) {
+    if (direct3ddevice->CreateRenderTarget( 
+              _srcRect.GetWidth(),
+              _srcRect.GetHeight(),
+              D3DFMT_A8R8G8B8,
+              D3DMULTISAMPLE_NONE,
+              0,
+              false,
+              &pRenderTarget,
+              NULL  )!= D3D_OK)
+    {
+      throw Ali3DException("CreateRenderTarget failed");
+    }
+
+    if (direct3ddevice->GetRenderTarget(0, &pBackBuffer) != D3D_OK)
+    {
+      throw Ali3DException("IDirect3DSurface9::GetRenderTarget failed");
+    }
+    if (direct3ddevice->SetRenderTarget(0, pRenderTarget) != D3D_OK)
+    {
+      throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
+    }
+  }
+
+
   SpriteDrawListEntry *listToDraw = drawList;
   int listSize = numToDraw;
   HRESULT hr;
@@ -1173,7 +1206,32 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
   direct3ddevice->EndScene();
 
+  if (!_scaleNativeResolution) {
+    if (direct3ddevice->SetRenderTarget(0, pBackBuffer)!= D3D_OK)
+    {
+      throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
+    }
+    RECT viewport_rect;
+    viewport_rect.left   = _dstRect.Left;
+    viewport_rect.right  = _dstRect.Right + 1;
+    viewport_rect.top    = _dstRect.Top;
+    viewport_rect.bottom = _dstRect.Bottom + 1;
+    _filter->SetSamplerStateForStandardSprite(direct3ddevice); // restore nearest/linear so we can get the sampler, since filterinfo is lying
+    D3DTEXTUREFILTERTYPE filterType;
+    direct3ddevice->GetSamplerState(0, D3DSAMP_MAGFILTER, (DWORD*)&filterType);
+    //if (direct3ddevice->StretchRect(pRenderTarget, NULL, pBackBuffer, &viewport_rect, strncmp(_filter->FilterInfo.Id,"Linear",6)==0?D3DTEXF_LINEAR:D3DTEXF_POINT) != D3D_OK)
+    if (direct3ddevice->StretchRect(pRenderTarget, NULL, pBackBuffer, &viewport_rect, filterType) != D3D_OK)
+    {
+      throw Ali3DException("IDirect3DSurface9::StretchRect failed");
+    }
+  }
+    
   hr = direct3ddevice->Present(NULL, NULL, NULL, NULL);
+
+  if (!_scaleNativeResolution) {
+    pBackBuffer->Release();
+    pRenderTarget->Release();
+  }
 
   if (clearDrawListAfterwards)
   {

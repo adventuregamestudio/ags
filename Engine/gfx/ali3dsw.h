@@ -173,6 +173,7 @@ public:
     virtual void UseSmoothScaling(bool enabled) { }
     virtual void EnableVsyncBeforeRender(bool enabled) { _autoVsync = enabled; }
     virtual void Vsync();
+    virtual void ScaleNativeResolution(bool enabled) { }
     virtual bool RequiresFullRedrawEachFrame() { return false; }
     virtual bool HasAcceleratedStretchAndFlip() { return false; }
     virtual bool UsesMemoryBackBuffer() { return true; }

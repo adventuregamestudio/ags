@@ -208,6 +208,7 @@ public:
     virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination);
     virtual void EnableVsyncBeforeRender(bool enabled) { }
     virtual void Vsync();
+    virtual void ScaleNativeResolution(bool enabled) { }
     virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void BoxOutEffect(bool blackingOut, int speed, int delay);

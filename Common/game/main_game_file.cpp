@@ -280,7 +280,7 @@ void ReadDialogs(DialogTopic *&dialog,
             if (data_ver > kGameVersion_260)
                 decrypt_text(buffer);
             old_dialog_src[i] = buffer;
-            delete buffer;
+            delete [] buffer;
         }
         else
         {

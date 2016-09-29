@@ -275,11 +275,12 @@ void ReadDialogs(DialogTopic *&dialog,
             // Originally in the Editor +20000 bytes more were allocated, with comment:
             //   "add a large buffer because it will get added to if another option is added"
             // which probably refered to this data used by old editor directly to edit dialogs
-            std::auto_ptr<char> buffer(new char[script_text_len]);
-            in->Read(buffer.get(), script_text_len);
+            char *buffer = new char[script_text_len];
+            in->Read(buffer, script_text_len);
             if (data_ver > kGameVersion_260)
-                decrypt_text(buffer.get());
-            old_dialog_src[i] = buffer.get();
+                decrypt_text(buffer);
+            old_dialog_src[i] = buffer;
+            delete buffer;
         }
         else
         {

@@ -59,7 +59,6 @@
 		52C5BFAD1D277B43001E3B10 /* speech.vox */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = speech.vox; path = game_files/speech.vox; sourceTree = "<group>"; };
 		52C5BFB21D277B98001E3B10 /* plugin_registration.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = plugin_registration.cpp; sourceTree = "<group>"; };
 		52C5BFB31D277B98001E3B10 /* plugin_registration.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = plugin_registration.hpp; sourceTree = "<group>"; };
-		52C5BFB51D277BDA001E3B10 /* agsplugin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = agsplugin.h; path = ../../../Engine/plugin/agsplugin.h; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* ags-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "ags-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -103,7 +102,6 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
-				52C5BFB51D277BDA001E3B10 /* agsplugin.h */,
 				52C5BFB21D277B98001E3B10 /* plugin_registration.cpp */,
 				52C5BFB31D277B98001E3B10 /* plugin_registration.hpp */,
 				080E96DDFE201D6D7F000001 /* Classes */,
@@ -309,6 +307,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				USER_HEADER_SEARCH_PATHS = "${SOURCE_ROOT}/../../../Plugins ${SOURCE_ROOT}/../../../Common ${SOURCE_ROOT}/../../../Common/libinclude ${SOURCE_ROOT}/../../../Engine";
 			};
 			name = Debug;
 		};
@@ -348,6 +347,7 @@
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				SDKROOT = macosx;
+				USER_HEADER_SEARCH_PATHS = "${SOURCE_ROOT}/../../../Plugins ${SOURCE_ROOT}/../../../Common ${SOURCE_ROOT}/../../../Common/libinclude ${SOURCE_ROOT}/../../../Engine";
 			};
 			name = Release;
 		};

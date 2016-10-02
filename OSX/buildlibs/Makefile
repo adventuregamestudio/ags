@@ -111,5 +111,6 @@ dumb: prepare allegro
 	cd $(BUILD)/dumb-0.9.3 && \
 		patch -p1 < $(PATCHESDIR)/dumb-0.9.3.patch && \
 		echo "$$DUMB_CONF" > make/config.txt && \
+		make veryclean && \
 		make && \
 		make install

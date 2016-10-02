@@ -1,6 +1,6 @@
-diff -rNu dumb-0.9.3-orig/Makefile dumb-0.9.3/Makefile
---- dumb-0.9.3-orig/Makefile	2005-08-07 19:18:41.000000000 -0500
-+++ dumb-0.9.3/Makefile	2013-10-16 11:09:02.000000000 -0400
+diff -uNr a/Makefile b/Makefile
+--- a/Makefile	2005-08-08 10:18:41.000000000 +1000
++++ b/Makefile	2016-10-02 22:53:41.000000000 +1100
 @@ -231,8 +231,8 @@
  endif
  endif
@@ -12,9 +12,17 @@ diff -rNu dumb-0.9.3-orig/Makefile dumb-0.9.3/Makefile
  
  LDFLAGS := -s
  
-diff -rNu dumb-0.9.3-orig/Makefile.rdy dumb-0.9.3/Makefile.rdy
---- dumb-0.9.3-orig/Makefile.rdy	2005-08-07 19:18:39.000000000 -0500
-+++ dumb-0.9.3/Makefile.rdy	2013-10-16 11:08:56.000000000 -0400
+@@ -349,6 +349,7 @@
+ veryclean: clean
+ 	$(call DELETE,$(CORE_LIB_FILE))
+ 	$(call DELETE,$(ALLEGRO_LIB_FILE))
++	$(call DELETE,$(LIBDIR)/*.a)
+ 	$(call DELETE,$(CORE_EXAMPLES_EXE))
+ 	$(call DELETE,$(ALLEGRO_EXAMPLES_EXE))
+ 
+diff -uNr a/Makefile.rdy b/Makefile.rdy
+--- a/Makefile.rdy	2005-08-08 10:18:39.000000000 +1000
++++ b/Makefile.rdy	2016-10-02 22:33:06.000000000 +1100
 @@ -231,8 +231,8 @@
  endif
  endif
@@ -26,4 +34,40 @@ diff -rNu dumb-0.9.3-orig/Makefile.rdy dumb-0.9.3/Makefile.rdy
  
  LDFLAGS := -s
  
-diff -rNu dumb-0.9.3-orig/make/config.txt dumb-0.9.3/make/config.txt
+diff -uNr a/include/dumb.h b/include/dumb.h
+--- a/include/dumb.h	2005-08-08 10:18:40.000000000 +1000
++++ b/include/dumb.h	2016-10-02 22:33:18.000000000 +1100
+@@ -38,7 +38,7 @@
+ 
+ #define DUMB_VERSION_STR "0.9.3"
+ 
+-#define DUMB_NAME "DUMB v"DUMB_VERSION_STR
++#define DUMB_NAME "DUMB v" DUMB_VERSION_STR
+ 
+ #define DUMB_YEAR  2005
+ #define DUMB_MONTH 8
+@@ -50,13 +50,13 @@
+ #define DUMB_DAY_STR1   "7"
+ 
+ #if DUMB_MONTH < 10
+-#define DUMB_MONTH_STR2 "0"DUMB_MONTH_STR1
++#define DUMB_MONTH_STR2 "0" DUMB_MONTH_STR1
+ #else
+ #define DUMB_MONTH_STR2 DUMB_MONTH_STR1
+ #endif
+ 
+ #if DUMB_DAY < 10
+-#define DUMB_DAY_STR2 "0"DUMB_DAY_STR1
++#define DUMB_DAY_STR2 "0" DUMB_DAY_STR1
+ #else
+ #define DUMB_DAY_STR2 DUMB_DAY_STR1
+ #endif
+@@ -68,7 +68,7 @@
+  */
+ #define DUMB_DATE (DUMB_YEAR*10000 + DUMB_MONTH*100 + DUMB_DAY)
+ 
+-#define DUMB_DATE_STR DUMB_DAY_STR1"."DUMB_MONTH_STR1"."DUMB_YEAR_STR4
++#define DUMB_DATE_STR DUMB_DAY_STR1 "." DUMB_MONTH_STR1 "." DUMB_YEAR_STR4
+ 
+ 
+ #undef MIN

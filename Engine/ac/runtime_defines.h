@@ -52,6 +52,8 @@ const int LegacyRoomVolumeFactor            = 30;
 #define IN_BACKGROUND  920
 #define FORWARDS       1062
 #define BACKWARDS      1063
+#define STOP_MOVING    1
+#define KEEP_MOVING    0
 
 #define SCR_NO_VALUE   31998
 #define SCR_COLOR_TRANSPARENT -1

@@ -19,6 +19,8 @@ namespace AGS.Types
         [Description("3.3.5")]
         v335,
         [Description("3.4.0")]
-        v340
+        v340,
+        [Description("3.4.1")]
+        v341
     }
 }

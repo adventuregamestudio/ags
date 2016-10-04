@@ -595,6 +595,10 @@ bool Character_IsInteractionAvailable(CharacterInfo *cchar, int mood) {
 }
 
 void Character_LockView(CharacterInfo *chap, int vii) {
+    Character_LockViewEx(chap, vii, STOP_MOVING);
+}
+
+void Character_LockViewEx(CharacterInfo *chap, int vii, int stopMoving) {
 
     if ((vii < 1) || (vii > game.numviews)) {
         char buffer[150];
@@ -608,7 +612,10 @@ void Character_LockView(CharacterInfo *chap, int vii) {
         Character_UnlockView(chap);
         chap->idleleft = chap->idletime;
     }
-    Character_StopMoving(chap);
+    if (stopMoving != KEEP_MOVING)
+    {
+        Character_StopMoving(chap);
+    }
     chap->view=vii;
     chap->animating=0;
     FindReasonableLoopForCharacter(chap);
@@ -619,15 +626,18 @@ void Character_LockView(CharacterInfo *chap, int vii) {
     chap->pic_yoffs = 0;
 }
 
-
 void Character_LockViewAligned(CharacterInfo *chap, int vii, int loop, int align) {
+    Character_LockViewAlignedEx(chap, vii, loop, align, STOP_MOVING);
+}
+
+void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int align, int stopMoving) {
     if (chap->view < 0)
         quit("!SetCharacterLoop: character has invalid old view number");
 
     int sppic = views[chap->view].loops[chap->loop].frames[chap->frame].pic;
     int leftSide = multiply_up_coordinate(chap->x) - spritewidth[sppic] / 2;
 
-    Character_LockView(chap, vii);
+    Character_LockViewEx(chap, vii, stopMoving);
 
     if ((loop < 0) || (loop >= views[chap->view].numLoops))
         quit("!SetCharacterViewEx: invalid loop specified");
@@ -652,8 +662,12 @@ void Character_LockViewAligned(CharacterInfo *chap, int vii, int loop, int align
 }
 
 void Character_LockViewFrame(CharacterInfo *chaa, int view, int loop, int frame) {
+    Character_LockViewFrameEx(chaa, view, loop, frame, STOP_MOVING);
+}
 
-    Character_LockView(chaa, view);
+void Character_LockViewFrameEx(CharacterInfo *chaa, int view, int loop, int frame, int stopMoving) {
+
+    Character_LockViewEx(chaa, view, stopMoving);
 
     view--;
     if ((loop < 0) || (loop >= views[view].numLoops))
@@ -666,7 +680,11 @@ void Character_LockViewFrame(CharacterInfo *chaa, int view, int loop, int frame)
 }
 
 void Character_LockViewOffset(CharacterInfo *chap, int vii, int xoffs, int yoffs) {
-    Character_LockView(chap, vii);
+    Character_LockViewOffsetEx(chap, vii, xoffs, yoffs, STOP_MOVING);
+}
+
+void Character_LockViewOffsetEx(CharacterInfo *chap, int vii, int xoffs, int yoffs, int stopMoving) {
+    Character_LockViewEx(chap, vii, stopMoving);
 
     if ((current_screen_resolution_multiplier == 1) && (game.IsHiRes())) {
         // running a 640x400 game at 320x200, adjust
@@ -948,13 +966,20 @@ void Character_Think(CharacterInfo *chaa, const char *text) {
 }
 
 void Character_UnlockView(CharacterInfo *chaa) {
+    Character_UnlockViewEx(chaa, STOP_MOVING);
+}
+
+void Character_UnlockViewEx(CharacterInfo *chaa, int stopMoving) {
     if (chaa->flags & CHF_FIXVIEW) {
         DEBUG_CONSOLE("%s: Released view back to default", chaa->scrname);
     }
     chaa->flags &= ~CHF_FIXVIEW;
     chaa->view = chaa->defview;
     chaa->frame = 0;
-    Character_StopMoving(chaa);
+    if (stopMoving != KEEP_MOVING)
+    {
+        Character_StopMoving(chaa);
+    }
     if (chaa->view >= 0) {
         int maxloop = views[chaa->view].numLoops;
         if (((chaa->flags & CHF_NODIAGONAL)!=0) && (maxloop > 4))
@@ -2973,10 +2998,22 @@ RuntimeScriptValue Sc_Character_LockView(void *self, const RuntimeScriptValue *p
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_LockView);
 }
 
+// void (CharacterInfo *chap, int vii, int stopMoving)
+RuntimeScriptValue Sc_Character_LockViewEx(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT2(CharacterInfo, Character_LockViewEx);
+}
+
 // void (CharacterInfo *chap, int vii, int loop, int align)
 RuntimeScriptValue Sc_Character_LockViewAligned(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT3(CharacterInfo, Character_LockViewAligned);
+}
+
+// void (CharacterInfo *chap, int vii, int loop, int align, int stopMoving)
+RuntimeScriptValue Sc_Character_LockViewAlignedEx(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT4(CharacterInfo, Character_LockViewAlignedEx);
 }
 
 // void (CharacterInfo *chaa, int view, int loop, int frame)
@@ -2985,10 +3022,22 @@ RuntimeScriptValue Sc_Character_LockViewFrame(void *self, const RuntimeScriptVal
     API_OBJCALL_VOID_PINT3(CharacterInfo, Character_LockViewFrame);
 }
 
+// void (CharacterInfo *chaa, int view, int loop, int frame, int stopMoving)
+RuntimeScriptValue Sc_Character_LockViewFrameEx(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT4(CharacterInfo, Character_LockViewFrameEx);
+}
+
 // void (CharacterInfo *chap, int vii, int xoffs, int yoffs)
 RuntimeScriptValue Sc_Character_LockViewOffset(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT3(CharacterInfo, Character_LockViewOffset);
+}
+
+// void (CharacterInfo *chap, int vii, int xoffs, int yoffs, int stopMoving)
+RuntimeScriptValue Sc_Character_LockViewOffsetEx(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT4(CharacterInfo, Character_LockViewOffsetEx);
 }
 
 // void (CharacterInfo *chap, ScriptInvItem *invi)
@@ -3094,6 +3143,12 @@ RuntimeScriptValue Sc_Character_Tint(void *self, const RuntimeScriptValue *param
 RuntimeScriptValue Sc_Character_UnlockView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID(CharacterInfo, Character_UnlockView);
+}
+
+// void (CharacterInfo *chaa, int stopMoving)
+RuntimeScriptValue Sc_Character_UnlockViewEx(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(CharacterInfo, Character_UnlockViewEx);
 }
 
 // void (CharacterInfo *chaa, int x, int y, int blocking, int direct)
@@ -3636,9 +3691,13 @@ void RegisterCharacterAPI()
 	ccAddExternalObjectFunction("Character::IsCollidingWithObject^1",   Sc_Character_IsCollidingWithObject);
     ccAddExternalObjectFunction("Character::IsInteractionAvailable^1",  Sc_Character_IsInteractionAvailable);
 	ccAddExternalObjectFunction("Character::LockView^1",                Sc_Character_LockView);
+	ccAddExternalObjectFunction("Character::LockView^2",                Sc_Character_LockViewEx);
 	ccAddExternalObjectFunction("Character::LockViewAligned^3",         Sc_Character_LockViewAligned);
+	ccAddExternalObjectFunction("Character::LockViewAligned^4",         Sc_Character_LockViewAlignedEx);
 	ccAddExternalObjectFunction("Character::LockViewFrame^3",           Sc_Character_LockViewFrame);
+	ccAddExternalObjectFunction("Character::LockViewFrame^4",           Sc_Character_LockViewFrameEx);
 	ccAddExternalObjectFunction("Character::LockViewOffset^3",          Sc_Character_LockViewOffset);
+	ccAddExternalObjectFunction("Character::LockViewOffset^4",          Sc_Character_LockViewOffsetEx);
 	ccAddExternalObjectFunction("Character::LoseInventory^1",           Sc_Character_LoseInventory);
 	ccAddExternalObjectFunction("Character::Move^4",                    Sc_Character_Move);
 	ccAddExternalObjectFunction("Character::PlaceOnWalkableArea^0",     Sc_Character_PlaceOnWalkableArea);
@@ -3656,6 +3715,7 @@ void RegisterCharacterAPI()
 	ccAddExternalObjectFunction("Character::Think^101",                 Sc_Character_Think);
 	ccAddExternalObjectFunction("Character::Tint^5",                    Sc_Character_Tint);
 	ccAddExternalObjectFunction("Character::UnlockView^0",              Sc_Character_UnlockView);
+	ccAddExternalObjectFunction("Character::UnlockView^1",              Sc_Character_UnlockViewEx);
 	ccAddExternalObjectFunction("Character::Walk^4",                    Sc_Character_Walk);
 	ccAddExternalObjectFunction("Character::WalkStraight^3",            Sc_Character_WalkStraight);
 
@@ -3769,9 +3829,13 @@ void RegisterCharacterAPI()
     ccAddExternalFunctionForPlugin("Character::IsCollidingWithChar^1",     (void*)Character_IsCollidingWithChar);
     ccAddExternalFunctionForPlugin("Character::IsCollidingWithObject^1",   (void*)Character_IsCollidingWithObject);
     ccAddExternalFunctionForPlugin("Character::LockView^1",                (void*)Character_LockView);
+    ccAddExternalFunctionForPlugin("Character::LockView^2",                (void*)Character_LockViewEx);
     ccAddExternalFunctionForPlugin("Character::LockViewAligned^3",         (void*)Character_LockViewAligned);
+    ccAddExternalFunctionForPlugin("Character::LockViewAligned^4",         (void*)Character_LockViewAlignedEx);
     ccAddExternalFunctionForPlugin("Character::LockViewFrame^3",           (void*)Character_LockViewFrame);
+    ccAddExternalFunctionForPlugin("Character::LockViewFrame^4",           (void*)Character_LockViewFrameEx);
     ccAddExternalFunctionForPlugin("Character::LockViewOffset^3",          (void*)Character_LockViewOffset);
+    ccAddExternalFunctionForPlugin("Character::LockViewOffset^4",          (void*)Character_LockViewOffset);
     ccAddExternalFunctionForPlugin("Character::LoseInventory^1",           (void*)Character_LoseInventory);
     ccAddExternalFunctionForPlugin("Character::Move^4",                    (void*)Character_Move);
     ccAddExternalFunctionForPlugin("Character::PlaceOnWalkableArea^0",     (void*)Character_PlaceOnWalkableArea);
@@ -3788,6 +3852,7 @@ void RegisterCharacterAPI()
     ccAddExternalFunctionForPlugin("Character::Think^101",                 (void*)ScPl_Character_Think);
     ccAddExternalFunctionForPlugin("Character::Tint^5",                    (void*)Character_Tint);
     ccAddExternalFunctionForPlugin("Character::UnlockView^0",              (void*)Character_UnlockView);
+    ccAddExternalFunctionForPlugin("Character::UnlockView^1",              (void*)Character_UnlockViewEx);
     ccAddExternalFunctionForPlugin("Character::Walk^4",                    (void*)Character_Walk);
     ccAddExternalFunctionForPlugin("Character::WalkStraight^3",            (void*)Character_WalkStraight);
     ccAddExternalFunctionForPlugin("Character::GetAtScreenXY^2",           (void*)GetCharacterAtLocation);

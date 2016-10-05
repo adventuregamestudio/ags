@@ -291,11 +291,11 @@ void set_game_frame_after_screen_size(const GameSizeDef &game_size, const Size s
     frame_size.Box = new_box;
 }
 
-void precalc_render_screen_and_frame(const GameSizeDef &game_size, const ScreenSetup &setup,
-                                     Size &screen_size, GameSizeDef &frame_size,
-                                     const int color_depth, const bool windowed)
+void precalc_render_screen(const GameSizeDef &game_size, const ScreenSetup &setup,
+                           Size &screen_size, const int color_depth, const bool windowed)
 {
     Size device_size = get_max_display_size(windowed);
+    GameSizeDef frame_size;
 
     // Set requested screen (window) size, depending on screen definition option
     switch (setup.SizeDef)
@@ -326,16 +326,16 @@ void precalc_render_screen_and_frame(const GameSizeDef &game_size, const ScreenS
     }
 }
 
-bool setup_render_frame_and_init_gfx_mode(const GameSizeDef &game_size, const Size &screen_size, const GameSizeDef &frame_size,
+bool setup_render_frame_and_init_gfx_mode(const GameSizeDef &game_size, const Size &screen_size,
                                           const ScreenSetup &setup, const int color_depth, const bool windowed)
 {
     // Setup final render frame, depending on defined screen size, then init gfx mode
-    GameSizeDef fixed_frame = frame_size;
-    set_game_frame_after_screen_size(game_size, screen_size, setup.GameFrame, fixed_frame);
-    return init_gfx_mode(game_size, screen_size, fixed_frame, setup, color_depth, windowed);
+    GameSizeDef frame_size;
+    set_game_frame_after_screen_size(game_size, screen_size, setup.GameFrame, frame_size);
+    return init_gfx_mode(game_size, screen_size, frame_size, setup, color_depth, windowed);
 }
 
-bool try_init_gfx_mode(const GameSizeDef &game_size, const Size &screen_size, const GameSizeDef &frame_size,
+bool try_init_gfx_mode(const GameSizeDef &game_size, const Size &screen_size,
                        const ScreenSetup &setup, const int color_depth, const bool windowed)
 {
     // Find nearest compatible mode and init that
@@ -368,14 +368,14 @@ bool try_init_gfx_mode(const GameSizeDef &game_size, const Size &screen_size, co
         }
     }
 
-    bool result = setup_render_frame_and_init_gfx_mode(game_size, fixed_screen_size, frame_size, setup, color_depth, windowed);
+    bool result = setup_render_frame_and_init_gfx_mode(game_size, fixed_screen_size, setup, color_depth, windowed);
     if (!result && windowed)
     {
         // When initializing windowed mode we could start with any random window size;
         // if that did not work, try to find nearest supported mode, as with fullscreen mode,
         // except refering to max window size as an upper bound
         if (find_nearest_supported_mode(fixed_screen_size, color_depth, NULL, &device_size))
-            result = setup_render_frame_and_init_gfx_mode(game_size, fixed_screen_size, frame_size, setup, color_depth, true);
+            result = setup_render_frame_and_init_gfx_mode(game_size, fixed_screen_size, setup, color_depth, true);
         else
             Out::FPrint("Could not find compatible windowed mode");
     }
@@ -386,13 +386,12 @@ bool try_init_gfx_mode(const GameSizeDef &game_size, const Size &screen_size, co
 bool try_init_gfx_mode(const GameSizeDef &game_size, const ScreenSetup &setup, const ColorDepthOption color_depths, const bool windowed)
 {
     Size screen_size; // final screen size
-    GameSizeDef frame_size; // scaled game definition
     // When precalculating screen size we use box bounding size for reference, in case engine
     // requested larger screen space to place the game in
-    precalc_render_screen_and_frame(game_size, setup, screen_size, frame_size, color_depths.Prime, windowed);
-    bool result = try_init_gfx_mode(game_size, screen_size, frame_size, setup, color_depths.Prime, windowed);
+    precalc_render_screen(game_size, setup, screen_size, color_depths.Prime, windowed);
+    bool result = try_init_gfx_mode(game_size, screen_size, setup, color_depths.Prime, windowed);
     if (!result && color_depths.Prime != color_depths.Alternate)
-        result = try_init_gfx_mode(game_size, screen_size, frame_size, setup, color_depths.Alternate, windowed);
+        result = try_init_gfx_mode(game_size, screen_size, setup, color_depths.Alternate, windowed);
     return result;
 }
 

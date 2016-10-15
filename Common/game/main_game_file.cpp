@@ -340,7 +340,7 @@ void ReadDialogs(DialogTopic *&dialog,
         while (1)
         {
             size_t newlen = in->ReadInt32();
-            if (newlen == 0xCAFEBEEF)  // GUI magic
+            if (static_cast<int32_t>(newlen) == 0xCAFEBEEF)  // GUI magic
             {
                 in->Seek(-4);
                 break;

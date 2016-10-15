@@ -446,7 +446,7 @@ private:
     void InitGfxModes();
     void InitDriverDescFromFactory(const String &id, DriverDesc &drv_desc);
     void SaveSetup();
-    void SelectNearestGfxMode(const Size screen_size, GfxModeSpecial gfx_mode_spec = kGfxMode_None);
+    void SelectNearestGfxMode(const Size screen_size);
     void SetGfxModeText();
     void UpdateMouseSpeedText();
 
@@ -930,7 +930,6 @@ void WinSetupDialog::FillGfxFilterList()
 
 void WinSetupDialog::FillGfxModeList()
 {
-    DWORD_PTR old_sel = GetCurItemData(_hGfxModeList, kGfxMode_None);
     ResetContent(_hGfxModeList);
 
     if (!_drvDesc)
@@ -941,7 +940,7 @@ void WinSetupDialog::FillGfxModeList()
 
     AddString(_hGfxModeList, String::FromFormat("Desktop resolution (%d x %d)",
         _desktopSize.Width, _desktopSize.Height), (DWORD_PTR)kGfxMode_Desktop);
-    AddString(_hGfxModeList, String::FromFormat("Game resolution (%d x %d)",
+    AddString(_hGfxModeList, String::FromFormat("Native game resolution (%d x %d)",
         _winCfg.GameResolution.Width, _winCfg.GameResolution.Height), (DWORD_PTR)kGfxMode_GameRes);
 
     const std::vector<DisplayMode> &modes = _drvDesc->GfxModeList.Modes;
@@ -963,7 +962,7 @@ void WinSetupDialog::FillGfxModeList()
         }
     }
 
-    SelectNearestGfxMode(_winCfg.ScreenSize, (GfxModeSpecial)old_sel);
+    SelectNearestGfxMode(_winCfg.ScreenSize);
 }
 
 void WinSetupDialog::FillLanguageList()
@@ -1139,7 +1138,7 @@ void WinSetupDialog::SaveSetup()
     _winCfg.Save(_cfgOut);
 }
 
-void WinSetupDialog::SelectNearestGfxMode(const Size screen_size, GfxModeSpecial gfx_mode_spec)
+void WinSetupDialog::SelectNearestGfxMode(const Size screen_size)
 {
     if (!_drvDesc)
     {
@@ -1147,8 +1146,15 @@ void WinSetupDialog::SelectNearestGfxMode(const Size screen_size, GfxModeSpecial
         return;
     }
 
-    if (gfx_mode_spec != kGfxMode_None && gfx_mode_spec < kNumGfxModeSpecials)
-        SetCurSel(_hGfxModeList, gfx_mode_spec);
+    // First check two special modes
+    if (screen_size == _desktopSize)
+    {
+        SetCurSel(_hGfxModeList, kGfxMode_Desktop);
+    }
+    else if (screen_size == _winCfg.GameResolution)
+    {
+        SetCurSel(_hGfxModeList, kGfxMode_GameRes);
+    }
     else
     {
         // Look up for the nearest supported mode

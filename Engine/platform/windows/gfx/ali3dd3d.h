@@ -23,6 +23,8 @@
 #error This file should only be included on the Windows build
 #endif
 
+#include "util/stdtr1compat.h"
+#include TR1INCLUDE(memory)
 #include <allegro.h>
 #include <winalleg.h>
 #include <d3d9.h>
@@ -174,7 +176,7 @@ public:
     virtual bool SetRenderFrame(const Size &src_size, const Rect &dst_rect);
     virtual IGfxModeList *GetSupportedModeList(int color_depth);
     virtual bool IsModeSupported(const DisplayMode &mode);
-    virtual IGfxFilter *GetGraphicsFilter() const;
+    virtual PGfxFilter GetGraphicsFilter() const;
     virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
     virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
     virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
@@ -208,7 +210,9 @@ public:
     virtual void SetMemoryBackBuffer(Bitmap *backBuffer) {  }
     virtual void SetScreenTint(int red, int green, int blue);
 
-    void SetGraphicsFilter(D3DGfxFilter *filter);
+    typedef stdtr1compat::shared_ptr<D3DGfxFilter> PD3DFilter;
+
+    void SetGraphicsFilter(PD3DFilter filter);
 
     // Internal
     int _initDLLCallback(const DisplayMode &mode);
@@ -218,9 +222,9 @@ public:
     D3DGraphicsDriver(IDirect3D9 *d3d);
     virtual ~D3DGraphicsDriver();
 
-    D3DGfxFilter *_filter;
-
 private:
+    PD3DFilter _filter;
+
     IDirect3D9 *direct3d;
     D3DPRESENT_PARAMETERS d3dpp;
     IDirect3DDevice9* direct3ddevice;

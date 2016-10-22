@@ -44,7 +44,6 @@ extern volatile int timerloop;
 
 
 IGfxDriverFactory *GfxFactory = NULL;
-IGfxFilter *filter;
 
 struct GameSizeDef
 {
@@ -424,6 +423,7 @@ void display_gfx_mode_error(const Size game_size, const GfxFilterSetup &setup, c
 
     String main_error;
     Size screen_size(ScreenResolution.Width, ScreenResolution.Height);
+    PGfxFilter filter = gfxDriver ? gfxDriver->GetGraphicsFilter() : PGfxFilter();
     if (screen_size.IsNull())
         main_error.Format("There was a problem finding appropriate graphics mode for game size %d x %d (%d-bit) and requested filter '%s'.",
             game_size.Width, game_size.Height, color_depth, setup.UserRequest.IsEmpty() ? "Undefined" : setup.UserRequest.GetCStr());
@@ -490,6 +490,7 @@ bool graphics_mode_init_any(const ScreenSetup &setup, const ColorDepthOption &co
     DisplayMode dm   = gfxDriver->GetDisplayMode();
 
     Rect dst_rect    = gfxDriver->GetRenderDestination();
+    PGfxFilter filter = gfxDriver->GetGraphicsFilter();
     Rect filter_rect = filter->GetDestination();
     Out::FPrint("Succeeded. Using gfx mode %d x %d (%d-bit) %s\n\t"
                 "filter dest (%d, %d, %d, %d : %d x %d), render dest (%d, %d, %d, %d : %d x %d)",
@@ -556,7 +557,7 @@ bool graphics_mode_set_filter(const String &filter_id)
         return false;
 
     String filter_error;
-    filter = GfxFactory->SetFilter(filter_id, filter_error);
+    PGfxFilter filter = GfxFactory->SetFilter(filter_id, filter_error);
     if (!filter)
     {
         Out::FPrint("Unable to set graphics filter '%s'. Error: %s", filter_id.GetCStr(), filter_error.GetCStr());
@@ -571,9 +572,6 @@ void graphics_mode_shutdown()
         GfxFactory->Shutdown();
     GfxFactory = NULL;
     gfxDriver = NULL;
-
-    delete filter;
-    filter = NULL;
 
     // Tell Allegro that we are no longer in graphics mode
     set_gfx_mode(GFX_TEXT, 0, 0, 0, 0);

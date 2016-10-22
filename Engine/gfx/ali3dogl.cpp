@@ -253,7 +253,6 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _tint_red = 0;
   _tint_green = 0;
   _tint_blue = 0;
-  _filter = NULL;
   _screenTintLayer = NULL;
   _screenTintLayerDDB = NULL;
   _screenTintSprite.skip = true;
@@ -314,7 +313,7 @@ void OGLGraphicsDriver::SetGamma(int newGamma)
 {
 }
 
-void OGLGraphicsDriver::SetGraphicsFilter(OGLGfxFilter *filter)
+void OGLGraphicsDriver::SetGraphicsFilter(POGLFilter filter)
 {
   _filter = filter;
   OnSetFilter();
@@ -694,7 +693,7 @@ IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int color_depth)
     return NULL;
 }
 
-IGfxFilter *OGLGraphicsDriver::GetGraphicsFilter() const
+PGfxFilter OGLGraphicsDriver::GetGraphicsFilter() const
 {
     return _filter;
 }

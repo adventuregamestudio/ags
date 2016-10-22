@@ -193,7 +193,6 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _tint_red = 0;
   _tint_green = 0;
   _tint_blue = 0;
-  _filter = NULL;
   _screenTintLayer = NULL;
   _screenTintLayerDDB = NULL;
   _screenTintSprite.skip = true;
@@ -783,7 +782,7 @@ void D3DGraphicsDriver::SetupViewport()
   direct3ddevice->ColorFill(pNativeSurface, NULL, 0);
 }
 
-void D3DGraphicsDriver::SetGraphicsFilter(D3DGfxFilter *filter)
+void D3DGraphicsDriver::SetGraphicsFilter(PD3DFilter filter)
 {
   _filter = filter;
   OnSetFilter();
@@ -849,7 +848,7 @@ IGfxModeList *D3DGraphicsDriver::GetSupportedModeList(int color_depth)
   return new D3DGfxModeList(direct3d, color_depth_to_d3d_format(color_depth, false));
 }
 
-IGfxFilter *D3DGraphicsDriver::GetGraphicsFilter() const
+PGfxFilter D3DGraphicsDriver::GetGraphicsFilter() const
 {
     return _filter;
 }

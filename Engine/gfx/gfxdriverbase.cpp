@@ -69,7 +69,7 @@ void GraphicsDriverBase::OnSetRenderFrame(const Size &src_size, const Rect &dst_
 {
     _srcRect = RectWH(0, 0, src_size.Width, src_size.Height);
     _dstRect = dst_rect;
-    IGfxFilter *filter = GetGraphicsFilter();
+    PGfxFilter filter = GetGraphicsFilter();
     if (filter)
         _filterRect = filter->SetTranslation(src_size, dst_rect);
     else

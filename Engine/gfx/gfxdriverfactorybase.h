@@ -60,33 +60,32 @@ public:
         _driver = NULL;
     }
 
-    virtual IGfxFilter *SetFilter(const String &id, String &filter_error)
+    virtual PGfxFilter SetFilter(const String &id, String &filter_error)
     {
         TGfxDriverClass *driver = EnsureDriverCreated();
         if (!driver)
         {
             filter_error = "Graphics driver was not created";
-            return NULL;
+            return PGfxFilter();
         }
 
         const int color_depth = driver->GetDisplayMode().ColorDepth;
         if (color_depth == 0)
         {
             filter_error = "Graphics mode is not set";
-            return NULL;
+            return PGfxFilter();
         }
 
-        TGfxFilterClass *filter = CreateFilter(id);
+        stdtr1compat::shared_ptr<TGfxFilterClass> filter(CreateFilter(id));
         if (!filter)
         {
             filter_error = "Filter does not exist";
-            return NULL;
+            return PGfxFilter();
         }
 
         if (!filter->Initialize(color_depth, filter_error))
         {
-            delete filter;
-            return NULL;
+            return PGfxFilter();
         }
 
         driver->SetGraphicsFilter(filter);

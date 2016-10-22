@@ -19,6 +19,8 @@
 #ifndef __AGS_EE_GFX__GRAPHICSDRIVER_H
 #define __AGS_EE_GFX__GRAPHICSDRIVER_H
 
+#include "util/stdtr1compat.h"
+#include TR1INCLUDE(memory)
 #include "gfx/gfxdefines.h"
 #include "gfx/gfxmodelist.h"
 #include "util/geometry.h"
@@ -34,6 +36,7 @@ namespace Engine
 // Forward declaration
 class IDriverDependantBitmap;
 class IGfxFilter;
+typedef stdtr1compat::shared_ptr<IGfxFilter> PGfxFilter;
 
 enum TintMethod
 {
@@ -69,7 +72,7 @@ public:
   virtual IGfxModeList *GetSupportedModeList(int color_depth) = 0;
   virtual bool IsModeSupported(const DisplayMode &mode) = 0;
   virtual DisplayMode GetDisplayMode() const = 0;
-  virtual IGfxFilter *GetGraphicsFilter() const = 0;
+  virtual PGfxFilter GetGraphicsFilter() const = 0;
   virtual Rect GetRenderDestination() const = 0;
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) = 0;
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) = 0;

@@ -123,7 +123,7 @@ IGfxModeList *ALSoftwareGraphicsDriver::GetSupportedModeList(int color_depth)
   return new ALSoftwareGfxModeList(_gfxModeList);
 }
 
-IGfxFilter *ALSoftwareGraphicsDriver::GetGraphicsFilter() const
+PGfxFilter ALSoftwareGraphicsDriver::GetGraphicsFilter() const
 {
     return _filter;
 }
@@ -145,7 +145,7 @@ int ALSoftwareGraphicsDriver::GetAllegroGfxDriverID(bool windowed)
 #endif
 }
 
-void ALSoftwareGraphicsDriver::SetGraphicsFilter(AllegroGfxFilter *filter)
+void ALSoftwareGraphicsDriver::SetGraphicsFilter(PALSWFilter filter)
 {
   _filter = filter;
   OnSetFilter();

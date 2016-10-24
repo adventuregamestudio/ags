@@ -33,11 +33,11 @@ GameSetup::GameSetup()
     mouse_control = kMouseCtrl_Fullscreen;
     mouse_speed_def = kMouseSpeed_CurrentDisplay;
 
-    Screen.MatchDeviceRatio = false;
-    Screen.SizeDef = kScreenDef_MaxDisplay;
-    Screen.RefreshRate = 0;
-    Screen.VSync = false;
-    Screen.Windowed = false;
+    Screen.DisplayMode.MatchDeviceRatio = false;
+    Screen.DisplayMode.SizeDef = kScreenDef_MaxDisplay;
+    Screen.DisplayMode.RefreshRate = 0;
+    Screen.DisplayMode.VSync = false;
+    Screen.DisplayMode.Windowed = false;
     Screen.GameFrame.ScaleDef = kFrame_MaxRound;
     Screen.GameFrame.ScaleFactor = 0;
     Screen.RenderAtScreenRes = false;

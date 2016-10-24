@@ -1170,9 +1170,10 @@ void WinSetupDialog::SelectNearestGfxMode(const Size screen_size)
     else
     {
         // Look up for the nearest supported mode
-        Size found_size = screen_size;
         int index = -1;
-        if (find_nearest_supported_mode(_drvDesc->GfxModeList, found_size, &index, _winCfg.GameColourDepth != 0 ? _winCfg.GameColourDepth : 32))
+        DisplayMode dm;
+        if (find_nearest_supported_mode(_drvDesc->GfxModeList, screen_size, _winCfg.GameColourDepth != 0 ? _winCfg.GameColourDepth : 32,
+                                        NULL, NULL, dm, &index))
         {
             SetCurSelToItemData(_hGfxModeList, (DWORD_PTR)&_drvDesc->GfxModeList.Modes[index], NULL, kGfxMode_Desktop);
         }

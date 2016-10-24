@@ -215,13 +215,14 @@ bool engine_check_run_setup(ConfigTree &cfg, int argc,char*argv[])
 void engine_force_window()
 {
     // Force to run in a window, override the config file
+    // TODO: actually overwrite config tree instead
     if (force_window == 1)
     {
-        usetup.Screen.Windowed = true;
-        usetup.Screen.SizeDef = kScreenDef_ByGameScaling;
+        usetup.Screen.DisplayMode.Windowed = true;
+        usetup.Screen.DisplayMode.SizeDef = kScreenDef_ByGameScaling;
     }
     else if (force_window == 2)
-        usetup.Screen.Windowed = false;
+        usetup.Screen.DisplayMode.Windowed = false;
 }
 
 void init_game_file_name_from_cmdline()
@@ -1520,7 +1521,7 @@ bool engine_try_set_gfxmode_any(const ScreenSetup &setup)
 
     ColorDepthOption color_depths;
     engine_get_color_depths(color_depths);
-    if (!graphics_mode_init_any(setup, color_depths))
+    if (!graphics_mode_init_any(game.size, setup, color_depths))
         return false;
 
     engine_post_gfxmode_setup(init_desktop);

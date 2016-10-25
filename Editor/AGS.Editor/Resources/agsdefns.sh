@@ -2035,6 +2035,24 @@ builtin managed struct Object {
   /// Sets a text custom property for this object.
   import bool SetTextProperty(const string property, const string value);
 #endif
+#ifdef SCRIPT_API_v341
+  /// Gets whether the object has an explicit light level set.
+  readonly import attribute bool HasExplicitLight;
+  /// Gets whether the object has an explicit tint set.
+  readonly import attribute bool HasExplicitTint;
+  /// Gets the individual light level for this object.
+  readonly import attribute int  LightLevel;
+  /// Gets the Blue component of this object's colour tint.
+  readonly import attribute int  TintBlue;
+  /// Gets the Green component of this object's colour tint.
+  readonly import attribute int  TintGreen;
+  /// Gets the Red component of this object's colour tint.
+  readonly import attribute int  TintRed;
+  /// Gets the Saturation of this object's colour tint.
+  readonly import attribute int  TintSaturation;
+  /// Gets the Luminance of this object's colour tint.
+  readonly import attribute int  TintLuminance;
+#endif
 
   int reserved[2];  // $AUTOCOMPLETEIGNORE$
 };
@@ -2253,6 +2271,22 @@ builtin managed struct Character {
   readonly import attribute int DestinationX;
   /// Gets the Y position this character is currently moving towards.
   readonly import attribute int DestinationY;
+#endif
+#ifdef SCRIPT_API_v341
+  /// Gets whether the character has an explicit light level set.
+  readonly import attribute bool HasExplicitLight;
+  /// Gets the individual light level for this character.
+  readonly import attribute int  LightLevel;
+  /// Gets the Blue component of this character's colour tint.
+  readonly import attribute int  TintBlue;
+  /// Gets the Green component of this character's colour tint.
+  readonly import attribute int  TintGreen;
+  /// Gets the Red component of this character's colour tint.
+  readonly import attribute int  TintRed;
+  /// Gets the Saturation of this character's colour tint.
+  readonly import attribute int  TintSaturation;
+  /// Gets the Luminance of this character's colour tint.
+  readonly import attribute int  TintLuminance;
 #endif
 #ifdef STRICT
   /// The character's current X-position.

@@ -13,14 +13,14 @@ namespace AGS.Types
         [Description("3.2.1")]
         v321 = 0,
         [Description("3.3.0")]
-        v330,
+        v330 = 1,
         [Description("3.3.4")]
-        v334,
+        v334 = 2,
         [Description("3.3.5")]
-        v335,
+        v335 = 3,
         [Description("3.4.0")]
-        v340,
+        v340 = 4,
         [Description("3.4.1")]
-        v341
+        v341 = 5
     }
 }

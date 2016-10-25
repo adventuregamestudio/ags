@@ -755,12 +755,9 @@ void Character_RemoveTint(CharacterInfo *chaa) {
     }
 }
 
-int Character_GetHasExplicitTint(CharacterInfo *chaa) {
-
-    if (chaa->flags & (CHF_HASTINT | CHF_HASLIGHT))
-        return 1;
-
-    return 0;
+int Character_GetHasExplicitTint(CharacterInfo *ch)
+{
+    return ch->has_explicit_tint() || ((game.options[OPT_BASESCRIPTAPI] < kScriptAPI_v341) && ch->has_explicit_light());
 }
 
 void Character_Say(CharacterInfo *chaa, const char *text) {
@@ -871,6 +868,16 @@ void Character_SetIdleView(CharacterInfo *chaa, int iview, int itime) {
 
 }
 
+bool Character_GetHasExplicitLight(CharacterInfo *ch)
+{
+    return ch->has_explicit_light();
+}
+
+int Character_GetLightLevel(CharacterInfo *ch)
+{
+    return ch->has_explicit_light() ? charextra[ch->index_id].tint_light : 0;
+}
+
 void Character_SetLightLevel(CharacterInfo *chaa, int light_level)
 {
     light_level = Math::Clamp(-100, 100, light_level);
@@ -878,6 +885,31 @@ void Character_SetLightLevel(CharacterInfo *chaa, int light_level)
     charextra[chaa->index_id].tint_light = light_level;
     chaa->flags &= ~CHF_HASTINT;
     chaa->flags |= CHF_HASLIGHT;
+}
+
+int Character_GetTintRed(CharacterInfo *ch)
+{
+    return ch->has_explicit_tint() ? charextra[ch->index_id].tint_r : 0;
+}
+
+int Character_GetTintGreen(CharacterInfo *ch)
+{
+    return ch->has_explicit_tint() ? charextra[ch->index_id].tint_g : 0;
+}
+
+int Character_GetTintBlue(CharacterInfo *ch)
+{
+    return ch->has_explicit_tint() ? charextra[ch->index_id].tint_b : 0;
+}
+
+int Character_GetTintSaturation(CharacterInfo *ch)
+{
+    return ch->has_explicit_tint() ? charextra[ch->index_id].tint_level : 0;
+}
+
+int Character_GetTintLuminance(CharacterInfo *ch)
+{
+    return ch->has_explicit_tint() ? ((charextra[ch->index_id].tint_light * 10) / 25) : 0;
 }
 
 void Character_SetOption(CharacterInfo *chaa, int flag, int yesorno) {
@@ -3102,9 +3134,44 @@ RuntimeScriptValue Sc_Character_SetIdleView(void *self, const RuntimeScriptValue
     API_OBJCALL_VOID_PINT2(CharacterInfo, Character_SetIdleView);
 }
 
+RuntimeScriptValue Sc_Character_HasExplicitLight(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(CharacterInfo, Character_GetHasExplicitLight);
+}
+
+RuntimeScriptValue Sc_Character_GetLightLevel(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetLightLevel);
+}
+
 RuntimeScriptValue Sc_Character_SetLightLevel(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetLightLevel);
+}
+
+RuntimeScriptValue Sc_Character_GetTintBlue(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetTintBlue);
+}
+
+RuntimeScriptValue Sc_Character_GetTintGreen(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetTintGreen);
+}
+
+RuntimeScriptValue Sc_Character_GetTintRed(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetTintRed);
+}
+
+RuntimeScriptValue Sc_Character_GetTintSaturation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetTintSaturation);
+}
+
+RuntimeScriptValue Sc_Character_GetTintLuminance(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(CharacterInfo, Character_GetTintLuminance);
 }
 
 /*
@@ -3307,7 +3374,6 @@ RuntimeScriptValue Sc_Character_SetFrame(void *self, const RuntimeScriptValue *p
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetFrame);
 }
 
-// int (CharacterInfo *chaa)
 RuntimeScriptValue Sc_Character_GetHasExplicitTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(CharacterInfo, Character_GetHasExplicitTint);
@@ -3808,6 +3874,14 @@ void RegisterCharacterAPI()
 	ccAddExternalObjectFunction("Character::set_Z",                     Sc_Character_SetZ);
 	ccAddExternalObjectFunction("Character::get_z",                     Sc_Character_GetZ);
 	ccAddExternalObjectFunction("Character::set_z",                     Sc_Character_SetZ);
+
+    ccAddExternalObjectFunction("Character::get_HasExplicitLight",      Sc_Character_HasExplicitLight);
+    ccAddExternalObjectFunction("Character::get_LightLevel",            Sc_Character_GetLightLevel);
+    ccAddExternalObjectFunction("Character::get_TintBlue",              Sc_Character_GetTintBlue);
+    ccAddExternalObjectFunction("Character::get_TintGreen",             Sc_Character_GetTintGreen);
+    ccAddExternalObjectFunction("Character::get_TintRed",               Sc_Character_GetTintRed);
+    ccAddExternalObjectFunction("Character::get_TintSaturation",        Sc_Character_GetTintSaturation);
+    ccAddExternalObjectFunction("Character::get_TintLuminance",         Sc_Character_GetTintLuminance);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

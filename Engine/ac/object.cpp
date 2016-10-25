@@ -194,6 +194,21 @@ int Object_GetMoving(ScriptObject *objj) {
     return IsObjectMoving(objj->id);
 }
 
+bool Object_HasExplicitLight(ScriptObject *obj)
+{
+    return objs[obj->id].has_explicit_light();
+}
+
+bool Object_HasExplicitTint(ScriptObject *obj)
+{
+    return objs[obj->id].has_explicit_tint();
+}
+
+int Object_GetLightLevel(ScriptObject *obj)
+{
+    return objs[obj->id].has_explicit_light() ? objs[obj->id].tint_light : 0;
+}
+
 void Object_SetLightLevel(ScriptObject *objj, int light_level)
 {
     int obj = objj->id;
@@ -203,6 +218,31 @@ void Object_SetLightLevel(ScriptObject *objj, int light_level)
     objs[obj].tint_light = light_level;
     objs[obj].flags &= ~OBJF_HASTINT;
     objs[obj].flags |= OBJF_HASLIGHT;
+}
+
+int Object_GetTintRed(ScriptObject *obj)
+{
+    return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_r : 0;
+}
+
+int Object_GetTintGreen(ScriptObject *obj)
+{
+    return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_g : 0;
+}
+
+int Object_GetTintBlue(ScriptObject *obj)
+{
+    return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_b : 0;
+}
+
+int Object_GetTintSaturation(ScriptObject *obj)
+{
+     return objs[obj->id].has_explicit_tint() ? objs[obj->id].tint_level : 0;
+}
+
+int Object_GetTintLuminance(ScriptObject *obj)
+{
+    return objs[obj->id].has_explicit_tint() ? ((objs[obj->id].tint_light * 10) / 25) : 0;
 }
 
 void Object_SetPosition(ScriptObject *objj, int xx, int yy) {
@@ -570,9 +610,49 @@ RuntimeScriptValue Sc_Object_RunInteraction(void *self, const RuntimeScriptValue
     API_OBJCALL_VOID_PINT(ScriptObject, Object_RunInteraction);
 }
 
+RuntimeScriptValue Sc_Object_HasExplicitLight(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptObject, Object_HasExplicitLight);
+}
+
+RuntimeScriptValue Sc_Object_HasExplicitTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptObject, Object_HasExplicitTint);
+}
+
+RuntimeScriptValue Sc_Object_GetLightLevel(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetLightLevel);
+}
+
 RuntimeScriptValue Sc_Object_SetLightLevel(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptObject, Object_SetLightLevel);
+}
+
+RuntimeScriptValue Sc_Object_GetTintBlue(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetTintBlue);
+}
+
+RuntimeScriptValue Sc_Object_GetTintGreen(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetTintGreen);
+}
+
+RuntimeScriptValue Sc_Object_GetTintRed(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetTintRed);
+}
+
+RuntimeScriptValue Sc_Object_GetTintSaturation(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetTintSaturation);
+}
+
+RuntimeScriptValue Sc_Object_GetTintLuminance(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetTintLuminance);
 }
 
 // void (ScriptObject *objj, int xx, int yy)
@@ -855,6 +935,16 @@ void RegisterObjectAPI()
     ccAddExternalObjectFunction("Object::set_X",                    Sc_Object_SetX);
     ccAddExternalObjectFunction("Object::get_Y",                    Sc_Object_GetY);
     ccAddExternalObjectFunction("Object::set_Y",                    Sc_Object_SetY);
+
+    ccAddExternalObjectFunction("Object::get_HasExplicitLight",     Sc_Object_HasExplicitLight);
+    ccAddExternalObjectFunction("Object::get_HasExplicitTint",      Sc_Object_HasExplicitTint);
+    ccAddExternalObjectFunction("Object::get_LightLevel",           Sc_Object_GetLightLevel);
+    ccAddExternalObjectFunction("Object::set_LightLevel",           Sc_Object_SetLightLevel);
+    ccAddExternalObjectFunction("Object::get_TintBlue",             Sc_Object_GetTintBlue);
+    ccAddExternalObjectFunction("Object::get_TintGreen",            Sc_Object_GetTintGreen);
+    ccAddExternalObjectFunction("Object::get_TintRed",              Sc_Object_GetTintRed);
+    ccAddExternalObjectFunction("Object::get_TintSaturation",       Sc_Object_GetTintSaturation);
+    ccAddExternalObjectFunction("Object::get_TintLuminance",        Sc_Object_GetTintLuminance);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

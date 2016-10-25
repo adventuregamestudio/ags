@@ -88,6 +88,9 @@ struct CharacterInfo {
     int get_blocking_top();    // return Y - BlockingHeight/2
     int get_blocking_bottom(); // return Y + BlockingHeight/2
 
+    inline bool has_explicit_light() const { return (flags & CHF_HASLIGHT) != 0; }
+    inline bool has_explicit_tint()  const { return (flags & CHF_HASTINT) != 0; }
+
 	// [IKM] 2012-06-28: I still have to pass char_index to some of those functions
 	// either because they use it to set some variables with it,
 	// or because they pass it further to other functions, that are called from various places

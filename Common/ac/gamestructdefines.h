@@ -141,4 +141,20 @@ enum DialogOptionNumbering
     kDlgOptNumbering   =  1  // draw option indices and use key shortcuts
 };
 
+// Version of the script api (OPT_BASESCRIPTAPI and OPT_SCRIPTCOMPATLEV).
+// If the existing script function meaning had changed, that may be
+// possible to find out which implementation to use by checking one of those
+// two options.
+// NOTE: please remember that those values are valid only for games made with
+// 3.4.0 final and above.
+enum ScriptAPIVersion
+{
+    kScriptAPI_v321 = 0,
+    kScriptAPI_v330 = 1,
+    kScriptAPI_v334 = 2,
+    kScriptAPI_v335 = 3,
+    kScriptAPI_v340 = 4,
+    kScriptAPI_v341 = 5
+};
+
 #endif // __AGS_CN_AC__GAMESTRUCTDEFINES_H

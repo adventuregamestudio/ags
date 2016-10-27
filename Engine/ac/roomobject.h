@@ -18,6 +18,8 @@
 #ifndef __AGS_EE_AC__ROOMOBJECT_H
 #define __AGS_EE_AC__ROOMOBJECT_H
 
+#include "ac/common_defines.h"
+
 namespace AGS { namespace Common { class Stream; }}
 using namespace AGS; // FIXME later
 
@@ -46,6 +48,9 @@ struct RoomObject {
     int get_width();
     int get_height();
     int get_baseline();
+
+    inline bool has_explicit_light() const { return (flags & OBJF_HASLIGHT) != 0; }
+    inline bool has_explicit_tint()  const { return (flags & OBJF_HASTINT) != 0; }
 
 	void UpdateCyclingView();
 	void update_cycle_view_forwards();

@@ -2205,6 +2205,11 @@ int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_v
 
     ReadGameSetupStructBase_Aligned(in);
 
+    // Delete unneeded data
+    // TODO: reorganize this (may be solved by optimizing safe format too)
+    delete [] game.load_messages;
+    game.load_messages = NULL;
+
     if (game.numdialog!=numdiwas)
         quit("!Restore_Game: Game has changed (dlg), unable to restore");
     if ((numchwas != game.numcharacters) || (numinvwas != game.numinvitems))

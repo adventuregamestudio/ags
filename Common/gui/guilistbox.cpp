@@ -68,6 +68,8 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
   int a, i;
   char tempbuf[300];
 
+  Clear();
+
   GUIObject::ReadFromFile(in, gui_version);
   // MACPORT FIXES: swap
   in->ReadArrayOfInt32(&numItems, 11);

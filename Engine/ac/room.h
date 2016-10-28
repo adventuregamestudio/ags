@@ -50,5 +50,7 @@ void  first_room_initialization();
 void  check_new_room();
 void  compile_room_script();
 void  on_background_frame_change ();
+// Clear the current room pointer if room status is no longer valid
+void  croom_ptr_clear();
 
 #endif // __AGS_EE_AC__ROOM_H

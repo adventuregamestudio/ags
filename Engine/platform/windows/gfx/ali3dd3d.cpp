@@ -647,8 +647,8 @@ void D3DGraphicsDriver::InitializeD3DState()
   Out::FPrint("D3DGraphicsDriver: InitializeD3DState()");
 
   D3DMATRIX matOrtho = {
-   (2.0 / (float)_mode.Width), 0.0, 0.0, 0.0,
-    0.0, (2.0 / (float)_mode.Height), 0.0, 0.0,
+    (2.0 / (float)_srcRect.GetWidth()), 0.0, 0.0, 0.0,
+    0.0, (2.0 / (float)_srcRect.GetHeight()), 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 1.0
   };
@@ -910,7 +910,6 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
     }
 
     D3DLOCKED_RECT lockedRect;
-    RECT viewport_rect;
     viewport_rect.left   = _dstRect.Left;
     viewport_rect.right  = _dstRect.Right + 1;
     viewport_rect.top    = _dstRect.Top;
@@ -1078,17 +1077,15 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
   float height = bmpToDraw->GetHeightToRender();
   float xProportion = width / (float)bmpToDraw->_width;
   float yProportion = height / (float)bmpToDraw->_height;
-  float xFrameProportion = (float)_mode.Width / _srcRect.GetWidth();
-  float yFrameProportion = (float)_mode.Height / _srcRect.GetHeight();
 
   bool  flipLeftToRight = globalLeftRightFlip ^ bmpToDraw->_flipped;
-  float drawAtX = (drawListEntry->x + _global_x_offset) * xFrameProportion;
-  float drawAtY = (drawListEntry->y + _global_y_offset) * yFrameProportion;
+  float drawAtX = (drawListEntry->x);
+  float drawAtY = (drawListEntry->y);
 
   for (int ti = 0; ti < bmpToDraw->_numTiles; ti++)
   {
-    width = bmpToDraw->_tiles[ti].width * xProportion * xFrameProportion;
-    height = bmpToDraw->_tiles[ti].height * yProportion * yFrameProportion;
+    width = bmpToDraw->_tiles[ti].width * xProportion;
+    height = bmpToDraw->_tiles[ti].height * yProportion;
     float xOffs;
     float yOffs = bmpToDraw->_tiles[ti].y * yProportion;
     if (flipLeftToRight != globalLeftRightFlip)
@@ -1104,15 +1101,15 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
 
     if (globalLeftRightFlip)
     {
-      thisX = (_mode.Width - thisX) - width;
+      thisX = (_srcRect.GetWidth() - thisX) - width;
     }
     if (globalTopBottomFlip) 
     {
-      thisY = (_mode.Height - thisY) - height;
+      thisY = (_srcRect.GetHeight() - thisY) - height;
     }
 
-    thisX = (-(_mode.Width / 2)) + thisX;
-    thisY = (_mode.Height / 2) - thisY;
+    thisX = (-(_srcRect.GetWidth() / 2)) + thisX;
+    thisY = (_srcRect.GetHeight() / 2) - thisY;
 
     //Setup translation and scaling matrices
     float widthToScale = (float)width;
@@ -1231,11 +1228,6 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     {
       throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
     }
-    RECT viewport_rect;
-    viewport_rect.left   = _dstRect.Left;
-    viewport_rect.right  = _dstRect.Right + 1;
-    viewport_rect.top    = _dstRect.Top;
-    viewport_rect.bottom = _dstRect.Bottom + 1;
     _filter->SetSamplerStateForStandardSprite(direct3ddevice); // restore nearest/linear so we can get the sampler, since filterinfo is lying
     D3DTEXTUREFILTERTYPE filterType;
     direct3ddevice->GetSamplerState(0, D3DSAMP_MAGFILTER, (DWORD*)&filterType);

@@ -228,6 +228,7 @@ private:
     D3DCAPS9 direct3ddevicecaps;
     IDirect3DVertexBuffer9* vertexbuffer;
     IDirect3DSurface9 *pNativeSurface;
+    RECT viewport_rect;
     UINT availableVideoMemory;
     GFXDRV_CLIENTCALLBACK _pollingCallback;
     GFXDRV_CLIENTCALLBACK _drawScreenCallback;

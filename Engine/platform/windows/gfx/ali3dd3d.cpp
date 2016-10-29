@@ -199,6 +199,7 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _legacyPixelShader = false;
   _allegroOriginalWindowStyle = 0;
   set_up_default_vertices();
+  pNativeSurface = NULL;
 }
 
 void D3DGraphicsDriver::set_up_default_vertices()
@@ -461,6 +462,10 @@ int D3DGraphicsDriver::_resetDeviceIfNecessary()
   if (hr == D3DERR_DEVICENOTRESET)
   {
     Out::FPrint("D3DGraphicsDriver: D3D Device Not Reset");
+    if (pNativeSurface!=NULL) {
+      pNativeSurface->Release();
+      pNativeSurface = NULL;
+    }
     hr = direct3ddevice->Reset(&d3dpp);
     if (hr != D3D_OK)
     {
@@ -736,6 +741,24 @@ void D3DGraphicsDriver::InitializeD3DState()
   d3dViewport.MinZ = 0.0f;
   d3dViewport.MaxZ = 1.0f;
   direct3ddevice->SetViewport(&d3dViewport);
+
+  // set up native surface
+  if (pNativeSurface != NULL) {
+    pNativeSurface->Release();
+    pNativeSurface = NULL;
+  }
+  if (direct3ddevice->CreateRenderTarget(
+          _srcRect.GetWidth(),
+          _srcRect.GetHeight(),
+          D3DFMT_A8R8G8B8,
+          D3DMULTISAMPLE_NONE,
+          0,
+          false,
+          &pNativeSurface,
+          NULL  )!= D3D_OK)
+  {
+    throw Ali3DException("CreateRenderTarget failed");
+  }
 }
 
 void D3DGraphicsDriver::SetGraphicsFilter(D3DGfxFilter *filter)
@@ -813,6 +836,12 @@ void D3DGraphicsDriver::UnInit()
   {
     pixelShader->Release();
     pixelShader = NULL;
+  }
+
+  if (pNativeSurface)
+  {
+    pNativeSurface->Release();
+    pNativeSurface = NULL;
   }
 
   if (direct3ddevice)
@@ -1136,29 +1165,17 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
 void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterwards)
 {
   IDirect3DSurface9 *pBackBuffer = NULL;
-  IDirect3DSurface9 *pRenderTarget = NULL;
+
   D3DVIEWPORT9 pViewport;
 
   if (!_scaleNativeResolution) {
     direct3ddevice->GetViewport(&pViewport);
-    if (direct3ddevice->CreateRenderTarget( 
-              _srcRect.GetWidth(),
-              _srcRect.GetHeight(),
-              D3DFMT_A8R8G8B8,
-              D3DMULTISAMPLE_NONE,
-              0,
-              false,
-              &pRenderTarget,
-              NULL  )!= D3D_OK)
-    {
-      throw Ali3DException("CreateRenderTarget failed");
-    }
 
     if (direct3ddevice->GetRenderTarget(0, &pBackBuffer) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::GetRenderTarget failed");
     }
-    if (direct3ddevice->SetRenderTarget(0, pRenderTarget) != D3D_OK)
+    if (direct3ddevice->SetRenderTarget(0, pNativeSurface) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
     }
@@ -1222,8 +1239,8 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     _filter->SetSamplerStateForStandardSprite(direct3ddevice); // restore nearest/linear so we can get the sampler, since filterinfo is lying
     D3DTEXTUREFILTERTYPE filterType;
     direct3ddevice->GetSamplerState(0, D3DSAMP_MAGFILTER, (DWORD*)&filterType);
-    //if (direct3ddevice->StretchRect(pRenderTarget, NULL, pBackBuffer, &viewport_rect, strncmp(_filter->FilterInfo.Id,"Linear",6)==0?D3DTEXF_LINEAR:D3DTEXF_POINT) != D3D_OK)
-    if (direct3ddevice->StretchRect(pRenderTarget, NULL, pBackBuffer, &viewport_rect, filterType) != D3D_OK)
+    //if (direct3ddevice->StretchRect(pNativeSurface, NULL, pBackBuffer, &viewport_rect, strncmp(_filter->FilterInfo.Id,"Linear",6)==0?D3DTEXF_LINEAR:D3DTEXF_POINT) != D3D_OK)
+    if (direct3ddevice->StretchRect(pNativeSurface, NULL, pBackBuffer, &viewport_rect, filterType) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::StretchRect failed");
     }
@@ -1234,7 +1251,6 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
   if (!_scaleNativeResolution) {
     pBackBuffer->Release();
-    pRenderTarget->Release();
   }
 
   if (clearDrawListAfterwards)

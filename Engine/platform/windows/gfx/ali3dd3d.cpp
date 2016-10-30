@@ -200,6 +200,7 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _allegroOriginalWindowStyle = 0;
   set_up_default_vertices();
   pNativeSurface = NULL;
+  _skipPresent = false;
 }
 
 void D3DGraphicsDriver::set_up_default_vertices()
@@ -742,6 +743,11 @@ void D3DGraphicsDriver::InitializeD3DState()
   d3dViewport.MaxZ = 1.0f;
   direct3ddevice->SetViewport(&d3dViewport);
 
+  viewport_rect.left   = _dstRect.Left;
+  viewport_rect.right  = _dstRect.Right + 1;
+  viewport_rect.top    = _dstRect.Top;
+  viewport_rect.bottom = _dstRect.Bottom + 1;
+
   // set up native surface
   if (pNativeSurface != NULL) {
     pNativeSurface->Release();
@@ -750,15 +756,16 @@ void D3DGraphicsDriver::InitializeD3DState()
   if (direct3ddevice->CreateRenderTarget(
           _srcRect.GetWidth(),
           _srcRect.GetHeight(),
-          D3DFMT_A8R8G8B8,
+          color_depth_to_d3d_format(_mode.ColorDepth, false),//D3DFMT_A8R8G8B8,
           D3DMULTISAMPLE_NONE,
           0,
-          false,
+          true,
           &pNativeSurface,
           NULL  )!= D3D_OK)
   {
     throw Ali3DException("CreateRenderTarget failed");
   }
+  direct3ddevice->ColorFill(pNativeSurface, NULL, 0);
 }
 
 void D3DGraphicsDriver::SetGraphicsFilter(D3DGfxFilter *filter)
@@ -888,13 +895,33 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
   D3DDISPLAYMODE displayMode;
   direct3ddevice->GetDisplayMode(0, &displayMode);
 
+  // TODO use backbuffer only for saving a screenshot to file, or maybe not.
+  const bool fromNative = true;
+
+  // if we're using legacy scaling, render the current frame to native surface
+  if (_scaleNativeResolution)
+  {
+    _scaleNativeResolution = false;
+    _skipPresent = true; // to prevent Present() from putting to screen the rednered frame
+    _reDrawLastFrame();
+    _render(flipTypeLastTime, true);
+    // TODO find out why flip not having any effect on screen crossfade
+    _skipPresent = false;
+    _scaleNativeResolution = true;
+  }
+  
   IDirect3DSurface9* surface = NULL;
   {
     if (_pollingCallback)
       _pollingCallback();
 
+    
+    if (fromNative)
+    {
+      surface = pNativeSurface;
+    }
     // Get the back buffer surface
-    if (direct3ddevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &surface) != D3D_OK)
+    else if (direct3ddevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &surface) != D3D_OK)
     {
       throw Ali3DException("IDirect3DDevice9::GetBackBuffer failed");
     }
@@ -903,18 +930,18 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
       _pollingCallback();
 
     Bitmap *retrieveInto = destination;
-    if ((_srcRect.GetWidth() != _dstRect.GetWidth()) ||
+    if (fromNative)
+    {
+        retrieveInto = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), d3d_format_to_color_depth(displayMode.Format, false));
+    }
+    else if ((_srcRect.GetWidth() != _dstRect.GetWidth()) ||
         (_srcRect.GetHeight() != _dstRect.GetHeight()))
     {
         retrieveInto = BitmapHelper::CreateBitmap(_dstRect.GetWidth(), _dstRect.GetHeight(), _mode.ColorDepth);
     }
 
     D3DLOCKED_RECT lockedRect;
-    viewport_rect.left   = _dstRect.Left;
-    viewport_rect.right  = _dstRect.Right + 1;
-    viewport_rect.top    = _dstRect.Top;
-    viewport_rect.bottom = _dstRect.Bottom + 1;
-    if (surface->LockRect(&lockedRect, &viewport_rect, D3DLOCK_READONLY ) != D3D_OK)
+    if (surface->LockRect(&lockedRect, (fromNative ? NULL : &viewport_rect), D3DLOCK_READONLY ) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::LockRect failed");
     }
@@ -922,7 +949,8 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
     BitmapHelper::ReadPixelsFromMemory(retrieveInto, (uint8_t*)lockedRect.pBits, lockedRect.Pitch);
 
     surface->UnlockRect();
-    surface->Release();
+    if (!fromNative) // native surface is released elsewhere
+        surface->Release();
 
     if (_pollingCallback)
       _pollingCallback();
@@ -1239,7 +1267,7 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     direct3ddevice->SetViewport(&pViewport);
   }
     
-  hr = direct3ddevice->Present(NULL, NULL, NULL, NULL);
+  if(!_skipPresent) hr = direct3ddevice->Present(NULL, NULL, NULL, NULL);
 
   if (!_scaleNativeResolution) {
     pBackBuffer->Release();

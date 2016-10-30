@@ -246,6 +246,7 @@ private:
     Bitmap *_screenTintLayer;
     D3DBitmap* _screenTintLayerDDB;
     SpriteDrawListEntry _screenTintSprite;
+    bool _skipPresent; // used for rendering only on the virtual screen for GetCopyOfScreenIntoBitmap
 
     SpriteDrawListEntry drawList[MAX_DRAW_LIST_SIZE];
     int numToDraw;

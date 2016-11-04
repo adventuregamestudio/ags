@@ -25,7 +25,7 @@ namespace AGS.Types
 		private const string DEFAULT_GENRE = "Adventure";
         private const string DEFAULT_VERSION = "1.0.0.0";
 
-        private const ScriptAPIVersion DEFAULT_SCRIPT_API = ScriptAPIVersion.v340;
+        private const ScriptAPIVersion DEFAULT_SCRIPT_API = ScriptAPIVersion.v341;
 
         public Settings()
         {

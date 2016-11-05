@@ -1976,6 +1976,11 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const P
 
     ReadGameSetupStructBase_Aligned(in);
 
+    // Delete unneeded data
+    // TODO: reorganize this (may be solved by optimizing safe format too)
+    delete [] game.load_messages;
+    game.load_messages = NULL;
+
     if (game.numdialog!=numdiwas)
     {
         Out::FPrint("Restore game error: mismatching number of Dialogs");

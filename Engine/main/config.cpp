@@ -147,6 +147,31 @@ void parse_scaling_option(const String &scaling_option, FrameScaleDefinition &sc
         scale_factor = 0;
 }
 
+// Parses legacy filter ID and converts it into current scaling options
+bool parse_legacy_frame_config(const String &scaling_option, String &filter_id, FrameScaleDefinition &scale_def, int &scale_factor)
+{
+    struct
+    {
+        String LegacyName;
+        String CurrentName;
+        int    Scaling;
+    } legacy_filters[6] = { {"none", "none", -1}, {"max", "StdScale", 0}, {"StdScale", "StdScale", -1},
+                           {"AAx", "Linear", -1}, {"Hq2x", "Hqx", 2}, {"Hq3x", "Hqx", 3} };
+
+    for (int i = 0; i < 6; i++)
+    {
+        if (scaling_option.CompareLeftNoCase(legacy_filters[i].LegacyName) == 0)
+        {
+            filter_id = legacy_filters[i].CurrentName;
+            scale_def = legacy_filters[i].Scaling == 0 ? kFrame_MaxRound : kFrame_IntScale;
+            scale_factor = legacy_filters[i].Scaling >= 0 ? legacy_filters[i].Scaling :
+                scaling_option.Mid(legacy_filters[i].LegacyName.GetLength()).ToInt();
+            return true;
+        }
+    }
+    return false;
+}
+
 String make_scaling_option(FrameScaleDefinition scale_def, int scale_factor)
 {
     switch (scale_def)
@@ -238,6 +263,37 @@ void read_game_data_location(const ConfigTree &cfg)
     usetup.main_data_filename = INIreadstring(cfg, "misc", "datafile", usetup.main_data_filename);
 }
 
+void read_legacy_graphics_config(const ConfigTree &cfg, const bool should_read_filter)
+{
+    usetup.Screen.Windowed = INIreadint(cfg, "misc", "windowed") > 0;
+    usetup.Screen.DriverID = INIreadstring(cfg, "misc", "gfxdriver");
+
+    if (should_read_filter)
+    {
+        String legacy_filter = INIreadstring(cfg, "misc", "gfxfilter");
+        if (!legacy_filter.IsEmpty())
+        {
+            usetup.Screen.SizeDef = kScreenDef_ByGameScaling;
+
+            int scale_factor;
+            if (parse_legacy_frame_config(legacy_filter, usetup.Screen.Filter.ID, usetup.Screen.GameFrame.ScaleDef, scale_factor))
+            {
+                usetup.Screen.GameFrame.ScaleFactor = convert_scaling_to_fp(scale_factor);
+            }
+
+            // AGS 3.2.1 and 3.3.0 aspect ratio preferences
+            if (!usetup.Screen.Windowed)
+            {
+                usetup.Screen.MatchDeviceRatio =
+                    (INIreadint(cfg, "misc", "sideborders") > 0 || INIreadint(cfg, "misc", "forceletterbox") > 0 ||
+                     INIreadint(cfg, "misc", "prefer_sideborders") > 0 || INIreadint(cfg, "misc", "prefer_letterbox") > 0);
+            }
+        }
+    }
+
+    usetup.Screen.RefreshRate = INIreadint(cfg, "misc", "refresh");
+}
+
 void read_config(const ConfigTree &cfg)
 {
     {
@@ -271,6 +327,13 @@ void read_config(const ConfigTree &cfg)
         psp_audio_multithreaded = INIreadint(cfg, "sound", "threaded", psp_audio_multithreaded);
 #endif
 
+        // Filter can also be set by command line
+        // TODO: apply command line arguments to ConfigTree instead to override options read from config file
+        const bool should_read_filter = usetup.Screen.Filter.ID.IsEmpty();
+        // Legacy graphics settings has to be translated into new options;
+        // they must be read first, to let newer options override them, if ones are present
+        read_legacy_graphics_config(cfg, should_read_filter);
+
         // Graphics mode
 #if defined (WINDOWS_VERSION)
         usetup.Screen.DriverID = INIreadstring(cfg, "graphics", "driver");
@@ -297,7 +360,7 @@ void read_config(const ConfigTree &cfg)
         // PSP: No graphic filters are available.
         usetup.Screen.Filter.ID = "";
 #else
-        if (usetup.Screen.Filter.ID.IsEmpty())
+        if (should_read_filter)
         {
             usetup.Screen.Filter.ID = INIreadstring(cfg, "graphics", "filter", "StdScale");
             int scale_factor;

@@ -1,5 +1,28 @@
 REVISION HISTORY
 ================
+VERSION 3.4.0 - Patch 1, November 2016
+
+Editor:
+- Fixed #if(n)ver preprocessor directive failed to properly compare versions
+  if the current and required versions have different number of digits.
+
+Engine:
+- Returned support for some older config options related to graphics mode,
+  so that the engine would be able to use old config files.
+- Fixed graphics mode initialization failure in certain less common setup
+  cases, such as when requested window size was larger than current
+  desktop resolution, or when the final mode appeared smaller than the
+  precalculated one.
+- Fixed couple of memory leaks occuring when saved game is restored.
+- Fixed rare crash when restoring a game while having unreleased DrawingSurface
+  pointers.
+- Fixed compilation in C++11 mode.
+
+WinSetup:
+- Fixed "native game resolution" mode choice was not properly restored when
+  loading config file.
+
+
 VERSION 3.4.0, September 2016
 
 Common features:

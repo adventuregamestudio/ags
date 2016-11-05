@@ -6308,7 +6308,7 @@ The light level is from \bf{-100 to 100}.
 In 8-bit games you cannot use positive light level for brightening effect, but you
 may still use negative values to produce darkening effect.
 
-To disable character lighting and tinting effects, call SetLightLevel with parameter \it{light_level} 0.
+To disable character lighting and tinting effects, call \helprefn{RemoveTint}{Character.RemoveTint}.
 
 \bf{NOTE}: Setting a light level will disable any RGB tint set for the character.
 
@@ -6316,7 +6316,7 @@ To disable character lighting and tinting effects, call SetLightLevel with param
 
 \fcol{red}{Example:}
 \begin{verbatim}
-cEgo.LightLevel = 100;
+cEgo.SetLightLevel(100);
 \end{verbatim}
 This will give character EGO maximal individual brightness.
 

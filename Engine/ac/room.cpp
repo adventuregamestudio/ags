@@ -330,6 +330,8 @@ void unload_old_room() {
         ccRemoveExternalSymbol(thisroom.hotspotScriptNames[ff]);
     }
 
+    croom_ptr_clear();
+
     // clear the object cache
     for (ff = 0; ff < MAX_INIT_SPR; ff++) {
         delete objcache[ff].image;
@@ -1129,6 +1131,12 @@ void on_background_frame_change () {
     // close as possible to the screen update to prevent flicker problem)
     if (game.color_depth == 1)
         bg_just_changed = 1;
+}
+
+void croom_ptr_clear()
+{
+    croom = NULL;
+    objs = NULL;
 }
 
 //=============================================================================

@@ -686,6 +686,9 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     if (INIreadint(_cfgIn, "disabled", "filters", 0) != 0)
         EnableWindow(_hGfxFilterList, FALSE);
 
+    if (INIreadint(_cfgIn, "disabled", "scale_native_resolution", 0) != 0)
+        EnableWindow(_hScaleNativeResolution, FALSE);
+
     RECT win_rect, gfx_rect, adv_rect, border;
     GetWindowRect(_hwnd, &win_rect);
     GetWindowRect(GetDlgItem(_hwnd, IDC_GFXOPTIONS), &gfx_rect);

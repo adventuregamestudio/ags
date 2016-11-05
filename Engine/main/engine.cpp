@@ -179,6 +179,10 @@ bool engine_check_run_setup(ConfigTree &cfg, int argc,char*argv[])
             INIwriteint(cfg, "misc", "game_width", game.size.Width);
             INIwriteint(cfg, "misc", "game_height", game.size.Height);
             INIwriteint(cfg, "misc", "gamecolordepth", game.color_depth * 8);
+            if (game.options[OPT_IGNORENATIVERES] > 0) { // force enabled/disabled
+                INIwriteint(cfg, "graphics", "scale_native_resolution", game.options[OPT_IGNORENATIVERES] == 1);
+                INIwriteint(cfg, "disabled", "scale_native_resolution", 1);
+            }
 
             ConfigTree cfg_out;
             SetupReturnValue res = platform->RunSetup(cfg, cfg_out);

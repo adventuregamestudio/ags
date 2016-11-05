@@ -1454,6 +1454,7 @@ namespace AGS.Editor
                 NativeProxy.WritePrivateProfileString("graphics", "driver", _game.Settings.GraphicsDriver.ToString(), configFilePath);
             }
             NativeProxy.WritePrivateProfileString("misc", "titletext", _game.Settings.GameName + " Setup", configFilePath);
+            NativeProxy.WritePrivateProfileString("graphics", "scale_native_resolution", (_game.Settings.ScaleNativeResolution == ScaleNativeResolution.True ? "1" : "0"), configFilePath);
         }
 
 		private void BackupCurrentGameFile()

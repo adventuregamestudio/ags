@@ -437,6 +437,7 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_DIALOGOPTIONSAPI] = (game.Settings.UseOldCustomDialogOptionsAPI ? -1 : 1);
             options[NativeConstants.GameOptions.OPT_BASESCRIPTAPI] = (int)game.Settings.ScriptAPIVersion;
             options[NativeConstants.GameOptions.OPT_SCRIPTCOMPATLEV] = (int)game.Settings.ScriptCompatLevel;
+            options[NativeConstants.GameOptions.OPT_IGNORENATIVERES] = (int)game.Settings.ScaleNativeResolution;
             options[NativeConstants.GameOptions.OPT_LIPSYNCTEXT] = (game.LipSync.Type == LipSyncType.Text ? 1 : 0);
             for (int i = 0; i < options.Length; ++i) // writing only ints, alignment preserved
             {

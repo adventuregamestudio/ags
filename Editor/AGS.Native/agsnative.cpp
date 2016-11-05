@@ -3544,7 +3544,12 @@ void ConvertInteractions(AGS::Types::Interactions ^interactions, Interaction *in
 	}
 }
 
-Game^ load_old_game_dta_file(const char *fileName)
+// Load compiled game's main data file and use it to create AGS::Types::Game.
+// TODO: originally this function was meant import strictly 2.72 games;
+// although technically it can now load game files of any version, more work is
+// required to properly fill in editor's Game object's fields depending on
+// which version is being loaded.
+Game^ import_compiled_game_dta(const char *fileName)
 {
 	const char *errorMsg = load_dta_file_into_thisgame(fileName);
     loaded_game_file_version = kGameVersion_Current;

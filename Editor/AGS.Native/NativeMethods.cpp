@@ -19,7 +19,7 @@ using namespace System::Runtime::InteropServices;
 
 extern bool initialize_native();
 extern void shutdown_native();
-extern AGS::Types::Game^ load_old_game_dta_file(const char *fileName);
+extern AGS::Types::Game^ import_compiled_game_dta(const char *fileName);
 extern void free_old_game_data();
 extern AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad);
 extern void save_crm_file(Room ^roomToSave);
@@ -425,7 +425,7 @@ namespace AGS
 			char fileNameBuf[MAX_PATH];
 			ConvertFileNameToCharArray(fileName, fileNameBuf);
 
-			Game ^game = load_old_game_dta_file(fileNameBuf);
+			Game ^game = import_compiled_game_dta(fileNameBuf);
 
 			return game;
 		}

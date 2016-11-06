@@ -74,8 +74,8 @@
 #define OPT_DIALOGOPTIONSAPI 42 // version of dialog options API (-1 for pre-3.4.0 API)
 #define OPT_BASESCRIPTAPI   43 // version of the Script API used to compile game script
 #define OPT_SCRIPTCOMPATLEV 44 // level of API compatibility used to compile game script
-#define OPT_IGNORENATIVERES 45 // use the legacy D3D scaling that ignores the native game resolution
-#define OPT_HIGHESTOPTION   OPT_IGNORENATIVERES
+#define OPT_SCALENATIVERES 45 // use the legacy D3D scaling that ignores the native game resolution
+#define OPT_HIGHESTOPTION   OPT_SCALENATIVERES
 #define OPT_NOMODMUSIC      98
 #define OPT_LIPSYNCTEXT     99
 #define PORTRAIT_LEFT       0

@@ -130,7 +130,7 @@ namespace AGS.Editor
             public static readonly int OPT_DIALOGOPTIONSAPI = (int)Factory.NativeProxy.GetNativeConstant("OPT_DIALOGOPTIONSAPI");
             public static readonly int OPT_BASESCRIPTAPI = (int)Factory.NativeProxy.GetNativeConstant("OPT_BASESCRIPTAPI");
             public static readonly int OPT_SCRIPTCOMPATLEV = (int)Factory.NativeProxy.GetNativeConstant("OPT_SCRIPTCOMPATLEV");
-            public static readonly int OPT_IGNORENATIVERES = (int)Factory.NativeProxy.GetNativeConstant("OPT_IGNORENATIVERES");
+            public static readonly int OPT_SCALENATIVERES = (int)Factory.NativeProxy.GetNativeConstant("OPT_SCALENATIVERES");
             public static readonly int OPT_LIPSYNCTEXT = (int)Factory.NativeProxy.GetNativeConstant("OPT_LIPSYNCTEXT");
         }
     }

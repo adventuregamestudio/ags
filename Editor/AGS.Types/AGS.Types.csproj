@@ -243,6 +243,7 @@
     <Compile Include="BuildTargetsInfo.cs" />
     <Compile Include="Enums\BuildConfiguration.cs" />
     <Compile Include="Enums\DialogOptionsNumbering.cs" />
+    <Compile Include="Enums\ScaleNativeResolution.cs" />
     <Compile Include="Enums\ScriptAPIVersion.cs" />
     <Compile Include="Enums\SpriteAlphaStyle.cs" />
     <Compile Include="HelperTypes\BindingListWithRemoving.cs" />

@@ -199,6 +199,8 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _legacyPixelShader = false;
   _allegroOriginalWindowStyle = 0;
   set_up_default_vertices();
+  pNativeSurface = NULL;
+  _skipPresent = false;
 }
 
 void D3DGraphicsDriver::set_up_default_vertices()
@@ -461,6 +463,10 @@ int D3DGraphicsDriver::_resetDeviceIfNecessary()
   if (hr == D3DERR_DEVICENOTRESET)
   {
     Out::FPrint("D3DGraphicsDriver: D3D Device Not Reset");
+    if (pNativeSurface!=NULL) {
+      pNativeSurface->Release();
+      pNativeSurface = NULL;
+    }
     hr = direct3ddevice->Reset(&d3dpp);
     if (hr != D3D_OK)
     {
@@ -642,8 +648,8 @@ void D3DGraphicsDriver::InitializeD3DState()
   Out::FPrint("D3DGraphicsDriver: InitializeD3DState()");
 
   D3DMATRIX matOrtho = {
-   (2.0 / (float)_mode.Width), 0.0, 0.0, 0.0,
-    0.0, (2.0 / (float)_mode.Height), 0.0, 0.0,
+    (2.0 / (float)_srcRect.GetWidth()), 0.0, 0.0, 0.0,
+    0.0, (2.0 / (float)_srcRect.GetHeight()), 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 1.0
   };
@@ -736,6 +742,30 @@ void D3DGraphicsDriver::InitializeD3DState()
   d3dViewport.MinZ = 0.0f;
   d3dViewport.MaxZ = 1.0f;
   direct3ddevice->SetViewport(&d3dViewport);
+
+  viewport_rect.left   = _dstRect.Left;
+  viewport_rect.right  = _dstRect.Right + 1;
+  viewport_rect.top    = _dstRect.Top;
+  viewport_rect.bottom = _dstRect.Bottom + 1;
+
+  // set up native surface
+  if (pNativeSurface != NULL) {
+    pNativeSurface->Release();
+    pNativeSurface = NULL;
+  }
+  if (direct3ddevice->CreateRenderTarget(
+          _srcRect.GetWidth(),
+          _srcRect.GetHeight(),
+          color_depth_to_d3d_format(_mode.ColorDepth, false),//D3DFMT_A8R8G8B8,
+          D3DMULTISAMPLE_NONE,
+          0,
+          true,
+          &pNativeSurface,
+          NULL  )!= D3D_OK)
+  {
+    throw Ali3DException("CreateRenderTarget failed");
+  }
+  direct3ddevice->ColorFill(pNativeSurface, NULL, 0);
 }
 
 void D3DGraphicsDriver::SetGraphicsFilter(D3DGfxFilter *filter)
@@ -815,6 +845,12 @@ void D3DGraphicsDriver::UnInit()
     pixelShader = NULL;
   }
 
+  if (pNativeSurface)
+  {
+    pNativeSurface->Release();
+    pNativeSurface = NULL;
+  }
+
   if (direct3ddevice)
   {
     direct3ddevice->Release();
@@ -859,13 +895,33 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
   D3DDISPLAYMODE displayMode;
   direct3ddevice->GetDisplayMode(0, &displayMode);
 
+  // TODO use backbuffer only for saving a screenshot to file, or maybe not.
+  const bool fromNative = true;
+
+  // if we're using legacy scaling, render the current frame to native surface
+  if (_scaleNativeResolution)
+  {
+    _scaleNativeResolution = false;
+    _skipPresent = true; // to prevent Present() from putting to screen the rednered frame
+    _reDrawLastFrame();
+    _render(flipTypeLastTime, true);
+    // TODO find out why flip not having any effect on screen crossfade
+    _skipPresent = false;
+    _scaleNativeResolution = true;
+  }
+  
   IDirect3DSurface9* surface = NULL;
   {
     if (_pollingCallback)
       _pollingCallback();
 
+    
+    if (fromNative)
+    {
+      surface = pNativeSurface;
+    }
     // Get the back buffer surface
-    if (direct3ddevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &surface) != D3D_OK)
+    else if (direct3ddevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &surface) != D3D_OK)
     {
       throw Ali3DException("IDirect3DDevice9::GetBackBuffer failed");
     }
@@ -874,19 +930,18 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
       _pollingCallback();
 
     Bitmap *retrieveInto = destination;
-    if ((_srcRect.GetWidth() != _dstRect.GetWidth()) ||
+    if (fromNative)
+    {
+        retrieveInto = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), d3d_format_to_color_depth(displayMode.Format, false));
+    }
+    else if ((_srcRect.GetWidth() != _dstRect.GetWidth()) ||
         (_srcRect.GetHeight() != _dstRect.GetHeight()))
     {
         retrieveInto = BitmapHelper::CreateBitmap(_dstRect.GetWidth(), _dstRect.GetHeight(), _mode.ColorDepth);
     }
 
     D3DLOCKED_RECT lockedRect;
-    RECT viewport_rect;
-    viewport_rect.left   = _dstRect.Left;
-    viewport_rect.right  = _dstRect.Right + 1;
-    viewport_rect.top    = _dstRect.Top;
-    viewport_rect.bottom = _dstRect.Bottom + 1;
-    if (surface->LockRect(&lockedRect, &viewport_rect, D3DLOCK_READONLY ) != D3D_OK)
+    if (surface->LockRect(&lockedRect, (fromNative ? NULL : &viewport_rect), D3DLOCK_READONLY ) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::LockRect failed");
     }
@@ -894,7 +949,8 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
     BitmapHelper::ReadPixelsFromMemory(retrieveInto, (uint8_t*)lockedRect.pBits, lockedRect.Pitch);
 
     surface->UnlockRect();
-    surface->Release();
+    if (!fromNative) // native surface is released elsewhere
+        surface->Release();
 
     if (_pollingCallback)
       _pollingCallback();
@@ -1049,17 +1105,15 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
   float height = bmpToDraw->GetHeightToRender();
   float xProportion = width / (float)bmpToDraw->_width;
   float yProportion = height / (float)bmpToDraw->_height;
-  float xFrameProportion = (float)_mode.Width / _srcRect.GetWidth();
-  float yFrameProportion = (float)_mode.Height / _srcRect.GetHeight();
 
   bool  flipLeftToRight = globalLeftRightFlip ^ bmpToDraw->_flipped;
-  float drawAtX = (drawListEntry->x + _global_x_offset) * xFrameProportion;
-  float drawAtY = (drawListEntry->y + _global_y_offset) * yFrameProportion;
+  float drawAtX = (drawListEntry->x);
+  float drawAtY = (drawListEntry->y);
 
   for (int ti = 0; ti < bmpToDraw->_numTiles; ti++)
   {
-    width = bmpToDraw->_tiles[ti].width * xProportion * xFrameProportion;
-    height = bmpToDraw->_tiles[ti].height * yProportion * yFrameProportion;
+    width = bmpToDraw->_tiles[ti].width * xProportion;
+    height = bmpToDraw->_tiles[ti].height * yProportion;
     float xOffs;
     float yOffs = bmpToDraw->_tiles[ti].y * yProportion;
     if (flipLeftToRight != globalLeftRightFlip)
@@ -1075,15 +1129,15 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
 
     if (globalLeftRightFlip)
     {
-      thisX = (_mode.Width - thisX) - width;
+      thisX = (_srcRect.GetWidth() - thisX) - width;
     }
     if (globalTopBottomFlip) 
     {
-      thisY = (_mode.Height - thisY) - height;
+      thisY = (_srcRect.GetHeight() - thisY) - height;
     }
 
-    thisX = (-(_mode.Width / 2)) + thisX;
-    thisY = (_mode.Height / 2) - thisY;
+    thisX = (-(_srcRect.GetWidth() / 2)) + thisX;
+    thisY = (_srcRect.GetHeight() / 2) - thisY;
 
     //Setup translation and scaling matrices
     float widthToScale = (float)width;
@@ -1111,7 +1165,12 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
       direct3ddevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
       direct3ddevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
     }
-    else 
+    else if (!_scaleNativeResolution)
+    {
+      direct3ddevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+      direct3ddevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+    }
+    else
     {
       _filter->SetSamplerStateForStandardSprite(direct3ddevice);
     }
@@ -1130,6 +1189,23 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
 
 void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterwards)
 {
+  IDirect3DSurface9 *pBackBuffer = NULL;
+
+  D3DVIEWPORT9 pViewport;
+
+  if (!_scaleNativeResolution) {
+    direct3ddevice->GetViewport(&pViewport);
+
+    if (direct3ddevice->GetRenderTarget(0, &pBackBuffer) != D3D_OK)
+    {
+      throw Ali3DException("IDirect3DSurface9::GetRenderTarget failed");
+    }
+    if (direct3ddevice->SetRenderTarget(0, pNativeSurface) != D3D_OK)
+    {
+      throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
+    }
+  }
+
   SpriteDrawListEntry *listToDraw = drawList;
   int listSize = numToDraw;
   HRESULT hr;
@@ -1173,7 +1249,29 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
   direct3ddevice->EndScene();
 
-  hr = direct3ddevice->Present(NULL, NULL, NULL, NULL);
+
+
+  if (!_scaleNativeResolution) {
+    if (direct3ddevice->SetRenderTarget(0, pBackBuffer)!= D3D_OK)
+    {
+      throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
+    }
+    _filter->SetSamplerStateForStandardSprite(direct3ddevice); // restore nearest/linear so we can get the sampler, since filterinfo is lying
+    D3DTEXTUREFILTERTYPE filterType;
+    direct3ddevice->GetSamplerState(0, D3DSAMP_MAGFILTER, (DWORD*)&filterType);
+    //if (direct3ddevice->StretchRect(pNativeSurface, NULL, pBackBuffer, &viewport_rect, strncmp(_filter->FilterInfo.Id,"Linear",6)==0?D3DTEXF_LINEAR:D3DTEXF_POINT) != D3D_OK)
+    if (direct3ddevice->StretchRect(pNativeSurface, NULL, pBackBuffer, &viewport_rect, filterType) != D3D_OK)
+    {
+      throw Ali3DException("IDirect3DSurface9::StretchRect failed");
+    }
+    direct3ddevice->SetViewport(&pViewport);
+  }
+    
+  if(!_skipPresent) hr = direct3ddevice->Present(NULL, NULL, NULL, NULL);
+
+  if (!_scaleNativeResolution) {
+    pBackBuffer->Release();
+  }
 
   if (clearDrawListAfterwards)
   {

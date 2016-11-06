@@ -88,6 +88,7 @@ public:
   virtual void GetCopyOfScreenIntoBitmap(Common::Bitmap *destination) = 0;
   virtual void EnableVsyncBeforeRender(bool enabled) = 0;
   virtual void Vsync() = 0;
+  virtual void ScaleNativeResolution(bool enabled) = 0;
   virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) = 0;
   virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) = 0;
   virtual void BoxOutEffect(bool blackingOut, int speed, int delay) = 0;

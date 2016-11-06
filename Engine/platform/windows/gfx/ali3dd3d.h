@@ -192,6 +192,7 @@ public:
     virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination);
     virtual void EnableVsyncBeforeRender(bool enabled) { }
     virtual void Vsync();
+    virtual void ScaleNativeResolution(bool enabled) { _scaleNativeResolution = enabled; };
     virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void BoxOutEffect(bool blackingOut, int speed, int delay);
@@ -226,6 +227,8 @@ private:
     D3DGAMMARAMP currentgammaramp;
     D3DCAPS9 direct3ddevicecaps;
     IDirect3DVertexBuffer9* vertexbuffer;
+    IDirect3DSurface9 *pNativeSurface;
+    RECT viewport_rect;
     UINT availableVideoMemory;
     GFXDRV_CLIENTCALLBACK _pollingCallback;
     GFXDRV_CLIENTCALLBACK _drawScreenCallback;
@@ -239,9 +242,11 @@ private:
     bool _legacyPixelShader;
     float _pixelRenderXOffset;
     float _pixelRenderYOffset;
+    bool _scaleNativeResolution;
     Bitmap *_screenTintLayer;
     D3DBitmap* _screenTintLayerDDB;
     SpriteDrawListEntry _screenTintSprite;
+    bool _skipPresent; // used for rendering only on the virtual screen for GetCopyOfScreenIntoBitmap
 
     SpriteDrawListEntry drawList[MAX_DRAW_LIST_SIZE];
     int numToDraw;

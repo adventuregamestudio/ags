@@ -757,6 +757,7 @@ namespace AGS
             if (name->Equals("OPT_DIALOGOPTIONSAPI")) return OPT_DIALOGOPTIONSAPI;
             if (name->Equals("OPT_BASESCRIPTAPI")) return OPT_BASESCRIPTAPI;
             if (name->Equals("OPT_SCRIPTCOMPATLEV")) return OPT_SCRIPTCOMPATLEV;
+            if (name->Equals("OPT_SCALENATIVERES")) return OPT_SCALENATIVERES;
             if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
 			if (name->Equals("MAX_PLUGINS")) return MAX_PLUGINS;
 			if (name->Equals("MAX_DIALOG")) return MAX_DIALOG;

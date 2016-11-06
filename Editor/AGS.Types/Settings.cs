@@ -43,6 +43,7 @@ namespace AGS.Types
         private bool _pixelPerfect = true;
         private bool _autoMoveInWalkMode = true;
         private bool _letterboxMode = false;
+        private ScaleNativeResolution _scaleNativeResolution = 0;
         private int _splitResources = 0;
         private bool _turnBeforeWalking = true;
         private bool _turnBeforeFacing = true;
@@ -1045,6 +1046,17 @@ namespace AGS.Types
             {
                 this.SaveGameFolderName = _gameName;
             }
+        }
+
+        [DisplayName("Scale native game resolution")]
+        [Description("The game will draw to screen ignoring the actual game resolution. Keep disabled for pixel-perfect output.")]
+        [DefaultValue(ScaleNativeResolution.Default)]
+        [Category("(Setup)")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public ScaleNativeResolution ScaleNativeResolution
+        {
+            get { return _scaleNativeResolution; }
+            set { _scaleNativeResolution = value; }
         }
 
         #region ICustomTypeDescriptor Members

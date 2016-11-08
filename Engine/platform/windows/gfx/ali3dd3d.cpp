@@ -899,15 +899,15 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
   const bool fromNative = true;
 
   // if we're using legacy scaling, render the current frame to native surface
-  if (_scaleNativeResolution)
+  if (_renderSprAtScreenRes)
   {
-    _scaleNativeResolution = false;
+    _renderSprAtScreenRes = false;
     _skipPresent = true; // to prevent Present() from putting to screen the rednered frame
     _reDrawLastFrame();
     _render(flipTypeLastTime, true);
     // TODO find out why flip not having any effect on screen crossfade
     _skipPresent = false;
-    _scaleNativeResolution = true;
+    _renderSprAtScreenRes = true;
   }
   
   IDirect3DSurface9* surface = NULL;
@@ -1165,7 +1165,7 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
       direct3ddevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
       direct3ddevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
     }
-    else if (!_scaleNativeResolution)
+    else if (!_renderSprAtScreenRes)
     {
       direct3ddevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
       direct3ddevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
@@ -1193,7 +1193,7 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
   D3DVIEWPORT9 pViewport;
 
-  if (!_scaleNativeResolution) {
+  if (!_renderSprAtScreenRes) {
     direct3ddevice->GetViewport(&pViewport);
 
     if (direct3ddevice->GetRenderTarget(0, &pBackBuffer) != D3D_OK)
@@ -1251,7 +1251,7 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
 
 
-  if (!_scaleNativeResolution) {
+  if (!_renderSprAtScreenRes) {
     if (direct3ddevice->SetRenderTarget(0, pBackBuffer)!= D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
@@ -1269,7 +1269,7 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     
   if(!_skipPresent) hr = direct3ddevice->Present(NULL, NULL, NULL, NULL);
 
-  if (!_scaleNativeResolution) {
+  if (!_renderSprAtScreenRes) {
     pBackBuffer->Release();
   }
 

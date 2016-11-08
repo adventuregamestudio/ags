@@ -192,7 +192,7 @@ public:
     virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination);
     virtual void EnableVsyncBeforeRender(bool enabled) { }
     virtual void Vsync();
-    virtual void ScaleNativeResolution(bool enabled) { _scaleNativeResolution = enabled; };
+    virtual void RenderSpritesAtScreenResolution(bool enabled) { _renderSprAtScreenRes = enabled; };
     virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void BoxOutEffect(bool blackingOut, int speed, int delay);
@@ -242,7 +242,7 @@ private:
     bool _legacyPixelShader;
     float _pixelRenderXOffset;
     float _pixelRenderYOffset;
-    bool _scaleNativeResolution;
+    bool _renderSprAtScreenRes;
     Bitmap *_screenTintLayer;
     D3DBitmap* _screenTintLayerDDB;
     SpriteDrawListEntry _screenTintSprite;

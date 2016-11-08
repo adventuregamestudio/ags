@@ -11,7 +11,7 @@
 #define IDC_VERSION                     1008
 #define IDC_LANGUAGE                    1009
 #define IDC_SPRITECACHE                 1010
-#define IDC_SCALENATIVERES              1011
+#define IDC_RENDERATSCREENRES           1011
 #define IDC_ADVANCED                    1012
 #define IDC_VOICEPACK                   1016
 #define IDC_REFRESH_85HZ                1017

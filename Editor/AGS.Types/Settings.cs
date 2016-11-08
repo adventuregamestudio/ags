@@ -43,7 +43,7 @@ namespace AGS.Types
         private bool _pixelPerfect = true;
         private bool _autoMoveInWalkMode = true;
         private bool _letterboxMode = false;
-        private ScaleNativeResolution _scaleNativeResolution = 0;
+        private RenderAtScreenResolution _renderAtScreenRes = RenderAtScreenResolution.UserDefined;
         private int _splitResources = 0;
         private bool _turnBeforeWalking = true;
         private bool _turnBeforeFacing = true;
@@ -1048,15 +1048,15 @@ namespace AGS.Types
             }
         }
 
-        [DisplayName("Scale native game resolution")]
-        [Description("The game will draw to screen ignoring the actual game resolution. Keep disabled for pixel-perfect output.")]
-        [DefaultValue(ScaleNativeResolution.Default)]
+        [DisplayName("Render sprites at screen resolution")]
+        [Description("When drawing zoomed character and object sprites, AGS will take advantage of higher runtime resolution to give scaled images more detail, than it would be possible if the game was displayed in its native resolution. The effect is stronger for low-res games. Keep disabled for pixel-perfect output. Currently supported only by Direct3D renderer.")]
+        [DefaultValue(RenderAtScreenResolution.UserDefined)]
         [Category("(Setup)")]
         [TypeConverter(typeof(EnumTypeConverter))]
-        public ScaleNativeResolution ScaleNativeResolution
+        public RenderAtScreenResolution RenderAtScreenResolution
         {
-            get { return _scaleNativeResolution; }
-            set { _scaleNativeResolution = value; }
+            get { return _renderAtScreenRes; }
+            set { _renderAtScreenRes = value; }
         }
 
         #region ICustomTypeDescriptor Members

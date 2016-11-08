@@ -83,7 +83,7 @@ struct WinConfig
     int    RefreshRate;
     bool   Windowed;
     bool   VSync;
-    bool   ScaleNativeResolution;
+    bool   RenderAtScreenRes;
     bool   Reduce32to16;
     bool   AntialiasSprites;
 
@@ -124,7 +124,7 @@ void WinConfig::SetDefaults()
     RefreshRate = 0;
     Windowed = false;
     VSync = false;
-    ScaleNativeResolution = false;
+    RenderAtScreenRes = false;
     AntialiasSprites = false;
     Reduce32to16 = false;
 
@@ -165,7 +165,7 @@ void WinConfig::Load(const ConfigTree &cfg)
     RefreshRate = INIreadint(cfg, "graphics", "refresh", RefreshRate);
     Windowed = INIreadint(cfg, "graphics", "windowed", Windowed ? 1 : 0) != 0;
     VSync = INIreadint(cfg, "graphics", "vsync", VSync ? 1 : 0) != 0;
-    ScaleNativeResolution = INIreadint(cfg, "graphics", "scale_native_resolution", ScaleNativeResolution ? 1 : 0) != 0;
+    RenderAtScreenRes = INIreadint(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0) != 0;
 
     Reduce32to16 = INIreadint(cfg, "misc","notruecolor", Reduce32to16 ? 1 : 0) != 0;
     AntialiasSprites = INIreadint(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0) != 0;
@@ -199,7 +199,7 @@ void WinConfig::Save(ConfigTree &cfg)
     INIwriteint(cfg, "graphics", "refresh", RefreshRate);
     INIwriteint(cfg, "graphics", "windowed", Windowed ? 1 : 0);
     INIwriteint(cfg, "graphics", "vsync", VSync ? 1 : 0);
-    INIwriteint(cfg, "graphics", "scale_native_resolution", ScaleNativeResolution ? 1 : 0);
+    INIwriteint(cfg, "graphics", "render_at_screenres", RenderAtScreenRes ? 1 : 0);
 
     INIwriteint(cfg, "misc", "notruecolor", Reduce32to16 ? 1 : 0);
     INIwriteint(cfg, "misc", "antialias", AntialiasSprites ? 1 : 0);
@@ -490,7 +490,7 @@ private:
     HWND _hSpriteCacheList;
     HWND _hWindowed;
     HWND _hVSync;
-    HWND _hScaleNativeResolution;
+    HWND _hRenderAtScreenRes;
     HWND _hRefresh85Hz;
     HWND _hAntialiasSprites;
     HWND _hReduce32to16;
@@ -554,7 +554,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     _hSpriteCacheList       = GetDlgItem(_hwnd, IDC_SPRITECACHE);
     _hWindowed              = GetDlgItem(_hwnd, IDC_WINDOWED);
     _hVSync                 = GetDlgItem(_hwnd, IDC_VSYNC);
-    _hScaleNativeResolution = GetDlgItem(_hwnd, IDC_SCALENATIVERES);
+    _hRenderAtScreenRes     = GetDlgItem(_hwnd, IDC_RENDERATSCREENRES);
     _hRefresh85Hz           = GetDlgItem(_hwnd, IDC_REFRESH_85HZ);
     _hAntialiasSprites      = GetDlgItem(_hwnd, IDC_ANTIALIAS);
     _hReduce32to16          = GetDlgItem(_hwnd, IDC_REDUCE32TO16);
@@ -617,7 +617,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
 
     SetCheck(_hVSync, _winCfg.VSync);
 
-    SetCheck(_hScaleNativeResolution, _winCfg.ScaleNativeResolution);
+    SetCheck(_hRenderAtScreenRes, _winCfg.RenderAtScreenRes);
 
     AddString(_hDigiDriverList, "No Digital Sound", DIGI_NONE);
     AddString(_hDigiDriverList, "Default DirectSound Device", DIGI_DIRECTAMX(0));
@@ -686,8 +686,8 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     if (INIreadint(_cfgIn, "disabled", "filters", 0) != 0)
         EnableWindow(_hGfxFilterList, FALSE);
 
-    if (INIreadint(_cfgIn, "disabled", "scale_native_resolution", 0) != 0)
-        EnableWindow(_hScaleNativeResolution, FALSE);
+    if (INIreadint(_cfgIn, "disabled", "render_at_screenres", 0) != 0)
+        EnableWindow(_hRenderAtScreenRes, FALSE);
 
     RECT win_rect, gfx_rect, adv_rect, border;
     GetWindowRect(_hwnd, &win_rect);
@@ -1137,7 +1137,7 @@ void WinSetupDialog::SaveSetup()
     _winCfg.SpriteCacheSize = GetCurItemData(_hSpriteCacheList) * 1024;
     _winCfg.UseVoicePack = GetCheck(_hUseVoicePack);
     _winCfg.VSync = GetCheck(_hVSync);
-    _winCfg.ScaleNativeResolution = GetCheck(_hScaleNativeResolution);
+    _winCfg.RenderAtScreenRes = GetCheck(_hRenderAtScreenRes);
     _winCfg.AntialiasSprites = GetCheck(_hAntialiasSprites);
     _winCfg.RefreshRate = GetCheck(_hRefresh85Hz) ? 85 : 0;
     _winCfg.Reduce32to16 = GetCheck(_hReduce32to16);

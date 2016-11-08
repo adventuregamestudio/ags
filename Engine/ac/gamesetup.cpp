@@ -40,5 +40,5 @@ GameSetup::GameSetup()
     Screen.Windowed = false;
     Screen.GameFrame.ScaleDef = kFrame_MaxRound;
     Screen.GameFrame.ScaleFactor = 0;
-    Screen.ScaleNativeResolution = false;
+    Screen.RenderAtScreenRes = false;
 }

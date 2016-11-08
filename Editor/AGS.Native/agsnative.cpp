@@ -3605,7 +3605,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 	game->Settings->WhenInterfaceDisabled = (InterfaceDisabledAction)thisgame.options[OPT_DISABLEOFF];
 	game->Settings->UniqueID = thisgame.uniqueid;
   game->Settings->SaveGameFolderName = gcnew String(thisgame.gamename);
-  game->Settings->ScaleNativeResolution = (ScaleNativeResolution)thisgame.options[OPT_SCALENATIVERES];
+  game->Settings->RenderAtScreenResolution = (RenderAtScreenResolution)thisgame.options[OPT_RENDERATSCREENRES];
 
 	game->Settings->InventoryHotspotMarker->DotColor = thisgame.hotdot;
 	game->Settings->InventoryHotspotMarker->CrosshairColor = thisgame.hotdotouter;

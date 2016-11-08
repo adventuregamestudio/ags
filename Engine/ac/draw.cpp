@@ -2520,7 +2520,9 @@ void construct_virtual_screen(bool fullRedraw)
     Bitmap *ds = GetVirtualScreen();
 
     gfxDriver->UseSmoothScaling(IS_ANTIALIAS_SPRITES);
-    gfxDriver->ScaleNativeResolution((game.options[OPT_SCALENATIVERES] == 0 && usetup.Screen.ScaleNativeResolution) || game.options[OPT_SCALENATIVERES] == 1);
+    gfxDriver->RenderSpritesAtScreenResolution(
+        (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined && usetup.Screen.RenderAtScreenRes) ||
+         game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled);
 
     pl_run_plugin_hooks(AGSE_PRERENDER, 0);
 

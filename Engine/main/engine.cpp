@@ -179,9 +179,11 @@ bool engine_check_run_setup(ConfigTree &cfg, int argc,char*argv[])
             INIwriteint(cfg, "misc", "game_width", game.size.Width);
             INIwriteint(cfg, "misc", "game_height", game.size.Height);
             INIwriteint(cfg, "misc", "gamecolordepth", game.color_depth * 8);
-            if (game.options[OPT_SCALENATIVERES] > 0) { // force enabled/disabled
-                INIwriteint(cfg, "graphics", "scale_native_resolution", game.options[OPT_SCALENATIVERES] == 1);
-                INIwriteint(cfg, "disabled", "scale_native_resolution", 1);
+            if (game.options[OPT_RENDERATSCREENRES] != kRenderAtScreenRes_UserDefined)
+            {
+                // force enabled/disabled
+                INIwriteint(cfg, "graphics", "render_at_screenres", game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled);
+                INIwriteint(cfg, "disabled", "render_at_screenres", 1);
             }
 
             ConfigTree cfg_out;

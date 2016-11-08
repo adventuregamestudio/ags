@@ -86,7 +86,7 @@ struct ScreenSetup
     GfxFilterSetup       Filter;        // graphics filter definition
     GameFrameSetup       GameFrame;     // definition of the game frame's position on screen
 
-    bool                 ScaleNativeResolution; // ignore native resolution
+    bool                 RenderAtScreenRes; // render sprites at screen resolution, as opposed to native one
 };
 
 struct ColorDepthOption

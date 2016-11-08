@@ -88,7 +88,13 @@ public:
   virtual void GetCopyOfScreenIntoBitmap(Common::Bitmap *destination) = 0;
   virtual void EnableVsyncBeforeRender(bool enabled) = 0;
   virtual void Vsync() = 0;
-  virtual void ScaleNativeResolution(bool enabled) = 0;
+  // Enables or disables rendering mode that draws sprite list directly into
+  // the final resolution, as opposed to drawing to native-resolution buffer
+  // and scaling to final frame. The effect may be that sprites that are
+  // drawn with additional fractional scaling will appear more detailed than
+  // the rest of the game. The effect is stronger for the low-res games being
+  // rendered in the high-res mode.
+  virtual void RenderSpritesAtScreenResolution(bool enabled) = 0;
   virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) = 0;
   virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue) = 0;
   virtual void BoxOutEffect(bool blackingOut, int speed, int delay) = 0;

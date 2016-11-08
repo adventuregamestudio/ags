@@ -74,8 +74,8 @@
 #define OPT_DIALOGOPTIONSAPI 42 // version of dialog options API (-1 for pre-3.4.0 API)
 #define OPT_BASESCRIPTAPI   43 // version of the Script API used to compile game script
 #define OPT_SCRIPTCOMPATLEV 44 // level of API compatibility used to compile game script
-#define OPT_SCALENATIVERES 45 // use the legacy D3D scaling that ignores the native game resolution
-#define OPT_HIGHESTOPTION   OPT_SCALENATIVERES
+#define OPT_RENDERATSCREENRES 45 // use the legacy D3D scaling that scales sprites at the (final) screen resolution
+#define OPT_HIGHESTOPTION   OPT_RENDERATSCREENRES
 #define OPT_NOMODMUSIC      98
 #define OPT_LIPSYNCTEXT     99
 #define PORTRAIT_LEFT       0
@@ -156,6 +156,15 @@ enum ScriptAPIVersion
     kScriptAPI_v335 = 3,
     kScriptAPI_v340 = 4,
     kScriptAPI_v341 = 5
+};
+
+// Determines whether the graphics renderer should scale sprites at the final
+// screen resolution, as opposed to native resolution
+enum RenderAtScreenRes
+{
+    kRenderAtScreenRes_UserDefined  = 0,
+    kRenderAtScreenRes_Enabled      = 1,
+    kRenderAtScreenRes_Disabled     = 2,
 };
 
 #endif // __AGS_CN_AC__GAMESTRUCTDEFINES_H

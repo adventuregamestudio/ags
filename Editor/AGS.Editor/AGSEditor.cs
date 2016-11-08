@@ -1453,8 +1453,9 @@ namespace AGS.Editor
                 NativeProxy.WritePrivateProfileString("graphics", "defaultdriver", _game.Settings.GraphicsDriver.ToString(), configFilePath);
                 NativeProxy.WritePrivateProfileString("graphics", "driver", _game.Settings.GraphicsDriver.ToString(), configFilePath);
             }
+            // Always write "render_at_screenres" as 0 (false), which is now the default for user-defined parameter
+            NativeProxy.WritePrivateProfileString("graphics", "render_at_screenres", "0", configFilePath);
             NativeProxy.WritePrivateProfileString("misc", "titletext", _game.Settings.GameName + " Setup", configFilePath);
-            NativeProxy.WritePrivateProfileString("graphics", "scale_native_resolution", (_game.Settings.ScaleNativeResolution == ScaleNativeResolution.True ? "1" : "0"), configFilePath);
         }
 
 		private void BackupCurrentGameFile()

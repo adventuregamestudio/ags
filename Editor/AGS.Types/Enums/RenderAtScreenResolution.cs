@@ -5,10 +5,10 @@ using System.Text;
 
 namespace AGS.Types
 {
-    public enum ScaleNativeResolution
+    public enum RenderAtScreenResolution
     {
         [Description("User defined")]
-        Default = 0,
+        UserDefined = 0,
         [Description("Enabled")]
         True = 1,
         [Description("Disabled")]

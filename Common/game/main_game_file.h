@@ -80,8 +80,8 @@ struct MainGameSource
     String              Filename;
     // Savegame format version
     GameDataVersion     DataVersion;
-    // Engine version this game was intended for
-    Version             EngineVersion;
+    // Tool identifier (like version) this game was compiled with
+    String              CompiledWith;
     // Extended engine capabilities required by the game; their primary use
     // currently is to let "alternate" game formats indicate themselves
     std::set<String>    Caps;

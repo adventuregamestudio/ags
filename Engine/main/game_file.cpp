@@ -93,7 +93,7 @@ MainGameFileError game_file_first_open(MainGameSource &src)
         // Log data description for debugging
         Out::FPrint("Opened game data file: %s", src.Filename.GetCStr());
         Out::FPrint("Game data version: %d", src.DataVersion);
-        Out::FPrint("Requested engine version: %s", src.EngineVersion.LongString.GetCStr());
+        Out::FPrint("Compiled with: %s", src.CompiledWith.GetCStr());
         if (src.Caps.size() > 0)
         {
             String caps_list = get_caps_list(src.Caps);
@@ -103,8 +103,8 @@ MainGameFileError game_file_first_open(MainGameSource &src)
     // Quit in case of error
     if (err == kMGFErr_FormatVersionTooOld || err == kMGFErr_FormatVersionNotSupported)
     {
-        platform->DisplayAlert("This game requires an incompatible version of AGS (%s). It cannot be run.",
-            src.EngineVersion.LongString.GetCStr());
+        platform->DisplayAlert("This game format is not supported by the engine (game compiled with: %s).\n\nIt cannot be run.",
+            src.CompiledWith.GetCStr());
         return err;
     }
     else if (err != kMGFErr_NoError)
@@ -119,13 +119,6 @@ MainGameFileError game_file_first_open(MainGameSource &src)
             caps_list.GetCStr());
         return kMGFErr_CapsNotSupported;
     }
-
-    // If the game was compiled for higher version of the engine, and yet has
-    // supported data format, we warn about potential incompatibilities and
-    // proceed
-    if (src.EngineVersion > EngineVersion)
-        platform->DisplayAlert("This game suggests a different version of AGS (%s). It may not run correctly.",
-        src.EngineVersion.LongString.GetCStr());
     return kMGFErr_NoError;
 }
 

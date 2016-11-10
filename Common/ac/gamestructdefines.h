@@ -155,7 +155,8 @@ enum ScriptAPIVersion
     kScriptAPI_v334 = 2,
     kScriptAPI_v335 = 3,
     kScriptAPI_v340 = 4,
-    kScriptAPI_v341 = 5
+    kScriptAPI_v341 = 5,
+    kScriptAPI_Current = kScriptAPI_v341
 };
 
 // Determines whether the graphics renderer should scale sprites at the final

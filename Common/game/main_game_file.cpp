@@ -125,8 +125,7 @@ MainGameFileError OpenMainGameFileBase(PStream &in, MainGameSource &src)
     src.DataVersion = (GameDataVersion)in->ReadInt32();
     if (src.DataVersion < kGameVersion_250)
         return kMGFErr_FormatVersionTooOld;
-    String version_str = StrUtil::ReadString(in.get());
-    src.EngineVersion.SetFromString(version_str);
+    src.CompiledWith = StrUtil::ReadString(in.get());
     if (src.DataVersion > kGameVersion_Current)
         return kMGFErr_FormatVersionNotSupported;
     // Read required capabilities

@@ -1282,6 +1282,13 @@ namespace AGS.Editor
             writer.Write(NativeConstants.GAME_DATA_VERSION_CURRENT);
             writer.Write(AGS.Types.Version.AGS_EDITOR_VERSION.Length);
             WriteString(AGS.Types.Version.AGS_EDITOR_VERSION, AGS.Types.Version.AGS_EDITOR_VERSION.Length, writer);
+            // Write extended engine caps; none for this version
+            writer.Write((int)0);
+            // An example of writing caps (pseduo-code):
+            //   writer.Write(caps.Count);
+            //   foreach (cap in caps)
+            //       FilePutString(cap.Name);
+            //
             WriteGameSetupStructBase_Aligned(writer, game);
             WriteString(game.Settings.GUIDAsString, NativeConstants.MAX_GUID_LENGTH, writer);
             WriteString(game.Settings.SaveGameFileExtension, NativeConstants.MAX_SG_EXT_LENGTH, writer);

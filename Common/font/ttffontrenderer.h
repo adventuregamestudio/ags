@@ -20,9 +20,11 @@
 #include <map>
 
 struct ALFONT_FONT;
+struct FontRenderParams;
 
-class TTFFontRenderer : public IAGSFontRenderer {
+class TTFFontRenderer : public IAGSFontRenderer, public IAGSFontRenderer2 {
 public:
+  // IAGSFontRenderer implementation
   virtual bool LoadFromDisk(int fontNumber, int fontSize);
   virtual void FreeMemory(int fontNumber);
   virtual bool SupportsExtendedCharacters(int fontNumber) { return true; }
@@ -32,8 +34,16 @@ public:
   virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber);
   virtual void EnsureTextValidForFont(char *text, int fontNumber);
 
+  // IAGSFontRenderer2 implementation
+  virtual bool LoadFromDiskEx(int fontNumber, int fontSize, const FontRenderParams *params);
+
 private:
-    std::map<int, ALFONT_FONT*> _fontData;
+    struct FontData
+    {
+        ALFONT_FONT     *AlFont;
+        FontRenderParams Params;
+    };
+    std::map<int, FontData> _fontData;
 };
 
 #endif // __AC_TTFFONTRENDERER_H

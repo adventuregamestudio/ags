@@ -20,6 +20,19 @@
 using namespace AGS;
 
 class IAGSFontRenderer;
+class IAGSFontRenderer2;
+
+// Font render params, mainly for dealing with various compatibility
+// issues and broken fonts.
+struct FontRenderParams
+{
+    int YOffset; // vertical offset for the line of text (can be negative)
+
+    FontRenderParams()
+        : YOffset(0)
+    {
+    }
+};
 
 void init_font_renderer();
 void shutdown_font_renderer();
@@ -32,7 +45,7 @@ int wgettextwidth(const char *texx, int fontNumber);
 int wgettextheight(const char *text, int fontNumber);
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t text_color, const char *texx);
 // Loads a font from disk
-bool wloadfont_size(int fontNumber, int fsize);
+bool wloadfont_size(int fontNumber, int fsize, const FontRenderParams *params = NULL);
 void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t text_color, char *fmt, ...);
 void wfreefont(int fontNumber);
 

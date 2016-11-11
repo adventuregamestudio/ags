@@ -52,10 +52,12 @@ void GameSetupStruct::read_savegame_info(Common::Stream *in, GameDataVersion dat
     }
 }
 
-void GameSetupStruct::read_font_flags(Common::Stream *in)
+void GameSetupStruct::read_font_flags(Common::Stream *in, GameDataVersion data_ver)
 {
     in->Read(&fontflags[0], numfonts);
     in->Read(&fontoutline[0], numfonts);
+    if (data_ver >= kGameVersion_341)
+        in->ReadArrayOfInt32(fontvoffset, numfonts);
 }
 
 MainGameFileError GameSetupStruct::read_sprite_flags(Common::Stream *in, GameDataVersion data_ver)

@@ -323,7 +323,10 @@ void LoadFonts()
         if ((game.options[OPT_NOSCALEFNT] == 0) && game.IsHiRes())
             fontsize *= 2;
 
-        if (!wloadfont_size(i, fontsize))
+        FontRenderParams params;
+        params.YOffset = game.fontvoffset[i];
+
+        if (!wloadfont_size(i, fontsize, &params))
             quitprintf("Unable to load font %d, no renderer could load a matching file", i);
     }
 }

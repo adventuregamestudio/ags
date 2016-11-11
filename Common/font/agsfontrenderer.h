@@ -18,11 +18,9 @@
 struct BITMAP;
 
 // WARNING: this interface is exposed for plugins and declared for the second time in agsplugin.h
-class IAGSFontRenderer {
+class IAGSFontRenderer
+{
 public:
-  // TODO: This pure virtual class should really define a virtual destructor,
-  // but I'm unsure how it would affect existing plugins using this interface.
-
   virtual bool LoadFromDisk(int fontNumber, int fontSize) = 0;
   virtual void FreeMemory(int fontNumber) = 0;
   virtual bool SupportsExtendedCharacters(int fontNumber) = 0;
@@ -35,6 +33,17 @@ public:
   virtual void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) = 0;
   virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber) = 0;
   virtual void EnsureTextValidForFont(char *text, int fontNumber) = 0;
+};
+
+
+struct FontRenderParams;
+
+// NOTE: this extending interface is not yet exposed to plugins
+class IAGSFontRenderer2
+{
+public:
+  // Load font, applying extended font rendering parameters
+  virtual bool LoadFromDiskEx(int fontNumber, int fontSize, const FontRenderParams *params) = 0;
 };
 
 #endif // __AC_AGSFONTRENDERER_H

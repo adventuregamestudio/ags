@@ -38,6 +38,7 @@ using AGS::Common::MainGameFileError;
 struct GameSetupStruct: public GameSetupStructBase {
     unsigned char     fontflags[MAX_FONTS];
     char              fontoutline[MAX_FONTS];
+    int               fontvoffset[MAX_FONTS]; // vertical font offset
     unsigned char     spriteflags[MAX_SPRITES];
     InventoryItemInfo invinfo[MAX_INV];
     MouseCursor       mcurs[MAX_CURSOR];
@@ -88,7 +89,7 @@ struct GameSetupStruct: public GameSetupStructBase {
     //------------------------------
     // Part 1
     void read_savegame_info(Common::Stream *in, GameDataVersion data_ver);
-    void read_font_flags(Common::Stream *in);
+    void read_font_flags(Common::Stream *in, GameDataVersion data_ver);
     MainGameFileError read_sprite_flags(Common::Stream *in, GameDataVersion data_ver);
     MainGameFileError read_cursors(Common::Stream *in, GameDataVersion data_ver);
     void read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver);

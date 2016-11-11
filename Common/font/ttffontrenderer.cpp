@@ -20,6 +20,7 @@
 #include "alfont.h"
 #include "ac/gamestructdefines.h" //FONT_OUTLINE_AUTO
 #include "core/assetmanager.h"
+#include "font/fonts.h"
 #include "font/ttffontrenderer.h"
 #include "util/stream.h"
 #include "util/string.h"
@@ -51,6 +52,10 @@ ALFONT_FONT *get_ttf_block(unsigned char* fontptr)
 void TTFFontRenderer::AdjustYCoordinateForFont(int *ycoord, int fontNumber)
 {
   // TTF fonts already have space at the top, so try to remove the gap
+  // TODO: adding -1 was here before (check the comment above),
+  // but how universal is this "space at the top"?
+  // Also, why is this function used only in one case of text rendering?
+  // Review this after we upgrade the font library.
   ycoord[0]--;
 }
 
@@ -61,27 +66,33 @@ void TTFFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 
 int TTFFontRenderer::GetTextWidth(const char *text, int fontNumber)
 {
-  return alfont_text_length(_fontData[fontNumber], text);
+  return alfont_text_length(_fontData[fontNumber].AlFont, text);
 }
 
 int TTFFontRenderer::GetTextHeight(const char *text, int fontNumber)
 {
-  return alfont_text_height(_fontData[fontNumber]);
+  return alfont_text_height(_fontData[fontNumber].AlFont);
 }
 
 void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
+  y += _fontData[fontNumber].Params.YOffset;
   if (y > destination->cb)  // optimisation
     return;
 
   // Y - 1 because it seems to get drawn down a bit
   if ((ShouldAntiAliasText()) && (bitmap_color_depth(destination) > 8))
-    alfont_textout_aa(destination, _fontData[fontNumber], text, x, y - 1, colour);
+    alfont_textout_aa(destination, _fontData[fontNumber].AlFont, text, x, y - 1, colour);
   else
-    alfont_textout(destination, _fontData[fontNumber], text, x, y - 1, colour);
+    alfont_textout(destination, _fontData[fontNumber].AlFont, text, x, y - 1, colour);
 }
 
 bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
+{
+  return LoadFromDiskEx(fontNumber, fontSize, NULL);
+}
+
+bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, const FontRenderParams *params)
 {
   String file_name = String::FromFormat("agsfnt%d.ttf", fontNumber);
   Stream *reader = AssetManager::OpenAsset(file_name);
@@ -121,13 +132,14 @@ bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   if (fontSize > 0)
     alfont_set_font_size(alfptr, fontSize);
 
-  _fontData[fontNumber] = alfptr;
+  _fontData[fontNumber].AlFont = alfptr;
+  _fontData[fontNumber].Params = params ? *params : FontRenderParams();
   return true;
 }
 
 void TTFFontRenderer::FreeMemory(int fontNumber)
 {
-  alfont_destroy_font(_fontData[fontNumber]);
+  alfont_destroy_font(_fontData[fontNumber].AlFont);
   _fontData.erase(fontNumber);
 }
 

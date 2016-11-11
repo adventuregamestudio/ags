@@ -33,6 +33,7 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 int wtext_multiply = 1;
 
 static IAGSFontRenderer* fontRenderers[MAX_FONTS];
+static IAGSFontRenderer2* fontRenderers2[MAX_FONTS];
 static TTFFontRenderer ttfRenderer;
 static WFNFontRenderer wfnRenderer;
 
@@ -44,7 +45,10 @@ void init_font_renderer()
 #endif
 
   for (int i = 0; i < MAX_FONTS; i++)
+  {
     fontRenderers[i] = NULL;
+    fontRenderers2[i] = NULL;
+  }
 }
 
 void shutdown_font_renderer()
@@ -68,6 +72,7 @@ IAGSFontRenderer* font_replace_renderer(int fontNumber, IAGSFontRenderer* render
 {
   IAGSFontRenderer* oldRender = fontRenderers[fontNumber];
   fontRenderers[fontNumber] = renderer;
+  fontRenderers2[fontNumber] = NULL;
   return oldRender;
 }
 
@@ -103,19 +108,20 @@ void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t te
 }
 
 // Loads a font from disk
-bool wloadfont_size(int fontNumber, int fsize)
+bool wloadfont_size(int fontNumber, int fsize, const FontRenderParams *params)
 {
-  if (ttfRenderer.LoadFromDisk(fontNumber, fsize))
+  if (ttfRenderer.LoadFromDiskEx(fontNumber, fsize, params))
   {
     fontRenderers[fontNumber] = &ttfRenderer;
+    fontRenderers2[fontNumber] = &ttfRenderer;
     return true;
   }
-  else if (wfnRenderer.LoadFromDisk(fontNumber, fsize))
+  else if (wfnRenderer.LoadFromDiskEx(fontNumber, fsize, params))
   {
     fontRenderers[fontNumber] = &wfnRenderer;
+    fontRenderers2[fontNumber] = &wfnRenderer;
     return true;
   }
-
   return false;
 }
 

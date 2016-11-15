@@ -1317,6 +1317,10 @@ namespace AGS.Editor
                     writer.Write((byte)game.Fonts[i].OutlineFont);
                 }
             }
+            for (int i = 0; i < game.Fonts.Count; ++i)
+            {
+                writer.Write(game.Fonts[i].VerticalOffset);
+            }
             writer.Write(NativeConstants.MAX_SPRITES);
             byte[] spriteFlags = new byte[NativeConstants.MAX_SPRITES];
             UpdateSpriteFlags(game.RootSpriteFolder, spriteFlags);

@@ -379,6 +379,10 @@ void engine_post_gfxmode_draw_setup()
         walkBehindMethod = DrawAsSeparateSprite;
         CreateBlankImage();
     }
+    else
+    {
+        walkBehindMethod = DrawOverCharSprite;
+    }
     init_invalid_regions(game.size.Height);
 }
 

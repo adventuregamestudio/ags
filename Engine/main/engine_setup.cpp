@@ -204,6 +204,14 @@ void engine_post_gfxmode_driver_setup()
     gfxDriver->SetRenderOffset(play.viewport.Left, play.viewport.Top);
 }
 
+// Reset gfx driver callbacks
+void engine_pre_gfxmode_driver_cleanup()
+{
+    gfxDriver->SetCallbackForPolling(NULL);
+    gfxDriver->SetCallbackToDrawScreen(NULL);
+    gfxDriver->SetCallbackForNullSprite(NULL);
+}
+
 // Setup virtual screen
 void engine_post_gfxmode_screen_setup()
 {
@@ -214,6 +222,20 @@ void engine_post_gfxmode_screen_setup()
     gfxDriver->SetMemoryBackBuffer(virtual_screen);
     SetVirtualScreen(virtual_screen);
     set_our_eip(-41);
+}
+
+// Release virtual screen
+void engine_pre_gfxmode_screen_cleanup()
+{
+    SetVirtualScreen(NULL);
+    gfxDriver->SetMemoryBackBuffer(NULL);
+    delete _sub_screen;
+    _sub_screen = NULL;
+    delete virtual_screen;
+    virtual_screen = NULL;
+    // allegro_exit assumes screen is correct
+    if (_old_screen)
+        BitmapHelper::SetScreenBitmap( _old_screen );
 }
 
 // Setup color conversion parameters
@@ -337,6 +359,16 @@ void CreateBlankImage()
     }
 }
 
+void destroy_blank_image()
+{
+    if (blankImage)
+        gfxDriver->DestroyDDB(blankImage);
+    if (blankSidebarImage)
+        gfxDriver->DestroyDDB(blankSidebarImage);
+    blankImage = NULL;
+    blankSidebarImage = NULL;
+}
+
 // Setup drawing modes and color conversions
 void engine_post_gfxmode_draw_setup()
 {
@@ -347,6 +379,12 @@ void engine_post_gfxmode_draw_setup()
         CreateBlankImage();
     }
     init_invalid_regions(game.size.Height);
+}
+
+// Cleanup auxiliary drawing objects
+void engine_pre_gfxmode_draw_cleanup()
+{
+    destroy_invalid_regions();
 }
 
 // Setup mouse control mode and graphic area
@@ -413,19 +451,9 @@ void engine_post_gfxmode_setup(const Size &init_desktop)
     platform->PostAllegroInit(scsystem.windowed != 0);
 }
 
-void engine_destroy_screen()
-{
-    gfxDriver->SetMemoryBackBuffer(NULL);
-
-    delete _sub_screen;
-    _sub_screen = NULL;
-
-    // allegro_exit assumes screen is correct
-    if (_old_screen)
-        BitmapHelper::SetScreenBitmap( _old_screen );
-}
-
 void engine_pre_gfxmode_shutdown()
 {
-    engine_destroy_screen();
+    engine_pre_gfxmode_draw_cleanup();
+    engine_pre_gfxmode_screen_cleanup();
+    engine_pre_gfxmode_driver_cleanup();
 }

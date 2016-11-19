@@ -86,7 +86,6 @@ extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 extern ScriptSystem scsystem;
 extern IGraphicsDriver *gfxDriver;
-extern Bitmap *virtual_screen;
 extern Bitmap **actsps;
 extern color palette[256];
 extern CharacterExtras *charextra;
@@ -982,17 +981,6 @@ int engine_init_sprites()
     return RETURN_CONTINUE;
 }
 
-void engine_setup_screen()
-{
-    Out::FPrint("Set up screen");
-
-    virtual_screen=BitmapHelper::CreateBitmap(play.viewport.GetWidth(),play.viewport.GetHeight(),ScreenResolution.ColorDepth);
-    virtual_screen->Clear();
-    gfxDriver->SetMemoryBackBuffer(virtual_screen);
-    //  ignore_mouseoff_bitmap = virtual_screen;
-    SetVirtualScreen(BitmapHelper::GetScreenBitmap());
-}
-
 void engine_init_game_settings()
 {
     our_eip=-7;
@@ -1251,18 +1239,6 @@ void engine_init_game_settings()
     mousey=100;  // stop icon bar popping up
 }
 
-void engine_setup_scsystem_screen()
-{
-    DisplayMode dm = gfxDriver->GetDisplayMode();
-    scsystem.width = game.size.Width;
-    scsystem.height = game.size.Height;
-    scsystem.coldepth = dm.ColorDepth;
-    scsystem.windowed = dm.Windowed;
-    scsystem.vsync = dm.Vsync;
-    scsystem.viewport_width = divide_down_coordinate(play.viewport.GetWidth());
-    scsystem.viewport_height = divide_down_coordinate(play.viewport.GetHeight());
-}
-
 void engine_setup_scsystem_auxiliary()
 {
     // ScriptSystem::aci_version is only 10 chars long
@@ -1275,16 +1251,6 @@ void engine_setup_scsystem_auxiliary()
     {
         scsystem.os = platform->GetSystemOSID();
     }
-}
-
-void engine_setup_graphic_area()
-{
-    Mouse::SetGraphicArea();
-    init_invalid_regions(game.size.Height);
-    SetVirtualScreen(virtual_screen);
-    our_eip = -41;
-
-    gfxDriver->SetRenderOffset(play.viewport.Left, play.viewport.Top);
 }
 
 void engine_update_mp3_thread()
@@ -1322,7 +1288,6 @@ void engine_prepare_to_start_game()
     Out::FPrint("Prepare to start game");
 
     engine_setup_scsystem_auxiliary();
-    engine_setup_graphic_area();
     engine_start_multithreaded_audio();
 
 #if defined(ANDROID_VERSION)
@@ -1516,29 +1481,17 @@ int initialize_engine(int argc,char*argv[])
 
     engine_init_modxm_player();
 
-    ColorDepthOption color_depths;
-    engine_init_resolution_settings(game.size, color_depths);
-
-    const Size init_desktop = get_desktop_size();
+    engine_init_resolution_settings(game.size);
 
     // Attempt to initialize graphics mode
-    if (!graphics_mode_init(usetup.Screen, color_depths))
+    if (!engine_try_set_gfxmode_any(usetup.Screen))
         return EXIT_NORMAL;
-
-    engine_post_gfxmode_setup(init_desktop);
-    engine_setup_scsystem_screen();
-
-    platform->PostAllegroInit(scsystem.windowed);
 
     SetMultitasking(0);
 
     // [ER] 2014-03-13
     // Hide the system cursor via allegro
     show_os_cursor(MOUSE_CURSOR_NONE);
-    
-    // If auto lock option is set, lock mouse to the game window
-    if (usetup.mouse_auto_lock && scsystem.windowed)
-        Mouse::TryLockToWindow();
 
     engine_show_preload();
 
@@ -1546,8 +1499,6 @@ int initialize_engine(int argc,char*argv[])
     if (res != RETURN_CONTINUE) {
         return res;
     }
-
-    engine_setup_screen();
 
     engine_init_game_settings();
 
@@ -1559,6 +1510,30 @@ int initialize_engine(int argc,char*argv[])
 
     quit("|bye!");
     return 0;
+}
+
+bool engine_try_set_gfxmode_any(const ScreenSetup &setup)
+{
+    engine_shutdown_gfxmode();
+
+    const Size init_desktop = get_desktop_size();
+
+    ColorDepthOption color_depths;
+    engine_get_color_depths(color_depths);
+    if (!graphics_mode_init(setup, color_depths))
+        return false;
+
+    engine_post_gfxmode_setup(init_desktop);
+    return true;
+}
+
+void engine_shutdown_gfxmode()
+{
+    if (!gfxDriver)
+        return;
+
+    engine_pre_gfxmode_shutdown();
+    graphics_mode_shutdown();
 }
 
 

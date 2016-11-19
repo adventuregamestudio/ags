@@ -28,7 +28,7 @@
 #include "debug/out.h"
 #include "font/fonts.h"
 #include "main/config.h"
-#include "main/graphics_mode.h"
+#include "main/engine.h"
 #include "main/main.h"
 #include "main/mainheader.h"
 #include "main/quit.h"
@@ -53,8 +53,6 @@ extern char check_dynamic_sprites_at_exit;
 extern int editor_debugging_initialized;
 extern IAGSEditorDebugger *editor_debugger;
 extern int need_to_stop_cd;
-extern Bitmap *_old_screen;
-extern Bitmap *_sub_screen;
 extern int use_cdplayer;
 extern IGraphicsDriver *gfxDriver;
 
@@ -106,11 +104,6 @@ void quit_shutdown_platform(QuitReason qreason)
     pl_stop_plugins();
 
     quit_check_dynamic_sprites(qreason);
-
-    // allegro_exit assumes screen is correct
-	if (_old_screen) {
-		BitmapHelper::SetScreenBitmap( _old_screen );
-	}
 
     platform->FinishedUsingGraphicsMode();
 
@@ -188,13 +181,6 @@ QuitReason quit_check_for_error_state(const char *&qmsg, String &alertis)
         "\nError: ", EngineVersion.LongString.GetCStr());
         return kQuit_FatalError;
     }
-}
-
-void quit_destroy_subscreen()
-{
-    // close graphics mode (Win) or return to text mode (DOS)
-    delete _sub_screen;
-	_sub_screen = NULL;
 }
 
 void quit_message_on_exit(const char *qmsg, String &alertis, QuitReason qreason)
@@ -298,15 +284,13 @@ void quit(const char *quitmsg)
     shutdown_font_renderer();
     our_eip = 9902;
 
-    quit_destroy_subscreen();
-
     our_eip = 9907;
 
     close_translation();
 
     our_eip = 9908;
 
-    graphics_mode_shutdown();
+    engine_shutdown_gfxmode();
 
     quit_message_on_exit(qmsg, alertis, qreason);
 

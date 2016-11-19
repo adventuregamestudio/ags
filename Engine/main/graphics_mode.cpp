@@ -52,7 +52,6 @@ struct GameSizeDef
     Size Box;  // bounding box
 };
 
-
 GraphicResolution ScreenResolution;
 PlaneScaling      GameScaling;
 

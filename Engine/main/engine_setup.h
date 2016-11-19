@@ -18,10 +18,14 @@
 
 struct ColorDepthOption;
 
+// Get color depth settings depending on game settings and user config
+void engine_get_color_depths(ColorDepthOption &color_depths);
 // Sets up game viewport and object scaling parameters depending on game and
 // user config; fills in color depth options.
-void engine_init_resolution_settings(const Size game_size, ColorDepthOption &color_depths);
-// Setup rendering callbacks and color conversions depending on initialized gfx mode
+void engine_init_resolution_settings(const Size game_size);
+// Setup engine after the graphics mode has changed
 void engine_post_gfxmode_setup(const Size &init_desktop);
+// Prepare engine to the graphics mode shutdown and gfx driver destruction
+void engine_pre_gfxmode_shutdown();
 
 #endif // __AGS_EE_MAIN__ENGINESETUP_H

@@ -422,10 +422,21 @@ void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
     Out::FPrint("Mouse control: %s, base: %f, speed: %f", Mouse::IsControlEnabled() ? "on" : "off",
         Mouse::GetSpeedUnit(), Mouse::GetSpeed());
 
+    // The virtual->real conversion ratios could have change after new gfx mode is set,
+    // thus we need to reset mouse graphic area and bounds
     Mouse::SetGraphicArea();
+    Mouse::SetMoveLimit(Rect(play.mboundx1, play.mboundy1, play.mboundx2, play.mboundy2));
     // If auto lock option is set, lock mouse to the game window
     if (usetup.mouse_auto_lock && scsystem.windowed != 0)
         Mouse::TryLockToWindow();
+}
+
+// Reset mouse controls before changing gfx mode
+void engine_pre_gfxmode_mouse_cleanup()
+{
+    // Always disable mouse control unlock mouse when shutting down gfx mode
+    Mouse::DisableControl();
+    Mouse::UnlockFromWindow();
 }
 
 // Fill in scsystem struct with display mode parameters
@@ -460,6 +471,7 @@ void engine_post_gfxmode_setup(const Size &init_desktop)
 
 void engine_pre_gfxmode_shutdown()
 {
+    engine_pre_gfxmode_mouse_cleanup();
     engine_pre_gfxmode_draw_cleanup();
     engine_pre_gfxmode_screen_cleanup();
     engine_pre_gfxmode_driver_cleanup();

@@ -317,6 +317,10 @@ void OGLGraphicsDriver::SetGamma(int newGamma)
 void OGLGraphicsDriver::SetGraphicsFilter(OGLGfxFilter *filter)
 {
   _filter = filter;
+  OnSetFilter();
+  // Creating ddbs references filter properties at some point,
+  // so we have to redo this part of initialization here.
+  create_screen_tint_bitmap();
 }
 
 void OGLGraphicsDriver::SetTintMethod(TintMethod method) 
@@ -326,6 +330,9 @@ void OGLGraphicsDriver::SetTintMethod(TintMethod method)
 
 void OGLGraphicsDriver::create_backbuffer_arrays()
 {
+  if (!IsModeSet() || !IsRenderFrameValid())
+    return;
+
   float android_screen_ar = (float)_srcRect.GetWidth() / (float)_srcRect.GetHeight();
   float android_device_ar = (float)device_screen_physical_width / (float)device_screen_physical_height;
 
@@ -466,6 +473,16 @@ void OGLGraphicsDriver::InitOpenGl()
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
+  // If we already have a render frame configured, then setup viewport backbuffer mappings immediately
+  SetupViewport();
+  create_backbuffer_arrays();
+}
+
+void OGLGraphicsDriver::SetupViewport()
+{
+  if (!IsModeSet() || !IsRenderFrameValid())
+    return;
+
   if (psp_gfx_scaling && !_render_to_texture)
   {
     if (psp_gfx_scaling == 1)
@@ -531,11 +548,9 @@ void OGLGraphicsDriver::InitOpenGl()
     glEnable(GL_SCISSOR_TEST);
     glScissor((int)(((float)device_screen_physical_width - _scale_width * (float)_srcRect.GetWidth()) / 2.0f + 1.0f), (int)(((float)device_screen_physical_height - _scale_height * (float)_srcRect.GetHeight()) / 2.0f), (int)(_scale_width * (float)_srcRect.GetWidth()), (int)(_scale_height * (float)_srcRect.GetHeight()));
   }
-
-  create_backbuffer_arrays();
 }
 
-bool OGLGraphicsDriver::Init(const DisplayMode &mode, const Size src_size, const Rect dst_rect, volatile int *loopTimer)
+bool OGLGraphicsDriver::Init(const DisplayMode &mode_, volatile int *loopTimer)
 {
 #if defined(ANDROID_VERSION)
   android_create_screen(mode.Width, mode.Height, mode.ColorDepth);
@@ -543,14 +558,16 @@ bool OGLGraphicsDriver::Init(const DisplayMode &mode, const Size src_size, const
   ios_create_screen();
 #endif
 
+  // TODO: OpenGL renderer is incomplete and requires to do certain hacks to work,
+  // like forcing windowed mode, this is why we create mutable DisplayMode here
+  DisplayMode mode = mode_;
   if (mode.ColorDepth < 15)
   {
     set_allegro_error("OpenGL driver does not support 256-colour games");
     return false;
   }
-
-  _Init(mode, src_size, dst_rect, loopTimer);
-  _mode.Windowed = true;
+  
+  mode.Windowed = true;
 
   if (psp_gfx_renderer == 2)
   {
@@ -582,7 +599,7 @@ bool OGLGraphicsDriver::Init(const DisplayMode &mode, const Size src_size, const
     gfx_driver = &gfx_opengl;
 
 #if defined(WINDOWS_VERSION)
-    if (_mode.Windowed)
+    if (mode.Windowed)
     {
       if (adjust_window(device_screen_physical_width, device_screen_physical_height) != 0) 
       {
@@ -643,9 +660,31 @@ bool OGLGraphicsDriver::Init(const DisplayMode &mode, const Size src_size, const
       set_allegro_error(exception._message);
     return false;
   }
-  // create dummy screen bitmap
-  BitmapHelper::SetScreenBitmap( ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(src_size.Width, src_size.Height, mode.ColorDepth)) );
+  OnInit(mode, loopTimer);
+  CreateVirtualScreen();
+  return true;
+}
 
+void OGLGraphicsDriver::CreateVirtualScreen()
+{
+  if (!IsModeSet() || !IsRenderFrameValid())
+    return;
+  // create dummy screen bitmap
+  // TODO: find out why we are doing this
+  // TODO: this can possibly lead to memory leak, because the bitmap's pointer is not managed by renderer class
+  BitmapHelper::SetScreenBitmap(
+      ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth))
+      );
+}
+
+bool OGLGraphicsDriver::SetRenderFrame(const Size &src_size, const Rect &dst_rect)
+{
+  OnSetRenderFrame(src_size, dst_rect);
+  // If we already have a gfx mode set, then update virtual screen immediately
+  CreateVirtualScreen();
+  // Also make sure viewport and backbuffer mappings are updated using new native & destination rectangles
+  SetupViewport();
+  create_backbuffer_arrays();
   return true;
 }
 
@@ -662,7 +701,7 @@ IGfxFilter *OGLGraphicsDriver::GetGraphicsFilter() const
 
 void OGLGraphicsDriver::UnInit() 
 {
-  _UnInit();
+  OnUnInit();
 
   if (_screenTintLayerDDB != NULL) 
   {
@@ -1517,7 +1556,12 @@ bool OGLGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoS
 
 void OGLGraphicsDriver::create_screen_tint_bitmap() 
 {
-	_screenTintLayer = BitmapHelper::CreateBitmap(16, 16, _mode.ColorDepth);
+  // Some work on textures depends on current scaling filter, sadly
+  // TODO: find out if there is a workaround for that
+  if (!IsModeSet() || !_filter)
+    return;
+  
+  _screenTintLayer = BitmapHelper::CreateBitmap(16, 16, _mode.ColorDepth);
   _screenTintLayer = this->ConvertBitmapToSupportedColourDepth(_screenTintLayer);
   _screenTintLayerDDB = (OGLBitmap*)this->CreateDDBFromBitmap(_screenTintLayer, false, false);
   _screenTintSprite.bitmap = _screenTintLayerDDB;

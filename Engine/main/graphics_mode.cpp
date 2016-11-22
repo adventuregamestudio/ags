@@ -71,25 +71,7 @@ Size get_max_display_size(bool windowed)
     return device_size;
 }
 
-bool initialize_graphics_filter(const String filter_id, const int color_depth)
-{
-    filter = GfxFactory->SetFilter(filter_id);
-    if (!filter)
-    {
-        Out::FPrint("Unable to create filter: %s", filter_id.GetCStr());
-        return false;
-    }
-
-    String filter_error;
-    if (!filter->Initialize(color_depth, filter_error))
-    {
-        Out::FPrint("Unable to initialize the graphics filter. Error: %s.", filter_error.GetCStr());
-        return false;
-    }
-    return true;
-}
-
-bool pre_create_gfx_driver(const String &gfx_driver_id)
+bool create_gfx_driver(const String &gfx_driver_id)
 {
     GfxFactory = GetGfxDriverFactory(gfx_driver_id);
     if (!GfxFactory)
@@ -108,19 +90,18 @@ bool pre_create_gfx_driver(const String &gfx_driver_id)
     return true;
 }
 
-bool engine_set_gfx_filter(const GfxFilterSetup &setup, const int color_depth)
+bool engine_set_gfx_filter(const GfxFilterSetup &setup)
 {
     Out::FPrint("Requested gfx filter: %s", setup.UserRequest.GetCStr());
-    if (!initialize_graphics_filter(setup.ID, color_depth))
+    if (!graphics_mode_set_filter(setup.ID))
     {
         String def_filter = GfxFactory->GetDefaultFilterID();
-        if (def_filter.CompareNoCase(setup.ID) != 0)
-        {
-            Out::FPrint("Failed to apply gfx filter: %s; will try to use factory default filter '%s' instead",
+        if (def_filter.CompareNoCase(setup.ID) == 0)
+            return false;
+        Out::FPrint("Failed to apply gfx filter: %s; will try to use factory default filter '%s' instead",
                 setup.UserRequest.GetCStr(), def_filter.GetCStr());
-            if (!initialize_graphics_filter(def_filter, color_depth))
-                return false;
-        }
+        if (!graphics_mode_set_filter(def_filter))
+            return false;
     }
     Out::FPrint("Using gfx filter: %s", GfxFactory->GetDriver()->GetGraphicsFilter()->GetInfo().Id.GetCStr());
     return true;
@@ -211,44 +192,23 @@ bool find_nearest_supported_mode(const IGfxModeList &modes, Size &wanted_size, i
     return false;
 }
 
-bool create_gfx_driver(const String &gfx_driver_id)
-{
-    if (!pre_create_gfx_driver(gfx_driver_id))
-        return false;
-
-    gfxDriver->SetCallbackOnInit(GfxDriverOnInitCallback);
-    gfxDriver->SetTintMethod(TintReColourise);
-    return true;
-}
-
 bool init_gfx_mode(const GameSizeDef &game_size, const Size &screen_size, const GameSizeDef &frame_size,
                    const ScreenSetup setup, const int color_depth, const bool windowed)
 {
-    int width = screen_size.Width;
-    int height = screen_size.Height;
+    const DisplayMode mode(GraphicResolution(screen_size.Width, screen_size.Height, color_depth),
+                           windowed, setup.RefreshRate, setup.VSync);
+    if (!graphics_mode_set(mode))
+        return false;
 
-    const char *frame_placement[kNumRectPlacement] = { "offset", "center", "stretch", "proportional" };
-    Out::FPrint("Attempt to switch gfx mode to %d x %d (%d-bit) %s; game frame: %d x %d",
-        width, height, color_depth, windowed ? "windowed" : "fullscreen",
-        frame_size.Box.Width, frame_size.Box.Height);
-
-    // CHECKME: why 50? Do we need this if we are not using allegro software driver?
-    if (setup.RefreshRate >= 50)
-        request_refresh_rate(setup.RefreshRate);
-
-    const DisplayMode mode = DisplayMode(GraphicResolution(width, height, color_depth), windowed, setup.RefreshRate, setup.VSync);
     const Size src_size = game_size.Game;
     const Rect screen_rect = RectWH(0, 0, screen_size.Width, screen_size.Height);
     Rect dst_rect = CenterInRect(screen_rect, RectWH(frame_size.Box));
     // If requested bounding box is larger than game frame, then position the frame centered inside bounding box
     if (frame_size.Box != frame_size.Game)
         dst_rect = PlaceInRect(dst_rect, RectWH(0, 0, frame_size.Game.Width, frame_size.Game.Height), kPlaceCenter);
-
-    set_color_depth(color_depth); // this tells Allegro default bitmap color depth
-    if (gfxDriver->Init(mode, src_size, dst_rect, &timerloop))
-        return true;
-    Out::FPrint("Failed. %s", get_allegro_error());
-    return false;
+    if (!graphics_mode_set_render_frame(src_size, dst_rect))
+        return false;
+    return true;
 }
 
 void set_game_frame_after_screen_size(const GameSizeDef &game_size, const Size screen_size,
@@ -442,21 +402,18 @@ void log_out_driver_modes(const int color_depth)
 bool create_gfx_driver_and_init_mode(const String &gfx_driver_id, const GameSizeDef &game_size,
                                      const ScreenSetup &setup, const ColorDepthOption color_depths, const bool windowed)
 {
-    if (!create_gfx_driver(gfx_driver_id))
+    if (!graphics_mode_create_renderer(gfx_driver_id))
         return false;
     // Log out supported driver modes
     log_out_driver_modes(color_depths.Prime);
     if (color_depths.Prime != color_depths.Alternate)
         log_out_driver_modes(color_depths.Alternate);
     
-    if (!engine_set_gfx_filter(setup.Filter, color_depths.Prime))
-        return false;
-
     if (!engine_init_graphics_mode(game_size, setup, color_depths, windowed))
         return false;
 
-    // init game scaling transformation
-    GameScaling.Init(game_size.Game, gfxDriver->GetRenderDestination());
+    if (!engine_set_gfx_filter(setup.Filter))
+        return false;
     return true;
 }
 
@@ -481,7 +438,7 @@ void display_gfx_mode_error(const Size game_size, const GfxFilterSetup &setup, c
             main_error.GetCStr(), get_allegro_error(), platform->GetGraphicsTroubleshootingText());
 }
 
-bool graphics_mode_init(const ScreenSetup &setup, const ColorDepthOption &color_depths)
+bool graphics_mode_init_any(const ScreenSetup &setup, const ColorDepthOption &color_depths)
 {
     // Log out display information
     Size device_size;
@@ -531,7 +488,6 @@ bool graphics_mode_init(const ScreenSetup &setup, const ColorDepthOption &color_
 
     // On success: log out new mode params and continue initialization
     DisplayMode dm   = gfxDriver->GetDisplayMode();
-    ScreenResolution = dm;
 
     Rect dst_rect    = gfxDriver->GetRenderDestination();
     Rect filter_rect = filter->GetDestination();
@@ -541,6 +497,71 @@ bool graphics_mode_init(const ScreenSetup &setup, const ColorDepthOption &color_
         filter_rect.Left, filter_rect.Top, filter_rect.Right, filter_rect.Bottom, filter_rect.GetWidth(), filter_rect.GetHeight(),
         dst_rect.Left, dst_rect.Top, dst_rect.Right, dst_rect.Bottom, dst_rect.GetWidth(), dst_rect.GetHeight());
 
+    return true;
+}
+
+bool graphics_mode_create_renderer(const String &driver_id)
+{
+    if (!create_gfx_driver(driver_id))
+        return false;
+
+    gfxDriver->SetCallbackOnInit(GfxDriverOnInitCallback);
+    // TODO: this is remains of the old code; find out if this is really
+    // the best time and place to set the tint method
+    gfxDriver->SetTintMethod(TintReColourise);
+    return true;
+}
+
+bool graphics_mode_set(const DisplayMode &dm)
+{
+    Out::FPrint("Attempt to switch gfx mode to %d x %d (%d-bit) %s",
+        dm.Width, dm.Height, dm.ColorDepth, dm.Windowed ? "windowed" : "fullscreen");
+
+    // Tell Allegro new default bitmap color depth (must be done before set_gfx_mode)
+    // TODO: this is also done inside ALSoftwareGraphicsDriver implementation; can remove one?
+    set_color_depth(dm.ColorDepth);
+    // TODO: this is remains of the old code; find out what it means and do we
+    // need this if we are not using allegro software driver?
+    if (dm.RefreshRate >= 50)
+        request_refresh_rate(dm.RefreshRate);
+
+    if (!gfxDriver->Init(dm, &timerloop))
+    {
+        Out::FPrint("Failed. %s", get_allegro_error());
+        return false;
+    }
+
+    ScreenResolution = dm;
+    return true;
+}
+
+bool graphics_mode_set_render_frame(const Size &native_size, const Rect &render_frame)
+{
+    if (!gfxDriver || !gfxDriver->IsModeSet())
+        return false;
+
+    Out::FPrint("Setting up game frame: %d x %d", render_frame.GetWidth(), render_frame.GetHeight());
+    if (!gfxDriver->SetRenderFrame(native_size, render_frame))
+    {
+        Out::FPrint("Failed. %s", get_allegro_error());
+        return false;
+    }
+    // init game scaling transformation
+    GameScaling.Init(native_size, gfxDriver->GetRenderDestination());
+}
+
+bool graphics_mode_set_filter(const String &filter_id)
+{
+    if (!GfxFactory)
+        return false;
+
+    String filter_error;
+    filter = GfxFactory->SetFilter(filter_id, filter_error);
+    if (!filter)
+    {
+        Out::FPrint("Unable to set graphics filter '%s'. Error: %s", filter_id.GetCStr(), filter_error.GetCStr());
+        return false;
+    }
     return true;
 }
 

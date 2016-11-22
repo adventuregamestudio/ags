@@ -175,6 +175,10 @@ GFX_DRIVER gfx_direct3d_full =
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_NORMAL|D3DFVF_TEX1)
 
 static int wnd_create_device();
+// TODO: is there better way to not have this mode as a global static variable?
+// wnd_create_device() is being called using wnd_call_proc, which does not take
+// user parameters.
+static DisplayMode d3d_mode_to_init;
 
 D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d) 
 {
@@ -248,29 +252,36 @@ void D3DGraphicsDriver::Vsync()
   // do nothing on D3D
 }
 
-void D3DGraphicsDriver::initD3DDLL() 
+void D3DGraphicsDriver::OnInit(const DisplayMode &mode, volatile int *loopTimer)
 {
-   if (!IsModeSupported(_mode))
+  GraphicsDriverBase::OnInit(mode, loopTimer);
+
+  // The display mode has been set up successfully, save the
+  // final refresh rate that we are using
+  D3DDISPLAYMODE final_display_mode;
+  if (direct3ddevice->GetDisplayMode(0, &final_display_mode) == D3D_OK) {
+    _mode.RefreshRate = final_display_mode.RefreshRate;
+  }
+  else {
+    _mode.RefreshRate = 0;
+  }
+  create_screen_tint_bitmap();
+}
+
+void D3DGraphicsDriver::initD3DDLL(const DisplayMode &mode) 
+{
+   if (!IsModeSupported(mode))
    {
      throw Ali3DException(get_allegro_error());
    }
 
    _enter_critical();
 
+   d3d_mode_to_init = mode;
    // Set the display mode in the window's thread
    if (wnd_call_proc(wnd_create_device)) {
      _exit_critical();
      throw Ali3DException(get_allegro_error());
-   }
-
-   // The display mode has been set up successfully, save the
-   // final refresh rate that we are using
-   D3DDISPLAYMODE final_display_mode;
-   if (direct3ddevice->GetDisplayMode(0, &final_display_mode) == D3D_OK) {
-     _mode.RefreshRate = final_display_mode.RefreshRate;
-   }
-   else {
-     _mode.RefreshRate = 0;
    }
 
    availableVideoMemory = direct3ddevice->GetAvailableTextureMem();
@@ -279,7 +290,7 @@ void D3DGraphicsDriver::initD3DDLL()
 
    // Set up a fake allegro gfx driver so that things like
    // the allegro mouse handler still work
-   if (_mode.Windowed)
+   if (mode.Windowed)
      gfx_driver = &gfx_direct3d_win;
    else
      gfx_driver = &gfx_direct3d_full;
@@ -419,7 +430,7 @@ void D3DGraphicsDriver::SetGamma(int newGamma)
  */
 static int wnd_create_device()
 {
-  return D3DGraphicsFactory::GetD3DDriver()->_initDLLCallback();
+  return D3DGraphicsFactory::GetD3DDriver()->_initDLLCallback(d3d_mode_to_init);
 }
 
 static int wnd_reset_device()
@@ -484,14 +495,14 @@ int D3DGraphicsDriver::_resetDeviceIfNecessary()
   return 0;
 }
 
-int D3DGraphicsDriver::_initDLLCallback()
+int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
 {
   int i = 0;
   CUSTOMVERTEX *vertices;
 
   HWND allegro_wnd = win_get_window();
 
-  if (!_mode.Windowed)
+  if (!mode.Windowed)
   {
     // Remove the border in full-screen mode, otherwise if the player
     // clicks near the edge of the screen it goes back to Windows
@@ -504,25 +515,25 @@ int D3DGraphicsDriver::_initDLLCallback()
   }
 
   memset( &d3dpp, 0, sizeof(d3dpp) );
-  d3dpp.BackBufferWidth = _mode.Width;
-  d3dpp.BackBufferHeight = _mode.Height;
-  d3dpp.BackBufferFormat = color_depth_to_d3d_format(_mode.ColorDepth, false);
+  d3dpp.BackBufferWidth = mode.Width;
+  d3dpp.BackBufferHeight = mode.Height;
+  d3dpp.BackBufferFormat = color_depth_to_d3d_format(mode.ColorDepth, false);
   d3dpp.BackBufferCount = 1;
   d3dpp.MultiSampleType = D3DMULTISAMPLE_NONE;
   // THIS MUST BE SWAPEFFECT_COPY FOR PlayVideo TO WORK
   d3dpp.SwapEffect = D3DSWAPEFFECT_COPY; //D3DSWAPEFFECT_DISCARD; 
   d3dpp.hDeviceWindow = allegro_wnd;
-  d3dpp.Windowed = _mode.Windowed;
+  d3dpp.Windowed = mode.Windowed;
   d3dpp.EnableAutoDepthStencil = FALSE;
   d3dpp.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER; // we need this flag to access the backbuffer with lockrect
   d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
-  if(_mode.Vsync)
+  if(mode.Vsync)
     d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
   else
     d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
   /* If full screen, specify the refresh rate */
-  if ((d3dpp.Windowed == FALSE) && (_mode.RefreshRate > 0))
-    d3dpp.FullScreen_RefreshRateInHz = _mode.RefreshRate;
+  if ((d3dpp.Windowed == FALSE) && (mode.RefreshRate > 0))
+    d3dpp.FullScreen_RefreshRateInHz = mode.RefreshRate;
 
   if (_initGfxCallback != NULL)
     _initGfxCallback(&d3dpp);
@@ -539,9 +550,9 @@ int D3DGraphicsDriver::_initDLLCallback()
     return -1;
   }
 
-  if (_mode.Windowed)
+  if (mode.Windowed)
   {
-    if (adjust_window(_mode.Width, _mode.Height) != 0) 
+    if (adjust_window(mode.Width, mode.Height) != 0) 
     {
       direct3ddevice->Release();
       direct3ddevice = NULL;
@@ -637,30 +648,11 @@ int D3DGraphicsDriver::_initDLLCallback()
     }
   }
   currentgammaramp = defaultgammaramp;
-
-  InitializeD3DState();
-
   return 0;
 }
 
 void D3DGraphicsDriver::InitializeD3DState()
 {
-  Out::FPrint("D3DGraphicsDriver: InitializeD3DState()");
-
-  D3DMATRIX matOrtho = {
-    (2.0 / (float)_srcRect.GetWidth()), 0.0, 0.0, 0.0,
-    0.0, (2.0 / (float)_srcRect.GetHeight()), 0.0, 0.0,
-    0.0, 0.0, 0.0, 0.0,
-    0.0, 0.0, 0.0, 1.0
-  };
-
-  D3DMATRIX matIdentity = {
-    1.0, 0.0, 0.0, 0.0,
-    0.0, 1.0, 0.0, 0.0,
-    0.0, 0.0, 1.0, 0.0,
-    0.0, 0.0, 0.0, 1.0
-  };
-
   direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(30, 0, 0, 255), 0.5f, 0);
 
   // set the render flags.
@@ -678,11 +670,6 @@ void D3DGraphicsDriver::InitializeD3DState()
   direct3ddevice->SetRenderState(D3DRS_ALPHAREF, (DWORD)0);
 
   direct3ddevice->SetFVF(D3DFVF_CUSTOMVERTEX);
-
-  //Setup orthographic projection matrix
-  direct3ddevice->SetTransform(D3DTS_PROJECTION, &matOrtho);
-  direct3ddevice->SetTransform(D3DTS_WORLD, &matIdentity);
-  direct3ddevice->SetTransform(D3DTS_VIEW, &matIdentity);
 
   D3DMATERIAL9 material;
   ZeroMemory(&material, sizeof(material));				//zero memory ( NEW )
@@ -723,6 +710,34 @@ void D3DGraphicsDriver::InitializeD3DState()
   // Set the property information for the first light.
   direct3ddevice->SetLight(0, &d3dLight);
   direct3ddevice->LightEnable(0, TRUE);
+
+  // If we already have a render frame configured, then setup viewport immediately
+  SetupViewport();
+}
+
+void D3DGraphicsDriver::SetupViewport()
+{
+  if (!IsModeSet() || !IsRenderFrameValid())
+    return;
+
+  // Setup orthographic projection matrix
+  D3DMATRIX matOrtho = {
+    (2.0 / (float)_srcRect.GetWidth()), 0.0, 0.0, 0.0,
+    0.0, (2.0 / (float)_srcRect.GetHeight()), 0.0, 0.0,
+    0.0, 0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0, 1.0
+  };
+
+  D3DMATRIX matIdentity = {
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0,
+    0.0, 0.0, 0.0, 1.0
+  };
+
+  direct3ddevice->SetTransform(D3DTS_PROJECTION, &matOrtho);
+  direct3ddevice->SetTransform(D3DTS_WORLD, &matIdentity);
+  direct3ddevice->SetTransform(D3DTS_VIEW, &matIdentity);
 
   // See "Directly Mapping Texels to Pixels" MSDN article for why this is necessary
   // http://msdn.microsoft.com/en-us/library/windows/desktop/bb219690.aspx
@@ -771,6 +786,10 @@ void D3DGraphicsDriver::InitializeD3DState()
 void D3DGraphicsDriver::SetGraphicsFilter(D3DGfxFilter *filter)
 {
   _filter = filter;
+  OnSetFilter();
+  // Creating ddbs references filter properties at some point,
+  // so we have to redo this part of initialization here.
+  create_screen_tint_bitmap();
 }
 
 void D3DGraphicsDriver::SetTintMethod(TintMethod method) 
@@ -778,7 +797,7 @@ void D3DGraphicsDriver::SetTintMethod(TintMethod method)
   _legacyPixelShader = (method == TintReColourise);
 }
 
-bool D3DGraphicsDriver::Init(const DisplayMode &mode, const Size src_size, const Rect dst_rect, volatile int *loopTimer)
+bool D3DGraphicsDriver::Init(const DisplayMode &mode, volatile int *loopTimer)
 {
   if (mode.ColorDepth < 15)
   {
@@ -786,12 +805,9 @@ bool D3DGraphicsDriver::Init(const DisplayMode &mode, const Size src_size, const
     return false;
   }
 
-  _Init(mode, src_size, dst_rect, loopTimer);
-
   try
   {
-    this->initD3DDLL();
-    this->create_screen_tint_bitmap();
+    initD3DDLL(mode);
   }
   catch (Ali3DException exception)
   {
@@ -799,10 +815,31 @@ bool D3DGraphicsDriver::Init(const DisplayMode &mode, const Size src_size, const
       set_allegro_error(exception._message);
     return false;
   }
+  OnInit(mode, loopTimer);
+  InitializeD3DState();
+  CreateVirtualScreen();
+  return true;
+}
+
+void D3DGraphicsDriver::CreateVirtualScreen()
+{
+  if (!IsModeSet() || !IsRenderFrameValid())
+    return;
   // create dummy screen bitmap
+  // TODO: find out why we are doing this
+  // TODO: this can possibly lead to memory leak, because the bitmap's pointer is not managed by renderer class
   BitmapHelper::SetScreenBitmap(
-      ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(src_size.Width, src_size.Height, mode.ColorDepth))
+      ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth))
 	  );
+}
+
+bool D3DGraphicsDriver::SetRenderFrame(const Size &src_size, const Rect &dst_rect)
+{
+  OnSetRenderFrame(src_size, dst_rect);
+  // If we already have a gfx mode set, then update virtual screen immediately
+  CreateVirtualScreen();
+  // Also make sure viewport is updated using new native & destination rectangles
+  SetupViewport();
   return true;
 }
 
@@ -819,7 +856,7 @@ IGfxFilter *D3DGraphicsDriver::GetGraphicsFilter() const
 
 void D3DGraphicsDriver::UnInit() 
 {
-  _UnInit();
+  OnUnInit();
 
   if (_screenTintLayerDDB != NULL) 
   {
@@ -1825,6 +1862,11 @@ bool D3DGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoS
 
 void D3DGraphicsDriver::create_screen_tint_bitmap() 
 {
+  // Some work on textures depends on current scaling filter, sadly
+  // TODO: find out if there is a workaround for that
+  if (!IsModeSet() || !_filter)
+    return;
+
   _screenTintLayer = BitmapHelper::CreateBitmap(16, 16, this->_mode.ColorDepth);
   _screenTintLayer = this->ConvertBitmapToSupportedColourDepth(_screenTintLayer);
   _screenTintLayerDDB = (D3DBitmap*)this->CreateDDBFromBitmap(_screenTintLayer, false, false);

@@ -29,6 +29,16 @@ GraphicsDriverBase::GraphicsDriverBase()
 {
 }
 
+bool GraphicsDriverBase::IsModeSet() const
+{
+    return _mode.Width != 0 && _mode.Height != 0 && _mode.ColorDepth != 0;
+}
+
+bool GraphicsDriverBase::IsRenderFrameValid() const
+{
+    return !_srcRect.IsEmpty() && !_dstRect.IsEmpty();
+}
+
 DisplayMode GraphicsDriverBase::GetDisplayMode() const
 {
     return _mode;
@@ -45,18 +55,31 @@ void GraphicsDriverBase::SetRenderOffset(int x, int y)
     _global_y_offset = y;
 }
 
-void GraphicsDriverBase::_Init(const DisplayMode &mode, const Size src_size, const Rect dst_rect, volatile int *loopTimer)
+void GraphicsDriverBase::OnInit(const DisplayMode &mode, volatile int *loopTimer)
 {
     _mode = mode;
+    _loopTimer = loopTimer;
+}
+
+void GraphicsDriverBase::OnUnInit()
+{
+}
+
+void GraphicsDriverBase::OnSetRenderFrame(const Size &src_size, const Rect &dst_rect)
+{
     _srcRect = RectWH(0, 0, src_size.Width, src_size.Height);
     _dstRect = dst_rect;
-    _loopTimer = loopTimer;
-    _filterRect = GetGraphicsFilter()->SetTranslation(src_size, dst_rect);
+    IGfxFilter *filter = GetGraphicsFilter();
+    if (filter)
+        _filterRect = filter->SetTranslation(src_size, dst_rect);
+    else
+        _filterRect = Rect();
     _scaling.Init(src_size, dst_rect);
 }
 
-void GraphicsDriverBase::_UnInit()
+void GraphicsDriverBase::OnSetFilter()
 {
+    _filterRect = GetGraphicsFilter()->SetTranslation(Size(_srcRect.GetSize()), _dstRect);
 }
 
 } // namespace Engine

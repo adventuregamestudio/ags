@@ -31,13 +31,21 @@ class GraphicsDriverBase : public IGraphicsDriver
 public:
     GraphicsDriverBase();
 
+    virtual bool        IsModeSet() const;
+    virtual bool        IsRenderFrameValid() const;
     virtual DisplayMode GetDisplayMode() const;
     virtual Rect        GetRenderDestination() const;
     virtual void        SetRenderOffset(int x, int y);
 
 protected:
-    void _Init(const DisplayMode &mode, const Size src_size, const Rect dst_rect, volatile int *loopTimer);
-    void _UnInit();
+    // Called after new mode was successfully initialized
+    virtual void OnInit(const DisplayMode &mode, volatile int *loopTimer);
+    // Called after graphics mode was uninitialized
+    virtual void OnUnInit();
+    // Called when new render frame is set
+    virtual void OnSetRenderFrame(const Size &src_size, const Rect &dst_rect);
+    // Called when the new filter is set
+    virtual void OnSetFilter();
 
     DisplayMode         _mode;          // display mode settings
     Rect                _srcRect;       // rendering source rect

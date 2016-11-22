@@ -148,6 +148,10 @@ int ALSoftwareGraphicsDriver::GetAllegroGfxDriverID(bool windowed)
 void ALSoftwareGraphicsDriver::SetGraphicsFilter(AllegroGfxFilter *filter)
 {
   _filter = filter;
+  OnSetFilter();
+
+  // If we already have a gfx mode set, then use the new filter to update virtual screen immediately
+  CreateVirtualScreen();
 }
 
 void ALSoftwareGraphicsDriver::SetTintMethod(TintMethod method) 
@@ -155,9 +159,8 @@ void ALSoftwareGraphicsDriver::SetTintMethod(TintMethod method)
   // TODO: support new D3D-style tint method
 }
 
-bool ALSoftwareGraphicsDriver::Init(const DisplayMode &mode, const Size src_size, const Rect dst_rect, volatile int *loopTimer)
+bool ALSoftwareGraphicsDriver::Init(const DisplayMode &mode, volatile int *loopTimer)
 {
-  _Init(mode, src_size, dst_rect, loopTimer);
   const int driver = GetAllegroGfxDriverID(mode.Windowed);
 
   set_color_depth(mode.ColorDepth);
@@ -165,44 +168,57 @@ bool ALSoftwareGraphicsDriver::Init(const DisplayMode &mode, const Size src_size
   if (_initGfxCallback != NULL)
     _initGfxCallback(NULL);
 
-  if ((IsModeSupported(mode)) &&
-      (set_gfx_mode(driver, mode.Width, mode.Height, 0, 0) == 0))
-  {
-    // [IKM] 2012-09-07
-    // set_gfx_mode is an allegro function that creates screen bitmap;
-    // following code assumes the screen is already created, therefore we should
-    // ensure global bitmap wraps over existing allegro screen bitmap.
-    _allegroScreenWrapper = BitmapHelper::CreateRawBitmapWrapper(screen);
-    BitmapHelper::SetScreenBitmap( _allegroScreenWrapper );
+  if (!IsModeSupported(mode) || set_gfx_mode(driver, mode.Width, mode.Height, 0, 0) != 0)
+    return false;
 
-    BitmapHelper::GetScreenBitmap()->Clear();
-    BitmapHelper::SetScreenBitmap( _filter->InitVirtualScreen(BitmapHelper::GetScreenBitmap(), src_size, dst_rect) );
+  OnInit(mode, loopTimer);
+  // [IKM] 2012-09-07
+  // set_gfx_mode is an allegro function that creates screen bitmap;
+  // following code assumes the screen is already created, therefore we should
+  // ensure global bitmap wraps over existing allegro screen bitmap.
+  _allegroScreenWrapper = BitmapHelper::CreateRawBitmapWrapper(screen);
+  BitmapHelper::SetScreenBitmap( _allegroScreenWrapper );
+  BitmapHelper::GetScreenBitmap()->Clear();
 
-    // [IKM] 2012-09-07
-    // At this point the wrapper we created is saved by filter for future reference,
-    // therefore we should not delete it right away, but only at driver shutdown.
+  // [IKM] 2012-09-07
+  // The wrapper we created will be saved by filter for future reference,
+  // therefore we should not delete it until driver shutdown.
 
-    virtualScreen = BitmapHelper::GetScreenBitmap();
+  // If we already have a gfx filter, then use it to update virtual screen immediately
+  CreateVirtualScreen();
 
 #ifdef _WIN32
-    if (!mode.Windowed)
-    {
-      memset(&ddrawCaps, 0, sizeof(ddrawCaps));
-      ddrawCaps.dwSize = sizeof(ddrawCaps);
-      IDirectDraw2_GetCaps(directdraw, &ddrawCaps, NULL);
+  if (!mode.Windowed)
+  {
+    memset(&ddrawCaps, 0, sizeof(ddrawCaps));
+    ddrawCaps.dwSize = sizeof(ddrawCaps);
+    IDirectDraw2_GetCaps(directdraw, &ddrawCaps, NULL);
 
-      if ((ddrawCaps.dwCaps2 & DDCAPS2_PRIMARYGAMMA) == 0) { }
-      else if (IDirectDrawSurface2_QueryInterface(gfx_directx_primary_surface->id, IID_IDirectDrawGammaControl, (void **)&dxGammaControl) == 0) 
-      {
-        dxGammaControl->GetGammaRamp(0, &defaultGammaRamp);
-      }
+    if ((ddrawCaps.dwCaps2 & DDCAPS2_PRIMARYGAMMA) == 0) { }
+    else if (IDirectDrawSurface2_QueryInterface(gfx_directx_primary_surface->id, IID_IDirectDrawGammaControl, (void **)&dxGammaControl) == 0) 
+    {
+      dxGammaControl->GetGammaRamp(0, &defaultGammaRamp);
     }
+  }
 #endif
 
-    return true;
-  }
+  return true;
+}
 
-  return false;
+void ALSoftwareGraphicsDriver::CreateVirtualScreen()
+{
+  if (!IsModeSet() || !IsRenderFrameValid() || !_filter)
+    return;
+  BitmapHelper::SetScreenBitmap( _filter->InitVirtualScreen(BitmapHelper::GetScreenBitmap(), _srcRect.GetSize(), _dstRect) );
+  virtualScreen = BitmapHelper::GetScreenBitmap();
+}
+
+bool ALSoftwareGraphicsDriver::SetRenderFrame(const Size &src_size, const Rect &dst_rect)
+{
+  OnSetRenderFrame(src_size, dst_rect);
+  // If we already have a gfx mode and gfx filter set, then use it to update virtual screen immediately
+  CreateVirtualScreen();
+  return true;
 }
 
 void ALSoftwareGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)
@@ -220,7 +236,7 @@ ALSoftwareGraphicsDriver::~ALSoftwareGraphicsDriver()
 
 void ALSoftwareGraphicsDriver::UnInit()
 {
-  _UnInit();
+  OnUnInit();
 
 #ifdef _WIN32
 

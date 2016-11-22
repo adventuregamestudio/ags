@@ -60,15 +60,36 @@ public:
         _driver = NULL;
     }
 
-    virtual IGfxFilter *SetFilter(const String &id)
+    virtual IGfxFilter *SetFilter(const String &id, String &filter_error)
     {
         TGfxDriverClass *driver = EnsureDriverCreated();
         if (!driver)
+        {
+            filter_error = "Graphics driver was not created";
             return NULL;
+        }
+
+        const int color_depth = driver->GetDisplayMode().ColorDepth;
+        if (color_depth == 0)
+        {
+            filter_error = "Graphics mode is not set";
+            return NULL;
+        }
 
         TGfxFilterClass *filter = CreateFilter(id);
-        if (filter)
-            driver->SetGraphicsFilter(filter);
+        if (!filter)
+        {
+            filter_error = "Filter does not exist";
+            return NULL;
+        }
+
+        if (!filter->Initialize(color_depth, filter_error))
+        {
+            delete filter;
+            return NULL;
+        }
+
+        driver->SetGraphicsFilter(filter);
         return filter;
     }
 

@@ -95,8 +95,17 @@ struct ColorDepthOption
     int32_t Alternate;
 };
 
-// Makes an attempt to deduce and set a new gfx mode from user config
-bool graphics_mode_init(const ScreenSetup &setup, const ColorDepthOption &color_depths);
+// Initializes any possible gfx mode, using user config as a recommendation;
+// may try all available renderers and modes before succeeding (or failing)
+bool graphics_mode_init_any(const ScreenSetup &setup, const ColorDepthOption &color_depths);
+// Creates graphics driver of given id
+bool graphics_mode_create_renderer(const String &driver_id);
+// Initialize graphics mode with given parameters
+bool graphics_mode_set(const AGS::Engine::DisplayMode &dm);
+// Set the render frame position inside the window
+bool graphics_mode_set_render_frame(const Size &native_size, const Rect &render_frame);
+// Set the scaling filter
+bool graphics_mode_set_filter(const String &filter_id);
 // Releases current graphic mode and shuts down renderer
 void graphics_mode_shutdown();
 

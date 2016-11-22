@@ -60,7 +60,7 @@ public:
     virtual String               GetDefaultFilterID() const = 0;
 
     // Assign specified filter to graphics driver
-    virtual IGfxFilter *         SetFilter(const String &id) = 0;
+    virtual IGfxFilter *         SetFilter(const String &id, String &filter_error) = 0;
 };
 
 // Query the available graphics factory names

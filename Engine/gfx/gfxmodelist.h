@@ -19,31 +19,12 @@
 #define __AGS_EE_GFX__GFXMODELIST_H
 
 #include "core/types.h"
+#include "gfx/gfxdefines.h"
 
 namespace AGS
 {
 namespace Engine
 {
-
-struct DisplayMode : public GraphicResolution
-{
-    int32_t RefreshRate;
-    bool    Vsync;
-    bool    Windowed;
-
-    DisplayMode()
-        : RefreshRate(0)
-        , Vsync(false)
-        , Windowed(false)
-    {}
-
-    DisplayMode(const GraphicResolution &res, bool windowed, int32_t refresh, bool vsync)
-        : GraphicResolution(res)
-        , RefreshRate(refresh)
-        , Vsync(vsync)
-        , Windowed(windowed)
-    {}
-};
 
 class IGfxModeList
 {

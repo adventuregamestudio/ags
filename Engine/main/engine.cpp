@@ -1520,7 +1520,7 @@ bool engine_try_set_gfxmode_any(const ScreenSetup &setup)
 
     ColorDepthOption color_depths;
     engine_get_color_depths(color_depths);
-    if (!graphics_mode_init(setup, color_depths))
+    if (!graphics_mode_init_any(setup, color_depths))
         return false;
 
     engine_post_gfxmode_setup(init_desktop);

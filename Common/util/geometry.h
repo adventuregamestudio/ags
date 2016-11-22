@@ -157,6 +157,8 @@ struct Size
     }
 };
 
+// TODO: consider making Rect have right-bottom coordinate with +1 offset
+// to comply with many other libraries (i.e. Right - Left == Width)
 struct Rect
 {
 	int Left;
@@ -168,8 +170,8 @@ struct Rect
 	{
 		Left	= 0;
 		Top		= 0;
-		Right	= 0;
-		Bottom	= 0;
+		Right	= -1;
+		Bottom	= -1;
 	}
 
 	Rect(int l, int t, int r, int b)

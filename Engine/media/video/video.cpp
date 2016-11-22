@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <stdio.h>
 #include "video.h"
 #include "apeg.h"
 #include "debug/debug_log.h"

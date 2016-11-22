@@ -551,12 +551,6 @@ void OGLGraphicsDriver::SetupViewport()
 
 bool OGLGraphicsDriver::Init(const DisplayMode &mode_, volatile int *loopTimer)
 {
-#if defined(ANDROID_VERSION)
-  android_create_screen(mode.Width, mode.Height, mode.ColorDepth);
-#elif defined(IOS_VERSION)
-  ios_create_screen();
-#endif
-
   // TODO: OpenGL renderer is incomplete and requires to do certain hacks to work,
   // like forcing windowed mode, this is why we create mutable DisplayMode here
   DisplayMode mode = mode_;
@@ -565,8 +559,13 @@ bool OGLGraphicsDriver::Init(const DisplayMode &mode_, volatile int *loopTimer)
     set_allegro_error("OpenGL driver does not support 256-colour games");
     return false;
   }
-  
   mode.Windowed = true;
+
+#if defined(ANDROID_VERSION)
+  android_create_screen(mode.Width, mode.Height, mode.ColorDepth);
+#elif defined(IOS_VERSION)
+  ios_create_screen();
+#endif
 
   if (psp_gfx_renderer == 2)
   {

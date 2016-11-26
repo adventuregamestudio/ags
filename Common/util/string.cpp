@@ -306,13 +306,15 @@ int String::ToInt() const
     String str;
     va_list argptr;
     va_start(argptr, fcstr);
-    int length = vsnprintf(NULL, 0u, fcstr, argptr);
-    str.ReserveAndShift(false, length);
-    va_start(argptr, fcstr);
-    vsprintf(str._meta->CStr, fcstr, argptr);
-    str._meta->Length = length;
-    str._meta->CStr[str._meta->Length] = 0;
+    str.FormatV(fcstr, argptr);
     va_end(argptr);
+    return str;
+}
+
+/* static */ String String::FromFormatV(const char *fcstr, va_list argptr)
+{
+    String str;
+    str.FormatV(fcstr, argptr);
     return str;
 }
 
@@ -582,16 +584,23 @@ void String::FillString(char c, size_t count)
 
 void String::Format(const char *fcstr, ...)
 {
-    fcstr = fcstr ? fcstr : "";
     va_list argptr;
     va_start(argptr, fcstr);
+    FormatV(fcstr, argptr);
+    va_end(argptr);
+}
+
+void String::FormatV(const char *fcstr, va_list argptr)
+{
+    fcstr = fcstr ? fcstr : "";
+    va_list argptr_cpy;
+    va_copy(argptr_cpy, argptr);
     size_t length = vsnprintf(NULL, 0u, fcstr, argptr);
     ReserveAndShift(false, Math::Surplus(length, GetLength()));
-    va_start(argptr, fcstr);
-    vsprintf(_meta->CStr, fcstr, argptr);
+    vsprintf(_meta->CStr, fcstr, argptr_cpy);
+    va_end(argptr_cpy);
     _meta->Length = length;
     _meta->CStr[_meta->Length] = 0;
-    va_end(argptr);
 }
 
 void String::Free()

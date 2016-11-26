@@ -47,6 +47,10 @@ extern "C" char *strupr(char *s);
 
 #include "util/c99_snprintf.h"
 
+#if !defined(va_copy) && defined(_MSC_VER)
+#define va_copy(a, b) ((a) = (b))
+#endif
+
 #endif // !WINDOWS_VERSION
 
 void unescape(char *buffer);

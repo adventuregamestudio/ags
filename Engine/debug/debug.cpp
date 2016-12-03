@@ -22,6 +22,7 @@
 #include "debug/out.h"
 #include "debug/consoleoutputtarget.h"
 #include "debug/logfile.h"
+#include "main/config.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
 #include "plugin/agsplugin.h"
@@ -84,7 +85,7 @@ const char *OutputFileID = "logfile";
 const char *OutputSystemID = "stderr";
 const char *OutputGameConsoleID = "console";
 
-void initialize_output_subsystem()
+void init_debug()
 {
     DebugLogFile.reset(new LogFile());
     DebugConsole.reset(new ConsoleOutputTarget());
@@ -95,39 +96,18 @@ void initialize_output_subsystem()
     DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsgSet_All);
 }
 
-void apply_output_configuration()
+void apply_debug_config(const ConfigTree &cfg)
 {
-    if (disable_log_file)
-    {
-        enable_log_file = false;
-    }
-    else if (enable_log_file)
+    if (INIreadint(cfg, "misc", "log", 0) != 0)
     {
         String logfile_path = platform->GetAppOutputDirectory();
         logfile_path.Append("/ags.log");
         if (DebugLogFile->OpenFile(logfile_path))
-        {
             platform->WriteStdOut("Logging to %s", logfile_path.GetCStr());
-        }
-        else
-        {
-            enable_log_file = false;
-        }
-    }
-
-    if (!enable_log_file)
-    {
-        DbgMgr.UnregisterOutput(OutputFileID);
-        DebugLogFile.reset();
     }
 }
 
-void initialize_debug_system()
-{
-    initialize_output_subsystem();
-}
-
-void shutdown_debug_system()
+void shutdown_debug()
 {
     // Shutdown output subsystem
     DbgMgr.UnregisterAll();
@@ -136,7 +116,8 @@ void shutdown_debug_system()
     DebugConsole.reset();
 }
 
-void quitprintf(const char *texx, ...) {
+void quitprintf(const char *texx, ...)
+{
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);

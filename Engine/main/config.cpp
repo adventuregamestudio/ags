@@ -444,15 +444,6 @@ void read_config(const ConfigTree &cfg)
             usetup.override_script_os = eOS_Mac;
         }
         usetup.override_upscale = INIreadint(cfg, "override", "upscale") > 0;
-
-        // NOTE: at the moment AGS provide little means to determine whether an
-        // option was overriden by command line, and since command line args
-        // are applied first, we need to check if the option differs from
-        // default before applying value from config file.
-        if (!enable_log_file && !disable_log_file)
-        {
-            enable_log_file = INIreadint (cfg, "misc", "log") != 0;
-        }
     }
 }
 

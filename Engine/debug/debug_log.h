@@ -19,10 +19,11 @@
 #include "ac/runtime_defines.h"
 #include "ac/gamestate.h"
 #include "platform/base/agsplatformdriver.h"
+#include "util/ini_util.h"
 
-void initialize_debug_system();
-void apply_output_configuration();
-void shutdown_debug_system();
+void init_debug();
+void apply_debug_config(const AGS::Common::ConfigTree &cfg);
+void shutdown_debug();
 
 #define DEBUG_CONSOLE if (play.debug_mode) debug_write_console
 

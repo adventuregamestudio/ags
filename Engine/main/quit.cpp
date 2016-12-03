@@ -311,7 +311,7 @@ void quit(const char *quitmsg)
 
     Debug::Printf("***** ENGINE HAS SHUTDOWN");
 
-    shutdown_debug_system();
+    shutdown_debug();
     free_globals();
 
     our_eip = 9904;

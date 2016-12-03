@@ -1333,6 +1333,16 @@ bool engine_read_config(ConfigTree &cfg, int argc,char*argv[])
     // Read user configuration file
     load_user_config_file(cfg);
 
+    // TODO: override config tree with all the command-line args.
+    // NOTE: at the moment AGS provide little means to determine whether an
+    // option was overriden by command line, and since command line args
+    // are applied first, we need to check if the option differs from
+    // default before applying value from config file.
+    if (disable_log_file)
+        INIwriteint(cfg, "misc", "log", 0);
+    else if (enable_log_file)
+        INIwriteint(cfg, "misc", "log", 1);
+
     // Parse and set up game config
     read_config(cfg);
 
@@ -1347,7 +1357,7 @@ bool engine_do_config(int argc, char*argv[])
     if (!engine_read_config(cfg, argc, argv))
         return false;
 
-    apply_output_configuration();
+    apply_debug_config(cfg);
 
     return engine_check_run_setup(cfg, argc, argv);
 }

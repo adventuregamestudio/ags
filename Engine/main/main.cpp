@@ -478,7 +478,7 @@ int main(int argc,char*argv[]) {
         return 0;
     }
 
-    initialize_debug_system();
+    init_debug();
     Debug::Printf(get_engine_string());
 
     main_init_crt_report();

@@ -390,7 +390,7 @@ void AGSWin32::update_game_explorer(bool add)
   HRESULT hr = CoCreateInstance( __uuidof(GameExplorer), NULL, CLSCTX_INPROC_SERVER, __uuidof(IGameExplorer), (void**)&pFwGameExplorer);
   if( FAILED(hr) || pFwGameExplorer == NULL ) 
   {
-    Out::FPrint("Game Explorer not found to register game, Windows Vista required");
+    Debug::Printf("Game Explorer not found to register game, Windows Vista required");
   }
   else 
   {
@@ -525,7 +525,7 @@ void AGSWin32::PostAllegroInit(bool windowed)
   // Sleep() don't take more time than specified
   MMRESULT result = timeBeginPeriod(win32TimerPeriod);
   if (result != TIMERR_NOERROR)
-    Out::FPrint("Failed to set the timer resolution to %d ms", win32TimerPeriod);
+    Debug::Printf("Failed to set the timer resolution to %d ms", win32TimerPeriod);
 }
 
 typedef UINT (CALLBACK* Dynamic_SHGetKnownFolderPathType) (GUID& rfid, DWORD dwFlags, HANDLE hToken, PWSTR *ppszPath); 

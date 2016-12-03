@@ -43,7 +43,7 @@ public:
     AGS::Common::String platformLibraryName = libraryName;
     platformLibraryName.Append(".dll");
 
-    AGS::Common::Out::FPrint("Built library path: %s", platformLibraryName.GetCStr());
+    AGS::Common::Debug::Printf("Built library path: %s", platformLibraryName.GetCStr());
 
     return platformLibraryName;
   }

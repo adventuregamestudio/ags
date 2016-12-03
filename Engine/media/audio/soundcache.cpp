@@ -57,7 +57,7 @@ void sound_cache_free(char* buffer, bool is_wave)
     AGS::Engine::MutexLock _lock(_sound_cache_mutex);
 
 #ifdef SOUND_CACHE_DEBUG
-    Out::FPrint("sound_cache_free(%d %d)\n", (unsigned int)buffer, (unsigned int)is_wave);
+    Debug::Printf("sound_cache_free(%d %d)\n", (unsigned int)buffer, (unsigned int)is_wave);
 #endif
     int i;
     for (i = 0; i < psp_audio_cachesize; i++)
@@ -68,14 +68,14 @@ void sound_cache_free(char* buffer, bool is_wave)
                 sound_cache_entries[i].reference--;
 
 #ifdef SOUND_CACHE_DEBUG
-            Out::FPrint("..decreased reference count of slot %d to %d\n", i, sound_cache_entries[i].reference);
+            Debug::Printf("..decreased reference count of slot %d to %d\n", i, sound_cache_entries[i].reference);
 #endif
             return;
         }
     }
 
 #ifdef SOUND_CACHE_DEBUG
-    Out::FPrint("..freeing uncached sound\n");
+    Debug::Printf("..freeing uncached sound\n");
 #endif
 
     // Sound is uncached
@@ -94,7 +94,7 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
 	AGS::Engine::MutexLock _lock(_sound_cache_mutex);
 
 #ifdef SOUND_CACHE_DEBUG
-    Out::FPrint("get_cached_sound(%s %d)\n", filename, (unsigned int)is_wave);
+    Debug::Printf("get_cached_sound(%s %d)\n", filename, (unsigned int)is_wave);
 #endif
 
     *size = 0;
@@ -108,7 +108,7 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
         if (strcmp(filename, sound_cache_entries[i].file_name) == 0)
         {
 #ifdef SOUND_CACHE_DEBUG
-            Out::FPrint("..found in slot %d\n", i);
+            Debug::Printf("..found in slot %d\n", i);
 #endif
             sound_cache_entries[i].reference++;
             sound_cache_entries[i].last_used = sound_cache_counter++;
@@ -195,7 +195,7 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
     {
         // No cache slot empty, return uncached data
 #ifdef SOUND_CACHE_DEBUG
-        Out::FPrint("..loading uncached\n");
+        Debug::Printf("..loading uncached\n");
 #endif
         return newdata;  
     }
@@ -203,7 +203,7 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
     {
         // Add to cache, free old sound first
 #ifdef SOUND_CACHE_DEBUG
-        Out::FPrint("..loading cached in slot %d\n", i);
+        Debug::Printf("..loading cached in slot %d\n", i);
 #endif	
 
         if (sound_cache_entries[i].data) {

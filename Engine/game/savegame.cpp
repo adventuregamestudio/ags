@@ -362,7 +362,7 @@ SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_da
 
     if (create_global_script())
     {
-        Out::FPrint("Restore game error: unable to recreate global script: %s", ccErrorString);
+        Debug::Printf("Restore game error: unable to recreate global script: %s", ccErrorString);
         return kSvgErr_GameObjectInitFailed;
     }
 
@@ -463,7 +463,7 @@ SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_da
             continue;
         if (chan_info.ClipID >= game.audioClipCount)
         {
-            Out::FPrint("Restore game error: invalid audio clip index: %d (clip count: %d)", chan_info.ClipID, game.audioClipCount);
+            Debug::Printf("Restore game error: invalid audio clip index: %d (clip count: %d)", chan_info.ClipID, game.audioClipCount);
             return kSvgErr_GameObjectInitFailed;
         }
         play_audio_clip_on_channel(i, &game.audioClips[chan_info.ClipID],

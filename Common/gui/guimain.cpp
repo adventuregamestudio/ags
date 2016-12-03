@@ -556,7 +556,7 @@ void read_gui(Stream *in, std::vector<GUIMain> &guiread, GameSetupStruct * gss)
     quit("read_gui: file is corrupt");
 
   GameGuiVersion = (GuiVersion)in->ReadInt32();
-  Out::FPrint("Game GUI version: %d", GameGuiVersion);
+  Debug::Printf("Game GUI version: %d", GameGuiVersion);
   if (GameGuiVersion < kGuiVersion_214) {
     gss->numgui = (int)GameGuiVersion;
     GameGuiVersion = kGuiVersion_Initial;

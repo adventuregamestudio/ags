@@ -58,14 +58,14 @@ WFNError WFNFont::ReadFromFile(Stream *in, const size_t data_size)
     in->Read(sig, WFN_FILE_SIG_LENGTH);
     if (strncmp(sig, WFN_FILE_SIGNATURE, WFN_FILE_SIG_LENGTH) != 0)
     {
-        Out::FPrint("\tWFN: bad format signature");
+        Debug::Printf("\tWFN: bad format signature");
         return kWFNErr_BadSignature; // bad format
     }
 
     const size_t table_addr = (uint16_t)in->ReadInt16(); // offset table relative address
     if (table_addr < WFN_FILE_SIG_LENGTH + sizeof(uint16_t) || table_addr >= used_data_size)
     {
-        Out::FPrint("\tWFN: bad table address: %d (%d - %d)", table_addr, WFN_FILE_SIG_LENGTH + sizeof(uint16_t), used_data_size);
+        Debug::Printf("\tWFN: bad table address: %d (%d - %d)", table_addr, WFN_FILE_SIG_LENGTH + sizeof(uint16_t), used_data_size);
         return kWFNErr_BadTableAddress; // bad table address
     }
 
@@ -99,7 +99,7 @@ WFNError WFNFont::ReadFromFile(Stream *in, const size_t data_size)
         const uint16_t off = offset_table[i];
         if (off < raw_data_offset || off + MinCharDataSize > table_addr)
         {
-            Out::FPrint("\tWFN: character %d -- bad item offset: %d (%d - %d, +%d)",
+            Debug::Printf("\tWFN: character %d -- bad item offset: %d (%d - %d, +%d)",
                 i, off, raw_data_offset, table_addr, MinCharDataSize);
             err = kWFNErr_HasBadCharacters; // warn about potentially corrupt format
             continue; // bad character offset
@@ -133,7 +133,7 @@ WFNError WFNFont::ReadFromFile(Stream *in, const size_t data_size)
         const size_t pixel_data_size = _items[i].GetRequiredPixelSize();
         if (pixel_data_size == 0)
         {
-            Out::FPrint("\tWFN: item at off %d -- null size", offs[i]);
+            Debug::Printf("\tWFN: item at off %d -- null size", offs[i]);
             err = kWFNErr_HasBadCharacters;
             continue; // just an empty character
         }
@@ -141,7 +141,7 @@ WFNError WFNFont::ReadFromFile(Stream *in, const size_t data_size)
         size_t src_size = pixel_data_size;
         if (i + 1 != _items.size() && raw_off + src_size > offs[i + 1] - raw_data_offset)
         {   // character pixel data overlaps next character
-            Out::FPrint("\tWFN: item at off %d -- pixel data overlaps next known item (at %d, +%d)",
+            Debug::Printf("\tWFN: item at off %d -- pixel data overlaps next known item (at %d, +%d)",
                         offs[i], offs[i + 1], MinCharDataSize + src_size);
             err = kWFNErr_HasBadCharacters; // warn about potentially corrupt format
             src_size = offs[i + 1] - offs[i] - MinCharDataSize;
@@ -149,7 +149,7 @@ WFNError WFNFont::ReadFromFile(Stream *in, const size_t data_size)
         
         if (raw_off + src_size > total_char_data)
         {   // character pixel data overflow buffer
-            Out::FPrint("\tWFN: item at off %d -- pixel data exceeds available data (at %d, +%d)",
+            Debug::Printf("\tWFN: item at off %d -- pixel data exceeds available data (at %d, +%d)",
                         offs[i], table_addr, MinCharDataSize + src_size);
             err = kWFNErr_HasBadCharacters; // warn about potentially corrupt format
             src_size = total_char_data - raw_off;

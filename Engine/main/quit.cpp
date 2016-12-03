@@ -309,7 +309,7 @@ void quit(const char *quitmsg)
 
     proper_exit=1;
 
-    Out::FPrint("***** ENGINE HAS SHUTDOWN");
+    Debug::Printf("***** ENGINE HAS SHUTDOWN");
 
     shutdown_debug_system();
     free_globals();

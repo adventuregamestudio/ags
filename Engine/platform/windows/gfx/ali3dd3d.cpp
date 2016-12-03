@@ -464,14 +464,14 @@ int D3DGraphicsDriver::_resetDeviceIfNecessary()
 
   if (hr == D3DERR_DEVICELOST)
   {
-    Out::FPrint("D3DGraphicsDriver: D3D Device Lost");
+    Debug::Printf("D3DGraphicsDriver: D3D Device Lost");
     // user has alt+tabbed away from the game
     return 1;
   }
 
   if (hr == D3DERR_DEVICENOTRESET)
   {
-    Out::FPrint("D3DGraphicsDriver: D3D Device Not Reset");
+    Debug::Printf("D3DGraphicsDriver: D3D Device Not Reset");
     if (pNativeSurface!=NULL) {
       pNativeSurface->Release();
       pNativeSurface = NULL;
@@ -479,7 +479,7 @@ int D3DGraphicsDriver::_resetDeviceIfNecessary()
     hr = direct3ddevice->Reset(&d3dpp);
     if (hr != D3D_OK)
     {
-      Out::FPrint("D3DGraphicsDriver: Failed to reset D3D device");
+      Debug::Printf("D3DGraphicsDriver: Failed to reset D3D device");
       // can't throw exception because we're in the wrong thread,
       // so just return a value instead
       return 2;
@@ -1889,7 +1889,7 @@ D3DGraphicsFactory::~D3DGraphicsFactory()
     DestroyDriver(); // driver must be destroyed before d3d library is disposed
     ULONG ref_cnt = _direct3d->Release();
     if (ref_cnt > 0)
-        Out::FPrint("WARNING: Not all of the Direct3D resources have been disposed; ID3D ref count: %d", ref_cnt);
+        Debug::Printf("WARNING: Not all of the Direct3D resources have been disposed; ID3D ref count: %d", ref_cnt);
     _factory = NULL;
 }
 

@@ -907,7 +907,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         }
     }
     
-    AGS::Common::Out::FPrint("No built-in plugin found. Plugin loading failed!");
+    AGS::Common::Debug::Printf("No built-in plugin found. Plugin loading failed!");
     return false;
 }
 
@@ -949,7 +949,7 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
 
         if (apl->library.Load(apl->filename))
         {
-          AGS::Common::Out::FPrint("Plugin loading succeeded, resolving imports...");
+          AGS::Common::Debug::Printf("Plugin loading succeeded, resolving imports...");
 
           if (apl->library.GetFunctionAddress("AGS_PluginV2") == NULL) {
               quitprintf("Plugin '%s' is an old incompatible version.", apl->filename);
@@ -966,14 +966,14 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
         }
         else
         {
-          AGS::Common::Out::FPrint("Plugin loading failed, trying built-in plugins...");
+          AGS::Common::Debug::Printf("Plugin loading failed, trying built-in plugins...");
           if (!pl_use_builtin_plugin(apl))
           {
             // Plugin loading has failed at this point, try using built-in plugin function stubs
             if (RegisterPluginStubs((const char*)apl->filename))
-              AGS::Common::Out::FPrint("Placeholder functions for the plugin found.");
+              AGS::Common::Debug::Printf("Placeholder functions for the plugin found.");
             else
-              AGS::Common::Out::FPrint("No placeholder functions for the plugin found. The game might fail to load.");
+              AGS::Common::Debug::Printf("No placeholder functions for the plugin found. The game might fail to load.");
 
             continue;
           }

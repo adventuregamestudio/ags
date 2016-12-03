@@ -113,7 +113,7 @@ int errno;
 
 bool engine_init_allegro()
 {
-    Out::FPrint("Initializing allegro");
+    Debug::Printf("Initializing allegro");
 
     our_eip = -199;
     // Initialize allegro
@@ -146,7 +146,7 @@ void winclosehook() {
 
 void engine_setup_window()
 {
-    Out::FPrint("Setting up window");
+    Debug::Printf("Setting up window");
 
     our_eip = -198;
 #if (ALLEGRO_DATE > 19990103)
@@ -169,7 +169,7 @@ bool engine_check_run_setup(ConfigTree &cfg, int argc,char*argv[])
     // check if Setup needs to be run instead
     if (justRunSetup)
     {
-            Out::FPrint("Running Setup");
+            Debug::Printf("Running Setup");
 
             // Add information about game resolution and let setup application
             // display some properties to the user
@@ -346,18 +346,18 @@ void initialise_game_file_name()
     // Finally, store game file's absolute path, or report error
     if (game_file_name.IsEmpty())
     {
-        Out::FPrint("Game data file could not be found\n");
+        Debug::Printf("Game data file could not be found\n");
     }
     else
     {
         game_file_name = Path::MakeAbsolutePath(game_file_name);
-        Out::FPrint("Located game data file: %s\n", game_file_name.GetCStr());
+        Debug::Printf("Located game data file: %s\n", game_file_name.GetCStr());
     }
 }
 
 bool engine_init_game_data()
 {
-    Out::FPrint("Looking for game data file");
+    Debug::Printf("Looking for game data file");
 
     // initialize the data file
     initialise_game_file_name();
@@ -412,7 +412,7 @@ bool engine_init_game_data()
 
 void engine_init_fonts()
 {
-    Out::FPrint("Initializing TTF renderer");
+    Debug::Printf("Initializing TTF renderer");
 
     init_font_renderer();
 }
@@ -421,15 +421,15 @@ int engine_init_mouse()
 {
     int res = minstalled();
     if (res < 0)
-        Out::FPrint("Initializing mouse: failed");
+        Debug::Printf("Initializing mouse: failed");
     else
-        Out::FPrint("Initializing mouse: number of buttons reported is %d", res);
+        Debug::Printf("Initializing mouse: number of buttons reported is %d", res);
 	return RETURN_CONTINUE;
 }
 
 int engine_check_memory()
 {
-    Out::FPrint("Checking memory");
+    Debug::Printf("Checking memory");
 
     char*memcheck=(char*)malloc(4000000);
     if (memcheck==NULL) {
@@ -471,7 +471,7 @@ int engine_init_speech()
         if (speech_s) {
             delete speech_s;
 
-            Out::FPrint("Initializing speech vox");
+            Debug::Printf("Initializing speech vox");
 
             //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
             if (Common::AssetManager::SetDataFile(speech_file)!=Common::kAssetNoError) {
@@ -502,7 +502,7 @@ int engine_init_speech()
                 delete speechsync;
             }
             Common::AssetManager::SetDataFile(game_file_name);
-            Out::FPrint("Speech sample file found and initialized.");
+            Debug::Printf("Speech sample file found and initialized.");
             play.want_speech=1;
         }
     }
@@ -534,7 +534,7 @@ int engine_init_music()
     if (music_s) {
         delete music_s;
 
-        Out::FPrint("Initializing audio vox");
+        Debug::Printf("Initializing audio vox");
 
         //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
         if (Common::AssetManager::SetDataFile(music_file)!=Common::kAssetNoError) {
@@ -542,7 +542,7 @@ int engine_init_music()
             return EXIT_NORMAL;
         }
         Common::AssetManager::SetDataFile(game_file_name);
-        Out::FPrint("Audio vox found and initialized.");
+        Debug::Printf("Audio vox found and initialized.");
         play.separate_music_lib = 1;
     }
 
@@ -552,7 +552,7 @@ int engine_init_music()
 void engine_init_keyboard()
 {
 #ifdef ALLEGRO_KEYBOARD_HANDLER
-    Out::FPrint("Initializing keyboard");
+    Debug::Printf("Initializing keyboard");
 
     install_keyboard();
 #endif
@@ -560,7 +560,7 @@ void engine_init_keyboard()
 
 void engine_init_timer()
 {
-    Out::FPrint("Install timer");
+    Debug::Printf("Install timer");
     install_timer();
 }
 
@@ -604,17 +604,17 @@ bool try_install_sound(int digi_id, int midi_id)
     // Therefore we try to guess.
     if (midi_id != MIDI_NONE)
     {
-        Out::FPrint("Failed to init one of the drivers; Error: %s\nTrying to start without MIDI", get_allegro_error());
+        Debug::Printf("Failed to init one of the drivers; Error: %s\nTrying to start without MIDI", get_allegro_error());
         if (install_sound(digi_id, MIDI_NONE, NULL) == 0)
             return true;
     }
     if (digi_id != DIGI_NONE)
     {
-        Out::FPrint("Failed to init one of the drivers; Error: %s\nTrying to start without DIGI", get_allegro_error());
+        Debug::Printf("Failed to init one of the drivers; Error: %s\nTrying to start without DIGI", get_allegro_error());
         if (install_sound(DIGI_NONE, midi_id, NULL) == 0)
             return true;
     }
-    Out::FPrint("Failed to init sound drivers. Error: %s", get_allegro_error());
+    Debug::Printf("Failed to init sound drivers. Error: %s", get_allegro_error());
     return false;
 }
 
@@ -627,7 +627,7 @@ void engine_init_sound()
     set_volume_per_voice(1);
 #endif
 
-    Out::FPrint("Initialize sound drivers");
+    Debug::Printf("Initialize sound drivers");
 
     // PSP: Disable sound by config file.
     if (!psp_audio_enabled)
@@ -643,13 +643,13 @@ void engine_init_sound()
     AlIDStr midi_id;
     AlDigiToChars(usetup.digicard, digi_id);
     AlMidiToChars(usetup.midicard, midi_id);
-    Out::FPrint("Trying digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
+    Debug::Printf("Trying digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
         digi_id, usetup.digicard, midi_id, usetup.midicard);
 
     bool sound_res = try_install_sound(usetup.digicard, usetup.midicard);
     if (!sound_res && opts.mod_player)
     {
-        Out::FPrint("Resetting to default sound parameters and trying again.");
+        Debug::Printf("Resetting to default sound parameters and trying again.");
         reserve_voices(-1, -1); // this resets voice number to defaults
         opts.mod_player = 0;
         opts.mp3_player = 0; // CHECKME: why disabling MP3 player too?
@@ -674,7 +674,7 @@ void engine_init_sound()
 
     AlDigiToChars(usetup.digicard, digi_id);
     AlMidiToChars(usetup.midicard, midi_id);
-    Out::FPrint("Installed digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
+    Debug::Printf("Installed digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
         digi_id, usetup.digicard, midi_id, usetup.midicard);
 
     our_eip = -181;
@@ -730,7 +730,7 @@ void atexit_handler() {
 
 void engine_init_exit_handler()
 {
-    Out::FPrint("Install exit handler");
+    Debug::Printf("Install exit handler");
 
     atexit(atexit_handler);
 }
@@ -743,21 +743,21 @@ void engine_init_rand()
 
 void engine_init_pathfinder()
 {
-    Out::FPrint("Initialize path finder library");
+    Debug::Printf("Initialize path finder library");
 
     init_pathfinder();
 }
 
 void engine_pre_init_gfx()
 {
-    //Out::FPrint("Initialize gfx");
+    //Debug::Printf("Initialize gfx");
 
     //platform->InitialiseAbufAtStartup();
 }
 
 int engine_load_game_data()
 {
-    Out::FPrint("Load game data");
+    Debug::Printf("Load game data");
 
     our_eip=-17;
     String err_str;
@@ -799,7 +799,7 @@ void engine_init_title()
     set_window_title(game.gamename);
 #endif
 
-    Out::FPrint(game.gamename);
+    Debug::Printf(game.gamename);
 }
 
 void engine_init_directories()
@@ -819,7 +819,7 @@ void engine_init_directories()
         res = SetCustomSaveParent(String::FromFormat("%s/UserSaves", usetup.user_data_dir.GetCStr()));
         if (!res)
         {
-            Out::FPrint("WARNING: custom user save path failed, using default system paths");
+            Debug::Printf("WARNING: custom user save path failed, using default system paths");
             usetup.user_data_dir.Empty();
             res = false;
         }
@@ -876,7 +876,7 @@ int check_write_access() {
 
 int engine_check_disk_space()
 {
-    Out::FPrint("Checking for disk space");
+    Debug::Printf("Checking for disk space");
 
     //init_language_text("en");
     if (check_write_access()==0) {
@@ -913,7 +913,7 @@ void engine_init_modxm_player()
         opts.mod_player = 0;
 
     if (opts.mod_player) {
-        Out::FPrint("Initializing MOD/XM player");
+        Debug::Printf("Initializing MOD/XM player");
 
         if (init_mod_player(NUM_MOD_DIGI_VOICES) < 0) {
             platform->DisplayAlert("Warning: install_mod: MOD player failed to initialize.");
@@ -922,7 +922,7 @@ void engine_init_modxm_player()
     }
 #else
     opts.mod_player = 0;
-    Out::FPrint("Compiled without MOD/XM player");
+    Debug::Printf("Compiled without MOD/XM player");
 #endif
 }
 
@@ -959,14 +959,14 @@ void show_preload () {
 
 void engine_show_preload()
 {
-    Out::FPrint("Check for preload image");
+    Debug::Printf("Check for preload image");
 
     show_preload ();
 }
 
 int engine_init_sprites()
 {
-    Out::FPrint("Initialize sprites");
+    Debug::Printf("Initialize sprites");
 
     if (spriteset.initFile ("acsprset.spr")) 
     {
@@ -985,7 +985,7 @@ int engine_init_sprites()
 void engine_init_game_settings()
 {
     our_eip=-7;
-    Out::FPrint("Initialize game settings");
+    Debug::Printf("Initialize game settings");
 
     int ee;
 
@@ -1270,23 +1270,23 @@ void engine_start_multithreaded_audio()
   {
     if (!audioThread.CreateAndStart(engine_update_mp3_thread, true))
     {
-      Out::FPrint("Failed to start audio thread, audio will be processed on the main thread");
+      Debug::Printf("Failed to start audio thread, audio will be processed on the main thread");
       psp_audio_multithreaded = 0;
     }
     else
     {
-      Out::FPrint("Audio thread started");
+      Debug::Printf("Audio thread started");
     }
   }
   else
   {
-    Out::FPrint("Audio is processed on the main thread");
+    Debug::Printf("Audio is processed on the main thread");
   }
 }
 
 void engine_prepare_to_start_game()
 {
-    Out::FPrint("Prepare to start game");
+    Debug::Printf("Prepare to start game");
 
     engine_setup_scsystem_auxiliary();
     engine_start_multithreaded_audio();
@@ -1309,7 +1309,7 @@ void allegro_bitmap_test_init()
 
 bool engine_read_config(ConfigTree &cfg, int argc,char*argv[])
 {
-    Out::FPrint("Reading configuration");
+    Debug::Printf("Reading configuration");
 
     // Read default configuration file
     our_eip = -200;
@@ -1551,7 +1551,7 @@ extern char*printfworkingspace;
 
 int initialize_engine_with_exception_handling(int argc,char*argv[])
 {
-    Out::FPrint("Installing exception handler");
+    Debug::Printf("Installing exception handler");
 
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
     __try 

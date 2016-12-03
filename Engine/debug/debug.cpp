@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <memory>
 #include <stdio.h>
 #include "ac/common.h"
 #include "ac/roomstruct.h"
@@ -22,6 +23,7 @@
 #include "debug/out.h"
 #include "debug/consoleoutputtarget.h"
 #include "debug/logfile.h"
+#include "debug/messagebuffer.h"
 #include "main/config.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
@@ -78,20 +80,22 @@ int first_debug_line = 0, last_debug_line = 0, display_console = 0;
 
 int fps=0,display_fps=0;
 
+std::auto_ptr<MessageBuffer> DebugMsgBuff;
 std::auto_ptr<LogFile> DebugLogFile;
 std::auto_ptr<ConsoleOutputTarget> DebugConsole;
 
-const char *OutputFileID = "logfile";
-const char *OutputSystemID = "stderr";
-const char *OutputGameConsoleID = "console";
+const String OutputMsgBufID = "buffer";
+const String OutputFileID = "logfile";
+const String OutputSystemID = "stderr";
+const String OutputGameConsoleID = "console";
 
 void init_debug()
 {
-    DebugLogFile.reset(new LogFile());
+    DebugMsgBuff.reset(new MessageBuffer());
     DebugConsole.reset(new ConsoleOutputTarget());
 
     // Register outputs
-    DbgMgr.RegisterOutput(OutputFileID, DebugLogFile.get(), kDbgMsgSet_All);
+    DbgMgr.RegisterOutput(OutputMsgBufID, DebugMsgBuff.get(), kDbgMsgSet_All);
     DbgMgr.RegisterOutput(OutputSystemID, AGSPlatformDriver::GetDriver(), kDbgMsgSet_Errors);
     DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsgSet_All);
 }
@@ -100,11 +104,16 @@ void apply_debug_config(const ConfigTree &cfg)
 {
     if (INIreadint(cfg, "misc", "log", 0) != 0)
     {
+        DebugLogFile.reset(new LogFile());
+        DbgMgr.RegisterOutput(OutputFileID, DebugLogFile.get(), kDbgMsgSet_All);
         String logfile_path = platform->GetAppOutputDirectory();
         logfile_path.Append("/ags.log");
         if (DebugLogFile->OpenFile(logfile_path))
             platform->WriteStdOut("Logging to %s", logfile_path.GetCStr());
+        DebugMsgBuff->Flush(OutputFileID);
     }
+    DbgMgr.UnregisterOutput(OutputMsgBufID);
+    DebugMsgBuff.reset();
 }
 
 void shutdown_debug()

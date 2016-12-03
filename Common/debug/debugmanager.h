@@ -121,10 +121,11 @@ public:
 
     // Output message of given group and message type
     void Print(DebugGroupID group_id, MessageType mt, const String &text);
+    // Send message directly to the output with given id; the message
+    // must pass the output's message filter though
+    void SendMessage(const String &out_id, const DebugMessage &msg);
 
 private:
-    void RegisterGroup(const DebugGroup &group);
-
     // OutputSlot struct wraps over output target and adds a flag which indicates
     // that this target is temporarily disabled (for internal use only)
     struct OutputSlot
@@ -138,6 +139,9 @@ private:
     typedef std::vector<DebugGroup> GroupVector;
     typedef stdtr1compat::unordered_map<String, DebugGroupID, HashStrNoCase, StrCmpNoCase> GroupByStringMap;
     typedef stdtr1compat::unordered_map<String, OutputSlot, HashStrNoCase, StrCmpNoCase> OutMap;
+
+    void RegisterGroup(const DebugGroup &id);
+    void SendMessage(OutputSlot &out, const DebugMessage &msg);
 
     uint32_t            _firstFreeGroupID;
     uint32_t            _lastGroupID;

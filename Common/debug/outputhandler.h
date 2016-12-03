@@ -27,12 +27,6 @@ namespace AGS
 namespace Common
 {
 
-struct DebugMessage
-{
-    String  Text;
-    String  GroupName;
-};
-
 class IOutputHandler
 {
 public:

@@ -1020,6 +1020,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\debug\messagebuffer.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.cpp"
 					>
 				</File>
@@ -2011,6 +2015,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\debug\logfile.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\debug\messagebuffer.h"
 					>
 				</File>
 				<File

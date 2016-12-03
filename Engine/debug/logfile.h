@@ -24,9 +24,8 @@
 #ifndef __AGS_EE_DEBUG__LOGFILE_H
 #define __AGS_EE_DEBUG__LOGFILE_H
 
-#include <vector>
+#include <memory>
 #include "debug/outputhandler.h"
-#include "util/file.h"
 
 namespace AGS
 {
@@ -50,35 +49,25 @@ public:
     };
 
 public:
-    // Initialize LogFile object without predefining file path
-    LogFile(size_t buffer_limit = 4096);
-    // Initialize LogFile object, optionally opening the file right away
-    LogFile(const String &file_path, LogFileOpenMode open_mode = kLogFile_OpenOverwrite,
-            bool open_at_start = true, size_t buffer_limit = 4096);
-    virtual ~LogFile();
+        LogFile();
 
     virtual void PrintMessage(const Common::DebugMessage &msg);
 
-    // Open file using predefined file path and open mode
-    bool         OpenFile();
     // Open file using given file path, optionally appending if one exists
+        //
+        // TODO: filepath parameter here may be actually used as a pattern
+        // or prefix, while the actual filename could be made by combining
+        // this prefix with current date, game name, and similar additional
+        // useful information. Whether this is to be determined here or on
+        // high-level side remains a question.
+        //
     bool         OpenFile(const String &file_path, LogFileOpenMode open_mode = kLogFile_OpenOverwrite);
-    // Close file and begin buffering output
+        // Close file
     void         CloseFile();
 
 private:
-    // Flush buffered output to the file
-    void         FlushBuffer();
-    void         Write(const Common::DebugMessage &msg);
-
-    const size_t    _bufferLimit;
-    String          _filePath;
-    LogFileOpenMode _openMode;
-
-    Stream         *_file;
-    std::vector<DebugMessage> _buffer;
-    bool            _buffering;
-    size_t          _msgLost;
+        std::auto_ptr<Stream> _file;
+        String                _filePath;
 };
 
 }   // namespace Engine

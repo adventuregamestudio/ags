@@ -167,25 +167,34 @@ void DebugManager::UnregisterOutput(const String &id)
 void DebugManager::Print(DebugGroupID group_id, MessageType mt, const String &text)
 {
     const DebugGroup &group = GetGroup(group_id);
-    DebugMessage msg;
-    msg.Text = text;
-    msg.GroupName = group.OutputName;
+    DebugMessage msg(text, group.UID.ID, group.OutputName, mt);
 
     for (OutMap::iterator it = _outputs.begin(); it != _outputs.end(); ++it)
     {
-        OutputSlot &out = it->second;
-        IOutputHandler *handler = out.Target->GetHandler();
-        if (!handler || !out.Target->IsEnabled() || out.Suppressed)
-            continue;
-        if (!out.Target->TestGroup(group.UID, mt))
-            continue;
-        // We suppress current target before the call so that if it makes
-        // a call to output system itself, message would not print to the
-        // same target
-        out.Suppressed = true;
-        handler->PrintMessage(msg);
-        out.Suppressed = false;
+        SendMessage(it->second, msg);
     }
+}
+
+void DebugManager::SendMessage(const String &out_id, const DebugMessage &msg)
+{
+    OutMap::iterator it = _outputs.find(out_id);
+    if (it != _outputs.end())
+        SendMessage(it->second, msg);
+}
+
+void DebugManager::SendMessage(OutputSlot &out, const DebugMessage &msg)
+{
+    IOutputHandler *handler = out.Target->GetHandler();
+    if (!handler || !out.Target->IsEnabled() || out.Suppressed)
+        return;
+    if (!out.Target->TestGroup(msg.GroupID, msg.MT))
+        return;
+    // We suppress current target before the call so that if it makes
+    // a call to output system itself, message would not print to the
+    // same target
+    out.Suppressed = true;
+    handler->PrintMessage(msg);
+    out.Suppressed = false;
 }
 
 // TODO: move this to the dynamically allocated engine object whenever it is implemented

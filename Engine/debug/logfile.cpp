@@ -22,10 +22,8 @@ namespace AGS
 namespace Engine
 {
 
-namespace File = AGS::Common::File;
+using namespace Common;
 
-namespace Out
-{
 //
 // TODO: filepath parameter here may be actually used as a pattern
 // or prefix, while the actual filename could be made by combining
@@ -38,7 +36,7 @@ LogFile::LogFile(size_t buffer_limit)
     , _openMode(kLogFile_OpenOverwrite)
     , _file(NULL)
     , _buffering(true)
-    , _charsLost(0)
+    , _msgLost(0)
 {
 }
 
@@ -48,7 +46,7 @@ LogFile::LogFile(const String &file_path, LogFileOpenMode open_mode, bool open_a
     , _openMode(open_mode)
     , _file(NULL)
     , _buffering(true)
-    , _charsLost(0)
+    , _msgLost(0)
 {
     if (open_at_start)
     {
@@ -61,17 +59,22 @@ LogFile::~LogFile()
     CloseFile();
 }
 
-void LogFile::Out(const char *sz_fullmsg)
+void LogFile::Write(const DebugMessage &msg)
 {
-    if (!sz_fullmsg)
+    if (!msg.GroupName.IsEmpty())
     {
-        return;
+        _file->Write(msg.GroupName, msg.GroupName.GetLength());
+        _file->Write(" : ", 3);
     }
+    _file->Write(msg.Text, msg.Text.GetLength());
+    _file->WriteInt8('\n');
+}
 
+void LogFile::PrintMessage(const DebugMessage &msg)
+{
     if (_file /* && !buffering, but (_file != NULL) condition is sufficient here */)
     {
-        _file->Write(sz_fullmsg, strlen(sz_fullmsg));
-        _file->WriteInt8('\n');
+        Write(msg);
         // We should flush after every write to the log; this will make writing
         // bit slower, but will increase the chances that all latest output
         // will get to the disk in case of program crash.
@@ -79,15 +82,10 @@ void LogFile::Out(const char *sz_fullmsg)
     }
     else
     {
-        if ((size_t)_buffer.GetLength() < _bufferLimit)
-        {
-            _buffer.Append(sz_fullmsg);
-            _buffer.AppendChar('\n');
-        }
+        if (_buffer.size() < _bufferLimit)
+            _buffer.push_back(msg);
         else
-        {
-            _charsLost += strlen(sz_fullmsg);
-        }
+            _msgLost++;
     }
 }
 
@@ -126,19 +124,22 @@ void LogFile::CloseFile()
 
 void LogFile::FlushBuffer()
 {
-    if (_file && !_buffer.IsEmpty())
+    if (_file && !_buffer.empty())
     {
-        _file->Write(_buffer.GetCStr(), _buffer.GetLength());
-        if (_charsLost > 0)
+        for (std::vector<DebugMessage>::const_iterator it = _buffer.begin(); it != _buffer.end(); ++it)
         {
-            String warning = String::FromFormat("WARNING: output lost exceeding buffer: %u chars\n", (unsigned)_charsLost);
+            Write(*it);
+        }
+        if (_msgLost > 0)
+        {
+            String warning = String::FromFormat("WARNING: output lost exceeding buffer: %u debug messages\n", (unsigned)_msgLost);
             _file->Write(warning.GetCStr(), warning.GetLength());
         }
-        _buffer.Empty();
-        _charsLost = 0;
+        _file->Flush();
+        _buffer.clear();
+        _msgLost = 0;
     }
 }
 
-} // namespace Out
 } // namespace Engine
 } // namespace AGS

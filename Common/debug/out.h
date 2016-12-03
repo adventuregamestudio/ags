@@ -12,103 +12,89 @@
 //
 //=============================================================================
 //
-// AGS logging system
+// Debug output interface provides functions which send a formatted message
+// tagged with group ID and message type to the registered output handlers.
 //
-// [IKM] 2012-06-23
-// Logging system provides a simple way to output debug information.
-// It is being controlled internally by two general settings:
-// Verbosity - which defines what types of information should be actually
-// written, and what discarded, and
-// Target    - which determines an output destination between
-//      log file,
-//      console,
-//      editor debugger (via IAGSEditorDebugger interface),
-//      in-game message system,
-//      anything else whichever is implemented.
-//
-// The calling unit should not worry or try to know anything about how
-// the output works. I should simply call one of its exported functions
-// when needed.
-//
-//-----------------------------------------------------------------------------
-// TODO:
-// + Use advanced utility classes instead of C-style strings and arrays.    
+// Depending on configuration this message may be printed by any of those
+// handlers, or none of them. The calling unit should not worry about where the
+// message goes.
 //
 //=============================================================================
 #ifndef __AGS_CN_DEBUG__OUT_H
 #define __AGS_CN_DEBUG__OUT_H
 
-#include "debug/outputtarget.h"
+#include "util/string.h"
 
 namespace AGS
 {
 namespace Common
 {
 
-namespace Out
+// Message types provide distinction for debug messages by their intent
+enum MessageType
 {
-    // Verbosity
-    enum OutputVerbosity
-    {
-        kVerbose_Never          = 0,
-        kVerbose_DoLog          = 0x0001, // do log (otherwise do not, C.O.)
+    kDbgMsg_None                = 0,
+    // Initialization messages, notify about certain engine components
+    // being created and important modes initialized.
+    kDbgMsg_Init                = 0x0001,
+    // Debug reason is for arbitrary information about events and current
+    // game state
+    kDbgMsg_Debug               = 0x0002,
+    // Warnings are made when unexpected or non-standart behavior
+    // is detected in program, which is not immediately critical,
+    // but may be a symptom of a bigger problem.
+    kDbgMsg_Warn                = 0x0004,
+    // Error messages are about engine not being able to perform requested
+    // operation in a situation when that will affect game playability and
+    // further execution.
+    kDbgMsg_Error               = 0x0008,
+    // Fatal errors are ones that make program abort immediately
+    kDbgMsg_Fatal               = 0x0010,
 
-        // Debug reason is for random information about current game state,
-        // like outputting object values, or telling that execution has
-        // passed certain point in the function
-        kVerbose_Debug          = 0x0002,
-        // Notifications are made when the program is passing important
-        // checkpoints, like initializing or shutting engine down, or
-        // when program decides to make a workaround to solve some problem
-        kVerbose_Notification   = 0x0004,
-        // Warnings are made when unexpected or generally strange behavior
-        // is detected in program, which does not necessarily mean error,
-        // but still may be a symptom of a bigger problem
-        kVerbose_Warning        = 0x0008,
-        // Handled errors are ones that were 'fixed' by the program on run;
-        // There's high chance that program will continue running as normal,
-        // but message should be maid to bring user or dev's attention
-        kVerbose_HandledError   = 0x0010,
-        // Unhandled errors are errors that program was not able to fix;
-        // Program *may* try to continue, but there's no guarantee it will
-        // work as expected
-        kVerbose_UnhandledError = 0x0020,
-        // Fatal errors make program abort immediately
-        kVerbose_FatalError     = 0x0040,
+    // Convenient aliases
+    kDbgMsg_Default             = kDbgMsg_Debug,
+    kDbgMsgSet_NoDebug          = 0x001D,
+    kDbgMsgSet_Errors           = 0x0019,
+    // Output everything
+    kDbgMsgSet_All              = 0xFFFF
+};
 
-        // Convenience aliases
-        kVerbose_NoDebug        = 0x007D,
-        kVerbose_WarnErrors     = 0x0079,
-        // Just print out the damned message!
-        kVerbose_Always         = 0x00FF
-    };
+// This enumeration is a list of common hard-coded groups, but more could
+// be added via debugging configuration interface (see 'debug/debug.h').
+enum CommonDebugGroup
+{
+    kDbgGroup_None = -1,
+    kDbgGroup_Default = 0
+};
 
-    const int MAX_TARGETS = 10; // TODO: remove this when array classes are implemented
+// Debug group identifier defining either numeric or string id, or both
+struct DebugGroupID
+{
+    uint32_t    ID;
+    String      SID;
 
-    // System management
-    void Init (int cmdarg_count, char **cmdargs);
-    // TODO: use safer technique like shared ptrs or reference counted objects
-    // instead of telling that ptr is shared
-    void AddOutputTarget(int target_id, IOutputTarget *output_target, OutputVerbosity verbosity, bool shared_object);
-    void RemoveOutputTarget(int target_id);
-    void Shutdown ();
+    DebugGroupID() : ID(kDbgGroup_None) {}
+    DebugGroupID(uint32_t id, const String &sid = "") : ID(id), SID(sid) {}
+    DebugGroupID(const String &sid) : ID(kDbgGroup_None), SID(sid) {}
+    // Tells if any of the id components is valid
+    bool IsValid() const { return ID != kDbgGroup_None || !SID.IsEmpty(); }
+    // Tells if both id components are properly set
+    bool IsComplete() const { return ID != kDbgGroup_None && !SID.IsEmpty(); }
+};
 
-    // Convenience functions, with regard to verbosity settings
-    void Debug          (const char *sz_msg, ...);
-    void Notify         (const char *sz_msg, ...);
-    void Warn           (const char *sz_msg, ...);
-    void HandledError   (const char *sz_msg, ...);
-    void UnhandledError (const char *sz_msg, ...);
-    void FatalError     (const char *sz_msg, ...);
+namespace Debug
+{
+    //
+    // Debug output
+    //
+    // Output formatted message of default group and default type
+    void Printf(const char *fmt, ...);
+    // Output formatted message of default group and given type
+    void Printf(MessageType mt, const char *fmt, ...);
+    // Output formatted message of given group and type
+    void Printf(DebugGroupID group_id, MessageType mt, const char *fmt, ...);
 
-    // Make an output with regard to verbosity settings
-    void Out   (OutputVerbosity reason, const char *sz_msg, ...);
-
-    // Force print: output message regardless of verbosity settings
-    // This will make an output even if kVerbose_DoLog is not set
-    void FPrint(const char *sz_msg, ...);
-
-}   // namespace Out
+}   // namespace Debug
 
 }   // namespace Common
 }   // namespace AGS

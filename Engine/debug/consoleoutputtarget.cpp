@@ -32,8 +32,6 @@ namespace AGS
 {
 namespace Engine
 {
-namespace Out
-{
 
 ConsoleOutputTarget::ConsoleOutputTarget()
 {
@@ -43,7 +41,7 @@ ConsoleOutputTarget::~ConsoleOutputTarget()
 {
 }
 
-void ConsoleOutputTarget::Out(const char *sz_fullmsg)
+void ConsoleOutputTarget::PrintMessage(const DebugMessage &msg)
 {
     AGSPlatformDriver *platform_driver = AGSPlatformDriver::GetDriver();
 
@@ -53,7 +51,7 @@ void ConsoleOutputTarget::Out(const char *sz_fullmsg)
     }
 
     char displbuf[STD_BUFFER_SIZE];
-    strcpy(displbuf, sz_fullmsg);
+    strcpy(displbuf, msg.Text);
     displbuf[99] = 0;
 
     strcpy (debug_line[last_debug_line].text, displbuf);
@@ -78,6 +76,5 @@ void ConsoleOutputTarget::Out(const char *sz_fullmsg)
         first_debug_line = (first_debug_line + 1) % DEBUG_CONSOLE_NUMLINES;
 }
 
-} // namespace Out
 } // namespace Engine
 } // namespace AGS

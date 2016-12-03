@@ -18,6 +18,7 @@
 #include "ac/runtime_defines.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "debug/debugmanager.h"
 #include "debug/out.h"
 #include "debug/consoleoutputtarget.h"
 #include "debug/logfile.h"
@@ -30,12 +31,8 @@
 #include "util/filestream.h"
 #include "util/textstreamwriter.h"
 
-using AGS::Common::Stream;
-using AGS::Common::String;
-using AGS::Common::TextStreamWriter;
-using AGS::Engine::Out::ConsoleOutputTarget;
-using AGS::Engine::Out::LogFile;
-namespace Out = AGS::Common::Out;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern char check_dynamic_sprites_at_exit;
 extern int displayed_room;
@@ -80,26 +77,22 @@ int first_debug_line = 0, last_debug_line = 0, display_console = 0;
 
 int fps=0,display_fps=0;
 
-LogFile *DebugLogFile = NULL;
+std::auto_ptr<LogFile> DebugLogFile;
+std::auto_ptr<ConsoleOutputTarget> DebugConsole;
 
-enum
-{
-    TARGET_FILE,
-    TARGET_SYSTEMDEBUGGER,
-    TARGET_GAMECONSOLE,
-    TARGET_FILE_EXTRA_TEST,
-};
+const char *OutputFileID = "logfile";
+const char *OutputSystemID = "stderr";
+const char *OutputGameConsoleID = "console";
 
 void initialize_output_subsystem()
 {
-    DebugLogFile = new LogFile();
+    DebugLogFile.reset(new LogFile());
+    DebugConsole.reset(new ConsoleOutputTarget());
 
-    Out::Init(0, NULL);
-    Out::AddOutputTarget(TARGET_FILE, DebugLogFile, Out::kVerbose_NoDebug, true);
-    Out::AddOutputTarget(TARGET_SYSTEMDEBUGGER, AGSPlatformDriver::GetDriver(),
-        Out::kVerbose_WarnErrors, true);
-	Out::AddOutputTarget(TARGET_GAMECONSOLE, new AGS::Engine::Out::ConsoleOutputTarget(),
-        Out::kVerbose_Always, false);
+    // Register outputs
+    DbgMgr.RegisterOutput(OutputFileID, DebugLogFile.get(), kDbgMsgSet_All);
+    DbgMgr.RegisterOutput(OutputSystemID, AGSPlatformDriver::GetDriver(), kDbgMsgSet_Errors);
+    DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsgSet_All);
 }
 
 void apply_output_configuration()
@@ -124,9 +117,8 @@ void apply_output_configuration()
 
     if (!enable_log_file)
     {
-        Out::RemoveOutputTarget(TARGET_FILE);
-        delete DebugLogFile;
-        DebugLogFile = NULL;
+        DbgMgr.UnregisterOutput(OutputFileID);
+        DebugLogFile.reset();
     }
 }
 
@@ -138,10 +130,10 @@ void initialize_debug_system()
 void shutdown_debug_system()
 {
     // Shutdown output subsystem
-    Out::Shutdown();
+    DbgMgr.UnregisterAll();
 
-    delete DebugLogFile;
-    DebugLogFile = NULL;
+    DebugLogFile.reset();
+    DebugConsole.reset();
 }
 
 void quitprintf(const char *texx, ...) {
@@ -159,7 +151,7 @@ void write_log(const char*msg) {
     fprintf(ooo,"%s\n",msg);
     fclose(ooo);
     */
-    Out::FPrint(msg);
+    Debug::Printf(msg);
 }
 
 /* The idea of this is that non-essential errors such as "sound file not
@@ -338,8 +330,8 @@ int check_for_messages_from_editor()
 
         if (strncmp(msg, "<Engine Command=\"", 17) != 0) 
         {
-            //Out::FPrint("Faulty message received from editor:");
-            //Out::FPrint(msg);
+            //Debug::Printf("Faulty message received from editor:");
+            //Debug::Printf(msg);
             free(msg);
             return 0;
         }

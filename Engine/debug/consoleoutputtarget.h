@@ -18,29 +18,24 @@
 #ifndef __AGS_EE_DEBUG__CONSOLEOUTPUTTARGET_H
 #define __AGS_EE_DEBUG__CONSOLEOUTPUTTARGET_H
 
-#include "debug/outputtarget.h"
+#include "debug/outputhandler.h"
 
 namespace AGS
 {
 namespace Engine
 {
 
-namespace Out
+using Common::String;
+using Common::DebugMessage;
+
+class ConsoleOutputTarget : public AGS::Common::IOutputHandler
 {
-    class ConsoleOutputTarget : public AGS::Common::Out::IOutputTarget
-    {
-    public:
-        ConsoleOutputTarget();
-        virtual ~ConsoleOutputTarget();
+public:
+    ConsoleOutputTarget();
+    virtual ~ConsoleOutputTarget();
 
-        virtual void Out(const char *sz_fullmsg);
-
-    protected:
-
-    private:
-    };
-
-}   // namespace Out
+    virtual void PrintMessage(const DebugMessage &msg);
+};
 
 }   // namespace Engine
 }   // namespace AGS

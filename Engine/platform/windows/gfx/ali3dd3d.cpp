@@ -28,6 +28,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/windows/gfx/ali3dd3d.h"
 #include "util/library.h"
+
 using namespace AGS::Common;
 
 extern int dxmedia_play_video_3d(const char*filename, IDirect3DDevice9 *device, bool useAVISound, int canskip, int stretch);
@@ -1889,7 +1890,7 @@ D3DGraphicsFactory::~D3DGraphicsFactory()
     DestroyDriver(); // driver must be destroyed before d3d library is disposed
     ULONG ref_cnt = _direct3d->Release();
     if (ref_cnt > 0)
-        Debug::Printf("WARNING: Not all of the Direct3D resources have been disposed; ID3D ref count: %d", ref_cnt);
+        Debug::Printf(kDbgMsg_Warn, "WARNING: Not all of the Direct3D resources have been disposed; ID3D ref count: %d", ref_cnt);
     _factory = NULL;
 }
 

@@ -69,14 +69,14 @@ bool create_gfx_driver(const String &gfx_driver_id)
     GfxFactory = GetGfxDriverFactory(gfx_driver_id);
     if (!GfxFactory)
     {
-        Debug::Printf("Failed to initialize %s graphics factory: %s", gfx_driver_id.GetCStr(), get_allegro_error());
+        Debug::Printf(kDbgMsg_Error, "Failed to initialize %s graphics factory: %s", gfx_driver_id.GetCStr(), get_allegro_error());
         return false;
     }
     Debug::Printf("Using graphics factory: %s", gfx_driver_id.GetCStr());
     gfxDriver = GfxFactory->GetDriver();
     if (!gfxDriver)
     {
-        Debug::Printf("Failed to create graphics driver. %s", get_allegro_error());
+        Debug::Printf(kDbgMsg_Error, "Failed to create graphics driver. %s", get_allegro_error());
         return false;
     }
     Debug::Printf("Created graphics driver: %s", gfxDriver->GetDriverName());
@@ -92,7 +92,7 @@ bool set_gfx_filter_any(const GfxFilterSetup &setup)
         String def_filter = GfxFactory->GetDefaultFilterID();
         if (def_filter.CompareNoCase(setup.ID) == 0)
             return false;
-        Debug::Printf("Failed to apply gfx filter: %s; will try to use factory default filter '%s' instead",
+        Debug::Printf(kDbgMsg_Error, "Failed to apply gfx filter: %s; will try to use factory default filter '%s' instead",
                 setup.UserRequest.GetCStr(), def_filter.GetCStr());
         if (!graphics_mode_set_filter(def_filter))
             return false;
@@ -107,7 +107,7 @@ bool find_nearest_supported_mode(const Size &wanted_size, const int color_depth,
     IGfxModeList *modes = gfxDriver->GetSupportedModeList(color_depth);
     if (!modes)
     {
-        Debug::Printf("Couldn't get a list of supported resolutions");
+        Debug::Printf(kDbgMsg_Error, "Couldn't get a list of supported resolutions");
         return false;
     }
     bool result = find_nearest_supported_mode(*modes, wanted_size, color_depth, ratio_reference, upper_bound, dm);
@@ -435,12 +435,12 @@ bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, cons
     if (get_desktop_resolution(&device_size.Width, &device_size.Height) == 0)
         Debug::Printf("Device display resolution: %d x %d", device_size.Width, device_size.Height);
     else
-        Debug::Printf("Unable to obtain device resolution");
+        Debug::Printf(kDbgMsg_Error, "Unable to obtain device resolution");
 
     const char *screen_sz_def_options[kNumScreenDef] = { "explicit", "scaling", "max" };
     const bool ignore_device_ratio = setup.DisplayMode.Windowed || setup.DisplayMode.SizeDef == kScreenDef_Explicit;
     const String scale_option = make_scaling_option(setup.GameFrame.ScaleDef, convert_fp_to_scaling(setup.GameFrame.ScaleFactor));
-    Debug::Printf("Game settings: windowed = %s, screen def: %s, screen size: %d x %d, match device ratio: %s, game scale: %s",
+    Debug::Printf(kDbgMsg_Init, "Game settings: windowed = %s, screen def: %s, screen size: %d x %d, match device ratio: %s, game scale: %s",
         setup.DisplayMode.Windowed ? "yes" : "no", screen_sz_def_options[setup.DisplayMode.SizeDef],
         setup.DisplayMode.Size.Width, setup.DisplayMode.Size.Height,
         ignore_device_ratio ? "ignore" : (setup.DisplayMode.MatchDeviceRatio ? "yes" : "no"), scale_option.GetCStr());
@@ -452,7 +452,7 @@ bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, cons
     if (it != ids.end())
         std::rotate(ids.begin(), it, ids.end());
     else
-        Debug::Printf("Requested graphics driver '%s' not found, will try existing drivers instead", setup.DriverID.GetCStr());
+        Debug::Printf(kDbgMsg_Error, "Requested graphics driver '%s' not found, will try existing drivers instead", setup.DriverID.GetCStr());
 
     // Try to create renderer and init gfx mode, choosing one factory at a time
     bool result = false;
@@ -528,7 +528,7 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
 
     if (!gfxDriver->Init(dm, &timerloop))
     {
-        Debug::Printf("Failed. %s", get_allegro_error());
+        Debug::Printf(kDbgMsg_Error, "Failed to init gfx mode. %s", get_allegro_error());
         return false;
     }
 
@@ -557,7 +557,7 @@ bool graphics_mode_set_render_frame(const Size &native_size, const Rect &render_
 
     if (!gfxDriver->SetRenderFrame(native_size, render_frame))
     {
-        Debug::Printf("Failed to set render frame (%d, %d) - >(%d, %d, %d, %d : %d x %d). Error: %s", 
+        Debug::Printf(kDbgMsg_Error, "Failed to set render frame (%d, %d) - >(%d, %d, %d, %d : %d x %d). Error: %s", 
             native_size.Width, native_size.Height, render_frame.Left, render_frame.Top, render_frame.Right, render_frame.Bottom,
             render_frame.GetWidth(), render_frame.GetHeight(), get_allegro_error());
         return false;
@@ -580,7 +580,7 @@ bool graphics_mode_set_filter(const String &filter_id)
     PGfxFilter filter = GfxFactory->SetFilter(filter_id, filter_error);
     if (!filter)
     {
-        Debug::Printf("Unable to set graphics filter '%s'. Error: %s", filter_id.GetCStr(), filter_error.GetCStr());
+        Debug::Printf(kDbgMsg_Error, "Unable to set graphics filter '%s'. Error: %s", filter_id.GetCStr(), filter_error.GetCStr());
         return false;
     }
     Rect filter_rect  = filter->GetDestination();

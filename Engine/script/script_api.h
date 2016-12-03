@@ -51,21 +51,21 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
 #define ASSERT_SELF(METHOD) \
     if (!self) \
     { \
-        AGS::Common::Debug::Printf("ERROR: Object pointer is null in call to %s", ""#METHOD); \
+        AGS::Common::Debug::Printf(AGS::Common::kDbgMsg_Error, "ERROR: Object pointer is null in call to %s", ""#METHOD); \
         return RuntimeScriptValue(); \
     }
 
 #define ASSERT_PARAM_COUNT(FUNCTION, X) \
     if (X > 0 && (!params || param_count < X)) \
     { \
-        AGS::Common::Debug::Printf("ERROR: Not enough parameters in call to %s: expected %d, got %d", ""#FUNCTION, X, param_count); \
+        AGS::Common::Debug::Printf(AGS::Common::kDbgMsg_Error, "ERROR: Not enough parameters in call to %s: expected %d, got %d", ""#FUNCTION, X, param_count); \
         return RuntimeScriptValue(); \
     }
 
 #define ASSERT_VARIABLE_VALUE(VARIABLE) \
     if (!params || param_count < 1) \
     { \
-        AGS::Common::Debug::Printf("ERROR: Not enough parameters to set %s: expected %d, got %d", ""#VARIABLE, 1, param_count); \
+        AGS::Common::Debug::Printf(AGS::Common::kDbgMsg_Error, "ERROR: Not enough parameters to set %s: expected %d, got %d", ""#VARIABLE, 1, param_count); \
         return RuntimeScriptValue(); \
     }
 

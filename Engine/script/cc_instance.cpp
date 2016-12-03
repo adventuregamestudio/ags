@@ -1878,7 +1878,7 @@ bool ccInstance::AddGlobalVar(const ScriptVariable &glvar)
         /*
         return false;
         */
-        Debug::Printf("WARNING: global variable refers to data beyond allocated buffer (%d, %d)", glvar.ScAddress, globaldatasize);
+        Debug::Printf(kDbgMsg_Warn, "WARNING: global variable refers to data beyond allocated buffer (%d, %d)", glvar.ScAddress, globaldatasize);
     }
     globalvars->insert(std::make_pair(glvar.ScAddress, glvar));
     return true;
@@ -1892,7 +1892,7 @@ ScriptVariable *ccInstance::FindGlobalVar(int32_t var_addr)
         /*
         return NULL;
         */
-        Debug::Printf("WARNING: looking up for global variable beyond allocated buffer (%d, %d)", var_addr, globaldatasize);
+        Debug::Printf(kDbgMsg_Warn, "WARNING: looking up for global variable beyond allocated buffer (%d, %d)", var_addr, globaldatasize);
     }
     ScVarMap::iterator it = globalvars->find(var_addr);
     return it != globalvars->end() ? &it->second : NULL;

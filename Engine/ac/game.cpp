@@ -1576,7 +1576,7 @@ SavegameError restore_game_scripts(Stream *in, const PreservedParams &pp, Restor
     int gdatasize = in->ReadInt32();
     if (pp.GlScDataSize != gdatasize)
     {
-        Debug::Printf("Restore game error: mismatching size of global script data");
+        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching size of global script data");
         return kSvgErr_GameContentAssertion;
     }
     r_data.GlobalScript.Len = gdatasize;
@@ -1585,7 +1585,7 @@ SavegameError restore_game_scripts(Stream *in, const PreservedParams &pp, Restor
 
     if (in->ReadInt32() != numScriptModules)
     {
-        Debug::Printf("Restore game error: mismatching number of script modules");
+        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of script modules");
         return kSvgErr_GameContentAssertion;
     }
     r_data.ScriptModules.resize(numScriptModules);
@@ -1594,7 +1594,7 @@ SavegameError restore_game_scripts(Stream *in, const PreservedParams &pp, Restor
         size_t module_size = in->ReadInt32();
         if (pp.ScMdDataSize[i] != module_size)
         {
-            Debug::Printf("Restore game error: mismatching size of script module data, module %d", i);
+            Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching size of script module data, module %d", i);
             return kSvgErr_GameContentAssertion;
         }
         r_data.ScriptModules[i].Len = module_size;
@@ -1746,7 +1746,7 @@ SavegameError restore_game_gui(Stream *in, int numGuisWas)
 
     if (numGuisWas != game.numgui)
     {
-        Debug::Printf("Restore game error: mismatching number of GUI");
+        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of GUI");
         return kSvgErr_GameContentAssertion;
     }
 
@@ -1759,7 +1759,7 @@ SavegameError restore_game_audiocliptypes(Stream *in)
 {
     if (in->ReadInt32() != game.audioClipTypeCount)
     {
-        Debug::Printf("Restore game error: mismatching number of Audio Clip Types");
+        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of Audio Clip Types");
         return kSvgErr_GameContentAssertion;
     }
 
@@ -1870,7 +1870,7 @@ SavegameError restore_game_globalvars(Stream *in)
 {
     if (in->ReadInt32() != numGlobalVars)
     {
-        Debug::Printf("Restore game error: mismatching number of Global Variables");
+        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of Global Variables");
         return kSvgErr_GameContentAssertion;
     }
 
@@ -1885,7 +1885,7 @@ SavegameError restore_game_views(Stream *in)
 {
     if (in->ReadInt32() != game.numviews)
     {
-        Debug::Printf("Restore game error: mismatching number of Views");
+        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of Views");
         return kSvgErr_GameContentAssertion;
     }
 
@@ -1905,7 +1905,7 @@ SavegameError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_
 {
     if (in->ReadInt32() != game.audioClipCount)
     {
-        Debug::Printf("Restore game error: mismatching number of Audio Clips");
+        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of Audio Clips");
         return kSvgErr_GameContentAssertion;
     }
 
@@ -1918,7 +1918,7 @@ SavegameError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_
         {
             if (chan_info.ClipID >= game.audioClipCount)
             {
-                Debug::Printf("Restore game error: invalid audio clip index");
+                Debug::Printf(kDbgMsg_Error, "Restore game error: invalid audio clip index");
                 return kSvgErr_GameObjectInitFailed;
             }
 
@@ -1983,22 +1983,22 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const P
 
     if (game.numdialog!=numdiwas)
     {
-        Debug::Printf("Restore game error: mismatching number of Dialogs");
+        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of Dialogs");
         return kSvgErr_GameContentAssertion;
     }
     if (numchwas != game.numcharacters)
     {
-        Debug::Printf("Restore game error: mismatching number of Characters");
+        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of Characters");
         return kSvgErr_GameContentAssertion;
     }
     if (numinvwas != game.numinvitems)
     {
-        Debug::Printf("Restore game error: mismatching number of Inventory Items");
+        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of Inventory Items");
         return kSvgErr_GameContentAssertion;
     }
     if (game.numviews != numviewswas)
     {
-        Debug::Printf("Restore game error: mismatching number of Views");
+        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of Views");
         return kSvgErr_GameContentAssertion;
     }
 
@@ -2037,7 +2037,7 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const P
 
     if (in->ReadInt32() != MAGICNUMBER+1)
     {
-        Debug::Printf("Restore game error: MAGICNUMBER not found before Audio Clips");
+        Debug::Printf(kDbgMsg_Error, "Restore game error: MAGICNUMBER not found before Audio Clips");
         return kSvgErr_InconsistentFormat;
     }
 
@@ -2055,7 +2055,7 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const P
 
     if (ccUnserializeAllObjects(in, &ccUnserializer))
     {
-        Debug::Printf("Restore game error: managed pool deserialization failed: %s", ccErrorString);
+        Debug::Printf(kDbgMsg_Error, "Restore game error: managed pool deserialization failed: %s", ccErrorString);
         return kSvgErr_GameObjectInitFailed;
     }
 
@@ -2139,8 +2139,8 @@ SavegameError load_game(const String &path, int slotNumber, bool &data_overwritt
             load_new_game_restore = slotNumber;
             return kSvgErr_NoError;
         }
-        Common::Debug::Printf("WARNING: the saved game '%s' references game file '%s', but it cannot be found in the current directory.", path.GetCStr(), desc.MainDataFilename.GetCStr());
-        Common::Debug::Printf("Trying to restore in the running game instead.");
+        Common::Debug::Printf(kDbgMsg_Warn, "WARNING: the saved game '%s' references game file '%s', but it cannot be found in the current directory. Trying to restore in the running game instead.",
+            path.GetCStr(), desc.MainDataFilename.GetCStr());
     }
 
     // do the actual restore

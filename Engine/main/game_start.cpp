@@ -154,8 +154,8 @@ void initialize_start_and_play_game(int override_start_room, const char *loadSav
 
         start_game_check_replay();
 
-        Debug::Printf("Engine initialization complete");
-        Debug::Printf("Starting game");
+        Debug::Printf(kDbgMsg_Init, "Engine initialization complete");
+        Debug::Printf(kDbgMsg_Init, "Starting game");
 
         start_game_init_editor_debugging();
 

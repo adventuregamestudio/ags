@@ -87,7 +87,8 @@ bool DebugOutput::TestGroup(DebugGroupID id,  MessageType mt) const
 DebugManager::DebugManager()
 {
     // Add hardcoded groups
-    RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_Default, "default"), ""));
+    RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_Main, "main"), ""));
+    RegisterGroup(DebugGroup(DebugGroupID(kDbgGroup_Script, "script"), "Script"));
     _firstFreeGroupID = _groups.size();
     _lastGroupID = _firstFreeGroupID;
 }
@@ -208,7 +209,7 @@ void Printf(const char *fmt, ...)
 {
     va_list argptr;
     va_start(argptr, fmt);
-    DbgMgr.Print(kDbgGroup_Default, kDbgMsg_Default, String::FromFormatV(fmt, argptr));
+    DbgMgr.Print(kDbgGroup_Main, kDbgMsg_Default, String::FromFormatV(fmt, argptr));
     va_end(argptr);
 }
 
@@ -216,7 +217,7 @@ void Printf(MessageType mt, const char *fmt, ...)
 {
     va_list argptr;
     va_start(argptr, fmt);
-    DbgMgr.Print(kDbgGroup_Default, mt, String::FromFormatV(fmt, argptr));
+    DbgMgr.Print(kDbgGroup_Main, mt, String::FromFormatV(fmt, argptr));
     va_end(argptr);
 }
 

@@ -58,14 +58,14 @@ WFNError WFNFont::ReadFromFile(Stream *in, const size_t data_size)
     in->Read(sig, WFN_FILE_SIG_LENGTH);
     if (strncmp(sig, WFN_FILE_SIGNATURE, WFN_FILE_SIG_LENGTH) != 0)
     {
-        Debug::Printf("\tWFN: bad format signature");
+        Debug::Printf(kDbgMsg_Error, "\tWFN: bad format signature");
         return kWFNErr_BadSignature; // bad format
     }
 
     const size_t table_addr = (uint16_t)in->ReadInt16(); // offset table relative address
     if (table_addr < WFN_FILE_SIG_LENGTH + sizeof(uint16_t) || table_addr >= used_data_size)
     {
-        Debug::Printf("\tWFN: bad table address: %d (%d - %d)", table_addr, WFN_FILE_SIG_LENGTH + sizeof(uint16_t), used_data_size);
+        Debug::Printf(kDbgMsg_Error, "\tWFN: bad table address: %d (%d - %d)", table_addr, WFN_FILE_SIG_LENGTH + sizeof(uint16_t), used_data_size);
         return kWFNErr_BadTableAddress; // bad table address
     }
 

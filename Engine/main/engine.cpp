@@ -113,7 +113,7 @@ int errno;
 
 bool engine_init_allegro()
 {
-    Debug::Printf("Initializing allegro");
+    Debug::Printf(kDbgMsg_Init, "Initializing allegro");
 
     our_eip = -199;
     // Initialize allegro
@@ -146,7 +146,7 @@ void winclosehook() {
 
 void engine_setup_window()
 {
-    Debug::Printf("Setting up window");
+    Debug::Printf(kDbgMsg_Init, "Setting up window");
 
     our_eip = -198;
 #if (ALLEGRO_DATE > 19990103)
@@ -169,7 +169,7 @@ bool engine_check_run_setup(ConfigTree &cfg, int argc,char*argv[])
     // check if Setup needs to be run instead
     if (justRunSetup)
     {
-            Debug::Printf("Running Setup");
+            Debug::Printf(kDbgMsg_Init, "Running Setup");
 
             // Add information about game resolution and let setup application
             // display some properties to the user
@@ -346,12 +346,12 @@ void initialise_game_file_name()
     // Finally, store game file's absolute path, or report error
     if (game_file_name.IsEmpty())
     {
-        Debug::Printf("Game data file could not be found\n");
+        Debug::Printf(kDbgMsg_Error, "Game data file could not be found\n");
     }
     else
     {
         game_file_name = Path::MakeAbsolutePath(game_file_name);
-        Debug::Printf("Located game data file: %s\n", game_file_name.GetCStr());
+        Debug::Printf(kDbgMsg_Init, "Located game data file: %s\n", game_file_name.GetCStr());
     }
 }
 
@@ -412,7 +412,7 @@ bool engine_init_game_data()
 
 void engine_init_fonts()
 {
-    Debug::Printf("Initializing TTF renderer");
+    Debug::Printf(kDbgMsg_Init, "Initializing TTF renderer");
 
     init_font_renderer();
 }
@@ -421,15 +421,15 @@ int engine_init_mouse()
 {
     int res = minstalled();
     if (res < 0)
-        Debug::Printf("Initializing mouse: failed");
+        Debug::Printf(kDbgMsg_Init, "Initializing mouse: failed");
     else
-        Debug::Printf("Initializing mouse: number of buttons reported is %d", res);
+        Debug::Printf(kDbgMsg_Init, "Initializing mouse: number of buttons reported is %d", res);
 	return RETURN_CONTINUE;
 }
 
 int engine_check_memory()
 {
-    Debug::Printf("Checking memory");
+    Debug::Printf(kDbgMsg_Init, "Checking memory");
 
     char*memcheck=(char*)malloc(4000000);
     if (memcheck==NULL) {
@@ -502,7 +502,7 @@ int engine_init_speech()
                 delete speechsync;
             }
             Common::AssetManager::SetDataFile(game_file_name);
-            Debug::Printf("Speech sample file found and initialized.");
+            Debug::Printf(kDbgMsg_Init, "Speech sample file found and initialized.");
             play.want_speech=1;
         }
     }
@@ -542,7 +542,7 @@ int engine_init_music()
             return EXIT_NORMAL;
         }
         Common::AssetManager::SetDataFile(game_file_name);
-        Debug::Printf("Audio vox found and initialized.");
+        Debug::Printf(kDbgMsg_Init, "Audio vox found and initialized.");
         play.separate_music_lib = 1;
     }
 
@@ -552,7 +552,7 @@ int engine_init_music()
 void engine_init_keyboard()
 {
 #ifdef ALLEGRO_KEYBOARD_HANDLER
-    Debug::Printf("Initializing keyboard");
+    Debug::Printf(kDbgMsg_Init, "Initializing keyboard");
 
     install_keyboard();
 #endif
@@ -560,7 +560,7 @@ void engine_init_keyboard()
 
 void engine_init_timer()
 {
-    Debug::Printf("Install timer");
+    Debug::Printf(kDbgMsg_Init, "Install timer");
     install_timer();
 }
 
@@ -604,17 +604,17 @@ bool try_install_sound(int digi_id, int midi_id)
     // Therefore we try to guess.
     if (midi_id != MIDI_NONE)
     {
-        Debug::Printf("Failed to init one of the drivers; Error: %s\nTrying to start without MIDI", get_allegro_error());
+        Debug::Printf(kDbgMsg_Error, "Failed to init one of the drivers; Error: '%s'.\nWill try to start without MIDI", get_allegro_error());
         if (install_sound(digi_id, MIDI_NONE, NULL) == 0)
             return true;
     }
     if (digi_id != DIGI_NONE)
     {
-        Debug::Printf("Failed to init one of the drivers; Error: %s\nTrying to start without DIGI", get_allegro_error());
+        Debug::Printf(kDbgMsg_Error, "Failed to init one of the drivers; Error: '%s'.\nWill try to start without DIGI", get_allegro_error());
         if (install_sound(DIGI_NONE, midi_id, NULL) == 0)
             return true;
     }
-    Debug::Printf("Failed to init sound drivers. Error: %s", get_allegro_error());
+    Debug::Printf(kDbgMsg_Error, "Failed to init sound drivers. Error: %s", get_allegro_error());
     return false;
 }
 
@@ -643,7 +643,7 @@ void engine_init_sound()
     AlIDStr midi_id;
     AlDigiToChars(usetup.digicard, digi_id);
     AlMidiToChars(usetup.midicard, midi_id);
-    Debug::Printf("Trying digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
+    Debug::Printf(kDbgMsg_Init, "Sound settings: digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
         digi_id, usetup.digicard, midi_id, usetup.midicard);
 
     bool sound_res = try_install_sound(usetup.digicard, usetup.midicard);
@@ -674,7 +674,7 @@ void engine_init_sound()
 
     AlDigiToChars(usetup.digicard, digi_id);
     AlMidiToChars(usetup.midicard, midi_id);
-    Debug::Printf("Installed digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
+    Debug::Printf(kDbgMsg_Init, "Installed digital driver ID: '%s' (0x%x), MIDI driver ID: '%s' (0x%x)",
         digi_id, usetup.digicard, midi_id, usetup.midicard);
 
     our_eip = -181;
@@ -730,7 +730,7 @@ void atexit_handler() {
 
 void engine_init_exit_handler()
 {
-    Debug::Printf("Install exit handler");
+    Debug::Printf(kDbgMsg_Init, "Install exit handler");
 
     atexit(atexit_handler);
 }
@@ -743,7 +743,7 @@ void engine_init_rand()
 
 void engine_init_pathfinder()
 {
-    Debug::Printf("Initialize path finder library");
+    Debug::Printf(kDbgMsg_Init, "Initialize path finder library");
 
     init_pathfinder();
 }
@@ -799,7 +799,7 @@ void engine_init_title()
     set_window_title(game.gamename);
 #endif
 
-    Debug::Printf(game.gamename);
+    Debug::Printf(kDbgMsg_Init, "Game title: '%s'", game.gamename);
 }
 
 void engine_init_directories()
@@ -819,7 +819,7 @@ void engine_init_directories()
         res = SetCustomSaveParent(String::FromFormat("%s/UserSaves", usetup.user_data_dir.GetCStr()));
         if (!res)
         {
-            Debug::Printf("WARNING: custom user save path failed, using default system paths");
+            Debug::Printf(kDbgMsg_Warn, "WARNING: custom user save path failed, using default system paths");
             usetup.user_data_dir.Empty();
             res = false;
         }
@@ -876,7 +876,7 @@ int check_write_access() {
 
 int engine_check_disk_space()
 {
-    Debug::Printf("Checking for disk space");
+    Debug::Printf(kDbgMsg_Init, "Checking for disk space");
 
     //init_language_text("en");
     if (check_write_access()==0) {
@@ -913,7 +913,7 @@ void engine_init_modxm_player()
         opts.mod_player = 0;
 
     if (opts.mod_player) {
-        Debug::Printf("Initializing MOD/XM player");
+        Debug::Printf(kDbgMsg_Init, "Initializing MOD/XM player");
 
         if (init_mod_player(NUM_MOD_DIGI_VOICES) < 0) {
             platform->DisplayAlert("Warning: install_mod: MOD player failed to initialize.");
@@ -922,7 +922,7 @@ void engine_init_modxm_player()
     }
 #else
     opts.mod_player = 0;
-    Debug::Printf("Compiled without MOD/XM player");
+    Debug::Printf(kDbgMsg_Init, "Compiled without MOD/XM player");
 #endif
 }
 
@@ -966,7 +966,7 @@ void engine_show_preload()
 
 int engine_init_sprites()
 {
-    Debug::Printf("Initialize sprites");
+    Debug::Printf(kDbgMsg_Init, "Initialize sprites");
 
     if (spriteset.initFile ("acsprset.spr")) 
     {
@@ -1270,17 +1270,17 @@ void engine_start_multithreaded_audio()
   {
     if (!audioThread.CreateAndStart(engine_update_mp3_thread, true))
     {
-      Debug::Printf("Failed to start audio thread, audio will be processed on the main thread");
+      Debug::Printf(kDbgMsg_Init, "Failed to start audio thread, audio will be processed on the main thread");
       psp_audio_multithreaded = 0;
     }
     else
     {
-      Debug::Printf("Audio thread started");
+      Debug::Printf(kDbgMsg_Init, "Audio thread started");
     }
   }
   else
   {
-    Debug::Printf("Audio is processed on the main thread");
+    Debug::Printf(kDbgMsg_Init, "Audio is processed on the main thread");
   }
 }
 
@@ -1309,7 +1309,7 @@ void allegro_bitmap_test_init()
 
 bool engine_read_config(ConfigTree &cfg, int argc,char*argv[])
 {
-    Debug::Printf("Reading configuration");
+    Debug::Printf(kDbgMsg_Init, "Reading configuration");
 
     // Read default configuration file
     our_eip = -200;
@@ -1561,11 +1561,10 @@ extern char*printfworkingspace;
 
 int initialize_engine_with_exception_handling(int argc,char*argv[])
 {
-    Debug::Printf("Installing exception handler");
-
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
     __try 
     {
+        Debug::Printf(kDbgMsg_Init, "Installing exception handler");
 #endif
 
         return initialize_engine(argc, argv);

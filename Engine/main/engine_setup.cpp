@@ -161,7 +161,7 @@ void engine_init_resolution_settings(const Size game_size)
     if (game.color_depth < 2)
         usetup.force_hicolor_mode = false;
 
-    Debug::Printf("Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
+    Debug::Printf(kDbgMsg_Init, "Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
         game.options[OPT_LETTERBOX] == 0 ? "": " letterbox-by-design");
 
     adjust_sizes_for_resolution(loaded_game_file_version);
@@ -419,7 +419,7 @@ void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
         }
         Mouse::SetSpeed(usetup.mouse_speed);
     }
-    Debug::Printf("Mouse control: %s, base: %f, speed: %f", Mouse::IsControlEnabled() ? "on" : "off",
+    Debug::Printf(kDbgMsg_Init, "Mouse control: %s, base: %f, speed: %f", Mouse::IsControlEnabled() ? "on" : "off",
         Mouse::GetSpeedUnit(), Mouse::GetSpeed());
 
     // The virtual->real conversion ratios could have change after new gfx mode is set,

@@ -19,6 +19,52 @@
 // handlers, or none of them. The calling unit should not worry about where the
 // message goes.
 //
+//-----------------------------------------------------------------------------
+//
+// On using message types.
+//
+// Please keep in mind, that there are different levels of errors. AGS logging
+// system allows to classify debug message by two parameters: debug group and
+// message type. Sometimes message type alone is not enough. Debug groups can
+// also be used to distinct messages that has less (or higher) importance.
+//
+// For example, there are engine errors and user (game-dev) mistakes. Script
+// commands that cannot be executed under given circumstances are user
+// mistakes, and usually are not as severe as internal engine errors. This is
+// why it is advised to use a separate debug group for mistakes like that to
+// distinct them from reports on the internal engine's problems and make
+// verbosity configuration flexible.
+//
+// kDbgMsg_Init - is a type for startup initialization notifications; use them
+// when declaring that certain component got initialized (or not initialized),
+// optionally noting working mode, where applicable. Such messages are intended
+// for core engine components and plugin startup only, not work modes and game
+// states that are normally changing during gameplay.
+//
+// kDbgMsg_Debug - is the most common type of message (if the printing function
+// argument list does not specify message type, it is probably kDbgMsg_Debug).
+// You can use it for almost anything, from noting some process steps to
+// displaying current object state. If certain messages are meant to be printed
+// very often, consider using another distinct debug group so that it may be
+// disabled to reduce log verbosity.
+//
+// kDbgMsg_Warn - this is suggested for more significant cases, when you find
+// out that something is not right, but is not immediately affecting engine
+// processing. For example: certain object was constructed in a way that
+// would make them behave unexpectedly, or certain common files are missing but
+// it is not clear yet whether the game will be accessing them.
+// In other words: use kDbgMsg_Warn when there is no problem right away, but
+// you are *anticipating* that one may happen under certain circumstances.
+//
+// kDbgMsg_Error - use this kind of message is for actual serious problems.
+// If certain operation assumes both positive and negative results are
+// acceptable, it is preferred to report such negative result with simple
+// kDbgMsg_Debug message. kDbgMsg_Error is for negative results that are not
+// considered acceptable for normal run.
+//
+// kDbgMsg_Fatal - is the message type to be reported when the program or
+// component abortion is imminent.
+//
 //=============================================================================
 #ifndef __AGS_CN_DEBUG__OUT_H
 #define __AGS_CN_DEBUG__OUT_H
@@ -30,7 +76,7 @@ namespace AGS
 namespace Common
 {
 
-// Message types provide distinction for debug messages by their intent
+// Message types provide distinction for debug messages by their intent.
 enum MessageType
 {
     kDbgMsg_None                = 0,
@@ -64,7 +110,10 @@ enum MessageType
 enum CommonDebugGroup
 {
     kDbgGroup_None = -1,
-    kDbgGroup_Default = 0
+    // Main debug group is for reporting general engine status and issues
+    kDbgGroup_Main = 0,
+    // Script group is for reporting script (commands) execution
+    kDbgGroup_Script
 };
 
 // Debug group identifier defining either numeric or string id, or both

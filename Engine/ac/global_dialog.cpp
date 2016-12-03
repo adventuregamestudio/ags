@@ -74,7 +74,7 @@ void SetDialogOption(int dlg, int opt, int onoroff, bool dlg_script)
     // parsed differently; its "option-on/off" commands were more permissive.
     if (dlg_script)
     {
-      Debug::Printf("SetDialogOption: Invalid option number specified (%d : %d)", dlg, opt);
+      Debug::Printf(kDbgGroup_Script, kDbgMsg_Error, "SetDialogOption: Invalid option number specified (%d : %d)", dlg, opt);
       return;
     }
     quit("!SetDialogOption: Invalid option number specified");

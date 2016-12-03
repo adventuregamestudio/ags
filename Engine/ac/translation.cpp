@@ -64,17 +64,17 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
 
     if (language_file == NULL) 
     {
-        Debug::Printf("Cannot open translation: %s", transFileName);
         if (!lang.IsEmpty())
         {
             // Just in case they're running in Debug, try compiled folder
             sprintf(transFileName, "Compiled\\%s.tra", lang.GetCStr());
             language_file = Common::AssetManager::OpenAsset(transFileName);
-            if (!language_file)
-                Debug::Printf("Cannot open translation: %s", transFileName);
         }
         if (language_file == NULL)
+        {
+            Debug::Printf(kDbgMsg_Error, "Cannot open translation: %s", transFileName);
             return false;
+        }
     }
     // in case it's inside a library file, record the offset
     lang_offs_start = language_file->GetPosition();
@@ -82,7 +82,7 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
     char transsig[16] = {0};
     language_file->Read(transsig, 15);
     if (strcmp(transsig, "AGSTranslation") != 0) {
-        Debug::Printf("Translation signature mismatch: %s", transFileName);
+        Debug::Printf(kDbgMsg_Error, "Translation signature mismatch: %s", transFileName);
         delete language_file;
         return false;
     }
@@ -108,7 +108,7 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
         }
         else
         {
-            Debug::Printf(parse_error);
+            Debug::Printf(kDbgMsg_Error, parse_error);
             if (!fallback_lang.IsEmpty())
             {
                 Debug::Printf("Fallback to translation: %s", fallback_lang.GetCStr());

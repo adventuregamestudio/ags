@@ -30,6 +30,7 @@ enum GlobalFlipType
     kFlip_Both
 };
 
+// GraphicResolution dtruct determines image size and color depth
 struct GraphicResolution
 {
     int32_t Width;
@@ -50,6 +51,28 @@ struct GraphicResolution
         ColorDepth = color_depth;
     }
 };
+
+// DisplayMode struct provides extended description of display mode
+struct DisplayMode : public GraphicResolution
+{
+    int32_t RefreshRate;
+    bool    Vsync;
+    bool    Windowed;
+
+    DisplayMode()
+        : RefreshRate(0)
+        , Vsync(false)
+        , Windowed(false)
+    {}
+
+    DisplayMode(const GraphicResolution &res, bool windowed, int32_t refresh, bool vsync)
+        : GraphicResolution(res)
+        , RefreshRate(refresh)
+        , Vsync(vsync)
+        , Windowed(windowed)
+    {}
+};
+
 
 } // namespace Engine
 } // namespace AGS

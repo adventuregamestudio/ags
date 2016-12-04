@@ -31,7 +31,6 @@
 #include "ac/global_hotspot.h"
 #include "ac/global_object.h"
 #include "ac/global_room.h"
-#include "ac/global_video.h"
 #include "ac/invwindow.h"
 #include "ac/mouse.h"
 #include "ac/room.h"
@@ -42,6 +41,7 @@
 #include "main/game_run.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
+#include "media/video/video.h"
 #include "script/script_runtime.h"
 #include "util/string_utils.h"
 

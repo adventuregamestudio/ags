@@ -66,6 +66,7 @@
 #include "ac/string.h"
 #include "ac/room.h"
 #include "media/audio/audio.h"
+#include "media/video/video.h"
 #include "util/string_utils.h"
 
 #include "ac/dynobj/scriptstring.h"

@@ -63,6 +63,7 @@ String GetRuntimeInfo()
 {
     DisplayMode mode = gfxDriver->GetDisplayMode();
     Rect render_frame = gfxDriver->GetRenderDestination();
+    PGfxFilter filter = gfxDriver->GetGraphicsFilter();
     String runtimeInfo = String::FromFormat(
         "Adventure Game Studio run-time engine[ACI version %s"
         "[Game resolution %d x %d"

@@ -19,6 +19,8 @@
 #ifndef __AGS_EE_GFX__GRAPHICSDRIVER_H
 #define __AGS_EE_GFX__GRAPHICSDRIVER_H
 
+#include "util/stdtr1compat.h"
+#include TR1INCLUDE(memory)
 #include "gfx/gfxdefines.h"
 #include "gfx/gfxmodelist.h"
 #include "util/geometry.h"
@@ -34,6 +36,7 @@ namespace Engine
 // Forward declaration
 class IDriverDependantBitmap;
 class IGfxFilter;
+typedef stdtr1compat::shared_ptr<IGfxFilter> PGfxFilter;
 
 enum TintMethod
 {
@@ -59,11 +62,17 @@ public:
   virtual const char*GetDriverName() = 0;
   virtual const char*GetDriverID() = 0;
   virtual void SetTintMethod(TintMethod method) = 0;
-  virtual bool Init(const DisplayMode &mode, const Size src_size, const Rect dst_rect, volatile int *loopTimer) = 0;
+  // Initialize given display mode
+  virtual bool Init(const DisplayMode &mode, volatile int *loopTimer) = 0;
+  // Gets if a graphics mode was initialized
+  virtual bool IsModeSet() const = 0;
+  // Set game render frame and translation
+  virtual bool SetRenderFrame(const Size &src_size, const Rect &dst_rect) = 0;
+  virtual bool IsRenderFrameValid() const = 0;
   virtual IGfxModeList *GetSupportedModeList(int color_depth) = 0;
   virtual bool IsModeSupported(const DisplayMode &mode) = 0;
   virtual DisplayMode GetDisplayMode() const = 0;
-  virtual IGfxFilter *GetGraphicsFilter() const = 0;
+  virtual PGfxFilter GetGraphicsFilter() const = 0;
   virtual Rect GetRenderDestination() const = 0;
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) = 0;
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) = 0;

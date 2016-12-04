@@ -19,6 +19,8 @@
 #ifndef __AGS_EE_GFX__ALI3DOGL_H
 #define __AGS_EE_GFX__ALI3DOGL_H
 
+#include "util/stdtr1compat.h"
+#include TR1INCLUDE(memory)
 #include <allegro.h>
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
@@ -186,10 +188,11 @@ public:
     virtual const char*GetDriverName() { return "OpenGL"; }
     virtual const char*GetDriverID() { return "OGL"; }
     virtual void SetTintMethod(TintMethod method);
-    virtual bool Init(const DisplayMode &mode, const Size src_size, const Rect dst_rect, volatile int *loopTimer);
+    virtual bool Init(const DisplayMode &mode, volatile int *loopTimer);
+    virtual bool SetRenderFrame(const Size &src_size, const Rect &dst_rect);
     virtual IGfxModeList *GetSupportedModeList(int color_depth);
     virtual bool IsModeSupported(const DisplayMode &mode);
-    virtual IGfxFilter *GetGraphicsFilter() const;
+    virtual PGfxFilter GetGraphicsFilter() const;
     virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
     virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
     virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
@@ -223,7 +226,9 @@ public:
     virtual void SetMemoryBackBuffer(Bitmap *backBuffer) {  }
     virtual void SetScreenTint(int red, int green, int blue);
 
-    void SetGraphicsFilter(OGLGfxFilter *filter);
+    typedef stdtr1compat::shared_ptr<OGLGfxFilter> POGLFilter;
+
+    void SetGraphicsFilter(POGLFilter filter);
 
     // Internal
     void _render(GlobalFlipType flip, bool clearDrawListAfterwards);
@@ -231,9 +236,9 @@ public:
     OGLGraphicsDriver();
     virtual ~OGLGraphicsDriver();
 
-    OGLGfxFilter *_filter;
-
 private:
+    POGLFilter _filter;
+
     HDC _hDC;
     HGLRC _hRC;
     HWND _hWnd;
@@ -272,9 +277,11 @@ private:
     void set_up_default_vertices();
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
     void UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha);
+    void CreateVirtualScreen();
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void create_screen_tint_bitmap();
     void _renderSprite(SpriteDrawListEntry *entry, bool globalLeftRightFlip, bool globalTopBottomFlip);
+    void SetupViewport();
     void create_backbuffer_arrays();
 };
 

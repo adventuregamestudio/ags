@@ -461,12 +461,19 @@ int IRSpan::mergeSpan(int tx1, int tx2) {
 
 void init_invalid_regions(int scrnHit) {
     numDirtyRegions = WHOLESCREENDIRTY;
-    dirtyRow = (IRRow*)malloc(sizeof(IRRow) * scrnHit);
+    dirtyRow = new IRRow[scrnHit];
     memset(dirtyRow, 0, sizeof(IRRow) * scrnHit);
 
     for (int e = 0; e < scrnHit; e++)
         dirtyRow[e].numSpans = 0;
     _dirtyRowSize = scrnHit;
+}
+
+void destroy_invalid_regions()
+{
+    delete [] dirtyRow;
+    dirtyRow = 0;
+    _dirtyRowSize = 0;
 }
 
 void update_invalid_region(Bitmap *ds, int x, int y, Bitmap *src) {

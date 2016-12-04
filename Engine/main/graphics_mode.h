@@ -28,11 +28,10 @@ Size get_desktop_size();
 String make_scaling_factor_string(uint32_t scaling);
 
 namespace AGS { namespace Engine { class IGfxModeList; }}
-bool find_nearest_supported_mode(const AGS::Engine::IGfxModeList &modes, Size &wanted_size, int *mode_index,
-                                 const int color_depth, const Size *ratio_reference = NULL, const Size *upper_bound = NULL);
+bool find_nearest_supported_mode(const AGS::Engine::IGfxModeList &modes, const Size &wanted_size,
+                                 const int color_depth, const Size *ratio_reference, const Size *upper_bound,
+                                 AGS::Engine::DisplayMode &dm, int *mode_index = NULL);
 
-namespace AGS { namespace Engine { class IGfxFilter; } }
-extern AGS::Engine::IGfxFilter *filter;
 
 // The actual game screen resolution
 extern AGS::Engine::GraphicResolution ScreenResolution;
@@ -71,10 +70,9 @@ enum ScreenSizeDefinition
     kNumScreenDef
 };
 
-// General display configuration
-struct ScreenSetup
+// Display mode configuration
+struct DisplayModeSetup
 {
-    String               DriverID;      // graphics driver ID
     ScreenSizeDefinition SizeDef;       // a method used to determine screen size
     ::Size               Size;          // explicitly defined screen metrics
     bool                 MatchDeviceRatio; // choose resolution matching device aspect ratio
@@ -82,6 +80,13 @@ struct ScreenSetup
     int                  RefreshRate;   // gfx mode refresh rate
     bool                 VSync;         // vertical sync
     bool                 Windowed;      // is mode windowed
+};
+
+// General display configuration
+struct ScreenSetup
+{
+    String               DriverID;      // graphics driver ID
+    DisplayModeSetup     DisplayMode;   // definition of the display mode
 
     GfxFilterSetup       Filter;        // graphics filter definition
     GameFrameSetup       GameFrame;     // definition of the game frame's position on screen
@@ -89,14 +94,27 @@ struct ScreenSetup
     bool                 RenderAtScreenRes; // render sprites at screen resolution, as opposed to native one
 };
 
+// Display mode color depth variants allowed to be used
 struct ColorDepthOption
 {
     int32_t Prime;
     int32_t Alternate;
 };
 
-// Makes an attempt to deduce and set a new gfx mode from user config
-bool graphics_mode_init(const ScreenSetup &setup, const ColorDepthOption &color_depths);
+// Initializes any possible gfx mode, using user config as a recommendation;
+// may try all available renderers and modes before succeeding (or failing)
+bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, const ColorDepthOption &color_depths);
+// Fill in setup structs with default settings for the given mode (windowed or fullscreen)
+void graphics_mode_get_defaults(bool windowed, DisplayModeSetup &dm_setup, GameFrameSetup &frame_setup, GfxFilterSetup &filter_setup);
+// Creates graphics driver of given id
+bool graphics_mode_create_renderer(const String &driver_id);
+// Set the display mode with given parameters
+bool graphics_mode_set_dm(const AGS::Engine::DisplayMode &dm);
+// Set the render frame position inside the window
+bool graphics_mode_set_render_frame(const Size &native_size, const GameFrameSetup &frame_setup);
+bool graphics_mode_set_render_frame(const Size &native_size, const Rect &render_frame);
+// Set the scaling filter
+bool graphics_mode_set_filter(const String &filter_id);
 // Releases current graphic mode and shuts down renderer
 void graphics_mode_shutdown();
 

@@ -265,7 +265,7 @@ void read_game_data_location(const ConfigTree &cfg)
 
 void read_legacy_graphics_config(const ConfigTree &cfg, const bool should_read_filter)
 {
-    usetup.Screen.Windowed = INIreadint(cfg, "misc", "windowed") > 0;
+    usetup.Screen.DisplayMode.Windowed = INIreadint(cfg, "misc", "windowed") > 0;
     usetup.Screen.DriverID = INIreadstring(cfg, "misc", "gfxdriver");
 
     if (should_read_filter)
@@ -273,7 +273,7 @@ void read_legacy_graphics_config(const ConfigTree &cfg, const bool should_read_f
         String legacy_filter = INIreadstring(cfg, "misc", "gfxfilter");
         if (!legacy_filter.IsEmpty())
         {
-            usetup.Screen.SizeDef = kScreenDef_ByGameScaling;
+            usetup.Screen.DisplayMode.SizeDef = kScreenDef_ByGameScaling;
 
             int scale_factor;
             if (parse_legacy_frame_config(legacy_filter, usetup.Screen.Filter.ID, usetup.Screen.GameFrame.ScaleDef, scale_factor))
@@ -282,16 +282,16 @@ void read_legacy_graphics_config(const ConfigTree &cfg, const bool should_read_f
             }
 
             // AGS 3.2.1 and 3.3.0 aspect ratio preferences
-            if (!usetup.Screen.Windowed)
+            if (!usetup.Screen.DisplayMode.Windowed)
             {
-                usetup.Screen.MatchDeviceRatio =
+                usetup.Screen.DisplayMode.MatchDeviceRatio =
                     (INIreadint(cfg, "misc", "sideborders") > 0 || INIreadint(cfg, "misc", "forceletterbox") > 0 ||
                      INIreadint(cfg, "misc", "prefer_sideborders") > 0 || INIreadint(cfg, "misc", "prefer_letterbox") > 0);
             }
         }
     }
 
-    usetup.Screen.RefreshRate = INIreadint(cfg, "misc", "refresh");
+    usetup.Screen.DisplayMode.RefreshRate = INIreadint(cfg, "misc", "refresh");
 }
 
 void read_config(const ConfigTree &cfg)
@@ -340,22 +340,22 @@ void read_config(const ConfigTree &cfg)
 #else
         usetup.Screen.DriverID = "DX5";
 #endif
-        usetup.Screen.Windowed = INIreadint(cfg, "graphics", "windowed") > 0;
+        usetup.Screen.DisplayMode.Windowed = INIreadint(cfg, "graphics", "windowed") > 0;
         const char *screen_sz_def_options[kNumScreenDef] = { "explicit", "scaling", "max" };
-        usetup.Screen.SizeDef = kScreenDef_MaxDisplay;
+        usetup.Screen.DisplayMode.SizeDef = kScreenDef_MaxDisplay;
         String screen_sz_def_str = INIreadstring(cfg, "graphics", "screen_def");
         for (int i = 0; i < kNumScreenDef; ++i)
         {
             if (screen_sz_def_str.CompareNoCase(screen_sz_def_options[i]) == 0)
             {
-                usetup.Screen.SizeDef = (ScreenSizeDefinition)i;
+                usetup.Screen.DisplayMode.SizeDef = (ScreenSizeDefinition)i;
                 break;
             }
         }
 
-        usetup.Screen.Size.Width = INIreadint(cfg, "graphics", "screen_width");
-        usetup.Screen.Size.Height = INIreadint(cfg, "graphics", "screen_height");
-        usetup.Screen.MatchDeviceRatio = INIreadint(cfg, "graphics", "match_device_ratio", 1) != 0;
+        usetup.Screen.DisplayMode.Size.Width = INIreadint(cfg, "graphics", "screen_width");
+        usetup.Screen.DisplayMode.Size.Height = INIreadint(cfg, "graphics", "screen_height");
+        usetup.Screen.DisplayMode.MatchDeviceRatio = INIreadint(cfg, "graphics", "match_device_ratio", 1) != 0;
 #if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
         // PSP: No graphic filters are available.
         usetup.Screen.Filter.ID = "";
@@ -370,8 +370,8 @@ void read_config(const ConfigTree &cfg)
         }
 #endif
 
-        usetup.Screen.RefreshRate = INIreadint(cfg, "graphics", "refresh");
-        usetup.Screen.VSync = INIreadint(cfg, "graphics", "vsync") > 0;
+        usetup.Screen.DisplayMode.RefreshRate = INIreadint(cfg, "graphics", "refresh");
+        usetup.Screen.DisplayMode.VSync = INIreadint(cfg, "graphics", "vsync") > 0;
         usetup.Screen.RenderAtScreenRes = INIreadint(cfg, "graphics", "render_at_screenres") > 0;
 
         usetup.enable_antialiasing = INIreadint(cfg, "misc", "antialias") > 0;

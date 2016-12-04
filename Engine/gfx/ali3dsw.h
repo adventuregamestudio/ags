@@ -19,6 +19,8 @@
 #ifndef __AGS_EE_GFX__ALI3DSW_H
 #define __AGS_EE_GFX__ALI3DSW_H
 
+#include "util/stdtr1compat.h"
+#include TR1INCLUDE(memory)
 #include <allegro.h>
 #if defined (WINDOWS_VERSION)
 #include <winalleg.h>
@@ -123,7 +125,6 @@ class ALSoftwareGraphicsDriver : public GraphicsDriverBase
 {
 public:
     ALSoftwareGraphicsDriver() { 
-        _filter = NULL; 
         _callback = NULL; 
         _drawScreenCallback = NULL;
         _nullSpriteCallback = NULL;
@@ -144,10 +145,11 @@ public:
     virtual const char*GetDriverName() { return "Allegro/DX5"; }
     virtual const char*GetDriverID() { return "DX5"; }
     virtual void SetTintMethod(TintMethod method);
-    virtual bool Init(const DisplayMode &mode, const Size src_size, const Rect dst_rect, volatile int *loopTimer);
+    virtual bool Init(const DisplayMode &mode, volatile int *loopTimer);
+    virtual bool SetRenderFrame(const Size &src_size, const Rect &dst_rect);
     virtual bool IsModeSupported(const DisplayMode &mode);
     virtual IGfxModeList *GetSupportedModeList(int color_depth);
-    virtual IGfxFilter *GetGraphicsFilter() const;
+    virtual PGfxFilter GetGraphicsFilter() const;
     virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _callback = callback; }
     virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
     virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
@@ -183,13 +185,18 @@ public:
         _tint_red = red; _tint_green = green; _tint_blue = blue; }
     virtual ~ALSoftwareGraphicsDriver();
 
-    void SetGraphicsFilter(AllegroGfxFilter *filter);
+    typedef stdtr1compat::shared_ptr<AllegroGfxFilter> PALSWFilter;
 
-    AllegroGfxFilter *_filter;
+    void SetGraphicsFilter(PALSWFilter filter);
 
 private:
+    PALSWFilter _filter;
+
     bool _autoVsync;
     Bitmap *_allegroScreenWrapper;
+    // Virtual screen bitmap is either a wrapper over Allegro's real screen
+    // bitmap, or bitmap provided by the graphics filter. It should not be
+    // disposed by the renderer: it is up to filter object to manage it.
     Bitmap *virtualScreen;
     Bitmap *_spareTintingScreen;
     GFXDRV_CLIENTCALLBACK _callback;
@@ -212,6 +219,9 @@ private:
     DDGAMMARAMP defaultGammaRamp;
     DDCAPS ddrawCaps;
 #endif
+
+    // Use gfx filter to create a new virtual screen
+    void CreateVirtualScreen();
 
     void highcolor_fade_out(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void highcolor_fade_in(Bitmap *bmp_orig, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);

@@ -21,6 +21,7 @@
 #include "ac/gamestate.h"
 #include "ac/runtime_defines.h"
 #include "ac/walkbehind.h"
+#include "ac/dynobj/scriptsystem.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
 #include "font/fonts.h"
@@ -30,12 +31,14 @@
 #include "gui/guiinv.h"
 #include "main/graphics_mode.h"
 #include "main/engine_setup.h"
+#include "media/video/video.h"
 #include "platform/base/agsplatformdriver.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
+extern ScriptSystem scsystem;
 extern int _places_r, _places_g, _places_b;
 extern int current_screen_resolution_multiplier;
 extern WalkBehindMethodEnum walkBehindMethod;
@@ -44,6 +47,8 @@ extern IGraphicsDriver *gfxDriver;
 extern IDriverDependantBitmap *blankImage;
 extern IDriverDependantBitmap *blankSidebarImage;
 extern Bitmap *_old_screen;
+extern Bitmap *_sub_screen;
+extern Bitmap *virtual_screen;
 
 int debug_15bit_mode = 0, debug_24bit_mode = 0;
 int convert_16bit_bgr = 0;
@@ -123,7 +128,7 @@ void adjust_sizes_for_resolution(int filever)
 
 }
 
-void engine_init_resolution_settings(const Size game_size, ColorDepthOption &color_depths)
+void engine_init_resolution_settings(const Size game_size)
 {
     Out::FPrint("Initializing resolution settings");
 
@@ -156,6 +161,14 @@ void engine_init_resolution_settings(const Size game_size, ColorDepthOption &col
     if (game.color_depth < 2)
         usetup.force_hicolor_mode = false;
 
+    Out::FPrint("Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, game.color_depth * 8,
+        game.options[OPT_LETTERBOX] == 0 ? "": " letterbox-by-design");
+
+    adjust_sizes_for_resolution(loaded_game_file_version);
+}
+
+void engine_get_color_depths(ColorDepthOption &color_depths)
+{
     if (game.color_depth == 1)
     {
         color_depths.Prime = 8;
@@ -181,58 +194,54 @@ void engine_init_resolution_settings(const Size game_size, ColorDepthOption &col
         color_depths.Prime = 32;
         color_depths.Alternate = 24;
     }
-
-    Out::FPrint("Game native resolution: %d x %d (%d bit)%s", game_size.Width, game_size.Height, color_depths.Prime,
-        game.options[OPT_LETTERBOX] == 0 ? "": " letterbox-by-design");
-
-    adjust_sizes_for_resolution(loaded_game_file_version);
 }
 
-void CreateBlankImage()
-{
-    // this is the first time that we try to use the graphics driver,
-    // so it's the most likey place for a crash
-    try
-    {
-        Bitmap *blank = BitmapHelper::CreateBitmap(16, 16, ScreenResolution.ColorDepth);
-        blank = ReplaceBitmapWithSupportedFormat(blank);
-        blank->Clear();
-        blankImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
-        blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
-        delete blank;
-    }
-    catch (Ali3DException gfxException)
-    {
-        quit((char*)gfxException._message);
-    }
-
-}
-
-void engine_prepare_screen()
-{
-    Out::FPrint("Preparing graphics mode screen");
-
-    _old_screen = BitmapHelper::GetScreenBitmap();
-
-    if (gfxDriver->HasAcceleratedStretchAndFlip()) 
-    {
-        walkBehindMethod = DrawAsSeparateSprite;
-
-        CreateBlankImage();
-    }
-}
-
-void engine_set_gfx_driver_callbacks()
+// Setup gfx driver callbacks and options
+void engine_post_gfxmode_driver_setup()
 {
     gfxDriver->SetCallbackForPolling(update_polled_stuff_if_runtime);
     gfxDriver->SetCallbackToDrawScreen(draw_screen_callback);
     gfxDriver->SetCallbackForNullSprite(GfxDriverNullSpriteCallback);
+    gfxDriver->SetRenderOffset(play.viewport.Left, play.viewport.Top);
 }
 
-void engine_set_color_conversions()
+// Reset gfx driver callbacks
+void engine_pre_gfxmode_driver_cleanup()
 {
-    Out::FPrint("Initializing colour conversion");
+    gfxDriver->SetCallbackForPolling(NULL);
+    gfxDriver->SetCallbackToDrawScreen(NULL);
+    gfxDriver->SetCallbackForNullSprite(NULL);
+}
 
+// Setup virtual screen
+void engine_post_gfxmode_screen_setup()
+{
+    _old_screen = BitmapHelper::GetScreenBitmap();
+    virtual_screen = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(),
+        ScreenResolution.ColorDepth);
+    virtual_screen->Clear();
+    gfxDriver->SetMemoryBackBuffer(virtual_screen);
+    SetVirtualScreen(virtual_screen);
+    set_our_eip(-41);
+}
+
+// Release virtual screen
+void engine_pre_gfxmode_screen_cleanup()
+{
+    SetVirtualScreen(NULL);
+    gfxDriver->SetMemoryBackBuffer(NULL);
+    delete _sub_screen;
+    _sub_screen = NULL;
+    delete virtual_screen;
+    virtual_screen = NULL;
+    // allegro_exit assumes screen is correct
+    if (_old_screen)
+        BitmapHelper::SetScreenBitmap( _old_screen );
+}
+
+// Setup color conversion parameters
+void engine_setup_color_conversions()
+{
     // default shifts for how we store the sprite data
 #if defined(PSP_VERSION)
     // PSP: Switch b<>r for 15/16 bit.
@@ -331,7 +340,60 @@ void engine_set_color_conversions()
     set_color_conversion(COLORCONV_MOST | COLORCONV_EXPAND_256 | COLORCONV_REDUCE_16_TO_15);
 }
 
-void engine_set_mouse_control(const Size &init_desktop)
+// Create blank (black) images used to repaint borders around game frame
+void CreateBlankImage()
+{
+    // this is the first time that we try to use the graphics driver,
+    // so it's the most likey place for a crash
+    try
+    {
+        Bitmap *blank = BitmapHelper::CreateBitmap(16, 16, ScreenResolution.ColorDepth);
+        blank = ReplaceBitmapWithSupportedFormat(blank);
+        blank->Clear();
+        blankImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
+        blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
+        delete blank;
+    }
+    catch (Ali3DException gfxException)
+    {
+        quit((char*)gfxException._message);
+    }
+}
+
+void destroy_blank_image()
+{
+    if (blankImage)
+        gfxDriver->DestroyDDB(blankImage);
+    if (blankSidebarImage)
+        gfxDriver->DestroyDDB(blankSidebarImage);
+    blankImage = NULL;
+    blankSidebarImage = NULL;
+}
+
+// Setup drawing modes and color conversions
+void engine_post_gfxmode_draw_setup()
+{
+    engine_setup_color_conversions();
+    if (gfxDriver->HasAcceleratedStretchAndFlip()) 
+    {
+        walkBehindMethod = DrawAsSeparateSprite;
+        CreateBlankImage();
+    }
+    else
+    {
+        walkBehindMethod = DrawOverCharSprite;
+    }
+    init_invalid_regions(game.size.Height);
+}
+
+// Cleanup auxiliary drawing objects
+void engine_pre_gfxmode_draw_cleanup()
+{
+    destroy_invalid_regions();
+}
+
+// Setup mouse control mode and graphic area
+void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
 {
     DisplayMode dm = gfxDriver->GetDisplayMode();
     // Assign mouse control parameters.
@@ -359,13 +421,58 @@ void engine_set_mouse_control(const Size &init_desktop)
     }
     Out::FPrint("Mouse control: %s, base: %f, speed: %f", Mouse::IsControlEnabled() ? "on" : "off",
         Mouse::GetSpeedUnit(), Mouse::GetSpeed());
+
+    // The virtual->real conversion ratios could have change after new gfx mode is set,
+    // thus we need to reset mouse graphic area and bounds
+    Mouse::SetGraphicArea();
+    Mouse::SetMoveLimit(Rect(play.mboundx1, play.mboundy1, play.mboundx2, play.mboundy2));
+    // If auto lock option is set, lock mouse to the game window
+    if (usetup.mouse_auto_lock && scsystem.windowed != 0)
+        Mouse::TryLockToWindow();
+}
+
+// Reset mouse controls before changing gfx mode
+void engine_pre_gfxmode_mouse_cleanup()
+{
+    // Always disable mouse control unlock mouse when shutting down gfx mode
+    Mouse::DisableControl();
+    Mouse::UnlockFromWindow();
+}
+
+// Fill in scsystem struct with display mode parameters
+void engine_setup_scsystem_screen()
+{
+    DisplayMode dm = gfxDriver->GetDisplayMode();
+    scsystem.width = game.size.Width;
+    scsystem.height = game.size.Height;
+    scsystem.coldepth = dm.ColorDepth;
+    scsystem.windowed = dm.Windowed;
+    scsystem.vsync = dm.Vsync;
+    scsystem.viewport_width = divide_down_coordinate(play.viewport.GetWidth());
+    scsystem.viewport_height = divide_down_coordinate(play.viewport.GetHeight());
 }
 
 void engine_post_gfxmode_setup(const Size &init_desktop)
 {
-    engine_prepare_screen();
-    engine_set_gfx_driver_callbacks();
-    engine_set_color_conversions();
+    engine_setup_scsystem_screen();
+    engine_post_gfxmode_driver_setup();
+    engine_post_gfxmode_screen_setup();
+    engine_post_gfxmode_draw_setup();
+    engine_post_gfxmode_mouse_setup(init_desktop);
+    
+    // TODO: the only reason this call was put here is that it requires
+    // "windowed" flag to be specified. Find out whether this function
+    // has anything to do with graphics mode at all. It is quite possible
+    // that we may split it into two functions, or remove parameter.
+    platform->PostAllegroInit(scsystem.windowed != 0);
 
-    engine_set_mouse_control(init_desktop);
+    video_on_gfxmode_changed();
+}
+
+void engine_pre_gfxmode_shutdown()
+{
+    engine_pre_gfxmode_mouse_cleanup();
+    engine_pre_gfxmode_draw_cleanup();
+    engine_pre_gfxmode_screen_cleanup();
+    engine_pre_gfxmode_driver_cleanup();
 }

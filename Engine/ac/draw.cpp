@@ -472,6 +472,8 @@ void init_invalid_regions(int scrnHit) {
 void destroy_invalid_regions()
 {
     delete [] dirtyRow;
+    dirtyRow = 0;
+    _dirtyRowSize = 0;
 }
 
 void update_invalid_region(Bitmap *ds, int x, int y, Bitmap *src) {

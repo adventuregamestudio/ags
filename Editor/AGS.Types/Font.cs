@@ -15,6 +15,7 @@ namespace AGS.Types
         private int _outlineFont;
         private FontOutlineStyle _outlineStyle;
 		private string _sourceFilename = string.Empty;
+        private int _verticalOffset;
 
         public Font()
         {
@@ -108,6 +109,14 @@ namespace AGS.Types
 			get { return _sourceFilename; }
 			set { _sourceFilename = value; }
 		}
+
+        [Description("Vertical offset to render font letters at, in pixels (can be negative)")]
+        [Category("Appearance")]
+        public int VerticalOffset
+        {
+            get { return _verticalOffset; }
+            set { _verticalOffset = value; }
+        }
 
 		[Browsable(false)]
 		public string WFNFileName

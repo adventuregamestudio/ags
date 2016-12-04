@@ -43,7 +43,7 @@ void WFNFontRenderer::AdjustYCoordinateForFont(int *ycoord, int fontNumber)
 
 void WFNFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 {
-  const WFNFont* font = _fontData[fontNumber];
+  const WFNFont* font = _fontData[fontNumber].Font;
   // replace any extended characters with question marks
   for (; *text; ++text)
   {
@@ -56,7 +56,7 @@ void WFNFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 
 int WFNFontRenderer::GetTextWidth(const char *text, int fontNumber)
 {
-  const WFNFont* font = _fontData[fontNumber];
+  const WFNFont* font = _fontData[fontNumber].Font;
   int text_width = 0;
 
   for (; *text; ++text)
@@ -69,7 +69,7 @@ int WFNFontRenderer::GetTextWidth(const char *text, int fontNumber)
 
 int WFNFontRenderer::GetTextHeight(const char *text, int fontNumber)
 {
-  const WFNFont* font = _fontData[fontNumber];
+  const WFNFont* font = _fontData[fontNumber].Font;
   int max_height = 0;
 
   for (; *text; ++text) 
@@ -88,9 +88,10 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
   int oldeip = get_our_eip();
   set_our_eip(415);
 
-  const WFNFont* font = _fontData[fontNumber];
+  const WFNFont* font = _fontData[fontNumber].Font;
   render_wrapper.WrapAllegroBitmap(destination, true);
 
+  y += _fontData[fontNumber].Params.YOffset;
   for (; *text; ++text)
     x += RenderChar(&render_wrapper, x, y, font->GetChar(GetCharCode(*text, font)), colour);
 
@@ -132,6 +133,11 @@ int RenderChar(Common::Bitmap *ds, const int at_x, const int at_y, const WFNChar
 
 bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 {
+  return LoadFromDiskEx(fontNumber, fontSize, NULL);
+}
+
+bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, const FontRenderParams *params)
+{
   String file_name;
   Stream *ffi = NULL;
 
@@ -156,17 +162,18 @@ bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
     delete font;
     return false;
   }
-  _fontData[fontNumber] = font;
+  _fontData[fontNumber].Font = font;
+  _fontData[fontNumber].Params = params ? *params : FontRenderParams();
   return true;
 }
 
 void WFNFontRenderer::FreeMemory(int fontNumber)
 {
-  delete _fontData[fontNumber];
+  delete _fontData[fontNumber].Font;
   _fontData.erase(fontNumber);
 }
 
 bool WFNFontRenderer::SupportsExtendedCharacters(int fontNumber)
 {
-  return _fontData[fontNumber]->GetCharCount() > 128;
+  return _fontData[fontNumber].Font->GetCharCount() > 128;
 }

@@ -657,7 +657,7 @@ MainGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVer
         return kMGFErr_TooManyFonts;
 
     game.read_savegame_info(in, data_ver);
-    game.read_font_flags(in);
+    game.read_font_flags(in, data_ver);
     MainGameFileError err = game.read_sprite_flags(in, data_ver);
     if (err != kMGFErr_NoError)
         return err;

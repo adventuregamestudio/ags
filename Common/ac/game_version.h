@@ -92,7 +92,7 @@ Custom properties changed at runtime.
 Ambient lighting
 
 48 : 3.4.1
-OPT_RENDERATSCREENRES, extended engine caps check.
+OPT_RENDERATSCREENRES, extended engine caps check, font vertical offset.
 
 */
 

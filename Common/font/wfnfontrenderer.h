@@ -20,7 +20,7 @@
 
 #include <map>
 
-class WFNFontRenderer : public IAGSFontRenderer {
+class WFNFontRenderer : public IAGSFontRenderer, public IAGSFontRenderer2 {
 public:
   virtual bool LoadFromDisk(int fontNumber, int fontSize);
   virtual void FreeMemory(int fontNumber);
@@ -31,8 +31,15 @@ public:
   virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber);
   virtual void EnsureTextValidForFont(char *text, int fontNumber);
 
+  virtual bool LoadFromDiskEx(int fontNumber, int fontSize, const FontRenderParams *params);
+
 private:
-  std::map<int, WFNFont*> _fontData;
+  struct FontData
+  {
+    WFNFont         *Font;
+    FontRenderParams Params;
+  };
+  std::map<int, FontData> _fontData;
 };
 
 #endif // __AC_WFNFONTRENDERER_H

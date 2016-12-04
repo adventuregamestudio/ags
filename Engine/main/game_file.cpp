@@ -60,6 +60,26 @@ extern int numScriptModules;
 String game_file_name;
 
 
+// Test if engine supports extended capabilities required to run the game
+bool test_game_caps(const std::set<String> &caps, std::set<String> &failed_caps)
+{
+    // Currently we support nothing special
+    failed_caps = caps;
+    return caps.size() == 0;
+}
+
+// Forms a simple list of capability names
+String get_caps_list(const std::set<String> &caps)
+{
+    String caps_list;
+    for (std::set<String>::const_iterator it = caps.begin(); it != caps.end(); ++it)
+    {
+        caps_list.Append("\n\t");
+        caps_list.Append(*it);
+    }
+    return caps_list;
+}
+
 // Called when the game file is opened for the first time (when preloading game data);
 // it logs information on data version and reports first found errors, if any.
 MainGameFileError game_file_first_open(MainGameSource &src)
@@ -73,24 +93,32 @@ MainGameFileError game_file_first_open(MainGameSource &src)
         // Log data description for debugging
         Out::FPrint("Opened game data file: %s", src.Filename.GetCStr());
         Out::FPrint("Game data version: %d", src.DataVersion);
-        Out::FPrint("Requested engine version: %s", src.EngineVersion.LongString.GetCStr());
+        Out::FPrint("Compiled with: %s", src.CompiledWith.GetCStr());
+        if (src.Caps.size() > 0)
+        {
+            String caps_list = get_caps_list(src.Caps);
+            Out::FPrint("Requested engine caps:%s", caps_list.GetCStr());
+        }
     }
     // Quit in case of error
     if (err == kMGFErr_FormatVersionTooOld || err == kMGFErr_FormatVersionNotSupported)
     {
-        platform->DisplayAlert("This game requires an incompatible version of AGS (%s). It cannot be run.",
-            src.EngineVersion.LongString.GetCStr());
+        platform->DisplayAlert("This game format is not supported by the engine (game compiled with: %s).\n\nIt cannot be run.",
+            src.CompiledWith.GetCStr());
         return err;
     }
     else if (err != kMGFErr_NoError)
         return err;
 
-    // If the game was compiled for higher version of the engine, and yet has
-    // supported data format, we warn about potential incompatibilities and
-    // proceed
-    if (src.EngineVersion > EngineVersion)
-        platform->DisplayAlert("This game suggests a different version of AGS (%s). It may not run correctly.",
-        src.EngineVersion.LongString.GetCStr());
+    // Test the extended caps
+    std::set<String> failed_caps;
+    if (!test_game_caps(src.Caps, failed_caps))
+    {
+        String caps_list = get_caps_list(failed_caps);
+        platform->DisplayAlert("This game requires extended capabilities which aren't supported by the engine:%s\n\nIt cannot be run.",
+            caps_list.GetCStr());
+        return kMGFErr_CapsNotSupported;
+    }
     return kMGFErr_NoError;
 }
 

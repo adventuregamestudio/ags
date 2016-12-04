@@ -91,6 +91,9 @@ Custom dialog option rendering extension.
 Custom properties changed at runtime.
 Ambient lighting
 
+48 : 3.4.1
+OPT_RENDERATSCREENRES, extended engine caps check.
+
 */
 
 enum GameDataVersion
@@ -121,7 +124,8 @@ enum GameDataVersion
     kGameVersion_340_1          = 45,
     kGameVersion_340_2          = 46,
     kGameVersion_340_4          = 47,
-    kGameVersion_Current        = kGameVersion_340_4
+    kGameVersion_341            = 48,
+    kGameVersion_Current        = kGameVersion_341
 };
 
 extern GameDataVersion loaded_game_file_version;

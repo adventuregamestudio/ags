@@ -23,6 +23,7 @@
 
 #include "util/stdtr1compat.h"
 #include TR1INCLUDE(memory)
+#include <set>
 #include "ac/game_version.h"
 #include "game/plugininfo.h"
 #include "script/cc_script.h"
@@ -49,6 +50,7 @@ enum MainGameFileError
     // separate error given for "too old" format to provide clarifying message
     kMGFErr_FormatVersionTooOld,
     kMGFErr_FormatVersionNotSupported,
+    kMGFErr_CapsNotSupported,
     kMGFErr_InvalidNativeResolution,
     kMGFErr_TooManyFonts,
     kMGFErr_TooManySprites,
@@ -78,8 +80,11 @@ struct MainGameSource
     String              Filename;
     // Savegame format version
     GameDataVersion     DataVersion;
-    // Engine version this game was intended for
-    Version             EngineVersion;
+    // Tool identifier (like version) this game was compiled with
+    String              CompiledWith;
+    // Extended engine capabilities required by the game; their primary use
+    // currently is to let "alternate" game formats indicate themselves
+    std::set<String>    Caps;
     // A ponter to the opened stream
     PStream             InputStream;
 

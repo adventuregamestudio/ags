@@ -55,6 +55,8 @@ String GetMainGameFileErrorText(MainGameFileError err)
         return "Format version is too old; this engine can only run games made with AGS 2.5 or later";
     case kMGFErr_FormatVersionNotSupported:
         return "Format version not supported";
+    case kMGFErr_CapsNotSupported:
+        return "Required engine caps are not supported";
     case kMGFErr_InvalidNativeResolution:
         return "Unable to determine native game resolution";
     case kMGFErr_TooManyFonts:
@@ -123,10 +125,16 @@ MainGameFileError OpenMainGameFileBase(PStream &in, MainGameSource &src)
     src.DataVersion = (GameDataVersion)in->ReadInt32();
     if (src.DataVersion < kGameVersion_250)
         return kMGFErr_FormatVersionTooOld;
-    String version_str = StrUtil::ReadString(in.get());
-    src.EngineVersion.SetFromString(version_str);
+    src.CompiledWith = StrUtil::ReadString(in.get());
     if (src.DataVersion > kGameVersion_Current)
         return kMGFErr_FormatVersionNotSupported;
+    // Read required capabilities
+    if (src.DataVersion >= kGameVersion_341)
+    {
+        size_t count = in->ReadInt32();
+        for (size_t i = 0; i < count; ++i)
+            src.Caps.insert(StrUtil::ReadString(in.get()));
+    }
     // Everything is fine, return opened stream
     src.InputStream = in;
     // Remember loaded game data version

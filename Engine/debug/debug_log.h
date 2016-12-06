@@ -25,9 +25,9 @@ void init_debug();
 void apply_debug_config(const AGS::Common::ConfigTree &cfg);
 void shutdown_debug();
 
-#define DEBUG_CONSOLE if (play.debug_mode) debug_write_console
-
-void debug_write_console (const char *msg, ...);
+// debug_script_log prints debug message tagged with kDbgGroup_Script,
+// prepending it with current script position identification
+void debug_script_log(const char *msg, ...);
 
 /* The idea of this is that non-essential errors such as "sound file not
 found" are logged instead of exiting the program.
@@ -43,12 +43,7 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) ;
 
 extern int debug_flags;
 
-struct DebugConsoleText {
-    char text[100];
-    char script[12];
-};
-
-extern DebugConsoleText debug_line[DEBUG_CONSOLE_NUMLINES];
+extern AGS::Common::String debug_line[DEBUG_CONSOLE_NUMLINES];
 extern int first_debug_line, last_debug_line, display_console;
 extern bool enable_log_file;
 extern bool disable_log_file;

@@ -247,7 +247,7 @@ void check_controls() {
         else if (!IsInterfaceEnabled()) ;  // blocking cutscene, ignore mouse
         else if (pl_run_plugin_hooks(AGSE_MOUSECLICK, aa+1)) {
             // plugin took the click
-            DEBUG_CONSOLE("Plugin handled mouse button %d", aa+1);
+            debug_script_log("Plugin handled mouse button %d", aa+1);
         }
         else if (mongu>=0) {
             if (wasbutdown==0) {
@@ -299,7 +299,7 @@ void check_controls() {
         if (play.fast_forward) { }
         else if (pl_run_plugin_hooks(AGSE_KEYPRESS, kgn)) {
             // plugin took the keypress
-            DEBUG_CONSOLE("Keypress code %d taken by plugin", kgn);
+            debug_script_log("Keypress code %d taken by plugin", kgn);
         }
         else if ((kgn == '`') && (play.debug_mode > 0)) {
             // debug console
@@ -321,7 +321,7 @@ void check_controls() {
         }
         else if ((play.wait_counter > 0) && (play.key_skip_wait > 0)) {
             play.wait_counter = -1;
-            DEBUG_CONSOLE("Keypress code %d ignored - in Wait", kgn);
+            debug_script_log("Keypress code %d ignored - in Wait", kgn);
         }
         else if ((kgn == 5) && (display_fps == 2)) {
             // if --fps paramter is used, Ctrl+E will max out frame rate
@@ -389,7 +389,7 @@ void check_controls() {
         }
         else if (inside_script) {
             // Don't queue up another keypress if it can't be run instantly
-            DEBUG_CONSOLE("Keypress %d ignored (game blocked)", kgn);
+            debug_script_log("Keypress %d ignored (game blocked)", kgn);
         }
         else {
             int keywasprocessed = 0;
@@ -420,7 +420,7 @@ void check_controls() {
             }
             if (!keywasprocessed) {
                 kgn = GetKeyForKeyPressCb(kgn);
-                DEBUG_CONSOLE("Running on_key_press keycode %d", kgn);
+                debug_script_log("Running on_key_press keycode %d", kgn);
                 setevent(EV_TEXTSCRIPT,TS_KEYPRESS,kgn);
             }
         }
@@ -718,7 +718,7 @@ void UpdateMouseOverLocation()
                 // in which case don't change the image
                 set_mouse_cursor(play.restore_cursor_image_to);
             }
-            DEBUG_CONSOLE("Restore mouse to mode %d cursor %d", play.restore_cursor_mode_to, play.restore_cursor_image_to);
+            debug_script_log("Restore mouse to mode %d cursor %d", play.restore_cursor_mode_to, play.restore_cursor_image_to);
     }
 }
 

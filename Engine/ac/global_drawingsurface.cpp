@@ -83,7 +83,7 @@ void RawRestoreScreenTinted(int red, int green, int blue, int opacity) {
         (opacity < 1) || (opacity > 100))
         quit("!RawRestoreScreenTinted: invalid parameter. R,G,B must be 0-255, opacity 1-100");
 
-    DEBUG_CONSOLE("RawRestoreTinted RGB(%d,%d,%d) %d%%", red, green, blue, opacity);
+    debug_script_log("RawRestoreTinted RGB(%d,%d,%d) %d%%", red, green, blue, opacity);
 
     Bitmap *deston = thisroom.ebscene[play.bg_frame];
     tint_image(deston, raw_saved_screen, red, green, blue, opacity);

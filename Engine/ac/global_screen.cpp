@@ -151,7 +151,7 @@ void SetScreenTransition(int newtrans) {
 
     play.fade_effect = newtrans;
 
-    DEBUG_CONSOLE("Screen transition changed");
+    debug_script_log("Screen transition changed");
 }
 
 void SetNextScreenTransition(int newtrans) {
@@ -160,7 +160,7 @@ void SetNextScreenTransition(int newtrans) {
 
     play.next_screen_transition = newtrans;
 
-    DEBUG_CONSOLE("SetNextScreenTransition engaged");
+    debug_script_log("SetNextScreenTransition engaged");
 }
 
 void SetFadeColor(int red, int green, int blue) {

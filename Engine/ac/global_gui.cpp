@@ -59,12 +59,12 @@ void InterfaceOn(int ifn) {
   EndSkippingUntilCharStops();
 
   if (guis[ifn].IsVisible()) {
-    DEBUG_CONSOLE("GUIOn(%d) ignored (already on)", ifn);
+    debug_script_log("GUIOn(%d) ignored (already on)", ifn);
     return;
   }
   guis_need_update = 1;
   guis[ifn].SetVisibility(kGUIVisibility_On);
-  DEBUG_CONSOLE("GUI %d turned on", ifn);
+  debug_script_log("GUI %d turned on", ifn);
   // modal interface
   if (guis[ifn].PopupStyle==kGUIPopupModal) PauseGame();
   else if (guis[ifn].PopupStyle==kGUIPopupMouseY) guis[ifn].SetVisibility(kGUIVisibility_Off);
@@ -76,10 +76,10 @@ void InterfaceOn(int ifn) {
 void InterfaceOff(int ifn) {
   if ((ifn<0) | (ifn>=game.numgui)) quit("!GUIOff: invalid GUI specified");
   if ((guis[ifn].IsOff()) && (guis[ifn].PopupStyle!=kGUIPopupMouseY)) {
-    DEBUG_CONSOLE("GUIOff(%d) ignored (already off)", ifn);
+    debug_script_log("GUIOff(%d) ignored (already off)", ifn);
     return;
   }
-  DEBUG_CONSOLE("GUI %d turned off", ifn);
+  debug_script_log("GUI %d turned off", ifn);
   guis[ifn].SetVisibility(kGUIVisibility_Off);
   if (guis[ifn].MouseOverCtrl>=0) {
     // Make sure that the overpic is turned off when the GUI goes off

@@ -153,7 +153,7 @@ void System_SetGamma(int newValue) {
         quitprintf("!System.Gamma: value must be between 0-200 (not %d)", newValue);
 
     if (play.gamma_adjustment != newValue) {
-        DEBUG_CONSOLE("Gamma control set to %d", newValue);
+        debug_script_log("Gamma control set to %d", newValue);
         play.gamma_adjustment = newValue;
 
         if (gfxDriver->SupportsGammaControl())

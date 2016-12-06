@@ -385,7 +385,7 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
         return;
     }
 
-    DEBUG_CONSOLE("Object %d start move to %d,%d", objj, tox, toy);
+    debug_script_log("Object %d start move to %d,%d", objj, tox, toy);
 
     int objX = convert_to_low_res(objs[objj].x);
     int objY = convert_to_low_res(objs[objj].y);

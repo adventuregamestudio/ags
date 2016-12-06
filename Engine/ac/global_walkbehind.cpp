@@ -31,6 +31,6 @@ void SetWalkBehindBase(int wa,int bl) {
     walk_behind_baselines_changed = 1;
     invalidate_cached_walkbehinds();
     croom->walkbehind_base[wa] = bl;
-    DEBUG_CONSOLE("Walk-behind %d baseline changed to %d", wa, bl);
+    debug_script_log("Walk-behind %d baseline changed to %d", wa, bl);
   }
 }

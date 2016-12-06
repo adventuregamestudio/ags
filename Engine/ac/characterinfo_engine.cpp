@@ -477,7 +477,7 @@ void CharacterInfo::update_character_idle(CharacterExtras *chex, int &doing_noth
       idleleft--;
       if (idleleft == -1) {
         int useloop=loop;
-        DEBUG_CONSOLE("%s: Now idle (view %d)", scrname, idleview+1);
+        debug_script_log("%s: Now idle (view %d)", scrname, idleview+1);
 		Character_LockView(this, idleview+1);
         // SetCharView resets it to 0
         idleleft = -2;

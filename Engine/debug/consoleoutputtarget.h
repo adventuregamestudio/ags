@@ -12,7 +12,8 @@
 //
 //=============================================================================
 //
-// AGS logging system
+// ConsoleOutputTarget prints messages onto in-game console GUI (available
+// only if the game was compiled in debug mode).
 //
 //=============================================================================
 #ifndef __AGS_EE_DEBUG__CONSOLEOUTPUTTARGET_H

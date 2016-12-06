@@ -52,7 +52,7 @@ void SetAmbientTint (int red, int green, int blue, int opacity, int luminance) {
         (luminance < 0) || (luminance > 100))
         quit("!SetTint: invalid parameter. R,G,B must be 0-255, opacity & luminance 0-100");
 
-    DEBUG_CONSOLE("Set ambient tint RGB(%d,%d,%d) %d%%", red, green, blue, opacity);
+    debug_script_log("Set ambient tint RGB(%d,%d,%d) %d%%", red, green, blue, opacity);
 
     play.rtint_enabled = opacity > 0;
     play.rtint_red = red;
@@ -83,7 +83,7 @@ void NewRoom(int nrnum) {
     }
 
 
-    DEBUG_CONSOLE("Room change requested to room %d", nrnum);
+    debug_script_log("Room change requested to room %d", nrnum);
     EndSkippingUntilCharStops();
 
     can_run_delayed_command();
@@ -160,7 +160,7 @@ void ResetRoom(int nrnum) {
         roomstat->beenhere = 0;
     }
 
-    DEBUG_CONSOLE("Room %d reset to original state", nrnum);
+    debug_script_log("Room %d reset to original state", nrnum);
 }
 
 int HasPlayerBeenInRoom(int roomnum) {

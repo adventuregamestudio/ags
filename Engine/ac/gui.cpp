@@ -617,7 +617,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown)
 
 void gui_on_mouse_down(const int guin, const int mbut)
 {
-    DEBUG_CONSOLE("Mouse click over GUI %d", guin);
+    debug_script_log("Mouse click over GUI %d", guin);
     guis[guin].OnMouseButtonDown();
     // run GUI click handler if not on any control
     if ((guis[guin].MouseDownCtrl < 0) && (!guis[guin].OnClickHandler.IsEmpty()))

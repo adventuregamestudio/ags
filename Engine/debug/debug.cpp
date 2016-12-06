@@ -15,6 +15,7 @@
 #include <memory>
 #include <stdio.h>
 #include "ac/common.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "debug/debug_log.h"
@@ -42,6 +43,7 @@ extern int displayed_room;
 extern roomstruct thisroom;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern volatile char want_exit, abort_engine;
+extern GameSetupStruct game;
 
 
 int use_compiled_folder_as_current_dir = 0;
@@ -75,7 +77,7 @@ int debug_flags=0;
 bool enable_log_file = false;
 bool disable_log_file = false;
 
-DebugConsoleText debug_line[DEBUG_CONSOLE_NUMLINES];
+String debug_line[DEBUG_CONSOLE_NUMLINES];
 int first_debug_line = 0, last_debug_line = 0, display_console = 0;
 
 int fps=0,display_fps=0;
@@ -96,8 +98,8 @@ void init_debug()
 
     // Register outputs
     DbgMgr.RegisterOutput(OutputMsgBufID, DebugMsgBuff.get(), kDbgMsgSet_All);
-    DbgMgr.RegisterOutput(OutputSystemID, AGSPlatformDriver::GetDriver(), kDbgMsgSet_Errors);
-    DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsgSet_All);
+    PDebugOutput std_out = DbgMgr.RegisterOutput(OutputSystemID, AGSPlatformDriver::GetDriver(), kDbgMsgSet_Errors);
+    std_out->SetGroupFilter(kDbgGroup_Script, kDbgMsg_None);
 }
 
 void apply_debug_config(const ConfigTree &cfg)
@@ -105,12 +107,18 @@ void apply_debug_config(const ConfigTree &cfg)
     if (INIreadint(cfg, "misc", "log", 0) != 0)
     {
         DebugLogFile.reset(new LogFile());
-        DbgMgr.RegisterOutput(OutputFileID, DebugLogFile.get(), kDbgMsgSet_All);
+        PDebugOutput file_out = DbgMgr.RegisterOutput(OutputFileID, DebugLogFile.get(), kDbgMsgSet_All);
+        file_out->SetGroupFilter(kDbgGroup_Script, kDbgMsgSet_Errors);
         String logfile_path = platform->GetAppOutputDirectory();
         logfile_path.Append("/ags.log");
         if (DebugLogFile->OpenFile(logfile_path))
             platform->WriteStdOut("Logging to %s", logfile_path.GetCStr());
-        DebugMsgBuff->Flush(OutputFileID);
+        DebugMsgBuff->Send(OutputFileID);
+    }
+    if (game.options[OPT_DEBUGMODE] != 0)
+    {
+        DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsgSet_All);
+        DebugMsgBuff->Send(OutputGameConsoleID);
     }
     DbgMgr.UnregisterOutput(OutputMsgBufID);
     DebugMsgBuff.reset();
@@ -174,8 +182,8 @@ void debug_log(const char *texx, ...) {
     Stream *outfil = Common::File::OpenFileWrite("warnings.log");
     if (outfil == NULL)
     {
-        debug_write_console("* UNABLE TO WRITE TO WARNINGS.LOG");
-        debug_write_console(displbuf);
+        debug_script_log("* UNABLE TO WRITE TO WARNINGS.LOG");
+        debug_script_log(displbuf);
     }
     else
     {
@@ -185,37 +193,29 @@ void debug_log(const char *texx, ...) {
 }
 
 
-void debug_write_console (const char *msg, ...) {
-    char displbuf[STD_BUFFER_SIZE];
+void debug_script_log(const char *msg, ...)
+{
     va_list ap;
-    va_start(ap,msg);
-    vsprintf(displbuf,msg,ap);
+    va_start(ap, msg);
+    String full_msg = String::FromFormatV(msg, ap);
     va_end(ap);
-    displbuf[99] = 0;
 
-    strcpy (debug_line[last_debug_line].text, displbuf);
-    ccInstance*curinst = ccInstance::GetCurrentInstance();
+    String script_ref;
+    ccInstance *curinst = ccInstance::GetCurrentInstance();
     if (curinst != NULL) {
-        char scriptname[20];
+        String scriptname;
         if (curinst->instanceof == gamescript)
-            strcpy(scriptname,"G ");
+            scriptname = "G ";
         else if (curinst->instanceof == thisroom.compiled_script)
-            strcpy (scriptname, "R ");
+            scriptname = "R ";
         else if (curinst->instanceof == dialogScriptsScript)
-            strcpy(scriptname,"D ");
+            scriptname = "D ";
         else
-            strcpy(scriptname,"? ");
-        sprintf(debug_line[last_debug_line].script,"%s%d",scriptname,currentline);
+            scriptname = "? ";
+        script_ref.Format("[%s%d] ", scriptname.GetCStr(), currentline);
     }
-    else debug_line[last_debug_line].script[0] = 0;
 
-    platform->WriteStdOut("%s (%s)", displbuf, debug_line[last_debug_line].script);
-
-    last_debug_line = (last_debug_line + 1) % DEBUG_CONSOLE_NUMLINES;
-
-    if (last_debug_line == first_debug_line)
-        first_debug_line = (first_debug_line + 1) % DEBUG_CONSOLE_NUMLINES;
-
+    Debug::Printf(kDbgGroup_Script, kDbgMsg_Debug, "%s%s", script_ref.GetCStr(), full_msg.GetCStr());
 }
 
 

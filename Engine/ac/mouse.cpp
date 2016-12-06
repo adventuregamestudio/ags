@@ -80,7 +80,7 @@ void SetMouseBounds (int x1, int y1, int x2, int y2) {
     if ((x1 > x2) || (y1 > y2) || (x1 < 0) || (x2 >= BASEWIDTH) ||
         (y1 < 0) || (y2 >= MOUSE_MAX_Y))
         quit("!SetMouseBounds: invalid co-ordinates, must be within (0,0) - (320,200)");
-    DEBUG_CONSOLE("Mouse bounds constrained to (%d,%d)-(%d,%d)", x1, y1, x2, y2);
+    debug_script_log("Mouse bounds constrained to (%d,%d)-(%d,%d)", x1, y1, x2, y2);
     multiply_up_coordinates(&x1, &y1);
     multiply_up_coordinates_round_up(&x2, &y2);
 
@@ -220,7 +220,7 @@ void set_cursor_mode(int newmode) {
     cur_mode=newmode;
     set_default_cursor();
 
-    DEBUG_CONSOLE("Cursor mode set to %d", newmode);
+    debug_script_log("Cursor mode set to %d", newmode);
 }
 
 void enable_cursor_mode(int modd) {

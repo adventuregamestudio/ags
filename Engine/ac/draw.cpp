@@ -2449,8 +2449,7 @@ void update_screen() {
         debugConsoleBuffer->FillRect(Rect (0, 0, play.viewport.GetWidth() - 1, barheight), draw_color);
         color_t text_color = debugConsoleBuffer->GetCompatibleColor(16);
         for (int jj = first_debug_line; jj != last_debug_line; jj = (jj + 1) % DEBUG_CONSOLE_NUMLINES) {
-            wouttextxy(debugConsoleBuffer, 1, ypp, 0, text_color, debug_line[jj].text);
-            wouttextxy(debugConsoleBuffer, play.viewport.GetWidth() - get_fixed_pixel_size(40), ypp, 0, text_color, debug_line[jj].script);
+            wouttextxy(debugConsoleBuffer, 1, ypp, 0, text_color, debug_line[jj]);
             ypp += txtheight;
         }
         //buf_graphics.text_color = otextc;

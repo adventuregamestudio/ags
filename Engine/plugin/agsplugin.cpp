@@ -484,7 +484,7 @@ void IAGSEngine::GetTextExtent (int32 font, const char *text, int32 *width, int3
         height[0] = wgettextheight ((char*)text, font);
 }
 void IAGSEngine::PrintDebugConsole (const char *text) {
-    DEBUG_CONSOLE("[PLUGIN] %s", text);
+    debug_script_log("[PLUGIN] %s", text);
     platform->WriteStdOut("[PLUGIN] %s", text);
 }
 int IAGSEngine::IsChannelPlaying (int32 channel) {

@@ -2324,17 +2324,6 @@ void draw_misc_info()
 
     Bitmap *ds = GetVirtualScreen();
 
-    /*
-    if (channels[SCHAN_SPEECH] != NULL) {
-
-    char tbuffer[60];
-    sprintf(tbuffer,"mpos: %d", channels[SCHAN_SPEECH]->get_pos_ms());
-    write_log(tbuffer);
-    int yp = play.viewport.GetHeight() - (wgetfontheight(FONT_SPEECH) + 25 * symult);
-    ds->SetTextColor(14);
-    draw_and_invalidate_text(1, yp, FONT_SPEECH,tbuffer);
-    }*/
-
     color_t text_color;
     if (play.recording) {
         // Flash "REC" while recording

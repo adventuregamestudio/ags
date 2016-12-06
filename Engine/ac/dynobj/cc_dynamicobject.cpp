@@ -31,10 +31,12 @@
 #include <string.h>
 #include "ac/dynobj/cc_dynamicobject.h"
 #include "ac/dynobj/managedobjectpool.h"
+#include "debug/out.h"
 #include "script/cc_error.h"
+#include "script/script_common.h"
 #include "util/stream.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 ICCStringClass *stringClassImpl = NULL;
 
@@ -48,11 +50,8 @@ void ccSetStringClassImpl(ICCStringClass *theClass) {
 int32_t ccRegisterManagedObject(const void *object, ICCDynamicObject *callback, bool plugin_object) {
     int32_t handl = pool.AddObject((const char*)object, callback, plugin_object);
 
-#ifdef DEBUG_MANAGED_OBJECTS
-    char bufff[200];
-    sprintf(bufff,"Register managed object type '%s' handle=%d addr=%08X", ((callback == NULL) ? "(unknown)" : callback->GetType()), handl, object);
-    write_log(bufff);
-#endif
+    ManagedObjectLog("Register managed object type '%s' handle=%d addr=%08X",
+        ((callback == NULL) ? "(unknown)" : callback->GetType()), handl, object);
 
     return handl;
 }
@@ -98,11 +97,7 @@ int32_t ccGetObjectHandleFromAddress(const char *address) {
 
     int32_t handl = pool.AddressToHandle(address);
 
-#ifdef DEBUG_MANAGED_OBJECTS
-    char bufff[200];
-    sprintf(bufff,"Line %d WritePtr: %08X to %d", currentline, address, handl);
-    write_log(bufff);
-#endif
+    ManagedObjectLog("Line %d WritePtr: %08X to %d", currentline, address, handl);
 
     if (handl == 0) {
         cc_error("Pointer cast failure: the object being pointed to is not in the managed object pool");
@@ -117,11 +112,7 @@ const char *ccGetObjectAddressFromHandle(int32_t handle) {
     }
     const char *addr = pool.HandleToAddress(handle);
 
-#ifdef DEBUG_MANAGED_OBJECTS
-    char bufff[200];
-    sprintf(bufff,"Line %d ReadPtr: %d to %08X", currentline, handle, addr);
-    write_log(bufff);
-#endif
+    ManagedObjectLog("Line %d ReadPtr: %d to %08X", currentline, handle, addr);
 
     if (addr == NULL) {
         cc_error("Error retrieving pointer: invalid handle %d", handle);

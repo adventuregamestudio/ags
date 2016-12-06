@@ -17,11 +17,13 @@
 #include <string.h>
 #include "ac/dynobj/managedobjectpool.h"
 #include "ac/dynobj/cc_dynamicarray.h" // globalDynamicArray, constants
+#include "debug/out.h"
 #include "util/string_utils.h"               // fputstring, etc
 #include "script/cc_error.h"
+#include "script/script_common.h"
 #include "util/stream.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 void ManagedObjectPool::ManagedObject::init(int32_t theHandle, const char *theAddress,
                                             ICCDynamicObject *theCallback, ScriptValueType objType) {
@@ -31,11 +33,7 @@ void ManagedObjectPool::ManagedObject::init(int32_t theHandle, const char *theAd
     callback = theCallback;
     refCount = 0;
 
-#ifdef DEBUG_MANAGED_OBJECTS
-    char bufff[200];
-    sprintf(bufff,"Allocated managed object handle=%d, type=%s", theHandle, theCallback->GetType());
-    write_log(bufff);
-#endif
+    ManagedObjectLog("Allocated managed object handle=%d, type=%s", theHandle, theCallback->GetType());
 }
 
 int ManagedObjectPool::ManagedObject::remove(bool force) {
@@ -44,11 +42,7 @@ int ManagedObjectPool::ManagedObject::remove(bool force) {
         (force == false))
         return 0;
 
-#ifdef DEBUG_MANAGED_OBJECTS
-    char bufff[200];
-    sprintf(bufff,"Line %d Disposing managed object handle=%d", currentline, handle);
-    write_log(bufff);
-#endif
+    ManagedObjectLog("Line %d Disposing managed object handle=%d", currentline, handle);
 
     handle = 0;
     addr = 0;
@@ -57,13 +51,7 @@ int ManagedObjectPool::ManagedObject::remove(bool force) {
 }
 
 int ManagedObjectPool::ManagedObject::AddRef() {
-
-#ifdef DEBUG_MANAGED_OBJECTS
-    char bufff[200];
-    sprintf(bufff,"Line %d AddRef: handle=%d new refcount=%d", currentline, handle, refCount+1);
-    write_log(bufff);
-#endif
-
+    ManagedObjectLog("Line %d AddRef: handle=%d new refcount=%d", currentline, handle, refCount+1);
     return ++refCount;
 }
 
@@ -77,24 +65,14 @@ int ManagedObjectPool::ManagedObject::CheckDispose() {
 
 int ManagedObjectPool::ManagedObject::SubRef() {
     refCount--;
-
-#ifdef DEBUG_MANAGED_OBJECTS
-    char bufff[200];
-    sprintf(bufff,"Line %d SubRef: handle=%d new refcount=%d", currentline, handle, refCount);
-    write_log(bufff);
-#endif
+    ManagedObjectLog("Line %d SubRef: handle=%d new refcount=%d", currentline, handle, refCount);
 
     return CheckDispose();
 }
 
 void ManagedObjectPool::ManagedObject::SubRefNoDispose() {
     refCount--;
-
-#ifdef DEBUG_MANAGED_OBJECTS
-    char bufff[200];
-    sprintf(bufff,"Line %d SubRefNoDispose: handle=%d new refcount=%d", currentline, handle, refCount);
-    write_log(bufff);
-#endif
+    ManagedObjectLog("Line %d SubRefNoDispose: handle=%d new refcount=%d", currentline, handle, refCount);
 }
 
 int32_t ManagedObjectPool::AddRef(int32_t handle) {
@@ -172,7 +150,7 @@ void ManagedObjectPool::RunGarbageCollectionIfAppropriate()
 
 void ManagedObjectPool::RunGarbageCollection()
 {
-    //write_log("Running garbage collection");
+    ManagedObjectLog("Running garbage collection");
 
     for (int i = 1; i < numObjects; i++) 
     {

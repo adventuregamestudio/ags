@@ -99,7 +99,9 @@ void init_debug()
     // Register outputs
     DbgMgr.RegisterOutput(OutputMsgBufID, DebugMsgBuff.get(), kDbgMsgSet_All);
     PDebugOutput std_out = DbgMgr.RegisterOutput(OutputSystemID, AGSPlatformDriver::GetDriver(), kDbgMsgSet_Errors);
+    std_out->SetGroupFilter(kDbgGroup_SprCache, kDbgMsg_None);
     std_out->SetGroupFilter(kDbgGroup_Script, kDbgMsg_None);
+    std_out->SetGroupFilter(kDbgGroup_ManObj, kDbgMsg_None);
 }
 
 void apply_debug_config(const ConfigTree &cfg)
@@ -108,7 +110,17 @@ void apply_debug_config(const ConfigTree &cfg)
     {
         DebugLogFile.reset(new LogFile());
         PDebugOutput file_out = DbgMgr.RegisterOutput(OutputFileID, DebugLogFile.get(), kDbgMsgSet_All);
+#ifdef DEBUG_SPRITECACHE
+        file_out->SetGroupFilter(kDbgGroup_SprCache, kDbgMsgSet_All);
+#else
+        file_out->SetGroupFilter(kDbgGroup_SprCache, kDbgMsgSet_Errors);
+#endif
         file_out->SetGroupFilter(kDbgGroup_Script, kDbgMsgSet_Errors);
+#ifdef DEBUG_MANAGED_OBJECTS
+        file_out->SetGroupFilter(kDbgGroup_ManObj, kDbgMsgSet_All);
+#else
+        file_out->SetGroupFilter(kDbgGroup_ManObj, kDbgMsgSet_Errors);
+#endif
         String logfile_path = platform->GetAppOutputDirectory();
         logfile_path.Append("/ags.log");
         if (DebugLogFile->OpenFile(logfile_path))
@@ -117,7 +129,9 @@ void apply_debug_config(const ConfigTree &cfg)
     }
     if (game.options[OPT_DEBUGMODE] != 0)
     {
-        DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsgSet_All);
+        PDebugOutput gmcs_out = DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsgSet_All);
+        gmcs_out->SetGroupFilter(kDbgGroup_SprCache, kDbgMsgSet_Errors);
+        gmcs_out->SetGroupFilter(kDbgGroup_ManObj, kDbgMsgSet_Errors);
         DebugMsgBuff->Send(OutputGameConsoleID);
     }
     DbgMgr.UnregisterOutput(OutputMsgBufID);
@@ -141,15 +155,6 @@ void quitprintf(const char *texx, ...)
     vsprintf(displbuf,texx,ap);
     va_end(ap);
     quit(displbuf);
-}
-
-void write_log(const char*msg) {
-    /*
-    FILE*ooo=fopen("ac.log","at");
-    fprintf(ooo,"%s\n",msg);
-    fclose(ooo);
-    */
-    Debug::Printf(msg);
 }
 
 /* The idea of this is that non-essential errors such as "sound file not

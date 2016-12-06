@@ -38,7 +38,6 @@ int suggestx, suggesty;
 fixed move_speed_x, move_speed_y;
 
 extern void Display(const char *, ...);
-extern void write_log(const char *);
 extern void update_polled_stuff_if_runtime();
 
 extern MoveList *mls;
@@ -413,7 +412,6 @@ int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
   visited[0] = fromy * wallscreen->GetWidth() + fromx;
   parent[visited[0]] = -1;
 
-//  write_log("Pathfind starting");
   int granularity = 3, newx = -1, newy, foundAnswer = -1, numreplace;
   int changeiter, numfound, adjcount;
   int destxlow = destx - MAX_GRANULARITY;
@@ -441,7 +439,6 @@ int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
       granularity = walk_area_granularity[wallscreen->GetScanLine(j)[i]];
       adjcount = 1;
 
-//    char tempb[200]; sprintf(tempb, "checking: %d,%d\n",i,j); write_log(tempb);
       if (i >= granularity) {
         modifier = (destx < i) ? DIRECTION_BONUS : 0;
         CHECK_MIN(i - granularity, j)

@@ -441,11 +441,7 @@ int ccInstance::PrepareTextScript(const char**tsname) {
     }
     scripts[num_scripts].init();
     scripts[num_scripts].inst = this;
-    /*  char tempb[300];
-    sprintf(tempb,"Creating script instance for '%s' room %d",tsname[0],displayed_room);
-    write_log(tempb);*/
     if (pc != 0) {
-        //    write_log("Forking instance");
         scripts[num_scripts].inst = Fork();
         if (scripts[num_scripts].inst == NULL)
             quit("unable to fork instance for secondary script");

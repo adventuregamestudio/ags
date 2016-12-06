@@ -24,9 +24,6 @@ void* ScriptString::CreateString(const char *fromText) {
 int ScriptString::Dispose(const char *address, bool force) {
     // always dispose
     if (text) {
-        /*    char buffer[1000];
-        sprintf(buffer, "String %p deleted: '%s'", text, text);
-        write_log(buffer);*/
         free(text);
     }
     delete this;

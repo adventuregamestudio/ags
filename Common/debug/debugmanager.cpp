@@ -21,7 +21,8 @@ namespace Common
 {
 
 DebugOutput::DebugOutput(const String &id, IOutputHandler *handler, MessageType def_verbosity, bool enabled)
-    : _handler(handler)
+    : _id(id)
+    , _handler(handler)
     , _enabled(enabled)
     , _defaultVerbosity(def_verbosity)
 {

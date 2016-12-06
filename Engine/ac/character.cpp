@@ -288,7 +288,7 @@ void Character_ChangeView(CharacterInfo *chap, int vii) {
 
     // if animating, but not idle view, give warning message
     if ((chap->flags & CHF_FIXVIEW) && (chap->idleleft >= 0))
-        debug_log("Warning: ChangeCharacterView was used while the view was fixed - call ReleaseCharView first");
+        debug_script_warn("Warning: ChangeCharacterView was used while the view was fixed - call ReleaseCharView first");
 
     // if the idle animation is playing we should release the view
     if ( chap->idleleft < 0) {
@@ -511,7 +511,7 @@ void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int
     }
 
     if (chaa->animating & CHANIM_REPEAT)
-        debug_log("Warning: FollowCharacter called but the sheep is currently animating looped. It may never start to follow.");
+        debug_script_warn("Warning: FollowCharacter called but the sheep is currently animating looped. It may never start to follow.");
 
 }
 
@@ -751,7 +751,7 @@ void Character_RemoveTint(CharacterInfo *chaa) {
         chaa->flags &= ~(CHF_HASTINT | CHF_HASLIGHT);
     }
     else {
-        debug_log("Character.RemoveTint called but character was not tinted");
+        debug_script_warn("Character.RemoveTint called but character was not tinted");
     }
 }
 
@@ -859,7 +859,7 @@ void Character_SetIdleView(CharacterInfo *chaa, int iview, int itime) {
         debug_script_log("%s idle view disabled", chaa->scrname);
     }
     if (chaa->flags & CHF_FIXVIEW) {
-        debug_log("SetCharacterIdle called while character view locked with SetCharacterView; idle ignored");
+        debug_script_warn("SetCharacterIdle called while character view locked with SetCharacterView; idle ignored");
         debug_script_log("View locked, idle will not kick in until Released");
     }
     // if they switch to a swimming animation, kick it off immediately
@@ -1698,7 +1698,7 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
         move_speed_y = chin->walkspeed_y;
 
     if ((move_speed_x == 0) && (move_speed_y == 0)) {
-        debug_log("Warning: MoveCharacter called for '%s' with walk speed 0", chin->name);
+        debug_script_warn("Warning: MoveCharacter called for '%s' with walk speed 0", chin->name);
     }
 
     set_route_move_speed(move_speed_x, move_speed_y);

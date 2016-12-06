@@ -25,16 +25,12 @@ void init_debug();
 void apply_debug_config(const AGS::Common::ConfigTree &cfg);
 void shutdown_debug();
 
+// debug_script_log prints debug warnings tagged with kDbgGroup_Script,
+// prepending it with current room number and script position identification
+void debug_script_warn(const char *texx, ...);
 // debug_script_log prints debug message tagged with kDbgGroup_Script,
-// prepending it with current script position identification
+// prepending it with current room number and script position identification
 void debug_script_log(const char *msg, ...);
-
-/* The idea of this is that non-essential errors such as "sound file not
-found" are logged instead of exiting the program.
-*/
-// NOTE: debug_log only prints messages when game is in debug mode;
-// TODO: revise this later; use new output system with verbosity settings
-void debug_log(const char *texx, ...);
 void quitprintf(const char *texx, ...);
 bool init_editor_debugging();
 

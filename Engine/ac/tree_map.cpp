@@ -30,7 +30,7 @@ char* TreeMap::findValue (const char* key) {
 
     if (strcmp(key, text) == 0)
         return translation;
-    //debug_log("Compare: '%s' with '%s'", key, text);
+    //debug_script_warn("Compare: '%s' with '%s'", key, text);
 
     if (strcmp (key, text) < 0) {
         if (left == NULL)

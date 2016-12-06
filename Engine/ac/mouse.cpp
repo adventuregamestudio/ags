@@ -156,7 +156,7 @@ void ChangeCursorGraphic (int curs, int newslot) {
         quit("!ChangeCursorGraphic: invalid mouse cursor");
 
     if ((curs == MODE_USE) && (game.options[OPT_FIXEDINVCURSOR] == 0))
-        debug_log("Mouse.ChangeModeGraphic should not be used on the Inventory cursor when the cursor is linked to the active inventory item");
+        debug_script_warn("Mouse.ChangeModeGraphic should not be used on the Inventory cursor when the cursor is linked to the active inventory item");
 
     game.mcurs[curs].pic = newslot;
     spriteset.precache (newslot);

@@ -385,7 +385,7 @@ String MakeSaveGameDir(const char *newFolder)
         // For games made in the safe-path-aware versions of AGS, report a warning
         if (game.options[OPT_SAFEFILEPATHS])
         {
-            debug_log("Attempt to explicitly set savegame location relative to the game installation directory ('%s') denied;\nPath will be remapped to the user documents directory: '%s'",
+            debug_script_warn("Attempt to explicitly set savegame location relative to the game installation directory ('%s') denied;\nPath will be remapped to the user documents directory: '%s'",
                 newFolder, newSaveGameDir.GetCStr());
         }
     }
@@ -2316,7 +2316,7 @@ void display_switch_out()
 void display_switch_out_suspend()
 {
     // this is only called if in SWITCH_PAUSE mode
-    //debug_log("display_switch_out");
+    //debug_script_warn("display_switch_out");
     display_switch_out();
 
     switching_away_from_game++;

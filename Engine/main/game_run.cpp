@@ -110,7 +110,7 @@ void game_loop_check_problems_at_start()
         quit("!A text script run in the Player Enters Screen event caused the\n"
         "screen to be updated. If you need to use Wait(), do so in After Fadein");
     if ((in_enters_screen != 0) && (done_es_error == 0)) {
-        debug_log("Wait() was used in Player Enters Screen - use Enters Screen After Fadein instead");
+        debug_script_warn("Wait() was used in Player Enters Screen - use Enters Screen After Fadein instead");
         done_es_error = 1;
     }
     if (no_blocking_functions)

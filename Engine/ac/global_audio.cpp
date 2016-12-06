@@ -68,7 +68,7 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
 
             SOUNDCLIP *asound = aclip ? load_sound_and_play(aclip, true) : NULL;
             if (asound == NULL) {
-                debug_log ("Cannot load ambient sound %d", sndnum);
+                debug_script_warn ("Cannot load ambient sound %d", sndnum);
                 debug_script_log("FAILED to load ambient sound %d", sndnum);
                 return;
             }
@@ -157,7 +157,7 @@ int PlaySoundEx(int val1, int channel) {
 
     SOUNDCLIP *soundfx = aclip ? load_sound_and_play(aclip, false) : NULL;
     if (soundfx == NULL) {
-        debug_log("Sound sample load failure: cannot load sound %d", val1);
+        debug_script_warn("Sound sample load failure: cannot load sound %d", val1);
         debug_script_log("FAILED to load sound %d", val1);
         return -1;
     }
@@ -383,7 +383,7 @@ void PlayMP3File (const char *filename) {
             strcpy (play.playmp3file_name, filename);
     }
     else
-        debug_log ("PlayMP3File: file '%s' not found or cannot play", filename);
+        debug_script_warn ("PlayMP3File: file '%s' not found or cannot play", filename);
 
     post_new_music_check(useChan);
 
@@ -520,7 +520,7 @@ int play_speech(int charid,int sndid) {
     }
 
     if (speechmp3 == NULL) {
-        debug_log ("Speech load failure: '%s'",finame);
+        debug_script_warn ("Speech load failure: '%s'",finame);
         curLipLine = -1;
         return 0;
     }

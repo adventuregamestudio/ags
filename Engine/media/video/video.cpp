@@ -132,7 +132,7 @@ void play_flc_file(int numb,int playflags) {
     if (in==NULL) { sprintf(flicnam,"flic%d.fli",numb);
     in=Common::AssetManager::OpenAsset(flicnam); }
     if (in==NULL) {
-        debug_log("FLIC animation FLIC%d.FLC not found",numb);
+        debug_script_warn("FLIC animation FLIC%d.FLC not found",numb);
         return;
     }
     in->Seek(8);

@@ -1726,7 +1726,7 @@ void tint_image (Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int ligh
 
     if ((srcimg->GetColorDepth() != ds->GetColorDepth()) ||
         (srcimg->GetColorDepth() <= 8)) {
-            debug_log("Image tint failed - images must both be hi-color");
+            debug_script_warn("Image tint failed - images must both be hi-color");
             // the caller expects something to have been copied
             ds->Blit(srcimg, 0, 0, 0, 0, srcimg->GetWidth(), srcimg->GetHeight());
             return;

@@ -1049,7 +1049,7 @@ SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat) {
 
     if ((loaded == NULL) && (mnum > 0)) 
     {
-        debug_log("Music %d not found",mnum);
+        debug_script_warn("Music %d not found",mnum);
         debug_script_log("FAILED to load music %d", mnum);
     }
 

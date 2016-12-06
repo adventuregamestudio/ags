@@ -56,7 +56,7 @@ void RunDialog(int tum) {
 
 void StopDialog() {
   if (play.stop_dialog_at_end == DIALOG_NONE) {
-    debug_log("StopDialog called, but was not in a dialog");
+    debug_script_warn("StopDialog called, but was not in a dialog");
     debug_script_log("StopDialog called but no dialog");
     return;
   }

@@ -54,20 +54,22 @@ public:
     virtual void PrintMessage(const Common::DebugMessage &msg);
 
     // Open file using given file path, optionally appending if one exists
-        //
-        // TODO: filepath parameter here may be actually used as a pattern
-        // or prefix, while the actual filename could be made by combining
-        // this prefix with current date, game name, and similar additional
-        // useful information. Whether this is to be determined here or on
-        // high-level side remains a question.
-        //
-    bool         OpenFile(const String &file_path, LogFileOpenMode open_mode = kLogFile_OpenOverwrite);
+    //
+    // TODO: filepath parameter here may be actually used as a pattern
+    // or prefix, while the actual filename could be made by combining
+    // this prefix with current date, game name, and similar additional
+    // useful information. Whether this is to be determined here or on
+    // high-level side remains a question.
+    //
+    bool         OpenFile(const String &file_path, LogFileOpenMode open_mode = kLogFile_OpenOverwrite,
+                          bool open_at_first_msg = false);
         // Close file
     void         CloseFile();
 
 private:
         std::auto_ptr<Stream> _file;
         String                _filePath;
+        LogFileOpenMode       _openMode;
 };
 
 }   // namespace Engine

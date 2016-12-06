@@ -124,7 +124,7 @@ void RemoveObjectTint(int obj) {
         objs[obj].flags &= ~(OBJF_HASTINT | OBJF_HASLIGHT);
     }
     else {
-        debug_log("RemoveObjectTint called but object was not tinted");
+        debug_script_warn("RemoveObjectTint called but object was not tinted");
     }
 }
 

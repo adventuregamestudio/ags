@@ -25,13 +25,22 @@ namespace Engine
 using namespace Common;
 
 LogFile::LogFile()
+    : _openMode(kLogFile_OpenOverwrite)
 {
 }
 
 void LogFile::PrintMessage(const DebugMessage &msg)
 {
     if (!_file.get())
+    {
+        if (!_filePath.IsEmpty())
+        {
+            _file.reset(File::OpenFile(_filePath,
+                           _openMode == kLogFile_OpenAppend ? Common::kFile_Create : Common::kFile_CreateAlways,
+                           Common::kFile_Write));
+        }
         return;
+    }
 
     if (!msg.GroupName.IsEmpty())
     {
@@ -46,20 +55,25 @@ void LogFile::PrintMessage(const DebugMessage &msg)
     _file->Flush();
 }
 
-bool LogFile::OpenFile(const String &file_path, LogFileOpenMode open_mode)
+bool LogFile::OpenFile(const String &file_path, LogFileOpenMode open_mode, bool open_at_first_msg)
 {
     CloseFile();
 
     _filePath = file_path;
-    _file.reset(File::OpenFile(file_path,
+    _openMode = open_mode;
+    if (!open_at_first_msg)
+    {
+        _file.reset(File::OpenFile(file_path,
                            open_mode == kLogFile_OpenAppend ? Common::kFile_Create : Common::kFile_CreateAlways,
                            Common::kFile_Write));
-    return _file.get() != NULL;
+    }
+    return _file.get() != NULL || open_at_first_msg;
 }
 
 void LogFile::CloseFile()
 {
     _file.reset();
+    _filePath.Empty();
 }
 
 } // namespace Engine

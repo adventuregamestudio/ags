@@ -84,24 +84,23 @@ int fps=0,display_fps=0;
 
 std::auto_ptr<MessageBuffer> DebugMsgBuff;
 std::auto_ptr<LogFile> DebugLogFile;
+// warnings.log for the games compiled in debug mode
+std::auto_ptr<LogFile> DebugWarningsFile;
 std::auto_ptr<ConsoleOutputTarget> DebugConsole;
 
 const String OutputMsgBufID = "buffer";
 const String OutputFileID = "logfile";
+const String WarningFileID = "warnfile";
 const String OutputSystemID = "stderr";
 const String OutputGameConsoleID = "console";
 
 void init_debug()
 {
-    DebugMsgBuff.reset(new MessageBuffer());
-    DebugConsole.reset(new ConsoleOutputTarget());
-
     // Register outputs
+    DebugMsgBuff.reset(new MessageBuffer());
     DbgMgr.RegisterOutput(OutputMsgBufID, DebugMsgBuff.get(), kDbgMsgSet_All);
-    PDebugOutput std_out = DbgMgr.RegisterOutput(OutputSystemID, AGSPlatformDriver::GetDriver(), kDbgMsgSet_Errors);
-    std_out->SetGroupFilter(kDbgGroup_SprCache, kDbgMsg_None);
-    std_out->SetGroupFilter(kDbgGroup_Script, kDbgMsg_None);
-    std_out->SetGroupFilter(kDbgGroup_ManObj, kDbgMsg_None);
+    PDebugOutput std_out = DbgMgr.RegisterOutput(OutputSystemID, AGSPlatformDriver::GetDriver(), kDbgMsg_None);
+    std_out->SetGroupFilter(kDbgGroup_Main, kDbgMsgSet_Errors);
 }
 
 void apply_debug_config(const ConfigTree &cfg)
@@ -124,15 +123,38 @@ void apply_debug_config(const ConfigTree &cfg)
         String logfile_path = platform->GetAppOutputDirectory();
         logfile_path.Append("/ags.log");
         if (DebugLogFile->OpenFile(logfile_path))
+        {
             platform->WriteStdOut("Logging to %s", logfile_path.GetCStr());
-        DebugMsgBuff->Send(OutputFileID);
+            DebugMsgBuff->Send(OutputFileID);
+        }
+        else
+        {
+            DbgMgr.UnregisterOutput(OutputFileID);
+        }
     }
+
     if (game.options[OPT_DEBUGMODE] != 0)
     {
-        PDebugOutput gmcs_out = DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsgSet_All);
-        gmcs_out->SetGroupFilter(kDbgGroup_SprCache, kDbgMsgSet_Errors);
-        gmcs_out->SetGroupFilter(kDbgGroup_ManObj, kDbgMsgSet_Errors);
+        // Game console
+        DebugConsole.reset(new ConsoleOutputTarget());
+        PDebugOutput gmcs_out = DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsgSet_Errors);
+        gmcs_out->SetGroupFilter(kDbgGroup_Main, kDbgMsgSet_All);
+        gmcs_out->SetGroupFilter(kDbgGroup_Script, kDbgMsgSet_All);
         DebugMsgBuff->Send(OutputGameConsoleID);
+
+        // "Warnings.log" for printing script warnings in debug mode
+        DebugWarningsFile.reset(new LogFile());
+        PDebugOutput warn_out = DbgMgr.RegisterOutput(WarningFileID, DebugWarningsFile.get(), kDbgMsg_None);
+        warn_out->SetGroupFilter(kDbgGroup_Script, (MessageType)(kDbgMsg_Warn | kDbgMsg_Error | kDbgMsg_Fatal));
+        if (DebugWarningsFile->OpenFile("warnings.log", LogFile::kLogFile_OpenOverwrite, true))
+        {
+            platform->WriteStdOut("Logging scipt to \"warnings.log\"");
+            DebugMsgBuff->Send(WarningFileID);
+        }
+        else
+        {
+            DbgMgr.UnregisterOutput(WarningFileID);
+        }
     }
     DbgMgr.UnregisterOutput(OutputMsgBufID);
     DebugMsgBuff.reset();
@@ -157,54 +179,9 @@ void quitprintf(const char *texx, ...)
     quit(displbuf);
 }
 
-/* The idea of this is that non-essential errors such as "sound file not
-found" are logged instead of exiting the program.
-*/
-void debug_log(const char *texx, ...) {
-    // if not in debug mode, don't print it so we don't worry the
-    // end player
-    if (play.debug_mode == 0)
-        return;
-    static int first_time = 1;
-    char displbuf[STD_BUFFER_SIZE];
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(displbuf,texx,ap);
-    va_end(ap);
-
-    /*if (true) {
-    char buffer2[STD_BUFFER_SIZE];
-    strcpy(buffer2, "%");
-    strcat(buffer2, displbuf);
-    quit(buffer2);
-    }*/
-
-    //char*openmode = "at";
-    if (first_time) {
-        //openmode = "wt";
-        first_time = 0;
-    }
-    Stream *outfil = Common::File::OpenFileWrite("warnings.log");
-    if (outfil == NULL)
-    {
-        debug_script_log("* UNABLE TO WRITE TO WARNINGS.LOG");
-        debug_script_log(displbuf);
-    }
-    else
-    {
-        TextStreamWriter writer(outfil);
-        writer.WriteFormat("(in room %d): %s\n",displayed_room,displbuf);
-    }
-}
-
-
-void debug_script_log(const char *msg, ...)
+// Prepends message text with current room number and running script info, then logs result
+void debug_script_print(const String &msg, MessageType mt)
 {
-    va_list ap;
-    va_start(ap, msg);
-    String full_msg = String::FromFormatV(msg, ap);
-    va_end(ap);
-
     String script_ref;
     ccInstance *curinst = ccInstance::GetCurrentInstance();
     if (curinst != NULL) {
@@ -217,10 +194,28 @@ void debug_script_log(const char *msg, ...)
             scriptname = "D ";
         else
             scriptname = "? ";
-        script_ref.Format("[%s%d] ", scriptname.GetCStr(), currentline);
+        script_ref.Format("[%s%d]", scriptname.GetCStr(), currentline);
     }
 
-    Debug::Printf(kDbgGroup_Script, kDbgMsg_Debug, "%s%s", script_ref.GetCStr(), full_msg.GetCStr());
+    Debug::Printf(kDbgGroup_Script, mt, "(room:%d)%s %s", displayed_room, script_ref.GetCStr(), msg.GetCStr());
+}
+
+void debug_script_warn(const char *msg, ...)
+{
+    va_list ap;
+    va_start(ap, msg);
+    String full_msg = String::FromFormatV(msg, ap);
+    va_end(ap);
+    debug_script_print(full_msg, kDbgMsg_Warn);
+}
+
+void debug_script_log(const char *msg, ...)
+{
+    va_list ap;
+    va_start(ap, msg);
+    String full_msg = String::FromFormatV(msg, ap);
+    va_end(ap);
+    debug_script_print(full_msg, kDbgMsg_Debug);
 }
 
 

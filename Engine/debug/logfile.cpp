@@ -33,13 +33,15 @@ void LogFile::PrintMessage(const DebugMessage &msg)
 {
     if (!_file.get())
     {
-        if (!_filePath.IsEmpty())
+        if (_filePath.IsEmpty())
+            return;
+        // Delayed file open
+        if (!OpenFile(_filePath, _openMode))
         {
-            _file.reset(File::OpenFile(_filePath,
-                           _openMode == kLogFile_OpenAppend ? Common::kFile_Create : Common::kFile_CreateAlways,
-                           Common::kFile_Write));
+            Debug::Printf("Unable to write log to '%s'.", _filePath.GetCStr());
+            _filePath = "";
+            return;
         }
-        return;
     }
 
     if (!msg.GroupName.IsEmpty())

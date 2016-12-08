@@ -38,6 +38,7 @@
 #ifndef __AGS_CN_UTIL__STRING_H
 #define __AGS_CN_UTIL__STRING_H
 
+#include <stdarg.h>
 #include "core/types.h"
 #include "debug/assert.h"
 

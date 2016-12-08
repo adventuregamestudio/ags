@@ -201,6 +201,10 @@ void SetNextCursor () {
     set_cursor_mode (find_next_enabled_cursor(cur_mode + 1));
 }
 
+void SetPreviousCursor() {
+    set_cursor_mode(find_previous_enabled_cursor(cur_mode - 1));
+}
+
 // set_cursor_mode: changes mode and appearance
 void set_cursor_mode(int newmode) {
     if ((newmode < 0) || (newmode >= game.numcursors))
@@ -291,6 +295,12 @@ int IsButtonDown(int which) {
     return 0;
 }
 
+int IsModeEnabled(int which) {
+    return (which < 0) || (which >= game.numcursors) ? 0 :
+        which == MODE_USE ? playerchar->activeinv > 0 :
+        (game.mcurs[which].flags & MCF_DISABLED) == 0;
+}
+
 //=============================================================================
 
 int GetMouseCursor() {
@@ -356,28 +366,48 @@ void set_new_cursor_graphic (int spriteslot) {
     update_cached_mouse_cursor();
 }
 
+bool is_standard_cursor_enabled(int curs) {
+    if ((game.mcurs[curs].flags & MCF_DISABLED) == 0) {
+        // inventory cursor, and they have an active item
+        if (curs == MODE_USE)
+        {
+            if (playerchar->activeinv > 0)
+                return true;
+        }
+        // standard cursor that's not disabled, go with it
+        else if (game.mcurs[curs].flags & MCF_STANDARD)
+            return true;
+    }
+    return false;
+}
+
 int find_next_enabled_cursor(int startwith) {
     if (startwith >= game.numcursors)
         startwith = 0;
     int testing=startwith;
     do {
-        if ((game.mcurs[testing].flags & MCF_DISABLED)==0) {
-            // inventory cursor, and they have an active item
-            if (testing == MODE_USE) 
-            {
-                if (playerchar->activeinv > 0)
-                    break;
-            }
-            // standard cursor that's not disabled, go with it
-            else if (game.mcurs[testing].flags & MCF_STANDARD)
-                break;
-        }
-
+        if (is_standard_cursor_enabled(testing)) break;
         testing++;
         if (testing >= game.numcursors) testing=0;
     } while (testing!=startwith);
 
     if (testing!=startwith)
+        set_cursor_mode(testing);
+
+    return testing;
+}
+
+int find_previous_enabled_cursor(int startwith) {
+    if (startwith < 0)
+        startwith = game.numcursors - 1;
+    int testing = startwith;
+    do {
+        if (is_standard_cursor_enabled(testing)) break;
+        testing--;
+        if (testing < 0) testing = game.numcursors - 1;
+    } while (testing != startwith);
+    
+    if (testing != startwith)
         set_cursor_mode(testing);
 
     return testing;
@@ -437,6 +467,12 @@ RuntimeScriptValue Sc_IsButtonDown(const RuntimeScriptValue *params, int32_t par
     API_SCALL_INT_PINT(IsButtonDown);
 }
 
+// int (int which)
+RuntimeScriptValue Sc_IsModeEnabled(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(IsModeEnabled);
+}
+
 // void ();
 RuntimeScriptValue Sc_SaveCursorForLocationChange(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -447,6 +483,12 @@ RuntimeScriptValue Sc_SaveCursorForLocationChange(const RuntimeScriptValue *para
 RuntimeScriptValue Sc_SetNextCursor(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID(SetNextCursor);
+}
+
+// void  ()
+RuntimeScriptValue Sc_SetPreviousCursor(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(SetPreviousCursor);
 }
 
 // void  (int x1, int y1, int x2, int y2)
@@ -535,8 +577,10 @@ void RegisterMouseAPI()
     ccAddExternalStaticFunction("Mouse::EnableMode^1",              Sc_enable_cursor_mode);
     ccAddExternalStaticFunction("Mouse::GetModeGraphic^1",          Sc_Mouse_GetModeGraphic);
     ccAddExternalStaticFunction("Mouse::IsButtonDown^1",            Sc_IsButtonDown);
+    ccAddExternalStaticFunction("Mouse::IsModeEnabled^1",           Sc_IsModeEnabled);
     ccAddExternalStaticFunction("Mouse::SaveCursorUntilItLeaves^0", Sc_SaveCursorForLocationChange);
     ccAddExternalStaticFunction("Mouse::SelectNextMode^0",          Sc_SetNextCursor);
+    ccAddExternalStaticFunction("Mouse::SelectPreviousMode^0",      Sc_SetPreviousCursor);
     ccAddExternalStaticFunction("Mouse::SetBounds^4",               Sc_SetMouseBounds);
     ccAddExternalStaticFunction("Mouse::SetPosition^2",             Sc_SetMousePosition);
     ccAddExternalStaticFunction("Mouse::Update^0",                  Sc_RefreshMouse);
@@ -559,8 +603,10 @@ void RegisterMouseAPI()
     ccAddExternalFunctionForPlugin("Mouse::EnableMode^1",              (void*)enable_cursor_mode);
     ccAddExternalFunctionForPlugin("Mouse::GetModeGraphic^1",          (void*)Mouse_GetModeGraphic);
     ccAddExternalFunctionForPlugin("Mouse::IsButtonDown^1",            (void*)IsButtonDown);
+    ccAddExternalFunctionForPlugin("Mouse::IsModeEnabled^1",           (void*)IsModeEnabled);
     ccAddExternalFunctionForPlugin("Mouse::SaveCursorUntilItLeaves^0", (void*)SaveCursorForLocationChange);
     ccAddExternalFunctionForPlugin("Mouse::SelectNextMode^0",          (void*)SetNextCursor);
+    ccAddExternalFunctionForPlugin("Mouse::SelectPreviousMode^0",      (void*)SetPreviousCursor);
     ccAddExternalFunctionForPlugin("Mouse::SetBounds^4",               (void*)SetMouseBounds);
     ccAddExternalFunctionForPlugin("Mouse::SetPosition^2",             (void*)SetMousePosition);
     ccAddExternalFunctionForPlugin("Mouse::Update^0",                  (void*)RefreshMouse);

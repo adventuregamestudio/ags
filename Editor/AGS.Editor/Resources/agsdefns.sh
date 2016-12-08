@@ -709,6 +709,10 @@ struct Mouse {
   import static void SaveCursorUntilItLeaves();
   /// Cycles to the next available mouse cursor.
   import static void SelectNextMode();
+#ifdef SCRIPT_API_v341
+  /// Cycles to the previous available mouse cursor.
+  import static void SelectPreviousMode();
+#endif
   /// Restricts the mouse movement to the specified area.
   import static void SetBounds(int left, int top, int right, int bottom);
   /// Moves the mouse cursor to the specified location.
@@ -732,6 +736,10 @@ struct Mouse {
 #ifdef SCRIPT_API_v340
   /// Fires mouse click event at current mouse position.
   import static void Click(MouseButton);
+#endif
+#ifdef SCRIPT_API_v341
+  /// Returns whether the specified mouse cursor is currently enabled.
+  import static bool IsModeEnabled(CursorMode);
 #endif
   /// Gets the current mouse position.
   readonly int  x,y;

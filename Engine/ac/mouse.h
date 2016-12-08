@@ -63,6 +63,7 @@ void update_inv_cursor(int invnum);
 void update_cached_mouse_cursor();
 void set_new_cursor_graphic (int spriteslot);
 int find_next_enabled_cursor(int startwith);
+int find_previous_enabled_cursor(int startwith);
 
 extern ScriptMouse scmouse;
 

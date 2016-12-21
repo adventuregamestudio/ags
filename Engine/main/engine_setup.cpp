@@ -390,6 +390,7 @@ void engine_post_gfxmode_draw_setup()
 void engine_pre_gfxmode_draw_cleanup()
 {
     destroy_invalid_regions();
+    destroy_blank_image();
 }
 
 // Setup mouse control mode and graphic area

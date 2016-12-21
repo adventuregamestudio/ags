@@ -108,6 +108,8 @@ Common::Bitmap *convert_32_to_32bgr(Common::Bitmap *tempbl);
 // TODO: this helper function was meant to remove bitmap deletion from the GraphicsDriver's
 // implementations while keeping code changes to minimum. The proper solution would probably
 // be to use shared pointers when storing Bitmaps, or make Bitmap reference-counted object.
+// WARNING: apparently MSVS2008 std::tr1::shared_ptr does not check for assigning same pointer,
+// this should be kept in mind!
 Common::Bitmap *ReplaceBitmapWithSupportedFormat(Common::Bitmap *bitmap);
 
 #endif // __AGS_EE_AC__DRAW_H

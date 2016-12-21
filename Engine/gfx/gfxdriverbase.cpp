@@ -15,6 +15,7 @@
 #include "util/wgt2allg.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/gfxdriverbase.h"
+#include "gfx/bitmap.h"
 
 
 namespace AGS
@@ -80,6 +81,14 @@ void GraphicsDriverBase::OnSetRenderFrame(const Size &src_size, const Rect &dst_
 void GraphicsDriverBase::OnSetFilter()
 {
     _filterRect = GetGraphicsFilter()->SetTranslation(Size(_srcRect.GetSize()), _dstRect);
+}
+
+Bitmap *GraphicsDriverBase::ReplaceBitmapWithSupportedFormat(Bitmap *old_bmp)
+{
+    Bitmap *new_bitmap = ConvertBitmapToSupportedColourDepth(old_bmp);
+    if (new_bitmap != old_bmp)
+        delete old_bmp;
+    return new_bitmap;
 }
 
 } // namespace Engine

@@ -2439,7 +2439,7 @@ void update_screen() {
         if (debugConsoleBuffer == NULL)
         {
             debugConsoleBuffer = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), barheight,ScreenResolution.ColorDepth);
-            debugConsoleBuffer = gfxDriver->ConvertBitmapToSupportedColourDepth(debugConsoleBuffer);
+            debugConsoleBuffer = ReplaceBitmapWithSupportedFormat(debugConsoleBuffer);
         }
 
         //Bitmap *ds = GetVirtualScreen();

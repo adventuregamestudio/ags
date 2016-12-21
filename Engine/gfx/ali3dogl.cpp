@@ -258,6 +258,7 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _screenTintSprite.skip = true;
   _screenTintSprite.x = 0;
   _screenTintSprite.y = 0;
+  _dummyVirtualScreen = NULL;
   _legacyPixelShader = false;
   _scale_width = 1.0f;
   _scale_height = 1.0f;
@@ -669,10 +670,9 @@ void OGLGraphicsDriver::CreateVirtualScreen()
     return;
   // create dummy screen bitmap
   // TODO: find out why we are doing this
-  // TODO: this can possibly lead to memory leak, because the bitmap's pointer is not managed by renderer class
-  BitmapHelper::SetScreenBitmap(
-      ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth))
-      );
+  _dummyVirtualScreen = ReplaceBitmapWithSupportedFormat(
+      BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth));
+  BitmapHelper::SetScreenBitmap(_dummyVirtualScreen);
 }
 
 bool OGLGraphicsDriver::SetRenderFrame(const Size &src_size, const Rect &dst_rect)
@@ -709,6 +709,8 @@ void OGLGraphicsDriver::UnInit()
   }
   delete _screenTintLayer;
   _screenTintLayer = NULL;
+  delete _dummyVirtualScreen;
+  _dummyVirtualScreen = NULL;
 
   gfx_driver = NULL;
 }
@@ -1560,7 +1562,7 @@ void OGLGraphicsDriver::create_screen_tint_bitmap()
     return;
   
   _screenTintLayer = BitmapHelper::CreateBitmap(16, 16, _mode.ColorDepth);
-  _screenTintLayer = this->ConvertBitmapToSupportedColourDepth(_screenTintLayer);
+  _screenTintLayer = ReplaceBitmapWithSupportedFormat(_screenTintLayer);
   _screenTintLayerDDB = (OGLBitmap*)this->CreateDDBFromBitmap(_screenTintLayer, false, false);
   _screenTintSprite.bitmap = _screenTintLayerDDB;
 }

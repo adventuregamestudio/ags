@@ -257,6 +257,7 @@ private:
     Bitmap *_screenTintLayer;
     OGLBitmap* _screenTintLayerDDB;
     SpriteDrawListEntry _screenTintSprite;
+    Bitmap *_dummyVirtualScreen;
 
     float _scale_width;
     float _scale_height;

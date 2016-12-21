@@ -26,6 +26,8 @@ namespace AGS
 namespace Engine
 {
 
+using Common::Bitmap;
+
 class GraphicsDriverBase : public IGraphicsDriver
 {
 public:
@@ -46,6 +48,10 @@ protected:
     virtual void OnSetRenderFrame(const Size &src_size, const Rect &dst_rect);
     // Called when the new filter is set
     virtual void OnSetFilter();
+
+    // Checks if the bitmap needs to be converted and **deletes original** if a new bitmap
+    // had to be created
+    Bitmap *ReplaceBitmapWithSupportedFormat(Bitmap *old_bmp);
 
     DisplayMode         _mode;          // display mode settings
     Rect                _srcRect;       // rendering source rect

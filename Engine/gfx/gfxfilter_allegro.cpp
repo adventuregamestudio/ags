@@ -43,6 +43,8 @@ const GfxFilterInfo &AllegroGfxFilter::GetInfo() const
 
 Bitmap* AllegroGfxFilter::InitVirtualScreen(Bitmap *screen, const Size src_size, const Rect dst_rect)
 {
+    ShutdownAndReturnRealScreen();
+
     realScreen = screen;
     SetTranslation(src_size, dst_rect);
 
@@ -60,14 +62,16 @@ Bitmap* AllegroGfxFilter::InitVirtualScreen(Bitmap *screen, const Size src_size,
     return virtualScreen;
 }
 
-Bitmap *AllegroGfxFilter::ShutdownAndReturnRealScreen(Bitmap *currentScreen)
+Bitmap *AllegroGfxFilter::ShutdownAndReturnRealScreen()
 {
     if (virtualScreen != realScreen)
         delete virtualScreen;
     delete realScreenSizedBuffer;
     virtualScreen = NULL;
     realScreenSizedBuffer = NULL;
-    return realScreen;
+    Bitmap *real_scr = realScreen;
+    realScreen = NULL;
+    return real_scr;
 }
 
 void AllegroGfxFilter::RenderScreen(Bitmap *toRender, int x, int y) {

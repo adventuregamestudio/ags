@@ -24,6 +24,7 @@
 #include "gfx/ali3dexception.h"
 #include "gfx/gfxfilter_d3d.h"
 #include "gfx/gfxfilter_aad3d.h"
+#include "gfx/gfx_util.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/windows/gfx/ali3dd3d.h"
@@ -205,6 +206,13 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   set_up_default_vertices();
   pNativeSurface = NULL;
   _skipPresent = false;
+  availableVideoMemory = 0;
+  _nullSpriteCallback = NULL;
+  _smoothScaling = false;
+  _pixelRenderXOffset = 0;
+  _pixelRenderYOffset = 0;
+  _renderSprAtScreenRes = false;
+  flipTypeLastTime = kFlip_None;
 }
 
 void D3DGraphicsDriver::set_up_default_vertices()
@@ -252,9 +260,9 @@ void D3DGraphicsDriver::Vsync()
   // do nothing on D3D
 }
 
-void D3DGraphicsDriver::OnInit(const DisplayMode &mode, volatile int *loopTimer)
+void D3DGraphicsDriver::OnModeSet(const DisplayMode &mode)
 {
-  GraphicsDriverBase::OnInit(mode, loopTimer);
+  GraphicsDriverBase::OnModeSet(mode);
 
   // The display mode has been set up successfully, save the
   // final refresh rate that we are using
@@ -265,7 +273,136 @@ void D3DGraphicsDriver::OnInit(const DisplayMode &mode, volatile int *loopTimer)
   else {
     _mode.RefreshRate = 0;
   }
-  create_screen_tint_bitmap();
+}
+
+void D3DGraphicsDriver::ReleaseDisplayMode()
+{
+  OnModeReleased();
+
+  numToDraw = 0;
+  numToDrawLastTime = 0;
+  flipTypeLastTime = kFlip_None;
+
+  if (pNativeSurface)
+  {
+    pNativeSurface->Release();
+    pNativeSurface = NULL;
+  }
+
+  if (_screenTintLayerDDB != NULL) 
+  {
+    this->DestroyDDB(_screenTintLayerDDB);
+    _screenTintLayerDDB = NULL;
+    _screenTintSprite.bitmap = NULL;
+  }
+  delete _screenTintLayer;
+  _screenTintLayer = NULL;
+
+  delete _dummyVirtualScreen;
+  _dummyVirtualScreen = NULL;
+
+  gfx_driver = NULL;
+
+  // Restore allegro window styles in case we modified them
+  restore_window_style();
+  // For uncertain reasons WS_EX_TOPMOST (applied when creating fullscreen)
+  // cannot be removed with style altering functions; here use SetWindowPos
+  // as a workaround
+  SetWindowPos(win_get_window(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+}
+
+int D3DGraphicsDriver::FirstTimeInit()
+{
+  HRESULT hr;
+
+  direct3ddevice->GetDeviceCaps(&direct3ddevicecaps);
+
+  // the PixelShader.fx uses ps_1_4
+  // the PixelShaderLegacy.fx needs ps_2_0
+  int requiredPSMajorVersion = 1;
+  int requiredPSMinorVersion = 4;
+  if (_legacyPixelShader) {
+    requiredPSMajorVersion = 2;
+    requiredPSMinorVersion = 0;
+  }
+
+  if (direct3ddevicecaps.PixelShaderVersion < D3DPS_VERSION(requiredPSMajorVersion, requiredPSMinorVersion))  
+  {
+    direct3ddevice->Release();
+    direct3ddevice = NULL;
+    previousError = 
+        set_allegro_error("Graphics card does not support Pixel Shader %d.%d", requiredPSMajorVersion, requiredPSMinorVersion);
+    return -1;
+  }
+
+  // Load the pixel shader!!
+  HMODULE exeHandle = GetModuleHandle(NULL);
+  HRSRC hRes = FindResource(exeHandle, (_legacyPixelShader) ? "PIXEL_SHADER_LEGACY" : "PIXEL_SHADER", "DATA");
+  if (hRes)
+  {
+    HGLOBAL hGlobal = LoadResource(exeHandle, hRes);
+    if (hGlobal)
+    {
+      DWORD resourceSize = SizeofResource(exeHandle, hRes);
+      DWORD *dataPtr = (DWORD*)LockResource(hGlobal);
+      hr = direct3ddevice->CreatePixelShader(dataPtr, &pixelShader);
+      if (hr != D3D_OK)
+      {
+        direct3ddevice->Release();
+        direct3ddevice = NULL;
+        previousError = set_allegro_error("Failed to create pixel shader: 0x%08X", hr);
+        return -1;
+      }
+      UnlockResource(hGlobal);
+    }
+  }
+  
+  if (pixelShader == NULL)
+  {
+    direct3ddevice->Release();
+    direct3ddevice = NULL;
+    previousError = set_allegro_error("Failed to load pixel shader resource");
+    return -1;
+  }
+
+  if (direct3ddevice->CreateVertexBuffer(4*sizeof(CUSTOMVERTEX), D3DUSAGE_WRITEONLY,
+          D3DFVF_CUSTOMVERTEX, D3DPOOL_MANAGED, &vertexbuffer, NULL) != D3D_OK) 
+  {
+    direct3ddevice->Release();
+    direct3ddevice = NULL;
+    previousError = set_allegro_error("Failed to create vertex buffer");
+    return -1;
+  }
+
+  // This line crashes because my card doesn't support 8-bit textures
+  //direct3ddevice->SetCurrentTexturePalette(0);
+
+  CUSTOMVERTEX *vertices;
+  vertexbuffer->Lock(0, 0, (void**)&vertices, D3DLOCK_DISCARD);
+
+  for (int i = 0; i < 4; i++)
+  {
+    vertices[i] = defaultVertices[i];
+  }
+
+  vertexbuffer->Unlock();
+
+  direct3ddevice->GetGammaRamp(0, &defaultgammaramp);
+
+  if (defaultgammaramp.red[255] < 256)
+  {
+    // correct bug in some gfx drivers that returns gamma ramp
+    // values from 0-255 instead of 0-65535
+    for (int i = 0; i < 256; i++)
+    {
+      defaultgammaramp.red[i] *= 256;
+      defaultgammaramp.green[i] *= 256;
+      defaultgammaramp.blue[i] *= 256;
+    }
+  }
+  currentgammaramp = defaultgammaramp;
+
+  return 0;
 }
 
 void D3DGraphicsDriver::initD3DDLL(const DisplayMode &mode) 
@@ -497,9 +634,6 @@ int D3DGraphicsDriver::_resetDeviceIfNecessary()
 
 int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
 {
-  int i = 0;
-  CUSTOMVERTEX *vertices;
-
   HWND allegro_wnd = win_get_window();
 
   if (!mode.Windowed)
@@ -533,7 +667,12 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
   if (_initGfxCallback != NULL)
     _initGfxCallback(&d3dpp);
 
-  HRESULT hr = direct3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, allegro_wnd,
+  bool first_time_init = direct3ddevice == NULL;
+  HRESULT hr = 0;
+  if (direct3ddevice)
+    hr = direct3ddevice->Reset(&d3dpp);
+  else
+    hr = direct3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, allegro_wnd,
                       D3DCREATE_MIXED_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,  // multithreaded required for AVI player
                       &d3dpp, &direct3ddevice);
   if (hr != D3D_OK)
@@ -558,91 +697,12 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
 
   win_grab_input();
 
-  direct3ddevice->GetDeviceCaps(&direct3ddevicecaps);
-
-  // the PixelShader.fx uses ps_1_4
-  // the PixelShaderLegacy.fx needs ps_2_0
-  int requiredPSMajorVersion = 1;
-  int requiredPSMinorVersion = 4;
-  if (_legacyPixelShader) {
-    requiredPSMajorVersion = 2;
-    requiredPSMinorVersion = 0;
-  }
-
-  if (direct3ddevicecaps.PixelShaderVersion < D3DPS_VERSION(requiredPSMajorVersion, requiredPSMinorVersion))  
+  if (first_time_init)
   {
-    direct3ddevice->Release();
-    direct3ddevice = NULL;
-    previousError = 
-        set_allegro_error("Graphics card does not support Pixel Shader %d.%d", requiredPSMajorVersion, requiredPSMinorVersion);
-    return -1;
+    int ft_res = FirstTimeInit();
+    if (ft_res != 0)
+      return ft_res;
   }
-
-  // Load the pixel shader!!
-  HMODULE exeHandle = GetModuleHandle(NULL);
-  HRSRC hRes = FindResource(exeHandle, (_legacyPixelShader) ? "PIXEL_SHADER_LEGACY" : "PIXEL_SHADER", "DATA");
-  if (hRes)
-  {
-    HGLOBAL hGlobal = LoadResource(exeHandle, hRes);
-    if (hGlobal)
-    {
-      DWORD resourceSize = SizeofResource(exeHandle, hRes);
-      DWORD *dataPtr = (DWORD*)LockResource(hGlobal);
-      hr = direct3ddevice->CreatePixelShader(dataPtr, &pixelShader);
-      if (hr != D3D_OK)
-      {
-        direct3ddevice->Release();
-        direct3ddevice = NULL;
-        previousError = set_allegro_error("Failed to create pixel shader: 0x%08X", hr);
-        return -1;
-      }
-      UnlockResource(hGlobal);
-    }
-  }
-  
-  if (pixelShader == NULL)
-  {
-    direct3ddevice->Release();
-    direct3ddevice = NULL;
-    previousError = set_allegro_error("Failed to load pixel shader resource");
-    return -1;
-  }
-
-  // This line crashes because my card doesn't support 8-bit textures
-  //direct3ddevice->SetCurrentTexturePalette(0);
-
-  if (direct3ddevice->CreateVertexBuffer(4*sizeof(CUSTOMVERTEX), D3DUSAGE_WRITEONLY,
-          D3DFVF_CUSTOMVERTEX, D3DPOOL_MANAGED, &vertexbuffer, NULL) != D3D_OK) 
-  {
-    direct3ddevice->Release();
-    direct3ddevice = NULL;
-    previousError = set_allegro_error("Failed to create vertex buffer");
-    return -1;
-  }
-
-  vertexbuffer->Lock(0, 0, (void**)&vertices, D3DLOCK_DISCARD);
-
-  for (i = 0; i < 4; i++)
-  {
-    vertices[i] = defaultVertices[i];
-  }
-
-  vertexbuffer->Unlock();
-
-  direct3ddevice->GetGammaRamp(0, &defaultgammaramp);
-
-  if (defaultgammaramp.red[255] < 256)
-  {
-    // correct bug in some gfx drivers that returns gamma ramp
-    // values from 0-255 instead of 0-65535
-    for (i = 0; i < 256; i++)
-    {
-      defaultgammaramp.red[i] *= 256;
-      defaultgammaramp.green[i] *= 256;
-      defaultgammaramp.blue[i] *= 256;
-    }
-  }
-  currentgammaramp = defaultgammaramp;
   return 0;
 }
 
@@ -775,6 +835,7 @@ void D3DGraphicsDriver::SetupViewport()
   {
     throw Ali3DException("CreateRenderTarget failed");
   }
+
   direct3ddevice->ColorFill(pNativeSurface, NULL, 0);
 }
 
@@ -792,8 +853,10 @@ void D3DGraphicsDriver::SetTintMethod(TintMethod method)
   _legacyPixelShader = (method == TintReColourise);
 }
 
-bool D3DGraphicsDriver::Init(const DisplayMode &mode, volatile int *loopTimer)
+bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer)
 {
+  ReleaseDisplayMode();
+
   if (mode.ColorDepth < 15)
   {
     set_allegro_error("Direct3D driver does not support 256-colour games");
@@ -810,9 +873,11 @@ bool D3DGraphicsDriver::Init(const DisplayMode &mode, volatile int *loopTimer)
       set_allegro_error(exception._message);
     return false;
   }
-  OnInit(mode, loopTimer);
+  OnInit(loopTimer);
+  OnModeSet(mode);
   InitializeD3DState();
   CreateVirtualScreen();
+  create_screen_tint_bitmap();
   return true;
 }
 
@@ -822,6 +887,7 @@ void D3DGraphicsDriver::CreateVirtualScreen()
     return;
   // create dummy screen bitmap
   // TODO: find out why we are doing this
+  delete _dummyVirtualScreen;
   _dummyVirtualScreen = ReplaceBitmapWithSupportedFormat(
       BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth));
   BitmapHelper::SetScreenBitmap(_dummyVirtualScreen);
@@ -834,7 +900,7 @@ bool D3DGraphicsDriver::SetRenderFrame(const Size &src_size, const Rect &dst_rec
   CreateVirtualScreen();
   // Also make sure viewport is updated using new native & destination rectangles
   SetupViewport();
-  return true;
+  return !_dstRect.IsEmpty();
 }
 
 IGfxModeList *D3DGraphicsDriver::GetSupportedModeList(int color_depth)
@@ -851,20 +917,11 @@ PGfxFilter D3DGraphicsDriver::GetGraphicsFilter() const
 void D3DGraphicsDriver::UnInit() 
 {
   OnUnInit();
+  ReleaseDisplayMode();
 
-  if (_screenTintLayerDDB != NULL) 
-  {
-    this->DestroyDDB(_screenTintLayerDDB);
-    _screenTintLayerDDB = NULL;
-    _screenTintSprite.bitmap = NULL;
-  }
-  delete _screenTintLayer;
-  _screenTintLayer = NULL;
   delete _dummyVirtualScreen;
   _dummyVirtualScreen = NULL;
-
   dxmedia_shutdown_3d();
-  gfx_driver = NULL;
 
   if (vertexbuffer)
   {
@@ -878,24 +935,11 @@ void D3DGraphicsDriver::UnInit()
     pixelShader = NULL;
   }
 
-  if (pNativeSurface)
-  {
-    pNativeSurface->Release();
-    pNativeSurface = NULL;
-  }
-
   if (direct3ddevice)
   {
     direct3ddevice->Release();
     direct3ddevice = NULL;
   }
-
-  // Restore allegro window styles in case we modified them
-  restore_window_style();
-  // For uncertain reasons WS_EX_TOPMOST (applied when creating fullscreen)
-  // cannot be removed with style altering functions; here use SetWindowPos
-  // as a workaround
-  SetWindowPos(win_get_window(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 }
 
 D3DGraphicsDriver::~D3DGraphicsDriver()

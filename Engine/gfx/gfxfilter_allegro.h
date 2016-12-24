@@ -40,7 +40,7 @@ public:
     virtual const GfxFilterInfo &GetInfo() const;
     
     virtual Bitmap *InitVirtualScreen(Bitmap *screen, const Size src_size, const Rect dst_rect);
-    virtual Bitmap *ShutdownAndReturnRealScreen(Bitmap *currentScreen);
+    virtual Bitmap *ShutdownAndReturnRealScreen();
     virtual void RenderScreen(Bitmap *toRender, int x, int y);
     virtual void RenderScreenFlipped(Bitmap *toRender, int x, int y, GlobalFlipType flipType);
     virtual void ClearRect(int x1, int y1, int x2, int y2, int color);

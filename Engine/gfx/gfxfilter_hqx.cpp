@@ -70,9 +70,9 @@ Bitmap* HqxGfxFilter::InitVirtualScreen(Bitmap *screen, const Size src_size, con
     return virtual_screen;
 }
 
-Bitmap *HqxGfxFilter::ShutdownAndReturnRealScreen(Bitmap *currentScreen)
+Bitmap *HqxGfxFilter::ShutdownAndReturnRealScreen()
 {
-    Bitmap *real_screen = AllegroGfxFilter::ShutdownAndReturnRealScreen(currentScreen);
+    Bitmap *real_screen = AllegroGfxFilter::ShutdownAndReturnRealScreen();
     delete _hqxScalingBuffer;
     _hqxScalingBuffer = NULL;
     return real_screen;

@@ -38,7 +38,7 @@ public:
 
     virtual bool Initialize(const int color_depth, String &err_str);
     virtual Bitmap *InitVirtualScreen(Bitmap *screen, const Size src_size, const Rect dst_rect);
-    virtual Bitmap *ShutdownAndReturnRealScreen(Bitmap *currentScreen);
+    virtual Bitmap *ShutdownAndReturnRealScreen();
 
     static const GfxFilterInfo FilterInfo;
 

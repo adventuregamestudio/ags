@@ -56,14 +56,24 @@ void GraphicsDriverBase::SetRenderOffset(int x, int y)
     _global_y_offset = y;
 }
 
-void GraphicsDriverBase::OnInit(const DisplayMode &mode, volatile int *loopTimer)
+void GraphicsDriverBase::OnInit(volatile int *loopTimer)
 {
-    _mode = mode;
     _loopTimer = loopTimer;
 }
 
 void GraphicsDriverBase::OnUnInit()
 {
+}
+
+void GraphicsDriverBase::OnModeSet(const DisplayMode &mode)
+{
+    _mode = mode;
+}
+
+void GraphicsDriverBase::OnModeReleased()
+{
+    _mode = DisplayMode();
+    _dstRect = Rect();
 }
 
 void GraphicsDriverBase::OnSetRenderFrame(const Size &src_size, const Rect &dst_rect)

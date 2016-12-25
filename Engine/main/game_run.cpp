@@ -205,7 +205,6 @@ void toggle_mouse_lock()
 
 // check_controls: checks mouse & keyboard interface
 void check_controls() {
-    int numevents_was = numevents;
     our_eip = 1007;
     NEXT_ITERATION();
 
@@ -437,7 +436,10 @@ void check_controls() {
         }
         old_key_shifts = key_shifts & ~(KB_SCROLOCK_FLAG | KB_NUMLOCK_FLAG | KB_CAPSLOCK_FLAG);
     }
+}  // end check_controls
 
+void check_room_edges(int numevents_was)
+{
     if ((IsInterfaceEnabled()) && (IsGamePaused() == 0) &&
         (in_new_room == 0) && (new_room_was == 0)) {
             // Only allow walking off edges if not in wait mode, and
@@ -473,14 +475,16 @@ void check_controls() {
     }
     our_eip = 1008;
 
-}  // end check_controls
+}
 
 void game_loop_check_controls(bool checkControls)
 {
     // don't let the player do anything before the screen fades in
     if ((in_new_room == 0) && (checkControls)) {
         int inRoom = displayed_room;
+        int numevents_was = numevents;
         check_controls();
+        check_room_edges(numevents_was);
         // If an inventory interaction changed the room
         if (inRoom != displayed_room)
             check_new_room();

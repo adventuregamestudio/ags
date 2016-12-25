@@ -106,22 +106,30 @@ struct ColorDepthOption
 {
     int32_t Prime;
     int32_t Alternate;
+
+    ColorDepthOption() : Prime(0), Alternate(0) {}
+    ColorDepthOption(int32_t prime, int32_t alt = 0) : Prime(prime), Alternate(alt > 0 ? alt : prime) {}
 };
 
 // Initializes any possible gfx mode, using user config as a recommendation;
 // may try all available renderers and modes before succeeding (or failing)
 bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, const ColorDepthOption &color_depths);
 // Fill in setup structs with default settings for the given mode (windowed or fullscreen)
-void graphics_mode_get_defaults(bool windowed, DisplayModeSetup &dm_setup, GameFrameSetup &frame_setup, GfxFilterSetup &filter_setup);
+void graphics_mode_get_defaults(bool windowed, DisplayModeSetup &dm_setup, GameFrameSetup &frame_setup);
 // Creates graphics driver of given id
 bool graphics_mode_create_renderer(const String &driver_id);
+// Try to find and initialize compatible display mode as close to given setup
+bool graphics_mode_set_dm_any(const Size &game_size, const DisplayModeSetup &dm_setup,
+                              const ColorDepthOption &color_depths, const GameFrameSetup &frame_setup);
 // Set the display mode with given parameters
 bool graphics_mode_set_dm(const AGS::Engine::DisplayMode &dm);
 // Set the native image size
 bool graphics_mode_set_native_size(const Size &native_size);
 // Set the render frame position inside the window
 bool graphics_mode_set_render_frame(const GameFrameSetup &frame_setup);
-// Set the scaling filter
+// Set requested graphics filter, or default filter if the requested one failed
+bool graphics_mode_set_filter_any(const GfxFilterSetup &setup);
+// Set the scaling filter with given ID
 bool graphics_mode_set_filter(const String &filter_id);
 // Releases current graphic mode and shuts down renderer
 void graphics_mode_shutdown();

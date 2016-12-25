@@ -29,6 +29,9 @@ struct ScreenSetup;
 // if requested mode fails, tries to find any compatible mode close to the
 // requested one.
 bool        engine_try_set_gfxmode_any(const ScreenSetup &setup);
+// Tries to switch between fullscreen and windowed mode; uses previously saved
+// setup if it is available, or default settings for the new mode
+bool        engine_try_switch_windowed_gfxmode();
 // Shutdown graphics mode (used before shutting down tha application)
 void        engine_shutdown_gfxmode();
 

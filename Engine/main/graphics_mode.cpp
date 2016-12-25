@@ -111,7 +111,7 @@ bool create_gfx_driver(const String &gfx_driver_id)
 }
 
 // Set requested graphics filter, or default filter if the requested one failed
-bool set_gfx_filter_any(const GfxFilterSetup &setup)
+bool graphics_mode_set_filter_any(const GfxFilterSetup &setup)
 {
     Debug::Printf("Requested gfx filter: %s", setup.UserRequest.GetCStr());
     if (!graphics_mode_set_filter(setup.ID))
@@ -370,7 +370,7 @@ bool try_init_mode_using_setup(const Size &game_size, const DisplayModeSetup &dm
         return false;
 
     // Set up graphics filter
-    if (!set_gfx_filter_any(filter_setup))
+    if (!graphics_mode_set_filter_any(filter_setup))
         return false;
     return true;
 }
@@ -426,9 +426,8 @@ bool create_gfx_driver_and_init_mode_any(const String &gfx_driver_id, const Size
     {
         DisplayModeSetup dm_setup_alt;
         GameFrameSetup frame_setup_alt;
-        GfxFilterSetup filter_setup_alt;
-        graphics_mode_get_defaults(!dm_setup.Windowed, dm_setup_alt, frame_setup_alt, filter_setup_alt);
-        result = try_init_mode_using_setup(game_size, dm_setup_alt, color_depths, frame_setup_alt, filter_setup_alt);
+        graphics_mode_get_defaults(!dm_setup.Windowed, dm_setup_alt, frame_setup_alt);
+        result = try_init_mode_using_setup(game_size, dm_setup_alt, color_depths, frame_setup_alt, filter_setup);
     }
     return result;
 }
@@ -499,7 +498,7 @@ bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, cons
     return true;
 }
 
-void graphics_mode_get_defaults(bool windowed, DisplayModeSetup &dm_setup, GameFrameSetup &frame_setup, GfxFilterSetup &filter_setup)
+void graphics_mode_get_defaults(bool windowed, DisplayModeSetup &dm_setup, GameFrameSetup &frame_setup)
 {
     dm_setup.Size = Size();
     dm_setup.RefreshRate = 0;
@@ -523,9 +522,6 @@ void graphics_mode_get_defaults(bool windowed, DisplayModeSetup &dm_setup, GameF
     // For both modes we set maximal **round** scaling of the game frame.
     frame_setup.ScaleDef = kFrame_MaxRound;
     frame_setup.ScaleFactor = 0;
-
-    // Choose default factory filter.
-    filter_setup.UserRequest = filter_setup.ID = GfxFactory->GetDefaultFilterID();
 }
 
 bool graphics_mode_create_renderer(const String &driver_id)
@@ -538,6 +534,16 @@ bool graphics_mode_create_renderer(const String &driver_id)
     // the best time and place to set the tint method
     gfxDriver->SetTintMethod(TintReColourise);
     return true;
+}
+
+bool graphics_mode_set_dm_any(const Size &game_size, const DisplayModeSetup &dm_setup,
+                              const ColorDepthOption &color_depths, const GameFrameSetup &frame_setup)
+{
+    // We determine the requested size of the screen using setup options
+    const Size screen_size = precalc_screen_size(game_size, dm_setup, frame_setup);
+    DisplayMode dm(GraphicResolution(screen_size.Width, screen_size.Height, color_depths.Prime),
+                   dm_setup.Windowed, dm_setup.RefreshRate, dm_setup.VSync);
+    return try_init_compatible_mode(dm, color_depths.Alternate, dm_setup.MatchDeviceRatio);
 }
 
 bool graphics_mode_set_dm(const DisplayMode &dm)

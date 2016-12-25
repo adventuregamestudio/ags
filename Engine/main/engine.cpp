@@ -30,6 +30,7 @@
 #include "ac/gui.h"
 #include "ac/lipsync.h"
 #include "ac/objectcache.h"
+#include "ac/record.h"
 #include "ac/roomstatus.h"
 #include "ac/speech.h"
 #include "ac/translation.h"
@@ -1556,19 +1557,21 @@ bool engine_try_switch_windowed_gfxmode()
     if (old_dm.Windowed)
         init_desktop = get_desktop_size();
 
-    if (graphics_mode_set_dm_any(game.size, dm_setup, old_dm.ColorDepth, frame_setup) &&
-        graphics_mode_set_render_frame(frame_setup))
+    bool res = graphics_mode_set_dm_any(game.size, dm_setup, old_dm.ColorDepth, frame_setup) &&
+               graphics_mode_set_render_frame(frame_setup);
+    if (res)
     {
         if (dm_setup.Windowed)
             init_desktop = get_desktop_size();
         engine_post_gfxmode_setup(init_desktop);
-        return true;
     }
     else
     {
         // TODO: switch back!!!
     }
-    return false;
+
+    clear_input_buffer();
+    return res;
 }
 
 void engine_shutdown_gfxmode()

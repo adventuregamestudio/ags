@@ -1060,7 +1060,7 @@ bool DialogOptions::Run()
 
 void DialogOptions::Close()
 {
-  while (kbhit()) getch(); // empty keyboard buffer
+  clear_input_buffer();
   //leave_real_screen();
   construct_virtual_screen(true);
 

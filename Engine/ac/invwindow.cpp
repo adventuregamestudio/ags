@@ -474,8 +474,7 @@ int __actual_invscreen()
         return InvScr.break_code;
     }
 
-    // Clear buffered keypresses
-    while (kbhit()) getch();
+    clear_input_buffer();
 
     InvScr.Close();
     return InvScr.toret;

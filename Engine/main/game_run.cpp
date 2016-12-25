@@ -45,6 +45,7 @@
 #include "gui/guimain.h"
 #include "gui/guitextbox.h"
 #include "main/mainheader.h"
+#include "main/engine.h"
 #include "main/game_run.h"
 #include "main/update.h"
 #include "media/audio/soundclip.h"
@@ -282,6 +283,13 @@ void check_controls() {
         //if (kgn == 2) SetCharacterIdle (game.playercharacter, 5, 0);
         //if (kgn == 2) Display("Some for?ign text");
         //if (kgn == 2) do_conversation(5);
+
+        // NOTE: for some reason Alt + Enter produces same code as F9
+        if (kgn == 367 && !key[KEY_F9])
+        {
+            engine_try_switch_windowed_gfxmode();
+            return;
+        }
 
         if (kgn == play.replay_hotkey) {
             // start/stop recording

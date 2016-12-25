@@ -561,3 +561,9 @@ int my_readkey() {
 
     return gott;
 }
+
+void clear_input_buffer()
+{
+    while (rec_kbhit()) rec_getch();
+    while (mgetbutton() != NONE);
+}

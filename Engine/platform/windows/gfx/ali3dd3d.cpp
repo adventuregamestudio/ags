@@ -283,12 +283,6 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
   numToDrawLastTime = 0;
   flipTypeLastTime = kFlip_None;
 
-  if (pNativeSurface)
-  {
-    pNativeSurface->Release();
-    pNativeSurface = NULL;
-  }
-
   if (_screenTintLayerDDB != NULL) 
   {
     this->DestroyDDB(_screenTintLayerDDB);
@@ -611,11 +605,7 @@ int D3DGraphicsDriver::_resetDeviceIfNecessary()
   if (hr == D3DERR_DEVICENOTRESET)
   {
     Debug::Printf("D3DGraphicsDriver: D3D Device Not Reset");
-    if (pNativeSurface!=NULL) {
-      pNativeSurface->Release();
-      pNativeSurface = NULL;
-    }
-    hr = direct3ddevice->Reset(&d3dpp);
+    hr = ResetD3DDevice();
     if (hr != D3D_OK)
     {
       Debug::Printf("D3DGraphicsDriver: Failed to reset D3D device");
@@ -625,7 +615,7 @@ int D3DGraphicsDriver::_resetDeviceIfNecessary()
     }
 
     InitializeD3DState();
-
+    CreateVirtualScreen();
     direct3ddevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, &currentgammaramp);
   }
 
@@ -670,7 +660,9 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
   bool first_time_init = direct3ddevice == NULL;
   HRESULT hr = 0;
   if (direct3ddevice)
-    hr = direct3ddevice->Reset(&d3dpp);
+  {
+    hr = ResetD3DDevice();
+  }
   else
     hr = direct3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, allegro_wnd,
                       D3DCREATE_MIXED_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,  // multithreaded required for AVI player
@@ -772,7 +764,7 @@ void D3DGraphicsDriver::InitializeD3DState()
 
 void D3DGraphicsDriver::SetupViewport()
 {
-  if (!IsModeSet() || !IsRenderFrameValid())
+  if (!IsModeSet() || !IsRenderFrameValid() || !IsNativeSizeValid())
     return;
 
   // Setup orthographic projection matrix
@@ -817,26 +809,6 @@ void D3DGraphicsDriver::SetupViewport()
   viewport_rect.right  = _dstRect.Right + 1;
   viewport_rect.top    = _dstRect.Top;
   viewport_rect.bottom = _dstRect.Bottom + 1;
-
-  // set up native surface
-  if (pNativeSurface != NULL) {
-    pNativeSurface->Release();
-    pNativeSurface = NULL;
-  }
-  if (direct3ddevice->CreateRenderTarget(
-          _srcRect.GetWidth(),
-          _srcRect.GetHeight(),
-          color_depth_to_d3d_format(_mode.ColorDepth, false),//D3DFMT_A8R8G8B8,
-          D3DMULTISAMPLE_NONE,
-          0,
-          true,
-          &pNativeSurface,
-          NULL  )!= D3D_OK)
-  {
-    throw Ali3DException("CreateRenderTarget failed");
-  }
-
-  direct3ddevice->ColorFill(pNativeSurface, NULL, 0);
 }
 
 void D3DGraphicsDriver::SetGraphicsFilter(PD3DFilter filter)
@@ -883,8 +855,29 @@ bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
 
 void D3DGraphicsDriver::CreateVirtualScreen()
 {
-  if (!IsModeSet() || !IsRenderFrameValid())
+  if (!IsModeSet() || !IsNativeSizeValid())
     return;
+
+  // set up native surface
+  if (pNativeSurface != NULL)
+  {
+    pNativeSurface->Release();
+    pNativeSurface = NULL;
+  }
+  if (direct3ddevice->CreateRenderTarget(
+          _srcRect.GetWidth(),
+          _srcRect.GetHeight(),
+          color_depth_to_d3d_format(_mode.ColorDepth, false),
+          D3DMULTISAMPLE_NONE,
+          0,
+          true,
+          &pNativeSurface,
+          NULL  )!= D3D_OK)
+  {
+    throw Ali3DException("CreateRenderTarget failed");
+  }
+  direct3ddevice->ColorFill(pNativeSurface, NULL, 0);
+
   // create dummy screen bitmap
   // TODO: find out why we are doing this
   delete _dummyVirtualScreen;
@@ -893,11 +886,34 @@ void D3DGraphicsDriver::CreateVirtualScreen()
   BitmapHelper::SetScreenBitmap(_dummyVirtualScreen);
 }
 
-bool D3DGraphicsDriver::SetRenderFrame(const Size &src_size, const Rect &dst_rect)
+HRESULT D3DGraphicsDriver::ResetD3DDevice()
 {
-  OnSetRenderFrame(src_size, dst_rect);
-  // If we already have a gfx mode set, then update virtual screen immediately
+  // Direct3D documentation:
+  // Before calling the IDirect3DDevice9::Reset method for a device,
+  // an application should release any explicit render targets, depth stencil
+  // surfaces, additional swap chains, state blocks, and D3DPOOL_DEFAULT
+  // resources associated with the device.
+  if (pNativeSurface != NULL)
+  {
+    pNativeSurface->Release();
+    pNativeSurface = NULL;
+  }
+
+  return direct3ddevice->Reset(&d3dpp);
+}
+
+bool D3DGraphicsDriver::SetNativeSize(const Size &src_size)
+{
+  OnSetNativeSize(src_size);
+  // Also make sure viewport is updated using new native & destination rectangles
+  SetupViewport();
   CreateVirtualScreen();
+  return !_srcRect.IsEmpty();
+}
+
+bool D3DGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
+{
+  OnSetRenderFrame(dst_rect);
   // Also make sure viewport is updated using new native & destination rectangles
   SetupViewport();
   return !_dstRect.IsEmpty();
@@ -922,6 +938,12 @@ void D3DGraphicsDriver::UnInit()
   delete _dummyVirtualScreen;
   _dummyVirtualScreen = NULL;
   dxmedia_shutdown_3d();
+
+  if (pNativeSurface)
+  {
+    pNativeSurface->Release();
+    pNativeSurface = NULL;
+  }
 
   if (vertexbuffer)
   {

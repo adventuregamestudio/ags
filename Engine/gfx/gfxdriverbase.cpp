@@ -35,6 +35,11 @@ bool GraphicsDriverBase::IsModeSet() const
     return _mode.Width != 0 && _mode.Height != 0 && _mode.ColorDepth != 0;
 }
 
+bool GraphicsDriverBase::IsNativeSizeValid() const
+{
+    return !_srcRect.IsEmpty();
+}
+
 bool GraphicsDriverBase::IsRenderFrameValid() const
 {
     return !_srcRect.IsEmpty() && !_dstRect.IsEmpty();
@@ -43,6 +48,11 @@ bool GraphicsDriverBase::IsRenderFrameValid() const
 DisplayMode GraphicsDriverBase::GetDisplayMode() const
 {
     return _mode;
+}
+
+Size GraphicsDriverBase::GetNativeSize() const
+{
+    return _srcRect.GetSize();
 }
 
 Rect GraphicsDriverBase::GetRenderDestination() const
@@ -76,16 +86,26 @@ void GraphicsDriverBase::OnModeReleased()
     _dstRect = Rect();
 }
 
-void GraphicsDriverBase::OnSetRenderFrame(const Size &src_size, const Rect &dst_rect)
+void GraphicsDriverBase::OnScalingChanged()
 {
-    _srcRect = RectWH(0, 0, src_size.Width, src_size.Height);
-    _dstRect = dst_rect;
     PGfxFilter filter = GetGraphicsFilter();
     if (filter)
-        _filterRect = filter->SetTranslation(src_size, dst_rect);
+        _filterRect = filter->SetTranslation(_srcRect.GetSize(), _dstRect);
     else
         _filterRect = Rect();
-    _scaling.Init(src_size, dst_rect);
+    _scaling.Init(_srcRect.GetSize(), _dstRect);
+}
+
+void GraphicsDriverBase::OnSetNativeSize(const Size &src_size)
+{
+    _srcRect = RectWH(0, 0, src_size.Width, src_size.Height);
+    OnScalingChanged();
+}
+
+void GraphicsDriverBase::OnSetRenderFrame(const Rect &dst_rect)
+{
+    _dstRect = dst_rect;
+    OnScalingChanged();
 }
 
 void GraphicsDriverBase::OnSetFilter()

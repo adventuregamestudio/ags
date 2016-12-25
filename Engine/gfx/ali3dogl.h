@@ -189,7 +189,8 @@ public:
     virtual const char*GetDriverID() { return "OGL"; }
     virtual void SetTintMethod(TintMethod method);
     virtual bool SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer);
-    virtual bool SetRenderFrame(const Size &src_size, const Rect &dst_rect);
+    virtual bool SetNativeSize(const Size &src_size);
+    virtual bool SetRenderFrame(const Rect &dst_rect);
     virtual IGfxModeList *GetSupportedModeList(int color_depth);
     virtual bool IsModeSupported(const DisplayMode &mode);
     virtual PGfxFilter GetGraphicsFilter() const;

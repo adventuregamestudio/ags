@@ -678,9 +678,15 @@ void OGLGraphicsDriver::CreateVirtualScreen()
   BitmapHelper::SetScreenBitmap(_dummyVirtualScreen);
 }
 
-bool OGLGraphicsDriver::SetRenderFrame(const Size &src_size, const Rect &dst_rect)
+bool OGLGraphicsDriver::SetNativeSize(const Size &src_size)
 {
-  OnSetRenderFrame(src_size, dst_rect);
+  OnSetNativeSize(src_size);
+  return !_srcRect.IsEmpty();
+}
+
+bool OGLGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
+{
+  OnSetRenderFrame(dst_rect);
   // If we already have a gfx mode set, then update virtual screen immediately
   CreateVirtualScreen();
   // Also make sure viewport and backbuffer mappings are updated using new native & destination rectangles

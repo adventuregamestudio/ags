@@ -230,7 +230,7 @@ bool ALSoftwareGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile 
 
 void ALSoftwareGraphicsDriver::CreateVirtualScreen()
 {
-  if (!IsModeSet() || !IsRenderFrameValid() || !_filter)
+  if (!IsModeSet() || !IsRenderFrameValid() || !IsNativeSizeValid() || !_filter)
     return;
   BitmapHelper::SetScreenBitmap( _filter->InitVirtualScreen(BitmapHelper::GetScreenBitmap(), _srcRect.GetSize(), _dstRect) );
   virtualScreen = BitmapHelper::GetScreenBitmap();
@@ -263,9 +263,17 @@ void ALSoftwareGraphicsDriver::ReleaseDisplayMode()
   BitmapHelper::SetScreenBitmap(NULL);
 }
 
-bool ALSoftwareGraphicsDriver::SetRenderFrame(const Size &src_size, const Rect &dst_rect)
+bool ALSoftwareGraphicsDriver::SetNativeSize(const Size &src_size)
 {
-  OnSetRenderFrame(src_size, dst_rect);
+  OnSetNativeSize(src_size);
+  // If we already have a gfx mode and gfx filter set, then use it to update virtual screen immediately
+  CreateVirtualScreen();
+  return !_srcRect.IsEmpty();
+}
+
+bool ALSoftwareGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
+{
+  OnSetRenderFrame(dst_rect);
   // If we already have a gfx mode and gfx filter set, then use it to update virtual screen immediately
   CreateVirtualScreen();
   return !_dstRect.IsEmpty();

@@ -66,13 +66,17 @@ public:
   virtual bool SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer) = 0;
   // Gets if a graphics mode was initialized
   virtual bool IsModeSet() const = 0;
+  // Set the size of the native image size
+  virtual bool SetNativeSize(const Size &src_size) = 0;
+  virtual bool IsNativeSizeValid() const = 0;
   // Set game render frame and translation
-  virtual bool SetRenderFrame(const Size &src_size, const Rect &dst_rect) = 0;
+  virtual bool SetRenderFrame(const Rect &dst_rect) = 0;
   virtual bool IsRenderFrameValid() const = 0;
   virtual IGfxModeList *GetSupportedModeList(int color_depth) = 0;
   virtual bool IsModeSupported(const DisplayMode &mode) = 0;
   virtual DisplayMode GetDisplayMode() const = 0;
   virtual PGfxFilter GetGraphicsFilter() const = 0;
+  virtual Size GetNativeSize() const = 0;
   virtual Rect GetRenderDestination() const = 0;
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) = 0;
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) = 0;

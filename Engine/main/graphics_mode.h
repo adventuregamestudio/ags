@@ -60,6 +60,9 @@ struct GameFrameSetup
 {
     FrameScaleDefinition ScaleDef;    // a method used to determine game frame scaling
     int                  ScaleFactor; // explicit scale factor
+
+    GameFrameSetup();
+    bool IsValid() const;
 };
 
 enum ScreenSizeDefinition
@@ -80,6 +83,8 @@ struct DisplayModeSetup
     int                  RefreshRate;   // gfx mode refresh rate
     bool                 VSync;         // vertical sync
     bool                 Windowed;      // is mode windowed
+
+    DisplayModeSetup();
 };
 
 // General display configuration
@@ -92,6 +97,8 @@ struct ScreenSetup
     GameFrameSetup       GameFrame;     // definition of the game frame's position on screen
 
     bool                 RenderAtScreenRes; // render sprites at screen resolution, as opposed to native one
+
+    ScreenSetup();
 };
 
 // Display mode color depth variants allowed to be used
@@ -110,9 +117,10 @@ void graphics_mode_get_defaults(bool windowed, DisplayModeSetup &dm_setup, GameF
 bool graphics_mode_create_renderer(const String &driver_id);
 // Set the display mode with given parameters
 bool graphics_mode_set_dm(const AGS::Engine::DisplayMode &dm);
+// Set the native image size
+bool graphics_mode_set_native_size(const Size &native_size);
 // Set the render frame position inside the window
-bool graphics_mode_set_render_frame(const Size &native_size, const GameFrameSetup &frame_setup);
-bool graphics_mode_set_render_frame(const Size &native_size, const Rect &render_frame);
+bool graphics_mode_set_render_frame(const GameFrameSetup &frame_setup);
 // Set the scaling filter
 bool graphics_mode_set_filter(const String &filter_id);
 // Releases current graphic mode and shuts down renderer

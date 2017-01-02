@@ -379,7 +379,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, String &path,
     bool is_absolute = !is_relative_filename(orig_sc_path);
     if (is_absolute && !read_only)
     {
-        debug_log("Attempt to access file '%s' denied (cannot write to absolute path)", orig_sc_path.GetCStr());
+        debug_script_warn("Attempt to access file '%s' denied (cannot write to absolute path)", orig_sc_path.GetCStr());
         return false;
     }
 
@@ -398,7 +398,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, String &path,
     {
         if (!read_only)
         {
-            debug_log("Attempt to access file '%s' denied (cannot write to game installation directory)",
+            debug_script_warn("Attempt to access file '%s' denied (cannot write to game installation directory)",
                 sc_path.GetCStr());
             return false;
         }
@@ -438,7 +438,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, String &path,
         // if the unsafe path is used for write operation
         if (!read_only && game.options[OPT_SAFEFILEPATHS])
         {
-            debug_log("Attempt to access file '%s' denied (cannot write to game installation directory);\nPath will be remapped to the app data directory: '%s'",
+            debug_script_warn("Attempt to access file '%s' denied (cannot write to game installation directory);\nPath will be remapped to the app data directory: '%s'",
                 sc_path.GetCStr(), parent_dir.GetCStr());
         }
     }
@@ -452,7 +452,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, String &path,
     {
         if (!Path::IsSameOrSubDir(parent_dir, path))
         {
-            debug_log("Attempt to access file '%s' denied (outside of game directory)", sc_path.GetCStr());
+            debug_script_warn("Attempt to access file '%s' denied (outside of game directory)", sc_path.GetCStr());
             path = "";
             return false;
         }

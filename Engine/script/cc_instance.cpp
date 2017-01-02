@@ -441,11 +441,7 @@ int ccInstance::PrepareTextScript(const char**tsname) {
     }
     scripts[num_scripts].init();
     scripts[num_scripts].inst = this;
-    /*  char tempb[300];
-    sprintf(tempb,"Creating script instance for '%s' room %d",tsname[0],displayed_room);
-    write_log(tempb);*/
     if (pc != 0) {
-        //    write_log("Forking instance");
         scripts[num_scripts].inst = Fork();
         if (scripts[num_scripts].inst == NULL)
             quit("unable to fork instance for secondary script");
@@ -1878,7 +1874,7 @@ bool ccInstance::AddGlobalVar(const ScriptVariable &glvar)
         /*
         return false;
         */
-        Out::FPrint("WARNING: global variable refers to data beyond allocated buffer (%d, %d)", glvar.ScAddress, globaldatasize);
+        Debug::Printf(kDbgMsg_Warn, "WARNING: global variable refers to data beyond allocated buffer (%d, %d)", glvar.ScAddress, globaldatasize);
     }
     globalvars->insert(std::make_pair(glvar.ScAddress, glvar));
     return true;
@@ -1892,7 +1888,7 @@ ScriptVariable *ccInstance::FindGlobalVar(int32_t var_addr)
         /*
         return NULL;
         */
-        Out::FPrint("WARNING: looking up for global variable beyond allocated buffer (%d, %d)", var_addr, globaldatasize);
+        Debug::Printf(kDbgMsg_Warn, "WARNING: looking up for global variable beyond allocated buffer (%d, %d)", var_addr, globaldatasize);
     }
     ScVarMap::iterator it = globalvars->find(var_addr);
     return it != globalvars->end() ? &it->second : NULL;

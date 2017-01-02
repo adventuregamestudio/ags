@@ -63,7 +63,7 @@ public:
     platformLibraryName.Append(".so");
 #endif
 
-    AGS::Common::Out::FPrint("Built library path: %s", platformLibraryName.GetCStr());
+    AGS::Common::Debug::Printf("Built library path: %s", platformLibraryName.GetCStr());
     return platformLibraryName;
   }
 
@@ -73,7 +73,7 @@ public:
 
     // Try rpath first
     _library = dlopen(BuildPath(NULL, libraryName).GetCStr(), RTLD_LAZY);
-    AGS::Common::Out::FPrint("dlopen returned: %s", dlerror());
+    AGS::Common::Debug::Printf("dlopen returned: %s", dlerror());
     if (_library != NULL)
     {
       return true;
@@ -82,7 +82,7 @@ public:
     // Try current path
     _library = dlopen(BuildPath(".", libraryName).GetCStr(), RTLD_LAZY);
 
-    AGS::Common::Out::FPrint("dlopen returned: %s", dlerror());
+    AGS::Common::Debug::Printf("dlopen returned: %s", dlerror());
 
     if (_library == NULL)
     {
@@ -96,7 +96,7 @@ public:
       _library = dlopen(BuildPath(appDirectory, libraryName).GetCStr(), RTLD_LAZY);
 #endif
 
-      AGS::Common::Out::FPrint("dlopen returned: %s", dlerror());
+      AGS::Common::Debug::Printf("dlopen returned: %s", dlerror());
     }
 
     return (_library != NULL);

@@ -225,11 +225,6 @@ const char *CreateNewScriptString(const char *fromText, bool reAllocate) {
 
     ccRegisterManagedObject(str->text, str);
 
-    /*long handle = ccRegisterManagedObject(str->text, str);
-    char buffer[1000];
-    sprintf(buffer, "String %p (handle %d) allocated: '%s'", str->text, handle, str->text);
-    write_log(buffer);*/
-
     return str->text;
 }
 

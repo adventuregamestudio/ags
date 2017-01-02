@@ -107,10 +107,14 @@ bool AGSPlatformDriver::LockMouseToWindow() { return false; }
 void AGSPlatformDriver::UnlockMouse() { }
 
 //-----------------------------------------------
-// IOutputTarget implementation
+// IOutputHandler implementation
 //-----------------------------------------------
-void AGSPlatformDriver::Out(const char *sz_fullmsg) {
-    this->WriteStdOut("%s", sz_fullmsg);
+void AGSPlatformDriver::PrintMessage(const Common::DebugMessage &msg)
+{
+    if (msg.GroupName.IsEmpty())
+        WriteStdOut("%s", msg.Text.GetCStr());
+    else
+        WriteStdOut("%s : %s", msg.GroupName.GetCStr(), msg.Text.GetCStr());
 }
 
 // ********** CD Player Functions common to Win and Linux ********

@@ -20,7 +20,7 @@
 extern int offsetx, offsety;
 
 void SetViewport(int offsx,int offsy) {
-    DEBUG_CONSOLE("Viewport locked to %d,%d", offsx, offsy);
+    debug_script_log("Viewport locked to %d,%d", offsx, offsy);
     offsetx = multiply_up_coordinate(offsx);
     offsety = multiply_up_coordinate(offsy);
     check_viewport_coords();
@@ -28,7 +28,7 @@ void SetViewport(int offsx,int offsy) {
 }
 void ReleaseViewport() {
     play.offsets_locked = 0;
-    DEBUG_CONSOLE("Viewport released back to engine control");
+    debug_script_log("Viewport released back to engine control");
 }
 int GetViewportX () {
     return divide_down_coordinate(offsetx);

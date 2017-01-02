@@ -179,11 +179,6 @@ case 1:
         }
     }
 
-    /*    char tbuffer[260];
-    sprintf(tbuffer,"offs: %d  last_but_one_but_one: %d  last_but_one: %d  active:%d  locked: %p   EOS: %d",
-    offs, last_but_one_but_one, last_but_one, str->active, str->locked, end_of_stream);
-    write_log(tbuffer);*/
-
     if (end_of_stream == 1) {
 
         return offs + last_but_one;

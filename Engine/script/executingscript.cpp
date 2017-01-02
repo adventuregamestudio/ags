@@ -52,7 +52,7 @@ void ExecutingScript::run_another(const char *namm, ScriptInstType scinst, size_
     if (numanother < MAX_QUEUED_SCRIPTS)
         numanother++;
     else {
-        /*debug_log("Warning: too many scripts to run, ignored %s(%d,%d)",
+        /*debug_script_warn("Warning: too many scripts to run, ignored %s(%d,%d)",
         script_run_another[numanother - 1], run_another_p1[numanother - 1],
         run_another_p2[numanother - 1]);*/
     }

@@ -217,7 +217,7 @@ void GUIControl_SetSize(GUIObject *guio, int newwid, int newhit) {
   if ((newwid < 2) || (newhit < 2))
     quit("!SetGUIObjectSize: new size is too small (must be at least 2x2)");
 
-  DEBUG_CONSOLE("SetGUIObject %d,%d size %d,%d", guio->guin, guio->objn, newwid, newhit);
+  debug_script_log("SetGUIObject %d,%d size %d,%d", guio->guin, guio->objn, newwid, newhit);
   GUIControl_SetWidth(guio, newwid);
   GUIControl_SetHeight(guio, newhit);
 }

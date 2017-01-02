@@ -138,12 +138,12 @@ void DeleteSaveSlot (int slnum) {
 
 void PauseGame() {
     game_paused++;
-    DEBUG_CONSOLE("Game paused");
+    debug_script_log("Game paused");
 }
 void UnPauseGame() {
     if (game_paused > 0)
         game_paused--;
-    DEBUG_CONSOLE("Game UnPaused, pause level now %d", game_paused);
+    debug_script_log("Game UnPaused, pause level now %d", game_paused);
 }
 
 
@@ -197,7 +197,7 @@ void SetGlobalInt(int index,int valu) {
         quit("!SetGlobalInt: invalid index");
 
     if (play.globalscriptvars[index] != valu) {
-        DEBUG_CONSOLE("GlobalInt %d set to %d", index, valu);
+        debug_script_log("GlobalInt %d set to %d", index, valu);
     }
 
     play.globalscriptvars[index]=valu;
@@ -213,7 +213,7 @@ int GetGlobalInt(int index) {
 void SetGlobalString (int index, const char *newval) {
     if ((index<0) | (index >= MAXGLOBALSTRINGS))
         quit("!SetGlobalString: invalid index");
-    DEBUG_CONSOLE("GlobalString %d set to '%s'", index, newval);
+    debug_script_log("GlobalString %d set to '%s'", index, newval);
     strncpy(play.globalstrings[index], newval, MAX_MAXSTRLEN);
     // truncate it to 200 chars, to be sure
     play.globalstrings[index][MAX_MAXSTRLEN - 1] = 0;
@@ -381,7 +381,7 @@ void SetGameSpeed(int newspd) {
     if (newspd>1000) newspd=1000;
     if (newspd<10) newspd=10;
     set_game_speed(newspd);
-    DEBUG_CONSOLE("Game speed set to %d", newspd);
+    debug_script_log("Game speed set to %d", newspd);
 }
 
 int GetGameSpeed() {
@@ -523,7 +523,7 @@ void SaveCursorForLocationChange() {
         play.get_loc_name_save_cursor = play.get_loc_name_last_time;
         play.restore_cursor_mode_to = GetCursorMode();
         play.restore_cursor_image_to = GetMouseCursor();
-        DEBUG_CONSOLE("Saving mouse: mode %d cursor %d", play.restore_cursor_mode_to, play.restore_cursor_image_to);
+        debug_script_log("Saving mouse: mode %d cursor %d", play.restore_cursor_mode_to, play.restore_cursor_image_to);
     }
 }
 
@@ -721,7 +721,7 @@ int IsKeyPressed (int keycode) {
     else if (keycode == '.')
         keycode = KEY_STOP;
     else {
-        DEBUG_CONSOLE("IsKeyPressed: unsupported keycode %d", keycode);
+        debug_script_log("IsKeyPressed: unsupported keycode %d", keycode);
         return 0;
     }
 
@@ -810,7 +810,7 @@ void ProcessClick(int xx,int yy,int mood) {
         else {
             xx=thisroom.hswalkto[hsnum].x;
             yy=thisroom.hswalkto[hsnum].y;
-            DEBUG_CONSOLE("Move to walk-to point hotspot %d", hsnum);
+            debug_script_log("Move to walk-to point hotspot %d", hsnum);
         }
         walk_character(game.playercharacter,xx,yy,0, true);
         return;

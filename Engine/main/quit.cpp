@@ -88,7 +88,7 @@ void quit_check_dynamic_sprites(QuitReason qreason)
             // have been deleted
             for (int i = 1; i < spriteset.elements; i++) {
                 if (game.spriteflags[i] & SPF_DYNAMICALLOC)
-                    debug_log("Dynamic sprite %d was never deleted", i);
+                    debug_script_warn("Dynamic sprite %d was never deleted", i);
             }
     }
 }
@@ -309,9 +309,9 @@ void quit(const char *quitmsg)
 
     proper_exit=1;
 
-    Out::FPrint("***** ENGINE HAS SHUTDOWN");
+    Debug::Printf(kDbgMsg_Init, "***** ENGINE HAS SHUTDOWN");
 
-    shutdown_debug_system();
+    shutdown_debug();
     free_globals();
 
     our_eip = 9904;

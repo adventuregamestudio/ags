@@ -258,7 +258,7 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
     sds->MultiplyCoordinates(&xx, &yy);
 
     if (sourcePic->GetColorDepth() != ds->GetColorDepth()) {
-        debug_log("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, spriteset[slot]->GetColorDepth(), ds->GetColorDepth());
+        debug_script_warn("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, spriteset[slot]->GetColorDepth(), ds->GetColorDepth());
     }
 
     draw_sprite_support_alpha(ds, sds->hasAlphaChannel != 0, xx, yy, sourcePic, (game.spriteflags[slot] & SPF_ALPHACHANNEL) != 0,
@@ -376,7 +376,7 @@ void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int fo
     color_t text_color = sds->currentColour;
     if ((ds->GetColorDepth() <= 8) && (play.raw_color > 255)) {
         text_color = ds->GetCompatibleColor(1);
-        debug_log ("RawPrint: Attempted to use hi-color on 256-col background");
+        debug_script_warn ("RawPrint: Attempted to use hi-color on 256-col background");
     }
     wouttext_outline(ds, xx, yy, font, text_color, text);
     sds->FinishedDrawing();

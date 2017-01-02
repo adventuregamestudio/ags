@@ -184,7 +184,7 @@ void SetSkipSpeech (SkipSpeechStyle newval) {
     if ((newval < kSkipSpeechFirst) || (newval > kSkipSpeechLast))
         quit("!SetSkipSpeech: invalid skip mode specified");
 
-    DEBUG_CONSOLE("SkipSpeech style set to %d", newval);
+    debug_script_log("SkipSpeech style set to %d", newval);
     play.cant_skip_speech = user_to_internal_skip_speech((SkipSpeechStyle)newval);
 }
 

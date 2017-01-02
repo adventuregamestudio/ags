@@ -61,7 +61,7 @@ void RemoveWalkableArea(int areanum) {
     quit("!RemoveWalkableArea: invalid area number specified (1-15).");
   play.walkable_areas_on[areanum]=0;
   redo_walkable_areas();
-  DEBUG_CONSOLE("Walkable area %d removed", areanum);
+  debug_script_log("Walkable area %d removed", areanum);
 }
 
 void RestoreWalkableArea(int areanum) {
@@ -69,7 +69,7 @@ void RestoreWalkableArea(int areanum) {
     quit("!RestoreWalkableArea: invalid area number specified (1-15).");
   play.walkable_areas_on[areanum]=1;
   redo_walkable_areas();
-  DEBUG_CONSOLE("Walkable area %d restored", areanum);
+  debug_script_log("Walkable area %d restored", areanum);
 }
 
 

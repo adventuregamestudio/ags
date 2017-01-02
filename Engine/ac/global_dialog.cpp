@@ -56,8 +56,8 @@ void RunDialog(int tum) {
 
 void StopDialog() {
   if (play.stop_dialog_at_end == DIALOG_NONE) {
-    debug_log("StopDialog called, but was not in a dialog");
-    DEBUG_CONSOLE("StopDialog called but no dialog");
+    debug_script_warn("StopDialog called, but was not in a dialog");
+    debug_script_log("StopDialog called but no dialog");
     return;
   }
   get_script_position(last_in_dialog_request_script_pos);
@@ -74,7 +74,7 @@ void SetDialogOption(int dlg, int opt, int onoroff, bool dlg_script)
     // parsed differently; its "option-on/off" commands were more permissive.
     if (dlg_script)
     {
-      Out::FPrint("SetDialogOption: Invalid option number specified (%d : %d)", dlg, opt);
+      Debug::Printf(kDbgGroup_Script, kDbgMsg_Error, "SetDialogOption: Invalid option number specified (%d : %d)", dlg, opt);
       return;
     }
     quit("!SetDialogOption: Invalid option number specified");

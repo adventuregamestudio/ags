@@ -40,14 +40,14 @@ void DisableHotspot(int hsnum) {
     if ((hsnum<1) | (hsnum>=MAX_HOTSPOTS))
         quit("!DisableHotspot: invalid hotspot specified");
     croom->hotspot_enabled[hsnum]=0;
-    DEBUG_CONSOLE("Hotspot %d disabled", hsnum);
+    debug_script_log("Hotspot %d disabled", hsnum);
 }
 
 void EnableHotspot(int hsnum) {
     if ((hsnum<1) | (hsnum>=MAX_HOTSPOTS))
         quit("!EnableHotspot: invalid hotspot specified");
     croom->hotspot_enabled[hsnum]=1;
-    DEBUG_CONSOLE("Hotspot %d re-enabled", hsnum);
+    debug_script_log("Hotspot %d re-enabled", hsnum);
 }
 
 int GetHotspotPointX (int hotspot) {

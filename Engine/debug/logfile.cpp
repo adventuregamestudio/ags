@@ -22,123 +22,61 @@ namespace AGS
 namespace Engine
 {
 
-namespace File = AGS::Common::File;
+using namespace Common;
 
-namespace Out
-{
-//
-// TODO: filepath parameter here may be actually used as a pattern
-// or prefix, while the actual filename could be made by combining
-// this prefix with current date, game name, and similar additional
-// useful information. Whether this is to be determined here or on
-// high-level side remains a question.
-//
-LogFile::LogFile(size_t buffer_limit)
-    : _bufferLimit(buffer_limit)
-    , _openMode(kLogFile_OpenOverwrite)
-    , _file(NULL)
-    , _buffering(true)
-    , _charsLost(0)
+LogFile::LogFile()
+    : _openMode(kLogFile_OpenOverwrite)
 {
 }
 
-LogFile::LogFile(const String &file_path, LogFileOpenMode open_mode, bool open_at_start, size_t buffer_limit)
-    : _bufferLimit(buffer_limit)
-    , _filePath(file_path)
-    , _openMode(open_mode)
-    , _file(NULL)
-    , _buffering(true)
-    , _charsLost(0)
+void LogFile::PrintMessage(const DebugMessage &msg)
 {
-    if (open_at_start)
+    if (!_file.get())
     {
-        OpenFile();
-    }
-}
-
-LogFile::~LogFile()
-{
-    CloseFile();
-}
-
-void LogFile::Out(const char *sz_fullmsg)
-{
-    if (!sz_fullmsg)
-    {
-        return;
-    }
-
-    if (_file /* && !buffering, but (_file != NULL) condition is sufficient here */)
-    {
-        _file->Write(sz_fullmsg, strlen(sz_fullmsg));
-        _file->WriteInt8('\n');
-        // We should flush after every write to the log; this will make writing
-        // bit slower, but will increase the chances that all latest output
-        // will get to the disk in case of program crash.
-        _file->Flush();
-    }
-    else
-    {
-        if ((size_t)_buffer.GetLength() < _bufferLimit)
+        if (_filePath.IsEmpty())
+            return;
+        // Delayed file open
+        if (!OpenFile(_filePath, _openMode))
         {
-            _buffer.Append(sz_fullmsg);
-            _buffer.AppendChar('\n');
-        }
-        else
-        {
-            _charsLost += strlen(sz_fullmsg);
+            Debug::Printf("Unable to write log to '%s'.", _filePath.GetCStr());
+            _filePath = "";
+            return;
         }
     }
+
+    if (!msg.GroupName.IsEmpty())
+    {
+        _file->Write(msg.GroupName, msg.GroupName.GetLength());
+        _file->Write(" : ", 3);
+    }
+    _file->Write(msg.Text, msg.Text.GetLength());
+    _file->WriteInt8('\n');
+    // We should flush after every write to the log; this will make writing
+    // bit slower, but will increase the chances that all latest output
+    // will get to the disk in case of program crash.
+    _file->Flush();
 }
 
-bool LogFile::OpenFile()
-{
-    return OpenFile(_filePath, _openMode);
-}
-
-bool LogFile::OpenFile(const String &file_path, LogFileOpenMode open_mode)
+bool LogFile::OpenFile(const String &file_path, LogFileOpenMode open_mode, bool open_at_first_msg)
 {
     CloseFile();
 
     _filePath = file_path;
     _openMode = open_mode;
-    _file = File::OpenFile(file_path,
-                           open_mode == kLogFile_OpenAppend ? Common::kFile_Create : Common::kFile_CreateAlways,
-                           Common::kFile_Write);
-    if (_file)
+    if (!open_at_first_msg)
     {
-        _buffering = false;
-        FlushBuffer();
-        return true;
+        _file.reset(File::OpenFile(file_path,
+                           open_mode == kLogFile_OpenAppend ? Common::kFile_Create : Common::kFile_CreateAlways,
+                           Common::kFile_Write));
     }
-    return false;
+    return _file.get() != NULL || open_at_first_msg;
 }
 
 void LogFile::CloseFile()
 {
-    if (_file)
-    {
-        delete _file;
-        _file = NULL;
-        _buffering = true;
-    }
+    _file.reset();
+    _filePath.Empty();
 }
 
-void LogFile::FlushBuffer()
-{
-    if (_file && !_buffer.IsEmpty())
-    {
-        _file->Write(_buffer.GetCStr(), _buffer.GetLength());
-        if (_charsLost > 0)
-        {
-            String warning = String::FromFormat("WARNING: output lost exceeding buffer: %u chars\n", (unsigned)_charsLost);
-            _file->Write(warning.GetCStr(), warning.GetLength());
-        }
-        _buffer.Empty();
-        _charsLost = 0;
-    }
-}
-
-} // namespace Out
 } // namespace Engine
 } // namespace AGS

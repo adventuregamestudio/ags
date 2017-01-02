@@ -326,7 +326,6 @@ void post_script_cleanup() {
     // should do any post-script stuff here, like go to new room
     if (ccError) quit(ccErrorString);
     ExecutingScript copyof = scripts[num_scripts-1];
-    //  write_log("Instance finished.");
     if (scripts[num_scripts-1].forked)
         delete scripts[num_scripts-1].inst;
     num_scripts--;

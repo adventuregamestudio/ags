@@ -314,7 +314,7 @@ void audio_update_polled_stuff()
 void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat)
 {
     if (play.new_music_queue_size >= MAX_QUEUED_MUSIC) {
-        DEBUG_CONSOLE("Too many queued music, cannot add %s", clip->scriptName);
+        debug_script_log("Too many queued music, cannot add %s", clip->scriptName);
         return;
     }
 
@@ -340,7 +340,7 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
     }
     if (soundfx == NULL)
     {
-        DEBUG_CONSOLE("AudioClip.Play: unable to load sound file");
+        debug_script_log("AudioClip.Play: unable to load sound file");
         if (play.crossfading_in_channel == channel)
         {
             play.crossfading_in_channel = 0;
@@ -372,7 +372,7 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
 
     if (soundfx->play_from(fromOffset) == 0)
     {
-        DEBUG_CONSOLE("AudioClip.Play: failed to play sound file");
+        debug_script_log("AudioClip.Play: failed to play sound file");
         return NULL;
     }
 
@@ -428,7 +428,7 @@ ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int rep
         if (queueIfNoChannel)
             queue_audio_clip_to_play(clip, priority, repeat);
         else
-            DEBUG_CONSOLE("AudioClip.Play: no channels available to interrupt PRI:%d TYPE:%d", priority, clip->type);
+            debug_script_log("AudioClip.Play: no channels available to interrupt PRI:%d TYPE:%d", priority, clip->type);
 
         return NULL;
     }
@@ -1049,8 +1049,8 @@ SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat) {
 
     if ((loaded == NULL) && (mnum > 0)) 
     {
-        debug_log("Music %d not found",mnum);
-        DEBUG_CONSOLE("FAILED to load music %d", mnum);
+        debug_script_warn("Music %d not found",mnum);
+        debug_script_log("FAILED to load music %d", mnum);
     }
 
     return loaded;
@@ -1062,7 +1062,7 @@ void play_new_music(int mnum, SOUNDCLIP *music) {
         return;
 
     if ((play.cur_music_number == mnum) && (music == NULL)) {
-        DEBUG_CONSOLE("PlayMusic %d but already playing", mnum);
+        debug_script_log("PlayMusic %d but already playing", mnum);
         return;  // don't play the music if it's already playing
     }
 
@@ -1071,7 +1071,7 @@ void play_new_music(int mnum, SOUNDCLIP *music) {
         return;
 
     int useChannel = SCHAN_MUSIC;
-    DEBUG_CONSOLE("Playing music %d", mnum);
+    debug_script_log("Playing music %d", mnum);
 
     if (mnum<0) {
         stopmusic();

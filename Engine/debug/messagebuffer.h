@@ -12,13 +12,15 @@
 //
 //=============================================================================
 //
-// ConsoleOutputTarget prints messages onto in-game console GUI (available
-// only if the game was compiled in debug mode).
+// MessageBuffer, the IOutputHandler implementation that stores debug messages
+// in a vector. Could be handy if you need to temporarily buffer debug log
+// while specifying how to actually print it.
 //
 //=============================================================================
-#ifndef __AGS_EE_DEBUG__CONSOLEOUTPUTTARGET_H
-#define __AGS_EE_DEBUG__CONSOLEOUTPUTTARGET_H
+#ifndef __AGS_EE_DEBUG__MESSAGEBUFFER_H
+#define __AGS_EE_DEBUG__MESSAGEBUFFER_H
 
+#include <vector>
 #include "debug/outputhandler.h"
 
 namespace AGS
@@ -29,16 +31,27 @@ namespace Engine
 using Common::String;
 using Common::DebugMessage;
 
-class ConsoleOutputTarget : public AGS::Common::IOutputHandler
+class MessageBuffer : public AGS::Common::IOutputHandler
 {
 public:
-    ConsoleOutputTarget();
-    virtual ~ConsoleOutputTarget();
+    MessageBuffer(size_t buffer_limit = 1024);
 
     virtual void PrintMessage(const DebugMessage &msg);
+
+    // Clears buffer
+    void         Clear();
+    // Sends buffered messages into given output target
+    void         Send(const String &out_id);
+    // Sends buffered messages into given output target and clears buffer
+    void         Flush(const String &out_id);
+
+private:
+    const size_t    _bufferLimit;
+    std::vector<DebugMessage> _buffer;
+    size_t          _msgLost;
 };
 
 }   // namespace Engine
 }   // namespace AGS
 
-#endif // __AGS_EE_DEBUG__CONSOLEOUTPUTTARGET_H
+#endif // __AGS_EE_DEBUG__MESSAGEBUFFER_H

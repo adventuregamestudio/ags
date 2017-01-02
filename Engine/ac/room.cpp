@@ -257,7 +257,7 @@ void unload_old_room() {
     if (displayed_room < 0)
         return;
 
-    DEBUG_CONSOLE("Unloading room %d", displayed_room);
+    debug_script_log("Unloading room %d", displayed_room);
 
     current_fade_out_effect();
 
@@ -406,7 +406,7 @@ extern int convert_16bit_bgr;
 // forchar = playerchar on NewRoom, or NULL if restore saved game
 void load_new_room(int newnum, CharacterInfo*forchar) {
 
-    DEBUG_CONSOLE("Loading room %d", newnum);
+    debug_script_log("Loading room %d", newnum);
 
     String room_filename;
     int cc;
@@ -978,7 +978,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     our_eip=220;
     update_polled_stuff_if_runtime();
-    DEBUG_CONSOLE("Now in room %d", displayed_room);
+    debug_script_log("Now in room %d", displayed_room);
     guis_need_update = 1;
     pl_run_plugin_hooks(AGSE_ENTERROOM, displayed_room);
     //  MoveToWalkableArea(game.playercharacter);
@@ -991,7 +991,7 @@ extern int psp_clear_cache_on_room_change;
 void new_room(int newnum,CharacterInfo*forchar) {
     EndSkippingUntilCharStops();
 
-    DEBUG_CONSOLE("Room change requested to room %d", newnum);
+    debug_script_log("Room change requested to room %d", newnum);
 
     update_polled_stuff_if_runtime();
 

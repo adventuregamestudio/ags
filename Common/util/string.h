@@ -38,6 +38,7 @@
 #ifndef __AGS_CN_UTIL__STRING_H
 #define __AGS_CN_UTIL__STRING_H
 
+#include <stdarg.h>
 #include "core/types.h"
 #include "debug/assert.h"
 
@@ -173,6 +174,7 @@ public:
     //-------------------------------------------------------------------------
 
     static String FromFormat(const char *fcstr, ...);
+    static String FromFormatV(const char *fcstr, va_list argptr);
     // Reads stream until null-terminator or EOS
     static String FromStream(Stream *in, size_t max_chars = 5000000, bool stop_at_limit = false);
     // Reads up to N chars from stream
@@ -239,6 +241,7 @@ public:
     void    FillString(char c, size_t count);
     // Makes a new string by putting in parameters according to format string
     void    Format(const char *fcstr, ...);
+    void    FormatV(const char *fcstr, va_list argptr);
     // Decrement ref counter and deallocate data if must.
     // Free() should be called only when buffer is not needed anymore;
     // if string must be truncated to zero length, but retain the allocated

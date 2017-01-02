@@ -183,7 +183,7 @@ void process_event(EventHappened*evp) {
 
             evblockbasename="hotspot%d";
             evblocknum=evp->data2;
-            //Out::FPrint("Running hotspot interaction for hotspot %d, event %d", evp->data2, evp->data3);
+            //Debug::Printf("Running hotspot interaction for hotspot %d, event %d", evp->data2, evp->data3);
         }
         else if (evp->data1==EVB_ROOM) {
 
@@ -198,7 +198,7 @@ void process_event(EventHappened*evp) {
                 run_on_event (GE_ENTER_ROOM, RuntimeScriptValue().SetInt32(displayed_room));
 
             }
-            //Out::FPrint("Running room interaction, event %d", evp->data3);
+            //Debug::Printf("Running room interaction, event %d", evp->data3);
         }
 
         if (scriptPtr != NULL)

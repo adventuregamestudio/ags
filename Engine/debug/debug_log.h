@@ -19,21 +19,18 @@
 #include "ac/runtime_defines.h"
 #include "ac/gamestate.h"
 #include "platform/base/agsplatformdriver.h"
+#include "util/ini_util.h"
 
-void initialize_debug_system();
-void apply_output_configuration();
-void shutdown_debug_system();
+void init_debug();
+void apply_debug_config(const AGS::Common::ConfigTree &cfg);
+void shutdown_debug();
 
-#define DEBUG_CONSOLE if (play.debug_mode) debug_write_console
-
-void debug_write_console (const char *msg, ...);
-
-/* The idea of this is that non-essential errors such as "sound file not
-found" are logged instead of exiting the program.
-*/
-// NOTE: debug_log only prints messages when game is in debug mode;
-// TODO: revise this later; use new output system with verbosity settings
-void debug_log(const char *texx, ...);
+// debug_script_log prints debug warnings tagged with kDbgGroup_Script,
+// prepending it with current room number and script position identification
+void debug_script_warn(const char *texx, ...);
+// debug_script_log prints debug message tagged with kDbgGroup_Script,
+// prepending it with current room number and script position identification
+void debug_script_log(const char *msg, ...);
 void quitprintf(const char *texx, ...);
 bool init_editor_debugging();
 
@@ -42,12 +39,7 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) ;
 
 extern int debug_flags;
 
-struct DebugConsoleText {
-    char text[100];
-    char script[12];
-};
-
-extern DebugConsoleText debug_line[DEBUG_CONSOLE_NUMLINES];
+extern AGS::Common::String debug_line[DEBUG_CONSOLE_NUMLINES];
 extern int first_debug_line, last_debug_line, display_console;
 extern bool enable_log_file;
 extern bool disable_log_file;

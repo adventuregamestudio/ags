@@ -12,30 +12,30 @@
 //
 //=============================================================================
 //
-// AGS logging system
+// IOutputHandler is a debug printing interface. Its implementations can be
+// registered as potential output for the debug log.
 //
 //=============================================================================
-#ifndef __AGS_CN_DEBUG__OUTPUTTARGET_H
-#define __AGS_CN_DEBUG__OUTPUTTARGET_H
+#ifndef __AGS_CN_DEBUG__OUTPUTHANDLER_H
+#define __AGS_CN_DEBUG__OUTPUTHANDLER_H
+
+#include "debug/out.h"
+#include "util/string.h"
 
 namespace AGS
 {
 namespace Common
 {
 
-namespace Out
+class IOutputHandler
 {
-    class IOutputTarget
-    {
-    public:
-        virtual ~IOutputTarget() {}
-
-        virtual void Out(const char *sz_fullmsg) = 0;
-    };
-
-}   // namespace out
+public:
+    // Print the given text sent from the debug group.
+    // Implementations are free to decide which message components are to be printed, and how.
+    virtual void PrintMessage(const DebugMessage &msg) = 0;
+};
 
 }   // namespace Common
 }   // namespace AGS
 
-#endif // __AGS_CN_DEBUG__OUTPUTTARGET_H
+#endif // __AGS_CN_DEBUG__OUTPUTHANDLER_H

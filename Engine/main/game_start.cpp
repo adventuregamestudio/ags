@@ -52,7 +52,7 @@ extern int convert_16bit_bgr;
 
 void start_game_check_replay()
 {
-    Out::FPrint("Checking replay status");
+    Debug::Printf("Checking replay status");
 
     if (play.recording) {
         start_recording();
@@ -154,8 +154,8 @@ void initialize_start_and_play_game(int override_start_room, const char *loadSav
 
         start_game_check_replay();
 
-        Out::FPrint("Engine initialization complete");
-        Out::FPrint("Starting game");
+        Debug::Printf(kDbgMsg_Init, "Engine initialization complete");
+        Debug::Printf(kDbgMsg_Init, "Starting game");
 
         start_game_init_editor_debugging();
 

@@ -72,7 +72,7 @@ void SetAreaLightLevel(int area, int brightness) {
     thisroom.regionLightLevel[area] = brightness;
     // disable RGB tint for this area
     thisroom.regionTintLevel[area]  = 0;
-    DEBUG_CONSOLE("Region %d light level set to %d", area, brightness);
+    debug_script_log("Region %d light level set to %d", area, brightness);
 }
 
 void SetRegionTint (int area, int red, int green, int blue, int amount, int luminance)
@@ -95,7 +95,7 @@ void SetRegionTint (int area, int red, int green, int blue, int amount, int lumi
     if ((luminance < 0) || (luminance > 100))
         quit("!SetRegionTint: luminance must be 0-100");
 
-    DEBUG_CONSOLE("Region %d tint set to %d,%d,%d", area, red, green, blue);
+    debug_script_log("Region %d tint set to %d,%d,%d", area, red, green, blue);
 
     /*red -= 100;
     green -= 100;
@@ -113,7 +113,7 @@ void DisableRegion(int hsnum) {
         quit("!DisableRegion: invalid region specified");
 
     croom->region_enabled[hsnum] = 0;
-    DEBUG_CONSOLE("Region %d disabled", hsnum);
+    debug_script_log("Region %d disabled", hsnum);
 }
 
 void EnableRegion(int hsnum) {
@@ -121,7 +121,7 @@ void EnableRegion(int hsnum) {
         quit("!EnableRegion: invalid region specified");
 
     croom->region_enabled[hsnum] = 1;
-    DEBUG_CONSOLE("Region %d enabled", hsnum);
+    debug_script_log("Region %d enabled", hsnum);
 }
 
 void DisableGroundLevelAreas(int alsoEffects) {
@@ -133,13 +133,13 @@ void DisableGroundLevelAreas(int alsoEffects) {
     if (alsoEffects)
         play.ground_level_areas_disabled |= GLED_EFFECTS;
 
-    DEBUG_CONSOLE("Ground-level areas disabled");
+    debug_script_log("Ground-level areas disabled");
 }
 
 void EnableGroundLevelAreas() {
     play.ground_level_areas_disabled = 0;
 
-    DEBUG_CONSOLE("Ground-level areas re-enabled");
+    debug_script_log("Ground-level areas re-enabled");
 }
 
 void RunRegionInteraction (int regnum, int mood) {

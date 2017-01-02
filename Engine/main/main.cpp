@@ -395,7 +395,7 @@ String GetPathFromCmdArg(int arg_index)
     LPCWSTR arg_path = wArgv[arg_index];
     if (GetShortPathNameW(arg_path, short_path, MAX_PATH) == 0)
     {
-        Out::FPrint("Unable to determine path: GetShortPathNameW failed.\nCommand line argument %i: %s", arg_index, global_argv[arg_index]);
+        Debug::Printf(kDbgMsg_Error, "Unable to determine path: GetShortPathNameW failed.\nCommand line argument %i: %s", arg_index, global_argv[arg_index]);
         return "";
     }
     WideCharToMultiByte(CP_ACP, 0, short_path, -1, ansi_buffer, MAX_PATH, NULL, NULL);
@@ -478,8 +478,8 @@ int main(int argc,char*argv[]) {
         return 0;
     }
 
-    initialize_debug_system();
-    Out::FPrint(get_engine_string());
+    init_debug();
+    Debug::Printf(kDbgMsg_Init, get_engine_string());
 
     main_init_crt_report();
 

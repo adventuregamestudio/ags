@@ -26,9 +26,7 @@
 #include "util/stream.h"
 #include "core/assetmanager.h"
 
-using AGS::Common::Stream;
-using AGS::Common::String;
-namespace Out = AGS::Common::Out;
+using namespace AGS::Common;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
@@ -66,17 +64,17 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
 
     if (language_file == NULL) 
     {
-        Out::FPrint("Cannot open translation: %s", transFileName);
         if (!lang.IsEmpty())
         {
             // Just in case they're running in Debug, try compiled folder
             sprintf(transFileName, "Compiled\\%s.tra", lang.GetCStr());
             language_file = Common::AssetManager::OpenAsset(transFileName);
-            if (!language_file)
-                Out::FPrint("Cannot open translation: %s", transFileName);
         }
         if (language_file == NULL)
+        {
+            Debug::Printf(kDbgMsg_Error, "Cannot open translation: %s", transFileName);
             return false;
+        }
     }
     // in case it's inside a library file, record the offset
     lang_offs_start = language_file->GetPosition();
@@ -84,7 +82,7 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
     char transsig[16] = {0};
     language_file->Read(transsig, 15);
     if (strcmp(transsig, "AGSTranslation") != 0) {
-        Out::FPrint("Translation signature mismatch: %s", transFileName);
+        Debug::Printf(kDbgMsg_Error, "Translation signature mismatch: %s", transFileName);
         delete language_file;
         return false;
     }
@@ -110,16 +108,16 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
         }
         else
         {
-            Out::FPrint(parse_error);
+            Debug::Printf(kDbgMsg_Error, parse_error);
             if (!fallback_lang.IsEmpty())
             {
-                Out::FPrint("Fallback to translation: %s", fallback_lang.GetCStr());
+                Debug::Printf("Fallback to translation: %s", fallback_lang.GetCStr());
                 init_translation(fallback_lang, "", false);
             }
             return false;
         }
     }
-    Out::FPrint("Translation initialized: %s", transFileName);
+    Debug::Printf("Translation initialized: %s", transFileName);
     return true;
 }
 

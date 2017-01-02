@@ -25,6 +25,7 @@
 #include "ac/common.h"
 #include "ac/spritecache.h"
 #include "core/assetmanager.h"
+#include "debug/out.h"
 #include "gfx/bitmap.h"
 #include "util/compress.h"
 #include "util/file.h"
@@ -32,9 +33,7 @@
 
 using namespace AGS::Common;
 
-//#define DEBUG_SPRITECACHE
 // [IKM] We have to forward-declare these because their implementations are in the Engine
-extern void write_log(const char *);
 extern void initialize_sprite(int);
 extern void pre_save_sprite(int);
 extern void get_new_size_for_sprite(int, int, int, int &, int &);
@@ -228,17 +227,6 @@ Bitmap *SpriteCache::operator [] (int index)
     mrulist[listend] = index;
     mrubacklink[index] = listend;
     listend = index;
-
-/*    char bbb[50];   // Print out the MRU list
-    sprintf(bbb, "Used %d, list is:", index);
-    write_log(bbb);
-
-    for (int i = liststart; 1; i = mrulist[i]) {
-      
-      sprintf(bbb, "%d", i);
-      write_log(bbb);
-      if (i == listend) break;
-    }*/
   }
 
   return images[index];
@@ -272,9 +260,7 @@ void SpriteCache::removeOldest()
     // there was one huge sprite, removing it has now emptied the cache completely
     if (cachesize > 0)
     {
-      char msgg[150];
-      sprintf(msgg, "!!!! SPRITE CACHE ERROR: Sprite cache should be empty, but still has %d bytes", cachesize);
-      write_log(msgg);
+      Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "SPRITE CACHE ERROR: Sprite cache should be empty, but still has %d bytes", cachesize);
     }
     mrulist[liststart] = 0;
     liststart = -1;
@@ -292,19 +278,14 @@ void SpriteCache::removeOldest()
       // memory)
       // There must be a bug somewhere causing this, but for now
       // let's just reset the cache
-      write_log("!!!! RUNTIME CACHE ERROR: CACHE INCONSISTENT: RESETTING");
-      char msgg[150];
-      sprintf(msgg, "!!!! At size %d (of %d), start %d end %d  fwdlink=%d",
-              cachesize, maxCacheSize, oldstart, listend, liststart);
-      write_log(msgg);
-
+      Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "RUNTIME CACHE ERROR: CACHE INCONSISTENT: RESETTING\n\tAt size %d (of %d), start %d end %d  fwdlink=%d",
+                    cachesize, maxCacheSize, oldstart, listend, liststart);
       removeAll();
     }
   }
+
 #ifdef DEBUG_SPRITECACHE
-  char msgg[100];
-  sprintf(msgg, "Removed %d, size now %d KB", sprnum, cachesize / 1024);
-  write_log(msgg);
+  Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Debug, "Removed %d, size now %d KB", sprnum, cachesize / 1024);
 #endif
 }
 
@@ -348,9 +329,7 @@ void SpriteCache::precache(int index)
   offsets[index] = SPRITE_LOCKED;
 
 #ifdef DEBUG_SPRITECACHE
-  char msgg[100];
-  sprintf(msgg, "Precached %d", index);
-  write_log(msgg);
+  Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Debug, "Precached %d", index);
 #endif
 }
 
@@ -367,7 +346,7 @@ int SpriteCache::loadSprite(int index)
     removeOldest();
     hh++;
     if (hh > 1000) {
-      write_log("!!!! RUNTIME CACHE ERROR: STUCK IN FREE_UP_MEM; RESETTING CACHE");
+      Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "RUNTIME CACHE ERROR: STUCK IN FREE_UP_MEM; RESETTING CACHE");
       removeAll();
     }
 
@@ -449,9 +428,7 @@ int SpriteCache::loadSprite(int index)
   cachesize += sizes[index];
 
 #ifdef DEBUG_SPRITECACHE
-  char msgg[100];
-  sprintf(msgg, "Loaded %d, size now %d KB", index, cachesize / 1024);
-  write_log(msgg);
+  Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Debug, "Loaded %d, size now %d KB", index, cachesize / 1024);
 #endif
 
   return sizes[index];

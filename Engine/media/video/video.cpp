@@ -132,7 +132,7 @@ void play_flc_file(int numb,int playflags) {
     if (in==NULL) { sprintf(flicnam,"flic%d.fli",numb);
     in=Common::AssetManager::OpenAsset(flicnam); }
     if (in==NULL) {
-        debug_log("FLIC animation FLIC%d.FLC not found",numb);
+        debug_script_warn("FLIC animation FLIC%d.FLC not found",numb);
         return;
     }
     in->Seek(8);
@@ -166,8 +166,7 @@ void play_flc_file(int numb,int playflags) {
     if (play_fli(flicnam,(BITMAP*)fli_buffer->GetAllegroBitmap(),0,fli_callback)==FLI_ERROR)
     {
         // This is not a fatal error that should prevent the game from continuing
-        //quit("FLI/FLC animation play error");
-        Out::FPrint("FLI/FLC animation play error");
+        Debug::Printf("FLI/FLC animation play error");
     }
 
     video_type = kVideoNone;

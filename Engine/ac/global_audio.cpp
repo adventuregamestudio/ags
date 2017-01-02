@@ -68,12 +68,12 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
 
             SOUNDCLIP *asound = aclip ? load_sound_and_play(aclip, true) : NULL;
             if (asound == NULL) {
-                debug_log ("Cannot load ambient sound %d", sndnum);
-                DEBUG_CONSOLE("FAILED to load ambient sound %d", sndnum);
+                debug_script_warn ("Cannot load ambient sound %d", sndnum);
+                debug_script_log("FAILED to load ambient sound %d", sndnum);
                 return;
             }
 
-            DEBUG_CONSOLE("Playing ambient sound %d on channel %d", sndnum, channel);
+            debug_script_log("Playing ambient sound %d on channel %d", sndnum, channel);
             ambient[channel].channel = channel;
             channels[channel] = asound;
             channels[channel]->priority = 15;  // ambient sound higher priority than normal sfx
@@ -142,7 +142,7 @@ int PlaySoundEx(int val1, int channel) {
     if (!psp_audio_multithreaded)
     {
         if ((last_sound_played[channel] == val1) && (channels[channel] != NULL)) {
-            DEBUG_CONSOLE("Playing sound %d on channel %d; cached", val1, channel);
+            debug_script_log("Playing sound %d on channel %d; cached", val1, channel);
             channels[channel]->restart();
             channels[channel]->set_volume (play.sound_volume);
             return channel;
@@ -151,14 +151,14 @@ int PlaySoundEx(int val1, int channel) {
 
     // free the old sound
     stop_and_destroy_channel (channel);
-    DEBUG_CONSOLE("Playing sound %d on channel %d", val1, channel);
+    debug_script_log("Playing sound %d on channel %d", val1, channel);
 
     last_sound_played[channel] = val1;
 
     SOUNDCLIP *soundfx = aclip ? load_sound_and_play(aclip, false) : NULL;
     if (soundfx == NULL) {
-        debug_log("Sound sample load failure: cannot load sound %d", val1);
-        DEBUG_CONSOLE("FAILED to load sound %d", val1);
+        debug_script_warn("Sound sample load failure: cannot load sound %d", val1);
+        debug_script_log("FAILED to load sound %d", val1);
         return -1;
     }
 
@@ -186,7 +186,7 @@ void SeekMIDIPosition (int position) {
         midi_seek (position);
     if (current_music_type == MUS_MIDI) {
         midi_seek(position);
-        DEBUG_CONSOLE("Seek MIDI position to %d", position);
+        debug_script_log("Seek MIDI position to %d", position);
     }
 }
 
@@ -231,7 +231,7 @@ int PlayMusicQueued(int musnum) {
     }
 
     if (play.music_queue_size >= MAX_QUEUED_MUSIC) {
-        DEBUG_CONSOLE("Too many queued music, cannot add %d", musnum);
+        debug_script_log("Too many queued music, cannot add %d", musnum);
         return 0;
     }
 
@@ -241,11 +241,11 @@ int PlayMusicQueued(int musnum) {
     }
 
     if (play.music_repeat) {
-        DEBUG_CONSOLE("Queuing music %d to loop", musnum);
+        debug_script_log("Queuing music %d to loop", musnum);
         musnum += QUEUED_MUSIC_REPEAT;
     }
     else {
-        DEBUG_CONSOLE("Queuing music %d", musnum);
+        debug_script_log("Queuing music %d", musnum);
     }
 
     play.music_queue[play.music_queue_size] = musnum;
@@ -269,12 +269,12 @@ void scr_StopMusic() {
 void SeekMODPattern(int patnum) {
     if (current_music_type == MUS_MOD && channels[SCHAN_MUSIC]) {
         channels[SCHAN_MUSIC]->seek (patnum);
-        DEBUG_CONSOLE("Seek MOD/XM to pattern %d", patnum);
+        debug_script_log("Seek MOD/XM to pattern %d", patnum);
     }
 }
 void SeekMP3PosMillis (int posn) {
     if (current_music_type) {
-        DEBUG_CONSOLE("Seek MP3/OGG to %d ms", posn);
+        debug_script_log("Seek MP3/OGG to %d ms", posn);
         if (crossFading && channels[crossFading])
             channels[crossFading]->seek (posn);
         else if (channels[SCHAN_MUSIC])
@@ -358,7 +358,7 @@ void PlayMP3File (const char *filename) {
     if (strlen(filename) >= PLAYMP3FILE_MAX_FILENAME_LEN)
         quit("!PlayMP3File: filename too long");
 
-    DEBUG_CONSOLE("PlayMP3File %s", filename);
+    debug_script_log("PlayMP3File %s", filename);
 
     char pathToFile[MAX_PATH];
     get_current_dir_path(pathToFile, filename);
@@ -383,7 +383,7 @@ void PlayMP3File (const char *filename) {
             strcpy (play.playmp3file_name, filename);
     }
     else
-        debug_log ("PlayMP3File: file '%s' not found or cannot play", filename);
+        debug_script_warn ("PlayMP3File: file '%s' not found or cannot play", filename);
 
     post_new_music_check(useChan);
 
@@ -520,7 +520,7 @@ int play_speech(int charid,int sndid) {
     }
 
     if (speechmp3 == NULL) {
-        debug_log ("Speech load failure: '%s'",finame);
+        debug_script_warn ("Speech load failure: '%s'",finame);
         curLipLine = -1;
         return 0;
     }

@@ -251,7 +251,7 @@ void Character_ChangeRoomSetLoop(CharacterInfo *chaa, int room, int x, int y, in
         chaa->prevroom = chaa->room;
         chaa->room = room;
 
-		DEBUG_CONSOLE("%s moved to room %d, location %d,%d, loop %d",
+		debug_script_log("%s moved to room %d, location %d,%d, loop %d",
 			chaa->scrname, room, chaa->x, chaa->y, chaa->loop);
 
         return;
@@ -288,7 +288,7 @@ void Character_ChangeView(CharacterInfo *chap, int vii) {
 
     // if animating, but not idle view, give warning message
     if ((chap->flags & CHF_FIXVIEW) && (chap->idleleft >= 0))
-        debug_log("Warning: ChangeCharacterView was used while the view was fixed - call ReleaseCharView first");
+        debug_script_warn("Warning: ChangeCharacterView was used while the view was fixed - call ReleaseCharView first");
 
     // if the idle animation is playing we should release the view
     if ( chap->idleleft < 0) {
@@ -296,7 +296,7 @@ void Character_ChangeView(CharacterInfo *chap, int vii) {
       chap->idleleft = chap->idletime;
     }
 
-    DEBUG_CONSOLE("%s: Change view to %d", chap->scrname, vii+1);
+    debug_script_log("%s: Change view to %d", chap->scrname, vii+1);
     chap->defview = vii;
     chap->view = vii;
     chap->animating = 0;
@@ -417,7 +417,7 @@ void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
 
 void FaceLocationXY(CharacterInfo *char1, int xx, int yy, int blockingStyle)
 {
-    DEBUG_CONSOLE("%s: Face location %d,%d", char1->scrname, xx, yy);
+    debug_script_log("%s: Face location %d,%d", char1->scrname, xx, yy);
 
     const int diffrx = xx - char1->x;
     const int diffry = yy - char1->y;
@@ -481,10 +481,10 @@ void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int
         quit("!FollowCharacterEx: you cannot tell the player character to follow a character in another room");
 
     if (tofollow != NULL) {
-        DEBUG_CONSOLE("%s: Start following %s (dist %d, eager %d)", chaa->scrname, tofollow->scrname, distaway, eagerness);
+        debug_script_log("%s: Start following %s (dist %d, eager %d)", chaa->scrname, tofollow->scrname, distaway, eagerness);
     }
     else {
-        DEBUG_CONSOLE("%s: Stop following other character", chaa->scrname);
+        debug_script_log("%s: Stop following other character", chaa->scrname);
     }
 
     if ((chaa->following >= 0) &&
@@ -511,7 +511,7 @@ void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int
     }
 
     if (chaa->animating & CHANIM_REPEAT)
-        debug_log("Warning: FollowCharacter called but the sheep is currently animating looped. It may never start to follow.");
+        debug_script_warn("Warning: FollowCharacter called but the sheep is currently animating looped. It may never start to follow.");
 
 }
 
@@ -607,7 +607,7 @@ void Character_LockViewEx(CharacterInfo *chap, int vii, int stopMoving) {
     }
     vii--;
 
-    DEBUG_CONSOLE("%s: View locked to %d", chap->scrname, vii+1);
+    debug_script_log("%s: View locked to %d", chap->scrname, vii+1);
     if (chap->idleleft < 0) {
         Character_UnlockView(chap);
         chap->idleleft = chap->idletime;
@@ -747,11 +747,11 @@ void Character_PlaceOnWalkableArea(CharacterInfo *chap)
 void Character_RemoveTint(CharacterInfo *chaa) {
 
     if (chaa->flags & (CHF_HASTINT | CHF_HASLIGHT)) {
-        DEBUG_CONSOLE("Un-tint %s", chaa->scrname);
+        debug_script_log("Un-tint %s", chaa->scrname);
         chaa->flags &= ~(CHF_HASTINT | CHF_HASLIGHT);
     }
     else {
-        debug_log("Character.RemoveTint called but character was not tinted");
+        debug_script_warn("Character.RemoveTint called but character was not tinted");
     }
 }
 
@@ -801,7 +801,7 @@ void Character_SetAsPlayer(CharacterInfo *chaa) {
 
     //update_invorder();
 
-    DEBUG_CONSOLE("%s is new player character", playerchar->scrname);
+    debug_script_log("%s is new player character", playerchar->scrname);
 
     // Within game_start, return now
     if (displayed_room < 0)
@@ -853,14 +853,14 @@ void Character_SetIdleView(CharacterInfo *chaa, int iview, int itime) {
         chaa->wait = 0;
 
     if (iview >= 1) {
-        DEBUG_CONSOLE("Set %s idle view to %d (time %d)", chaa->scrname, iview, itime);
+        debug_script_log("Set %s idle view to %d (time %d)", chaa->scrname, iview, itime);
     }
     else {
-        DEBUG_CONSOLE("%s idle view disabled", chaa->scrname);
+        debug_script_log("%s idle view disabled", chaa->scrname);
     }
     if (chaa->flags & CHF_FIXVIEW) {
-        debug_log("SetCharacterIdle called while character view locked with SetCharacterView; idle ignored");
-        DEBUG_CONSOLE("View locked, idle will not kick in until Released");
+        debug_script_warn("SetCharacterIdle called while character view locked with SetCharacterView; idle ignored");
+        debug_script_log("View locked, idle will not kick in until Released");
     }
     // if they switch to a swimming animation, kick it off immediately
     if (itime == 0)
@@ -961,7 +961,7 @@ void Character_StopMoving(CharacterInfo *charp) {
         if ((mls[charp->walking].direct == 0) && (charp->room == displayed_room))
             Character_PlaceOnWalkableArea(charp);
 
-        DEBUG_CONSOLE("%s: stop moving", charp->scrname);
+        debug_script_log("%s: stop moving", charp->scrname);
 
         charp->idleleft = charp->idletime;
         // restart the idle animation straight away
@@ -982,7 +982,7 @@ void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opaci
         (luminance < 0) || (luminance > 100))
         quit("!Character.Tint: invalid parameter. R,G,B must be 0-255, opacity & luminance 0-100");
 
-    DEBUG_CONSOLE("Set %s tint RGB(%d,%d,%d) %d%%", chaa->scrname, red, green, blue, opacity);
+    debug_script_log("Set %s tint RGB(%d,%d,%d) %d%%", chaa->scrname, red, green, blue, opacity);
 
     charextra[chaa->index_id].tint_r = red;
     charextra[chaa->index_id].tint_g = green;
@@ -1003,7 +1003,7 @@ void Character_UnlockView(CharacterInfo *chaa) {
 
 void Character_UnlockViewEx(CharacterInfo *chaa, int stopMoving) {
     if (chaa->flags & CHF_FIXVIEW) {
-        DEBUG_CONSOLE("%s: Released view back to default", chaa->scrname);
+        debug_script_log("%s: Released view back to default", chaa->scrname);
     }
     chaa->flags &= ~CHF_FIXVIEW;
     chaa->view = chaa->defview;
@@ -1662,7 +1662,7 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
 
     if ((tox == charX) && (toy == charY)) {
         StopMoving(chac);
-        DEBUG_CONSOLE("%s already at destination, not moving", chin->scrname);
+        debug_script_log("%s already at destination, not moving", chin->scrname);
         return;
     }
 
@@ -1689,7 +1689,7 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     chin->frame = oldframe;
     // use toxPassedIn cached variable so the hi-res co-ordinates
     // are still displayed as such
-    DEBUG_CONSOLE("%s: Start move to %d,%d", chin->scrname, toxPassedIn, toyPassedIn);
+    debug_script_log("%s: Start move to %d,%d", chin->scrname, toxPassedIn, toyPassedIn);
 
     int move_speed_x = chin->walkspeed;
     int move_speed_y = chin->walkspeed;
@@ -1698,7 +1698,7 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
         move_speed_y = chin->walkspeed_y;
 
     if ((move_speed_x == 0) && (move_speed_y == 0)) {
-        debug_log("Warning: MoveCharacter called for '%s' with walk speed 0", chin->name);
+        debug_script_warn("Warning: MoveCharacter called for '%s' with walk speed 0", chin->name);
     }
 
     set_route_move_speed(move_speed_x, move_speed_y);
@@ -1897,7 +1897,7 @@ int doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *ch
             chi->x = xwas;
             chi->y = ywas;
         }
-        DEBUG_CONSOLE("%s: Bumped into %s, waiting for them to move", chi->scrname, game.chars[ntf].scrname);
+        debug_script_log("%s: Bumped into %s, waiting for them to move", chi->scrname, game.chars[ntf].scrname);
         return 1;
     }
     return 0;
@@ -2110,7 +2110,7 @@ void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noi
         quitprintf("!AnimateCharacter: you need to set the view number first\n"
             "(trying to animate '%s' using loop %d. View is currently %d).",chap->name,loopn,chap->view+1);
     }
-    DEBUG_CONSOLE("%s: Start anim view %d loop %d, spd %d, repeat %d", chap->scrname, chap->view+1, loopn, sppd, rept);
+    debug_script_log("%s: Start anim view %d loop %d, spd %d, repeat %d", chap->scrname, chap->view+1, loopn, sppd, rept);
     if ((chap->idleleft < 0) && (noidleoverride == 0)) {
         // if idle view in progress for the character (and this is not the
         // "start idle animation" animate_character call), stop the idle anim

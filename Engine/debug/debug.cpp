@@ -12,15 +12,20 @@
 //
 //=============================================================================
 
+#include <memory>
 #include <stdio.h>
 #include "ac/common.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "debug/debugmanager.h"
 #include "debug/out.h"
 #include "debug/consoleoutputtarget.h"
 #include "debug/logfile.h"
+#include "debug/messagebuffer.h"
+#include "main/config.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
 #include "plugin/agsplugin.h"
@@ -30,18 +35,15 @@
 #include "util/filestream.h"
 #include "util/textstreamwriter.h"
 
-using AGS::Common::Stream;
-using AGS::Common::String;
-using AGS::Common::TextStreamWriter;
-using AGS::Engine::Out::ConsoleOutputTarget;
-using AGS::Engine::Out::LogFile;
-namespace Out = AGS::Common::Out;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern char check_dynamic_sprites_at_exit;
 extern int displayed_room;
 extern roomstruct thisroom;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern volatile char want_exit, abort_engine;
+extern GameSetupStruct game;
 
 
 int use_compiled_folder_as_current_dir = 0;
@@ -75,76 +77,100 @@ int debug_flags=0;
 bool enable_log_file = false;
 bool disable_log_file = false;
 
-DebugConsoleText debug_line[DEBUG_CONSOLE_NUMLINES];
+String debug_line[DEBUG_CONSOLE_NUMLINES];
 int first_debug_line = 0, last_debug_line = 0, display_console = 0;
 
 int fps=0,display_fps=0;
 
-LogFile *DebugLogFile = NULL;
+std::auto_ptr<MessageBuffer> DebugMsgBuff;
+std::auto_ptr<LogFile> DebugLogFile;
+// warnings.log for the games compiled in debug mode
+std::auto_ptr<LogFile> DebugWarningsFile;
+std::auto_ptr<ConsoleOutputTarget> DebugConsole;
 
-enum
+const String OutputMsgBufID = "buffer";
+const String OutputFileID = "logfile";
+const String WarningFileID = "warnfile";
+const String OutputSystemID = "stderr";
+const String OutputGameConsoleID = "console";
+
+void init_debug()
 {
-    TARGET_FILE,
-    TARGET_SYSTEMDEBUGGER,
-    TARGET_GAMECONSOLE,
-    TARGET_FILE_EXTRA_TEST,
-};
-
-void initialize_output_subsystem()
-{
-    DebugLogFile = new LogFile();
-
-    Out::Init(0, NULL);
-    Out::AddOutputTarget(TARGET_FILE, DebugLogFile, Out::kVerbose_NoDebug, true);
-    Out::AddOutputTarget(TARGET_SYSTEMDEBUGGER, AGSPlatformDriver::GetDriver(),
-        Out::kVerbose_WarnErrors, true);
-	Out::AddOutputTarget(TARGET_GAMECONSOLE, new AGS::Engine::Out::ConsoleOutputTarget(),
-        Out::kVerbose_Always, false);
+    // Register outputs
+    DebugMsgBuff.reset(new MessageBuffer());
+    DbgMgr.RegisterOutput(OutputMsgBufID, DebugMsgBuff.get(), kDbgMsgSet_All);
+    PDebugOutput std_out = DbgMgr.RegisterOutput(OutputSystemID, AGSPlatformDriver::GetDriver(), kDbgMsg_None);
+    std_out->SetGroupFilter(kDbgGroup_Main, kDbgMsgSet_Errors);
 }
 
-void apply_output_configuration()
+void apply_debug_config(const ConfigTree &cfg)
 {
-    if (disable_log_file)
+    if (INIreadint(cfg, "misc", "log", 0) != 0)
     {
-        enable_log_file = false;
-    }
-    else if (enable_log_file)
-    {
+        DebugLogFile.reset(new LogFile());
+        PDebugOutput file_out = DbgMgr.RegisterOutput(OutputFileID, DebugLogFile.get(), kDbgMsgSet_All);
+#ifdef DEBUG_SPRITECACHE
+        file_out->SetGroupFilter(kDbgGroup_SprCache, kDbgMsgSet_All);
+#else
+        file_out->SetGroupFilter(kDbgGroup_SprCache, kDbgMsgSet_Errors);
+#endif
+        file_out->SetGroupFilter(kDbgGroup_Script, kDbgMsgSet_Errors);
+#ifdef DEBUG_MANAGED_OBJECTS
+        file_out->SetGroupFilter(kDbgGroup_ManObj, kDbgMsgSet_All);
+#else
+        file_out->SetGroupFilter(kDbgGroup_ManObj, kDbgMsgSet_Errors);
+#endif
         String logfile_path = platform->GetAppOutputDirectory();
         logfile_path.Append("/ags.log");
         if (DebugLogFile->OpenFile(logfile_path))
         {
             platform->WriteStdOut("Logging to %s", logfile_path.GetCStr());
+            DebugMsgBuff->Send(OutputFileID);
         }
         else
         {
-            enable_log_file = false;
+            DbgMgr.UnregisterOutput(OutputFileID);
         }
     }
 
-    if (!enable_log_file)
+    if (game.options[OPT_DEBUGMODE] != 0)
     {
-        Out::RemoveOutputTarget(TARGET_FILE);
-        delete DebugLogFile;
-        DebugLogFile = NULL;
+        // Game console
+        DebugConsole.reset(new ConsoleOutputTarget());
+        PDebugOutput gmcs_out = DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsgSet_Errors);
+        gmcs_out->SetGroupFilter(kDbgGroup_Main, kDbgMsgSet_All);
+        gmcs_out->SetGroupFilter(kDbgGroup_Script, kDbgMsgSet_All);
+        DebugMsgBuff->Send(OutputGameConsoleID);
+
+        // "Warnings.log" for printing script warnings in debug mode
+        DebugWarningsFile.reset(new LogFile());
+        PDebugOutput warn_out = DbgMgr.RegisterOutput(WarningFileID, DebugWarningsFile.get(), kDbgMsg_None);
+        warn_out->SetGroupFilter(kDbgGroup_Script, (MessageType)(kDbgMsg_Warn | kDbgMsg_Error | kDbgMsg_Fatal));
+        if (DebugWarningsFile->OpenFile("warnings.log", LogFile::kLogFile_OpenOverwrite, true))
+        {
+            platform->WriteStdOut("Logging scipt to \"warnings.log\"");
+            DebugMsgBuff->Send(WarningFileID);
+        }
+        else
+        {
+            DbgMgr.UnregisterOutput(WarningFileID);
+        }
     }
+    DbgMgr.UnregisterOutput(OutputMsgBufID);
+    DebugMsgBuff.reset();
 }
 
-void initialize_debug_system()
-{
-    initialize_output_subsystem();
-}
-
-void shutdown_debug_system()
+void shutdown_debug()
 {
     // Shutdown output subsystem
-    Out::Shutdown();
+    DbgMgr.UnregisterAll();
 
-    delete DebugLogFile;
-    DebugLogFile = NULL;
+    DebugLogFile.reset();
+    DebugConsole.reset();
 }
 
-void quitprintf(const char *texx, ...) {
+void quitprintf(const char *texx, ...)
+{
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);
@@ -153,87 +179,43 @@ void quitprintf(const char *texx, ...) {
     quit(displbuf);
 }
 
-void write_log(const char*msg) {
-    /*
-    FILE*ooo=fopen("ac.log","at");
-    fprintf(ooo,"%s\n",msg);
-    fclose(ooo);
-    */
-    Out::FPrint(msg);
-}
-
-/* The idea of this is that non-essential errors such as "sound file not
-found" are logged instead of exiting the program.
-*/
-void debug_log(const char *texx, ...) {
-    // if not in debug mode, don't print it so we don't worry the
-    // end player
-    if (play.debug_mode == 0)
-        return;
-    static int first_time = 1;
-    char displbuf[STD_BUFFER_SIZE];
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(displbuf,texx,ap);
-    va_end(ap);
-
-    /*if (true) {
-    char buffer2[STD_BUFFER_SIZE];
-    strcpy(buffer2, "%");
-    strcat(buffer2, displbuf);
-    quit(buffer2);
-    }*/
-
-    //char*openmode = "at";
-    if (first_time) {
-        //openmode = "wt";
-        first_time = 0;
-    }
-    Stream *outfil = Common::File::OpenFileWrite("warnings.log");
-    if (outfil == NULL)
-    {
-        debug_write_console("* UNABLE TO WRITE TO WARNINGS.LOG");
-        debug_write_console(displbuf);
-    }
-    else
-    {
-        TextStreamWriter writer(outfil);
-        writer.WriteFormat("(in room %d): %s\n",displayed_room,displbuf);
-    }
-}
-
-
-void debug_write_console (const char *msg, ...) {
-    char displbuf[STD_BUFFER_SIZE];
-    va_list ap;
-    va_start(ap,msg);
-    vsprintf(displbuf,msg,ap);
-    va_end(ap);
-    displbuf[99] = 0;
-
-    strcpy (debug_line[last_debug_line].text, displbuf);
-    ccInstance*curinst = ccInstance::GetCurrentInstance();
+// Prepends message text with current room number and running script info, then logs result
+void debug_script_print(const String &msg, MessageType mt)
+{
+    String script_ref;
+    ccInstance *curinst = ccInstance::GetCurrentInstance();
     if (curinst != NULL) {
-        char scriptname[20];
+        String scriptname;
         if (curinst->instanceof == gamescript)
-            strcpy(scriptname,"G ");
+            scriptname = "G ";
         else if (curinst->instanceof == thisroom.compiled_script)
-            strcpy (scriptname, "R ");
+            scriptname = "R ";
         else if (curinst->instanceof == dialogScriptsScript)
-            strcpy(scriptname,"D ");
+            scriptname = "D ";
         else
-            strcpy(scriptname,"? ");
-        sprintf(debug_line[last_debug_line].script,"%s%d",scriptname,currentline);
+            scriptname = "? ";
+        script_ref.Format("[%s%d]", scriptname.GetCStr(), currentline);
     }
-    else debug_line[last_debug_line].script[0] = 0;
 
-    platform->WriteStdOut("%s (%s)", displbuf, debug_line[last_debug_line].script);
+    Debug::Printf(kDbgGroup_Script, mt, "(room:%d)%s %s", displayed_room, script_ref.GetCStr(), msg.GetCStr());
+}
 
-    last_debug_line = (last_debug_line + 1) % DEBUG_CONSOLE_NUMLINES;
+void debug_script_warn(const char *msg, ...)
+{
+    va_list ap;
+    va_start(ap, msg);
+    String full_msg = String::FromFormatV(msg, ap);
+    va_end(ap);
+    debug_script_print(full_msg, kDbgMsg_Warn);
+}
 
-    if (last_debug_line == first_debug_line)
-        first_debug_line = (first_debug_line + 1) % DEBUG_CONSOLE_NUMLINES;
-
+void debug_script_log(const char *msg, ...)
+{
+    va_list ap;
+    va_start(ap, msg);
+    String full_msg = String::FromFormatV(msg, ap);
+    va_end(ap);
+    debug_script_print(full_msg, kDbgMsg_Debug);
 }
 
 
@@ -338,8 +320,8 @@ int check_for_messages_from_editor()
 
         if (strncmp(msg, "<Engine Command=\"", 17) != 0) 
         {
-            //Out::FPrint("Faulty message received from editor:");
-            //Out::FPrint(msg);
+            //Debug::Printf("Faulty message received from editor:");
+            //Debug::Printf(msg);
             free(msg);
             return 0;
         }

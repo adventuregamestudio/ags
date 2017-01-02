@@ -588,7 +588,7 @@
 				Name="debug"
 				>
 				<File
-					RelativePath="..\..\Common\debug\out.cpp"
+					RelativePath="..\..\Common\debug\debugmanager.cpp"
 					>
 				</File>
 			</Filter>
@@ -978,11 +978,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\debug\debugmanager.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\debug\out.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\debug\outputtarget.h"
+					RelativePath="..\..\Common\debug\outputhandler.h"
 					>
 				</File>
 			</Filter>

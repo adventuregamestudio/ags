@@ -128,7 +128,7 @@ int Button_GetMouseOverGraphic(GUIButton *butt) {
 }
 
 void Button_SetMouseOverGraphic(GUIButton *guil, int slotn) {
-    DEBUG_CONSOLE("GUI %d Button %d mouseover set to slot %d", guil->guin, guil->objn, slotn);
+    debug_script_log("GUI %d Button %d mouseover set to slot %d", guil->guin, guil->objn, slotn);
 
     if ((guil->isover != 0) && (guil->ispushed == 0))
         guil->usepic = slotn;
@@ -143,7 +143,7 @@ int Button_GetNormalGraphic(GUIButton *butt) {
 }
 
 void Button_SetNormalGraphic(GUIButton *guil, int slotn) {
-    DEBUG_CONSOLE("GUI %d Button %d normal set to slot %d", guil->guin, guil->objn, slotn);
+    debug_script_log("GUI %d Button %d normal set to slot %d", guil->guin, guil->objn, slotn);
     // normal pic - update if mouse is not over, or if there's no overpic
     if (((guil->isover == 0) || (guil->overpic < 1)) && (guil->ispushed == 0))
         guil->usepic = slotn;
@@ -161,7 +161,7 @@ int Button_GetPushedGraphic(GUIButton *butt) {
 }
 
 void Button_SetPushedGraphic(GUIButton *guil, int slotn) {
-    DEBUG_CONSOLE("GUI %d Button %d pushed set to slot %d", guil->guin, guil->objn, slotn);
+    debug_script_log("GUI %d Button %d pushed set to slot %d", guil->guin, guil->objn, slotn);
 
     if (guil->ispushed)
         guil->usepic = slotn;

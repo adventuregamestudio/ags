@@ -484,7 +484,7 @@ void IAGSEngine::GetTextExtent (int32 font, const char *text, int32 *width, int3
         height[0] = wgettextheight ((char*)text, font);
 }
 void IAGSEngine::PrintDebugConsole (const char *text) {
-    DEBUG_CONSOLE("[PLUGIN] %s", text);
+    debug_script_log("[PLUGIN] %s", text);
     platform->WriteStdOut("[PLUGIN] %s", text);
 }
 int IAGSEngine::IsChannelPlaying (int32 channel) {
@@ -907,7 +907,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         }
     }
     
-    AGS::Common::Out::FPrint("No built-in plugin found. Plugin loading failed!");
+    AGS::Common::Debug::Printf("No built-in plugin found. Plugin loading failed!");
     return false;
 }
 
@@ -949,7 +949,7 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
 
         if (apl->library.Load(apl->filename))
         {
-          AGS::Common::Out::FPrint("Plugin loading succeeded, resolving imports...");
+          AGS::Common::Debug::Printf(kDbgMsg_Init, "Plugin '%s' loading succeeded, resolving imports...", apl->filename);
 
           if (apl->library.GetFunctionAddress("AGS_PluginV2") == NULL) {
               quitprintf("Plugin '%s' is an old incompatible version.", apl->filename);
@@ -966,14 +966,14 @@ Engine::GameInitError pl_register_plugins(const std::vector<Common::PluginInfo> 
         }
         else
         {
-          AGS::Common::Out::FPrint("Plugin loading failed, trying built-in plugins...");
+          AGS::Common::Debug::Printf("Plugin loading failed, trying built-in plugins...");
           if (!pl_use_builtin_plugin(apl))
           {
             // Plugin loading has failed at this point, try using built-in plugin function stubs
             if (RegisterPluginStubs((const char*)apl->filename))
-              AGS::Common::Out::FPrint("Placeholder functions for the plugin found.");
+              AGS::Common::Debug::Printf(kDbgMsg_Init, "Placeholder functions for the plugin '%s' found.", apl->filename);
             else
-              AGS::Common::Out::FPrint("No placeholder functions for the plugin found. The game might fail to load.");
+              AGS::Common::Debug::Printf(kDbgMsg_Init, "No placeholder functions for the plugin '%s' found. The game might fail to load.", apl->filename);
 
             continue;
           }

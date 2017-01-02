@@ -21,7 +21,7 @@
 
 #include <errno.h>
 #include "ac/datetime.h"
-#include "debug/outputtarget.h"
+#include "debug/outputhandler.h"
 #include "util/ini_util.h"
 
 namespace AGS { namespace Common { class Stream; } }
@@ -43,7 +43,7 @@ enum SetupReturnValue
 
 struct AGSPlatformDriver
     // be used as a output target for logging system
-    : public AGS::Common::Out::IOutputTarget
+    : public AGS::Common::IOutputHandler
 {
     virtual void AboutToQuitGame();
     virtual void Delay(int millis) = 0;
@@ -97,10 +97,10 @@ struct AGSPlatformDriver
     static AGSPlatformDriver *GetDriver();
 
     //-----------------------------------------------
-    // IOutputTarget implementation
+    // IOutputHandler implementation
     //-----------------------------------------------
     // Writes to the standard platform's output, prepending "AGS: " prefix to the message
-    virtual void Out(const char *sz_fullmsg);
+    virtual void PrintMessage(const AGS::Common::DebugMessage &msg);
 
 private:
     static AGSPlatformDriver *instance;

@@ -44,7 +44,7 @@ public:
     platformLibraryName.Append(libraryName);
     platformLibraryName.Append(".prx");
 
-    AGS::Common::Out::FPrint("Built library path: %s", platformLibraryName.GetCStr());
+    AGS::Common::Debug::Printf("Built library path: %s", platformLibraryName.GetCStr());
 
     return platformLibraryName;
   }
@@ -66,7 +66,7 @@ public:
     _moduleName = libraryName;
     _moduleName.MakeLower();
 
-    AGS::Common::Out::FPrint("Result is %s %d", _moduleName.GetCStr(), _library);
+    AGS::Common::Debug::Printf("Result is %s %d", _moduleName.GetCStr(), _library);
 
     return (_library > -1);
   }
@@ -118,7 +118,7 @@ public:
       }
       else
       {
-        AGS::Common::Out::FPrint("Function ID not found: %s", functionName.GetCStr());
+        AGS::Common::Debug::Printf("Function ID not found: %s", functionName.GetCStr());
         functionId = -1;
       }
 #else

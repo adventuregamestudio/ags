@@ -125,6 +125,8 @@ bool graphics_mode_set_dm_any(const Size &game_size, const DisplayModeSetup &dm_
 bool graphics_mode_set_dm(const AGS::Engine::DisplayMode &dm);
 // Set the native image size
 bool graphics_mode_set_native_size(const Size &native_size);
+// Get current render frame setup
+GameFrameSetup graphics_mode_get_render_frame();
 // Set the render frame position inside the window
 bool graphics_mode_set_render_frame(const GameFrameSetup &frame_setup);
 // Set requested graphics filter, or default filter if the requested one failed

@@ -608,6 +608,11 @@ bool graphics_mode_set_native_size(const Size &native_size)
     return true;
 }
 
+GameFrameSetup graphics_mode_get_render_frame()
+{
+    return CurFrameSetup;
+}
+
 bool graphics_mode_set_render_frame(const GameFrameSetup &frame_setup)
 {
     if (!frame_setup.IsValid())

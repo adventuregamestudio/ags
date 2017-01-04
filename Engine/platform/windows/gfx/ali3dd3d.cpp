@@ -1137,8 +1137,8 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
   float yProportion = height / (float)bmpToDraw->_height;
 
   bool  flipLeftToRight = globalLeftRightFlip ^ bmpToDraw->_flipped;
-  float drawAtX = (drawListEntry->x);
-  float drawAtY = (drawListEntry->y);
+  float drawAtX = drawListEntry->x + _global_x_offset;
+  float drawAtY = drawListEntry->y + _global_y_offset;
 
   for (int ti = 0; ti < bmpToDraw->_numTiles; ti++)
   {

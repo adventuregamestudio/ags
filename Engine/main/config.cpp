@@ -51,11 +51,11 @@ extern char psp_translation[];
 extern char replayfile[MAX_PATH];
 extern GameState play;
 
-//char datname[80]="ac.clb";
-const char *ac_conf_file_defname = "acsetup.cfg";
-String ac_config_file;
+// Filename of the default config file, the one found in the game installation
+const String DefaultConfigFileName = "acsetup.cfg";
 
 // Replace the filename part of complete path WASGV with INIFIL
+// TODO: get rid of this and use proper lib path function instead
 void INIgetdirec(char *wasgv, const char *inifil) {
     int u = strlen(wasgv) - 1;
 
@@ -201,11 +201,11 @@ int convert_fp_to_scaling(uint32_t scaling)
     return scaling >= kUnit ? (scaling >> kShift) : -kUnit / (int32_t)scaling;
 }
 
-void find_default_cfg_file(const char *alt_cfg_file)
+String find_default_cfg_file(const char *alt_cfg_file)
 {
     // Try current directory for config first; else try exe dir
-    ac_config_file = ac_conf_file_defname;
-    if (!Common::File::TestReadFile(ac_config_file))
+    String filename = String::FromFormat("%s/%s", Directory::GetCurrentDirectory().GetCStr(), DefaultConfigFileName.GetCStr());
+    if (!Common::File::TestReadFile(filename))
     {
         char conffilebuf[512];
         strcpy(conffilebuf, alt_cfg_file);
@@ -216,22 +216,17 @@ void find_default_cfg_file(const char *alt_cfg_file)
         fix_filename_case(conffilebuf);
         fix_filename_slashes(conffilebuf);
 
-        INIgetdirec(conffilebuf, ac_config_file);
+        INIgetdirec(conffilebuf, DefaultConfigFileName);
         //    printf("Using config: '%s'\n",conffilebuf);
-        ac_config_file = conffilebuf;
+        filename = conffilebuf;
     }
-    else {
-        // put the full path, or it gets written back to the Windows folder
-        ac_config_file = Directory::GetCurrentDirectory();
-        ac_config_file.Append("/acsetup.cfg");
-        Path::FixupPath(ac_config_file);
-    }
+    return filename;
 }
 
-void find_user_cfg_file()
+String find_user_cfg_file()
 {
     String parent_dir = MakeSpecialSubDir(PathOrCurDir(platform->GetUserConfigDirectory()));
-    ac_config_file = String::FromFormat("%s/%s", parent_dir.GetCStr(), ac_conf_file_defname);
+    return String::FromFormat("%s/%s", parent_dir.GetCStr(), DefaultConfigFileName.GetCStr());
 }
 
 void config_defaults()
@@ -240,6 +235,13 @@ void config_defaults()
 #ifdef WINDOWS_VERSION
     usetup.digicard = DIGI_DIRECTAMX(0);
 #endif
+
+    if (psp_ignore_acsetup_cfg_file)
+    {
+        usetup.Screen.DriverID = "DX5";
+        usetup.enable_antialiasing = psp_gfx_smooth_sprites != 0;
+        usetup.translation = psp_translation;
+    }
 }
 
 void read_game_data_location(const ConfigTree &cfg)
@@ -466,31 +468,6 @@ void post_config()
         usetup.user_data_dir.ClipRight(1);
 }
 
-void load_default_config_file(ConfigTree &cfg, const char *alt_cfg_file)
-{
-    config_defaults();
-
-    // Don't read in the standard config file if disabled.
-    if (psp_ignore_acsetup_cfg_file)
-    {
-        usetup.Screen.DriverID = "DX5";
-        usetup.enable_antialiasing = psp_gfx_smooth_sprites != 0;
-        usetup.translation = psp_translation;
-        return;
-    }
-
-    find_default_cfg_file(alt_cfg_file);
-    IniUtil::Read(ac_config_file, cfg);
-}
-
-void load_user_config_file(AGS::Common::ConfigTree &cfg)
-{
-    String def_cfg_file = ac_config_file;
-    find_user_cfg_file();
-    if (def_cfg_file.Compare(ac_config_file) != 0)
-        IniUtil::Read(ac_config_file, cfg);
-}
-
 void save_config_file()
 {
     char buffer[STD_BUFFER_SIZE];
@@ -502,5 +479,7 @@ void save_config_file()
     if (is_available)
         cfg["language"]["translation"] = buffer;
 
-    IniUtil::Merge(ac_config_file, cfg);
+    String cfg_file = find_user_cfg_file();
+    if (!cfg_file.IsEmpty())
+        IniUtil::Merge(cfg_file, cfg);
 }

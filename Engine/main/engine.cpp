@@ -163,12 +163,16 @@ void engine_setup_window()
     platform->SetGameWindowIcon();
 }
 
-bool engine_check_run_setup(ConfigTree &cfg, int argc,char*argv[])
+bool engine_check_run_setup(const String &exe_path, ConfigTree &cfg)
 {
 #if defined (WINDOWS_VERSION)
     // check if Setup needs to be run instead
     if (justRunSetup)
     {
+            String cfg_file = find_user_cfg_file();
+            if (cfg_file.IsEmpty())
+                return false;
+
             Debug::Printf(kDbgMsg_Init, "Running Setup");
 
             // Add information about game resolution and let setup application
@@ -189,7 +193,7 @@ bool engine_check_run_setup(ConfigTree &cfg, int argc,char*argv[])
             SetupReturnValue res = platform->RunSetup(cfg, cfg_out);
             if (res != kSetup_Cancel)
             {
-                if (!IniUtil::Merge(ac_config_file, cfg_out))
+                if (!IniUtil::Merge(cfg_file, cfg_out))
                 {
                     platform->DisplayAlert("Unable to write to the configuration file (error code 0x%08X).\n%s",
                         platform->GetLastSystemError(), platform->GetFileWriteTroubleshootingText());
@@ -204,8 +208,8 @@ bool engine_check_run_setup(ConfigTree &cfg, int argc,char*argv[])
             // problem on Win9x, so let's restart the process.
             allegro_exit();
             char quotedpath[255];
-            sprintf (quotedpath, "\"%s\"", argv[0]);
-            _spawnl (_P_OVERLAY, argv[0], quotedpath, NULL);
+            sprintf (quotedpath, "\"%s\"", exe_path);
+            _spawnl (_P_OVERLAY, exe_path, quotedpath, NULL);
     }
 #endif
 
@@ -1307,14 +1311,22 @@ void allegro_bitmap_test_init()
 	//test_allegro_bitmap = AllegroBitmap::CreateBitmap(320,200,32);
 }
 
-bool engine_read_config(ConfigTree &cfg, int argc,char*argv[])
+bool engine_read_config(const String &exe_path, ConfigTree &cfg)
 {
     Debug::Printf(kDbgMsg_Init, "Reading configuration");
 
+    config_defaults();
+    // Don't read in the standard config file if disabled.
+    if (psp_ignore_acsetup_cfg_file)
+        return true;
+
     // Read default configuration file
     our_eip = -200;
-    load_default_config_file(cfg, argv[0]);
+    String def_cfg_file = find_default_cfg_file(exe_path);
+    IniUtil::Read(def_cfg_file, cfg);
+
     read_game_data_location(cfg);
+
     // Deduce the game data file location
     if (!engine_init_game_data())
         return false;
@@ -1331,7 +1343,9 @@ bool engine_read_config(ConfigTree &cfg, int argc,char*argv[])
     }
 
     // Read user configuration file
-    load_user_config_file(cfg);
+    String user_cfg_file = find_user_cfg_file();
+    if (Path::ComparePaths(user_cfg_file, def_cfg_file) != 0)
+        IniUtil::Read(user_cfg_file, cfg);
 
     // TODO: override config tree with all the command-line args.
     // NOTE: at the moment AGS provide little means to determine whether an
@@ -1354,12 +1368,12 @@ bool engine_read_config(ConfigTree &cfg, int argc,char*argv[])
 bool engine_do_config(int argc, char*argv[])
 {
     ConfigTree cfg;
-    if (!engine_read_config(cfg, argc, argv))
+    if (!engine_read_config(argv[0], cfg))
         return false;
 
     apply_debug_config(cfg);
 
-    return engine_check_run_setup(cfg, argc, argv);
+    return engine_check_run_setup(argv[0], cfg);
 }
 
 int initialize_engine(int argc,char*argv[])

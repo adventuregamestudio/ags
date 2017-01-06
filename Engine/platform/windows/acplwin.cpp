@@ -103,6 +103,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual const char *GetAllUsersDataDirectory();
   virtual const char *GetUserSavedgamesDirectory();
   virtual const char *GetUserConfigDirectory();
+  virtual const char *GetUserGlobalConfigDirectory();
   virtual const char *GetAppOutputDirectory();
   virtual const char *GetIllegalFileChars();
   virtual const char *GetFileWriteTroubleshootingText();
@@ -642,6 +643,12 @@ const char *AGSWin32::GetUserConfigDirectory()
 {
   determine_saved_games_folder();
   return win32SavedGamesDirectory;
+}
+
+const char *AGSWin32::GetUserGlobalConfigDirectory()
+{
+  DetermineAppOutputDirectory();
+  return win32OutputDirectory;
 }
 
 const char *AGSWin32::GetAppOutputDirectory()

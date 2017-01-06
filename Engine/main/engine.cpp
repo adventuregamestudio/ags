@@ -1342,9 +1342,15 @@ bool engine_read_config(const String &exe_path, ConfigTree &cfg)
         return false;
     }
 
+    // Read user global configuration file
+    String user_global_cfg_file = find_user_global_cfg_file();
+    if (Path::ComparePaths(user_global_cfg_file, def_cfg_file) != 0)
+        IniUtil::Read(user_global_cfg_file, cfg);
+
     // Read user configuration file
     String user_cfg_file = find_user_cfg_file();
-    if (Path::ComparePaths(user_cfg_file, def_cfg_file) != 0)
+    if (Path::ComparePaths(user_cfg_file, def_cfg_file) != 0 &&
+        Path::ComparePaths(user_cfg_file, user_global_cfg_file) != 0)
         IniUtil::Read(user_cfg_file, cfg);
 
     // TODO: override config tree with all the command-line args.

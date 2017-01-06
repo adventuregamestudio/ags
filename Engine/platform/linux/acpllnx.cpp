@@ -45,6 +45,8 @@ struct AGSLinux : AGSPlatformDriver {
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
   virtual const char *GetUserSavedgamesDirectory();
+  virtual const char *GetUserConfigDirectory();
+  virtual const char *GetUserGlobalConfigDirectory();
   virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
@@ -118,6 +120,16 @@ const char *AGSLinux::GetUserSavedgamesDirectory()
 {
   DetermineAppOutputDirectory();
   return LinuxOutputDirectory;
+}
+
+const char *AGSLinux::GetUserConfigDirectory()
+{
+  return GetUserSavedgamesDirectory();
+}
+
+const char *AGSLinux::GetUserGlobalConfigDirectory()
+{
+  return GetUserSavedgamesDirectory();
 }
 
 const char *AGSLinux::GetAppOutputDirectory()

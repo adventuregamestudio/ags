@@ -49,12 +49,14 @@ struct AGSPlatformDriver
     virtual void Delay(int millis) = 0;
     virtual void DisplayAlert(const char*, ...) = 0;
     virtual int  GetLastSystemError() { return errno; }
-    // Get directory for storing shared game data
+    // Get root directory for storing per-game shared data
     virtual const char *GetAllUsersDataDirectory() { return "."; }
-    // Get directory for storing user's saved games
+    // Get root directory for storing per-game saved games
     virtual const char *GetUserSavedgamesDirectory() { return "."; }
-    // Get directory for storing user configuration files
+    // Get root directory for storing per-game user configuration files
     virtual const char *GetUserConfigDirectory() { return "."; }
+    // Get directory for storing all-games user configuration files
+    virtual const char *GetUserGlobalConfigDirectory()  { return "."; }
     // Get default directory for program output (logs)
     virtual const char *GetAppOutputDirectory() { return "."; }
     // Returns array of characters illegal to use in file names

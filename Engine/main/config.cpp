@@ -223,6 +223,12 @@ String find_default_cfg_file(const char *alt_cfg_file)
     return filename;
 }
 
+String find_user_global_cfg_file()
+{
+    String parent_dir = PathOrCurDir(platform->GetUserGlobalConfigDirectory());
+    return String::FromFormat("%s/%s", parent_dir.GetCStr(), DefaultConfigFileName.GetCStr());
+}
+
 String find_user_cfg_file()
 {
     String parent_dir = MakeSpecialSubDir(PathOrCurDir(platform->GetUserConfigDirectory()));

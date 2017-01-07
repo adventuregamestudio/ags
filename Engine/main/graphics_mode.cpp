@@ -457,7 +457,10 @@ bool create_gfx_driver_and_init_mode(const String &gfx_driver_id, const GameSize
         return false;
 
     // init game scaling transformation
-    GameScaling.Init(game_size.Game, gfxDriver->GetRenderDestination());
+    if (platform->IsBackendResponsibleForMouseScaling())
+        GameScaling = PlaneScaling(); // 1:1 scaling
+    else
+        GameScaling.Init(game_size.Game, gfxDriver->GetRenderDestination());
     return true;
 }
 

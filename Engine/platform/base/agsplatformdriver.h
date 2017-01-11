@@ -65,6 +65,9 @@ struct AGSPlatformDriver
     virtual const char* GetNoMouseErrorString() = 0;
     // Tells whether build is capable of controlling mouse movement properly
     virtual bool IsMouseControlSupported(bool windowed) { return false; }
+    // Tells whether this platform's backend library deals with mouse cursor
+    // virtual->real coordinate transformation itself (otherwise AGS engine should do it)
+    virtual bool IsBackendResponsibleForMouseScaling() { return false; }
     virtual const char* GetAllegroFailUserHint();
     virtual eScriptSystemOSID GetSystemOSID() = 0;
     virtual void GetSystemTime(ScriptDateTime*);

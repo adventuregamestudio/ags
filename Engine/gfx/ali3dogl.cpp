@@ -550,7 +550,6 @@ bool OGLGraphicsDriver::Init(const DisplayMode &mode, const Size src_size, const
   }
 
   _Init(mode, src_size, dst_rect, loopTimer);
-  _mode.Windowed = true;
 
   if (psp_gfx_renderer == 2)
   {
@@ -582,7 +581,7 @@ bool OGLGraphicsDriver::Init(const DisplayMode &mode, const Size src_size, const
     gfx_driver = &gfx_opengl;
 
 #if defined(WINDOWS_VERSION)
-    if (_mode.Windowed)
+    if (mode.Windowed)
     {
       if (adjust_window(device_screen_physical_width, device_screen_physical_height) != 0) 
       {
@@ -646,6 +645,21 @@ bool OGLGraphicsDriver::Init(const DisplayMode &mode, const Size src_size, const
   // create dummy screen bitmap
   BitmapHelper::SetScreenBitmap( ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(src_size.Width, src_size.Height, mode.ColorDepth)) );
 
+  // With current half-baked implementation OpenGL renderer ignores most of the
+  // requested mode params, and uses either hard-coded values or values imposed
+  // by the operating system (device). That is why we must update remembered
+  // mode variables after the display mode was successfully installed.
+  // NOTE: this is actually correct to set those values AFTER mode was
+  // initialized regardless of renderer. Future development branch should
+  // already have this done proper way.
+  DisplayMode fix_mode = _mode;
+  fix_mode.Width = device_screen_physical_width;
+  fix_mode.Height = device_screen_physical_height;
+  fix_mode.Windowed = true;
+  Rect fix_dest = Rect((int)(((float)device_screen_physical_width - _scale_width * (float)_srcRect.GetWidth()) / 2.0f + 1.0f),
+                       (int)(((float)device_screen_physical_height - _scale_height * (float)_srcRect.GetHeight()) / 2.0f),
+                       (int)(_scale_width * (float)_srcRect.GetWidth()), (int)(_scale_height * (float)_srcRect.GetHeight()));
+  _Init(fix_mode, src_size, fix_dest, loopTimer);
   return true;
 }
 

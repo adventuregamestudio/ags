@@ -1,6 +1,24 @@
 # Engine runtime options
 
-## Configuration file
+## Configuration file locations
+
+For historical reasons configuration file should be called "acsetup.cfg".
+
+Three configuration files are supported by the engine, which are read in the order listed below, every next overriding previous one:
+1. Default config file, found in the game's installation directory, applied for the game loaded from that directory;
+2. Current user's global config file, applied for any AGS game.
+3. Current user's game config file, applied for only game of given title. This config file is also the one being written to when the engine or setup application (Windows only) modifies game configuration.
+
+Locations of two latter files differ between running platforms:
+  * **Linux**:
+    * user's global config: $XDG_DATA_HOME/ags/acsetup.cfg
+    * user's game config: $XDG_DATA_HOME/ags/GAMENAME/acsetup.cfg
+    * NOTE: if $XDG_DATA_HOME is not defined, then "$HOME/.local/share" is used instead.
+  * **Windows**:
+    * user's global config: %USERPROFILE%/Saved Games/.ags/acsetup.cfg
+    * user's game config: %USERPROFILE%/Saved Games/GAMENAME/acsetup.cfg
+
+## Configuration file options
 
 * **\[graphics\]** - display mode and various graphics options
   * gfxdriver = \[string\] - id of the graphics renderer to use. Supported names are:

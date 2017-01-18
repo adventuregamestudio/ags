@@ -34,21 +34,31 @@ public:
     GraphicsDriverBase();
 
     virtual bool        IsModeSet() const;
+    virtual bool        IsNativeSizeValid() const;
     virtual bool        IsRenderFrameValid() const;
     virtual DisplayMode GetDisplayMode() const;
+    virtual Size        GetNativeSize() const;
     virtual Rect        GetRenderDestination() const;
     virtual void        SetRenderOffset(int x, int y);
 
 protected:
-    // Called after new mode was successfully initialized
-    virtual void OnInit(const DisplayMode &mode, volatile int *loopTimer);
-    // Called after graphics mode was uninitialized
+    // Called after graphics driver was initialized for use for the first time
+    virtual void OnInit(volatile int *loopTimer);
+    // Called just before graphics mode is going to be uninitialized and its
+    // resources released
     virtual void OnUnInit();
+    // Called after new mode was successfully initialized
+    virtual void OnModeSet(const DisplayMode &mode);
+    // Called when the new native size is set
+    virtual void OnSetNativeSize(const Size &src_size);
+    // Called before display mode is going to be released
+    virtual void OnModeReleased();
     // Called when new render frame is set
-    virtual void OnSetRenderFrame(const Size &src_size, const Rect &dst_rect);
+    virtual void OnSetRenderFrame(const Rect &dst_rect);
     // Called when the new filter is set
     virtual void OnSetFilter();
 
+    void    OnScalingChanged();
     // Checks if the bitmap needs to be converted and **deletes original** if a new bitmap
     // had to be created
     Bitmap *ReplaceBitmapWithSupportedFormat(Bitmap *old_bmp);

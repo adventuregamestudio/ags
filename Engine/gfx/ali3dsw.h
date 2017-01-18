@@ -124,29 +124,14 @@ private:
 class ALSoftwareGraphicsDriver : public GraphicsDriverBase
 {
 public:
-    ALSoftwareGraphicsDriver() { 
-        _callback = NULL; 
-        _drawScreenCallback = NULL;
-        _nullSpriteCallback = NULL;
-        _initGfxCallback = NULL;
-        _tint_red = 0;
-        _tint_green = 0;
-        _tint_blue = 0;
-        _autoVsync = false;
-        _spareTintingScreen = NULL;
-        numToDraw = 0;
-        _gfxModeList = NULL;
-#ifdef _WIN32
-        dxGammaControl = NULL;
-#endif
-        _allegroScreenWrapper = NULL;
-    }
+    ALSoftwareGraphicsDriver();
 
     virtual const char*GetDriverName() { return "Allegro/DX5"; }
     virtual const char*GetDriverID() { return "DX5"; }
     virtual void SetTintMethod(TintMethod method);
-    virtual bool Init(const DisplayMode &mode, volatile int *loopTimer);
-    virtual bool SetRenderFrame(const Size &src_size, const Rect &dst_rect);
+    virtual bool SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer);
+    virtual bool SetNativeSize(const Size &src_size);
+    virtual bool SetRenderFrame(const Rect &dst_rect);
     virtual bool IsModeSupported(const DisplayMode &mode);
     virtual IGfxModeList *GetSupportedModeList(int color_depth);
     virtual PGfxFilter GetGraphicsFilter() const;
@@ -222,6 +207,8 @@ private:
 
     // Use gfx filter to create a new virtual screen
     void CreateVirtualScreen();
+    // Unset parameters and release resources related to the display mode
+    void ReleaseDisplayMode();
 
     void highcolor_fade_out(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void highcolor_fade_in(Bitmap *bmp_orig, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);

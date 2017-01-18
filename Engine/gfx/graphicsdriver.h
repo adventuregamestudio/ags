@@ -63,16 +63,20 @@ public:
   virtual const char*GetDriverID() = 0;
   virtual void SetTintMethod(TintMethod method) = 0;
   // Initialize given display mode
-  virtual bool Init(const DisplayMode &mode, volatile int *loopTimer) = 0;
+  virtual bool SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer) = 0;
   // Gets if a graphics mode was initialized
   virtual bool IsModeSet() const = 0;
+  // Set the size of the native image size
+  virtual bool SetNativeSize(const Size &src_size) = 0;
+  virtual bool IsNativeSizeValid() const = 0;
   // Set game render frame and translation
-  virtual bool SetRenderFrame(const Size &src_size, const Rect &dst_rect) = 0;
+  virtual bool SetRenderFrame(const Rect &dst_rect) = 0;
   virtual bool IsRenderFrameValid() const = 0;
   virtual IGfxModeList *GetSupportedModeList(int color_depth) = 0;
   virtual bool IsModeSupported(const DisplayMode &mode) = 0;
   virtual DisplayMode GetDisplayMode() const = 0;
   virtual PGfxFilter GetGraphicsFilter() const = 0;
+  virtual Size GetNativeSize() const = 0;
   virtual Rect GetRenderDestination() const = 0;
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) = 0;
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) = 0;
@@ -81,7 +85,6 @@ public:
   // null sprite is encountered. You can use this to hook into the rendering
   // process.
   virtual void SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) = 0;
-  virtual void UnInit() = 0;
   virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) = 0;
   virtual Common::Bitmap *ConvertBitmapToSupportedColourDepth(Common::Bitmap *bitmap) = 0;
   virtual IDriverDependantBitmap* CreateDDBFromBitmap(Common::Bitmap *bitmap, bool hasAlpha, bool opaque = false) = 0;

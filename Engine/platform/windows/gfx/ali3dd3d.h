@@ -172,8 +172,9 @@ public:
     virtual const char*GetDriverName() { return "Direct3D 9"; }
     virtual const char*GetDriverID() { return "D3D9"; }
     virtual void SetTintMethod(TintMethod method);
-    virtual bool Init(const DisplayMode &mode, volatile int *loopTimer);
-    virtual bool SetRenderFrame(const Size &src_size, const Rect &dst_rect);
+    virtual bool SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer);
+    virtual bool SetNativeSize(const Size &src_size);
+    virtual bool SetRenderFrame(const Rect &dst_rect);
     virtual IGfxModeList *GetSupportedModeList(int color_depth);
     virtual bool IsModeSupported(const DisplayMode &mode);
     virtual PGfxFilter GetGraphicsFilter() const;
@@ -261,11 +262,15 @@ private:
     GlobalFlipType flipTypeLastTime;
 
     // Called after new mode was successfully initialized
-    virtual void OnInit(const DisplayMode &mode, volatile int *loopTimer);
-
+    virtual void OnModeSet(const DisplayMode &mode);
+    // Called when the direct3d device is created for the first time
+    int  FirstTimeInit();
     void initD3DDLL(const DisplayMode &mode);
     void InitializeD3DState();
     void SetupViewport();
+    HRESULT ResetD3DDevice();
+    // Unset parameters and release resources related to the display mode
+    void ReleaseDisplayMode();
     void set_up_default_vertices();
     void make_translated_scaling_matrix(D3DMATRIX *matrix, float x, float y, float xScale, float yScale);
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);

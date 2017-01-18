@@ -188,8 +188,9 @@ public:
     virtual const char*GetDriverName() { return "OpenGL"; }
     virtual const char*GetDriverID() { return "OGL"; }
     virtual void SetTintMethod(TintMethod method);
-    virtual bool Init(const DisplayMode &mode, volatile int *loopTimer);
-    virtual bool SetRenderFrame(const Size &src_size, const Rect &dst_rect);
+    virtual bool SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer);
+    virtual bool SetNativeSize(const Size &src_size);
+    virtual bool SetRenderFrame(const Rect &dst_rect);
     virtual IGfxModeList *GetSupportedModeList(int color_depth);
     virtual bool IsModeSupported(const DisplayMode &mode);
     virtual PGfxFilter GetGraphicsFilter() const;
@@ -276,6 +277,8 @@ private:
 
     void InitOpenGl();
     void set_up_default_vertices();
+    // Unset parameters and release resources related to the display mode
+    void ReleaseDisplayMode();
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
     void UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha);
     void CreateVirtualScreen();

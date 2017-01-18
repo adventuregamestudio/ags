@@ -30,6 +30,7 @@
 #include "ac/gui.h"
 #include "ac/lipsync.h"
 #include "ac/objectcache.h"
+#include "ac/record.h"
 #include "ac/roomstatus.h"
 #include "ac/speech.h"
 #include "ac/translation.h"
@@ -1556,6 +1557,44 @@ bool engine_try_set_gfxmode_any(const ScreenSetup &setup)
 
     engine_post_gfxmode_setup(init_desktop);
     return true;
+}
+
+bool engine_try_switch_windowed_gfxmode()
+{
+    if (!gfxDriver || !gfxDriver->IsModeSet())
+        return false;
+
+    // TODO: if there are saved parameters for given mode (fullscreen/windowed)
+    // then use them, if there are not, get default setup for the new mode
+
+    DisplayMode old_dm = gfxDriver->GetDisplayMode();
+    GameFrameSetup old_frame = graphics_mode_get_render_frame();
+
+    engine_pre_gfxmode_shutdown();
+
+    Size init_desktop;
+    DisplayModeSetup dm_setup;
+    GameFrameSetup frame_setup;
+    graphics_mode_get_defaults(!old_dm.Windowed, dm_setup, frame_setup);
+    init_desktop = get_desktop_size();
+
+    bool res = graphics_mode_set_dm_any(game.size, dm_setup, old_dm.ColorDepth, frame_setup) &&
+               graphics_mode_set_render_frame(frame_setup);
+    if (!res)
+    {
+        // switch back to previous gfx mode
+        res = graphics_mode_set_dm(old_dm) &&
+              graphics_mode_set_render_frame(old_frame);
+    }
+
+    if (res)
+    {
+        if (dm_setup.Windowed)
+            init_desktop = get_desktop_size();
+        engine_post_gfxmode_setup(init_desktop);
+    }
+    clear_input_buffer();
+    return res;
 }
 
 void engine_shutdown_gfxmode()

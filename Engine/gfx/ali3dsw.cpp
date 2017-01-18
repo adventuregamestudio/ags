@@ -71,6 +71,26 @@ bool ALSoftwareGfxModeList::GetMode(int index, DisplayMode &mode) const
 unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned long n);
 RGB faded_out_palette[256];
 
+
+ALSoftwareGraphicsDriver::ALSoftwareGraphicsDriver()
+{ 
+  _callback = NULL; 
+  _drawScreenCallback = NULL;
+  _nullSpriteCallback = NULL;
+  _initGfxCallback = NULL;
+  _tint_red = 0;
+  _tint_green = 0;
+  _tint_blue = 0;
+  _autoVsync = false;
+  _spareTintingScreen = NULL;
+  numToDraw = 0;
+  _gfxModeList = NULL;
+#ifdef _WIN32
+  dxGammaControl = NULL;
+#endif
+  _allegroScreenWrapper = NULL;
+}
+
 bool ALSoftwareGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 {
   if (mode.Width <= 0 || mode.Height <= 0 || mode.ColorDepth <= 0)
@@ -159,8 +179,10 @@ void ALSoftwareGraphicsDriver::SetTintMethod(TintMethod method)
   // TODO: support new D3D-style tint method
 }
 
-bool ALSoftwareGraphicsDriver::Init(const DisplayMode &mode, volatile int *loopTimer)
+bool ALSoftwareGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer)
 {
+  ReleaseDisplayMode();
+
   const int driver = GetAllegroGfxDriverID(mode.Windowed);
 
   set_color_depth(mode.ColorDepth);
@@ -171,7 +193,8 @@ bool ALSoftwareGraphicsDriver::Init(const DisplayMode &mode, volatile int *loopT
   if (!IsModeSupported(mode) || set_gfx_mode(driver, mode.Width, mode.Height, 0, 0) != 0)
     return false;
 
-  OnInit(mode, loopTimer);
+  OnInit(loopTimer);
+  OnModeSet(mode);
   // [IKM] 2012-09-07
   // set_gfx_mode is an allegro function that creates screen bitmap;
   // following code assumes the screen is already created, therefore we should
@@ -207,18 +230,53 @@ bool ALSoftwareGraphicsDriver::Init(const DisplayMode &mode, volatile int *loopT
 
 void ALSoftwareGraphicsDriver::CreateVirtualScreen()
 {
-  if (!IsModeSet() || !IsRenderFrameValid() || !_filter)
+  if (!IsModeSet() || !IsRenderFrameValid() || !IsNativeSizeValid() || !_filter)
     return;
   BitmapHelper::SetScreenBitmap( _filter->InitVirtualScreen(BitmapHelper::GetScreenBitmap(), _srcRect.GetSize(), _dstRect) );
   virtualScreen = BitmapHelper::GetScreenBitmap();
 }
 
-bool ALSoftwareGraphicsDriver::SetRenderFrame(const Size &src_size, const Rect &dst_rect)
+void ALSoftwareGraphicsDriver::ReleaseDisplayMode()
 {
-  OnSetRenderFrame(src_size, dst_rect);
+  OnModeReleased();
+  numToDraw = 0;
+
+#ifdef _WIN32
+  if (dxGammaControl != NULL) 
+  {
+    dxGammaControl->Release();
+    dxGammaControl = NULL;
+  }
+#endif
+
+  if (BitmapHelper::GetScreenBitmap())
+    BitmapHelper::SetScreenBitmap( _filter->ShutdownAndReturnRealScreen() );
+
+  // [IKM] 2012-09-07
+  // We do not need the wrapper any longer;
+  // this does not destroy the underlying allegro screen bitmap, only wrapper.
+  delete _allegroScreenWrapper;
+  _allegroScreenWrapper = NULL;
+  // Nullify the global screen object (for safety reasons); note this yet does
+  // not change allegro screen pointer (at this moment it should point at the
+  // original internally created allegro bitmap which will be destroyed by Allegro).
+  BitmapHelper::SetScreenBitmap(NULL);
+}
+
+bool ALSoftwareGraphicsDriver::SetNativeSize(const Size &src_size)
+{
+  OnSetNativeSize(src_size);
   // If we already have a gfx mode and gfx filter set, then use it to update virtual screen immediately
   CreateVirtualScreen();
-  return true;
+  return !_srcRect.IsEmpty();
+}
+
+bool ALSoftwareGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
+{
+  OnSetRenderFrame(dst_rect);
+  // If we already have a gfx mode and gfx filter set, then use it to update virtual screen immediately
+  CreateVirtualScreen();
+  return !_dstRect.IsEmpty();
 }
 
 void ALSoftwareGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)
@@ -237,35 +295,13 @@ ALSoftwareGraphicsDriver::~ALSoftwareGraphicsDriver()
 void ALSoftwareGraphicsDriver::UnInit()
 {
   OnUnInit();
-
-#ifdef _WIN32
-
-  if (dxGammaControl != NULL) 
-  {
-    dxGammaControl->Release();
-    dxGammaControl = NULL;
-  }
-
-#endif
+  ReleaseDisplayMode();
 
   if (_gfxModeList != NULL)
   {
     destroy_gfx_mode_list(_gfxModeList);
     _gfxModeList = NULL;
   }
-
-  if (BitmapHelper::GetScreenBitmap())
-   BitmapHelper::SetScreenBitmap( _filter->ShutdownAndReturnRealScreen(BitmapHelper::GetScreenBitmap()) );
-
-  // [IKM] 2012-09-07
-  // We do not need the wrapper any longer;
-  // this does not destroy the underlying allegro screen bitmap, only wrapper.
-  delete _allegroScreenWrapper;
-  _allegroScreenWrapper = NULL;
-  // Nullify the global screen object (for safety reasons); note this yet does
-  // not change allegro screen pointer (at this moment it should point at the
-  // original internally created allegro bitmap which will be destroyed by Allegro).
-  BitmapHelper::SetScreenBitmap(NULL);
 }
 
 bool ALSoftwareGraphicsDriver::SupportsGammaControl() 

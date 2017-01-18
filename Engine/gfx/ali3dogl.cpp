@@ -550,8 +550,10 @@ void OGLGraphicsDriver::SetupViewport()
   }
 }
 
-bool OGLGraphicsDriver::Init(const DisplayMode &mode_, volatile int *loopTimer)
+bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode_, volatile int *loopTimer)
 {
+  ReleaseDisplayMode();
+
   // TODO: OpenGL renderer is incomplete and requires to do certain hacks to work,
   // like forcing windowed mode, this is why we create mutable DisplayMode here
   DisplayMode mode = mode_;
@@ -659,7 +661,8 @@ bool OGLGraphicsDriver::Init(const DisplayMode &mode_, volatile int *loopTimer)
       set_allegro_error(exception._message);
     return false;
   }
-  OnInit(mode, loopTimer);
+  OnInit(loopTimer);
+  OnModeSet(mode);
   CreateVirtualScreen();
   return true;
 }
@@ -675,15 +678,21 @@ void OGLGraphicsDriver::CreateVirtualScreen()
   BitmapHelper::SetScreenBitmap(_dummyVirtualScreen);
 }
 
-bool OGLGraphicsDriver::SetRenderFrame(const Size &src_size, const Rect &dst_rect)
+bool OGLGraphicsDriver::SetNativeSize(const Size &src_size)
 {
-  OnSetRenderFrame(src_size, dst_rect);
+  OnSetNativeSize(src_size);
+  return !_srcRect.IsEmpty();
+}
+
+bool OGLGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
+{
+  OnSetRenderFrame(dst_rect);
   // If we already have a gfx mode set, then update virtual screen immediately
   CreateVirtualScreen();
   // Also make sure viewport and backbuffer mappings are updated using new native & destination rectangles
   SetupViewport();
   create_backbuffer_arrays();
-  return true;
+  return !_dstRect.IsEmpty();;
 }
 
 IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int color_depth)
@@ -697,9 +706,9 @@ PGfxFilter OGLGraphicsDriver::GetGraphicsFilter() const
     return _filter;
 }
 
-void OGLGraphicsDriver::UnInit() 
+void OGLGraphicsDriver::ReleaseDisplayMode()
 {
-  OnUnInit();
+  OnModeReleased();
 
   if (_screenTintLayerDDB != NULL) 
   {
@@ -713,6 +722,12 @@ void OGLGraphicsDriver::UnInit()
   _dummyVirtualScreen = NULL;
 
   gfx_driver = NULL;
+}
+
+void OGLGraphicsDriver::UnInit() 
+{
+  OnUnInit();
+  ReleaseDisplayMode();
 }
 
 OGLGraphicsDriver::~OGLGraphicsDriver()

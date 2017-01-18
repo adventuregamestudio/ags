@@ -54,5 +54,7 @@ void start_replay_record ();
 void stop_recording();
 void start_playback();
 int  my_readkey();
+// Clears buffered keypresses and mouse clicks, if any
+void clear_input_buffer();
 
 #endif // __AGS_EE_AC__RECORD_H

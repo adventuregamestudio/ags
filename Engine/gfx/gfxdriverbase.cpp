@@ -35,6 +35,11 @@ bool GraphicsDriverBase::IsModeSet() const
     return _mode.Width != 0 && _mode.Height != 0 && _mode.ColorDepth != 0;
 }
 
+bool GraphicsDriverBase::IsNativeSizeValid() const
+{
+    return !_srcRect.IsEmpty();
+}
+
 bool GraphicsDriverBase::IsRenderFrameValid() const
 {
     return !_srcRect.IsEmpty() && !_dstRect.IsEmpty();
@@ -43,6 +48,11 @@ bool GraphicsDriverBase::IsRenderFrameValid() const
 DisplayMode GraphicsDriverBase::GetDisplayMode() const
 {
     return _mode;
+}
+
+Size GraphicsDriverBase::GetNativeSize() const
+{
+    return _srcRect.GetSize();
 }
 
 Rect GraphicsDriverBase::GetRenderDestination() const
@@ -56,9 +66,8 @@ void GraphicsDriverBase::SetRenderOffset(int x, int y)
     _global_y_offset = y;
 }
 
-void GraphicsDriverBase::OnInit(const DisplayMode &mode, volatile int *loopTimer)
+void GraphicsDriverBase::OnInit(volatile int *loopTimer)
 {
-    _mode = mode;
     _loopTimer = loopTimer;
 }
 
@@ -66,16 +75,37 @@ void GraphicsDriverBase::OnUnInit()
 {
 }
 
-void GraphicsDriverBase::OnSetRenderFrame(const Size &src_size, const Rect &dst_rect)
+void GraphicsDriverBase::OnModeSet(const DisplayMode &mode)
 {
-    _srcRect = RectWH(0, 0, src_size.Width, src_size.Height);
-    _dstRect = dst_rect;
+    _mode = mode;
+}
+
+void GraphicsDriverBase::OnModeReleased()
+{
+    _mode = DisplayMode();
+    _dstRect = Rect();
+}
+
+void GraphicsDriverBase::OnScalingChanged()
+{
     PGfxFilter filter = GetGraphicsFilter();
     if (filter)
-        _filterRect = filter->SetTranslation(src_size, dst_rect);
+        _filterRect = filter->SetTranslation(_srcRect.GetSize(), _dstRect);
     else
         _filterRect = Rect();
-    _scaling.Init(src_size, dst_rect);
+    _scaling.Init(_srcRect.GetSize(), _dstRect);
+}
+
+void GraphicsDriverBase::OnSetNativeSize(const Size &src_size)
+{
+    _srcRect = RectWH(0, 0, src_size.Width, src_size.Height);
+    OnScalingChanged();
+}
+
+void GraphicsDriverBase::OnSetRenderFrame(const Rect &dst_rect)
+{
+    _dstRect = dst_rect;
+    OnScalingChanged();
 }
 
 void GraphicsDriverBase::OnSetFilter()

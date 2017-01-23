@@ -25,6 +25,7 @@
 #include "ac/global_room.h"
 #include "ac/mouse.h"
 #include "ac/record.h"
+#include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
@@ -32,9 +33,9 @@
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_inventory.h"
+#include "util/math.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern GameState play;
@@ -192,6 +193,9 @@ struct InventoryScreen
     int windowyp;
     int buttonyp;
     DisplayInvItem dii[MAX_INV];
+    int btn_look_sprite;
+    int btn_select_sprite;
+    int btn_ok_sprite;
 
     int break_code;
 
@@ -213,6 +217,14 @@ void InventoryScreen::Prepare()
     MAX_ITEMAREA_HEIGHT = ((play.viewport.GetHeight() - BUTTONAREAHEIGHT) - get_fixed_pixel_size(20));
     in_inv_screen++;
     inv_screen_newroom = -1;
+
+    // sprites 2041, 2042 and 2043 were hardcoded in the older versions
+    // of the engine to be used in the built-in inventory window
+    if (spriteset[2041] == NULL || spriteset[2042] == NULL || spriteset[2043] == NULL)
+        debug_log("InventoryScreen: one or more of the inventory screen graphics (sprites 2041, 2042, 2043) does not exist, using sprite 0 instead");
+    btn_look_sprite = spriteset[2041] != NULL ? 2041 : 0;
+    btn_select_sprite = spriteset[2042] != NULL ? 2042 : 0;
+    btn_ok_sprite = spriteset[2043] != NULL ? 2043 : 0;
 
     break_code = 0;
 }
@@ -280,13 +292,11 @@ int InventoryScreen::Redraw()
         wputblock(ds, barxp+1+((i-top_item)%4)*widest+widest/2-spof->GetWidth()/2,
             bartop+1+((i-top_item)/4)*highest+highest/2-spof->GetHeight()/2,spof,1);
     }
-    if ((spriteset[2041] == NULL) || (spriteset[2042] == NULL) || (spriteset[2043] == NULL))
-        quit("!InventoryScreen: one or more of the inventory screen graphics have been deleted");
-#define BUTTONWID spritewidth[2042]
+#define BUTTONWID Math::Max(1, spritewidth[btn_select_sprite])
     // Draw select, look and OK buttons
-    wputblock(ds, windowxp+2, buttonyp + get_fixed_pixel_size(2), spriteset[2041], 1);
-    wputblock(ds, windowxp+3+BUTTONWID, buttonyp + get_fixed_pixel_size(2), spriteset[2042], 1);
-    wputblock(ds, windowxp+4+BUTTONWID*2, buttonyp + get_fixed_pixel_size(2), spriteset[2043], 1);
+    wputblock(ds, windowxp+2, buttonyp + get_fixed_pixel_size(2), spriteset[btn_look_sprite], 1);
+    wputblock(ds, windowxp+3+BUTTONWID, buttonyp + get_fixed_pixel_size(2), spriteset[btn_select_sprite], 1);
+    wputblock(ds, windowxp+4+BUTTONWID*2, buttonyp + get_fixed_pixel_size(2), spriteset[btn_ok_sprite], 1);
 
     // Draw Up and Down buttons if required
     Bitmap *arrowblock = BitmapHelper::CreateTransparentBitmap (ARROWBUTTONWID, ARROWBUTTONWID);

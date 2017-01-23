@@ -268,6 +268,7 @@ void game_file_set_default_glmsg()
     set_default_glmsg (993, "Quit");
     set_default_glmsg (994, "Play");
     set_default_glmsg (995, "Are you sure you want to quit?");
+    set_default_glmsg (996, "You are carrying nothing.");
 }
 
 void game_file_read_dialogs(Stream *in)

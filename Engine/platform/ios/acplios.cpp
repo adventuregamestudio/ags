@@ -611,7 +611,7 @@ const char* AGSIOS::GetNoMouseErrorString() {
 }
 
 eScriptSystemOSID AGSIOS::GetSystemOSID() {
-  return eOS_Win;
+  return eOS_iOS;
 }
 
 int AGSIOS::InitializeCDPlayer() {

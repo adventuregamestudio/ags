@@ -698,7 +698,7 @@ const char* AGSAndroid::GetNoMouseErrorString() {
 }
 
 eScriptSystemOSID AGSAndroid::GetSystemOSID() {
-  return eOS_Win;
+  return eOS_Android;
 }
 
 int AGSAndroid::InitializeCDPlayer() {

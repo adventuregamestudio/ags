@@ -27,11 +27,15 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-enum eScriptSystemOSID {
+enum eScriptSystemOSID
+{
     eOS_DOS = 1,
-    eOS_Win = 2,
-    eOS_Linux = 3,
-    eOS_Mac = 4
+    eOS_Win,
+    eOS_Linux,
+    eOS_Mac,
+    eOS_Android,
+    eOS_iOS,
+    eOS_PSP
 };
 
 enum SetupReturnValue

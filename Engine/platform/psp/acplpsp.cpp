@@ -501,7 +501,7 @@ const char* AGSPSP::GetNoMouseErrorString() {
 }
 
 eScriptSystemOSID AGSPSP::GetSystemOSID() {
-  return eOS_Win;
+  return eOS_PSP;
 }
 
 int AGSPSP::InitializeCDPlayer() {

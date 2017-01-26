@@ -34,11 +34,9 @@ extern GameSetup usetup;
 extern char saveGameDirectory[260];
 extern char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
 
-// from gui/cscidialog
-extern Bitmap *windowBuffer;
-extern int windowPosX, windowPosY, windowPosWidth, windowPosHeight;
-extern Bitmap *windowBuffer;
-extern IDriverDependantBitmap *dialogBmp;
+int windowPosX, windowPosY, windowPosWidth, windowPosHeight;
+Bitmap *windowBuffer;
+IDriverDependantBitmap *dialogBmp;
 
 #define MAXSAVEGAMES 20
 DisplayProperties dispp;
@@ -54,8 +52,35 @@ char buff[200];
 int myscrnwid = 320, myscrnhit = 200;
 
 
+void prepare_gui_screen(int x, int y, int width, int height, bool opaque)
+{
+    clear_gui_screen();
+    windowPosX = x;
+    windowPosY = y;
+    windowPosWidth = width;
+    windowPosHeight = height;
+    if (windowBuffer)
+    {
+        windowBuffer = recycle_bitmap(windowBuffer, windowPosWidth, windowPosHeight, windowBuffer->GetColorDepth(), !opaque);
+    }
+    else
+    {
+        windowBuffer = BitmapHelper::CreateBitmap(windowPosWidth, windowPosHeight, GetVirtualScreen()->GetColorDepth());
+        windowBuffer = gfxDriver->ConvertBitmapToSupportedColourDepth(windowBuffer);
+    }
+    dialogBmp = recycle_ddb_bitmap(dialogBmp, windowBuffer, false);
+}
 
-void refresh_screen()
+void clear_gui_screen()
+{
+    if (dialogBmp)
+        gfxDriver->DestroyDDB(dialogBmp);
+    dialogBmp = NULL;
+    delete windowBuffer;
+    windowBuffer = NULL;
+}
+
+void refresh_gui_screen()
 {
     Bitmap *ds = GetVirtualScreen();
     windowBuffer->Blit(ds, windowPosX, windowPosY, 0, 0, windowPosWidth, windowPosHeight);

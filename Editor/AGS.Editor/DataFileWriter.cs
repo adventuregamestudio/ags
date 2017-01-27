@@ -13,12 +13,13 @@ namespace AGS.Editor
     {
         private static byte[] GetBytes(string text, int length)
         {
+            // We must convert original Unicode string into ANSI string,
+            // because AGS engine currently supports only these.
+            // When doing so we should use current system's codepage, to meet
+            // common expectations of the game developers (and comply to how
+            // the Editor behaved in the past).
             byte[] bytes = new byte[length];
-            int i = 0;
-            for ( ; i < Math.Min(text.Length, length); ++i)
-            {
-                bytes[i] = (byte)text[i];
-            }
+            Encoding.Default.GetBytes(text, 0, Math.Min(text.Length, length), bytes, 0);
             return bytes;
         }
 

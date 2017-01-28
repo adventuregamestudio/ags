@@ -893,7 +893,7 @@ int engine_check_disk_space()
 {
     Out::FPrint("Checking for disk space");
 
-    if (check_write_access()==1) {
+    if (check_write_access()==0) {
         platform->DisplayAlert("Unable to write in the savegame directory.\n%s", platform->GetDiskWriteAccessTroubleshootingText());
         proper_exit = 1;
         return EXIT_NORMAL; 

@@ -105,7 +105,6 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual const char *GetUserConfigDirectory();
   virtual const char *GetAppOutputDirectory();
   virtual const char *GetIllegalFileChars();
-  virtual const char *GetFileWriteTroubleshootingText();
   virtual const char *GetGraphicsTroubleshootingText();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
@@ -653,11 +652,6 @@ const char *AGSWin32::GetAppOutputDirectory()
 const char *AGSWin32::GetIllegalFileChars()
 {
     return "\\/:?\"<>|*";
-}
-
-const char *AGSWin32::GetFileWriteTroubleshootingText()
-{
-    return "If you are using Windows Vista or higher, you may need to right-click and Run as Administrator on the Setup application.";
 }
 
 const char *AGSWin32::GetGraphicsTroubleshootingText()

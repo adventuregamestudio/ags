@@ -187,7 +187,7 @@ bool engine_check_run_setup(ConfigTree &cfg, int argc,char*argv[])
                 if (!IniUtil::Merge(ac_config_file, cfg_out))
                 {
                     platform->DisplayAlert("Unable to write to the configuration file (error code 0x%08X).\n%s",
-                        platform->GetLastSystemError(), platform->GetFileWriteTroubleshootingText());
+                        platform->GetLastSystemError(), platform->GetDiskWriteAccessTroubleshootingText());
                 }
             }
             if (res != kSetup_RunGame)
@@ -863,6 +863,7 @@ int check_write_access() {
   sprintf(tempPath, "%s""tmptest.tmp", saveGameDirectory);
   Stream *temp_s = Common::File::CreateFile(tempPath);
   if (!temp_s)
+      // TODO: move this somewhere else (Android platform driver init?)
 #if defined(ANDROID_VERSION)
   {
 	  put_backslash(android_base_directory);
@@ -892,15 +893,8 @@ int engine_check_disk_space()
 {
     Out::FPrint("Checking for disk space");
 
-    //init_language_text("en");
-    if (check_write_access()==0) {
-#if defined(IOS_VERSION)
-        platform->DisplayAlert("Unable to write to the current directory. Make sure write permissions are"
-            " set for the game directory.\n");
-#else
-        platform->DisplayAlert("Unable to write to the current directory. Do not run this game off a\n"
-            "network or CD-ROM drive. Also check drive free space (you need 1 Mb free).\n");
-#endif
+    if (check_write_access()==1) {
+        platform->DisplayAlert("Unable to write in the savegame directory.\n%s", platform->GetDiskWriteAccessTroubleshootingText());
         proper_exit = 1;
         return EXIT_NORMAL; 
     }

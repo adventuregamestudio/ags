@@ -63,7 +63,7 @@ struct AGSPlatformDriver
     virtual const char *GetAppOutputDirectory() { return "."; }
     // Returns array of characters illegal to use in file names
     virtual const char *GetIllegalFileChars() { return "\\/"; }
-    virtual const char *GetFileWriteTroubleshootingText() { return ""; }
+    virtual const char *GetDiskWriteAccessTroubleshootingText();
     virtual const char *GetGraphicsTroubleshootingText() { return ""; }
     virtual unsigned long GetDiskFreeSpaceMB() = 0;
     virtual const char* GetNoMouseErrorString() = 0;

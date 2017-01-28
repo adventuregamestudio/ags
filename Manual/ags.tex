@@ -2971,7 +2971,7 @@ That's where Extender Functions come in. Here's an example:
 \begin{verbatim}
 function Scream(this Character*)
 {
-this.Say("AAAAARRRRGGGGHHHHHH!!!!");
+  this.Say("AAAAARRRRGGGGHHHHHH!!!!");
 }
 \end{verbatim}
 This adds a new "Scream" function to the Character type, so that in your script code
@@ -2979,6 +2979,7 @@ elsewhere you can do things like:
 \begin{verbatim}
 player.Scream();
 character[EGO].Scream();
+cJohn.Scream();
 \end{verbatim}
 and so on.
 
@@ -2990,6 +2991,29 @@ In the script header, you'd put:
 
 and then put the main function in the script file. This will then allow it to be used
 by other scripts.
+
+\bf{Static extenders}
+
+Since AGS 3.4.0 you may also create static extender functions, that is functions that
+are called from type, rather than an actual object. Static extender declaration is a bit
+different, for example:
+\begin{verbatim}
+int AbsInt(static Maths, int value)
+{
+  if (value < 0)
+    return -value;
+  return value;
+}
+\end{verbatim}
+
+You declare the function's import in the script header:
+
+\verb$import int AbsInt(static Maths, int value);$
+
+and you use such function as:
+\begin{verbatim}
+int x = Maths.AbsInt(-10);
+\end{verbatim}
 
 
 \section{Game variables}\label{Gamevariables}\index{Variables}\index{game. variables}%

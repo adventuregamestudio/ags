@@ -191,7 +191,7 @@ void main_print_help() {
            "  --hicolor                    Downmix 32bit colors to 16bit\n"
            "  --gfxfilter <filter> [<scaling>]\n"
            "                               Request graphics filter. Available options:\n"
-           "                                 none, stdscale, hq2x, hq3x;\n"
+           "                                 none, stdscale, hqx;\n"
            "                                 scaling is specified by integer number\n"
            "  --log                        Enable program output to the log file\n"
            "  --no-log                     Disable program output to the log file,\n"

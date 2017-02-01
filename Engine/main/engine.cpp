@@ -208,8 +208,8 @@ bool engine_check_run_setup(const String &exe_path, ConfigTree &cfg)
             // Just re-reading the config file seems to cause a caching
             // problem on Win9x, so let's restart the process.
             allegro_exit();
-            char quotedpath[255];
-            sprintf (quotedpath, "\"%s\"", exe_path);
+            char quotedpath[MAX_PATH];
+            snprintf(quotedpath, MAX_PATH, "\"%s\"", exe_path.GetCStr());
             _spawnl (_P_OVERLAY, exe_path, quotedpath, NULL);
     }
 #endif

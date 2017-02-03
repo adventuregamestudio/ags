@@ -23,10 +23,8 @@ namespace Path
 bool IsDirectory(const String &filename)
 {
     struct stat st;
-    String fixed_path = filename;
     // stat() does not like trailing slashes, remove them
-    fixed_path.TrimRight('/');
-    fixed_path.TrimRight('\\');
+    String fixed_path = MakePathNoSlash(filename);
     if (stat(fixed_path, &st) == 0)
     {
         return (st.st_mode & S_IFMT) == S_IFDIR;
@@ -88,6 +86,14 @@ void FixupPath(String &path)
         return;
     }
     path.Replace('\\', '/');
+}
+
+String  MakePathNoSlash(const String &path)
+{
+    String dir_path = path;
+    FixupPath(dir_path);
+    dir_path.TrimRight('/');
+    return dir_path;
 }
 
 String MakeAbsolutePath(const String &path)

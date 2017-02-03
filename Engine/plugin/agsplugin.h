@@ -534,7 +534,7 @@ public:
   AGSIFUNC(int)    IsRunningUnderDebugger();
   // tells the engine to break into the debugger when the next line of script is run
   AGSIFUNC(void)   BreakIntoDebugger();
-  // fills buffer with either fileName or Compiled\fileName, as appropriate
+  // fills buffer with <install dir>\fileName, as appropriate
   AGSIFUNC(void)   GetPathToFileInCompiledFolder(const char* fileName, char* buffer);
 
   // *** BELOW ARE INTERFACE VERSION 23 AND ABOVE ONLY

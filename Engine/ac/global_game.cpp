@@ -234,14 +234,14 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     if ((mode & (~AllowedModes)) != 0)
         quit("!RunAGSGame: mode value unknown");
 
-    if (use_compiled_folder_as_current_dir || editor_debugging_enabled)
+    if (editor_debugging_enabled)
     {
         quit("!RunAGSGame cannot be used while running the game from within the AGS Editor. You must build the game EXE and run it from there to use this function.");
     }
 
     if ((mode & RAGMODE_LOADNOW) == 0) {
         // need to copy, since the script gets destroyed
-        get_current_dir_path(gamefilenamebuf, newgame);
+        get_install_dir_path(gamefilenamebuf, newgame);
         game_file_name = gamefilenamebuf;
         usetup.main_data_filename = game_file_name;
         play.takeover_data = data;

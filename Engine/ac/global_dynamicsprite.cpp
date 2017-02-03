@@ -31,7 +31,7 @@ extern IGraphicsDriver *gfxDriver;
 int LoadImageFile(const char *filename) {
 
     char loadFromPath[MAX_PATH];
-    get_current_dir_path(loadFromPath, filename);
+    get_install_dir_path(loadFromPath, filename);
 
 	Bitmap *loadedFile = BitmapHelper::LoadFromFile(loadFromPath);
 

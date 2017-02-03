@@ -747,7 +747,7 @@ int IAGSEngine::IsRunningUnderDebugger()
 
 void IAGSEngine::GetPathToFileInCompiledFolder(const char*fileName, char *buffer)
 {
-    get_current_dir_path(buffer, fileName);
+    get_install_dir_path(buffer, fileName);
 }
 
 void IAGSEngine::BreakIntoDebugger()

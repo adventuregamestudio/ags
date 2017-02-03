@@ -73,8 +73,12 @@ String MakeSpecialSubDir(const String &sp_dir);
 // or if the file path is forbidden to be accessed in current situation.
 bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, String &alt_path);
 
-String  get_current_dir();
-void	get_current_dir_path(char* buffer, const char *fileName);
+// Sets an optional path to treat like game's installation directory
+void    set_install_dir(const String &path);
+// Returns a path to game installation directory (optionally a custom path could be set);
+// does not include trailing '/'
+String  get_install_dir();
+void    get_install_dir_path(char* buffer, const char *fileName);
 
 // Looks for valid asset library everywhere and returns path, or empty string if failed
 String  find_assetlib(const String &filename);

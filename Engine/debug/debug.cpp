@@ -46,7 +46,6 @@ extern volatile char want_exit, abort_engine;
 extern GameSetupStruct game;
 
 
-int use_compiled_folder_as_current_dir = 0;
 int editor_debugging_enabled = 0;
 int editor_debugging_initialized = 0;
 char editor_debugger_instance_token[100];

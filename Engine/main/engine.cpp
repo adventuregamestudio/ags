@@ -772,11 +772,15 @@ void engine_init_title()
 
 void engine_init_directories()
 {
-    if (file_exists("Compiled", FA_ARCH | FA_DIREC, NULL))
+    Debug::Printf(kDbgMsg_Init, "Data directory: %s", usetup.data_files_dir.GetCStr());
+    Debug::Printf(kDbgMsg_Init, "Optional install directory: %s", usetup.install_dir.GetCStr());
+    Debug::Printf(kDbgMsg_Init, "User data directory: %s", usetup.user_data_dir.GetCStr());
+
+    set_install_dir(usetup.install_dir);
+    if (!usetup.install_dir.IsEmpty())
     {
-        // running in debugger
-        use_compiled_folder_as_current_dir = 1;
-        // don't redirect to the game exe folder (_Debug)
+        // running in debugger: don't redirect to the game exe folder (_Debug)
+        // TODO: find out why we need to do this (and do we?)
         usetup.data_files_dir = ".";
     }
 
@@ -866,7 +870,7 @@ int engine_check_font_was_loaded()
 {
     if (!font_first_renderer_loaded())
     {
-        platform->DisplayAlert("No fonts found. If you're trying to run the game from the Debug directory, this is not supported. Use the Build EXE command to create an executable in the Compiled folder.");
+        platform->DisplayAlert("No game fonts found. At least one font is required to run the game.");
         proper_exit = 1;
         return EXIT_NORMAL;
     }

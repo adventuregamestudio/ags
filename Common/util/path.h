@@ -45,6 +45,8 @@ namespace Path
     // Makes a path have only '/' slashes; this is to make it easier to work
     // with path, knowing it contains only one type of directory separators
     void    FixupPath(String &path);
+    // Fixups path and removes trailing slash
+    String  MakePathNoSlash(const String &path);
     String  MakeAbsolutePath(const String &path);
 
     // Subsitutes illegal characters with '_'. This function uses a combined set

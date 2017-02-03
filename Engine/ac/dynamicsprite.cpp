@@ -272,7 +272,7 @@ int DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm) {
         quit("!DynamicSprite.SaveToFile: sprite has been deleted");
 
     char fileName[MAX_PATH];
-    get_current_dir_path(fileName, namm);
+    get_install_dir_path(fileName, namm);
 
     if (strchr(namm,'.') == NULL)
         strcat(fileName, ".bmp");

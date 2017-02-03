@@ -62,6 +62,9 @@ extern AGSPlatformDriver *platform;
 
 extern int MAXSTRLEN;
 
+// Installation directory, may contain absolute or relative path
+String installDirectory;
+
 // object-based File routines
 
 int File_Exists(const char *fnmm) {
@@ -387,7 +390,8 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, String &path,
                 sc_path.GetCStr());
             return false;
         }
-        parent_dir = get_current_dir();
+        parent_dir = get_install_dir();
+        parent_dir.AppendChar('/');
         child_path = sc_path.Mid(GameInstallRootToken.GetLength());
     }
     else if (sc_path.CompareLeft(GameSavedgamesDirToken, GameSavedgamesDirToken.GetLength()) == 0)
@@ -417,7 +421,7 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, String &path,
         parent_dir = MakeAppDataPath();
         // Set alternate non-remapped "unsafe" path for read-only operations
         if (read_only)
-            alt_path = String::FromFormat("%s%s", get_current_dir().GetCStr(), sc_path.GetCStr());
+            alt_path = String::FromFormat("%s/%s", get_install_dir().GetCStr(), sc_path.GetCStr());
 
         // For games made in the safe-path-aware versions of AGS, report a warning
         // if the unsafe path is used for write operation
@@ -445,33 +449,31 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, String &path,
     return true;
 }
 
-
-String get_current_dir()
+void set_install_dir(const String &path)
 {
-    if (use_compiled_folder_as_current_dir)
-        return "Compiled/";
-    return "./";
+    if (path.IsEmpty())
+        installDirectory = ".";
+    else
+        installDirectory = Path::MakePathNoSlash(path);
 }
 
-void get_current_dir_path(char* buffer, const char *fileName)
+String get_install_dir()
 {
-    if (use_compiled_folder_as_current_dir)
-    {
-        sprintf(buffer, "Compiled\\%s", fileName);
-    }
-    else
-    {
-        strcpy(buffer, fileName);
-    }
+    return installDirectory;
+}
+
+void get_install_dir_path(char* buffer, const char *fileName)
+{
+    sprintf(buffer, "%s/%s", installDirectory.GetCStr(), fileName);
 }
 
 String find_assetlib(const String &filename)
 {
     String libname = free_char_to_string( ci_find_file(usetup.data_files_dir, filename) );
-    if (!AssetManager::IsDataFile(libname))
+    if (!AssetManager::IsDataFile(libname) && Path::ComparePaths(usetup.data_files_dir, installDirectory) != 0)
     {
       // Hack for running in Debugger
-      libname = free_char_to_string( ci_find_file("Compiled", filename) );
+      libname = free_char_to_string( ci_find_file(installDirectory, filename) );
     }
     if (!AssetManager::IsDataFile(libname))
         return "";
@@ -481,10 +483,10 @@ String find_assetlib(const String &filename)
 Stream *find_open_asset(const String &filename)
 {
     Stream *asset_s = Common::AssetManager::OpenAsset(filename);
-    if (!asset_s) 
+    if (!asset_s && Path::ComparePaths(usetup.data_files_dir, installDirectory) != 0) 
     {
         // Just in case they're running in Debug, try standalone file in compiled folder
-        asset_s = ci_fopen(String::FromFormat("Compiled/%s", filename.GetCStr()));
+        asset_s = ci_fopen(String::FromFormat("%s/%s", installDirectory.GetCStr(), filename.GetCStr()));
     }
     return asset_s;
 }

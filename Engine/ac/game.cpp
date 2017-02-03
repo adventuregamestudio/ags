@@ -2132,7 +2132,7 @@ SavegameError load_game(const String &path, int slotNumber, bool &data_overwritt
         // [IKM] 2012-11-26: this is a workaround, indeed.
         // Try to find wanted game's executable; if it does not exist,
         // continue loading savedgame in current game, and pray for the best
-        get_current_dir_path(gamefilenamebuf, desc.MainDataFilename);
+        get_install_dir_path(gamefilenamebuf, desc.MainDataFilename);
         if (Common::File::TestReadFile(gamefilenamebuf))
         {
             RunAGSGame (desc.MainDataFilename, 0, 0);

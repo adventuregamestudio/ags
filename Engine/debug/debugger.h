@@ -19,7 +19,6 @@
 
 struct ScriptPosition;
 
-extern int use_compiled_folder_as_current_dir;
 extern int editor_debugging_enabled;
 extern int editor_debugging_initialized;
 extern char editor_debugger_instance_token[100];

@@ -361,7 +361,7 @@ void PlayMP3File (const char *filename) {
     debug_script_log("PlayMP3File %s", filename);
 
     char pathToFile[MAX_PATH];
-    get_current_dir_path(pathToFile, filename);
+    get_install_dir_path(pathToFile, filename);
 
     int useChan = prepare_for_new_music ();
     bool doLoop = (play.music_repeat > 0);

@@ -56,7 +56,7 @@ void pause_sound_if_necessary_and_play_video(const char *name, int skip, int fla
     else
     {
         char videoFilePath[MAX_PATH];
-        get_current_dir_path(videoFilePath, name);
+        get_install_dir_path(videoFilePath, name);
 
         platform->PlayVideo(videoFilePath, skip, flags);
     }

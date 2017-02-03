@@ -19,7 +19,7 @@
 #include "util/string_utils.h"
 #include "util/stream.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 #define STD_BUFFER_SIZE 3000
 
@@ -150,6 +150,13 @@ void fgetstring_limit(char *sss, Common::Stream *in, int bufsize)
 void fgetstring(char *sss, Common::Stream *in)
 {
     fgetstring_limit (sss, in, 50000000);
+}
+
+String free_char_to_string(char *char_buf)
+{
+    String s = char_buf;
+    free(char_buf);
+    return s;
 }
 
 

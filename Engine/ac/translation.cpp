@@ -14,6 +14,7 @@
 
 #define USE_CLIB
 #include "ac/common.h"
+#include "ac/file.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -48,7 +49,6 @@ void close_translation () {
 bool parse_translation(Stream *language_file, String &parse_error);
 
 bool init_translation (const String &lang, const String &fallback_lang, bool quit_on_error) {
-    char *transFileLoc;
 
     if (lang.IsEmpty()) {
         sprintf(transFileName, "default.tra");
@@ -57,24 +57,11 @@ bool init_translation (const String &lang, const String &fallback_lang, bool qui
         sprintf(transFileName, "%s.tra", lang.GetCStr());
     }
 
-    transFileLoc = ci_find_file(usetup.data_files_dir, transFileName);
-
-    Stream *language_file = Common::AssetManager::OpenAsset(transFileLoc);
-    free(transFileLoc);
-
-    if (language_file == NULL) 
+    Stream *language_file = find_open_asset(transFileName);
+    if (language_file == NULL)
     {
-        if (!lang.IsEmpty())
-        {
-            // Just in case they're running in Debug, try compiled folder
-            sprintf(transFileName, "Compiled\\%s.tra", lang.GetCStr());
-            language_file = Common::AssetManager::OpenAsset(transFileName);
-        }
-        if (language_file == NULL)
-        {
-            Debug::Printf(kDbgMsg_Error, "Cannot open translation: %s", transFileName);
-            return false;
-        }
+        Debug::Printf(kDbgMsg_Error, "Cannot open translation: %s", transFileName);
+        return false;
     }
     // in case it's inside a library file, record the offset
     lang_offs_start = language_file->GetPosition();

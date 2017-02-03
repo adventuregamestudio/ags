@@ -35,8 +35,8 @@ bool        engine_try_switch_windowed_gfxmode();
 // Shutdown graphics mode (used before shutting down tha application)
 void        engine_shutdown_gfxmode();
 
-extern char *music_file;
-extern char *speech_file;
+extern String music_file;
+extern String speech_file;
 
 // Register a callback that will be called before engine is initialised.
 // Used for apps to register their own plugins and other configuration

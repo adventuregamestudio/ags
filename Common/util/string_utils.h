@@ -72,6 +72,9 @@ void fgetstring(char *sss, Common::Stream *in);
 
 #include "util/string.h"
 
+// Converts char* to string and frees original malloc-ed array
+Common::String free_char_to_string(char *char_buf);
+
 namespace AGS
 {
 namespace Common

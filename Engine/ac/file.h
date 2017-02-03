@@ -23,6 +23,7 @@
 #include "util/string.h"
 
 using AGS::Common::String;
+using AGS::Common::Stream;
 
 int		File_Exists(const char *fnmm);
 int		File_Delete(const char *fnmm);
@@ -75,16 +76,21 @@ bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, Stri
 String  get_current_dir();
 void	get_current_dir_path(char* buffer, const char *fileName);
 
+// Looks for valid asset library everywhere and returns path, or empty string if failed
+String  find_assetlib(const String &filename);
+// Looks for asset everywhere and returns opened stream, or NULL if failed
+Stream *find_open_asset(const String &filename);
+
 struct ScriptFileHandle
 {
-    Common::Stream  *stream;
-    int32_t         handle;
+    Stream  *stream;
+    int32_t  handle;
 };
 extern ScriptFileHandle valid_handles[MAX_OPEN_SCRIPT_FILES + 1];
 extern int num_open_script_files;
 
-ScriptFileHandle *check_valid_file_handle_ptr(Common::Stream *stream_ptr, const char *operation_name);
+ScriptFileHandle *check_valid_file_handle_ptr(Stream *stream_ptr, const char *operation_name);
 ScriptFileHandle *check_valid_file_handle_int32(int32_t handle, const char *operation_name);
-Common::Stream   *get_valid_file_stream_from_handle(int32_t handle, const char *operation_name);
+Stream *get_valid_file_stream_from_handle(int32_t handle, const char *operation_name);
 
 #endif // __AGS_EE_AC__FILE_H

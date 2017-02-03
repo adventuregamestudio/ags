@@ -24,6 +24,7 @@
 #include "ac/roomstruct.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "main/engine.h"
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
 
@@ -31,7 +32,6 @@ extern GameSetup usetup;
 extern GameState play;
 extern GameSetupStruct game;
 extern roomstruct thisroom;
-extern char *speech_file;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
@@ -458,7 +458,7 @@ int play_speech(int charid,int sndid) {
     // don't play speech if we're skipping a cutscene
     if (play.fast_forward)
         return 0;
-    if ((play.want_speech < 1) || (speech_file == NULL))
+    if ((play.want_speech < 1) || (speech_file.IsEmpty()))
         return 0;
 
     SOUNDCLIP *speechmp3;

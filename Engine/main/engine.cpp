@@ -94,8 +94,8 @@ extern CharacterInfo*playerchar;
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 
-char *music_file;
-char *speech_file;
+String music_file;
+String speech_file;
 
 Common::AssetError errcod;
 
@@ -459,22 +459,8 @@ int engine_init_speech()
     play.want_speech=-2;
 
     if (!usetup.no_speech_pack) {
-        /* Can't just use fopen here, since we need to change the filename
-        so that pack functions, etc. will have the right case later */
-        speech_file = ci_find_file(usetup.data_files_dir, "speech.vox");
-
-        Stream *speech_s = ci_fopen(speech_file);
-
-        if (speech_s == NULL)
-        {
-            // In case they're running in debug, check Compiled folder
-            free(speech_file);
-            speech_file = ci_find_file("Compiled", "speech.vox");
-            speech_s = ci_fopen(speech_file);
-        }
-
-        if (speech_s) {
-            delete speech_s;
+        speech_file = find_assetlib("speech.vox");
+        if (!speech_file.IsEmpty()) {
 
             Debug::Printf("Initializing speech vox");
 
@@ -519,25 +505,8 @@ int engine_init_music()
 {
     play.separate_music_lib = 0;
 
-    /* Can't just use fopen here, since we need to change the filename
-    so that pack functions, etc. will have the right case later */
-    music_file = ci_find_file(usetup.data_files_dir, "audio.vox");
-
-    /* Don't need to use ci_fopen here, because we've used ci_find_file to get
-    the case insensitive matched filename already */
-    // Use ci_fopen anyway because it can handle NULL filenames.
-    Stream *music_s = ci_fopen(music_file);
-
-    if (music_s == NULL)
-    {
-        // In case they're running in debug, check Compiled folder
-        free(music_file);
-        music_file = ci_find_file("Compiled", "audio.vox");
-        music_s = ci_fopen(music_file);
-    }
-
-    if (music_s) {
-        delete music_s;
+    music_file = find_assetlib("audio.vox");
+    if (!music_file.IsEmpty()) {
 
         Debug::Printf("Initializing audio vox");
 
@@ -725,12 +694,6 @@ void atexit_handler() {
             our_eip, EngineVersion.LongString.GetCStr());
         platform->DisplayAlert(pexbuf);
     }
-
-    if (!(music_file == NULL))
-        free(music_file);
-
-    if (!(speech_file == NULL))
-        free(speech_file);
 }
 
 void engine_init_exit_handler()

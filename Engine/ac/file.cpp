@@ -30,6 +30,7 @@
 #include "util/directory.h"
 #include "util/path.h"
 #include "util/string.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 
@@ -230,29 +231,13 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
     filnam++;
     // MACPORT FIX 9/6/5: changed from NULL TO '\0'
     gfname[ii] = '\0';
-/*    char useloc[250];
-#ifdef LINUX_VERSION || defined MAC_VERSION
-    sprintf(useloc,"%s/%s",usetup.data_files_dir,gfname);
-#else
-    sprintf(useloc,"%s\\%s",usetup.data_files_dir,gfname);
-#endif
-    Common::AssetManager::SetDataFile(useloc);*/
     
-    char *libname = ci_find_file(usetup.data_files_dir, gfname);
-    if (Common::AssetManager::SetDataFile(libname) != Common::kAssetNoError)
-    {
-      // Hack for running in Debugger
-      free(libname);
-      libname = ci_find_file("Compiled", gfname);
-      Common::AssetManager::SetDataFile(libname);
-    }
-    free(libname);
-    
+    AssetManager::SetDataFile(find_assetlib(gfname));
     needsetback = 1;
   }
 
   // if the file exists, override the internal file
-  bool file_exists = Common::File::TestReadFile(filnam);
+  bool file_exists = File::TestReadFile(filnam);
 
 #if defined(AGS_RUNTIME_PATCH_ALLEGRO)
   static PACKFILE * (*__old_pack_fopen)(PFO_PARAM, PFO_PARAM) = NULL;
@@ -271,25 +256,25 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
   }
 #endif
 
-  if ((Common::AssetManager::GetAssetOffset(filnam)<1) || (file_exists)) {
-    if (needsetback) Common::AssetManager::SetDataFile(game_file_name);
+  if ((AssetManager::GetAssetOffset(filnam)<1) || (file_exists)) {
+    if (needsetback) AssetManager::SetDataFile(game_file_name);
     return __old_pack_fopen(filnam, modd);
   } 
   else {
-    _my_temppack=__old_pack_fopen(Common::AssetManager::GetLibraryForAsset(filnam), modd);
+    _my_temppack=__old_pack_fopen(AssetManager::GetLibraryForAsset(filnam), modd);
     if (_my_temppack == NULL)
-      quitprintf("pack_fopen: unable to change datafile: not found: %s", Common::AssetManager::GetLibraryForAsset(filnam).GetCStr());
+      quitprintf("pack_fopen: unable to change datafile: not found: %s", AssetManager::GetLibraryForAsset(filnam).GetCStr());
 
-    pack_fseek(_my_temppack,Common::AssetManager::GetAssetOffset(filnam));
+    pack_fseek(_my_temppack,AssetManager::GetAssetOffset(filnam));
     
 #if ALLEGRO_DATE < 20050101
-    _my_temppack->todo=Common::AssetManager::GetAssetSize(filnam);
+    _my_temppack->todo=AssetManager::GetAssetSize(filnam);
 #else
-    _my_temppack->normal.todo = Common::AssetManager::GetAssetSize(filnam);
+    _my_temppack->normal.todo = AssetManager::GetAssetSize(filnam);
 #endif
 
     if (needsetback)
-      Common::AssetManager::SetDataFile(game_file_name);
+      AssetManager::SetDataFile(game_file_name);
     return _my_temppack;
   }
 }
@@ -480,11 +465,35 @@ void get_current_dir_path(char* buffer, const char *fileName)
     }
 }
 
+String find_assetlib(const String &filename)
+{
+    String libname = free_char_to_string( ci_find_file(usetup.data_files_dir, filename) );
+    if (!AssetManager::IsDataFile(libname))
+    {
+      // Hack for running in Debugger
+      libname = free_char_to_string( ci_find_file("Compiled", filename) );
+    }
+    if (!AssetManager::IsDataFile(libname))
+        return "";
+    return libname;
+}
+
+Stream *find_open_asset(const String &filename)
+{
+    Stream *asset_s = Common::AssetManager::OpenAsset(filename);
+    if (!asset_s) 
+    {
+        // Just in case they're running in Debug, try standalone file in compiled folder
+        asset_s = ci_fopen(String::FromFormat("Compiled/%s", filename.GetCStr()));
+    }
+    return asset_s;
+}
+
 ScriptFileHandle valid_handles[MAX_OPEN_SCRIPT_FILES + 1];
 // [IKM] NOTE: this is not precisely the number of files opened at this moment,
 // but rather maximal number of handles that were used simultaneously during game run
 int num_open_script_files = 0;
-ScriptFileHandle *check_valid_file_handle_ptr(Common::Stream *stream_ptr, const char *operation_name)
+ScriptFileHandle *check_valid_file_handle_ptr(Stream *stream_ptr, const char *operation_name)
 {
   if (stream_ptr)
   {

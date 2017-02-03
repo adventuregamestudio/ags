@@ -58,9 +58,16 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
+// Case-insensitive file lookup functions. On case-insensitive systems
+// (like MS Windows) they simply return given file, but on case-sensitive
+// systems (like Linux) they search the directory for files with matching
+// names in different character case.
+// They are used as a system-independent way to open a file when its name
+// case can be ignored.
 Common::Stream *ci_fopen(const char *file_name,
                              Common::FileOpenMode open_mode = Common::kFile_Open,
                              Common::FileWorkMode work_mode = Common::kFile_Read);
+// TODO: return String object
 char *ci_find_file(const char *dir_name, const char *file_name);
 
 

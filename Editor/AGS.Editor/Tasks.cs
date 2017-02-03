@@ -207,6 +207,7 @@ namespace AGS.Editor
             string parameter = string.Empty;
             if (withDebugger)
             {
+                // debugger connection params
                 parameter = "--enabledebugger " + Factory.AGSEditor.Debugger.InstanceIdentifier;
             }
             else if (Factory.AGSEditor.Preferences.TestGameStyle == TestGameWindowStyle.Windowed)
@@ -218,6 +219,8 @@ namespace AGS.Editor
                 parameter = "-fullscreen";
             }
             _runningGameWithDebugger = withDebugger;
+            // custom game install directory (points to where all supplemental data files are)
+            parameter += " --runfromide " + Path.Combine(AGSEditor.OUTPUT_DIRECTORY, BuildTargetWindows.WINDOWS_DIRECTORY);
 
             RunEXEFile(Path.Combine(AGSEditor.DEBUG_OUTPUT_DIRECTORY, Factory.AGSEditor.BaseGameFileName + ".exe"), parameter, true);
 

@@ -1391,6 +1391,8 @@ int initialize_engine(int argc,char*argv[])
         return res;
     }
 
+    engine_init_directories();
+
     engine_init_rooms();
 
     our_eip = -186;
@@ -1458,10 +1460,6 @@ int initialize_engine(int argc,char*argv[])
     engine_init_title();
 
     our_eip = -189;
-
-    engine_init_directories();
-
-    our_eip = -178;
 
     res = engine_check_disk_space();
     if (res != RETURN_CONTINUE) {

@@ -4160,6 +4160,10 @@ they may be arranged in any order.
 Unlike many programming languages, AGS allows expression result of any type (integer, boolean,
 string, pointers).
 
+\bf{KNOWN ISSUE:} Since the final release of AGS 3.4.0 usage of strings in the switch is broken:
+instead of comparing by value, as intended, they are instead compared as pointers. We expect this
+to be fixed in one of the future updates.
+
 Example:
 
 \begin{verbatim}

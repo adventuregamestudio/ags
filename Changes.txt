@@ -1,5 +1,33 @@
 REVISION HISTORY
 ================
+VERSION 3.4.0 - Patch 2, February 2017
+
+Script API:
+- Extended the list of System.OperatingSystem possible return values;
+  now supports eOSAndroid, eOSiOS, eOSPSP
+
+Editor bug fixes:
+- Fixed incorrect Unicode-to-ANSI string conversion during game compilation
+  which caused text containing non-latin characters become random mess in game,
+  even if game fonts compiled to the proper ANSI codepage.
+
+Engine bug fixes:
+- Fixed mouse cursor stuck at the left border of the screen when using OpenGL
+  renderer (Android & iOS ports).
+- Fixed InventoryScreen() script function caused game to crash if particular
+  resources are not available.
+- Fixed built-in inventory screen not working with Direct3D and OpenGL
+  renderers.
+- Fixed obsolete gfxfilter names are printed when using --help argument.
+
+Cosmetics & convenience:
+- Corrected error message displayed when engine cannot get write access to the
+  disk (e.g. no more telling to not run from CD on Android).
+  
+Manual:
+- Added information on static extenders.
+
+
 VERSION 3.4.0 - Patch 1, November 2016
 
 Editor:
@@ -225,8 +253,8 @@ Engine:
 
 WinSetup:
 - Only let user choose actually existing folders for custom save paths.
-   
-   
+
+
 VERSION 3.3.5 - Patch 3, June 2016
 
 Engine:

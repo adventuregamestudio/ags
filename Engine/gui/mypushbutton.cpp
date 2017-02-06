@@ -91,7 +91,7 @@ int MyPushButton::pressedon()
 
         //      domouse(0);
 
-        refresh_screen();
+        refresh_gui_screen();
 
         while (timerloop == 0) ;
     }

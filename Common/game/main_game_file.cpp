@@ -622,6 +622,7 @@ void SetDefaultGlobalMessages(GameSetupStruct &game)
     SetDefaultGlmsg(game, 993, "Quit");
     SetDefaultGlmsg(game, 994, "Play");
     SetDefaultGlmsg(game, 995, "Are you sure you want to quit?");
+    SetDefaultGlmsg(game, 996, "You are carrying nothing.");
 }
 
 void FixupSaveDirectory(GameSetupStruct &game)

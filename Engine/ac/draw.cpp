@@ -850,7 +850,6 @@ void draw_sprite_slot_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int
 }
 
 
-// Avoid freeing and reallocating the memory if possible
 IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *bimp, Bitmap *source, bool hasAlpha) {
     if (bimp != NULL) {
         // same colour depth, width and height -> reuse

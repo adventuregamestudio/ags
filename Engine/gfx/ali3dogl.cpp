@@ -550,19 +550,15 @@ void OGLGraphicsDriver::SetupViewport()
   }
 }
 
-bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode_, volatile int *loopTimer)
+bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer)
 {
   ReleaseDisplayMode();
 
-  // TODO: OpenGL renderer is incomplete and requires to do certain hacks to work,
-  // like forcing windowed mode, this is why we create mutable DisplayMode here
-  DisplayMode mode = mode_;
   if (mode.ColorDepth < 15)
   {
     set_allegro_error("OpenGL driver does not support 256-colour games");
     return false;
   }
-  mode.Windowed = true;
 
 #if defined(ANDROID_VERSION)
   android_create_screen(mode.Width, mode.Height, mode.ColorDepth);
@@ -661,7 +657,16 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode_, volatile int *l
       set_allegro_error(exception._message);
     return false;
   }
+
   OnInit(loopTimer);
+
+  // With current half-baked implementation OpenGL renderer ignores most of the
+  // requested mode params, and uses either hard-coded values or values imposed
+  // by the operating system (device).
+  DisplayMode final_mode = mode;
+  final_mode.Width = device_screen_physical_width;
+  final_mode.Height = device_screen_physical_height;
+  final_mode.Windowed = true;
   OnModeSet(mode);
   CreateVirtualScreen();
   return true;
@@ -686,7 +691,13 @@ bool OGLGraphicsDriver::SetNativeSize(const Size &src_size)
 
 bool OGLGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
 {
-  OnSetRenderFrame(dst_rect);
+  // FIXME: OpenGL renderer currently mostly ignores requested parameters
+  if (!IsNativeSizeValid())
+    return false;
+  Rect final_dest = Rect((int)(((float)device_screen_physical_width - _scale_width * (float)_srcRect.GetWidth()) / 2.0f + 1.0f),
+                       (int)(((float)device_screen_physical_height - _scale_height * (float)_srcRect.GetHeight()) / 2.0f),
+                       (int)(_scale_width * (float)_srcRect.GetWidth()), (int)(_scale_height * (float)_srcRect.GetHeight()));
+  OnSetRenderFrame(final_dest);
   // If we already have a gfx mode set, then update virtual screen immediately
   CreateVirtualScreen();
   // Also make sure viewport and backbuffer mappings are updated using new native & destination rectangles

@@ -121,6 +121,7 @@ struct AGSIOS : AGSPlatformDriver {
   virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
+  virtual bool IsBackendResponsibleForMouseScaling() { return true; }
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
   virtual void PlayVideo(const char* name, int skip, int flags);
@@ -610,7 +611,7 @@ const char* AGSIOS::GetNoMouseErrorString() {
 }
 
 eScriptSystemOSID AGSIOS::GetSystemOSID() {
-  return eOS_Win;
+  return eOS_iOS;
 }
 
 int AGSIOS::InitializeCDPlayer() {

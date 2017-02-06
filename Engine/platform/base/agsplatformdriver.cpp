@@ -49,6 +49,11 @@ const char* AGSPlatformDriver::GetAllegroFailUserHint()
     return "Make sure you have latest version of Allegro 4 libraries installed, and your system is running in graphical mode.";
 }
 
+const char *AGSPlatformDriver::GetDiskWriteAccessTroubleshootingText()
+{
+    return "Make sure you have write permissions, and also check the disk's free space.";
+}
+
 void AGSPlatformDriver::GetSystemTime(ScriptDateTime *sdt) {
     struct tm *newtime;
     time_t long_time;

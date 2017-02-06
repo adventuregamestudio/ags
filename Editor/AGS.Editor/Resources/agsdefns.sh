@@ -88,7 +88,10 @@ enum eOperatingSystem {
   eOSDOS = 1,
   eOSWindows,
   eOSLinux,
-  eOSMacOS
+  eOSMacOS,
+  eOSAndroid,
+  eOSiOS,
+  eOSPSP
 };
 
 enum TransitionStyle {

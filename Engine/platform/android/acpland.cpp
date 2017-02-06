@@ -49,6 +49,7 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual const char *GetAppOutputDirectory();
   virtual unsigned long GetDiskFreeSpaceMB();
   virtual const char* GetNoMouseErrorString();
+  virtual bool IsBackendResponsibleForMouseScaling() { return true; }
   virtual eScriptSystemOSID GetSystemOSID();
   virtual int  InitializeCDPlayer();
   virtual void PlayVideo(const char* name, int skip, int flags);
@@ -697,7 +698,7 @@ const char* AGSAndroid::GetNoMouseErrorString() {
 }
 
 eScriptSystemOSID AGSAndroid::GetSystemOSID() {
-  return eOS_Win;
+  return eOS_Android;
 }
 
 int AGSAndroid::InitializeCDPlayer() {

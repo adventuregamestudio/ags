@@ -27,11 +27,15 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-enum eScriptSystemOSID {
+enum eScriptSystemOSID
+{
     eOS_DOS = 1,
-    eOS_Win = 2,
-    eOS_Linux = 3,
-    eOS_Mac = 4
+    eOS_Win,
+    eOS_Linux,
+    eOS_Mac,
+    eOS_Android,
+    eOS_iOS,
+    eOS_PSP
 };
 
 enum SetupReturnValue
@@ -61,12 +65,15 @@ struct AGSPlatformDriver
     virtual const char *GetAppOutputDirectory() { return "."; }
     // Returns array of characters illegal to use in file names
     virtual const char *GetIllegalFileChars() { return "\\/"; }
-    virtual const char *GetFileWriteTroubleshootingText() { return ""; }
+    virtual const char *GetDiskWriteAccessTroubleshootingText();
     virtual const char *GetGraphicsTroubleshootingText() { return ""; }
     virtual unsigned long GetDiskFreeSpaceMB() = 0;
     virtual const char* GetNoMouseErrorString() = 0;
     // Tells whether build is capable of controlling mouse movement properly
     virtual bool IsMouseControlSupported(bool windowed) { return false; }
+    // Tells whether this platform's backend library deals with mouse cursor
+    // virtual->real coordinate transformation itself (otherwise AGS engine should do it)
+    virtual bool IsBackendResponsibleForMouseScaling() { return false; }
     virtual const char* GetAllegroFailUserHint();
     virtual eScriptSystemOSID GetSystemOSID() = 0;
     virtual void GetSystemTime(ScriptDateTime*);

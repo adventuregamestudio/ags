@@ -412,11 +412,13 @@ void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
     if (control_sens)
     {
         Mouse::EnableControl(!dm.Windowed);
+        Mouse::SetSpeedUnit(1.f);
         if (usetup.mouse_speed_def == kMouseSpeed_CurrentDisplay)
         {
             Size cur_desktop;
-            get_desktop_resolution(&cur_desktop.Width, &cur_desktop.Height);
-            Mouse::SetSpeedUnit(Math::Max((float)cur_desktop.Width / (float)init_desktop.Width, (float)cur_desktop.Height / (float)init_desktop.Height));
+            if (get_desktop_resolution(&cur_desktop.Width, &cur_desktop.Height) == 0)
+                Mouse::SetSpeedUnit(Math::Max((float)cur_desktop.Width / (float)init_desktop.Width,
+                                              (float)cur_desktop.Height / (float)init_desktop.Height));
         }
         Mouse::SetSpeed(usetup.mouse_speed);
     }

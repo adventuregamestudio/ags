@@ -1528,6 +1528,16 @@ builtin managed struct Button extends GUIControl {
   /// Runs the OnClick event handler for this Button.
   import void Click(MouseButton);
 #endif
+#ifdef SCRIPT_API_v341
+  /// Gets whether the button is currently animating.
+  readonly import attribute bool Animating;
+  /// Gets the current frame number during an animation.
+  readonly import attribute int  Frame;
+  /// Gets the current loop number during an animation.
+  readonly import attribute int  Loop;
+  /// Gets the current view number during an animation.
+  readonly import attribute int  View;
+#endif
 };
 
 builtin managed struct Slider extends GUIControl {

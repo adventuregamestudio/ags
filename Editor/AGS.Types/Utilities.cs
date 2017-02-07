@@ -16,6 +16,29 @@ namespace AGS.Types
             return (defaults.Length > 0) ? (T)defaults[0].Value : defaultValue;
         }
 
+        /// <summary>
+        /// Finds second maximal value in enumeration Type.
+        /// </summary>
+        public static T GetSecondMaxEnumValue<T>()
+        {
+            Array arr = Enum.GetValues(typeof(T));
+            int max = int.MinValue;
+            int second = int.MinValue;
+            foreach (int i in arr)
+            {
+                if (i > max)
+                {
+                    second = max;
+                    max = i;
+                }
+                else if (i > second)
+                {
+                    second = i;
+                }
+            }
+            return (T)Enum.ToObject(typeof(T), second);
+        }
+
         public static string RemoveInvalidCharactersFromScriptName(string name)
         {
             StringBuilder sb = new StringBuilder();

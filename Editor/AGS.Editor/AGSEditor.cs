@@ -144,11 +144,15 @@ namespace AGS.Editor
             _scriptAPIVersionMacros = new string[Enum.GetNames(typeof(ScriptAPIVersion)).Length];
             foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
             {
+                if (v == ScriptAPIVersion.Highest)
+                    continue; // don't enlist "Highest" constant
                 _scriptAPIVersionMacros[(int)v] = "SCRIPT_API_" + v.ToString();
             }
             _scriptCompatLevelMacros = new string[Enum.GetNames(typeof(ScriptAPIVersion)).Length];
             foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
             {
+                if (v == ScriptAPIVersion.Highest)
+                    continue; // don't enlist "Highest" constant
                 _scriptCompatLevelMacros[(int)v] = "SCRIPT_COMPAT_" + v.ToString();
             }
             BuildTargetsInfo.RegisterBuildTarget(new BuildTargetDataFile());
@@ -821,13 +825,17 @@ namespace AGS.Editor
             // Define Script API level macros
             foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
             {
-                if (v > _game.Settings.ScriptAPIVersion)
-                    break;
+                if (v == ScriptAPIVersion.Highest)
+                    continue; // skip Highest constant
+                if (v > _game.Settings.ScriptAPIVersionReal)
+                    continue;
                 preprocessor.DefineMacro(_scriptAPIVersionMacros[(int)v], "1");
             }
             foreach (ScriptAPIVersion v in Enum.GetValues(typeof(ScriptAPIVersion)))
             {
-                if (v < _game.Settings.ScriptCompatLevel)
+                if (v == ScriptAPIVersion.Highest)
+                    continue; // skip Highest constant
+                if (v < _game.Settings.ScriptCompatLevelReal)
                     continue;
                 preprocessor.DefineMacro(_scriptCompatLevelMacros[(int)v], "1");
             }

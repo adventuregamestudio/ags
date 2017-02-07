@@ -25,8 +25,6 @@ namespace AGS.Types
 		private const string DEFAULT_GENRE = "Adventure";
         private const string DEFAULT_VERSION = "1.0.0.0";
 
-        private const ScriptAPIVersion DEFAULT_SCRIPT_API = ScriptAPIVersion.v341;
-
         public Settings()
         {
 			GenerateNewGameID();
@@ -54,8 +52,10 @@ namespace AGS.Types
         private bool _inventoryCursors = true;
         private bool _handleInvInScript = false;
         private bool _displayMultipleInv = false;
-        private ScriptAPIVersion _scriptAPIVersion = DEFAULT_SCRIPT_API;
-        private ScriptAPIVersion _scriptCompatLevel = DEFAULT_SCRIPT_API;
+        private ScriptAPIVersion _scriptAPIVersion = ScriptAPIVersion.Highest;
+        private ScriptAPIVersion _scriptCompatLevel = ScriptAPIVersion.Highest;
+        private ScriptAPIVersion _scriptAPIVersionReal = ScriptAPIVersion.Highest;
+        private ScriptAPIVersion _scriptCompatLevelReal = ScriptAPIVersion.Highest;
         private bool _enforceObjectScripting = true;
         private bool _leftToRightPrecedence = true;
         private bool _enforceNewStrings = true;
@@ -537,7 +537,7 @@ namespace AGS.Types
 
         [DisplayName("Script API version")]
         [Description("Choose the version of the script API to use in your scripts")]
-        [DefaultValue(DEFAULT_SCRIPT_API)]
+        [DefaultValue(ScriptAPIVersion.Highest)]
         [Category("Backwards Compatibility")]
         [TypeConverter(typeof(EnumTypeConverter))]
         public ScriptAPIVersion ScriptAPIVersion
@@ -546,14 +546,17 @@ namespace AGS.Types
             set
             {
                 _scriptAPIVersion = value;
+                _scriptAPIVersionReal = _scriptAPIVersion;
+                if (_scriptAPIVersionReal == ScriptAPIVersion.Highest)
+                    _scriptAPIVersionReal = Utilities.GetSecondMaxEnumValue<ScriptAPIVersion>();
                 if (_scriptAPIVersion < _scriptCompatLevel)
-                    _scriptCompatLevel = _scriptAPIVersion;
+                    ScriptCompatLevel = _scriptAPIVersion;
             }
         }
 
         [DisplayName("Script compatibility level")]
         [Description("Lowest version of the obsoleted script API to support in your script")]
-        [DefaultValue(DEFAULT_SCRIPT_API)]
+        [DefaultValue(ScriptAPIVersion.Highest)]
         [Category("Backwards Compatibility")]
         [TypeConverter(typeof(EnumTypeConverter))]
         public ScriptAPIVersion ScriptCompatLevel
@@ -562,9 +565,32 @@ namespace AGS.Types
             set
             {
                 _scriptCompatLevel = value;
+                _scriptCompatLevelReal = _scriptCompatLevel;
+                if (_scriptCompatLevelReal == ScriptAPIVersion.Highest)
+                    _scriptCompatLevelReal = Utilities.GetSecondMaxEnumValue<ScriptAPIVersion>();
                 if (_scriptCompatLevel > _scriptAPIVersion)
-                    _scriptAPIVersion = _scriptCompatLevel;
+                    ScriptAPIVersion = _scriptCompatLevel;
             }
+        }
+
+        /// <summary>
+        /// Returns actual current API version, even if project is set to use Highest
+        /// </summary>
+        [AGSNoSerialize]
+        [Browsable(false)]
+        public ScriptAPIVersion ScriptAPIVersionReal
+        {
+            get { return _scriptAPIVersionReal; }
+        }
+
+        /// <summary>
+        /// Returns actual current API compat level, even if project is set to use Highest
+        /// </summary>
+        [AGSNoSerialize]
+        [Browsable(false)]
+        public ScriptAPIVersion ScriptCompatLevelReal
+        {
+            get { return _scriptCompatLevelReal; }
         }
 
         [DisplayName("Enforce object-based scripting")]

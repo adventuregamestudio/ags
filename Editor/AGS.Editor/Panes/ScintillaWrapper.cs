@@ -1718,25 +1718,25 @@ namespace AGS.Editor
             if (token.IfNDefOnly != null && token.IfNDefOnly.StartsWith("SCRIPT_API_"))
             {
                 ScriptAPIVersion? v = GetAPIVersionFromString(token.IfNDefOnly.Substring("SCRIPT_API_".Length));
-                if (v.HasValue && v <= gameSettings.ScriptAPIVersion)
+                if (v.HasValue && v <= gameSettings.ScriptAPIVersionReal)
                     return false;
             }
             if (token.IfDefOnly != null && token.IfDefOnly.StartsWith("SCRIPT_API_"))
             {
                 ScriptAPIVersion? v = GetAPIVersionFromString(token.IfDefOnly.Substring("SCRIPT_API_".Length));
-                if (v.HasValue && v > gameSettings.ScriptAPIVersion)
+                if (v.HasValue && v > gameSettings.ScriptAPIVersionReal)
                     return false;
             }
             if (token.IfNDefOnly != null && token.IfNDefOnly.StartsWith("SCRIPT_COMPAT_"))
             {
                 ScriptAPIVersion? v = GetAPIVersionFromString(token.IfNDefOnly.Substring("SCRIPT_COMPAT_".Length));
-                if (v.HasValue && v >= gameSettings.ScriptCompatLevel)
+                if (v.HasValue && v >= gameSettings.ScriptCompatLevelReal)
                     return false;
             }
             if (token.IfDefOnly != null && token.IfDefOnly.StartsWith("SCRIPT_COMPAT_"))
             {
                 ScriptAPIVersion? v = GetAPIVersionFromString(token.IfDefOnly.Substring("SCRIPT_COMPAT_".Length));
-                if (v.HasValue && v < gameSettings.ScriptCompatLevel)
+                if (v.HasValue && v < gameSettings.ScriptCompatLevelReal)
                     return false;
             }
             // TODO: AutoComplete feature in AGS is implemented in confusing and messy way. Thus, it does not
@@ -1747,13 +1747,13 @@ namespace AGS.Editor
             if (token.IfNDefOnly != null && token.IfNDefOnly.StartsWith("STRICT_IN_"))
             {
                 ScriptAPIVersion? v = GetAPIVersionFromString(token.IfNDefOnly.Substring("STRICT_IN_".Length));
-                if (v.HasValue && (gameSettings.EnforceObjectBasedScript && v <= gameSettings.ScriptCompatLevel))
+                if (v.HasValue && (gameSettings.EnforceObjectBasedScript && v <= gameSettings.ScriptCompatLevelReal))
                     return false;
             }
             if (token.IfDefOnly != null && token.IfDefOnly.StartsWith("STRICT_IN_"))
             {
                 ScriptAPIVersion? v = GetAPIVersionFromString(token.IfDefOnly.Substring("STRICT_IN_".Length));
-                if (v.HasValue && !(gameSettings.EnforceObjectBasedScript && v <= gameSettings.ScriptCompatLevel))
+                if (v.HasValue && !(gameSettings.EnforceObjectBasedScript && v <= gameSettings.ScriptCompatLevelReal))
                     return false;
             }
             return true;

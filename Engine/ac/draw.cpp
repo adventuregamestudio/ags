@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <algorithm>
 #include "aastr.h"
 #include "ac/common.h"
 #include "util/compress.h"
@@ -159,12 +160,8 @@ int offsetx = 0, offsety = 0;
 IDriverDependantBitmap* roomBackgroundBmp = NULL;
 
 
-#define MAX_SPRITES_ON_SCREEN 76
-SpriteListEntry sprlist[MAX_SPRITES_ON_SCREEN];
-int sprlistsize=0;
-#define MAX_THINGS_TO_DRAW 125
-SpriteListEntry thingsToDrawList[MAX_THINGS_TO_DRAW];
-int thingsToDrawSize = 0;
+std::vector<SpriteListEntry> sprlist;
+std::vector<SpriteListEntry> thingsToDrawList;
 
 //GUIMain dummygui;
 //GUIButton dummyguicontrol;
@@ -1032,55 +1029,51 @@ void sort_out_char_sprite_walk_behind(int actspsIndex, int xx, int yy, int basel
 }
 
 void clear_draw_list() {
-    thingsToDrawSize = 0;
+    thingsToDrawList.clear();
 }
 void add_thing_to_draw(IDriverDependantBitmap* bmp, int x, int y, int trans, bool alphaChannel) {
-    thingsToDrawList[thingsToDrawSize].pic = NULL;
-    thingsToDrawList[thingsToDrawSize].bmp = bmp;
-    thingsToDrawList[thingsToDrawSize].x = x;
-    thingsToDrawList[thingsToDrawSize].y = y;
-    thingsToDrawList[thingsToDrawSize].transparent = trans;
-    thingsToDrawList[thingsToDrawSize].hasAlphaChannel = alphaChannel;
-    thingsToDrawSize++;
-    if (thingsToDrawSize >= MAX_THINGS_TO_DRAW - 1)
-        quit("add_thing_to_draw: too many things added");
+    SpriteListEntry sprite;
+    sprite.pic = NULL;
+    sprite.bmp = bmp;
+    sprite.x = x;
+    sprite.y = y;
+    sprite.transparent = trans;
+    sprite.hasAlphaChannel = alphaChannel;
+    thingsToDrawList.push_back(sprite);
 }
 
 // the sprite list is an intermediate list used to order 
 // objects and characters by their baselines before everything
 // is added to the Thing To Draw List
 void clear_sprite_list() {
-    sprlistsize=0;
+    sprlist.clear();
 }
 void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind) {
 
+    if (spp == NULL)
+        quit("add_to_sprite_list: attempted to draw NULL sprite");
     // completely invisible, so don't draw it at all
     if (trans == 255)
         return;
 
+    SpriteListEntry sprite;
     if ((sprNum >= 0) && ((game.spriteflags[sprNum] & SPF_ALPHACHANNEL) != 0))
-        sprlist[sprlistsize].hasAlphaChannel = true;
+        sprite.hasAlphaChannel = true;
     else
-        sprlist[sprlistsize].hasAlphaChannel = false;
+        sprite.hasAlphaChannel = false;
 
-    sprlist[sprlistsize].bmp = spp;
-    sprlist[sprlistsize].baseline = baseline;
-    sprlist[sprlistsize].x=xx;
-    sprlist[sprlistsize].y=yy;
-    sprlist[sprlistsize].transparent=trans;
+    sprite.bmp = spp;
+    sprite.baseline = baseline;
+    sprite.x=xx;
+    sprite.y=yy;
+    sprite.transparent=trans;
 
     if (walkBehindMethod == DrawAsSeparateSprite)
-        sprlist[sprlistsize].takesPriorityIfEqual = !isWalkBehind;
+        sprite.takesPriorityIfEqual = !isWalkBehind;
     else
-        sprlist[sprlistsize].takesPriorityIfEqual = isWalkBehind;
+        sprite.takesPriorityIfEqual = isWalkBehind;
 
-    sprlistsize++;
-
-    if (sprlistsize >= MAX_SPRITES_ON_SCREEN)
-        quit("Too many sprites have been added to the sprite list. There is a limit of 75 objects and characters being visible at the same time. You may want to reconsider your design since you have over 75 objects/characters visible at once.");
-
-    if (spp == NULL)
-        quit("add_to_sprite_list: attempted to draw NULL sprite");
+    sprlist.push_back(sprite);
 }
 
 #if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
@@ -1140,29 +1133,16 @@ void draw_gui_sprite_v330(Bitmap *ds, int pic, int x, int y, bool use_alpha, Ble
 }
 
 // function to sort the sprites into baseline order
-extern "C" int compare_listentries(const void *elem1, const void *elem2) {
-    SpriteListEntry *e1, *e2;
-    e1 = (SpriteListEntry*)elem1;
-    e2 = (SpriteListEntry*)elem2;
-
-    if (e1->baseline == e2->baseline) 
+bool spritelistentry_less(const SpriteListEntry &e1, const SpriteListEntry &e2)
+{
+    if (e1.baseline == e2.baseline) 
     { 
-        if (e1->takesPriorityIfEqual)
-            return 1;
-        if (e2->takesPriorityIfEqual)
-            return -1;
-
-        // Trying to make the order of equal elements reproducible across
-        // different libc implementations here
-#if defined WINDOWS_VERSION
-        return -1;
-#else
-        return 1;
-#endif
+        if (e1.takesPriorityIfEqual)
+            return false;
+        if (e2.takesPriorityIfEqual)
+            return true;
     }
-
-    // returns >0 if e1 is lower down, <0 if higher, =0 if the same
-    return e1->baseline - e2->baseline;
+    return e1.baseline < e2.baseline;
 }
 
 
@@ -1182,16 +1162,14 @@ void draw_sprite_list() {
         }
     }
 
-    // 2.60.672 - convert horrid bubble sort to use qsort instead
-    qsort(sprlist, sprlistsize, sizeof(SpriteListEntry), compare_listentries);
+    std::sort(sprlist.begin(), sprlist.end(), spritelistentry_less);
 
     clear_draw_list();
 
     add_thing_to_draw(NULL, AGSE_PRESCREENDRAW, 0, TRANS_RUN_PLUGIN, false);
 
     // copy the sorted sprites into the Things To Draw list
-    thingsToDrawSize += sprlistsize;
-    memcpy(&thingsToDrawList[1], sprlist, sizeof(SpriteListEntry) * sprlistsize);
+    thingsToDrawList.insert(thingsToDrawList.end(), sprlist.begin(), sprlist.end());
 }
 
 // Avoid freeing and reallocating the memory if possible
@@ -2285,7 +2263,7 @@ void put_sprite_list_on_screen()
 
     SpriteListEntry *thisThing;
 
-    for (int i = 0; i < thingsToDrawSize; ++i)
+    for (size_t i = 0; i < thingsToDrawList.size(); ++i)
     {
         thisThing = &thingsToDrawList[i];
 

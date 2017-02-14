@@ -274,7 +274,7 @@ MFLUtil::MFLError MFLUtil::ReadV21(AssetLibInfo &lib, Stream *in)
     size_t mf_count = ReadEncInt32(in, rand_val);
     lib.LibFileNames.resize(mf_count);
     // filenames for all clib parts
-    char fn_buf[MaxDataFileLen];
+    char fn_buf[MaxDataFileLen > MaxAssetFileLen ? MaxDataFileLen : MaxAssetFileLen];
     for (size_t i = 0; i < mf_count; ++i)
     {
         ReadEncString(fn_buf, MaxDataFileLen, in, rand_val);

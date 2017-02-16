@@ -65,8 +65,11 @@ bool IsSameOrSubDir(const String &parent, const String &path)
     char can_parent[MAX_PATH];
     char can_path[MAX_PATH];
     char relative[MAX_PATH];
-    canonicalize_filename(can_parent, parent, MAX_PATH);
-    canonicalize_filename(can_path, path, MAX_PATH);
+    // canonicalize_filename treats "." as "./." (file in working dir)
+    const char *use_parent = parent == "." ? "./" : parent;
+    const char *use_path   = path   == "." ? "./" : path;
+    canonicalize_filename(can_parent, use_parent, MAX_PATH);
+    canonicalize_filename(can_path, use_path, MAX_PATH);
     const char *pstr = make_relative_filename(relative, can_parent, can_path, MAX_PATH);
     if (!pstr)
         return false;
@@ -102,7 +105,8 @@ String MakeAbsolutePath(const String &path)
     {
         return "";
     }
-    String abs_path = path;
+    // canonicalize_filename treats "." as "./." (file in working dir)
+    String abs_path = path == "." ? "./" : path;
 #if defined (WINDOWS_VERSION)
     // NOTE: cannot use long path names in the engine, because it does not have unicode strings support
     //

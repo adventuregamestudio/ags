@@ -64,6 +64,8 @@ extern int MAXSTRLEN;
 
 // Installation directory, may contain absolute or relative path
 String installDirectory;
+// Installation directory, containing audio files
+String installAudioDirectory;
 
 // object-based File routines
 
@@ -449,17 +451,26 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, String &path,
     return true;
 }
 
-void set_install_dir(const String &path)
+void set_install_dir(const String &path, const String &audio_path)
 {
     if (path.IsEmpty())
         installDirectory = ".";
     else
         installDirectory = Path::MakePathNoSlash(path);
+    if (audio_path.IsEmpty())
+        installAudioDirectory = ".";
+    else
+        installAudioDirectory = Path::MakePathNoSlash(audio_path);
 }
 
 String get_install_dir()
 {
     return installDirectory;
+}
+
+String get_audio_install_dir()
+{
+    return installAudioDirectory;
 }
 
 void get_install_dir_path(char* buffer, const char *fileName)

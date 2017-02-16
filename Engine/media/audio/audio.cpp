@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include "util/wgt2allg.h"
 #include "media/audio/audio.h"
+#include "ac/file.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/cc_audiochannel.h"
@@ -140,7 +141,7 @@ const char* get_audio_clip_file_name(ScriptAudioClip *clip)
             return &acaudio_buffer[0];
         }
     }
-    sprintf(acaudio_buffer, "AudioCache\\%s", game.audioClips[clip->id].fileName);
+    sprintf(acaudio_buffer, "%s/%s", get_audio_install_dir().GetCStr(), game.audioClips[clip->id].fileName);
     if (exists(acaudio_buffer))
     {
         return &acaudio_buffer[0];

@@ -774,9 +774,10 @@ void engine_init_directories()
 {
     Debug::Printf(kDbgMsg_Init, "Data directory: %s", usetup.data_files_dir.GetCStr());
     Debug::Printf(kDbgMsg_Init, "Optional install directory: %s", usetup.install_dir.GetCStr());
+    Debug::Printf(kDbgMsg_Init, "Optional install audio directory: %s", usetup.install_audio_dir.GetCStr());
     Debug::Printf(kDbgMsg_Init, "User data directory: %s", usetup.user_data_dir.GetCStr());
 
-    set_install_dir(usetup.install_dir);
+    set_install_dir(usetup.install_dir, usetup.install_audio_dir);
     if (!usetup.install_dir.IsEmpty())
     {
         // running in debugger: don't redirect to the game exe folder (_Debug)

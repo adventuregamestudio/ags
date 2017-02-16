@@ -293,10 +293,11 @@ int main_process_cmdline(int argc,char*argv[])
             force_window = 1;
             ee++;
         }
-        else if (stricmp(argv[ee], "--runfromide") == 0 && (argc > ee + 1))
+        else if (stricmp(argv[ee], "--runfromide") == 0 && (argc > ee + 2))
         {
             usetup.install_dir = argv[ee + 1];
-            ee++;
+            usetup.install_audio_dir = argv[ee + 2];
+            ee += 2;
         }
         else if (stricmp(argv[ee],"--takeover")==0) {
             if (argc < ee+2)

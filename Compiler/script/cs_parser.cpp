@@ -3358,8 +3358,10 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
       sym.entries[cursym].flags |= SFLG_STRBUFFER;
       scrip->fixup_previous(FIXUP_STACK);
     }
-    scrip->cur_sp += varsize;
-    scrip->write_cmd2(SCMD_ADD,SREG_SP,varsize);
+    if(varsize > 0) {
+      scrip->cur_sp += varsize;
+      scrip->write_cmd2(SCMD_ADD,SREG_SP,varsize);
+    }
   }
   if ((getsvalue != &lbuffer) && (getsvalue != NULL))
     free(getsvalue);

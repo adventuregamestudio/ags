@@ -74,7 +74,6 @@ using namespace AGS::Engine;
 #endif // BUILTIN_PLUGINS
 
 #if defined(MAC_VERSION)
-extern char appDirectory[512];
 extern "C"
 {
     int osx_sys_question(AL_CONST char *msg, AL_CONST char *but1, AL_CONST char *but2);

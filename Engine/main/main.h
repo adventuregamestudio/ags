@@ -41,6 +41,7 @@ extern int wArgc;
 extern LPWSTR *wArgv;
 #endif
 extern char **global_argv;
+extern AGS::Common::String appDirectory;
 
 AGS::Common::String GetPathFromCmdArg(int arg_index);
 

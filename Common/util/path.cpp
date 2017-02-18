@@ -60,6 +60,18 @@ int ComparePaths(const String &path1, const String &path2)
     return cmp_result;
 }
 
+String GetDirectoryPath(const String &path)
+{
+    String dir = path;
+    if (IsFile(dir))
+    {
+        int slash_at = dir.FindCharReverse('/');
+        if (slash_at > 0)
+            dir.ClipMid(slash_at);
+    }
+    return dir;
+}
+
 bool IsSameOrSubDir(const String &parent, const String &path)
 {
     char can_parent[MAX_PATH];

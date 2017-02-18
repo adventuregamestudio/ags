@@ -23,7 +23,7 @@
 #if defined (ANDROID_VERSION)
 extern char android_app_directory[256];
 #else
-extern char appDirectory[512];
+extern AGS::Common::String appDirectory;
 #endif
 
 

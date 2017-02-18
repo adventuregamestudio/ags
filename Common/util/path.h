@@ -38,6 +38,10 @@ namespace Path
     // The result value corresponds to stdlib strcmp function.
     int     ComparePaths(const String &path1, const String &path2);
 
+    // Returns path to the actual directory, referenced by given path;
+    // if path is a directory, returns path unchanged, if path is a file, returns
+    // parent directory containing that file.
+    String  GetDirectoryPath(const String &path);
     // Tells if the path points to the parent path's location or lower directory;
     // return FALSE if the path points to outside of the parent location.
     bool    IsSameOrSubDir(const String &parent, const String &path);

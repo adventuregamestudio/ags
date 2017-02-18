@@ -291,7 +291,6 @@ String find_game_data_in_directory(const String &path)
     return first_nonstd_fn;
 }
 
-extern char appDirectory[512];
 void initialise_game_file_name()
 {
     // 1. From command line argument

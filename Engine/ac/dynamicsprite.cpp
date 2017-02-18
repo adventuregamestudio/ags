@@ -20,9 +20,9 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/global_dynamicsprite.h"
 #include "ac/global_game.h"
-#include "ac/file.h"
 #include "ac/math.h"    // M_PI
 #include "ac/objectcache.h"
+#include "ac/path_helper.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/roomstruct.h"

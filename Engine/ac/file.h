@@ -12,23 +12,15 @@
 //
 //=============================================================================
 //
-//
+// Script File API implementation.
 //
 //=============================================================================
 #ifndef __AGS_EE_AC__FILE_H
 #define __AGS_EE_AC__FILE_H
 
-#include <utility>
 #include "ac/dynobj/scriptfile.h"
 #include "ac/runtime_defines.h"
-#include "util/string.h"
 
-extern "C" {
-    struct PACKFILE; // Allegro 4's own stream type
-    struct DUMBFILE; // DUMB stream type
-}
-
-using AGS::Common::String;
 using AGS::Common::Stream;
 
 int		File_Exists(const char *fnmm);
@@ -50,58 +42,6 @@ int     File_Seek(sc_File *fil, int offset, int origin);
 int		File_GetEOF(sc_File *fil);
 int		File_GetError(sc_File *fil);
 int     File_GetPosition(sc_File *fil);
-
-// Filepath tokens, which are replaced by platform-specific directory names
-extern const String UserSavedgamesRootToken;
-extern const String GameSavedgamesDirToken;
-extern const String GameDataDirToken;
-
-inline const char *PathOrCurDir(const char *path)
-{
-    return path ? path : ".";
-}
-
-// Subsitutes illegal characters with '_'. This function uses illegal chars array
-// specific to current platform.
-void FixupFilename(char *filename);
-// Checks if there is a slash after special token in the beginning of the
-// file path, and adds one if it is missing. If no token is found, string is
-// returned unchanged.
-String FixSlashAfterToken(const String &path);
-// Creates a directory path by combining absolute path to special directory with
-// custom game's directory name.
-// If the path is relative, keeps it unmodified (no extra subdir added).
-String MakeSpecialSubDir(const String &sp_dir);
-// Resolves a file path provided by user (e.g. script) into actual file path,
-// by substituting special keywords with actual platform-specific directory names.
-// Sets a primary and alternate paths; the latter is for backwards compatibility only.
-// Returns 'true' on success, and 'false' if either path is impossible to resolve
-// or if the file path is forbidden to be accessed in current situation.
-bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, String &alt_path);
-
-// AssetPath combines asset library and item names
-// TODO: implement support for registering multiple libraries at once for
-// the AssetManager, then we could remove assetlib parameter.
-typedef std::pair<String, String> AssetPath;
-// Creates PACKFILE stream from AGS asset.
-// This function is supposed to be used only when you have to create Allegro
-// object, passing PACKFILE stream to constructor.
-PACKFILE *PackfileFromAsset(const AssetPath &path);
-// Creates DUMBFILE stream from AGS asset. Used for creating DUMB objects
-DUMBFILE *DUMBfileFromAsset(const AssetPath &path);
-
-// Sets an optional path to treat like game's installation directory
-void    set_install_dir(const String &path, const String &audio_path);
-// Returns a path to game installation directory (optionally a custom path could be set);
-// does not include trailing '/'
-String  get_install_dir();
-String  get_audio_install_dir();
-void    get_install_dir_path(char* buffer, const char *fileName);
-
-// Looks for valid asset library everywhere and returns path, or empty string if failed
-String  find_assetlib(const String &filename);
-// Looks for asset everywhere and returns opened stream, or NULL if failed
-Stream *find_open_asset(const String &filename);
 
 struct ScriptFileHandle
 {

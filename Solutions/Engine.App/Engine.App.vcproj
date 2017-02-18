@@ -1190,6 +1190,10 @@
 				Name="ac"
 				>
 				<File
+					RelativePath="..\..\Engine\ac\asset_helper.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\audiochannel.h"
 					>
 				</File>
@@ -1479,6 +1483,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\path.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\path_helper.h"
 					>
 				</File>
 				<File

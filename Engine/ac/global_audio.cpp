@@ -14,13 +14,13 @@
 
 #include <stdio.h>
 #include "ac/common.h"
-#include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/lipsync.h"
+#include "ac/path_helper.h"
 #include "ac/roomstruct.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"

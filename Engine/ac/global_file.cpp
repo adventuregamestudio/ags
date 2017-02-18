@@ -16,6 +16,7 @@
 #include "ac/global_file.h"
 #include "ac/common.h"
 #include "ac/file.h"
+#include "ac/path_helper.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "util/filestream.h"

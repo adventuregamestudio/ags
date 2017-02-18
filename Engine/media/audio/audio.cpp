@@ -15,7 +15,6 @@
 #include <stdio.h>
 #include "util/wgt2allg.h"
 #include "media/audio/audio.h"
-#include "ac/file.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/cc_audiochannel.h"
@@ -24,6 +23,7 @@
 #include "ac/audiochannel.h"
 #include "ac/audioclip.h"
 #include "ac/gamesetup.h"
+#include "ac/path_helper.h"
 #include "media/audio/sound.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"

@@ -13,12 +13,12 @@
 //=============================================================================
 
 #include <allegro.h>
-#include "ac/file.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_game.h"
 #include "ac/global_video.h"
+#include "ac/path_helper.h"
 #include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"
 #include "media/audio/audio.h"

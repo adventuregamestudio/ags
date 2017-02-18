@@ -13,8 +13,8 @@
 //=============================================================================
 
 #define USE_CLIB
+#include "ac/asset_helper.h"
 #include "ac/common.h"
-#include "ac/file.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"

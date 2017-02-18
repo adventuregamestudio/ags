@@ -19,10 +19,11 @@
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
+#include "ac/path_helper.h"
+#include "ac/spritecache.h"
 #include "debug/debug_log.h"
 #include "main/mainheader.h"
 #include "main/config.h"
-#include "ac/spritecache.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/override_defines.h" //_getcwd()
 #include "util/directory.h"

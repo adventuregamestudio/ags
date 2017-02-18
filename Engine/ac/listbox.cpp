@@ -16,10 +16,10 @@
 #include <stdio.h>
 #include "ac/listbox.h"
 #include "ac/common.h"
-#include "ac/file.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
+#include "ac/path_helper.h"
 #include "ac/string.h"
 #include "gui/guimain.h"
 

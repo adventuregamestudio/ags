@@ -17,6 +17,7 @@
 //
 
 #include "main/mainheader.h"
+#include "ac/asset_helper.h"
 #include "ac/common.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
@@ -30,6 +31,7 @@
 #include "ac/gui.h"
 #include "ac/lipsync.h"
 #include "ac/objectcache.h"
+#include "ac/path_helper.h"
 #include "ac/record.h"
 #include "ac/roomstatus.h"
 #include "ac/speech.h"

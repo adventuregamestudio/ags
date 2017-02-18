@@ -14,11 +14,13 @@
 
 #define USE_CLIB
 #include "aldumb.h"
+#include "ac/asset_helper.h"
 #include "ac/file.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_file.h"
+#include "ac/path_helper.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"

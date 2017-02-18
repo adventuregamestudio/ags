@@ -405,6 +405,9 @@ DUMBFILE *DUMBfileFromAsset(const AssetPath &path)
 // TODO: remove our pack_fopen and use real Allegro's pack_fopen instead
 // (need to stop using patched libraries for this)
 //
+#if defined (AGS_RUNTIME_PATCH_ALLEGRO)
+#include <dlfcn.h>
+#endif // AGS_RUNTIME_PATCH_ALLEGRO
 // Declare renamed function from the patched Allegro library
 #define PFO_PARAM const char *
 extern "C" {

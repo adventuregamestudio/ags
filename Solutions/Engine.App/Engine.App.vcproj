@@ -2332,6 +2332,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\libsrc\allegro-4.2.2-agspatch\midi.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\libsrc\allegro-4.2.2-agspatch\win\wkeybd.c"
 					>
 				</File>

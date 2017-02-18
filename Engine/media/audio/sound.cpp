@@ -46,6 +46,12 @@
 #error Either JGMOD_MOD_PLAYER or DUMB_MOD_PLAYER should be defined.
 #endif
 
+extern "C"
+{
+// Load MIDI from PACKFILE stream
+MIDI *load_midi_pf(PACKFILE *pf);
+}
+
 int numSoundChannels = 8;
 
 
@@ -254,7 +260,12 @@ SOUNDCLIP *my_load_midi(const AssetPath &asset_name, int repet)
     if (!thismidi && psp_midi_preload_patches)
         load_midi_patches();
 
-    MIDI* midiPtr = load_midi(asset_name.second);
+    PACKFILE *pf = PackfileFromAsset(asset_name);
+    if (!pf)
+        return NULL;
+
+    MIDI* midiPtr = load_midi_pf(pf);
+    pack_fclose(pf);
 
     if (midiPtr == NULL)
         return NULL;

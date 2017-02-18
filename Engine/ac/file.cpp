@@ -440,6 +440,23 @@ PACKFILE *pack_fopen(const char *filename, const char *mode)
 
 
 
+bool DoesAssetExistInLib(const AssetPath &assetname)
+{
+    bool needsetback = false;
+    // Change to the different library, if required
+    // TODO: teaching AssetManager to register multiple libraries simultaneously
+    // will let us skip this step, and also make this operation much faster.
+    if (!assetname.first.IsEmpty() && assetname.first.CompareNoCase(game_file_name) != 0)
+    {
+        AssetManager::SetDataFile(find_assetlib(assetname.first));
+        needsetback = true;
+    }
+    bool res = AssetManager::DoesAssetExist(assetname.second);
+    if (needsetback)
+        AssetManager::SetDataFile(game_file_name);
+    return res;
+}
+
 void set_install_dir(const String &path, const String &audio_path)
 {
     if (path.IsEmpty())
@@ -491,6 +508,21 @@ Stream *find_open_asset(const String &filename)
         asset_s = ci_fopen(String::FromFormat("%s/%s", installDirectory.GetCStr(), filename.GetCStr()));
     }
     return asset_s;
+}
+
+AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename)
+{
+    if (bundling_type == AUCL_BUNDLE_EXE)
+    {
+        if (Path::ComparePaths(usetup.data_files_dir, installAudioDirectory) == 0)
+            return AssetPath(game_file_name, filename);
+        return AssetPath("", String::FromFormat("%s/%s", get_audio_install_dir().GetCStr(), filename.GetCStr()));
+    }
+    else if (bundling_type == AUCL_BUNDLE_VOX)
+    {
+        return AssetPath(is_old_audio_system() ? "music.vox" : "audio.vox", filename);
+    }
+    return AssetPath();
 }
 
 ScriptFileHandle valid_handles[MAX_OPEN_SCRIPT_FILES + 1];

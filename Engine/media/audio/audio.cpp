@@ -28,13 +28,14 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "ac/common.h"
+#include "ac/file.h"
 #include "ac/global_audio.h"
 #include "ac/roomstruct.h"
 #include <math.h>
 #include "util/stream.h"
 #include "core/assetmanager.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 AGS::Engine::Mutex _audio_mutex;
 volatile bool _audio_doing_crossfade;
@@ -118,37 +119,6 @@ void stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel, ScriptAudio
     }
 }
 
-const char* get_audio_clip_file_name(ScriptAudioClip *clip)
-{
-    if (game.audioClips[clip->id].bundlingType == AUCL_BUNDLE_EXE)
-    {
-        strcpy(acaudio_buffer, game.audioClips[clip->id].fileName);
-        Stream *in = Common::AssetManager::OpenAsset(acaudio_buffer);
-        if (in != NULL)
-        {
-            // CHECKME: so, what was that? a file exists check?
-            delete in;
-            return &acaudio_buffer[0];
-        }
-    }
-    else
-    {
-        sprintf(acaudio_buffer, (is_old_audio_system() ? "~music.vox~%s" : "~audio.vox~%s"), game.audioClips[clip->id].fileName);
-        PACKFILE *iii = pack_fopen(acaudio_buffer, "rb");
-        if (iii != NULL)
-        {
-            pack_fclose(iii);
-            return &acaudio_buffer[0];
-        }
-    }
-    sprintf(acaudio_buffer, "%s/%s", get_audio_install_dir().GetCStr(), game.audioClips[clip->id].fileName);
-    if (exists(acaudio_buffer))
-    {
-        return &acaudio_buffer[0];
-    }
-    return NULL;
-}
-
 
 int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool interruptEqualPriority)
 {
@@ -209,8 +179,7 @@ bool is_audiotype_allowed_to_play(AudioFileType type)
 
 SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
 {
-    const char *clipFileName = get_audio_clip_file_name(audioClip);
-    if ((clipFileName == NULL) || !is_audiotype_allowed_to_play((AudioFileType)audioClip->fileType))
+    if (!is_audiotype_allowed_to_play((AudioFileType)audioClip->fileType))
     {
         return NULL;
     }
@@ -218,24 +187,25 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
     update_clip_default_volume(audioClip);
 
     SOUNDCLIP *soundClip = NULL;
+    AssetPath asset_name = get_audio_clip_assetpath(audioClip->bundlingType, audioClip->fileName);
     switch (audioClip->fileType)
     {
     case eAudioFileOGG:
-        soundClip = my_load_static_ogg(clipFileName, audioClip->defaultVolume, repeat);
+        soundClip = my_load_static_ogg(asset_name, audioClip->defaultVolume, repeat);
         break;
     case eAudioFileMP3:
-        soundClip = my_load_static_mp3(clipFileName, audioClip->defaultVolume, repeat);
+        soundClip = my_load_static_mp3(asset_name, audioClip->defaultVolume, repeat);
         break;
     case eAudioFileWAV:
     case eAudioFileVOC:
-        soundClip = my_load_wave(clipFileName, audioClip->defaultVolume, repeat);
+        soundClip = my_load_wave(asset_name, audioClip->defaultVolume, repeat);
         break;
     case eAudioFileMIDI:
-        soundClip = my_load_midi(clipFileName, repeat);
+        soundClip = my_load_midi(asset_name, repeat);
         break;
     case eAudioFileMOD:
 #ifndef PSP_NO_MOD_PLAYBACK
-        soundClip = my_load_mod(clipFileName, repeat);
+        soundClip = my_load_mod(asset_name, repeat);
 #else
         soundClip = NULL;
 #endif

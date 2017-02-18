@@ -14,11 +14,15 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "ac/file.h"
 #include "util/wgt2allg.h"
 #include "media/audio/soundcache.h"
 #include "media/audio/audiointernaldefs.h"
 #include "util/mutex.h"
 #include "util/mutex_lock.h"
+#include "util/string.h"
+
+using namespace Common;
 
 sound_cache_entry_t* sound_cache_entries = NULL;
 unsigned int sound_cache_counter = 0;
@@ -89,7 +93,7 @@ void sound_cache_free(char* buffer, bool is_wave)
 }
 
 
-char* get_cached_sound(const char* filename, bool is_wave, long* size)
+char* get_cached_sound(const AssetPath &asset_name, bool is_wave, long* size)
 {
 	AGS::Engine::MutexLock _lock(_sound_cache_mutex);
 
@@ -105,7 +109,7 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
         if (sound_cache_entries[i].data == NULL)
             continue;
 
-        if (strcmp(filename, sound_cache_entries[i].file_name) == 0)
+        if (strcmp(asset_name.second, sound_cache_entries[i].file_name) == 0)
         {
 #ifdef SOUND_CACHE_DEBUG
             Debug::Printf("..found in slot %d\n", i);
@@ -124,7 +128,7 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
 
     if (is_wave)
     {
-        PACKFILE *wavin = pack_fopen(filename, "rb");
+        PACKFILE *wavin = PackfileFromAsset(asset_name);
         if (wavin != NULL)
         {
             wave = load_wav_pf(wavin);
@@ -133,7 +137,7 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
     }  
     else
     {
-        mp3in = pack_fopen(filename, "rb");
+        mp3in = PackfileFromAsset(asset_name);
         if (mp3in == NULL)
         {
             return NULL;
@@ -218,8 +222,8 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
 
         if (sound_cache_entries[i].file_name)
             free(sound_cache_entries[i].file_name);
-        sound_cache_entries[i].file_name = (char*)malloc(strlen(filename) + 1);
-        strcpy(sound_cache_entries[i].file_name, filename);
+        sound_cache_entries[i].file_name = (char*)malloc(strlen(asset_name.second) + 1);
+        strcpy(sound_cache_entries[i].file_name, asset_name.second);
         sound_cache_entries[i].reference = 1;
         sound_cache_entries[i].last_used = sound_cache_counter++;
         sound_cache_entries[i].is_wave = is_wave;

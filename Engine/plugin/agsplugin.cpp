@@ -498,25 +498,28 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
         && (loop != 0))
         quit("IAGSEngine::PlaySoundChannel: streamed samples cannot loop");
 
+    // TODO: find out how engine was supposed to decide on where to load the sound from
+    AssetPath asset_name("", filename);
+
     if (soundType == PSND_WAVE)
-        newcha = my_load_wave (filename, volume, loop);
+        newcha = my_load_wave (asset_name, volume, loop);
     else if (soundType == PSND_MP3STREAM)
-        newcha = my_load_mp3 (filename, volume);
+        newcha = my_load_mp3 (asset_name, volume);
     else if (soundType == PSND_OGGSTREAM)
-        newcha = my_load_ogg (filename, volume);
+        newcha = my_load_ogg (asset_name, volume);
     else if (soundType == PSND_MP3STATIC)
-        newcha = my_load_static_mp3 (filename, volume, (loop != 0));
+        newcha = my_load_static_mp3 (asset_name, volume, (loop != 0));
     else if (soundType == PSND_OGGSTATIC)
-        newcha = my_load_static_ogg (filename, volume, (loop != 0));
+        newcha = my_load_static_ogg (asset_name, volume, (loop != 0));
     else if (soundType == PSND_MIDI) {
         if (midi_pos >= 0)
             quit("!IAGSEngine::PlaySoundChannel: MIDI already in use");
-        newcha = my_load_midi (filename, loop);
+        newcha = my_load_midi (asset_name, loop);
         newcha->set_volume (volume);
     }
 #ifndef PSP_NO_MOD_PLAYBACK
     else if (soundType == PSND_MOD) {
-        newcha = my_load_mod (filename, loop);
+        newcha = my_load_mod (asset_name, loop);
         newcha->set_volume (volume);
     }
 #endif

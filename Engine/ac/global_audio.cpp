@@ -360,13 +360,12 @@ void PlayMP3File (const char *filename) {
 
     debug_script_log("PlayMP3File %s", filename);
 
-    char pathToFile[MAX_PATH];
-    get_install_dir_path(pathToFile, filename);
+    AssetPath asset_name("", filename);
 
     int useChan = prepare_for_new_music ();
     bool doLoop = (play.music_repeat > 0);
 
-    if ((channels[useChan] = my_load_static_ogg(pathToFile, 150, doLoop)) != NULL) {
+    if ((channels[useChan] = my_load_static_ogg(asset_name, 150, doLoop)) != NULL) {
         channels[useChan]->play();
         current_music_type = MUS_OGG;
         play.cur_music_number = 1000;
@@ -374,7 +373,7 @@ void PlayMP3File (const char *filename) {
         if (filename != &play.playmp3file_name[0])
             strcpy (play.playmp3file_name, filename);
     }
-    else if ((channels[useChan] = my_load_static_mp3(pathToFile, 150, doLoop)) != NULL) {
+    else if ((channels[useChan] = my_load_static_mp3(asset_name, 150, doLoop)) != NULL) {
         channels[useChan]->play();
         current_music_type = MUS_MP3;
         play.cur_music_number = 1000;
@@ -462,36 +461,26 @@ int play_speech(int charid,int sndid) {
         return 0;
 
     SOUNDCLIP *speechmp3;
-    /*  char finame[40]="~SPEECH.VOX~NARR";
-    if (charid >= 0)
-    strncpy(&finame[12],game.chars[charid].scrname,4);*/
-
-    char finame[40] = "~";
-    strcat(finame, get_filename(speech_file));
-    strcat(finame, "~");
+    String script_name;
 
     if (charid >= 0) {
         // append the first 4 characters of the script name to the filename
-        char theScriptName[5];
         if (game.chars[charid].scrname[0] == 'c')
-            strncpy(theScriptName, &game.chars[charid].scrname[1], 4);
+            script_name.SetString(&game.chars[charid].scrname[1], 4);
         else
-            strncpy(theScriptName, game.chars[charid].scrname, 4);
-        theScriptName[4] = 0;
-        strcat(finame, theScriptName);
+            script_name.SetString(game.chars[charid].scrname, 4);
     }
     else
-        strcat(finame, "NARR");
+        script_name = "NARR";
 
-    // append the speech number
-    sprintf(&finame[strlen(finame)],"%d",sndid);
+    // append the speech number and create voice file name
+    String voice_file = String::FromFormat("%s%d", script_name.GetCStr(), sndid);
 
     int ii;  // Compare the base file name to the .pam file name
-    char *basefnptr = strchr (&finame[4], '~') + 1;
     curLipLine = -1;  // See if we have voice lip sync for this line
     curLipLinePhoneme = -1;
     for (ii = 0; ii < numLipLines; ii++) {
-        if (stricmp(splipsync[ii].filename, basefnptr) == 0) {
+        if (stricmp(splipsync[ii].filename, voice_file) == 0) {
             curLipLine = ii;
             break;
         }
@@ -501,17 +490,19 @@ int play_speech(int charid,int sndid) {
     if (numLipLines > 0)
         game.options[OPT_LIPSYNCTEXT] = 0;
 
-    strcat (finame, ".WAV");
-    speechmp3 = my_load_wave (finame, play.speech_volume, 0);
+    voice_file.Append(".wav");
+    AssetPath asset_name(speech_file, voice_file);
+
+    speechmp3 = my_load_wave(asset_name, play.speech_volume, 0);
 
     if (speechmp3 == NULL) {
-        strcpy (&finame[strlen(finame)-3], "ogg");
-        speechmp3 = my_load_ogg (finame, play.speech_volume);
+        voice_file.ReplaceMid(voice_file.GetLength() - 3, 3, "ogg");
+        speechmp3 = my_load_ogg(asset_name, play.speech_volume);
     }
 
     if (speechmp3 == NULL) {
-        strcpy (&finame[strlen(finame)-3], "mp3");
-        speechmp3 = my_load_mp3 (finame, play.speech_volume);
+        voice_file.ReplaceMid(voice_file.GetLength() - 3, 3, "mp3");
+        speechmp3 = my_load_mp3(asset_name, play.speech_volume);
     }
 
     if (speechmp3 != NULL) {
@@ -520,7 +511,8 @@ int play_speech(int charid,int sndid) {
     }
 
     if (speechmp3 == NULL) {
-        debug_script_warn ("Speech load failure: '%s'",finame);
+        voice_file.ClipRight(4); // cut the extension for debug output
+        debug_script_warn("Speech load failure: '%s'", voice_file.GetCStr());
         curLipLine = -1;
         return 0;
     }

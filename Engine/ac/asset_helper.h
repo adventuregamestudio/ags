@@ -39,11 +39,16 @@ extern "C" {
 // TODO: implement support for registering multiple libraries at once for
 // the AssetManager, then we could remove assetlib parameter.
 typedef std::pair<String, String> AssetPath;
+
+// Returns the name of audio asset library, corresponding to the given bundling type
+AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename);
+
 // Creates PACKFILE stream from AGS asset.
 // This function is supposed to be used only when you have to create Allegro
 // object, passing PACKFILE stream to constructor.
 PACKFILE *PackfileFromAsset(const AssetPath &path);
 // Creates DUMBFILE stream from AGS asset. Used for creating DUMB objects
 DUMBFILE *DUMBfileFromAsset(const AssetPath &path);
+bool DoesAssetExistInLib(const AssetPath &assetname);
 
 #endif // __AGS_EE_AC__ASSETHELPER_H

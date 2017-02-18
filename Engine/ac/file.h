@@ -20,7 +20,6 @@
 
 #include "ac/dynobj/scriptfile.h"
 #include "ac/runtime_defines.h"
-
 using AGS::Common::Stream;
 
 int		File_Exists(const char *fnmm);

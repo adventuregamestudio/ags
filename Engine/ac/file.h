@@ -18,9 +18,15 @@
 #ifndef __AGS_EE_AC__FILE_H
 #define __AGS_EE_AC__FILE_H
 
+#include <utility>
 #include "ac/dynobj/scriptfile.h"
 #include "ac/runtime_defines.h"
 #include "util/string.h"
+
+extern "C" {
+    struct PACKFILE; // Allegro 4's own stream type
+    struct DUMBFILE; // DUMB stream type
+}
 
 using AGS::Common::String;
 using AGS::Common::Stream;
@@ -72,6 +78,17 @@ String MakeSpecialSubDir(const String &sp_dir);
 // Returns 'true' on success, and 'false' if either path is impossible to resolve
 // or if the file path is forbidden to be accessed in current situation.
 bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, String &alt_path);
+
+// AssetPath combines asset library and item names
+// TODO: implement support for registering multiple libraries at once for
+// the AssetManager, then we could remove assetlib parameter.
+typedef std::pair<String, String> AssetPath;
+// Creates PACKFILE stream from AGS asset.
+// This function is supposed to be used only when you have to create Allegro
+// object, passing PACKFILE stream to constructor.
+PACKFILE *PackfileFromAsset(const AssetPath &path);
+// Creates DUMBFILE stream from AGS asset. Used for creating DUMB objects
+DUMBFILE *DUMBfileFromAsset(const AssetPath &path);
 
 // Sets an optional path to treat like game's installation directory
 void    set_install_dir(const String &path, const String &audio_path);

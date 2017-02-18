@@ -173,49 +173,10 @@ size_t FileStream::Seek(int offset, StreamSeek origin)
 
 void FileStream::Open(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode)
 {
-    String mode;
-
-    if (open_mode == kFile_Open)
-    {
-        if (work_mode == kFile_Read)
-        {
-            mode.AppendChar('r');
-        }
-        else if (work_mode == kFile_Write || work_mode == kFile_ReadWrite)
-        {
-            mode.Append("r+");
-        }
-    }
-    else if (open_mode == kFile_Create)
-    {
-        if (work_mode == kFile_Write)
-        {
-            mode.AppendChar('a');
-        }
-        else if (work_mode == kFile_Read || work_mode == kFile_ReadWrite)
-        {
-            mode.Append("a+");
-        }
-    }
-    else if (open_mode == kFile_CreateAlways)
-    {
-        if (work_mode == kFile_Write)
-        {
-            mode.AppendChar('w');
-        }
-        else if (work_mode == kFile_Read || work_mode == kFile_ReadWrite)
-        {
-            mode.Append("w+");
-        }
-    }
-
+    String mode = File::GetCMode(open_mode, work_mode);
     if (mode.IsEmpty())
-    {
         // TODO: warning to the log
         return;
-    }
-
-    mode.AppendChar('b');
     _file = fopen(file_name, mode);
 }
 

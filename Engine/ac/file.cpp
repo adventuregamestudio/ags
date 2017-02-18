@@ -13,6 +13,7 @@
 //=============================================================================
 
 #define USE_CLIB
+#include "aldumb.h"
 #include "ac/file.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
@@ -26,6 +27,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "util/stream.h"
 #include "core/assetmanager.h"
+#include "core/asset.h"
 #include "main/game_file.h"
 #include "util/directory.h"
 #include "util/path.h"
@@ -33,27 +35,6 @@
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
-
-#if defined (AGS_RUNTIME_PATCH_ALLEGRO)
-#include <dlfcn.h>
-#endif // AGS_RUNTIME_PATCH_ALLEGRO
-
-
-// ***** EXTERNS ****
-
-// override packfile functions to allow it to load from our
-// custom CLIB datafiles
-extern "C" {
-	PACKFILE*_my_temppack;
-#if ALLEGRO_DATE > 19991010
-#define PFO_PARAM const char *
-#else
-#define PFO_PARAM char *
-#endif
-#if !defined(AGS_RUNTIME_PATCH_ALLEGRO)
-	extern PACKFILE *__old_pack_fopen(PFO_PARAM,PFO_PARAM);
-#endif
-}
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
@@ -210,81 +191,6 @@ int File_GetPosition(sc_File *fil)
 }
 
 //=============================================================================
-
-// [IKM] NOTE: this function is used only by few media/audio units
-// TODO: find a way to hide allegro behind some interface/wrapper function
-#if ALLEGRO_DATE > 19991010
-PACKFILE *pack_fopen(const char *filnam1, const char *modd1) {
-#else
-PACKFILE *pack_fopen(char *filnam1, char *modd1) {
-#endif
-  char  *filnam = (char *)filnam1;
-  char  *modd = (char *)modd1;
-  int   needsetback = 0;
-
-  if (filnam[0] == '~') {
-    // ~ signals load from specific data file, not the main default one
-    char gfname[80];
-    int ii = 0;
-    
-    filnam++;
-    while (filnam[0]!='~') {
-      gfname[ii] = filnam[0];
-      filnam++;
-      ii++;
-    }
-    filnam++;
-    // MACPORT FIX 9/6/5: changed from NULL TO '\0'
-    gfname[ii] = '\0';
-    
-    AssetManager::SetDataFile(find_assetlib(gfname));
-    needsetback = 1;
-  }
-
-  // if the file exists, override the internal file
-  bool file_exists = File::TestReadFile(filnam);
-
-#if defined(AGS_RUNTIME_PATCH_ALLEGRO)
-  static PACKFILE * (*__old_pack_fopen)(PFO_PARAM, PFO_PARAM) = NULL;
-  if(!__old_pack_fopen) {
-    __old_pack_fopen = (PACKFILE* (*)(PFO_PARAM, PFO_PARAM))dlsym(RTLD_NEXT, "pack_fopen");
-    if(!__old_pack_fopen) {
-      // Looks like we're linking statically to allegro...
-      // Let's see if it has been patched
-      __old_pack_fopen = (PACKFILE* (*)(PFO_PARAM, PFO_PARAM))dlsym(RTLD_DEFAULT, "__allegro_pack_fopen");
-      if(!__old_pack_fopen) {
-        fprintf(stderr, "If you're linking statically to allegro, you need to apply this patch to allegro:\n"
-        "https://sourceforge.net/tracker/?func=detail&aid=3302567&group_id=5665&atid=355665\n");
-        exit(1);
-      }
-    }
-  }
-#endif
-
-  if ((AssetManager::GetAssetOffset(filnam)<1) || (file_exists)) {
-    if (needsetback) AssetManager::SetDataFile(game_file_name);
-    return __old_pack_fopen(filnam, modd);
-  } 
-  else {
-    _my_temppack=__old_pack_fopen(AssetManager::GetLibraryForAsset(filnam), modd);
-    if (_my_temppack == NULL)
-      quitprintf("pack_fopen: unable to change datafile: not found: %s", AssetManager::GetLibraryForAsset(filnam).GetCStr());
-
-    pack_fseek(_my_temppack,AssetManager::GetAssetOffset(filnam));
-    
-#if ALLEGRO_DATE < 20050101
-    _my_temppack->todo=AssetManager::GetAssetSize(filnam);
-#else
-    _my_temppack->normal.todo = AssetManager::GetAssetSize(filnam);
-#endif
-
-    if (needsetback)
-      AssetManager::SetDataFile(game_file_name);
-    return _my_temppack;
-  }
-}
-
-// end packfile functions
 
 
 const String GameInstallRootToken    = "$INSTALLDIR$";
@@ -450,6 +356,87 @@ bool ResolveScriptPath(const String &orig_sc_path, bool read_only, String &path,
     }
     return true;
 }
+
+bool LocateAsset(const AssetPath &path, AssetLocation &loc)
+{
+    String assetlib = path.first;
+    String assetname = path.second;
+    bool needsetback = false;
+    // Change to the different library, if required
+    // TODO: teaching AssetManager to register multiple libraries simultaneously
+    // will let us skip this step, and also make this operation much faster.
+    if (!assetlib.IsEmpty() && assetlib.CompareNoCase(game_file_name) != 0)
+    {
+        AssetManager::SetDataFile(find_assetlib(assetlib));
+        needsetback = true;
+    }
+    bool res = AssetManager::GetAssetLocation(assetname, loc);
+    if (needsetback)
+        AssetManager::SetDataFile(game_file_name);
+    return res;
+}
+
+PACKFILE *PackfileFromAsset(const AssetPath &path)
+{
+    AssetLocation loc;
+    if (LocateAsset(path, loc))
+    {
+        PACKFILE *pf = pack_fopen(loc.FileName, File::GetCMode(kFile_Open, kFile_Read));
+        if (pf)
+        {
+            pack_fseek(pf, loc.Offset);
+            pf->normal.todo = loc.Size;
+        }
+        return pf;
+    }
+    return NULL;
+}
+
+DUMBFILE *DUMBfileFromAsset(const AssetPath &path)
+{
+    PACKFILE *pf = PackfileFromAsset(path);
+    if (pf)
+        return dumbfile_open_packfile(pf);
+    return NULL;
+}
+
+// TODO: remove our pack_fopen and use real Allegro's pack_fopen instead
+// (need to stop using patched libraries for this)
+//
+// Declare renamed function from the patched Allegro library
+#define PFO_PARAM const char *
+extern "C" {
+#if !defined(AGS_RUNTIME_PATCH_ALLEGRO)
+    extern PACKFILE *__old_pack_fopen(PFO_PARAM, PFO_PARAM);
+#endif
+}
+
+PACKFILE *pack_fopen(const char *filename, const char *mode)
+{
+    // Just call __old_pack_fopen
+#if defined(AGS_RUNTIME_PATCH_ALLEGRO)
+    static PACKFILE * (*__old_pack_fopen)(PFO_PARAM, PFO_PARAM) = NULL;
+    if(!__old_pack_fopen)
+    {
+        __old_pack_fopen = (PACKFILE* (*)(PFO_PARAM, PFO_PARAM))dlsym(RTLD_NEXT, "pack_fopen");
+        if(!__old_pack_fopen)
+        {
+            // Looks like we're linking statically to allegro...
+            // Let's see if it has been patched
+            __old_pack_fopen = (PACKFILE* (*)(PFO_PARAM, PFO_PARAM))dlsym(RTLD_DEFAULT, "__allegro_pack_fopen");
+            if(!__old_pack_fopen)
+            {
+                fprintf(stderr, "If you're linking statically to allegro, you need to apply this patch to allegro:\n"
+                "https://sourceforge.net/tracker/?func=detail&aid=3302567&group_id=5665&atid=355665\n");
+                exit(1);
+            }
+        }
+    }
+#endif
+    return __old_pack_fopen(filename, mode);
+}
+
+
 
 void set_install_dir(const String &path, const String &audio_path)
 {

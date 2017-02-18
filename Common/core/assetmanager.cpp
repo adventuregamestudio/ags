@@ -17,15 +17,24 @@
 #include "core/asset.h"
 #include "core/assetmanager.h"
 #include "debug/assert.h"
-#include "util/multifilelib.h"
-#include "util/stream.h"
 #include "util/misc.h"
+#include "util/multifilelib.h"
+#include "util/path.h"
+#include "util/stream.h"
+#include "util/string_utils.h"
 
 
 namespace AGS
 {
 namespace Common
 {
+
+AssetLocation::AssetLocation()
+    : Offset(0)
+    , Size(0)
+{
+}
+
 
 AssetManager *AssetManager::_theAssetManager = NULL;
 
@@ -140,6 +149,12 @@ AssetError AssetManager::ReadDataFileTOC(const String &data_file, AssetLibInfo &
     return _theAssetManager ? &_theAssetManager->_GetLibraryTOC() : NULL;
 }
 
+/* static */ bool AssetManager::GetAssetLocation(const String &asset_name, AssetLocation &loc)
+{
+    assert(_theAssetManager != NULL);
+    return _theAssetManager ? _theAssetManager->GetAssetByPriority(asset_name, loc, kFile_Open, kFile_Read) : false;
+}
+
 /* static */ bool AssetManager::DoesAssetExist(const String &asset_name)
 {
     assert(_theAssetManager != NULL);
@@ -159,24 +174,7 @@ AssetError AssetManager::ReadDataFileTOC(const String &data_file, AssetLibInfo &
     {
         return NULL;
     }
-    return _theAssetManager->_OpenAsset(asset_name, open_mode, work_mode);
-}
-
-/* static */ Stream *AssetManager::OpenAsset(const String &data_file,
-                                                  const String &asset_name,
-                                                  FileOpenMode open_mode,
-                                                  FileWorkMode work_mode)
-{
-    assert(_theAssetManager != NULL);
-    if (!_theAssetManager)
-    {
-        return NULL;
-    }
-    if (_theAssetManager->_SetDataFile(data_file) != 0)
-    {
-        return NULL;
-    }
-    return _theAssetManager->_OpenAsset(asset_name, open_mode, work_mode);
+    return _theAssetManager->OpenAssetAsStream(asset_name, open_mode, work_mode);
 }
 
 AssetManager::AssetManager()
@@ -287,13 +285,6 @@ bool AssetManager::_DoesAssetExist(const String &asset_name)
         File::TestReadFile(asset_name);
 }
 
-Stream *AssetManager::_OpenAsset(const String &asset_name,
-                       FileOpenMode open_mode,
-                       FileWorkMode work_mode)
-{
-    return OpenAssetByPriority(asset_name, open_mode, work_mode);
-}
-
 AssetError AssetManager::RegisterAssetLib(const String &data_file, const String &password)
 {
     // base path is current directory
@@ -356,67 +347,66 @@ String AssetManager::MakeLibraryFileNameForAsset(const AssetInfo *asset)
     return String::FromFormat("%s/%s",_basePath.GetCStr(), _assetLib.LibFileNames[asset->LibUid].GetCStr());
 }
 
-Stream *AssetManager::OpenAssetFromLib(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
+bool AssetManager::GetAssetFromLib(const String &asset_name, AssetLocation &loc, FileOpenMode open_mode, FileWorkMode work_mode)
 {
-    // creating/writing is allowed only for common files on disk
     if (open_mode != Common::kFile_Open || work_mode != Common::kFile_Read)
-    {
-        return NULL;
-    }
+        return false; // creating/writing is allowed only for common files on disk
 
     AssetInfo *asset = FindAssetByFileName(asset_name);
     if (!asset)
-    {
-        // asset not found
-        return NULL;
-    }
+        return NULL; // asset not found
 
-    String lib_filename = MakeLibraryFileNameForAsset(asset);
-    // open library datafile
-    Stream *lib_s = ci_fopen(lib_filename, open_mode, work_mode);
-    if (lib_s)
-    {
-        // set stream ptr at the beginning of wanted section
-        lib_s->Seek(asset->Offset, kSeekBegin);
-        // remember size of opened asset
-        _lastAssetSize = asset->Size;
-    }
-    return lib_s;
+    String libfile = free_char_to_string( ci_find_file(NULL, MakeLibraryFileNameForAsset(asset)) );
+    if (libfile.IsEmpty())
+        return false;
+    loc.FileName = libfile;
+    loc.Offset = asset->Offset;
+    loc.Size = asset->Size;
+    return true;
 }
 
-Stream *AssetManager::OpenAssetFromDir(const String &file_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
+bool AssetManager::GetAssetFromDir(const String &file_name, AssetLocation &loc, FileOpenMode open_mode, FileWorkMode work_mode)
 {
-    Stream *asset_s = ci_fopen(file_name, open_mode, work_mode);
-    if (asset_s)
-    {
-        // remember size of opened file
-        _lastAssetSize = asset_s->GetLength();
-    }
-    return asset_s;
+    String exfile = free_char_to_string( ci_find_file(NULL, file_name) );
+    if (exfile.IsEmpty() || !Path::IsFile(exfile))
+        return false;
+    loc.FileName = exfile;
+    loc.Offset = 0;
+    loc.Size = File::GetFileSize(exfile);
+    return true;
 }
 
-Stream *AssetManager::OpenAssetByPriority(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
+bool AssetManager::GetAssetByPriority(const String &asset_name, AssetLocation &loc, FileOpenMode open_mode, FileWorkMode work_mode)
 {
-    Stream *asset_s = NULL;
     if (_searchPriority == kAssetPriorityDir)
     {
         // check for disk, otherwise use datafile
-        asset_s = OpenAssetFromDir(asset_name, open_mode, work_mode);
-        if (!asset_s)
-        {
-            asset_s = OpenAssetFromLib(asset_name, open_mode, work_mode);
-        }
+        return GetAssetFromDir(asset_name, loc, open_mode, work_mode) ||
+            GetAssetFromLib(asset_name, loc, open_mode, work_mode);
     }
     else if (_searchPriority == kAssetPriorityLib)
     {
         // check datafile first, then scan directory
-        asset_s = OpenAssetFromLib(asset_name, open_mode, work_mode);
-        if (!asset_s)
-        {
-            asset_s = OpenAssetFromDir(asset_name, open_mode, work_mode);
-        }
+        return GetAssetFromLib(asset_name, loc, open_mode, work_mode) ||
+            GetAssetFromDir(asset_name, loc, open_mode, work_mode);
     }
-    return asset_s;
+    return false;
+}
+
+Stream *AssetManager::OpenAssetAsStream(const String &asset_name, FileOpenMode open_mode, FileWorkMode work_mode)
+{
+    AssetLocation loc;
+    if (GetAssetByPriority(asset_name, loc, open_mode, work_mode))
+    {
+        Stream *s = File::OpenFile(loc.FileName, open_mode, work_mode);
+        if (s)
+        {
+            s->Seek(loc.Offset, kSeekBegin);
+            _lastAssetSize = loc.Size;
+        }
+        return s;
+    }
+    return NULL;
 }
 
 } // namespace Common

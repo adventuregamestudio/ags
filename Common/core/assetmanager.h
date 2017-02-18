@@ -64,6 +64,17 @@ enum AssetError
     kAssetErrNoManager      = -6, // asset manager not initialized
 };
 
+// Explicit location of asset data
+struct AssetLocation
+{
+    String      FileName;   // file where asset is located
+    int         Offset;     // asset's position in file (in bytes)
+    int         Size;       // asset's size (in bytes)
+
+    AssetLocation();
+};
+
+
 class AssetManager
 {
 public:
@@ -88,13 +99,17 @@ public:
     static String       GetAssetFileByIndex(int index);
     static long         GetAssetOffset(const String &asset_name);
     static long         GetAssetSize(const String &asset_name);
+    // TODO: instead of this support streams that work in a file subsection, limited by size
     static long         GetLastAssetSize();
+    // TODO: this is a workaround that lets us use back-end specific kind of streams
+    // to read the asset data. This is not ideal, because it limits us to reading from file.
+    // The better solution could be returning a standart stream object (like std::stream,
+    // or even std::streambuf), which is used to initialize both AGS and back-end compatible
+    // stream wrappers.
+    static bool         GetAssetLocation(const String &asset_name, AssetLocation &loc);
 
     static bool         DoesAssetExist(const String &asset_name);
     static Stream       *OpenAsset(const String &asset_name,
-                                   FileOpenMode open_mode = kFile_Open,
-                                   FileWorkMode work_mode = kFile_Read);
-    static Stream       *OpenAsset(const String &data_file, const String &asset_name,
                                    FileOpenMode open_mode = kFile_Open,
                                    FileWorkMode work_mode = kFile_Read);
 
@@ -116,15 +131,14 @@ private:
     AssetError  RegisterAssetLib(const String &data_file, const String &password);
 
     bool        _DoesAssetExist(const String &asset_name);
-    Stream      *_OpenAsset(const String &asset_name,
-        FileOpenMode open_mode = kFile_Open,
-        FileWorkMode work_mode = kFile_Read);
 
     AssetInfo   *FindAssetByFileName(const String &asset_name);
     String      MakeLibraryFileNameForAsset(const AssetInfo *asset);
-    Stream      *OpenAssetFromLib(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
-    Stream      *OpenAssetFromDir(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
-    Stream      *OpenAssetByPriority(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+
+    bool        GetAssetFromLib(const String &asset_name, AssetLocation &loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+    bool        GetAssetFromDir(const String &asset_name, AssetLocation &loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+    bool        GetAssetByPriority(const String &asset_name, AssetLocation &loc, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+    Stream      *OpenAssetAsStream(const String &asset_name, FileOpenMode open_mode, FileWorkMode work_mode);
 
     static AssetManager     *_theAssetManager;
     AssetSearchPriority     _searchPriority;

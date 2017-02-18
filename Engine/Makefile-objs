@@ -68,3 +68,5 @@ ALOGG = libsrc/alogg/alogg.c
 APEG = libsrc/apeg-1.2.1/adisplay.c libsrc/apeg-1.2.1/getbits.c libsrc/apeg-1.2.1/getblk.c libsrc/apeg-1.2.1/gethdr.c libsrc/apeg-1.2.1/getpic.c libsrc/apeg-1.2.1/idct.c libsrc/apeg-1.2.1/motion.c libsrc/apeg-1.2.1/mpeg1dec.c libsrc/apeg-1.2.1/ogg.c libsrc/apeg-1.2.1/recon.c libsrc/apeg-1.2.1/audio/apegcommon.c libsrc/apeg-1.2.1/audio/aaudio.c libsrc/apeg-1.2.1/audio/dct64.c libsrc/apeg-1.2.1/audio/decode_1to1.c libsrc/apeg-1.2.1/audio/decode_2to1.c libsrc/apeg-1.2.1/audio/decode_4to1.c libsrc/apeg-1.2.1/audio/layer1.c libsrc/apeg-1.2.1/audio/layer2.c libsrc/apeg-1.2.1/audio/layer3.c libsrc/apeg-1.2.1/audio/mpg123.c libsrc/apeg-1.2.1/audio/readers.c libsrc/apeg-1.2.1/audio/tabinit.c libsrc/apeg-1.2.1/audio/vbrhead.c
 
 AASTR = ../Common/libsrc/aastr-0.1.1/AAROT.c ../Common/libsrc/aastr-0.1.1/aastr.c ../Common/libsrc/aastr-0.1.1/aautil.c
+
+AL_MIDI_PATCH = libsrc/allegro-4.2.2-agspatch/midi.c

@@ -493,7 +493,7 @@ int deal_with_end_of_switch (int32_t *nested_assign_addr, long *nested_start, st
         // If there was no terminating break, write a jump at the end of the last case
         scrip->write_cmd1(SCMD_JMP, 0);
     }
-    skip = scrip->codesize - 2;
+    skip = scrip->codesize;
     // Write the location for the jump to this point (the jump table)
     scrip->code[nested_start[nested_level] + 1] = (scrip->codesize - nested_start[nested_level]) - 2;
     for(index = 0; index < limit; index++) {
@@ -511,9 +511,9 @@ int deal_with_end_of_switch (int32_t *nested_assign_addr, long *nested_start, st
     if(nested_assign_addr[nested_level] != -1)
         scrip->write_cmd1(SCMD_JMP, nested_assign_addr[nested_level] - scrip->codesize - 2);
     // Write the location for the jump to the end of the switch block (for break statements)
-    scrip->code[nested_start[nested_level] + 3] = scrip->codesize - nested_start[nested_level] - 2;
+    scrip->code[nested_start[nested_level] + 3] = scrip->codesize - nested_start[nested_level] - 4;
     // Write the jump for the end of the switch block
-    scrip->code[skip + 1] = scrip->codesize - skip;
+    scrip->code[skip - 1] = scrip->codesize - skip;
     clear_chunk_list(nested_chunk);
     nestlevel[0]--;
 

@@ -29,6 +29,7 @@ int  check_operator_valid_for_type(int *vcpuOp, int type1, int type2);
 void yank_chunk(ccCompiledScript *scrip, std::vector<ccChunk> *list, int codeoffset, int fixupoffset);
 void write_chunk(ccCompiledScript *scrip, ccChunk item);
 void clear_chunk_list(std::vector<ccChunk> *list);
+int  is_any_type_of_string(int symtype);
 
 void yank_chunk(ccCompiledScript *scrip, std::vector<ccChunk> *list, int codeoffset, int fixupoffset) {
     ccChunk item;
@@ -484,11 +485,12 @@ int deal_with_end_of_do (long *nested_info, long *nested_start, ccCompiledScript
     return 0;
 }
 
-int deal_with_end_of_switch (int32_t *nested_assign_addr, long *nested_start, std::vector<ccChunk> *nested_chunk, ccCompiledScript *scrip, ccInternalList *targ, int *nestlevel) {
+int deal_with_end_of_switch (int32_t *nested_assign_addr, long *nested_start, std::vector<ccChunk> *nested_chunk, ccCompiledScript *scrip, ccInternalList *targ, int *nestlevel, long *nested_info) {
     int index;
     int limit = nested_chunk->size();
     int nested_level = nestlevel[0];
     int skip;
+    int operation = is_any_type_of_string(nested_info[nested_level]) ? SCMD_STRINGSNOTEQ : SCMD_NOTEQUAL;
     if(scrip->code[scrip->codesize - 2] != SCMD_JMP || scrip->code[scrip->codesize - 1] != nested_start[nested_level] - scrip->codesize + 2) {
         // If there was no terminating break, write a jump at the end of the last case
         scrip->write_cmd1(SCMD_JMP, 0);
@@ -504,7 +506,7 @@ int deal_with_end_of_switch (int32_t *nested_assign_addr, long *nested_start, st
         // Pop the switch variable, ready for comparison
         scrip->pop_reg(SREG_BX);
         // Do the comparison
-        scrip->write_cmd2(SCMD_NOTEQUAL, SREG_AX, SREG_BX);
+        scrip->write_cmd2(operation, SREG_AX, SREG_BX);
         scrip->write_cmd1(SCMD_JZ, (*nested_chunk)[index].codeoffset - scrip->codesize - 2);
     }
     // Write the default jump if necessary
@@ -3561,7 +3563,7 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     else
                         if (nested_type[nested_level] == NEST_SWITCH)
                         {
-                        	if (deal_with_end_of_switch(nested_assign_addr,nested_start,&nested_chunk[nested_level],scrip,&targ,&nested_level))
+                        	if (deal_with_end_of_switch(nested_assign_addr,nested_start,&nested_chunk[nested_level],scrip,&targ,&nested_level,nested_info))
                                 return -1;
                         }
                         else

@@ -64,6 +64,11 @@ This 'digmid.dat' is, in fact, a **bzip2** archive, containing actual data file,
 which should be about 25 MB large. Extract that file, rename it to **patches.dat**
 and place it into the  **ags** directory alongside your games.
 
+*If MIDI music fails to play, attempt using an archive manager such as 7-Zip to extract the patches.dat file.
+    Extract the patches[1] file from patches.dat into the AGS directory
+    Remove patches.dat from the AGS directory
+    Rename the patches[1] file to patches.dat
+This method should fix MIDI playback due to compression on the raw files.
 
 
 #Building the engine

@@ -1,5 +1,16 @@
 REVISION HISTORY
 ================
+VERSION 3.4.0 - Patch 3, February 2017
+
+Common bug fixes:
+- Fixed program crash in Engine and Editor when loading/importing a game that
+  contains file with name longer than 50 characters.
+
+Editor bug fixes:
+- Do not copy hidden and system files into final directories when building the
+  game.
+
+
 VERSION 3.4.0 - Patch 2, February 2017
 
 Script API:

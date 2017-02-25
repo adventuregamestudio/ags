@@ -205,6 +205,12 @@ namespace AGS.Editor
             Environment.CurrentDirectory = Factory.AGSEditor.CurrentGame.DirectoryPath;
             foreach (string fileName in Utilities.GetDirectoryFileList(compiledDir, "*"))
             {
+                // TODO: this attributes check was added as a part of a hotfix.
+                // Constructing a list of game files for distribution package
+                // should be shared between build targets and done in a more
+                // elaborate way.
+                if ((File.GetAttributes(fileName) & (FileAttributes.Hidden | FileAttributes.System | FileAttributes.Temporary)) != 0)
+                    continue;
                 if (fileName.EndsWith(".ags"))
                 {
                     using (FileStream ostream = File.Open(GetCompiledPath(baseGameFileName + ".exe"), FileMode.Append,

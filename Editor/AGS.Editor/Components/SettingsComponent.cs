@@ -11,13 +11,13 @@ namespace AGS.Editor.Components
     class SettingsComponent : BaseComponent
     {
         private const string ICON_KEY = "SettingsIcon";
-        private GeneralSettings _settingsPane;
+        private GeneralSettingsPane _settingsPane;
         private ContentDocument _document;
 
         public SettingsComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
         {
-            _settingsPane = new GeneralSettings();
+            _settingsPane = new GeneralSettingsPane();
             _document = new ContentDocument(_settingsPane, "General Settings", this, ICON_KEY);
             _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("iconsett.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, "GeneralSettings", "General Settings", ICON_KEY);

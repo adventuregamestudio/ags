@@ -7,6 +7,7 @@ namespace AGS.Editor
     internal class ComponentIDs
     {
         public const string GeneralSettings = "GeneralSettings";
+        public const string DefaultSetup = "DefaultSetup";
         public const string GUIs = "GUIs";
         public const string SourceControl = "SourceControl";
         public const string Plugins = "Plugins";

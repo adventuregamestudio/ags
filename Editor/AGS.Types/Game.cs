@@ -49,6 +49,7 @@ namespace AGS.Types
         private string[] _globalMessages;
         private Character _playerCharacter;
         private Settings _settings;
+        private RuntimeSetup _defaultSetup;
         private WorkspaceState _workspaceState;
         private PaletteEntry[] _palette;
         private SpriteFolder _sprites;
@@ -83,6 +84,7 @@ namespace AGS.Types
             _rooms = new UnloadedRoomFolders(UnloadedRoomFolder.MAIN_UNLOADED_ROOM_FOLDER_NAME);
             _oldInteractionVariables = new List<OldInteractionVariable>();
             _settings = new Settings();
+            _defaultSetup = new RuntimeSetup(_settings);
             _workspaceState = new WorkspaceState();
             _palette = new PaletteEntry[PALETTE_SIZE];
             _sprites = new SpriteFolder("Main");
@@ -180,6 +182,11 @@ namespace AGS.Types
         public Settings Settings
         {
             get { return _settings; }
+        }
+
+        public RuntimeSetup DefaultSetup
+        {
+            get { return _defaultSetup; }
         }
 
         public WorkspaceState WorkspaceState
@@ -605,6 +612,7 @@ namespace AGS.Types
             writer.WriteStartElement("Game");
 
             _settings.ToXml(writer);
+            _defaultSetup.ToXml(writer);
 
             _lipSync.ToXml(writer);
 
@@ -733,6 +741,13 @@ namespace AGS.Types
             node = node.SelectSingleNode("Game");
 
             _settings.FromXml(node);
+
+            if (node.SelectSingleNode(_defaultSetup.GetType().Name) != null)
+            {
+                // Only for >= 3.4.1
+                _defaultSetup.FromXml(node);
+            }
+
             _lipSync.FromXml(node);
             _propertySchema.FromXml(node);
 

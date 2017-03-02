@@ -99,6 +99,10 @@ namespace AGS.Editor
 
         private void gameSettings_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
         {
+            // TODO: I find it kind of wrong that general settings pane class decides which
+            // properties need to call OnGameSettingsChanged, and which do not need. Perhaps
+            // call it all the time?
+            // TODO: find a better solution rather than detecting property by the title of the label
             if (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_GAME_NAME)
             {
                 Factory.AGSEditor.CurrentGame.Settings.SaveGameFolderName = Factory.AGSEditor.CurrentGame.Settings.GameName;
@@ -122,7 +126,8 @@ namespace AGS.Editor
                 HandleGameResolutionChange((Size)e.OldValue, Factory.AGSEditor.CurrentGame.Settings.CustomResolution);
             }
             else if ((e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_SCALE_FONTS) ||
-                     (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_ANTI_ALIAS_FONTS))
+                     (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_ANTI_ALIAS_FONTS) ||
+                     (e.ChangedItem.Label == AGS.Types.Settings.PROPERTY_RENDERATSCREENRES))
             {
                 Factory.Events.OnGameSettingsChanged();
             }

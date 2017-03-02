@@ -69,8 +69,9 @@ namespace AGS.Editor
          * 12: 3.4.0.8    - Settings.UseOldCustomDialogOptionsAPI & ScriptAPILevel
          * 13: 3.4.0.9    - Settings.ScriptCompatLevel
          * 14: 3.4.1      - Settings.RenderAtScreenResolution
+         * 15: 3.4.1.2    - DefaultSetup node
         */
-        public const int    LATEST_XML_VERSION_INDEX = 14;
+        public const int    LATEST_XML_VERSION_INDEX = 15;
         /*
          * LATEST_USER_DATA_VERSION is the last version of the user data file that used a
          * 4-point-4-number string to identify the version of AGS that saved the file.
@@ -1055,7 +1056,7 @@ namespace AGS.Editor
                 errors.Add(new CompileError("The game is set to start in room " + _game.PlayerCharacter.StartingRoom + " which does not exist"));
             }
 
-			if ((_game.Settings.GraphicsDriver == GraphicsDriver.D3D9) &&
+			if ((_game.DefaultSetup.GraphicsDriver == GraphicsDriver.D3D9) &&
 				(_game.Settings.ColorDepth == GameColorDepth.Palette))
 			{
 				errors.Add(new CompileError("Direct3D graphics driver does not support 256-colour games"));
@@ -1457,14 +1458,16 @@ namespace AGS.Editor
 
             StringBuilder buffer = new StringBuilder(100);
             NativeProxy.GetPrivateProfileString("graphics", "defaultdriver", "NULL", buffer, buffer.Capacity, configFilePath);
-            if (buffer.ToString() != _game.Settings.GraphicsDriver.ToString())
+            if (buffer.ToString() != _game.DefaultSetup.GraphicsDriver.ToString())
             {
-                NativeProxy.WritePrivateProfileString("graphics", "defaultdriver", _game.Settings.GraphicsDriver.ToString(), configFilePath);
-                NativeProxy.WritePrivateProfileString("graphics", "driver", _game.Settings.GraphicsDriver.ToString(), configFilePath);
+                NativeProxy.WritePrivateProfileString("graphics", "defaultdriver", _game.DefaultSetup.GraphicsDriver.ToString(), configFilePath);
+                NativeProxy.WritePrivateProfileString("graphics", "driver", _game.DefaultSetup.GraphicsDriver.ToString(), configFilePath);
             }
-            // Always write "render_at_screenres" as 0 (false), which is now the default for user-defined parameter
-            NativeProxy.WritePrivateProfileString("graphics", "render_at_screenres", "0", configFilePath);
-            NativeProxy.WritePrivateProfileString("misc", "titletext", _game.Settings.GameName + " Setup", configFilePath);
+            bool render_at_screenres = _game.Settings.RenderAtScreenResolution == RenderAtScreenResolution.UserDefined ?
+                _game.DefaultSetup.RenderAtScreenResolution : _game.Settings.RenderAtScreenResolution == RenderAtScreenResolution.True;
+
+            NativeProxy.WritePrivateProfileString("graphics", "render_at_screenres", render_at_screenres ? "1" : "0", configFilePath);
+            NativeProxy.WritePrivateProfileString("misc", "titletext", _game.DefaultSetup.TitleText, configFilePath);
         }
 
 		private void BackupCurrentGameFile()

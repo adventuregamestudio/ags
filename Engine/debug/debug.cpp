@@ -28,7 +28,7 @@
 #include "main/config.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
-#include "plugin/agsplugin.h"
+#include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "script/script_common.h"
 #include "script/cc_error.h"

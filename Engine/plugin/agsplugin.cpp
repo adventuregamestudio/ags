@@ -15,7 +15,6 @@
 #include <vector>
 
 #include "util/wgt2allg.h"
-#include "plugin/agsplugin.h"
 #include "ac/common.h"
 #include "ac/roomstruct.h"
 #include "ac/view.h"
@@ -46,6 +45,8 @@
 #include "main/engine.h"
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
+#include "plugin/agsplugin.h"
+#include "plugin/plugin_engine.h"
 #include "plugin/pluginobjectreader.h"
 #include "script/script.h"
 #include "script/script_runtime.h"

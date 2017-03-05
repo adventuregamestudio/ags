@@ -1762,6 +1762,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\plugin\plugin_engine.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\plugin\pluginobjectreader.h"
 					>
 				</File>

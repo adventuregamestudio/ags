@@ -30,6 +30,7 @@
 #include "media/audio/soundclip.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
+#include "plugin/plugin_engine.h"
 #include "script/script.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"

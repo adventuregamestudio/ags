@@ -36,7 +36,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
-#include "plugin/agsplugin.h"
+#include "plugin/plugin_engine.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;

@@ -34,7 +34,7 @@
 #include "gfx/ddb.h"
 #include "gui/guilabel.h"
 #include "media/audio/audio.h"
-#include "plugin/agsplugin.h"
+#include "plugin/plugin_engine.h"
 #include "script/cc_error.h"
 #include "script/exports.h"
 #include "script/script.h"

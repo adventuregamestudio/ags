@@ -85,7 +85,6 @@ String win32OutputDirectory;
 
 const unsigned int win32TimerPeriod = 1;
 
-extern "C" HWND allegro_wnd;
 extern void dxmedia_abort_video();
 extern void dxmedia_pause_video();
 extern void dxmedia_resume_video();
@@ -144,7 +143,6 @@ private:
 
 AGSWin32::AGSWin32() {
   _isDebuggerPresent = ::IsDebuggerPresent() != FALSE;
-  allegro_wnd = NULL;
 }
 
 void check_parental_controls() {
@@ -696,7 +694,7 @@ void AGSWin32::DisplayAlert(const char *text, ...) {
   va_start(ap, text);
   vsprintf(displbuf, text, ap);
   va_end(ap);
-  MessageBox(allegro_wnd, displbuf, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);
+  MessageBox(win_get_window(), displbuf, "Adventure Game Studio", MB_OK | MB_ICONEXCLAMATION);
 }
 
 int AGSWin32::GetLastSystemError()
@@ -824,8 +822,6 @@ void AGSWin32::AboutToQuitGame()
 }
 
 void AGSWin32::PostAllegroExit() {
-  allegro_wnd = NULL;
-
   // Release the timer setting
   timeEndPeriod(win32TimerPeriod);
 }
@@ -914,6 +910,7 @@ void AGSWin32::ValidateWindowSize(int &x, int &y, bool borderless) const
 bool AGSWin32::LockMouseToWindow()
 {
     RECT rc;
+    HWND allegro_wnd = win_get_window();
     GetClientRect(allegro_wnd, &rc);
     ClientToScreen(allegro_wnd, (POINT*)&rc);
     ClientToScreen(allegro_wnd, (POINT*)&rc.right);
@@ -937,7 +934,7 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
 // *********** WINDOWS-SPECIFIC PLUGIN API FUNCTIONS *************
 
 HWND IAGSEngine::GetWindowHandle () {
-  return allegro_wnd;
+  return win_get_window();
 }
 LPDIRECTDRAW2 IAGSEngine::GetDirectDraw2 () {
   if (directdraw == NULL)

@@ -103,8 +103,6 @@ Common::AssetError errcod;
 
 t_engine_pre_init_callback engine_pre_init_callback = 0;
 
-extern "C" HWND allegro_wnd;
-
 #define ALLEGRO_KEYBOARD_HANDLER
 // KEYBOARD HANDLER
 #if !defined (WINDOWS_VERSION)

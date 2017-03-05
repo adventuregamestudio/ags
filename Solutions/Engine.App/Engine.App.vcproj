@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Common_d.lib odbc32.lib odbccp32.lib libcpmt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
+				AdditionalDependencies="Common_d.lib odbc32.lib odbccp32.lib libcpmt.lib alleg_s_mt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
 				OutputFile="$(OutDir)\acwin.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\$(ConfigurationName)"
@@ -140,7 +140,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Common.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
+				AdditionalDependencies="Common.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib alleg_s_mt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
 				OutputFile="$(OutDir)\acwin.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\$(ConfigurationName)"
@@ -223,7 +223,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Common.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
+				AdditionalDependencies="Common.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib alleg_s_crt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
 				OutputFile="$(OutDir)\acwin.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\$(ConfigurationName)"
@@ -2280,10 +2280,6 @@
 				RelativePath="..\..\Windows\lib\alfont_mt.lib"
 				>
 			</File>
-			<File
-				RelativePath="..\..\Windows\lib\alleg_s_crt.lib"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Library Sources"
@@ -2292,27 +2288,7 @@
 				Name="AllegroPatches"
 				>
 				<File
-					RelativePath="..\..\Engine\libsrc\allegro-4.2.2-agspatch\afile.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\libsrc\allegro-4.2.2-agspatch\c\cstretch.c"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\libsrc\allegro-4.2.2-agspatch\midi.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\libsrc\allegro-4.2.2-agspatch\win\wkeybd.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\libsrc\allegro-4.2.2-agspatch\win\wmouse.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\libsrc\allegro-4.2.2-agspatch\win\wwnd.c"
 					>
 				</File>
 			</Filter>

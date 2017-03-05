@@ -341,19 +341,6 @@ diff -Naur src/digmid.c src/digmid.c
 +   return -1;
  }
 
-
-diff -Naur src/file.c src/file.c
---- src/file.c	Thu Mar 24 23:18:25 2011
-+++ src/file.c	Sun Dec 30 08:53:59 2012
-@@ -1808,7 +1808,7 @@
-  *  it returns NULL and stores an error code in errno. An attempt to read a
-  *  normal file in packed mode will cause errno to be set to EDOM.
-  */
--PACKFILE *pack_fopen(AL_CONST char *filename, AL_CONST char *mode)
-+PACKFILE *__old_pack_fopen(AL_CONST char *filename, AL_CONST char *mode)
- {
-    char tmp[1024];
-    int fd;
 diff -Naur src/ios/idrivers.c src/ios/idrivers.c
 --- src/ios/idrivers.c	Thu Jan  1 00:00:00 1970
 +++ src/ios/idrivers.c	Sun Dec 30 08:53:59 2012

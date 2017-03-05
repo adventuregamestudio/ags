@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Common_d.lib odbc32.lib odbccp32.lib libcpmt.lib alleg_s_mt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
+				AdditionalDependencies="Common_d.lib odbc32.lib odbccp32.lib libcpmt.lib alleg_s_mt.lib alfont_mt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
 				OutputFile="$(OutDir)\acwin.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\$(ConfigurationName)"
@@ -140,7 +140,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Common.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib alleg_s_mt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
+				AdditionalDependencies="Common.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib alleg_s_mt.lib alfont_mt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
 				OutputFile="$(OutDir)\acwin.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\$(ConfigurationName)"
@@ -223,7 +223,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Common.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib alleg_s_crt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
+				AdditionalDependencies="Common.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib alleg_s_crt.lib alfont_mt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
 				OutputFile="$(OutDir)\acwin.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\$(ConfigurationName)"
@@ -2270,14 +2270,6 @@
 			</File>
 			<File
 				RelativePath="..\..\Engine\resource\version.rc"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Libraries"
-			>
-			<File
-				RelativePath="..\..\Windows\lib\alfont_mt.lib"
 				>
 			</File>
 		</Filter>

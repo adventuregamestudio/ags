@@ -89,19 +89,6 @@ diff -Naur src/digmid.c src/digmid.c
 +   return -1;
  }
  
- 
-diff -Naur src/file.c src/file.c
---- src/file.c	2008-10-23 15:38:21.000000000 +0200
-+++ src/file.c	2011-07-10 18:35:58.964479800 +0200
-@@ -1805,7 +1805,7 @@
-  *  it returns NULL and stores an error code in errno. An attempt to read a 
-  *  normal file in packed mode will cause errno to be set to EDOM.
-  */
--PACKFILE *pack_fopen(AL_CONST char *filename, AL_CONST char *mode)
-+PACKFILE *__old_pack_fopen(AL_CONST char *filename, AL_CONST char *mode)
- {
-    char tmp[1024];
-    int fd;
 diff -Naur src/psp/pcommon.h src/psp/pcommon.h
 --- src/psp/pcommon.h	1970-01-01 01:00:00.000000000 +0100
 +++ src/psp/pcommon.h	2011-06-03 15:52:09.800530000 +0200

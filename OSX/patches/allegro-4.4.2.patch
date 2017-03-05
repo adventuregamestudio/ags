@@ -1871,29 +1871,6 @@ index 04b82af..c823e84 100644
 +   return -1;
  }
  
- 
-diff --git a/src/file.c b/src/file.c
-index c89024c..4abecdc 100644
---- a/src/file.c
-+++ b/src/file.c
-@@ -21,6 +21,8 @@
-  *      Peter Wang added support for packfile vtables.
-  *
-  *      See readme.txt for copyright information.
-+ *
-+ * ****** CJ CHANGES IN THIS FILE: Renamed pack_fopen to __old_pack_fopen
-  */
- 
- 
-@@ -1808,7 +1810,7 @@ PACKFILE *_pack_fdopen(int fd, AL_CONST char *mode)
-  *  it returns NULL and stores an error code in errno. An attempt to read a 
-  *  normal file in packed mode will cause errno to be set to EDOM.
-  */
--PACKFILE *pack_fopen(AL_CONST char *filename, AL_CONST char *mode)
-+PACKFILE *__old_pack_fopen(AL_CONST char *filename, AL_CONST char *mode)
- {
-    char tmp[1024];
-    int fd;
 diff --git a/src/ios/idrivers.c b/src/ios/idrivers.c
 new file mode 100644
 index 0000000..f5c9e20

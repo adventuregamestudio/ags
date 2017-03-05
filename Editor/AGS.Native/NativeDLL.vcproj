@@ -81,7 +81,7 @@
 				Name="VCLinkerTool"
 				RegisterOutput="false"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="Common_md_d.lib Compiler_md_d.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
+				AdditionalDependencies="Common_md_d.lib Compiler_md_d.lib winmm.lib imm32.lib alleg_s_md.lib alfont_md.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\Debug_MD;$(SolutionDir)\..\Windows\lib"
 				IgnoreDefaultLibraryNames="LIBCMTD.lib"
@@ -180,7 +180,7 @@
 				Name="VCLinkerTool"
 				RegisterOutput="false"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="Common_md.lib Compiler_md.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
+				AdditionalDependencies="Common_md.lib Compiler_md.lib winmm.lib imm32.lib alleg_s_md.lib alfont_md.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\Release_MD;$(SolutionDir)\..\Windows\lib"
 				IgnoreDefaultLibraryNames="LIBCMT.lib"
@@ -443,66 +443,6 @@
 				RelativePath="..\scintilla\src\XPM.cxx"
 				>
 			</File>
-		</Filter>
-		<Filter
-			Name="Libraries"
-			>
-			<Filter
-				Name="Debug"
-				>
-				<File
-					RelativePath="..\..\Windows\lib.native\alfont_md_d.lib"
-					>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\..\Windows\lib.native\alld_s.lib"
-					>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-				</File>
-			</Filter>
-			<Filter
-				Name="Release"
-				>
-				<File
-					RelativePath="..\..\Windows\lib.native\alfont_md.lib"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\..\Windows\lib.native\alleg_s.lib"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-				</File>
-			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

@@ -2521,17 +2521,4 @@ diff -Naur src/digmid.c src/digmid.c
 +       free(todo[i]);
 +   return -1;
  }
- 
- 
-diff -Naur src/file.c src/file.c
---- src/file.c	2011-03-25 00:18:25.000000000 +0100
-+++ src/file.c	2012-04-24 10:47:14.757449600 +0200
-@@ -1808,7 +1808,7 @@
-  *  it returns NULL and stores an error code in errno. An attempt to read a 
-  *  normal file in packed mode will cause errno to be set to EDOM.
-  */
--PACKFILE *pack_fopen(AL_CONST char *filename, AL_CONST char *mode)
-+PACKFILE *__old_pack_fopen(AL_CONST char *filename, AL_CONST char *mode)
- {
-    char tmp[1024];
-    int fd;
+

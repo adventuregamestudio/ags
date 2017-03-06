@@ -668,16 +668,18 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
   final_mode.Height = device_screen_physical_height;
   final_mode.Windowed = true;
   OnModeSet(mode);
+  // If we already have a native size set, then update virtual screen immediately
   CreateVirtualScreen();
   return true;
 }
 
 void OGLGraphicsDriver::CreateVirtualScreen()
 {
-  if (!IsModeSet() || !IsRenderFrameValid())
+  if (!IsModeSet() || !IsNativeSizeValid())
     return;
   // create dummy screen bitmap
   // TODO: find out why we are doing this
+  delete _dummyVirtualScreen;
   _dummyVirtualScreen = ReplaceBitmapWithSupportedFormat(
       BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth));
   BitmapHelper::SetScreenBitmap(_dummyVirtualScreen);
@@ -686,6 +688,8 @@ void OGLGraphicsDriver::CreateVirtualScreen()
 bool OGLGraphicsDriver::SetNativeSize(const Size &src_size)
 {
   OnSetNativeSize(src_size);
+  // If we already have a gfx mode set, then update virtual screen immediately
+  CreateVirtualScreen();
   return !_srcRect.IsEmpty();
 }
 
@@ -698,8 +702,6 @@ bool OGLGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
                        (int)(((float)device_screen_physical_height - _scale_height * (float)_srcRect.GetHeight()) / 2.0f),
                        (int)(_scale_width * (float)_srcRect.GetWidth()), (int)(_scale_height * (float)_srcRect.GetHeight()));
   OnSetRenderFrame(final_dest);
-  // If we already have a gfx mode set, then update virtual screen immediately
-  CreateVirtualScreen();
   // Also make sure viewport and backbuffer mappings are updated using new native & destination rectangles
   SetupViewport();
   create_backbuffer_arrays();

@@ -10,6 +10,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [DeserializeIgnore("LastBuildConfiguration")]
+    [DeserializeIgnore("GraphicsDriver")]
     [DefaultProperty("DebugMode")]
     public class Settings : ICustomTypeDescriptor
     {
@@ -20,6 +21,7 @@ namespace AGS.Types
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_LETTERBOX_MODE = "Enable letterbox mode";
         public const string PROPERTY_BUILD_TARGETS = "Build target platforms";
+        public const string PROPERTY_RENDERATSCREENRES = "Render sprites at screen resolution";
 		public const string REGEX_FOUR_PART_VERSION = @"^(\d+)\.(\d+)\.(\d+)\.(\d+)$";
 
 		private const string DEFAULT_GENRE = "Adventure";
@@ -33,7 +35,6 @@ namespace AGS.Types
         private string _gameName = "New game";
         private Size _resolution = new Size(320, 200);
         private GameColorDepth _colorDepth = GameColorDepth.HighColor;
-		private GraphicsDriver _graphicsDriver = GraphicsDriver.DX5;
         private bool _debugMode = true;
         private bool _antiGlideMode = true;
         private bool _walkInLookMode = false;
@@ -143,7 +144,7 @@ namespace AGS.Types
 
 		[DisplayName(PROPERTY_GAME_NAME)]
         [Description("The game's name (for display in the title bar)")]
-        [Category("(Setup)")]
+        [Category("(Basic properties)")]
         public string GameName
         {
             get { return _gameName; }
@@ -174,7 +175,7 @@ namespace AGS.Types
 
         [DisplayName(PROPERTY_COLOUR_DEPTH)]
         [Description("The colour depth of the game (higher gives better colour quality, but slower performance)")]
-        [Category("(Setup)")]
+        [Category("(Basic properties)")]
         [TypeConverter(typeof(EnumTypeConverter))]
         public GameColorDepth ColorDepth
         {
@@ -214,7 +215,7 @@ namespace AGS.Types
 
         [DisplayName(PROPERTY_RESOLUTION)]
         [Description("The graphics resolution of the game (higher allows more detail, but slower performance and larger file size)")]
-        [Category("(Setup)")]
+        [Category("(Basic properties)")]
         [EditorAttribute(typeof(CustomResolutionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
         [TypeConverter(typeof(CustomResolutionTypeConverter))]
         [RefreshProperties(RefreshProperties.All)]
@@ -263,16 +264,6 @@ namespace AGS.Types
                 return GameResolutions.Custom;
             }
         }
-
-		[DisplayName("Default graphics driver")]
-		[Description("The default graphics driver that your game will use. Direct3D allows fast high-resolution alpha-blended sprites, but DirectDraw is better at RawDrawing.")]
-		[Category("(Setup)")]
-		[TypeConverter(typeof(EnumTypeConverter))]
-		public GraphicsDriver GraphicsDriver
-		{
-			get { return _graphicsDriver; }
-			set { _graphicsDriver = value; }
-		}
 
         [DisplayName("Compress the sprite file")]
         [Description("Compress the sprite file to reduce its size, at the expense of performance")]
@@ -357,7 +348,7 @@ namespace AGS.Types
         [DisplayName("Enable letterbox mode")]
         [Description("Game will run at 320x240 or 640x480 with top and bottom black borders to give a square aspect ratio")]
         [DefaultValue(false)]
-        [Category("(Setup)")]
+        [Category("(Basic properties)")]
         public bool LetterboxMode
         {
             get { return _letterboxMode; }
@@ -844,7 +835,7 @@ namespace AGS.Types
 
         [DisplayName("Maximum possible score")]
         [Description("The maximum score that the player can achieve (displayed by @TOTALSCORE@ on GUI labels)")]
-        [Category("(Setup)")]
+        [Category("(Basic properties)")]
         public int MaximumScore
         {
             get { return _totalScore; }
@@ -922,7 +913,7 @@ namespace AGS.Types
 
 		[DisplayName("Developer name")]
 		[Description("The name of the game developer (you!). Displayed on the game EXE in Explorer, and in the Vista Game Explorer.")]
-        [Category("(Setup)")]
+        [Category("(Basic properties)")]
 		public string DeveloperName
 		{
 			get { return _developerName; }
@@ -1004,7 +995,7 @@ namespace AGS.Types
 
         [DisplayName("Put sound and sprite files in source control")]
         [Description("If you are using a source control provider, this controls whether the sound and sprite files are added to source control. With large games, these files can become extremely large and therefore you may wish to exclude them from source control.")]
-        [Category("(Setup)")]
+        [Category("(Basic properties)")]
         public bool BinaryFilesInSourceControl
         {
             get { return _binaryFilesInSourceControl; }
@@ -1039,7 +1030,6 @@ namespace AGS.Types
 
         public void FromXml(XmlNode node)
         {
-			_graphicsDriver = GraphicsDriver.DX5;
             _totalScore = 0;
 			_guid = Guid.Empty;
 			_enableGameExplorer = false;
@@ -1077,7 +1067,7 @@ namespace AGS.Types
         [DisplayName("Render sprites at screen resolution")]
         [Description("When drawing zoomed character and object sprites, AGS will take advantage of higher runtime resolution to give scaled images more detail, than it would be possible if the game was displayed in its native resolution. The effect is stronger for low-res games. Keep disabled for pixel-perfect output. Currently supported only by Direct3D renderer.")]
         [DefaultValue(RenderAtScreenResolution.UserDefined)]
-        [Category("(Setup)")]
+        [Category("(Basic properties)")]
         [TypeConverter(typeof(EnumTypeConverter))]
         public RenderAtScreenResolution RenderAtScreenResolution
         {

@@ -275,6 +275,7 @@
     <Compile Include="Interfaces\ISpriteController.cs" />
     <Compile Include="Interfaces\IToXml.cs" />
     <Compile Include="InventoryItemFolder.cs" />
+    <Compile Include="RuntimeSetup.cs" />
     <Compile Include="WorkspaceState.cs" />
     <Compile Include="PropertyGridExtras\AudioClipTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\AudioClipTypeTypeConverter.cs" />

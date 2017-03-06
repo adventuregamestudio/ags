@@ -199,11 +199,11 @@
     <Compile Include="Panes\FontEditor.Designer.cs">
       <DependentUpon>FontEditor.cs</DependentUpon>
     </Compile>
-    <Compile Include="Panes\GeneralSettings.cs">
+    <Compile Include="Panes\BigPropertySheet.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panes\GeneralSettings.Designer.cs">
-      <DependentUpon>GeneralSettings.cs</DependentUpon>
+    <Compile Include="Panes\BigPropertySheet.Designer.cs">
+      <DependentUpon>BigPropertySheet.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\GUIController.cs" />
     <Compile Include="Panes\GUIEditor.cs">
@@ -282,9 +282,9 @@
       <SubType>Designer</SubType>
       <DependentUpon>frmMain.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Panes\GeneralSettings.resx">
+    <EmbeddedResource Include="Panes\BigPropertySheet.resx">
       <SubType>Designer</SubType>
-      <DependentUpon>GeneralSettings.cs</DependentUpon>
+      <DependentUpon>BigPropertySheet.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Panes\GUIEditor.resx">
       <SubType>Designer</SubType>
@@ -776,6 +776,7 @@
     <Compile Include="Components\BaseComponentWithFolders.cs" />
     <Compile Include="Components\BaseComponentWithScripts.cs" />
     <Compile Include="Components\BuildCommandsComponent.cs" />
+    <Compile Include="Components\DefaultSetupComponent.cs" />
     <Compile Include="Components\GlobalVariablesComponent.cs" />
     <Compile Include="Components\HelpCommandsComponent.cs" />
     <Compile Include="Components\SpeechComponent.cs" />
@@ -832,6 +833,11 @@
     </Compile>
     <Compile Include="GUI\WindowsLayoutManager.cs" />
     <Compile Include="GUI\WindowsMenuManager.cs" />
+    <Compile Include="Panes\DefaultSetupPane.cs">
+    </Compile>
+    <Compile Include="Panes\GeneralSettingsPane.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Utils\ColorMapper.cs" />
     <Compile Include="Utils\DialogScriptConverter.cs" />
     <Compile Include="EditorEvents.cs" />

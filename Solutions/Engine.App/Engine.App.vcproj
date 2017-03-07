@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_ASM;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Common_d.lib odbc32.lib odbccp32.lib libcpmt.lib alleg_s_mt.lib alfont_mt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
+				AdditionalDependencies="Common_d.lib odbc32.lib odbccp32.lib libcpmt.lib alleg-static-mt.lib alfont_mt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
 				OutputFile="$(OutDir)\acwin.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\$(ConfigurationName)"
@@ -121,7 +121,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;ALLEGRO_NO_ASM;AGS_HAS_CD_AUDIO"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -140,7 +140,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Common.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib alleg_s_mt.lib alfont_mt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
+				AdditionalDependencies="Common.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib alleg-static-mt.lib alfont_mt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
 				OutputFile="$(OutDir)\acwin.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\$(ConfigurationName)"
@@ -204,7 +204,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;ALLEGRO_NO_ASM;AGS_HAS_CD_AUDIO;NO_MP3_PLAYER"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;NO_MP3_PLAYER"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -223,7 +223,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Common.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib alleg_s_crt.lib alfont_mt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
+				AdditionalDependencies="Common.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib alleg-static-mt.lib alfont_mt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
 				OutputFile="$(OutDir)\acwin.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\$(ConfigurationName)"

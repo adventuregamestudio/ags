@@ -35,9 +35,43 @@ Diff files can be found in "Windows\patches" directory of AGS repository.
 
 If you got these libraries from our own repositories, you do not need to patch them yourself, just checkout allegro-4.4.2-agspatch and alfont-1.9.1-agspatch branches respectively and build from them.
 
-## Building
+
+## Building the libraries
 
 All of the mentioned libraries should either have MSVC project(s) in their sources, CMake configuration, or at least a Makefile which you could use to create MSVC solution.
+
+It is important to make sure static libraries have two build configuration set up: one with runtime C library linked dynamically (/MD compilation flag) and another with runtime library linked statically (/MT compilation flag). These options are be found at the compiler's "Code Generation" property page in the MSVC project settings.
+/MD option is usually default one, so you may need to create second one by hand.
+
+The reason for having both configurations is explained in the latter section below.
+
+### DirectX
+
+DirectX is linked dynamically. You should not be building DirectX libraries, but using the reference libs and header files from DirectX SDK.
+
+### Allegro
+
+Allegro 4.4 source provides CMake script for generating MSVC project files. We do not cover CMake tool here, please refer to official documentation: https://cmake.org/documentation/ .
+
+When configuring CMake, you may uncheck all Allegro add-ons and examples, because AGS does not need them.
+Also make sure to uncheck SHARED option, for AGS is linking Allegro statically.
+
+If you are using patched sources from our Allegro fork, the MSVC_SHARED_CRT option will also be present. You need that option checked when building library with /MD flag for the Editor, and unchecked when building library with /MT option for the Engine (also see explanation in related section below). If you are using official Allegro source, then you'll have to modify generated projects by hand to setup this flag properly.
+
+Static library built with /MD is expected to be named alleg-static.lib, and one with /MT named alleg-static-mt.lib.
+
+### Alfont
+
+Alfont 1.9.1 sources already come with MSVC projects. The ones in our own fork are already set up to have distinct configuration with /MD and /MT compilation flags. You need to build only static library project for AGS.
+
+Static library built with /MD is expected to be named alfont-md.lib, and one with /MT named alfont-mt.lib.
+
+### OGG, Theora and Vorbis
+
+All of these come with MSVC projects. You may need to make sure there are distinct build configurations with /MD and /MT compilation flags, but other than that just build static libraries, and you are all set.
+
+
+## Building AGS
 
 ### For the Engine:
 

@@ -56,8 +56,15 @@ void GameSetupStruct::read_font_flags(Common::Stream *in, GameDataVersion data_v
 {
     in->Read(&fontflags[0], numfonts);
     in->Read(&fontoutline[0], numfonts);
-    if (data_ver >= kGameVersion_341)
-        in->ReadArrayOfInt32(fontvoffset, numfonts);
+    if (data_ver < kGameVersion_341)
+        return;
+    // Extended font parameters
+    for (int i = 0; i < numfonts; ++i)
+    {
+        fontvoffset[i] = in->ReadInt32();
+        if (data_ver >= kGameVersion_341_2)
+            fontlnspace[i] = in->ReadInt32();
+    }
 }
 
 MainGameFileError GameSetupStruct::read_sprite_flags(Common::Stream *in, GameDataVersion data_ver)

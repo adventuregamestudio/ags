@@ -16,6 +16,7 @@ namespace AGS.Types
         private FontOutlineStyle _outlineStyle;
 		private string _sourceFilename = string.Empty;
         private int _verticalOffset;
+        private int _lineSpacing;
 
         public Font()
         {
@@ -23,6 +24,7 @@ namespace AGS.Types
             _outlineFont = 0;
             _name = string.Empty;
             _pointSize = 0;
+            _lineSpacing = 0;
         }
 
         [Description("The ID number of the font")]
@@ -116,6 +118,14 @@ namespace AGS.Types
         {
             get { return _verticalOffset; }
             set { _verticalOffset = value; }
+        }
+
+        [Description("Default step between successive lines of text, in pixels. Setting it lower than font's height will make lines partially overlap. Put 0 to use default spacing (usually - font height).")]
+        [Category("Appearance")]
+        public int LineSpacing
+        {
+            get { return _lineSpacing; }
+            set { _lineSpacing = value; }
         }
 
 		[Browsable(false)]

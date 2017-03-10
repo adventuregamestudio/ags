@@ -32,10 +32,32 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 int wtext_multiply = 1;
 
-static IAGSFontRenderer* fontRenderers[MAX_FONTS];
-static IAGSFontRenderer2* fontRenderers2[MAX_FONTS];
+struct Font
+{
+    IAGSFontRenderer   *Renderer;
+    IAGSFontRenderer2  *Renderer2;
+    FontInfo            Info;
+
+    Font();
+};
+
+static Font fonts[MAX_FONTS];
 static TTFFontRenderer ttfRenderer;
 static WFNFontRenderer wfnRenderer;
+
+
+FontInfo::FontInfo()
+    : Flags(0)
+    , SizePt(0)
+    , Outline(0)
+    , YOffset(0)
+{}
+
+Font::Font()
+    : Renderer(NULL)
+    , Renderer2(NULL)
+{}
+
 
 void init_font_renderer()
 {
@@ -43,12 +65,6 @@ void init_font_renderer()
   alfont_init();
   alfont_text_mode(-1);
 #endif
-
-  for (int i = 0; i < MAX_FONTS; i++)
-  {
-    fontRenderers[i] = NULL;
-    fontRenderers2[i] = NULL;
-  }
 }
 
 void shutdown_font_renderer()
@@ -61,66 +77,81 @@ void shutdown_font_renderer()
 
 void adjust_y_coordinate_for_text(int* ypos, int fontnum)
 {
-  fontRenderers[fontnum]->AdjustYCoordinateForFont(ypos, fontnum);
+  fonts[fontnum].Renderer->AdjustYCoordinateForFont(ypos, fontnum);
 }
 
 bool font_first_renderer_loaded() {
-    return fontRenderers[0] != NULL;
+  return fonts[0].Renderer != NULL;
 }
 
 IAGSFontRenderer* font_replace_renderer(int fontNumber, IAGSFontRenderer* renderer)
 {
-  IAGSFontRenderer* oldRender = fontRenderers[fontNumber];
-  fontRenderers[fontNumber] = renderer;
-  fontRenderers2[fontNumber] = NULL;
+  IAGSFontRenderer* oldRender = fonts[fontNumber].Renderer;
+  fonts[fontNumber].Renderer = renderer;
+  fonts[fontNumber].Renderer2 = NULL;
   return oldRender;
 }
 
 bool font_supports_extended_characters(int fontNumber)
 {
-  return fontRenderers[fontNumber]->SupportsExtendedCharacters(fontNumber);
+  return fonts[fontNumber].Renderer->SupportsExtendedCharacters(fontNumber);
 }
 
 void ensure_text_valid_for_font(char *text, int fontnum)
 {
-  fontRenderers[fontnum]->EnsureTextValidForFont(text, fontnum);
+  fonts[fontnum].Renderer->EnsureTextValidForFont(text, fontnum);
 }
 
 int wgettextwidth(const char *texx, int fontNumber)
 {
-  return fontRenderers[fontNumber]->GetTextWidth(texx, fontNumber);
+  return fonts[fontNumber].Renderer->GetTextWidth(texx, fontNumber);
 }
 
 int wgettextheight(const char *text, int fontNumber)
 {
-  return fontRenderers[fontNumber]->GetTextHeight(text, fontNumber);
+  return fonts[fontNumber].Renderer->GetTextHeight(text, fontNumber);
+}
+
+int get_font_outline(int font_number)
+{
+    return fonts[font_number].Info.Outline;
+}
+
+void set_font_outline(int font_number, int outline_type)
+{
+    fonts[font_number].Info.Outline = FONT_OUTLINE_AUTO;
 }
 
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t text_color, const char *texx)
 {
+  yyy += fonts[fontNumber].Info.YOffset;
   if (yyy > ds->GetClip().Bottom)
     return;                   // each char is clipped but this speeds it up
 
-  if (fontRenderers[fontNumber] != NULL)
+  if (fonts[fontNumber].Renderer != NULL)
   {
-    fontRenderers[fontNumber]->RenderText(texx, fontNumber, (BITMAP*)ds->GetAllegroBitmap(), xxx, yyy, text_color);
+    fonts[fontNumber].Renderer->RenderText(texx, fontNumber, (BITMAP*)ds->GetAllegroBitmap(), xxx, yyy, text_color);
   }
 }
 
 // Loads a font from disk
-bool wloadfont_size(int fontNumber, int fsize, const FontRenderParams *params)
+bool wloadfont_size(int fontNumber, const FontInfo &font_info, const FontRenderParams *params)
 {
-  if (ttfRenderer.LoadFromDiskEx(fontNumber, fsize, params))
+  if (ttfRenderer.LoadFromDiskEx(fontNumber, font_info.SizePt, params))
   {
-    fontRenderers[fontNumber] = &ttfRenderer;
-    fontRenderers2[fontNumber] = &ttfRenderer;
-    return true;
+    fonts[fontNumber].Renderer  = &ttfRenderer;
+    fonts[fontNumber].Renderer2 = &ttfRenderer;
   }
-  else if (wfnRenderer.LoadFromDiskEx(fontNumber, fsize, params))
+  else if (wfnRenderer.LoadFromDiskEx(fontNumber, font_info.SizePt, params))
   {
-    fontRenderers[fontNumber] = &wfnRenderer;
-    fontRenderers2[fontNumber] = &wfnRenderer;
-    return true;
+    fonts[fontNumber].Renderer  = &wfnRenderer;
+    fonts[fontNumber].Renderer2 = &wfnRenderer;
+  }
+
+  if (fonts[fontNumber].Renderer)
+  {
+      fonts[fontNumber].Info = font_info;
+      return true;
   }
   return false;
 }
@@ -138,8 +169,8 @@ void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t tex
 
 void wfreefont(int fontNumber)
 {
-  if (fontRenderers[fontNumber] != NULL)
-    fontRenderers[fontNumber]->FreeMemory(fontNumber);
+  if (fonts[fontNumber].Renderer != NULL)
+    fonts[fontNumber].Renderer->FreeMemory(fontNumber);
 
-  fontRenderers[fontNumber] = NULL;
+  fonts[fontNumber].Renderer = NULL;
 }

@@ -91,7 +91,6 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
   const WFNFont* font = _fontData[fontNumber].Font;
   render_wrapper.WrapAllegroBitmap(destination, true);
 
-  y += _fontData[fontNumber].Params.YOffset;
   for (; *text; ++text)
     x += RenderChar(&render_wrapper, x, y, font->GetChar(GetCharCode(*text, font)), colour);
 

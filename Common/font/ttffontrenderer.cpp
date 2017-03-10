@@ -32,10 +32,6 @@ using AGS::Common::String;
 // project-specific implementation
 extern bool ShouldAntiAliasText();
 
-// Defined in the engine or editor (currently needed only for non-windows versions)
-extern int  get_font_outline(int font_number);
-extern void set_font_outline(int font_number, int outline_type);
-
 #ifdef USE_ALFONT
 ALFONT_FONT *tempttffnt;
 ALFONT_FONT *get_ttf_block(unsigned char* fontptr)
@@ -76,7 +72,6 @@ int TTFFontRenderer::GetTextHeight(const char *text, int fontNumber)
 
 void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
-  y += _fontData[fontNumber].Params.YOffset;
   if (y > destination->cb)  // optimisation
     return;
 

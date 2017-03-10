@@ -316,17 +316,20 @@ void LoadFonts()
 {
     for (int i = 0; i < game.numfonts; ++i) 
     {
-        int fontsize = game.fontflags[i] & FFLG_SIZEMASK;
-        if (fontsize == 0)
-            fontsize = 8;
+        FontInfo finfo;
+        finfo.Flags   = game.fontflags[i] & ~FFLG_SIZEMASK;
+        finfo.SizePt  = game.fontflags[i] &  FFLG_SIZEMASK;
+        finfo.Outline = game.fontoutline[i];
+        finfo.YOffset = game.fontvoffset[i];
+
+        // Apply compatibility adjustments
+        if (finfo.SizePt == 0)
+            finfo.SizePt = 8;
 
         if ((game.options[OPT_NOSCALEFNT] == 0) && game.IsHiRes())
-            fontsize *= 2;
+            finfo.SizePt *= 2;
 
-        FontRenderParams params;
-        params.YOffset = game.fontvoffset[i];
-
-        if (!wloadfont_size(i, fontsize, &params))
+        if (!wloadfont_size(i, finfo, NULL))
             quitprintf("Unable to load font %d, no renderer could load a matching file", i);
     }
 }

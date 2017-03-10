@@ -35,10 +35,14 @@ using AGS::Common::Interaction;
 using AGS::Common::InteractionScripts;
 using AGS::Common::MainGameFileError;
 
+// TODO: split GameSetupStruct into struct used to hold loaded game data, and actual runtime object
 struct GameSetupStruct: public GameSetupStructBase {
+    // These arrays are used only to read data into;
+    // font parameters are then put and queried in the fonts module
     unsigned char     fontflags[MAX_FONTS];
     char              fontoutline[MAX_FONTS];
     int               fontvoffset[MAX_FONTS]; // vertical font offset
+    //
     unsigned char     spriteflags[MAX_SPRITES];
     InventoryItemInfo invinfo[MAX_INV];
     MouseCursor       mcurs[MAX_CURSOR];

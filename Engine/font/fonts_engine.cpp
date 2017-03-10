@@ -44,13 +44,3 @@ int get_our_eip()
 {
   return our_eip;
 }
-
-int get_font_outline(int font_number)
-{
-    return game.fontoutline[font_number];
-}
-
-void set_font_outline(int font_number, int outline_type)
-{
-    game.fontoutline[font_number] = FONT_OUTLINE_AUTO;
-}

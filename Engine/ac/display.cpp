@@ -426,11 +426,11 @@ bool ShouldAntiAliasText() {
 void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char*texx) {
     
     color_t outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
-    if (game.fontoutline[usingfont] >= 0) {
+    if (get_font_outline(usingfont) >= 0) {
         // MACPORT FIX 9/6/5: cast
-        wouttextxy(ds, xxp, yyp, (int)game.fontoutline[usingfont], outline_color, texx);
+        wouttextxy(ds, xxp, yyp, (int)get_font_outline(usingfont), outline_color, texx);
     }
-    else if (game.fontoutline[usingfont] == FONT_OUTLINE_AUTO) {
+    else if (get_font_outline(usingfont) == FONT_OUTLINE_AUTO) {
         int outlineDist = 1;
 
         if ((game.options[OPT_NOSCALEFNT] == 0) && (!font_supports_extended_characters(usingfont))) {
@@ -469,7 +469,7 @@ int wgetfontheight(int font) {
     int htof = wgettextheight(heightTestString, font);
 
     // automatic outline fonts are 2 pixels taller
-    if (game.fontoutline[font] == FONT_OUTLINE_AUTO) {
+    if (get_font_outline(font) == FONT_OUTLINE_AUTO) {
         // scaled up SCI font, push outline further out
         if ((game.options[OPT_NOSCALEFNT] == 0) && (!font_supports_extended_characters(font)))
             htof += get_fixed_pixel_size(2);
@@ -484,7 +484,7 @@ int wgetfontheight(int font) {
 int wgettextwidth_compensate(const char *tex, int font) {
     int wdof = wgettextwidth(tex, font);
 
-    if (game.fontoutline[font] == FONT_OUTLINE_AUTO) {
+    if (get_font_outline(font) == FONT_OUTLINE_AUTO) {
         // scaled up SCI font, push outline further out
         if ((game.options[OPT_NOSCALEFNT] == 0) && (!font_supports_extended_characters(font)))
             wdof += get_fixed_pixel_size(2);

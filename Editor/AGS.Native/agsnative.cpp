@@ -1024,7 +1024,8 @@ const char* import_sci_font(const char*fnn,int fslot) {
   delete ooo;
   delete iii;
   wfreefont(fslot);
-  if (!wloadfont_size(fslot, 0))
+  FontInfo fi;
+  if (!wloadfont_size(fslot, fi))
   {
     return "Unable to load converted WFN file";
   }
@@ -1200,7 +1201,8 @@ void NewInteractionCommand::remove ()
 */
 
 void new_font () {
-  wloadfont_size(thisgame.numfonts, 0);
+  FontInfo fi;
+  wloadfont_size(thisgame.numfonts, fi);
   thisgame.fontflags[thisgame.numfonts] = 0;
   thisgame.fontoutline[thisgame.numfonts] = -1;
   thisgame.numfonts++;
@@ -1418,17 +1420,18 @@ bool reload_font(int curFont)
 {
   wfreefont(curFont);
 
-  int fsize = thisgame.fontflags[curFont] & FFLG_SIZEMASK;
+  FontInfo fi;
+  fi.SizePt = thisgame.fontflags[curFont] & FFLG_SIZEMASK;
   // if the font is designed for 640x400, half it
   if (thisgame.options[OPT_NOSCALEFNT]) {
     if (!thisgame.IsHiRes())
-      fsize /= 2;
+      fi.SizePt /= 2;
   }
   else if (thisgame.IsHiRes()) {
     // designed for 320x200, double it up
-    fsize *= 2;
+    fi.SizePt *= 2;
   }
-  return wloadfont_size(curFont, fsize);
+  return wloadfont_size(curFont, fi);
 }
 
 bool reset_sprite_file() {

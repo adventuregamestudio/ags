@@ -28,9 +28,14 @@
 #include "gfx/bitmap.h"
 #include "util/wgt2allg.h"
 
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
 
 int wtext_multiply = 1;
+
+namespace AGS
+{
+namespace Common
+{
 
 struct Font
 {
@@ -41,7 +46,15 @@ struct Font
     Font();
 };
 
-static Font fonts[MAX_FONTS];
+Font::Font()
+    : Renderer(NULL)
+    , Renderer2(NULL)
+{}
+
+} // Common
+} // AGS
+
+static AGS::Common::Font fonts[MAX_FONTS];
 static TTFFontRenderer ttfRenderer;
 static WFNFontRenderer wfnRenderer;
 
@@ -49,13 +62,8 @@ static WFNFontRenderer wfnRenderer;
 FontInfo::FontInfo()
     : Flags(0)
     , SizePt(0)
-    , Outline(0)
+    , Outline(-1)
     , YOffset(0)
-{}
-
-Font::Font()
-    : Renderer(NULL)
-    , Renderer2(NULL)
 {}
 
 

@@ -64,6 +64,7 @@ FontInfo::FontInfo()
     , SizePt(0)
     , Outline(-1)
     , YOffset(0)
+    , LineSpacing(0)
 {}
 
 
@@ -128,6 +129,24 @@ int get_font_outline(int font_number)
 void set_font_outline(int font_number, int outline_type)
 {
     fonts[font_number].Info.Outline = FONT_OUTLINE_AUTO;
+}
+
+int getfontheight(int fontNumber)
+{
+  // There is no explicit method for getting maximal possible height of any
+  // random font renderer at the moment; the implementations of GetTextHeight
+  // are allowed to return varied results depending on the text parameter.
+  // We use special line of text to get more or less reliable font height.
+  const char *height_test_string = "ZHwypgfjqhkilIK";
+  return fonts[fontNumber].Renderer->GetTextHeight(height_test_string, fontNumber);
+}
+
+int getfontlinespacing(int fontNumber)
+{
+  int spacing = fonts[fontNumber].Info.LineSpacing;
+  // If the spacing parameter is not provided, then return default
+  // spacing, that is font's height.
+  return spacing > 0 ? spacing : getfontheight(fontNumber);
 }
 
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t text_color, const char *texx)

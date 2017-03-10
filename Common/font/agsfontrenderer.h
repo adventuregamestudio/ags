@@ -25,6 +25,7 @@ public:
   virtual void FreeMemory(int fontNumber) = 0;
   virtual bool SupportsExtendedCharacters(int fontNumber) = 0;
   virtual int GetTextWidth(const char *text, int fontNumber) = 0;
+  // Get actual height of the given line of text
   virtual int GetTextHeight(const char *text, int fontNumber) = 0;
   // [IKM] An important note: the AGS font renderers do not use 'destination' parameter at all, probably
   // for simplicity (although that causes confusion): the parameter passed is always a global 'virtual screen'

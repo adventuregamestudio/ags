@@ -39,6 +39,8 @@ struct FontInfo
     char          Outline;
     // Custom vertical render offset, used mainly for fixing broken fonts
     int           YOffset;
+    // custom line spacing between two lines of text (0 = use font height)
+    int           LineSpacing;
 
     FontInfo();
 };
@@ -56,10 +58,16 @@ bool font_first_renderer_loaded();
 bool font_supports_extended_characters(int fontNumber);
 void ensure_text_valid_for_font(char *text, int fontnum);
 int wgettextwidth(const char *texx, int fontNumber);
+// Calculates actual height of a line of text
 int wgettextheight(const char *text, int fontNumber);
+// Get font's height (maximal height of any line of text printed with this font)
+int getfontheight(int fontNumber);
+// Get font's line spacing
+int getfontlinespacing(int fontNumber);
 int  get_font_outline(int font_number);
 void set_font_outline(int font_number, int outline_type);
 // Outputs a single line of text on the defined position on bitmap, using defined font, color and parameters
+int getfontlinespacing(int fontNumber);
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t text_color, const char *texx);
 // Loads a font from disk
 bool wloadfont_size(int fontNumber, const FontInfo &font_info, const FontRenderParams *params = NULL);

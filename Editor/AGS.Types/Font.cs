@@ -12,6 +12,7 @@ namespace AGS.Types
         private int _id;
         private string _name;
         private int _pointSize;
+        private int _fontHeight;
         private int _outlineFont;
         private FontOutlineStyle _outlineStyle;
 		private string _sourceFilename = string.Empty;
@@ -24,6 +25,7 @@ namespace AGS.Types
             _outlineFont = 0;
             _name = string.Empty;
             _pointSize = 0;
+            _fontHeight = 0;
             _lineSpacing = 0;
         }
 
@@ -49,6 +51,17 @@ namespace AGS.Types
         public string PointSizeDescription
         {
             get { return (_pointSize < 1) ? "N/A" : "" + _pointSize + " pt"; }
+        }
+
+        [AGSNoSerialize]
+        [Description("The actual height of a font, in pixels")]
+        [Category("Appearance")]
+        [DisplayName("Font Height")]
+        [ReadOnly(true)]
+        public int Height
+        {
+            get { return _fontHeight; }
+            set { _fontHeight = value; }
         }
 
         [Description("The name of the font")]

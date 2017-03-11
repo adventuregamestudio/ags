@@ -22,6 +22,7 @@ namespace AGS.Editor
         public FontEditor(AGS.Types.Font selectedFont) : this()
         {
             _item = selectedFont;
+            PaintFont();
         }
 
         private AGS.Types.Font _item;
@@ -29,7 +30,11 @@ namespace AGS.Editor
         public AGS.Types.Font ItemToEdit
         {
             get { return _item; }
-            set { _item = value; }
+            set
+            {
+                _item = value;
+                PaintFont();
+            }
         }
 
         protected override string OnGetHelpKeyword()
@@ -37,14 +42,25 @@ namespace AGS.Editor
             return "Fonts";
         }
 
-        private void imagePanel_Paint(object sender, PaintEventArgs e)
+        private void PaintFont()
         {
-            if (_item != null)
+            if (_item == null)
             {
-                IntPtr hdc = e.Graphics.GetHdc();
-                Factory.NativeProxy.DrawFont(hdc, 0, 0, _item.ID);
-                e.Graphics.ReleaseHdc();
+                pictureBox.Image = null;
+                return;
             }
+
+            if (imagePanel.ClientSize.Width == 0)
+                return; // sometimes occurs during automatic rearrangement of controls
+
+            int height = Factory.NativeProxy.DrawFont(IntPtr.Zero, 0, 0, imagePanel.ClientSize.Width, _item.ID);
+            Bitmap bmp = new Bitmap(imagePanel.ClientSize.Width, height);
+
+            Graphics g = Graphics.FromImage(bmp);
+            Factory.NativeProxy.DrawFont(g.GetHdc(), 0, 0, imagePanel.ClientSize.Width, _item.ID);
+            g.ReleaseHdc();
+
+            pictureBox.Image = bmp;
         }
 
         private void ImportTTFFont(string fileName, string newTTFName, string newWFNName)
@@ -114,7 +130,7 @@ namespace AGS.Editor
                 }
                 Factory.NativeProxy.GameSettingsChanged(Factory.AGSEditor.CurrentGame);
                 Factory.GUIController.SetPropertyGridObject(_item);
-                imagePanel.Invalidate();
+                PaintFont();
             }
             catch (Exception ex)
             {
@@ -135,6 +151,11 @@ namespace AGS.Editor
                     }
                 }
             }
+        }
+
+        private void imagePanel_SizeChanged(object sender, EventArgs e)
+        {
+            PaintFont();
         }
 
     }

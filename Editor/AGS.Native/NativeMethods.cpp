@@ -24,7 +24,9 @@ extern AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad);
 extern void save_crm_file(Room ^roomToSave);
 extern const char* import_sci_font(const char*fnn,int fslot);
 extern bool reload_font(int curFont);
-extern void drawFontAt (int hdc, int fontnum, int x,int y);
+// Draws font char sheet on the provided context and returns the height of drawn object;
+// may be called with hdc = 0 to get required height without drawing anything
+extern int drawFontAt (int hdc, int fontnum, int x, int y, int width);
 extern Dictionary<int, Sprite^>^ load_sprite_dimensions();
 extern void drawGUI(int hdc, int x,int y, GUI^ gui, int scaleFactor, int selectedControl);
 extern void drawSprite(int hdc, int x,int y, int spriteNum, bool flipImage);
@@ -196,9 +198,9 @@ namespace AGS
 			drawSprite(hDC, x, y, spriteNum, flipImage);
 		}
 
-		void NativeMethods::DrawFont(int hDC, int x, int y, int fontNum)
+		int NativeMethods::DrawFont(int hDC, int x, int y, int width, int fontNum)
 		{
-			drawFontAt(hDC, fontNum, x, y);
+			return drawFontAt(hDC, fontNum, x, y, width);
 		}
 
 		void NativeMethods::DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum)

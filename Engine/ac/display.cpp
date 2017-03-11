@@ -61,11 +61,15 @@ extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 
 int display_message_aschar=0;
-char *heightTestString = "ZHwypgfjqhkilIK";
 
 
 TopBarSettings topBar;
-int texthit;
+struct DisplayVars
+{
+    int lineheight;    // font's height of single line
+    int linespacing;   // font's line spacing
+    int fulltxtheight; // total height of all the text
+} disp;
 
 // Pass yy = -1 to find Y co-ord automatically
 // allowShrink = 0 for none, 1 for leftwards, 2 for rightwards
@@ -90,7 +94,9 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 
     ensure_text_valid_for_font(todis, usingfont);
     break_up_text_into_lines(wii-2*padding,usingfont,todis);
-    texthit = wgetfontheight(usingfont);
+    disp.lineheight = getfontheight_outlined(usingfont);
+    disp.linespacing= getfontspacing_outlined(usingfont);
+    disp.fulltxtheight = getheightoflines(usingfont, numlines);
 
     // AGS 2.x: If the screen is faded out, fade in again when displaying a message box.
     if (!asspch && (loaded_game_file_version <= kGameVersion_272))
@@ -125,10 +131,10 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 
     if (xx == OVR_AUTOPLACE) ;
     // centre text in middle of screen
-    else if (yy<0) yy=(play.viewport.GetHeight()/2-(numlines*texthit)/2)-padding;
+    else if (yy<0) yy=play.viewport.GetHeight()/2-disp.fulltxtheight/2-padding;
     // speech, so it wants to be above the character's head
     else if (asspch > 0) {
-        yy-=numlines*texthit;
+        yy-=disp.fulltxtheight;
         if (yy < 5) yy=5;
         yy = adjust_y_for_guis (yy);
     }
@@ -164,7 +170,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
     if (blocking < 2)
         remove_screen_overlay(OVER_TEXTMSG);
 
-    Bitmap *text_window_ds = BitmapHelper::CreateTransparentBitmap((wii > 0) ? wii : 2, numlines*texthit + extraHeight, ScreenResolution.ColorDepth);
+    Bitmap *text_window_ds = BitmapHelper::CreateTransparentBitmap((wii > 0) ? wii : 2, disp.fulltxtheight + extraHeight, ScreenResolution.ColorDepth);
     SetVirtualScreen(text_window_ds);
 
     // inform draw_text_window to free the old bitmap
@@ -199,7 +205,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 
         for (ee=0;ee<numlines;ee++) {
             //int ttxp=wii/2 - wgettextwidth_compensate(lines[ee], usingfont)/2;
-            int ttyp=ttxtop+ee*texthit;
+            int ttyp=ttxtop+ee*disp.linespacing;
             // asspch < 0 means that it's inside a text box so don't
             // centre the text
             if (asspch < 0) {
@@ -231,7 +237,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         adjust_y_coordinate_for_text(&yoffs, usingfont);
 
         for (ee=0;ee<numlines;ee++)
-            wouttext_aligned (text_window_ds, xoffs, yoffs + ee * texthit, oriwid, usingfont, text_color, lines[ee], play.text_align);
+            wouttext_aligned (text_window_ds, xoffs, yoffs + ee * disp.linespacing, oriwid, usingfont, text_color, lines[ee], play.text_align);
     }
 
     int ovrtype = OVER_TEXTMSG;
@@ -465,20 +471,40 @@ void wouttext_aligned (Bitmap *ds, int usexp, int yy, int oriwid, int usingfont,
     wouttext_outline(ds, usexp, yy, usingfont, text_color, (char *)text);
 }
 
-int wgetfontheight(int font) {
-    int htof = wgettextheight(heightTestString, font);
-
+int get_outline_adjustment(int font)
+{
     // automatic outline fonts are 2 pixels taller
     if (get_font_outline(font) == FONT_OUTLINE_AUTO) {
         // scaled up SCI font, push outline further out
         if ((game.options[OPT_NOSCALEFNT] == 0) && (!font_supports_extended_characters(font)))
-            htof += get_fixed_pixel_size(2);
+            return get_fixed_pixel_size(2);
         // otherwise, just push outline by 1 pixel
         else
-            htof += 2;
+            return 2;
     }
+    return 0;
+}
 
-    return htof;
+int getfontheight_outlined(int font)
+{
+    return getfontheight(font) + get_outline_adjustment(font);
+}
+
+int getfontspacing_outlined(int font)
+{
+    return use_default_linespacing(font) ?
+        getfontheight_outlined(font) :
+        getfontlinespacing(font);
+}
+
+int getfontlinegap(int font)
+{
+    return getfontspacing_outlined(font) - getfontheight_outlined(font);
+}
+
+int getheightoflines(int font, int numlines)
+{
+    return getfontspacing_outlined(font) * (numlines - 1) + getfontheight_outlined(font);
 }
 
 int wgettextwidth_compensate(const char *tex, int font) {
@@ -659,7 +685,7 @@ void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
         xx[0]-=spritewidth[tbnum];
         yy[0]-=spriteheight[tbnum];
         if (ovrheight == 0)
-            ovrheight = numlines*texthit;
+            ovrheight = disp.fulltxtheight;
 
         if (should_free_ds)
             delete *text_window_ds;

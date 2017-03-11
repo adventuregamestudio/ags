@@ -158,7 +158,7 @@ void RawPrint (int xx, int yy, const char *text) {
 }
 void RawPrintMessageWrapped (int xx, int yy, int wid, int font, int msgm) {
     char displbuf[3000];
-    int texthit = wgetfontheight(font);
+    int linespacing = getfontspacing_outlined(font);
     multiply_up_coordinates(&xx, &yy);
     wid = multiply_up_coordinate(wid);
 
@@ -171,7 +171,7 @@ void RawPrintMessageWrapped (int xx, int yy, int wid, int font, int msgm) {
     RAW_START();
     color_t text_color = play.raw_color;
     for (int i = 0; i < numlines; i++)
-        wouttext_outline(RAW_SURFACE(), xx, yy + texthit*i, font, text_color, lines[i]);
+        wouttext_outline(RAW_SURFACE(), xx, yy + linespacing*i, font, text_color, lines[i]);
     invalidate_screen();
     mark_current_background_dirty();
     RAW_END();

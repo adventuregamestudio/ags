@@ -670,7 +670,7 @@ void invalidate_sprite(int x1, int y1, IDriverDependantBitmap *pic) {
 
 void draw_and_invalidate_text(Bitmap *ds, int x1, int y1, int font, color_t text_color, const char *text) {
     wouttext_outline(ds, x1, y1, font, text_color, (char*)text);
-    invalidate_rect(x1, y1, x1 + wgettextwidth_compensate(text, font), y1 + wgetfontheight(font) + get_fixed_pixel_size(1));
+    invalidate_rect(x1, y1, x1 + wgettextwidth_compensate(text, font), y1 + getfontheight_outlined(font) + get_fixed_pixel_size(1));
 }
 
 void invalidate_screen() {
@@ -2130,7 +2130,7 @@ void draw_fps()
 
     if (fpsDisplay == NULL)
     {
-        fpsDisplay = BitmapHelper::CreateBitmap(get_fixed_pixel_size(100), (wgetfontheight(FONT_SPEECH) + get_fixed_pixel_size(5)), ScreenResolution.ColorDepth);
+        fpsDisplay = BitmapHelper::CreateBitmap(get_fixed_pixel_size(100), (getfontheight_outlined(FONT_SPEECH) + get_fixed_pixel_size(5)), ScreenResolution.ColorDepth);
         fpsDisplay = ReplaceBitmapWithSupportedFormat(fpsDisplay);
     }
     fpsDisplay->ClearTransparent();
@@ -2422,8 +2422,8 @@ void update_screen() {
     {
         //int otextc = ds->GetTextColor();
         int ypp = 1;
-        int txtheight = wgetfontheight(0);
-        int barheight = (DEBUG_CONSOLE_NUMLINES - 1) * txtheight + 4;
+        int txtspacing= getfontspacing_outlined(0);
+        int barheight = getheightoflines(0, DEBUG_CONSOLE_NUMLINES - 1) + 4;
 
         if (debugConsoleBuffer == NULL)
         {
@@ -2439,7 +2439,7 @@ void update_screen() {
         color_t text_color = debugConsoleBuffer->GetCompatibleColor(16);
         for (int jj = first_debug_line; jj != last_debug_line; jj = (jj + 1) % DEBUG_CONSOLE_NUMLINES) {
             wouttextxy(debugConsoleBuffer, 1, ypp, 0, text_color, debug_line[jj]);
-            ypp += txtheight;
+            ypp += txtspacing;
         }
         //buf_graphics.text_color = otextc;
         //ds = pop_screen();

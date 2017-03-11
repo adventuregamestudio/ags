@@ -67,7 +67,7 @@ void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const 
 
     topBar.wantIt = 1;
     topBar.font = FONT_NORMAL;
-    topBar.height = wgetfontheight(topBar.font);
+    topBar.height = getfontheight_outlined(topBar.font);
     topBar.height += multiply_up_coordinate(play.top_bar_borderwidth) * 2 + get_fixed_pixel_size(1);
 
     // they want to customize the font

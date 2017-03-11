@@ -64,6 +64,8 @@ int wgettextheight(const char *text, int fontNumber);
 int getfontheight(int fontNumber);
 // Get font's line spacing
 int getfontlinespacing(int fontNumber);
+// Get is font is meant to use default line spacing
+bool use_default_linespacing(int fontNumber);
 int  get_font_outline(int font_number);
 void set_font_outline(int font_number, int outline_type);
 // Outputs a single line of text on the defined position on bitmap, using defined font, color and parameters

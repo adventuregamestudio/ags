@@ -147,7 +147,7 @@ void engine_init_resolution_settings(const Size game_size)
         wtext_multiply = 1;
     }
 
-    usetup.textheight = wgetfontheight(0) + 1;
+    usetup.textheight = getfontheight_outlined(0) + 1;
     current_screen_resolution_multiplier = game_size.Width / play.native_size.Width;
 
     if (game.IsHiRes() &&

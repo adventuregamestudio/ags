@@ -149,6 +149,11 @@ int getfontlinespacing(int fontNumber)
   return spacing > 0 ? spacing : getfontheight(fontNumber);
 }
 
+bool use_default_linespacing(int fontNumber)
+{
+    return fonts[fontNumber].Info.LineSpacing == 0;
+}
+
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t text_color, const char *texx)
 {
   yyy += fonts[fontNumber].Info.YOffset;

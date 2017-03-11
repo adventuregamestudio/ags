@@ -338,7 +338,7 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
 
 int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, int numdisp, int mouseison, int areawid,
     int bullet_wid, int usingfont, DialogTopic*dtop, char*disporder, short*dispyp,
-    int txthit, int utextcol, int padding) {
+    int linespacing, int utextcol, int padding) {
   int ww;
 
   color_t text_color;
@@ -378,7 +378,7 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
     }
     for (cc=0;cc<numlines;cc++) {
       wouttext_outline(ds, dlgxp+((cc==0) ? 0 : 9)+bullet_wid, curyp, usingfont, text_color, lines[cc]);
-      curyp+=txthit;
+      curyp+=linespacing;
     }
     if (ww < numdisp-1)
       curyp += multiply_up_coordinate(game.options[OPT_DIALOGGAP]);
@@ -392,7 +392,7 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
   needheight = 0;\
   for (int i = 0; i < numdisp; ++i) {\
     break_up_text_into_lines(areawid-(2*padding+2+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[i]]));\
-    needheight += (numlines * txthit) + multiply_up_coordinate(game.options[OPT_DIALOGGAP]);\
+    needheight += getheightoflines(usingfont, numlines) + multiply_up_coordinate(game.options[OPT_DIALOGGAP]);\
   }\
   if (parserInput) needheight += parserInput->hit + multiply_up_coordinate(game.options[OPT_DIALOGGAP]);\
  }
@@ -436,7 +436,8 @@ struct DialogOptions
     int dialog_abs_x; // absolute dialog position on screen
     int padding;
     int usingfont;
-    int txthit;
+    int lineheight;
+    int linespacing;
     int curswas;
     int bullet_wid;
     int needheight;
@@ -485,7 +486,8 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
 
   dlgyp = get_fixed_pixel_size(160);
   usingfont=FONT_NORMAL;
-  txthit = wgetfontheight(usingfont);
+  lineheight = getfontheight_outlined(usingfont);
+  linespacing = getfontspacing_outlined(usingfont);
   curswas=cur_cursor;
   bullet_wid = 0;
   ddb = NULL;
@@ -525,7 +527,7 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
   parserActivated = 0;
   if ((dtop->topicFlags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0)) {
     parserInput = new GUITextBox();
-    parserInput->hit = txthit + get_fixed_pixel_size(4);
+    parserInput->hit = lineheight + get_fixed_pixel_size(4);
     parserInput->exflags = 0;
     parserInput->font = usingfont;
   }
@@ -735,7 +737,7 @@ void DialogOptions::Redraw()
       txoffs += xspos;
       tyoffs += yspos;
       dlgyp = tyoffs;
-      curyp = write_dialog_options(ds, options_surface_has_alpha, txoffs,tyoffs,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol,padding);
+      curyp = write_dialog_options(ds, options_surface_has_alpha, txoffs,tyoffs,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,linespacing,forecol,padding);
       if (parserInput)
         parserInput->x = txoffs;
     }
@@ -784,7 +786,7 @@ void DialogOptions::Redraw()
 
       //curyp = dlgyp + 1;
       curyp = dlgyp;
-      curyp = write_dialog_options(ds, options_surface_has_alpha, dlgxp,curyp,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol,padding);
+      curyp = write_dialog_options(ds, options_surface_has_alpha, dlgxp,curyp,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,linespacing,forecol,padding);
 
       /*if (curyp > play.viewport.GetHeight()) {
         dlgyp = play.viewport.GetHeight() - (curyp - dlgyp);

@@ -128,7 +128,7 @@ namespace AGS.Editor
                     (!Path.GetFileName(fileName).Equals("winsetup.exe", StringComparison.OrdinalIgnoreCase)) &&
                     (!Path.GetFileName(fileName).Equals(AGSEditor.CONFIG_FILE_NAME, StringComparison.OrdinalIgnoreCase)))
                 {
-                    Utilities.CreateHardLink(GetCompiledPath(LINUX_DATA_DIR, Path.GetFileName(fileName)), fileName, true);
+                    Utilities.HardlinkOrCopy(GetCompiledPath(LINUX_DATA_DIR, Path.GetFileName(fileName)), fileName, true);
                 }
             }
             // Update config file with current game parameters
@@ -145,7 +145,7 @@ namespace AGS.Editor
                     // should have lib32 or lib64 subdirectories as part of their name
                     folderName = Path.GetFileName(Path.GetDirectoryName(fileName).TrimEnd(Path.DirectorySeparatorChar));
                 }
-                Utilities.CreateHardLink(GetCompiledPath(LINUX_DATA_DIR, folderName, Path.GetFileName(fileName)),
+                Utilities.HardlinkOrCopy(GetCompiledPath(LINUX_DATA_DIR, folderName, Path.GetFileName(fileName)),
                     fileName, true);
             }
             string linuxDataLib32Dir = GetCompiledPath(LINUX_DATA_DIR, LINUX_LIB32_DIR);
@@ -155,9 +155,9 @@ namespace AGS.Editor
             string editorLinuxLib64Dir = Path.Combine(editorLinuxDir, LINUX_LIB64_DIR);
             foreach (string soName in _plugins)
             {
-                Utilities.CreateHardLink(Path.Combine(linuxDataLib32Dir, soName),
+                Utilities.HardlinkOrCopy(Path.Combine(linuxDataLib32Dir, soName),
                     Path.Combine(editorLinuxLib32Dir, soName), true);
-                Utilities.CreateHardLink(Path.Combine(linuxDataLib64Dir, soName),
+                Utilities.HardlinkOrCopy(Path.Combine(linuxDataLib64Dir, soName),
                     Path.Combine(editorLinuxLib64Dir, soName), true);
             }
             string scriptFileName = GetCompiledPath(Factory.AGSEditor.BaseGameFileName.Replace(" ", "")); // strip whitespace from script name

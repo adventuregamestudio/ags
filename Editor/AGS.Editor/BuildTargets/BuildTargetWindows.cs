@@ -236,7 +236,7 @@ namespace AGS.Editor
                 }
                 else if (!fileName.EndsWith(AGSEditor.CONFIG_FILE_NAME))
                 {
-                    Utilities.CreateHardLink(GetCompiledPath(Path.GetFileName(fileName)), fileName, true);
+                    Utilities.HardlinkOrCopy(GetCompiledPath(Path.GetFileName(fileName)), fileName, true);
                 }
             }
             // Update config file with current game parameters

@@ -1033,12 +1033,11 @@ const char* import_sci_font(const char*fnn,int fslot) {
 }
 
 
-#define FONTGRIDSIZE 18*blockSize
-void drawFontAt (int hdc, int fontnum, int x,int y) {
+int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
   
-  if (fontnum >= thisgame.numfonts) 
+  if (fontnum >= thisgame.numfonts)
   {
-	  return;
+    return 0;
   }
 
   update_font_sizes();
@@ -1047,16 +1046,35 @@ void drawFontAt (int hdc, int fontnum, int x,int y) {
   int blockSize = (!thisgame.IsHiRes()) ? 1 : 2;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
+  int char_height = thisgame.fontflags[fontnum] & FFLG_SIZEMASK;
+  int grid_size   = max(10, char_height);
+  int grid_margin = max(4, grid_size / 4);
+  grid_size += grid_margin * 2;
+  grid_size *= blockSize;
+  int first_char = 0;
+  int num_chars  = 256;
+  int padding = 5;
+
+  if (doubleSize > 1)
+      width /= 2;
+  int chars_per_row = max(1, (width - (padding * 2)) / grid_size);
+  int height = (num_chars / chars_per_row + 1) * grid_size + padding * 2;
+
+  if (!hdc)
+    return height * doubleSize;
+
   // we can't antialias font because changing col dep to 16 here causes
   // it to crash ... why?
-  Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(FONTGRIDSIZE*10, FONTGRIDSIZE*10, 8);
+  Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(width, height, 8);
   tempblock->Fill(0);
-  //Common::Bitmap *abufwas = abuf;
-  //abuf = tempblock;
-  color_t text_color = tempblock->GetCompatibleColor(15);
-  for (int aa=0;aa<96;aa++)
-    wgtprintf(tempblock, 5+(aa%10)*FONTGRIDSIZE,5+(aa/10)*FONTGRIDSIZE, fontnum, text_color, "%c",aa+32);
-  //abuf = abufwas;
+  color_t text_color = tempblock->GetCompatibleColor(15); // fixed white color
+  for (int c = first_char; c < num_chars; ++c)
+  {
+    wgtprintf(tempblock,
+                padding + (c % chars_per_row) * grid_size + grid_margin,
+                padding + (c / chars_per_row) * grid_size + grid_margin,
+                fontnum, text_color, "%c", c);
+  }
 
   if (doubleSize > 1) 
     drawBlockDoubleAt(hdc, tempblock, x, y);
@@ -1064,6 +1082,7 @@ void drawFontAt (int hdc, int fontnum, int x,int y) {
     drawBlock((HDC)hdc, tempblock, x, y);
    
   delete tempblock;
+  return height * doubleSize;
 }
 
 void proportionalDraw (int newwid, int sprnum, int*newx, int*newy) {

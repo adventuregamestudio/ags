@@ -1,5 +1,16 @@
 REVISION HISTORY
 ================
+VERSION 3.4.0 - Patch 4, March 2017
+
+Editor:
+- Improved Font preview, now it displays all 256 supported characters and
+  resizes itself to accomodate these on the grid properly.
+- Fixed game compilation on systems which have Japanese ANSI or similar locale
+  as default locale for non-Unicode applications.
+- Fixed Linux binaries were not copied to the Compiled folder if AGS Editor is
+  installed to "C:/Program Files" and run in a non-administrator mode.
+
+
 VERSION 3.4.0 - Patch 3, February 2017
 
 Common bug fixes:

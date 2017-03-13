@@ -508,11 +508,28 @@ namespace AGS.Editor
             return ((os.Platform == PlatformID.Win32NT) && (os.Version.Major >= 6));
         }
 
-        public static bool CreateHardLink(string destFileName, string sourceFileName)
+        /// <summary>
+        /// Creates hardlink, if failed then creates file's copy.
+        /// </summary>
+        /// <param name="destFileName">Destination file path, name of the created hardlink</param>
+        /// <param name="sourceFileName">Source file path, what hardlink to</param>
+        /// <param name="overwrite">Whether overwrite existing hardlink or not</param>
+        /// <returns></returns>
+        public static bool HardlinkOrCopy(string destFileName, string sourceFileName, bool overwrite)
         {
-            return CreateHardLink(destFileName, sourceFileName, false);
+            bool res = CreateHardLink(destFileName, sourceFileName, overwrite);
+            if (!res)
+                File.Copy(sourceFileName, destFileName, overwrite);
+            return res;
         }
 
+        /// <summary>
+        /// Creates hardlink using operating system utilities.
+        /// </summary>
+        /// <param name="destFileName">Destination file path, name of the created hardlink</param>
+        /// <param name="sourceFileName">Source file path, what hardlink to</param>
+        /// <param name="overwrite">Whether overwrite existing hardlink or not</param>
+        /// <returns></returns>
         public static bool CreateHardLink(string destFileName, string sourceFileName, bool overwrite)
         {
             if (File.Exists(destFileName))
@@ -556,7 +573,7 @@ namespace AGS.Editor
             {
                 process.EnableRaisingEvents = true;
                 process.WaitForExit();
-                if (process.ExitCode != 0) return false;
+                result = process.ExitCode == 0;
                 process.Close();
             }
             return result;

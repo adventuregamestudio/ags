@@ -11,17 +11,69 @@ namespace AGS.Editor
 {
     public class DataFileWriter
     {
-        private static byte[] GetBytes(string text, int length)
+        // TODO: probably move these GetAnsiBytes functions to some utility class
+
+        // Converts unicode string into ANSI array of bytes; the returned array
+        // will NOT have a null-terminator appended.
+        private static byte[] GetAnsiBytes(string text)
+        {
+            return GetAnsiBytes(text, -1, -1, 0);
+        }
+
+        // Converts unicode string into ANSI array of bytes; the returned array
+        // will contain converted string with the null-terminator appended.
+        private static byte[] GetAnsiBytesTerminated(string text)
+        {
+            return GetAnsiBytes(text, -1, -1, 1);
+        }
+
+        // Converts unicode string into ANSI array of bytes; the returned array
+        // will contain converted string with the null-terminator appended.
+        // The resulting array will be no longer than max_len bytes in size.
+        private static byte[] GetAnsiBytesTerminated(string text, int max_len)
+        {
+            return GetAnsiBytes(text, -1, max_len, 1);
+        }
+
+        // Converts unicode string into ANSI array of bytes.
+        // If fixed_length parameter has positive value, the returned array will
+        // be exactly 'fixed_length' in size. In such case the larger string
+        // gets truncated, and in case of shorter string all the unused bytes
+        // are zeroed. No null terminator is appended explicitly though.
+        private static byte[] GetAnsiBytes(string text, int fixed_length)
+        {
+            return GetAnsiBytes(text, fixed_length, fixed_length, 0);
+        }
+
+        // Converts unicode string into ANSI array of bytes.
+        // If min_size and max_size parameters have positive values, the returned
+        // array's length will be ensured to be in min_size to max_size range..
+        // If reserve_bytes is positive, that number of bytes will be reserved
+        // in the end of array, regardless of whether converted chars fit or not
+        // (useful to ensure that string is null-terminated).
+        // If converted string appears larger than array is allowed to accomodate,
+        // then it gets truncated; if it is shorter, all the unused bytes are
+        // zeroed.
+        private static byte[] GetAnsiBytes(string text, int min_size, int max_size, int reserve_bytes)
         {
             // We must convert original Unicode string into ANSI string,
             // because AGS engine currently supports only these.
             // When doing so we should use current system's codepage, to meet
             // common expectations of the game developers (and comply to how
             // the Editor behaved in the past).
-            byte[] bytes = new byte[length];
-            Encoding.Default.GetBytes(text, 0, Math.Min(text.Length, length), bytes, 0);
-            return bytes;
+            //
+            // The output array will be at least min_size in size.
+            byte[] bytes = new byte[Math.Max(min_size, Encoding.Default.GetByteCount(text) + reserve_bytes)];
+            int data_length = Encoding.Default.GetBytes(text, 0, text.Length, bytes, 0);
+            if (max_size <= 0 || bytes.Length <= max_size)
+                return bytes;
+            // If the output array is larger than requested length, then truncate it;
+            // must remember to preseve some bytes in the end, if requested by caller.
+            byte[] fixed_bytes = new byte[max_size];
+            Array.Copy(bytes, fixed_bytes, fixed_bytes.Length - reserve_bytes);
+            return fixed_bytes;
         }
+
 
         private class MultiFileLibNew
         {
@@ -137,7 +189,7 @@ namespace AGS.Editor
 
         static void FilePutStringEncrypted(string text, BinaryWriter writer)
         {
-            byte[] bytes = GetBytes(text, text.Length + 1);
+            byte[] bytes = GetAnsiBytesTerminated(text);
             FileWriteDataEncrypted(bytes, writer);
         }
 
@@ -152,8 +204,9 @@ namespace AGS.Editor
                 writer.Write((int)0);
             else
             {
-                writer.Write((int)text.Length);
-                writer.Write(GetBytes(text, text.Length));
+                byte[] bytes = GetAnsiBytes(text);
+                writer.Write((int)bytes.Length);
+                writer.Write(bytes);
             }
         }
 
@@ -165,10 +218,13 @@ namespace AGS.Editor
                 writer.Write((byte)0);
                 return;
             }
+            // This does not make much sense, but trying to match ANSI AGS logic
+            // as close as possible, we will both truncate string to maxLen chars,
+            // and truncate resulting byte array to maxLen bytes.
             int len = text.IndexOf('\0');
             if (len == -1) len += maxLen;
             if (len < text.Length) text = text.Substring(0, len);
-            writer.Write(GetBytes(text, text.Length + 1));
+            writer.Write(GetAnsiBytesTerminated(text, maxLen));
         }
 
         static void WriteCLIBHeader(BinaryWriter writer)
@@ -533,7 +589,7 @@ namespace AGS.Editor
         private static void WriteString(string src, int length, BinaryWriter writer)
         {
             if ((writer == null) || (length <= 0)) return;
-            byte[] bytes = GetBytes(src, length);
+            byte[] bytes = GetAnsiBytes(src, length);
             writer.Write(bytes);
         }
 
@@ -680,26 +736,24 @@ namespace AGS.Editor
             }
         }
 
-        static string EncryptText(string toEncrypt)
+        // Encrypts an ANSI string
+        static void EncryptText(byte[] toEncrypt)
         {
-            StringBuilder sb = new StringBuilder(toEncrypt);
             int p = 0;
             for (int i = 0; i < toEncrypt.Length; ++i)
             {
-                sb[i] += NativeConstants.PASSWORD_ENC_STRING[p];
-                ++p;
-                if (p == NativeConstants.PASSWORD_ENC_STRING.Length) p = 0;
+                toEncrypt[i] += NativeConstants.PASSWORD_ENC_STRING[p];
+                if (++p == NativeConstants.PASSWORD_ENC_STRING.Length)
+                    p = 0;
             }
-            sb.Append(NativeConstants.PASSWORD_ENC_STRING[p]);
-            return sb.ToString();
         }
 
         static void WriteStringEncrypted(BinaryWriter writer, string text)
         {
-            int stlent = text.Length + 1;
-            writer.Write(stlent);
-            text = EncryptText(text);
-            writer.Write(GetBytes(text, text.Length));
+            byte[] bytes = GetAnsiBytesTerminated(text);
+            EncryptText(bytes);
+            writer.Write(bytes.Length);
+            writer.Write(bytes);
         }
 
         static bool WriteCompiledScript(FileStream ostream, Script script, CompileMessages errors)

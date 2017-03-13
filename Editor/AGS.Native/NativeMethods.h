@@ -34,7 +34,9 @@ namespace AGS
 			void DrawGUI(int hDC, int x, int y, GUI^ gui, int scaleFactor, int selectedControl);
 			void DrawSprite(int hDC, int x, int y, int width, int height, int spriteNum);
 			void DrawSprite(int hDC, int x, int y, int spriteNum, bool flipImage);
-			void DrawFont(int hDC, int x, int y, int fontNum);
+			// Draws font char sheet on the provided context and returns the height of drawn object;
+			// may be called with hDC = 0 to get required height without drawing anything
+			int  DrawFont(int hDC, int x, int y, int width, int fontNum);
 			void DrawBlockOfColour(int hDC, int x, int y, int width, int height, int colourNum);
 			void DrawViewLoop(int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel);
 			Sprite^ SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);

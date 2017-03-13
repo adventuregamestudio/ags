@@ -57,7 +57,11 @@ void GameSetupStruct::read_font_flags(Common::Stream *in, GameDataVersion data_v
     in->Read(&fontflags[0], numfonts);
     in->Read(&fontoutline[0], numfonts);
     if (data_ver < kGameVersion_341)
+    {
+        memset(fontvoffset, 0, sizeof(fontvoffset));
+        memset(fontlnspace, 0, sizeof(fontlnspace));
         return;
+    }
     // Extended font parameters
     for (int i = 0; i < numfonts; ++i)
     {

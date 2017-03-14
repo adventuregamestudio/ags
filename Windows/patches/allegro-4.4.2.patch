@@ -1,0 +1,62 @@
+From 5bf1e9c45202eafd2be467dddfb22f5cfad2bf02 Mon Sep 17 00:00:00 2001
+From: Ivan Mogilko <ikm_spb@yahoo.com>
+Date: Sun, 26 Feb 2017 18:37:11 +0300
+Subject: [PATCH] Allegro-4.4.2 patch for AGS
+
+Supplied allegro-4.4.2.patch which has to be applied over Allegro 4.4.2 library sources before building Windows version of the engine.
+
+This patch simply makes several variables non-static, allowing them to be referred from the external code.
+---
+ src/win/wdsound.c | 2 +-
+ src/win/wkeybd.c  | 4 ++--
+ src/win/wmouse.c  | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/win/wdsound.c b/src/win/wdsound.c
+index 6f33a22..485c340 100644
+--- a/src/win/wdsound.c
++++ b/src/win/wdsound.c
+@@ -151,7 +151,7 @@ static DIGI_DRIVER digi_directsound =
+ 
+ 
+ /* sound driver globals */
+-static LPDIRECTSOUND directsound = NULL;
++LPDIRECTSOUND directsound = NULL;
+ static LPDIRECTSOUNDBUFFER prim_buf = NULL;
+ static long int initial_volume;
+ static int _freq, _bits, _stereo;
+diff --git a/src/win/wkeybd.c b/src/win/wkeybd.c
+index d85f079..174cf94 100644
+--- a/src/win/wkeybd.c
++++ b/src/win/wkeybd.c
+@@ -40,12 +40,12 @@
+ static HANDLE key_input_event = NULL;
+ static HANDLE key_input_processed_event = NULL;
+ static LPDIRECTINPUT key_dinput = NULL;
+-static LPDIRECTINPUTDEVICE key_dinput_device = NULL;
++LPDIRECTINPUTDEVICE key_dinput_device = NULL;
+ 
+ 
+ /* lookup table for converting DIK_* scancodes into Allegro KEY_* codes */
+ /* this table was from pckeys.c  */
+-static const unsigned char hw_to_mycode[256] = {
++const unsigned char hw_to_mycode[256] = {
+    /* 0x00 */ 0, KEY_ESC, KEY_1, KEY_2,
+    /* 0x04 */ KEY_3, KEY_4, KEY_5, KEY_6,
+    /* 0x08 */ KEY_7, KEY_8, KEY_9, KEY_0,
+diff --git a/src/win/wmouse.c b/src/win/wmouse.c
+index ff85b73..346012f 100644
+--- a/src/win/wmouse.c
++++ b/src/win/wmouse.c
+@@ -82,7 +82,7 @@ HCURSOR _win_hcursor = NULL;	/* Hardware cursor to display */
+ #define DINPUT_BUFFERSIZE 256
+ static HANDLE mouse_input_event = NULL;
+ static LPDIRECTINPUT mouse_dinput = NULL;
+-static LPDIRECTINPUTDEVICE mouse_dinput_device = NULL;
++LPDIRECTINPUTDEVICE mouse_dinput_device = NULL;
+ 
+ static int dinput_buttons = 0;
+ static int dinput_wheel = FALSE;
+-- 
+1.9.5.msysgit.0
+

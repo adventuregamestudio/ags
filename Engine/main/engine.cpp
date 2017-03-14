@@ -103,8 +103,6 @@ Common::AssetError errcod;
 
 t_engine_pre_init_callback engine_pre_init_callback = 0;
 
-extern "C" HWND allegro_wnd;
-
 #define ALLEGRO_KEYBOARD_HANDLER
 // KEYBOARD HANDLER
 #if !defined (WINDOWS_VERSION)
@@ -1600,7 +1598,7 @@ int initialize_engine_with_exception_handling(int argc,char*argv[])
             excinfo.ExceptionCode, excinfo.ExceptionAddress, tempmsg, our_eip, EngineVersion.LongString.GetCStr(), eip_guinum, eip_guiobj, get_cur_script(5),
             (miniDumpResultCode == 0) ? "An error file CrashInfo.dmp has been created. You may be asked to upload this file when reporting this problem on the AGS Forums." : 
             "Unable to create an error dump file.", miniDumpResultCode);
-        MessageBoxA(allegro_wnd, printfworkingspace, "Illegal exception", MB_ICONSTOP | MB_OK);
+        MessageBoxA(win_get_window(), printfworkingspace, "Illegal exception", MB_ICONSTOP | MB_OK);
         proper_exit = 1;
     }
     return EXIT_CRASH;

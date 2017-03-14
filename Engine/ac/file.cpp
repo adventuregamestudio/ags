@@ -402,47 +402,6 @@ DUMBFILE *DUMBfileFromAsset(const AssetPath &path)
     return NULL;
 }
 
-// TODO: remove our pack_fopen and use real Allegro's pack_fopen instead
-// (need to stop using patched libraries for this)
-//
-#if defined (AGS_RUNTIME_PATCH_ALLEGRO)
-#include <dlfcn.h>
-#endif // AGS_RUNTIME_PATCH_ALLEGRO
-// Declare renamed function from the patched Allegro library
-#define PFO_PARAM const char *
-extern "C" {
-#if !defined(AGS_RUNTIME_PATCH_ALLEGRO)
-    extern PACKFILE *__old_pack_fopen(PFO_PARAM, PFO_PARAM);
-#endif
-}
-
-PACKFILE *pack_fopen(const char *filename, const char *mode)
-{
-    // Just call __old_pack_fopen
-#if defined(AGS_RUNTIME_PATCH_ALLEGRO)
-    static PACKFILE * (*__old_pack_fopen)(PFO_PARAM, PFO_PARAM) = NULL;
-    if(!__old_pack_fopen)
-    {
-        __old_pack_fopen = (PACKFILE* (*)(PFO_PARAM, PFO_PARAM))dlsym(RTLD_NEXT, "pack_fopen");
-        if(!__old_pack_fopen)
-        {
-            // Looks like we're linking statically to allegro...
-            // Let's see if it has been patched
-            __old_pack_fopen = (PACKFILE* (*)(PFO_PARAM, PFO_PARAM))dlsym(RTLD_DEFAULT, "__allegro_pack_fopen");
-            if(!__old_pack_fopen)
-            {
-                fprintf(stderr, "If you're linking statically to allegro, you need to apply this patch to allegro:\n"
-                "https://sourceforge.net/tracker/?func=detail&aid=3302567&group_id=5665&atid=355665\n");
-                exit(1);
-            }
-        }
-    }
-#endif
-    return __old_pack_fopen(filename, mode);
-}
-
-
-
 bool DoesAssetExistInLib(const AssetPath &assetname)
 {
     bool needsetback = false;

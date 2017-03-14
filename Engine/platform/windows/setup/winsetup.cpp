@@ -49,7 +49,10 @@
 #define MIDI_NONE             0 
 #define MIDI_WIN32MAPPER         AL_ID('W','3','2','M')
 
-extern "C" HWND allegro_wnd;
+extern "C"
+{
+    HWND win_get_window();
+}
 
 namespace AGS
 {
@@ -524,7 +527,7 @@ SetupReturnValue WinSetupDialog::ShowModal(const ConfigTree &cfg_in, ConfigTree 
                                            const String &data_dir, const String &version_str)
 {
     _dlg = new WinSetupDialog(cfg_in, cfg_out, data_dir, version_str);
-    INT_PTR dlg_res = DialogBoxParam(GetModuleHandle(NULL), (LPCTSTR)IDD_SETUP, allegro_wnd,
+    INT_PTR dlg_res = DialogBoxParam(GetModuleHandle(NULL), (LPCTSTR)IDD_SETUP, win_get_window(),
         (DLGPROC)WinSetupDialog::DialogProc, 0L);
     delete _dlg;
     _dlg = NULL;
@@ -597,7 +600,7 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
         _winCfg.GameResolution = ResolutionTypeToSize(_winCfg.GameResType, _winCfg.LetterboxByDesign);
 
     SetText(_hwnd, _winCfg.Title);
-    SetText(allegro_wnd, _winCfg.Title);
+    SetText(win_get_window(), _winCfg.Title);
     SetText(_hGameResolutionText, String::FromFormat("Native game resolution: %d x %d x %d",
         _winCfg.GameResolution.Width, _winCfg.GameResolution.Height, _winCfg.GameColourDepth));
 
@@ -1232,7 +1235,7 @@ void WinSetupDialog::UpdateMouseSpeedText()
 //=============================================================================
 void SetWinIcon()
 {
-    SetClassLong(allegro_wnd,GCL_HICON,
+    SetClassLong(win_get_window(),GCL_HICON,
         (LONG) LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON))); 
 }
 

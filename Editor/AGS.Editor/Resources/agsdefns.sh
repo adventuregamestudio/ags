@@ -1033,6 +1033,10 @@ import void RawRestoreScreen ();
 import int  GetTextWidth(const string text, FontType);
 /// Gets the height of the specified text in the specified font when wrapped at the specified width
 import int  GetTextHeight(const string text, FontType, int width);
+/// Gets the font's height, in pixels
+import int  GetFontHeight(FontType);
+/// Gets the default step between two lines of text for the specified font
+import int  GetFontLineSpacing(FontType);
 /// Adds to the player's score and plays the score sound, if set.
 import void GiveScore(int points);
 /// Refreshes the on-screen inventory display.

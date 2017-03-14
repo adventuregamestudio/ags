@@ -12,10 +12,12 @@ namespace AGS.Types
         private int _id;
         private string _name;
         private int _pointSize;
+        private int _fontHeight;
         private int _outlineFont;
         private FontOutlineStyle _outlineStyle;
 		private string _sourceFilename = string.Empty;
         private int _verticalOffset;
+        private int _lineSpacing;
 
         public Font()
         {
@@ -23,6 +25,8 @@ namespace AGS.Types
             _outlineFont = 0;
             _name = string.Empty;
             _pointSize = 0;
+            _fontHeight = 0;
+            _lineSpacing = 0;
         }
 
         [Description("The ID number of the font")]
@@ -47,6 +51,17 @@ namespace AGS.Types
         public string PointSizeDescription
         {
             get { return (_pointSize < 1) ? "N/A" : "" + _pointSize + " pt"; }
+        }
+
+        [AGSNoSerialize]
+        [Description("The actual height of a font, in pixels")]
+        [Category("Appearance")]
+        [DisplayName("Font Height")]
+        [ReadOnly(true)]
+        public int Height
+        {
+            get { return _fontHeight; }
+            set { _fontHeight = value; }
         }
 
         [Description("The name of the font")]
@@ -116,6 +131,14 @@ namespace AGS.Types
         {
             get { return _verticalOffset; }
             set { _verticalOffset = value; }
+        }
+
+        [Description("Default step between successive lines of text, in pixels. Setting it lower than font's height will make lines partially overlap. Put 0 to use default spacing (usually - font height).")]
+        [Category("Appearance")]
+        public int LineSpacing
+        {
+            get { return _lineSpacing; }
+            set { _lineSpacing = value; }
         }
 
 		[Browsable(false)]

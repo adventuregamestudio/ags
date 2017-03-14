@@ -27,6 +27,8 @@ void InterfaceOff(int ifn);
 void CentreGUI (int ifn);
 int  GetTextWidth(const char *text, int fontnum);
 int  GetTextHeight(const char *text, int fontnum, int width);
+int  GetFontHeight(int fontnum);
+int  GetFontLineSpacing(int fontnum);
 void SetGUIBackgroundPic (int guin, int slotn);
 void DisableInterface();
 void EnableInterface();

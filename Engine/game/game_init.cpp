@@ -321,6 +321,7 @@ void LoadFonts()
         finfo.SizePt  = game.fontflags[i] &  FFLG_SIZEMASK;
         finfo.Outline = game.fontoutline[i];
         finfo.YOffset = game.fontvoffset[i];
+        finfo.LineSpacing = Math::Max(0, game.fontlnspace[i]);
 
         // Apply compatibility adjustments
         if (finfo.SizePt == 0)

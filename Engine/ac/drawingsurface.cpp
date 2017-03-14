@@ -383,7 +383,7 @@ void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int fo
 }
 
 void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy, int wid, int font, int alignment, const char *msg) {
-    int texthit = wgetfontheight(font);
+    int linespacing = getfontspacing_outlined(font);
     sds->MultiplyCoordinates(&xx, &yy);
     sds->MultiplyThickness(&wid);
 
@@ -405,7 +405,7 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
             drawAtX = (xx + wid) - wgettextwidth(lines[i], font);
         }
 
-        wouttext_outline(ds, drawAtX, yy + texthit*i, font, text_color, lines[i]);
+        wouttext_outline(ds, drawAtX, yy + linespacing*i, font, text_color, lines[i]);
     }
 
     sds->FinishedDrawing();

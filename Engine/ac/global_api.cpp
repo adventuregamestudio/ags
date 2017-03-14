@@ -775,6 +775,16 @@ RuntimeScriptValue Sc_GetTextWidth(const RuntimeScriptValue *params, int32_t par
     API_SCALL_INT_POBJ_PINT(GetTextWidth, const char);
 }
 
+RuntimeScriptValue Sc_GetFontHeight(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(GetFontHeight);
+}
+
+RuntimeScriptValue Sc_GetFontLineSpacing(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(GetFontLineSpacing);
+}
+
 // int (int whatti)
 RuntimeScriptValue Sc_sc_GetTime(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2383,6 +2393,8 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("GetTextBoxText",           Sc_GetTextBoxText);
 	ccAddExternalStaticFunction("GetTextHeight",            Sc_GetTextHeight);
 	ccAddExternalStaticFunction("GetTextWidth",             Sc_GetTextWidth);
+	ccAddExternalStaticFunction("GetFontHeight",            Sc_GetFontHeight);
+	ccAddExternalStaticFunction("GetFontLineSpacing",       Sc_GetFontLineSpacing);
 	ccAddExternalStaticFunction("GetTime",                  Sc_sc_GetTime);
 	ccAddExternalStaticFunction("GetTranslation",           Sc_get_translation);
 	ccAddExternalStaticFunction("GetTranslationName",       Sc_GetTranslationName);

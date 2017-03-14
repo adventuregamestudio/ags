@@ -138,7 +138,7 @@ void GUITextBox::Draw_text_box_contents(Bitmap *ds, color_t text_color)
   if (!IsDisabled()) {
     // draw a cursor
     startx = wgettextwidth(text, font) + x + 3;
-    starty = y + 1 + wgettextheight("BigyjTEXT", font);
+    starty = y + 1 + getfontheight(font);
     ds->DrawRect(Rect(startx, starty, startx + get_fixed_pixel_size(5), starty + (get_fixed_pixel_size(1) - 1)), text_color);
   }
 }

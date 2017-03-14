@@ -81,7 +81,7 @@ void GUILabel::printtext_align(Common::Bitmap *ds, int yy, color_t text_color, c
 
 void GUILabel::Draw(Common::Bitmap *ds)
 {
-  int cyp = y, TEXT_HT;
+  int cyp = y, linespacing;
   char oritext[MAX_GUILABEL_TEXT_LEN], *teptr;
 
   check_font(&font);
@@ -89,7 +89,7 @@ void GUILabel::Draw(Common::Bitmap *ds)
   Draw_replace_macro_tokens(oritext, text);
 
   teptr = &oritext[0];
-  TEXT_HT = wgettextheight("ZhypjIHQFb", font) + 1;
+  linespacing = getfontlinespacing(font) + 1;
 
   color_t text_color = ds->GetCompatibleColor(textcol);
 
@@ -99,7 +99,7 @@ void GUILabel::Draw(Common::Bitmap *ds)
   const bool limit_by_label_frame = loaded_game_file_version >= kGameVersion_272;
   for (int aa = 0; aa < numlines; aa++) {
     printtext_align(ds, cyp, text_color, lines[aa]);
-    cyp += TEXT_HT;
+    cyp += linespacing;
     if (limit_by_label_frame && cyp > y + hit)
       break;
   }

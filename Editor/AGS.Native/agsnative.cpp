@@ -2567,6 +2567,8 @@ void SetGameResolution(Game ^game)
 }
 
 void GameUpdated(Game ^game) {
+  // TODO: this function may get called when only one item is added/removed or edited;
+  // probably it would be best to split it up into several callbacks at some point.
   thisgame.color_depth = (int)game->Settings->ColorDepth;
   SetGameResolution(game);
 
@@ -2591,12 +2593,14 @@ void GameUpdated(Game ^game) {
     }
   }
 
+  // Reload native fonts and update font information in the managed component
   thisgame.numfonts = game->Fonts->Count;
   for (int i = 0; i < thisgame.numfonts; i++) 
   {
 	  thisgame.fontflags[i] &= ~FFLG_SIZEMASK;
 	  thisgame.fontflags[i] |= game->Fonts[i]->PointSize;
 	  reload_font(i);
+	  game->Fonts[i]->Height = getfontheight(i);
   }
 }
 

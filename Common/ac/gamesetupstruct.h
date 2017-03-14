@@ -42,6 +42,7 @@ struct GameSetupStruct: public GameSetupStructBase {
     unsigned char     fontflags[MAX_FONTS];
     char              fontoutline[MAX_FONTS];
     int               fontvoffset[MAX_FONTS]; // vertical font offset
+    int               fontlnspace[MAX_FONTS]; // font's line spacing (0 = default)
     //
     unsigned char     spriteflags[MAX_SPRITES];
     InventoryItemInfo invinfo[MAX_INV];

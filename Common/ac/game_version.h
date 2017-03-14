@@ -94,6 +94,9 @@ Ambient lighting
 48 : 3.4.1
 OPT_RENDERATSCREENRES, extended engine caps check, font vertical offset.
 
+49 : 3.4.1.2
+Font custom line spacing.
+
 */
 
 enum GameDataVersion
@@ -125,7 +128,8 @@ enum GameDataVersion
     kGameVersion_340_2          = 46,
     kGameVersion_340_4          = 47,
     kGameVersion_341            = 48,
-    kGameVersion_Current        = kGameVersion_341
+    kGameVersion_341_2          = 49,
+    kGameVersion_Current        = kGameVersion_341_2
 };
 
 extern GameDataVersion loaded_game_file_version;

@@ -307,7 +307,8 @@ int IAGSEngine::FWrite (void *buffer, int32 len, int32 handle) {
     return fwrite (buffer, 1, len, (FILE*)handle);
 }
 void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int32 color, const char*text) {
-    int texthit = wgetfontheight(font);
+    // TODO: use generic function from the engine instead of having copy&pasted code here
+    int linespacing = getfontspacing_outlined(font);
 
     break_up_text_into_lines (wid, font, (char*)text);
 
@@ -315,7 +316,7 @@ void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int
     color_t text_color = ds->GetCompatibleColor(color);
     multiply_up_coordinates((int*)&xx, (int*)&yy); // stupid! quick tweak
     for (int i = 0; i < numlines; i++)
-        draw_and_invalidate_text(ds, xx, yy + texthit*i, font, text_color, lines[i]);
+        draw_and_invalidate_text(ds, xx, yy + linespacing*i, font, text_color, lines[i]);
 }
 void IAGSEngine::SetVirtualScreen (BITMAP *bmp) {
 	// [IKM] Very, very dangerous :'(

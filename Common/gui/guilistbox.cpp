@@ -30,7 +30,7 @@ int numguilist = 0;
 
 void GUIListBox::ChangeFont(int newfont) {
   font = newfont;
-  rowheight = wgettextheight("YpyjIHgMNWQ", font) + get_fixed_pixel_size(2);
+  rowheight = getfontheight(font) + get_fixed_pixel_size(2);
   num_items_fit = hit / rowheight;
 }
 

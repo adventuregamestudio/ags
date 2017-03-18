@@ -64,7 +64,7 @@ Static library built with /MD is expected to be named alleg-static.lib, and one 
 
 Alfont 1.9.1 sources already come with MSVC projects. The ones in our own fork are already set up to have distinct configuration with /MD and /MT compilation flags. You need to build only static library project for AGS.
 
-Static library built with /MD is expected to be named alfont-md.lib, and one with /MT named alfont-mt.lib.
+Static library built with /MD is expected to be named alfont_md.lib, and one with /MT named alfont_mt.lib.
 
 ### OGG, Theora and Vorbis
 

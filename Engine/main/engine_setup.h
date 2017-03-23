@@ -25,7 +25,9 @@ void engine_get_color_depths(ColorDepthOption &color_depths);
 void engine_init_resolution_settings(const Size game_size);
 // Setup engine after the graphics mode has changed
 void engine_post_gfxmode_setup(const Size &init_desktop);
+// Prepare engine for graphics mode release; could be called before switching display mode too
+void engine_pre_gfxmode_release();
 // Prepare engine to the graphics mode shutdown and gfx driver destruction
-void engine_pre_gfxmode_shutdown();
+void engine_pre_gfxsystem_shutdown();
 
 #endif // __AGS_EE_MAIN__ENGINESETUP_H

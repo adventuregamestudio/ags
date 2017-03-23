@@ -460,9 +460,15 @@ int IRSpan::mergeSpan(int tx1, int tx2) {
     return 1;
 }
 
-void init_invalid_regions(int scrnHit) {
+void init_invalid_regions(int scrnHit)
+{
+    if (_dirtyRowSize != scrnHit)
+    {
+        destroy_invalid_regions();
+        dirtyRow = new IRRow[scrnHit];
+    }
+
     numDirtyRegions = WHOLESCREENDIRTY;
-    dirtyRow = new IRRow[scrnHit];
     memset(dirtyRow, 0, sizeof(IRRow) * scrnHit);
 
     for (int e = 0; e < scrnHit; e++)
@@ -475,6 +481,7 @@ void destroy_invalid_regions()
     delete [] dirtyRow;
     dirtyRow = 0;
     _dirtyRowSize = 0;
+    numDirtyRegions = 0;
 }
 
 void update_invalid_region(Bitmap *ds, int x, int y, Bitmap *src) {

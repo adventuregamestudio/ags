@@ -128,6 +128,14 @@ void adjust_sizes_for_resolution(int filever)
 
 }
 
+void engine_setup_system_gamesize()
+{
+    scsystem.width = game.size.Width;
+    scsystem.height = game.size.Height;
+    scsystem.viewport_width = divide_down_coordinate(play.viewport.GetWidth());
+    scsystem.viewport_height = divide_down_coordinate(play.viewport.GetHeight());
+}
+
 void engine_init_resolution_settings(const Size game_size)
 {
     Debug::Printf("Initializing resolution settings");
@@ -165,6 +173,7 @@ void engine_init_resolution_settings(const Size game_size)
         game.options[OPT_LETTERBOX] == 0 ? "": " letterbox-by-design");
 
     adjust_sizes_for_resolution(loaded_game_file_version);
+    engine_setup_system_gamesize();
 }
 
 void engine_get_color_depths(ColorDepthOption &color_depths)
@@ -211,32 +220,41 @@ void engine_pre_gfxmode_driver_cleanup()
     gfxDriver->SetCallbackForPolling(NULL);
     gfxDriver->SetCallbackToDrawScreen(NULL);
     gfxDriver->SetCallbackForNullSprite(NULL);
+    gfxDriver->SetMemoryBackBuffer(NULL);
 }
 
 // Setup virtual screen
-void engine_post_gfxmode_screen_setup()
+void engine_post_gfxmode_screen_setup(bool recreate_bitmaps)
 {
     _old_screen = BitmapHelper::GetScreenBitmap();
-    virtual_screen = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(),
-        ScreenResolution.ColorDepth);
+    if (recreate_bitmaps)
+    {
+        delete _sub_screen;
+        _sub_screen = NULL;
+        // TODO: find out if we need _sub_screen to be recreated right away here
+
+        virtual_screen = recycle_bitmap(virtual_screen, ScreenResolution.ColorDepth, play.viewport.GetWidth(), play.viewport.GetHeight());
+    }
     virtual_screen->Clear();
-    gfxDriver->SetMemoryBackBuffer(virtual_screen);
     SetVirtualScreen(virtual_screen);
-    set_our_eip(-41);
+    gfxDriver->SetMemoryBackBuffer(virtual_screen);
 }
 
-// Release virtual screen
 void engine_pre_gfxmode_screen_cleanup()
 {
     SetVirtualScreen(NULL);
-    gfxDriver->SetMemoryBackBuffer(NULL);
+    // allegro_exit assumes screen is correct
+    if (_old_screen)
+        BitmapHelper::SetScreenBitmap( _old_screen );
+}
+
+// Release virtual screen
+void engine_pre_gfxsystem_screen_destroy()
+{
     delete _sub_screen;
     _sub_screen = NULL;
     delete virtual_screen;
     virtual_screen = NULL;
-    // allegro_exit assumes screen is correct
-    if (_old_screen)
-        BitmapHelper::SetScreenBitmap( _old_screen );
 }
 
 // Setup color conversion parameters
@@ -370,10 +388,12 @@ void destroy_blank_image()
     blankSidebarImage = NULL;
 }
 
-// Setup drawing modes and color conversions
+// Setup drawing modes and color conversions;
+// they depend primarily on gfx driver capabilities and new color depth
 void engine_post_gfxmode_draw_setup()
 {
     engine_setup_color_conversions();
+
     if (gfxDriver->HasAcceleratedStretchAndFlip()) 
     {
         walkBehindMethod = DrawAsSeparateSprite;
@@ -383,7 +403,9 @@ void engine_post_gfxmode_draw_setup()
     {
         walkBehindMethod = DrawOverCharSprite;
     }
-    init_invalid_regions(game.size.Height);
+
+    if (!gfxDriver->RequiresFullRedrawEachFrame())
+        init_invalid_regions(game.size.Height);
 }
 
 // Cleanup auxiliary drawing objects
@@ -394,9 +416,8 @@ void engine_pre_gfxmode_draw_cleanup()
 }
 
 // Setup mouse control mode and graphic area
-void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
+void engine_post_gfxmode_mouse_setup(const DisplayMode &dm, const Size &init_desktop)
 {
-    DisplayMode dm = gfxDriver->GetDisplayMode();
     // Assign mouse control parameters.
     //
     // Whether mouse movement should be controlled by the engine - this is
@@ -437,31 +458,32 @@ void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
 // Reset mouse controls before changing gfx mode
 void engine_pre_gfxmode_mouse_cleanup()
 {
-    // Always disable mouse control unlock mouse when shutting down gfx mode
+    // Always disable mouse control and unlock mouse when releasing down gfx mode
     Mouse::DisableControl();
     Mouse::UnlockFromWindow();
 }
 
 // Fill in scsystem struct with display mode parameters
-void engine_setup_scsystem_screen()
+void engine_setup_scsystem_screen(const DisplayMode &dm)
 {
-    DisplayMode dm = gfxDriver->GetDisplayMode();
-    scsystem.width = game.size.Width;
-    scsystem.height = game.size.Height;
     scsystem.coldepth = dm.ColorDepth;
     scsystem.windowed = dm.Windowed;
     scsystem.vsync = dm.Vsync;
-    scsystem.viewport_width = divide_down_coordinate(play.viewport.GetWidth());
-    scsystem.viewport_height = divide_down_coordinate(play.viewport.GetHeight());
 }
 
 void engine_post_gfxmode_setup(const Size &init_desktop)
 {
-    engine_setup_scsystem_screen();
+    DisplayMode dm = gfxDriver->GetDisplayMode();
+    // If color depth has changed (or graphics mode was inited for the
+    // very first time), we also need to recreate bitmaps
+    bool has_driver_changed = scsystem.coldepth != dm.ColorDepth;
+
+    engine_setup_scsystem_screen(dm);
     engine_post_gfxmode_driver_setup();
-    engine_post_gfxmode_screen_setup();
-    engine_post_gfxmode_draw_setup();
-    engine_post_gfxmode_mouse_setup(init_desktop);
+    engine_post_gfxmode_screen_setup(has_driver_changed);
+    if (has_driver_changed)
+        engine_post_gfxmode_draw_setup();
+    engine_post_gfxmode_mouse_setup(dm, init_desktop);
     
     // TODO: the only reason this call was put here is that it requires
     // "windowed" flag to be specified. Find out whether this function
@@ -472,10 +494,17 @@ void engine_post_gfxmode_setup(const Size &init_desktop)
     video_on_gfxmode_changed();
 }
 
-void engine_pre_gfxmode_shutdown()
+void engine_pre_gfxmode_release()
 {
+    engine_pre_gfxmode_driver_cleanup();
+    engine_pre_gfxmode_screen_cleanup();
+}
+
+void engine_pre_gfxsystem_shutdown()
+{
+    engine_pre_gfxmode_release();
+
     engine_pre_gfxmode_mouse_cleanup();
     engine_pre_gfxmode_draw_cleanup();
-    engine_pre_gfxmode_screen_cleanup();
-    engine_pre_gfxmode_driver_cleanup();
+    engine_pre_gfxsystem_screen_destroy();
 }

@@ -1529,7 +1529,7 @@ bool engine_try_switch_windowed_gfxmode()
     DisplayMode old_dm = gfxDriver->GetDisplayMode();
     GameFrameSetup old_frame = graphics_mode_get_render_frame();
 
-    engine_pre_gfxmode_shutdown();
+    engine_pre_gfxmode_release();
 
     Size init_desktop;
     DisplayModeSetup dm_setup;
@@ -1561,7 +1561,7 @@ void engine_shutdown_gfxmode()
     if (!gfxDriver)
         return;
 
-    engine_pre_gfxmode_shutdown();
+    engine_pre_gfxsystem_shutdown();
     graphics_mode_shutdown();
 }
 

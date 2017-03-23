@@ -39,6 +39,7 @@
 #include "ac/screenoverlay.h"
 #include "ac/spritelistentry.h"
 #include "ac/string.h"
+#include "ac/system.h"
 #include "ac/viewframe.h"
 #include "ac/viewport.h"
 #include "ac/walkablearea.h"
@@ -58,7 +59,6 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/ali3dexception.h"
 #include "gfx/blender.h"
-#include "main/graphics_mode.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -220,14 +220,14 @@ Bitmap *convert_16_to_15(Bitmap *iii) {
 
     if (iii->GetColorDepth() > 16) {
         // we want a 32-to-24 conversion
-        Bitmap *tempbl = BitmapHelper::CreateBitmap(iwid,ihit,ScreenResolution.ColorDepth);
-        if (ScreenResolution.ColorDepth < 24) {
+        Bitmap *tempbl = BitmapHelper::CreateBitmap(iwid,ihit,System_GetColorDepth());
+        if (System_GetColorDepth() < 24) {
             // 32-to-16
             tempbl->Blit(iii, 0, 0, 0, 0, iwid, ihit);
             return tempbl;
         }
 
-        GFX_VTABLE *vtable = _get_vtable(ScreenResolution.ColorDepth);
+        GFX_VTABLE *vtable = _get_vtable(System_GetColorDepth());
         if (vtable == NULL) {
             quit("unable to get 24-bit bitmap vtable");
         }
@@ -1322,7 +1322,7 @@ void apply_tint_or_light(int actspsindex, int light_level,
  }
 
  // we can only do tint/light if the colour depths match
- if (ScreenResolution.ColorDepth == actsps[actspsindex]->GetColorDepth()) {
+ if (System_GetColorDepth() == actsps[actspsindex]->GetColorDepth()) {
      Bitmap *oldwas;
      // if the caller supplied a source bitmap, ->Blit from it
      // (used as a speed optimisation where possible)
@@ -2137,7 +2137,7 @@ void draw_fps()
 
     if (fpsDisplay == NULL)
     {
-        fpsDisplay = BitmapHelper::CreateBitmap(get_fixed_pixel_size(100), (getfontheight_outlined(FONT_SPEECH) + get_fixed_pixel_size(5)), ScreenResolution.ColorDepth);
+        fpsDisplay = BitmapHelper::CreateBitmap(get_fixed_pixel_size(100), (getfontheight_outlined(FONT_SPEECH) + get_fixed_pixel_size(5)), System_GetColorDepth());
         fpsDisplay = ReplaceBitmapWithSupportedFormat(fpsDisplay);
     }
     fpsDisplay->ClearTransparent();
@@ -2434,7 +2434,7 @@ void update_screen() {
 
         if (debugConsoleBuffer == NULL)
         {
-            debugConsoleBuffer = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), barheight,ScreenResolution.ColorDepth);
+            debugConsoleBuffer = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), barheight,System_GetColorDepth());
             debugConsoleBuffer = ReplaceBitmapWithSupportedFormat(debugConsoleBuffer);
         }
 

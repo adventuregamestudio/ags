@@ -24,6 +24,7 @@
 #include "ac/global_mouse.h"
 #include "ac/global_plugin.h"
 #include "ac/global_screen.h"
+#include "ac/system.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
 #include "gui/guibutton.h"
@@ -32,7 +33,6 @@
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxfilter.h"
-#include "main/graphics_mode.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -353,7 +353,7 @@ void set_new_cursor_graphic (int spriteslot) {
     {
         if (blank_mouse_cursor == NULL)
         {
-            blank_mouse_cursor = BitmapHelper::CreateTransparentBitmap(1, 1, ScreenResolution.ColorDepth);
+            blank_mouse_cursor = BitmapHelper::CreateTransparentBitmap(1, 1, System_GetColorDepth());
         }
         mousecurs[0] = blank_mouse_cursor;
     }

@@ -33,9 +33,9 @@ bool find_nearest_supported_mode(const AGS::Engine::IGfxModeList &modes, const S
                                  AGS::Engine::DisplayMode &dm, int *mode_index = NULL);
 
 
-// The actual game screen resolution
-extern AGS::Engine::GraphicResolution ScreenResolution;
 // The game-to-screen transformation
+// TODO: this is only required for low-level mouse processing;
+// when possible, move to mouse "manager" object, and assign at gfxmode init
 extern AGS::Engine::PlaneScaling GameScaling;
 
 

@@ -37,6 +37,7 @@
 #include "ac/string.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
+#include "ac/system.h"
 #include "font/fonts.h"
 #include "script/cc_instance.h"
 #include "gui/guimain.h"
@@ -49,10 +50,8 @@
 #include "gfx/ddb.h"
 #include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
-#include "main/graphics_mode.h"
 
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern GameState play;
@@ -515,7 +514,7 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
 
   update_polled_stuff_if_runtime();
 
-  tempScrn = BitmapHelper::CreateBitmap(BitmapHelper::GetScreenBitmap()->GetWidth(), BitmapHelper::GetScreenBitmap()->GetHeight(), ScreenResolution.ColorDepth);
+  tempScrn = BitmapHelper::CreateBitmap(BitmapHelper::GetScreenBitmap()->GetWidth(), BitmapHelper::GetScreenBitmap()->GetHeight(), System_GetColorDepth());
 
   set_mouse_cursor(CURS_ARROW);
 
@@ -647,7 +646,7 @@ void DialogOptions::Redraw()
 
     if (usingCustomRendering)
     {
-      tempScrn = recycle_bitmap(tempScrn, ScreenResolution.ColorDepth, 
+      tempScrn = recycle_bitmap(tempScrn, System_GetColorDepth(), 
         multiply_up_coordinate(ccDialogOptionsRendering.width), 
         multiply_up_coordinate(ccDialogOptionsRendering.height));
     }

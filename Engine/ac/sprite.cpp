@@ -16,13 +16,13 @@
 #include "ac/draw.h"            // USE_15BIT_FIX
 #include "ac/gamesetupstruct.h"
 #include "ac/sprite.h"
+#include "ac/system.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "plugin/plugin_engine.h"
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
-#include "main/graphics_mode.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -78,7 +78,7 @@ void set_rgb_mask_using_alpha_channel(Bitmap *image)
 
 // from is a 32-bit RGBA image, to is a 15/16/24-bit destination image
 Bitmap *remove_alpha_channel(Bitmap *from) {
-    int depth = ScreenResolution.ColorDepth;
+    int depth = System_GetColorDepth();
 
     Bitmap *to = BitmapHelper::CreateBitmap(from->GetWidth(), from->GetHeight(),depth);
     int maskcol = to->GetMaskColor();
@@ -197,8 +197,8 @@ void initialize_sprite (int ee) {
 
         int spcoldep = spriteset[ee]->GetColorDepth();
 
-        if (((spcoldep > 16) && (ScreenResolution.ColorDepth <= 16)) ||
-            ((spcoldep == 16) && (ScreenResolution.ColorDepth > 16))) {
+        if (((spcoldep > 16) && (System_GetColorDepth() <= 16)) ||
+            ((spcoldep == 16) && (System_GetColorDepth() > 16))) {
                 // 16-bit sprite in 32-bit game or vice versa - convert
                 // so that scaling and blit calls work properly
                 Bitmap *oldSprite = spriteset[ee];
@@ -207,13 +207,13 @@ void initialize_sprite (int ee) {
                 if (game.spriteflags[ee] & SPF_ALPHACHANNEL)
                     newSprite = remove_alpha_channel(oldSprite);
                 else {
-                    newSprite = BitmapHelper::CreateBitmapCopy(oldSprite, ScreenResolution.ColorDepth);
+                    newSprite = BitmapHelper::CreateBitmapCopy(oldSprite, System_GetColorDepth());
                 }
                 spriteset.set(ee, newSprite);
                 delete oldSprite;
-                spcoldep = ScreenResolution.ColorDepth;
+                spcoldep = System_GetColorDepth();
         }
-        else if ((spcoldep == 32) && (ScreenResolution.ColorDepth == 32))
+        else if ((spcoldep == 32) && (System_GetColorDepth() == 32))
         {
 #if defined (AGS_INVERTED_COLOR_ORDER)
             // PSP: Convert to BGR color order.
@@ -226,7 +226,7 @@ void initialize_sprite (int ee) {
         }
 
 #ifdef USE_15BIT_FIX
-        else if ((ScreenResolution.ColorDepth != game.color_depth*8) && (spcoldep == game.color_depth*8)) {
+        else if ((System_GetColorDepth() != game.color_depth*8) && (spcoldep == game.color_depth*8)) {
             // running in 15-bit mode with a 16-bit game, convert sprites
             Bitmap *oldsprite = spriteset[ee];
 
@@ -242,15 +242,15 @@ void initialize_sprite (int ee) {
             spriteset.set (ee, convert_16_to_16bgr (spriteset[ee]));
 #endif
 
-        if ((spcoldep == 8) && (ScreenResolution.ColorDepth > 8))
+        if ((spcoldep == 8) && (System_GetColorDepth() > 8))
             select_palette(palette);
 
         spriteset.set(ee, ReplaceBitmapWithSupportedFormat(spriteset[ee]));
 
-        if ((spcoldep == 8) && (ScreenResolution.ColorDepth > 8))
+        if ((spcoldep == 8) && (System_GetColorDepth() > 8))
             unselect_palette();
 
-        if (ScreenResolution.ColorDepth < 32) {
+        if (System_GetColorDepth() < 32) {
             game.spriteflags[ee] &= ~SPF_ALPHACHANNEL;
             // save the fact that it had one for the next time this
             // is re-loaded from disk

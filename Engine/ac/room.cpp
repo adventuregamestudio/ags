@@ -40,6 +40,7 @@
 #include "ac/roomstatus.h"
 #include "ac/screen.h"
 #include "ac/string.h"
+#include "ac/system.h"
 #include "ac/viewport.h"
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
@@ -65,7 +66,6 @@
 #include "gfx/bitmap.h"
 #include "gfx/gfxfilter.h"
 #include "util/math.h"
-#include "main/graphics_mode.h"
 #include "device/mousew32.h"
 
 using namespace AGS::Common;
@@ -476,14 +476,14 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
 
     if ((thisroom.ebscene[0]->GetColorDepth() == 8) &&
-        (ScreenResolution.ColorDepth > 8))
+        (System_GetColorDepth() > 8))
         select_palette(palette);
 
     for (cc=0;cc<thisroom.num_bscenes;cc++) {
         update_polled_stuff_if_runtime();
 #ifdef USE_15BIT_FIX
         // convert down scenes from 16 to 15-bit if necessary
-        if ((ScreenResolution.ColorDepth != game.color_depth*8) &&
+        if ((System_GetColorDepth() != game.color_depth*8) &&
             (thisroom.ebscene[cc]->GetColorDepth() == game.color_depth * 8)) {
                 Bitmap *oldblock = thisroom.ebscene[cc];
                 thisroom.ebscene[cc] = convert_16_to_15(oldblock);
@@ -503,7 +503,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
 
     if ((thisroom.ebscene[0]->GetColorDepth() == 8) &&
-        (ScreenResolution.ColorDepth > 8))
+        (System_GetColorDepth() > 8))
         unselect_palette();
 
     update_polled_stuff_if_runtime();
@@ -608,7 +608,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     thisroom.object = fix_bitmap_size(thisroom.object);
     update_polled_stuff_if_runtime();
 
-    set_color_depth(ScreenResolution.ColorDepth);
+    set_color_depth(System_GetColorDepth());
     // convert backgrounds to current res
     if (thisroom.resolution != get_fixed_pixel_size(1)) {
         for (cc=0;cc<thisroom.num_bscenes;cc++)

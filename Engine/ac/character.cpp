@@ -41,6 +41,7 @@
 #include "ac/properties.h"
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
+#include "ac/system.h"
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
 #include "gui/guimain.h"
@@ -59,7 +60,6 @@
 #include "ac/dynobj/cc_inventory.h"
 #include "script/script_runtime.h"
 #include "gfx/gfx_def.h"
-#include "main/graphics_mode.h"
 
 using namespace AGS::Common;
 
@@ -1704,7 +1704,7 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     set_route_move_speed(move_speed_x, move_speed_y);
     set_color_depth(8);
     int mslot=find_route(charX, charY, tox, toy, prepare_walkable_areas(chac), chac+CHMLSOFFS, 1, ignwal);
-    set_color_depth(ScreenResolution.ColorDepth);
+    set_color_depth(System_GetColorDepth());
     if (mslot>0) {
         chin->walking = mslot;
         mls[mslot].direct = ignwal;

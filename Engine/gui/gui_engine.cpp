@@ -19,6 +19,7 @@
 // Headers, as they are in acgui.cpp
 #pragma unmanaged
 #include "ac/game_version.h"
+#include "ac/system.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"
 #include "gui/guibutton.h"
@@ -32,10 +33,8 @@
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 #include "gfx/blender.h"
-#include "main/graphics_mode.h"
 
 using namespace Common;
-using namespace Engine;
 
 // For engine these are defined in ac.cpp
 extern int eip_guiobj;
@@ -61,7 +60,7 @@ bool GUIMain::HasAlphaChannel() const
         return false;
     }
     // transparent background, enable alpha blending
-    return ScreenResolution.ColorDepth >= 24 &&
+    return System_GetColorDepth() >= 24 &&
         // transparent background have alpha channel only since 3.2.0;
         // "classic" gui rendering mode historically had non-alpha transparent backgrounds
         // (3.2.0 broke the compatibility, now we restore it)

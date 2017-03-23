@@ -30,6 +30,7 @@
 #include "ac/mouse.h"
 #include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
+#include "ac/system.h"
 #include "ac/dynobj/cc_guiobject.h"
 #include "ac/dynobj/scriptgui.h"
 #include "script/cc_instance.h"
@@ -45,7 +46,6 @@
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guiobject.h"
 #include "script/runtimescriptvalue.h"
-#include "main/graphics_mode.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -507,7 +507,7 @@ void recreate_guibg_image(GUIMain *tehgui)
 {
   int ifn = tehgui->Id;
   delete guibg[ifn];
-  guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->Width, tehgui->Height, ScreenResolution.ColorDepth);
+  guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->Width, tehgui->Height, System_GetColorDepth());
   if (guibg[ifn] == NULL)
     quit("SetGUISize: internal error: unable to reallocate gui cache");
   guibg[ifn] = ReplaceBitmapWithSupportedFormat(guibg[ifn]);

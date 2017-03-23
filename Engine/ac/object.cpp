@@ -26,6 +26,7 @@
 #include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
+#include "ac/system.h"
 #include "ac/walkablearea.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
@@ -35,7 +36,6 @@
 #include "gfx/gfx_def.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_object.h"
-#include "main/graphics_mode.h"
 
 using namespace AGS::Common;
 
@@ -395,7 +395,7 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
     set_route_move_speed(spee, spee);
     set_color_depth(8);
     int mslot=find_route(objX, objY, tox, toy, prepare_walkable_areas(-1), objj+1, 1, ignwal);
-    set_color_depth(ScreenResolution.ColorDepth);
+    set_color_depth(System_GetColorDepth());
     if (mslot>0) {
         objs[objj].moving = mslot;
         mls[mslot].direct = ignwal;

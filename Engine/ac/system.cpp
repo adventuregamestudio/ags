@@ -48,7 +48,7 @@ bool System_HasInputFocus()
 }
 
 int System_GetColorDepth() {
-    return ScreenResolution.ColorDepth;
+    return scsystem.coldepth;
 }
 
 int System_GetOS() {

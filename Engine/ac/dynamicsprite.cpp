@@ -26,13 +26,13 @@
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/roomstruct.h"
+#include "ac/system.h"
 #include "debug/debug_log.h"
 #include "gui/guibutton.h"
 #include "ac/spritecache.h"
 #include "platform/base/override_defines.h"
 #include "gfx/graphicsdriver.h"
 #include "script/runtimescriptvalue.h"
-#include "main/graphics_mode.h"
 
 using namespace Common;
 using namespace Engine;
@@ -321,14 +321,14 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
     if (!gfxDriver->UsesMemoryBackBuffer()) 
     {
         // D3D driver
-        Bitmap *scrndump = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), ScreenResolution.ColorDepth);
+        Bitmap *scrndump = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), System_GetColorDepth());
         gfxDriver->GetCopyOfScreenIntoBitmap(scrndump);
 
         update_polled_stuff_if_runtime();
 
         if ((play.viewport.GetWidth() != width) || (play.viewport.GetHeight() != height))
         {
-            newPic = BitmapHelper::CreateBitmap(width, height, ScreenResolution.ColorDepth);
+            newPic = BitmapHelper::CreateBitmap(width, height, System_GetColorDepth());
             newPic->StretchBlt(scrndump,
                 RectWH(0, 0, scrndump->GetWidth(), scrndump->GetHeight()),
                 RectWH(0, 0, width, height));
@@ -414,11 +414,11 @@ ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChanne
     if (gotSlot <= 0)
         return NULL;
 
-    Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(width, height, ScreenResolution.ColorDepth);
+    Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(width, height, System_GetColorDepth());
     if (newPic == NULL)
         return NULL;
 
-    if ((alphaChannel) && (ScreenResolution.ColorDepth < 32))
+    if ((alphaChannel) && (System_GetColorDepth() < 32))
         alphaChannel = false;
 
     add_dynamic_sprite(gotSlot, ReplaceBitmapWithSupportedFormat(newPic), alphaChannel != 0);

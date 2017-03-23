@@ -25,8 +25,8 @@
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
 #include "ac/spritecache.h"
+#include "ac/system.h"
 #include "gfx/bitmap.h"
-#include "main/graphics_mode.h"
 
 using namespace Common;
 using namespace Engine;
@@ -48,7 +48,7 @@ void RemoveOverlay(int ovrid) {
 int CreateGraphicOverlay(int xx,int yy,int slott,int trans) {
     multiply_up_coordinates(&xx, &yy);
 
-    Bitmap *screeno=BitmapHelper::CreateTransparentBitmap(spritewidth[slott],spriteheight[slott], ScreenResolution.ColorDepth);
+    Bitmap *screeno=BitmapHelper::CreateTransparentBitmap(spritewidth[slott],spriteheight[slott], System_GetColorDepth());
     Bitmap *ds = SetVirtualScreen(screeno);
     wputblock(ds, 0,0,spriteset[slott],trans);
 

@@ -26,7 +26,6 @@
 #include "gfx/gfxfilter.h"
 #include "gfx/graphicsdriver.h"
 #include "main/config.h"
-#include "main/graphics_mode.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/scaling.h"
@@ -43,7 +42,6 @@ extern volatile int timerloop;
 
 IGfxDriverFactory *GfxFactory = NULL;
 
-GraphicResolution ScreenResolution;
 // Current frame scaling setup
 GameFrameSetup    CurFrameSetup;
 // The game-to-screen transformation
@@ -432,20 +430,20 @@ bool create_gfx_driver_and_init_mode_any(const String &gfx_driver_id, const Size
     return result;
 }
 
-void display_gfx_mode_error(const Size game_size, const GfxFilterSetup &setup, const int color_depth)
+void display_gfx_mode_error(const Size &game_size, const ScreenSetup &setup, const int color_depth)
 {
     proper_exit=1;
     platform->FinishedUsingGraphicsMode();
 
     String main_error;
-    Size screen_size(ScreenResolution.Width, ScreenResolution.Height);
     PGfxFilter filter = gfxDriver ? gfxDriver->GetGraphicsFilter() : PGfxFilter();
-    if (screen_size.IsNull())
-        main_error.Format("There was a problem finding appropriate graphics mode for game size %d x %d (%d-bit) and requested filter '%s'.",
-            game_size.Width, game_size.Height, color_depth, setup.UserRequest.IsEmpty() ? "Undefined" : setup.UserRequest.GetCStr());
+    Size wanted_screen;
+    if (setup.DisplayMode.SizeDef == kScreenDef_Explicit)
+        main_error.Format("There was a problem initializing graphics mode %d x %d (%d-bit), or finding nearest compatible mode, with game size %d x %d and filter '%s'.",
+            setup.DisplayMode.Size.Width, setup.DisplayMode.Size.Height, color_depth, game_size.Width, game_size.Height, filter ? filter->GetInfo().Id.GetCStr() : "Undefined");
     else
-        main_error.Format("There was a problem initializing graphics mode %d x %d (%d-bit) with game size %d x %d and filter '%s'.",
-            screen_size.Width, screen_size.Height, color_depth, game_size.Width, game_size.Height, filter ? filter->GetInfo().Id.GetCStr() : "Undefined");
+        main_error.Format("There was a problem finding and/or creating valid graphics mode for game size %d x %d (%d-bit) and requested filter '%s'.",
+            game_size.Width, game_size.Height, color_depth, setup.Filter.UserRequest.IsEmpty() ? "Undefined" : setup.Filter.UserRequest.GetCStr());
 
     platform->DisplayAlert("%s\n"
             "(Problem: '%s')\n"
@@ -492,7 +490,7 @@ bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, cons
     // If all possibilities failed, display error message and quit
     if (!result)
     {
-        display_gfx_mode_error(game_size, setup.Filter, color_depths.Prime);
+        display_gfx_mode_error(game_size, setup, color_depths.Prime);
         return false;
     }
     return true;
@@ -567,7 +565,6 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
 
     Debug::Printf("Succeeded. Using gfx mode %d x %d (%d-bit) %s",
         dm.Width, dm.Height, dm.ColorDepth, dm.Windowed ? "windowed" : "fullscreen");
-    ScreenResolution = dm;
     return true;
 }
 

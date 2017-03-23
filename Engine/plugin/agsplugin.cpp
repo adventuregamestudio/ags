@@ -249,7 +249,7 @@ void IAGSEngine::GetScreenDimensions (int32 *width, int32 *height, int32 *coldep
     if (height != NULL)
         height[0] = play.viewport.GetHeight();
     if (coldepth != NULL)
-        coldepth[0] = ScreenResolution.ColorDepth;
+        coldepth[0] = scsystem.coldepth;
 }
 unsigned char ** IAGSEngine::GetRawBitmapSurface (BITMAP *bmp) {
     if (!is_linear_bitmap (bmp))

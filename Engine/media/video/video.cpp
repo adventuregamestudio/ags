@@ -26,11 +26,11 @@
 #include "ac/mouse.h"
 #include "ac/record.h"
 #include "ac/runtime_defines.h"
+#include "ac/system.h"
 #include "core/assetmanager.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
-#include "main/graphics_mode.h"
 #include "media/audio/audio.h"
 #include "util/stream.h"
 
@@ -140,7 +140,7 @@ void play_flc_file(int numb,int playflags) {
     fliheight = in->ReadInt16();
     delete in;
     if (game.color_depth > 1) {
-        hicol_buf=BitmapHelper::CreateBitmap(fliwidth,fliheight,ScreenResolution.ColorDepth);
+        hicol_buf=BitmapHelper::CreateBitmap(fliwidth,fliheight,System_GetColorDepth());
         hicol_buf->Clear();
     }
     // override the stretch option if necessary
@@ -160,7 +160,7 @@ void play_flc_file(int numb,int playflags) {
     }
 
     video_type = kVideoFlic;
-    fli_target = BitmapHelper::CreateBitmap(screen_bmp->GetWidth(), screen_bmp->GetHeight(), ScreenResolution.ColorDepth);
+    fli_target = BitmapHelper::CreateBitmap(screen_bmp->GetWidth(), screen_bmp->GetHeight(), System_GetColorDepth());
     fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
 
     if (play_fli(flicnam,(BITMAP*)fli_buffer->GetAllegroBitmap(),0,fli_callback)==FLI_ERROR)
@@ -309,7 +309,7 @@ void play_theora_video(const char *name, int skip, int flags)
         stop_all_sound_and_music();
     }
 
-    //fli_buffer = BitmapHelper::CreateBitmap_(ScreenResolution.ColorDepth, videoWidth, videoHeight);
+    //fli_buffer = BitmapHelper::CreateBitmap_(scsystem.coldepth, videoWidth, videoHeight);
     calculate_destination_size_maintain_aspect_ratio(videoWidth, videoHeight, &fliTargetWidth, &fliTargetHeight);
 
     if ((fliTargetWidth == videoWidth) && (fliTargetHeight == videoHeight) && (stretch_flc))
@@ -320,7 +320,7 @@ void play_theora_video(const char *name, int skip, int flags)
 
     if ((stretch_flc) && (!gfxDriver->HasAcceleratedStretchAndFlip()))
     {
-        fli_target = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), ScreenResolution.ColorDepth);
+        fli_target = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), System_GetColorDepth());
         fli_target->Clear();
         fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
     }

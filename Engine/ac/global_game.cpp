@@ -41,6 +41,7 @@
 #include "ac/roomstatus.h"
 #include "ac/roomstruct.h"
 #include "ac/string.h"
+#include "ac/system.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "gui/guidialog.h"
@@ -746,9 +747,9 @@ int SaveScreenShot(const char*namm) {
     {
         // FIXME this weird stuff! (related to incomplete OpenGL renderer)
 #if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
-        int color_depth = (psp_gfx_renderer > 0) ? 32 : ScreenResolution.ColorDepth;
+        int color_depth = (psp_gfx_renderer > 0) ? 32 : System_GetColorDepth();
 #else
-        int color_depth = ScreenResolution.ColorDepth;
+        int color_depth = System_GetColorDepth();
 #endif
         Bitmap *buffer = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight(), color_depth);
         gfxDriver->GetCopyOfScreenIntoBitmap(buffer);

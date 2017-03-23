@@ -224,7 +224,7 @@ void engine_pre_gfxmode_driver_cleanup()
 }
 
 // Setup virtual screen
-void engine_post_gfxmode_screen_setup(bool recreate_bitmaps)
+void engine_post_gfxmode_screen_setup(const DisplayMode &dm, bool recreate_bitmaps)
 {
     _old_screen = BitmapHelper::GetScreenBitmap();
     if (recreate_bitmaps)
@@ -233,7 +233,7 @@ void engine_post_gfxmode_screen_setup(bool recreate_bitmaps)
         _sub_screen = NULL;
         // TODO: find out if we need _sub_screen to be recreated right away here
 
-        virtual_screen = recycle_bitmap(virtual_screen, ScreenResolution.ColorDepth, play.viewport.GetWidth(), play.viewport.GetHeight());
+        virtual_screen = recycle_bitmap(virtual_screen, dm.ColorDepth, play.viewport.GetWidth(), play.viewport.GetHeight());
     }
     virtual_screen->Clear();
     SetVirtualScreen(virtual_screen);
@@ -258,7 +258,7 @@ void engine_pre_gfxsystem_screen_destroy()
 }
 
 // Setup color conversion parameters
-void engine_setup_color_conversions()
+void engine_setup_color_conversions(int coldepth)
 {
     // default shifts for how we store the sprite data
 #if defined(PSP_VERSION)
@@ -285,7 +285,7 @@ void engine_setup_color_conversions()
 #endif
     // Most cards do 5-6-5 RGB, which is the format the files are saved in
     // Some do 5-6-5 BGR, or  6-5-5 RGB, in which case convert the gfx
-    if ((ScreenResolution.ColorDepth == 16) && ((_rgb_b_shift_16 != 0) || (_rgb_r_shift_16 != 11)))
+    if ((coldepth == 16) && ((_rgb_b_shift_16 != 0) || (_rgb_r_shift_16 != 11)))
     {
         convert_16bit_bgr = 1;
         if (_rgb_r_shift_16 == 10) {
@@ -295,7 +295,7 @@ void engine_setup_color_conversions()
             _places_g = 3;
         }
     }
-    if (ScreenResolution.ColorDepth > 16)
+    if (coldepth > 16)
     {
         // when we're using 32-bit colour, it converts hi-color images
         // the wrong way round - so fix that
@@ -318,7 +318,7 @@ void engine_setup_color_conversions()
         _rgb_b_shift_16 = 0;
 #endif
     }
-    else if (ScreenResolution.ColorDepth == 16)
+    else if (coldepth == 16)
     {
         // ensure that any 32-bit graphics displayed are converted
         // properly to the current depth
@@ -336,7 +336,7 @@ void engine_setup_color_conversions()
         _rgb_b_shift_32 = 0;
 #endif
     }
-    else if (ScreenResolution.ColorDepth < 16)
+    else if (coldepth < 16)
     {
         // ensure that any 32-bit graphics displayed are converted
         // properly to the current depth
@@ -359,13 +359,13 @@ void engine_setup_color_conversions()
 }
 
 // Create blank (black) images used to repaint borders around game frame
-void CreateBlankImage()
+void CreateBlankImage(int coldepth)
 {
     // this is the first time that we try to use the graphics driver,
     // so it's the most likey place for a crash
     try
     {
-        Bitmap *blank = BitmapHelper::CreateBitmap(16, 16, ScreenResolution.ColorDepth);
+        Bitmap *blank = BitmapHelper::CreateBitmap(16, 16, coldepth);
         blank = ReplaceBitmapWithSupportedFormat(blank);
         blank->Clear();
         blankImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
@@ -390,14 +390,14 @@ void destroy_blank_image()
 
 // Setup drawing modes and color conversions;
 // they depend primarily on gfx driver capabilities and new color depth
-void engine_post_gfxmode_draw_setup()
+void engine_post_gfxmode_draw_setup(const DisplayMode &dm)
 {
-    engine_setup_color_conversions();
+    engine_setup_color_conversions(dm.ColorDepth);
 
     if (gfxDriver->HasAcceleratedStretchAndFlip()) 
     {
         walkBehindMethod = DrawAsSeparateSprite;
-        CreateBlankImage();
+        CreateBlankImage(dm.ColorDepth);
     }
     else
     {
@@ -480,9 +480,9 @@ void engine_post_gfxmode_setup(const Size &init_desktop)
 
     engine_setup_scsystem_screen(dm);
     engine_post_gfxmode_driver_setup();
-    engine_post_gfxmode_screen_setup(has_driver_changed);
+    engine_post_gfxmode_screen_setup(dm, has_driver_changed);
     if (has_driver_changed)
-        engine_post_gfxmode_draw_setup();
+        engine_post_gfxmode_draw_setup(dm);
     engine_post_gfxmode_mouse_setup(dm, init_desktop);
     
     // TODO: the only reason this call was put here is that it requires

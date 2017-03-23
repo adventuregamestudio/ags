@@ -503,7 +503,7 @@ SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_da
 
     for (int i = 0; i < game.numgui; ++i)
     {
-        guibg[i] = BitmapHelper::CreateBitmap(guis[i].Width, guis[i].Height, ScreenResolution.ColorDepth);
+        guibg[i] = BitmapHelper::CreateBitmap(guis[i].Width, guis[i].Height, System_GetColorDepth());
         guibg[i] = ReplaceBitmapWithSupportedFormat(guibg[i]);
     }
 
@@ -610,7 +610,7 @@ Stream *StartSavegame(const String &filename, const String &desc, const Bitmap *
 
     // Write current display mode parameters
     out->WriteInt32(play.viewport.GetHeight()); // for compatibility with old engines
-    out->WriteInt32(ScreenResolution.ColorDepth);
+    out->WriteInt32(System_GetColorDepth());
     return out;
 }
 

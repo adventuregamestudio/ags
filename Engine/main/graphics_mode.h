@@ -116,9 +116,13 @@ struct ColorDepthOption
 bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, const ColorDepthOption &color_depths);
 // Fill in setup structs with default settings for the given mode (windowed or fullscreen)
 void graphics_mode_get_defaults(bool windowed, DisplayModeSetup &dm_setup, GameFrameSetup &frame_setup);
+// Get frame setup, adjusted to be more suitable for the given mode kind
+GameFrameSetup convert_frame_setup(const GameFrameSetup &frame_setup, bool windowed);
+// Return last saved display mode of the given kind
+AGS::Engine::DisplayMode graphics_mode_get_last_mode(bool windowed);
 // Creates graphics driver of given id
 bool graphics_mode_create_renderer(const String &driver_id);
-// Try to find and initialize compatible display mode as close to given setup
+// Try to find and initialize compatible display mode as close to given setup as possible
 bool graphics_mode_set_dm_any(const Size &game_size, const DisplayModeSetup &dm_setup,
                               const ColorDepthOption &color_depths, const GameFrameSetup &frame_setup);
 // Set the display mode with given parameters

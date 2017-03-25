@@ -42,6 +42,13 @@ extern volatile int timerloop;
 
 IGfxDriverFactory *GfxFactory = NULL;
 
+// Last saved fullscreen and windowed configs; they are used when switching
+// between between fullscreen and windowed modes at runtime. One of them
+// is always the mode game starts with, opposite is default config for
+// corresponding mode. If particular mode is modified, e.g. by script command,
+// related config should be saved again.
+DisplayMode       SavedFullscreenMode;
+DisplayMode       SavedWindowedMode;
 // Current frame scaling setup
 GameFrameSetup    CurFrameSetup;
 // The game-to-screen transformation
@@ -522,6 +529,21 @@ void graphics_mode_get_defaults(bool windowed, DisplayModeSetup &dm_setup, GameF
     frame_setup.ScaleFactor = 0;
 }
 
+GameFrameSetup convert_frame_setup(const GameFrameSetup &frame_setup, bool windowed)
+{
+    GameFrameSetup good_frame = frame_setup;
+    // Only adjustment we do here is converting IntScale to MaxRound for the
+    // fullscreen mode, because latter do not look good with smaller scales
+    if (!windowed && good_frame.ScaleDef == kFrame_IntScale)
+        good_frame.ScaleDef = kFrame_MaxRound;
+    return good_frame;
+}
+
+DisplayMode graphics_mode_get_last_mode(bool windowed)
+{
+    return windowed ? SavedWindowedMode : SavedFullscreenMode;
+}
+
 bool graphics_mode_create_renderer(const String &driver_id)
 {
     if (!create_gfx_driver(driver_id))
@@ -563,8 +585,13 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
         return false;
     }
 
+    DisplayMode rdm = gfxDriver->GetDisplayMode();
+    if (rdm.Windowed)
+        SavedWindowedMode = rdm;
+    else
+        SavedFullscreenMode = rdm;
     Debug::Printf("Succeeded. Using gfx mode %d x %d (%d-bit) %s",
-        dm.Width, dm.Height, dm.ColorDepth, dm.Windowed ? "windowed" : "fullscreen");
+        rdm.Width, rdm.Height, rdm.ColorDepth, rdm.Windowed ? "windowed" : "fullscreen");
     return true;
 }
 

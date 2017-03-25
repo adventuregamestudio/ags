@@ -1523,32 +1523,49 @@ bool engine_try_switch_windowed_gfxmode()
     if (!gfxDriver || !gfxDriver->IsModeSet())
         return false;
 
-    // TODO: if there are saved parameters for given mode (fullscreen/windowed)
-    // then use them, if there are not, get default setup for the new mode
-
+    // Keep previous mode in case we need to revert back
     DisplayMode old_dm = gfxDriver->GetDisplayMode();
     GameFrameSetup old_frame = graphics_mode_get_render_frame();
 
+    // Release engine resources that depend on display mode
     engine_pre_gfxmode_release();
 
-    Size init_desktop;
-    DisplayModeSetup dm_setup;
-    GameFrameSetup frame_setup;
-    graphics_mode_get_defaults(!old_dm.Windowed, dm_setup, frame_setup);
-    init_desktop = get_desktop_size();
+    Size init_desktop = get_desktop_size();
+    bool switch_to_windowed = !old_dm.Windowed;
+    DisplayMode last_opposite_mode = graphics_mode_get_last_mode(switch_to_windowed);
+    GameFrameSetup use_frame_setup = convert_frame_setup(old_frame, switch_to_windowed);
+    
+    // If there are saved parameters for given mode (fullscreen/windowed)
+    // then use them, if there are not, get default setup for the new mode.
+    bool res;
+    if (last_opposite_mode.IsValid())
+    {
+        res = graphics_mode_set_dm(last_opposite_mode);
+    }
+    else
+    {
+        DisplayModeSetup dm_setup;
+        GameFrameSetup frame_setup;
+        graphics_mode_get_defaults(!old_dm.Windowed, dm_setup, frame_setup);
+        res = graphics_mode_set_dm_any(game.size, dm_setup, old_dm.ColorDepth, frame_setup);
+    }
 
-    bool res = graphics_mode_set_dm_any(game.size, dm_setup, old_dm.ColorDepth, frame_setup) &&
-               graphics_mode_set_render_frame(frame_setup);
+    // Always use same (or nearest compatible) frame render method
+    if (res)
+        res = graphics_mode_set_render_frame(use_frame_setup);
+    
     if (!res)
     {
-        // switch back to previous gfx mode
+        // If failed, try switching back to previous gfx mode
         res = graphics_mode_set_dm(old_dm) &&
               graphics_mode_set_render_frame(old_frame);
     }
 
     if (res)
     {
-        if (dm_setup.Windowed)
+        // If succeeded (with any case), update engine objects that rely on
+        // active display mode.
+        if (gfxDriver->GetDisplayMode().Windowed)
             init_desktop = get_desktop_size();
         engine_post_gfxmode_setup(init_desktop);
     }

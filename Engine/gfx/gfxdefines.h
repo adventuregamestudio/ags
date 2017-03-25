@@ -50,6 +50,8 @@ struct GraphicResolution
         Height = height;
         ColorDepth = color_depth;
     }
+
+    inline bool IsValid() const { return Width > 0 && Height > 0 && ColorDepth > 0; }
 };
 
 // DisplayMode struct provides extended description of display mode

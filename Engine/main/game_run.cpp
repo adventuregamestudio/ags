@@ -203,6 +203,27 @@ void toggle_mouse_lock()
     }
 }
 
+// Returns current key modifiers;
+// NOTE: annoyingly enough, on Windows (not sure about other platforms)
+// Allegro API's 'key_shifts' variable seem to be always one step behind real
+// situation: if first modifier gets pressed, 'key_shifts' will be zero,
+// when second modifier gets pressed it will only contain first one, and so on.
+int get_active_shifts()
+{
+    int shifts = 0;
+    if (key[KEY_LSHIFT] || key[KEY_RSHIFT])
+        shifts |= KB_SHIFT_FLAG;
+    if (key[KEY_LCONTROL] || key[KEY_RCONTROL])
+        shifts |= KB_CTRL_FLAG;
+    if (key[KEY_ALT])
+        shifts |= KB_ALT_FLAG;
+    return shifts;
+}
+
+// Special flags to OR saved shift flags with:
+// Shifts key combination already fired (wait until full shifts release)
+#define KEY_SHIFTS_FIRED      0x80000000
+
 // check_controls: checks mouse & keyboard interface
 void check_controls() {
     int numevents_was = numevents;
@@ -268,8 +289,42 @@ void check_controls() {
         setevent (EV_TEXTSCRIPT, TS_MCLICK, 8);
 
     // check keypresses
-    static int old_key_shifts = 0;
-    if (kbhit()) {
+    static int old_key_shifts = 0; // for saving shift modes
+
+    int kbhit_res = kbhit();
+    // First, check shifts
+    int act_shifts = get_active_shifts();
+    // If shifts combination have already triggered an action, then do nothing
+    // until new shifts are empty, in which case reset saved shifts
+    if (old_key_shifts & KEY_SHIFTS_FIRED)
+    {
+        if (act_shifts == 0)
+            old_key_shifts = 0;
+    }
+    else
+    {
+        // If any non-shift key is pressed, add fired flag to indicate that
+        // this is no longer a pure shifts key combination
+        if (kbhit_res)
+            act_shifts |= KEY_SHIFTS_FIRED;
+        // If all the previously registered shifts are still pressed,
+        // then simply resave new shift state.
+        if (kbhit_res || (old_key_shifts & act_shifts) == old_key_shifts)
+        {
+            old_key_shifts = act_shifts;
+        }
+        // Otherwise some of the shifts were released, then run key combo action
+        // and set KEY_COMBO_FIRED flag to prevent multiple execution
+        else if (old_key_shifts)
+        {
+            // Toggle mouse lock on Ctrl + Alt
+            if (old_key_shifts == (KB_ALT_FLAG | KB_CTRL_FLAG))
+                toggle_mouse_lock();
+            old_key_shifts |= KEY_SHIFTS_FIRED;
+        }
+    }
+    
+    if (kbhit_res) {
         // in case they press the finish-recording button, make sure we know
         int was_playing = play.playback;
 
@@ -425,17 +480,6 @@ void check_controls() {
             }
         }
         //    RunTextScriptIParam(gameinst,"on_key_press",kgn);
-    }
-    // check extended keys
-    else
-    {
-        // Toggle mouse lock on Ctrl + Alt release
-        if (!key[KEY_ALT] && !(key[KEY_LCONTROL] || key[KEY_RCONTROL]) &&
-            old_key_shifts == (KB_ALT_FLAG | KB_CTRL_FLAG))
-        {
-            toggle_mouse_lock();
-        }
-        old_key_shifts = key_shifts & ~(KB_SCROLOCK_FLAG | KB_NUMLOCK_FLAG | KB_CAPSLOCK_FLAG);
     }
 
     if ((IsInterfaceEnabled()) && (IsGamePaused() == 0) &&

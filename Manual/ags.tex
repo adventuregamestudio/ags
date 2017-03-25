@@ -4135,7 +4135,7 @@ else {
 
 \bf{switch (} \it{expression} \bf{)}  \verb${$ ILBRK
   [
-  \bf{case} \it{constant expression}: ILBRK
+  \bf{case} \it{expression}: ILBRK
     \it{statements} ILBRK
     [ \bf{break}; ]
   ] ILBRK
@@ -4160,9 +4160,13 @@ they may be arranged in any order.
 Unlike many programming languages, AGS allows expression result of any type (integer, boolean,
 string, pointers).
 
-\bf{KNOWN ISSUE:} Since the final release of AGS 3.4.0 usage of strings in the switch is broken:
-instead of comparing by value, as intended, they are instead compared as pointers. We expect this
-to be fixed in one of the future updates.
+\bf{KNOWN ISSUES:}
+\begin{itemize}\itemsep=0pt
+\item Since the final release of AGS 3.4.0 usage of strings in the switch is broken:
+instead of comparing by value, as intended, they are instead compared as pointers.
+\item Local function variables do not work when being used in the "case" expression.
+\end{itemize}
+We expect above to be fixed in the future updates.
 
 Example:
 

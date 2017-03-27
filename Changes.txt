@@ -9,6 +9,9 @@ Editor:
   as default locale for non-Unicode applications.
 - Fixed Linux binaries were not copied to the Compiled folder if AGS Editor is
   installed to "C:/Program Files" and run in a non-administrator mode.
+  
+Engine:
+- Fixed toggling mouse lock in window with Ctrl+Alt did not work all the time.
 
 
 VERSION 3.4.0 - Patch 3, February 2017

@@ -53,6 +53,8 @@ DirectX is linked dynamically. You should not be building DirectX libraries, but
 
 Allegro 4.4 source provides CMake script for generating MSVC project files. We do not cover CMake tool here, please refer to official documentation: https://cmake.org/documentation/ .
 
+Before using CMake you need to create two enviroment variables (for your OS, not Visual Studio) called "INCLUDE" and "LIB", unless these already exist. Add path to DirectX SDK header files into "INCLUDE" variable and path to DirectX *.lib files into "LIB" variable.
+
 When configuring CMake, you may uncheck all Allegro add-ons and examples, because AGS does not need them.
 Also make sure to uncheck SHARED option, for AGS is linking Allegro statically.
 

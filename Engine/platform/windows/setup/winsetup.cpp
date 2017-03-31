@@ -817,17 +817,7 @@ void WinSetupDialog::OnScalingUpdate()
         _winCfg.ScaleFactor = scale >= 0 ? scale - kNumFrameScaleDef : scale;
     }
 
-    if (_winCfg.ScaleDef == kFrame_IntScale && _winCfg.ScaleFactor == 1)
-    {
-        EnableWindow(_hGfxFilterList, FALSE);
-        ResetContent(_hGfxFilterList);
-    }
-    else if (!IsWindowEnabled(_hGfxFilterList) || GetItemCount(_hGfxFilterList) == 0)
-    {
-        EnableWindow(_hGfxFilterList, TRUE);
-        FillGfxFilterList();
-    }
-
+    EnableWindow(_hGfxFilterList, (_winCfg.ScaleDef == kFrame_IntScale && _winCfg.ScaleFactor == 1) ? FALSE : TRUE);
     SetGfxModeText();
 }
 

@@ -496,6 +496,7 @@ void engine_post_gfxmode_setup(const Size &init_desktop)
 
 void engine_pre_gfxmode_release()
 {
+    engine_pre_gfxmode_mouse_cleanup();
     engine_pre_gfxmode_driver_cleanup();
     engine_pre_gfxmode_screen_cleanup();
 }
@@ -503,8 +504,6 @@ void engine_pre_gfxmode_release()
 void engine_pre_gfxsystem_shutdown()
 {
     engine_pre_gfxmode_release();
-
-    engine_pre_gfxmode_mouse_cleanup();
     engine_pre_gfxmode_draw_cleanup();
     engine_pre_gfxsystem_screen_destroy();
 }

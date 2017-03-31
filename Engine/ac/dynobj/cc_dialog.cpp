@@ -13,11 +13,9 @@
 //=============================================================================
 
 #include "ac/dynobj/cc_dialog.h"
+#include "ac/dialog.h"
 #include "ac/dialogtopic.h"
-#include "ac/dynobj/scriptdialog.h"
 #include "ac/gamestructdefines.h"
-
-extern ScriptDialog scrDialog[MAX_DIALOG];
 
 // return the type name of the object
 const char *CCDialog::GetType() {

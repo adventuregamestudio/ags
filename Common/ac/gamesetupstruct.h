@@ -18,6 +18,7 @@
 #ifndef __AGS_CN_AC__GAMESETUPSTRUCT_H
 #define __AGS_CN_AC__GAMESETUPSTRUCT_H
 
+#include <vector>
 #include "ac/audiocliptype.h"        // AudioClipType
 #include "ac/game_version.h"
 #include "ac/inventoryiteminfo.h"   // InventoryItemInfo
@@ -60,7 +61,7 @@ struct GameSetupStruct: public GameSetupStructBase {
     AGS::Common::StringIMap invProps[MAX_INV];
     char              **viewNames;
     char              invScriptNames[MAX_INV][MAX_SCRIPT_NAME_LEN];
-    char              dialogScriptNames[MAX_DIALOG][MAX_SCRIPT_NAME_LEN];
+    std::vector<Common::String> dialogScriptNames;
     char              guid[MAX_GUID_LENGTH];
     char              saveGameFileExtension[MAX_SG_EXT_LENGTH];
     char              saveGameFolderName[MAX_SG_FOLDER_LEN];

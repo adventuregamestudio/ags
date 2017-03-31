@@ -249,6 +249,7 @@ void GameSetupStruct::WriteCharacters_Aligned(Stream *out)
 
 MainGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVersion data_ver)
 {
+    dialogScriptNames.resize(numdialog);
     if (data_ver >= kGameVersion_260) // >= 2.60
     {
         if (Properties::ReadSchema(propSchema, in) != kPropertyErr_NoError)
@@ -277,7 +278,7 @@ MainGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameData
             fgetstring_limit(invScriptNames[bb], in, MAX_SCRIPT_NAME_LEN);
 
         for (bb = 0; bb < numdialog; bb++)
-            fgetstring_limit(dialogScriptNames[bb], in, MAX_SCRIPT_NAME_LEN);
+            dialogScriptNames[bb] = String::FromStream(in);
     }
     return kMGFErr_NoError;
 }

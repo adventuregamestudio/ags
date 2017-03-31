@@ -1558,11 +1558,6 @@ namespace AGS.Editor
                 if (string.IsNullOrEmpty(game.GlobalMessages[i])) continue;
                 WriteStringEncrypted(writer, game.GlobalMessages[i]);
             }
-            if (game.Dialogs.Count > NativeConstants.MAX_DIALOG)
-            {
-                errors.Add(new CompileError("Too many dialogs"));
-                return false;
-            }
             foreach (Dialog curDialog in game.Dialogs)
             {
                 for (int i = 0; (i < NativeConstants.MAXTOPICOPTIONS) && (i < curDialog.Options.Count); ++i)

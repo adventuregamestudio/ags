@@ -14,6 +14,7 @@
 
 #include "ac/character.h"
 #include "ac/charactercache.h"
+#include "ac/dialog.h"
 #include "ac/draw.h"
 #include "ac/file.h"
 #include "ac/game.h"
@@ -69,7 +70,6 @@ extern ScriptGUI    *scrGui;
 extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
 extern ScriptRegion scrRegion[MAX_REGIONS];
 extern ScriptInvItem scrInv[MAX_INV];
-extern ScriptDialog scrDialog[MAX_DIALOG];
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 
 extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
@@ -175,13 +175,14 @@ void InitAndRegisterCharacters()
 // Initializes dialog and registers them in the script system
 void InitAndRegisterDialogs()
 {
+    scrDialog = new ScriptDialog[game.numdialog];
     for (int i = 0; i < game.numdialog; ++i)
     {
         scrDialog[i].id = i;
         scrDialog[i].reserved = 0;
         ccRegisterManagedObject(&scrDialog[i], &ccDynamicDialog);
 
-        if (game.dialogScriptNames[i][0] != 0)
+        if (!game.dialogScriptNames[i].IsEmpty())
             ccAddExternalDynamicObject(game.dialogScriptNames[i], &scrDialog[i], &ccDynamicDialog);
     }
 }

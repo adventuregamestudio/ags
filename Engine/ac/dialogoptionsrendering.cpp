@@ -12,14 +12,14 @@
 //
 //=============================================================================
 
-#include "ac/dialogoptionsrendering.h"
+#include "ac/dialog.h"
 #include "ac/dialogtopic.h"
+#include "ac/dialogoptionsrendering.h"
 #include "ac/gamestructdefines.h"
 #include "debug/debug_log.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_dialog.h"
 
-extern ScriptDialog scrDialog[MAX_DIALOG];
 extern DialogTopic *dialog;
 extern CCDialog ccDynamicDialog;
 

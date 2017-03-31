@@ -768,7 +768,6 @@ namespace AGS
             if (name->Equals("OPT_RENDERATSCREENRES")) return OPT_RENDERATSCREENRES;
             if (name->Equals("OPT_LIPSYNCTEXT")) return OPT_LIPSYNCTEXT;
 			if (name->Equals("MAX_PLUGINS")) return MAX_PLUGINS;
-			if (name->Equals("MAX_DIALOG")) return MAX_DIALOG;
             return nullptr;
         }
 	}

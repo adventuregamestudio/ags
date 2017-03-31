@@ -106,7 +106,6 @@
 #define MAX_SG_EXT_LENGTH 20
 #define MAX_SG_FOLDER_LEN 50
 
-#define MAX_DIALOG        500
 
 enum GameResolutionType
 {

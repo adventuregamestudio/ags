@@ -175,12 +175,17 @@ CCDialog    ccDynamicDialog;
 CCAudioClip ccDynamicAudioClip;
 CCAudioChannel ccDynamicAudio;
 ScriptString myScriptStringImpl;
+// TODO: IMPORTANT!!
+// we cannot simply replace these arrays with vectors, or other C++ containers,
+// until we implement safe management of such containers in script exports
+// system. Noteably we would need an alternate to StaticArray class to track
+// access to their elements.
 ScriptObject scrObj[MAX_INIT_SPR];
 ScriptGUI    *scrGui = NULL;
 ScriptHotspot scrHotspot[MAX_HOTSPOTS];
 ScriptRegion scrRegion[MAX_REGIONS];
 ScriptInvItem scrInv[MAX_INV];
-ScriptDialog scrDialog[MAX_DIALOG];
+ScriptDialog *scrDialog;
 
 ViewStruct*views=NULL;
 
@@ -668,6 +673,8 @@ void unload_game_file() {
     }
     free (dialog);
     dialog = NULL;
+    delete [] scrDialog;
+    scrDialog = NULL;
 
     for (ee = 0; ee < game.numgui; ee++) {
         free (guibg[ee]);

@@ -38,6 +38,7 @@
 #include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
+#include "ac/sprite.h"
 #include "ac/spritelistentry.h"
 #include "ac/string.h"
 #include "ac/system.h"
@@ -79,6 +80,7 @@ extern GameSetup usetup;
 extern GameSetupStruct game;
 extern GameState play;
 extern int current_screen_resolution_multiplier;
+extern int convert_16bit_bgr;
 extern ScriptSystem scsystem;
 extern AGSPlatformDriver *platform;
 extern roomstruct thisroom;
@@ -206,6 +208,7 @@ void setpal() {
 
 
 #ifdef USE_15BIT_FIX
+
 extern "C" {
     AL_FUNC(GFX_VTABLE *, _get_vtable, (int color_depth));
 }
@@ -341,6 +344,63 @@ Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
     }
 
     return tempbl;
+}
+
+// Handles many possible uncommon conversion cases, only required for the
+// software renderer, because that is the only renderer that draws memory
+// bitmaps directly to the screen.
+//
+// TODO: find out if we may just move this to
+// ALSoftwareGraphicsDriver::ConvertBitmapToSupportedColourDepth()
+//
+Bitmap *ReplaceBitmapConvertSpecial(Bitmap* bitmap, bool has_alpha)
+{
+    if (gfxDriver->HasAcceleratedStretchAndFlip())
+        return bitmap; // no conversion needed for hardware-accelerated drivers
+
+    const int bmp_col_depth = bitmap->GetColorDepth();
+    const int sys_col_depth = System_GetColorDepth();
+    const int game_col_depth = game.color_depth * 8;
+    Bitmap *new_bitmap = bitmap;
+
+    if (((bmp_col_depth > 16) && (sys_col_depth <= 16)) ||
+        ((bmp_col_depth == 16) && (sys_col_depth > 16)))
+    {
+            // 16-bit sprite in 32-bit game or vice versa - convert
+            // so that scaling and blit calls work properly
+            if (has_alpha)
+                new_bitmap = remove_alpha_channel(bitmap);
+            else
+                new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, sys_col_depth);
+    }
+    else if ((bmp_col_depth == 32) && (sys_col_depth == 32))
+    {
+#if defined (AGS_INVERTED_COLOR_ORDER)
+        // PSP: Convert to BGR color order.
+        new_bitmap = convert_32_to_32bgr(bitmap);
+#endif
+        if (has_alpha)
+            set_rgb_mask_using_alpha_channel(new_bitmap);
+    }
+#ifdef USE_15BIT_FIX
+    else if ((sys_col_depth != game_col_depth) && (bmp_col_depth == game_col_depth))
+    {
+        // running in 15-bit mode with a 16-bit game, convert sprites
+        if (has_alpha)
+            // 32-to-24 with alpha channel
+            new_bitmap = remove_alpha_channel(bitmap);
+        else
+            new_bitmap = convert_16_to_15(bitmap);
+    }
+    else if ((convert_16bit_bgr == 1) && (bmp_col_depth == 16))
+    {
+        new_bitmap = convert_16_to_16bgr(bitmap);
+    }
+#endif
+
+    if (new_bitmap != bitmap)
+        delete bitmap;
+    return new_bitmap;
 }
 
 Bitmap *ReplaceBitmapWithSupportedFormat(Bitmap *bitmap)

@@ -101,11 +101,11 @@ extern AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y);
 extern AGS_INLINE int divide_down_coordinate(int coord);
 extern AGS_INLINE int divide_down_coordinate_round_up(int coord);
 
-Common::Bitmap *convert_16_to_15(Common::Bitmap *iii);
-Common::Bitmap *convert_16_to_16bgr(Common::Bitmap *tempbl);
-Common::Bitmap *convert_32_to_32bgr(Common::Bitmap *tempbl);
-
-// Checks if the bitmap needs to be converted and **deletes original** if a new bitmap
+// Checks if the bitmap needs to be converted for certain special cases
+// (old systems or uncommon gfx modes, and similar stuff).
+// Original bitmap **gets deleted** if a new bitmap had to be created.
+Common::Bitmap *ReplaceBitmapConvertSpecial(Common::Bitmap *bitmap, bool has_alpha);
+// Checks if the bitmap needs to be converted to and **deletes original** if a new bitmap
 // had to be created (by default).
 // TODO: this helper function was meant to remove bitmap deletion from the GraphicsDriver's
 // implementations while keeping code changes to minimum. The proper solution would probably

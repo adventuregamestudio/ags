@@ -481,25 +481,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     for (cc=0;cc<thisroom.num_bscenes;cc++) {
         update_polled_stuff_if_runtime();
-#ifdef USE_15BIT_FIX
-        // convert down scenes from 16 to 15-bit if necessary
-        if ((System_GetColorDepth() != game.color_depth*8) &&
-            (thisroom.ebscene[cc]->GetColorDepth() == game.color_depth * 8)) {
-                Bitmap *oldblock = thisroom.ebscene[cc];
-                thisroom.ebscene[cc] = convert_16_to_15(oldblock);
-                delete oldblock;
-        }
-        else if ((thisroom.ebscene[cc]->GetColorDepth () == 16) && (convert_16bit_bgr == 1))
-            thisroom.ebscene[cc] = convert_16_to_16bgr (thisroom.ebscene[cc]);
-#endif
-
-#if defined (AGS_INVERTED_COLOR_ORDER)
-        // PSP: Convert 32 bit backgrounds.
-        if (thisroom.ebscene[cc]->GetColorDepth() == 32)
-            thisroom.ebscene[cc] = convert_32_to_32bgr(thisroom.ebscene[cc]);
-#endif
-
-        thisroom.ebscene[cc] = ReplaceBitmapWithSupportedFormat(thisroom.ebscene[cc]);
+        thisroom.ebscene[cc] = 
+            ReplaceBitmapWithSupportedFormat(ReplaceBitmapConvertSpecial(thisroom.ebscene[cc], false));
     }
 
     if ((thisroom.ebscene[0]->GetColorDepth() == 8) &&

@@ -1284,24 +1284,14 @@ void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
 
 Bitmap *OGLGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
 {
-   int colorConv = get_color_conversion();
-   set_color_conversion(COLORCONV_KEEP_TRANS | COLORCONV_TOTAL);
-
    int colourDepth = bitmap->GetColorDepth();
-/*   if ((colourDepth == 8) || (colourDepth == 16))
+   if (colourDepth != 32)
    {
-     // Most 3D cards don't support 8-bit; and we need 15-bit colour
-     Bitmap* tempBmp = BitmapHelper::CreateBitmap_(15, bitmap->GetWidth(), bitmap->GetHeight());
-     Blit(bitmap, tempBmp, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
-     destroy_bitmap(bitmap);
-     set_color_conversion(colorConv);
-     return tempBmp;
-   }
-*/   if (colourDepth != 32)
-   {
+     int old_conv = get_color_conversion();
+     set_color_conversion(COLORCONV_KEEP_TRANS | COLORCONV_TOTAL);
      // we need 32-bit colour
      Bitmap *tempBmp = BitmapHelper::CreateBitmapCopy(bitmap, 32);
-     set_color_conversion(colorConv);
+     set_color_conversion(old_conv);
      return tempBmp;
    }
    return bitmap;
@@ -1340,23 +1330,10 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 {
   int allocatedWidth = bitmap->GetWidth();
   int allocatedHeight = bitmap->GetHeight();
-  Bitmap *tempBmp = NULL;
+  // NOTE: original bitmap object is not modified in this function
+  Bitmap *tempBmp = ConvertBitmapToSupportedColourDepth(bitmap);
+  bitmap = tempBmp;
   int colourDepth = bitmap->GetColorDepth();
-/*  if ((colourDepth == 8) || (colourDepth == 16))
-  {
-    // Most 3D cards don't support 8-bit; and we need 15-bit colour
-    tempBmp = BitmapHelper::CreateBitmap_(15, bitmap->GetWidth(), bitmap->GetHeight());
-    Blit(bitmap, tempBmp, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
-    bitmap = tempBmp;
-    colourDepth = 15;
-  }
-*/  if (colourDepth != 32)
-  {
-    // we need 32-bit colour
-	tempBmp = BitmapHelper::CreateBitmapCopy(bitmap, 32);
-    bitmap = tempBmp;
-    colourDepth = 32;
-  }
 
   OGLBitmap *ddb = new OGLBitmap(bitmap->GetWidth(), bitmap->GetHeight(), colourDepth, opaque);
 
@@ -1464,7 +1441,8 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 
   UpdateDDBFromBitmap(ddb, bitmap, hasAlpha);
 
-  delete tempBmp;
+  if (tempBmp != bitmap)
+    delete tempBmp;
 
   return ddb;
 }

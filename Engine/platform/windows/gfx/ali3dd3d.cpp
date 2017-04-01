@@ -1577,27 +1577,26 @@ void D3DGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
 
 Bitmap *D3DGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
 {
-   int colorConv = get_color_conversion();
-   set_color_conversion(COLORCONV_KEEP_TRANS | COLORCONV_TOTAL);
+  int col_depth = bitmap->GetColorDepth();
+  // NOTE: that is a known issue that converting 16-bit R5G6B5 native bitmap,
+  // which defines transparency using "magic pink" color index, into A1R5G5B5
+  // texture, which must reserve 1 bit for transparency, will cause certain
+  // loss of precision in green hue.
+  if (_mode.ColorDepth <= 16 && col_depth <= 16)
+    col_depth = 15; // become compatible with D3DFMT_A1R5G5B5
+  else if (_mode.ColorDepth >= 24)
+    col_depth = 32; // become compatible with D3DFMT_A8R8G8B8
 
-   int colourDepth = bitmap->GetColorDepth();
-   if ((colourDepth == 8) || (colourDepth == 16))
-   {
-     // Most 3D cards don't support 8-bit; and we need 15-bit colour
-     Bitmap *tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 15);
-     tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
-     set_color_conversion(colorConv);
-     return tempBmp;
-   }
-   if (colourDepth == 24)
-   {
-     // we need 32-bit colour
-     Bitmap* tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
-     tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
-     set_color_conversion(colorConv);
-     return tempBmp;
-   }
-   return bitmap;
+  if (col_depth != bitmap->GetColorDepth())
+  {
+    int old_conv = get_color_conversion();
+    set_color_conversion(COLORCONV_KEEP_TRANS | COLORCONV_TOTAL);
+    Bitmap* tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), col_depth);
+    tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+    set_color_conversion(old_conv);
+    return tempBmp;
+  }
+  return bitmap;
 }
 
 void D3DGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *height)
@@ -1658,24 +1657,10 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 {
   int allocatedWidth = bitmap->GetWidth();
   int allocatedHeight = bitmap->GetHeight();
-  Bitmap *tempBmp = NULL;
+  // NOTE: original bitmap object is not modified in this function
+  Bitmap *tempBmp = ConvertBitmapToSupportedColourDepth(bitmap);
+  bitmap = tempBmp;
   int colourDepth = bitmap->GetColorDepth();
-  if ((colourDepth == 8) || (colourDepth == 16))
-  {
-    // Most 3D cards don't support 8-bit; and we need 15-bit colour
-    tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 15);
-    tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
-    bitmap = tempBmp;
-    colourDepth = 15;
-  }
-  if (colourDepth == 24)
-  {
-    // we need 32-bit colour
-    tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
-    tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
-    bitmap = tempBmp;
-    colourDepth = 32;
-  }
 
   D3DBitmap *ddb = new D3DBitmap(bitmap->GetWidth(), bitmap->GetHeight(), colourDepth, opaque);
 
@@ -1798,7 +1783,8 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 
   UpdateDDBFromBitmap(ddb, bitmap, hasAlpha);
 
-  delete tempBmp;
+  if (tempBmp != bitmap)
+    delete tempBmp;
 
   return ddb;
 }

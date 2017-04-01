@@ -42,7 +42,6 @@ extern ScriptSystem scsystem;
 extern int _places_r, _places_g, _places_b;
 extern int current_screen_resolution_multiplier;
 extern WalkBehindMethodEnum walkBehindMethod;
-extern int force_16bit;
 extern IGraphicsDriver *gfxDriver;
 extern IDriverDependantBitmap *blankImage;
 extern IDriverDependantBitmap *blankSidebarImage;
@@ -176,33 +175,16 @@ void engine_init_resolution_settings(const Size game_size)
     engine_setup_system_gamesize();
 }
 
-void engine_get_color_depths(ColorDepthOption &color_depths)
+ColorDepthOption engine_get_color_depth()
 {
-    if (game.color_depth == 1)
-    {
-        color_depths.Prime = 8;
-        color_depths.Alternate = 8;
-    }
-    else if (debug_15bit_mode)
-    {
-        color_depths.Prime = 15;
-        color_depths.Alternate = 15;
-    }
+    if (debug_15bit_mode)
+        return ColorDepthOption(15, true);
     else if (debug_24bit_mode)
-    {
-        color_depths.Prime = 24;
-        color_depths.Alternate = 24;
-    }
-    else if ((game.color_depth == 2) || (force_16bit) || (usetup.force_hicolor_mode))
-    {
-        color_depths.Prime = 16;
-        color_depths.Alternate = 15;
-    }
+        return ColorDepthOption(24, true);
+    else if (usetup.force_hicolor_mode)
+        return ColorDepthOption(16, true);
     else
-    {
-        color_depths.Prime = 32;
-        color_depths.Alternate = 24;
-    }
+        return ColorDepthOption(game.color_depth * 8);
 }
 
 // Setup gfx driver callbacks and options

@@ -75,7 +75,6 @@ struct DisplayMode : public GraphicResolution
     {}
 };
 
-
 } // namespace Engine
 } // namespace AGS
 

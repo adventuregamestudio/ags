@@ -82,7 +82,7 @@ extern char editor_debugger_instance_token[100];
 
 // Startup flags, set from parameters to engine
 int datafile_argv=0, change_to_game_dir = 0, force_window = 0;
-int override_start_room = 0, force_16bit = 0;
+int override_start_room = 0;
 bool justDisplayHelp = false;
 bool justDisplayVersion = false;
 bool justRunSetup = false;
@@ -224,7 +224,7 @@ int main_process_cmdline(int argc,char*argv[])
         else if (stricmp(argv[ee],"-fullscreen") == 0 || stricmp(argv[ee],"--fullscreen") == 0)
             force_window = 2;
         else if (stricmp(argv[ee],"-hicolor") == 0 || stricmp(argv[ee],"--hicolor") == 0)
-            force_16bit = 1;
+            usetup.force_hicolor_mode = true;
         else if (stricmp(argv[ee],"-record") == 0)
             play.recording = 1;
         else if (stricmp(argv[ee],"-playback") == 0)

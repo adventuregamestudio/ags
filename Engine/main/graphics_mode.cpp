@@ -345,29 +345,16 @@ bool try_init_compatible_mode(const DisplayMode &dm, const bool match_device_rat
     return result;
 }
 
-// Tries to init compatible mode with given parameters; makes two attempts with primary and secondary colour depths
-bool try_init_compatible_mode(const DisplayMode &dm, int alternate_color_depth, bool match_device_ratio)
-{
-    bool result = try_init_compatible_mode(dm, match_device_ratio);
-    if (!result && dm.ColorDepth != alternate_color_depth)
-    {
-        DisplayMode dm_alt = dm;
-        dm_alt.ColorDepth = alternate_color_depth;
-        result = try_init_compatible_mode(dm_alt, match_device_ratio);
-    }
-    return result;
-}
-
 // Try to find and initialize compatible display mode as close to given setup as possible
 bool try_init_mode_using_setup(const Size &game_size, const DisplayModeSetup &dm_setup,
-                               const ColorDepthOption &color_depths, const GameFrameSetup &frame_setup,
+                               const int col_depth, const GameFrameSetup &frame_setup,
                                const GfxFilterSetup &filter_setup)
 {
     // We determine the requested size of the screen using setup options
     const Size screen_size = precalc_screen_size(game_size, dm_setup, frame_setup);
-    DisplayMode dm(GraphicResolution(screen_size.Width, screen_size.Height, color_depths.Prime),
+    DisplayMode dm(GraphicResolution(screen_size.Width, screen_size.Height, col_depth),
                    dm_setup.Windowed, dm_setup.RefreshRate, dm_setup.VSync);
-    if (!try_init_compatible_mode(dm, color_depths.Alternate, dm_setup.MatchDeviceRatio))
+    if (!try_init_compatible_mode(dm, dm_setup.MatchDeviceRatio))
         return false;
 
     // Set up native size and render frame
@@ -415,24 +402,24 @@ void log_out_driver_modes(const int color_depth)
 // Create requested graphics driver and try to find and initialize compatible display mode as close to user setup as possible;
 // if the given setup fails, gets default setup for the opposite type of mode (fullscreen/windowed) and tries that instead.
 bool create_gfx_driver_and_init_mode_any(const String &gfx_driver_id, const Size &game_size, const DisplayModeSetup &dm_setup,
-                                         const ColorDepthOption &color_depths, const GameFrameSetup &frame_setup,
-                                         const GfxFilterSetup &filter_setup)
+                                         const ColorDepthOption &color_depth, const GameFrameSetup &frame_setup, const GfxFilterSetup &filter_setup)
 {
     if (!graphics_mode_create_renderer(gfx_driver_id))
         return false;
-    // Log out supported driver modes
-    log_out_driver_modes(color_depths.Prime);
-    if (color_depths.Prime != color_depths.Alternate)
-        log_out_driver_modes(color_depths.Alternate);
 
-    bool result = try_init_mode_using_setup(game_size, dm_setup, color_depths, frame_setup, filter_setup);
+    const int use_col_depth =
+        color_depth.Forced ? color_depth.Bits : gfxDriver->GetDisplayDepthForNativeDepth(color_depth.Bits);
+    // Log out supported driver modes
+    log_out_driver_modes(use_col_depth);
+
+    bool result = try_init_mode_using_setup(game_size, dm_setup, use_col_depth, frame_setup, filter_setup);
     // Try windowed mode if fullscreen failed, and vice versa
     if (!result && editor_debugging_enabled == 0)
     {
         DisplayModeSetup dm_setup_alt;
         GameFrameSetup frame_setup_alt;
         graphics_mode_get_defaults(!dm_setup.Windowed, dm_setup_alt, frame_setup_alt);
-        result = try_init_mode_using_setup(game_size, dm_setup_alt, color_depths, frame_setup_alt, filter_setup);
+        result = try_init_mode_using_setup(game_size, dm_setup_alt, use_col_depth, frame_setup_alt, filter_setup);
     }
     return result;
 }
@@ -459,7 +446,7 @@ void display_gfx_mode_error(const Size &game_size, const ScreenSetup &setup, con
             main_error.GetCStr(), get_allegro_error(), platform->GetGraphicsTroubleshootingText());
 }
 
-bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, const ColorDepthOption &color_depths)
+bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, const ColorDepthOption &color_depth)
 {
     // Log out display information
     Size device_size;
@@ -489,7 +476,8 @@ bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, cons
     bool result = false;
     for (StringV::const_iterator it = ids.begin(); it != ids.end(); ++it)
     {
-        result = create_gfx_driver_and_init_mode_any(*it, game_size, setup.DisplayMode, color_depths, setup.GameFrame, setup.Filter);
+        result = create_gfx_driver_and_init_mode_any(*it, game_size, setup.DisplayMode, color_depth,
+                                                     setup.GameFrame, setup.Filter);
         if (result)
             break;
         graphics_mode_shutdown();
@@ -497,7 +485,7 @@ bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, cons
     // If all possibilities failed, display error message and quit
     if (!result)
     {
-        display_gfx_mode_error(game_size, setup, color_depths.Prime);
+        display_gfx_mode_error(game_size, setup, color_depth.Bits);
         return false;
     }
     return true;
@@ -557,13 +545,13 @@ bool graphics_mode_create_renderer(const String &driver_id)
 }
 
 bool graphics_mode_set_dm_any(const Size &game_size, const DisplayModeSetup &dm_setup,
-                              const ColorDepthOption &color_depths, const GameFrameSetup &frame_setup)
+                              const ColorDepthOption &color_depth, const GameFrameSetup &frame_setup)
 {
     // We determine the requested size of the screen using setup options
     const Size screen_size = precalc_screen_size(game_size, dm_setup, frame_setup);
-    DisplayMode dm(GraphicResolution(screen_size.Width, screen_size.Height, color_depths.Prime),
+    DisplayMode dm(GraphicResolution(screen_size.Width, screen_size.Height, color_depth.Bits),
                    dm_setup.Windowed, dm_setup.RefreshRate, dm_setup.VSync);
-    return try_init_compatible_mode(dm, color_depths.Alternate, dm_setup.MatchDeviceRatio);
+    return try_init_compatible_mode(dm, dm_setup.MatchDeviceRatio);
 }
 
 bool graphics_mode_set_dm(const DisplayMode &dm)

@@ -133,6 +133,7 @@ public:
     virtual bool SetNativeSize(const Size &src_size);
     virtual bool SetRenderFrame(const Rect &dst_rect);
     virtual bool IsModeSupported(const DisplayMode &mode);
+    virtual int  GetDisplayDepthForNativeDepth(int native_color_depth) const;
     virtual IGfxModeList *GetSupportedModeList(int color_depth);
     virtual PGfxFilter GetGraphicsFilter() const;
     virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _callback = callback; }

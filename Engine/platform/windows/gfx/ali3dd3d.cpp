@@ -919,6 +919,12 @@ bool D3DGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
   return !_dstRect.IsEmpty();
 }
 
+int D3DGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_depth) const
+{
+    // TODO: check for device caps to know which depth is supported?
+    return 32;
+}
+
 IGfxModeList *D3DGraphicsDriver::GetSupportedModeList(int color_depth)
 {
   direct3d->AddRef();

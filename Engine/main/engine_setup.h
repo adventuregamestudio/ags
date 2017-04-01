@@ -15,11 +15,12 @@
 #define __AGS_EE_MAIN__ENGINESETUP_H
 
 #include "util/geometry.h"
+#include "gfx/gfxdefines.h"
 
 struct ColorDepthOption;
 
 // Get color depth settings depending on game settings and user config
-void engine_get_color_depths(ColorDepthOption &color_depths);
+ColorDepthOption engine_get_color_depth();
 // Sets up game viewport and object scaling parameters depending on game and
 // user config; fills in color depth options.
 void engine_init_resolution_settings(const Size game_size);

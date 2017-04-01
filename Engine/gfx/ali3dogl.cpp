@@ -708,6 +708,12 @@ bool OGLGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
   return !_dstRect.IsEmpty();;
 }
 
+int OGLGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_depth) const
+{
+    // TODO: check for device caps to know which depth is supported?
+    return 32;
+}
+
 IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int color_depth)
 {
     // TODO!!

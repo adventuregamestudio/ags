@@ -101,19 +101,19 @@ struct ScreenSetup
     ScreenSetup();
 };
 
-// Display mode color depth variants allowed to be used
+// Display mode color depth variants suggested for the use
 struct ColorDepthOption
 {
-    int32_t Prime;
-    int32_t Alternate;
+    int     Bits;   // color depth value in bits
+    bool    Forced; // whether the depth should be forced, or driver's recommendation used
 
-    ColorDepthOption() : Prime(0), Alternate(0) {}
-    ColorDepthOption(int32_t prime, int32_t alt = 0) : Prime(prime), Alternate(alt > 0 ? alt : prime) {}
+    ColorDepthOption() : Bits(0), Forced(false) {}
+    ColorDepthOption(int bits, bool forced = false) : Bits(bits), Forced(forced) {}
 };
 
 // Initializes any possible gfx mode, using user config as a recommendation;
 // may try all available renderers and modes before succeeding (or failing)
-bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, const ColorDepthOption &color_depths);
+bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, const ColorDepthOption &color_depth);
 // Fill in setup structs with default settings for the given mode (windowed or fullscreen)
 void graphics_mode_get_defaults(bool windowed, DisplayModeSetup &dm_setup, GameFrameSetup &frame_setup);
 // Get frame setup, adjusted to be more suitable for the given mode kind
@@ -124,7 +124,7 @@ AGS::Engine::DisplayMode graphics_mode_get_last_mode(bool windowed);
 bool graphics_mode_create_renderer(const String &driver_id);
 // Try to find and initialize compatible display mode as close to given setup as possible
 bool graphics_mode_set_dm_any(const Size &game_size, const DisplayModeSetup &dm_setup,
-                              const ColorDepthOption &color_depths, const GameFrameSetup &frame_setup);
+                              const ColorDepthOption &color_depth, const GameFrameSetup &frame_setup);
 // Set the display mode with given parameters
 bool graphics_mode_set_dm(const AGS::Engine::DisplayMode &dm);
 // Set the native image size

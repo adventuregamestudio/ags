@@ -130,6 +130,12 @@ bool ALSoftwareGraphicsDriver::IsModeSupported(const DisplayMode &mode)
   return true;
 }
 
+int ALSoftwareGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_depth) const
+{
+    // TODO: check for device caps to know which depth is supported?
+    return native_color_depth;
+}
+
 IGfxModeList *ALSoftwareGraphicsDriver::GetSupportedModeList(int color_depth)
 {
   if (_gfxModeList == NULL)

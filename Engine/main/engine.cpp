@@ -1508,10 +1508,7 @@ bool engine_try_set_gfxmode_any(const ScreenSetup &setup)
     engine_shutdown_gfxmode();
 
     const Size init_desktop = get_desktop_size();
-
-    ColorDepthOption color_depths;
-    engine_get_color_depths(color_depths);
-    if (!graphics_mode_init_any(game.size, setup, color_depths))
+    if (!graphics_mode_init_any(game.size, setup, engine_get_color_depth()))
         return false;
 
     engine_post_gfxmode_setup(init_desktop);

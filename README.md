@@ -1,4 +1,4 @@
-#Adventure Game Studio
+# Adventure Game Studio
 
 Adventure Game Studio (AGS) - is the IDE and the engine meant for creating and running videogames of adventure (aka "quest") genre. It has potential, although limited, support for other genres as well.
 
@@ -9,7 +9,7 @@ An official homepage of AGS is: http://www.adventuregamestudio.co.uk
 Both Editor and Engine are licensed under the Artistic License 2.0; for more details see [License.txt](License.txt).
 
 
-##Engine instructions
+## Engine instructions
 
 To get started building the AGS engine, see the platform specific instructions or forum threads:
 
@@ -25,7 +25,7 @@ On Windows you may also invoke a setup dialog by running executable with "--setu
 For the list of available config options and command line arguments, please refer to [OPTIONS.md](OPTIONS.md).
 
 
-##Issue tracker
+## Issue tracker
 
 Please report bugs and feature requests at the [AGS Issue Tracker](http://www.adventuregamestudio.co.uk/forums/index.php?action=projects)!
 
@@ -44,7 +44,7 @@ Larger changes that potentially break things temporarily should first be made in
 We have a coding convention, please check it before writing the code: http://www.adventuregamestudio.co.uk/wiki/AGS_Engine_Coding_Conventions
 
 
-##AGS game compatibility:
+## AGS game compatibility:
 
 This runtime engine port is not compatible with all AGS games. There are the
 following restrictions:
@@ -61,7 +61,7 @@ following restrictions:
     replacement will not load.
 
 	
-##Changes from Chris Jones' version of AGS
+## Changes from Chris Jones' version of AGS
 
 This version of AGS contains changes from the version published by Chris Jones.
 The run-time engine was ported to Android, iOS, Linux, Mac OS X and PSP and a refactoring effort is under way.
@@ -69,6 +69,6 @@ A detailed documentation of the changes is provided in the form of the git log o
 (https://github.com/adventuregamestudio/ags).
 
 
-##Credits
+## Credits
 
 [Link](Credits.txt)

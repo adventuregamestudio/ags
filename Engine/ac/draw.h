@@ -101,11 +101,7 @@ extern AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y);
 extern AGS_INLINE int divide_down_coordinate(int coord);
 extern AGS_INLINE int divide_down_coordinate_round_up(int coord);
 
-// Checks if the bitmap needs to be converted for certain special cases
-// (old systems or uncommon gfx modes, and similar stuff).
-// Original bitmap **gets deleted** if a new bitmap had to be created.
-Common::Bitmap *ReplaceBitmapConvertSpecial(Common::Bitmap *bitmap, bool has_alpha);
-// Checks if the bitmap needs to be converted to and **deletes original** if a new bitmap
+// Checks if the bitmap needs to be converted and **deletes original** if a new bitmap
 // had to be created (by default).
 // TODO: this helper function was meant to remove bitmap deletion from the GraphicsDriver's
 // implementations while keeping code changes to minimum. The proper solution would probably
@@ -113,5 +109,10 @@ Common::Bitmap *ReplaceBitmapConvertSpecial(Common::Bitmap *bitmap, bool has_alp
 // WARNING: apparently MSVS2008 std::tr1::shared_ptr does not check for assigning same pointer,
 // this should be kept in mind!
 Common::Bitmap *ReplaceBitmapWithSupportedFormat(Common::Bitmap *bitmap);
+// Checks if the bitmap needs any kind of adjustments before it may be used
+// in AGS sprite operations. Also handles number of certain special cases
+// (old systems or uncommon gfx modes, and similar stuff).
+// Original bitmap **gets deleted** if a new bitmap had to be created.
+Common::Bitmap *PrepareSpriteForUse(Common::Bitmap *bitmap, bool has_alpha);
 
 #endif // __AGS_EE_AC__DRAW_H

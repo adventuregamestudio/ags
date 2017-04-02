@@ -1582,9 +1582,9 @@ Bitmap *D3DGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
   // which defines transparency using "magic pink" color index, into A1R5G5B5
   // texture, which must reserve 1 bit for transparency, will cause certain
   // loss of precision in green hue.
-  if (_mode.ColorDepth <= 16 && col_depth <= 16)
+  if (_mode.ColorDepth <= 16)
     col_depth = 15; // become compatible with D3DFMT_A1R5G5B5
-  else if (_mode.ColorDepth >= 24)
+  else if (_mode.ColorDepth <= 32)
     col_depth = 32; // become compatible with D3DFMT_A8R8G8B8
 
   if (col_depth != bitmap->GetColorDepth())

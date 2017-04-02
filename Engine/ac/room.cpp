@@ -475,19 +475,10 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         }
     }
 
-    if ((thisroom.ebscene[0]->GetColorDepth() == 8) &&
-        (System_GetColorDepth() > 8))
-        select_palette(palette);
-
     for (cc=0;cc<thisroom.num_bscenes;cc++) {
         update_polled_stuff_if_runtime();
-        thisroom.ebscene[cc] = 
-            ReplaceBitmapWithSupportedFormat(ReplaceBitmapConvertSpecial(thisroom.ebscene[cc], false));
+        thisroom.ebscene[cc] = PrepareSpriteForUse(thisroom.ebscene[cc], false);
     }
-
-    if ((thisroom.ebscene[0]->GetColorDepth() == 8) &&
-        (System_GetColorDepth() > 8))
-        unselect_palette();
 
     update_polled_stuff_if_runtime();
 

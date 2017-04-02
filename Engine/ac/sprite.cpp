@@ -194,16 +194,7 @@ void initialize_sprite (int ee) {
         spritewidth[ee]=spriteset[ee]->GetWidth();
         spriteheight[ee]=spriteset[ee]->GetHeight();
 
-        int spcoldep = spriteset[ee]->GetColorDepth();
-
-        if ((spcoldep == 8) && (System_GetColorDepth() > 8))
-            select_palette(palette);
-
-        spriteset.set(ee, ReplaceBitmapWithSupportedFormat(
-            ReplaceBitmapConvertSpecial(spriteset[ee], game.spriteflags[ee] & SPF_ALPHACHANNEL != 0)));
-
-        if ((spcoldep == 8) && (System_GetColorDepth() > 8))
-            unselect_palette();
+        spriteset.set(ee, PrepareSpriteForUse(spriteset[ee], (game.spriteflags[ee] & SPF_ALPHACHANNEL) != 0));
 
         if (System_GetColorDepth() < 32) {
             game.spriteflags[ee] &= ~SPF_ALPHACHANNEL;

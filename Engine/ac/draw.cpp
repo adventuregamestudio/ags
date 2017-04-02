@@ -346,44 +346,46 @@ Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
     return tempbl;
 }
 
-// Handles many possible uncommon conversion cases, only required for the
-// software renderer, because that is the only renderer that draws memory
-// bitmaps directly to the screen.
+// We actually may need to do some of these conversions even when using
+// D3D and OpenGL rendering, because certain raw drawing operations
+// are still performed by software Allegro methods.
 //
-// TODO: find out if we may just move this to
-// ALSoftwareGraphicsDriver::ConvertBitmapToSupportedColourDepth()
+// TODO: find out if we may safely move software-driver only related parts
+// to ALSoftwareGraphicsDriver::ConvertBitmapToSupportedColourDepth()
 //
-Bitmap *ReplaceBitmapConvertSpecial(Bitmap* bitmap, bool has_alpha)
+Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
 {
-    if (gfxDriver->HasAcceleratedStretchAndFlip())
-        return bitmap; // no conversion needed for hardware-accelerated drivers
-
+    const bool software_driver = !gfxDriver->HasAcceleratedStretchAndFlip();
     const int bmp_col_depth = bitmap->GetColorDepth();
     const int sys_col_depth = System_GetColorDepth();
     const int game_col_depth = game.color_depth * 8;
     Bitmap *new_bitmap = bitmap;
+
+    if ((bmp_col_depth == 32) && (sys_col_depth == 32))
+    {
+#if defined (AGS_INVERTED_COLOR_ORDER)
+        // PSP: Convert to BGR color order.
+        if (software_driver)
+            new_bitmap = convert_32_to_32bgr(bitmap);
+#endif
+        if (has_alpha) // this adjustment is probably needed for DrawingSurface ops
+            set_rgb_mask_using_alpha_channel(new_bitmap);
+    }
 
     if (((bmp_col_depth > 16) && (sys_col_depth <= 16)) ||
         ((bmp_col_depth == 16) && (sys_col_depth > 16)))
     {
             // 16-bit sprite in 32-bit game or vice versa - convert
             // so that scaling and blit calls work properly
-            if (has_alpha)
+            if (has_alpha) // 32-bit source only
                 new_bitmap = remove_alpha_channel(bitmap);
-            else
+            else if (software_driver) // non-software drivers do this on their own
                 new_bitmap = BitmapHelper::CreateBitmapCopy(bitmap, sys_col_depth);
     }
-    else if ((bmp_col_depth == 32) && (sys_col_depth == 32))
-    {
-#if defined (AGS_INVERTED_COLOR_ORDER)
-        // PSP: Convert to BGR color order.
-        new_bitmap = convert_32_to_32bgr(bitmap);
-#endif
-        if (has_alpha)
-            set_rgb_mask_using_alpha_channel(new_bitmap);
-    }
 #ifdef USE_15BIT_FIX
-    else if ((sys_col_depth != game_col_depth) && (bmp_col_depth == game_col_depth))
+    // TODO: review this later, it may also happen e.g. when running 32-bit game in 24-bit mode
+    // This is software driver only fix
+    else if (software_driver && (sys_col_depth != game_col_depth) && (bmp_col_depth == game_col_depth))
     {
         // running in 15-bit mode with a 16-bit game, convert sprites
         if (has_alpha)
@@ -392,14 +394,11 @@ Bitmap *ReplaceBitmapConvertSpecial(Bitmap* bitmap, bool has_alpha)
         else
             new_bitmap = convert_16_to_15(bitmap);
     }
-    else if ((convert_16bit_bgr == 1) && (bmp_col_depth == 16))
+    else if (software_driver && (convert_16bit_bgr == 1) && (bmp_col_depth == 16))
     {
         new_bitmap = convert_16_to_16bgr(bitmap);
     }
 #endif
-
-    if (new_bitmap != bitmap)
-        delete bitmap;
     return new_bitmap;
 }
 
@@ -408,6 +407,22 @@ Bitmap *ReplaceBitmapWithSupportedFormat(Bitmap *bitmap)
     Bitmap *new_bitmap = gfxDriver->ConvertBitmapToSupportedColourDepth(bitmap);
     if (new_bitmap != bitmap)
         delete bitmap;
+    return new_bitmap;
+}
+
+Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool has_alpha)
+{
+    bool must_switch_palette = bitmap->GetColorDepth() == 8 && System_GetColorDepth() > 8;
+    if (must_switch_palette)
+        select_palette(palette);
+
+    Bitmap *new_bitmap = AdjustBitmapForUseWithDisplayMode(bitmap, has_alpha);
+    if (new_bitmap != bitmap)
+        delete bitmap;
+    new_bitmap = ReplaceBitmapWithSupportedFormat(new_bitmap);
+
+    if (must_switch_palette)
+        unselect_palette();
     return new_bitmap;
 }
 

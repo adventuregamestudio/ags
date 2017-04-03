@@ -499,12 +499,8 @@ int deal_with_end_of_switch (int32_t *nested_assign_addr, long *nested_start, st
     // Write the location for the jump to this point (the jump table)
     scrip->code[nested_start[nested_level] + 1] = (scrip->codesize - nested_start[nested_level]) - 2;
     for(index = 0; index < limit; index++) {
-        // Push the switch variable onto the stack
-        scrip->push_reg(SREG_BX);
         // Put the result of the expression into AX
         write_chunk(scrip, (*nested_chunk)[index]);
-        // Pop the switch variable, ready for comparison
-        scrip->pop_reg(SREG_BX);
         // Do the comparison
         scrip->write_cmd2(operation, SREG_AX, SREG_BX);
         scrip->write_cmd1(SCMD_JZ, (*nested_chunk)[index].codeoffset - scrip->codesize - 2);
@@ -4756,12 +4752,16 @@ startvarbit:
                     int oriaddr = scrip->codesize;
                     int orifixupcount = scrip->numfixups;
                     int vcpuOperator = SCMD_ISEQUAL;
+                    // Push the switch variable onto the stack
+                    scrip->push_reg(SREG_BX);
                     if (evaluate_expression(&targ,scrip,0,false)) // case n: label expression, result is in AX
                         return -1;
                     if (check_type_mismatch(scrip->ax_val_type, nested_info[nested_level], 0))
                         return -1;
                     if (check_operator_valid_for_type(&vcpuOperator, scrip->ax_val_type, nested_info[nested_level]))
                         return -1;
+                    // Pop the switch variable, ready for comparison
+                    scrip->pop_reg(SREG_BX);
                     yank_chunk(scrip, &nested_chunk[nested_level], oriaddr, orifixupcount);
                 }
                 if(sym.get_type(targ.peeknext()) != SYM_LABEL) {

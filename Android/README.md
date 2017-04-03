@@ -1,7 +1,7 @@
-#Using the engine
+# Using the engine
 
 
-##Adding games to the game list
+## Adding games to the game list
 
 By default games have to be placed into the external storage device. This is
 usually the SD-card, but this can vary.
@@ -14,7 +14,7 @@ Place the game into the directory
 
 
 
-##Game options
+## Game options
 
 Global options can be configured by pressing the MENU button on the game list
 and choosing the "Preferences" item. These settings apply to all games unless
@@ -28,7 +28,7 @@ your last savegame.
 
 
 
-##Controls
+## Controls
 
 -   Finger movement: Moving the mouse cursor
 -   Single finger tap: Perform a left click
@@ -42,14 +42,14 @@ your last savegame.
 
 
 
-##Downloading prebuilt engine packages
+## Downloading prebuilt engine packages
 
 Go to http://jjs.at/daily to download the installation package for the current
 source snapshot.
 
 
 
-##MIDI playback
+## MIDI playback
 
 For midi music playback, you have to download GUS patches. We recommend
 "Richard Sanders's GUS patches" from this address:
@@ -66,7 +66,7 @@ and place it into the  **ags** directory alongside your games.
 
 
 
-#Building the engine
+# Building the engine
 
 The Android app consists of three parts, each with different requirements:
 
@@ -77,7 +77,7 @@ The Android app consists of three parts, each with different requirements:
 To only build the app, first follow the "Native engine library" and then the "Java app"
 instructions below.
 
-##Java app
+## Java app
 
 There are two parts to the Java app, one is the engine library in <SOURCE>/Android/library
 and the other one is the launcher app. The default launcher which displays a list
@@ -93,7 +93,7 @@ To build from the command line, you can use the tool 'ant'.
     $ ant debug
     $ ant release # for release build
 
-##Native engine library
+## Native engine library
 
 This is the main AGS engine code. It must be compiled using the Android NDK. This can
 simply be done by running ndk-build within the <SOURCE>Android/library directory. 
@@ -108,7 +108,7 @@ The native code is built for all current Android architecture, that is armv6, ar
 x86 and mips.
 
 
-##Native 3rd party libraries
+## Native 3rd party libraries
 
 You don't have to build these yourself unless you want to change the source code of
 a library.
@@ -127,7 +127,7 @@ Libraries must be available in <SOURCE>/libsrc
 
 
 
-##Links
+## Links
 
 Android SDK: http://developer.android.com/sdk/
 

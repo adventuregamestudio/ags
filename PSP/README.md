@@ -1,9 +1,9 @@
-#Adventure Game Studio runtime PSP port
+# Adventure Game Studio runtime PSP port
 
 Licensed under the Artistic License 2.0, see License.txt in the Engine folder.
 
 
-##Requirements:
+## Requirements:
 
 A PSP 2000/3000/GO with a Custom Firmware or Homebrew Enabler that can access the
 extended memory. Examples are 5.00 M33, 5.50 GEN, 6.xx PRO, 6.20 TN-HEN.
@@ -14,9 +14,9 @@ For the same reason, signing the Eboot is not useful as only the standard memory
 is available on official firmwares. It also requires kernel mode if run with the menu.
 
 
-##AGS game compatibility:
+## AGS game compatibility:
 
-###This runtime engine port is not compatible with all AGS games. There are the following restrictions:
+### This runtime engine port is not compatible with all AGS games. There are the following restrictions:
 
 -   Resolution must be 320x200 or 320x240. No higher resolution is supported and
     you will receive an error stating that when trying to run such a game.
@@ -24,7 +24,7 @@ is available on official firmwares. It also requires kernel mode if run with the
     see a "blue screen of death" with debug information. Press X to save them
     to a file. The game will then quit and reopen the menu.
 
-###These glitches can appear, affecting the game experience:
+### These glitches can appear, affecting the game experience:
 
 -   Games which make use of advanced scripting might run slow, possibly making
     them unplayable.
@@ -33,9 +33,9 @@ is available on official firmwares. It also requires kernel mode if run with the
 -   The frame rate drops when several sounds are played at once.
 
 
-###Compatibility note on specific games:
+### Compatibility note on specific games:
 
-####Playable with restrictions:
+#### Playable with restrictions:
 
 -   Quest for Glory II Remake: Very close to the memory limit. You have to set
     `clear_cache_on_room_change=1` and `enable_extra_memory=1` in the configuration
@@ -48,7 +48,7 @@ is available on official firmwares. It also requires kernel mode if run with the
 -   The Journey Down: The outro sequence will run with a very low frame rate.
 -   Aeronuts: The plane arcade sections are slow but playable.
 
-####Not playable on the PSP:
+#### Not playable on the PSP:
 
 -   Eternally Us: Runs out of memory before displaying anything.
 -   Dead Hand: Very low frame rate (1 fps).
@@ -59,7 +59,7 @@ is available on official firmwares. It also requires kernel mode if run with the
 -   Prodigal: Crashes the MP3 player during the intro sequence.
 
 
-##How to run games:
+## How to run games:
 
 1.  Copy the original game folder into the Eboot directory.
     E.g. if you want to run the game *Demo Quest* you put the games files into
@@ -87,13 +87,13 @@ is available on official firmwares. It also requires kernel mode if run with the
     must be named **default.cfg** and placed in the Eboot directory.
 
 
-##The configuration file:
+## The configuration file:
 
 You can customize the behaviour of the runtime by placing a file **psp.cfg** in the
 Eboot directory or the directory of the game you want to run. A config file in
 the game directory will overwrite the settings from the global configuration file.
 
-###Available settings:
+### Available settings:
 
     [analog_stick]
     sensitivity: Defines how the analog stick movement translates to mouse movement. Higher
@@ -149,14 +149,14 @@ the game directory will overwrite the settings from the global configuration fil
       quitting a game. This only works if the AGS game has an option to quit.
 
 
-###Available button values for mouse input:
+### Available button values for mouse input:
 
     mouse_up, mouse_down, mouse_left, mouse_right: Moves the mouse cursor in the indicated direction.
       Note: The analog stick is always used for mouse movement too.
     mouse_click_left, mouse_click_right, mouse_click middle: Simulates the respective mouse button.
     mouse_slow_down: While this button is pressed, the speed of the mouse cursor will be decreased.
 
-###Available button values for keyboard input:
+### Available button values for keyboard input:
 
     A ... Z, 0 ... 9, 0_PAD ... 9_PAD, F1 ... F12
     ESC, TILDE, MINUS, EQUALS, BACKSPACE, TAB, OPENBRACE, CLOSEBRACE, ENTER, COLON, QUOTE, BACKSLASH,
@@ -165,7 +165,7 @@ the game directory will overwrite the settings from the global configuration fil
     CONVERT, NOCONVERT, AT, CIRCUMFLEX, COLON2, KANJI, LSHIFT, RSHIFT, LCONTROL, RCONTROL, ALT, ALTGR,
     LWIN, RWIN, MENU, SCRLOCK, NUMLOCK, CAPSLOCK EQUALS_PAD, BACKQUOTE, SEMICOLON, COMMAND
 
-###Available button values for the onscreen keyboard:
+### Available button values for the onscreen keyboard:
 
     keyboard_toggle: This button will switch between the standard button set and the one for the osk.
     keyboard_enter_char: Presses the currently selected key.
@@ -175,7 +175,7 @@ the game directory will overwrite the settings from the global configuration fil
     keyboard_previous_keyset: Switches to the previous key set.
 
 
-##Compiling the source:
+## Compiling the source:
 
 1.  Building the AGS port:
     -   You need MinPSPW 0.11 for Windows or Linux.
@@ -189,7 +189,7 @@ the game directory will overwrite the settings from the global configuration fil
     -   Check the file **readme.txt** in the **patches** folder.
 
 
-##Main source code changes from the PC version (also check the commit log of the git repository):
+## Main source code changes from the PC version (also check the commit log of the git repository):
 
 -   Instances of unaligned variable access that are not allowed on the MIPS processor
     are replaced with equivalent memcpy calls.

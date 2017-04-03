@@ -1,6 +1,6 @@
-#Using the engine
+# Using the engine
 
-##Installation
+## Installation
 
 A jailbroken iDevice is required!
 
@@ -12,7 +12,7 @@ by adding
 as a repository to Cydia.
 
 
-##Adding a game
+## Adding a game
 
 Place the game data under
 
@@ -24,7 +24,7 @@ You can change engine settings by placing a file "ios.cfg" into the
 "ags" folder. A sample configuration file can be found in <SOURCE>/misc/.
 
 
-##Controls
+## Controls
 
 -   Finger movement: Moving the mouse cursor
 -   Single finger tap: Perform a left click
@@ -33,7 +33,7 @@ You can change engine settings by placing a file "ios.cfg" into the
 -   Holding down one finger for over two seconds: Open/Close the onscreen keyboard
 
 
-#Building the engine
+# Building the engine
 
 The iOS app consists of two parts:
 
@@ -41,7 +41,7 @@ The iOS app consists of two parts:
 -   3rd party libraries
 
 
-##iOS app
+## iOS app
 
 There is an Xcode project in the <SOURCE>/iOS/xcode directory. It requires a
 minimum of the iOS SDK 8.0. The project should build on OS X Mavericks (version
@@ -52,7 +52,7 @@ To build from command line, change to <SOURCE>/iOS/xcode/ags and run
     $ xcodebuild clean build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
 
 
-##Native 3rd party libraries
+## Native 3rd party libraries
 
 You don't have to build these yourself unless you want to change the source code of
 a library.
@@ -67,7 +67,7 @@ armv7, armv7s, arm64, i386 and x86_64 architectures.
 
 
 
-##Links
+## Links
 
 Cydia repository: http://jjs.at/cydia/
 

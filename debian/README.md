@@ -1,4 +1,4 @@
-#Building the engine on any Linux
+# Building the engine on any Linux
 The following packages are required to build AGS. The versions in
 parentheses are known to work, but other versions will also
 probably work.
@@ -35,7 +35,7 @@ can be installed with
 
     sudo make --directory=Engine install
 
-#Building a Debian/Ubuntu package of AGS
+# Building a Debian/Ubuntu package of AGS
 Building a package is the preferred way to install software on
 Debian/Ubuntu. This is how it's done.
 
@@ -49,7 +49,7 @@ Build the package and install it with gdebi:
     fakeroot debian/rules binary
     sudo gdebi ../ags_3~git-1_*.deb
 
-#Using the engine
+# Using the engine
 To start an AGS game, just run ags with the game directory or the game
 file as parameter, e.g.
 
@@ -84,7 +84,7 @@ You can now place it:
 -   if $ALLEGRO is not defined, in $HOME; or
 -   in the same folder of the AGS executable.
 
-#Debugging
+# Debugging
 When using the Debian/Ubuntu package, the package ags-dbg_*.deb containing debugging
 symbols is created alongside ags_*.deb. The build date and the name of the
 last git commit at the time of building are stored in the package description,
@@ -94,14 +94,14 @@ which can be viewed with
 
 This information should be included in bug reports.
 
-#Building AGS for a game release
+# Building AGS for a game release
 If you want to build AGS for inclusion in a game release, you want an
 engine that runs on most 32 and 64 bit Linux systems regardless of the library
 versions that are installed on that system. You can get such a built by using
 the script **debian/make_ags+libraries,sh**. The script itself can be used
 on Debian or Ubuntu. See the comments in the script for instructions.
 
-#Workaround: 32 bit AGS on 64 bit Debian/Ubuntu
+# Workaround: 32 bit AGS on 64 bit Debian/Ubuntu
 In the past AGS worked only on 32 bit architectures, so it was necessary to compile
 a 32 bit version on 64 bit systems. This is not necessary anymore, but these
 instructions are kept for reference and may be helpful for debugging etc.
@@ -116,7 +116,7 @@ Download the sources with git and change into the **ags** directory:
     git clone git://github.com/adventuregamestudio/ags.git
     cd ags
 
-##Matching working directory and orig tarball
+## Matching working directory and orig tarball
 To build the package, it is required that there is an "orig tarball"
 that has the same content as the working directory. This tarball is generated
 from the git content with
@@ -144,7 +144,7 @@ changes to git, then run `debian/rules get-orig-source`, then
 build the package.
 
 
-##Building the package
+## Building the package
 
 Enable multiarch:
 

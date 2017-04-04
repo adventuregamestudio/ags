@@ -149,9 +149,6 @@ private:
     int         _modeCount;
 };
 
-
-#define MAX_DRAW_LIST_SIZE 200
-
 struct CUSTOMVERTEX
 {
     D3DVECTOR   position; // The position.
@@ -159,12 +156,7 @@ struct CUSTOMVERTEX
     FLOAT       tu, tv;   // The texture coordinates.
 };
 
-struct SpriteDrawListEntry
-{
-    D3DBitmap *bitmap;
-    int x, y;
-    bool skip;
-};
+typedef SpriteDrawListEntry<D3DBitmap> D3DDrawListEntry;
 
 class D3DGraphicsDriver : public GraphicsDriverBase
 {
@@ -252,14 +244,12 @@ private:
     bool _renderSprAtScreenRes;
     Bitmap *_screenTintLayer;
     D3DBitmap* _screenTintLayerDDB;
-    SpriteDrawListEntry _screenTintSprite;
+    D3DDrawListEntry _screenTintSprite;
     Bitmap *_dummyVirtualScreen;
     bool _skipPresent; // used for rendering only on the virtual screen for GetCopyOfScreenIntoBitmap
 
-    SpriteDrawListEntry drawList[MAX_DRAW_LIST_SIZE];
-    int numToDraw;
-    SpriteDrawListEntry drawListLastTime[MAX_DRAW_LIST_SIZE];
-    int numToDrawLastTime;
+    std::vector<D3DDrawListEntry> drawList;
+    std::vector<D3DDrawListEntry> drawListLastTime;
     GlobalFlipType flipTypeLastTime;
 
     // Called after new mode was successfully initialized
@@ -280,7 +270,7 @@ private:
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     bool IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat );
     void create_screen_tint_bitmap();
-    void _renderSprite(SpriteDrawListEntry *entry, bool globalLeftRightFlip, bool globalTopBottomFlip);
+    void _renderSprite(D3DDrawListEntry *entry, bool globalLeftRightFlip, bool globalTopBottomFlip);
 };
 
 

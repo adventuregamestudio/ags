@@ -119,7 +119,7 @@ private:
 };
 
 
-#define MAX_DRAW_LIST_SIZE 200
+typedef SpriteDrawListEntry<ALSoftwareBitmap> ALDrawListEntry;
 
 class ALSoftwareGraphicsDriver : public GraphicsDriverBase
 {
@@ -191,9 +191,7 @@ private:
     GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
     int _tint_red, _tint_green, _tint_blue;
 
-    ALSoftwareBitmap* drawlist[MAX_DRAW_LIST_SIZE];
-    int drawx[MAX_DRAW_LIST_SIZE], drawy[MAX_DRAW_LIST_SIZE];
-    int numToDraw;
+    std::vector<ALDrawListEntry> drawlist;
     GFX_MODE_LIST *_gfxModeList;
 
 #ifdef _WIN32

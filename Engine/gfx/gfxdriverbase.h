@@ -28,6 +28,32 @@ namespace Engine
 
 using Common::Bitmap;
 
+
+template<class T_DDB>
+struct SpriteDrawListEntry
+{
+    T_DDB *bitmap; // TODO: use shared pointer?
+    int x, y;
+    bool skip;
+
+    SpriteDrawListEntry()
+        : bitmap(NULL)
+        , x(0)
+        , y(0)
+        , skip(false)
+    {
+    }
+
+    SpriteDrawListEntry(T_DDB *ddb, int x_, int y_)
+        : bitmap(ddb)
+        , x(x_)
+        , y(y_)
+        , skip(false)
+    {
+    }
+};
+
+
 class GraphicsDriverBase : public IGraphicsDriver
 {
 public:

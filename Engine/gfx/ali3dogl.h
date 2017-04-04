@@ -170,15 +170,7 @@ public:
     }
 };
 
-
-#define MAX_DRAW_LIST_SIZE 200
-
-struct SpriteDrawListEntry
-{
-    OGLBitmap *bitmap;
-    int x, y;
-    bool skip;
-};
+typedef SpriteDrawListEntry<OGLBitmap> OGLDrawListEntry;
 
 class OGLGfxFilter;
 
@@ -258,7 +250,7 @@ private:
     float _pixelRenderOffset;
     Bitmap *_screenTintLayer;
     OGLBitmap* _screenTintLayerDDB;
-    SpriteDrawListEntry _screenTintSprite;
+    OGLDrawListEntry _screenTintSprite;
     Bitmap *_dummyVirtualScreen;
 
     float _scale_width;
@@ -270,10 +262,8 @@ private:
     int _backbuffer_texture_height;
     bool _render_to_texture;
 
-    SpriteDrawListEntry drawList[MAX_DRAW_LIST_SIZE];
-    int numToDraw;
-    SpriteDrawListEntry drawListLastTime[MAX_DRAW_LIST_SIZE];
-    int numToDrawLastTime;
+    std::vector<OGLDrawListEntry> drawList;
+    std::vector<OGLDrawListEntry> drawListLastTime;
     GlobalFlipType flipTypeLastTime;
 
     void InitOpenGl();
@@ -285,7 +275,7 @@ private:
     void CreateVirtualScreen();
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     void create_screen_tint_bitmap();
-    void _renderSprite(SpriteDrawListEntry *entry, bool globalLeftRightFlip, bool globalTopBottomFlip);
+    void _renderSprite(OGLDrawListEntry *entry, bool globalLeftRightFlip, bool globalTopBottomFlip);
     void SetupViewport();
     void create_backbuffer_arrays();
 };

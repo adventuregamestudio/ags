@@ -187,8 +187,6 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   direct3d = d3d;
   direct3ddevice = NULL;
   vertexbuffer = NULL;
-  numToDraw = 0;
-  numToDrawLastTime = 0;
   _pollingCallback = NULL;
   _drawScreenCallback = NULL;
   _initGfxCallback = NULL;
@@ -279,8 +277,8 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
 {
   OnModeReleased();
 
-  numToDraw = 0;
-  numToDrawLastTime = 0;
+  drawList.clear();
+  drawListLastTime.clear();
   flipTypeLastTime = kFlip_None;
 
   if (_screenTintLayerDDB != NULL) 
@@ -1091,11 +1089,10 @@ void D3DGraphicsDriver::Render(GlobalFlipType flip)
 
 void D3DGraphicsDriver::_reDrawLastFrame()
 {
-  memcpy(&drawList[0], &drawListLastTime[0], sizeof(SpriteDrawListEntry) * numToDrawLastTime);
-  numToDraw = numToDrawLastTime;
+  drawList = drawListLastTime;
 }
 
-void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool globalLeftRightFlip, bool globalTopBottomFlip)
+void D3DGraphicsDriver::_renderSprite(D3DDrawListEntry *drawListEntry, bool globalLeftRightFlip, bool globalTopBottomFlip)
 {
   HRESULT hr;
   D3DBitmap *bmpToDraw = drawListEntry->bitmap;
@@ -1308,8 +1305,8 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     }
   }
 
-  SpriteDrawListEntry *listToDraw = drawList;
-  int listSize = numToDraw;
+  std::vector<D3DDrawListEntry> &listToDraw = drawList;
+  size_t listSize = listToDraw.size();
   HRESULT hr;
   bool globalLeftRightFlip = (flip == kFlip_Vertical) || (flip == kFlip_Both);
   bool globalTopBottomFlip = (flip == kFlip_Horizontal) || (flip == kFlip_Both);
@@ -1326,7 +1323,7 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
   direct3ddevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
   direct3ddevice->SetSamplerState(0, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP);
 
-  for (int i = 0; i < listSize; i++)
+  for (size_t i = 0; i < listSize; i++)
   {
     if (listToDraw[i].skip)
       continue;
@@ -1377,8 +1374,7 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
   if (clearDrawListAfterwards)
   {
-    numToDrawLastTime = numToDraw;
-    memcpy(&drawListLastTime[0], &drawList[0], sizeof(SpriteDrawListEntry) * listSize);
+    drawListLastTime = drawList;
     flipTypeLastTime = flip;
     ClearDrawList();
   }
@@ -1386,26 +1382,17 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
 void D3DGraphicsDriver::ClearDrawList()
 {
-  numToDraw = 0;
+    drawList.clear();
 }
 
 void D3DGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
 {
-  if (numToDraw >= MAX_DRAW_LIST_SIZE)
-  {
-    throw Ali3DException("Too many sprites to draw in one frame");
-  }
-
-  drawList[numToDraw].bitmap = (D3DBitmap*)bitmap;
-  drawList[numToDraw].x = x;
-  drawList[numToDraw].y = y;
-  drawList[numToDraw].skip = false;
-  numToDraw++;
+  drawList.push_back(D3DDrawListEntry((D3DBitmap*)bitmap, x, y));
 }
 
 void D3DGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
 {
-  for (int i = 0; i < numToDrawLastTime; i++)
+  for (size_t i = 0; i < drawListLastTime.size(); i++)
   {
     if (drawListLastTime[i].bitmap == bitmap)
     {
@@ -1877,18 +1864,19 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   {
     boxWidth += speed;
     boxHeight += yspeed;
+    const size_t last = drawList.size() - 1;
     if (blackingOut)
     {
-      this->drawList[this->numToDraw - 1].x = _srcRect.GetWidth() / 2- boxWidth / 2;
-      this->drawList[this->numToDraw - 1].y = _srcRect.GetHeight() / 2 - boxHeight / 2;
+      drawList[last].x = _srcRect.GetWidth() / 2- boxWidth / 2;
+      drawList[last].y = _srcRect.GetHeight() / 2 - boxHeight / 2;
       d3db->SetStretch(boxWidth, boxHeight);
     }
     else
     {
-      this->drawList[this->numToDraw - 4].x = _srcRect.GetWidth() / 2 - boxWidth / 2 - _srcRect.GetWidth();
-      this->drawList[this->numToDraw - 3].y = _srcRect.GetHeight() / 2 - boxHeight / 2 - _srcRect.GetHeight();
-      this->drawList[this->numToDraw - 2].x = _srcRect.GetWidth() / 2 + boxWidth / 2;
-      this->drawList[this->numToDraw - 1].y = _srcRect.GetHeight() / 2 + boxHeight / 2;
+      drawList[last - 3].x = _srcRect.GetWidth() / 2 - boxWidth / 2 - _srcRect.GetWidth();
+      drawList[last - 2].y = _srcRect.GetHeight() / 2 - boxHeight / 2 - _srcRect.GetHeight();
+      drawList[last - 1].x = _srcRect.GetWidth() / 2 + boxWidth / 2;
+      drawList[last    ].y = _srcRect.GetHeight() / 2 + boxHeight / 2;
       d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
     }
     

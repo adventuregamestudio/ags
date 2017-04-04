@@ -83,7 +83,6 @@ ALSoftwareGraphicsDriver::ALSoftwareGraphicsDriver()
   _tint_blue = 0;
   _autoVsync = false;
   _spareTintingScreen = NULL;
-  numToDraw = 0;
   _gfxModeList = NULL;
 #ifdef _WIN32
   dxGammaControl = NULL;
@@ -245,7 +244,7 @@ void ALSoftwareGraphicsDriver::CreateVirtualScreen()
 void ALSoftwareGraphicsDriver::ReleaseDisplayMode()
 {
   OnModeReleased();
-  numToDraw = 0;
+  drawlist.clear();
 
 #ifdef _WIN32
   if (dxGammaControl != NULL) 
@@ -365,39 +364,31 @@ void ALSoftwareGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
 
 void ALSoftwareGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
 {
-  if (numToDraw >= MAX_DRAW_LIST_SIZE)
-  {
-    throw Ali3DException("Too many sprites to draw in one frame");
-  }
-
-  drawlist[numToDraw] = (ALSoftwareBitmap*)bitmap;
-  drawx[numToDraw] = x;
-  drawy[numToDraw] = y;
-  numToDraw++;
+  drawlist.push_back(ALDrawListEntry((ALSoftwareBitmap*)bitmap, x, y));
 }
 
 void ALSoftwareGraphicsDriver::ClearDrawList()
 {
-  numToDraw = 0;
+  drawlist.clear();
 }
 
 void ALSoftwareGraphicsDriver::RenderToBackBuffer()
 {
-  for (int i = 0; i < numToDraw; i++)
+  for (size_t i = 0; i < drawlist.size(); i++)
   {
-    if (drawlist[i] == NULL)
+    if (drawlist[i].bitmap == NULL)
     {
       if (_nullSpriteCallback)
-        _nullSpriteCallback(drawx[i], drawy[i]);
+        _nullSpriteCallback(drawlist[i].x, drawlist[i].y);
       else
         throw Ali3DException("Unhandled attempt to draw null sprite");
 
       continue;
     }
 
-    ALSoftwareBitmap* bitmap = drawlist[i];
-    int drawAtX = drawx[i];
-    int drawAtY = drawy[i];
+    ALSoftwareBitmap* bitmap = drawlist[i].bitmap;
+    int drawAtX = drawlist[i].x;
+    int drawAtY = drawlist[i].y;
 
     if ((bitmap->_opaque) && (bitmap->_bmp == virtualScreen))
     { }

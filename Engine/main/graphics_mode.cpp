@@ -354,7 +354,7 @@ bool try_init_mode_using_setup(const Size &game_size, const DisplayModeSetup &dm
     const Size screen_size = precalc_screen_size(game_size, dm_setup, frame_setup);
     DisplayMode dm(GraphicResolution(screen_size.Width, screen_size.Height, col_depth),
                    dm_setup.Windowed, dm_setup.RefreshRate, dm_setup.VSync);
-    if (!try_init_compatible_mode(dm, dm_setup.MatchDeviceRatio))
+    if (!try_init_compatible_mode(dm, dm_setup.SizeDef == kScreenDef_Explicit ? false : dm_setup.MatchDeviceRatio))
         return false;
 
     // Set up native size and render frame

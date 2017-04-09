@@ -1,5 +1,71 @@
 REVISION HISTORY
 ================
+VERSION 3.4.1
+
+Common features:
+ - Upgraded Windows version of AGS with Allegro v4.4 library (previously v4.2).
+ - Implemented "RenderAtScreenResolution" game setting. When enabled, characters
+   and objects are scaled in screen pixels rather than game pixels.
+ - Implemented VerticalOffset and LineSpacing properties for fonts.
+ - Removed limit on Dialog Topics (was 500 topics per game).
+
+Editor:
+ - Removed legacy game compiler.
+ - Raw compiled game data is now saved in "Compiled\Data" folder, as opposed to
+   just "Compiled".
+ - Editor can now import games older than 2.72, and newer too (3.*) if you have
+   extracted data files from compiled executable.
+ - ScriptAPIVersion and ScriptCompatibilityLevel settings now have "Highest"
+   option, which is meant for automatically enabling newest script API when
+   upgrading old project in a newer editor.
+ - Added new "Default Setup" pane, which works similarily to "General Settings"
+   and lets you configure default values for game setup.
+ - Added "Font Height (pixels)" readonly property to the Font's pane, which
+   works for both WFN and TTF fonts and may be used as a reference.
+
+Script:
+ - Fixed local variables not working in the switch's case expressions.
+ - Fixed Strings in switch, making them compare by value again.
+ - Fixed compiler mistakes caused by the use of objects of empty type
+   (that is - struct without any variables in it).
+
+Script API:
+ - A new parameter StopMovementStyle is added to following functions: LockView,
+   LockViewAligned, LockViewFrame, LockViewOffset, UnlockView. This parameter
+   can be eStopMoving (default) or eKeepMoving.
+ - Added missing readonly properties to get Lighting/Tinting parameters for
+   Character and Object: HasExplicitLight, HasExplicitTint, LightLevel,
+   TintBlue, TintGreen, TintRed, TintSaturation, TintLuminance.
+ - Added Mouse.SelectPreviousMode() and Mouse.IsModeEnabled(CursorMode)
+   functions.
+ - Added readonly properties to get Button's animation state: Button.Animating,
+   Button.Frame, Button.Loop, Button.View.
+ - Added GetFontHeight(FontType) and GetFontLineSpacing(FontType) functions.
+
+Engine:
+ - Added support for switching between fullscreen and windowed modes at runtime
+   using Alt+Enter key combination.
+ - Added support for global configuration file, which works as configuration
+   for all games and overrides default game's config file. Individual game
+   user's config overrides global one in its turn. Global config's location is
+   platform-dependent.
+ - Engine no longer writes and reads gamma level in saves, meaning that gamma
+   keeps its current value when restoring a saved game.
+ - Removed arbitrary limit on number of sprites rendered at the same time for
+   hardware-accelerated renderers (Direct3D and OpenGL) (was 75), and another
+   limit imposed on drawing entries for all drivers (was 200).
+ - All supported hardware-accelerated graphic drivers (Direct3D and OpenGL)
+   now run every game in 32-bit display mode by default, and convert game's
+   graphics on load if that is required. This allows to run 8-bit games and
+   fixes loss of green hue precision in 16-bit games.
+   NOTE: 8-bit dynamic palette cycling is still not supported for hardware-
+   accelerated drivers.
+ - Fixed Speech.VoiceMode not returning correct values when speech.vox is not
+   enabled/present.
+ - Fixed AdjustVolumeWithScaling character's property not working with the new
+   audio system.
+
+
 VERSION 3.4.0 - Patch 4, March 2017
 
 Editor:

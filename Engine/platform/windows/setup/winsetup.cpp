@@ -817,7 +817,6 @@ void WinSetupDialog::OnScalingUpdate()
         _winCfg.ScaleFactor = scale >= 0 ? scale - kNumFrameScaleDef : scale;
     }
 
-    EnableWindow(_hGfxFilterList, (_winCfg.ScaleDef == kFrame_IntScale && _winCfg.ScaleFactor == 1) ? FALSE : TRUE);
     SetGfxModeText();
 }
 

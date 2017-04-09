@@ -235,6 +235,14 @@ int AddString(HWND hwnd, LPCTSTR text, DWORD_PTR data = 0L)
     return index;
 }
 
+int InsertString(HWND hwnd, LPCTSTR text, int at_index, DWORD_PTR data = 0L)
+{
+    int index = SendMessage(hwnd, CB_INSERTSTRING, at_index, (LPARAM)text);
+    if (index >= 0)
+        SendMessage(hwnd, CB_SETITEMDATA, index, data);
+    return index;
+}
+
 int GetItemCount(HWND hwnd)
 {
     return SendMessage(hwnd, CB_GETCOUNT, 0, 0L);
@@ -946,29 +954,43 @@ void WinSetupDialog::FillGfxModeList()
         return;
     }
 
-    AddString(_hGfxModeList, String::FromFormat("Desktop resolution (%d x %d)",
-        _desktopSize.Width, _desktopSize.Height), (DWORD_PTR)kGfxMode_Desktop);
-    AddString(_hGfxModeList, String::FromFormat("Native game resolution (%d x %d)",
-        _winCfg.GameResolution.Width, _winCfg.GameResolution.Height), (DWORD_PTR)kGfxMode_GameRes);
-
     const VDispModes &modes = _drvDesc->GfxModeList.Modes;
     const int use_colour_depth = _winCfg.GameColourDepth ? _winCfg.GameColourDepth : 32;
     String buf;
     GraphicResolution prev_mode;
+    bool has_desktop_mode = false;
+    bool has_native_mode = false;
     for (size_t i = 0; i < modes.size(); ++i)
     {
         const GraphicResolution &mode = modes[i];
         if (use_colour_depth == mode.ColorDepth &&
-            !(mode.Width == _desktopSize.Width && mode.Height == _desktopSize.Height) &&
-            !(mode.Width == _winCfg.GameResolution.Width && mode.Height == _winCfg.GameResolution.Height) &&
             // Sort of hack to hide different refresh rate modes (for now)
             prev_mode.Width != mode.Width && prev_mode.Height != mode.Height)
         {
+            if (mode.Width == _desktopSize.Width && mode.Height == _desktopSize.Height)
+            {
+                has_desktop_mode = true;
+                continue;
+            }
+            else if (mode.Width == _winCfg.GameResolution.Width && mode.Height == _winCfg.GameResolution.Height)
+            {
+                has_native_mode = true;
+                continue;
+            }
+
             buf.Format("%d x %d", mode.Width, mode.Height);
             AddString(_hGfxModeList, buf, (DWORD_PTR)&mode);
             prev_mode = mode;
         }
     }
+
+    int spec_mode_idx = 0;
+    if (has_desktop_mode)
+        InsertString(_hGfxModeList, String::FromFormat("Desktop resolution (%d x %d)",
+            _desktopSize.Width, _desktopSize.Height), spec_mode_idx++, (DWORD_PTR)kGfxMode_Desktop);
+    if (has_native_mode)
+        InsertString(_hGfxModeList, String::FromFormat("Native game resolution (%d x %d)",
+            _winCfg.GameResolution.Width, _winCfg.GameResolution.Height), spec_mode_idx++, (DWORD_PTR)kGfxMode_GameRes);
 
     SelectNearestGfxMode(_winCfg.ScreenSize);
 }

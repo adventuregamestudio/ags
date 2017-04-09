@@ -452,10 +452,11 @@ private:
     typedef std::vector<GfxFilterInfo> VFilters;
     struct DriverDesc
     {
-        String      Id;
-        String      UserName;
-        GfxModes    GfxModeList;
-        VFilters    FilterList;
+        String      Id;            // internal id
+        String      UserName;      // human-friendly driver name
+        GfxModes    GfxModeList;   // list of supported modes
+        VFilters    FilterList;    // list of supported filters
+        int         UseColorDepth; // recommended display depth
     };
 
     // Operations
@@ -955,7 +956,6 @@ void WinSetupDialog::FillGfxModeList()
     }
 
     const VDispModes &modes = _drvDesc->GfxModeList.Modes;
-    const int use_colour_depth = _winCfg.GameColourDepth ? _winCfg.GameColourDepth : 32;
     String buf;
     GraphicResolution prev_mode;
     bool has_desktop_mode = false;
@@ -963,7 +963,7 @@ void WinSetupDialog::FillGfxModeList()
     for (size_t i = 0; i < modes.size(); ++i)
     {
         const GraphicResolution &mode = modes[i];
-        if (use_colour_depth == mode.ColorDepth &&
+        if (_drvDesc->UseColorDepth == mode.ColorDepth &&
             // Sort of hack to hide different refresh rate modes (for now)
             prev_mode.Width != mode.Width && prev_mode.Height != mode.Height)
         {
@@ -1086,9 +1086,10 @@ void WinSetupDialog::InitDriverDescFromFactory(const String &id)
     PDriverDesc drv_desc(new DriverDesc());
     drv_desc->Id = gfx_driver->GetDriverID();
     drv_desc->UserName = gfx_driver->GetDriverName();
+    drv_desc->UseColorDepth =
+        gfx_driver->GetDisplayDepthForNativeDepth(_winCfg.GameColourDepth ? _winCfg.GameColourDepth : 32);
 
-    const int use_colour_depth = _winCfg.GameColourDepth ? _winCfg.GameColourDepth : 32;
-    IGfxModeList *gfxm_list = gfx_driver->GetSupportedModeList(use_colour_depth);
+    IGfxModeList *gfxm_list = gfx_driver->GetSupportedModeList(drv_desc->UseColorDepth);
     VDispModes &modes = drv_desc->GfxModeList.Modes;
     if (gfxm_list)
     {
@@ -1200,7 +1201,7 @@ void WinSetupDialog::SelectNearestGfxMode(const Size screen_size)
         // Look up for the nearest supported mode
         int index = -1;
         DisplayMode dm;
-        if (find_nearest_supported_mode(_drvDesc->GfxModeList, screen_size, _winCfg.GameColourDepth != 0 ? _winCfg.GameColourDepth : 32,
+        if (find_nearest_supported_mode(_drvDesc->GfxModeList, screen_size, _drvDesc->UseColorDepth,
                                         NULL, NULL, dm, &index))
         {
             SetCurSelToItemData(_hGfxModeList, (DWORD_PTR)&_drvDesc->GfxModeList.Modes[index], NULL, kGfxMode_Desktop);

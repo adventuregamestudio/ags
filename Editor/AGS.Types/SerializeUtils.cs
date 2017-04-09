@@ -101,10 +101,20 @@ namespace AGS.Types
                             writer.WriteString(propValue);
                             writer.WriteEndElement();
                         }
-						else if (prop.PropertyType == typeof(DateTime))
-						{
-							writer.WriteElementString(prop.Name, ((DateTime)prop.GetValue(obj, null)).ToString("yyyy-MM-dd"));
-						}
+                        // We must use InvariantCulture for floats and doubles, because their
+                        // format depends on local system settings used when the project was saved
+                        else if (prop.PropertyType == typeof(float))
+                        {
+                            writer.WriteElementString(prop.Name, ((float)prop.GetValue(obj, null)).ToString(CultureInfo.InvariantCulture));
+                        }
+                        else if (prop.PropertyType == typeof(double))
+                        {
+                            writer.WriteElementString(prop.Name, ((double)prop.GetValue(obj, null)).ToString(CultureInfo.InvariantCulture));
+                        }
+                        else if (prop.PropertyType == typeof(DateTime))
+                        {
+                            writer.WriteElementString(prop.Name, ((DateTime)prop.GetValue(obj, null)).ToString("yyyy-MM-dd"));
+                        }
                         // For compatibility with various Custom Resolution beta builds
                         // TODO: find a generic solution for doing a conversions like this without
                         // using hard-coded property name (some serialization attribute perhaps)
@@ -112,10 +122,10 @@ namespace AGS.Types
                         {
                             writer.WriteElementString(prop.Name, ResolutionToCompatString((Size)prop.GetValue(obj, null)));
                         }
-						else
-						{
-							writer.WriteElementString(prop.Name, prop.GetValue(obj, null).ToString());
-						}
+                        else
+                        {
+                            writer.WriteElementString(prop.Name, prop.GetValue(obj, null).ToString());
+                        }
                     }
                 }
             }
@@ -185,6 +195,16 @@ namespace AGS.Types
                 else if (prop.PropertyType == typeof(short))
                 {
                     prop.SetValue(obj, Convert.ToInt16(elementValue), null);
+                }
+                // We must use InvariantCulture for floats and doubles, because their
+                // format depends on local system settings used when the project was saved
+                else if (prop.PropertyType == typeof(float))
+                {
+                    prop.SetValue(obj, Single.Parse(elementValue, CultureInfo.InvariantCulture), null);
+                }
+                else if (prop.PropertyType == typeof(double))
+                {
+                    prop.SetValue(obj, Double.Parse(elementValue, CultureInfo.InvariantCulture), null);
                 }
                 else if (prop.PropertyType == typeof(string))
                 {

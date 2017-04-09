@@ -21,6 +21,8 @@
 #include <crtdbg.h>
 #include <shlobj.h>
 #include <shlwapi.h>
+#include "util/stdtr1compat.h"
+#include TR1INCLUDE(memory)
 #include <vector>
 #include "ac/gamestructdefines.h"
 #undef RGB
@@ -430,18 +432,22 @@ private:
     void ShowAdvancedOptions();
 
     // Helper structs
+    typedef std::vector<DisplayMode> VDispModes;
     struct GfxModes : public IGfxModeList
     {
-        std::vector<DisplayMode> Modes;
+        VDispModes Modes;
 
         virtual int  GetModeCount() const;
         virtual bool GetMode(int index, DisplayMode &mode) const;
     };
 
+    typedef std::vector<GfxFilterInfo> VFilters;
     struct DriverDesc
     {
-        GfxModes                   GfxModeList;
-        std::vector<GfxFilterInfo> FilterList;
+        String      Id;
+        String      UserName;
+        GfxModes    GfxModeList;
+        VFilters    FilterList;
     };
 
     // Operations
@@ -451,7 +457,7 @@ private:
     void FillLanguageList();
     void FillScalingList();
     void InitGfxModes();
-    void InitDriverDescFromFactory(const String &id, DriverDesc &drv_desc);
+    void InitDriverDescFromFactory(const String &id);
     void SaveSetup();
     void SelectNearestGfxMode(const Size screen_size);
     void SetGfxModeText();
@@ -467,10 +473,11 @@ private:
     Size _winSize;
     Size _baseSize;
     // Driver descriptions
-    DriverDesc _dx5;
-    DriverDesc _d3d9;
-    DriverDesc *_drvDesc;
-    GfxFilterInfo *_gfxFilterInfo;
+    typedef stdtr1compat::shared_ptr<DriverDesc> PDriverDesc;
+    typedef std::map<String, PDriverDesc> DriverDescMap;
+    DriverDescMap _drvDescMap;
+    PDriverDesc _drvDesc;
+    GfxFilterInfo _gfxFilterInfo;
     // Resolution limits
     Size _desktopSize;
     Size _maxWindowSize;
@@ -512,8 +519,6 @@ WinSetupDialog::WinSetupDialog(const ConfigTree &cfg_in, ConfigTree &cfg_out, co
     : _hwnd(NULL)
     , _cfgIn(cfg_in)
     , _cfgOut(cfg_out)
-    , _drvDesc(NULL)
-    , _gfxFilterInfo(NULL)
 {
     _winCfg.DataDirectory = data_dir;
     _winCfg.VersionString = version_str;
@@ -608,10 +613,11 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
 
     InitGfxModes();
 
-    if (_dx5.GfxModeList.GetModeCount() > 0)
-        AddString(_hGfxDriverList, "DirectDraw 5", (DWORD_PTR)"DX5");
-    if (_d3d9.GfxModeList.GetModeCount() > 0)
-        AddString(_hGfxDriverList, "Direct3D 9", (DWORD_PTR)"D3D9");
+    for (DriverDescMap::const_iterator it = _drvDescMap.begin(); it != _drvDescMap.end(); ++it)
+    {
+        if (it->second->GfxModeList.GetModeCount() > 0)
+            AddString(_hGfxDriverList, it->second->UserName, (DWORD_PTR)it->second->Id.GetCStr());
+    }
     SetCurSelToItemDataStr(_hGfxDriverList, _winCfg.GfxDriverId.GetCStr(), 0);
     OnGfxDriverUpdate();
 
@@ -765,10 +771,9 @@ void WinSetupDialog::OnGfxDriverUpdate()
 {
     _winCfg.GfxDriverId = (LPCTSTR)GetCurItemData(_hGfxDriverList);
 
-    if (_winCfg.GfxDriverId.CompareNoCase("D3D9") == 0)
-        _drvDesc = &_d3d9;
-    else if (_winCfg.GfxDriverId.CompareNoCase("DX5") == 0)
-        _drvDesc = &_dx5;
+    DriverDescMap::const_iterator it = _drvDescMap.find(_winCfg.GfxDriverId);
+    if (it != _drvDescMap.end())
+        _drvDesc = it->second;
 
     FillGfxModeList();
     FillGfxFilterList();
@@ -778,12 +783,12 @@ void WinSetupDialog::OnGfxFilterUpdate()
 {
     _winCfg.GfxFilterId = (LPCTSTR)GetCurItemData(_hGfxFilterList);
 
-    _gfxFilterInfo = NULL;
+    _gfxFilterInfo = GfxFilterInfo();
     for (size_t i = 0; i < _drvDesc->FilterList.size(); ++i)
     {
         if (_drvDesc->FilterList[i].Id.CompareNoCase(_winCfg.GfxFilterId) == 0)
         {
-            _gfxFilterInfo = &_drvDesc->FilterList[i];
+            _gfxFilterInfo = _drvDesc->FilterList[i];
             break;
         }
     }
@@ -916,7 +921,7 @@ void WinSetupDialog::FillGfxFilterList()
 
     if (!_drvDesc)
     {
-        _gfxFilterInfo = NULL;
+        _gfxFilterInfo = GfxFilterInfo();
         return;
     }
 
@@ -946,7 +951,7 @@ void WinSetupDialog::FillGfxModeList()
     AddString(_hGfxModeList, String::FromFormat("Native game resolution (%d x %d)",
         _winCfg.GameResolution.Width, _winCfg.GameResolution.Height), (DWORD_PTR)kGfxMode_GameRes);
 
-    const std::vector<DisplayMode> &modes = _drvDesc->GfxModeList.Modes;
+    const VDispModes &modes = _drvDesc->GfxModeList.Modes;
     const int use_colour_depth = _winCfg.GameColourDepth ? _winCfg.GameColourDepth : 32;
     String buf;
     GraphicResolution prev_mode;
@@ -1033,14 +1038,18 @@ void WinSetupDialog::FillScalingList()
 
 void WinSetupDialog::InitGfxModes()
 {
-    InitDriverDescFromFactory("D3D9", _d3d9);
-    InitDriverDescFromFactory("DX5", _dx5);
+    InitDriverDescFromFactory("D3D9");
+    InitDriverDescFromFactory("DX5");
+    InitDriverDescFromFactory("OGL");
 
-    if (_d3d9.GfxModeList.GetModeCount() == 0 && _dx5.GfxModeList.GetModeCount() == 0)
+    size_t total_modes = 0;
+    for (DriverDescMap::const_iterator it = _drvDescMap.begin(); it != _drvDescMap.end(); ++it)
+        total_modes += it->second->GfxModeList.Modes.size();
+    if (total_modes == 0)
         MessageBox(_hwnd, "Unable to query available graphic modes.", "Initialization error", MB_OK | MB_ICONERROR);
 }
 
-void WinSetupDialog::InitDriverDescFromFactory(const String &id, DriverDesc &drv_desc)
+void WinSetupDialog::InitDriverDescFromFactory(const String &id)
 {
     IGfxDriverFactory *gfx_factory = GetGfxDriverFactory(id);
     if (!gfx_factory)
@@ -1052,24 +1061,29 @@ void WinSetupDialog::InitDriverDescFromFactory(const String &id, DriverDesc &drv
         return;
     }
 
+    PDriverDesc drv_desc(new DriverDesc());
+    drv_desc->Id = gfx_driver->GetDriverID();
+    drv_desc->UserName = gfx_driver->GetDriverName();
+
     const int use_colour_depth = _winCfg.GameColourDepth ? _winCfg.GameColourDepth : 32;
     IGfxModeList *gfxm_list = gfx_driver->GetSupportedModeList(use_colour_depth);
-    GfxModes &modes = drv_desc.GfxModeList;
+    VDispModes &modes = drv_desc->GfxModeList.Modes;
     if (gfxm_list)
     {
-        modes.Modes.resize(gfxm_list->GetModeCount());
-        for (size_t i = 0; i < modes.Modes.size(); ++i)
-            gfxm_list->GetMode(i, modes.Modes[i]);
+        modes.resize(gfxm_list->GetModeCount());
+        for (size_t i = 0; i < modes.size(); ++i)
+            gfxm_list->GetMode(i, modes[i]);
         delete gfxm_list;
     }
 
-    drv_desc.FilterList.resize(gfx_factory->GetFilterCount());
-    for (size_t i = 0; i < drv_desc.FilterList.size(); ++i)
+    drv_desc->FilterList.resize(gfx_factory->GetFilterCount());
+    for (size_t i = 0; i < drv_desc->FilterList.size(); ++i)
     {
-        drv_desc.FilterList[i] = *gfx_factory->GetFilterInfo(i);
+        drv_desc->FilterList[i] = *gfx_factory->GetFilterInfo(i);
     }
 
     gfx_factory->Shutdown();
+    _drvDescMap[drv_desc->Id] = drv_desc;
 }
 
 void WinSetupDialog::SaveSetup()

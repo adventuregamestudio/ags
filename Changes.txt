@@ -3,77 +3,77 @@ REVISION HISTORY
 VERSION 3.4.0 - Patch 4, March 2017
 
 Editor:
-- Improved Font preview, now it displays all 256 supported characters and
-  resizes itself to accomodate these on the grid properly.
-- Fixed game compilation on systems which have Japanese ANSI or similar locale
-  as default locale for non-Unicode applications.
-- Fixed Linux binaries were not copied to the Compiled folder if AGS Editor is
-  installed to "C:/Program Files" and run in a non-administrator mode.
+ - Improved Font preview, now it displays all 256 supported characters and
+   resizes itself to accomodate these on the grid properly.
+ - Fixed game compilation on systems which have Japanese ANSI or similar locale
+   as default locale for non-Unicode applications.
+ - Fixed Linux binaries were not copied to the Compiled folder if AGS Editor is
+   installed to "C:/Program Files" and run in a non-administrator mode.
   
 Engine:
-- Fixed toggling mouse lock in window with Ctrl+Alt did not work all the time.
+ - Fixed toggling mouse lock in window with Ctrl+Alt did not work all the time.
 
 
 VERSION 3.4.0 - Patch 3, February 2017
 
 Common bug fixes:
-- Fixed program crash in Engine and Editor when loading/importing a game that
-  contains file with name longer than 50 characters.
+ - Fixed program crash in Engine and Editor when loading/importing a game that
+   contains file with name longer than 50 characters.
 
 Editor bug fixes:
-- Do not copy hidden and system files into final directories when building the
-  game.
+ - Do not copy hidden and system files into final directories when building the
+   game.
 
 
 VERSION 3.4.0 - Patch 2, February 2017
 
 Script API:
-- Extended the list of System.OperatingSystem possible return values;
-  now supports eOSAndroid, eOSiOS, eOSPSP
+ - Extended the list of System.OperatingSystem possible return values;
+   now supports eOSAndroid, eOSiOS, eOSPSP
 
 Editor bug fixes:
-- Fixed incorrect Unicode-to-ANSI string conversion during game compilation
-  which caused text containing non-latin characters become random mess in game,
-  even if game fonts compiled to the proper ANSI codepage.
+ - Fixed incorrect Unicode-to-ANSI string conversion during game compilation
+   which caused text containing non-latin characters become random mess in game,
+   even if game fonts compiled to the proper ANSI codepage.
 
 Engine bug fixes:
-- Fixed mouse cursor stuck at the left border of the screen when using OpenGL
-  renderer (Android & iOS ports).
-- Fixed InventoryScreen() script function caused game to crash if particular
-  resources are not available.
-- Fixed built-in inventory screen not working with Direct3D and OpenGL
-  renderers.
-- Fixed obsolete gfxfilter names are printed when using --help argument.
+ - Fixed mouse cursor stuck at the left border of the screen when using OpenGL
+   renderer (Android & iOS ports).
+ - Fixed InventoryScreen() script function caused game to crash if particular
+   resources are not available.
+ - Fixed built-in inventory screen not working with Direct3D and OpenGL
+   renderers.
+ - Fixed obsolete gfxfilter names are printed when using --help argument.
 
 Cosmetics & convenience:
-- Corrected error message displayed when engine cannot get write access to the
-  disk (e.g. no more telling to not run from CD on Android).
+ - Corrected error message displayed when engine cannot get write access to the
+   disk (e.g. no more telling to not run from CD on Android).
   
 Manual:
-- Added information on static extenders.
+ - Added information on static extenders.
 
 
 VERSION 3.4.0 - Patch 1, November 2016
 
 Editor:
-- Fixed #if(n)ver preprocessor directive failed to properly compare versions
-  if the current and required versions have different number of digits.
+ - Fixed #if(n)ver preprocessor directive failed to properly compare versions
+   if the current and required versions have different number of digits.
 
 Engine:
-- Returned support for some older config options related to graphics mode,
-  so that the engine would be able to use old config files.
-- Fixed graphics mode initialization failure in certain less common setup
-  cases, such as when requested window size was larger than current
-  desktop resolution, or when the final mode appeared smaller than the
-  precalculated one.
-- Fixed couple of memory leaks occuring when saved game is restored.
-- Fixed rare crash when restoring a game while having unreleased DrawingSurface
-  pointers.
-- Fixed compilation in C++11 mode.
+ - Returned support for some older config options related to graphics mode,
+   so that the engine would be able to use old config files.
+ - Fixed graphics mode initialization failure in certain less common setup
+   cases, such as when requested window size was larger than current
+   desktop resolution, or when the final mode appeared smaller than the
+   precalculated one.
+ - Fixed couple of memory leaks occuring when saved game is restored.
+ - Fixed rare crash when restoring a game while having unreleased DrawingSurface
+   pointers.
+ - Fixed compilation in C++11 mode.
 
 WinSetup:
-- Fixed "native game resolution" mode choice was not properly restored when
-  loading config file.
+ - Fixed "native game resolution" mode choice was not properly restored when
+   loading config file.
 
 
 VERSION 3.4.0, September 2016

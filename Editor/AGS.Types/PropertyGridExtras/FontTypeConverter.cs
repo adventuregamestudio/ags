@@ -7,12 +7,12 @@ using System.Reflection;
 
 namespace AGS.Types
 {
-    public class FontTypeConverter : BaseListSelectTypeConverter
+    public class FontTypeConverter : BaseListSelectTypeConverter<int, string>
     {
         private static Dictionary<int, string> _possibleValues = new Dictionary<int, string>();
         private static IList<Font> _Fonts = null;
 
-        protected override Dictionary<int, string> GetValueList()
+        protected override Dictionary<int, string> GetValueList(ITypeDescriptorContext context)
         {
             return _possibleValues;
         }

@@ -7,12 +7,12 @@ using System.Reflection;
 
 namespace AGS.Types
 {
-    public class AudioClipTypeTypeConverter : BaseListSelectTypeConverter
+    public class AudioClipTypeTypeConverter : BaseListSelectTypeConverter<int, string>
     {
         private static Dictionary<int, string> _possibleValues = new Dictionary<int, string>();
         private static IList<AudioClipType> _AudioClipTypes = null;
 
-        protected override Dictionary<int, string> GetValueList()
+        protected override Dictionary<int, string> GetValueList(ITypeDescriptorContext context)
         {
             return _possibleValues;
         }

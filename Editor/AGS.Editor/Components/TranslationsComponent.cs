@@ -360,6 +360,7 @@ namespace AGS.Editor.Components
 						_agsEditor.DeleteFileOnDiskAndSourceControl(_itemRightClicked.FileName);
                     }
                     RePopulateTreeView();
+                    TranslationListTypeConverter.SetTranslationsList(_agsEditor.CurrentGame.Translations);
                 }
             }
             else
@@ -440,6 +441,7 @@ namespace AGS.Editor.Components
             _documents.Clear();
             */
             RePopulateTreeView();
+            TranslationListTypeConverter.SetTranslationsList(_agsEditor.CurrentGame.Translations);
         }
 
         private void _timer_Tick(object sender, EventArgs e)
@@ -477,6 +479,7 @@ namespace AGS.Editor.Components
                     }
                 }
             }
+            TranslationListTypeConverter.SetTranslationsList(_agsEditor.CurrentGame.Translations);
         }
 
         private void ProjectTree_OnAfterLabelEdit(string commandID, ProjectTreeItem treeItem)

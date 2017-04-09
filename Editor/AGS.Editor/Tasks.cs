@@ -172,7 +172,7 @@ namespace AGS.Editor
 
             if (xmlVersionIndex < 15)
             {
-                game.DefaultSetup.TitleText = game.Settings.GameName + " Setup";
+                game.DefaultSetup.SetDefaults();
             }
 
             game.SetScriptAPIForOldProject();

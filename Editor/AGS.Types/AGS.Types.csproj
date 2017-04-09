@@ -243,6 +243,7 @@
     <Compile Include="BuildTargetsInfo.cs" />
     <Compile Include="Enums\BuildConfiguration.cs" />
     <Compile Include="Enums\DialogOptionsNumbering.cs" />
+    <Compile Include="Enums\GameScaling.cs" />
     <Compile Include="Enums\RenderAtScreenResolution.cs" />
     <Compile Include="Enums\ScriptAPIVersion.cs" />
     <Compile Include="Enums\SpriteAlphaStyle.cs" />
@@ -275,6 +276,8 @@
     <Compile Include="Interfaces\ISpriteController.cs" />
     <Compile Include="Interfaces\IToXml.cs" />
     <Compile Include="InventoryItemFolder.cs" />
+    <Compile Include="PropertyGridExtras\GraphicsFilterTypeConverter.cs" />
+    <Compile Include="PropertyGridExtras\TranslationListTypeConverter.cs" />
     <Compile Include="RuntimeSetup.cs" />
     <Compile Include="WorkspaceState.cs" />
     <Compile Include="PropertyGridExtras\AudioClipTypeConverter.cs" />

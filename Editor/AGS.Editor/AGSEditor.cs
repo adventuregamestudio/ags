@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -1456,17 +1457,34 @@ namespace AGS.Editor
             }
 			NativeProxy.WritePrivateProfileString("misc", "gamecolordepth", (((int)_game.Settings.ColorDepth) * 8).ToString(), configFilePath);
 
-            StringBuilder buffer = new StringBuilder(100);
-            NativeProxy.GetPrivateProfileString("graphics", "defaultdriver", "NULL", buffer, buffer.Capacity, configFilePath);
-            if (buffer.ToString() != _game.DefaultSetup.GraphicsDriver.ToString())
+            NativeProxy.WritePrivateProfileString("graphics", "driver", _game.DefaultSetup.GraphicsDriver.ToString(), configFilePath);
+            NativeProxy.WritePrivateProfileString("graphics", "windowed", _game.DefaultSetup.Windowed ? "1" : "0", configFilePath);
+
+            string scale_str;
+            switch (_game.DefaultSetup.GameScaling)
             {
-                NativeProxy.WritePrivateProfileString("graphics", "defaultdriver", _game.DefaultSetup.GraphicsDriver.ToString(), configFilePath);
-                NativeProxy.WritePrivateProfileString("graphics", "driver", _game.DefaultSetup.GraphicsDriver.ToString(), configFilePath);
+                case GameScaling.MaxInteger: scale_str = "max_round"; break;
+                case GameScaling.StretchToFit: scale_str = "stretch"; break;
+                case GameScaling.ProportionalStretch: scale_str = "proportional"; break;
+                default: scale_str = _game.DefaultSetup.GameScalingMultiplier.ToString(); break;
             }
+            NativeProxy.WritePrivateProfileString("graphics", "game_scale", scale_str, configFilePath);
+
+            NativeProxy.WritePrivateProfileString("graphics", "filter", _game.DefaultSetup.GraphicsFilter, configFilePath);
+            NativeProxy.WritePrivateProfileString("graphics", "vsync", _game.DefaultSetup.VSync ? "1" : "0", configFilePath);
+            NativeProxy.WritePrivateProfileString("misc", "antialias", _game.DefaultSetup.AAScaledSprites ? "1" : "0", configFilePath);
+            NativeProxy.WritePrivateProfileString("misc", "notruecolor", _game.DefaultSetup.DowngradeTo16bit ? "1" : "0", configFilePath);
             bool render_at_screenres = _game.Settings.RenderAtScreenResolution == RenderAtScreenResolution.UserDefined ?
                 _game.DefaultSetup.RenderAtScreenResolution : _game.Settings.RenderAtScreenResolution == RenderAtScreenResolution.True;
-
             NativeProxy.WritePrivateProfileString("graphics", "render_at_screenres", render_at_screenres ? "1" : "0", configFilePath);
+            NativeProxy.WritePrivateProfileString("language", "translation", _game.DefaultSetup.Translation, configFilePath);
+            NativeProxy.WritePrivateProfileString("mouse", "auto_lock", _game.DefaultSetup.AutoLockMouse ? "1" : "0", configFilePath);
+            NativeProxy.WritePrivateProfileString("mouse", "speed", _game.DefaultSetup.MouseSpeed.ToString(CultureInfo.InvariantCulture), configFilePath);
+            NativeProxy.WritePrivateProfileString("misc", "cachemax", _game.DefaultSetup.SpriteCacheSize.ToString(), configFilePath);
+            if (_game.DefaultSetup.UseCustomSavePath)
+                NativeProxy.WritePrivateProfileString("misc", "user_data_dir", _game.DefaultSetup.CustomSavePath, configFilePath);
+            else
+                NativeProxy.WritePrivateProfileString("misc", "user_data_dir", "", configFilePath);
             NativeProxy.WritePrivateProfileString("misc", "titletext", _game.DefaultSetup.TitleText, configFilePath);
         }
 

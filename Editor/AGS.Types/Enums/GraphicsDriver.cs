@@ -7,7 +7,7 @@ namespace AGS.Types
 {
 	public enum GraphicsDriver
 	{
-		[Description("DirectDraw 5 (default)")]
+		[Description("Software driver")]
 		DX5,
 		[Description("Direct3D 9 hardware acceleration")]
 		D3D9

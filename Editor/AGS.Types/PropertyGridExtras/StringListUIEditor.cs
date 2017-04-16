@@ -24,7 +24,7 @@ namespace AGS.Types
 
         public StringListUIEditor()
         {
-            editor = new StringListUIEditorControl(this);
+            editor = new StringListUIEditorControl();
         }
 
         public override UITypeEditorEditStyle GetEditStyle(System.ComponentModel.ITypeDescriptorContext context)

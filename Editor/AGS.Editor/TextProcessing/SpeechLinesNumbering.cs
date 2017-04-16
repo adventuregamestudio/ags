@@ -11,7 +11,6 @@ namespace AGS.Editor
         public const string SPEECH_REFERENCE_FILE_NAME = "speechref.txt";
 
         private Dictionary<string, FunctionCallType> _speechableFunctionCalls;
-        private Game _game;
         private CompileMessages _errors;
         private bool _includeNarrator;
         private bool _combineIdenticalLines;
@@ -24,7 +23,6 @@ namespace AGS.Editor
 			_speechableFunctionCalls = GetFunctionCallsToProcessForSpeech(includeNarrator);
 
             _errors = new CompileMessages();
-            _game = game;
             _includeNarrator = includeNarrator;
             _combineIdenticalLines = combineIdenticalLines;
             _removeNumbering = removeNumbering;

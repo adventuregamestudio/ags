@@ -110,10 +110,10 @@
     <Compile Include="ScintillaNET\ScintillaControl.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ScintillaNET\ScintillaControl.designer.cs">
+    <Compile Include="ScintillaNET\ScintillaControl.Designer.cs">
       <DependentUpon>ScintillaControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="ScintillaNET\ScintillaControl.generated.cs">
+    <Compile Include="ScintillaNET\ScintillaControl.Generated.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="ScintillaNET\Structures.cs" />

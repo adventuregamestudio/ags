@@ -11,12 +11,9 @@ namespace AGS.Editor
 {
     public partial class DialogOptionEditor : UserControl
     {
-        private DialogOption _option;
-
         public DialogOptionEditor(DialogOption option)
         {
             InitializeComponent();
-            _option = option;
             chkSay.DataBindings.Add("Checked", option, "Say", false, DataSourceUpdateMode.OnPropertyChanged);
             chkShow.DataBindings.Add("Checked", option, "Show", false, DataSourceUpdateMode.OnPropertyChanged);
             txtOptionText.DataBindings.Add("Text", option, "Text", false, DataSourceUpdateMode.OnPropertyChanged);

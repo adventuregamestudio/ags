@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Common_d.lib odbc32.lib odbccp32.lib libcpmt.lib alleg-static-mt.lib alfont_mt.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
+				AdditionalDependencies="Common_d.lib odbc32.lib odbccp32.lib libcpmt.lib alleg-debug-static-mt.lib alfont_mt_d.lib ddraw.lib dinput.lib dsound.lib dxguid.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib libogg_static.lib libvorbis_static.lib libvorbisfile_static.lib libtheora_static.lib"
 				OutputFile="$(OutDir)\acwin.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\$(ConfigurationName)"

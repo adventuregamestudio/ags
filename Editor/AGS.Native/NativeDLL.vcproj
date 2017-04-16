@@ -81,7 +81,7 @@
 				Name="VCLinkerTool"
 				RegisterOutput="false"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="Common_md_d.lib Compiler_md_d.lib winmm.lib imm32.lib alleg-static.lib alfont_md.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
+				AdditionalDependencies="Common_md_d.lib Compiler_md_d.lib winmm.lib imm32.lib alleg-debug-static.lib alfont_md_d.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\Debug_MD;$(SolutionDir)\..\Windows\lib"
 				IgnoreDefaultLibraryNames="LIBCMTD.lib"

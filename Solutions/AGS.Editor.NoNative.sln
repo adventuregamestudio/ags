@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26403.3
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGS.Controls", "..\Editor\AGS.Controls\AGS.Controls.csproj", "{D937E1F4-1B9F-4567-B28E-EED24AA31C9C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGS.CScript.Compiler", "..\Editor\AGS.CScript.Compiler\AGS.CScript.Compiler.csproj", "{4771753A-641D-49B1-8096-0B431EAC413E}"

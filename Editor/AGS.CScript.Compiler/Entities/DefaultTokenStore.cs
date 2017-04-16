@@ -19,7 +19,7 @@ namespace AGS.CScript.Compiler
 				_DefaultTokens.Add(new ScalarVariableTypeToken("short", 2));
 				_DefaultTokens.Add(new ScalarVariableTypeToken("void", 0));
 				_DefaultTokens.Add(new ScalarVariableTypeToken("float", 4));
-                _DefaultTokens.Add(new ScalarVariableTypeToken("string", 4, true));
+                _DefaultTokens.Add(new ScalarVariableTypeToken("string", 4));
 				_DefaultTokens.Add(new OperatorToken("!", 1, Opcodes.SCMD_NOTREG, RequiredState.NotAllowed));
 				_DefaultTokens.Add(new OperatorToken("*", 2, Opcodes.SCMD_MULREG));
 				_DefaultTokens.Add(new OperatorToken("/", 3, Opcodes.SCMD_DIVREG));

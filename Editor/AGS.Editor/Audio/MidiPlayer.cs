@@ -24,7 +24,7 @@ namespace AGS.Editor
                 return false;
             }
             StringBuilder sb = new StringBuilder(100);
-            uint lRet = mciSendString(string.Format("open \"{0}\" alias track", clip.CacheFileName), sb, 0, IntPtr.Zero);
+            mciSendString(string.Format("open \"{0}\" alias track", clip.CacheFileName), sb, 0, IntPtr.Zero);
             mciSendString("set track time format ms", sb, 0, IntPtr.Zero);
             mciSendString("play track", sb, 0, IntPtr.Zero);
             _playingClip = clip;

@@ -11,9 +11,11 @@ namespace AGS.Editor.Components
     {
         private const string STATS_REPORT_URL = @"http://www.adventuregamestudio.co.uk/clientstats.php";
         private const int STATS_SEND_INTERVAL_IN_DAYS = 30;
+
+        private readonly int _screenWidth;
+        private readonly int _screenHeight;
+
         private Timer _timer;
-        private int _screenWidth;
-        private int _screenHeight;
 
         public StatisticsSenderComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
@@ -22,7 +24,7 @@ namespace AGS.Editor.Components
             // retrieve them while the game is being tested full-screen
             _screenWidth = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width;
             _screenHeight = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height;
-            _timer = new Timer(new TimerCallback(timer_Callback), null, 120000, 240000);
+            _timer = new Timer(Timer_Callback, null, 120000, 240000);
         }
 
         public override string ComponentID
@@ -30,7 +32,7 @@ namespace AGS.Editor.Components
             get { return ComponentIDs.StatisticsSender; }
         }
 
-        private void timer_Callback(object parameter)
+        private void Timer_Callback(object parameter)
         {
             try
             {
@@ -39,23 +41,30 @@ namespace AGS.Editor.Components
                 {
                     return;
                 }
+
                 string osVersion = Environment.OSVersion.VersionString;
                 string netVersion = Utilities.NetRuntimeVersion;
                 string agsVersion = AGS.Types.Version.AGS_EDITOR_VERSION;
-                string resolution = _screenWidth.ToString() + "x" + _screenHeight.ToString();
+                string resolution = string.Format("{0}x{1}", _screenWidth, _screenHeight);
 
                 string queryString = string.Format(
                     "action=sendinfo&winver={0}&dotnetver={1}&agsver={2}&resolution={3}",
-                    osVersion, netVersion, agsVersion, resolution);
+                    osVersion,
+                    netVersion,
+                    agsVersion,
+                    resolution);
 
                 WebClient client = new WebClient();
                 client.Headers.Add(HttpRequestHeader.ContentType, "application/x-www-form-urlencoded");
                 string response = client.UploadString(STATS_REPORT_URL, queryString);
-                if (response.Contains("200 Received"))
+
+                if (!response.Contains("200 Received"))
                 {
-                    _agsEditor.Preferences.StatsLastSent = DateTime.Now;
-                    _agsEditor.Preferences.SaveToRegistry();
+                    return;
                 }
+
+                _agsEditor.Preferences.StatsLastSent = DateTime.Now;
+                _agsEditor.Preferences.SaveToRegistry();
             }
             catch (Exception)
             {

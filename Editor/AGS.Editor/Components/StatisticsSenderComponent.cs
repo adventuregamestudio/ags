@@ -1,6 +1,6 @@
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -11,11 +11,10 @@ namespace AGS.Editor.Components
     {
         private const string STATS_REPORT_URL = @"http://www.adventuregamestudio.co.uk/clientstats.php";
         private const int STATS_SEND_INTERVAL_IN_DAYS = 30;
-        private const string NET_FRAMEWORK_KEY_ROOT = @"SOFTWARE\Microsoft\NET Framework Setup\NDP\";
         private Timer _timer;
         private int _screenWidth;
         private int _screenHeight;
-        
+
         public StatisticsSenderComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
         {
@@ -31,41 +30,6 @@ namespace AGS.Editor.Components
             get { return ComponentIDs.StatisticsSender; }
         }
 
-        private string GetDotNetFrameworkVersion()
-        {
-            string versionToReturn = "2.0";
-            RegistryKey key = Registry.LocalMachine.OpenSubKey(NET_FRAMEWORK_KEY_ROOT + "v3.0");
-            if (key != null)
-            {
-                versionToReturn = "3.0";
-                key.Close();
-            }
-
-            key = Registry.LocalMachine.OpenSubKey(NET_FRAMEWORK_KEY_ROOT + "v3.5");
-            if (key != null)
-            {
-                versionToReturn = "3.5";
-                key.Close();
-            }
-
-            key = Registry.LocalMachine.OpenSubKey(NET_FRAMEWORK_KEY_ROOT + @"v4\Full");
-            if (key != null)
-            {
-                versionToReturn = "4.0";
-                key.Close();
-            }
-            else
-            {
-                key = Registry.LocalMachine.OpenSubKey(NET_FRAMEWORK_KEY_ROOT + @"v4\Client");
-                if (key != null)
-                {
-                    versionToReturn = "4.0C";
-                    key.Close();
-                }
-            }
-            return versionToReturn;
-        }
-
         private void timer_Callback(object parameter)
         {
             try
@@ -76,7 +40,7 @@ namespace AGS.Editor.Components
                     return;
                 }
                 string osVersion = Environment.OSVersion.VersionString;
-                string netVersion = GetDotNetFrameworkVersion();
+                string netVersion = Utilities.NetRuntimeVersion;
                 string agsVersion = AGS.Types.Version.AGS_EDITOR_VERSION;
                 string resolution = _screenWidth.ToString() + "x" + _screenHeight.ToString();
 

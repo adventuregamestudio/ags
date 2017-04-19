@@ -59,16 +59,25 @@ namespace AGS.Editor
                 }
                 else if (Environment.OSVersion.Version.Major == 6)
                 {
-                    osName = "Windows Vista";
-
-                    if (Environment.OSVersion.Version.Minor > 0)
+                    switch (Environment.OSVersion.Version.Minor)
                     {
-                        osName = "Windows 7";
+                        case 3:
+                            osName = "Windows 8.1";
+                            break;
+                        case 2:
+                            osName = "Windows 8";
+                            break;
+                        case 1:
+                            osName = "Windows 7";
+                            break;
+                        default:
+                            osName = "Windows Vista";
+                            break;
                     }
                 }
                 else if (Environment.OSVersion.Version.Major > 6)
                 {
-                    osName = "Windows";
+                    osName = "Windows " + Environment.OSVersion.Version.Major + (Environment.OSVersion.Version.Minor > 0 ? "." + Environment.OSVersion.Version.Minor : "");
                 }
             }
             return osName + " " + Environment.OSVersion.ServicePack;

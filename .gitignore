@@ -17,6 +17,7 @@ Editor/UpdateCPPVersion/bin
 Editor/UpdateCPPVersion/obj
 Solutions/.build/
 Solutions/.lib/
+Solutions/.test/
 Solutions/Common.Lib/Debug/
 Solutions/Engine.App/Debug/
 

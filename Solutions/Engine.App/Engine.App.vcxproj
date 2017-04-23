@@ -442,7 +442,6 @@
     <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h" />
     <ClInclude Include="..\..\Common\ac\messageinfo.h" />
     <ClInclude Include="..\..\Common\ac\mousecursor.h" />
-    <ClInclude Include="..\..\Common\ac\oldgamesetupstruct.h" />
     <ClInclude Include="..\..\Common\ac\point.h" />
     <ClInclude Include="..\..\Common\ac\roomstruct.h" />
     <ClInclude Include="..\..\Common\ac\spritecache.h" />

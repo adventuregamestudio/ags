@@ -34,6 +34,7 @@ extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern Bitmap *virtual_screen;
 
+// CLNUP why not using PALETTE instead of the mispelled term and how to take away the 8bit portion ?
 void my_fade_in(PALLETE p, int speed) {
     if (game.color_depth > 1) {
         set_palette (p);

@@ -36,6 +36,7 @@ extern color palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 
+// CLNUP probably to remove
 void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit) {
     newwid = ww * current_screen_resolution_multiplier;
     newhit = hh * current_screen_resolution_multiplier;
@@ -75,6 +76,7 @@ void set_rgb_mask_using_alpha_channel(Bitmap *image)
     }
 }
 
+// CLNUP remove 15-16 bit support
 // from is a 32-bit RGBA image, to is a 15/16/24-bit destination image
 Bitmap *remove_alpha_channel(Bitmap *from) {
     int depth = System_GetColorDepth();

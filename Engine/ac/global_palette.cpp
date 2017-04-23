@@ -22,6 +22,7 @@ extern GameSetupStruct game;
 extern GameState play;
 extern color palette[256];
 
+// CLNUP remove everything and all references to palettes
 
 void CyclePalette(int strt,int eend) {
     // hi-color game must invalidate screen since the palette changes

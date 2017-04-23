@@ -176,7 +176,8 @@ extern bool is_sprite_alpha(int spr);
 // This function has distinct implementations in Engine and Editor
 extern void draw_gui_sprite(Common::Bitmap *ds, int spr, int x, int y, bool use_alpha = true,
                             Common::BlendMode blend_mode = Common::kBlendMode_Alpha);
-
+// CLNUP remove this
+/*
 /*
 extern AGS_INLINE int divide_down_coordinate(int coord);
 extern AGS_INLINE int multiply_up_coordinate(int coord);

@@ -24,7 +24,6 @@
 #include "ac/inventoryiteminfo.h"   // InventoryItemInfo
 #include "ac/mousecursor.h"      // MouseCursor
 #include "ac/gamesetupstructbase.h"
-#include "ac/oldgamesetupstruct.h"
 #include "ac/dynobj/scriptaudioclip.h" // ScriptAudioClip
 #include "game/customproperties.h"
 #include "game/interactions.h"
@@ -130,8 +129,6 @@ struct GameSetupStruct: public GameSetupStructBase {
 
 //=============================================================================
 
-// TODO: find out how this function was supposed to be used
-void ConvertOldGameStruct (OldGameSetupStruct *ogss, GameSetupStruct *gss);
 // Finds an audio clip using legacy convention index
 ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_music, int num);
 

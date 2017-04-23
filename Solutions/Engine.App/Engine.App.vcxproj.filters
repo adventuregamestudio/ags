@@ -1772,9 +1772,6 @@
     <ClInclude Include="..\..\Common\ac\mousecursor.h">
       <Filter>Common Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\oldgamesetupstruct.h">
-      <Filter>Common Header Files\ac</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\ac\point.h">
       <Filter>Common Header Files\ac</Filter>
     </ClInclude>

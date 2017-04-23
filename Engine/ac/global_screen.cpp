@@ -40,7 +40,7 @@ extern AGSPlatformDriver *platform;
 extern color palette[256];
 extern unsigned int loopcounter;
 
-int current_screen_resolution_multiplier = 1;
+int current_screen_resolution_multiplier = 1; // CLNUP probably to remove
 
 int screen_reset = 0;
 

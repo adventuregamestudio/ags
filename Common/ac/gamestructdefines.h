@@ -20,6 +20,7 @@
 
 #include "util/geometry.h"
 
+// CLNUP check what's actually needed
 #define PAL_GAMEWIDE        0
 #define PAL_LOCKED          1
 #define PAL_BACKGROUND      2
@@ -106,7 +107,7 @@
 #define MAX_SG_EXT_LENGTH 20
 #define MAX_SG_FOLDER_LEN 50
 
-
+// CLNUP remove
 enum GameResolutionType
 {
     kGameResolution_Undefined   = -1,
@@ -126,6 +127,7 @@ enum GameResolutionType
     kGameResolution_FirstHiRes  = kGameResolution_640x400
 };
 
+// CLNUP remove
 inline bool IsHiRes(GameResolutionType resolution)
 {
     return resolution > kGameResolution_LastLoRes;

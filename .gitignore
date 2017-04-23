@@ -68,6 +68,11 @@ iOS/nativelibs/arm64
 iOS/nativelibs/i386
 iOS/nativelibs/x86_64
 Solutions/Engine.App/test.ini
+*.vcxprojResolveAssemblyReference.cache
+*.VC.db
+*.VC.opendb
+*.vcxproj.user
+Solutions/.vs/
 
 libsrc/*.tar*
 libsrc/*.zip

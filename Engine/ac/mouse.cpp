@@ -81,8 +81,6 @@ void SetMouseBounds (int x1, int y1, int x2, int y2) {
         (y1 < 0) || (y2 >= MOUSE_MAX_Y))
         quit("!SetMouseBounds: invalid co-ordinates, must be within (0,0) - (320,200)");
     debug_script_log("Mouse bounds constrained to (%d,%d)-(%d,%d)", x1, y1, x2, y2);
-    multiply_up_coordinates(&x1, &y1);
-    multiply_up_coordinates_round_up(&x2, &y2);
 
     play.mboundx1 = x1;
     play.mboundx2 = x2;
@@ -127,10 +125,10 @@ void set_mouse_cursor(int newcurs) {
                     if (dotted_mouse_cursor->GetColorDepth () > 8)
                         outercol = GetVirtualScreen()->GetCompatibleColor(game.hotdotouter);
 
-                    putpixel_compensate (dotted_mouse_cursor, hotspotx + get_fixed_pixel_size(1), hotspoty, outercol);
-                    putpixel_compensate (dotted_mouse_cursor, hotspotx, hotspoty + get_fixed_pixel_size(1), outercol);
-                    putpixel_compensate (dotted_mouse_cursor, hotspotx - get_fixed_pixel_size(1), hotspoty, outercol);
-                    putpixel_compensate (dotted_mouse_cursor, hotspotx, hotspoty - get_fixed_pixel_size(1), outercol);
+                    putpixel_compensate (dotted_mouse_cursor, hotspotx + 1, hotspoty, outercol);
+                    putpixel_compensate (dotted_mouse_cursor, hotspotx, hotspoty + 1, outercol);
+                    putpixel_compensate (dotted_mouse_cursor, hotspotx - 1, hotspoty, outercol);
+                    putpixel_compensate (dotted_mouse_cursor, hotspotx, hotspoty - 1, outercol);
                 }
             }
             mousecurs[0] = dotted_mouse_cursor;
@@ -174,8 +172,8 @@ int Mouse_GetModeGraphic(int curs) {
 void ChangeCursorHotspot (int curs, int x, int y) {
     if ((curs < 0) || (curs >= game.numcursors))
         quit("!ChangeCursorHotspot: invalid mouse cursor");
-    game.mcurs[curs].hotx = multiply_up_coordinate(x);
-    game.mcurs[curs].hoty = multiply_up_coordinate(y);
+    game.mcurs[curs].hotx = x;
+    game.mcurs[curs].hoty = y;
     if (curs == cur_cursor)
         set_mouse_cursor (cur_cursor);
 }
@@ -264,8 +262,8 @@ void disable_cursor_mode(int modd) {
 
 void RefreshMouse() {
     domouse(DOMOUSE_NOCURSOR);
-    scmouse.x = divide_down_coordinate(mousex);
-    scmouse.y = divide_down_coordinate(mousey);
+    scmouse.x = mousex;
+    scmouse.y = mousey;
 }
 
 void SetMousePosition (int newx, int newy) {
@@ -278,7 +276,6 @@ void SetMousePosition (int newx, int newy) {
     if (newy >= BASEHEIGHT)
         newy = BASEHEIGHT - 1;
 
-    multiply_up_coordinates(&newx, &newy);
     Mouse::SetPosition(Point(newx, newy));
     RefreshMouse();
 }
@@ -308,8 +305,8 @@ int GetMouseCursor() {
 }
 
 void update_script_mouse_coords() {
-    scmouse.x = divide_down_coordinate(mousex);
-    scmouse.y = divide_down_coordinate(mousey);
+    scmouse.x = mousex;
+    scmouse.y = mousey;
 }
 
 void update_inv_cursor(int invnum) {

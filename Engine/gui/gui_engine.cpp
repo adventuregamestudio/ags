@@ -132,13 +132,13 @@ int GUILabel::SplitLinesForDrawing()
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, color_t text_color)
 {
-    wouttext_outline(ds, X + 1 + get_fixed_pixel_size(1), Y + 1 + get_fixed_pixel_size(1), Font, text_color, Text);
+    wouttext_outline(ds, X + 1 + 1, Y + 1 + 1, Font, text_color, Text);
     if (IsEnabled())
     {
         // draw a cursor
         int draw_at_x = wgettextwidth(Text, Font) + X + 3;
         int draw_at_y = Y + 1 + getfontheight(Font);
-        ds->DrawRect(Rect(draw_at_x, draw_at_y, draw_at_x + get_fixed_pixel_size(5), draw_at_y + (get_fixed_pixel_size(1) - 1)), text_color);
+        ds->DrawRect(Rect(draw_at_x, draw_at_y, draw_at_x + 5, draw_at_y), text_color);
     }
 }
 

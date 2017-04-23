@@ -169,7 +169,7 @@ int GetTextWidth(const char *text, int fontnum) {
   if ((fontnum < 0) || (fontnum >= game.numfonts))
     quit("!GetTextWidth: invalid font number.");
 
-  return divide_down_coordinate(wgettextwidth_compensate(text, fontnum));
+  return wgettextwidth_compensate(text, fontnum);
 }
 
 int GetTextHeight(const char *text, int fontnum, int width) {
@@ -177,23 +177,23 @@ int GetTextHeight(const char *text, int fontnum, int width) {
   if ((fontnum < 0) || (fontnum >= game.numfonts))
     quit("!GetTextHeight: invalid font number.");
 
-  break_up_text_into_lines(multiply_up_coordinate(width), fontnum, text);
+  break_up_text_into_lines(width, fontnum, text);
 
-  return divide_down_coordinate(getheightoflines(fontnum, numlines));
+  return getheightoflines(fontnum, numlines);
 }
 
 int GetFontHeight(int fontnum)
 {
   if ((fontnum < 0) || (fontnum >= game.numfonts))
     quit("!GetFontHeight: invalid font number.");
-  return divide_down_coordinate(getfontheight_outlined(fontnum));
+  return getfontheight_outlined(fontnum);
 }
 
 int GetFontLineSpacing(int fontnum)
 {
   if ((fontnum < 0) || (fontnum >= game.numfonts))
     quit("!GetFontLineSpacing: invalid font number.");
-  return divide_down_coordinate(getfontspacing_outlined(fontnum));
+  return getfontspacing_outlined(fontnum);
 }
 
 void SetGUIBackgroundPic (int guin, int slotn) {
@@ -231,8 +231,6 @@ int GetGUIObjectAt (int xx, int yy) {
 }
 
 int GetGUIAt (int xx,int yy) {
-    multiply_up_coordinates(&xx, &yy);
-
     int aa, ll;
     for (ll = game.numgui - 1; ll >= 0; ll--) {
         aa = play.gui_draw_order[ll];

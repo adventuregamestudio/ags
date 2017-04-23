@@ -187,8 +187,6 @@ void GUIMain::DrawAt(Bitmap *ds, int x, int y)
     {
         draw_color = subbmp.GetCompatibleColor(FgColor);
         subbmp.DrawRect(Rect(0, 0, subbmp.GetWidth() - 1, subbmp.GetHeight() - 1), draw_color);
-        if (get_fixed_pixel_size(1) > 1)
-            subbmp.DrawRect(Rect(1, 1, subbmp.GetWidth() - 2, subbmp.GetHeight() - 2), draw_color);
     }
 
     SET_EIP(378)
@@ -218,11 +216,11 @@ void GUIMain::DrawAt(Bitmap *ds, int x, int y)
             if (outlineGuiObjects)
                 selectedColour = 13;
             draw_color = subbmp.GetCompatibleColor(selectedColour);
-            DrawBlob(&subbmp, objToDraw->X + objToDraw->Width - get_fixed_pixel_size(1) - 1, objToDraw->Y, draw_color);
-            DrawBlob(&subbmp, objToDraw->X, objToDraw->Y + objToDraw->Height - get_fixed_pixel_size(1) - 1, draw_color);
+            DrawBlob(&subbmp, objToDraw->X + objToDraw->Width - 1 - 1, objToDraw->Y, draw_color);
+            DrawBlob(&subbmp, objToDraw->X, objToDraw->Y + objToDraw->Height - 1 - 1, draw_color);
             DrawBlob(&subbmp, objToDraw->X, objToDraw->Y, draw_color);
-            DrawBlob(&subbmp, objToDraw->X + objToDraw->Width - get_fixed_pixel_size(1) - 1, 
-                    objToDraw->Y + objToDraw->Height - get_fixed_pixel_size(1) - 1, draw_color);
+            DrawBlob(&subbmp, objToDraw->X + objToDraw->Width - 1 - 1, 
+                    objToDraw->Y + objToDraw->Height - 1 - 1, draw_color);
         }
         if (outlineGuiObjects)
         {
@@ -246,7 +244,7 @@ void GUIMain::DrawAt(Bitmap *ds, int x, int y)
 
 void GUIMain::DrawBlob(Bitmap *ds, int x, int y, color_t draw_color)
 {
-    ds->FillRect(Rect(x, y, x + get_fixed_pixel_size(1), y + get_fixed_pixel_size(1)), draw_color);
+    ds->FillRect(Rect(x, y, x + 1, y + 1), draw_color);
 }
 
 void GUIMain::Poll()

@@ -34,8 +34,6 @@ int GetRegionAt (int xxx, int yyy) {
     // if the co-ordinates are off the edge of the screen,
     // correct them to be just within
     // this fixes walk-off-screen problems
-    xxx = convert_to_low_res(xxx);
-    yyy = convert_to_low_res(yyy);
 
     if (loaded_game_file_version >= kGameVersion_262) // Version 2.6.2+
     {

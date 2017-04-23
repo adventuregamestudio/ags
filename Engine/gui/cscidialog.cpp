@@ -252,13 +252,16 @@ int WINAPI _export CSCISendControlMessage(int haa, int mess, int wPar, long lPar
 // CLNUP remove this
 void multiply_up_to_game_res(int *x, int *y)
 {
+	/*
     x[0] = get_fixed_pixel_size(x[0]);
     y[0] = get_fixed_pixel_size(y[0]);
+	*/
 }
 
 // CLNUP remove this
 void multiply_up(int *x1, int *y1, int *x2, int *y2)
 {
+	/*
     multiply_up_to_game_res(x1, y1);
     multiply_up_to_game_res(x2, y2);
 
@@ -276,6 +279,7 @@ void multiply_up(int *x1, int *y1, int *x2, int *y2)
         y1[0] = (y1[0] * 384) / 200;
         y2[0] = (y2[0] * 384) / 200;
     }
+	*/
 }
 
 int checkcontrols()

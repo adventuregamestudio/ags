@@ -761,7 +761,7 @@ int Game_GetSpriteWidth(int spriteNum) {
     if (!spriteset.doesSpriteExist(spriteNum))
         return 0;
 
-    return divide_down_coordinate(spritewidth[spriteNum]);
+    return spritewidth[spriteNum];
 }
 
 int Game_GetSpriteHeight(int spriteNum) {
@@ -771,7 +771,7 @@ int Game_GetSpriteHeight(int spriteNum) {
     if (!spriteset.doesSpriteExist(spriteNum))
         return 0;
 
-    return divide_down_coordinate(spriteheight[spriteNum]);
+    return spriteheight[spriteNum];
 }
 
 int Game_GetLoopCountForView(int viewNumber) {
@@ -1456,8 +1456,8 @@ void save_game_data(Stream *out)
 void create_savegame_screenshot(Bitmap *&screenShot)
 {
     if (game.options[OPT_SAVESCREENSHOT]) {
-        int usewid = multiply_up_coordinate(play.screenshot_width);
-        int usehit = multiply_up_coordinate(play.screenshot_height);
+        int usewid = play.screenshot_width;
+        int usehit = play.screenshot_height;
         if (usewid > virtual_screen->GetWidth())
             usewid = virtual_screen->GetWidth();
         if (usehit > virtual_screen->GetHeight())
@@ -2251,8 +2251,8 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
 
     getloctype_throughgui = 0;
 
-    xxx += divide_down_coordinate(offsetx);
-    yyy += divide_down_coordinate(offsety);
+    xxx += offsetx;
+    yyy += offsety;
     if ((xxx>=thisroom.width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.height))
         return 0;
 
@@ -2260,9 +2260,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
     // foremost visible to the player
     int charat = is_pos_on_character(xxx,yyy);
     int hsat = get_hotspot_at(xxx,yyy);
-    int objat = GetObjectAt(xxx - divide_down_coordinate(offsetx), yyy - divide_down_coordinate(offsety));
-
-    multiply_up_coordinates(&xxx, &yyy);
+    int objat = GetObjectAt(xxx - offsetx, yyy - offsety);
 
     int wbat = thisroom.object->GetPixel(xxx, yyy);
 

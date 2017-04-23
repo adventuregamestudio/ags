@@ -68,7 +68,7 @@ void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const 
     topBar.wantIt = 1;
     topBar.font = FONT_NORMAL;
     topBar.height = getfontheight_outlined(topBar.font);
-    topBar.height += multiply_up_coordinate(play.top_bar_borderwidth) * 2 + get_fixed_pixel_size(1);
+    topBar.height += play.top_bar_borderwidth * 2 + 1;
 
     // they want to customize the font
     if (play.top_bar_font >= 0)
@@ -139,9 +139,6 @@ void DisplayMessage(int msnum) {
 }
 
 void DisplayAt(int xxp,int yyp,int widd, const char* text) {
-    multiply_up_coordinates(&xxp, &yyp);
-    widd = multiply_up_coordinate(widd);
-
     if (widd<1) widd=play.viewport.GetWidth()/2;
     if (xxp<0) xxp=play.viewport.GetWidth()/2-widd/2;
     _display_at(xxp,yyp,widd,text,1,0, 0, 0, false);
@@ -155,11 +152,8 @@ void DisplayAtY (int ypos, const char *texx) {
     if (texx[0] == 0)
         return;
 
-    if (ypos > 0)
-        ypos = multiply_up_coordinate(ypos);
-
     if (game.options[OPT_ALWAYSSPCH])
-        DisplaySpeechAt(-1, (ypos > 0) ? divide_down_coordinate(ypos) : ypos, -1, game.playercharacter, texx);
+        DisplaySpeechAt(-1, ypos, -1, game.playercharacter, texx); // CLNUP if ypos <0  it used ypos without scaling, weird
     else { 
         // Normal "Display" in text box
 

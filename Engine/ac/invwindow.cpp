@@ -144,11 +144,11 @@ ScriptInvItem* InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index) {
 
 int offset_over_inv(GUIInvWindow *inv) {
 
-    int mover = mouse_ifacebut_xoffs / multiply_up_coordinate(inv->ItemWidth);
+    int mover = mouse_ifacebut_xoffs / inv->ItemWidth;
     // if it's off the edge of the visible items, ignore
     if (mover >= inv->ColCount)
         return -1;
-    mover += (mouse_ifacebut_yoffs / multiply_up_coordinate(inv->ItemHeight)) * inv->ColCount;
+    mover += (mouse_ifacebut_yoffs / inv->ItemHeight) * inv->ColCount;
     if (mover >= inv->ColCount * inv->RowCount)
         return -1;
 
@@ -210,12 +210,12 @@ InventoryScreen InvScr;
 
 void InventoryScreen::Prepare()
 {
-    BUTTONAREAHEIGHT = get_fixed_pixel_size(30);
+    BUTTONAREAHEIGHT = 30;
     cmode=CURS_ARROW;
     toret = -1;
     top_item = 0;
     num_visible_items = 0;
-    MAX_ITEMAREA_HEIGHT = ((play.viewport.GetHeight() - BUTTONAREAHEIGHT) - get_fixed_pixel_size(20));
+    MAX_ITEMAREA_HEIGHT = ((play.viewport.GetHeight() - BUTTONAREAHEIGHT) - 20);
     in_inv_screen++;
     inv_screen_newroom = -1;
 
@@ -264,28 +264,28 @@ int InventoryScreen::Redraw()
     if (numitems != charextra[game.playercharacter].invorder_count)
         quit("inconsistent inventory calculations");
 
-    widest += get_fixed_pixel_size(4);
-    highest += get_fixed_pixel_size(4);
+    widest += 4;
+    highest += 4;
     num_visible_items = (MAX_ITEMAREA_HEIGHT / highest) * ICONSPERLINE;
 
-    windowhit = highest * (numitems/ICONSPERLINE) + get_fixed_pixel_size(4);
+    windowhit = highest * (numitems/ICONSPERLINE) + 4;
     if ((numitems%ICONSPERLINE) !=0) windowhit+=highest;
     if (windowhit > MAX_ITEMAREA_HEIGHT) {
-        windowhit = (MAX_ITEMAREA_HEIGHT / highest) * highest + get_fixed_pixel_size(4);
+        windowhit = (MAX_ITEMAREA_HEIGHT / highest) * highest + 4;
     }
     windowhit += BUTTONAREAHEIGHT;
 
-    windowwid = widest*ICONSPERLINE + get_fixed_pixel_size(4);
-    if (windowwid < get_fixed_pixel_size(105)) windowwid = get_fixed_pixel_size(105);
+    windowwid = widest*ICONSPERLINE + 4;
+    if (windowwid < 105) windowwid = 105;
     windowxp=play.viewport.GetWidth()/2-windowwid/2;
     windowyp=play.viewport.GetHeight()/2-windowhit/2;
     buttonyp=windowyp+windowhit-BUTTONAREAHEIGHT;
     color_t draw_color = ds->GetCompatibleColor(play.sierra_inv_color);
     ds->FillRect(Rect(windowxp,windowyp,windowxp+windowwid,windowyp+windowhit), draw_color);
     draw_color = ds->GetCompatibleColor(0); 
-    bartop = windowyp + get_fixed_pixel_size(2);
-    barxp = windowxp + get_fixed_pixel_size(2);
-    ds->FillRect(Rect(barxp,bartop, windowxp + windowwid - get_fixed_pixel_size(2),buttonyp-1), draw_color);
+    bartop = windowyp + 2;
+    barxp = windowxp + 2;
+    ds->FillRect(Rect(barxp,bartop, windowxp + windowwid - 2,buttonyp-1), draw_color);
     for (int i = top_item; i < numitems; ++i) {
         if (i >= top_item + num_visible_items)
             break;
@@ -295,9 +295,9 @@ int InventoryScreen::Redraw()
     }
 #define BUTTONWID Math::Max(1, spritewidth[btn_select_sprite])
     // Draw select, look and OK buttons
-    wputblock(ds, windowxp+2, buttonyp + get_fixed_pixel_size(2), spriteset[btn_look_sprite], 1);
-    wputblock(ds, windowxp+3+BUTTONWID, buttonyp + get_fixed_pixel_size(2), spriteset[btn_select_sprite], 1);
-    wputblock(ds, windowxp+4+BUTTONWID*2, buttonyp + get_fixed_pixel_size(2), spriteset[btn_ok_sprite], 1);
+    wputblock(ds, windowxp+2, buttonyp + 2, spriteset[btn_look_sprite], 1);
+    wputblock(ds, windowxp+3+BUTTONWID, buttonyp + 2, spriteset[btn_select_sprite], 1);
+    wputblock(ds, windowxp+4+BUTTONWID*2, buttonyp + 2, spriteset[btn_ok_sprite], 1);
 
     // Draw Up and Down buttons if required
     Bitmap *arrowblock = BitmapHelper::CreateTransparentBitmap (ARROWBUTTONWID, ARROWBUTTONWID);
@@ -311,9 +311,9 @@ int InventoryScreen::Redraw()
 	arrowblock->FloodFill(ARROWBUTTONWID/2, 4, draw_color);
 
     if (top_item > 0)
-        wputblock(ds, windowxp+windowwid-ARROWBUTTONWID, buttonyp + get_fixed_pixel_size(2), arrowblock, 1);
+        wputblock(ds, windowxp+windowwid-ARROWBUTTONWID, buttonyp + 2, arrowblock, 1);
     if (top_item + num_visible_items < numitems)
-        arrowblock->FlipBlt(arrowblock, windowxp+windowwid-ARROWBUTTONWID, buttonyp + get_fixed_pixel_size(4) + ARROWBUTTONWID, Common::kBitmap_VFlip);
+        arrowblock->FlipBlt(arrowblock, windowxp+windowwid-ARROWBUTTONWID, buttonyp + 4 + ARROWBUTTONWID, Common::kBitmap_VFlip);
     delete arrowblock;
 
     //domouse(1);
@@ -420,7 +420,7 @@ bool InventoryScreen::Run()
             }
             else {
                 if (mousex >= windowxp+windowwid-ARROWBUTTONWID) {
-                    if (mousey < buttonyp + get_fixed_pixel_size(2) + ARROWBUTTONWID) {
+                    if (mousey < buttonyp + 2 + ARROWBUTTONWID) {
                         if (top_item > 0) {
                             top_item -= ICONSPERLINE;
                             //domouse(2);
@@ -429,7 +429,7 @@ bool InventoryScreen::Run()
                             return break_code == 0;
                         }
                     }
-                    else if ((mousey < buttonyp + get_fixed_pixel_size(4) + ARROWBUTTONWID*2) && (top_item + num_visible_items < numitems)) {
+                    else if ((mousey < buttonyp + 4 + ARROWBUTTONWID*2) && (top_item + num_visible_items < numitems)) {
                         top_item += ICONSPERLINE;
                         //domouse(2);
                         

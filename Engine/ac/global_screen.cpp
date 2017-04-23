@@ -57,7 +57,6 @@ void ShakeScreen(int severe) {
 
     int hh;
     //Bitmap *oldsc=abuf; // CHECKME!!!
-    severe = multiply_up_coordinate(severe);
 
     if (gfxDriver->RequiresFullRedrawEachFrame())
     {

@@ -256,6 +256,7 @@ int main_process_cmdline(int argc,char*argv[])
             strcpy(return_to_room, argv[ee+2]);
             ee+=2;
         }
+		// CLNUP most likely remove xxbit_mode flags
         else if (stricmp(argv[ee],"--15bit")==0) debug_15bit_mode = 1;
         else if (stricmp(argv[ee],"--24bit")==0) debug_24bit_mode = 1;
         else if (stricmp(argv[ee],"--fps")==0) display_fps = 2;

@@ -104,13 +104,13 @@ void GUIInvWindow::CalculateNumCells()
 {
     if (loaded_game_file_version >= kGameVersion_270)
     {
-        ColCount = Width / multiply_up_coordinate(ItemWidth);
-        RowCount = Height / multiply_up_coordinate(ItemHeight);
+        ColCount = Width / ItemWidth;
+        RowCount = Height / ItemHeight;
     }
     else
     {
-        ColCount = floor((float)Width / (float)multiply_up_coordinate(ItemWidth) + 0.5f);
-        RowCount = floor((float)Height / (float)multiply_up_coordinate(ItemHeight) + 0.5f);
+        ColCount = floor((float)Width / (float)ItemWidth + 0.5f);
+        RowCount = floor((float)Height / (float)ItemHeight + 0.5f);
     }
 }
 

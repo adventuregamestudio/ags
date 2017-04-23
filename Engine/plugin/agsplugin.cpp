@@ -314,7 +314,6 @@ void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int
 
     Common::Bitmap *ds = ::GetVirtualScreen();
     color_t text_color = ds->GetCompatibleColor(color);
-    multiply_up_coordinates((int*)&xx, (int*)&yy); // stupid! quick tweak
     for (int i = 0; i < numlines; i++)
         draw_and_invalidate_text(ds, xx, yy + linespacing*i, font, text_color, lines[i]);
 }
@@ -383,15 +382,15 @@ int IAGSEngine::GetPlayerCharacter () {
 }
 void IAGSEngine::RoomToViewport (int32 *x, int32 *y) {
     if (x)
-        x[0] = multiply_up_coordinate(x[0]) - offsetx;
+        x[0] = x[0] - offsetx;
     if (y)
-        y[0] = multiply_up_coordinate(y[0]) - offsety;
+        y[0] = y[0] - offsety;
 }
 void IAGSEngine::ViewportToRoom (int32 *x, int32 *y) {
     if (x)
-        x[0] = divide_down_coordinate(x[0] + offsetx);
+        x[0] = x[0] + offsetx;
     if (y)
-        y[0] = divide_down_coordinate(y[0] + offsety);
+        y[0] = y[0] + offsety;
 }
 int IAGSEngine::GetNumObjects () {
     return croom->numobj;

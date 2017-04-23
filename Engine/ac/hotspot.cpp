@@ -113,7 +113,7 @@ bool Hotspot_SetTextProperty(ScriptHotspot *hss, const char *property, const cha
 }
 
 int get_hotspot_at(int xpp,int ypp) {
-    int onhs=thisroom.lookat->GetPixel(convert_to_low_res(xpp), convert_to_low_res(ypp));
+    int onhs=thisroom.lookat->GetPixel(xpp, ypp);
     if (onhs<0) return 0;
     if (croom->hotspot_enabled[onhs]==0) return 0;
     return onhs;

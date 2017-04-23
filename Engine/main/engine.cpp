@@ -1076,7 +1076,7 @@ void engine_init_game_settings()
     if (game.options[OPT_RIGHTLEFTWRITE])
         play.text_align = SCALIGN_RIGHT;
 
-    play.speech_bubble_width = get_fixed_pixel_size(100);
+    play.speech_bubble_width = 100;
     play.bg_frame=0;
     play.bg_frame_locked=0;
     play.bg_anim_delay=0;
@@ -1124,7 +1124,7 @@ void engine_init_game_settings()
     play.totalscore = game.totalscore;
     play.roomscript_finished = 0;
     play.no_textbg_when_voice = 0;
-    play.max_dialogoption_width = get_fixed_pixel_size(180);
+    play.max_dialogoption_width = 180;
     play.no_hicolor_fadein = 0;
     play.bgspeech_game_speed = 0;
     play.bgspeech_stay_on_display = 0;

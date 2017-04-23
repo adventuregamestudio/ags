@@ -85,11 +85,11 @@ int System_GetScreenHeight() {
 }
 
 int System_GetViewportHeight() {
-    return divide_down_coordinate(play.viewport.GetHeight());
+    return play.viewport.GetHeight();
 }
 
 int System_GetViewportWidth() {
-    return divide_down_coordinate(play.viewport.GetWidth());
+    return play.viewport.GetWidth();
 }
 
 const char *System_GetVersion() {

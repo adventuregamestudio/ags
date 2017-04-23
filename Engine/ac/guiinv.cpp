@@ -70,13 +70,13 @@ void GUIInvWindow::Draw(Bitmap *ds)
     {
         // draw inv graphic
         draw_gui_sprite(ds, game.invinfo[charextra[GetCharacterId()].invorder[item]].pic, at_x, at_y, true);
-        at_x += multiply_up_coordinate(ItemWidth);
+        at_x += ItemWidth;
 
         // go to next row when appropriate
         if ((item - TopItem) % ColCount == (ColCount - 1))
         {
             at_x = leftmost_x;
-            at_y += multiply_up_coordinate(ItemHeight);
+            at_y += ItemHeight;
         }
     }
 
@@ -86,8 +86,8 @@ void GUIInvWindow::Draw(Bitmap *ds)
     {
         // darken the inventory when disabled
         GUI::DrawDisabledEffect(ds, Rect(X, Y, Width, Height));
+            }
     }
-}
 
 } // namespace Common
 } // namespace AGS

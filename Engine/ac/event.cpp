@@ -264,7 +264,7 @@ void process_event(EventHappened*evp) {
         {
             if (!gfxDriver->UsesMemoryBackBuffer())
             {
-                gfxDriver->BoxOutEffect(false, get_fixed_pixel_size(16), 1000 / GetGameSpeed());
+                gfxDriver->BoxOutEffect(false, 16, 1000 / GetGameSpeed());
             }
             else
             {
@@ -274,12 +274,12 @@ void process_event(EventHappened*evp) {
                 screen_bmp->Clear();
                 render_to_screen(screen_bmp, 0, 0);
 
-                int boxwid = get_fixed_pixel_size(16);
-                int boxhit = multiply_up_coordinate(BASEHEIGHT / 20);
+                int boxwid = 16;
+                int boxhit = BASEHEIGHT / 20;
                 while (boxwid < screen_bmp->GetWidth()) {
                     timerloop = 0;
-                    boxwid += get_fixed_pixel_size(16);
-                    boxhit += multiply_up_coordinate(BASEHEIGHT / 20);
+                    boxwid += 16;
+                    boxhit += BASEHEIGHT / 20;
                     int lxp = play.viewport.GetWidth() / 2 - boxwid / 2, lyp = play.viewport.GetHeight() / 2 - boxhit / 2;
                     gfxDriver->Vsync();
                     screen_bmp->Blit(virtual_screen, lxp, lyp, lxp, lyp,

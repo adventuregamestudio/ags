@@ -27,7 +27,7 @@
 #define LEFT  0
 #define RIGHT 1
 
-#define MOUSE_MAX_Y divide_down_coordinate(play.viewport.GetHeight())
+#define MOUSE_MAX_Y play.viewport.GetHeight()
 
 void Mouse_SetVisible(int isOn);
 int Mouse_GetVisible();

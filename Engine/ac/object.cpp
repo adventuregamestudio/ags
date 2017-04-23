@@ -387,10 +387,8 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
 
     debug_script_log("Object %d start move to %d,%d", objj, tox, toy);
 
-    int objX = convert_to_low_res(objs[objj].x);
-    int objY = convert_to_low_res(objs[objj].y);
-    tox = convert_to_low_res(tox);
-    toy = convert_to_low_res(toy);
+    int objX = objs[objj].x;
+    int objY = objs[objj].y;
 
     set_route_move_speed(spee, spee);
     set_color_depth(8);
@@ -440,17 +438,17 @@ void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) 
     int cwidth, fromx;
 
     if (tehobj->blocking_width < 1)
-        cwidth = divide_down_coordinate(tehobj->last_width) - 4;
+        cwidth = tehobj->last_width - 4;
     else
         cwidth = tehobj->blocking_width;
 
-    fromx = tehobj->x + (divide_down_coordinate(tehobj->last_width) / 2) - cwidth / 2;
+    fromx = tehobj->x + (tehobj->last_width / 2) - cwidth / 2;
     if (fromx < 0) {
         cwidth += fromx;
         fromx = 0;
     }
-    if (fromx + cwidth >= convert_back_to_high_res(walkable_areas_temp->GetWidth()))
-        cwidth = convert_back_to_high_res(walkable_areas_temp->GetWidth()) - fromx;
+    if (fromx + cwidth >= walkable_areas_temp->GetWidth())
+        cwidth = walkable_areas_temp->GetWidth() - fromx;
 
     if (x1)
         *x1 = fromx;
@@ -478,8 +476,8 @@ int isposinbox(int mmx,int mmy,int lf,int tp,int rt,int bt) {
 // xx,yy is the position in room co-ordinates that we are checking
 // arx,ary is the sprite x/y co-ordinates
 int is_pos_in_sprite(int xx,int yy,int arx,int ary, Bitmap *sprit, int spww,int sphh, int flipped) {
-    if (spww==0) spww = divide_down_coordinate(sprit->GetWidth()) - 1;
-    if (sphh==0) sphh = divide_down_coordinate(sprit->GetHeight()) - 1;
+    if (spww==0) spww = sprit->GetWidth() - 1;
+    if (sphh==0) sphh = sprit->GetHeight() - 1;
 
     if (isposinbox(xx,yy,arx,ary,arx+spww,ary+sphh)==FALSE)
         return FALSE;
@@ -487,15 +485,15 @@ int is_pos_in_sprite(int xx,int yy,int arx,int ary, Bitmap *sprit, int spww,int 
     if (game.options[OPT_PIXPERFECT]) 
     {
         // if it's transparent, or off the edge of the sprite, ignore
-        int xpos = multiply_up_coordinate(xx - arx);
-        int ypos = multiply_up_coordinate(yy - ary);
+        int xpos = xx - arx;
+        int ypos = yy - ary;
 
         if (gfxDriver->HasAcceleratedStretchAndFlip())
         {
             // hardware acceleration, so the sprite in memory will not have
             // been stretched, it will be original size. Thus, adjust our
             // calculations to compensate
-            multiply_up_coordinates(&spww, &sphh);
+            //multiply_up_coordinates(&spww, &sphh);
 
             if (spww != sprit->GetWidth())
                 xpos = (xpos * sprit->GetWidth()) / spww;
@@ -516,7 +514,7 @@ int is_pos_in_sprite(int xx,int yy,int arx,int ary, Bitmap *sprit, int spww,int 
 
 // X and Y co-ordinates must be in 320x200 format
 int check_click_on_object(int xx,int yy,int mood) {
-    int aa = GetObjectAt(xx - divide_down_coordinate(offsetx), yy - divide_down_coordinate(offsety));
+    int aa = GetObjectAt(xx - offsetx, yy - offsety);
     if (aa < 0) return 0;
     RunObjectInteraction(aa, mood);
     return 1;

@@ -92,25 +92,25 @@ int GUI_GetVisible(ScriptGUI *tehgui) {
 }
 
 int GUI_GetX(ScriptGUI *tehgui) {
-  return divide_down_coordinate(guis[tehgui->id].X);
+  return guis[tehgui->id].X;
 }
 
 void GUI_SetX(ScriptGUI *tehgui, int xx) {
   if (xx >= thisroom.width)
     quit("!GUI.X: co-ordinates specified are out of range.");
 
-  guis[tehgui->id].X = multiply_up_coordinate(xx);
+  guis[tehgui->id].X = xx;
 }
 
 int GUI_GetY(ScriptGUI *tehgui) {
-  return divide_down_coordinate(guis[tehgui->id].Y);
+  return guis[tehgui->id].Y;
 }
 
 void GUI_SetY(ScriptGUI *tehgui, int yy) {
   if (yy >= thisroom.height)
     quit("!GUI.Y: co-ordinates specified are out of range.");
 
-  guis[tehgui->id].Y = multiply_up_coordinate(yy);
+  guis[tehgui->id].Y = yy;
 }
 
 void GUI_SetPosition(ScriptGUI *tehgui, int xx, int yy) {
@@ -123,7 +123,6 @@ void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
     quitprintf("!SetGUISize: invalid dimensions (tried to set to %d x %d)", widd, hitt);
 
   GUIMain *tehgui = &guis[sgui->id];
-  multiply_up_coordinates(&widd, &hitt);
 
   if ((tehgui->Width == widd) && (tehgui->Height == hitt))
     return;
@@ -137,11 +136,11 @@ void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
 }
 
 int GUI_GetWidth(ScriptGUI *sgui) {
-  return divide_down_coordinate(guis[sgui->id].Width);
+  return guis[sgui->id].Width;
 }
 
 int GUI_GetHeight(ScriptGUI *sgui) {
-  return divide_down_coordinate(guis[sgui->id].Height);
+  return guis[sgui->id].Height;
 }
 
 void GUI_SetWidth(ScriptGUI *sgui, int newwid) {
@@ -356,7 +355,7 @@ void replace_macro_tokens(const char *text, String &fixed_text) {
                 if (!IsInterfaceEnabled())
                     tempo[0] = 0;
                 else
-                    GetLocationName(divide_down_coordinate(mousex), divide_down_coordinate(mousey), tempo);
+                    GetLocationName(mousex, mousey, tempo);
             }
             else { // not a macro, there's just a @ in the message
                 curptr = curptrWasAt + 1;
@@ -471,7 +470,7 @@ int adjust_x_for_guis (int xx, int yy) {
             continue;
 
         // try to deal with full-width GUIs across the top
-        if (guis[aa].X + guis[aa].Width >= get_fixed_pixel_size(280))
+        if (guis[aa].X + guis[aa].Width >= 280)
             continue;
 
         if (xx < guis[aa].X + guis[aa].Width) 
@@ -494,7 +493,7 @@ int adjust_y_for_guis ( int yy) {
             continue;
 
         // try to deal with full-height GUIs down the left or right
-        if (guis[aa].Height > get_fixed_pixel_size(50))
+        if (guis[aa].Height > 50)
             continue;
 
         if (yy < guis[aa].Y + guis[aa].Height) 

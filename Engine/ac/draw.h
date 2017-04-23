@@ -93,6 +93,7 @@ void draw_and_invalidate_text(Common::Bitmap *ds, int x1, int y1, int font, colo
 void setpal();
 
 // CLNUP remove this
+/*
 extern AGS_INLINE int get_fixed_pixel_size(int pixels);
 extern AGS_INLINE int convert_to_low_res(int coord);
 extern AGS_INLINE int convert_back_to_high_res(int coord);
@@ -101,6 +102,7 @@ extern AGS_INLINE void multiply_up_coordinates(int *x, int *y);
 extern AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y);
 extern AGS_INLINE int divide_down_coordinate(int coord);
 extern AGS_INLINE int divide_down_coordinate_round_up(int coord);
+*/
 
 // Checks if the bitmap needs to be converted and **deletes original** if a new bitmap
 // had to be created (by default).

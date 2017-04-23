@@ -221,8 +221,8 @@ const char* Room_GetMessages(int index) {
 
 Bitmap *fix_bitmap_size(Bitmap *todubl) {
     int oldw=todubl->GetWidth(), oldh=todubl->GetHeight();
-    int newWidth = multiply_up_coordinate(thisroom.width);
-    int newHeight = multiply_up_coordinate(thisroom.height);
+    int newWidth = thisroom.width;
+    int newHeight = thisroom.height;
 
     if ((oldw == newWidth) && (oldh == newHeight))
         return todubl;
@@ -483,7 +483,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
 
     our_eip=202;
-    const int real_room_height = multiply_up_coordinate(thisroom.height);
+    const int real_room_height = thisroom.height;
     // Game viewport is updated when when room's size is smaller than game's size.
     // NOTE: if "OPT_LETTERBOX" is false, altsize.Height = size.Height always.
     if (real_room_height < game.size.Height || play.viewport.GetHeight() < game.size.Height) {
@@ -557,7 +557,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         update_polled_stuff_if_runtime();
     }
     // update the script viewport height
-    scsystem.viewport_height = divide_down_coordinate(play.viewport.GetHeight());
+    scsystem.viewport_height = play.viewport.GetHeight();
 
     SetMouseBounds (0,0,0,0);
 
@@ -584,7 +584,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     set_color_depth(System_GetColorDepth());
     // convert backgrounds to current res
-    if (thisroom.resolution != get_fixed_pixel_size(1)) {
+	// CLNUP this should be removed
+    if (thisroom.resolution != 1) {
         for (cc=0;cc<thisroom.num_bscenes;cc++)
             thisroom.ebscene[cc] = fix_bitmap_size(thisroom.ebscene[cc]);
     }
@@ -637,7 +638,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             croom->obj[cc].y=thisroom.sprs[cc].y;
 
             if (thisroom.wasversion <= kRoomVersion_300a)
-                croom->obj[cc].y += divide_down_coordinate(spriteheight[thisroom.sprs[cc].sprnum]);
+                croom->obj[cc].y += spriteheight[thisroom.sprs[cc].sprnum];
 
             croom->obj[cc].num=thisroom.sprs[cc].sprnum;
             croom->obj[cc].on=thisroom.sprs[cc].on;
@@ -821,7 +822,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     if ((new_room_pos>0) & (forchar!=NULL)) {
         if (new_room_pos>=4000) {
             play.entered_edge = 3;
-            forchar->y = thisroom.top + get_fixed_pixel_size(1);
+            forchar->y = thisroom.top + 1;
             forchar->x=new_room_pos%1000;
             if (forchar->x==0) forchar->x=thisroom.width/2;
             if (forchar->x <= thisroom.left)
@@ -832,7 +833,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         }
         else if (new_room_pos>=3000) {
             play.entered_edge = 2;
-            forchar->y = thisroom.bottom - get_fixed_pixel_size(1);
+            forchar->y = thisroom.bottom - 1;
             forchar->x=new_room_pos%1000;
             if (forchar->x==0) forchar->x=thisroom.width/2;
             if (forchar->x <= thisroom.left)
@@ -843,7 +844,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         }
         else if (new_room_pos>=2000) {
             play.entered_edge = 1;
-            forchar->x = thisroom.right - get_fixed_pixel_size(1);
+            forchar->x = thisroom.right - 1;
             forchar->y=new_room_pos%1000;
             if (forchar->y==0) forchar->y=thisroom.height/2;
             if (forchar->y <= thisroom.top)
@@ -854,7 +855,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         }
         else if (new_room_pos>=1000) {
             play.entered_edge = 0;
-            forchar->x = thisroom.left + get_fixed_pixel_size(1);
+            forchar->x = thisroom.left + 1;
             forchar->y=new_room_pos%1000;
             if (forchar->y==0) forchar->y=thisroom.height/2;
             if (forchar->y <= thisroom.top)

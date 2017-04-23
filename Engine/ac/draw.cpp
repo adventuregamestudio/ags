@@ -431,6 +431,7 @@ Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool has_alpha)
 // Begin resolution system functions
 
 // CLNUP blast away all this magical coords stuff
+/*
 // Multiplies up the number of pixels depending on the current 
 // resolution, to give a relatively fixed size at any game res
 AGS_INLINE int get_fixed_pixel_size(int pixels)
@@ -495,7 +496,7 @@ AGS_INLINE int divide_down_coordinate_round_up(int coord)
     else
         return coord;
 }
-
+*/
 // End resolution system functions
 
 
@@ -750,7 +751,7 @@ void invalidate_sprite(int x1, int y1, IDriverDependantBitmap *pic) {
 
 void draw_and_invalidate_text(Bitmap *ds, int x1, int y1, int font, color_t text_color, const char *text) {
     wouttext_outline(ds, x1, y1, font, text_color, (char*)text);
-    invalidate_rect(x1, y1, x1 + wgettextwidth_compensate(text, font), y1 + getfontheight_outlined(font) + get_fixed_pixel_size(1));
+    invalidate_rect(x1, y1, x1 + wgettextwidth_compensate(text, font), y1 + getfontheight_outlined(font) + 1);
 }
 
 void invalidate_screen() {
@@ -835,8 +836,7 @@ void render_to_screen(Bitmap *toRender, int atx, int aty) {
 
 
 void clear_letterbox_borders() {
-
-    if (multiply_up_coordinate(thisroom.height) < game.size.Height) {
+	if (thisroom.height < game.size.Height) {
         // blank out any traces in borders left by a full-screen room
         gfxDriver->ClearRectangle(0, 0, _old_screen->GetWidth() - 1, play.viewport.Top - 1, NULL);
         gfxDriver->ClearRectangle(0, play.viewport.Bottom + 1, _old_screen->GetWidth() - 1, game.size.Height - 1, NULL);
@@ -858,7 +858,7 @@ void write_screen() {
     if (play.shakesc_length > 0) {
         wasShakingScreen = 1;
         if ( (loopcounter % play.shakesc_delay) < (play.shakesc_delay / 2) )
-            at_yp = multiply_up_coordinate(play.shakesc_amount);
+            at_yp = play.shakesc_amount;
         invalidate_screen();
     }
     else if (wasShakingScreen) {
@@ -895,7 +895,7 @@ void putpixel_compensate (Bitmap *ds, int xx,int yy, int col) {
         int alphaval = geta32(ds->GetPixel(xx, yy));
         col = makeacol32(getr32(col), getg32(col), getb32(col), alphaval);
     }
-    ds->FillRect(Rect(xx, yy, xx + get_fixed_pixel_size(1) - 1, yy + get_fixed_pixel_size(1) - 1), col);
+    ds->FillRect(Rect(xx, yy, xx, yy), col);
 }
 
 
@@ -1723,8 +1723,8 @@ void prepare_objects_for_drawing() {
         objcache[aa].xwas = objs[aa].x;
         objcache[aa].ywas = objs[aa].y;
 
-        atxp = multiply_up_coordinate(objs[aa].x) - offsetx;
-        atyp = (multiply_up_coordinate(objs[aa].y) - tehHeight) - offsety;
+        atxp = objs[aa].x - offsetx;
+        atyp = (objs[aa].y - tehHeight) - offsety;
 
         int usebasel = objs[aa].get_baseline();
 
@@ -1972,8 +1972,8 @@ void prepare_characters_for_drawing() {
         our_eip = 3336;
 
         // Calculate the X & Y co-ordinates of where the sprite will be
-        atxp=(multiply_up_coordinate(chin->x) - offsetx) - newwidth/2;
-        atyp=(multiply_up_coordinate(chin->y) - newheight) - offsety;
+        atxp=(chin->x - offsetx) - newwidth/2;
+        atyp=(chin->y - newheight) - offsety;
 
         charcache[aa].scaling = zoom_level;
         charcache[aa].sppic = specialpic;
@@ -2032,7 +2032,7 @@ void prepare_characters_for_drawing() {
         int usebasel = chin->get_baseline();
 
         // adjust the Y positioning for the character's Z co-ord
-        atyp -= multiply_up_coordinate(chin->z);
+        atyp -= chin->z;
 
         our_eip = 336;
 
@@ -2191,7 +2191,7 @@ void draw_fps()
 
     if (fpsDisplay == NULL)
     {
-        fpsDisplay = BitmapHelper::CreateBitmap(get_fixed_pixel_size(100), (getfontheight_outlined(FONT_SPEECH) + get_fixed_pixel_size(5)), System_GetColorDepth());
+        fpsDisplay = BitmapHelper::CreateBitmap(100, (getfontheight_outlined(FONT_SPEECH) + 5), System_GetColorDepth());
         fpsDisplay = ReplaceBitmapWithSupportedFormat(fpsDisplay);
     }
     fpsDisplay->ClearTransparent();
@@ -2216,7 +2216,7 @@ void draw_fps()
     invalidate_sprite(1, yp, ddb);
 
     sprintf(tbuffer,"Loop %u", loopcounter);
-    draw_and_invalidate_text(ds, get_fixed_pixel_size(250), yp, FONT_SPEECH, text_color, tbuffer);
+    draw_and_invalidate_text(ds, 250, yp, FONT_SPEECH, text_color, tbuffer);
 }
 
 // draw_screen_overlay: draws any stuff currently on top of the background,
@@ -2392,7 +2392,7 @@ void draw_misc_info()
         //if ((loopcounter % (frames_per_second * 2)) > frames_per_second/2) {
         char tformat[30];
         sprintf (tformat, "REC %02d:%02d:%02d", replay_time / 3600, (replay_time % 3600) / 60, replay_time % 60);
-        draw_and_invalidate_text(ds, get_fixed_pixel_size(5), get_fixed_pixel_size(10), FONT_SPEECH, text_color, tformat);
+        draw_and_invalidate_text(ds, 5, 10, FONT_SPEECH, text_color, tformat);
         //}
     }
     else if (play.playback) {
@@ -2400,7 +2400,7 @@ void draw_misc_info()
         char tformat[30];
         sprintf (tformat, "PLAY %02d:%02d:%02d", replay_time / 3600, (replay_time % 3600) / 60, replay_time % 60);
 
-        draw_and_invalidate_text(ds, get_fixed_pixel_size(5), get_fixed_pixel_size(10), FONT_SPEECH, text_color, tformat);
+        draw_and_invalidate_text(ds, 5, 10, FONT_SPEECH, text_color, tformat);
     }
 
     our_eip = 1101;
@@ -2457,7 +2457,7 @@ void update_screen() {
             (mousex==lastmx) && (mousey==lastmy)) ;
         // only on hotspot, and it's not on one
         else if (((game.mcurs[cur_cursor].flags & MCF_HOTSPOT)!=0) &&
-            (GetLocationType(divide_down_coordinate(mousex), divide_down_coordinate(mousey)) == 0))
+            (GetLocationType(mousex, mousey) == 0))
             set_new_cursor_graphic(game.mcurs[cur_cursor].pic);
         else if (mouse_delay>0) mouse_delay--;
         else {

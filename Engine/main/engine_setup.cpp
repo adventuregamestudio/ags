@@ -58,10 +58,6 @@ int ff; // whatever!
 // CLNUP remove this
 int adjust_pixel_size_for_loaded_data(int size, int filever)
 {
-    if (filever < kGameVersion_310)
-    {
-        return multiply_up_coordinate(size);
-    }
     return size;
 }
 
@@ -135,8 +131,8 @@ void engine_setup_system_gamesize()
 {
     scsystem.width = game.size.Width;
     scsystem.height = game.size.Height;
-    scsystem.viewport_width = divide_down_coordinate(play.viewport.GetWidth());
-    scsystem.viewport_height = divide_down_coordinate(play.viewport.GetHeight());
+    scsystem.viewport_width = play.viewport.GetWidth();
+    scsystem.viewport_height = play.viewport.GetHeight();
 }
 
 // CLNUP IsHiRes should be that hybrid mode of old, inspect carefully, remove color_depths < 32bit

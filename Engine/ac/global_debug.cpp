@@ -111,7 +111,7 @@ void script_debug(int cmdd,int dataa) {
         tempw->Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
         Bitmap *stretched = BitmapHelper::CreateBitmap(play.viewport.GetWidth(), play.viewport.GetHeight());
         stretched->StretchBlt(tempw,
-			RectWH(-offsetx, -offsety, get_fixed_pixel_size(tempw->GetWidth()), get_fixed_pixel_size(tempw->GetHeight())),
+			RectWH(-offsetx, -offsety, tempw->GetWidth(), tempw->GetHeight()),
 			Common::kBitmap_Transparency);
 
         IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(stretched, false, true);
@@ -168,7 +168,7 @@ void script_debug(int cmdd,int dataa) {
         }
 		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
         screen_bmp->StretchBlt(tempw,
-			RectWH(-offsetx, -offsety, multiply_up_coordinate(tempw->GetWidth()), multiply_up_coordinate(tempw->GetHeight())),
+			RectWH(-offsetx, -offsety, tempw->GetWidth(), tempw->GetHeight()),
 			Common::kBitmap_Transparency);
         render_to_screen(BitmapHelper::GetScreenBitmap(), 0, 0);
         delete tempw;

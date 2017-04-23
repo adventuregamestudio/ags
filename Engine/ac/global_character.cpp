@@ -113,7 +113,7 @@ int GetCharacterWidth(int ww) {
             (char1->frame >= views[char1->view].loops[char1->loop].numFrames))
         {
             debug_script_warn("GetCharacterWidth: Character %s has invalid frame: view %d, loop %d, frame %d", char1->scrname, char1->view + 1, char1->loop, char1->frame);
-            return multiply_up_coordinate(4);
+            return 4;
         }
 
         return spritewidth[views[char1->view].loops[char1->loop].frames[char1->frame].pic];
@@ -132,7 +132,7 @@ int GetCharacterHeight(int charid) {
             (char1->frame >= views[char1->view].loops[char1->loop].numFrames))
         {
             debug_script_warn("GetCharacterHeight: Character %s has invalid frame: view %d, loop %d, frame %d", char1->scrname, char1->view + 1, char1->loop, char1->frame);
-            return multiply_up_coordinate(2);
+            return 2;
         }
 
         return spriteheight[views[char1->view].loops[char1->loop].frames[char1->frame].pic];
@@ -442,8 +442,8 @@ void GetCharacterPropertyText (int item, const char *property, char *bufer) {
 }
 
 int GetCharacterAt (int xx, int yy) {
-    xx += divide_down_coordinate(offsetx);
-    yy += divide_down_coordinate(offsety);
+    xx += offsetx;
+    yy += offsety;
     return is_pos_on_character(xx,yy);
 }
 
@@ -538,8 +538,6 @@ void __sc_displayspeech(int chid, const char *text) {
 // **** THIS IS UNDOCUMENTED BECAUSE IT DOESN'T WORK PROPERLY
 // **** AT 640x400 AND DOESN'T USE THE RIGHT SPEECH STYLE
 void DisplaySpeechAt (int xx, int yy, int wii, int aschar, const char*spch) {
-    multiply_up_coordinates(&xx, &yy);
-    wii = multiply_up_coordinate(wii);
     _displayspeech (get_translation(spch), aschar, xx, yy, wii, 0);
 }
 

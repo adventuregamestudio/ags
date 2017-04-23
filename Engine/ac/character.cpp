@@ -260,20 +260,12 @@ void Character_ChangeRoomSetLoop(CharacterInfo *chaa, int room, int x, int y, in
     if ((x != SCR_NO_VALUE) && (y != SCR_NO_VALUE)) {
         new_room_pos = 0;
 
-        if (loaded_game_file_version <= kGameVersion_272)
-        {
-            // Set position immediately on 2.x.
-            chaa->x = x;
-            chaa->y = y;
-        }
-        else
-        {
-            // don't check X or Y bounds, so that they can do a
-            // walk-in animation if they want
-            new_room_x = x;
-            new_room_y = y;
-			if (direction != SCR_NO_VALUE) new_room_loop = direction;
-        }
+        // don't check X or Y bounds, so that they can do a
+        // walk-in animation if they want
+        new_room_x = x;
+        new_room_y = y;
+		if (direction != SCR_NO_VALUE) new_room_loop = direction;
+
     }
 
     NewRoom(room);
@@ -330,20 +322,15 @@ DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, int x_diff, int y_diff
     DirectionalLoop next_loop = kDirLoop_Left; // NOTE: default loop was Left for some reason
 
     const ViewStruct &chview  = views[chinfo->view];
-    const bool new_version    = loaded_game_file_version > kGameVersion_272;
     const bool has_down_loop  = ((chview.numLoops > kDirLoop_Down)  && (chview.loops[kDirLoop_Down].numFrames > 0));
     const bool has_up_loop    = ((chview.numLoops > kDirLoop_Up)    && (chview.loops[kDirLoop_Up].numFrames > 0));
     // NOTE: 3.+ games required left & right loops to be present at all times
-    const bool has_left_loop  = new_version ||
-                                ((chview.numLoops > kDirLoop_Left)  && (chview.loops[kDirLoop_Left].numFrames > 0));
-    const bool has_right_loop = new_version ||
-                                ((chview.numLoops > kDirLoop_Right) && (chview.loops[kDirLoop_Right].numFrames > 0));
+	const bool has_left_loop  = true; // ((chview.numLoops > kDirLoop_Left)  && (chview.loops[kDirLoop_Left].numFrames > 0));
+	const bool has_right_loop = true; // ((chview.numLoops > kDirLoop_Right) && (chview.loops[kDirLoop_Right].numFrames > 0));
     const bool has_diagonal_loops = useDiagonal(chinfo) == 0; // NOTE: useDiagonal returns 0 for "true"
 
-    const bool want_horizontal = (abs(y_diff) < abs(x_diff)) ||
-        new_version && (!has_down_loop || !has_up_loop) ||
-        // NOTE: <= 2.72 games switch to horizontal loops only if both vertical ones are missing
-        !new_version && (!has_down_loop && !has_up_loop);
+	const bool want_horizontal = (abs(y_diff) < abs(x_diff)) || (!has_down_loop || !has_up_loop);
+
     if (want_horizontal)
     {
         const bool want_diagonal = has_diagonal_loops && (abs(y_diff) > abs(x_diff) / 2);
@@ -524,8 +511,8 @@ int Character_IsCollidingWithChar(CharacterInfo *char1, CharacterInfo *char2) {
     if ((char1->y > char2->y - 5) && (char1->y < char2->y + 5)) ;
     else return 0;
 
-    int w1 = divide_down_coordinate(GetCharacterWidth(char1->index_id));
-    int w2 = divide_down_coordinate(GetCharacterWidth(char2->index_id));
+    int w1 = GetCharacterWidth(char1->index_id);
+    int w2 = GetCharacterWidth(char2->index_id);
 
     int xps1=char1->x - w1/2;
     int xps2=char2->x - w2/2;
@@ -547,33 +534,33 @@ int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
     int objWidth = checkblk->GetWidth();
     int objHeight = checkblk->GetHeight();
     int o1x = objs[objid->id].x;
-    int o1y = objs[objid->id].y - divide_down_coordinate(objHeight);
+    int o1y = objs[objid->id].y - objHeight;
 
     Bitmap *charpic = GetCharacterImage(chin->index_id, NULL);
 
     int charWidth = charpic->GetWidth();
     int charHeight = charpic->GetHeight();
-    int o2x = chin->x - divide_down_coordinate(charWidth) / 2;
+    int o2x = chin->x - charWidth / 2;
     int o2y = chin->get_effective_y() - 5;  // only check feet
 
-    if ((o2x >= o1x - divide_down_coordinate(charWidth)) &&
-        (o2x <= o1x + divide_down_coordinate(objWidth)) &&
+    if ((o2x >= o1x - charWidth) &&
+        (o2x <= o1x + objWidth) &&
         (o2y >= o1y - 8) &&
-        (o2y <= o1y + divide_down_coordinate(objHeight))) {
+        (o2y <= o1y + objHeight)) {
             // the character's feet are on the object
             if (game.options[OPT_PIXPERFECT] == 0)
                 return 1;
             // check if they're on a transparent bit of the object
-            int stxp = multiply_up_coordinate(o2x - o1x);
-            int styp = multiply_up_coordinate(o2y - o1y);
+            int stxp = o2x - o1x;
+            int styp = o2y - o1y;
             int maskcol = checkblk->GetMaskColor ();
             int maskcolc = charpic->GetMaskColor ();
             int thispix, thispixc;
             // check each pixel of the object along the char's feet
-            for (int i = 0; i < charWidth; i += get_fixed_pixel_size(1)) {
-                for (int j = 0; j < get_fixed_pixel_size(6); j += get_fixed_pixel_size(1)) {
+            for (int i = 0; i < charWidth; i += 1) {
+                for (int j = 0; j < 6; j += 1) {
                     thispix = my_getpixel(checkblk, i + stxp, j + styp);
-                    thispixc = my_getpixel(charpic, i, j + (charHeight - get_fixed_pixel_size(5)));
+                    thispixc = my_getpixel(charpic, i, j + (charHeight - 5));
 
                     if ((thispix != -1) && (thispix != maskcol) &&
                         (thispixc != -1) && (thispixc != maskcolc))
@@ -635,7 +622,7 @@ void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int ali
         quit("!SetCharacterLoop: character has invalid old view number");
 
     int sppic = views[chap->view].loops[chap->loop].frames[chap->frame].pic;
-    int leftSide = multiply_up_coordinate(chap->x) - spritewidth[sppic] / 2;
+    int leftSide = chap->x - spritewidth[sppic] / 2;
 
     Character_LockViewEx(chap, vii, stopMoving);
 
@@ -645,7 +632,7 @@ void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int ali
     chap->loop = loop;
     chap->frame = 0;
     int newpic = views[chap->view].loops[chap->loop].frames[chap->frame].pic;
-    int newLeft = multiply_up_coordinate(chap->x) - spritewidth[newpic] / 2;
+    int newLeft = chap->x - spritewidth[newpic] / 2;
     int xdiff = 0;
 
     if (align == SCALIGN_LEFT)
@@ -1048,14 +1035,14 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
 
     wallscreen = prepare_walkable_areas(chaa->index_id);
 
-    int fromXLowres = convert_to_low_res(chaa->x);
-    int fromYLowres = convert_to_low_res(chaa->y);
-    int toXLowres = convert_to_low_res(xx);
-    int toYLowres = convert_to_low_res(yy);
+    int fromX = chaa->x;
+    int fromY = chaa->y;
+    int toX = xx;
+    int toY = yy;
 
-    if (!can_see_from(fromXLowres, fromYLowres, toXLowres, toYLowres)) {
-        movetox = convert_back_to_high_res(lastcx);
-        movetoy = convert_back_to_high_res(lastcy);
+    if (!can_see_from(fromX, fromY, toX, toY)) {
+        movetox = lastcx;
+        movetoy = lastcy;
     }
 
     walk_character(chaa->index_id, movetox, movetoy, 1, true);
@@ -1655,10 +1642,8 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
     chin->flags &= ~CHF_MOVENOTWALK;
 
     int toxPassedIn = tox, toyPassedIn = toy;
-    int charX = convert_to_low_res(chin->x);
-    int charY = convert_to_low_res(chin->y);
-    tox = convert_to_low_res(tox);
-    toy = convert_to_low_res(toy);
+    int charX = chin->x;
+    int charY = chin->y;
 
     if ((tox == charX) && (toy == charY)) {
         StopMoving(chac);
@@ -1907,28 +1892,28 @@ int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
 {
     int ex, ey, nearest = 99999, thisis, nearx = 0, neary = 0;
     int startx = 0, starty = 14;
-    int roomWidthLowRes = convert_to_low_res(thisroom.width);
-    int roomHeightLowRes = convert_to_low_res(thisroom.height);
+    int roomWidthLowRes = thisroom.width;
+    int roomHeightLowRes = thisroom.height;
     int xwidth = roomWidthLowRes, yheight = roomHeightLowRes;
 
-    int xLowRes = convert_to_low_res(xx[0]);
-    int yLowRes = convert_to_low_res(yy[0]);
-    int rightEdge = convert_to_low_res(thisroom.right);
-    int leftEdge = convert_to_low_res(thisroom.left);
-    int topEdge = convert_to_low_res(thisroom.top);
-    int bottomEdge = convert_to_low_res(thisroom.bottom);
-
+    int x = xx[0];
+    int y = yy[0];
+    int rightEdge = thisroom.right;
+    int leftEdge = thisroom.left;
+    int topEdge = thisroom.top;
+    int bottomEdge = thisroom.bottom;
+	
     // tweak because people forget to move the edges sometimes
     // if the player is already over the edge, ignore it
-    if (xLowRes >= rightEdge) rightEdge = roomWidthLowRes;
-    if (xLowRes <= leftEdge) leftEdge = 0;
-    if (yLowRes >= bottomEdge) bottomEdge = roomHeightLowRes;
-    if (yLowRes <= topEdge) topEdge = 0;
+    if (x >= rightEdge) rightEdge = roomWidthLowRes;
+    if (x <= leftEdge) leftEdge = 0;
+    if (y >= bottomEdge) bottomEdge = roomHeightLowRes;
+    if (y <= topEdge) topEdge = 0;
 
     if (range > 0) 
     {
-        startx = xLowRes - range;
-        starty = yLowRes - range;
+        startx = x - range;
+        starty = y - range;
         xwidth = startx + range * 2;
         yheight = starty + range * 2;
         if (startx < 0) startx = 0;
@@ -1946,14 +1931,14 @@ int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
                 (ey <= topEdge) || (ey >= bottomEdge))
                 continue;
             // otherwise, calculate distance from target
-            thisis=(int) ::sqrt((double)((ex - xLowRes) * (ex - xLowRes) + (ey - yLowRes) * (ey - yLowRes)));
+            thisis=(int) ::sqrt((double)((ex - x) * (ex - x) + (ey - y) * (ey - y)));
             if (thisis<nearest) { nearest=thisis; nearx=ex; neary=ey; }
         }
     }
     if (nearest < 90000) 
     {
-        xx[0] = convert_back_to_high_res(nearx);
-        yy[0] = convert_back_to_high_res(neary);
+        xx[0] = nearx;
+        yy[0] = neary;
         return 1;
     }
 
@@ -1963,7 +1948,7 @@ int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
 void find_nearest_walkable_area (int *xx, int *yy) {
 
 
-    int pixValue = thisroom.walls->GetPixel(convert_to_low_res(xx[0]), convert_to_low_res(yy[0]));
+    int pixValue = thisroom.walls->GetPixel(xx[0], yy[0]);
     // only fix this code if the game was built with 2.61 or above
     if (pixValue == 0 || (loaded_game_file_version >= kGameVersion_261 && pixValue < 1))
     {
@@ -2205,15 +2190,15 @@ int is_pos_on_character(int xx,int yy) {
         int usehit = charextra[cc].height;
         if (usewid==0) usewid=spritewidth[sppic];
         if (usehit==0) usehit=spriteheight[sppic];
-        int xxx = chin->x - divide_down_coordinate(usewid) / 2;
-        int yyy = chin->get_effective_y() - divide_down_coordinate(usehit);
+        int xxx = chin->x - usewid / 2;
+        int yyy = chin->get_effective_y() - usehit;
 
         int mirrored = views[chin->view].loops[chin->loop].frames[chin->frame].flags & VFLG_FLIPSPRITE;
         Bitmap *theImage = GetCharacterImage(cc, &mirrored);
 
         if (is_pos_in_sprite(xx,yy,xxx,yyy, theImage,
-            divide_down_coordinate(usewid),
-            divide_down_coordinate(usehit), mirrored) == FALSE)
+            usewid,
+            usehit, mirrored) == FALSE)
             continue;
 
         int use_base = chin->get_baseline();
@@ -2230,7 +2215,7 @@ void get_char_blocking_rect(int charid, int *x1, int *y1, int *width, int *y2) {
     int cwidth, fromx;
 
     if (char1->blocking_width < 1)
-        cwidth = divide_down_coordinate(GetCharacterWidth(charid)) - 4;
+        cwidth = GetCharacterWidth(charid) - 4;
     else
         cwidth = char1->blocking_width;
 
@@ -2239,8 +2224,8 @@ void get_char_blocking_rect(int charid, int *x1, int *y1, int *width, int *y2) {
         cwidth += fromx;
         fromx = 0;
     }
-    if (fromx + cwidth >= convert_back_to_high_res(walkable_areas_temp->GetWidth()))
-        cwidth = convert_back_to_high_res(walkable_areas_temp->GetWidth()) - fromx;
+    if (fromx + cwidth >= walkable_areas_temp->GetWidth())
+        cwidth = walkable_areas_temp->GetWidth() - fromx;
 
     if (x1)
         *x1 = fromx;
@@ -2325,8 +2310,8 @@ void _DisplayThoughtCore(int chid, const char *displbuf) {
     if ((game.options[OPT_SPEECHTYPE] == 0) || (game.chars[chid].thinkview <= 0)) {
         // lucasarts-style, so we want a speech bubble actually above
         // their head (or if they have no think anim in Sierra-style)
-        width = multiply_up_coordinate(play.speech_bubble_width);
-        xpp = (multiply_up_coordinate(game.chars[chid].x) - offsetx) - width / 2;
+        width = play.speech_bubble_width;
+        xpp = (game.chars[chid].x - offsetx) - width / 2;
         if (xpp < 0)
             xpp = 0;
         // -1 will automatically put it above the char's head
@@ -2468,7 +2453,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         // the screen.
         our_eip=1501;
         if (tdxp < 0)
-            tdxp = multiply_up_coordinate(speakingChar->x) - offsetx;
+            tdxp = speakingChar->x - offsetx;
         if (tdxp < 2)
             tdxp=2;
 
@@ -2498,14 +2483,14 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         if (tdyp < 0) 
         {
             int sppic = views[speakingChar->view].loops[speakingChar->loop].frames[0].pic;
-            tdyp = multiply_up_coordinate(speakingChar->get_effective_y()) - offsety - get_fixed_pixel_size(5);
+            tdyp = speakingChar->get_effective_y() - offsety - 5;
             if (charextra[aschar].height < 1)
                 tdyp -= spriteheight[sppic];
             else
                 tdyp -= charextra[aschar].height;
             // if it's a thought, lift it a bit further up
             if (isThought)  
-                tdyp -= get_fixed_pixel_size(10);
+                tdyp -= 10;
         }
 
         our_eip=1505;
@@ -2597,14 +2582,14 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
             // if they accidentally used a large full-screen image as the sierra-style
             // talk view, correct it
-            if ((game.options[OPT_SPEECHTYPE] != 3) && (bigx > play.viewport.GetWidth() - get_fixed_pixel_size(50)))
-                bigx = play.viewport.GetWidth() - get_fixed_pixel_size(50);
+            if ((game.options[OPT_SPEECHTYPE] != 3) && (bigx > play.viewport.GetWidth() - 50))
+                bigx = play.viewport.GetWidth() - 50;
 
             if (widd > 0)
                 bwidth = widd - bigx;
 
             our_eip=153;
-            int ovr_yp = get_fixed_pixel_size(20);
+            int ovr_yp = 20;
             int view_frame_x = 0;
             int view_frame_y = 0;
             facetalk_qfg4_override_placement_x = false;
@@ -2628,7 +2613,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
                 {
                     view_frame_y = play.viewport.GetHeight()/2 - spriteheight[viptr->loops[0].frames[0].pic]/2;
                 }
-                bigx = play.viewport.GetWidth()/2 - get_fixed_pixel_size(20);
+                bigx = play.viewport.GetWidth()/2 - 20;
                 ovr_type = OVER_COMPLETE;
                 ovr_yp = 0;
                 tdyp = -1;  // center vertically
@@ -2654,27 +2639,27 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             const bool closeupface_has_alpha = (game.spriteflags[vf->pic] & SPF_ALPHACHANNEL) != 0;
             DrawViewFrame(closeupface, vf, view_frame_x, view_frame_y);
 
-            int overlay_x = get_fixed_pixel_size(10);
+            int overlay_x = 10;
             if (xx < 0) {
                 tdxp = bigx + get_textwindow_border_width(play.speech_textwindow_gui) / 2;
                 if (play.speech_portrait_placement)
                 {
                     overlay_x = play.speech_portrait_x;
-                    tdxp += overlay_x + get_fixed_pixel_size(6);
+                    tdxp += overlay_x + 6;
                 }
                 else
                 {
-                    tdxp += get_fixed_pixel_size(16);
+                    tdxp += 16;
                 }
 
-                int maxWidth = (play.viewport.GetWidth() - tdxp) - get_fixed_pixel_size(5) - 
+                int maxWidth = (play.viewport.GetWidth() - tdxp) - 5 - 
                     get_textwindow_border_width (play.speech_textwindow_gui) / 2;
 
                 if (bwidth > maxWidth)
                     bwidth = maxWidth;
             }
             else {
-                tdxp = xx + bigx + get_fixed_pixel_size(8);
+                tdxp = xx + bigx + 8;
                 overlay_x = xx;
             }
 
@@ -2684,22 +2669,22 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             // if the portrait's on the right, swap it round
             if (portrait_on_right) {
                 if ((xx < 0) || (widd < 0)) {
-                    tdxp = get_fixed_pixel_size(9);
+                    tdxp = 9;
                     if (play.speech_portrait_placement)
                     {
                         overlay_x = (play.viewport.GetWidth() - bigx) - play.speech_portrait_x;
-                        int maxWidth = overlay_x - tdxp - get_fixed_pixel_size(9) - 
+                        int maxWidth = overlay_x - tdxp - 9 - 
                             get_textwindow_border_width (play.speech_textwindow_gui) / 2;
                         if (bwidth > maxWidth)
                             bwidth = maxWidth;
                     }
                     else
                     {
-                        overlay_x = (play.viewport.GetWidth() - bigx) - get_fixed_pixel_size(5);
+                        overlay_x = (play.viewport.GetWidth() - bigx) - 5;
                     }
                 }
                 else {
-                    overlay_x = (xx + widd - bigx) - get_fixed_pixel_size(5);
+                    overlay_x = (xx + widd - bigx) - 5;
                     tdxp = xx;
                 }
                 tdxp += get_textwindow_border_width(play.speech_textwindow_gui) / 2;
@@ -2759,7 +2744,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             if (widd < 0) {
                 bwidth = play.viewport.GetWidth()/2 + play.viewport.GetWidth()/6;
                 // If they are close to the screen edge, make the text narrower
-                int relx = multiply_up_coordinate(speakingChar->x) - offsetx;
+                int relx = speakingChar->x - offsetx;
                 if ((relx < play.viewport.GetWidth() / 4) || (relx > play.viewport.GetWidth() - (play.viewport.GetWidth() / 4)))
                     bwidth -= play.viewport.GetWidth() / 5;
             }

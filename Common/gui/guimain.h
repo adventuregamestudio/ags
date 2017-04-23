@@ -177,10 +177,12 @@ extern bool is_sprite_alpha(int spr);
 extern void draw_gui_sprite(Common::Bitmap *ds, int spr, int x, int y, bool use_alpha = true,
                             Common::BlendMode blend_mode = Common::kBlendMode_Alpha);
 
+/*
 extern AGS_INLINE int divide_down_coordinate(int coord);
 extern AGS_INLINE int multiply_up_coordinate(int coord);
 extern AGS_INLINE void multiply_up_coordinates(int *x, int *y);
 extern AGS_INLINE int get_fixed_pixel_size(int pixels);
+*/
 
 // Those function have distinct implementations in Engine and Editor
 extern void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx);

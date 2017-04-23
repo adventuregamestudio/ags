@@ -89,8 +89,8 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
 	    usingGui = game.options[OPT_THOUGHTGUI];
 
     int padding = get_textwindow_padding(usingGui);
-    int paddingScaled = get_fixed_pixel_size(padding);
-    int paddingDoubledScaled = get_fixed_pixel_size(padding * 2); // Just in case screen size does is not neatly divisible by 320x200
+    int paddingScaled = padding;
+    int paddingDoubledScaled = padding * 2; // Just in case screen size does is not neatly divisible by 320x200
 
     ensure_text_valid_for_font(todis, usingfont);
     break_up_text_into_lines(wii-2*padding,usingfont,todis);
@@ -114,7 +114,7 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
         // ensure that the window is wide enough to display
         // any top bar text
         int topBarWid = wgettextwidth_compensate(topBar.text, topBar.font);
-        topBarWid += multiply_up_coordinate(play.top_bar_borderwidth + 2) * 2;
+        topBarWid += (play.top_bar_borderwidth + 2) * 2;
         if (longestline < topBarWid)
             longestline = topBarWid;
         // the top bar should behave like DisplaySpeech wrt blocking
@@ -441,7 +441,7 @@ void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color
 
         if ((game.options[OPT_NOSCALEFNT] == 0) && (!font_supports_extended_characters(usingfont))) {
             // if it's a scaled up SCI font, move the outline out more
-            outlineDist = get_fixed_pixel_size(1);
+            outlineDist = 1;
         }
 
         // move the text over so that it's still within the bounding rect
@@ -477,7 +477,7 @@ int get_outline_adjustment(int font)
     if (get_font_outline(font) == FONT_OUTLINE_AUTO) {
         // scaled up SCI font, push outline further out
         if ((game.options[OPT_NOSCALEFNT] == 0) && (!font_supports_extended_characters(font)))
-            return get_fixed_pixel_size(2);
+            return 2;
         // otherwise, just push outline by 1 pixel
         else
             return 2;
@@ -513,10 +513,10 @@ int wgettextwidth_compensate(const char *tex, int font) {
     if (get_font_outline(font) == FONT_OUTLINE_AUTO) {
         // scaled up SCI font, push outline further out
         if ((game.options[OPT_NOSCALEFNT] == 0) && (!font_supports_extended_characters(font)))
-            wdof += get_fixed_pixel_size(2);
+            wdof += 2;
         // otherwise, just push outline by 1 pixel
         else
-            wdof += get_fixed_pixel_size(1);
+            wdof += 1;
     }
 
     return wdof;
@@ -723,14 +723,14 @@ void draw_text_window_and_bar(Bitmap **text_window_ds, bool should_free_ds,
         if (play.top_bar_backcolor != play.top_bar_bordercolor) {
             // draw the border
             draw_color = ds->GetCompatibleColor(play.top_bar_bordercolor);
-            for (int j = 0; j < multiply_up_coordinate(play.top_bar_borderwidth); j++)
+            for (int j = 0; j < play.top_bar_borderwidth; j++)
                 ds->DrawRect(Rect(j, j, ds->GetWidth() - (j + 1), topBar.height - (j + 1)), draw_color);
         }
 
         // draw the text
         int textx = (ds->GetWidth() / 2) - wgettextwidth_compensate(topBar.text, topBar.font) / 2;
         color_t text_color = ds->GetCompatibleColor(play.top_bar_textcolor);
-        wouttext_outline(ds, textx, play.top_bar_borderwidth + get_fixed_pixel_size(1), topBar.font, text_color, topBar.text);
+        wouttext_outline(ds, textx, play.top_bar_borderwidth + 1, topBar.font, text_color, topBar.text);
 
         // don't draw it next time
         topBar.wantIt = 0;

@@ -148,7 +148,6 @@ void RawPrint (int xx, int yy, const char *text) {
         text_color = RAW_SURFACE()->GetCompatibleColor(1);
         debug_script_warn ("RawPrint: Attempted to use hi-color on 256-col background");
     }
-    multiply_up_coordinates(&xx, &yy);
     wouttext_outline(RAW_SURFACE(), xx, yy, play.normal_font, text_color, text);
     // we must invalidate the entire screen because these are room
     // co-ordinates, not screen co-ords which it works with
@@ -159,8 +158,6 @@ void RawPrint (int xx, int yy, const char *text) {
 void RawPrintMessageWrapped (int xx, int yy, int wid, int font, int msgm) {
     char displbuf[3000];
     int linespacing = getfontspacing_outlined(font);
-    multiply_up_coordinates(&xx, &yy);
-    wid = multiply_up_coordinate(wid);
 
     get_message_text (msgm, displbuf);
     // it's probably too late but check anyway
@@ -193,17 +190,16 @@ void RawDrawImageCore(int xx, int yy, int slot, int alpha) {
 }
 
 void RawDrawImage(int xx, int yy, int slot) {
-    multiply_up_coordinates(&xx, &yy);
     RawDrawImageCore(xx, yy, slot);
 }
 
 void RawDrawImageTrans(int xx, int yy, int slot, int alpha) {
-    multiply_up_coordinates(&xx, &yy);
     RawDrawImageCore(xx, yy, slot, alpha);
 }
 
 void RawDrawImageOffset(int xx, int yy, int slot) {
-
+	// CLNUP remove this
+	/*
     if ((current_screen_resolution_multiplier == 1) && game.IsHiRes()) {
         // running a 640x400 game at 320x200, adjust
         xx /= 2;
@@ -214,6 +210,7 @@ void RawDrawImageOffset(int xx, int yy, int slot) {
         xx *= 2;
         yy *= 2;
     }
+	*/
 
     RawDrawImageCore(xx, yy, slot);
 }
@@ -252,9 +249,6 @@ void RawDrawImageResized(int xx, int yy, int gotSlot, int width, int height) {
     if ((width < 1) || (height < 1))
         return;
 
-    multiply_up_coordinates(&xx, &yy);
-    multiply_up_coordinates(&width, &height);
-
     // resize the sprite to the requested size
     Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[gotSlot]->GetColorDepth());
     newPic->StretchBlt(spriteset[gotSlot],
@@ -273,25 +267,19 @@ void RawDrawImageResized(int xx, int yy, int gotSlot, int width, int height) {
     RAW_END();
 }
 void RawDrawLine (int fromx, int fromy, int tox, int toy) {
-    multiply_up_coordinates(&fromx, &fromy);
-    multiply_up_coordinates(&tox, &toy);
-
     play.raw_modified[play.bg_frame] = 1;
     int ii,jj;
     // draw a line thick enough to look the same at all resolutions
     Bitmap *bg_frame = thisroom.ebscene[play.bg_frame];
     color_t draw_color = play.raw_color;
-    for (ii = 0; ii < get_fixed_pixel_size(1); ii++) {
-        for (jj = 0; jj < get_fixed_pixel_size(1); jj++)
+    for (ii = 0; ii < 1; ii++) {
+        for (jj = 0; jj < 1; jj++)
             bg_frame->DrawLine (Line(fromx+ii, fromy+jj, tox+ii, toy+jj), draw_color);
     }
     invalidate_screen();
     mark_current_background_dirty();
 }
 void RawDrawCircle (int xx, int yy, int rad) {
-    multiply_up_coordinates(&xx, &yy);
-    rad = multiply_up_coordinate(rad);
-
     play.raw_modified[play.bg_frame] = 1;
     Bitmap *bg_frame = thisroom.ebscene[play.bg_frame];
     bg_frame->FillCircle(Circle (xx, yy, rad), play.raw_color);
@@ -300,21 +288,16 @@ void RawDrawCircle (int xx, int yy, int rad) {
 }
 void RawDrawRectangle(int x1, int y1, int x2, int y2) {
     play.raw_modified[play.bg_frame] = 1;
-    multiply_up_coordinates(&x1, &y1);
-    multiply_up_coordinates_round_up(&x2, &y2);
 
-    Bitmap *bg_frame = thisroom.ebscene[play.bg_frame];
+	Bitmap *bg_frame = thisroom.ebscene[play.bg_frame];
     bg_frame->FillRect(Rect(x1,y1,x2,y2), play.raw_color);
     invalidate_screen();
     mark_current_background_dirty();
 }
 void RawDrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
     play.raw_modified[play.bg_frame] = 1;
-    multiply_up_coordinates(&x1, &y1);
-    multiply_up_coordinates(&x2, &y2);
-    multiply_up_coordinates(&x3, &y3);
 
-    Bitmap *bg_frame = thisroom.ebscene[play.bg_frame];
+	Bitmap *bg_frame = thisroom.ebscene[play.bg_frame];
     bg_frame->DrawTriangle(Triangle (x1,y1,x2,y2,x3,y3), play.raw_color);
     invalidate_screen();
     mark_current_background_dirty();

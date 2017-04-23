@@ -167,7 +167,6 @@ int GetSaveSlotDescription(int slnum,char*desbuf) {
 
 int LoadSaveSlotScreenshot(int slnum, int width, int height) {
     int gotSlot;
-    multiply_up_coordinates(&width, &height);
 
     if (!read_savedgame_screenshot(get_save_game_path(slnum), gotSlot))
         return 0;
@@ -518,7 +517,7 @@ int GetLocationType(int xxx,int yyy) {
 void SaveCursorForLocationChange() {
     // update the current location name
     char tempo[100];
-    GetLocationName(divide_down_coordinate(mousex), divide_down_coordinate(mousey), tempo);
+    GetLocationName(mousex, mousey, tempo);
 
     if (play.get_loc_name_save_cursor != play.get_loc_name_last_time) {
         play.get_loc_name_save_cursor = play.get_loc_name_last_time;
@@ -551,8 +550,8 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         return;
     }
     int loctype = GetLocationType (xxx, yyy);
-    xxx += divide_down_coordinate(offsetx); 
-    yyy += divide_down_coordinate(offsety);
+    xxx += offsetx;
+    yyy += offsety;
     tempo[0]=0;
     if ((xxx>=thisroom.width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.height))
         return;
@@ -800,8 +799,8 @@ extern int getloctype_throughgui, getloctype_index;
 void ProcessClick(int xx,int yy,int mood) {
     getloctype_throughgui = 1;
     int loctype = GetLocationType (xx, yy);
-    xx += divide_down_coordinate(offsetx); 
-    yy += divide_down_coordinate(offsety);
+    xx += offsetx;
+    yy += offsety;
 
     if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0)) {
         int hsnum=get_hotspot_at(xx,yy);
@@ -837,8 +836,8 @@ void ProcessClick(int xx,int yy,int mood) {
 int IsInteractionAvailable (int xx,int yy,int mood) {
     getloctype_throughgui = 1;
     int loctype = GetLocationType (xx, yy);
-    xx += divide_down_coordinate(offsetx); 
-    yy += divide_down_coordinate(offsety);
+    xx += offsetx; 
+    yy += offsety;
 
     // You can always walk places
     if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0))

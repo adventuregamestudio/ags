@@ -57,7 +57,7 @@ int GUIListBox::GetItemAt(int x, int y) const
 
 bool GUIListBox::IsInRightMargin(int x) const
 {
-    if (x >= (Width - get_fixed_pixel_size(6)) && (ListBoxFlags & kListBox_NoBorder) == 0 && (ListBoxFlags & kListBox_NoArrows) == 0)
+    if (x >= (Width - 6) && (ListBoxFlags & kListBox_NoBorder) == 0 && (ListBoxFlags & kListBox_NoArrows) == 0)
         return 1;
     return 0;
 }
@@ -85,7 +85,7 @@ void GUIListBox::Draw(Common::Bitmap *ds)
 {
     const int width  = Width - 1;
     const int height = Height - 1;
-    const int pixel_size = get_fixed_pixel_size(1);
+    const int pixel_size = 1;
 
     check_font(&Font);
     color_t text_color = ds->GetCompatibleColor(TextColor);
@@ -105,24 +105,24 @@ void GUIListBox::Draw(Common::Bitmap *ds)
     if (ItemCount > VisibleItemCount && (ListBoxFlags & kListBox_NoBorder) == 0 && (ListBoxFlags & kListBox_NoArrows) == 0)
     {
         int xstrt, ystrt;
-        ds->DrawRect(Rect(X + width - get_fixed_pixel_size(7), Y, (X + (pixel_size - 1) + width) - get_fixed_pixel_size(7), Y + height), draw_color);
-        ds->DrawRect(Rect(X + width - get_fixed_pixel_size(7), Y + height / 2, X + width, Y + height / 2 + (pixel_size - 1)), draw_color);
+        ds->DrawRect(Rect(X + width - 7, Y, (X + (pixel_size - 1) + width) - 7, Y + height), draw_color);
+        ds->DrawRect(Rect(X + width - 7, Y + height / 2, X + width, Y + height / 2 + (pixel_size - 1)), draw_color);
 
-        xstrt = (X + width - get_fixed_pixel_size(6)) + (pixel_size - 1);
-        ystrt = (Y + height - 3) - get_fixed_pixel_size(5);
+        xstrt = (X + width - 6) + (pixel_size - 1);
+        ystrt = (Y + height - 3) - 5;
 
         draw_color = ds->GetCompatibleColor(TextColor);
-        ds->DrawTriangle(Triangle(xstrt, ystrt, xstrt + get_fixed_pixel_size(4), ystrt, 
-                 xstrt + get_fixed_pixel_size(2),
-                 ystrt + get_fixed_pixel_size(5)), draw_color);
+        ds->DrawTriangle(Triangle(xstrt, ystrt, xstrt + 4, ystrt, 
+                 xstrt + 2,
+                 ystrt + 5), draw_color);
 
         ystrt = Y + 3;
-        ds->DrawTriangle(Triangle(xstrt, ystrt + get_fixed_pixel_size(5), 
-                 xstrt + get_fixed_pixel_size(4), 
-                 ystrt + get_fixed_pixel_size(5),
-                 xstrt + get_fixed_pixel_size(2), ystrt), draw_color);
+        ds->DrawTriangle(Triangle(xstrt, ystrt + 5, 
+                 xstrt + 4, 
+                 ystrt + 5,
+                 xstrt + 2, ystrt), draw_color);
 
-        right_hand_edge -= get_fixed_pixel_size(7);
+        right_hand_edge -= 7;
     }
 
     DrawItemsFix();
@@ -142,7 +142,7 @@ void GUIListBox::Draw(Common::Bitmap *ds)
                 // draw the SelectedItem item bar (if colour not transparent)
                 draw_color = ds->GetCompatibleColor(SelectedBgColor);
                 if ((VisibleItemCount < ItemCount) && ((ListBoxFlags & kListBox_NoBorder) == 0) && ((ListBoxFlags & kListBox_NoArrows) == 0))
-                    stretch_to -= get_fixed_pixel_size(7);
+                    stretch_to -= 7;
 
                 ds->FillRect(Rect(X + pixel_size, at_y, stretch_to, at_y + RowHeight - pixel_size), draw_color);
             }
@@ -194,7 +194,7 @@ void GUIListBox::RemoveItem(int index)
 void GUIListBox::SetFont(int Font)
 {
     Font = Font;
-    RowHeight = getfontheight(Font) + get_fixed_pixel_size(2);
+    RowHeight = getfontheight(Font) + 2;
     VisibleItemCount = Height / RowHeight;
 }
 

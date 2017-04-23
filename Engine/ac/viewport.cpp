@@ -30,8 +30,8 @@ void check_viewport_coords()
     if (offsetx<0) offsetx=0;
     if (offsety<0) offsety=0;
 
-    int roomWidth = multiply_up_coordinate(thisroom.width);
-    int roomHeight = multiply_up_coordinate(thisroom.height);
+    int roomWidth = thisroom.width;
+    int roomHeight = thisroom.height;
     if (offsetx + play.viewport.GetWidth() > roomWidth)
         offsetx = roomWidth - play.viewport.GetWidth();
     if (offsety + play.viewport.GetHeight() > roomHeight)
@@ -43,8 +43,8 @@ void update_viewport()
 {
     if ((thisroom.width > BASEWIDTH) || (thisroom.height > BASEHEIGHT)) {
         if (play.offsets_locked == 0) {
-            offsetx = multiply_up_coordinate(playerchar->x) - play.viewport.GetWidth()/2;
-            offsety = multiply_up_coordinate(playerchar->y) - play.viewport.GetHeight()/2;
+            offsetx = playerchar->x - play.viewport.GetWidth()/2;
+            offsety = playerchar->y - play.viewport.GetHeight()/2;
         }
         check_viewport_coords();
     }

@@ -157,7 +157,6 @@ int ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y) {
   if (!guis[listbox->ParentId].IsVisible())
     return -1;
 
-  multiply_up_coordinates(&x, &y);
   x = (x - listbox->X) - guis[listbox->ParentId].X;
   y = (y - listbox->Y) - guis[listbox->ParentId].Y;
 

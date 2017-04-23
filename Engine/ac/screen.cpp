@@ -72,7 +72,7 @@ void current_fade_out_effect () {
     }
     else if (theTransition == FADE_BOXOUT) 
     {
-        gfxDriver->BoxOutEffect(true, get_fixed_pixel_size(16), 1000 / GetGameSpeed());
+        gfxDriver->BoxOutEffect(true, 16, 1000 / GetGameSpeed());
         play.screen_is_faded_out = 1;
     }
     else 

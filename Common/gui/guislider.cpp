@@ -74,16 +74,16 @@ void GUISlider::Draw(Common::Bitmap *ds)
         bar.Bottom = Y + Height / 2 + thickness + 1;
         handle.Left = (int)(((float)(Value - MinValue) / (float)(MaxValue - MinValue)) * (float)(Width - 4) - 2) + bar.Left + 1;
         handle.Top = bar.Top - (thickness - 1);
-        handle.Right = handle.Left + get_fixed_pixel_size(4);
+        handle.Right = handle.Left + 4;
         handle.Bottom = bar.Bottom + (thickness - 1);
         if (HandleImage > 0)
         {
             // store the centre of the pic rather than the top
-            handle.Top = bar.Top + (bar.Bottom - bar.Top) / 2 + get_fixed_pixel_size(1);
-            handle.Left += get_fixed_pixel_size(2);
+            handle.Top = bar.Top + (bar.Bottom - bar.Top) / 2 + 1;
+            handle.Left += 2;
         }
-        handle.Top += multiply_up_coordinate(HandleOffset);
-        handle.Bottom += multiply_up_coordinate(HandleOffset);
+        handle.Top += HandleOffset;
+        handle.Bottom += HandleOffset;
     }
     // vertical slider
     else
@@ -95,16 +95,16 @@ void GUISlider::Draw(Common::Bitmap *ds)
         bar.Bottom = Y + Height - 1;
         handle.Top = (int)(((float)(MaxValue - Value) / (float)(MaxValue - MinValue)) * (float)(Height - 4) - 2) + bar.Top + 1;
         handle.Left = bar.Left - (thickness - 1);
-        handle.Bottom = handle.Top + get_fixed_pixel_size(4);
+        handle.Bottom = handle.Top + 4;
         handle.Right = bar.Right + (thickness - 1);
         if (HandleImage > 0)
         {
             // store the centre of the pic rather than the left
-            handle.Left = bar.Left + (bar.Right - bar.Left) / 2 + get_fixed_pixel_size(1);
-            handle.Top += get_fixed_pixel_size(2);
+            handle.Left = bar.Left + (bar.Right - bar.Left) / 2 + 1;
+            handle.Top += 2;
         }
-        handle.Left += multiply_up_coordinate(HandleOffset);
-        handle.Right += multiply_up_coordinate(HandleOffset);
+        handle.Left += HandleOffset;
+        handle.Right += HandleOffset;
     }
 
     color_t draw_color;

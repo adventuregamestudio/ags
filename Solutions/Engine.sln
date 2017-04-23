@@ -1,9 +1,11 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common.Lib", "Common.Lib\Common.Lib.vcproj", "{463A715C-3EF3-47C7-AC7F-D97660149C49}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common.Lib", "Common.Lib\Common.Lib.vcxproj", "{463A715C-3EF3-47C7-AC7F-D97660149C49}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine.App", "Engine.App\Engine.App.vcproj", "{49A909AF-49F3-451D-B6DF-839159E54A01}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine.App", "Engine.App\Engine.App.vcxproj", "{49A909AF-49F3-451D-B6DF-839159E54A01}"
 	ProjectSection(ProjectDependencies) = postProject
 		{463A715C-3EF3-47C7-AC7F-D97660149C49} = {463A715C-3EF3-47C7-AC7F-D97660149C49}
 	EndProjectSection

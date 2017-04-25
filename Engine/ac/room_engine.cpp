@@ -27,5 +27,5 @@
 
 bool load_room_is_version_bad(roomstruct *rstruc)
 {
-  return ((rstruc->wasversion < kRoomVersion_250b) || (rstruc->wasversion > kRoomVersion_Current));
+  return ((rstruc->wasversion < kRoomVersion_303b) || (rstruc->wasversion > kRoomVersion_Current));
 }

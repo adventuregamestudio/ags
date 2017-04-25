@@ -44,6 +44,6 @@ void SetFrameSound (int vii, int loop, int frame, int sound) {
         if (clip == NULL)
             quitprintf("!SetFrameSound: audio clip aSound%d not found", sound);
 
-        views[vii].loops[loop].frames[frame].sound = clip->id + (is_old_audio_system() ? 0x10000000 : 0);
+        views[vii].loops[loop].frames[frame].sound = clip->id;
     }
 }

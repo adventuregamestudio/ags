@@ -482,7 +482,7 @@ AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename)
     }
     else if (bundling_type == AUCL_BUNDLE_VOX)
     {
-        return AssetPath(is_old_audio_system() ? "music.vox" : "audio.vox", filename);
+        return AssetPath("audio.vox", filename);
     }
     return AssetPath();
 }

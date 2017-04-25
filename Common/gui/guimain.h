@@ -52,9 +52,6 @@ enum GUIVisibilityState
 class GUIMain
 {
 public:
-    static String FixupGUIName(const String &name);
-
-public:
     GUIMain();
 
     void Init();

@@ -454,21 +454,7 @@ int get_old_style_number_for_sound(int sound_number)
 {
     int audio_clip_id = 0;
 
-    if (is_old_audio_system())
-    {
-        // No sound assigned.
-        if (sound_number < 1)
-            return 0;
-
-        // Sound number is not yet updated to audio clip id.
-        if (sound_number <= 0x10000000)
-            return sound_number;
-
-        // Remove audio clip id flag.
-        audio_clip_id = sound_number - 0x10000000;
-    }
-    else
-        audio_clip_id = sound_number;
+    audio_clip_id = sound_number;
 
     if (audio_clip_id >= 0)
     {

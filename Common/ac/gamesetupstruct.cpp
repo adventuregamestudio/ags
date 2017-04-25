@@ -44,12 +44,9 @@ ScriptAudioClip* GetAudioClipForOldStyleNumber(GameSetupStruct &game, bool is_mu
 
 void GameSetupStruct::read_savegame_info(Common::Stream *in, GameDataVersion data_ver)
 {
-    if (data_ver > kGameVersion_272) // only 3.x
-    {
         in->Read(&guid[0], MAX_GUID_LENGTH);
         in->Read(&saveGameFileExtension[0], MAX_SG_EXT_LENGTH);
         in->Read(&saveGameFolderName[0], MAX_SG_FOLDER_LEN);
-    }
 }
 
 void GameSetupStruct::read_font_flags(Common::Stream *in, GameDataVersion data_ver)
@@ -73,11 +70,7 @@ void GameSetupStruct::read_font_flags(Common::Stream *in, GameDataVersion data_v
 
 MainGameFileError GameSetupStruct::read_sprite_flags(Common::Stream *in, GameDataVersion data_ver)
 {
-    int numToRead;
-    if (data_ver < kGameVersion_256)
-        numToRead = 6000; // Fixed number of sprites on < 2.56
-    else
-        numToRead = in->ReadInt32();
+    int numToRead = in->ReadInt32();
 
     if (numToRead > MAX_SPRITES)
         return kMGFErr_TooManySprites;
@@ -119,39 +112,17 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersi
 {
     numGlobalVars = 0;
 
-    if (data_ver > kGameVersion_272) // 3.x
-    {
-        int bb;
+    int bb;
 
-        charScripts = new InteractionScripts*[numcharacters];
-        invScripts = new InteractionScripts*[numinvitems];
-        for (bb = 0; bb < numcharacters; bb++) {
-            charScripts[bb] = InteractionScripts::CreateFromStream(in);
-        }
-        for (bb = 1; bb < numinvitems; bb++) {
-            invScripts[bb] = InteractionScripts::CreateFromStream(in);
-        }
+    charScripts = new InteractionScripts*[numcharacters];
+    invScripts = new InteractionScripts*[numinvitems];
+    for (bb = 0; bb < numcharacters; bb++) {
+        charScripts[bb] = InteractionScripts::CreateFromStream(in);
     }
-    else // 2.x
-    {
-        int bb;
-
-        charScripts = NULL;
-        invScripts = NULL;
-        intrChar = new Interaction*[numcharacters];
-
-        for (bb = 0; bb < numcharacters; bb++) {
-            intrChar[bb] = Interaction::CreateFromStream(in);
-        }
-        for (bb = 0; bb < numinvitems; bb++) {
-            intrInv[bb] = Interaction::CreateFromStream(in);
-        }
-
-        numGlobalVars = in->ReadInt32();
-        for (bb = 0; bb < numGlobalVars; bb++) {
-            globalvars[bb].Read(in);
-        }
+    for (bb = 1; bb < numinvitems; bb++) {
+        invScripts[bb] = InteractionScripts::CreateFromStream(in);
     }
+
 }
 
 void GameSetupStruct::read_words_dictionary(Common::Stream *in)
@@ -194,31 +165,16 @@ void GameSetupStruct::read_characters(Common::Stream *in, GameDataVersion data_v
 
 void GameSetupStruct::read_lipsync(Common::Stream *in, GameDataVersion data_ver)
 {
-    if (data_ver >= kGameVersion_254) // lip syncing was introduced in 2.54
-        in->ReadArray(&lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50);
+    in->ReadArray(&lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50);
 }
 
+// CLNUP global messages are supposed to be gone, check later
 void GameSetupStruct::read_messages(Common::Stream *in, GameDataVersion data_ver)
 {
     for (int ee=0;ee<MAXGLOBALMES;ee++) {
         if (!load_messages[ee]) continue;
         messages[ee]=(char*)malloc(500);
-
-        if (data_ver < kGameVersion_261) // Global messages are not encrypted on < 2.61
-        {
-            char* nextchar = messages[ee];
-
-            // TODO: probably this is same as fgetstring
-            while (1)
-            {
-                *nextchar = in->ReadInt8();
-                if (*nextchar == 0)
-                    break;
-                nextchar++;
-            }
-        }
-        else
-            read_string_decrypt(in, messages[ee]);
+        read_string_decrypt(in, messages[ee]);
     }
     delete [] load_messages;
     load_messages = NULL;
@@ -250,36 +206,35 @@ void GameSetupStruct::WriteCharacters_Aligned(Stream *out)
 MainGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVersion data_ver)
 {
     dialogScriptNames.resize(numdialog);
-    if (data_ver >= kGameVersion_260) // >= 2.60
+
+    if (Properties::ReadSchema(propSchema, in) != kPropertyErr_NoError)
+        return kMGFErr_InvalidPropertySchema;
+
+    int errors = 0;
+    int bb;
+
+    charProps.resize(numcharacters);
+    for (int i = 0; i < numcharacters; ++i)
     {
-        if (Properties::ReadSchema(propSchema, in) != kPropertyErr_NoError)
-            return kMGFErr_InvalidPropertySchema;
-
-        int errors = 0;
-        int bb;
-
-        charProps.resize(numcharacters);
-        for (int i = 0; i < numcharacters; ++i)
-        {
-            errors += Properties::ReadValues(charProps[i], in);
-        }
-        for (int i = 0; i < numinvitems; ++i)
-        {
-            errors += Properties::ReadValues(invProps[i], in);
-        }
-
-        if (errors > 0)
-            return kMGFErr_InvalidPropertyValues;
-
-        for (bb = 0; bb < numviews; bb++)
-            fgetstring_limit(viewNames[bb], in, MAXVIEWNAMELENGTH);
-
-        for (bb = 0; bb < numinvitems; bb++)
-            fgetstring_limit(invScriptNames[bb], in, MAX_SCRIPT_NAME_LEN);
-
-        for (bb = 0; bb < numdialog; bb++)
-            dialogScriptNames[bb] = String::FromStream(in);
+        errors += Properties::ReadValues(charProps[i], in);
     }
+    for (int i = 0; i < numinvitems; ++i)
+    {
+        errors += Properties::ReadValues(invProps[i], in);
+    }
+
+    if (errors > 0)
+        return kMGFErr_InvalidPropertyValues;
+
+    for (bb = 0; bb < numviews; bb++)
+        fgetstring_limit(viewNames[bb], in, MAXVIEWNAMELENGTH);
+
+    for (bb = 0; bb < numinvitems; bb++)
+        fgetstring_limit(invScriptNames[bb], in, MAX_SCRIPT_NAME_LEN);
+
+    for (bb = 0; bb < numdialog; bb++)
+        dialogScriptNames[bb] = String::FromStream(in);
+    
     return kMGFErr_NoError;
 }
 

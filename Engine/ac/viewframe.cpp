@@ -84,7 +84,7 @@ void ViewFrame_SetSound(ScriptViewFrame *svf, int newSound)
     if (clip == NULL)
       quitprintf("!SetFrameSound: audio clip aSound%d not found", newSound);
 
-    views[svf->view].loops[svf->loop].frames[svf->frame].sound = clip->id + (is_old_audio_system() ? 0x10000000 : 0);
+    views[svf->view].loops[svf->loop].frames[svf->frame].sound = clip->id;
   }
 }
 
@@ -121,31 +121,12 @@ void precache_view(int view)
 // to play a sound or whatever
 void CheckViewFrame (int view, int loop, int frame, int sound_volume) {
     ScriptAudioChannel *channel = NULL;
-    if (is_old_audio_system())
-    {
-        if (views[view].loops[loop].frames[frame].sound > 0)
-        {
-            if (views[view].loops[loop].frames[frame].sound < 0x10000000)
-            {
-                ScriptAudioClip* clip = GetAudioClipForOldStyleNumber(game, false, views[view].loops[loop].frames[frame].sound);
-                if (clip)
-                    views[view].loops[loop].frames[frame].sound = clip->id + 0x10000000;
-                else
-                {
-                    views[view].loops[loop].frames[frame].sound = 0;
-                    return;
-                }
-            }
-            channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound - 0x10000000);
-        }
+
+    if (views[view].loops[loop].frames[frame].sound >= 0) {
+        // play this sound (eg. footstep)
+        channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
     }
-    else
-    {
-        if (views[view].loops[loop].frames[frame].sound >= 0) {
-            // play this sound (eg. footstep)
-            channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
-        }
-    }
+
     if (sound_volume != SCR_NO_VALUE && channel != NULL)
         channels[channel->id]->set_volume_percent(channels[channel->id]->get_volume() * sound_volume / 100);
     

@@ -764,10 +764,7 @@ ScriptOverlay* Character_SayBackground(CharacterInfo *chaa, const char *texx) {
 void Character_SetAsPlayer(CharacterInfo *chaa) {
 
     // Set to same character, so ignore.
-    // But only on versions > 2.61. The relevant entry in the 2.62 changelog is:
-    //  - Fixed SetPlayerCharacter to do nothing at all if you pass the current
-    //    player character to it (previously it was resetting the inventory layout)
-    if ((loaded_game_file_version > kGameVersion_261) && (game.playercharacter == chaa->index_id))
+    if ( game.playercharacter == chaa->index_id )
         return;
 
     setup_player_character(chaa->index_id);
@@ -779,12 +776,6 @@ void Character_SetAsPlayer(CharacterInfo *chaa) {
     // Within game_start, return now
     if (displayed_room < 0)
         return;
-
-    // Ignore invalid room numbers for the character and just place him in
-    // the current room for 2.x. Following script calls to NewRoom() will
-    // make sure this still works as intended.
-    if ((loaded_game_file_version <= kGameVersion_272) && (playerchar->room < 0))
-        playerchar->room = displayed_room;
 
     if (displayed_room != playerchar->room)
         NewRoom(playerchar->room);
@@ -1928,10 +1919,8 @@ int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
 
 void find_nearest_walkable_area (int *xx, int *yy) {
 
-
     int pixValue = thisroom.walls->GetPixel(xx[0], yy[0]);
-    // only fix this code if the game was built with 2.61 or above
-    if (pixValue == 0 || (loaded_game_file_version >= kGameVersion_261 && pixValue < 1))
+    if (pixValue == 0 || pixValue < 1)
     {
         // First, check every 2 pixels within immediate area
         if (!find_nearest_walkable_area_within(xx, yy, 20, 2))
@@ -2065,9 +2054,6 @@ void setup_player_character(int charid) {
     game.playercharacter = charid;
     playerchar = &game.chars[charid];
     _sc_PlayerCharPtr = ccGetObjectHandleFromAddress((char*)playerchar);
-    if (loaded_game_file_version < kGameVersion_270) {
-        ccAddExternalDynamicObject("player", playerchar, &ccDynamicCharacter);
-    }
 }
 
 void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noidleoverride, int direction) {
@@ -2767,11 +2753,6 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         if (viewWasLocked)
             speakingChar->flags |= CHF_FIXVIEW;
         speakingChar->view=oldview;
-
-        // Don't reset the loop in 2.x games
-        if (loaded_game_file_version > kGameVersion_272)
-            speakingChar->loop = oldloop;
-
         speakingChar->animating=0;
         speakingChar->frame = charFrameWas;
         speakingChar->wait=0;

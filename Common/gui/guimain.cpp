@@ -44,13 +44,6 @@ namespace AGS
 namespace Common
 {
 
-/* static */ String GUIMain::FixupGUIName(const String &name)
-{
-    if (name.GetLength() > 0 && name[0u] != 'g')
-        return String::FromFormat("g%c%s", name[0u], name.Mid(1).Lower().GetCStr());
-    return name;
-}
-
 GUIMain::GUIMain()
 {
     Init();
@@ -90,31 +83,15 @@ void GUIMain::Init()
 
 int GUIMain::FindControlUnderMouse(int leeway, bool must_be_clickable) const
 {
-    if (loaded_game_file_version <= kGameVersion_262)
+    for (int i = ControlCount - 1; i >= 0; --i)
     {
-        // Ignore draw order On 2.6.2 and lower
-        for (int i = 0; i < ControlCount; ++i)
-        {
-            if (!Controls[i]->IsVisible())
-                continue;
-            if (!Controls[i]->IsClickable() && must_be_clickable)
-                continue;
-            if (Controls[i]->IsOverControl(mousex, mousey, leeway))
-                return i;
-        }
-    }
-    else
-    {
-        for (int i = ControlCount - 1; i >= 0; --i)
-        {
-            const int ctrl_index = CtrlDrawOrder[i];
-            if (!Controls[ctrl_index]->IsVisible())
-                continue;
-            if (!Controls[ctrl_index]->IsClickable() && must_be_clickable)
-                continue;
-            if (Controls[ctrl_index]->IsOverControl(mousex, mousey, leeway))
-                return ctrl_index;
-        }
+        const int ctrl_index = CtrlDrawOrder[i];
+        if (!Controls[ctrl_index]->IsVisible())
+            continue;
+        if (!Controls[ctrl_index]->IsClickable() && must_be_clickable)
+            continue;
+        if (Controls[ctrl_index]->IsOverControl(mousex, mousey, leeway))
+            return ctrl_index;
     }
     return -1;
 }
@@ -624,17 +601,6 @@ void ReadGUI(std::vector<GUIMain> &guis, Stream *in)
         // perform fixups
         if (gui.Height < 2)
             gui.Height = 2;
-    if (GameGuiVersion < kGuiVersion_unkn_103)
-            gui.Name.Format("GUI%d", i);
-    if (GameGuiVersion < kGuiVersion_260)
-            gui.ZOrder = i;
-        if (GameGuiVersion < kGuiVersion_270)
-            gui.OnClickHandler.Empty();
-    if (GameGuiVersion < kGuiVersion_331)
-            gui.Padding = TEXTWINDOW_PADDING_DEFAULT;
-        // fix names for 2.x: "GUI" -> "gGui"
-        if (loaded_game_file_version <= kGameVersion_272)
-            gui.Name = GUIMain::FixupGUIName(gui.Name);
         gui.Id = i;
   }
 

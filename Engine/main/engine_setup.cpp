@@ -40,7 +40,6 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern ScriptSystem scsystem;
 extern int _places_r, _places_g, _places_b;
-extern int current_screen_resolution_multiplier;
 extern WalkBehindMethodEnum walkBehindMethod;
 extern IGraphicsDriver *gfxDriver;
 extern IDriverDependantBitmap *blankImage;
@@ -156,14 +155,6 @@ void engine_init_resolution_settings(const Size game_size)
     }
 
     usetup.textheight = getfontheight_outlined(0) + 1;
-    current_screen_resolution_multiplier = game_size.Width / play.native_size.Width;
-
-    if (game.IsHiRes() &&
-        (game.options[OPT_NATIVECOORDINATES]))
-    {
-        play.native_size.Width *= 2;
-        play.native_size.Height *= 2;
-    }
 
     // don't allow them to force a 256-col game to hi-color
     if (game.color_depth < 2)

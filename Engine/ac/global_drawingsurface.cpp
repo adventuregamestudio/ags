@@ -41,7 +41,6 @@ extern int  numlines;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern GameSetupStruct game;
-extern int current_screen_resolution_multiplier;
 
 // Raw screen writing routines - similar to old CapturedStuff
 //#define RAW_START() Bitmap *oldabuf=RAW_GRAPHICS()->GetBitmap(); RAW_GRAPHICS()->GetBitmap()=thisroom.ebscene[play.bg_frame]; play.raw_modified[play.bg_frame] = 1
@@ -198,20 +197,6 @@ void RawDrawImageTrans(int xx, int yy, int slot, int alpha) {
 }
 
 void RawDrawImageOffset(int xx, int yy, int slot) {
-	// CLNUP remove this
-	/*
-    if ((current_screen_resolution_multiplier == 1) && game.IsHiRes()) {
-        // running a 640x400 game at 320x200, adjust
-        xx /= 2;
-        yy /= 2;
-    }
-    else if ((current_screen_resolution_multiplier > 1) && !game.IsHiRes()) {
-        // running a 320x200 game at 640x400, adjust
-        xx *= 2;
-        yy *= 2;
-    }
-	*/
-
     RawDrawImageCore(xx, yy, slot);
 }
 

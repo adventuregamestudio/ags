@@ -37,7 +37,6 @@
 #include "ac/mouse.h"
 #include "ac/object.h"
 #include "ac/overlay.h"
-#include "ac/path.h"
 #include "ac/properties.h"
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
@@ -84,7 +83,6 @@ extern int numscreenover;
 extern int said_text;
 extern int our_eip;
 extern int update_music_at;
-extern int current_screen_resolution_multiplier;
 extern int cur_mode;
 extern int screen_is_dirty;
 extern CCCharacter ccDynamicCharacter;
@@ -672,18 +670,6 @@ void Character_LockViewOffset(CharacterInfo *chap, int vii, int xoffs, int yoffs
 
 void Character_LockViewOffsetEx(CharacterInfo *chap, int vii, int xoffs, int yoffs, int stopMoving) {
     Character_LockViewEx(chap, vii, stopMoving);
-
-    if ((current_screen_resolution_multiplier == 1) && (game.IsHiRes())) {
-        // running a 640x400 game at 320x200, adjust
-        xoffs /= 2;
-        yoffs /= 2;
-    }
-    else if ((current_screen_resolution_multiplier > 1) && (!game.IsHiRes())) {
-        // running a 320x200 game at 640x400, adjust
-        xoffs *= 2;
-        yoffs *= 2;
-    }
-
     chap->pic_xoffs = xoffs;
     chap->pic_yoffs = yoffs;
 }
@@ -1694,11 +1680,6 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
         chin->walking = mslot;
         mls[mslot].direct = ignwal;
 
-        if ((game.options[OPT_NATIVECOORDINATES] != 0) &&
-            game.IsHiRes())
-        {
-            convert_move_path_to_high_res(&mls[mslot]);
-        }
         // cancel any pending waits on current animations
         // or if they were already moving, keep the current wait - 
         // this prevents a glitch if MoveCharacter is called when they

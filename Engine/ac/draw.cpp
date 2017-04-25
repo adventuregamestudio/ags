@@ -79,7 +79,6 @@ extern "C" void ios_render();
 extern GameSetup usetup;
 extern GameSetupStruct game;
 extern GameState play;
-extern int current_screen_resolution_multiplier;
 extern int convert_16bit_bgr;
 extern ScriptSystem scsystem;
 extern AGSPlatformDriver *platform;
@@ -425,80 +424,6 @@ Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool has_alpha)
         unselect_palette();
     return new_bitmap;
 }
-
-
-
-// Begin resolution system functions
-
-// CLNUP blast away all this magical coords stuff
-/*
-// Multiplies up the number of pixels depending on the current 
-// resolution, to give a relatively fixed size at any game res
-AGS_INLINE int get_fixed_pixel_size(int pixels)
-{
-    return pixels * current_screen_resolution_multiplier;
-}
-
-AGS_INLINE int convert_to_low_res(int coord)
-{
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
-        return coord;
-    else
-        return coord / current_screen_resolution_multiplier;
-}
-
-AGS_INLINE int convert_back_to_high_res(int coord)
-{
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
-        return coord;
-    else
-        return coord * current_screen_resolution_multiplier;
-}
-
-AGS_INLINE int multiply_up_coordinate(int coord)
-{
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
-        return coord * current_screen_resolution_multiplier;
-    else
-        return coord;
-}
-
-AGS_INLINE void multiply_up_coordinates(int *x, int *y)
-{
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
-    {
-        x[0] *= current_screen_resolution_multiplier;
-        y[0] *= current_screen_resolution_multiplier;
-    }
-}
-
-AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y)
-{
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
-    {
-        x[0] = x[0] * current_screen_resolution_multiplier + (current_screen_resolution_multiplier - 1);
-        y[0] = y[0] * current_screen_resolution_multiplier + (current_screen_resolution_multiplier - 1);
-    }
-}
-
-AGS_INLINE int divide_down_coordinate(int coord)
-{
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
-        return coord / current_screen_resolution_multiplier;
-    else
-        return coord;
-}
-
-AGS_INLINE int divide_down_coordinate_round_up(int coord)
-{
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
-        return (coord / current_screen_resolution_multiplier) + (current_screen_resolution_multiplier - 1);
-    else
-        return coord;
-}
-*/
-// End resolution system functions
-
 
 
 // ** dirty rectangle system **

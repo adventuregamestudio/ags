@@ -75,7 +75,6 @@ namespace AGS
 			  // Don't allow them to override imports in the room script
 			  ccSetOption(SCOPT_NOIMPORTOVERRIDE, isRoomScript);
 
-			  ccSetOption(SCOPT_LEFTTORIGHT, game->Settings->LeftToRightPrecedence);
 			  ccSetOption(SCOPT_OLDSTRINGS, !game->Settings->EnforceNewStrings);
 
         if (exceptionToThrow == nullptr)

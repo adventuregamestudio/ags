@@ -11,6 +11,7 @@ namespace AGS.Types
 {
     [DeserializeIgnore("LastBuildConfiguration")]
     [DeserializeIgnore("GraphicsDriver")]
+    [DeserializeIgnore("LeftToRightPrecedence")]
     [DefaultProperty("DebugMode")]
     public class Settings : ICustomTypeDescriptor
     {
@@ -58,7 +59,6 @@ namespace AGS.Types
         private ScriptAPIVersion _scriptAPIVersionReal = ScriptAPIVersion.Highest;
         private ScriptAPIVersion _scriptCompatLevelReal = ScriptAPIVersion.Highest;
         private bool _enforceObjectScripting = true;
-        private bool _leftToRightPrecedence = true;
         private bool _enforceNewStrings = true;
         private bool _enforceNewAudio = true;
         private bool _oldCustomDlgOptsAPI = false;
@@ -622,16 +622,6 @@ namespace AGS.Types
         {
             get { return _oldCustomDlgOptsAPI; }
             set { _oldCustomDlgOptsAPI = value; }
-        }
-
-        [DisplayName("Left-to-right operator precedence")]
-        [Description("Expressions like (5 - 3 - 2) will equal 0 rather than 4")]
-        [DefaultValue(true)]
-        [Category("Backwards Compatibility")]
-        public bool LeftToRightPrecedence
-        {
-            get { return _leftToRightPrecedence; }
-            set { _leftToRightPrecedence = value; }
         }
 
         [DisplayName("Play sound when the player gets points")]

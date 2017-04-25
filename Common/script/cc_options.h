@@ -25,7 +25,7 @@
 #define SCOPT_AUTOIMPORT     8   // when creating instance, export funcs to other scripts
 #define SCOPT_DEBUGRUN    0x10   // write instructions as they are procssed to log file
 #define SCOPT_NOIMPORTOVERRIDE 0x20 // do not allow an import to be re-declared
-#define SCOPT_LEFTTORIGHT 0x40   // left-to-right operator precedance
+//#define SCOPT_LEFTTORIGHT 0x40   // left-to-right operator precedance
 #define SCOPT_OLDSTRINGS  0x80   // allow old-style strings
 
 extern void ccSetOption(int, int);

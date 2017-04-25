@@ -800,17 +800,13 @@ namespace AGS.Editor
 		{
 			preprocessor.DefineMacro("AGS_NEW_STRINGS", "1");
 			preprocessor.DefineMacro("AGS_SUPPORTS_IFVER", "1");
-			if (_game.Settings.DebugMode)
+            if (_game.Settings.DebugMode)
 			{
 				preprocessor.DefineMacro("DEBUG", "1");
 			}
 			if (_game.Settings.EnforceObjectBasedScript)
 			{
 				preprocessor.DefineMacro("STRICT", "1");
-			}
-			if (_game.Settings.LeftToRightPrecedence)
-			{
-				preprocessor.DefineMacro("LRPRECEDENCE", "1");
 			}
 			if (_game.Settings.EnforceNewStrings)
 			{

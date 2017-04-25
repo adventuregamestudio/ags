@@ -752,7 +752,6 @@ namespace AGS
             if (name->Equals("OPT_SAVESCREENSHOT")) return OPT_SAVESCREENSHOT;
             if (name->Equals("OPT_PORTRAITSIDE")) return OPT_PORTRAITSIDE;
             if (name->Equals("OPT_STRICTSCRIPTING")) return OPT_STRICTSCRIPTING;
-            if (name->Equals("OPT_LEFTTORIGHTEVAL")) return OPT_LEFTTORIGHTEVAL;
             if (name->Equals("OPT_COMPRESSSPRITES")) return OPT_COMPRESSSPRITES;
             if (name->Equals("OPT_STRICTSTRINGS")) return OPT_STRICTSTRINGS;
             if (name->Equals("OPT_NEWGUIALPHA")) return OPT_NEWGUIALPHA;

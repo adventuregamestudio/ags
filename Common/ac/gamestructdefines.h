@@ -60,7 +60,7 @@
 #define OPT_SAVESCREENSHOT  30
 #define OPT_PORTRAITSIDE    31
 #define OPT_STRICTSCRIPTING 32  // don't allow MoveCharacter-style commands
-#define OPT_LEFTTORIGHTEVAL 33  // left-to-right operator evaluation
+//#define OPT_LEFTTORIGHTEVAL 33  // left-to-right operator evaluation
 #define OPT_COMPRESSSPRITES 34
 #define OPT_STRICTSTRINGS   35  // don't allow old-style strings
 #define OPT_NEWGUIALPHA     36

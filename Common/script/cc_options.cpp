@@ -14,7 +14,7 @@
 
 #include "cc_options.h"
 
-int ccCompOptions = SCOPT_LEFTTORIGHT;
+int ccCompOptions = 0;
 
 void ccSetOption(int optbit, int onoroff)
 {

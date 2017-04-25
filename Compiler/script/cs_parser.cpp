@@ -1050,18 +1050,12 @@ int find_lowest_bonding_operator(long*slist,int listlen) {
         (plevel == 0) && (blevel == 0)) {
       // .ssize stores the precedence
       int thisIsTheOperator = 0;
-      if (ccGetOption(SCOPT_LEFTTORIGHT)) {
-        // left-to-right; find the right-most operator, then
-        // they will be recursively processed left
-        if (sym.entries[slist[k]].ssize >= lowestis)
-          thisIsTheOperator = 1;
-      }
-      else {
-        // right-to-left; find the left-most operator, then
-        // they will be recursively processed right
-        if (sym.entries[slist[k]].ssize > lowestis)
-          thisIsTheOperator = 1;
-      }
+
+      // left-to-right; find the right-most operator, then
+      // they will be recursively processed left
+      if (sym.entries[slist[k]].ssize >= lowestis)
+        thisIsTheOperator = 1;
+
       if (thisIsTheOperator) {
         lowestis = sym.entries[slist[k]].ssize;
         lowestat = k;

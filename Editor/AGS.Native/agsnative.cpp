@@ -3604,7 +3604,6 @@ Game^ import_compiled_game_dta(const char *fileName)
     game->Settings->SpriteAlphaStyle = SpriteAlphaStyle::Classic;
 	game->Settings->HandleInvClicksInScript = (thisgame.options[OPT_HANDLEINVCLICKS] != 0);
 	game->Settings->InventoryCursors = !thisgame.options[OPT_FIXEDINVCURSOR];
-	game->Settings->LeftToRightPrecedence = (thisgame.options[OPT_LEFTTORIGHTEVAL] != 0);
 	game->Settings->LetterboxMode = (thisgame.options[OPT_LETTERBOX] != 0);
 	game->Settings->MaximumScore = thisgame.totalscore;
 	game->Settings->MouseWheelEnabled = (thisgame.options[OPT_MOUSEWHEEL] != 0);

@@ -36,7 +36,7 @@ namespace AGS.Types
 
         private string _gameName = "New game";
         private Size _resolution = new Size(320, 200);
-        private GameColorDepth _colorDepth = GameColorDepth.HighColor;
+        private GameColorDepth _colorDepth = GameColorDepth.TrueColor;
         private bool _debugMode = true;
         private bool _antiGlideMode = true;
         private bool _walkInLookMode = false;

@@ -231,7 +231,7 @@ struct room_file_header {
 
 extern int _acroom_bpp;  // bytes per pixel of currently loading room
 
-extern void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes);
+extern void load_room(const char *files, roomstruct *rstruc);
 
 
 // Those are, in fact, are project-dependent and are implemented in runtime and AGS.Native

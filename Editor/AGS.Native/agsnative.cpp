@@ -1721,7 +1721,7 @@ void copy_global_palette_to_room_palette()
 
 const char* load_room_file(const char*rtlo) {
 
-  load_room((char*)rtlo, &thisroom, thisgame.IsHiRes());
+  load_room((char*)rtlo, &thisroom);
 
   if (thisroom.wasversion < kRoomVersion_250b) 
   {

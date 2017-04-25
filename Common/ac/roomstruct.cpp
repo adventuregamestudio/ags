@@ -24,7 +24,6 @@
 
 using namespace AGS::Common;
 
-Bitmap *backups[5];
 int _acroom_bpp = 1;  // bytes per pixel of currently loading room
 
 void sprstruc::ReadFromFile(Common::Stream *in)
@@ -167,7 +166,7 @@ void room_file_header::WriteFromFile(Common::Stream *out)
 int usesmisccond = 0;
 
 void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_file_header rfh) {
-  int   f;
+  int   i;
   char  buffer[3000];
   long  tesl;
 
@@ -186,16 +185,16 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
   memset(&rstruc->walk_area_zoom[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
   memset(&rstruc->walk_area_light[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
 
-  for (f = 0; f < MAX_HOTSPOTS; f++) {
-    rstruc->hotspotScriptNames[f][0] = 0;
-    if (rstruc->hotspotnames[f] != NULL)
-      free(rstruc->hotspotnames[f]);
+  for (i = 0; i < MAX_HOTSPOTS; i++) {
+    rstruc->hotspotScriptNames[i][0] = 0;
+    if (rstruc->hotspotnames[i] != NULL)
+      free(rstruc->hotspotnames[i]);
 
-    rstruc->hotspotnames[f] = (char*)malloc(20);
-    sprintf(rstruc->hotspotnames[f], "Hotspot %d", f);
+    rstruc->hotspotnames[i] = (char*)malloc(20);
+    sprintf(rstruc->hotspotnames[i], "Hotspot %d", i);
 
-    if (f == 0)
-      strcpy(rstruc->hotspotnames[f], "No hotspot");
+    if (i == 0)
+      strcpy(rstruc->hotspotnames[i], "No hotspot");
   }
 
 /*  memset(&rstruc->hscond[0], 0, sizeof(EventBlock) * MAX_HOTSPOTS);
@@ -224,13 +223,13 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
   // [IKM] TODO: read/write member for _Point?
   in->ReadArrayOfInt16((int16_t*)&rstruc->hswalkto[0], 2*rstruc->numhotspots);
 
-  for (f = 0; f < rstruc->numhotspots; f++)
+  for (i = 0; i < rstruc->numhotspots; i++)
   {
-    free(rstruc->hotspotnames[f]);
+    free(rstruc->hotspotnames[i]);
 
     fgetstring_limit(buffer, in, 2999);
-    rstruc->hotspotnames[f] = (char*)malloc(strlen(buffer) + 1);
-    strcpy(rstruc->hotspotnames[f], buffer);
+    rstruc->hotspotnames[i] = (char*)malloc(strlen(buffer) + 1);
+    strcpy(rstruc->hotspotnames[i], buffer);
   }
 
   in->ReadArray(&rstruc->hotspotScriptNames[0], MAX_SCRIPT_NAME_LEN, rstruc->numhotspots);
@@ -271,24 +270,24 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
     quit("load_room: room file created with newer version (too many hotspots/objects)");
 
   // free all of the old interactions
-  for (f = 0; f < MAX_HOTSPOTS; f++) {
-    if (rstruc->intrHotspot[f] != NULL) {
-      delete rstruc->intrHotspot[f];
-      rstruc->intrHotspot[f] = NULL;
+  for (i = 0; i < MAX_HOTSPOTS; i++) {
+    if (rstruc->intrHotspot[i] != NULL) {
+      delete rstruc->intrHotspot[i];
+      rstruc->intrHotspot[i] = NULL;
     }
   }
 
-  for (f = 0; f < MAX_INIT_SPR; f++) {
-    if (rstruc->intrObject[f] != NULL) {
-      delete rstruc->intrObject[f];
-      rstruc->intrObject[f] = NULL;
+  for (i = 0; i < MAX_INIT_SPR; i++) {
+    if (rstruc->intrObject[i] != NULL) {
+      delete rstruc->intrObject[i];
+      rstruc->intrObject[i] = NULL;
     }
   }
 
-  for (f = 0; f < MAX_REGIONS; f++) {
-    if (rstruc->intrRegion[f] != NULL)
-      delete rstruc->intrRegion[f];
-    rstruc->intrRegion[f] = new Interaction();
+  for (i = 0; i < MAX_REGIONS; i++) {
+    if (rstruc->intrRegion[i] != NULL)
+      delete rstruc->intrRegion[i];
+    rstruc->intrRegion[i] = new Interaction();
   }
 
   rstruc->numRegions = in->ReadInt32();
@@ -299,15 +298,15 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
   rstruc->objectScripts = new InteractionScripts*[rstruc->numsprs];
   rstruc->regionScripts = new InteractionScripts*[rstruc->numRegions];
   rstruc->roomScripts = InteractionScripts::CreateFromStream(in);
-  int bb;
-  for (bb = 0; bb < rstruc->numhotspots; bb++) {
-    rstruc->hotspotScripts[bb] = InteractionScripts::CreateFromStream(in);
+
+  for (i = 0; i < rstruc->numhotspots; i++) {
+    rstruc->hotspotScripts[i] = InteractionScripts::CreateFromStream(in);
   }
-  for (bb = 0; bb < rstruc->numsprs; bb++) {
-    rstruc->objectScripts[bb] = InteractionScripts::CreateFromStream(in);
+  for (i = 0; i < rstruc->numsprs; i++) {
+    rstruc->objectScripts[i] = InteractionScripts::CreateFromStream(in);
   }
-  for (bb = 0; bb < rstruc->numRegions; bb++) {
-    rstruc->regionScripts[bb] = InteractionScripts::CreateFromStream(in);
+  for (i = 0; i < rstruc->numRegions; i++) {
+    rstruc->regionScripts[i] = InteractionScripts::CreateFromStream(in);
   }
 
 
@@ -332,12 +331,12 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
   in->ReadArrayOfInt16(&rstruc->walk_area_top[0], num_walk_areas);
   in->ReadArrayOfInt16(&rstruc->walk_area_bottom[0], num_walk_areas);
 
-  for (f = 0; f < num_walk_areas; f++) {
+  for (i = 0; i < num_walk_areas; i++) {
     // if they set a contiuously scaled area where the top
     // and bottom zoom levels are identical, set it as a normal
     // scaled area
-    if (rstruc->walk_area_zoom[f] == rstruc->walk_area_zoom2[f])
-      rstruc->walk_area_zoom2[f] = NOT_VECTOR_SCALED;
+    if (rstruc->walk_area_zoom[i] == rstruc->walk_area_zoom2[i])
+      rstruc->walk_area_zoom2[i] = NOT_VECTOR_SCALED;
   }
   
 
@@ -352,17 +351,17 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
       rstruc->msgi[iteratorCount].ReadFromFile(in);
   }
 
-  for (f = 0;f < rstruc->nummes; f++) {
+  for (i = 0;i < rstruc->nummes; i++) {
     read_string_decrypt(in, buffer);
 
-    int buffre_length = strlen(buffer);
+    int buffer_length = strlen(buffer);
 
-    rstruc->message[f] = (char *)malloc(buffre_length + 2);
-    strcpy(rstruc->message[f], buffer);
+    rstruc->message[i] = (char *)malloc(buffer_length + 2);
+    strcpy(rstruc->message[i], buffer);
 
-    if ((buffre_length > 0) && (buffer[buffre_length-1] == (char)200)) {
-      rstruc->message[f][strlen(buffer)-1] = 0;
-      rstruc->msgi[f].flags |= MSG_DISPLAYNEXT;
+    if ((buffer_length > 0) && (buffer[buffer_length-1] == (char)200)) {
+      rstruc->message[i][strlen(buffer)-1] = 0;
+      rstruc->msgi[i].flags |= MSG_DISPLAYNEXT;
     }
   }
 
@@ -411,14 +410,14 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
   update_polled_stuff_if_runtime();
   tesl = loadcompressed_allegro(in, &rstruc->lookat, rstruc->pal, tesl);
 
-  for (f = 0; f < 11; f++)
-    rstruc->password[f] += passwencstring[f];
+  for (i = 0; i < 11; i++)
+    rstruc->password[i] += passwencstring[i];
 
 }
 
 extern bool load_room_is_version_bad(roomstruct *rstruc);
 
-void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes) {
+void load_room(const char *files, roomstruct *rstruc) {
   Common::Stream *opty; // CHECKME why "opty"??
   room_file_header  rfh;
   int i;

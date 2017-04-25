@@ -438,7 +438,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // load the room from disk
     our_eip=200;
     thisroom.gameId = NO_GAME_ID_IN_ROOM_FILE;
-    load_room(room_filename, &thisroom, game.IsHiRes());
+    load_room(room_filename, &thisroom);
 
     if ((thisroom.gameId != NO_GAME_ID_IN_ROOM_FILE) &&
         (thisroom.gameId != game.uniqueid)) {

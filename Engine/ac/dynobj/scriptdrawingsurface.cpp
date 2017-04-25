@@ -82,7 +82,6 @@ int ScriptDrawingSurface::Serialize(const char *address, char *buffer, int bufsi
     SerializeInt(dynamicSurfaceNumber);
     SerializeInt(currentColour);
     SerializeInt(currentColourScript);
-    SerializeInt(highResCoordinates);
     SerializeInt(modified);
     SerializeInt(hasAlphaChannel);
     SerializeInt(isLinkedBitmapOnly ? 1 : 0);
@@ -96,7 +95,6 @@ void ScriptDrawingSurface::Unserialize(int index, const char *serializedData, in
     dynamicSurfaceNumber = UnserializeInt();
     currentColour = UnserializeInt();
     currentColourScript = UnserializeInt();
-    highResCoordinates = UnserializeInt();
     modified = UnserializeInt();
     hasAlphaChannel = UnserializeInt();
     isLinkedBitmapOnly = (UnserializeInt() != 0);
@@ -114,11 +112,4 @@ ScriptDrawingSurface::ScriptDrawingSurface()
     currentColourScript = 0;
     modified = 0;
     hasAlphaChannel = 0;
-    highResCoordinates = 0;
-
-    if ((game.options[OPT_NATIVECOORDINATES] != 0) &&
-        (game.IsHiRes()))
-    {
-        highResCoordinates = 1;
-    }
 }

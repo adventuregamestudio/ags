@@ -27,8 +27,6 @@ void	DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurfa
 void	DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slot, int trans, int width, int height);
 void	DrawingSurface_SetDrawingColor(ScriptDrawingSurface *sds, int newColour);
 int		DrawingSurface_GetDrawingColor(ScriptDrawingSurface *sds);
-void	DrawingSurface_SetUseHighResCoordinates(ScriptDrawingSurface *sds, int highRes);
-int		DrawingSurface_GetUseHighResCoordinates(ScriptDrawingSurface *sds);
 int		DrawingSurface_GetHeight(ScriptDrawingSurface *sds);
 int		DrawingSurface_GetWidth(ScriptDrawingSurface *sds);
 void	DrawingSurface_Clear(ScriptDrawingSurface *sds, int colour);

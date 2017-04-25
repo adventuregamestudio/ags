@@ -368,10 +368,6 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
     if (gotSlot <= 0)
         return NULL;
 
-    // use DrawingSurface resolution
-    sds->MultiplyCoordinates(&x, &y);
-    sds->MultiplyCoordinates(&width, &height);
-
     Bitmap *ds = sds->StartDrawing();
 
     if ((x < 0) || (y < 0) || (x + width > ds->GetWidth()) || (y + height > ds->GetHeight()))

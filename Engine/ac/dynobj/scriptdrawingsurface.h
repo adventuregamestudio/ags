@@ -27,7 +27,6 @@ struct ScriptDrawingSurface : AGSCCDynamicObject {
     Common::Bitmap *linkedBitmapOnly;
     int currentColour;
     int currentColourScript;
-    int highResCoordinates;
     int modified;
     int hasAlphaChannel;
     //Common::Bitmap* abufBackup;
@@ -38,9 +37,6 @@ struct ScriptDrawingSurface : AGSCCDynamicObject {
     virtual void Unserialize(int index, const char *serializedData, int dataSize);
     Common::Bitmap* GetBitmapSurface();
     Common::Bitmap *StartDrawing();
-    void MultiplyThickness(int *adjustValue);
-    void UnMultiplyThickness(int *adjustValue);
-    void MultiplyCoordinates(int *xcoord, int *ycoord);
     void FinishedDrawing();
     void FinishedDrawingReadOnly();
 

@@ -108,69 +108,6 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
     sds->modified = 0;
 }
 
-void ScriptDrawingSurface::MultiplyCoordinates(int *xcoord, int *ycoord)
-{
-    if (this->highResCoordinates)
-    {
-        if (current_screen_resolution_multiplier == 1) 
-        {
-            // using high-res co-ordinates but game running at low-res
-            xcoord[0] /= 2;
-            ycoord[0] /= 2;
-        }
-    }
-    else
-    {
-        if (current_screen_resolution_multiplier > 1) 
-        {
-            // using low-res co-ordinates but game running at high-res
-            xcoord[0] *= 2;
-            ycoord[0] *= 2;
-        }
-    }
-}
-
-void ScriptDrawingSurface::MultiplyThickness(int *valueToAdjust)
-{
-    if (this->highResCoordinates)
-    {
-        if (current_screen_resolution_multiplier == 1) 
-        {
-            valueToAdjust[0] /= 2;
-            if (valueToAdjust[0] < 1)
-                valueToAdjust[0] = 1;
-        }
-    }
-    else
-    {
-        if (current_screen_resolution_multiplier > 1) 
-        {
-            valueToAdjust[0] *= 2;
-        }
-    }
-}
-
-// convert actual co-ordinate back to what the script is expecting
-void ScriptDrawingSurface::UnMultiplyThickness(int *valueToAdjust)
-{
-    if (this->highResCoordinates)
-    {
-        if (current_screen_resolution_multiplier == 1) 
-        {
-            valueToAdjust[0] *= 2;
-        }
-    }
-    else
-    {
-        if (current_screen_resolution_multiplier > 1) 
-        {
-            valueToAdjust[0] /= 2;
-            if (valueToAdjust[0] < 1)
-                valueToAdjust[0] = 1;
-        }
-    }
-}
-
 ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
 {
     Bitmap *sourceBitmap = sds->GetBitmapSurface();
@@ -240,8 +177,6 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
         if ((width < 1) || (height < 1))
             return;
 
-        sds->MultiplyCoordinates(&width, &height);
-
         // resize the sprite to the requested size
         Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, sourcePic->GetColorDepth());
 
@@ -255,7 +190,6 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
     }
 
     Bitmap *ds = sds->StartDrawing();
-    sds->MultiplyCoordinates(&xx, &yy);
 
     if (sourcePic->GetColorDepth() != ds->GetColorDepth()) {
         debug_script_warn("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, spriteset[slot]->GetColorDepth(), ds->GetColorDepth());
@@ -293,22 +227,13 @@ int DrawingSurface_GetDrawingColor(ScriptDrawingSurface *sds)
     return sds->currentColourScript;
 }
 
-void DrawingSurface_SetUseHighResCoordinates(ScriptDrawingSurface *sds, int highRes) 
-{
-    sds->highResCoordinates = (highRes) ? 1 : 0;
-}
 
-int DrawingSurface_GetUseHighResCoordinates(ScriptDrawingSurface *sds) 
-{
-    return sds->highResCoordinates;
-}
 
 int DrawingSurface_GetHeight(ScriptDrawingSurface *sds) 
 {
     Bitmap *ds = sds->StartDrawing();
     int height = ds->GetHeight();
     sds->FinishedDrawingReadOnly();
-    sds->UnMultiplyThickness(&height);
     return height;
 }
 
@@ -317,7 +242,6 @@ int DrawingSurface_GetWidth(ScriptDrawingSurface *sds)
     Bitmap *ds = sds->StartDrawing();
     int width = ds->GetWidth();
     sds->FinishedDrawingReadOnly();
-    sds->UnMultiplyThickness(&width);
     return width;
 }
 
@@ -339,9 +263,6 @@ void DrawingSurface_Clear(ScriptDrawingSurface *sds, int colour)
 
 void DrawingSurface_DrawCircle(ScriptDrawingSurface *sds, int x, int y, int radius)
 {
-    sds->MultiplyCoordinates(&x, &y);
-    sds->MultiplyThickness(&radius);
-
     Bitmap *ds = sds->StartDrawing();
     ds->FillCircle(Circle(x, y, radius), sds->currentColour);
     sds->FinishedDrawing();
@@ -349,9 +270,6 @@ void DrawingSurface_DrawCircle(ScriptDrawingSurface *sds, int x, int y, int radi
 
 void DrawingSurface_DrawRectangle(ScriptDrawingSurface *sds, int x1, int y1, int x2, int y2)
 {
-    sds->MultiplyCoordinates(&x1, &y1);
-    sds->MultiplyCoordinates(&x2, &y2);
-
     Bitmap *ds = sds->StartDrawing();
     ds->FillRect(Rect(x1,y1,x2,y2), sds->currentColour);
     sds->FinishedDrawing();
@@ -359,10 +277,6 @@ void DrawingSurface_DrawRectangle(ScriptDrawingSurface *sds, int x1, int y1, int
 
 void DrawingSurface_DrawTriangle(ScriptDrawingSurface *sds, int x1, int y1, int x2, int y2, int x3, int y3)
 {
-    sds->MultiplyCoordinates(&x1, &y1);
-    sds->MultiplyCoordinates(&x2, &y2);
-    sds->MultiplyCoordinates(&x3, &y3);
-
     Bitmap *ds = sds->StartDrawing();
     ds->DrawTriangle(Triangle(x1,y1,x2,y2,x3,y3), sds->currentColour);
     sds->FinishedDrawing();
@@ -370,7 +284,6 @@ void DrawingSurface_DrawTriangle(ScriptDrawingSurface *sds, int x1, int y1, int 
 
 void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int font, const char* text)
 {
-    sds->MultiplyCoordinates(&xx, &yy);
     Bitmap *ds = sds->StartDrawing();
     // don't use wtextcolor because it will do a 16->32 conversion
     color_t text_color = sds->currentColour;
@@ -384,8 +297,6 @@ void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int fo
 
 void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy, int wid, int font, int alignment, const char *msg) {
     int linespacing = getfontspacing_outlined(font);
-    sds->MultiplyCoordinates(&xx, &yy);
-    sds->MultiplyThickness(&wid);
 
     break_up_text_into_lines(wid, font, (char*)msg);
 
@@ -423,9 +334,6 @@ void DrawingSurface_DrawMessageWrapped(ScriptDrawingSurface *sds, int xx, int yy
 }
 
 void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, int tox, int toy, int thickness) {
-    sds->MultiplyCoordinates(&fromx, &fromy);
-    sds->MultiplyCoordinates(&tox, &toy);
-    sds->MultiplyThickness(&thickness);
     int ii,jj,xx,yy;
     Bitmap *ds = sds->StartDrawing();
     // draw several lines to simulate the thickness
@@ -443,9 +351,7 @@ void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, in
 }
 
 void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
-    sds->MultiplyCoordinates(&x, &y);
     int thickness = 1;
-    sds->MultiplyThickness(&thickness);
     int ii,jj;
     Bitmap *ds = sds->StartDrawing();
     // draw several pixels to simulate the thickness
@@ -461,7 +367,6 @@ void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
 }
 
 int DrawingSurface_GetPixel(ScriptDrawingSurface *sds, int x, int y) {
-    sds->MultiplyCoordinates(&x, &y);
     Bitmap *ds = sds->StartDrawing();
     unsigned int rawPixel = ds->GetPixel(x, y);
     unsigned int maskColor = ds->GetMaskColor();
@@ -600,18 +505,6 @@ RuntimeScriptValue Sc_DrawingSurface_GetHeight(void *self, const RuntimeScriptVa
 }
 
 // int (ScriptDrawingSurface *sds)
-RuntimeScriptValue Sc_DrawingSurface_GetUseHighResCoordinates(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_INT(ScriptDrawingSurface, DrawingSurface_GetUseHighResCoordinates);
-}
-
-// void (ScriptDrawingSurface *sds, int highRes)
-RuntimeScriptValue Sc_DrawingSurface_SetUseHighResCoordinates(void *self, const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_OBJCALL_VOID_PINT(ScriptDrawingSurface, DrawingSurface_SetUseHighResCoordinates);
-}
-
-// int (ScriptDrawingSurface *sds)
 RuntimeScriptValue Sc_DrawingSurface_GetWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptDrawingSurface, DrawingSurface_GetWidth);
@@ -649,8 +542,6 @@ void RegisterDrawingSurfaceAPI()
     ccAddExternalObjectFunction("DrawingSurface::get_DrawingColor",     Sc_DrawingSurface_GetDrawingColor);
     ccAddExternalObjectFunction("DrawingSurface::set_DrawingColor",     Sc_DrawingSurface_SetDrawingColor);
     ccAddExternalObjectFunction("DrawingSurface::get_Height",           Sc_DrawingSurface_GetHeight);
-    ccAddExternalObjectFunction("DrawingSurface::get_UseHighResCoordinates", Sc_DrawingSurface_GetUseHighResCoordinates);
-    ccAddExternalObjectFunction("DrawingSurface::set_UseHighResCoordinates", Sc_DrawingSurface_SetUseHighResCoordinates);
     ccAddExternalObjectFunction("DrawingSurface::get_Width",            Sc_DrawingSurface_GetWidth);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
@@ -672,7 +563,5 @@ void RegisterDrawingSurfaceAPI()
     ccAddExternalFunctionForPlugin("DrawingSurface::get_DrawingColor",     (void*)DrawingSurface_GetDrawingColor);
     ccAddExternalFunctionForPlugin("DrawingSurface::set_DrawingColor",     (void*)DrawingSurface_SetDrawingColor);
     ccAddExternalFunctionForPlugin("DrawingSurface::get_Height",           (void*)DrawingSurface_GetHeight);
-    ccAddExternalFunctionForPlugin("DrawingSurface::get_UseHighResCoordinates", (void*)DrawingSurface_GetUseHighResCoordinates);
-    ccAddExternalFunctionForPlugin("DrawingSurface::set_UseHighResCoordinates", (void*)DrawingSurface_SetUseHighResCoordinates);
     ccAddExternalFunctionForPlugin("DrawingSurface::get_Width",            (void*)DrawingSurface_GetWidth);
 }

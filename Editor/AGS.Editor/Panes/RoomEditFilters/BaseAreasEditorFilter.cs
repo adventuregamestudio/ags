@@ -299,13 +299,6 @@ namespace AGS.Editor
             int tempx = _menuClickX;
             int tempy = _menuClickY;
 
-            if ((Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript) &&
-             (_room.Resolution == RoomResolution.HighRes))
-            {
-                tempx /= 2;
-                tempy /= 2;
-            }
-
             string textToCopy = tempx.ToString() + ", " + tempy.ToString();
             Utilities.CopyTextToClipboard(textToCopy);
         }

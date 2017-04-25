@@ -57,7 +57,7 @@ extern int load_template_file(const char *fileName, char **iconDataBuffer, long 
 extern int extract_template_files(const char *templateFileName);
 extern int extract_room_template_files(const char *templateFileName, int newRoomNumber);
 extern void change_sprite_number(int oldNumber, int newNumber);
-extern void update_sprite_resolution(int spriteNum, bool isHighRes);
+extern void update_sprite_resolution(int spriteNum);
 extern void save_game(bool compressSprites);
 extern bool reset_sprite_file();
 extern int GetSpriteResolutionMultiplier(int slot);
@@ -288,7 +288,7 @@ namespace AGS
 		{
 			for each (Sprite^ sprite in sprites)
 			{
-				update_sprite_resolution(sprite->Number, sprite->Resolution == SpriteImportResolution::HighRes);
+				update_sprite_resolution(sprite->Number);
 			}
 		}
 
@@ -756,7 +756,6 @@ namespace AGS
             if (name->Equals("OPT_STRICTSTRINGS")) return OPT_STRICTSTRINGS;
             if (name->Equals("OPT_NEWGUIALPHA")) return OPT_NEWGUIALPHA;
             if (name->Equals("OPT_RUNGAMEDLGOPTS")) return OPT_RUNGAMEDLGOPTS;
-            if (name->Equals("OPT_NATIVECOORDINATES")) return OPT_NATIVECOORDINATES;
             if (name->Equals("OPT_GLOBALTALKANIMSPD")) return OPT_GLOBALTALKANIMSPD;
             if (name->Equals("OPT_SPRITEALPHA")) return OPT_SPRITEALPHA;
             if (name->Equals("OPT_SAFEFILEPATHS")) return OPT_SAFEFILEPATHS;

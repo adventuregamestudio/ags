@@ -250,13 +250,16 @@ int find_free_sprite_slot() {
   return rr;
 }
 
-void update_sprite_resolution(int spriteNum, bool isHighRes)
+// CLNUP probably to remove
+void update_sprite_resolution(int spriteNum)
 {
 	thisgame.spriteflags[spriteNum] &= ~SPF_640x400;
+	/*
 	if (isHighRes)
 	{
 		thisgame.spriteflags[spriteNum] |= SPF_640x400;
 	}
+	*/
 }
 
 void change_sprite_number(int oldNumber, int newNumber) {

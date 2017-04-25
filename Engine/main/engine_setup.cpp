@@ -105,25 +105,6 @@ void adjust_sizes_for_resolution(int filever)
             cgp->Controls[ff]->IsActivated = false;
         }
     }
-
-    if ((filever >= 37) && (game.options[OPT_NATIVECOORDINATES] == 0) &&
-        game.IsHiRes())
-    {
-        // New 3.1 format game file, but with Use Native Coordinates off
-
-        for (ee = 0; ee < game.numcharacters; ee++) 
-        {
-            game.chars[ee].x /= 2;
-            game.chars[ee].y /= 2;
-        }
-
-        for (ee = 0; ee < numguiinv; ee++)
-        {
-            guiinv[ee].ItemWidth /= 2;
-            guiinv[ee].ItemHeight /= 2;
-        }
-    }
-
 }
 
 void engine_setup_system_gamesize()

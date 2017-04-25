@@ -81,7 +81,6 @@ int Game_GetMouseCursorCount();
 int Game_GetCharacterCount();
 int Game_GetGUICount();
 int Game_GetViewCount();
-int Game_GetUseNativeCoordinates();
 int Game_GetSpriteWidth(int spriteNum);
 int Game_GetSpriteHeight(int spriteNum);
 int Game_GetLoopCountForView(int viewNumber);

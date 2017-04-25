@@ -120,7 +120,6 @@ namespace AGS.Editor
             public static readonly int OPT_STRICTSTRINGS = (int)Factory.NativeProxy.GetNativeConstant("OPT_STRICTSTRINGS");
             public static readonly int OPT_NEWGUIALPHA = (int)Factory.NativeProxy.GetNativeConstant("OPT_NEWGUIALPHA");
             public static readonly int OPT_RUNGAMEDLGOPTS = (int)Factory.NativeProxy.GetNativeConstant("OPT_RUNGAMEDLGOPTS");
-            public static readonly int OPT_NATIVECOORDINATES = (int)Factory.NativeProxy.GetNativeConstant("OPT_NATIVECOORDINATES");
             public static readonly int OPT_GLOBALTALKANIMSPD = (int)Factory.NativeProxy.GetNativeConstant("OPT_GLOBALTALKANIMSPD");
             public static readonly int OPT_SPRITEALPHA = (int)Factory.NativeProxy.GetNativeConstant("OPT_SPRITEALPHA");
             public static readonly int OPT_SAFEFILEPATHS = (int)Factory.NativeProxy.GetNativeConstant("OPT_SAFEFILEPATHS");

@@ -12,6 +12,7 @@ namespace AGS.Types
     [DeserializeIgnore("LastBuildConfiguration")]
     [DeserializeIgnore("GraphicsDriver")]
     [DeserializeIgnore("LeftToRightPrecedence")]
+    [DeserializeIgnore("UseLowResCoordinatesInScript")]
     [DefaultProperty("DebugMode")]
     public class Settings : ICustomTypeDescriptor
     {
@@ -89,7 +90,6 @@ namespace AGS.Types
         private SpriteAlphaStyle _spriteAlphaStyle = SpriteAlphaStyle.Improved;
         private bool _runGameLoopsWhileDialogOptionsDisplayed = false;
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
-        private bool _useLowResCoordinatesInScript = true;
         // Vista game explorer fields
 		private bool _enableGameExplorer = false;
 		private string _description = string.Empty;
@@ -237,6 +237,7 @@ namespace AGS.Types
         /// 320x240 pixels.
         /// </summary>
         [Browsable(false)]
+        // CLNUP I think this also tells the editor if scaling up GUIs in low res games
         public bool LowResolution
         {
             get
@@ -303,16 +304,6 @@ namespace AGS.Types
         {
             get { return _mouseWheelEnabled; }
             set { _mouseWheelEnabled = value; }
-        }
-
-        [DisplayName("Use low-resolution co-ordinates in script")]
-        [Description("Backwards-compatible option to always use low-res co-ordinates in the script. This is how previous versions of AGS always worked. WARNING: Changing this setting could break your current scripts.")]
-        [DefaultValue(false)]
-        [Category("Backwards Compatibility")]
-        public bool UseLowResCoordinatesInScript
-        {
-            get { return _useLowResCoordinatesInScript; }
-            set { _useLowResCoordinatesInScript = value; }
         }
 
         [DisplayName("Characters turn to face direction")]
@@ -1038,7 +1029,6 @@ namespace AGS.Types
             _spriteAlphaStyle = SpriteAlphaStyle.Classic;
             _runGameLoopsWhileDialogOptionsDisplayed = false;
             _inventoryHotspotMarker = new InventoryHotspotMarker();
-            _useLowResCoordinatesInScript = true;
             _audioIndexer = 0;
             _enforceNewAudio = false;
 

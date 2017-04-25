@@ -445,11 +445,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             quitprintf("!Unable to load '%s'. This room file is assigned to a different game.", room_filename.GetCStr());
     }
 
-    if (game.IsHiRes() && (game.options[OPT_NATIVECOORDINATES] == 0))
-    {
-        convert_room_coordinates_to_low_res(&thisroom);
-    }
-
     update_polled_stuff_if_runtime();
     our_eip=201;
     /*  // apparently, doing this stops volume spiking between tracks

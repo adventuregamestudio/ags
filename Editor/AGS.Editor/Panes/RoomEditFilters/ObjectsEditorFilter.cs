@@ -226,13 +226,6 @@ namespace AGS.Editor
             int tempx = _menuClickX;
             int tempy = _menuClickY;
 
-            if ((Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript) &&
-             (_room.Resolution == RoomResolution.HighRes))
-            {
-                tempx /= 2;
-                tempy /= 2;
-            }
-
             string textToCopy = tempx.ToString() + ", " + tempy.ToString();
             Utilities.CopyTextToClipboard(textToCopy);
         }
@@ -293,13 +286,6 @@ namespace AGS.Editor
             {
                 int tempx = _selectedObject.StartX;
                 int tempy = _selectedObject.StartY;
-
-                if ((Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript) &&
-                	(_room.Resolution == RoomResolution.HighRes))
-                {
-                    tempx = tempx / 2;
-                    tempy = tempy / 2;
-                }
 
                 string textToCopy = tempx.ToString() + ", " + tempy.ToString();
                 Utilities.CopyTextToClipboard(textToCopy);
@@ -384,25 +370,13 @@ namespace AGS.Editor
             return true;            
         }
 
-        private bool IsHighResGameWithLowResScript()
+        private int GetArrowMoveStepSize() // CLNUP probably remove
         {
-            return (Factory.AGSEditor.CurrentGame.IsHighResolution) &&
-                (Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript);
-        }
-
-        private int GetArrowMoveStepSize()
-        {
-            return IsHighResGameWithLowResScript() ? 2 : 1;
+            return 1;
         }
 
         private int SetObjectCoordinate(int newCoord)
         {
-            if (IsHighResGameWithLowResScript())
-            {
-                // Round co-ordinate to nearest even number to reflect what
-                // will happen in the engine
-                newCoord = (newCoord / 2) * 2;
-            }
             return newCoord;
         }
 

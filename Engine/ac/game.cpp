@@ -745,15 +745,6 @@ int Game_GetViewCount() {
     return game.numviews;
 }
 
-int Game_GetUseNativeCoordinates()
-{
-    if (game.options[OPT_NATIVECOORDINATES] != 0)
-    {
-        return 1;
-    }
-    return 0;
-}
-
 int Game_GetSpriteWidth(int spriteNum) {
     if ((spriteNum < 0) || (spriteNum >= MAX_SPRITES))
         return 0;
@@ -2745,12 +2736,6 @@ RuntimeScriptValue Sc_Game_GetTranslationFilename(const RuntimeScriptValue *para
 }
 
 // int ()
-RuntimeScriptValue Sc_Game_GetUseNativeCoordinates(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(Game_GetUseNativeCoordinates);
-}
-
-// int ()
 RuntimeScriptValue Sc_Game_GetViewCount(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Game_GetViewCount);
@@ -2818,7 +2803,6 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::get_TextReadingSpeed",                   Sc_Game_GetTextReadingSpeed);
     ccAddExternalStaticFunction("Game::set_TextReadingSpeed",                   Sc_Game_SetTextReadingSpeed);
     ccAddExternalStaticFunction("Game::get_TranslationFilename",                Sc_Game_GetTranslationFilename);
-    ccAddExternalStaticFunction("Game::get_UseNativeCoordinates",               Sc_Game_GetUseNativeCoordinates);
     ccAddExternalStaticFunction("Game::get_ViewCount",                          Sc_Game_GetViewCount);
     ccAddExternalStaticFunction("Game::get_AudioClipCount",                     Sc_Game_GetAudioClipCount);
     ccAddExternalStaticFunction("Game::geti_AudioClips",                         Sc_Game_GetAudioClip);
@@ -2870,7 +2854,6 @@ void RegisterGameAPI()
     ccAddExternalFunctionForPlugin("Game::get_TextReadingSpeed",                   (void*)Game_GetTextReadingSpeed);
     ccAddExternalFunctionForPlugin("Game::set_TextReadingSpeed",                   (void*)Game_SetTextReadingSpeed);
     ccAddExternalFunctionForPlugin("Game::get_TranslationFilename",                (void*)Game_GetTranslationFilename);
-    ccAddExternalFunctionForPlugin("Game::get_UseNativeCoordinates",               (void*)Game_GetUseNativeCoordinates);
     ccAddExternalFunctionForPlugin("Game::get_ViewCount",                          (void*)Game_GetViewCount);
 }
 

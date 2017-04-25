@@ -486,7 +486,6 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_THOUGHTGUI] = game.Settings.ThoughtGUI;
             options[NativeConstants.GameOptions.OPT_TURNTOFACELOC] = (game.Settings.TurnBeforeFacing ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_ROTATECHARS] = (game.Settings.TurnBeforeWalking ? 1 : 0);
-            options[NativeConstants.GameOptions.OPT_NATIVECOORDINATES] = (game.Settings.UseLowResCoordinatesInScript ? 0 : 1);
             options[NativeConstants.GameOptions.OPT_WALKONLOOK] = (game.Settings.WalkInLookMode ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_DISABLEOFF] = (int)game.Settings.WhenInterfaceDisabled;
             options[NativeConstants.GameOptions.OPT_SAFEFILEPATHS] = 1; // always use safe file paths in new games

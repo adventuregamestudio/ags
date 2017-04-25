@@ -80,13 +80,6 @@ namespace AGS.Editor
 			_menuClickX = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
 			_menuClickY = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
 
-            if ((Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript) &&
-                (_room.Resolution == RoomResolution.HighRes))
-            {
-                _menuClickX /= 2;
-                _menuClickY /= 2;
-            }
-
 			menu.Show(_panel, e.X, e.Y);
 		}
 

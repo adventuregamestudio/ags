@@ -460,8 +460,6 @@ builtin managed struct DrawingSurface {
   import attribute int DrawingColor;
   /// Gets the height of this surface.
   readonly import attribute int Height;
-  /// Determines whether you use high-res or low-res co-ordinates for drawing onto this surface.
-  import attribute bool UseHighResCoordinates;
   /// Gets the width of the surface.
   readonly import attribute int Width;
 };
@@ -580,8 +578,6 @@ builtin managed struct Game {
   import static attribute int TextReadingSpeed;
   /// Gets name of the currently active translation.
   readonly import static attribute String TranslationFilename;
-  /// Gets whether the game is using native co-ordinates.
-  readonly import static attribute bool UseNativeCoordinates;
   /// Gets the number of views in the game.
   readonly import static attribute int ViewCount;
 #ifdef SCRIPT_API_v340

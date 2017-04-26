@@ -3603,8 +3603,6 @@ Game^ import_compiled_game_dta(const char *fileName)
 	game->Settings->FontsForHiRes = (thisgame.options[OPT_NOSCALEFNT] != 0);
 	game->Settings->GameName = gcnew String(thisgame.gamename);
 	game->Settings->UseGlobalSpeechAnimationDelay = true; // this was always on in pre-3.0 games
-	game->Settings->GUIAlphaStyle = GUIAlphaStyle::Classic;
-    game->Settings->SpriteAlphaStyle = SpriteAlphaStyle::Classic;
 	game->Settings->HandleInvClicksInScript = (thisgame.options[OPT_HANDLEINVCLICKS] != 0);
 	game->Settings->InventoryCursors = !thisgame.options[OPT_FIXEDINVCURSOR];
 	game->Settings->LetterboxMode = (thisgame.options[OPT_LETTERBOX] != 0);

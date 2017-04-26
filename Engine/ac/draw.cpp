@@ -832,20 +832,7 @@ void draw_sprite_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos
     if (alpha <= 0)
         return;
 
-    if (game.options[OPT_SPRITEALPHA] == kSpriteAlphaRender_Improved)
-    {
-        GfxUtil::DrawSpriteBlend(ds, Point(xpos, ypos), image, blend_mode, ds_has_alpha, src_has_alpha, alpha);
-    }
-    // Backwards-compatible drawing
-    else if (src_has_alpha && alpha == 0xFF)
-    {
-        set_alpha_blender();
-        ds->TransBlendBlt(image, xpos, ypos);
-    }
-    else
-    {
-        GfxUtil::DrawSpriteWithTransparency(ds, image, xpos, ypos, alpha);
-    }
+    GfxUtil::DrawSpriteBlend(ds, Point(xpos, ypos), image, blend_mode, ds_has_alpha, src_has_alpha, alpha);
 }
 
 void draw_sprite_slot_support_alpha(Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, int src_slot,
@@ -1109,18 +1096,9 @@ void draw_gui_sprite(Bitmap *ds, int pic, int x, int y, bool use_alpha, BlendMod
     const bool ds_has_alpha  = ds->GetColorDepth() == 32;
     const bool src_has_alpha = (game.spriteflags[pic] & SPF_ALPHACHANNEL) != 0;
 
-    if (use_alpha && game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Improved)
+    if (use_alpha)
     {
         GfxUtil::DrawSpriteBlend(ds, Point(x, y), sprite, blend_mode, ds_has_alpha, src_has_alpha);
-    }
-    // Backwards-compatible drawing
-    else if (use_alpha && ds_has_alpha && game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_AdditiveAlpha)
-    {
-        if (src_has_alpha)
-            set_additive_alpha_blender();
-        else
-            set_opaque_alpha_blender();
-        ds->TransBlendBlt(sprite, x, y);
     }
     else
     {
@@ -2198,12 +2176,6 @@ void draw_screen_overlay() {
                 if (guis[aa].HasAlphaChannel()) 
                 {
                     isAlpha = true;
-
-                    if ((game.options[OPT_NEWGUIALPHA] == kGuiAlphaRender_Classic) && (guis[aa].BgImage > 0))
-                    {
-                        // old-style (pre-3.0.2) GUI alpha rendering
-                        repair_alpha_channel(guibg[aa], spriteset[guis[aa].BgImage]);
-                    }
                 }
 
                 if (guibgbmp[aa] != NULL) 

@@ -13,6 +13,8 @@ namespace AGS.Types
     [DeserializeIgnore("GraphicsDriver")]
     [DeserializeIgnore("LeftToRightPrecedence")]
     [DeserializeIgnore("UseLowResCoordinatesInScript")]
+    [DeserializeIgnore("GUIAlphaStyle")]
+    [DeserializeIgnore("SpriteAlphaStyle")]
     [DefaultProperty("DebugMode")]
     public class Settings : ICustomTypeDescriptor
     {
@@ -86,8 +88,6 @@ namespace AGS.Types
         private bool _hasMODMusic = false;
         private int _totalScore = 0;
         private bool _binaryFilesInSourceControl = false;
-        private GUIAlphaStyle _guiAlphaStyle = GUIAlphaStyle.MultiplyTranslucenceSrcBlend;
-        private SpriteAlphaStyle _spriteAlphaStyle = SpriteAlphaStyle.Improved;
         private bool _runGameLoopsWhileDialogOptionsDisplayed = false;
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
         // Vista game explorer fields
@@ -379,28 +379,6 @@ namespace AGS.Types
         {
             get { return _whenInterfaceDisabled; }
             set { _whenInterfaceDisabled = value; }
-        }
-
-        [DisplayName("GUI alpha rendering style")]
-        [Description("When using 32-bit alpha-channel images, should GUIs be drawn with the new improved alpha method, or the backwards-compatible method?")]
-        [DefaultValue(GUIAlphaStyle.MultiplyTranslucenceSrcBlend)]
-        [Category("Visual")]
-        [TypeConverter(typeof(EnumTypeConverter))]
-        public GUIAlphaStyle GUIAlphaStyle
-        {
-            get { return _guiAlphaStyle; }
-            set { _guiAlphaStyle = value; }
-        }
-
-        [DisplayName("Sprite alpha rendering style")]
-        [Description("When using 32-bit alpha-channel images, should sprites be drawn with the new improved alpha method, or the backwards-compatible method?")]
-        [DefaultValue(SpriteAlphaStyle.Improved)]
-        [Category("Visual")]
-        [TypeConverter(typeof(EnumTypeConverter))]
-        public SpriteAlphaStyle SpriteAlphaStyle
-        {
-            get { return _spriteAlphaStyle; }
-            set { _spriteAlphaStyle = value; }
         }
 
         [DisplayName("Run game loops while dialog options are displayed")]
@@ -1025,8 +1003,6 @@ namespace AGS.Types
 			_saveGameExtension = string.Empty;
             _saveGamesFolderName = null;
             _binaryFilesInSourceControl = false;
-            _guiAlphaStyle = GUIAlphaStyle.Classic;
-            _spriteAlphaStyle = SpriteAlphaStyle.Classic;
             _runGameLoopsWhileDialogOptionsDisplayed = false;
             _inventoryHotspotMarker = new InventoryHotspotMarker();
             _audioIndexer = 0;

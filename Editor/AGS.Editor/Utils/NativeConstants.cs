@@ -118,10 +118,8 @@ namespace AGS.Editor
             public static readonly int OPT_STRICTSCRIPTING = (int)Factory.NativeProxy.GetNativeConstant("OPT_STRICTSCRIPTING");
             public static readonly int OPT_COMPRESSSPRITES = (int)Factory.NativeProxy.GetNativeConstant("OPT_COMPRESSSPRITES");
             public static readonly int OPT_STRICTSTRINGS = (int)Factory.NativeProxy.GetNativeConstant("OPT_STRICTSTRINGS");
-            public static readonly int OPT_NEWGUIALPHA = (int)Factory.NativeProxy.GetNativeConstant("OPT_NEWGUIALPHA");
             public static readonly int OPT_RUNGAMEDLGOPTS = (int)Factory.NativeProxy.GetNativeConstant("OPT_RUNGAMEDLGOPTS");
             public static readonly int OPT_GLOBALTALKANIMSPD = (int)Factory.NativeProxy.GetNativeConstant("OPT_GLOBALTALKANIMSPD");
-            public static readonly int OPT_SPRITEALPHA = (int)Factory.NativeProxy.GetNativeConstant("OPT_SPRITEALPHA");
             public static readonly int OPT_SAFEFILEPATHS = (int)Factory.NativeProxy.GetNativeConstant("OPT_SAFEFILEPATHS");
             public static readonly int OPT_DIALOGOPTIONSAPI = (int)Factory.NativeProxy.GetNativeConstant("OPT_DIALOGOPTIONSAPI");
             public static readonly int OPT_BASESCRIPTAPI = (int)Factory.NativeProxy.GetNativeConstant("OPT_BASESCRIPTAPI");

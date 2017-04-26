@@ -754,10 +754,8 @@ namespace AGS
             if (name->Equals("OPT_STRICTSCRIPTING")) return OPT_STRICTSCRIPTING;
             if (name->Equals("OPT_COMPRESSSPRITES")) return OPT_COMPRESSSPRITES;
             if (name->Equals("OPT_STRICTSTRINGS")) return OPT_STRICTSTRINGS;
-            if (name->Equals("OPT_NEWGUIALPHA")) return OPT_NEWGUIALPHA;
             if (name->Equals("OPT_RUNGAMEDLGOPTS")) return OPT_RUNGAMEDLGOPTS;
             if (name->Equals("OPT_GLOBALTALKANIMSPD")) return OPT_GLOBALTALKANIMSPD;
-            if (name->Equals("OPT_SPRITEALPHA")) return OPT_SPRITEALPHA;
             if (name->Equals("OPT_SAFEFILEPATHS")) return OPT_SAFEFILEPATHS;
             if (name->Equals("OPT_DIALOGOPTIONSAPI")) return OPT_DIALOGOPTIONSAPI;
             if (name->Equals("OPT_BASESCRIPTAPI")) return OPT_BASESCRIPTAPI;

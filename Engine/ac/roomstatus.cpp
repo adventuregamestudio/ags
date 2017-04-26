@@ -88,18 +88,16 @@ void RoomStatus::ReadFromFile_v321(Stream *in)
     in->ReadArrayOfInt16(walkbehind_base, MAX_OBJ);
     in->ReadArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
 
-    if (loaded_game_file_version >= kGameVersion_340_4)
+    Properties::ReadValues(roomProps, in);
+    for (int i = 0; i < MAX_HOTSPOTS; ++i)
     {
-        Properties::ReadValues(roomProps, in);
-        for (int i = 0; i < MAX_HOTSPOTS; ++i)
-        {
-            Properties::ReadValues(hsProps[i], in);
-        }
-        for (int i = 0; i < MAX_INIT_SPR; ++i)
-        {
-            Properties::ReadValues(objProps[i], in);
-        }
+        Properties::ReadValues(hsProps[i], in);
     }
+    for (int i = 0; i < MAX_INIT_SPR; ++i)
+    {
+        Properties::ReadValues(objProps[i], in);
+    }
+
 }
 
 void RoomStatus::WriteToFile_v321(Stream *out)

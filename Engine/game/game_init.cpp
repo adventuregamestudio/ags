@@ -309,8 +309,7 @@ void InitAndRegisterGameEntities()
     RegisterStaticArrays();
 
     setup_player_character(game.playercharacter);
-    if (loaded_game_file_version >= kGameVersion_270)
-        ccAddExternalStaticObject("player", &_sc_PlayerCharPtr, &GlobalStaticManager);
+    ccAddExternalStaticObject("player", &_sc_PlayerCharPtr, &GlobalStaticManager);
 }
 
 void LoadFonts()

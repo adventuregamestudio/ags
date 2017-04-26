@@ -98,10 +98,6 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
     disp.linespacing= getfontspacing_outlined(usingfont);
     disp.fulltxtheight = getheightoflines(usingfont, numlines);
 
-    // AGS 2.x: If the screen is faded out, fade in again when displaying a message box.
-    if (!asspch && (loaded_game_file_version <= kGameVersion_272))
-        play.screen_is_faded_out = 0;
-
     // if it's a normal message box and the game was being skipped,
     // ensure that the screen is up to date before the message box
     // is drawn on top of it
@@ -531,7 +527,7 @@ void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {
 
     x = x + offx * spritewidth[sprn];
     y = y + offy * spriteheight[sprn];
-    draw_gui_sprite_v330(ds, sprn, x, y);
+    draw_gui_sprite(ds, sprn, x, y);
 }
 
 int get_but_pic(GUIMain*guo,int indx) {
@@ -549,16 +545,6 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
         draw_color = ds->GetCompatibleColor(opts.tws.ds->GetTextColor()); ds->DrawRect(Rect(xx1+1,yy1+1,xx2-1,yy2-1);*/
     }
     else {
-        if (loaded_game_file_version < kGameVersion_262) // < 2.62
-        {
-            // Color 0 wrongly shows as transparent instead of black
-            // From the changelog of 2.62:
-            //  - Fixed text windows getting a black background if colour 0 was
-            //    specified, rather than being transparent.
-            if (iep->BgColor == 0)
-                iep->BgColor = 16;
-        }
-
         if (iep->BgColor >= 0) draw_color = ds->GetCompatibleColor(iep->BgColor);
         else draw_color = ds->GetCompatibleColor(0); // black backrgnd behind picture
 
@@ -568,37 +554,28 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
         int leftRightWidth = spritewidth[get_but_pic(iep,4)];
         int topBottomHeight = spriteheight[get_but_pic(iep,6)];
         if (iep->BgImage>0) {
-            if ((loaded_game_file_version <= kGameVersion_272) // 2.xx
-                && (spriteset[iep->BgImage]->GetWidth() == 1)
-                && (spriteset[iep->BgImage]->GetHeight() == 1) 
-                && (*((unsigned int*)spriteset[iep->BgImage]->GetData()) == 0x00FF00FF))
+            // offset the background image and clip it so that it is drawn
+            // such that the border graphics can have a transparent outside
+            // edge
+            int bgoffsx = xx1 - leftRightWidth / 2;
+            int bgoffsy = yy1 - topBottomHeight / 2;
+            ds->SetClip(Rect(bgoffsx, bgoffsy, xx2 + leftRightWidth / 2, yy2 + topBottomHeight / 2));
+            int bgfinishx = xx2;
+            int bgfinishy = yy2;
+            int bgoffsyStart = bgoffsy;
+            while (bgoffsx <= bgfinishx)
             {
-                // Don't draw fully transparent dummy GUI backgrounds
-            }
-            else
-            {
-                // offset the background image and clip it so that it is drawn
-                // such that the border graphics can have a transparent outside
-                // edge
-                int bgoffsx = xx1 - leftRightWidth / 2;
-                int bgoffsy = yy1 - topBottomHeight / 2;
-                ds->SetClip(Rect(bgoffsx, bgoffsy, xx2 + leftRightWidth / 2, yy2 + topBottomHeight / 2));
-                int bgfinishx = xx2;
-                int bgfinishy = yy2;
-                int bgoffsyStart = bgoffsy;
-                while (bgoffsx <= bgfinishx)
+                bgoffsy = bgoffsyStart;
+                while (bgoffsy <= bgfinishy)
                 {
-                    bgoffsy = bgoffsyStart;
-                    while (bgoffsy <= bgfinishy)
-                    {
-                        draw_gui_sprite_v330(ds, iep->BgImage, bgoffsx, bgoffsy);
-                        bgoffsy += spriteheight[iep->BgImage];
-                    }
-                    bgoffsx += spritewidth[iep->BgImage];
+                    draw_gui_sprite(ds, iep->BgImage, bgoffsx, bgoffsy);
+                    bgoffsy += spriteheight[iep->BgImage];
                 }
-                // return to normal clipping rectangle
-                ds->SetClip(Rect(0, 0, ds->GetWidth() - 1, ds->GetHeight() - 1));
+                bgoffsx += spritewidth[iep->BgImage];
             }
+            // return to normal clipping rectangle
+            ds->SetClip(Rect(0, 0, ds->GetWidth() - 1, ds->GetHeight() - 1));
+
         }
         int uu;
         for (uu=yy1;uu <= yy2;uu+=spriteheight[get_but_pic(iep,4)]) {

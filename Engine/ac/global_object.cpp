@@ -162,12 +162,8 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     if (objs[obn].frame >= views[viw].loops[objs[obn].loop].numFrames)
         objs[obn].frame = 0;
 
-    // AGS >= 3.2.0 do not let assign an empty loop
-    if (loaded_game_file_version >= kGameVersion_320)
-    {
-        if (views[viw].loops[objs[obn].loop].numFrames == 0) 
-            quit("!SetObjectFrame: specified loop has no frames");
-    }
+    if (views[viw].loops[objs[obn].loop].numFrames == 0) 
+        quit("!SetObjectFrame: specified loop has no frames");
 
     objs[obn].cycling=0;
     objs[obn].num = views[viw].loops[objs[obn].loop].frames[objs[obn].frame].pic;

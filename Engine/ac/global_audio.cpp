@@ -306,8 +306,7 @@ void SetMusicVolume(int newvol) {
 }
 
 void SetMusicMasterVolume(int newvol) {
-    const int min_volume = loaded_game_file_version < kGameVersion_330 ? 0 :
-        -LegacyMusicMasterVolumeAdjustment - (kRoomVolumeMax * LegacyRoomVolumeFactor);
+    const int min_volume = -LegacyMusicMasterVolumeAdjustment - (kRoomVolumeMax * LegacyRoomVolumeFactor);
     if ((newvol < min_volume) | (newvol>100))
         quitprintf("!SetMusicMasterVolume: invalid volume - must be from %d to %d", min_volume, 100);
     play.music_master_volume=newvol+LegacyMusicMasterVolumeAdjustment;

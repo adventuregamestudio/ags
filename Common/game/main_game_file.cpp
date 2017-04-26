@@ -272,8 +272,7 @@ void ReadDialogs(DialogTopic *&dialog,
             // which probably refered to this data used by old editor directly to edit dialogs
             char *buffer = new char[script_text_len];
             in->Read(buffer, script_text_len);
-            if (data_ver > kGameVersion_260)
-                decrypt_text(buffer);
+            decrypt_text(buffer);
             old_dialog_src[i] = buffer;
             delete [] buffer;
         }

@@ -363,7 +363,7 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
     dispyp[ww]=curyp;
     if (game.dialog_bullet > 0)
     {
-        draw_gui_sprite_v330(ds, game.dialog_bullet, dlgxp, curyp, ds_has_alpha);
+        draw_gui_sprite(ds, game.dialog_bullet, dlgxp, curyp, ds_has_alpha);
     }
     int cc;
     if (game.options[OPT_DIALOGNUMBERED] == kDlgOptNumbering) {
@@ -806,7 +806,7 @@ void DialogOptions::Redraw()
 
       if (game.dialog_bullet)  // the parser X will get moved in a second
       {
-          draw_gui_sprite_v330(ds, game.dialog_bullet, parserInput->X, parserInput->Y, options_surface_has_alpha);
+          draw_gui_sprite(ds, game.dialog_bullet, parserInput->X, parserInput->Y, options_surface_has_alpha);
       }
 
       parserInput->Width -= bullet_wid;

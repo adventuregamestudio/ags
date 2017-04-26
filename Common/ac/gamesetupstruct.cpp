@@ -240,22 +240,20 @@ MainGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameData
 
 MainGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersion data_ver)
 {
-    if (data_ver >= kGameVersion_320)
+    audioClipTypeCount = in->ReadInt32();
+
+    audioClipTypes = (AudioClipType*)malloc(audioClipTypeCount * sizeof(AudioClipType));
+    for (int i = 0; i < audioClipTypeCount; ++i)
     {
-        audioClipTypeCount = in->ReadInt32();
-
-        audioClipTypes = (AudioClipType*)malloc(audioClipTypeCount * sizeof(AudioClipType));
-        for (int i = 0; i < audioClipTypeCount; ++i)
-        {
-            audioClipTypes[i].ReadFromFile(in);
-        }
-
-        audioClipCount = in->ReadInt32();
-        audioClips = (ScriptAudioClip*)malloc(audioClipCount * sizeof(ScriptAudioClip));
-        ReadAudioClips_Aligned(in);
-        
-        scoreClipID = in->ReadInt32();
+        audioClipTypes[i].ReadFromFile(in);
     }
+
+    audioClipCount = in->ReadInt32();
+    audioClips = (ScriptAudioClip*)malloc(audioClipCount * sizeof(ScriptAudioClip));
+    ReadAudioClips_Aligned(in);
+        
+    scoreClipID = in->ReadInt32();
+
     return kMGFErr_NoError;
 }
 
@@ -265,7 +263,7 @@ MainGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersio
 
 void GameSetupStruct::read_room_names(Stream *in, GameDataVersion data_ver)
 {
-    if ((data_ver >= kGameVersion_301) && (options[OPT_DEBUGMODE] != 0))
+    if (options[OPT_DEBUGMODE] != 0)
     {
         roomCount = in->ReadInt32();
         roomNumbers = (int*)malloc(roomCount * sizeof(int));

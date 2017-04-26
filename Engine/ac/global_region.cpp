@@ -35,17 +35,14 @@ int GetRegionAt (int xxx, int yyy) {
     // correct them to be just within
     // this fixes walk-off-screen problems
 
-    if (loaded_game_file_version >= kGameVersion_262) // Version 2.6.2+
-    {
-        if (xxx >= thisroom.regions->GetWidth())
-            xxx = thisroom.regions->GetWidth() - 1;
-        if (yyy >= thisroom.regions->GetHeight())
-            yyy = thisroom.regions->GetHeight() - 1;
-        if (xxx < 0)
-            xxx = 0;
-        if (yyy < 0)
-            yyy = 0;
-    }
+    if (xxx >= thisroom.regions->GetWidth())
+        xxx = thisroom.regions->GetWidth() - 1;
+    if (yyy >= thisroom.regions->GetHeight())
+        yyy = thisroom.regions->GetHeight() - 1;
+    if (xxx < 0)
+        xxx = 0;
+    if (yyy < 0)
+        yyy = 0;
 
     int hsthere = thisroom.regions->GetPixel (xxx, yyy);
     if (hsthere < 0)

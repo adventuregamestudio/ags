@@ -72,8 +72,9 @@ void draw_sprite_support_alpha(Common::Bitmap *ds, bool ds_has_alpha, int xpos, 
                                Common::BlendMode blend_mode = Common::kBlendMode_Alpha, int alpha = 0xFF);
 void draw_sprite_slot_support_alpha(Common::Bitmap *ds, bool ds_has_alpha, int xpos, int ypos, int src_slot,
                                     Common::BlendMode blend_mode = Common::kBlendMode_Alpha, int alpha = 0xFF);
+// CLNUP I'd like to put the default parameters to draw_gui_sprite, but the extern from guiman.h prevents it
 void draw_gui_sprite(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha, Common::BlendMode blend_mode);
-void draw_gui_sprite_v330(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha = true, Common::BlendMode blend_mode = Common::kBlendMode_Alpha);
+//void draw_gui_sprite_v330(Common::Bitmap *ds, int pic, int x, int y, bool use_alpha = true, Common::BlendMode blend_mode = Common::kBlendMode_Alpha);
 void render_to_screen(Common::Bitmap *toRender, int atx, int aty);
 void draw_screen_callback();
 void write_screen();

@@ -135,7 +135,7 @@ void CheckViewFrame (int view, int loop, int frame, int sound_volume) {
 // draws a view frame, flipped if appropriate
 void DrawViewFrame(Bitmap *ds, const ViewFrame *vframe, int x, int y, bool alpha_blend)
 {
-    if (alpha_blend && (loaded_game_file_version >= kGameVersion_330))
+    if (alpha_blend)
     {
         Bitmap *vf_bmp = spriteset[vframe->pic];
         Bitmap *src = vf_bmp;

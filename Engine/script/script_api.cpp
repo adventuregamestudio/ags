@@ -199,16 +199,9 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format,
                     // Do extra checks for %s placeholder
                     if (fmt_done == kFormatParseArgString && !p)
                     {
-                        if (loaded_game_file_version < kGameVersion_320)
-                        {
-                            // explicitly put "(null)" into the placeholder
-                            p = "(null)";
-                        }
-                        else
-                        {
-                            cc_error("ScriptSprintf: argument %d is expected to be a string, but it is null pointer", arg_idx);
-                            return "";
-                        }
+                        cc_error("ScriptSprintf: argument %d is expected to be a string, but it is null pointer", arg_idx);
+                        return "";
+
                     }
                     else if (fmt_done == kFormatParseArgString && p == buffer)
                     {

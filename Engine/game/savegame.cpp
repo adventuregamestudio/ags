@@ -331,11 +331,6 @@ void DoBeforeRestore(PreservedParams &pp)
 // Final processing after successfully restoring from save
 SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 {
-    // Use a yellow dialog highlight for older game versions
-    // CHECKME: it is dubious that this should be right here
-    if(loaded_game_file_version < kGameVersion_331)
-        play.dialog_options_highlight_color = DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT;
-
     // Preserve whether the music vox is available
     play.separate_music_lib = pp.MusicVOX;
     // If they had the vox when they saved it, but they don't now

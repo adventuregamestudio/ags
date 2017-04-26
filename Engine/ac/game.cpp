@@ -1359,8 +1359,7 @@ void save_game_audioclips_and_crossfade(Stream *out)
             out->WriteInt32(channels[bb]->panning);
             out->WriteInt32(channels[bb]->volAsPercentage);
             out->WriteInt32(channels[bb]->panningAsPercentage);
-            if (loaded_game_file_version >= kGameVersion_340_2)
-                out->WriteInt32(channels[bb]->speed);
+            out->WriteInt32(channels[bb]->speed);
         }
         else
         {
@@ -1932,8 +1931,7 @@ SavegameError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_
             chan_info.VolAsPercent = in->ReadInt32();
             chan_info.PanAsPercent = in->ReadInt32();
             chan_info.Speed = 1000;
-            if (loaded_game_file_version >= kGameVersion_340_2)
-                chan_info.Speed = in->ReadInt32();
+            chan_info.Speed = in->ReadInt32();
         }
     }
     crossFading = in->ReadInt32();

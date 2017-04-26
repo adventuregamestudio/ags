@@ -578,12 +578,6 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
     if (loctype == LOCTYPE_OBJ) {
         aa = getloctype_index;
         strcpy(tempo,get_translation(thisroom.objectnames[aa]));
-        // Compatibility: < 3.1.1 games returned space for nameless object
-        // (presumably was a bug, but fixing it affected certain games behavior)
-        if (loaded_game_file_version < kGameVersion_311 && tempo[0] == 0) {
-            tempo[0] = ' ';
-            tempo[1] = 0;
-        }
         if (play.get_loc_name_last_time != 3000+aa)
             guis_need_update = 1;
         play.get_loc_name_last_time = 3000+aa;
@@ -915,7 +909,7 @@ void SetGraphicalVariable (const char *varName, int p_value) {
 }
 
 void scrWait(int nloops) {
-    if ((nloops < 1) && (loaded_game_file_version >= kGameVersion_262)) // 2.62+
+    if (nloops < 1)
         quit("!Wait: must wait at least 1 loop");
 
     play.wait_counter = nloops;
@@ -924,7 +918,7 @@ void scrWait(int nloops) {
 }
 
 int WaitKey(int nloops) {
-    if ((nloops < 1) && (loaded_game_file_version >= kGameVersion_262)) // 2.62+
+    if (nloops < 1)
         quit("!WaitKey: must wait at least 1 loop");
 
     play.wait_counter = nloops;
@@ -936,7 +930,7 @@ int WaitKey(int nloops) {
 }
 
 int WaitMouseKey(int nloops) {
-    if ((nloops < 1) && (loaded_game_file_version >= kGameVersion_262)) // 2.62+
+    if (nloops < 1)
         quit("!WaitMouseKey: must wait at least 1 loop");
 
     play.wait_counter = nloops;

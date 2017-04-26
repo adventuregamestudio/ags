@@ -37,7 +37,7 @@ int windowPosX, windowPosY, windowPosWidth, windowPosHeight;
 Bitmap *windowBuffer;
 IDriverDependantBitmap *dialogBmp;
 
-#define MAXSAVEGAMES 20
+//#define MAXSAVEGAMES 20
 DisplayProperties dispp;
 char *lpTemp, *lpTemp2;
 char bufTemp[260], buffer2[260];

@@ -96,7 +96,7 @@ extern "C"
 extern IGraphicsDriver *gfxDriver;
 extern int mousex, mousey;
 extern int displayed_room;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern GameSetupStruct game;
 extern RoomStatus*croom;
 extern SpriteCache spriteset;

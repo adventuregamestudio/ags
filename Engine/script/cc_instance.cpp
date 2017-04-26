@@ -46,7 +46,7 @@ extern ccInstance *loadedInstances[MAX_LOADED_INSTANCES]; // in script/script_ru
 extern int gameHasBeenRestored; // in ac/game
 extern ExecutingScript*curscript; // in script/script
 extern int displayed_room; // in ac/game
-extern roomstruct thisroom; // ac/game
+extern RoomStruct thisroom; // ac/game
 extern int maxWhileLoops;
 extern new_line_hook_type new_line_hook;
 

@@ -25,7 +25,7 @@
 
 using AGS::Common::Bitmap;
 
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern char*evblockbasename;
 extern int evblocknum;

@@ -369,7 +369,7 @@ void unload_old_room() {
 
 
 
-void convert_room_coordinates_to_low_res(roomstruct *rstruc)
+void convert_room_coordinates_to_low_res(RoomStruct *rstruc)
 {
     int f;
     for (f = 0; f < rstruc->numsprs; f++)

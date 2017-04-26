@@ -25,7 +25,7 @@
 // Engine-specific implementation split out of acroom.cpp
 //=============================================================================
 
-bool load_room_is_version_bad(roomstruct *rstruc)
+bool load_room_is_version_bad(RoomStruct *rstruc)
 {
   return ((rstruc->wasversion < kRoomVersion_303b) || (rstruc->wasversion > kRoomVersion_Current));
 }

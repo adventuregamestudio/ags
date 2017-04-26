@@ -48,7 +48,7 @@ extern RoomObject*objs;
 extern ViewStruct*views;
 extern GameSetupStruct game;
 extern ObjectCache objcache[MAX_INIT_SPR];
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern CharacterInfo*playerchar;
 extern int displayed_room;
 extern SpriteCache spriteset;

@@ -40,7 +40,7 @@ using namespace AGS::Engine;
 
 extern char check_dynamic_sprites_at_exit;
 extern int displayed_room;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern volatile char want_exit, abort_engine;
 extern GameSetupStruct game;

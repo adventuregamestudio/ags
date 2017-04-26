@@ -129,7 +129,7 @@ struct sprstruc {
 
 #define NOT_VECTOR_SCALED -10000
 #define LEGACY_TINT_IS_ENABLED 0x80000000
-struct roomstruct {
+struct RoomStruct {
     Common::Bitmap *        walls, *object, *lookat;          // 'object' is the walk-behind
     Common::Bitmap *        regions;
     color         pal[256];
@@ -198,7 +198,7 @@ struct roomstruct {
     AGS::Common::StringIMap hsProps[MAX_HOTSPOTS];
     int           gameId;
 
-    roomstruct();
+    RoomStruct();
     void freemessage();
     void freescripts();
 
@@ -231,14 +231,14 @@ struct room_file_header {
 
 extern int _acroom_bpp;  // bytes per pixel of currently loading room
 
-extern void load_room(const char *files, roomstruct *rstruc);
+extern void load_room(const char *files, RoomStruct *rstruc);
 
 
 // Those are, in fact, are project-dependent and are implemented in runtime and AGS.Native
 extern void load_script_configuration(Common::Stream *in);
 extern void save_script_configuration(Common::Stream *out);
-extern void load_graphical_scripts(Common::Stream *in, roomstruct *);
-extern void save_graphical_scripts(Common::Stream *out, roomstruct *);
+extern void load_graphical_scripts(Common::Stream *in, RoomStruct *);
+extern void save_graphical_scripts(Common::Stream *out, RoomStruct *);
 //
 
 #endif // __AC_ROOMSTRUCT_H

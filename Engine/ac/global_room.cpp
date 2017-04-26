@@ -43,7 +43,7 @@ extern int in_leaves_screen;
 extern int in_inv_screen, inv_screen_newroom;
 extern MoveList *mls;
 extern int gs_to_newroom;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 
 void SetAmbientTint (int red, int green, int blue, int opacity, int luminance) {
     if ((red < 0) || (green < 0) || (blue < 0) ||

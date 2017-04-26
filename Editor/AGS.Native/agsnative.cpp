@@ -90,7 +90,7 @@ const char *TEMPLATE_LOCK_FILE = "template.dta";
 const char *ROOM_TEMPLATE_ID_FILE = "rtemplate.dat";
 const int ROOM_TEMPLATE_ID_FILE_SIGNATURE = 0x74673812;
 bool spritesModified = false;
-roomstruct thisroom;
+RoomStruct thisroom;
 bool roomModified = false;
 Common::Bitmap *drawBuffer = NULL;
 Common::Bitmap *undoBuffer = NULL;
@@ -680,7 +680,7 @@ enum RoomAreaMask
     Regions
 };
 
-Common::Bitmap *get_bitmap_for_mask(roomstruct *roomptr, RoomAreaMask maskType) 
+Common::Bitmap *get_bitmap_for_mask(RoomStruct *roomptr, RoomAreaMask maskType) 
 {
 	if (maskType == RoomAreaMask::None) 
 	{
@@ -708,37 +708,37 @@ Common::Bitmap *get_bitmap_for_mask(roomstruct *roomptr, RoomAreaMask maskType)
 }
 
 void copy_walkable_to_regions (void *roomptr) {
-	roomstruct *theRoom = (roomstruct*)roomptr;
+	RoomStruct *theRoom = (RoomStruct*)roomptr;
 	theRoom->regions->Blit(theRoom->walls, 0, 0, 0, 0, theRoom->regions->GetWidth(), theRoom->regions->GetHeight());
 }
 
 int get_mask_pixel(void *roomptr, int maskType, int x, int y)
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
 	return mask->GetPixel(x, y);
 }
 
 void draw_line_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
 	mask->DrawLine(Line(x1, y1, x2, y2), color);
 }
 
 void draw_filled_rect_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
     mask->FillRect(Rect(x1, y1, x2, y2), color);
 }
 
 void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color)
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
     mask->FloodFill(x1, y1, color);
 }
 
 void create_undo_buffer(void *roomptr, int maskType) 
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
   if (undoBuffer != NULL)
   {
     if ((undoBuffer->GetWidth() != mask->GetWidth()) || (undoBuffer->GetHeight() != mask->GetHeight())) 
@@ -772,7 +772,7 @@ void restore_from_undo_buffer(void *roomptr, int maskType)
 {
   if (does_undo_buffer_exist())
   {
-  	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+  	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
     mask->Blit(undoBuffer, 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
   }
 }
@@ -824,7 +824,7 @@ Common::Bitmap *recycle_bitmap(Common::Bitmap* check, int colDepth, int w, int h
 
 Common::Bitmap *stretchedSprite = NULL, *srcAtRightColDep = NULL;
 
-void draw_area_mask(roomstruct *roomptr, Common::Bitmap *ds, RoomAreaMask maskType, int selectedArea, int transparency) 
+void draw_area_mask(RoomStruct *roomptr, Common::Bitmap *ds, RoomAreaMask maskType, int selectedArea, int transparency) 
 {
 	Common::Bitmap *source = get_bitmap_for_mask(roomptr, maskType);
 
@@ -877,7 +877,7 @@ void draw_area_mask(roomstruct *roomptr, Common::Bitmap *ds, RoomAreaMask maskTy
 
 void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, float scaleFactor, int maskType, int selectedArea, int maskTransparency) 
 {
-	roomstruct *roomptr = (roomstruct*)roomvoidptr;
+	RoomStruct *roomptr = (RoomStruct*)roomvoidptr;
 
   if (bgnum >= roomptr->num_bscenes)
     return;
@@ -1799,7 +1799,7 @@ void calculate_walkable_areas () {
 
 }
 
-void save_room(const char *files, roomstruct rstruc) {
+void save_room(const char *files, RoomStruct rstruc) {
   int               f;
   long              xoff, tesl;
   Stream       *opty;
@@ -2764,7 +2764,7 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, color *imgpa
 
 void DeleteBackground(Room ^room, int backgroundNumber) 
 {
-	roomstruct *theRoom = (roomstruct*)(void*)room->_roomStructPtr;
+	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
 	delete theRoom->ebscene[backgroundNumber];
 	theRoom->ebscene[backgroundNumber] = NULL;
 	
@@ -2781,7 +2781,7 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 {
 	color oldpale[256];
 	Common::Bitmap *newbg = CreateBlockFromBitmap(bmp, oldpale, true, false, NULL);
-	roomstruct *theRoom = (roomstruct*)(void*)room->_roomStructPtr;
+	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
 	theRoom->width = room->Width;
 	theRoom->height = room->Height;
 	bool resolutionChanged = (theRoom->resolution != (int)room->Resolution);
@@ -2849,7 +2849,7 @@ void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
 {
 	color oldpale[256];
 	Common::Bitmap *importedImage = CreateBlockFromBitmap(bmp, oldpale, false, false, NULL);
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
 
 	if (mask->GetWidth() != importedImage->GetWidth())
 	{
@@ -3049,7 +3049,7 @@ System::Drawing::Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int he
 
 System::Drawing::Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber) {
 
-  roomstruct *roomptr = (roomstruct*)(void*)room->_roomStructPtr;
+  RoomStruct *roomptr = (RoomStruct*)(void*)room->_roomStructPtr;
   return ConvertBlockToBitmap32(roomptr->ebscene[backgroundNumber], room->Width, room->Height, false);
 }
 
@@ -4509,13 +4509,13 @@ void load_script_configuration(Stream*iii) { int aa;
   }
 }
 
-void save_graphical_scripts(Stream*fff,roomstruct*rss) {
+void save_graphical_scripts(Stream*fff,RoomStruct*rss) {
   // no script
   fff->WriteInt32 (-1);
 }
 
 char*scripttempn="~acsc%d.tmp";
-void load_graphical_scripts(Stream*iii,roomstruct*rst) {
+void load_graphical_scripts(Stream*iii,RoomStruct*rst) {
   long ct;
   bool doneMsg = false;
   while (1) {

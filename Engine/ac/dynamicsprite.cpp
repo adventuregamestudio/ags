@@ -40,7 +40,7 @@ using namespace Engine;
 extern GameSetupStruct game;
 extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern RoomObject*objs;
 extern RoomStatus*croom;
 extern CharacterCache *charcache;

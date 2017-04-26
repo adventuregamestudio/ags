@@ -39,7 +39,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern int displayed_room;
 extern GameState play;

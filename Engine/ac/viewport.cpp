@@ -21,7 +21,7 @@
 
 extern int offsetx, offsety;
 extern GameState play;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern GameSetup usetup;
 extern CharacterInfo*playerchar;
 

@@ -43,7 +43,7 @@ extern GameSetupStruct game;
 extern ViewStruct*views;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern RoomObject*objs;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern GameState play;
 extern ScriptObject scrObj[MAX_INIT_SPR];
 extern ScriptInvItem scrInv[MAX_INV];

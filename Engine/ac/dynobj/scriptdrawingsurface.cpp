@@ -24,7 +24,7 @@
 
 using AGS::Common::Bitmap;
 
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern SpriteCache spriteset;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern GameState play;

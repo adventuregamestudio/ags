@@ -142,7 +142,7 @@ GameSetupStruct game;
 RoomStatus troom;    // used for non-saveable rooms, eg. intro
 RoomObject*objs;
 RoomStatus*croom=NULL;
-roomstruct thisroom;
+RoomStruct thisroom;
 
 volatile int switching_away_from_game = 0;
 volatile bool switched_away = false;

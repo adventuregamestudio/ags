@@ -20,7 +20,7 @@
 #include "ac/walkablearea.h"
 #include "debug/debug_log.h"
 
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern int offsetx, offsety;
 
 

@@ -64,7 +64,7 @@ using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern int displayed_room,starting_room;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern MoveList *mls;
 extern ViewStruct*views;
 extern RoomObject*objs;

@@ -27,7 +27,7 @@
 
 using AGS::Common::Bitmap;
 
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern GameState play;
 extern GameSetupStruct game;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];

@@ -27,7 +27,7 @@
 
 using AGS::Common::Bitmap;
 
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
 extern CCHotspot ccDynamicHotspot;

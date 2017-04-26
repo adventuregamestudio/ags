@@ -22,7 +22,7 @@
 #include "ac/dynobj/cc_audioclip.h"
 
 extern GameState play;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern CCAudioClip ccDynamicAudioClip;
 
 int AudioChannel_GetID(ScriptAudioChannel *channel)

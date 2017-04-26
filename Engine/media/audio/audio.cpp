@@ -43,7 +43,7 @@ volatile bool _audio_doing_crossfade;
 extern GameSetupStruct game;
 extern GameSetup usetup;
 extern GameState play;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern CharacterInfo*playerchar;
 
 extern volatile int switching_away_from_game;

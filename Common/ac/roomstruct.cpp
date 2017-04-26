@@ -35,7 +35,7 @@ void sprstruc::ReadFromFile(Common::Stream *in)
     on = in->ReadInt16();
 }
 
-roomstruct::roomstruct() {
+RoomStruct::RoomStruct() {
     ebscene[0] = NULL; walls = NULL; object = NULL; lookat = NULL; nummes = 0;
     left = 0; right = 317; top = 40; bottom = 199; numobj = MAX_OBJ; numsprs = 0; password[0] = 0;
     wasversion = kRoomVersion_Current; numanims = 0; regions = NULL; numwalkareas = 0;
@@ -74,14 +74,14 @@ roomstruct::roomstruct() {
     roomScripts = NULL;
 }
 
-void roomstruct::freemessage() {
+void RoomStruct::freemessage() {
     for (int f = 0; f < nummes; f++) {
         if (message[f] != NULL)
             free(message[f]);
     }
 }
 
-void roomstruct::freescripts()
+void RoomStruct::freescripts()
 {
     if (scripts != NULL)
     {
@@ -125,28 +125,28 @@ void roomstruct::freescripts()
     }
 }
 
-bool roomstruct::has_region_lightlevel(int id) const
+bool RoomStruct::has_region_lightlevel(int id) const
 {
     if (id >= 0 && id < MAX_REGIONS)
         return regionTintLevel[id] == 0;
     return false;
 }
 
-bool roomstruct::has_region_tint(int id) const
+bool RoomStruct::has_region_tint(int id) const
 {
     if (id >= 0 && id < MAX_REGIONS)
         return regionTintLevel[id] != 0;
     return false;
 }
 
-int roomstruct::get_region_lightlevel(int id) const
+int RoomStruct::get_region_lightlevel(int id) const
 {
     if (id >= 0 && id < MAX_REGIONS)
         return has_region_lightlevel(id) ? regionLightLevel[id] : 0;
     return 0;
 }
 
-int roomstruct::get_region_tintluminance(int id) const
+int RoomStruct::get_region_tintluminance(int id) const
 {
     if (id >= 0 && id < MAX_REGIONS)
         return has_region_tint(id) ? (regionLightLevel[id] * 10) / 25 : 0;
@@ -165,7 +165,7 @@ void room_file_header::WriteFromFile(Common::Stream *out)
 
 int usesmisccond = 0;
 
-void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_file_header rfh) {
+void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_file_header rfh) {
   int   i;
   char  buffer[3000];
   long  tesl;
@@ -415,9 +415,9 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
 
 }
 
-extern bool load_room_is_version_bad(roomstruct *rstruc);
+extern bool load_room_is_version_bad(RoomStruct *rstruc);
 
-void load_room(const char *files, roomstruct *rstruc) {
+void load_room(const char *files, RoomStruct *rstruc) {
   Common::Stream *opty; // CHECKME why "opty"??
   room_file_header  rfh;
   int i;

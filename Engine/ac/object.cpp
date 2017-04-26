@@ -42,7 +42,7 @@ using namespace AGS::Common;
 extern ScriptObject scrObj[MAX_INIT_SPR];
 extern RoomStatus*croom;
 extern RoomObject*objs;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern ObjectCache objcache[MAX_INIT_SPR];
 extern MoveList *mls;
 extern GameSetupStruct game;

@@ -35,7 +35,7 @@
 
 extern TopBarSettings topBar;
 extern GameState play;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern int display_message_aschar;
 extern GameSetupStruct game;
 extern int screen_is_dirty;

@@ -47,7 +47,7 @@
 
 extern GameSetupStruct game;
 extern GameState play;
-extern roomstruct thisroom;
+extern RoomStruct thisroom;
 extern int gameHasBeenRestored, displayed_room;
 extern unsigned int load_new_game;
 extern RoomObject*objs;

@@ -58,9 +58,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\AGS.Native.dll</HintPath>
     </Reference>
-    <Reference Include="irrKlang.NET2.0, Version=1.1.3.0, Culture=neutral, PublicKeyToken=a854741bd80517c7, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\References\irrKlang.NET2.0.dll</HintPath>
+    <Reference Include="irrKlang.NET4">
+      <HintPath>..\References\irrKlang.NET4.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -511,6 +510,10 @@
     <Content Include="..\License.txt">
       <Link>License.txt</Link>
     </Content>
+    <Content Include="..\References\ikpMP3.dll">
+      <Link>ikpMP3.dll</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="agsico-1.ico" />
     <EmbeddedResource Include="GUI\AboutDialog.resx">
       <SubType>Designer</SubType>
@@ -677,9 +680,6 @@
     <EmbeddedResource Include="Resources\audio-wav.ico" />
     <EmbeddedResource Include="Resources\audio.ico" />
     <EmbeddedResource Include="Resources\audio_speech.ico" />
-    <Content Include="ikpMP3.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <EmbeddedResource Include="Resources\ags_cup.png" />
     <Content Include="Resources\audio_player-pause.ico" />
     <Content Include="Resources\audio_player-play.ico" />

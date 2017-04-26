@@ -67,7 +67,7 @@ Editor/AGS.Native/Debug
 Editor/AGS.Native/Release
 Editor/AGS.Types/bin
 Editor/AGS.Types/obj
-Editor/References/AGS.Native.dll
+Editor/References/*.dll
 
 
 # Engine output and temporary files

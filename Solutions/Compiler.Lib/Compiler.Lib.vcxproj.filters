@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\script">
+      <UniqueIdentifier>{2a4b050e-3edd-404e-b601-cdd0be0d6b2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\cs">
+      <UniqueIdentifier>{ddc4a312-ba4a-464b-af33-6480458667c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\cs">
+      <UniqueIdentifier>{a8c8f89e-e1b2-45b1-a2ca-c8535971a3e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\script">
+      <UniqueIdentifier>{88b38dc3-7935-47f5-b029-b8795f386220}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Compiler\fmem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Compiler\script\cc_compiledscript.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Compiler\script\cc_internallist.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Compiler\script\cc_macrotable.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Compiler\script\cc_symboltable.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Compiler\script\cs_compiler.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Compiler\script\cs_parser.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Compiler\script\cs_parser_common.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Compiler\script\cs_prepro.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_error.cpp">
+      <Filter>Source Files\cs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_options.cpp">
+      <Filter>Source Files\cs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_script.cpp">
+      <Filter>Source Files\cs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_treemap.cpp">
+      <Filter>Source Files\cs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\script\script_common.cpp">
+      <Filter>Source Files\cs</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Compiler\fmem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\script\cc_error.h">
+      <Filter>Header Files\cs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\script\cc_options.h">
+      <Filter>Header Files\cs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\script\cc_script.h">
+      <Filter>Header Files\cs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\script\cc_treemap.h">
+      <Filter>Header Files\cs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\script\script_common.h">
+      <Filter>Header Files\cs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Compiler\script\cc_compiledscript.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Compiler\script\cc_internallist.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Compiler\script\cc_macrotable.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Compiler\script\cc_symboldef.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Compiler\script\cc_symboltable.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Compiler\script\cc_variablesymlist.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Compiler\script\cs_compiler.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Compiler\script\cs_parser.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Compiler\script\cs_parser_common.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Compiler\script\cs_prepro.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

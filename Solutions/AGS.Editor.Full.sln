@@ -1,15 +1,15 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Native Libraries", "Native Libraries", "{AD076495-5CEC-4149-B448-0E24AF8B2C2E}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGS.Controls", "..\Editor\AGS.Controls\AGS.Controls.csproj", "{D937E1F4-1B9F-4567-B28E-EED24AA31C9C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGS.CScript.Compiler", "..\Editor\AGS.CScript.Compiler\AGS.CScript.Compiler.csproj", "{4771753A-641D-49B1-8096-0B431EAC413E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AGS.Native", "..\Editor\AGS.Native\NativeDLL.vcproj", "{65A387AF-C78C-492B-AB93-E13C6090355D}"
-	ProjectSection(ProjectDependencies) = postProject
-		{463A715C-3EF3-47C7-AC7F-D97660149C49} = {463A715C-3EF3-47C7-AC7F-D97660149C49}
-		{7B621FC0-BFD0-40E4-800A-0CD5E5707532} = {7B621FC0-BFD0-40E4-800A-0CD5E5707532}
-	EndProjectSection
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AGS.Native", "..\Editor\AGS.Native\NativeDLL.vcxproj", "{65A387AF-C78C-492B-AB93-E13C6090355D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGS.Types", "..\Editor\AGS.Types\AGS.Types.csproj", "{3EBBEDAB-214C-4201-BB5A-5152D56908DD}"
 EndProject
@@ -18,11 +18,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGSEditor", "..\Editor\AGS.
 		{65A387AF-C78C-492B-AB93-E13C6090355D} = {65A387AF-C78C-492B-AB93-E13C6090355D}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Native Libraries", "Native Libraries", "{AD076495-5CEC-4149-B448-0E24AF8B2C2E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common.Lib", "Common.Lib\Common.Lib.vcxproj", "{463A715C-3EF3-47C7-AC7F-D97660149C49}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common.Lib", "Common.Lib\Common.Lib.vcproj", "{463A715C-3EF3-47C7-AC7F-D97660149C49}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Compiler.Lib", "Compiler.Lib\Compiler.Lib.vcproj", "{7B621FC0-BFD0-40E4-800A-0CD5E5707532}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Compiler.Lib", "Compiler.Lib\Compiler.Lib.vcxproj", "{7B621FC0-BFD0-40E4-800A-0CD5E5707532}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

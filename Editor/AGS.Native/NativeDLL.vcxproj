@@ -1,0 +1,232 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectName>AGS.Native</ProjectName>
+    <ProjectGuid>{65A387AF-C78C-492B-AB93-E13C6090355D}</ProjectGuid>
+    <RootNamespace>AGS.Native</RootNamespace>
+    <Keyword>AtlProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <UseOfAtl>false</UseOfAtl>
+    <CharacterSet>MultiByte</CharacterSet>
+    <CLRSupport>true</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <UseOfAtl>false</UseOfAtl>
+    <CharacterSet>MultiByte</CharacterSet>
+    <CLRSupport>true</CLRSupport>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>14.0.25431.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <IgnoreImportLibrary>true</IgnoreImportLibrary>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <IgnoreImportLibrary>true</IgnoreImportLibrary>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <PreBuildEvent>
+      <Command />
+    </PreBuildEvent>
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <GenerateStublessProxies>true</GenerateStublessProxies>
+      <TypeLibraryName>$(IntDir)NativeDLL.tlb</TypeLibraryName>
+      <HeaderFileName>NativeDLL.h</HeaderFileName>
+      <DllDataFileName />
+      <InterfaceIdentifierFileName>NativeDLL_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>NativeDLL_p.c</ProxyFileName>
+      <ValidateAllParameters>false</ValidateAllParameters>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..;..\..\Common;..\..\Common\libinclude;..\..\Compiler;..\Native;..\scintilla\include;..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;_USRDLL;WINDOWS_VERSION;ALLEGRO_STATICLINK;_CRT_SECURE_NO_DEPRECATE;_MERGE_PROXYSTUB;STATIC_BUILD;SCI_LEXER;USE_ALFONT;_BIND_TO_CURRENT_VCLIBS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <RegisterOutput>false</RegisterOutput>
+      <AdditionalDependencies>Common_md_d.lib;Compiler_md_d.lib;winmm.lib;imm32.lib;alleg-debug-static.lib;alfont_md_d.lib;ddraw.lib;dsound.lib;dinput.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\Debug_MD;$(SolutionDir)\..\Windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>LIBCMTD.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ModuleDefinitionFile />
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AssemblyDebug>true</AssemblyDebug>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy $(TargetPath) $(SolutionDir)..\Editor\References</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <PreBuildEvent>
+      <Command />
+    </PreBuildEvent>
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <GenerateStublessProxies>true</GenerateStublessProxies>
+      <TypeLibraryName>$(IntDir)NativeDLL.tlb</TypeLibraryName>
+      <HeaderFileName>NativeDLL.h</HeaderFileName>
+      <DllDataFileName />
+      <InterfaceIdentifierFileName>NativeDLL_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>NativeDLL_p.c</ProxyFileName>
+      <ValidateAllParameters>false</ValidateAllParameters>
+    </Midl>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories>..\..;..\..\Common;..\..\Common\libinclude;..\..\Compiler;..\Native;..\scintilla\include;..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_USRDLL;WINDOWS_VERSION;ALLEGRO_STATICLINK;_MERGE_PROXYSTUB;STATIC_BUILD;SCI_LEXER;USE_ALFONT;_BIND_TO_CURRENT_VCLIBS_VERSION=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <StructMemberAlignment>4Bytes</StructMemberAlignment>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <RegisterOutput>false</RegisterOutput>
+      <AdditionalDependencies>Common_md.lib;Compiler_md.lib;winmm.lib;imm32.lib;alleg-static.lib;alfont_md.lib;ddraw.lib;dsound.lib;dinput.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\Release_MD;$(SolutionDir)\..\Windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>LIBCMT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ModuleDefinitionFile />
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy $(TargetPath) $(SolutionDir)..\Editor\References</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Solutions\Common.Lib\Common.Lib.vcxproj">
+      <Project>{463a715c-3ef3-47c7-ac7f-d97660149c49}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Solutions\Compiler.Lib\Compiler.Lib.vcxproj">
+      <Project>{7b621fc0-bfd0-40e4-800a-0cd5e5707532}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\AGS.Types\AGS.Types.csproj">
+      <Project>{3ebbedab-214c-4201-bb5a-5152d56908dd}</Project>
+      <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Drawing">
+      <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Native\acfonts_agsnative.cpp" />
+    <ClCompile Include="..\Native\acgui_agsnative.cpp" />
+    <ClCompile Include="..\Native\acroom_agsnative.cpp" />
+    <ClCompile Include="..\Native\ac\actiontype.cpp" />
+    <ClCompile Include="..\Native\ac\scriptmodule.cpp" />
+    <ClCompile Include="..\Native\color_native.cpp" />
+    <ClCompile Include="..\Native\script_agsnative.cpp" />
+    <ClCompile Include="..\Native\sprcache_agsnative.cpp" />
+    <ClCompile Include="..\scintilla\src\AutoComplete.cxx" />
+    <ClCompile Include="..\scintilla\src\CallTip.cxx" />
+    <ClCompile Include="..\scintilla\src\CellBuffer.cxx" />
+    <ClCompile Include="..\scintilla\src\CharClassify.cxx" />
+    <ClCompile Include="..\scintilla\src\ContractionState.cxx" />
+    <ClCompile Include="..\scintilla\src\Document.cxx" />
+    <ClCompile Include="..\scintilla\src\DocumentAccessor.cxx" />
+    <ClCompile Include="..\scintilla\src\Editor.cxx" />
+    <ClCompile Include="..\scintilla\src\ExternalLexer.cxx" />
+    <ClCompile Include="..\scintilla\src\Indicator.cxx" />
+    <ClCompile Include="..\scintilla\src\KeyMap.cxx" />
+    <ClCompile Include="..\scintilla\src\KeyWords.cxx" />
+    <ClCompile Include="..\scintilla\src\LexCPP.cxx" />
+    <ClCompile Include="..\scintilla\src\LineMarker.cxx" />
+    <ClCompile Include="..\scintilla\src\PlatWin.cxx" />
+    <ClCompile Include="..\scintilla\src\PropSet.cxx" />
+    <ClCompile Include="..\scintilla\src\RESearch.cxx" />
+    <ClCompile Include="..\scintilla\src\ScintillaBase.cxx" />
+    <ClCompile Include="..\scintilla\src\ScintillaWin.cxx" />
+    <ClCompile Include="..\scintilla\src\Style.cxx" />
+    <ClCompile Include="..\scintilla\src\StyleContext.cxx" />
+    <ClCompile Include="..\scintilla\src\UniConversion.cxx" />
+    <ClCompile Include="..\scintilla\src\ViewStyle.cxx" />
+    <ClCompile Include="..\scintilla\src\WindowAccessor.cxx" />
+    <ClCompile Include="..\scintilla\src\XPM.cxx" />
+    <ClCompile Include="agsicons.cpp" />
+    <ClCompile Include="agsnative.cpp" />
+    <ClCompile Include="cstretch.cpp" />
+    <ClCompile Include="MSSCCI.cpp" />
+    <ClCompile Include="NativeMethods.cpp" />
+    <ClCompile Include="ScriptCompiler.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Native\ac\actiontype.h" />
+    <ClInclude Include="..\Native\ac\scriptmodule.h" />
+    <ClInclude Include="agsnative.h" />
+    <ClInclude Include="NativeMethods.h" />
+    <ClInclude Include="Scripting.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="NativeDLL.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,39 +1,5 @@
-*~
-.pc
-*.ncb
-*.suo
-*.vcproj.*.user
-Engine/acwin___Win32_DebugWorking
-Editor/AGS.Controls/bin
-Editor/AGS.Controls/obj
-Editor/AGS.CScript.Compiler/bin
-Editor/AGS.CScript.Compiler/obj
-Editor/AGS.Editor/bin
-Editor/AGS.Editor/obj
-Editor/AGS.Native/Debug
-Editor/AGS.Types/bin
-Editor/AGS.Types/obj
-Editor/UpdateCPPVersion/bin
-Editor/UpdateCPPVersion/obj
-Solutions/.build/
-Solutions/.lib/
-Solutions/Common.Lib/Debug/
-Solutions/Engine.App/Debug/
-
-Solutions/Engine.App/Release
-Solutions/Engine.App/Release_NoMP3
-Editor/AGS.Native/Release
-Solutions/Compiler.Lib/Debug
-Solutions/Compiler.Lib/Release
-Solutions/Common.Lib/Release
-Solutions/Common.Lib/Release_NoMP3
-*.csproj.user
-*.idc
-Engine/resource/version.aps
-*.o
-*.d
-common.a
-Engine/ags
+# Android output and temporary files
+Android/*/*~
 Android/launcher_list/.classpath
 Android/launcher_list/.settings/
 Android/launcher_list/bin/
@@ -47,35 +13,22 @@ Android/library/obj/
 Android/library/local.properties
 Android/library/.classpath
 Android/nativelibs
-Editor/References/AGS.Native.dll
-Solutions/Common.Lib/Debug_MD/
-Solutions/Common.Lib/Release_MD/
-Solutions/Compiler.Lib/Debug_MD/
-Solutions/Compiler.Lib/Release_MD/
-Manual/*.htm
-Manual/*.con
-Manual/ags.ref
-Manual/ags.chm
-Manual/ags.chw
-Manual/ags.hhc
-Manual/ags.hhk
-Manual/ags.hhp
-Manual/ags.htx
+
+
+# iOS output and temporary files
 iOS/nativelibs/armv6
 iOS/nativelibs/armv7
 iOS/nativelibs/armv7s
 iOS/nativelibs/arm64
 iOS/nativelibs/i386
 iOS/nativelibs/x86_64
-Solutions/Engine.App/test.ini
 
-libsrc/*.tar*
-libsrc/*.zip
 
-ac2game.dat
-audio.vox
-speech.vox
+# Linux related paths
+.pc
 
+
+# OSX output and temporary files
 OSX/buildlibs/opt/
 OSX/buildlibs/build/
 OSX/include/
@@ -101,4 +54,69 @@ xcuserdata/
 *.xcuserstate
 *.xccheckout
 *.xcscmblueprint
+
+
+# Editor output and temporary files
+Editor/AGS.Controls/bin
+Editor/AGS.Controls/obj
+Editor/AGS.CScript.Compiler/bin
+Editor/AGS.CScript.Compiler/obj
+Editor/AGS.Editor/bin
+Editor/AGS.Editor/obj
+Editor/AGS.Native/Debug
+Editor/AGS.Native/Release
+Editor/AGS.Types/bin
+Editor/AGS.Types/obj
+Editor/References/*.dll
+
+
+# Engine output and temporary files
+# for Linux and Windows build
+*.o
+*.d
+common.a
+Engine/ags
+Engine/resource/version.aps
+
+
+# Engine runtime output
+Solutions/Engine.App/test.ini
+
+
+# MSVS solution output and temporary files
+Solutions/.build/
+Solutions/.lib/
+Solutions/.test/
+Solutions/.vs/
+Solutions/Common.Lib/Debug/
+Solutions/Common.Lib/Debug_MD/
+Solutions/Common.Lib/Release
+Solutions/Common.Lib/Release_MD/
+Solutions/Compiler.Lib/Debug
+Solutions/Compiler.Lib/Debug_MD/
+Solutions/Compiler.Lib/Release
+Solutions/Compiler.Lib/Release_MD/
+Solutions/Engine.App/Debug/
+Solutions/Engine.App/Release
+Solutions/Engine.App/Release_NoMP3
+Solutions/*.VC.db
+Solutions/*.VC.opendb
+Solutions/*.vcxproj.user
+
+
+# Manual output and temporary files
+Manual/*.htm
+Manual/*.con
+Manual/ags.ref
+Manual/ags.chm
+Manual/ags.chw
+Manual/ags.hhc
+Manual/ags.hhk
+Manual/ags.hhp
+Manual/ags.htx
 Manual/ags-help.chm
+
+
+# Tools output and temporary files
+libsrc/*.tar*
+libsrc/*.zip

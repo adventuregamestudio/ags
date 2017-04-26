@@ -1,0 +1,721 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_NoMP3|Win32">
+      <Configuration>Release_NoMP3</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{49A909AF-49F3-451D-B6DF-839159E54A01}</ProjectGuid>
+    <RootNamespace>EngineApp</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_NoMP3|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release_NoMP3|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>14.0.25431.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)\.build\$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)\.build\$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_NoMP3|Win32'">
+    <OutDir>$(SolutionDir)\.build\$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>Common_d.lib;alleg-debug-static-mt.lib;alfont_mt_d.lib;ddraw.lib;dinput.lib;dsound.lib;dxguid.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;LIBCMT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>Common.lib;alleg-static-mt.lib;alfont_mt.lib;ddraw.lib;dinput.lib;dsound.lib;dxguid.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateMapFile>true</GenerateMapFile>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding />
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_NoMP3|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Engine;..\..\Plugins;..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;NO_MP3_PLAYER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>Common.lib;alleg-static-mt.lib;alfont_mt.lib;ddraw.lib;dinput.lib;dsound.lib;dxguid.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateMapFile>true</GenerateMapFile>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding />
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Engine\ac\audiochannel.cpp" />
+    <ClCompile Include="..\..\Engine\ac\audioclip.cpp" />
+    <ClCompile Include="..\..\Engine\ac\button.cpp" />
+    <ClCompile Include="..\..\Engine\ac\cdaudio.cpp" />
+    <ClCompile Include="..\..\Engine\ac\character.cpp" />
+    <ClCompile Include="..\..\Engine\ac\characterextras.cpp" />
+    <ClCompile Include="..\..\Engine\ac\characterinfo_engine.cpp" />
+    <ClCompile Include="..\..\Engine\ac\datetime.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dialog.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dialogoptionsrendering.cpp" />
+    <ClCompile Include="..\..\Engine\ac\display.cpp" />
+    <ClCompile Include="..\..\Engine\ac\draw.cpp" />
+    <ClCompile Include="..\..\Engine\ac\drawingsurface.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynamicsprite.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_agsdynamicobject.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_audiochannel.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_audioclip.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_character.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_dialog.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicarray.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicobject.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_gui.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_guiobject.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_hotspot.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_inventory.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_object.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_region.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_serializer.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\managedobjectpool.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptdatetime.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptdialogoptionsrendering.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptdrawingsurface.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptdynamicsprite.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptfile.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptoverlay.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptstring.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptuserobject.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewframe.cpp" />
+    <ClCompile Include="..\..\Engine\ac\event.cpp" />
+    <ClCompile Include="..\..\Engine\ac\file.cpp" />
+    <ClCompile Include="..\..\Engine\ac\game.cpp" />
+    <ClCompile Include="..\..\Engine\ac\gamesetup.cpp" />
+    <ClCompile Include="..\..\Engine\ac\gamestate.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_api.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_audio.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_button.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_character.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_datetime.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_debug.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_dialog.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_display.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_drawingsurface.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_dynamicsprite.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_file.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_game.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_gui.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_hotspot.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_inventoryitem.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_invwindow.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_label.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_listbox.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_mouse.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_object.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_overlay.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_palette.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_parser.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_record.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_region.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_room.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_screen.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_slider.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_string.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_textbox.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_timer.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_translation.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_video.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_viewframe.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_viewport.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_walkablearea.cpp" />
+    <ClCompile Include="..\..\Engine\ac\global_walkbehind.cpp" />
+    <ClCompile Include="..\..\Engine\ac\gui.cpp" />
+    <ClCompile Include="..\..\Engine\ac\guicontrol.cpp" />
+    <ClCompile Include="..\..\Engine\ac\guiinv.cpp" />
+    <ClCompile Include="..\..\Engine\ac\hotspot.cpp" />
+    <ClCompile Include="..\..\Engine\ac\interfacebutton.cpp" />
+    <ClCompile Include="..\..\Engine\ac\interfaceelement.cpp" />
+    <ClCompile Include="..\..\Engine\ac\inventoryitem.cpp" />
+    <ClCompile Include="..\..\Engine\ac\invwindow.cpp" />
+    <ClCompile Include="..\..\Engine\ac\label.cpp" />
+    <ClCompile Include="..\..\Engine\ac\listbox.cpp" />
+    <ClCompile Include="..\..\Engine\ac\math.cpp" />
+    <ClCompile Include="..\..\Engine\ac\mouse.cpp" />
+    <ClCompile Include="..\..\Engine\ac\movelist.cpp" />
+    <ClCompile Include="..\..\Engine\ac\object.cpp" />
+    <ClCompile Include="..\..\Engine\ac\overlay.cpp" />
+    <ClCompile Include="..\..\Engine\ac\parser.cpp" />
+    <ClCompile Include="..\..\Engine\ac\path.cpp" />
+    <ClCompile Include="..\..\Engine\ac\properties.cpp" />
+    <ClCompile Include="..\..\Engine\ac\record.cpp" />
+    <ClCompile Include="..\..\Engine\ac\region.cpp" />
+    <ClCompile Include="..\..\Engine\ac\richgamemedia.cpp" />
+    <ClCompile Include="..\..\Engine\ac\room.cpp" />
+    <ClCompile Include="..\..\Engine\ac\roomobject.cpp" />
+    <ClCompile Include="..\..\Engine\ac\roomstatus.cpp" />
+    <ClCompile Include="..\..\Engine\ac\room_engine.cpp" />
+    <ClCompile Include="..\..\Engine\ac\route_finder.cpp" />
+    <ClCompile Include="..\..\Engine\ac\screen.cpp" />
+    <ClCompile Include="..\..\Engine\ac\screenoverlay.cpp" />
+    <ClCompile Include="..\..\Engine\ac\slider.cpp" />
+    <ClCompile Include="..\..\Engine\ac\speech.cpp" />
+    <ClCompile Include="..\..\Engine\ac\sprite.cpp" />
+    <ClCompile Include="..\..\Engine\ac\spritecache_engine.cpp" />
+    <ClCompile Include="..\..\Engine\ac\statobj\agsstaticobject.cpp" />
+    <ClCompile Include="..\..\Engine\ac\statobj\staticarray.cpp" />
+    <ClCompile Include="..\..\Engine\ac\string.cpp" />
+    <ClCompile Include="..\..\Engine\ac\system.cpp" />
+    <ClCompile Include="..\..\Engine\ac\textbox.cpp" />
+    <ClCompile Include="..\..\Engine\ac\timer.cpp" />
+    <ClCompile Include="..\..\Engine\ac\translation.cpp" />
+    <ClCompile Include="..\..\Engine\ac\tree_map.cpp" />
+    <ClCompile Include="..\..\Engine\ac\viewframe.cpp" />
+    <ClCompile Include="..\..\Engine\ac\viewport.cpp" />
+    <ClCompile Include="..\..\Engine\ac\walkablearea.cpp" />
+    <ClCompile Include="..\..\Engine\ac\walkbehind.cpp" />
+    <ClCompile Include="..\..\Engine\debug\consoleoutputtarget.cpp" />
+    <ClCompile Include="..\..\Engine\debug\debug.cpp" />
+    <ClCompile Include="..\..\Engine\debug\filebasedagsdebugger.cpp" />
+    <ClCompile Include="..\..\Engine\debug\logfile.cpp" />
+    <ClCompile Include="..\..\Engine\debug\messagebuffer.cpp" />
+    <ClCompile Include="..\..\Engine\device\mousew32.cpp" />
+    <ClCompile Include="..\..\Engine\font\fonts_engine.cpp" />
+    <ClCompile Include="..\..\Engine\game\game_init.cpp" />
+    <ClCompile Include="..\..\Engine\game\savegame.cpp" />
+    <ClCompile Include="..\..\Engine\gfx\ali3dogl.cpp" />
+    <ClCompile Include="..\..\Engine\gfx\ali3dsw.cpp" />
+    <ClCompile Include="..\..\Engine\gfx\blender.cpp" />
+    <ClCompile Include="..\..\Engine\gfx\color_engine.cpp" />
+    <ClCompile Include="..\..\Engine\gfx\gfxdriverbase.cpp" />
+    <ClCompile Include="..\..\Engine\gfx\gfxdriverfactory.cpp" />
+    <ClCompile Include="..\..\Engine\gfx\gfxfilter_aad3d.cpp" />
+    <ClCompile Include="..\..\Engine\gfx\gfxfilter_allegro.cpp" />
+    <ClCompile Include="..\..\Engine\gfx\gfxfilter_d3d.cpp" />
+    <ClCompile Include="..\..\Engine\gfx\gfxfilter_hqx.cpp" />
+    <ClCompile Include="..\..\Engine\gfx\gfxfilter_ogl.cpp" />
+    <ClCompile Include="..\..\Engine\gfx\gfxfilter_scaling.cpp" />
+    <ClCompile Include="..\..\Engine\gfx\gfx_util.cpp" />
+    <ClCompile Include="..\..\Engine\gui\animatingguibutton.cpp" />
+    <ClCompile Include="..\..\Engine\gui\cscidialog.cpp" />
+    <ClCompile Include="..\..\Engine\gui\guidialog.cpp" />
+    <ClCompile Include="..\..\Engine\gui\gui_engine.cpp" />
+    <ClCompile Include="..\..\Engine\gui\mylabel.cpp" />
+    <ClCompile Include="..\..\Engine\gui\mylistbox.cpp" />
+    <ClCompile Include="..\..\Engine\gui\mypushbutton.cpp" />
+    <ClCompile Include="..\..\Engine\gui\mytextbox.cpp" />
+    <ClCompile Include="..\..\Engine\gui\newcontrol.cpp" />
+    <ClCompile Include="..\..\Engine\libsrc\allegro-4.2.2-agspatch\midi.c" />
+    <ClCompile Include="..\..\Engine\libsrc\almp3-2.0.5\decoder\common.c" />
+    <ClCompile Include="..\..\Engine\libsrc\almp3-2.0.5\decoder\dct64_i386.c" />
+    <ClCompile Include="..\..\Engine\libsrc\almp3-2.0.5\decoder\decode_i386.c" />
+    <ClCompile Include="..\..\Engine\libsrc\almp3-2.0.5\decoder\interface.c" />
+    <ClCompile Include="..\..\Engine\libsrc\almp3-2.0.5\decoder\layer2.c" />
+    <ClCompile Include="..\..\Engine\libsrc\almp3-2.0.5\decoder\layer3.c" />
+    <ClCompile Include="..\..\Engine\libsrc\almp3-2.0.5\decoder\tabinit.c" />
+    <ClCompile Include="..\..\Engine\libsrc\almp3\almp3.c" />
+    <ClCompile Include="..\..\Engine\libsrc\alogg\alogg.c" />
+    <ClCompile Include="..\..\Engine\libsrc\apeg-1.2.1\adisplay.c" />
+    <ClCompile Include="..\..\Engine\libsrc\apeg-1.2.1\audio\aaudio.c" />
+    <ClCompile Include="..\..\Engine\libsrc\apeg-1.2.1\audio\mpg123.c" />
+    <ClCompile Include="..\..\Engine\libsrc\apeg-1.2.1\getbits.c" />
+    <ClCompile Include="..\..\Engine\libsrc\apeg-1.2.1\getblk.c" />
+    <ClCompile Include="..\..\Engine\libsrc\apeg-1.2.1\gethdr.c" />
+    <ClCompile Include="..\..\Engine\libsrc\apeg-1.2.1\getpic.c" />
+    <ClCompile Include="..\..\Engine\libsrc\apeg-1.2.1\idct.c" />
+    <ClCompile Include="..\..\Engine\libsrc\apeg-1.2.1\motion.c" />
+    <ClCompile Include="..\..\Engine\libsrc\apeg-1.2.1\mpeg1dec.c" />
+    <ClCompile Include="..\..\Engine\libsrc\apeg-1.2.1\ogg.c" />
+    <ClCompile Include="..\..\Engine\libsrc\apeg-1.2.1\recon.c" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\ALLEGRO\ALPLAY.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\ALLEGRO\DATDUH.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\ALLEGRO\DATIT.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\ALLEGRO\DATMOD.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\ALLEGRO\DATS3M.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\ALLEGRO\DATUNLD.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\ALLEGRO\DATXM.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\ALLEGRO\PACKFILE.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\CORE\ATEXIT.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\CORE\DUHLEN.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\CORE\DUMBFILE.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\CORE\LOADDUH.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\CORE\MAKEDUH.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\CORE\RAWSIG.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\CORE\READDUH.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\CORE\REGISTER.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\CORE\RENDDUH.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\CORE\RENDSIG.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\CORE\UNLOAD.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\HELPERS\CLICKREM.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\HELPERS\MEMFILE.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\HELPERS\RESAMPLE.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\HELPERS\SAMPBUF.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\HELPERS\SILENCE.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\HELPERS\STDFILE.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\ITLOAD.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\ITMISC.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\ITORDER.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\ITREAD.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\ITRENDER.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\ITUNLOAD.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\LOADMOD.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\LOADS3M.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\LOADXM.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\READMOD.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\READS3M.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\READXM.C" />
+    <ClCompile Include="..\..\Engine\libsrc\dumb-0.9.2\IT\XMEFFECT.C" />
+    <ClCompile Include="..\..\Engine\libsrc\hq2x\hq2x3x.cpp" />
+    <ClCompile Include="..\..\Engine\libsrc\libcda-0.5\windows.c" />
+    <ClCompile Include="..\..\Engine\main\config.cpp" />
+    <ClCompile Include="..\..\Engine\main\engine.cpp" />
+    <ClCompile Include="..\..\Engine\main\engine_setup.cpp" />
+    <ClCompile Include="..\..\Engine\main\game_file.cpp" />
+    <ClCompile Include="..\..\Engine\main\game_run.cpp" />
+    <ClCompile Include="..\..\Engine\main\game_start.cpp" />
+    <ClCompile Include="..\..\Engine\main\graphics_mode.cpp" />
+    <ClCompile Include="..\..\Engine\main\main.cpp" />
+    <ClCompile Include="..\..\Engine\main\minidump.cpp" />
+    <ClCompile Include="..\..\Engine\main\quit.cpp" />
+    <ClCompile Include="..\..\Engine\main\update.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\ambientsound.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\audio.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\clip_mydumbmod.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\clip_myjgmod.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\clip_mymidi.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\clip_mymp3.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\clip_myogg.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\clip_mystaticmp3.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\clip_mystaticogg.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\clip_mywave.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\queuedaudioitem.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\sound.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\soundcache.cpp" />
+    <ClCompile Include="..\..\Engine\media\audio\soundclip.cpp" />
+    <ClCompile Include="..\..\Engine\media\video\video.cpp" />
+    <ClCompile Include="..\..\Engine\platform\base\agsplatformdriver.cpp" />
+    <ClCompile Include="..\..\Engine\platform\windows\acplwin.cpp" />
+    <ClCompile Include="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.cpp" />
+    <ClCompile Include="..\..\Engine\platform\windows\gfx\ali3dd3d.cpp" />
+    <ClCompile Include="..\..\Engine\platform\windows\media\video\acwavi.cpp" />
+    <ClCompile Include="..\..\Engine\platform\windows\media\video\acwavi3d.cpp" />
+    <ClCompile Include="..\..\Engine\platform\windows\setup\winsetup.cpp" />
+    <ClCompile Include="..\..\Engine\plugin\agsplugin.cpp" />
+    <ClCompile Include="..\..\Engine\plugin\global_plugin.cpp" />
+    <ClCompile Include="..\..\Engine\plugin\pluginobjectreader.cpp" />
+    <ClCompile Include="..\..\Engine\script\cc_instance.cpp" />
+    <ClCompile Include="..\..\Engine\script\executingscript.cpp" />
+    <ClCompile Include="..\..\Engine\script\exports.cpp" />
+    <ClCompile Include="..\..\Engine\script\runtimescriptvalue.cpp" />
+    <ClCompile Include="..\..\Engine\script\script.cpp" />
+    <ClCompile Include="..\..\Engine\script\script_api.cpp" />
+    <ClCompile Include="..\..\Engine\script\script_engine.cpp" />
+    <ClCompile Include="..\..\Engine\script\script_runtime.cpp" />
+    <ClCompile Include="..\..\Engine\script\systemimports.cpp" />
+    <ClCompile Include="..\..\Engine\test\test_all.cpp" />
+    <ClCompile Include="..\..\Engine\test\test_file.cpp" />
+    <ClCompile Include="..\..\Engine\test\test_gfx.cpp" />
+    <ClCompile Include="..\..\Engine\test\test_inifile.cpp" />
+    <ClCompile Include="..\..\Engine\test\test_math.cpp" />
+    <ClCompile Include="..\..\Engine\test\test_memory.cpp" />
+    <ClCompile Include="..\..\Engine\test\test_sprintf.cpp" />
+    <ClCompile Include="..\..\Engine\test\test_string.cpp" />
+    <ClCompile Include="..\..\Engine\test\test_version.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Common\ac\animationstruct.h" />
+    <ClInclude Include="..\..\Common\ac\audiocliptype.h" />
+    <ClInclude Include="..\..\Common\ac\characterinfo.h" />
+    <ClInclude Include="..\..\Common\ac\common.h" />
+    <ClInclude Include="..\..\Common\ac\common_defines.h" />
+    <ClInclude Include="..\..\Common\ac\customproperties.h" />
+    <ClInclude Include="..\..\Common\ac\dialogtopic.h" />
+    <ClInclude Include="..\..\Common\ac\dynobj\scriptaudioclip.h" />
+    <ClInclude Include="..\..\Common\ac\gamesetupstruct.h" />
+    <ClInclude Include="..\..\Common\ac\gamesetupstructbase.h" />
+    <ClInclude Include="..\..\Common\ac\gamestructdefines.h" />
+    <ClInclude Include="..\..\Common\ac\interaction.h" />
+    <ClInclude Include="..\..\Common\ac\interfacebutton.h" />
+    <ClInclude Include="..\..\Common\ac\interfaceelement.h" />
+    <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h" />
+    <ClInclude Include="..\..\Common\ac\messageinfo.h" />
+    <ClInclude Include="..\..\Common\ac\mousecursor.h" />
+    <ClInclude Include="..\..\Common\ac\oldgamesetupstruct.h" />
+    <ClInclude Include="..\..\Common\ac\point.h" />
+    <ClInclude Include="..\..\Common\ac\roomstruct.h" />
+    <ClInclude Include="..\..\Common\ac\spritecache.h" />
+    <ClInclude Include="..\..\Common\ac\view.h" />
+    <ClInclude Include="..\..\Common\ac\wordsdictionary.h" />
+    <ClInclude Include="..\..\Common\script\cc_error.h" />
+    <ClInclude Include="..\..\Common\script\cc_instance.h" />
+    <ClInclude Include="..\..\Common\script\cc_options.h" />
+    <ClInclude Include="..\..\Common\script\cc_script.h" />
+    <ClInclude Include="..\..\Common\script\cc_treemap.h" />
+    <ClInclude Include="..\..\Common\script\script_common.h" />
+    <ClInclude Include="..\..\Common\util\compress.h" />
+    <ClInclude Include="..\..\Common\util\lzw.h" />
+    <ClInclude Include="..\..\Common\util\misc.h" />
+    <ClInclude Include="..\..\Common\util\string_utils.h" />
+    <ClInclude Include="..\..\Common\util\wgt2allg.h" />
+    <ClInclude Include="..\..\Engine\ac\asset_helper.h" />
+    <ClInclude Include="..\..\Engine\ac\audiochannel.h" />
+    <ClInclude Include="..\..\Engine\ac\audioclip.h" />
+    <ClInclude Include="..\..\Engine\ac\button.h" />
+    <ClInclude Include="..\..\Engine\ac\cdaudio.h" />
+    <ClInclude Include="..\..\Engine\ac\character.h" />
+    <ClInclude Include="..\..\Engine\ac\charactercache.h" />
+    <ClInclude Include="..\..\Engine\ac\characterextras.h" />
+    <ClInclude Include="..\..\Engine\ac\datetime.h" />
+    <ClInclude Include="..\..\Engine\ac\dialog.h" />
+    <ClInclude Include="..\..\Engine\ac\dialogoptionsrendering.h" />
+    <ClInclude Include="..\..\Engine\ac\display.h" />
+    <ClInclude Include="..\..\Engine\ac\draw.h" />
+    <ClInclude Include="..\..\Engine\ac\drawingsurface.h" />
+    <ClInclude Include="..\..\Engine\ac\dynamicsprite.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\all_dynamicclasses.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\all_scriptclasses.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_agsdynamicobject.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_audiochannel.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_audioclip.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_character.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_dialog.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicarray.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicobject.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_gui.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_guiobject.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_hotspot.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_inventory.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_object.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_region.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_serializer.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\managedobjectpool.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptaudiochannel.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptdatetime.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptdialog.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptdialogoptionsrendering.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptdrawingsurface.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptdynamicsprite.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptfile.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptgui.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scripthotspot.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptinvitem.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptmouse.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptobject.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptoverlay.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptregion.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptstring.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptsystem.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptuserobject.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptviewframe.h" />
+    <ClInclude Include="..\..\Engine\ac\event.h" />
+    <ClInclude Include="..\..\Engine\ac\file.h" />
+    <ClInclude Include="..\..\Engine\ac\game.h" />
+    <ClInclude Include="..\..\Engine\ac\gamesetup.h" />
+    <ClInclude Include="..\..\Engine\ac\gamestate.h" />
+    <ClInclude Include="..\..\Engine\ac\global_audio.h" />
+    <ClInclude Include="..\..\Engine\ac\global_button.h" />
+    <ClInclude Include="..\..\Engine\ac\global_character.h" />
+    <ClInclude Include="..\..\Engine\ac\global_datetime.h" />
+    <ClInclude Include="..\..\Engine\ac\global_debug.h" />
+    <ClInclude Include="..\..\Engine\ac\global_dialog.h" />
+    <ClInclude Include="..\..\Engine\ac\global_display.h" />
+    <ClInclude Include="..\..\Engine\ac\global_drawingsurface.h" />
+    <ClInclude Include="..\..\Engine\ac\global_dynamicsprite.h" />
+    <ClInclude Include="..\..\Engine\ac\global_file.h" />
+    <ClInclude Include="..\..\Engine\ac\global_game.h" />
+    <ClInclude Include="..\..\Engine\ac\global_gui.h" />
+    <ClInclude Include="..\..\Engine\ac\global_hotspot.h" />
+    <ClInclude Include="..\..\Engine\ac\global_inventoryitem.h" />
+    <ClInclude Include="..\..\Engine\ac\global_invwindow.h" />
+    <ClInclude Include="..\..\Engine\ac\global_label.h" />
+    <ClInclude Include="..\..\Engine\ac\global_listbox.h" />
+    <ClInclude Include="..\..\Engine\ac\global_mouse.h" />
+    <ClInclude Include="..\..\Engine\ac\global_object.h" />
+    <ClInclude Include="..\..\Engine\ac\global_overlay.h" />
+    <ClInclude Include="..\..\Engine\ac\global_palette.h" />
+    <ClInclude Include="..\..\Engine\ac\global_parser.h" />
+    <ClInclude Include="..\..\Engine\ac\global_plugin.h" />
+    <ClInclude Include="..\..\Engine\ac\global_record.h" />
+    <ClInclude Include="..\..\Engine\ac\global_region.h" />
+    <ClInclude Include="..\..\Engine\ac\global_room.h" />
+    <ClInclude Include="..\..\Engine\ac\global_screen.h" />
+    <ClInclude Include="..\..\Engine\ac\global_slider.h" />
+    <ClInclude Include="..\..\Engine\ac\global_string.h" />
+    <ClInclude Include="..\..\Engine\ac\global_textbox.h" />
+    <ClInclude Include="..\..\Engine\ac\global_timer.h" />
+    <ClInclude Include="..\..\Engine\ac\global_translation.h" />
+    <ClInclude Include="..\..\Engine\ac\global_video.h" />
+    <ClInclude Include="..\..\Engine\ac\global_viewframe.h" />
+    <ClInclude Include="..\..\Engine\ac\global_viewport.h" />
+    <ClInclude Include="..\..\Engine\ac\global_walkablearea.h" />
+    <ClInclude Include="..\..\Engine\ac\global_walkbehind.h" />
+    <ClInclude Include="..\..\Engine\ac\gui.h" />
+    <ClInclude Include="..\..\Engine\ac\guicontrol.h" />
+    <ClInclude Include="..\..\Engine\ac\hotspot.h" />
+    <ClInclude Include="..\..\Engine\ac\inventoryitem.h" />
+    <ClInclude Include="..\..\Engine\ac\invwindow.h" />
+    <ClInclude Include="..\..\Engine\ac\keycode.h" />
+    <ClInclude Include="..\..\Engine\ac\label.h" />
+    <ClInclude Include="..\..\Engine\ac\lipsync.h" />
+    <ClInclude Include="..\..\Engine\ac\listbox.h" />
+    <ClInclude Include="..\..\Engine\ac\math.h" />
+    <ClInclude Include="..\..\Engine\ac\mouse.h" />
+    <ClInclude Include="..\..\Engine\ac\movelist.h" />
+    <ClInclude Include="..\..\Engine\ac\object.h" />
+    <ClInclude Include="..\..\Engine\ac\objectcache.h" />
+    <ClInclude Include="..\..\Engine\ac\overlay.h" />
+    <ClInclude Include="..\..\Engine\ac\parser.h" />
+    <ClInclude Include="..\..\Engine\ac\path.h" />
+    <ClInclude Include="..\..\Engine\ac\path_helper.h" />
+    <ClInclude Include="..\..\Engine\ac\properties.h" />
+    <ClInclude Include="..\..\Engine\ac\record.h" />
+    <ClInclude Include="..\..\Engine\ac\region.h" />
+    <ClInclude Include="..\..\Engine\ac\richgamemedia.h" />
+    <ClInclude Include="..\..\Engine\ac\room.h" />
+    <ClInclude Include="..\..\Engine\ac\roomobject.h" />
+    <ClInclude Include="..\..\Engine\ac\roomstatus.h" />
+    <ClInclude Include="..\..\Engine\ac\route_finder.h" />
+    <ClInclude Include="..\..\Engine\ac\runtime_defines.h" />
+    <ClInclude Include="..\..\Engine\ac\screen.h" />
+    <ClInclude Include="..\..\Engine\ac\screenoverlay.h" />
+    <ClInclude Include="..\..\Engine\ac\slider.h" />
+    <ClInclude Include="..\..\Engine\ac\speech.h" />
+    <ClInclude Include="..\..\Engine\ac\sprite.h" />
+    <ClInclude Include="..\..\Engine\ac\spritelistentry.h" />
+    <ClInclude Include="..\..\Engine\ac\statobj\agsstaticobject.h" />
+    <ClInclude Include="..\..\Engine\ac\statobj\staticarray.h" />
+    <ClInclude Include="..\..\Engine\ac\statobj\staticobject.h" />
+    <ClInclude Include="..\..\Engine\ac\string.h" />
+    <ClInclude Include="..\..\Engine\ac\system.h" />
+    <ClInclude Include="..\..\Engine\ac\textbox.h" />
+    <ClInclude Include="..\..\Engine\ac\timer.h" />
+    <ClInclude Include="..\..\Engine\ac\topbarsettings.h" />
+    <ClInclude Include="..\..\Engine\ac\translation.h" />
+    <ClInclude Include="..\..\Engine\ac\tree_map.h" />
+    <ClInclude Include="..\..\Engine\ac\viewframe.h" />
+    <ClInclude Include="..\..\Engine\ac\viewport.h" />
+    <ClInclude Include="..\..\Engine\ac\walkablearea.h" />
+    <ClInclude Include="..\..\Engine\ac\walkbehind.h" />
+    <ClInclude Include="..\..\Engine\debug\agseditordebugger.h" />
+    <ClInclude Include="..\..\Engine\debug\consoleoutputtarget.h" />
+    <ClInclude Include="..\..\Engine\debug\debugger.h" />
+    <ClInclude Include="..\..\Engine\debug\debug_log.h" />
+    <ClInclude Include="..\..\Engine\debug\dummyagsdebugger.h" />
+    <ClInclude Include="..\..\Engine\debug\filebasedagsdebugger.h" />
+    <ClInclude Include="..\..\Engine\debug\logfile.h" />
+    <ClInclude Include="..\..\Engine\debug\messagebuffer.h" />
+    <ClInclude Include="..\..\Engine\device\mousew32.h" />
+    <ClInclude Include="..\..\Engine\game\game_init.h" />
+    <ClInclude Include="..\..\Engine\game\savegame.h" />
+    <ClInclude Include="..\..\Engine\game\savegame_internal.h" />
+    <ClInclude Include="..\..\Engine\gfx\ali3dexception.h" />
+    <ClInclude Include="..\..\Engine\gfx\ali3dogl.h" />
+    <ClInclude Include="..\..\Engine\gfx\ali3dsw.h" />
+    <ClInclude Include="..\..\Engine\gfx\blender.h" />
+    <ClInclude Include="..\..\Engine\gfx\ddb.h" />
+    <ClInclude Include="..\..\Engine\gfx\gfxdefines.h" />
+    <ClInclude Include="..\..\Engine\gfx\gfxdriverbase.h" />
+    <ClInclude Include="..\..\Engine\gfx\gfxdriverfactory.h" />
+    <ClInclude Include="..\..\Engine\gfx\gfxdriverfactorybase.h" />
+    <ClInclude Include="..\..\Engine\gfx\gfxfilter.h" />
+    <ClInclude Include="..\..\Engine\gfx\gfxfilter_aad3d.h" />
+    <ClInclude Include="..\..\Engine\gfx\gfxfilter_allegro.h" />
+    <ClInclude Include="..\..\Engine\gfx\gfxfilter_d3d.h" />
+    <ClInclude Include="..\..\Engine\gfx\gfxfilter_hqx.h" />
+    <ClInclude Include="..\..\Engine\gfx\gfxfilter_ogl.h" />
+    <ClInclude Include="..\..\Engine\gfx\gfxfilter_scaling.h" />
+    <ClInclude Include="..\..\Engine\gfx\gfxmodelist.h" />
+    <ClInclude Include="..\..\Engine\gfx\gfx_util.h" />
+    <ClInclude Include="..\..\Engine\gfx\graphicsdriver.h" />
+    <ClInclude Include="..\..\Engine\gfx\hq2x3x.h" />
+    <ClInclude Include="..\..\Engine\gui\animatingguibutton.h" />
+    <ClInclude Include="..\..\Engine\gui\cscidialog.h" />
+    <ClInclude Include="..\..\Engine\gui\gui.h" />
+    <ClInclude Include="..\..\Engine\gui\guidialog.h" />
+    <ClInclude Include="..\..\Engine\gui\guidialogdefines.h" />
+    <ClInclude Include="..\..\Engine\gui\guidialoginternaldefs.h" />
+    <ClInclude Include="..\..\Engine\gui\mycontrols.h" />
+    <ClInclude Include="..\..\Engine\gui\mylabel.h" />
+    <ClInclude Include="..\..\Engine\gui\mylistbox.h" />
+    <ClInclude Include="..\..\Engine\gui\mypushbutton.h" />
+    <ClInclude Include="..\..\Engine\gui\mytextbox.h" />
+    <ClInclude Include="..\..\Engine\gui\newcontrol.h" />
+    <ClInclude Include="..\..\Engine\main\config.h" />
+    <ClInclude Include="..\..\Engine\main\engine.h" />
+    <ClInclude Include="..\..\Engine\main\engine_setup.h" />
+    <ClInclude Include="..\..\Engine\main\game_file.h" />
+    <ClInclude Include="..\..\Engine\main\game_run.h" />
+    <ClInclude Include="..\..\Engine\main\game_start.h" />
+    <ClInclude Include="..\..\Engine\main\graphics_mode.h" />
+    <ClInclude Include="..\..\Engine\main\main.h" />
+    <ClInclude Include="..\..\Engine\main\maindefines_ex.h" />
+    <ClInclude Include="..\..\Engine\main\mainheader.h" />
+    <ClInclude Include="..\..\Engine\main\main_allegro.h" />
+    <ClInclude Include="..\..\Engine\main\quit.h" />
+    <ClInclude Include="..\..\Engine\main\update.h" />
+    <ClInclude Include="..\..\Engine\media\audio\ambientsound.h" />
+    <ClInclude Include="..\..\Engine\media\audio\audio.h" />
+    <ClInclude Include="..\..\Engine\media\audio\audiodefines.h" />
+    <ClInclude Include="..\..\Engine\media\audio\audiointernaldefs.h" />
+    <ClInclude Include="..\..\Engine\media\audio\clip_mydumbmod.h" />
+    <ClInclude Include="..\..\Engine\media\audio\clip_myjgmod.h" />
+    <ClInclude Include="..\..\Engine\media\audio\clip_mymidi.h" />
+    <ClInclude Include="..\..\Engine\media\audio\clip_mymp3.h" />
+    <ClInclude Include="..\..\Engine\media\audio\clip_myogg.h" />
+    <ClInclude Include="..\..\Engine\media\audio\clip_mystaticmp3.h" />
+    <ClInclude Include="..\..\Engine\media\audio\clip_mystaticogg.h" />
+    <ClInclude Include="..\..\Engine\media\audio\clip_mywave.h" />
+    <ClInclude Include="..\..\Engine\media\audio\queuedaudioitem.h" />
+    <ClInclude Include="..\..\Engine\media\audio\sound.h" />
+    <ClInclude Include="..\..\Engine\media\audio\soundcache.h" />
+    <ClInclude Include="..\..\Engine\media\audio\soundclip.h" />
+    <ClInclude Include="..\..\Engine\media\video\video.h" />
+    <ClInclude Include="..\..\Engine\media\video\VMR9Graph.h" />
+    <ClInclude Include="..\..\Engine\platform\base\agsplatformdriver.h" />
+    <ClInclude Include="..\..\Engine\platform\base\override_defines.h" />
+    <ClInclude Include="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.h" />
+    <ClInclude Include="..\..\Engine\platform\windows\gfx\ali3dd3d.h" />
+    <ClInclude Include="..\..\Engine\platform\windows\setup\winsetup.h" />
+    <ClInclude Include="..\..\Engine\plugin\agsplugin.h" />
+    <ClInclude Include="..\..\Engine\plugin\pluginobjectreader.h" />
+    <ClInclude Include="..\..\Engine\plugin\plugin_engine.h" />
+    <ClInclude Include="..\..\Engine\resource\resource.h" />
+    <ClInclude Include="..\..\Engine\script\cc_instance.h" />
+    <ClInclude Include="..\..\Engine\script\executingscript.h" />
+    <ClInclude Include="..\..\Engine\script\exports.h" />
+    <ClInclude Include="..\..\Engine\script\nonblockingscriptfunction.h" />
+    <ClInclude Include="..\..\Engine\script\runtimescriptvalue.h" />
+    <ClInclude Include="..\..\Engine\script\script.h" />
+    <ClInclude Include="..\..\Engine\script\script_api.h" />
+    <ClInclude Include="..\..\Engine\script\script_runtime.h" />
+    <ClInclude Include="..\..\Engine\script\systemimports.h" />
+    <ClInclude Include="..\..\Engine\test\test_all.h" />
+    <ClInclude Include="..\..\Engine\util\library.h" />
+    <ClInclude Include="..\..\Engine\util\library_windows.h" />
+    <ClInclude Include="..\..\Engine\util\mutex.h" />
+    <ClInclude Include="..\..\Engine\util\mutex_base.h" />
+    <ClInclude Include="..\..\Engine\util\mutex_psp.h" />
+    <ClInclude Include="..\..\Engine\util\mutex_pthread.h" />
+    <ClInclude Include="..\..\Engine\util\mutex_wii.h" />
+    <ClInclude Include="..\..\Engine\util\mutex_windows.h" />
+    <ClInclude Include="..\..\Engine\util\scaling.h" />
+    <ClInclude Include="..\..\Engine\util\thread.h" />
+    <ClInclude Include="..\..\Engine\util\thread_psp.h" />
+    <ClInclude Include="..\..\Engine\util\thread_pthread.h" />
+    <ClInclude Include="..\..\Engine\util\thread_windows.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\Engine\resource\DefaultGDF.gdf.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\Engine\resource\game-1.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Engine\resource\tintshader.fxo" />
+    <None Include="..\..\Engine\resource\tintshaderLegacy.fxo" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\Engine\resource\version.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

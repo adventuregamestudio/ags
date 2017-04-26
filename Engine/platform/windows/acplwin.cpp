@@ -52,9 +52,7 @@ extern Bitmap *virtual_screen;
 #include <shlobj.h>
 #include <time.h>
 #include <shlwapi.h>
-#ifdef VS2005
 #include <rpcsal.h>
-#endif
 #include <gameux.h>
 
 #include <libcda.h>
@@ -861,9 +859,6 @@ void AGSWin32::ShutdownCDPlayer() {
 }
 
 extern "C" const unsigned char hw_to_mycode[256];
-#ifndef VS2005
-#define MAPVK_VK_TO_VSC 0
-#endif
 
 int AGSWin32::ConvertKeycodeToScanCode(int keycode)
 {

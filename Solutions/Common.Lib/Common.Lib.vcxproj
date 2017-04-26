@@ -1,0 +1,365 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug_MD|Win32">
+      <Configuration>Debug_MD</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_MD|Win32">
+      <Configuration>Release_MD</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_NoMP3|Win32">
+      <Configuration>Release_NoMP3</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{463A715C-3EF3-47C7-AC7F-D97660149C49}</ProjectGuid>
+    <RootNamespace>CommonLib</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_MD|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_MD|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_NoMP3|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_MD|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release_MD|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release_NoMP3|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>14.0.25431.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)\.lib\$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <TargetName>Common_d</TargetName>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules />
+    <CodeAnalysisRuleAssemblies />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)\.lib\$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <TargetName>Common</TargetName>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules />
+    <CodeAnalysisRuleAssemblies />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_NoMP3|Win32'">
+    <OutDir>$(SolutionDir)\.lib\$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <TargetName>Common</TargetName>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules />
+    <CodeAnalysisRuleAssemblies />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_MD|Win32'">
+    <OutDir>$(SolutionDir)\.lib\$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <TargetName>Common_md</TargetName>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules />
+    <CodeAnalysisRuleAssemblies />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_MD|Win32'">
+    <OutDir>$(SolutionDir)\.lib\$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <TargetName>Common_md_d</TargetName>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules />
+    <CodeAnalysisRuleAssemblies />
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_NoMP3|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;NO_MP3_PLAYER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_MD|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_MD|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Common\ac\audiocliptype.cpp" />
+    <ClCompile Include="..\..\Common\ac\characterinfo.cpp" />
+    <ClCompile Include="..\..\Common\ac\common.cpp" />
+    <ClCompile Include="..\..\Common\ac\dialogtopic.cpp" />
+    <ClCompile Include="..\..\Common\ac\dynobj\scriptaudioclip.cpp" />
+    <ClCompile Include="..\..\Common\ac\gamesetupstruct.cpp" />
+    <ClCompile Include="..\..\Common\ac\gamesetupstructbase.cpp" />
+    <ClCompile Include="..\..\Common\ac\inventoryiteminfo.cpp" />
+    <ClCompile Include="..\..\Common\ac\messageinfo.cpp" />
+    <ClCompile Include="..\..\Common\ac\mousecursor.cpp" />
+    <ClCompile Include="..\..\Common\ac\point.cpp" />
+    <ClCompile Include="..\..\Common\ac\roomstruct.cpp" />
+    <ClCompile Include="..\..\Common\ac\spritecache.cpp" />
+    <ClCompile Include="..\..\Common\ac\view.cpp" />
+    <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp" />
+    <ClCompile Include="..\..\Common\core\asset.cpp" />
+    <ClCompile Include="..\..\Common\core\assetmanager.cpp" />
+    <ClCompile Include="..\..\Common\debug\debugmanager.cpp" />
+    <ClCompile Include="..\..\Common\font\fonts.cpp" />
+    <ClCompile Include="..\..\Common\font\ttffontrenderer.cpp" />
+    <ClCompile Include="..\..\Common\font\wfnfont.cpp" />
+    <ClCompile Include="..\..\Common\font\wfnfontrenderer.cpp" />
+    <ClCompile Include="..\..\Common\game\customproperties.cpp" />
+    <ClCompile Include="..\..\Common\game\interactions.cpp" />
+    <ClCompile Include="..\..\Common\game\main_game_file.cpp" />
+    <ClCompile Include="..\..\Common\gfx\allegrobitmap.cpp" />
+    <ClCompile Include="..\..\Common\gfx\bitmap.cpp" />
+    <ClCompile Include="..\..\Common\gui\guibutton.cpp" />
+    <ClCompile Include="..\..\Common\gui\guiinv.cpp" />
+    <ClCompile Include="..\..\Common\gui\guilabel.cpp" />
+    <ClCompile Include="..\..\Common\gui\guilistbox.cpp" />
+    <ClCompile Include="..\..\Common\gui\guimain.cpp" />
+    <ClCompile Include="..\..\Common\gui\guiobject.cpp" />
+    <ClCompile Include="..\..\Common\gui\guislider.cpp" />
+    <ClCompile Include="..\..\Common\gui\guitextbox.cpp" />
+    <ClCompile Include="..\..\Common\libsrc\aastr-0.1.1\aastr.c" />
+    <ClCompile Include="..\..\Common\libsrc\aastr-0.1.1\aautil.c" />
+    <ClCompile Include="..\..\Common\script\cc_error.cpp" />
+    <ClCompile Include="..\..\Common\script\cc_options.cpp" />
+    <ClCompile Include="..\..\Common\script\cc_script.cpp" />
+    <ClCompile Include="..\..\Common\script\cc_treemap.cpp" />
+    <ClCompile Include="..\..\Common\script\script_common.cpp" />
+    <ClCompile Include="..\..\Common\util\alignedstream.cpp" />
+    <ClCompile Include="..\..\Common\util\compress.cpp" />
+    <ClCompile Include="..\..\Common\util\datastream.cpp" />
+    <ClCompile Include="..\..\Common\util\directory.cpp" />
+    <ClCompile Include="..\..\Common\util\file.cpp" />
+    <ClCompile Include="..\..\Common\util\filestream.cpp" />
+    <ClCompile Include="..\..\Common\util\geometry.cpp" />
+    <ClCompile Include="..\..\Common\util\inifile.cpp" />
+    <ClCompile Include="..\..\Common\util\ini_util.cpp" />
+    <ClCompile Include="..\..\Common\util\lzw.cpp" />
+    <ClCompile Include="..\..\Common\util\misc.cpp" />
+    <ClCompile Include="..\..\Common\util\mutifilelib.cpp" />
+    <ClCompile Include="..\..\Common\util\path.cpp" />
+    <ClCompile Include="..\..\Common\util\proxystream.cpp" />
+    <ClCompile Include="..\..\Common\util\stream.cpp" />
+    <ClCompile Include="..\..\Common\util\string.cpp" />
+    <ClCompile Include="..\..\Common\util\string_utils.cpp" />
+    <ClCompile Include="..\..\Common\util\textstreamreader.cpp" />
+    <ClCompile Include="..\..\Common\util\textstreamwriter.cpp" />
+    <ClCompile Include="..\..\Common\util\version.cpp" />
+    <ClCompile Include="..\..\Common\util\wgt2allg.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Common\ac\animationstruct.h" />
+    <ClInclude Include="..\..\Common\ac\audiocliptype.h" />
+    <ClInclude Include="..\..\Common\ac\characterinfo.h" />
+    <ClInclude Include="..\..\Common\ac\common.h" />
+    <ClInclude Include="..\..\Common\ac\common_defines.h" />
+    <ClInclude Include="..\..\Common\ac\dialogtopic.h" />
+    <ClInclude Include="..\..\Common\ac\dynobj\scriptaudioclip.h" />
+    <ClInclude Include="..\..\Common\ac\gamesetupstruct.h" />
+    <ClInclude Include="..\..\Common\ac\gamesetupstructbase.h" />
+    <ClInclude Include="..\..\Common\ac\gamestructdefines.h" />
+    <ClInclude Include="..\..\Common\ac\game_version.h" />
+    <ClInclude Include="..\..\Common\ac\interfacebutton.h" />
+    <ClInclude Include="..\..\Common\ac\interfaceelement.h" />
+    <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h" />
+    <ClInclude Include="..\..\Common\ac\messageinfo.h" />
+    <ClInclude Include="..\..\Common\ac\mousecursor.h" />
+    <ClInclude Include="..\..\Common\ac\oldgamesetupstruct.h" />
+    <ClInclude Include="..\..\Common\ac\point.h" />
+    <ClInclude Include="..\..\Common\ac\roomstruct.h" />
+    <ClInclude Include="..\..\Common\ac\spritecache.h" />
+    <ClInclude Include="..\..\Common\ac\view.h" />
+    <ClInclude Include="..\..\Common\ac\wordsdictionary.h" />
+    <ClInclude Include="..\..\Common\api\stream_api.h" />
+    <ClInclude Include="..\..\Common\core\asset.h" />
+    <ClInclude Include="..\..\Common\core\assetmanager.h" />
+    <ClInclude Include="..\..\Common\core\def_version.h" />
+    <ClInclude Include="..\..\Common\core\endianness.h" />
+    <ClInclude Include="..\..\Common\core\types.h" />
+    <ClInclude Include="..\..\Common\debug\assert.h" />
+    <ClInclude Include="..\..\Common\debug\debugmanager.h" />
+    <ClInclude Include="..\..\Common\debug\out.h" />
+    <ClInclude Include="..\..\Common\debug\outputhandler.h" />
+    <ClInclude Include="..\..\Common\font\agsfontrenderer.h" />
+    <ClInclude Include="..\..\Common\font\fonts.h" />
+    <ClInclude Include="..\..\Common\font\ttffontrenderer.h" />
+    <ClInclude Include="..\..\Common\font\wfnfont.h" />
+    <ClInclude Include="..\..\Common\font\wfnfontrenderer.h" />
+    <ClInclude Include="..\..\Common\game\customproperties.h" />
+    <ClInclude Include="..\..\Common\game\interactions.h" />
+    <ClInclude Include="..\..\Common\game\main_game_file.h" />
+    <ClInclude Include="..\..\Common\game\plugininfo.h" />
+    <ClInclude Include="..\..\Common\gfx\allegrobitmap.h" />
+    <ClInclude Include="..\..\Common\gfx\bitmap.h" />
+    <ClInclude Include="..\..\common\gfx\gfx_def.h" />
+    <ClInclude Include="..\..\Common\gui\guibutton.h" />
+    <ClInclude Include="..\..\Common\gui\guidefines.h" />
+    <ClInclude Include="..\..\Common\gui\guiinv.h" />
+    <ClInclude Include="..\..\Common\gui\guilabel.h" />
+    <ClInclude Include="..\..\Common\gui\guilistbox.h" />
+    <ClInclude Include="..\..\Common\gui\guimain.h" />
+    <ClInclude Include="..\..\Common\gui\guiobject.h" />
+    <ClInclude Include="..\..\Common\gui\guislider.h" />
+    <ClInclude Include="..\..\Common\gui\guitextbox.h" />
+    <ClInclude Include="..\..\Common\script\cc_error.h" />
+    <ClInclude Include="..\..\Common\script\cc_options.h" />
+    <ClInclude Include="..\..\Common\script\cc_script.h" />
+    <ClInclude Include="..\..\Common\script\cc_treemap.h" />
+    <ClInclude Include="..\..\Common\script\script_common.h" />
+    <ClInclude Include="..\..\Common\util\alignedstream.h" />
+    <ClInclude Include="..\..\Common\util\bbop.h" />
+    <ClInclude Include="..\..\Common\util\c99_snprintf.h" />
+    <ClInclude Include="..\..\Common\util\compress.h" />
+    <ClInclude Include="..\..\Common\util\datastream.h" />
+    <ClInclude Include="..\..\Common\util\directory.h" />
+    <ClInclude Include="..\..\Common\util\file.h" />
+    <ClInclude Include="..\..\Common\util\filestream.h" />
+    <ClInclude Include="..\..\Common\util\geometry.h" />
+    <ClInclude Include="..\..\Common\util\inifile.h" />
+    <ClInclude Include="..\..\Common\util\ini_util.h" />
+    <ClInclude Include="..\..\Common\util\lzw.h" />
+    <ClInclude Include="..\..\Common\util\math.h" />
+    <ClInclude Include="..\..\Common\util\memory.h" />
+    <ClInclude Include="..\..\Common\util\misc.h" />
+    <ClInclude Include="..\..\Common\util\multifilelib.h" />
+    <ClInclude Include="..\..\Common\util\path.h" />
+    <ClInclude Include="..\..\Common\util\proxystream.h" />
+    <ClInclude Include="..\..\Common\util\stdtr1compat.h" />
+    <ClInclude Include="..\..\Common\util\stream.h" />
+    <ClInclude Include="..\..\Common\util\string.h" />
+    <ClInclude Include="..\..\Common\util\string_types.h" />
+    <ClInclude Include="..\..\Common\util\string_utils.h" />
+    <ClInclude Include="..\..\Common\util\textreader.h" />
+    <ClInclude Include="..\..\Common\util\textstreamreader.h" />
+    <ClInclude Include="..\..\Common\util\textstreamwriter.h" />
+    <ClInclude Include="..\..\Common\util\textwriter.h" />
+    <ClInclude Include="..\..\Common\util\version.h" />
+    <ClInclude Include="..\..\Common\util\wgt2allg.h" />
+    <ClInclude Include="..\..\Engine\util\textfilestream.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

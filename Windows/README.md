@@ -3,7 +3,7 @@
 ## Build Requirements
 
 * In common:
-  * Microsoft Visual Studio 2008 SP1 or higher - currently the only supported IDE for making Engine and Editor, but in theory you may try other tools, using MSVS project for the reference.
+  * Microsoft Visual Studio 2015 (Community) or higher - currently the only supported IDE for making Engine and Editor, but in theory you may try other tools, using MSVS project for the reference.
 * To work with Engine code and Editor's full solution (see elaboration in related section):
   * Allegro 4.4.2 library *patched sources*: clone [our own Allegro repository](https://github.com/adventuregamestudio/lib-allegro.git) and checkout allegro-4.4.2-agspatch branch which already has necessary patch applied and MSVC projects created.
     * **OR**, alternatively, you may get original sources and patch yourself (look for instructions below): clone [official git repository](https://github.com/liballeg/allegro5)) and checkout 4.4.2 tag, ([download from sourceforge.net](https://sourceforge.net/projects/alleg/files/allegro/4.4.2/allegro-4.4.2.zip/download), or [download from gna.org](http://download.gna.org/allegro/allegro/4.4.2/allegro-4.4.2.zip).
@@ -15,6 +15,8 @@
   * libogg-1.1.3 or higher ([Download](https://www.xiph.org/downloads/))
   * libtheora-1.0 or higher ([Download](https://www.xiph.org/downloads/))
   * libvorbis-1.2.0 or higher ([Download](https://www.xiph.org/downloads/))
+* Specifically for the Editor:
+  * irrKlang assembly pack for .NET 4.0 ([Download](http://www.ambiera.at/downloads/irrKlang-32bit-1.5.0.zip)).
 * To make manual and/or Windows installer:
   * Python 2.7 with PyWin32 extension ([Download](http://www.activestate.com/activepython/downloads))
   * InnoSetup 5.5 ([Download](http://www.jrsoftware.org/isdl.php))
@@ -47,11 +49,13 @@ The reason for having both configurations is explained in the latter section bel
 
 ### DirectX
 
-DirectX is linked dynamically. You should not be building DirectX libraries, but using the reference libs and header files from DirectX SDK.
+DirectX is linked dynamically. You should not be building DirectX libraries, but using the reference libs from DirectX SDK.
+
+If you are building from MSVS 2015 or higher it is important to make sure that DirectX SDK headers path is mentioned **not before** Windows Kits headers path in the include locations list, otherwise you will get obscure compilation errors. It is possible to omit DirectX SDK headers path from the list of locations completely and let compiler use related headers from Windows Kits. You still need to link against DirectX SDK libs though.
 
 ### Allegro
 
-Our patched Allegro library branch has ready MSVC solution: you will find it in "build/VS2008" subdirectory.
+Our patched Allegro library branch has ready MSVC solution: you will find it in "build/VS2015" subdirectory.
 
 If you want to go all the way on your own and/or getting sources from official site, following is a brief information on creating one.
 
@@ -68,7 +72,7 @@ Static library built with /MD is expected to be named alleg-static.lib, and one 
 
 ### Alfont
 
-Alfont 1.9.1 sources already come with MSVC projects. The ones in our own fork are located in "build/VS2008" subdirectory and already have distinct configurations with /MD and /MT flags set appropriately.
+Alfont 1.9.1 sources already come with MSVC projects. The ones in our own fork are located in "build/VS2015" subdirectory and already have distinct configurations with /MD and /MT flags set appropriately.
 
 You need to build only static library project for AGS.
 
@@ -108,3 +112,5 @@ Build following libraries:
 Depending on the version of MSVS you are using you need to setup paths to compiled libraries and their headers either in IDE options (older) or project property pages (newer). Then build the solution.
 
 If you are working with AGS.Editor.NoNative solution, then you do not have to make any of C++ libraries at all, but you will have to get compatible compiled AGS.Native.dll somewhere. For starters we suggest taking one from the latest release of AGS.
+
+In either case you also need to download [irrKlang assembly pack](http://www.ambiera.at/downloads/irrKlang-32bit-1.5.0.zip) and put its contents into Editor/References subdirectory.

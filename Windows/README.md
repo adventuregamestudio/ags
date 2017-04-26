@@ -51,6 +51,10 @@ DirectX is linked dynamically. You should not be building DirectX libraries, but
 
 ### Allegro
 
+Our patched Allegro library branch has ready MSVC solution: you will find it in "build/VS2008" subdirectory.
+
+If you want to go all the way on your own and/or getting sources from official site, following is a brief information on creating one.
+
 Allegro 4.4 source provides CMake script for generating MSVC project files. We do not cover CMake tool here, please refer to official documentation: https://cmake.org/documentation/ .
 
 Before using CMake you need to create two enviroment variables (for your OS, not Visual Studio) called "INCLUDE" and "LIB", unless these already exist. Add path to DirectX SDK header files into "INCLUDE" variable and path to DirectX *.lib files into "LIB" variable.
@@ -60,17 +64,19 @@ Also make sure to uncheck SHARED option, for AGS is linking Allegro statically.
 
 If you are using patched sources from our Allegro fork, the MSVC_SHARED_CRT option will also be present. You need that option checked when building library with /MD flag for the Editor, and unchecked when building library with /MT option for the Engine (also see explanation in related section below). If you are using official Allegro source, then you'll have to modify generated projects by hand to setup this flag properly.
 
-Static library built with /MD is expected to be named alleg-static.lib, and one with /MT named alleg-static-mt.lib.
+Static library built with /MD is expected to be named alleg-static.lib, and one with /MT named alleg-static-mt.lib. Debug versions are to be named alleg-debug-static.lib with /MDd flag, and alleg-debug-static-mt.lib for /MTd.
 
 ### Alfont
 
-Alfont 1.9.1 sources already come with MSVC projects. The ones in our own fork are already set up to have distinct configuration with /MD and /MT compilation flags. You need to build only static library project for AGS.
+Alfont 1.9.1 sources already come with MSVC projects. The ones in our own fork are located in "build/VS2008" subdirectory and already have distinct configurations with /MD and /MT flags set appropriately.
 
-Static library built with /MD is expected to be named alfont_md.lib, and one with /MT named alfont_mt.lib.
+You need to build only static library project for AGS.
+
+Static library built with /MD is expected to be named alfont_md.lib, and one with /MT named alfont_mt.lib. Debug versions are to be named alfont_md_d.lib with /MDd flag, and alfont_mt_d.lib for /MTd.
 
 ### OGG, Theora and Vorbis
 
-All of these come with MSVC projects. You may need to make sure there are distinct build configurations with /MD and /MT compilation flags, but other than that just build static libraries, and you are all set.
+All of these come with MSVC projects. You may need to make sure there are distinct build configurations with /MT(d) compilation flags (to link with the Engine only), but other than that just build static libraries, and you are all set.
 
 
 ## Building AGS

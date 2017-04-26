@@ -5,9 +5,9 @@
 * In common:
   * Microsoft Visual Studio 2008 SP1 or higher - currently the only supported IDE for making Engine and Editor, but in theory you may try other tools, using MSVS project for the reference.
 * To work with Engine code and Editor's full solution (see elaboration in related section):
-  * Allegro 4.4.2 library *patched sources*: clone [our own Allegro repository](https://github.com/adventuregamestudio/lib-allegro.git) and checkout allegro-4.4.2-agspatch branch which already has necessary patch applied.
+  * Allegro 4.4.2 library *patched sources*: clone [our own Allegro repository](https://github.com/adventuregamestudio/lib-allegro.git) and checkout allegro-4.4.2-agspatch branch which already has necessary patch applied and MSVC projects created.
     * **OR**, alternatively, you may get original sources and patch yourself (look for instructions below): clone [official git repository](https://github.com/liballeg/allegro5)) and checkout 4.4.2 tag, ([download from sourceforge.net](https://sourceforge.net/projects/alleg/files/allegro/4.4.2/allegro-4.4.2.zip/download), or [download from gna.org](http://download.gna.org/allegro/allegro/4.4.2/allegro-4.4.2.zip).
-  * Alfont 1.9.1 library *patched sources*: clone [our own Alfont repository](https://github.com/adventuregamestudio/lib-alfont) and checkout alfont-1.9.1-agspatch branch which already has necessary patch applied.
+  * Alfont 1.9.1 library *patched sources*: clone [our own Alfont repository](https://github.com/adventuregamestudio/lib-alfont) and checkout alfont-1.9.1-agspatch branch which already has necessary patch applied and MSVC projects created.
     * **OR**, alternatively, you may get original sources and patch yourself: ([checkout or download from SVN repository](https://sourceforge.net/p/alfont/code/HEAD/tree/trunk/)).
 * Specifically for the Engine:
   * DirectX SDK August 2007 ([Download](https://www.microsoft.com/en-us/download/details.aspx?id=13287))
@@ -40,7 +40,7 @@ If you got these libraries from our own repositories, you do not need to patch t
 
 All of the mentioned libraries should either have MSVC project(s) in their sources, CMake configuration, or at least a Makefile which you could use to create MSVC solution.
 
-It is important to make sure static libraries have two build configuration set up: one with runtime C library linked dynamically (/MD compilation flag) and another with runtime library linked statically (/MT compilation flag). These options are be found at the compiler's "Code Generation" property page in the MSVC project settings.
+It is important to make sure static libraries have four build configuration set up: a pair with runtime C library linked dynamically (/MD and /MDd compilation flags) and another pair with runtime library linked statically (/MT and /MTd compilation flags). These options are be found at the compiler's "Code Generation" property page in the MSVC project settings.
 /MD option is usually default one, so you may need to create second one by hand.
 
 The reason for having both configurations is explained in the latter section below.

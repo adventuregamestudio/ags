@@ -118,7 +118,7 @@ void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addInd
     int ee;
 
     if (invi == NULL)
-        quit("!AddInventoryToCharacter: invalid invnetory number");
+        quit("!AddInventoryToCharacter: invalid inventory number");
 
     int inum = invi->id;
 

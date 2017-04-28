@@ -93,10 +93,30 @@ public:
     bool        IsMouseOver;
 
 private:
+    void DrawImageButton(Bitmap *ds, bool draw_disabled);
+    void DrawText(Bitmap *ds, bool draw_disabled);
+    void DrawTextButton(Bitmap *ds, bool draw_disabled);
     void PrepareTextToDraw();
 
+    // Defines button placeholder mode; the mode is set
+    // depending on special tags found in button text
+    enum GUIButtonPlaceholder
+    {
+        kButtonPlace_None,
+        kButtonPlace_InvItemStretch,
+        kButtonPlace_InvItemCenter,
+        kButtonPlace_InvItemAuto
+    };
+
+    // Text property set by user
     String _text;
-    // prepared text buffer/cache
+    // type of content placeholder, if any
+    GUIButtonPlaceholder _placeholder;
+    // A flag indicating unnamed button; this is a convenience trick:
+    // buttons are created named "New Button" in the editor, and users
+    // often do not clear text when they want a graphic button.
+    bool _unnamed;
+    // Prepared text buffer/cache
     String _textToDraw;
 };
 

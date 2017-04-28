@@ -36,8 +36,6 @@
 #define GLF_NOBORDER     1
 #define GLF_NOARROWS     2
 #define GLF_SGINDEXVALID 4
-// TextBox flags
-#define GTF_NOBORDER  1
 //#define MAX_OBJ_EACH_TYPE 251
 
 #define MAXLINE 50
@@ -137,6 +135,11 @@ enum GUIControlType
     kGUISlider      = 4,
     kGUITextBox     = 5,
     kGUIListBox     = 6
+};
+
+enum GUITextBoxFlags
+{
+    kTextBox_NoBorder = 0x0001
 };
 
 } // namespace Common

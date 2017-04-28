@@ -17,54 +17,43 @@
 
 #include <vector>
 #include "gui/guiobject.h"
+#include "util/string.h"
 
-struct GUITextBox:public GUIObject
+namespace AGS
 {
-  char text[200];
-  int font, textcol, exflags;
+namespace Common
+{
 
-  virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  virtual void Draw(Common::Bitmap *ds);
-  void KeyPress(int);
+class GUITextBox : public GUIObject
+{
+public:
+    GUITextBox();
 
-  void MouseMove(int x, int y)
-  {
-  }
-
-  void MouseOver()
-  {
-  }
-
-  void MouseLeave()
-  {
-  }
-
-  void MouseUp()
-  {
-  }
-
-  void reset()
-  {
-    GUIObject::init();
-    font = 0;
-    textcol = 0;
-    text[0] = 0;
-    exflags = 0;
-    numSupportedEvents = 1;
-    supportedEvents[0] = "Activate";
-    supportedEventArgs[0] = "GUIControl *control";
-  }
-
-  GUITextBox() {
-    reset();
-  }
+    // Operations
+    virtual void Draw(Bitmap *ds) override;
+ 
+    // Events
+    virtual void KeyPress(int keycode) override;
+ 
+    // Serialization
+    virtual void WriteToFile(Stream *out) override;
+    virtual void ReadFromFile(Stream *in, GuiVersion gui_version) override;
+ 
+// TODO: these members are currently public; hide them later
+public:
+    int32_t Font;
+    String  Text;
+    int32_t TextBoxFlags;
+    color_t TextColor;
 
 private:
-  void Draw_text_box_contents(Common::Bitmap *ds, color_t text_color);
+    void DrawTextBoxContents(Bitmap *ds, color_t text_color);
 };
 
-extern std::vector<GUITextBox> guitext;
+} // namespace Common
+} // namespace AGS
+
+extern std::vector<AGS::Common::GUITextBox> guitext;
 extern int numguitext;
 
 #endif // __AC_GUITEXTBOX_H

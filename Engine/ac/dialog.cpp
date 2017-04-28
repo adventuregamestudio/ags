@@ -527,8 +527,8 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
   if ((dtop->topicFlags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0)) {
     parserInput = new GUITextBox();
     parserInput->hit = lineheight + get_fixed_pixel_size(4);
-    parserInput->exflags = 0;
-    parserInput->font = usingfont;
+    parserInput->TextBoxFlags = 0;
+    parserInput->Font = usingfont;
   }
 
   numdisp=0;
@@ -800,9 +800,9 @@ void DialogOptions::Redraw()
       // Set up the text box, if present
       parserInput->y = curyp + multiply_up_coordinate(game.options[OPT_DIALOGGAP]);
       parserInput->wid = areawid - get_fixed_pixel_size(10);
-      parserInput->textcol = playerchar->talkcolor;
+      parserInput->TextColor = playerchar->talkcolor;
       if (mouseison == DLG_OPTION_PARSER)
-        parserInput->textcol = forecol;
+        parserInput->TextColor = forecol;
 
       if (game.dialog_bullet)  // the parser X will get moved in a second
       {
@@ -886,9 +886,9 @@ bool DialogOptions::Run()
         if (parserInput) {
           wantRefresh = true;
           // type into the parser 
-          if ((gkey == 361) || ((gkey == ' ') && (strlen(parserInput->text) == 0))) {
+          if ((gkey == 361) || ((gkey == ' ') && (strlen(parserInput->Text) == 0))) {
             // write previous contents into textbox (F3 or Space when box is empty)
-            for (unsigned int i = strlen(parserInput->text); i < strlen(play.lastParserEntry); i++) {
+            for (unsigned int i = strlen(parserInput->Text); i < strlen(play.lastParserEntry); i++) {
               parserInput->KeyPress(play.lastParserEntry[i]);
             }
             //domouse(2);
@@ -1027,7 +1027,7 @@ bool DialogOptions::Run()
 
       if (parserActivated) {
         // They have selected a custom parser-based option
-        if (parserInput->text[0] != 0) {
+        if (!parserInput->Text.IsEmpty() != 0) {
           chose = DLG_OPTION_PARSER;
           return false; // end dialog options running loop
         }
@@ -1067,8 +1067,8 @@ void DialogOptions::Close()
 
   if (parserActivated) 
   {
-    strcpy (play.lastParserEntry, parserInput->text);
-    ParseText (parserInput->text);
+    strcpy (play.lastParserEntry, parserInput->Text);
+    ParseText (parserInput->Text);
     chose = CHOSE_TEXTPARSER;
   }
 

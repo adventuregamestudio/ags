@@ -3151,12 +3151,11 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  }
 	  else if (textbox)
 	  {
-          guitext.push_back(::GUITextBox());
-		  guitext[numguitext].textcol = textbox->TextColor;
-		  guitext[numguitext].font = textbox->Font;
+          guitext.push_back(Common::GUITextBox());
+		  guitext[numguitext].TextColor = textbox->TextColor;
+		  guitext[numguitext].Font = textbox->Font;
 		  guitext[numguitext].flags = 0;
-		  guitext[numguitext].exflags = (textbox->ShowBorder) ? 0 : GTF_NOBORDER;
-		  guitext[numguitext].text[0] = 0;
+          guitext[numguitext].TextBoxFlags = (textbox->ShowBorder) ? 0 : Common::kTextBox_NoBorder;
 		  ConvertStringToCharArray(textbox->OnActivate, guitext[numguitext].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUITextBox << 16) | numguitext;
@@ -3965,12 +3964,12 @@ Game^ import_compiled_game_dta(const char *fileName)
 			case Common::kGUITextBox:
 				{
 				  AGS::Types::GUITextBox^ newTextbox = gcnew AGS::Types::GUITextBox();
-				  ::GUITextBox *copyFrom = (::GUITextBox*)curObj;
+				  Common::GUITextBox *copyFrom = (Common::GUITextBox*)curObj;
 				  newControl = newTextbox;
-				  newTextbox->TextColor = copyFrom->textcol;
-				  newTextbox->Font = copyFrom->font;
-				  newTextbox->ShowBorder = (copyFrom->exflags & GTF_NOBORDER) ? false : true;
-				  newTextbox->Text = gcnew String(copyFrom->text);
+				  newTextbox->TextColor = copyFrom->TextColor;
+				  newTextbox->Font = copyFrom->Font;
+                  newTextbox->ShowBorder = (copyFrom->TextBoxFlags & Common::kTextBox_NoBorder) ? false : true;
+				  newTextbox->Text = gcnew String(copyFrom->Text);
 				  newTextbox->OnActivate = gcnew String(copyFrom->eventHandlers[0]);
 				  break;
 				}

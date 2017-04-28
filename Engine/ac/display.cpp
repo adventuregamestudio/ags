@@ -429,7 +429,7 @@ bool ShouldAntiAliasText() {
     return (game.options[OPT_ANTIALIASFONTS] != 0);
 }
 
-void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char*texx) {
+void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx) {
     
     color_t outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
     if (get_font_outline(usingfont) >= 0) {

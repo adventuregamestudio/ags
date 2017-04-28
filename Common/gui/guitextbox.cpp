@@ -12,80 +12,97 @@
 //
 //=============================================================================
 
-#include <stdio.h>
+#include "font/agsfontrenderer.h"
 #include "font/fonts.h"
 #include "gui/guitextbox.h"
 #include "gui/guimain.h"
 #include "util/stream.h"
-#include "gfx/bitmap.h"
-#include "util/wgt2allg.h"
 
-using AGS::Common::Stream;
-using AGS::Common::Bitmap;
+#define GUITEXTBOX_TEXT_LENGTH 200
 
-std::vector<GUITextBox> guitext;
+std::vector<AGS::Common::GUITextBox> guitext;
 int numguitext = 0;
 
+namespace AGS
+{
+namespace Common
+{
+
+GUITextBox::GUITextBox()
+{
+    Font = 0;
+    TextColor = 0;
+    TextBoxFlags = 0;
+
+    numSupportedEvents = 1;
+    supportedEvents[0] = "Activate";
+    supportedEventArgs[0] = "GUIControl *control";
+}
+
+void GUITextBox::Draw(Bitmap *ds)
+{
+    check_font(&Font);
+    color_t text_color = ds->GetCompatibleColor(TextColor);
+    color_t draw_color = ds->GetCompatibleColor(TextColor);
+    if ((TextBoxFlags & kTextBox_NoBorder) == 0)
+    {
+        ds->DrawRect(RectWH(x, y, wid, hit), draw_color);
+        if (get_fixed_pixel_size(1) > 1)
+        {
+            ds->DrawRect(Rect(x + 1, y + 1, x + wid - get_fixed_pixel_size(1), y + hit - get_fixed_pixel_size(1)), draw_color);
+        }
+    }
+    DrawTextBoxContents(ds, text_color);
+}
+
+void GUITextBox::KeyPress(int keycode)
+{
+    guis_need_update = 1;
+    // TODO: use keycode constants
+    // backspace, remove character
+    if (keycode == 8)
+    {
+        Text.ClipRight(1);
+        return;
+    }
+    // other key, continue
+    if ((keycode >= 128) && (!font_supports_extended_characters(Font)))
+        return;
+    // return/enter
+    if (keycode == 13)
+    {
+        activated++;
+        return;
+    }
+
+    Text.AppendChar(keycode);
+    // if the new string is too long, remove the new character
+    if (wgettextwidth(Text, Font) > (wid - (6 + get_fixed_pixel_size(5))))
+        Text.ClipRight(1);
+}
+
+// TODO: replace string serialization with StrUtil::ReadString and WriteString
+// methods in the future, to keep this organized.
 void GUITextBox::WriteToFile(Stream *out)
 {
-  GUIObject::WriteToFile(out);
-  // MACPORT FIXES: swap
-  out->Write(&text[0], 200);
-  out->WriteArrayOfInt32(&font, 3);
+    GUIObject::WriteToFile(out);
+    Text.WriteCount(out, GUITEXTBOX_TEXT_LENGTH);
+    out->WriteInt32(Font);
+    out->WriteInt32(TextColor);
+    out->WriteInt32(TextBoxFlags);
 }
 
 void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-  GUIObject::ReadFromFile(in, gui_version);
-  // MACPORT FIXES: swap
-  in->Read(&text[0], 200);
-  in->ReadArrayOfInt32(&font, 3);
-  if (textcol == 0)
-    textcol = 16;
+    GUIObject::ReadFromFile(in, gui_version);
+    Text.ReadCount(in, GUITEXTBOX_TEXT_LENGTH);
+    Font = in->ReadInt32();
+    TextColor = in->ReadInt32();
+    TextBoxFlags = in->ReadInt32();
+
+    if (TextColor == 0)
+        TextColor = 16;
 }
 
-void GUITextBox::Draw(Common::Bitmap *ds)
-{
-
-  check_font(&font);
-  color_t text_color = ds->GetCompatibleColor(textcol);
-  color_t draw_color = ds->GetCompatibleColor(textcol);
-  if ((exflags & GTF_NOBORDER) == 0) {
-    ds->DrawRect(Rect(x, y, x + wid - 1, y + hit - 1), draw_color);
-    if (get_fixed_pixel_size(1) > 1)
-      ds->DrawRect(Rect(x + 1, y + 1, x + wid - get_fixed_pixel_size(1), y + hit - get_fixed_pixel_size(1)), draw_color);
-  }
-
-  Draw_text_box_contents(ds, text_color);
-}
-
-void GUITextBox::KeyPress(int kp)
-{
-  guis_need_update = 1;
-  // backspace, remove character
-  if ((kp == 8) && (strlen(text) > 0)) {
-    text[strlen(text) - 1] = 0;
-    return;
-  } else if (kp == 8)
-    return;
-
-  // other key, continue
-  if ((kp >= 128) && (!font_supports_extended_characters(font)))
-    return;
-
-  if (kp == 13) {
-    activated++;
-    return;
-  }
-
-  if (strlen(text) >= 199)
-    return;
-
-  text[strlen(text) + 1] = 0;
-  text[strlen(text)] = kp;
-
-  // if the new string is too long, remove the new character
-  if (wgettextwidth(text, font) > (wid - (6 + get_fixed_pixel_size(5))))
-    text[strlen(text) - 1] = 0;
-
-}
+} // namespace Common
+} // namespace AGS

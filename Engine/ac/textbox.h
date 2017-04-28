@@ -20,6 +20,8 @@
 
 #include "gui/guitextbox.h"
 
+using AGS::Common::GUITextBox;
+
 const char*	TextBox_GetText_New(GUITextBox *texbox);
 void		TextBox_GetText(GUITextBox *texbox, char *buffer);
 void		TextBox_SetText(GUITextBox *texbox, const char *newtex);

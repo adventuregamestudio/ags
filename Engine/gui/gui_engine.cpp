@@ -128,19 +128,25 @@ void GUILabel::Draw_split_lines(char *teptr, int wid, int font, int &numlines)
   // [IKM] numlines not used in engine's implementation
 }
 
-void GUITextBox::Draw_text_box_contents(Bitmap *ds, color_t text_color)
+namespace AGS
 {
-  int startx, starty;
+namespace Common
+{
 
-  wouttext_outline(ds, x + 1 + get_fixed_pixel_size(1), y + 1 + get_fixed_pixel_size(1), font, text_color, text);
-  
-  if (!IsDisabled()) {
-    // draw a cursor
-    startx = wgettextwidth(text, font) + x + 3;
-    starty = y + 1 + getfontheight(font);
-    ds->DrawRect(Rect(startx, starty, startx + get_fixed_pixel_size(5), starty + (get_fixed_pixel_size(1) - 1)), text_color);
-  }
+void GUITextBox::DrawTextBoxContents(Bitmap *ds, color_t text_color)
+{
+    wouttext_outline(ds, x + 1 + get_fixed_pixel_size(1), y + 1 + get_fixed_pixel_size(1), Font, text_color, Text);
+    if (!IsDisabled())
+    {
+        // draw a cursor
+        int draw_at_x = wgettextwidth(Text, Font) + x + 3;
+        int draw_at_y = y + 1 + getfontheight(Font);
+        ds->DrawRect(Rect(draw_at_x, draw_at_y, draw_at_x + get_fixed_pixel_size(5), draw_at_y + (get_fixed_pixel_size(1) - 1)), text_color);
+    }
 }
+
+} // namespace Common
+} // namespace AGS
 
 void GUIListBox::Draw_items_fix()
 {

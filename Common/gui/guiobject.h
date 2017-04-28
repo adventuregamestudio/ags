@@ -45,14 +45,14 @@ struct GUIObject
 
   GUIObject();
   virtual ~GUIObject(){}
-  virtual void MouseMove(int, int) = 0; // x,y relative to gui
-  virtual void MouseOver() = 0; // mouse moves onto object
-  virtual void MouseLeave() = 0;        // mouse moves off object
+  virtual void MouseMove(int, int) {}; // x,y relative to gui
+  virtual void MouseOver() {}; // mouse moves onto object
+  virtual void MouseLeave() {};        // mouse moves off object
   virtual int  MouseDown() { // button down - return 1 to lock focus
     return 0;
   }
-  virtual void MouseUp() = 0;   // button up
-  virtual void KeyPress(int) = 0;
+  virtual void MouseUp() {};   // button up
+  virtual void KeyPress(int) {};
   virtual void Draw(Common::Bitmap *ds) = 0;
   // overridable routine to determine whether the mouse is over
   // the control

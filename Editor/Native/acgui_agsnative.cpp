@@ -85,11 +85,19 @@ void GUILabel::Draw_split_lines(char *teptr, int wid, int font, int &numlines)
   split_lines(teptr, wid, font);
 }
 
-void GUITextBox::Draw_text_box_contents(Common::Bitmap *ds, color_t text_color)
+namespace AGS
 {
-  // print something fake so we can see what it looks like
-  wouttext_outline(ds, x + 2, y + 2, font, text_color, "Text Box Contents");
+namespace Common
+{
+
+void GUITextBox::DrawTextBoxContents(Bitmap *ds, color_t text_color)
+{
+    // print something fake so we can see what it looks like
+    wouttext_outline(ds, x + 2, y + 2, Font, text_color, "Text Box Contents");
 }
+
+} // namespace Common
+} // namespace AGS
 
 void GUIListBox::Draw_items_fix()
 {

@@ -24,46 +24,46 @@ extern GameSetupStruct game;
 // ** TEXT BOX FUNCTIONS
 
 const char* TextBox_GetText_New(GUITextBox *texbox) {
-    return CreateNewScriptString(texbox->text);
+    return CreateNewScriptString(texbox->Text);
 }
 
 void TextBox_GetText(GUITextBox *texbox, char *buffer) {
-    strcpy(buffer, texbox->text);
+    strcpy(buffer, texbox->Text);
 }
 
 void TextBox_SetText(GUITextBox *texbox, const char *newtex) {
     if (strlen(newtex) > 190)
         quit("!SetTextBoxText: text too long");
 
-    if (strcmp(texbox->text, newtex)) {
-        strcpy(texbox->text, newtex);
+    if (strcmp(texbox->Text, newtex)) {
+        texbox->Text = newtex;
         guis_need_update = 1;
     }
 }
 
 int TextBox_GetTextColor(GUITextBox *guit) {
-    return guit->textcol;
+    return guit->TextColor;
 }
 
 void TextBox_SetTextColor(GUITextBox *guit, int colr)
 {
-    if (guit->textcol != colr) 
+    if (guit->TextColor != colr) 
     {
-        guit->textcol = colr;
+        guit->TextColor = colr;
         guis_need_update = 1;
     }
 }
 
 int TextBox_GetFont(GUITextBox *guit) {
-    return guit->font;
+    return guit->Font;
 }
 
 void TextBox_SetFont(GUITextBox *guit, int fontnum) {
     if ((fontnum < 0) || (fontnum >= game.numfonts))
         quit("!SetTextBoxFont: invalid font number.");
 
-    if (guit->font != fontnum) {
-        guit->font = fontnum;
+    if (guit->Font != fontnum) {
+        guit->Font = fontnum;
         guis_need_update = 1;
     }
 }

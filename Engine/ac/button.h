@@ -20,6 +20,8 @@
 
 #include "gui/guibutton.h"
 
+using AGS::Common::GUIButton;
+
 void		Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat);
 const char* Button_GetText_New(GUIButton *butt);
 void		Button_GetText(GUIButton *butt, char *buffer);

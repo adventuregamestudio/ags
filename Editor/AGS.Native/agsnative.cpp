@@ -3109,18 +3109,20 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  AGS::Types::GUITextWindowEdge^ textwindowedge = dynamic_cast<AGS::Types::GUITextWindowEdge^>(control);
 	  if (button)
 	  {
-          guibuts.push_back(::GUIButton());
-		  guibuts[numguibuts].textcol = button->TextColor;
-		  guibuts[numguibuts].font = button->Font;
-		  guibuts[numguibuts].pic = button->Image;
-		  guibuts[numguibuts].usepic = guibuts[numguibuts].pic;
-		  guibuts[numguibuts].overpic = button->MouseoverImage;
-		  guibuts[numguibuts].pushedpic = button->PushedImage;
-		  guibuts[numguibuts].textAlignment = (int)button->TextAlignment;
-		  guibuts[numguibuts].leftclick = (int)button->ClickAction;
-		  guibuts[numguibuts].lclickdata = button->NewModeNumber;
+          guibuts.push_back(Common::GUIButton());
+		  guibuts[numguibuts].TextColor = button->TextColor;
+		  guibuts[numguibuts].Font = button->Font;
+		  guibuts[numguibuts].Image = button->Image;
+		  guibuts[numguibuts].CurrentImage = guibuts[numguibuts].Image;
+		  guibuts[numguibuts].MouseOverImage = button->MouseoverImage;
+		  guibuts[numguibuts].PushedImage = button->PushedImage;
+		  guibuts[numguibuts].TextAlignment = (int)button->TextAlignment;
+          guibuts[numguibuts].ClickAction[Common::kMouseLeft] = (Common::GUIClickAction)button->ClickAction;
+		  guibuts[numguibuts].ClickData[Common::kMouseLeft] = button->NewModeNumber;
 		  guibuts[numguibuts].flags = (button->ClipImage) ? GUIF_CLIP : 0;
-		  ConvertStringToCharArray(button->Text, guibuts[numguibuts].text, 50);
+          Common::String text;
+		  ConvertStringToNativeString(button->Text, text, GUIBUTTON_TEXTLENGTH);
+          guibuts[numguibuts].SetText(text);
 		  ConvertStringToCharArray(button->OnClick, guibuts[numguibuts].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
 		  
           gui->CtrlRefs[gui->ControlCount] = (Common::kGUIButton << 16) | numguibuts;
@@ -3206,11 +3208,10 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  }
 	  else if (textwindowedge)
 	  {
-          guibuts.push_back(::GUIButton());
-		  guibuts[numguibuts].pic = textwindowedge->Image;
-		  guibuts[numguibuts].usepic = guibuts[numguibuts].pic;
+          guibuts.push_back(Common::GUIButton());
+		  guibuts[numguibuts].Image = textwindowedge->Image;
+		  guibuts[numguibuts].CurrentImage = guibuts[numguibuts].Image;
 		  guibuts[numguibuts].flags = 0;
-		  guibuts[numguibuts].text[0] = 0;
 		  
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIButton << 16) | numguibuts;
 		  gui->Controls[gui->ControlCount] = &guibuts[numguibuts];
@@ -3922,25 +3923,25 @@ Game^ import_compiled_game_dta(const char *fileName)
 				if (guis[i].IsTextWindow())
 				{
 					AGS::Types::GUITextWindowEdge^ edge = gcnew AGS::Types::GUITextWindowEdge();
-					::GUIButton *copyFrom = (::GUIButton*)curObj;
+					Common::GUIButton *copyFrom = (Common::GUIButton*)curObj;
 					newControl = edge;
-					edge->Image = copyFrom->pic;
+					edge->Image = copyFrom->Image;
 				}
 				else
 				{
 					AGS::Types::GUIButton^ newButton = gcnew AGS::Types::GUIButton();
-					::GUIButton *copyFrom = (::GUIButton*)curObj;
+					Common::GUIButton *copyFrom = (Common::GUIButton*)curObj;
 					newControl = newButton;
-					newButton->TextColor = copyFrom->textcol;
-					newButton->Font = copyFrom->font;
-					newButton->Image = copyFrom->pic;
-					newButton->MouseoverImage = copyFrom->overpic;
-					newButton->PushedImage = copyFrom->pushedpic;
-					newButton->TextAlignment = (TextAlignment)copyFrom->textAlignment;
-					newButton->ClickAction = (GUIClickAction)copyFrom->leftclick;
-					newButton->NewModeNumber = copyFrom->lclickdata;
+					newButton->TextColor = copyFrom->TextColor;
+					newButton->Font = copyFrom->Font;
+					newButton->Image = copyFrom->Image;
+					newButton->MouseoverImage = copyFrom->MouseOverImage;
+					newButton->PushedImage = copyFrom->PushedImage;
+					newButton->TextAlignment = (TextAlignment)copyFrom->TextAlignment;
+                    newButton->ClickAction = (GUIClickAction)copyFrom->ClickAction[Common::kMouseLeft];
+					newButton->NewModeNumber = copyFrom->ClickData[Common::kMouseLeft];
 					newButton->ClipImage = (copyFrom->flags & GUIF_CLIP) ? true : false;
-					newButton->Text = gcnew String(copyFrom->text);
+					newButton->Text = gcnew String(copyFrom->GetText());
 					newButton->OnClick = gcnew String(copyFrom->eventHandlers[0]);
 				}
 				break;

@@ -535,7 +535,7 @@ void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {
 }
 
 int get_but_pic(GUIMain*guo,int indx) {
-    return guibuts[guo->CtrlRefs[indx] & 0x000ffff].pic;
+    return guibuts[guo->CtrlRefs[indx] & 0x000ffff].Image;
 }
 
 void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {

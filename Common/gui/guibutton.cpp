@@ -12,231 +12,338 @@
 //
 //=============================================================================
 
-#include <stdio.h>
+#include "ac/spritecache.h"
 #include "font/fonts.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
-#include "ac/spritecache.h"
 #include "util/stream.h"
-#include "gfx/bitmap.h"
-#include "util/wgt2allg.h"
 
-using AGS::Common::Stream;
-using AGS::Common::Bitmap;
-
-
-std::vector<GUIButton> guibuts;
-//GUIButton guibuts[MAX_OBJ_EACH_TYPE];
+std::vector<AGS::Common::GUIButton> guibuts;
 int numguibuts = 0;
 
-void GUIButton::WriteToFile(Stream *out)
+namespace AGS
 {
-  GUIObject::WriteToFile(out);
-  // MACPORT FIXES: swap
-  out->WriteArrayOfInt32(&pic, 12);
-  out->Write(&text[0], 50);
-  out->WriteInt32(textAlignment);
-  out->WriteInt32(reserved1);
+namespace Common
+{
+
+GUIButton::GUIButton()
+{
+    Image = -1;
+    MouseOverImage = -1;
+    PushedImage = -1;
+    CurrentImage = -1;
+    Font = 0;
+    TextColor = 0;
+    TextAlignment = kButtonAlign_TopCenter;
+    ClickAction[kMouseLeft] = kGUIAction_RunScript;
+    ClickAction[kMouseRight] = kGUIAction_RunScript;
+    ClickData[kMouseLeft] = 0;
+    ClickData[kMouseRight] = 0;
+
+    IsPushed = false;
+    IsMouseOver = false;
+
+    numSupportedEvents = 1;
+    supportedEvents[0] = "Click";
+    supportedEventArgs[0] = "GUIControl *control, MouseButton button";
 }
 
-void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
+const String &GUIButton::GetText() const
 {
-  GUIObject::ReadFromFile(in, gui_version);
-  // MACPORT FIXES: swap
-  in->ReadArrayOfInt32(&pic, 12);
-  in->Read(&text[0], 50);
-  if (textcol == 0)
-    textcol = 16;
-  usepic = pic;
-
-  if (gui_version >= kGuiVersion_272a) {
-    textAlignment = in->ReadInt32();
-    reserved1 = in->ReadInt32();
-  }
-  else {
-    textAlignment = GBUT_ALIGN_TOPMIDDLE;
-    reserved1 = 0;
-  }
-
-  // All buttons are translated at the moment
-  flags |= GUIF_TRANSLATED;
+    return _text;
 }
 
-void GUIButton::Draw(Common::Bitmap *ds)
+// Defines button placeholder mode; the mode is set
+// depending on special tags found in button text
+enum GUIButtonPlaceholder
 {
-  int drawDisabled = IsDisabled();
+    kButtonPlace_None,
+    kButtonPlace_InvItemStretch,
+    kButtonPlace_InvItemCenter
+};
 
-  check_font(&font);
-  // if it's "Unchanged when disabled" or "GUI Off", don't grey out
-  if ((gui_disabled_style == GUIDIS_UNCHANGED) ||
-      (gui_disabled_style == GUIDIS_GUIOFF))
-    drawDisabled = 0;
+void GUIButton::Draw(Bitmap *ds)
+{
+    bool draw_disabled = IsDisabled() != 0;
 
-  if (usepic <= 0)
-    usepic = pic;
+    check_font(&Font);
+    // if it's "Unchanged when disabled" or "GUI Off", don't grey out
+    if (gui_disabled_style == GUIDIS_UNCHANGED ||
+        gui_disabled_style == GUIDIS_GUIOFF)
+    {
+        draw_disabled = false;
+    }
+    // TODO: should only change properties in reaction to particular events
+    if (CurrentImage <= 0 || draw_disabled)
+        CurrentImage = Image;
 
-  if (drawDisabled)
-    usepic = pic;
+    if (draw_disabled && gui_disabled_style == GUIDIS_BLACKOUT)
+        // buttons off when disabled - no point carrying on
+        return;
 
-  if ((drawDisabled) && (gui_disabled_style == GUIDIS_BLACKOUT))
-    // buttons off when disabled - no point carrying on
-    return;
+    GUIButtonPlaceholder draw_inv = kButtonPlace_None;
+    //-------------------------------------------------------------------------
+    // Image button's frame
+    // CHECKME: why testing both CurrentImage and Image?
+    if (CurrentImage > 0 && Image > 0)
+    {
+        // NOTE: the CLIP flag only clips the image, not the text
+        if (flags & GUIF_CLIP)
+            ds->SetClip(Rect(x, y, x + wid - 1, y + hit - 1));
+        if (spriteset[CurrentImage] != NULL)
+            draw_gui_sprite(ds, CurrentImage, x, y, true);
 
-  // draw it!!
-  if ((usepic > 0) && (pic > 0)) {
+        // draw
+        if (gui_inv_pic >= 0)
+        {
+            // stretch to fit button
+            if (stricmp(_text, "(INV)") == 0)
+                draw_inv = kButtonPlace_InvItemStretch;
+            // draw at actual size
+            else if (stricmp(_text, "(INVNS)") == 0)
+                draw_inv = kButtonPlace_InvItemCenter;
+            // Stretch if too big, actual size if not
+            else if (stricmp(_text, "(INVSHR)") == 0)
+            {
+                if ((get_adjusted_spritewidth(gui_inv_pic) > wid - 6) ||
+                    (get_adjusted_spriteheight(gui_inv_pic) > hit - 6))
+                    draw_inv = kButtonPlace_InvItemStretch;
+                else
+                    draw_inv = kButtonPlace_InvItemCenter;
+            }
 
-    if (flags & GUIF_CLIP)
-      ds->SetClip(Rect(x, y, x + wid - 1, y + hit - 1));
-
-    if (spriteset[usepic] != NULL)
-      draw_gui_sprite(ds, usepic, x, y, true);
-
-    if (gui_inv_pic >= 0) {
-      int drawInv = 0;
-
-      // Stretch to fit button
-      if (stricmp(text, "(INV)") == 0)
-        drawInv = 1;
-      // Draw at actual size
-      if (stricmp(text, "(INVNS)") == 0)
-        drawInv = 2;
-
-      // Stretch if too big, actual size if not
-      if (stricmp(text, "(INVSHR)") == 0) {
-        if ((get_adjusted_spritewidth(gui_inv_pic) > wid - 6) ||
-            (get_adjusted_spriteheight(gui_inv_pic) > hit - 6))
-          drawInv = 1;
-        else
-          drawInv = 2;
-      }
-
-      if (drawInv == 1)
-        ds->StretchBlt(spriteset[gui_inv_pic], RectWH(x + 3, y + 3, wid - 6, hit - 6), Common::kBitmap_Transparency);
-      else if (drawInv == 2)
-        draw_gui_sprite(ds, gui_inv_pic,
+            if (draw_inv == kButtonPlace_InvItemStretch)
+            {
+                ds->StretchBlt(spriteset[gui_inv_pic], RectWH(x + 3, y + 3, wid - 6, hit - 6), Common::kBitmap_Transparency);
+            }
+            else if (draw_inv == kButtonPlace_InvItemCenter)
+            {
+                draw_gui_sprite(ds, gui_inv_pic,
                                x + wid / 2 - get_adjusted_spritewidth(gui_inv_pic) / 2,
                                y + hit / 2 - get_adjusted_spriteheight(gui_inv_pic) / 2,
                                true);
+            }
+        }
+
+        if (draw_disabled && gui_disabled_style == GUIDIS_GREYOUT)
+        {
+            color_t draw_color = ds->GetCompatibleColor(8);
+            // darken the button when disabled
+            // TODO: move this to a separate function?
+            int32_t sprite_width = spriteset[CurrentImage]->GetWidth();
+            int32_t sprite_height = spriteset[CurrentImage]->GetHeight();
+            for (int at_x = 0; at_x < sprite_width; ++at_x)
+            {
+                for (int at_y = at_x % 2; at_y < sprite_height; at_y += 2)
+                {
+                    ds->PutPixel(x + at_x, y + at_y, draw_color);
+                }
+            }
+        }
+        // restore bitmap clip
+        ds->SetClip(Rect(0, 0, ds->GetWidth() - 1, ds->GetHeight() - 1));
+    }
+    //-------------------------------------------------------------------------
+    // Text button's frame
+    // CHECKME: why don't draw frame if no Text? this will make button completely invisible!
+    else if (!_text.IsEmpty())
+    {
+        color_t draw_color = ds->GetCompatibleColor(7);
+        ds->FillRect(Rect(x, y, x + wid - 1, y + hit - 1), draw_color);
+        if (flags & GUIF_DEFAULT)
+        {
+            draw_color = ds->GetCompatibleColor(16);
+            ds->DrawRect(Rect(x - 1, y - 1, x + wid, y + hit), draw_color);
+        }
+
+        // TODO: use color constants instead of literal numbers
+        if (!draw_disabled && IsMouseOver && IsPushed)
+            draw_color = ds->GetCompatibleColor(15);
+        else
+            draw_color = ds->GetCompatibleColor(8);
+
+        ds->DrawLine(Line(x, y + hit - 1, x + wid - 1, y + hit - 1), draw_color);
+        ds->DrawLine(Line(x + wid - 1, y, x + wid - 1, y + hit - 1), draw_color);
+
+        if (draw_disabled || IsMouseOver && IsPushed)
+            draw_color = ds->GetCompatibleColor(8);
+        else
+            draw_color = ds->GetCompatibleColor(15);
+
+        ds->DrawLine(Line(x, y, x + wid - 1, y), draw_color);
+        ds->DrawLine(Line(x, y, x, y + hit - 1), draw_color);
     }
 
-    if ((drawDisabled) && (gui_disabled_style == GUIDIS_GREYOUT)) {
-      color_t draw_color = ds->GetCompatibleColor(8);
-      int jj, kk;             // darken the button when disabled
-      for (jj = 0; jj < spriteset[usepic]->GetWidth(); jj++) {
-        for (kk = jj % 2; kk < spriteset[usepic]->GetHeight(); kk += 2)
-          ds->PutPixel(x + jj, y + kk, draw_color);
-      }
+    //-------------------------------------------------------------------------
+    // Draw text
+    // Don't print Text of (INV) (INVSHR) (INVNS)
+    if (draw_inv != kButtonPlace_None) ;
+    // TODO: remove this bogus limitation ("New Button" is a valid Text too)
+    // Don't print the Text if there's a graphic and it hasn't been named
+    else if (CurrentImage > 0 && Image > 0 && strcmp(_text, "New Button") == 0);
+    // if there is some Text, print it
+    else if (!_text.IsEmpty())
+    {
+        // TODO: need to find a way to cache Text prior to drawing;
+        // but that will require to update all gui controls when translation is changed in game
+        PrepareTextToDraw();
+
+        int at_x = x;
+        int at_y = y;
+        if (IsPushed && IsMouseOver)
+        {
+            // move the Text a bit while pushed
+            at_x++;
+            at_y++;
+        }
+
+        // TODO: replace with generic alignment-in-rect
+        switch (TextAlignment)
+        {
+        case kButtonAlign_TopCenter:
+            at_x += (wid / 2 - wgettextwidth(_textToDraw, Font) / 2);
+            at_y += 2;
+            break;
+        case kButtonAlign_TopLeft:
+            at_x += 2;
+            at_y += 2;
+            break;
+        case kButtonAlign_TopRight:
+            at_x += (wid - wgettextwidth(_textToDraw, Font)) - 2;
+            at_y += 2;
+            break;
+        case kButtonAlign_CenterLeft:
+            at_x += 2;
+            at_y += (hit / 2 - (wgettextheight(_textToDraw, Font) + 1) / 2);
+            break;
+        case kButtonAlign_Centered:
+            at_x += (wid / 2 - wgettextwidth(_textToDraw, Font) / 2);
+            at_y += (hit / 2 - (wgettextheight(_textToDraw, Font) + 1) / 2);
+            break;
+        case kButtonAlign_CenterRight:
+            at_x += (wid - wgettextwidth(_textToDraw, Font)) - 2;
+            at_y += (hit / 2 - (wgettextheight(_textToDraw, Font) + 1) / 2);
+            break;
+        case kButtonAlign_BottomLeft:
+            at_x += 2;
+            at_y += (hit - wgettextheight(_textToDraw, Font)) - 2;
+            break;
+        case kButtonAlign_BottomCenter:
+            at_x += (wid / 2 - wgettextwidth(_textToDraw, Font) / 2);
+            at_y += (hit - wgettextheight(_textToDraw, Font)) - 2;
+            break;
+        case kButtonAlign_BottomRight:
+            at_x += (wid - wgettextwidth(_textToDraw, Font)) - 2;
+            at_y += (hit - wgettextheight(_textToDraw, Font)) - 2;
+            break;
+        }
+
+        color_t text_color = ds->GetCompatibleColor(TextColor);
+        if (draw_disabled)
+            text_color = ds->GetCompatibleColor(8);
+        wouttext_outline(ds, at_x, at_y, Font, text_color, _textToDraw);
     }
+}
 
-    ds->SetClip(Rect(0, 0, ds->GetWidth() - 1, ds->GetHeight() - 1));
-  } 
-  else if (text[0] != 0) {
-    // it's a text button
+void GUIButton::SetText(const String &text)
+{
+    _text = text;
+}
 
-    color_t draw_color = ds->GetCompatibleColor(7);
-    ds->FillRect(Rect(x, y, x + wid - 1, y + hit - 1), draw_color);
-    if (flags & GUIF_DEFAULT) {
-      draw_color = ds->GetCompatibleColor(16);
-      ds->DrawRect(Rect(x - 1, y - 1, x + wid, y + hit), draw_color);
-    }
+int GUIButton::MouseDown()
+{
+    if (PushedImage > 0)
+        CurrentImage = PushedImage;
+    IsPushed = true;
+    return 0;
+}
 
-    if ((isover) && (ispushed))
-      draw_color = ds->GetCompatibleColor(15);
-    else
-      draw_color = ds->GetCompatibleColor(8);
+void GUIButton::MouseLeave()
+{
+    CurrentImage = Image;
+    IsMouseOver = false;
+}
 
-    if (drawDisabled)
-      draw_color = ds->GetCompatibleColor(8);
-
-    ds->DrawLine(Line(x, y + hit - 1, x + wid - 1, y + hit - 1), draw_color);
-    ds->DrawLine(Line(x + wid - 1, y, x + wid - 1, y + hit - 1), draw_color);
-    if ((isover) && (ispushed))
-      draw_color = ds->GetCompatibleColor(8);
-    else
-      draw_color = ds->GetCompatibleColor(15);
-
-    if (drawDisabled)
-      draw_color = ds->GetCompatibleColor(8);
-
-    ds->DrawLine(Line(x, y, x + wid - 1, y), draw_color);
-    ds->DrawLine(Line(x, y, x, y + hit - 1), draw_color);
-  }                           // end if text
-
-  // Don't print text of (INV) (INVSHR) (INVNS)
-  if ((text[0] == '(') && (text[1] == 'I') && (text[2] == 'N')) ; 
-  // Don't print the text if there's a graphic and it hasn't been named
-  else if ((usepic > 0) && (pic > 0) && (strcmp(text, "New Button") == 0)) ;
-  // if there is some text, print it
-  else if (text[0] != 0) {
-    int usex = x, usey = y;
-
-    char oritext[200]; // text[] can be not longer than 50 characters due declaration
-    Draw_set_oritext(oritext, text);
-
-    if ((ispushed) && (isover)) {
-      // move the text a bit while pushed
-      usex++;
-      usey++;
-    }
-
-    switch (textAlignment) {
-    case GBUT_ALIGN_TOPMIDDLE:
-      usex += (wid / 2 - wgettextwidth(oritext, font) / 2);
-      usey += 2;
-      break;
-    case GBUT_ALIGN_TOPLEFT:
-      usex += 2;
-      usey += 2;
-      break;
-    case GBUT_ALIGN_TOPRIGHT:
-      usex += (wid - wgettextwidth(oritext, font)) - 2;
-      usey += 2;
-      break;
-    case GBUT_ALIGN_MIDDLELEFT:
-      usex += 2;
-      usey += (hit / 2 - (wgettextheight(oritext, font) + 1) / 2);
-      break;
-    case GBUT_ALIGN_CENTRED:
-      usex += (wid / 2 - wgettextwidth(oritext, font) / 2);
-      usey += (hit / 2 - (wgettextheight(oritext, font) + 1) / 2);
-      break;
-    case GBUT_ALIGN_MIDDLERIGHT:
-      usex += (wid - wgettextwidth(oritext, font)) - 2;
-      usey += (hit / 2 - (wgettextheight(oritext, font) + 1) / 2);
-      break;
-    case GBUT_ALIGN_BOTTOMLEFT:
-      usex += 2;
-      usey += (hit - wgettextheight(oritext, font)) - 2;
-      break;
-    case GBUT_ALIGN_BOTTOMMIDDLE:
-      usex += (wid / 2 - wgettextwidth(oritext, font) / 2);
-      usey += (hit - wgettextheight(oritext, font)) - 2;
-      break;
-    case GBUT_ALIGN_BOTTOMRIGHT:
-      usex += (wid - wgettextwidth(oritext, font)) - 2;
-      usey += (hit - wgettextheight(oritext, font)) - 2;
-      break;
-    }
-
-    color_t text_color = ds->GetCompatibleColor(textcol);
-    if (drawDisabled)
-      text_color = ds->GetCompatibleColor(8);
-
-    wouttext_outline(ds, usex, usey, font, text_color, oritext);
-  }
-  
+void GUIButton::MouseOver()
+{
+    CurrentImage = IsPushed ? PushedImage : MouseOverImage;
+    IsMouseOver = true;
 }
 
 void GUIButton::MouseUp()
 {
-  if (isover) {
-    usepic = overpic;
-    if ((!IsDisabled()) && (IsClickable()))
-      activated++;
-  }
-  else
-    usepic = pic;
+    if (IsMouseOver)
+    {
+        CurrentImage = MouseOverImage;
+        if (!IsDisabled() && IsClickable())
+            activated++;
+    }
+    else
+    {
+        CurrentImage = Image;
+    }
 
-  ispushed = 0;
+    IsPushed = false;
 }
 
+// TODO: replace string serialization with StrUtil::ReadString and WriteString
+// methods in the future, to keep this organized.
+void GUIButton::WriteToFile(Stream *out)
+{
+    GUIObject::WriteToFile(out);
+
+    out->WriteInt32(Image);
+    out->WriteInt32(MouseOverImage);
+    out->WriteInt32(PushedImage);
+    out->WriteInt32(CurrentImage);
+    out->WriteInt32(IsPushed);
+    out->WriteInt32(IsMouseOver);
+    out->WriteInt32(Font);
+    out->WriteInt32(TextColor);
+    out->WriteInt32(ClickAction[kMouseLeft]);
+    out->WriteInt32(ClickAction[kMouseRight]);
+    out->WriteInt32(ClickData[kMouseLeft]);
+    out->WriteInt32(ClickData[kMouseRight]);
+
+    _text.WriteCount(out, GUIBUTTON_TEXTLENGTH);
+    out->WriteInt32(TextAlignment);
+    out->WriteInt32(0); // reserved int32
+}
+
+void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
+{
+    GUIObject::ReadFromFile(in, gui_version);
+
+    Image = in->ReadInt32();
+    MouseOverImage = in->ReadInt32();
+    PushedImage = in->ReadInt32();
+    CurrentImage = in->ReadInt32();
+    IsPushed = in->ReadInt32() != 0;
+    IsMouseOver = in->ReadInt32() != 0;
+    Font = in->ReadInt32();
+    TextColor = in->ReadInt32();
+    ClickAction[kMouseLeft] = (GUIClickAction)in->ReadInt32();
+    ClickAction[kMouseRight] = (GUIClickAction)in->ReadInt32();
+    ClickData[kMouseLeft] = in->ReadInt32();
+    ClickData[kMouseRight] = in->ReadInt32();
+    _text.ReadCount(in, GUIBUTTON_TEXTLENGTH);
+
+    if (gui_version >= kGuiVersion_272a)
+    {
+        TextAlignment = in->ReadInt32();
+        in->ReadInt32(); // reserved1
+    }
+    else
+    {
+        TextAlignment = kButtonAlign_TopCenter;
+    }
+
+    if (TextColor == 0)
+        TextColor = 16;
+    CurrentImage = Image;
+    // All buttons are translated at the moment
+    flags |= GUIF_TRANSLATED;
+}
+
+} // namespace Common
+} // namespace AGS

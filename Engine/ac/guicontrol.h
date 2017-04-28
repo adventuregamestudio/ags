@@ -27,6 +27,7 @@
 #include "gui/guitextbox.h"
 #include "ac/dynobj/scriptgui.h"
 
+using AGS::Common::GUIButton;
 using AGS::Common::GUIInvWindow;
 using AGS::Common::GUILabel;
 using AGS::Common::GUIListBox;

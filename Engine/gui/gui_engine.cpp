@@ -160,21 +160,13 @@ void GUIListBox::PrepareTextToDraw(const String &text)
         _textToDraw = text;
 }
 
+void GUIButton::PrepareTextToDraw()
+{
+    if (flags & GUIF_TRANSLATED)
+        _textToDraw = get_translation(_text);
+    else
+        _textToDraw = _text;
+}
+
 } // namespace Common
 } // namespace AGS
-
-void GUIButton::Draw_set_oritext(char *oritext, const char *text)
-{
-  // Allow it to change the string to unicode if it's TTF
-    if (flags & GUIF_TRANSLATED)
-    {
-        strcpy(oritext, get_translation(text));
-    }
-    else
-    {
-        strcpy(oritext, text);
-    }
-    ensure_text_valid_for_font(oritext, font);
-
-  // oritext is assumed to be made long enough by caller function
-}

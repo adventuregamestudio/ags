@@ -16,8 +16,6 @@
 #define __AC_INTERFACEBUTTON_H
 
 #define MAXBUTTON       20
-#define IBACT_SETMODE   1
-#define IBACT_SCRIPT    2
 #define IBFLG_ENABLED   1
 #define IBFLG_INVBOX    2
 struct InterfaceButton {

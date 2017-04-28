@@ -279,20 +279,20 @@ void process_interface_click(int ifce, int btn, int mbut) {
     }
 
     int btype=(guis[ifce].CtrlRefs[btn] >> 16) & 0x000ffff;
-    int rtype=0,rdata;
+    int rtype=kGUIAction_None,rdata;
     if (btype==kGUIButton) {
         GUIButton*gbuto=(GUIButton*)guis[ifce].Controls[btn];
-        rtype=gbuto->leftclick;
-        rdata=gbuto->lclickdata;
+        rtype=gbuto->ClickAction[kMouseLeft];
+        rdata=gbuto->ClickData[kMouseLeft];
     }
     else if ((btype==kGUISlider) || (btype == kGUITextBox) || (btype == kGUIListBox))
-        rtype = IBACT_SCRIPT;
+        rtype = kGUIAction_RunScript;
     else quit("unknown GUI object triggered process_interface");
 
-    if (rtype==0) ;
-    else if (rtype==IBACT_SETMODE)
+    if (rtype==kGUIAction_None) ;
+    else if (rtype==kGUIAction_SetMode)
         set_cursor_mode(rdata);
-    else if (rtype==IBACT_SCRIPT) {
+    else if (rtype==kGUIAction_RunScript) {
         GUIObject *theObj = guis[ifce].Controls[btn];
         // if the object has a special handler script then run it;
         // otherwise, run interface_click

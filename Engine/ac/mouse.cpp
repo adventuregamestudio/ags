@@ -236,8 +236,8 @@ void enable_cursor_mode(int modd) {
         for (ww=0;ww<guis[uu].ControlCount;ww++) {
             if ((guis[uu].CtrlRefs[ww] >> 16)!=kGUIButton) continue;
             GUIButton*gbpt=(GUIButton*)guis[uu].Controls[ww];
-            if (gbpt->leftclick!=IBACT_SETMODE) continue;
-            if (gbpt->lclickdata!=modd) continue;
+            if (gbpt->ClickAction[kMouseLeft]!=kGUIAction_SetMode) continue;
+            if (gbpt->ClickData[kMouseLeft]!=modd) continue;
             gbpt->Enable();
         }
     }
@@ -253,8 +253,8 @@ void disable_cursor_mode(int modd) {
         for (ww=0;ww<guis[uu].ControlCount;ww++) {
             if ((guis[uu].CtrlRefs[ww] >> 16)!=kGUIButton) continue;
             GUIButton*gbpt=(GUIButton*)guis[uu].Controls[ww];
-            if (gbpt->leftclick!=IBACT_SETMODE) continue;
-            if (gbpt->lclickdata!=modd) continue;
+            if (gbpt->ClickAction[kMouseLeft]!=kGUIAction_SetMode) continue;
+            if (gbpt->ClickData[kMouseLeft]!=modd) continue;
             gbpt->Disable();
         }
     }

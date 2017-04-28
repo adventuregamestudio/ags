@@ -122,15 +122,10 @@ void GUIInvWindow::Draw(Bitmap *ds)
     ds->DrawRect(Rect(x,y,x+wid,y+hit), draw_color);
 }
 
+void GUIButton::PrepareTextToDraw()
+{
+    _textToDraw = _text;
+}
+
 } // namespace Common
 } // namespace AGS
-
-void GUIButton::Draw_set_oritext(char *oritext, const char *text)
-{
-  strcpy(oritext, text);
-
-  // original code was:
-  //      oritext = text; 
-  // it seems though the 'text' variable is assumed to be a null-terminated string
-  // oritext is assumed to be made long enough by caller function
-}

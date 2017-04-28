@@ -33,12 +33,11 @@ namespace AGS
 namespace Common
 {
 
-// TODO: generic alignment
-enum GUIAlignment
+enum LegacyGUIAlignment
 {
-    kGUIAlign_Left   = 0,
-    kGUIAlign_Right  = 1,
-    kGUIAlign_Center = 2
+    kLegacyGUIAlign_Left   = 0,
+    kLegacyGUIAlign_Right  = 1,
+    kLegacyGUIAlign_Center = 2
 };
 
 class GUIObject
@@ -110,6 +109,9 @@ protected:
     String   _scEventNames[MAX_GUIOBJ_EVENTS]; // script event names
     String   _scEventArgs[MAX_GUIOBJ_EVENTS];  // script handler params
 };
+
+
+FrameAlignment ConvertLegacyGUIAlignment(int32_t align);
 
 } // namespace Common
 } // namespace AGS

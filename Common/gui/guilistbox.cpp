@@ -153,16 +153,8 @@ void GUIListBox::Draw(Common::Bitmap *ds)
         int item_index = item + TopItem;
         PrepareTextToDraw(Items[item_index]);
 
-        if (TextAlignment == kGUIAlign_Left)
-            wouttext_outline(ds, X + 1 + pixel_size, at_y + 1, Font, text_color, _textToDraw);
-        else
-        {
-            int text_width = wgettextwidth(_textToDraw, Font);
-            if (TextAlignment == kGUIAlign_Right)
-                wouttext_outline(ds, right_hand_edge - text_width, at_y + 1, Font, text_color, _textToDraw);
-            else
-                wouttext_outline(ds, ((right_hand_edge - X) / 2) + X - (text_width / 2), at_y + 1, Font, text_color, _textToDraw);
-        }
+        GUI::DrawTextAlignedHor(ds, _textToDraw, Font, text_color, X + 1 + pixel_size, right_hand_edge, at_y + 1,
+            ConvertLegacyGUIAlignment(TextAlignment));
     }
 
     DrawItemsUnfix();
@@ -306,7 +298,7 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     }
     else
     {
-        TextAlignment = kGUIAlign_Left;
+        TextAlignment = kLegacyGUIAlign_Left;
     }
 
     if (gui_version >= kGuiVersion_unkn_107)

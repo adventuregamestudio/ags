@@ -44,10 +44,10 @@ public:
     String  Text;
     int32_t Font;
     color_t TextColor;
+    // TODO: use FrameAlignment type (will require changing GUI data format)
     int32_t TextAlignment;
 
 private:
-    void DrawAlignedText(Bitmap *g, int at_y, color_t text_color, const char *text);
     void PrepareTextToDraw();
     int  SplitLinesForDrawing();
 

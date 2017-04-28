@@ -26,6 +26,33 @@ namespace AGS
 namespace Common
 {
 
+FrameAlignment ConvertLegacyButtonAlignment(int32_t align)
+{
+    switch (align)
+    {
+    case kLegacyButtonAlign_TopCenter:
+        return kAlignTopCenter;
+    case kLegacyButtonAlign_TopLeft:
+        return kAlignTopLeft;
+    case kLegacyButtonAlign_TopRight:
+        return kAlignTopRight;
+    case kLegacyButtonAlign_CenterLeft:
+        return kAlignCenterLeft;
+    case kLegacyButtonAlign_Centered:
+        return kAlignCentered;
+    case kLegacyButtonAlign_CenterRight:
+        return kAlignCenterRight;
+    case kLegacyButtonAlign_BottomLeft:
+        return kAlignBottomLeft;
+    case kLegacyButtonAlign_BottomCenter:
+        return kAlignBottomCenter;
+    case kLegacyButtonAlign_BottomRight:
+        return kAlignBottomRight;
+    }
+    return kAlignNone;
+}
+
+
 GUIButton::GUIButton()
 {
     Image = -1;
@@ -34,7 +61,7 @@ GUIButton::GUIButton()
     CurrentImage = -1;
     Font = 0;
     TextColor = 0;
-    TextAlignment = kButtonAlign_TopCenter;
+    TextAlignment = kLegacyButtonAlign_TopCenter;
     ClickAction[kMouseLeft] = kGUIAction_RunScript;
     ClickAction[kMouseRight] = kGUIAction_RunScript;
     ClickData[kMouseLeft] = 0;
@@ -187,7 +214,7 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
     }
     else
     {
-        TextAlignment = kButtonAlign_TopCenter;
+        TextAlignment = kLegacyButtonAlign_TopCenter;
     }
 
     if (TextColor == 0)
@@ -257,60 +284,18 @@ void GUIButton::DrawText(Bitmap *ds, bool draw_disabled)
     // but that will require to update all gui controls when translation is changed in game
     PrepareTextToDraw();
 
-    int at_x = X;
-    int at_y = Y;
+    Rect frame = RectWH(X + 2, Y + 2, Width - 4, Height - 4);
     if (IsPushed && IsMouseOver)
     {
         // move the Text a bit while pushed
-        at_x++;
-        at_y++;
+        frame.Left++;
+        frame.Top++;
     }
-
-    // TODO: replace with generic alignment-in-rect
-    switch (TextAlignment)
-    {
-    case kButtonAlign_TopCenter:
-        at_x += (Width / 2 - wgettextwidth(_textToDraw, Font) / 2);
-        at_y += 2;
-        break;
-    case kButtonAlign_TopLeft:
-        at_x += 2;
-        at_y += 2;
-        break;
-    case kButtonAlign_TopRight:
-        at_x += (Width - wgettextwidth(_textToDraw, Font)) - 2;
-        at_y += 2;
-        break;
-    case kButtonAlign_CenterLeft:
-        at_x += 2;
-        at_y += (Height / 2 - (wgettextheight(_textToDraw, Font) + 1) / 2);
-        break;
-    case kButtonAlign_Centered:
-        at_x += (Width / 2 - wgettextwidth(_textToDraw, Font) / 2);
-        at_y += (Height / 2 - (wgettextheight(_textToDraw, Font) + 1) / 2);
-        break;
-    case kButtonAlign_CenterRight:
-        at_x += (Width - wgettextwidth(_textToDraw, Font)) - 2;
-        at_y += (Height / 2 - (wgettextheight(_textToDraw, Font) + 1) / 2);
-        break;
-    case kButtonAlign_BottomLeft:
-        at_x += 2;
-        at_y += (Height - wgettextheight(_textToDraw, Font)) - 2;
-        break;
-    case kButtonAlign_BottomCenter:
-        at_x += (Width / 2 - wgettextwidth(_textToDraw, Font) / 2);
-        at_y += (Height - wgettextheight(_textToDraw, Font)) - 2;
-        break;
-    case kButtonAlign_BottomRight:
-        at_x += (Width - wgettextwidth(_textToDraw, Font)) - 2;
-        at_y += (Height - wgettextheight(_textToDraw, Font)) - 2;
-        break;
-    }
-
     color_t text_color = ds->GetCompatibleColor(TextColor);
     if (draw_disabled)
         text_color = ds->GetCompatibleColor(8);
-    wouttext_outline(ds, at_x, at_y, Font, text_color, _textToDraw);
+    GUI::DrawTextAligned(ds, _textToDraw, Font, text_color, frame,
+        ConvertLegacyButtonAlignment(TextAlignment));
 }
 
 void GUIButton::DrawTextButton(Bitmap *ds, bool draw_disabled)

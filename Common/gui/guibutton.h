@@ -40,18 +40,17 @@ enum GUIClickAction
     kGUIAction_RunScript  = 2,
 };
 
-// TODO: generic alignment
-enum GUIButtonAlignment
+enum LegacyButtonAlignment
 {
-    kButtonAlign_TopCenter     = 0,
-    kButtonAlign_TopLeft       = 1,
-    kButtonAlign_TopRight      = 2,
-    kButtonAlign_CenterLeft    = 3,
-    kButtonAlign_Centered      = 4,
-    kButtonAlign_CenterRight   = 5,
-    kButtonAlign_BottomLeft    = 6,
-    kButtonAlign_BottomCenter  = 7,
-    kButtonAlign_BottomRight   = 8,
+    kLegacyButtonAlign_TopCenter = 0,
+    kLegacyButtonAlign_TopLeft = 1,
+    kLegacyButtonAlign_TopRight = 2,
+    kLegacyButtonAlign_CenterLeft = 3,
+    kLegacyButtonAlign_Centered = 4,
+    kLegacyButtonAlign_CenterRight = 5,
+    kLegacyButtonAlign_BottomLeft = 6,
+    kLegacyButtonAlign_BottomCenter = 7,
+    kLegacyButtonAlign_BottomRight = 8,
 };
 
 class GUIButton : public GUIObject
@@ -83,6 +82,7 @@ public:
     int32_t     CurrentImage;
     int32_t     Font;
     color_t     TextColor;
+    // TODO: use FrameAlignment type (will require changing GUI data format)
     int32_t     TextAlignment;
     // Click actions for left and right mouse buttons
     // NOTE: only left click is currently in use

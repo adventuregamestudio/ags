@@ -35,6 +35,34 @@ Size ProportionalStretch(const Size &dest, const Size &item)
     return ProportionalStretch(dest.Width, dest.Height, item.Width, item.Height);
 }
 
+int AlignInHRange(int x1, int x2, int off_x, int width, FrameAlignment align)
+{
+    if (align & kAlignRight)
+        return off_x + x2 - width;
+    else if (align & kAlignHCenter)
+        return off_x + x1 + ((x2 - x1 + 1) >> 1) - (width >> 1);
+    return off_x + x1; // kAlignLeft is default
+}
+
+int AlignInVRange(int y1, int y2, int off_y, int height, FrameAlignment align)
+{
+    if (align & kAlignBottom)
+        return off_y + y2 - height;
+    else if (align & kAlignVCenter)
+        return off_y + y1 + ((y2 - y1 + 1) >> 1) - (height >> 1);
+    return off_y + y1; // kAlignTop is default
+}
+
+Rect AlignInRect(const Rect &frame, const Rect &item, FrameAlignment align)
+{
+    int x = AlignInHRange(frame.Left, frame.Right, item.Left, item.GetWidth(), align);
+    int y = AlignInVRange(frame.Top, frame.Bottom, item.Top, item.GetHeight(), align);
+
+    Rect dst_item = item;
+    dst_item.MoveTo(Point(x, y));
+    return dst_item;
+}
+
 Rect OffsetRect(const Rect &r, const Point off)
 {
     return Rect(r.Left + off.X, r.Top + off.Y, r.Right + off.X, r.Bottom + off.Y);

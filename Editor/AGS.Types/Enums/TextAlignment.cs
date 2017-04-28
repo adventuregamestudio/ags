@@ -4,7 +4,8 @@ using System.Text;
 
 namespace AGS.Types
 {
-    public enum TextAlignment
+	// TODO: use as generic alignment style for all text-align properties
+	public enum TextAlignment
     {
         TopMiddle = 0,
         TopLeft = 1,

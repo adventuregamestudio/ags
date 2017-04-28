@@ -32,7 +32,7 @@ GUILabel::GUILabel()
 {
     Font = 0;
     TextColor = 0;
-    TextAlignment = kGUIAlign_Left;
+    TextAlignment = kLegacyGUIAlign_Left;
 
     _scEventCount = 0;
 }
@@ -59,23 +59,14 @@ void GUILabel::Draw(Common::Bitmap *ds)
         i < numlines && (!limit_by_label_frame || at_y <= Y + Height);
         ++i, at_y += linespacing)
     {
-        DrawAlignedText(ds, at_y, text_color, lines[i]);
+        GUI::DrawTextAlignedHor(ds, lines[i], Font, text_color, X, X + Width - 1, at_y,
+            ConvertLegacyGUIAlignment(TextAlignment));
     }
 }
 
 void GUILabel::SetText(const String &text)
 {
     Text = text;
-}
-
-void GUILabel::DrawAlignedText(Common::Bitmap *ds, int at_y, color_t text_color, const char *text)
-{
-    int at_x = X;
-    if (TextAlignment == kGUIAlign_Center)
-        at_x += Width / 2 - wgettextwidth(text, Font) / 2;
-    else if (TextAlignment == kGUIAlign_Right)
-        at_x += Width - wgettextwidth(text, Font);
-    wouttext_outline(ds, at_x, at_y, Font, text_color, text);
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString

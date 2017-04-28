@@ -562,6 +562,21 @@ void DrawDisabledEffect(Bitmap *ds, const Rect &rc)
     }
 }
 
+void DrawTextAligned(Bitmap *ds, const char *text, int font, color_t text_color, const Rect &frame, FrameAlignment align)
+{
+    int text_height = wgettextheight(text, font);
+    if (align & kAlignVCenter)
+        text_height++; // CHECKME
+    Rect item = AlignInRect(frame, RectWH(0, 0, wgettextwidth(text, font), text_height), align);
+    wouttext_outline(ds, item.Left, item.Top, font, text_color, text);
+}
+
+void DrawTextAlignedHor(Bitmap *ds, const char *text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align)
+{
+    int x = AlignInHRange(x1, x2, 0, wgettextwidth(text, font), align);
+    wouttext_outline(ds, x, y, font, text_color, text);
+}
+
 void ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
 {
     // set up the reverse-lookup array

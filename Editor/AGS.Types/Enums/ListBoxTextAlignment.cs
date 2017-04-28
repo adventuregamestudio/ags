@@ -4,7 +4,8 @@ using System.Text;
 
 namespace AGS.Types
 {
-    public enum ListBoxTextAlignment
+	// TODO: deprecate in favour of generic alignment style
+	public enum ListBoxTextAlignment
     {
         Left = 0,
         Right = 1,

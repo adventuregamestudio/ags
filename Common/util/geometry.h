@@ -26,6 +26,31 @@ namespace AGSMath = AGS::Common::Math;
 //namespace Common
 //{
 
+enum FrameAlignment
+{
+    kAlignNone     = 0x00,
+    kAlignLeft     = 0x01,
+    kAlignRight    = 0x02,
+    kAlignHCenter  = 0x04,
+    kAlignTop      = 0x10,
+    kAlignBottom   = 0x20,
+    kAlignVCenter  = 0x40,
+
+    kAlignTopLeft      = kAlignTop     | kAlignLeft,
+    kAlignTopCenter    = kAlignTop     | kAlignHCenter,
+    kAlignTopRight     = kAlignTop     | kAlignRight,
+    kAlignCenterLeft   = kAlignVCenter | kAlignLeft,
+    kAlignCentered     = kAlignVCenter | kAlignHCenter,
+    kAlignCenterRight  = kAlignVCenter | kAlignRight,
+    kAlignBottomLeft   = kAlignBottom  | kAlignLeft,
+    kAlignBottomCenter = kAlignBottom  | kAlignHCenter,
+    kAlignBottomRight  = kAlignBottom  | kAlignRight,
+
+    // Masks
+    kAlignHor      = kAlignLeft | kAlignRight | kAlignHCenter,
+    kAlignVer      = kAlignTop | kAlignBottom | kAlignVCenter,
+};
+
 enum RectPlacement
 {
     kPlaceOffset,
@@ -229,6 +254,12 @@ struct Rect
         Top = y;
     }
 
+    inline void MoveTo(const Point &pt)
+    {
+        MoveToX(pt.X);
+        MoveToY(pt.Y);
+    }
+
     inline void SetWidth(int width)
     {
         Right = Left + width - 1;
@@ -304,6 +335,11 @@ struct Circle
 
 };
 
+
+
+int AlignInHRange(int x1, int x2, int off_x, int width, FrameAlignment align);
+int AlignInVRange(int y1, int y2, int off_y, int height, FrameAlignment align);
+Rect AlignInRect(const Rect &frame, const Rect &item, FrameAlignment align);
 
 Size ProportionalStretch(int dest_w, int dest_h, int item_w, int item_h);
 Size ProportionalStretch(const Size &dest, const Size &item);

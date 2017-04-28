@@ -141,5 +141,19 @@ void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
 }
 
 
+FrameAlignment ConvertLegacyGUIAlignment(int32_t align)
+{
+    switch (align)
+    {
+    case kLegacyGUIAlign_Left:
+        return kAlignLeft;
+    case kLegacyGUIAlign_Right:
+        return kAlignRight;
+    case kLegacyGUIAlign_Center:
+        return kAlignHCenter;
+    }
+    return kAlignNone;
+}
+
 } // namespace Common
 } // namespace AGS

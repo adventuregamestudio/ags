@@ -27,6 +27,7 @@
 #include "gui/guitextbox.h"
 #include "ac/dynobj/scriptgui.h"
 
+using AGS::Common::GUISlider;
 using AGS::Common::GUITextBox;
 
 GUIObject	*GetGUIControlAtLocation(int xx, int yy);

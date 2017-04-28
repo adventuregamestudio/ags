@@ -3183,13 +3183,13 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  }
 	  else if (slider)
 	  {
-          guislider.push_back(::GUISlider());
-		  guislider[numguislider].min = slider->MinValue;
-		  guislider[numguislider].max = slider->MaxValue;
-		  guislider[numguislider].value = slider->Value;
-		  guislider[numguislider].handlepic = slider->HandleImage;
-		  guislider[numguislider].handleoffset = slider->HandleOffset;
-		  guislider[numguislider].bgimage = slider->BackgroundImage;
+          guislider.push_back(Common::GUISlider());
+		  guislider[numguislider].MinValue = slider->MinValue;
+		  guislider[numguislider].MaxValue = slider->MaxValue;
+		  guislider[numguislider].Value = slider->Value;
+		  guislider[numguislider].HandleImage = slider->HandleImage;
+		  guislider[numguislider].HandleOffset = slider->HandleOffset;
+		  guislider[numguislider].BgImage = slider->BackgroundImage;
 		  ConvertStringToCharArray(slider->OnChange, guislider[numguislider].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUISlider << 16) | numguislider;
@@ -3992,14 +3992,14 @@ Game^ import_compiled_game_dta(const char *fileName)
 			case Common::kGUISlider:
 				{
 				  AGS::Types::GUISlider^ newSlider = gcnew AGS::Types::GUISlider();
-				  ::GUISlider *copyFrom = (::GUISlider*)curObj;
+				  Common::GUISlider *copyFrom = (Common::GUISlider*)curObj;
 				  newControl = newSlider;
-				  newSlider->MinValue = copyFrom->min;
-				  newSlider->MaxValue = copyFrom->max;
-				  newSlider->Value = copyFrom->value;
-				  newSlider->HandleImage = copyFrom->handlepic;
-			  	  newSlider->HandleOffset = copyFrom->handleoffset;
-				  newSlider->BackgroundImage = copyFrom->bgimage;
+				  newSlider->MinValue = copyFrom->MinValue;
+				  newSlider->MaxValue = copyFrom->MaxValue;
+				  newSlider->Value = copyFrom->Value;
+				  newSlider->HandleImage = copyFrom->HandleImage;
+			  	  newSlider->HandleOffset = copyFrom->HandleOffset;
+				  newSlider->BackgroundImage = copyFrom->BgImage;
 				  newSlider->OnChange = gcnew String(copyFrom->eventHandlers[0]);
 				  break;
 				}

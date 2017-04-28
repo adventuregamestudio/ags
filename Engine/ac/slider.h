@@ -20,6 +20,8 @@
 
 #include "gui/guislider.h"
 
+using AGS::Common::GUISlider;
+
 void	Slider_SetMax(GUISlider *guisl, int valn);
 int		Slider_GetMax(GUISlider *guisl);
 void	Slider_SetMin(GUISlider *guisl, int valn);

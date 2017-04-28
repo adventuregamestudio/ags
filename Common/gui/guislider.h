@@ -18,80 +18,52 @@
 #include <vector>
 #include "gui/guiobject.h"
 
-struct GUISlider:public GUIObject
+namespace AGS
 {
-  int min, max;
-  int value, mpressed;
-  int handlepic, handleoffset, bgimage;
-  // The following variables are not persisted on disk
-  // Cached (x1, x2, y1, y2) co-ordinates of slider handle
-  int cached_handtlx, cached_handbrx;
-  int cached_handtly, cached_handbry;
+namespace Common
+{
 
-  virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  virtual void Draw(Common::Bitmap *ds);
-  void MouseMove(int xp, int yp);
+class GUISlider : public GUIObject
+{
+public:
+    GUISlider();
 
-  void MouseOver()
-  {
-  }
+    // Tells if the slider is horizontal (otherwise - vertical)
+    bool         IsHorizontal() const;
+    virtual int  IsOverControl(int x, int y, int leeway) override;
 
-  void MouseLeave()
-  {
-  }
+    // Operations
+    virtual void Draw(Bitmap *ds) override;
 
-  virtual int MouseDown()
-  {
-    mpressed = 1;
-    // lock focus to ourselves
-    return 1;
-  }
+    // Events
+    virtual int  MouseDown() override;
+    virtual void MouseMove(int xp, int yp) override;
+    virtual void MouseUp() override;
 
-  void MouseUp()
-  {
-    mpressed = 0;
-  }
+    // Serialization
+    virtual void WriteToFile(Stream *out) override;
+    virtual void ReadFromFile(Stream *in, GuiVersion gui_version) override;
 
-  void KeyPress(int kp)
-  {
-  }
+// TODO: these members are currently public; hide them later
+public:
+    int32_t MinValue;
+    int32_t MaxValue;
+    int32_t Value;
+    int32_t BgImage;
+    int32_t HandleImage;
+    int32_t HandleOffset;
+    bool    IsMousePressed;
 
-  virtual int IsOverControl(int p_x, int p_y, int p_extra) {
-    // check the overall boundary
-    if (GUIObject::IsOverControl(p_x, p_y, p_extra))
-      return 1;
-    // now check the handle too
-    if ((p_x >= cached_handtlx) && (p_y >= cached_handtly) &&
-        (p_x < cached_handbrx) && (p_y < cached_handbry))
-      return 1;
-    return 0;
-  }
-
-  void reset()
-  {
-    GUIObject::init();
-    min = 0;
-    max = 10;
-    value = 0;
-    mpressed = 0;
-    handlepic = -1;
-    handleoffset = 0;
-    bgimage = 0;
-    activated = 0;
-    cached_handtlx = cached_handbrx = 0;
-    cached_handtly = cached_handbry = 0;
-    numSupportedEvents = 1;
-    supportedEvents[0] = "Change";
-    supportedEventArgs[0] = "GUIControl *control";
-  }
-
-  GUISlider() {
-    reset();
-  }
+private:
+    // The following variables are not persisted on disk
+    // Cached coordinates of slider handle
+    Rect    _cachedHandle;
 };
 
-extern std::vector<GUISlider> guislider;
+} // namespace Common
+} // namespace AGS
+
+extern std::vector<AGS::Common::GUISlider> guislider;
 extern int numguislider;
 
 #endif // __AC_GUISLIDER_H

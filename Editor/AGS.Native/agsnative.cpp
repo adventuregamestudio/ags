@@ -3165,15 +3165,15 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  }
 	  else if (listbox)
 	  {
-          guilist.push_back(::GUIListBox());
-		  guilist[numguilist].textcol = listbox->TextColor;
-		  guilist[numguilist].font = listbox->Font;
-		  guilist[numguilist].backcol = listbox->SelectedTextColor;
-		  guilist[numguilist].selectedbgcol = listbox->SelectedBackgroundColor;
-		  guilist[numguilist].alignment = (int)listbox->TextAlignment;
+          guilist.push_back(Common::GUIListBox());
+		  guilist[numguilist].TextColor = listbox->TextColor;
+		  guilist[numguilist].Font = listbox->Font;
+		  guilist[numguilist].BgColor = listbox->SelectedTextColor;
+		  guilist[numguilist].SelectedBgColor = listbox->SelectedBackgroundColor;
+		  guilist[numguilist].TextAlignment = (int)listbox->TextAlignment;
           guilist[numguilist].flags = listbox->Translated ? GUIF_TRANSLATED : 0;
-		  guilist[numguilist].exflags = (listbox->ShowBorder) ? 0 : GLF_NOBORDER;
-		  guilist[numguilist].exflags |= (listbox->ShowScrollArrows) ? 0 : GLF_NOARROWS;
+          guilist[numguilist].ListBoxFlags = (listbox->ShowBorder) ? 0 : Common::kListBox_NoBorder;
+		  guilist[numguilist].ListBoxFlags |= (listbox->ShowScrollArrows) ? 0 : Common::kListBox_NoArrows;
 		  ConvertStringToCharArray(listbox->OnSelectionChanged, guilist[numguilist].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIListBox << 16) | numguilist;
@@ -3976,15 +3976,15 @@ Game^ import_compiled_game_dta(const char *fileName)
 			case Common::kGUIListBox:
 				{
 				  AGS::Types::GUIListBox^ newListbox = gcnew AGS::Types::GUIListBox();
-				  ::GUIListBox *copyFrom = (::GUIListBox*)curObj;
+				  Common::GUIListBox *copyFrom = (Common::GUIListBox*)curObj;
 				  newControl = newListbox;
-				  newListbox->TextColor = copyFrom->textcol;
-				  newListbox->Font = copyFrom->font; 
-				  newListbox->SelectedTextColor = copyFrom->backcol;
-				  newListbox->SelectedBackgroundColor = copyFrom->selectedbgcol;
-				  newListbox->TextAlignment = (ListBoxTextAlignment)copyFrom->alignment;
-				  newListbox->ShowBorder = ((copyFrom->exflags & GLF_NOBORDER) == 0);
-				  newListbox->ShowScrollArrows = ((copyFrom->exflags & GLF_NOARROWS) == 0);
+				  newListbox->TextColor = copyFrom->TextColor;
+				  newListbox->Font = copyFrom->Font; 
+				  newListbox->SelectedTextColor = copyFrom->BgColor;
+				  newListbox->SelectedBackgroundColor = copyFrom->SelectedBgColor;
+				  newListbox->TextAlignment = (ListBoxTextAlignment)copyFrom->TextAlignment;
+				  newListbox->ShowBorder = ((copyFrom->ListBoxFlags & Common::kListBox_NoBorder) == 0);
+				  newListbox->ShowScrollArrows = ((copyFrom->ListBoxFlags & Common::kListBox_NoArrows) == 0);
                   newListbox->Translated = (copyFrom->flags & GUIF_TRANSLATED) != 0;
 				  newListbox->OnSelectionChanged = gcnew String(copyFrom->eventHandlers[0]);
 				  break;

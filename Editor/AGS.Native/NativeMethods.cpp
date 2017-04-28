@@ -705,8 +705,8 @@ namespace AGS
             if (name->Equals("GUIMAIN_NOCLICK")) return (int)Common::kGUIMain_NoClick;
             if (name->Equals("GUIF_CLIP")) return GUIF_CLIP;
             if (name->Equals("GUIF_TRANSLATED")) return GUIF_TRANSLATED;
-            if (name->Equals("GLF_NOBORDER")) return GLF_NOBORDER;
-            if (name->Equals("GLF_NOARROWS")) return GLF_NOARROWS;
+            if (name->Equals("GLF_NOBORDER")) return (int)Common::kListBox_NoBorder;
+            if (name->Equals("GLF_NOARROWS")) return (int)Common::kListBox_NoArrows;
             if (name->Equals("GUI_POPUP_MODAL")) return (int)Common::kGUIPopupModal;
             if (name->Equals("GUIMAIN_TEXTWINDOW")) return (int)Common::kGUIMain_TextWindow;
             if (name->Equals("GUIMAIN_LEGACYTEXTWINDOW")) return (int)Common::kGUIMain_LegacyTextWindow;

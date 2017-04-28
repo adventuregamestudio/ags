@@ -20,6 +20,8 @@
 
 #include "gui/guilistbox.h"
 
+using AGS::Common::GUIListBox;
+
 int			ListBox_AddItem(GUIListBox *lbb, const char *text);
 int			ListBox_InsertItemAt(GUIListBox *lbb, int index, const char *text);
 void		ListBox_Clear(GUIListBox *listbox);

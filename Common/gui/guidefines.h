@@ -15,7 +15,6 @@
 #ifndef __AC_GUIDEFINES_H
 #define __AC_GUIDEFINES_H
 
-#define MAX_LISTBOX_ITEMS 200
 #define MAX_GUILABEL_TEXT_LEN 2048
 #define GUIMAGIC          0xcafebeef
 // GUI Control flags (32-bit)
@@ -32,10 +31,6 @@
 #define MAX_GUIOBJ_EVENTS 10
 #define MAX_GUIOBJ_EVENTHANDLER_LEN 30
 #define TEXTWINDOW_PADDING_DEFAULT  3
-// ListBox flags
-#define GLF_NOBORDER     1
-#define GLF_NOARROWS     2
-#define GLF_SGINDEXVALID 4
 //#define MAX_OBJ_EACH_TYPE 251
 
 #define MAXLINE 50
@@ -135,6 +130,13 @@ enum GUIControlType
     kGUISlider      = 4,
     kGUITextBox     = 5,
     kGUIListBox     = 6
+};
+
+enum GUIListBoxFlags
+{
+    kListBox_NoBorder = 0x01,
+    kListBox_NoArrows = 0x02,
+    kListBox_SvgIndex = 0x04,
 };
 
 enum GUITextBoxFlags

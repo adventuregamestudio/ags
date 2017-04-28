@@ -145,34 +145,26 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, color_t text_color)
     }
 }
 
+void GUIListBox::DrawItemsFix()
+{
+  // do nothing
+}
+
+void GUIListBox::DrawItemsUnfix()
+{
+  // do nothing
+}
+
+void GUIListBox::PrepareTextToDraw(const String &text)
+{
+    if (flags & GUIF_TRANSLATED)
+        _textToDraw = get_translation(text);
+    else
+        _textToDraw = text;
+}
+
 } // namespace Common
 } // namespace AGS
-
-void GUIListBox::Draw_items_fix()
-{
-  // do nothing
-}
-
-void GUIListBox::Draw_items_unfix()
-{
-  // do nothing
-}
-
-void GUIListBox::Draw_set_oritext(char *oritext, const char *text)
-{
-    // Allow it to change the string to unicode if it's TTF
-    if (flags & GUIF_TRANSLATED)
-    {
-        strcpy(oritext, get_translation(text));
-    }
-    else
-    {
-        strcpy(oritext, text);
-    }
-    ensure_text_valid_for_font(oritext, font);
-
-    // oritext is assumed to be made long enough by caller function
-}
 
 void GUIButton::Draw_set_oritext(char *oritext, const char *text)
 {

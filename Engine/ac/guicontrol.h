@@ -27,6 +27,7 @@
 #include "gui/guitextbox.h"
 #include "ac/dynobj/scriptgui.h"
 
+using AGS::Common::GUIListBox;
 using AGS::Common::GUISlider;
 using AGS::Common::GUITextBox;
 

@@ -96,26 +96,28 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, color_t text_color)
     wouttext_outline(ds, x + 2, y + 2, Font, text_color, "Text Box Contents");
 }
 
+static int num_items_temp;
+void GUIListBox::DrawItemsFix()
+{
+    num_items_temp = ItemCount;
+    ItemCount = 2;
+    Items.push_back("Sample selected");
+    Items.push_back("Sample item");
+}
+
+void GUIListBox::DrawItemsUnfix()
+{
+    Items.clear();
+    ItemCount = num_items_temp;
+}
+
+void GUIListBox::PrepareTextToDraw(const String &text)
+{
+    _textToDraw = text;
+}
+
 } // namespace Common
 } // namespace AGS
-
-void GUIListBox::Draw_items_fix()
-{
-  numItemsTemp = numItems;
-  numItems = 2;
-  items[0] = "Sample selected";
-  items[1] = "Sample item";
-}
-
-void GUIListBox::Draw_items_unfix()
-{
-  numItems = numItemsTemp;
-}
-
-void GUIListBox::Draw_set_oritext(char *oritext, const char *text)
-{
-  strcpy(oritext, text);
-}
 
 void GUIButton::Draw_set_oritext(char *oritext, const char *text)
 {

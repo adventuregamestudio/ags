@@ -12,310 +12,330 @@
 //
 //=============================================================================
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "font/fonts.h"
 #include "gui/guilistbox.h"
 #include "gui/guimain.h"
-#include "font/fonts.h"
 #include "util/stream.h"
-#include "gfx/bitmap.h"
-#include "util/wgt2allg.h"
 
-using AGS::Common::Stream;
-using AGS::Common::Bitmap;
-
-std::vector<GUIListBox> guilist;
+std::vector<AGS::Common::GUIListBox> guilist;
 int numguilist = 0;
 
-void GUIListBox::ChangeFont(int newfont) {
-  font = newfont;
-  rowheight = getfontheight(font) + get_fixed_pixel_size(2);
-  num_items_fit = hit / rowheight;
+namespace AGS
+{
+namespace Common
+{
+
+GUIListBox::GUIListBox()
+{
+    ItemCount = 0;
+    SelectedItem = 0;
+    TopItem = 0;
+    RowHeight = 0;
+    VisibleItemCount = 0;
+    Font = 0;
+    TextColor = 0;
+    BgColor = 7;
+    ListBoxFlags = 0;
+    SelectedBgColor = 16;
+    TextAlignment = 0;
+
+    numSupportedEvents = 1;
+    supportedEvents[0] = "SelectionChanged";
+    supportedEventArgs[0] = "GUIControl *control";
 }
 
- void GUIListBox::Resized() 
+int GUIListBox::GetItemAt(int x, int y) const
 {
-	if (rowheight == 0)
-	{
-	  check_font(&font);
-	  ChangeFont(font);
-	}
+    if (RowHeight <= 0 || IsInRightMargin(x))
+        return -1;
 
-	if (rowheight > 0)
-	  num_items_fit = hit / rowheight;
+    int index = y / RowHeight + TopItem;
+    if (index < 0 || index >= ItemCount)
+        return -1;
+    return index;
 }
 
-void GUIListBox::WriteToFile(Stream *out)
+bool GUIListBox::IsInRightMargin(int x_) const
 {
-  int a;
-
-  GUIObject::WriteToFile(out);
-  // MACPORT FIXES: swap
-  out->WriteArrayOfInt32(&numItems, 11);
-  out->WriteInt32(alignment);
-  out->WriteInt32(reserved1);
-  out->WriteInt32(selectedbgcol);
-  for (a = 0; a < numItems; a++)
-    items[a].Write(out);
-
-  if (exflags & GLF_SGINDEXVALID)
-    out->WriteArrayOfInt16(&saveGameIndex[0], numItems);
+    if (x_ >= (wid - get_fixed_pixel_size(6)) && (ListBoxFlags & kListBox_NoBorder) == 0 && (ListBoxFlags & kListBox_NoArrows) == 0)
+        return 1;
+    return 0;
 }
 
-void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
+int GUIListBox::AddItem(const String &text)
 {
-  int a, i;
-  char tempbuf[300];
-
-  Clear();
-
-  GUIObject::ReadFromFile(in, gui_version);
-  // MACPORT FIXES: swap
-  in->ReadArrayOfInt32(&numItems, 11);
-
-  if (gui_version >= kGuiVersion_272b) {
-    alignment = in->ReadInt32();
-    reserved1 = in->ReadInt32();
-  }
-  else {
-    alignment = GALIGN_LEFT;
-    reserved1 = 0;
-  }
-
-  if (gui_version >= kGuiVersion_unkn_107) {
-    selectedbgcol = in->ReadInt32();
-  }
-  else {
-    selectedbgcol = textcol;
-    if (selectedbgcol == 0)
-      selectedbgcol = 16;
-  }
-
-  for (a = 0; a < numItems; a++) {
-    i = 0;
-    while ((tempbuf[i] = in->ReadInt8()) != 0)
-      i++;
-
-    items[a] = tempbuf;
-    saveGameIndex[a] = -1;
-  }
-
-  if ((gui_version >= kGuiVersion_272d) && (exflags & GLF_SGINDEXVALID)) {
-    in->ReadArrayOfInt16(&saveGameIndex[0], numItems);
-  }
-
-  if (textcol == 0)
-    textcol = 16;
-}
-
-int GUIListBox::AddItem(const char *toadd)
-{
-  if (numItems >= MAX_LISTBOX_ITEMS)
-    return -1;
-
-  guis_need_update = 1;
-  items[numItems] = toadd;
-  saveGameIndex[numItems] = -1;
-  numItems++;
-  return numItems - 1;
-}
-
-int GUIListBox::InsertItem(int index, const char *toadd)
-{
-  int aa;
-
-  if (numItems >= MAX_LISTBOX_ITEMS)
-    return -1;
-
-  if ((index < 0) || (index > numItems))
-    return -1;
-
-  guis_need_update = 1;
-
-  for (aa = numItems; aa > index; aa--) {
-    items[aa] = items[aa - 1];
-    saveGameIndex[aa] = saveGameIndex[aa - 1];
-  }
-
-  items[index] = toadd;
-  saveGameIndex[index] = -1;
-  numItems++;
-
-  if (selected >= index)
-    selected++;
-
-  return numItems - 1;
-}
-
-void GUIListBox::SetItemText(int item, const char *newtext)
-{
-  if ((item >= numItems) || (item < 0))
-    return;
-
-  guis_need_update = 1;
-  items[item] = newtext;
+    guis_need_update = 1;
+    Items.push_back(text);
+    SavedGameIndex.push_back(-1);
+    ItemCount++;
+    return ItemCount - 1;
 }
 
 void GUIListBox::Clear()
 {
-  int aa;
-  for (aa = 0; aa < numItems; aa++)
-    items[aa].Free();
-
-  numItems = 0;
-  selected = 0;
-  topItem = 0;
-  guis_need_update = 1;
-}
-
-void GUIListBox::RemoveItem(int index)
-{
-  int aa;
-
-  if ((index < 0) || (index >= numItems))
-    return;
-
-  numItems--;
-  for (aa = index; aa < numItems; aa++) {
-    items[aa] = items[aa + 1];
-    saveGameIndex[aa] = saveGameIndex[aa + 1];
-  }
-
-  if (selected > index)
-    selected--;
-  if (selected >= numItems)
-    selected = -1;
-
-  guis_need_update = 1;
+    Items.clear();
+    SavedGameIndex.clear();
+    ItemCount = 0;
+    SelectedItem = 0;
+    TopItem = 0;
+    guis_need_update = 1;
 }
 
 void GUIListBox::Draw(Common::Bitmap *ds)
 {
-  wid--;
-  hit--;
-  int pixel_size = get_fixed_pixel_size(1);
+    const int width  = wid - 1;
+    const int height = hit - 1;
+    const int pixel_size = get_fixed_pixel_size(1);
 
-  check_font(&font);
-  color_t text_color = ds->GetCompatibleColor(textcol);
-  color_t draw_color = ds->GetCompatibleColor(textcol);
-  if ((exflags & GLF_NOBORDER) == 0) {
-    ds->DrawRect(Rect(x, y, x + wid + (pixel_size - 1), y + hit + (pixel_size - 1)), draw_color);
-    if (pixel_size > 1)
-      ds->DrawRect(Rect(x + 1, y + 1, x + wid, y + hit), draw_color);
-  }
-
-  int rightHandEdge = (x + wid) - pixel_size - 1;
-
-  // use ChangeFont to update the rowheight and num_items_fit
-  ChangeFont(font);
-
-  // draw the scroll bar in if necessary
-  if ((numItems > num_items_fit) && ((exflags & GLF_NOBORDER) == 0) && ((exflags & GLF_NOARROWS) == 0)) {
-    int xstrt, ystrt;
-    ds->DrawRect(Rect(x + wid - get_fixed_pixel_size(7), y, (x + (pixel_size - 1) + wid) - get_fixed_pixel_size(7), y + hit), draw_color);
-    ds->DrawRect(Rect(x + wid - get_fixed_pixel_size(7), y + hit / 2, x + wid, y + hit / 2 + (pixel_size - 1)), draw_color);
-
-    xstrt = (x + wid - get_fixed_pixel_size(6)) + (pixel_size - 1);
-    ystrt = (y + hit - 3) - get_fixed_pixel_size(5);
-
-    draw_color = ds->GetCompatibleColor(textcol);
-    ds->DrawTriangle(Triangle(xstrt, ystrt, xstrt + get_fixed_pixel_size(4), ystrt, 
-             xstrt + get_fixed_pixel_size(2),
-             ystrt + get_fixed_pixel_size(5)), draw_color);
-
-    ystrt = y + 3;
-    ds->DrawTriangle(Triangle(xstrt, ystrt + get_fixed_pixel_size(5), 
-             xstrt + get_fixed_pixel_size(4), 
-             ystrt + get_fixed_pixel_size(5),
-             xstrt + get_fixed_pixel_size(2), ystrt), draw_color);
-
-    rightHandEdge -= get_fixed_pixel_size(7);
-  }
-
-  Draw_items_fix();
-
-  for (int a = 0; a < num_items_fit; a++) {
-    int thisyp;
-    if (a + topItem >= numItems)
-      break;
-
-    thisyp = y + pixel_size + a * rowheight;
-    if (a + topItem == selected) {
-      int stretchto = (x + wid) - pixel_size;
-
-      text_color = ds->GetCompatibleColor(backcol);
-
-      if (selectedbgcol > 0) {
-        // draw the selected item bar (if colour not transparent)
-        draw_color = ds->GetCompatibleColor(selectedbgcol);
-        if ((num_items_fit < numItems) && ((exflags & GLF_NOBORDER) == 0) && ((exflags & GLF_NOARROWS) == 0))
-          stretchto -= get_fixed_pixel_size(7);
-
-        ds->FillRect(Rect(x + pixel_size, thisyp, stretchto, thisyp + rowheight - pixel_size), draw_color);
-      }
-    }
-    else
-      text_color = ds->GetCompatibleColor(textcol);
-
-    int item_index = a + topItem;
-    char oritext[200]; // items[] can be not longer than 200 characters due declaration
-    Draw_set_oritext(oritext, items[item_index]);
-
-    if (alignment == GALIGN_LEFT)
-      wouttext_outline(ds, x + 1 + pixel_size, thisyp + 1, font, text_color, oritext);
-    else {
-      int textWidth = wgettextwidth(oritext, font);
-
-      if (alignment == GALIGN_RIGHT)
-        wouttext_outline(ds, rightHandEdge - textWidth, thisyp + 1, font, text_color, oritext);
-      else
-        wouttext_outline(ds, ((rightHandEdge - x) / 2) + x - (textWidth / 2), thisyp + 1, font, text_color, oritext);
+    check_font(&Font);
+    color_t text_color = ds->GetCompatibleColor(TextColor);
+    color_t draw_color = ds->GetCompatibleColor(TextColor);
+    if ((ListBoxFlags & kListBox_NoBorder) == 0) {
+        ds->DrawRect(Rect(x, y, x + width + (pixel_size - 1), y + height + (pixel_size - 1)), draw_color);
+        if (pixel_size > 1)
+            ds->DrawRect(Rect(x + 1, y + 1, x + width, y + height), draw_color);
     }
 
-  }
-  wid++;
-  hit++;
+    int right_hand_edge = (x + width) - pixel_size - 1;
 
-  Draw_items_unfix();
+    // use SetFont to update the RowHeight and VisibleItemCount
+    SetFont(Font);
+
+    // draw the scroll bar in if necessary
+    if (ItemCount > VisibleItemCount && (ListBoxFlags & kListBox_NoBorder) == 0 && (ListBoxFlags & kListBox_NoArrows) == 0)
+    {
+        int xstrt, ystrt;
+        ds->DrawRect(Rect(x + width - get_fixed_pixel_size(7), y, (x + (pixel_size - 1) + width) - get_fixed_pixel_size(7), y + height), draw_color);
+        ds->DrawRect(Rect(x + width - get_fixed_pixel_size(7), y + height / 2, x + width, y + height / 2 + (pixel_size - 1)), draw_color);
+
+        xstrt = (x + width - get_fixed_pixel_size(6)) + (pixel_size - 1);
+        ystrt = (y + height - 3) - get_fixed_pixel_size(5);
+
+        draw_color = ds->GetCompatibleColor(TextColor);
+        ds->DrawTriangle(Triangle(xstrt, ystrt, xstrt + get_fixed_pixel_size(4), ystrt, 
+                 xstrt + get_fixed_pixel_size(2),
+                 ystrt + get_fixed_pixel_size(5)), draw_color);
+
+        ystrt = y + 3;
+        ds->DrawTriangle(Triangle(xstrt, ystrt + get_fixed_pixel_size(5), 
+                 xstrt + get_fixed_pixel_size(4), 
+                 ystrt + get_fixed_pixel_size(5),
+                 xstrt + get_fixed_pixel_size(2), ystrt), draw_color);
+
+        right_hand_edge -= get_fixed_pixel_size(7);
+    }
+
+    DrawItemsFix();
+
+    for (int item = 0; item < VisibleItemCount; ++item)
+    {
+        if (item + TopItem >= ItemCount)
+            break;
+
+        int at_y = y + pixel_size + item * RowHeight;
+        if (item + TopItem == SelectedItem)
+        {
+            text_color = ds->GetCompatibleColor(BgColor);
+            if (SelectedBgColor > 0)
+            {
+                int stretch_to = (x + width) - pixel_size;
+                // draw the SelectedItem item bar (if colour not transparent)
+                draw_color = ds->GetCompatibleColor(SelectedBgColor);
+                if ((VisibleItemCount < ItemCount) && ((ListBoxFlags & kListBox_NoBorder) == 0) && ((ListBoxFlags & kListBox_NoArrows) == 0))
+                    stretch_to -= get_fixed_pixel_size(7);
+
+                ds->FillRect(Rect(x + pixel_size, at_y, stretch_to, at_y + RowHeight - pixel_size), draw_color);
+            }
+        }
+        else
+            text_color = ds->GetCompatibleColor(TextColor);
+
+        int item_index = item + TopItem;
+        PrepareTextToDraw(Items[item_index]);
+
+        if (TextAlignment == GALIGN_LEFT)
+            wouttext_outline(ds, x + 1 + pixel_size, at_y + 1, Font, text_color, _textToDraw);
+        else
+        {
+            int text_width = wgettextwidth(_textToDraw, Font);
+            if (TextAlignment == GALIGN_RIGHT)
+                wouttext_outline(ds, right_hand_edge - text_width, at_y + 1, Font, text_color, _textToDraw);
+            else
+                wouttext_outline(ds, ((right_hand_edge - x) / 2) + x - (text_width / 2), at_y + 1, Font, text_color, _textToDraw);
+        }
+    }
+
+    DrawItemsUnfix();
 }
 
-int GUIListBox::IsInRightMargin(int xx) {
+int GUIListBox::InsertItem(int index, const String &text)
+{
+    if (index < 0 || index > ItemCount)
+        return -1;
 
-  if ((xx >= (wid - get_fixed_pixel_size(6))) && ((exflags & GLF_NOBORDER) == 0) && ((exflags & GLF_NOARROWS) == 0)) {
-    return 1;
-  }
-  return 0;
+    Items.insert(Items.begin() + index, text);
+    SavedGameIndex.insert(SavedGameIndex.begin() + index, -1);
+    if (SelectedItem >= index)
+        SelectedItem++;
+
+    ItemCount++;
+    guis_need_update = 1;
+    return ItemCount - 1;
 }
 
-int GUIListBox::GetIndexFromCoordinates(int xx, int yy) {
-  if (rowheight <= 0 || IsInRightMargin(xx))
-    return -1;
+void GUIListBox::RemoveItem(int index)
+{
+    if (index < 0 || index >= ItemCount)
+        return;
 
-  int onindex = yy / rowheight + topItem;
-  if ((onindex < 0) || (onindex >= numItems))
-    return -1;
+    Items.erase(Items.begin() + index);
+    SavedGameIndex.erase(SavedGameIndex.begin() + index);
+    ItemCount--;
 
-  return onindex;
+    if (SelectedItem > index)
+        SelectedItem--;
+    if (SelectedItem >= ItemCount)
+        SelectedItem = -1;
+    guis_need_update = 1;
+}
+
+void GUIListBox::SetFont(int Font)
+{
+    Font = Font;
+    RowHeight = getfontheight(Font) + get_fixed_pixel_size(2);
+    VisibleItemCount = hit / RowHeight;
+}
+
+void GUIListBox::SetItemText(int index, const String &text)
+{
+    if (index >= 0 && index < ItemCount)
+    {
+        guis_need_update = 1;
+        Items[index] = text;
+    }
 }
 
 int GUIListBox::MouseDown()
 {
-  if (IsInRightMargin(mousexp)) {
-    if ((mouseyp < hit / 2) && (topItem > 0))
-      topItem--;
+    if (IsInRightMargin(MousePos.X))
+    {
+        if (MousePos.Y < hit / 2 && TopItem > 0)
+            TopItem--;
+        if (MousePos.Y >= hit / 2 && ItemCount > TopItem + VisibleItemCount)
+            TopItem++;
+        return 0;
+    }
 
-    if ((mouseyp >= hit / 2) && (numItems > topItem + num_items_fit))
-      topItem++;
-
+    int sel = GetItemAt(MousePos.X, MousePos.Y);
+    if (sel < 0)
+        return 0;
+    SelectedItem = sel;
+    activated = 1;
     return 0;
-  }
-
-  int newsel = GetIndexFromCoordinates(mousexp, mouseyp);
-  if (newsel < 0)
-    return 0;
-
-  selected = newsel;
-  activated = 1;
-  return 0;
 }
+
+void GUIListBox::MouseMove(int x_, int y_)
+{
+    MousePos.X = x_ - x;
+    MousePos.Y = y_ - y;
+}
+
+void GUIListBox::Resized() 
+{
+    if (RowHeight == 0)
+    {
+        check_font(&Font);
+        SetFont(Font);
+    }
+    if (RowHeight > 0)
+        VisibleItemCount = hit / RowHeight;
+}
+
+// TODO: replace string serialization with StrUtil::ReadString and WriteString
+// methods in the future, to keep this organized.
+void GUIListBox::WriteToFile(Stream *out)
+{
+    GUIObject::WriteToFile(out);
+    out->WriteInt32(ItemCount);
+    out->WriteInt32(SelectedItem);
+    out->WriteInt32(TopItem);
+    out->WriteInt32(MousePos.X);
+    out->WriteInt32(MousePos.Y);
+    out->WriteInt32(RowHeight);
+    out->WriteInt32(VisibleItemCount);
+    out->WriteInt32(Font);
+    out->WriteInt32(TextColor);
+    out->WriteInt32(BgColor);
+    out->WriteInt32(ListBoxFlags);
+    out->WriteInt32(TextAlignment);
+    out->WriteInt32(0); // reserved1
+    out->WriteInt32(SelectedBgColor);
+    for (int i = 0; i < ItemCount; ++i)
+    {
+        Items[i].Write(out);
+    }
+
+    if (ListBoxFlags & kListBox_SvgIndex)
+    {
+        for (int i = 0; i < ItemCount; ++i)
+            out->WriteInt16(SavedGameIndex[i]);
+    }
+}
+
+void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
+{
+    Clear();
+
+    GUIObject::ReadFromFile(in, gui_version);
+    ItemCount = in->ReadInt32();
+    SelectedItem = in->ReadInt32();
+    TopItem = in->ReadInt32();
+    MousePos.X = in->ReadInt32();
+    MousePos.Y = in->ReadInt32();
+    RowHeight = in->ReadInt32();
+    VisibleItemCount = in->ReadInt32();
+    Font = in->ReadInt32();
+    TextColor = in->ReadInt32();
+    BgColor = in->ReadInt32();
+    ListBoxFlags = in->ReadInt32();
+
+    if (gui_version >= kGuiVersion_272b)
+    {
+        TextAlignment = in->ReadInt32();
+        in->ReadInt32(); // reserved1
+    }
+    else
+    {
+        TextAlignment = GALIGN_LEFT;
+    }
+
+    if (gui_version >= kGuiVersion_unkn_107)
+    {
+        SelectedBgColor = in->ReadInt32();
+    }
+    else
+    {
+        SelectedBgColor = TextColor;
+        if (SelectedBgColor == 0)
+            SelectedBgColor = 16;
+    }
+
+    Items.resize(ItemCount);
+    SavedGameIndex.resize(ItemCount, -1);
+    for (int i = 0; i < ItemCount; ++i)
+    {
+        Items[i].Read(in);
+    }
+
+    if (gui_version >= kGuiVersion_272d && (ListBoxFlags & kListBox_SvgIndex))
+    {
+        for (int i = 0; i < ItemCount; ++i)
+            SavedGameIndex[i] = in->ReadInt16();
+    }
+
+    if (TextColor == 0)
+        TextColor = 16;
+}
+
+} // namespace Common
+} // namespace AGS

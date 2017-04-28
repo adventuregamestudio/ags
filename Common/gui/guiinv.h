@@ -18,65 +18,51 @@
 #include <vector>
 #include "gui/guiobject.h"
 
-struct GUIInv:public GUIObject
+namespace AGS
 {
-  int isover;
-  int charId;   // whose inventory (-1 = current player)
-  int itemWidth, itemHeight;
-  int topIndex;
+namespace Common
+{
 
-  int itemsPerLine, numLines;  // not persisted
+class GUIInvWindow : public GUIObject
+{
+public:
+    GUIInvWindow();
 
-  virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+    // This function has distinct implementations in Engine and Editor
+    int          GetCharacterId() const;
 
-  void CalculateNumCells();
+    // Operations
+    // This function has distinct implementations in Engine and Editor
+    virtual void Draw(Bitmap *ds) override;
 
-  virtual void Resized() {
-    CalculateNumCells();
-  }
+    // Events
+    virtual void MouseLeave() override;
+    virtual void MouseOver() override;
+    virtual void MouseUp() override;
+    virtual void Resized() override;
 
-  int CharToDisplay();
+    // Serialization
+    virtual void WriteToFile(Stream *out) override;
+    virtual void ReadFromFile(Stream *in, GuiVersion gui_version) override;
 
-  // This function has distinct implementations in Engine and Editor
-  virtual void Draw(Common::Bitmap *ds);
+// TODO: these members are currently public; hide them later
+public:
+    bool    IsMouseOver;
+    int32_t CharId; // whose inventory (-1 = current player)
+    int32_t ItemWidth;
+    int32_t ItemHeight;
+    int32_t ColCount;
+    int32_t RowCount;
+    int32_t TopItem;
 
-  void MouseMove(int x, int y)
-  {
-  }
-
-  void MouseOver()
-  {
-    isover = 1;
-  }
-
-  void MouseLeave()
-  {
-    isover = 0;
-  }
-
-  void MouseUp()
-  {
-    if (isover)
-      activated = 1;
-  }
-
-  void KeyPress(int kp)
-  {
-  }
-
-  GUIInv() {
-    isover = 0;
-    numSupportedEvents = 0;
-    charId = -1;
-    itemWidth = 40;
-    itemHeight = 22;
-    topIndex = 0;
-    CalculateNumCells();
-  }
+private:
+    void CalculateNumCells();
 };
 
-extern std::vector<GUIInv> guiinv;
+} // namespace Common
+} // namespace AGS
+
+extern std::vector<AGS::Common::GUIInvWindow> guiinv;
 extern int numguiinv;
 
 #endif // __AC_GUIINV_H

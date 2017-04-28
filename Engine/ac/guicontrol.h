@@ -27,6 +27,7 @@
 #include "gui/guitextbox.h"
 #include "ac/dynobj/scriptgui.h"
 
+using AGS::Common::GUIInvWindow;
 using AGS::Common::GUIListBox;
 using AGS::Common::GUISlider;
 using AGS::Common::GUITextBox;
@@ -41,7 +42,7 @@ void		GUIControl_SetEnabled(GUIObject *guio, int enabled);
 int			GUIControl_GetID(GUIObject *guio);
 ScriptGUI*	GUIControl_GetOwningGUI(GUIObject *guio);
 GUIButton*	GUIControl_GetAsButton(GUIObject *guio);
-GUIInv*		GUIControl_GetAsInvWindow(GUIObject *guio);
+GUIInvWindow* GUIControl_GetAsInvWindow(GUIObject *guio);
 GUILabel*	GUIControl_GetAsLabel(GUIObject *guio);
 GUIListBox* GUIControl_GetAsListBox(GUIObject *guio);
 GUISlider*	GUIControl_GetAsSlider(GUIObject *guio);

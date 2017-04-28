@@ -21,8 +21,6 @@
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::Bitmap;
-
 
 extern GameSetupStruct game;
 extern int gui_disabled_style;
@@ -31,59 +29,73 @@ extern CharacterExtras *charextra;
 extern SpriteCache spriteset;
 
 
-int GUIInv::CharToDisplay() {
-    if (this->charId < 0)
+namespace AGS
+{
+namespace Common
+{
+
+int GUIInvWindow::GetCharacterId() const
+{
+    if (CharId < 0)
         return game.playercharacter;
 
-    return this->charId;
+    return CharId;
 }
 
-void GUIInv::Draw(Bitmap *ds) {
+void GUIInvWindow::Draw(Bitmap *ds)
+{
     if ((IsDisabled()) && (gui_disabled_style == GUIDIS_BLACKOUT))
         return;
 
     // backwards compatibility
-    play.inv_numinline = this->itemsPerLine;
-    play.inv_numdisp = this->numLines * this->itemsPerLine;
+    play.inv_numinline = ColCount;
+    play.inv_numdisp = RowCount * ColCount;
     play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
     // if the user changes top_inv_item, switch into backwards
     // compatibiltiy mode
-    if (play.inv_top) {
+    if (play.inv_top)
         play.inv_backwards_compatibility = 1;
-    }
-
-    if (play.inv_backwards_compatibility) {
-        this->topIndex = play.inv_top;
-    }
+    if (play.inv_backwards_compatibility)
+        TopItem = play.inv_top;
 
     // draw the items
-    int xxx = x;
-    int uu, cxp = x, cyp = y;
-    int lastItem = this->topIndex + (this->itemsPerLine * this->numLines);
-    if (lastItem > charextra[this->CharToDisplay()].invorder_count)
-        lastItem = charextra[this->CharToDisplay()].invorder_count;
+    const int leftmost_x = x;
+    int at_x = x;
+    int at_y = y;
+    int lastItem = TopItem + (ColCount * RowCount);
+    if (lastItem > charextra[GetCharacterId()].invorder_count)
+        lastItem = charextra[GetCharacterId()].invorder_count;
 
-    for (uu = this->topIndex; uu < lastItem; uu++) {
+    for (int item = TopItem; item < lastItem; ++item)
+    {
         // draw inv graphic
-        draw_gui_sprite(ds, game.invinfo[charextra[this->CharToDisplay()].invorder[uu]].pic, cxp, cyp, true);
-        cxp += multiply_up_coordinate(this->itemWidth);
+        draw_gui_sprite(ds, game.invinfo[charextra[GetCharacterId()].invorder[item]].pic, at_x, at_y, true);
+        at_x += multiply_up_coordinate(ItemWidth);
 
         // go to next row when appropriate
-        if ((uu - this->topIndex) % this->itemsPerLine == (this->itemsPerLine - 1)) {
-            cxp = xxx;
-            cyp += multiply_up_coordinate(this->itemHeight);
+        if ((item - TopItem) % ColCount == (ColCount - 1))
+        {
+            at_x = leftmost_x;
+            at_y += multiply_up_coordinate(ItemHeight);
         }
     }
 
-    if ((IsDisabled()) &&
-        (gui_disabled_style == GUIDIS_GREYOUT) && 
-        (play.inventory_greys_out == 1)) {
-            color_t draw_color = ds->GetCompatibleColor(8);
-            int jj, kk;   // darken the inventory when disabled
-            for (jj = 0; jj < wid; jj++) {
-                for (kk = jj % 2; kk < hit; kk += 2)
-                    ds->PutPixel(x + jj, y + kk, draw_color);
+    if (IsDisabled() &&
+        gui_disabled_style == GUIDIS_GREYOUT && 
+        play.inventory_greys_out == 1)
+    {
+        color_t draw_color = ds->GetCompatibleColor(8);
+        // darken the inventory when disabled
+        // TODO: move this to a separate function?
+        for (at_x = 0; at_x < wid; at_x++)
+        {
+            for (at_y = at_x % 2; at_y < hit; at_y += 2)
+            {
+                ds->PutPixel(x + at_x, y + at_y, draw_color);
             }
+        }
     }
-
 }
+
+} // namespace Common
+} // namespace AGS

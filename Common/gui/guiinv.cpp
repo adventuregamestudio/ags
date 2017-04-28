@@ -12,65 +12,107 @@
 //
 //=============================================================================
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include "ac/common.h"
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
 #include "util/stream.h"
 
-using AGS::Common::Stream;
-
-std::vector<GUIInv> guiinv;
+std::vector<AGS::Common::GUIInvWindow> guiinv;
 int numguiinv = 0;
 
-void GUIInv::WriteToFile(Stream *out)
+namespace AGS
 {
-	GUIObject::WriteToFile(out);
-	out->WriteInt32(charId);
-	out->WriteInt32(itemWidth);
-	out->WriteInt32(itemHeight);
-	out->WriteInt32(topIndex);
-}
-
-void GUIInv::ReadFromFile(Stream *in, GuiVersion gui_version)
+namespace Common
 {
-	GUIObject::ReadFromFile(in, gui_version);
-	if (gui_version >= kGuiVersion_unkn_109) {
-	  charId = in->ReadInt32();
-	  itemWidth = in->ReadInt32();
-	  itemHeight = in->ReadInt32();
-	  topIndex = in->ReadInt32();
-	}
-	else {
-	  charId = -1;
-	  itemWidth = 40;
-	  itemHeight = 22;
-	  topIndex = 0;
-	}
 
-	if (loaded_game_file_version >= kGameVersion_270)
-	{
-	  // ensure that some items are visible
-	  if (itemWidth > wid)
-		itemWidth = wid;
-	  if (itemHeight > hit)
-		itemHeight = hit;
-	}
+GUIInvWindow::GUIInvWindow()
+{
+    IsMouseOver = false;
+    CharId = -1;
+    ItemWidth = 40;
+    ItemHeight = 22;
+    ColCount = 0;
+    RowCount = 0;
+    TopItem = 0;
+    CalculateNumCells();
 
-	CalculateNumCells();
+    numSupportedEvents = 0;
 }
 
-void GUIInv::CalculateNumCells() {
-  if (loaded_game_file_version >= kGameVersion_270)
-  {
-    itemsPerLine = wid / multiply_up_coordinate(itemWidth);
-    numLines = hit / multiply_up_coordinate(itemHeight);
-  }
-  else
-  {
-    itemsPerLine = floor((float)wid / (float)multiply_up_coordinate(itemWidth) + 0.5f);
-    numLines = floor((float)hit / (float)multiply_up_coordinate(itemHeight) + 0.5f);
-  }
+void GUIInvWindow::MouseOver()
+{
+    IsMouseOver = true;
 }
+
+void GUIInvWindow::MouseLeave()
+{
+    IsMouseOver = false;
+}
+
+void GUIInvWindow::MouseUp()
+{
+    if (IsMouseOver)
+        activated = 1;
+}
+
+void GUIInvWindow::Resized()
+{
+    CalculateNumCells();
+}
+
+void GUIInvWindow::WriteToFile(Stream *out)
+{
+    GUIObject::WriteToFile(out);
+    out->WriteInt32(CharId);
+    out->WriteInt32(ItemWidth);
+    out->WriteInt32(ItemHeight);
+    out->WriteInt32(TopItem);
+}
+
+void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
+{
+    GUIObject::ReadFromFile(in, gui_version);
+    if (gui_version >= kGuiVersion_unkn_109)
+    {
+        CharId = in->ReadInt32();
+        ItemWidth = in->ReadInt32();
+        ItemHeight = in->ReadInt32();
+        TopItem = in->ReadInt32();
+    }
+    else
+    {
+        CharId = -1;
+        ItemWidth = 40;
+        ItemHeight = 22;
+        TopItem = 0;
+    }
+
+    if (loaded_game_file_version >= kGameVersion_270)
+    {
+        // ensure that some items are visible
+        if (ItemWidth > wid)
+            ItemWidth = wid;
+        if (ItemHeight > hit)
+            ItemHeight = hit;
+    }
+
+    CalculateNumCells();
+}
+
+void GUIInvWindow::CalculateNumCells()
+{
+    if (loaded_game_file_version >= kGameVersion_270)
+    {
+        ColCount = wid / multiply_up_coordinate(ItemWidth);
+        RowCount = hit / multiply_up_coordinate(ItemHeight);
+    }
+    else
+    {
+        ColCount = floor((float)wid / (float)multiply_up_coordinate(ItemWidth) + 0.5f);
+        RowCount = floor((float)hit / (float)multiply_up_coordinate(ItemHeight) + 0.5f);
+    }
+}
+
+} // namespace Common
+} // namespace AGS

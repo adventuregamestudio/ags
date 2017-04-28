@@ -8,6 +8,7 @@
 #include "font/fonts.h"
 #include "gui/guimain.h"
 #include "gui/guibutton.h"
+#include "gui/guiinv.h"
 #include "gui/guilabel.h"
 #include "gui/guilistbox.h"
 #include "gui/guitextbox.h"
@@ -114,6 +115,12 @@ void GUIListBox::DrawItemsUnfix()
 void GUIListBox::PrepareTextToDraw(const String &text)
 {
     _textToDraw = text;
+}
+
+void GUIInvWindow::Draw(Bitmap *ds)
+{
+    color_t draw_color = ds->GetCompatibleColor(15);
+    ds->DrawRect(Rect(x,y,x+wid,y+hit), draw_color);
 }
 
 } // namespace Common

@@ -81,7 +81,7 @@ int GetInvAt (int xxx, int yyy) {
     mousex = mxwas;
     mousey = mywas;
     if ((onobj>=0) && ((guis[ongui].CtrlRefs[onobj] >> 16)==kGUIInvWindow))
-      return offset_over_inv((GUIInv*)guis[ongui].Controls[onobj]);
+      return offset_over_inv((GUIInvWindow*)guis[ongui].Controls[onobj]);
   }
   return -1;
 }

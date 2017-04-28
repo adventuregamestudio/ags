@@ -119,11 +119,11 @@ GUIButton* GUIControl_GetAsButton(GUIObject *guio) {
   return (GUIButton*)guio;
 }
 
-GUIInv* GUIControl_GetAsInvWindow(GUIObject *guio) {
+GUIInvWindow* GUIControl_GetAsInvWindow(GUIObject *guio) {
   if (guis[guio->guin].GetControlType(guio->objn) != kGUIInvWindow)
     return NULL;
 
-  return (GUIInv*)guio;
+  return (GUIInvWindow*)guio;
 }
 
 GUILabel* GUIControl_GetAsLabel(GUIObject *guio) {
@@ -278,10 +278,10 @@ RuntimeScriptValue Sc_GUIControl_GetAsButton(void *self, const RuntimeScriptValu
     API_OBJCALL_OBJ(GUIObject, GUIButton, ccDynamicGUI, GUIControl_GetAsButton);
 }
 
-// GUIInv* (GUIObject *guio)
+// GUIInvWindow* (GUIObject *guio)
 RuntimeScriptValue Sc_GUIControl_GetAsInvWindow(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIObject, GUIInv, ccDynamicGUI, GUIControl_GetAsInvWindow);
+    API_OBJCALL_OBJ(GUIObject, GUIInvWindow, ccDynamicGUI, GUIControl_GetAsInvWindow);
 }
 
 // GUILabel* (GUIObject *guio)

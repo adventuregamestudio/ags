@@ -117,11 +117,6 @@ void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, int scaleF
 // this is to shut up the linker, it's used by CSRUN.CPP
 void write_log(const char *) { }
 
-void GUIInv::Draw(Common::Bitmap *ds) {
-  color_t draw_color = ds->GetCompatibleColor(15);
-  ds->DrawRect(Rect(x,y,x+wid,y+hit), draw_color);
-}
-
 int multiply_up_coordinate(int coord)
 {
 	return coord * sxmult;
@@ -3199,10 +3194,10 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  }
 	  else if (invwindow)
 	  {
-          guiinv.push_back(::GUIInv());
-		  guiinv[numguiinv].charId = invwindow->CharacterID;
-		  guiinv[numguiinv].itemWidth = invwindow->ItemWidth;
-		  guiinv[numguiinv].itemHeight = invwindow->ItemHeight;
+          guiinv.push_back(Common::GUIInvWindow());
+		  guiinv[numguiinv].CharId = invwindow->CharacterID;
+		  guiinv[numguiinv].ItemWidth = invwindow->ItemWidth;
+		  guiinv[numguiinv].ItemHeight = invwindow->ItemHeight;
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIInvWindow << 16) | numguiinv;
 		  gui->Controls[gui->ControlCount] = &guiinv[numguiinv];
@@ -4006,11 +4001,11 @@ Game^ import_compiled_game_dta(const char *fileName)
 			case Common::kGUIInvWindow:
 				{
 					AGS::Types::GUIInventory^ invwindow = gcnew AGS::Types::GUIInventory();
-				    ::GUIInv *copyFrom = (::GUIInv*)curObj;
+				    Common::GUIInvWindow *copyFrom = (Common::GUIInvWindow*)curObj;
 				    newControl = invwindow;
-					invwindow->CharacterID = copyFrom->charId;
-					invwindow->ItemWidth = copyFrom->itemWidth;
-					invwindow->ItemHeight = copyFrom->itemHeight;
+					invwindow->CharacterID = copyFrom->CharId;
+					invwindow->ItemWidth = copyFrom->ItemWidth;
+					invwindow->ItemHeight = copyFrom->ItemHeight;
 					break;
 				}
 			default:

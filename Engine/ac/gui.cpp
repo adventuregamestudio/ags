@@ -588,7 +588,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown)
         else if (cttype == kGUIInvWindow) {
             mouse_ifacebut_xoffs=mousex-(guis[wasongui].Controls[i]->x)-guis[wasongui].X;
             mouse_ifacebut_yoffs=mousey-(guis[wasongui].Controls[i]->y)-guis[wasongui].Y;
-            int iit=offset_over_inv((GUIInv*)guis[wasongui].Controls[i]);
+            int iit=offset_over_inv((GUIInvWindow*)guis[wasongui].Controls[i]);
             if (iit>=0) {
                 evblocknum=iit;
                 play.used_inv_on = iit;

@@ -237,18 +237,10 @@ void GUIButton::DrawImageButton(Bitmap *ds, bool draw_disabled)
 
     if ((draw_disabled) && (gui_disabled_style == GUIDIS_GREYOUT))
     {
-        color_t draw_color = ds->GetCompatibleColor(8);
         // darken the button when disabled
-        // TODO: move this to a separate function?
-        int32_t sprite_width = spriteset[CurrentImage]->GetWidth();
-        int32_t sprite_height = spriteset[CurrentImage]->GetHeight();
-        for (int at_x = 0; at_x < sprite_width; ++at_x)
-        {
-            for (int at_y = at_x % 2; at_y < sprite_height; at_y += 2)
-            {
-                ds->PutPixel(X + at_x, Y + at_y, draw_color);
-            }
-        }
+        GUI::DrawDisabledEffect(ds, Rect(X, Y,
+            spriteset[CurrentImage]->GetWidth(),
+            spriteset[CurrentImage]->GetHeight()));
     }
     ds->SetClip(Rect(0, 0, ds->GetWidth() - 1, ds->GetHeight() - 1));
 

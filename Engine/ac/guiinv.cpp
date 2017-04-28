@@ -84,16 +84,8 @@ void GUIInvWindow::Draw(Bitmap *ds)
         gui_disabled_style == GUIDIS_GREYOUT && 
         play.inventory_greys_out == 1)
     {
-        color_t draw_color = ds->GetCompatibleColor(8);
         // darken the inventory when disabled
-        // TODO: move this to a separate function?
-        for (at_x = 0; at_x < Width; at_x++)
-        {
-            for (at_y = at_x % 2; at_y < Height; at_y += 2)
-            {
-                ds->PutPixel(X + at_x, Y + at_y, draw_color);
-            }
-        }
+        GUI::DrawDisabledEffect(ds, Rect(X, Y, Width, Height));
     }
 }
 

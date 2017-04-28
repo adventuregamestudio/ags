@@ -147,6 +147,9 @@ namespace GUI
 {
     extern GuiVersion GameGuiVersion;
 
+    // Draw standart "shading" effect over rectangle
+    void DrawDisabledEffect(Bitmap *ds, const Rect &rc);
+
     void ReadGUI(std::vector<GUIMain> &guis, Stream *in);
     void WriteGUI(const std::vector<GUIMain> &guis, Stream *out, bool savedgame);
 }

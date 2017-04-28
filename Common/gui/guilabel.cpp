@@ -12,96 +12,102 @@
 //
 //=============================================================================
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "ac/game_version.h"
 #include "font/fonts.h"
 #include "gui/guilabel.h"
 #include "gui/guimain.h"
 #include "util/stream.h"
-#include "util/wgt2allg.h"
 
-using namespace AGS::Common;
-
-std::vector<GUILabel> guilabels;
+std::vector<AGS::Common::GUILabel> guilabels;
 int numguilabels = 0;
 
-void GUILabel::WriteToFile(Stream *out)
+#define GUILABEL_TEXTLENGTH_PRE272 200
+
+namespace AGS
 {
-  GUIObject::WriteToFile(out);
-  out->WriteInt32(text.GetLength() + 1);
-  text.Write(out);
-  out->WriteArrayOfInt32(&font, 3);
-}
-
-void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
+namespace Common
 {
-  GUIObject::ReadFromFile(in, gui_version);
 
-  int text_buf_len;
-  if (gui_version < kGuiVersion_272c) {
-    text_buf_len = 200;
-  }
-  else {
-    text_buf_len = in->ReadInt32();
-  }
-
-  text.ReadCount(in, text_buf_len);
-
-  in->ReadArrayOfInt32(&font, 3);
-  if (textcol == 0)
-    textcol = 16;
-
-  // All labels are translated at the moment
-  flags |= GUIF_TRANSLATED;
-}
-
-void GUILabel::SetText(const char *newText) {
-
-  // restrict to this length
-  // CHECKME: is there any sense in this restriction?
-  text = String(newText).Left(MAX_GUILABEL_TEXT_LEN);
-}
-
-const char *GUILabel::GetText() {
-  return text;
-}
-
-void GUILabel::printtext_align(Common::Bitmap *ds, int yy, color_t text_color, char *teptr)
+GUILabel::GUILabel()
 {
-  int outxp = x;
-  if (align == GALIGN_CENTRE)
-    outxp += wid / 2 - wgettextwidth(teptr, font) / 2;
-  else if (align == GALIGN_RIGHT)
-    outxp += wid - wgettextwidth(teptr, font);
+    Font = 0;
+    TextColor = 0;
+    TextAlignment = GALIGN_LEFT;
 
-  wouttext_outline(ds, outxp, yy, font, text_color, teptr);
+    numSupportedEvents = 0;
+}
+
+String GUILabel::GetText() const
+{
+    return Text;
 }
 
 void GUILabel::Draw(Common::Bitmap *ds)
 {
-  int cyp = y, linespacing;
-  char oritext[MAX_GUILABEL_TEXT_LEN], *teptr;
+    check_font(&Font);
 
-  check_font(&font);
+    // TODO: need to find a way to cache text prior to drawing;
+    // but that will require to update all gui controls when translation is changed in game
+    PrepareTextToDraw();
+    const int line_count = SplitLinesForDrawing();
 
-  Draw_replace_macro_tokens(oritext, text);
-
-  teptr = &oritext[0];
-  linespacing = getfontlinespacing(font) + 1;
-
-  color_t text_color = ds->GetCompatibleColor(textcol);
-
-  Draw_split_lines(teptr, wid, font, numlines);
-
-  // < 2.72 labels did not limit vertical size of text
-  const bool limit_by_label_frame = loaded_game_file_version >= kGameVersion_272;
-  for (int aa = 0; aa < numlines; aa++) {
-    printtext_align(ds, cyp, text_color, lines[aa]);
-    cyp += linespacing;
-    if (limit_by_label_frame && cyp > y + hit)
-      break;
-  }
-
+    color_t text_color = ds->GetCompatibleColor(TextColor);
+    const int linespacing = getfontlinespacing(Font) + 1;
+    // < 2.72 labels did not limit vertical size of text
+    const bool limit_by_label_frame = loaded_game_file_version >= kGameVersion_272;
+    for (int i = 0, at_y = y;
+        i < numlines && (!limit_by_label_frame || at_y <= y + hit);
+        ++i, at_y += linespacing)
+    {
+        DrawAlignedText(ds, at_y, text_color, lines[i]);
+    }
 }
+
+void GUILabel::SetText(const String &text)
+{
+    Text = text;
+}
+
+void GUILabel::DrawAlignedText(Common::Bitmap *ds, int at_y, color_t text_color, const char *text)
+{
+    int at_x = x;
+    if (TextAlignment == GALIGN_CENTRE)
+        at_x += wid / 2 - wgettextwidth(text, Font) / 2;
+    else if (TextAlignment == GALIGN_RIGHT)
+        at_x += wid - wgettextwidth(text, Font);
+    wouttext_outline(ds, at_x, at_y, Font, text_color, text);
+}
+
+// TODO: replace string serialization with StrUtil::ReadString and WriteString
+// methods in the future, to keep this organized.
+void GUILabel::WriteToFile(Stream *out)
+{
+    GUIObject::WriteToFile(out);
+    out->WriteInt32(Text.GetLength() + 1);
+    Text.Write(out);
+    out->WriteInt32(Font);
+    out->WriteInt32(TextColor);
+    out->WriteInt32(TextAlignment);
+}
+
+void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
+{
+    GUIObject::ReadFromFile(in, gui_version);
+
+    if (gui_version < kGuiVersion_272c)
+        Text.ReadCount(in, GUILABEL_TEXTLENGTH_PRE272);
+    else
+        Text.ReadCount(in, in->ReadInt32());
+
+    Font = in->ReadInt32();
+    TextColor = in->ReadInt32();
+    TextAlignment = in->ReadInt32();
+
+    if (TextColor == 0)
+        TextColor = 16;
+    // All labels are translated at the moment
+    flags |= GUIF_TRANSLATED;
+}
+
+} // namespace Common
+} // namespace AGS

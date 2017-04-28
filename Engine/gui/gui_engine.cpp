@@ -34,11 +34,11 @@
 #include "gfx/bitmap.h"
 #include "gfx/blender.h"
 
-using namespace Common;
+using namespace AGS::Common;
 
 // For engine these are defined in ac.cpp
 extern int eip_guiobj;
-extern void replace_macro_tokens(const char*,char*);
+extern void replace_macro_tokens(const char*, String&);
 
 // For engine these are defined in acfonts.cpp
 extern void ensure_text_valid_for_font(char *, int);
@@ -112,26 +112,23 @@ int get_eip_guiobj()
 
 bool outlineGuiObjects = false;
 
-void GUILabel::Draw_replace_macro_tokens(char *oritext, const char *text)
-{
-  replace_macro_tokens(flags & GUIF_TRANSLATED ? get_translation(text) : text, oritext);
-  ensure_text_valid_for_font(oritext, font);
-}
-
-void GUILabel::Draw_split_lines(char *teptr, int wid, int font, int &numlines)
-{
-  // Use the engine's word wrap tool, to have hebrew-style writing
-  // and other features
-
-  break_up_text_into_lines (wid, font, teptr);
-
-  // [IKM] numlines not used in engine's implementation
-}
-
 namespace AGS
 {
 namespace Common
 {
+
+void GUILabel::PrepareTextToDraw()
+{
+    replace_macro_tokens(flags & GUIF_TRANSLATED ? get_translation(Text) : Text, _textToDraw);
+}
+
+int GUILabel::SplitLinesForDrawing()
+{
+    // Use the engine's word wrap tool, to have hebrew-style writing
+    // and other features
+    break_up_text_into_lines(wid, Font, _textToDraw);
+    return numlines;
+}
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, color_t text_color)
 {

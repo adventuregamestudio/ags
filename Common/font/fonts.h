@@ -56,6 +56,12 @@ void adjust_y_coordinate_for_text(int* ypos, int fontnum);
 IAGSFontRenderer* font_replace_renderer(int fontNumber, IAGSFontRenderer* renderer);
 bool font_first_renderer_loaded();
 bool font_supports_extended_characters(int fontNumber);
+// TODO: with changes to WFN font renderer that implemented safe rendering of
+// strings containing invalid chars (since 3.3.1) this function is not
+// important, except for (maybe) few particular cases.
+// Furthermore, its use complicated things, because AGS could modify some texts
+// at random times (usually - drawing routines).
+// Need to check whether it is safe to completely remove it.
 void ensure_text_valid_for_font(char *text, int fontnum);
 int wgettextwidth(const char *texx, int fontNumber);
 // Calculates actual height of a line of text

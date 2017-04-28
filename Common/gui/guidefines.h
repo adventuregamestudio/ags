@@ -15,7 +15,6 @@
 #ifndef __AC_GUIDEFINES_H
 #define __AC_GUIDEFINES_H
 
-#define MAX_GUILABEL_TEXT_LEN 2048
 #define GUIMAGIC          0xcafebeef
 // GUI Control flags (32-bit)
 #define GUIF_DEFAULT    0x0001

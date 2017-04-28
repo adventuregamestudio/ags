@@ -28,6 +28,7 @@
 #include "ac/dynobj/scriptgui.h"
 
 using AGS::Common::GUIInvWindow;
+using AGS::Common::GUILabel;
 using AGS::Common::GUIListBox;
 using AGS::Common::GUISlider;
 using AGS::Common::GUITextBox;

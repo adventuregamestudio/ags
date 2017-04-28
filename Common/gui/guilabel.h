@@ -19,60 +19,46 @@
 #include "gui/guiobject.h"
 #include "util/string.h"
 
-struct GUILabel:public GUIObject
+namespace AGS
 {
-private:
-  AGS::Common::String text;
+namespace Common
+{
+
+class GUILabel:public GUIObject
+{
 public:
-  int font, textcol, align;
+    GUILabel();
+    
+    String       GetText() const;
 
-  virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  virtual void Draw(Common::Bitmap *ds);
-  void printtext_align(Common::Bitmap *g, int yy, color_t text_color, char *teptr);
-  void SetText(const char *newText);
-  const char *GetText();
+    // Operations
+    virtual void Draw(Bitmap *ds) override;
+    void         SetText(const String &text);
 
-  void MouseMove(int x, int y)
-  {
-  }
+    // Serialization
+    virtual void WriteToFile(Stream *out) override;
+    virtual void ReadFromFile(Stream *in, GuiVersion gui_version) override;
 
-  void MouseOver()
-  {
-  }
-
-  void MouseLeave()
-  {
-  }
-
-  void MouseUp()
-  {
-  }
-
-  void KeyPress(int kp)
-  {
-  }
-
-  void reset()
-  {
-    GUIObject::init();
-    align = GALIGN_LEFT;
-    font = 0;
-    textcol = 0;
-    numSupportedEvents = 0;
-  }
-
-  GUILabel() {
-    reset();
-  }
+// TODO: these members are currently public; hide them later
+public:
+    String  Text;
+    int32_t Font;
+    color_t TextColor;
+    int32_t TextAlignment;
 
 private:
-    // CHECKME: for some reason this function calls dest string "oritext"
-  void Draw_replace_macro_tokens(char *oritext, const char *text);
-  void Draw_split_lines(char *teptr, int wid, int font, int &numlines);
+    void DrawAlignedText(Bitmap *g, int at_y, color_t text_color, const char *text);
+    void PrepareTextToDraw();
+    int  SplitLinesForDrawing();
+
+    // prepared text buffer/cache
+    String _textToDraw;
 };
 
-extern std::vector<GUILabel> guilabels;
+} // namespace Common
+} // namespace AGS
+
+extern std::vector<AGS::Common::GUILabel> guilabels;
 extern int numguilabels;
 
 #endif // __AC_GUILABEL_H

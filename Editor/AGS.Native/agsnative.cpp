@@ -3130,14 +3130,14 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  }
 	  else if (label)
 	  {
-          guilabels.push_back(::GUILabel());
-		  guilabels[numguilabels].textcol = label->TextColor;
-		  guilabels[numguilabels].font = label->Font;
-		  guilabels[numguilabels].align = (int)label->TextAlignment;
+          guilabels.push_back(Common::GUILabel());
+		  guilabels[numguilabels].TextColor = label->TextColor;
+		  guilabels[numguilabels].Font = label->Font;
+		  guilabels[numguilabels].TextAlignment = (int)label->TextAlignment;
 		  guilabels[numguilabels].flags = 0;
-		  char textBuffer[MAX_GUILABEL_TEXT_LEN];
-		  ConvertStringToCharArray(label->Text, textBuffer, MAX_GUILABEL_TEXT_LEN);
-		  guilabels[numguilabels].SetText(textBuffer);
+          Common::String text;
+		  ConvertStringToNativeString(label->Text, text);
+		  guilabels[numguilabels].SetText(text);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUILabel << 16) | numguilabels;
 		  gui->Controls[gui->ControlCount] = &guilabels[numguilabels];
@@ -3948,11 +3948,11 @@ Game^ import_compiled_game_dta(const char *fileName)
 			case Common::kGUILabel:
 				{
 				AGS::Types::GUILabel^ newLabel = gcnew AGS::Types::GUILabel();
-				::GUILabel *copyFrom = (::GUILabel*)curObj;
+				Common::GUILabel *copyFrom = (Common::GUILabel*)curObj;
 				newControl = newLabel;
-				newLabel->TextColor = copyFrom->textcol;
-				newLabel->Font = copyFrom->font;
-				newLabel->TextAlignment = (LabelTextAlignment)copyFrom->align;
+				newLabel->TextColor = copyFrom->TextColor;
+				newLabel->Font = copyFrom->Font;
+				newLabel->TextAlignment = (LabelTextAlignment)copyFrom->TextAlignment;
 				newLabel->Text = gcnew String(copyFrom->GetText());
 				break;
 				}

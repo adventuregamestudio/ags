@@ -1069,7 +1069,7 @@ namespace AGS.Editor
                 foreach (GUILabel label in GUILabels)
                 {
                     WriteGUIControl(label, 0);
-                    string text = SafeTruncate(label.Text, NativeConstants.MAX_GUILABEL_TEXT_LEN);
+                    string text = label.Text;
                     writer.Write(text.Length + 1);
                     FilePutNullTerminatedString(text, text.Length + 1, writer);
                     writer.Write(label.Font);

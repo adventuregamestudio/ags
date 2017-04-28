@@ -73,23 +73,22 @@ int wgettextwidth_compensate(const char *tex, int font)
   return wgettextwidth(tex, font);
 }
 
-void GUILabel::Draw_replace_macro_tokens(char *oritext, const char *text)
-{
-  strcpy(oritext, text);
-}
-
-//-----------------------------------------------------------------------------
-
-void GUILabel::Draw_split_lines(char *teptr, int wid, int font, int &numlines)
-{
-  numlines=0;
-  split_lines(teptr, wid, font);
-}
-
 namespace AGS
 {
 namespace Common
 {
+
+void GUILabel::PrepareTextToDraw()
+{
+    _textToDraw = Text;
+}
+
+int GUILabel::SplitLinesForDrawing()
+{
+    numlines = 0;
+    split_lines(_textToDraw, wid, Font);
+    return numlines;
+}
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, color_t text_color)
 {

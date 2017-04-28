@@ -316,11 +316,11 @@ void process_interface_click(int ifce, int btn, int mbut) {
 }
 
 
-void replace_macro_tokens(const char*statusbarformat,char*cur_stb_text) {
-    const char*curptr=&statusbarformat[0];
+void replace_macro_tokens(const char *text, String &fixed_text) {
+    const char*curptr=&text[0];
     char tmpm[3];
-    const char*endat = curptr + strlen(statusbarformat);
-    cur_stb_text[0]=0;
+    const char*endat = curptr + strlen(text);
+    fixed_text.Empty();
     char tempo[STD_BUFFER_SIZE];
 
     while (1) {
@@ -363,11 +363,11 @@ void replace_macro_tokens(const char*statusbarformat,char*cur_stb_text) {
                 strcpy(tempo, "@");
             }
 
-            strcat(cur_stb_text,tempo);
+            fixed_text.Append(tempo);
         }
         else {
             tmpm[0]=curptr[0]; tmpm[1]=0;
-            strcat(cur_stb_text,tmpm);
+            fixed_text.Append(tmpm);
             curptr++;
         }
     }

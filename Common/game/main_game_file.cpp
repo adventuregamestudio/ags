@@ -696,7 +696,8 @@ MainGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVer
 
     ReadDialogs(ents.Dialogs, ents.OldDialogScripts, ents.OldDialogSources, ents.OldSpeechLines,
                 in, data_ver, game.numdialog);
-    read_gui(in, guis, &game);
+    GUI::ReadGUI(guis, in);
+    game.numgui = guis.size();
 
     if (data_ver >= kGameVersion_260)
     {

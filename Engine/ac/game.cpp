@@ -1243,7 +1243,7 @@ void WriteAnimatedButtons_Aligned(Stream *out)
 
 void save_game_gui(Stream *out)
 {
-    write_gui(out,guis,&game,true);
+    GUI::WriteGUI(guis, out, true);
     out->WriteInt32(numAnimButs);
     WriteAnimatedButtons_Aligned(out);
 }
@@ -1750,7 +1750,8 @@ void ReadAnimatedButtons_Aligned(Stream *in)
 
 SavegameError restore_game_gui(Stream *in, int numGuisWas)
 {
-    read_gui(in,guis,&game);
+    GUI::ReadGUI(guis, in);
+    game.numgui = guis.size();
 
     if (numGuisWas != game.numgui)
     {

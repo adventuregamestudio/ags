@@ -59,14 +59,15 @@ int GUIControl_GetVisible(GUIObject *guio) {
 
 void GUIControl_SetVisible(GUIObject *guio, int visible) 
 {
-  if (visible != guio->IsVisible()) 
+  const bool is_visible = visible != 0;
+  if (is_visible != guio->IsVisible()) 
   {
-    if (visible)
+    if (is_visible)
       guio->Show();
     else
       guio->Hide();
 
-    guis[guio->guin].OnControlPositionChanged();
+    guis[guio->ParentId].OnControlPositionChanged();
     guis_need_update = 1;
   }
 }
@@ -83,14 +84,12 @@ void GUIControl_SetClickable(GUIObject *guio, int enabled) {
   else
     guio->SetClickable(false);
 
-  guis[guio->guin].OnControlPositionChanged();
+  guis[guio->ParentId].OnControlPositionChanged();
   guis_need_update = 1;
 }
 
 int GUIControl_GetEnabled(GUIObject *guio) {
-  if (guio->IsDisabled())
-    return 0;
-  return 1;
+  return guio->IsEnabled() ? 1 : 0;
 }
 
 void GUIControl_SetEnabled(GUIObject *guio, int enabled) {
@@ -99,89 +98,89 @@ void GUIControl_SetEnabled(GUIObject *guio, int enabled) {
   else
     guio->Disable();
 
-  guis[guio->guin].OnControlPositionChanged();
+  guis[guio->ParentId].OnControlPositionChanged();
   guis_need_update = 1;
 }
 
 
 int GUIControl_GetID(GUIObject *guio) {
-  return guio->objn;
+  return guio->Id;
 }
 
 ScriptGUI* GUIControl_GetOwningGUI(GUIObject *guio) {
-  return &scrGui[guio->guin];
+  return &scrGui[guio->ParentId];
 }
 
 GUIButton* GUIControl_GetAsButton(GUIObject *guio) {
-  if (guis[guio->guin].GetControlType(guio->objn) != kGUIButton)
+  if (guis[guio->ParentId].GetControlType(guio->Id) != kGUIButton)
     return NULL;
 
   return (GUIButton*)guio;
 }
 
 GUIInvWindow* GUIControl_GetAsInvWindow(GUIObject *guio) {
-  if (guis[guio->guin].GetControlType(guio->objn) != kGUIInvWindow)
+  if (guis[guio->ParentId].GetControlType(guio->Id) != kGUIInvWindow)
     return NULL;
 
   return (GUIInvWindow*)guio;
 }
 
 GUILabel* GUIControl_GetAsLabel(GUIObject *guio) {
-  if (guis[guio->guin].GetControlType(guio->objn) != kGUILabel)
+  if (guis[guio->ParentId].GetControlType(guio->Id) != kGUILabel)
     return NULL;
 
   return (GUILabel*)guio;
 }
 
 GUIListBox* GUIControl_GetAsListBox(GUIObject *guio) {
-  if (guis[guio->guin].GetControlType(guio->objn) != kGUIListBox)
+  if (guis[guio->ParentId].GetControlType(guio->Id) != kGUIListBox)
     return NULL;
 
   return (GUIListBox*)guio;
 }
 
 GUISlider* GUIControl_GetAsSlider(GUIObject *guio) {
-  if (guis[guio->guin].GetControlType(guio->objn) != kGUISlider)
+  if (guis[guio->ParentId].GetControlType(guio->Id) != kGUISlider)
     return NULL;
 
   return (GUISlider*)guio;
 }
 
 GUITextBox* GUIControl_GetAsTextBox(GUIObject *guio) {
-  if (guis[guio->guin].GetControlType(guio->objn) != kGUITextBox)
+  if (guis[guio->ParentId].GetControlType(guio->Id) != kGUITextBox)
     return NULL;
 
   return (GUITextBox*)guio;
 }
 
 int GUIControl_GetX(GUIObject *guio) {
-  return divide_down_coordinate(guio->x);
+  return divide_down_coordinate(guio->X);
 }
 
 void GUIControl_SetX(GUIObject *guio, int xx) {
-  guio->x = multiply_up_coordinate(xx);
-  guis[guio->guin].OnControlPositionChanged();
+  guio->X = multiply_up_coordinate(xx);
+  guis[guio->ParentId].OnControlPositionChanged();
   guis_need_update = 1;
 }
 
 int GUIControl_GetY(GUIObject *guio) {
-  return divide_down_coordinate(guio->y);
+  return divide_down_coordinate(guio->Y);
 }
 
 void GUIControl_SetY(GUIObject *guio, int yy) {
-  guio->y = multiply_up_coordinate(yy);
-  guis[guio->guin].OnControlPositionChanged();
+  guio->Y = multiply_up_coordinate(yy);
+  guis[guio->ParentId].OnControlPositionChanged();
   guis_need_update = 1;
 }
 
 int GUIControl_GetZOrder(GUIObject *guio)
 {
-    return guio->zorder;
+    return guio->ZOrder;
 }
 
 void GUIControl_SetZOrder(GUIObject *guio, int zorder)
 {
-    if (guis[guio->guin].SetControlZOrder(guio->objn, zorder))
+    if (guis[guio->ParentId].SetControlZOrder(guio->Id, zorder))
         guis_need_update = 1;
 }
 
@@ -192,24 +191,24 @@ void GUIControl_SetPosition(GUIObject *guio, int xx, int yy) {
 
 
 int GUIControl_GetWidth(GUIObject *guio) {
-  return divide_down_coordinate(guio->wid);
+  return divide_down_coordinate(guio->Width);
 }
 
 void GUIControl_SetWidth(GUIObject *guio, int newwid) {
-  guio->wid = multiply_up_coordinate(newwid);
-  guio->Resized();
-  guis[guio->guin].OnControlPositionChanged();
+  guio->Width = multiply_up_coordinate(newwid);
+  guio->OnResized();
+  guis[guio->ParentId].OnControlPositionChanged();
   guis_need_update = 1;
 }
 
 int GUIControl_GetHeight(GUIObject *guio) {
-  return divide_down_coordinate(guio->hit);
+  return divide_down_coordinate(guio->Height);
 }
 
 void GUIControl_SetHeight(GUIObject *guio, int newhit) {
-  guio->hit = multiply_up_coordinate(newhit);
-  guio->Resized();
-  guis[guio->guin].OnControlPositionChanged();
+  guio->Height = multiply_up_coordinate(newhit);
+  guio->OnResized();
+  guis[guio->ParentId].OnControlPositionChanged();
   guis_need_update = 1;
 }
 
@@ -217,18 +216,18 @@ void GUIControl_SetSize(GUIObject *guio, int newwid, int newhit) {
   if ((newwid < 2) || (newhit < 2))
     quit("!SetGUIObjectSize: new size is too small (must be at least 2x2)");
 
-  debug_script_log("SetGUIObject %d,%d size %d,%d", guio->guin, guio->objn, newwid, newhit);
+  debug_script_log("SetGUIObject %d,%d size %d,%d", guio->ParentId, guio->Id, newwid, newhit);
   GUIControl_SetWidth(guio, newwid);
   GUIControl_SetHeight(guio, newhit);
 }
 
 void GUIControl_SendToBack(GUIObject *guio) {
-  if (guis[guio->guin].SendControlToBack(guio->objn))
+  if (guis[guio->ParentId].SendControlToBack(guio->Id))
     guis_need_update = 1;
 }
 
 void GUIControl_BringToFront(GUIObject *guio) {
-  if (guis[guio->guin].BringControlToFront(guio->objn))
+  if (guis[guio->ParentId].BringControlToFront(guio->Id))
     guis_need_update = 1;
 }
 

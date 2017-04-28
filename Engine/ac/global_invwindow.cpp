@@ -34,7 +34,7 @@ void SetInvDimensions(int ww,int hh) {
     for (int i = 0; i < numguiinv; i++) {
         guiinv[i].ItemWidth = ww;
         guiinv[i].ItemHeight = hh;
-        guiinv[i].Resized();
+        guiinv[i].OnResized();
     }
     guis_need_update = 1;
 }

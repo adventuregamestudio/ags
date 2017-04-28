@@ -32,9 +32,9 @@ GUILabel::GUILabel()
 {
     Font = 0;
     TextColor = 0;
-    TextAlignment = GALIGN_LEFT;
+    TextAlignment = kGUIAlign_Left;
 
-    numSupportedEvents = 0;
+    _scEventCount = 0;
 }
 
 String GUILabel::GetText() const
@@ -55,8 +55,8 @@ void GUILabel::Draw(Common::Bitmap *ds)
     const int linespacing = getfontlinespacing(Font) + 1;
     // < 2.72 labels did not limit vertical size of text
     const bool limit_by_label_frame = loaded_game_file_version >= kGameVersion_272;
-    for (int i = 0, at_y = y;
-        i < numlines && (!limit_by_label_frame || at_y <= y + hit);
+    for (int i = 0, at_y = Y;
+        i < numlines && (!limit_by_label_frame || at_y <= Y + Height);
         ++i, at_y += linespacing)
     {
         DrawAlignedText(ds, at_y, text_color, lines[i]);
@@ -70,11 +70,11 @@ void GUILabel::SetText(const String &text)
 
 void GUILabel::DrawAlignedText(Common::Bitmap *ds, int at_y, color_t text_color, const char *text)
 {
-    int at_x = x;
-    if (TextAlignment == GALIGN_CENTRE)
-        at_x += wid / 2 - wgettextwidth(text, Font) / 2;
-    else if (TextAlignment == GALIGN_RIGHT)
-        at_x += wid - wgettextwidth(text, Font);
+    int at_x = X;
+    if (TextAlignment == kGUIAlign_Center)
+        at_x += Width / 2 - wgettextwidth(text, Font) / 2;
+    else if (TextAlignment == kGUIAlign_Right)
+        at_x += Width - wgettextwidth(text, Font);
     wouttext_outline(ds, at_x, at_y, Font, text_color, text);
 }
 
@@ -106,7 +106,7 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
     if (TextColor == 0)
         TextColor = 16;
     // All labels are translated at the moment
-    flags |= GUIF_TRANSLATED;
+    Flags |= kGUICtrl_Translated;
 }
 
 } // namespace Common

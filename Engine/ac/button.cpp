@@ -24,6 +24,8 @@
 #include "gui/animatingguibutton.h"
 #include "gui/guimain.h"
 
+using namespace AGS::Common;
+
 extern GameSetupStruct game;
 extern ViewStruct*views;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -34,8 +36,8 @@ AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 int numAnimButs;
 
 void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat) {
-    int guin = butt->guin;
-    int objn = butt->objn;
+    int guin = butt->ParentId;
+    int objn = butt->Id;
 
     if ((view < 1) || (view > game.numviews))
         quit("!AnimateButton: invalid view specified");
@@ -103,15 +105,15 @@ int Button_GetFont(GUIButton *butt) {
 }
 
 int Button_GetClipImage(GUIButton *butt) {
-    if (butt->flags & GUIF_CLIP)
+    if (butt->Flags & kGUICtrl_Clip)
         return 1;
     return 0;
 }
 
 void Button_SetClipImage(GUIButton *butt, int newval) {
-    butt->flags &= ~GUIF_CLIP;
+    butt->Flags &= ~kGUICtrl_Clip;
     if (newval)
-        butt->flags |= GUIF_CLIP;
+        butt->Flags |= kGUICtrl_Clip;
 
     guis_need_update = 1;
 }
@@ -128,14 +130,14 @@ int Button_GetMouseOverGraphic(GUIButton *butt) {
 }
 
 void Button_SetMouseOverGraphic(GUIButton *guil, int slotn) {
-    debug_script_log("GUI %d Button %d mouseover set to slot %d", guil->guin, guil->objn, slotn);
+    debug_script_log("GUI %d Button %d mouseover set to slot %d", guil->ParentId, guil->Id, slotn);
 
     if ((guil->IsMouseOver != 0) && (guil->IsPushed == 0))
         guil->CurrentImage = slotn;
     guil->MouseOverImage = slotn;
 
     guis_need_update = 1;
-    FindAndRemoveButtonAnimation(guil->guin, guil->objn);
+    FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);
 }
 
 int Button_GetNormalGraphic(GUIButton *butt) {
@@ -143,17 +145,17 @@ int Button_GetNormalGraphic(GUIButton *butt) {
 }
 
 void Button_SetNormalGraphic(GUIButton *guil, int slotn) {
-    debug_script_log("GUI %d Button %d normal set to slot %d", guil->guin, guil->objn, slotn);
+    debug_script_log("GUI %d Button %d normal set to slot %d", guil->ParentId, guil->Id, slotn);
     // normal pic - update if mouse is not over, or if there's no MouseOverImage
     if (((guil->IsMouseOver == 0) || (guil->MouseOverImage < 1)) && (guil->IsPushed == 0))
         guil->CurrentImage = slotn;
     guil->Image = slotn;
     // update the clickable area to the same size as the graphic
-    guil->wid = spritewidth[slotn];
-    guil->hit = spriteheight[slotn];
+    guil->Width = spritewidth[slotn];
+    guil->Height = spriteheight[slotn];
 
     guis_need_update = 1;
-    FindAndRemoveButtonAnimation(guil->guin, guil->objn);
+    FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);
 }
 
 int Button_GetPushedGraphic(GUIButton *butt) {
@@ -161,14 +163,14 @@ int Button_GetPushedGraphic(GUIButton *butt) {
 }
 
 void Button_SetPushedGraphic(GUIButton *guil, int slotn) {
-    debug_script_log("GUI %d Button %d pushed set to slot %d", guil->guin, guil->objn, slotn);
+    debug_script_log("GUI %d Button %d pushed set to slot %d", guil->ParentId, guil->Id, slotn);
 
     if (guil->IsPushed)
         guil->CurrentImage = slotn;
     guil->PushedImage = slotn;
 
     guis_need_update = 1;
-    FindAndRemoveButtonAnimation(guil->guin, guil->objn);
+    FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);
 }
 
 int Button_GetTextColor(GUIButton *butt) {
@@ -257,12 +259,12 @@ void FindAndRemoveButtonAnimation(int guin, int objn)
 
 void Button_Click(GUIButton *butt, int mbut)
 {
-    process_interface_click(butt->guin, butt->objn, mbut);
+    process_interface_click(butt->ParentId, butt->Id, mbut);
 }
 
 bool Button_IsAnimating(GUIButton *butt)
 {
-    return FindAnimatedButton(butt->guin, butt->objn) >= 0;
+    return FindAnimatedButton(butt->ParentId, butt->Id) >= 0;
 }
 
 // NOTE: in correspondance to similar functions for Character & Object,
@@ -270,19 +272,19 @@ bool Button_IsAnimating(GUIButton *butt)
 // zero-based index and 0 in case of no animation.
 int Button_GetAnimView(GUIButton *butt)
 {
-    int idx = FindAnimatedButton(butt->guin, butt->objn);
+    int idx = FindAnimatedButton(butt->ParentId, butt->Id);
     return idx >= 0 ? animbuts[idx].view + 1 : 0;
 }
 
 int Button_GetAnimLoop(GUIButton *butt)
 {
-    int idx = FindAnimatedButton(butt->guin, butt->objn);
+    int idx = FindAnimatedButton(butt->ParentId, butt->Id);
     return idx >= 0 ? animbuts[idx].loop : 0;
 }
 
 int Button_GetAnimFrame(GUIButton *butt)
 {
-    int idx = FindAnimatedButton(butt->guin, butt->objn);
+    int idx = FindAnimatedButton(butt->ParentId, butt->Id);
     return idx >= 0 ? animbuts[idx].frame : 0;
 }
 

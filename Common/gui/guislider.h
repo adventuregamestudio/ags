@@ -30,15 +30,15 @@ public:
 
     // Tells if the slider is horizontal (otherwise - vertical)
     bool         IsHorizontal() const;
-    virtual int  IsOverControl(int x, int y, int leeway) override;
+    virtual bool IsOverControl(int x, int y, int leeway) const override;
 
     // Operations
     virtual void Draw(Bitmap *ds) override;
 
     // Events
-    virtual int  MouseDown() override;
-    virtual void MouseMove(int xp, int yp) override;
-    virtual void MouseUp() override;
+    virtual bool OnMouseDown() override;
+    virtual void OnMouseMove(int xp, int yp) override;
+    virtual void OnMouseUp() override;
 
     // Serialization
     virtual void WriteToFile(Stream *out) override;

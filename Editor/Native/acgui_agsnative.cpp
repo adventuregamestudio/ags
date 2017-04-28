@@ -36,12 +36,6 @@ bool AGS::Common::GUIMain::HasAlphaChannel() const
 // AGS.Native-specific implementation split out of acgui.h
 //=============================================================================
 
-int GUIObject::IsClickable()
-{
-  // make sure the button can be selected in the editor
-  return 1;
-}
-
 void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx)
 {
   wouttextxy(ds, xxp, yyp, usingfont, text_color, texx);
@@ -78,6 +72,12 @@ namespace AGS
 namespace Common
 {
 
+bool GUIObject::IsClickable() const
+{
+    // make sure the button can be selected in the editor
+    return true;
+}
+
 void GUILabel::PrepareTextToDraw()
 {
     _textToDraw = Text;
@@ -86,14 +86,14 @@ void GUILabel::PrepareTextToDraw()
 int GUILabel::SplitLinesForDrawing()
 {
     numlines = 0;
-    split_lines(_textToDraw, wid, Font);
+    split_lines(_textToDraw, Width, Font);
     return numlines;
 }
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, color_t text_color)
 {
     // print something fake so we can see what it looks like
-    wouttext_outline(ds, x + 2, y + 2, Font, text_color, "Text Box Contents");
+    wouttext_outline(ds, X + 2, Y + 2, Font, text_color, "Text Box Contents");
 }
 
 static int num_items_temp;
@@ -119,7 +119,7 @@ void GUIListBox::PrepareTextToDraw(const String &text)
 void GUIInvWindow::Draw(Bitmap *ds)
 {
     color_t draw_color = ds->GetCompatibleColor(15);
-    ds->DrawRect(Rect(x,y,x+wid,y+hit), draw_color);
+    ds->DrawRect(Rect(X, Y, X + Width, Y + Height), draw_color);
 }
 
 void GUIButton::PrepareTextToDraw()

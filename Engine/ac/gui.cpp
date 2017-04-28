@@ -296,16 +296,16 @@ void process_interface_click(int ifce, int btn, int mbut) {
         GUIObject *theObj = guis[ifce].Controls[btn];
         // if the object has a special handler script then run it;
         // otherwise, run interface_click
-        if ((theObj->GetNumEvents() > 0) &&
-            (theObj->eventHandlers[0][0] != 0) &&
-            (!gameinst->GetSymbolAddress(theObj->eventHandlers[0]).IsNull())) {
+        if ((theObj->GetEventCount() > 0) &&
+            (!theObj->EventHandlers[0].IsEmpty()) &&
+            (!gameinst->GetSymbolAddress(theObj->EventHandlers[0]).IsNull())) {
                 // control-specific event handler
                 if (strchr(theObj->GetEventArgs(0), ',') != NULL)
-                    QueueScriptFunction(kScInstGame, theObj->eventHandlers[0], 2,
+                    QueueScriptFunction(kScInstGame, theObj->EventHandlers[0], 2,
                         RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject),
                         RuntimeScriptValue().SetInt32(mbut));
                 else
-                    QueueScriptFunction(kScInstGame, theObj->eventHandlers[0], 1,
+                    QueueScriptFunction(kScInstGame, theObj->EventHandlers[0], 1,
                         RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject));
         }
         else
@@ -400,8 +400,8 @@ void update_gui_zorder() {
 void export_gui_controls(int ee) {
 
     for (int ff = 0; ff < guis[ee].ControlCount; ff++) {
-        if (guis[ee].Controls[ff]->scriptName[0] != 0)
-            ccAddExternalDynamicObject(guis[ee].Controls[ff]->scriptName, guis[ee].Controls[ff], &ccDynamicGUIObject);
+        if (!guis[ee].Controls[ff]->Name.IsEmpty())
+            ccAddExternalDynamicObject(guis[ee].Controls[ff]->Name, guis[ee].Controls[ff], &ccDynamicGUIObject);
 
         ccRegisterManagedObject(guis[ee].Controls[ff], &ccDynamicGUIObject);
     }
@@ -410,8 +410,8 @@ void export_gui_controls(int ee) {
 void unexport_gui_controls(int ee) {
 
     for (int ff = 0; ff < guis[ee].ControlCount; ff++) {
-        if (guis[ee].Controls[ff]->scriptName[0] != 0)
-            ccRemoveExternalSymbol(guis[ee].Controls[ff]->scriptName);
+        if (!guis[ee].Controls[ff]->Name.IsEmpty())
+            ccRemoveExternalSymbol(guis[ee].Controls[ff]->Name);
 
         if (!ccUnRegisterManagedObject(guis[ee].Controls[ff]))
             quit("unable to unregister guicontrol object");
@@ -563,10 +563,10 @@ int gui_on_mouse_move()
 void gui_on_mouse_hold(const int wasongui, const int wasbutdown)
 {
     for (int i=0;i<guis[wasongui].ControlCount;i++) {
-        if (guis[wasongui].Controls[i]->activated<1) continue;
+        if (!guis[wasongui].Controls[i]->IsActivated) continue;
         if (guis[wasongui].GetControlType(i)!=kGUISlider) continue;
         // GUI Slider repeatedly activates while being dragged
-        guis[wasongui].Controls[i]->activated=0;
+        guis[wasongui].Controls[i]->IsActivated = false;
         force_event(EV_IFACECLICK, wasongui, i, wasbutdown);
         break;
     }
@@ -577,8 +577,8 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown)
     guis[wasongui].OnMouseButtonUp();
 
     for (int i=0;i<guis[wasongui].ControlCount;i++) {
-        if (guis[wasongui].Controls[i]->activated<1) continue;
-        guis[wasongui].Controls[i]->activated=0;
+        if (!guis[wasongui].Controls[i]->IsActivated) continue;
+        guis[wasongui].Controls[i]->IsActivated = false;
         if (!IsInterfaceEnabled()) break;
 
         int cttype=guis[wasongui].GetControlType(i);
@@ -586,8 +586,8 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown)
             force_event(EV_IFACECLICK, wasongui, i, wasbutdown);
         }
         else if (cttype == kGUIInvWindow) {
-            mouse_ifacebut_xoffs=mousex-(guis[wasongui].Controls[i]->x)-guis[wasongui].X;
-            mouse_ifacebut_yoffs=mousey-(guis[wasongui].Controls[i]->y)-guis[wasongui].Y;
+            mouse_ifacebut_xoffs=mousex-(guis[wasongui].Controls[i]->X)-guis[wasongui].X;
+            mouse_ifacebut_yoffs=mousey-(guis[wasongui].Controls[i]->Y)-guis[wasongui].Y;
             int iit=offset_over_inv((GUIInvWindow*)guis[wasongui].Controls[i]);
             if (iit>=0) {
                 evblocknum=iit;

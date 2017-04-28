@@ -71,11 +71,6 @@ bool GUIMain::HasAlphaChannel() const
 // Engine-specific implementation split out of acgui.h
 //=============================================================================
 
-int GUIObject::IsClickable()
-{
-  return !(flags & GUIF_NOCLICKS);
-}
-
 void check_font(int *fontnum)
 {
     // do nothing
@@ -117,27 +112,32 @@ namespace AGS
 namespace Common
 {
 
+bool GUIObject::IsClickable() const
+{
+    return !(Flags & kGUICtrl_NoClicks);
+}
+
 void GUILabel::PrepareTextToDraw()
 {
-    replace_macro_tokens(flags & GUIF_TRANSLATED ? get_translation(Text) : Text, _textToDraw);
+    replace_macro_tokens(Flags & kGUICtrl_Translated ? get_translation(Text) : Text, _textToDraw);
 }
 
 int GUILabel::SplitLinesForDrawing()
 {
     // Use the engine's word wrap tool, to have hebrew-style writing
     // and other features
-    break_up_text_into_lines(wid, Font, _textToDraw);
+    break_up_text_into_lines(Width, Font, _textToDraw);
     return numlines;
 }
 
 void GUITextBox::DrawTextBoxContents(Bitmap *ds, color_t text_color)
 {
-    wouttext_outline(ds, x + 1 + get_fixed_pixel_size(1), y + 1 + get_fixed_pixel_size(1), Font, text_color, Text);
-    if (!IsDisabled())
+    wouttext_outline(ds, X + 1 + get_fixed_pixel_size(1), Y + 1 + get_fixed_pixel_size(1), Font, text_color, Text);
+    if (IsEnabled())
     {
         // draw a cursor
-        int draw_at_x = wgettextwidth(Text, Font) + x + 3;
-        int draw_at_y = y + 1 + getfontheight(Font);
+        int draw_at_x = wgettextwidth(Text, Font) + X + 3;
+        int draw_at_y = Y + 1 + getfontheight(Font);
         ds->DrawRect(Rect(draw_at_x, draw_at_y, draw_at_x + get_fixed_pixel_size(5), draw_at_y + (get_fixed_pixel_size(1) - 1)), text_color);
     }
 }
@@ -154,7 +154,7 @@ void GUIListBox::DrawItemsUnfix()
 
 void GUIListBox::PrepareTextToDraw(const String &text)
 {
-    if (flags & GUIF_TRANSLATED)
+    if (Flags & kGUICtrl_Translated)
         _textToDraw = get_translation(text);
     else
         _textToDraw = text;
@@ -162,7 +162,7 @@ void GUIListBox::PrepareTextToDraw(const String &text)
 
 void GUIButton::PrepareTextToDraw()
 {
-    if (flags & GUIF_TRANSLATED)
+    if (Flags & kGUICtrl_Translated)
         _textToDraw = get_translation(_text);
     else
         _textToDraw = _text;

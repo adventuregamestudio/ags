@@ -204,7 +204,7 @@ void GUIMain::DrawAt(Common::Bitmap *ds, int x, int y)
 
         GUIObject *objToDraw = Controls[CtrlDrawOrder[ctrl_index]];
 
-        if (objToDraw->IsDisabled() && gui_disabled_style == GUIDIS_BLACKOUT)
+        if (!objToDraw->IsEnabled() && gui_disabled_style == GUIDIS_BLACKOUT)
             continue;
         if (!objToDraw->IsVisible())
             continue;
@@ -218,25 +218,25 @@ void GUIMain::DrawAt(Common::Bitmap *ds, int x, int y)
             if (outlineGuiObjects)
                 selectedColour = 13;
             draw_color = subbmp.GetCompatibleColor(selectedColour);
-            DrawBlob(&subbmp, objToDraw->x + objToDraw->wid - get_fixed_pixel_size(1) - 1, objToDraw->y, draw_color);
-            DrawBlob(&subbmp, objToDraw->x, objToDraw->y + objToDraw->hit - get_fixed_pixel_size(1) - 1, draw_color);
-            DrawBlob(&subbmp, objToDraw->x, objToDraw->y, draw_color);
-            DrawBlob(&subbmp, objToDraw->x + objToDraw->wid - get_fixed_pixel_size(1) - 1, 
-                    objToDraw->y + objToDraw->hit - get_fixed_pixel_size(1) - 1, draw_color);
+            DrawBlob(&subbmp, objToDraw->X + objToDraw->Width - get_fixed_pixel_size(1) - 1, objToDraw->Y, draw_color);
+            DrawBlob(&subbmp, objToDraw->X, objToDraw->Y + objToDraw->Height - get_fixed_pixel_size(1) - 1, draw_color);
+            DrawBlob(&subbmp, objToDraw->X, objToDraw->Y, draw_color);
+            DrawBlob(&subbmp, objToDraw->X + objToDraw->Width - get_fixed_pixel_size(1) - 1, 
+                    objToDraw->Y + objToDraw->Height - get_fixed_pixel_size(1) - 1, draw_color);
         }
         if (outlineGuiObjects)
         {
             // draw a dotted outline round all objects
             draw_color = subbmp.GetCompatibleColor(selectedColour);
-            for (int i = 0; i < objToDraw->wid; i += 2)
+            for (int i = 0; i < objToDraw->Width; i += 2)
             {
-                subbmp.PutPixel(i + objToDraw->x, objToDraw->y, draw_color);
-                subbmp.PutPixel(i + objToDraw->x, objToDraw->y + objToDraw->hit - 1, draw_color);
+                subbmp.PutPixel(i + objToDraw->X, objToDraw->Y, draw_color);
+                subbmp.PutPixel(i + objToDraw->X, objToDraw->Y + objToDraw->Height - 1, draw_color);
             }
-            for (int i = 0; i < objToDraw->hit; i += 2)
+            for (int i = 0; i < objToDraw->Height; i += 2)
             {
-                subbmp.PutPixel(objToDraw->x, i + objToDraw->y, draw_color);
-                subbmp.PutPixel(objToDraw->x + objToDraw->wid - 1, i + objToDraw->y, draw_color);
+                subbmp.PutPixel(objToDraw->X, i + objToDraw->Y, draw_color);
+                subbmp.PutPixel(objToDraw->X + objToDraw->Width - 1, i + objToDraw->Y, draw_color);
             }
         }
     }
@@ -260,13 +260,13 @@ void GUIMain::Poll()
         int ctrl_index = FindControlUnderMouse();
 
         if (MouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
-            Controls[MouseDownCtrl]->MouseMove(mousex, mousey);
+            Controls[MouseDownCtrl]->OnMouseMove(mousex, mousey);
         else if (ctrl_index != MouseOverCtrl)
         {
             if (MouseOverCtrl >= 0)
-                Controls[MouseOverCtrl]->MouseLeave();
+                Controls[MouseOverCtrl]->OnMouseLeave();
 
-            if (ctrl_index >= 0 && Controls[ctrl_index]->IsDisabled())
+            if (ctrl_index >= 0 && !Controls[ctrl_index]->IsEnabled())
                 // the control is disabled - ignore it
                 MouseOverCtrl = -1;
             else if (ctrl_index >= 0 && !Controls[ctrl_index]->IsClickable())
@@ -278,14 +278,14 @@ void GUIMain::Poll()
                 MouseOverCtrl = ctrl_index;
                 if (MouseOverCtrl >= 0)
                 {
-                    Controls[MouseOverCtrl]->MouseOver();
-                    Controls[MouseOverCtrl]->MouseMove(mousex, mousey);
+                    Controls[MouseOverCtrl]->OnMouseEnter();
+                    Controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
                 }
             }
             guis_need_update = 1;
         } 
         else if (MouseOverCtrl >= 0)
-            Controls[MouseOverCtrl]->MouseMove(mousex, mousey);
+            Controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
     }
 
     MouseWasAt.X = mousex;
@@ -322,8 +322,8 @@ void GUIMain::RebuildArray()
         else
             quit("guimain: unknown control type found On gui");
 
-        Controls[i]->guin = Id;
-        Controls[i]->objn = i;
+        Controls[i]->ParentId = Id;
+        Controls[i]->Id = i;
     }
 
     ResortZOrder();
@@ -331,7 +331,7 @@ void GUIMain::RebuildArray()
 
 bool GUIControlZOrder(const GUIObject *e1, const GUIObject *e2)
 {
-    return e1->zorder < e2->zorder;
+    return e1->ZOrder < e2->ZOrder;
 }
 
 void GUIMain::ResortZOrder()
@@ -341,7 +341,7 @@ void GUIMain::ResortZOrder()
 
     CtrlDrawOrder.resize(ctrl_sort.size());
     for (int i = 0; i < ControlCount; ++i)
-        CtrlDrawOrder[i] = ctrl_sort[i]->objn;
+        CtrlDrawOrder[i] = ctrl_sort[i]->Id;
 }
 
 bool GUIMain::SendControlToBack(int index)
@@ -355,7 +355,7 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
         return false; // no such control
 
     zorder = Math::Clamp(0, ControlCount - 1, zorder);
-    const int old_zorder = Controls[index]->zorder;
+    const int old_zorder = Controls[index]->ZOrder;
     if (old_zorder == zorder)
         return false; // no change
 
@@ -364,16 +364,16 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
     const int  right     = move_back ? old_zorder : zorder;
     for (int i = 0; i < ControlCount; ++i)
     {
-        const int i_zorder = Controls[i]->zorder;
+        const int i_zorder = Controls[i]->ZOrder;
         if (i_zorder == old_zorder)
-            Controls[i]->zorder = zorder; // the control we are moving
+            Controls[i]->ZOrder = zorder; // the control we are moving
         else if (i_zorder >= left && i_zorder <= right)
         {
             // controls in between old and new positions shift towards free place
             if (move_back)
-                Controls[i]->zorder++; // move to front
+                Controls[i]->ZOrder++; // move to front
             else
-                Controls[i]->zorder--; // move to back
+                Controls[i]->ZOrder--; // move to back
         }
     }
     ResortZOrder();
@@ -404,21 +404,21 @@ void GUIMain::OnMouseButtonDown()
         return;
 
     // don't activate disabled buttons
-    if (Controls[MouseOverCtrl]->IsDisabled() || !Controls[MouseOverCtrl]->IsVisible() ||
+    if (!Controls[MouseOverCtrl]->IsEnabled() || !Controls[MouseOverCtrl]->IsVisible() ||
         !Controls[MouseOverCtrl]->IsClickable())
     return;
 
     MouseDownCtrl = MouseOverCtrl;
-    if (Controls[MouseOverCtrl]->MouseDown())
+    if (Controls[MouseOverCtrl]->OnMouseDown())
         MouseOverCtrl = MOVER_MOUSEDOWNLOCKED;
-    Controls[MouseDownCtrl]->MouseMove(mousex - X, mousey - Y);
+    Controls[MouseDownCtrl]->OnMouseMove(mousex - X, mousey - Y);
     guis_need_update = 1;
 }
 
 void GUIMain::OnMouseButtonUp()
 {
     // FocusCtrl was locked - reset it back to normal, but On the
-    // locked object so that a MouseLeave gets fired if necessary
+    // locked object so that a OnMouseLeave gets fired if necessary
     if (MouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
     {
         MouseOverCtrl = MouseDownCtrl;
@@ -428,7 +428,7 @@ void GUIMain::OnMouseButtonUp()
     if (MouseDownCtrl < 0)
         return;
 
-    Controls[MouseDownCtrl]->MouseUp();
+    Controls[MouseDownCtrl]->OnMouseUp();
     MouseDownCtrl = -1;
     guis_need_update = 1;
 }
@@ -651,11 +651,11 @@ void read_gui(Stream *in, std::vector<GUIMain> &guiread, GameSetupStruct * gss)
       guiread[ee].OnClickHandler.Empty();
 
     for (int ff = 0; ff < guiread[ee].ControlCount; ff++) {
-      guiread[ee].Controls[ff]->guin = ee;
-      guiread[ee].Controls[ff]->objn = ff;
+      guiread[ee].Controls[ff]->ParentId = ee;
+      guiread[ee].Controls[ff]->Id = ff;
 
       if (GameGuiVersion < kGuiVersion_272e)
-        guiread[ee].Controls[ff]->zorder = ff;
+        guiread[ee].Controls[ff]->ZOrder = ff;
     }
 
     guiread[ee].ResortZOrder();

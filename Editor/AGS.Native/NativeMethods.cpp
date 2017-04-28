@@ -703,8 +703,8 @@ namespace AGS
             if (name->Equals("GUIMAGIC")) return GUIMAGIC;
             if (name->Equals("SAVEBUFFERSIZE")) return PLUGIN_SAVEBUFFERSIZE;
             if (name->Equals("GUIMAIN_NOCLICK")) return (int)Common::kGUIMain_NoClick;
-            if (name->Equals("GUIF_CLIP")) return GUIF_CLIP;
-            if (name->Equals("GUIF_TRANSLATED")) return GUIF_TRANSLATED;
+            if (name->Equals("GUIF_CLIP")) return (int)Common::kGUICtrl_Clip;
+            if (name->Equals("GUIF_TRANSLATED")) return (int)Common::kGUICtrl_Translated;
             if (name->Equals("GLF_NOBORDER")) return (int)Common::kListBox_NoBorder;
             if (name->Equals("GLF_NOARROWS")) return (int)Common::kListBox_NoArrows;
             if (name->Equals("GUI_POPUP_MODAL")) return (int)Common::kGUIPopupModal;

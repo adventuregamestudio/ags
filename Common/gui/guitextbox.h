@@ -33,7 +33,7 @@ public:
     virtual void Draw(Bitmap *ds) override;
  
     // Events
-    virtual void KeyPress(int keycode) override;
+    virtual void OnKeyPress(int keycode) override;
  
     // Serialization
     virtual void WriteToFile(Stream *out) override;

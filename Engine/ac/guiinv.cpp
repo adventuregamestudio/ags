@@ -44,7 +44,7 @@ int GUIInvWindow::GetCharacterId() const
 
 void GUIInvWindow::Draw(Bitmap *ds)
 {
-    if ((IsDisabled()) && (gui_disabled_style == GUIDIS_BLACKOUT))
+    if ((!IsEnabled()) && (gui_disabled_style == GUIDIS_BLACKOUT))
         return;
 
     // backwards compatibility
@@ -59,9 +59,9 @@ void GUIInvWindow::Draw(Bitmap *ds)
         TopItem = play.inv_top;
 
     // draw the items
-    const int leftmost_x = x;
-    int at_x = x;
-    int at_y = y;
+    const int leftmost_x = X;
+    int at_x = X;
+    int at_y = Y;
     int lastItem = TopItem + (ColCount * RowCount);
     if (lastItem > charextra[GetCharacterId()].invorder_count)
         lastItem = charextra[GetCharacterId()].invorder_count;
@@ -80,18 +80,18 @@ void GUIInvWindow::Draw(Bitmap *ds)
         }
     }
 
-    if (IsDisabled() &&
+    if (!IsEnabled() &&
         gui_disabled_style == GUIDIS_GREYOUT && 
         play.inventory_greys_out == 1)
     {
         color_t draw_color = ds->GetCompatibleColor(8);
         // darken the inventory when disabled
         // TODO: move this to a separate function?
-        for (at_x = 0; at_x < wid; at_x++)
+        for (at_x = 0; at_x < Width; at_x++)
         {
-            for (at_y = at_x % 2; at_y < hit; at_y += 2)
+            for (at_y = at_x % 2; at_y < Height; at_y += 2)
             {
-                ds->PutPixel(x + at_x, y + at_y, draw_color);
+                ds->PutPixel(X + at_x, Y + at_y, draw_color);
             }
         }
     }

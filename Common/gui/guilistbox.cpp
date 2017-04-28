@@ -39,9 +39,9 @@ GUIListBox::GUIListBox()
     SelectedBgColor = 16;
     TextAlignment = 0;
 
-    numSupportedEvents = 1;
-    supportedEvents[0] = "SelectionChanged";
-    supportedEventArgs[0] = "GUIControl *control";
+    _scEventCount = 1;
+    _scEventNames[0] = "SelectionChanged";
+    _scEventArgs[0] = "GUIControl *control";
 }
 
 int GUIListBox::GetItemAt(int x, int y) const
@@ -55,9 +55,9 @@ int GUIListBox::GetItemAt(int x, int y) const
     return index;
 }
 
-bool GUIListBox::IsInRightMargin(int x_) const
+bool GUIListBox::IsInRightMargin(int x) const
 {
-    if (x_ >= (wid - get_fixed_pixel_size(6)) && (ListBoxFlags & kListBox_NoBorder) == 0 && (ListBoxFlags & kListBox_NoArrows) == 0)
+    if (x >= (Width - get_fixed_pixel_size(6)) && (ListBoxFlags & kListBox_NoBorder) == 0 && (ListBoxFlags & kListBox_NoArrows) == 0)
         return 1;
     return 0;
 }
@@ -83,20 +83,20 @@ void GUIListBox::Clear()
 
 void GUIListBox::Draw(Common::Bitmap *ds)
 {
-    const int width  = wid - 1;
-    const int height = hit - 1;
+    const int width  = Width - 1;
+    const int height = Height - 1;
     const int pixel_size = get_fixed_pixel_size(1);
 
     check_font(&Font);
     color_t text_color = ds->GetCompatibleColor(TextColor);
     color_t draw_color = ds->GetCompatibleColor(TextColor);
     if ((ListBoxFlags & kListBox_NoBorder) == 0) {
-        ds->DrawRect(Rect(x, y, x + width + (pixel_size - 1), y + height + (pixel_size - 1)), draw_color);
+        ds->DrawRect(Rect(X, Y, X + width + (pixel_size - 1), Y + height + (pixel_size - 1)), draw_color);
         if (pixel_size > 1)
-            ds->DrawRect(Rect(x + 1, y + 1, x + width, y + height), draw_color);
+            ds->DrawRect(Rect(X + 1, Y + 1, X + width, Y + height), draw_color);
     }
 
-    int right_hand_edge = (x + width) - pixel_size - 1;
+    int right_hand_edge = (X + width) - pixel_size - 1;
 
     // use SetFont to update the RowHeight and VisibleItemCount
     SetFont(Font);
@@ -105,18 +105,18 @@ void GUIListBox::Draw(Common::Bitmap *ds)
     if (ItemCount > VisibleItemCount && (ListBoxFlags & kListBox_NoBorder) == 0 && (ListBoxFlags & kListBox_NoArrows) == 0)
     {
         int xstrt, ystrt;
-        ds->DrawRect(Rect(x + width - get_fixed_pixel_size(7), y, (x + (pixel_size - 1) + width) - get_fixed_pixel_size(7), y + height), draw_color);
-        ds->DrawRect(Rect(x + width - get_fixed_pixel_size(7), y + height / 2, x + width, y + height / 2 + (pixel_size - 1)), draw_color);
+        ds->DrawRect(Rect(X + width - get_fixed_pixel_size(7), Y, (X + (pixel_size - 1) + width) - get_fixed_pixel_size(7), Y + height), draw_color);
+        ds->DrawRect(Rect(X + width - get_fixed_pixel_size(7), Y + height / 2, X + width, Y + height / 2 + (pixel_size - 1)), draw_color);
 
-        xstrt = (x + width - get_fixed_pixel_size(6)) + (pixel_size - 1);
-        ystrt = (y + height - 3) - get_fixed_pixel_size(5);
+        xstrt = (X + width - get_fixed_pixel_size(6)) + (pixel_size - 1);
+        ystrt = (Y + height - 3) - get_fixed_pixel_size(5);
 
         draw_color = ds->GetCompatibleColor(TextColor);
         ds->DrawTriangle(Triangle(xstrt, ystrt, xstrt + get_fixed_pixel_size(4), ystrt, 
                  xstrt + get_fixed_pixel_size(2),
                  ystrt + get_fixed_pixel_size(5)), draw_color);
 
-        ystrt = y + 3;
+        ystrt = Y + 3;
         ds->DrawTriangle(Triangle(xstrt, ystrt + get_fixed_pixel_size(5), 
                  xstrt + get_fixed_pixel_size(4), 
                  ystrt + get_fixed_pixel_size(5),
@@ -132,19 +132,19 @@ void GUIListBox::Draw(Common::Bitmap *ds)
         if (item + TopItem >= ItemCount)
             break;
 
-        int at_y = y + pixel_size + item * RowHeight;
+        int at_y = Y + pixel_size + item * RowHeight;
         if (item + TopItem == SelectedItem)
         {
             text_color = ds->GetCompatibleColor(BgColor);
             if (SelectedBgColor > 0)
             {
-                int stretch_to = (x + width) - pixel_size;
+                int stretch_to = (X + width) - pixel_size;
                 // draw the SelectedItem item bar (if colour not transparent)
                 draw_color = ds->GetCompatibleColor(SelectedBgColor);
                 if ((VisibleItemCount < ItemCount) && ((ListBoxFlags & kListBox_NoBorder) == 0) && ((ListBoxFlags & kListBox_NoArrows) == 0))
                     stretch_to -= get_fixed_pixel_size(7);
 
-                ds->FillRect(Rect(x + pixel_size, at_y, stretch_to, at_y + RowHeight - pixel_size), draw_color);
+                ds->FillRect(Rect(X + pixel_size, at_y, stretch_to, at_y + RowHeight - pixel_size), draw_color);
             }
         }
         else
@@ -153,15 +153,15 @@ void GUIListBox::Draw(Common::Bitmap *ds)
         int item_index = item + TopItem;
         PrepareTextToDraw(Items[item_index]);
 
-        if (TextAlignment == GALIGN_LEFT)
-            wouttext_outline(ds, x + 1 + pixel_size, at_y + 1, Font, text_color, _textToDraw);
+        if (TextAlignment == kGUIAlign_Left)
+            wouttext_outline(ds, X + 1 + pixel_size, at_y + 1, Font, text_color, _textToDraw);
         else
         {
             int text_width = wgettextwidth(_textToDraw, Font);
-            if (TextAlignment == GALIGN_RIGHT)
+            if (TextAlignment == kGUIAlign_Right)
                 wouttext_outline(ds, right_hand_edge - text_width, at_y + 1, Font, text_color, _textToDraw);
             else
-                wouttext_outline(ds, ((right_hand_edge - x) / 2) + x - (text_width / 2), at_y + 1, Font, text_color, _textToDraw);
+                wouttext_outline(ds, ((right_hand_edge - X) / 2) + X - (text_width / 2), at_y + 1, Font, text_color, _textToDraw);
         }
     }
 
@@ -203,7 +203,7 @@ void GUIListBox::SetFont(int Font)
 {
     Font = Font;
     RowHeight = getfontheight(Font) + get_fixed_pixel_size(2);
-    VisibleItemCount = hit / RowHeight;
+    VisibleItemCount = Height / RowHeight;
 }
 
 void GUIListBox::SetItemText(int index, const String &text)
@@ -215,32 +215,32 @@ void GUIListBox::SetItemText(int index, const String &text)
     }
 }
 
-int GUIListBox::MouseDown()
+bool GUIListBox::OnMouseDown()
 {
     if (IsInRightMargin(MousePos.X))
     {
-        if (MousePos.Y < hit / 2 && TopItem > 0)
+        if (MousePos.Y < Height / 2 && TopItem > 0)
             TopItem--;
-        if (MousePos.Y >= hit / 2 && ItemCount > TopItem + VisibleItemCount)
+        if (MousePos.Y >= Height / 2 && ItemCount > TopItem + VisibleItemCount)
             TopItem++;
-        return 0;
+        return false;
     }
 
     int sel = GetItemAt(MousePos.X, MousePos.Y);
     if (sel < 0)
-        return 0;
+        return false;
     SelectedItem = sel;
-    activated = 1;
-    return 0;
+    IsActivated = true;
+    return false;
 }
 
-void GUIListBox::MouseMove(int x_, int y_)
+void GUIListBox::OnMouseMove(int x_, int y_)
 {
-    MousePos.X = x_ - x;
-    MousePos.Y = y_ - y;
+    MousePos.X = x_ - X;
+    MousePos.Y = y_ - Y;
 }
 
-void GUIListBox::Resized() 
+void GUIListBox::OnResized() 
 {
     if (RowHeight == 0)
     {
@@ -248,7 +248,7 @@ void GUIListBox::Resized()
         SetFont(Font);
     }
     if (RowHeight > 0)
-        VisibleItemCount = hit / RowHeight;
+        VisibleItemCount = Height / RowHeight;
 }
 
 // TODO: replace string serialization with StrUtil::ReadString and WriteString
@@ -306,7 +306,7 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     }
     else
     {
-        TextAlignment = GALIGN_LEFT;
+        TextAlignment = kGUIAlign_Left;
     }
 
     if (gui_version >= kGuiVersion_unkn_107)

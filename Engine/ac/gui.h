@@ -22,6 +22,7 @@
 #include "gui/guimain.h"
 
 using AGS::Common::GUIMain;
+using AGS::Common::GUIObject;
 
 void	GUI_SetVisible(ScriptGUI *tehgui, int isvisible);
 int		GUI_GetVisible(ScriptGUI *tehgui);

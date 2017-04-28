@@ -34,9 +34,9 @@ GUITextBox::GUITextBox()
     TextColor = 0;
     TextBoxFlags = 0;
 
-    numSupportedEvents = 1;
-    supportedEvents[0] = "Activate";
-    supportedEventArgs[0] = "GUIControl *control";
+    _scEventCount = 1;
+    _scEventNames[0] = "Activate";
+    _scEventArgs[0] = "GUIControl *control";
 }
 
 void GUITextBox::Draw(Bitmap *ds)
@@ -46,16 +46,16 @@ void GUITextBox::Draw(Bitmap *ds)
     color_t draw_color = ds->GetCompatibleColor(TextColor);
     if ((TextBoxFlags & kTextBox_NoBorder) == 0)
     {
-        ds->DrawRect(RectWH(x, y, wid, hit), draw_color);
+        ds->DrawRect(RectWH(X, Y, Width, Height), draw_color);
         if (get_fixed_pixel_size(1) > 1)
         {
-            ds->DrawRect(Rect(x + 1, y + 1, x + wid - get_fixed_pixel_size(1), y + hit - get_fixed_pixel_size(1)), draw_color);
+            ds->DrawRect(Rect(X + 1, Y + 1, X + Width - get_fixed_pixel_size(1), Y + Height - get_fixed_pixel_size(1)), draw_color);
         }
     }
     DrawTextBoxContents(ds, text_color);
 }
 
-void GUITextBox::KeyPress(int keycode)
+void GUITextBox::OnKeyPress(int keycode)
 {
     guis_need_update = 1;
     // TODO: use keycode constants
@@ -71,13 +71,13 @@ void GUITextBox::KeyPress(int keycode)
     // return/enter
     if (keycode == 13)
     {
-        activated++;
+        IsActivated = true;
         return;
     }
 
     Text.AppendChar(keycode);
     // if the new string is too long, remove the new character
-    if (wgettextwidth(Text, Font) > (wid - (6 + get_fixed_pixel_size(5))))
+    if (wgettextwidth(Text, Font) > (Width - (6 + get_fixed_pixel_size(5))))
         Text.ClipRight(1);
 }
 

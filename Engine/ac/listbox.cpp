@@ -154,14 +154,14 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
 
 int ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y) {
 
-  if (!guis[listbox->guin].IsVisible())
+  if (!guis[listbox->ParentId].IsVisible())
     return -1;
 
   multiply_up_coordinates(&x, &y);
-  x = (x - listbox->x) - guis[listbox->guin].X;
-  y = (y - listbox->y) - guis[listbox->guin].Y;
+  x = (x - listbox->X) - guis[listbox->ParentId].X;
+  y = (y - listbox->Y) - guis[listbox->ParentId].Y;
 
-  if ((x < 0) || (y < 0) || (x >= listbox->wid) || (y >= listbox->hit))
+  if ((x < 0) || (y < 0) || (x >= listbox->Width) || (y >= listbox->Height))
     return -1;
   
   return listbox->GetItemAt(x, y);

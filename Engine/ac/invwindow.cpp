@@ -77,7 +77,7 @@ CharacterInfo* InvWindow_GetCharacterToUse(GUIInvWindow *guii) {
 
 void InvWindow_SetItemWidth(GUIInvWindow *guii, int newwidth) {
   guii->ItemWidth = newwidth;
-  guii->Resized();
+  guii->OnResized();
 }
 
 int InvWindow_GetItemWidth(GUIInvWindow *guii) {
@@ -86,7 +86,7 @@ int InvWindow_GetItemWidth(GUIInvWindow *guii) {
 
 void InvWindow_SetItemHeight(GUIInvWindow *guii, int newhit) {
   guii->ItemHeight = newhit;
-  guii->Resized();
+  guii->OnResized();
 }
 
 int InvWindow_GetItemHeight(GUIInvWindow *guii) {

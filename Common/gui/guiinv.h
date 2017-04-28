@@ -36,10 +36,10 @@ public:
     virtual void Draw(Bitmap *ds) override;
 
     // Events
-    virtual void MouseLeave() override;
-    virtual void MouseOver() override;
-    virtual void MouseUp() override;
-    virtual void Resized() override;
+    virtual void OnMouseEnter() override;
+    virtual void OnMouseLeave() override;
+    virtual void OnMouseUp() override;
+    virtual void OnResized() override;
 
     // Serialization
     virtual void WriteToFile(Stream *out) override;

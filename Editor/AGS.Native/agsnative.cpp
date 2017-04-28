@@ -3119,11 +3119,11 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guibuts[numguibuts].TextAlignment = (int)button->TextAlignment;
           guibuts[numguibuts].ClickAction[Common::kMouseLeft] = (Common::GUIClickAction)button->ClickAction;
 		  guibuts[numguibuts].ClickData[Common::kMouseLeft] = button->NewModeNumber;
-		  guibuts[numguibuts].flags = (button->ClipImage) ? GUIF_CLIP : 0;
+          guibuts[numguibuts].Flags = (button->ClipImage) ? Common::kGUICtrl_Clip : 0;
           Common::String text;
 		  ConvertStringToNativeString(button->Text, text, GUIBUTTON_TEXTLENGTH);
           guibuts[numguibuts].SetText(text);
-		  ConvertStringToCharArray(button->OnClick, guibuts[numguibuts].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
+		  ConvertStringToNativeString(button->OnClick, guibuts[numguibuts].EventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
 		  
           gui->CtrlRefs[gui->ControlCount] = (Common::kGUIButton << 16) | numguibuts;
 		  gui->Controls[gui->ControlCount] = &guibuts[numguibuts];
@@ -3136,7 +3136,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guilabels[numguilabels].TextColor = label->TextColor;
 		  guilabels[numguilabels].Font = label->Font;
 		  guilabels[numguilabels].TextAlignment = (int)label->TextAlignment;
-		  guilabels[numguilabels].flags = 0;
+		  guilabels[numguilabels].Flags = 0;
           Common::String text;
 		  ConvertStringToNativeString(label->Text, text);
 		  guilabels[numguilabels].SetText(text);
@@ -3151,9 +3151,9 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guitext.push_back(Common::GUITextBox());
 		  guitext[numguitext].TextColor = textbox->TextColor;
 		  guitext[numguitext].Font = textbox->Font;
-		  guitext[numguitext].flags = 0;
+		  guitext[numguitext].Flags = 0;
           guitext[numguitext].TextBoxFlags = (textbox->ShowBorder) ? 0 : Common::kTextBox_NoBorder;
-		  ConvertStringToCharArray(textbox->OnActivate, guitext[numguitext].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
+		  ConvertStringToNativeString(textbox->OnActivate, guitext[numguitext].EventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUITextBox << 16) | numguitext;
 		  gui->Controls[gui->ControlCount] = &guitext[numguitext];
@@ -3168,10 +3168,10 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guilist[numguilist].BgColor = listbox->SelectedTextColor;
 		  guilist[numguilist].SelectedBgColor = listbox->SelectedBackgroundColor;
 		  guilist[numguilist].TextAlignment = (int)listbox->TextAlignment;
-          guilist[numguilist].flags = listbox->Translated ? GUIF_TRANSLATED : 0;
+          guilist[numguilist].Flags = listbox->Translated ? Common::kGUICtrl_Translated : 0;
           guilist[numguilist].ListBoxFlags = (listbox->ShowBorder) ? 0 : Common::kListBox_NoBorder;
 		  guilist[numguilist].ListBoxFlags |= (listbox->ShowScrollArrows) ? 0 : Common::kListBox_NoArrows;
-		  ConvertStringToCharArray(listbox->OnSelectionChanged, guilist[numguilist].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
+		  ConvertStringToNativeString(listbox->OnSelectionChanged, guilist[numguilist].EventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIListBox << 16) | numguilist;
 		  gui->Controls[gui->ControlCount] = &guilist[numguilist];
@@ -3187,7 +3187,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guislider[numguislider].HandleImage = slider->HandleImage;
 		  guislider[numguislider].HandleOffset = slider->HandleOffset;
 		  guislider[numguislider].BgImage = slider->BackgroundImage;
-		  ConvertStringToCharArray(slider->OnChange, guislider[numguislider].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
+		  ConvertStringToNativeString(slider->OnChange, guislider[numguislider].EventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUISlider << 16) | numguislider;
 		  gui->Controls[gui->ControlCount] = &guislider[numguislider];
@@ -3211,7 +3211,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guibuts.push_back(Common::GUIButton());
 		  guibuts[numguibuts].Image = textwindowedge->Image;
 		  guibuts[numguibuts].CurrentImage = guibuts[numguibuts].Image;
-		  guibuts[numguibuts].flags = 0;
+		  guibuts[numguibuts].Flags = 0;
 		  
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIButton << 16) | numguibuts;
 		  gui->Controls[gui->ControlCount] = &guibuts[numguibuts];
@@ -3219,14 +3219,14 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  numguibuts++;
 	  }
 
-	  GUIObject *newObj = gui->Controls[gui->ControlCount - 1];
-	  newObj->x = control->Left;
-	  newObj->y = control->Top;
-	  newObj->wid = control->Width;
-	  newObj->hit = control->Height;
-	  newObj->objn = control->ID;
-	  newObj->zorder = control->ZOrder;
-	  ConvertStringToCharArray(control->Name, newObj->scriptName, MAX_GUIOBJ_SCRIPTNAME_LEN + 1);
+      Common::GUIObject *newObj = gui->Controls[gui->ControlCount - 1];
+	  newObj->X = control->Left;
+	  newObj->Y = control->Top;
+	  newObj->Width = control->Width;
+	  newObj->Height = control->Height;
+	  newObj->Id = control->ID;
+	  newObj->ZOrder = control->ZOrder;
+	  ConvertStringToNativeString(control->Name, newObj->Name, MAX_GUIOBJ_SCRIPTNAME_LEN + 1);
   }
 
   gui->RebuildArray();
@@ -3914,7 +3914,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 
 		for (int j = 0; j < guis[i].ControlCount; j++)
 		{
-			GUIObject* curObj = guis[i].Controls[j];
+            Common::GUIObject* curObj = guis[i].Controls[j];
 			GUIControl ^newControl = nullptr;
 			switch (guis[i].CtrlRefs[j] >> 16)
 			{
@@ -3940,9 +3940,9 @@ Game^ import_compiled_game_dta(const char *fileName)
 					newButton->TextAlignment = (TextAlignment)copyFrom->TextAlignment;
                     newButton->ClickAction = (GUIClickAction)copyFrom->ClickAction[Common::kMouseLeft];
 					newButton->NewModeNumber = copyFrom->ClickData[Common::kMouseLeft];
-					newButton->ClipImage = (copyFrom->flags & GUIF_CLIP) ? true : false;
+                    newButton->ClipImage = (copyFrom->Flags & Common::kGUICtrl_Clip) ? true : false;
 					newButton->Text = gcnew String(copyFrom->GetText());
-					newButton->OnClick = gcnew String(copyFrom->eventHandlers[0]);
+					newButton->OnClick = gcnew String(copyFrom->EventHandlers[0]);
 				}
 				break;
 				}
@@ -3966,7 +3966,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 				  newTextbox->Font = copyFrom->Font;
                   newTextbox->ShowBorder = (copyFrom->TextBoxFlags & Common::kTextBox_NoBorder) ? false : true;
 				  newTextbox->Text = gcnew String(copyFrom->Text);
-				  newTextbox->OnActivate = gcnew String(copyFrom->eventHandlers[0]);
+				  newTextbox->OnActivate = gcnew String(copyFrom->EventHandlers[0]);
 				  break;
 				}
 			case Common::kGUIListBox:
@@ -3981,8 +3981,8 @@ Game^ import_compiled_game_dta(const char *fileName)
 				  newListbox->TextAlignment = (ListBoxTextAlignment)copyFrom->TextAlignment;
 				  newListbox->ShowBorder = ((copyFrom->ListBoxFlags & Common::kListBox_NoBorder) == 0);
 				  newListbox->ShowScrollArrows = ((copyFrom->ListBoxFlags & Common::kListBox_NoArrows) == 0);
-                  newListbox->Translated = (copyFrom->flags & GUIF_TRANSLATED) != 0;
-				  newListbox->OnSelectionChanged = gcnew String(copyFrom->eventHandlers[0]);
+                  newListbox->Translated = (copyFrom->Flags & Common::kGUICtrl_Translated) != 0;
+				  newListbox->OnSelectionChanged = gcnew String(copyFrom->EventHandlers[0]);
 				  break;
 				}
 			case Common::kGUISlider:
@@ -3996,7 +3996,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 				  newSlider->HandleImage = copyFrom->HandleImage;
 			  	  newSlider->HandleOffset = copyFrom->HandleOffset;
 				  newSlider->BackgroundImage = copyFrom->BgImage;
-				  newSlider->OnChange = gcnew String(copyFrom->eventHandlers[0]);
+				  newSlider->OnChange = gcnew String(copyFrom->EventHandlers[0]);
 				  break;
 				}
 			case Common::kGUIInvWindow:
@@ -4012,13 +4012,13 @@ Game^ import_compiled_game_dta(const char *fileName)
 			default:
 				throw gcnew AGSEditorException("Unknown control type found: " + (guis[i].CtrlRefs[j] >> 16));
 			}
-			newControl->Width = (curObj->wid > 0) ? curObj->wid : 1;
-			newControl->Height = (curObj->hit > 0) ? curObj->hit : 1;
-			newControl->Left = curObj->x;
-			newControl->Top = curObj->y;
-			newControl->ZOrder = curObj->zorder;
+			newControl->Width = (curObj->Width > 0) ? curObj->Width : 1;
+			newControl->Height = (curObj->Height > 0) ? curObj->Height : 1;
+			newControl->Left = curObj->X;
+			newControl->Top = curObj->Y;
+			newControl->ZOrder = curObj->ZOrder;
 			newControl->ID = j;
-			newControl->Name = gcnew String(curObj->scriptName);
+			newControl->Name = gcnew String(curObj->Name);
 			newGui->Controls->Add(newControl);
 		}
 		

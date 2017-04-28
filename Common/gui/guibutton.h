@@ -40,6 +40,7 @@ enum GUIClickAction
     kGUIAction_RunScript  = 2,
 };
 
+// TODO: generic alignment
 enum GUIButtonAlignment
 {
     kButtonAlign_TopCenter     = 0,
@@ -65,10 +66,10 @@ public:
     void         SetText(const String &text);
 
     // Events
-    virtual int  MouseDown() override;
-    virtual void MouseLeave() override;
-    virtual void MouseOver() override;
-    virtual void MouseUp() override;
+    virtual bool OnMouseDown() override;
+    virtual void OnMouseEnter() override;
+    virtual void OnMouseLeave() override;
+    virtual void OnMouseUp() override;
   
     // Serialization
     virtual void WriteToFile(Stream *out) override;

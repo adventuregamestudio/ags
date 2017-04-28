@@ -470,11 +470,11 @@ void check_controls() {
                             continue;
                         GUITextBox*guitex=(GUITextBox*)guis[uu].Controls[ww];
                         // if the text box is disabled, it cannot except keypresses
-                        if ((guitex->IsDisabled()) || (!guitex->IsVisible()))
+                        if ((!guitex->IsEnabled()) || (!guitex->IsVisible()))
                             continue;
-                        guitex->KeyPress(kgn);
-                        if (guitex->activated) {
-                            guitex->activated = 0;
+                        guitex->OnKeyPress(kgn);
+                        if (guitex->IsActivated) {
+                            guitex->IsActivated = false;
                             setevent(EV_IFACECLICK, uu, ww, 1);
                         }
                         keywasprocessed = 1;

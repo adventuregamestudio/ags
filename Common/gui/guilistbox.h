@@ -42,9 +42,9 @@ public:
     void         SetItemText(int index, const String &textt);
 
     // Events
-    virtual int  MouseDown() override;
-    virtual void MouseMove(int x, int y) override;
-    virtual void Resized() override;
+    virtual bool OnMouseDown() override;
+    virtual void OnMouseMove(int x, int y) override;
+    virtual void OnResized() override;
 
     // Serialization
     virtual void WriteToFile(Stream *out) override;

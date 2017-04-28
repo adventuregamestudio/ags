@@ -35,23 +35,23 @@ GUISlider::GUISlider()
     HandleOffset = 0;
     IsMousePressed = false;
 
-    numSupportedEvents = 1;
-    supportedEvents[0] = "Change";
-    supportedEventArgs[0] = "GUIControl *control";
+    _scEventCount = 1;
+    _scEventNames[0] = "Change";
+    _scEventArgs[0] = "GUIControl *control";
 }
 
 bool GUISlider::IsHorizontal() const
 {
-    return wid > hit;
+    return Width > Height;
 }
 
-int GUISlider::IsOverControl(int x, int y, int leeway)
+bool GUISlider::IsOverControl(int X, int Y, int leeway) const
 {
     // check the overall boundary
-    if (GUIObject::IsOverControl(x, y, leeway))
+    if (GUIObject::IsOverControl(X, Y, leeway))
         return true;
     // now check the handle too
-    return _cachedHandle.IsInside(Point(x, y));
+    return _cachedHandle.IsInside(Point(X, Y));
 }
 
 void GUISlider::Draw(Common::Bitmap *ds)
@@ -67,12 +67,12 @@ void GUISlider::Draw(Common::Bitmap *ds)
     // it's a horizontal slider
     if (IsHorizontal())
     {
-        thickness = hit / 3;
-        bar.Left = x + 1;
-        bar.Top = y + hit / 2 - thickness;
-        bar.Right = x + wid - 1;
-        bar.Bottom = y + hit / 2 + thickness + 1;
-        handle.Left = (int)(((float)(Value - MinValue) / (float)(MaxValue - MinValue)) * (float)(wid - 4) - 2) + bar.Left + 1;
+        thickness = Height / 3;
+        bar.Left = X + 1;
+        bar.Top = Y + Height / 2 - thickness;
+        bar.Right = X + Width - 1;
+        bar.Bottom = Y + Height / 2 + thickness + 1;
+        handle.Left = (int)(((float)(Value - MinValue) / (float)(MaxValue - MinValue)) * (float)(Width - 4) - 2) + bar.Left + 1;
         handle.Top = bar.Top - (thickness - 1);
         handle.Right = handle.Left + get_fixed_pixel_size(4);
         handle.Bottom = bar.Bottom + (thickness - 1);
@@ -88,12 +88,12 @@ void GUISlider::Draw(Common::Bitmap *ds)
     // vertical slider
     else
     {
-        thickness = wid / 3;
-        bar.Left = x + wid / 2 - thickness;
-        bar.Top = y + 1;
-        bar.Right = x + wid / 2 + thickness + 1;
-        bar.Bottom = y + hit - 1;
-        handle.Top = (int)(((float)(MaxValue - Value) / (float)(MaxValue - MinValue)) * (float)(hit - 4) - 2) + bar.Top + 1;
+        thickness = Width / 3;
+        bar.Left = X + Width / 2 - thickness;
+        bar.Top = Y + 1;
+        bar.Right = X + Width / 2 + thickness + 1;
+        bar.Bottom = Y + Height - 1;
+        handle.Top = (int)(((float)(MaxValue - Value) / (float)(MaxValue - MinValue)) * (float)(Height - 4) - 2) + bar.Top + 1;
         handle.Left = bar.Left - (thickness - 1);
         handle.Bottom = handle.Top + get_fixed_pixel_size(4);
         handle.Right = bar.Right + (thickness - 1);
@@ -117,13 +117,13 @@ void GUISlider::Draw(Common::Bitmap *ds)
         {
             x_inc = get_adjusted_spritewidth(BgImage);
             // centre the image vertically
-            bar.Top = y + (hit / 2) - get_adjusted_spriteheight(BgImage) / 2;
+            bar.Top = Y + (Height / 2) - get_adjusted_spriteheight(BgImage) / 2;
         }
         else
         {
             y_inc = get_adjusted_spriteheight(BgImage);
             // centre the image horizontally
-            bar.Left = x + (wid / 2) - get_adjusted_spritewidth(BgImage) / 2;
+            bar.Left = X + (Width / 2) - get_adjusted_spritewidth(BgImage) / 2;
         }
         int cx = bar.Left;
         int cy = bar.Top;
@@ -178,29 +178,29 @@ void GUISlider::Draw(Common::Bitmap *ds)
     _cachedHandle = handle;
 }
 
-int GUISlider::MouseDown()
+bool GUISlider::OnMouseDown()
 {
     IsMousePressed = true;
     // lock focus to ourselves
     return true;
 }
 
-void GUISlider::MouseMove(int xp, int yp)
+void GUISlider::OnMouseMove(int x, int y)
 {
     if (!IsMousePressed)
         return;
 
     if (IsHorizontal())
-        Value = (int)(((float)((xp - x) - 2) / (float)(wid - 4)) * (float)(MaxValue - MinValue)) + MinValue;
+        Value = (int)(((float)((x - X) - 2) / (float)(Width - 4)) * (float)(MaxValue - MinValue)) + MinValue;
     else
-        Value = (int)(((float)(((y + hit) - yp) - 2) / (float)(hit - 4)) * (float)(MaxValue - MinValue)) + MinValue;
+        Value = (int)(((float)(((Y + Height) - y) - 2) / (float)(Height - 4)) * (float)(MaxValue - MinValue)) + MinValue;
 
     Value = Math::Clamp(MinValue, MaxValue, Value);
     guis_need_update = 1;
-    activated = 1;
+    IsActivated = true;
 }
 
-void GUISlider::MouseUp()
+void GUISlider::OnMouseUp()
 {
     IsMousePressed = false;
 }

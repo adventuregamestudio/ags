@@ -15,6 +15,9 @@
 #include "ac/dynobj/cc_guiobject.h"
 #include "ac/dynobj/scriptgui.h"
 #include "gui/guimain.h"
+
+using AGS::Common::GUIObject;
+
 // return the type name of the object
 const char *CCGUIObject::GetType() {
     return "GUIObject";
@@ -25,8 +28,8 @@ const char *CCGUIObject::GetType() {
 int CCGUIObject::Serialize(const char *address, char *buffer, int bufsize) {
     GUIObject *guio = (GUIObject*)address;
     StartSerialize(buffer);
-    SerializeInt(guio->guin);
-    SerializeInt(guio->objn);
+    SerializeInt(guio->ParentId);
+    SerializeInt(guio->Id);
     return EndSerialize();
 }
 

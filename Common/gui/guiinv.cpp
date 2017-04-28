@@ -37,26 +37,26 @@ GUIInvWindow::GUIInvWindow()
     TopItem = 0;
     CalculateNumCells();
 
-    numSupportedEvents = 0;
+    _scEventCount = 0;
 }
 
-void GUIInvWindow::MouseOver()
+void GUIInvWindow::OnMouseEnter()
 {
     IsMouseOver = true;
 }
 
-void GUIInvWindow::MouseLeave()
+void GUIInvWindow::OnMouseLeave()
 {
     IsMouseOver = false;
 }
 
-void GUIInvWindow::MouseUp()
+void GUIInvWindow::OnMouseUp()
 {
     if (IsMouseOver)
-        activated = 1;
+        IsActivated = true;
 }
 
-void GUIInvWindow::Resized()
+void GUIInvWindow::OnResized()
 {
     CalculateNumCells();
 }
@@ -91,10 +91,10 @@ void GUIInvWindow::ReadFromFile(Stream *in, GuiVersion gui_version)
     if (loaded_game_file_version >= kGameVersion_270)
     {
         // ensure that some items are visible
-        if (ItemWidth > wid)
-            ItemWidth = wid;
-        if (ItemHeight > hit)
-            ItemHeight = hit;
+        if (ItemWidth > Width)
+            ItemWidth = Width;
+        if (ItemHeight > Height)
+            ItemHeight = Height;
     }
 
     CalculateNumCells();
@@ -104,13 +104,13 @@ void GUIInvWindow::CalculateNumCells()
 {
     if (loaded_game_file_version >= kGameVersion_270)
     {
-        ColCount = wid / multiply_up_coordinate(ItemWidth);
-        RowCount = hit / multiply_up_coordinate(ItemHeight);
+        ColCount = Width / multiply_up_coordinate(ItemWidth);
+        RowCount = Height / multiply_up_coordinate(ItemHeight);
     }
     else
     {
-        ColCount = floor((float)wid / (float)multiply_up_coordinate(ItemWidth) + 0.5f);
-        RowCount = floor((float)hit / (float)multiply_up_coordinate(ItemHeight) + 0.5f);
+        ColCount = floor((float)Width / (float)multiply_up_coordinate(ItemWidth) + 0.5f);
+        RowCount = floor((float)Height / (float)multiply_up_coordinate(ItemHeight) + 0.5f);
     }
 }
 

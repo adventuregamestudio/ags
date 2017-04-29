@@ -35,12 +35,6 @@ extern color palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 
-// CLNUP probably to remove
-void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit) {
-    newwid = ww;
-    newhit = hh;
-}
-
 // set any alpha-transparent pixels in the image to the appropriate
 // RGB mask value so that the blit calls work correctly
 void set_rgb_mask_using_alpha_channel(Bitmap *image)
@@ -117,7 +111,6 @@ void pre_save_sprite(int ee) {
 
 // these vars are global to help with debugging
 Bitmap *tmpdbl, *curspr;
-int newwid, newhit;
 void initialize_sprite (int ee) {
 
     if ((ee < 0) || (ee > spriteset.elements))
@@ -146,35 +139,9 @@ void initialize_sprite (int ee) {
         }
 
         curspr = spriteset[ee];
-        get_new_size_for_sprite (ee, curspr->GetWidth(), curspr->GetHeight(), newwid, newhit);
 
         eip_guinum = ee;
-        eip_guiobj = newwid;
-
-        if ((newwid != curspr->GetWidth()) || (newhit != curspr->GetHeight())) {
-            tmpdbl = BitmapHelper::CreateTransparentBitmap(newwid,newhit,curspr->GetColorDepth());
-            if (tmpdbl == NULL)
-                quit("Not enough memory to load sprite graphics");
-            tmpdbl->Acquire ();
-            curspr->Acquire ();
-            /*#ifdef USE_CUSTOM_EXCEPTION_HANDLER
-            __try {
-            #endif*/
-            tmpdbl->StretchBlt(curspr,RectWH(0,0,tmpdbl->GetWidth(),tmpdbl->GetHeight()), Common::kBitmap_Transparency);
-            /*#ifdef USE_CUSTOM_EXCEPTION_HANDLER
-            } __except (1) {
-            // I can't trace this fault, but occasionally stretch_sprite
-            // crashes, even with valid source and dest bitmaps. So,
-            // for now, just ignore the exception, since the stretch
-            // looks successful
-            //MessageBox (allegro_wnd, "ERROR", "FATAL ERROR", MB_OK);
-            }
-            #endif*/
-            curspr->Release ();
-            tmpdbl->Release ();
-            delete curspr;
-            spriteset.set (ee, tmpdbl);
-        }
+        eip_guiobj = curspr->GetWidth();
 
         spritewidth[ee]=spriteset[ee]->GetWidth();
         spriteheight[ee]=spriteset[ee]->GetHeight();

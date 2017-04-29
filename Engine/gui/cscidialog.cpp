@@ -87,7 +87,6 @@ int win_x = 0, win_y = 0, win_width = 0, win_height = 0;
 int WINAPI _export CSCIDrawWindow(Bitmap *ds, int xx, int yy, int wid, int hit)
 {
     ignore_bounds++;
-    multiply_up(&xx, &yy, &wid, &hit);
     int drawit = -1;
     for (int aa = 0; aa < MAXSCREENWINDOWS; aa++) {
         if (oswi[aa].buffer == NULL) {
@@ -200,7 +199,6 @@ int WINAPI _export CSCIWaitMessage(Bitmap *ds, CSCIMessage * cscim)
 
 int WINAPI _export CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, char *title)
 {
-    multiply_up(&xx, &yy, &wii, &hii);
     int usec = -1;
     for (int hh = 1; hh < MAXCONTROLS; hh++) {
         if (vobjs[hh] == NULL) {
@@ -247,39 +245,6 @@ int WINAPI _export CSCISendControlMessage(int haa, int mess, int wPar, long lPar
     if (vobjs[haa] == NULL)
         return -1;
     return vobjs[haa]->processmessage(mess, wPar, lPar);
-}
-
-// CLNUP remove this
-void multiply_up_to_game_res(int *x, int *y)
-{
-	/*
-    x[0] = get_fixed_pixel_size(x[0]);
-    y[0] = get_fixed_pixel_size(y[0]);
-	*/
-}
-
-// CLNUP remove this
-void multiply_up(int *x1, int *y1, int *x2, int *y2)
-{
-	/*
-    multiply_up_to_game_res(x1, y1);
-    multiply_up_to_game_res(x2, y2);
-
-    // adjust for 800x600
-    if ((GetBaseWidth() == 400) || (GetBaseWidth() == 800)) {
-        x1[0] = (x1[0] * 5) / 4;
-        x2[0] = (x2[0] * 5) / 4;
-        y1[0] = (y1[0] * 3) / 2;
-        y2[0] = (y2[0] * 3) / 2;
-    }
-    else if (GetBaseWidth() == 1024)
-    {
-        x1[0] = (x1[0] * 16) / 10;
-        x2[0] = (x2[0] * 16) / 10;
-        y1[0] = (y1[0] * 384) / 200;
-        y2[0] = (y2[0] * 384) / 200;
-    }
-	*/
 }
 
 int checkcontrols()

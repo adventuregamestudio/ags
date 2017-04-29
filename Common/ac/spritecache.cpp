@@ -36,7 +36,6 @@ using namespace AGS::Common;
 // [IKM] We have to forward-declare these because their implementations are in the Engine
 extern void initialize_sprite(int);
 extern void pre_save_sprite(int);
-extern void get_new_size_for_sprite(int, int, int, int &, int &);
 extern int spritewidth[], spriteheight[];
 
 #define SPRITE_LOCKED -1
@@ -724,7 +723,6 @@ int SpriteCache::initFile(const char *filnam)
 
     spritewidth[vv] = wdd;
     spriteheight[vv] = htt;
-    get_new_size_for_sprite(vv, wdd, htt, spritewidth[vv], spriteheight[vv]);
 
     int32_t spriteDataSize;
     if (vers == 5) {
@@ -803,7 +801,8 @@ bool SpriteCache::loadSpriteIndexFile(int expectedFileID, int32_t spr_initial_of
     flags[vv] = 0;
     if (offsets[vv] != 0) {
       offsets[vv] += spr_initial_offs;
-      get_new_size_for_sprite(vv, rspritewidths[vv], rspriteheights[vv], spritewidth[vv], spriteheight[vv]);
+      spritewidth[vv] = rspritewidths[vv];
+      spriteheight[vv] = rspriteheights[vv];
     }
     else if (vv > 0) {
       initFile_initNullSpriteParams(vv);

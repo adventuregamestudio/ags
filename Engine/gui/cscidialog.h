@@ -27,8 +27,6 @@ int  WINAPI _export CSCIWaitMessage(Common::Bitmap *ds, CSCIMessage * cscim);
 int  WINAPI _export CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, char *title);
 void WINAPI _export CSCIDeleteControl(int haa);
 int  WINAPI _export CSCISendControlMessage(int haa, int mess, int wPar, long lPar);
-void multiply_up_to_game_res(int *x, int *y);
-void multiply_up(int *x1, int *y1, int *x2, int *y2);
 int  checkcontrols();
 int  finddefaultcontrol(int flagmask);
 int  GetBaseWidth ();

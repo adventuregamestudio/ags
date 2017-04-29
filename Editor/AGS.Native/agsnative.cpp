@@ -117,16 +117,6 @@ void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, int scaleF
 // this is to shut up the linker, it's used by CSRUN.CPP
 void write_log(const char *) { }
 
-int multiply_up_coordinate(int coord)
-{
-	return coord * sxmult;
-}
-
-int get_fixed_pixel_size(int coord)
-{
-	return coord * sxmult;
-}
-
 // jibbles the sprite around to fix hi-color problems, by swapping
 // the red and blue elements
 #define fix_sprite(num) fix_block(spriteset[num])
@@ -937,6 +927,7 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
 	
 }
 
+// CLNUP scaling stuff, need to check
 void update_font_sizes() {
   int multiplyWas = wtext_multiply;
 
@@ -1160,6 +1151,7 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
   delete todraw;
 }
 
+// CLNUP probably to remove, need to check how the flag is involved
 int get_adjusted_spritewidth(int spr) {
   Common::Bitmap *tsp = get_sprite(spr);
   if (tsp == NULL) return 0;
@@ -1177,6 +1169,7 @@ int get_adjusted_spritewidth(int spr) {
   return retval;
 }
 
+// CLNUP probably to remove
 int get_adjusted_spriteheight(int spr) {
   Common::Bitmap *tsp = get_sprite(spr);
   if (tsp == NULL) return 0;

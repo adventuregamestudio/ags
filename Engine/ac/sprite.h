@@ -18,7 +18,6 @@
 #ifndef __AGS_EE_AC__SPRITE_H
 #define __AGS_EE_AC__SPRITE_H
 
-void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit);
 // set any alpha-transparent pixels in the image to the appropriate
 // RGB mask value so that the ->Blit calls work correctly
 void set_rgb_mask_using_alpha_channel(Common::Bitmap *image);

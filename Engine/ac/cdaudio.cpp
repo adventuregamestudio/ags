@@ -15,6 +15,7 @@
 #include "ac/cdaudio.h"
 #include "platform/base/agsplatformdriver.h"
 
+// CLNUP CD audios are dead, scrap all of this
 int use_cdplayer=0;
 bool triedToUseCdAudioCommand = false;
 int need_to_stop_cd=0;

@@ -87,6 +87,7 @@ int DynamicSprite_GetHeight(ScriptDynamicSprite *sds) {
     return divide_down_coordinate(spriteheight[sds->slot]);
 }
 
+// CLNUP take a look
 int DynamicSprite_GetColorDepth(ScriptDynamicSprite *sds) {
     int depth = spriteset[sds->slot]->GetColorDepth();
     if (depth == 15)

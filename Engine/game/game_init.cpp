@@ -355,6 +355,7 @@ void AllocScriptModules()
     }
 }
 
+// CLNUP check compat levels
 GameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     if (data_ver >= kGameVersion_341)

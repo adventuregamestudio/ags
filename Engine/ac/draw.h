@@ -92,6 +92,7 @@ void draw_and_invalidate_text(Common::Bitmap *ds, int x1, int y1, int font, colo
 
 void setpal();
 
+// CLNUP remove this
 extern AGS_INLINE int get_fixed_pixel_size(int pixels);
 extern AGS_INLINE int convert_to_low_res(int coord);
 extern AGS_INLINE int convert_back_to_high_res(int coord);

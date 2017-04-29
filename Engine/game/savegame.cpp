@@ -156,6 +156,7 @@ void SkipSaveImage(Stream *in)
         skip_serialized_bitmap(in);
 }
 
+// CLNUP check and remove compat stuff
 SavegameError OpenSavegameBase(const String &filename, SavegameSource *src, SavegameDescription *desc, SavegameDescElem elems)
 {
     AStream in(File::OpenFileRead(filename));

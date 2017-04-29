@@ -72,8 +72,8 @@ extern GameState play;
 extern int our_eip;
 extern AGSPlatformDriver *platform;
 extern int debug_flags;
-extern int debug_15bit_mode, debug_24bit_mode;
-extern int convert_16bit_bgr;
+extern int debug_15bit_mode, debug_24bit_mode; // CLNUP most likely remove
+extern int convert_16bit_bgr; // CLNUP most likely remove
 extern int display_fps;
 extern int editor_debugging_enabled;
 extern int editor_debugging_initialized;
@@ -119,6 +119,7 @@ void main_create_platform_driver()
     platform = AGSPlatformDriver::GetDriver();
 }
 
+// CLNUP check this stuff
 // this needs to be updated if the "play" struct changes
 #define SVG_VERSION_BWCOMPAT_MAJOR      3
 #define SVG_VERSION_BWCOMPAT_MINOR      2

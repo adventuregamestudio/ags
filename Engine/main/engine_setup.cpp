@@ -49,11 +49,13 @@ extern Bitmap *_old_screen;
 extern Bitmap *_sub_screen;
 extern Bitmap *virtual_screen;
 
+// CLNUP most likely remove these
 int debug_15bit_mode = 0, debug_24bit_mode = 0;
 int convert_16bit_bgr = 0;
 
 int ff; // whatever!
 
+// CLNUP remove this
 int adjust_pixel_size_for_loaded_data(int size, int filever)
 {
     if (filever < kGameVersion_310)
@@ -63,12 +65,14 @@ int adjust_pixel_size_for_loaded_data(int size, int filever)
     return size;
 }
 
+// CLNUP there won't be nothing to adjust
 void adjust_pixel_sizes_for_loaded_data(int *x, int *y, int filever)
 {
     x[0] = adjust_pixel_size_for_loaded_data(x[0], filever);
     y[0] = adjust_pixel_size_for_loaded_data(y[0], filever);
 }
 
+// CLNUP check if it can be removed
 void adjust_sizes_for_resolution(int filever)
 {
     int ee;
@@ -135,6 +139,7 @@ void engine_setup_system_gamesize()
     scsystem.viewport_height = divide_down_coordinate(play.viewport.GetHeight());
 }
 
+// CLNUP IsHiRes should be that hybrid mode of old, inspect carefully, remove color_depths < 32bit
 void engine_init_resolution_settings(const Size game_size)
 {
     Debug::Printf("Initializing resolution settings");
@@ -240,6 +245,7 @@ void engine_pre_gfxsystem_screen_destroy()
 }
 
 // Setup color conversion parameters
+// CLNUP we want only 32 bit for the future, color conversion should be dropped I guess
 void engine_setup_color_conversions(int coldepth)
 {
     // default shifts for how we store the sprite data
@@ -374,7 +380,7 @@ void destroy_blank_image()
 // they depend primarily on gfx driver capabilities and new color depth
 void engine_post_gfxmode_draw_setup(const DisplayMode &dm)
 {
-    engine_setup_color_conversions(dm.ColorDepth);
+    engine_setup_color_conversions(dm.ColorDepth); // CLNUP proabably remove
 
     if (gfxDriver->HasAcceleratedStretchAndFlip()) 
     {

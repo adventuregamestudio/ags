@@ -534,6 +534,7 @@ void __sc_displayspeech(int chid, const char *text) {
     _DisplaySpeechCore(chid, text);
 }
 
+// CLNUP investigate if I can just removed the following comments
 // **** THIS IS UNDOCUMENTED BECAUSE IT DOESN'T WORK PROPERLY
 // **** AT 640x400 AND DOESN'T USE THE RIGHT SPEECH STYLE
 void DisplaySpeechAt (int xx, int yy, int wii, int aschar, const char*spch) {

@@ -430,6 +430,7 @@ Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool has_alpha)
 
 // Begin resolution system functions
 
+// CLNUP blast away all this magical coords stuff
 // Multiplies up the number of pixels depending on the current 
 // resolution, to give a relatively fixed size at any game res
 AGS_INLINE int get_fixed_pixel_size(int pixels)

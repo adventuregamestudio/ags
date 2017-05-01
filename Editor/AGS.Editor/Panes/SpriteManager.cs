@@ -78,10 +78,12 @@ namespace AGS.Editor
 
         protected override void OnPropertyChanged(string propertyName, object oldValue)
         {
+            /*
             if (propertyName == Sprite.PROPERTY_RESOLUTION)
             {
                 Factory.NativeProxy.SpriteResolutionsChanged(_selectedSprites);
             }
+            */
         }
 
 		protected override void OnKeyPressed(Keys keyData)

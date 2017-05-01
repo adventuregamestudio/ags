@@ -84,6 +84,7 @@ int WINAPI _export CSCIGetVersion()
 
 int windowcount = 0, curswas = 0;
 int win_x = 0, win_y = 0, win_width = 0, win_height = 0;
+// CLNUP dialogs are based on 320x200 coords, will need to at least center them
 int WINAPI _export CSCIDrawWindow(Bitmap *ds, int xx, int yy, int wid, int hit)
 {
     ignore_bounds++;

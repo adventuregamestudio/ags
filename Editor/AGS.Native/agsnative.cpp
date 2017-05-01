@@ -74,8 +74,6 @@ inline void Cstretch_sprite(Common::Bitmap *dst, Common::Bitmap *src, int x, int
 }
 
 
-int sxmult = 1, symult = 1;
-int dsc_want_hires = 0;
 bool enable_greyed_out_masks = true;
 bool outlineGuiObjects;
 color*palette;
@@ -200,17 +198,12 @@ int GetSpriteHeight(int slot) {
 	return get_sprite(slot)->GetHeight();
 }
 
-int GetRelativeSpriteWidth(int slot) {
-	return GetSpriteWidth(slot) / ((thisgame.spriteflags[slot] & SPF_640x400) ? 2 : 1);
-}
-
-int GetRelativeSpriteHeight(int slot) {
-	return GetSpriteHeight(slot) / ((thisgame.spriteflags[slot] & SPF_640x400) ? 2 : 1);
-}
-
-int GetSpriteResolutionMultiplier(int slot)
-{
-	return ((thisgame.spriteflags[slot] & SPF_640x400) ? 1 : 2);
+// [AVD] decides which multiplier to upscale sprites, it would be nice to have a slider instead, like in the room panel
+// there's another scaleSomething elsewhere from the RoomEditor, need to check it
+int GetResolutionMultiplier() {
+    int width_height = thisgame.size.Width + thisgame.size.Height;
+    int scaleFactor = max(1, std::ceil((float)1400 / (float)width_height));
+    return scaleFactor;
 }
 
 unsigned char* GetRawSpriteData(int spriteSlot) {
@@ -640,16 +633,6 @@ void draw_gui_sprite(Common::Bitmap *g, int sprnum, int atxp, int atyp, bool use
     }
 
   int nwid=towrite->GetWidth(),nhit=towrite->GetHeight();
-  if (thisgame.spriteflags[sprnum] & SPF_640x400) {
-    if (dsc_want_hires == 0) {
-      nwid/=2;
-      nhit/=2;
-    }
-  }
-  else if (dsc_want_hires) {
-    nwid *= 2;
-    nhit *= 2;
-  }
   wputblock_stretch(g, atxp,atyp,towrite,nwid,nhit);
   if (needtofree) delete towrite;
 }
@@ -933,26 +916,17 @@ void update_font_sizes() {
 
   // scale up fonts if necessary
   wtext_multiply = 1;
-  if ((thisgame.options[OPT_NOSCALEFNT] == 0) &&
-      thisgame.IsHiRes()) {
-    wtext_multiply = 2;
-  }
-
+  // TODO maybe turn OPT_NOSCALEFNT into the multiplier value, see also drawFontAt
+  
   if (multiplyWas != wtext_multiply) {
     // resolution or Scale Up Fonts has changed, reload at new size
     for (int bb=0;bb<thisgame.numfonts;bb++)
       reload_font (bb);
   }
-
-  if (thisgame.IsHiRes()) {
-    sxmult = 2;
-    symult = 2;
-  }
-  else {
-    sxmult = 1;
-    symult = 1;
-  }
-
+  /*
+  sxmult = 1;
+  symult = 1;
+  */
 }
 
 const char* import_sci_font(const char*fnn,int fslot) {
@@ -1021,7 +995,7 @@ const char* import_sci_font(const char*fnn,int fslot) {
   return NULL;
 }
 
-
+// CLNUP temporarily forced doubleSize to 2, it will get scaled up in the font preview, but not in the GUIs
 int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
   
   if (fontnum >= thisgame.numfonts)
@@ -1031,8 +1005,8 @@ int drawFontAt (int hdc, int fontnum, int x, int y, int width) {
 
   update_font_sizes();
 
-  int doubleSize = (!thisgame.IsHiRes()) ? 2 : 1;
-  int blockSize = (!thisgame.IsHiRes()) ? 1 : 2;
+  int doubleSize = 2;
+  int blockSize = 1;
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
 
   int char_height = thisgame.fontflags[fontnum] & FFLG_SIZEMASK;
@@ -1157,7 +1131,7 @@ int get_adjusted_spritewidth(int spr) {
   if (tsp == NULL) return 0;
 
   int retval = tsp->GetWidth();
-
+  /*
   if (thisgame.spriteflags[spr] & SPF_640x400) {
     if (sxmult == 1)
       retval /= 2;
@@ -1166,6 +1140,7 @@ int get_adjusted_spritewidth(int spr) {
     if (sxmult == 2)
       retval *= 2;
   }
+  */
   return retval;
 }
 
@@ -1175,7 +1150,7 @@ int get_adjusted_spriteheight(int spr) {
   if (tsp == NULL) return 0;
 
   int retval = tsp->GetHeight();
-
+  /*
   if (thisgame.spriteflags[spr] & SPF_640x400) {
     if (symult == 1)
       retval /= 2;
@@ -1184,6 +1159,7 @@ int get_adjusted_spriteheight(int spr) {
     if (symult == 2)
       retval *= 2;
   }
+  */
   return retval;
 }
 
@@ -1262,7 +1238,9 @@ void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, int scale
 }
 
 void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
-	int scaleFactor = ((thisgame.spriteflags[spriteNum] & SPF_640x400) != 0) ? 1 : 2;
+    // CLNUP I wish there was an option or a slider so the user can adjust base zoom
+    int scaleFactor = GetResolutionMultiplier();
+
 	Common::Bitmap *theSprite = get_sprite(spriteNum);
 
   if (theSprite == NULL)
@@ -1307,11 +1285,12 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int scaleFacto
     return;
 
   //update_font_sizes();
-
-  if (scaleFactor == 1) {
+  
+  // CLNUP dsc_want_hires was used by draw_gui_sprite to double the size
+  /*if (scaleFactor == 1) {
     dsc_want_hires = 1;
-  }
-
+  }*/
+  
   Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(tempgui.Width, tempgui.Height, thisgame.color_depth*8);
   tempblock->Clear(tempblock->GetMaskColor ());
   //Common::Bitmap *abufWas = abuf;
@@ -1319,7 +1298,7 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int scaleFacto
 
   tempgui.DrawAt (tempblock, 0, 0);
 
-  dsc_want_hires = 0;
+  //dsc_want_hires = 0;
 
   if (x1 >= 0) {
     tempblock->DrawRect(Rect (x1, y1, x2, y2), 14);
@@ -1432,15 +1411,7 @@ bool reload_font(int curFont)
 
   FontInfo fi;
   fi.SizePt = thisgame.fontflags[curFont] & FFLG_SIZEMASK;
-  // if the font is designed for 640x400, half it
-  if (thisgame.options[OPT_NOSCALEFNT]) {
-    if (!thisgame.IsHiRes())
-      fi.SizePt /= 2;
-  }
-  else if (thisgame.IsHiRes()) {
-    // designed for 320x200, double it up
-    fi.SizePt *= 2;
-  }
+
   return wloadfont_size(curFont, fi);
 }
 
@@ -2479,12 +2450,6 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, int scaleFactor) {
 	if (todraw == NULL)
 	  todraw = spriteset[0];
 
-	if (((thisgame.spriteflags[sprNum] & SPF_640x400) == 0) &&
-		thisgame.IsHiRes())
-	{
-		scaleFactor *= 2;
-	}
-
 	Common::Bitmap *imageToDraw = todraw;
 
 	if (todraw->GetColorDepth() != drawBuffer->GetColorDepth()) 
@@ -2535,8 +2500,6 @@ void UpdateSpriteFlags(SpriteFolder ^folder)
 	for each (Sprite ^sprite in folder->Sprites)
 	{
 		thisgame.spriteflags[sprite->Number] = 0;
-		if (sprite->Resolution == SpriteImportResolution::HighRes)
-			thisgame.spriteflags[sprite->Number] |= SPF_640x400;
 		if (sprite->AlphaChannel)
 			thisgame.spriteflags[sprite->Number] |= SPF_ALPHACHANNEL;
 	}
@@ -2898,10 +2861,6 @@ int SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImp
 	}
 
 	thisgame.spriteflags[slot] = 0;
-	if (thisgame.IsHiRes())
-	{
-		thisgame.spriteflags[slot] |= SPF_640x400;
-	}
 	if (alphaChannel)
 	{
 		thisgame.spriteflags[slot] |= SPF_ALPHACHANNEL;
@@ -2918,7 +2877,7 @@ int SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImp
 
 	SetNewSprite(slot, tempsprite);
 
-	return thisgame.IsHiRes() ? 1 : 0;
+	return 0;
 }
 
 void SetBitmapPaletteFromGlobalPalette(System::Drawing::Bitmap ^bmp)
@@ -3259,7 +3218,7 @@ Dictionary<int, Sprite^>^ load_sprite_dimensions()
 		Common::Bitmap *spr = spriteset[i];
 		if (spr != NULL)
 		{
-			sprites->Add(i, gcnew Sprite(i, spr->GetWidth(), spr->GetHeight(), spr->GetColorDepth(), (thisgame.spriteflags[i] & SPF_640x400) ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes, (thisgame.spriteflags[i] & SPF_ALPHACHANNEL) ? true : false));
+			sprites->Add(i, gcnew Sprite(i, spr->GetWidth(), spr->GetHeight(), spr->GetColorDepth(), (thisgame.spriteflags[i] & SPF_ALPHACHANNEL) ? true : false));
 		}
 	}
 

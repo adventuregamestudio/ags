@@ -223,45 +223,25 @@ namespace AGS.Editor
 			}
         }
 
-        /// <summary>
-        /// Returns the multiplier necessary to display this sprite
-        /// at the "standard" size. (ie. 1 if 640x400 sprite, 2 if 320x200)
-        /// </summary>
-        public int GetSpriteResolutionMultiplier(int spriteSlot)
+        public int GetResolutionMultiplier()
         {
-            return _native.GetSpriteResolutionMultiplier(spriteSlot);
+            return _native.GetResolutionMultiplier();
         }
 
-        public int GetActualSpriteWidth(int spriteSlot)
+        public int GetSpriteWidth(int spriteSlot)
         {
             lock (_spriteSetLock)
             {
-                return _native.GetActualSpriteWidth(spriteSlot);
+                return _native.GetSpriteWidth(spriteSlot);
             }
         }
 
-        public int GetActualSpriteHeight(int spriteSlot)
+        public int GetSpriteHeight(int spriteSlot)
         {
             lock (_spriteSetLock)
             {
-                return _native.GetActualSpriteHeight(spriteSlot);
+                return _native.GetSpriteHeight(spriteSlot);
             }
-        }
-
-        public int GetRelativeSpriteWidth(int spriteSlot)
-        {
-			lock (_spriteSetLock)
-			{
-				return _native.GetRelativeSpriteWidth(spriteSlot);
-			}
-        }
-
-        public int GetRelativeSpriteHeight(int spriteSlot)
-        {
-			lock (_spriteSetLock)
-			{
-				return _native.GetRelativeSpriteHeight(spriteSlot);
-			}
         }
 
         public Room LoadRoom(UnloadedRoom roomToLoad)

@@ -441,7 +441,7 @@ void SetDefaultGlmsg(GameSetupStruct &game, int msgnum, const char *val)
         game.messages[msgnum] = strdup(val);
 }
 
-// CLNUP probably to remove
+// CLNUP not to remove yet, global messages may be deprecated but these are used by the engine
 // Sets up default global messages (these are used mainly in older games)
 void SetDefaultGlobalMessages(GameSetupStruct &game)
 {

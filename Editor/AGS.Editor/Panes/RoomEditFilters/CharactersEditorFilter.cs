@@ -188,34 +188,16 @@ namespace AGS.Editor
             }
         }
 
+        // CLNUP need to check
         private int GetSpriteHeightForGameResolution(int spriteSlot)
         {
-            int height;
-            if (Factory.AGSEditor.CurrentGame.IsHighResolution)
-            {
-                height = Factory.NativeProxy.GetSpriteResolutionMultiplier(spriteSlot) *
-                         Factory.NativeProxy.GetActualSpriteHeight(spriteSlot);
-            }
-            else
-            {
-                height = Factory.NativeProxy.GetRelativeSpriteHeight(spriteSlot);
-            }
-            return height;
+            return Factory.NativeProxy.GetSpriteHeight(spriteSlot);
         }
 
+        // CLNUP need to check
         private int GetSpriteWidthForGameResolution(int spriteSlot)
         {
-            int width;
-            if (Factory.AGSEditor.CurrentGame.IsHighResolution)
-            {
-                width = Factory.NativeProxy.GetSpriteResolutionMultiplier(spriteSlot) *
-                        Factory.NativeProxy.GetActualSpriteWidth(spriteSlot);
-            }
-            else
-            {
-                width = Factory.NativeProxy.GetRelativeSpriteWidth(spriteSlot);
-            }
-            return width;
+            return Factory.NativeProxy.GetSpriteWidth(spriteSlot);
         }
 
         public void Paint(Graphics graphics, RoomEditorState state)
@@ -260,7 +242,7 @@ namespace AGS.Editor
 
             if (view != null && view.Loops.Count > 0)
             {
-                int scale = state.ScaleFactor;
+                int scale = state.ScaleFactor; // ScaleFactor is from the slider in the room tab
 
                 int spriteNum = 0;
 

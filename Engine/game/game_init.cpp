@@ -327,8 +327,11 @@ void LoadFonts()
         if (finfo.SizePt == 0)
             finfo.SizePt = 8;
 
+        // CLNUP decide what to do about arbitrary font scaling, might become an option
+        /*
         if ((game.options[OPT_NOSCALEFNT] == 0) && game.IsHiRes())
             finfo.SizePt *= 2;
+        */
 
         if (!wloadfont_size(i, finfo, NULL))
             quitprintf("Unable to load font %d, no renderer could load a matching file", i);

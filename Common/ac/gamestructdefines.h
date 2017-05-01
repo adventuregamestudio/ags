@@ -89,7 +89,7 @@
 #define FADE_BOXOUT         3
 #define FADE_CROSSFADE      4
 #define FADE_LAST           4   // this should equal the last one
-#define SPF_640x400         1
+#define SPF_640x400         1   // [AVD] ignored, need to rethink implementation
 #define SPF_HICOLOR         2
 #define SPF_DYNAMICALLOC    4
 #define SPF_TRUECOLOR       8
@@ -126,12 +126,6 @@ enum GameResolutionType
     kGameResolution_LastLoRes   = kGameResolution_320x240,
     kGameResolution_FirstHiRes  = kGameResolution_640x400
 };
-
-// CLNUP remove
-inline bool IsHiRes(GameResolutionType resolution)
-{
-    return resolution > kGameResolution_LastLoRes;
-}
 
 Size ResolutionTypeToSize(GameResolutionType resolution, bool letterbox = false);
 

@@ -99,34 +99,16 @@ namespace AGS.Editor
             
         }
 
+        // CLNUP same as CharctersEditorFilters.cs
         private int GetSpriteHeightForGameResolution(int spriteSlot)
         {
-            int height;
-            if (Factory.AGSEditor.CurrentGame.IsHighResolution)
-            {
-                height = Factory.NativeProxy.GetSpriteResolutionMultiplier(spriteSlot) *
-                         Factory.NativeProxy.GetActualSpriteHeight(spriteSlot);
-            }
-            else
-            {
-                height = Factory.NativeProxy.GetRelativeSpriteHeight(spriteSlot);
-            }
-            return height;
+            return Factory.NativeProxy.GetSpriteHeight(spriteSlot);
         }
 
+        // CLNUP same as CharctersEditorFilters.cs
         private int GetSpriteWidthForGameResolution(int spriteSlot)
         {
-            int width;
-            if (Factory.AGSEditor.CurrentGame.IsHighResolution)
-            {
-                width = Factory.NativeProxy.GetSpriteResolutionMultiplier(spriteSlot) *
-                         Factory.NativeProxy.GetActualSpriteWidth(spriteSlot);
-            }
-            else
-            {
-                width = Factory.NativeProxy.GetRelativeSpriteWidth(spriteSlot);
-            }
-            return width;
+            return Factory.NativeProxy.GetSpriteWidth(spriteSlot);
         }
 
         public virtual void Paint(Graphics graphics, RoomEditorState state)

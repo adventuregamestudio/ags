@@ -115,25 +115,16 @@ void engine_setup_system_gamesize()
     scsystem.viewport_height = play.viewport.GetHeight();
 }
 
-// CLNUP IsHiRes should be that hybrid mode of old, inspect carefully, remove color_depths < 32bit
+// CLNUP IsHiRes was used to double lowres assets, better remove now and decide a new implementation later, if ever
 void engine_init_resolution_settings(const Size game_size)
 {
     Debug::Printf("Initializing resolution settings");
 
     play.SetViewport(game_size);
 
-    if (game.IsHiRes())
-    {
-        play.native_size.Width = game_size.Width / 2;
-        play.native_size.Height = game_size.Height / 2;
-        wtext_multiply = 2;
-    }
-    else
-    {
-        play.native_size.Width = game_size.Width;
-        play.native_size.Height = game_size.Height;
-        wtext_multiply = 1;
-    }
+    play.native_size.Width = game_size.Width;
+    play.native_size.Height = game_size.Height;
+    wtext_multiply = 1;
 
     usetup.textheight = getfontheight_outlined(0) + 1;
 

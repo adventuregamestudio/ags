@@ -277,7 +277,8 @@ namespace AGS.Editor
 						newResolution = _room.Resolution;
 					}
                     // CHECKME: WTF is this??? How to deal with it?
-					else if (//(bmp.Width > 640) && (bmp.Height > 400) &&
+                    // CLNUP remove, just like sprites rooms too had a resolution property, so you could use a doubled up lowres background when switching to a higher resolution
+                    else if (//(bmp.Width > 640) && (bmp.Height > 400) &&
 						(!Factory.AGSEditor.CurrentGame.Settings.LowResolution))
 					{
 						newResolution = RoomResolution.HighRes;

@@ -46,8 +46,6 @@ extern int crop_sprite_edges(int numSprites, int *sprites, bool symmetric);
 extern void deleteSprite(int sprslot);
 extern int GetSpriteWidth(int slot);
 extern int GetSpriteHeight(int slot);
-extern int GetRelativeSpriteWidth(int slot);
-extern int GetRelativeSpriteHeight(int slot);
 extern int GetSpriteColorDepth(int slot);
 extern int GetPaletteAsHPalette();
 extern bool DoesSpriteExist(int slot);
@@ -60,7 +58,7 @@ extern void change_sprite_number(int oldNumber, int newNumber);
 extern void update_sprite_resolution(int spriteNum);
 extern void save_game(bool compressSprites);
 extern bool reset_sprite_file();
-extern int GetSpriteResolutionMultiplier(int slot);
+extern int GetResolutionMultiplier();
 extern void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette);
 extern void GameUpdated(Game ^game);
 extern void UpdateSpriteFlags(SpriteFolder ^folder) ;
@@ -247,32 +245,21 @@ namespace AGS
       }
     }
 
-		// Gets sprite height in 320x200-res co-ordinates
-		int NativeMethods::GetRelativeSpriteHeight(int spriteSlot) 
-		{
-			return ::GetRelativeSpriteHeight(spriteSlot);
-		}
+        int NativeMethods::GetResolutionMultiplier()
+        {
+            return ::GetResolutionMultiplier();
+        }
 
-		// Gets sprite width in 320x200-res co-ordinates
-		int NativeMethods::GetRelativeSpriteWidth(int spriteSlot) 
-		{
-			return ::GetRelativeSpriteWidth(spriteSlot);
-		}
-
-		int NativeMethods::GetActualSpriteWidth(int spriteSlot) 
+		int NativeMethods::GetSpriteWidth(int spriteSlot) 
 		{
 			return ::GetSpriteWidth(spriteSlot);
 		}
 
-		int NativeMethods::GetActualSpriteHeight(int spriteSlot) 
+		int NativeMethods::GetSpriteHeight(int spriteSlot) 
 		{
 			return ::GetSpriteHeight(spriteSlot);
 		}
 
-		int NativeMethods::GetSpriteResolutionMultiplier(int spriteSlot)
-		{
-			return ::GetSpriteResolutionMultiplier(spriteSlot);
-		}
 
 		void NativeMethods::ChangeSpriteNumber(Sprite^ sprite, int newNumber)
 		{
@@ -296,7 +283,7 @@ namespace AGS
 		{
 			int spriteRes = SetNewSpriteFromBitmap(spriteSlot, bmp, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
       int colDepth = GetSpriteColorDepth(spriteSlot);
-			Sprite^ newSprite = gcnew Sprite(spriteSlot, bmp->Width, bmp->Height, colDepth, (SpriteImportResolution)spriteRes, alphaChannel);
+			Sprite^ newSprite = gcnew Sprite(spriteSlot, bmp->Width, bmp->Height, colDepth, alphaChannel);
       int roomNumber = GetCurrentlyLoadedRoomNumber();
       if ((colDepth == 8) && (useRoomBackgroundColours) && (roomNumber >= 0))
       {
@@ -308,7 +295,6 @@ namespace AGS
 		void NativeMethods::ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 		{
 			int spriteRes = SetNewSpriteFromBitmap(spr->Number, bmp, spriteImportMethod, remapColours, useRoomBackgroundColours, alphaChannel);
-			spr->Resolution = (SpriteImportResolution)spriteRes;
 			spr->ColorDepth = GetSpriteColorDepth(spr->Number);
 			spr->Width = bmp->Width;
 			spr->Height = bmp->Height;

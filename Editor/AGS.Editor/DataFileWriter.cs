@@ -560,7 +560,7 @@ namespace AGS.Editor
             foreach (Sprite sprite in folder.Sprites)
             {
                 flags[sprite.Number] = 0;
-                if (sprite.Resolution == SpriteImportResolution.HighRes) flags[sprite.Number] |= NativeConstants.SPF_640x400;
+                //if (sprite.Resolution == SpriteImportResolution.HighRes) flags[sprite.Number] |= NativeConstants.SPF_640x400;
                 if (sprite.AlphaChannel) flags[sprite.Number] |= NativeConstants.SPF_ALPHACHANNEL;
             }
             foreach (SpriteFolder subfolder in folder.SubFolders)

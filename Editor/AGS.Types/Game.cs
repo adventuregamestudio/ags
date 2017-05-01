@@ -541,6 +541,7 @@ namespace AGS.Types
             return null;
         }
 
+        // CLNUP this is a little confusing, IsHighResolution depends on GUIScaleFactor which depends on LowResolution
         public int GUIScaleFactor
         {
             get

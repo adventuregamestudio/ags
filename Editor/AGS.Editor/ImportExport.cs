@@ -1106,10 +1106,6 @@ namespace AGS.Editor
             byte[] spriteData = reader.ReadBytes(width * height * ((colDepth + 1) / 8));
 
             Sprite newSprite = ImportSpriteFromRawData(colDepth, width, height, (spriteFlags & SPRITE_FLAG_ALPHA_CHANNEL) != 0, spriteData, palette);
-            if ((spriteFlags & SPRITE_FLAG_HI_RES) != 0)
-            {
-                newSprite.Resolution = SpriteImportResolution.HighRes;
-            }
             return newSprite;
         }
 
@@ -1275,7 +1271,6 @@ namespace AGS.Editor
                 writer.WriteAttributeString(GUI_XML_SPRITE_ALPHA_CHANNEL, (bmp.PixelFormat == PixelFormat.Format32bppArgb).ToString());
                 writer.WriteAttributeString(GUI_XML_SPRITE_WIDTH, bmp.Width.ToString());
                 writer.WriteAttributeString(GUI_XML_SPRITE_HEIGHT, bmp.Height.ToString());
-                writer.WriteAttributeString(GUI_XML_SPRITE_RESOLUTION, sprite.Resolution.ToString());
 
                 Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
                 BitmapData bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, bmp.PixelFormat);
@@ -1356,7 +1351,6 @@ namespace AGS.Editor
                     byte[]spriteData = Convert.FromBase64String(childNode.InnerText);
 
                     Sprite newSprite = ImportSpriteFromRawData(colDepth, width, height, hasAlphaChannel, spriteData, palette);
-                    newSprite.Resolution = resolution;
 
                     newSprites.Add(newSprite);
                     spriteNumberMapping.Add(spriteNumber, newSprite.Number);

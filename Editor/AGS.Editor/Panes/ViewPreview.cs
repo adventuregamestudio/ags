@@ -103,8 +103,9 @@ namespace AGS.Editor
             {
                 ViewFrame thisFrame = _view.Loops[(int)udLoop.Value].Frames[(int)udFrame.Value];
                 int spriteNum = thisFrame.Image;
-                int spriteWidth = Factory.NativeProxy.GetRelativeSpriteWidth(spriteNum) * 2;
-                int spriteHeight = Factory.NativeProxy.GetRelativeSpriteHeight(spriteNum) * 2;
+                int scale = Factory.NativeProxy.GetResolutionMultiplier();
+                int spriteWidth = Factory.NativeProxy.GetSpriteWidth(spriteNum) * scale;
+                int spriteHeight = Factory.NativeProxy.GetSpriteHeight(spriteNum) * scale;
                 int x = 0, y;
                 y = previewPanel.ClientSize.Height - spriteHeight;
                 if (chkCentrePivot.Checked)

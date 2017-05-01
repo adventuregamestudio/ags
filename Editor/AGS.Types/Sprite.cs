@@ -10,24 +10,21 @@ namespace AGS.Types
     public class Sprite : IComparable<Sprite>
     {
         public const string PROPERTY_SPRITE_NUMBER = "Number";
-        public const string PROPERTY_RESOLUTION = "Resolution";
 
         private int _number;
         private int _width;
         private int _height;
         private int _colorDepth;
-        private SpriteImportResolution _resolution;
         private bool _alphaChannel;
 		private string _sourceFile = string.Empty;
 		private int? _coloursLockedToRoom = null;
 
-        public Sprite(int number, int width, int height, int colorDepth, SpriteImportResolution importRes, bool alphaChannel)
+        public Sprite(int number, int width, int height, int colorDepth, bool alphaChannel)
         {
             _number = number;
             _width = width;
             _height = height;
             _colorDepth = colorDepth;
-            _resolution = importRes;
             _alphaChannel = alphaChannel;
         }
 
@@ -36,7 +33,7 @@ namespace AGS.Types
 		/// around and use this as an entity.
 		/// </summary>
 		public Sprite(int number, int width, int height)
-			: this(number, width, height, 0, SpriteImportResolution.LowRes, false)
+			: this(number, width, height, 0, false)
 		{
 		}
 
@@ -48,16 +45,6 @@ namespace AGS.Types
         { 
             get { return _number; } 
             set { _number = value; } 
-        }
-
-        [Description("Native resolution of the sprite. It will be scaled up or down as appropriate at other resolutions.")]
-        [Category("Appearance")]
-        [TypeConverter(typeof(EnumTypeConverter))]
-        [DisplayName(PROPERTY_RESOLUTION)]
-        public SpriteImportResolution Resolution
-        {
-            get { return _resolution; }
-            set { _resolution = value; }
         }
 
         [Description("The width of the sprite")]
@@ -146,7 +133,6 @@ namespace AGS.Types
 			{
 				_coloursLockedToRoom = Convert.ToInt32(node.Attributes["ColoursLockedToRoom"].InnerText);
 			}
-			_resolution = (SpriteImportResolution)Enum.Parse(typeof(SpriteImportResolution), node.Attributes["Resolution"].InnerText);
         }
 
         public void ToXml(XmlTextWriter writer)
@@ -156,7 +142,6 @@ namespace AGS.Types
             writer.WriteAttributeString("Width", _width.ToString());
             writer.WriteAttributeString("Height", _height.ToString());
             writer.WriteAttributeString("ColorDepth", _colorDepth.ToString());
-            writer.WriteAttributeString("Resolution", _resolution.ToString());
             writer.WriteAttributeString("AlphaChannel", _alphaChannel.ToString());
 			if (_coloursLockedToRoom.HasValue)
 			{

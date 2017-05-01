@@ -96,10 +96,6 @@ struct AGSPlatformDriver
     // Adjust window size to ensure it is in the supported limits
     virtual void ValidateWindowSize(int &x, int &y, bool borderless) const {}
 
-    virtual int  InitializeCDPlayer() = 0;  // return 0 on success
-    virtual int  CDPlayerCommand(int cmdd, int datt) = 0;
-    virtual void ShutdownCDPlayer() = 0;
-
     virtual bool LockMouseToWindow();
     virtual void UnlockMouse();
 
@@ -114,11 +110,6 @@ struct AGSPlatformDriver
 private:
     static AGSPlatformDriver *instance;
 };
-
-#if defined (AGS_HAS_CD_AUDIO)
-int cd_player_init();
-int cd_player_control(int cmdd, int datt);
-#endif
 
 // [IKM] What is a need to have this global var if you can get AGSPlatformDriver
 // instance by calling AGSPlatformDriver::GetDriver()?

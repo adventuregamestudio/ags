@@ -93,7 +93,6 @@ struct AGSWin32 : AGSPlatformDriver {
   AGSWin32();
 
   virtual void AboutToQuitGame();
-  virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
   virtual void DisplayAlert(const char*, ...);
   virtual int  GetLastSystemError();
@@ -109,13 +108,11 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual bool IsMouseControlSupported(bool windowed);
   virtual const char* GetAllegroFailUserHint();
   virtual eScriptSystemOSID GetSystemOSID();
-  virtual int  InitializeCDPlayer();
   virtual void PlayVideo(const char* name, int skip, int flags);
   virtual void PostAllegroInit(bool windowed);
   virtual void PostAllegroExit();
   virtual SetupReturnValue RunSetup(const ConfigTree &cfg_in, ConfigTree &cfg_out);
   virtual void SetGameWindowIcon();
-  virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char *fmt, ...);
   virtual void DisplaySwitchOut() ;
   virtual void DisplaySwitchIn() ;
@@ -678,14 +675,6 @@ void AGSWin32::DisplaySwitchIn() {
   dxmedia_resume_video();
 }
 
-int AGSWin32::CDPlayerCommand(int cmdd, int datt) {
-#if defined (AGS_HAS_CD_AUDIO)
-  return cd_player_control(cmdd, datt);
-#else
-  return -1;
-#endif
-}
-
 void AGSWin32::DisplayAlert(const char *text, ...) {
   char displbuf[2500];
   va_list ap;
@@ -756,14 +745,6 @@ const char* AGSWin32::GetAllegroFailUserHint()
 
 eScriptSystemOSID AGSWin32::GetSystemOSID() {
   return eOS_Win;
-}
-
-int AGSWin32::InitializeCDPlayer() {
-#if defined (AGS_HAS_CD_AUDIO)
-  return cd_player_init();
-#else
-  return -1;
-#endif
 }
 
 void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
@@ -852,10 +833,6 @@ void AGSWin32::WriteStdOut(const char *fmt, ...) {
     printf("\n");
   }
   va_end(ap);
-}
-
-void AGSWin32::ShutdownCDPlayer() {
-  cd_exit();
 }
 
 extern "C" const unsigned char hw_to_mycode[256];

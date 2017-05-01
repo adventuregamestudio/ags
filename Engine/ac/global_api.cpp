@@ -20,7 +20,6 @@
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
-#include "ac/cdaudio.h"
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
 #include "ac/game.h"
@@ -150,12 +149,6 @@ RuntimeScriptValue Sc_AreThingsOverlapping(const RuntimeScriptValue *params, int
 RuntimeScriptValue Sc_CallRoomScript(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(CallRoomScript);
-}
-
-// int (int cmdd,int datt)
-RuntimeScriptValue Sc_cd_manager(const RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT2(cd_manager);
 }
 
 // void  (int ifn)
@@ -2284,7 +2277,6 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("AreObjectsColliding",      Sc_AreObjectsColliding);
 	ccAddExternalStaticFunction("AreThingsOverlapping",     Sc_AreThingsOverlapping);
 	ccAddExternalStaticFunction("CallRoomScript",           Sc_CallRoomScript);
-	ccAddExternalStaticFunction("CDAudio",                  Sc_cd_manager);
 	ccAddExternalStaticFunction("CentreGUI",                Sc_CentreGUI);
 	ccAddExternalStaticFunction("ChangeCharacterView",      Sc_ChangeCharacterView);
 	ccAddExternalStaticFunction("ChangeCursorGraphic",      Sc_ChangeCursorGraphic);
@@ -2653,7 +2645,6 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("AreObjectsColliding",      (void*)AreObjectsColliding);
     ccAddExternalFunctionForPlugin("AreThingsOverlapping",     (void*)AreThingsOverlapping);
     ccAddExternalFunctionForPlugin("CallRoomScript",           (void*)CallRoomScript);
-    ccAddExternalFunctionForPlugin("CDAudio",                  (void*)cd_manager);
     ccAddExternalFunctionForPlugin("CentreGUI",                (void*)CentreGUI);
     ccAddExternalFunctionForPlugin("ChangeCharacterView",      (void*)ChangeCharacterView);
     ccAddExternalFunctionForPlugin("ChangeCursorGraphic",      (void*)ChangeCursorGraphic);

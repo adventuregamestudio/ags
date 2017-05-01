@@ -170,19 +170,6 @@ enum eFlipDirection {
   eFlipBoth = 3
 };
 
-enum eCDAudioFunction {
-  eCDIsDriverPresent = 0,
-  eCDGetPlayingStatus,
-  eCDPlayTrack,
-  eCDPausePlayback,
-  eCDResumePlayback,
-  eCDGetNumTracks,
-  eCDEject,
-  eCDCloseTray,
-  eCDGetCDDriveCount,
-  eCDSelectActiveCDDrive
-};
-
 enum DialogOptionSayStyle
 {
   eSayUseOptionSetting = 1,
@@ -1265,8 +1252,6 @@ import void DisableGroundLevelAreas(int disableTints);
 import void EnableGroundLevelAreas();
 /// Changes the baseline of the specified walk-behind area.
 import void SetWalkBehindBase(int area, int baseline);
-/// Performs various commands to start and stop an audio CD.
-import int  CDAudio(eCDAudioFunction, int data);
 /// Plays a FLI/FLC animation.
 import void PlayFlic(int flcNumber, int options);
 /// Plays an AVI/MPG video.

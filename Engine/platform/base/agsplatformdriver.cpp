@@ -28,10 +28,6 @@
 
 using namespace AGS::Common;
 
-#if defined (AGS_HAS_CD_AUDIO)
-#include "libcda.h"
-#endif
-
 AGSPlatformDriver* AGSPlatformDriver::instance = NULL;
 AGSPlatformDriver *platform = NULL;
 
@@ -122,54 +118,3 @@ void AGSPlatformDriver::PrintMessage(const Common::DebugMessage &msg)
         WriteStdOut("%s : %s", msg.GroupName.GetCStr(), msg.Text.GetCStr());
 }
 
-// ********** CD Player Functions common to Win and Linux ********
-
-#if defined (AGS_HAS_CD_AUDIO)
-
-// from ac_cdplayer
-extern int use_cdplayer;
-extern int need_to_stop_cd;
-
-int numcddrives=0;
-
-int cd_player_init() {
-    int erro = cd_init();
-    if (erro) return -1;
-    numcddrives=1;
-    use_cdplayer=1;
-    return 0;
-}
-
-int cd_player_control(int cmdd, int datt) {
-    // WINDOWS & LINUX VERSION
-    if (cmdd==1) {
-        if (cd_current_track() > 0) return 1;
-        return 0;
-    }
-    else if (cmdd==2) {
-        cd_play_from(datt);
-        need_to_stop_cd=1;
-    }
-    else if (cmdd==3) 
-        cd_pause();
-    else if (cmdd==4) 
-        cd_resume();
-    else if (cmdd==5) {
-        int first,last;
-        if (cd_get_tracks(&first,&last)==0)
-            return (last-first)+1;
-        else return 0;
-    }
-    else if (cmdd==6)
-        cd_eject();
-    else if (cmdd==7)
-        cd_close();
-    else if (cmdd==8)
-        return numcddrives;
-    else if (cmdd==9) ;
-    else quit("!CDAudio: Unknown command code");
-
-    return 0;
-}
-
-#endif // AGS_HAS_CD_AUDIO

@@ -16,7 +16,6 @@
 // Quit game procedure
 //
 
-#include "ac/cdaudio.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/record.h"
@@ -52,8 +51,6 @@ extern int proper_exit;
 extern char check_dynamic_sprites_at_exit;
 extern int editor_debugging_initialized;
 extern IAGSEditorDebugger *editor_debugger;
-extern int need_to_stop_cd;
-extern int use_cdplayer;
 extern IGraphicsDriver *gfxDriver;
 
 bool handledErrorInEditor;
@@ -67,12 +64,6 @@ void quit_tell_editor_debugger(const String &qmsg, QuitReason qreason)
         send_message_to_editor("EXIT");
         editor_debugger->Shutdown();
     }
-}
-
-void quit_stop_cd()
-{
-    if (need_to_stop_cd)
-        cd_manager(3,0);
 }
 
 void quit_shutdown_scripts()
@@ -106,9 +97,6 @@ void quit_shutdown_platform(QuitReason qreason)
     quit_check_dynamic_sprites(qreason);
 
     platform->FinishedUsingGraphicsMode();
-
-    if (use_cdplayer)
-        platform->ShutdownCDPlayer();
 }
 
 void quit_shutdown_audio()
@@ -266,8 +254,6 @@ void quit(const char *quitmsg)
     our_eip = 9900;
 
     stop_recording();
-
-    quit_stop_cd();
 
     our_eip = 9020;
 

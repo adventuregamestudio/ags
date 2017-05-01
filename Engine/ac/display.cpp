@@ -429,7 +429,7 @@ bool ShouldAntiAliasText() {
     return (game.options[OPT_ANTIALIASFONTS] != 0);
 }
 
-void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char*texx) {
+void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx) {
     
     color_t outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
     if (get_font_outline(usingfont) >= 0) {
@@ -535,7 +535,7 @@ void do_corner(Bitmap *ds, int sprn, int x, int y, int offx, int offy) {
 }
 
 int get_but_pic(GUIMain*guo,int indx) {
-    return guibuts[guo->CtrlRefs[indx] & 0x000ffff].pic;
+    return guibuts[guo->CtrlRefs[indx] & 0x000ffff].Image;
 }
 
 void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {

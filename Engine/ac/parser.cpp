@@ -35,14 +35,14 @@ const char* Parser_SaidUnknownWord() {
     return CreateNewScriptString(play.bad_parsed_word);
 }
 
-void ParseText (char*text) {
+void ParseText (const char*text) {
     parse_sentence (text, &play.num_parsed_words, play.parsed_words, NULL, 0);
 }
 
 // Said: call with argument for example "get apple"; we then check
 // word by word if it matches (using dictonary ID equivalence to match
 // synonyms). Returns 1 if it does, 0 if not.
-int Said (char*checkwords) {
+int Said (const char *checkwords) {
     int numword = 0;
     short words[MAX_PARSED_WORDS];
     return parse_sentence (checkwords, &numword, &words[0], play.parsed_words, play.num_parsed_words);
@@ -82,7 +82,7 @@ int is_valid_word_char(char theChar) {
     return 0;
 }
 
-int FindMatchingMultiWordWord(char *thisword, char **text) {
+int FindMatchingMultiWordWord(char *thisword, const char **text) {
     // see if there are any multi-word words
     // that match -- if so, use them
     const char *tempptr = *text;
@@ -127,7 +127,8 @@ int FindMatchingMultiWordWord(char *thisword, char **text) {
 
 // parse_sentence: pass compareto as NULL to parse the sentence, or
 // compareto as non-null to check if it matches the passed sentence
-int parse_sentence (char*text, int *numwords, short*wordarray, short*compareto, int comparetonum) {
+char gl_ParserBuffer[1024]; // FIXME: might need to refactor the whole parser
+int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*compareto, int comparetonum) {
     char thisword[150] = "\0";
     int  i = 0, comparing = 0;
     char in_optional = 0, do_word_now = 0;
@@ -136,10 +137,11 @@ int parse_sentence (char*text, int *numwords, short*wordarray, short*compareto, 
     numwords[0] = 0;
     if (compareto == NULL)
         play.bad_parsed_word[0] = 0;
-    // [IKM] Now, this is extremely not smart; this string could come
-    // from anywhere, including script data, and we are changing it here
-    // FIXME!!!
-    strlwr(text);
+
+    snprintf(gl_ParserBuffer, sizeof(gl_ParserBuffer) - 1, "%s", src_text);
+    strlwr(gl_ParserBuffer);
+    const char *text = gl_ParserBuffer;
+
     while (1) {
         if ((compareto != NULL) && (compareto[comparing] == RESTOFLINE))
             return 1;

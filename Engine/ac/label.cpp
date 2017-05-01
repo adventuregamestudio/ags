@@ -41,26 +41,26 @@ void Label_SetText(GUILabel *labl, const char *newtx) {
 }
 
 int Label_GetColor(GUILabel *labl) {
-    return labl->textcol;
+    return labl->TextColor;
 }
 
 void Label_SetColor(GUILabel *labl, int colr) {
-    if (labl->textcol != colr) {
-        labl->textcol = colr;
+    if (labl->TextColor != colr) {
+        labl->TextColor = colr;
         guis_need_update = 1;
     }
 }
 
 int Label_GetFont(GUILabel *labl) {
-    return labl->font;
+    return labl->Font;
 }
 
 void Label_SetFont(GUILabel *guil, int fontnum) {
     if ((fontnum < 0) || (fontnum >= game.numfonts))
         quit("!SetLabelFont: invalid font number.");
 
-    if (fontnum != guil->font) {
-        guil->font = fontnum;
+    if (fontnum != guil->Font) {
+        guil->Font = fontnum;
         guis_need_update = 1;
     }
 }

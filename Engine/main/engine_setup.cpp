@@ -101,9 +101,9 @@ void adjust_sizes_for_resolution(int filever)
 
         for (ff = 0; ff < cgp->ControlCount; ff++) 
         {
-            adjust_pixel_sizes_for_loaded_data(&cgp->Controls[ff]->x, &cgp->Controls[ff]->y, filever);
-            adjust_pixel_sizes_for_loaded_data(&cgp->Controls[ff]->wid, &cgp->Controls[ff]->hit, filever);
-            cgp->Controls[ff]->activated=0;
+            adjust_pixel_sizes_for_loaded_data(&cgp->Controls[ff]->X, &cgp->Controls[ff]->Y, filever);
+            adjust_pixel_sizes_for_loaded_data(&cgp->Controls[ff]->Width, &cgp->Controls[ff]->Height, filever);
+            cgp->Controls[ff]->IsActivated = false;
         }
     }
 
@@ -120,8 +120,8 @@ void adjust_sizes_for_resolution(int filever)
 
         for (ee = 0; ee < numguiinv; ee++)
         {
-            guiinv[ee].itemWidth /= 2;
-            guiinv[ee].itemHeight /= 2;
+            guiinv[ee].ItemWidth /= 2;
+            guiinv[ee].ItemHeight /= 2;
         }
     }
 

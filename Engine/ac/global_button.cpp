@@ -59,20 +59,20 @@ int GetButtonPic(int guin, int objn, int ptype) {
 
     if (ptype == 0) {
         // currently displayed pic
-        if (guil->usepic < 0)
-            return guil->pic;
-        return guil->usepic;
+        if (guil->CurrentImage < 0)
+            return guil->Image;
+        return guil->CurrentImage;
     }
     else if (ptype==1) {
         // nomal pic
-        return guil->pic;
+        return guil->Image;
     }
     else if (ptype==2) {
         // mouseover pic
-        return guil->overpic;
+        return guil->MouseOverImage;
     }
     else { // pushed pic
-        return guil->pushedpic;
+        return guil->PushedImage;
     }
 
     quit("internal error in getbuttonpic");

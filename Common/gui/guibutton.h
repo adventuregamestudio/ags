@@ -17,96 +17,114 @@
 
 #include <vector>
 #include "gui/guiobject.h"
+#include "util/string.h"
 
-#define GBUT_ALIGN_TOPMIDDLE    0
-#define GBUT_ALIGN_TOPLEFT      1
-#define GBUT_ALIGN_TOPRIGHT     2
-#define GBUT_ALIGN_MIDDLELEFT   3 
-#define GBUT_ALIGN_CENTRED      4
-#define GBUT_ALIGN_MIDDLERIGHT  5
-#define GBUT_ALIGN_BOTTOMLEFT   6
-#define GBUT_ALIGN_BOTTOMMIDDLE 7
-#define GBUT_ALIGN_BOTTOMRIGHT  8
+#define GUIBUTTON_TEXTLENGTH 50
 
-struct GUIButton:public GUIObject
+namespace AGS
 {
-  char text[50];
-  int pic, overpic, pushedpic;
-  int usepic, ispushed, isover;
-  int font, textcol;
-  int leftclick, rightclick;
-  int lclickdata, rclickdata;
-  int textAlignment, reserved1;
+namespace Common
+{
 
-  virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  virtual void Draw(Common::Bitmap *ds);
-  void MouseUp();
-
-  void MouseMove(int x, int y)
-  {
-  }
-
-  void MouseOver()
-  {
-    if (ispushed)
-      usepic = pushedpic;
-    else
-      usepic = overpic;
-
-    isover = 1;
-  }
-
-  void MouseLeave()
-  {
-    usepic = pic;
-    isover = 0;
-  }
-
-  virtual int MouseDown()
-  {
-    if (pushedpic > 0)
-      usepic = pushedpic;
-
-    ispushed = 1;
-    return 0;
-  }
-
-  void KeyPress(int keycode)
-  {
-  }
-
-  void reset()
-  {
-    GUIObject::init();
-    usepic = -1;
-    pic = -1;
-    overpic = -1;
-    pushedpic = -1;
-    ispushed = 0;
-    isover = 0;
-    text[0] = 0;
-    font = 0;
-    textcol = 0;
-    leftclick = 2;
-    rightclick = 0;
-    lclickdata = rclickdata = 0;
-    textAlignment = GBUT_ALIGN_TOPMIDDLE;
-    activated = 0;
-    numSupportedEvents = 1;
-    supportedEvents[0] = "Click";
-    supportedEventArgs[0] = "GUIControl *control, MouseButton button";
-  }
-
-  GUIButton() {
-    reset();
-  }
-
-private:
-  void Draw_set_oritext(char *oritext, const char *text);
+enum MouseButton
+{
+    kMouseNone  = -1,
+    kMouseLeft  =  0,
+    kMouseRight =  1,
 };
 
-extern std::vector<GUIButton> guibuts;
+enum GUIClickAction
+{
+    kGUIAction_None       = 0,
+    kGUIAction_SetMode    = 1,
+    kGUIAction_RunScript  = 2,
+};
+
+enum LegacyButtonAlignment
+{
+    kLegacyButtonAlign_TopCenter = 0,
+    kLegacyButtonAlign_TopLeft = 1,
+    kLegacyButtonAlign_TopRight = 2,
+    kLegacyButtonAlign_CenterLeft = 3,
+    kLegacyButtonAlign_Centered = 4,
+    kLegacyButtonAlign_CenterRight = 5,
+    kLegacyButtonAlign_BottomLeft = 6,
+    kLegacyButtonAlign_BottomCenter = 7,
+    kLegacyButtonAlign_BottomRight = 8,
+};
+
+class GUIButton : public GUIObject
+{
+public:
+    GUIButton();
+
+    const String &GetText() const;
+
+    // Operations
+    virtual void Draw(Bitmap *ds) override;
+    void         SetText(const String &text);
+
+    // Events
+    virtual bool OnMouseDown() override;
+    virtual void OnMouseEnter() override;
+    virtual void OnMouseLeave() override;
+    virtual void OnMouseUp() override;
+  
+    // Serialization
+    virtual void WriteToFile(Stream *out) override;
+    virtual void ReadFromFile(Stream *in, GuiVersion gui_version) override;
+
+// TODO: these members are currently public; hide them later
+public:
+    int32_t     Image;
+    int32_t     MouseOverImage;
+    int32_t     PushedImage;
+    int32_t     CurrentImage;
+    int32_t     Font;
+    color_t     TextColor;
+    // TODO: use FrameAlignment type (will require changing GUI data format)
+    int32_t     TextAlignment;
+    // Click actions for left and right mouse buttons
+    // NOTE: only left click is currently in use
+    static const int ClickCount = kMouseRight + 1;
+    GUIClickAction ClickAction[ClickCount];
+    int32_t        ClickData[ClickCount];
+
+    bool        IsPushed;
+    bool        IsMouseOver;
+
+private:
+    void DrawImageButton(Bitmap *ds, bool draw_disabled);
+    void DrawText(Bitmap *ds, bool draw_disabled);
+    void DrawTextButton(Bitmap *ds, bool draw_disabled);
+    void PrepareTextToDraw();
+
+    // Defines button placeholder mode; the mode is set
+    // depending on special tags found in button text
+    enum GUIButtonPlaceholder
+    {
+        kButtonPlace_None,
+        kButtonPlace_InvItemStretch,
+        kButtonPlace_InvItemCenter,
+        kButtonPlace_InvItemAuto
+    };
+
+    // Text property set by user
+    String _text;
+    // type of content placeholder, if any
+    GUIButtonPlaceholder _placeholder;
+    // A flag indicating unnamed button; this is a convenience trick:
+    // buttons are created named "New Button" in the editor, and users
+    // often do not clear text when they want a graphic button.
+    bool _unnamed;
+    // Prepared text buffer/cache
+    String _textToDraw;
+};
+
+} // namespace Common
+} // namespace AGS
+
+extern std::vector<AGS::Common::GUIButton> guibuts;
 extern int numguibuts;
 
 int UpdateAnimatingButton(int bu);

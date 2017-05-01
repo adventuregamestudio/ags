@@ -12,72 +12,148 @@
 //
 //=============================================================================
 
-#include <stdio.h>
+#include "ac/common.h"
 #include "gui/guiobject.h"
 #include "gui/guimain.h"
-#include "util/string_utils.h"  // fputstring, etc
-#include "ac/common.h"		// quit()
 #include "util/stream.h"
 
-using AGS::Common::Stream;
+namespace AGS
+{
+namespace Common
+{
 
 GUIObject::GUIObject()
 {
-  guin = objn = 0;
-  flags = 0;
-  x = y = 0;
-  wid = hit = 0;
-  zorder = 0;
-  activated = 0;
-  init();
+    Id          = 0;
+    ParentId    = 0;
+    Flags       = 0;
+    X           = 0;
+    Y           = 0;
+    Width       = 0;
+    Height      = 0;
+    ZOrder      = -1;
+    IsActivated    = false;
 }
 
-void GUIObject::init() {
-  int jj;
-  scriptName[0] = 0;
-  for (jj = 0; jj < MAX_GUIOBJ_EVENTS; jj++)
-    eventHandlers[jj][0] = 0;
+int GUIObject::GetEventCount() const
+{
+    return _scEventCount;
 }
 
-int GUIObject::IsDisabled() {
-  if (flags & GUIF_DISABLED)
-    return 1;
-  if (all_buttons_disabled)
-    return 1;
-  return 0;
+String GUIObject::GetEventName(int event) const
+{
+    if (event < 0 || event >= _scEventCount)
+        return "";
+    return _scEventNames[event];
 }
 
+String GUIObject::GetEventArgs(int event) const
+{
+    if (event < 0 || event >= _scEventCount)
+        return "";
+    return _scEventArgs[event];
+}
+
+bool GUIObject::IsEnabled() const
+{
+    // TODO: a global variable should not be checked by control
+    return !((Flags & kGUICtrl_Disabled) || all_buttons_disabled);
+}
+
+bool GUIObject::IsOverControl(int x, int y, int leeway) const
+{
+    return x >= X && y >= Y && x < (X + Width + leeway) && y < (Y + Height + leeway);
+}
+
+void GUIObject::Disable()
+{
+    Flags |= kGUICtrl_Disabled;
+}
+
+void GUIObject::Enable()
+{
+    Flags &= ~kGUICtrl_Disabled;
+}
+
+void GUIObject::Hide()
+{
+    Flags |= kGUICtrl_Invisible;
+}
+
+void GUIObject::SetClickable(bool clickable)
+{
+    if (clickable)
+        Flags &= ~kGUICtrl_NoClicks;
+    else
+        Flags |= kGUICtrl_NoClicks;
+}
+
+void GUIObject::Show()
+{
+    Flags &= ~kGUICtrl_Invisible;
+}
+
+// TODO: replace string serialization with StrUtil::ReadString and WriteString
+// methods in the future, to keep this organized.
 void GUIObject::WriteToFile(Stream *out)
 {
-  // MACPORT FIX: swap
-  out->WriteArrayOfInt32((int32_t*)&flags, BASEGOBJ_SIZE);
-  fputstring(scriptName, out);
-
-  out->WriteInt32(GetNumEvents());
-  for (int kk = 0; kk < GetNumEvents(); kk++)
-    fputstring(eventHandlers[kk], out);
+    out->WriteInt32(Flags);
+    out->WriteInt32(X);
+    out->WriteInt32(Y);
+    out->WriteInt32(Width);
+    out->WriteInt32(Height);
+    out->WriteInt32(ZOrder);
+    out->WriteInt32(IsActivated);
+    Name.Write(out);
+    out->WriteInt32(_scEventCount);
+    for (int i = 0; i < _scEventCount; ++i)
+        EventHandlers[i].Write(out);
 }
 
 void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-  // MACPORT FIX: swap
-  in->ReadArrayOfInt32((int32_t*)&flags, BASEGOBJ_SIZE);
-  if (gui_version >= kGuiVersion_unkn_106)
-    fgetstring_limit(scriptName, in, MAX_GUIOBJ_SCRIPTNAME_LEN);
-  else
-    scriptName[0] = 0;
+    Flags    = in->ReadInt32();
+    X        = in->ReadInt32();
+    Y        = in->ReadInt32();
+    Width    = in->ReadInt32();
+    Height   = in->ReadInt32();
+    ZOrder   = in->ReadInt32();
+    IsActivated = in->ReadInt32() != 0;
 
-  int kk;
-  for (kk = 0; kk < GetNumEvents(); kk++)
-    eventHandlers[kk][0] = 0;
+    if (gui_version >= kGuiVersion_unkn_106)
+        Name.Read(in);
 
-  if (gui_version >= kGuiVersion_unkn_108) {
-    int numev = in->ReadInt32();
-    if (numev > GetNumEvents())
-      quit("Error: too many control events, need newer version");
+    for (int i = 0; i < _scEventCount; ++i)
+    {
+        EventHandlers[i].Free();
+    }
 
-    // read in the event handler names
-    for (kk = 0; kk < numev; kk++)
-      fgetstring_limit(eventHandlers[kk], in, MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
-  }
+    if (gui_version >= kGuiVersion_unkn_108)
+    {
+        int evt_count = in->ReadInt32();
+        if (evt_count > _scEventCount)
+            quit("Error: too many control events, need newer version");
+        for (int i = 0; i < evt_count; ++i)
+        {
+            EventHandlers[i].Read(in);
+        }
+    }
 }
+
+
+FrameAlignment ConvertLegacyGUIAlignment(int32_t align)
+{
+    switch (align)
+    {
+    case kLegacyGUIAlign_Left:
+        return kAlignLeft;
+    case kLegacyGUIAlign_Right:
+        return kAlignRight;
+    case kLegacyGUIAlign_Center:
+        return kAlignHCenter;
+    }
+    return kAlignNone;
+}
+
+} // namespace Common
+} // namespace AGS

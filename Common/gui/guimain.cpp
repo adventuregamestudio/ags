@@ -157,12 +157,12 @@ bool GUIMain::BringControlToFront(int index)
     return SetControlZOrder(index, ControlCount - 1);
 }
 
-void GUIMain::Draw(Common::Bitmap *ds)
+void GUIMain::Draw(Bitmap *ds)
 {
     DrawAt(ds, X, Y);
 }
 
-void GUIMain::DrawAt(Common::Bitmap *ds, int x, int y)
+void GUIMain::DrawAt(Bitmap *ds, int x, int y)
 {
     SET_EIP(375)
 
@@ -204,7 +204,7 @@ void GUIMain::DrawAt(Common::Bitmap *ds, int x, int y)
 
         GUIObject *objToDraw = Controls[CtrlDrawOrder[ctrl_index]];
 
-        if (objToDraw->IsDisabled() && gui_disabled_style == GUIDIS_BLACKOUT)
+        if (!objToDraw->IsEnabled() && gui_disabled_style == GUIDIS_BLACKOUT)
             continue;
         if (!objToDraw->IsVisible())
             continue;
@@ -218,25 +218,25 @@ void GUIMain::DrawAt(Common::Bitmap *ds, int x, int y)
             if (outlineGuiObjects)
                 selectedColour = 13;
             draw_color = subbmp.GetCompatibleColor(selectedColour);
-            DrawBlob(&subbmp, objToDraw->x + objToDraw->wid - get_fixed_pixel_size(1) - 1, objToDraw->y, draw_color);
-            DrawBlob(&subbmp, objToDraw->x, objToDraw->y + objToDraw->hit - get_fixed_pixel_size(1) - 1, draw_color);
-            DrawBlob(&subbmp, objToDraw->x, objToDraw->y, draw_color);
-            DrawBlob(&subbmp, objToDraw->x + objToDraw->wid - get_fixed_pixel_size(1) - 1, 
-                    objToDraw->y + objToDraw->hit - get_fixed_pixel_size(1) - 1, draw_color);
+            DrawBlob(&subbmp, objToDraw->X + objToDraw->Width - get_fixed_pixel_size(1) - 1, objToDraw->Y, draw_color);
+            DrawBlob(&subbmp, objToDraw->X, objToDraw->Y + objToDraw->Height - get_fixed_pixel_size(1) - 1, draw_color);
+            DrawBlob(&subbmp, objToDraw->X, objToDraw->Y, draw_color);
+            DrawBlob(&subbmp, objToDraw->X + objToDraw->Width - get_fixed_pixel_size(1) - 1, 
+                    objToDraw->Y + objToDraw->Height - get_fixed_pixel_size(1) - 1, draw_color);
         }
         if (outlineGuiObjects)
         {
             // draw a dotted outline round all objects
             draw_color = subbmp.GetCompatibleColor(selectedColour);
-            for (int i = 0; i < objToDraw->wid; i += 2)
+            for (int i = 0; i < objToDraw->Width; i += 2)
             {
-                subbmp.PutPixel(i + objToDraw->x, objToDraw->y, draw_color);
-                subbmp.PutPixel(i + objToDraw->x, objToDraw->y + objToDraw->hit - 1, draw_color);
+                subbmp.PutPixel(i + objToDraw->X, objToDraw->Y, draw_color);
+                subbmp.PutPixel(i + objToDraw->X, objToDraw->Y + objToDraw->Height - 1, draw_color);
             }
-            for (int i = 0; i < objToDraw->hit; i += 2)
+            for (int i = 0; i < objToDraw->Height; i += 2)
             {
-                subbmp.PutPixel(objToDraw->x, i + objToDraw->y, draw_color);
-                subbmp.PutPixel(objToDraw->x + objToDraw->wid - 1, i + objToDraw->y, draw_color);
+                subbmp.PutPixel(objToDraw->X, i + objToDraw->Y, draw_color);
+                subbmp.PutPixel(objToDraw->X + objToDraw->Width - 1, i + objToDraw->Y, draw_color);
             }
         }
     }
@@ -244,7 +244,7 @@ void GUIMain::DrawAt(Common::Bitmap *ds, int x, int y)
     SET_EIP(380)
 }
 
-void GUIMain::DrawBlob(Common::Bitmap *ds, int x, int y, color_t draw_color)
+void GUIMain::DrawBlob(Bitmap *ds, int x, int y, color_t draw_color)
 {
     ds->FillRect(Rect(x, y, x + get_fixed_pixel_size(1), y + get_fixed_pixel_size(1)), draw_color);
 }
@@ -260,13 +260,13 @@ void GUIMain::Poll()
         int ctrl_index = FindControlUnderMouse();
 
         if (MouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
-            Controls[MouseDownCtrl]->MouseMove(mousex, mousey);
+            Controls[MouseDownCtrl]->OnMouseMove(mousex, mousey);
         else if (ctrl_index != MouseOverCtrl)
         {
             if (MouseOverCtrl >= 0)
-                Controls[MouseOverCtrl]->MouseLeave();
+                Controls[MouseOverCtrl]->OnMouseLeave();
 
-            if (ctrl_index >= 0 && Controls[ctrl_index]->IsDisabled())
+            if (ctrl_index >= 0 && !Controls[ctrl_index]->IsEnabled())
                 // the control is disabled - ignore it
                 MouseOverCtrl = -1;
             else if (ctrl_index >= 0 && !Controls[ctrl_index]->IsClickable())
@@ -278,14 +278,14 @@ void GUIMain::Poll()
                 MouseOverCtrl = ctrl_index;
                 if (MouseOverCtrl >= 0)
                 {
-                    Controls[MouseOverCtrl]->MouseOver();
-                    Controls[MouseOverCtrl]->MouseMove(mousex, mousey);
+                    Controls[MouseOverCtrl]->OnMouseEnter();
+                    Controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
                 }
             }
             guis_need_update = 1;
         } 
         else if (MouseOverCtrl >= 0)
-            Controls[MouseOverCtrl]->MouseMove(mousex, mousey);
+            Controls[MouseOverCtrl]->OnMouseMove(mousex, mousey);
     }
 
     MouseWasAt.X = mousex;
@@ -322,8 +322,8 @@ void GUIMain::RebuildArray()
         else
             quit("guimain: unknown control type found On gui");
 
-        Controls[i]->guin = Id;
-        Controls[i]->objn = i;
+        Controls[i]->ParentId = Id;
+        Controls[i]->Id = i;
     }
 
     ResortZOrder();
@@ -331,7 +331,7 @@ void GUIMain::RebuildArray()
 
 bool GUIControlZOrder(const GUIObject *e1, const GUIObject *e2)
 {
-    return e1->zorder < e2->zorder;
+    return e1->ZOrder < e2->ZOrder;
 }
 
 void GUIMain::ResortZOrder()
@@ -341,7 +341,7 @@ void GUIMain::ResortZOrder()
 
     CtrlDrawOrder.resize(ctrl_sort.size());
     for (int i = 0; i < ControlCount; ++i)
-        CtrlDrawOrder[i] = ctrl_sort[i]->objn;
+        CtrlDrawOrder[i] = ctrl_sort[i]->Id;
 }
 
 bool GUIMain::SendControlToBack(int index)
@@ -355,7 +355,7 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
         return false; // no such control
 
     zorder = Math::Clamp(0, ControlCount - 1, zorder);
-    const int old_zorder = Controls[index]->zorder;
+    const int old_zorder = Controls[index]->ZOrder;
     if (old_zorder == zorder)
         return false; // no change
 
@@ -364,16 +364,16 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
     const int  right     = move_back ? old_zorder : zorder;
     for (int i = 0; i < ControlCount; ++i)
     {
-        const int i_zorder = Controls[i]->zorder;
+        const int i_zorder = Controls[i]->ZOrder;
         if (i_zorder == old_zorder)
-            Controls[i]->zorder = zorder; // the control we are moving
+            Controls[i]->ZOrder = zorder; // the control we are moving
         else if (i_zorder >= left && i_zorder <= right)
         {
             // controls in between old and new positions shift towards free place
             if (move_back)
-                Controls[i]->zorder++; // move to front
+                Controls[i]->ZOrder++; // move to front
             else
-                Controls[i]->zorder--; // move to back
+                Controls[i]->ZOrder--; // move to back
         }
     }
     ResortZOrder();
@@ -404,21 +404,21 @@ void GUIMain::OnMouseButtonDown()
         return;
 
     // don't activate disabled buttons
-    if (Controls[MouseOverCtrl]->IsDisabled() || !Controls[MouseOverCtrl]->IsVisible() ||
+    if (!Controls[MouseOverCtrl]->IsEnabled() || !Controls[MouseOverCtrl]->IsVisible() ||
         !Controls[MouseOverCtrl]->IsClickable())
     return;
 
     MouseDownCtrl = MouseOverCtrl;
-    if (Controls[MouseOverCtrl]->MouseDown())
+    if (Controls[MouseOverCtrl]->OnMouseDown())
         MouseOverCtrl = MOVER_MOUSEDOWNLOCKED;
-    Controls[MouseDownCtrl]->MouseMove(mousex - X, mousey - Y);
+    Controls[MouseDownCtrl]->OnMouseMove(mousex - X, mousey - Y);
     guis_need_update = 1;
 }
 
 void GUIMain::OnMouseButtonUp()
 {
     // FocusCtrl was locked - reset it back to normal, but On the
-    // locked object so that a MouseLeave gets fired if necessary
+    // locked object so that a OnMouseLeave gets fired if necessary
     if (MouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
     {
         MouseOverCtrl = MouseDownCtrl;
@@ -428,7 +428,7 @@ void GUIMain::OnMouseButtonUp()
     if (MouseDownCtrl < 0)
         return;
 
-    Controls[MouseDownCtrl]->MouseUp();
+    Controls[MouseDownCtrl]->OnMouseUp();
     MouseDownCtrl = -1;
     guis_need_update = 1;
 }
@@ -544,167 +544,206 @@ void GUIMain::WriteToFile(Stream *out, GuiVersion gui_version) const
     }
 }
 
-} // namespace Common
-} // namespace AGS
+
+namespace GUI
+{
 
 GuiVersion GameGuiVersion = kGuiVersion_Initial;
-void read_gui(Stream *in, std::vector<GUIMain> &guiread, GameSetupStruct * gss)
+
+void DrawDisabledEffect(Bitmap *ds, const Rect &rc)
 {
-  int ee;
+    color_t draw_color = ds->GetCompatibleColor(8);
+    for (int at_x = rc.Left; at_x < rc.GetWidth(); ++at_x)
+    {
+        for (int at_y = rc.Top + at_x % 2; at_y < rc.GetHeight(); at_y += 2)
+        {
+            ds->PutPixel(at_x, at_y, draw_color);
+        }
+    }
+}
 
-  if (in->ReadInt32() != (int)GUIMAGIC)
-    quit("read_gui: file is corrupt");
+void DrawTextAligned(Bitmap *ds, const char *text, int font, color_t text_color, const Rect &frame, FrameAlignment align)
+{
+    int text_height = wgettextheight(text, font);
+    if (align & kAlignVCenter)
+        text_height++; // CHECKME
+    Rect item = AlignInRect(frame, RectWH(0, 0, wgettextwidth(text, font), text_height), align);
+    wouttext_outline(ds, item.Left, item.Top, font, text_color, text);
+}
 
-  GameGuiVersion = (GuiVersion)in->ReadInt32();
-  Debug::Printf(kDbgMsg_Init, "Game GUI version: %d", GameGuiVersion);
-  if (GameGuiVersion < kGuiVersion_214) {
-    gss->numgui = (int)GameGuiVersion;
-    GameGuiVersion = kGuiVersion_Initial;
-  }
-  else if (GameGuiVersion > kGuiVersion_Current)
-    quit("read_gui: this game requires a newer version of AGS");
-  else
-    gss->numgui = in->ReadInt32();
+void DrawTextAlignedHor(Bitmap *ds, const char *text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align)
+{
+    int x = AlignInHRange(x1, x2, 0, wgettextwidth(text, font), align);
+    wouttext_outline(ds, x, y, font, text_color, text);
+}
 
-  if ((gss->numgui < 0) || (gss->numgui > 1000))
-    quit("read_gui: invalid number of GUIs, file corrupt?");
+void ResortGUI(std::vector<GUIMain> &guis, bool bwcompat_ctrl_zorder = false)
+{
+    // set up the reverse-lookup array
+    for (size_t gui_index = 0; gui_index < guis.size(); ++gui_index)
+    {
+        GUIMain &gui = guis[gui_index];
+        gui.RebuildArray();
+        for (size_t ctrl_index = 0; ctrl_index < gui.Controls.size(); ++ctrl_index)
+        {
+            GUIObject *gui_ctrl = gui.Controls[ctrl_index];
+            gui_ctrl->ParentId = gui_index;
+            gui_ctrl->Id = ctrl_index;
+            if (bwcompat_ctrl_zorder)
+                gui_ctrl->ZOrder = ctrl_index;
+        }
+        gui.ResortZOrder();
+    }
+    guis_need_update = 1;
+}
 
-  guiread.resize(gss->numgui);
+void ReadGUI(std::vector<GUIMain> &guis, Stream *in)
+{
+    if (in->ReadInt32() != (int)GUIMAGIC)
+        quit("ReadGUI: file is corrupt");
 
-  // import the main GUI elements
-  for (int iteratorCount = 0; iteratorCount < gss->numgui; ++iteratorCount)
-  {
-    guiread[iteratorCount].Init();
-    guiread[iteratorCount].ReadFromFile(in, GameGuiVersion);
-  }
+    GameGuiVersion = (GuiVersion)in->ReadInt32();
+    Debug::Printf(kDbgMsg_Init, "Game GUI version: %d", GameGuiVersion);
+    size_t gui_count;
+    if (GameGuiVersion < kGuiVersion_214)
+    {
+        gui_count = (size_t)GameGuiVersion;
+        GameGuiVersion = kGuiVersion_Initial;
+    }
+    else if (GameGuiVersion > kGuiVersion_Current)
+        quit("read_gui: this game requires a newer version of AGS");
+    else
+        gui_count = in->ReadInt32();
+    guis.resize(gui_count);
 
-  for (ee = 0; ee < gss->numgui; ee++) {
-    if (guiread[ee].Height < 2)
-      guiread[ee].Height = 2;
+    // import the main GUI elements
+    for (size_t i = 0; i < gui_count; ++i)
+    {
+        GUIMain &gui = guis[i];
+        gui.Init();
+        gui.ReadFromFile(in, GameGuiVersion);
 
-    if (GameGuiVersion < kGuiVersion_unkn_103)
-      guiread[ee].Name.Format("GUI%d", ee);
-    if (GameGuiVersion < kGuiVersion_260)
-      guiread[ee].ZOrder = ee;
-    if (GameGuiVersion < kGuiVersion_331)
-      guiread[ee].Padding = TEXTWINDOW_PADDING_DEFAULT;
-
-    if (loaded_game_file_version <= kGameVersion_272) // Fix names for 2.x: "GUI" -> "gGui"
-        guiread[ee].Name = GUIMain::FixupGUIName(guiread[ee].Name);
-
-    guiread[ee].Id = ee;
-  }
-
-  // import the buttons
-  numguibuts = in->ReadInt32();
-  guibuts.resize(numguibuts);
-
-  for (ee = 0; ee < numguibuts; ee++)
-    guibuts[ee].ReadFromFile(in, GameGuiVersion);
-
-  // labels
-  numguilabels = in->ReadInt32();
-  guilabels.resize(numguilabels);
-
-  for (ee = 0; ee < numguilabels; ee++)
-    guilabels[ee].ReadFromFile(in, GameGuiVersion);
-
-  // inv controls
-  numguiinv = in->ReadInt32();
-  guiinv.resize(numguiinv);
-
-  for (ee = 0; ee < numguiinv; ee++)
-    guiinv[ee].ReadFromFile(in, GameGuiVersion);
-
-  if (GameGuiVersion >= kGuiVersion_214) {
-    // sliders
-    numguislider = in->ReadInt32();
-    guislider.resize(numguislider);
-
-    for (ee = 0; ee < numguislider; ee++)
-      guislider[ee].ReadFromFile(in, GameGuiVersion);
-  }
-
-  if (GameGuiVersion >= kGuiVersion_222) {
-    // text boxes
-    numguitext = in->ReadInt32();
-    guitext.resize(numguitext);
-
-    for (ee = 0; ee < numguitext; ee++)
-      guitext[ee].ReadFromFile(in, GameGuiVersion);
-  }
-
-  if (GameGuiVersion >= kGuiVersion_230) {
-    // list boxes
-    numguilist = in->ReadInt32();
-    guilist.resize(numguilist);
-
-    for (ee = 0; ee < numguilist; ee++)
-      guilist[ee].ReadFromFile(in, GameGuiVersion);
-  }
-
-  // set up the reverse-lookup array
-  for (ee = 0; ee < gss->numgui; ee++) {
-    guiread[ee].RebuildArray();
-
-    if (GameGuiVersion < kGuiVersion_270)
-      guiread[ee].OnClickHandler.Empty();
-
-    for (int ff = 0; ff < guiread[ee].ControlCount; ff++) {
-      guiread[ee].Controls[ff]->guin = ee;
-      guiread[ee].Controls[ff]->objn = ff;
-
-      if (GameGuiVersion < kGuiVersion_272e)
-        guiread[ee].Controls[ff]->zorder = ff;
+        // perform fixups
+        if (gui.Height < 2)
+            gui.Height = 2;
+        if (GameGuiVersion < kGuiVersion_unkn_103)
+            gui.Name.Format("GUI%d", i);
+        if (GameGuiVersion < kGuiVersion_260)
+            gui.ZOrder = i;
+        if (GameGuiVersion < kGuiVersion_270)
+            gui.OnClickHandler.Empty();
+        if (GameGuiVersion < kGuiVersion_331)
+            gui.Padding = TEXTWINDOW_PADDING_DEFAULT;
+        // fix names for 2.x: "GUI" -> "gGui"
+        if (loaded_game_file_version <= kGameVersion_272)
+            gui.Name = GUIMain::FixupGUIName(gui.Name);
+        gui.Id = i;
     }
 
-    guiread[ee].ResortZOrder();
-  }
+    // buttons
+    numguibuts = in->ReadInt32();
+    guibuts.resize(numguibuts);
+    for (int i = 0; i < numguibuts; ++i)
+    {
+        guibuts[i].ReadFromFile(in, GameGuiVersion);
+    }
+    // labels
+    numguilabels = in->ReadInt32();
+    guilabels.resize(numguilabels);
+    for (int i = 0; i < numguilabels; ++i)
+    {
+        guilabels[i].ReadFromFile(in, GameGuiVersion);
+    }
+    // inv controls
+    numguiinv = in->ReadInt32();
+    guiinv.resize(numguiinv);
+    for (int i = 0; i < numguiinv; ++i)
+    {
+        guiinv[i].ReadFromFile(in, GameGuiVersion);
+    }
 
-  guis_need_update = 1;
+    if (GameGuiVersion >= kGuiVersion_214)
+    {
+        // sliders
+        numguislider = in->ReadInt32();
+        guislider.resize(numguislider);
+        for (int i = 0; i < numguislider; ++i)
+        {
+            guislider[i].ReadFromFile(in, GameGuiVersion);
+        }
+    }
+    if (GameGuiVersion >= kGuiVersion_222)
+    {
+        // text boxes
+        numguitext = in->ReadInt32();
+        guitext.resize(numguitext);
+        for (int i = 0; i < numguitext; ++i)
+        {
+            guitext[i].ReadFromFile(in, GameGuiVersion);
+        }
+    }
+    if (GameGuiVersion >= kGuiVersion_230)
+    {
+        // list boxes
+        numguilist = in->ReadInt32();
+        guilist.resize(numguilist);
+        for (int i = 0; i < numguilist; ++i)
+        {
+            guilist[i].ReadFromFile(in, GameGuiVersion);
+        }
+    }
+    ResortGUI(guis, GameGuiVersion < kGuiVersion_272e);
 }
 
-void write_gui(Stream *out, const std::vector<GUIMain> &guiwrite, GameSetupStruct * gss, bool savedgame)
+void WriteGUI(const std::vector<GUIMain> &guis, Stream *out, bool savedgame)
 {
-  int ee;
+    out->WriteInt32(GUIMAGIC);
+    GuiVersion write_version;
+    if (savedgame)
+        write_version = GameGuiVersion > kGuiVersion_ForwardCompatible ? GameGuiVersion : kGuiVersion_ForwardCompatible;
+    else
+        write_version = kGuiVersion_Current;
 
-  out->WriteInt32(GUIMAGIC);
+    out->WriteInt32(write_version);
+    out->WriteInt32(guis.size());
 
-  GuiVersion write_version;
-  if (savedgame)
-    write_version = GameGuiVersion > kGuiVersion_ForwardCompatible ? GameGuiVersion : kGuiVersion_ForwardCompatible;
-  else
-    write_version = kGuiVersion_Current;
-
-  out->WriteInt32(write_version);
-  out->WriteInt32(gss->numgui);
-
-  for (int iteratorCount = 0; iteratorCount < gss->numgui; ++iteratorCount)
-  {
-    guiwrite[iteratorCount].WriteToFile(out, write_version);
-  }
-
-  out->WriteInt32(numguibuts);
-  for (ee = 0; ee < numguibuts; ee++)
-    guibuts[ee].WriteToFile(out);
-
-  out->WriteInt32(numguilabels);
-  for (ee = 0; ee < numguilabels; ee++)
-    guilabels[ee].WriteToFile(out);
-
-  out->WriteInt32(numguiinv);
-  for (ee = 0; ee < numguiinv; ee++)
-    guiinv[ee].WriteToFile(out);
-
-  out->WriteInt32(numguislider);
-  for (ee = 0; ee < numguislider; ee++)
-    guislider[ee].WriteToFile(out);
-
-  out->WriteInt32(numguitext);
-  for (ee = 0; ee < numguitext; ee++)
-    guitext[ee].WriteToFile(out);
-
-  out->WriteInt32(numguilist);
-  for (ee = 0; ee < numguilist; ee++)
-    guilist[ee].WriteToFile(out);
+    for (size_t i = 0; i < guis.size(); ++i)
+    {
+        guis[i].WriteToFile(out, write_version);
+    }
+    out->WriteInt32(numguibuts);
+    for (int i = 0; i < numguibuts; ++i)
+    {
+        guibuts[i].WriteToFile(out);
+    }
+    out->WriteInt32(numguilabels);
+    for (int i = 0; i < numguilabels; ++i)
+    {
+        guilabels[i].WriteToFile(out);
+    }
+    out->WriteInt32(numguiinv);
+    for (int i = 0; i < numguiinv; ++i)
+    {
+        guiinv[i].WriteToFile(out);
+    }
+    out->WriteInt32(numguislider);
+    for (int i = 0; i < numguislider; ++i)
+    {
+        guislider[i].WriteToFile(out);
+    }
+    out->WriteInt32(numguitext);
+    for (int i = 0; i < numguitext; ++i)
+    {
+        guitext[i].WriteToFile(out);
+    }
+    out->WriteInt32(numguilist);
+    for (int i = 0; i < numguilist; ++i)
+    {
+        guilist[i].WriteToFile(out);
+    }
 }
+
+} // namespace GUI
+
+} // namespace Common
+} // namespace AGS

@@ -393,7 +393,7 @@ int write_dialog_options(Bitmap *ds, bool ds_has_alpha, int dlgxp, int curyp, in
     break_up_text_into_lines(areawid-(2*padding+2+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[i]]));\
     needheight += getheightoflines(usingfont, numlines) + multiply_up_coordinate(game.options[OPT_DIALOGGAP]);\
   }\
-  if (parserInput) needheight += parserInput->hit + multiply_up_coordinate(game.options[OPT_DIALOGGAP]);\
+  if (parserInput) needheight += parserInput->Height + multiply_up_coordinate(game.options[OPT_DIALOGGAP]);\
  }
 
 
@@ -526,9 +526,9 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
   parserActivated = 0;
   if ((dtop->topicFlags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0)) {
     parserInput = new GUITextBox();
-    parserInput->hit = lineheight + get_fixed_pixel_size(4);
-    parserInput->exflags = 0;
-    parserInput->font = usingfont;
+    parserInput->Height = lineheight + get_fixed_pixel_size(4);
+    parserInput->TextBoxFlags = 0;
+    parserInput->Font = usingfont;
   }
 
   numdisp=0;
@@ -677,7 +677,7 @@ void DialogOptions::Redraw()
 
       if (parserInput)
       {
-        parserInput->x = multiply_up_coordinate(ccDialogOptionsRendering.parserTextboxX);
+        parserInput->X = multiply_up_coordinate(ccDialogOptionsRendering.parserTextboxX);
         curyp = multiply_up_coordinate(ccDialogOptionsRendering.parserTextboxY);
         areawid = multiply_up_coordinate(ccDialogOptionsRendering.parserTextboxWidth);
         if (areawid == 0)
@@ -738,7 +738,7 @@ void DialogOptions::Redraw()
       dlgyp = tyoffs;
       curyp = write_dialog_options(ds, options_surface_has_alpha, txoffs,tyoffs,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,linespacing,forecol,padding);
       if (parserInput)
-        parserInput->x = txoffs;
+        parserInput->X = txoffs;
     }
     else {
 
@@ -793,27 +793,27 @@ void DialogOptions::Redraw()
         goto redraw_options;
       }*/
       if (parserInput)
-        parserInput->x = dlgxp;
+        parserInput->X = dlgxp;
     }
 
     if (parserInput) {
       // Set up the text box, if present
-      parserInput->y = curyp + multiply_up_coordinate(game.options[OPT_DIALOGGAP]);
-      parserInput->wid = areawid - get_fixed_pixel_size(10);
-      parserInput->textcol = playerchar->talkcolor;
+      parserInput->Y = curyp + multiply_up_coordinate(game.options[OPT_DIALOGGAP]);
+      parserInput->Width = areawid - get_fixed_pixel_size(10);
+      parserInput->TextColor = playerchar->talkcolor;
       if (mouseison == DLG_OPTION_PARSER)
-        parserInput->textcol = forecol;
+        parserInput->TextColor = forecol;
 
       if (game.dialog_bullet)  // the parser X will get moved in a second
       {
-          draw_gui_sprite_v330(ds, game.dialog_bullet, parserInput->x, parserInput->y, options_surface_has_alpha);
+          draw_gui_sprite_v330(ds, game.dialog_bullet, parserInput->X, parserInput->Y, options_surface_has_alpha);
       }
 
-      parserInput->wid -= bullet_wid;
-      parserInput->x += bullet_wid;
+      parserInput->Width -= bullet_wid;
+      parserInput->X += bullet_wid;
 
       parserInput->Draw(ds);
-      parserInput->activated = 0;
+      parserInput->IsActivated = false;
     }
 
     wantRefresh = false;
@@ -886,18 +886,18 @@ bool DialogOptions::Run()
         if (parserInput) {
           wantRefresh = true;
           // type into the parser 
-          if ((gkey == 361) || ((gkey == ' ') && (strlen(parserInput->text) == 0))) {
+          if ((gkey == 361) || ((gkey == ' ') && (strlen(parserInput->Text) == 0))) {
             // write previous contents into textbox (F3 or Space when box is empty)
-            for (unsigned int i = strlen(parserInput->text); i < strlen(play.lastParserEntry); i++) {
-              parserInput->KeyPress(play.lastParserEntry[i]);
+            for (unsigned int i = strlen(parserInput->Text); i < strlen(play.lastParserEntry); i++) {
+              parserInput->OnKeyPress(play.lastParserEntry[i]);
             }
             //domouse(2);
             Redraw();
             return true; // continue running loop
           }
           else if ((gkey >= 32) || (gkey == 13) || (gkey == 8)) {
-            parserInput->KeyPress(gkey);
-            if (!parserInput->activated) {
+            parserInput->OnKeyPress(gkey);
+            if (!parserInput->IsActivated) {
               //domouse(2);
               Redraw();
               return true; // continue running loop
@@ -958,11 +958,11 @@ bool DialogOptions::Run()
         if (usingCustomRendering)
           relativeMousey -= dirtyy;
 
-        if ((relativeMousey > parserInput->y) && 
-            (relativeMousey < parserInput->y + parserInput->hit))
+        if ((relativeMousey > parserInput->Y) && 
+            (relativeMousey < parserInput->Y + parserInput->Height))
           mouseison = DLG_OPTION_PARSER;
 
-        if (parserInput->activated)
+        if (parserInput->IsActivated)
           parserActivated = 1;
       }
 
@@ -1027,13 +1027,13 @@ bool DialogOptions::Run()
 
       if (parserActivated) {
         // They have selected a custom parser-based option
-        if (parserInput->text[0] != 0) {
+        if (!parserInput->Text.IsEmpty() != 0) {
           chose = DLG_OPTION_PARSER;
           return false; // end dialog options running loop
         }
         else {
           parserActivated = 0;
-          parserInput->activated = 0;
+          parserInput->IsActivated = 0;
         }
       }
       if (mousewason != mouseison) {
@@ -1067,8 +1067,8 @@ void DialogOptions::Close()
 
   if (parserActivated) 
   {
-    strcpy (play.lastParserEntry, parserInput->text);
-    ParseText (parserInput->text);
+    strcpy (play.lastParserEntry, parserInput->Text);
+    ParseText (parserInput->Text);
     chose = CHOSE_TEXTPARSER;
   }
 

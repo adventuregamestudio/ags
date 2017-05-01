@@ -98,8 +98,8 @@ public:
     void    OnControlPositionChanged();
   
     // Serialization
-    void    ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-    void    WriteToFile(Common::Stream *out, GuiVersion gui_version) const;
+    void    ReadFromFile(Stream *in, GuiVersion gui_version);
+    void    WriteToFile(Stream *out, GuiVersion gui_version) const;
 
 private:
     void    DrawBlob(Bitmap *ds, int x, int y, color_t draw_color);
@@ -142,18 +142,30 @@ private:
     GUIVisibilityState _visibility;
 };
 
+
+namespace GUI
+{
+    extern GuiVersion GameGuiVersion;
+
+    // Draw standart "shading" effect over rectangle
+    void DrawDisabledEffect(Bitmap *ds, const Rect &rc);
+    // Draw text aligned inside rectangle
+    void DrawTextAligned(Bitmap *ds, const char *text, int font, color_t text_color, const Rect &frame, FrameAlignment align);
+    // Draw text aligned horizontally inside given bounds
+    void DrawTextAlignedHor(Bitmap *ds, const char *text, int font, color_t text_color, int x1, int x2, int y, FrameAlignment align);
+
+    void ReadGUI(std::vector<GUIMain> &guis, Stream *in);
+    void WriteGUI(const std::vector<GUIMain> &guis, Stream *out, bool savedgame);
+}
+
 } // namespace Common
 } // namespace AGS
 
-extern GuiVersion GameGuiVersion;
 extern std::vector<Common::GUIMain> guis;
 extern int all_buttons_disabled, gui_inv_pic;
 extern int gui_disabled_style;
 extern char lines[MAXLINE][200];
 extern int  numlines;
-
-extern void read_gui(Common::Stream *in, std::vector<Common::GUIMain> &guiread, GameSetupStruct * gss);
-extern void write_gui(Common::Stream *out, const std::vector<Common::GUIMain> &guiwrite, GameSetupStruct * gss, bool savedgame);
 
 extern int mousex, mousey;
 

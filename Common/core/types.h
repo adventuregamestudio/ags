@@ -82,6 +82,13 @@
 #endif // WINDOWS_VERSION
 
 
+// Suppress override keyword for compilers that do not support it
+// TODO: this should be reviewed if project would demand C++11 or higher
+#if !(defined (_MSC_VER) && _MSC_VER >= 1700 || __cplusplus >= 201103L)
+#define override
+#endif
+
+
 #define fixed_t int32_t // fixed point type
 #define color_t int32_t
 

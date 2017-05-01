@@ -34,11 +34,11 @@
 #include "gfx/bitmap.h"
 #include "gfx/blender.h"
 
-using namespace Common;
+using namespace AGS::Common;
 
 // For engine these are defined in ac.cpp
 extern int eip_guiobj;
-extern void replace_macro_tokens(const char*,char*);
+extern void replace_macro_tokens(const char*, String&);
 
 // For engine these are defined in acfonts.cpp
 extern void ensure_text_valid_for_font(char *, int);
@@ -70,11 +70,6 @@ bool GUIMain::HasAlphaChannel() const
 //=============================================================================
 // Engine-specific implementation split out of acgui.h
 //=============================================================================
-
-int GUIObject::IsClickable()
-{
-  return !(flags & GUIF_NOCLICKS);
-}
 
 void check_font(int *fontnum)
 {
@@ -112,74 +107,66 @@ int get_eip_guiobj()
 
 bool outlineGuiObjects = false;
 
-void GUILabel::Draw_replace_macro_tokens(char *oritext, const char *text)
+namespace AGS
 {
-  replace_macro_tokens(flags & GUIF_TRANSLATED ? get_translation(text) : text, oritext);
-  ensure_text_valid_for_font(oritext, font);
+namespace Common
+{
+
+bool GUIObject::IsClickable() const
+{
+    return !(Flags & kGUICtrl_NoClicks);
 }
 
-void GUILabel::Draw_split_lines(char *teptr, int wid, int font, int &numlines)
+void GUILabel::PrepareTextToDraw()
 {
-  // Use the engine's word wrap tool, to have hebrew-style writing
-  // and other features
-
-  break_up_text_into_lines (wid, font, teptr);
-
-  // [IKM] numlines not used in engine's implementation
+    replace_macro_tokens(Flags & kGUICtrl_Translated ? get_translation(Text) : Text, _textToDraw);
 }
 
-void GUITextBox::Draw_text_box_contents(Bitmap *ds, color_t text_color)
+int GUILabel::SplitLinesForDrawing()
 {
-  int startx, starty;
-
-  wouttext_outline(ds, x + 1 + get_fixed_pixel_size(1), y + 1 + get_fixed_pixel_size(1), font, text_color, text);
-  
-  if (!IsDisabled()) {
-    // draw a cursor
-    startx = wgettextwidth(text, font) + x + 3;
-    starty = y + 1 + getfontheight(font);
-    ds->DrawRect(Rect(startx, starty, startx + get_fixed_pixel_size(5), starty + (get_fixed_pixel_size(1) - 1)), text_color);
-  }
+    // Use the engine's word wrap tool, to have hebrew-style writing
+    // and other features
+    break_up_text_into_lines(Width, Font, _textToDraw);
+    return numlines;
 }
 
-void GUIListBox::Draw_items_fix()
+void GUITextBox::DrawTextBoxContents(Bitmap *ds, color_t text_color)
+{
+    wouttext_outline(ds, X + 1 + get_fixed_pixel_size(1), Y + 1 + get_fixed_pixel_size(1), Font, text_color, Text);
+    if (IsEnabled())
+    {
+        // draw a cursor
+        int draw_at_x = wgettextwidth(Text, Font) + X + 3;
+        int draw_at_y = Y + 1 + getfontheight(Font);
+        ds->DrawRect(Rect(draw_at_x, draw_at_y, draw_at_x + get_fixed_pixel_size(5), draw_at_y + (get_fixed_pixel_size(1) - 1)), text_color);
+    }
+}
+
+void GUIListBox::DrawItemsFix()
 {
   // do nothing
 }
 
-void GUIListBox::Draw_items_unfix()
+void GUIListBox::DrawItemsUnfix()
 {
   // do nothing
 }
 
-void GUIListBox::Draw_set_oritext(char *oritext, const char *text)
+void GUIListBox::PrepareTextToDraw(const String &text)
 {
-    // Allow it to change the string to unicode if it's TTF
-    if (flags & GUIF_TRANSLATED)
-    {
-        strcpy(oritext, get_translation(text));
-    }
+    if (Flags & kGUICtrl_Translated)
+        _textToDraw = get_translation(text);
     else
-    {
-        strcpy(oritext, text);
-    }
-    ensure_text_valid_for_font(oritext, font);
-
-    // oritext is assumed to be made long enough by caller function
+        _textToDraw = text;
 }
 
-void GUIButton::Draw_set_oritext(char *oritext, const char *text)
+void GUIButton::PrepareTextToDraw()
 {
-  // Allow it to change the string to unicode if it's TTF
-    if (flags & GUIF_TRANSLATED)
-    {
-        strcpy(oritext, get_translation(text));
-    }
+    if (Flags & kGUICtrl_Translated)
+        _textToDraw = get_translation(_text);
     else
-    {
-        strcpy(oritext, text);
-    }
-    ensure_text_valid_for_font(oritext, font);
-
-  // oritext is assumed to be made long enough by caller function
+        _textToDraw = _text;
 }
+
+} // namespace Common
+} // namespace AGS

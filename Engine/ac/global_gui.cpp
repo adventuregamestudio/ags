@@ -83,7 +83,7 @@ void InterfaceOff(int ifn) {
   guis[ifn].SetVisibility(kGUIVisibility_Off);
   if (guis[ifn].MouseOverCtrl>=0) {
     // Make sure that the overpic is turned off when the GUI goes off
-    guis[ifn].Controls[guis[ifn].MouseOverCtrl]->MouseLeave();
+    guis[ifn].Controls[guis[ifn].MouseOverCtrl]->OnMouseLeave();
     guis[ifn].MouseOverCtrl = -1;
   }
   guis[ifn].OnControlPositionChanged();
@@ -227,7 +227,7 @@ int GetGUIObjectAt (int xx, int yy) {
     if (toret == NULL)
         return -1;
 
-    return toret->objn;
+    return toret->Id;
 }
 
 int GetGUIAt (int xx,int yy) {

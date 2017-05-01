@@ -57,106 +57,106 @@ int in_inv_screen = 0, inv_screen_newroom = -1;
 
 // *** INV WINDOW FUNCTIONS
 
-void InvWindow_SetCharacterToUse(GUIInv *guii, CharacterInfo *chaa) {
+void InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *chaa) {
   if (chaa == NULL)
-    guii->charId = -1;
+    guii->CharId = -1;
   else
-    guii->charId = chaa->index_id;
+    guii->CharId = chaa->index_id;
   // reset to top of list
-  guii->topIndex = 0;
+  guii->TopItem = 0;
 
   guis_need_update = 1;
 }
 
-CharacterInfo* InvWindow_GetCharacterToUse(GUIInv *guii) {
-  if (guii->charId < 0)
+CharacterInfo* InvWindow_GetCharacterToUse(GUIInvWindow *guii) {
+  if (guii->CharId < 0)
     return NULL;
 
-  return &game.chars[guii->charId];
+  return &game.chars[guii->CharId];
 }
 
-void InvWindow_SetItemWidth(GUIInv *guii, int newwidth) {
-  guii->itemWidth = newwidth;
-  guii->Resized();
+void InvWindow_SetItemWidth(GUIInvWindow *guii, int newwidth) {
+  guii->ItemWidth = newwidth;
+  guii->OnResized();
 }
 
-int InvWindow_GetItemWidth(GUIInv *guii) {
-  return guii->itemWidth;
+int InvWindow_GetItemWidth(GUIInvWindow *guii) {
+  return guii->ItemWidth;
 }
 
-void InvWindow_SetItemHeight(GUIInv *guii, int newhit) {
-  guii->itemHeight = newhit;
-  guii->Resized();
+void InvWindow_SetItemHeight(GUIInvWindow *guii, int newhit) {
+  guii->ItemHeight = newhit;
+  guii->OnResized();
 }
 
-int InvWindow_GetItemHeight(GUIInv *guii) {
-  return guii->itemHeight;
+int InvWindow_GetItemHeight(GUIInvWindow *guii) {
+  return guii->ItemHeight;
 }
 
-void InvWindow_SetTopItem(GUIInv *guii, int topitem) {
-  if (guii->topIndex != topitem) {
-    guii->topIndex = topitem;
+void InvWindow_SetTopItem(GUIInvWindow *guii, int topitem) {
+  if (guii->TopItem != topitem) {
+    guii->TopItem = topitem;
     guis_need_update = 1;
   }
 }
 
-int InvWindow_GetTopItem(GUIInv *guii) {
-  return guii->topIndex;
+int InvWindow_GetTopItem(GUIInvWindow *guii) {
+  return guii->TopItem;
 }
 
-int InvWindow_GetItemsPerRow(GUIInv *guii) {
-  return guii->itemsPerLine;
+int InvWindow_GetItemsPerRow(GUIInvWindow *guii) {
+  return guii->ColCount;
 }
 
-int InvWindow_GetItemCount(GUIInv *guii) {
-  return charextra[guii->CharToDisplay()].invorder_count;
+int InvWindow_GetItemCount(GUIInvWindow *guii) {
+  return charextra[guii->GetCharacterId()].invorder_count;
 }
 
-int InvWindow_GetRowCount(GUIInv *guii) {
-  return guii->numLines;
+int InvWindow_GetRowCount(GUIInvWindow *guii) {
+  return guii->RowCount;
 }
 
-void InvWindow_ScrollDown(GUIInv *guii) {
-  if ((charextra[guii->CharToDisplay()].invorder_count) >
-      (guii->topIndex + (guii->itemsPerLine * guii->numLines))) { 
-    guii->topIndex += guii->itemsPerLine;
+void InvWindow_ScrollDown(GUIInvWindow *guii) {
+  if ((charextra[guii->GetCharacterId()].invorder_count) >
+      (guii->TopItem + (guii->ColCount * guii->RowCount))) { 
+    guii->TopItem += guii->ColCount;
     guis_need_update = 1;
   }
 }
 
-void InvWindow_ScrollUp(GUIInv *guii) {
-  if (guii->topIndex > 0) {
-    guii->topIndex -= guii->itemsPerLine;
-    if (guii->topIndex < 0)
-      guii->topIndex = 0;
+void InvWindow_ScrollUp(GUIInvWindow *guii) {
+  if (guii->TopItem > 0) {
+    guii->TopItem -= guii->ColCount;
+    if (guii->TopItem < 0)
+      guii->TopItem = 0;
 
     guis_need_update = 1;
   }
 }
 
-ScriptInvItem* InvWindow_GetItemAtIndex(GUIInv *guii, int index) {
-  if ((index < 0) || (index >= charextra[guii->CharToDisplay()].invorder_count))
+ScriptInvItem* InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index) {
+  if ((index < 0) || (index >= charextra[guii->GetCharacterId()].invorder_count))
     return NULL;
-  return &scrInv[charextra[guii->CharToDisplay()].invorder[index]];
+  return &scrInv[charextra[guii->GetCharacterId()].invorder[index]];
 }
 
 //=============================================================================
 
-int offset_over_inv(GUIInv *inv) {
+int offset_over_inv(GUIInvWindow *inv) {
 
-    int mover = mouse_ifacebut_xoffs / multiply_up_coordinate(inv->itemWidth);
+    int mover = mouse_ifacebut_xoffs / multiply_up_coordinate(inv->ItemWidth);
     // if it's off the edge of the visible items, ignore
-    if (mover >= inv->itemsPerLine)
+    if (mover >= inv->ColCount)
         return -1;
-    mover += (mouse_ifacebut_yoffs / multiply_up_coordinate(inv->itemHeight)) * inv->itemsPerLine;
-    if (mover >= inv->itemsPerLine * inv->numLines)
-        return -1;
-
-    mover += inv->topIndex;
-    if ((mover < 0) || (mover >= charextra[inv->CharToDisplay()].invorder_count))
+    mover += (mouse_ifacebut_yoffs / multiply_up_coordinate(inv->ItemHeight)) * inv->ColCount;
+    if (mover >= inv->ColCount * inv->RowCount)
         return -1;
 
-    return charextra[inv->CharToDisplay()].invorder[mover];
+    mover += inv->TopItem;
+    if ((mover < 0) || (mover >= charextra[inv->GetCharacterId()].invorder_count))
+        return -1;
+
+    return charextra[inv->GetCharacterId()].invorder[mover];
 }
 
 //
@@ -522,88 +522,88 @@ int invscreen() {
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
-// void (GUIInv *guii)
+// void (GUIInvWindow *guii)
 RuntimeScriptValue Sc_InvWindow_ScrollDown(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(GUIInv, InvWindow_ScrollDown);
+    API_OBJCALL_VOID(GUIInvWindow, InvWindow_ScrollDown);
 }
 
-// void (GUIInv *guii)
+// void (GUIInvWindow *guii)
 RuntimeScriptValue Sc_InvWindow_ScrollUp(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(GUIInv, InvWindow_ScrollUp);
+    API_OBJCALL_VOID(GUIInvWindow, InvWindow_ScrollUp);
 }
 
-// CharacterInfo* (GUIInv *guii)
+// CharacterInfo* (GUIInvWindow *guii)
 RuntimeScriptValue Sc_InvWindow_GetCharacterToUse(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIInv, CharacterInfo, ccDynamicCharacter, InvWindow_GetCharacterToUse);
+    API_OBJCALL_OBJ(GUIInvWindow, CharacterInfo, ccDynamicCharacter, InvWindow_GetCharacterToUse);
 }
 
-// void (GUIInv *guii, CharacterInfo *chaa)
+// void (GUIInvWindow *guii, CharacterInfo *chaa)
 RuntimeScriptValue Sc_InvWindow_SetCharacterToUse(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ(GUIInv, InvWindow_SetCharacterToUse, CharacterInfo);
+    API_OBJCALL_VOID_POBJ(GUIInvWindow, InvWindow_SetCharacterToUse, CharacterInfo);
 }
 
-// ScriptInvItem* (GUIInv *guii, int index)
+// ScriptInvItem* (GUIInvWindow *guii, int index)
 RuntimeScriptValue Sc_InvWindow_GetItemAtIndex(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ_PINT(GUIInv, ScriptInvItem, ccDynamicInv, InvWindow_GetItemAtIndex);
+    API_OBJCALL_OBJ_PINT(GUIInvWindow, ScriptInvItem, ccDynamicInv, InvWindow_GetItemAtIndex);
 }
 
-// int (GUIInv *guii)
+// int (GUIInvWindow *guii)
 RuntimeScriptValue Sc_InvWindow_GetItemCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIInv, InvWindow_GetItemCount);
+    API_OBJCALL_INT(GUIInvWindow, InvWindow_GetItemCount);
 }
 
-// int (GUIInv *guii)
+// int (GUIInvWindow *guii)
 RuntimeScriptValue Sc_InvWindow_GetItemHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIInv, InvWindow_GetItemHeight);
+    API_OBJCALL_INT(GUIInvWindow, InvWindow_GetItemHeight);
 }
 
-// void (GUIInv *guii, int newhit)
+// void (GUIInvWindow *guii, int newhit)
 RuntimeScriptValue Sc_InvWindow_SetItemHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIInv, InvWindow_SetItemHeight);
+    API_OBJCALL_VOID_PINT(GUIInvWindow, InvWindow_SetItemHeight);
 }
 
-// int (GUIInv *guii)
+// int (GUIInvWindow *guii)
 RuntimeScriptValue Sc_InvWindow_GetItemWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIInv, InvWindow_GetItemWidth);
+    API_OBJCALL_INT(GUIInvWindow, InvWindow_GetItemWidth);
 }
 
-// void (GUIInv *guii, int newwidth)
+// void (GUIInvWindow *guii, int newwidth)
 RuntimeScriptValue Sc_InvWindow_SetItemWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIInv, InvWindow_SetItemWidth);
+    API_OBJCALL_VOID_PINT(GUIInvWindow, InvWindow_SetItemWidth);
 }
 
-// int (GUIInv *guii)
+// int (GUIInvWindow *guii)
 RuntimeScriptValue Sc_InvWindow_GetItemsPerRow(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIInv, InvWindow_GetItemsPerRow);
+    API_OBJCALL_INT(GUIInvWindow, InvWindow_GetItemsPerRow);
 }
 
-// int (GUIInv *guii)
+// int (GUIInvWindow *guii)
 RuntimeScriptValue Sc_InvWindow_GetRowCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIInv, InvWindow_GetRowCount);
+    API_OBJCALL_INT(GUIInvWindow, InvWindow_GetRowCount);
 }
 
-// int (GUIInv *guii)
+// int (GUIInvWindow *guii)
 RuntimeScriptValue Sc_InvWindow_GetTopItem(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIInv, InvWindow_GetTopItem);
+    API_OBJCALL_INT(GUIInvWindow, InvWindow_GetTopItem);
 }
 
-// void (GUIInv *guii, int topitem)
+// void (GUIInvWindow *guii, int topitem)
 RuntimeScriptValue Sc_InvWindow_SetTopItem(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIInv, InvWindow_SetTopItem);
+    API_OBJCALL_VOID_PINT(GUIInvWindow, InvWindow_SetTopItem);
 }
 
 

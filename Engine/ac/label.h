@@ -20,6 +20,8 @@
 
 #include "gui/guilabel.h"
 
+using AGS::Common::GUILabel;
+
 const char* Label_GetText_New(GUILabel *labl);
 void		Label_GetText(GUILabel *labl, char *buffer);
 void		Label_SetText(GUILabel *labl, const char *newtx);

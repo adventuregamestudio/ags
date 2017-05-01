@@ -12,186 +12,231 @@
 //
 //=============================================================================
 
-#include <stdio.h>
+#include "ac/spritecache.h"
 #include "gui/guislider.h"
 #include "gui/guimain.h"
-#include "ac/spritecache.h"
 #include "util/stream.h"
-#include "gfx/bitmap.h"
-#include "util/wgt2allg.h"
 
-using AGS::Common::Stream;
-using AGS::Common::Bitmap;
-
-std::vector<GUISlider> guislider;
+std::vector<AGS::Common::GUISlider> guislider;
 int numguislider = 0;
 
-void GUISlider::WriteToFile(Stream *out)
+namespace AGS
 {
-  GUIObject::WriteToFile(out);
-  // MACPORT FIX: swap
-  out->WriteArrayOfInt32(&min, 7);
+namespace Common
+{
+
+GUISlider::GUISlider()
+{
+    MinValue = 0;
+    MaxValue = 10;
+    Value = 0;
+    BgImage = 0;
+    HandleImage = 0;
+    HandleOffset = 0;
+    IsMousePressed = false;
+
+    _scEventCount = 1;
+    _scEventNames[0] = "Change";
+    _scEventArgs[0] = "GUIControl *control";
 }
 
-void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
+bool GUISlider::IsHorizontal() const
 {
-  int sizeToRead = 4;
+    return Width > Height;
+}
 
-  if (gui_version >= kGuiVersion_unkn_104)
-    sizeToRead = 7;
-  else {
-    handlepic = -1;
-    handleoffset = 0;
-    bgimage = 0;
-  }
-
-  GUIObject::ReadFromFile(in, gui_version);
-  in->ReadArrayOfInt32(&min, sizeToRead);
+bool GUISlider::IsOverControl(int X, int Y, int leeway) const
+{
+    // check the overall boundary
+    if (GUIObject::IsOverControl(X, Y, leeway))
+        return true;
+    // now check the handle too
+    return _cachedHandle.IsInside(Point(X, Y));
 }
 
 void GUISlider::Draw(Common::Bitmap *ds)
 {
-  int bartlx, bartly, barbrx, barbry;
-  int handtlx, handtly, handbrx, handbry, thickness;
+    Rect bar;
+    Rect handle;
+    int  thickness;
 
-  if (min >= max)
-    max = min + 1;
-
-  if (value > max)
-    value = max;
-
-  if (value < min)
-    value = min;
-
-  // it's a horizontal slider
-  if (wid > hit) {
-    thickness = hit / 3;
-    bartlx = x + 1;
-    bartly = y + hit / 2 - thickness;
-    barbrx = x + wid - 1;
-    barbry = y + hit / 2 + thickness + 1;
-    handtlx = (int)(((float)(value - min) / (float)(max - min)) * (float)(wid - 4) - 2) + bartlx + 1;
-    handtly = bartly - (thickness - 1);
-    handbrx = handtlx + get_fixed_pixel_size(4);
-    handbry = barbry + (thickness - 1);
-
-    if (handlepic > 0) {
-      // store the centre of the pic rather than the top
-      handtly = bartly + (barbry - bartly) / 2 + get_fixed_pixel_size(1);
-      handtlx += get_fixed_pixel_size(2);
+    if (MinValue >= MaxValue)
+        MaxValue = MinValue + 1;
+    Value = Math::Clamp(MinValue, MaxValue, Value);
+  
+    // it's a horizontal slider
+    if (IsHorizontal())
+    {
+        thickness = Height / 3;
+        bar.Left = X + 1;
+        bar.Top = Y + Height / 2 - thickness;
+        bar.Right = X + Width - 1;
+        bar.Bottom = Y + Height / 2 + thickness + 1;
+        handle.Left = (int)(((float)(Value - MinValue) / (float)(MaxValue - MinValue)) * (float)(Width - 4) - 2) + bar.Left + 1;
+        handle.Top = bar.Top - (thickness - 1);
+        handle.Right = handle.Left + get_fixed_pixel_size(4);
+        handle.Bottom = bar.Bottom + (thickness - 1);
+        if (HandleImage > 0)
+        {
+            // store the centre of the pic rather than the top
+            handle.Top = bar.Top + (bar.Bottom - bar.Top) / 2 + get_fixed_pixel_size(1);
+            handle.Left += get_fixed_pixel_size(2);
+        }
+        handle.Top += multiply_up_coordinate(HandleOffset);
+        handle.Bottom += multiply_up_coordinate(HandleOffset);
     }
-    handtly += multiply_up_coordinate(handleoffset);
-    handbry += multiply_up_coordinate(handleoffset);
-  }
-  // vertical slider
-  else {
-    thickness = wid / 3;
-    bartlx = x + wid / 2 - thickness;
-    bartly = y + 1;
-    barbrx = x + wid / 2 + thickness + 1;
-    barbry = y + hit - 1;
-    handtly = (int)(((float)(max - value) / (float)(max - min)) * (float)(hit - 4) - 2) + bartly + 1;
-    handtlx = bartlx - (thickness - 1);
-    handbry = handtly + get_fixed_pixel_size(4);
-    handbrx = barbrx + (thickness - 1);
-
-    if (handlepic > 0) {
-      // store the centre of the pic rather than the left
-      handtlx = bartlx + (barbrx - bartlx) / 2 + get_fixed_pixel_size(1);
-      handtly += get_fixed_pixel_size(2);
-    }
-    handtlx += multiply_up_coordinate(handleoffset);
-    handbrx += multiply_up_coordinate(handleoffset);
-  }
-
-  color_t draw_color;
-
-  if (bgimage > 0) {
-    // tiled image as slider background
-    int xinc = 0, yinc = 0;
-    if (wid > hit) {
-      // horizontal slider
-      xinc = get_adjusted_spritewidth(bgimage);
-      // centre the image vertically
-      bartly = y + (hit / 2) - get_adjusted_spriteheight(bgimage) / 2;
-    }
-    else {
-      // vertical slider
-      yinc = get_adjusted_spriteheight(bgimage);
-      // centre the image horizontally
-      bartlx = x + (wid / 2) - get_adjusted_spritewidth(bgimage) / 2;
+    // vertical slider
+    else
+    {
+        thickness = Width / 3;
+        bar.Left = X + Width / 2 - thickness;
+        bar.Top = Y + 1;
+        bar.Right = X + Width / 2 + thickness + 1;
+        bar.Bottom = Y + Height - 1;
+        handle.Top = (int)(((float)(MaxValue - Value) / (float)(MaxValue - MinValue)) * (float)(Height - 4) - 2) + bar.Top + 1;
+        handle.Left = bar.Left - (thickness - 1);
+        handle.Bottom = handle.Top + get_fixed_pixel_size(4);
+        handle.Right = bar.Right + (thickness - 1);
+        if (HandleImage > 0)
+        {
+            // store the centre of the pic rather than the left
+            handle.Left = bar.Left + (bar.Right - bar.Left) / 2 + get_fixed_pixel_size(1);
+            handle.Top += get_fixed_pixel_size(2);
+        }
+        handle.Left += multiply_up_coordinate(HandleOffset);
+        handle.Right += multiply_up_coordinate(HandleOffset);
     }
 
-    int cx = bartlx, cy = bartly;
-    // draw the tiled background image
-    do {
-      draw_gui_sprite(ds, bgimage, cx, cy, true);
-      cx += xinc;
-      cy += yinc;
-      // done as a do..while so that at least one of the image is drawn
-    } while ((cx + xinc <= barbrx) && (cy + yinc <= barbry));
+    color_t draw_color;
+    if (BgImage > 0)
+    {
+        // tiled image as slider background
+        int x_inc = 0;
+        int y_inc = 0;
+        if (IsHorizontal())
+        {
+            x_inc = get_adjusted_spritewidth(BgImage);
+            // centre the image vertically
+            bar.Top = Y + (Height / 2) - get_adjusted_spriteheight(BgImage) / 2;
+        }
+        else
+        {
+            y_inc = get_adjusted_spriteheight(BgImage);
+            // centre the image horizontally
+            bar.Left = X + (Width / 2) - get_adjusted_spritewidth(BgImage) / 2;
+        }
+        int cx = bar.Left;
+        int cy = bar.Top;
+        // draw the tiled background image
+        do
+        {
+            draw_gui_sprite(ds, BgImage, cx, cy, true);
+            cx += x_inc;
+            cy += y_inc;
+            // done as a do..while so that at least one of the image is drawn
+        }
+        while ((cx + x_inc <= bar.Right) && (cy + y_inc <= bar.Bottom));
+    }
+    else
+    {
+        // normal grey background
+        draw_color = ds->GetCompatibleColor(16);
+        ds->FillRect(Rect(bar.Left + 1, bar.Top + 1, bar.Right - 1, bar.Bottom - 1), draw_color);
+        draw_color = ds->GetCompatibleColor(8);
+        ds->DrawLine(Line(bar.Left, bar.Top, bar.Left, bar.Bottom), draw_color);
+        ds->DrawLine(Line(bar.Left, bar.Top, bar.Right, bar.Top), draw_color);
+        draw_color = ds->GetCompatibleColor(15);
+        ds->DrawLine(Line(bar.Right, bar.Top + 1, bar.Right, bar.Bottom), draw_color);
+        ds->DrawLine(Line(bar.Left, bar.Bottom, bar.Right, bar.Bottom), draw_color);
+    }
 
-  }
-  else {
-    // normal grey background
-    draw_color = ds->GetCompatibleColor(16);
-    ds->FillRect(Rect(bartlx + 1, bartly + 1, barbrx - 1, barbry - 1), draw_color);
+    if (HandleImage > 0)
+    {
+        // an image for the slider handle
+        if (spriteset[HandleImage] == NULL)
+            HandleImage = 0;
 
-    draw_color = ds->GetCompatibleColor(8);
-    ds->DrawLine(Line(bartlx, bartly, bartlx, barbry), draw_color);
-    ds->DrawLine(Line(bartlx, bartly, barbrx, bartly), draw_color);
+        handle.Left -= get_adjusted_spritewidth(HandleImage) / 2;
+        handle.Top -= get_adjusted_spriteheight(HandleImage) / 2;
+        draw_gui_sprite(ds, HandleImage, handle.Left, handle.Top, true);
+        handle.Right = handle.Left + get_adjusted_spritewidth(HandleImage);
+        handle.Bottom = handle.Top + get_adjusted_spriteheight(HandleImage);
+    }
+    else
+    {
+        // normal grey tracker handle
+        draw_color = ds->GetCompatibleColor(7);
+        ds->FillRect(Rect(handle.Left, handle.Top, handle.Right, handle.Bottom), draw_color);
+        draw_color = ds->GetCompatibleColor(15);
+        ds->DrawLine(Line(handle.Left, handle.Top, handle.Right, handle.Top), draw_color);
+        ds->DrawLine(Line(handle.Left, handle.Top, handle.Left, handle.Bottom), draw_color);
+        draw_color = ds->GetCompatibleColor(16);
+        ds->DrawLine(Line(handle.Right, handle.Top + 1, handle.Right, handle.Bottom), draw_color);
+        ds->DrawLine(Line(handle.Left + 1, handle.Bottom, handle.Right, handle.Bottom), draw_color);
+    }
 
-    draw_color = ds->GetCompatibleColor(15);
-    ds->DrawLine(Line(barbrx, bartly + 1, barbrx, barbry), draw_color);
-    ds->DrawLine(Line(bartlx, barbry, barbrx, barbry), draw_color);
-  }
-
-  if (handlepic > 0) {
-    // an image for the slider handle
-    if (spriteset[handlepic] == NULL)
-      handlepic = 0;
-    handtlx -= get_adjusted_spritewidth(handlepic) / 2;
-    handtly -= get_adjusted_spriteheight(handlepic) / 2;
-    draw_gui_sprite(ds, handlepic, handtlx, handtly, true);
-    handbrx = handtlx + get_adjusted_spritewidth(handlepic);
-    handbry = handtly + get_adjusted_spriteheight(handlepic);
-  }
-  else {
-    // normal grey tracker handle
-    draw_color = ds->GetCompatibleColor(7);
-    ds->FillRect(Rect(handtlx, handtly, handbrx, handbry), draw_color);
-
-    draw_color = ds->GetCompatibleColor(15);
-    ds->DrawLine(Line(handtlx, handtly, handbrx, handtly), draw_color);
-    ds->DrawLine(Line(handtlx, handtly, handtlx, handbry), draw_color);
-
-    draw_color = ds->GetCompatibleColor(16);
-    ds->DrawLine(Line(handbrx, handtly + 1, handbrx, handbry), draw_color);
-    ds->DrawLine(Line(handtlx + 1, handbry, handbrx, handbry), draw_color);
-  }
-
-  cached_handtlx = handtlx;
-  cached_handtly = handtly;
-  cached_handbrx = handbrx;
-  cached_handbry = handbry;
+    _cachedHandle = handle;
 }
 
-void GUISlider::MouseMove(int xp, int yp)
+bool GUISlider::OnMouseDown()
 {
-  if (mpressed == 0)
-    return;
-
-  if (wid > hit)                // horizontal slider
-    value = (int)(((float)((xp - x) - 2) / (float)(wid - 4)) * (float)(max - min)) + min;
-  else                          // vertical slider
-    value = (int)(((float)(((y + hit) - yp) - 2) / (float)(hit - 4)) * (float)(max - min)) + min;
-
-  if (value > max)
-    value = max;
-
-  if (value < min)
-    value = min;
-
-  guis_need_update = 1;
-  activated = 1;
+    IsMousePressed = true;
+    // lock focus to ourselves
+    return true;
 }
+
+void GUISlider::OnMouseMove(int x, int y)
+{
+    if (!IsMousePressed)
+        return;
+
+    if (IsHorizontal())
+        Value = (int)(((float)((x - X) - 2) / (float)(Width - 4)) * (float)(MaxValue - MinValue)) + MinValue;
+    else
+        Value = (int)(((float)(((Y + Height) - y) - 2) / (float)(Height - 4)) * (float)(MaxValue - MinValue)) + MinValue;
+
+    Value = Math::Clamp(MinValue, MaxValue, Value);
+    guis_need_update = 1;
+    IsActivated = true;
+}
+
+void GUISlider::OnMouseUp()
+{
+    IsMousePressed = false;
+}
+
+void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
+{
+    GUIObject::ReadFromFile(in, gui_version);
+    MinValue = in->ReadInt32();
+    MaxValue = in->ReadInt32();
+    Value = in->ReadInt32();
+    IsMousePressed = in->ReadInt32() != 0;
+    if (gui_version >= kGuiVersion_unkn_104)
+    {
+        HandleImage = in->ReadInt32();
+        HandleOffset = in->ReadInt32();
+        BgImage = in->ReadInt32();
+    }
+    else
+    {
+        HandleImage = -1;
+        HandleOffset = 0;
+        BgImage = 0;
+    }
+}
+
+void GUISlider::WriteToFile(Stream *out)
+{
+    GUIObject::WriteToFile(out);
+    out->WriteInt32(MinValue);
+    out->WriteInt32(MaxValue);
+    out->WriteInt32(Value);
+    out->WriteInt32(IsMousePressed);
+    out->WriteInt32(HandleImage);
+    out->WriteInt32(HandleOffset);
+    out->WriteInt32(BgImage);
+}
+
+} // namespace Common
+} // namespace AGS

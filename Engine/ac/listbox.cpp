@@ -83,10 +83,10 @@ void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
 }
 
 int ListBox_GetSaveGameSlots(GUIListBox *listbox, int index) {
-  if ((index < 0) || (index >= listbox->numItems))
+  if ((index < 0) || (index >= listbox->ItemCount))
     quit("!ListBox.SaveGameSlot: index out of range");
 
-  return listbox->saveGameIndex[index];
+  return listbox->SavedGameIndex[index];
 }
 
 int ListBox_FillSaveGameList(GUIListBox *listbox) {
@@ -115,7 +115,7 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
     int saveGameSlot = atoi(numberExtension);
     GetSaveSlotDescription(saveGameSlot, buff);
     listbox->AddItem(buff);
-    listbox->saveGameIndex[numsaves] = saveGameSlot;
+    listbox->SavedGameIndex[numsaves] = saveGameSlot;
     filedates[numsaves]=(long int)ffb.time;
     numsaves++;
     don = al_findnext(&ffb);
@@ -127,12 +127,12 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
     for (int kk=0;kk<numsaves-1;kk++) {  // Date order the games
 
       if (filedates[kk] < filedates[kk+1]) {   // swap them round
-        String tempptr = listbox->items[kk];
-        listbox->items[kk] = listbox->items[kk+1];
-        listbox->items[kk+1] = tempptr;
-        int numtem = listbox->saveGameIndex[kk];
-        listbox->saveGameIndex[kk] = listbox->saveGameIndex[kk+1];
-        listbox->saveGameIndex[kk+1] = numtem;
+        String tempptr = listbox->Items[kk];
+        listbox->Items[kk] = listbox->Items[kk+1];
+        listbox->Items[kk+1] = tempptr;
+        int numtem = listbox->SavedGameIndex[kk];
+        listbox->SavedGameIndex[kk] = listbox->SavedGameIndex[kk+1];
+        listbox->SavedGameIndex[kk+1] = numtem;
         long numted=filedates[kk]; filedates[kk]=filedates[kk+1];
         filedates[kk+1]=numted;
       }
@@ -141,11 +141,11 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
 
   // update the global savegameindex[] array for backward compatibilty
   for (nn = 0; nn < numsaves; nn++) {
-    play.filenumbers[nn] = listbox->saveGameIndex[nn];
+    play.filenumbers[nn] = listbox->SavedGameIndex[nn];
   }
 
   guis_need_update = 1;
-  listbox->exflags |= GLF_SGINDEXVALID;
+  listbox->ListBoxFlags |= kListBox_SvgIndex;
 
   if (numsaves >= MAXSAVEGAMES)
     return 1;
@@ -154,39 +154,39 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
 
 int ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y) {
 
-  if (!guis[listbox->guin].IsVisible())
+  if (!guis[listbox->ParentId].IsVisible())
     return -1;
 
   multiply_up_coordinates(&x, &y);
-  x = (x - listbox->x) - guis[listbox->guin].X;
-  y = (y - listbox->y) - guis[listbox->guin].Y;
+  x = (x - listbox->X) - guis[listbox->ParentId].X;
+  y = (y - listbox->Y) - guis[listbox->ParentId].Y;
 
-  if ((x < 0) || (y < 0) || (x >= listbox->wid) || (y >= listbox->hit))
+  if ((x < 0) || (y < 0) || (x >= listbox->Width) || (y >= listbox->Height))
     return -1;
   
-  return listbox->GetIndexFromCoordinates(x, y);
+  return listbox->GetItemAt(x, y);
 }
 
 char *ListBox_GetItemText(GUIListBox *listbox, int index, char *buffer) {
-  if ((index < 0) || (index >= listbox->numItems))
+  if ((index < 0) || (index >= listbox->ItemCount))
     quit("!ListBoxGetItemText: invalid item specified");
-  strncpy(buffer, listbox->items[index],198);
+  strncpy(buffer, listbox->Items[index],198);
   buffer[199] = 0;
   return buffer;
 }
 
 const char* ListBox_GetItems(GUIListBox *listbox, int index) {
-  if ((index < 0) || (index >= listbox->numItems))
+  if ((index < 0) || (index >= listbox->ItemCount))
     quit("!ListBox.Items: invalid index specified");
 
-  return CreateNewScriptString(listbox->items[index]);
+  return CreateNewScriptString(listbox->Items[index]);
 }
 
 void ListBox_SetItemText(GUIListBox *listbox, int index, const char *newtext) {
-  if ((index < 0) || (index >= listbox->numItems))
+  if ((index < 0) || (index >= listbox->ItemCount))
     quit("!ListBoxSetItemText: invalid item specified");
 
-  if (strcmp(listbox->items[index], newtext)) {
+  if (strcmp(listbox->Items[index], newtext)) {
     listbox->SetItemText(index, newtext);
     guis_need_update = 1;
   }
@@ -194,7 +194,7 @@ void ListBox_SetItemText(GUIListBox *listbox, int index, const char *newtext) {
 
 void ListBox_RemoveItem(GUIListBox *listbox, int itemIndex) {
   
-  if ((itemIndex < 0) || (itemIndex >= listbox->numItems))
+  if ((itemIndex < 0) || (itemIndex >= listbox->ItemCount))
     quit("!ListBoxRemove: invalid listindex specified");
 
   listbox->RemoveItem(itemIndex);
@@ -202,11 +202,11 @@ void ListBox_RemoveItem(GUIListBox *listbox, int itemIndex) {
 }
 
 int ListBox_GetItemCount(GUIListBox *listbox) {
-  return listbox->numItems;
+  return listbox->ItemCount;
 }
 
 int ListBox_GetFont(GUIListBox *listbox) {
-  return listbox->font;
+  return listbox->Font;
 }
 
 void ListBox_SetFont(GUIListBox *listbox, int newfont) {
@@ -214,53 +214,53 @@ void ListBox_SetFont(GUIListBox *listbox, int newfont) {
   if ((newfont < 0) || (newfont >= game.numfonts))
     quit("!ListBox.Font: invalid font number.");
 
-  if (newfont != listbox->font) {
-    listbox->ChangeFont(newfont);
+  if (newfont != listbox->Font) {
+    listbox->SetFont(newfont);
     guis_need_update = 1;
   }
 
 }
 
 int ListBox_GetHideBorder(GUIListBox *listbox) {
-  return (listbox->exflags & GLF_NOBORDER) ? 1 : 0;
+  return (listbox->ListBoxFlags & kListBox_NoBorder) ? 1 : 0;
 }
 
 void ListBox_SetHideBorder(GUIListBox *listbox, int newValue) {
-  listbox->exflags &= ~GLF_NOBORDER;
+  listbox->ListBoxFlags &= ~kListBox_NoBorder;
   if (newValue)
-    listbox->exflags |= GLF_NOBORDER;
+    listbox->ListBoxFlags |= kListBox_NoBorder;
   guis_need_update = 1;
 }
 
 int ListBox_GetHideScrollArrows(GUIListBox *listbox) {
-  return (listbox->exflags & GLF_NOARROWS) ? 1 : 0;
+  return (listbox->ListBoxFlags & kListBox_NoArrows) ? 1 : 0;
 }
 
 void ListBox_SetHideScrollArrows(GUIListBox *listbox, int newValue) {
-  listbox->exflags &= ~GLF_NOARROWS;
+  listbox->ListBoxFlags &= ~kListBox_NoArrows;
   if (newValue)
-    listbox->exflags |= GLF_NOARROWS;
+    listbox->ListBoxFlags |= kListBox_NoArrows;
   guis_need_update = 1;
 }
 
 int ListBox_GetSelectedIndex(GUIListBox *listbox) {
-  if ((listbox->selected < 0) || (listbox->selected >= listbox->numItems))
+  if ((listbox->SelectedItem < 0) || (listbox->SelectedItem >= listbox->ItemCount))
     return -1;
-  return listbox->selected;
+  return listbox->SelectedItem;
 }
 
 void ListBox_SetSelectedIndex(GUIListBox *guisl, int newsel) {
 
-  if (newsel >= guisl->numItems)
+  if (newsel >= guisl->ItemCount)
     newsel = -1;
 
-  if (guisl->selected != newsel) {
-    guisl->selected = newsel;
+  if (guisl->SelectedItem != newsel) {
+    guisl->SelectedItem = newsel;
     if (newsel >= 0) {
-      if (newsel < guisl->topItem)
-        guisl->topItem = newsel;
-      if (newsel >= guisl->topItem + guisl->num_items_fit)
-        guisl->topItem = (newsel - guisl->num_items_fit) + 1;
+      if (newsel < guisl->TopItem)
+        guisl->TopItem = newsel;
+      if (newsel >= guisl->TopItem + guisl->VisibleItemCount)
+        guisl->TopItem = (newsel - guisl->VisibleItemCount) + 1;
     }
     guis_need_update = 1;
   }
@@ -268,33 +268,33 @@ void ListBox_SetSelectedIndex(GUIListBox *guisl, int newsel) {
 }
 
 int ListBox_GetTopItem(GUIListBox *listbox) {
-  return listbox->topItem;
+  return listbox->TopItem;
 }
 
 void ListBox_SetTopItem(GUIListBox *guisl, int item) {
-  if ((guisl->numItems == 0) && (item == 0))
+  if ((guisl->ItemCount == 0) && (item == 0))
     ;  // allow resetting an empty box to the top
-  else if ((item >= guisl->numItems) || (item < 0))
+  else if ((item >= guisl->ItemCount) || (item < 0))
     quit("!ListBoxSetTopItem: tried to set top to beyond top or bottom of list");
 
-  guisl->topItem = item;
+  guisl->TopItem = item;
   guis_need_update = 1;
 }
 
 int ListBox_GetRowCount(GUIListBox *listbox) {
-  return listbox->num_items_fit;
+  return listbox->VisibleItemCount;
 }
 
 void ListBox_ScrollDown(GUIListBox *listbox) {
-  if (listbox->topItem + listbox->num_items_fit < listbox->numItems) {
-    listbox->topItem++;
+  if (listbox->TopItem + listbox->VisibleItemCount < listbox->ItemCount) {
+    listbox->TopItem++;
     guis_need_update = 1;
   }
 }
 
 void ListBox_ScrollUp(GUIListBox *listbox) {
-  if (listbox->topItem > 0) {
-    listbox->topItem--;
+  if (listbox->TopItem > 0) {
+    listbox->TopItem--;
     guis_need_update = 1;
   }
 }

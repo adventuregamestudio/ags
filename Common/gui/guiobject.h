@@ -18,105 +18,102 @@
 #include "core/types.h"
 #include "gfx/bitmap.h"
 #include "gui/guidefines.h"
-
-namespace AGS { namespace Common { class Stream; } }
-using namespace AGS; // FIXME later
+#include "util/string.h"
 
 #define GUIDIS_GREYOUT   1
 #define GUIDIS_BLACKOUT  2
 #define GUIDIS_UNCHANGED 4
 #define GUIDIS_GUIOFF  0x80
 
-#define BASEGOBJ_SIZE 7
-#define GALIGN_LEFT   0
-#define GALIGN_RIGHT  1
-#define GALIGN_CENTRE 2
 
-struct GUIObject
+
+
+namespace AGS
 {
-  int guin, objn;    // gui and object number of this object
-  unsigned int flags;
-  int x, y;
-  int wid, hit;
-  int zorder;
-  int activated;
-  char scriptName[MAX_GUIOBJ_SCRIPTNAME_LEN + 1];
-  char eventHandlers[MAX_GUIOBJ_EVENTS][MAX_GUIOBJ_EVENTHANDLER_LEN + 1];
+namespace Common
+{
 
-  GUIObject();
-  virtual ~GUIObject(){}
-  virtual void MouseMove(int, int) = 0; // x,y relative to gui
-  virtual void MouseOver() = 0; // mouse moves onto object
-  virtual void MouseLeave() = 0;        // mouse moves off object
-  virtual int  MouseDown() { // button down - return 1 to lock focus
-    return 0;
-  }
-  virtual void MouseUp() = 0;   // button up
-  virtual void KeyPress(int) = 0;
-  virtual void Draw(Common::Bitmap *ds) = 0;
-  // overridable routine to determine whether the mouse is over
-  // the control
-  virtual int  IsOverControl(int p_x, int p_y, int p_extra) {
-    if ((p_x >= x) && (p_y >= y) && (p_x < x + wid + p_extra) && (p_y < y + hit + p_extra))
-      return 1;
-    return 0;
-  }
-  virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  // called when the control is resized
-  virtual void Resized() { }
-  virtual int  GetNumEvents() {
-    return numSupportedEvents;
-  }
-  virtual const char *GetEventName(int idx) {
-    if ((idx < 0) || (idx >= numSupportedEvents))
-      return NULL;
-    return supportedEvents[idx];
-  }
-  virtual const char *GetEventArgs(int idx) {
-    if ((idx < 0) || (idx >= numSupportedEvents))
-      return NULL;
-    return supportedEventArgs[idx];
-  }
-  void init();
-
-  int IsDeleted() {
-    return flags & GUIF_DELETED;
-  }
-  int IsDisabled();
-  void Enable() {
-    flags &= ~GUIF_DISABLED;
-  }
-  void Disable() {
-    flags |= GUIF_DISABLED;
-  }
-  int IsVisible() {
-    if (flags & GUIF_INVISIBLE)
-      return 0;
-    return 1;
-  }
-  void Show() {
-    flags &= ~GUIF_INVISIBLE;
-  }
-  void Hide() {
-    flags |= GUIF_INVISIBLE;
-  }
-  int IsClickable();
-  void SetClickable(bool newValue) {
-    flags &= ~GUIF_NOCLICKS;
-    if (!newValue)
-      flags |= GUIF_NOCLICKS;
-  }
-
-  inline bool IsTranslated() const
-  {
-     return (flags & GUIF_TRANSLATED) != 0;
-  }
-
-protected:
-  const char *supportedEvents[MAX_GUIOBJ_EVENTS];
-  const char *supportedEventArgs[MAX_GUIOBJ_EVENTS];
-  int numSupportedEvents;
+enum LegacyGUIAlignment
+{
+    kLegacyGUIAlign_Left   = 0,
+    kLegacyGUIAlign_Right  = 1,
+    kLegacyGUIAlign_Center = 2
 };
+
+class GUIObject
+{
+public:
+    GUIObject();
+    virtual ~GUIObject(){}
+    
+    String          GetEventArgs(int event) const;
+    int             GetEventCount() const;
+    String          GetEventName(int event) const;
+    bool            IsDeleted() const { return (Flags & kGUICtrl_Deleted) != 0; }
+    // checks both control flag and global variable
+    bool            IsEnabled() const;
+    // overridable routine to determine whether the mouse is over the control
+    virtual bool    IsOverControl(int x, int y, int leeway) const;
+    inline bool     IsTranslated() const { return (Flags & kGUICtrl_Translated) != 0; }
+    inline bool     IsVisible() const { return (Flags & kGUICtrl_Invisible) == 0; }
+    // implemented separately in engine and editor
+    bool            IsClickable() const;
+    
+    // Operations
+    void            Disable();
+    virtual void    Draw(Bitmap *ds) { }
+    void            Enable();
+    void            Hide();
+    void            SetClickable(bool clickable);
+    void            Show();
+
+    // Events
+    // Key pressed for control
+    virtual void    OnKeyPress(int keycode) { }
+    // Mouse button down - return 'True' to lock focus
+    virtual bool    OnMouseDown() { return false; }
+    // Mouse moves onto control
+    virtual void    OnMouseEnter() { }
+    // Mouse moves off control
+    virtual void    OnMouseLeave() { }
+    // Mouse moves over control - x,y relative to gui
+    virtual void    OnMouseMove(int x, int y) { }
+    // Mouse button up
+    virtual void    OnMouseUp() { }
+    // Control was resized
+    virtual void    OnResized() { }
+
+    // Serialization
+    virtual void    WriteToFile(Common::Stream *out);
+    virtual void    ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+
+// TODO: these members are currently public; hide them later
+public:
+    int32_t  Id;         // GUI object's identifier
+    int32_t  ParentId;   // id of parent GUI
+    String   Name;       // script name
+    uint32_t Flags;      // generic style and behavior flags
+
+    int32_t  X;
+    int32_t  Y;
+    int32_t  Width;
+    int32_t  Height;
+    int32_t  ZOrder;
+    bool     IsActivated; // signals user interaction
+
+    String   EventHandlers[MAX_GUIOBJ_EVENTS]; // script function names
+  
+protected:
+    // TODO: explicit event names & handlers for every event
+    int32_t  _scEventCount;                    // number of supported script events
+    String   _scEventNames[MAX_GUIOBJ_EVENTS]; // script event names
+    String   _scEventArgs[MAX_GUIOBJ_EVENTS];  // script handler params
+};
+
+
+FrameAlignment ConvertLegacyGUIAlignment(int32_t align);
+
+} // namespace Common
+} // namespace AGS
 
 #endif // __AC_GUIOBJECT_H

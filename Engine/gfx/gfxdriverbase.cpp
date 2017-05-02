@@ -27,6 +27,10 @@ GraphicsDriverBase::GraphicsDriverBase()
     : _global_x_offset(0)
     , _global_y_offset(0)
     , _loopTimer(NULL)
+    , _pollingCallback(NULL)
+    , _drawScreenCallback(NULL)
+    , _nullSpriteCallback(NULL)
+    , _initGfxCallback(NULL)
 {
 }
 

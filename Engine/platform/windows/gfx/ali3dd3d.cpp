@@ -187,9 +187,6 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   direct3d = d3d;
   direct3ddevice = NULL;
   vertexbuffer = NULL;
-  _pollingCallback = NULL;
-  _drawScreenCallback = NULL;
-  _initGfxCallback = NULL;
   _tint_red = 0;
   _tint_green = 0;
   _tint_blue = 0;
@@ -205,7 +202,6 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   pNativeSurface = NULL;
   _skipPresent = false;
   availableVideoMemory = 0;
-  _nullSpriteCallback = NULL;
   _smoothScaling = false;
   _pixelRenderXOffset = 0;
   _pixelRenderYOffset = 0;

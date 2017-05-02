@@ -245,9 +245,6 @@ void OGLBitmap::Dispose()
 
 OGLGraphicsDriver::OGLGraphicsDriver() 
 {
-  _pollingCallback = NULL;
-  _drawScreenCallback = NULL;
-  _initGfxCallback = NULL;
   _tint_red = 0;
   _tint_green = 0;
   _tint_blue = 0;

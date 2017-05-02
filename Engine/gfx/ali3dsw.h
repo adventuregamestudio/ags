@@ -136,10 +136,6 @@ public:
     virtual int  GetDisplayDepthForNativeDepth(int native_color_depth) const;
     virtual IGfxModeList *GetSupportedModeList(int color_depth);
     virtual PGfxFilter GetGraphicsFilter() const;
-    virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _callback = callback; }
-    virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
-    virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
-    virtual void SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) { _nullSpriteCallback = callback; }
     virtual void UnInit();
     virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
     virtual Bitmap *ConvertBitmapToSupportedColourDepth(Bitmap *bitmap);
@@ -185,10 +181,6 @@ private:
     // disposed by the renderer: it is up to filter object to manage it.
     Bitmap *virtualScreen;
     Bitmap *_spareTintingScreen;
-    GFXDRV_CLIENTCALLBACK _callback;
-    GFXDRV_CLIENTCALLBACK _drawScreenCallback;
-    GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
-    GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
     int _tint_red, _tint_green, _tint_blue;
 
     std::vector<ALDrawListEntry> drawlist;

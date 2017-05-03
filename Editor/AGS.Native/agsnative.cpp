@@ -1683,6 +1683,20 @@ void copy_global_palette_to_room_palette()
   }
 }
 
+// CLNUP mostly for importing from 341 format, could be removed in the future
+// this is necessary because we no longer use the "resolution" and the mask might be low res while the room high res
+void fix_mask_area_size(Common::Bitmap *&mask) {
+    if (mask == NULL) return;
+    if (mask->GetWidth() != thisroom.width || mask->GetHeight() != thisroom.height) {
+        int oldw = mask->GetWidth(), oldh = mask->GetHeight();
+        Common::Bitmap *resized = Common::BitmapHelper::CreateBitmap(thisroom.width, thisroom.height, 8);
+        resized->Clear();
+        resized->StretchBlt(mask, RectWH(0, 0, oldw, oldh), RectWH(0, 0, resized->GetWidth(), resized->GetHeight()));
+        delete mask;
+        mask = resized;
+    }
+}
+
 const char* load_room_file(const char*rtlo) {
 
   load_room((char*)rtlo, &thisroom);
@@ -1715,7 +1729,7 @@ const char* load_room_file(const char*rtlo) {
   // Fix hi-color screens
   for (ww = 0; ww < thisroom.num_bscenes; ww++)
     fix_block (thisroom.ebscene[ww]);
-
+  
   // CLNUP probably to remove, this case should no longer apply
   /*
   if ((thisroom.resolution > 1) && (thisroom.object->GetWidth() < thisroom.width)) {
@@ -1742,6 +1756,12 @@ const char* load_room_file(const char*rtlo) {
   validate_mask(thisroom.object, "walk-behind", MAX_WALK_AREAS + 1);
   validate_mask(thisroom.walls, "walkable area", MAX_WALK_AREAS + 1);
   validate_mask(thisroom.regions, "regions", MAX_REGIONS);
+
+  // fix for importing older mixed resolution masks
+  fix_mask_area_size(thisroom.lookat);
+  fix_mask_area_size(thisroom.object);
+  fix_mask_area_size(thisroom.walls);
+  fix_mask_area_size(thisroom.regions);
   return NULL;
 }
 

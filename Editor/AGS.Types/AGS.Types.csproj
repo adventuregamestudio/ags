@@ -119,7 +119,6 @@
     <Compile Include="Enums\LipSyncType.cs" />
     <Compile Include="Enums\PaletteColourType.cs" />
     <Compile Include="Enums\RoomAreaMaskType.cs" />
-    <Compile Include="Enums\RoomResolution.cs" />
     <Compile Include="Enums\RoomTransitionStyle.cs" />
     <Compile Include="Enums\RoomVolumeAdjustment.cs" />
     <Compile Include="Enums\SkipSpeechStyle.cs" />

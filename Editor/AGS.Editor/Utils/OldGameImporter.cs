@@ -80,7 +80,6 @@ namespace AGS.Editor
             result.LoadedGame = Factory.NativeProxy.ImportOldGame(gameToLoad);
             Dictionary<int, Sprite> spriteList = Factory.NativeProxy.LoadSpriteDimensions();
             result.Errors = ImportExport.ImportOldEditorDatFile(gameToLoad, result.LoadedGame, spriteList);
-            result.LoadedGame.ConvertCoordinatesToNativeResolution();
             ImportExport.CreateInteractionScripts(result.LoadedGame, result.Errors);
             return result;
         }

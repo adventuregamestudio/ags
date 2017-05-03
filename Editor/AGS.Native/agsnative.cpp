@@ -1716,6 +1716,8 @@ const char* load_room_file(const char*rtlo) {
   for (ww = 0; ww < thisroom.num_bscenes; ww++)
     fix_block (thisroom.ebscene[ww]);
 
+  // CLNUP probably to remove, this case should no longer apply
+  /*
   if ((thisroom.resolution > 1) && (thisroom.object->GetWidth() < thisroom.width)) {
     // 640x400 room with 320x200-res walkbehind
     // resize it up to 640x400-res
@@ -1726,6 +1728,7 @@ const char* load_room_file(const char*rtlo) {
     delete thisroom.object; 
     thisroom.object = tempb;
   }
+  */
 
   set_palette_range(palette, 0, 255, 0);
   
@@ -1843,7 +1846,7 @@ void save_room(const char *files, RoomStruct rstruc) {
     opty->WriteArrayOfInt16(&rstruc.objectFlags[0], rstruc.numsprs);
 
   if (rfh.version >= 11)
-    opty->WriteInt16(rstruc.resolution);
+    opty->WriteInt16(1); // CLNUP remove this after gamedata format change (rstruc.resolution)
 
   // write the zoom and light levels
   opty->WriteInt32 (MAX_WALK_AREAS + 1);
@@ -2740,8 +2743,6 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 	RoomStruct *theRoom = (RoomStruct*)(void*)room->_roomStructPtr;
 	theRoom->width = room->Width;
 	theRoom->height = room->Height;
-	bool resolutionChanged = (theRoom->resolution != (int)room->Resolution);
-	theRoom->resolution = (int)room->Resolution;
 
 	if (newbg->GetColorDepth() == 8) 
 	{
@@ -2781,16 +2782,16 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 
   // if size or resolution has changed, reset masks
 	if ((newbg->GetWidth() != theRoom->object->GetWidth()) || (newbg->GetHeight() != theRoom->object->GetHeight()) ||
-      (theRoom->width != theRoom->object->GetWidth()) || (resolutionChanged))
+      (theRoom->width != theRoom->object->GetWidth()) )
 	{
 		delete theRoom->walls;
 		delete theRoom->lookat;
 		delete theRoom->object;
 		delete theRoom->regions;
-		theRoom->walls = Common::BitmapHelper::CreateBitmap(theRoom->width / theRoom->resolution, theRoom->height / theRoom->resolution,8);
-		theRoom->lookat = Common::BitmapHelper::CreateBitmap(theRoom->width / theRoom->resolution, theRoom->height / theRoom->resolution,8);
+		theRoom->walls = Common::BitmapHelper::CreateBitmap(theRoom->width, theRoom->height,8);
+		theRoom->lookat = Common::BitmapHelper::CreateBitmap(theRoom->width, theRoom->height,8);
 		theRoom->object = Common::BitmapHelper::CreateBitmap(theRoom->width, theRoom->height,8);
-		theRoom->regions = Common::BitmapHelper::CreateBitmap(theRoom->width / theRoom->resolution, theRoom->height / theRoom->resolution,8);
+		theRoom->regions = Common::BitmapHelper::CreateBitmap(theRoom->width, theRoom->height,8);
 		theRoom->walls->Clear();
 		theRoom->lookat->Clear();
 		theRoom->object->Clear();
@@ -4069,14 +4070,6 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	room->TopEdgeY = thisroom.top;
 	room->Width = thisroom.width;
 	room->Height = thisroom.height;
-  if (thisroom.resolution > 2)
-  {
-    room->Resolution = RoomResolution::HighRes;
-  }
-  else
-  {
-  	room->Resolution = (RoomResolution)thisroom.resolution;
-  }
 	room->ColorDepth = thisroom.ebscene[0]->GetColorDepth();
 	room->BackgroundAnimationDelay = thisroom.bscene_anim_speed;
 	room->BackgroundCount = thisroom.num_bscenes;
@@ -4267,7 +4260,6 @@ void save_crm_file(Room ^room)
 	thisroom.top = room->TopEdgeY;
 	thisroom.width = room->Width;
 	thisroom.height = room->Height;
-	thisroom.resolution = (int)room->Resolution;
 	thisroom.bscene_anim_speed = room->BackgroundAnimationDelay;
 	thisroom.num_bscenes = room->BackgroundCount;
 

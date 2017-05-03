@@ -37,7 +37,6 @@ namespace AGS.Editor
         private const string GUI_XML_SPRITE_HEIGHT = "Height";
         private const string GUI_XML_SPRITE_RESOLUTION = "Resolution";
 
-        private static int SPRITE_FLAG_HI_RES = 1;
         private static int SPRITE_FLAG_ALPHA_CHANNEL = 0x10;
         private static int EDITOR_DAT_LATEST_FILE_VERSION = 7;
         private static Dictionary<string, ImageFormat> ImageFileTypes = new Dictionary<string, ImageFormat>();

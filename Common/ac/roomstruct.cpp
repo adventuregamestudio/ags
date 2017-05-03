@@ -46,7 +46,7 @@ RoomStruct::RoomStruct() {
     cscriptsize = 0;
     memset(&walk_area_zoom[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
     memset(&walk_area_light[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
-    resolution = 1; num_bscenes = 1; ebscene[0] = NULL;
+    num_bscenes = 1; ebscene[0] = NULL;
     bscene_anim_speed = 5; bytes_per_pixel = 1;
     numLocalVars = 0;
     localvars = NULL;
@@ -173,7 +173,6 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
   usesmisccond = 0;
   rstruc->width = 320;
   rstruc->height = 200;
-  rstruc->resolution = 1;
   rstruc->numwalkareas = 0;
   rstruc->numhotspots = 0;
 
@@ -316,8 +315,8 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
   rstruc->height = in->ReadInt16(); 
 
   in->ReadArrayOfInt16(&rstruc->objectFlags[0], rstruc->numsprs);
-
-  rstruc->resolution = in->ReadInt16();
+  // CLNUP remove this when we change gamedata format
+  in->ReadInt16();  // rstruc->resolution = in->ReadInt16();
 
   int num_walk_areas = MAX_WALK_AREAS;
   num_walk_areas = in->ReadInt32();

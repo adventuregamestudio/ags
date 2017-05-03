@@ -178,7 +178,7 @@ struct RoomStruct {
     short         regionLightLevel[MAX_REGIONS];
     int           regionTintLevel[MAX_REGIONS];
     short         width,height;                             // in 320x200 terms (scrolling room size)
-    short         resolution;                               // 1 = 320x200, 2 = 640x400
+    //short         resolution;                               // [DEPRECATED] 1 = 320x200, 2 = 640x400
     short         walk_area_zoom[MAX_WALK_AREAS + 1];       // 0 = 100%, 1 = 101%, -1 = 99%
     short         walk_area_zoom2[MAX_WALK_AREAS + 1];      // for vector scaled areas
     short         walk_area_light[MAX_WALK_AREAS + 1];      // 0 = normal, + lighter, - darker

@@ -555,14 +555,6 @@ namespace AGS.Types
             }
         }
 
-        /// <summary>
-        /// Returns whether the game is "high resolution" (ie. 640x400 or more)
-        /// </summary>
-        public bool IsHighResolution
-        {
-            get { return (this.GUIScaleFactor == 1); }
-        }
-
         public int GetNextAudioIndex()
         {
             return ++_settings.AudioIndexer;
@@ -875,11 +867,6 @@ namespace AGS.Types
 				}
 			}
 
-            if (_savedXmlVersionIndex == null)
-            {
-                // Pre-3.0.3, upgrade co-ordinates
-                ConvertCoordinatesToNativeResolution();
-            }
         }
 
         public bool IsScriptNameAlreadyUsed(string tryName, object ignoreObject)
@@ -1140,70 +1127,5 @@ namespace AGS.Types
             }
         }
 
-        /// <summary>
-        /// WARNING: Only call this if an old game has just been loaded
-        /// in, otherwise all sizes will get doubled!!!
-        /// </summary>
-        public void ConvertCoordinatesToNativeResolution()
-        {
-            if (_settings.LowResolution)
-            {
-                // No conversion necessary -- already at native res
-                return;
-            }
-
-            const int MULTIPLY_FACTOR = 2;
-
-            foreach (GUI gui in _guis)
-            {
-                NormalGUI normalGui = gui as NormalGUI;
-                if (normalGui != null)
-                {                    
-                    normalGui.Left *= MULTIPLY_FACTOR;
-                    normalGui.Top *= MULTIPLY_FACTOR;
-                    normalGui.Width *= MULTIPLY_FACTOR;
-                    normalGui.Height *= MULTIPLY_FACTOR;
-                }
-
-                foreach (GUIControl control in gui.Controls)
-                {
-                    control.Left *= MULTIPLY_FACTOR;
-                    control.Top *= MULTIPLY_FACTOR;
-                    control.Width *= MULTIPLY_FACTOR;
-                    control.Height *= MULTIPLY_FACTOR;
-
-                    GUIInventory guiInventory = control as GUIInventory;
-                    if (guiInventory != null)
-                    {
-                        guiInventory.ItemWidth *= MULTIPLY_FACTOR;
-                        guiInventory.ItemHeight *= MULTIPLY_FACTOR;
-                    }
-                }
-            }
-
-            foreach (MouseCursor cursor in _cursors)
-            {
-                if (cursor.HotspotX >= 0)
-                {
-                    cursor.HotspotX *= MULTIPLY_FACTOR;
-                    cursor.HotspotY *= MULTIPLY_FACTOR;
-                }
-            }
-
-            foreach (InventoryItem item in _inventoryItems)
-            {
-                if (item.HotspotX >= 0)
-                {
-                    item.HotspotX *= MULTIPLY_FACTOR;
-                    item.HotspotY *= MULTIPLY_FACTOR;
-                }
-            }
-
-            foreach (Character character in _characters)
-            {
-                character.StartX *= MULTIPLY_FACTOR;
-                character.StartY *= MULTIPLY_FACTOR;
-            }
-        }
     }
 }

@@ -35,7 +35,6 @@ namespace AGS.Types
         private bool _showPlayerCharacter = true;
         private int _playerCharacterView;
         private RoomVolumeAdjustment _musicVolumeAdjustment;
-        private RoomResolution _resolution = RoomResolution.LowRes;
         private int _colorDepth;
         private int _width;
         private int _height;
@@ -121,16 +120,6 @@ namespace AGS.Types
                     }
                 }
             }
-        }
-
-        [Description("Which resolution the background was imported for")]
-        [Category("Visual")]
-        [ReadOnly(true)]
-        [TypeConverter(typeof(EnumTypeConverter))]
-        public RoomResolution Resolution
-        {
-            get { return _resolution; }
-            set { _resolution = value; }
         }
 
         [Browsable(false)]

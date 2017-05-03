@@ -34,6 +34,9 @@ namespace AGS.Editor
 
             InitializeComponent();
             _room = room;
+            // CLNUP adjust the default ScaleFactor value
+            _state.ScaleFactor = 1;
+            /*
             if (_room.Resolution == RoomResolution.LowRes)
             {
                 _state.ScaleFactor = 2;
@@ -42,6 +45,7 @@ namespace AGS.Editor
             {
                 _state.ScaleFactor = 1;
             }
+            */
             sldZoomLevel.Value = _state.ScaleFactor;
             _state.ScrollOffsetX = 0;
             _state.ScrollOffsetY = 0;
@@ -130,13 +134,6 @@ namespace AGS.Editor
             _state.ScrollOffsetY = -(bufferedPanel1.AutoScrollPosition.Y / _state.ScaleFactor) * _state.ScaleFactor;
 
 			int scaleFactor = _state.ScaleFactor;
-            if ((_room.Resolution == RoomResolution.LowRes) &&
-                (Factory.AGSEditor.CurrentGame.IsHighResolution))
-            {
-                // low-res room in high-res game, scale up since object
-                // co-ordinates will be high-res
-                scaleFactor *= 2;
-            }
 
             int backgroundNumber = cmbBackgrounds.SelectedIndex;
             if (backgroundNumber < _room.BackgroundCount)
@@ -271,25 +268,8 @@ namespace AGS.Editor
                     bmp = ExtendBitmapIfSmallerThanScreen(bmp);
                     bool doImport = true;
                     bool deleteExtraFrames = false;
-					RoomResolution newResolution;
-					if (bgIndex > 0)
-					{
-						newResolution = _room.Resolution;
-					}
-                    // CHECKME: WTF is this??? How to deal with it?
-                    // CLNUP remove, just like sprites rooms too had a resolution property, so you could use a doubled up lowres background when switching to a higher resolution
-                    else if (//(bmp.Width > 640) && (bmp.Height > 400) &&
-						(!Factory.AGSEditor.CurrentGame.Settings.LowResolution))
-					{
-						newResolution = RoomResolution.HighRes;
-					}
-					else
-					{
-						newResolution = RoomResolution.LowRes;
-					}
 
-					if ((bmp.Width != _room.Width) || (bmp.Height != _room.Height) ||
-						(newResolution != _room.Resolution))
+					if ((bmp.Width != _room.Width) || (bmp.Height != _room.Height))
                     {
                         if (bgIndex > 0)
                         {
@@ -317,7 +297,6 @@ namespace AGS.Editor
                     }
                     if (doImport)
                     {
-						_room.Resolution = newResolution;
                         _room.Width = bmp.Width;
                         _room.Height = bmp.Height;
                         Factory.NativeProxy.ImportBackground(_room, bgIndex, bmp, !Factory.AGSEditor.Preferences.RemapPalettizedBackgrounds, false);
@@ -331,7 +310,7 @@ namespace AGS.Editor
                             }
                         }
 
-						sldZoomLevel.Value = 3 - (int)_room.Resolution;
+						sldZoomLevel.Value = 2; // CLNUP check this: "3 - (int)_room.Resolution;" performs a reset to the default scale ?
 						sldZoomLevel_Scroll(null, null);
 						UpdateScrollableWindowSize();
                     }

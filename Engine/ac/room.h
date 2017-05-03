@@ -42,7 +42,6 @@ RuntimeScriptValue Sc_Room_GetProperty(const RuntimeScriptValue *params, int32_t
 Common::Bitmap *fix_bitmap_size(Common::Bitmap *todubl);
 void  save_room_data_segment ();
 void  unload_old_room();
-void  convert_room_coordinates_to_low_res(RoomStruct *rstruc);
 void  load_new_room(int newnum,CharacterInfo*forchar);
 void  new_room(int newnum,CharacterInfo*forchar);
 int   find_highest_room_entered();

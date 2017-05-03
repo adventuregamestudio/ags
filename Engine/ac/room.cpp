@@ -367,40 +367,6 @@ void unload_old_room() {
 
 }
 
-
-
-void convert_room_coordinates_to_low_res(RoomStruct *rstruc)
-{
-    int f;
-    for (f = 0; f < rstruc->numsprs; f++)
-    {
-        rstruc->sprs[f].x /= 2;
-        rstruc->sprs[f].y /= 2;
-        if (rstruc->objbaseline[f] > 0)
-        {
-            rstruc->objbaseline[f] /= 2;
-        }
-    }
-
-    for (f = 0; f < rstruc->numhotspots; f++)
-    {
-        rstruc->hswalkto[f].x /= 2;
-        rstruc->hswalkto[f].y /= 2;
-    }
-
-    for (f = 0; f < rstruc->numobj; f++)
-    {
-        rstruc->objyval[f] /= 2;
-    }
-
-    rstruc->left /= 2;
-    rstruc->top /= 2;
-    rstruc->bottom /= 2;
-    rstruc->right /= 2;
-    rstruc->width /= 2;
-    rstruc->height /= 2;
-}
-
 extern int convert_16bit_bgr;
 
 #define NO_GAME_ID_IN_ROOM_FILE 16325
@@ -565,16 +531,10 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
     redo_walkable_areas();
     // fix walk-behinds to current screen resolution
-    thisroom.object = fix_bitmap_size(thisroom.object);
+    thisroom.object = fix_bitmap_size(thisroom.object); // CLNUP check this fix_bitmap_size
     update_polled_stuff_if_runtime();
 
     set_color_depth(System_GetColorDepth());
-    // convert backgrounds to current res
-	// CLNUP this should be removed
-    if (thisroom.resolution != 1) {
-        for (cc=0;cc<thisroom.num_bscenes;cc++)
-            thisroom.ebscene[cc] = fix_bitmap_size(thisroom.ebscene[cc]);
-    }
 
     if ((thisroom.ebscene[0]->GetWidth() < play.viewport.GetWidth()) ||
         (thisroom.ebscene[0]->GetHeight() < play.viewport.GetHeight()))

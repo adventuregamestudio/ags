@@ -46,7 +46,6 @@ namespace AGS.Editor
         private bool _mouseDown = false;
         private int _mouseDownX, _mouseDownY;
         private int _currentMouseX, _currentMouseY;
-        private bool _highResMask = false;
 
         private static AreaDrawMode _drawMode = AreaDrawMode.Line;
         private static List<MenuCommand> _toolbarIcons = null;
@@ -54,7 +53,7 @@ namespace AGS.Editor
         private static Cursor _selectCursor;
 		private static bool _greyedOutMasks = true;
 
-        public BaseAreasEditorFilter(Panel displayPanel, Room room, bool highResMask)
+        public BaseAreasEditorFilter(Panel displayPanel, Room room)
         {
             if (!_registeredIcons)
             {
@@ -72,7 +71,6 @@ namespace AGS.Editor
 
             _tooltip = new ToolTip();
             _tooltip.IsBalloon = true;
-            _highResMask = highResMask;
             _toolbarIcons = new List<MenuCommand>();
             _toolbarIcons.Add(new MenuCommand(SELECT_AREA_COMMAND, "Select area (Ctrl+C)", "SelectAreaIcon"));
             _toolbarIcons.Add(new MenuCommand(DRAW_LINE_COMMAND, "Line tool (Ctrl+N)", "DrawLineIcon"));
@@ -179,23 +177,7 @@ namespace AGS.Editor
 
         private int GetScaleFactor(RoomEditorState state)
         {
-            if (_room.Resolution == RoomResolution.HighRes)
-            {
-                if (_highResMask)
-                {
-                    return state.ScaleFactor;
-                }
-                return state.ScaleFactor * 2;
-            }
-            else if (Factory.AGSEditor.CurrentGame.IsHighResolution)
-            {
-                // Low-res room in hi-res game
-                return state.ScaleFactor * 2;
-            }
-            else
-            {
-                return state.ScaleFactor;
-            }
+            return state.ScaleFactor;
         }
 
         protected int GameToScreenX(int gameX, RoomEditorState state)
@@ -447,8 +429,7 @@ namespace AGS.Editor
             {
                 Bitmap bmp = new Bitmap(fileName);
 
-                if (!(((bmp.Width == _room.Width) && (bmp.Height == _room.Height)) ||
-                    ((bmp.Width == _room.Width / 2) && (bmp.Height == _room.Height / 2))))
+                if (!(((bmp.Width == _room.Width) && (bmp.Height == _room.Height))))
                 {
                     Factory.GUIController.ShowMessage("This file cannot be imported because it is not the same size as the room background." +
                         "\nFile size: " + bmp.Width + " x " + bmp.Height +

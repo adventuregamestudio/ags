@@ -27,7 +27,6 @@ namespace AGS.Types
 		int PlayMusicOnRoomLoad { get; set; }
 		CustomProperties Properties { get; }
 		IList<RoomRegion> Regions { get; }
-		RoomResolution Resolution { get; }
 		int RightEdgeX { get; set; }
 		event Room.RoomModifiedChangedHandler RoomModifiedChanged;
 		bool SaveLoadEnabled { get; set; }

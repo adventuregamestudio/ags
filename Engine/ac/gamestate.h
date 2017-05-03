@@ -183,7 +183,7 @@ struct GameState {
     int   next_screen_transition;
     int   gamma_adjustment;
     short temporarily_turned_off_character;  // Hide Player Charactr ticked
-    short inv_backwards_compatibility;
+    short inv_backwards_compatibility; // CLNUP probably remove, need to check
     int  *gui_draw_order;
     char**do_once_tokens;
     int   num_do_once_tokens;

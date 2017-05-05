@@ -44,7 +44,7 @@ struct SpriteDrawListEntry
     {
     }
 
-    SpriteDrawListEntry(T_DDB *ddb, int x_, int y_)
+    SpriteDrawListEntry(T_DDB *ddb, int x_ = 0, int y_ = 0)
         : bitmap(ddb)
         , x(x_)
         , y(y_)
@@ -54,6 +54,8 @@ struct SpriteDrawListEntry
 };
 
 
+// GraphicsDriverBase - is the parent class for all graphics drivers in AGS,
+// that incapsulates the most common functionality.
 class GraphicsDriverBase : public IGraphicsDriver
 {
 public:
@@ -108,6 +110,39 @@ protected:
     GFXDRV_CLIENTCALLBACK _drawScreenCallback;
     GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
     GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
+};
+
+
+// VideoMemoryGraphicsDriver - is the parent class for the graphic drivers
+// which drawing method is based on passing the sprite stack into GPU,
+// rather than blitting to flat screen bitmap.
+class VideoMemoryGraphicsDriver : public GraphicsDriverBase
+{
+public:
+    VideoMemoryGraphicsDriver();
+    virtual ~VideoMemoryGraphicsDriver();
+
+    virtual bool UsesMemoryBackBuffer();
+    virtual Bitmap *GetMemoryBackBuffer();
+    virtual void SetMemoryBackBuffer(Bitmap *backBuffer);
+
+protected:
+    void CreateStageScreen();
+    void DestroyStageScreen();
+    // Use engine callback to acquire replacement for the null sprite;
+    // returns true if the sprite was provided onto the virtual screen,
+    // and false if this entry should be skipped.
+    bool DoNullSpriteCallback(int x, int y);
+
+    // Stage virtual screen is used to let plugins draw custom graphics
+    // in between render stages (between room and GUI, after GUI, and so on)
+    Bitmap *_stageVirtualScreen;
+    IDriverDependantBitmap *_stageVirtualScreenDDB;
+
+private:
+    // Flag which indicates whether stage screen was drawn upon during engine
+    // callback and has to be inserted into sprite stack.
+    bool _stageScreenDirty;
 };
 
 } // namespace Engine

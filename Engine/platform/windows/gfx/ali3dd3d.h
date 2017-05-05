@@ -158,7 +158,7 @@ struct CUSTOMVERTEX
 
 typedef SpriteDrawListEntry<D3DBitmap> D3DDrawListEntry;
 
-class D3DGraphicsDriver : public GraphicsDriverBase
+class D3DGraphicsDriver : public VideoMemoryGraphicsDriver
 {
 public:
     virtual const char*GetDriverName() { return "Direct3D 9"; }
@@ -195,9 +195,6 @@ public:
     virtual void UseSmoothScaling(bool enabled) { _smoothScaling = enabled; }
     virtual bool RequiresFullRedrawEachFrame() { return true; }
     virtual bool HasAcceleratedStretchAndFlip() { return true; }
-    virtual bool UsesMemoryBackBuffer() { return false; }
-    virtual Bitmap* GetMemoryBackBuffer() { return NULL; }
-    virtual void SetMemoryBackBuffer(Bitmap *backBuffer) {  }
     virtual void SetScreenTint(int red, int green, int blue);
 
     typedef stdtr1compat::shared_ptr<D3DGfxFilter> PD3DFilter;
@@ -237,7 +234,6 @@ private:
     Bitmap *_screenTintLayer;
     D3DBitmap* _screenTintLayerDDB;
     D3DDrawListEntry _screenTintSprite;
-    Bitmap *_dummyVirtualScreen;
     bool _skipPresent; // used for rendering only on the virtual screen for GetCopyOfScreenIntoBitmap
 
     std::vector<D3DDrawListEntry> drawList;

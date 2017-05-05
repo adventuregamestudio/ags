@@ -195,7 +195,6 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _screenTintSprite.skip = true;
   _screenTintSprite.x = 0;
   _screenTintSprite.y = 0;
-  _dummyVirtualScreen = NULL;
   pixelShader = NULL;
   _legacyPixelShader = false;
   set_up_default_vertices();
@@ -286,8 +285,7 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
   delete _screenTintLayer;
   _screenTintLayer = NULL;
 
-  delete _dummyVirtualScreen;
-  _dummyVirtualScreen = NULL;
+  DestroyStageScreen();
 
   gfx_driver = NULL;
 
@@ -867,12 +865,8 @@ void D3DGraphicsDriver::CreateVirtualScreen()
   }
   direct3ddevice->ColorFill(pNativeSurface, NULL, 0);
 
-  // create dummy screen bitmap
-  // TODO: find out why we are doing this
-  delete _dummyVirtualScreen;
-  _dummyVirtualScreen = ReplaceBitmapWithSupportedFormat(
-      BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth));
-  BitmapHelper::SetScreenBitmap(_dummyVirtualScreen);
+  // create virtual screen for extra rendering
+  CreateStageScreen();
 }
 
 HRESULT D3DGraphicsDriver::ResetD3DDevice()
@@ -930,8 +924,6 @@ void D3DGraphicsDriver::UnInit()
   OnUnInit();
   ReleaseDisplayMode();
 
-  delete _dummyVirtualScreen;
-  _dummyVirtualScreen = NULL;
   dxmedia_shutdown_3d();
 
   if (pNativeSurface)
@@ -1321,12 +1313,10 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
     if (listToDraw[i].bitmap == NULL)
     {
-      if (_nullSpriteCallback)
-        _nullSpriteCallback(listToDraw[i].x, (int)direct3ddevice);
+      if (DoNullSpriteCallback(listToDraw[i].x, (int)direct3ddevice))
+        listToDraw[i] = D3DDrawListEntry((D3DBitmap*)_stageVirtualScreenDDB);
       else
-        throw Ali3DException("Unhandled attempt to draw null sprite");
-
-      continue;
+        continue;
     }
 
     this->_renderSprite(&listToDraw[i], globalLeftRightFlip, globalTopBottomFlip);

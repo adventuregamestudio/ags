@@ -20,14 +20,14 @@
 
 void SetAmbientTint (int red, int green, int blue, int opacity, int luminance);
 void SetAmbientLightLevel(int light_level);
-void NewRoom(int nrnum);
-void NewRoomEx(int nrnum,int newx,int newy);
-void NewRoomNPC(int charid, int nrnum, int newx, int newy);
+void NewRoom(int nrnum);// still widely used
+//void NewRoomEx(int nrnum,int newx,int newy);// [DEPRECATED]
+//void NewRoomNPC(int charid, int nrnum, int newx, int newy);// [DEPRECATED]
 void ResetRoom(int nrnum);
 int  HasPlayerBeenInRoom(int roomnum);
 void CallRoomScript (int value);
 int  HasBeenToRoom (int roomnum);
-void GetRoomPropertyText (const char *property, char *bufer);
+//void GetRoomPropertyText (const char *property, char *bufer);// [DEPRECATED]
 
 void SetBackgroundFrame(int frnum);
 int GetBackgroundFrame() ;

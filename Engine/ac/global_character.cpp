@@ -192,7 +192,9 @@ void SetPlayerCharacter(int newchar) {
     Character_SetAsPlayer(&game.chars[newchar]);
 }
 
-void FollowCharacterEx(int who, int tofollow, int distaway, int eagerness) {
+
+// [DEPRECATED] but still used by run_interaction_commandlist
+void FollowCharacter(int who, int tofollow, int distaway, int eagerness) {
     if (!is_valid_character(who))
         quit("!FollowCharacter: Invalid character specified");
     CharacterInfo *chtofollow;
@@ -206,9 +208,11 @@ void FollowCharacterEx(int who, int tofollow, int distaway, int eagerness) {
     Character_FollowCharacter(&game.chars[who], chtofollow, distaway, eagerness);
 }
 
-void FollowCharacter(int who, int tofollow) {
+// [DEPRECATED]
+/*void FollowCharacter(int who, int tofollow) {
     FollowCharacterEx(who,tofollow,10,97);
 }
+*/
 
 void SetCharacterIgnoreLight (int who, int yesorno) {
     if (!is_valid_character(who))
@@ -419,12 +423,15 @@ int AreCharactersColliding(int cchar1,int cchar2) {
     return Character_IsCollidingWithChar(&game.chars[cchar1], &game.chars[cchar2]);
 }
 
+/*
+// [DEPRECATED]
 int GetCharacterProperty (int cha, const char *property) {
     if (!is_valid_character(cha))
         quit("!GetCharacterProperty: invalid character");
     return get_int_property (game.charProps[cha], play.charProps[cha], property);
 }
 
+// [DEPRECATED]
 void SetCharacterProperty (int who, int flag, int yesorno) {
     if (!is_valid_character(who))
         quit("!SetCharacterProperty: Invalid character specified");
@@ -432,9 +439,11 @@ void SetCharacterProperty (int who, int flag, int yesorno) {
     Character_SetOption(&game.chars[who], flag, yesorno);
 }
 
+// [DEPRECATED]
 void GetCharacterPropertyText (int item, const char *property, char *bufer) {
     get_text_property (game.charProps[item], play.charProps[item], property, bufer);
 }
+*/
 
 int GetCharacterAt (int xx, int yy) {
     xx += offsetx;
@@ -442,6 +451,7 @@ int GetCharacterAt (int xx, int yy) {
     return is_pos_on_character(xx,yy);
 }
 
+// [DEPRECATED] still used by Character_SetAsPlayer
 void SetActiveInventory(int iit) {
 
     ScriptInvItem *tosend = NULL;
@@ -479,6 +489,7 @@ void update_invorder() {
     guis_need_update = 1;
 }
 
+// CLNUP still used by run_dialog_script and run_interaction_commandlist, investigate if we could just use Character_AddInventory
 void add_inventory(int inum) {
     if ((inum < 0) || (inum >= MAX_INV))
         quit("!AddInventory: invalid inventory number");
@@ -488,6 +499,7 @@ void add_inventory(int inum) {
     play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
 }
 
+// CLNUP still used by run_dialog_script and run_interaction_commandlist, investigate if we could just use Character_LoseInventory
 void lose_inventory(int inum) {
     if ((inum < 0) || (inum >= MAX_INV))
         quit("!LoseInventory: invalid inventory number");
@@ -497,7 +509,8 @@ void lose_inventory(int inum) {
     play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
 }
 
-void AddInventoryToCharacter(int charid, int inum) {
+// [DEPRECATED]
+/*void AddInventoryToCharacter(int charid, int inum) {
     if (!is_valid_character(charid))
         quit("!AddInventoryToCharacter: invalid character specified");
     if ((inum < 1) || (inum >= game.numinvitems))
@@ -506,6 +519,7 @@ void AddInventoryToCharacter(int charid, int inum) {
     Character_AddInventory(&game.chars[charid], &scrInv[inum], SCR_NO_VALUE);
 }
 
+// [DEPRECATED]
 void LoseInventoryFromCharacter(int charid, int inum) {
     if (!is_valid_character(charid))
         quit("!LoseInventoryFromCharacter: invalid character specified");
@@ -515,6 +529,7 @@ void LoseInventoryFromCharacter(int charid, int inum) {
     Character_LoseInventory(&game.chars[charid], &scrInv[inum]);
 }
 
+// [DEPRECATED]
 void DisplayThought(int chid, const char *text) {
     if ((chid < 0) || (chid >= game.numcharacters))
         quit("!DisplayThought: invalid character specified");
@@ -522,12 +537,14 @@ void DisplayThought(int chid, const char *text) {
     _DisplayThoughtCore(chid, text);
 }
 
+// [DEPRECATED]
 void __sc_displayspeech(int chid, const char *text) {
     if ((chid<0) || (chid>=game.numcharacters))
         quit("!DisplaySpeech: invalid character specified");
 
     _DisplaySpeechCore(chid, text);
 }
+*/
 
 // CLNUP investigate if I can just removed the following comments
 // **** THIS IS UNDOCUMENTED BECAUSE IT DOESN'T WORK PROPERLY
@@ -536,6 +553,7 @@ void DisplaySpeechAt (int xx, int yy, int wii, int aschar, const char*spch) {
     _displayspeech (get_translation(spch), aschar, xx, yy, wii, 0);
 }
 
+// [DEPRECATED] but still used by Character_SayBackground, might merge since there are no other instances
 int DisplaySpeechBackground(int charid, const char*speel) {
     // remove any previous background speech for this character
     int cc;

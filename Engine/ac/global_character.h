@@ -34,8 +34,9 @@ void SetCharacterTransparency(int obn,int trans);
 void scAnimateCharacter (int chh, int loopn, int sppd, int rept);
 void AnimateCharacterEx(int chh, int loopn, int sppd, int rept, int direction, int blocking);
 void SetPlayerCharacter(int newchar);
-void FollowCharacterEx(int who, int tofollow, int distaway, int eagerness);
-void FollowCharacter(int who, int tofollow);
+//void FollowCharacterEx(int who, int tofollow, int distaway=10, int eagerness=79);// [DEPRECATED]
+//void FollowCharacter(int who, int tofollow);// [DEPRECATED]
+void FollowCharacter(int who, int tofollow, int distaway = 10, int eagerness = 79);
 void SetCharacterIgnoreLight (int who, int yesorno);
 void MoveCharacter(int cc,int xx,int yy);
 void MoveCharacterDirect(int cc,int xx, int yy);
@@ -60,28 +61,28 @@ void MoveCharacterToObject(int chaa,int obbj);
 void MoveCharacterToHotspot(int chaa,int hotsp);
 void MoveCharacterBlocking(int chaa,int xx,int yy,int direct);
 
-void RunCharacterInteraction (int cc, int mood);
+void RunCharacterInteraction (int cc, int mood);// [DEPRECATED]
 int  AreCharObjColliding(int charid,int objid);
 int  AreCharactersColliding(int cchar1,int cchar2);
 
-int  GetCharacterProperty (int cha, const char *property);
-void SetCharacterProperty (int who, int flag, int yesorno);
+//int  GetCharacterProperty (int cha, const char *property);// [DEPRECATED]
+//void SetCharacterProperty (int who, int flag, int yesorno);// [DEPRECATED]
 int  GetPlayerCharacter();
-void GetCharacterPropertyText (int item, const char *property, char *bufer);
+//void GetCharacterPropertyText (int item, const char *property, char *bufer);// [DEPRECATED]
 
 int GetCharacterSpeechAnimationDelay(CharacterInfo *cha);
 int GetCharacterAt (int xx, int yy);
 
-void SetActiveInventory(int iit);
-void AddInventoryToCharacter(int charid, int inum);
-void LoseInventoryFromCharacter(int charid, int inum);
+void SetActiveInventory(int iit);// [DEPRECATED] but still used in Character_SetAsPlayer
+//void AddInventoryToCharacter(int charid, int inum);// [DEPRECATED]
+//void LoseInventoryFromCharacter(int charid, int inum);// [DEPRECATED]
 void update_invorder();
 void add_inventory(int inum);
 void lose_inventory(int inum);
 
-void DisplayThought(int chid, const char *text);
-void __sc_displayspeech(int chid, const char *text);
+//void DisplayThought(int chid, const char *text);// [DEPRECATED]
+//void __sc_displayspeech(int chid, const char *text);// [DEPRECATED]
 void DisplaySpeechAt (int xx, int yy, int wii, int aschar, const char*spch);
-int DisplaySpeechBackground(int charid, const char*speel);
+int DisplaySpeechBackground(int charid, const char*speel);// [DEPRECATED] but still used by Character_SayBackground
 
 #endif // __AGS_EE_AC__CHARACTEREXTRAS_H

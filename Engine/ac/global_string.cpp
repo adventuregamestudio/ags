@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+//CLNUP delete this file
 #include <string.h>
 #include "ac/common.h"
 #include "ac/global_string.h"
@@ -22,7 +23,8 @@
 
 extern int MAXSTRLEN;
 
-int StrGetCharAt (const char *strin, int posn) {
+// CLNUP probably to remove
+/*int StrGetCharAt (const char *strin, int posn) {
     if ((posn < 0) || (posn >= (int)strlen(strin)))
         return 0;
     return strin[posn];
@@ -56,8 +58,9 @@ void _sc_strupper (char *desbuf) {
     VALIDATE_STRING(desbuf);
     check_strlen (desbuf);
     strupr (desbuf);
-}
+}*/
 
+// CLNUP probably to remove
 /*int _sc_strcmp (char *s1, char *s2) {
 return strcmp (get_translation (s1), get_translation(s2));
 }
@@ -66,8 +69,9 @@ int _sc_stricmp (char *s1, char *s2) {
 return stricmp (get_translation (s1), get_translation(s2));
 }*/
 
-void _sc_strcpy(char*destt, const char *text) {
+// CLNUP probably to remove
+/*void _sc_strcpy(char*destt, const char *text) {
     VALIDATE_STRING(destt);
     check_strlen(destt);
     my_strncpy(destt, text, MAXSTRLEN - 1);
-}
+}*/

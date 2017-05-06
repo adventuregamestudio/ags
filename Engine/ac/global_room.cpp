@@ -132,7 +132,8 @@ void NewRoom(int nrnum) {
         gs_to_newroom = nrnum;
 }
 
-
+/*
+// [DEPRECATED]
 void NewRoomEx(int nrnum,int newx,int newy) {
     Character_ChangeRoom(playerchar, nrnum, newx, newy);
 }
@@ -145,6 +146,7 @@ void NewRoomNPC(int charid, int nrnum, int newx, int newy) {
 
     Character_ChangeRoom(&game.chars[charid], nrnum, newx, newy);
 }
+*/
 
 void ResetRoom(int nrnum) {
     if (nrnum == displayed_room)
@@ -193,10 +195,11 @@ int HasBeenToRoom (int roomnum) {
         return 0;
 }
 
-void GetRoomPropertyText (const char *property, char *bufer)
+// [DEPRECATED]
+/*void GetRoomPropertyText (const char *property, char *bufer)
 {
     get_text_property(thisroom.roomProps, croom->roomProps, property, bufer);
-}
+}*/
 
 void SetBackgroundFrame(int frnum) {
     if ((frnum<-1) | (frnum>=thisroom.num_bscenes))

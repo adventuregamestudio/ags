@@ -152,7 +152,7 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
 // become invalid and don't run another interaction on it
 // (eg. a room change occured)
 int run_interaction_event (Interaction *nint, int evnt, int chkAny, int isInv) {
-
+    // CHECKME signed values may become unsigned when there's mismatch in comparisons, is this really working as intended ?
     if (evnt >= nint->Events.size() ||
         (nint->Events[evnt].Response.get() == NULL) || (nint->Events[evnt].Response->Cmds.size() == 0)) {
         // no response defined for this event
@@ -597,7 +597,7 @@ int run_interaction_commandlist (InteractionCommandList *nicl, int *timesrun, in
           StopMoving (IPARAM1);
           break;
       case 25: // Go to screen at specific co-ordinates
-          NewRoomEx (IPARAM1, IPARAM2, IPARAM3);
+          Character_ChangeRoom(playerchar, IPARAM1, IPARAM2, IPARAM3);
           return -1;
       case 26: // Move NPC to different room
           if (!is_valid_character(IPARAM1))

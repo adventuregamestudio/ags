@@ -73,7 +73,7 @@ bool SetSaveGameDirectoryPath(const char *newFolder, bool explicit_path = false)
 int Game_SetSaveGameDirectory(const char *newFolder);
 const char* Game_GetSaveSlotDescription(int slnum);
 
-const char* Game_GetGlobalStrings(int index);
+//const char* Game_GetGlobalStrings(int index);// [DEPRECATED]
 
 int Game_GetInventoryItemCount();
 int Game_GetFontCount();

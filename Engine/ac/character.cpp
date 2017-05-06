@@ -761,6 +761,7 @@ ScriptOverlay* Character_SayBackground(CharacterInfo *chaa, const char *texx) {
     return scOver;
 }
 
+// CLNUP check the use of SetActiveInventory
 void Character_SetAsPlayer(CharacterInfo *chaa) {
 
     // Set to same character, so ignore.

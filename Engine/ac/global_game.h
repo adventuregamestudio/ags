@@ -25,15 +25,15 @@ void GiveScore(int amnt);
 void restart_game();
 void RestoreGameSlot(int slnum);
 void DeleteSaveSlot (int slnum);
-int  GetSaveSlotDescription(int slnum,char*desbuf);
+int  GetSaveSlotDescription(int slnum,char*desbuf);// [DEPRECATED] ?
 int  LoadSaveSlotScreenshot(int slnum, int width, int height);
 void PauseGame();
 void UnPauseGame();
 int  IsGamePaused();
 void SetGlobalInt(int index,int valu);
 int  GetGlobalInt(int index);
-void SetGlobalString (int index, const char *newval);
-void GetGlobalString (int index, char *strval);
+//void SetGlobalString (int index, const char *newval);// [DEPRECATED]
+//void GetGlobalString (int index, char *strval);// [DEPRECATED]
 int  RunAGSGame (const char *newgame, unsigned int mode, int data);
 int  GetGameParameter (int parm, int data1, int data2, int data3);
 void QuitGame(int dialog);

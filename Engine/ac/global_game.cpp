@@ -153,6 +153,7 @@ int IsGamePaused() {
     return 0;
 }
 
+// CLNUP check this, used by ListBox_FillSaveGameList, but Game_GetSaveSlotDescription exist too
 int GetSaveSlotDescription(int slnum,char*desbuf) {
     VALIDATE_STRING(desbuf);
     String description;
@@ -210,6 +211,8 @@ int GetGlobalInt(int index) {
     return play.globalscriptvars[index];
 }
 
+/*
+// [DEPRECATED]
 void SetGlobalString (int index, const char *newval) {
     if ((index<0) | (index >= MAXGLOBALSTRINGS))
         quit("!SetGlobalString: invalid index");
@@ -218,13 +221,15 @@ void SetGlobalString (int index, const char *newval) {
     // truncate it to 200 chars, to be sure
     play.globalstrings[index][MAX_MAXSTRLEN - 1] = 0;
 }
-
+*/
+/*
+// [DEPRECATED]
 void GetGlobalString (int index, char *strval) {
     if ((index<0) | (index >= MAXGLOBALSTRINGS))
         quit("!GetGlobalString: invalid index");
     strcpy (strval, play.globalstrings[index]);
 }
-
+*/
 int RunAGSGame (const char *newgame, unsigned int mode, int data) {
 
     can_run_delayed_command();
@@ -515,10 +520,6 @@ int GetLocationType(int xxx,int yyy) {
 }
 
 void SaveCursorForLocationChange() {
-    // update the current location name
-    char tempo[100];
-    GetLocationName(mousex, mousey, tempo);
-
     if (play.get_loc_name_save_cursor != play.get_loc_name_last_time) {
         play.get_loc_name_save_cursor = play.get_loc_name_last_time;
         play.restore_cursor_mode_to = GetCursorMode();

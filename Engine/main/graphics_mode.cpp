@@ -616,7 +616,9 @@ bool graphics_mode_set_native_size(const Size &native_size)
         return false;
     if (!gfxDriver->SetNativeSize(native_size))
         return false;
-    graphics_mode_update_render_frame();
+    // if render frame translation was already set, then update it with new native size
+    if (gfxDriver->IsRenderFrameValid())
+        graphics_mode_update_render_frame();
     return true;
 }
 

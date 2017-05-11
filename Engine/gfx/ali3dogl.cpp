@@ -593,33 +593,28 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
 
   try
   {
-    int i = 0;
 
 #if defined(WINDOWS_VERSION)
-    HWND allegro_wnd = _hWnd = win_get_window();
+    _hWnd = win_get_window();
 
     if (!mode.Windowed)
     {
-      // Remove the border in full-screen mode, otherwise if the player
-      // clicks near the edge of the screen it goes back to Windows
-      SetWindowLong(allegro_wnd, GWL_STYLE, WS_POPUP);
+        platform->EnterFullscreenMode(mode);
+        platform->AdjustWindowStyleForFullscreen();
     }
 #endif
 
     gfx_driver = &gfx_opengl;
 
 #if defined(WINDOWS_VERSION)
-    if (/*mode.Windowed*/true)
+    // NOTE: adjust_window may leave task bar visible, so we do not use it for fullscreen mode
+    if (mode.Windowed && adjust_window(device_screen_physical_width, device_screen_physical_height) != 0)
     {
-      if (adjust_window(device_screen_physical_width, device_screen_physical_height) != 0) 
-      {
-        set_allegro_error("Window size not supported");
-        return -1;
-      }
+      set_allegro_error("Window size not supported");
+      return -1;
     }
 
     win_grab_input();
-
 
     GLuint PixelFormat;
 
@@ -756,12 +751,8 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
 
   gfx_driver = NULL;
 
-  // Restore allegro window styles in case we modified them
-  restore_window_style();
-  // For uncertain reasons WS_EX_TOPMOST (applied when creating fullscreen)
-  // cannot be removed with style altering functions; here use SetWindowPos
-  // as a workaround
-  SetWindowPos(win_get_window(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+  platform->ExitFullscreenMode();
+  platform->RestoreWindowStyle();
 }
 
 void OGLGraphicsDriver::UnInit() 

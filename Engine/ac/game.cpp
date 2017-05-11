@@ -2319,6 +2319,7 @@ void display_switch_out()
     switched_away = true;
     // Always unlock mouse when switching out from the game
     Mouse::UnlockFromWindow();
+    platform->ExitFullscreenMode();
 }
 
 void display_switch_out_suspend()
@@ -2353,6 +2354,12 @@ void display_switch_out_suspend()
 void display_switch_in()
 {
     switched_away = false;
+    if (gfxDriver)
+    {
+        DisplayMode mode = gfxDriver->GetDisplayMode();
+        if (!mode.Windowed)
+            platform->EnterFullscreenMode(mode);
+    }
     // If auto lock option is set, lock mouse to the game window
     if (usetup.mouse_auto_lock && scsystem.windowed)
         Mouse::TryLockToWindow();

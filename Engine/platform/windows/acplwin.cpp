@@ -20,6 +20,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <allegro.h>
+#include <allegro/platform/aintwin.h>
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
@@ -122,6 +124,10 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void DisplaySwitchOut() ;
   virtual void DisplaySwitchIn() ;
   virtual void GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms);
+  virtual bool EnterFullscreenMode(const Engine::DisplayMode &dm);
+  virtual bool ExitFullscreenMode();
+  virtual void AdjustWindowStyleForFullscreen();
+  virtual void RestoreWindowStyle();
   virtual void RegisterGameWithGameExplorer();
   virtual void UnRegisterGameWithGameExplorer();
   virtual int  ConvertKeycodeToScanCode(int keyCode);
@@ -139,7 +145,10 @@ private:
   void register_file_extension(const char *exePath);
   void unregister_file_extension();
 
+  bool SetSystemDisplayMode(const DisplayMode &dm);
+
   bool _isDebuggerPresent; // indicates if the win app is running in the context of a debugger
+  DisplayMode _preFullscreenMode; // saved display mode before switching system to fullscreen
 };
 
 AGSWin32::AGSWin32() {
@@ -691,6 +700,57 @@ void AGSWin32::GetSystemDisplayModes(std::vector<DisplayMode> &dms)
         dms.push_back(DisplayMode(GraphicResolution(m.width, m.height, m.bpp)));
     }
     destroy_gfx_mode_list(gmlist);
+}
+
+bool AGSWin32::SetSystemDisplayMode(const DisplayMode &dm)
+{
+  DEVMODE devmode;
+  memset(&devmode, 0, sizeof(devmode));
+  devmode.dmSize = sizeof(devmode);
+  devmode.dmPelsWidth = dm.Width;
+  devmode.dmPelsHeight = dm.Height;
+  devmode.dmBitsPerPel = dm.ColorDepth;
+  devmode.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+  int res = ChangeDisplaySettings(&devmode, CDS_FULLSCREEN);
+  return res != DISP_CHANGE_SUCCESSFUL;
+}
+
+bool AGSWin32::EnterFullscreenMode(const DisplayMode &dm)
+{
+  // Remember current mode
+  get_desktop_resolution(&_preFullscreenMode.Width, &_preFullscreenMode.Height);
+  _preFullscreenMode.ColorDepth = desktop_color_depth();
+
+  // Set requested desktop mode
+  return SetSystemDisplayMode(dm);
+}
+
+bool AGSWin32::ExitFullscreenMode()
+{
+  if (!_preFullscreenMode.IsValid())
+    return false;
+  return SetSystemDisplayMode(_preFullscreenMode);
+}
+
+void AGSWin32::AdjustWindowStyleForFullscreen()
+{
+  // Remove the border in full-screen mode
+  Size sz;
+  get_desktop_resolution(&sz.Width, &sz.Height);
+  HWND allegro_wnd = win_get_window();
+  LONG winstyle = GetWindowLong(allegro_wnd, GWL_STYLE);
+  SetWindowLong(allegro_wnd, GWL_STYLE, (winstyle & ~WS_OVERLAPPEDWINDOW) | WS_POPUP);
+  SetWindowPos(allegro_wnd, HWND_TOP, 0, 0, sz.Width, sz.Height, 0);
+}
+
+void AGSWin32::RestoreWindowStyle()
+{
+  // Restore allegro window styles in case we modified them
+  restore_window_style();
+  // For uncertain reasons WS_EX_TOPMOST (applied when creating fullscreen)
+  // cannot be removed with style altering functions; here use SetWindowPos
+  // as a workaround
+  SetWindowPos(win_get_window(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 }
 
 int AGSWin32::CDPlayerCommand(int cmdd, int datt) {

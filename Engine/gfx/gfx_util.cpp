@@ -16,7 +16,7 @@
 #include "gfx/blender.h"
 
 // CHECKME: is this hack still relevant?
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION)
 extern int psp_gfx_renderer;
 #endif
 
@@ -104,7 +104,7 @@ void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int al
 
     if (sprite_depth < surface_depth
         // CHECKME: what is the purpose of this hack and is this still relevant?
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION)
         || (ds->GetBPP() < surface_depth && psp_gfx_renderer > 0) // Fix for corrupted speechbox outlines with the OGL driver
 #endif
         )

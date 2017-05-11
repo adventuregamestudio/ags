@@ -111,10 +111,9 @@ extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
 extern int is_complete_overlay,is_text_overlay;
 
-extern int psp_gfx_smoothing;
-extern int psp_gfx_scaling;
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION)
 extern int psp_gfx_renderer;
-extern int psp_gfx_super_sampling;
+#endif
 
 extern int obj_lowest_yp, char_lowest_yp;
 
@@ -1476,7 +1475,7 @@ void create_savegame_screenshot(Bitmap *&screenShot)
         else
         {
             // FIXME this weird stuff! (related to incomplete OpenGL renderer)
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION)
             int color_depth = (psp_gfx_renderer > 0) ? 32 : System_GetColorDepth();
 #else
             int color_depth = System_GetColorDepth();

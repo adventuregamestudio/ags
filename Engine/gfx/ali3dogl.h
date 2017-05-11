@@ -214,12 +214,15 @@ public:
 private:
     POGLFilter _filter;
 
+#if defined (WINDOWS_VERSION)
     HDC _hDC;
     HGLRC _hRC;
     HWND _hWnd;
     HINSTANCE _hInstance;
-    unsigned int availableVideoMemory;
+#endif
     int _tint_red, _tint_green, _tint_blue;
+    GLfloat _backbuffer_vertices[8];
+    GLfloat _backbuffer_texture_coordinates[8];
     OGLCUSTOMVERTEX defaultVertices[4];
     String previousError;
     bool _smoothScaling;
@@ -237,8 +240,12 @@ private:
     int device_mouse_clip_top;
     int device_mouse_clip_bottom;
 
-    float _scale_width;
-    float _scale_height;
+    // Viewport and scissor rect, in OpenGL screen coordinates (0,0 is at left-bottom)
+    Rect _viewportRect;
+    
+    // _super_sampling is a backbuffer texture multiplier;
+    // It is used to set up a super-sampling mode (rendering scaled sprites
+    // at the screen resolution, as opposed to native resolution
     int _super_sampling;
     unsigned int _backbuffer;
     unsigned int _fbo;
@@ -252,6 +259,8 @@ private:
 
     void InitOpenGl();
     void set_up_default_vertices();
+    // Configure backbuffer texture, that is used in render-to-texture mode
+    void SetupBackbufferTexture();
 #if defined (WINDOWS_VERSION)
     void create_desktop_screen(int width, int height, int depth);
 #endif
@@ -264,7 +273,6 @@ private:
     void create_screen_tint_bitmap();
     void _renderSprite(OGLDrawListEntry *entry, bool globalLeftRightFlip, bool globalTopBottomFlip);
     void SetupViewport();
-    void create_backbuffer_arrays();
 };
 
 

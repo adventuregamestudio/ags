@@ -28,7 +28,9 @@
 
 #include "main/main_allegro.h"
 
+#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
 extern int psp_gfx_renderer;
+#endif
 
 namespace AGS
 {
@@ -53,7 +55,11 @@ IGfxDriverFactory *GetGfxDriverFactory(const String id)
         return D3D::D3DGraphicsFactory::GetFactory();
 #endif
 #if defined (ANDROID_VERSION) || defined (IOS_VERSION)|| defined (WINDOWS_VERSION)
-    if (id.CompareNoCase("OGL") == 0 || (id.CompareNoCase("D3D9") == 0 && psp_gfx_renderer > 0))
+    if (id.CompareNoCase("OGL") == 0 
+#if defined (ANDROID_VERSION) || defined (IOS_VERSION)
+        || (id.CompareNoCase("D3D9") == 0 && psp_gfx_renderer > 0)
+#endif
+        )
         return OGL::OGLGraphicsFactory::GetFactory();
 #endif
     if (id.CompareNoCase("DX5") == 0)

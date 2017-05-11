@@ -17,6 +17,7 @@
 #include "gfx/ali3dexception.h"
 #include "gfx/ali3dogl.h"
 #include "gfx/gfxfilter_ogl.h"
+#include "gfx/gfxfilter_aaogl.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
 
@@ -935,10 +936,14 @@ void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool glob
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     }
-    else 
+    else if (_render_to_texture)
     {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    }
+    else
+    {
+      _filter->SetFilteringForStandardSprite();
     }
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
@@ -1044,6 +1049,9 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glDisable(GL_BLEND);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
+    // use correct sampling method when stretching buffer to the final rect
+    _filter->SetFilteringForStandardSprite();
+
     if (psp_gfx_scaling)
        glTranslatef((device_screen_physical_width - backbuffer_vertices[2] - 1) / 2, (device_screen_physical_height - backbuffer_vertices[5] - 1) / 2, 0);
     else
@@ -1133,7 +1141,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, O
   int tileWidth = (textureWidth > tile->width) ? tile->width + 1 : tile->width;
   int tileHeight = (textureHeight > tile->height) ? tile->height + 1 : tile->height;
 
-  bool usingLinearFiltering = (psp_gfx_smoothing == 1); //_filter->NeedToColourEdgeLines();
+  bool usingLinearFiltering = (psp_gfx_smoothing == 1) || _filter->UseLinearFiltering();
   bool lastPixelWasTransparent = false;
   char *origPtr = (char*)malloc(4 * tileWidth * tileHeight);
   char *memPtr = origPtr;
@@ -1617,12 +1625,20 @@ OGLGraphicsFactory::~OGLGraphicsFactory()
 
 size_t OGLGraphicsFactory::GetFilterCount() const
 {
-    return 1;
+    return 2;
 }
 
 const GfxFilterInfo *OGLGraphicsFactory::GetFilterInfo(size_t index) const
 {
-    return index == 0 ? &OGLGfxFilter::FilterInfo : NULL;
+    switch (index)
+    {
+    case 0:
+        return &OGLGfxFilter::FilterInfo;
+    case 1:
+        return &AAOGLGfxFilter::FilterInfo;
+    default:
+        return NULL;
+    }
 }
 
 String OGLGraphicsFactory::GetDefaultFilterID() const
@@ -1648,6 +1664,8 @@ OGLGfxFilter *OGLGraphicsFactory::CreateFilter(const String &id)
 {
     if (OGLGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
         return new OGLGfxFilter();
+    else if (AAOGLGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
+        return new AAOGLGfxFilter();
     return NULL;
 }
 

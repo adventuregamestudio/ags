@@ -820,6 +820,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_aaogl.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\gfx\gfxfilter_allegro.cpp"
 					>
 				</File>
@@ -1823,6 +1827,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\gfx\gfxfilter_aad3d.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_aaogl.h"
 					>
 				</File>
 				<File

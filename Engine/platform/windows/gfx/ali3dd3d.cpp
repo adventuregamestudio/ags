@@ -1351,10 +1351,10 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     {
       throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
     }
-    _filter->SetSamplerStateForStandardSprite(direct3ddevice); // restore nearest/linear so we can get the sampler, since filterinfo is lying
+    // use correct sampling method when stretching buffer to the final rect
+    _filter->SetSamplerStateForStandardSprite(direct3ddevice);
     D3DTEXTUREFILTERTYPE filterType;
     direct3ddevice->GetSamplerState(0, D3DSAMP_MAGFILTER, (DWORD*)&filterType);
-    //if (direct3ddevice->StretchRect(pNativeSurface, NULL, pBackBuffer, &viewport_rect, strncmp(_filter->FilterInfo.Id,"Linear",6)==0?D3DTEXF_LINEAR:D3DTEXF_POINT) != D3D_OK)
     if (direct3ddevice->StretchRect(pNativeSurface, NULL, pBackBuffer, &viewport_rect, filterType) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::StretchRect failed");

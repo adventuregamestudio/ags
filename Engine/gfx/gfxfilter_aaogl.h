@@ -12,14 +12,14 @@
 //
 //=============================================================================
 //
-// Dummy OpenGL filter; does nothing useful at the moment
+// Anti-aliased OGL filter
 //
 //=============================================================================
 
-#ifndef __AGS_EE_GFX__OGLGFXFILTER_H
-#define __AGS_EE_GFX__OGLGFXFILTER_H
+#ifndef __AGS_EE_GFX__AAOGLGFXFILTER_H
+#define __AGS_EE_GFX__AAOGLGFXFILTER_H
 
-#include "gfx/gfxfilter_scaling.h"
+#include "gfx/gfxfilter_ogl.h"
 
 namespace AGS
 {
@@ -28,7 +28,7 @@ namespace Engine
 namespace OGL
 {
 
-class OGLGfxFilter : public ScalingGfxFilter
+class AAOGLGfxFilter : public OGLGfxFilter
 {
 public:
     virtual const GfxFilterInfo &GetInfo() const;
@@ -39,8 +39,8 @@ public:
     static const GfxFilterInfo FilterInfo;
 };
 
-} // namespace D3D
+} // namespace OGL
 } // namespace Engine
 } // namespace AGS
 
-#endif // __AGS_EE_GFX__OGLGFXFILTER_H
+#endif // __AGS_EE_GFX__AAOGLGFXFILTER_H

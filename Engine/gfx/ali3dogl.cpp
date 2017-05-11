@@ -272,6 +272,9 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _legacyPixelShader = false;
   _pixelRenderOffset = 0.f;
   flipTypeLastTime = kFlip_None;
+  _can_render_to_texture = false;
+  _do_render_to_texture = false;
+  _super_sampling = 1;
   set_up_default_vertices();
 }
 
@@ -319,6 +322,15 @@ void OGLGraphicsDriver::Vsync()
   // do nothing on D3D
 }
 
+void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled)
+{
+  if (_can_render_to_texture)
+    _do_render_to_texture = !enabled;
+
+  if (_do_render_to_texture)
+    glDisable(GL_SCISSOR_TEST);
+}
+
 bool OGLGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 {
   if (mode.Width <= 0 || mode.Height <= 0 || mode.ColorDepth <= 0)
@@ -358,37 +370,7 @@ void OGLGraphicsDriver::InitOpenGl()
   ios_select_buffer();
 #endif
 
-  if (_render_to_texture)
-  {
-    char* extensions = (char*)glGetString(GL_EXTENSIONS);
-
-    if (strstr(extensions, fbo_extension_string) != NULL)
-    {
-#if defined(WINDOWS_VERSION)
-      glGenFramebuffersEXT = (PFNGLGENFRAMEBUFFERSEXTPROC)wglGetProcAddress("glGenFramebuffersEXT");
-      glDeleteFramebuffersEXT = (PFNGLDELETEFRAMEBUFFERSEXTPROC)wglGetProcAddress("glDeleteFramebuffersEXT");
-      glBindFramebufferEXT = (PFNGLBINDFRAMEBUFFEREXTPROC)wglGetProcAddress("glBindFramebufferEXT");
-      glCheckFramebufferStatusEXT = (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)wglGetProcAddress("glCheckFramebufferStatusEXT");
-      glGetFramebufferAttachmentParameterivEXT = (PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC)wglGetProcAddress("glGetFramebufferAttachmentParameterivEXT");
-      glGenerateMipmapEXT = (PFNGLGENERATEMIPMAPEXTPROC)wglGetProcAddress("glGenerateMipmapEXT");
-      glFramebufferTexture2DEXT = (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC)wglGetProcAddress("glFramebufferTexture2DEXT");
-      glFramebufferRenderbufferEXT = (PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC)wglGetProcAddress("glFramebufferRenderbufferEXT");
-#endif
-
-      // Disable super-sampling if it would cause a too large texture size
-      if (_super_sampling > 1)
-      {
-        int max = 1024;
-        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
-        if ((max < _srcRect.GetWidth() * 2) || (max < _srcRect.GetHeight() * 2))
-          _super_sampling = 1;
-      }
-    }
-    else
-    {
-      _render_to_texture = false;
-    }
-  }
+  TestRenderToTexture();
 
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
@@ -420,9 +402,45 @@ void OGLGraphicsDriver::InitOpenGl()
   SetupViewport();
 }
 
+void OGLGraphicsDriver::TestRenderToTexture()
+{
+  char* extensions = (char*)glGetString(GL_EXTENSIONS);
+
+  if (strstr(extensions, fbo_extension_string) != NULL)
+  {
+  #if defined(WINDOWS_VERSION)
+    glGenFramebuffersEXT = (PFNGLGENFRAMEBUFFERSEXTPROC)wglGetProcAddress("glGenFramebuffersEXT");
+    glDeleteFramebuffersEXT = (PFNGLDELETEFRAMEBUFFERSEXTPROC)wglGetProcAddress("glDeleteFramebuffersEXT");
+    glBindFramebufferEXT = (PFNGLBINDFRAMEBUFFEREXTPROC)wglGetProcAddress("glBindFramebufferEXT");
+    glCheckFramebufferStatusEXT = (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)wglGetProcAddress("glCheckFramebufferStatusEXT");
+    glGetFramebufferAttachmentParameterivEXT = (PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC)wglGetProcAddress("glGetFramebufferAttachmentParameterivEXT");
+    glGenerateMipmapEXT = (PFNGLGENERATEMIPMAPEXTPROC)wglGetProcAddress("glGenerateMipmapEXT");
+    glFramebufferTexture2DEXT = (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC)wglGetProcAddress("glFramebufferTexture2DEXT");
+    glFramebufferRenderbufferEXT = (PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC)wglGetProcAddress("glFramebufferRenderbufferEXT");
+  #endif
+
+    _can_render_to_texture = true;
+    // Disable super-sampling if it would cause a too large texture size
+    if (_super_sampling > 1)
+    {
+      int max = 1024;
+      glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
+      if ((max < _srcRect.GetWidth() * 2) || (max < _srcRect.GetHeight() * 2))
+        _super_sampling = 1;
+    }
+  }
+  else
+  {
+    _can_render_to_texture = false;
+  }
+
+  if (!_can_render_to_texture)
+    _do_render_to_texture = false;
+}
+
 void OGLGraphicsDriver::SetupBackbufferTexture()
 {
-  if (!IsNativeSizeValid() || !_render_to_texture)
+  if (!IsNativeSizeValid() || !_can_render_to_texture)
     return;
 
   // _backbuffer_texture_coordinates defines translation from wanted texture size to actual supported texture size
@@ -496,15 +514,15 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
 
   // TODO: move these options parsing into config instead
 #if defined(ANDROID_VERSION) || defined (IOS_VERSION)
-  if (psp_gfx_renderer == 2)
+  if (psp_gfx_renderer == 2 && _can_render_to_texture)
   {
     _super_sampling = ((psp_gfx_super_sampling > 0) ? 2 : 1);
-    _render_to_texture = true;
+    _do_render_to_texture = true;
   }
   else
   {
     _super_sampling = 1;
-    _render_to_texture = false;
+    _do_render_to_texture = false;
   }
 #endif
 
@@ -822,7 +840,7 @@ void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool glob
     else
       glColor4f(1.0f, 1.0f, 1.0f, ((float)bmpToDraw->_transparency / 255.0f));
 
-    if (_render_to_texture)
+    if (_do_render_to_texture)
       glTranslatef(_srcRect.GetWidth() * _super_sampling / 2.0f, _srcRect.GetHeight() * _super_sampling / 2.0f, 0.0f);
     else
       glTranslatef(_srcRect.GetWidth() / 2.0f, _srcRect.GetHeight() / 2.0f, 0.0f);
@@ -839,7 +857,7 @@ void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool glob
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     }
-    else if (_render_to_texture)
+    else if (_do_render_to_texture)
     {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -884,7 +902,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
   bool globalLeftRightFlip = (flip == kFlip_Vertical) || (flip == kFlip_Both);
   bool globalTopBottomFlip = (flip == kFlip_Horizontal) || (flip == kFlip_Both);
 
-  if (_render_to_texture)
+  if (_do_render_to_texture)
   {
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
 
@@ -934,7 +952,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     this->_renderSprite(&_screenTintSprite, false, false);
   }
 
-  if (_render_to_texture)
+  if (_do_render_to_texture)
   {
     // Texture is ready, now create rectangle in the world space and draw texture upon it
 #if defined(IOS_VERSION)

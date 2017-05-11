@@ -186,7 +186,7 @@ public:
     virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination);
     virtual void EnableVsyncBeforeRender(bool enabled) { }
     virtual void Vsync();
-    virtual void RenderSpritesAtScreenResolution(bool enabled) { }
+    virtual void RenderSpritesAtScreenResolution(bool enabled);
     virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void BoxOutEffect(bool blackingOut, int speed, int delay);
@@ -242,16 +242,19 @@ private:
 
     // Viewport and scissor rect, in OpenGL screen coordinates (0,0 is at left-bottom)
     Rect _viewportRect;
-    
-    // _super_sampling is a backbuffer texture multiplier;
-    // It is used to set up a super-sampling mode (rendering scaled sprites
-    // at the screen resolution, as opposed to native resolution
+
+    // These two flags define whether driver can, and should (respectively)
+    // render sprites to texture, and then texture to screen, as opposed to
+    // rendering to screen directly. This is known as supersampling mode
+    bool _can_render_to_texture;
+    bool _do_render_to_texture;
+    // Backbuffer texture multiplier, used to determine a size of texture
+    // relative to the native game size.
     int _super_sampling;
     unsigned int _backbuffer;
     unsigned int _fbo;
     int _backbuffer_texture_width;
     int _backbuffer_texture_height;
-    bool _render_to_texture;
 
     std::vector<OGLDrawListEntry> drawList;
     std::vector<OGLDrawListEntry> drawListLastTime;
@@ -259,6 +262,8 @@ private:
 
     void InitOpenGl();
     void set_up_default_vertices();
+    // Test if rendering to texture is supported
+    void TestRenderToTexture();
     // Configure backbuffer texture, that is used in render-to-texture mode
     void SetupBackbufferTexture();
 #if defined (WINDOWS_VERSION)

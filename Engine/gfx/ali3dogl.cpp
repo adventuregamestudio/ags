@@ -27,13 +27,7 @@ int psp_gfx_scaling = 1;
 int psp_gfx_renderer = 0;
 int psp_gfx_super_sampling = 0;
 
-unsigned int device_screen_physical_width = 1000;
-unsigned int device_screen_physical_height = 500;
 int device_screen_initialized = 1;
-int device_mouse_clip_left = 0;
-int device_mouse_clip_right = device_screen_physical_width;
-int device_mouse_clip_top = 0;
-int device_mouse_clip_bottom = device_screen_physical_height;
 
 const char* fbo_extension_string = "GL_EXT_framebuffer_object";
 
@@ -74,15 +68,9 @@ extern int android_mouse_clip_right;
 extern int android_mouse_clip_top;
 extern int android_mouse_clip_bottom;
 
-#define device_screen_physical_width android_screen_physical_width
-#define device_screen_physical_height android_screen_physical_height
 #define device_screen_initialized android_screen_initialized
 #define device_mouse_setup android_mouse_setup
 #define device_swap_buffers android_swap_buffers
-#define device_mouse_clip_left android_mouse_clip_left
-#define device_mouse_clip_right android_mouse_clip_right
-#define device_mouse_clip_top android_mouse_clip_top
-#define device_mouse_clip_bottom android_mouse_clip_bottom
 
 const char* fbo_extension_string = "GL_OES_framebuffer_object";
 
@@ -124,15 +112,9 @@ extern int ios_mouse_clip_right;
 extern int ios_mouse_clip_top;
 extern int ios_mouse_clip_bottom;
 
-#define device_screen_physical_width ios_screen_physical_width
-#define device_screen_physical_height ios_screen_physical_height
 #define device_screen_initialized ios_screen_initialized
 #define device_mouse_setup ios_mouse_setup
 #define device_swap_buffers ios_swap_buffers
-#define device_mouse_clip_left ios_mouse_clip_left
-#define device_mouse_clip_right ios_mouse_clip_right
-#define device_mouse_clip_top ios_mouse_clip_top
-#define device_mouse_clip_bottom ios_mouse_clip_bottom
 
 const char* fbo_extension_string = "GL_OES_framebuffer_object";
 
@@ -245,6 +227,29 @@ void OGLBitmap::Dispose()
 
 OGLGraphicsDriver::OGLGraphicsDriver() 
 {
+#if defined (WINDOWS_VERSION)
+  device_screen_physical_width  = 0;
+  device_screen_physical_height = 0;
+  device_mouse_clip_left        = 0;
+  device_mouse_clip_right       = 0;
+  device_mouse_clip_top         = 0;
+  device_mouse_clip_bottom      = 0;
+#elif defined (ANRDOID_VERSION)
+  device_screen_physical_width  = android_screen_physical_width
+  device_screen_physical_height = android_screen_physical_height
+  device_mouse_clip_left        = android_mouse_clip_left
+  device_mouse_clip_right       = android_mouse_clip_right
+  device_mouse_clip_top         = android_mouse_clip_top
+  device_mouse_clip_bottom      = android_mouse_clip_bottom
+#elif defined (IOS_VERSION)
+  device_screen_physical_width  = ios_screen_physical_width
+  device_screen_physical_height = ios_screen_physical_height
+  device_mouse_clip_left        = ios_mouse_clip_left
+  device_mouse_clip_right       = ios_mouse_clip_right
+  device_mouse_clip_top         = ios_mouse_clip_top
+  device_mouse_clip_bottom      = ios_mouse_clip_bottom
+#endif
+
   _tint_red = 0;
   _tint_green = 0;
   _tint_blue = 0;
@@ -284,6 +289,17 @@ void OGLGraphicsDriver::set_up_default_vertices()
   defaultVertices[3].tv=1.0;
 }
 
+#if defined (WINDOWS_VERSION)
+void OGLGraphicsDriver::create_desktop_screen(int width, int height, int depth)
+{
+  device_screen_physical_width = width;
+  device_screen_physical_height = height;
+  device_mouse_clip_left = 0;
+  device_mouse_clip_right = device_screen_physical_width;
+  device_mouse_clip_top = 0;
+  device_mouse_clip_bottom = device_screen_physical_height;
+}
+#endif
 
 void OGLGraphicsDriver::Vsync() 
 {
@@ -559,6 +575,8 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
   android_create_screen(mode.Width, mode.Height, mode.ColorDepth);
 #elif defined(IOS_VERSION)
   ios_create_screen();
+#elif defined (WINDOWS_VERSION)
+  create_desktop_screen(mode.Width, mode.Height, mode.ColorDepth);
 #endif
 
   if (psp_gfx_renderer == 2)
@@ -583,15 +601,14 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
     {
       // Remove the border in full-screen mode, otherwise if the player
       // clicks near the edge of the screen it goes back to Windows
-      LONG windowStyle = WS_POPUP;
-      SetWindowLong(allegro_wnd, GWL_STYLE, windowStyle);
+      SetWindowLong(allegro_wnd, GWL_STYLE, WS_POPUP);
     }
 #endif
 
     gfx_driver = &gfx_opengl;
 
 #if defined(WINDOWS_VERSION)
-    if (mode.Windowed)
+    if (/*mode.Windowed*/true)
     {
       if (adjust_window(device_screen_physical_width, device_screen_physical_height) != 0) 
       {
@@ -661,7 +678,7 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
   DisplayMode final_mode = mode;
   final_mode.Width = device_screen_physical_width;
   final_mode.Height = device_screen_physical_height;
-  final_mode.Windowed = true;
+  final_mode.Windowed = mode.Windowed;
   OnModeSet(mode);
   // If we already have a native size set, then update virtual screen immediately
   CreateVirtualScreen();
@@ -711,8 +728,10 @@ int OGLGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_depth) con
 
 IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int color_depth)
 {
-    // TODO!!
-    return NULL;
+    DisplayMode dm;
+    dm.ColorDepth = 32;
+    get_desktop_resolution(&dm.Width, &dm.Height);
+    return new OGLDisplayModeList(dm);
 }
 
 PGfxFilter OGLGraphicsDriver::GetGraphicsFilter() const
@@ -736,6 +755,13 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
   _dummyVirtualScreen = NULL;
 
   gfx_driver = NULL;
+
+  // Restore allegro window styles in case we modified them
+  restore_window_style();
+  // For uncertain reasons WS_EX_TOPMOST (applied when creating fullscreen)
+  // cannot be removed with style altering functions; here use SetWindowPos
+  // as a workaround
+  SetWindowPos(win_get_window(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 }
 
 void OGLGraphicsDriver::UnInit() 

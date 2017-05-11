@@ -1857,6 +1857,10 @@
 					RelativePath="..\..\Engine\gfx\hq2x3x.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\ogl_headers.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="script"

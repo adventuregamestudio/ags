@@ -21,56 +21,13 @@
 
 #include "util/stdtr1compat.h"
 #include TR1INCLUDE(memory)
-#include <allegro.h>
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactorybase.h"
 #include "gfx/gfxdriverbase.h"
 #include "util/string.h"
 
-#if defined(WINDOWS_VERSION)
-#include <winalleg.h>
-#include <allegro/platform/aintwin.h>
-#include <GL/gl.h>
-
-// Allegro and glext.h define these
-#undef int32_t
-#undef int64_t
-#undef uint64_t
-
-#include <GL/glext.h>
-
-#elif defined(ANDROID_VERSION)
-
-#include <GLES/gl.h>
-
-#ifndef GL_GLEXT_PROTOTYPES
-#define GL_GLEXT_PROTOTYPES
-#endif
-
-#include <GLES/glext.h>
-
-#define HDC void*
-#define HGLRC void*
-#define HWND void*
-#define HINSTANCE void*
-
-#elif defined(IOS_VERSION)
-
-#include <OpenGLES/ES1/gl.h>
-
-#ifndef GL_GLEXT_PROTOTYPES
-#define GL_GLEXT_PROTOTYPES
-#endif
-
-#include <OpenGLES/ES1/glext.h>
-
-#define HDC void*
-#define HGLRC void*
-#define HWND void*
-#define HINSTANCE void*
-
-#endif
+#include "ogl_headers.h"
 
 namespace AGS
 {
@@ -172,6 +129,34 @@ public:
 
 typedef SpriteDrawListEntry<OGLBitmap> OGLDrawListEntry;
 
+class OGLDisplayModeList : public IGfxModeList
+{
+public:
+    OGLDisplayModeList(DisplayMode &fsmode)
+        : _fsMode(fsmode)
+    {
+    }
+
+    virtual int GetModeCount() const
+    {
+        return 1;
+    }
+
+    virtual bool GetMode(int index, DisplayMode &mode) const
+    {
+        if (index == 0)
+        {
+            mode = _fsMode;
+            return true;
+        }
+        return false;
+    }
+
+private:
+    DisplayMode _fsMode; // the only "fullscreen" mode for now
+};
+
+
 class OGLGfxFilter;
 
 class OGLGraphicsDriver : public GraphicsDriverBase
@@ -245,6 +230,13 @@ private:
     OGLDrawListEntry _screenTintSprite;
     Bitmap *_dummyVirtualScreen;
 
+    int device_screen_physical_width;
+    int device_screen_physical_height;
+    int device_mouse_clip_left;
+    int device_mouse_clip_right;
+    int device_mouse_clip_top;
+    int device_mouse_clip_bottom;
+
     float _scale_width;
     float _scale_height;
     int _super_sampling;
@@ -260,6 +252,9 @@ private:
 
     void InitOpenGl();
     void set_up_default_vertices();
+#if defined (WINDOWS_VERSION)
+    void create_desktop_screen(int width, int height, int depth);
+#endif
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);

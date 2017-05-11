@@ -132,28 +132,28 @@ typedef SpriteDrawListEntry<OGLBitmap> OGLDrawListEntry;
 class OGLDisplayModeList : public IGfxModeList
 {
 public:
-    OGLDisplayModeList(DisplayMode &fsmode)
-        : _fsMode(fsmode)
+    OGLDisplayModeList(const std::vector<DisplayMode> &modes)
+        : _modes(modes)
     {
     }
 
     virtual int GetModeCount() const
     {
-        return 1;
+        return _modes.size();
     }
 
     virtual bool GetMode(int index, DisplayMode &mode) const
     {
-        if (index == 0)
+        if (index >= 0 && (size_t)index < _modes.size())
         {
-            mode = _fsMode;
+            mode = _modes[index];
             return true;
         }
         return false;
     }
 
 private:
-    DisplayMode _fsMode; // the only "fullscreen" mode for now
+    std::vector<DisplayMode> _modes;
 };
 
 

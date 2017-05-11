@@ -729,10 +729,9 @@ int OGLGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_depth) con
 
 IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int color_depth)
 {
-    DisplayMode dm;
-    dm.ColorDepth = 32;
-    get_desktop_resolution(&dm.Width, &dm.Height);
-    return new OGLDisplayModeList(dm);
+    std::vector<DisplayMode> modes;
+    platform->GetSystemDisplayModes(modes);
+    return new OGLDisplayModeList(modes);
 }
 
 PGfxFilter OGLGraphicsDriver::GetGraphicsFilter() const

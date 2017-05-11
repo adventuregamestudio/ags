@@ -27,6 +27,7 @@
 #include "plugin/agsplugin.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 #if defined (AGS_HAS_CD_AUDIO)
 #include "libcda.h"
@@ -41,6 +42,7 @@ void AGSPlatformDriver::AboutToQuitGame() { }
 void AGSPlatformDriver::PostAllegroInit(bool windowed) { }
 void AGSPlatformDriver::DisplaySwitchOut() { }
 void AGSPlatformDriver::DisplaySwitchIn() { }
+void AGSPlatformDriver::GetSystemDisplayModes(std::vector<DisplayMode> &dms) { }
 void AGSPlatformDriver::RegisterGameWithGameExplorer() { }
 void AGSPlatformDriver::UnRegisterGameWithGameExplorer() { }
 

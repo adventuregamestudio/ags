@@ -67,7 +67,7 @@ struct DisplayMode : public GraphicResolution
         , Windowed(false)
     {}
 
-    DisplayMode(const GraphicResolution &res, bool windowed, int32_t refresh, bool vsync)
+    DisplayMode(const GraphicResolution &res, bool windowed = false, int32_t refresh = 0, bool vsync = false)
         : GraphicResolution(res)
         , RefreshRate(refresh)
         , Vsync(vsync)

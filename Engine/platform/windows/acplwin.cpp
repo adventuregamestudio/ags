@@ -121,6 +121,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void WriteStdOut(const char *fmt, ...);
   virtual void DisplaySwitchOut() ;
   virtual void DisplaySwitchIn() ;
+  virtual void GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms);
   virtual void RegisterGameWithGameExplorer();
   virtual void UnRegisterGameWithGameExplorer();
   virtual int  ConvertKeycodeToScanCode(int keyCode);
@@ -678,6 +679,18 @@ void AGSWin32::DisplaySwitchOut() {
 
 void AGSWin32::DisplaySwitchIn() {
   dxmedia_resume_video();
+}
+
+void AGSWin32::GetSystemDisplayModes(std::vector<DisplayMode> &dms)
+{
+    dms.clear();
+    GFX_MODE_LIST *gmlist = get_gfx_mode_list(GFX_DIRECTX);
+    for (int i = 0; i < gmlist->num_modes; ++i)
+    {
+        const GFX_MODE &m = gmlist->mode[i];
+        dms.push_back(DisplayMode(GraphicResolution(m.width, m.height, m.bpp)));
+    }
+    destroy_gfx_mode_list(gmlist);
 }
 
 int AGSWin32::CDPlayerCommand(int cmdd, int datt) {

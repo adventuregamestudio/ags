@@ -14,7 +14,6 @@ namespace AGS.Types
 {
     public partial class StringListUIEditorControl : UserControl
     {
-        private StringListUIEditor _editor;
         private IWindowsFormsEditorService _service = null;
         private string _value;
         private bool _cancelFlag = false;
@@ -24,12 +23,6 @@ namespace AGS.Types
         public StringListUIEditorControl()
         {
             InitializeComponent();
-        }
-
-        public StringListUIEditorControl(StringListUIEditor editor)
-            : this()
-        {
-            _editor = editor;
         }
 
         // begin edit operation

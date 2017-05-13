@@ -30,7 +30,7 @@ enum GlobalFlipType
     kFlip_Both
 };
 
-// GraphicResolution dtruct determines image size and color depth
+// GraphicResolution struct determines image size and color depth
 struct GraphicResolution
 {
     int32_t Width;

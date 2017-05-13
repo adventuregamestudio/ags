@@ -23,6 +23,8 @@
 #include <shlwapi.h>
 #include "util/stdtr1compat.h"
 #include TR1INCLUDE(memory)
+#include <algorithm>
+#include <set>
 #include <vector>
 #include "ac/gamestructdefines.h"
 #undef RGB
@@ -408,10 +410,9 @@ class WinSetupDialog
 public:
     enum GfxModeSpecial
     {
-        kGfxMode_None = -1,
-        kGfxMode_Desktop,
-        kGfxMode_GameRes,
-        kNumGfxModeSpecials
+        kGfxMode_None    = -1,
+        kGfxMode_Desktop = -2,
+        kGfxMode_GameRes = -3,
     };
 
     static const int MouseSpeedMin = 1;
@@ -441,6 +442,8 @@ private:
 
     // Helper structs
     typedef std::vector<DisplayMode> VDispModes;
+    // NOTE: we have to implement IGfxModeList for now because we are using
+    // few engine functions that take IGfxModeList as parameter
     struct GfxModes : public IGfxModeList
     {
         VDispModes Modes;
@@ -812,7 +815,7 @@ void WinSetupDialog::OnGfxModeUpdate()
         _winCfg.ScreenSize = _winCfg.GameResolution;
     else
     {
-        const DisplayMode &mode = *(const DisplayMode*)sel;
+        const DisplayMode &mode = _drvDesc->GfxModeList.Modes[sel];
         _winCfg.ScreenSize = Size(mode.Width, mode.Height);
     }
 }
@@ -956,32 +959,23 @@ void WinSetupDialog::FillGfxModeList()
     }
 
     const VDispModes &modes = _drvDesc->GfxModeList.Modes;
-    String buf;
-    GraphicResolution prev_mode;
     bool has_desktop_mode = false;
     bool has_native_mode = false;
-    for (size_t i = 0; i < modes.size(); ++i)
+    String buf;
+    for (VDispModes::const_iterator mode = modes.begin(); mode != modes.end(); ++mode)
     {
-        const GraphicResolution &mode = modes[i];
-        if (_drvDesc->UseColorDepth == mode.ColorDepth &&
-            // Sort of hack to hide different refresh rate modes (for now)
-            prev_mode.Width != mode.Width && prev_mode.Height != mode.Height)
+        if (mode->Width == _desktopSize.Width && mode->Height == _desktopSize.Height)
         {
-            if (mode.Width == _desktopSize.Width && mode.Height == _desktopSize.Height)
-            {
-                has_desktop_mode = true;
-                continue;
-            }
-            else if (mode.Width == _winCfg.GameResolution.Width && mode.Height == _winCfg.GameResolution.Height)
-            {
-                has_native_mode = true;
-                continue;
-            }
-
-            buf.Format("%d x %d", mode.Width, mode.Height);
-            AddString(_hGfxModeList, buf, (DWORD_PTR)&mode);
-            prev_mode = mode;
+            has_desktop_mode = true;
+            continue;
         }
+        else if (mode->Width == _winCfg.GameResolution.Width && mode->Height == _winCfg.GameResolution.Height)
+        {
+            has_native_mode = true;
+            continue;
+        }
+        buf.Format("%d x %d", mode->Width, mode->Height);
+        AddString(_hGfxModeList, buf, (DWORD_PTR)(mode - modes.begin()));
     }
 
     int spec_mode_idx = 0;
@@ -1071,6 +1065,12 @@ void WinSetupDialog::InitGfxModes()
         MessageBox(_hwnd, "Unable to query available graphic modes.", "Initialization error", MB_OK | MB_ICONERROR);
 }
 
+// "Less" predicate that compares two display modes only by their screen metrics
+bool SizeLess(const DisplayMode &first, const DisplayMode &second)
+{
+    return Size(first.Width, first.Height) < Size(second.Width, second.Height);
+}
+
 void WinSetupDialog::InitDriverDescFromFactory(const String &id)
 {
     IGfxDriverFactory *gfx_factory = GetGfxDriverFactory(id);
@@ -1093,9 +1093,17 @@ void WinSetupDialog::InitDriverDescFromFactory(const String &id)
     VDispModes &modes = drv_desc->GfxModeList.Modes;
     if (gfxm_list)
     {
-        modes.resize(gfxm_list->GetModeCount());
-        for (size_t i = 0; i < modes.size(); ++i)
-            gfxm_list->GetMode(i, modes[i]);
+        std::set<Size> unique_sizes; // trying to hide modes which only have different refresh rates
+        for (int i = 0; i < gfxm_list->GetModeCount(); ++i)
+        {
+            DisplayMode mode;
+            gfxm_list->GetMode(i, mode);
+            if (mode.ColorDepth != drv_desc->UseColorDepth || unique_sizes.count(Size(mode.Width, mode.Height)) != 0)
+                continue;
+            unique_sizes.insert(Size(mode.Width, mode.Height));
+            modes.push_back(mode);
+        }
+        std::sort(modes.begin(), modes.end(), SizeLess);
         delete gfxm_list;
     }
 
@@ -1190,11 +1198,11 @@ void WinSetupDialog::SelectNearestGfxMode(const Size screen_size)
     // First check two special modes
     if (screen_size == _desktopSize)
     {
-        SetCurSel(_hGfxModeList, kGfxMode_Desktop);
+        SetCurSelToItemData(_hGfxModeList, kGfxMode_Desktop);
     }
     else if (screen_size == _winCfg.GameResolution)
     {
-        SetCurSel(_hGfxModeList, kGfxMode_GameRes);
+        SetCurSelToItemData(_hGfxModeList, kGfxMode_GameRes);
     }
     else
     {
@@ -1204,10 +1212,10 @@ void WinSetupDialog::SelectNearestGfxMode(const Size screen_size)
         if (find_nearest_supported_mode(_drvDesc->GfxModeList, screen_size, _drvDesc->UseColorDepth,
                                         NULL, NULL, dm, &index))
         {
-            SetCurSelToItemData(_hGfxModeList, (DWORD_PTR)&_drvDesc->GfxModeList.Modes[index], NULL, kGfxMode_Desktop);
+            SetCurSelToItemData(_hGfxModeList, index, NULL, kGfxMode_Desktop);
         }
         else
-            SetCurSel(_hGfxModeList, kGfxMode_Desktop);
+            SetCurSelToItemData(_hGfxModeList, kGfxMode_Desktop);
     }
     OnGfxModeUpdate();
 }

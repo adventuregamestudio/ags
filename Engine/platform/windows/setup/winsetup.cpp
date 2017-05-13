@@ -1061,8 +1061,8 @@ void WinSetupDialog::FillScalingList()
 void WinSetupDialog::InitGfxModes()
 {
     InitDriverDescFromFactory("D3D9");
-    InitDriverDescFromFactory("DX5");
     InitDriverDescFromFactory("OGL");
+    InitDriverDescFromFactory("Software");
 
     size_t total_modes = 0;
     for (DriverDescMap::const_iterator it = _drvDescMap.begin(); it != _drvDescMap.end(); ++it)

@@ -45,7 +45,7 @@ void GetGfxDriverFactoryNames(StringV &ids)
 #if defined (ANDROID_VERSION) || defined (IOS_VERSION) || defined (WINDOWS_VERSION)
     ids.push_back("OGL");
 #endif
-    ids.push_back("DX5");
+    ids.push_back("Software");
 }
 
 IGfxDriverFactory *GetGfxDriverFactory(const String id)
@@ -62,7 +62,7 @@ IGfxDriverFactory *GetGfxDriverFactory(const String id)
         )
         return OGL::OGLGraphicsFactory::GetFactory();
 #endif
-    if (id.CompareNoCase("DX5") == 0)
+    if (id.CompareNoCase("Software") == 0)
         return ALSW::ALSWGraphicsFactory::GetFactory();
     set_allegro_error("No graphics factory with such id: %s", id.GetCStr());
     return NULL;

@@ -126,8 +126,8 @@ class ALSoftwareGraphicsDriver : public GraphicsDriverBase
 public:
     ALSoftwareGraphicsDriver();
 
-    virtual const char*GetDriverName() { return "Allegro/DX5"; }
-    virtual const char*GetDriverID() { return "DX5"; }
+    virtual const char*GetDriverName() { return "Software renderer"; }
+    virtual const char*GetDriverID() { return "Software"; }
     virtual void SetTintMethod(TintMethod method);
     virtual bool SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer);
     virtual bool SetNativeSize(const Size &src_size);

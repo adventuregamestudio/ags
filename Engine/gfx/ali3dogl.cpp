@@ -258,8 +258,6 @@ OGLGraphicsDriver::OGLGraphicsDriver()
 
   _backbuffer = 0;
   _fbo = 0;
-  _backbuffer_texture_width = 0;
-  _backbuffer_texture_height = 0;
   _tint_red = 0;
   _tint_green = 0;
   _tint_blue = 0;
@@ -444,12 +442,14 @@ void OGLGraphicsDriver::SetupBackbufferTexture()
     return;
 
   // _backbuffer_texture_coordinates defines translation from wanted texture size to actual supported texture size
-  _backbuffer_texture_width = _srcRect.GetWidth() * _super_sampling;
-  _backbuffer_texture_height = _srcRect.GetHeight() * _super_sampling;
-  AdjustSizeToNearestSupportedByCard(&_backbuffer_texture_width, &_backbuffer_texture_height);
+  _backRenderSize = _srcRect.GetSize() * _super_sampling;
+  _backTextureSize = _backRenderSize;
+  AdjustSizeToNearestSupportedByCard(&_backTextureSize.Width, &_backTextureSize.Height);
+  const float back_ratio_w = (float)_backRenderSize.Width / (float)_backTextureSize.Width;
+  const float back_ratio_h = (float)_backRenderSize.Height / (float)_backTextureSize.Height;
   std::fill(_backbuffer_texture_coordinates, _backbuffer_texture_coordinates + sizeof(_backbuffer_texture_coordinates) / sizeof(GLfloat), 0.0f);
-  _backbuffer_texture_coordinates[5] = _backbuffer_texture_coordinates[7] = (float)_srcRect.GetHeight() * _super_sampling / (float)_backbuffer_texture_height;
-  _backbuffer_texture_coordinates[2] = _backbuffer_texture_coordinates[6] = (float)_srcRect.GetWidth() * _super_sampling / (float)_backbuffer_texture_width;
+  _backbuffer_texture_coordinates[2] = _backbuffer_texture_coordinates[6] = back_ratio_w;
+  _backbuffer_texture_coordinates[5] = _backbuffer_texture_coordinates[7] = back_ratio_h;
 
   glGenTextures(1, &_backbuffer);
   glBindTexture(GL_TEXTURE_2D, _backbuffer);
@@ -458,7 +458,7 @@ void OGLGraphicsDriver::SetupBackbufferTexture()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _backbuffer_texture_width, _backbuffer_texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _backTextureSize.Width, _backTextureSize.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
   glBindTexture(GL_TEXTURE_2D, 0);
 
   glGenFramebuffersEXT(1, &_fbo);
@@ -841,7 +841,7 @@ void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool glob
       glColor4f(1.0f, 1.0f, 1.0f, ((float)bmpToDraw->_transparency / 255.0f));
 
     if (_do_render_to_texture)
-      glTranslatef(_srcRect.GetWidth() * _super_sampling / 2.0f, _srcRect.GetHeight() * _super_sampling / 2.0f, 0.0f);
+      glTranslatef(_backRenderSize.Width / 2.0f, _backRenderSize.Height / 2.0f, 0.0f);
     else
       glTranslatef(_srcRect.GetWidth() / 2.0f, _srcRect.GetHeight() / 2.0f, 0.0f);
 
@@ -908,10 +908,10 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glViewport(0, 0, _srcRect.GetWidth() * _super_sampling, _srcRect.GetHeight() * _super_sampling);
+    glViewport(0, 0, _backRenderSize.Width, _backRenderSize.Height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, _srcRect.GetWidth() * _super_sampling - 1, 0, _srcRect.GetHeight() * _super_sampling - 1, 0, 1);
+    glOrtho(0, _backRenderSize.Width - 1, 0, _backRenderSize.Height - 1, 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
   }
@@ -924,7 +924,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glViewport(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, _srcRect.GetWidth() - 1, 0, _srcRect.GetHeight() - 1, 0, 1);
+    glOrtho(0, _srcRect.Right, 0, _srcRect.Bottom, 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
   }
@@ -964,7 +964,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glViewport(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, _srcRect.GetWidth() - 1, 0, _srcRect.GetHeight() - 1, 0, 1);
+    glOrtho(0, _srcRect.Right, 0, _srcRect.Bottom, 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 

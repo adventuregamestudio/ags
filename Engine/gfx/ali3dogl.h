@@ -221,7 +221,10 @@ private:
     HINSTANCE _hInstance;
 #endif
     int _tint_red, _tint_green, _tint_blue;
+    // Position of backbuffer texture in world space
     GLfloat _backbuffer_vertices[8];
+    // Relative position of source image on the backbuffer texture,
+    // in local coordinates
     GLfloat _backbuffer_texture_coordinates[8];
     OGLCUSTOMVERTEX defaultVertices[4];
     String previousError;
@@ -253,8 +256,12 @@ private:
     int _super_sampling;
     unsigned int _backbuffer;
     unsigned int _fbo;
-    int _backbuffer_texture_width;
-    int _backbuffer_texture_height;
+    // Size of the backbuffer drawing area, equals to native size
+    // multiplied by _super_sampling
+    Size _backRenderSize;
+    // Actual size of the backbuffer texture, created by OpenGL
+    Size _backTextureSize;
+
 
     std::vector<OGLDrawListEntry> drawList;
     std::vector<OGLDrawListEntry> drawListLastTime;

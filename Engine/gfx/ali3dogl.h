@@ -230,7 +230,9 @@ private:
     String previousError;
     bool _smoothScaling;
     bool _legacyPixelShader;
-    float _pixelRenderOffset;
+    // Sprite positioning offsets, required for accurate mapping texels to pixels
+    float _pixelRenderXOffset;
+    float _pixelRenderYOffset;
     Bitmap *_screenTintLayer;
     OGLBitmap* _screenTintLayerDDB;
     OGLDrawListEntry _screenTintSprite;
@@ -266,6 +268,9 @@ private:
     std::vector<OGLDrawListEntry> drawList;
     std::vector<OGLDrawListEntry> drawListLastTime;
     GlobalFlipType flipTypeLastTime;
+
+    // Called when the new native size is set
+    virtual void OnSetNativeSize(const Size &src_size) override;
 
     void InitOpenGl();
     void set_up_default_vertices();

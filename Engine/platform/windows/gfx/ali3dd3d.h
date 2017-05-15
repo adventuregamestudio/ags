@@ -231,6 +231,7 @@ private:
     IDirect3DPixelShader9* pixelShader;
     bool _smoothScaling;
     bool _legacyPixelShader;
+    // Sprite positioning offsets, required for accurate mapping texels to pixels
     float _pixelRenderXOffset;
     float _pixelRenderYOffset;
     bool _renderSprAtScreenRes;

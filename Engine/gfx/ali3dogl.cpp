@@ -268,7 +268,8 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _screenTintSprite.y = 0;
   _dummyVirtualScreen = NULL;
   _legacyPixelShader = false;
-  _pixelRenderOffset = 0.f;
+  _pixelRenderXOffset = 0.f;
+  _pixelRenderYOffset = 0.f;
   flipTypeLastTime = kFlip_None;
   _can_render_to_texture = false;
   _do_render_to_texture = false;
@@ -360,6 +361,14 @@ void OGLGraphicsDriver::SetGraphicsFilter(POGLFilter filter)
 void OGLGraphicsDriver::SetTintMethod(TintMethod method) 
 {
   _legacyPixelShader = (method == TintReColourise);
+}
+
+void OGLGraphicsDriver::OnSetNativeSize(const Size &src_size)
+{
+  GraphicsDriverBase::OnSetNativeSize(src_size);
+
+  _pixelRenderXOffset = ((float)_srcRect.GetWidth() / (float)_mode.Width) / 2.0f;
+  _pixelRenderYOffset = ((float)_srcRect.GetHeight() / (float)_mode.Height) / 2.0f;
 }
 
 void OGLGraphicsDriver::InitOpenGl()
@@ -845,7 +854,7 @@ void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool glob
     else
       glTranslatef(_srcRect.GetWidth() / 2.0f, _srcRect.GetHeight() / 2.0f, 0.0f);
 
-    glTranslatef((float)thisX, (float)thisY, 0.0f);
+    glTranslatef((float)thisX + _pixelRenderXOffset, (float)thisY + _pixelRenderYOffset, 0.0f);
     glScalef(widthToScale, heightToScale, 1.0f);
 
     glBindTexture(GL_TEXTURE_2D, bmpToDraw->_tiles[ti].texture);

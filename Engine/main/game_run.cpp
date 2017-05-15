@@ -217,7 +217,7 @@ int get_active_shifts()
         shifts |= KB_SHIFT_FLAG;
     if (key[KEY_LCONTROL] || key[KEY_RCONTROL])
         shifts |= KB_CTRL_FLAG;
-    if (key[KEY_ALT])
+    if (key[KEY_ALT] || key[KEY_ALTGR])
         shifts |= KB_ALT_FLAG;
     return shifts;
 }
@@ -294,7 +294,7 @@ void check_controls() {
 
     int kbhit_res = kbhit();
     // First, check shifts
-    int act_shifts = get_active_shifts();
+    const int act_shifts = get_active_shifts();
     // If shifts combination have already triggered an action, then do nothing
     // until new shifts are empty, in which case reset saved shifts
     if (old_key_shifts & KEY_SHIFTS_FIRED)
@@ -307,10 +307,12 @@ void check_controls() {
         // If any non-shift key is pressed, add fired flag to indicate that
         // this is no longer a pure shifts key combination
         if (kbhit_res)
-            act_shifts |= KEY_SHIFTS_FIRED;
+        {
+            old_key_shifts = act_shifts | KEY_SHIFTS_FIRED;
+        }
         // If all the previously registered shifts are still pressed,
         // then simply resave new shift state.
-        if (kbhit_res || (old_key_shifts & act_shifts) == old_key_shifts)
+        else if ((old_key_shifts & act_shifts) == old_key_shifts)
         {
             old_key_shifts = act_shifts;
         }
@@ -340,8 +342,9 @@ void check_controls() {
         //if (kgn == 2) Display("Some for?ign text");
         //if (kgn == 2) do_conversation(5);
 
-        // NOTE: for some reason Alt + Enter produces same code as F9
-        if (kgn == 367 && !key[KEY_F9])
+        // LAlt or RAlt + Enter
+        // NOTE: for some reason LAlt + Enter produces same code as F9
+        if (act_shifts == KB_ALT_FLAG && ((kgn == 367 && !key[KEY_F9]) || kgn == 13))
         {
             engine_try_switch_windowed_gfxmode();
             return;

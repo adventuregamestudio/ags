@@ -137,7 +137,7 @@ void play_flc_file(int numb,int playflags) {
     }
     if (!in)
     {
-        debug_script_warn("FLIC animation FLIC%d.FLC not found", numb);
+        debug_script_warn("FLIC animation flic%d.flc nor flic%d.fli not found", numb, numb);
         return;
     }
 

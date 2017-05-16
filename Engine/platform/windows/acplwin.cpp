@@ -711,8 +711,7 @@ bool AGSWin32::SetSystemDisplayMode(const DisplayMode &dm)
   devmode.dmPelsHeight = dm.Height;
   devmode.dmBitsPerPel = dm.ColorDepth;
   devmode.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
-  int res = ChangeDisplaySettings(&devmode, CDS_FULLSCREEN);
-  return res != DISP_CHANGE_SUCCESSFUL;
+  return ChangeDisplaySettings(&devmode, CDS_FULLSCREEN) == DISP_CHANGE_SUCCESSFUL;
 }
 
 bool AGSWin32::EnterFullscreenMode(const DisplayMode &dm)
@@ -729,6 +728,7 @@ bool AGSWin32::ExitFullscreenMode()
 {
   if (!_preFullscreenMode.IsValid())
     return false;
+
   return SetSystemDisplayMode(_preFullscreenMode);
 }
 

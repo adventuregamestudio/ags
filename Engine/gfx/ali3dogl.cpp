@@ -387,7 +387,7 @@ void OGLGraphicsDriver::InitOpenGl()
   glViewport(0, 0, device_screen_physical_width, device_screen_physical_height);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, 0, 1);
+  glOrtho(0, device_screen_physical_width, 0, device_screen_physical_height, 0, 1);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
@@ -911,7 +911,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glViewport(0, 0, _backRenderSize.Width, _backRenderSize.Height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, _backRenderSize.Width - 1, 0, _backRenderSize.Height - 1, 0, 1);
+    glOrtho(0, _backRenderSize.Width, 0, _backRenderSize.Height, 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
   }
@@ -924,7 +924,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glViewport(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, _srcRect.Right, 0, _srcRect.Bottom, 0, 1);
+    glOrtho(0, _srcRect.GetWidth(), 0, _srcRect.GetHeight(), 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
   }
@@ -964,7 +964,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glViewport(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, _srcRect.Right, 0, _srcRect.Bottom, 0, 1);
+    glOrtho(0, _srcRect.GetWidth(), 0, _srcRect.GetHeight(), 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 

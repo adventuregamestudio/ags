@@ -203,8 +203,8 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _skipPresent = false;
   availableVideoMemory = 0;
   _smoothScaling = false;
-  _pixelRenderXOffset = 0.f;
-  _pixelRenderYOffset = 0.f;
+  _pixelRenderXOffset = 0;
+  _pixelRenderYOffset = 0;
   _renderSprAtScreenRes = false;
   flipTypeLastTime = kFlip_None;
 }

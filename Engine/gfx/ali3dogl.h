@@ -230,7 +230,6 @@ private:
     String previousError;
     bool _smoothScaling;
     bool _legacyPixelShader;
-    float _pixelRenderOffset;
     Bitmap *_screenTintLayer;
     OGLBitmap* _screenTintLayerDDB;
     OGLDrawListEntry _screenTintSprite;

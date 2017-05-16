@@ -268,7 +268,6 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _screenTintSprite.y = 0;
   _dummyVirtualScreen = NULL;
   _legacyPixelShader = false;
-  _pixelRenderOffset = 0.f;
   flipTypeLastTime = kFlip_None;
   _can_render_to_texture = false;
   _do_render_to_texture = false;

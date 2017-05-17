@@ -219,6 +219,8 @@ private:
     HGLRC _hRC;
     HWND _hWnd;
     HINSTANCE _hInstance;
+    GLuint _oldPixelFormat;
+    PIXELFORMATDESCRIPTOR _oldPixelFormatDesc;
 #endif
     int _tint_red, _tint_green, _tint_blue;
     // Position of backbuffer texture in world space
@@ -266,12 +268,18 @@ private:
     std::vector<OGLDrawListEntry> drawListLastTime;
     GlobalFlipType flipTypeLastTime;
 
-    void InitOpenGl();
+    // Initializes Gl rendering context
+    bool InitGlScreen(const DisplayMode &mode);
+    bool CreateGlContext(const DisplayMode &mode);
+    void DeleteGlContext();
+    // Sets up general rendering parameters
+    void InitGlParams();
     void set_up_default_vertices();
     // Test if rendering to texture is supported
     void TestRenderToTexture();
     // Configure backbuffer texture, that is used in render-to-texture mode
     void SetupBackbufferTexture();
+    void DeleteBackbufferTexture();
 #if defined (WINDOWS_VERSION)
     void create_desktop_screen(int width, int height, int depth);
 #endif

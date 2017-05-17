@@ -361,12 +361,59 @@ void OGLGraphicsDriver::SetTintMethod(TintMethod method)
   _legacyPixelShader = (method == TintReColourise);
 }
 
-void OGLGraphicsDriver::InitOpenGl()
+bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
 {
-#if defined(IOS_VERSION)
+#if defined(ANDROID_VERSION)
+  android_create_screen(mode.Width, mode.Height, mode.ColorDepth);
+#elif defined(IOS_VERSION)
+  ios_create_screen();
   ios_select_buffer();
+#elif defined (WINDOWS_VERSION)
+  if (!mode.Windowed)
+  {
+    platform->EnterFullscreenMode(mode);
+    platform->AdjustWindowStyleForFullscreen();
+  }
+  // NOTE: adjust_window may leave task bar visible, so we do not use it for fullscreen mode
+  if (mode.Windowed && adjust_window(mode.Width, mode.Height) != 0)
+  {
+    set_allegro_error("Window size not supported");
+    return false;
+  }
+
+  _hWnd = win_get_window();
+  if (!(_hDC = GetDC(_hWnd)))
+    return false;
+
+  // First check if we need to recreate GL context, this will only be
+  // required if different color depth is requested.
+  if (_hRC)
+  {
+    GLuint pixel_fmt = GetPixelFormat(_hDC);
+    PIXELFORMATDESCRIPTOR pfd;
+    DescribePixelFormat(_hDC, pixel_fmt, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
+    if (pfd.cColorBits != mode.ColorDepth)
+    {
+      DeleteGlContext();
+    }
+  }
+
+  if (!_hRC)
+  {
+    if (!CreateGlContext(mode))
+      return false;
+  }
+
+  create_desktop_screen(mode.Width, mode.Height, mode.ColorDepth);
+  win_grab_input();
 #endif
 
+  gfx_driver = &gfx_opengl;
+  return true;
+}
+
+void OGLGraphicsDriver::InitGlParams()
+{
   TestRenderToTexture();
 
   glDisable(GL_CULL_FACE);
@@ -394,9 +441,63 @@ void OGLGraphicsDriver::InitOpenGl()
   glDisableClientState(GL_NORMAL_ARRAY);
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+}
 
-  // If we already have a render frame configured, then setup viewport and backbuffer mappings immediately
-  SetupViewport();
+bool OGLGraphicsDriver::CreateGlContext(const DisplayMode &mode)
+{
+#if defined (WINDOWS_VERSION)
+  PIXELFORMATDESCRIPTOR pfd =
+  {
+    sizeof(PIXELFORMATDESCRIPTOR),
+    1,
+    PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+    PFD_TYPE_RGBA,
+    mode.ColorDepth,
+    0, 0, 0, 0, 0, 0,
+    0,
+    0,
+    0,
+    0, 0, 0, 0,
+    0,
+    0,
+    0,
+    PFD_MAIN_PLANE,
+    0,
+    0, 0, 0
+  };
+
+  _oldPixelFormat = GetPixelFormat(_hDC);
+  DescribePixelFormat(_hDC, _oldPixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &_oldPixelFormatDesc);
+
+  GLuint pixel_fmt;
+  if (!(pixel_fmt = ChoosePixelFormat(_hDC, &pfd)))
+    return false;
+
+  if (!SetPixelFormat(_hDC, pixel_fmt, &pfd))
+    return false;
+
+  if (!(_hRC = wglCreateContext(_hDC)))
+    return false;
+
+  if(!wglMakeCurrent(_hDC, _hRC))
+    return false;
+#endif // WINDOWS_VERSION
+  return true;
+}
+
+void OGLGraphicsDriver::DeleteGlContext()
+{
+#if defined (WINDOWS_VERSION)
+  if (_hRC)
+  {
+    wglMakeCurrent(NULL, NULL);
+    wglDeleteContext(_hRC);
+    _hRC = NULL;
+  }
+
+  if (_oldPixelFormat > 0)
+    SetPixelFormat(_hDC, _oldPixelFormat, &_oldPixelFormatDesc);
+#endif
 }
 
 void OGLGraphicsDriver::TestRenderToTexture()
@@ -437,8 +538,13 @@ void OGLGraphicsDriver::TestRenderToTexture()
 
 void OGLGraphicsDriver::SetupBackbufferTexture()
 {
+  // NOTE: ability to render to texture depends on OGL context, which is
+  // created in SetDisplayMode, therefore creation of textures require
+  // both native size set and context capabilities test passed.
   if (!IsNativeSizeValid() || !_can_render_to_texture)
     return;
+
+  DeleteBackbufferTexture();
 
   // _backbuffer_texture_coordinates defines translation from wanted texture size to actual supported texture size
   _backRenderSize = _srcRect.GetSize() * _super_sampling;
@@ -473,6 +579,16 @@ void OGLGraphicsDriver::SetupBackbufferTexture()
   _backbuffer_vertices[1] = _backbuffer_vertices[3] = 0;
 }
 
+void OGLGraphicsDriver::DeleteBackbufferTexture()
+{
+  if (_backbuffer)
+    glDeleteTextures(1, &_backbuffer);
+  if (_fbo)
+    glDeleteFramebuffersEXT(1, &_fbo);
+  _backbuffer = 0;
+  _fbo = 0;
+}
+
 void OGLGraphicsDriver::SetupViewport()
 {
   if (!IsModeSet() || !IsRenderFrameValid())
@@ -499,17 +615,31 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
 
   if (mode.ColorDepth < 15)
   {
-    set_allegro_error("OpenGL driver does not support 256-colour games");
+    set_allegro_error("OpenGL driver does not support 256-color display mode");
     return false;
   }
 
-#if defined(ANDROID_VERSION)
-  android_create_screen(mode.Width, mode.Height, mode.ColorDepth);
-#elif defined(IOS_VERSION)
-  ios_create_screen();
-#elif defined (WINDOWS_VERSION)
-  create_desktop_screen(mode.Width, mode.Height, mode.ColorDepth);
-#endif
+  try
+  {
+    if (!InitGlScreen(mode))
+      return false;
+    InitGlParams();
+  }
+  catch (Ali3DException exception)
+  {
+    if (exception._message != get_allegro_error())
+      set_allegro_error(exception._message);
+    return false;
+  }
+
+  OnInit(loopTimer);
+
+  // On certain platforms OpenGL renderer ignores requested screen sizes
+  // and uses values imposed by the operating system (device).
+  DisplayMode final_mode = mode;
+  final_mode.Width = device_screen_physical_width;
+  final_mode.Height = device_screen_physical_height;
+  OnModeSet(final_mode);
 
   // TODO: move these options parsing into config instead
 #if defined(ANDROID_VERSION) || defined (IOS_VERSION)
@@ -525,93 +655,12 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
   }
 #endif
 
-  try
-  {
-
-#if defined(WINDOWS_VERSION)
-    _hWnd = win_get_window();
-
-    if (!mode.Windowed)
-    {
-        platform->EnterFullscreenMode(mode);
-        platform->AdjustWindowStyleForFullscreen();
-    }
-#endif
-
-    gfx_driver = &gfx_opengl;
-
-#if defined(WINDOWS_VERSION)
-    // NOTE: adjust_window may leave task bar visible, so we do not use it for fullscreen mode
-    if (mode.Windowed && adjust_window(device_screen_physical_width, device_screen_physical_height) != 0)
-    {
-      set_allegro_error("Window size not supported");
-      return -1;
-    }
-
-    win_grab_input();
-
-    GLuint PixelFormat;
-
-    static PIXELFORMATDESCRIPTOR pfd =
-    {
-       sizeof(PIXELFORMATDESCRIPTOR),
-       1,
-       PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-       PFD_TYPE_RGBA,
-       mode.ColorDepth,
-       0, 0, 0, 0, 0, 0,
-       0,
-       0,
-       0,
-       0, 0, 0, 0,
-       0,
-       0,
-       0,
-       PFD_MAIN_PLANE,
-       0,
-       0, 0, 0
-    };
-
-    if (!(_hDC = GetDC(_hWnd)))
-      return false;
-
-    if (!(PixelFormat = ChoosePixelFormat(_hDC, &pfd)))
-      return false;
-
-    if (!SetPixelFormat(_hDC, PixelFormat, &pfd))
-      return false;
-
-    if (!(_hRC = wglCreateContext(_hDC)))
-      return false;
-
-    if(!wglMakeCurrent(_hDC, _hRC))
-      return false;
-#endif
-
-    InitOpenGl();
-
-    this->create_screen_tint_bitmap();
-
-  }
-  catch (Ali3DException exception)
-  {
-    if (exception._message != get_allegro_error())
-      set_allegro_error(exception._message);
-    return false;
-  }
-
-  OnInit(loopTimer);
-
-  // With current half-baked implementation OpenGL renderer ignores most of the
-  // requested mode params, and uses either hard-coded values or values imposed
-  // by the operating system (device).
-  DisplayMode final_mode = mode;
-  final_mode.Width = device_screen_physical_width;
-  final_mode.Height = device_screen_physical_height;
-  final_mode.Windowed = mode.Windowed;
-  OnModeSet(mode);
-  // If we already have a native size set, then update virtual screen immediately
+  create_screen_tint_bitmap();
+  // If we already have a native size set, then update virtual screen and setup backbuffer texture immediately
   CreateVirtualScreen();
+  SetupBackbufferTexture();
+  // If we already have a render frame configured, then setup viewport and backbuffer mappings immediately
+  SetupViewport();
   return true;
 }
 
@@ -667,6 +716,7 @@ PGfxFilter OGLGraphicsDriver::GetGraphicsFilter() const
 void OGLGraphicsDriver::ReleaseDisplayMode()
 {
   OnModeReleased();
+  DeleteBackbufferTexture();
 
   if (_screenTintLayerDDB != NULL) 
   {
@@ -689,6 +739,12 @@ void OGLGraphicsDriver::UnInit()
 {
   OnUnInit();
   ReleaseDisplayMode();
+
+  DeleteGlContext();
+#if defined (WINDOWS_VERSION)
+  _hWnd = NULL;
+  _hDC = NULL;
+#endif
 }
 
 OGLGraphicsDriver::~OGLGraphicsDriver()
@@ -891,7 +947,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
   if (!device_screen_initialized)
   {
-    InitOpenGl();
+    InitGlParams();
     device_screen_initialized = 1;
   }
 

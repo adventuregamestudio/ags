@@ -820,7 +820,7 @@ bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
 
   if (mode.ColorDepth < 15)
   {
-    set_allegro_error("Direct3D driver does not support 256-colour games");
+    set_allegro_error("Direct3D driver does not support 256-color display mode");
     return false;
   }
 

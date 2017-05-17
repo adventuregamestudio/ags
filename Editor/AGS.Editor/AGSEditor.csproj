@@ -36,7 +36,7 @@
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
@@ -49,6 +49,7 @@
     <WarningLevel>4</WarningLevel>
     <DebugSymbols>false</DebugSymbols>
     <PlatformTarget>x86</PlatformTarget>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>

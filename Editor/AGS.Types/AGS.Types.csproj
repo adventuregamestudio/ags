@@ -50,7 +50,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <DocumentationFile>bin\Debug\AGS.Types.XML</DocumentationFile>
     <NoWarn>1591</NoWarn>
   </PropertyGroup>
@@ -63,7 +63,7 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\AGS.Types.XML</DocumentationFile>
     <NoWarn>1591</NoWarn>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

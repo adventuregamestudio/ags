@@ -684,10 +684,18 @@ const char *AGSWin32::GetGraphicsTroubleshootingText()
 
 void AGSWin32::DisplaySwitchOut() {
   dxmedia_pause_video();
+
+  // If we have explicitly set up fullscreen mode then minimize the window
+  if (_preFullscreenMode.IsValid())
+    ShowWindow(win_get_window(), SW_MINIMIZE);
 }
 
 void AGSWin32::DisplaySwitchIn() {
   dxmedia_resume_video();
+
+  // If we have explicitly set up fullscreen mode then restore the window
+  if (_preFullscreenMode.IsValid())
+    ShowWindow(win_get_window(), SW_RESTORE);
 }
 
 void AGSWin32::GetSystemDisplayModes(std::vector<DisplayMode> &dms)
@@ -729,7 +737,9 @@ bool AGSWin32::ExitFullscreenMode()
   if (!_preFullscreenMode.IsValid())
     return false;
 
-  return SetSystemDisplayMode(_preFullscreenMode);
+  DisplayMode dm = _preFullscreenMode;
+  _preFullscreenMode = DisplayMode();
+  return SetSystemDisplayMode(dm);
 }
 
 void AGSWin32::AdjustWindowStyleForFullscreen()

@@ -480,7 +480,7 @@ void OGLGraphicsDriver::TestRenderToTexture()
 {
   char* extensions = (char*)glGetString(GL_EXTENSIONS);
 
-  if (strstr(extensions, fbo_extension_string) != NULL)
+  if (extensions && strstr(extensions, fbo_extension_string) != NULL)
   {
   #if defined(WINDOWS_VERSION)
     glGenFramebuffersEXT = (PFNGLGENFRAMEBUFFERSEXTPROC)wglGetProcAddress("glGenFramebuffersEXT");

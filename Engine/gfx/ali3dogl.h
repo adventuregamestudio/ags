@@ -239,10 +239,6 @@ private:
 
     int device_screen_physical_width;
     int device_screen_physical_height;
-    int device_mouse_clip_left;
-    int device_mouse_clip_right;
-    int device_mouse_clip_top;
-    int device_mouse_clip_bottom;
 
     // Viewport and scissor rect, in OpenGL screen coordinates (0,0 is at left-bottom)
     Rect _viewportRect;

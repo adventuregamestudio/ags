@@ -81,10 +81,6 @@ extern int psp_gfx_super_sampling;
 extern unsigned int android_screen_physical_width;
 extern unsigned int android_screen_physical_height;
 extern int android_screen_initialized;
-extern int android_mouse_clip_left;
-extern int android_mouse_clip_right;
-extern int android_mouse_clip_top;
-extern int android_mouse_clip_bottom;
 
 #define device_screen_initialized android_screen_initialized
 #define device_mouse_setup android_mouse_setup
@@ -125,10 +121,6 @@ extern int psp_gfx_super_sampling;
 extern unsigned int ios_screen_physical_width;
 extern unsigned int ios_screen_physical_height;
 extern int ios_screen_initialized;
-extern int ios_mouse_clip_left;
-extern int ios_mouse_clip_right;
-extern int ios_mouse_clip_top;
-extern int ios_mouse_clip_bottom;
 
 #define device_screen_initialized ios_screen_initialized
 #define device_mouse_setup ios_mouse_setup
@@ -236,24 +228,12 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _hInstance = NULL;
   device_screen_physical_width  = 0;
   device_screen_physical_height = 0;
-  device_mouse_clip_left        = 0;
-  device_mouse_clip_right       = 0;
-  device_mouse_clip_top         = 0;
-  device_mouse_clip_bottom      = 0;
 #elif defined (ANRDOID_VERSION)
   device_screen_physical_width  = android_screen_physical_width
   device_screen_physical_height = android_screen_physical_height
-  device_mouse_clip_left        = android_mouse_clip_left
-  device_mouse_clip_right       = android_mouse_clip_right
-  device_mouse_clip_top         = android_mouse_clip_top
-  device_mouse_clip_bottom      = android_mouse_clip_bottom
 #elif defined (IOS_VERSION)
   device_screen_physical_width  = ios_screen_physical_width
   device_screen_physical_height = ios_screen_physical_height
-  device_mouse_clip_left        = ios_mouse_clip_left
-  device_mouse_clip_right       = ios_mouse_clip_right
-  device_mouse_clip_top         = ios_mouse_clip_top
-  device_mouse_clip_bottom      = ios_mouse_clip_bottom
 #endif
 
   _backbuffer = 0;
@@ -307,10 +287,6 @@ void OGLGraphicsDriver::create_desktop_screen(int width, int height, int depth)
 {
   device_screen_physical_width = width;
   device_screen_physical_height = height;
-  device_mouse_clip_left = 0;
-  device_mouse_clip_right = device_screen_physical_width;
-  device_mouse_clip_top = 0;
-  device_mouse_clip_bottom = device_screen_physical_height;
 }
 #endif
 
@@ -759,25 +735,35 @@ void OGLGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
 
 void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
 {
+  Rect retr_rect;
+  if (_do_render_to_texture)
+  {
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
+    retr_rect = RectWH(0, 0, _backRenderSize.Width, _backRenderSize.Height);
+  }
+  else
+  {
 #if defined(IOS_VERSION)
-  ios_select_buffer();
+    ios_select_buffer();
+#elif defined(WINDOWS_VERSION)
+    glReadBuffer(GL_FRONT);
 #endif
+    retr_rect = _dstRect;
+  }
 
-  int retrieve_width = device_mouse_clip_right - device_mouse_clip_left;
-  int retrieve_height = device_mouse_clip_bottom - device_mouse_clip_top;
+  int bpp = _mode.ColorDepth / 8;
+  int bufferSize = retr_rect.GetWidth() * retr_rect.GetHeight() * bpp;
 
-  int bufferSize = retrieve_width * retrieve_height * 4;
-
-  unsigned char* buffer = (unsigned char*)malloc(bufferSize);
+  unsigned char* buffer = new unsigned char[bufferSize];
   if (buffer)
   {
-    glReadPixels(device_mouse_clip_left, device_mouse_clip_top, retrieve_width, retrieve_height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+    glReadPixels(retr_rect.Left, retr_rect.Top, retr_rect.GetWidth(), retr_rect.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
     unsigned char* surfaceData = buffer;
     unsigned char* sourcePtr;
     unsigned char* destPtr;
     
-	Bitmap* retrieveInto = BitmapHelper::CreateBitmap(retrieve_width, retrieve_height, 32);
+	Bitmap* retrieveInto = BitmapHelper::CreateBitmap(retr_rect.GetWidth(), retr_rect.GetHeight(), _mode.ColorDepth);
 
     if (retrieveInto)
     {
@@ -785,14 +771,15 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
       {
         sourcePtr = surfaceData;
         destPtr = &retrieveInto->GetScanLineForWriting(y)[0];
-        for (int x = 0; x < retrieveInto->GetWidth() * 4; x += 4)
+        for (int x = 0; x < retrieveInto->GetWidth() * bpp; x += bpp)
         {
-          destPtr[x] = sourcePtr[x + 2];
-          destPtr[x + 2] = sourcePtr[x];
+          // TODO: find out if it's possible to retrieve pixels in the matching format
+          destPtr[x]     = sourcePtr[x + 2];
           destPtr[x + 1] = sourcePtr[x + 1];
+          destPtr[x + 2] = sourcePtr[x];
           destPtr[x + 3] = sourcePtr[x + 3];
         }
-        surfaceData += retrieve_width * 4;
+        surfaceData += retr_rect.GetWidth() * bpp;
       }
 
       destination->StretchBlt(retrieveInto, RectWH(0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight()),
@@ -800,7 +787,7 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
       delete retrieveInto;
     }
 
-    free(buffer);
+    delete [] buffer;
   }
 }
 

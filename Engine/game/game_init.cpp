@@ -236,7 +236,7 @@ void InitAndRegisterInvItems()
         scrInv[i].reserved = 0;
         ccRegisterManagedObject(&scrInv[i], &ccDynamicInv);
 
-        if (game.invScriptNames[i][0] != 0)
+        if (!game.invScriptNames[i].IsEmpty())
             ccAddExternalDynamicObject(game.invScriptNames[i], &scrInv[i], &ccDynamicInv);
     }
 }

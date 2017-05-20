@@ -624,8 +624,7 @@ void unload_game_file() {
         game.audioClipTypeCount = 0;
     }
 
-    free(game.viewNames[0]);
-    free(game.viewNames);
+    game.viewNames.clear();
     free (views);
     views = NULL;
 

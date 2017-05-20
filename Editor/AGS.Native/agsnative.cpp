@@ -1574,8 +1574,7 @@ void free_old_game_data()
     }
     newViews[bb].Dispose();
   }
-  free(thisgame.viewNames[0]);
-  free(thisgame.viewNames);
+  thisgame.viewNames.clear();
   free(newViews);
   guis.clear();
   free(thisgame.chars);

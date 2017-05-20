@@ -64,8 +64,6 @@ namespace AGS.Editor
         public static readonly byte GUIMAIN_LEGACYTEXTWINDOW = (byte)(int)Factory.NativeProxy.GetNativeConstant("GUIMAIN_LEGACYTEXTWINDOW");
         public static readonly int GTF_NOBORDER = (int)Factory.NativeProxy.GetNativeConstant("GTF_NOBORDER");
         public static readonly int MAX_GUILABEL_TEXT_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_GUILABEL_TEXT_LEN");
-        public static readonly int MAX_GUIOBJ_SCRIPTNAME_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_GUIOBJ_SCRIPTNAME_LEN");
-        public static readonly int MAX_GUIOBJ_EVENTHANDLER_LEN = (int)Factory.NativeProxy.GetNativeConstant("MAX_GUIOBJ_EVENTHANDLER_LEN");
         public static readonly int GOBJ_BUTTON = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_BUTTON");
         public static readonly int GOBJ_LABEL = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_LABEL");
         public static readonly int GOBJ_INVENTORY = (int)Factory.NativeProxy.GetNativeConstant("GOBJ_INVENTORY");

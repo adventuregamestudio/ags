@@ -1024,11 +1024,11 @@ namespace AGS.Editor
                 writer.Write(control.Height);
                 writer.Write(control.ZOrder);
                 writer.Write(0); // activated
-                FilePutNullTerminatedString(control.Name, NativeConstants.MAX_GUIOBJ_SCRIPTNAME_LEN + 1, writer);
+                FilePutNullTerminatedString(control.Name, control.Name.Length + 1, writer);
                 writer.Write(events.Length); // numSupportedEvents
                 foreach (string sevent in events)
                 {
-                    FilePutNullTerminatedString(sevent, NativeConstants.MAX_GUIOBJ_EVENTHANDLER_LEN + 1, writer);
+                    FilePutNullTerminatedString(sevent, sevent.Length + 1, writer);
                 }
             }
 
@@ -1339,7 +1339,7 @@ namespace AGS.Editor
             WriteString(AGS.Types.Version.AGS_EDITOR_VERSION, AGS.Types.Version.AGS_EDITOR_VERSION.Length, writer);
             // Write extended engine caps; none for this version
             writer.Write((int)0);
-            // An example of writing caps (pseduo-code):
+            // An example of writing caps (pseudo-code):
             //   writer.Write(caps.Count);
             //   foreach (cap in caps)
             //       FilePutString(cap.Name);

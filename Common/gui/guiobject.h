@@ -18,6 +18,7 @@
 #include "core/types.h"
 #include "gfx/bitmap.h"
 #include "gui/guidefines.h"
+#include "util/string.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
@@ -40,8 +41,8 @@ struct GUIObject
   int wid, hit;
   int zorder;
   int activated;
-  char scriptName[MAX_GUIOBJ_SCRIPTNAME_LEN + 1];
-  char eventHandlers[MAX_GUIOBJ_EVENTS][MAX_GUIOBJ_EVENTHANDLER_LEN + 1];
+  Common::String scriptName;
+  Common::String eventHandlers[MAX_GUIOBJ_EVENTS];
 
   GUIObject();
   virtual ~GUIObject(){}

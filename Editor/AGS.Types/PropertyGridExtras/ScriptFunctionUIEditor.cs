@@ -28,18 +28,16 @@ namespace AGS.Types
         public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
         {
             bool isGlobalScript = false;
-			int maxLength = 50;
+			int maxLength = 50; // TODO: why even 50?
             string itemName = string.Empty;
             if (context.Instance is GUI)
             {
                 itemName = ((GUI)context.Instance).Name;
-				maxLength = NormalGUI.MAX_EVENT_HANDLER_LENGTH;
                 isGlobalScript = true;
             }
             else if (context.Instance is GUIControl)
             {
                 itemName = ((GUIControl)context.Instance).Name;
-				maxLength = GUIControl.MAX_EVENT_HANDLER_LENGTH;
                 isGlobalScript = true;
             }
             else if (context.Instance is InventoryItem)
@@ -86,7 +84,7 @@ namespace AGS.Types
 
 				stringValue = itemName + "_" + functionSuffix;
 
-				if (stringValue.Length > maxLength)
+				if (maxLength > 0 && stringValue.Length > maxLength)
 				{
 					stringValue = stringValue.Substring(0, maxLength);
 				}

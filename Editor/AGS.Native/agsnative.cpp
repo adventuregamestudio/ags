@@ -3071,7 +3071,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   NormalGUI^ normalGui = dynamic_cast<NormalGUI^>(guiObj);
   if (normalGui)
   {
-	ConvertStringToNativeString(normalGui->OnClick, gui->OnClickHandler, GUIMAIN_EVENTHANDLER_LENGTH);
+	ConvertStringToNativeString(normalGui->OnClick, gui->OnClickHandler);
 	gui->X = normalGui->Left;
 	gui->Y = normalGui->Top;
 	gui->Width = normalGui->Width;
@@ -3125,7 +3125,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guibuts[numguibuts].lclickdata = button->NewModeNumber;
 		  guibuts[numguibuts].flags = (button->ClipImage) ? GUIF_CLIP : 0;
 		  ConvertStringToCharArray(button->Text, guibuts[numguibuts].text, 50);
-		  ConvertStringToCharArray(button->OnClick, guibuts[numguibuts].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
+		  ConvertStringToNativeString(button->OnClick, guibuts[numguibuts].eventHandlers[0]);
 		  
           gui->CtrlRefs[gui->ControlCount] = (Common::kGUIButton << 16) | numguibuts;
 		  gui->Controls[gui->ControlCount] = &guibuts[numguibuts];
@@ -3156,7 +3156,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guitext[numguitext].flags = 0;
 		  guitext[numguitext].exflags = (textbox->ShowBorder) ? 0 : GTF_NOBORDER;
 		  guitext[numguitext].text[0] = 0;
-		  ConvertStringToCharArray(textbox->OnActivate, guitext[numguitext].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
+		  ConvertStringToNativeString(textbox->OnActivate, guitext[numguitext].eventHandlers[0]);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUITextBox << 16) | numguitext;
 		  gui->Controls[gui->ControlCount] = &guitext[numguitext];
@@ -3174,7 +3174,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guilist[numguilist].flags = listbox->Translated ? GUIF_TRANSLATED : 0;
 		  guilist[numguilist].exflags = (listbox->ShowBorder) ? 0 : GLF_NOBORDER;
 		  guilist[numguilist].exflags |= (listbox->ShowScrollArrows) ? 0 : GLF_NOARROWS;
-		  ConvertStringToCharArray(listbox->OnSelectionChanged, guilist[numguilist].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
+		  ConvertStringToNativeString(listbox->OnSelectionChanged, guilist[numguilist].eventHandlers[0]);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIListBox << 16) | numguilist;
 		  gui->Controls[gui->ControlCount] = &guilist[numguilist];
@@ -3190,7 +3190,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guislider[numguislider].handlepic = slider->HandleImage;
 		  guislider[numguislider].handleoffset = slider->HandleOffset;
 		  guislider[numguislider].bgimage = slider->BackgroundImage;
-		  ConvertStringToCharArray(slider->OnChange, guislider[numguislider].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
+		  ConvertStringToNativeString(slider->OnChange, guislider[numguislider].eventHandlers[0]);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUISlider << 16) | numguislider;
 		  gui->Controls[gui->ControlCount] = &guislider[numguislider];
@@ -3230,7 +3230,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  newObj->hit = control->Height;
 	  newObj->objn = control->ID;
 	  newObj->zorder = control->ZOrder;
-	  ConvertStringToCharArray(control->Name, newObj->scriptName, MAX_GUIOBJ_SCRIPTNAME_LEN + 1);
+	  ConvertStringToNativeString(control->Name, newObj->scriptName);
   }
 
   gui->RebuildArray();

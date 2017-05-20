@@ -11,9 +11,6 @@ namespace AGS.Types
     [Serializable]
     public abstract class GUIControl : ICloneable
     {
-        public const int MAX_EVENT_HANDLER_LENGTH = 30;
-        protected const int MAX_NAME_LENGTH = 25;
-
         protected GUIControl(int x, int y, int width, int height)
         {
             _name = string.Empty;
@@ -131,7 +128,7 @@ namespace AGS.Types
             get { return _name; }
             set
             {
-                _name = Utilities.ValidateScriptName(value, MAX_NAME_LENGTH);
+                _name = Utilities.ValidateScriptName(value);
             }
         }
 

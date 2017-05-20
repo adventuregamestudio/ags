@@ -297,7 +297,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
         // if the object has a special handler script then run it;
         // otherwise, run interface_click
         if ((theObj->GetNumEvents() > 0) &&
-            (theObj->eventHandlers[0][0] != 0) &&
+            (!theObj->eventHandlers[0].IsEmpty()) &&
             (!gameinst->GetSymbolAddress(theObj->eventHandlers[0]).IsNull())) {
                 // control-specific event handler
                 if (strchr(theObj->GetEventArgs(0), ',') != NULL)
@@ -400,7 +400,7 @@ void update_gui_zorder() {
 void export_gui_controls(int ee) {
 
     for (int ff = 0; ff < guis[ee].ControlCount; ff++) {
-        if (guis[ee].Controls[ff]->scriptName[0] != 0)
+        if (!guis[ee].Controls[ff]->scriptName.IsEmpty())
             ccAddExternalDynamicObject(guis[ee].Controls[ff]->scriptName, guis[ee].Controls[ff], &ccDynamicGUIObject);
 
         ccRegisterManagedObject(guis[ee].Controls[ff], &ccDynamicGUIObject);
@@ -410,7 +410,7 @@ void export_gui_controls(int ee) {
 void unexport_gui_controls(int ee) {
 
     for (int ff = 0; ff < guis[ee].ControlCount; ff++) {
-        if (guis[ee].Controls[ff]->scriptName[0] != 0)
+        if (!guis[ee].Controls[ff]->scriptName.IsEmpty())
             ccRemoveExternalSymbol(guis[ee].Controls[ff]->scriptName);
 
         if (!ccUnRegisterManagedObject(guis[ee].Controls[ff]))

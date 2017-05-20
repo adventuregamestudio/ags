@@ -18,6 +18,7 @@ namespace AGS.Types
         // Gfx filters for currently selected driver
         private Dictionary<string, string> _gfxFilters;
         private string _customSavePath;
+        private string _customAppDataPath;
 
         public RuntimeSetup(Settings gameSettings)
         {
@@ -222,7 +223,7 @@ namespace AGS.Types
         }
 
         [DisplayName("Use custom game saves path")]
-        [Description("Define your own location for saved games and files created by game script. Players are able to change this option freely.")]
+        [Description("Define your own location for saved games and individual user files created by game script. Players are able to change this option freely.")]
         [DefaultValue(false)]
         [Category("Enviroment")]
         [RefreshProperties(RefreshProperties.All)]
@@ -233,7 +234,7 @@ namespace AGS.Types
         }
 
         [DisplayName("Custom game saves path")]
-        [Description("Define your own location for saved games and files created by game script. Leave empty to use game's directory. This option accepts only relative paths, and your players will be able to change it to their liking.")]
+        [Description("Define your own location for saved games and individual user files created by game script. Leave empty to use game's directory. This option accepts only relative paths, and your players will be able to change it to their liking.")]
         [Category("Enviroment")]
         public String CustomSavePath
         {
@@ -247,12 +248,41 @@ namespace AGS.Types
                     throw new ArgumentException("Absolute paths are not allowed.");
                 // We test paths against current working dir here, but in practice
                 // this will be applied to game's installation dir.
-                Uri baseUri = new Uri(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar);
-                Uri userPathUri = new Uri(Path.Combine(Directory.GetCurrentDirectory(), value) + Path.DirectorySeparatorChar);
-                if (!baseUri.IsBaseOf(userPathUri))
+                if (!Utilities.IsPathOrSubDir(Directory.GetCurrentDirectory(), value))
                     throw new ArgumentException("Paths to the upper directory levels are not allowed.");
                 _customSavePath = value;
-                
+            }
+        }
+
+        [DisplayName("Use custom shared data path")]
+        [Description("Define your own location for shared data files created by game script.")]
+        [DefaultValue(false)]
+        [Category("Enviroment")]
+        [RefreshProperties(RefreshProperties.All)]
+        public bool UseCustomAppDataPath
+        {
+            get;
+            set;
+        }
+
+        [DisplayName("Custom shared data path")]
+        [Description("Define your own location for shared data files created by game script. Leave empty to use game's directory. This option accepts only relative paths.")]
+        [Category("Enviroment")]
+        public String CustomAppDataPath
+        {
+            get
+            {
+                return _customAppDataPath;
+            }
+            set
+            {
+                if (Path.IsPathRooted(value))
+                    throw new ArgumentException("Absolute paths are not allowed.");
+                // We test paths against current working dir here, but in practice
+                // this will be applied to game's installation dir.
+                if (!Utilities.IsPathOrSubDir(Directory.GetCurrentDirectory(), value))
+                    throw new ArgumentException("Paths to the upper directory levels are not allowed.");
+                _customAppDataPath = value;
             }
         }
 
@@ -340,6 +370,8 @@ namespace AGS.Types
                     wantThisProperty = _gameSettings.RenderAtScreenResolution == AGS.Types.RenderAtScreenResolution.UserDefined;
                 else if (property.Name == "CustomSavePath")
                     wantThisProperty = UseCustomSavePath;
+                else if (property.Name == "CustomAppDataPath")
+                    wantThisProperty = UseCustomAppDataPath;
 
                 if (wantThisProperty)
                 {

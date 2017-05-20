@@ -775,6 +775,7 @@ void engine_init_directories()
     Debug::Printf(kDbgMsg_Init, "Optional install directory: %s", usetup.install_dir.GetCStr());
     Debug::Printf(kDbgMsg_Init, "Optional install audio directory: %s", usetup.install_audio_dir.GetCStr());
     Debug::Printf(kDbgMsg_Init, "User data directory: %s", usetup.user_data_dir.GetCStr());
+    Debug::Printf(kDbgMsg_Init, "Shared data directory: %s", usetup.shared_data_dir.GetCStr());
 
     set_install_dir(usetup.install_dir, usetup.install_audio_dir);
     if (!usetup.install_dir.IsEmpty())
@@ -788,7 +789,7 @@ void engine_init_directories()
     bool res = false;
     if (!usetup.user_data_dir.IsEmpty())
     {
-        res = SetCustomSaveParent(String::FromFormat("%s/UserSaves", usetup.user_data_dir.GetCStr()));
+        res = SetCustomSaveParent(usetup.user_data_dir);
         if (!res)
         {
             Debug::Printf(kDbgMsg_Warn, "WARNING: custom user save path failed, using default system paths");

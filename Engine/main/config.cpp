@@ -394,6 +394,7 @@ void read_config(const ConfigTree &cfg)
         usetup.no_speech_pack = INIreadint(cfg, "sound", "usespeech", 1) == 0;
 
         usetup.user_data_dir = INIreadstring(cfg, "misc", "user_data_dir");
+        usetup.shared_data_dir = INIreadstring(cfg, "misc", "shared_data_dir");
 
         usetup.translation = INIreadstring(cfg, "language", "translation");
 
@@ -475,8 +476,11 @@ void post_config()
         usetup.Screen.GameFrame.ScaleFactor = kUnit;
     }
     
+    // TODO: helper functions to remove slash in paths (or distinct path type)
     if (usetup.user_data_dir.GetLast() == '/' || usetup.user_data_dir.GetLast() == '\\')
         usetup.user_data_dir.ClipRight(1);
+    if (usetup.shared_data_dir.GetLast() == '/' || usetup.shared_data_dir.GetLast() == '\\')
+        usetup.shared_data_dir.ClipRight(1);
 }
 
 void save_config_file()

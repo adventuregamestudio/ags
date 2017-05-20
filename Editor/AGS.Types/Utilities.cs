@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Text;
 using System.Reflection;
 
@@ -98,6 +99,17 @@ namespace AGS.Types
         public static string ResolutionToUserString(Size size)
         {
             return String.Format("{0} x {1}", size.Width, size.Height);
+        }
+
+        /// <summary>
+        /// Tells if the given path equals to parent or subdirectory of parent.
+        /// </summary>
+        /// <returns></returns>
+        public static bool IsPathOrSubDir(string parent, string path)
+        {
+            Uri baseUri = new Uri(parent + Path.DirectorySeparatorChar);
+            Uri pathUri = new Uri(Path.Combine(parent, path) + Path.DirectorySeparatorChar);
+            return baseUri.IsBaseOf(pathUri);
         }
     }
 }

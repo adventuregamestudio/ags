@@ -26,7 +26,7 @@
     #ifndef SCRIPT_COMPAT_v321
       #define STRICT_IN_v330
     #endif
-  #endif*/
+  #endif
   #ifdef SCRIPT_API_v340
     #ifndef SCRIPT_COMPAT_v335
       #define STRICT_IN_v340

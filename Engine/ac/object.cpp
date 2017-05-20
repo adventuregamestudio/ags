@@ -113,7 +113,7 @@ void Object_Animate(ScriptObject *objj, int loop, int delay, int repeat, int blo
     else
         quit("!Object.Animate: Invalid BLOCKING parameter");
 
-    AnimateObjectEx(objj->id, loop, delay, repeat, direction, blocking);
+    AnimateObject(objj->id, loop, delay, repeat, direction, blocking);
 }
 
 void Object_StopAnimating(ScriptObject *objj) {

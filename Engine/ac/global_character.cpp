@@ -70,13 +70,15 @@ void ReleaseCharacterView(int chat) {
     Character_UnlockView(&game.chars[chat]);
 }
 
-void MoveToWalkableArea(int charid) {
+// [DEPRECATED]
+/*void MoveToWalkableArea(int charid) {
     if (!is_valid_character(charid))
         quit("!MoveToWalkableArea: invalid character specified");
 
     Character_PlaceOnWalkableArea(&game.chars[charid]);
-}
+}*/
 
+// CLNUP
 void FaceLocation(int cha, int xx, int yy) {
     if (!is_valid_character(cha))
         quit("!FaceLocation: Invalid character specified");
@@ -84,6 +86,8 @@ void FaceLocation(int cha, int xx, int yy) {
     Character_FaceLocation(&game.chars[cha], xx, yy, BLOCKING);
 }
 
+/*
+// [DEPRECATED]
 void FaceCharacter(int cha,int toface) {
     if (!is_valid_character(cha))
         quit("!FaceCharacter: Invalid character specified");
@@ -92,7 +96,7 @@ void FaceCharacter(int cha,int toface) {
 
     Character_FaceCharacter(&game.chars[cha], &game.chars[toface], BLOCKING);
 }
-
+*/
 
 void SetCharacterIdle(int who, int iview, int itime) {
     if (!is_valid_character(who))
@@ -141,21 +145,22 @@ int GetCharacterHeight(int charid) {
         return charextra[charid].height;
 }
 
-
-
+/*
+// [DEPRECATED]
 void SetCharacterBaseline (int obn, int basel) {
     if (!is_valid_character(obn)) quit("!SetCharacterBaseline: invalid object number specified");
 
     Character_SetBaseline(&game.chars[obn], basel);
 }
 
-// pass trans=0 for fully solid, trans=100 for fully transparent
+// [DEPRECATED] pass trans=0 for fully solid, trans=100 for fully transparent
 void SetCharacterTransparency(int obn,int trans) {
     if (!is_valid_character(obn))
         quit("!SetCharTransparent: invalid character number specified");
 
     Character_SetTransparency(&game.chars[obn], trans);
 }
+*/
 
 void scAnimateCharacter (int chh, int loopn, int sppd, int rept) {
     if (!is_valid_character(chh))
@@ -184,13 +189,13 @@ void AnimateCharacterEx(int chh, int loopn, int sppd, int rept, int direction, i
 
 }
 
-
-void SetPlayerCharacter(int newchar) {
+// [DEPRECATED]
+/*void SetPlayerCharacter(int newchar) {
     if (!is_valid_character(newchar))
         quit("!SetPlayerCharacter: Invalid character specified");
 
     Character_SetAsPlayer(&game.chars[newchar]);
-}
+}*/
 
 
 // [DEPRECATED] but still used by run_interaction_commandlist
@@ -208,19 +213,20 @@ void FollowCharacter(int who, int tofollow, int distaway, int eagerness) {
     Character_FollowCharacter(&game.chars[who], chtofollow, distaway, eagerness);
 }
 
+/*
 // [DEPRECATED]
-/*void FollowCharacter(int who, int tofollow) {
+void FollowCharacter(int who, int tofollow) {
     FollowCharacterEx(who,tofollow,10,97);
 }
-*/
 
+// [DEPRECATED]
 void SetCharacterIgnoreLight (int who, int yesorno) {
     if (!is_valid_character(who))
         quit("!SetCharacterIgnoreLight: Invalid character specified");
 
     Character_SetIgnoreLighting(&game.chars[who], yesorno);
 }
-
+*/
 
 
 
@@ -250,6 +256,8 @@ int GetPlayerCharacter() {
     return game.playercharacter;
 }
 
+/*
+// [DEPRECATED]
 void SetCharacterSpeedEx(int chaa, int xspeed, int yspeed) {
     if (!is_valid_character(chaa))
         quit("!SetCharacterSpeedEx: invalid character");
@@ -258,15 +266,17 @@ void SetCharacterSpeedEx(int chaa, int xspeed, int yspeed) {
 
 }
 
+// [DEPRECATED]
 void SetCharacterSpeed(int chaa,int nspeed) {
     SetCharacterSpeedEx(chaa, nspeed, nspeed);
 }
 
+// [DEPRECATED]
 void SetTalkingColor(int chaa,int ncol) {
     if (!is_valid_character(chaa)) quit("!SetTalkingColor: invalid character");
 
     Character_SetSpeechColor(&game.chars[chaa], ncol);
-}
+}*/
 
 void SetCharacterSpeechView (int chaa, int vii) {
     if (!is_valid_character(chaa))
@@ -301,12 +311,13 @@ void SetCharacterViewEx (int chaa, int vii, int loop, int align) {
     Character_LockViewAligned(&game.chars[chaa], vii, loop, align);
 }
 
-void SetCharacterViewOffset (int chaa, int vii, int xoffs, int yoffs) {
+// [DEPRECATED]
+/*void SetCharacterViewOffset (int chaa, int vii, int xoffs, int yoffs) {
 
     Character_LockViewOffset(&game.chars[chaa], vii, xoffs, yoffs);
-}
+}*/
 
-
+// CLNUP could Character_ChangeView be enough ? Is it necessary to check if is_valid_character() ?
 void ChangeCharacterView(int chaa,int vii) {
     if (!is_valid_character(chaa))
         quit("!ChangeCharacterView: invalid character specified");
@@ -314,6 +325,8 @@ void ChangeCharacterView(int chaa,int vii) {
     Character_ChangeView(&game.chars[chaa], vii);
 }
 
+/*
+// [DEPRECATED]
 void SetCharacterClickable (int cha, int clik) {
     if (!is_valid_character(cha))
         quit("!SetCharacterClickable: Invalid character specified");
@@ -324,13 +337,14 @@ void SetCharacterClickable (int cha, int clik) {
         game.chars[cha].flags|=CHF_NOINTERACT;
 }
 
+// [DEPRECATED]
 void SetCharacterIgnoreWalkbehinds (int cha, int clik) {
     if (!is_valid_character(cha))
         quit("!SetCharacterIgnoreWalkbehinds: Invalid character specified");
 
     Character_SetIgnoreWalkbehinds(&game.chars[cha], clik);
 }
-
+*/
 
 void MoveCharacterToObject(int chaa,int obbj) {
     // invalid object, do nothing
@@ -405,6 +419,8 @@ void RunCharacterInteraction (int cc, int mood) {
     }
 }
 
+/*
+// [DEPRECATED]
 int AreCharObjColliding(int charid,int objid) {
     if (!is_valid_character(charid))
         quit("!AreCharObjColliding: invalid character");
@@ -414,6 +430,7 @@ int AreCharObjColliding(int charid,int objid) {
     return Character_IsCollidingWithObject(&game.chars[charid], &scrObj[objid]);
 }
 
+// [DEPRECATED]
 int AreCharactersColliding(int cchar1,int cchar2) {
     if (!is_valid_character(cchar1))
         quit("!AreCharactersColliding: invalid char1");
@@ -423,7 +440,6 @@ int AreCharactersColliding(int cchar1,int cchar2) {
     return Character_IsCollidingWithChar(&game.chars[cchar1], &game.chars[cchar2]);
 }
 
-/*
 // [DEPRECATED]
 int GetCharacterProperty (int cha, const char *property) {
     if (!is_valid_character(cha))

@@ -198,7 +198,7 @@ int GetObjectBaseline(int obn) {
     return objs[obn].baseline;
 }
 
-void AnimateObjectEx(int obn,int loopn,int spdd,int rept, int direction, int blocking) {
+void AnimateObject(int obn,int loopn,int spdd,int rept, int direction, int blocking) {
     if (obn>=MANOBJNUM) {
         scAnimateCharacter(obn - 100,loopn,spdd,rept);
         return;
@@ -235,10 +235,12 @@ void AnimateObjectEx(int obn,int loopn,int spdd,int rept, int direction, int blo
         GameLoopUntilEvent(UNTIL_CHARIS0,(long)&objs[obn].cycling);
 }
 
-
+/*
+// [DEPRECATED]
 void AnimateObject(int obn,int loopn,int spdd,int rept) {
     AnimateObjectEx (obn, loopn, spdd, rept, 0, 0);
 }
+*/
 
 void MergeObject(int obn) {
     if (!is_valid_object(obn)) quit("!MergeObject: invalid object specified");

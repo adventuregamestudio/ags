@@ -1196,7 +1196,7 @@ void engine_init_game_settings()
     for (ee = 0; ee < MAX_SOUND_CHANNELS; ee++)
         last_sound_played[ee] = -1;
 
-    if (usetup.translation)
+    if (!usetup.translation.IsEmpty())
         init_translation (usetup.translation, "", true);
 
     update_invorder();

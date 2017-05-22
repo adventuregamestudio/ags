@@ -222,6 +222,20 @@ namespace AGS.Types
             set;
         }
 
+        private String TestCustomPath(string path)
+        {
+            if (!String.IsNullOrEmpty(path))
+            {
+                if (Path.IsPathRooted(path))
+                    throw new ArgumentException("Absolute paths are not allowed.");
+                // We test paths against current working dir here, but in practice
+                // this will be applied to game's installation dir.
+                if (!Utilities.IsPathOrSubDir(Directory.GetCurrentDirectory(), path))
+                    throw new ArgumentException("Paths to the upper directory levels are not allowed.");
+            }
+            return path;
+        }
+
         [DisplayName("Use custom game saves path")]
         [Description("Define your own location for saved games and individual user files created by game script. Players are able to change this option freely.")]
         [DefaultValue(false)]
@@ -244,13 +258,7 @@ namespace AGS.Types
             }
             set
             {
-                if (Path.IsPathRooted(value))
-                    throw new ArgumentException("Absolute paths are not allowed.");
-                // We test paths against current working dir here, but in practice
-                // this will be applied to game's installation dir.
-                if (!Utilities.IsPathOrSubDir(Directory.GetCurrentDirectory(), value))
-                    throw new ArgumentException("Paths to the upper directory levels are not allowed.");
-                _customSavePath = value;
+                _customSavePath = TestCustomPath(value);
             }
         }
 
@@ -276,13 +284,7 @@ namespace AGS.Types
             }
             set
             {
-                if (Path.IsPathRooted(value))
-                    throw new ArgumentException("Absolute paths are not allowed.");
-                // We test paths against current working dir here, but in practice
-                // this will be applied to game's installation dir.
-                if (!Utilities.IsPathOrSubDir(Directory.GetCurrentDirectory(), value))
-                    throw new ArgumentException("Paths to the upper directory levels are not allowed.");
-                _customAppDataPath = value;
+                _customAppDataPath = TestCustomPath(value);
             }
         }
 

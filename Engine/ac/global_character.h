@@ -40,9 +40,9 @@ void FollowCharacter(int who, int tofollow, int distaway = 10, int eagerness = 7
 //void SetCharacterIgnoreLight (int who, int yesorno);// [DEPRECATED]
 void MoveCharacter(int cc,int xx,int yy);
 void MoveCharacterDirect(int cc,int xx, int yy);
-void MoveCharacterStraight(int cc,int xx, int yy);
+//void MoveCharacterStraight(int cc,int xx, int yy);// [DEPRECATED]
 // Append to character path
-void MoveCharacterPath (int chac, int tox, int toy);
+//void MoveCharacterPath (int chac, int tox, int toy);// [DEPRECATED]
 
 //void SetCharacterSpeedEx(int chaa, int xspeed, int yspeed);// [DEPRECATED]
 //void SetCharacterSpeed(int chaa,int nspeed);// [DEPRECATED]
@@ -57,7 +57,7 @@ void SetCharacterViewEx (int chaa, int vii, int loop, int align);
 void ChangeCharacterView(int chaa,int vii);// CLNUP could Character_ChangeView be enough ?
 //void SetCharacterClickable (int cha, int clik);// [DEPRECATED]
 //void SetCharacterIgnoreWalkbehinds (int cha, int clik);// [DEPRECATED]
-void MoveCharacterToObject(int chaa,int obbj);
+//void MoveCharacterToObject(int chaa,int obbj);// [DEPRECATED]
 void MoveCharacterToHotspot(int chaa,int hotsp);
 void MoveCharacterBlocking(int chaa,int xx,int yy,int direct);
 

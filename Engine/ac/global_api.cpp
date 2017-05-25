@@ -1089,17 +1089,19 @@ RuntimeScriptValue Sc_MoveCharacterDirect(const RuntimeScriptValue *params, int3
     API_SCALL_VOID_PINT3(MoveCharacterDirect);
 }
 
-// void  (int chac, int tox, int toy)
+/*
+// [DEPRECATED] void  (int chac, int tox, int toy)
 RuntimeScriptValue Sc_MoveCharacterPath(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT3(MoveCharacterPath);
 }
 
-// void (int cc,int xx, int yy)
+// [DEPRECATED] void (int cc,int xx, int yy)
 RuntimeScriptValue Sc_MoveCharacterStraight(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT3(MoveCharacterStraight);
 }
+*/
 
 // void (int chaa,int hotsp)
 RuntimeScriptValue Sc_MoveCharacterToHotspot(const RuntimeScriptValue *params, int32_t param_count)
@@ -1107,11 +1109,11 @@ RuntimeScriptValue Sc_MoveCharacterToHotspot(const RuntimeScriptValue *params, i
     API_SCALL_VOID_PINT2(MoveCharacterToHotspot);
 }
 
-// void (int chaa,int obbj)
-RuntimeScriptValue Sc_MoveCharacterToObject(const RuntimeScriptValue *params, int32_t param_count)
+// [DEPRECATED] void (int chaa,int obbj)
+/*RuntimeScriptValue Sc_MoveCharacterToObject(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(MoveCharacterToObject);
-}
+}*/
 
 // void (int objj,int xx,int yy,int spp)
 RuntimeScriptValue Sc_MoveObject(const RuntimeScriptValue *params, int32_t param_count)
@@ -1249,67 +1251,68 @@ RuntimeScriptValue Sc_Rand(const RuntimeScriptValue *params, int32_t param_count
     API_SCALL_INT_PINT(__Rand);
 }
 
-// void  (int clr)
+/*
+// [DEPRECATED] void  (int clr)
 RuntimeScriptValue Sc_RawClear(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(RawClear);
 }
 
-// void  (int xx, int yy, int rad)
+// [DEPRECATED] void  (int xx, int yy, int rad)
 RuntimeScriptValue Sc_RawDrawCircle(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT3(RawDrawCircle);
 }
 
-// void  (int frame, int translev)
+// [DEPRECATED] void  (int frame, int translev)
 RuntimeScriptValue Sc_RawDrawFrameTransparent(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(RawDrawFrameTransparent);
 }
 
-// void (int xx, int yy, int slot)
+// [DEPRECATED] void (int xx, int yy, int slot)
 RuntimeScriptValue Sc_RawDrawImage(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT3(RawDrawImage);
 }
 
-// void (int xx, int yy, int slot)
+// [DEPRECATED] void (int xx, int yy, int slot)
 RuntimeScriptValue Sc_RawDrawImageOffset(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT3(RawDrawImageOffset);
 }
 
-// void (int xx, int yy, int gotSlot, int width, int height)
+// [DEPRECATED] void (int xx, int yy, int gotSlot, int width, int height)
 RuntimeScriptValue Sc_RawDrawImageResized(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT5(RawDrawImageResized);
 }
 
-// void (int xx, int yy, int slot, int trans)
+// [DEPRECATED] void (int xx, int yy, int slot, int trans)
 RuntimeScriptValue Sc_RawDrawImageTransparent(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT4(RawDrawImageTransparent);
 }
 
-// void  (int fromx, int fromy, int tox, int toy)
+// [DEPRECATED] void  (int fromx, int fromy, int tox, int toy)
 RuntimeScriptValue Sc_RawDrawLine(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT4(RawDrawLine);
 }
 
-// void (int x1, int y1, int x2, int y2)
+// [DEPRECATED] void (int x1, int y1, int x2, int y2)
 RuntimeScriptValue Sc_RawDrawRectangle(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT4(RawDrawRectangle);
 }
 
-// void (int x1, int y1, int x2, int y2, int x3, int y3)
+// [DEPRECATED] void (int x1, int y1, int x2, int y2, int x3, int y3)
 RuntimeScriptValue Sc_RawDrawTriangle(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT6(RawDrawTriangle);
 }
 
-// void  (int xx, int yy, char*texx, ...)
+// [DEPRECATED] void  (int xx, int yy, char*texx, ...)
 RuntimeScriptValue Sc_RawPrint(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(RawPrint, 3);
@@ -1317,41 +1320,42 @@ RuntimeScriptValue Sc_RawPrint(const RuntimeScriptValue *params, int32_t param_c
     return RuntimeScriptValue();
 }
 
-// void  (int xx, int yy, int wid, int font, int msgm)
+// [DEPRECATED] void  (int xx, int yy, int wid, int font, int msgm)
 RuntimeScriptValue Sc_RawPrintMessageWrapped(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT5(RawPrintMessageWrapped);
 }
 
-// void ()
+// [DEPRECATED] void ()
 RuntimeScriptValue Sc_RawRestoreScreen(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID(RawRestoreScreen);
 }
 
-// void (int red, int green, int blue, int opacity)
+// [DEPRECATED] void (int red, int green, int blue, int opacity)
 RuntimeScriptValue Sc_RawRestoreScreenTinted(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT4(RawRestoreScreenTinted);
 }
 
-// void  ()
+// [DEPRECATED] void  ()
 RuntimeScriptValue Sc_RawSaveScreen(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID(RawSaveScreen);
 }
 
-// void  (int clr)
+// [DEPRECATED] void  (int clr)
 RuntimeScriptValue Sc_RawSetColor(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(RawSetColor);
 }
 
-// void (int red, int grn, int blu)
+// [DEPRECATED] void (int red, int grn, int blu)
 RuntimeScriptValue Sc_RawSetColorRGB(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT3(RawSetColorRGB);
 }
+*/
 
 extern RuntimeScriptValue Sc_RefreshMouse(const RuntimeScriptValue *params, int32_t param_count);
 
@@ -2266,12 +2270,14 @@ void ScPl_DisplayTopBar(int ypos, int ttexcol, int backcol, char *title, char *t
     DisplayTopBar(ypos, ttexcol, backcol, title, scsf_buffer);
 }
 
-// void  (int xx, int yy, char*texx, ...)
+/*
+// [DEPRECATED] void  (int xx, int yy, char*texx, ...)
 void ScPl_RawPrint(int xx, int yy, char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
     RawPrint(xx, yy, scsf_buffer);
 }
+*/
 
 // void (int ovrid,int xx,int yy,int wii,int fontid,int clr,char*texx,...)
 void ScPl_SetTextOverlay(int ovrid, int xx, int yy, int wii, int fontid, int clr, char*texx,...)
@@ -2463,10 +2469,10 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("MoveCharacter",            Sc_MoveCharacter);
 	ccAddExternalStaticFunction("MoveCharacterBlocking",    Sc_MoveCharacterBlocking);
 	ccAddExternalStaticFunction("MoveCharacterDirect",      Sc_MoveCharacterDirect);
-	ccAddExternalStaticFunction("MoveCharacterPath",        Sc_MoveCharacterPath);
-	ccAddExternalStaticFunction("MoveCharacterStraight",    Sc_MoveCharacterStraight);
+	//ccAddExternalStaticFunction("MoveCharacterPath",        Sc_MoveCharacterPath);// [DEPRECATED]
+	//ccAddExternalStaticFunction("MoveCharacterStraight",    Sc_MoveCharacterStraight);// [DEPRECATED]
 	ccAddExternalStaticFunction("MoveCharacterToHotspot",   Sc_MoveCharacterToHotspot);
-	ccAddExternalStaticFunction("MoveCharacterToObject",    Sc_MoveCharacterToObject);
+	//ccAddExternalStaticFunction("MoveCharacterToObject",    Sc_MoveCharacterToObject);// [DEPRECATED]
 	ccAddExternalStaticFunction("MoveObject",               Sc_MoveObject);
 	ccAddExternalStaticFunction("MoveObjectDirect",         Sc_MoveObjectDirect);
 	ccAddExternalStaticFunction("MoveOverlay",              Sc_MoveOverlay);
@@ -2490,23 +2496,23 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("PlayVideo",                Sc_scrPlayVideo);
 	ccAddExternalStaticFunction("QuitGame",                 Sc_QuitGame);
 	ccAddExternalStaticFunction("Random",                   Sc_Rand);
-	ccAddExternalStaticFunction("RawClearScreen",           Sc_RawClear);
-	ccAddExternalStaticFunction("RawDrawCircle",            Sc_RawDrawCircle);
-	ccAddExternalStaticFunction("RawDrawFrameTransparent",  Sc_RawDrawFrameTransparent);
-	ccAddExternalStaticFunction("RawDrawImage",             Sc_RawDrawImage);
-	ccAddExternalStaticFunction("RawDrawImageOffset",       Sc_RawDrawImageOffset);
-	ccAddExternalStaticFunction("RawDrawImageResized",      Sc_RawDrawImageResized);
-	ccAddExternalStaticFunction("RawDrawImageTransparent",  Sc_RawDrawImageTransparent);
-	ccAddExternalStaticFunction("RawDrawLine",              Sc_RawDrawLine);
-	ccAddExternalStaticFunction("RawDrawRectangle",         Sc_RawDrawRectangle);
-	ccAddExternalStaticFunction("RawDrawTriangle",          Sc_RawDrawTriangle);
-	ccAddExternalStaticFunction("RawPrint",                 Sc_RawPrint);
-	ccAddExternalStaticFunction("RawPrintMessageWrapped",   Sc_RawPrintMessageWrapped);
-	ccAddExternalStaticFunction("RawRestoreScreen",         Sc_RawRestoreScreen);
-	ccAddExternalStaticFunction("RawRestoreScreenTinted",   Sc_RawRestoreScreenTinted);
-	ccAddExternalStaticFunction("RawSaveScreen",            Sc_RawSaveScreen);
-	ccAddExternalStaticFunction("RawSetColor",              Sc_RawSetColor);
-	ccAddExternalStaticFunction("RawSetColorRGB",           Sc_RawSetColorRGB);
+	//ccAddExternalStaticFunction("RawClearScreen",           Sc_RawClear);// [DEPRECATED]
+	//ccAddExternalStaticFunction("RawDrawCircle",            Sc_RawDrawCircle);// [DEPRECATED]
+	//ccAddExternalStaticFunction("RawDrawFrameTransparent",  Sc_RawDrawFrameTransparent);// [DEPRECATED]
+	//ccAddExternalStaticFunction("RawDrawImage",             Sc_RawDrawImage);// [DEPRECATED]
+	//ccAddExternalStaticFunction("RawDrawImageOffset",       Sc_RawDrawImageOffset);// [DEPRECATED]
+	//ccAddExternalStaticFunction("RawDrawImageResized",      Sc_RawDrawImageResized);// [DEPRECATED]
+	//ccAddExternalStaticFunction("RawDrawImageTransparent",  Sc_RawDrawImageTransparent);// [DEPRECATED]
+	//ccAddExternalStaticFunction("RawDrawLine",              Sc_RawDrawLine);// [DEPRECATED]
+	//ccAddExternalStaticFunction("RawDrawRectangle",         Sc_RawDrawRectangle);// [DEPRECATED]
+	//ccAddExternalStaticFunction("RawDrawTriangle",          Sc_RawDrawTriangle);// [DEPRECATED]
+	//ccAddExternalStaticFunction("RawPrint",                 Sc_RawPrint);// [DEPRECATED]
+	//ccAddExternalStaticFunction("RawPrintMessageWrapped",   Sc_RawPrintMessageWrapped);// [DEPRECATED]
+	//ccAddExternalStaticFunction("RawRestoreScreen",         Sc_RawRestoreScreen);// [DEPRECATED]
+	//ccAddExternalStaticFunction("RawRestoreScreenTinted",   Sc_RawRestoreScreenTinted);// [DEPRECATED]
+	//ccAddExternalStaticFunction("RawSaveScreen",            Sc_RawSaveScreen);// [DEPRECATED]
+	//ccAddExternalStaticFunction("RawSetColor",              Sc_RawSetColor);// [DEPRECATED]
+	//ccAddExternalStaticFunction("RawSetColorRGB",           Sc_RawSetColorRGB);// [DEPRECATED]
 	ccAddExternalStaticFunction("RefreshMouse",             Sc_RefreshMouse);
 	//ccAddExternalStaticFunction("ReleaseCharacterView",     Sc_ReleaseCharacterView);// [DEPRECATED]
 	ccAddExternalStaticFunction("ReleaseViewport",          Sc_ReleaseViewport);
@@ -2829,10 +2835,10 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("MoveCharacter",            (void*)MoveCharacter);
     ccAddExternalFunctionForPlugin("MoveCharacterBlocking",    (void*)MoveCharacterBlocking);
     ccAddExternalFunctionForPlugin("MoveCharacterDirect",      (void*)MoveCharacterDirect);
-    ccAddExternalFunctionForPlugin("MoveCharacterPath",        (void*)MoveCharacterPath);
-    ccAddExternalFunctionForPlugin("MoveCharacterStraight",    (void*)MoveCharacterStraight);
+    //ccAddExternalFunctionForPlugin("MoveCharacterPath",        (void*)MoveCharacterPath);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("MoveCharacterStraight",    (void*)MoveCharacterStraight);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("MoveCharacterToHotspot",   (void*)MoveCharacterToHotspot);
-    ccAddExternalFunctionForPlugin("MoveCharacterToObject",    (void*)MoveCharacterToObject);
+    //ccAddExternalFunctionForPlugin("MoveCharacterToObject",    (void*)MoveCharacterToObject);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("MoveObject",               (void*)MoveObject);
     ccAddExternalFunctionForPlugin("MoveObjectDirect",         (void*)MoveObjectDirect);
     ccAddExternalFunctionForPlugin("MoveOverlay",              (void*)MoveOverlay);
@@ -2857,23 +2863,23 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("ProcessClick",             (void*)ProcessClick);
     ccAddExternalFunctionForPlugin("QuitGame",                 (void*)QuitGame);
     ccAddExternalFunctionForPlugin("Random",                   (void*)__Rand);
-    ccAddExternalFunctionForPlugin("RawClearScreen",           (void*)RawClear);
-    ccAddExternalFunctionForPlugin("RawDrawCircle",            (void*)RawDrawCircle);
-    ccAddExternalFunctionForPlugin("RawDrawFrameTransparent",  (void*)RawDrawFrameTransparent);
-    ccAddExternalFunctionForPlugin("RawDrawImage",             (void*)RawDrawImage);
-    ccAddExternalFunctionForPlugin("RawDrawImageOffset",       (void*)RawDrawImageOffset);
-    ccAddExternalFunctionForPlugin("RawDrawImageResized",      (void*)RawDrawImageResized);
-    ccAddExternalFunctionForPlugin("RawDrawImageTransparent",  (void*)RawDrawImageTransparent);
-    ccAddExternalFunctionForPlugin("RawDrawLine",              (void*)RawDrawLine);
-    ccAddExternalFunctionForPlugin("RawDrawRectangle",         (void*)RawDrawRectangle);
-    ccAddExternalFunctionForPlugin("RawDrawTriangle",          (void*)RawDrawTriangle);
-    ccAddExternalFunctionForPlugin("RawPrint",                 (void*)ScPl_RawPrint);
-    ccAddExternalFunctionForPlugin("RawPrintMessageWrapped",   (void*)RawPrintMessageWrapped);
-    ccAddExternalFunctionForPlugin("RawRestoreScreen",         (void*)RawRestoreScreen);
-    ccAddExternalFunctionForPlugin("RawRestoreScreenTinted",   (void*)RawRestoreScreenTinted);
-    ccAddExternalFunctionForPlugin("RawSaveScreen",            (void*)RawSaveScreen);
-    ccAddExternalFunctionForPlugin("RawSetColor",              (void*)RawSetColor);
-    ccAddExternalFunctionForPlugin("RawSetColorRGB",           (void*)RawSetColorRGB);
+    //ccAddExternalFunctionForPlugin("RawClearScreen",           (void*)RawClear);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("RawDrawCircle",            (void*)RawDrawCircle);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("RawDrawFrameTransparent",  (void*)RawDrawFrameTransparent);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("RawDrawImage",             (void*)RawDrawImage);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("RawDrawImageOffset",       (void*)RawDrawImageOffset);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("RawDrawImageResized",      (void*)RawDrawImageResized);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("RawDrawImageTransparent",  (void*)RawDrawImageTransparent);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("RawDrawLine",              (void*)RawDrawLine);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("RawDrawRectangle",         (void*)RawDrawRectangle);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("RawDrawTriangle",          (void*)RawDrawTriangle);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("RawPrint",                 (void*)ScPl_RawPrint);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("RawPrintMessageWrapped",   (void*)RawPrintMessageWrapped);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("RawRestoreScreen",         (void*)RawRestoreScreen);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("RawRestoreScreenTinted",   (void*)RawRestoreScreenTinted);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("RawSaveScreen",            (void*)RawSaveScreen);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("RawSetColor",              (void*)RawSetColor);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("RawSetColorRGB",           (void*)RawSetColorRGB);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("RefreshMouse",             (void*)RefreshMouse);
     //ccAddExternalFunctionForPlugin("ReleaseCharacterView",     (void*)ReleaseCharacterView);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("ReleaseViewport",          (void*)ReleaseViewport);

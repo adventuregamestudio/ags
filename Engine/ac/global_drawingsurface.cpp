@@ -12,6 +12,8 @@
 //
 //=============================================================================
 
+// CLNUP the whole file could be safely removed
+/*
 #include <stdio.h>
 #include "ac/common.h"
 #include "ac/display.h"
@@ -51,14 +53,15 @@ extern GameSetupStruct game;
 
 Bitmap *raw_drawing_surface;
 
-// RawSaveScreen: copy the current screen to a backup bitmap
+// [DEPRECATED] RawSaveScreen: copy the current screen to a backup bitmap
 void RawSaveScreen () {
     if (raw_saved_screen != NULL)
         delete raw_saved_screen;
     Bitmap *source = thisroom.ebscene[play.bg_frame];
     raw_saved_screen = BitmapHelper::CreateBitmapCopy(source);
 }
-// RawRestoreScreen: copy backup bitmap back to screen; we
+
+// [DEPRECATED] RawRestoreScreen: copy backup bitmap back to screen; we
 // deliberately don't free the Bitmap *cos they can multiple restore
 // and it gets freed on room exit anyway
 void RawRestoreScreen() {
@@ -71,7 +74,8 @@ void RawRestoreScreen() {
     invalidate_screen();
     mark_current_background_dirty();
 }
-// Restores the backup bitmap, but tints it to the specified level
+
+// [DEPRECATED] Restores the backup bitmap, but tints it to the specified level
 void RawRestoreScreenTinted(int red, int green, int blue, int opacity) {
     if (raw_saved_screen == NULL) {
         debug_script_warn("RawRestoreScreenTinted: unable to restore, since the screen hasn't been saved previously.");
@@ -90,6 +94,7 @@ void RawRestoreScreenTinted(int red, int green, int blue, int opacity) {
     mark_current_background_dirty();
 }
 
+// [DEPRECATED]
 void RawDrawFrameTransparent (int frame, int translev) {
     if ((frame < 0) || (frame >= thisroom.num_bscenes) ||
         (translev < 0) || (translev > 99))
@@ -118,6 +123,7 @@ void RawDrawFrameTransparent (int frame, int translev) {
     RAW_END();
 }
 
+// [DEPRECATED]
 void RawClear (int clr) {
     RAW_START();
     clr = RAW_SURFACE()->GetCompatibleColor(clr);
@@ -125,6 +131,8 @@ void RawClear (int clr) {
     invalidate_screen();
     mark_current_background_dirty();
 }
+
+// [DEPRECATED]
 void RawSetColor (int clr) {
     //push_screen();
     //SetVirtualScreen(thisroom.ebscene[play.bg_frame]);
@@ -132,6 +140,8 @@ void RawSetColor (int clr) {
     play.raw_color = GetVirtualScreen()->GetCompatibleColor(clr);
     //pop_screen();
 }
+
+// [DEPRECATED]
 void RawSetColorRGB(int red, int grn, int blu) {
     if ((red < 0) || (red > 255) || (grn < 0) || (grn > 255) ||
         (blu < 0) || (blu > 255))
@@ -139,6 +149,8 @@ void RawSetColorRGB(int red, int grn, int blu) {
 
     play.raw_color = makecol_depth(thisroom.ebscene[play.bg_frame]->GetColorDepth(), red, grn, blu);
 }
+
+// [DEPRECATED]
 void RawPrint (int xx, int yy, const char *text) {
     RAW_START();
     // don't use wtextcolor because it will do a 16->32 conversion
@@ -154,6 +166,8 @@ void RawPrint (int xx, int yy, const char *text) {
     mark_current_background_dirty();
     RAW_END();
 }
+
+// [DEPRECATED]
 void RawPrintMessageWrapped (int xx, int yy, int wid, int font, int msgm) {
     char displbuf[3000];
     int linespacing = getfontspacing_outlined(font);
@@ -188,18 +202,22 @@ void RawDrawImageCore(int xx, int yy, int slot, int alpha) {
     RAW_END();
 }
 
+// [DEPRECATED]
 void RawDrawImage(int xx, int yy, int slot) {
     RawDrawImageCore(xx, yy, slot);
 }
 
+// [DEPRECATED] called by RawDrawImageTransparent
 void RawDrawImageTrans(int xx, int yy, int slot, int alpha) {
     RawDrawImageCore(xx, yy, slot, alpha);
 }
 
+// [DEPRECATED]
 void RawDrawImageOffset(int xx, int yy, int slot) {
     RawDrawImageCore(xx, yy, slot);
 }
 
+// [DEPRECATED]
 void RawDrawImageTransparent(int xx, int yy, int slot, int legacy_transparency) {
     if ((legacy_transparency < 0) || (legacy_transparency > 100))
         quit("!RawDrawImageTransparent: invalid transparency setting");
@@ -227,6 +245,8 @@ void RawDrawImageTransparent(int xx, int yy, int slot, int legacy_transparency) 
 
     update_polled_stuff_if_runtime();  // this operation can be slow so stop music skipping
 }
+
+// [DEPRECATED]
 void RawDrawImageResized(int xx, int yy, int gotSlot, int width, int height) {
     if ((gotSlot < 0) || (gotSlot >= MAX_SPRITES) || (spriteset[gotSlot] == NULL))
         quit("!RawDrawImageResized: invalid sprite slot number specified");
@@ -251,6 +271,8 @@ void RawDrawImageResized(int xx, int yy, int gotSlot, int width, int height) {
     update_polled_stuff_if_runtime();  // this operation can be slow so stop music skipping
     RAW_END();
 }
+
+// [DEPRECATED]
 void RawDrawLine (int fromx, int fromy, int tox, int toy) {
     play.raw_modified[play.bg_frame] = 1;
     int ii,jj;
@@ -264,6 +286,8 @@ void RawDrawLine (int fromx, int fromy, int tox, int toy) {
     invalidate_screen();
     mark_current_background_dirty();
 }
+
+// [DEPRECATED]
 void RawDrawCircle (int xx, int yy, int rad) {
     play.raw_modified[play.bg_frame] = 1;
     Bitmap *bg_frame = thisroom.ebscene[play.bg_frame];
@@ -271,6 +295,8 @@ void RawDrawCircle (int xx, int yy, int rad) {
     invalidate_screen();
     mark_current_background_dirty();
 }
+
+// [DEPRECATED]
 void RawDrawRectangle(int x1, int y1, int x2, int y2) {
     play.raw_modified[play.bg_frame] = 1;
 
@@ -279,6 +305,8 @@ void RawDrawRectangle(int x1, int y1, int x2, int y2) {
     invalidate_screen();
     mark_current_background_dirty();
 }
+
+// [DEPRECATED]
 void RawDrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
     play.raw_modified[play.bg_frame] = 1;
 
@@ -287,3 +315,4 @@ void RawDrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
     invalidate_screen();
     mark_current_background_dirty();
 }
+*/

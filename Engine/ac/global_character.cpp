@@ -236,6 +236,8 @@ void MoveCharacter(int cc,int xx,int yy) {
 void MoveCharacterDirect(int cc,int xx, int yy) {
     walk_character(cc,xx,yy,1, true);
 }
+/*
+// [DEPRECATED]
 void MoveCharacterStraight(int cc,int xx, int yy) {
     if (!is_valid_character(cc))
         quit("!MoveCharacterStraight: invalid character specified");
@@ -243,14 +245,14 @@ void MoveCharacterStraight(int cc,int xx, int yy) {
     Character_WalkStraight(&game.chars[cc], xx, yy, IN_BACKGROUND);
 }
 
-// Append to character path
+// [DEPRECATED] Append to character path
 void MoveCharacterPath (int chac, int tox, int toy) {
     if (!is_valid_character(chac))
         quit("!MoveCharacterPath: invalid character specified");
 
     Character_AddWaypoint(&game.chars[chac], tox, toy);
 }
-
+*/
 
 int GetPlayerCharacter() {
     return game.playercharacter;
@@ -344,8 +346,8 @@ void SetCharacterIgnoreWalkbehinds (int cha, int clik) {
 
     Character_SetIgnoreWalkbehinds(&game.chars[cha], clik);
 }
-*/
 
+// [DEPRECATED]
 void MoveCharacterToObject(int chaa,int obbj) {
     // invalid object, do nothing
     // this allows MoveCharacterToObject(EGO, GetObjectAt(...));
@@ -355,6 +357,7 @@ void MoveCharacterToObject(int chaa,int obbj) {
     walk_character(chaa,objs[obbj].x+5,objs[obbj].y+6,0, true);
     GameLoopUntilEvent(UNTIL_MOVEEND,(long)&game.chars[chaa].walking);
 }
+*/
 
 void MoveCharacterToHotspot(int chaa,int hotsp) {
     if ((hotsp<0) || (hotsp>=MAX_HOTSPOTS))

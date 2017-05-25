@@ -21,56 +21,13 @@
 
 #include "util/stdtr1compat.h"
 #include TR1INCLUDE(memory)
-#include <allegro.h>
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/gfxdriverfactorybase.h"
 #include "gfx/gfxdriverbase.h"
 #include "util/string.h"
 
-#if defined(WINDOWS_VERSION)
-#include <winalleg.h>
-#include <allegro/platform/aintwin.h>
-#include <GL/gl.h>
-
-// Allegro and glext.h define these
-#undef int32_t
-#undef int64_t
-#undef uint64_t
-
-#include <GL/glext.h>
-
-#elif defined(ANDROID_VERSION)
-
-#include <GLES/gl.h>
-
-#ifndef GL_GLEXT_PROTOTYPES
-#define GL_GLEXT_PROTOTYPES
-#endif
-
-#include <GLES/glext.h>
-
-#define HDC void*
-#define HGLRC void*
-#define HWND void*
-#define HINSTANCE void*
-
-#elif defined(IOS_VERSION)
-
-#include <OpenGLES/ES1/gl.h>
-
-#ifndef GL_GLEXT_PROTOTYPES
-#define GL_GLEXT_PROTOTYPES
-#endif
-
-#include <OpenGLES/ES1/glext.h>
-
-#define HDC void*
-#define HGLRC void*
-#define HWND void*
-#define HINSTANCE void*
-
-#endif
+#include "ogl_headers.h"
 
 namespace AGS
 {
@@ -172,6 +129,34 @@ public:
 
 typedef SpriteDrawListEntry<OGLBitmap> OGLDrawListEntry;
 
+class OGLDisplayModeList : public IGfxModeList
+{
+public:
+    OGLDisplayModeList(const std::vector<DisplayMode> &modes)
+        : _modes(modes)
+    {
+    }
+
+    virtual int GetModeCount() const
+    {
+        return _modes.size();
+    }
+
+    virtual bool GetMode(int index, DisplayMode &mode) const
+    {
+        if (index >= 0 && (size_t)index < _modes.size())
+        {
+            mode = _modes[index];
+            return true;
+        }
+        return false;
+    }
+
+private:
+    std::vector<DisplayMode> _modes;
+};
+
+
 class OGLGfxFilter;
 
 class OGLGraphicsDriver : public GraphicsDriverBase
@@ -187,10 +172,6 @@ public:
     virtual IGfxModeList *GetSupportedModeList(int color_depth);
     virtual bool IsModeSupported(const DisplayMode &mode);
     virtual PGfxFilter GetGraphicsFilter() const;
-    virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
-    virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
-    virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
-    virtual void SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) { _nullSpriteCallback = callback; }
     virtual void UnInit();
     virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
     virtual Bitmap *ConvertBitmapToSupportedColourDepth(Bitmap *bitmap);
@@ -205,7 +186,7 @@ public:
     virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination);
     virtual void EnableVsyncBeforeRender(bool enabled) { }
     virtual void Vsync();
-    virtual void RenderSpritesAtScreenResolution(bool enabled) { }
+    virtual void RenderSpritesAtScreenResolution(bool enabled);
     virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void BoxOutEffect(bool blackingOut, int speed, int delay);
@@ -233,41 +214,71 @@ public:
 private:
     POGLFilter _filter;
 
+#if defined (WINDOWS_VERSION)
     HDC _hDC;
     HGLRC _hRC;
     HWND _hWnd;
     HINSTANCE _hInstance;
-    unsigned int availableVideoMemory;
-    GFXDRV_CLIENTCALLBACK _pollingCallback;
-    GFXDRV_CLIENTCALLBACK _drawScreenCallback;
-    GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
-    GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
+    GLuint _oldPixelFormat;
+    PIXELFORMATDESCRIPTOR _oldPixelFormatDesc;
+#endif
     int _tint_red, _tint_green, _tint_blue;
+    // Position of backbuffer texture in world space
+    GLfloat _backbuffer_vertices[8];
+    // Relative position of source image on the backbuffer texture,
+    // in local coordinates
+    GLfloat _backbuffer_texture_coordinates[8];
     OGLCUSTOMVERTEX defaultVertices[4];
     String previousError;
     bool _smoothScaling;
     bool _legacyPixelShader;
-    float _pixelRenderOffset;
     Bitmap *_screenTintLayer;
     OGLBitmap* _screenTintLayerDDB;
     OGLDrawListEntry _screenTintSprite;
     Bitmap *_dummyVirtualScreen;
 
-    float _scale_width;
-    float _scale_height;
+    int device_screen_physical_width;
+    int device_screen_physical_height;
+
+    // Viewport and scissor rect, in OpenGL screen coordinates (0,0 is at left-bottom)
+    Rect _viewportRect;
+
+    // These two flags define whether driver can, and should (respectively)
+    // render sprites to texture, and then texture to screen, as opposed to
+    // rendering to screen directly. This is known as supersampling mode
+    bool _can_render_to_texture;
+    bool _do_render_to_texture;
+    // Backbuffer texture multiplier, used to determine a size of texture
+    // relative to the native game size.
     int _super_sampling;
     unsigned int _backbuffer;
     unsigned int _fbo;
-    int _backbuffer_texture_width;
-    int _backbuffer_texture_height;
-    bool _render_to_texture;
+    // Size of the backbuffer drawing area, equals to native size
+    // multiplied by _super_sampling
+    Size _backRenderSize;
+    // Actual size of the backbuffer texture, created by OpenGL
+    Size _backTextureSize;
+
 
     std::vector<OGLDrawListEntry> drawList;
     std::vector<OGLDrawListEntry> drawListLastTime;
     GlobalFlipType flipTypeLastTime;
 
-    void InitOpenGl();
+    // Initializes Gl rendering context
+    bool InitGlScreen(const DisplayMode &mode);
+    bool CreateGlContext(const DisplayMode &mode);
+    void DeleteGlContext();
+    // Sets up general rendering parameters
+    void InitGlParams();
     void set_up_default_vertices();
+    // Test if rendering to texture is supported
+    void TestRenderToTexture();
+    // Configure backbuffer texture, that is used in render-to-texture mode
+    void SetupBackbufferTexture();
+    void DeleteBackbufferTexture();
+#if defined (WINDOWS_VERSION)
+    void create_desktop_screen(int width, int height, int depth);
+#endif
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();
     void AdjustSizeToNearestSupportedByCard(int *width, int *height);
@@ -277,7 +288,6 @@ private:
     void create_screen_tint_bitmap();
     void _renderSprite(OGLDrawListEntry *entry, bool globalLeftRightFlip, bool globalTopBottomFlip);
     void SetupViewport();
-    void create_backbuffer_arrays();
 };
 
 

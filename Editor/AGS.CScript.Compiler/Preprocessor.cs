@@ -211,6 +211,11 @@ namespace AGS.CScript.Compiler
 				try
 				{
 					Version appVersion = new Version(_applicationVersion);
+					// .NET Version class requires at least first two version components,
+					// but AGS has traditionally supported one component too.
+					int major_test;
+					if (macroName.IndexOf('.') < 0 && Int32.TryParse(macroName, out major_test))
+						macroName = macroName + ".0";
 					Version macroVersion = new Version(macroName);
 					includeCodeBlock = appVersion.CompareTo(macroVersion) >= 0;
 					if (directive == "ifnver")

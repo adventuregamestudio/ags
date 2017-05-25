@@ -51,7 +51,7 @@
 #endif
 
 #if defined(WINDOWS_VERSION)
-#if defined(_MSC_VER) && (_MSC_VER >= 1900)
+#if defined(_MSC_VER) && (_MSC_VER >= 1600)
 
 #include <stdint.h>
 
@@ -77,7 +77,7 @@
 #define _INTPTR_T_DEFINED
 #define _UINTPTR_T_DEFINED
 
-#endif // _MSC_VER >= 1900
+#endif // _MSC_VER >= 1600
 
 #endif // WINDOWS_VERSION
 

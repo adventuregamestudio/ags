@@ -101,14 +101,14 @@ bool create_gfx_driver(const String &gfx_driver_id)
     GfxFactory = GetGfxDriverFactory(gfx_driver_id);
     if (!GfxFactory)
     {
-        Debug::Printf(kDbgMsg_Error, "Failed to initialize %s graphics factory: %s", gfx_driver_id.GetCStr(), get_allegro_error());
+        Debug::Printf(kDbgMsg_Error, "Failed to initialize %s graphics factory. Error: %s", gfx_driver_id.GetCStr(), get_allegro_error());
         return false;
     }
     Debug::Printf("Using graphics factory: %s", gfx_driver_id.GetCStr());
     gfxDriver = GfxFactory->GetDriver();
     if (!gfxDriver)
     {
-        Debug::Printf(kDbgMsg_Error, "Failed to create graphics driver. %s", get_allegro_error());
+        Debug::Printf(kDbgMsg_Error, "Failed to create graphics driver. Error: %s", get_allegro_error());
         return false;
     }
     Debug::Printf("Created graphics driver: %s", gfxDriver->GetDriverName());
@@ -295,6 +295,8 @@ bool try_init_compatible_mode(const DisplayMode &dm, const bool match_device_rat
     Debug::Printf("Attempting to find nearest supported resolution for screen size %d x %d (%d-bit) %s",
         dm.Width, dm.Height, dm.ColorDepth, dm.Windowed ? "windowed" : "fullscreen");
     const Size device_size = get_max_display_size(dm.Windowed);
+    if (dm.Windowed)
+        Debug::Printf("Maximal allowed window size: %d x %d", device_size.Width, device_size.Height);
     DisplayMode dm_compat = dm;
 
     // Windowed mode
@@ -337,9 +339,6 @@ bool try_init_compatible_mode(const DisplayMode &dm, const bool match_device_rat
             dm_compat.Vsync = dm.Vsync;
             dm_compat.Windowed = true;
             result = graphics_mode_set_dm(dm_compat);
-        }
-        else
-        {
         }
     }
     return result;
@@ -569,7 +568,7 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
 
     if (!gfxDriver->SetDisplayMode(dm, &timerloop))
     {
-        Debug::Printf(kDbgMsg_Error, "Failed to init gfx mode. %s", get_allegro_error());
+        Debug::Printf(kDbgMsg_Error, "Failed to init gfx mode. Error: %s", get_allegro_error());
         return false;
     }
 
@@ -616,7 +615,9 @@ bool graphics_mode_set_native_size(const Size &native_size)
         return false;
     if (!gfxDriver->SetNativeSize(native_size))
         return false;
-    graphics_mode_update_render_frame();
+    // if render frame translation was already set, then update it with new native size
+    if (gfxDriver->IsRenderFrameValid())
+        graphics_mode_update_render_frame();
     return true;
 }
 

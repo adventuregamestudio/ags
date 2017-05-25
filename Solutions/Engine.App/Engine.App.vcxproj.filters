@@ -984,6 +984,9 @@
     <ClCompile Include="..\..\Engine\libsrc\libcda-0.5\windows.c">
       <Filter>Library Sources\libcda</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\gfx\gfxfilter_aaogl.cpp">
+      <Filter>Header Files\gfx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1825,6 +1828,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\util\wgt2allg.h">
       <Filter>Common Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\gfx\gfxfilter_aaogl.h">
+      <Filter>Header Files\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\gfx\ogl_headers.h">
+      <Filter>Header Files\gfx</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

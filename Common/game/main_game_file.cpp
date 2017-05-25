@@ -226,16 +226,6 @@ void ReadViews(GameSetupStruct &game, ViewStruct *&views, Stream *in, GameDataVe
 {
     int count = game.numviews;
     views = (ViewStruct*)calloc(sizeof(ViewStruct) * count, 1);
-    game.viewNames = (char**)malloc(sizeof(char*) * count);
-    // NOTE: Only first index of viewNames actually allocs a string,
-    // long enough to store all view names. Other slots store pointers
-    // to substrings inside that large string.
-    game.viewNames[0] = (char*)malloc(MAXVIEWNAMELENGTH * count);
-    for (int i = 1; i < count; ++i)
-    {
-        game.viewNames[i] = game.viewNames[0] + (MAXVIEWNAMELENGTH * i);
-    }
-
     if (data_ver > kGameVersion_272) // 3.x views
     {
         for (int i = 0; i < game.numviews; ++i)

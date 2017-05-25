@@ -122,6 +122,8 @@ void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     if (gui_version >= kGuiVersion_unkn_106)
         Name.Read(in);
+    else
+        Name.Free();
 
     for (int i = 0; i < _scEventCount; ++i)
     {

@@ -9,7 +9,6 @@ namespace AGS.Types
 {
     public class NormalGUI : GUI
     {
-        public const int MAX_EVENT_HANDLER_LENGTH = 19;
         public const string XML_ELEMENT_NAME = "NormalGUI";
 
         public NormalGUI() : base()
@@ -42,17 +41,7 @@ namespace AGS.Types
         public string OnClick
         {
             get { return _clickEventHandler; }
-            set
-            {
-                if (value.Length > MAX_EVENT_HANDLER_LENGTH)
-                {
-                    _clickEventHandler = value.Substring(0, MAX_EVENT_HANDLER_LENGTH);
-                }
-                else
-                {
-                    _clickEventHandler = value;
-                }
-            }
+            set { _clickEventHandler = value; }
         }
 
         [Description("The height, in pixels, of the GUI")]

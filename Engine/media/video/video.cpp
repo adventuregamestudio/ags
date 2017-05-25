@@ -17,6 +17,7 @@
 #include "apeg.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
+#include "ac/asset_helper.h"
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/game_version.h"
@@ -127,18 +128,24 @@ void play_flc_file(int numb,int playflags) {
     if (playflags / 100)
         clearScreenAtStart = 0;
 
-    char flicnam[20]; sprintf(flicnam,"flic%d.flc",numb);
-    Stream*in=Common::AssetManager::OpenAsset(flicnam);
-    if (in==NULL) { sprintf(flicnam,"flic%d.fli",numb);
-    in=Common::AssetManager::OpenAsset(flicnam); }
-    if (in==NULL) {
-        debug_script_warn("FLIC animation FLIC%d.FLC not found",numb);
+    String flicname = String::FromFormat("flic%d.flc", numb);
+    Stream *in = AssetManager::OpenAsset(flicname);
+    if (!in)
+    {
+        flicname.Format("flic%d.fli", numb);
+        in = AssetManager::OpenAsset(flicname);
+    }
+    if (!in)
+    {
+        debug_script_warn("FLIC animation flic%d.flc nor flic%d.fli not found", numb, numb);
         return;
     }
+
     in->Seek(8);
     fliwidth = in->ReadInt16();
     fliheight = in->ReadInt16();
     delete in;
+
     if (game.color_depth > 1) {
         hicol_buf=BitmapHelper::CreateBitmap(fliwidth,fliheight,System_GetColorDepth());
         hicol_buf->Clear();
@@ -148,7 +155,7 @@ void play_flc_file(int numb,int playflags) {
         stretch_flc = 0;
     else if ((fliwidth > play.viewport.GetWidth()) || (fliheight > play.viewport.GetHeight()))
         stretch_flc = 1;
-    fli_buffer=BitmapHelper::CreateBitmap(fliwidth,fliheight,8); //640,400); //play.viewport.GetWidth(),play.viewport.GetHeight());
+    fli_buffer=BitmapHelper::CreateBitmap(fliwidth,fliheight,8);
     if (fli_buffer==NULL) quit("Not enough memory to play animation");
     fli_buffer->Clear();
 
@@ -163,11 +170,23 @@ void play_flc_file(int numb,int playflags) {
     fli_target = BitmapHelper::CreateBitmap(screen_bmp->GetWidth(), screen_bmp->GetHeight(), System_GetColorDepth());
     fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
 
-    if (play_fli(flicnam,(BITMAP*)fli_buffer->GetAllegroBitmap(),0,fli_callback)==FLI_ERROR)
+    // TODO: find a better solution.
+    // Make only Windows use play_fli_pf from the patched version of Allegro for now.
+    // Add more versions as their Allegro lib becomes patched too.
+    // Ports can still play FLI if separate file is put into game's directory.
+#if defined WINDOWS_VERSION
+    PACKFILE *pf = PackfileFromAsset(AssetPath("", flicname));
+    if (play_fli_pf(pf, (BITMAP*)fli_buffer->GetAllegroBitmap(), fli_callback)==FLI_ERROR)
+#else
+    if (play_fli(flicname, (BITMAP*)fli_buffer->GetAllegroBitmap(), 0, fli_callback)==FLI_ERROR)
+#endif
     {
         // This is not a fatal error that should prevent the game from continuing
         Debug::Printf("FLI/FLC animation play error");
     }
+#if defined WINDOWS_VERSION
+    pack_fclose(pf);
+#endif
 
     video_type = kVideoNone;
     delete fli_buffer;

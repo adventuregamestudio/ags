@@ -295,6 +295,7 @@
     <ClCompile Include="..\..\Engine\gfx\gfxdriverbase.cpp" />
     <ClCompile Include="..\..\Engine\gfx\gfxdriverfactory.cpp" />
     <ClCompile Include="..\..\Engine\gfx\gfxfilter_aad3d.cpp" />
+    <ClCompile Include="..\..\Engine\gfx\gfxfilter_aaogl.cpp" />
     <ClCompile Include="..\..\Engine\gfx\gfxfilter_allegro.cpp" />
     <ClCompile Include="..\..\Engine\gfx\gfxfilter_d3d.cpp" />
     <ClCompile Include="..\..\Engine\gfx\gfxfilter_hqx.cpp" />
@@ -624,6 +625,7 @@
     <ClInclude Include="..\..\Engine\gfx\gfxdriverfactorybase.h" />
     <ClInclude Include="..\..\Engine\gfx\gfxfilter.h" />
     <ClInclude Include="..\..\Engine\gfx\gfxfilter_aad3d.h" />
+    <ClInclude Include="..\..\Engine\gfx\gfxfilter_aaogl.h" />
     <ClInclude Include="..\..\Engine\gfx\gfxfilter_allegro.h" />
     <ClInclude Include="..\..\Engine\gfx\gfxfilter_d3d.h" />
     <ClInclude Include="..\..\Engine\gfx\gfxfilter_hqx.h" />
@@ -633,6 +635,7 @@
     <ClInclude Include="..\..\Engine\gfx\gfx_util.h" />
     <ClInclude Include="..\..\Engine\gfx\graphicsdriver.h" />
     <ClInclude Include="..\..\Engine\gfx\hq2x3x.h" />
+    <ClInclude Include="..\..\Engine\gfx\ogl_headers.h" />
     <ClInclude Include="..\..\Engine\gui\animatingguibutton.h" />
     <ClInclude Include="..\..\Engine\gui\cscidialog.h" />
     <ClInclude Include="..\..\Engine\gui\gui.h" />

@@ -50,12 +50,9 @@ bool parse_translation(Stream *language_file, String &parse_error);
 
 bool init_translation (const String &lang, const String &fallback_lang, bool quit_on_error) {
 
-    if (lang.IsEmpty()) {
-        sprintf(transFileName, "default.tra");
-    }
-    else {
-        sprintf(transFileName, "%s.tra", lang.GetCStr());
-    }
+    if (lang.IsEmpty())
+        return false;
+    sprintf(transFileName, "%s.tra", lang.GetCStr());
 
     Stream *language_file = find_open_asset(transFileName);
     if (language_file == NULL)

@@ -52,17 +52,7 @@ namespace AGS.Types
         public string OnClick
         {
             get { return _clickEventHandler; }
-            set
-            {
-                if (value.Length > MAX_EVENT_HANDLER_LENGTH)
-                {
-                    _clickEventHandler = value.Substring(0, MAX_EVENT_HANDLER_LENGTH);
-                }
-                else
-                {
-                    _clickEventHandler = value;
-                }
-            }
+            set { _clickEventHandler = value; }
         }
 
         [Description("What action to perform when the button is clicked")]

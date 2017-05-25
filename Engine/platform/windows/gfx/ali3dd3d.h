@@ -171,10 +171,6 @@ public:
     virtual IGfxModeList *GetSupportedModeList(int color_depth);
     virtual bool IsModeSupported(const DisplayMode &mode);
     virtual PGfxFilter GetGraphicsFilter() const;
-    virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
-    virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
-    virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
-    virtual void SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) { _nullSpriteCallback = callback; }
     virtual void UnInit();
     virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
     virtual Bitmap *ConvertBitmapToSupportedColourDepth(Bitmap *bitmap);
@@ -229,10 +225,6 @@ private:
     IDirect3DSurface9 *pNativeSurface;
     RECT viewport_rect;
     UINT availableVideoMemory;
-    GFXDRV_CLIENTCALLBACK _pollingCallback;
-    GFXDRV_CLIENTCALLBACK _drawScreenCallback;
-    GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
-    GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
     int _tint_red, _tint_green, _tint_blue;
     CUSTOMVERTEX defaultVertices[4];
     String previousError;

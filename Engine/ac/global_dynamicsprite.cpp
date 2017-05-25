@@ -28,14 +28,16 @@ using namespace AGS::Engine;
 extern SpriteCache spriteset;
 extern IGraphicsDriver *gfxDriver;
 
-int LoadImageFile(const char *filename) {
+int LoadImageFile(const char *filename)
+{
+    String path, alt_path;
+    if (!ResolveScriptPath(filename, true, path, alt_path))
+        return 0;
 
-    char loadFromPath[MAX_PATH];
-    get_install_dir_path(loadFromPath, filename);
-
-	Bitmap *loadedFile = BitmapHelper::LoadFromFile(loadFromPath);
-
-    if (loadedFile == NULL)
+    Bitmap *loadedFile = BitmapHelper::LoadFromFile(path);
+    if (!loadedFile && !alt_path.IsEmpty() && alt_path.Compare(path) != 0)
+        loadedFile = BitmapHelper::LoadFromFile(alt_path);
+    if (!loadedFile)
         return 0;
 
     int gotSlot = spriteset.findFreeSlot();

@@ -11,15 +11,9 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-//
-// Dummy OpenGL filter; does nothing useful at the moment
-//
-//=============================================================================
 
-#ifndef __AGS_EE_GFX__OGLGFXFILTER_H
-#define __AGS_EE_GFX__OGLGFXFILTER_H
-
-#include "gfx/gfxfilter_scaling.h"
+#include "gfx/gfxfilter_aaogl.h"
+#include "ogl_headers.h"
 
 namespace AGS
 {
@@ -28,19 +22,24 @@ namespace Engine
 namespace OGL
 {
 
-class OGLGfxFilter : public ScalingGfxFilter
+const GfxFilterInfo AAOGLGfxFilter::FilterInfo = GfxFilterInfo("Linear", "Linear interpolation");
+
+bool AAOGLGfxFilter::UseLinearFiltering() const
 {
-public:
-    virtual const GfxFilterInfo &GetInfo() const;
+    return true;
+}
 
-    virtual bool UseLinearFiltering() const;
-    virtual void SetFilteringForStandardSprite();
+void AAOGLGfxFilter::SetFilteringForStandardSprite()
+{
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+}
 
-    static const GfxFilterInfo FilterInfo;
-};
+const GfxFilterInfo &AAOGLGfxFilter::GetInfo() const
+{
+    return FilterInfo;
+}
 
-} // namespace D3D
+} // namespace OGL
 } // namespace Engine
 } // namespace AGS
-
-#endif // __AGS_EE_GFX__OGLGFXFILTER_H

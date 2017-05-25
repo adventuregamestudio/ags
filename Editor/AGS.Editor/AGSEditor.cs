@@ -1419,6 +1419,19 @@ namespace AGS.Editor
             return result;
         }
 
+        private void WriteCustomPathToConfig(string section, string key, string cfg_path, bool use_custom_path, string custom_path)
+        {
+            string path_value = ""; // no value
+            if (use_custom_path)
+            {
+                if (String.IsNullOrEmpty(custom_path))
+                    path_value = "."; // same directory
+                else
+                    path_value = custom_path;
+            }
+            NativeProxy.WritePrivateProfileString(section, key, path_value, cfg_path);
+        }
+
         /// <summary>
         /// Writes up-to-date game information into configuration file.
         /// This updates only values that strongly depend on game properties,
@@ -1481,10 +1494,8 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("mouse", "auto_lock", _game.DefaultSetup.AutoLockMouse ? "1" : "0", configFilePath);
             NativeProxy.WritePrivateProfileString("mouse", "speed", _game.DefaultSetup.MouseSpeed.ToString(CultureInfo.InvariantCulture), configFilePath);
             NativeProxy.WritePrivateProfileString("misc", "cachemax", _game.DefaultSetup.SpriteCacheSize.ToString(), configFilePath);
-            if (_game.DefaultSetup.UseCustomSavePath)
-                NativeProxy.WritePrivateProfileString("misc", "user_data_dir", _game.DefaultSetup.CustomSavePath, configFilePath);
-            else
-                NativeProxy.WritePrivateProfileString("misc", "user_data_dir", "", configFilePath);
+            WriteCustomPathToConfig("misc", "user_data_dir", configFilePath, _game.DefaultSetup.UseCustomSavePath, _game.DefaultSetup.CustomSavePath);
+            WriteCustomPathToConfig("misc", "shared_data_dir", configFilePath, _game.DefaultSetup.UseCustomAppDataPath, _game.DefaultSetup.CustomAppDataPath);
             NativeProxy.WritePrivateProfileString("misc", "titletext", _game.DefaultSetup.TitleText, configFilePath);
         }
 

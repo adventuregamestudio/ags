@@ -5,10 +5,11 @@ using System.Text;
 
 namespace AGS.Types
 {
+	[DeserializeConvertValueAttribute("DX5", "Software")]
 	public enum GraphicsDriver
 	{
 		[Description("Software driver")]
-		DX5,
+		Software,
 		[Description("Direct3D 9 hardware acceleration")]
 		D3D9
 	}

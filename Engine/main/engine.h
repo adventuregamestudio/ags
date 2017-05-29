@@ -35,6 +35,7 @@ bool        engine_try_switch_windowed_gfxmode();
 // Shutdown graphics mode (used before shutting down tha application)
 void        engine_shutdown_gfxmode();
 
+// Names of the data files containing music and speech, respectively
 extern String music_file;
 extern String speech_file;
 

@@ -458,13 +458,14 @@ int engine_init_speech()
     play.want_speech=-2;
 
     if (!usetup.no_speech_pack) {
-        speech_file = find_assetlib("speech.vox");
-        if (!speech_file.IsEmpty()) {
+        speech_file = "speech.vox";
+        String speech_filepath = find_assetlib(speech_file);
+        if (!speech_filepath.IsEmpty()) {
 
             Debug::Printf("Initializing speech vox");
 
             //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
-            if (Common::AssetManager::SetDataFile(speech_file)!=Common::kAssetNoError) {
+            if (Common::AssetManager::SetDataFile(speech_filepath)!=Common::kAssetNoError) {
                 platform->DisplayAlert("Unable to initialize speech sample file - check for corruption and that\nit belongs to this game.\n");
                 return EXIT_NORMAL;
             }
@@ -504,13 +505,14 @@ int engine_init_music()
 {
     play.separate_music_lib = 0;
 
-    music_file = find_assetlib("audio.vox");
-    if (!music_file.IsEmpty()) {
+    music_file = "audio.vox";
+    String music_filepath = find_assetlib(music_file);
+    if (!music_filepath.IsEmpty()) {
 
         Debug::Printf("Initializing audio vox");
 
         //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
-        if (Common::AssetManager::SetDataFile(music_file)!=Common::kAssetNoError) {
+        if (Common::AssetManager::SetDataFile(music_filepath)!=Common::kAssetNoError) {
             platform->DisplayAlert("Unable to initialize music library - check for corruption and that\nit belongs to this game.\n");
             return EXIT_NORMAL;
         }

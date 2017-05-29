@@ -11,6 +11,7 @@ see the license.txt for details.
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 #include "NativeMethods.h"
 #include "NativeUtils.h"
 #include "scripting.h"
@@ -22,7 +23,7 @@ see the license.txt for details.
 extern const char* make_data_file(int numFiles, char * const*fileNames, long splitSize, const char *baseFileName, bool makeFileNameAssumptionsForEXE);
 extern void ReplaceIconFromFile(const char *iconName, const char *exeName);
 extern void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType);
-extern const char* make_old_style_data_file(const char* dataFileName, int numFiles, char * const*fileNames);
+extern void make_old_style_data_file(const AGSString &dataFileName, const std::vector<const AGSString> &fileNames);
 static const char *GAME_DEFINITION_FILE_RESOURCE = "__GDF_XML";
 static const char *GAME_DEFINITION_THUMBNAIL_RESOURCE = "__GDF_THUMBNAIL";
 
@@ -131,27 +132,13 @@ namespace AGS
 
 		void NativeMethods::CreateVOXFile(String ^fileName, cli::array<String^> ^fileList)
 		{
-			char **fileNames = (char**)malloc(sizeof(char*) * fileList->Length);
+			std::vector<const AGSString> fileNames;
 			for (int i = 0; i < fileList->Length; i++)
 			{
-				fileNames[i] = (char*)malloc(fileList[i]->Length + 1);
-				ConvertFileNameToCharArray(fileList[i], fileNames[i], fileList[i]->Length + 1);
+				fileNames.push_back(ConvertFileNameToNativeString(fileList[i]));
 			}
-			char baseFileNameChars[MAX_PATH];
-			ConvertFileNameToCharArray(fileName, baseFileNameChars, MAX_PATH);
-
-			try
-			{
-				make_old_style_data_file(baseFileNameChars, fileList->Length, fileNames);
-			}
-			finally
-			{
-				for (int i = 0; i < fileList->Length; i++)
-				{
-					free(fileNames[i]);
-				}
-				free(fileNames);
-			}
+			AGSString baseFileNameChars = ConvertFileNameToNativeString(fileName);
+			make_old_style_data_file(baseFileNameChars, fileNames);
 		}
 
 		void NativeMethods::UpdateFileIcon(String ^fileToUpdate, String ^iconName)

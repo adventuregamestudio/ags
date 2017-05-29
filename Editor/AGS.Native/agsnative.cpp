@@ -2167,82 +2167,70 @@ int copy_file_across(Stream*inlibb,Stream*coppy,long leftforthis) {
   return success;
 }
 
-const char* make_old_style_data_file(const char* dataFileName, int numfile, char * const*filenames)
+// TODO: upgrade this "old style data file" to "new style data file" (would require engine update too)
+void make_old_style_data_file(const AGSString &dataFileName, const std::vector<const AGSString> &filenames)
 {
-  const char *errorMsg = NULL;
-  int a;
-  int passwmod = 20;
-  long *filesizes = (long*)malloc(4*numfile);
-  char**writefname = (char**)malloc(4*numfile);
-  writefname[0]=(char*)malloc(14*numfile);
+    const int passwmod = 20;
+    std::vector<int32_t> filesizes(filenames.size());
+    std::vector<AGSString> writefname(filenames.size());
+    size_t numfile = filenames.size();
 
-  for (a=0;a<numfile;a++) {
-    if (a>0) writefname[a]=&writefname[0][a*13];
-	if (strrchr(filenames[a], '\\') != NULL)
-		strcpy(writefname[a], strrchr(filenames[a], '\\') + 1);
-	else if (strrchr(filenames[a], '/') != NULL)
-		strcpy(writefname[a], strrchr(filenames[a], '/') + 1);
-	else
-		strcpy(writefname[a],filenames[a]);
-
-	if (strlen(writefname[a]) > 12)
+    for (size_t fi = 0; fi < numfile; ++fi)
     {
-		char buffer[500];
-		sprintf(buffer, "Filename too long: %s", writefname[a]);
-		free(filesizes);
-		free(writefname);
-		ThrowManagedException(buffer);
+        writefname[fi] = get_filename(filenames[fi]);
+
+        if (strlen(writefname[fi]) > 12)
+            ThrowManagedException(AGSString::FromFormat("Filename too long (limit is 12 chars): '%s'", writefname[fi].GetCStr()));
+        int filesize = Common::File::GetFileSize(filenames[fi]);
+        if (filesize < 0)
+            ThrowManagedException(AGSString::FromFormat("Unable to retrieve file size: '%s'", writefname[fi].GetCStr()));
+        filesizes[fi] = filesize;
+
+        for (size_t c = 0; c < writefname[fi].GetLength(); ++c)
+            writefname[fi].SetAt(c, writefname[fi][c] + passwmod);
     }
 
-    Stream*ddd = Common::File::OpenFileRead(filenames[a]);
-    if (ddd==NULL) { 
-      filesizes[a] = 0;
-      continue;
+    // Write the header
+    Stream *wout = Common::File::CreateFile(dataFileName);
+    if (!wout)
+        ThrowManagedException(AGSString::FromFormat("Failed to open data file for writing: '%s'", dataFileName.GetCStr()));
+    wout->Write(MFLUtil::HeadSig, MFLUtil::HeadSig.GetLength());
+    wout->WriteByte(6);  // version
+    wout->WriteByte(passwmod);  // password modifier
+    wout->WriteByte(0);  // reserved
+    wout->WriteInt16((int16_t)numfile);
+    for (int i = 0; i < 13; ++i) wout->WriteByte(0);  // the password
+    for (size_t i = 0; i < numfile; ++i)
+        writefname[i].WriteCount(wout, 13);
+    for (size_t i = 0; i < numfile; ++i)
+        wout->WriteInt32(filesizes[i]);
+    wout->WriteByteCount(0, 2 * numfile);  // comp.ratio
+
+    // now copy the data
+    AGSString err_msg;
+    for (size_t i = 0; i < numfile; ++i)
+    {
+        Stream *in = Common::File::OpenFileRead(filenames[i]);
+        if (!in)
+        {
+            err_msg.Format("Unable to open asset file for reading: '%s'", filenames[i].GetCStr());
+            break;
+        }
+        int res = copy_file_across(in, wout, filesizes[i]);
+        delete in;
+        if (res < 1)
+        {
+            err_msg.Format("Error writing asset into package, possibly disk full: '%s'", filenames[i].GetCStr());
+            break;
+        }
     }
-    filesizes[a] = ddd->GetLength();
-    delete ddd;
+    delete wout;
 
-    for (int bb = 0; writefname[a][bb] != 0; bb++)
-      writefname[a][bb] += passwmod;
-  }
-  // write the header
-  Stream*wout=Common::File::CreateFile(dataFileName);
-  wout->Write(MFLUtil::HeadSig, MFLUtil::HeadSig.GetLength());
-  wout->WriteByte(6);  // version
-  wout->WriteByte(passwmod);  // password modifier
-  wout->WriteByte(0);  // reserved
-  wout->WriteInt16(numfile);
-  for (a=0;a<13;a++) wout->WriteByte(0);  // the password
-  wout->WriteArray(&writefname[0][0],13,numfile);
-  wout->WriteArrayOfInt32((int32_t*)&filesizes[0],numfile);
-  for (a=0;a<2*numfile;a++) wout->WriteByte(0);  // comp.ratio
-
-  // now copy the data
-  for (a=0;a<numfile;a++) {
-
-	Stream*iii = Common::File::OpenFileRead(filenames[a]);
-    if (iii==NULL) {
-      errorMsg = "unable to add one of the files to data file.";
-      continue;
+    if (!err_msg.IsEmpty())
+    {
+        unlink(dataFileName);
+        ThrowManagedException(err_msg);
     }
-    if (copy_file_across(iii,wout,filesizes[a]) < 1) {
-      errorMsg = "Error writing file: possibly disk full";
-      delete iii;
-      break;
-    }
-    delete iii;
-  }
-  delete wout;
-  free(filesizes);
-  free(writefname[0]);
-  free(writefname);
-
-  if (errorMsg != NULL) 
-  {
-	unlink(dataFileName);
-  }
-
-  return errorMsg;
 }
 
 Stream* find_file_in_path(char *buffer, const char *fileName)

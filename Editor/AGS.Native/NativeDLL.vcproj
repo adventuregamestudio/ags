@@ -309,6 +309,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\NativeUtils.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Scripting.h"
 				>
 			</File>

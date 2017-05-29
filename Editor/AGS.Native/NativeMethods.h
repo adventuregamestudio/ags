@@ -8,8 +8,6 @@ using namespace System::Drawing;
 using namespace System::Drawing::Imaging;
 using namespace System::IO;
 
-extern void ConvertStringToCharArray(System::String^ clrString, char *textBuffer);
-
 namespace AGS
 {
 	namespace Native 

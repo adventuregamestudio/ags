@@ -35,6 +35,7 @@ int mousex, mousey;
 #include "util/filestream.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
+#include "NativeUtils.h"
 
 using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
@@ -45,6 +46,7 @@ using AGS::Common::GUIMain;
 using AGS::Common::Interaction;
 using AGS::Common::InteractionCommand;
 using AGS::Common::InteractionCommandList;
+typedef AGS::Common::String AGSString;
 
 //-----------------------------------------------------------------------------
 // [IKM] 2012-09-07
@@ -2457,11 +2459,6 @@ public:
 	static Room ^RoomBeingSaved;
 };
 
-void ConvertStringToCharArray(System::String^ clrString, char *textBuffer);
-void ConvertStringToCharArray(System::String^ clrString, char *textBuffer, int maxLength);
-void ConvertStringToNativeString(System::String^ clrString, Common::String &destStr);
-void ConvertStringToNativeString(System::String^ clrString, Common::String &destStr, int maxLength);
-
 void ThrowManagedException(const char *message) 
 {
 	throw gcnew AGS::Types::AGSEditorException(gcnew String((const char*)message));
@@ -3071,7 +3068,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   NormalGUI^ normalGui = dynamic_cast<NormalGUI^>(guiObj);
   if (normalGui)
   {
-	ConvertStringToNativeString(normalGui->OnClick, gui->OnClickHandler);
+	gui->OnClickHandler = ConvertStringToNativeString(normalGui->OnClick);
 	gui->X = normalGui->Left;
 	gui->Y = normalGui->Top;
 	gui->Width = normalGui->Width;
@@ -3096,7 +3093,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   gui->BgColor = guiObj->BackgroundColor;
   gui->BgImage = guiObj->BackgroundImage;
   
-  ConvertStringToNativeString(guiObj->Name, gui->Name);
+  gui->Name = ConvertStringToNativeString(guiObj->Name);
 
   gui->ControlCount = 0;
   gui->CtrlRefs.resize(guiObj->Controls->Count);
@@ -3125,7 +3122,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guibuts[numguibuts].lclickdata = button->NewModeNumber;
 		  guibuts[numguibuts].flags = (button->ClipImage) ? GUIF_CLIP : 0;
 		  ConvertStringToCharArray(button->Text, guibuts[numguibuts].text, 50);
-		  ConvertStringToNativeString(button->OnClick, guibuts[numguibuts].eventHandlers[0]);
+		  guibuts[numguibuts].eventHandlers[0] = ConvertStringToNativeString(button->OnClick);
 		  
           gui->CtrlRefs[gui->ControlCount] = (Common::kGUIButton << 16) | numguibuts;
 		  gui->Controls[gui->ControlCount] = &guibuts[numguibuts];
@@ -3156,7 +3153,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guitext[numguitext].flags = 0;
 		  guitext[numguitext].exflags = (textbox->ShowBorder) ? 0 : GTF_NOBORDER;
 		  guitext[numguitext].text[0] = 0;
-		  ConvertStringToNativeString(textbox->OnActivate, guitext[numguitext].eventHandlers[0]);
+		  guitext[numguitext].eventHandlers[0] = ConvertStringToNativeString(textbox->OnActivate);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUITextBox << 16) | numguitext;
 		  gui->Controls[gui->ControlCount] = &guitext[numguitext];
@@ -3174,7 +3171,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guilist[numguilist].flags = listbox->Translated ? GUIF_TRANSLATED : 0;
 		  guilist[numguilist].exflags = (listbox->ShowBorder) ? 0 : GLF_NOBORDER;
 		  guilist[numguilist].exflags |= (listbox->ShowScrollArrows) ? 0 : GLF_NOARROWS;
-		  ConvertStringToNativeString(listbox->OnSelectionChanged, guilist[numguilist].eventHandlers[0]);
+		  guilist[numguilist].eventHandlers[0] = ConvertStringToNativeString(listbox->OnSelectionChanged);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIListBox << 16) | numguilist;
 		  gui->Controls[gui->ControlCount] = &guilist[numguilist];
@@ -3190,7 +3187,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guislider[numguislider].handlepic = slider->HandleImage;
 		  guislider[numguislider].handleoffset = slider->HandleOffset;
 		  guislider[numguislider].bgimage = slider->BackgroundImage;
-		  ConvertStringToNativeString(slider->OnChange, guislider[numguislider].eventHandlers[0]);
+		  guislider[numguislider].eventHandlers[0] = ConvertStringToNativeString(slider->OnChange);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUISlider << 16) | numguislider;
 		  gui->Controls[gui->ControlCount] = &guislider[numguislider];
@@ -3230,7 +3227,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  newObj->hit = control->Height;
 	  newObj->objn = control->ID;
 	  newObj->zorder = control->ZOrder;
-	  ConvertStringToNativeString(control->Name, newObj->scriptName);
+	  newObj->scriptName = ConvertStringToNativeString(control->Name);
   }
 
   gui->RebuildArray();
@@ -3292,8 +3289,8 @@ void CompileCustomProperties(AGS::Types::CustomProperties ^convertFrom, AGS::Com
 	for each (String ^key in convertFrom->PropertyValues->Keys)
 	{
         AGS::Common::String name, value;
-		ConvertStringToNativeString(convertFrom->PropertyValues[key]->Name, name);
-		ConvertStringToNativeString(convertFrom->PropertyValues[key]->Value, value);
+		name = ConvertStringToNativeString(convertFrom->PropertyValues[key]->Name);
+		value = ConvertStringToNativeString(convertFrom->PropertyValues[key]->Value);
 		(*compileInto)[name] = value;
 	}
 }
@@ -4036,10 +4033,9 @@ Game^ import_compiled_game_dta(const char *fileName)
 
 System::String ^load_room_script(System::String ^fileName)
 {
-	char roomFileNameBuffer[MAX_PATH];
-	ConvertStringToCharArray(fileName, roomFileNameBuffer);
+    AGSString roomFileName = ConvertFileNameToNativeString(fileName);
 
-	Stream *opty = Common::AssetManager::OpenAsset(roomFileNameBuffer);
+	Stream *opty = Common::AssetManager::OpenAsset(roomFileName);
 	if (opty == NULL) throw gcnew AGSEditorException("Unable to open room file");
 
 	short version = opty->ReadInt16();
@@ -4096,10 +4092,9 @@ int GetCurrentlyLoadedRoomNumber()
 
 AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 {
-	char roomFileNameBuffer[MAX_PATH];
-	ConvertStringToCharArray(roomToLoad->FileName, roomFileNameBuffer);
+    AGSString roomFileName = ConvertFileNameToNativeString(roomToLoad->FileName);
 
-	const char *errorMsg = load_room_file(roomFileNameBuffer);
+	const char *errorMsg = load_room_file(roomFileName);
 	if (errorMsg != NULL) 
 	{
 		throw gcnew AGSEditorException(gcnew String(errorMsg));
@@ -4328,7 +4323,7 @@ void save_crm_file(Room ^room)
 	{
 		RoomMessage ^newMessage = room->Messages[i];
 		thisroom.message[i] = (char*)malloc(newMessage->Text->Length + 1);
-		ConvertStringToCharArray(newMessage->Text, thisroom.message[i]);
+		ConvertStringToCharArray(newMessage->Text, thisroom.message[i], newMessage->Text->Length + 1);
 		if (newMessage->ShowAsSpeech)
 		{
 			thisroom.msgi[i].displayas = newMessage->CharacterID + 1;
@@ -4346,14 +4341,14 @@ void save_crm_file(Room ^room)
 	for (int i = 0; i < thisroom.numsprs; i++) 
 	{
 		RoomObject ^obj = room->Objects[i];
-		ConvertStringToCharArray(obj->Name, thisroom.objectscriptnames[i]);
+		ConvertStringToCharArray(obj->Name, thisroom.objectscriptnames[i], MAX_SCRIPT_NAME_LEN);
 
 		thisroom.sprs[i].sprnum = obj->Image;
 		thisroom.sprs[i].x = obj->StartX;
 		thisroom.sprs[i].y = obj->StartY;
 		thisroom.sprs[i].on = obj->Visible;
 		thisroom.objbaseline[i] = obj->Baseline;
-		ConvertStringToCharArray(obj->Description, thisroom.objectnames[i], 30);
+		ConvertStringToCharArray(obj->Description, thisroom.objectnames[i], MAXOBJNAMELEN);
 		thisroom.objectFlags[i] = 0;
 		if (obj->UseRoomAreaScaling) thisroom.objectFlags[i] |= OBJF_USEROOMSCALING;
 		if (obj->UseRoomAreaLighting) thisroom.objectFlags[i] |= OBJF_USEREGIONTINTS;
@@ -4371,8 +4366,8 @@ void save_crm_file(Room ^room)
             free(thisroom.hotspotnames[i]);
         }
 		thisroom.hotspotnames[i] = (char*)malloc(hotspot->Description->Length + 1);
-		ConvertStringToCharArray(hotspot->Description, thisroom.hotspotnames[i]);
-		ConvertStringToCharArray(hotspot->Name, thisroom.hotspotScriptNames[i], 20);
+		ConvertStringToCharArray(hotspot->Description, thisroom.hotspotnames[i], hotspot->Description->Length + 1);
+		ConvertStringToCharArray(hotspot->Name, thisroom.hotspotScriptNames[i], MAX_SCRIPT_NAME_LEN);
 		thisroom.hswalkto[i].x = hotspot->WalkToPoint.X;
 		thisroom.hswalkto[i].y = hotspot->WalkToPoint.Y;
 		CompileCustomProperties(hotspot->Properties, &thisroom.hsProps[i]);
@@ -4424,12 +4419,11 @@ void save_crm_file(Room ^room)
 	thisroom.scripts = NULL;
 	thisroom.compiled_script = ((AGS::Native::CompiledScript^)room->Script->CompiledData)->Data;
 
-	char roomFileNameBuffer[MAX_PATH];
-	ConvertStringToCharArray(room->FileName, roomFileNameBuffer);
+	AGSString roomFileName = ConvertFileNameToNativeString(room->FileName);
 
 	TempDataStorage::RoomBeingSaved = room;
 
-	save_room_file(roomFileNameBuffer);
+	save_room_file(roomFileName);
 
 	TempDataStorage::RoomBeingSaved = nullptr;
 

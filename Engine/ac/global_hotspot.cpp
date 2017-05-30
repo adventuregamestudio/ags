@@ -120,18 +120,6 @@ void RunHotspotInteraction (int hotspothere, int mood) {
             run_interaction_script(thisroom.hotspotScripts[hotspothere], passon, 5, (passon == 3));
         run_interaction_script(thisroom.hotspotScripts[hotspothere], 5);  // any click on hotspot
     }
-    else
-    {
-        if (passon>=0) {
-            if (run_interaction_event(&croom->intrHotspot[hotspothere],passon, 5, (passon == 3))) {
-                evblockbasename = oldbasename;
-                evblocknum = oldblocknum;
-                return;
-            }
-        }
-        // run the 'any click on hs' event
-        run_interaction_event(&croom->intrHotspot[hotspothere],5);
-    }
 
     evblockbasename = oldbasename;
     evblocknum = oldblocknum;

@@ -54,6 +54,7 @@ namespace AGS
 namespace Common
 {
 
+/*
 enum InterValType
 {
     kInterValLiteralInt = 1,
@@ -173,8 +174,9 @@ struct Interaction
 
     Interaction &operator =(const Interaction &inter);
 };
+*/
 
-
+// CLNUP probably remove this too later
 // Legacy pre-3.0 kind of global variables
 struct InteractionVariable
 {
@@ -198,11 +200,16 @@ struct InteractionScripts
     static InteractionScripts *CreateFromStream(Stream *in);
 };
 
+// CLNUP Legacy deserializer
+void LegacyInteractionReadSkip(Stream *in);
+void LegacyInteractionWriteSkip(Stream *out);
+
 } // namespace Common
 } // namespace AGS
 
 // Legacy global variables
 extern AGS::Common::InteractionVariable globalvars[MAX_GLOBAL_VARIABLES];
 extern int numGlobalVars;
+
 
 #endif // __AGS_CN_GAME__INTEREACTIONS_H

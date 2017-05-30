@@ -301,14 +301,6 @@ void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* c
     ReadInvInfo_Aligned(in);
     ReadMouseCursors_Aligned(in);
 
-    if (invScripts == NULL)
-    {
-        for (bb = 0; bb < numinvitems; bb++)
-            intrInv[bb]->ReadTimesRunFromSavedgame(in);
-        for (bb = 0; bb < numcharacters; bb++)
-            intrChar[bb]->ReadTimesRunFromSavedgame(in);
-    }
-
     // restore pointer members
     globalscript=gswas;
     compiled_script=compsc;
@@ -326,15 +318,6 @@ void GameSetupStruct::WriteForSaveGame_v321(Stream *out)
 {
     WriteInvInfo_Aligned(out);
     WriteMouseCursors_Aligned(out);
-
-    if (invScripts == NULL)
-    {
-      int bb;
-      for (bb = 0; bb < numinvitems; bb++)
-        intrInv[bb]->WriteTimesRunToSavedgame(out);
-      for (bb = 0; bb < numcharacters; bb++)
-        intrChar[bb]->WriteTimesRunToSavedgame(out);
-    }
 
     out->WriteArrayOfInt32 (&options[0], OPT_HIGHESTOPTION_321 + 1);
     out->WriteInt8 (options[OPT_LIPSYNCTEXT]);

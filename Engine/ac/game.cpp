@@ -532,18 +532,7 @@ void unload_game_file() {
         if (game.charScripts != NULL)
             delete game.charScripts[bb];
 
-        if (game.intrChar != NULL)
-        {
-            if (game.intrChar[bb] != NULL)
-                delete game.intrChar[bb];
-            game.intrChar[bb] = NULL;
-        }
         free(characterScriptObjNames[bb]);
-    }
-    if (game.intrChar != NULL)
-    {
-        free(game.intrChar);
-        game.intrChar = NULL;
     }
     free(characterScriptObjNames);
     free(charextra);
@@ -558,9 +547,6 @@ void unload_game_file() {
     for (bb = 1; bb < game.numinvitems; bb++) {
         if (game.invScripts != NULL)
             delete game.invScripts[bb];
-        if (game.intrInv[bb] != NULL)
-            delete game.intrInv[bb];
-        game.intrInv[bb] = NULL;
     }
 
     if (game.charScripts != NULL)

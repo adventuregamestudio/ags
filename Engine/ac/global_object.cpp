@@ -404,14 +404,6 @@ void RunObjectInteraction (int aa, int mood) {
         }
         run_interaction_script(thisroom.objectScripts[aa], 4);  // any click on obj
     }
-    else
-    {
-        if (passon>=0) {
-            if (run_interaction_event(&croom->intrObject[aa],passon, 4, (passon == 3)))
-                return;
-        }
-        run_interaction_event(&croom->intrObject[aa],4);  // any click on obj
-    }
 }
 
 int AreObjectsColliding(int obj1,int obj2) {

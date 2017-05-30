@@ -72,17 +72,17 @@ void RoomStatus::ReadFromFile_v321(Stream *in)
     in->ReadInt32(); // tsdata
     for (int i = 0; i < MAX_HOTSPOTS; ++i)
     {
-        intrHotspot[i].ReadFromSavedgame_v321(in);
+        LegacyInteractionReadSkip(in);// CLNUP remove this in the new format
     }
     for (int i = 0; i < MAX_INIT_SPR; ++i)
     {
-        intrObject[i].ReadFromSavedgame_v321(in);
+        LegacyInteractionReadSkip(in);// CLNUP remove this in the new format
     }
     for (int i = 0; i < MAX_REGIONS; ++i)
     {
-        intrRegion[i].ReadFromSavedgame_v321(in);
+        LegacyInteractionReadSkip(in);// CLNUP remove this in the new format
     }
-    intrRoom.ReadFromSavedgame_v321(in);
+    LegacyInteractionReadSkip(in);// CLNUP remove this in the new format
     in->ReadArrayOfInt8((int8_t*)hotspot_enabled, MAX_HOTSPOTS);
     in->ReadArrayOfInt8((int8_t*)region_enabled, MAX_REGIONS);
     in->ReadArrayOfInt16(walkbehind_base, MAX_OBJ);
@@ -110,17 +110,17 @@ void RoomStatus::WriteToFile_v321(Stream *out)
     out->WriteInt32(0); // tsdata
     for (int i = 0; i < MAX_HOTSPOTS; ++i)
     {
-        intrHotspot[i].WriteToSavedgame_v321(out);
+        LegacyInteractionWriteSkip(out);// CLNUP remove this in the new format
     }
     for (int i = 0; i < MAX_INIT_SPR; ++i)
     {
-        intrObject[i].WriteToSavedgame_v321(out);
+        LegacyInteractionWriteSkip(out);// CLNUP remove this in the new format
     }
     for (int i = 0; i < MAX_REGIONS; ++i)
     {
-        intrRegion[i].WriteToSavedgame_v321(out);
+        LegacyInteractionWriteSkip(out);// CLNUP remove this in the new format
     }
-    intrRoom.WriteToSavedgame_v321(out);
+    LegacyInteractionWriteSkip(out);// CLNUP remove this in the new format
     out->Write(hotspot_enabled, MAX_HOTSPOTS);
     out->Write(region_enabled, MAX_REGIONS);
     out->WriteArrayOfInt16(walkbehind_base, MAX_OBJ);

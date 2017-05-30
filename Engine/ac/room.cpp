@@ -299,8 +299,6 @@ void unload_old_room() {
     raw_saved_screen = NULL;
     for (ff = 0; ff < MAX_BSCENE; ff++)
         play.raw_modified[ff] = 0;
-    for (ff = 0; ff < thisroom.numLocalVars; ff++)
-        croom->interactionVariableValues[ff] = thisroom.localvars[ff].Value;
 
     // wipe the character cache when we change rooms
     for (ff = 0; ff < game.numcharacters; ff++) {
@@ -560,22 +558,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         croom = getRoomStatus(newnum);
     else croom=&troom;
 
-    if (croom->beenhere > 0) {
-        // if we've been here before, save the Times Run information
-        // since we will overwrite the actual NewInteraction structs
-        // (cos they have pointers and this might have been loaded from
-        // a save game)
-        if (thisroom.roomScripts == NULL)
-        {
-            thisroom.intrRoom->CopyTimesRun(croom->intrRoom);
-            for (cc=0;cc < MAX_HOTSPOTS;cc++)
-                thisroom.intrHotspot[cc]->CopyTimesRun(croom->intrHotspot[cc]);
-            for (cc=0;cc < MAX_INIT_SPR;cc++)
-                thisroom.intrObject[cc]->CopyTimesRun(croom->intrObject[cc]);
-            for (cc=0;cc < MAX_REGIONS;cc++)
-                thisroom.intrRegion[cc]->CopyTimesRun(croom->intrRegion[cc]);
-        }
-    }
     if (croom->beenhere==0) {
         croom->numobj=thisroom.numsprs;
         croom->tsdatasize=0;
@@ -625,25 +607,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         croom->beenhere=1;
         in_new_room=2;
     }
-    else {
-        // We have been here before
-        for (int ff = 0; ff < thisroom.numLocalVars; ff++)
-            thisroom.localvars[ff].Value = croom->interactionVariableValues[ff];
-    }
 
     update_polled_stuff_if_runtime();
-
-    if (thisroom.roomScripts == NULL)
-    {
-        // copy interactions from room file into our temporary struct
-        croom->intrRoom = thisroom.intrRoom[0];
-        for (cc=0;cc<MAX_HOTSPOTS;cc++)
-            croom->intrHotspot[cc] = thisroom.intrHotspot[cc][0];
-        for (cc=0;cc<MAX_INIT_SPR;cc++)
-            croom->intrObject[cc] = thisroom.intrObject[cc][0];
-        for (cc=0;cc<MAX_REGIONS;cc++)
-            croom->intrRegion[cc] = thisroom.intrRegion[cc][0];
-    }
 
     objs=&croom->obj[0];
 

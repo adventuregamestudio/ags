@@ -31,7 +31,7 @@
 
 namespace AGS { namespace Common { struct AssetLibInfo; } }
 
-using AGS::Common::Interaction;
+//using AGS::Common::Interaction;// CLNUP stuff for old interactions
 using AGS::Common::InteractionScripts;
 using AGS::Common::MainGameFileError;
 
@@ -47,8 +47,9 @@ struct GameSetupStruct: public GameSetupStructBase {
     unsigned char     spriteflags[MAX_SPRITES];
     InventoryItemInfo invinfo[MAX_INV];
     MouseCursor       mcurs[MAX_CURSOR];
-    Interaction     **intrChar;
-    Interaction      *intrInv[MAX_INV];
+    // CLNUP old interactions
+    //Interaction     **intrChar;
+    //Interaction      *intrInv[MAX_INV];
     InteractionScripts **charScripts;
     InteractionScripts **invScripts;
     // TODO: why we do not use this in the engine instead of

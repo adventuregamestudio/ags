@@ -113,10 +113,6 @@ void run_room_event(int id) {
     {
         run_interaction_script(thisroom.roomScripts, id);
     }
-    else
-    {
-        run_interaction_event (&croom->intrRoom, id);
-    }
 }
 
 void run_event_block_inv(int invNum, int event) {
@@ -125,11 +121,6 @@ void run_event_block_inv(int invNum, int event) {
     {
         run_interaction_script(game.invScripts[invNum], event);
     }
-    else 
-    {
-        run_interaction_event(game.intrInv[invNum], event);
-    }
-
 }
 
 // event list functions
@@ -170,7 +161,6 @@ void process_event(EventHappened*evp) {
         NewRoom(evp->data1);
     }
     else if (evp->type==EV_RUNEVBLOCK) {
-        Interaction*evpt=NULL;
         InteractionScripts *scriptPtr = NULL;
         char *oldbasename = evblockbasename;
         int   oldblocknum = evblocknum;
@@ -179,8 +169,6 @@ void process_event(EventHappened*evp) {
 
             if (thisroom.hotspotScripts != NULL)
                 scriptPtr = thisroom.hotspotScripts[evp->data2];
-            else
-                evpt=&croom->intrHotspot[evp->data2];
 
             evblockbasename="hotspot%d";
             evblocknum=evp->data2;
@@ -190,8 +178,6 @@ void process_event(EventHappened*evp) {
 
             if (thisroom.roomScripts != NULL)
                 scriptPtr = thisroom.roomScripts;
-            else
-                evpt=&croom->intrRoom;
 
             evblockbasename="room";
             if (evp->data3 == 5) {
@@ -205,10 +191,6 @@ void process_event(EventHappened*evp) {
         if (scriptPtr != NULL)
         {
             run_interaction_script(scriptPtr, evp->data3);
-        }
-        else if (evpt != NULL)
-        {
-            run_interaction_event(evpt,evp->data3);
         }
         else
             quit("process_event: RunEvBlock: unknown evb type");

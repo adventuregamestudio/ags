@@ -623,10 +623,6 @@ void DoBeforeSave()
         // update the current room script's data segment copy
         if (roominst)
             save_room_data_segment();
-
-        // Update the saved interaction variable values
-        for (int i = 0; i < thisroom.numLocalVars; ++i)
-            croom->interactionVariableValues[i] = thisroom.localvars[i].Value;
     }
 }
 

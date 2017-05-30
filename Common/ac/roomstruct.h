@@ -28,9 +28,7 @@ namespace AGS { namespace Common { class Stream; } }
 namespace AGS { namespace Common { class Bitmap; } }
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
-using AGS::Common::Interaction;
 using AGS::Common::InteractionScripts;
-using AGS::Common::InteractionVariable;
 
 /* room file versions history
 8:  final v1.14 release
@@ -145,7 +143,7 @@ struct RoomStruct {
     short         left,right,top,bottom;          // to walk off screen
     short         numsprs,nummes;                 // number of initial sprites and messages
     sprstruc      sprs[MAX_INIT_SPR];             // structures for each sprite
-    Interaction  *intrObject[MAX_INIT_SPR];
+    //Interaction  *intrObject[MAX_INIT_SPR];// CLNUP old interactions
     InteractionScripts **objectScripts;
     int           objbaseline[MAX_INIT_SPR];                // or -1 (use bottom of object graphic)
     short         objectFlags[MAX_INIT_SPR];
@@ -168,9 +166,10 @@ struct RoomStruct {
     _Point        hswalkto[MAX_HOTSPOTS];
     char*         hotspotnames[MAX_HOTSPOTS];
     char          hotspotScriptNames[MAX_HOTSPOTS][MAX_SCRIPT_NAME_LEN];
-    Interaction  *intrHotspot[MAX_HOTSPOTS];
-    Interaction  *intrRoom;
-    Interaction  *intrRegion[MAX_REGIONS];
+    // CLNUP old interactions
+    //Interaction  *intrHotspot[MAX_HOTSPOTS];
+    //Interaction  *intrRoom;
+    //Interaction  *intrRegion[MAX_REGIONS];
     InteractionScripts **hotspotScripts;
     InteractionScripts **regionScripts;
     InteractionScripts *roomScripts;
@@ -191,7 +190,7 @@ struct RoomStruct {
     int           bytes_per_pixel;
     Common::Bitmap *        ebscene[MAX_BSCENE];
     color         bpalettes[MAX_BSCENE][256];
-    InteractionVariable *localvars;
+    //InteractionVariable *localvars;// CLNUP old interactions
     int           numLocalVars;
     char          ebpalShared[MAX_BSCENE];  // used internally by engine atm
     AGS::Common::StringIMap roomProps;

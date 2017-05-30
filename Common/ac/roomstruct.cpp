@@ -48,8 +48,9 @@ RoomStruct::RoomStruct() {
     memset(&walk_area_light[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
     num_bscenes = 1; ebscene[0] = NULL;
     bscene_anim_speed = 5; bytes_per_pixel = 1;
-    numLocalVars = 0;
-    localvars = NULL;
+    // CLNUP old interactions
+    //numLocalVars = 0;
+    //localvars = NULL;
     int i;
     for (i = 0; i <= MAX_WALK_AREAS; i++) {
         walk_area_zoom2[i] = NOT_VECTOR_SCALED;
@@ -57,15 +58,16 @@ RoomStruct::RoomStruct() {
         walk_area_bottom[i] = -1;
     }
     for (i = 0; i < MAX_HOTSPOTS; i++) {
-        intrHotspot[i] = new Interaction();
+        //intrHotspot[i] = new Interaction();// CLNUP old interactions
         hotspotnames[i] = NULL;
         hotspotScriptNames[i][0] = 0;
     }
-    for (i = 0; i < MAX_INIT_SPR; i++)
-        intrObject[i] = new Interaction();
-    for (i = 0; i < MAX_REGIONS; i++)
-        intrRegion[i] = new Interaction();
-    intrRoom = new Interaction();
+    // CLNUP old interactions
+    //for (i = 0; i < MAX_INIT_SPR; i++)
+    //    intrObject[i] = new Interaction();
+    //for (i = 0; i < MAX_REGIONS; i++)
+    //    intrRegion[i] = new Interaction();
+    //intrRoom = new Interaction();
     gameId = 0;
     numRegions = 0;
     hotspotScripts = NULL;
@@ -253,7 +255,8 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
   }
 
 
-  rstruc->numLocalVars = in->ReadInt32();
+  rstruc->numLocalVars = in->ReadInt32(); // CLNUP stuff for old interactions
+  /*
   if (rstruc->numLocalVars > 0) {
     rstruc->localvars = (InteractionVariable*)malloc (sizeof(InteractionVariable) * rstruc->numLocalVars);
 
@@ -262,12 +265,15 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
         rstruc->localvars[iteratorCount].Read(in);
     }
   }
+  */
 
   rstruc->numRegions = 0;
 
   if ((rstruc->numhotspots > MAX_HOTSPOTS) || (rstruc->numsprs > MAX_INIT_SPR))
     quit("load_room: room file created with newer version (too many hotspots/objects)");
 
+  // CLNUP I would hope they're already freed by now
+  /*/
   // free all of the old interactions
   for (i = 0; i < MAX_HOTSPOTS; i++) {
     if (rstruc->intrHotspot[i] != NULL) {
@@ -288,7 +294,7 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
       delete rstruc->intrRegion[i];
     rstruc->intrRegion[i] = new Interaction();
   }
-
+  */
   rstruc->numRegions = in->ReadInt32();
   if (rstruc->numRegions > MAX_REGIONS)
     quit("load_room: needs newer version of AGS - too many regions");
@@ -453,9 +459,10 @@ void load_room(const char *files, RoomStruct *rstruc) {
     rstruc->objProps[i].clear();
   rstruc->roomProps.clear();
 
-  if (rstruc->localvars != NULL)
-    free (rstruc->localvars);
-  rstruc->localvars = NULL;
+  // CLNUP old interactions
+  //if (rstruc->localvars != NULL)
+  //  free (rstruc->localvars);
+  //rstruc->localvars = NULL;
   rstruc->numLocalVars = 0;
 
   memset(&rstruc->ebpalShared[0], 0, MAX_BSCENE);

@@ -157,10 +157,6 @@ void RunRegionInteraction (int regnum, int mood) {
     {
         run_interaction_script(thisroom.regionScripts[regnum], mood);
     }
-    else
-    {
-        run_interaction_event(&croom->intrRegion[regnum], mood);
-    }
 
     evblockbasename = oldbasename;
     evblocknum = oldblocknum;

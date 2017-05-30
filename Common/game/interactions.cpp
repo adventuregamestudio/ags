@@ -27,6 +27,8 @@ namespace AGS
 namespace Common
 {
 
+// CLNUP all InteractionSomething besides InteractionScripts are obsolete
+/*
 InteractionValue::InteractionValue()
 {
     Type = kInterValLiteralInt;
@@ -373,7 +375,7 @@ void Interaction::WriteTimesRunToSavedgame(Stream *out) const
 }
 
 //-----------------------------------------------------------------------------
-
+*/
 #define INTER_VAR_NAME_LENGTH 23
 
 InteractionVariable::InteractionVariable()
@@ -421,6 +423,23 @@ InteractionScripts *InteractionScripts::CreateFromStream(Stream *in)
         scripts->ScriptFuncNames.push_back(name);
     }
     return scripts;
+}
+
+// CLNUP legacy, reading to skip
+void LegacyInteractionReadSkip(Stream *in)
+{
+    const size_t evt_count = in->ReadInt32();
+    if (evt_count > MAX_NEWINTERACTION_EVENTS)
+        quit("Can't deserialize interaction: too many events");
+
+    // skip events, timesrun and the dummy array
+    for (size_t i = 0; i < MAX_NEWINTERACTION_EVENTS*3; ++i)
+        in->ReadInt32();
+}
+
+void LegacyInteractionWriteSkip(Stream *out) {
+    out->WriteInt32(0);// fake count
+    out->WriteByteCount(0, MAX_NEWINTERACTION_EVENTS * 3 * sizeof(int32_t));
 }
 
 } // namespace Common

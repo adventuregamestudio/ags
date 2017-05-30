@@ -414,12 +414,6 @@ void RunCharacterInteraction (int cc, int mood) {
             run_interaction_script(game.charScripts[cc], passon, 4, (passon == 3));
         run_interaction_script(game.charScripts[cc], 4);  // any click on char
     }
-    else 
-    {
-        if (passon>=0)
-            run_interaction_event(game.intrChar[cc],passon, 4, (passon == 3));
-        run_interaction_event(game.intrChar[cc],4);  // any click on char
-    }
 }
 
 /*

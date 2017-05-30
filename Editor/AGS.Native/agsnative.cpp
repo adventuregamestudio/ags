@@ -42,9 +42,7 @@ namespace AGSProps = AGS::Common::Properties;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 namespace AGSProps = AGS::Common::Properties;
 using AGS::Common::GUIMain;
-using AGS::Common::Interaction;
-using AGS::Common::InteractionCommand;
-using AGS::Common::InteractionCommandList;
+using AGS::Common::InteractionVariable;
 
 //-----------------------------------------------------------------------------
 // [IKM] 2012-09-07
@@ -1520,14 +1518,6 @@ void free_old_game_data()
 		  free(dialog[bb].optionscripts);
   }
   thisgame.charProps.clear();
-  if (thisgame.intrChar != NULL)
-  {
-    for (bb = 0; bb < thisgame.numcharacters; bb++)
-      delete thisgame.intrChar[bb];
-    
-    free(thisgame.intrChar);
-    thisgame.intrChar = NULL;
-  }
   for (bb = 0; bb < numNewViews; bb++)
   {
     for (int cc = 0; cc < newViews[bb].numLoops; cc++)
@@ -1708,14 +1698,6 @@ const char* load_room_file(const char*rtlo) {
 
   //thisroom.numhotspots = MAX_HOTSPOTS;
 
-  // Allocate enough memory to add extra variables
-  InteractionVariable *ivv = (InteractionVariable*)malloc (sizeof(InteractionVariable) * MAX_GLOBAL_VARIABLES);
-  if (thisroom.numLocalVars > 0) {
-    memcpy (ivv, thisroom.localvars, sizeof(InteractionVariable) * thisroom.numLocalVars);
-    free (thisroom.localvars);
-  }
-  thisroom.localvars = ivv;
-
   // Update room palette with gamewide colours
   copy_global_palette_to_room_palette();
   // Update current global palette with room background colours
@@ -1841,9 +1823,7 @@ void save_room(const char *files, RoomStruct rstruc) {
   opty->WriteInt16(rstruc.numsprs);
   opty->WriteArray(&rstruc.sprs[0], sizeof(sprstruc), rstruc.numsprs);
 
-  opty->WriteInt32 (rstruc.numLocalVars);
-  if (rstruc.numLocalVars > 0) 
-    opty->WriteArray (&rstruc.localvars[0], sizeof(InteractionVariable), rstruc.numLocalVars);
+  opty->WriteInt32 (0);// CLNUP legacy numLocalVars
 /*
   for (f = 0; f < rstruc.numhotspots; f++)
     serialize_new_interaction (rstruc.intrHotspot[f]);
@@ -3286,225 +3266,6 @@ const char *GetCharacterScriptName(int charid, AGS::Types::Game ^game)
 	return charScriptNameBuf;
 }
 
-void ConvertInteractionToScript(System::Text::StringBuilder ^sb, InteractionCommand *intrcmd, String^ scriptFuncPrefix, AGS::Types::Game ^game, int *runScriptCount, bool *onlyIfInvWasUseds, int commandOffset) 
-{
-  if (intrcmd->Type != 1)
-  {
-    // if another type of interaction, we definately can't optimise
-    // away the wrapper function
-    runScriptCount[0] = 1000;
-  }
-  else
-  {
-    runScriptCount[0]++;
-  }
-
-  if (intrcmd->Type != 20)
-  {
-	  *onlyIfInvWasUseds = false;
-  }
-
-	switch (intrcmd->Type)
-	{
-	case 0:
-		break;
-	case 1:  // Run Script
-		sb->Append(scriptFuncPrefix);
-		sb->Append(System::Convert::ToChar(intrcmd->Data[0].Value + 'a'));
-		sb->AppendLine("();");
-		break;
-	case 3: // Add Score
-	case 4: // Display Message
-	case 5: // Play Music
-	case 6: // Stop Music
-	case 7: // Play Sound
-	case 8: // Play Flic
-	case 9: // Run Dialog
-	case 10: // Enable Dialog Option
-	case 11: // Disalbe Dialog Option
-	case 13: // Give player an inventory item
-	case 15: // hide object
-	case 16: // show object 
-	case 17: // change object view
-	case 20: // IF inv was used
-	case 21: // IF player has inv
-	case 22: // IF character is moving
-	case 24: // stop moving
-	case 25: // change room (at co-ords)
-	case 26: // change room of NPC
-	case 27: // lock character view
-	case 28: // unlock character view
-	case 29: // follow character
-	case 30: // stop following
-	case 31: // disable hotspot
-	case 32: // enable hotspot
-	case 36: // set idle
-	case 37: // disable idle
-	case 38: // lose inventory
-	case 39: // show gui
-	case 40: // hide gui
-	case 41: // stop running commands
-	case 42: // facelocation
-	case 43: // wait()
-	case 44: // change character view
-	case 45: // IF player is
-	case 46: // IF mouse cursor is
-	case 47: // IF player has been in room
-		// For these, the sample script code will work
-		{
-		String ^scriptCode = gcnew String(actions[intrcmd->Type].textscript);
-		if ((*onlyIfInvWasUseds) && (commandOffset > 0))
-		{
-			scriptCode = String::Concat("else ", scriptCode);
-		}
-		scriptCode = scriptCode->Replace("$$1", (gcnew Int32(intrcmd->Data[0].Value))->ToString() );
-		scriptCode = scriptCode->Replace("$$2", (gcnew Int32(intrcmd->Data[1].Value))->ToString() );
-		scriptCode = scriptCode->Replace("$$3", (gcnew Int32(intrcmd->Data[2].Value))->ToString() );
-		scriptCode = scriptCode->Replace("$$4", (gcnew Int32(intrcmd->Data[3].Value))->ToString() );
-		sb->AppendLine(scriptCode);
-		}
-		break;
-	case 34: // animate character
-		{
-		char scriptCode[100];
-		int charID = intrcmd->Data[0].Value;
-		int loop = intrcmd->Data[1].Value;
-		int speed = intrcmd->Data[2].Value;
-		sprintf(scriptCode, "%s.Animate(%d, %d, eOnce, eBlock);", GetCharacterScriptName(charID, game), loop, speed);
-		sb->AppendLine(gcnew String(scriptCode));
-		}
-		break;
-	case 35: // quick animation
-		{
-		char scriptCode[300];
-		int charID = intrcmd->Data[0].Value;
-		int view = intrcmd->Data[1].Value;
-		int loop = intrcmd->Data[2].Value;
-		int speed = intrcmd->Data[3].Value;
-		sprintf(scriptCode, "%s.LockView(%d);\n"
-							"%s.Animate(%d, %d, eOnce, eBlock);\n"
-							"%s.UnlockView();",
-							GetCharacterScriptName(charID, game), view, 
-							GetCharacterScriptName(charID, game), loop, speed, 
-							GetCharacterScriptName(charID, game));
-		sb->AppendLine(gcnew String(scriptCode));
-		}
-		break;
-	case 14: // Move Object
-		{
-		char scriptCode[100];
-		int objID = intrcmd->Data[0].Value;
-		int x = intrcmd->Data[1].Value;
-		int y = intrcmd->Data[2].Value;
-		int speed = intrcmd->Data[3].Value;
-		sprintf(scriptCode, "object[%d].Move(%d, %d, %d, %s);", objID, x, y, speed, (intrcmd->Data[4].Value) ? "eBlock" : "eNoBlock");
-		sb->AppendLine(gcnew String(scriptCode));
-		}
-		break;
-	case 19: // Move Character
-		{
-		char scriptCode[100];
-		int charID = intrcmd->Data[0].Value;
-		int x = intrcmd->Data[1].Value;
-		int y = intrcmd->Data[2].Value;
-		sprintf(scriptCode, "%s.Walk(%d, %d, %s);", GetCharacterScriptName(charID, game), x, y, (intrcmd->Data[3].Value) ? "eBlock" : "eNoBlock");
-		sb->AppendLine(gcnew String(scriptCode));
-		}
-		break;
-	case 18: // Animate Object
-		{
-		char scriptCode[100];
-		int objID = intrcmd->Data[0].Value;
-		int loop = intrcmd->Data[1].Value;
-		int speed = intrcmd->Data[2].Value;
-		sprintf(scriptCode, "object[%d].Animate(%d, %d, %s, eNoBlock);", objID, loop, speed, (intrcmd->Data[3].Value) ? "eRepeat" : "eOnce");
-		sb->AppendLine(gcnew String(scriptCode));
-		}
-		break;
-	case 23: // IF variable set to value
-		{
-		char scriptCode[100];
-		int valueToCheck = intrcmd->Data[1].Value;
-		if ((game == nullptr) || (intrcmd->Data[0].Value >= game->OldInteractionVariables->Count))
-		{
-			sprintf(scriptCode, "if (__INTRVAL$%d$ == %d) {", intrcmd->Data[0].Value, valueToCheck);
-		}
-		else
-		{
-			OldInteractionVariable^ variableToCheck = game->OldInteractionVariables[intrcmd->Data[0].Value];
-			sprintf(scriptCode, "if (%s == %d) {", variableToCheck->ScriptName, valueToCheck);
-		}
-		sb->AppendLine(gcnew String(scriptCode));
-		break;
-		}
-	case 33: // Set variable
-		{
-		char scriptCode[100];
-		int valueToCheck = intrcmd->Data[1].Value;
-		if ((game == nullptr) || (intrcmd->Data[0].Value >= game->OldInteractionVariables->Count))
-		{
-			sprintf(scriptCode, "__INTRVAL$%d$ = %d;", intrcmd->Data[0].Value, valueToCheck);
-		}
-		else
-		{
-			OldInteractionVariable^ variableToCheck = game->OldInteractionVariables[intrcmd->Data[0].Value];
-			sprintf(scriptCode, "%s = %d;", variableToCheck->ScriptName, valueToCheck);
-		}
-		sb->AppendLine(gcnew String(scriptCode));
-		break;
-		}
-	case 12: // Change Room
-		{
-		char scriptCode[200];
-		int room = intrcmd->Data[0].Value;
-		sprintf(scriptCode, "player.ChangeRoomAutoPosition(%d", room);
-		if (intrcmd->Data[1].Value > 0) 
-		{
-			sprintf(&scriptCode[strlen(scriptCode)], ", %d", intrcmd->Data[1].Value);
-		}
-		strcat(scriptCode, ");");
-		sb->AppendLine(gcnew String(scriptCode));
-		}
-		break;
-	case 2: // Add Score On First Execution
-		{
-		  int points = intrcmd->Data[0].Value;
-      String^ newGuid = System::Guid::NewGuid().ToString();
-      String^ scriptCode = String::Format("if (Game.DoOnceOnly(\"{0}\"))", newGuid);
-      scriptCode = String::Concat(scriptCode, " {\n  ");
-      scriptCode = String::Concat(scriptCode, String::Format("GiveScore({0});", points.ToString()));
-      scriptCode = String::Concat(scriptCode, "\n}");
-		  sb->AppendLine(scriptCode);
-		}
-		break;
-	default:
-		throw gcnew InvalidDataException("Invalid interaction type found");
-	}
-}
-
-void ConvertInteractionCommandList(System::Text::StringBuilder^ sb, InteractionCommandList *cmdList, String^ scriptFuncPrefix, AGS::Types::Game^ game, int *runScriptCount, int targetTypeForUnhandledEvent) 
-{
-	bool onlyIfInvWasUseds = true;
-
-    for (size_t cmd = 0; cmd < cmdList->Cmds.size(); cmd++)
-	{
-		ConvertInteractionToScript(sb, &cmdList->Cmds[cmd], scriptFuncPrefix, game, runScriptCount, &onlyIfInvWasUseds, cmd);
-		if (cmdList->Cmds[cmd].Children.get() != NULL) 
-		{
-			ConvertInteractionCommandList(sb, cmdList->Cmds[cmd].Children.get(), scriptFuncPrefix, game, runScriptCount, targetTypeForUnhandledEvent);
-			sb->AppendLine("}");
-		}
-	}
-
-	if ((onlyIfInvWasUseds) && (targetTypeForUnhandledEvent > 0) && 
-		(cmdList->Cmds.size() > 0))
-	{
-		sb->AppendLine("else {");
-		sb->AppendLine(String::Format(" unhandled_event({0}, 3);", targetTypeForUnhandledEvent));
-		sb->AppendLine("}");
-	}
-}
-
 void CopyInteractions(AGS::Types::Interactions ^destination, ::InteractionScripts *source)
 {
     if (source->ScriptFuncNames.size() > (size_t)destination->ScriptFunctionNames->Length) 
@@ -3515,29 +3276,6 @@ void CopyInteractions(AGS::Types::Interactions ^destination, ::InteractionScript
 	for (size_t i = 0; i < source->ScriptFuncNames.size(); i++) 
 	{
 		destination->ScriptFunctionNames[i] = gcnew String(source->ScriptFuncNames[i]);
-	}
-}
-
-void ConvertInteractions(AGS::Types::Interactions ^interactions, Interaction *intr, String^ scriptFuncPrefix, AGS::Types::Game ^game, int targetTypeForUnhandledEvent)
-{
-	if (intr->Events.size() > (size_t)interactions->ScriptFunctionNames->Length) 
-	{
-		throw gcnew AGS::Types::AGSEditorException("Invalid interaction data: too many interaction events");
-	}
-
-	for (size_t i = 0; i < intr->Events.size(); i++) 
-	{
-        if (intr->Events[i].Response.get() != NULL) 
-		{
-      int runScriptCount = 0;
-			System::Text::StringBuilder^ sb = gcnew System::Text::StringBuilder();
-			ConvertInteractionCommandList(sb, intr->Events[i].Response.get(), scriptFuncPrefix, game, &runScriptCount, targetTypeForUnhandledEvent);
-      if (runScriptCount == 1)
-      {
-        sb->Append("$$SINGLE_RUN_SCRIPT$$");
-      }
-			interactions->ImportedScripts[i] = sb->ToString();
-		}
 	}
 }
 
@@ -3721,10 +3459,6 @@ Game^ import_compiled_game_dta(const char *fileName)
 		game->Characters->Add(character);
 
 		ConvertCustomProperties(character->Properties, &thisgame.charProps[i]);
-
-		char scriptFuncPrefix[100];
-		sprintf(scriptFuncPrefix, "character%d_", i);
-		ConvertInteractions(character->Interactions, thisgame.intrChar[i], gcnew String(scriptFuncPrefix), game, 3);
 	}
 	game->PlayerCharacter = game->Characters[thisgame.playercharacter];
 
@@ -3834,10 +3568,6 @@ Game^ import_compiled_game_dta(const char *fileName)
 		invItem->PlayerStartsWithItem = (thisgame.invinfo[i].flags & IFLG_STARTWITH);
 
 		ConvertCustomProperties(invItem->Properties, &thisgame.invProps[i]);
-
-		char scriptFuncPrefix[100];
-		sprintf(scriptFuncPrefix, "inventory%d_", i);
-		ConvertInteractions(invItem->Interactions, thisgame.intrInv[i], gcnew String(scriptFuncPrefix), game, 5);
 
 		game->InventoryItems->Add(invItem);
 	}
@@ -4095,13 +3825,6 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	room->BackgroundCount = thisroom.num_bscenes;
 
 	int i;
-	for (i = 0; i < thisroom.numLocalVars; i++)
-	{
-		OldInteractionVariable ^intVar;
-		intVar = gcnew OldInteractionVariable(gcnew String(thisroom.localvars[i].Name), thisroom.localvars[i].Value);
-		room->OldInteractionVariables->Add(intVar);
-	}
-
 	for (i = 0; i < thisroom.nummes; i++) 
 	{
 		RoomMessage ^newMessage = gcnew RoomMessage(i);
@@ -4147,16 +3870,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		obj->UseRoomAreaLighting = ((thisroom.objectFlags[i] & OBJF_USEREGIONTINTS) != 0);
 		ConvertCustomProperties(obj->Properties, &thisroom.objProps[i]);
 
-		if (thisroom.wasversion < kRoomVersion_300a)
-		{
-			char scriptFuncPrefix[100];
-			sprintf(scriptFuncPrefix, "object%d_", i);
-			ConvertInteractions(obj->Interactions, thisroom.intrObject[i], gcnew String(scriptFuncPrefix), nullptr, 2);
-		}
-		else 
-		{
-			CopyInteractions(obj->Interactions, thisroom.objectScripts[i]);
-		}
+		CopyInteractions(obj->Interactions, thisroom.objectScripts[i]);
 
 		room->Objects->Add(obj);
 	}
@@ -4170,16 +3884,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
         hotspot->WalkToPoint = System::Drawing::Point(thisroom.hswalkto[i].x, thisroom.hswalkto[i].y);
 		ConvertCustomProperties(hotspot->Properties, &thisroom.hsProps[i]);
 
-		if (thisroom.wasversion < kRoomVersion_300a)
-		{
-			char scriptFuncPrefix[100];
-			sprintf(scriptFuncPrefix, "hotspot%d_", i);
-			ConvertInteractions(hotspot->Interactions, thisroom.intrHotspot[i], gcnew String(scriptFuncPrefix), nullptr, 1);
-		}
-		else 
-		{
-			CopyInteractions(hotspot->Interactions, thisroom.hotspotScripts[i]);
-		}
+		CopyInteractions(hotspot->Interactions, thisroom.hotspotScripts[i]);
 	}
 
 	for (i = 0; i <= MAX_WALK_AREAS; i++) 
@@ -4227,16 +3932,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		area->TintLuminance = area->UseColourTint ? luminance :
 			Utilities::GetDefaultValue(area->GetType(), "TintLuminance", 0);
 
-		if (thisroom.wasversion < kRoomVersion_300a)
-		{
-			char scriptFuncPrefix[100];
-			sprintf(scriptFuncPrefix, "region%d_", i);
-			ConvertInteractions(area->Interactions, thisroom.intrRegion[i], gcnew String(scriptFuncPrefix), nullptr, 0);
-		}
-		else 
-		{
-			CopyInteractions(area->Interactions, thisroom.regionScripts[i]);
-		}
+		CopyInteractions(area->Interactions, thisroom.regionScripts[i]);
 	}
 /*
 	if (thisroom.scripts != NULL) 
@@ -4248,14 +3944,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 
 	ConvertCustomProperties(room->Properties, &thisroom.roomProps);
 
-	if (thisroom.wasversion < kRoomVersion_300a)
-	{
-		ConvertInteractions(room->Interactions, thisroom.intrRoom, "room_", nullptr, 0);
-	}
-	else 
-	{
-		CopyInteractions(room->Interactions, thisroom.roomScripts);
-	}
+	CopyInteractions(room->Interactions, thisroom.roomScripts);
 
 	room->GameID = thisroom.gameId;
   clear_undo_buffer();

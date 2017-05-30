@@ -25,7 +25,7 @@
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
 using AGS::Common::Stream;
-using AGS::Common::Interaction;
+//using AGS::Common::Interaction;
 
 // This struct is saved in the save games - it contains everything about
 // a room that could change
@@ -36,10 +36,11 @@ struct RoomStatus {
     short flagstates[MAX_FLAGS];
     int   tsdatasize;
     char* tsdata;
-    Interaction intrHotspot[MAX_HOTSPOTS];
-    Interaction intrObject [MAX_INIT_SPR];
-    Interaction intrRegion [MAX_REGIONS];
-    Interaction intrRoom;
+    // CLNUP old interactions
+    //Interaction intrHotspot[MAX_HOTSPOTS];
+    //Interaction intrObject [MAX_INIT_SPR];
+    //Interaction intrRegion [MAX_REGIONS];
+    //Interaction intrRoom;
 
     Common::StringIMap roomProps;
     Common::StringIMap hsProps[MAX_HOTSPOTS];

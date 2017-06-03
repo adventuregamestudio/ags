@@ -18,7 +18,7 @@
 #ifndef __AGS_EE_AC__GLOBALTRANSLATION_H
 #define __AGS_EE_AC__GLOBALTRANSLATION_H
 
-char *get_translation (const char *text);
+const char *get_translation (const char *text);
 int IsTranslationAvailable ();
 int GetTranslationName (char* buffer);
 

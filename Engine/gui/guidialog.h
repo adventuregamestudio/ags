@@ -29,10 +29,10 @@ void refresh_gui_screen();
 int  loadgamedialog();
 int  savegamedialog();
 void preparesavegamelist(int ctrllist);
-void enterstringwindow(char *prompttext, char *stouse);
+void enterstringwindow(const char *prompttext, char *stouse);
 int  enternumberwindow(char *prompttext);
 int  roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**roomNames);
-int  myscimessagebox(char *lpprompt, char *btn1, char *btn2);
+int  myscimessagebox(const char *lpprompt, char *btn1, char *btn2);
 int  quitdialog();
 
 #endif // __AGS_EE_GUI__GUIDIALOG_H

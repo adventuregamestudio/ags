@@ -20,7 +20,7 @@
 struct MyPushButton:public NewControl
 {
   char text[50];
-  MyPushButton(int xx, int yy, int wi, int hi, char *tex);
+  MyPushButton(int xx, int yy, int wi, int hi, const char *tex);
   void draw(Common::Bitmap *ds);
   int pressedon();
   int processmessage(int mcode, int wParam, long lParam);

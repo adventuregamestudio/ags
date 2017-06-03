@@ -33,7 +33,7 @@ extern int windowbackgroundcolor, pushbuttondarkcolor;
 extern int pushbuttonlightcolor;
 extern int cbuttfont;
 
-MyPushButton::MyPushButton(int xx, int yy, int wi, int hi, char *tex)
+MyPushButton::MyPushButton(int xx, int yy, int wi, int hi, const char *tex)
 {                             //wlevel=2;
     x = xx;
     y = yy;

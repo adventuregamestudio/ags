@@ -238,11 +238,8 @@ void ReadViews(GameSetupStruct &game, ViewStruct *&views, Stream *in, GameDataVe
     }
 }
 
-void ReadDialogs(DialogTopic *&dialog,
-                 std::vector< stdtr1compat::shared_ptr<unsigned char> > &old_dialog_scripts,
-                 std::vector<String> &old_dialog_src,
-                 std::vector<String> &old_speech_lines,
-                 Stream *in, GameDataVersion data_ver, int dlg_count)
+// CLNUP remove the old dialogs reading stuff when possible
+void ReadDialogs(DialogTopic *&dialog, Stream *in, GameDataVersion data_ver, int dlg_count)
 {
     // TODO: I suspect +5 was a hacky way to "supress" memory access mistakes;
     // double check and remove if proved unnecessary
@@ -255,31 +252,14 @@ void ReadDialogs(DialogTopic *&dialog,
     if (data_ver > kGameVersion_310)
         return;
 
-    old_dialog_scripts.resize(dlg_count);
-    old_dialog_src.resize(dlg_count);
     for (int i = 0; i < dlg_count; ++i)
     {
         // NOTE: originally this was read into dialog[i].optionscripts
-        old_dialog_scripts[i].reset(new unsigned char[dialog[i].codesize]);
-        in->Read(old_dialog_scripts[i].get(), dialog[i].codesize);
+        in->Seek(dialog[i].codesize);// CLNUP old dialog
 
         // Encrypted text script
         int script_text_len = in->ReadInt32();
-        if (script_text_len > 1)
-        {
-            // Originally in the Editor +20000 bytes more were allocated, with comment:
-            //   "add a large buffer because it will get added to if another option is added"
-            // which probably refered to this data used by old editor directly to edit dialogs
-            char *buffer = new char[script_text_len];
-            in->Read(buffer, script_text_len);
-            decrypt_text(buffer);
-            old_dialog_src[i] = buffer;
-            delete [] buffer;
-        }
-        else
-        {
-            in->Seek(script_text_len);
-        }
+        in->Seek(script_text_len);// CLNUP was read and decrypted into old_dialog_src[i]
     }
 
     // Read the dialog lines
@@ -308,10 +288,7 @@ void ReadDialogs(DialogTopic *&dialog,
         }
 
         newlen = Math::Min(newlen, sizeof(buffer) - 1);
-        in->Read(buffer, newlen);
-        buffer[newlen] = 0;
-        decrypt_text(buffer);
-        old_speech_lines.push_back(buffer);
+        in->Seek(newlen);// CLNUP old_speech_lines
         i++;
     }
 }
@@ -523,8 +500,7 @@ MainGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVer
     game.read_lipsync(in, data_ver);
     game.read_messages(in, data_ver);
 
-    ReadDialogs(ents.Dialogs, ents.OldDialogScripts, ents.OldDialogSources, ents.OldSpeechLines,
-                in, data_ver, game.numdialog);
+    ReadDialogs(ents.Dialogs, in, data_ver, game.numdialog);
     GUI::ReadGUI(guis, in);
     game.numgui = guis.size();
 

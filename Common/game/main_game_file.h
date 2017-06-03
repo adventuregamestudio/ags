@@ -106,15 +106,6 @@ struct LoadedGameEntities
     std::vector<PScript>    ScriptModules;
     std::vector<PluginInfo> PluginInfos;
 
-    // Old dialog support
-    // legacy compiled dialog script of its own format,
-    // requires separate interpreting
-    std::vector< stdtr1compat::shared_ptr<unsigned char> > OldDialogScripts;
-    // probably, actual dialog script sources kept within some older games
-    std::vector<String>     OldDialogSources;
-    // speech texts displayed during dialog
-    std::vector<String>     OldSpeechLines;
-
     LoadedGameEntities(GameSetupStruct &game, DialogTopic *&dialogs, ViewStruct *&views);
 };
 

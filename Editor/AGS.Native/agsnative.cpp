@@ -98,7 +98,6 @@ GameDataVersion loaded_game_file_version = kGameVersion_Current;
 int numScriptModules;
 ScriptModule* scModules = NULL;
 DialogTopic *dialog;
-std::vector<Common::String> dlgscript;
 std::vector<GUIMain> guis;
 ViewStruct *newViews;
 int numNewViews = 0;
@@ -1426,7 +1425,6 @@ int numThisgamePlugins = 0;
 
 const char *init_game_after_import(const AGS::Common::LoadedGameEntities &ents, GameDataVersion data_ver)
 {
-    dlgscript = ents.OldDialogSources;
     numNewViews = thisgame.numviews;
     numScriptModules = (int)ents.ScriptModules.size();
     scModules = (ScriptModule*)realloc(scModules, sizeof(ScriptModule) * numScriptModules);
@@ -3508,7 +3506,6 @@ Game^ import_compiled_game_dta(const char *fileName)
 		}
 
 		newDialog->Name = gcnew String(thisgame.dialogScriptNames[i]);
-		newDialog->Script = gcnew String(dlgscript[i]);
 		newDialog->ShowTextParser = (dialog[i].topicFlags & DTFLG_SHOWPARSER);
 
 		game->Dialogs->Add(newDialog);

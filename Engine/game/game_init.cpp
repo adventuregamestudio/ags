@@ -89,10 +89,6 @@ extern std::vector<ccInstance *> moduleInst;
 extern std::vector<ccInstance *> moduleInstFork;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 
-// Old dialog support (defined in ac/dialog)
-extern std::vector< stdtr1compat::shared_ptr<unsigned char> > old_dialog_scripts;
-extern std::vector<String> old_speech_lines;
-
 StaticArray StaticCharacterArray;
 StaticArray StaticObjectArray;
 StaticArray StaticGUIArray;
@@ -416,8 +412,6 @@ GameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data
     actspswbbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
     actspswbcache = (CachedActSpsData*)calloc(actSpsCount, sizeof(CachedActSpsData));
     play.charProps.resize(game.numcharacters);
-    old_dialog_scripts = ents.OldDialogScripts;
-    old_speech_lines = ents.OldSpeechLines;
     InitAndRegisterGameEntities();
     LoadFonts();
 

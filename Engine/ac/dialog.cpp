@@ -72,10 +72,6 @@ ScriptDrawingSurface* dialogOptionsRenderingSurface;
 
 int said_speech_line; // used while in dialog to track whether screen needs updating
 
-// Old dialog support
-std::vector< stdtr1compat::shared_ptr<unsigned char> > old_dialog_scripts;
-std::vector<String> old_speech_lines;
-
 int said_text = 0;
 int longestline = 0;
 
@@ -198,123 +194,6 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
     sprintf(funcName, "_run_dialog%d", dialogID);
     dialogScriptsInst->RunTextScriptIParam(funcName, RuntimeScriptValue().SetInt32(optionIndex));
     result = dialogScriptsInst->returnValue;
-  }
-  else
-  {
-    // old dialog format
-    if (offse == -1)
-      return result;	
-	
-    unsigned char* script = old_dialog_scripts[dialogID].get() + offse;
-
-    unsigned short param1 = 0;
-    unsigned short param2 = 0;
-    int new_topic = 0;
-    bool script_running = true;
-
-    while (script_running)
-    {
-      switch (*script)
-      {
-        case DCMD_SAY:
-          get_dialog_script_parameters(script, &param1, &param2);
-          
-          if (param1 == DCHAR_PLAYER)
-            param1 = game.playercharacter;
-
-          if (param1 == DCHAR_NARRATOR)
-            Display(get_translation(old_speech_lines[param2]));
-          else
-            DisplaySpeech(get_translation(old_speech_lines[param2]), param1);
-
-          said_speech_line = 1;
-          break;
-
-        case DCMD_OPTOFF:
-          get_dialog_script_parameters(script, &param1, NULL);
-          SetDialogOption(dialogID, param1 + 1, 0, true);
-          break;
-
-        case DCMD_OPTON:
-          get_dialog_script_parameters(script, &param1, NULL);
-          SetDialogOption(dialogID, param1 + 1, DFLG_ON, true);
-          break;
-
-        case DCMD_RETURN:
-          script_running = false;
-          break;
-
-        case DCMD_STOPDIALOG:
-          result = RUN_DIALOG_STOP_DIALOG;
-          script_running = false;
-          break;
-
-        case DCMD_OPTOFFFOREVER:
-          get_dialog_script_parameters(script, &param1, NULL);
-          SetDialogOption(dialogID, param1 + 1, DFLG_OFFPERM, true);
-          break;
-
-        case DCMD_RUNTEXTSCRIPT:
-          get_dialog_script_parameters(script, &param1, NULL);
-          result = run_dialog_request(param1);
-          script_running = (result == RUN_DIALOG_STAY);
-          break;
-
-        case DCMD_GOTODIALOG:
-          get_dialog_script_parameters(script, &param1, NULL);
-          result = param1;
-          script_running = false;
-          break;
-
-        case DCMD_PLAYSOUND:
-          get_dialog_script_parameters(script, &param1, NULL);
-          play_sound(param1);
-          break;
-
-        case DCMD_ADDINV:
-          get_dialog_script_parameters(script, &param1, NULL);
-          add_inventory(param1);
-          break;
-
-        case DCMD_SETSPCHVIEW:
-          get_dialog_script_parameters(script, &param1, &param2);
-          SetCharacterSpeechView(param1, param2);
-          break;
-
-        case DCMD_NEWROOM:
-          get_dialog_script_parameters(script, &param1, NULL);
-          NewRoom(param1);
-          in_new_room = 1;
-          result = RUN_DIALOG_STOP_DIALOG;
-          script_running = false;
-          break;
-
-        case DCMD_SETGLOBALINT:
-          get_dialog_script_parameters(script, &param1, &param2);
-          SetGlobalInt(param1, param2);
-          break;
-
-        case DCMD_GIVESCORE:
-          get_dialog_script_parameters(script, &param1, NULL);
-          GiveScore(param1);
-          break;
-
-        case DCMD_GOTOPREVIOUS:
-          result = RUN_DIALOG_GOTO_PREVIOUS;
-          script_running = false;
-          break;
-
-        case DCMD_LOSEINV:
-          get_dialog_script_parameters(script, &param1, NULL);
-          lose_inventory(param1);
-          break;
-
-        case DCMD_ENDSCRIPT:
-          result = RUN_DIALOG_STOP_DIALOG;
-          script_running = false;
-          break;
-      }
-    }
   }
 
   if (in_new_room > 0)

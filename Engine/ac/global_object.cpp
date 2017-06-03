@@ -199,8 +199,8 @@ int GetObjectBaseline(int obn) {
 }
 
 void AnimateObject(int obn,int loopn,int spdd,int rept, int direction, int blocking) {
-    if (obn>=MANOBJNUM) {
-        scAnimateCharacter(obn - 100,loopn,spdd,rept);
+    if (obn>=MANOBJNUM) {// CHECKME: what is this about ?
+        scAnimateCharacter(obn - 100,loopn,spdd,rept);// CLNUP scAnimateCharacter is only used by AnimateObject which is used by Object_Animate
         return;
     }
     if (!is_valid_object(obn))

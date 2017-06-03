@@ -70,15 +70,16 @@ void ReleaseCharacterView(int chat) {
     Character_UnlockView(&game.chars[chat]);
 }
 
+/*
 // [DEPRECATED]
-/*void MoveToWalkableArea(int charid) {
+void MoveToWalkableArea(int charid) {
     if (!is_valid_character(charid))
         quit("!MoveToWalkableArea: invalid character specified");
 
     Character_PlaceOnWalkableArea(&game.chars[charid]);
-}*/
+}
 
-// CLNUP
+// [DEPRECATED]
 void FaceLocation(int cha, int xx, int yy) {
     if (!is_valid_character(cha))
         quit("!FaceLocation: Invalid character specified");
@@ -86,7 +87,6 @@ void FaceLocation(int cha, int xx, int yy) {
     Character_FaceLocation(&game.chars[cha], xx, yy, BLOCKING);
 }
 
-/*
 // [DEPRECATED]
 void FaceCharacter(int cha,int toface) {
     if (!is_valid_character(cha))
@@ -195,10 +195,9 @@ void AnimateCharacterEx(int chh, int loopn, int sppd, int rept, int direction, i
         quit("!SetPlayerCharacter: Invalid character specified");
 
     Character_SetAsPlayer(&game.chars[newchar]);
-}*/
+}
 
-
-// [DEPRECATED] but still used by run_interaction_commandlist
+// [DEPRECATED]
 void FollowCharacter(int who, int tofollow, int distaway, int eagerness) {
     if (!is_valid_character(who))
         quit("!FollowCharacter: Invalid character specified");
@@ -213,7 +212,6 @@ void FollowCharacter(int who, int tofollow, int distaway, int eagerness) {
     Character_FollowCharacter(&game.chars[who], chtofollow, distaway, eagerness);
 }
 
-/*
 // [DEPRECATED]
 void FollowCharacter(int who, int tofollow) {
     FollowCharacterEx(who,tofollow,10,97);
@@ -295,31 +293,33 @@ void SetCharacterBlinkView (int chaa, int vii, int intrv) {
     Character_SetBlinkInterval(&game.chars[chaa], intrv);
 }
 
-void SetCharacterView(int chaa,int vii) {
+// [DEPRECATED]
+/*void SetCharacterView(int chaa,int vii) {
     if (!is_valid_character(chaa))
         quit("!SetCharacterView: invalid character specified");
 
     Character_LockView(&game.chars[chaa], vii);
-}
+}*/
 
 void SetCharacterFrame(int chaa, int view, int loop, int frame) {
 
     Character_LockViewFrame(&game.chars[chaa], view, loop, frame);
 }
 
-// similar to SetCharView, but aligns the frame to make it line up
+/*
+// [DEPRECATED] similar to SetCharView, but aligns the frame to make it line up
 void SetCharacterViewEx (int chaa, int vii, int loop, int align) {
 
     Character_LockViewAligned(&game.chars[chaa], vii, loop, align);
 }
 
 // [DEPRECATED]
-/*void SetCharacterViewOffset (int chaa, int vii, int xoffs, int yoffs) {
+void SetCharacterViewOffset (int chaa, int vii, int xoffs, int yoffs) {
 
     Character_LockViewOffset(&game.chars[chaa], vii, xoffs, yoffs);
-}*/
+}
 
-// CLNUP could Character_ChangeView be enough ? Is it necessary to check if is_valid_character() ?
+// [DEPRECATED]
 void ChangeCharacterView(int chaa,int vii) {
     if (!is_valid_character(chaa))
         quit("!ChangeCharacterView: invalid character specified");
@@ -327,7 +327,6 @@ void ChangeCharacterView(int chaa,int vii) {
     Character_ChangeView(&game.chars[chaa], vii);
 }
 
-/*
 // [DEPRECATED]
 void SetCharacterClickable (int cha, int clik) {
     if (!is_valid_character(cha))

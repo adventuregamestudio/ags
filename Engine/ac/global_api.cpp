@@ -1634,25 +1634,25 @@ RuntimeScriptValue Sc_SetCharacterTransparency(const RuntimeScriptValue *params,
 {
     API_SCALL_VOID_PINT2(SetCharacterTransparency);
 }
-*/
 
-// void (int chaa,int vii)
+// [DEPRECATED] void (int chaa,int vii)
 RuntimeScriptValue Sc_SetCharacterView(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(SetCharacterView);
 }
 
-// void  (int chaa, int vii, int loop, int align)
+// [DEPRECATED] void  (int chaa, int vii, int loop, int align)
 RuntimeScriptValue Sc_SetCharacterViewEx(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT4(SetCharacterViewEx);
 }
 
 // [DEPRECATED] void  (int chaa, int vii, int xoffs, int yoffs)
-/*RuntimeScriptValue Sc_SetCharacterViewOffset(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SetCharacterViewOffset(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT4(SetCharacterViewOffset);
-}*/
+}
+*/
 
 extern RuntimeScriptValue Sc_set_cursor_mode(const RuntimeScriptValue *params, int32_t param_count);
 extern RuntimeScriptValue Sc_set_default_cursor(const RuntimeScriptValue *params, int32_t param_count);
@@ -2561,8 +2561,8 @@ void RegisterGlobalAPI()
 	//ccAddExternalStaticFunction("SetCharacterSpeed",        Sc_SetCharacterSpeed);// [DEPRECATED]
 	//ccAddExternalStaticFunction("SetCharacterSpeedEx",      Sc_SetCharacterSpeedEx);// [DEPRECATED]
 	//ccAddExternalStaticFunction("SetCharacterTransparency", Sc_SetCharacterTransparency);// [DEPRECATED]
-	ccAddExternalStaticFunction("SetCharacterView",         Sc_SetCharacterView);
-	ccAddExternalStaticFunction("SetCharacterViewEx",       Sc_SetCharacterViewEx);
+	//ccAddExternalStaticFunction("SetCharacterView",         Sc_SetCharacterView);// [DEPRECATED]
+	//ccAddExternalStaticFunction("SetCharacterViewEx",       Sc_SetCharacterViewEx);// [DEPRECATED]
 	//ccAddExternalStaticFunction("SetCharacterViewOffset",   Sc_SetCharacterViewOffset);// [DEPRECATED]
 	ccAddExternalStaticFunction("SetCursorMode",            Sc_set_cursor_mode);
 	ccAddExternalStaticFunction("SetDefaultCursor",         Sc_set_default_cursor);
@@ -2927,8 +2927,8 @@ void RegisterGlobalAPI()
     //ccAddExternalFunctionForPlugin("SetCharacterSpeed",        (void*)SetCharacterSpeed);// [DEPRECATED]
     //ccAddExternalFunctionForPlugin("SetCharacterSpeedEx",      (void*)SetCharacterSpeedEx);// [DEPRECATED]
     //ccAddExternalFunctionForPlugin("SetCharacterTransparency", (void*)SetCharacterTransparency);// [DEPRECATED]
-    ccAddExternalFunctionForPlugin("SetCharacterView",         (void*)SetCharacterView);
-    ccAddExternalFunctionForPlugin("SetCharacterViewEx",       (void*)SetCharacterViewEx);
+    //ccAddExternalFunctionForPlugin("SetCharacterView",         (void*)SetCharacterView);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("SetCharacterViewEx",       (void*)SetCharacterViewEx);// [DEPRECATED]
     //ccAddExternalFunctionForPlugin("SetCharacterViewOffset",   (void*)SetCharacterViewOffset);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("SetCursorMode",            (void*)set_cursor_mode);
     ccAddExternalFunctionForPlugin("SetDefaultCursor",         (void*)set_default_cursor);

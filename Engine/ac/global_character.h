@@ -23,7 +23,7 @@
 void StopMoving(int chaa);
 void ReleaseCharacterView(int chat);
 //void MoveToWalkableArea(int charid);// [DEPRECATED]
-void FaceLocation(int cha, int xx, int yy);// [DEPRECATED] but still used in other places
+//void FaceLocation(int cha, int xx, int yy);// [DEPRECATED]
 //void FaceCharacter(int cha,int toface);// [DEPRECATED]
 void SetCharacterIdle(int who, int iview, int itime);
 int  GetCharacterWidth(int ww);
@@ -49,12 +49,12 @@ void MoveCharacterDirect(int cc,int xx, int yy);
 //void SetTalkingColor(int chaa,int ncol);// [DEPRECATED]
 void SetCharacterSpeechView (int chaa, int vii);
 void SetCharacterBlinkView (int chaa, int vii, int intrv);
-void SetCharacterView(int chaa,int vii);
+//void SetCharacterView(int chaa,int vii);// [DEPRECATED]
 //void SetCharacterFrame(int chaa, int view, int loop, int frame);// [DEPRECATED]
 // similar to SetCharView, but aligns the frame to make it line up
-void SetCharacterViewEx (int chaa, int vii, int loop, int align);
+//void SetCharacterViewEx (int chaa, int vii, int loop, int align);// [DEPRECATED]
 //void SetCharacterViewOffset (int chaa, int vii, int xoffs, int yoffs);// [DEPRECATED]
-void ChangeCharacterView(int chaa,int vii);// CLNUP could Character_ChangeView be enough ?
+//void ChangeCharacterView(int chaa,int vii);// [DEPRECATED]
 //void SetCharacterClickable (int cha, int clik);// [DEPRECATED]
 //void SetCharacterIgnoreWalkbehinds (int cha, int clik);// [DEPRECATED]
 //void MoveCharacterToObject(int chaa,int obbj);// [DEPRECATED]

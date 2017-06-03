@@ -96,15 +96,15 @@ void FaceCharacter(int cha,int toface) {
 
     Character_FaceCharacter(&game.chars[cha], &game.chars[toface], BLOCKING);
 }
-*/
 
+// [DEPRECATED]
 void SetCharacterIdle(int who, int iview, int itime) {
     if (!is_valid_character(who))
         quit("!SetCharacterIdle: Invalid character specified");
 
     Character_SetIdleView(&game.chars[who], iview, itime);
 }
-
+*/
 
 
 int GetCharacterWidth(int ww) {
@@ -224,17 +224,17 @@ void SetCharacterIgnoreLight (int who, int yesorno) {
 
     Character_SetIgnoreLighting(&game.chars[who], yesorno);
 }
-*/
 
-
-
+// [DEPRECATED]
 void MoveCharacter(int cc,int xx,int yy) {
     walk_character(cc,xx,yy,0, true);
 }
+
+// [DEPRECATED]
 void MoveCharacterDirect(int cc,int xx, int yy) {
     walk_character(cc,xx,yy,1, true);
 }
-/*
+
 // [DEPRECATED]
 void MoveCharacterStraight(int cc,int xx, int yy) {
     if (!is_valid_character(cc))
@@ -276,8 +276,9 @@ void SetTalkingColor(int chaa,int ncol) {
     if (!is_valid_character(chaa)) quit("!SetTalkingColor: invalid character");
 
     Character_SetSpeechColor(&game.chars[chaa], ncol);
-}*/
+}
 
+// [DEPRECATED]
 void SetCharacterSpeechView (int chaa, int vii) {
     if (!is_valid_character(chaa))
         quit("!SetCharacterSpeechView: invalid character specified");
@@ -285,6 +286,7 @@ void SetCharacterSpeechView (int chaa, int vii) {
     Character_SetSpeechView(&game.chars[chaa], vii);
 }
 
+// [DEPRECATED]
 void SetCharacterBlinkView (int chaa, int vii, int intrv) {
     if (!is_valid_character(chaa))
         quit("!SetCharacterBlinkView: invalid character specified");
@@ -294,7 +296,7 @@ void SetCharacterBlinkView (int chaa, int vii, int intrv) {
 }
 
 // [DEPRECATED]
-/*void SetCharacterView(int chaa,int vii) {
+void SetCharacterView(int chaa,int vii) {
     if (!is_valid_character(chaa))
         quit("!SetCharacterView: invalid character specified");
 
@@ -366,7 +368,8 @@ void MoveCharacterToHotspot(int chaa,int hotsp) {
     GameLoopUntilEvent(UNTIL_MOVEEND,(long)&game.chars[chaa].walking);
 }
 
-void MoveCharacterBlocking(int chaa,int xx,int yy,int direct) {
+// [DEPRECATED]
+/*void MoveCharacterBlocking(int chaa,int xx,int yy,int direct) {
     if (!is_valid_character (chaa))
         quit("!MoveCharacterBlocking: invalid character");
 
@@ -380,7 +383,7 @@ void MoveCharacterBlocking(int chaa,int xx,int yy,int direct) {
     else
         MoveCharacter(chaa,xx,yy);
     GameLoopUntilEvent(UNTIL_MOVEEND,(long)&game.chars[chaa].walking);
-}
+}*/
 
 int GetCharacterSpeechAnimationDelay(CharacterInfo *cha)
 {

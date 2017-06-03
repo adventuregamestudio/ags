@@ -25,7 +25,7 @@ void ReleaseCharacterView(int chat);
 //void MoveToWalkableArea(int charid);// [DEPRECATED]
 //void FaceLocation(int cha, int xx, int yy);// [DEPRECATED]
 //void FaceCharacter(int cha,int toface);// [DEPRECATED]
-void SetCharacterIdle(int who, int iview, int itime);
+//void SetCharacterIdle(int who, int iview, int itime);
 int  GetCharacterWidth(int ww);
 int  GetCharacterHeight(int charid);
 //void SetCharacterBaseline (int obn, int basel);// [DEPRECATED]
@@ -36,10 +36,10 @@ void scAnimateCharacter (int chh, int loopn, int sppd, int rept);
 //void SetPlayerCharacter(int newchar);// [DEPRECATED]
 //void FollowCharacterEx(int who, int tofollow, int distaway, int eagerness);// [DEPRECATED]
 //void FollowCharacter(int who, int tofollow);// [DEPRECATED]
-void FollowCharacter(int who, int tofollow, int distaway = 10, int eagerness = 79);
+//void FollowCharacter(int who, int tofollow, int distaway = 10, int eagerness = 79);
 //void SetCharacterIgnoreLight (int who, int yesorno);// [DEPRECATED]
-void MoveCharacter(int cc,int xx,int yy);
-void MoveCharacterDirect(int cc,int xx, int yy);
+//void MoveCharacter(int cc,int xx,int yy);
+//void MoveCharacterDirect(int cc,int xx, int yy);
 //void MoveCharacterStraight(int cc,int xx, int yy);// [DEPRECATED]
 // Append to character path
 //void MoveCharacterPath (int chac, int tox, int toy);// [DEPRECATED]
@@ -47,8 +47,8 @@ void MoveCharacterDirect(int cc,int xx, int yy);
 //void SetCharacterSpeedEx(int chaa, int xspeed, int yspeed);// [DEPRECATED]
 //void SetCharacterSpeed(int chaa,int nspeed);// [DEPRECATED]
 //void SetTalkingColor(int chaa,int ncol);// [DEPRECATED]
-void SetCharacterSpeechView (int chaa, int vii);
-void SetCharacterBlinkView (int chaa, int vii, int intrv);
+//void SetCharacterSpeechView (int chaa, int vii);
+//void SetCharacterBlinkView (int chaa, int vii, int intrv);// [DEPRECATED]
 //void SetCharacterView(int chaa,int vii);// [DEPRECATED]
 //void SetCharacterFrame(int chaa, int view, int loop, int frame);// [DEPRECATED]
 // similar to SetCharView, but aligns the frame to make it line up
@@ -59,7 +59,7 @@ void SetCharacterBlinkView (int chaa, int vii, int intrv);
 //void SetCharacterIgnoreWalkbehinds (int cha, int clik);// [DEPRECATED]
 //void MoveCharacterToObject(int chaa,int obbj);// [DEPRECATED]
 void MoveCharacterToHotspot(int chaa,int hotsp);
-void MoveCharacterBlocking(int chaa,int xx,int yy,int direct);
+//void MoveCharacterBlocking(int chaa,int xx,int yy,int direct);
 
 void RunCharacterInteraction (int cc, int mood);// [DEPRECATED]
 //int  AreCharObjColliding(int charid,int objid);

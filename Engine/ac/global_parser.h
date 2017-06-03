@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_AC__GLOBALPARSER_H
 #define __AGS_EE_AC__GLOBALPARSER_H
 
-int SaidUnknownWord (char*buffer);
+// CLNUP this file can be removed
+//int SaidUnknownWord (char*buffer);
 
 #endif // __AGS_EE_AC__GLOBALPARSER_H

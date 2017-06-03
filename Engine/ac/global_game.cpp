@@ -864,10 +864,11 @@ int IsInteractionAvailable (int xx,int yy,int mood) {
     return 0;
 }
 
-void GetMessageText (int msg, char *buffer) {
+// [DEPRECATED]
+/*void GetMessageText (int msg, char *buffer) {
     VALIDATE_STRING(buffer);
     get_message_text (msg, buffer, 0);
-}
+}*/
 
 void SetSpeechFont (int fontnum) {
     if ((fontnum < 0) || (fontnum >= game.numfonts))

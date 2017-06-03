@@ -22,10 +22,15 @@
 extern ExecutingScript*curscript;
 extern GameState play;
 
+//CLNUP this file can be removed
+
+/*
+// [DEPRECATED]
 void sc_invscreen() {
     curscript->queue_action(ePSAInvScreen, 0, "InventoryScreen");
 }
 
+// [DEPRECATED]
 void SetInvDimensions(int ww,int hh) {
     play.inv_item_wid = ww;
     play.inv_item_hit = hh;
@@ -38,3 +43,4 @@ void SetInvDimensions(int ww,int hh) {
     }
     guis_need_update = 1;
 }
+*/

@@ -20,6 +20,10 @@
 
 extern GameState play;
 
+// CLNUP this file can be removed
+
+/*
+// [DEPRECATED]
 int SaidUnknownWord (char*buffer) {
     VALIDATE_STRING(buffer);
     strcpy (buffer, play.bad_parsed_word);
@@ -27,3 +31,4 @@ int SaidUnknownWord (char*buffer) {
         return 0;
     return 1;
 }
+*/

@@ -947,7 +947,7 @@ void DialogOptions::Close()
   if (parserActivated) 
   {
     strcpy (play.lastParserEntry, parserInput->Text);
-    ParseText (parserInput->Text);
+    Parser_ParseText (parserInput->Text);
     chose = CHOSE_TEXTPARSER;
   }
 

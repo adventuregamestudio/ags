@@ -657,11 +657,11 @@ RuntimeScriptValue Sc_GetLocationType(const RuntimeScriptValue *params, int32_t 
     API_SCALL_INT_PINT2(GetLocationType);
 }
 
-// void  (int msg, char *buffer)
-RuntimeScriptValue Sc_GetMessageText(const RuntimeScriptValue *params, int32_t param_count)
+// [DEPRECATED] void  (int msg, char *buffer)
+/*RuntimeScriptValue Sc_GetMessageText(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT_POBJ(GetMessageText, char);
-}
+}*/
 
 // int  ()
 RuntimeScriptValue Sc_GetMIDIPosition(const RuntimeScriptValue *params, int32_t param_count)
@@ -871,11 +871,11 @@ RuntimeScriptValue Sc_IntToFloat(const RuntimeScriptValue *params, int32_t param
     API_SCALL_INT_PINT(IntToFloat);
 }
 
-// void ()
-RuntimeScriptValue Sc_sc_invscreen(const RuntimeScriptValue *params, int32_t param_count)
+// [DEPRECATED] void ()
+/*RuntimeScriptValue Sc_sc_invscreen(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID(sc_invscreen);
-}
+}*/
 
 extern RuntimeScriptValue Sc_IsButtonDown(const RuntimeScriptValue *params, int32_t param_count);
 
@@ -1071,25 +1071,25 @@ RuntimeScriptValue Sc_MergeObject(const RuntimeScriptValue *params, int32_t para
     API_SCALL_VOID_PINT(MergeObject);
 }
 
-// void (int cc,int xx,int yy)
+/*
+// [DEPRECATED] void (int cc,int xx,int yy)
 RuntimeScriptValue Sc_MoveCharacter(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT3(MoveCharacter);
 }
 
-// void (int chaa,int xx,int yy,int direct)
+// [DEPRECATED] void (int chaa,int xx,int yy,int direct)
 RuntimeScriptValue Sc_MoveCharacterBlocking(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT4(MoveCharacterBlocking);
 }
 
-// void (int cc,int xx, int yy)
+// [DEPRECATED] void (int cc,int xx, int yy)
 RuntimeScriptValue Sc_MoveCharacterDirect(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT3(MoveCharacterDirect);
 }
 
-/*
 // [DEPRECATED] void  (int chac, int tox, int toy)
 RuntimeScriptValue Sc_MoveCharacterPath(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1171,7 +1171,7 @@ RuntimeScriptValue Sc_ObjectOn(const RuntimeScriptValue *params, int32_t param_c
     API_SCALL_VOID_PINT(ObjectOn);
 }
 
-extern RuntimeScriptValue Sc_ParseText(const RuntimeScriptValue *params, int32_t param_count);
+extern RuntimeScriptValue Sc_Parser_ParseText(const RuntimeScriptValue *params, int32_t param_count);
 
 // void ()
 RuntimeScriptValue Sc_PauseGame(const RuntimeScriptValue *params, int32_t param_count)
@@ -1463,11 +1463,11 @@ RuntimeScriptValue Sc_RunRegionInteraction(const RuntimeScriptValue *params, int
 
 extern RuntimeScriptValue Sc_Said(const RuntimeScriptValue *params, int32_t param_count);
 
-// int  (char*buffer)
-RuntimeScriptValue Sc_SaidUnknownWord(const RuntimeScriptValue *params, int32_t param_count)
+// [DEPRECATED] int  (char*buffer)
+/*RuntimeScriptValue Sc_SaidUnknownWord(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_POBJ(SaidUnknownWord, char);
-}
+}*/
 
 extern RuntimeScriptValue Sc_SaveCursorForLocationChange(const RuntimeScriptValue *params, int32_t param_count);
 
@@ -1564,28 +1564,28 @@ RuntimeScriptValue Sc_SetChannelVolume(const RuntimeScriptValue *params, int32_t
 /*RuntimeScriptValue Sc_SetCharacterBaseline(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(SetCharacterBaseline);
-}*/
+}
 
 // [DEPRECATED] void  (int cha, int clik)
-/*RuntimeScriptValue Sc_SetCharacterClickable(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SetCharacterClickable(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(SetCharacterClickable);
-}*/
+}
 
 // [DEPRECATED] void (int chaa, int view, int loop, int frame)
-/*RuntimeScriptValue Sc_SetCharacterFrame(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SetCharacterFrame(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT4(SetCharacterFrame);
-}*/
+}
 
-// void (int who, int iview, int itime)
+// [DEPRECATED] void (int who, int iview, int itime)
 RuntimeScriptValue Sc_SetCharacterIdle(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT3(SetCharacterIdle);
 }
 
 // [DEPRECATED] void  (int who, int yesorno)
-/*RuntimeScriptValue Sc_SetCharacterIgnoreLight(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SetCharacterIgnoreLight(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(SetCharacterIgnoreLight);
 }
@@ -1596,27 +1596,25 @@ RuntimeScriptValue Sc_SetCharacterIgnoreWalkbehinds(const RuntimeScriptValue *pa
 {
     API_SCALL_VOID_PINT2(SetCharacterIgnoreWalkbehinds);
 }
-*/
 
 // [DEPRECATED] void  (int who, int flag, int yesorno)
-/*RuntimeScriptValue Sc_SetCharacterProperty(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SetCharacterProperty(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT3(SetCharacterProperty);
-}*/
+}
 
-// void  (int chaa, int vii, int intrv)
+// [DEPRECATED] void  (int chaa, int vii, int intrv)
 RuntimeScriptValue Sc_SetCharacterBlinkView(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT3(SetCharacterBlinkView);
 }
 
-// void  (int chaa, int vii)
+// [DEPRECATED] void  (int chaa, int vii)
 RuntimeScriptValue Sc_SetCharacterSpeechView(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(SetCharacterSpeechView);
 }
 
-/*
 // [DEPRECATED] void (int chaa,int nspeed)
 RuntimeScriptValue Sc_SetCharacterSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1773,11 +1771,11 @@ RuntimeScriptValue Sc_set_inv_item_pic(const RuntimeScriptValue *params, int32_t
     API_SCALL_VOID_PINT2(set_inv_item_pic);
 }
 
-// void (int ww,int hh)
-RuntimeScriptValue Sc_SetInvDimensions(const RuntimeScriptValue *params, int32_t param_count)
+// [DEPRECATED] void (int ww,int hh)
+/*RuntimeScriptValue Sc_SetInvDimensions(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(SetInvDimensions);
-}
+}*/
 
 // void (int guin,int objn, int colr)
 RuntimeScriptValue Sc_SetLabelColor(const RuntimeScriptValue *params, int32_t param_count)
@@ -2394,7 +2392,7 @@ void RegisterGlobalAPI()
 	//ccAddExternalStaticFunction("GetLanguageString",      Sc_GetLanguageString);
 	//ccAddExternalStaticFunction("GetLocationName",          Sc_GetLocationName);// [DEPRECATED]
 	ccAddExternalStaticFunction("GetLocationType",          Sc_GetLocationType);
-	ccAddExternalStaticFunction("GetMessageText",           Sc_GetMessageText);
+	//ccAddExternalStaticFunction("GetMessageText",           Sc_GetMessageText);// [DEPRECATED]
 	ccAddExternalStaticFunction("GetMIDIPosition",          Sc_GetMIDIPosition);
 	ccAddExternalStaticFunction("GetMP3PosMillis",          Sc_GetMP3PosMillis);
 	ccAddExternalStaticFunction("GetObjectAt",              Sc_GetObjectAt);
@@ -2432,7 +2430,7 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("InterfaceOff",             Sc_InterfaceOff);
 	ccAddExternalStaticFunction("InterfaceOn",              Sc_InterfaceOn);
 	ccAddExternalStaticFunction("IntToFloat",               Sc_IntToFloat);
-	ccAddExternalStaticFunction("InventoryScreen",          Sc_sc_invscreen);
+	//ccAddExternalStaticFunction("InventoryScreen",          Sc_sc_invscreen);// [DEPRECATED]
 	ccAddExternalStaticFunction("IsButtonDown",             Sc_IsButtonDown);
 	ccAddExternalStaticFunction("IsChannelPlaying",         Sc_IsChannelPlaying);
 	ccAddExternalStaticFunction("IsGamePaused",             Sc_IsGamePaused);
@@ -2466,9 +2464,9 @@ void RegisterGlobalAPI()
 	//ccAddExternalStaticFunction("LoseInventory",            Sc_lose_inventory);// [DEPRECATED]
 	//ccAddExternalStaticFunction("LoseInventoryFromCharacter", Sc_LoseInventoryFromCharacter);// [DEPRECATED]
 	ccAddExternalStaticFunction("MergeObject",              Sc_MergeObject);
-	ccAddExternalStaticFunction("MoveCharacter",            Sc_MoveCharacter);
-	ccAddExternalStaticFunction("MoveCharacterBlocking",    Sc_MoveCharacterBlocking);
-	ccAddExternalStaticFunction("MoveCharacterDirect",      Sc_MoveCharacterDirect);
+	//ccAddExternalStaticFunction("MoveCharacter",            Sc_MoveCharacter);// [DEPRECATED]
+	//ccAddExternalStaticFunction("MoveCharacterBlocking",    Sc_MoveCharacterBlocking);// [DEPRECATED]
+	//ccAddExternalStaticFunction("MoveCharacterDirect",      Sc_MoveCharacterDirect);// [DEPRECATED]
 	//ccAddExternalStaticFunction("MoveCharacterPath",        Sc_MoveCharacterPath);// [DEPRECATED]
 	//ccAddExternalStaticFunction("MoveCharacterStraight",    Sc_MoveCharacterStraight);// [DEPRECATED]
 	ccAddExternalStaticFunction("MoveCharacterToHotspot",   Sc_MoveCharacterToHotspot);
@@ -2482,7 +2480,7 @@ void RegisterGlobalAPI()
 	//ccAddExternalStaticFunction("NewRoomNPC",               Sc_NewRoomNPC);// [DEPRECATED]
 	ccAddExternalStaticFunction("ObjectOff",                Sc_ObjectOff);
 	ccAddExternalStaticFunction("ObjectOn",                 Sc_ObjectOn);
-	ccAddExternalStaticFunction("ParseText",                Sc_ParseText);
+	//ccAddExternalStaticFunction("ParseText",                Sc_ParseText);// [DEPRECATED]
 	ccAddExternalStaticFunction("PauseGame",                Sc_PauseGame);
 	ccAddExternalStaticFunction("PlayAmbientSound",         Sc_PlayAmbientSound);
 	ccAddExternalStaticFunction("PlayFlic",                 Sc_play_flc_file);
@@ -2532,7 +2530,7 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("RunObjectInteraction",     Sc_RunObjectInteraction);
 	ccAddExternalStaticFunction("RunRegionInteraction",     Sc_RunRegionInteraction);
 	ccAddExternalStaticFunction("Said",                     Sc_Said);
-	ccAddExternalStaticFunction("SaidUnknownWord",          Sc_SaidUnknownWord);
+	//ccAddExternalStaticFunction("SaidUnknownWord",          Sc_SaidUnknownWord);// [DEPRECATED]
 	ccAddExternalStaticFunction("SaveCursorForLocationChange", Sc_SaveCursorForLocationChange);
 	ccAddExternalStaticFunction("SaveGameDialog",           Sc_save_game_dialog);
 	ccAddExternalStaticFunction("SaveGameSlot",             Sc_save_game);
@@ -2552,12 +2550,12 @@ void RegisterGlobalAPI()
 	//ccAddExternalStaticFunction("SetCharacterBaseline",     Sc_SetCharacterBaseline);// [DEPRECATED]
 	//ccAddExternalStaticFunction("SetCharacterClickable",    Sc_SetCharacterClickable);// [DEPRECATED]
 	//ccAddExternalStaticFunction("SetCharacterFrame",        Sc_SetCharacterFrame);// [DEPRECATED]
-	ccAddExternalStaticFunction("SetCharacterIdle",         Sc_SetCharacterIdle);
+	//ccAddExternalStaticFunction("SetCharacterIdle",         Sc_SetCharacterIdle);// [DEPRECATED]
 	//ccAddExternalStaticFunction("SetCharacterIgnoreLight",  Sc_SetCharacterIgnoreLight);// [DEPRECATED]
 	//ccAddExternalStaticFunction("SetCharacterIgnoreWalkbehinds", Sc_SetCharacterIgnoreWalkbehinds);// [DEPRECATED]
 	//ccAddExternalStaticFunction("SetCharacterProperty",     Sc_SetCharacterProperty);// [DEPRECATED]
-	ccAddExternalStaticFunction("SetCharacterBlinkView",    Sc_SetCharacterBlinkView);
-	ccAddExternalStaticFunction("SetCharacterSpeechView",   Sc_SetCharacterSpeechView);
+	//ccAddExternalStaticFunction("SetCharacterBlinkView",    Sc_SetCharacterBlinkView);// [DEPRECATED]
+	//ccAddExternalStaticFunction("SetCharacterSpeechView",   Sc_SetCharacterSpeechView);// [DEPRECATED]
 	//ccAddExternalStaticFunction("SetCharacterSpeed",        Sc_SetCharacterSpeed);// [DEPRECATED]
 	//ccAddExternalStaticFunction("SetCharacterSpeedEx",      Sc_SetCharacterSpeedEx);// [DEPRECATED]
 	//ccAddExternalStaticFunction("SetCharacterTransparency", Sc_SetCharacterTransparency);// [DEPRECATED]
@@ -2586,7 +2584,7 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("SetGUIZOrder",             Sc_SetGUIZOrder);
 	ccAddExternalStaticFunction("SetInvItemName",           Sc_SetInvItemName);
 	ccAddExternalStaticFunction("SetInvItemPic",            Sc_set_inv_item_pic);
-	ccAddExternalStaticFunction("SetInvDimensions",         Sc_SetInvDimensions);
+	//ccAddExternalStaticFunction("SetInvDimensions",         Sc_SetInvDimensions);// [DEPRECATED]
 	ccAddExternalStaticFunction("SetLabelColor",            Sc_SetLabelColor);
 	ccAddExternalStaticFunction("SetLabelFont",             Sc_SetLabelFont);
 	ccAddExternalStaticFunction("SetLabelText",             Sc_SetLabelText);
@@ -2762,7 +2760,7 @@ void RegisterGlobalAPI()
     //ccAddExternalFunctionForPlugin("GetLanguageString",      (void*)GetLanguageString);
     //ccAddExternalFunctionForPlugin("GetLocationName",          (void*)GetLocationName);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("GetLocationType",          (void*)GetLocationType);
-    ccAddExternalFunctionForPlugin("GetMessageText",           (void*)GetMessageText);
+    //ccAddExternalFunctionForPlugin("GetMessageText",           (void*)GetMessageText);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("GetMIDIPosition",          (void*)GetMIDIPosition);
     ccAddExternalFunctionForPlugin("GetMP3PosMillis",          (void*)GetMP3PosMillis);
     ccAddExternalFunctionForPlugin("GetObjectAt",              (void*)GetObjectAt);
@@ -2798,7 +2796,7 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("InterfaceOff",             (void*)InterfaceOff);
     ccAddExternalFunctionForPlugin("InterfaceOn",              (void*)InterfaceOn);
     ccAddExternalFunctionForPlugin("IntToFloat",               (void*)IntToFloat);
-    ccAddExternalFunctionForPlugin("InventoryScreen",          (void*)sc_invscreen);
+    //ccAddExternalFunctionForPlugin("InventoryScreen",          (void*)sc_invscreen);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("IsButtonDown",             (void*)IsButtonDown);
     ccAddExternalFunctionForPlugin("IsChannelPlaying",         (void*)IsChannelPlaying);
     ccAddExternalFunctionForPlugin("IsGamePaused",             (void*)IsGamePaused);
@@ -2832,9 +2830,9 @@ void RegisterGlobalAPI()
     //ccAddExternalFunctionForPlugin("LoseInventory",            (void*)lose_inventory);// [DEPRECATED]
     //ccAddExternalFunctionForPlugin("LoseInventoryFromCharacter", (void*)LoseInventoryFromCharacter);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("MergeObject",              (void*)MergeObject);
-    ccAddExternalFunctionForPlugin("MoveCharacter",            (void*)MoveCharacter);
-    ccAddExternalFunctionForPlugin("MoveCharacterBlocking",    (void*)MoveCharacterBlocking);
-    ccAddExternalFunctionForPlugin("MoveCharacterDirect",      (void*)MoveCharacterDirect);
+    //ccAddExternalFunctionForPlugin("MoveCharacter",            (void*)MoveCharacter);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("MoveCharacterBlocking",    (void*)MoveCharacterBlocking);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("MoveCharacterDirect",      (void*)MoveCharacterDirect);// [DEPRECATED]
     //ccAddExternalFunctionForPlugin("MoveCharacterPath",        (void*)MoveCharacterPath);// [DEPRECATED]
     //ccAddExternalFunctionForPlugin("MoveCharacterStraight",    (void*)MoveCharacterStraight);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("MoveCharacterToHotspot",   (void*)MoveCharacterToHotspot);
@@ -2848,7 +2846,7 @@ void RegisterGlobalAPI()
     //ccAddExternalFunctionForPlugin("NewRoomNPC",               (void*)NewRoomNPC);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("ObjectOff",                (void*)ObjectOff);
     ccAddExternalFunctionForPlugin("ObjectOn",                 (void*)ObjectOn);
-    ccAddExternalFunctionForPlugin("ParseText",                (void*)ParseText);
+    //ccAddExternalFunctionForPlugin("ParseText",                (void*)ParseText);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("PauseGame",                (void*)PauseGame);
     ccAddExternalFunctionForPlugin("PlayAmbientSound",         (void*)PlayAmbientSound);
     ccAddExternalFunctionForPlugin("PlayFlic",                 (void*)play_flc_file);
@@ -2899,7 +2897,7 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("RunObjectInteraction",     (void*)RunObjectInteraction);
     ccAddExternalFunctionForPlugin("RunRegionInteraction",     (void*)RunRegionInteraction);
     ccAddExternalFunctionForPlugin("Said",                     (void*)Said);
-    ccAddExternalFunctionForPlugin("SaidUnknownWord",          (void*)SaidUnknownWord);
+    //ccAddExternalFunctionForPlugin("SaidUnknownWord",          (void*)SaidUnknownWord);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("SaveCursorForLocationChange", (void*)SaveCursorForLocationChange);
     ccAddExternalFunctionForPlugin("SaveGameDialog",           (void*)save_game_dialog);
     ccAddExternalFunctionForPlugin("SaveGameSlot",             (void*)save_game);
@@ -2918,12 +2916,12 @@ void RegisterGlobalAPI()
     //ccAddExternalFunctionForPlugin("SetCharacterBaseline",     (void*)SetCharacterBaseline);// [DEPRECATED]
     //ccAddExternalFunctionForPlugin("SetCharacterClickable",    (void*)SetCharacterClickable);// [DEPRECATED]
     //ccAddExternalFunctionForPlugin("SetCharacterFrame",        (void*)SetCharacterFrame);// [DEPRECATED]
-    ccAddExternalFunctionForPlugin("SetCharacterIdle",         (void*)SetCharacterIdle);
+    //ccAddExternalFunctionForPlugin("SetCharacterIdle",         (void*)SetCharacterIdle);// [DEPRECATED]
     //ccAddExternalFunctionForPlugin("SetCharacterIgnoreLight",  (void*)SetCharacterIgnoreLight);// [DEPRECATED]
     //ccAddExternalFunctionForPlugin("SetCharacterIgnoreWalkbehinds", (void*)SetCharacterIgnoreWalkbehinds);// [DEPRECATED]
     //ccAddExternalFunctionForPlugin("SetCharacterProperty",     (void*)SetCharacterProperty);// [DEPRECATED]
-    ccAddExternalFunctionForPlugin("SetCharacterBlinkView",    (void*)SetCharacterBlinkView);
-    ccAddExternalFunctionForPlugin("SetCharacterSpeechView",   (void*)SetCharacterSpeechView);
+    //ccAddExternalFunctionForPlugin("SetCharacterBlinkView",    (void*)SetCharacterBlinkView);// [DEPRECATED]
+    //ccAddExternalFunctionForPlugin("SetCharacterSpeechView",   (void*)SetCharacterSpeechView);// [DEPRECATED]
     //ccAddExternalFunctionForPlugin("SetCharacterSpeed",        (void*)SetCharacterSpeed);// [DEPRECATED]
     //ccAddExternalFunctionForPlugin("SetCharacterSpeedEx",      (void*)SetCharacterSpeedEx);// [DEPRECATED]
     //ccAddExternalFunctionForPlugin("SetCharacterTransparency", (void*)SetCharacterTransparency);// [DEPRECATED]
@@ -2952,7 +2950,7 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("SetGUIZOrder",             (void*)SetGUIZOrder);
     ccAddExternalFunctionForPlugin("SetInvItemName",           (void*)SetInvItemName);
     ccAddExternalFunctionForPlugin("SetInvItemPic",            (void*)set_inv_item_pic);
-    ccAddExternalFunctionForPlugin("SetInvDimensions",         (void*)SetInvDimensions);
+    //ccAddExternalFunctionForPlugin("SetInvDimensions",         (void*)SetInvDimensions);// [DEPRECATED]
     ccAddExternalFunctionForPlugin("SetLabelColor",            (void*)SetLabelColor);
     ccAddExternalFunctionForPlugin("SetLabelFont",             (void*)SetLabelFont);
     ccAddExternalFunctionForPlugin("SetLabelText",             (void*)SetLabelText);

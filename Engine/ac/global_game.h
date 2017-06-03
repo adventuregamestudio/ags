@@ -68,7 +68,7 @@ void SetMultitasking (int mode);
 void ProcessClick(int xx,int yy,int mood);
 int IsInteractionAvailable (int xx,int yy,int mood);
 
-void GetMessageText (int msg, char *buffer);
+//void GetMessageText (int msg, char *buffer);// [DEPRECATED]
 
 void SetSpeechFont (int fontnum);
 void SetNormalFont (int fontnum);

@@ -192,9 +192,9 @@ bool VideoMemoryGraphicsDriver::DoNullSpriteCallback(int x, int y)
     if (_stageScreenDirty)
     {
         if (_stageVirtualScreenDDB)
-            UpdateDDBFromBitmap(_stageVirtualScreenDDB, _stageVirtualScreen, false);
+            UpdateDDBFromBitmap(_stageVirtualScreenDDB, _stageVirtualScreen, true);
         else
-            _stageVirtualScreenDDB = CreateDDBFromBitmap(_stageVirtualScreen, false);
+            _stageVirtualScreenDDB = CreateDDBFromBitmap(_stageVirtualScreen, true);
         return true;
     }
     return false;

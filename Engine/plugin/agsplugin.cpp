@@ -59,6 +59,7 @@
 #include "debug/out.h"
 #include "ac/dynobj/scriptstring.h"
 #include "main/graphics_mode.h"
+#include "gfx/gfx_util.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -327,10 +328,8 @@ void IAGSEngine::BlitBitmap (int32 x, int32 y, BITMAP *bmp, int32 masked) {
     invalidate_rect(x, y, x + bmp->w, y + bmp->h);
 }
 void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 trans) {
-    set_trans_blender(0, 0, 0, trans);
-    Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
-    // FIXME: call corresponding Graphics Blit
-	draw_trans_sprite(ds->GetAllegroBitmap(), bmp, x, y);
+    Bitmap wrap(bmp, true);
+    GfxUtil::DrawSpriteBlend(gfxDriver->GetMemoryBackBuffer(), Point(x,y), &wrap, kBlendMode_Alpha, true, false, trans);
 }
 void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle) {
     Common::Bitmap *ds = gfxDriver->GetMemoryBackBuffer();

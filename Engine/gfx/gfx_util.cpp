@@ -109,6 +109,8 @@ void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int al
 #endif
         )
     {
+        // If sprite is lower color depth than destination surface, e.g.
+        // 8-bit sprites drawn on 16/32-bit surfaces.
         if (sprite_depth == 8 && surface_depth >= 24)
         {
             // 256-col sprite -> truecolor background
@@ -140,7 +142,16 @@ void DrawSpriteWithTransparency(Bitmap *ds, Bitmap *sprite, int x, int y, int al
                 }
             }
         }
-        ds->Blit(&hctemp, x, y, kBitmap_Transparency);
+
+        if (alpha < 0xFF) 
+        {
+            set_trans_blender(0, 0, 0, alpha);
+            ds->TransBlendBlt(&hctemp, x, y);
+        }
+        else
+        {
+            ds->Blit(&hctemp, x, y, kBitmap_Transparency);
+        }
     }
     else
     {

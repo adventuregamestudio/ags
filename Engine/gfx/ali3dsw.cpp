@@ -461,8 +461,9 @@ void ALSoftwareGraphicsDriver::Vsync()
   vsync();
 }
 
-void ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
+void ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res)
 {
+  (void)at_native_res; // software driver always renders at native resolution at the moment
   _filter->GetCopyOfScreenIntoBitmap(destination);
 }
 

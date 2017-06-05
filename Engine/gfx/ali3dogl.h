@@ -183,7 +183,7 @@ public:
     virtual void RenderToBackBuffer();
     virtual void Render();
     virtual void Render(GlobalFlipType flip);
-    virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination);
+    virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res);
     virtual void EnableVsyncBeforeRender(bool enabled) { }
     virtual void Vsync();
     virtual void RenderSpritesAtScreenResolution(bool enabled);

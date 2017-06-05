@@ -199,7 +199,6 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   _legacyPixelShader = false;
   set_up_default_vertices();
   pNativeSurface = NULL;
-  _skipPresent = false;
   availableVideoMemory = 0;
   _smoothScaling = false;
   _pixelRenderXOffset = 0;
@@ -973,24 +972,23 @@ void D3DGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
   direct3ddevice->Clear(1, &rectToClear, D3DCLEAR_TARGET, colorDword, 0.5f, 0);
 }
 
-void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
+void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res)
 {
   D3DDISPLAYMODE displayMode;
   direct3ddevice->GetDisplayMode(0, &displayMode);
 
-  // TODO use backbuffer only for saving a screenshot to file, or maybe not.
-  const bool fromNative = true;
-
-  // if we're using legacy scaling, render the current frame to native surface
-  if (_renderSprAtScreenRes)
+  // If we are rendering sprites at the screen resolution, and requested native res,
+  // re-render last frame to the native surface
+  if (at_native_res && _renderSprAtScreenRes)
   {
     _renderSprAtScreenRes = false;
-    _skipPresent = true; // to prevent Present() from putting to screen the rednered frame
     _reDrawLastFrame();
     _render(flipTypeLastTime, true);
-    // TODO find out why flip not having any effect on screen crossfade
-    _skipPresent = false;
     _renderSprAtScreenRes = true;
+  }
+  else if (!_renderSprAtScreenRes)
+  {
+    at_native_res = true;
   }
   
   IDirect3DSurface9* surface = NULL;
@@ -998,8 +996,7 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
     if (_pollingCallback)
       _pollingCallback();
 
-    
-    if (fromNative)
+    if (at_native_res)
     {
       surface = pNativeSurface;
     }
@@ -1013,7 +1010,7 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
       _pollingCallback();
 
     Bitmap *retrieveInto = destination;
-    if (fromNative)
+    if (at_native_res)
     {
         retrieveInto = BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), d3d_format_to_color_depth(displayMode.Format, false));
     }
@@ -1024,7 +1021,7 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
     }
 
     D3DLOCKED_RECT lockedRect;
-    if (surface->LockRect(&lockedRect, (fromNative ? NULL : &viewport_rect), D3DLOCK_READONLY ) != D3D_OK)
+    if (surface->LockRect(&lockedRect, (at_native_res ? NULL : &viewport_rect), D3DLOCK_READONLY ) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::LockRect failed");
     }
@@ -1032,7 +1029,7 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
     BitmapHelper::ReadPixelsFromMemory(retrieveInto, (uint8_t*)lockedRect.pBits, lockedRect.Pitch);
 
     surface->UnlockRect();
-    if (!fromNative) // native surface is released elsewhere
+    if (!at_native_res) // native surface is released elsewhere
         surface->Release();
 
     if (_pollingCallback)
@@ -1067,7 +1064,7 @@ void D3DGraphicsDriver::Render(GlobalFlipType flip)
     throw Ali3DFullscreenLostException();
   }
 
-  _render(flip, true);
+  _renderAndPresent(flip, true);
 }
 
 void D3DGraphicsDriver::_reDrawLastFrame()
@@ -1269,6 +1266,13 @@ void D3DGraphicsDriver::_renderSprite(D3DDrawListEntry *drawListEntry, bool glob
   }
 }
 
+void D3DGraphicsDriver::_renderAndPresent(GlobalFlipType flip, bool clearDrawListAfterwards)
+{
+  _render(flip, clearDrawListAfterwards);
+  if (direct3ddevice->Present(NULL, NULL, NULL, NULL) != D3D_OK)
+    throw Ali3DException("IDirect3DSurface9::Present failed");
+}
+
 void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterwards)
 {
   IDirect3DSurface9 *pBackBuffer = NULL;
@@ -1290,16 +1294,12 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
   std::vector<D3DDrawListEntry> &listToDraw = drawList;
   size_t listSize = listToDraw.size();
-  HRESULT hr;
   bool globalLeftRightFlip = (flip == kFlip_Vertical) || (flip == kFlip_Both);
   bool globalTopBottomFlip = (flip == kFlip_Horizontal) || (flip == kFlip_Both);
 
   direct3ddevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 128), 0.5f, 0);
-  hr = direct3ddevice->BeginScene();
-  if (hr != D3D_OK)
-  {
+  if (direct3ddevice->BeginScene() != D3D_OK)
     throw Ali3DException("IDirect3DDevice9::BeginScene failed");
-  }
 
   // if showing at 2x size, the sprite can get distorted otherwise
   direct3ddevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
@@ -1346,8 +1346,6 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     }
     direct3ddevice->SetViewport(&pViewport);
   }
-    
-  if(!_skipPresent) hr = direct3ddevice->Present(NULL, NULL, NULL, NULL);
 
   if (!_renderSprAtScreenRes) {
     pBackBuffer->Release();
@@ -1780,7 +1778,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   {
     int timerValue = *_loopTimer;
     d3db->SetTransparency(fadingOut ? a : (255 - a));
-    this->_render(flipTypeLastTime, false);
+    this->_renderAndPresent(flipTypeLastTime, false);
 
     do
     {
@@ -1795,7 +1793,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   if (fadingOut)
   {
     d3db->SetTransparency(0);
-    this->_render(flipTypeLastTime, false);
+    this->_renderAndPresent(flipTypeLastTime, false);
   }
 
   this->DestroyDDB(d3db);
@@ -1861,7 +1859,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
       d3db->SetStretch(_srcRect.GetWidth(), _srcRect.GetHeight());
     }
     
-    this->_render(flipTypeLastTime, false);
+    this->_renderAndPresent(flipTypeLastTime, false);
 
     if (_pollingCallback)
       _pollingCallback();

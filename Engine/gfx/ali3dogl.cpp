@@ -727,8 +727,9 @@ void OGLGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
 
 }
 
-void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
+void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res)
 {
+  (void)at_native_res; // TODO: support this at some point
   Rect retr_rect;
   if (_do_render_to_texture)
   {

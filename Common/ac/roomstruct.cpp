@@ -713,14 +713,11 @@ void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes) {
       return;
     }
     else {
-      char  tempbfr[90];
-      sprintf(tempbfr, "LoadRoom: unknown block type %d encountered in '%s'", thisblock, files);
-      quit(tempbfr);
+      quitprintf("LoadRoom: unknown block type %d encountered in '%s'", thisblock, files);
     }
 
-    // The GetPosition call below has caused crashes
     if (opty->GetPosition() != bloklen)
-        opty->Seek(bloklen, kSeekBegin);
+      quitprintf("LoadRoom: unexpected end of block %d in in '%s'", thisblock, files);
   }
 
   // sync bpalettes[0] with room.pal

@@ -1827,10 +1827,8 @@ void save_room(const char *files, roomstruct rstruc) {
   rfh.WriteFromFile(opty);
 
   if (rfh.version >= 5) {
-    long blsii = 0;
-
     opty->WriteByte(BLOCKTYPE_MAIN);
-    opty->WriteInt32(blsii);
+    opty->WriteInt32(0);
   }
 
   opty->WriteInt32(rstruc.bytes_per_pixel);  // colour depth bytes per pixel

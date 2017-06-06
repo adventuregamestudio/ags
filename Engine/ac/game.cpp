@@ -537,14 +537,13 @@ void unload_game_file() {
                 delete game.intrChar[bb];
             game.intrChar[bb] = NULL;
         }
-        free(characterScriptObjNames[bb]);
     }
     if (game.intrChar != NULL)
     {
         free(game.intrChar);
         game.intrChar = NULL;
     }
-    free(characterScriptObjNames);
+    characterScriptObjNames.clear();
     free(charextra);
     free(mls);
     free(actsps);
@@ -677,10 +676,9 @@ void unload_game_file() {
     for (ee = 0; ee < game.numgui; ee++) {
         free (guibg[ee]);
         guibg[ee] = NULL;
-        free(guiScriptObjNames[ee]);
     }
 
-    free(guiScriptObjNames);
+    guiScriptObjNames.clear();
     free(guibg);
     guis.clear();
     free(scrGui);

@@ -1840,12 +1840,13 @@ void save_room(const char *files, roomstruct rstruc) {
   opty->WriteInt32(rstruc.numhotspots);
   opty->WriteArray(&rstruc.hswalkto[0], sizeof(_Point), rstruc.numhotspots);
   for (f = 0; f < rstruc.numhotspots; f++)
-  {
-	  fputstring(rstruc.hotspotnames[f], opty);
-  }
+    Common::StrUtil::WriteString(rstruc.hotspotnames[f], opty);
 
+  // TODO: checking version here makes little sense now because save_room does not 
+  // properly support export to lower data version
   if (rfh.version >= 24)
-    opty->WriteArray(&rstruc.hotspotScriptNames[0], MAX_SCRIPT_NAME_LEN, rstruc.numhotspots);
+    for (f = 0; f < rstruc.numhotspots; f++)
+      Common::StrUtil::WriteString(rstruc.hotspotScriptNames[f], opty);
 
   opty->WriteInt32(rstruc.numwalkareas);
   opty->WriteArray(&rstruc.wallpoints[0], sizeof(PolyPoints), rstruc.numwalkareas);
@@ -1984,17 +1985,39 @@ void save_room(const char *files, roomstruct rstruc) {
     }
 
     if (rstruc.numsprs > 0) {
+      // TODO: need generic algorithm to write block sizes back after their contents are written
+      long  leeat, wasat;
+
       opty->WriteByte(BLOCKTYPE_OBJECTNAMES);
-      lee=rstruc.numsprs * MAXOBJNAMELEN + 1;
+      lee = 0;
+      leeat = opty->GetPosition();
       opty->WriteInt32(lee);
+
       opty->WriteByte(rstruc.numsprs);
-      opty->WriteArray(&rstruc.objectnames[0][0], MAXOBJNAMELEN, rstruc.numsprs);
+      for (int i = 0; i < rstruc.numsprs; ++i)
+        Common::StrUtil::WriteString(rstruc.objectnames[i], opty);
+
+      wasat = opty->GetPosition();
+      opty->Seek(leeat, Common::kSeekBegin);
+      lee = (wasat - leeat) - sizeof(int32_t);
+      opty->WriteInt32(lee);
+      opty->Seek(0, Common::kSeekEnd);
+
 
       opty->WriteByte(BLOCKTYPE_OBJECTSCRIPTNAMES);
-      lee = rstruc.numsprs * MAX_SCRIPT_NAME_LEN + 1;
+      lee = 0;
+      leeat = opty->GetPosition();
       opty->WriteInt32(lee);
+
       opty->WriteByte(rstruc.numsprs);
-      opty->WriteArray(&rstruc.objectscriptnames[0][0], MAX_SCRIPT_NAME_LEN, rstruc.numsprs);
+      for (int i = 0; i < rstruc.numsprs; ++i)
+        Common::StrUtil::WriteString(rstruc.objectscriptnames[i], opty);
+
+      wasat = opty->GetPosition();
+      opty->Seek(leeat, Common::kSeekBegin);
+      lee = (wasat - leeat) - sizeof(int32_t);
+      opty->WriteInt32(lee);
+      opty->Seek(0, Common::kSeekEnd);
     }
 
     long lenpos, lenis;
@@ -4329,14 +4352,14 @@ void save_crm_file(Room ^room)
 	for (int i = 0; i < thisroom.numsprs; i++) 
 	{
 		RoomObject ^obj = room->Objects[i];
-		ConvertStringToCharArray(obj->Name, thisroom.objectscriptnames[i], MAX_SCRIPT_NAME_LEN);
+		thisroom.objectscriptnames[i] = ConvertStringToNativeString(obj->Name);
 
 		thisroom.sprs[i].sprnum = obj->Image;
 		thisroom.sprs[i].x = obj->StartX;
 		thisroom.sprs[i].y = obj->StartY;
 		thisroom.sprs[i].on = obj->Visible;
 		thisroom.objbaseline[i] = obj->Baseline;
-		ConvertStringToCharArray(obj->Description, thisroom.objectnames[i], MAXOBJNAMELEN);
+		thisroom.objectnames[i] = ConvertStringToNativeString(obj->Description);
 		thisroom.objectFlags[i] = 0;
 		if (obj->UseRoomAreaScaling) thisroom.objectFlags[i] |= OBJF_USEROOMSCALING;
 		if (obj->UseRoomAreaLighting) thisroom.objectFlags[i] |= OBJF_USEREGIONTINTS;
@@ -4349,13 +4372,8 @@ void save_crm_file(Room ^room)
 	for (int i = 0; i < thisroom.numhotspots; i++) 
 	{
 		RoomHotspot ^hotspot = room->Hotspots[i];
-        if (thisroom.hotspotnames[i])
-        {
-            free(thisroom.hotspotnames[i]);
-        }
-		thisroom.hotspotnames[i] = (char*)malloc(hotspot->Description->Length + 1);
-		ConvertStringToCharArray(hotspot->Description, thisroom.hotspotnames[i], hotspot->Description->Length + 1);
-		ConvertStringToCharArray(hotspot->Name, thisroom.hotspotScriptNames[i], MAX_SCRIPT_NAME_LEN);
+		thisroom.hotspotnames[i] = ConvertStringToNativeString(hotspot->Description);
+		thisroom.hotspotScriptNames[i] = ConvertStringToNativeString(hotspot->Name);
 		thisroom.hswalkto[i].x = hotspot->WalkToPoint.X;
 		thisroom.hswalkto[i].y = hotspot->WalkToPoint.Y;
 		CompileCustomProperties(hotspot->Properties, &thisroom.hsProps[i]);
@@ -4417,8 +4435,7 @@ void save_crm_file(Room ^room)
 
 	for (int i = 0; i < thisroom.numhotspots; i++) 
 	{
-		free(thisroom.hotspotnames[i]);
-		thisroom.hotspotnames[i] = NULL;
+		thisroom.hotspotnames[i].Free(); // TODO: not sure if makes sense here
 	}
 }
 

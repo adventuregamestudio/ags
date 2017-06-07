@@ -3672,7 +3672,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 	{
 		cli::array<System::Byte> ^pluginData = gcnew cli::array<System::Byte>(thisgamePlugins[i].DataLen);
 		const char *data_ptr = thisgamePlugins[i].Data.get();
-		for (int j = 0; j < thisgamePlugins[i].DataLen; j++) 
+		for (size_t j = 0; j < thisgamePlugins[i].DataLen; j++) 
 		{
 			pluginData[j] = data_ptr[j];
 		}

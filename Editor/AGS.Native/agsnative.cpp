@@ -4439,7 +4439,6 @@ void save_crm_file(Room ^room)
 
 void serialize_interaction_scripts(Interactions ^interactions, Stream *ooo)
 {
-	char textBuffer[256];
 	ooo->WriteInt32(interactions->ScriptFunctionNames->Length);
 	for each (String^ funcName in interactions->ScriptFunctionNames)
 	{
@@ -4449,8 +4448,8 @@ void serialize_interaction_scripts(Interactions ^interactions, Stream *ooo)
 		}
 		else 
 		{
-			ConvertStringToCharArray(funcName, textBuffer, 256);
-			fputstring(textBuffer, ooo);
+			AGSString fname = ConvertStringToNativeString(funcName);
+			fname.Write(ooo);
 		}
 	}
 }

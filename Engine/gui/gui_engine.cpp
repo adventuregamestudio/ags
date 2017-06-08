@@ -119,7 +119,7 @@ bool GUIObject::IsClickable() const
 
 void GUILabel::PrepareTextToDraw()
 {
-    replace_macro_tokens(Flags & kGUICtrl_Translated ? get_translation(Text) : Text, _textToDraw);
+    replace_macro_tokens(Flags & kGUICtrl_Translated ? String(get_translation(Text)) : Text, _textToDraw);
 }
 
 int GUILabel::SplitLinesForDrawing()

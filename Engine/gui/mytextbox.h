@@ -21,7 +21,7 @@
 struct MyTextBox:public NewControl
 {
   char text[TEXTBOX_MAXLEN + 1];
-  MyTextBox(int xx, int yy, int wii, char *tee);
+  MyTextBox(int xx, int yy, int wii, const char *tee);
   void draw(Common::Bitmap *ds);
   int pressedon();
   int processmessage(int mcode, int wParam, long lParam);

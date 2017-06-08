@@ -20,7 +20,7 @@
 struct MyLabel:public NewControl
 {
   char text[150];
-  MyLabel(int xx, int yy, int wii, char *tee);
+  MyLabel(int xx, int yy, int wii, const char *tee);
 
   void draw(Common::Bitmap *ds);
 

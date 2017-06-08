@@ -26,7 +26,7 @@ extern GameSetup usetup;
 extern int windowbackgroundcolor;
 extern int cbuttfont;
 
-MyTextBox::MyTextBox(int xx, int yy, int wii, char *tee)
+MyTextBox::MyTextBox(int xx, int yy, int wii, const char *tee)
 {
     x = xx;
     y = yy;

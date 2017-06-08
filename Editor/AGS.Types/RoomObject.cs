@@ -10,7 +10,6 @@ namespace AGS.Types
 	public class RoomObject : IComparable<RoomObject>, IChangeNotification, ICustomTypeDescriptor
     {
 		public const string PROPERTY_NAME_SCRIPT_NAME = "Name";
-        private const int MAX_NAME_LENGTH = 19;
 
         private static InteractionSchema _interactionSchema;
 
@@ -151,7 +150,7 @@ namespace AGS.Types
         public string Name
         {
             get { return _name; }
-            set { _name = Utilities.ValidateScriptName(value, MAX_NAME_LENGTH); }
+            set { _name = Utilities.ValidateScriptName(value); }
         }
 
         [Description("Whether the object should be affected by walkable area scaling")]

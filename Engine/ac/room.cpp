@@ -318,14 +318,14 @@ void unload_old_room() {
 
     for (ff = 0; ff < croom->numobj; ff++) {
         // un-export the object's script object
-        if (objectScriptObjNames[ff][0] == 0)
+        if (objectScriptObjNames[ff].IsEmpty())
             continue;
 
         ccRemoveExternalSymbol(objectScriptObjNames[ff]);
     }
 
     for (ff = 0; ff < MAX_HOTSPOTS; ff++) {
-        if (thisroom.hotspotScriptNames[ff][0] == 0)
+        if (thisroom.hotspotScriptNames[ff].IsEmpty())
             continue;
 
         ccRemoveExternalSymbol(thisroom.hotspotScriptNames[ff]);
@@ -703,31 +703,31 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     for (cc = 0; cc < MAX_INIT_SPR; cc++) {
         // 64 bit: Using the id instead
         // scrObj[cc].obj = &croom->obj[cc];
-        objectScriptObjNames[cc][0] = 0;
+        objectScriptObjNames[cc].Free();
     }
 
     for (cc = 0; cc < croom->numobj; cc++) {
         // export the object's script object
-        if (thisroom.objectscriptnames[cc][0] == 0)
+        if (thisroom.objectscriptnames[cc].IsEmpty())
             continue;
 
         if (thisroom.wasversion >= kRoomVersion_300a) 
         {
-            strcpy(objectScriptObjNames[cc], thisroom.objectscriptnames[cc]);
+            objectScriptObjNames[cc] = thisroom.objectscriptnames[cc];
         }
         else
         {
-            sprintf(objectScriptObjNames[cc], "o%s", thisroom.objectscriptnames[cc]);
-            strlwr(objectScriptObjNames[cc]);
-            if (objectScriptObjNames[cc][1] != 0)
-                objectScriptObjNames[cc][1] = toupper(objectScriptObjNames[cc][1]);
+            objectScriptObjNames[cc].Format("o%s", thisroom.objectscriptnames[cc].GetCStr());
+            objectScriptObjNames[cc].MakeLower();
+            if (objectScriptObjNames[cc].GetLength() >= 2)
+                objectScriptObjNames[cc].SetAt(1, toupper(objectScriptObjNames[cc].GetAt(1)));
         }
 
         ccAddExternalDynamicObject(objectScriptObjNames[cc], &scrObj[cc], &ccDynamicObject);
     }
 
     for (cc = 0; cc < MAX_HOTSPOTS; cc++) {
-        if (thisroom.hotspotScriptNames[cc][0] == 0)
+        if (thisroom.hotspotScriptNames[cc].IsEmpty())
             continue;
 
         ccAddExternalDynamicObject(thisroom.hotspotScriptNames[cc], &scrHotspot[cc], &ccDynamicHotspot);

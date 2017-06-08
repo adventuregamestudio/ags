@@ -12,14 +12,19 @@
 //
 //=============================================================================
 //
-//
+// Declarations of the utility functions used on native side.
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__GLOBALTRANSLATION_H
-#define __AGS_EE_AC__GLOBALTRANSLATION_H
+#pragma once
 
-const char *get_translation (const char *text);
-int IsTranslationAvailable ();
-int GetTranslationName (char* buffer);
+#include "util/string.h"
 
-#endif // __AGS_EE_AC__GLOBALTRANSLATION_H
+typedef AGS::Common::String AGSString;
+
+AGSString ConvertStringToNativeString(System::String^ clrString);
+AGSString ConvertStringToNativeString(System::String^ clrString, size_t buf_len);
+AGSString ConvertFileNameToNativeString(System::String^ clrString);
+void ConvertStringToCharArray(System::String^ clrString, char *buf, size_t buf_len);
+void ConvertFileNameToCharArray(System::String^ clrString, char *buf, size_t buf_len);
+
+extern AGSString editorVersionNumber;

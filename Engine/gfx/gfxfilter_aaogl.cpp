@@ -12,6 +12,8 @@
 //
 //=============================================================================
 
+#if defined(WINDOWS_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
+
 #include "gfx/gfxfilter_aaogl.h"
 #include "ogl_headers.h"
 
@@ -43,3 +45,5 @@ const GfxFilterInfo &AAOGLGfxFilter::GetInfo() const
 } // namespace OGL
 } // namespace Engine
 } // namespace AGS
+
+#endif // only on Windows, Android and iOS

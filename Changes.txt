@@ -8,8 +8,9 @@ Common features:
    and objects are scaled in screen pixels rather than game pixels.
  - Implemented VerticalOffset and LineSpacing properties for fonts.
  - Removed limit on Dialog Topics (was 500 topics per game).
- - Removed limit on the script names of Inventory Items, GUI and GUI Controls,
-   as well as GUI event function names.
+ - Removed length limit on the names of Inventory, GUI and GUI Controls.
+ - Removed length limit on the names of Hotspots and Objects.
+ - Removed length limit on event handler names.
 
 Editor:
  - Removed legacy game compiler.
@@ -29,6 +30,8 @@ Editor:
  - New application icon to comply with 3.4.0 splash screen.
  - Fixed #ifver and #ifnver not working properly if version number had only one
    component (major version).
+ - Few improvements to the game compilation made in hope to reduce occasional
+   data corruption.
 
 Script:
  - Fixed local variables not working in the switch's case expressions.
@@ -54,6 +57,8 @@ Script API:
 
 Engine:
  - Added OpenGL renderer to Windows version.
+ - Partial support for plugins drawing on screen for hardware-accelerated
+   renderers (Direct3D, OpenGL).
  - Added support for switching between fullscreen and windowed modes at runtime
    using Alt+Enter key combination.
  - All supported hardware-accelerated graphic drivers (Direct3D and OpenGL)

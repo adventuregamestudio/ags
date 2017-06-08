@@ -11,19 +11,19 @@ see the license.txt for details.
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 #include "NativeMethods.h"
+#include "NativeUtils.h"
 #include "scripting.h"
 //#include "cscomp.h"
 #include "script/cs_compiler.h"
 #include "script/cc_options.h"
 #include "script/cc_error.h"
 
-extern char editorVersionNumber[50];
-extern void ConvertFileNameToCharArray(System::String^ clrString, char *textBuffer);
 extern const char* make_data_file(int numFiles, char * const*fileNames, long splitSize, const char *baseFileName, bool makeFileNameAssumptionsForEXE);
 extern void ReplaceIconFromFile(const char *iconName, const char *exeName);
 extern void ReplaceResourceInEXE(const char *exeName, const char *resourceName, const unsigned char *data, int dataLength, const char *resourceType);
-extern const char* make_old_style_data_file(const char* dataFileName, int numFiles, char * const*fileNames);
+extern void make_old_style_data_file(const AGSString &dataFileName, const std::vector<AGSString> &fileNames);
 static const char *GAME_DEFINITION_FILE_RESOURCE = "__GDF_XML";
 static const char *GAME_DEFINITION_THUMBNAIL_RESOURCE = "__GDF_THUMBNAIL";
 
@@ -111,10 +111,10 @@ namespace AGS
 			for (int i = 0; i < fileList->Length; i++)
 			{
 				fileNames[i] = (char*)malloc(fileList[i]->Length + 1);
-				ConvertFileNameToCharArray(fileList[i], fileNames[i]);
+				ConvertFileNameToCharArray(fileList[i], fileNames[i], fileList[i]->Length + 1);
 			}
 			char baseFileNameChars[MAX_PATH];
-			ConvertFileNameToCharArray(baseFileName, baseFileNameChars);
+			ConvertFileNameToCharArray(baseFileName, baseFileNameChars, MAX_PATH);
 
 			const char *errorMsg = make_data_file(fileList->Length, fileNames, splitSize, baseFileNameChars, isGameEXE);
 
@@ -132,27 +132,13 @@ namespace AGS
 
 		void NativeMethods::CreateVOXFile(String ^fileName, cli::array<String^> ^fileList)
 		{
-			char **fileNames = (char**)malloc(sizeof(char*) * fileList->Length);
+			std::vector<AGSString> fileNames;
 			for (int i = 0; i < fileList->Length; i++)
 			{
-				fileNames[i] = (char*)malloc(fileList[i]->Length + 1);
-				ConvertFileNameToCharArray(fileList[i], fileNames[i]);
+				fileNames.push_back(ConvertFileNameToNativeString(fileList[i]));
 			}
-			char baseFileNameChars[MAX_PATH];
-			ConvertFileNameToCharArray(fileName, baseFileNameChars);
-
-			try
-			{
-				make_old_style_data_file(baseFileNameChars, fileList->Length, fileNames);
-			}
-			finally
-			{
-				for (int i = 0; i < fileList->Length; i++)
-				{
-					free(fileNames[i]);
-				}
-				free(fileNames);
-			}
+			AGSString baseFileNameChars = ConvertFileNameToNativeString(fileName);
+			make_old_style_data_file(baseFileNameChars, fileNames);
 		}
 
 		void NativeMethods::UpdateFileIcon(String ^fileToUpdate, String ^iconName)
@@ -160,10 +146,10 @@ namespace AGS
 			if (System::Environment::OSVersion->Platform == System::PlatformID::Win32NT) 
 			{
 				char iconNameChars[MAX_PATH];
-				ConvertFileNameToCharArray(iconName, iconNameChars);
+				ConvertFileNameToCharArray(iconName, iconNameChars, MAX_PATH);
 
 				char fileNameChars[MAX_PATH];
-				ConvertFileNameToCharArray(fileToUpdate, fileNameChars);
+				ConvertFileNameToCharArray(fileToUpdate, fileNameChars, MAX_PATH);
 
 				ReplaceIconFromFile(iconNameChars, fileNameChars);
 			}
@@ -203,7 +189,7 @@ namespace AGS
     void NativeMethods::UpdateFileVersionInfo(String ^fileToUpdate, cli::array<System::Byte> ^authorNameUnicode, cli::array<System::Byte> ^gameNameUnicode)
     {
 			char fileNameChars[MAX_PATH];
-			ConvertFileNameToCharArray(fileToUpdate, fileNameChars);
+			ConvertFileNameToCharArray(fileToUpdate, fileNameChars, MAX_PATH);
 
       HMODULE module = LoadLibrary(fileNameChars);
       if (module == NULL)
@@ -241,7 +227,7 @@ namespace AGS
 			if (System::Environment::OSVersion->Platform == System::PlatformID::Win32NT) 
 			{
 				char fileNameChars[MAX_PATH];
-				ConvertFileNameToCharArray(fileToUpdate, fileNameChars);
+				ConvertFileNameToCharArray(fileToUpdate, fileNameChars, MAX_PATH);
 
         if (newData == nullptr) 
         {

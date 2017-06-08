@@ -64,7 +64,7 @@ namespace AGS.Editor
             //
             // The output array will be at least min_size in size.
             byte[] bytes = new byte[Math.Max(min_size, Encoding.Default.GetByteCount(text) + reserve_bytes)];
-            int data_length = Encoding.Default.GetBytes(text, 0, text.Length, bytes, 0);
+            Encoding.Default.GetBytes(text, 0, text.Length, bytes, 0);
             if (max_size <= 0 || bytes.Length <= max_size)
                 return bytes;
             // If the output array is larger than requested length, then truncate it;

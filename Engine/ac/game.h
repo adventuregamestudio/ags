@@ -157,8 +157,8 @@ void display_switch_out_suspend();
 // Called when the game gets input focus and should resume
 void display_switch_in_resume();
 
-void replace_tokens(char*srcmes,char*destm, int maxlen = 99999);
-char *get_global_message (int msnum);
+void replace_tokens(const char*srcmes,char*destm, int maxlen = 99999);
+const char *get_global_message (int msnum);
 void get_message_text (int msnum, char *buffer, char giveErr = 1);
 
 bool unserialize_audio_script_object(int index, const char *objectType, const char *serializedData, int dataSize);

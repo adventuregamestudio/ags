@@ -198,7 +198,7 @@ int WINAPI _export CSCIWaitMessage(Bitmap *ds, CSCIMessage * cscim)
     return 0;
 }
 
-int WINAPI _export CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, char *title)
+int WINAPI _export CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, const char *title)
 {
     multiply_up(&xx, &yy, &wii, &hii);
     int usec = -1;

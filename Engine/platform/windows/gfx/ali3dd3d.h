@@ -158,7 +158,7 @@ struct CUSTOMVERTEX
 
 typedef SpriteDrawListEntry<D3DBitmap> D3DDrawListEntry;
 
-class D3DGraphicsDriver : public GraphicsDriverBase
+class D3DGraphicsDriver : public VideoMemoryGraphicsDriver
 {
 public:
     virtual const char*GetDriverName() { return "Direct3D 9"; }
@@ -182,7 +182,7 @@ public:
     virtual void RenderToBackBuffer();
     virtual void Render();
     virtual void Render(GlobalFlipType flip);
-    virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination);
+    virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res);
     virtual void EnableVsyncBeforeRender(bool enabled) { }
     virtual void Vsync();
     virtual void RenderSpritesAtScreenResolution(bool enabled) { _renderSprAtScreenRes = enabled; };
@@ -195,20 +195,16 @@ public:
     virtual void UseSmoothScaling(bool enabled) { _smoothScaling = enabled; }
     virtual bool RequiresFullRedrawEachFrame() { return true; }
     virtual bool HasAcceleratedStretchAndFlip() { return true; }
-    virtual bool UsesMemoryBackBuffer() { return false; }
-    virtual Bitmap* GetMemoryBackBuffer() { return NULL; }
-    virtual void SetMemoryBackBuffer(Bitmap *backBuffer) {  }
     virtual void SetScreenTint(int red, int green, int blue);
 
     typedef stdtr1compat::shared_ptr<D3DGfxFilter> PD3DFilter;
 
     void SetGraphicsFilter(PD3DFilter filter);
 
-    // Internal
+    // Internal; TODO: find a way to hide these
     int _initDLLCallback(const DisplayMode &mode);
     int _resetDeviceIfNecessary();
-    void _render(GlobalFlipType flip, bool clearDrawListAfterwards);
-    void _reDrawLastFrame();
+
     D3DGraphicsDriver(IDirect3D9 *d3d);
     virtual ~D3DGraphicsDriver();
 
@@ -237,8 +233,6 @@ private:
     Bitmap *_screenTintLayer;
     D3DBitmap* _screenTintLayerDDB;
     D3DDrawListEntry _screenTintSprite;
-    Bitmap *_dummyVirtualScreen;
-    bool _skipPresent; // used for rendering only on the virtual screen for GetCopyOfScreenIntoBitmap
 
     std::vector<D3DDrawListEntry> drawList;
     std::vector<D3DDrawListEntry> drawListLastTime;
@@ -262,6 +256,9 @@ private:
     void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     bool IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat );
     void create_screen_tint_bitmap();
+    void _renderAndPresent(GlobalFlipType flip, bool clearDrawListAfterwards);
+    void _render(GlobalFlipType flip, bool clearDrawListAfterwards);
+    void _reDrawLastFrame();
     void _renderSprite(D3DDrawListEntry *entry, bool globalLeftRightFlip, bool globalTopBottomFlip);
 };
 

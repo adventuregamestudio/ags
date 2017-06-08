@@ -12,12 +12,10 @@ The AGS Editor Source Code is provided under the Artistic License 2.0,
 see the license.txt for details.
 */
 #include "NativeMethods.h"
+#include "NativeUtils.h"
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <direct.h>
-
-extern void ConvertStringToCharArray(System::String^ clrString, char *textBuffer);
-extern void ConvertFileNameToCharArray(System::String^ clrString, char *textBuffer);
 
 #define SCC_NAME_LEN            31      // lpSccName, SCCInitialize
 #define SCC_AUXLABEL_LEN        31      // lpAuxPathLabel, SCCInitialize
@@ -127,7 +125,7 @@ namespace AGS
 		bool SourceCodeControl::Initialize(System::String^ dllName, int mainWindowHwnd)
 		{
 			mainAppHwnd = (HWND)mainWindowHwnd;
-			ConvertFileNameToCharArray(dllName, sourceControlDllName);
+			ConvertFileNameToCharArray(dllName, sourceControlDllName, MAX_PATH);
 			sourceControlDllHandle = LoadLibrary(sourceControlDllName);
 			if (sourceControlDllHandle == NULL)
 			{
@@ -202,8 +200,8 @@ namespace AGS
 			this->CloseProject();
 
 			_getcwd(sourceControlLocalPath, MAX_PATH);
-			ConvertStringToCharArray(project->AuxPath, sourceControlAuxPath);
-			ConvertStringToCharArray(project->ProjectName, sourceControlProjectName);
+			ConvertStringToCharArray(project->AuxPath, sourceControlAuxPath, SCC_PRJPATH_LEN + 1);
+			ConvertStringToCharArray(project->ProjectName, sourceControlProjectName, SCC_PRJPATH_LEN + 1);
 
 			if (SccOpenProject(SccContext, mainAppHwnd, sourceControlUserName,
 							sourceControlProjectName, sourceControlLocalPath,
@@ -223,7 +221,7 @@ namespace AGS
 			for (int i = 0; i < fileNames->Length; i++) 
 			{
 				fileNameList[i] = new char[fileNames[i]->Length + 1];
-        ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i]);
+        ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i], fileNames[i]->Length + 1);
 			}
 
       int errorCode;
@@ -252,9 +250,9 @@ namespace AGS
 			{
 				options[i] = SCC_FILETYPE_AUTO;
 				fileNameList[i] = new char[fileNames[i]->Length + 1];
-        ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i]);
+        ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i], fileNames[i]->Length + 1);
 			}
-			ConvertStringToCharArray(comment, (char*)commentAsLpcstr);
+			ConvertStringToCharArray(comment, (char*)commentAsLpcstr, comment->Length + 1);
 
       int errorCode;
 			if ((errorCode = SccAdd(SccContext, mainAppHwnd, fileNames->Length, fileNameList, commentAsLpcstr, options, 0)) != SCC_OK) 
@@ -278,9 +276,9 @@ namespace AGS
 			for (int i = 0; i < fileNames->Length; i++) 
 			{
 				fileNameList[i] = new char[fileNames[i]->Length + 1];
-        ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i]);
+        ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i], fileNames[i]->Length + 1);
 			}
-			ConvertStringToCharArray(comment, (char*)commentAsLpcstr);
+			ConvertStringToCharArray(comment, (char*)commentAsLpcstr, comment->Length + 1);
 
       int errorCode = SccCheckin(SccContext, mainAppHwnd, fileNames->Length, fileNameList, commentAsLpcstr, 0, 0);
 			if (errorCode != SCC_OK) 
@@ -303,9 +301,9 @@ namespace AGS
 			for (int i = 0; i < fileNames->Length; i++) 
 			{
 				fileNameList[i] = new char[fileNames[i]->Length + 1];
-        ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i]);
+        ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i], fileNames[i]->Length + 1);
 			}
-			ConvertStringToCharArray(comment, (char*)commentAsLpcstr);
+			ConvertStringToCharArray(comment, (char*)commentAsLpcstr, comment->Length + 1);
 
       int errorCode = SccCheckout(SccContext, mainAppHwnd, fileNames->Length, fileNameList, commentAsLpcstr, 0, 0);
 			if (errorCode != SCC_OK) 
@@ -330,8 +328,8 @@ namespace AGS
 
 			char currentName[MAX_PATH];
 			char newName[MAX_PATH];
-      ConvertFileNameToCharArray(currentPath, currentName);
-			ConvertFileNameToCharArray(newPath, newName);
+      ConvertFileNameToCharArray(currentPath, currentName, MAX_PATH);
+			ConvertFileNameToCharArray(newPath, newName, MAX_PATH);
 
       int errorCode = SccRename(SccContext, mainAppHwnd, currentName, newName);
 			if (errorCode != SCC_OK) 
@@ -348,9 +346,9 @@ namespace AGS
 			for (int i = 0; i < fileNames->Length; i++) 
 			{
 				fileNameList[i] = new char[fileNames[i]->Length + 1];
-				ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i]);
+				ConvertFileNameToCharArray(fileNames[i], (char*)fileNameList[i], fileNames[i]->Length + 1);
 			}
-			ConvertStringToCharArray(comment, (char*)commentAsLpcstr);
+			ConvertStringToCharArray(comment, (char*)commentAsLpcstr, comment->Length + 1);
 
       int errorCode = SccRemove(SccContext, mainAppHwnd, fileNames->Length, fileNameList, commentAsLpcstr, 0, 0);
 			if (errorCode != SCC_OK) 

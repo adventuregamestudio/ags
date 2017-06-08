@@ -537,14 +537,13 @@ void unload_game_file() {
                 delete game.intrChar[bb];
             game.intrChar[bb] = NULL;
         }
-        free(characterScriptObjNames[bb]);
     }
     if (game.intrChar != NULL)
     {
         free(game.intrChar);
         game.intrChar = NULL;
     }
-    free(characterScriptObjNames);
+    characterScriptObjNames.clear();
     free(charextra);
     free(mls);
     free(actsps);
@@ -677,10 +676,9 @@ void unload_game_file() {
     for (ee = 0; ee < game.numgui; ee++) {
         free (guibg[ee]);
         guibg[ee] = NULL;
-        free(guiScriptObjNames[ee]);
     }
 
-    free(guiScriptObjNames);
+    guiScriptObjNames.clear();
     free(guibg);
     guis.clear();
     free(scrGui);
@@ -2383,9 +2381,10 @@ void display_switch_in_resume()
     platform->DisplaySwitchIn();
 }
 
-void replace_tokens(char*srcmes,char*destm, int maxlen) {
+void replace_tokens(const char*srcmes,char*destm, int maxlen) {
     int indxdest=0,indxsrc=0;
-    char*srcp,*destp;
+    const char*srcp;
+    char *destp;
     while (srcmes[indxsrc]!=0) {
         srcp=&srcmes[indxsrc];
         destp=&destm[indxdest];
@@ -2426,7 +2425,7 @@ void replace_tokens(char*srcmes,char*destm, int maxlen) {
     destm[indxdest]=0;
 }
 
-char *get_global_message (int msnum) {
+const char *get_global_message (int msnum) {
     if (game.messages[msnum-500] == NULL)
         return "";
     return get_translation(game.messages[msnum-500]);

@@ -2189,7 +2189,7 @@ int copy_file_across(Stream*inlibb,Stream*coppy,long leftforthis) {
 }
 
 // TODO: upgrade this "old style data file" to "new style data file" (would require engine update too)
-void make_old_style_data_file(const AGSString &dataFileName, const std::vector<const AGSString> &filenames)
+void make_old_style_data_file(const AGSString &dataFileName, const std::vector<AGSString> &filenames)
 {
     const int passwmod = 20;
     std::vector<int32_t> filesizes(filenames.size());

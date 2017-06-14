@@ -100,8 +100,6 @@ extern DialogTopic *dialog;
 
 extern int ifacepopped;  // currently displayed pop-up GUI (-1 if none)
 extern int mouse_on_iface;   // mouse cursor is over this interface
-extern int mouse_on_iface_button;
-extern int mouse_pushed_iface;  // this BUTTON on interface MOUSE_ON_IFACE is pushed
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 
 extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
@@ -1220,8 +1218,8 @@ void save_game_dialogs(Stream *out)
 void save_game_more_dynamic_values(Stream *out)
 {
     out->WriteInt32(mouse_on_iface);
-    out->WriteInt32(mouse_on_iface_button);
-    out->WriteInt32(mouse_pushed_iface);
+    out->WriteInt32(-1); // mouse_on_iface_button
+    out->WriteInt32(-1); // mouse_pushed_iface
     out->WriteInt32 (ifacepopped);
     out->WriteInt32(game_paused);
     //out->WriteInt32(mi.trk);
@@ -1728,8 +1726,8 @@ void restore_game_dialogs(Stream *in)
 void restore_game_more_dynamic_values(Stream *in)
 {
     mouse_on_iface=in->ReadInt32();
-    mouse_on_iface_button=in->ReadInt32();
-    mouse_pushed_iface=in->ReadInt32();
+    in->ReadInt32(); // mouse_on_iface_button
+    in->ReadInt32(); // mouse_pushed_iface
     ifacepopped = in->ReadInt32();
     game_paused=in->ReadInt32();
 }

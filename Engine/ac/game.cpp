@@ -494,18 +494,6 @@ void save_game_dialog() {
         save_game(toload,buffer2);
 }
 
-
-
-
-
-void setup_sierra_interface() {
-    int rr;
-    game.numgui =0;
-    for (rr=0;rr<42;rr++) game.paluses[rr]=PAL_GAMEWIDE;
-    for (rr=42;rr<256;rr++) game.paluses[rr]=PAL_BACKGROUND;
-}
-
-
 void free_do_once_tokens()
 {
     for (int i = 0; i < play.num_do_once_tokens; i++)

@@ -1442,7 +1442,6 @@ int initialize_engine(int argc,char*argv[])
     our_eip=-20;
     //thisroom.allocall();
     our_eip=-19;
-    //setup_sierra_interface();   // take this out later
 
     res = engine_load_game_data();
     if (res != RETURN_CONTINUE) {

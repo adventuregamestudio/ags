@@ -1502,7 +1502,7 @@ void save_game(int slotn, const char*descript) {
     // Screenshot
     create_savegame_screenshot(screenShot);
 
-    Stream *out = StartSavegame(nametouse, descript, screenShot);
+    Common::PStream out = StartSavegame(nametouse, descript, screenShot);
     if (out == NULL)
         quit("save_game: unable to open savegame file for writing");
 
@@ -1514,12 +1514,11 @@ void save_game(int slotn, const char*descript) {
     if (screenShot != NULL)
     {
         int screenShotOffset = out->GetPosition() - sizeof(RICH_GAME_MEDIA_HEADER);
-        int screenShotSize = write_screen_shot_for_vista(out, screenShot);
-        delete out;
+        int screenShotSize = write_screen_shot_for_vista(out.get(), screenShot);
 
         update_polled_stuff_if_runtime();
 
-        out = Common::File::OpenFile(nametouse, Common::kFile_Open, Common::kFile_ReadWrite);
+        out.reset(Common::File::OpenFile(nametouse, Common::kFile_Open, Common::kFile_ReadWrite));
         out->Seek(12, kSeekBegin);
         out->WriteInt32(screenShotOffset);
         out->Seek(4);
@@ -1528,8 +1527,6 @@ void save_game(int slotn, const char*descript) {
 
     if (screenShot != NULL)
         delete screenShot;
-
-    delete out;
 }
 
 char rbuffer[200];
@@ -2136,7 +2133,7 @@ SavegameError load_game(const String &path, int slotNumber, bool &data_overwritt
     }
 
     // do the actual restore
-    err = RestoreGameState(src.InputStream.get(), src.Version);
+    err = RestoreGameState(src.InputStream, src.Version);
     data_overwritten = true;
     if (err != kSvgErr_NoError)
         return err;

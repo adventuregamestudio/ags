@@ -129,6 +129,7 @@ void unload_game_file();
 void save_game(int slotn, const char*descript);
 bool read_savedgame_description(const Common::String &savedgame, Common::String &description);
 bool read_savedgame_screenshot(const Common::String &savedgame, int &want_shot);
+// Restore game data from the legacy save
 // Tries to restore saved game and displays an error on failure; if the error occured
 // too late, when the game data was already overwritten, shuts engine down.
 bool try_restore_save(int slot);

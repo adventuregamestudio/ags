@@ -15,6 +15,8 @@
 #ifndef __AGS_EE_GAME__SAVEGAME_H
 #define __AGS_EE_GAME__SAVEGAME_H
 
+#include "util/stdtr1compat.h"
+#include TR1INCLUDE(memory)
 #include "util/version.h"
 
 
@@ -31,17 +33,21 @@ using Common::Stream;
 using Common::String;
 using Common::Version;
 
+typedef stdtr1compat::shared_ptr<Stream> PStream;
+
 //-----------------------------------------------------------------------------
 // Savegame version history
 //
 // 8      last old style saved game format (of AGS 3.2.1)
+// 9      first new style (self-descriptive block-based) format version
 //-----------------------------------------------------------------------------
 enum SavegameVersion
 {
     kSvgVersion_Undefined = 0,
     kSvgVersion_321       = 8,
-    kSvgVersion_Current   = kSvgVersion_321,
-    kSvgVersion_LowestSupported = kSvgVersion_321
+    kSvgVersion_Components= 9,
+    kSvgVersion_Current   = kSvgVersion_Components,
+    kSvgVersion_LowestSupported = kSvgVersion_321 // change if support dropped
 };
 
 // Error codes for save restoration routine
@@ -53,7 +59,12 @@ enum SavegameError
     kSvgErr_SignatureFailed,
     kSvgErr_FormatVersionNotSupported,
     kSvgErr_IncompatibleEngine,
+    kSvgErr_GameGuidMismatch,
+    kSvgErr_ComponentOpeningTagMismatch,
+    kSvgErr_ComponentClosingTagMismatch,
+    kSvgErr_UnsupportedComponent,
     kSvgErr_InconsistentFormat,
+    kSvgErr_UnsupportedComponentVersion,
     kSvgErr_GameContentAssertion,
     kSvgErr_InconsistentPlugin,
     kSvgErr_DifferentColorDepth,
@@ -69,13 +80,15 @@ struct SavegameSource
 {
     // Signature of the current savegame format
     static const String Signature;
+    // Signature of the legacy savegame format
+    static const String LegacySignature;
 
     // Name of the savefile
     String              Filename;
     // Savegame format version
     SavegameVersion     Version;
     // A ponter to the opened stream
-    AStream             InputStream;
+    PStream             InputStream;
 
     SavegameSource();
 };
@@ -95,8 +108,14 @@ enum SavegameDescElem
 // it was created in, and custom data provided by user
 struct SavegameDescription
 {
+    // Name of the engine that saved the game
+    String              EngineName;
     // Version of the engine that saved the game
     Version             EngineVersion;
+    // Guid of the game which made this save
+    String              GameGuid;
+    // Title of the game which made this save
+    String              GameTitle;
     // Name of the main data file used; this is needed to properly
     // load saves made by "minigames"
     String              MainDataFilename;
@@ -119,13 +138,13 @@ SavegameError  OpenSavegame(const String &filename, SavegameSource &src,
 SavegameError  OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
 
 // Reads the game data from the save stream and reinitializes game state
-SavegameError  RestoreGameState(Stream *in, SavegameVersion svg_version);
+SavegameError  RestoreGameState(PStream in, SavegameVersion svg_version);
 
 // Opens savegame for writing and puts in savegame description
-Stream        *StartSavegame(const String &filename, const String &desc, const Bitmap *image);
+PStream        StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image);
 
-// Prepares game for saving state and writes data into the save stream
-void           SaveGameState(Stream *out);
+// Prepares game for saving state and writes game data into the save stream
+void           SaveGameState(PStream out);
 
 } // namespace Engine
 } // namespace AGS

@@ -203,6 +203,12 @@ String StrUtil::ReadString(Stream *in)
     return String();
 }
 
+void StrUtil::SkipString(Stream *in)
+{
+    int32_t len = in->ReadInt32();
+    in->Seek(len);
+}
+
 void StrUtil::WriteString(const String &s, Stream *out)
 {
     int32_t len = s.GetLength();

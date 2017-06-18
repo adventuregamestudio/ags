@@ -238,5 +238,27 @@ void GUISlider::WriteToFile(Stream *out)
     out->WriteInt32(BgImage);
 }
 
+void GUISlider::ReadFromSavegame(Stream *in)
+{
+    GUIObject::ReadFromSavegame(in);
+    BgImage = in->ReadInt32();
+    HandleImage = in->ReadInt32();
+    HandleOffset = in->ReadInt32();
+    MinValue = in->ReadInt32();
+    MaxValue = in->ReadInt32();
+    Value = in->ReadInt32();
+}
+
+void GUISlider::WriteToSavegame(Stream *out) const
+{
+    GUIObject::WriteToSavegame(out);
+    out->WriteInt32(BgImage);
+    out->WriteInt32(HandleImage);
+    out->WriteInt32(HandleOffset);
+    out->WriteInt32(MinValue);
+    out->WriteInt32(MaxValue);
+    out->WriteInt32(Value);
+}
+
 } // namespace Common
 } // namespace AGS

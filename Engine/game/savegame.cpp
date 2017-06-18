@@ -143,6 +143,8 @@ String GetSavegameErrorText(SavegameError err)
         return "Component data version not supported";
     case kSvgErr_GameContentAssertion:
         return "Saved content does not match current game";
+    case kSvgErr_InconsistentData:
+        return "Inconsistent save data, or file is corrupted";
     case kSvgErr_InconsistentPlugin:
         return "One of the game plugins did not restore its game data correctly";
     case kSvgErr_DifferentColorDepth:

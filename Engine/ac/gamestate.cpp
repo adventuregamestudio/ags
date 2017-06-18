@@ -30,17 +30,7 @@ void GameState::SetViewport(const Size viewport_size)
                        viewport_size.Width, viewport_size.Height);
 }
 
-//
-// [IKM] What must be kept in mind: in previous versions of AGS
-// this struct was read and written as-is (read/write-ing object)
-// It did not have virtual functions (did not have functions at all
-// actually), so I believe there's no need to skip 4 bytes for
-// vtable pointer.
-// On other hand we should read/write even pointers to arrays
-// (or at least emulate that), although that could make no sense.
-//
-
-void GameState::ReadFromFile_v321(Stream *in)
+void GameState::ReadFromSavegame(Common::Stream *in, bool old_save)
 {
     score = in->ReadInt32();
     usedmode = in->ReadInt32();
@@ -122,14 +112,19 @@ void GameState::ReadFromFile_v321(Stream *in)
     speech_portrait_y = in->ReadInt32();
     speech_display_post_time_ms = in->ReadInt32();
     dialog_options_highlight_color = in->ReadInt32();
-    in->ReadArrayOfInt32(reserved, GAME_STATE_RESERVED_INTS);
+    if (old_save)
+        in->ReadArrayOfInt32(reserved, GAME_STATE_RESERVED_INTS);
     // ** up to here is referenced in the script "game." object
-    recording = in->ReadInt32();   // user is recording their moves
-    playback = in->ReadInt32();    // playing back recording
-    gamestep = in->ReadInt16();    // step number for matching recordings
+    if (old_save)
+    {
+        in->ReadInt32(); // recording
+        in->ReadInt32(); // playback
+        in->ReadInt16(); // gamestep
+    }
     randseed = in->ReadInt32();    // random seed
     player_on_region = in->ReadInt32();    // player's current region
-    screen_is_faded_out = in->ReadInt32(); // the screen is currently black
+    if (old_save)
+        in->ReadInt32(); // screen_is_faded_out
     check_interaction_only = in->ReadInt32();
     bg_frame = in->ReadInt32();
     bg_anim_delay = in->ReadInt32();  // for animating backgrounds
@@ -168,9 +163,11 @@ void GameState::ReadFromFile_v321(Stream *in)
     in->ReadArrayOfInt16( parsed_words, MAX_PARSED_WORDS);
     in->Read( bad_parsed_word, 100);
     raw_color = in->ReadInt32();
-    in->ReadArrayOfInt32( raw_modified, MAX_BSCENE);
+    if (old_save)
+        in->ReadArrayOfInt32(raw_modified, MAX_BSCENE);
     in->ReadArrayOfInt16( filenumbers, MAXSAVEGAMES);
-    room_changes = in->ReadInt32();
+    if (old_save)
+        in->ReadInt32(); // room_changes
     mouse_cursor_hidden = in->ReadInt32();
     silent_midi = in->ReadInt32();
     silent_midi_channel = in->ReadInt32();
@@ -183,10 +180,10 @@ void GameState::ReadFromFile_v321(Stream *in)
     rtint_blue = in->ReadInt32();
     rtint_level = in->ReadInt32();
     rtint_light = in->ReadInt32();
-    if (loaded_game_file_version >= kGameVersion_340_4)
-        play.rtint_enabled = in->ReadBool();
+    if (!old_save || loaded_game_file_version >= kGameVersion_340_4)
+        rtint_enabled = in->ReadBool();
     else
-        play.rtint_enabled = play.rtint_level > 0;
+        rtint_enabled = rtint_level > 0;
     end_cutscene_music = in->ReadInt32();
     skip_until_char_stops = in->ReadInt32();
     get_loc_name_last_time = in->ReadInt32();
@@ -196,6 +193,14 @@ void GameState::ReadFromFile_v321(Stream *in)
     music_queue_size = in->ReadInt16();
     in->ReadArrayOfInt16( music_queue, MAX_QUEUED_MUSIC);
     new_music_queue_size = in->ReadInt16();
+    if (!old_save)
+    {
+        for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
+        {
+            new_music_queue[i].ReadFromFile(in);
+        }
+    }
+
     crossfading_out_channel = in->ReadInt16();
     crossfade_step = in->ReadInt16();
     crossfade_out_volume_per_step = in->ReadInt16();
@@ -204,7 +209,8 @@ void GameState::ReadFromFile_v321(Stream *in)
     crossfade_in_volume_per_step = in->ReadInt16();
     crossfade_final_volume_in = in->ReadInt16();
 
-    ReadQueuedAudioItems_Aligned(in);
+    if (old_save)
+        ReadQueuedAudioItems_Aligned(in);
 
     in->Read(takeover_from, 50);
     in->Read(playmp3file_name, PLAYMP3FILE_MAX_FILENAME_LEN);
@@ -216,17 +222,31 @@ void GameState::ReadFromFile_v321(Stream *in)
     in->ReadInt32(); // gamma_adjustment -- do not apply gamma level from savegame
     temporarily_turned_off_character = in->ReadInt16();
     inv_backwards_compatibility = in->ReadInt16();
-    in->ReadInt32(); // gui_draw_order
-    in->ReadInt32(); // do_once_tokens;
+    if (old_save)
+    {
+        in->ReadInt32(); // gui_draw_order
+        in->ReadInt32(); // do_once_tokens;
+    }
     num_do_once_tokens = in->ReadInt32();
+    if (!old_save)
+    {
+        do_once_tokens = new char*[num_do_once_tokens];
+        for (int i = 0; i < num_do_once_tokens; ++i)
+        {
+            StrUtil::ReadString(&do_once_tokens[i], in);
+        }
+    }
     text_min_display_time_ms = in->ReadInt32();
     ignore_user_input_after_text_timeout_ms = in->ReadInt32();
     ignore_user_input_until_time = in->ReadInt32();
-    in->ReadArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
+    if (old_save)
+        in->ReadArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
 }
 
-void GameState::WriteToFile_v321(Stream *out)
+void GameState::WriteForSavegame(Common::Stream *out) const
 {
+    // NOTE: following parameters are never saved:
+    // recording, playback, gamestep, screen_is_faded_out, room_changes
     out->WriteInt32(score);
     out->WriteInt32(usedmode);
     out->WriteInt32(disabled_user_interface);
@@ -307,14 +327,9 @@ void GameState::WriteToFile_v321(Stream *out)
     out->WriteInt32(speech_portrait_y);
     out->WriteInt32(speech_display_post_time_ms);
     out->WriteInt32(dialog_options_highlight_color);
-    out->WriteArrayOfInt32(reserved, GAME_STATE_RESERVED_INTS);
     // ** up to here is referenced in the script "game." object
-    out->WriteInt32( recording);   // user is recording their moves
-    out->WriteInt32( playback);    // playing back recording
-    out->WriteInt16(gamestep);    // step number for matching recordings
     out->WriteInt32(randseed);    // random seed
     out->WriteInt32( player_on_region);    // player's current region
-    out->WriteInt32( screen_is_faded_out); // the screen is currently black
     out->WriteInt32( check_interaction_only);
     out->WriteInt32( bg_frame);
     out->WriteInt32( bg_anim_delay);  // for animating backgrounds
@@ -353,9 +368,7 @@ void GameState::WriteToFile_v321(Stream *out)
     out->WriteArrayOfInt16( parsed_words, MAX_PARSED_WORDS);
     out->Write( bad_parsed_word, 100);
     out->WriteInt32( raw_color);
-    out->WriteArrayOfInt32( raw_modified, MAX_BSCENE);
     out->WriteArrayOfInt16( filenumbers, MAXSAVEGAMES);
-    out->WriteInt32( room_changes);
     out->WriteInt32( mouse_cursor_hidden);
     out->WriteInt32( silent_midi);
     out->WriteInt32( silent_midi_channel);
@@ -368,8 +381,7 @@ void GameState::WriteToFile_v321(Stream *out)
     out->WriteInt32( rtint_blue);
     out->WriteInt32( rtint_level);
     out->WriteInt32( rtint_light);
-    if (loaded_game_file_version >= kGameVersion_340_4)
-        out->WriteBool(play.rtint_enabled);
+    out->WriteBool(rtint_enabled);
     out->WriteInt32( end_cutscene_music);
     out->WriteInt32( skip_until_char_stops);
     out->WriteInt32( get_loc_name_last_time);
@@ -378,7 +390,12 @@ void GameState::WriteToFile_v321(Stream *out)
     out->WriteInt32( restore_cursor_image_to);
     out->WriteInt16( music_queue_size);
     out->WriteArrayOfInt16( music_queue, MAX_QUEUED_MUSIC);
-    out->WriteInt16( new_music_queue_size);
+    out->WriteInt16(new_music_queue_size);
+    for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
+    {
+        new_music_queue[i].WriteToFile(out);
+    }
+
     out->WriteInt16( crossfading_out_channel);
     out->WriteInt16( crossfade_step);
     out->WriteInt16( crossfade_out_volume_per_step);
@@ -386,8 +403,6 @@ void GameState::WriteToFile_v321(Stream *out)
     out->WriteInt16( crossfading_in_channel);
     out->WriteInt16( crossfade_in_volume_per_step);
     out->WriteInt16( crossfade_final_volume_in);
-
-    WriteQueuedAudioItems_Aligned(out);
 
     out->Write(takeover_from, 50);
     out->Write(playmp3file_name, PLAYMP3FILE_MAX_FILENAME_LEN);
@@ -399,13 +414,14 @@ void GameState::WriteToFile_v321(Stream *out)
     out->WriteInt32( gamma_adjustment);
     out->WriteInt16(temporarily_turned_off_character);
     out->WriteInt16(inv_backwards_compatibility);
-    out->WriteInt32(0); // gui_draw_order
-    out->WriteInt32(0); // do_once_tokens
     out->WriteInt32( num_do_once_tokens);
+    for (int i = 0; i < num_do_once_tokens; ++i)
+    {
+        StrUtil::WriteString(do_once_tokens[i], out);
+    }
     out->WriteInt32( text_min_display_time_ms);
     out->WriteInt32( ignore_user_input_after_text_timeout_ms);
     out->WriteInt32( ignore_user_input_until_time);
-    out->WriteArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
 }
 
 void GameState::ReadQueuedAudioItems_Aligned(Common::Stream *in)
@@ -418,16 +434,6 @@ void GameState::ReadQueuedAudioItems_Aligned(Common::Stream *in)
     }
 }
 
-void GameState::WriteQueuedAudioItems_Aligned(Common::Stream *out)
-{
-    AlignedStream align_s(out, Common::kAligned_Write);
-    for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
-    {
-        new_music_queue[i].WriteToFile(&align_s);
-        align_s.Reset();
-    }
-}
-
 void GameState::FreeProperties()
 {
     for (int i = 0; i < game.numcharacters; ++i)
@@ -436,7 +442,7 @@ void GameState::FreeProperties()
         invProps[i].clear();
 }
 
-void GameState::ReadCustomProperties(Common::Stream *in)
+void GameState::ReadCustomProperties_v340(Common::Stream *in)
 {
     if (loaded_game_file_version >= kGameVersion_340_4)
     {
@@ -451,7 +457,7 @@ void GameState::ReadCustomProperties(Common::Stream *in)
     }
 }
 
-void GameState::WriteCustomProperties(Common::Stream *out)
+void GameState::WriteCustomProperties_v340(Common::Stream *out) const
 {
     if (loaded_game_file_version >= kGameVersion_340_4)
     {

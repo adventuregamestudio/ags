@@ -158,7 +158,7 @@ void RoomObject::ReadFromFile(Stream *in)
     in->ReadArrayOfInt16(&blocking_width, 2);
 }
 
-void RoomObject::WriteToFile(Stream *out)
+void RoomObject::WriteToFile(Stream *out) const
 {
     out->WriteArrayOfInt32(&x, 3);
     out->WriteArrayOfInt16(&tint_r, 15);

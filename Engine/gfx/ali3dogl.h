@@ -26,6 +26,7 @@
 #include "gfx/gfxdriverfactorybase.h"
 #include "gfx/gfxdriverbase.h"
 #include "util/string.h"
+#include "util/version.h"
 
 #include "ogl_headers.h"
 
@@ -39,6 +40,7 @@ namespace OGL
 
 using Common::Bitmap;
 using Common::String;
+using Common::Version;
 
 typedef struct _OGLVECTOR {
     float x;
@@ -219,6 +221,8 @@ private:
     GLuint _oldPixelFormat;
     PIXELFORMATDESCRIPTOR _oldPixelFormatDesc;
 #endif
+    Version _oglVersion;
+    bool _firstTimeInit;
     int _tint_red, _tint_green, _tint_blue;
     // Position of backbuffer texture in world space
     GLfloat _backbuffer_vertices[8];
@@ -229,6 +233,10 @@ private:
     String previousError;
     bool _smoothScaling;
     bool _legacyPixelShader;
+    GLuint _tintProgram; // shader program and its variable references
+    GLuint _tintPrgSampler;
+    GLuint _tintPrgColor;
+    GLuint _tintPrgParams;
     Bitmap *_screenTintLayer;
     OGLBitmap* _screenTintLayerDDB;
     OGLDrawListEntry _screenTintSprite;
@@ -260,6 +268,8 @@ private:
     std::vector<OGLDrawListEntry> drawListLastTime;
     GlobalFlipType flipTypeLastTime;
 
+    // Sets up GL objects not related to particular display mode
+    void FirstTimeInit();
     // Initializes Gl rendering context
     bool InitGlScreen(const DisplayMode &mode);
     bool CreateGlContext(const DisplayMode &mode);
@@ -269,6 +279,9 @@ private:
     void set_up_default_vertices();
     // Test if rendering to texture is supported
     void TestRenderToTexture();
+    // Create shader programs for sprite tinting
+    void CreateShaders();
+    void OutputShaderError(GLuint obj_id, const char *obj_name, bool is_shader);
     // Configure backbuffer texture, that is used in render-to-texture mode
     void SetupBackbufferTexture();
     void DeleteBackbufferTexture();

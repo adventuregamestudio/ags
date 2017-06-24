@@ -233,10 +233,18 @@ private:
     String previousError;
     bool _smoothScaling;
     bool _legacyPixelShader;
-    GLuint _tintProgram; // shader program and its variable references
-    GLuint _tintPrgSampler;
-    GLuint _tintPrgColor;
-    GLuint _tintPrgParams;
+    // shader program and its variable references
+    struct ShaderProgram
+    {
+        GLuint Program;
+        GLuint SamplerVar;
+        GLuint ColorVar;
+        GLuint AuxVar;
+
+        ShaderProgram();
+    };
+    ShaderProgram _tintShader;
+    ShaderProgram _lightShader;
     Bitmap *_screenTintLayer;
     OGLBitmap* _screenTintLayerDDB;
     OGLDrawListEntry _screenTintSprite;
@@ -279,9 +287,14 @@ private:
     void set_up_default_vertices();
     // Test if rendering to texture is supported
     void TestRenderToTexture();
-    // Create shader programs for sprite tinting
+    // Create shader programs for sprite tinting and changing light level
     void CreateShaders();
-    void OutputShaderError(GLuint obj_id, const char *obj_name, bool is_shader);
+    void CreateTintShader();
+    void CreateLightShader();
+    void CreateShaderProgram(ShaderProgram &prg, const char *name, const char *fragment_shader_src,
+                                const char *sampler_var, const char *color_var, const char *aux_var);
+    void DeleteShaderProgram(ShaderProgram &prg);
+    void OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader);
     // Configure backbuffer texture, that is used in render-to-texture mode
     void SetupBackbufferTexture();
     void DeleteBackbufferTexture();

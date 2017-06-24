@@ -76,6 +76,7 @@ PFNGLUSEPROGRAMPROC glUseProgram = 0;
 PFNGLDELETEPROGRAMPROC glDeleteProgram = 0;
 PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation = 0;
 PFNGLUNIFORM1IPROC glUniform1i = 0;
+PFNGLUNIFORM1FPROC glUniform1f = 0;
 PFNGLUNIFORM3FPROC glUniform3f = 0;
 
 
@@ -240,6 +241,10 @@ void OGLBitmap::Dispose()
     }
 }
 
+
+OGLGraphicsDriver::ShaderProgram::ShaderProgram() : Program(0), SamplerVar(0), ColorVar(0), AuxVar(0) {}
+
+
 OGLGraphicsDriver::OGLGraphicsDriver() 
 {
 #if defined (WINDOWS_VERSION)
@@ -263,10 +268,6 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _tint_red = 0;
   _tint_green = 0;
   _tint_blue = 0;
-  _tintProgram = 0;
-  _tintPrgSampler = 0;
-  _tintPrgColor = 0;
-  _tintPrgParams = 0;
   _screenTintLayer = NULL;
   _screenTintLayerDDB = NULL;
   _screenTintSprite.skip = true;
@@ -577,6 +578,7 @@ void OGLGraphicsDriver::CreateShaders()
     glDeleteProgram = (PFNGLDELETEPROGRAMPROC)wglGetProcAddress("glDeleteProgram");
     glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)wglGetProcAddress("glGetUniformLocation");
     glUniform1i = (PFNGLUNIFORM1IPROC)wglGetProcAddress("glUniform1i");
+    glUniform1f = (PFNGLUNIFORM1FPROC)wglGetProcAddress("glUniform1f");
     glUniform3f = (PFNGLUNIFORM3FPROC)wglGetProcAddress("glUniform3f");
   #endif
 
@@ -586,8 +588,12 @@ void OGLGraphicsDriver::CreateShaders()
     return;
   }
 
-  // Create tinting shader
-  GLint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+  CreateTintShader();
+  CreateLightShader();
+}
+
+void OGLGraphicsDriver::CreateTintShader()
+{
   const char *fragment_shader_src = 
     // NOTE: this shader emulates "historical" AGS software tinting; it is not
     // necessarily "proper" tinting in modern terms.
@@ -637,40 +643,81 @@ void OGLGraphicsDriver::CreateShaders()
                                     gl_FragColor = vec4(new_col, src_col.w * tintAmnTrsLum[1]);\n\
                                 }\n\
     ";
+  CreateShaderProgram(_tintShader, "Tinting", fragment_shader_src, "textID", "tintHSV", "tintAmnTrsLum");
+}
+
+void OGLGraphicsDriver::CreateLightShader()
+{
+  const char *fragment_shader_src = 
+    // NOTE: due to how the lighting works in AGS, this is combined MODULATE / ADD shader.
+    // if the light is < 0, then MODULATE operation is used, otherwise ADD is used.
+    // NOTE: it's been said that using branching in shaders produces inefficient code.
+    // If that will ever become a real problem, we can easily split this shader in two.
+    "\
+                                #version 130\n\
+                                out vec4 gl_FragColor;\n\
+                                uniform sampler2D textID;\n\
+                                uniform float light;\n\
+                                uniform float alpha;\n\
+                                \
+                                void main()\n\
+                                {\n\
+                                    vec2 coords = gl_TexCoord[0].xy;\n\
+                                    gl_FragColor = texture2D(textID, coords);\n\
+                                    if (light >= 0.0)\n\
+                                        gl_FragColor = vec4(gl_FragColor.xyz + vec3(light, light, light), gl_FragColor.w * alpha);\n\
+                                    else\n\
+                                        gl_FragColor = vec4(gl_FragColor.xyz * abs(light), gl_FragColor.w * alpha);\n\
+                                }\n\
+    ";
+  CreateShaderProgram(_lightShader, "Lighting", fragment_shader_src, "textID", "light", "alpha");
+}
+
+void OGLGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const char *name, const char *fragment_shader_src,
+                                            const char *sampler_var, const char *color_var, const char *aux_var)
+{
+  GLint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(fragment_shader, 1, &fragment_shader_src, NULL);
   glCompileShader(fragment_shader);
   GLint compile_result;
   glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &compile_result);
   if (compile_result == GL_FALSE)
   {
-    OutputShaderError(fragment_shader, "fragment shader", true);
+    OutputShaderError(fragment_shader, String::FromFormat("%s program's fragment shader", name), true);
     glDeleteShader(fragment_shader);
     return;
   }
 
-  _tintProgram = glCreateProgram();
-  glAttachShader(_tintProgram, fragment_shader);
-  glLinkProgram(_tintProgram);
+  GLuint program = glCreateProgram();
+  glAttachShader(program, fragment_shader);
+  glLinkProgram(program);
 
   GLint link_result = 0;
-  glGetProgramiv(_tintProgram, GL_LINK_STATUS, &link_result);
+  glGetProgramiv(program, GL_LINK_STATUS, &link_result);
   if(link_result == GL_FALSE)
   {
-    OutputShaderError(_tintProgram, "tint program", false);
-    glDeleteProgram(_tintProgram);
+    OutputShaderError(program, String::FromFormat("%s program", name), false);
+    glDeleteProgram(program);
     glDeleteShader(fragment_shader);
-    _tintProgram = 0;
     return;
   }
-  glDetachShader(_tintProgram, fragment_shader);
+  glDetachShader(program, fragment_shader);
   glDeleteShader(fragment_shader);
 
-  _tintPrgSampler = glGetUniformLocation(_tintProgram, "textID");
-  _tintPrgColor = glGetUniformLocation(_tintProgram, "tintHSV");
-  _tintPrgParams = glGetUniformLocation(_tintProgram, "tintAmnTrsLum");
+  prg.Program = program;
+  prg.SamplerVar = glGetUniformLocation(program, sampler_var);
+  prg.ColorVar = glGetUniformLocation(program, color_var);
+  prg.AuxVar = glGetUniformLocation(program, aux_var);
 }
 
-void OGLGraphicsDriver::OutputShaderError(GLuint obj_id, const char *obj_name, bool is_shader)
+void OGLGraphicsDriver::DeleteShaderProgram(ShaderProgram &prg)
+{
+  if (prg.Program)
+    glDeleteProgram(prg.Program);
+  prg.Program = 0;
+}
+
+void OGLGraphicsDriver::OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader)
 {
   GLint log_len = 0;
   if (is_shader)
@@ -683,7 +730,7 @@ void OGLGraphicsDriver::OutputShaderError(GLuint obj_id, const char *obj_name, b
   else
     glGetProgramInfoLog(obj_id, log_len, &log_len, &errorLog[0]);
 
-  Debug::Printf(kDbgMsg_Error, "ERROR: OpenGL %s %s:", obj_name, is_shader ? "failed to compile" : "failed to link");
+  Debug::Printf(kDbgMsg_Error, "ERROR: OpenGL: %s %s:", obj_name.GetCStr(), is_shader ? "failed to compile" : "failed to link");
   Debug::Printf(kDbgMsg_Error, "----------------------------------------");
   Debug::Printf(kDbgMsg_Error, "%s", &errorLog[0]);
   Debug::Printf(kDbgMsg_Error, "----------------------------------------");
@@ -896,9 +943,8 @@ void OGLGraphicsDriver::UnInit()
   _hDC = NULL;
 #endif
 
-  if (_tintProgram)
-    glDeleteProgram(_tintProgram);
-  _tintProgram = 0;
+  DeleteShaderProgram(_tintShader);
+  DeleteShaderProgram(_lightShader);
 }
 
 OGLGraphicsDriver::~OGLGraphicsDriver()
@@ -999,10 +1045,10 @@ void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool glob
 
   if (bmpToDraw->_tintSaturation > 0)
   {
-    // Do tinting
-    if (_tintProgram)
+    // Use tinting shader
+    if (_tintShader.Program)
     {
-      glUseProgram(_tintProgram);
+      glUseProgram(_tintShader.Program);
       float rgb[3];
       float sat_trs_lum[3]; // saturation / transparency / luminance
       if (_legacyPixelShader)
@@ -1012,31 +1058,65 @@ void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool glob
       }
       else
       {
-        rgb[0] = (float)bmpToDraw->_red / 256.0;
-        rgb[1] = (float)bmpToDraw->_green / 256.0;
-        rgb[2] = (float)bmpToDraw->_blue / 256.0;
+        rgb[0] = (float)bmpToDraw->_red / 255.0;
+        rgb[1] = (float)bmpToDraw->_green / 255.0;
+        rgb[2] = (float)bmpToDraw->_blue / 255.0;
       }
 
-      sat_trs_lum[0] = (float)bmpToDraw->_tintSaturation / 256.0;
+      sat_trs_lum[0] = (float)bmpToDraw->_tintSaturation / 255.0;
 
       if (bmpToDraw->_transparency > 0)
-        sat_trs_lum[1] = (float)bmpToDraw->_transparency / 256.0;
+        sat_trs_lum[1] = (float)bmpToDraw->_transparency / 255.0;
       else
         sat_trs_lum[1] = 1.0f;
 
       if (bmpToDraw->_lightLevel > 0)
-        sat_trs_lum[2] = (float)bmpToDraw->_lightLevel / 256.0;
+        sat_trs_lum[2] = (float)bmpToDraw->_lightLevel / 255.0;
       else
         sat_trs_lum[2] = 1.0f;
 
-      glUniform1i(_tintPrgSampler, 0);
-      glUniform3f(_tintPrgColor, rgb[0], rgb[1], rgb[2]);
-      glUniform3f(_tintPrgParams, sat_trs_lum[0], sat_trs_lum[1], sat_trs_lum[2]);
+      glUniform1i(_tintShader.SamplerVar, 0);
+      glUniform3f(_tintShader.ColorVar, rgb[0], rgb[1], rgb[2]);
+      glUniform3f(_tintShader.AuxVar, sat_trs_lum[0], sat_trs_lum[1], sat_trs_lum[2]);
     }
+  }
+  else if (bmpToDraw->_lightLevel > 0)
+  {
+    // Use light shader
+      glUseProgram(_lightShader.Program);
+    float light_lev = 1.0f;
+    float alpha = 1.0f;
+
+    // Light level parameter in DDB is weird, it is measured in units of
+    // 1/255 (although effectively 1/250, see draw.cpp), but contains two
+    // ranges: 1-255 is darker range and 256-511 is brighter range.
+    // (light level of 0 means "default color")
+    if ((bmpToDraw->_lightLevel > 0) && (bmpToDraw->_lightLevel < 256))
+    {
+      // darkening the sprite... this stupid calculation is for
+      // consistency with the allegro software-mode code that does
+      // a trans blend with a (8,8,8) sprite
+      light_lev = -((bmpToDraw->_lightLevel * 192) / 256 + 64) / 255.f; // darker, uses MODULATE op
+    }
+    else if (bmpToDraw->_lightLevel > 256)
+    {
+      light_lev = ((bmpToDraw->_lightLevel - 256) / 2) / 255.f; // brighter, uses ADD op
+    }
+
+    if (bmpToDraw->_transparency > 0)
+      alpha = bmpToDraw->_transparency / 255.f;
+
+    glUniform1i(_lightShader.SamplerVar, 0);
+    glUniform1f(_lightShader.ColorVar, light_lev);
+    glUniform1f(_lightShader.AuxVar, alpha);
   }
   else
   {
-    // Do light level
+    // Use default processing
+    if (bmpToDraw->_transparency == 0)
+      glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    else
+      glColor4f(1.0f, 1.0f, 1.0f, bmpToDraw->_transparency / 255.0f);
   }
 
   float width = bmpToDraw->GetWidthToRender();
@@ -1097,11 +1177,6 @@ void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool glob
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-
-    if (bmpToDraw->_transparency == 0)
-      glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-    else
-      glColor4f(1.0f, 1.0f, 1.0f, ((float)bmpToDraw->_transparency / 255.0f));
 
     if (_do_render_to_texture)
       glTranslatef(_backRenderSize.Width / 2.0f, _backRenderSize.Height / 2.0f, 0.0f);

@@ -149,19 +149,27 @@ int symbolTable::find(const char*ntf) {
 }
 
 std::string symbolTable::get_friendly_name(int idx) {
-    std::string result = entries[idx & STYPE_MASK].sname;
+    std::string result;
 
-    if (idx & STYPE_POINTER) {
-        result = result + std::string("*");
-    }
+    idx &= STYPE_MASK;
+    if(idx > -1 && idx < entries.size()) {
+        result = entries[idx].sname;
 
-    if (idx & STYPE_DYNARRAY) {
-        result = result + std::string("[]");
-    }
+        if (idx & STYPE_POINTER) {
+            result = result + std::string("*");
+        }
 
-    if (idx & STYPE_CONST) {
-        result = std::string("const ") + result;
+        if (idx & STYPE_DYNARRAY) {
+            result = result + std::string("[]");
+        }
+
+        if (idx & STYPE_CONST) {
+            result = std::string("const ") + result;
+        }
+
     }
+    else
+        result = std::string("(invalid symbol)");
 
     return result;
 }

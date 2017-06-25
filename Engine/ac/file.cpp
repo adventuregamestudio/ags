@@ -30,6 +30,7 @@
 #include "util/stream.h"
 #include "core/assetmanager.h"
 #include "core/asset.h"
+#include "main/engine.h"
 #include "main/game_file.h"
 #include "util/directory.h"
 #include "util/path.h"
@@ -45,10 +46,15 @@ extern AGSPlatformDriver *platform;
 
 extern int MAXSTRLEN;
 
+// TODO: the asset path configuration should certainly be revamped at some
+// point, with uniform method of configuring auxiliary paths and packages.
+
 // Installation directory, may contain absolute or relative path
 String installDirectory;
 // Installation directory, containing audio files
 String installAudioDirectory;
+// Installation directory, containing voice-over files
+String installVoiceDirectory;
 
 // object-based File routines
 
@@ -417,7 +423,7 @@ bool DoesAssetExistInLib(const AssetPath &assetname)
     return res;
 }
 
-void set_install_dir(const String &path, const String &audio_path)
+void set_install_dir(const String &path, const String &audio_path, const String &voice_path)
 {
     if (path.IsEmpty())
         installDirectory = ".";
@@ -427,6 +433,10 @@ void set_install_dir(const String &path, const String &audio_path)
         installAudioDirectory = ".";
     else
         installAudioDirectory = Path::MakePathNoSlash(audio_path);
+    if (voice_path.IsEmpty())
+        installVoiceDirectory = ".";
+    else
+        installVoiceDirectory = Path::MakePathNoSlash(voice_path);
 }
 
 String get_install_dir()
@@ -437,6 +447,11 @@ String get_install_dir()
 String get_audio_install_dir()
 {
     return installAudioDirectory;
+}
+
+String get_voice_install_dir()
+{
+    return installVoiceDirectory;
 }
 
 void get_install_dir_path(char* buffer, const char *fileName)
@@ -486,6 +501,19 @@ AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename)
     else if (bundling_type == AUCL_BUNDLE_VOX)
         return AssetPath(is_old_audio_system() ? "music.vox" : "audio.vox", filename);
     return AssetPath();
+}
+
+AssetPath get_voice_over_assetpath(const String &filename)
+{
+    // Special case is explicitly defined voice-over directory, which should be
+    // tried first.
+    if (Path::ComparePaths(usetup.data_files_dir, installVoiceDirectory) != 0)
+    {
+        String filepath = String::FromFormat("%s/%s", installVoiceDirectory.GetCStr(), filename.GetCStr());
+        if (Path::IsFile(filepath))
+            return AssetPath("", filepath);
+    }
+    return AssetPath(speech_file, filename);
 }
 
 ScriptFileHandle valid_handles[MAX_OPEN_SCRIPT_FILES + 1];

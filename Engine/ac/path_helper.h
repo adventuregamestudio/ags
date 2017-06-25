@@ -51,11 +51,12 @@ String MakeSpecialSubDir(const String &sp_dir);
 bool ResolveScriptPath(const String &sc_path, bool read_only, String &path, String &alt_path);
 
 // Sets an optional path to treat like game's installation directory
-void    set_install_dir(const String &path, const String &audio_path);
+void    set_install_dir(const String &path, const String &audio_path, const String &voice_path);
 // Returns a path to game installation directory (optionally a custom path could be set);
 // does not include trailing '/'
 String  get_install_dir();
 String  get_audio_install_dir();
+String  get_voice_install_dir();
 void    get_install_dir_path(char* buffer, const char *fileName);
 
 #endif // __AGS_EE_AC__PATHHELPER_H

@@ -49,6 +49,7 @@ struct GameSetup {
     AGS::Common::String main_data_filename;
     AGS::Common::String install_dir; // optional custom install dir path
     AGS::Common::String install_audio_dir; // optional custom install audio dir path
+    AGS::Common::String install_voice_dir; // optional custom install voice-over dir path
     AGS::Common::String user_data_dir; // directory to write savedgames and user files to
     AGS::Common::String shared_data_dir; // directory to write shared game files to
     AGS::Common::String translation;

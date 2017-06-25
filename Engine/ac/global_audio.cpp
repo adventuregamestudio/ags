@@ -490,20 +490,18 @@ int play_speech(int charid,int sndid) {
     if (numLipLines > 0)
         game.options[OPT_LIPSYNCTEXT] = 0;
 
-    AssetPath asset_name(speech_file, voice_file);
-
-    // TODO: rewrite load_wave etc functions to apply extension automatically
-    asset_name.second.Append(".wav");
-    speechmp3 = my_load_wave(asset_name, play.speech_volume, 0);
+    String asset_name = voice_file;
+    asset_name.Append(".wav");
+    speechmp3 = my_load_wave(get_voice_over_assetpath(asset_name), play.speech_volume, 0);
 
     if (speechmp3 == NULL) {
-        asset_name.second.ReplaceMid(asset_name.second.GetLength() - 3, 3, "ogg");
-        speechmp3 = my_load_ogg(asset_name, play.speech_volume);
+        asset_name.ReplaceMid(asset_name.GetLength() - 3, 3, "ogg");
+        speechmp3 = my_load_ogg(get_voice_over_assetpath(asset_name), play.speech_volume);
     }
 
     if (speechmp3 == NULL) {
-        asset_name.second.ReplaceMid(asset_name.second.GetLength() - 3, 3, "mp3");
-        speechmp3 = my_load_mp3(asset_name, play.speech_volume);
+        asset_name.ReplaceMid(asset_name.GetLength() - 3, 3, "mp3");
+        speechmp3 = my_load_mp3(get_voice_over_assetpath(asset_name), play.speech_volume);
     }
 
     if (speechmp3 != NULL) {

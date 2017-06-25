@@ -472,16 +472,15 @@ Stream *find_open_asset(const String &filename)
 
 AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename)
 {
+    // Special case is explicitly defined audio directory, which should be used
+    // regardless of bundling type.
+    if (Path::ComparePaths(usetup.data_files_dir, installAudioDirectory) != 0)
+        return AssetPath("", String::FromFormat("%s/%s", installAudioDirectory.GetCStr(), filename.GetCStr()));
+
     if (bundling_type == AUCL_BUNDLE_EXE)
-    {
-        if (Path::ComparePaths(usetup.data_files_dir, installAudioDirectory) == 0)
-            return AssetPath(game_file_name, filename);
-        return AssetPath("", String::FromFormat("%s/%s", get_audio_install_dir().GetCStr(), filename.GetCStr()));
-    }
+        return AssetPath(game_file_name, filename);
     else if (bundling_type == AUCL_BUNDLE_VOX)
-    {
         return AssetPath(is_old_audio_system() ? "music.vox" : "audio.vox", filename);
-    }
     return AssetPath();
 }
 

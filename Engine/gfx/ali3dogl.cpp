@@ -774,8 +774,8 @@ void OGLGraphicsDriver::SetupBackbufferTexture()
 
   // Assign vertices of the backbuffer texture position in the scene
   _backbuffer_vertices[0] = _backbuffer_vertices[4] = 0;
-  _backbuffer_vertices[2] = _backbuffer_vertices[6] = _srcRect.Right;
-  _backbuffer_vertices[5] = _backbuffer_vertices[7] = _srcRect.Bottom;
+  _backbuffer_vertices[2] = _backbuffer_vertices[6] = _srcRect.GetWidth();
+  _backbuffer_vertices[5] = _backbuffer_vertices[7] = _srcRect.GetHeight();
   _backbuffer_vertices[1] = _backbuffer_vertices[3] = 0;
 }
 

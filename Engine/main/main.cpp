@@ -366,7 +366,7 @@ void main_set_gamedir(int argc,char*argv[])
 {
     appDirectory = Path::GetDirectoryPath(GetPathFromCmdArg(0));
 
-    if (datafile_argv > 0 && false)
+    if (datafile_argv > 0)
     {
         // If running data file pointed by command argument, change to that folder
         Directory::SetCurrentDirectory(Path::GetDirectoryPath(GetPathFromCmdArg(datafile_argv)));

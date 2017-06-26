@@ -32,6 +32,7 @@ GameSetup::GameSetup()
     mouse_speed = 1.f;
     mouse_control = kMouseCtrl_Fullscreen;
     mouse_speed_def = kMouseSpeed_CurrentDisplay;
+    RenderAtScreenRes = false;
 
     Screen.DisplayMode.MatchDeviceRatio = false;
     Screen.DisplayMode.SizeDef = kScreenDef_MaxDisplay;
@@ -40,5 +41,4 @@ GameSetup::GameSetup()
     Screen.DisplayMode.Windowed = false;
     Screen.GameFrame.ScaleDef = kFrame_MaxRound;
     Screen.GameFrame.ScaleFactor = 0;
-    Screen.RenderAtScreenRes = false;
 }

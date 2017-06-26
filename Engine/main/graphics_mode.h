@@ -95,10 +95,6 @@ struct ScreenSetup
 
     GfxFilterSetup       Filter;        // graphics filter definition
     GameFrameSetup       GameFrame;     // definition of the game frame's position on screen
-
-    bool                 RenderAtScreenRes; // render sprites at screen resolution, as opposed to native one
-
-    ScreenSetup();
 };
 
 // Display mode color depth variants suggested for the use

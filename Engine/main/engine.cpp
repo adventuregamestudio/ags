@@ -1217,6 +1217,12 @@ void engine_init_game_settings()
     currentcursor=0;
     our_eip=-4;
     mousey=100;  // stop icon bar popping up
+
+    // We use same variable to read config and be used at runtime for now,
+    // so update it here with regards to game design option
+    usetup.RenderAtScreenRes = 
+        (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined && usetup.RenderAtScreenRes) ||
+         game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled;
 }
 
 void engine_setup_scsystem_auxiliary()

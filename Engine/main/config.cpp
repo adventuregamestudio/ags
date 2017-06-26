@@ -384,7 +384,7 @@ void read_config(const ConfigTree &cfg)
 
         usetup.Screen.DisplayMode.RefreshRate = INIreadint(cfg, "graphics", "refresh");
         usetup.Screen.DisplayMode.VSync = INIreadint(cfg, "graphics", "vsync") > 0;
-        usetup.Screen.RenderAtScreenRes = INIreadint(cfg, "graphics", "render_at_screenres") > 0;
+        usetup.RenderAtScreenRes = INIreadint(cfg, "graphics", "render_at_screenres") > 0;
 
         usetup.enable_antialiasing = INIreadint(cfg, "misc", "antialias") > 0;
         if (!usetup.force_hicolor_mode)

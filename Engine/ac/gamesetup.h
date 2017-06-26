@@ -60,12 +60,16 @@ struct GameSetup {
     float mouse_speed;
     MouseControl mouse_control;
     MouseSpeedDef mouse_speed_def;
+    bool  RenderAtScreenRes; // render sprites at screen resolution, as opposed to native one
 
     ScreenSetup Screen;
 
     GameSetup();
 };
 
+// TODO: setup object is used for two purposes: temporarily storing config
+// options before engine is initialized, and storing certain runtime variables.
+// Perhaps it makes sense to separate those two group of vars at some point.
 extern GameSetup usetup;
 
 #endif // __AC_GAMESETUP_H

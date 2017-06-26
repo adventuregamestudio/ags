@@ -75,11 +75,6 @@ DisplayModeSetup::DisplayModeSetup()
 {
 }
 
-ScreenSetup::ScreenSetup()
-    : RenderAtScreenRes(false)
-{
-}
-
 
 Size get_desktop_size()
 {

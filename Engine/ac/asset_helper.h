@@ -40,8 +40,10 @@ extern "C" {
 // the AssetManager, then we could remove assetlib parameter.
 typedef std::pair<String, String> AssetPath;
 
-// Returns the name of audio asset library, corresponding to the given bundling type
+// Returns the path to the audio asset, considering the given bundling type
 AssetPath get_audio_clip_assetpath(int bundling_type, const String &filename);
+// Returns the path to the voice-over asset
+AssetPath get_voice_over_assetpath(const String &filename);
 
 // Creates PACKFILE stream from AGS asset.
 // This function is supposed to be used only when you have to create Allegro

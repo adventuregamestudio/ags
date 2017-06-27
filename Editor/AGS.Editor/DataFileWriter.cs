@@ -132,6 +132,7 @@ namespace AGS.Editor
         {
             string tomake = fileName;
             Stream stream = TryFileOpen(tomake, FileAccess.Read);
+            // TODO: get audio and speech paths from a kind of shared config
             if (stream == null)
             {
                 // try in the Audio folder if not found

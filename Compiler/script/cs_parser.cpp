@@ -3367,6 +3367,8 @@ int parse_variable_declaration(long cursym,int *next_type,int isglobal,
     targ->getnext();  // skip the comma
     return 2;
     }
+  if (check_not_eof(*targ))
+    return -1;
   if (next_type[0] != SYM_SEMICOLON) {
     cc_error("Expected ',' or ';', not '%s'",sym.get_friendly_name(targ->peeknext()).c_str());
     return -1;
@@ -4212,6 +4214,8 @@ int __cc_compile_file(const char*inpl,ccCompiledScript*scrip) {
                     sym.entries[cursym].soffs, sym.entries[cursym].sscope) == -1) {
                         return -1;
                 }
+                if (check_not_eof(targ))
+                  return -1;
                 cursym = targ.getnext();
                 if (sym.get_type(cursym) == SYM_SEMICOLON) break;
                 if (sym.get_type(cursym) != SYM_COMMA) {

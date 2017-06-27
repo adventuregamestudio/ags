@@ -234,6 +234,7 @@ namespace AGS.Editor
 
 		public bool ApplicationStarted
 		{
+            get { return _applicationStarted; }
 			set { _applicationStarted = value; }
 		}
 

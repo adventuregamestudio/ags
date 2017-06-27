@@ -19,7 +19,6 @@ namespace AGS.Editor
         public event GuiNameChanged OnGuiNameChanged;
 
         private GUI _gui = null;
-        private ImageList _imageList = new ImageList();
         private bool _addingControl = false;
         private bool _movingControl = false;
         private bool _resizingControl = false;

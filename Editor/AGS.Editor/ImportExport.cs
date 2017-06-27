@@ -277,8 +277,8 @@ namespace AGS.Editor
                         new Script("Module" + i + ".asc", moduleScript, name, description, author, moduleVersion, uniqueKey, false));
                 game.RootScriptFolder.Items.Add(scripts);
 
-                int permissions = reader.ReadInt32();
-                int weAreOwner = reader.ReadInt32();
+                reader.ReadInt32(); ////int permissions = reader.ReadInt32();
+                reader.ReadInt32(); ////int weAreOwner = reader.ReadInt32();
             }
 
             game.RootScriptFolder.Items.Add(new ScriptAndHeader(scriptHeader, globalScript));            

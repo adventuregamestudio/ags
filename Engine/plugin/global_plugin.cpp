@@ -89,13 +89,20 @@ bool RegisterPluginStubs(const char* name)
   {
     // agsjoy.dll
     ccAddExternalStaticFunction("JoystickCount",                Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("JoystickName",                 Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("JoystickRescan",               Sc_PluginStub_Int0);
     ccAddExternalStaticFunction("Joystick::Open^1",             Sc_PluginStub_Int0);
-    ccAddExternalStaticFunction("Joystick::IsButtonDown^1",     Sc_PluginStub_Int0);
-    ccAddExternalStaticFunction("Joystick::EnableEvents^1",     Sc_PluginStub_Void);
-    ccAddExternalStaticFunction("Joystick::DisableEvents^0",    Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("Joystick::IsOpen^1",           Sc_PluginStub_Int0);
     ccAddExternalStaticFunction("Joystick::Click^1",            Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("Joystick::Close^0",            Sc_PluginStub_Void);
     ccAddExternalStaticFunction("Joystick::Valid^0",            Sc_PluginStub_Int0);
     ccAddExternalStaticFunction("Joystick::Unplugged^0",        Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("Joystick::GetName^0",          Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("Joystick::GetAxis^1",          Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("Joystick::IsButtonDown^1",     Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("Joystick::Update^0",           Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("Joystick::DisableEvents^0",    Sc_PluginStub_Void);
+    ccAddExternalStaticFunction("Joystick::EnableEvents^1",     Sc_PluginStub_Void);
     return true;
   }
   else if (stricmp(name, "agsblend") == 0)

@@ -100,6 +100,7 @@ bool RegisterPluginStubs(const char* name)
     ccAddExternalStaticFunction("Joystick::GetName^0",          Sc_PluginStub_Int0);
     ccAddExternalStaticFunction("Joystick::GetAxis^1",          Sc_PluginStub_Int0);
     ccAddExternalStaticFunction("Joystick::IsButtonDown^1",     Sc_PluginStub_Int0);
+    ccAddExternalStaticFunction("Joystick::IsJoyBtnDown^1",     Sc_PluginStub_Int0);
     ccAddExternalStaticFunction("Joystick::Update^0",           Sc_PluginStub_Void);
     ccAddExternalStaticFunction("Joystick::DisableEvents^0",    Sc_PluginStub_Void);
     ccAddExternalStaticFunction("Joystick::EnableEvents^1",     Sc_PluginStub_Void);

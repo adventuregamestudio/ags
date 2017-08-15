@@ -52,7 +52,7 @@ char editor_debugger_instance_token[100];
 IAGSEditorDebugger *editor_debugger = NULL;
 int break_on_next_script_step = 0;
 volatile int game_paused_in_debugger = 0;
-HWND editor_window_handle = NULL;
+HWND editor_window_handle = 0;
 
 #ifdef WINDOWS_VERSION
 

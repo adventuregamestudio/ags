@@ -21,8 +21,7 @@
 #include <iconv.h>
 #else			//run in Other
 #include <locale.h>
-#endif
-#ifdef ALFONT_LINUX	//run in LINUX
+#include <malloc.h>
 #include <wchar.h>
 #endif
 

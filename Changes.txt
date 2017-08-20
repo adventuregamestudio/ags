@@ -94,8 +94,16 @@ Engine:
    enabled/present.
  - Fixed AdjustVolumeWithScaling character's property not working with the new
    audio system.
+ - Fixed volume drop was not applied to audio clips which begin playing during
+   speech voice-over.
+ - Fixed Game.SetAudioTypeSpeechVolumeDrop did not affect currently playing
+   clips until next voice-over begins.
  - Fixed Game.TranslationFilename returning "default" instead of empty string
    if no translation is set.
+ - Fixed engine was trying to locate "My Documents" folder on Windows Vista and
+   higher even though it did not need it, and reporting internal error if such
+   folder was not found, even though "Saved Games" folder is used instead.
+ - Added missing stubs for agsjoy plugin.
 
 WinSetup:
  - Fixed display mode selection was missing certain items.

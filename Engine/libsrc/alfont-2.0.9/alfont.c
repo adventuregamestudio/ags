@@ -21,20 +21,11 @@
 #include <iconv.h>
 #else			//run in Other
 #include <locale.h>
-#endif
-#ifdef ALFONT_LINUX	//run in LINUX
 #include <wchar.h>
 #endif
 
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
-
-#define _msize malloc_usable_size
-
-#ifdef IOS_VERSION
-// Defined in libc.c as a stub method
-size_t malloc_usable_size (void *ptr);
-#endif
 
 /* structs */
 
@@ -4260,6 +4251,12 @@ int alfont_ugetxc(ALFONT_FONT *f, const char **s) {
   return character;
 }
 
+// Following function alfont_get_string is removed from compilation because it 
+// is implemented with the use of non-standart malloc_usable_size function
+// (defined as _msize). This may cause linking errors on some Linux systems or
+// if using particular compilers.
+#if 0
+
 void alfont_get_string(ALFONT_FONT *f, const char *s , char **out){
   char *lpszW;
   char *lpszW_pointer=NULL; //used for freeing string
@@ -4509,6 +4506,8 @@ void alfont_get_string(ALFONT_FONT *f, const char *s , char **out){
 	set_uformat(curr_uformat);
   }
 }
+
+#endif // DISABLED
 
 int alfont_need_uconvert(ALFONT_FONT *f, const char *str) {
   char *lpszW;

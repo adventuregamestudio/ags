@@ -263,6 +263,7 @@ void Game_SetAudioTypeSpeechVolumeDrop(int audioType, int volumeDrop)
         quit("!Game.SetAudioTypeVolume: invalid audio type");
 
     game.audioClipTypes[audioType].volume_reduction_while_speech_playing = volumeDrop;
+    update_volume_drop_if_voiceover();
 }
 
 void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)

@@ -31,6 +31,7 @@ Paul Wilkinson
 Per Olav Flaten
 Piotr Wieczorek
 rofl0r
+Ryan O'Connor
 Scott Baker
 Shane Stevens
 Shawn R. Walker

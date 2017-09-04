@@ -316,6 +316,12 @@ int Game_GetDialogCount()
   return game.numdialog;
 }
 
+void set_debug_mode(bool on)
+{
+    play.debug_mode = on ? 1 : 0;
+    debug_set_console(on);
+}
+
 void set_game_speed(int fps) {
     frames_per_second = fps;
     time_between_timers = 1000 / fps;
@@ -2882,7 +2888,7 @@ void RegisterGameAPI()
 
 void RegisterStaticObjects()
 {
-    ccAddExternalStaticObject("game",&play, &GlobalStaticManager);
+    ccAddExternalStaticObject("game",&play, &GameStaticManager);
 	ccAddExternalStaticObject("gs_globals",&play.globalvars[0], &GlobalStaticManager);
 	ccAddExternalStaticObject("mouse",&scmouse, &GlobalStaticManager);
 	ccAddExternalStaticObject("palette",&palette[0], &GlobalStaticManager);

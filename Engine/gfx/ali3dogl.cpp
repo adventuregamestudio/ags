@@ -49,6 +49,7 @@
 int device_screen_initialized = 1;
 
 const char* fbo_extension_string = "GL_EXT_framebuffer_object";
+const char* vsync_extension_string = "WGL_EXT_swap_control";
 
 // TODO: linking to glew32 library might be a better option
 PFNGLGENFRAMEBUFFERSEXTPROC glGenFramebuffersEXT = 0;
@@ -59,6 +60,7 @@ PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC glGetFramebufferAttachmentParame
 PFNGLGENERATEMIPMAPEXTPROC glGenerateMipmapEXT = 0;
 PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2DEXT = 0;
 PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT = 0;
+PFNWGLSWAPINTERVALEXTPROC glSwapIntervalEXT = 0;
 // Shaders stuff
 PFNGLCREATESHADERPROC glCreateShader = 0;
 PFNGLSHADERSOURCEPROC glShaderSource = 0;
@@ -318,7 +320,7 @@ void OGLGraphicsDriver::create_desktop_screen(int width, int height, int depth)
 
 void OGLGraphicsDriver::Vsync() 
 {
-  // do nothing on D3D
+  // do nothing on OpenGL
 }
 
 void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled)
@@ -376,6 +378,7 @@ void OGLGraphicsDriver::FirstTimeInit()
     _oglVersion.SetFromString(digits_ptr);
   Debug::Printf(kDbgMsg_Init, "Running OpenGL: %s", ogl_v_str.GetCStr());
 
+  TestVSync();
   TestRenderToTexture();
   CreateShaders();
   _firstTimeInit = true;
@@ -432,7 +435,7 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
   return true;
 }
 
-void OGLGraphicsDriver::InitGlParams()
+void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
 {
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
@@ -459,6 +462,14 @@ void OGLGraphicsDriver::InitGlParams()
   glDisableClientState(GL_NORMAL_ARRAY);
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+  if (glSwapIntervalEXT)
+  {
+    if(mode.Vsync)
+      glSwapIntervalEXT(1);
+    else
+      glSwapIntervalEXT(0);
+  }
 }
 
 bool OGLGraphicsDriver::CreateGlContext(const DisplayMode &mode)
@@ -518,6 +529,26 @@ void OGLGraphicsDriver::DeleteGlContext()
 #endif
 }
 
+void OGLGraphicsDriver::TestVSync()
+{
+  const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
+  const char* extensionsARB = NULL;
+#if defined(WINDOWS_VERSION)
+  PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
+  extensionsARB = wglGetExtensionsStringARB ? (const char*)wglGetExtensionsStringARB(_hDC) : NULL;
+#endif
+
+  if (extensions && strstr(extensions, vsync_extension_string) != NULL ||
+        extensionsARB && strstr(extensionsARB, vsync_extension_string) != NULL)
+  {
+#if defined(WINDOWS_VERSION)
+    glSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+#endif
+  }
+  if (!glSwapIntervalEXT)
+    Debug::Printf(kDbgMsg_Warn, "WARNING: OpenGL extension '%s' not supported, vertical sync will be kept at driver default.", vsync_extension_string);
+}
+
 void OGLGraphicsDriver::TestRenderToTexture()
 {
   const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
@@ -548,6 +579,7 @@ void OGLGraphicsDriver::TestRenderToTexture()
   else
   {
     _can_render_to_texture = false;
+    Debug::Printf(kDbgMsg_Warn, "WARNING: OpenGL extension '%s' not supported, rendering to texture mode will be disabled.", fbo_extension_string);
   }
 
   if (!_can_render_to_texture)
@@ -825,7 +857,7 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
       return false;
     if (!_firstTimeInit)
       FirstTimeInit();
-    InitGlParams();
+    InitGlParams(mode);
   }
   catch (Ali3DException exception)
   {
@@ -1233,7 +1265,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
   {// TODO: find out if this is really necessary here and why
     if (!_firstTimeInit)
       FirstTimeInit();
-    InitGlParams();
+    InitGlParams(_mode);
     device_screen_initialized = 1;
   }
 

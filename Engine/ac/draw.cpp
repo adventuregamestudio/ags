@@ -2218,12 +2218,12 @@ void draw_screen_overlay() {
 
     add_thing_to_draw(NULL, AGSE_PREGUIDRAW, 0, TRANS_RUN_PLUGIN, false);
 
-    // draw overlays, except text boxes
+    // draw overlays, except text boxes and portraits
     for (gg=0;gg<numscreenover;gg++) {
         // complete overlay draw in non-transparent mode
         if (screenover[gg].type == OVER_COMPLETE)
             add_thing_to_draw(screenover[gg].bmp, screenover[gg].x, screenover[gg].y, TRANS_OPAQUE, false);
-        else if (screenover[gg].type != OVER_TEXTMSG) {
+        else if (screenover[gg].type != OVER_TEXTMSG && screenover[gg].type != OVER_PICTURE) {
             int tdxp, tdyp;
             get_overlay_position(gg, &tdxp, &tdyp);
             add_thing_to_draw(screenover[gg].bmp, tdxp, tdyp, 0, screenover[gg].hasAlphaChannel);
@@ -2311,10 +2311,10 @@ void draw_screen_overlay() {
         }
     }
 
-    // draw text boxes (so that they appear over GUIs)
+    // draw speech and portraits (so that they appear over GUIs)
     for (gg=0;gg<numscreenover;gg++) 
     {
-        if (screenover[gg].type == OVER_TEXTMSG) 
+        if (screenover[gg].type == OVER_TEXTMSG || screenover[gg].type == OVER_PICTURE)
         {
             int tdxp, tdyp;
             get_overlay_position(gg, &tdxp, &tdyp);

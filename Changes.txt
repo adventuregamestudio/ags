@@ -30,6 +30,8 @@ Editor:
  - Made Editor correctly detect modern versions of MS Windows for display on
    About dialog and when sending anonymous statistics.
  - New application icon to comply with 3.4.0 splash screen.
+ - Fixed crash when importing old games which have extended editor version
+   string saved in the project files.
  - Fixed #ifver and #ifnver not working properly if version number had only one
    component (major version).
  - Few improvements to the game compilation made in hope to reduce occasional
@@ -62,6 +64,7 @@ Script API:
    switching between windowed and fullscreen modes.
  - Added System.RenderAtScreenResolution property to change sprite rendering
    mode at runtime.
+ - Fixed Speech.SkipStyle getter return value for eSkipTime case.
 
 Engine:
  - Added OpenGL renderer to Windows version.
@@ -90,6 +93,7 @@ Engine:
    limit imposed on drawing entries for all drivers (was 200).
  - Engine now tries to get voice files from the Speech folder first, if one
    exists, and speech.vox later when quick-run from the Editor.
+ - Fixed speech portrait was displayed below GUI, contrary to speech text.
  - Fixed Speech.VoiceMode not returning correct values when speech.vox is not
    enabled/present.
  - Fixed AdjustVolumeWithScaling character's property not working with the new
@@ -103,6 +107,7 @@ Engine:
  - Fixed engine was trying to locate "My Documents" folder on Windows Vista and
    higher even though it did not need it, and reporting internal error if such
    folder was not found, even though "Saved Games" folder is used instead.
+ - Properly toggle console upon play.debug_mode variable change in script.
  - Added missing stubs for agsjoy plugin.
 
 WinSetup:

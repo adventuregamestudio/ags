@@ -1065,7 +1065,7 @@ namespace AGS.Types
         }
 
         [DisplayName("Render sprites at screen resolution")]
-        [Description("When drawing zoomed character and object sprites, AGS will take advantage of higher runtime resolution to give scaled images more detail, than it would be possible if the game was displayed in its native resolution. The effect is stronger for low-res games. Keep disabled for pixel-perfect output. Currently supported only by Direct3D renderer.")]
+        [Description("When drawing zoomed character and object sprites, AGS will take advantage of higher runtime resolution to give scaled images more detail, than it would be possible if the game was displayed in its native resolution. The effect is stronger for low-res games. Keep disabled for pixel-perfect output. Currently supported only by Direct3D and OpenGL renderers.")]
         [DefaultValue(RenderAtScreenResolution.UserDefined)]
         [Category("(Basic properties)")]
         [TypeConverter(typeof(EnumTypeConverter))]

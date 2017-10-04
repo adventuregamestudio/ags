@@ -33,6 +33,11 @@ namespace AGS.CScript.Compiler
             get { return _precedence; }
         }
 
+        public Opcodes CorrespondingOpcode
+        {
+            get { return _correspondingOpcode; }
+        }
+
         public RequiredState HasLeftHandSide
         {
             get { return _hasLeftHandSide; }

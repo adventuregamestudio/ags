@@ -64,6 +64,17 @@ def main():
 
     # -----------------------------------------------------------------------------
 
+    path = "../Editor/AGS.Editor/app.manifest"
+    encoding = "utf-8-sig"
+    data = read_file(path, encoding)
+
+    m = re.search(r'assemblyIdentity version\s*=\s*"([^"]+)', data)
+    data = replace_group(m, 1, data, ".".join(version.version))
+
+    write_file(path, encoding, data)
+
+    # -----------------------------------------------------------------------------
+
     path = "../Manual/ags.tex"
     encoding = "utf-8"
     data = read_file(path, encoding)

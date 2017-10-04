@@ -111,10 +111,9 @@ extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
 extern int is_complete_overlay,is_text_overlay;
 
-extern int psp_gfx_smoothing;
-extern int psp_gfx_scaling;
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION)
 extern int psp_gfx_renderer;
-extern int psp_gfx_super_sampling;
+#endif
 
 extern int obj_lowest_yp, char_lowest_yp;
 
@@ -611,8 +610,7 @@ void unload_game_file() {
         game.audioClipTypeCount = 0;
     }
 
-    free(game.viewNames[0]);
-    free(game.viewNames);
+    game.viewNames.clear();
     free (views);
     views = NULL;
 
@@ -1453,7 +1451,7 @@ void create_savegame_screenshot(Bitmap *&screenShot)
         else
         {
             // FIXME this weird stuff! (related to incomplete OpenGL renderer)
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION)
             int color_depth = (psp_gfx_renderer > 0) ? 32 : System_GetColorDepth();
 #else
             int color_depth = System_GetColorDepth();
@@ -2294,6 +2292,7 @@ void display_switch_out()
     switched_away = true;
     // Always unlock mouse when switching out from the game
     Mouse::UnlockFromWindow();
+    platform->ExitFullscreenMode();
 }
 
 void display_switch_out_suspend()
@@ -2328,6 +2327,12 @@ void display_switch_out_suspend()
 void display_switch_in()
 {
     switched_away = false;
+    if (gfxDriver)
+    {
+        DisplayMode mode = gfxDriver->GetDisplayMode();
+        if (!mode.Windowed)
+            platform->EnterFullscreenMode(mode);
+    }
     // If auto lock option is set, lock mouse to the game window
     if (usetup.mouse_auto_lock && scsystem.windowed)
         Mouse::TryLockToWindow();

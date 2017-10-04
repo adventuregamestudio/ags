@@ -187,9 +187,6 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   direct3d = d3d;
   direct3ddevice = NULL;
   vertexbuffer = NULL;
-  _pollingCallback = NULL;
-  _drawScreenCallback = NULL;
-  _initGfxCallback = NULL;
   _tint_red = 0;
   _tint_green = 0;
   _tint_blue = 0;
@@ -205,7 +202,6 @@ D3DGraphicsDriver::D3DGraphicsDriver(IDirect3D9 *d3d)
   pNativeSurface = NULL;
   _skipPresent = false;
   availableVideoMemory = 0;
-  _nullSpriteCallback = NULL;
   _smoothScaling = false;
   _pixelRenderXOffset = 0;
   _pixelRenderYOffset = 0;
@@ -295,12 +291,8 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
 
   gfx_driver = NULL;
 
-  // Restore allegro window styles in case we modified them
-  restore_window_style();
-  // For uncertain reasons WS_EX_TOPMOST (applied when creating fullscreen)
-  // cannot be removed with style altering functions; here use SetWindowPos
-  // as a workaround
-  SetWindowPos(win_get_window(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+  platform->ExitFullscreenMode();
+  platform->RestoreWindowStyle();
 }
 
 int D3DGraphicsDriver::FirstTimeInit()
@@ -626,9 +618,8 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
 
   if (!mode.Windowed)
   {
-    // Remove the border in full-screen mode, otherwise if the player
-    // clicks near the edge of the screen it goes back to Windows
-    SetWindowLong(allegro_wnd, GWL_STYLE, WS_POPUP);
+    platform->EnterFullscreenMode(mode);
+    platform->AdjustWindowStyleForFullscreen();
   }
 
   memset( &d3dpp, 0, sizeof(d3dpp) );
@@ -829,7 +820,7 @@ bool D3DGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
 
   if (mode.ColorDepth < 15)
   {
-    set_allegro_error("Direct3D driver does not support 256-colour games");
+    set_allegro_error("Direct3D driver does not support 256-color display mode");
     return false;
   }
 
@@ -1355,10 +1346,10 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     {
       throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
     }
-    _filter->SetSamplerStateForStandardSprite(direct3ddevice); // restore nearest/linear so we can get the sampler, since filterinfo is lying
+    // use correct sampling method when stretching buffer to the final rect
+    _filter->SetSamplerStateForStandardSprite(direct3ddevice);
     D3DTEXTUREFILTERTYPE filterType;
     direct3ddevice->GetSamplerState(0, D3DSAMP_MAGFILTER, (DWORD*)&filterType);
-    //if (direct3ddevice->StretchRect(pNativeSurface, NULL, pBackBuffer, &viewport_rect, strncmp(_filter->FilterInfo.Id,"Linear",6)==0?D3DTEXF_LINEAR:D3DTEXF_POINT) != D3D_OK)
     if (direct3ddevice->StretchRect(pNativeSurface, NULL, pBackBuffer, &viewport_rect, filterType) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::StretchRect failed");

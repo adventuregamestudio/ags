@@ -157,6 +157,11 @@ struct Size
         return Width != size.Width || Height != size.Height;
     }
 
+    inline bool operator<(const Size &other) const
+    {
+        return Width < other.Width || (Width == other.Width && Height < other.Height);
+    }
+
     inline Size operator *(int x) const
     {
         return Size(Width * x, Height * x);

@@ -7,13 +7,13 @@ using System.Xml;
 namespace AGS.Types
 {
     [DefaultProperty("Text")]
+    [DeserializeIgnore("EntryPointOffset")]
     public class DialogOption
     {
         private int _id;
         private string _text = string.Empty;
         private bool _show;
         private bool _say;
-        private short _entryPointOffset = -1;
 
         public DialogOption()
         {
@@ -50,15 +50,6 @@ namespace AGS.Types
         {
             get { return _say; }
             set { _say = value; }
-        }
-        
-        // Pre-3.1.1 wrote this into the Game.agf XML, so we have to
-        // keep this dummy property to allow it to deserialise
-        [AGSNoSerialize]
-        [Browsable(false)]
-        public short EntryPointOffset
-        {
-            set { _entryPointOffset = value; }
         }
 
         public DialogOption(XmlNode node)

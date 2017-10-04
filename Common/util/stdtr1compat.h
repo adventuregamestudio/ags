@@ -22,17 +22,17 @@
 namespace std {}
 namespace stdtr1compat = std;
 #elif defined(_MSC_VER)
-#if _MSC_VER < 1900
-// MSVC prior to VS2015 needs TR1
+#if _MSC_VER < 1600
+// MSVC prior to VS2010 needs TR1
 #define AGS_NEEDS_TR1
 #define AGS_NEEDS_TR1_MSVC // additional macro because MSVC headers aren't in tr1 folder
 namespace std { namespace tr1 {} }
 namespace stdtr1compat = std::tr1;
 #else
-// MSVC2015 and later do not need TR1
+// MSVC2010 and later do not need TR1
 namespace std {}
 namespace stdtr1compat = std;
-#endif // _MSC_VER < 1900
+#endif // _MSC_VER < 1600
 #else // !_MSC_VER
 // not C++11, needs TR1
 #define AGS_NEEDS_TR1

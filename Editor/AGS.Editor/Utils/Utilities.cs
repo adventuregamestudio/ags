@@ -36,6 +36,19 @@ namespace AGS.Editor
 
         public static string SelectedReligion = "Not a Believer";
 
+        public static string NetRuntimeVersion
+        {
+            get
+            {
+                string runtime = IsMonoRunning() ? "Mono" : ".NET";
+                // By getting the assembly directory location of integers or other basic types we
+                // will obtain the assembly that hosts the .NET run-time.
+                string version = FileVersionInfo.GetVersionInfo(typeof(int).Assembly.Location).ProductVersion;
+
+                return string.Format("{0} {1}", runtime, version);
+            }
+        }
+
         public static void CopyMemory(IntPtr source, IntPtr destination, int numberOfBytes)
         {
             byte[] tmpArray = new byte[numberOfBytes];

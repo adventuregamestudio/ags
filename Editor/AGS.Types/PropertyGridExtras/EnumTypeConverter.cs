@@ -1,16 +1,14 @@
-/*****************************************************************
- * Module: EnumDescConverter.cs
- * Type: C# Source Code
- * Version: 1.0
- * Description: Enum Converter using Description Attributes
- * 
- * Revisions
- * ------------------------------------------------
- * [F] 24/02/2004, Jcl - Shaping up
- * [B] 25/02/2004, Jcl - Made it much easier :-)
- *     17/12/2006, CJ -- improved it to work properly with double-clicks
- * 
- *****************************************************************/
+// Module: EnumDescConverter.cs
+// Type: C# Source Code
+// Version: 1.0
+// Description: Enum Converter using Description Attributes
+// 
+// Revisions
+// ------------------------------------------------
+// [F] 24/02/2004, Jcl - Shaping up
+// [B] 25/02/2004, Jcl - Made it much easier :-)
+//     17/12/2006, CJ -- improved it to work properly with double-clicks
+//
 
 using System;
 using System.Collections.Generic;

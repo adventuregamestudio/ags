@@ -27,6 +27,7 @@
 #include "plugin/agsplugin.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 AGSPlatformDriver* AGSPlatformDriver::instance = NULL;
 AGSPlatformDriver *platform = NULL;
@@ -37,6 +38,11 @@ void AGSPlatformDriver::AboutToQuitGame() { }
 void AGSPlatformDriver::PostAllegroInit(bool windowed) { }
 void AGSPlatformDriver::DisplaySwitchOut() { }
 void AGSPlatformDriver::DisplaySwitchIn() { }
+void AGSPlatformDriver::GetSystemDisplayModes(std::vector<DisplayMode> &dms) { }
+bool AGSPlatformDriver::EnterFullscreenMode(const DisplayMode &dm) { return true; }
+bool AGSPlatformDriver::ExitFullscreenMode() { return true; }
+void AGSPlatformDriver::AdjustWindowStyleForFullscreen() { }
+void AGSPlatformDriver::RestoreWindowStyle() { }
 void AGSPlatformDriver::RegisterGameWithGameExplorer() { }
 void AGSPlatformDriver::UnRegisterGameWithGameExplorer() { }
 

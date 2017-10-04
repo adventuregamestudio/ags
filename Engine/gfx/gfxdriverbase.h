@@ -67,6 +67,11 @@ public:
     virtual Rect        GetRenderDestination() const;
     virtual void        SetRenderOffset(int x, int y);
 
+    virtual void        SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
+    virtual void        SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
+    virtual void        SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
+    virtual void        SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) { _nullSpriteCallback = callback; }
+
 protected:
     // Called after graphics driver was initialized for use for the first time
     virtual void OnInit(volatile int *loopTimer);
@@ -97,6 +102,12 @@ protected:
     int                 _global_x_offset;
     int                 _global_y_offset;
     volatile int *      _loopTimer;
+
+    // Callbacks
+    GFXDRV_CLIENTCALLBACK _pollingCallback;
+    GFXDRV_CLIENTCALLBACK _drawScreenCallback;
+    GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
+    GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
 };
 
 } // namespace Engine

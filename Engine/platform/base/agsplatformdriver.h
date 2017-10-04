@@ -20,11 +20,16 @@
 #define __AGS_EE_PLATFORM__AGSPLATFORMDRIVER_H
 
 #include <errno.h>
+#include <vector>
 #include "ac/datetime.h"
 #include "debug/outputhandler.h"
 #include "util/ini_util.h"
 
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS
+{
+    namespace Common { class Stream; }
+    namespace Engine { struct DisplayMode; }
+}
 using namespace AGS; // FIXME later
 
 enum eScriptSystemOSID
@@ -90,6 +95,16 @@ struct AGSPlatformDriver
     virtual void YieldCPU();
     virtual void DisplaySwitchOut();
     virtual void DisplaySwitchIn();
+    // Returns a list of supported display modes
+    virtual void GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms);
+    // Switch to system fullscreen mode; store previous mode parameters
+    virtual bool EnterFullscreenMode(const Engine::DisplayMode &dm);
+    // Return back to the mode was before switching to fullscreen
+    virtual bool ExitFullscreenMode();
+    // Adjust application window's parameters to suit fullscreen mode
+    virtual void AdjustWindowStyleForFullscreen();
+    // Restore application window to normal parameters
+    virtual void RestoreWindowStyle();
     virtual void RegisterGameWithGameExplorer();
     virtual void UnRegisterGameWithGameExplorer();
     virtual int  ConvertKeycodeToScanCode(int keyCode);

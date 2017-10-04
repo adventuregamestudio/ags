@@ -1064,13 +1064,6 @@ void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baselin
     sprlist.push_back(sprite);
 }
 
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
-extern int psp_gfx_smoothing;
-extern int psp_gfx_scaling;
-extern int psp_gfx_renderer;
-extern int psp_gfx_super_sampling;
-#endif
-
 void repair_alpha_channel(Bitmap *dest, Bitmap *bgpic)
 {
     // Repair the alpha channel, because sprites may have been drawn

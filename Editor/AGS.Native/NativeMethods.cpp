@@ -697,8 +697,6 @@ namespace AGS
             if (name->Equals("GUIMAIN_TEXTWINDOW")) return (int)Common::kGUIMain_TextWindow;
             if (name->Equals("GUIMAIN_LEGACYTEXTWINDOW")) return (int)Common::kGUIMain_LegacyTextWindow;
             if (name->Equals("GTF_NOBORDER")) return (int)Common::kTextBox_NoBorder;
-            if (name->Equals("MAX_GUIOBJ_SCRIPTNAME_LEN")) return MAX_GUIOBJ_SCRIPTNAME_LEN;
-            if (name->Equals("MAX_GUIOBJ_EVENTHANDLER_LEN")) return MAX_GUIOBJ_EVENTHANDLER_LEN;
             if (name->Equals("GOBJ_BUTTON")) return (int)Common::kGUIButton;
             if (name->Equals("GOBJ_LABEL")) return (int)Common::kGUILabel;
             if (name->Equals("GOBJ_INVENTORY")) return (int)Common::kGUIInvWindow;

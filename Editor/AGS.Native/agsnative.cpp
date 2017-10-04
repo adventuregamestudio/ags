@@ -1524,8 +1524,7 @@ void free_old_game_data()
     }
     newViews[bb].Dispose();
   }
-  free(thisgame.viewNames[0]);
-  free(thisgame.viewNames);
+  thisgame.viewNames.clear();
   free(newViews);
   guis.clear();
   free(thisgame.chars);
@@ -3021,7 +3020,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   NormalGUI^ normalGui = dynamic_cast<NormalGUI^>(guiObj);
   if (normalGui)
   {
-	ConvertStringToNativeString(normalGui->OnClick, gui->OnClickHandler, GUIMAIN_EVENTHANDLER_LENGTH);
+	ConvertStringToNativeString(normalGui->OnClick, gui->OnClickHandler);
 	gui->X = normalGui->Left;
 	gui->Y = normalGui->Top;
 	gui->Width = normalGui->Width;
@@ -3077,7 +3076,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           Common::String text;
 		  ConvertStringToNativeString(button->Text, text, GUIBUTTON_TEXTLENGTH);
           guibuts[numguibuts].SetText(text);
-		  ConvertStringToNativeString(button->OnClick, guibuts[numguibuts].EventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
+		  ConvertStringToNativeString(button->OnClick, guibuts[numguibuts].EventHandlers[0]);
 		  
           gui->CtrlRefs[gui->ControlCount] = (Common::kGUIButton << 16) | numguibuts;
 		  gui->Controls[gui->ControlCount] = &guibuts[numguibuts];
@@ -3107,7 +3106,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guitext[numguitext].Font = textbox->Font;
 		  guitext[numguitext].Flags = 0;
           guitext[numguitext].TextBoxFlags = (textbox->ShowBorder) ? 0 : Common::kTextBox_NoBorder;
-		  ConvertStringToNativeString(textbox->OnActivate, guitext[numguitext].EventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
+		  ConvertStringToNativeString(textbox->OnActivate, guitext[numguitext].EventHandlers[0]);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUITextBox << 16) | numguitext;
 		  gui->Controls[gui->ControlCount] = &guitext[numguitext];
@@ -3125,7 +3124,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guilist[numguilist].Flags = listbox->Translated ? Common::kGUICtrl_Translated : 0;
           guilist[numguilist].ListBoxFlags = (listbox->ShowBorder) ? 0 : Common::kListBox_NoBorder;
 		  guilist[numguilist].ListBoxFlags |= (listbox->ShowScrollArrows) ? 0 : Common::kListBox_NoArrows;
-		  ConvertStringToNativeString(listbox->OnSelectionChanged, guilist[numguilist].EventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
+		  ConvertStringToNativeString(listbox->OnSelectionChanged, guilist[numguilist].EventHandlers[0]);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIListBox << 16) | numguilist;
 		  gui->Controls[gui->ControlCount] = &guilist[numguilist];
@@ -3141,7 +3140,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guislider[numguislider].HandleImage = slider->HandleImage;
 		  guislider[numguislider].HandleOffset = slider->HandleOffset;
 		  guislider[numguislider].BgImage = slider->BackgroundImage;
-		  ConvertStringToNativeString(slider->OnChange, guislider[numguislider].EventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
+		  ConvertStringToNativeString(slider->OnChange, guislider[numguislider].EventHandlers[0]);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUISlider << 16) | numguislider;
 		  gui->Controls[gui->ControlCount] = &guislider[numguislider];
@@ -3180,7 +3179,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  newObj->Height = control->Height;
 	  newObj->Id = control->ID;
 	  newObj->ZOrder = control->ZOrder;
-	  ConvertStringToNativeString(control->Name, newObj->Name, MAX_GUIOBJ_SCRIPTNAME_LEN + 1);
+	  ConvertStringToNativeString(control->Name, newObj->Name);
   }
 
   gui->RebuildArray();

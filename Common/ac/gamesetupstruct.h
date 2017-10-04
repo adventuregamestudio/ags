@@ -59,8 +59,11 @@ struct GameSetupStruct: public GameSetupStructBase {
     AGS::Common::PropertySchema propSchema;
     std::vector<AGS::Common::StringIMap> charProps;
     AGS::Common::StringIMap invProps[MAX_INV];
-    char              **viewNames;
-    char              invScriptNames[MAX_INV][MAX_SCRIPT_NAME_LEN];
+    // NOTE: although the view names are stored in game data, they are never
+    // used, nor registered as script exports; numeric IDs are used to
+    // reference views instead.
+    std::vector<Common::String> viewNames;
+    Common::String    invScriptNames[MAX_INV];
     std::vector<Common::String> dialogScriptNames;
     char              guid[MAX_GUID_LENGTH];
     char              saveGameFileExtension[MAX_SG_EXT_LENGTH];

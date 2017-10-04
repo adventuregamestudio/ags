@@ -227,6 +227,14 @@ namespace AGS.Editor
             writer.Write(GetAnsiBytesTerminated(text, maxLen));
         }
 
+        static void FilePutNullTerminatedString(string text, BinaryWriter writer)
+        {
+            if (string.IsNullOrEmpty(text))
+                writer.Write((byte)0);
+            else
+                writer.Write(GetAnsiBytesTerminated(text));
+        }
+
         static void WriteCLIBHeader(BinaryWriter writer)
         {
             int randSeed = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
@@ -1019,11 +1027,11 @@ namespace AGS.Editor
                 writer.Write(control.Height);
                 writer.Write(control.ZOrder);
                 writer.Write(0); // activated
-                FilePutNullTerminatedString(control.Name, NativeConstants.MAX_GUIOBJ_SCRIPTNAME_LEN + 1, writer);
+                FilePutNullTerminatedString(control.Name, writer);
                 writer.Write(events.Length); // numSupportedEvents
                 foreach (string sevent in events)
                 {
-                    FilePutNullTerminatedString(sevent, NativeConstants.MAX_GUIOBJ_EVENTHANDLER_LEN + 1, writer);
+                    FilePutNullTerminatedString(sevent, writer);
                 }
             }
 
@@ -1065,8 +1073,7 @@ namespace AGS.Editor
                 {
                     WriteGUIControl(label, 0);
                     string text = label.Text;
-                    writer.Write(text.Length + 1);
-                    FilePutNullTerminatedString(text, text.Length + 1, writer);
+                    FilePutString(text, writer);
                     writer.Write(label.Font);
                     writer.Write(label.TextColor);
                     writer.Write((int)label.TextAlignment);
@@ -1306,7 +1313,7 @@ namespace AGS.Editor
             writer.Write(game.Plugins.Count);
             foreach (Plugin plugin in game.Plugins)
             {
-                FilePutNullTerminatedString(plugin.FileName, plugin.FileName.Length + 1, writer);
+                FilePutNullTerminatedString(plugin.FileName, writer);
                 int savesize = plugin.SerializedData.Length;
                 if (savesize > NativeConstants.SAVEBUFFERSIZE)
                 {
@@ -1334,7 +1341,7 @@ namespace AGS.Editor
             WriteString(AGS.Types.Version.AGS_EDITOR_VERSION, AGS.Types.Version.AGS_EDITOR_VERSION.Length, writer);
             // Write extended engine caps; none for this version
             writer.Write((int)0);
-            // An example of writing caps (pseduo-code):
+            // An example of writing caps (pseudo-code):
             //   writer.Write(caps.Count);
             //   foreach (cap in caps)
             //       FilePutString(cap.Name);
@@ -1611,20 +1618,18 @@ namespace AGS.Editor
             {
                 View view = game.FindViewByID(i + 1);
                 if (view != null)
-                    FilePutNullTerminatedString(view.Name, view.Name.Length + 1, writer);
+                    FilePutNullTerminatedString(view.Name, writer);
                 else
                     writer.Write((byte)0); // view is null, so its name is just a single NUL byte
             }
             writer.Write((byte)0); // inventory slot 0 is unused, so its name is just a single NUL byte
             for (int i = 0; i < game.InventoryItems.Count; ++i)
             {
-                string buffer = game.InventoryItems[i].Name;
-                FilePutNullTerminatedString(buffer, buffer.Length + 1, writer);
+                FilePutNullTerminatedString(game.InventoryItems[i].Name, writer);
             }
             for (int i = 0; i < game.Dialogs.Count; ++i)
             {
-                string buffer = game.Dialogs[i].Name;
-                FilePutNullTerminatedString(buffer, buffer.Length + 1, writer);
+                FilePutNullTerminatedString(game.Dialogs[i].Name, writer);
             }
             writer.Write(game.AudioClipTypes.Count + 1);
             // hard coded SPEECH audio type 0

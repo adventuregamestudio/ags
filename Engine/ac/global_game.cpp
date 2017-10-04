@@ -85,7 +85,10 @@ extern char saveGameDirectory[260];
 extern IGraphicsDriver *gfxDriver;
 extern color palette[256];
 extern Bitmap *virtual_screen;
+
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION)
 extern int psp_gfx_renderer;
+#endif
 
 void GiveScore(int amnt) 
 {
@@ -740,7 +743,7 @@ int SaveScreenShot(const char*namm) {
     if (gfxDriver->RequiresFullRedrawEachFrame()) 
     {
         // FIXME this weird stuff! (related to incomplete OpenGL renderer)
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION)
         int color_depth = (psp_gfx_renderer > 0) ? 32 : System_GetColorDepth();
 #else
         int color_depth = System_GetColorDepth();

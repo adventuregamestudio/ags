@@ -45,17 +45,7 @@ namespace AGS.Types
         public string OnActivate
         {
             get { return _activateEventHandler; }
-            set
-            {
-                if (value.Length > MAX_EVENT_HANDLER_LENGTH)
-                {
-                    _activateEventHandler = value.Substring(0, MAX_EVENT_HANDLER_LENGTH);
-                }
-                else
-                {
-                    _activateEventHandler = value;
-                }
-            }
+            set { _activateEventHandler = value; }
         }
 
         [Description("AGS Colour Number of the text")]

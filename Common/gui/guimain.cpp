@@ -414,8 +414,8 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     in->Read(tw_flags, sizeof(tw_flags));
     if (gui_version < kGuiVersion_340)
     {
-        Name.ReadCount(in, GUIMAIN_NAME_LENGTH);
-        OnClickHandler.ReadCount(in, GUIMAIN_EVENTHANDLER_LENGTH);
+        Name.ReadCount(in, GUIMAIN_LEGACY_NAME_LENGTH);
+        OnClickHandler.ReadCount(in, GUIMAIN_LEGACY_EVENTHANDLER_LENGTH);
     }
     else
     {
@@ -473,8 +473,8 @@ void GUIMain::WriteToFile(Stream *out, GuiVersion gui_version) const
     out->Write(tw_flags, sizeof(tw_flags));
     if (gui_version < kGuiVersion_340)
     {
-        Name.WriteCount(out, GUIMAIN_NAME_LENGTH);
-        OnClickHandler.WriteCount(out, GUIMAIN_EVENTHANDLER_LENGTH);
+        Name.WriteCount(out, GUIMAIN_LEGACY_NAME_LENGTH);
+        OnClickHandler.WriteCount(out, GUIMAIN_LEGACY_EVENTHANDLER_LENGTH);
     }
     else
     {

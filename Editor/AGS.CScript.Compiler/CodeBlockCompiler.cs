@@ -154,7 +154,7 @@ namespace AGS.CScript.Compiler
 
             if (_source.NextIsKeyword(PredefinedSymbol.SetEqual))
             {
-                Expression setEqualTo = ReadExpression(false, PredefinedSymbol.Semicolon, PredefinedSymbol.Comma);
+                ReadExpression(false, PredefinedSymbol.Semicolon, PredefinedSymbol.Comma);
                 // TODO: check types, assign result to variable
             }
         }
@@ -247,7 +247,6 @@ namespace AGS.CScript.Compiler
 
             ScriptReader reader = new ScriptReader(expression, _source.LineNumber);
             Token firstToken = reader.ReadNextToken();
-            Token memberName = null;
 
             bool staticAccess = false;
             if (firstToken.IsVariableType)
@@ -269,7 +268,7 @@ namespace AGS.CScript.Compiler
                 {
                     throw new CompilerMessage(ErrorCode.ParentIsNotAStruct, "'" + firstToken.Name + "' is not a struct");
                 }
-                memberName = reader.ReadNextToken();
+                ////Token memberName = reader.ReadNextToken();
 
                 // TODO: struct member stuff
                 if (staticAccess)

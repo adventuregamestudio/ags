@@ -439,6 +439,7 @@ void engine_post_gfxmode_setup(const Size &init_desktop)
     platform->PostAllegroInit(scsystem.windowed != 0);
 
     video_on_gfxmode_changed();
+    invalidate_screen();
 }
 
 void engine_pre_gfxmode_release()

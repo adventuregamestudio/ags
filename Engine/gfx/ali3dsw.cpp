@@ -73,11 +73,7 @@ RGB faded_out_palette[256];
 
 
 ALSoftwareGraphicsDriver::ALSoftwareGraphicsDriver()
-{ 
-  _callback = NULL; 
-  _drawScreenCallback = NULL;
-  _nullSpriteCallback = NULL;
-  _initGfxCallback = NULL;
+{
   _tint_red = 0;
   _tint_green = 0;
   _tint_blue = 0;
@@ -506,8 +502,8 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
        _filter->RenderScreen(bmp_buff, 0, 0);
        do
        {
-         if (_callback)
-           _callback();
+         if (_pollingCallback)
+           _pollingCallback();
          platform->Delay(1);
        }
        while (timerValue == *_loopTimer);
@@ -545,8 +541,8 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
                 _filter->RenderScreen(bmp_buff, 0, 0);
                 do
                 {
-                  if (_callback)
-                    _callback();
+                  if (_pollingCallback)
+                    _pollingCallback();
                   platform->Delay(1);
                 }
                 while (timerValue == *_loopTimer);
@@ -583,7 +579,7 @@ void ALSoftwareGraphicsDriver::__fade_from_range(PALLETE source, PALLETE dest, i
    for (c=0; c<64; c+=speed) {
       fade_interpolate(source, dest, temp, c, from, to);
       set_pallete_range(temp, from, to, TRUE);
-      if (_callback) _callback();
+      if (_pollingCallback) _pollingCallback();
       set_pallete_range(temp, from, to, TRUE);
    }
 
@@ -635,8 +631,8 @@ void ALSoftwareGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int del
       this->ClearRectangle(_srcRect.GetWidth() / 2 - boxwid / 2, vcentre - boxhit / 2,
           _srcRect.GetWidth() / 2 + boxwid / 2, vcentre + boxhit / 2, NULL);
     
-      if (_callback)
-        _callback();
+      if (_pollingCallback)
+        _pollingCallback();
 
       platform->Delay(delay);
     }

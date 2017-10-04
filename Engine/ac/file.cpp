@@ -259,11 +259,9 @@ String MakeSpecialSubDir(const String &sp_dir)
 
 String MakeAppDataPath()
 {
-    String app_data_path;
-    if (usetup.user_data_dir.IsEmpty())
+    String app_data_path = usetup.shared_data_dir;
+    if (app_data_path.IsEmpty())
         app_data_path = MakeSpecialSubDir(PathOrCurDir(platform->GetAllUsersDataDirectory()));
-    else
-        app_data_path.Format("%s/AppData", usetup.user_data_dir.GetCStr());
     Directory::CreateDirectory(app_data_path);
     app_data_path.AppendChar('/');
     return app_data_path;

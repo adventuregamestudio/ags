@@ -257,20 +257,19 @@ void DynamicSprite_Tint(ScriptDynamicSprite *sds, int red, int green, int blue, 
     add_dynamic_sprite(sds->slot, newPic, (game.spriteflags[sds->slot] & SPF_ALPHACHANNEL) != 0);
 }
 
-int DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm) {
+int DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm)
+{
     if (sds->slot == 0)
         quit("!DynamicSprite.SaveToFile: sprite has been deleted");
 
-    char fileName[MAX_PATH];
-    get_install_dir_path(fileName, namm);
+    String filename = namm;
+    if (filename.FindChar('.') < 0)
+        filename.Append(".bmp");
 
-    if (strchr(namm,'.') == NULL)
-        strcat(fileName, ".bmp");
-
-	if (!spriteset[sds->slot]->SaveToFile(fileName, palette))
-        return 0; // failed
-
-    return 1;  // successful
+    String path, alt_path; // alt_path is unused here, because it's a write op
+    if (!ResolveScriptPath(namm, false, path, alt_path))
+        return 0;
+    return spriteset[sds->slot]->SaveToFile(path, palette) ? 1 : 0;
 }
 
 ScriptDynamicSprite* DynamicSprite_CreateFromSaveGame(int sgslot, int width, int height) {

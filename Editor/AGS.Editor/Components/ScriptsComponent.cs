@@ -134,7 +134,7 @@ namespace AGS.Editor.Components
                 newHeader.Modified = true;
                 newHeader.SaveToDisk();
                 ScriptAndHeader scripts = new ScriptAndHeader(newHeader, newScript);
-                string newNodeID = AddSingleItem(scripts);
+                AddSingleItem(scripts);
 				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
                 RePopulateTreeView(GetNodeID(newScript));
                 _guiController.ProjectTree.BeginLabelEdit(this, ITEM_COMMAND_PREFIX + newScript.NameForLabelEdit);

@@ -17,23 +17,35 @@
 #include "gfx/ali3dexception.h"
 #include "gfx/ali3dogl.h"
 #include "gfx/gfxfilter_ogl.h"
+#include "gfx/gfxfilter_aaogl.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
 
+
+//
+// NOTE: following external variables are used by the mobile ports:
+// TODO: parse them during config
+//
+// psp_gfx_scaling - scaling style:
+//    * 0 - no scaling
+//    * 1 - stretch and preserve aspect ratio
+//    * 2 - stretch to whole screen
+//
+// psp_gfx_smoothing - scaling filter:
+//    * 0 - nearest-neighbour
+//    * 1 - linear
+//
+// psp_gfx_renderer - rendering mode
+//    * 1 - render directly to screen
+//    * 2 - render to texture first and then to screen
+//
+// psp_gfx_super_sampling - enable super sampling
+//
+
+
 #if defined(WINDOWS_VERSION)
 
-int psp_gfx_smoothing = 1;
-int psp_gfx_scaling = 1;
-int psp_gfx_renderer = 0;
-int psp_gfx_super_sampling = 0;
-
-unsigned int device_screen_physical_width = 1000;
-unsigned int device_screen_physical_height = 500;
 int device_screen_initialized = 1;
-int device_mouse_clip_left = 0;
-int device_mouse_clip_right = device_screen_physical_width;
-int device_mouse_clip_top = 0;
-int device_mouse_clip_bottom = device_screen_physical_height;
 
 const char* fbo_extension_string = "GL_EXT_framebuffer_object";
 
@@ -69,20 +81,10 @@ extern int psp_gfx_super_sampling;
 extern unsigned int android_screen_physical_width;
 extern unsigned int android_screen_physical_height;
 extern int android_screen_initialized;
-extern int android_mouse_clip_left;
-extern int android_mouse_clip_right;
-extern int android_mouse_clip_top;
-extern int android_mouse_clip_bottom;
 
-#define device_screen_physical_width android_screen_physical_width
-#define device_screen_physical_height android_screen_physical_height
 #define device_screen_initialized android_screen_initialized
 #define device_mouse_setup android_mouse_setup
 #define device_swap_buffers android_swap_buffers
-#define device_mouse_clip_left android_mouse_clip_left
-#define device_mouse_clip_right android_mouse_clip_right
-#define device_mouse_clip_top android_mouse_clip_top
-#define device_mouse_clip_bottom android_mouse_clip_bottom
 
 const char* fbo_extension_string = "GL_OES_framebuffer_object";
 
@@ -119,20 +121,10 @@ extern int psp_gfx_super_sampling;
 extern unsigned int ios_screen_physical_width;
 extern unsigned int ios_screen_physical_height;
 extern int ios_screen_initialized;
-extern int ios_mouse_clip_left;
-extern int ios_mouse_clip_right;
-extern int ios_mouse_clip_top;
-extern int ios_mouse_clip_bottom;
 
-#define device_screen_physical_width ios_screen_physical_width
-#define device_screen_physical_height ios_screen_physical_height
 #define device_screen_initialized ios_screen_initialized
 #define device_mouse_setup ios_mouse_setup
 #define device_swap_buffers ios_swap_buffers
-#define device_mouse_clip_left ios_mouse_clip_left
-#define device_mouse_clip_right ios_mouse_clip_right
-#define device_mouse_clip_top ios_mouse_clip_top
-#define device_mouse_clip_bottom ios_mouse_clip_bottom
 
 const char* fbo_extension_string = "GL_OES_framebuffer_object";
 
@@ -158,22 +150,6 @@ namespace OGL
 {
 
 using namespace AGS::Common;
-
-GLfloat backbuffer_vertices[] =
-{
-   0, 0,
-   320, 0,
-   0, 200,
-   320, 200
-};
-
-GLfloat backbuffer_texture_coordinates[] =
-{
-   0, 0,
-   320.0f / 512.0f, 0,
-   0, 200.0f / 256.0f,
-   320.0f / 512.0f, 200.0f / 256.0f
-};
 
 void ogl_dummy_vsync() { }
 
@@ -245,9 +221,23 @@ void OGLBitmap::Dispose()
 
 OGLGraphicsDriver::OGLGraphicsDriver() 
 {
-  _pollingCallback = NULL;
-  _drawScreenCallback = NULL;
-  _initGfxCallback = NULL;
+#if defined (WINDOWS_VERSION)
+  _hDC = NULL;
+  _hRC = NULL;
+  _hWnd = NULL;
+  _hInstance = NULL;
+  device_screen_physical_width  = 0;
+  device_screen_physical_height = 0;
+#elif defined (ANRDOID_VERSION)
+  device_screen_physical_width  = android_screen_physical_width
+  device_screen_physical_height = android_screen_physical_height
+#elif defined (IOS_VERSION)
+  device_screen_physical_width  = ios_screen_physical_width
+  device_screen_physical_height = ios_screen_physical_height
+#endif
+
+  _backbuffer = 0;
+  _fbo = 0;
   _tint_red = 0;
   _tint_green = 0;
   _tint_blue = 0;
@@ -258,14 +248,19 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _screenTintSprite.y = 0;
   _dummyVirtualScreen = NULL;
   _legacyPixelShader = false;
-  _scale_width = 1.0f;
-  _scale_height = 1.0f;
+  flipTypeLastTime = kFlip_None;
+  _can_render_to_texture = false;
+  _do_render_to_texture = false;
+  _super_sampling = 1;
   set_up_default_vertices();
 }
 
 
 void OGLGraphicsDriver::set_up_default_vertices()
 {
+  std::fill(_backbuffer_vertices, _backbuffer_vertices + sizeof(_backbuffer_vertices) / sizeof(GLfloat), 0.0f);
+  std::fill(_backbuffer_texture_coordinates, _backbuffer_texture_coordinates + sizeof(_backbuffer_texture_coordinates) / sizeof(GLfloat), 0.0f);
+
   defaultVertices[0].position.x = 0.0f;
   defaultVertices[0].position.y = 0.0f;
   defaultVertices[0].tu=0.0;
@@ -287,10 +282,26 @@ void OGLGraphicsDriver::set_up_default_vertices()
   defaultVertices[3].tv=1.0;
 }
 
+#if defined (WINDOWS_VERSION)
+void OGLGraphicsDriver::create_desktop_screen(int width, int height, int depth)
+{
+  device_screen_physical_width = width;
+  device_screen_physical_height = height;
+}
+#endif
 
 void OGLGraphicsDriver::Vsync() 
 {
   // do nothing on D3D
+}
+
+void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled)
+{
+  if (_can_render_to_texture)
+    _do_render_to_texture = !enabled;
+
+  if (_do_render_to_texture)
+    glDisable(GL_SCISSOR_TEST);
 }
 
 bool OGLGraphicsDriver::IsModeSupported(const DisplayMode &mode)
@@ -326,124 +337,60 @@ void OGLGraphicsDriver::SetTintMethod(TintMethod method)
   _legacyPixelShader = (method == TintReColourise);
 }
 
-void OGLGraphicsDriver::create_backbuffer_arrays()
+bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
 {
-  if (!IsModeSet() || !IsRenderFrameValid())
-    return;
-
-  float android_screen_ar = (float)_srcRect.GetWidth() / (float)_srcRect.GetHeight();
-  float android_device_ar = (float)device_screen_physical_width / (float)device_screen_physical_height;
-
-  if (psp_gfx_scaling == 1)
+#if defined(ANDROID_VERSION)
+  android_create_screen(mode.Width, mode.Height, mode.ColorDepth);
+#elif defined(IOS_VERSION)
+  ios_create_screen();
+  ios_select_buffer();
+#elif defined (WINDOWS_VERSION)
+  if (!mode.Windowed)
   {
-    // Preserve aspect ratio
-    if (android_device_ar <= android_screen_ar)
-    {
-      backbuffer_vertices[2] = backbuffer_vertices[6] = device_screen_physical_width - 1;
-      backbuffer_vertices[5] = backbuffer_vertices[7] = device_screen_physical_width * ((float)_srcRect.GetHeight() / (float)_srcRect.GetWidth());
+    platform->EnterFullscreenMode(mode);
+    platform->AdjustWindowStyleForFullscreen();
+  }
+  // NOTE: adjust_window may leave task bar visible, so we do not use it for fullscreen mode
+  if (mode.Windowed && adjust_window(mode.Width, mode.Height) != 0)
+  {
+    set_allegro_error("Window size not supported");
+    return false;
+  }
 
-#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
-      device_mouse_setup(
-        0, 
-        device_screen_physical_width - 1, 
-        (device_screen_physical_height - backbuffer_vertices[5]) / 2, 
-        device_screen_physical_height - ((device_screen_physical_height - backbuffer_vertices[5]) / 2), 
-        (float)_srcRect.GetWidth() / (float)device_screen_physical_width, 
-        (float)_srcRect.GetHeight() / backbuffer_vertices[5]);
-#endif
-    }
-    else
-    {
-      backbuffer_vertices[2] = backbuffer_vertices[6] = device_screen_physical_height * ((float)_srcRect.GetWidth() / (float)_srcRect.GetHeight());
-      backbuffer_vertices[5] = backbuffer_vertices[7] = device_screen_physical_height - 1;
+  _hWnd = win_get_window();
+  if (!(_hDC = GetDC(_hWnd)))
+    return false;
 
-#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
-      device_mouse_setup(
-        (device_screen_physical_width - backbuffer_vertices[2]) / 2,
-        device_screen_physical_width - ((device_screen_physical_width - backbuffer_vertices[2]) / 2),
-        0,
-        device_screen_physical_height - 1,
-        (float)_srcRect.GetWidth() / backbuffer_vertices[2], 
-        (float)_srcRect.GetHeight() / (float)device_screen_physical_height);
-#endif
+  // First check if we need to recreate GL context, this will only be
+  // required if different color depth is requested.
+  if (_hRC)
+  {
+    GLuint pixel_fmt = GetPixelFormat(_hDC);
+    PIXELFORMATDESCRIPTOR pfd;
+    DescribePixelFormat(_hDC, pixel_fmt, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
+    if (pfd.cColorBits != mode.ColorDepth)
+    {
+      DeleteGlContext();
     }
   }
-  else if (psp_gfx_scaling == 2)
-  {
-    // Stretch to whole screen
-    backbuffer_vertices[2] = backbuffer_vertices[6] = device_screen_physical_width - 1;
-    backbuffer_vertices[5] = backbuffer_vertices[7] = device_screen_physical_height - 1;
 
-#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
-    device_mouse_setup(
-      0, 
-      device_screen_physical_width - 1, 
-      0, 
-      device_screen_physical_width - 1, 
-      (float)_srcRect.GetWidth() / (float)device_screen_physical_width, 
-      (float)_srcRect.GetHeight() / (float)device_screen_physical_height);
-#endif
-  }
-  else
+  if (!_hRC)
   {
-    // No scaling
-    backbuffer_vertices[0] = backbuffer_vertices[4] = _srcRect.GetWidth() * (-0.5f);
-    backbuffer_vertices[2] = backbuffer_vertices[6] = _srcRect.GetWidth() * 0.5f;
-    backbuffer_vertices[5] = backbuffer_vertices[7] = _srcRect.GetHeight() * 0.5f;
-    backbuffer_vertices[1] = backbuffer_vertices[3] = _srcRect.GetHeight() * (-0.5f);
-
-#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
-    device_mouse_setup(
-      (device_screen_physical_width - _srcRect.GetWidth()) / 2,
-      device_screen_physical_width - ((device_screen_physical_width - _srcRect.GetWidth()) / 2),
-      (device_screen_physical_height - _srcRect.GetHeight()) / 2, 
-      device_screen_physical_height - ((device_screen_physical_height - _srcRect.GetHeight()) / 2), 
-      1.0f,
-      1.0f);
-#endif
+    if (!CreateGlContext(mode))
+      return false;
   }
 
-   backbuffer_texture_coordinates[5] = backbuffer_texture_coordinates[7] = (float)_srcRect.GetHeight() * _super_sampling / (float)_backbuffer_texture_height;
-   backbuffer_texture_coordinates[2] = backbuffer_texture_coordinates[6] = (float)_srcRect.GetWidth() * _super_sampling / (float)_backbuffer_texture_width;
+  create_desktop_screen(mode.Width, mode.Height, mode.ColorDepth);
+  win_grab_input();
+#endif
+
+  gfx_driver = &gfx_opengl;
+  return true;
 }
 
-void OGLGraphicsDriver::InitOpenGl()
+void OGLGraphicsDriver::InitGlParams()
 {
-#if defined(IOS_VERSION)
-  ios_select_buffer();
-#endif
-
-  if (_render_to_texture)
-  {
-    char* extensions = (char*)glGetString(GL_EXTENSIONS);
-
-    if (strstr(extensions, fbo_extension_string) != NULL)
-    {
-#if defined(WINDOWS_VERSION)
-      glGenFramebuffersEXT = (PFNGLGENFRAMEBUFFERSEXTPROC)wglGetProcAddress("glGenFramebuffersEXT");
-      glDeleteFramebuffersEXT = (PFNGLDELETEFRAMEBUFFERSEXTPROC)wglGetProcAddress("glDeleteFramebuffersEXT");
-      glBindFramebufferEXT = (PFNGLBINDFRAMEBUFFEREXTPROC)wglGetProcAddress("glBindFramebufferEXT");
-      glCheckFramebufferStatusEXT = (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)wglGetProcAddress("glCheckFramebufferStatusEXT");
-      glGetFramebufferAttachmentParameterivEXT = (PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC)wglGetProcAddress("glGetFramebufferAttachmentParameterivEXT");
-      glGenerateMipmapEXT = (PFNGLGENERATEMIPMAPEXTPROC)wglGetProcAddress("glGenerateMipmapEXT");
-      glFramebufferTexture2DEXT = (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC)wglGetProcAddress("glFramebufferTexture2DEXT");
-      glFramebufferRenderbufferEXT = (PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC)wglGetProcAddress("glFramebufferRenderbufferEXT");
-#endif
-
-      // Disable super-sampling if it would cause a too large texture size
-      if (_super_sampling > 1)
-      {
-        int max = 1024;
-        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
-        if ((max < _srcRect.GetWidth() * 2) || (max < _srcRect.GetHeight() * 2))
-          _super_sampling = 1;
-      }
-    }
-    else
-    {
-      _render_to_texture = false;
-    }
-  }
+  TestRenderToTexture();
 
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
@@ -462,7 +409,7 @@ void OGLGraphicsDriver::InitOpenGl()
   glViewport(0, 0, device_screen_physical_width, device_screen_physical_height);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, 0, 1);
+  glOrtho(0, device_screen_physical_width, 0, device_screen_physical_height, 0, 1);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
@@ -470,10 +417,152 @@ void OGLGraphicsDriver::InitOpenGl()
   glDisableClientState(GL_NORMAL_ARRAY);
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+}
 
-  // If we already have a render frame configured, then setup viewport backbuffer mappings immediately
-  SetupViewport();
-  create_backbuffer_arrays();
+bool OGLGraphicsDriver::CreateGlContext(const DisplayMode &mode)
+{
+#if defined (WINDOWS_VERSION)
+  PIXELFORMATDESCRIPTOR pfd =
+  {
+    sizeof(PIXELFORMATDESCRIPTOR),
+    1,
+    PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+    PFD_TYPE_RGBA,
+    mode.ColorDepth,
+    0, 0, 0, 0, 0, 0,
+    0,
+    0,
+    0,
+    0, 0, 0, 0,
+    0,
+    0,
+    0,
+    PFD_MAIN_PLANE,
+    0,
+    0, 0, 0
+  };
+
+  _oldPixelFormat = GetPixelFormat(_hDC);
+  DescribePixelFormat(_hDC, _oldPixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &_oldPixelFormatDesc);
+
+  GLuint pixel_fmt;
+  if (!(pixel_fmt = ChoosePixelFormat(_hDC, &pfd)))
+    return false;
+
+  if (!SetPixelFormat(_hDC, pixel_fmt, &pfd))
+    return false;
+
+  if (!(_hRC = wglCreateContext(_hDC)))
+    return false;
+
+  if(!wglMakeCurrent(_hDC, _hRC))
+    return false;
+#endif // WINDOWS_VERSION
+  return true;
+}
+
+void OGLGraphicsDriver::DeleteGlContext()
+{
+#if defined (WINDOWS_VERSION)
+  if (_hRC)
+  {
+    wglMakeCurrent(NULL, NULL);
+    wglDeleteContext(_hRC);
+    _hRC = NULL;
+  }
+
+  if (_oldPixelFormat > 0)
+    SetPixelFormat(_hDC, _oldPixelFormat, &_oldPixelFormatDesc);
+#endif
+}
+
+void OGLGraphicsDriver::TestRenderToTexture()
+{
+  char* extensions = (char*)glGetString(GL_EXTENSIONS);
+
+  if (extensions && strstr(extensions, fbo_extension_string) != NULL)
+  {
+  #if defined(WINDOWS_VERSION)
+    glGenFramebuffersEXT = (PFNGLGENFRAMEBUFFERSEXTPROC)wglGetProcAddress("glGenFramebuffersEXT");
+    glDeleteFramebuffersEXT = (PFNGLDELETEFRAMEBUFFERSEXTPROC)wglGetProcAddress("glDeleteFramebuffersEXT");
+    glBindFramebufferEXT = (PFNGLBINDFRAMEBUFFEREXTPROC)wglGetProcAddress("glBindFramebufferEXT");
+    glCheckFramebufferStatusEXT = (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)wglGetProcAddress("glCheckFramebufferStatusEXT");
+    glGetFramebufferAttachmentParameterivEXT = (PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC)wglGetProcAddress("glGetFramebufferAttachmentParameterivEXT");
+    glGenerateMipmapEXT = (PFNGLGENERATEMIPMAPEXTPROC)wglGetProcAddress("glGenerateMipmapEXT");
+    glFramebufferTexture2DEXT = (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC)wglGetProcAddress("glFramebufferTexture2DEXT");
+    glFramebufferRenderbufferEXT = (PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC)wglGetProcAddress("glFramebufferRenderbufferEXT");
+  #endif
+
+    _can_render_to_texture = true;
+    // Disable super-sampling if it would cause a too large texture size
+    if (_super_sampling > 1)
+    {
+      int max = 1024;
+      glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
+      if ((max < _srcRect.GetWidth() * 2) || (max < _srcRect.GetHeight() * 2))
+        _super_sampling = 1;
+    }
+  }
+  else
+  {
+    _can_render_to_texture = false;
+  }
+
+  if (!_can_render_to_texture)
+    _do_render_to_texture = false;
+}
+
+void OGLGraphicsDriver::SetupBackbufferTexture()
+{
+  // NOTE: ability to render to texture depends on OGL context, which is
+  // created in SetDisplayMode, therefore creation of textures require
+  // both native size set and context capabilities test passed.
+  if (!IsNativeSizeValid() || !_can_render_to_texture)
+    return;
+
+  DeleteBackbufferTexture();
+
+  // _backbuffer_texture_coordinates defines translation from wanted texture size to actual supported texture size
+  _backRenderSize = _srcRect.GetSize() * _super_sampling;
+  _backTextureSize = _backRenderSize;
+  AdjustSizeToNearestSupportedByCard(&_backTextureSize.Width, &_backTextureSize.Height);
+  const float back_ratio_w = (float)_backRenderSize.Width / (float)_backTextureSize.Width;
+  const float back_ratio_h = (float)_backRenderSize.Height / (float)_backTextureSize.Height;
+  std::fill(_backbuffer_texture_coordinates, _backbuffer_texture_coordinates + sizeof(_backbuffer_texture_coordinates) / sizeof(GLfloat), 0.0f);
+  _backbuffer_texture_coordinates[2] = _backbuffer_texture_coordinates[6] = back_ratio_w;
+  _backbuffer_texture_coordinates[5] = _backbuffer_texture_coordinates[7] = back_ratio_h;
+
+  glGenTextures(1, &_backbuffer);
+  glBindTexture(GL_TEXTURE_2D, _backbuffer);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _backTextureSize.Width, _backTextureSize.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  glGenFramebuffersEXT(1, &_fbo);
+  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
+  glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _backbuffer, 0);
+
+  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+
+  // Assign vertices of the backbuffer texture position in the scene
+  _backbuffer_vertices[0] = _backbuffer_vertices[4] = 0;
+  _backbuffer_vertices[2] = _backbuffer_vertices[6] = _srcRect.Right;
+  _backbuffer_vertices[5] = _backbuffer_vertices[7] = _srcRect.Bottom;
+  _backbuffer_vertices[1] = _backbuffer_vertices[3] = 0;
+}
+
+void OGLGraphicsDriver::DeleteBackbufferTexture()
+{
+  if (_backbuffer)
+    glDeleteTextures(1, &_backbuffer);
+  if (_fbo)
+    glDeleteFramebuffersEXT(1, &_fbo);
+  _backbuffer = 0;
+  _fbo = 0;
 }
 
 void OGLGraphicsDriver::SetupViewport()
@@ -481,71 +570,19 @@ void OGLGraphicsDriver::SetupViewport()
   if (!IsModeSet() || !IsRenderFrameValid())
     return;
 
-  if (psp_gfx_scaling && !_render_to_texture)
-  {
-    if (psp_gfx_scaling == 1)
-    {
-      float android_screen_ar = (float)_srcRect.GetWidth() / (float)_srcRect.GetHeight();
-      float android_device_ar = (float)device_screen_physical_width / (float)device_screen_physical_height;
+  // Setup viewport rect and scissor; notice that OpenGL viewport has Y axis inverted
+  _viewportRect = RectWH(_dstRect.Left, device_screen_physical_height - 1 - _dstRect.Bottom, _dstRect.GetWidth(), _dstRect.GetHeight());
+  glScissor(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
 
-      if (android_device_ar <= android_screen_ar)
-      {
-        _scale_width = (float)device_screen_physical_width / (float)_srcRect.GetWidth();
-        _scale_height = _scale_width;
-      }
-      else
-      {
-        _scale_height = (float)device_screen_physical_height / (float)_srcRect.GetHeight();
-        _scale_width = _scale_height;
-      }
-    }
-    else
-    {
-      _scale_width = (float)device_screen_physical_width / (float)_srcRect.GetWidth();
-      _scale_height = (float)device_screen_physical_height / (float)_srcRect.GetHeight();
-    }
-  }
-  else
-  {
-    _scale_width = _scale_height = 1.0f * _super_sampling;
-  }
-
-  if (_render_to_texture)
-  {
-    _backbuffer_texture_width = _srcRect.GetWidth() * _super_sampling;
-    _backbuffer_texture_height = _srcRect.GetHeight() * _super_sampling;
-    AdjustSizeToNearestSupportedByCard(&_backbuffer_texture_width, &_backbuffer_texture_height);
-
-    glGenTextures(1, &_backbuffer);
-    glBindTexture(GL_TEXTURE_2D, _backbuffer);
-    
-    if (psp_gfx_smoothing)
-    {
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    }
-    else
-    {
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    }
-
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _backbuffer_texture_width, _backbuffer_texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    glGenFramebuffersEXT(1, &_fbo);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _backbuffer, 0);
-
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-  }
-  else
-  {
-    glEnable(GL_SCISSOR_TEST);
-    glScissor((int)(((float)device_screen_physical_width - _scale_width * (float)_srcRect.GetWidth()) / 2.0f + 1.0f), (int)(((float)device_screen_physical_height - _scale_height * (float)_srcRect.GetHeight()) / 2.0f), (int)(_scale_width * (float)_srcRect.GetWidth()), (int)(_scale_height * (float)_srcRect.GetHeight()));
-  }
+#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
+  device_mouse_setup(
+      (device_screen_physical_width - _dstRect.GetWidth()) / 2,
+      device_screen_physical_width - ((device_screen_physical_width - _dstRect.GetWidth()) / 2),
+      (device_screen_physical_height - _dstRect.GetHeight()) / 2, 
+      device_screen_physical_height - ((device_screen_physical_height - _dstRect.GetHeight()) / 2), 
+      1.0f,
+      1.0f);
+#endif
 }
 
 bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer)
@@ -554,100 +591,15 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
 
   if (mode.ColorDepth < 15)
   {
-    set_allegro_error("OpenGL driver does not support 256-colour games");
+    set_allegro_error("OpenGL driver does not support 256-color display mode");
     return false;
-  }
-
-#if defined(ANDROID_VERSION)
-  android_create_screen(mode.Width, mode.Height, mode.ColorDepth);
-#elif defined(IOS_VERSION)
-  ios_create_screen();
-#endif
-
-  if (psp_gfx_renderer == 2)
-  {
-    _super_sampling = ((psp_gfx_super_sampling > 0) ? 2 : 1);
-    _render_to_texture = true;
-  }
-  else
-  {
-    _super_sampling = 1;
-    _render_to_texture = false;
   }
 
   try
   {
-    int i = 0;
-
-#if defined(WINDOWS_VERSION)
-    HWND allegro_wnd = _hWnd = win_get_window();
-
-    if (!mode.Windowed)
-    {
-      // Remove the border in full-screen mode, otherwise if the player
-      // clicks near the edge of the screen it goes back to Windows
-      LONG windowStyle = WS_POPUP;
-      SetWindowLong(allegro_wnd, GWL_STYLE, windowStyle);
-    }
-#endif
-
-    gfx_driver = &gfx_opengl;
-
-#if defined(WINDOWS_VERSION)
-    if (mode.Windowed)
-    {
-      if (adjust_window(device_screen_physical_width, device_screen_physical_height) != 0) 
-      {
-        set_allegro_error("Window size not supported");
-        return -1;
-      }
-    }
-
-    win_grab_input();
-
-
-    GLuint PixelFormat;
-
-    static PIXELFORMATDESCRIPTOR pfd =
-    {
-       sizeof(PIXELFORMATDESCRIPTOR),
-       1,
-       PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-       PFD_TYPE_RGBA,
-       mode.ColorDepth,
-       0, 0, 0, 0, 0, 0,
-       0,
-       0,
-       0,
-       0, 0, 0, 0,
-       0,
-       0,
-       0,
-       PFD_MAIN_PLANE,
-       0,
-       0, 0, 0
-    };
-
-    if (!(_hDC = GetDC(_hWnd)))
+    if (!InitGlScreen(mode))
       return false;
-
-    if (!(PixelFormat = ChoosePixelFormat(_hDC, &pfd)))
-      return false;
-
-    if (!SetPixelFormat(_hDC, PixelFormat, &pfd))
-      return false;
-
-    if (!(_hRC = wglCreateContext(_hDC)))
-      return false;
-
-    if(!wglMakeCurrent(_hDC, _hRC))
-      return false;
-#endif
-
-    InitOpenGl();
-
-    this->create_screen_tint_bitmap();
-
+    InitGlParams();
   }
   catch (Ali3DException exception)
   {
@@ -658,16 +610,33 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
 
   OnInit(loopTimer);
 
-  // With current half-baked implementation OpenGL renderer ignores most of the
-  // requested mode params, and uses either hard-coded values or values imposed
-  // by the operating system (device).
+  // On certain platforms OpenGL renderer ignores requested screen sizes
+  // and uses values imposed by the operating system (device).
   DisplayMode final_mode = mode;
   final_mode.Width = device_screen_physical_width;
   final_mode.Height = device_screen_physical_height;
-  final_mode.Windowed = true;
-  OnModeSet(mode);
-  // If we already have a native size set, then update virtual screen immediately
+  OnModeSet(final_mode);
+
+  // TODO: move these options parsing into config instead
+#if defined(ANDROID_VERSION) || defined (IOS_VERSION)
+  if (psp_gfx_renderer == 2 && _can_render_to_texture)
+  {
+    _super_sampling = ((psp_gfx_super_sampling > 0) ? 2 : 1);
+    _do_render_to_texture = true;
+  }
+  else
+  {
+    _super_sampling = 1;
+    _do_render_to_texture = false;
+  }
+#endif
+
+  create_screen_tint_bitmap();
+  // If we already have a native size set, then update virtual screen and setup backbuffer texture immediately
   CreateVirtualScreen();
+  SetupBackbufferTexture();
+  // If we already have a render frame configured, then setup viewport and backbuffer mappings immediately
+  SetupViewport();
   return true;
 }
 
@@ -686,6 +655,7 @@ void OGLGraphicsDriver::CreateVirtualScreen()
 bool OGLGraphicsDriver::SetNativeSize(const Size &src_size)
 {
   OnSetNativeSize(src_size);
+  SetupBackbufferTexture();
   // If we already have a gfx mode set, then update virtual screen immediately
   CreateVirtualScreen();
   return !_srcRect.IsEmpty();
@@ -693,17 +663,12 @@ bool OGLGraphicsDriver::SetNativeSize(const Size &src_size)
 
 bool OGLGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
 {
-  // FIXME: OpenGL renderer currently mostly ignores requested parameters
   if (!IsNativeSizeValid())
     return false;
-  Rect final_dest = Rect((int)(((float)device_screen_physical_width - _scale_width * (float)_srcRect.GetWidth()) / 2.0f + 1.0f),
-                       (int)(((float)device_screen_physical_height - _scale_height * (float)_srcRect.GetHeight()) / 2.0f),
-                       (int)(_scale_width * (float)_srcRect.GetWidth()), (int)(_scale_height * (float)_srcRect.GetHeight()));
-  OnSetRenderFrame(final_dest);
+  OnSetRenderFrame(dst_rect);
   // Also make sure viewport and backbuffer mappings are updated using new native & destination rectangles
   SetupViewport();
-  create_backbuffer_arrays();
-  return !_dstRect.IsEmpty();;
+  return !_dstRect.IsEmpty();
 }
 
 int OGLGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_depth) const
@@ -714,8 +679,9 @@ int OGLGraphicsDriver::GetDisplayDepthForNativeDepth(int native_color_depth) con
 
 IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int color_depth)
 {
-    // TODO!!
-    return NULL;
+    std::vector<DisplayMode> modes;
+    platform->GetSystemDisplayModes(modes);
+    return new OGLDisplayModeList(modes);
 }
 
 PGfxFilter OGLGraphicsDriver::GetGraphicsFilter() const
@@ -726,6 +692,7 @@ PGfxFilter OGLGraphicsDriver::GetGraphicsFilter() const
 void OGLGraphicsDriver::ReleaseDisplayMode()
 {
   OnModeReleased();
+  DeleteBackbufferTexture();
 
   if (_screenTintLayerDDB != NULL) 
   {
@@ -739,12 +706,21 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
   _dummyVirtualScreen = NULL;
 
   gfx_driver = NULL;
+
+  platform->ExitFullscreenMode();
+  platform->RestoreWindowStyle();
 }
 
 void OGLGraphicsDriver::UnInit() 
 {
   OnUnInit();
   ReleaseDisplayMode();
+
+  DeleteGlContext();
+#if defined (WINDOWS_VERSION)
+  _hWnd = NULL;
+  _hDC = NULL;
+#endif
 }
 
 OGLGraphicsDriver::~OGLGraphicsDriver()
@@ -759,25 +735,35 @@ void OGLGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
 
 void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
 {
+  Rect retr_rect;
+  if (_do_render_to_texture)
+  {
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
+    retr_rect = RectWH(0, 0, _backRenderSize.Width, _backRenderSize.Height);
+  }
+  else
+  {
 #if defined(IOS_VERSION)
-  ios_select_buffer();
+    ios_select_buffer();
+#elif defined(WINDOWS_VERSION)
+    glReadBuffer(GL_FRONT);
 #endif
+    retr_rect = _dstRect;
+  }
 
-  int retrieve_width = device_mouse_clip_right - device_mouse_clip_left;
-  int retrieve_height = device_mouse_clip_bottom - device_mouse_clip_top;
+  int bpp = _mode.ColorDepth / 8;
+  int bufferSize = retr_rect.GetWidth() * retr_rect.GetHeight() * bpp;
 
-  int bufferSize = retrieve_width * retrieve_height * 4;
-
-  unsigned char* buffer = (unsigned char*)malloc(bufferSize);
+  unsigned char* buffer = new unsigned char[bufferSize];
   if (buffer)
   {
-    glReadPixels(device_mouse_clip_left, device_mouse_clip_top, retrieve_width, retrieve_height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+    glReadPixels(retr_rect.Left, retr_rect.Top, retr_rect.GetWidth(), retr_rect.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
     unsigned char* surfaceData = buffer;
     unsigned char* sourcePtr;
     unsigned char* destPtr;
     
-	Bitmap* retrieveInto = BitmapHelper::CreateBitmap(retrieve_width, retrieve_height, 32);
+	Bitmap* retrieveInto = BitmapHelper::CreateBitmap(retr_rect.GetWidth(), retr_rect.GetHeight(), _mode.ColorDepth);
 
     if (retrieveInto)
     {
@@ -785,14 +771,15 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
       {
         sourcePtr = surfaceData;
         destPtr = &retrieveInto->GetScanLineForWriting(y)[0];
-        for (int x = 0; x < retrieveInto->GetWidth() * 4; x += 4)
+        for (int x = 0; x < retrieveInto->GetWidth() * bpp; x += bpp)
         {
-          destPtr[x] = sourcePtr[x + 2];
-          destPtr[x + 2] = sourcePtr[x];
+          // TODO: find out if it's possible to retrieve pixels in the matching format
+          destPtr[x]     = sourcePtr[x + 2];
           destPtr[x + 1] = sourcePtr[x + 1];
+          destPtr[x + 2] = sourcePtr[x];
           destPtr[x + 3] = sourcePtr[x + 3];
         }
-        surfaceData += retrieve_width * 4;
+        surfaceData += retr_rect.GetWidth() * bpp;
       }
 
       destination->StretchBlt(retrieveInto, RectWH(0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight()),
@@ -800,7 +787,7 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
       delete retrieveInto;
     }
 
-    free(buffer);
+    delete [] buffer;
   }
 }
 
@@ -895,27 +882,31 @@ void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool glob
     else
       glColor4f(1.0f, 1.0f, 1.0f, ((float)bmpToDraw->_transparency / 255.0f));
 
-    if (_render_to_texture)
-      glTranslatef(_srcRect.GetWidth() * _super_sampling / 2.0f, _srcRect.GetHeight() * _super_sampling / 2.0f, 0.0f);
+    if (_do_render_to_texture)
+      glTranslatef(_backRenderSize.Width / 2.0f, _backRenderSize.Height / 2.0f, 0.0f);
     else
-      glTranslatef(device_screen_physical_width / 2.0f, device_screen_physical_height / 2.0f, 0.0f);
+      glTranslatef(_srcRect.GetWidth() / 2.0f, _srcRect.GetHeight() / 2.0f, 0.0f);
 
-    glTranslatef((float)thisX * _scale_width, (float)thisY * _scale_height, 0.0f);
-    glScalef(widthToScale * _scale_width, heightToScale * _scale_height, 1.0f);
+    glTranslatef((float)thisX, (float)thisY, 0.0f);
+    glScalef(widthToScale, heightToScale, 1.0f);
 
     glBindTexture(GL_TEXTURE_2D, bmpToDraw->_tiles[ti].texture);
 
-    if ((psp_gfx_smoothing  && !_render_to_texture) || (_smoothScaling) && (bmpToDraw->_stretchToHeight > 0) &&
+    if ((_smoothScaling) && (bmpToDraw->_stretchToHeight > 0) &&
         ((bmpToDraw->_stretchToHeight != bmpToDraw->_height) ||
          (bmpToDraw->_stretchToWidth != bmpToDraw->_width)))
     {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     }
-    else 
+    else if (_do_render_to_texture)
     {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    }
+    else
+    {
+      _filter->SetFilteringForStandardSprite();
     }
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
@@ -923,12 +914,12 @@ void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool glob
     if (bmpToDraw->_vertex != NULL)
     {
       glTexCoordPointer(2, GL_FLOAT, sizeof(OGLCUSTOMVERTEX), &(bmpToDraw->_vertex[ti * 4].tu));
-      glVertexPointer(2, GL_FLOAT, sizeof(OGLCUSTOMVERTEX), &(bmpToDraw->_vertex[ti * 4].position));  
+      glVertexPointer(2, GL_FLOAT, sizeof(OGLCUSTOMVERTEX), &(bmpToDraw->_vertex[ti * 4].position));
     }
     else
     {
       glTexCoordPointer(2, GL_FLOAT, sizeof(OGLCUSTOMVERTEX), &defaultVertices[0].tu);
-      glVertexPointer(2, GL_FLOAT, sizeof(OGLCUSTOMVERTEX), &defaultVertices[0].position);  
+      glVertexPointer(2, GL_FLOAT, sizeof(OGLCUSTOMVERTEX), &defaultVertices[0].position);
     }
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -943,7 +934,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
   if (!device_screen_initialized)
   {
-    InitOpenGl();
+    InitGlParams();
     device_screen_initialized = 1;
   }
 
@@ -953,16 +944,16 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
   bool globalLeftRightFlip = (flip == kFlip_Vertical) || (flip == kFlip_Both);
   bool globalTopBottomFlip = (flip == kFlip_Horizontal) || (flip == kFlip_Both);
 
-  if (_render_to_texture)
+  if (_do_render_to_texture)
   {
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
 
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glViewport(0, 0, _srcRect.GetWidth() * _super_sampling, _srcRect.GetHeight() * _super_sampling);
+    glViewport(0, 0, _backRenderSize.Width, _backRenderSize.Height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, _srcRect.GetWidth() * _super_sampling - 1, 0, _srcRect.GetHeight() * _super_sampling - 1, 0, 1);
+    glOrtho(0, _backRenderSize.Width, 0, _backRenderSize.Height, 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
   }
@@ -972,10 +963,10 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glClear(GL_COLOR_BUFFER_BIT);
     glEnable(GL_SCISSOR_TEST);
 
-    glViewport(0, 0, device_screen_physical_width, device_screen_physical_height);
+    glViewport(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, 0, 1);
+    glOrtho(0, _srcRect.GetWidth(), 0, _srcRect.GetHeight(), 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
   }
@@ -1003,33 +994,32 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     this->_renderSprite(&_screenTintSprite, false, false);
   }
 
-  if (_render_to_texture)
+  if (_do_render_to_texture)
   {
+    // Texture is ready, now create rectangle in the world space and draw texture upon it
 #if defined(IOS_VERSION)
     ios_select_buffer();
 #else
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 #endif
 
-    glViewport(0, 0, device_screen_physical_width, device_screen_physical_height);
+    glViewport(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, 0, 1);
+    glOrtho(0, _srcRect.GetWidth(), 0, _srcRect.GetHeight(), 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
     glDisable(GL_BLEND);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
-    if (psp_gfx_scaling)
-       glTranslatef((device_screen_physical_width - backbuffer_vertices[2] - 1) / 2, (device_screen_physical_height - backbuffer_vertices[5] - 1) / 2, 0);
-    else
-      glTranslatef(device_screen_physical_width / 2.0f, device_screen_physical_height / 2.0f, 0);
+    // use correct sampling method when stretching buffer to the final rect
+    _filter->SetFilteringForStandardSprite();
 
     glBindTexture(GL_TEXTURE_2D, _backbuffer);
 
-    glTexCoordPointer(2, GL_FLOAT, 0, backbuffer_texture_coordinates);
-    glVertexPointer(2, GL_FLOAT, 0, backbuffer_vertices);  
+    glTexCoordPointer(2, GL_FLOAT, 0, _backbuffer_texture_coordinates);
+    glVertexPointer(2, GL_FLOAT, 0, _backbuffer_vertices);
     glClear(GL_COLOR_BUFFER_BIT);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -1110,7 +1100,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, O
   int tileWidth = (textureWidth > tile->width) ? tile->width + 1 : tile->width;
   int tileHeight = (textureHeight > tile->height) ? tile->height + 1 : tile->height;
 
-  bool usingLinearFiltering = (psp_gfx_smoothing == 1); //_filter->NeedToColourEdgeLines();
+  bool usingLinearFiltering = _filter->UseLinearFiltering();
   bool lastPixelWasTransparent = false;
   char *origPtr = (char*)malloc(4 * tileWidth * tileHeight);
   char *memPtr = origPtr;
@@ -1594,12 +1584,20 @@ OGLGraphicsFactory::~OGLGraphicsFactory()
 
 size_t OGLGraphicsFactory::GetFilterCount() const
 {
-    return 1;
+    return 2;
 }
 
 const GfxFilterInfo *OGLGraphicsFactory::GetFilterInfo(size_t index) const
 {
-    return index == 0 ? &OGLGfxFilter::FilterInfo : NULL;
+    switch (index)
+    {
+    case 0:
+        return &OGLGfxFilter::FilterInfo;
+    case 1:
+        return &AAOGLGfxFilter::FilterInfo;
+    default:
+        return NULL;
+    }
 }
 
 String OGLGraphicsFactory::GetDefaultFilterID() const
@@ -1625,6 +1623,8 @@ OGLGfxFilter *OGLGraphicsFactory::CreateFilter(const String &id)
 {
     if (OGLGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
         return new OGLGfxFilter();
+    else if (AAOGLGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
+        return new AAOGLGfxFilter();
     return NULL;
 }
 

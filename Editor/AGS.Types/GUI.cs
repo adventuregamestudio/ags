@@ -13,7 +13,6 @@ namespace AGS.Types
     public abstract class GUI : IToXml, IComparable<GUI>
     {
         public const int LEGACY_MAX_CONTROLS_PER_GUI = 30;
-        protected const int LEGACY_MAX_NAME_LENGTH = 15;
 
         public GUI()
         {

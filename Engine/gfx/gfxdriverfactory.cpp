@@ -28,7 +28,9 @@
 
 #include "main/main_allegro.h"
 
+#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
 extern int psp_gfx_renderer;
+#endif
 
 namespace AGS
 {
@@ -40,10 +42,10 @@ void GetGfxDriverFactoryNames(StringV &ids)
 #ifdef WINDOWS_VERSION
     ids.push_back("D3D9");
 #endif
-#if defined (ANDROID_VERSION) || defined (IOS_VERSION)
+#if defined (ANDROID_VERSION) || defined (IOS_VERSION) || defined (WINDOWS_VERSION)
     ids.push_back("OGL");
 #endif
-    ids.push_back("DX5");
+    ids.push_back("Software");
 }
 
 IGfxDriverFactory *GetGfxDriverFactory(const String id)
@@ -52,11 +54,15 @@ IGfxDriverFactory *GetGfxDriverFactory(const String id)
     if (id.CompareNoCase("D3D9") == 0)
         return D3D::D3DGraphicsFactory::GetFactory();
 #endif
+#if defined (ANDROID_VERSION) || defined (IOS_VERSION)|| defined (WINDOWS_VERSION)
+    if (id.CompareNoCase("OGL") == 0 
 #if defined (ANDROID_VERSION) || defined (IOS_VERSION)
-    if (id.CompareNoCase("OGL") == 0 || (id.CompareNoCase("D3D9") == 0 && psp_gfx_renderer > 0))
+        || (id.CompareNoCase("D3D9") == 0 && psp_gfx_renderer > 0)
+#endif
+        )
         return OGL::OGLGraphicsFactory::GetFactory();
 #endif
-    if (id.CompareNoCase("DX5") == 0)
+    if (id.CompareNoCase("Software") == 0)
         return ALSW::ALSWGraphicsFactory::GetFactory();
     set_allegro_error("No graphics factory with such id: %s", id.GetCStr());
     return NULL;

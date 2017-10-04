@@ -206,12 +206,11 @@ void GameSetupStruct::WriteCharacters_Aligned(Stream *out)
 MainGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVersion data_ver)
 {
     dialogScriptNames.resize(numdialog);
-
+    viewNames.resize(numviews);
     if (Properties::ReadSchema(propSchema, in) != kPropertyErr_NoError)
         return kMGFErr_InvalidPropertySchema;
 
     int errors = 0;
-    int bb;
 
     charProps.resize(numcharacters);
     for (int i = 0; i < numcharacters; ++i)
@@ -223,18 +222,14 @@ MainGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameData
         errors += Properties::ReadValues(invProps[i], in);
     }
 
-    if (errors > 0)
-        return kMGFErr_InvalidPropertyValues;
+    for (int i = 0; i < numviews; ++i)
+        viewNames[i] = String::FromStream(in);
 
-    for (bb = 0; bb < numviews; bb++)
-        fgetstring_limit(viewNames[bb], in, MAXVIEWNAMELENGTH);
+    for (int i = 0; i < numinvitems; ++i)
+        invScriptNames[i] = String::FromStream(in);
 
-    for (bb = 0; bb < numinvitems; bb++)
-        fgetstring_limit(invScriptNames[bb], in, MAX_SCRIPT_NAME_LEN);
-
-    for (bb = 0; bb < numdialog; bb++)
-        dialogScriptNames[bb] = String::FromStream(in);
-    
+    for (int i = 0; i < numdialog; ++i)
+        dialogScriptNames[i] = String::FromStream(in);
     return kMGFErr_NoError;
 }
 
@@ -251,7 +246,7 @@ MainGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersio
     audioClipCount = in->ReadInt32();
     audioClips = (ScriptAudioClip*)malloc(audioClipCount * sizeof(ScriptAudioClip));
     ReadAudioClips_Aligned(in);
-        
+    
     scoreClipID = in->ReadInt32();
 
     return kMGFErr_NoError;

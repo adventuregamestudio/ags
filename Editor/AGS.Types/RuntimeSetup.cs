@@ -34,14 +34,14 @@ namespace AGS.Types
             Dictionary<string, string> filters = new Dictionary<string, string>();
             filters["stdscale"] = "Nearest-neighbour";
             filters["hqx"] = "High quality (Hqx)";
-            _gfxFiltersAll.Add(GraphicsDriver.DX5, filters);
+            _gfxFiltersAll.Add(GraphicsDriver.Software, filters);
             filters = new Dictionary<string, string>();
             filters["stdscale"] = "Nearest-neighbour";
             filters["linear"] = "Linear interpolation (with anti-aliasing)";
             _gfxFiltersAll.Add(GraphicsDriver.D3D9, filters);
 
             _gfxFiltersDefault = new Dictionary<GraphicsDriver, string>();
-            _gfxFiltersDefault[GraphicsDriver.DX5] = "stdscale";
+            _gfxFiltersDefault[GraphicsDriver.Software] = "stdscale";
             _gfxFiltersDefault[GraphicsDriver.D3D9] = "stdscale";
         }
 
@@ -366,7 +366,7 @@ namespace AGS.Types
                 // Downgrade is currently only meaningful for running 16&32-bit games with hardware-accelerated driver
                 // and 32-bit with software accelerated driver
                 else if (property.Name == "DowngradeTo16bit")
-                    wantThisProperty = GraphicsDriver == GraphicsDriver.DX5 || _gameSettings.ColorDepth != GameColorDepth.Palette;
+                    wantThisProperty = GraphicsDriver == GraphicsDriver.Software || _gameSettings.ColorDepth != GameColorDepth.Palette;
                 // Only display RenderAtScreenRes if game settings have this property set to UserDefined
                 else if (property.Name == "RenderAtScreenResolution")
                     wantThisProperty = _gameSettings.RenderAtScreenResolution == AGS.Types.RenderAtScreenResolution.UserDefined;

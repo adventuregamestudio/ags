@@ -162,6 +162,9 @@
     <ClInclude Include="..\Native\ac\scriptmodule.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
+    <ClInclude Include="NativeUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NativeDLL.rc">

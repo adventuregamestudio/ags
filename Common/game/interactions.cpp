@@ -419,7 +419,7 @@ InteractionScripts *InteractionScripts::CreateFromStream(Stream *in)
     InteractionScripts *scripts = new InteractionScripts();
     for (size_t i = 0; i < evt_count; ++i)
     {
-        String name = String::FromStream(in, MAX_INTER_FUNCTION_NAME_LENGTH);
+        String name = String::FromStream(in);
         scripts->ScriptFuncNames.push_back(name);
     }
     return scripts;

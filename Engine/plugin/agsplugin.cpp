@@ -59,6 +59,7 @@
 #include "debug/out.h"
 #include "ac/dynobj/scriptstring.h"
 #include "main/graphics_mode.h"
+#include "gfx/gfx_util.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -109,7 +110,6 @@ extern ccInstance *gameinst, *roominst;
 extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_INIT_SPR];
 extern MoveList *mls;
-extern Bitmap *virtual_screen;
 extern int numlines;
 extern char lines[MAXLINE][200];
 extern color palette[256];
@@ -185,9 +185,6 @@ BITMAP *IAGSEngine::GetScreen ()
 }
 BITMAP *IAGSEngine::GetVirtualScreen () 
 {
-    if (!gfxDriver->UsesMemoryBackBuffer())
-        quit("!This plugin is not compatible with the Direct3D driver.");
-
 	// [IKM] Aaahh... this is very dangerous, but what can we do?
 	return (BITMAP*)gfxDriver->GetMemoryBackBuffer()->GetAllegroBitmap();
 }
@@ -239,7 +236,7 @@ int IAGSEngine::GetSavedData (char *buffer, int32 bufsize) {
 }
 void IAGSEngine::DrawText (int32 x, int32 y, int32 font, int32 color, char *text) 
 {
-    Common::Bitmap *ds = ::GetVirtualScreen();
+    Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
     color_t text_color = ds->GetCompatibleColor(color);
     draw_and_invalidate_text(ds, x, y, font, text_color, text);
 }
@@ -256,7 +253,7 @@ unsigned char ** IAGSEngine::GetRawBitmapSurface (BITMAP *bmp) {
         quit("!IAGSEngine::GetRawBitmapSurface: invalid bitmap for access to surface");
     acquire_bitmap (bmp);
 
-	if (bmp == virtual_screen->GetAllegroBitmap())
+    if (bmp == gfxDriver->GetMemoryBackBuffer()->GetAllegroBitmap())
         plugins[this->pluginId].invalidatedRegion = 0;
 
     return bmp->line;
@@ -264,7 +261,7 @@ unsigned char ** IAGSEngine::GetRawBitmapSurface (BITMAP *bmp) {
 void IAGSEngine::ReleaseBitmapSurface (BITMAP *bmp) {
     release_bitmap (bmp);
 
-	if (bmp == virtual_screen->GetAllegroBitmap()) {
+    if (bmp == gfxDriver->GetMemoryBackBuffer()->GetAllegroBitmap()) {
         // plugin does not manaually invalidate stuff, so
         // we must invalidate the whole screen to be safe
         if (!plugins[this->pluginId].invalidatedRegion)
@@ -312,30 +309,29 @@ void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int
 
     break_up_text_into_lines (wid, font, (char*)text);
 
-    Common::Bitmap *ds = ::GetVirtualScreen();
+    Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
     color_t text_color = ds->GetCompatibleColor(color);
     for (int i = 0; i < numlines; i++)
         draw_and_invalidate_text(ds, xx, yy + linespacing*i, font, text_color, lines[i]);
 }
 void IAGSEngine::SetVirtualScreen (BITMAP *bmp) {
 	// [IKM] Very, very dangerous :'(
+    // TODO: this won't work with hardware-accelerated renderers
     SetVirtualScreenRaw (bmp);
 }
 int IAGSEngine::LookupParserWord (const char *word) {
     return find_word_in_dictionary ((char*)word);
 }
 void IAGSEngine::BlitBitmap (int32 x, int32 y, BITMAP *bmp, int32 masked) {
-    wputblock_raw (::GetVirtualScreen(), x, y, bmp, masked);
+    wputblock_raw (gfxDriver->GetMemoryBackBuffer(), x, y, bmp, masked);
     invalidate_rect(x, y, x + bmp->w, y + bmp->h);
 }
 void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 trans) {
-    set_trans_blender(0, 0, 0, trans);
-    Common::Bitmap *ds = ::GetVirtualScreen();
-    // FIXME: call corresponding Graphics Blit
-	draw_trans_sprite(ds->GetAllegroBitmap(), bmp, x, y);
+    Bitmap wrap(bmp, true);
+    GfxUtil::DrawSpriteBlend(gfxDriver->GetMemoryBackBuffer(), Point(x,y), &wrap, kBlendMode_Alpha, true, false, trans);
 }
 void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle) {
-    Common::Bitmap *ds = ::GetVirtualScreen();
+    Common::Bitmap *ds = gfxDriver->GetMemoryBackBuffer();
     // FIXME: call corresponding Graphics Blit
     rotate_sprite(ds->GetAllegroBitmap(), bmp, x, y, itofix(angle));
 }
@@ -442,6 +438,7 @@ AGSViewFrame *IAGSEngine::GetViewFrame (int32 view, int32 loop, int32 frame) {
 }
 int IAGSEngine::GetRawPixelColor (int32 color) {
     // Convert the standardized colour to the local gfx mode color
+    // TODO: this won't work with hardware-accelerated renderers
     int result;
     __my_setcolor(&result, color, ::GetVirtualScreen()->GetColorDepth());
 

@@ -223,6 +223,7 @@
     <ClInclude Include="..\Native\ac\scriptmodule.h" />
     <ClInclude Include="agsnative.h" />
     <ClInclude Include="NativeMethods.h" />
+    <ClInclude Include="NativeUtils.h" />
     <ClInclude Include="Scripting.h" />
   </ItemGroup>
   <ItemGroup>

@@ -59,8 +59,6 @@ RoomStruct::RoomStruct() {
     }
     for (i = 0; i < MAX_HOTSPOTS; i++) {
         //intrHotspot[i] = new Interaction();// CLNUP old interactions
-        hotspotnames[i] = NULL;
-        hotspotScriptNames[i][0] = 0;
     }
     // CLNUP old interactions
     //for (i = 0; i < MAX_INIT_SPR; i++)
@@ -168,7 +166,6 @@ void room_file_header::WriteFromFile(Common::Stream *out)
 int usesmisccond = 0;
 
 void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_file_header rfh) {
-  int   i;
   char  buffer[3000];
   long  tesl;
 
@@ -186,16 +183,12 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
   memset(&rstruc->walk_area_zoom[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
   memset(&rstruc->walk_area_light[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
 
-  for (i = 0; i < MAX_HOTSPOTS; i++) {
-    rstruc->hotspotScriptNames[i][0] = 0;
-    if (rstruc->hotspotnames[i] != NULL)
-      free(rstruc->hotspotnames[i]);
-
-    rstruc->hotspotnames[i] = (char*)malloc(20);
-    sprintf(rstruc->hotspotnames[i], "Hotspot %d", i);
-
+  for (int i = 0; i < MAX_HOTSPOTS; i++) {
+    rstruc->hotspotScriptNames[i].Free();
     if (i == 0)
-      strcpy(rstruc->hotspotnames[i], "No hotspot");
+      rstruc->hotspotnames[i] = "No hotspot";
+    else
+      rstruc->hotspotnames[i].Format("Hotspot %d", i);
   }
 
 /*  memset(&rstruc->hscond[0], 0, sizeof(EventBlock) * MAX_HOTSPOTS);
@@ -224,16 +217,26 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
   // [IKM] TODO: read/write member for _Point?
   in->ReadArrayOfInt16((int16_t*)&rstruc->hswalkto[0], 2*rstruc->numhotspots);
 
-  for (i = 0; i < rstruc->numhotspots; i++)
+  for (int i = 0; i < rstruc->numhotspots; i++)
   {
-    free(rstruc->hotspotnames[i]);
+    if (rfh.version >= kRoomVersion_3415)
+      rstruc->hotspotnames[i] = StrUtil::ReadString(in);
+    else if (rfh.version >= kRoomVersion_303a)
+      rstruc->hotspotnames[i] = String::FromStream(in);
+    else
+      rstruc->hotspotnames[i] = String::FromStreamCount(in, 30);
+   }
 
-    fgetstring_limit(buffer, in, 2999);
-    rstruc->hotspotnames[i] = (char*)malloc(strlen(buffer) + 1);
-    strcpy(rstruc->hotspotnames[i], buffer);
+  if (rfh.version >= kRoomVersion_270)
+  {
+    for (int i = 0; i < rstruc->numhotspots; ++i)
+    {
+      if (rfh.version >= kRoomVersion_3415)
+        rstruc->hotspotScriptNames[i] = StrUtil::ReadString(in);
+      else
+        rstruc->hotspotScriptNames[i] = String::FromStreamCount(in, MAX_SCRIPT_NAME_LEN);
+    }
   }
-
-  in->ReadArray(&rstruc->hotspotScriptNames[0], MAX_SCRIPT_NAME_LEN, rstruc->numhotspots);
 
   rstruc->numwalkareas = in->ReadInt32();
   for (int iteratorCount = 0; iteratorCount < rstruc->numwalkareas; ++iteratorCount)
@@ -304,13 +307,13 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
   rstruc->regionScripts = new InteractionScripts*[rstruc->numRegions];
   rstruc->roomScripts = InteractionScripts::CreateFromStream(in);
 
-  for (i = 0; i < rstruc->numhotspots; i++) {
+  for (int i = 0; i < rstruc->numhotspots; i++) {
     rstruc->hotspotScripts[i] = InteractionScripts::CreateFromStream(in);
   }
-  for (i = 0; i < rstruc->numsprs; i++) {
+  for (int i = 0; i < rstruc->numsprs; i++) {
     rstruc->objectScripts[i] = InteractionScripts::CreateFromStream(in);
   }
-  for (i = 0; i < rstruc->numRegions; i++) {
+  for (int i = 0; i < rstruc->numRegions; i++) {
     rstruc->regionScripts[i] = InteractionScripts::CreateFromStream(in);
   }
 
@@ -336,7 +339,7 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
   in->ReadArrayOfInt16(&rstruc->walk_area_top[0], num_walk_areas);
   in->ReadArrayOfInt16(&rstruc->walk_area_bottom[0], num_walk_areas);
 
-  for (i = 0; i < num_walk_areas; i++) {
+  for (int i = 0; i < num_walk_areas; i++) {
     // if they set a contiuously scaled area where the top
     // and bottom zoom levels are identical, set it as a normal
     // scaled area
@@ -356,7 +359,7 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
       rstruc->msgi[iteratorCount].ReadFromFile(in);
   }
 
-  for (i = 0;i < rstruc->nummes; i++) {
+  for (int i = 0;i < rstruc->nummes; i++) {
     read_string_decrypt(in, buffer);
 
     int buffer_length = strlen(buffer);
@@ -415,7 +418,7 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
   update_polled_stuff_if_runtime();
   tesl = loadcompressed_allegro(in, &rstruc->lookat, rstruc->pal, tesl);
 
-  for (i = 0; i < 11; i++)
+  for (int i = 0; i < 11; i++)
     rstruc->password[i] += passwencstring[i];
 
 }
@@ -442,8 +445,11 @@ void load_room(const char *files, RoomStruct *rstruc) {
 
   rstruc->num_bscenes = 1;
   rstruc->bscene_anim_speed = 5;
-  memset (&rstruc->objectnames[0][0], 0, MAX_INIT_SPR * MAXOBJNAMELEN);
-  memset (&rstruc->objectscriptnames[0][0], 0, MAX_INIT_SPR * MAX_SCRIPT_NAME_LEN);
+  for (size_t i = 0; i < MAX_INIT_SPR; ++i)
+  {
+    rstruc->objectnames[i].Free();
+    rstruc->objectscriptnames[i].Free();
+  }
   memset (&rstruc->regionLightLevel[0], 0, sizeof(short) * MAX_REGIONS);
   memset (&rstruc->regionTintLevel[0], 0, sizeof(int) * MAX_REGIONS);
 
@@ -534,13 +540,25 @@ void load_room(const char *files, RoomStruct *rstruc) {
       if (opty->ReadByte() != rstruc->numsprs)
         quit("Load_room: inconsistent blocks for object names");
 
-      opty->ReadArray(&rstruc->objectnames[0][0], MAXOBJNAMELEN, rstruc->numsprs);
+      for (int i = 0; i < rstruc->numsprs; ++i)
+      {
+        if (rfh.version >= kRoomVersion_3415)
+          rstruc->objectnames[i] = StrUtil::ReadString(opty);
+        else
+          rstruc->objectnames[i].ReadCount(opty, LEGACY_MAXOBJNAMELEN);
+      }
     }
     else if (thisblock == BLOCKTYPE_OBJECTSCRIPTNAMES) {
       if (opty->ReadByte() != rstruc->numsprs)
         quit("Load_room: inconsistent blocks for object script names");
 
-      opty->ReadArray(&rstruc->objectscriptnames[0][0], MAX_SCRIPT_NAME_LEN, rstruc->numsprs);
+      for (int i = 0; i < rstruc->numsprs; ++i)
+      {
+        if (rfh.version >= kRoomVersion_3415)
+          rstruc->objectscriptnames[i] = StrUtil::ReadString(opty);
+        else
+          rstruc->objectscriptnames[i].ReadCount(opty, MAX_SCRIPT_NAME_LEN);
+      }
     }
     else if (thisblock == BLOCKTYPE_ANIMBKGRND) {
       int   ct;
@@ -588,14 +606,11 @@ void load_room(const char *files, RoomStruct *rstruc) {
       return;
     }
     else {
-      char  tempbfr[90];
-      sprintf(tempbfr, "LoadRoom: unknown block type %d encountered in '%s'", thisblock, files);
-      quit(tempbfr);
+      quitprintf("LoadRoom: unknown block type %d encountered in '%s'", thisblock, files);
     }
 
-    // The GetPosition call below has caused crashes
     if (opty->GetPosition() != bloklen)
-        opty->Seek(bloklen, kSeekBegin);
+      quitprintf("LoadRoom: unexpected end of block %d in in '%s'", thisblock, files);
   }
 
   // sync bpalettes[0] with room.pal

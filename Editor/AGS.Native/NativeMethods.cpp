@@ -12,6 +12,7 @@ see the license.txt for details.
 #include <windows.h>
 #include <stdlib.h>
 #include "NativeMethods.h"
+#include "NativeUtils.h"
 #include "game/plugininfo.h"
 #include "util/multifilelib.h"
 
@@ -83,59 +84,46 @@ extern void transform_string(char *text);
 extern bool enable_greyed_out_masks;
 extern bool spritesModified;
 
-char editorVersionNumber[50];
+AGSString editorVersionNumber;
 
-void ConvertStringToCharArray(System::String^ clrString, char *textBuffer)
-{
-	char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clrString).ToPointer();
-	
-	strcpy(textBuffer, stringPointer);
-
-  Marshal::FreeHGlobal(IntPtr(stringPointer));
-}
-
-void ConvertFileNameToCharArray(System::String^ clrString, char *textBuffer)
-{
-  ConvertStringToCharArray(clrString, textBuffer);
-  if (strchr(textBuffer, '?') != NULL)
-  {
-    throw gcnew AGSEditorException(String::Format("Filename contains invalid unicode characters: {0}", clrString));
-  }
-}
-
-void ConvertStringToNativeString(System::String^ clrString, AGS::Common::String &destStr)
+AGSString ConvertStringToNativeString(System::String^ clrString)
 {
     char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clrString).ToPointer();
-
-    destStr = stringPointer;
-
+    AGSString str = stringPointer;
     Marshal::FreeHGlobal(IntPtr(stringPointer));
+    return str;
 }
 
-void ConvertStringToNativeString(System::String^ clrString, AGS::Common::String &destStr, int maxLength)
+AGSString ConvertStringToNativeString(System::String^ clrString, size_t buf_len)
 {
-    if (clrString->Length >= maxLength) 
-    {
-        throw gcnew AGSEditorException(String::Format("String is too long: {0} (max length={1})", clrString, maxLength - 1));
-    }
+    char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clrString).ToPointer();
+    AGSString str = stringPointer;
+    Marshal::FreeHGlobal(IntPtr(stringPointer));
+    return str.Left(buf_len - 1);
+}
+
+AGSString ConvertFileNameToNativeString(System::String^ clrString)
+{
+    AGSString str = ConvertStringToNativeString(clrString);
+    if (str.FindChar('?') != -1)
+        throw gcnew AGSEditorException(String::Format("Filename contains invalid unicode characters: {0}", clrString));
+    return str;
+}
+
+void ConvertStringToCharArray(System::String^ clrString, char *buf, size_t buf_len)
+{
     char* stringPointer = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(clrString).ToPointer();
-
-    destStr = stringPointer;
-
+    size_t ansi_len = min(strlen(stringPointer) + 1, buf_len);
+    memcpy(buf, stringPointer, ansi_len);
+    buf[ansi_len - 1] = 0;
     System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(stringPointer));
 }
 
-void ConvertStringToCharArray(System::String^ clrString, char *textBuffer, int maxLength)
+void ConvertFileNameToCharArray(System::String^ clrString, char *buf, size_t buf_len)
 {
-	if (clrString->Length >= maxLength) 
-	{
-		throw gcnew AGSEditorException(String::Format("String is too long: {0} (max length={1})", clrString, maxLength - 1));
-	}
-	char* stringPointer = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(clrString).ToPointer();
-	
-	strcpy(textBuffer, stringPointer);
-
-    System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(stringPointer));
+    ConvertStringToCharArray(clrString, buf, buf_len);
+    if (strchr(buf, '?') != NULL)
+        throw gcnew AGSEditorException(String::Format("Filename contains invalid unicode characters: {0}", clrString));
 }
 
 namespace AGS
@@ -145,7 +133,7 @@ namespace AGS
 		NativeMethods::NativeMethods(String ^editorVersion)
 		{
 			lastPaletteSet = nullptr;
-			ConvertStringToCharArray(editorVersion, editorVersionNumber);
+			editorVersionNumber = ConvertStringToNativeString(editorVersion);
 		}
 
 		void NativeMethods::Initialize()
@@ -228,9 +216,8 @@ namespace AGS
 
 		void NativeMethods::ImportSCIFont(String ^fileName, int fontSlot) 
 		{
-			char fileNameBuf[MAX_PATH];
-      ConvertFileNameToCharArray(fileName, fileNameBuf);
-			const char *errorMsg = import_sci_font(fileNameBuf, fontSlot);
+			AGSString fileNameAnsi = ConvertFileNameToNativeString(fileName);
+			const char *errorMsg = import_sci_font(fileNameAnsi, fontSlot);
 			if (errorMsg != NULL) 
 			{
 				throw gcnew AGSEditorException(gcnew String(errorMsg));
@@ -410,11 +397,8 @@ namespace AGS
 
 		AGS::Types::Game^ NativeMethods::ImportOldGameFile(String^ fileName)
 		{
-			char fileNameBuf[MAX_PATH];
-			ConvertFileNameToCharArray(fileName, fileNameBuf);
-
-			Game ^game = import_compiled_game_dta(fileNameBuf);
-
+			AGSString fileNameAnsi = ConvertFileNameToNativeString(fileName);
+			Game ^game = import_compiled_game_dta(fileNameAnsi);
 			return game;
 		}
 
@@ -530,12 +514,11 @@ namespace AGS
 
     BaseTemplate^ NativeMethods::LoadTemplateFile(String ^fileName, bool isRoomTemplate)
     {
-      char fileNameBuf[MAX_PATH];
-			ConvertFileNameToCharArray(fileName, fileNameBuf);
+      AGSString fileNameAnsi = ConvertFileNameToNativeString(fileName);
       char *iconDataBuffer = NULL;
       long iconDataSize = 0;
 
-      int success = load_template_file(fileNameBuf, &iconDataBuffer, &iconDataSize, isRoomTemplate);
+      int success = load_template_file(fileNameAnsi, &iconDataBuffer, &iconDataSize, isRoomTemplate);
 			if (success) 
 			{
 				Icon ^icon = nullptr;
@@ -579,10 +562,8 @@ namespace AGS
 
 		void NativeMethods::ExtractTemplateFiles(String ^templateFileName) 
 		{
-			char fileNameBuf[MAX_PATH];
-			ConvertFileNameToCharArray(templateFileName, fileNameBuf);
-
-			if (!extract_template_files(fileNameBuf))
+			AGSString fileNameAnsi = ConvertFileNameToNativeString(templateFileName);
+			if (!extract_template_files(fileNameAnsi))
 			{
 				throw gcnew AGSEditorException("Unable to extract template files.");
 			}
@@ -590,10 +571,9 @@ namespace AGS
 
 		void NativeMethods::ExtractRoomTemplateFiles(String ^templateFileName, int newRoomNumber) 
 		{
-			char fileNameBuf[MAX_PATH];
-			ConvertFileNameToCharArray(templateFileName, fileNameBuf);
+			AGSString fileNameAnsi = ConvertFileNameToNativeString(templateFileName);
 
-			if (!extract_room_template_files(fileNameBuf, newRoomNumber))
+			if (!extract_room_template_files(fileNameAnsi, newRoomNumber))
 			{
 				throw gcnew AGSEditorException("Unable to extract template files.");
 			}

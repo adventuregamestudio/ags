@@ -47,8 +47,6 @@
 #define MAX_NEWINTERACTION_EVENTS   30
 #define MAX_COMMANDS_PER_LIST       40
 
-#define MAX_INTER_FUNCTION_NAME_LENGTH 200
-
 namespace AGS
 {
 namespace Common

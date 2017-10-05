@@ -97,8 +97,8 @@ extern std::vector<ccInstance *> moduleInstFork;
 extern std::vector<RuntimeScriptValue> moduleRepExecAddr;
 extern int numScriptModules;
 
-extern char **characterScriptObjNames;
-extern char objectScriptObjNames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5];
-extern char **guiScriptObjNames;
+extern std::vector<AGS::Common::String> characterScriptObjNames;
+extern AGS::Common::String objectScriptObjNames[MAX_INIT_SPR];
+extern std::vector<AGS::Common::String> guiScriptObjNames;
 
 #endif // __AGS_EE_SCRIPT__SCRIPT_H

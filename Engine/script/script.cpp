@@ -86,9 +86,9 @@ std::vector<ccInstance *> moduleInstFork;
 std::vector<RuntimeScriptValue> moduleRepExecAddr;
 int numScriptModules = 0;
 
-char **characterScriptObjNames = NULL;
-char objectScriptObjNames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5];
-char **guiScriptObjNames = NULL;
+std::vector<String> characterScriptObjNames;
+String              objectScriptObjNames[MAX_INIT_SPR];
+std::vector<String> guiScriptObjNames;
 
 
 int run_dialog_request (int parmtr) {

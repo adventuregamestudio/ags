@@ -143,8 +143,7 @@ void InitAndRegisterAudioObjects()
 // Initializes characters and registers them in the script system
 void InitAndRegisterCharacters()
 {
-    characterScriptObjNames = (char**)malloc(sizeof(char*) * game.numcharacters);
-
+    characterScriptObjNames.resize(game.numcharacters);
     for (int i = 0; i < game.numcharacters; ++i)
     {
         game.chars[i].walking = 0;
@@ -163,7 +162,7 @@ void InitAndRegisterCharacters()
         ccRegisterManagedObject(&game.chars[i], &ccDynamicCharacter);
 
         // export the character's script object
-        characterScriptObjNames[i] = strdup(game.chars[i].scrname);
+        characterScriptObjNames[i] = game.chars[i].scrname;
         ccAddExternalDynamicObject(characterScriptObjNames[i], &game.chars[i], &ccDynamicCharacter);
     }
 }
@@ -203,7 +202,7 @@ void InitAndRegisterGUI()
         scrGui[i].id = -1;
     }
 
-    guiScriptObjNames = (char**)malloc(sizeof(char*) * game.numgui);
+    guiScriptObjNames.resize(game.numgui);
     for (int i = 0; i < game.numgui; ++i)
     {
         guis[i].RebuildArray();
@@ -216,7 +215,7 @@ void InitAndRegisterGUI()
         export_gui_controls(i);
         // copy the script name to its own memory location
         // because ccAddExtSymbol only keeps a reference
-        guiScriptObjNames[i] = strdup(guis[i].Name);
+        guiScriptObjNames[i] = guis[i].Name;
         scrGui[i].id = i;
         ccAddExternalDynamicObject(guiScriptObjNames[i], &scrGui[i], &ccDynamicGUI);
         ccRegisterManagedObject(&scrGui[i], &ccDynamicGUI);

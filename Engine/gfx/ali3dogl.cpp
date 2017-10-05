@@ -246,7 +246,6 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _screenTintSprite.skip = true;
   _screenTintSprite.x = 0;
   _screenTintSprite.y = 0;
-  _dummyVirtualScreen = NULL;
   _legacyPixelShader = false;
   flipTypeLastTime = kFlip_None;
   _can_render_to_texture = false;
@@ -644,12 +643,7 @@ void OGLGraphicsDriver::CreateVirtualScreen()
 {
   if (!IsModeSet() || !IsNativeSizeValid())
     return;
-  // create dummy screen bitmap
-  // TODO: find out why we are doing this
-  delete _dummyVirtualScreen;
-  _dummyVirtualScreen = ReplaceBitmapWithSupportedFormat(
-      BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth));
-  BitmapHelper::SetScreenBitmap(_dummyVirtualScreen);
+  CreateStageScreen();
 }
 
 bool OGLGraphicsDriver::SetNativeSize(const Size &src_size)
@@ -702,8 +696,8 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
   }
   delete _screenTintLayer;
   _screenTintLayer = NULL;
-  delete _dummyVirtualScreen;
-  _dummyVirtualScreen = NULL;
+
+  DestroyStageScreen();
 
   gfx_driver = NULL;
 
@@ -733,8 +727,9 @@ void OGLGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
 
 }
 
-void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
+void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res)
 {
+  (void)at_native_res; // TODO: support this at some point
   Rect retr_rect;
   if (_do_render_to_texture)
   {
@@ -978,12 +973,10 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
     if (listToDraw[i].bitmap == NULL)
     {
-      if (_nullSpriteCallback)
-        _nullSpriteCallback(listToDraw[i].x, listToDraw[i].y);
+      if (DoNullSpriteCallback(listToDraw[i].x, listToDraw[i].y))
+        listToDraw[i] = OGLDrawListEntry((OGLBitmap*)_stageVirtualScreenDDB);
       else
-        throw Ali3DException("Unhandled attempt to draw null sprite");
-
-      continue;
+        continue;
     }
 
     this->_renderSprite(&listToDraw[i], globalLeftRightFlip, globalTopBottomFlip);

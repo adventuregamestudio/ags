@@ -159,7 +159,7 @@ private:
 
 class OGLGfxFilter;
 
-class OGLGraphicsDriver : public GraphicsDriverBase
+class OGLGraphicsDriver : public VideoMemoryGraphicsDriver
 {
 public:
     virtual const char*GetDriverName() { return "OpenGL"; }
@@ -183,7 +183,7 @@ public:
     virtual void RenderToBackBuffer();
     virtual void Render();
     virtual void Render(GlobalFlipType flip);
-    virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination);
+    virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res);
     virtual void EnableVsyncBeforeRender(bool enabled) { }
     virtual void Vsync();
     virtual void RenderSpritesAtScreenResolution(bool enabled);
@@ -196,9 +196,6 @@ public:
     virtual void UseSmoothScaling(bool enabled) { _smoothScaling = enabled; }
     virtual bool RequiresFullRedrawEachFrame() { return true; }
     virtual bool HasAcceleratedStretchAndFlip() { return true; }
-    virtual bool UsesMemoryBackBuffer() { return false; }
-    virtual Bitmap *GetMemoryBackBuffer() { return NULL; }
-    virtual void SetMemoryBackBuffer(Bitmap *backBuffer) {  }
     virtual void SetScreenTint(int red, int green, int blue);
 
     typedef stdtr1compat::shared_ptr<OGLGfxFilter> POGLFilter;
@@ -235,7 +232,6 @@ private:
     Bitmap *_screenTintLayer;
     OGLBitmap* _screenTintLayerDDB;
     OGLDrawListEntry _screenTintSprite;
-    Bitmap *_dummyVirtualScreen;
 
     int device_screen_physical_width;
     int device_screen_physical_height;

@@ -13,6 +13,18 @@
 //=============================================================================
 
 #include "ac/common.h"
+#include "util/string.h"
+
+using namespace AGS::Common;
 
 char *croom_h_copyright = "ChrisRoom v2.00 - CRM reader/writer copyright (c) 1995, 1998, 1999 by Chris Jones.";
 char *game_file_sig = "Adventure Creator Game File v2";
+
+void quitprintf(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    String text = String::FromFormatV(fmt, ap);
+    va_end(ap);
+    quit(text);
+}

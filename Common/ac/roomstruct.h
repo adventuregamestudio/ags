@@ -54,6 +54,7 @@ using AGS::Common::InteractionScripts;
 28:  v3.0.3 - remove hotspot name length limit
 29:  v3.0.3 - high-res coords for object x/y, edges and hotspot walk-to point
 30:  v3.4.0.4 - tint luminance for regions
+31:  v3.4.1.5 - removed room object and hotspot name length limits
 */
 enum RoomFileVersion
 {
@@ -85,7 +86,8 @@ enum RoomFileVersion
     kRoomVersion_303a       = 28,
     kRoomVersion_303b       = 29,
     kRoomVersion_3404       = 30,
-    kRoomVersion_Current    = kRoomVersion_3404
+    kRoomVersion_3415       = 31,
+    kRoomVersion_Current    = kRoomVersion_3415
 };
 
 // thisroom.options[0] = startup music
@@ -147,8 +149,8 @@ struct RoomStruct {
     InteractionScripts **objectScripts;
     int           objbaseline[MAX_INIT_SPR];                // or -1 (use bottom of object graphic)
     short         objectFlags[MAX_INIT_SPR];
-    char          objectnames[MAX_INIT_SPR][MAXOBJNAMELEN];
-    char          objectscriptnames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN];
+    AGS::Common::String objectnames[MAX_INIT_SPR];
+    AGS::Common::String objectscriptnames[MAX_INIT_SPR];
     AGS::Common::StringIMap objProps[MAX_INIT_SPR];
     char          password[11];
     char          options[10];                    // [0]=startup music
@@ -164,8 +166,8 @@ struct RoomStruct {
     PolyPoints    wallpoints[MAX_WALK_AREAS];
     int           numhotspots;
     _Point        hswalkto[MAX_HOTSPOTS];
-    char*         hotspotnames[MAX_HOTSPOTS];
-    char          hotspotScriptNames[MAX_HOTSPOTS][MAX_SCRIPT_NAME_LEN];
+    AGS::Common::String hotspotnames[MAX_HOTSPOTS];
+    AGS::Common::String hotspotScriptNames[MAX_HOTSPOTS];
     // CLNUP old interactions
     //Interaction  *intrHotspot[MAX_HOTSPOTS];
     //Interaction  *intrRoom;

@@ -28,7 +28,7 @@ extern int source_text_length;
 extern TreeMap *transtree;
 extern char transFileName[MAX_PATH];
 
-char *get_translation (const char *text) {
+const char *get_translation (const char *text) {
     if (text == NULL)
         quit("!Null string supplied to CheckForTranslations");
 
@@ -61,7 +61,7 @@ char *get_translation (const char *text) {
             return transl;
     }
     // return the original text
-    return (char*)text;
+    return text;
 }
 
 int IsTranslationAvailable () {

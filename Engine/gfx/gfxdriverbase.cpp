@@ -13,10 +13,12 @@
 //=============================================================================
 
 #include "util/wgt2allg.h"
+#include "gfx/ali3dexception.h"
+#include "gfx/bitmap.h"
 #include "gfx/gfxfilter.h"
 #include "gfx/gfxdriverbase.h"
-#include "gfx/bitmap.h"
 
+using namespace AGS::Common;
 
 namespace AGS
 {
@@ -123,6 +125,79 @@ Bitmap *GraphicsDriverBase::ReplaceBitmapWithSupportedFormat(Bitmap *old_bmp)
     if (new_bitmap != old_bmp)
         delete old_bmp;
     return new_bitmap;
+}
+
+
+VideoMemoryGraphicsDriver::VideoMemoryGraphicsDriver()
+    : _stageVirtualScreen(NULL)
+    , _stageVirtualScreenDDB(NULL)
+    , _stageScreenDirty(false)
+{
+}
+
+VideoMemoryGraphicsDriver::~VideoMemoryGraphicsDriver()
+{
+    DestroyStageScreen();
+}
+
+bool VideoMemoryGraphicsDriver::UsesMemoryBackBuffer()
+{
+    // Although we do use ours, we do not let engine draw upon it;
+    // only plugin handling are allowed to request our mem buffer.
+    // TODO: find better workaround?
+    return false;
+}
+
+Bitmap *VideoMemoryGraphicsDriver::GetMemoryBackBuffer()
+{
+    _stageScreenDirty = true;
+    return _stageVirtualScreen;
+}
+
+void VideoMemoryGraphicsDriver::SetMemoryBackBuffer(Bitmap *backBuffer)
+{
+    // TODO: support this under certain circumstances?
+}
+
+void VideoMemoryGraphicsDriver::CreateStageScreen()
+{
+    if (_stageVirtualScreenDDB)
+        this->DestroyDDB(_stageVirtualScreenDDB);
+    _stageVirtualScreenDDB = NULL;
+    delete _stageVirtualScreen;
+    _stageVirtualScreen = ReplaceBitmapWithSupportedFormat(
+    BitmapHelper::CreateBitmap(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth));
+    BitmapHelper::SetScreenBitmap(_stageVirtualScreen);
+}
+
+void VideoMemoryGraphicsDriver::DestroyStageScreen()
+{
+    if (_stageVirtualScreenDDB)
+        this->DestroyDDB(_stageVirtualScreenDDB);
+    _stageVirtualScreenDDB = NULL;
+    delete _stageVirtualScreen;
+    _stageVirtualScreen = NULL;
+}
+
+bool VideoMemoryGraphicsDriver::DoNullSpriteCallback(int x, int y)
+{
+    if (!_nullSpriteCallback)
+        throw Ali3DException("Unhandled attempt to draw null sprite");
+    _stageScreenDirty = false;
+    _stageVirtualScreen->ClearTransparent();
+    // NOTE: this is not clear whether return value of callback may be
+    // relied on. Existing plugins do not seem to return anything but 0,
+    // even if they handle this event.
+    _nullSpriteCallback(x, y);
+    if (_stageScreenDirty)
+    {
+        if (_stageVirtualScreenDDB)
+            UpdateDDBFromBitmap(_stageVirtualScreenDDB, _stageVirtualScreen, true);
+        else
+            _stageVirtualScreenDDB = CreateDDBFromBitmap(_stageVirtualScreen, true);
+        return true;
+    }
+    return false;
 }
 
 } // namespace Engine

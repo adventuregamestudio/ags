@@ -344,7 +344,7 @@ void preparesavegamelist(int ctrllist)
   }
 }
 
-void enterstringwindow(char *prompttext, char *stouse)
+void enterstringwindow(const char *prompttext, char *stouse)
 {
   int boxleft = 60, boxtop = 80;
   int wantCancel = 0;
@@ -465,7 +465,7 @@ int roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**roo
   return toret;
 }
 
-int myscimessagebox(char *lpprompt, char *btn1, char *btn2)
+int myscimessagebox(const char *lpprompt, char *btn1, char *btn2)
 {
     Bitmap *ds = GetVirtualScreen();
     int windl = CSCIDrawWindow(ds, 80, 80, 240 - 80, 120 - 80);

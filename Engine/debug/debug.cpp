@@ -168,16 +168,6 @@ void shutdown_debug()
     DebugConsole.reset();
 }
 
-void quitprintf(const char *texx, ...)
-{
-    char displbuf[STD_BUFFER_SIZE];
-    va_list ap;
-    va_start(ap,texx);
-    vsprintf(displbuf,texx,ap);
-    va_end(ap);
-    quit(displbuf);
-}
-
 // Prepends message text with current room number and running script info, then logs result
 void debug_script_print(const String &msg, MessageType mt)
 {

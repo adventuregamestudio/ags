@@ -35,6 +35,7 @@ int mousex, mousey;
 #include "util/filestream.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
+#include "NativeUtils.h"
 
 using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
@@ -43,6 +44,7 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 namespace AGSProps = AGS::Common::Properties;
 using AGS::Common::GUIMain;
 using AGS::Common::InteractionVariable;
+typedef AGS::Common::String AGSString;
 
 //-----------------------------------------------------------------------------
 // [IKM] 2012-09-07
@@ -1790,10 +1792,8 @@ void save_room(const char *files, RoomStruct rstruc) {
   rfh.WriteFromFile(opty);
 
   if (rfh.version >= 5) {
-    long blsii = 0;
-
     opty->WriteByte(BLOCKTYPE_MAIN);
-    opty->WriteInt32(blsii);
+    opty->WriteInt32(0);
   }
 
   opty->WriteInt32(rstruc.bytes_per_pixel);  // colour depth bytes per pixel
@@ -1803,12 +1803,13 @@ void save_room(const char *files, RoomStruct rstruc) {
   opty->WriteInt32(rstruc.numhotspots);
   opty->WriteArray(&rstruc.hswalkto[0], sizeof(_Point), rstruc.numhotspots);
   for (f = 0; f < rstruc.numhotspots; f++)
-  {
-	  fputstring(rstruc.hotspotnames[f], opty);
-  }
+    Common::StrUtil::WriteString(rstruc.hotspotnames[f], opty);
 
+  // TODO: checking version here makes little sense now because save_room does not 
+  // properly support export to lower data version
   if (rfh.version >= 24)
-    opty->WriteArray(&rstruc.hotspotScriptNames[0], MAX_SCRIPT_NAME_LEN, rstruc.numhotspots);
+    for (f = 0; f < rstruc.numhotspots; f++)
+      Common::StrUtil::WriteString(rstruc.hotspotScriptNames[f], opty);
 
   opty->WriteInt32(rstruc.numwalkareas);
   opty->WriteArray(&rstruc.wallpoints[0], sizeof(PolyPoints), rstruc.numwalkareas);
@@ -1945,17 +1946,39 @@ void save_room(const char *files, RoomStruct rstruc) {
     }
 
     if (rstruc.numsprs > 0) {
+      // TODO: need generic algorithm to write block sizes back after their contents are written
+      long  leeat, wasat;
+
       opty->WriteByte(BLOCKTYPE_OBJECTNAMES);
-      lee=rstruc.numsprs * MAXOBJNAMELEN + 1;
+      lee = 0;
+      leeat = opty->GetPosition();
       opty->WriteInt32(lee);
+
       opty->WriteByte(rstruc.numsprs);
-      opty->WriteArray(&rstruc.objectnames[0][0], MAXOBJNAMELEN, rstruc.numsprs);
+      for (int i = 0; i < rstruc.numsprs; ++i)
+        Common::StrUtil::WriteString(rstruc.objectnames[i], opty);
+
+      wasat = opty->GetPosition();
+      opty->Seek(leeat, Common::kSeekBegin);
+      lee = (wasat - leeat) - sizeof(int32_t);
+      opty->WriteInt32(lee);
+      opty->Seek(0, Common::kSeekEnd);
+
 
       opty->WriteByte(BLOCKTYPE_OBJECTSCRIPTNAMES);
-      lee = rstruc.numsprs * MAX_SCRIPT_NAME_LEN + 1;
+      lee = 0;
+      leeat = opty->GetPosition();
       opty->WriteInt32(lee);
+
       opty->WriteByte(rstruc.numsprs);
-      opty->WriteArray(&rstruc.objectscriptnames[0][0], MAX_SCRIPT_NAME_LEN, rstruc.numsprs);
+      for (int i = 0; i < rstruc.numsprs; ++i)
+        Common::StrUtil::WriteString(rstruc.objectscriptnames[i], opty);
+
+      wasat = opty->GetPosition();
+      opty->Seek(leeat, Common::kSeekBegin);
+      lee = (wasat - leeat) - sizeof(int32_t);
+      opty->WriteInt32(lee);
+      opty->Seek(0, Common::kSeekEnd);
     }
 
     long lenpos, lenis;
@@ -2128,82 +2151,70 @@ int copy_file_across(Stream*inlibb,Stream*coppy,long leftforthis) {
   return success;
 }
 
-const char* make_old_style_data_file(const char* dataFileName, int numfile, char * const*filenames)
+// TODO: upgrade this "old style data file" to "new style data file" (would require engine update too)
+void make_old_style_data_file(const AGSString &dataFileName, const std::vector<AGSString> &filenames)
 {
-  const char *errorMsg = NULL;
-  int a;
-  int passwmod = 20;
-  long *filesizes = (long*)malloc(4*numfile);
-  char**writefname = (char**)malloc(4*numfile);
-  writefname[0]=(char*)malloc(14*numfile);
+    const int passwmod = 20;
+    std::vector<int32_t> filesizes(filenames.size());
+    std::vector<AGSString> writefname(filenames.size());
+    size_t numfile = filenames.size();
 
-  for (a=0;a<numfile;a++) {
-    if (a>0) writefname[a]=&writefname[0][a*13];
-	if (strrchr(filenames[a], '\\') != NULL)
-		strcpy(writefname[a], strrchr(filenames[a], '\\') + 1);
-	else if (strrchr(filenames[a], '/') != NULL)
-		strcpy(writefname[a], strrchr(filenames[a], '/') + 1);
-	else
-		strcpy(writefname[a],filenames[a]);
-
-	if (strlen(writefname[a]) > 12)
+    for (size_t fi = 0; fi < numfile; ++fi)
     {
-		char buffer[500];
-		sprintf(buffer, "Filename too long: %s", writefname[a]);
-		free(filesizes);
-		free(writefname);
-		ThrowManagedException(buffer);
+        writefname[fi] = get_filename(filenames[fi]);
+
+        if (strlen(writefname[fi]) > 12)
+            ThrowManagedException(AGSString::FromFormat("Filename too long (limit is 12 chars): '%s'", writefname[fi].GetCStr()));
+        int filesize = Common::File::GetFileSize(filenames[fi]);
+        if (filesize < 0)
+            ThrowManagedException(AGSString::FromFormat("Unable to retrieve file size: '%s'", writefname[fi].GetCStr()));
+        filesizes[fi] = filesize;
+
+        for (size_t c = 0; c < writefname[fi].GetLength(); ++c)
+            writefname[fi].SetAt(c, writefname[fi][c] + passwmod);
     }
 
-    Stream*ddd = Common::File::OpenFileRead(filenames[a]);
-    if (ddd==NULL) { 
-      filesizes[a] = 0;
-      continue;
+    // Write the header
+    Stream *wout = Common::File::CreateFile(dataFileName);
+    if (!wout)
+        ThrowManagedException(AGSString::FromFormat("Failed to open data file for writing: '%s'", dataFileName.GetCStr()));
+    wout->Write(MFLUtil::HeadSig, MFLUtil::HeadSig.GetLength());
+    wout->WriteByte(6);  // version
+    wout->WriteByte(passwmod);  // password modifier
+    wout->WriteByte(0);  // reserved
+    wout->WriteInt16((int16_t)numfile);
+    for (int i = 0; i < 13; ++i) wout->WriteByte(0);  // the password
+    for (size_t i = 0; i < numfile; ++i)
+        writefname[i].WriteCount(wout, 13);
+    for (size_t i = 0; i < numfile; ++i)
+        wout->WriteInt32(filesizes[i]);
+    wout->WriteByteCount(0, 2 * numfile);  // comp.ratio
+
+    // now copy the data
+    AGSString err_msg;
+    for (size_t i = 0; i < numfile; ++i)
+    {
+        Stream *in = Common::File::OpenFileRead(filenames[i]);
+        if (!in)
+        {
+            err_msg.Format("Unable to open asset file for reading: '%s'", filenames[i].GetCStr());
+            break;
+        }
+        int res = copy_file_across(in, wout, filesizes[i]);
+        delete in;
+        if (res < 1)
+        {
+            err_msg.Format("Error writing asset into package, possibly disk full: '%s'", filenames[i].GetCStr());
+            break;
+        }
     }
-    filesizes[a] = ddd->GetLength();
-    delete ddd;
+    delete wout;
 
-    for (int bb = 0; writefname[a][bb] != 0; bb++)
-      writefname[a][bb] += passwmod;
-  }
-  // write the header
-  Stream*wout=Common::File::CreateFile(dataFileName);
-  wout->Write(MFLUtil::HeadSig, MFLUtil::HeadSig.GetLength());
-  wout->WriteByte(6);  // version
-  wout->WriteByte(passwmod);  // password modifier
-  wout->WriteByte(0);  // reserved
-  wout->WriteInt16(numfile);
-  for (a=0;a<13;a++) wout->WriteByte(0);  // the password
-  wout->WriteArray(&writefname[0][0],13,numfile);
-  wout->WriteArrayOfInt32((int32_t*)&filesizes[0],numfile);
-  for (a=0;a<2*numfile;a++) wout->WriteByte(0);  // comp.ratio
-
-  // now copy the data
-  for (a=0;a<numfile;a++) {
-
-	Stream*iii = Common::File::OpenFileRead(filenames[a]);
-    if (iii==NULL) {
-      errorMsg = "unable to add one of the files to data file.";
-      continue;
+    if (!err_msg.IsEmpty())
+    {
+        unlink(dataFileName);
+        ThrowManagedException(err_msg);
     }
-    if (copy_file_across(iii,wout,filesizes[a]) < 1) {
-      errorMsg = "Error writing file: possibly disk full";
-      delete iii;
-      break;
-    }
-    delete iii;
-  }
-  delete wout;
-  free(filesizes);
-  free(writefname[0]);
-  free(writefname);
-
-  if (errorMsg != NULL) 
-  {
-	unlink(dataFileName);
-  }
-
-  return errorMsg;
 }
 
 Stream* find_file_in_path(char *buffer, const char *fileName)
@@ -2419,11 +2430,6 @@ public ref class TempDataStorage
 public:
 	static Room ^RoomBeingSaved;
 };
-
-void ConvertStringToCharArray(System::String^ clrString, char *textBuffer);
-void ConvertStringToCharArray(System::String^ clrString, char *textBuffer, int maxLength);
-void ConvertStringToNativeString(System::String^ clrString, Common::String &destStr);
-void ConvertStringToNativeString(System::String^ clrString, Common::String &destStr, int maxLength);
 
 void ThrowManagedException(const char *message) 
 {
@@ -3020,7 +3026,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   NormalGUI^ normalGui = dynamic_cast<NormalGUI^>(guiObj);
   if (normalGui)
   {
-	ConvertStringToNativeString(normalGui->OnClick, gui->OnClickHandler);
+	gui->OnClickHandler = ConvertStringToNativeString(normalGui->OnClick);
 	gui->X = normalGui->Left;
 	gui->Y = normalGui->Top;
 	gui->Width = normalGui->Width;
@@ -3045,7 +3051,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
   gui->BgColor = guiObj->BackgroundColor;
   gui->BgImage = guiObj->BackgroundImage;
   
-  ConvertStringToNativeString(guiObj->Name, gui->Name);
+  gui->Name = ConvertStringToNativeString(guiObj->Name);
 
   gui->ControlCount = 0;
   gui->CtrlRefs.resize(guiObj->Controls->Count);
@@ -3073,10 +3079,9 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guibuts[numguibuts].ClickAction[Common::kMouseLeft] = (Common::GUIClickAction)button->ClickAction;
 		  guibuts[numguibuts].ClickData[Common::kMouseLeft] = button->NewModeNumber;
           guibuts[numguibuts].Flags = (button->ClipImage) ? Common::kGUICtrl_Clip : 0;
-          Common::String text;
-		  ConvertStringToNativeString(button->Text, text, GUIBUTTON_TEXTLENGTH);
+          Common::String text = ConvertStringToNativeString(button->Text, GUIBUTTON_TEXTLENGTH);
           guibuts[numguibuts].SetText(text);
-		  ConvertStringToNativeString(button->OnClick, guibuts[numguibuts].EventHandlers[0]);
+          guibuts[numguibuts].EventHandlers[0] = ConvertStringToNativeString(button->OnClick);
 		  
           gui->CtrlRefs[gui->ControlCount] = (Common::kGUIButton << 16) | numguibuts;
 		  gui->Controls[gui->ControlCount] = &guibuts[numguibuts];
@@ -3090,8 +3095,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guilabels[numguilabels].Font = label->Font;
 		  guilabels[numguilabels].TextAlignment = (int)label->TextAlignment;
 		  guilabels[numguilabels].Flags = 0;
-          Common::String text;
-		  ConvertStringToNativeString(label->Text, text);
+          Common::String text = ConvertStringToNativeString(label->Text);
 		  guilabels[numguilabels].SetText(text);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUILabel << 16) | numguilabels;
@@ -3106,7 +3110,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guitext[numguitext].Font = textbox->Font;
 		  guitext[numguitext].Flags = 0;
           guitext[numguitext].TextBoxFlags = (textbox->ShowBorder) ? 0 : Common::kTextBox_NoBorder;
-		  ConvertStringToNativeString(textbox->OnActivate, guitext[numguitext].EventHandlers[0]);
+          guitext[numguitext].EventHandlers[0] = ConvertStringToNativeString(textbox->OnActivate);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUITextBox << 16) | numguitext;
 		  gui->Controls[gui->ControlCount] = &guitext[numguitext];
@@ -3124,7 +3128,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
           guilist[numguilist].Flags = listbox->Translated ? Common::kGUICtrl_Translated : 0;
           guilist[numguilist].ListBoxFlags = (listbox->ShowBorder) ? 0 : Common::kListBox_NoBorder;
 		  guilist[numguilist].ListBoxFlags |= (listbox->ShowScrollArrows) ? 0 : Common::kListBox_NoArrows;
-		  ConvertStringToNativeString(listbox->OnSelectionChanged, guilist[numguilist].EventHandlers[0]);
+          guilist[numguilist].EventHandlers[0] = ConvertStringToNativeString(listbox->OnSelectionChanged);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUIListBox << 16) | numguilist;
 		  gui->Controls[gui->ControlCount] = &guilist[numguilist];
@@ -3140,7 +3144,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guislider[numguislider].HandleImage = slider->HandleImage;
 		  guislider[numguislider].HandleOffset = slider->HandleOffset;
 		  guislider[numguislider].BgImage = slider->BackgroundImage;
-		  ConvertStringToNativeString(slider->OnChange, guislider[numguislider].EventHandlers[0]);
+          guislider[numguislider].EventHandlers[0] = ConvertStringToNativeString(slider->OnChange);
 
 		  gui->CtrlRefs[gui->ControlCount] = (Common::kGUISlider << 16) | numguislider;
 		  gui->Controls[gui->ControlCount] = &guislider[numguislider];
@@ -3179,7 +3183,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 	  newObj->Height = control->Height;
 	  newObj->Id = control->ID;
 	  newObj->ZOrder = control->ZOrder;
-	  ConvertStringToNativeString(control->Name, newObj->Name);
+      newObj->Name = ConvertStringToNativeString(control->Name);
   }
 
   gui->RebuildArray();
@@ -3241,8 +3245,8 @@ void CompileCustomProperties(AGS::Types::CustomProperties ^convertFrom, AGS::Com
 	for each (String ^key in convertFrom->PropertyValues->Keys)
 	{
         AGS::Common::String name, value;
-		ConvertStringToNativeString(convertFrom->PropertyValues[key]->Name, name);
-		ConvertStringToNativeString(convertFrom->PropertyValues[key]->Value, value);
+		name = ConvertStringToNativeString(convertFrom->PropertyValues[key]->Name);
+		value = ConvertStringToNativeString(convertFrom->PropertyValues[key]->Value);
 		(*compileInto)[name] = value;
 	}
 }
@@ -3370,7 +3374,7 @@ Game^ import_compiled_game_dta(const char *fileName)
 	{
 		cli::array<System::Byte> ^pluginData = gcnew cli::array<System::Byte>(thisgamePlugins[i].DataLen);
 		const char *data_ptr = thisgamePlugins[i].Data.get();
-		for (int j = 0; j < thisgamePlugins[i].DataLen; j++) 
+		for (size_t j = 0; j < thisgamePlugins[i].DataLen; j++) 
 		{
 			pluginData[j] = data_ptr[j];
 		}
@@ -3731,10 +3735,9 @@ Game^ import_compiled_game_dta(const char *fileName)
 
 System::String ^load_room_script(System::String ^fileName)
 {
-	char roomFileNameBuffer[MAX_PATH];
-	ConvertStringToCharArray(fileName, roomFileNameBuffer);
+    AGSString roomFileName = ConvertFileNameToNativeString(fileName);
 
-	Stream *opty = Common::AssetManager::OpenAsset(roomFileNameBuffer);
+	Stream *opty = Common::AssetManager::OpenAsset(roomFileName);
 	if (opty == NULL) throw gcnew AGSEditorException("Unable to open room file");
 
 	short version = opty->ReadInt16();
@@ -3791,10 +3794,9 @@ int GetCurrentlyLoadedRoomNumber()
 
 AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 {
-	char roomFileNameBuffer[MAX_PATH];
-	ConvertStringToCharArray(roomToLoad->FileName, roomFileNameBuffer);
+    AGSString roomFileName = ConvertFileNameToNativeString(roomToLoad->FileName);
 
-	const char *errorMsg = load_room_file(roomFileNameBuffer);
+	const char *errorMsg = load_room_file(roomFileName);
 	if (errorMsg != NULL) 
 	{
 		throw gcnew AGSEditorException(gcnew String(errorMsg));
@@ -3973,7 +3975,7 @@ void save_crm_file(Room ^room)
 	{
 		RoomMessage ^newMessage = room->Messages[i];
 		thisroom.message[i] = (char*)malloc(newMessage->Text->Length + 1);
-		ConvertStringToCharArray(newMessage->Text, thisroom.message[i]);
+		ConvertStringToCharArray(newMessage->Text, thisroom.message[i], newMessage->Text->Length + 1);
 		if (newMessage->ShowAsSpeech)
 		{
 			thisroom.msgi[i].displayas = newMessage->CharacterID + 1;
@@ -3991,14 +3993,14 @@ void save_crm_file(Room ^room)
 	for (int i = 0; i < thisroom.numsprs; i++) 
 	{
 		RoomObject ^obj = room->Objects[i];
-		ConvertStringToCharArray(obj->Name, thisroom.objectscriptnames[i]);
+		thisroom.objectscriptnames[i] = ConvertStringToNativeString(obj->Name);
 
 		thisroom.sprs[i].sprnum = obj->Image;
 		thisroom.sprs[i].x = obj->StartX;
 		thisroom.sprs[i].y = obj->StartY;
 		thisroom.sprs[i].on = obj->Visible;
 		thisroom.objbaseline[i] = obj->Baseline;
-		ConvertStringToCharArray(obj->Description, thisroom.objectnames[i], 30);
+		thisroom.objectnames[i] = ConvertStringToNativeString(obj->Description);
 		thisroom.objectFlags[i] = 0;
 		if (obj->UseRoomAreaScaling) thisroom.objectFlags[i] |= OBJF_USEROOMSCALING;
 		if (obj->UseRoomAreaLighting) thisroom.objectFlags[i] |= OBJF_USEREGIONTINTS;
@@ -4011,13 +4013,8 @@ void save_crm_file(Room ^room)
 	for (int i = 0; i < thisroom.numhotspots; i++) 
 	{
 		RoomHotspot ^hotspot = room->Hotspots[i];
-        if (thisroom.hotspotnames[i])
-        {
-            free(thisroom.hotspotnames[i]);
-        }
-		thisroom.hotspotnames[i] = (char*)malloc(hotspot->Description->Length + 1);
-		ConvertStringToCharArray(hotspot->Description, thisroom.hotspotnames[i]);
-		ConvertStringToCharArray(hotspot->Name, thisroom.hotspotScriptNames[i], 20);
+		thisroom.hotspotnames[i] = ConvertStringToNativeString(hotspot->Description);
+		thisroom.hotspotScriptNames[i] = ConvertStringToNativeString(hotspot->Name);
 		thisroom.hswalkto[i].x = hotspot->WalkToPoint.X;
 		thisroom.hswalkto[i].y = hotspot->WalkToPoint.Y;
 		CompileCustomProperties(hotspot->Properties, &thisroom.hsProps[i]);
@@ -4069,25 +4066,22 @@ void save_crm_file(Room ^room)
 	thisroom.scripts = NULL;
 	thisroom.compiled_script = ((AGS::Native::CompiledScript^)room->Script->CompiledData)->Data;
 
-	char roomFileNameBuffer[MAX_PATH];
-	ConvertStringToCharArray(room->FileName, roomFileNameBuffer);
+	AGSString roomFileName = ConvertFileNameToNativeString(room->FileName);
 
 	TempDataStorage::RoomBeingSaved = room;
 
-	save_room_file(roomFileNameBuffer);
+	save_room_file(roomFileName);
 
 	TempDataStorage::RoomBeingSaved = nullptr;
 
 	for (int i = 0; i < thisroom.numhotspots; i++) 
 	{
-		free(thisroom.hotspotnames[i]);
-		thisroom.hotspotnames[i] = NULL;
+		thisroom.hotspotnames[i].Free(); // TODO: not sure if makes sense here
 	}
 }
 
 void serialize_interaction_scripts(Interactions ^interactions, Stream *ooo)
 {
-	char textBuffer[256];
 	ooo->WriteInt32(interactions->ScriptFunctionNames->Length);
 	for each (String^ funcName in interactions->ScriptFunctionNames)
 	{
@@ -4097,8 +4091,8 @@ void serialize_interaction_scripts(Interactions ^interactions, Stream *ooo)
 		}
 		else 
 		{
-			ConvertStringToCharArray(funcName, textBuffer, 256);
-			fputstring(textBuffer, ooo);
+			AGSString fname = ConvertStringToNativeString(funcName);
+			fname.Write(ooo);
 		}
 	}
 }

@@ -99,7 +99,7 @@ public:
   virtual void RenderToBackBuffer() = 0;
   virtual void Render() = 0;
   virtual void Render(GlobalFlipType flip) = 0;
-  virtual void GetCopyOfScreenIntoBitmap(Common::Bitmap *destination) = 0;
+  virtual void GetCopyOfScreenIntoBitmap(Common::Bitmap *destination, bool at_native_res = false) = 0;
   virtual void EnableVsyncBeforeRender(bool enabled) = 0;
   virtual void Vsync() = 0;
   // Enables or disables rendering mode that draws sprite list directly into

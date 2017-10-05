@@ -29,7 +29,7 @@ namespace AGS.Editor
         public event ProcessAllGameTextsHandler ProcessAllGameTexts;
         public delegate void ExtraCompilationStepHandler(CompileMessages errors);
         public event ExtraCompilationStepHandler ExtraCompilationStep;
-        public delegate void ExtraOutputCreationStepHandler();
+        public delegate void ExtraOutputCreationStepHandler(bool miniExeForDebug);
         public event ExtraOutputCreationStepHandler ExtraOutputCreationStep;
 		public event GetSourceControlFileListHandler GetSourceControlFileList;
 
@@ -234,6 +234,7 @@ namespace AGS.Editor
 
 		public bool ApplicationStarted
 		{
+            get { return _applicationStarted; }
 			set { _applicationStarted = value; }
 		}
 
@@ -992,7 +993,7 @@ namespace AGS.Editor
             targetDataFile.Build(errors, forceRebuild); // ensure that data file is built first
             if (ExtraOutputCreationStep != null)
             {
-                ExtraOutputCreationStep();
+                ExtraOutputCreationStep(false);
             }
 
             // TODO: As of now the build targets other than DataFile and Debug do DEPLOYMENT rather than BUILDING
@@ -1264,7 +1265,7 @@ namespace AGS.Editor
             target.Build(errors, false);
             if (ExtraOutputCreationStep != null)
             {
-                ExtraOutputCreationStep();
+                ExtraOutputCreationStep(true);
             }
         }
 

@@ -453,7 +453,7 @@ void engine_init_rooms()
     // Obsolete now since room statuses are allocated only when needed
 }
 
-int engine_init_speech()
+void engine_init_speech()
 {
     play.want_speech=-2;
 
@@ -466,8 +466,8 @@ int engine_init_speech()
 
             //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
             if (Common::AssetManager::SetDataFile(speech_filepath)!=Common::kAssetNoError) {
-                platform->DisplayAlert("Unable to initialize speech sample file - check for corruption and that\nit belongs to this game.\n");
-                return EXIT_NORMAL;
+                platform->DisplayAlert("Unable to read voice pack, file could be corrupted or of unknown format.\nSpeech voice-over will be disabled.");
+                return;
             }
             Stream *speechsync = Common::AssetManager::OpenAsset("syncdata.dat");
             if (speechsync != NULL) {
@@ -493,12 +493,16 @@ int engine_init_speech()
                 delete speechsync;
             }
             Common::AssetManager::SetDataFile(game_file_name);
-            Debug::Printf(kDbgMsg_Init, "Speech sample file found and initialized.");
+            Debug::Printf(kDbgMsg_Init, "Voice pack found and initialized.");
+            play.want_speech=1;
+        }
+        else if (Path::ComparePaths(usetup.data_files_dir, get_voice_install_dir()) != 0)
+        {
+            // If we have custom voice directory set, we will enable voice-over even if speech.vox does not exist
+            Debug::Printf(kDbgMsg_Init, "Voice pack was not found, but voice installation directory is defined: enabling voice-over.");
             play.want_speech=1;
         }
     }
-
-    return RETURN_CONTINUE;
 }
 
 int engine_init_music()
@@ -774,12 +778,18 @@ void engine_init_title()
 void engine_init_directories()
 {
     Debug::Printf(kDbgMsg_Init, "Data directory: %s", usetup.data_files_dir.GetCStr());
-    Debug::Printf(kDbgMsg_Init, "Optional install directory: %s", usetup.install_dir.GetCStr());
-    Debug::Printf(kDbgMsg_Init, "Optional install audio directory: %s", usetup.install_audio_dir.GetCStr());
-    Debug::Printf(kDbgMsg_Init, "User data directory: %s", usetup.user_data_dir.GetCStr());
-    Debug::Printf(kDbgMsg_Init, "Shared data directory: %s", usetup.shared_data_dir.GetCStr());
+    if (!usetup.install_dir.IsEmpty())
+        Debug::Printf(kDbgMsg_Init, "Optional install directory: %s", usetup.install_dir.GetCStr());
+    if (!usetup.install_audio_dir.IsEmpty())
+        Debug::Printf(kDbgMsg_Init, "Optional audio directory: %s", usetup.install_audio_dir.GetCStr());
+    if (!usetup.install_voice_dir.IsEmpty())
+        Debug::Printf(kDbgMsg_Init, "Optional voice-over directory: %s", usetup.install_voice_dir.GetCStr());
+    if (!usetup.user_data_dir.IsEmpty())
+        Debug::Printf(kDbgMsg_Init, "User data directory: %s", usetup.user_data_dir.GetCStr());
+    if (!usetup.shared_data_dir.IsEmpty())
+        Debug::Printf(kDbgMsg_Init, "Shared data directory: %s", usetup.shared_data_dir.GetCStr());
 
-    set_install_dir(usetup.install_dir, usetup.install_audio_dir);
+    set_install_dir(usetup.install_dir, usetup.install_audio_dir, usetup.install_voice_dir);
     if (!usetup.install_dir.IsEmpty())
     {
         // running in debugger: don't redirect to the game exe folder (_Debug)
@@ -1208,6 +1218,12 @@ void engine_init_game_settings()
     currentcursor=0;
     our_eip=-4;
     mousey=100;  // stop icon bar popping up
+
+    // We use same variable to read config and be used at runtime for now,
+    // so update it here with regards to game design option
+    usetup.RenderAtScreenRes = 
+        (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined && usetup.RenderAtScreenRes) ||
+         game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled;
 }
 
 void engine_setup_scsystem_auxiliary()
@@ -1395,10 +1411,7 @@ int initialize_engine(int argc,char*argv[])
 
     our_eip = -186;
     
-    res = engine_init_speech();
-    if (res != RETURN_CONTINUE) {
-        return res;
-    }
+    engine_init_speech();
 
     our_eip = -185;
     
@@ -1443,7 +1456,6 @@ int initialize_engine(int argc,char*argv[])
     our_eip=-20;
     //thisroom.allocall();
     our_eip=-19;
-    //setup_sierra_interface();   // take this out later
 
     res = engine_load_game_data();
     if (res != RETURN_CONTINUE) {

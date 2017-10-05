@@ -17,10 +17,12 @@
 //
 
 #include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/path_helper.h"
 #include "ac/spritecache.h"
+#include "ac/system.h"
 #include "debug/debug_log.h"
 #include "main/mainheader.h"
 #include "main/config.h"
@@ -36,6 +38,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
+extern GameSetupStruct game;
 extern GameSetup usetup;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
@@ -384,7 +387,7 @@ void read_config(const ConfigTree &cfg)
 
         usetup.Screen.DisplayMode.RefreshRate = INIreadint(cfg, "graphics", "refresh");
         usetup.Screen.DisplayMode.VSync = INIreadint(cfg, "graphics", "vsync") > 0;
-        usetup.Screen.RenderAtScreenRes = INIreadint(cfg, "graphics", "render_at_screenres") > 0;
+        usetup.RenderAtScreenRes = INIreadint(cfg, "graphics", "render_at_screenres") > 0;
 
         usetup.enable_antialiasing = INIreadint(cfg, "misc", "antialias") > 0;
         if (!usetup.force_hicolor_mode)
@@ -488,6 +491,9 @@ void save_config_file()
     char buffer[STD_BUFFER_SIZE];
     ConfigTree cfg;
 
+    cfg["graphics"]["windowed"] = String::FromFormat("%d", System_GetWindowed());
+    if (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined)
+        cfg["graphics"]["render_at_screenres"] = String::FromFormat("%d", usetup.RenderAtScreenRes ? 1 : 0);
     if (Mouse::IsControlEnabled())
         cfg["mouse"]["speed"] = String::FromFormat("%f", Mouse::GetSpeed());
     bool is_available = GetTranslationName(buffer) != 0 || !buffer[0];

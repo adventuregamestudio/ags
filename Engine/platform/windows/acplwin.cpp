@@ -54,6 +54,7 @@ extern Bitmap *virtual_screen;
 #include <shlobj.h>
 #include <time.h>
 #include <shlwapi.h>
+#include <windows.h>
 #include <rpcsal.h>
 #include <gameux.h>
 
@@ -533,12 +534,39 @@ void AGSWin32::PostAllegroInit(bool windowed)
 
 typedef UINT (CALLBACK* Dynamic_SHGetKnownFolderPathType) (GUID& rfid, DWORD dwFlags, HANDLE hToken, PWSTR *ppszPath); 
 GUID FOLDERID_SAVEDGAMES = {0x4C5C32FF, 0xBB9D, 0x43b0, {0xB5, 0xB4, 0x2D, 0x72, 0xE5, 0x4E, 0xAA, 0xA4}}; 
+#define _WIN32_WINNT_VISTA              0x0600
+#define VER_MINORVERSION                0x0000001
+#define VER_MAJORVERSION                0x0000002
+#define VER_SERVICEPACKMAJOR            0x0000020
+#define VER_GREATER_EQUAL               3
+
+// These helpers copied from VersionHelpers.h in the Windows 8.1 SDK
+bool IsWindowsVersionOrGreater(WORD wMajorVersion, WORD wMinorVersion, WORD wServicePackMajor)
+{
+  OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0,{ 0 }, 0, 0 };
+  DWORDLONG        const dwlConditionMask = VerSetConditionMask(
+    VerSetConditionMask(
+      VerSetConditionMask(
+        0, VER_MAJORVERSION, VER_GREATER_EQUAL),
+      VER_MINORVERSION, VER_GREATER_EQUAL),
+    VER_SERVICEPACKMAJOR, VER_GREATER_EQUAL);
+
+  osvi.dwMajorVersion = wMajorVersion;
+  osvi.dwMinorVersion = wMinorVersion;
+  osvi.wServicePackMajor = wServicePackMajor;
+
+  return VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_SERVICEPACKMAJOR, dwlConditionMask) != FALSE;
+}
+
+bool IsWindowsVistaOrGreater() {
+  return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_VISTA), LOBYTE(_WIN32_WINNT_VISTA), 0);
+}
 
 void determine_app_data_folder()
 {
   if (win32AppDataDirectory[0] != 0) 
   {
-    //already worked it out
+    // already discovered
     return;
   }
 
@@ -560,48 +588,54 @@ void determine_saved_games_folder()
 {
   if (win32SavedGamesDirectory[0] != 0)
   {
-    // already loaded
+    // already discovered
     return;
   }
 
-  // Default to My Documents in case it's not Vista
-  WCHAR unicodeSaveGameDir[MAX_PATH];
-  WCHAR unicodeShortSaveGameDir[MAX_PATH];
-  // workaround for case where My Documents path has unicode chars (eg.
-  // with Russian Windows) -- so use Short File Name instead
-  SHGetSpecialFolderPathW(NULL, unicodeSaveGameDir, CSIDL_PERSONAL, FALSE);
-  if (GetShortPathNameW(unicodeSaveGameDir, unicodeShortSaveGameDir, MAX_PATH) == 0)
+  WCHAR unicodeSaveGameDir[MAX_PATH] = L"";
+  WCHAR unicodeShortSaveGameDir[MAX_PATH] = L"";
+
+  if (IsWindowsVistaOrGreater())
   {
-    platform->DisplayAlert("Unable to get My Documents dir: GetShortPathNameW failed");
-    return;
+    HINSTANCE hShellDLL = LoadLibrary("shell32.dll");
+    Dynamic_SHGetKnownFolderPathType Dynamic_SHGetKnownFolderPath = (Dynamic_SHGetKnownFolderPathType)GetProcAddress(hShellDLL, "SHGetKnownFolderPath");
+
+    if (Dynamic_SHGetKnownFolderPath != NULL)
+    {
+      PWSTR path = NULL;
+      if (SUCCEEDED(Dynamic_SHGetKnownFolderPath(FOLDERID_SAVEDGAMES, 0, NULL, &path)))
+      {
+        if (GetShortPathNameW(path, unicodeShortSaveGameDir, MAX_PATH) > 0) {
+          WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, win32SavedGamesDirectory, MAX_PATH, NULL, NULL);
+        }
+        CoTaskMemFree(path);
+      }
+    }
+
+    FreeLibrary(hShellDLL);
   }
-  WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, win32SavedGamesDirectory, MAX_PATH, NULL, NULL);
-  strcat(win32SavedGamesDirectory, "\\My Saved Games");
-
-  // Now see if we have a Vista "My Saved Games" folder
-  HINSTANCE hShellDLL = NULL;
-  Dynamic_SHGetKnownFolderPathType Dynamic_SHGetKnownFolderPath = NULL;
-
-  hShellDLL = LoadLibrary("shell32.dll"); 
-
-  Dynamic_SHGetKnownFolderPath = (Dynamic_SHGetKnownFolderPathType)GetProcAddress(hShellDLL, "SHGetKnownFolderPath");
-
-  if (Dynamic_SHGetKnownFolderPath != NULL) 
-  { 
-    PWSTR path = NULL; 
-
-    if (SUCCEEDED(Dynamic_SHGetKnownFolderPath(FOLDERID_SAVEDGAMES, 0, NULL, &path))) 
-    { 
-      GetShortPathNameW(path, unicodeShortSaveGameDir, MAX_PATH);
-      WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, win32SavedGamesDirectory, MAX_PATH, NULL, NULL ); 
-
-      CoTaskMemFree(path);
+  else
+  {
+    // Windows XP didn't have a "My Saved Games" folder, so create one under "My Documents"
+    SHGetSpecialFolderPathW(NULL, unicodeSaveGameDir, CSIDL_PERSONAL, FALSE);
+    // workaround for case where My Documents path has unicode chars (eg.
+    // with Russian Windows) -- so use Short File Name instead
+    if (GetShortPathNameW(unicodeSaveGameDir, unicodeShortSaveGameDir, MAX_PATH) > 0)
+    {
+      WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, win32SavedGamesDirectory, MAX_PATH, NULL, NULL);
+      strcat(win32SavedGamesDirectory, "\\My Saved Games");
+      mkdir(win32SavedGamesDirectory);
     }
   }
 
-  FreeLibrary(hShellDLL);
-  // in case it's on XP My Documents\My Saved Games, create this part of the path
-  mkdir(win32SavedGamesDirectory);
+  // Fallback to a subdirectory of the app data directory
+  if (win32SavedGamesDirectory[0] == '\0')
+  {
+    determine_app_data_folder();
+    strcpy(win32SavedGamesDirectory, win32AppDataDirectory);
+    strcat(win32SavedGamesDirectory, "\\Saved Games");
+    mkdir(win32SavedGamesDirectory);
+  }
 }
 
 void DetermineAppOutputDirectory()

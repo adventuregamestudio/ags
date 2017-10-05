@@ -1453,12 +1453,16 @@ builtin struct System {
   import static attribute int  Volume;
   /// Gets/sets whether waiting for the vertical sync is enabled.
   import static attribute bool VSync;
-  /// Gets whether the game is running in a window.
-  readonly import static attribute bool Windowed;
+  /// Gets/sets whether the game runs in a window or fullscreen.
+  import static attribute bool Windowed;
   /// Gets whether the game window has input focus
   readonly import static attribute bool HasInputFocus;
   /// Gets a report about the runtime engine the game is running under.
   readonly import static attribute String RuntimeInfo;
+#ifdef SCRIPT_API_v341
+  /// Gets/sets whether sprites are rendered at screen resolution or native game resolution.
+  import static attribute bool RenderAtScreenResolution;
+#endif
 };
 
 enum BlockingStyle {

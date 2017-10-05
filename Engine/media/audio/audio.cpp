@@ -282,6 +282,13 @@ void audio_update_polled_stuff()
     }
 }
 
+// Applies a volume drop modifier to the clip, in accordance to its audio type
+void apply_volume_drop_to_clip(SOUNDCLIP *clip)
+{
+    int audiotype = ((ScriptAudioClip*)clip->sourceClip)->type;
+    clip->apply_volume_modifier(-(game.audioClipTypes[audiotype].volume_reduction_while_speech_playing * 255 / 100));
+}
+
 void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat)
 {
     if (play.new_music_queue_size >= MAX_QUEUED_MUSIC) {
@@ -339,6 +346,11 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
         // anything of this type is currently playing.
         if (game.audioClipTypes[clip->type].reservedChannels != 1)
             soundfx->set_volume_percent(0);
+    }
+    // Apply volume drop if any speech voice-over is currently playing
+    else if (channels[SCHAN_SPEECH])
+    {
+        apply_volume_drop_to_clip(soundfx);
     }
 
     if (soundfx->play_from(fromOffset) == 0)
@@ -758,17 +770,20 @@ void apply_volume_drop_modifier(bool applyModifier)
 {
     for (int i = 0; i < MAX_SOUND_CHANNELS; i++) 
     {
-        if ((channels[i] != NULL) && (channels[i]->done == 0) && (channels[i]->sourceClip != NULL))
+        if (channels[i] && channels[i]->done == 0 && channels[i]->sourceClip != NULL)
         {
             if (applyModifier)
-            {
-                int audioType = ((ScriptAudioClip*)channels[i]->sourceClip)->type;
-                channels[i]->apply_volume_modifier(-(game.audioClipTypes[audioType].volume_reduction_while_speech_playing * 255 / 100));
-            }
+                apply_volume_drop_to_clip(channels[i]);
             else
-                channels[i]->apply_volume_modifier(0);
+                channels[i]->apply_volume_modifier(0); // reset modifier
         }
     }
+}
+
+// Checks if speech voice-over is currently playing, and reapply volume drop to all other active clips
+void update_volume_drop_if_voiceover()
+{
+    apply_volume_drop_modifier(channels[SCHAN_SPEECH] != NULL);
 }
 
 extern volatile char want_exit;

@@ -16,6 +16,8 @@ Editor:
  - Removed legacy game compiler.
  - Raw compiled game data is now saved in "Compiled\Data" folder, as opposed to
    just "Compiled".
+ - The speech.vox file is now not recompiled if game is quick-run (using F5).
+   Engine is supposed to find newer files in the Speech folder.
  - Editor can now import games older than 2.72, and newer too (3.*) if you have
    extracted data files from compiled executable.
  - ScriptAPIVersion and ScriptCompatibilityLevel settings now have "Highest"
@@ -38,6 +40,8 @@ Script:
  - Fixed Strings in switch, making them compare by value again.
  - Fixed compiler mistakes caused by the use of objects of empty type
    (that is - struct without any variables in it).
+ - Fixed few cases of possible compiler crashing when there is an unfinished
+   statement in the end of the script.
 
 Script API:
  - A new parameter StopMovementStyle is added to following functions: LockView,
@@ -54,6 +58,10 @@ Script API:
  - DynamicSprite.CreateFromFile and SaveToFile now support path tokens and
    comply to the new file path rules (no writing files to the game's
    installation directory).
+ - Added setter for System.Windowed property, letting to change it at runtime,
+   switching between windowed and fullscreen modes.
+ - Added System.RenderAtScreenResolution property to change sprite rendering
+   mode at runtime.
 
 Engine:
  - Added OpenGL renderer to Windows version.
@@ -73,17 +81,29 @@ Engine:
    platform-dependent.
  - Implemented separate config option for game's shared data path, to keep it
    distinct from user-defined saves path.
+ - Engine saves last Windowed and RenderAtScreenResolution mode states to the
+   user config file.
  - Engine no longer writes and reads gamma level in saves, meaning that gamma
    keeps its current value when restoring a saved game.
  - Removed arbitrary limit on number of sprites rendered at the same time for
    hardware-accelerated renderers (Direct3D and OpenGL) (was 75), and another
    limit imposed on drawing entries for all drivers (was 200).
+ - Engine now tries to get voice files from the Speech folder first, if one
+   exists, and speech.vox later when quick-run from the Editor.
  - Fixed Speech.VoiceMode not returning correct values when speech.vox is not
    enabled/present.
  - Fixed AdjustVolumeWithScaling character's property not working with the new
    audio system.
+ - Fixed volume drop was not applied to audio clips which begin playing during
+   speech voice-over.
+ - Fixed Game.SetAudioTypeSpeechVolumeDrop did not affect currently playing
+   clips until next voice-over begins.
  - Fixed Game.TranslationFilename returning "default" instead of empty string
    if no translation is set.
+ - Fixed engine was trying to locate "My Documents" folder on Windows Vista and
+   higher even though it did not need it, and reporting internal error if such
+   folder was not found, even though "Saved Games" folder is used instead.
+ - Added missing stubs for agsjoy plugin.
 
 WinSetup:
  - Fixed display mode selection was missing certain items.

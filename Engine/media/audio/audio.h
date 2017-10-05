@@ -38,6 +38,8 @@ void        queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int re
 ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *cachedClip = NULL);
 void        remove_clips_of_type_from_queue(int audioType);
 void        update_queued_clips_volume(int audioType, int new_vol);
+// Checks if speech voice-over is currently playing, and reapply volume drop to all other active clips
+void        update_volume_drop_if_voiceover();
 ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int repeat, int fromOffset, bool queueIfNoChannel);
 ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex);
 void        stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings);

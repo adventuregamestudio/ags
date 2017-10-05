@@ -114,7 +114,6 @@ extern int cur_mode,cur_cursor;
 extern int mouse_frame,mouse_delay;
 extern int lastmx,lastmy;
 extern int replay_time;
-extern int mouse_on_iface_button;
 extern IDriverDependantBitmap *mouseCursor;
 extern int hotx,hoty;
 extern int bg_just_changed;
@@ -2132,7 +2131,6 @@ void draw_screen_overlay() {
     // Draw GUIs - they should always be on top of overlays like
     // speech background text
     our_eip=35;
-    mouse_on_iface_button=-1;
     if (((debug_flags & DBG_NOIFACE)==0) && (displayed_room >= 0)) {
         int aa;
 
@@ -2461,9 +2459,7 @@ void construct_virtual_screen(bool fullRedraw)
     Bitmap *ds = GetVirtualScreen();
 
     gfxDriver->UseSmoothScaling(IS_ANTIALIAS_SPRITES);
-    gfxDriver->RenderSpritesAtScreenResolution(
-        (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined && usetup.Screen.RenderAtScreenRes) ||
-         game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled);
+    gfxDriver->RenderSpritesAtScreenResolution(usetup.RenderAtScreenRes);
 
     pl_run_plugin_hooks(AGSE_PRERENDER, 0);
 

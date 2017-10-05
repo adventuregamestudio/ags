@@ -208,6 +208,7 @@ void play_flc_file(int numb,int playflags) {
 
 // FLIC player end
 
+// Theora player begin
 // TODO: find a way to take Bitmap here?
 Bitmap gl_TheoraBuffer;
 int theora_playing_callback(BITMAP *theoraBuffer)
@@ -257,10 +258,73 @@ int theora_playing_callback(BITMAP *theoraBuffer)
     return check_if_user_input_should_cancel_video();
 }
 
-
-APEG_STREAM* get_theora_size(const char *fileName, int *width, int *height)
+//
+// Theora stream reader callbacks. We need these since we are creating PACKFILE
+// stream by our own rules, and APEG library does not provide means to supply
+// user's PACKFILE.
+//
+// Ironically, internally those callbacks will become a part of another
+// PACKFILE's vtable, of APEG's library, so that will be a PACKFILE reading
+// data using proxy PACKFILE through callback system...
+//
+class ApegStreamReader
 {
-    APEG_STREAM* oggVid = apeg_open_stream(fileName);
+public:
+    ApegStreamReader(const AssetPath path) : _path(path), _pf(NULL) {}
+    ~ApegStreamReader() { Close(); }
+
+    bool Open()
+    {
+        Close(); // PACKFILE cannot be rewinded, sadly
+        _pf = PackfileFromAsset(_path);
+        return _pf != NULL;
+    }
+
+    void Close()
+    {
+        if (_pf)
+            pack_fclose(_pf);
+        _pf = NULL;
+    }
+
+    int Read(void *buffer, int bytes)
+    {
+        return _pf ? pack_fread(buffer, bytes, _pf) : 0;
+    }
+
+    void Skip(int bytes)
+    {
+        if (_pf)
+            pack_fseek(_pf, bytes);
+    }
+
+private:
+    AssetPath _path; // path to the asset
+    PACKFILE *_pf;   // our stream
+};
+
+// Open stream for reading (return suggested cache buffer size).
+int apeg_stream_init(void *ptr)
+{
+    return ((ApegStreamReader*)ptr)->Open() ? F_BUF_SIZE : 0;
+}
+
+// Read requested number of bytes into provided buffer,
+// return actual number of bytes managed to read.
+int apeg_stream_read(void *buffer, int bytes, void *ptr)
+{
+    return ((ApegStreamReader*)ptr)->Read(buffer, bytes);
+}
+
+// Skip requested number of bytes
+void apeg_stream_skip(int bytes, void *ptr)
+{
+    ((ApegStreamReader*)ptr)->Skip(bytes);
+}
+
+APEG_STREAM* get_theora_size(ApegStreamReader &reader, int *width, int *height)
+{
+    APEG_STREAM* oggVid = apeg_open_stream_ex(&reader);
     if (oggVid != NULL)
     {
         apeg_get_video_size(oggVid, width, height);
@@ -298,7 +362,9 @@ void calculate_destination_size_maintain_aspect_ratio(int vidWidth, int vidHeigh
 
 void play_theora_video(const char *name, int skip, int flags)
 {
-	apeg_set_display_depth(BitmapHelper::GetScreenBitmap()->GetColorDepth());
+    ApegStreamReader reader(AssetPath("", name));
+    apeg_set_stream_reader(apeg_stream_init, apeg_stream_read, apeg_stream_skip);
+    apeg_set_display_depth(BitmapHelper::GetScreenBitmap()->GetColorDepth());
     // we must disable length detection, otherwise it takes ages to start
     // playing if the file is large because it seeks through the whole thing
     apeg_disable_length_detection(TRUE);
@@ -311,7 +377,7 @@ void play_theora_video(const char *name, int skip, int flags)
     apeg_ignore_audio((flags >= 10) ? 1 : 0);
 
     int videoWidth, videoHeight;
-    APEG_STREAM *oggVid = get_theora_size(name, &videoWidth, &videoHeight);
+    APEG_STREAM *oggVid = get_theora_size(reader, &videoWidth, &videoHeight);
 
     if (videoWidth == 0)
     {
@@ -363,6 +429,7 @@ void play_theora_video(const char *name, int skip, int flags)
     fli_ddb = NULL;
     invalidate_screen();
 }
+// Theora player end
 
 void video_on_gfxmode_changed()
 {

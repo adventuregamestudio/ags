@@ -23,6 +23,7 @@
 #include "ac/system.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
+#include "main/engine.h"
 #include "main/main.h"
 #include "media/audio/soundclip.h"
 #include "gfx/graphicsdriver.h"
@@ -140,6 +141,12 @@ int System_GetWindowed() {
     return scsystem.windowed;
 }
 
+void System_SetWindowed(int windowed)
+{
+    if (windowed != scsystem.windowed)
+        engine_try_switch_windowed_gfxmode();
+}
+
 int System_GetSupportsGammaControl() {
     return gfxDriver->SupportsGammaControl();
 }
@@ -206,6 +213,16 @@ const char* System_GetRuntimeInfo()
     String runtimeInfo = GetRuntimeInfo();
 
     return CreateNewScriptString(runtimeInfo.GetCStr());
+}
+
+int System_GetRenderAtScreenResolution()
+{
+    return usetup.RenderAtScreenRes;
+}
+
+void System_SetRenderAtScreenResolution(int enable)
+{
+    usetup.RenderAtScreenRes = enable != 0;
 }
 
 //=============================================================================
@@ -352,10 +369,14 @@ RuntimeScriptValue Sc_System_SetVsync(const RuntimeScriptValue *params, int32_t 
     API_SCALL_VOID_PINT(System_SetVsync);
 }
 
-// int ()
 RuntimeScriptValue Sc_System_GetWindowed(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetWindowed);
+}
+
+RuntimeScriptValue Sc_System_SetWindowed(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(System_SetWindowed);
 }
 
 // const char *()
@@ -363,6 +384,18 @@ RuntimeScriptValue Sc_System_GetRuntimeInfo(const RuntimeScriptValue *params, in
 {
     API_SCALL_OBJ(const char, myScriptStringImpl, System_GetRuntimeInfo);
 }
+
+RuntimeScriptValue Sc_System_GetRenderAtScreenResolution(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetRenderAtScreenResolution);
+}
+
+RuntimeScriptValue Sc_System_SetRenderAtScreenResolution(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(System_SetRenderAtScreenResolution);
+}
+
+
 
 
 void RegisterSystemAPI()
@@ -378,6 +411,8 @@ void RegisterSystemAPI()
     ccAddExternalStaticFunction("System::get_NumLock",              Sc_System_GetNumLock);
     ccAddExternalStaticFunction("System::set_NumLock",              Sc_System_SetNumLock);
     ccAddExternalStaticFunction("System::get_OperatingSystem",      Sc_System_GetOS);
+    ccAddExternalStaticFunction("System::get_RenderAtScreenResolution", Sc_System_GetRenderAtScreenResolution);
+    ccAddExternalStaticFunction("System::set_RenderAtScreenResolution", Sc_System_SetRenderAtScreenResolution);
     ccAddExternalStaticFunction("System::get_RuntimeInfo",          Sc_System_GetRuntimeInfo);
     ccAddExternalStaticFunction("System::get_ScreenHeight",         Sc_System_GetScreenHeight);
     ccAddExternalStaticFunction("System::get_ScreenWidth",          Sc_System_GetScreenWidth);
@@ -392,6 +427,7 @@ void RegisterSystemAPI()
     ccAddExternalStaticFunction("System::get_VSync",                Sc_System_GetVsync);
     ccAddExternalStaticFunction("System::set_VSync",                Sc_System_SetVsync);
     ccAddExternalStaticFunction("System::get_Windowed",             Sc_System_GetWindowed);
+    ccAddExternalStaticFunction("System::set_Windowed",             Sc_System_SetWindowed);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 

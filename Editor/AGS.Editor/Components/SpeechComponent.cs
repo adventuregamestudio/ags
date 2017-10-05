@@ -56,8 +56,10 @@ namespace AGS.Editor.Components
 			}
         }
 
-        private void _agsEditor_ExtraOutputCreationStep()
+        private void _agsEditor_ExtraOutputCreationStep(bool miniExeForDebug)
         {
+            if (miniExeForDebug)
+                return;
             string[] speechFileList = ConstructFileListForSpeechVOX();
             RebuildVOXFileIfRequired(Path.Combine(AGSEditor.OUTPUT_DIRECTORY, Path.Combine(AGSEditor.DATA_OUTPUT_DIRECTORY, SPEECH_VOX_FILE_NAME)),
                 speechFileList, _speechVoxStatus);

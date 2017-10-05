@@ -1908,7 +1908,6 @@ namespace AGS.Editor
         public ScriptFunction FindFunctionAtCurrentPosition()
         {
             int currentPos = this.scintillaControl1.CurrentPos;
-            string scriptExtract = scintillaControl1.GetText();
             ScriptFunction func = _autoCompleteForThis.AutoCompleteData.Functions.Find(
                 c => c.StartsAtCharacterIndex <= currentPos && c.EndsAtCharacterIndex >= currentPos);
             return func;

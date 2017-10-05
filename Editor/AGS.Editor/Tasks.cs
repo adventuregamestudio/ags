@@ -225,8 +225,9 @@ namespace AGS.Editor
             }
             _runningGameWithDebugger = withDebugger;
             // custom game install directory (points to where all supplemental data files are)
+            // TODO: get audio and speech paths from a kind of shared config
             parameter += " --runfromide " + Path.Combine(AGSEditor.OUTPUT_DIRECTORY, BuildTargetWindows.WINDOWS_DIRECTORY) +
-                         " " + AudioClip.AUDIO_CACHE_DIRECTORY;
+                         " " + AudioClip.AUDIO_CACHE_DIRECTORY + " " + "Speech";
 
             RunEXEFile(Path.Combine(AGSEditor.DEBUG_OUTPUT_DIRECTORY, Factory.AGSEditor.BaseGameFileName + ".exe"), parameter, true);
 

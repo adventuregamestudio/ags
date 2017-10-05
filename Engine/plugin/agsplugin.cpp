@@ -328,7 +328,10 @@ void IAGSEngine::BlitBitmap (int32 x, int32 y, BITMAP *bmp, int32 masked) {
 }
 void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 trans) {
     Bitmap wrap(bmp, true);
-    GfxUtil::DrawSpriteBlend(gfxDriver->GetMemoryBackBuffer(), Point(x,y), &wrap, kBlendMode_Alpha, true, false, trans);
+    if (gfxDriver->UsesMemoryBackBuffer())
+        GfxUtil::DrawSpriteWithTransparency(gfxDriver->GetMemoryBackBuffer(), &wrap, x, y, trans);
+    else
+        GfxUtil::DrawSpriteBlend(gfxDriver->GetMemoryBackBuffer(), Point(x,y), &wrap, kBlendMode_Alpha, true, false, trans);
 }
 void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle) {
     Common::Bitmap *ds = gfxDriver->GetMemoryBackBuffer();

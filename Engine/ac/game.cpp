@@ -100,8 +100,6 @@ extern DialogTopic *dialog;
 
 extern int ifacepopped;  // currently displayed pop-up GUI (-1 if none)
 extern int mouse_on_iface;   // mouse cursor is over this interface
-extern int mouse_on_iface_button;
-extern int mouse_pushed_iface;  // this BUTTON on interface MOUSE_ON_IFACE is pushed
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 
 extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
@@ -265,6 +263,7 @@ void Game_SetAudioTypeSpeechVolumeDrop(int audioType, int volumeDrop)
         quit("!Game.SetAudioTypeVolume: invalid audio type");
 
     game.audioClipTypes[audioType].volume_reduction_while_speech_playing = volumeDrop;
+    update_volume_drop_if_voiceover();
 }
 
 void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
@@ -495,18 +494,6 @@ void save_game_dialog() {
     if (toload>=0)
         save_game(toload,buffer2);
 }
-
-
-
-
-
-void setup_sierra_interface() {
-    int rr;
-    game.numgui =0;
-    for (rr=0;rr<42;rr++) game.paluses[rr]=PAL_GAMEWIDE;
-    for (rr=42;rr<256;rr++) game.paluses[rr]=PAL_BACKGROUND;
-}
-
 
 void free_do_once_tokens()
 {
@@ -1198,8 +1185,8 @@ void save_game_dialogs(Stream *out)
 void save_game_more_dynamic_values(Stream *out)
 {
     out->WriteInt32(mouse_on_iface);
-    out->WriteInt32(mouse_on_iface_button);
-    out->WriteInt32(mouse_pushed_iface);
+    out->WriteInt32(-1); // mouse_on_iface_button
+    out->WriteInt32(-1); // mouse_pushed_iface
     out->WriteInt32 (ifacepopped);
     out->WriteInt32(game_paused);
     //out->WriteInt32(mi.trk);
@@ -1705,8 +1692,8 @@ void restore_game_dialogs(Stream *in)
 void restore_game_more_dynamic_values(Stream *in)
 {
     mouse_on_iface=in->ReadInt32();
-    mouse_on_iface_button=in->ReadInt32();
-    mouse_pushed_iface=in->ReadInt32();
+    in->ReadInt32(); // mouse_on_iface_button
+    in->ReadInt32(); // mouse_pushed_iface
     ifacepopped = in->ReadInt32();
     game_paused=in->ReadInt32();
 }

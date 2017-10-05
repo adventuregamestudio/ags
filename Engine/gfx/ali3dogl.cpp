@@ -14,6 +14,7 @@
 
 #if defined(WINDOWS_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
 
+#include <algorithm>
 #include "gfx/ali3dexception.h"
 #include "gfx/ali3dogl.h"
 #include "gfx/gfxfilter_ogl.h"
@@ -49,6 +50,7 @@ int device_screen_initialized = 1;
 
 const char* fbo_extension_string = "GL_EXT_framebuffer_object";
 
+// TODO: linking to glew32 library might be a better option
 PFNGLGENFRAMEBUFFERSEXTPROC glGenFramebuffersEXT = 0;
 PFNGLDELETEFRAMEBUFFERSEXTPROC glDeleteFramebuffersEXT = 0;
 PFNGLBINDFRAMEBUFFEREXTPROC glBindFramebufferEXT = 0;
@@ -57,6 +59,26 @@ PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC glGetFramebufferAttachmentParame
 PFNGLGENERATEMIPMAPEXTPROC glGenerateMipmapEXT = 0;
 PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2DEXT = 0;
 PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT = 0;
+// Shaders stuff
+PFNGLCREATESHADERPROC glCreateShader = 0;
+PFNGLSHADERSOURCEPROC glShaderSource = 0;
+PFNGLCOMPILESHADERPROC glCompileShader = 0;
+PFNGLGETSHADERIVPROC glGetShaderiv = 0;
+PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog = 0;
+PFNGLATTACHSHADERPROC glAttachShader = 0;
+PFNGLDETACHSHADERPROC glDetachShader = 0;
+PFNGLDELETESHADERPROC glDeleteShader = 0;
+PFNGLCREATEPROGRAMPROC glCreateProgram = 0;
+PFNGLLINKPROGRAMPROC glLinkProgram = 0;
+PFNGLGETPROGRAMIVPROC glGetProgramiv = 0;
+PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog = 0;
+PFNGLUSEPROGRAMPROC glUseProgram = 0;
+PFNGLDELETEPROGRAMPROC glDeleteProgram = 0;
+PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation = 0;
+PFNGLUNIFORM1IPROC glUniform1i = 0;
+PFNGLUNIFORM1FPROC glUniform1f = 0;
+PFNGLUNIFORM3FPROC glUniform3f = 0;
+
 
 #elif defined(ANDROID_VERSION)
 
@@ -219,6 +241,10 @@ void OGLBitmap::Dispose()
     }
 }
 
+
+OGLGraphicsDriver::ShaderProgram::ShaderProgram() : Program(0), SamplerVar(0), ColorVar(0), AuxVar(0) {}
+
+
 OGLGraphicsDriver::OGLGraphicsDriver() 
 {
 #if defined (WINDOWS_VERSION)
@@ -236,6 +262,7 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   device_screen_physical_height = ios_screen_physical_height
 #endif
 
+  _firstTimeInit = false;
   _backbuffer = 0;
   _fbo = 0;
   _tint_red = 0;
@@ -336,6 +363,24 @@ void OGLGraphicsDriver::SetTintMethod(TintMethod method)
   _legacyPixelShader = (method == TintReColourise);
 }
 
+void OGLGraphicsDriver::FirstTimeInit()
+{
+  // It was told that GL_VERSION is supposed to begin with digits and may have
+  // custom string after, but mobile version of OpenGL seem to have different
+  // version string format.
+  String ogl_v_str = (const char*)glGetString(GL_VERSION);
+  String digits = "1234567890";
+  const char *digits_ptr = std::find_first_of(ogl_v_str.GetCStr(), ogl_v_str.GetCStr() + ogl_v_str.GetLength(),
+      digits.GetCStr(), digits.GetCStr() + digits.GetLength());
+  if (digits_ptr < ogl_v_str.GetCStr() + ogl_v_str.GetLength())
+    _oglVersion.SetFromString(digits_ptr);
+  Debug::Printf(kDbgMsg_Init, "Running OpenGL: %s", ogl_v_str.GetCStr());
+
+  TestRenderToTexture();
+  CreateShaders();
+  _firstTimeInit = true;
+}
+
 bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
 {
 #if defined(ANDROID_VERSION)
@@ -389,8 +434,6 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
 
 void OGLGraphicsDriver::InitGlParams()
 {
-  TestRenderToTexture();
-
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_LIGHTING);
@@ -477,7 +520,7 @@ void OGLGraphicsDriver::DeleteGlContext()
 
 void OGLGraphicsDriver::TestRenderToTexture()
 {
-  char* extensions = (char*)glGetString(GL_EXTENSIONS);
+  const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
 
   if (extensions && strstr(extensions, fbo_extension_string) != NULL)
   {
@@ -509,6 +552,188 @@ void OGLGraphicsDriver::TestRenderToTexture()
 
   if (!_can_render_to_texture)
     _do_render_to_texture = false;
+}
+
+void OGLGraphicsDriver::CreateShaders()
+{
+  // We need at least OpenGL 3.0 to run our tinting shader
+  if (_oglVersion.Major < 3)
+    Debug::Printf(kDbgMsg_Warn, "WARNING: OpenGL 3.0 or higher is required for tinting shader.");
+
+  // TODO: linking with GLEW library might be a better idea
+  #if defined(WINDOWS_VERSION)
+    glCreateShader = (PFNGLCREATESHADERPROC)wglGetProcAddress("glCreateShader");
+    glShaderSource = (PFNGLSHADERSOURCEPROC)wglGetProcAddress("glShaderSource");
+    glCompileShader = (PFNGLCOMPILESHADERPROC)wglGetProcAddress("glCompileShader");
+    glGetShaderiv = (PFNGLGETSHADERIVPROC)wglGetProcAddress("glGetShaderiv");
+    glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)wglGetProcAddress("glGetShaderInfoLog");
+    glAttachShader = (PFNGLATTACHSHADERPROC)wglGetProcAddress("glAttachShader");
+    glDetachShader = (PFNGLDETACHSHADERPROC)wglGetProcAddress("glDetachShader");
+    glDeleteShader = (PFNGLDELETESHADERPROC)wglGetProcAddress("glDeleteShader");
+    glCreateProgram = (PFNGLCREATEPROGRAMPROC)wglGetProcAddress("glCreateProgram");
+    glLinkProgram = (PFNGLLINKPROGRAMPROC)wglGetProcAddress("glLinkProgram");
+    glGetProgramiv = (PFNGLGETPROGRAMIVPROC)wglGetProcAddress("glGetProgramiv");
+    glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)wglGetProcAddress("glGetProgramInfoLog");
+    glUseProgram = (PFNGLUSEPROGRAMPROC)wglGetProcAddress("glUseProgram");
+    glDeleteProgram = (PFNGLDELETEPROGRAMPROC)wglGetProcAddress("glDeleteProgram");
+    glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)wglGetProcAddress("glGetUniformLocation");
+    glUniform1i = (PFNGLUNIFORM1IPROC)wglGetProcAddress("glUniform1i");
+    glUniform1f = (PFNGLUNIFORM1FPROC)wglGetProcAddress("glUniform1f");
+    glUniform3f = (PFNGLUNIFORM3FPROC)wglGetProcAddress("glUniform3f");
+  #endif
+
+  if (!glCreateShader)
+  {
+    Debug::Printf(kDbgMsg_Error, "ERROR: OpenGL shader functions could not be linked.");
+    return;
+  }
+
+  CreateTintShader();
+  CreateLightShader();
+}
+
+void OGLGraphicsDriver::CreateTintShader()
+{
+  const char *fragment_shader_src = 
+    // NOTE: this shader emulates "historical" AGS software tinting; it is not
+    // necessarily "proper" tinting in modern terms.
+    // The RGB-HSV-RGB conversion found in the Internet (copyright unknown);
+    // Color processing is replicated from Direct3D shader by Chris Jones
+    // (Engine/resource/tintshaderLegacy.fx).
+    "\
+                                #version 130\n\
+                                out vec4 gl_FragColor;\n\
+                                uniform sampler2D textID;\n\
+                                uniform vec3 tintHSV;\n\
+                                uniform vec3 tintAmnTrsLum;\n\
+                                \
+                                vec3 rgb2hsv(vec3 c)\n\
+                                {\n\
+                                    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);\n\
+                                    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));\n\
+                                    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));\n\
+                                \
+                                    float d = q.x - min(q.w, q.y);\n\
+                                    float e = 1.0e-10;\n\
+                                    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);\n\
+                                }\n\
+                                \
+                                vec3 hsv2rgb(vec3 c)\n\
+                                {\n\
+                                    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n\
+                                    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\n\
+                                    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\n\
+                                }\n\
+                                \
+                                float getValue(vec3 color)\n\
+                                {\n\
+                                    float colorMax = max (color[0], color[1]);\n\
+                                    colorMax = max (colorMax, color[2]);\n\
+                                    return colorMax;\n\
+                                }\n\
+                                \
+                                void main()\n\
+                                {\n\
+                                    vec2 coords = gl_TexCoord[0].xy;\n\
+                                    vec4 src_col = texture2D(textID, coords);\n\
+                                    float amount = tintAmnTrsLum[0];\n\
+                                    float lum = getValue(src_col.xyz);\n\
+                                    lum = max(lum - (1.0 - tintAmnTrsLum[2]), 0.0);\n\
+                                    vec3 new_col = (hsv2rgb(vec3(tintHSV[0],tintHSV[1],lum)) * amount + src_col.xyz*(1-amount));\n\
+                                    gl_FragColor = vec4(new_col, src_col.w * tintAmnTrsLum[1]);\n\
+                                }\n\
+    ";
+  CreateShaderProgram(_tintShader, "Tinting", fragment_shader_src, "textID", "tintHSV", "tintAmnTrsLum");
+}
+
+void OGLGraphicsDriver::CreateLightShader()
+{
+  const char *fragment_shader_src = 
+    // NOTE: due to how the lighting works in AGS, this is combined MODULATE / ADD shader.
+    // if the light is < 0, then MODULATE operation is used, otherwise ADD is used.
+    // NOTE: it's been said that using branching in shaders produces inefficient code.
+    // If that will ever become a real problem, we can easily split this shader in two.
+    "\
+                                #version 130\n\
+                                out vec4 gl_FragColor;\n\
+                                uniform sampler2D textID;\n\
+                                uniform float light;\n\
+                                uniform float alpha;\n\
+                                \
+                                void main()\n\
+                                {\n\
+                                    vec2 coords = gl_TexCoord[0].xy;\n\
+                                    gl_FragColor = texture2D(textID, coords);\n\
+                                    if (light >= 0.0)\n\
+                                        gl_FragColor = vec4(gl_FragColor.xyz + vec3(light, light, light), gl_FragColor.w * alpha);\n\
+                                    else\n\
+                                        gl_FragColor = vec4(gl_FragColor.xyz * abs(light), gl_FragColor.w * alpha);\n\
+                                }\n\
+    ";
+  CreateShaderProgram(_lightShader, "Lighting", fragment_shader_src, "textID", "light", "alpha");
+}
+
+void OGLGraphicsDriver::CreateShaderProgram(ShaderProgram &prg, const char *name, const char *fragment_shader_src,
+                                            const char *sampler_var, const char *color_var, const char *aux_var)
+{
+  GLint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(fragment_shader, 1, &fragment_shader_src, NULL);
+  glCompileShader(fragment_shader);
+  GLint compile_result;
+  glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &compile_result);
+  if (compile_result == GL_FALSE)
+  {
+    OutputShaderError(fragment_shader, String::FromFormat("%s program's fragment shader", name), true);
+    glDeleteShader(fragment_shader);
+    return;
+  }
+
+  GLuint program = glCreateProgram();
+  glAttachShader(program, fragment_shader);
+  glLinkProgram(program);
+
+  GLint link_result = 0;
+  glGetProgramiv(program, GL_LINK_STATUS, &link_result);
+  if(link_result == GL_FALSE)
+  {
+    OutputShaderError(program, String::FromFormat("%s program", name), false);
+    glDeleteProgram(program);
+    glDeleteShader(fragment_shader);
+    return;
+  }
+  glDetachShader(program, fragment_shader);
+  glDeleteShader(fragment_shader);
+
+  prg.Program = program;
+  prg.SamplerVar = glGetUniformLocation(program, sampler_var);
+  prg.ColorVar = glGetUniformLocation(program, color_var);
+  prg.AuxVar = glGetUniformLocation(program, aux_var);
+}
+
+void OGLGraphicsDriver::DeleteShaderProgram(ShaderProgram &prg)
+{
+  if (prg.Program)
+    glDeleteProgram(prg.Program);
+  prg.Program = 0;
+}
+
+void OGLGraphicsDriver::OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader)
+{
+  GLint log_len = 0;
+  if (is_shader)
+    glGetShaderiv(obj_id, GL_INFO_LOG_LENGTH, &log_len);
+  else
+    glGetProgramiv(obj_id, GL_INFO_LOG_LENGTH, &log_len);
+  std::vector<GLchar> errorLog(log_len);
+  if (is_shader)
+    glGetShaderInfoLog(obj_id, log_len, &log_len, &errorLog[0]);
+  else
+    glGetProgramInfoLog(obj_id, log_len, &log_len, &errorLog[0]);
+
+  Debug::Printf(kDbgMsg_Error, "ERROR: OpenGL: %s %s:", obj_name.GetCStr(), is_shader ? "failed to compile" : "failed to link");
+  Debug::Printf(kDbgMsg_Error, "----------------------------------------");
+  Debug::Printf(kDbgMsg_Error, "%s", &errorLog[0]);
+  Debug::Printf(kDbgMsg_Error, "----------------------------------------");
 }
 
 void OGLGraphicsDriver::SetupBackbufferTexture()
@@ -549,8 +774,8 @@ void OGLGraphicsDriver::SetupBackbufferTexture()
 
   // Assign vertices of the backbuffer texture position in the scene
   _backbuffer_vertices[0] = _backbuffer_vertices[4] = 0;
-  _backbuffer_vertices[2] = _backbuffer_vertices[6] = _srcRect.Right;
-  _backbuffer_vertices[5] = _backbuffer_vertices[7] = _srcRect.Bottom;
+  _backbuffer_vertices[2] = _backbuffer_vertices[6] = _srcRect.GetWidth();
+  _backbuffer_vertices[5] = _backbuffer_vertices[7] = _srcRect.GetHeight();
   _backbuffer_vertices[1] = _backbuffer_vertices[3] = 0;
 }
 
@@ -598,6 +823,8 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
   {
     if (!InitGlScreen(mode))
       return false;
+    if (!_firstTimeInit)
+      FirstTimeInit();
     InitGlParams();
   }
   catch (Ali3DException exception)
@@ -715,6 +942,9 @@ void OGLGraphicsDriver::UnInit()
   _hWnd = NULL;
   _hDC = NULL;
 #endif
+
+  DeleteShaderProgram(_tintShader);
+  DeleteShaderProgram(_lightShader);
 }
 
 OGLGraphicsDriver::~OGLGraphicsDriver()
@@ -813,6 +1043,82 @@ void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool glob
   if (bmpToDraw->_transparency >= 255)
     return;
 
+  if (bmpToDraw->_tintSaturation > 0)
+  {
+    // Use tinting shader
+    if (_tintShader.Program)
+    {
+      glUseProgram(_tintShader.Program);
+      float rgb[3];
+      float sat_trs_lum[3]; // saturation / transparency / luminance
+      if (_legacyPixelShader)
+      {
+        rgb_to_hsv(bmpToDraw->_red, bmpToDraw->_green, bmpToDraw->_blue, &rgb[0], &rgb[1], &rgb[2]);
+        rgb[0] /= 360.0; // In HSV, Hue is 0-360
+      }
+      else
+      {
+        rgb[0] = (float)bmpToDraw->_red / 255.0;
+        rgb[1] = (float)bmpToDraw->_green / 255.0;
+        rgb[2] = (float)bmpToDraw->_blue / 255.0;
+      }
+
+      sat_trs_lum[0] = (float)bmpToDraw->_tintSaturation / 255.0;
+
+      if (bmpToDraw->_transparency > 0)
+        sat_trs_lum[1] = (float)bmpToDraw->_transparency / 255.0;
+      else
+        sat_trs_lum[1] = 1.0f;
+
+      if (bmpToDraw->_lightLevel > 0)
+        sat_trs_lum[2] = (float)bmpToDraw->_lightLevel / 255.0;
+      else
+        sat_trs_lum[2] = 1.0f;
+
+      glUniform1i(_tintShader.SamplerVar, 0);
+      glUniform3f(_tintShader.ColorVar, rgb[0], rgb[1], rgb[2]);
+      glUniform3f(_tintShader.AuxVar, sat_trs_lum[0], sat_trs_lum[1], sat_trs_lum[2]);
+    }
+  }
+  else if (bmpToDraw->_lightLevel > 0)
+  {
+    // Use light shader
+      glUseProgram(_lightShader.Program);
+    float light_lev = 1.0f;
+    float alpha = 1.0f;
+
+    // Light level parameter in DDB is weird, it is measured in units of
+    // 1/255 (although effectively 1/250, see draw.cpp), but contains two
+    // ranges: 1-255 is darker range and 256-511 is brighter range.
+    // (light level of 0 means "default color")
+    if ((bmpToDraw->_lightLevel > 0) && (bmpToDraw->_lightLevel < 256))
+    {
+      // darkening the sprite... this stupid calculation is for
+      // consistency with the allegro software-mode code that does
+      // a trans blend with a (8,8,8) sprite
+      light_lev = -((bmpToDraw->_lightLevel * 192) / 256 + 64) / 255.f; // darker, uses MODULATE op
+    }
+    else if (bmpToDraw->_lightLevel > 256)
+    {
+      light_lev = ((bmpToDraw->_lightLevel - 256) / 2) / 255.f; // brighter, uses ADD op
+    }
+
+    if (bmpToDraw->_transparency > 0)
+      alpha = bmpToDraw->_transparency / 255.f;
+
+    glUniform1i(_lightShader.SamplerVar, 0);
+    glUniform1f(_lightShader.ColorVar, light_lev);
+    glUniform1f(_lightShader.AuxVar, alpha);
+  }
+  else
+  {
+    // Use default processing
+    if (bmpToDraw->_transparency == 0)
+      glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    else
+      glColor4f(1.0f, 1.0f, 1.0f, bmpToDraw->_transparency / 255.0f);
+  }
+
   float width = bmpToDraw->GetWidthToRender();
   float height = bmpToDraw->GetHeightToRender();
   float xProportion = (float)width / (float)bmpToDraw->_width;
@@ -872,11 +1178,6 @@ void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool glob
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    if (bmpToDraw->_transparency == 0)
-      glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-    else
-      glColor4f(1.0f, 1.0f, 1.0f, ((float)bmpToDraw->_transparency / 255.0f));
-
     if (_do_render_to_texture)
       glTranslatef(_backRenderSize.Width / 2.0f, _backRenderSize.Height / 2.0f, 0.0f);
     else
@@ -919,6 +1220,7 @@ void OGLGraphicsDriver::_renderSprite(OGLDrawListEntry *drawListEntry, bool glob
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   }
+  glUseProgram(0);
 }
 
 void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterwards)
@@ -928,7 +1230,9 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 #endif
 
   if (!device_screen_initialized)
-  {
+  {// TODO: find out if this is really necessary here and why
+    if (!_firstTimeInit)
+      FirstTimeInit();
     InitGlParams();
     device_screen_initialized = 1;
   }

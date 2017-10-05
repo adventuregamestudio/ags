@@ -15,7 +15,9 @@ namespace AGS.Editor.Components
         private readonly int _screenWidth;
         private readonly int _screenHeight;
 
+#pragma warning disable 0414
         private Timer _timer;
+#pragma warning restore 0414
 
         public StatisticsSenderComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)

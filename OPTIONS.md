@@ -15,7 +15,7 @@ Locations of two latter files differ between running platforms:
     * user's game config: $XDG_DATA_HOME/ags/GAMENAME/acsetup.cfg
     * NOTE: if $XDG_DATA_HOME is not defined, then "$HOME/.local/share" is used instead.
   * **Windows**:
-    * user's global config: %USERPROFILE%/Saved Games/.ags/acsetup.cfg
+    * user's global config: not used
     * user's game config: %USERPROFILE%/Saved Games/GAMENAME/acsetup.cfg
 
 ## Configuration file options

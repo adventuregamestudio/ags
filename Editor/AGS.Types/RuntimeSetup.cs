@@ -39,10 +39,12 @@ namespace AGS.Types
             filters["stdscale"] = "Nearest-neighbour";
             filters["linear"] = "Linear interpolation (with anti-aliasing)";
             _gfxFiltersAll.Add(GraphicsDriver.D3D9, filters);
+            _gfxFiltersAll.Add(GraphicsDriver.OpenGL, filters);
 
             _gfxFiltersDefault = new Dictionary<GraphicsDriver, string>();
             _gfxFiltersDefault[GraphicsDriver.Software] = "stdscale";
             _gfxFiltersDefault[GraphicsDriver.D3D9] = "stdscale";
+            _gfxFiltersDefault[GraphicsDriver.OpenGL] = "stdscale";
         }
 
         public void SetDefaults()

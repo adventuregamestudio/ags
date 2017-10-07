@@ -158,6 +158,7 @@ Bitmap *_old_screen=NULL;
 Bitmap *_sub_screen=NULL;
 
 int offsetx = 0, offsety = 0;
+int wasShakingScreen = 0;
 
 IDriverDependantBitmap* roomBackgroundBmp = NULL;
 
@@ -792,6 +793,9 @@ void render_to_screen(Bitmap *toRender, int atx, int aty) {
     aty += play.viewport.Top;
     gfxDriver->SetRenderOffset(atx, aty);
 
+    // For software renderer, need to blacken upper part of the game frame when shaking screen moves image down
+    if (aty > 0 && wasShakingScreen && gfxDriver->UsesMemoryBackBuffer())
+        gfxDriver->ClearRectangle(play.viewport.Left, play.viewport.Top, play.viewport.GetWidth() - 1, aty, NULL);
     render_black_borders(atx, aty);
 
     gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, NULL);
@@ -850,7 +854,6 @@ void write_screen() {
     if (play.fast_forward)
         return;
 
-    static int wasShakingScreen = 0;
     bool clearScreenBorders = false;
     int at_yp = 0;
 

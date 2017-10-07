@@ -233,8 +233,13 @@ void ALSoftwareGraphicsDriver::CreateVirtualScreen()
 {
   if (!IsModeSet() || !IsRenderFrameValid() || !IsNativeSizeValid() || !_filter)
     return;
-  BitmapHelper::SetScreenBitmap( _filter->InitVirtualScreen(BitmapHelper::GetScreenBitmap(), _srcRect.GetSize(), _dstRect) );
-  virtualScreen = BitmapHelper::GetScreenBitmap();
+  // Adjust clipping so nothing gets drawn outside the game frame
+  Bitmap *real_screen = BitmapHelper::GetScreenBitmap();
+  real_screen->SetClip(_dstRect);
+  // Initialize scaling filter and receive virtual screen pointer
+  // (which may or not be the same as real screen)
+  virtualScreen = _filter->InitVirtualScreen(real_screen, _srcRect.GetSize(), _dstRect);
+  BitmapHelper::SetScreenBitmap( virtualScreen );
 }
 
 void ALSoftwareGraphicsDriver::ReleaseDisplayMode()

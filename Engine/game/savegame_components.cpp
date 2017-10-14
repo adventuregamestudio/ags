@@ -1130,14 +1130,13 @@ SavegameError WriteComponent(PStream out, ComponentHandler &hdlr)
 
 SavegameError WriteAllCommon(PStream out)
 {
-    SavegameError svg_err;
     for (int type = 0; !ComponentHandlers[type].Name.IsEmpty(); ++type)
     {
         SavegameError err = WriteComponent(out, ComponentHandlers[type]);
-        if (svg_err != kSvgErr_NoError)
+        if (err != kSvgErr_NoError)
         {
             Debug::Printf(kDbgMsg_Error, "ERROR: failed to write save block: type = %s", ComponentHandlers[type].Name.GetCStr());
-            return svg_err;
+            return err;
         }
         update_polled_stuff_if_runtime();
     }

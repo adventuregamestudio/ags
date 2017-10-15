@@ -79,7 +79,7 @@ namespace SavegameComponents
 void WriteFormatTag(PStream out, const String &tag, bool open = true)
 {
     String full_tag = String::FromFormat(open ? "<%s>" : "</%s>", tag.GetCStr());
-    out->Write(full_tag, full_tag.GetLength());
+    out->Write(full_tag.GetCStr(), full_tag.GetLength());
 }
 
 bool ReadFormatTag(PStream in, String &tag, bool open = true)
@@ -167,8 +167,6 @@ inline bool AssertGameObjectContent2(int new_val, int original_val, const char *
 
 SavegameError WriteGameState(PStream out)
 {
-    out->WriteInt32(System_GetColorDepth());
-
     // Game base
     game.WriteForSavegame(out);
     // Game palette
@@ -202,10 +200,6 @@ SavegameError WriteGameState(PStream out)
 
 SavegameError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    // CHECKME: is this still essential? if yes, is there possible workaround?
-    if (in->ReadInt32() != System_GetColorDepth())
-        return kSvgErr_DifferentColorDepth;
-
     // Game base
     game.ReadFromSavegame(in);
     // Game palette
@@ -605,7 +599,7 @@ SavegameError WriteDynamicSprites(PStream out)
     out->WriteInt32(0); // number of dynamic sprites
     out->WriteInt32(0); // top index
     int count = 0;
-    int top_index = 0;
+    int top_index = 1;
     for (int i = 1; i < spriteset.elements; ++i)
     {
         if (game.spriteflags[i] & SPF_DYNAMICALLOC)
@@ -782,10 +776,11 @@ SavegameError ReadRoomStates(PStream in, int32_t cmp_ver, const PreservedParams 
     for (; roomstat_count > 0; --roomstat_count)
     {
         int id = in->ReadInt32();
-        if (!AssertCompatRange(id, 0, MAX_ROOMS - 1, "room index"))
-            return kSvgErr_IncompatibleEngine;
-        else if (id >= 0)
+        // If id == -1, then the player has not been there yet (or room state was reset)
+        if (id != -1)
         {
+            if (!AssertCompatRange(id, 0, MAX_ROOMS - 1, "room index"))
+                return kSvgErr_IncompatibleEngine;
             if (!AssertFormatTag(in, "RoomState", true))
                 return kSvgErr_InconsistentFormat;
             RoomStatus *roomstat = getRoomStatus(id);
@@ -1075,10 +1070,14 @@ struct ComponentInfo
 
 SavegameError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &info)
 {
+    size_t pos = in->GetPosition();
     info = ComponentInfo(); // reset in case of early error
     info.Offset = in->GetPosition();
-    if (!ReadFormatTag(in, info.Name, true))
-        return kSvgErr_ComponentOpeningTagMismatch;
+    if (!ReadFormatTag(in, info.Name, true)) {
+        if (in->EOS())
+            return kSvgErr_ExpectedEOS; // report end of stream (expected case)
+        return kSvgErr_ComponentOpeningTagFormat;
+    }
     info.Version = in->ReadInt32();
 
     const ComponentHandler *handler = NULL;
@@ -1091,9 +1090,9 @@ SavegameError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &in
     if (info.Version > handler->Version)
         return kSvgErr_UnsupportedComponentVersion;
     SavegameError err = handler->Unserialize(in, info.Version, hlp.PP, hlp.RData);
-    if (err != kSvgErr_NoError)
+    if (err == kSvgErr_NoError)
         if (!AssertFormatTag(in, info.Name, false))
-            err = kSvgErr_ComponentClosingTagMismatch;
+            err = kSvgErr_ComponentClosingTagFormat;
     return err;
 }
 
@@ -1107,9 +1106,11 @@ SavegameError ReadAll(PStream in, SavegameVersion svg_version, const PreservedPa
     {
         ComponentInfo info;
         SavegameError err = ReadComponent(in, hlp, info);
+        if (err == kSvgErr_ExpectedEOS)
+            break; // this is normal
         if (err != kSvgErr_NoError)
         {
-            Debug::Printf(kDbgMsg_Error, "ERROR: failed to read save block: type = %s, version = %i, at offset = %u",
+            Debug::Printf(kDbgMsg_Error, "ERROR: failed to read savegame component: type = %s, version = %i, at offset = %u",
                 info.Name.GetCStr(), info.Version, info.Offset);
             return err;
         }
@@ -1123,7 +1124,7 @@ SavegameError WriteComponent(PStream out, ComponentHandler &hdlr)
     WriteFormatTag(out, hdlr.Name, true);
     out->WriteInt32(hdlr.Version);
     SavegameError err = hdlr.Serialize(out);
-    if (err != kSvgErr_NoError)
+    if (err == kSvgErr_NoError)
         WriteFormatTag(out, hdlr.Name, false);
     return err;
 }
@@ -1135,7 +1136,7 @@ SavegameError WriteAllCommon(PStream out)
         SavegameError err = WriteComponent(out, ComponentHandlers[type]);
         if (err != kSvgErr_NoError)
         {
-            Debug::Printf(kDbgMsg_Error, "ERROR: failed to write save block: type = %s", ComponentHandlers[type].Name.GetCStr());
+            Debug::Printf(kDbgMsg_Error, "ERROR: failed to write savegame component: type = %s", ComponentHandlers[type].Name.GetCStr());
             return err;
         }
         update_polled_stuff_if_runtime();

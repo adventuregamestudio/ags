@@ -60,8 +60,8 @@ enum SavegameError
     kSvgErr_FormatVersionNotSupported,
     kSvgErr_IncompatibleEngine,
     kSvgErr_GameGuidMismatch,
-    kSvgErr_ComponentOpeningTagMismatch,
-    kSvgErr_ComponentClosingTagMismatch,
+    kSvgErr_ComponentOpeningTagFormat,
+    kSvgErr_ComponentClosingTagFormat,
     kSvgErr_UnsupportedComponent,
     kSvgErr_InconsistentFormat,
     kSvgErr_UnsupportedComponentVersion,
@@ -70,6 +70,7 @@ enum SavegameError
     kSvgErr_InconsistentPlugin,
     kSvgErr_DifferentColorDepth,
     kSvgErr_GameObjectInitFailed,
+    kSvgErr_ExpectedEOS,
     kNumSavegameError
 };
 

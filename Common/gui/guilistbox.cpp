@@ -337,6 +337,8 @@ void GUIListBox::ReadFromSavegame(Stream *in)
     Font = in->ReadInt32();
 
     ItemCount = in->ReadInt32();
+    Items.resize(ItemCount);
+    SavedGameIndex.resize(ItemCount);
     for (int i = 0; i < ItemCount; ++i)
         Items[i] = StrUtil::ReadString(in);
     if (ListBoxFlags & kListBox_SvgIndex)

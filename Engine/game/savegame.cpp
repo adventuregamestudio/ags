@@ -131,10 +131,10 @@ String GetSavegameErrorText(SavegameError err)
         return "Save was written by incompatible engine, or file is corrupted";
     case kSvgErr_GameGuidMismatch:
         return "Game GUID does not match, saved by a different game";
-    case kSvgErr_ComponentOpeningTagMismatch:
-        return "Mismatching opening component tag";
-    case kSvgErr_ComponentClosingTagMismatch:
-        return "Mismatching closing component tag";
+    case kSvgErr_ComponentOpeningTagFormat:
+        return "Failed to parse opening component tag";
+    case kSvgErr_ComponentClosingTagFormat:
+        return "Failed to parse closing component tag";
     case kSvgErr_UnsupportedComponent:
         return "Unknown and/or unsupported component";
     case kSvgErr_InconsistentFormat:
@@ -656,6 +656,7 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     StrUtil::WriteString(game.guid, out);
     StrUtil::WriteString(game.gamename, out);
     StrUtil::WriteString(usetup.main_data_filename, out);
+    out->WriteInt32(System_GetColorDepth());
     // User description
     StrUtil::WriteString(user_text, out);
     WriteSaveImage(out, user_image);
@@ -684,19 +685,14 @@ PStream StartSavegame(const String &filename, const String &user_text, const Bit
     // MS Windows Vista rich media header
     vistaHeader.WriteToFile(out);
 
-    // Savegame signature and general version
-    out->Write(SavegameSource::Signature, SavegameSource::Signature.GetLength());
-    out->WriteInt32(kSvgVersion_Current);
+    // Savegame signature
+    out->Write(SavegameSource::Signature.GetCStr(), SavegameSource::Signature.GetLength());
 
     // CHECKME: what is this plugin hook suppose to mean, and if it is called here correctly
     pl_run_plugin_hooks(AGSE_PRESAVEGAME, 0);
 
     // Write descrition block
     WriteDescription(out, user_text, user_image);
-
-    // Write current display mode parameters
-    out->WriteInt32(play.viewport.GetHeight()); // for compatibility with old engines
-    out->WriteInt32(System_GetColorDepth());
     return PStream(out);
 }
 

@@ -62,6 +62,7 @@ enum SavegameError
     kSvgErr_GameGuidMismatch,
     kSvgErr_ComponentOpeningTagFormat,
     kSvgErr_ComponentClosingTagFormat,
+    kSvgErr_ComponentSizeMismatch,
     kSvgErr_UnsupportedComponent,
     kSvgErr_InconsistentFormat,
     kSvgErr_UnsupportedComponentVersion,

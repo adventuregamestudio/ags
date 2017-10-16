@@ -688,8 +688,7 @@ SavegameError ReadDynamicSurfaces(PStream in, int32_t cmp_ver, const PreservedPa
 {
     if (!AssertCompatLimit(in->ReadInt32(), MAX_DYNAMIC_SURFACES, "Dynamic Surfaces"))
         return kSvgErr_GameContentAssertion;
-    // load into a temp array since ccUnserialiseObjects will destroy
-    // it otherwise
+    // Load the surfaces into a temporary array since ccUnserialiseObjects will destroy them otherwise
     r_data.DynamicSurfaces.resize(MAX_DYNAMIC_SURFACES);
     for (int i = 0; i < MAX_DYNAMIC_SURFACES; ++i)
     {
@@ -1063,9 +1062,11 @@ struct ComponentInfo
 {
     String  Name;
     int32_t Version;
-    size_t  Offset;
+    size_t  Offset;     // offset at which an opening tag is located
+    size_t  DataOffset; // offset at which component data begins
+    size_t  DataSize;   // expected size of component data
 
-    ComponentInfo() : Version(-1), Offset(0) {}
+    ComponentInfo() : Version(-1), Offset(0), DataOffset(0), DataSize(0) {}
 };
 
 SavegameError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &info)
@@ -1079,6 +1080,8 @@ SavegameError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &in
         return kSvgErr_ComponentOpeningTagFormat;
     }
     info.Version = in->ReadInt32();
+    info.DataSize = in->ReadInt32();
+    info.DataOffset = in->GetPosition();
 
     const ComponentHandler *handler = NULL;
     std::map<String, ComponentHandler>::const_iterator it_hdr = hlp.Handlers.find(info.Name);
@@ -1090,10 +1093,13 @@ SavegameError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &in
     if (info.Version > handler->Version)
         return kSvgErr_UnsupportedComponentVersion;
     SavegameError err = handler->Unserialize(in, info.Version, hlp.PP, hlp.RData);
-    if (err == kSvgErr_NoError)
-        if (!AssertFormatTag(in, info.Name, false))
-            err = kSvgErr_ComponentClosingTagFormat;
-    return err;
+    if (err != kSvgErr_NoError)
+        return err;
+    if (in->GetPosition() - info.DataOffset != info.DataSize)
+        return kSvgErr_ComponentSizeMismatch;
+    if (!AssertFormatTag(in, info.Name, false))
+        return kSvgErr_ComponentClosingTagFormat;
+    return kSvgErr_NoError;
 }
 
 SavegameError ReadAll(PStream in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data)
@@ -1123,7 +1129,13 @@ SavegameError WriteComponent(PStream out, ComponentHandler &hdlr)
 {
     WriteFormatTag(out, hdlr.Name, true);
     out->WriteInt32(hdlr.Version);
+    size_t ref_pos = out->GetPosition();
+    out->WriteInt32(0); // size
     SavegameError err = hdlr.Serialize(out);
+    size_t end_pos = out->GetPosition();
+    out->Seek(ref_pos, kSeekBegin);
+    out->WriteInt32(end_pos - ref_pos - sizeof(int32_t)); // size of serialized component data
+    out->Seek(end_pos, kSeekBegin);
     if (err == kSvgErr_NoError)
         WriteFormatTag(out, hdlr.Name, false);
     return err;

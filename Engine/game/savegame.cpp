@@ -135,6 +135,8 @@ String GetSavegameErrorText(SavegameError err)
         return "Failed to parse opening component tag";
     case kSvgErr_ComponentClosingTagFormat:
         return "Failed to parse closing component tag";
+    case kSvgErr_ComponentSizeMismatch:
+        return "Component data size mismatch";
     case kSvgErr_UnsupportedComponent:
         return "Unknown and/or unsupported component";
     case kSvgErr_InconsistentFormat:

@@ -129,6 +129,7 @@ void unload_game_file();
 void save_game(int slotn, const char*descript);
 bool read_savedgame_description(const Common::String &savedgame, Common::String &description);
 bool read_savedgame_screenshot(const Common::String &savedgame, int &want_shot);
+void save_game_data(Common::Stream *out);
 // Tries to restore saved game and displays an error on failure; if the error occured
 // too late, when the game data was already overwritten, shuts engine down.
 bool try_restore_save(int slot);
@@ -166,6 +167,8 @@ extern int in_new_room;
 extern int new_room_pos;
 extern int new_room_x, new_room_y, new_room_loop;
 extern int displayed_room;
+extern int frames_per_second;
+extern unsigned int loopcounter;
 extern Common::String saveGameSuffix;
 extern int game_paused;
 

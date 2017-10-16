@@ -29,7 +29,7 @@ void QueuedAudioItem::ReadFromFile(Stream *in)
     in->ReadInt32(); // cachedClip
 }
 
-void QueuedAudioItem::WriteToFile(Stream *out)
+void QueuedAudioItem::WriteToFile(Stream *out) const
 {
     out->WriteInt16(audioClipIndex);
     out->WriteInt16(priority);

@@ -1086,355 +1086,13 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
     return fileSize;
 }
 
-void save_game_head_dynamic_values(Stream *out)
-{
-    out->WriteInt32(frames_per_second);
-    out->WriteInt32(cur_mode);
-    out->WriteInt32(cur_cursor);
-    out->WriteInt32(offsetx); out->WriteInt32(offsety);
-    out->WriteInt32(loopcounter);
-}
-
-void save_game_spriteset(Stream *out)
-{
-    out->WriteInt32(spriteset.elements);
-    for (int bb = 1; bb < spriteset.elements; bb++) {
-        if (game.spriteflags[bb] & SPF_DYNAMICALLOC) {
-            out->WriteInt32(bb);
-            out->WriteInt8(game.spriteflags[bb]);
-            serialize_bitmap(spriteset[bb], out);
-        }
-    }
-    // end of dynamic sprite list
-    out->WriteInt32(0);
-}
-
-void save_game_scripts(Stream *out)
-{
-    // write the data segment of the global script
-    int gdatasize=gameinst->globaldatasize;
-    out->WriteInt32(gdatasize);
-    // MACPORT FIX: just in case gdatasize is 2 or 4, don't want to swap endian
-    out->Write(&gameinst->globaldata[0], gdatasize);
-    // write the script modules data segments
-    out->WriteInt32(numScriptModules);
-    for (int bb = 0; bb < numScriptModules; bb++) {
-        int glsize = moduleInst[bb]->globaldatasize;
-        out->WriteInt32(glsize);
-        if (glsize > 0) {
-            out->Write(&moduleInst[bb]->globaldata[0], glsize);
-        }
-    }
-}
-
-void WriteRoomStatus_Aligned(RoomStatus *roomstat, Stream *out)
-{
-    AlignedStream align_s(out, Common::kAligned_Write);
-    roomstat->WriteToFile_v321(&align_s);
-}
-
-void save_game_room_state(Stream *out)
-{
-    out->WriteInt32(displayed_room);
-
-    // write the room state for all the rooms the player has been in
-    RoomStatus* roomstat;
-    for (int bb = 0; bb < MAX_ROOMS; bb++) {
-        if (isRoomStatusValid(bb))
-        {
-            roomstat = getRoomStatus(bb);
-            if (roomstat->beenhere) {
-                out->WriteInt8 (1);
-                WriteRoomStatus_Aligned(roomstat, out);
-                if (roomstat->tsdatasize>0)
-                    out->Write(&roomstat->tsdata[0], roomstat->tsdatasize);
-            }
-            else
-                out->WriteInt8(0);
-        }
-        else
-            out->WriteInt8(0);
-    }
-}
-
-void save_game_play_ex_data(Stream *out)
-{
-    for (int bb = 0; bb < play.num_do_once_tokens; bb++)
-    {
-        fputstring(play.do_once_tokens[bb], out);
-    }
-    out->WriteArrayOfInt32(&play.gui_draw_order[0], game.numgui);
-}
-
-void WriteMoveList_Aligned(Stream *out)
-{
-    AlignedStream align_s(out, Common::kAligned_Write);
-    for (int i = 0; i < game.numcharacters + MAX_INIT_SPR + 1; ++i)
-    {
-        mls[i].WriteToFile(&align_s);
-        align_s.Reset();
-    }
-}
-
 void WriteGameSetupStructBase_Aligned(Stream *out)
 {
     AlignedStream align_s(out, Common::kAligned_Write);
     game.GameSetupStructBase::WriteToFile(&align_s);
 }
 
-void WriteCharacterExtras_Aligned(Stream *out)
-{
-    AlignedStream align_s(out, Common::kAligned_Write);
-    for (int i = 0; i < game.numcharacters; ++i)
-    {
-        charextra[i].WriteToFile(&align_s);
-        align_s.Reset();
-    }
-}
-
-void save_game_palette(Stream *out)
-{
-    out->WriteArray(&palette[0],sizeof(color),256);
-}
-
-void save_game_dialogs(Stream *out)
-{
-    for (int bb=0;bb<game.numdialog;bb++)
-        out->WriteArrayOfInt32(&dialog[bb].optionflags[0],MAXTOPICOPTIONS);
-}
-
-// [IKM] yea, okay this is just plain silly name :)
-void save_game_more_dynamic_values(Stream *out)
-{
-    out->WriteInt32(mouse_on_iface);
-    out->WriteInt32(-1); // mouse_on_iface_button
-    out->WriteInt32(-1); // mouse_pushed_iface
-    out->WriteInt32 (ifacepopped);
-    out->WriteInt32(game_paused);
-    //out->WriteInt32(mi.trk);
-}
-
-void WriteAnimatedButtons_Aligned(Stream *out)
-{
-    AlignedStream align_s(out, Common::kAligned_Write);
-    for (int i = 0; i < numAnimButs; ++i)
-    {
-        animbuts[i].WriteToFile(&align_s);
-        align_s.Reset();
-    }
-}
-
-void save_game_gui(Stream *out)
-{
-    GUI::WriteGUI(guis, out, true);
-    out->WriteInt32(numAnimButs);
-    WriteAnimatedButtons_Aligned(out);
-}
-
-void save_game_audiocliptypes(Stream *out)
-{
-    out->WriteInt32(game.audioClipTypeCount);
-    for (int i = 0; i < game.audioClipTypeCount; ++i)
-    {
-        game.audioClipTypes[i].WriteToFile(out);
-    }
-}
-
-void save_game_thisroom(Stream *out)
-{
-    out->WriteArrayOfInt16(&thisroom.regionLightLevel[0],MAX_REGIONS);
-    out->WriteArrayOfInt32(&thisroom.regionTintLevel[0],MAX_REGIONS);
-    out->WriteArrayOfInt16(&thisroom.walk_area_zoom[0],MAX_WALK_AREAS + 1);
-    out->WriteArrayOfInt16(&thisroom.walk_area_zoom2[0],MAX_WALK_AREAS + 1);
-}
-
-void save_game_ambientsounds(Stream *out)
-{
-    for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
-    {
-        ambient[i].WriteToFile(out);
-    }
-    //out->WriteArray (&ambient[0], sizeof(AmbientSound), MAX_SOUND_CHANNELS);
-}
-
-void WriteOverlays_Aligned(Stream *out)
-{
-    AlignedStream align_s(out, Common::kAligned_Write);
-    for (int i = 0; i < numscreenover; ++i)
-    {
-        screenover[i].WriteToFile(&align_s);
-        align_s.Reset();
-    }
-}
-
-void save_game_overlays(Stream *out)
-{
-    out->WriteInt32(numscreenover);
-    WriteOverlays_Aligned(out);
-    for (int bb=0;bb<numscreenover;bb++) {
-        serialize_bitmap (screenover[bb].pic, out);
-    }
-}
-
-void save_game_dynamic_surfaces(Stream *out)
-{
-    for (int bb = 0; bb < MAX_DYNAMIC_SURFACES; bb++)
-    {
-        if (dynamicallyCreatedSurfaces[bb] == NULL)
-        {
-            out->WriteInt8(0);
-        }
-        else
-        {
-            out->WriteInt8(1);
-            serialize_bitmap(dynamicallyCreatedSurfaces[bb], out);
-        }
-    }
-}
-
-void save_game_displayed_room_status(Stream *out)
-{
-    if (displayed_room >= 0) {
-
-        for (int bb = 0; bb < MAX_BSCENE; bb++) {
-            if (play.raw_modified[bb])
-                serialize_bitmap (thisroom.ebscene[bb], out);
-        }
-
-        out->WriteInt32 ((raw_saved_screen == NULL) ? 0 : 1);
-        if (raw_saved_screen)
-            serialize_bitmap (raw_saved_screen, out);
-
-        // save the current troom, in case they save in room 600 or whatever
-        WriteRoomStatus_Aligned(&troom, out);
-        if (troom.tsdatasize>0)
-            out->Write(&troom.tsdata[0],troom.tsdatasize);
-
-    }
-}
-
-void save_game_globalvars(Stream *out)
-{
-    out->WriteInt32 (numGlobalVars);
-    for (int i = 0; i < numGlobalVars; ++i)
-    {
-        globalvars[i].Write(out);
-    }
-}
-
-void save_game_views(Stream *out)
-{
-    out->WriteInt32 (game.numviews);
-    for (int bb = 0; bb < game.numviews; bb++) {
-        for (int cc = 0; cc < views[bb].numLoops; cc++) {
-            for (int dd = 0; dd < views[bb].loops[cc].numFrames; dd++)
-            {
-                out->WriteInt32(views[bb].loops[cc].frames[dd].sound);
-                out->WriteInt32(views[bb].loops[cc].frames[dd].pic);
-            }
-        }
-    }
-}
-
-void save_game_audioclips_and_crossfade(Stream *out)
-{
-    out->WriteInt32(game.audioClipCount);
-    for (int bb = 0; bb <= MAX_SOUND_CHANNELS; bb++)
-    {
-        if ((channels[bb] != NULL) && (channels[bb]->done == 0) && (channels[bb]->sourceClip != NULL))
-        {
-            out->WriteInt32(((ScriptAudioClip*)channels[bb]->sourceClip)->id);
-            out->WriteInt32(channels[bb]->get_pos());
-            out->WriteInt32(channels[bb]->priority);
-            out->WriteInt32(channels[bb]->repeat ? 1 : 0);
-            out->WriteInt32(channels[bb]->vol);
-            out->WriteInt32(channels[bb]->panning);
-            out->WriteInt32(channels[bb]->volAsPercentage);
-            out->WriteInt32(channels[bb]->panningAsPercentage);
-            if (loaded_game_file_version >= kGameVersion_340_2)
-                out->WriteInt32(channels[bb]->speed);
-        }
-        else
-        {
-            out->WriteInt32(-1);
-        }
-    }
-    out->WriteInt32(crossFading);
-    out->WriteInt32(crossFadeVolumePerStep);
-    out->WriteInt32(crossFadeStep);
-    out->WriteInt32(crossFadeVolumeAtStart);
-}
-
-void WriteGameState_Aligned(Stream *out)
-{
-    AlignedStream align_s(out, Common::kAligned_Write);
-    play.WriteToFile_v321(&align_s);
-}
-
 #define MAGICNUMBER 0xbeefcafe
-// Write the save game position to the file
-void save_game_data(Stream *out)
-{
-    save_game_head_dynamic_values(out);
-    save_game_spriteset(out);
-    save_game_scripts(out);
-    save_game_room_state(out);
-
-    update_polled_stuff_if_runtime();
-
-    //----------------------------------------------------------------
-    WriteGameState_Aligned(out);
-
-    save_game_play_ex_data(out);
-    //----------------------------------------------------------------
-
-    WriteMoveList_Aligned(out);
-
-    WriteGameSetupStructBase_Aligned(out);
-
-    //----------------------------------------------------------------
-    game.WriteForSaveGame_v321(out);
-
-    // Modified custom properties are written separately to keep existing save format
-    play.WriteCustomProperties(out);
-
-    WriteCharacterExtras_Aligned(out);
-    save_game_palette(out);
-    save_game_dialogs(out);
-    save_game_more_dynamic_values(out);
-    save_game_gui(out);
-    save_game_audiocliptypes(out);
-    save_game_thisroom(out);
-    save_game_ambientsounds(out);
-    save_game_overlays(out);
-
-    update_polled_stuff_if_runtime();
-
-    save_game_dynamic_surfaces(out);
-
-    update_polled_stuff_if_runtime();
-
-    save_game_displayed_room_status(out);
-    save_game_globalvars(out);
-    save_game_views(out);
-
-    out->WriteInt32 (MAGICNUMBER+1);
-
-    save_game_audioclips_and_crossfade(out);
-
-    // [IKM] Plugins expect FILE pointer! // TODO something with this later...
-    pl_run_plugin_hooks(AGSE_SAVEGAME, (long)((Common::FileStream*)out)->GetHandle());
-    out->WriteInt32 (MAGICNUMBER);  // to verify the plugins
-
-    // save the room music volume
-    out->WriteInt32(thisroom.options[ST_VOLUME]);
-
-    ccSerializeAllObjects(out);
-
-    out->WriteInt32(current_music_type);
-
-    update_polled_stuff_if_runtime();
-}
 
 void create_savegame_screenshot(Bitmap *&screenShot)
 {
@@ -1502,7 +1160,7 @@ void save_game(int slotn, const char*descript) {
     // Screenshot
     create_savegame_screenshot(screenShot);
 
-    Stream *out = StartSavegame(nametouse, descript, screenShot);
+    Common::PStream out = StartSavegame(nametouse, descript, screenShot);
     if (out == NULL)
         quit("save_game: unable to open savegame file for writing");
 
@@ -1514,12 +1172,11 @@ void save_game(int slotn, const char*descript) {
     if (screenShot != NULL)
     {
         int screenShotOffset = out->GetPosition() - sizeof(RICH_GAME_MEDIA_HEADER);
-        int screenShotSize = write_screen_shot_for_vista(out, screenShot);
-        delete out;
+        int screenShotSize = write_screen_shot_for_vista(out.get(), screenShot);
 
         update_polled_stuff_if_runtime();
 
-        out = Common::File::OpenFile(nametouse, Common::kFile_Open, Common::kFile_ReadWrite);
+        out.reset(Common::File::OpenFile(nametouse, Common::kFile_Open, Common::kFile_ReadWrite));
         out->Seek(12, kSeekBegin);
         out->WriteInt32(screenShotOffset);
         out->Seek(4);
@@ -1528,8 +1185,6 @@ void save_game(int slotn, const char*descript) {
 
     if (screenShot != NULL)
         delete screenShot;
-
-    delete out;
 }
 
 char rbuffer[200];
@@ -1634,7 +1289,7 @@ void restore_game_room_state(Stream *in)
 void ReadGameState_Aligned(Stream *in)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    play.ReadFromFile_v321(&align_s);
+    play.ReadFromSavegame(&align_s, true);
 }
 
 void restore_game_play_ex_data(Stream *in)
@@ -1997,7 +1652,7 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const P
     game.ReadFromSaveGame_v321(in, gswas, compsc, chwas, olddict, mesbk);
 
     // Modified custom properties are read separately to keep existing save format
-    play.ReadCustomProperties(in);
+    play.ReadCustomProperties_v340(in);
 
     ReadCharacterExtras_Aligned(in);
     restore_game_palette(in);
@@ -2136,7 +1791,7 @@ SavegameError load_game(const String &path, int slotNumber, bool &data_overwritt
     }
 
     // do the actual restore
-    err = RestoreGameState(src.InputStream.get(), src.Version);
+    err = RestoreGameState(src.InputStream, src.Version);
     data_overwritten = true;
     if (err != kSvgErr_NoError)
         return err;

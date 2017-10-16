@@ -197,18 +197,53 @@ StrUtil::ConversionError StrUtil::StringToInt(const String &s, int &val, int def
 
 String StrUtil::ReadString(Stream *in)
 {
-    int32_t len = in->ReadInt32();
+    size_t len = in->ReadInt32();
     if (len > 0)
         return String::FromStreamCount(in, len);
     return String();
 }
 
+void StrUtil::ReadString(char *cstr, Stream *in, size_t buf_limit)
+{
+    size_t len = in->ReadInt32();
+    if (buf_limit > 0)
+        len = Math::Min(len, buf_limit - 1);
+    if (len > 0)
+        in->Read(cstr, len);
+    else
+        cstr[0] = 0;
+}
+
+void StrUtil::ReadString(char **cstr, Stream *in)
+{
+    size_t len = in->ReadInt32();
+    *cstr = new char[len + 1];
+    if (len > 0)
+        in->Read(*cstr, len);
+    else
+        (*cstr)[0] = 0;
+}
+
+void StrUtil::SkipString(Stream *in)
+{
+    size_t len = in->ReadInt32();
+    in->Seek(len);
+}
+
 void StrUtil::WriteString(const String &s, Stream *out)
 {
-    int32_t len = s.GetLength();
+    size_t len = s.GetLength();
     out->WriteInt32(len);
     if (len > 0)
         out->Write(s.GetCStr(), len);
+}
+
+void StrUtil::WriteString(const char *cstr, Stream *out)
+{
+    size_t len = (int)strlen(cstr);
+    out->WriteInt32(len);
+    if (len > 0)
+        out->Write(cstr, len);
 }
 
 void StrUtil::WriteCStr(const String &s, Stream *out)

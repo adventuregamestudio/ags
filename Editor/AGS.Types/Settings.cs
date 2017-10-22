@@ -17,7 +17,7 @@ namespace AGS.Types
         public const string PROPERTY_GAME_NAME = "Game name";
         public const string PROPERTY_COLOUR_DEPTH = "Colour depth";
         public const string PROPERTY_RESOLUTION = "Resolution";
-        public const string PROPERTY_SCALE_FONTS = "Fonts designed for 640x480";
+        public const string PROPERTY_SCALE_FONTS = "Fonts designed for high resolution";
 		public const string PROPERTY_ANTI_ALIAS_FONTS = "Anti-alias TTF fonts";
         public const string PROPERTY_LETTERBOX_MODE = "Enable letterbox mode";
         public const string PROPERTY_BUILD_TARGETS = "Build target platforms";
@@ -794,7 +794,7 @@ namespace AGS.Types
         }
 
         [DisplayName(PROPERTY_SCALE_FONTS)]
-        [Description("Tells AGS that your fonts are designed for 640x480, and therefore not to scale them up at this resolution")]
+        [Description("Tells AGS that your fonts are designed for high resolution (higher than 320x240), and therefore not to scale them up in hi-res game")]
         [DefaultValue(false)]
         [Category("Text output")]
         public bool FontsForHiRes

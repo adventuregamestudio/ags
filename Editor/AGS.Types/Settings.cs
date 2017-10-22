@@ -90,7 +90,7 @@ namespace AGS.Types
         private bool _runGameLoopsWhileDialogOptionsDisplayed = false;
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
         private bool _useLowResCoordinatesInScript = true;
-        // Vista game explorer fields
+        // Windows game explorer fields
 		private bool _enableGameExplorer = false;
 		private string _description = string.Empty;
 		private DateTime _releaseDate = DateTime.Now;
@@ -851,7 +851,7 @@ namespace AGS.Types
 
 		[DisplayName("Enable Game Explorer integration")]
 		[Description("Whether or not this game can be added to the Vista Game Explorer")]
-		[Category("Windows Vista Game Explorer")]
+		[Category("Windows Game Explorer")]
 		public bool GameExplorerEnabled
 		{
 			get { return _enableGameExplorer; }
@@ -860,7 +860,7 @@ namespace AGS.Types
 
 		[DisplayName("Game description")]
 		[Description("The Description displayed in the Game Explorer")]
-		[Category("Windows Vista Game Explorer")]
+		[Category("Windows Game Explorer")]
 		public string Description
 		{
 			get { return _description; }
@@ -869,7 +869,7 @@ namespace AGS.Types
 
 		[DisplayName("Release date")]
 		[Description("Date on which this game is first released")]
-		[Category("Windows Vista Game Explorer")]
+		[Category("Windows Game Explorer")]
 		public DateTime ReleaseDate
 		{
 			get { return _releaseDate; }
@@ -878,7 +878,7 @@ namespace AGS.Types
 
 		[DisplayName("Genre")]
 		[Description("The Genre displayed in the Game Explorer")]
-		[Category("Windows Vista Game Explorer")]
+		[Category("Windows Game Explorer")]
 		public string Genre
 		{
 			get { return _genre; }
@@ -887,7 +887,7 @@ namespace AGS.Types
 
 		[DisplayName("Version")]
 		[Description("The Version displayed in the Game Explorer")]
-		[Category("Windows Vista Game Explorer")]
+		[Category("Windows Game Explorer")]
 		public string Version
 		{
 			get { return _version; }
@@ -903,8 +903,8 @@ namespace AGS.Types
 		}
 
 		[DisplayName("Windows Experience Index")]
-		[Description("The minimum Vista Experience Index necessary to play the game")]
-		[Category("Windows Vista Game Explorer")]
+		[Description("The minimum Windows Experience Index necessary to play the game")]
+		[Category("Windows Game Explorer")]
 		public int WindowsExperienceIndex
 		{
 			get { return _windowsExperienceIndex; }
@@ -912,7 +912,7 @@ namespace AGS.Types
 		}
 
 		[DisplayName("Developer name")]
-		[Description("The name of the game developer (you!). Displayed on the game EXE in Explorer, and in the Vista Game Explorer.")]
+		[Description("The name of the game developer (you!). Displayed on the game EXE in Explorer, and in the Windows Game Explorer.")]
         [Category("(Basic properties)")]
 		public string DeveloperName
 		{
@@ -922,7 +922,7 @@ namespace AGS.Types
 
 		[DisplayName("Developer website")]
 		[Description("URL of game developer's website")]
-		[Category("Windows Vista Game Explorer")]
+		[Category("Windows Game Explorer")]
 		public string DeveloperURL
 		{
 			get { return _developerURL; }
@@ -964,7 +964,7 @@ namespace AGS.Types
 		}
 
         [DisplayName("Save games folder name")]
-        [Description("If set, creates a folder of this name inside the user's Saved Games folder in Vista (or My Documents in XP) to store the save games in.")]
+        [Description("If set, creates a folder of this name inside the user's Saved Games folder in Windows Vista and higher (or My Documents in XP) to store the save games in.")]
         [Category("Saved Games")]
         public string SaveGameFolderName
         {

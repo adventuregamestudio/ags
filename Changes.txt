@@ -96,6 +96,7 @@ Engine:
  - Fixed speech portrait was displayed below GUI, contrary to speech text.
  - Fixed ShakeScreen command was causing graphic artifacts when game is run
    with software renderer.
+ - Fixed calling ChangeView during idle animation results in new view being animated.
  - Fixed Speech.VoiceMode not returning correct values when speech.vox is not
    enabled/present.
  - Fixed AdjustVolumeWithScaling character's property not working with the new

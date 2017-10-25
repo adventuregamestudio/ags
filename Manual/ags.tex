@@ -163,18 +163,22 @@ or unimplemented areas.
 
 \section{Graphics driver selection}\label{GraphicsDriver}\index{Direct3D engine}%
 
-AGS has two different graphics drivers when run on Windows -- DirectDraw and Direct3D.
+AGS has three available graphics drivers when run on Windows -- DirectDraw, Direct3D and OpenGL.
 
 DirectDraw is the 'classic' software graphics driver, that AGS has used ever since
 the initial Windows version was released. It's perfectly fine for simple games
 that don't use many large sprites, tinting or alpha blending. It's also quite fast
 at doing RawDrawing to the screen.
 
-Direct3D is a new, hardware accelerated graphics driver. It uses the Direct3D 9.0 to
+Direct3D is a newer, hardware accelerated graphics driver. It uses the Direct3D 9.0 to
 render the game in a fully hardware-accelerated environment. This means that the
 game will run a lot faster if you use features such as alpha blending and tinting,
 which are quite slow to perform in software mode. However, with Direct3D doing RawDraw
 operations can be quite slow, and the driver won't work on all graphics cards.
+
+It should be noted that DirectDraw and Direct3D 9 drivers are know to sometimes fail to work on latest versions of the Windows because of compatibility issues.
+
+OpenGL is another hardware accelerated graphics driver, and because it is not strictly linked to particular version of DirectX, it may work where Direct3D failed. Other than that, it should not have any significant perfomance differences from the former.
 
 No matter which you choose as your default graphics driver, the player can always
 run the Setup program and switch to using the other driver if they are having problems
@@ -185,10 +189,10 @@ on their PC.
 \bf{DirectDraw}: any Windows-based PC with DirectX 5 or later installed ILBRK
 \bf{Direct3D}: any Windows-based PC with DirectX 9.0 installed and a graphics card designed
 for DirectX 8.1 or later (most cards manufactured from 2003 onwards).
+\bf{OpenGL}: your graphics card drivers should provide support for OpenGL 3.0 or higher for the game visuals to have full functionality.
 
-If you get the error message "Graphics card does not support Pixel Shader 1.4" on startup,
-this indicates that your graphics card is too old to run with the Direct3D driver. You
-should choose the DirectDraw driver instead.
+If you are running with Direct3D 9 selected and get the error message "Graphics card does not support Pixel Shader 1.4" on startup,
+this indicates that your graphics card is too old to run with the Direct3D driver. You should try one of the other two drivers instead.
 
 See Also: \helprefn{System.HardwareAcceleration property}{System.HardwareAcceleration}
 
@@ -206,8 +210,8 @@ options could be accessed by pressing "Advanced" button.
 
 \begin{description}
 \item [Driver]
-  Lets player choose a graphics driver. Currently supported are DirectX 5 (old driver)
-and Direct3D 9 (newer and faster driver with hardware acceleration).
+  Lets player choose a graphics driver. Currently supported are Software renderer (old and slower one, but only driver that fully supports 8-bit games),
+Direct3D 9 and OpenGL (newer and faster drivers with hardware acceleration).
 \item [Run in the window instead of fullscreen]
   If checked, the game will be run in windowed mode, as opposed to fullscreen.
 \item [Mode]
@@ -260,6 +264,9 @@ a smoother look to the resizing. This can slow down the game though, so it is of
 to choose to play the game at 16-bit instead, in order to boost performance.
 If they use this, the graphical quality will reduce, but it should at least allow them to play
 the game at a decent speed.
+\item [Render sprites at screen resolution]
+  When enabled, characters and objects are scaled in screen pixels rather than game pixels.
+What this means is that when low-resolution game is run in larger window, sprites will take advantage of this higher resolution and look less pixelated when scaled down. This option may be locked to certain state by the game itself (according to author's choice), in which case players will not be able to change it.
 \end{description}
 
 \bf{Sound options}
@@ -302,6 +309,8 @@ in the default Windows folders: "C:/Users/<Username>/Saved Games/<Game Title>" a
   Players may enable this option and define their own location to store game files.
 \end{description}
 
+See Also: \helprefn{Default setup}{Game setup}
+
 
 \chapter{Tutorial}%
 
@@ -343,14 +352,14 @@ and other things which do not depend on individual rooms.
 \subsection{Palette setup}\label{PalSetup}%
 
 The first thing you need to do when you create a new game is to decide whether
-you want to use 8-bit (palette-based) colour or 16-bit (hi-colour).
-If you want to use 16-bit colour, you can still use 256-colour backgrounds and
-sprites if you want to, but the engine will only run in a 16-bit colour
+you want to use 8-bit (palette-based) colour or 32/16-bit (true-colour / hi-colour).
+If you want to use 32/16-bit colour, you can still use 256-colour backgrounds and
+sprites if you want to, but the engine will only run in a 32-bit colour
 resolution, thus slowing it down.
 
-If you want to use 8-bit (because it runs faster), you need to set up the
+If you want to use 8-bit, you need to set up the
 palette. This is because all sprite and background scene imports rely on the
-palette setup to be the same. You \bf{CANNOT} use hi-colour sprites or backgrounds
+palette setup to be the same. You \bf{CANNOT} use hi-colour nor true-colour sprites or backgrounds
 in a 256-colour game.
 
 You set your chosen colour depth by opening the General Settings pane and
@@ -897,56 +906,131 @@ AGS automatically calls ParseText with the text they typed in before it calls di
 so you can use Said() calls to respond. See the \helprefn{text parser}{TextParser} section
 for more info.
 
-\subsection{Game options}\index{options}\index{Anti-aliasing fonts}\index{Crossfading music}%
+\subsection{General settings}\index{settings}\index{options}\index{Anti-aliasing fonts}\index{Crossfading music}%
 
-The Game Settings pane contains a list of all the various overall options
+The General Settings pane contains a list of all the various overall options
 that you can set for your game.
 
 Note that some things listed here are explained later in the documentation,
 so if you don't understand one of the items in this list, come back to it
 later.
 
-Most of these options can be changed at runtime with the script command SetGameOption.
+Many of these options can be changed at runtime with the script command SetGameOption.
+\bf{Basic properties}
 \begin{itemize}
-\item \bf{Debug Mode} - whether the debug keys are active. When debug mode is on,
+\item \bf{Colour Depth} - the number of colours your game will use. Default is 32-bit, which lets you use all the range of colours contemporary devices support.
+16-bit is rather a compatibility setting, that will reduce the size of your game resources at the cost of colour precision.
+8-bit colour mode is a special feature for making palette-based games.
+See Also: \helprefn{Palette setup}{PalSetup},
+\helprefn{Palette functions}{Palette functions}
+\item \bf{Developer name} - this will add the provided string to the game's executable properties, which will also be shown in \helprefn{Windows Game Explorer}{GameExplorer}, if you configure integration with one.
+\item \bf{Enable letterbox mode} - only available if your game's resolution is 320x200 or 640x400. If you enable it, your game will run as 320x240 and 640x480 game correspondingly, while keeping room viewport size at 320x200 or 640x400, and adding black horizontal borders above and below. Today this is rather a compatibility option for importing old projects, because AGS does not have proper support for custom viewport size.
+\item \bf{Game name} - your game's title. This string will be displayed at the window title, and also added to the game's executable properties.
+\item \bf{Maximum possible score} - the maximum score your game has, if you are using score mechanics, such as \helprefn{GiveScore}{GiveScore} script function.
+\item \bf{Put sound and sprite files in source control} - whether game resources, such as sprites and audio, are put under source control. For more information see \helprefn{Source Control integration}{SourceControl}.
+\item \bf{Render sprites at screen resolution} - whether characters and objects should be scaled in screen pixels rather than game pixels. What this means is that when low-resolution game is run in larger window, sprites will take advantage of this higher resolution and look less pixelated when scaled down. If you prefer to keep your game looks in particular style, this option may be locked to always "Enabled" or "Disabled"; otherwise setting it to "User defined" will let your players toggle it in game setup program to their own liking.
+\item \bf{Resolution} - the native resolution of your game. This is the most important option (on par with Colour Depth), which determines the size of game area visible on screen at any given time. This is also the minimal size that game rooms may have.
+The window your game runs in may still be larger or smaller, depending on choices player made in setup program, and in that case game's image will be stretched or shrinked accordingly.
+\end{itemize}
+
+\bf{Backwards compatibility}
+\begin{itemize}
+\item \bf{Enable mouse wheel support} - if enabled, on_mouse_click can be called with
+the values eMouseWheelNorth and eMouseWheelSouth, which signify the user scrolling their mouse
+wheel north or south, respectively.
+
+\bf{NOTE:} Not all mice have mouse wheels, therefore its suggested that your game should never require the mouse wheel in order to
+be playable - it should only be used as a handy extra.
+\item \bf{Enforce new-style audio scripting} - Puts the script compiler into strict mode,
+where it will not accept the old-style (pre-AGS 3.2) audio-related script commands.
+\item \bf{Enforce new style strings} - Puts the script compiler into strict mode,
+where it will not accept the old-style (pre-AGS 2.7) fixed-length strings.
+\item \bf{Enforce object-based scripting} - Puts the script compiler into strict mode,
+where it will not accept the old-style (pre-AGS 2.7) script commands. This should
+preferably be ticked, since you should no longer be using the old commands.
+\item \bf{Left-to-right operator precedence} - if this is enabled, then operators of
+equal precedence in the script will be evaluated left to right. For example,
+5 - 4 - 3 could be interpreted as  (5 - 4) - 3  or as  5 - (4 - 3), thus giving
+different results. You should always use parenthesis to clarify expressions like this,
+so that the operator precedence doesn't affect the result.
+\item \bf{Script API version} - defines the topmost level of built-in script content
+that you want to enable for your project. It is suggested to leave this at the "Highest" value,
+unless you are importing an older project and newest built-in script functions conflict with some of your own scripts.
+In such case you may decide between fixing your script or lowering AGS API version.
+The latter will let you compile game scripts without any changes, at the price of not being able
+to use newer built-in functions. You may still change it to "Highest" anytime later.
+\item \bf{Script compatibility level} - defines the lowest level of built-in
+content. It is useful if you wish to keep using some of the old functions that were declared
+obsolete by newer version of AGS. You do so by setting this switch to version that still had
+those functions non-deprecated.
+\item \bf{Use low-resolution coordinates in script} - always use 320x200 coordinate space when scripting your game, regardless of its actual resolution.
+Basically, your game will be treated as if it were 320x200, but pixels are of larger size. Normally this option should be off; it may only be useful when
+importing really old game project where such setting was a norm.
+\item \bf{Use old-style custom dialog options API} - switch to using pre-AGS 3.4.0 custom dialog options callbacks. The differences between old and new APIs
+\helprefn{are explained in this topic}{UpgradeTo34}.
+\end{itemize}
+
+\bf{Character movement}
+\begin{itemize}
+\item \bf{Automatically move the player in Walk mode} - normally, when you click the mouse in
+the Walk mode, the main character will move to where you clicked. However,
+if you want to create a game all viewed from a 1st-person perspective, and
+so don't have a main character, then disabling this option allows you to
+use the Walk mode for other things. If disabled, then "Character stands on
+hotspot" events are instead triggered by clicking the Walk cursor on the
+hotspot.
+\item \bf{Automatically move to hotspots in Look mode} - controls whether the player will walk
+to "walk-to" spots when the player looks at the hotspot. Normally he only
+walks on use, speak and use-inv.
+\item \bf{Characters turn before walking} - specifies that when a character starts
+to walk somewhere, it will first turn round to face the correct direction
+using available animation frames, rather than just suddenly switching to
+face the right way.
+\item \bf{Characters turn to face direction} - if set, then when a character turns round
+with the \helprefn{Character.FaceLocation}{Character.FaceLocation} or \helprefn{Character.FaceCharacter}{Character.FaceCharacter}
+script commands, they will visibly turn around using their available loops.
+If this option is not set, they will immediately appear facing their new direction.
+\end{itemize}
+
+\bf{Compiler}
+\begin{itemize}
+\item \bf{Build target platforms} - a checklist of platforms for which the game will be compiled.
+\item \bf{Compress the sprite file} - when enabled the sprites will be compressed to reduce game size, at expense of perfomance.
+\item \bf{Enabled Debug Mode} - whether the debug keys are active. When debug mode is on,
 you can press Ctrl-X to teleport to any room, Ctrl-S to give all inventory
 items, Ctrl-A to display walkable areas on the screen, and Ctrl-D to display
 statistics about the current room. When debug mode is off, these do nothing.
 See the \helprefn{Debugging features}{Debuggingfeatures} section for more.
-\item \bf{Play sound on score} - controls whether a sound effect is played when
-the player scores points. If so, you can set the sound number, which will
-play SOUNDx.WAV (or SOUNDx.MP3), where X is the number you set.
-\item \bf{Walk to hotspot in Look mode} - controls whether the player will walk
-to "walk-to" spots when the player looks at the hotspot. Normally he only
-walks on use, speak and use-inv.
-\item \bf{Dialog options on GUI} - controls where the player's options for dialog are
-displayed. If this option is not checked, then in a conversation, the options
-will be displayed at the bottom of the screen. If you check this box, then
-instead the options will be displayed on the GUI you specify.
-\item \bf{Use "anti-glide" mode} - you may notice that, as the character walks, it
-can seem as if he is gliding, especially if you have a slow animation speed
-setting. When anti-glide mode is on, the man's position is only updated
-when the frame of animation changes. You will need to increase each
-character's walking speed if you use this option.
-\item \bf{Text windows use GUI} - allows you to customize the standard text window
-appearance in the game, using the specified interface element. See \helpref{here}{TextWin}
-for more information.
-\item \bf{Pixel gap between options} - defines the gap between the options displayed
+\item \bf{Split resource files into X MB-sized chunks} - see \helpref{here}{SplitRes} for information.
+\end{itemize}
+
+\bf{Dialog}
+\begin{itemize}
+\item \bf{Allow speech to be skipped by which events} - determines how and whether the player can skip speech
+in-game. This can be set to allow the mouse and/or keyboard, or neither, to
+skip speech in the game.
+\item \bf{Dialog bullet point image} - defines the number of sprite to use as a bullet image before each dialog option.
+\item \bf{Gap between dialog options} - defines the gap between the options displayed
 to the player in a conversation. Normally this is 0, which means the
 options are right below each other. Changing it to 1 or 2 can make the
 option display look less cluttered; it's a matter of personal preference.
-\item \bf{Skip Speech} - determines how and whether the player can skip speech
-in-game. This can be set to allow the mouse and/or keyboard, or neither, to
-skip speech in the game.
-\item \bf{When interface disabled} - determines what happens to buttons on your
-GUIs while the game interface is disabled (eg. during a cutscene).
-\item \bf{GUI alpha rendering style} - determines which rendering method to use in 32-bit games when a GUI Control is drawn over GUI. The "Proper alpha belnding" choice is meant for full alpha blending support, other options exist for compatibility with older versions of AGS only.
-\item \bf{Sprite alpha rendering style} - determines which rendering method to use in 32-bit games when an image is drawn over \helpref{drawing surface}{DrawingSurfaceFunctions}.  The "Proper alpha belnding" choice is meant for full alpha blending support, "Classic" style exists for  compatibility with older versions of AGS only.
-\item \bf{Always display text as speech} - if you select this option, then all normal
-text in the game will be displayed above the main character's head as speech
-text, much like the way the Lucasarts games worked. If this option is not
-checked, then normal text appears in a pop-up message box, like the way that
-the Sierra games worked.
+\item \bf{Number dialog options} - enables keyboard shortcuts to choose dialog options (keys 1-9) and adds an index number before each dialog option when
+they are displayed to the player. For example,
+\begin{verbatim}
+1. Hello there!
+2. Goodbye
+\end{verbatim}
+This allows you to visually show the player which option the shortcut keys will choose,
+as well as seperating the options if you don't use a bullet point.
+\item \bf{Print dialog options upwards} - Normally, if you select a non-textwindow GUI
+for the dialog options, they will be printed from the top down. However, if you select this
+option they will go from the bottom of the GUI upwards.
+\item \bf{Run game loops while dialog options are displayed} - whether to allow game animations to continue in the background while waiting for the player to select a dialog option.
+\item \bf{Sierra-style portrait location} - if you're using Sierra-style speech, then this
+determines whether the portrait appears on the left or the right of the screen. The "alternate"
+setting means it swaps sides whenever a different person talks, and the "Based on X position"
+setting means that the side of the screen is chosen depending on where the characters are
+standing.
 \item \bf{Speech style} - in the default Lucasarts-style speech, when a character talks, the
 speech text is displayed above their head in the game, and the character's
 talking view is used to animate the actual character. ILBRK
@@ -957,25 +1041,83 @@ later Sierra games worked. You can also cycle to another option, "Sierra-
 style with background", which is the same except a text window is drawn
 behind the speech text to make it easier to read. ILBRK
 "Whole Screen" uses a full-screen character portrait, like the way that QFG4 worked.
-\item \bf{Speech portrait side} - if you're using Sierra-style speech, then this
-determines whether the portrait appears on the left or the right of the screen. The "alternate"
-setting means it swaps sides whenever a different person talks, and the "Based on X position"
-setting means that the side of the screen is chosen depending on where the characters are
-standing.
-\item \bf{Room transition style} - defines what type of screen transition is used when
-moving from one room to another. Various options are available.
+\item \bf{Use game-wide speech animation delay} - defines whether to use game-wide speech animation delay as opposed to using the individual character settings.
+\item \bf{Use GUI for dialog options} - controls where the player's options for dialog are
+displayed. If set to 0, then in a conversation, the options
+will be displayed at the bottom of the screen. If you type in GUI's ID number, then
+instead the options will be displayed on the GUI you specify.
+\end{itemize}
+
+\bf{Inventory}
+\begin{itemize}
+\item \bf{Display multiple icons for multiple items} - normally, if the player has
+two of an inventory item, the item will still only be shown once in the Inventory window.
+If you check this option, however, then all the copies of the item that the player has
+will be displayed. Useful for RPG-style inventories.
+\item \bf{Inventory item cursor hotspot marker} - whether AGS should automatically add a marker to inventory item cursors to help the player see where the active hotspot is on the cursor. May either draw simple crosshair using told colours, or use specified sprite.
+\item \bf{Override built-in inventory window click handling} - AGS has some built-in processing
+of Inventory Window GUI controls, whereby a right-click will Look at the item, and a left click
+will select it if the cursor mode is Interact. However, if you enable this
+option, then clicking on an inventory item in an Inventory Window will call your \verb$on_mouse_click$
+function  with eMouseLeftInv, eMouseMiddleInv or eMouseRightInv, and you then need to process it
+yourself. You can use the \verb$game.inv_activated$ variable to find out what they clicked on.
+\item \bf{Use selected inventory graphics for cursors} - normally, when you select an inventory
+item the mouse cursor is changed into that item. However, if you want to
+create a Lucasarts-style game (where the inventory cursor is always a
+cross-hair), disable this option and it won't be changed.
+\end{itemize}
+
+\bf{Saved Games}
+\begin{itemize}
+\item \bf{Enhanced save games} - makes your game's saves compatible with  Windows Game Explorer.
+For detailed information please refer to: \helprefn{Enhanced Saved Games}{EnhancedSaveGames} ILBRK
+\helprefn{Windows Game Explorer}{GameExplorer}
+\item \bf{Save games extension} - determines the special extension for your save files.
+\item \bf{Save games folder name} - determines the name of folder created in the user's Saved Games location to store your game's saves.
+If left blank, then the game's title is used as folder's name. You might need to change this only if your game's title conflict with some other game.
 \item \bf{Save screenshots in save games} - Saves a mini-screenshot of the player's current
 position into the save game file. This will create larger save game files, but it will
 mean that you can use a save game thumbnails GUI to make the save/load interface
 more professional.
-\item \bf{Enforce object-based scripting} - Puts the script compiler into strict mode,
-where it will not accept the old-style (pre-AGS 2.7) script commands. This should
-preferably be ticked, since you should no longer be using the old commands.
-\item \bf{Left-to-right operator precedence} - if this is ticked, then operators of
-equal precedence in the script will be evaluated left to right. For example,
-5 - 4 - 3 could be interpreted as  (5 - 4) - 3  or as  5 - (4 - 3), thus giving
-different results. You should always use parenthesis to clarify expressions like this,
-so that the operator precedence doesn't affect the result.
+\end{itemize}
+
+\bf{Sound}
+\begin{itemize}
+\item \bf{Play sound when the player gets points} - controls whether a sound effect is played when
+the player scores points. If so, you can set the sound number, which will
+play SOUNDx.WAV (or SOUNDx.MP3), where X is the number you set.
+\end{itemize}
+
+\bf{Text output}
+\begin{itemize}
+\item \bf{Always display text as speech} - if you select this option, then all normal
+text in the game will be displayed above the main character's head as speech
+text, much like the way the Lucasarts games worked. If this option is not
+checked, then normal text appears in a pop-up message box, like the way that
+the Sierra games worked.
+\item \bf{Anti-alias TTF fonts} - If enabled, any TTF fonts you have in your game will
+be rendered to the screen anti-aliased. This can make them look a lot better, but it has
+two drawbacks - firstly, anti-aliasing is significantly slower than normal rendering, so
+you might want an option to allow the player to turn it off. Second, anti-aliasing only
+works in hi-color games (in 256-colour games, the output will look blurred and unreadable).
+\item \bf{Custom text-windows GUI} - allows you to customize the standard text window
+appearance in the game, using the specified interface element. See \helpref{here}{TextWin}
+for more information.
+\item \bf{Custom thought bubble GUI} - Determines which text window GUI is used for displaying
+thoughts with \helprefn{Think}{Character.Think}.
+\item \bf{Fonts designed for high resolution} - normally, if the player chooses high resolution for their game, then
+the fonts will be scaled up to match. However, if you have drawn your fonts
+for the high resolution display, use this option to stop them being stretched.
+\item \bf{Write game text Right-to-Left} - in-game text will be written right-to-left, ie. line
+breaks are worked out from the end of the sentence going backwards, and the last words
+are displayed first. This is used by languages such as Arabic and Hebrew.
+\end{itemize}
+
+\bf{Visual}
+\begin{itemize}
+\item \bf{Default transition when changing rooms} - defines what type of screen transition is used when
+moving from one room to another. Various options are available.
+\item \bf{GUI alpha rendering style} - determines which rendering method to use in 32-bit games when a GUI Control is drawn over GUI. The "Proper alpha belnding" choice is meant for full alpha blending support, other options exist for compatibility with older versions of AGS only.
 \item \bf{Pixel-perfect click detection} - normally, when the player clicks the
 mouse, AGS just checks to see if the cursor is within the rectangular area
 of each character and object on the screen. However, if this option is
@@ -983,85 +1125,18 @@ checked, then it will further check whether the player clicked on an actual
 pixel of the object graphic, or whether it was a transparent part of the
 graphic. If this option is enabled and they click on a transparent pixel,
 then the hotspot behind the object will be activated instead.
-\item \bf{Don't automatically move character in Walk mode} - normally, when you click the mouse in
-the Walk mode, the main character will move to where you clicked. However,
-if you want to create a game all viewed from a 1st-person perspective, and
-so don't have a main character, then selecting this option allows you to
-use the Walk mode for other things. If selected, then "Character stands on
-hotspot" events are instead triggered by clicking the Walk cursor on the
-hotspot.
-\item \bf{Don't use inventory graphics as cursors} - normally, when you select an inventory
-item the mouse cursor is changed into that item. However, if you want to
-create a Lucasarts-style game (where the inventory cursor is always a
-cross-hair), check this option and it won't be changed.
-\item \bf{Don't scale up fonts at 640x400} - normally, if the player chooses 640x400, then
-the fonts will be scaled up to match. However, if you have drawn your fonts
-for the 640x400 resolution, use this option to stop them being stretched.
-\item \bf{Resources split every Mb} - see \helpref{here}{SplitRes} for information.
-\item \bf{Characters turn before walking} - specifies that when a character starts
-to walk somewhere, it will first turn round to face the correct direction
-using available animation frames, rather than just suddenly switching to
-face the right way.
-\item \bf{Override built-in inventory window click handling} - AGS has some built-in processing
-of Inventory Window GUI controls, whereby a right-click will Look at the item, and a left click
-will select it if the cursor mode is Interact. However, if you enable this
-option, then clicking on an inventory item in an Inventory Window will call your \verb$on_mouse_click$
-function  with eMouseLeftInv, eMouseMiddleInv or eMouseRightInv, and you then need to process it
-yourself. You can use the \verb$game.inv_activated$ variable to find out what they clicked on.
-\item \bf{Enable mouse wheel support} - if enabled, on_mouse_click can be called with
-the values eMouseWheelNorth and eMouseWheelSouth, which signify the user scrolling their mouse
-wheel north or south, respectively.
-
-\bf{NOTE:} Not all mice have mouse wheels, and the DOS engine does not support the
-mouse wheel at all. Therefore, your game should never require the mouse wheel in order to
-be playable - it should only be used as a handy extra.
-\item \bf{Number dialog options} - enables keyboard shortcuts to choose dialog options (keys 1-9) and adds an index number before each dialog option when
-they are displayed to the player. For example,
-\begin{verbatim}
-1. Hello there!
-2. Goodbye
-\end{verbatim}
-This allows you to visually show the player which option the shortcut keys will choose,
-as well as seperating the options if you don't use a bullet point.
-\item \bf{Dialog options go upwards on GUI} - Normally, if you select a non-textwindow GUI
-for the dialog options, they will be printed from the top down. However, if you select this
-option they will go from the bottom of the GUI upwards.
-\item \bf{Crossfade music tracks} - This allows you to tell AGS to crossfade between your
-background music tracks. Crossfading means fading out the old track while fading in the
-new one when the music changes. You can select a crossfade speed from the drop-down list.
-There are some disadvantages to using this option - firstly, it's fairly slow, since AGS
-has to decode two music files at once. Secondly, it only works with OGG, MP3 and WAV music.
-You cannot crossfade MIDI, XM, MOD, S3M or IT music.
-\item \bf{Anti-alias TTF fonts} - If enabled, any TTF fonts you have in your game will
-be rendered to the screen anti-aliased. This can make them look a lot better, but it has
-two drawbacks - firstly, anti-aliasing is significantly slower than normal rendering, so
-you might want an option to allow the player to turn it off. Second, anti-aliasing only
-works in hi-color games (in 256-colour games, the output will look blurred and unreadable).
-\bf{NOTE} that anti-aliasing is not currently done on lucasarts-style speech due to
-technical reasons.
-\item \bf{Thought uses bubble GUI} - Determines which text window GUI is used for displaying
-thoughts with \helprefn{Think}{Character.Think}.
-\item \bf{Characters turn to face direction} - if set, then when a character turns round
-with the \helprefn{Character.FaceLocation}{Character.FaceLocation} or \helprefn{Character.FaceCharacter}{Character.FaceCharacter}
-script commands, they will visibly turn around using their available loops.
-If this option is not set, they will immediately appear facing their new direction.
-\item \bf{Write game text backwards} - in-game text will be written right-to-left, ie. line
-breaks are worked out from the end of the sentence going backwards, and the last words
-are displayed first. This is used by languages such as Arabic and Hebrew.
-\item \bf{Display multiple inventory items multiple times} - normally, if the player has
-two of an inventory item, the item will still only be shown once in the Inventory window.
-If you check this option, however, then all the copies of the item that the player has
-will be displayed. Useful for RPG-style inventories.
-\item \bf{Save games folder name} - if this is blank, then the player's saved games will
-be saved to the folder where the game is installed. This is not a good idea, because it
-forces different users on the same machine to share save games, and Windows Vista and later versions discourage
-games from writing to the Program Files folder. Instead, if you supply a folder name here,
-then AGS will automatically create it within the user's Saved Games (Vista and later) or My Documents
-(XP and earlier) folder, and their save games will be saved there.
+\item \bf{Sprite alpha rendering style} - determines which rendering method to use in 32-bit games when an image is drawn over \helpref{drawing surface}{DrawingSurfaceFunctions}.  The "Proper alpha belnding" choice is meant for full alpha blending support, "Classic" style exists for  compatibility with older versions of AGS only.
+\item \bf{When player interface is disabled, GUI should} - determines what happens to buttons on your
+GUIs while the game interface is disabled (eg. during a cutscene).
 \end{itemize}
 
-See Also: \helprefn{Enhanced Saved Games}{EnhancedSaveGames} ILBRK
-See Also: \helprefn{Windows Game Explorer}{GameExplorer}
+\bf{Windows Game Explorer}
+See: \helprefn{Windows Game Explorer}{GameExplorer}
+\begin{itemize}
+
+
+\subsection{Default setup}\index{Default setup}\index{Game setup}%
+
 
 
 \subsection{Cursors}\index{Mouse cursors}%
@@ -1689,23 +1764,13 @@ You may wish to ignore this or to do something useful with it.
 
 \section{Distributing your game}\label{DistGame}\index{Compiling the game}\index{Splash screen, creating}\index{Loading screen, creating}%
 
-When you choose the "Build EXE" option in the Editor, a "Compiled" sub-directory
-is created in your game's folder, where more subdirectories are created in turn
-for every target platform you are building the game for. For example, "Compiled/Windows"
-subfolder will be created if you have Windows build checked in General Settings, and
-"Compiled/Linux" subfolder if you have Linux build enabled.
-The "Compiled" folder itself will contain all the "raw" game files that cannot be
-run on their own, but distinct subfolders will contain a runnable variant of the compiled
-game for corresponding operating system.
-For example, if you want to distribute Windows version of your game, you need to
-take the contents of "Windows" subfolder.
-At its simplest this will just be your game executable and the setup
-program, but you may also have audio and speech libraries (AUDIO.VOX and
-SPEECH.VOX); and if you have selected to split resources files, you will also
-have several files named "game.001", "game.002", and so forth.
-
-So, when you want to upload your game to the internet, just zip up the files in
-the "Windows" folder, and there you go!
+When you choose the "Build EXE" option in the Editor, a "Compiled" sub-directory is created in your game's folder, where more subdirectories are created in turn.
+"Compiled/Data" subfolder is made always. It will contain the "raw" game files that cannot be used on their own, but may be run by the AGS engine executable.
+From this folder these files will be then copied into other subfolders, each for one build target (platform) you selected in the project's General Settings.
+For example, "Compiled/Windows" subfolder will be created if you have Windows build enabled, and "Compiled/Linux" subfolder if you have Linux build enabled.
+The contents of those subfolders may be now distributed to corresponding operating systems.
+So, for example, if you want to distribute Windows version of your game, you need to take the contents of "Compiled/Windows" subfolder.
+At its simplest this will just be your game executable and the setup program, but you may also have audio and speech libraries (AUDIO.VOX and SPEECH.VOX); and if you have selected to split resources files, you will also have several files named "game.001", "game.002", and so forth.
 
 \it{NOTE: It is not possible to load the exe file back into the AGS Editor. This
 means two things when only the EXE file is available: (1) other people can't
@@ -1733,7 +1798,7 @@ You should also include all the license_* files from the DOCS directory with you
 
 \bf{IMPORTANT:} If you intend to make money for your game, be it shareware or commercial,
 it is imperative that you read the Legal Information page on the AGS website, currently
-at http://www.bigbluecup.com/aclegal.htm
+at http://www.adventuregamestudio.co.uk/site/ags/legal
 
 \bf{NOTE:} The AUDIO.VOX file contains audio clips that you have marked as "InSeperateVOX"
 in the editor. This allows you to have an optional audio download, if your game uses lots
@@ -21186,7 +21251,6 @@ There are maximum...
      299  state-saving rooms per game
      300  inventory items
    30000  imported sprites
-     500  dialog topics
       30  options per dialog topic
       20  screen overlays at a time
        5  background frames per room
@@ -21196,6 +21260,7 @@ There are maximum...
       30  fonts
 unlimited words in the text parser dictionary
 unlimited characters
+unlimited dialog topics
 unlimited views
 unlimited GUIs
 unlimited controls on each GUI
@@ -22081,7 +22146,7 @@ with two switches in the "Backwards Compatibility" section of the General Settin
 
 One switch is called "Script API version" and defines the topmost level of built-in script content
 that you want to enable for your project. It is suggested to set this to the highest possible
-value. However, there may be cases when you load an lder project in the newer version of AGS,
+value. However, there may be cases when you load an older project in the newer version of AGS,
 and new built-in function names conflict with names in some of the scripts you used in your
 project. In such cases you may decide between fixing your script or lowering AGS API version.
 The latter will let you compile game scripts without any changes, at the price of not being able
@@ -22189,6 +22254,23 @@ For detailed information see: \helprefn{Custom dialog options rendering}{Dialog 
 The maximal number of GUI Controls per GUI is no longer limited.
 The maximal number of script modules is no longer limited.
 
+
+\chapter{Upgrading to AGS 3.4.1}\label{UpgradeTo341}%
+
+There were no breaking changes in this update, but few notes should be made.
+
+\bf{Default Setup pane}
+
+A new node was added to the project tree, called "Default Setup". Clicking on it will open a page with table of options, similar to "General Settings". This is where you can choose the default configuration of your game, that will be written to config file created when your game is compiled (acsetup.cfg).
+One of the reasons for introducing this pane is that since AGS 3.3.5 game setup program no longer writes config to the file in game's folder, but to the file in the user documents instead; therefore it is no longer possible to directly create default config for your game using winsetup.exe.
+
+"Graphics driver" option has migrated from "General Settings" to "Default Setup".
+
+For detailed information about Default Setup page refer to: \helprefn{Default setup}{Game setup}.
+
+\bf{System limits update}
+
+The maximal number of Dialogs is no longer limited.
 
 
 
@@ -22314,6 +22396,7 @@ The AGS forum:   http://www.adventuregamestudio.co.uk/forums/
   Per Olav Flaten
   Piotr Wieczorek
   rofl0r
+  Ryan O'Connor
   Scott Baker
   Shane Stevens
   Shawn R. Walker

@@ -176,7 +176,7 @@ namespace AGS.Editor
             }
             catch (Exception ex)
             {
-                errors.Add(new CompileError("Unable to register for Vista Game Explorer: " + ex.Message));
+                errors.Add(new CompileError("Unable to register for Windows Game Explorer: " + ex.Message));
             }
             try
             {

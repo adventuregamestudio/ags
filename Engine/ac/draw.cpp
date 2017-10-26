@@ -156,6 +156,7 @@ Bitmap *_old_screen=NULL;
 Bitmap *_sub_screen=NULL;
 
 int offsetx = 0, offsety = 0;
+int wasShakingScreen = 0;
 
 IDriverDependantBitmap* roomBackgroundBmp = NULL;
 
@@ -718,6 +719,9 @@ void render_to_screen(Bitmap *toRender, int atx, int aty) {
     aty += play.viewport.Top;
     gfxDriver->SetRenderOffset(atx, aty);
 
+    // For software renderer, need to blacken upper part of the game frame when shaking screen moves image down
+    if (aty > 0 && wasShakingScreen && gfxDriver->UsesMemoryBackBuffer())
+        gfxDriver->ClearRectangle(play.viewport.Left, play.viewport.Top, play.viewport.GetWidth() - 1, aty, NULL);
     render_black_borders(atx, aty);
 
     gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, NULL);
@@ -775,7 +779,6 @@ void write_screen() {
     if (play.fast_forward)
         return;
 
-    static int wasShakingScreen = 0;
     bool clearScreenBorders = false;
     int at_yp = 0;
 
@@ -2116,12 +2119,12 @@ void draw_screen_overlay() {
 
     add_thing_to_draw(NULL, AGSE_PREGUIDRAW, 0, TRANS_RUN_PLUGIN, false);
 
-    // draw overlays, except text boxes
+    // draw overlays, except text boxes and portraits
     for (gg=0;gg<numscreenover;gg++) {
         // complete overlay draw in non-transparent mode
         if (screenover[gg].type == OVER_COMPLETE)
             add_thing_to_draw(screenover[gg].bmp, screenover[gg].x, screenover[gg].y, TRANS_OPAQUE, false);
-        else if (screenover[gg].type != OVER_TEXTMSG) {
+        else if (screenover[gg].type != OVER_TEXTMSG && screenover[gg].type != OVER_PICTURE) {
             int tdxp, tdyp;
             get_overlay_position(gg, &tdxp, &tdyp);
             add_thing_to_draw(screenover[gg].bmp, tdxp, tdyp, 0, screenover[gg].hasAlphaChannel);
@@ -2202,10 +2205,10 @@ void draw_screen_overlay() {
         }
     }
 
-    // draw text boxes (so that they appear over GUIs)
+    // draw speech and portraits (so that they appear over GUIs)
     for (gg=0;gg<numscreenover;gg++) 
     {
-        if (screenover[gg].type == OVER_TEXTMSG) 
+        if (screenover[gg].type == OVER_TEXTMSG || screenover[gg].type == OVER_PICTURE)
         {
             int tdxp, tdyp;
             get_overlay_position(gg, &tdxp, &tdyp);

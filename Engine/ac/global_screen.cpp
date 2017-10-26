@@ -39,6 +39,7 @@ extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern color palette[256];
 extern unsigned int loopcounter;
+extern int wasShakingScreen;
 
 int screen_reset = 0;
 
@@ -56,6 +57,7 @@ void ShakeScreen(int severe) {
     int hh;
     //Bitmap *oldsc=abuf; // CHECKME!!!
 
+    wasShakingScreen = 1;
     if (gfxDriver->RequiresFullRedrawEachFrame())
     {
         play.shakesc_length = 10;
@@ -94,6 +96,7 @@ void ShakeScreen(int severe) {
         render_to_screen(tty, 0, 0);
         delete tty;
     }
+    wasShakingScreen = 0;
 
     //abuf=oldsc;// CHECKME!!!
 }

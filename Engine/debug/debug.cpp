@@ -135,11 +135,7 @@ void apply_debug_config(const ConfigTree &cfg)
     if (game.options[OPT_DEBUGMODE] != 0)
     {
         // Game console
-        DebugConsole.reset(new ConsoleOutputTarget());
-        PDebugOutput gmcs_out = DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsgSet_Errors);
-        gmcs_out->SetGroupFilter(kDbgGroup_Main, kDbgMsgSet_All);
-        gmcs_out->SetGroupFilter(kDbgGroup_Script, kDbgMsgSet_All);
-        DebugMsgBuff->Send(OutputGameConsoleID);
+        debug_set_console(true);
 
         // "Warnings.log" for printing script warnings in debug mode
         DebugWarningsFile.reset(new LogFile());
@@ -166,6 +162,24 @@ void shutdown_debug()
 
     DebugLogFile.reset();
     DebugConsole.reset();
+}
+
+void debug_set_console(bool enable)
+{
+    if (enable && DebugConsole.get() == NULL)
+    {
+        DebugConsole.reset(new ConsoleOutputTarget());
+        PDebugOutput gmcs_out = DbgMgr.RegisterOutput(OutputGameConsoleID, DebugConsole.get(), kDbgMsgSet_Errors);
+        gmcs_out->SetGroupFilter(kDbgGroup_Main, kDbgMsgSet_All);
+        gmcs_out->SetGroupFilter(kDbgGroup_Script, kDbgMsgSet_All);
+        if (DebugMsgBuff.get())
+            DebugMsgBuff->Send(OutputGameConsoleID);
+    }
+    else if (!enable && DebugConsole.get() != NULL)
+    {
+        DbgMgr.UnregisterOutput(OutputGameConsoleID);
+        DebugConsole.reset();
+    }
 }
 
 // Prepends message text with current room number and running script info, then logs result

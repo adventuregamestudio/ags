@@ -260,8 +260,9 @@ int Game_IsAudioPlaying(int audioType)
 void Game_SetAudioTypeSpeechVolumeDrop(int audioType, int volumeDrop)
 {
     if ((audioType < 0) || (audioType >= game.audioClipTypeCount))
-        quit("!Game.SetAudioTypeVolume: invalid audio type");
+        quitprintf("!Game.SetAudioTypeVolume: invalid audio type: %d", audioType);
 
+    Debug::Printf("Game.SetAudioTypeSpeechVolumeDrop: type: %d, drop: %d", audioType, volumeDrop);
     game.audioClipTypes[audioType].volume_reduction_while_speech_playing = volumeDrop;
     update_volume_drop_if_voiceover();
 }
@@ -271,9 +272,10 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
     if ((volume < 0) || (volume > 100))
         quitprintf("!Game.SetAudioTypeVolume: volume %d is not between 0..100", volume);
     if ((audioType < 0) || (audioType >= game.audioClipTypeCount))
-        quit("!Game.SetAudioTypeVolume: invalid audio type");
+        quitprintf("!Game.SetAudioTypeVolume: invalid audio type: %d", audioType);
     int aa;
 
+    Debug::Printf("Game.SetAudioTypeVolume: type: %d, volume: %d, change: %d", audioType, volume, changeType);
     if ((changeType == VOL_CHANGEEXISTING) ||
         (changeType == VOL_BOTH))
     {
@@ -312,6 +314,12 @@ int Game_GetMODPattern() {
 int Game_GetDialogCount()
 {
   return game.numdialog;
+}
+
+void set_debug_mode(bool on)
+{
+    play.debug_mode = on ? 1 : 0;
+    debug_set_console(on);
 }
 
 void set_game_speed(int fps) {
@@ -2495,7 +2503,7 @@ void RegisterGameAPI()
 
 void RegisterStaticObjects()
 {
-    ccAddExternalStaticObject("game",&play, &GlobalStaticManager);
+    ccAddExternalStaticObject("game",&play, &GameStaticManager);
 	ccAddExternalStaticObject("gs_globals",&play.globalvars[0], &GlobalStaticManager);
 	ccAddExternalStaticObject("mouse",&scmouse, &GlobalStaticManager);
 	ccAddExternalStaticObject("palette",&palette[0], &GlobalStaticManager);

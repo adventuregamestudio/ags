@@ -76,6 +76,8 @@ namespace Engine
 namespace SavegameComponents
 {
 
+const String ComponentListTag = "Components";
+
 void WriteFormatTag(PStream out, const String &tag, bool open = true)
 {
     String full_tag = String::FromFormat(open ? "<%s>" : "</%s>", tag.GetCStr());
@@ -1049,11 +1051,8 @@ SavegameError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &in
     size_t pos = in->GetPosition();
     info = ComponentInfo(); // reset in case of early error
     info.Offset = in->GetPosition();
-    if (!ReadFormatTag(in, info.Name, true)) {
-        if (in->EOS())
-            return kSvgErr_ExpectedEOS; // report end of stream (expected case)
+    if (!ReadFormatTag(in, info.Name, true))
         return kSvgErr_ComponentOpeningTagFormat;
-    }
     info.Version = in->ReadInt32();
     info.DataSize = in->ReadInt32();
     info.DataOffset = in->GetPosition();
@@ -1083,21 +1082,32 @@ SavegameError ReadAll(PStream in, SavegameVersion svg_version, const PreservedPa
     SvgCmpReadHelper hlp(svg_version, pp, r_data);
     GenerateHandlersMap(hlp.Handlers);
 
-    while (!in->EOS())
+    size_t idx = 0;
+    if (!AssertFormatTag(in, ComponentListTag, true))
+        return kSvgErr_ComponentListOpeningTagFormat;
+    do
     {
+        // Look out for the end of the component list:
+        // this is the only way how this function ends with success
+        size_t off = in->GetPosition();
+        if (AssertFormatTag(in, ComponentListTag, false))
+            return kSvgErr_NoError;
+        // If the list's end was not detected, then seek back and continue reading
+        in->Seek(off, kSeekBegin);
+
         ComponentInfo info;
         SavegameError err = ReadComponent(in, hlp, info);
-        if (err == kSvgErr_ExpectedEOS)
-            break; // this is normal
         if (err != kSvgErr_NoError)
         {
-            Debug::Printf(kDbgMsg_Error, "ERROR: failed to read savegame component: type = %s, version = %i, at offset = %u",
-                info.Name.GetCStr(), info.Version, info.Offset);
+            Debug::Printf(kDbgMsg_Error, "ERROR: failed to read savegame component: index = %d, type = %s, version = %i, at offset = %u",
+                idx, info.Name.IsEmpty() ? "unknown" : info.Name.GetCStr(), info.Version, info.Offset);
             return err;
         }
         update_polled_stuff_if_runtime();
+        idx++;
     }
-    return kSvgErr_NoError;
+    while (!in->EOS());
+    return kSvgErr_ComponentListClosingTagMissing;
 }
 
 SavegameError WriteComponent(PStream out, ComponentHandler &hdlr)
@@ -1118,6 +1128,7 @@ SavegameError WriteComponent(PStream out, ComponentHandler &hdlr)
 
 SavegameError WriteAllCommon(PStream out)
 {
+    WriteFormatTag(out, ComponentListTag, true);
     for (int type = 0; !ComponentHandlers[type].Name.IsEmpty(); ++type)
     {
         SavegameError err = WriteComponent(out, ComponentHandlers[type]);
@@ -1128,6 +1139,7 @@ SavegameError WriteAllCommon(PStream out)
         }
         update_polled_stuff_if_runtime();
     }
+    WriteFormatTag(out, ComponentListTag, false);
     return kSvgErr_NoError;
 }
 

@@ -157,7 +157,7 @@ struct RoomStruct {
     char          *message[MAXMESS];
     MessageInfo   msgi[MAXMESS];
     short         wasversion;                     // when loaded from file
-    short         flagstates[MAX_FLAGS];
+    short         flagstates[MAX_FLAGS]; // unused!
     FullAnimation anims[MAXANIMS];
     short         numanims;
     short         shadinginfo[16];    // walkable area-specific view number

@@ -17,6 +17,7 @@
 #include "gui/guitextbox.h"
 #include "gui/guimain.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
 #define GUITEXTBOX_TEXT_LENGTH 200
 
@@ -102,6 +103,22 @@ void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 
     if (TextColor == 0)
         TextColor = 16;
+}
+
+void GUITextBox::ReadFromSavegame(Stream *in)
+{
+    GUIObject::ReadFromSavegame(in);
+    Font = in->ReadInt32();
+    TextColor = in->ReadInt32();
+    Text = StrUtil::ReadString(in);
+}
+
+void GUITextBox::WriteToSavegame(Stream *out) const
+{
+    GUIObject::WriteToSavegame(out);
+    out->WriteInt32(Font);
+    out->WriteInt32(TextColor);
+    StrUtil::WriteString(Text, out);
 }
 
 } // namespace Common

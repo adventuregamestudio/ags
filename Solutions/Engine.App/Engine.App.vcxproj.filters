@@ -981,6 +981,9 @@
     <ClCompile Include="..\..\Engine\gfx\gfxfilter_aaogl.cpp">
       <Filter>Header Files\gfx</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\game\savegame_components.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1819,6 +1822,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\gfx\ogl_headers.h">
       <Filter>Header Files\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\game\savegame_components.h">
+      <Filter>Header Files\game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

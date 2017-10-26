@@ -17,6 +17,7 @@
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
 std::vector<AGS::Common::GUIButton> guibuts;
 int numguibuts = 0;
@@ -222,6 +223,34 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
     CurrentImage = Image;
     // All buttons are translated at the moment
     Flags |= kGUICtrl_Translated;
+}
+
+void GUIButton::ReadFromSavegame(Stream *in)
+{
+    GUIObject::ReadFromSavegame(in);
+    // Properties
+    Image = in->ReadInt32();
+    MouseOverImage = in->ReadInt32();
+    PushedImage = in->ReadInt32();
+    Font = in->ReadInt32();
+    TextColor = in->ReadInt32();
+    SetText(StrUtil::ReadString(in));
+    // Dynamic state
+    Image = in->ReadInt32();
+}
+
+void GUIButton::WriteToSavegame(Stream *out) const
+{
+    // Properties
+    GUIObject::WriteToSavegame(out);
+    out->WriteInt32(Image);
+    out->WriteInt32(MouseOverImage);
+    out->WriteInt32(PushedImage);
+    out->WriteInt32(Font);
+    out->WriteInt32(TextColor);
+    StrUtil::WriteString(GetText(), out);
+    // Dynamic state
+    out->WriteInt32(Image);
 }
 
 void GUIButton::DrawImageButton(Bitmap *ds, bool draw_disabled)

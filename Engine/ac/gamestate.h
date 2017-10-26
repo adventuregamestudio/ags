@@ -207,12 +207,11 @@ struct GameState {
 
     void SetViewport(const Size viewport_size);
 
-    void ReadFromFile_v321(Common::Stream *in);
-    void WriteToFile_v321(Common::Stream *out);
     void ReadQueuedAudioItems_Aligned(Common::Stream *in);
-    void WriteQueuedAudioItems_Aligned(Common::Stream *out);
-    void ReadCustomProperties(Common::Stream *in);
-    void WriteCustomProperties(Common::Stream *out);
+    void ReadCustomProperties_v340(Common::Stream *in);
+    void WriteCustomProperties_v340(Common::Stream *out) const;
+    void ReadFromSavegame(Common::Stream *in, bool old_save);
+    void WriteForSavegame(Common::Stream *out) const;
     void FreeProperties();
 };
 

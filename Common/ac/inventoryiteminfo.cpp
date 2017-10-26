@@ -14,8 +14,9 @@
 
 #include "ac/inventoryiteminfo.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
 void InventoryItemInfo::ReadFromFile(Stream *in)
 {
@@ -37,4 +38,18 @@ void InventoryItemInfo::WriteToFile(Stream *out)
     out->WriteInt32(hoty);
     out->WriteArrayOfInt32(reserved, 5);
     out->WriteInt8(flags);
+}
+
+void InventoryItemInfo::ReadFromSavegame(Stream *in)
+{
+    StrUtil::ReadString(name, in, 25);
+    pic = in->ReadInt32();
+    cursorPic = in->ReadInt32();
+}
+
+void InventoryItemInfo::WriteToSavegame(Stream *out) const
+{
+    StrUtil::WriteString(name, out);
+    out->WriteInt32(pic);
+    out->WriteInt32(cursorPic);
 }

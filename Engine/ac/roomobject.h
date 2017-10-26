@@ -57,7 +57,7 @@ struct RoomObject {
 	void update_cycle_view_backwards();
 
     void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void WriteToFile(Common::Stream *out) const;
 };
 
 #endif // __AGS_EE_AC__ROOMOBJECT_H

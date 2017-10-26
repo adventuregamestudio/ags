@@ -286,6 +286,7 @@
     <ClCompile Include="..\..\Engine\font\fonts_engine.cpp" />
     <ClCompile Include="..\..\Engine\game\game_init.cpp" />
     <ClCompile Include="..\..\Engine\game\savegame.cpp" />
+    <ClCompile Include="..\..\Engine\game\savegame_components.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dogl.cpp" />
     <ClCompile Include="..\..\Engine\gfx\ali3dsw.cpp" />
     <ClCompile Include="..\..\Engine\gfx\blender.cpp" />
@@ -608,6 +609,7 @@
     <ClInclude Include="..\..\Engine\device\mousew32.h" />
     <ClInclude Include="..\..\Engine\game\game_init.h" />
     <ClInclude Include="..\..\Engine\game\savegame.h" />
+    <ClInclude Include="..\..\Engine\game\savegame_components.h" />
     <ClInclude Include="..\..\Engine\game\savegame_internal.h" />
     <ClInclude Include="..\..\Engine\gfx\ali3dexception.h" />
     <ClInclude Include="..\..\Engine\gfx\ali3dogl.h" />

@@ -142,6 +142,32 @@ void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
     }
 }
 
+void GUIObject::ReadFromSavegame(Stream *in)
+{
+    // Properties
+    Flags = in->ReadInt32();
+    X = in->ReadInt32();
+    Y = in->ReadInt32();
+    Width = in->ReadInt32();
+    Height = in->ReadInt32();
+    ZOrder = in->ReadInt32();
+    // Dynamic state
+    IsActivated = in->ReadBool() ? 1 : 0;
+}
+
+void GUIObject::WriteToSavegame(Stream *out) const
+{
+    // Properties
+    out->WriteInt32(Flags);
+    out->WriteInt32(X);
+    out->WriteInt32(Y);
+    out->WriteInt32(Width);
+    out->WriteInt32(Height);
+    out->WriteInt32(ZOrder);
+    // Dynamic state
+    out->WriteBool(IsActivated != 0);
+}
+
 
 FrameAlignment ConvertLegacyGUIAlignment(int32_t align)
 {

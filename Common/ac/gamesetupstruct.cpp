@@ -309,15 +309,32 @@ void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* c
     ReadCharacters_Aligned(in);
 }
 
-void GameSetupStruct::WriteForSaveGame_v321(Stream *out)
+//=============================================================================
+
+void GameSetupStruct::ReadFromSavegame(PStream in)
 {
-    WriteInvInfo_Aligned(out);
-    WriteMouseCursors_Aligned(out);
-
-    out->WriteArrayOfInt32 (&options[0], OPT_HIGHESTOPTION_321 + 1);
-    out->WriteInt8 (options[OPT_LIPSYNCTEXT]);
-
-    WriteCharacters_Aligned(out);
+    // of GameSetupStruct
+    in->ReadArrayOfInt32(options, OPT_HIGHESTOPTION_321 + 1);
+    options[OPT_LIPSYNCTEXT] = in->ReadInt32();
+    // of GameSetupStructBase
+    playercharacter = in->ReadInt32();
+    dialog_bullet = in->ReadInt32();
+    hotdot = in->ReadInt16();
+    hotdotouter = in->ReadInt16();
+    invhotdotsprite = in->ReadInt32();
+    default_lipsync_frame = in->ReadInt32();
 }
 
-//=============================================================================
+void GameSetupStruct::WriteForSavegame(PStream out)
+{
+    // of GameSetupStruct
+    out->WriteArrayOfInt32(options, OPT_HIGHESTOPTION_321 + 1);
+    out->WriteInt32(options[OPT_LIPSYNCTEXT]);
+    // of GameSetupStructBase
+    out->WriteInt32(playercharacter);
+    out->WriteInt32(dialog_bullet);
+    out->WriteInt16(hotdot);
+    out->WriteInt16(hotdotouter);
+    out->WriteInt32(invhotdotsprite);
+    out->WriteInt32(default_lipsync_frame);
+}

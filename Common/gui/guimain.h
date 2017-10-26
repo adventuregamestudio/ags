@@ -97,6 +97,8 @@ public:
     // Serialization
     void    ReadFromFile(Stream *in, GuiVersion gui_version);
     void    WriteToFile(Stream *out, GuiVersion gui_version) const;
+    void    ReadFromSavegame(Stream *in);
+    void    WriteToSavegame(Stream *out) const;
 
 private:
     void    DrawBlob(Bitmap *ds, int x, int y, color_t draw_color);

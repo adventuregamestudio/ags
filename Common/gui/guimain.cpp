@@ -519,6 +519,48 @@ void GUIMain::WriteToFile(Stream *out, GuiVersion gui_version) const
     }
 }
 
+void GUIMain::ReadFromSavegame(Common::Stream *in)
+{
+    // Properties
+    Flags = in->ReadInt32();
+    X = in->ReadInt32();
+    Y = in->ReadInt32();
+    Width = in->ReadInt32();
+    Height = in->ReadInt32();
+    BgImage = in->ReadInt32();
+    Transparency = in->ReadInt32();
+    _visibility = (GUIVisibilityState)in->ReadInt32();
+    ZOrder = in->ReadInt32();
+    // Dynamic values
+    FocusCtrl = in->ReadInt32();
+    HighlightCtrl = in->ReadInt32();
+    MouseOverCtrl = in->ReadInt32();
+    MouseDownCtrl = in->ReadInt32();
+    MouseWasAt.X = in->ReadInt32();
+    MouseWasAt.Y = in->ReadInt32();
+}
+
+void GUIMain::WriteToSavegame(Common::Stream *out) const
+{
+    // Properties
+    out->WriteInt32(Flags);
+    out->WriteInt32(X);
+    out->WriteInt32(Y);
+    out->WriteInt32(Width);
+    out->WriteInt32(Height);
+    out->WriteInt32(BgImage);
+    out->WriteInt32(Transparency);
+    out->WriteInt32(_visibility);
+    out->WriteInt32(ZOrder);
+    // Dynamic values
+    out->WriteInt32(FocusCtrl);
+    out->WriteInt32(HighlightCtrl);
+    out->WriteInt32(MouseOverCtrl);
+    out->WriteInt32(MouseDownCtrl);
+    out->WriteInt32(MouseWasAt.X);
+    out->WriteInt32(MouseWasAt.Y);
+}
+
 
 namespace GUI
 {

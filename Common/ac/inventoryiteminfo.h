@@ -28,6 +28,8 @@ struct InventoryItemInfo {
 
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);
+    void ReadFromSavegame(Common::Stream *in);
+    void WriteToSavegame(Common::Stream *out) const;
 };
 
 #endif // __AC_INVENTORYITEMINFO_H

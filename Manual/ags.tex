@@ -1137,6 +1137,26 @@ See: \helprefn{Windows Game Explorer}{GameExplorer}
 
 \subsection{Default setup}\index{Default setup}\index{Game setup}%
 
+The Default setup pane lets you create the default runtime configuration for your game. Since AGS 3.3.5 you cannot directly do that using game's setup utility (winsetup.exe) anymore, because it modifies config file in the user's personal documents folder instead of game folder. For that reason you should be doing it from this Editor's page now.
+
+Most of the options here correspond to the ones you may find in the setup utility. For their meaning please refer to \section{related topic}\index{Setup}.
+
+Additionally, following settings are available:
+
+\bf{Setup appearance}
+\begin{itemize}
+\item \bf{Title text} - the text that will appear on the title of the setup program window.
+\end{itemize}
+
+\bf{Enviroment}
+\begin{itemize}
+\item \bf{Custom game saves path} - defines where game will store its saves and individual user's files (e.g. achievements). This path will be used to substitute default value of \verb^$SAVEGAMEDIR$^ token in scripts. Note that when being set up in the Editor, this option only accepts relative paths (when used they will be relative to the game's location). This has to be done this way to prevent setting absolute path that does not exist on the player's machine, so typically you have to set this if you want to have saves stored locally within the game's folder. Also players will be able to modify this path in setup program (where they are actually allowed to put absolute paths too).
+\item \bf{Custom shared data path} - defines where game will store its shared data files (e.g. hiscore tables). This path will be used to substitute default value of \verb^$APPDATADIR$^ token in scripts. Note that this option only accepts relative paths, so typically you have to set this if you want to have data files created locally within the game's folder. Players \bg{won't} normally be able to change it in setup program.
+\end{itemize}
+
+\bf{IMPORTANT:} the configuration file will only be recreated during next game compilation, so if you change these settings you will need to rebuild your game one more time to apply them.
+
+See also: \helprefn{Run-time engine setup}{Setup}
 
 
 \subsection{Cursors}\index{Mouse cursors}%
@@ -1192,8 +1212,13 @@ available on the internet.
 There are also some fonts available on the
 \urlref{AGS website}{http://www.adventuregamestudio.co.uk/fonts}.
 
-Note that SCI fonts are faster to render than TTF fonts, and so may give your game
-a speed advantage. It's preferable to use a SCI font if you can.
+When choosing whether to use SCI or TTF font following should be taken into account:
+\begin{itemize}
+\item SCI font is a raster (bitmap) font, which means that it does not scale and always keeps same size and pixel-precise visual shape.
+\item TTF font is a vector font, that may be scaled to suit your game (you choose its size during import), and may be rendered with anti-aliasing.
+\end{itemize}
+
+In general you should prefer using TTF fonts, but SCI fonts may still be useful in low-resolution games (because not all TTF fonts scale down well) and situations where you need pixel-precise looks of the drawn symbols.
 
 Go to the "Fonts" node in the main tree. Here you can see all the current fonts
 listed underneath. You can create a new font by right-clicking the "Fonts" node
@@ -1205,6 +1230,12 @@ necessity since they stop the text blending into the background and becoming
 un-readable. To outline a font, either set the OutlineStyle to "Automatic" to
 have AGS do it for you, or you can use a specific font slot as the outline font
 (it will be drawn in black behind the main font when the main font is used).
+
+Every font have following optional properties:
+\begin{itemize}
+\item \bf{LineSpacing} - defines default difference (in pixels) between two lines of wrapped text. Setting this to 0 will make font use its own height as a vertical spacing. Having line spacing lower than font's height will make lines partially overlap.
+\item \bf{VerticalOffset} - defines additional vertical offset applied to every drawn line of text (when using this font). This property is mainly meant to override particular font's misbehavior.
+\end{itemize}
 
 \bf{NOTE:} If you go to your Windows Fonts folder, you will not be able to select
 any fonts to import, since double-clicking them will open them up in the Windows Font
@@ -22257,7 +22288,19 @@ The maximal number of script modules is no longer limited.
 
 \chapter{Upgrading to AGS 3.4.1}\label{UpgradeTo341}%
 
-There were no breaking changes in this update, but few notes should be made.
+There were no breaking changes in this update, but several notes should be made.
+
+\bf{Compiled folder structure}
+
+Since previous big update, AGS 3.4.0, you can compile your game for more than one platform at a time, and resulting files will be placed in the corresponding subfolders of the "Compiled" folder, such as "Compiled/Windows" and "Compiled/Linux". The raw compiled game files (without executable) were still placed just in "Compiled".
+
+In AGS 3.4.1 the raw compiled game files will be placed in "Compiled/Data" instead. This change was made to improve the compiled folder structure and make its contents cleaner.
+
+For that reason, if you upgrade your game from one of the previous AGS 3.* versions, it is recommended to either delete "Compiled" folder and fully rebuild the game, or at least remove any files located in the "Compiled" folder itself to clean things up.
+
+\bf{"Lazy" voice file compilation}
+
+Speech voice-over file \bf{speech.vox} is now compiled only when you explicitly order game rebuild. When just launching the game from the editor it won't be recompiled, and the game will load voice clips from the Speech folder instead. This way it works similar to how sound and music clips are loaded from AudioCache folder when game is tested, and saves some time on game compilation, especially when working with large projects.
 
 \bf{Default Setup pane}
 
@@ -22267,6 +22310,12 @@ One of the reasons for introducing this pane is that since AGS 3.3.5 game setup 
 "Graphics driver" option has migrated from "General Settings" to "Default Setup".
 
 For detailed information about Default Setup page refer to: \helprefn{Default setup}{Game setup}.
+
+\bf{Script API selector}
+
+The "Script API version" and "Script Compatibility Level" switches in General Settings (they were added in 3.4.0) now have "Highest" selection. Choosing that will ensure that whenever you upgrade your game to future versions of AGS, your game will automatically enable newest script commands. Otherwise you would have to update these two switches by hand every time.
+
+Naturally, if you prefer to lock script API at particular level even when moving to next versions of the editor, you would need to set API levels to corresponding values.
 
 \bf{System limits update}
 

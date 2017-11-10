@@ -1323,10 +1323,15 @@ bool engine_read_config(const String &exe_path, ConfigTree &cfg)
         return false;
     }
 
+    // Disabled on Windows because people were afraid that this config could be mistakenly
+    // created by some installer and screw up their games. Until any kind of solution is found.
+    String user_global_cfg_file;
+#if !defined (WINDOWS_VERSION)
     // Read user global configuration file
-    String user_global_cfg_file = find_user_global_cfg_file();
+    user_global_cfg_file = find_user_global_cfg_file();
     if (Path::ComparePaths(user_global_cfg_file, def_cfg_file) != 0)
         IniUtil::Read(user_global_cfg_file, cfg);
+#endif
 
     // Read user configuration file
     String user_cfg_file = find_user_cfg_file();

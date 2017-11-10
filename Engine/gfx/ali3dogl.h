@@ -283,8 +283,10 @@ private:
     bool CreateGlContext(const DisplayMode &mode);
     void DeleteGlContext();
     // Sets up general rendering parameters
-    void InitGlParams();
+    void InitGlParams(const DisplayMode &mode);
     void set_up_default_vertices();
+    // Test if swap interval (used for vsync) is supported
+    void TestVSync();
     // Test if rendering to texture is supported
     void TestRenderToTexture();
     // Create shader programs for sprite tinting and changing light level

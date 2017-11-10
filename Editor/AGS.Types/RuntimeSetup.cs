@@ -39,10 +39,12 @@ namespace AGS.Types
             filters["stdscale"] = "Nearest-neighbour";
             filters["linear"] = "Linear interpolation (with anti-aliasing)";
             _gfxFiltersAll.Add(GraphicsDriver.D3D9, filters);
+            _gfxFiltersAll.Add(GraphicsDriver.OpenGL, filters);
 
             _gfxFiltersDefault = new Dictionary<GraphicsDriver, string>();
             _gfxFiltersDefault[GraphicsDriver.Software] = "stdscale";
             _gfxFiltersDefault[GraphicsDriver.D3D9] = "stdscale";
+            _gfxFiltersDefault[GraphicsDriver.OpenGL] = "stdscale";
         }
 
         public void SetDefaults()
@@ -66,7 +68,7 @@ namespace AGS.Types
         }
 
         [DisplayName("Graphics driver")]
-        [Description("The default graphics driver that your game will use. Direct3D allows fast high-resolution alpha-blended sprites, but DirectDraw is better at RawDrawing.")]
+        [Description("The default graphics driver that your game will use. Software renderer is slower at scaling images, but it is slightly faster with raw drawing, and only one supporting 8-bit games at the moment.")]
         [DefaultValue(GraphicsDriver.D3D9)]
         [Category("Graphics")]
         [TypeConverter(typeof(EnumTypeConverter))]
@@ -173,7 +175,7 @@ namespace AGS.Types
         }
 
         [DisplayName("Render sprites at screen resolution")]
-        [Description("When drawing zoomed character and object sprites, AGS will take advantage of higher runtime resolution to give scaled images more detail, than it would be possible if the game was displayed in its native resolution. The effect is stronger for low-res games. Keep disabled for pixel-perfect output. Currently supported only by Direct3D renderer.")]
+        [Description("When drawing zoomed character and object sprites, AGS will take advantage of higher runtime resolution to give scaled images more detail, than it would be possible if the game was displayed in its native resolution. The effect is stronger for low-res games. Keep disabled for pixel-perfect output. Currently supported only by Direct3D and OpenGL renderers.")]
         [DefaultValue(false)]
         [Category("Graphics")]
         public bool RenderAtScreenResolution

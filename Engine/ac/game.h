@@ -117,6 +117,7 @@ int Game_ChangeTranslation(const char *newFilename);
 
 //=============================================================================
 
+void set_debug_mode(bool on);
 void set_game_speed(int fps);
 void setup_for_dialog();
 void restore_after_dialog();

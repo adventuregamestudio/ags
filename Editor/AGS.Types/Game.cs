@@ -1102,7 +1102,8 @@ namespace AGS.Types
             System.Version firstCompatibleVersion = new System.Version("3.4.0");
             System.Version firstVersionWithHighestConst = new System.Version("3.4.1");
             // Try to find corresponding ScriptAPI for older version game project that did not have such setting
-            System.Version projectVersion = _savedXmlEditorVersion != null ? new System.Version(_savedXmlEditorVersion) : null;
+            System.Version projectVersion = _savedXmlEditorVersion != null ? Utilities.TryParseVersion(_savedXmlEditorVersion) : null;
+
             if (projectVersion == null)
             {
                 _settings.ScriptCompatLevel = ScriptAPIVersion.v321;

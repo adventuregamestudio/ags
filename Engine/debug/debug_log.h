@@ -25,6 +25,8 @@ void init_debug();
 void apply_debug_config(const AGS::Common::ConfigTree &cfg);
 void shutdown_debug();
 
+void debug_set_console(bool enable);
+
 // debug_script_log prints debug warnings tagged with kDbgGroup_Script,
 // prepending it with current room number and script position identification
 void debug_script_warn(const char *texx, ...);

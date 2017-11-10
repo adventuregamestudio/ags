@@ -36,6 +36,12 @@ struct AGSStaticObject : public ICCStaticObject {
     virtual void    WriteFloat(const char *address, intptr_t offset, float val);
 };
 
+// Wrapper around script's "Game" struct, managing access to its variables
+struct StaticGame : public AGSStaticObject {
+    virtual void    WriteInt32(const char *address, intptr_t offset, int32_t val);
+};
+
 extern AGSStaticObject GlobalStaticManager;
+extern StaticGame      GameStaticManager;
 
 #endif // __AGS_EE_STATOBJ__AGSSTATICOBJECT_H

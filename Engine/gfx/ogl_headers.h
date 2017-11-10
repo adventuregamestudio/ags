@@ -28,6 +28,7 @@
 #undef uint64_t
 
 #include <GL/glext.h>
+#include <GL/wglext.h>
 
 #elif defined(ANDROID_VERSION)
 

@@ -10,7 +10,9 @@ namespace AGS.Types
 	{
 		[Description("Software driver")]
 		Software,
-		[Description("Direct3D 9 hardware acceleration")]
-		D3D9
+		[Description("Direct3D 9")]
+		D3D9,
+		[Description("OpenGL")]
+		OpenGL
 	}
 }

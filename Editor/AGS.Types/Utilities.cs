@@ -121,8 +121,8 @@ namespace AGS.Types
             System.Version v = null;
             try
             {
-                int pos = 0;
-                while (Char.IsDigit(s[pos]) || s[pos] == '.') pos++;
+                int pos;
+                for (pos = 0; pos < s.Length && (Char.IsDigit(s[pos]) || s[pos] == '.'); pos++);
                 s = s.Substring(0, pos);
                 v = new System.Version(s);
             }

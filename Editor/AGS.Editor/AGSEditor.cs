@@ -1432,6 +1432,17 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString(section, key, path_value, cfg_path);
         }
 
+        private static string GetGfxDriverConfigID(GraphicsDriver driver)
+        {
+            switch (driver)
+            {
+                case GraphicsDriver.Software: return "Software";
+                case GraphicsDriver.D3D9: return "D3D9";
+                case GraphicsDriver.OpenGL: return "OGL";
+            }
+            return "";
+        }
+
         /// <summary>
         /// Writes up-to-date game information into configuration file.
         /// This updates only values that strongly depend on game properties,
@@ -1470,7 +1481,7 @@ namespace AGS.Editor
             }
 			NativeProxy.WritePrivateProfileString("misc", "gamecolordepth", (((int)_game.Settings.ColorDepth) * 8).ToString(), configFilePath);
 
-            NativeProxy.WritePrivateProfileString("graphics", "driver", _game.DefaultSetup.GraphicsDriver.ToString(), configFilePath);
+            NativeProxy.WritePrivateProfileString("graphics", "driver", GetGfxDriverConfigID(_game.DefaultSetup.GraphicsDriver), configFilePath);
             NativeProxy.WritePrivateProfileString("graphics", "windowed", _game.DefaultSetup.Windowed ? "1" : "0", configFilePath);
 
             string scale_str;
@@ -1493,7 +1504,8 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("language", "translation", _game.DefaultSetup.Translation, configFilePath);
             NativeProxy.WritePrivateProfileString("mouse", "auto_lock", _game.DefaultSetup.AutoLockMouse ? "1" : "0", configFilePath);
             NativeProxy.WritePrivateProfileString("mouse", "speed", _game.DefaultSetup.MouseSpeed.ToString(CultureInfo.InvariantCulture), configFilePath);
-            NativeProxy.WritePrivateProfileString("misc", "cachemax", _game.DefaultSetup.SpriteCacheSize.ToString(), configFilePath);
+            // Note: sprite cache size is written in KB (while we have it in MB on the editor pane)
+            NativeProxy.WritePrivateProfileString("misc", "cachemax", (_game.DefaultSetup.SpriteCacheSize * 1024).ToString(), configFilePath);
             WriteCustomPathToConfig("misc", "user_data_dir", configFilePath, _game.DefaultSetup.UseCustomSavePath, _game.DefaultSetup.CustomSavePath);
             WriteCustomPathToConfig("misc", "shared_data_dir", configFilePath, _game.DefaultSetup.UseCustomAppDataPath, _game.DefaultSetup.CustomAppDataPath);
             NativeProxy.WritePrivateProfileString("misc", "titletext", _game.DefaultSetup.TitleText, configFilePath);

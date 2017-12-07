@@ -33,7 +33,8 @@ Locations of two latter files differ between running platforms:
   * screen_width = \[integer\] - if screen_def is 'explicit', defines display mode width; otherwise ignored.
   * screen_height = \[integer\] - if screen_def is 'explicit', defines display mode height; otherwise ignored.
   * match_device_ratio = \[0; 1\] - when looking for appropriate fullscreen mode, prioritise ones which have same aspect ration as current device/desktop mode.
-  * game_scale = \[string | integer\] - game scaling rule:
+  * game_scale_fs = \[string | integer\] - game scaling rule for fullscreen mode, and...
+  * game_scale_win = \[string | integer\] - game scaling rule for windowed mode, where
     * any integer number - positive number means upscale multiplier, negative number means downscale divisor;
     * max_round - deduce maximal integer multiplier that fits in current desktop/device size;
     * stretch - stretch to current desktop/device size;

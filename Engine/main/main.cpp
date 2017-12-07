@@ -231,14 +231,18 @@ int main_process_cmdline(int argc,char*argv[])
             play.playback = 1;
         else if ((stricmp(argv[ee],"-gfxfilter") == 0 || stricmp(argv[ee],"--gfxfilter") == 0) && (argc > ee + 1))
         {
+            // TODO: we make an assumption here that if user provides scaling factor,
+            // this factor means to be applied to windowed mode only.
             usetup.Screen.Filter.ID = argv[++ee];
             if (argc > ee + 1 && argv[ee + 1][0] != '-')
             {
-                parse_scaling_option(argv[++ee], usetup.Screen.GameFrame);
+                int scale_factor;
+                parse_scaling_option(argv[++ee], usetup.Screen.WinGameFrame.ScaleDef, scale_factor);
+                usetup.Screen.WinGameFrame.ScaleFactor = convert_scaling_to_fp(scale_factor);
             }
             else
             {
-                usetup.Screen.GameFrame.ScaleDef = kFrame_MaxRound;
+                usetup.Screen.WinGameFrame.ScaleDef = kFrame_MaxRound;
             }
             
         }

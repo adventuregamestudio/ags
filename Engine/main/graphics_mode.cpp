@@ -43,16 +43,14 @@ extern volatile int timerloop;
 IGfxDriverFactory *GfxFactory = NULL;
 
 // Last saved fullscreen and windowed configs; they are used when switching
-// between between fullscreen and windowed modes at runtime. One of them
-// is always the mode game starts with, opposite is default config for
-// corresponding mode. If particular mode is modified, e.g. by script command,
-// related config should be saved again.
-DisplayMode       SavedFullscreenMode;
-DisplayMode       SavedWindowedMode;
+// between between fullscreen and windowed modes at runtime.
+// If particular mode is modified, e.g. by script command, related config should be overwritten.
+ActiveDisplaySetting SavedFullscreenSetting;
+ActiveDisplaySetting SavedWindowedSetting;
 // Current frame scaling setup
-GameFrameSetup    CurFrameSetup;
+GameFrameSetup     CurFrameSetup;
 // The game-to-screen transformation
-PlaneScaling      GameScaling;
+PlaneScaling       GameScaling;
 
 
 GameFrameSetup::GameFrameSetup()
@@ -67,9 +65,7 @@ bool GameFrameSetup::IsValid() const
 }
 
 DisplayModeSetup::DisplayModeSetup()
-    : SizeDef(kScreenDef_Explicit)
-    , MatchDeviceRatio(false)
-    , RefreshRate(0)
+    : RefreshRate(0)
     , VSync(false)
     , Windowed(false)
 {
@@ -253,11 +249,12 @@ Size precalc_screen_size(const Size &game_size, const DisplayModeSetup &dm_setup
     Size device_size = get_max_display_size(dm_setup.Windowed);
 
     // Set requested screen (window) size, depending on screen definition option
-    switch (dm_setup.SizeDef)
+    ScreenSizeSetup scsz = dm_setup.ScreenSize;
+    switch (scsz.SizeDef)
     {
     case kScreenDef_Explicit:
         // Use resolution from user config
-        screen_size = dm_setup.Size;
+        screen_size = scsz.Size;
         if (screen_size.IsNull())
         {
             // If the configuration did not define proper screen size,
@@ -348,7 +345,7 @@ bool try_init_mode_using_setup(const Size &game_size, const DisplayModeSetup &dm
     const Size screen_size = precalc_screen_size(game_size, dm_setup, frame_setup);
     DisplayMode dm(GraphicResolution(screen_size.Width, screen_size.Height, col_depth),
                    dm_setup.Windowed, dm_setup.RefreshRate, dm_setup.VSync);
-    if (!try_init_compatible_mode(dm, dm_setup.SizeDef == kScreenDef_Explicit ? false : dm_setup.MatchDeviceRatio))
+    if (!try_init_compatible_mode(dm, dm_setup.ScreenSize.SizeDef == kScreenDef_Explicit ? false : dm_setup.ScreenSize.MatchDeviceRatio))
         return false;
 
     // Set up native size and render frame
@@ -410,9 +407,11 @@ bool create_gfx_driver_and_init_mode_any(const String &gfx_driver_id, const Size
     // Try windowed mode if fullscreen failed, and vice versa
     if (!result && editor_debugging_enabled == 0)
     {
-        DisplayModeSetup dm_setup_alt;
+        // we need to clone from initial config, because not every parameter is set by graphics_mode_get_defaults()
+        DisplayModeSetup dm_setup_alt = dm_setup;
+        dm_setup_alt.Windowed = !dm_setup.Windowed;
         GameFrameSetup frame_setup_alt;
-        graphics_mode_get_defaults(!dm_setup.Windowed, dm_setup_alt, frame_setup_alt);
+        graphics_mode_get_defaults(dm_setup_alt.Windowed, dm_setup_alt.ScreenSize, frame_setup_alt);
         result = try_init_mode_using_setup(game_size, dm_setup_alt, use_col_depth, frame_setup_alt, filter_setup);
     }
     return result;
@@ -424,11 +423,12 @@ void display_gfx_mode_error(const Size &game_size, const ScreenSetup &setup, con
     platform->FinishedUsingGraphicsMode();
 
     String main_error;
+    ScreenSizeSetup scsz = setup.DisplayMode.ScreenSize;
     PGfxFilter filter = gfxDriver ? gfxDriver->GetGraphicsFilter() : PGfxFilter();
     Size wanted_screen;
-    if (setup.DisplayMode.SizeDef == kScreenDef_Explicit)
+    if (scsz.SizeDef == kScreenDef_Explicit)
         main_error.Format("There was a problem initializing graphics mode %d x %d (%d-bit), or finding nearest compatible mode, with game size %d x %d and filter '%s'.",
-            setup.DisplayMode.Size.Width, setup.DisplayMode.Size.Height, color_depth, game_size.Width, game_size.Height, filter ? filter->GetInfo().Id.GetCStr() : "Undefined");
+            scsz.Size.Width, scsz.Size.Height, color_depth, game_size.Width, game_size.Height, filter ? filter->GetInfo().Id.GetCStr() : "Undefined");
     else
         main_error.Format("There was a problem finding and/or creating valid graphics mode for game size %d x %d (%d-bit) and requested filter '%s'.",
             game_size.Width, game_size.Height, color_depth, setup.Filter.UserRequest.IsEmpty() ? "Undefined" : setup.Filter.UserRequest.GetCStr());
@@ -450,12 +450,14 @@ bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, cons
         Debug::Printf(kDbgMsg_Error, "Unable to obtain device resolution");
 
     const char *screen_sz_def_options[kNumScreenDef] = { "explicit", "scaling", "max" };
-    const bool ignore_device_ratio = setup.DisplayMode.Windowed || setup.DisplayMode.SizeDef == kScreenDef_Explicit;
-    const String scale_option = make_scaling_option(setup.GameFrame);
+    ScreenSizeSetup scsz = setup.DisplayMode.ScreenSize;
+    const bool ignore_device_ratio = setup.DisplayMode.Windowed || scsz.SizeDef == kScreenDef_Explicit;
+    GameFrameSetup gameframe = setup.DisplayMode.Windowed ? setup.WinGameFrame : setup.FsGameFrame;
+    const String scale_option = make_scaling_option(gameframe.ScaleDef, convert_fp_to_scaling(gameframe.ScaleFactor));
     Debug::Printf(kDbgMsg_Init, "Game settings: windowed = %s, screen def: %s, screen size: %d x %d, match device ratio: %s, game scale: %s",
-        setup.DisplayMode.Windowed ? "yes" : "no", screen_sz_def_options[setup.DisplayMode.SizeDef],
-        setup.DisplayMode.Size.Width, setup.DisplayMode.Size.Height,
-        ignore_device_ratio ? "ignore" : (setup.DisplayMode.MatchDeviceRatio ? "yes" : "no"), scale_option.GetCStr());
+        setup.DisplayMode.Windowed ? "yes" : "no", screen_sz_def_options[scsz.SizeDef],
+        scsz.Size.Width, scsz.Size.Height,
+        ignore_device_ratio ? "ignore" : (scsz.MatchDeviceRatio ? "yes" : "no"), scale_option.GetCStr());
 
     // Prepare the list of available gfx factories, having the one requested by user at first place
     StringV ids;
@@ -471,7 +473,7 @@ bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, cons
     for (StringV::const_iterator it = ids.begin(); it != ids.end(); ++it)
     {
         result = create_gfx_driver_and_init_mode_any(*it, game_size, setup.DisplayMode, color_depth,
-                                                     setup.GameFrame, setup.Filter);
+                                                     gameframe, setup.Filter);
         if (result)
             break;
         graphics_mode_shutdown();
@@ -485,45 +487,31 @@ bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, cons
     return true;
 }
 
-void graphics_mode_get_defaults(bool windowed, DisplayModeSetup &dm_setup, GameFrameSetup &frame_setup)
+void graphics_mode_get_defaults(bool windowed, ScreenSizeSetup &scsz_setup, GameFrameSetup &frame_setup)
 {
-    dm_setup.Size = Size();
-    dm_setup.RefreshRate = 0;
-    dm_setup.VSync = false;
-    dm_setup.Windowed = windowed;
-
+    scsz_setup.Size = Size();
     if (windowed)
     {
         // For the windowed we define mode by the scaled game.
-        dm_setup.SizeDef = kScreenDef_ByGameScaling;
-        dm_setup.MatchDeviceRatio = false;
+        scsz_setup.SizeDef = kScreenDef_ByGameScaling;
+        scsz_setup.MatchDeviceRatio = false;
+        frame_setup.ScaleDef = kFrame_MaxRound;
+        frame_setup.ScaleFactor = 0;
     }
     else
     {
         // For the fullscreen we set current desktop resolution, which
         // corresponds to most comfortable fullscreen mode for the driver.
-        dm_setup.SizeDef = kScreenDef_MaxDisplay;
-        dm_setup.MatchDeviceRatio = true;
+        scsz_setup.SizeDef = kScreenDef_MaxDisplay;
+        scsz_setup.MatchDeviceRatio = true;
+        frame_setup.ScaleDef = kFrame_MaxProportional;
+        frame_setup.ScaleFactor = 0;
     }
-
-    // For both modes we set maximal **round** scaling of the game frame.
-    frame_setup.ScaleDef = kFrame_MaxRound;
-    frame_setup.ScaleFactor = 0;
 }
 
-GameFrameSetup convert_frame_setup(const GameFrameSetup &frame_setup, bool windowed)
+ActiveDisplaySetting graphics_mode_get_last_setting(bool windowed)
 {
-    GameFrameSetup good_frame = frame_setup;
-    // Only adjustment we do here is converting IntScale to MaxRound for the
-    // fullscreen mode, because latter do not look good with smaller scales
-    if (!windowed && good_frame.ScaleDef == kFrame_IntScale)
-        good_frame.ScaleDef = kFrame_MaxRound;
-    return good_frame;
-}
-
-DisplayMode graphics_mode_get_last_mode(bool windowed)
-{
-    return windowed ? SavedWindowedMode : SavedFullscreenMode;
+    return windowed ? SavedWindowedSetting : SavedFullscreenSetting;
 }
 
 bool graphics_mode_create_renderer(const String &driver_id)
@@ -545,7 +533,7 @@ bool graphics_mode_set_dm_any(const Size &game_size, const DisplayModeSetup &dm_
     const Size screen_size = precalc_screen_size(game_size, dm_setup, frame_setup);
     DisplayMode dm(GraphicResolution(screen_size.Width, screen_size.Height, color_depth.Bits),
                    dm_setup.Windowed, dm_setup.RefreshRate, dm_setup.VSync);
-    return try_init_compatible_mode(dm, dm_setup.MatchDeviceRatio);
+    return try_init_compatible_mode(dm, dm_setup.ScreenSize.MatchDeviceRatio);
 }
 
 bool graphics_mode_set_dm(const DisplayMode &dm)
@@ -569,9 +557,9 @@ bool graphics_mode_set_dm(const DisplayMode &dm)
 
     DisplayMode rdm = gfxDriver->GetDisplayMode();
     if (rdm.Windowed)
-        SavedWindowedMode = rdm;
+        SavedWindowedSetting.Dm = rdm;
     else
-        SavedFullscreenMode = rdm;
+        SavedFullscreenSetting.Dm = rdm;
     Debug::Printf("Succeeded. Using gfx mode %d x %d (%d-bit) %s",
         rdm.Width, rdm.Height, rdm.ColorDepth, rdm.Windowed ? "windowed" : "fullscreen");
     return true;
@@ -626,6 +614,10 @@ bool graphics_mode_set_render_frame(const GameFrameSetup &frame_setup)
     if (!frame_setup.IsValid())
         return false;
     CurFrameSetup = frame_setup;
+    if (gfxDriver->GetDisplayMode().Windowed)
+        SavedWindowedSetting.FrameSetup = frame_setup;
+    else
+        SavedFullscreenSetting.FrameSetup = frame_setup;
     graphics_mode_update_render_frame();
     return true;
 }

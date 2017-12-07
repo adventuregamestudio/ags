@@ -295,16 +295,28 @@ void read_legacy_graphics_config(const ConfigTree &cfg, const bool should_read_f
         String legacy_filter = INIreadstring(cfg, "misc", "gfxfilter");
         if (!legacy_filter.IsEmpty())
         {
-            usetup.Screen.DisplayMode.SizeDef = kScreenDef_ByGameScaling;
-            parse_legacy_frame_config(legacy_filter, usetup.Screen.Filter.ID, usetup.Screen.GameFrame);
+            // NOTE: legacy scaling config is applied only to windowed setting
+            if (usetup.Screen.DisplayMode.Windowed)
+                usetup.Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_ByGameScaling;
+            parse_legacy_frame_config(legacy_filter, usetup.Screen.Filter.ID, usetup.Screen.WinGameFrame);
 
             // AGS 3.2.1 and 3.3.0 aspect ratio preferences
             if (!usetup.Screen.DisplayMode.Windowed)
             {
-                usetup.Screen.DisplayMode.MatchDeviceRatio =
+                usetup.Screen.DisplayMode.ScreenSize.MatchDeviceRatio =
                     (INIreadint(cfg, "misc", "sideborders") > 0 || INIreadint(cfg, "misc", "forceletterbox") > 0 ||
                      INIreadint(cfg, "misc", "prefer_sideborders") > 0 || INIreadint(cfg, "misc", "prefer_letterbox") > 0);
             }
+        }
+
+        // AGS 3.4.0 - 3.4.1-rc uniform scaling option
+        String uniform_frame_scale = INIreadstring(cfg, "graphics", "game_scale");
+        if (!uniform_frame_scale.IsEmpty())
+        {
+            GameFrameSetup frame_setup;
+            parse_scaling_option(uniform_frame_scale, frame_setup);
+            usetup.Screen.FsGameFrame = frame_setup;
+            usetup.Screen.WinGameFrame = frame_setup;
         }
     }
 
@@ -362,28 +374,34 @@ void read_config(const ConfigTree &cfg)
 
         usetup.Screen.DisplayMode.Windowed = INIreadint(cfg, "graphics", "windowed") > 0;
         const char *screen_sz_def_options[kNumScreenDef] = { "explicit", "scaling", "max" };
-        usetup.Screen.DisplayMode.SizeDef = kScreenDef_MaxDisplay;
+        usetup.Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_MaxDisplay;
         String screen_sz_def_str = INIreadstring(cfg, "graphics", "screen_def");
         for (int i = 0; i < kNumScreenDef; ++i)
         {
             if (screen_sz_def_str.CompareNoCase(screen_sz_def_options[i]) == 0)
             {
-                usetup.Screen.DisplayMode.SizeDef = (ScreenSizeDefinition)i;
+                usetup.Screen.DisplayMode.ScreenSize.SizeDef = (ScreenSizeDefinition)i;
                 break;
             }
         }
 
-        usetup.Screen.DisplayMode.Size.Width = INIreadint(cfg, "graphics", "screen_width");
-        usetup.Screen.DisplayMode.Size.Height = INIreadint(cfg, "graphics", "screen_height");
-        usetup.Screen.DisplayMode.MatchDeviceRatio = INIreadint(cfg, "graphics", "match_device_ratio", 1) != 0;
+        usetup.Screen.DisplayMode.ScreenSize.Size = Size(INIreadint(cfg, "graphics", "screen_width"),
+                                                        INIreadint(cfg, "graphics", "screen_height"));
+        usetup.Screen.DisplayMode.ScreenSize.MatchDeviceRatio = INIreadint(cfg, "graphics", "match_device_ratio", 1) != 0;
 #if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
         // PSP: No graphic filters are available.
         usetup.Screen.Filter.ID = "";
 #else
         if (should_read_filter)
-        {
             usetup.Screen.Filter.ID = INIreadstring(cfg, "graphics", "filter", "StdScale");
-            parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale", "max_round"), usetup.Screen.GameFrame);
+        int scale_factor;
+        parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_fs", "proportional"),
+            usetup.Screen.FsGameFrame.ScaleDef, scale_factor);
+        usetup.Screen.FsGameFrame.ScaleFactor = convert_scaling_to_fp(scale_factor);
+        if (should_read_filter) {
+            parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win", "max_round"),
+                usetup.Screen.WinGameFrame.ScaleDef, scale_factor);
+            usetup.Screen.WinGameFrame.ScaleFactor = convert_scaling_to_fp(scale_factor);
         }
 #endif
 
@@ -477,8 +495,6 @@ void post_config()
     if (usetup.Screen.Filter.ID.IsEmpty() || usetup.Screen.Filter.ID.CompareNoCase("none") == 0)
     {
         usetup.Screen.Filter.ID = "StdScale";
-        usetup.Screen.GameFrame.ScaleDef = kFrame_IntScale;
-        usetup.Screen.GameFrame.ScaleFactor = 1;
     }
     
     // TODO: helper functions to remove slash in paths (or distinct path type)

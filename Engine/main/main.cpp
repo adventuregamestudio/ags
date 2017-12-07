@@ -234,9 +234,7 @@ int main_process_cmdline(int argc,char*argv[])
             usetup.Screen.Filter.ID = argv[++ee];
             if (argc > ee + 1 && argv[ee + 1][0] != '-')
             {
-                int scale_factor;
-                parse_scaling_option(argv[++ee], usetup.Screen.GameFrame.ScaleDef, scale_factor);
-                usetup.Screen.GameFrame.ScaleFactor = convert_scaling_to_fp(scale_factor);
+                parse_scaling_option(argv[++ee], usetup.Screen.GameFrame);
             }
             else
             {

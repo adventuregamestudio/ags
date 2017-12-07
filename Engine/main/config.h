@@ -42,7 +42,9 @@ void post_config();
 void save_config_file();
 
 void parse_scaling_option(const String &scaling_option, FrameScaleDefinition &scale_def, int &scale_factor);
+void parse_scaling_option(const String &scaling_option, GameFrameSetup &frame_setup);
 String make_scaling_option(FrameScaleDefinition scale_def, int scale_factor = 0);
+String make_scaling_option(const GameFrameSetup &frame_setup);
 uint32_t convert_scaling_to_fp(int scale_factor);
 int convert_fp_to_scaling(uint32_t scaling);
 

@@ -57,7 +57,7 @@ PlaneScaling      GameScaling;
 
 GameFrameSetup::GameFrameSetup()
     : ScaleDef(kFrame_IntScale)
-    , ScaleFactor(kUnit)
+    , ScaleFactor(1)
 {
 }
 
@@ -232,7 +232,7 @@ Size set_game_frame_after_screen_size(const Size &game_size, const Size screen_s
             scale = Math::Min((screen_size.Width / game_size.Width) << kShift,
                               (screen_size.Height / game_size.Height) << kShift);
         else
-            scale = setup.ScaleFactor;
+            scale = convert_scaling_to_fp(setup.ScaleFactor);
 
         // Ensure scaling factors are sane
         if (scale <= 0)
@@ -451,7 +451,7 @@ bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, cons
 
     const char *screen_sz_def_options[kNumScreenDef] = { "explicit", "scaling", "max" };
     const bool ignore_device_ratio = setup.DisplayMode.Windowed || setup.DisplayMode.SizeDef == kScreenDef_Explicit;
-    const String scale_option = make_scaling_option(setup.GameFrame.ScaleDef, convert_fp_to_scaling(setup.GameFrame.ScaleFactor));
+    const String scale_option = make_scaling_option(setup.GameFrame);
     Debug::Printf(kDbgMsg_Init, "Game settings: windowed = %s, screen def: %s, screen size: %d x %d, match device ratio: %s, game scale: %s",
         setup.DisplayMode.Windowed ? "yes" : "no", screen_sz_def_options[setup.DisplayMode.SizeDef],
         setup.DisplayMode.Size.Width, setup.DisplayMode.Size.Height,

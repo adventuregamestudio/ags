@@ -394,8 +394,8 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
 #elif defined (WINDOWS_VERSION)
   if (!mode.Windowed)
   {
-    platform->EnterFullscreenMode(mode);
-    platform->AdjustWindowStyleForFullscreen();
+    if (platform->EnterFullscreenMode(mode))
+      platform->AdjustWindowStyleForFullscreen();
   }
   // NOTE: adjust_window may leave task bar visible, so we do not use it for fullscreen mode
   if (mode.Windowed && adjust_window(mode.Width, mode.Height) != 0)
@@ -944,6 +944,9 @@ PGfxFilter OGLGraphicsDriver::GetGraphicsFilter() const
 
 void OGLGraphicsDriver::ReleaseDisplayMode()
 {
+  if (!IsModeSet())
+    return;
+
   OnModeReleased();
   DeleteBackbufferTexture();
 
@@ -960,8 +963,8 @@ void OGLGraphicsDriver::ReleaseDisplayMode()
 
   gfx_driver = NULL;
 
-  platform->ExitFullscreenMode();
-  platform->RestoreWindowStyle();
+  if (platform->ExitFullscreenMode())
+    platform->RestoreWindowStyle();
 }
 
 void OGLGraphicsDriver::UnInit() 

@@ -146,7 +146,7 @@ private:
   void register_file_extension(const char *exePath);
   void unregister_file_extension();
 
-  bool SetSystemDisplayMode(const DisplayMode &dm);
+  bool SetSystemDisplayMode(const DisplayMode &dm, bool fullscreen);
 
   bool _isDebuggerPresent; // indicates if the win app is running in the context of a debugger
   DisplayMode _preFullscreenMode; // saved display mode before switching system to fullscreen
@@ -744,7 +744,7 @@ void AGSWin32::GetSystemDisplayModes(std::vector<DisplayMode> &dms)
     destroy_gfx_mode_list(gmlist);
 }
 
-bool AGSWin32::SetSystemDisplayMode(const DisplayMode &dm)
+bool AGSWin32::SetSystemDisplayMode(const DisplayMode &dm, bool fullscreen)
 {
   DEVMODE devmode;
   memset(&devmode, 0, sizeof(devmode));
@@ -753,7 +753,7 @@ bool AGSWin32::SetSystemDisplayMode(const DisplayMode &dm)
   devmode.dmPelsHeight = dm.Height;
   devmode.dmBitsPerPel = dm.ColorDepth;
   devmode.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
-  return ChangeDisplaySettings(&devmode, CDS_FULLSCREEN) == DISP_CHANGE_SUCCESSFUL;
+  return ChangeDisplaySettings(&devmode, fullscreen ? CDS_FULLSCREEN : 0) == DISP_CHANGE_SUCCESSFUL;
 }
 
 bool AGSWin32::EnterFullscreenMode(const DisplayMode &dm)
@@ -763,7 +763,7 @@ bool AGSWin32::EnterFullscreenMode(const DisplayMode &dm)
   _preFullscreenMode.ColorDepth = desktop_color_depth();
 
   // Set requested desktop mode
-  return SetSystemDisplayMode(dm);
+  return SetSystemDisplayMode(dm, true);
 }
 
 bool AGSWin32::ExitFullscreenMode()
@@ -773,7 +773,7 @@ bool AGSWin32::ExitFullscreenMode()
 
   DisplayMode dm = _preFullscreenMode;
   _preFullscreenMode = DisplayMode();
-  return SetSystemDisplayMode(dm);
+  return SetSystemDisplayMode(dm, false);
 }
 
 void AGSWin32::AdjustWindowStyleForFullscreen()
@@ -791,6 +791,9 @@ void AGSWin32::RestoreWindowStyle()
 {
   // Restore allegro window styles in case we modified them
   restore_window_style();
+  HWND allegro_wnd = win_get_window();
+  LONG winstyle = GetWindowLong(allegro_wnd, GWL_STYLE);
+  SetWindowLong(allegro_wnd, GWL_STYLE, (winstyle & ~WS_POPUP)/* | WS_OVERLAPPEDWINDOW*/);
   // For uncertain reasons WS_EX_TOPMOST (applied when creating fullscreen)
   // cannot be removed with style altering functions; here use SetWindowPos
   // as a workaround

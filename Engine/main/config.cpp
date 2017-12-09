@@ -374,7 +374,7 @@ void read_config(const ConfigTree &cfg)
 
         usetup.Screen.DisplayMode.Windowed = INIreadint(cfg, "graphics", "windowed") > 0;
         const char *screen_sz_def_options[kNumScreenDef] = { "explicit", "scaling", "max" };
-        usetup.Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_MaxDisplay;
+        usetup.Screen.DisplayMode.ScreenSize.SizeDef = usetup.Screen.DisplayMode.Windowed ? kScreenDef_ByGameScaling : kScreenDef_MaxDisplay;
         String screen_sz_def_str = INIreadstring(cfg, "graphics", "screen_def");
         for (int i = 0; i < kNumScreenDef; ++i)
         {
@@ -509,7 +509,22 @@ void save_config_file()
     char buffer[STD_BUFFER_SIZE];
     ConfigTree cfg;
 
-    cfg["graphics"]["windowed"] = String::FromFormat("%d", System_GetWindowed());
+    // Last display mode
+    bool is_windowed = System_GetWindowed() != 0;
+    ActiveDisplaySetting cur_mode = graphics_mode_get_last_setting(is_windowed);
+    cfg["graphics"]["windowed"] = String::FromFormat("%d", is_windowed ? 1 : 0);
+    if (is_windowed)
+    {
+        cfg["graphics"]["screen_def"] = "scaling";
+    }
+    else
+    {
+        cfg["graphics"]["screen_def"] = "explicit";
+        cfg["graphics"]["screen_width"] = String::FromFormat("%d", cur_mode.Dm.Width);
+        cfg["graphics"]["screen_height"] = String::FromFormat("%d", cur_mode.Dm.Height);
+    }
+
+    // Other game options that could be changed at runtime
     if (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined)
         cfg["graphics"]["render_at_screenres"] = String::FromFormat("%d", usetup.RenderAtScreenRes ? 1 : 0);
     if (Mouse::IsControlEnabled())

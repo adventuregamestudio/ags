@@ -40,6 +40,13 @@ namespace AGS.Types
             return (T)Enum.ToObject(typeof(T), second);
         }
 
+        public static ScriptAPIVersion GetActualAPI(ScriptAPIVersion v)
+        {
+            if (v == ScriptAPIVersion.Highest)
+                return Utilities.GetSecondMaxEnumValue<ScriptAPIVersion>();
+            return v;
+        }
+
         public static string RemoveInvalidCharactersFromScriptName(string name)
         {
             StringBuilder sb = new StringBuilder();

@@ -8,8 +8,8 @@ Common features:
    and objects are scaled in screen pixels rather than game pixels.
  - Implemented VerticalOffset and LineSpacing properties for fonts.
  - Removed limit on Dialog Topics (was 500 topics per game).
- - Removed length limit on the names of Inventory, GUI and GUI Controls.
- - Removed length limit on the names of Hotspots and Objects.
+ - Removed length limit on the script names of Inventory, GUI and GUI Controls.
+ - Removed length limit on the script names of Hotspots and Objects.
  - Removed length limit on event handler names.
 
 Editor:
@@ -73,10 +73,13 @@ Engine:
    renderers (Direct3D, OpenGL).
  - Added support for switching between fullscreen and windowed modes at runtime
    using Alt+Enter key combination.
- - All supported hardware-accelerated graphic drivers (Direct3D and OpenGL)
-   now run every game in 32-bit display mode by default, and convert game's
-   graphics on load if that is required. This allows to run 8-bit games and
-   fixes loss of green hue precision in 16-bit games.
+ - All supported renderers now run 16-bit and 32-bit games in 32-bit display
+   mode by default, and convert game's graphics on load if that is required.
+   Hardware-accelerated renderers (Direct3D and OpenGL) are also allowed to run
+   8-bit games, converting graphics to 32-bit at runtime.
+   This measure improves Software renderer work on contemporary systems, and fixes
+   loss of green hue precision in 16-bit games when they are run with Direct3D or
+   OpenGL.
    NOTE: 8-bit dynamic palette cycling is still not supported for hardware-
    accelerated drivers.
  - Added support for global configuration file, which works as configuration

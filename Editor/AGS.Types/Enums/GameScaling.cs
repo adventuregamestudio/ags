@@ -11,9 +11,9 @@ namespace AGS.Types
         Integer,
         [Description("Max round multiplier")]
         MaxInteger,
-        [Description("Stretch to fit whole screen")]
+        [Description("Fill whole screen")]
         StretchToFit,
-        [Description("Stretch, but keep game proportions")]
+        [Description("Stretch, preserving aspect ratio")]
         ProportionalStretch
     }
 }

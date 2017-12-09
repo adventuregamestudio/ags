@@ -51,6 +51,7 @@ namespace AGS.Types
         {
             GraphicsDriver = GraphicsDriver.D3D9;
             Windowed = false;
+            FullscreenGameScaling = GameScaling.ProportionalStretch;
             GameScaling = GameScaling.MaxInteger;
             GameScalingMultiplier = 1;
             GraphicsFilter = "stdscale";
@@ -105,22 +106,37 @@ namespace AGS.Types
             set;
         }
 
-        [DisplayName("Game scaling style")]
-        [Description("Determines how the game frame is scaled on screen.")]
+        [DisplayName("Fullscreen scaling style")]
+        [Description("Determines how the game frame is scaled in the fullscreen mode.")]
+        [DefaultValue(GameScaling.ProportionalStretch)]
+        [Category("Graphics")]
+        [TypeConverter(typeof(FullscreenGameScalingConverter))]
+        public GameScaling FullscreenGameScaling
+        {
+            get;
+            set;
+        }
+
+        [DisplayName("Windowed scaling style")]
+        [Description("Determines how the game frame is scaled in the windowed mode.")]
         [DefaultValue(GameScaling.MaxInteger)]
         [Category("Graphics")]
         [TypeConverter(typeof(EnumTypeConverter))]
         [RefreshProperties(RefreshProperties.All)]
+        // TODO:  consider renaming to WindowedGameScaling and implement property-to-property deserialization attribute
+        // similar to value-to-value DeserializeConvertValueAttribute
         public GameScaling GameScaling
         {
             get;
             set;
         }
 
-        [DisplayName("Custom game scaling multiplier")]
-        [Description("A round multiplier to scale game with.")]
+        [DisplayName("Windowed game scaling multiplier")]
+        [Description("A round multiplier to scale game window with.")]
         [DefaultValue(1)]
         [Category("Graphics")]
+        // TODO: consider renaming to WindowedScalingMultiplier and implement property-to-property deserialization attribute
+        // similar to value-to-value DeserializeConvertValueAttribute
         public int GameScalingMultiplier
         {
             get;

@@ -1443,6 +1443,19 @@ namespace AGS.Editor
             return "";
         }
 
+        private static string MakeGameScalingConfig(GameScaling scaling, int multiplier)
+        {
+            string s;
+            switch (scaling)
+            {
+                case GameScaling.MaxInteger: s = "max_round"; break;
+                case GameScaling.StretchToFit: s = "stretch"; break;
+                case GameScaling.ProportionalStretch: s = "proportional"; break;
+                default: s = multiplier.ToString(); break;
+            }
+            return s;
+        }
+
         /// <summary>
         /// Writes up-to-date game information into configuration file.
         /// This updates only values that strongly depend on game properties,
@@ -1484,15 +1497,8 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("graphics", "driver", GetGfxDriverConfigID(_game.DefaultSetup.GraphicsDriver), configFilePath);
             NativeProxy.WritePrivateProfileString("graphics", "windowed", _game.DefaultSetup.Windowed ? "1" : "0", configFilePath);
 
-            string scale_str;
-            switch (_game.DefaultSetup.GameScaling)
-            {
-                case GameScaling.MaxInteger: scale_str = "max_round"; break;
-                case GameScaling.StretchToFit: scale_str = "stretch"; break;
-                case GameScaling.ProportionalStretch: scale_str = "proportional"; break;
-                default: scale_str = _game.DefaultSetup.GameScalingMultiplier.ToString(); break;
-            }
-            NativeProxy.WritePrivateProfileString("graphics", "game_scale", scale_str, configFilePath);
+            NativeProxy.WritePrivateProfileString("graphics", "game_scale_fs", MakeGameScalingConfig(_game.DefaultSetup.FullscreenGameScaling, 0), configFilePath);
+            NativeProxy.WritePrivateProfileString("graphics", "game_scale_win", MakeGameScalingConfig(_game.DefaultSetup.GameScaling, _game.DefaultSetup.GameScalingMultiplier), configFilePath);
 
             NativeProxy.WritePrivateProfileString("graphics", "filter", _game.DefaultSetup.GraphicsFilter, configFilePath);
             NativeProxy.WritePrivateProfileString("graphics", "vsync", _game.DefaultSetup.VSync ? "1" : "0", configFilePath);

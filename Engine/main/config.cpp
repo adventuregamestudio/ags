@@ -513,15 +513,21 @@ void save_config_file()
     bool is_windowed = System_GetWindowed() != 0;
     ActiveDisplaySetting cur_mode = graphics_mode_get_last_setting(is_windowed);
     cfg["graphics"]["windowed"] = String::FromFormat("%d", is_windowed ? 1 : 0);
-    if (is_windowed)
+    // TODO: this is a hack, necessary because the original config system was designed when
+    // switching mode at runtime was not considered a possibility.
+    // Normally, two changes need to be done here:
+    // * the display setup needs to be reviewed and simplified a bit.
+    // * perhaps there should be two saved setups for fullscreen and windowed saved in memory
+    // (like ActiveDisplaySetting is saved currently), to know how the window size is defined
+    // in each modes (by explicit width/height values or from game scaling).
+    // This specifically *must* be done if there will be script API for modifying fullscreen
+    // resolution, or size of the window could be changed any way at runtime.
+    if (is_windowed != usetup.Screen.DisplayMode.Windowed)
     {
-        cfg["graphics"]["screen_def"] = "scaling";
-    }
-    else
-    {
-        cfg["graphics"]["screen_def"] = "explicit";
-        cfg["graphics"]["screen_width"] = String::FromFormat("%d", cur_mode.Dm.Width);
-        cfg["graphics"]["screen_height"] = String::FromFormat("%d", cur_mode.Dm.Height);
+        if (is_windowed)
+            cfg["graphics"]["screen_def"] = "scaling";
+        else
+            cfg["graphics"]["screen_def"] = "max";
     }
 
     // Other game options that could be changed at runtime

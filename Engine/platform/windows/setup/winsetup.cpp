@@ -166,10 +166,8 @@ void WinConfig::Load(const ConfigTree &cfg)
     ScreenSize.Width = INIreadint(cfg, "graphics", "screen_width", ScreenSize.Width);
     ScreenSize.Height = INIreadint(cfg, "graphics", "screen_height", ScreenSize.Height);
 
-    parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_fs",
-        make_scaling_option(FsGameFrame.ScaleDef, FsGameFrame.ScaleFactor)), FsGameFrame.ScaleDef, FsGameFrame.ScaleFactor);
-    parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win",
-        make_scaling_option(WinGameFrame.ScaleDef, WinGameFrame.ScaleFactor)), WinGameFrame.ScaleDef, WinGameFrame.ScaleFactor);
+    parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_fs", make_scaling_option(FsGameFrame)), FsGameFrame);
+    parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win", make_scaling_option(WinGameFrame)), WinGameFrame);
 
     RefreshRate = INIreadint(cfg, "graphics", "refresh", RefreshRate);
     Windowed = INIreadint(cfg, "graphics", "windowed", Windowed ? 1 : 0) != 0;
@@ -204,8 +202,8 @@ void WinConfig::Save(ConfigTree &cfg)
     INIwritestring(cfg, "graphics", "screen_def", Windowed ? "scaling" : "explicit");
     INIwriteint(cfg, "graphics", "screen_width", ScreenSize.Width);
     INIwriteint(cfg, "graphics", "screen_height", ScreenSize.Height);
-    INIwritestring(cfg, "graphics", "game_scale_fs", make_scaling_option(FsGameFrame.ScaleDef, FsGameFrame.ScaleFactor));
-    INIwritestring(cfg, "graphics", "game_scale_win", make_scaling_option(WinGameFrame.ScaleDef, WinGameFrame.ScaleFactor));
+    INIwritestring(cfg, "graphics", "game_scale_fs", make_scaling_option(FsGameFrame));
+    INIwritestring(cfg, "graphics", "game_scale_win", make_scaling_option(WinGameFrame));
     INIwriteint(cfg, "graphics", "refresh", RefreshRate);
     INIwriteint(cfg, "graphics", "windowed", Windowed ? 1 : 0);
     INIwriteint(cfg, "graphics", "vsync", VSync ? 1 : 0);

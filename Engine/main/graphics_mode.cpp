@@ -453,7 +453,7 @@ bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, cons
     ScreenSizeSetup scsz = setup.DisplayMode.ScreenSize;
     const bool ignore_device_ratio = setup.DisplayMode.Windowed || scsz.SizeDef == kScreenDef_Explicit;
     GameFrameSetup gameframe = setup.DisplayMode.Windowed ? setup.WinGameFrame : setup.FsGameFrame;
-    const String scale_option = make_scaling_option(gameframe.ScaleDef, convert_fp_to_scaling(gameframe.ScaleFactor));
+    const String scale_option = make_scaling_option(gameframe);
     Debug::Printf(kDbgMsg_Init, "Game settings: windowed = %s, screen def: %s, screen size: %d x %d, match device ratio: %s, game scale: %s",
         setup.DisplayMode.Windowed ? "yes" : "no", screen_sz_def_options[scsz.SizeDef],
         scsz.Size.Width, scsz.Size.Height,

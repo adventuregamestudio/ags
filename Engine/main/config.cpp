@@ -395,15 +395,9 @@ void read_config(const ConfigTree &cfg)
 #else
         if (should_read_filter)
             usetup.Screen.Filter.ID = INIreadstring(cfg, "graphics", "filter", "StdScale");
-        int scale_factor;
-        parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_fs", "proportional"),
-            usetup.Screen.FsGameFrame.ScaleDef, scale_factor);
-        usetup.Screen.FsGameFrame.ScaleFactor = convert_scaling_to_fp(scale_factor);
-        if (should_read_filter) {
-            parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win", "max_round"),
-                usetup.Screen.WinGameFrame.ScaleDef, scale_factor);
-            usetup.Screen.WinGameFrame.ScaleFactor = convert_scaling_to_fp(scale_factor);
-        }
+        parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_fs", "proportional"), usetup.Screen.FsGameFrame);
+        if (should_read_filter)
+            parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win", "max_round"), usetup.Screen.WinGameFrame);
 #endif
 
         usetup.Screen.DisplayMode.RefreshRate = INIreadint(cfg, "graphics", "refresh");

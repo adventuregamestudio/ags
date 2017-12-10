@@ -227,7 +227,10 @@ void engine_force_window()
         usetup.Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_ByGameScaling;
     }
     else if (force_window == 2)
+    {
         usetup.Screen.DisplayMode.Windowed = false;
+        usetup.Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_MaxDisplay;
+    }
 }
 
 void init_game_file_name_from_cmdline()

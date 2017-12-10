@@ -26,6 +26,7 @@
 #include "gfx/gfxfilter.h"
 #include "gfx/graphicsdriver.h"
 #include "main/config.h"
+#include "main/graphics_mode.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/scaling.h"
@@ -485,28 +486,6 @@ bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, cons
         return false;
     }
     return true;
-}
-
-void graphics_mode_get_defaults(bool windowed, ScreenSizeSetup &scsz_setup, GameFrameSetup &frame_setup)
-{
-    scsz_setup.Size = Size();
-    if (windowed)
-    {
-        // For the windowed we define mode by the scaled game.
-        scsz_setup.SizeDef = kScreenDef_ByGameScaling;
-        scsz_setup.MatchDeviceRatio = false;
-        frame_setup.ScaleDef = kFrame_MaxRound;
-        frame_setup.ScaleFactor = 0;
-    }
-    else
-    {
-        // For the fullscreen we set current desktop resolution, which
-        // corresponds to most comfortable fullscreen mode for the driver.
-        scsz_setup.SizeDef = kScreenDef_MaxDisplay;
-        scsz_setup.MatchDeviceRatio = true;
-        frame_setup.ScaleDef = kFrame_MaxProportional;
-        frame_setup.ScaleFactor = 0;
-    }
 }
 
 ActiveDisplaySetting graphics_mode_get_last_setting(bool windowed)

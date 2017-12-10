@@ -216,6 +216,26 @@ int convert_fp_to_scaling(uint32_t scaling)
     return scaling >= kUnit ? (scaling >> kShift) : -kUnit / (int32_t)scaling;
 }
 
+void graphics_mode_get_defaults(bool windowed, ScreenSizeSetup &scsz_setup, GameFrameSetup &frame_setup)
+{
+    scsz_setup.Size = Size();
+    if (windowed)
+    {
+        // For the windowed we define mode by the scaled game.
+        scsz_setup.SizeDef = kScreenDef_ByGameScaling;
+        scsz_setup.MatchDeviceRatio = false;
+        frame_setup = usetup.Screen.WinGameFrame;
+    }
+    else
+    {
+        // For the fullscreen we set current desktop resolution, which
+        // corresponds to most comfortable fullscreen mode for the driver.
+        scsz_setup.SizeDef = kScreenDef_MaxDisplay;
+        scsz_setup.MatchDeviceRatio = true;
+        frame_setup = usetup.Screen.FsGameFrame;
+    }
+}
+
 String find_default_cfg_file(const char *alt_cfg_file)
 {
     // Try current directory for config first; else try exe dir

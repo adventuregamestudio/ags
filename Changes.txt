@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.4.1
+VERSION 3.4.1, December 2017
 
 Common features:
  - Upgraded Windows version of AGS with Allegro v4.4 library (previously v4.2).
@@ -51,6 +51,9 @@ Script API:
  - A new parameter StopMovementStyle is added to following functions: LockView,
    LockViewAligned, LockViewFrame, LockViewOffset, UnlockView. This parameter
    can be eStopMoving (default) or eKeepMoving.
+ - DynamicSprite.CreateFromFile and SaveToFile now support path tokens and
+   comply to the new file path rules (no writing files to the game's
+   installation directory).
  - Added missing readonly properties to get Lighting/Tinting parameters for
    Character and Object: HasExplicitLight, HasExplicitTint, LightLevel,
    TintBlue, TintGreen, TintRed, TintSaturation, TintLuminance.
@@ -59,9 +62,6 @@ Script API:
  - Added readonly properties to get Button's animation state: Button.Animating,
    Button.Frame, Button.Loop, Button.View.
  - Added GetFontHeight(FontType) and GetFontLineSpacing(FontType) functions.
- - DynamicSprite.CreateFromFile and SaveToFile now support path tokens and
-   comply to the new file path rules (no writing files to the game's
-   installation directory).
  - Added setter for System.Windowed property, letting to change it at runtime,
    switching between windowed and fullscreen modes.
  - Added System.RenderAtScreenResolution property to change sprite rendering

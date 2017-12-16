@@ -54,7 +54,7 @@ namespace AGS.Editor.Components
             debugCommands.Commands.Add(new MenuCommand(TEST_GAME_COMMAND, "Run without &debugger", Keys.Control | Keys.F5, "MenuIconTest"));
             debugCommands.Commands.Add(new MenuCommand(STEP_INTO_COMMAND, "S&tep into", Keys.F11, "StepMenuIcon"));
             debugCommands.Commands.Add(new MenuCommand(PAUSE_COMMAND, "&Pause", "PauseMenuIcon"));
-            debugCommands.Commands.Add(new MenuCommand(STOP_COMMAND, "&Stop", "StopMenuIcon"));
+            debugCommands.Commands.Add(new MenuCommand(STOP_COMMAND, "&Stop", Keys.Shift | Keys.F5, "StopMenuIcon"));
             debugCommands.Commands.Add(MenuCommand.Separator);
             debugCommands.Commands.Add(new MenuCommand(COMPILE_GAME_COMMAND, "&Build EXE", Keys.F7, "MenuIconBuildEXE"));
 			debugCommands.Commands.Add(new MenuCommand(REBUILD_GAME_COMMAND, "Rebuild &all files", "RebuildAllMenuIcon"));

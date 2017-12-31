@@ -405,7 +405,7 @@ namespace AGS.Editor
             else if (preProcessorDirective == "undef")
             {
                 string macroName = GetNextWord(ref script);
-                if (Char.IsLetter(macroName[0]))
+                if (!string.IsNullOrEmpty(macroName) && Char.IsLetter(macroName[0]))
                 {
                     foreach (ScriptDefine define in defines)
                     {
@@ -420,7 +420,7 @@ namespace AGS.Editor
             else if (preProcessorDirective == "ifndef")
             {
                 string macroName = GetNextWord(ref script);
-                if (Char.IsLetter(macroName[0]))
+                if (!string.IsNullOrEmpty(macroName) && Char.IsLetter(macroName[0]))
                 {
                     state.InsideIfNDefBlock = macroName;
                 }
@@ -428,7 +428,7 @@ namespace AGS.Editor
             else if (preProcessorDirective == "ifdef")
             {
                 string macroName = GetNextWord(ref script);
-                if (Char.IsLetter(macroName[0]))
+                if (!string.IsNullOrEmpty(macroName) && Char.IsLetter(macroName[0]))
                 {
                     state.InsideIfDefBlock = macroName;
                 }

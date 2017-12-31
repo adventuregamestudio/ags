@@ -218,8 +218,9 @@ Direct3D 9 and OpenGL (newer and faster drivers with hardware acceleration).
   Lets choose a fullscreen display mode (otherwise shows the approximate size of
 window the game will be running in). The list of modes depends on graphic card and
 system capabilities.
-\item [Scaling]
-  Determines the method game will be scaled (when required):
+\item [Fullscreen scale]
+\item [Windowed scale]
+  These two options determine the way game will be scaled (when required) in fullscreen and windowed modes respectively:
   \begin{description}
   \item \bf{None}. The game will be shown in its native resolution. Note that low-resolution games will
 be running in a tiniest window on modern monitors, so this choice is more suitable for
@@ -233,11 +234,10 @@ while respecting game's native aspect ratio (width/height proportions). This ens
 always look correct, but may cause black borders appear at the left & right or top & bottom sides of the
 screen.
   \end{description}
-\item [Filter]
-  Here player may choose a graphics scaling filter. Filter type defines the method of
-scaling (nearest-neighbour is most simple one). Some of the filters (notably Hqx filter) are restricted
-to which scaling multiplier they may use; if the filter own scaling is not enough to resize the game,
-the most basic image scaling method will be applied additionally.
+\item [Scaling method]
+  Here player may choose a game scaling algorithm (nearest-neighbour is the simpliest one). Some of the methods
+  (notably Hqx) are restricted to which scaling multiplier they may use; if it is not
+  enough to resize the game on its own, the nearest-neighbour method will be applied additionally.
   The list of available filters depend on graphics driver selection.
 \end{description}
 

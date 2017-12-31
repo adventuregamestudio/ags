@@ -59,8 +59,8 @@ namespace AGS.Types
         private bool _displayMultipleInv = false;
         private ScriptAPIVersion _scriptAPIVersion = ScriptAPIVersion.Highest;
         private ScriptAPIVersion _scriptCompatLevel = ScriptAPIVersion.Highest;
-        private ScriptAPIVersion _scriptAPIVersionReal = ScriptAPIVersion.Highest;
-        private ScriptAPIVersion _scriptCompatLevelReal = ScriptAPIVersion.Highest;
+        private ScriptAPIVersion _scriptAPIVersionReal = Utilities.GetActualAPI(ScriptAPIVersion.Highest);
+        private ScriptAPIVersion _scriptCompatLevelReal = Utilities.GetActualAPI(ScriptAPIVersion.Highest);
         private bool _enforceObjectScripting = true;
         private bool _enforceNewStrings = true;
         private bool _enforceNewAudio = true;
@@ -506,9 +506,7 @@ namespace AGS.Types
             set
             {
                 _scriptAPIVersion = value;
-                _scriptAPIVersionReal = _scriptAPIVersion;
-                if (_scriptAPIVersionReal == ScriptAPIVersion.Highest)
-                    _scriptAPIVersionReal = Utilities.GetSecondMaxEnumValue<ScriptAPIVersion>();
+                _scriptAPIVersionReal = Utilities.GetActualAPI(_scriptAPIVersion);
                 if (_scriptAPIVersion < _scriptCompatLevel)
                     ScriptCompatLevel = _scriptAPIVersion;
             }
@@ -525,9 +523,7 @@ namespace AGS.Types
             set
             {
                 _scriptCompatLevel = value;
-                _scriptCompatLevelReal = _scriptCompatLevel;
-                if (_scriptCompatLevelReal == ScriptAPIVersion.Highest)
-                    _scriptCompatLevelReal = Utilities.GetSecondMaxEnumValue<ScriptAPIVersion>();
+                _scriptCompatLevelReal = Utilities.GetActualAPI(_scriptCompatLevel);
                 if (_scriptCompatLevel > _scriptAPIVersion)
                     ScriptAPIVersion = _scriptCompatLevel;
             }

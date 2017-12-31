@@ -269,6 +269,9 @@ void D3DGraphicsDriver::OnModeSet(const DisplayMode &mode)
 
 void D3DGraphicsDriver::ReleaseDisplayMode()
 {
+  if (!IsModeSet())
+    return;
+
   OnModeReleased();
 
   drawList.clear();
@@ -288,8 +291,8 @@ void D3DGraphicsDriver::ReleaseDisplayMode()
 
   gfx_driver = NULL;
 
-  platform->ExitFullscreenMode();
-  platform->RestoreWindowStyle();
+  if (platform->ExitFullscreenMode())
+    platform->RestoreWindowStyle();
 }
 
 int D3DGraphicsDriver::FirstTimeInit()
@@ -615,8 +618,8 @@ int D3DGraphicsDriver::_initDLLCallback(const DisplayMode &mode)
 
   if (!mode.Windowed)
   {
-    platform->EnterFullscreenMode(mode);
-    platform->AdjustWindowStyleForFullscreen();
+    if (platform->EnterFullscreenMode(mode))
+      platform->AdjustWindowStyleForFullscreen();
   }
 
   memset( &d3dpp, 0, sizeof(d3dpp) );

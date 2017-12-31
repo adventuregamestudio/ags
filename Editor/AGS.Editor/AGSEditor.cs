@@ -1053,11 +1053,13 @@ namespace AGS.Editor
                 errors.Add(new CompileError("The game is set to start in room " + _game.PlayerCharacter.StartingRoom + " which does not exist"));
             }
 
-			if ((_game.DefaultSetup.GraphicsDriver == GraphicsDriver.D3D9 || _game.DefaultSetup.GraphicsDriver == GraphicsDriver.OpenGL) &&
-				(_game.Settings.ColorDepth == GameColorDepth.Palette))
-			{
-				errors.Add(new CompileError("Direct3D graphics driver does not support 256-colour games"));
-			}
+            if (_game.Settings.ColorDepth == GameColorDepth.Palette)
+            {
+                if (_game.DefaultSetup.GraphicsDriver == GraphicsDriver.D3D9)
+                    errors.Add(new CompileError("Direct3D graphics driver does not support 256-colour games"));
+                else if (_game.DefaultSetup.GraphicsDriver == GraphicsDriver.OpenGL)
+                    errors.Add(new CompileError("OpenGL graphics driver does not support 256-colour games"));
+            }
 
 			if ((_game.Settings.ColorDepth == GameColorDepth.Palette) &&
 				(_game.Settings.RoomTransition == RoomTransitionStyle.CrossFade))
@@ -1428,6 +1430,30 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString(section, key, path_value, cfg_path);
         }
 
+        private static string GetGfxDriverConfigID(GraphicsDriver driver)
+        {
+            switch (driver)
+            {
+                case GraphicsDriver.Software: return "Software";
+                case GraphicsDriver.D3D9: return "D3D9";
+                case GraphicsDriver.OpenGL: return "OGL";
+            }
+            return "";
+        }
+
+        private static string MakeGameScalingConfig(GameScaling scaling, int multiplier)
+        {
+            string s;
+            switch (scaling)
+            {
+                case GameScaling.MaxInteger: s = "max_round"; break;
+                case GameScaling.StretchToFit: s = "stretch"; break;
+                case GameScaling.ProportionalStretch: s = "proportional"; break;
+                default: s = multiplier.ToString(); break;
+            }
+            return s;
+        }
+
         /// <summary>
         /// Writes up-to-date game information into configuration file.
         /// This updates only values that strongly depend on game properties,
@@ -1466,18 +1492,12 @@ namespace AGS.Editor
             }
 			NativeProxy.WritePrivateProfileString("misc", "gamecolordepth", (((int)_game.Settings.ColorDepth) * 8).ToString(), configFilePath);
 
-            NativeProxy.WritePrivateProfileString("graphics", "driver", _game.DefaultSetup.GraphicsDriver.ToString(), configFilePath);
+            NativeProxy.WritePrivateProfileString("graphics", "driver", GetGfxDriverConfigID(_game.DefaultSetup.GraphicsDriver), configFilePath);
             NativeProxy.WritePrivateProfileString("graphics", "windowed", _game.DefaultSetup.Windowed ? "1" : "0", configFilePath);
+            NativeProxy.WritePrivateProfileString("graphics", "screen_def", _game.DefaultSetup.Windowed ? "scaling" : "max", configFilePath);
 
-            string scale_str;
-            switch (_game.DefaultSetup.GameScaling)
-            {
-                case GameScaling.MaxInteger: scale_str = "max_round"; break;
-                case GameScaling.StretchToFit: scale_str = "stretch"; break;
-                case GameScaling.ProportionalStretch: scale_str = "proportional"; break;
-                default: scale_str = _game.DefaultSetup.GameScalingMultiplier.ToString(); break;
-            }
-            NativeProxy.WritePrivateProfileString("graphics", "game_scale", scale_str, configFilePath);
+            NativeProxy.WritePrivateProfileString("graphics", "game_scale_fs", MakeGameScalingConfig(_game.DefaultSetup.FullscreenGameScaling, 0), configFilePath);
+            NativeProxy.WritePrivateProfileString("graphics", "game_scale_win", MakeGameScalingConfig(_game.DefaultSetup.GameScaling, _game.DefaultSetup.GameScalingMultiplier), configFilePath);
 
             NativeProxy.WritePrivateProfileString("graphics", "filter", _game.DefaultSetup.GraphicsFilter, configFilePath);
             NativeProxy.WritePrivateProfileString("graphics", "vsync", _game.DefaultSetup.VSync ? "1" : "0", configFilePath);
@@ -1489,7 +1509,8 @@ namespace AGS.Editor
             NativeProxy.WritePrivateProfileString("language", "translation", _game.DefaultSetup.Translation, configFilePath);
             NativeProxy.WritePrivateProfileString("mouse", "auto_lock", _game.DefaultSetup.AutoLockMouse ? "1" : "0", configFilePath);
             NativeProxy.WritePrivateProfileString("mouse", "speed", _game.DefaultSetup.MouseSpeed.ToString(CultureInfo.InvariantCulture), configFilePath);
-            NativeProxy.WritePrivateProfileString("misc", "cachemax", _game.DefaultSetup.SpriteCacheSize.ToString(), configFilePath);
+            // Note: sprite cache size is written in KB (while we have it in MB on the editor pane)
+            NativeProxy.WritePrivateProfileString("misc", "cachemax", (_game.DefaultSetup.SpriteCacheSize * 1024).ToString(), configFilePath);
             WriteCustomPathToConfig("misc", "user_data_dir", configFilePath, _game.DefaultSetup.UseCustomSavePath, _game.DefaultSetup.CustomSavePath);
             WriteCustomPathToConfig("misc", "shared_data_dir", configFilePath, _game.DefaultSetup.UseCustomAppDataPath, _game.DefaultSetup.CustomAppDataPath);
             NativeProxy.WritePrivateProfileString("misc", "titletext", _game.DefaultSetup.TitleText, configFilePath);

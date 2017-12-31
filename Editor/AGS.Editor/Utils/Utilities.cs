@@ -99,7 +99,10 @@ namespace AGS.Editor
 
         public static void EnsureStandardSubFoldersExist()
         {
-            List<string> foldersToCreate = new List<string> { "Speech", AudioClip.AUDIO_CACHE_DIRECTORY, "Compiled" };
+            // TODO: This list partially contradicts the Output Target concepts,
+            // because it explicitly mentions Data target's directories
+            List<string> foldersToCreate = new List<string> { "Speech", AudioClip.AUDIO_CACHE_DIRECTORY,
+                AGSEditor.OUTPUT_DIRECTORY, Path.Combine(AGSEditor.OUTPUT_DIRECTORY, AGSEditor.DATA_OUTPUT_DIRECTORY) };
             foreach (string folderName in foldersToCreate)
             {
                 if (!Directory.Exists(folderName))

@@ -40,6 +40,13 @@ namespace AGS.Types
             return (T)Enum.ToObject(typeof(T), second);
         }
 
+        public static ScriptAPIVersion GetActualAPI(ScriptAPIVersion v)
+        {
+            if (v == ScriptAPIVersion.Highest)
+                return Utilities.GetSecondMaxEnumValue<ScriptAPIVersion>();
+            return v;
+        }
+
         public static string RemoveInvalidCharactersFromScriptName(string name)
         {
             StringBuilder sb = new StringBuilder();
@@ -121,8 +128,8 @@ namespace AGS.Types
             System.Version v = null;
             try
             {
-                int pos = 0;
-                while (Char.IsDigit(s[pos]) || s[pos] == '.') pos++;
+                int pos;
+                for (pos = 0; pos < s.Length && (Char.IsDigit(s[pos]) || s[pos] == '.'); pos++);
                 s = s.Substring(0, pos);
                 v = new System.Version(s);
             }

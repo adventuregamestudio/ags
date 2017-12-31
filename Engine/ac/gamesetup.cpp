@@ -34,11 +34,11 @@ GameSetup::GameSetup()
     mouse_speed_def = kMouseSpeed_CurrentDisplay;
     RenderAtScreenRes = false;
 
-    Screen.DisplayMode.MatchDeviceRatio = false;
-    Screen.DisplayMode.SizeDef = kScreenDef_MaxDisplay;
+    Screen.DisplayMode.ScreenSize.MatchDeviceRatio = true;
+    Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_MaxDisplay;
     Screen.DisplayMode.RefreshRate = 0;
     Screen.DisplayMode.VSync = false;
     Screen.DisplayMode.Windowed = false;
-    Screen.GameFrame.ScaleDef = kFrame_MaxRound;
-    Screen.GameFrame.ScaleFactor = 0;
+    Screen.FsGameFrame.ScaleDef = kFrame_MaxProportional;
+    Screen.WinGameFrame.ScaleDef = kFrame_MaxRound;
 }

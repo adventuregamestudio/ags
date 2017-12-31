@@ -197,7 +197,7 @@ this indicates that your graphics card is too old to run with the Direct3D drive
 See Also: \helprefn{System.HardwareAcceleration property}{System.HardwareAcceleration}
 
 
-\section{Run-time engine setup}\index{Setup}%
+\section{Run-time engine setup}\label{Setup}\index{Setup}%
 
 The engine Setup program allows the player to customize certain game settings.
 
@@ -309,7 +309,7 @@ in the default Windows folders: "C:/Users/<Username>/Saved Games/<Game Title>" a
   Players may enable this option and define their own location to store game files.
 \end{description}
 
-See Also: \helprefn{Default setup}{Game setup}
+See Also: \helprefn{Default setup}{Default setup}
 
 
 \chapter{Tutorial}%
@@ -906,7 +906,7 @@ AGS automatically calls ParseText with the text they typed in before it calls di
 so you can use Said() calls to respond. See the \helprefn{text parser}{TextParser} section
 for more info.
 
-\subsection{General settings}\index{settings}\index{options}\index{Anti-aliasing fonts}\index{Crossfading music}%
+\subsection{General settings}\index{settings}\index{options}%
 
 The General Settings pane contains a list of all the various overall options
 that you can set for your game.
@@ -1132,11 +1132,33 @@ GUIs while the game interface is disabled (eg. during a cutscene).
 
 \bf{Windows Game Explorer}
 See: \helprefn{Windows Game Explorer}{GameExplorer}
+
+
+\subsection{Default setup}\label{Default setup}\index{Default setup}%
+
+The Default setup pane lets you create the default runtime configuration for your game. Since AGS 3.3.5 you cannot directly do that using game's setup utility (winsetup.exe) anymore, because it modifies config file in the user's personal documents folder instead of game folder. For that reason you should be doing it from this Editor's page now.
+
+Most of the options here correspond to the ones you may find in the setup utility. For their meaning please refer to \helpref{related topic}{Setup}.
+
+Additionally, following settings are available:
+
+\bf{Setup appearance}
 \begin{itemize}
+\item \bf{Title text} - the text that will appear on the title of the setup program window.
+\end{itemize}
 
+\bf{Enviroment}
+\begin{itemize}
+\item \bf{Custom game saves path} - defines where game will store its saves and individual user's files (e.g. achievements). This path will be used to substitute default value of \verb^$SAVEGAMEDIR$^ token in scripts. Note that when being set up in the Editor, this option only accepts relative paths (when used they will be relative to the game's location).
+This has to be done this way to prevent setting absolute path that does not exist on the player's machine, so typically you have to set this if you want to have saves stored locally within the game's folder.
+Players will be able to modify this path in setup program (where they are actually allowed to put absolute paths too).
+\item \bf{Custom shared data path} - defines where game will store its shared data files (e.g. hiscore tables). This path will be used to substitute default value of \verb^$APPDATADIR$^ token in scripts. Note that this option only accepts relative paths, so typically you have to set this if you want to have data files created locally within the game's folder.
+Players \bf{won't} normally be able to change it in setup program.
+\end{itemize}
 
-\subsection{Default setup}\index{Default setup}\index{Game setup}%
+\bf{IMPORTANT:} the configuration file will only be recreated during next game compilation, so if you change these settings you will need to rebuild your game one more time to apply them.
 
+See also: \helpref{Run-time engine setup}{Setup}
 
 
 \subsection{Cursors}\index{Mouse cursors}%
@@ -1192,8 +1214,13 @@ available on the internet.
 There are also some fonts available on the
 \urlref{AGS website}{http://www.adventuregamestudio.co.uk/fonts}.
 
-Note that SCI fonts are faster to render than TTF fonts, and so may give your game
-a speed advantage. It's preferable to use a SCI font if you can.
+When choosing whether to use SCI or TTF font following should be taken into account:
+\begin{itemize}
+\item SCI font is a raster (bitmap) font, which means that it does not scale and always keeps same size and pixel-precise visual shape.
+\item TTF font is a vector font, that may be scaled to suit your game (you choose its size during import), and may be rendered with anti-aliasing.
+\end{itemize}
+
+In general you should prefer using TTF fonts, but SCI fonts may still be useful in low-resolution games (because not all TTF fonts scale down well) and situations where you need pixel-precise looks of the drawn symbols.
 
 Go to the "Fonts" node in the main tree. Here you can see all the current fonts
 listed underneath. You can create a new font by right-clicking the "Fonts" node
@@ -1205,6 +1232,12 @@ necessity since they stop the text blending into the background and becoming
 un-readable. To outline a font, either set the OutlineStyle to "Automatic" to
 have AGS do it for you, or you can use a specific font slot as the outline font
 (it will be drawn in black behind the main font when the main font is used).
+
+Every font have following optional properties:
+\begin{itemize}
+\item \bf{LineSpacing} - defines default difference (in pixels) between two lines of wrapped text. Setting this to 0 will make font use its own height as a vertical spacing. Having line spacing lower than font's height will make lines partially overlap.
+\item \bf{VerticalOffset} - defines additional vertical offset applied to every drawn line of text (when using this font). This property is mainly meant to override particular font's misbehavior.
+\end{itemize}
 
 \bf{NOTE:} If you go to your Windows Fonts folder, you will not be able to select
 any fonts to import, since double-clicking them will open them up in the Windows Font
@@ -3661,6 +3694,17 @@ enum WalkWhere {
 \helprefn{Object.Move}{Object.Move}
 
 \begin{verbatim}
+enum StopMovementStyle
+{
+  eKeepMoving = 0,
+  eStopMoving = 1
+};
+\end{verbatim}
+\it{Used by:} \helprefn{Character.LockView}{Character.LockViewAligned},
+\helprefn{Character.LockViewFrame}{Character.LockViewOffset},
+\helprefn{Object.UnlockView}{Object.UnlockView}
+
+\begin{verbatim}
 enum RepeatStyle {
   eOnce,
   eRepeat
@@ -3836,6 +3880,7 @@ to the front. ILBRK
 \helprefn{Mouse.ChangeModeHotspot}{Mouse.ChangeModeHotspot},
 \helprefn{Mouse.DisableMode}{Mouse.DisableMode},
 \helprefn{Mouse.EnableMode}{Mouse.EnableMode},
+\helprefn{Mouse.IsModeEnabled}{Mouse.IsModeEnabled},
 \helprefn{Mouse.UseModeGraphic}{Mouse.UseModeGraphic},
 \helprefn{Mouse.Mode}{Mouse.Mode},
 \helprefn{InventoryItem.IsInteractionAvailable}{InventoryItem.IsInteractionAvailable},
@@ -4224,14 +4269,6 @@ they may be arranged in any order.
 
 Unlike many programming languages, AGS allows expression result of any type (integer, boolean,
 string, pointers).
-
-\bf{KNOWN ISSUES:}
-\begin{itemize}\itemsep=0pt
-\item Since the final release of AGS 3.4.0 usage of strings in the switch is broken:
-instead of comparing by value, as intended, they are instead compared as pointers.
-\item Local function variables do not work when being used in the "case" expression.
-\end{itemize}
-We expect above to be fixed in the future updates.
 
 Example:
 
@@ -5896,6 +5933,22 @@ will change EGO's "description" property.
 \it{See Also:} \helprefn{Character.SetProperty}{Character.SetProperty}
 
 
+\subsection{HasExplicitLight property (character)}\label{Character.HasExplicitLight}\index{Character.HasExplicitLight}%
+
+\begin{verbatim}
+readonly bool Character.HasExplicitTint
+\end{verbatim}
+Returns \it{true} if the character has a light set explicitly with the
+\helprefn{Character.SetLightLevel}{Character.SetLightLevel} command.
+
+Returns \it{false} if the character has no explicit light level, but it may still be
+lighted by \helprefn{SetAmbientLightLevel}{SetAmbientLightLevel} or a region light.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{SeeAlso:} \helprefn{Character.SetLightLevel}{Character.SetLightLevel}
+
+
 \subsection{HasInventory}\label{Character.HasInventory}\index{Character.HasInventory}%
 
 \begin{verbatim}
@@ -5974,17 +6027,37 @@ will execute the colliding code only if the character EGO and the object number 
 \helprefn{AreThingsOverlapping}{AreThingsOverlapping}
 
 
+\subsection{LightLevel property}\label{Character.LightLevel}\index{Character.LightLevel}%
+
+\begin{verbatim}
+readonly int Character.LightLevel
+\end{verbatim}
+If the character has an individual light set explicitly with the
+\helprefn{Character.SetLightLevel}{Character.SetLightLevel} command, this property returns the light level value.
+Otherwise it returns 0.
+
+\bf{NOTE:} without individual light level set, Character.LightLevel returns 0 even if the character is affected by the ambient or region's light.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{SeeAlso:} \helprefn{Character.SetLightLevel}{Character.SetLightLevel},
+\helprefn{SetAmbientLightLevel}{SetAmbientLightLevel},
+\helprefn{Region.SetLightLevel}{Region.SetLightLevel}
+
+
 \subsection{LockView}\label{Character.LockView}\index{Character.LockView}\index{SetCharacterView}%
 
 \it{(Formerly known as SetCharacterView, which is now obsolete)}
 
 \begin{verbatim}
-Character.LockView(int view)
+Character.LockView(int view, optional StopMovementStyle)
 \end{verbatim}
 
 Sets the character's view to VIEW. This can be used to perform animations
 with characters, for example bending down to pick something up, which don't
 use the default view.
+
+\it{StopMovementStyle} determines what to do if character was moving when this function is called. You can pass either eStopMoving (in which case the walking character will stop), or eKeepMoving (in which case the character will keep moving). The default is eStopMoving.
 
 \bf{NOTE:} This function locks the character's view to the specified view, so
 that it can only be changed by other script commands (ie. it won't
@@ -6001,6 +6074,8 @@ cEgo.UnlockView();
 will change the character's EGO view to view 12, perform an animation using loop 0,
 wait until the animation finishes and then return the character to his normal view.
 
+\it{Compatibility:} Optional \it{StopMovementStyle} parameter is supported only by \bf{AGS 3.4.1} and later versions.
+
 \it{See Also:} \helprefn{Character.Animate}{Character.Animate},
 \helprefn{Character.ChangeView}{Character.ChangeView},
 \helprefn{Character.SpeechView}{Character.SpeechView},
@@ -6014,7 +6089,7 @@ wait until the animation finishes and then return the character to his normal vi
 \it{(Formerly known as SetCharacterViewEx, which is now obsolete)}
 
 \begin{verbatim}
-Character.LockViewAligned(int view, int loop, Alignment)
+Character.LockViewAligned(int view, int loop, Alignment, optional StopMovementStyle)
 \end{verbatim}
 
 Sets the character's view to VIEW, and sets the character's current frame to
@@ -6042,6 +6117,8 @@ Note that this only aligns the first frame of the animation, so to get the full 
 all your frames in the animation loop should be the same width. All following frames will
 be shifted by the same amount, until UnlockView is called.
 
+\it{StopMovementStyle} determines what to do if character was moving when this function is called. You can pass either eStopMoving (in which case the walking character will stop), or eKeepMoving (in which case the character will keep moving). The default is eStopMoving.
+
 \bf{NOTE:} This function locks the character's view to the specified view, so
 that it can only be changed by other script commands (ie. it won't
 automatically be changed by the program on regions, screen changes,
@@ -6057,6 +6134,8 @@ cEgo.UnlockView();
 will change the character's EGO view to view 12, perform an animation using loop 1,
 wait until the animation finishes and then return the character to his normal view.
 
+\it{Compatibility:} Optional \it{StopMovementStyle} parameter is supported only by \bf{AGS 3.4.1} and later versions.
+
 \it{See Also:} \helprefn{Character.LockView}{Character.LockView},
 \helprefn{Character.LockViewOffset}{Character.LockViewOffset},
 \helprefn{Character.UnlockView}{Character.UnlockView}
@@ -6067,13 +6146,15 @@ wait until the animation finishes and then return the character to his normal vi
 \it{(Formerly known as SetCharacterFrame, which is now obsolete)}
 
 \begin{verbatim}
-Character.LockViewFrame(int view, int loop, int frame)
+Character.LockViewFrame(int view, int loop, int frame, optional StopMovementStyle)
 \end{verbatim}
 Sets the character's graphic to frame FRAME of loop LOOP of view number VIEW.
 This is useful if you don't want an animation, but just want to change the
 character to display a specific frame.
 
 The frame will be locked to the one you specify until you call UnlockView.
+
+\it{StopMovementStyle} determines what to do if character was moving when this function is called. You can pass either eStopMoving (in which case the walking character will stop), or eKeepMoving (in which case the character will keep moving). The default is eStopMoving.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -6083,6 +6164,8 @@ cEgo.UnlockView();
 \end{verbatim}
 will change EGO to have frame 4 of loop 2 in the AGHAST view, wait for a second,
 then return him to normal.
+
+\it{Compatibility:} Optional \it{StopMovementStyle} parameter is supported only by \bf{AGS 3.4.1} and later versions.
 
 \it{See Also:} \helprefn{Character.Animate}{Character.Animate},
 \helprefn{Character.LockView}{Character.LockView},
@@ -6094,7 +6177,7 @@ then return him to normal.
 \it{(Formerly known as SetCharacterViewOffset, which is now obsolete)}
 
 \begin{verbatim}
-Character.LockViewOffset(int view, int xOffset, int yOffset)
+Character.LockViewOffset(int view, int xOffset, int yOffset, optional StopMovementStyle)
 \end{verbatim}
 
 Sets the character's view to VIEW, in the same way as LockView does. However,
@@ -6110,14 +6193,11 @@ don't quite line up with the standing frame, assuming all the frames of the anim
 the same size. Note that LockViewAligned is easier to use if your frames will align at
 the left or right hand side.
 
+\it{StopMovementStyle} determines what to do if character was moving when this function is called. You can pass either eStopMoving (in which case the walking character will stop), or eKeepMoving (in which case the character will keep moving). The default is eStopMoving.
+
 \bf{NOTE:} You should only use this command for minor adjustments, since the offsets do not
 affect the clickable area of the character, what walkable area he is in, and so forth. You
 should limit the use of this command to in-game cutscenes where the player has no control.
-
-\bf{NOTE:} This is the only command in AGS which uses actual game-resolution co-ordinates.
-Therefore, specifying an x offset of 1 will actually move 1 pixel in a 640x400 game, and will
-not be multiplied up to 2 (they will be automatically adjusted though if the player chooses
-to play the game at another resolution).
 
 \bf{NOTE:} This function locks the character's view to the specified view, so
 that it can only be changed by other script commands (ie. it won't
@@ -6132,6 +6212,8 @@ cEgo.UnlockView();
 \end{verbatim}
 will change EGO's view to view 12 and animate using loop 1, meanwhile all frames will be
 shifted 1 pixel right and 1 pixel up.
+
+\it{Compatibility:} Optional \it{StopMovementStyle} parameter is supported only by \bf{AGS 3.4.1} and later versions.
 
 \it{See Also:} \helprefn{Character.LockView}{Character.LockView},
 \helprefn{Character.LockViewAligned}{Character.LockViewAligned},
@@ -6594,16 +6676,113 @@ will tint the EGO character green.
 \helprefn{SetAmbientTint}{SetAmbientTint}
 
 
+\subsection{TintBlue property (character)}\label{Character.TintBlue}\index{Character.TintBlue}%
+
+\begin{verbatim}
+readonly int Character.TintBlue
+\end{verbatim}
+Gets the \it{Blue} setting for the character's current tint.
+
+This property is read-only; to change it, use the \helprefn{Character.Tint}{Character.Tint} command.
+
+\bf{NOTE:} If the \helprefn{Character.HasExplicitTint}{Character.HasExplicitTint} property is false, then
+this value is meaningless.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{See Also:} \helprefn{Character.Tint}{Character.Tint}, \helprefn{Character.HasExplicitTint}{Character.HasExplicitTint},
+\helprefn{Character.TintGreen}{Character.TintGreen}, \helprefn{Character.TintRed}{Character.TintRed},
+\helprefn{Character.TintLuminance}{Character.TintLuminance}
+
+
+\subsection{TintGreen property (character)}\label{Character.TintGreen}\index{Character.TintGreen}%
+
+\begin{verbatim}
+readonly int Character.TintGreen
+\end{verbatim}
+Gets the \it{Green} setting for the character's current tint.
+
+This property is read-only; to change it, use the \helprefn{Character.Tint}{Character.Tint} command.
+
+\bf{NOTE:} If the \helprefn{Character.HasExplicitTint}{Character.HasExplicitTint} property is false, then
+this value is meaningless.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{See Also:} \helprefn{Character.Tint}{Character.Tint}, \helprefn{Character.TintEnabled}{Character.TintEnabled},
+\helprefn{Character.TintBlue}{Character.TintBlue}, \helprefn{Character.TintRed}{Character.TintRed},
+\helprefn{Character.TintSaturation}{Character.TintSaturation}, \helprefn{Character.TintLuminance}{Character.TintLuminance}
+
+
+\subsection{TintRed property (character)}\label{Character.TintRed}\index{Character.TintRed}%
+
+\begin{verbatim}
+readonly int Character.TintRed
+\end{verbatim}
+Gets the \it{Red} setting for the character's current tint.
+
+This property is read-only; to change it, use the \helprefn{Character.Tint}{Character.Tint} command.
+
+\bf{NOTE:} If the \helprefn{Character.HasExplicitTint}{Character.HasExplicitTint} property is false, then
+this value is meaningless.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{See Also:} \helprefn{Character.Tint}{Character.Tint}, \helprefn{Character.TintEnabled}{Character.TintEnabled},
+\helprefn{Character.TintBlue}{Character.TintBlue}, \helprefn{Character.TintGreen}{Character.TintGreen},
+\helprefn{Character.TintSaturation}{Character.TintSaturation}, \helprefn{Character.TintLuminance}{Character.TintLuminance}
+
+
+\subsection{TintSaturation property (character)}\label{Character.TintSaturation}\index{Character.TintSaturation}%
+
+\begin{verbatim}
+readonly int Character.TintSaturation
+\end{verbatim}
+Gets the \it{saturation} setting for the character's current tint.
+
+This property is read-only; to change it, use the \helprefn{Character.Tint}{Character.Tint} command.
+
+\bf{NOTE:} If the \helprefn{Character.HasExplicitTint}{Character.HasExplicitTint} property is false, then
+this value is meaningless.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{See Also:} \helprefn{Character.Tint}{Character.Tint}, \helprefn{Character.TintEnabled}{Character.TintEnabled},
+\helprefn{Character.TintBlue}{Character.TintBlue}, \helprefn{Character.TintGreen}{Character.TintGreen},
+\helprefn{Character.TintRed}{Character.TintRed}, \helprefn{Character.TintLuminance}{Character.TintLuminance}
+
+
+\subsection{TintLuminance property (character)}\label{Character.TintLuminance}\index{Character.TintLuminance}%
+
+\begin{verbatim}
+readonly int Character.TintLuminance
+\end{verbatim}
+Gets the \it{luminance} setting for the character's current tint.
+
+This property is read-only; to change it, use the \helprefn{Character.Tint}{Character.Tint} command.
+
+\bf{NOTE:} If the \helprefn{Character.HasExplicitTint}{Character.HasExplicitTint} property is false, then
+this value is meaningless.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{See Also:} \helprefn{Character.Tint}{Character.Tint}, \helprefn{Character.TintEnabled}{Character.TintEnabled},
+\helprefn{Character.TintBlue}{Character.TintBlue}, \helprefn{Character.TintGreen}{Character.TintGreen},
+\helprefn{Character.TintRed}{Character.TintRed}, \helprefn{Character.TintSaturation}{Character.TintSaturation}
+
+
 \subsection{UnlockView}\label{Character.UnlockView}\index{Character.UnlockView}\index{ReleaseCharacterView}%
 
 \it{(Formerly known as ReleaseCharacterView, which is now obsolete)}
 
 \begin{verbatim}
-Character.UnlockView()
+Character.UnlockView(StopMovementStyle=eStopMoving)
 \end{verbatim}
 Allows the engine to automatically control the character's view, as normal.
 Use this once you have finished doing the animation which you started with
 the LockView command.
+
+\it{StopMovementStyle} determines what to do if character was moving when this function is called. You can pass either eStopMoving (in which case the walking character will stop), or eKeepMoving (in which case the character will keep moving). The default is eStopMoving.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -6612,6 +6791,8 @@ cEgo.Animate(0, 0, eOnce, eBlock, eForwards);
 cEgo.UnlockView();
 \end{verbatim}
 will play an animation using loop 0 of view 12, then return the character to its normal view.
+
+\it{Compatibility:} Optional \it{StopMovementStyle} parameter is supported only by \bf{AGS 3.4.1} and later versions.
 
 \it{See Also:} \helprefn{Character.LockView}{Character.LockView}
 
@@ -7015,7 +7196,7 @@ displays EGO's current frame number within his view.
 \helprefn{Character.View}{Character.View}
 
 
-\subsection{HasExplicitTint property}\label{Character.HasExplicitTint}\index{Character.HasExplicitTint}%
+\subsection{HasExplicitTint property (character)}\label{Character.HasExplicitTint}\index{Character.HasExplicitTint}%
 
 \begin{verbatim}
 readonly bool Character.HasExplicitTint
@@ -9421,6 +9602,8 @@ Only BMP and PCX files can be loaded with this command.
 Use the \helprefn{Graphic}{DynamicSprite.Graphic} property of the DynamicSprite to
 interface with other commands and to use the new sprite in the game.
 
+\bf{NOTE:} Since AGS 3.4.1 you can use location tokens in filename, like with \helprefn{File.Open}{File.Open} and similar commands.
+
 \bf{IMPORTANT:} This command loads an extra sprite into memory which is not controlled
 by the normal AGS sprite cache and will not be automatically disposed of. Therefore, when
 you are finished with the image you \bf{MUST} call Delete on it to free its memory.
@@ -9811,6 +9994,8 @@ The filename you supply must have a .PCX or .BMP extension; they are the only
 two file types that the engine supports.
 
 Returns 1 if the sprite was saved successfully, or 0 if it failed.
+
+\bf{NOTE:} Since AGS 3.4.1 you can use location tokens in filename, like with \helprefn{File.Open}{File.Open} and similar commands.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -11132,6 +11317,47 @@ GiveScore(5);
 will give 5 points to the player.
 
 \it{See Also:} \helprefn{Game.DoOnceOnly}{Game.DoOnceOnly}
+
+
+\subsection{GetFontHeight}\label{GetFontHeight}%
+
+\begin{verbatim}
+int GetFontHeight (int font)
+\end{verbatim}
+Returns the given font's height, in pixels. This value may be used, for example, to calculate arrangement of text and GUI elements on screen.
+
+\fcol{red}{Example:}
+\begin{verbatim}
+int h = GetFontHeight(eFontSpeech);
+\end{verbatim}
+will store the speech font's height in the variable.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{See Also:} \helprefn{GetFontLineSpacing}{GetFontLineSpacing}
+
+
+\subsection{GetFontLineSpacing}\label{GetFontLineSpacing}%
+
+\begin{verbatim}
+int GetFontLineSpacing (int font)
+\end{verbatim}
+Returns the step between two lines of text for the specified font. If this value equals font's height, then each next line is rendered right after previous one with no space in between. If the line spacing is lower than font's height, then the lines of text are partially overlapping.
+
+\bf{NOTE:} this is the distance between the \bf{top} of the first line and the \bf{top} of the next line, and \bf{not} distance between bottom of first line and top of next one. If you need to calculate the \bf{gap} between the lines, then subtract \helprefn{font's height}{GetFontHeight} from the line spacing value.
+
+\fcol{red}{Example:}
+\begin{verbatim}
+int h = GetFontHeight(eFontSpeech);
+int spacing = GetFontLineSpacing(eFontSpeech);
+int gap = spacing - h;
+\end{verbatim}
+will calculate the gap between two lines of text, that are drawn using speech font.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{See Also:} \helprefn{GetFontHeight}{GetFontHeight}
+
 
 
 \subsection{InputBox}\label{Game.InputBox}\index{Game.InputBox}%
@@ -13635,7 +13861,98 @@ btnDeathAnim.Animate(6, 2, 4, eRepeat);
 will animate the 'btnDeathAnim' button using loop 2 of view 6, with a delay of 4
 cycles per frame, and repeat the animation continually.
 
-\it{See Also:} \helprefn{Button.NormalGraphic}{Button.NormalGraphic}
+\it{See Also:} \helprefn{Button.Animating}{Button.Animating},
+\helprefn{Button.Frame}{Button.Frame},
+\helprefn{Button.Loop}{Button.Loop},
+\helprefn{Button.View}{Button.View},
+\helprefn{Button.NormalGraphic}{Button.NormalGraphic}
+
+
+\subsection{Animating property (button)}\label{Button.Animating}\index{Button.Animating}%
+
+\begin{verbatim}
+readonly bool Button.Animating
+\end{verbatim}
+Returns true if the specified button is currently animating, or false otherwise.
+
+This property is read-only. To change button's animation, use the
+\helprefn{Animate}{Button.Animate} command.
+
+\fcol{red}{Example:}
+\begin{verbatim}
+btnDeathAnim.Animate(6, 2, 4, eRepeat);
+while (btnDeathAnim.Animating) Wait(1);
+\end{verbatim}
+will animate button and wait until the animation finishes.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{See Also:} \helprefn{Button.Animate}{Button.Animate},
+\helprefn{Button.Frame}{Button.Frame},
+\helprefn{Button.Loop}{Button.Loop},
+\helprefn{Button.View}{Button.View},
+\helprefn{Button.Graphic}{Button.Graphic}
+
+
+\subsection{Frame property (button)}\label{Button.Frame}\index{Button.Frame}%
+
+\begin{verbatim}
+readonly int Button.Frame
+\end{verbatim}
+Gets the frame number that the animated button is currently set to. If the button is not currently
+animated, this will be 0 (in which case the Graphic property will
+hold its sprite number).
+
+This property is read-only. To change button's animation, use the
+\helprefn{Animate}{Button.Animate} command.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{See Also:} \helprefn{Button.Animating}{Button.Animating},
+\helprefn{Button.Loop}{Button.Loop},
+\helprefn{Button.View}{Button.View},
+\helprefn{Button.Graphic}{Button.Graphic}
+
+
+\subsection{Loop property (button)}\label{Button.Loop}\index{Button.Loop}%
+
+\begin{verbatim}
+readonly int Button.Loop
+\end{verbatim}
+Gets the loop that the animated button is currently set to. If the button is not currently
+animated, this will be 0 (in which case the Graphic property will
+hold its sprite number).
+
+This property is read-only. To change button's animation, use the
+\helprefn{Animate}{Button.Animate} command.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{See Also:} \helprefn{Button.Animate}{Button.Animate},
+\helprefn{Button.Frame}{Button.Frame},
+\helprefn{Button.View}{Button.View},
+\helprefn{Button.Graphic}{Button.Graphic}
+
+
+
+\subsection{View property (button)}\label{Button.View}\index{Button.View}%
+
+\begin{verbatim}
+readonly int Button.View
+\end{verbatim}
+Gets the view that the animated button is currently set to. If the button is not currently
+animated, this will be 0 (in which case the Graphic property will
+hold its sprite number).
+
+This property is read-only. To change button's animation, use the
+\helprefn{Animate}{Button.Animate} command.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{See Also:} \helprefn{Button.Animate}{Button.Animate},
+\helprefn{Button.Frame}{Button.Frame},
+\helprefn{Button.Loop}{Button.Loop},
+\helprefn{Button.Graphic}{Button.Graphic}
 
 
 \subsection{ClipImage property}\label{Button.ClipImage}\index{Button.ClipImage}%
@@ -15930,7 +16247,8 @@ mouse.DisableMode(eModeWalkto);
 \end{verbatim}
 will make the walk mode unavailable until it's enabled again.
 
-\it{See Also:} \helprefn{Mouse.EnableMode}{Mouse.EnableMode}
+\it{See Also:} \helprefn{Mouse.EnableMode}{Mouse.EnableMode},
+\helprefn{Mouse.IsModeEnabled}{Mouse.IsModeEnabled}
 
 
 \subsection{EnableMode}\label{Mouse.EnableMode}\index{Mouse.EnableMode}\index{EnableCursorMode}%
@@ -15949,7 +16267,29 @@ mouse.EnableMode(eModeWalkto);
 \end{verbatim}
 will enable cursor mode walk which was disabled before.
 
-\it{See Also:} \helprefn{Mouse.DisableMode}{Mouse.DisableMode}
+\it{See Also:} \helprefn{Mouse.DisableMode}{Mouse.DisableMode},
+\helprefn{Mouse.IsModeEnabled}{Mouse.IsModeEnabled}
+
+
+subsection{IsModeEnabled}\label{Mouse.IsModeEnabled}\index{Mouse.IsModeEnabled}%
+
+\begin{verbatim}
+static bool Mouse.IsModeEnabled(int mode)
+\end{verbatim}
+
+Returns whether the specified mouse cursor is currently enabled.
+
+\fcol{red}{Example:}
+\begin{verbatim}
+if (mouse.IsModeEnabled(eModeWalkto)) {
+  mouse.Mode = eModeWalkto;
+}
+\end{verbatim}
+will change the the "WalkTo" cursor mode, but only if it's currently enabled.
+
+\it{See Also:} \helprefn{Mouse.EnableMode}{Mouse.EnableMode},
+\helprefn{Mouse.DisableMode}{Mouse.DisableMode}
+
 
 
 \subsection{GetModeGraphic}\label{Mouse.GetModeGraphic}\index{Mouse.GetModeGraphic}%
@@ -16040,6 +16380,18 @@ Mouse.SelectNextMode()
 \end{verbatim}
 Selects the next enabled mouse cursor mode. This is useful for Sierra-style right-click
 cycling through modes. This function will choose the next mode marked as a Standard Mode, and
+will also use the Use Inventory mode if the player has an active inventory item.
+
+\it{See Also:} \helprefn{Mouse.Mode}{Mouse.Mode}
+
+
+\subsection{SelectPreviousMode}\label{Mouse.SelectPreviousMode}\index{Mouse.SelectPreviousMode}%
+
+\begin{verbatim}
+Mouse.SelectPreviousMode()
+\end{verbatim}
+Selects the previous enabled mouse cursor mode. This is useful for Sierra-style right-click
+cycling through modes. This function will choose the previous mode marked as a Standard Mode, and
 will also use the Use Inventory mode if the player has an active inventory item.
 
 \it{See Also:} \helprefn{Mouse.Mode}{Mouse.Mode}
@@ -17223,6 +17575,39 @@ will change the object 2's image to the image stored in the sprite manager's slo
 \it{See Also:} \helprefn{Object.SetView}{Object.SetView}
 
 
+\subsection{HasExplicitLight property (object)}\label{Object.HasExplicitLight}\index{Object.HasExplicitLight}%
+
+\begin{verbatim}
+readonly bool Object.HasExplicitTint
+\end{verbatim}
+Returns \it{true} if the object has a light set explicitly with the
+\helprefn{Object.SetLightLevel}{Object.SetLightLevel} command.
+
+Returns \it{false} if the object has no explicit light level, but it may still be
+lighted by \helprefn{SetAmbientLightLevel}{SetAmbientLightLevel} or a region light.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{SeeAlso:} \helprefn{Object.SetLightLevel}{Object.SetLightLevel}
+
+
+\subsection{HasExplicitTint property (object)}\label{Object.HasExplicitTint}\index{Object.HasExplicitTint}%
+
+\begin{verbatim}
+readonly bool Object.HasExplicitTint
+\end{verbatim}
+Returns \it{true} if the object has a tint set explicitly with the
+\helprefn{Object.Tint}{Object.Tint} command.
+
+Returns \it{false} if the object has no explicit tint, but it may still be
+tinted by \helprefn{SetAmbientTint}{SetAmbientTint} or a region tint.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{SeeAlso:} \helprefn{Object.Tint}{Object.Tint},
+\helprefn{Object.RemoveTint}{Object.RemoveTint}
+
+
 \subsection{ID property (object)}\label{Object.ID}\index{Object.ID}%
 
 \begin{verbatim}
@@ -17287,6 +17672,24 @@ will make object 1 ignore walk behinds.
 
 \it{See Also:} \helprefn{Object.Baseline}{Object.Baseline},
 \helprefn{Object.Clickable}{Object.Clickable}, \helprefn{Object.IgnoreScaling}{Object.IgnoreScaling}
+
+
+\subsection{LightLevel property}\label{Object.LightLevel}\index{Object.LightLevel}%
+
+\begin{verbatim}
+readonly int Object.LightLevel
+\end{verbatim}
+If the object has an individual light set explicitly with the
+\helprefn{Object.SetLightLevel}{Object.SetLightLevel} command, this property returns the light level value.
+Otherwise it returns 0.
+
+\bf{NOTE:} without individual light level set, Object.LightLevel returns 0 even if the object is affected by the ambient or region's light.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{SeeAlso:} \helprefn{Object.SetLightLevel}{Object.SetLightLevel},
+\helprefn{SetAmbientLightLevel}{SetAmbientLightLevel},
+\helprefn{Region.SetLightLevel}{Region.SetLightLevel}
 
 
 \subsection{Loop property (object)}\label{Object.Loop}\index{Object.Loop}%
@@ -17378,6 +17781,101 @@ will mean that the Smallrock object blocks the path of characters.
 
 \it{See Also:} \helprefn{Object.BlockingHeight}{Object.BlockingHeight},
 \helprefn{Object.BlockingWidth}{Object.BlockingWidth}
+
+
+\subsection{TintBlue property (object)}\label{Object.TintBlue}\index{Object.TintBlue}%
+
+\begin{verbatim}
+readonly int Object.TintBlue
+\end{verbatim}
+Gets the \it{Blue} setting for the object's current tint.
+
+This property is read-only; to change it, use the \helprefn{Object.Tint}{Object.Tint} command.
+
+\bf{NOTE:} If the \helprefn{Object.HasExplicitTint}{Object.HasExplicitTint} property is false, then
+this value is meaningless.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{See Also:} \helprefn{Object.Tint}{Object.Tint}, \helprefn{Object.HasExplicitTint}{Object.HasExplicitTint},
+\helprefn{Object.TintGreen}{Object.TintGreen}, \helprefn{Object.TintRed}{Object.TintRed},
+\helprefn{Object.TintLuminance}{Object.TintLuminance}
+
+
+\subsection{TintGreen property (object)}\label{Object.TintGreen}\index{Object.TintGreen}%
+
+\begin{verbatim}
+readonly int Object.TintGreen
+\end{verbatim}
+Gets the \it{Green} setting for the object's current tint.
+
+This property is read-only; to change it, use the \helprefn{Object.Tint}{Object.Tint} command.
+
+\bf{NOTE:} If the \helprefn{Object.HasExplicitTint}{Object.HasExplicitTint} property is false, then
+this value is meaningless.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{See Also:} \helprefn{Object.Tint}{Object.Tint}, \helprefn{Object.TintEnabled}{Object.TintEnabled},
+\helprefn{Object.TintBlue}{Object.TintBlue}, \helprefn{Object.TintRed}{Object.TintRed},
+\helprefn{Object.TintSaturation}{Object.TintSaturation}, \helprefn{Object.TintLuminance}{Object.TintLuminance}
+
+
+\subsection{TintRed property (object)}\label{Object.TintRed}\index{Object.TintRed}%
+
+\begin{verbatim}
+readonly int Object.TintRed
+\end{verbatim}
+Gets the \it{Red} setting for the object's current tint.
+
+This property is read-only; to change it, use the \helprefn{Object.Tint}{Object.Tint} command.
+
+\bf{NOTE:} If the \helprefn{Object.HasExplicitTint}{Object.HasExplicitTint} property is false, then
+this value is meaningless.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{See Also:} \helprefn{Object.Tint}{Object.Tint}, \helprefn{Object.TintEnabled}{Object.TintEnabled},
+\helprefn{Object.TintBlue}{Object.TintBlue}, \helprefn{Object.TintGreen}{Object.TintGreen},
+\helprefn{Object.TintSaturation}{Object.TintSaturation}, \helprefn{Object.TintLuminance}{Object.TintLuminance}
+
+
+\subsection{TintSaturation property (object)}\label{Object.TintSaturation}\index{Object.TintSaturation}%
+
+\begin{verbatim}
+readonly int Object.TintSaturation
+\end{verbatim}
+Gets the \it{saturation} setting for the object's current tint.
+
+This property is read-only; to change it, use the \helprefn{Object.Tint}{Object.Tint} command.
+
+\bf{NOTE:} If the \helprefn{Object.HasExplicitTint}{Object.HasExplicitTint} property is false, then
+this value is meaningless.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{See Also:} \helprefn{Object.Tint}{Object.Tint}, \helprefn{Object.TintEnabled}{Object.TintEnabled},
+\helprefn{Object.TintBlue}{Object.TintBlue}, \helprefn{Object.TintGreen}{Object.TintGreen},
+\helprefn{Object.TintRed}{Object.TintRed}, \helprefn{Object.TintLuminance}{Object.TintLuminance}
+
+
+\subsection{TintLuminance property (object)}\label{Object.TintLuminance}\index{Object.TintLuminance}%
+
+\begin{verbatim}
+readonly int Object.TintLuminance
+\end{verbatim}
+Gets the \it{luminance} setting for the object's current tint.
+
+This property is read-only; to change it, use the \helprefn{Object.Tint}{Object.Tint} command.
+
+\bf{NOTE:} If the \helprefn{Object.HasExplicitTint}{Object.HasExplicitTint} property is false, then
+this value is meaningless.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+\it{See Also:} \helprefn{Object.Tint}{Object.Tint}, \helprefn{Object.TintEnabled}{Object.TintEnabled},
+\helprefn{Object.TintBlue}{Object.TintBlue}, \helprefn{Object.TintGreen}{Object.TintGreen},
+\helprefn{Object.TintRed}{Object.TintRed}, \helprefn{Object.TintSaturation}{Object.TintSaturation}
 
 
 \subsection{Transparency property (object)}\label{Object.Transparency}\index{Object.Transparency}\index{SetObjectTransparency}%
@@ -20217,6 +20715,20 @@ else {
 \end{verbatim}
 
 
+\subsection{RenderAtScreenResolution property}\label{System.RenderAtScreenResolution}\index{System.RenderAtScreenResolution}%
+
+\begin{verbatim}
+static bool System.RenderAtScreenResolution;
+\end{verbatim}
+Gets/sets whether sprites are rendered at screen resolution (if it's \bf{true}) or native game resolution (if it's \bf{false}).
+
+When your game has low native resolution and player is running it in high display mode (for example 320x200 game being run in 1920x1080), then turning this property on will let engine to take advantage of higher display resolution and draw characters and objects less pixelated when they are scaled up or down (e.g. on walkable area with scaling).
+
+\bf{IMPORTANT:} unless you have locked this parameter to certain value in your game's \helprefn{General settings}{settings}, players may also change it in the setup program. In such case it is suggested that you do not unconditionally modify this property in script, but rather provide a menu option for toggling it at runtime.
+
+\it{Compatibility:} Supported by \bf{AGS 3.4.1} and later versions.
+
+
 \subsection{RuntimeInfo property}\label{System.RuntimeInfo}\index{System.RuntimeInfo}%
 
 \begin{verbatim}
@@ -20472,10 +20984,12 @@ will display a message if vsync is on
 \it{(Formerly known as system.windowed, which is now obsolete)}
 
 \begin{verbatim}
-readonly static bool System.Windowed;
+static bool System.Windowed;
 \end{verbatim}
-Returns whether the game is currently running in a window (\it{true}) or
+Gets/sets whether the game is running in a window (\it{true}) or
 full-screen (\it{false}).
+
+If you set this property at runtime, the game will try to switch to alternate window mode. If it fails, it will return to previous one.
 
 \fcol{red}{Example:}
 \begin{verbatim}
@@ -20485,7 +20999,17 @@ if (System.Windowed) {
 \end{verbatim}
 will display a message if the game is running in a window
 
+\fcol{red}{Example:}
+\begin{verbatim}
+function on_key_press(eKeyCode keycode) {
+  if (keycode == eKeyEscape) {
+    System.Windowed = !System.Windowed;
+  }
+}
+\end{verbatim}
+will switch from windowed to fullscreen mode and vice-versa whenever player presses Escape key.
 
+\it{Compatibility:} This property was read-only before \bf{AGS 3.4.1}; it can be set in \bf{AGS 3.4.1} and later versions.
 
 
 \section{Text display / Speech functions}\index{Speech functions}%
@@ -22257,7 +22781,19 @@ The maximal number of script modules is no longer limited.
 
 \chapter{Upgrading to AGS 3.4.1}\label{UpgradeTo341}%
 
-There were no breaking changes in this update, but few notes should be made.
+There were no breaking changes in this update, but several notes should be made.
+
+\bf{Compiled folder structure}
+
+Since previous big update, AGS 3.4.0, you can compile your game for more than one platform at a time, and resulting files will be placed in the corresponding subfolders of the "Compiled" folder, such as "Compiled/Windows" and "Compiled/Linux". The raw compiled game files (without executable) were still placed just in "Compiled".
+
+In AGS 3.4.1 the raw compiled game files will be placed in "Compiled/Data" instead. This change was made to improve the compiled folder structure and make its contents cleaner.
+
+For that reason, if you upgrade your game from one of the previous AGS 3.* versions, it is recommended to either delete "Compiled" folder and fully rebuild the game, or at least remove any files located in the "Compiled" folder itself to clean things up.
+
+\bf{"Lazy" voice file compilation}
+
+Speech voice-over file \bf{speech.vox} is now compiled only when you explicitly order game rebuild. When just launching the game from the editor it won't be recompiled, and the game will load voice clips from the Speech folder instead. This way it works similar to how sound and music clips are loaded from AudioCache folder when game is tested, and saves some time on game compilation, especially when working with large projects.
 
 \bf{Default Setup pane}
 
@@ -22266,7 +22802,13 @@ One of the reasons for introducing this pane is that since AGS 3.3.5 game setup 
 
 "Graphics driver" option has migrated from "General Settings" to "Default Setup".
 
-For detailed information about Default Setup page refer to: \helprefn{Default setup}{Game setup}.
+For detailed information about Default Setup page refer to: \helprefn{Default setup}{Default setup}.
+
+\bf{Script API selector}
+
+The "Script API version" and "Script Compatibility Level" switches in General Settings (they were added in 3.4.0) now have "Highest" selection. Choosing that will ensure that whenever you upgrade your game to future versions of AGS, your game will automatically enable newest script commands. Otherwise you would have to update these two switches by hand every time.
+
+Naturally, if you prefer to lock script API at particular level even when moving to next versions of the editor, you would need to set API levels to corresponding values.
 
 \bf{System limits update}
 

@@ -1007,7 +1007,6 @@ namespace AGS.Editor
             foreach (IBuildTarget target in BuildTargetsInfo.GetSelectedBuildTargets())
             {
                 if (target != targetDataFile) target.Build(errors, forceRebuild);
-                Utilities.SetDirectoryFilesAccess(Path.Combine(Factory.AGSEditor.CurrentGame.DirectoryPath, AGSEditor.OUTPUT_DIRECTORY));
             }
             return null;
         }

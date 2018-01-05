@@ -2101,12 +2101,14 @@ builtin managed struct Character {
   import function AddWaypoint(int x, int y);
   /// Animates the character using its current locked view.
   import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards);
-  /// Moves the character to another room. If this is the player character, the game will also switch to that room.
-  import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE
 #ifdef SCRIPT_API_v340
-    , CharacterDirection direction=eDirectionNone
+  /// Moves the character to another room. If this is the player character, the game will also switch to that room.
+  import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, CharacterDirection direction=eDirectionNone);
 #endif
-    );
+#ifndef SCRIPT_API_v340
+  /// Moves the character to another room. If this is the player character, the game will also switch to that room.
+  import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE);
+#endif
   /// Moves the character to another room, using the old-style position variable
   import function ChangeRoomAutoPosition(int room, int position=0);
   /// Changes the character's normal walking view.
@@ -2134,30 +2136,26 @@ builtin managed struct Character {
   import function IsCollidingWithChar(Character*);
   /// Checks whether this character is in collision with the object.
   import function IsCollidingWithObject(Object* );
+#ifdef SCRIPT_API_v341
   /// Locks the character to this view, ready for doing animations.
-  import function LockView(int view
-#ifdef SCRIPT_API_v341
-    , StopMovementStyle=eStopMoving
-#endif // SCRIPT_API_v341
-    );
+  import function LockView(int view, StopMovementStyle=eStopMoving);
   /// Locks the character to this view, and aligns it against one side of the existing sprite.
-  import function LockViewAligned(int view, int loop, Alignment
-#ifdef SCRIPT_API_v341
-    , StopMovementStyle=eStopMoving
-#endif // SCRIPT_API_v341
-    );
+  import function LockViewAligned(int view, int loop, Alignment, StopMovementStyle=eStopMoving);
   /// Locks the character to the specified view frame
-  import function LockViewFrame(int view, int loop, int frame
-#ifdef SCRIPT_API_v341
-    , StopMovementStyle=eStopMoving
-#endif // SCRIPT_API_v341
-    );
+  import function LockViewFrame(int view, int loop, int frame, StopMovementStyle=eStopMoving);
   /// Locks the character to is view, with high-resolution position adjustment.
-  import function LockViewOffset(int view, int xOffset, int yOffset
-#ifdef SCRIPT_API_v341
-    , StopMovementStyle=eStopMoving
+  import function LockViewOffset(int view, int xOffset, int yOffset, StopMovementStyle=eStopMoving);
 #endif // SCRIPT_API_v341
-    );
+#ifndef SCRIPT_API_v341
+  /// Locks the character to this view, ready for doing animations.
+  import function LockView(int view);
+  /// Locks the character to this view, and aligns it against one side of the existing sprite.
+  import function LockViewAligned(int view, int loop, Alignment);
+  /// Locks the character to the specified view frame
+  import function LockViewFrame(int view, int loop, int frame);
+  /// Locks the character to is view, with high-resolution position adjustment.
+  import function LockViewOffset(int view, int xOffset, int yOffset);
+#endif
   /// Removes the item from this character's inventory.
   import function LoseInventory(InventoryItem *item);
   /// Moves the character to the destination, without playing his walking animation.
@@ -2186,12 +2184,14 @@ builtin managed struct Character {
   import function Think(const string message, ...);
   /// Tints the character to the specified colour.
   import void     Tint(int red, int green, int blue, int saturation, int luminance);
-  /// Unlocks the view after an animation has finished.
-  import function UnlockView(
 #ifdef SCRIPT_API_v341
-    StopMovementStyle=eStopMoving
+  /// Unlocks the view after an animation has finished.
+  import function UnlockView(StopMovementStyle=eStopMoving);
 #endif // SCRIPT_API_v341
-    );
+#ifndef SCRIPT_API_v341
+  /// Unlocks the view after an animation has finished.
+  import function UnlockView();
+#endif
   /// Moves the character to the destination, automatically playing his walking animation.
   import function Walk(int x, int y, BlockingStyle=eNoBlock, WalkWhere=eWalkableAreas);
   /// Moves the character in a straight line as far as possible towards the co-ordinates. Useful for keyboard movement.

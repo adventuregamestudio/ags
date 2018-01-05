@@ -42,6 +42,7 @@ extern GameSetupStruct game;
 extern GameSetup usetup;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
+extern int force_window;
 extern int psp_video_framedrop;
 extern int psp_audio_enabled;
 extern int psp_midi_enabled;
@@ -151,8 +152,13 @@ void parse_scaling_option(const String &scaling_option, FrameScaleDefinition &sc
         scale_factor = 0;
 }
 
+void parse_scaling_option(const String &scaling_option, GameFrameSetup &frame_setup)
+{
+    parse_scaling_option(scaling_option, frame_setup.ScaleDef, frame_setup.ScaleFactor);
+}
+
 // Parses legacy filter ID and converts it into current scaling options
-bool parse_legacy_frame_config(const String &scaling_option, String &filter_id, FrameScaleDefinition &scale_def, int &scale_factor)
+bool parse_legacy_frame_config(const String &scaling_option, String &filter_id, GameFrameSetup &frame)
 {
     struct
     {
@@ -167,8 +173,8 @@ bool parse_legacy_frame_config(const String &scaling_option, String &filter_id, 
         if (scaling_option.CompareLeftNoCase(legacy_filters[i].LegacyName) == 0)
         {
             filter_id = legacy_filters[i].CurrentName;
-            scale_def = legacy_filters[i].Scaling == 0 ? kFrame_MaxRound : kFrame_IntScale;
-            scale_factor = legacy_filters[i].Scaling >= 0 ? legacy_filters[i].Scaling :
+            frame.ScaleDef = legacy_filters[i].Scaling == 0 ? kFrame_MaxRound : kFrame_IntScale;
+            frame.ScaleFactor = legacy_filters[i].Scaling >= 0 ? legacy_filters[i].Scaling :
                 scaling_option.Mid(legacy_filters[i].LegacyName.GetLength()).ToInt();
             return true;
         }
@@ -190,6 +196,11 @@ String make_scaling_option(FrameScaleDefinition scale_def, int scale_factor)
     return String::FromFormat("%d", scale_factor);
 }
 
+String make_scaling_option(const GameFrameSetup &frame_setup)
+{
+    return make_scaling_option(frame_setup.ScaleDef, frame_setup.ScaleFactor);
+}
+
 uint32_t convert_scaling_to_fp(int scale_factor)
 {
     if (scale_factor >= 0)
@@ -203,6 +214,26 @@ int convert_fp_to_scaling(uint32_t scaling)
     if (scaling == 0)
         return 0;
     return scaling >= kUnit ? (scaling >> kShift) : -kUnit / (int32_t)scaling;
+}
+
+void graphics_mode_get_defaults(bool windowed, ScreenSizeSetup &scsz_setup, GameFrameSetup &frame_setup)
+{
+    scsz_setup.Size = Size();
+    if (windowed)
+    {
+        // For the windowed we define mode by the scaled game.
+        scsz_setup.SizeDef = kScreenDef_ByGameScaling;
+        scsz_setup.MatchDeviceRatio = false;
+        frame_setup = usetup.Screen.WinGameFrame;
+    }
+    else
+    {
+        // For the fullscreen we set current desktop resolution, which
+        // corresponds to most comfortable fullscreen mode for the driver.
+        scsz_setup.SizeDef = kScreenDef_MaxDisplay;
+        scsz_setup.MatchDeviceRatio = true;
+        frame_setup = usetup.Screen.FsGameFrame;
+    }
 }
 
 String find_default_cfg_file(const char *alt_cfg_file)
@@ -285,21 +316,28 @@ void read_legacy_graphics_config(const ConfigTree &cfg, const bool should_read_f
         String legacy_filter = INIreadstring(cfg, "misc", "gfxfilter");
         if (!legacy_filter.IsEmpty())
         {
-            usetup.Screen.DisplayMode.SizeDef = kScreenDef_ByGameScaling;
-
-            int scale_factor;
-            if (parse_legacy_frame_config(legacy_filter, usetup.Screen.Filter.ID, usetup.Screen.GameFrame.ScaleDef, scale_factor))
-            {
-                usetup.Screen.GameFrame.ScaleFactor = convert_scaling_to_fp(scale_factor);
-            }
+            // NOTE: legacy scaling config is applied only to windowed setting
+            if (usetup.Screen.DisplayMode.Windowed)
+                usetup.Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_ByGameScaling;
+            parse_legacy_frame_config(legacy_filter, usetup.Screen.Filter.ID, usetup.Screen.WinGameFrame);
 
             // AGS 3.2.1 and 3.3.0 aspect ratio preferences
             if (!usetup.Screen.DisplayMode.Windowed)
             {
-                usetup.Screen.DisplayMode.MatchDeviceRatio =
+                usetup.Screen.DisplayMode.ScreenSize.MatchDeviceRatio =
                     (INIreadint(cfg, "misc", "sideborders") > 0 || INIreadint(cfg, "misc", "forceletterbox") > 0 ||
                      INIreadint(cfg, "misc", "prefer_sideborders") > 0 || INIreadint(cfg, "misc", "prefer_letterbox") > 0);
             }
+        }
+
+        // AGS 3.4.0 - 3.4.1-rc uniform scaling option
+        String uniform_frame_scale = INIreadstring(cfg, "graphics", "game_scale");
+        if (!uniform_frame_scale.IsEmpty())
+        {
+            GameFrameSetup frame_setup;
+            parse_scaling_option(uniform_frame_scale, frame_setup);
+            usetup.Screen.FsGameFrame = frame_setup;
+            usetup.Screen.WinGameFrame = frame_setup;
         }
     }
 
@@ -357,32 +395,29 @@ void read_config(const ConfigTree &cfg)
 
         usetup.Screen.DisplayMode.Windowed = INIreadint(cfg, "graphics", "windowed") > 0;
         const char *screen_sz_def_options[kNumScreenDef] = { "explicit", "scaling", "max" };
-        usetup.Screen.DisplayMode.SizeDef = kScreenDef_MaxDisplay;
+        usetup.Screen.DisplayMode.ScreenSize.SizeDef = usetup.Screen.DisplayMode.Windowed ? kScreenDef_ByGameScaling : kScreenDef_MaxDisplay;
         String screen_sz_def_str = INIreadstring(cfg, "graphics", "screen_def");
         for (int i = 0; i < kNumScreenDef; ++i)
         {
             if (screen_sz_def_str.CompareNoCase(screen_sz_def_options[i]) == 0)
             {
-                usetup.Screen.DisplayMode.SizeDef = (ScreenSizeDefinition)i;
+                usetup.Screen.DisplayMode.ScreenSize.SizeDef = (ScreenSizeDefinition)i;
                 break;
             }
         }
 
-        usetup.Screen.DisplayMode.Size.Width = INIreadint(cfg, "graphics", "screen_width");
-        usetup.Screen.DisplayMode.Size.Height = INIreadint(cfg, "graphics", "screen_height");
-        usetup.Screen.DisplayMode.MatchDeviceRatio = INIreadint(cfg, "graphics", "match_device_ratio", 1) != 0;
+        usetup.Screen.DisplayMode.ScreenSize.Size = Size(INIreadint(cfg, "graphics", "screen_width"),
+                                                        INIreadint(cfg, "graphics", "screen_height"));
+        usetup.Screen.DisplayMode.ScreenSize.MatchDeviceRatio = INIreadint(cfg, "graphics", "match_device_ratio", 1) != 0;
 #if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
         // PSP: No graphic filters are available.
         usetup.Screen.Filter.ID = "";
 #else
         if (should_read_filter)
-        {
             usetup.Screen.Filter.ID = INIreadstring(cfg, "graphics", "filter", "StdScale");
-            int scale_factor;
-            parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale", "max_round"),
-                usetup.Screen.GameFrame.ScaleDef, scale_factor);
-            usetup.Screen.GameFrame.ScaleFactor = convert_scaling_to_fp(scale_factor);
-        }
+        parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_fs", "proportional"), usetup.Screen.FsGameFrame);
+        if (should_read_filter)
+            parse_scaling_option(INIreadstring(cfg, "graphics", "game_scale_win", "max_round"), usetup.Screen.WinGameFrame);
 #endif
 
         usetup.Screen.DisplayMode.RefreshRate = INIreadint(cfg, "graphics", "refresh");
@@ -475,8 +510,6 @@ void post_config()
     if (usetup.Screen.Filter.ID.IsEmpty() || usetup.Screen.Filter.ID.CompareNoCase("none") == 0)
     {
         usetup.Screen.Filter.ID = "StdScale";
-        usetup.Screen.GameFrame.ScaleDef = kFrame_IntScale;
-        usetup.Screen.GameFrame.ScaleFactor = kUnit;
     }
     
     // TODO: helper functions to remove slash in paths (or distinct path type)
@@ -491,7 +524,32 @@ void save_config_file()
     char buffer[STD_BUFFER_SIZE];
     ConfigTree cfg;
 
-    cfg["graphics"]["windowed"] = String::FromFormat("%d", System_GetWindowed());
+    // Last display mode
+    // TODO: force_window check is a temporary workaround (see comment below)
+    if (force_window == 0)
+    {
+        bool is_windowed = System_GetWindowed() != 0;
+        ActiveDisplaySetting cur_mode = graphics_mode_get_last_setting(is_windowed);
+        cfg["graphics"]["windowed"] = String::FromFormat("%d", is_windowed ? 1 : 0);
+        // TODO: this is a hack, necessary because the original config system was designed when
+        // switching mode at runtime was not considered a possibility.
+        // Normally, two changes need to be done here:
+        // * the display setup needs to be reviewed and simplified a bit.
+        // * perhaps there should be two saved setups for fullscreen and windowed saved in memory
+        // (like ActiveDisplaySetting is saved currently), to know how the window size is defined
+        // in each modes (by explicit width/height values or from game scaling).
+        // This specifically *must* be done if there will be script API for modifying fullscreen
+        // resolution, or size of the window could be changed any way at runtime.
+        if (is_windowed != usetup.Screen.DisplayMode.Windowed)
+        {
+            if (is_windowed)
+                cfg["graphics"]["screen_def"] = "scaling";
+            else
+                cfg["graphics"]["screen_def"] = "max";
+        }
+    }
+
+    // Other game options that could be changed at runtime
     if (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined)
         cfg["graphics"]["render_at_screenres"] = String::FromFormat("%d", usetup.RenderAtScreenRes ? 1 : 0);
     if (Mouse::IsControlEnabled())

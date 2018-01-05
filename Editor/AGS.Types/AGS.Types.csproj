@@ -279,6 +279,7 @@
     <Compile Include="Interfaces\ISpriteController.cs" />
     <Compile Include="Interfaces\IToXml.cs" />
     <Compile Include="InventoryItemFolder.cs" />
+    <Compile Include="PropertyGridExtras\ExclusiveEnumTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\GraphicsFilterTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\TranslationListTypeConverter.cs" />
     <Compile Include="RuntimeSetup.cs" />

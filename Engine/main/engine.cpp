@@ -224,10 +224,13 @@ void engine_force_window()
     if (force_window == 1)
     {
         usetup.Screen.DisplayMode.Windowed = true;
-        usetup.Screen.DisplayMode.SizeDef = kScreenDef_ByGameScaling;
+        usetup.Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_ByGameScaling;
     }
     else if (force_window == 2)
+    {
         usetup.Screen.DisplayMode.Windowed = false;
+        usetup.Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_MaxDisplay;
+    }
 }
 
 void init_game_file_name_from_cmdline()
@@ -1549,8 +1552,9 @@ bool engine_try_switch_windowed_gfxmode()
 
     Size init_desktop = get_desktop_size();
     bool switch_to_windowed = !old_dm.Windowed;
-    DisplayMode last_opposite_mode = graphics_mode_get_last_mode(switch_to_windowed);
-    GameFrameSetup use_frame_setup = convert_frame_setup(old_frame, switch_to_windowed);
+    ActiveDisplaySetting setting = graphics_mode_get_last_setting(switch_to_windowed);
+    DisplayMode last_opposite_mode = setting.Dm;
+    GameFrameSetup use_frame_setup = setting.FrameSetup;
     
     // If there are saved parameters for given mode (fullscreen/windowed)
     // then use them, if there are not, get default setup for the new mode.
@@ -1561,13 +1565,14 @@ bool engine_try_switch_windowed_gfxmode()
     }
     else
     {
-        DisplayModeSetup dm_setup;
-        GameFrameSetup frame_setup;
-        graphics_mode_get_defaults(!old_dm.Windowed, dm_setup, frame_setup);
-        res = graphics_mode_set_dm_any(game.size, dm_setup, old_dm.ColorDepth, frame_setup);
+        // we need to clone from initial config, because not every parameter is set by graphics_mode_get_defaults()
+        DisplayModeSetup dm_setup = usetup.Screen.DisplayMode;
+        dm_setup.Windowed = !old_dm.Windowed;
+        graphics_mode_get_defaults(dm_setup.Windowed, dm_setup.ScreenSize, use_frame_setup);
+        res = graphics_mode_set_dm_any(game.size, dm_setup, old_dm.ColorDepth, use_frame_setup);
     }
 
-    // Always use same (or nearest compatible) frame render method
+    // Apply corresponding frame render method
     if (res)
         res = graphics_mode_set_render_frame(use_frame_setup);
     

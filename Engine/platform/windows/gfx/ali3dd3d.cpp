@@ -1272,8 +1272,7 @@ void D3DGraphicsDriver::_renderSprite(D3DDrawListEntry *drawListEntry, bool glob
 void D3DGraphicsDriver::_renderAndPresent(GlobalFlipType flip, bool clearDrawListAfterwards)
 {
   _render(flip, clearDrawListAfterwards);
-  if (direct3ddevice->Present(NULL, NULL, NULL, NULL) != D3D_OK)
-    throw Ali3DException("IDirect3DSurface9::Present failed");
+  direct3ddevice->Present(NULL, NULL, NULL, NULL);
 }
 
 void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterwards)

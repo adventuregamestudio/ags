@@ -2324,6 +2324,7 @@ void display_switch_out()
     switched_away = true;
     // Always unlock mouse when switching out from the game
     Mouse::UnlockFromWindow();
+    platform->DisplaySwitchOut();
     platform->ExitFullscreenMode();
 }
 
@@ -2335,7 +2336,7 @@ void display_switch_out_suspend()
 
     switching_away_from_game++;
 
-    platform->DisplaySwitchOut();
+    platform->PauseApplication();
 
     // allow background running temporarily to halt the sound
     if (set_display_switch_mode(SWITCH_BACKGROUND) == -1)
@@ -2365,6 +2366,7 @@ void display_switch_in()
         if (!mode.Windowed)
             platform->EnterFullscreenMode(mode);
     }
+    platform->DisplaySwitchIn();
     // If auto lock option is set, lock mouse to the game window
     if (usetup.mouse_auto_lock && scsystem.windowed)
         Mouse::TryLockToWindow();
@@ -2386,7 +2388,7 @@ void display_switch_in_resume()
         gfxDriver->ClearRectangle(0, 0, game.size.Width - 1, game.size.Height - 1, NULL);
 #endif
 
-    platform->DisplaySwitchIn();
+    platform->ResumeApplication();
 }
 
 void replace_tokens(const char*srcmes,char*destm, int maxlen) {

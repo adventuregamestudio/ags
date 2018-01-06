@@ -42,6 +42,8 @@ void AGSPlatformDriver::AboutToQuitGame() { }
 void AGSPlatformDriver::PostAllegroInit(bool windowed) { }
 void AGSPlatformDriver::DisplaySwitchOut() { }
 void AGSPlatformDriver::DisplaySwitchIn() { }
+void AGSPlatformDriver::PauseApplication() { }
+void AGSPlatformDriver::ResumeApplication() { }
 void AGSPlatformDriver::GetSystemDisplayModes(std::vector<DisplayMode> &dms) { }
 bool AGSPlatformDriver::EnterFullscreenMode(const DisplayMode &dm) { return true; }
 bool AGSPlatformDriver::ExitFullscreenMode() { return true; }

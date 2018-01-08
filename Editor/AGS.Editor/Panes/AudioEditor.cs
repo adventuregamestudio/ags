@@ -23,6 +23,7 @@ namespace AGS.Editor
         public AudioEditor()
         {
             InitializeComponent();
+            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
         }
 
         public object SelectedItem
@@ -187,6 +188,31 @@ namespace AGS.Editor
             {
                 _previewer.Stop();
             }
+        }
+
+        private void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("audio-editor/background");
+            ForeColor = t.GetColor("audio-editor/foreground");
+            grpAudioType.BackColor = t.GetColor("audio-editor/audio-type/background");
+            grpAudioType.ForeColor = t.GetColor("audio-editor/audio-type/foreground");
+            grpAudioClip.BackColor = t.GetColor("audio-editor/audio-clip-box/background");
+            grpAudioClip.ForeColor = t.GetColor("audio-editor/audio-clip-box/foreground");
+            btnPlay.BackColor = t.GetColor("audio-editor/btn-play/background");
+            btnPlay.ForeColor = t.GetColor("audio-editor/btn-play/foreground");
+            btnPlay.FlatStyle = (FlatStyle)t.GetInt("audio-editor/btn-play/flat/style");
+            btnPlay.FlatAppearance.BorderSize = t.GetInt("audio-editor/btn-play/flat/border/size");
+            btnPlay.FlatAppearance.BorderColor = t.GetColor("audio-editor/btn-play/flat/border/color");
+            btnPause.BackColor = t.GetColor("audio-editor/btn-pause/background");
+            btnPause.ForeColor = t.GetColor("audio-editor/btn-pause/foreground");
+            btnPause.FlatStyle = (FlatStyle)t.GetInt("audio-editor/btn-pause/flat/style");
+            btnPause.FlatAppearance.BorderSize = t.GetInt("audio-editor/btn-pause/flat/border/size");
+            btnPause.FlatAppearance.BorderColor = t.GetColor("audio-editor/btn-pause/flat/border/color");
+            btnStop.BackColor = t.GetColor("audio-editor/btn-stop/background");
+            btnStop.ForeColor = t.GetColor("audio-editor/btn-stop/foreground");
+            btnStop.FlatStyle = (FlatStyle)t.GetInt("audio-editor/btn-stop/flat/style");
+            btnStop.FlatAppearance.BorderSize = t.GetInt("audio-editor/btn-stop/flat/border/size");
+            btnStop.FlatAppearance.BorderColor = t.GetColor("audio-editor/btn-stop/flat/border/color");
         }
     }
 }

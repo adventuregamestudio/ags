@@ -17,6 +17,7 @@ namespace AGS.Editor
         public CallStackPanel()
         {
             InitializeComponent();            
+            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
         }
 
 		public void SetImageList(ImageList list)
@@ -85,5 +86,25 @@ namespace AGS.Editor
 				ShowContextMenu(e.Location);
 			}
 		}
+
+        private void LoadColorTheme(ColorTheme t)
+        {
+            lvwResults.BackColor = t.GetColor("call-stack-panel/background");
+            lvwResults.ForeColor = t.GetColor("call-stack-panel/foreground");
+            lvwResults.OwnerDraw = t.GetBool("call-stack-panel/owner-draw");
+            lvwResults.GridLines = t.GetBool("call-stack-panel/grid-lines");
+            lvwResults.Layout += (s, a) =>
+            {
+                lvwResults.Columns[lvwResults.Columns.Count - 1].Width = t.GetInt("call-stack-panel/last-column-width");
+            };
+            lvwResults.DrawItem += (s, a) => a.DrawDefault = t.GetBool("call-stack-panel/draw-item");
+            lvwResults.DrawSubItem += (s, a) => a.DrawDefault = t.GetBool("call-stack-panel/draw-sub-item");
+            lvwResults.DrawColumnHeader += (s, a) =>
+            {
+                a.Graphics.FillRectangle(new SolidBrush(t.GetColor("call-stack-panel/column-header/background")), a.Bounds);
+                a.Graphics.DrawString(a.Header.Text, lvwResults.Font, new SolidBrush(t.GetColor("call-stack-panel/column-header/foreground")), a.Bounds.X + 5, a.Bounds.Y + a.Bounds.Size.Height / 5);
+                a.Graphics.DrawRectangle(new Pen(new SolidBrush(t.GetColor("call-stack-panel/column-header/border"))), a.Bounds.X - 1, a.Bounds.Y - 1, a.Bounds.Size.Width, a.Bounds.Size.Height);
+            };
+        }
     }
 }

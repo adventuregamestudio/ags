@@ -74,7 +74,7 @@ namespace AGS.Editor
         public GUIEditor()
         {
             InitializeComponent();
-
+            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
             Factory.GUIController.OnPropertyObjectChanged += new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
         }
 
@@ -1132,5 +1132,10 @@ namespace AGS.Editor
 			}
 		}
 
+        private void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("gui-editor/background");
+            ForeColor = t.GetColor("gui-editor/foreground");
+        }
     }
 }

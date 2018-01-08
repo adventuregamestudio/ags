@@ -24,6 +24,7 @@ namespace AGS.Editor
         public TextParserEditor(TextParser parser)
         {
             InitializeComponent();
+            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
             lvwWords.ListViewItemSorter = new TextParserWordComparer();
             _parser = parser;
 
@@ -209,5 +210,28 @@ namespace AGS.Editor
         {
         }
 
+        private void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("text-parser-editor/background");
+            ForeColor = t.GetColor("text-parser-editor/foreground");
+            mainFrame.BackColor = t.GetColor("text-parser-editor/box/background");
+            mainFrame.ForeColor = t.GetColor("text-parser-editor/box/foreground");
+            lvwWords.BackColor = t.GetColor("text-parser-editor/list-view/background");
+            lvwWords.ForeColor = t.GetColor("text-parser-editor/list-view/foreground");
+            lvwWords.OwnerDraw = t.GetBool("text-parser-editor/list-view/owner-draw");
+            lvwWords.GridLines = t.GetBool("text-parser-editor/list-view/grid-lines");
+            lvwWords.Layout += (s, a) =>
+            {
+                lvwWords.Columns[lvwWords.Columns.Count - 1].Width = t.GetInt("text-parser-editor/list-view/last-column-width");
+            };
+            lvwWords.DrawItem += (s, a) => a.DrawDefault = t.GetBool("text-parser-editor/list-view/draw-item");
+            lvwWords.DrawSubItem += (s, a) => a.DrawDefault = t.GetBool("text-parser-editor/list-view/draw-sub-item");
+            lvwWords.DrawColumnHeader += (s, a) =>
+            {
+                a.Graphics.FillRectangle(new SolidBrush(t.GetColor("text-parser-editor/list-view/column-header/background")), a.Bounds);
+                a.Graphics.DrawString(a.Header.Text, lvwWords.Font, new SolidBrush(t.GetColor("text-parser-editor/list-view/column-header/foreground")), a.Bounds.X + 5, a.Bounds.Y + a.Bounds.Size.Height / 5);
+                a.Graphics.DrawRectangle(new Pen(new SolidBrush(t.GetColor("text-parser-editor/list-view/column-header/border"))), a.Bounds.X - 1, a.Bounds.Y - 1, a.Bounds.Size.Width, a.Bounds.Size.Height);
+            };
+        }
     }
 }

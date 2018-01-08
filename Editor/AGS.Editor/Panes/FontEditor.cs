@@ -17,6 +17,7 @@ namespace AGS.Editor
         public FontEditor()
         {
             InitializeComponent();
+            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
         }
 
         public FontEditor(AGS.Types.Font selectedFont) : this()
@@ -158,5 +159,17 @@ namespace AGS.Editor
             PaintFont();
         }
 
+        private void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("font-editor/background");
+            ForeColor = t.GetColor("font-editor/foreground");
+            currentItemGroupBox.BackColor = t.GetColor("font-editor/box/background");
+            currentItemGroupBox.ForeColor = t.GetColor("font-editor/box/foreground");
+            btnImportFont.BackColor = t.GetColor("font-editor/btn-import/background");
+            btnImportFont.ForeColor = t.GetColor("font-editor/btn-import/foreground");
+            btnImportFont.FlatStyle = (FlatStyle)t.GetInt("font-editor/btn-import/flat/style");
+            btnImportFont.FlatAppearance.BorderSize = t.GetInt("font-editor/btn-import/flat/border/size");
+            btnImportFont.FlatAppearance.BorderColor = t.GetColor("font-editor/btn-import/flat/border/color");
+        }
     }
 }

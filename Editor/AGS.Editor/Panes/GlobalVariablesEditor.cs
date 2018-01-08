@@ -28,6 +28,7 @@ namespace AGS.Editor
         public GlobalVariablesEditor(Game game)
         {
             InitializeComponent();
+            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
             lvwWords.ListViewItemSorter = new GlobalVariableComparer();
             _game = game;
             _variables = game.GlobalVariables;
@@ -209,5 +210,28 @@ namespace AGS.Editor
             }
         }
 
+        private void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("global-variables-editor/background");
+            ForeColor = t.GetColor("global-variables-editor/foreground");
+            mainFrame.BackColor = t.GetColor("global-variables-editor/box/background");
+            mainFrame.ForeColor = t.GetColor("global-variables-editor/box/foreground");
+            lvwWords.BackColor = t.GetColor("global-variables-editor/list/background");
+            lvwWords.ForeColor = t.GetColor("global-variables-editor/list/foreground");
+            lvwWords.OwnerDraw = t.GetBool("global-variables-editor/list/owner-draw");
+            lvwWords.GridLines = t.GetBool("global-variables-editor/list/grid-lines");
+            lvwWords.Layout += (s, a) =>
+            {
+                lvwWords.Columns[lvwWords.Columns.Count - 1].Width = t.GetInt("global-variables-editor/list/last-column-width");
+            };
+            lvwWords.DrawItem += (s, a) => a.DrawDefault = t.GetBool("global-variables-editor/list/draw-item");
+            lvwWords.DrawSubItem += (s, a) => a.DrawDefault = t.GetBool("global-variables-editor/list/draw-sub-item");
+            lvwWords.DrawColumnHeader += (s, a) =>
+            {
+                a.Graphics.FillRectangle(new SolidBrush(t.GetColor("global-variables-editor/list/column-header/background")), a.Bounds);
+                a.Graphics.DrawString(a.Header.Text, lvwWords.Font, new SolidBrush(t.GetColor("global-variables-editor/list/column-header/foreground")), a.Bounds.X + 5, a.Bounds.Y + a.Bounds.Size.Height / 5);
+                a.Graphics.DrawRectangle(new Pen(new SolidBrush(t.GetColor("global-variables-editor/list/column-header/border"))), a.Bounds.X - 1, a.Bounds.Y - 1, a.Bounds.Size.Width, a.Bounds.Size.Height);
+            };
+        }
     }
 }

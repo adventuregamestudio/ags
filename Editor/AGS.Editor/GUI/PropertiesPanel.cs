@@ -14,6 +14,7 @@ namespace AGS.Editor
         public PropertiesPanel()
         {
             InitializeComponent();                          
+            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
         }
 
         public event PropertyValueChangedEventHandler PropertyValueChanged
@@ -73,6 +74,20 @@ namespace AGS.Editor
                 tabIndex++;
             }
             return false;
+        }
+
+        private void LoadColorTheme(ColorTheme t)
+        {
+            Controls.Remove(propertyObjectCombo);
+            propertyObjectCombo = t.GetComboBox("properties-panel/combobox", propertyObjectCombo);
+            Controls.Add(propertyObjectCombo);
+            propertiesGrid.BackColor = t.GetColor("properties-panel/grid/background");
+            propertiesGrid.ViewBackColor = t.GetColor("properties-panel/grid/view/background");
+            propertiesGrid.ViewForeColor = t.GetColor("properties-panel/grid/view/foreground");
+            propertiesGrid.LineColor = t.GetColor("properties-panel/grid/line");
+            propertiesGrid.CategoryForeColor = t.GetColor("properties-panel/grid/category");
+            propertiesGrid.HelpBackColor = t.GetColor("properties-panel/grid/help/background");
+            propertiesGrid.HelpForeColor = t.GetColor("properties-panel/grid/help/foreground");
         }
     }
 }

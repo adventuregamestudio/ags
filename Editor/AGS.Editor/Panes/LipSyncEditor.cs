@@ -49,6 +49,7 @@ namespace AGS.Editor
                 }
             }
             UpdateControlsEnabled();
+            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
         }
 
         public LipSync EditingLipSync
@@ -88,5 +89,22 @@ namespace AGS.Editor
             }
         }
 
+        public void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("lip-sync-editor/background");
+            ForeColor = t.GetColor("lip-sync-editor/foreground");
+
+            foreach (Control control in Controls)
+            {
+                TextBox textBox = control as TextBox;
+
+                if (textBox != null)
+                {
+                    textBox.BackColor = t.GetColor("lip-sync-editor/text-boxes/background");
+                    textBox.ForeColor = t.GetColor("lip-sync-editor/text-boxes/foreground");
+                    textBox.BorderStyle = (BorderStyle)t.GetInt("lip-sync-editor/text-boxes/border-style");
+                }
+            }
+        }
     }
 }

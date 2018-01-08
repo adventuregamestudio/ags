@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
@@ -39,6 +40,8 @@ namespace AGS.Editor
 			txtPaintProgram.Enabled = radPaintProgram.Checked;
 			btnSelectPaintProgram.Enabled = txtPaintProgram.Enabled;
 			cmbSpriteImportTransparency.SelectedIndex = (int)_preferences.DefaultSpriteImportTransparency;
+            cmbColorTheme.DataSource = Factory.GUIController.ColorThemes.Themes;
+            cmbColorTheme.SelectedIndex = Factory.GUIController.ColorThemes.Themes.ToList().FindIndex(t => t.Name == _preferences.ColorTheme);
             chkUsageInfo.Checked = _preferences.SendAnonymousStats;
             chkBackupReminders.Checked = (_preferences.BackupWarningInterval != 0);
             udBackupInterval.Value = (_preferences.BackupWarningInterval > 0) ? _preferences.BackupWarningInterval : 1;
@@ -83,7 +86,16 @@ namespace AGS.Editor
             _preferences.RemapPalettizedBackgrounds = chkRemapBgImport.Checked;
             _preferences.KeepHelpOnTop = chkKeepHelpOnTop.Checked;
             _preferences.DialogOnMultibleTabsClose = chkPromptDialogOnTabsClose.Checked;
-		}
+
+            if ((ColorTheme)cmbColorTheme.SelectedItem != Factory.GUIController.ColorThemes.Current)
+            {
+                Factory.GUIController.ShowMessage(
+                    "You must restart the editor for changed color theme to work properly.",
+                    MessageBoxIcon.Information);
+                _preferences.ColorTheme = cmbColorTheme.Text;
+                Factory.GUIController.ColorThemes.Current = (ColorTheme)cmbColorTheme.SelectedItem;
+            }
+        }
 
 		private void radFolderPath_CheckedChanged(object sender, EventArgs e)
 		{
@@ -146,6 +158,17 @@ namespace AGS.Editor
         private void chkBackupReminders_CheckedChanged(object sender, EventArgs e)
         {
             udBackupInterval.Enabled = chkBackupReminders.Checked;
+        }
+
+        private void btnImportColorTheme_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog file = new OpenFileDialog { Filter = "JSON files (*.json)|*.json" };
+
+            if (file.ShowDialog() == DialogResult.OK)
+            {
+                Factory.GUIController.ColorThemes.Import(file.FileName);
+                cmbColorTheme.DataSource = Factory.GUIController.ColorThemes.Themes;
+            }
         }
     }
 }

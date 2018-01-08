@@ -72,6 +72,7 @@ namespace AGS.Editor
         private GUIController()
         {
             _menuItems = new Dictionary<string, IEditorComponent>();
+            ColorThemes = new ColorThemes();
         }
 
         private static GUIController _instance;
@@ -137,6 +138,8 @@ namespace AGS.Editor
         {
             get { return _mainForm.Icon; }
         }
+
+        public ColorThemes ColorThemes { get; private set; }
 
 		public void ShowMessage(string message, MessageBoxIconType icon)
 		{

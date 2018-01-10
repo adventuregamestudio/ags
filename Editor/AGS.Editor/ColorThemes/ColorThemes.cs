@@ -11,6 +11,11 @@ namespace AGS.Editor
 
         public ColorThemes()
         {
+            if (!Directory.Exists(DiskDir))
+            {
+                Directory.CreateDirectory(DiskDir);
+            }
+
             _themes.Add(ColorThemeStub.DEFAULT);
             Directory.GetFiles(DiskDir, "*.json").ToList().ForEach(f => _themes.Add(new ColorThemeJson(Path.GetFileNameWithoutExtension(f), f)));
             Current = _themes.FirstOrDefault(t => t.Name == Factory.AGSEditor.Preferences.ColorTheme);

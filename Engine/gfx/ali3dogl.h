@@ -69,10 +69,11 @@ public:
     // 0=not transparent, 255=invisible, 1..254 barely visible .. mostly visible
     virtual void SetTransparency(int transparency) { _transparency = transparency; }
     virtual void SetFlippedLeftRight(bool isFlipped) { _flipped = isFlipped; }
-    virtual void SetStretch(int width, int height) 
+    virtual void SetStretch(int width, int height, bool useResampler = true)
     {
         _stretchToWidth = width;
         _stretchToHeight = height;
+        _useResampler = useResampler;
     }
     virtual int GetWidth() { return _width; }
     virtual int GetHeight() { return _height; }
@@ -90,6 +91,7 @@ public:
     int _colDepth;
     bool _flipped;
     int _stretchToWidth, _stretchToHeight;
+    bool _useResampler;
     int _red, _green, _blue;
     int _tintSaturation;
     int _lightLevel;
@@ -109,6 +111,7 @@ public:
         _hasAlpha = false;
         _stretchToWidth = 0;
         _stretchToHeight = 0;
+        _useResampler = false;
         _tintSaturation = 0;
         _lightLevel = 0;
         _transparency = 0;
@@ -118,8 +121,8 @@ public:
         _numTiles = 0;
     }
 
-    int GetWidthToRender() { return (_stretchToWidth > 0) ? _stretchToWidth : _width; }
-    int GetHeightToRender() { return (_stretchToHeight > 0) ? _stretchToHeight : _height; }
+    int GetWidthToRender() const { return (_stretchToWidth > 0) ? _stretchToWidth : _width; }
+    int GetHeightToRender() const { return (_stretchToHeight > 0) ? _stretchToHeight : _height; }
 
     void Dispose();
 

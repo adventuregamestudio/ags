@@ -772,14 +772,14 @@ void render_black_borders(int atx, int aty)
         if (aty > 0)
         {
             // letterbox borders
-            blankImage->SetStretch(game.size.Width, aty);
+            blankImage->SetStretch(game.size.Width, aty, false);
             gfxDriver->DrawSprite(-atx, -aty, blankImage);
             gfxDriver->DrawSprite(0, play.viewport.GetHeight(), blankImage);
         }
         if (atx > 0)
         {
             // sidebar borders for widescreen
-            blankSidebarImage->SetStretch(atx, play.viewport.GetHeight());
+            blankSidebarImage->SetStretch(atx, play.viewport.GetHeight(), false);
             gfxDriver->DrawSprite(-atx, 0, blankSidebarImage);
             gfxDriver->DrawSprite(play.viewport.GetWidth(), 0, blankSidebarImage);
         }

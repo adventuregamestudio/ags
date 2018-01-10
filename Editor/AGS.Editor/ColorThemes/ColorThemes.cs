@@ -19,6 +19,13 @@ namespace AGS.Editor
             _themes.Add(ColorThemeStub.DEFAULT);
             Directory.GetFiles(DiskDir, "*.json").ToList().ForEach(f => _themes.Add(new ColorThemeJson(Path.GetFileNameWithoutExtension(f), f)));
             Current = _themes.FirstOrDefault(t => t.Name == Factory.AGSEditor.Preferences.ColorTheme);
+
+            if (Current == null)
+            {
+                Current = ColorThemeStub.DEFAULT;
+                Factory.AGSEditor.Preferences.ColorTheme = Current.Name;
+                Factory.AGSEditor.Preferences.SaveToRegistry();
+            }
         }
 
         public ColorTheme Current { get; set; }

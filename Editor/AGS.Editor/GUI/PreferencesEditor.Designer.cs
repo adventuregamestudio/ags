@@ -42,6 +42,7 @@ namespace AGS.Editor
             this.label8 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.btnImportColorTheme = new System.Windows.Forms.Button();
             this.label7 = new System.Windows.Forms.Label();
             this.cmbColorTheme = new System.Windows.Forms.ComboBox();
             this.chkPromptDialogOnTabsClose = new System.Windows.Forms.CheckBox();
@@ -80,7 +81,6 @@ namespace AGS.Editor
             this.chkBackupReminders = new System.Windows.Forms.CheckBox();
             this.groupBox9 = new System.Windows.Forms.GroupBox();
             this.chkRemapBgImport = new System.Windows.Forms.CheckBox();
-            this.btnImportColorTheme = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.udTabWidth)).BeginInit();
@@ -270,6 +270,16 @@ namespace AGS.Editor
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Editor appearance";
             // 
+            // btnImportColorTheme
+            // 
+            this.btnImportColorTheme.Location = new System.Drawing.Point(152, 101);
+            this.btnImportColorTheme.Name = "btnImportColorTheme";
+            this.btnImportColorTheme.Size = new System.Drawing.Size(203, 23);
+            this.btnImportColorTheme.TabIndex = 12;
+            this.btnImportColorTheme.Text = "Import Color Theme";
+            this.btnImportColorTheme.UseVisualStyleBackColor = true;
+            this.btnImportColorTheme.Click += new System.EventHandler(this.btnImportColorTheme_Click);
+            // 
             // label7
             // 
             this.label7.AutoSize = true;
@@ -287,6 +297,7 @@ namespace AGS.Editor
             this.cmbColorTheme.Name = "cmbColorTheme";
             this.cmbColorTheme.Size = new System.Drawing.Size(203, 21);
             this.cmbColorTheme.TabIndex = 10;
+            this.cmbColorTheme.DropDown += new System.EventHandler(this.cmbColorTheme_DropDown);
             // 
             // chkPromptDialogOnTabsClose
             // 
@@ -696,16 +707,6 @@ namespace AGS.Editor
             this.chkRemapBgImport.Text = "Remap palette of room backgrounds into allocated background palette slots (8-bit " +
     "games only)";
             this.chkRemapBgImport.UseVisualStyleBackColor = true;
-            // 
-            // btnImportColorTheme
-            // 
-            this.btnImportColorTheme.Location = new System.Drawing.Point(152, 101);
-            this.btnImportColorTheme.Name = "btnImportColorTheme";
-            this.btnImportColorTheme.Size = new System.Drawing.Size(203, 23);
-            this.btnImportColorTheme.TabIndex = 12;
-            this.btnImportColorTheme.Text = "Import Color Theme";
-            this.btnImportColorTheme.UseVisualStyleBackColor = true;
-            this.btnImportColorTheme.Click += new System.EventHandler(this.btnImportColorTheme_Click);
             // 
             // PreferencesEditor
             // 

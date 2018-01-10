@@ -167,8 +167,16 @@ namespace AGS.Editor
             if (file.ShowDialog() == DialogResult.OK)
             {
                 Factory.GUIController.ColorThemes.Import(file.FileName);
+                cmbColorTheme.DataSource = null;
                 cmbColorTheme.DataSource = Factory.GUIController.ColorThemes.Themes;
             }
+        }
+
+        private void cmbColorTheme_DropDown(object sender, EventArgs e)
+        {
+            Factory.GUIController.ColorThemes.Load();
+            cmbColorTheme.DataSource = null;
+            cmbColorTheme.DataSource = Factory.GUIController.ColorThemes.Themes;
         }
     }
 }

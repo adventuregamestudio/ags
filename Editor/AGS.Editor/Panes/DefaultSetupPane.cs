@@ -10,7 +10,7 @@ namespace AGS.Editor
         public DefaultRuntimeSetupPane()
             : base(Factory.AGSEditor.CurrentGame.DefaultSetup)
         {
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         protected override string OnGetHelpKeyword()

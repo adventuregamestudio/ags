@@ -18,7 +18,7 @@ namespace AGS.Editor
         public OutputPanel()
         {
             InitializeComponent();            
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
 		public void SetImageList(ImageList list)

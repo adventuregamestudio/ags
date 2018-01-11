@@ -25,7 +25,7 @@ namespace AGS.Editor
         public PaletteEditor()
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _colourFinder = tabControl.TabPages[1];
             Factory.GUIController.OnPropertyObjectChanged += new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
             _selectedIndexes.Add(0);

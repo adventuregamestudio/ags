@@ -16,7 +16,7 @@ namespace AGS.Editor
         public CursorEditor()
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         public CursorEditor(MouseCursor cursorToEdit) : this()

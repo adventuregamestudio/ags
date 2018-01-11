@@ -237,7 +237,7 @@ namespace AGS.Editor
 
             this.scintillaControl1.IsReadOnly = true;
 
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         void scintillaControl1_MarginClick(object sender, Scintilla.MarginClickEventArgs e)

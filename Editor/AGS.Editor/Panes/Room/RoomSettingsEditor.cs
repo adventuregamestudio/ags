@@ -37,7 +37,7 @@ namespace AGS.Editor
 			this.SetStyle(ControlStyles.Selectable, true);
 
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _room = room;
             if (_room.Resolution == RoomResolution.LowRes)
             {

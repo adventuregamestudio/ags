@@ -17,7 +17,7 @@ namespace AGS.Editor
         public InventoryEditor()
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         public InventoryEditor(InventoryItem itemToEdit) : this()

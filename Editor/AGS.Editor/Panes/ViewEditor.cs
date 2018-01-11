@@ -25,7 +25,7 @@ namespace AGS.Editor
             viewToEdit.ViewUpdated += _viewUpdateHandler;
 
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _editingView = viewToEdit;
             InitializeControls();
 			viewPreview.DynamicUpdates = true;

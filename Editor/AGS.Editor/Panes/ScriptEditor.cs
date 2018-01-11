@@ -65,7 +65,7 @@ namespace AGS.Editor
             Init(scriptToEdit);
             _room = null;
             _roomNumber = 0;
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         public void Clear()

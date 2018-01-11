@@ -42,7 +42,7 @@ namespace AGS.Editor
         public ViewLoopEditor(ViewLoop loopToEdit, GUIController guiController)
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _selectedFrame = -1;
             _loop = loopToEdit;
             lblLoopTitle.Text = "Loop " + _loop.ID + " (" + _loop.DirectionDescription + ")";

@@ -23,7 +23,7 @@ namespace AGS.Editor
         public AudioEditor()
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         public object SelectedItem

@@ -24,7 +24,7 @@ namespace AGS.Editor
         public TextParserEditor(TextParser parser)
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             lvwWords.ListViewItemSorter = new TextParserWordComparer();
             _parser = parser;
 

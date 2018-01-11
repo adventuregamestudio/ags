@@ -49,7 +49,7 @@ namespace AGS.Editor
                 }
             }
             UpdateControlsEnabled();
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         public LipSync EditingLipSync

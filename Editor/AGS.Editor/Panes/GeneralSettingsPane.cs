@@ -16,7 +16,7 @@ namespace AGS.Editor
         {
             this.propertyGrid.PropertyValueChanged +=
                 new System.Windows.Forms.PropertyValueChangedEventHandler(this.gameSettings_PropertyValueChanged);
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         protected override string OnGetHelpKeyword()

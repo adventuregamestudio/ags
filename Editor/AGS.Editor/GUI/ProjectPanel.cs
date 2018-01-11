@@ -14,7 +14,7 @@ namespace AGS.Editor
         public ProjectPanel()
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         public void LoadColorTheme(ColorTheme t)

@@ -38,7 +38,7 @@ namespace AGS.Editor
         {
             _guiContoller = guiContoller;
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         protected override string OnGetHelpKeyword()

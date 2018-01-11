@@ -42,11 +42,11 @@ namespace AGS.Editor
             }
         }
 
-        public void Load(Action<ColorTheme> load)
+        public void Apply(Action<ColorTheme> apply)
         {
             if (!IsCurrentDefault)
             {
-                load.Invoke(Current);
+                apply.Invoke(Current);
             }
         }
 

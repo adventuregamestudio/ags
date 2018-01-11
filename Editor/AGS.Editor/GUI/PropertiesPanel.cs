@@ -14,7 +14,7 @@ namespace AGS.Editor
         public PropertiesPanel()
         {
             InitializeComponent();                          
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         public event PropertyValueChangedEventHandler PropertyValueChanged

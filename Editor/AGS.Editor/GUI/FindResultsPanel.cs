@@ -19,7 +19,7 @@ namespace AGS.Editor
         public FindResultsPanel()
         {
             InitializeComponent();            
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
 		public void SetImageList(ImageList list)

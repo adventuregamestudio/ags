@@ -23,7 +23,7 @@ namespace AGS.Editor
         public ViewPreview()
         {
             InitializeComponent();
-            Factory.GUIController.ColorThemes.Load(LoadColorTheme);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         public string Title

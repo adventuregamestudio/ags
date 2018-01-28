@@ -96,9 +96,6 @@ int GUI_GetX(ScriptGUI *tehgui) {
 }
 
 void GUI_SetX(ScriptGUI *tehgui, int xx) {
-  if (xx >= thisroom.width)
-    quit("!GUI.X: co-ordinates specified are out of range.");
-
   guis[tehgui->id].X = multiply_up_coordinate(xx);
 }
 
@@ -107,9 +104,6 @@ int GUI_GetY(ScriptGUI *tehgui) {
 }
 
 void GUI_SetY(ScriptGUI *tehgui, int yy) {
-  if (yy >= thisroom.height)
-    quit("!GUI.Y: co-ordinates specified are out of range.");
-
   guis[tehgui->id].Y = multiply_up_coordinate(yy);
 }
 

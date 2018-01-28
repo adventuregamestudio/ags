@@ -1,5 +1,16 @@
 REVISION HISTORY
 ================
+VERSION 3.4.1 - Patch 1, January 2018
+
+Engine:
+ - Removed game error reported when GUI coordinates were off the room limits.
+ - Fixed crash in Direct3D renderer when alt+tabbing out of fullscreen mode.
+ - Fixed OpenGL fullscreen mode was not minimized when you alt+tab from it.
+ - Fixed Direct3D and OpenGL renderers unnecessarily applied anti-aliasing on
+   utility sprites (used for transition effects) when "smooth scaled sprites"
+   option was enabled.
+
+
 VERSION 3.4.1, December 2017
 
 Common features:

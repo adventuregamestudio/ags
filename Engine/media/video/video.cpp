@@ -245,7 +245,7 @@ int theora_playing_callback(BITMAP *theoraBuffer)
         else
         {
             gfxDriver->UpdateDDBFromBitmap(fli_ddb, &gl_TheoraBuffer, false);
-            fli_ddb->SetStretch(fliTargetWidth, fliTargetHeight);
+            fli_ddb->SetStretch(fliTargetWidth, fliTargetHeight, false);
         }
     }
     else

@@ -93,8 +93,15 @@ struct AGSPlatformDriver
     // Always adds trailing '\n' after formatted string
     virtual void WriteStdOut(const char *fmt, ...);
     virtual void YieldCPU();
+    // Called when the game window is being switch out from
     virtual void DisplaySwitchOut();
+    // Called when the game window is being switch back to
     virtual void DisplaySwitchIn();
+    // Called when the application is being paused completely (e.g. when player alt+tabbed from it).
+    // This function should suspend any platform-specific realtime processing.
+    virtual void PauseApplication();
+    // Called when the application is being resumed.
+    virtual void ResumeApplication();
     // Returns a list of supported display modes
     virtual void GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms);
     // Switch to system fullscreen mode; store previous mode parameters

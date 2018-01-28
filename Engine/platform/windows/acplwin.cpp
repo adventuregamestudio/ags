@@ -120,8 +120,10 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteStdOut(const char *fmt, ...);
-  virtual void DisplaySwitchOut() ;
-  virtual void DisplaySwitchIn() ;
+  virtual void DisplaySwitchOut();
+  virtual void DisplaySwitchIn();
+  virtual void PauseApplication();
+  virtual void ResumeApplication();
   virtual void GetSystemDisplayModes(std::vector<Engine::DisplayMode> &dms);
   virtual bool EnterFullscreenMode(const Engine::DisplayMode &dm);
   virtual bool ExitFullscreenMode();
@@ -714,20 +716,27 @@ const char *AGSWin32::GetGraphicsTroubleshootingText()
     "Run DXDiag using the Run command (Start->Run, type \"dxdiag.exe\") and correct any problems reported there.";
 }
 
-void AGSWin32::DisplaySwitchOut() {
-  dxmedia_pause_video();
-
-  // If we have explicitly set up fullscreen mode then minimize the window
-  if (_preFullscreenMode.IsValid())
-    ShowWindow(win_get_window(), SW_MINIMIZE);
+void AGSWin32::DisplaySwitchOut()
+{
+    // If we have explicitly set up fullscreen mode then minimize the window
+    if (_preFullscreenMode.IsValid())
+        ShowWindow(win_get_window(), SW_MINIMIZE);
 }
 
 void AGSWin32::DisplaySwitchIn() {
-  dxmedia_resume_video();
+    // If we have explicitly set up fullscreen mode then restore the window
+    if (_preFullscreenMode.IsValid())
+        ShowWindow(win_get_window(), SW_RESTORE);
+}
 
-  // If we have explicitly set up fullscreen mode then restore the window
-  if (_preFullscreenMode.IsValid())
-    ShowWindow(win_get_window(), SW_RESTORE);
+void AGSWin32::PauseApplication()
+{
+    dxmedia_pause_video();
+}
+
+void AGSWin32::ResumeApplication()
+{
+    dxmedia_resume_video();
 }
 
 void AGSWin32::GetSystemDisplayModes(std::vector<DisplayMode> &dms)

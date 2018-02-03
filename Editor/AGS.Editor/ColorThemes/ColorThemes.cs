@@ -17,12 +17,6 @@ namespace AGS.Editor
         {
             _themes = new List<ColorTheme>();
             _preferences = Factory.AGSEditor.Preferences;
-
-            if (!Directory.Exists(DiskDir))
-            {
-                Directory.CreateDirectory(DiskDir);
-            }
-
             Load();
         }
 
@@ -54,6 +48,11 @@ namespace AGS.Editor
 
         public void Load()
         {
+            if (!Directory.Exists(DiskDir))
+            {
+                Directory.CreateDirectory(DiskDir);
+            }
+
             _themes.Clear();
             _themes.Add(ColorThemeStub.DEFAULT);
             Directory.GetFiles(DiskDir, "*.json").ToList().ForEach(f =>

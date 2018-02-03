@@ -237,7 +237,7 @@ namespace AGS.Editor.Components
 			forceRebuild = _agsEditor.NeedsRebuildForDebugMode() || forceRebuild;
 			if (_agsEditor.SaveGameFiles())
 			{
-				if (_agsEditor.CompileGame(forceRebuild, false).Count == 0)
+				if (!_agsEditor.CompileGame(forceRebuild, false).HasErrorsOrWarnings)
 				{
 					_guiController.ShowMessage("Compile successful!", MessageBoxIcon.Information);
 				}

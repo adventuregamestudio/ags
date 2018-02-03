@@ -36,17 +36,25 @@ namespace AGS.Editor
             lvwResults.Items.Clear();
             if (_errors != null)
             {
-                foreach (CompileMessage error in _errors)
+                foreach (ICompileMessage error in _errors)
                 {
                     ListViewItem newItem = lvwResults.Items.Add(error.Message);
 					if (error is CompileError)
 					{
 						newItem.ImageKey = "CompileErrorIcon";
 					}
-					else
+                    else if (error is CompileWarning)
 					{
 						newItem.ImageKey = "CompileWarningIcon";
 					}
+                    else if ((error is CompileInfoMessage) && (((CompileInfoMessage)error).ShowIcon))
+                    {
+                        newItem.ImageKey = "CompileInfoMessageIcon";
+                    }
+                    else
+                    {
+                        newItem.ImageKey = string.Empty;
+                    }
 					
 					if (error.ScriptName.Length > 0)
                     {

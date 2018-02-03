@@ -752,6 +752,7 @@ namespace AGS.Editor
                 RegisterIcon("GameIcon", Resources.ResourceManager.GetIcon("game.ico"));
 				RegisterIcon("CompileErrorIcon", Resources.ResourceManager.GetIcon("eventlogError.ico"));
 				RegisterIcon("CompileWarningIcon", Resources.ResourceManager.GetIcon("eventlogWarn.ico"));
+                RegisterIcon("CompileInfoMessageIcon", Resources.ResourceManager.GetIcon("eventlogInfo.ico"));
 				_mainForm.SetTreeImageList(_imageList);
                 _mainForm.mainMenu.ImageList = _imageList;
 				_mainForm.pnlOutput.SetImageList(_imageList);

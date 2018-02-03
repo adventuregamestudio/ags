@@ -688,6 +688,7 @@
     <Content Include="Resources\audio_player-play.ico" />
     <Content Include="Resources\audio_player-stop.ico" />
     <Content Include="Resources\editor.ico" />
+    <EmbeddedResource Include="Resources\eventlogInfo.ico" />
     <Content Include="Resources\keyword.ico" />
     <Content Include="Resources\define.ico" />
     <EmbeddedResource Include="Resources\menu_file_eventsgrid.ico" />

@@ -134,7 +134,7 @@
     <Compile Include="Exceptions\CannotDeleteFileException.cs" />
     <Compile Include="Exceptions\CompileError.cs" />
     <Compile Include="Exceptions\CompileMessage.cs" />
-    <Compile Include="Exceptions\CompileMessages.cs" />
+    <Compile Include="CompileMessages.cs" />
     <Compile Include="Exceptions\CompileWarning.cs" />
     <Compile Include="Exceptions\SourceControlException.cs" />
     <Compile Include="Exceptions\SpriteInUseException.cs" />
@@ -244,6 +244,7 @@
     <Compile Include="AudioClipType.cs" />
     <Compile Include="BaseFolderCollection.cs" />
     <Compile Include="BuildTargetsInfo.cs" />
+    <Compile Include="CompileInfoMessage.cs" />
     <Compile Include="Enums\BuildConfiguration.cs" />
     <Compile Include="Enums\DialogOptionsNumbering.cs" />
     <Compile Include="Enums\GameScaling.cs" />
@@ -271,6 +272,7 @@
     <Compile Include="Interfaces\IBuildTarget.cs" />
     <Compile Include="Interfaces\IColorMapper.cs" />
     <Compile Include="Interfaces\Docking\IDockingContainer.cs" />
+    <Compile Include="Interfaces\ICompileMessage.cs" />
     <Compile Include="Interfaces\IGlobalVariablesController.cs" />
     <Compile Include="Interfaces\IProjectTreeSingleClickHandler.cs" />
     <Compile Include="Interfaces\IScript.cs" />

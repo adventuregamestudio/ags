@@ -56,7 +56,19 @@ namespace AGS.Editor
         {
             _themes.Clear();
             _themes.Add(ColorThemeStub.DEFAULT);
-            Directory.GetFiles(DiskDir, "*.json").ToList().ForEach(f => _themes.Add(new ColorThemeJson(Path.GetFileNameWithoutExtension(f), f)));
+            Directory.GetFiles(DiskDir, "*.json").ToList().ForEach(f =>
+            {
+                try
+                {
+                    _themes.Add(new ColorThemeJson(Path.GetFileNameWithoutExtension(f), f));
+                }
+                catch (Exception e)
+                {
+                    Factory.GUIController.ShowMessage(
+                        $"Something went wrong when loading color theme {f}. See stack trace for more details.\n\n{e}",
+                        MessageBoxIcon.Warning);
+                }
+            });
             Current = _themes.FirstOrDefault(t => t.Name == Factory.AGSEditor.Preferences.ColorTheme) ?? ColorThemeStub.DEFAULT;
         }
 

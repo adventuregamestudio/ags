@@ -72,7 +72,6 @@ namespace AGS.Editor
         private GUIController()
         {
             _menuItems = new Dictionary<string, IEditorComponent>();
-            ColorThemes = new ColorThemes();
         }
 
         private static GUIController _instance;
@@ -735,6 +734,7 @@ namespace AGS.Editor
             {
                 _agsEditor = agsEditor;
                 _interactiveTasks = new InteractiveTasks(_agsEditor.Tasks);
+                ColorThemes = new ColorThemes();
                 _mainForm = new frmMain();
                 SetEditorWindowSizeFromRegistry();
                 _treeManager = new ProjectTree(_mainForm.projectPanel.projectTree);

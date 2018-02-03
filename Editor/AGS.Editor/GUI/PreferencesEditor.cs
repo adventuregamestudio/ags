@@ -92,7 +92,6 @@ namespace AGS.Editor
                 Factory.GUIController.ShowMessage(
                     "You must restart the editor for changed color theme to work properly.",
                     MessageBoxIcon.Information);
-                _preferences.ColorTheme = cmbColorTheme.Text;
                 Factory.GUIController.ColorThemes.Current = (ColorTheme)cmbColorTheme.SelectedItem;
             }
         }

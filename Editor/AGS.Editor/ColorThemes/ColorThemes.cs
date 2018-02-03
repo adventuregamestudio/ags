@@ -7,10 +7,16 @@ namespace AGS.Editor
 {
     public class ColorThemes
     {
-        private readonly List<ColorTheme> _themes = new List<ColorTheme>();
+        private readonly List<ColorTheme> _themes;
+        private readonly EditorPreferences _preferences;
+
+        private ColorTheme _current;
 
         public ColorThemes()
         {
+            _themes = new List<ColorTheme>();
+            _preferences = Factory.AGSEditor.Preferences;
+
             if (!Directory.Exists(DiskDir))
             {
                 Directory.CreateDirectory(DiskDir);
@@ -19,7 +25,25 @@ namespace AGS.Editor
             Load();
         }
 
-        public ColorTheme Current { get; set; }
+        public ColorTheme Current
+        {
+            get
+            {
+                return _current;
+            }
+
+            set
+            {
+                if (value == null)
+                {
+                    throw new NullReferenceException($"{Current} cannot be null.");
+                }
+
+                _current = value;
+                _preferences.ColorTheme = Current.Name;
+                Factory.AGSEditor.Preferences.SaveToRegistry();
+            }
+        }
 
         public IEnumerable<ColorTheme> Themes => _themes;
 
@@ -32,14 +56,7 @@ namespace AGS.Editor
             _themes.Clear();
             _themes.Add(ColorThemeStub.DEFAULT);
             Directory.GetFiles(DiskDir, "*.json").ToList().ForEach(f => _themes.Add(new ColorThemeJson(Path.GetFileNameWithoutExtension(f), f)));
-            Current = _themes.FirstOrDefault(t => t.Name == Factory.AGSEditor.Preferences.ColorTheme);
-
-            if (Current == null)
-            {
-                Current = ColorThemeStub.DEFAULT;
-                Factory.AGSEditor.Preferences.ColorTheme = Current.Name;
-                Factory.AGSEditor.Preferences.SaveToRegistry();
-            }
+            Current = _themes.FirstOrDefault(t => t.Name == Factory.AGSEditor.Preferences.ColorTheme) ?? ColorThemeStub.DEFAULT;
         }
 
         public void Apply(Action<ColorTheme> apply)

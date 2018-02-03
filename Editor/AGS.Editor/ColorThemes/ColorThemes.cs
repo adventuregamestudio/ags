@@ -76,7 +76,20 @@ namespace AGS.Editor
         {
             if (!IsCurrentDefault)
             {
-                apply.Invoke(Current);
+                try
+                {
+                    apply.Invoke(Current);
+                }
+                catch (Exception e)
+                {
+                    Factory.GUIController.ShowMessage(
+                        $"Something went wrong when trying to apply color theme {Current}. " +
+                        $"The editor will set the color theme back to the default theme and continue " +
+                        $"as normal, however it may not look right until the next time you restart " +
+                        $"the editor. See stack trace for more details.\n\n{e}",
+                        MessageBoxIcon.Warning);
+                    Current = ColorThemeStub.DEFAULT;
+                }
             }
         }
 

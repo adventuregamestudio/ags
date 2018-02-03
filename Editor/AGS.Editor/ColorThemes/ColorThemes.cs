@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms;
 
 namespace AGS.Editor
 {
@@ -69,9 +70,18 @@ namespace AGS.Editor
 
         public void Import(string dir)
         {
-            string newDir = DiskDir + Path.GetFileName(dir);
-            _themes.Add(new ColorThemeJson(Path.GetFileNameWithoutExtension(dir), dir));
-            File.Copy(dir, newDir);
+            try
+            {
+                string newDir = DiskDir + Path.GetFileName(dir);
+                _themes.Add(new ColorThemeJson(Path.GetFileNameWithoutExtension(dir), dir));
+                File.Copy(dir, newDir);
+            }
+            catch (Exception e)
+            {
+                Factory.GUIController.ShowMessage(
+                    $"Something went wrong importing the color theme, see stack trace for more details.\n\n{e}",
+                    MessageBoxIcon.Error);
+            }
         }
     }
 }

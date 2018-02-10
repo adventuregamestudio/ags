@@ -35,7 +35,8 @@ namespace AGS.Editor
         public frmMain()
         {
             InitializeComponent();
-            
+
+            _layoutManager = new WindowsLayoutManager(mainContainer, GetStartupPanes());            
             tabbedDocumentContainer1.ActiveDocumentChanged += new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanged);
             tabbedDocumentContainer1.ActiveDocumentChanging += new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanging);
 			this.Load += new EventHandler(frmMain_Load);
@@ -53,6 +54,11 @@ namespace AGS.Editor
                 pnlFindResults,
                 pnlCallStack
             };
+        }
+
+        public WindowsLayoutManager GetLayoutManager()
+        {
+            return _layoutManager;
         }
 
         private void frmMain_Activated(object sender, EventArgs e)
@@ -429,8 +435,6 @@ namespace AGS.Editor
 
         private void LoadLayout()
         {
-            _layoutManager = new WindowsLayoutManager(mainContainer,
-                GetStartupPanes());
             if (!_layoutManager.LoadLayout())
             {
                 SetDefaultLayout();

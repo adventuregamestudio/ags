@@ -15,9 +15,18 @@ namespace AGS.Editor
         {
         }
 
+        public override string DisplayName { get { return "Regions"; } }
+
+        public override bool VisibleByDefault { get { return false; } }
+
         public override RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.Regions; }
+        }
+
+        public override int ItemCount
+        {
+            get { return _room.RegionCount; }
         }
 
         protected override void SelectedAreaChanged(int areaNumber)
@@ -30,7 +39,17 @@ namespace AGS.Editor
 			Factory.GUIController.ShowCuppit("Regions define what happens when the player walks around different parts of the room. You can set up lighting and scripts to run as the player walks onto different regions.", "Regions introduction");
 		}
 
-		protected override void SetPropertyGridList()
+        protected override Dictionary<string, int> GetItems()
+        {
+            Dictionary<string, int> items = new Dictionary<string, int>(_room.Regions.Count);
+            foreach (RoomRegion area in _room.Regions)
+            {
+                items.Add(GetItemName(area.ID, area.PropertyGridTitle), area.ID);
+            }
+            return items;
+        }
+
+        protected override void SetPropertyGridList()
         {
             Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
             defaultPropertyObjectList.Add(_room.PropertyGridTitle, _room);
@@ -46,12 +65,12 @@ namespace AGS.Editor
         {
             if (newPropertyObject is RoomRegion)
             {
-                _selectedArea = ((RoomRegion)newPropertyObject).ID;
+                SelectedArea = ((RoomRegion)newPropertyObject).ID;
                 _panel.Invalidate();
             }
             else if (newPropertyObject is Room)
             {
-                _selectedArea = 0;
+                DeselectArea();
                 _panel.Invalidate();
             }
         }

@@ -11,14 +11,61 @@ namespace AGS.Editor
     {
         private ToolStripMenuItem _windowsMenu;
         private DockPanel _dockPanel;
+        private WindowsLayoutManager _layoutManager;
         private const string MENU_SEPARATOR = "-";
+        private const string XML_FILE_FILTER = "Xml files (*.xml)|*.xml";
 
         internal WindowsMenuManager(ToolStripMenuItem windowsMenu,
-            List<DockContent> startupPanes, DockPanel dockPanel)
+            List<DockContent> startupPanes, DockPanel dockPanel, WindowsLayoutManager layoutManager)
         {
             _windowsMenu = windowsMenu;
             _dockPanel = dockPanel;
+            _layoutManager = layoutManager;
+            InitLayoutSubmenu();
             InitItems(startupPanes);
+        }
+
+        private void InitLayoutSubmenu()
+        {
+            ToolStripMenuItem layoutMenuItem = new ToolStripMenuItem("Layout");
+            _windowsMenu.DropDownItems.Add(layoutMenuItem);
+            _windowsMenu.DropDownItems.Add(MENU_SEPARATOR);
+
+            ToolStripMenuItem saveLayoutMenuItem = new ToolStripMenuItem("Save");
+            ToolStripMenuItem loadLayoutMenuItem = new ToolStripMenuItem("Load");
+            layoutMenuItem.DropDownItems.Add(saveLayoutMenuItem);
+            layoutMenuItem.DropDownItems.Add(loadLayoutMenuItem);
+
+            saveLayoutMenuItem.Click += saveLayoutMenuItem_Click;
+            loadLayoutMenuItem.Click += loadLayoutMenuItem_Click;
+        }
+
+        private void saveLayoutMenuItem_Click(object sender, EventArgs e)
+        {
+            string fileName = Factory.GUIController.ShowSaveFileDialog("Save layout...", XML_FILE_FILTER);
+            if (fileName == null)
+            {
+                return;
+            }
+            _layoutManager.SaveLayout(fileName);
+            Factory.GUIController.ShowMessage("Done!", MessageBoxIcon.Information);
+        }
+
+        private void loadLayoutMenuItem_Click(object sender, EventArgs e)
+        {
+            string fileName = Factory.GUIController.ShowOpenFileDialog("Load layout...", XML_FILE_FILTER);
+            if (fileName == null)
+            {
+                return;
+            }
+            if (_layoutManager.LoadLayout(fileName))
+            {
+                Factory.GUIController.ShowMessage("Done!", MessageBoxIcon.Information);
+            }
+            else
+            {
+                Factory.GUIController.ShowMessage("Failed to load layout!", MessageBoxIcon.Error);
+            }
         }
 
         private void InitItems(List<DockContent> startupPanes)

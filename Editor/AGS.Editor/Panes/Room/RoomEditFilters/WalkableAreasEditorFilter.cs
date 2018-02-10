@@ -15,9 +15,18 @@ namespace AGS.Editor
         {
         }
 
+        public override string DisplayName { get { return "Walkable areas"; } }
+
+        public override bool VisibleByDefault { get { return true; } }
+
         public override RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.WalkableAreas; }
+        }
+
+        public override int ItemCount
+        {
+            get { return _room.WalkableAreaCount; }
         }
 
         protected override void SelectedAreaChanged(int areaNumber)
@@ -29,6 +38,16 @@ namespace AGS.Editor
 		{
 			Factory.GUIController.ShowCuppit("Walkable areas tell AGS where the player is allowed to go within the room. You can also set up scaling so that the player gets smaller or bigger as he walks around different areas.", "Walkable areas introduction");
 		}
+
+        protected override Dictionary<string, int> GetItems()
+        {
+            Dictionary<string, int> items = new Dictionary<string, int>(_room.WalkableAreas.Count);
+            foreach (RoomWalkableArea area in _room.WalkableAreas)
+            {
+                items.Add(GetItemName(area.ID, area.PropertyGridTitle), area.ID);
+            }
+            return items;
+        }
 
 		protected override void SetPropertyGridList()
         {
@@ -46,12 +65,12 @@ namespace AGS.Editor
         {
             if (newPropertyObject is RoomWalkableArea)
             {
-                _selectedArea = ((RoomWalkableArea)newPropertyObject).ID;
+                SelectedArea = ((RoomWalkableArea)newPropertyObject).ID;
                 _panel.Invalidate();
             }
             else if (newPropertyObject is Room)
             {
-                _selectedArea = 0;
+                DeselectArea();
                 _panel.Invalidate();
             }
         }

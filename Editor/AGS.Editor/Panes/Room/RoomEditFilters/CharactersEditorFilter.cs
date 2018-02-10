@@ -34,40 +34,66 @@ namespace AGS.Editor
             _panel = displayPanel;
             _game = game;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
+            VisibleItems = new List<string>();
+            LockedItems = new List<string>();
         }
 
-        public void MouseDown(MouseEventArgs e, RoomEditorState state)
+        public void MouseDownAlways(MouseEventArgs e, RoomEditorState state) 
+        {
+            _selectedCharacter = null;
+        }
+
+        public bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             int xClick = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
             int yClick = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
-
-            _selectedCharacter = null;
-
-            foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
-            {
-                if (_room.Number == character.StartingRoom)
-                {
-                    AgsView view = _game.FindViewByID(character.NormalView);
-
-                    if (view != null && view.Loops.Count > 0)
-                    {
-                        SelectCharacter(view, character, xClick, yClick, state);
-                    }
-                }
-            }
-
+            Character character = GetCharacter(xClick, yClick, state);
+            if (character != null) SelectCharacter(character, xClick, yClick, state);
+            
             if (_selectedCharacter != null)
             {
                 Factory.GUIController.SetPropertyGridObject(_selectedCharacter);
+                return true;
+            }
+            return false;
+        }
+
+        private void SelectCharacter(Character character, int xClick, int yClick, RoomEditorState state)
+        {            
+            if (!state.DragFromCenter) 
+            {
+                _mouseOffsetX = xClick - character.StartX;
+                _mouseOffsetY = yClick - character.StartY;
             }
             else
             {
-                Factory.GUIController.SetPropertyGridObject(_room);
+                _mouseOffsetX = 0;
+                _mouseOffsetY = 0;
             }
+            SetSelectedCharacter(character);
+            _movingCharacterWithMouse = true;
         }
 
-        private void SelectCharacter(AgsView view, Character character, int xClick, int yClick, RoomEditorState state)
+        private Character GetCharacter(int x, int y, RoomEditorState state)
         {
+            foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
+            {
+                if (_room.Number != character.StartingRoom) continue;
+
+                if (!VisibleItems.Contains(character.ScriptName) || LockedItems.Contains(character.ScriptName)) continue;
+
+                AgsView view = _game.FindViewByID(character.NormalView);
+
+                if (view != null && view.Loops.Count > 0)
+                {
+                    if (HitTest(x, y, character, view)) return character;
+                }
+            }
+            return null;
+        }
+
+        private bool HitTest(int x, int y, Character character, AgsView view)
+        { 
             int spriteNum = 0;
 
             if (view.Loops[0].Frames.Count > 0)
@@ -79,22 +105,8 @@ namespace AGS.Editor
             int width = GetSpriteWidthForGameResolution(spriteNum);
             int height = GetSpriteHeightForGameResolution(spriteNum);
 
-            if ((xClick >= character.StartX - (width / 2)) && (xClick < character.StartX + (width / 2)) &&
-                (yClick >= character.StartY - height) && (yClick < character.StartY))
-            {
-                if (!state.DragFromCenter)
-                {
-                    _mouseOffsetX = xClick - character.StartX;
-                    _mouseOffsetY = yClick - character.StartY;
-                }
-                else
-                {
-                    _mouseOffsetX = 0;
-                    _mouseOffsetY = 0;
-                }
-                _selectedCharacter = character;
-                _movingCharacterWithMouse = true;
-            }
+            return ((x >= character.StartX - (width / 2)) && (x < character.StartX + (width / 2)) &&
+                (y >= character.StartY - height) && (y < character.StartY));          
         }
 
         public bool MouseMove(int x, int y, RoomEditorState state)
@@ -180,7 +192,7 @@ namespace AGS.Editor
             }
         }
 
-        public void MouseUp(MouseEventArgs e, RoomEditorState state)
+        public bool MouseUp(MouseEventArgs e, RoomEditorState state)
         {
             _movingCharacterWithMouse = false;
 
@@ -192,13 +204,17 @@ namespace AGS.Editor
             {
                 ShowCharCoordMenu(e, state);
             }
+            else return false;
+            return true;
         }
+
+        public void Invalidate() { _panel.Invalidate(); }
 
         public void PaintToHDC(IntPtr hdc, RoomEditorState state)
         {
             foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
             {
-                if (_room.Number == character.StartingRoom)
+                if (_room.Number == character.StartingRoom && VisibleItems.Contains(character.ScriptName))
                 {
                     DrawCharacter(character, state);
                 }
@@ -331,12 +347,9 @@ namespace AGS.Editor
         {
             Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
             defaultPropertyObjectList.Add(_room.PropertyGridTitle, _room);
-            foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
+            foreach (Character character in GetItems())
             {
-                if (character.StartingRoom == _room.Number)
-                {
-                    defaultPropertyObjectList.Add(character.PropertyGridTitle, character);
-                }
+                defaultPropertyObjectList.Add(character.PropertyGridTitle, character);                
             }
 
             Factory.GUIController.SetPropertyGridObjectList(defaultPropertyObjectList);
@@ -346,7 +359,7 @@ namespace AGS.Editor
         {
             if (newPropertyObject is Character)
             {
-                _selectedCharacter = (Character)newPropertyObject;
+                SetSelectedCharacter((Character)newPropertyObject);                 
                 _panel.Invalidate();
             }
             else if (newPropertyObject is Room)
@@ -356,11 +369,32 @@ namespace AGS.Editor
             }
         }
 
+        public string DisplayName { get { return "Characters"; } }
+
+        public bool VisibleByDefault { get { return true; } }
+
         public RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.None; }
         }
 
+        public bool SupportVisibleItems { get { return true; } }
+
+        public List<string> VisibleItems { get; private set; }
+        public List<string> LockedItems { get; private set; }
+        
+        public event EventHandler OnItemsChanged { add { } remove { } }
+        public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
+
+	public int ItemCount
+	{
+            get 
+            {
+                int count = 0;
+                foreach (Character character in GetItems()) count++;
+                return count;
+            }
+        }
 		public int SelectedArea
 		{
 			get { return 0; }
@@ -376,8 +410,9 @@ namespace AGS.Editor
 			get { return string.Empty; }
 		}
 
-        public void DoubleClick(RoomEditorState state)
+        public bool DoubleClick(RoomEditorState state)
         {
+            return false;
         }
 
         public void CommandClick(string command)
@@ -404,5 +439,67 @@ namespace AGS.Editor
         public void Dispose()
         {
         }
+
+        public List<string> GetItemsNames()
+        {
+            List<string> names = new List<string>();
+            foreach (Character character in GetItems())
+            {
+                names.Add(character.ScriptName);
+            }
+            return names;
+        }
+
+        private IEnumerable<Character> GetItems()
+        {
+            foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
+            {
+                if (character.StartingRoom == _room.Number)
+                {
+                    yield return character;
+                }
+            }
+        }
+
+        public void SelectItem(string name)
+        {
+            if (name != null)
+            {
+                foreach (Character character in GetItems())
+                {
+                    if (character.ScriptName != name) continue;
+                    _selectedCharacter = character;
+                    Factory.GUIController.SetPropertyGridObject(character);                    
+                    return;
+                }
+            }
+
+            _selectedCharacter = null;
+            Factory.GUIController.SetPropertyGridObject(_room);            
+        }
+
+        public Cursor GetCursor(int x, int y, RoomEditorState state)
+        {
+            if (_movingCharacterWithMouse) return Cursors.Hand;
+            x = (x + state.ScrollOffsetX) / state.ScaleFactor;
+            y = (y + state.ScrollOffsetY) / state.ScaleFactor;
+            if (GetCharacter(x, y, state) != null) return Cursors.Default;
+            return null;
+        }
+
+        public bool AllowClicksInterception()
+        {
+            return true;
+        }
+
+        private void SetSelectedCharacter(Character character)
+        {
+            _selectedCharacter = character;
+            if (OnSelectedItemChanged != null)
+            {
+                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(character.ScriptName));
+            }
+        }
+
     }
 }

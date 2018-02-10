@@ -14,9 +14,18 @@ namespace AGS.Editor
         {
         }
 
+        public override string DisplayName { get { return "Hotspots"; } }
+
+        public override bool VisibleByDefault { get { return false; } }
+
         public override RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.Hotspots; }
+        }
+
+        public override int ItemCount
+        {
+            get { return _room.HotspotCount; }
         }
 
         protected override void SelectedAreaChanged(int areaNumber)
@@ -46,6 +55,16 @@ namespace AGS.Editor
             }
         }
 
+        protected override Dictionary<string, int> GetItems()
+        {
+            Dictionary<string, int> items = new Dictionary<string, int>(_room.Hotspots.Count);
+            foreach (RoomHotspot hotspot in _room.Hotspots)
+            {
+                items.Add(GetItemName(hotspot.ID, hotspot.Name), hotspot.ID);
+            }
+            return items;
+        }
+
         protected override void SetPropertyGridList()
         {
             Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
@@ -62,12 +81,12 @@ namespace AGS.Editor
         {
             if (newPropertyObject is RoomHotspot)
             {
-                _selectedArea = ((RoomHotspot)newPropertyObject).ID;
+                SelectedArea = ((RoomHotspot)newPropertyObject).ID;
                 _panel.Invalidate();
             }
             else if (newPropertyObject is Room)
             {
-                _selectedArea = 0;
+                DeselectArea();
                 _panel.Invalidate();
             }
         }

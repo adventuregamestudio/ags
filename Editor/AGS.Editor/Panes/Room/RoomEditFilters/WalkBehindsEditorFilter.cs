@@ -18,15 +18,24 @@ namespace AGS.Editor
         {
         }
 
+        public override string DisplayName { get { return "Walk-behinds"; } }
+
+        public override bool VisibleByDefault { get { return false; } }
+
         public override RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.WalkBehinds; }
         }
 
-		public override void Paint(Graphics graphics, RoomEditorState state)
+        public override int ItemCount
+        {
+            get { return _room.WalkBehindCount; }
+        }
+
+        public override void Paint(Graphics graphics, RoomEditorState state)
 		{
 			int lineYPos = GetCurrentAreaBaselineScreenY(state);
-			Pen pen = (Pen)GetPenForArea(_selectedArea).Clone();
+			Pen pen = (Pen)GetPenForArea(SelectedArea).Clone();
 			pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
 
 			for (int i = 0; i < state.ScaleFactor; i++)
@@ -36,6 +45,16 @@ namespace AGS.Editor
 
 			base.Paint(graphics, state);
 		}
+
+        public override Cursor GetCursor(int x, int y, RoomEditorState state)
+        {
+            if (_draggingBaseline) return Cursors.HSplit;
+            if (IsCursorOnHorizontalEdge(y, GetCurrentAreaBaselineScreenY(state), state))
+            {
+                return Cursors.HSplit;
+            }			
+            return base.GetCursor(x, y, state);
+        }
 
 		public override bool MouseMove(int x, int y, RoomEditorState state)
 		{
@@ -50,9 +69,8 @@ namespace AGS.Editor
 				{
 					newBaseline = _room.Height - 1;
 				}
-				_room.WalkBehinds[_selectedArea].Baseline = newBaseline;
-                _room.Modified = true;
-				state.CurrentCursor = Cursors.HSplit;
+				_room.WalkBehinds[SelectedArea].Baseline = newBaseline;
+                _room.Modified = true;				
 				return true;
 			}
 
@@ -61,48 +79,49 @@ namespace AGS.Editor
 				return true;
 			}
 
-			if (IsCursorOnHorizontalEdge(y, GetCurrentAreaBaselineScreenY(state), state))
-			{
-				state.CurrentCursor = Cursors.HSplit;
-			}
-
 			return false;
 		}
 
-		public override void MouseDown(MouseEventArgs e, RoomEditorState state)
-		{
+		public override bool MouseDown(MouseEventArgs e, RoomEditorState state)
+		{            
 			if (IsCursorOnHorizontalEdge(e.Y, GetCurrentAreaBaselineScreenY(state), state))
 			{
 				_draggingBaseline = true;
+                return true;
 			}
 			else
 			{
-				base.MouseDown(e, state);
+				return base.MouseDown(e, state);
 			}
 		}
 
-		public override void MouseUp(MouseEventArgs e, RoomEditorState state)
+		public override bool MouseUp(MouseEventArgs e, RoomEditorState state)
 		{
-			if (_draggingBaseline)
-			{
-				_draggingBaseline = false;
-			}
-			else
-			{
-				base.MouseUp(e, state);
+            if (_draggingBaseline)
+            {
+                _draggingBaseline = false;
+                return true;
+            }
+            else if (!IsFilterOn()) return base.MouseUp(e, state);
+            else
+            {
+                bool handledMouseUp = base.MouseUp(e, state);
 
-				if ((_room.WalkBehinds[_selectedArea].Baseline < 1) &&
-					(!_shownTooltip))
-				{
-					_tooltip.Show("After painting the area, remember to set its baseline by dragging the line down from the top of the background.", _panel, e.X, e.Y - 70, 5000);
-					_shownTooltip = true;
-				}
-			}
+                if ((_room.WalkBehinds[SelectedArea].Baseline < 1) &&
+                    (!_shownTooltip))
+                {
+                    _tooltip.Show("After painting the area, remember to set its baseline by dragging the line down from the top of the background.", _panel, e.X, e.Y - 70, 5000);
+                    _shownTooltip = true;
+                    return true;
+                }
+
+                return handledMouseUp;
+            }
 		}
 
 		private int GetCurrentAreaBaselineScreenY(RoomEditorState state)
 		{
-			return (_room.WalkBehinds[_selectedArea].Baseline * state.ScaleFactor) - state.ScrollOffsetY;
+			return (_room.WalkBehinds[SelectedArea].Baseline * state.ScaleFactor) - state.ScrollOffsetY;
 		}
 
 		private bool IsCursorOnHorizontalEdge(int cursorY, int edgeY, RoomEditorState state)
@@ -120,6 +139,16 @@ namespace AGS.Editor
 			Factory.GUIController.ShowCuppit("Walk-behinds allow you to give the illusion of 3D by making parts of the background image be drawn in front of the characters. Each area has a baseline, which defines how high up the screen the character needs to be in order to be drawn behind the area.", "Walk-behinds introduction");
 		}
 
+        protected override Dictionary<string, int> GetItems()
+        {
+            Dictionary<string, int> items = new Dictionary<string, int>(_room.WalkBehinds.Count);
+            foreach (RoomWalkBehind area in _room.WalkBehinds)
+            {
+                items.Add(GetItemName(area.ID, area.PropertyGridTitle), area.ID);
+            }
+            return items;
+        }
+
         protected override void SetPropertyGridList()
         {
             Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
@@ -136,12 +165,12 @@ namespace AGS.Editor
         {
             if (newPropertyObject is RoomWalkBehind)
             {
-                _selectedArea = ((RoomWalkBehind)newPropertyObject).ID;
+                SelectedArea = ((RoomWalkBehind)newPropertyObject).ID;
                 _panel.Invalidate();
             }
             else if (newPropertyObject is Room)
             {
-                _selectedArea = 0;
+                DeselectArea();
                 _panel.Invalidate();
             }
         }

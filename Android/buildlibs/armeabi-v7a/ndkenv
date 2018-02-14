@@ -5,7 +5,7 @@ get_abs_path() {
 
 unset DEVROOT SDKROOT CFLAGS CC LD CPP CXX AR AS NM CXXCPP RANLIB LDFLAGS CPPFLAGS CXXFLAGS
 
-export NDK_PLATFORM_ROOT=/opt/android-ndk-r10e-standalone/android-9/arm
+export NDK_PLATFORM_ROOT=~/Android/Sdk/ndk-bundle/platforms/android-14/arm
 export NDK_PLATFORM_NAME=armeabi-v7a
 export NDK_HOST_NAME=arm-linux-androideabi
 export NDK_ADDITIONAL_LIBRARY_PATH=$(get_abs_path "../../nativelibs/$NDK_PLATFORM_NAME")
@@ -15,3 +15,5 @@ export ACLOCAL_PATH=$NDK_ADDITIONAL_LIBRARY_PATH/share/aclocal
 
 export NDK_CFLAGS=" -mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 "
 export NDK_LDFLAGS=" -march=armv7-a -Wl,--fix-cortex-a8 "
+export CC=~/Android/Sdk/ndk-bundle/platforms/android-14/arm/bin/arm-linux-androideabi-gcc
+export CXX=~/Android/Sdk/ndk-bundle/platforms/android-14/arm/bin/arm-linux-androideabi-g++ 

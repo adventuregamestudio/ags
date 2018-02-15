@@ -738,7 +738,7 @@ namespace AGS.Editor
                 _treeManager.OnContextMenuClick += new ProjectTree.MenuClickHandler(_mainForm_OnMenuClick);
                 _toolBarManager = new ToolBarManager(_mainForm.toolStrip);
                 WindowsMenuManager windowsMenuManager = new WindowsMenuManager(_mainForm.windowsToolStripMenuItem, 
-                    _mainForm.GetStartupPanes(), _mainForm.mainContainer);
+                    _mainForm.GetStartupPanes(), _mainForm.mainContainer, _mainForm.GetLayoutManager());
                 _menuManager = new MainMenuManager(_mainForm.mainMenu, windowsMenuManager);
                 _mainForm.OnEditorShutdown += new frmMain.EditorShutdownHandler(_mainForm_OnEditorShutdown);
                 _mainForm.OnPropertyChanged += new frmMain.PropertyChangedHandler(_mainForm_OnPropertyChanged);

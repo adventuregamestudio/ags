@@ -19,14 +19,33 @@ namespace AGS.Editor
         {
 			_panel = displayPanel;
             _room = room;
+            VisibleItems = new List<string>();
+            LockedItems = new List<string>();
         }
+
+        public string DisplayName { get { return "Nothing"; } }
+
+        public bool VisibleByDefault { get { return false; } }
 
         public RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.None; }
         }
 
-		public int SelectedArea
+        public List<string> VisibleItems { get; private set; }
+        public List<string> LockedItems { get; private set; }
+
+        public bool SupportVisibleItems { get { return false; } }
+
+        public event EventHandler OnItemsChanged { add { } remove { } }
+        public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged { add { } remove { } }
+
+        public int ItemCount
+        {
+            get { return 0; }
+        }
+
+        public int SelectedArea
 		{
 			get { return 0; }
 		}
@@ -41,6 +60,8 @@ namespace AGS.Editor
 			get { return string.Empty; }
 		}
 
+        public void Invalidate() { _panel.Invalidate(); }
+
         public void PaintToHDC(IntPtr hDC, RoomEditorState state)
         {
         }
@@ -49,20 +70,26 @@ namespace AGS.Editor
         {
         }
 
-        public void MouseDown(MouseEventArgs e, RoomEditorState state)
+        public void MouseDownAlways(MouseEventArgs e, RoomEditorState state) { }
+
+        public bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
+            return false;
         }
 
-        public void MouseUp(MouseEventArgs e, RoomEditorState state)
+        public bool MouseUp(MouseEventArgs e, RoomEditorState state)
         {
 			if (e.Button == MouseButtons.Middle)
 			{
 				ShowCoordMenu(e, state);
+                return true;
 			}
+            return false;
         }
 
-		public void DoubleClick(RoomEditorState state)
+		public bool DoubleClick(RoomEditorState state)
 		{
+            return false;
 		}
 
 		private void CoordMenuEventHandler(object sender, EventArgs e)
@@ -114,6 +141,25 @@ namespace AGS.Editor
 
         public void Dispose()
         {
+        }
+
+        public List<string> GetItemsNames() 
+        { 
+            return new List<string>(); 
+        }
+
+        public void SelectItem(string name) 
+        {
+        }
+
+        public Cursor GetCursor(int x, int y, RoomEditorState state)
+        {
+            return null;
+        }
+
+        public bool AllowClicksInterception()
+        {
+            return true;
         }
     }
 

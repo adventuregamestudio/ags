@@ -22,9 +22,10 @@ namespace AGS.Editor
 
         protected const int TOOLBAR_INDEX_UNDO = 5;
 		protected const int TOOLBAR_INDEX_GREY_OUT_MASKS = 8;
-
+        
         private const string MENU_ITEM_COPY_COORDS = "CopyCoordinates";
-        private int _menuClickX, _menuClickY;
+        private const string ERASER = "Eraser";
+        private int _menuClickX, _menuClickY;        
 
 		private readonly Brush[] _brushesForAreas = new Brush[]{Brushes.Black, Brushes.DarkBlue,
 			Brushes.DarkGreen, Brushes.DarkCyan, Brushes.DarkRed, Brushes.DarkMagenta, 
@@ -39,16 +40,17 @@ namespace AGS.Editor
 
         private GUIController.PropertyObjectChangedHandler _propertyObjectChangedDelegate;
         protected Room _room;
-        protected Panel _panel;
-        protected int _selectedArea = 1;
+        protected Panel _panel;        
 		protected ToolTip _tooltip;
+        private int _selectedArea = 1;
 		private int _drawingWithArea;
         private bool _mouseDown = false;
         private int _mouseDownX, _mouseDownY;
         private int _currentMouseX, _currentMouseY;
         private bool _highResMask = false;
+        private bool _shouldSetDrawModeOnMouseUp = false;
 
-        private static AreaDrawMode _drawMode = AreaDrawMode.Line;
+        private static AreaDrawMode _drawMode = AreaDrawMode.Select;
         private static List<MenuCommand> _toolbarIcons = null;
         private static bool _registeredIcons = false;
         private static Cursor _selectCursor;
@@ -65,7 +67,7 @@ namespace AGS.Editor
 				Factory.GUIController.RegisterIcon("DrawFillIcon", Resources.ResourceManager.GetIcon("drawfill.ico"));
                 Factory.GUIController.RegisterIcon("ImportMaskIcon", Resources.ResourceManager.GetIcon("importmask.ico"));
                 Factory.GUIController.RegisterIcon("CopyWalkableAreaMaskIcon", Resources.ResourceManager.GetIcon("copymask.ico"));
-				Factory.GUIController.RegisterIcon("GreyedOutMasksIcon", Resources.ResourceManager.GetIcon("greymasks.ico"));
+				Factory.GUIController.RegisterIcon("GreyedOutMasksIcon", Resources.ResourceManager.GetIcon("greymasks.ico"));                
 				_selectCursor = Resources.ResourceManager.GetCursor("findarea.cur");
                 _registeredIcons = true;
             }
@@ -90,16 +92,38 @@ namespace AGS.Editor
             _panel = displayPanel;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
             UpdateUndoButtonEnabledState();
+            VisibleItems = new List<string>();
+            LockedItems = new List<string>();
         }
+
+        public abstract string DisplayName { get; }
+        public abstract bool VisibleByDefault { get; }
 
         public abstract RoomAreaMaskType MaskToDraw
         {
             get;
         }
 
+        public List<string> VisibleItems { get; private set; }
+        public List<string> LockedItems { get; private set; }
+
+        public event EventHandler OnItemsChanged;
+        public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
+
+        public abstract int ItemCount { get; }
+
 		public int SelectedArea
 		{
 			get { return _selectedArea; }
+            set 
+            { 
+                _selectedArea = value;
+                if (OnSelectedItemChanged != null)
+                {                    
+                    OnSelectedItemChanged(this, 
+                        new SelectedRoomItemEventArgs(GetItemName(_selectedArea, GetItemsNames()[_selectedArea])));
+                }
+            }
 		}
 
 		public string HelpKeyword
@@ -112,9 +136,18 @@ namespace AGS.Editor
 			get { return true; }
 		}
 
+        public bool SupportVisibleItems { get { return false; } }
+
 		protected virtual void FilterActivated()
 		{
 		}
+
+        protected bool IsFilterOn()
+        {
+            return Factory.GUIController.ActivePane.ToolbarCommands == _toolbarIcons;
+        }
+
+        public void Invalidate() { _panel.Invalidate(); }
 
         public void PaintToHDC(IntPtr hDC, RoomEditorState state)
         {
@@ -218,17 +251,31 @@ namespace AGS.Editor
             return (screenY + state.ScrollOffsetY) / GetScaleFactor(state);
         }
 
-        public virtual void MouseDown(MouseEventArgs e, RoomEditorState state)
+        public void MouseDownAlways(MouseEventArgs e, RoomEditorState state) 
+        {
+            if (!IsFilterOn())
+            {
+                DeselectArea();
+                _drawingWithArea = 0;
+                _drawMode = AreaDrawMode.Select;
+            }
+        }
+
+        public virtual bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             if (e.Button == MouseButtons.Middle)
             {
-                return;
+                return false;
             }
-
+            
             int x = ScreenToGameX(e.X, state);
             int y = ScreenToGameY(e.Y, state);
 
-            if (_drawMode == AreaDrawMode.Freehand)
+            AreaDrawMode drawMode = IsFilterOn() ? _drawMode : AreaDrawMode.Select;
+
+            if (IsLocked(_selectedArea) && drawMode != AreaDrawMode.Select) return false;
+
+            if (drawMode == AreaDrawMode.Freehand)
             {
                 Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
             }
@@ -240,9 +287,9 @@ namespace AGS.Editor
 				_drawingWithArea = 0;
 			}
 
-            if ((_drawMode == AreaDrawMode.Line) ||
-				(_drawMode == AreaDrawMode.Freehand) ||
-				(_drawMode == AreaDrawMode.Rectangle))
+            if ((drawMode == AreaDrawMode.Line) ||
+                (drawMode == AreaDrawMode.Freehand) ||
+                (drawMode == AreaDrawMode.Rectangle))
             {
                 if (_selectedArea == 0)
                 {
@@ -253,45 +300,68 @@ namespace AGS.Editor
                 _mouseDownY = y;
                 _room.Modified = true;
             }
-            else if (_drawMode == AreaDrawMode.Fill)
+            else if (drawMode == AreaDrawMode.Fill)
             {
                 Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
                 Factory.NativeProxy.DrawFillOntoMask(_room, this.MaskToDraw, x, y, _drawingWithArea);
                 _room.Modified = true;
                 UpdateUndoButtonEnabledState();
             }
-            else if (_drawMode == AreaDrawMode.Select)
+            else if (drawMode == AreaDrawMode.Select)
             {
-                _selectedArea = Factory.NativeProxy.GetAreaMaskPixel(_room, this.MaskToDraw, x, y);
-                SelectedAreaChanged(_selectedArea);
+                int area = Factory.NativeProxy.GetAreaMaskPixel(_room, this.MaskToDraw, x, y);                                
+                if (area != 0 && !IsLocked(area))
+                {
+                    SelectedArea = area;
+                    SelectedAreaChanged(_selectedArea);
+                }
             }
+            return true;
         }
 
-        public virtual void MouseUp(MouseEventArgs e, RoomEditorState state)
+        private bool IsLocked(int area)
+        {
+            string areaName = GetItemName(area);
+            return LockedItems.Contains(areaName);
+        }
+
+        public virtual bool MouseUp(MouseEventArgs e, RoomEditorState state)
         {
             _mouseDown = false;
+            AreaDrawMode drawMode = IsFilterOn() ? _drawMode : AreaDrawMode.Select;
+
+            if (IsLocked(_selectedArea) && drawMode != AreaDrawMode.Select) return false;
+
+            if (_shouldSetDrawModeOnMouseUp)
+            {
+                _shouldSetDrawModeOnMouseUp = false;
+                SetDrawMode();
+            }
             if (e.Button == MouseButtons.Middle)
             {
                 ShowCoordMenu(e, state);
             }
-            else if (_drawMode == AreaDrawMode.Line)
+            else if (drawMode == AreaDrawMode.Line)
             {
                 Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
                 Factory.NativeProxy.DrawLineOntoMask(_room, this.MaskToDraw, _mouseDownX, _mouseDownY, _currentMouseX, _currentMouseY, _drawingWithArea);
                 _panel.Invalidate();
                 UpdateUndoButtonEnabledState();
             }
-			else if (_drawMode == AreaDrawMode.Rectangle)
-			{
-				Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
-				Factory.NativeProxy.DrawFilledRectOntoMask(_room, this.MaskToDraw, _mouseDownX, _mouseDownY, _currentMouseX, _currentMouseY, _drawingWithArea);
-				_panel.Invalidate();
-				UpdateUndoButtonEnabledState();
-			}
+            else if (drawMode == AreaDrawMode.Rectangle)
+            {
+                Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
+                Factory.NativeProxy.DrawFilledRectOntoMask(_room, this.MaskToDraw, _mouseDownX, _mouseDownY, _currentMouseX, _currentMouseY, _drawingWithArea);
+                _panel.Invalidate();
+                UpdateUndoButtonEnabledState();
+            }
+            else return false;
+            return true;
         }
 
-		public virtual void DoubleClick(RoomEditorState state)
+		public virtual bool DoubleClick(RoomEditorState state)
 		{
+            return false;
 		}
 
         private void CoordMenuEventHandler(object sender, EventArgs e)
@@ -327,18 +397,11 @@ namespace AGS.Editor
             _currentMouseX = ScreenToGameX(x, state);
             _currentMouseY = ScreenToGameY(y, state);
 
-            if (_drawMode == AreaDrawMode.Select)
-            {
-                state.CurrentCursor = _selectCursor;
-            }
-            else
-            {
-                state.CurrentCursor = Cursors.Cross;
-            }
+            AreaDrawMode drawMode = IsFilterOn() ? _drawMode : AreaDrawMode.Select;            
 
             if (_mouseDown)
             {
-                if (_drawMode == AreaDrawMode.Freehand)
+                if (drawMode == AreaDrawMode.Freehand)
                 {
 					Factory.NativeProxy.DrawLineOntoMask(_room, this.MaskToDraw, _mouseDownX, _mouseDownY, _currentMouseX, _currentMouseY, _drawingWithArea);
                     _mouseDownX = _currentMouseX;
@@ -499,15 +562,31 @@ namespace AGS.Editor
         {
             SetPropertyGridList();
             Factory.GUIController.ActivePane.ToolbarCommands = _toolbarIcons;
-            CommandClick(SELECT_AREA_COMMAND);
+            bool hasSelectedCommand = false;
+            foreach (MenuCommand menuCommand in _toolbarIcons)
+            {
+                if (menuCommand.Checked)
+                {
+                    hasSelectedCommand = true;
+                    break;
+                }
+            }
+            if (!hasSelectedCommand) CommandClick(SELECT_AREA_COMMAND);
+            else Factory.ToolBarManager.RefreshCurrentPane();
+
+            if (_selectedArea >= ItemCount)
+            {
+                DeselectArea();
+            }
             SelectedAreaChanged(_selectedArea);
             Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
-
+            
 			FilterActivated();
+            _shouldSetDrawModeOnMouseUp = true;            
         }
 
         public void FilterOff()
-        {
+        {            
             if (_tooltip.Active)
             {
                 _tooltip.Hide(_panel);
@@ -527,6 +606,87 @@ namespace AGS.Editor
             _tooltip.Dispose();
         }
 
+        public List<string> GetItemsNames()
+        {
+            Dictionary<string, int> items = GetItems();
+            List<string> names = new List<string>(items.Count);
+            foreach (string item in items.Keys)
+            {
+                names.Add(item);
+            }
+            return names;
+        }
+
+        public void SelectItem(string name)
+        { 
+            int area;
+            if (name != null && GetItems().TryGetValue(name, out area))
+            {
+                _selectedArea = area;
+                SelectedAreaChanged(area);                
+                return;  
+            }
+            Factory.GUIController.SetPropertyGridObject(_room);            
+        }
+
+        public virtual Cursor GetCursor(int x, int y, RoomEditorState state)
+        {
+            if (_drawMode != AreaDrawMode.Select)
+            {
+                return Cursors.Cross;
+            }
+            if (state.CurrentCursor == null)
+            {
+                x = ScreenToGameX(x, state);
+                y = ScreenToGameY(y, state);
+                int area = Factory.NativeProxy.GetAreaMaskPixel(_room, this.MaskToDraw, x, y);
+                if (area != 0 && !IsLocked(area))
+                {
+                    return _selectCursor;
+                }
+            }
+            return null;
+        }
+
+        public bool AllowClicksInterception()
+        {
+            return _drawMode == AreaDrawMode.Select;
+        }
+
+        protected void DeselectArea()
+        {
+            _selectedArea = 0;
+        }
+
+        protected string GetItemName(int id, string name)
+        {
+            return id == 0 ? ERASER : name;
+        }
+
+        private string GetItemName(int id)
+        {
+            Dictionary<string, int> items = GetItems();
+            foreach (KeyValuePair<string, int> pair in items)
+            {
+                if (pair.Value == id) return pair.Key;
+            }
+            return null;
+        }
+
+        private void SetDrawMode()
+        {
+            for (int i = 0; i < _toolbarIcons.Count; i++)
+            {
+                MenuCommand menuCommand = _toolbarIcons[i];
+                if (menuCommand.Checked)
+                {
+                    _drawMode = (AreaDrawMode)i;
+                    return;
+                }
+            }
+        }
+
+        protected abstract Dictionary<string, int> GetItems();
         protected abstract void SetPropertyGridList();
         protected abstract void SelectedAreaChanged(int areaNumber);
         protected abstract void GUIController_OnPropertyObjectChanged(object newPropertyObject);

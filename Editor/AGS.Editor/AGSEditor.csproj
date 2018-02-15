@@ -147,7 +147,7 @@
     <Compile Include="GUI\NumberEntryDialog.Designer.cs">
       <DependentUpon>NumberEntryDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="Panes\RoomEditFilters\CharactersEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\CharactersEditorFilter.cs" />
     <Compile Include="Plugins\IAGSEditor.cs" />
     <Compile Include="Plugins\NativePlugin.cs" />
     <Compile Include="Panes\BufferedPanel.cs">
@@ -635,6 +635,9 @@
       <DependentUpon>GlobalVariablesEditor.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="Panes\Room\RoomNodeControl.resx">
+      <DependentUpon>RoomNodeControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Panes\WelcomePane.resx">
       <SubType>Designer</SubType>
       <DependentUpon>WelcomePane.cs</DependentUpon>
@@ -688,8 +691,12 @@
     <Content Include="Resources\audio_player-play.ico" />
     <Content Include="Resources\audio_player-stop.ico" />
     <Content Include="Resources\editor.ico" />
+    <None Include="Resources\eye.png" />
+    <None Include="Resources\eye closed.png" />
     <Content Include="Resources\keyword.ico" />
     <Content Include="Resources\define.ico" />
+    <None Include="Resources\lock open.png" />
+    <None Include="Resources\lock.png" />
     <EmbeddedResource Include="Resources\menu_file_eventsgrid.ico" />
     <EmbeddedResource Include="Resources\menu_help_showstart.ico" />
     <EmbeddedResource Include="Resources\tree_audio_generic.ico" />
@@ -761,7 +768,7 @@
     <EmbeddedResource Include="Resources\drawline.ico" />
     <EmbeddedResource Include="Resources\save.ico" />
     <EmbeddedResource Include="Resources\open.ico" />
-    <EmbeddedResource Include="Panes\RoomSettingsEditor.resx">
+    <EmbeddedResource Include="Panes\Room\RoomSettingsEditor.resx">
       <SubType>Designer</SubType>
       <DependentUpon>RoomSettingsEditor.cs</DependentUpon>
     </EmbeddedResource>
@@ -848,6 +855,15 @@
     <Compile Include="Panes\GeneralSettingsPane.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="Panes\Room\RoomEditFilters\SelectedRoomItemEventArgs.cs" />
+    <Compile Include="Panes\Room\RoomEditNode.cs" />
+    <Compile Include="Panes\Room\RoomNodeControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\Room\RoomNodeControl.Designer.cs">
+      <DependentUpon>RoomNodeControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\Room\VisibleLayerRadioGroup.cs" />
     <Compile Include="Utils\ColorMapper.cs" />
     <Compile Include="Utils\DialogScriptConverter.cs" />
     <Compile Include="EditorEvents.cs" />
@@ -1052,20 +1068,20 @@
     </Compile>
     <Compile Include="TextProcessing\IGameTextProcessor.cs" />
     <Compile Include="Utils\OldGameImporter.cs" />
-    <Compile Include="Panes\RoomEditFilters\AreaDrawMode.cs" />
-    <Compile Include="Panes\RoomEditFilters\BaseAreasEditorFilter.cs" />
-    <Compile Include="Panes\RoomEditFilters\EdgesEditorFilter.cs" />
-    <Compile Include="Panes\RoomEditFilters\EmptyEditorFilter.cs" />
-    <Compile Include="Panes\RoomEditFilters\HotspotsEditorFilter.cs" />
-    <Compile Include="Panes\RoomEditFilters\IRoomEditorFilter.cs" />
-    <Compile Include="Panes\RoomEditFilters\ObjectsEditorFilter.cs" />
-    <Compile Include="Panes\RoomEditFilters\RegionsEditorFilter.cs" />
-    <Compile Include="Panes\RoomEditFilters\WalkableAreasEditorFilter.cs" />
-    <Compile Include="Panes\RoomEditFilters\WalkBehindsEditorFilter.cs" />
-    <Compile Include="Panes\RoomSettingsEditor.cs">
+    <Compile Include="Panes\Room\RoomEditFilters\AreaDrawMode.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\BaseAreasEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\EdgesEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\EmptyEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\HotspotsEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\IRoomEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\ObjectsEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\RegionsEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\WalkableAreasEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\WalkBehindsEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomSettingsEditor.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panes\RoomSettingsEditor.Designer.cs">
+    <Compile Include="Panes\Room\RoomSettingsEditor.Designer.cs">
       <DependentUpon>RoomSettingsEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="Plugins\NativePluginCallbacks.cs" />

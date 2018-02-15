@@ -8,6 +8,9 @@ using System.Data;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Editor.Panes.Room;
+using AddressBarExt;
+using AddressBarExt.Controls;
 
 namespace AGS.Editor
 {
@@ -21,8 +24,9 @@ namespace AGS.Editor
         public event AbandonChangesHandler AbandonChanges;
 
         private Room _room;
-        private IRoomEditorFilter _filter;
-        private List<IRoomEditorFilter> _filters = new List<IRoomEditorFilter>();
+        private IRoomEditorFilter _layer;
+        private RoomEditNode _layersRoot;
+        private List<IRoomEditorFilter> _layers = new List<IRoomEditorFilter>();
         private RoomEditorState _state = new RoomEditorState();
         private bool _editorConstructed = false;
         private int _lastX, _lastY;
@@ -44,30 +48,24 @@ namespace AGS.Editor
             }
             sldZoomLevel.Value = _state.ScaleFactor;
             _state.ScrollOffsetX = 0;
-            _state.ScrollOffsetY = 0;
-            _state.CurrentCursor = Cursors.Default;
+            _state.ScrollOffsetY = 0;            
 
-            _filters.Add(new EmptyEditorFilter(bufferedPanel1, _room));
-            _filters.Add(new EdgesEditorFilter(bufferedPanel1, _room));
-            _filters.Add(new CharactersEditorFilter(bufferedPanel1, _room, Factory.AGSEditor.CurrentGame));
-            _filters.Add(new ObjectsEditorFilter(bufferedPanel1, _room));
-            _filters.Add(new HotspotsEditorFilter(bufferedPanel1, _room));
-            _filters.Add(new WalkableAreasEditorFilter(bufferedPanel1, _room));
-            _filters.Add(new WalkBehindsEditorFilter(bufferedPanel1, _room));
-            _filters.Add(new RegionsEditorFilter(bufferedPanel1, _room));
-            _filter = _filters[0];
-            _filter.FilterOn();
+            _layers.Add(new EdgesEditorFilter(bufferedPanel1, _room));
+            _layers.Add(new CharactersEditorFilter(bufferedPanel1, _room, Factory.AGSEditor.CurrentGame));
+            _layers.Add(new ObjectsEditorFilter(bufferedPanel1, _room));
+            _layers.Add(new HotspotsEditorFilter(bufferedPanel1, _room));
+            _layers.Add(new WalkableAreasEditorFilter(bufferedPanel1, _room));
+            _layers.Add(new WalkBehindsEditorFilter(bufferedPanel1, _room));
+            _layers.Add(new RegionsEditorFilter(bufferedPanel1, _room));
 
-            cmbViewType.Items.Add("Nothing");
-            cmbViewType.Items.Add("Edges");
-            cmbViewType.Items.Add("Characters");
-            cmbViewType.Items.Add("Objects");
-            cmbViewType.Items.Add("Hotspots");
-            cmbViewType.Items.Add("Walkable areas");
-            cmbViewType.Items.Add("Walk-behinds");
-            cmbViewType.Items.Add("Regions");
-
-            cmbViewType.SelectedIndex = 0;
+            foreach (IRoomEditorFilter layer in _layers)
+            {
+                layer.OnItemsChanged += layer_OnItemsChanged;
+                layer.OnSelectedItemChanged += layer_OnSelectedItemChanged;
+            }
+            
+            RefreshLayersTree();
+            _editAddressBar.SelectionChange += editAddressBar_SelectionChange;
 
             RepopulateBackgroundList(0);
             UpdateScrollableWindowSize();
@@ -77,7 +75,111 @@ namespace AGS.Editor
             _editorConstructed = true;
         }
 
-		private void RoomSettingsEditor_MouseWheel(object sender, MouseEventArgs e)
+        private void RefreshLayersTree()
+        {
+            IAddressNode currentNode = _editAddressBar.CurrentNode;
+            IAddressNode[] layers = new IAddressNode[_layers.Count];
+            VisibleLayerRadioGroup visibleLayerRadioGroup = new VisibleLayerRadioGroup();
+            for (int layerIndex = 0; layerIndex < layers.Length; layerIndex++)
+            {
+                IRoomEditorFilter layer = _layers[layerIndex];                
+                List<string> names = layer.GetItemsNames();
+                IAddressNode[] children = new IAddressNode[names.Count];
+                for (int index = 0; index < names.Count; index++)
+                {
+                    string name = names[index];
+                    children[index] = new RoomEditNode(GetLayerItemUniqueID(layer, name), name, new IAddressNode[0], true, false)
+                    {
+                    };
+                }
+                RoomEditNode node = new RoomEditNode(layer.DisplayName, children, layer.VisibleByDefault);
+                node.Layer = layer;
+                if (layer is BaseAreasEditorFilter)
+                {
+                    node.VisibleGroup = visibleLayerRadioGroup;
+                }
+                foreach (IAddressNode child in children)
+                {
+                    child.Parent = node;
+                }
+                layers[layerIndex] = node;
+            }
+            _layersRoot = new RoomEditNode("Room", layers, true);
+            foreach (IAddressNode layer in layers)
+            {
+                layer.Parent = _layersRoot;
+            }
+            _editAddressBar.InitializeRoot(_layersRoot);
+
+            SelectOldNode(currentNode);
+        }
+        
+        private void SelectOldNode(IAddressNode currentNode)
+        {
+            if (currentNode == null) return;
+
+            IAddressNode selectedNode = _layersRoot.GetChild(currentNode.UniqueID, true);
+            if (selectedNode != null)
+            {
+                _editAddressBar.CurrentNode = selectedNode;
+                return;
+            }
+            if (currentNode.Parent == null)
+            {
+                _editAddressBar.CurrentNode = _layersRoot;
+                return;
+            }
+            selectedNode = _layersRoot.GetChild(currentNode.Parent.UniqueID, true);
+            if (selectedNode == null)
+            {
+                _editAddressBar.CurrentNode = _layersRoot;
+                return;
+            }
+            //We found the old node's parent, but not the node itself, so it was probably renamed.
+            //To find the renamed item, we need to find the item that doesn't exist in the old tree.
+            foreach (IAddressNode child in selectedNode.Children)
+            {
+                bool foundChild = false;
+                foreach (IAddressNode oldChild in currentNode.Parent.Children)
+                {
+                    if (oldChild.UniqueID.Equals(child.UniqueID))
+                    {
+                        foundChild = true;
+                        break;
+                    }
+                }
+                if (!foundChild)
+                {
+                    _editAddressBar.CurrentNode = child;
+                    return;
+                }
+            }
+            //We didn't find any missing node, lets at least select the parent
+            _editAddressBar.CurrentNode = selectedNode;            
+        }
+
+        private void layer_OnItemsChanged(object sender, EventArgs e)
+        {
+            RefreshLayersTree();            
+        }
+
+        private void layer_OnSelectedItemChanged(object sender, SelectedRoomItemEventArgs e)
+        {
+            IRoomEditorFilter layer = sender as IRoomEditorFilter;
+            if (layer == null) return;
+            IAddressNode node = _editAddressBar.RootNode.GetChild(GetLayerItemUniqueID(layer, e.Item), true);
+            if (node == null) return;
+            _editAddressBar.CurrentNode = node;
+            SelectLayer(layer);
+            //selecting hotspot from designer Panel, then cant Draw more hotspots...
+        }
+
+        private string GetLayerItemUniqueID(IRoomEditorFilter layer, string itemName)
+        {
+            return layer.DisplayName + itemName;
+        }
+                
+        private void RoomSettingsEditor_MouseWheel(object sender, MouseEventArgs e)
 		{
 			int movement = e.Delta;
 			if (movement > 0)
@@ -148,15 +250,53 @@ namespace AGS.Editor
 				// up with objects, etc
 				int drawOffsX = -(_state.ScrollOffsetX / _state.ScaleFactor) * _state.ScaleFactor;
 				int drawOffsY = -(_state.ScrollOffsetY / _state.ScaleFactor) * _state.ScaleFactor;
+                IRoomEditorFilter maskFilter = GetCurrentMaskFilter();
 				lock (_room)
 				{
-					Factory.NativeProxy.DrawRoomBackground(hdc, _room, drawOffsX, drawOffsY, backgroundNumber, scaleFactor, _filter.MaskToDraw, _filter.SelectedArea, sldTransparency.Value);
+					Factory.NativeProxy.DrawRoomBackground(hdc, _room, drawOffsX, drawOffsY, backgroundNumber, scaleFactor,
+                        maskFilter == null ? RoomAreaMaskType.None : maskFilter.MaskToDraw, 
+                        maskFilter == null ? 0 : maskFilter.SelectedArea, sldTransparency.Value);
 				}
-                _filter.PaintToHDC(hdc, _state);
+                foreach (IRoomEditorFilter layer in _layers)
+                {                    
+                    if (!IsVisible(layer)) continue;
+                    //_filter.PaintToHDC(hdc, _state);
+                    layer.PaintToHDC(hdc, _state);
+                }
                 Factory.NativeProxy.RenderBufferToHDC(hdc);
                 e.Graphics.ReleaseHdc(hdc);
-                _filter.Paint(e.Graphics, _state);
+                foreach (IRoomEditorFilter layer in _layers)
+                {
+                    if (!IsVisible(layer)) continue;
+                    layer.Paint(e.Graphics, _state);
+                }
             }
+        }
+
+        private IRoomEditorFilter GetCurrentMaskFilter()
+        {
+            foreach (IRoomEditorFilter filter in _layers)
+            {
+                if (!(filter is BaseAreasEditorFilter)) continue;
+                if (IsVisible(filter)) return filter;
+            }
+            return null;
+        }
+
+        private bool IsVisible(IRoomEditorFilter layer)
+        {
+            RoomEditNode node = _editAddressBar.RootNode.GetChild(layer.DisplayName, true) as RoomEditNode;
+            if (node == null) return true;
+            return node.IsVisible;
+        }
+
+        private bool IsLocked(IRoomEditorFilter layer)
+        {            
+            RoomEditNode node = _editAddressBar.RootNode.GetChild(layer.DisplayName, true) as RoomEditNode;
+            if (node == null) return false;
+            if (!node.IsVisible) return true;
+            if (_layer != null && !_layer.AllowClicksInterception() && _layer != layer) return true;
+            return node.IsLocked;
         }
 
         private void cmbBackgrounds_SelectedIndexChanged(object sender, EventArgs e)
@@ -380,7 +520,16 @@ namespace AGS.Editor
 
         private void bufferedPanel1_MouseDown(object sender, MouseEventArgs e)
         {
-            _filter.MouseDown(e, _state);
+            foreach (IRoomEditorFilter layer in _layers)
+            {
+                if (IsLocked(layer)) continue;
+                layer.MouseDownAlways(e, _state);
+            }
+            foreach (IRoomEditorFilter layer in _layers)
+            {
+                if (IsLocked(layer)) continue;
+                if (layer.MouseDown(e, _state)) break;
+            }
             _mouseIsDown = true;
 		}
 
@@ -388,7 +537,11 @@ namespace AGS.Editor
         {
             if (_mouseIsDown)
             {
-                _filter.MouseUp(e, _state);
+                foreach (IRoomEditorFilter layer in _layers)
+                {
+                    if (IsLocked(layer)) continue;
+                    if (layer.MouseUp(e, _state)) break;
+                }
                 Factory.GUIController.RefreshPropertyGrid();
                 bufferedPanel1.Invalidate();
                 _mouseIsDown = false;
@@ -402,8 +555,12 @@ namespace AGS.Editor
 		}
 
 		private void bufferedPanel1_DoubleClick(object sender, EventArgs e)
-		{
-			_filter.DoubleClick(_state);
+		{            
+            foreach (IRoomEditorFilter layer in _layers)
+            {
+                if (IsLocked(layer)) continue;
+                if (layer.DoubleClick(_state)) break;
+            }
 			Factory.GUIController.RefreshPropertyGrid();
 			bufferedPanel1.Invalidate();
 		}
@@ -416,8 +573,7 @@ namespace AGS.Editor
             }
 
             _lastX = e.X;
-            _lastY = e.Y;
-            _state.CurrentCursor = Cursors.Default;
+            _lastY = e.Y;            
 
             int mouseXPos = ((e.X + _state.ScrollOffsetX) / _state.ScaleFactor);
             int mouseYPos = ((e.Y + _state.ScrollOffsetY) / _state.ScaleFactor);
@@ -433,34 +589,81 @@ namespace AGS.Editor
             }
             lblMousePos.Text = "Mouse Position: " + xPosText + ", " + yPosText;
 
-            if (_filter.MouseMove(e.X, e.Y, _state))
+            SelectCursor(e.X, e.Y, _state);
+            foreach (IRoomEditorFilter layer in _layers)
             {
-                bufferedPanel1.Invalidate();
-            }
-            bufferedPanel1.Cursor = _state.CurrentCursor;
+                if (IsLocked(layer)) continue;
+                if (layer.MouseMove(e.X, e.Y, _state))
+                {
+                    bufferedPanel1.Invalidate();                    
+                    break;
+                }
+            }            
         }
 
-        private void cmbViewType_SelectedIndexChanged(object sender, EventArgs e)
+        private void SelectCursor(int x, int y, RoomEditorState state)
         {
-            if (_editorConstructed)
+            state.CurrentCursor = Cursors.Default;            
+            if (_layer != null) state.CurrentCursor = _layer.GetCursor(x, y, state);
+            else state.CurrentCursor = null;   
+            if (state.CurrentCursor != null)
             {
-                _filter.FilterOff();
-                _filter = _filters[cmbViewType.SelectedIndex];
-
-                SetDefaultPropertyGridList();
-                Factory.GUIController.SetPropertyGridObject(_room);
-				lblTransparency.Visible = _filter.ShowTransparencySlider;
-				sldTransparency.Visible = _filter.ShowTransparencySlider;
-                chkCharacterOffset.Visible = ((string)cmbViewType.SelectedItem == "Characters");
-
-                _filter.FilterOn();
-
-                bufferedPanel1.Invalidate();
-				// ensure that shortcut keys do not move the combobox
-				bufferedPanel1.Focus();
-            }
+                bufferedPanel1.Cursor = state.CurrentCursor;
+                return;
+            }            
+            for (int layerIndex = _layers.Count - 1; layerIndex >= 0; layerIndex--)
+            {
+                IRoomEditorFilter layer = _layers[layerIndex];
+                if (IsLocked(layer)) continue;
+                Cursor tmpCursor = layer.GetCursor(x, y, state);
+                if (tmpCursor != null) state.CurrentCursor = tmpCursor;
+            }            
+            bufferedPanel1.Cursor = state.CurrentCursor ?? Cursors.Default;
         }
 
+        private void editAddressBar_SelectionChange(object sender, NodeChangedArgs e)
+        {
+            if (_layersRoot.UniqueID.Equals(e.OUniqueID))
+            {
+                Factory.GUIController.SetPropertyGridObject(_room);
+                return;
+            }
+
+            RoomEditNode node = _layersRoot.GetChild(e.OUniqueID, true) as RoomEditNode;
+            if (node == null) return;
+            RoomEditNode layerNode = node;
+            while (layerNode != null && layerNode.Layer == null)
+            {
+                layerNode = layerNode.Parent as RoomEditNode;
+            }
+            if (layerNode == null) return;
+
+            layerNode.IsVisible = true;
+            SelectLayer(layerNode.Layer);
+            layerNode.Layer.SelectItem(node == layerNode ? null : node.DisplayName);
+        }
+
+        private void SelectLayer(IRoomEditorFilter layer)
+        {
+            if (!_editorConstructed) return;
+            if (layer == _layer) return;
+
+            if (_layer != null) _layer.FilterOff();
+            _layer = layer;
+
+            SetDefaultPropertyGridList();
+            Factory.GUIController.SetPropertyGridObject(_room);
+            lblTransparency.Visible = _layer.ShowTransparencySlider;
+            sldTransparency.Visible = _layer.ShowTransparencySlider;
+            chkCharacterOffset.Visible = _layer is CharactersEditorFilter;
+            
+            _layer.FilterOn();
+
+            bufferedPanel1.Invalidate();
+            // ensure that shortcut keys do not move the combobox
+            bufferedPanel1.Focus();            
+        }
+		
         private void SetDefaultPropertyGridList()
         {
             Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
@@ -470,7 +673,8 @@ namespace AGS.Editor
 
 		protected override string OnGetHelpKeyword()
 		{
-			return _filter.HelpKeyword;
+            if (_layer == null) return "";
+			return _layer.HelpKeyword;
 		}
 
 		private bool DoesThisPanelHaveFocus()
@@ -530,7 +734,7 @@ namespace AGS.Editor
             {
                 return false;
             }
-            if (_filter.KeyPressed(keyData))
+            if (_layer != null && _layer.KeyPressed(keyData))
             {
                 bufferedPanel1.Invalidate();
                 Factory.GUIController.RefreshPropertyGrid();
@@ -572,10 +776,14 @@ namespace AGS.Editor
 			if ((propertyName == RoomHotspot.PROPERTY_NAME_SCRIPT_NAME) ||
 				(propertyName == RoomObject.PROPERTY_NAME_SCRIPT_NAME))
 			{
-				// Force the filter to refresh its property list with the new name
-				_filter.FilterOff();
-				_filter.FilterOn();
-			}
+                if (_layer != null)
+                {
+                    // Force the layer to refresh its property list with the new name                
+                    _layer.FilterOff();
+                    _layer.FilterOn();
+                }
+                RefreshLayersTree();          
+			}            
 		}
 
 		protected override void OnWindowActivated()
@@ -586,15 +794,16 @@ namespace AGS.Editor
 
         protected override void OnCommandClick(string command)
         {
-            _filter.CommandClick(command);
+            if (_layer == null) return;
+            _layer.CommandClick(command);
         }
 
         protected override void OnDispose()
         {
-            _filter.FilterOff();
-            foreach (IRoomEditorFilter filter in _filters)
+            if (_layer != null) _layer.FilterOff();
+            foreach (IRoomEditorFilter layer in _layers)
             {
-                filter.Dispose();
+                layer.Dispose();
             }
         }
 

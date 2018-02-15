@@ -23,19 +23,29 @@ namespace AGS.Editor
         public void SaveLayout()
         {
             string configFile = GetLayoutFile();
-            string folder = Path.GetDirectoryName(configFile);
+            SaveLayout(configFile);
+        }
+
+        public void SaveLayout(string path)
+        {
+            string folder = Path.GetDirectoryName(path);
             Directory.CreateDirectory(folder);
             File.SetAttributes(folder, FileAttributes.Normal);
-            _dockPanel.SaveAsXml(configFile);
+            _dockPanel.SaveAsXml(path);
         }
 
         public bool LoadLayout()
         {
             string configFile = GetLayoutFile();
-            if (File.Exists(configFile))
+            return LoadLayout(configFile);
+        }
+
+        public bool LoadLayout(string path)
+        {
+            if (File.Exists(path))
             {
-                DetachExistingPanes();            
-                _dockPanel.LoadFromXml(configFile, new
+                DetachExistingPanes();
+                _dockPanel.LoadFromXml(path, new
                     DeserializeDockContent(DeserializeContents));
                 return true;
             }

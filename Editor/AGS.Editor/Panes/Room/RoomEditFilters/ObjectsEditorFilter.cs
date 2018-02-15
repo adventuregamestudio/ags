@@ -30,14 +30,33 @@ namespace AGS.Editor
             _panel = displayPanel;
             _selectedObject = null;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
+            VisibleItems = new List<string>();
+            LockedItems = new List<string>();
         }
+
+        public string DisplayName { get { return "Objects"; } }
+
+        public bool VisibleByDefault { get { return true; } }
 
         public RoomAreaMaskType MaskToDraw
         {
             get { return RoomAreaMaskType.None; }
         }
 
-		public int SelectedArea
+        public bool SupportVisibleItems { get { return true; } }
+
+        public List<string> VisibleItems { get; private set; }
+        public List<string> LockedItems { get; private set; }
+
+        public event EventHandler OnItemsChanged;
+        public event EventHandler<SelectedRoomItemEventArgs> OnSelectedItemChanged;
+
+        public int ItemCount
+        {
+            get { return _objectBaselines.Count; }
+        }
+
+        public int SelectedArea
 		{
 			get { return 0; }
 		}
@@ -52,7 +71,7 @@ namespace AGS.Editor
 			get { return string.Empty; }
 		}
 
-		public bool KeyPressed(Keys key)
+        public bool KeyPressed(Keys key)
 		{
             if (_selectedObject == null) return false;
             if (!_selectedObject.Locked)
@@ -73,6 +92,8 @@ namespace AGS.Editor
             return false;
 		}
 
+        public void Invalidate() { _panel.Invalidate(); }
+
         public virtual void PaintToHDC(IntPtr hDC, RoomEditorState state)
         {
             _objectBaselines.Clear();
@@ -92,6 +113,7 @@ namespace AGS.Editor
 
             foreach (RoomObject obj in _objectBaselines)
             {
+                if (!VisibleItems.Contains(GetUniqueName(obj))) continue;
                 int height = GetSpriteHeightForGameResolution(obj.Image);
                 int ypos = AdjustYCoordinateForWindowScroll(obj.StartY, state) - (height * state.ScaleFactor);
 				Factory.NativeProxy.DrawSpriteToBuffer(obj.Image, AdjustXCoordinateForWindowScroll(obj.StartX, state), ypos, state.ScaleFactor);
@@ -134,7 +156,7 @@ namespace AGS.Editor
             int xPos;
             int yPos;
 
-            if (_selectedObject != null)
+            if (_selectedObject != null && VisibleItems.Contains(GetUniqueName(_selectedObject)))
             {
                 int width = GetSpriteWidthForGameResolution(_selectedObject.Image);
 				int height = GetSpriteHeightForGameResolution(_selectedObject.Image);
@@ -181,44 +203,63 @@ namespace AGS.Editor
 			return (y - (state.ScrollOffsetY / state.ScaleFactor)) * state.ScaleFactor;
 		}
 
-        public virtual void MouseDown(MouseEventArgs e, RoomEditorState state)
+        public void MouseDownAlways(MouseEventArgs e, RoomEditorState state)
+        {
+            _selectedObject = null;
+        }
+
+        public virtual bool MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             int x = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
             int y = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
-            _selectedObject = null;
+            RoomObject obj = GetObject(x, y);
             
-            for (int i = _objectBaselines.Count - 1; i >= 0; i--)
-            {
-                RoomObject obj = _objectBaselines[i];
-                int width = GetSpriteWidthForGameResolution(obj.Image);
-                int height = GetSpriteHeightForGameResolution(obj.Image);
-                if ((x >= obj.StartX) && (x < obj.StartX + width) &&
-                    (y >= obj.StartY - height) && (y < obj.StartY))
+            if (obj != null)
+            {                
+                SetSelectedObject(obj);
+                Factory.GUIController.SetPropertyGridObject(obj);
+                if (e.Button == MouseButtons.Right)
                 {
-                    _selectedObject = obj;
-                    Factory.GUIController.SetPropertyGridObject(obj);
-                    if (e.Button == MouseButtons.Right)
-                    {
-                        ShowContextMenu(e, state);
-                    }
-                    else
+                    ShowContextMenu(e, state);
+                }
+                else
                         if (!obj.Locked)
                         {
                             _movingObjectWithMouse = true;
                             _mouseOffsetX = x - obj.StartX;
                             _mouseOffsetY = y - obj.StartY;
                         }
-                    break;
-                }
             }
             if (_selectedObject == null)
-            {
-                Factory.GUIController.SetPropertyGridObject(_room);
+            {                
                 if (e.Button == MouseButtons.Right)
                 {
                     ShowContextMenu(e, state);
+                    return true;
                 }
+                return false;
             }
+            return true;
+        }
+
+        private RoomObject GetObject(int x, int y)
+        {
+            for (int i = _objectBaselines.Count - 1; i >= 0; i--)
+            {
+                RoomObject obj = _objectBaselines[i];
+                string name = GetUniqueName(obj);
+                if (!VisibleItems.Contains(name) || LockedItems.Contains(name)) continue;
+                if (HitTest(obj, x, y)) return obj;
+            }
+            return null;
+        }
+
+        private bool HitTest(RoomObject obj, int x, int y)
+        { 
+            int width = GetSpriteWidthForGameResolution(obj.Image);
+            int height = GetSpriteHeightForGameResolution(obj.Image);
+            return ((x >= obj.StartX) && (x < obj.StartX + width) &&
+                (y >= obj.StartY - height) && (y < obj.StartY));
         }
 
         private void CoordMenuEventHandler(object sender, EventArgs e)
@@ -283,11 +324,12 @@ namespace AGS.Editor
                 newObj.StartX = SetObjectCoordinate(_menuClickX);
                 newObj.StartY = SetObjectCoordinate(_menuClickY);
                 _room.Objects.Add(newObj);
-                _selectedObject = newObj;
+                SetSelectedObject(newObj);
                 SetPropertyGridList();
                 Factory.GUIController.SetPropertyGridObject(newObj);
                 _room.Modified = true;
-                _panel.Invalidate();
+                OnItemsChanged(this, null);
+                _panel.Invalidate();                
             }
             else if (item.Name == MENU_ITEM_OBJECT_COORDS)
             {
@@ -326,7 +368,7 @@ namespace AGS.Editor
             menu.Show(_panel, e.X, e.Y);
         }
 
-        public virtual void MouseUp(MouseEventArgs e, RoomEditorState state)
+        public virtual bool MouseUp(MouseEventArgs e, RoomEditorState state)
         {
             _movingObjectWithMouse = false;
 			_lastSelectedObject = _selectedObject;
@@ -335,9 +377,10 @@ namespace AGS.Editor
             {
                 ShowCoordMenu(e, state);
             }
+            return false;
         }
 
-		public void DoubleClick(RoomEditorState state)
+		public bool DoubleClick(RoomEditorState state)
 		{
 			if (_lastSelectedObject != null)
 			{
@@ -346,7 +389,9 @@ namespace AGS.Editor
 				{
 					_lastSelectedObject.Image = chosenSprite.Number;
 				}
+                return true;
 			}
+            return false;
 		}
 
         public virtual bool MouseMove(int x, int y, RoomEditorState state)
@@ -426,6 +471,56 @@ namespace AGS.Editor
         {
         }
 
+        public List<string> GetItemsNames()
+        {
+            List<string> names = new List<string>(_room.Objects.Count);
+            foreach (RoomObject obj in _room.Objects)
+            {
+                names.Add(GetUniqueName(obj));
+            }
+            return names;
+        }
+
+        public void SelectItem(string name)
+        {
+            if (name != null)
+            {
+                foreach (RoomObject obj in _room.Objects)
+                {
+                    if (GetUniqueName(obj) != name) continue;
+                    _selectedObject = obj;
+                    Factory.GUIController.SetPropertyGridObject(obj);                    
+                    return;
+                }
+            }
+
+            _selectedObject = null;
+            Factory.GUIController.SetPropertyGridObject(_room);            
+        }
+
+        public Cursor GetCursor(int x, int y, RoomEditorState state)
+        {
+            if (_movingObjectWithMouse) return Cursors.Hand;
+            x = (x + state.ScrollOffsetX) / state.ScaleFactor;
+            y = (y + state.ScrollOffsetY) / state.ScaleFactor;
+            if (GetObject(x, y) != null) return Cursors.Default;
+            return null;
+        }
+
+        public bool AllowClicksInterception()
+        {
+            return true;
+        }
+
+        private void SetSelectedObject(RoomObject roomObject)
+        {
+            _selectedObject = roomObject;
+            if (OnSelectedItemChanged != null)
+            {
+                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(GetUniqueName(roomObject)));
+            }
+        }
+
         private void SetPropertyGridList()
         {
             Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
@@ -442,7 +537,7 @@ namespace AGS.Editor
         {
             if (newPropertyObject is RoomObject)
             {
-                _selectedObject = (RoomObject)newPropertyObject;
+                SetSelectedObject((RoomObject)newPropertyObject);                
                 _panel.Invalidate();
             }
             else if (newPropertyObject is Room)
@@ -450,6 +545,11 @@ namespace AGS.Editor
                 _selectedObject = null;
                 _panel.Invalidate();
             }
+        }
+
+        private string GetUniqueName(RoomObject obj)
+        {
+            return obj.PropertyGridTitle;
         }
 
     }

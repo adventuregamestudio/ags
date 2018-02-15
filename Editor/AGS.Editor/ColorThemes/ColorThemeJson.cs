@@ -9,12 +9,15 @@ namespace AGS.Editor
 {
     public class ColorThemeJson : ColorTheme
     {
-        private readonly JObject _json;
+        private readonly string _dir;
+        private JObject _json;
 
         public ColorThemeJson(string name, string dir) : base(name)
         {
-            _json = JObject.Parse(File.ReadAllText(dir));
+            _dir = dir;
         }
+
+        public override void Init() => _json = JObject.Parse(File.ReadAllText(_dir));
 
         public override Color GetColor(string id)
         {

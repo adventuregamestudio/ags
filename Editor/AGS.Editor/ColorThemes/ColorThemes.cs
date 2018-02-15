@@ -18,6 +18,7 @@ namespace AGS.Editor
             _themes = new List<ColorTheme>();
             _preferences = Factory.AGSEditor.Preferences;
             Load();
+            Init();
         }
 
         public ColorTheme Current
@@ -55,20 +56,25 @@ namespace AGS.Editor
 
             _themes.Clear();
             _themes.Add(ColorThemeStub.DEFAULT);
-            Directory.GetFiles(DiskDir, "*.json").ToList().ForEach(f =>
-            {
-                try
-                {
-                    _themes.Add(new ColorThemeJson(Path.GetFileNameWithoutExtension(f), f));
-                }
-                catch (Exception e)
-                {
-                    Factory.GUIController.ShowMessage(
-                        $"Something went wrong when loading color theme {f}. See stack trace for more details.\n\n{e}",
-                        MessageBoxIcon.Warning);
-                }
-            });
+            Directory.GetFiles(DiskDir, "*.json").ToList().ForEach(f => _themes.Add(new ColorThemeJson(Path.GetFileNameWithoutExtension(f), f)));
             Current = _themes.FirstOrDefault(t => t.Name == Factory.AGSEditor.Preferences.ColorTheme) ?? ColorThemeStub.DEFAULT;
+        }
+
+        public void Init()
+        {
+            try
+            {
+                Current.Init();
+            }
+            catch (Exception e)
+            {
+                Factory.GUIController.ShowMessage(
+                    $"Something went wrong when loading color theme {Current.Name}. The editor " +
+                    $"will set the color them back to the default them and continue as normal. " +
+                    $"See stack trace for more details.\n\n{e}",
+                    MessageBoxIcon.Warning);
+                Current = ColorThemeStub.DEFAULT;
+            }
         }
 
         public void Apply(Action<ColorTheme> apply)

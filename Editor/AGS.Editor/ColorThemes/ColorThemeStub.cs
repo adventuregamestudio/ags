@@ -12,6 +12,10 @@ namespace AGS.Editor
         {
         }
 
+        public override void Init()
+        {
+        }
+
         public override Color GetColor(string id)
         {
             throw new NotImplementedException();

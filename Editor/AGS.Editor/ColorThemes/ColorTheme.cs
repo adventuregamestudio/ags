@@ -12,6 +12,8 @@ namespace AGS.Editor
 
         public string Name { get; }
 
+        public abstract void Init();
+
         public abstract Color GetColor(string id);
 
         public abstract int GetInt(string id);

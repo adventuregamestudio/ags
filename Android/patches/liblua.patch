@@ -20,8 +20,7 @@ diff -Naur src/Makefile src/Makefile
  PLAT= none
  
 -CC= gcc
--CFLAGS= -O2 -Wall $(MYCFLAGS)
-+CFLAGS= -O2 -Wall $(MYCFLAGS) -D__ANDROID_API__=$AP 
+ CFLAGS= -O2 -Wall $(MYCFLAGS)
  AR= ar rcu
  RANLIB= ranlib
  RM= rm -f

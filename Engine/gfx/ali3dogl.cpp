@@ -120,6 +120,9 @@ const char* fbo_extension_string = "GL_OES_framebuffer_object";
 #define glGenerateMipmapEXT glGenerateMipmapOES
 #define glFramebufferTexture2DEXT glFramebufferTexture2DOES
 #define glFramebufferRenderbufferEXT glFramebufferRenderbufferOES
+// TODO: probably should use EGL and function eglSwapInterval on Android to support setting swap interval
+// For now this is a dummy function pointer which is only used to test that function is not supported
+const void (*glSwapIntervalEXT)(int) = NULL;
 
 #define GL_FRAMEBUFFER_EXT GL_FRAMEBUFFER_OES
 #define GL_COLOR_ATTACHMENT0_EXT GL_COLOR_ATTACHMENT0_OES
@@ -160,6 +163,9 @@ const char* fbo_extension_string = "GL_OES_framebuffer_object";
 #define glGenerateMipmapEXT glGenerateMipmapOES
 #define glFramebufferTexture2DEXT glFramebufferTexture2DOES
 #define glFramebufferRenderbufferEXT glFramebufferRenderbufferOES
+// TODO: find out how to support swap interval setting on iOS
+// For now this is a dummy function pointer which is only used to test that function is not supported
+const void (*glSwapIntervalEXT)(int) = NULL;
 
 #define GL_FRAMEBUFFER_EXT GL_FRAMEBUFFER_OES
 #define GL_COLOR_ATTACHMENT0_EXT GL_COLOR_ATTACHMENT0_OES
@@ -531,22 +537,25 @@ void OGLGraphicsDriver::DeleteGlContext()
 
 void OGLGraphicsDriver::TestVSync()
 {
+// TODO: find out how to implement SwapInterval on other platforms, and how to check if it's supported
+#if defined(WINDOWS_VERSION)
   const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
   const char* extensionsARB = NULL;
-#if defined(WINDOWS_VERSION)
+//#if defined(WINDOWS_VERSION)
   PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
   extensionsARB = wglGetExtensionsStringARB ? (const char*)wglGetExtensionsStringARB(_hDC) : NULL;
-#endif
+//#endif
 
   if (extensions && strstr(extensions, vsync_extension_string) != NULL ||
         extensionsARB && strstr(extensionsARB, vsync_extension_string) != NULL)
   {
-#if defined(WINDOWS_VERSION)
+//#if defined(WINDOWS_VERSION)
     glSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
-#endif
+//#endif
   }
   if (!glSwapIntervalEXT)
     Debug::Printf(kDbgMsg_Warn, "WARNING: OpenGL extension '%s' not supported, vertical sync will be kept at driver default.", vsync_extension_string);
+#endif
 }
 
 void OGLGraphicsDriver::TestRenderToTexture()

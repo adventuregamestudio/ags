@@ -33,11 +33,13 @@
 #elif defined(ANDROID_VERSION)
 
 #include <GLES/gl.h>
+#include <GLES2/gl2.h>
 
 #ifndef GL_GLEXT_PROTOTYPES
 #define GL_GLEXT_PROTOTYPES
 #endif
 
+// TODO: we probably should not use GLExt since we use GLES2
 #include <GLES/glext.h>
 
 #define HDC void*

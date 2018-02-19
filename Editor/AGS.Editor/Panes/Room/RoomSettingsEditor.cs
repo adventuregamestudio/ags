@@ -885,10 +885,10 @@ namespace AGS.Editor
             btnExport.FlatStyle = (FlatStyle)t.GetInt("room-editor/btn-export/flat/style");
             btnExport.FlatAppearance.BorderSize = t.GetInt("room-editor/btn-export/flat/border/size");
             btnExport.FlatAppearance.BorderColor = t.GetColor("room-editor/btn-export/flat/border/color");
-            mainFrame.Controls.Remove(cmbViewType);
-            cmbViewType = t.GetComboBox("room-editor/combo-view-type", cmbViewType);
-            mainFrame.Controls.Add(cmbViewType);
-            cmbViewType.SelectedIndexChanged += cmbViewType_SelectedIndexChanged;
+            _editAddressBar.BackColor = t.GetColor("room-editor/combo-view-type/background");
+            _editAddressBar.ForeColor = t.GetColor("room-editor/combo-view-type/foreground");
+            _editAddressBar.DropDownBackColor = t.GetColor("room-editor/combo-view-type/drop-down/background");
+            _editAddressBar.DropDownForeColor = t.GetColor("room-editor/combo-view-type/drop-down/foreground");
             mainFrame.Controls.Remove(cmbBackgrounds);
             cmbBackgrounds= t.GetComboBox("room-editor/combo-backgrounds", cmbBackgrounds);
             cmbBackgrounds.SelectedIndexChanged += cmbBackgrounds_SelectedIndexChanged;

@@ -117,6 +117,16 @@ namespace AddressBarExt.Controls
             set { this.selectedStyle = value; }
         }
 
+        public override Color BackColor
+        {
+            get { return ts_bar.BackColor; }
+            set { this.ts_bar.BackColor = value; }
+        }
+
+        public Color DropDownBackColor { get; set; }
+
+        public Color DropDownForeColor { get; set; }
+
         /// <summary>
         /// Gets/Sets the currently selected node. Validates upon set and updates the bar
         /// </summary>
@@ -371,6 +381,8 @@ namespace AddressBarExt.Controls
 
                         //create the drop down menu
                         tsDropDown = new ToolStripDropDownMenu();
+                        tsDropDown.BackColor = DropDownBackColor;
+                        tsDropDown.ForeColor = DropDownForeColor;
 
                         //Some variables to let the drawing happen smoothly
                         tsDropDown.LayoutStyle = ToolStripLayoutStyle.VerticalStackWithOverflow;

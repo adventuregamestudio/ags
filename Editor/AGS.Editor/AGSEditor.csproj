@@ -64,6 +64,9 @@
     <Reference Include="irrKlang.NET4">
       <HintPath>..\References\irrKlang.NET4.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\Solutions\packages\Newtonsoft.Json.10.0.3\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -77,6 +80,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AGSEditor.cs" />
+    <Compile Include="ColorThemes\ColorTheme.cs" />
+    <Compile Include="ColorThemes\ColorThemes.cs" />
+    <Compile Include="ColorThemes\ColorThemeJson.cs" />
+    <Compile Include="ColorThemes\ColorThemeStub.cs" />
+    <Compile Include="ColorThemes\Controls\ComboBoxCustom.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ColorThemes\Controls\MainMenuColorTable.cs" />
+    <Compile Include="ColorThemes\Controls\ToolStripColorTable.cs" />
     <Compile Include="Components\CharactersComponent.cs" />
     <Compile Include="Components\CursorsComponent.cs" />
     <Compile Include="Components\DialogsComponent.cs" />
@@ -308,6 +320,7 @@
     </Compile>
     <None Include="app.config" />
     <None Include="app.manifest" />
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -1101,6 +1114,7 @@
   <ItemGroup>
     <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -42,6 +42,7 @@ namespace AGS.Editor
         public ViewLoopEditor(ViewLoop loopToEdit, GUIController guiController)
         {
             InitializeComponent();
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _selectedFrame = -1;
             _loop = loopToEdit;
             lblLoopTitle.Text = "Loop " + _loop.ID + " (" + _loop.DirectionDescription + ")";
@@ -365,5 +366,14 @@ namespace AGS.Editor
                 }
             }
         }                
+
+        private void LoadColorTheme(ColorTheme t)
+        {
+            btnNewFrame.BackColor = t.GetColor("view-editor/btn-new-frame/background");
+            btnNewFrame.ForeColor = t.GetColor("view-editor/btn-new-frame/foreground");
+            btnNewFrame.FlatStyle = (FlatStyle)t.GetInt("view-editor/btn-new-frame/flat/style");
+            btnNewFrame.FlatAppearance.BorderSize = t.GetInt("view-editor/btn-new-frame/flat/border/size");
+            btnNewFrame.FlatAppearance.BorderColor = t.GetColor("view-editor/btn-new-frame/flat/border/color");
+        }
     }
 }

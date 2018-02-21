@@ -42,6 +42,9 @@ namespace AGS.Editor
             this.label8 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.btnImportColorTheme = new System.Windows.Forms.Button();
+            this.label7 = new System.Windows.Forms.Label();
+            this.cmbColorTheme = new System.Windows.Forms.ComboBox();
             this.chkPromptDialogOnTabsClose = new System.Windows.Forms.CheckBox();
             this.chkKeepHelpOnTop = new System.Windows.Forms.CheckBox();
             this.chkAlwaysShowViewPreview = new System.Windows.Forms.CheckBox();
@@ -95,7 +98,7 @@ namespace AGS.Editor
             // 
             this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOK.Location = new System.Drawing.Point(12, 473);
+            this.btnOK.Location = new System.Drawing.Point(12, 526);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(98, 27);
             this.btnOK.TabIndex = 0;
@@ -107,7 +110,7 @@ namespace AGS.Editor
             // 
             this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(116, 473);
+            this.btnCancel.Location = new System.Drawing.Point(116, 526);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(100, 27);
             this.btnCancel.TabIndex = 1;
@@ -237,7 +240,7 @@ namespace AGS.Editor
             this.label8.Size = new System.Drawing.Size(340, 26);
             this.label8.TabIndex = 2;
             this.label8.Text = "Changing these settings require you to restart the editor for them to take effect" +
-                ".";
+    ".";
             // 
             // label2
             // 
@@ -250,6 +253,9 @@ namespace AGS.Editor
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.btnImportColorTheme);
+            this.groupBox3.Controls.Add(this.label7);
+            this.groupBox3.Controls.Add(this.cmbColorTheme);
             this.groupBox3.Controls.Add(this.chkPromptDialogOnTabsClose);
             this.groupBox3.Controls.Add(this.chkKeepHelpOnTop);
             this.groupBox3.Controls.Add(this.chkAlwaysShowViewPreview);
@@ -259,15 +265,44 @@ namespace AGS.Editor
             this.groupBox3.Controls.Add(this.label5);
             this.groupBox3.Location = new System.Drawing.Point(7, 116);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(365, 148);
+            this.groupBox3.Size = new System.Drawing.Size(365, 215);
             this.groupBox3.TabIndex = 4;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Editor appearance";
             // 
+            // btnImportColorTheme
+            // 
+            this.btnImportColorTheme.Location = new System.Drawing.Point(152, 101);
+            this.btnImportColorTheme.Name = "btnImportColorTheme";
+            this.btnImportColorTheme.Size = new System.Drawing.Size(203, 23);
+            this.btnImportColorTheme.TabIndex = 12;
+            this.btnImportColorTheme.Text = "Import Color Theme";
+            this.btnImportColorTheme.UseVisualStyleBackColor = true;
+            this.btnImportColorTheme.Click += new System.EventHandler(this.btnImportColorTheme_Click);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(11, 78);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(71, 13);
+            this.label7.TabIndex = 11;
+            this.label7.Text = "Color Theme:";
+            // 
+            // cmbColorTheme
+            // 
+            this.cmbColorTheme.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbColorTheme.FormattingEnabled = true;
+            this.cmbColorTheme.Location = new System.Drawing.Point(152, 75);
+            this.cmbColorTheme.Name = "cmbColorTheme";
+            this.cmbColorTheme.Size = new System.Drawing.Size(203, 21);
+            this.cmbColorTheme.TabIndex = 10;
+            this.cmbColorTheme.DropDown += new System.EventHandler(this.cmbColorTheme_DropDown);
+            // 
             // chkPromptDialogOnTabsClose
             // 
             this.chkPromptDialogOnTabsClose.AutoSize = true;
-            this.chkPromptDialogOnTabsClose.Location = new System.Drawing.Point(14, 123);
+            this.chkPromptDialogOnTabsClose.Location = new System.Drawing.Point(14, 192);
             this.chkPromptDialogOnTabsClose.Name = "chkPromptDialogOnTabsClose";
             this.chkPromptDialogOnTabsClose.Size = new System.Drawing.Size(204, 17);
             this.chkPromptDialogOnTabsClose.TabIndex = 9;
@@ -277,7 +312,7 @@ namespace AGS.Editor
             // chkKeepHelpOnTop
             // 
             this.chkKeepHelpOnTop.AutoSize = true;
-            this.chkKeepHelpOnTop.Location = new System.Drawing.Point(14, 100);
+            this.chkKeepHelpOnTop.Location = new System.Drawing.Point(14, 169);
             this.chkKeepHelpOnTop.Name = "chkKeepHelpOnTop";
             this.chkKeepHelpOnTop.Size = new System.Drawing.Size(230, 17);
             this.chkKeepHelpOnTop.TabIndex = 8;
@@ -287,7 +322,7 @@ namespace AGS.Editor
             // chkAlwaysShowViewPreview
             // 
             this.chkAlwaysShowViewPreview.AutoSize = true;
-            this.chkAlwaysShowViewPreview.Location = new System.Drawing.Point(14, 77);
+            this.chkAlwaysShowViewPreview.Location = new System.Drawing.Point(14, 146);
             this.chkAlwaysShowViewPreview.Name = "chkAlwaysShowViewPreview";
             this.chkAlwaysShowViewPreview.Size = new System.Drawing.Size(242, 17);
             this.chkAlwaysShowViewPreview.TabIndex = 7;
@@ -473,7 +508,7 @@ namespace AGS.Editor
             this.label11.Size = new System.Drawing.Size(339, 26);
             this.label11.TabIndex = 2;
             this.label11.Text = "When you double-click a sprite, what program do you want to use to edit it? This " +
-                "program must support PNG and BMP files.";
+    "program must support PNG and BMP files.";
             // 
             // radPaintProgram
             // 
@@ -569,7 +604,7 @@ namespace AGS.Editor
             // 
             this.groupBox7.Controls.Add(this.lnkUsageInfo);
             this.groupBox7.Controls.Add(this.chkUsageInfo);
-            this.groupBox7.Location = new System.Drawing.Point(7, 270);
+            this.groupBox7.Location = new System.Drawing.Point(7, 335);
             this.groupBox7.Name = "groupBox7";
             this.groupBox7.Size = new System.Drawing.Size(365, 68);
             this.groupBox7.TabIndex = 8;
@@ -602,7 +637,7 @@ namespace AGS.Editor
             this.groupBox8.Controls.Add(this.udBackupInterval);
             this.groupBox8.Controls.Add(this.label14);
             this.groupBox8.Controls.Add(this.chkBackupReminders);
-            this.groupBox8.Location = new System.Drawing.Point(7, 345);
+            this.groupBox8.Location = new System.Drawing.Point(7, 409);
             this.groupBox8.Name = "groupBox8";
             this.groupBox8.Size = new System.Drawing.Size(365, 53);
             this.groupBox8.TabIndex = 9;
@@ -656,7 +691,7 @@ namespace AGS.Editor
             // groupBox9
             // 
             this.groupBox9.Controls.Add(this.chkRemapBgImport);
-            this.groupBox9.Location = new System.Drawing.Point(7, 406);
+            this.groupBox9.Location = new System.Drawing.Point(7, 466);
             this.groupBox9.Name = "groupBox9";
             this.groupBox9.Size = new System.Drawing.Size(365, 54);
             this.groupBox9.TabIndex = 10;
@@ -670,7 +705,7 @@ namespace AGS.Editor
             this.chkRemapBgImport.Size = new System.Drawing.Size(330, 30);
             this.chkRemapBgImport.TabIndex = 8;
             this.chkRemapBgImport.Text = "Remap palette of room backgrounds into allocated background palette slots (8-bit " +
-                "games only)";
+    "games only)";
             this.chkRemapBgImport.UseVisualStyleBackColor = true;
             // 
             // PreferencesEditor
@@ -679,7 +714,7 @@ namespace AGS.Editor
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(754, 508);
+            this.ClientSize = new System.Drawing.Size(754, 561);
             this.Controls.Add(this.groupBox9);
             this.Controls.Add(this.groupBox8);
             this.Controls.Add(this.groupBox7);
@@ -773,5 +808,8 @@ namespace AGS.Editor
         private System.Windows.Forms.CheckBox chkRemapBgImport;
         private System.Windows.Forms.CheckBox chkKeepHelpOnTop;
         private System.Windows.Forms.CheckBox chkPromptDialogOnTabsClose;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.ComboBox cmbColorTheme;
+        private System.Windows.Forms.Button btnImportColorTheme;
     }
 }

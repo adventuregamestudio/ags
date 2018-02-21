@@ -35,6 +35,7 @@ namespace AGS.Editor
         public frmMain()
         {
             InitializeComponent();
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
 
             _layoutManager = new WindowsLayoutManager(mainContainer, GetStartupPanes());            
             tabbedDocumentContainer1.ActiveDocumentChanged += new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanged);
@@ -496,5 +497,47 @@ namespace AGS.Editor
             //SetPropertyObject(null);
         }
 
+        private void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("background");
+            mainContainer.DockBackColor = t.GetColor("main-container/dock-background");
+            mainContainer.BackColor = t.GetColor("main-container/background");
+            mainContainer.ForeColor = t.GetColor("main-container/foreground");
+            mainContainer.Skin.AutoHideStripSkin.TabGradient.StartColor = t.GetColor("main-container/skin/auto-hide/tab-gradient/start");
+            mainContainer.Skin.AutoHideStripSkin.TabGradient.EndColor = t.GetColor("main-container/skin/auto-hide/tab-gradient/end");
+            mainContainer.Skin.AutoHideStripSkin.TabGradient.TextColor = t.GetColor("main-container/skin/auto-hide/tab-gradient/text");
+            mainContainer.Skin.AutoHideStripSkin.DockStripGradient.StartColor = t.GetColor("main-container/skin/auto-hide/dock-strip-gradient/start");
+            mainContainer.Skin.AutoHideStripSkin.DockStripGradient.EndColor = t.GetColor("main-container/skin/auto-hide/dock-strip-gradient/end");
+            mainContainer.Skin.DockPaneStripSkin.DocumentGradient.DockStripGradient.StartColor = t.GetColor("main-container/skin/dock-pane/document-gradient/dock-strip-gradient/start");
+            mainContainer.Skin.DockPaneStripSkin.DocumentGradient.DockStripGradient.EndColor = t.GetColor("main-container/skin/dock-pane/document-gradient/dock-strip-gradient/end");
+            mainContainer.Skin.DockPaneStripSkin.DocumentGradient.ActiveTabGradient.StartColor = t.GetColor("main-container/skin/dock-pane/document-gradient/active-tab-gradient/start");
+            mainContainer.Skin.DockPaneStripSkin.DocumentGradient.ActiveTabGradient.EndColor = t.GetColor("main-container/skin/dock-pane/document-gradient/active-tab-gradient/end");
+            mainContainer.Skin.DockPaneStripSkin.DocumentGradient.ActiveTabGradient.TextColor = t.GetColor("main-container/skin/dock-pane/document-gradient/active-tab-gradient/text");
+            mainContainer.Skin.DockPaneStripSkin.DocumentGradient.InactiveTabGradient.StartColor = t.GetColor("main-container/skin/dock-pane/document-gradient/inactive-tab-gradient/start");
+            mainContainer.Skin.DockPaneStripSkin.DocumentGradient.InactiveTabGradient.EndColor = t.GetColor("main-container/skin/dock-pane/document-gradient/inactive-tab-gradient/end");
+            mainContainer.Skin.DockPaneStripSkin.DocumentGradient.InactiveTabGradient.TextColor = t.GetColor("main-container/skin/dock-pane/document-gradient/inactive-tab-gradient/text");
+            mainContainer.Skin.DockPaneStripSkin.ToolWindowGradient.ActiveCaptionGradient.StartColor = t.GetColor("main-container/skin/dock-pane/tool-window/active-caption-gradient/start");
+            mainContainer.Skin.DockPaneStripSkin.ToolWindowGradient.ActiveCaptionGradient.EndColor = t.GetColor("main-container/skin/dock-pane/tool-window/active-caption-gradient/end");
+            mainContainer.Skin.DockPaneStripSkin.ToolWindowGradient.ActiveCaptionGradient.TextColor = t.GetColor("main-container/skin/dock-pane/tool-window/active-caption-gradient/text");
+            mainContainer.Skin.DockPaneStripSkin.ToolWindowGradient.InactiveCaptionGradient.StartColor = t.GetColor("main-container/skin/dock-pane/tool-window/inactive-caption-gradient/start");
+            mainContainer.Skin.DockPaneStripSkin.ToolWindowGradient.InactiveCaptionGradient.EndColor = t.GetColor("main-container/skin/dock-pane/tool-window/inactive-caption-gradient/end");
+            mainContainer.Skin.DockPaneStripSkin.ToolWindowGradient.InactiveCaptionGradient.TextColor = t.GetColor("main-container/skin/dock-pane/tool-window/inactive-caption-gradient/text");
+            mainContainer.Skin.DockPaneStripSkin.ToolWindowGradient.ActiveTabGradient.StartColor = t.GetColor("main-container/skin/dock-pane/tool-window/active-tab-gradient/start");
+            mainContainer.Skin.DockPaneStripSkin.ToolWindowGradient.ActiveTabGradient.EndColor = t.GetColor("main-container/skin/dock-pane/tool-window/active-tab-gradient/end");
+            mainContainer.Skin.DockPaneStripSkin.ToolWindowGradient.ActiveTabGradient.TextColor = t.GetColor("main-container/skin/dock-pane/tool-window/active-tab-gradient/text");
+            mainContainer.Skin.DockPaneStripSkin.ToolWindowGradient.InactiveTabGradient.StartColor = t.GetColor("main-container/skin/dock-pane/tool-window/inactive-tab-gradient/start");
+            mainContainer.Skin.DockPaneStripSkin.ToolWindowGradient.InactiveTabGradient.EndColor = t.GetColor("main-container/skin/dock-pane/tool-window/inactive-tab-gradient/end");
+            mainContainer.Skin.DockPaneStripSkin.ToolWindowGradient.InactiveTabGradient.TextColor = t.GetColor("main-container/skin/dock-pane/tool-window/inactive-tab-gradient/text");
+            mainContainer.Skin.DockPaneStripSkin.ToolWindowGradient.DockStripGradient.StartColor = t.GetColor("main-container/skin/dock-pane/tool-window/dock-strip-gradient/start");
+            mainContainer.Skin.DockPaneStripSkin.ToolWindowGradient.DockStripGradient.EndColor = t.GetColor("main-container/skin/dock-pane/tool-window/dock-strip-gradient/end");
+
+            mainMenu.BackColor = t.GetColor("main-menu/background");
+            mainMenu.Renderer = t.GetMainMenuRenderer("main-menu");
+            mainMenu.Renderer.RenderItemText += (s, a) => a.ToolStrip.ForeColor = t.GetColor("main-menu/foreground");
+            mainMenu.Renderer.RenderItemCheck += (s, a) => a.Graphics.DrawImage(t.GetImage("main-menu/check/foreground", a.Image), a.ImageRectangle);
+            toolStrip.BackColor = t.GetColor("tool-bar/background");
+            toolStrip.Renderer = t.GetToolStripRenderer("tool-bar");
+            statusStrip.BackColor = t.GetColor("status-strip/background");
+        }
     }
 }

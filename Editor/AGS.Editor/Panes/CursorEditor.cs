@@ -16,6 +16,7 @@ namespace AGS.Editor
         public CursorEditor()
         {
             InitializeComponent();
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         public CursorEditor(MouseCursor cursorToEdit) : this()
@@ -83,6 +84,14 @@ namespace AGS.Editor
                     Factory.GUIController.SetPropertyGridObject(_item);
                 }
             }
+        }
+
+        private void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("cursor-editor/background");
+            ForeColor = t.GetColor("cursor-editor/foreground");
+            currentItemGroupBox.BackColor = t.GetColor("cursor-editor/box/background");
+            currentItemGroupBox.ForeColor = t.GetColor("cursor-editor/box/foreground");
         }
     }
 }

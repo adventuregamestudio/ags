@@ -72,6 +72,7 @@ namespace AGS.Editor
         public SpriteSelector()
         {
             InitializeComponent();
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _folders = new Dictionary<string, SpriteFolder>(
                 // The TreeNodeCollection uses case-insensitive string comparer
                 StringComparer.Create(System.Globalization.CultureInfo.CurrentCulture, true));
@@ -1519,6 +1520,16 @@ namespace AGS.Editor
             return _nodeFolderMapping[draggedIntoFolder];
         }
 
+        private void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("sprite-selector/background");
+            ForeColor = t.GetColor("sprite-selector/foreground");
+            spriteList.BackColor = t.GetColor("sprite-selector/list/background");
+            spriteList.ForeColor = t.GetColor("sprite-selector/list/foreground");
+            folderList.BackColor = t.GetColor("sprite-selector/tree/background");
+            folderList.ForeColor = t.GetColor("sprite-selector/tree/foreground");
+            folderList.LineColor = t.GetColor("sprite-selector/tree/line");
+        }
     }
 
     internal class SpriteManagerDragDropData

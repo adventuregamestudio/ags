@@ -138,6 +138,8 @@ namespace AGS.Editor
             get { return _mainForm.Icon; }
         }
 
+        public ColorThemes ColorThemes { get; private set; }
+
 		public void ShowMessage(string message, MessageBoxIconType icon)
 		{
 			MessageBoxIcon windowsFormsIcon = MessageBoxIcon.Information;
@@ -732,6 +734,7 @@ namespace AGS.Editor
             {
                 _agsEditor = agsEditor;
                 _interactiveTasks = new InteractiveTasks(_agsEditor.Tasks);
+                ColorThemes = new ColorThemes();
                 _mainForm = new frmMain();
                 SetEditorWindowSizeFromRegistry();
                 _treeManager = new ProjectTree(_mainForm.projectPanel.projectTree);

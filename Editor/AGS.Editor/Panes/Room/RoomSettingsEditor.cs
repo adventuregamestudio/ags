@@ -37,6 +37,7 @@ namespace AGS.Editor
 			this.SetStyle(ControlStyles.Selectable, true);
 
             InitializeComponent();
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _room = room;
             if (_room.Resolution == RoomResolution.LowRes)
             {
@@ -861,6 +862,37 @@ namespace AGS.Editor
 		private void chkCharacterOffset_CheckedChanged(object sender, EventArgs e)
         {
             _state.DragFromCenter = chkCharacterOffset.Checked;
+        }
+
+        private void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("room-editor/background");
+            ForeColor = t.GetColor("room-editor/foreground");
+            mainFrame.BackColor = t.GetColor("room-editor/box/background");
+            mainFrame.ForeColor = t.GetColor("room-editor/box/foreground");
+            btnChangeImage.BackColor = t.GetColor("room-editor/btn-change-image/background");
+            btnChangeImage.ForeColor = t.GetColor("room-editor/btn-change-image/foreground");
+            btnChangeImage.FlatStyle = (FlatStyle)t.GetInt("room-editor/btn-change-image/flat/style");
+            btnChangeImage.FlatAppearance.BorderSize = t.GetInt("room-editor/btn-change-image/flat/border/size");
+            btnChangeImage.FlatAppearance.BorderColor = t.GetColor("room-editor/btn-change-image/flat/border/color");
+            btnDelete.BackColor = t.GetColor("room-editor/btn-delete/background");
+            btnDelete.ForeColor = t.GetColor("room-editor/btn-delete/foreground");
+            btnDelete.FlatStyle = (FlatStyle)t.GetInt("room-editor/btn-delete/flat/style");
+            btnDelete.FlatAppearance.BorderSize = t.GetInt("room-editor/btn-delete/flat/border/size");
+            btnDelete.FlatAppearance.BorderColor = t.GetColor("room-editor/btn-delete/flat/border/color");
+            btnExport.BackColor = t.GetColor("room-editor/btn-export/background");
+            btnExport.ForeColor = t.GetColor("room-editor/btn-export/foreground");
+            btnExport.FlatStyle = (FlatStyle)t.GetInt("room-editor/btn-export/flat/style");
+            btnExport.FlatAppearance.BorderSize = t.GetInt("room-editor/btn-export/flat/border/size");
+            btnExport.FlatAppearance.BorderColor = t.GetColor("room-editor/btn-export/flat/border/color");
+            _editAddressBar.BackColor = t.GetColor("room-editor/combo-view-type/background");
+            _editAddressBar.ForeColor = t.GetColor("room-editor/combo-view-type/foreground");
+            _editAddressBar.DropDownBackColor = t.GetColor("room-editor/combo-view-type/drop-down/background");
+            _editAddressBar.DropDownForeColor = t.GetColor("room-editor/combo-view-type/drop-down/foreground");
+            mainFrame.Controls.Remove(cmbBackgrounds);
+            cmbBackgrounds= t.GetComboBox("room-editor/combo-backgrounds", cmbBackgrounds);
+            cmbBackgrounds.SelectedIndexChanged += cmbBackgrounds_SelectedIndexChanged;
+            mainFrame.Controls.Add(cmbBackgrounds);
         }
     }
 

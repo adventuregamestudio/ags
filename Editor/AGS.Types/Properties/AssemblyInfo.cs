@@ -19,12 +19,12 @@ using System.Runtime.InteropServices;
 
 namespace AGS.Types
 {
-	public class Version
-	{
-		public static readonly bool IS_BETA_VERSION = false;
-		public const string AGS_EDITOR_DATE = "January 2018";
-		public const string AGS_EDITOR_FRIENDLY_VERSION = "3.4.1";
-        public const string AGS_EDITOR_VERSION = "3.4.1.12";
+    public class Version
+    {
+        public static readonly bool IS_BETA_VERSION = true;
+        public const string AGS_EDITOR_DATE = "February 2018";
+        public const string AGS_EDITOR_FRIENDLY_VERSION = "3.4.2";
+        public const string AGS_EDITOR_VERSION = "3.4.2.0";
         public const string AGS_EDITOR_COPYRIGHT = "Copyright © 2006-2011 Chris Jones and 2011-2018 others.";
-	}
+    }
 }

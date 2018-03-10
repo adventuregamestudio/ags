@@ -18,9 +18,10 @@ namespace AGS.Editor.Preferences
     [Flags]
     public enum MessageBoxOnCompile
     {
-        WarningsAndErrors = 0,
-        OnlyErrors = 1,
-        Never = 2
+        Always = 0,
+        WarningsAndErrors = 1,
+        OnlyErrors = 2,
+        Never = 3
     }
 
     [Flags]

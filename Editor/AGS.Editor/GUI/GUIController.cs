@@ -316,6 +316,12 @@ namespace AGS.Editor
             }
         }
 
+        public void ShowOutputPanel(string[] messages)
+        {
+            _mainForm.pnlOutput.SetMessages(messages);
+            _mainForm.pnlOutput.Show();
+        }
+
         public void ClearOutputPanel()
         {
             _mainForm.pnlOutput.ErrorsToList = null;
@@ -752,6 +758,7 @@ namespace AGS.Editor
                 AutoComplete.BackgroundCacheUpdateStatusChanged += new AutoComplete.BackgroundCacheUpdateStatusChangedHandler(AutoComplete_BackgroundCacheUpdateStatusChanged);
 				SystemEvents.DisplaySettingsChanged += new EventHandler(SystemEvents_DisplaySettingsChanging);
 
+                RegisterIcon("BuildIcon", Resources.ResourceManager.GetIcon("menu_build_rebuild-files.ico"));
                 RegisterIcon("GameIcon", Resources.ResourceManager.GetIcon("game.ico"));
 				RegisterIcon("CompileErrorIcon", Resources.ResourceManager.GetIcon("eventlogError.ico"));
 				RegisterIcon("CompileWarningIcon", Resources.ResourceManager.GetIcon("eventlogWarn.ico"));

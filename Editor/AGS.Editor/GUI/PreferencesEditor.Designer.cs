@@ -334,6 +334,7 @@ namespace AGS.Editor
             this.cmbMessageOnCompile.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbMessageOnCompile.FormattingEnabled = true;
             this.cmbMessageOnCompile.Items.AddRange(new object[] {
+            "Always",
             "When there are warnings or errors",
             "When there are errors",
             "Never"});

@@ -1020,9 +1020,9 @@ namespace AGS.Editor
 			}
 			else if (errors.Count > 0)
 			{
-				if (_applicationSettings.MessageBoxOnCompile == MessageBoxOnCompile.WarningsAndErrors)
-				{
-					Factory.GUIController.ShowMessage("There were warnings compiling your game. See the output window for details.", MessageBoxIcon.Warning);
+				if (_applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.Never && _applicationSettings.MessageBoxOnCompile != MessageBoxOnCompile.OnlyErrors)
+                {
+                    Factory.GUIController.ShowMessage("There were warnings compiling your game. See the output window for details.", MessageBoxIcon.Warning);
 				}
 			}
 		}

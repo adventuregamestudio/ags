@@ -461,6 +461,7 @@ bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, cons
         ignore_device_ratio ? "ignore" : (scsz.MatchDeviceRatio ? "yes" : "no"), scale_option.GetCStr());
 
     // Prepare the list of available gfx factories, having the one requested by user at first place
+    // TODO: make factory & driver IDs case-insensitive!
     StringV ids;
     GetGfxDriverFactoryNames(ids);
     StringV::iterator it = std::find(ids.begin(), ids.end(), setup.DriverID);

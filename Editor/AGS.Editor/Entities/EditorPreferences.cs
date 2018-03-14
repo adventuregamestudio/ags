@@ -70,6 +70,26 @@ namespace AGS.Editor
 				{
 					_paintProgramPath = string.Empty;
 				}
+
+                if (!Enum.IsDefined(typeof(TestGameWindowStyle), _testGameScreen))
+                {
+                    _testGameScreen = TestGameWindowStyle.Windowed;
+                }
+
+                if (!Enum.IsDefined(typeof(EditorStartupPane), _editorStartupPane))
+                {
+                    _editorStartupPane = EditorStartupPane.StartPage;
+                }
+
+                if (!Enum.IsDefined(typeof(MessageBoxOnCompile), _messageBoxOnCompileErrors))
+                {
+                    _messageBoxOnCompileErrors = MessageBoxOnCompile.WarningsAndErrors;
+                }
+
+                if (!Enum.IsDefined(typeof(SpriteImportMethod), _defaultSpriteImportTransparency))
+                {
+                    _defaultSpriteImportTransparency = SpriteImportMethod.TopLeft;
+                }
             }
         }
 

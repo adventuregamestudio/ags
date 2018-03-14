@@ -262,12 +262,12 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _hInstance = NULL;
   device_screen_physical_width  = 0;
   device_screen_physical_height = 0;
-#elif defined (ANRDOID_VERSION)
-  device_screen_physical_width  = android_screen_physical_width
-  device_screen_physical_height = android_screen_physical_height
+#elif defined (ANDROID_VERSION)
+  device_screen_physical_width  = android_screen_physical_width;
+  device_screen_physical_height = android_screen_physical_height;
 #elif defined (IOS_VERSION)
-  device_screen_physical_width  = ios_screen_physical_width
-  device_screen_physical_height = ios_screen_physical_height
+  device_screen_physical_width  = ios_screen_physical_width;
+  device_screen_physical_height = ios_screen_physical_height;
 #endif
 
   _firstTimeInit = false;

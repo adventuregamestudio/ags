@@ -10,6 +10,7 @@ using AGS.Editor.Components;
 using AGS.Types;
 using AGS.Types.AutoComplete;
 using AGS.Types.Interfaces;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor
 {
@@ -540,9 +541,9 @@ namespace AGS.Editor
 			if (_lastImportDirectory == null)
 			{
 				if ((useFileImportPath) &&
-					(_agsEditor.Preferences.DefaultImportPath.Length > 0))
+					(Factory.AGSEditor.Settings.DefaultImportPath.Length > 0))
 				{
-					_lastImportDirectory = _agsEditor.Preferences.DefaultImportPath;
+					_lastImportDirectory = Factory.AGSEditor.Settings.DefaultImportPath;
 				}
 				else
 				{
@@ -928,7 +929,7 @@ namespace AGS.Editor
 
             List<WizardPage> pages = new List<WizardPage>();
             StartNewGameWizardPage templateSelectPage = new StartNewGameWizardPage(templates);
-            StartNewGameWizardPage2 gameNameSelectPage = new StartNewGameWizardPage2(_agsEditor.Preferences.NewGamePath);
+            StartNewGameWizardPage2 gameNameSelectPage = new StartNewGameWizardPage2(Factory.AGSEditor.Settings.NewGamePath);
             pages.Add(templateSelectPage);
             pages.Add(gameNameSelectPage);
             
@@ -969,12 +970,12 @@ namespace AGS.Editor
                         // files that links them to the old game ID
                         // Force no message to be displayed if the build fails
                         // (which it will for the Empty Game template)
-                        MessageBoxOnCompile oldMessageBoxSetting = _agsEditor.Preferences.MessageBoxOnCompileErrors;
-                        _agsEditor.Preferences.MessageBoxOnCompileErrors = MessageBoxOnCompile.Never;
+                        MessageBoxOnCompile oldMessageBoxSetting = Factory.AGSEditor.Settings.MessageBoxOnCompile;
+                        Factory.AGSEditor.Settings.MessageBoxOnCompile = MessageBoxOnCompile.Never;
 
                         _agsEditor.CompileGame(true, false);
 
-                        _agsEditor.Preferences.MessageBoxOnCompileErrors = oldMessageBoxSetting;
+                        Factory.AGSEditor.Settings.MessageBoxOnCompile = oldMessageBoxSetting;
                     }
                     if (File.Exists(TEMPLATE_INTRO_FILE))
                     {
@@ -1246,10 +1247,10 @@ namespace AGS.Editor
 
 		public void ShowPreferencesEditor()
         {
-            PreferencesEditor prefsEditor = new PreferencesEditor(_agsEditor.Preferences);
+            PreferencesEditor prefsEditor = new PreferencesEditor();
             if (prefsEditor.ShowDialog() == DialogResult.OK)
             {
-                _agsEditor.Preferences.SaveToRegistry();
+                Factory.AGSEditor.Settings.Save();
 				//_mainForm.SetProjectTreeLocation(_agsEditor.Preferences.ProjectTreeOnRight);
             }
             prefsEditor.Dispose();
@@ -1488,11 +1489,11 @@ namespace AGS.Editor
 					_agsEditor.SaveGameFiles();
 				}
 
-                if ((_agsEditor.Preferences.BackupWarningInterval > 0) &&
-                    (DateTime.Now.Subtract(_agsEditor.Preferences.LastBackupWarning).TotalDays > _agsEditor.Preferences.BackupWarningInterval))
+                if ((Factory.AGSEditor.Settings.BackupWarningInterval > 0) &&
+                    (DateTime.Now.Subtract(Factory.AGSEditor.Settings.LastBackupWarning).TotalDays > Factory.AGSEditor.Settings.BackupWarningInterval))
                 {
-                    _agsEditor.Preferences.LastBackupWarning = DateTime.Now;
-                    _agsEditor.Preferences.SaveToRegistry();
+                    Factory.AGSEditor.Settings.LastBackupWarning = DateTime.Now;
+                    Factory.AGSEditor.Settings.Save();
                     this.ShowMessage("Have you backed up your game recently? Remember, power failures and blue screens happen when you least expect them. Make a backup copy of your game now!", MessageBoxIcon.Warning);
                 }
 			}

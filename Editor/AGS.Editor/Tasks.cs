@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor
 {
@@ -215,11 +216,11 @@ namespace AGS.Editor
                 // debugger connection params
                 parameter = "--enabledebugger " + Factory.AGSEditor.Debugger.InstanceIdentifier;
             }
-            else if (Factory.AGSEditor.Preferences.TestGameStyle == TestGameWindowStyle.Windowed)
+            else if (Factory.AGSEditor.Settings.TestGameWindowStyle == TestGameWindowStyle.Windowed)
             {
                 parameter = "-windowed";
             }
-            else if (Factory.AGSEditor.Preferences.TestGameStyle == TestGameWindowStyle.FullScreen)
+            else if (Factory.AGSEditor.Settings.TestGameWindowStyle == TestGameWindowStyle.FullScreen)
             {
                 parameter = "-fullscreen";
             }

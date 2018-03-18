@@ -6,49 +6,47 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor
 {
     public partial class PreferencesEditor : Form
     {
-        private EditorPreferences _preferences;
-
-        public PreferencesEditor(EditorPreferences prefs)
+        public PreferencesEditor()
         {
             InitializeComponent();
-            _preferences = prefs;
 			// just in case they had it set to something silly in 2.72
-			if (_preferences.TabSize < udTabWidth.Minimum) _preferences.TabSize = (int)udTabWidth.Minimum;
-			if (_preferences.TabSize > udTabWidth.Maximum) _preferences.TabSize = (int)udTabWidth.Maximum;
+			if (Factory.AGSEditor.Settings.TabSize < udTabWidth.Minimum) Factory.AGSEditor.Settings.TabSize = (int)udTabWidth.Minimum;
+			if (Factory.AGSEditor.Settings.TabSize > udTabWidth.Maximum) Factory.AGSEditor.Settings.TabSize = (int)udTabWidth.Maximum;
 
-            udTabWidth.Value = _preferences.TabSize;
-            cmbTestGameStyle.SelectedIndex = (int)_preferences.TestGameStyle;
-			cmbEditorStartup.SelectedIndex = (int)_preferences.StartupPane;
-			radFolderPath.Checked = (_preferences.DefaultImportPath != string.Empty);
-			txtImportPath.Text = _preferences.DefaultImportPath;
+            udTabWidth.Value = Factory.AGSEditor.Settings.TabSize;
+            cmbTestGameStyle.SelectedIndex = (int)Factory.AGSEditor.Settings.TestGameWindowStyle;
+			cmbEditorStartup.SelectedIndex = (int)Factory.AGSEditor.Settings.EditorStartupPane;
+			radFolderPath.Checked = (Factory.AGSEditor.Settings.DefaultImportPath != string.Empty);
+			txtImportPath.Text = Factory.AGSEditor.Settings.DefaultImportPath;
 			txtImportPath.Enabled = radFolderPath.Checked;
 			btnChooseFolder.Enabled = txtImportPath.Enabled;
-			radNewGameSpecificPath.Checked = (_preferences.ExplicitNewGamePath != string.Empty);
-			txtNewGamePath.Text = _preferences.ExplicitNewGamePath;
+			radNewGameSpecificPath.Checked = (Factory.AGSEditor.Settings.ExplicitNewGamePath != string.Empty);
+			txtNewGamePath.Text = Factory.AGSEditor.Settings.ExplicitNewGamePath;
 			txtNewGamePath.Enabled = radNewGameSpecificPath.Checked;
 			btnNewGameChooseFolder.Enabled = radNewGameSpecificPath.Checked;
-			cmbMessageOnCompile.SelectedIndex = (int)_preferences.MessageBoxOnCompileErrors;
-			cmbIndentStyle.SelectedIndex = _preferences.IndentUsingTabs ? 1 : 0;
-			chkAlwaysShowViewPreview.Checked = _preferences.ShowViewPreviewByDefault;
-			txtPaintProgram.Text = _preferences.PaintProgramPath;
-			radPaintProgram.Checked = (_preferences.PaintProgramPath != string.Empty);
+			cmbMessageOnCompile.SelectedIndex = (int)Factory.AGSEditor.Settings.MessageBoxOnCompile;
+			cmbIndentStyle.SelectedIndex = Factory.AGSEditor.Settings.IndentUsingTabs ? 1 : 0;
+			chkAlwaysShowViewPreview.Checked = Factory.AGSEditor.Settings.ShowViewPreviewByDefault;
+			txtPaintProgram.Text = Factory.AGSEditor.Settings.PaintProgramPath;
+			radPaintProgram.Checked = (Factory.AGSEditor.Settings.PaintProgramPath != string.Empty);
 			txtPaintProgram.Enabled = radPaintProgram.Checked;
 			btnSelectPaintProgram.Enabled = txtPaintProgram.Enabled;
-			cmbSpriteImportTransparency.SelectedIndex = (int)_preferences.DefaultSpriteImportTransparency;
+			cmbSpriteImportTransparency.SelectedIndex = (int)Factory.AGSEditor.Settings.SpriteImportMethod;
             cmbColorTheme.DataSource = Factory.GUIController.ColorThemes.Themes;
-            cmbColorTheme.SelectedIndex = Factory.GUIController.ColorThemes.Themes.ToList().FindIndex(t => t.Name == _preferences.ColorTheme);
-            chkUsageInfo.Checked = _preferences.SendAnonymousStats;
-            chkBackupReminders.Checked = (_preferences.BackupWarningInterval != 0);
-            udBackupInterval.Value = (_preferences.BackupWarningInterval > 0) ? _preferences.BackupWarningInterval : 1;
+            cmbColorTheme.SelectedIndex = Factory.GUIController.ColorThemes.Themes.ToList().FindIndex(t => t.Name == Factory.AGSEditor.Settings.ColorTheme);
+            chkUsageInfo.Checked = Factory.AGSEditor.Settings.SendAnonymousStats;
+            chkBackupReminders.Checked = (Factory.AGSEditor.Settings.BackupWarningInterval != 0);
+            udBackupInterval.Value = (Factory.AGSEditor.Settings.BackupWarningInterval > 0) ? Factory.AGSEditor.Settings.BackupWarningInterval : 1;
             udBackupInterval.Enabled = chkBackupReminders.Checked;
-            chkRemapBgImport.Checked = _preferences.RemapPalettizedBackgrounds;
-            chkKeepHelpOnTop.Checked = _preferences.KeepHelpOnTop;
-            chkPromptDialogOnTabsClose.Checked = _preferences.DialogOnMultibleTabsClose;
+            chkRemapBgImport.Checked = Factory.AGSEditor.Settings.RemapPalettizedBackgrounds;
+            chkKeepHelpOnTop.Checked = Factory.AGSEditor.Settings.KeepHelpOnTop;
+            chkPromptDialogOnTabsClose.Checked = Factory.AGSEditor.Settings.DialogOnMultibleTabsClose;
             Utilities.CheckLabelWidthsOnForm(this);
 		}
 
@@ -71,21 +69,21 @@ namespace AGS.Editor
 				return;
 			}
 
-            _preferences.TabSize = Convert.ToInt32(udTabWidth.Value);
-            _preferences.TestGameStyle = (TestGameWindowStyle)cmbTestGameStyle.SelectedIndex;
-			_preferences.StartupPane = (EditorStartupPane)cmbEditorStartup.SelectedIndex;
-			_preferences.DefaultImportPath = (radGamePath.Checked ? string.Empty : txtImportPath.Text);
-			_preferences.MessageBoxOnCompileErrors = (MessageBoxOnCompile)cmbMessageOnCompile.SelectedIndex;
-			_preferences.IndentUsingTabs = (cmbIndentStyle.SelectedIndex == 1);
-			_preferences.ShowViewPreviewByDefault = chkAlwaysShowViewPreview.Checked;
-			_preferences.PaintProgramPath = (radDefaultPaintProgram.Checked ? string.Empty : txtPaintProgram.Text);
-			_preferences.DefaultSpriteImportTransparency = (SpriteImportMethod)cmbSpriteImportTransparency.SelectedIndex;
-			_preferences.ExplicitNewGamePath = (radNewGameMyDocs.Checked ? string.Empty : txtNewGamePath.Text);
-            _preferences.SendAnonymousStats = chkUsageInfo.Checked;
-            _preferences.BackupWarningInterval = (chkBackupReminders.Checked ? (int)udBackupInterval.Value : 0);
-            _preferences.RemapPalettizedBackgrounds = chkRemapBgImport.Checked;
-            _preferences.KeepHelpOnTop = chkKeepHelpOnTop.Checked;
-            _preferences.DialogOnMultibleTabsClose = chkPromptDialogOnTabsClose.Checked;
+            Factory.AGSEditor.Settings.TabSize = Convert.ToInt32(udTabWidth.Value);
+            Factory.AGSEditor.Settings.TestGameWindowStyle = (TestGameWindowStyle)cmbTestGameStyle.SelectedIndex;
+			Factory.AGSEditor.Settings.EditorStartupPane = (EditorStartupPane)cmbEditorStartup.SelectedIndex;
+			Factory.AGSEditor.Settings.DefaultImportPath = (radGamePath.Checked ? string.Empty : txtImportPath.Text);
+			Factory.AGSEditor.Settings.MessageBoxOnCompile = (MessageBoxOnCompile)cmbMessageOnCompile.SelectedIndex;
+			Factory.AGSEditor.Settings.IndentUsingTabs = (cmbIndentStyle.SelectedIndex == 1);
+			Factory.AGSEditor.Settings.ShowViewPreviewByDefault = chkAlwaysShowViewPreview.Checked;
+			Factory.AGSEditor.Settings.PaintProgramPath = (radDefaultPaintProgram.Checked ? string.Empty : txtPaintProgram.Text);
+			Factory.AGSEditor.Settings.SpriteImportMethod = (SpriteImportMethod)cmbSpriteImportTransparency.SelectedIndex;
+			Factory.AGSEditor.Settings.ExplicitNewGamePath = (radNewGameMyDocs.Checked ? string.Empty : txtNewGamePath.Text);
+            Factory.AGSEditor.Settings.SendAnonymousStats = chkUsageInfo.Checked;
+            Factory.AGSEditor.Settings.BackupWarningInterval = (chkBackupReminders.Checked ? (int)udBackupInterval.Value : 0);
+            Factory.AGSEditor.Settings.RemapPalettizedBackgrounds = chkRemapBgImport.Checked;
+            Factory.AGSEditor.Settings.KeepHelpOnTop = chkKeepHelpOnTop.Checked;
+            Factory.AGSEditor.Settings.DialogOnMultibleTabsClose = chkPromptDialogOnTabsClose.Checked;
 
             if ((ColorTheme)cmbColorTheme.SelectedItem != Factory.GUIController.ColorThemes.Current)
             {

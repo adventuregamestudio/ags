@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor.Components
 {
@@ -38,7 +39,7 @@ namespace AGS.Editor.Components
         {
             _settingsPane.RefreshData();
 
-			if (_agsEditor.Preferences.StartupPane == EditorStartupPane.GeneralSettings)
+			if (Factory.AGSEditor.Settings.EditorStartupPane == EditorStartupPane.GeneralSettings)
 			{
 				_guiController.AddOrShowPane(_document);
 			}

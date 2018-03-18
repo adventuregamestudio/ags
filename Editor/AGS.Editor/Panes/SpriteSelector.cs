@@ -114,24 +114,57 @@ namespace AGS.Editor
 
         public void SetDataSource(SpriteFolder rootFolder)
         {
+            // store the hash for each expanded sprite folder
+            List<int> expanded = new List<int>();
+            for (int i = 0; i < folderList.Nodes.Count; i++)
+            {
+                AddNodeState(_nodeFolderMapping[folderList.Nodes[i]], expanded);
+            }
+
+            // reset - this could be adding a sprite or loading another game
             _rootFolder = rootFolder;
             folderList.Nodes.Clear();
             _folders.Clear();
             _folderNodeMapping.Clear();
             _nodeFolderMapping.Clear();
             BuildNodeTree(rootFolder, folderList.Nodes);
-            folderList.SelectedNode = folderList.Nodes[0];
-            folderList.Nodes[0].Expand();
-            /* This doens't work, not sure why
-			if ((_currentFolder != null) &&
-				(_folderNodeMapping.ContainsKey(_currentFolder)))
-			{
-				folderList.SelectedNode = _folderNodeMapping[_currentFolder];
-				DisplaySpritesForFolder(_currentFolder);
-			}
-			else*/
+
+            // re-expand nodes where they look to be the same
+            foreach (SpriteFolder folder in _folderNodeMapping.Keys)
             {
+                if (expanded.Contains(folder.GetHashCode()))
+                {
+                    _folderNodeMapping[folder].Expand();
+                }
+            }
+
+            if ((_currentFolder != null) &&
+	            (_folderNodeMapping.ContainsKey(_currentFolder)))
+            {
+                // reselect the previous node
+                folderList.SelectedNode = _folderNodeMapping[_currentFolder];
+	            DisplaySpritesForFolder(_currentFolder);
+            }
+            else
+            {
+                // default to expanded root node
+                folderList.SelectedNode = folderList.Nodes[0];
                 DisplaySpritesForFolder(rootFolder);
+                folderList.Nodes[0].Expand();
+            }
+        }
+
+        private void AddNodeState(SpriteFolder folder, List<int> expanded)
+        {
+            if (_folderNodeMapping.ContainsKey(folder) &&
+                _folderNodeMapping[folder].IsExpanded)
+            {
+                expanded.Add(folder.GetHashCode());
+            }
+
+            foreach (SpriteFolder subfolder in folder.SubFolders)
+            {
+                AddNodeState(subfolder, expanded);
             }
         }
 

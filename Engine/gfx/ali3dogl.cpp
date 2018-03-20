@@ -46,8 +46,6 @@
 
 #if defined(WINDOWS_VERSION)
 
-int device_screen_initialized = 1;
-
 const char* fbo_extension_string = "GL_EXT_framebuffer_object";
 const char* vsync_extension_string = "WGL_EXT_swap_control";
 
@@ -286,11 +284,11 @@ OGLGraphicsDriver::OGLGraphicsDriver()
   _can_render_to_texture = false;
   _do_render_to_texture = false;
   _super_sampling = 1;
-  set_up_default_vertices();
+  SetupDefaultVertices();
 }
 
 
-void OGLGraphicsDriver::set_up_default_vertices()
+void OGLGraphicsDriver::SetupDefaultVertices()
 {
   std::fill(_backbuffer_vertices, _backbuffer_vertices + sizeof(_backbuffer_vertices) / sizeof(GLfloat), 0.0f);
   std::fill(_backbuffer_texture_coordinates, _backbuffer_texture_coordinates + sizeof(_backbuffer_texture_coordinates) / sizeof(GLfloat), 0.0f);
@@ -317,11 +315,37 @@ void OGLGraphicsDriver::set_up_default_vertices()
 }
 
 #if defined (WINDOWS_VERSION)
-void OGLGraphicsDriver::create_desktop_screen(int width, int height, int depth)
+
+void OGLGraphicsDriver::CreateDesktopScreen(int width, int height, int depth)
 {
   device_screen_physical_width = width;
   device_screen_physical_height = height;
 }
+
+#elif defined (ANDROID_VERSION) || defined (IOS_VERSION)
+
+void OGLGraphicsDriver::UpdateDeviceScreen()
+{
+#if defined (ANDROID_VERSION)
+    device_screen_physical_width  = android_screen_physical_width;
+    device_screen_physical_height = android_screen_physical_height;
+#elif defined (IOS_VERSION)
+    device_screen_physical_width  = ios_screen_physical_width;
+    device_screen_physical_height = ios_screen_physical_height;
+#endif
+
+    Debug::Printf("OGL: notified of device screen updated to %d x %d, resizing viewport", device_screen_physical_width, device_screen_physical_height);
+    _mode.Width = device_screen_physical_width;
+    _mode.Height = device_screen_physical_height;
+    InitGlParams(_mode);
+    // TODO: this action ignores any alternate render frame settings (non-scaled, etc).
+    // This could be solved in one of the two ways:
+    // * pass render frame type to GraphicsDriver class instead of explicit coordinates,
+    //   and let it calculate frame coordinates itself.
+    // * start this update in the external engine's callback, outside of GraphicsDriver.
+    SetRenderFrame(Rect(0, 0, _mode.Width - 1, _mode.Height - 1));
+}
+
 #endif
 
 void OGLGraphicsDriver::Vsync() 
@@ -433,7 +457,7 @@ bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
       return false;
   }
 
-  create_desktop_screen(mode.Width, mode.Height, mode.ColorDepth);
+  CreateDesktopScreen(mode.Width, mode.Height, mode.ColorDepth);
   win_grab_input();
 #endif
 
@@ -845,8 +869,8 @@ void OGLGraphicsDriver::SetupViewport()
       device_screen_physical_width - ((device_screen_physical_width - _dstRect.GetWidth()) / 2),
       (device_screen_physical_height - _dstRect.GetHeight()) / 2, 
       device_screen_physical_height - ((device_screen_physical_height - _dstRect.GetHeight()) / 2), 
-      1.0f,
-      1.0f);
+      (float)_srcRect.GetWidth() / (float)_dstRect.GetWidth(),
+      (float)_srcRect.GetHeight() / (float)_dstRect.GetHeight());
 #endif
 }
 
@@ -1273,13 +1297,20 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
   ios_select_buffer();
 #endif
 
+#if defined (ANDROID_VERSION) || defined (IOS_VERSION)
+  // TODO:
+  // For some reason, mobile ports initialize actual display size after a short delay.
+  // This is why we update display mode and related parameters (projection, viewport)
+  // at the first render pass.
+  // Ofcourse this is not a good thing, ideally the display size should be made
+  // known before graphic mode is initialized. This would require analysis and rewrite
+  // of the platform-specific part of the code (Java app for Android / XCode for iOS).
   if (!device_screen_initialized)
-  {// TODO: find out if this is really necessary here and why
-    if (!_firstTimeInit)
-      FirstTimeInit();
-    InitGlParams(_mode);
+  {
+    UpdateDeviceScreen();
     device_screen_initialized = 1;
   }
+#endif
 
   std::vector<OGLDrawListEntry> &listToDraw = drawList;
   size_t listSize = drawList.size();

@@ -287,7 +287,7 @@ private:
     void DeleteGlContext();
     // Sets up general rendering parameters
     void InitGlParams(const DisplayMode &mode);
-    void set_up_default_vertices();
+    void SetupDefaultVertices();
     // Test if swap interval (used for vsync) is supported
     void TestVSync();
     // Test if rendering to texture is supported
@@ -304,7 +304,9 @@ private:
     void SetupBackbufferTexture();
     void DeleteBackbufferTexture();
 #if defined (WINDOWS_VERSION)
-    void create_desktop_screen(int width, int height, int depth);
+    void CreateDesktopScreen(int width, int height, int depth);
+#elif defined (ANDROID_VERSION) || defined (IOS_VERSION)
+    void UpdateDeviceScreen();
 #endif
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();

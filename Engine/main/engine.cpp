@@ -624,12 +624,12 @@ void engine_init_sound()
         Debug::Printf("Resetting to default sound parameters and trying again.");
         reserve_voices(-1, -1); // this resets voice number to defaults
         opts.mod_player = 0;
-        opts.mp3_player = 0; // CHECKME: why disabling MP3 player too?
         sound_res = try_install_sound(usetup.digicard, usetup.midicard);
     }
     if (!sound_res)
     {
         // If everything failed, disable sound completely
+        Debug::Printf("Resetting to zero digital voices and trying again.");
         reserve_voices(0,0);
         install_sound(DIGI_NONE, MIDI_NONE, NULL);
     }

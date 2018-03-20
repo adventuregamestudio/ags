@@ -20,7 +20,6 @@ GameSetup::GameSetup()
     digicard=DIGI_AUTODETECT;
     midicard=MIDI_AUTODETECT;
     mod_player=1;
-    mp3_player=1;
     no_speech_pack = false;
     enable_antialiasing = false;
     force_hicolor_mode = false;

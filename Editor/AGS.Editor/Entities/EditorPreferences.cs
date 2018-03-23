@@ -49,6 +49,12 @@ namespace AGS.Editor.Preferences
             // - called when the first setting is requested and caches all values
             // - base class will handle bad input so just logic fixes needed
 
+            if (!UpgradedSettings)
+            {
+                Upgrade();
+                UpgradedSettings = true;
+            }
+
             if (!MigratedSettings)
             {
                 MigratedSettings = GetSettingsFromRegistry();
@@ -95,6 +101,20 @@ namespace AGS.Editor.Preferences
             set
             {
                 this["MigratedSettings"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("False")]
+        public bool UpgradedSettings
+        {
+            get
+            {
+                return (bool)(this["UpgradedSettings"]);
+            }
+            set
+            {
+                this["UpgradedSettings"] = value;
             }
         }
 

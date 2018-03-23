@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("AGS Editor for Windows")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("AGS Team")]
+[assembly: AssemblyCompany("AGS")]
 [assembly: AssemblyProduct("Adventure Game Studio")]
 [assembly: AssemblyCopyright(AGS.Types.Version.AGS_EDITOR_COPYRIGHT)]
 [assembly: AssemblyTrademark("")]

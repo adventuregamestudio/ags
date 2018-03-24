@@ -43,7 +43,7 @@ namespace AGS.Editor.Components
         public override void RefreshDataFromGame()
         {
             // Game has just been loaded
-			if (Factory.AGSEditor.Settings.EditorStartupPane == EditorStartupPane.StartPage)
+			if (Factory.AGSEditor.Settings.StartupPane == StartupPane.StartPage)
 			{
 				_guiController.AddOrShowPane(_document);
 			}

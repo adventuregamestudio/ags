@@ -1,11 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using Microsoft.Win32;
 
 namespace AGS.Editor.Preferences
 {
-    public enum EditorStartupPane
+    public enum StartupPane
     {
         StartPage = 0,
         GeneralSettings = 1,
@@ -78,6 +79,17 @@ namespace AGS.Editor.Preferences
 
         private bool GetSettingsFromRegistry()
         {
+            Dictionary<string, string> regmap = new Dictionary<string, string>()
+            {
+            //  [<registry name>] = <setting name>
+                ["ScEdTabWidth"] = "TabSize",
+                ["TestGameStyle"] = "TestGameWindowStyle",
+                ["MessageBoxOnCompileErrors"] = "MessageBoxOnCompile",
+                ["IndentUsingTabs"] = "IndentUseTabs",
+                ["SpriteImportTransparency"] = "SpriteImportMethod",
+                ["RemapPaletteBackgrounds"] = "RemapPalettizedBackgrounds"
+            };
+
             RegistryKey key = Registry.CurrentUser.OpenSubKey(AGSEditor.AGS_REGISTRY_KEY);
 
             if (key != null)
@@ -134,15 +146,15 @@ namespace AGS.Editor.Preferences
 
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("StartPage")]
-        public EditorStartupPane EditorStartupPane
+        public StartupPane StartupPane
         {
             get
             {
-                return (EditorStartupPane)(this["EditorStartupPane"]);
+                return (StartupPane)(this["StartupPane"]);
             }
             set
             {
-                this["EditorStartupPane"] = value;
+                this["StartupPane"] = value;
             }
         }
 

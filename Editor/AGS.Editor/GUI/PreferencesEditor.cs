@@ -21,7 +21,7 @@ namespace AGS.Editor
 
             udTabWidth.Value = Factory.AGSEditor.Settings.TabSize;
             cmbTestGameStyle.SelectedIndex = (int)Factory.AGSEditor.Settings.TestGameWindowStyle;
-			cmbEditorStartup.SelectedIndex = (int)Factory.AGSEditor.Settings.EditorStartupPane;
+			cmbEditorStartup.SelectedIndex = (int)Factory.AGSEditor.Settings.StartupPane;
 			radFolderPath.Checked = (Factory.AGSEditor.Settings.DefaultImportPath != string.Empty);
 			txtImportPath.Text = Factory.AGSEditor.Settings.DefaultImportPath;
 			txtImportPath.Enabled = radFolderPath.Checked;
@@ -71,7 +71,7 @@ namespace AGS.Editor
 
             Factory.AGSEditor.Settings.TabSize = Convert.ToInt32(udTabWidth.Value);
             Factory.AGSEditor.Settings.TestGameWindowStyle = (TestGameWindowStyle)cmbTestGameStyle.SelectedIndex;
-			Factory.AGSEditor.Settings.EditorStartupPane = (EditorStartupPane)cmbEditorStartup.SelectedIndex;
+			Factory.AGSEditor.Settings.StartupPane = (StartupPane)cmbEditorStartup.SelectedIndex;
 			Factory.AGSEditor.Settings.DefaultImportPath = (radGamePath.Checked ? string.Empty : txtImportPath.Text);
 			Factory.AGSEditor.Settings.MessageBoxOnCompile = (MessageBoxOnCompile)cmbMessageOnCompile.SelectedIndex;
 			Factory.AGSEditor.Settings.IndentUsingTabs = (cmbIndentStyle.SelectedIndex == 1);

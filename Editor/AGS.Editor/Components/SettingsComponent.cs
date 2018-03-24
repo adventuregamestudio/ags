@@ -39,7 +39,7 @@ namespace AGS.Editor.Components
         {
             _settingsPane.RefreshData();
 
-			if (Factory.AGSEditor.Settings.EditorStartupPane == EditorStartupPane.GeneralSettings)
+			if (Factory.AGSEditor.Settings.StartupPane == StartupPane.GeneralSettings)
 			{
 				_guiController.AddOrShowPane(_document);
 			}

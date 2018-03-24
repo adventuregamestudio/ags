@@ -318,7 +318,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <None Include="app.config" />
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="app.manifest" />
     <None Include="packages.config" />
     <EmbeddedResource Include="Resources\localvar.xpm" />
@@ -1073,7 +1075,6 @@
       <DependentUpon>RoomSettingsEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="Plugins\NativePluginCallbacks.cs" />
-    <Compile Include="RecentGamesList.cs" />
     <Compile Include="TextProcessing\SpeechLineProcessor.cs" />
     <Compile Include="TextProcessing\SpeechLinesNumbering.cs" />
     <Compile Include="TextProcessing\SpeechOnlyProcessor.cs" />

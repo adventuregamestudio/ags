@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Configuration;
 using System.IO;
 using Microsoft.Win32;
 
 namespace AGS.Editor.Preferences
 {
+    [Flags]
     public enum StartupPane
     {
         StartPage = 0,
@@ -13,6 +15,7 @@ namespace AGS.Editor.Preferences
         None = 2
     }
 
+    [Flags]
     public enum MessageBoxOnCompile
     {
         WarningsAndErrors = 0,
@@ -20,6 +23,7 @@ namespace AGS.Editor.Preferences
         Never = 2
     }
 
+    [Flags]
     public enum SpriteImportMethod
     {
         Pixel0 = 0,
@@ -31,11 +35,28 @@ namespace AGS.Editor.Preferences
         NoTransparency = 6
     }
 
+    [Flags]
     public enum TestGameWindowStyle
     {
         UseGameSetup = 0,
         FullScreen = 1,
         Windowed = 2
+    }
+
+    [SettingsSerializeAs(SettingsSerializeAs.String)]
+    public class RecentGame
+    {
+        // default constructor is needed to serialize
+        public RecentGame() {}
+
+        public RecentGame(string name, string path)
+        {
+            Name = name;
+            Path = path;
+        }
+
+        public string Name { get; set; }
+        public string Path { get; set; }
     }
 
     public sealed class AppSettings : ApplicationSettingsBase
@@ -91,15 +112,89 @@ namespace AGS.Editor.Preferences
             };
 
             RegistryKey key = Registry.CurrentUser.OpenSubKey(AGSEditor.AGS_REGISTRY_KEY);
+            List<string> gameNames = new List<string>();
+            List<string> gamePaths = new List<string>();
+            bool success = true;
 
             if (key != null)
             {
-                // get registry settings here
-                // return false to retry later
+                foreach (string regname in key.GetValueNames())
+                {
+                    string value;
+
+                    try
+                    {
+                        value = key.GetValue(regname).ToString();
+                    }
+                    catch
+                    {
+                        // failed to read as a string
+                        success = false;
+                        continue;
+                    }
+
+                    if (regname.StartsWith("Recent"))
+                    {
+                        switch (regname.Substring(6, 4)) {
+                            case "Path":
+                                gamePaths.Add(value);
+                                break;
+                            case "Name":
+                                gameNames.Add(value);
+                                break;
+                            default:
+                                RecentSearches.Add(value);
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        string name = regmap.ContainsKey(regname) ? regmap[regname] : regname;
+                        int numeric;
+
+                        try
+                        {
+                            // will throw SettingsPropertyNotFoundException
+                            // for legacy settings which no longer exist
+                            Type type = this[name].GetType();
+
+                            // will throw System.InvalidCastException if can't be converted
+                            if (type.BaseType == typeof(Enum))
+                            {
+                                this[name] = Enum.Parse(type, value);
+                            }
+                            else if (int.TryParse(value, out numeric))
+                            {
+                                this[name] = Convert.ChangeType(numeric, type);
+                            }
+                            else
+                            {
+                                this[name] = Convert.ChangeType(value, type);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (!(ex is SettingsPropertyNotFoundException))
+                            {
+                                success = false;
+                            }
+                            // continue
+                        }
+                    }
+                }
+
                 key.Close();
+
+                // now check recent game values
+                int gameCount = Math.Min(gameNames.Count, gamePaths.Count);
+
+                for (int i = 0; i < gameCount; i ++)
+                {
+                    RecentGames.Add(new RecentGame(gameNames[i], gamePaths[i]));
+                }
             }
 
-            return true;
+            return success;
         }
 
         [UserScopedSettingAttribute()]
@@ -327,11 +422,26 @@ namespace AGS.Editor.Preferences
         }
 
         [UserScopedSettingAttribute()]
-        public System.Collections.Specialized.StringCollection RecentSearches
+        [DefaultSettingValueAttribute("")]
+        public List<RecentGame> RecentGames
         {
             get
             {
-                return (System.Collections.Specialized.StringCollection)(this["RecentSearches"]);
+                return (List<RecentGame>)(this["RecentGames"]);
+            }
+            set
+            {
+                this["RecentGames"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("")]
+        public StringCollection RecentSearches
+        {
+            get
+            {
+                return (StringCollection)(this["RecentSearches"]);
             }
             set
             {

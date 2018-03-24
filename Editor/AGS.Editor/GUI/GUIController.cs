@@ -866,7 +866,7 @@ namespace AGS.Editor
             while (showWelcomeScreen)
             {
 				Directory.SetCurrentDirectory(_agsEditor.EditorDirectory);
-                WelcomeScreen welcomeScreen = new WelcomeScreen(_agsEditor.RecentGames);
+                WelcomeScreen welcomeScreen = new WelcomeScreen();
 				DialogResult result = welcomeScreen.ShowDialog();
                 WelcomeScreenSelection selection = welcomeScreen.SelectedOption;
                 showWelcomeScreen = false;
@@ -885,13 +885,14 @@ namespace AGS.Editor
                 }
                 else if (selection == WelcomeScreenSelection.ContinueRecentGame)
                 {
-                    string gameToLoad = Path.Combine(welcomeScreen.SelectedRecentGame.DirectoryPath, AGSEditor.GAME_FILE_NAME);
+                    string gamePath = welcomeScreen.GetSelectedRecentGamePath();
+                    string gameToLoad = Path.Combine(gamePath, AGSEditor.GAME_FILE_NAME);
                     if (!File.Exists(gameToLoad))
                     {
                         gameToLoad = gameToLoad.Replace(AGSEditor.GAME_FILE_NAME, AGSEditor.OLD_GAME_FILE_NAME);
                         if (!File.Exists(gameToLoad))
                         {
-                            Factory.GUIController.ShowMessage("Unable to find a valid game file in " + welcomeScreen.SelectedRecentGame.DirectoryPath, MessageBoxIcon.Warning);
+                            Factory.GUIController.ShowMessage("Unable to find a valid game file in " + gamePath, MessageBoxIcon.Warning);
                             showWelcomeScreen = true;
                         }
                         else if (!_interactiveTasks.LoadGameFromDisk(gameToLoad))

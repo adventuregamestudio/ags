@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor
 {
@@ -17,14 +18,16 @@ namespace AGS.Editor
 
     public partial class WelcomeScreen : Form
     {
-        private List<RecentlyEditedGame> _recentGames;
-
-        public WelcomeScreen(RecentGamesList recentGames)
+        public WelcomeScreen()
         {
             InitializeComponent();
-            _recentGames = recentGames.RecentGames;
 
-            if (_recentGames.Count == 0)
+            foreach (RecentGame game in Factory.AGSEditor.Settings.RecentGames)
+            {
+                lstRecentGames.Items.Add(game.Name).SubItems.Add(game.Path);
+            }
+
+            if (lstRecentGames.Items.Count == 0)
             {
                 radRecent.Enabled = false;
                 lstRecentGames.Enabled = false;
@@ -32,19 +35,17 @@ namespace AGS.Editor
             }
             else
             {
-                radRecent.Checked = true;
-                foreach (RecentlyEditedGame game in _recentGames)
-                {
-                    lstRecentGames.Items.Add(game.GameName).SubItems.Add(game.DirectoryPath);
-                }
                 lstRecentGames.SelectedIndices.Add(0);
             }
+        }
 
-		}
-
-        public RecentlyEditedGame SelectedRecentGame
+        public string GetSelectedRecentGamePath()
         {
-            get { return _recentGames[lstRecentGames.SelectedIndices[0]]; }
+            string gameName = lstRecentGames.SelectedItems[0].Text;
+            RecentGame game = Factory.AGSEditor.Settings.RecentGames.Find(
+                delegate(RecentGame rg) { return rg.Name == gameName; });
+
+            return game.Path; 
         }
 
         public WelcomeScreenSelection SelectedOption

@@ -41,9 +41,8 @@ namespace AGS.Editor
 
         public string GetSelectedRecentGamePath()
         {
-            string gameName = lstRecentGames.SelectedItems[0].Text;
-            RecentGame game = Factory.AGSEditor.Settings.RecentGames.Find(
-                delegate(RecentGame rg) { return rg.Name == gameName; });
+            int index = lstRecentGames.SelectedItems[0].Index;
+            RecentGame game = Factory.AGSEditor.Settings.RecentGames[index];
 
             return game.Path; 
         }

@@ -1401,9 +1401,15 @@ namespace AGS.Editor
 				return false;
 			}
 
-			// Make sure the game's name in the Recent list is updated, in
-			// case the user has just changed it
-            Settings.RecentGames.Add(new RecentGame(_game.Settings.GameName, _game.DirectoryPath));
+            // Make sure the game's name in the Recent list is updated, in
+            // case the user has just changed it
+            RecentGame recentGame = new RecentGame(_game.Settings.GameName, _game.DirectoryPath);
+            while (Settings.RecentGames.Contains(recentGame))
+            {
+                Settings.RecentGames.Remove(recentGame);
+            }
+            Settings.RecentGames.Insert(0, recentGame);
+            Settings.Save();
 
             bool result = (bool)BusyDialog.Show("Please wait while your files are saved...", new BusyDialog.ProcessingHandler(SaveGameFilesProcess), null);
 

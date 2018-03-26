@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Configuration;
 using System.IO;
 using Microsoft.Win32;
@@ -43,8 +43,7 @@ namespace AGS.Editor.Preferences
         Windowed = 2
     }
 
-    [SettingsSerializeAs(SettingsSerializeAs.String)]
-    public class RecentGame
+    public class RecentGame : IEquatable<RecentGame>
     {
         // default constructor is needed to serialize
         public RecentGame() {}
@@ -55,15 +54,46 @@ namespace AGS.Editor.Preferences
             Path = path;
         }
 
+        public bool Equals(RecentGame otherGame)
+        {
+            return Name == otherGame.Name && Path == otherGame.Path;
+        }
+
         public string Name { get; set; }
         public string Path { get; set; }
     }
 
     public sealed class AppSettings : ApplicationSettingsBase
     {
+        const int MAX_RECENT_GAMES = 5;
+        const int MAX_RECENT_SEARCHES = 10;
+
         public AppSettings()
         {
             SettingsLoaded += new SettingsLoadedEventHandler(Settings_SettingsLoaded);
+            RecentSearches.ListChanged += new ListChangedEventHandler(Settings_LimitRecentSearches);
+            RecentGames.ListChanged += new ListChangedEventHandler(Settings_LimitRecentGames);
+        }
+
+        private void Settings_LimitRecentSearches(object sender, ListChangedEventArgs e)
+        {
+            ApplyLimit(RecentSearches, MAX_RECENT_SEARCHES);
+        }
+
+        private void Settings_LimitRecentGames(object sender, ListChangedEventArgs e)
+        {
+            ApplyLimit(RecentGames, MAX_RECENT_GAMES);
+        }
+
+        private void ApplyLimit<T>(BindingList<T> list, int max)
+        {
+            if (list.Count > max)
+            {
+                for (int i = max; i < list.Count; i++)
+                {
+                    list.RemoveAt(i);
+                }
+            }
         }
 
         private void Settings_SettingsLoaded(object sender, SettingsLoadedEventArgs e)
@@ -143,7 +173,7 @@ namespace AGS.Editor.Preferences
                                 gameNames.Add(value);
                                 break;
                             default:
-                                RecentSearches.Add(value);
+                                RecentSearches.Insert(0, value);
                                 break;
                         }
                     }
@@ -184,13 +214,16 @@ namespace AGS.Editor.Preferences
                 }
 
                 key.Close();
-
-                // now check recent game values
                 int gameCount = Math.Min(gameNames.Count, gamePaths.Count);
 
                 for (int i = 0; i < gameCount; i ++)
                 {
-                    RecentGames.Add(new RecentGame(gameNames[i], gamePaths[i]));
+                    if (RecentGames.Count >= MAX_RECENT_GAMES)
+                    {
+                        break;
+                    }
+
+                    RecentGames.Insert(0, new RecentGame(gameNames[i], gamePaths[i]));
                 }
             }
 
@@ -423,13 +456,13 @@ namespace AGS.Editor.Preferences
 
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("")]
-        public List<RecentGame> RecentGames
+        public BindingList<RecentGame> RecentGames
         {
             get
             {
-                return (List<RecentGame>)(this["RecentGames"]);
+                return (BindingList<RecentGame>)(this["RecentGames"]);
             }
-            set
+            private set
             {
                 this["RecentGames"] = value;
             }
@@ -437,13 +470,13 @@ namespace AGS.Editor.Preferences
 
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("")]
-        public StringCollection RecentSearches
+        public BindingList<string> RecentSearches
         {
             get
             {
-                return (StringCollection)(this["RecentSearches"]);
+                return (BindingList<string>)(this["RecentSearches"]);
             }
-            set
+            private set
             {
                 this["RecentSearches"] = value;
             }

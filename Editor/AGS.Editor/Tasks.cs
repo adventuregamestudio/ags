@@ -131,7 +131,7 @@ namespace AGS.Editor
 
                 game.DirectoryPath = gameDirectory;
                 Utilities.EnsureStandardSubFoldersExist();
-                Factory.AGSEditor.Settings.RecentGames.Add(new RecentGame(game.Settings.GameName, gameDirectory));
+                Factory.AGSEditor.Settings.RecentGames.Insert(0, new RecentGame(game.Settings.GameName, gameDirectory));
                 Factory.Events.OnGamePostLoad();
 
                 Factory.AGSEditor.RefreshEditorAfterGameLoad(game);

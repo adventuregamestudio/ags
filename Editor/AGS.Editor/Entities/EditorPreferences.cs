@@ -551,5 +551,76 @@ namespace AGS.Editor.Preferences
                 this["ExplicitNewGamePath"] = value;
             }
         }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("640")]
+        public int MainWinWidth
+        {
+            get
+            {
+                return (int)(this["MainWinWidth"]);
+            }
+            set
+            {
+                this["MainWinWidth"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("480")]
+        public int MainWinHeight
+        {
+            get
+            {
+                return (int)(this["MainWinHeight"]);
+            }
+            set
+            {
+                this["MainWinHeight"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("0")]
+        public int MainWinX
+        {
+            get
+            {
+                return (int)(this["MainWinX"]);
+            }
+            set
+            {
+                this["MainWinX"] = value;
+            }
+        }
+
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("0")]
+        public int MainWinY
+        {
+            get
+            {
+                return (int)(this["MainWinY"]);
+            }
+            set
+            {
+                this["MainWinY"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("True")]
+        public bool MainWinMaximize
+        {
+            get
+            {
+                return (bool)(this["MainWinMaximize"]);
+            }
+            set
+            {
+                this["MainWinMaximize"] = value;
+            }
+        }
     }
 }

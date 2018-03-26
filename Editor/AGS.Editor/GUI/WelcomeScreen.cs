@@ -35,6 +35,7 @@ namespace AGS.Editor
             }
             else
             {
+                radRecent.Checked = true;
                 lstRecentGames.SelectedIndices.Add(0);
             }
         }

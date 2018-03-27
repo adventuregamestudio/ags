@@ -223,7 +223,7 @@ namespace AGS.Editor.Preferences
                         break;
                     }
 
-                    RecentGames.Insert(0, new RecentGame(gameNames[i], gamePaths[i]));
+                    RecentGames.Add(new RecentGame(gameNames[i], gamePaths[i]));
                 }
             }
 

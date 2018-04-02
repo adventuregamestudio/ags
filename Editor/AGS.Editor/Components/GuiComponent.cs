@@ -169,7 +169,6 @@ namespace AGS.Editor.Components
 			}
             document.TreeNodeID = GetNodeID(chosenGui);
             _guiController.AddOrShowPane(document);
-			_guiController.ShowCuppit("The GUI Editor is where you set up the GUIs in your game. Use the buttons in the toolbar to add controls, and the property grid on the right to edit the selected control's properties.", "GUI Editor introduction");
 		}
 
         public override void PropertyChanged(string propertyName, object oldValue)

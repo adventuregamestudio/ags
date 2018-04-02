@@ -221,8 +221,6 @@ namespace AGS.Editor.Components
         private DialogEditor ShowPaneForDialog(Dialog chosenItem)
         {
             AddDocumentIfNeeded(true, chosenItem);
-            _guiController.ShowCuppit("The Dialog Editor is where you set up conversations that the player can have with other characters. The possible options for this dialog topic are on the left, and the script that will run when the player chooses one is on the right.", "Dialog introduction");
-
             return (DialogEditor)_documents[chosenItem].Control;
         }
 

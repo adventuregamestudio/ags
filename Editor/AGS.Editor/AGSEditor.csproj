@@ -574,10 +574,6 @@
     <EmbeddedResource Include="GUI\GotoLineDialog.resx">
       <DependentUpon>GotoLineDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GUI\HelpPopup.resx">
-      <SubType>Designer</SubType>
-      <DependentUpon>HelpPopup.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="GUI\MakeTemplateWizardPage.resx">
       <DependentUpon>MakeTemplateWizardPage.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -947,12 +943,6 @@
     </Compile>
     <Compile Include="GUI\GlobalVariableDialog.Designer.cs">
       <DependentUpon>GlobalVariableDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="GUI\HelpPopup.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GUI\HelpPopup.Designer.cs">
-      <DependentUpon>HelpPopup.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\NewRoomDialog.cs">
       <SubType>Form</SubType>

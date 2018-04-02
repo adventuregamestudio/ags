@@ -455,8 +455,7 @@ namespace AGS.Editor
         {
             SetPropertyGridList();
             Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
-			Factory.GUIController.ShowCuppit("The Objects view allows you to place and manage room objects. These are items that can move around, be turned on and off and animated, but they have to stay within this room.\nRight-click in the room to add one.", "Objects introduction");
-		}
+        }
 
         public void FilterOff()
         {

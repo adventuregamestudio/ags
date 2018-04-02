@@ -184,8 +184,6 @@ namespace AGS.Editor.Components
 
             if (controlID == RUN_COMMAND)
             {
-				_guiController.ShowCuppit("When using this Run command, the game will always run in a window. If you want to play full-screen, use the Run Without Debugger option.", "Test full screen warning", true);
-				
                 if (_debuggerState == DebugState.NotRunning)
                 {
                     TestGame(true);

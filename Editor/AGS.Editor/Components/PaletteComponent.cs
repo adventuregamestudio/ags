@@ -50,7 +50,6 @@ namespace AGS.Editor.Components
             _document.TreeNodeID = controlID;
             _guiController.AddOrShowPane(_document);
             _palEditor.OnShow();
-			_guiController.ShowCuppit("The Colours window allows you to find out the AGS Colour Number for a colour, and also to set up your palette in 256-colour games.", "Colours introduction");
 		}
 
         public override void PropertyChanged(string propertyName, object oldValue)

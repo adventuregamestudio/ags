@@ -166,7 +166,7 @@ namespace AGS.Editor
 
         public void FilterOn()
         {
-			Factory.GUIController.ShowCuppit("The room edges set the point at which the Player Walks Off Edge events will be triggered, and are the normal way to go from one room to another. They also act as limits to where AGS will automatically move the character.", "Edges introduction");
+
         }
 
         public void FilterOff()

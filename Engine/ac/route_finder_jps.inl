@@ -25,10 +25,10 @@
 #include <stddef.h>
 #include <math.h>
 
-// note: change this to thread_local if C++11 allowed
-#define NAV_THREAD_LOCAL static
-
 // TODO: this could be cleaned up/simplified ...
+
+// further optimizations possible:
+//    - forward refinement should use binary search
 
 class Navigation
 {
@@ -37,14 +37,25 @@ public:
 
 	void Resize(int width, int height);
 
+	enum NavResult
+	{
+		// unreachable
+		NAV_UNREACHABLE,
+		// straight line exists
+		NAV_STRAIGHT,
+		// path used
+		NAV_PATH
+	};
+
 	// ncpath = navpoint-compressed path
 	// opath = path composed of individual grid elements
-	bool NavigateRefined(int sx, int sy, int ex, int ey, std::vector<int> &opath,
+	NavResult NavigateRefined(int sx, int sy, int ex, int ey, std::vector<int> &opath,
 		std::vector<int> &ncpath);
 
-	bool Navigate(int sx, int sy, int ex, int ey, std::vector<int> &opath);
+	NavResult Navigate(int sx, int sy, int ex, int ey, std::vector<int> &opath);
 
-	bool TraceLine(int srcx, int srcy, int targx, int targy, std::vector<int> &rpath) const;
+	bool TraceLine(int srcx, int srcy, int targx, int targy, int &lastValidX, int &lastValidY) const;
+	bool TraceLine(int srcx, int srcy, int targx, int targy, std::vector<int> *rpath = NULL) const;
 
 	inline void SetMapRow(int y, const unsigned char *row) {map[y] = row;}
 
@@ -105,7 +116,11 @@ private:
 	tFrameId frameId;
 
 	std::priority_queue<Entry, std::vector<Entry>, std::greater<Entry> > pq;
-	std::vector<int> path, npath, cpath;
+
+	// temporary buffers:
+	mutable std::vector<int> fpath;
+	std::vector<int> ncpathIndex;
+	std::vector<int> rayPath, orayPath;
 
 	// temps for routing towards unreachable areas
 	int cnode;
@@ -364,19 +379,19 @@ int Navigation::FindJump(int x, int y, int dx, int dy, int ex, int ey)
 	return nodiag ? -1 : FindJump(x, y, dx, dy, ex, ey);
 }
 
-bool Navigation::Navigate(int sx, int sy, int ex, int ey, std::vector<int> &opath)
+Navigation::NavResult Navigation::Navigate(int sx, int sy, int ex, int ey, std::vector<int> &opath)
 {
 	IncFrameId();
 
 	if (!Walkable(sx, sy))
 	{
 		opath.clear();
-		return false;
+		return NAV_UNREACHABLE;
 	}
 
 	// try ray first, if reachable, no need for A* at all
-	if (!TraceLine(sx, sy, ex, ey, opath))
-		return true;
+	if (!TraceLine(sx, sy, ex, ey, &opath))
+		return NAV_STRAIGHT;
 
 	NodeInfo &ni = mapNodes[sy*mapWidth+sx];
 	ni.dist = 0;
@@ -591,10 +606,10 @@ bool Navigation::Navigate(int sx, int sy, int ex, int ey, std::vector<int> &opat
 	if ((nex != sx || ney != sy) && (nex != ex || ney != ey))
 	{
 		// target not directly reachable => move closer to target
-		TraceLine(nex, ney, ex, ey, opath);
+		TraceLine(nex, ney, ex, ey, &opath);
 		UnpackSquare(opath.back(), nex, ney);
 
-		bool res = true;
+		NavResult res = NAV_PATH;
 
 		// note: navLock => better safe than sorry
 		// infinite recursion should never happen but... better safe than sorry
@@ -638,7 +653,7 @@ bool Navigation::Navigate(int sx, int sy, int ex, int ey, std::vector<int> &opat
 	if (mapNodes[ey*mapWidth+ex].frameId != frameId)
 	{
 		// path not found
-		return false;
+		return NAV_UNREACHABLE;
 	}
 
 	int tx = ex;
@@ -668,26 +683,30 @@ bool Navigation::Navigate(int sx, int sy, int ex, int ey, std::vector<int> &opat
 	}
 
 	std::reverse(opath.begin(), opath.end());
-	return true;
+	return NAV_PATH;
 }
 
-bool Navigation::NavigateRefined(int sx, int sy, int ex, int ey,
+Navigation::NavResult Navigation::NavigateRefined(int sx, int sy, int ex, int ey,
 	std::vector<int> &opath, std::vector<int> &ncpath)
 {
 	ncpath.clear();
 
-	if (!Navigate(sx, sy, ex, ey, opath))
-		return false;
+	NavResult res = Navigate(sx, sy, ex, ey, opath);
 
-	NAV_THREAD_LOCAL std::vector<int> tmp;
-	tmp.clear();
+	if (res != NAV_PATH)
+	{
+		if (res == NAV_STRAIGHT)
+		{
+			ncpath.push_back(opath[0]);
+			ncpath.push_back(opath.back());
+		}
 
-	tmp.reserve(opath.size());
+		return res;
+	}
+
 	int fx = sx;
 	int fy = sy;
 
-	NAV_THREAD_LOCAL std::vector<int> fpath;
-	NAV_THREAD_LOCAL std::vector<int> ncpathIndex;
 	fpath.clear();
 	ncpathIndex.clear();
 
@@ -695,8 +714,6 @@ bool Navigation::NavigateRefined(int sx, int sy, int ex, int ey,
 	fpath.push_back(opath[0]);
 	ncpath.push_back(opath[0]);
 	ncpathIndex.push_back(0);
-
-	NAV_THREAD_LOCAL std::vector<int> rayPath, orayPath;
 
 	rayPath.clear();
 	orayPath.clear();
@@ -712,7 +729,7 @@ bool Navigation::NavigateRefined(int sx, int sy, int ex, int ey,
 
 		bool last = i == (int)opath.size()-1;
 
-		if (!TraceLine(fx, fy, tx, ty, rayPath))
+		if (!TraceLine(fx, fy, tx, ty, &rayPath))
 		{
 			assert(rayPath.back() == opath[i]);
 			std::swap(rayPath, orayPath);
@@ -761,7 +778,7 @@ bool Navigation::NavigateRefined(int sx, int sy, int ex, int ey,
 		int tx, ty;
 		UnpackSquare(ncpath[i], fx, fy);
 		UnpackSquare(ncpath[i+1], tx, ty);
-		assert(!TraceLine(fx, fy, tx, ty, rayPath));
+		assert(!TraceLine(fx, fy, tx, ty, &rayPath));
 	}
 
 	assert(ncpath.size() == ncpathIndex.size());
@@ -791,10 +808,10 @@ bool Navigation::NavigateRefined(int sx, int sy, int ex, int ey,
 
 			// if we can raycast px,py => x,y and x,y => nx,ny,
 			// we can move ncPath node!
-			if (TraceLine(px, py, x, y, rayPath))
+			if (TraceLine(px, py, x, y))
 				continue;
 
-			if (TraceLine(x, y, nx, ny, rayPath))
+			if (TraceLine(x, y, nx, ny))
 				continue;
 
 			ncpath[i] = opath[j];
@@ -813,7 +830,7 @@ bool Navigation::NavigateRefined(int sx, int sy, int ex, int ey,
 	}
 
 	if (!adjusted)
-		return true;
+		return NAV_PATH;
 
 	// final step (if necessary) is to reconstruct path from compressed path
 
@@ -828,19 +845,32 @@ bool Navigation::NavigateRefined(int sx, int sy, int ex, int ey,
 		UnpackSquare(ncpath[i-1], fx, fy);
 		UnpackSquare(ncpath[i], tx, ty);
 
-		TraceLine(fx, fy, tx, ty, rayPath);
+		TraceLine(fx, fy, tx, ty, &rayPath);
 
 		for (int j=1; j<(int)rayPath.size(); j++)
 			opath.push_back(rayPath[j]);
 	}
 
-	return true;
+	return NAV_PATH;
 }
 
-bool Navigation::TraceLine(int srcx, int srcy, int targx, int targy,
-	std::vector<int> &rpath) const
+bool Navigation::TraceLine(int srcx, int srcy, int targx, int targy, int &lastValidX, int &lastValidY) const
 {
-	rpath.clear();
+	lastValidX = srcx;
+	lastValidY = srcy;
+
+	bool res = TraceLine(srcx, srcy, targx, targy, &fpath);
+
+	if (!fpath.empty())
+		UnpackSquare(fpath.back(), lastValidX, lastValidY);
+
+	return res;
+}
+
+bool Navigation::TraceLine(int srcx, int srcy, int targx, int targy, std::vector<int> *rpath) const
+{
+	if (rpath)
+		rpath->clear();
 
 	// DDA
 	int x0 = (srcx << 16) + 0x8000;
@@ -856,7 +886,9 @@ bool Navigation::TraceLine(int srcx, int srcy, int targx, int targy,
 		if (!Passable(srcx, srcy))
 			return true;
 
-		rpath.push_back(PackSquare(srcx, srcy));
+		if (rpath)
+			rpath->push_back(PackSquare(srcx, srcy));
+
 		return false;
 	}
 
@@ -887,7 +919,8 @@ bool Navigation::TraceLine(int srcx, int srcy, int targx, int targy,
 		if (!Passable(x, y))
 			return true;
 
-		rpath.push_back(PackSquare(x, y));
+		if (rpath)
+			rpath->push_back(PackSquare(x, y));
 
 		fx += xinc;
 		fy += yinc;
@@ -910,8 +943,8 @@ bool Navigation::TraceLine(int srcx, int srcy, int targx, int targy,
 
 	int sq = PackSquare(ex, ey);
 
-	if (rpath.empty() || rpath.back() != sq)
-		rpath.push_back(sq);
+	if (rpath && (rpath->empty() || rpath->back() != sq))
+		rpath->push_back(sq);
 
 	return false;
 }

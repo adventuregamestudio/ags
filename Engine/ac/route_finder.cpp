@@ -78,13 +78,7 @@ int can_see_from(int x1, int y1, int x2, int y2)
 
   sync_nav_wallscreen();
 
-  NAV_THREAD_LOCAL std::vector<int> rpath;
-  int res = !nav.TraceLine(x1, y1, x2, y2, rpath);
-
-  if (!rpath.empty())
-    nav.UnpackSquare(rpath.back(), lastcx, lastcy);
-
-  return res;
+  return !nav.TraceLine(x1, y1, x2, y2, lastcx, lastcy);
 }
 
 // new routing using JPS
@@ -92,11 +86,11 @@ int find_route_jps(int fromx, int fromy, int destx, int desty)
 {
   sync_nav_wallscreen();
 
-  NAV_THREAD_LOCAL std::vector<int> path, cpath;
+  static std::vector<int> path, cpath;
   path.clear();
   cpath.clear();
 
-  if (!nav.NavigateRefined(fromx, fromy, destx, desty, path, cpath))
+  if (nav.NavigateRefined(fromx, fromy, destx, desty, path, cpath) == Navigation::NAV_UNREACHABLE)
     return 0;
 
   num_navpoints = 0;

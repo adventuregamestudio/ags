@@ -21,7 +21,9 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-#define MAXNEEDSTAGES 40
+#define MAXNEEDSTAGES 256
+#define MAXNEEDSTAGES_LEGACY 40
+
 struct MoveList {
     int   pos[MAXNEEDSTAGES];
     int   numstage;

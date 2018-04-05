@@ -136,10 +136,12 @@ private:
 	inline static tPrev PackPrev(int px, int py, int x, int y);
 	inline int UnpackPrev(int x, int y, tPrev prev) const;
 
+	// outside map test
+	inline bool Outside(int x, int y) const;
 	// stronger inside test
 	bool Passable(int x, int y) const;
 	// plain access, unchecked
-	bool Walkable(int x, int y) const;
+	inline bool Walkable(int x, int y) const;
 
 	void AddPruned(int *buf, int &bcount, int x, int y) const;
 	bool HasForcedNeighbor(int x, int y, int dx, int dy) const;
@@ -247,16 +249,23 @@ inline int Navigation::UnpackPrev(int x, int y, tPrev prev) const
 
 inline int Navigation::PackSquare(int x, int y)
 {
-	return (y << 15) + x;
+	return (y << 16) + x;
 }
 
 inline void Navigation::UnpackSquare(int sq, int &x, int &y)
 {
-	y = sq >> 15;
-	x = sq & ((1 << 15)-1);
+	y = sq >> 16;
+	x = sq & ((1 << 16)-1);
 }
 
-bool Navigation::Walkable(int x, int y) const
+inline bool Navigation::Outside(int x, int y) const
+{
+	return
+		(unsigned)x >= (unsigned)mapWidth ||
+		(unsigned)y >= (unsigned)mapHeight;
+}
+
+inline bool Navigation::Walkable(int x, int y) const
 {
 	// invert condition because of AGS
 	return map[y][x] != 0;
@@ -264,11 +273,7 @@ bool Navigation::Walkable(int x, int y) const
 
 bool Navigation::Passable(int x, int y) const
 {
-	if ((unsigned)x >= (unsigned)mapWidth ||
-		(unsigned)y >= (unsigned)mapHeight)
-		return false;
-
-	return Walkable(x, y);
+	return !Outside(x, y) && Walkable(x, y);
 }
 
 bool Navigation::Reachable(int x0, int y0, int x1, int y1) const
@@ -285,11 +290,8 @@ void Navigation::AddPruned(int *buf, int &bcount, int x, int y) const
 {
 	assert(buf && bcount < 8);
 
-	if ((unsigned)x >= (unsigned)mapWidth ||
-		(unsigned)y >= (unsigned)mapHeight || !Walkable(x, y))
-		return;
-
-	buf[bcount++] = PackSquare(x, y);
+	if (Passable(x, y))
+		buf[bcount++] = PackSquare(x, y);
 }
 
 bool Navigation::HasForcedNeighbor(int x, int y, int dx, int dy) const
@@ -320,8 +322,7 @@ int Navigation::FindOrthoJump(int x, int y, int dx, int dy, int ex, int ey)
 		x += dx;
 		y += dy;
 
-		if ((unsigned)x >= (unsigned)mapWidth ||
-			(unsigned)y >= (unsigned)mapHeight || !Walkable(x, y))
+		if (!Passable(x, y))
 			break;
 
 		int edx = x - ex;
@@ -352,8 +353,7 @@ int Navigation::FindJump(int x, int y, int dx, int dy, int ex, int ey)
 	x += dx;
 	y += dy;
 
-	if ((unsigned)x >= (unsigned)mapWidth ||
-		(unsigned)y >= (unsigned)mapHeight || !Walkable(x, y))
+	if (!Passable(x, y))
 		return -1;
 
 	int edx = x - ex;
@@ -383,7 +383,7 @@ Navigation::NavResult Navigation::Navigate(int sx, int sy, int ex, int ey, std::
 {
 	IncFrameId();
 
-	if (!Walkable(sx, sy))
+	if (!Passable(sx, sy))
 	{
 		opath.clear();
 		return NAV_UNREACHABLE;

@@ -173,7 +173,7 @@ namespace AGS.Editor.Preferences
                         {
                             gameNames.Add(value);
                         }
-                        else if (regname.StartsWith("RecentSearch"))
+                        else if (regname.StartsWith("RecentSearch") && RecentSearches.Count < MAX_RECENT_SEARCHES)
                         {
                             RecentSearches.Insert(0, value);
                         }

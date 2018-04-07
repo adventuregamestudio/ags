@@ -428,10 +428,7 @@ namespace AGS.Editor
 				Factory.GUIController.ShowMessage("This is a BETA version of AGS. BE VERY CAREFUL and MAKE SURE YOU BACKUP YOUR GAME before loading it in this editor.", MessageBoxIcon.Warning);
 			}
 
-			if (!Factory.GUIController.ShowWelcomeScreen())
-			{
-				Factory.GUIController.ShowCuppit("To get started, check out the tree in the top-right hand corner. That's the main way you'll be moving between different parts of the editor.", "Initial editor welcome");
-			}
+            Factory.GUIController.ShowWelcomeScreen();
         }
 
         private void LoadLayout()

@@ -64,7 +64,6 @@ namespace AGS.Editor
 		private string[] _commandLineArgs;
 		private bool _messageLoopStarted = false;
         private int _systemDpi = 0;
-		//private HelpPopup _cuppit;
 
         private string _timerScriptName;
         private string _timerSearchForText;
@@ -788,35 +787,6 @@ namespace AGS.Editor
         {
             _mainForm.Close();
         }
-
-		public void ShowCuppit(string helpText, string helpTextID)
-		{
-			ShowCuppit(helpText, helpTextID, false);
-		}
-
-		public void ShowCuppit(string helpText, string helpTextID, bool modal)
-		{
-/*          Disabled for now, Cuppit was not too popular!!
-            if (_cuppit == null)
-			{
-				_cuppit = new HelpPopup();
-			}
-
-			if (_cuppit.ShouldShow(helpTextID, modal))
-			{
-				_cuppit.Location = new Point(_mainForm.Left + 20, _mainForm.Bottom - 300);
-				_cuppit.SetHelpText(helpText);
-
-				if (modal)
-				{
-					_cuppit.ShowDialog(_mainForm);
-				}
-				else
-				{
-					_cuppit.Show(_mainForm);
-				}
-			}*/
-		}
 
 		private bool ProcessCommandLineArgumentsAndReturnWhetherToShowWelcomeScreen()
 		{

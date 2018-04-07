@@ -121,7 +121,6 @@ namespace AGS.Editor.Components
             }
             document.TreeNodeID = GetNodeID(chosenFont);
             _guiController.AddOrShowPane(document);
-            _guiController.ShowCuppit("The Font Editor allows you to import fonts into your game. Windows TTF fonts are supported, as are SCI fonts which can be created with Radiant FontEdit.", "Fonts introduction");
         }
 
         public override void PropertyChanged(string propertyName, object oldValue)

@@ -131,7 +131,6 @@ namespace AGS.Editor.Components
 			}
             document.TreeNodeID = GetNodeIDForView(chosenItem);
             _guiController.AddOrShowPane(document);
-			_guiController.ShowCuppit("Views are how you set up animations in AGS. Each View contains a set of related animations, each of which is a Loop consisting of several Frames.\nFor character walking animations, a view consists of one loop for each direction.", "Views introduction");
 		}
 
 		private void UpdateOpenWindowTitles()

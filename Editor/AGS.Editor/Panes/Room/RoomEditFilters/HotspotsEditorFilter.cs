@@ -33,11 +33,6 @@ namespace AGS.Editor
             Factory.GUIController.SetPropertyGridObject(_room.Hotspots[areaNumber]);
         }
 
-		protected override void FilterActivated()
-		{
-			Factory.GUIController.ShowCuppit("Hotspots allow you to provide interaction with the background image. These are usually used to allow the player to look at parts of the background that can't be changed.", "Hotspots introduction");
-		}
-
         public override void Paint(Graphics graphics, RoomEditorState state)
         {
             base.Paint(graphics, state);

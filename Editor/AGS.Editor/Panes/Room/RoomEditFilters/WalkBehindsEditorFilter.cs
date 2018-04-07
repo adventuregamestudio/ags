@@ -134,11 +134,6 @@ namespace AGS.Editor
             Factory.GUIController.SetPropertyGridObject(_room.WalkBehinds[areaNumber]);
         }
 
-		protected override void FilterActivated()
-		{
-			Factory.GUIController.ShowCuppit("Walk-behinds allow you to give the illusion of 3D by making parts of the background image be drawn in front of the characters. Each area has a baseline, which defines how high up the screen the character needs to be in order to be drawn behind the area.", "Walk-behinds introduction");
-		}
-
         protected override Dictionary<string, int> GetItems()
         {
             Dictionary<string, int> items = new Dictionary<string, int>(_room.WalkBehinds.Count);

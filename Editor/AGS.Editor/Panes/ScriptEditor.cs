@@ -663,8 +663,6 @@ namespace AGS.Editor
             }
             AutoComplete.RequestBackgroundCacheUpdate(_script);
             ActivateTextEditor();
-
-            Factory.GUIController.ShowCuppit("You've opened a script editor. This is where you set up how the game will react to various events like the player clicking on things. Read the Scripting Tutorial in the manual to get started.", "Script editor introduction");
         }
 
         protected override void OnWindowDeactivated()

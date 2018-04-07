@@ -790,7 +790,6 @@ namespace AGS.Editor
 		protected override void OnWindowActivated()
 		{
 			SetFocusToAllowArrowKeysToWork();
-			Factory.GUIController.ShowCuppit("This is the Room Editor. The first thing to do here is import a background using the 'Change' button. Various room properties can be changed in the property grid to the right.", "Room editor introduction");
 		}
 
         protected override void OnCommandClick(string command)

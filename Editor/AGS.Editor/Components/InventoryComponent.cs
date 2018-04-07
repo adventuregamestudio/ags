@@ -109,7 +109,6 @@ namespace AGS.Editor.Components
 			}
             document.TreeNodeID = GetNodeID(chosenItem);
             _guiController.AddOrShowPane(document);
-			_guiController.ShowCuppit("Inventory items are things that characters can carry around with them. You can set up this inventory item using the property grid on the right.", "Inventory introduction");
 		}
 
         public override void PropertyChanged(string propertyName, object oldValue)

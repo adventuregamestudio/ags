@@ -331,15 +331,15 @@ namespace AGS.Editor.Preferences
 
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("False")]
-        public bool IndentUsingTabs
+        public bool IndentUseTabs
         {
             get
             {
-                return (bool)(this["IndentUsingTabs"]);
+                return (bool)(this["IndentUseTabs"]);
             }
             set
             {
-                this["IndentUsingTabs"] = value;
+                this["IndentUseTabs"] = value;
             }
         }
 

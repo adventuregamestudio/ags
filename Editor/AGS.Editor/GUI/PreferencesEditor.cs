@@ -31,7 +31,7 @@ namespace AGS.Editor
 			txtNewGamePath.Enabled = radNewGameSpecificPath.Checked;
 			btnNewGameChooseFolder.Enabled = radNewGameSpecificPath.Checked;
 			cmbMessageOnCompile.SelectedIndex = (int)Factory.AGSEditor.Settings.MessageBoxOnCompile;
-			cmbIndentStyle.SelectedIndex = Factory.AGSEditor.Settings.IndentUsingTabs ? 1 : 0;
+			cmbIndentStyle.SelectedIndex = Factory.AGSEditor.Settings.IndentUseTabs ? 1 : 0;
 			chkAlwaysShowViewPreview.Checked = Factory.AGSEditor.Settings.ShowViewPreviewByDefault;
 			txtPaintProgram.Text = Factory.AGSEditor.Settings.PaintProgramPath;
 			radPaintProgram.Checked = (Factory.AGSEditor.Settings.PaintProgramPath != string.Empty);
@@ -74,7 +74,7 @@ namespace AGS.Editor
 			Factory.AGSEditor.Settings.StartupPane = (StartupPane)cmbEditorStartup.SelectedIndex;
 			Factory.AGSEditor.Settings.DefaultImportPath = (radGamePath.Checked ? string.Empty : txtImportPath.Text);
 			Factory.AGSEditor.Settings.MessageBoxOnCompile = (MessageBoxOnCompile)cmbMessageOnCompile.SelectedIndex;
-			Factory.AGSEditor.Settings.IndentUsingTabs = (cmbIndentStyle.SelectedIndex == 1);
+			Factory.AGSEditor.Settings.IndentUseTabs = (cmbIndentStyle.SelectedIndex == 1);
 			Factory.AGSEditor.Settings.ShowViewPreviewByDefault = chkAlwaysShowViewPreview.Checked;
 			Factory.AGSEditor.Settings.PaintProgramPath = (radDefaultPaintProgram.Checked ? string.Empty : txtPaintProgram.Text);
 			Factory.AGSEditor.Settings.SpriteImportMethod = (SpriteImportMethod)cmbSpriteImportTransparency.SelectedIndex;

@@ -540,20 +540,6 @@ namespace AGS.Editor.Preferences
         }
 
         [UserScopedSettingAttribute()]
-        [DefaultSettingValueAttribute("")]
-        public string ExplicitNewGamePath
-        {
-            get
-            {
-                return (string)(this["ExplicitNewGamePath"]);
-            }
-            set
-            {
-                this["ExplicitNewGamePath"] = value;
-            }
-        }
-
-        [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("640")]
         public int MainWinWidth
         {

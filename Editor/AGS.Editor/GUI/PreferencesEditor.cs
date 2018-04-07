@@ -26,8 +26,8 @@ namespace AGS.Editor
 			txtImportPath.Text = Factory.AGSEditor.Settings.DefaultImportPath;
 			txtImportPath.Enabled = radFolderPath.Checked;
 			btnChooseFolder.Enabled = txtImportPath.Enabled;
-			radNewGameSpecificPath.Checked = (Factory.AGSEditor.Settings.ExplicitNewGamePath != string.Empty);
-			txtNewGamePath.Text = Factory.AGSEditor.Settings.ExplicitNewGamePath;
+			radNewGameSpecificPath.Checked = (Factory.AGSEditor.Settings.NewGamePath != string.Empty);
+			txtNewGamePath.Text = Factory.AGSEditor.Settings.NewGamePath;
 			txtNewGamePath.Enabled = radNewGameSpecificPath.Checked;
 			btnNewGameChooseFolder.Enabled = radNewGameSpecificPath.Checked;
 			cmbMessageOnCompile.SelectedIndex = (int)Factory.AGSEditor.Settings.MessageBoxOnCompile;
@@ -78,7 +78,7 @@ namespace AGS.Editor
 			Factory.AGSEditor.Settings.ShowViewPreviewByDefault = chkAlwaysShowViewPreview.Checked;
 			Factory.AGSEditor.Settings.PaintProgramPath = (radDefaultPaintProgram.Checked ? string.Empty : txtPaintProgram.Text);
 			Factory.AGSEditor.Settings.SpriteImportMethod = (SpriteImportMethod)cmbSpriteImportTransparency.SelectedIndex;
-			Factory.AGSEditor.Settings.ExplicitNewGamePath = (radNewGameMyDocs.Checked ? string.Empty : txtNewGamePath.Text);
+			Factory.AGSEditor.Settings.NewGamePath = (radNewGameMyDocs.Checked ? string.Empty : txtNewGamePath.Text);
             Factory.AGSEditor.Settings.SendAnonymousStats = chkUsageInfo.Checked;
             Factory.AGSEditor.Settings.BackupWarningInterval = (chkBackupReminders.Checked ? (int)udBackupInterval.Value : 0);
             Factory.AGSEditor.Settings.RemapPalettizedBackgrounds = chkRemapBgImport.Checked;

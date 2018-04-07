@@ -65,7 +65,7 @@ namespace AGS.Editor.Preferences
 
     public sealed class AppSettings : ApplicationSettingsBase
     {
-        const int MAX_RECENT_GAMES = 5;
+        const int MAX_RECENT_GAMES = 10;
         const int MAX_RECENT_SEARCHES = 10;
 
         public AppSettings()

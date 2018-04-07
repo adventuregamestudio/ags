@@ -676,8 +676,6 @@
     <EmbeddedResource Include="Resources\findnext.ico" />
     <EmbeddedResource Include="Resources\menu_file_stats.ico" />
     <EmbeddedResource Include="Resources\greymasks.ico" />
-    <EmbeddedResource Include="Resources\cuppit-back.gif" />
-    <EmbeddedResource Include="Resources\cuppit-back2.gif" />
     <EmbeddedResource Include="Resources\drawrect.ico" />
     <None Include="acsprset.spr">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

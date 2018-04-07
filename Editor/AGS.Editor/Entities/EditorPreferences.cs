@@ -165,16 +165,17 @@ namespace AGS.Editor.Preferences
 
                     if (regname.StartsWith("Recent"))
                     {
-                        switch (regname.Substring(6, 4)) {
-                            case "Path":
-                                gamePaths.Add(value);
-                                break;
-                            case "Name":
-                                gameNames.Add(value);
-                                break;
-                            default:
-                                RecentSearches.Insert(0, value);
-                                break;
+                        if (regname.StartsWith("RecentPath"))
+                        {
+                            gamePaths.Add(value);
+                        }
+                        else if (regname.StartsWith("RecentName"))
+                        {
+                            gameNames.Add(value);
+                        }
+                        else if (regname.StartsWith("RecentSearch"))
+                        {
+                            RecentSearches.Insert(0, value);
                         }
                     }
                     else

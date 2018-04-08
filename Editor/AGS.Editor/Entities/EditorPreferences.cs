@@ -499,15 +499,15 @@ namespace AGS.Editor.Preferences
 
         [UserScopedSettingAttribute()]
         [DefaultSettingValueAttribute("True")]
-        public bool DialogOnMultibleTabsClose
+        public bool DialogOnMultipleTabsClose
         {
             get
             {
-                return (bool)(this["DialogOnMultibleTabsClose"]);
+                return (bool)(this["DialogOnMultipleTabsClose"]);
             }
             set
             {
-                this["DialogOnMultibleTabsClose"] = value;
+                this["DialogOnMultipleTabsClose"] = value;
             }
         }
 

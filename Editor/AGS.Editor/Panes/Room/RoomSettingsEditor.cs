@@ -460,7 +460,7 @@ namespace AGS.Editor
 						_room.Resolution = newResolution;
                         _room.Width = bmp.Width;
                         _room.Height = bmp.Height;
-                        Factory.NativeProxy.ImportBackground(_room, bgIndex, bmp, !Factory.AGSEditor.Preferences.RemapPalettizedBackgrounds, false);
+                        Factory.NativeProxy.ImportBackground(_room, bgIndex, bmp, !Factory.AGSEditor.Settings.RemapPalettizedBackgrounds, false);
                         _room.Modified = true;
 
                         if (deleteExtraFrames)

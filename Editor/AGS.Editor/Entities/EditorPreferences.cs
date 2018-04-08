@@ -1,271 +1,613 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
+using System.ComponentModel;
+using System.Configuration;
+using System.IO;
 using Microsoft.Win32;
 
-namespace AGS.Editor
+namespace AGS.Editor.Preferences
 {
-    public class EditorPreferences
+    [Flags]
+    public enum StartupPane
     {
-        private TestGameWindowStyle _testGameScreen = TestGameWindowStyle.Windowed;
-        private int _tabSize = 2;
-		private EditorStartupPane _editorStartupPane = EditorStartupPane.StartPage;
-		private string _defaultImportPath = string.Empty;
-		private bool _projectTreeOnRight = true;
-		private MessageBoxOnCompile _messageBoxOnCompileErrors = MessageBoxOnCompile.WarningsAndErrors;
-		private bool _indentUseTabs = false;
-		private bool _showViewPreviewByDefault = false;
-		private string _paintProgramPath = string.Empty;
-		private SpriteImportMethod _defaultSpriteImportTransparency = SpriteImportMethod.TopLeft;
-		private string _defaultNewGamePath = string.Empty;
-        private bool _sendAnonymousStats = true;
-        private DateTime _statsLastSent = DateTime.MinValue;
-        private int _backupWarningInterval = 7;
-        private DateTime _lastBackupWarning = DateTime.MinValue;
-        private bool _remapPalettizedBackgrounds = true;
-        private List<string> _previousSearches = new List<string>();
-        private bool _keepHelpOnTop = true;
-        private bool _dialogOnMultibleTabsClose = true;
+        StartPage = 0,
+        GeneralSettings = 1,
+        None = 2
+    }
 
-        private string _registryKey;
+    [Flags]
+    public enum MessageBoxOnCompile
+    {
+        WarningsAndErrors = 0,
+        OnlyErrors = 1,
+        Never = 2
+    }
 
-        public EditorPreferences(string registryKey)
+    [Flags]
+    public enum SpriteImportMethod
+    {
+        Pixel0 = 0,
+        TopLeft = 1,
+        BottomLeft = 2,
+        TopRight = 3,
+        BottomRight = 4,
+        LeaveAsIs = 5,
+        NoTransparency = 6
+    }
+
+    [Flags]
+    public enum TestGameWindowStyle
+    {
+        UseGameSetup = 0,
+        FullScreen = 1,
+        Windowed = 2
+    }
+
+    public class RecentGame : IEquatable<RecentGame>
+    {
+        // default constructor is needed to serialize
+        public RecentGame() {}
+
+        public RecentGame(string name, string path)
         {
-            _registryKey = registryKey;
+            Name = name;
+            Path = path;
+        }
 
-            RegistryKey key = Registry.CurrentUser.OpenSubKey(registryKey);
+        public bool Equals(RecentGame otherGame)
+        {
+            return Name == otherGame.Name && Path == otherGame.Path;
+        }
+
+        public string Name { get; set; }
+        public string Path { get; set; }
+    }
+
+    public sealed class AppSettings : ApplicationSettingsBase
+    {
+        const int MAX_RECENT_GAMES = 10;
+        const int MAX_RECENT_SEARCHES = 10;
+
+        public AppSettings()
+        {
+            SettingsLoaded += new SettingsLoadedEventHandler(Settings_SettingsLoaded);
+            RecentSearches.ListChanged += new ListChangedEventHandler(Settings_LimitRecentSearches);
+            RecentGames.ListChanged += new ListChangedEventHandler(Settings_LimitRecentGames);
+        }
+
+        private void Settings_LimitRecentSearches(object sender, ListChangedEventArgs e)
+        {
+            ApplyLimit(RecentSearches, MAX_RECENT_SEARCHES);
+        }
+
+        private void Settings_LimitRecentGames(object sender, ListChangedEventArgs e)
+        {
+            ApplyLimit(RecentGames, MAX_RECENT_GAMES);
+        }
+
+        private void ApplyLimit<T>(BindingList<T> list, int max)
+        {
+            if (list.Count > max)
+            {
+                for (int i = max; i < list.Count; i++)
+                {
+                    list.RemoveAt(i);
+                }
+            }
+        }
+
+        private void Settings_SettingsLoaded(object sender, SettingsLoadedEventArgs e)
+        {
+            // - called when the first setting is requested and caches all values
+            // - base class will handle bad input so just logic fixes needed
+
+            if (!UpgradedSettings)
+            {
+                Upgrade();
+                UpgradedSettings = true;
+            }
+
+            if (!MigratedSettings)
+            {
+                MigratedSettings = GetSettingsFromRegistry();
+            }
+
+            if (DefaultImportPath == String.Empty && !Directory.Exists(DefaultImportPath))
+            {
+                DefaultImportPath = String.Empty;
+            }
+
+            if (PaintProgramPath == String.Empty && !File.Exists(PaintProgramPath))
+            {
+                PaintProgramPath = String.Empty;
+            }
+
+            if (ColorTheme == String.Empty)
+            {
+                ColorTheme = ColorThemeStub.DEFAULT.Name;
+            }
+        }
+
+        private bool GetSettingsFromRegistry()
+        {
+            Dictionary<string, string> regmap = new Dictionary<string, string>()
+            {
+            //  [<registry name>] = <setting name>
+                ["ScEdTabWidth"] = "TabSize",
+                ["TestGameStyle"] = "TestGameWindowStyle",
+                ["MessageBoxOnCompileErrors"] = "MessageBoxOnCompile",
+                ["IndentUsingTabs"] = "IndentUseTabs",
+                ["SpriteImportTransparency"] = "SpriteImportMethod",
+                ["RemapPaletteBackgrounds"] = "RemapPalettizedBackgrounds"
+            };
+
+            RegistryKey key = Registry.CurrentUser.OpenSubKey(AGSEditor.AGS_REGISTRY_KEY);
+            List<string> gameNames = new List<string>();
+            List<string> gamePaths = new List<string>();
+            bool success = true;
+
             if (key != null)
             {
-                _tabSize = Convert.ToInt32(key.GetValue("ScEdTabWidth", _tabSize));
-                _testGameScreen = (TestGameWindowStyle)Convert.ToInt32(key.GetValue("TestGameStyle", _testGameScreen));
-				_editorStartupPane = (EditorStartupPane)Convert.ToInt32(key.GetValue("StartupPane", _editorStartupPane));
-				_defaultImportPath = Convert.ToString(key.GetValue("DefaultImportPath", string.Empty));
-				_projectTreeOnRight = Convert.ToInt32(key.GetValue("ProjectTreeOnRight", _projectTreeOnRight)) != 0;
-				_messageBoxOnCompileErrors = (MessageBoxOnCompile)Convert.ToInt32(key.GetValue("MessageBoxOnCompileErrors", _messageBoxOnCompileErrors));
-				_indentUseTabs = Convert.ToInt32(key.GetValue("IndentUsingTabs", _indentUseTabs)) != 0;
-				_showViewPreviewByDefault = Convert.ToInt32(key.GetValue("ShowViewPreviewByDefault", _showViewPreviewByDefault)) != 0;
-				_paintProgramPath = Convert.ToString(key.GetValue("PaintProgramPath", string.Empty));
-				_defaultSpriteImportTransparency = (SpriteImportMethod)Convert.ToInt32(key.GetValue("SpriteImportTransparency", _defaultSpriteImportTransparency));
-				_defaultNewGamePath = Convert.ToString(key.GetValue("NewGamePath", _defaultNewGamePath));
-                _sendAnonymousStats = Convert.ToInt32(key.GetValue("SendAnonymousStats", _sendAnonymousStats)) != 0;
-                _statsLastSent = ReadDateFromRegistry(key, "StatsLastSent", _statsLastSent);
-                _backupWarningInterval = Convert.ToInt32(key.GetValue("BackupWarningInterval", _backupWarningInterval));
-                _lastBackupWarning = ReadDateFromRegistry(key, "LastBackupWarning", _lastBackupWarning);
-                _remapPalettizedBackgrounds = Convert.ToInt32(key.GetValue("RemapPaletteBackgrounds", _remapPalettizedBackgrounds)) != 0;
-                _keepHelpOnTop = Convert.ToInt32(key.GetValue("KeepHelpOnTop", _keepHelpOnTop)) != 0;
-                _dialogOnMultibleTabsClose = Convert.ToInt32(key.GetValue("DialogOnMultipleTabsClose", _dialogOnMultibleTabsClose)) != 0;
-                ColorTheme = Convert.ToString(key.GetValue("ColorTheme", ColorThemeStub.DEFAULT.Name));
-                ReadRecentSearchesList(key);
-                key.Close();
-
-				if ((_defaultImportPath.Length > 0) &&
-					(!System.IO.Directory.Exists(_defaultImportPath)))
-				{
-					_defaultImportPath = string.Empty;
-				}
-
-				if ((_paintProgramPath.Length > 0) &&
-					(!System.IO.File.Exists(_paintProgramPath)))
-				{
-					_paintProgramPath = string.Empty;
-				}
-            }
-        }
-
-        private void ReadRecentSearchesList(RegistryKey key)
-        {
-            for (int i = 0; i < 20; i++)
-            {
-                string recentSearch = key.GetValue("RecentSearch" + i, string.Empty).ToString();
-                if (recentSearch == string.Empty)
+                foreach (string regname in key.GetValueNames())
                 {
-                    break;
+                    string value;
+
+                    try
+                    {
+                        value = key.GetValue(regname).ToString();
+                    }
+                    catch
+                    {
+                        // failed to read as a string
+                        success = false;
+                        continue;
+                    }
+
+                    if (regname.StartsWith("Recent"))
+                    {
+                        if (regname.StartsWith("RecentPath"))
+                        {
+                            gamePaths.Add(value);
+                        }
+                        else if (regname.StartsWith("RecentName"))
+                        {
+                            gameNames.Add(value);
+                        }
+                        else if (regname.StartsWith("RecentSearch") && RecentSearches.Count < MAX_RECENT_SEARCHES)
+                        {
+                            RecentSearches.Insert(0, value);
+                        }
+                    }
+                    else
+                    {
+                        string name = regmap.ContainsKey(regname) ? regmap[regname] : regname;
+                        int numeric;
+
+                        try
+                        {
+                            // will throw SettingsPropertyNotFoundException
+                            // for legacy settings which no longer exist
+                            Type type = this[name].GetType();
+
+                            // will throw System.InvalidCastException if can't be converted
+                            if (type.BaseType == typeof(Enum))
+                            {
+                                this[name] = Enum.Parse(type, value);
+                            }
+                            else if (int.TryParse(value, out numeric))
+                            {
+                                this[name] = Convert.ChangeType(numeric, type);
+                            }
+                            else
+                            {
+                                this[name] = Convert.ChangeType(value, type);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (!(ex is SettingsPropertyNotFoundException))
+                            {
+                                success = false;
+                            }
+                            // continue
+                        }
+                    }
                 }
-                _previousSearches.Add(recentSearch);
-            }
-        }
 
-        private void WriteRecentSearchesList(RegistryKey key)
-        {
-            for (int i = 0; i < _previousSearches.Count; i++)
-            {
-                key.SetValue("RecentSearch" + i, _previousSearches[i]);
-            }
-        }
-
-        private DateTime ReadDateFromRegistry(RegistryKey key, string regValue, DateTime defaultValue)
-        {
-            string dateString = key.GetValue(regValue, string.Empty).ToString();
-            if (dateString.Length > 0)
-            {
-                return DateTime.Parse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
-            }
-            return defaultValue;
-        }
-
-        public void SaveToRegistry()
-        {
-            RegistryKey key = Registry.CurrentUser.CreateSubKey(_registryKey);
-            if (key == null)
-            {
-                Factory.GUIController.ShowMessage("Unable to access registry key: " + _registryKey, System.Windows.Forms.MessageBoxIcon.Warning);
-            }
-            else
-            {
-                key.SetValue("ScEdTabWidth", _tabSize.ToString());
-                key.SetValue("TestGameStyle", ((int)_testGameScreen).ToString());
-				key.SetValue("StartupPane", ((int)_editorStartupPane).ToString());
-				key.SetValue("DefaultImportPath", _defaultImportPath);
-				key.SetValue("ProjectTreeOnRight", _projectTreeOnRight ? "1" : "0");
-				key.SetValue("MessageBoxOnCompileErrors", ((int)_messageBoxOnCompileErrors).ToString());
-				key.SetValue("IndentUsingTabs", _indentUseTabs ? "1" : "0");
-				key.SetValue("ShowViewPreviewByDefault", _showViewPreviewByDefault ? "1" : "0");
-				key.SetValue("PaintProgramPath", _paintProgramPath);
-				key.SetValue("SpriteImportTransparency", ((int)_defaultSpriteImportTransparency).ToString());
-				key.SetValue("NewGamePath", _defaultNewGamePath);
-                key.SetValue("SendAnonymousStats", _sendAnonymousStats ? "1" : "0");
-                key.SetValue("StatsLastSent", _statsLastSent.ToString("u"));
-                key.SetValue("BackupWarningInterval", _backupWarningInterval.ToString());
-                key.SetValue("LastBackupWarning", _lastBackupWarning.ToString("u"));
-                key.SetValue("RemapPaletteBackgrounds", _remapPalettizedBackgrounds ? "1" : "0");
-                key.SetValue("KeepHelpOnTop", _keepHelpOnTop ? "1" : "0");
-                key.SetValue("DialogOnMultipleTabsClose", _dialogOnMultibleTabsClose ? "1" : "0");
-                key.SetValue("ColorTheme", ColorTheme);
-                WriteRecentSearchesList(key);
                 key.Close();
+                int gameCount = Math.Min(gameNames.Count, gamePaths.Count);
+
+                for (int i = 0; i < gameCount; i ++)
+                {
+                    if (RecentGames.Count >= MAX_RECENT_GAMES)
+                    {
+                        break;
+                    }
+
+                    RecentGames.Add(new RecentGame(gameNames[i], gamePaths[i]));
+                }
+            }
+
+            return success;
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("False")]
+        public bool MigratedSettings
+        {
+            get
+            {
+                return (bool)(this["MigratedSettings"]);
+            }
+            set
+            {
+                this["MigratedSettings"] = value;
             }
         }
 
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("False")]
+        public bool UpgradedSettings
+        {
+            get
+            {
+                return (bool)(this["UpgradedSettings"]);
+            }
+            set
+            {
+                this["UpgradedSettings"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("UseGameSetup")]
+        public TestGameWindowStyle TestGameWindowStyle
+        {
+            get
+            {
+                return (TestGameWindowStyle)(this["TestGameWindowStyle"]);
+            }
+            set
+            {
+                this["TestGameWindowStyle"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("StartPage")]
+        public StartupPane StartupPane
+        {
+            get
+            {
+                return (StartupPane)(this["StartupPane"]);
+            }
+            set
+            {
+                this["StartupPane"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("WarningsAndErrors")]
+        public MessageBoxOnCompile MessageBoxOnCompile
+        {
+            get
+            {
+                return (MessageBoxOnCompile)(this["MessageBoxOnCompile"]);
+            }
+            set
+            {
+                this["MessageBoxOnCompile"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("Pixel0")]
+        public SpriteImportMethod SpriteImportMethod
+        {
+            get
+            {
+                return (SpriteImportMethod)(this["SpriteImportMethod"]);
+            }
+            set
+            {
+                this["SpriteImportMethod"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("2")]
         public int TabSize
         {
-            get { return _tabSize; }
-            set { _tabSize = value; }
+            get
+            {
+                return (int)(this["TabSize"]);
+            }
+            set
+            {
+                this["TabSize"] = value;
+            }
         }
 
-        public TestGameWindowStyle TestGameStyle
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("False")]
+        public bool IndentUseTabs
         {
-            get { return _testGameScreen; }
-            set { _testGameScreen = value; }
+            get
+            {
+                return (bool)(this["IndentUseTabs"]);
+            }
+            set
+            {
+                this["IndentUseTabs"] = value;
+            }
         }
 
-		public EditorStartupPane StartupPane
-		{
-			get { return _editorStartupPane; }
-			set { _editorStartupPane = value; }
-		}
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("False")]
+        public bool ShowViewPreviewByDefault
+        {
+            get
+            {
+                return (bool)(this["ShowViewPreviewByDefault"]);
+            }
+            set
+            {
+                this["ShowViewPreviewByDefault"] = value;
+            }
+        }
 
-		public string DefaultImportPath
-		{
-			get { return _defaultImportPath; }
-			set { _defaultImportPath = value; }
-		}
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("")]
+        public string PaintProgramPath
+        {
+            get
+            {
+                return (string)(this["PaintProgramPath"]);
+            }
+            set
+            {
+                this["PaintProgramPath"] = value;
+            }
+        }
 
-        [Obsolete]
-		public bool ProjectTreeOnRight
-		{
-			get { return _projectTreeOnRight; }
-			set { _projectTreeOnRight = value; }
-		}
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("")]
+        public string NewGamePath
+        {
+            get
+            {
+                return (string)(this["NewGamePath"]);
+            }
+            set
+            {
+                this["NewGamePath"] = value;
+            }
+        }
 
-		public MessageBoxOnCompile MessageBoxOnCompileErrors
-		{
-			get { return _messageBoxOnCompileErrors; }
-			set { _messageBoxOnCompileErrors = value; }
-		}
-
-		public bool IndentUsingTabs
-		{
-			get { return _indentUseTabs; }
-			set { _indentUseTabs = value; }
-		}
-
-		public bool ShowViewPreviewByDefault
-		{
-			get { return _showViewPreviewByDefault; }
-			set { _showViewPreviewByDefault = value; }
-		}
-
-		public string PaintProgramPath
-		{
-			get { return _paintProgramPath; }
-			set { _paintProgramPath = value; }
-		}
-
-		public SpriteImportMethod DefaultSpriteImportTransparency
-		{
-			get { return _defaultSpriteImportTransparency; }
-			set { _defaultSpriteImportTransparency = value; }
-		}
-
-		public string ExplicitNewGamePath
-		{
-			get { return _defaultNewGamePath; }
-			set { _defaultNewGamePath = value; }
-		}
-
-		public string NewGamePath
-		{
-			get
-			{
-				if (!string.IsNullOrEmpty(_defaultNewGamePath))
-				{
-					return _defaultNewGamePath;
-				}
-				else
-				{
-					return Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-				}
-			}
-		}
-
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("True")]
         public bool SendAnonymousStats
         {
-            get { return _sendAnonymousStats; }
-            set { _sendAnonymousStats = value; }
+            get
+            {
+                return (bool)(this["SendAnonymousStats"]);
+            }
+            set
+            {
+                this["SendAnonymousStats"] = value;
+            }
         }
 
-        public DateTime StatsLastSent
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("1601-01-01")]
+        public System.DateTime StatsLastSent
         {
-            get { return _statsLastSent; }
-            set { _statsLastSent = value; }
+            get
+            {
+                return (System.DateTime)(this["StatsLastSent"]);
+            }
+            set
+            {
+                this["StatsLastSent"] = value;
+            }
         }
 
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("1601-01-01")]
+        public System.DateTime LastBackupWarning
+        {
+            get
+            {
+                return (System.DateTime)(this["LastBackupWarning"]);
+            }
+            set
+            {
+                this["LastBackupWarning"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("7")]
         public int BackupWarningInterval
         {
-            get { return _backupWarningInterval; }
-            set { _backupWarningInterval = value; }
+            get
+            {
+                return (int)(this["BackupWarningInterval"]);
+            }
+            set
+            {
+                this["BackupWarningInterval"] = value;
+            }
         }
 
-        public DateTime LastBackupWarning
-        {
-            get { return _lastBackupWarning; }
-            set { _lastBackupWarning = value; }
-        }
-
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("True")]
         public bool RemapPalettizedBackgrounds
         {
-            get { return _remapPalettizedBackgrounds; }
-            set { _remapPalettizedBackgrounds = value; }
+            get
+            {
+                return (bool)(this["RemapPalettizedBackgrounds"]);
+            }
+            set
+            {
+                this["RemapPalettizedBackgrounds"] = value;
+            }
         }
 
-        public List<string> RecentSearches
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("")]
+        public BindingList<RecentGame> RecentGames
         {
-            get { return _previousSearches; }
+            get
+            {
+                return (BindingList<RecentGame>)(this["RecentGames"]);
+            }
+            private set
+            {
+                this["RecentGames"] = value;
+            }
         }
 
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("")]
+        public BindingList<string> RecentSearches
+        {
+            get
+            {
+                return (BindingList<string>)(this["RecentSearches"]);
+            }
+            private set
+            {
+                this["RecentSearches"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("True")]
         public bool KeepHelpOnTop
         {
-            get { return _keepHelpOnTop; }
-            set { _keepHelpOnTop = value; }            
+            get
+            {
+                return (bool)(this["KeepHelpOnTop"]);
+            }
+            set
+            {
+                this["KeepHelpOnTop"] = value;
+            }
         }
 
-        public bool DialogOnMultibleTabsClose
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("True")]
+        public bool DialogOnMultipleTabsClose
         {
-            get { return _dialogOnMultibleTabsClose; }
-            set { _dialogOnMultibleTabsClose = value; }
+            get
+            {
+                return (bool)(this["DialogOnMultipleTabsClose"]);
+            }
+            set
+            {
+                this["DialogOnMultipleTabsClose"] = value;
+            }
         }
 
-        public string ColorTheme { get; set; }
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("")]
+        public string ColorTheme
+        {
+            get
+            {
+                return (string)(this["ColorTheme"]);
+            }
+            set
+            {
+                this["ColorTheme"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("")]
+        public string DefaultImportPath
+        {
+            get
+            {
+                return (string)(this["DefaultImportPath"]);
+            }
+            set
+            {
+                this["DefaultImportPath"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("640")]
+        public int MainWinWidth
+        {
+            get
+            {
+                return (int)(this["MainWinWidth"]);
+            }
+            set
+            {
+                this["MainWinWidth"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("480")]
+        public int MainWinHeight
+        {
+            get
+            {
+                return (int)(this["MainWinHeight"]);
+            }
+            set
+            {
+                this["MainWinHeight"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("0")]
+        public int MainWinX
+        {
+            get
+            {
+                return (int)(this["MainWinX"]);
+            }
+            set
+            {
+                this["MainWinX"] = value;
+            }
+        }
+
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("0")]
+        public int MainWinY
+        {
+            get
+            {
+                return (int)(this["MainWinY"]);
+            }
+            set
+            {
+                this["MainWinY"] = value;
+            }
+        }
+
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("True")]
+        public bool MainWinMaximize
+        {
+            get
+            {
+                return (bool)(this["MainWinMaximize"]);
+            }
+            set
+            {
+                this["MainWinMaximize"] = value;
+            }
+        }
     }
 }

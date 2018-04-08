@@ -10,6 +10,7 @@ using AGS.Editor.Components;
 using AGS.Types;
 using AGS.Types.AutoComplete;
 using AGS.Types.Interfaces;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor
 {
@@ -540,9 +541,9 @@ namespace AGS.Editor
 			if (_lastImportDirectory == null)
 			{
 				if ((useFileImportPath) &&
-					(_agsEditor.Preferences.DefaultImportPath.Length > 0))
+					(Factory.AGSEditor.Settings.DefaultImportPath.Length > 0))
 				{
-					_lastImportDirectory = _agsEditor.Preferences.DefaultImportPath;
+					_lastImportDirectory = Factory.AGSEditor.Settings.DefaultImportPath;
 				}
 				else
 				{
@@ -735,7 +736,7 @@ namespace AGS.Editor
                 _interactiveTasks = new InteractiveTasks(_agsEditor.Tasks);
                 ColorThemes = new ColorThemes();
                 _mainForm = new frmMain();
-                SetEditorWindowSizeFromRegistry();
+                SetEditorWindowSize();
                 _treeManager = new ProjectTree(_mainForm.projectPanel.projectTree);
                 _treeManager.OnContextMenuClick += new ProjectTree.MenuClickHandler(_mainForm_OnMenuClick);
                 _toolBarManager = new ToolBarManager(_mainForm.toolStrip);
@@ -865,7 +866,7 @@ namespace AGS.Editor
             while (showWelcomeScreen)
             {
 				Directory.SetCurrentDirectory(_agsEditor.EditorDirectory);
-                WelcomeScreen welcomeScreen = new WelcomeScreen(_agsEditor.RecentGames);
+                WelcomeScreen welcomeScreen = new WelcomeScreen();
 				DialogResult result = welcomeScreen.ShowDialog();
                 WelcomeScreenSelection selection = welcomeScreen.SelectedOption;
                 showWelcomeScreen = false;
@@ -884,13 +885,14 @@ namespace AGS.Editor
                 }
                 else if (selection == WelcomeScreenSelection.ContinueRecentGame)
                 {
-                    string gameToLoad = Path.Combine(welcomeScreen.SelectedRecentGame.DirectoryPath, AGSEditor.GAME_FILE_NAME);
+                    string gamePath = welcomeScreen.GetSelectedRecentGamePath();
+                    string gameToLoad = Path.Combine(gamePath, AGSEditor.GAME_FILE_NAME);
                     if (!File.Exists(gameToLoad))
                     {
                         gameToLoad = gameToLoad.Replace(AGSEditor.GAME_FILE_NAME, AGSEditor.OLD_GAME_FILE_NAME);
                         if (!File.Exists(gameToLoad))
                         {
-                            Factory.GUIController.ShowMessage("Unable to find a valid game file in " + welcomeScreen.SelectedRecentGame.DirectoryPath, MessageBoxIcon.Warning);
+                            Factory.GUIController.ShowMessage("Unable to find a valid game file in " + gamePath, MessageBoxIcon.Warning);
                             showWelcomeScreen = true;
                         }
                         else if (!_interactiveTasks.LoadGameFromDisk(gameToLoad))
@@ -928,7 +930,7 @@ namespace AGS.Editor
 
             List<WizardPage> pages = new List<WizardPage>();
             StartNewGameWizardPage templateSelectPage = new StartNewGameWizardPage(templates);
-            StartNewGameWizardPage2 gameNameSelectPage = new StartNewGameWizardPage2(_agsEditor.Preferences.NewGamePath);
+            StartNewGameWizardPage2 gameNameSelectPage = new StartNewGameWizardPage2(Factory.AGSEditor.Settings.NewGamePath);
             pages.Add(templateSelectPage);
             pages.Add(gameNameSelectPage);
             
@@ -969,12 +971,12 @@ namespace AGS.Editor
                         // files that links them to the old game ID
                         // Force no message to be displayed if the build fails
                         // (which it will for the Empty Game template)
-                        MessageBoxOnCompile oldMessageBoxSetting = _agsEditor.Preferences.MessageBoxOnCompileErrors;
-                        _agsEditor.Preferences.MessageBoxOnCompileErrors = MessageBoxOnCompile.Never;
+                        MessageBoxOnCompile oldMessageBoxSetting = Factory.AGSEditor.Settings.MessageBoxOnCompile;
+                        Factory.AGSEditor.Settings.MessageBoxOnCompile = MessageBoxOnCompile.Never;
 
                         _agsEditor.CompileGame(true, false);
 
-                        _agsEditor.Preferences.MessageBoxOnCompileErrors = oldMessageBoxSetting;
+                        Factory.AGSEditor.Settings.MessageBoxOnCompile = oldMessageBoxSetting;
                     }
                     if (File.Exists(TEMPLATE_INTRO_FILE))
                     {
@@ -1246,10 +1248,10 @@ namespace AGS.Editor
 
 		public void ShowPreferencesEditor()
         {
-            PreferencesEditor prefsEditor = new PreferencesEditor(_agsEditor.Preferences);
+            PreferencesEditor prefsEditor = new PreferencesEditor();
             if (prefsEditor.ShowDialog() == DialogResult.OK)
             {
-                _agsEditor.Preferences.SaveToRegistry();
+                Factory.AGSEditor.Settings.Save();
 				//_mainForm.SetProjectTreeLocation(_agsEditor.Preferences.ProjectTreeOnRight);
             }
             prefsEditor.Dispose();
@@ -1488,11 +1490,11 @@ namespace AGS.Editor
 					_agsEditor.SaveGameFiles();
 				}
 
-                if ((_agsEditor.Preferences.BackupWarningInterval > 0) &&
-                    (DateTime.Now.Subtract(_agsEditor.Preferences.LastBackupWarning).TotalDays > _agsEditor.Preferences.BackupWarningInterval))
+                if ((Factory.AGSEditor.Settings.BackupWarningInterval > 0) &&
+                    (DateTime.Now.Subtract(Factory.AGSEditor.Settings.LastBackupWarning).TotalDays > Factory.AGSEditor.Settings.BackupWarningInterval))
                 {
-                    _agsEditor.Preferences.LastBackupWarning = DateTime.Now;
-                    _agsEditor.Preferences.SaveToRegistry();
+                    Factory.AGSEditor.Settings.LastBackupWarning = DateTime.Now;
+                    Factory.AGSEditor.Settings.Save();
                     this.ShowMessage("Have you backed up your game recently? Remember, power failures and blue screens happen when you least expect them. Make a backup copy of your game now!", MessageBoxIcon.Warning);
                 }
 			}
@@ -1501,7 +1503,7 @@ namespace AGS.Editor
 
         private bool _mainForm_OnEditorShutdown()
         {
-            SaveEditorWindowSizeToRegistry();
+            SaveEditorWindowSize();
 
             bool canShutDown = true;
 
@@ -1599,61 +1601,29 @@ namespace AGS.Editor
             ((IGUIController)this).SetStatusBarText(statusText);
         }
 
-        private void SetEditorWindowSizeFromRegistry()
+        private void SetEditorWindowSize()
         {
-            RegistryKey key = Registry.CurrentUser.OpenSubKey(AGSEditor.AGS_REGISTRY_KEY);
-            if (key != null)
-            {
-                try
-                {
-                    int x = Convert.ToInt32(key.GetValue("MainWinX", _mainForm.Left));
-                    int y = Convert.ToInt32(key.GetValue("MainWinY", _mainForm.Top));
-                    _mainForm.SetDesktopLocation(x, y);
-                    int formWidth = Convert.ToInt32(key.GetValue("MainWinWidth", _mainForm.Width));
-                    int formHeight = Convert.ToInt32(key.GetValue("MainWinHeight", _mainForm.Height));
-                    _mainForm.Width = Math.Max(formWidth, 300);
-                    _mainForm.Height = Math.Max(formHeight, 300);
-                    _mainForm.WindowState = (key.GetValue("MainWinMaximize", "0").ToString() == "1") ? FormWindowState.Maximized : FormWindowState.Normal;
-                    /*int splitterX = Convert.ToInt32(key.GetValue("MainWinSplitter1", 0));
-                    int splitterY = Convert.ToInt32(key.GetValue("MainWinSplitter2", 0));
-                    if ((splitterX > 0) && (splitterY > 0))
-                    {
-                        _mainForm.SetSplitterPositions(splitterX, splitterY);
-                    }*/
-                }
-                catch (Exception ex)
-                {
-                    this.ShowMessage("There was an error reading your settings from the registry:" + Environment.NewLine + ex.Message + Environment.NewLine + Environment.NewLine +
-                        "The AGS registry entries may have been corrupted. You may need to reset your preferences.", MessageBoxIcon.Warning);
-                }
-                key.Close();
-            }
+            _mainForm.SetDesktopLocation(Factory.AGSEditor.Settings.MainWinX, Factory.AGSEditor.Settings.MainWinY);
+            _mainForm.Width = Math.Max(Factory.AGSEditor.Settings.MainWinWidth, 300);
+            _mainForm.Height = Math.Max(Factory.AGSEditor.Settings.MainWinHeight, 300);
+            _mainForm.WindowState = Factory.AGSEditor.Settings.MainWinMaximize ? FormWindowState.Maximized : FormWindowState.Normal;
         }
 
-        private void SaveEditorWindowSizeToRegistry()
+        private void SaveEditorWindowSize()
         {
-            if (_mainForm.WindowState == FormWindowState.Minimized)
+            if (_mainForm.WindowState != FormWindowState.Minimized)
             {
-                // If the window is currently minimized, don't save any of its settings
-                return;
-            }
+                Factory.AGSEditor.Settings.MainWinMaximize =_mainForm.WindowState == FormWindowState.Maximized ? true : false;
 
-            RegistryKey key = Utilities.OpenAGSRegistryKey();
-            if (key != null)
-            {
-                key.SetValue("MainWinMaximize", (_mainForm.WindowState == FormWindowState.Maximized) ? "1" : "0");
                 if (_mainForm.WindowState == FormWindowState.Normal)
                 {
-                    key.SetValue("MainWinWidth", _mainForm.Width.ToString());
-                    key.SetValue("MainWinHeight", _mainForm.Height.ToString());
-                    key.SetValue("MainWinX", _mainForm.Left.ToString());
-                    key.SetValue("MainWinY", _mainForm.Top.ToString());
+                    Factory.AGSEditor.Settings.MainWinWidth = _mainForm.Width;
+                    Factory.AGSEditor.Settings.MainWinHeight = _mainForm.Height;;
+                    Factory.AGSEditor.Settings.MainWinX = _mainForm.Left;
+                    Factory.AGSEditor.Settings.MainWinY = _mainForm.Top;
                 }
-                /*int splitterX, splitterY;
-                _mainForm.GetSplitterPositions(out splitterX, out splitterY);
-                key.SetValue("MainWinSplitter1", splitterX.ToString());
-                key.SetValue("MainWinSplitter2", splitterY.ToString());*/
-                key.Close();
+
+                Factory.AGSEditor.Settings.Save();
             }
         }
 

@@ -38,8 +38,8 @@ namespace AGS.Editor.Components
         {
             try
             {
-                if ((!_agsEditor.Preferences.SendAnonymousStats) ||
-                    (DateTime.Now.Subtract(_agsEditor.Preferences.StatsLastSent).TotalDays < STATS_SEND_INTERVAL_IN_DAYS))
+                if ((!Factory.AGSEditor.Settings.SendAnonymousStats) ||
+                    (DateTime.Now.Subtract(Factory.AGSEditor.Settings.StatsLastSent).TotalDays < STATS_SEND_INTERVAL_IN_DAYS))
                 {
                     return;
                 }
@@ -65,8 +65,8 @@ namespace AGS.Editor.Components
                     return;
                 }
 
-                _agsEditor.Preferences.StatsLastSent = DateTime.Now;
-                _agsEditor.Preferences.SaveToRegistry();
+                Factory.AGSEditor.Settings.StatsLastSent = DateTime.Now;
+                Factory.AGSEditor.Settings.Save();
             }
             catch (Exception)
             {

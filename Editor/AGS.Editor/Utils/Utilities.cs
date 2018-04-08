@@ -392,26 +392,6 @@ namespace AGS.Editor
             }
         }
 
-        public static RegistryKey OpenAGSRegistryKey()
-        {
-            RegistryKey key;
-            try
-            {
-                key = Registry.CurrentUser.CreateSubKey(AGSEditor.AGS_REGISTRY_KEY);
-                if (key == null)
-                {
-                    Factory.GUIController.ShowMessage("Unable to access registry key: " + AGSEditor.AGS_REGISTRY_KEY, System.Windows.Forms.MessageBoxIcon.Warning);
-                }
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                Factory.GUIController.ShowMessage("Unable to write to the registry. Your user preferences cannot be saved. Please contact your system administrator.\n\nError: " + ex.Message, System.Windows.Forms.MessageBoxIcon.Warning);
-                key = null;
-            }
-
-            return key;
-        }
-
         /// <summary>
         /// Converts an image to icon.
         /// Code taken from comments section in:

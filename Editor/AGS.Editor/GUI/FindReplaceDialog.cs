@@ -16,7 +16,6 @@ namespace AGS.Editor
 		private bool _showingReplaceOptions = false;
         private bool _showingFindReplaceAll = false;
         private bool _closing = false;
-        private EditorPreferences _preferences;
         private FindReplace _findReplace;
 
         private const string LOOK_IN_CURRENT_DOCUMENT = "Current Document";
@@ -26,15 +25,13 @@ namespace AGS.Editor
         private static bool _lastSelectedCaseSensitive;
 
         public FindReplaceDialog(string defaultSearchText, 
-            string defaultReplaceText, EditorPreferences preferences,
-            FindReplace findReplace)
+            string defaultReplaceText, FindReplace findReplace)
         {
             _findReplace = findReplace;
-            _preferences = preferences;
             InitializeComponent();
             btnOK.Enabled = false;
 
-            foreach (string previousSearch in preferences.RecentSearches)
+            foreach (string previousSearch in Factory.AGSEditor.Settings.RecentSearches)
             {
                 cmbFind.Items.Add(previousSearch);
                 cmbReplace.Items.Add(previousSearch);
@@ -102,19 +99,18 @@ namespace AGS.Editor
         
         private void btnOK_Click(object sender, EventArgs e)
         {
-            if ((_preferences.RecentSearches.Count == 0) ||
-                (cmbFind.Text != _preferences.RecentSearches[0]))
+            if ((Factory.AGSEditor.Settings.RecentSearches.Count == 0) ||
+                (cmbFind.Text != Factory.AGSEditor.Settings.RecentSearches[0]))
             {
-                if (_preferences.RecentSearches.Contains(cmbFind.Text))
+                if (Factory.AGSEditor.Settings.RecentSearches.Contains(cmbFind.Text))
                 {
-                    _preferences.RecentSearches.Remove(cmbFind.Text);
+                    Factory.AGSEditor.Settings.RecentSearches.Remove(cmbFind.Text);
                 }
-                _preferences.RecentSearches.Insert(0, cmbFind.Text);
-                _preferences.SaveToRegistry();
+                Factory.AGSEditor.Settings.RecentSearches.Insert(0, cmbFind.Text);
+                Factory.AGSEditor.Settings.Save();
             }
-			_pressedReplace = false;
+            _pressedReplace = false;
             FindReplace();
-            //this.Close();
         }
 
         private void btnCancel_Click(object sender, EventArgs e)

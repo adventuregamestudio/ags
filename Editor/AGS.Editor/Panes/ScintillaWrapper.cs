@@ -157,8 +157,8 @@ namespace AGS.Editor
             // disable Ctrl+T swapping lines since it used to be Test Game
             this.scintillaControl1.ClearCmdKey('T' | ((int)KeyMod.Ctrl << 16));
 
-            this.scintillaControl1.TabWidth = Factory.AGSEditor.Preferences.TabSize;
-            this.scintillaControl1.IsUseTabs = Factory.AGSEditor.Preferences.IndentUsingTabs;
+            this.scintillaControl1.TabWidth = Factory.AGSEditor.Settings.TabSize;
+            this.scintillaControl1.IsUseTabs = Factory.AGSEditor.Settings.IndentUseTabs;
             this.scintillaControl1.UsePopUp(false);
 
             // override the selected text colour

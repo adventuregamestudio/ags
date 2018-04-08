@@ -29,7 +29,7 @@ namespace AGS.Editor
             _editingView = viewToEdit;
             InitializeControls();
 			viewPreview.DynamicUpdates = true;
-			chkShowPreview.Checked = Factory.AGSEditor.Preferences.ShowViewPreviewByDefault;
+			chkShowPreview.Checked = Factory.AGSEditor.Settings.ShowViewPreviewByDefault;
 			UpdateWhetherPreviewIsShown();
         }
 

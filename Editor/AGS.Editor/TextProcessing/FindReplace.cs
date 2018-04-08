@@ -141,7 +141,7 @@ namespace AGS.Editor.TextProcessing
             if (_dialog == null || _dialog.IsDisposed)
             {
                 _dialog = new FindReplaceDialog(_lastSearchText,
-                    _lastReplaceText, _agsEditor.Preferences, this);
+                    _lastReplaceText, this);
                 _dialog.ShowingReplaceDialog = showReplace;
                 _dialog.ShowingAllDialog = showAll;
             }            

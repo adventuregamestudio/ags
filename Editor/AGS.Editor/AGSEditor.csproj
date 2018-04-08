@@ -318,13 +318,11 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <None Include="app.config" />
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="app.manifest" />
     <None Include="packages.config" />
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
     <EmbeddedResource Include="Resources\localvar.xpm" />
     <EmbeddedResource Include="Resources\methodext.xpm" />
     <EmbeddedResource Include="Resources\setup.dat" />
@@ -343,15 +341,9 @@
     <EmbeddedResource Include="Resources\AGSFNT0.WFN" />
     <EmbeddedResource Include="Resources\AGSFNT1.WFN" />
     <EmbeddedResource Include="Resources\AGSFNT2.WFN" />
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
     <Compile Include="Resources\ResourceManager.cs" />
     <Compile Include="Utils\AlternateStreams.cs" />
     <Compile Include="Utils\SourceControlProvider.cs" />
-    <Compile Include="Enums\SpriteImportMethod.cs" />
     <Compile Include="GUI\TabbedDocumentManager.cs">
     </Compile>
     <Compile Include="Utils\Utilities.cs" />
@@ -886,11 +878,8 @@
     <Compile Include="Entities\ZoomToFileEventArgs.cs" />
     <Compile Include="Enums\BackgroundAutoCompleteStatus.cs" />
     <Compile Include="Enums\DebugState.cs" />
-    <Compile Include="Enums\EditorStartupPane.cs" />
     <Compile Include="Enums\FunctionCallType.cs" />
     <Compile Include="Entities\RecentlyEditedGame.cs" />
-    <Compile Include="Enums\MessageBoxOnCompile.cs" />
-    <Compile Include="Enums\TestGameWindowStyle.cs" />
     <Compile Include="Enums\ZoomToFileZoomType.cs" />
     <Compile Include="Factory.cs" />
     <Compile Include="GIFLoader\GifDecoder.cs" />
@@ -1086,7 +1075,6 @@
       <DependentUpon>RoomSettingsEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="Plugins\NativePluginCallbacks.cs" />
-    <Compile Include="RecentGamesList.cs" />
     <Compile Include="TextProcessing\SpeechLineProcessor.cs" />
     <Compile Include="TextProcessing\SpeechLinesNumbering.cs" />
     <Compile Include="TextProcessing\SpeechOnlyProcessor.cs" />

@@ -10,6 +10,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using AGS.Types;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor
 {
@@ -953,7 +954,7 @@ namespace AGS.Editor
             string fileName = (string)parameter;
             Process imageEditor = new Process();
 
-            string paintProgramPath = Factory.AGSEditor.Preferences.PaintProgramPath;
+            string paintProgramPath = Factory.AGSEditor.Settings.PaintProgramPath;
             if (string.IsNullOrEmpty(paintProgramPath))
             {
                 imageEditor.StartInfo.FileName = GetAssociatedProgramForFileExtension(System.IO.Path.GetExtension(fileName));

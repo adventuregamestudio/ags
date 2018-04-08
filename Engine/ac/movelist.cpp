@@ -18,7 +18,7 @@
 
 using AGS::Common::Stream;
 
-void MoveList::ReadFromFile(Stream *in)
+void MoveList::ReadFromFile_Legacy(Stream *in)
 {
     in->ReadArrayOfInt32(pos, MAXNEEDSTAGES_LEGACY);
     numstage = in->ReadInt32();
@@ -32,27 +32,32 @@ void MoveList::ReadFromFile(Stream *in)
     lasty = in->ReadInt32();
     doneflag = in->ReadInt8();
     direct = in->ReadInt8();
+}
+
+void MoveList::ReadFromFile(Stream *in)
+{
+    numstage = in->ReadInt32();
 
     if (numstage > MAXNEEDSTAGES)
         quit("attempt to read a movelist with too many stages");
 
-    // new version
-    int remaining = numstage - MAXNEEDSTAGES_LEGACY;
+    fromx = in->ReadInt32();
+    fromy = in->ReadInt32();
+    onstage = in->ReadInt32();
+    onpart = in->ReadInt32();
+    lastx = in->ReadInt32();
+    lasty = in->ReadInt32();
+    doneflag = in->ReadInt8();
+    direct = in->ReadInt8();
 
-    if (remaining > 0)
-    {
-        in->ReadArrayOfInt32(pos + MAXNEEDSTAGES_LEGACY, remaining);
-        in->ReadArrayOfInt32(xpermove + MAXNEEDSTAGES_LEGACY, remaining);
-        in->ReadArrayOfInt32(ypermove + MAXNEEDSTAGES_LEGACY, remaining);
-    }
+    in->ReadArrayOfInt32(pos, numstage);
+    in->ReadArrayOfInt32(xpermove, numstage);
+    in->ReadArrayOfInt32(ypermove, numstage);
 }
 
 void MoveList::WriteToFile(Stream *out)
 {
-    out->WriteArrayOfInt32(pos, MAXNEEDSTAGES_LEGACY);
     out->WriteInt32(numstage);
-    out->WriteArrayOfInt32(xpermove, MAXNEEDSTAGES_LEGACY);
-    out->WriteArrayOfInt32(ypermove, MAXNEEDSTAGES_LEGACY);
     out->WriteInt32(fromx);
     out->WriteInt32(fromy);
     out->WriteInt32(onstage);
@@ -62,13 +67,7 @@ void MoveList::WriteToFile(Stream *out)
     out->WriteInt8(doneflag);
     out->WriteInt8(direct);
 
-    // new version
-    int remaining = numstage - MAXNEEDSTAGES_LEGACY;
-
-    if (remaining > 0)
-    {
-        out->WriteArrayOfInt32(pos + MAXNEEDSTAGES_LEGACY, remaining);
-        out->WriteArrayOfInt32(xpermove + MAXNEEDSTAGES_LEGACY, remaining);
-        out->WriteArrayOfInt32(ypermove + MAXNEEDSTAGES_LEGACY, remaining);
-    }
+    out->WriteArrayOfInt32(pos, numstage);
+    out->WriteArrayOfInt32(xpermove, numstage);
+    out->WriteArrayOfInt32(ypermove, numstage);
 }

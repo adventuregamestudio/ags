@@ -1343,7 +1343,8 @@ void ReadMoveList_Aligned(Stream *in)
     AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < game.numcharacters + MAX_INIT_SPR + 1; ++i)
     {
-        mls[i].ReadFromFile(&align_s);
+        mls[i].ReadFromFile_Legacy(&align_s);
+
         align_s.Reset();
     }
 }

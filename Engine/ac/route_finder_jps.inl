@@ -92,8 +92,8 @@ private:
 	int mapHeight;
 	std::vector<const unsigned char *> map;
 
-	typedef unsigned char tFrameId;
-	typedef char tPrev;
+	typedef unsigned short tFrameId;
+	typedef int tPrev;
 
 	struct NodeInfo
 	{
@@ -111,6 +111,9 @@ private:
 		{
 		}
 	};
+
+	static const float DIST_SCALE_PACK;
+	static const float DIST_SCALE_UNPACK;
 
 	std::vector<NodeInfo> mapNodes;
 	tFrameId frameId;
@@ -132,9 +135,6 @@ private:
 	bool navLock;
 
 	void IncFrameId();
-
-	inline static tPrev PackPrev(int px, int py, int x, int y);
-	inline int UnpackPrev(int x, int y, tPrev prev) const;
 
 	// outside map test
 	inline bool Outside(int x, int y) const;
@@ -176,6 +176,11 @@ private:
 
 // Navigation
 
+// scale pack of 2 means we can route up to 32767 units (euclidean distance) from starting point
+// this means that the maximum routing bitmap size we can handle is 23169x23169; should be more than enough!
+const float Navigation::DIST_SCALE_PACK = 2.0f;
+const float Navigation::DIST_SCALE_UNPACK = 1.0f / Navigation::DIST_SCALE_PACK;
+
 Navigation::Navigation()
 	: mapWidth(0)
 	, mapHeight(0)
@@ -207,43 +212,6 @@ void Navigation::IncFrameId()
 			mapNodes[i].frameId = 0;
 
 		frameId = 1;
-	}
-}
-
-inline Navigation::tPrev Navigation::PackPrev(int px, int py, int x, int y)
-{
-	int dx = px - x;
-	int dy = py - y;
-
-	dx = iclamp(dx, -1, 1);
-	dy = iclamp(dy, -1, 1);
-
-	return (dy+1)*4 + (dx+1);
-}
-
-inline int Navigation::UnpackPrev(int x, int y, tPrev prev) const
-{
-	if (prev < 0)
-		return -1;
-
-	int dx = (prev & 3) - 1;
-	int dy = (prev >> 2) - 1;
-
-	// we need to scan back to get previous node
-	// we trade efficiency (O(1) lookup) for 4x memory savings
-
-	// scan in reverse direction because we used jumps
-	for (;;)
-	{
-		x += dx;
-		y += dy;
-
-		int sq = y*mapWidth + x;
-
-		const NodeInfo &node = mapNodes[sq];
-
-		if (node.frameId == frameId)
-			return PackSquare(x, y);
 	}
 }
 
@@ -433,12 +401,12 @@ Navigation::NavResult Navigation::Navigate(int sx, int sy, int ex, int ey, std::
 
 		const NodeInfo &node = mapNodes[y*mapWidth+x];
 
-		float dist = (float)node.dist;
+		float dist = node.dist * DIST_SCALE_UNPACK;
 
 		int pneig[8];
 		int ncount = 0;
 
-		int prev = UnpackPrev(x, y, node.prev);
+		int prev = node.prev;
 
 		if (prev < 0)
 		{
@@ -566,7 +534,7 @@ Navigation::NavResult Navigation::Navigate(int sx, int sy, int ex, int ey, std::
 
 			NodeInfo &node = mapNodes[ny*mapWidth+nx];
 
-			float ndist = node.frameId != frameId ? INFINITY : (float)node.dist;
+			float ndist = node.frameId != frameId ? INFINITY : node.dist * DIST_SCALE_UNPACK;
 
 			float dx = (float)(nx - x);
 			float dy = (float)(ny - y);
@@ -580,15 +548,17 @@ Navigation::NavResult Navigation::Navigate(int sx, int sy, int ex, int ey, std::
 
 			if (ecost < ndist)
 			{
+				ecost *= DIST_SCALE_PACK;
+
 				// assert because we use 16-bit quantized min distance from start to save memory
-				assert(ecost <= 65535.0f);
+				assert(ecost <= 65535.0f && "distance from start too large");
 
 				if (ecost > 65535.0f)
 					continue;
 
 				node.dist = (unsigned short)(ecost + 0.5f);
 				node.frameId = frameId;
-				node.prev = PackPrev(x, y, nx, ny);
+				node.prev = PackSquare(x, y);
 				pq.push(Entry(ecost + heur, PackSquare(nx, ny)));
 			}
 		}
@@ -663,7 +633,7 @@ Navigation::NavResult Navigation::Navigate(int sx, int sy, int ex, int ey, std::
 
 	for (;;)
 	{
-		int prev = UnpackPrev(tx, ty, mapNodes[ty*mapWidth+tx].prev);
+		int prev = mapNodes[ty*mapWidth+tx].prev;
 
 		if (prev < 0)
 			break;

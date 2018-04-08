@@ -35,7 +35,7 @@ struct MoveList {
     char  direct;  // MoveCharDirect was used or not
 
     void ReadFromFile_Legacy(Common::Stream *in);
-    void ReadFromFile(Common::Stream *in);
+    void ReadFromFile(Common::Stream *in, int32_t cmp_ver);
     void WriteToFile(Common::Stream *out);
 };
 

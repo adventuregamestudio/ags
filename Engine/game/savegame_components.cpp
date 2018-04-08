@@ -368,7 +368,7 @@ SavegameError ReadCharacters(PStream in, int32_t cmp_ver, const PreservedParams 
         if (loaded_game_file_version <= kGameVersion_272)
             game.intrChar[i]->ReadTimesRunFromSavedgame(in.get());
         // character movement path cache
-        mls[CHMLSOFFS + i].ReadFromFile(in.get());
+        mls[CHMLSOFFS + i].ReadFromFile(in.get(), cmp_ver);
     }
     return kSvgErr_NoError;
 }
@@ -877,7 +877,7 @@ SavegameError ReadThisRoom(PStream in, int32_t cmp_ver, const PreservedParams &p
         return kSvgErr_IncompatibleEngine;
     for (int i = 0; i < objmls_count; ++i)
     {
-        mls[i].ReadFromFile(in.get());
+        mls[i].ReadFromFile(in.get(), cmp_ver);
     }
 
     // save the new room music vol for later use
@@ -947,7 +947,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Characters",
-        0,
+        1,
         WriteCharacters,
         ReadCharacters
     },
@@ -1013,7 +1013,7 @@ ComponentHandler ComponentHandlers[] =
     },
     {
         "Loaded Room State",
-        0,
+        1,
         WriteThisRoom,
         ReadThisRoom
     },

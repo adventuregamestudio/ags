@@ -34,9 +34,9 @@ void MoveList::ReadFromFile_Legacy(Stream *in)
     direct = in->ReadInt8();
 }
 
-void MoveList::ReadFromFile(Stream *in)
+void MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
 {
-    if (loaded_game_file_version < kGameVersion_341_3)
+    if (cmp_ver < 1)
         return ReadFromFile_Legacy(in);
 
     numstage = in->ReadInt32();

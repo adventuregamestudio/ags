@@ -36,6 +36,9 @@ void MoveList::ReadFromFile_Legacy(Stream *in)
 
 void MoveList::ReadFromFile(Stream *in)
 {
+    if (loaded_game_file_version < kGameVersion_341_3)
+        return ReadFromFile_Legacy(in);
+
     numstage = in->ReadInt32();
 
     if (numstage > MAXNEEDSTAGES)

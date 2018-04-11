@@ -2094,7 +2094,7 @@ diff -Naur src/android/asound.c src/android/asound.c
 diff -Naur src/android/asystem.c src/android/asystem.c
 --- src/android/asystem.c	1970-01-01 01:00:00.000000000 +0100
 +++ src/android/asystem.c	2012-04-24 10:47:14.522919800 +0200
-@@ -0,0 +1,102 @@
+@@ -0,0 +1,115 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
 + *        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
@@ -2125,6 +2125,7 @@ diff -Naur src/android/asystem.c src/android/asystem.c
 +
 +static int android_sys_init(void);
 +static void android_sys_exit(void);
++static int android_get_desktop_resolution(int *width, int *height);
 +static void android_get_gfx_safe_mode(int *driver, struct GFX_MODE *mode);
 +
 +
@@ -2156,7 +2157,7 @@ diff -Naur src/android/asystem.c src/android/asystem.c
 +   NULL,  /* AL_METHOD(int, set_display_switch_mode, (int mode)); */
 +   NULL,  /* AL_METHOD(void, display_switch_lock, (int lock, int foreground)); */
 +   NULL,  /* AL_METHOD(int, desktop_color_depth, (void)); */
-+   NULL,  /* AL_METHOD(int, get_desktop_resolution, (int *width, int *height)); */
++   android_get_desktop_resolution,  /* AL_METHOD(int, get_desktop_resolution, (int *width, int *height)); */
 +   android_get_gfx_safe_mode,  /*AL_METHOD(void, get_gfx_safe_mode, (int *driver, struct GFX_MODE *mode));*/
 +   NULL,  /* AL_METHOD(void, yield_timeslice, (void)); */
 +   NULL,  /* AL_METHOD(void *, create_mutex, (void)); */
@@ -2186,6 +2187,18 @@ diff -Naur src/android/asystem.c src/android/asystem.c
 +static void android_sys_exit(void)
 +{
 +   
++}
++
++
++
++extern unsigned int android_screen_physical_width;
++extern unsigned int android_screen_physical_height;
++
++static int android_get_desktop_resolution(int *width, int *height)
++{
++   *width = android_screen_physical_width;
++   *height = android_screen_physical_height;
++   return 0;
 +}
 +
 +

@@ -276,13 +276,6 @@ void config_defaults()
 #ifdef WINDOWS_VERSION
     usetup.digicard = DIGI_DIRECTAMX(0);
 #endif
-
-    if (psp_ignore_acsetup_cfg_file)
-    {
-        usetup.Screen.DriverID = "Software";
-        usetup.enable_antialiasing = psp_gfx_smooth_sprites != 0;
-        usetup.translation = psp_translation;
-    }
 }
 
 void read_game_data_location(const ConfigTree &cfg)
@@ -344,7 +337,7 @@ void read_legacy_graphics_config(const ConfigTree &cfg, const bool should_read_f
     usetup.Screen.DisplayMode.RefreshRate = INIreadint(cfg, "misc", "refresh");
 }
 
-void read_config(const ConfigTree &cfg)
+void apply_config(const ConfigTree &cfg)
 {
     {
 #ifndef WINDOWS_VERSION
@@ -390,8 +383,6 @@ void read_config(const ConfigTree &cfg)
 #else
         usetup.Screen.DriverID = "Software";
 #endif
-        if (usetup.Screen.DriverID.CompareNoCase("DX5") == 0)
-            usetup.Screen.DriverID = "Software";
 
         usetup.Screen.DisplayMode.Windowed = INIreadint(cfg, "graphics", "windowed") > 0;
         const char *screen_sz_def_options[kNumScreenDef] = { "explicit", "scaling", "max" };
@@ -497,11 +488,14 @@ void read_config(const ConfigTree &cfg)
         }
         usetup.override_upscale = INIreadint(cfg, "override", "upscale") > 0;
     }
+
+    // Apply logging configuration
+    apply_debug_config(cfg);
 }
 
 void post_config()
 {
-    if (usetup.Screen.DriverID.IsEmpty())
+    if (usetup.Screen.DriverID.IsEmpty() || usetup.Screen.DriverID.CompareNoCase("DX5") == 0)
         usetup.Screen.DriverID = "Software";
 
     // FIXME: this correction is needed at the moment because graphics driver

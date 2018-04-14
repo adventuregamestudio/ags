@@ -1,7 +1,7 @@
 INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins
 LIBDIR =
 CFLAGS := -O2 -g -fsigned-char -Wfatal-errors -DNDEBUG -DAGS_RUNTIME_PATCH_ALLEGRO -DAGS_HAS_CD_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DALLEGRO_STATICLINK -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2) $(CFLAGS)
-CXXFLAGS := -fno-rtti -Wno-write-strings $(CXXFLAGS)
+CXXFLAGS := -std=c++11 -fno-rtti -Wno-write-strings $(CXXFLAGS)
 LIBS := -rdynamic -laldmb -ldumb -Wl,-Bdynamic
 LIBS += $(shell pkg-config --libs allegro)
 LIBS += $(shell pkg-config --libs x11)

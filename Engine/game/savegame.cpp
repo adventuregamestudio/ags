@@ -259,7 +259,7 @@ SavegameError ReadDescription_v321(Stream *in, SavegameVersion &svg_ver, Savegam
 
 SavegameError OpenSavegameBase(const String &filename, SavegameSource *src, SavegameDescription *desc, SavegameDescElem elems)
 {
-    AStream in(File::OpenFileRead(filename));
+    UStream in(File::OpenFileRead(filename));
     if (!in.get())
         return kSvgErr_FileNotFound;
 

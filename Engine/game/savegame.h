@@ -76,8 +76,8 @@ enum SavegameError
     kNumSavegameError
 };
 
-typedef std::auto_ptr<Stream> AStream;
-typedef std::auto_ptr<Bitmap> ABitmap;
+typedef std::unique_ptr<Stream> UStream;
+typedef std::unique_ptr<Bitmap> UBitmap;
 
 // SavegameSource defines a successfully opened savegame stream
 struct SavegameSource
@@ -128,7 +128,7 @@ struct SavegameDescription
     int                 ColorDepth;
     
     String              UserText;
-    ABitmap             UserImage;
+    UBitmap             UserImage;
 
     SavegameDescription();
 };

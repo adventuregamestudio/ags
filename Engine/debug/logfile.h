@@ -67,7 +67,7 @@ public:
     void         CloseFile();
 
 private:
-        std::auto_ptr<Stream> _file;
+        std::unique_ptr<Stream> _file;
         String                _filePath;
         LogFileOpenMode       _openMode;
 };

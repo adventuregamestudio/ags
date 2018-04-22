@@ -400,9 +400,9 @@ void apply_config(const ConfigTree &cfg)
         usetup.Screen.DisplayMode.ScreenSize.Size = Size(INIreadint(cfg, "graphics", "screen_width"),
                                                         INIreadint(cfg, "graphics", "screen_height"));
         usetup.Screen.DisplayMode.ScreenSize.MatchDeviceRatio = INIreadint(cfg, "graphics", "match_device_ratio", 1) != 0;
-#if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
+#if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(MAC_VERSION)
         // PSP: No graphic filters are available.
-        usetup.Screen.Filter.ID = "";
+        usetup.Screen.Filter.ID = "none";
 #else
         if (should_read_filter)
             usetup.Screen.Filter.ID = INIreadstring(cfg, "graphics", "filter", "StdScale");

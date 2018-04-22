@@ -69,6 +69,8 @@ enum SavegameErrorType
     kSvgErr_ComponentClosingTagFormat,
     kSvgErr_ComponentSizeMismatch,
     kSvgErr_UnsupportedComponent,
+    kSvgErr_ComponentSerialization,
+    kSvgErr_ComponentUnserialization,
     kSvgErr_InconsistentFormat,
     kSvgErr_UnsupportedComponentVersion,
     kSvgErr_GameContentAssertion,

@@ -1229,7 +1229,7 @@ HSaveError restore_game_scripts(Stream *in, const PreservedParams &pp, RestoredD
     int gdatasize = in->ReadInt32();
     if (pp.GlScDataSize != gdatasize)
     {
-        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching size of global script data");
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching size of global script data.");
     }
     r_data.GlobalScript.Len = gdatasize;
     r_data.GlobalScript.Data.reset(new char[gdatasize]);
@@ -1237,7 +1237,7 @@ HSaveError restore_game_scripts(Stream *in, const PreservedParams &pp, RestoredD
 
     if (in->ReadInt32() != numScriptModules)
     {
-        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of script modules");
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of script modules.");
     }
     r_data.ScriptModules.resize(numScriptModules);
     for (int i = 0; i < numScriptModules; ++i)
@@ -1245,7 +1245,7 @@ HSaveError restore_game_scripts(Stream *in, const PreservedParams &pp, RestoredD
         size_t module_size = in->ReadInt32();
         if (pp.ScMdDataSize[i] != module_size)
         {
-            return new SavegameError(kSvgErr_GameContentAssertion, String::FromFormat("Mismatching size of script module data, module %d", i));
+            return new SavegameError(kSvgErr_GameContentAssertion, String::FromFormat("Mismatching size of script module data, module %d.", i));
         }
         r_data.ScriptModules[i].Len = module_size;
         r_data.ScriptModules[i].Data.reset(new char[module_size]);
@@ -1398,7 +1398,7 @@ HSaveError restore_game_gui(Stream *in, int numGuisWas)
 
     if (numGuisWas != game.numgui)
     {
-        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of GUI");
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of GUI.");
     }
 
     numAnimButs = in->ReadInt32();
@@ -1410,7 +1410,7 @@ HSaveError restore_game_audiocliptypes(Stream *in)
 {
     if (in->ReadInt32() != game.audioClipTypeCount)
     {
-        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Audio Clip Types");
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Audio Clip Types.");
     }
 
     for (int i = 0; i < game.audioClipTypeCount; ++i)
@@ -1520,7 +1520,7 @@ HSaveError restore_game_globalvars(Stream *in)
 {
     if (in->ReadInt32() != numGlobalVars)
     {
-        return new SavegameError(kSvgErr_GameContentAssertion, "Restore game error: mismatching number of Global Variables");
+        return new SavegameError(kSvgErr_GameContentAssertion, "Restore game error: mismatching number of Global Variables.");
     }
 
     for (int i = 0; i < numGlobalVars; ++i)
@@ -1534,7 +1534,7 @@ HSaveError restore_game_views(Stream *in)
 {
     if (in->ReadInt32() != game.numviews)
     {
-        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Views");
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Views.");
     }
 
     for (int bb = 0; bb < game.numviews; bb++) {
@@ -1553,7 +1553,7 @@ HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_dat
 {
     if (in->ReadInt32() != game.audioClipCount)
     {
-        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Audio Clips");
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Audio Clips.");
     }
 
     for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
@@ -1565,7 +1565,7 @@ HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_dat
         {
             if (chan_info.ClipID >= game.audioClipCount)
             {
-                return new SavegameError(kSvgErr_GameObjectInitFailed, "Invalid audio clip index");
+                return new SavegameError(kSvgErr_GameObjectInitFailed, "Invalid audio clip index.");
             }
 
             chan_info.Pos = in->ReadInt32();
@@ -1629,19 +1629,19 @@ HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const Pres
 
     if (game.numdialog!=numdiwas)
     {
-        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Dialogs");
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Dialogs.");
     }
     if (numchwas != game.numcharacters)
     {
-        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Characters");
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Characters.");
     }
     if (numinvwas != game.numinvitems)
     {
-        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Inventory Items");
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Inventory Items.");
     }
     if (game.numviews != numviewswas)
     {
-        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Views");
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Views.");
     }
 
     game.ReadFromSaveGame_v321(in, gswas, compsc, chwas, olddict, mesbk);
@@ -1679,7 +1679,7 @@ HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const Pres
 
     if (in->ReadInt32() != MAGICNUMBER+1)
     {
-        return new SavegameError(kSvgErr_InconsistentFormat, "MAGICNUMBER not found before Audio Clips");
+        return new SavegameError(kSvgErr_InconsistentFormat, "MAGICNUMBER not found before Audio Clips.");
     }
 
     err = restore_game_audioclips_and_crossfade(in, r_data);
@@ -1697,7 +1697,7 @@ HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const Pres
     if (ccUnserializeAllObjects(in, &ccUnserializer))
     {
         return new SavegameError(kSvgErr_GameObjectInitFailed,
-            String::FromFormat("Managed pool deserialization failed: %s", ccErrorString));
+            String::FromFormat("Managed pool deserialization failed: %s.", ccErrorString));
     }
 
     // preserve legacy music type setting
@@ -1760,7 +1760,7 @@ HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
         return err;
     // CHECKME: is this color depth test still essential? if yes, is there possible workaround?
     else if (desc.ColorDepth != System_GetColorDepth())
-        return new SavegameError(kSvgErr_DifferentColorDepth);
+        return new SavegameError(kSvgErr_DifferentColorDepth, String::FromFormat("Running: %d-bit, saved in: %d-bit.", System_GetColorDepth(), desc.ColorDepth));
     else if (!src.InputStream.get())
         return new SavegameError(kSvgErr_NoStream);
 
@@ -1809,7 +1809,7 @@ bool try_restore_save(const Common::String &path, int slot)
     HSaveError err = load_game(path, slot, data_overwritten);
     if (!err)
     {
-        String error = String::FromFormat("Unable to restore game:\n%s",
+        String error = String::FromFormat("Unable to restore the saved game.\n%s",
             err->FullMessage().GetCStr());
         // currently AGS cannot properly revert to stable state if some of the
         // game data was released or overwritten by the data from save file,

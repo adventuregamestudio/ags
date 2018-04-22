@@ -116,7 +116,7 @@ bool AssertFormatTagStrict(HSaveError &err, PStream in, const String &tag, bool 
     if (!ReadFormatTag(in, read_tag, open) || read_tag.Compare(tag) != 0)
     {
         err = new SavegameError(kSvgErr_InconsistentFormat,
-            String::FromFormat("Mismatching tag: %s", tag.GetCStr()));
+            String::FromFormat("Mismatching tag: %s.", tag.GetCStr()));
         return false;
     }
     return true;
@@ -127,7 +127,7 @@ inline bool AssertCompatLimit(HSaveError &err, int count, int max_count, const c
     if (count > max_count)
     {
         err = new SavegameError(kSvgErr_IncompatibleEngine,
-            String::FromFormat("Incompatible number of %s (count: %d, max: %d)",
+            String::FromFormat("Incompatible number of %s (count: %d, max: %d).",
             content_name, count, max_count));
         return false;
     }
@@ -139,7 +139,7 @@ inline bool AssertCompatRange(HSaveError &err, int value, int min_value, int max
     if (value < min_value || value > max_value)
     {
         err = new SavegameError(kSvgErr_IncompatibleEngine,
-            String::FromFormat("Restore game error: incompatible %s (id: %d, range: %d - %d)",
+            String::FromFormat("Restore game error: incompatible %s (id: %d, range: %d - %d).",
             content_name, value, min_value, max_value));
         return false;
     }
@@ -151,7 +151,7 @@ inline bool AssertGameContent(HSaveError &err, int new_val, int original_val, co
     if (new_val != original_val)
     {
         err = new SavegameError(kSvgErr_GameContentAssertion,
-            String::FromFormat("Mismatching number of %s (game: %d, save: %d)",
+            String::FromFormat("Mismatching number of %s (game: %d, save: %d).",
             content_name, original_val, new_val));
         return false;
     }
@@ -164,7 +164,7 @@ inline bool AssertGameObjectContent(HSaveError &err, int new_val, int original_v
     if (new_val != original_val)
     {
         err = new SavegameError(kSvgErr_GameContentAssertion,
-            String::FromFormat("Mismatching number of %s, %s #%d (game: %d, save: %d)",
+            String::FromFormat("Mismatching number of %s, %s #%d (game: %d, save: %d).",
             content_name, obj_type, obj_id, original_val, new_val));
         return false;
     }
@@ -177,7 +177,7 @@ inline bool AssertGameObjectContent2(HSaveError &err, int new_val, int original_
     if (new_val != original_val)
     {
         err = new SavegameError(kSvgErr_GameContentAssertion,
-            String::FromFormat("Mismatching number of %s, %s #%d, %s #%d (game: %d, save: %d)",
+            String::FromFormat("Mismatching number of %s, %s #%d, %s #%d (game: %d, save: %d).",
             content_name, obj1_type, obj1_id, obj2_type, obj2_id, original_val, new_val));
         return false;
     }
@@ -1122,12 +1122,12 @@ HSaveError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &info)
     if (!handler || !handler->Unserialize)
         return new SavegameError(kSvgErr_UnsupportedComponent);
     if (info.Version > handler->Version)
-        return new SavegameError(kSvgErr_UnsupportedComponentVersion);
+        return new SavegameError(kSvgErr_UnsupportedComponentVersion, String::FromFormat("Saved version: %d, supported: %d", info.Version, handler->Version));
     HSaveError err = handler->Unserialize(in, info.Version, hlp.PP, hlp.RData);
     if (!err)
         return err;
     if (in->GetPosition() - info.DataOffset != info.DataSize)
-        return new SavegameError(kSvgErr_ComponentSizeMismatch);
+        return new SavegameError(kSvgErr_ComponentSizeMismatch, String::FromFormat("Expected: %d, actual: %d", info.DataSize, in->GetPosition() - info.DataOffset));
     if (!AssertFormatTag(in, info.Name, false))
         return new SavegameError(kSvgErr_ComponentClosingTagFormat);
     return HSaveError::None();
@@ -1156,9 +1156,10 @@ HSaveError ReadAll(PStream in, SavegameVersion svg_version, const PreservedParam
         HSaveError err = ReadComponent(in, hlp, info);
         if (!err)
         {
-            Debug::Printf(kDbgMsg_Error, "ERROR: failed to read savegame component: index = %d, type = %s, version = %i, at offset = %u",
-                idx, info.Name.IsEmpty() ? "unknown" : info.Name.GetCStr(), info.Version, info.Offset);
-            return err;
+            return new SavegameError(kSvgErr_ComponentUnserialization,
+                String::FromFormat("(#%d) %s, version %i, at offset %u.",
+                idx, info.Name.IsEmpty() ? "unknown" : info.Name.GetCStr(), info.Version, info.Offset),
+                err);
         }
         update_polled_stuff_if_runtime();
         idx++;
@@ -1191,8 +1192,9 @@ HSaveError WriteAllCommon(PStream out)
         HSaveError err = WriteComponent(out, ComponentHandlers[type]);
         if (!err)
         {
-            Debug::Printf(kDbgMsg_Error, "ERROR: failed to write savegame component: type = %s", ComponentHandlers[type].Name.GetCStr());
-            return err;
+            return new SavegameError(kSvgErr_ComponentSerialization,
+                String::FromFormat("Component: (#%d) %s", type, ComponentHandlers[type].Name.GetCStr()),
+                err);
         }
         update_polled_stuff_if_runtime();
     }

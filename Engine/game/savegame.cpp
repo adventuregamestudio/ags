@@ -118,47 +118,51 @@ String GetSavegameErrorText(SavegameErrorType err)
     switch (err)
     {
     case kSvgErr_NoError:
-        return "No error";
+        return "No error.";
     case kSvgErr_FileNotFound:
-        return "File not found";
+        return "File not found.";
     case kSvgErr_NoStream:
-        return "Failed to open input stream";
+        return "Failed to open input stream.";
     case kSvgErr_SignatureFailed:
-        return "Not an AGS saved game or unsupported format";
+        return "Not an AGS saved game or unsupported format.";
     case kSvgErr_FormatVersionNotSupported:
-        return "Save format version not supported";
+        return "Save format version not supported.";
     case kSvgErr_IncompatibleEngine:
-        return "Save was written by incompatible engine, or file is corrupted";
+        return "Save was written by incompatible engine, or file is corrupted.";
     case kSvgErr_GameGuidMismatch:
-        return "Game GUID does not match, saved by a different game";
+        return "Game GUID does not match, saved by a different game.";
     case kSvgErr_ComponentListOpeningTagFormat:
-        return "Failed to parse opening tag of the components list";
+        return "Failed to parse opening tag of the components list.";
     case kSvgErr_ComponentListClosingTagMissing:
-        return "Closing tag of the components list was not met";
+        return "Closing tag of the components list was not met.";
     case kSvgErr_ComponentOpeningTagFormat:
-        return "Failed to parse opening component tag";
+        return "Failed to parse opening component tag.";
     case kSvgErr_ComponentClosingTagFormat:
-        return "Failed to parse closing component tag";
+        return "Failed to parse closing component tag.";
     case kSvgErr_ComponentSizeMismatch:
-        return "Component data size mismatch";
+        return "Component data size mismatch.";
     case kSvgErr_UnsupportedComponent:
-        return "Unknown and/or unsupported component";
+        return "Unknown and/or unsupported component.";
+    case kSvgErr_ComponentSerialization:
+        return "Failed to write the savegame component.";
+    case kSvgErr_ComponentUnserialization:
+        return "Failed to restore the savegame component.";
     case kSvgErr_InconsistentFormat:
-        return "Inconsistent format, or file is corrupted";
+        return "Inconsistent format, or file is corrupted.";
     case kSvgErr_UnsupportedComponentVersion:
-        return "Component data version not supported";
+        return "Component data version not supported.";
     case kSvgErr_GameContentAssertion:
-        return "Saved content does not match current game";
+        return "Saved content does not match current game.";
     case kSvgErr_InconsistentData:
-        return "Inconsistent save data, or file is corrupted";
+        return "Inconsistent save data, or file is corrupted.";
     case kSvgErr_InconsistentPlugin:
-        return "One of the game plugins did not restore its game data correctly";
+        return "One of the game plugins did not restore its game data correctly.";
     case kSvgErr_DifferentColorDepth:
-        return "Saved with the engine running at a different colour depth";
+        return "Saved with the engine running at a different colour depth.";
     case kSvgErr_GameObjectInitFailed:
-        return "Game object initialization failed after save restoration";
+        return "Game object initialization failed after save restoration.";
     }
-    return "Unknown error";
+    return "Unknown error.";
 }
 
 Bitmap *RestoreSaveImage(Stream *in)
@@ -178,7 +182,8 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
 {
     svg_ver = (SavegameVersion)in->ReadInt32();
     if (svg_ver < kSvgVersion_LowestSupported || svg_ver > kSvgVersion_Current)
-        return new SavegameError(kSvgErr_FormatVersionNotSupported);
+        return new SavegameError(kSvgErr_FormatVersionNotSupported,
+            String::FromFormat("Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current));
 
     // Enviroment information
     if (elems & kSvgDesc_EnvInfo)
@@ -225,7 +230,8 @@ HSaveError ReadDescription_v321(Stream *in, SavegameVersion &svg_ver, SavegameDe
     if (svg_ver < kSvgVersion_LowestSupported ||
         svg_ver > kSvgVersion_Current)
     {
-        return new SavegameError(kSvgErr_FormatVersionNotSupported);
+        return new SavegameError(kSvgErr_FormatVersionNotSupported,
+            String::FromFormat("Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current));
     }
 
     if (elems & kSvgDesc_UserImage)
@@ -239,7 +245,8 @@ HSaveError ReadDescription_v321(Stream *in, SavegameVersion &svg_ver, SavegameDe
         eng_version < SavedgameLowestBackwardCompatVersion)
     {
         // Engine version is either non-forward or non-backward compatible
-        return new SavegameError(kSvgErr_IncompatibleEngine);
+        return new SavegameError(kSvgErr_IncompatibleEngine,
+            String::FromFormat("Required: %s, supported: %s - %s.", eng_version.LongString.GetCStr(), SavedgameLowestBackwardCompatVersion.LongString.GetCStr(), EngineVersion.LongString.GetCStr()));
     }
     if (elems & kSvgDesc_EnvInfo)
     {
@@ -261,7 +268,7 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
 {
     UStream in(File::OpenFileRead(filename));
     if (!in.get())
-        return new SavegameError(kSvgErr_FileNotFound);
+        return new SavegameError(kSvgErr_FileNotFound, String::FromFormat("Requested filename: %s.", filename.GetCStr()));
 
     // Skip MS Windows Vista rich media header
     RICH_GAME_MEDIA_HEADER rich_media_header;
@@ -547,7 +554,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
         if (chan_info.ClipID >= game.audioClipCount)
         {
             return new SavegameError(kSvgErr_GameObjectInitFailed,
-                String::FromFormat("Invalid audio clip index: %d (clip count: %d)", chan_info.ClipID, game.audioClipCount));
+                String::FromFormat("Invalid audio clip index: %d (clip count: %d).", chan_info.ClipID, game.audioClipCount));
         }
         play_audio_clip_on_channel(i, &game.audioClips[chan_info.ClipID],
             chan_info.Priority, chan_info.Repeat, chan_info.Pos);

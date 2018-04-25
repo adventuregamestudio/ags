@@ -111,10 +111,14 @@ private:
 };
 
 
+// Basic error handle, containing Error object
+typedef ErrorHandle<Error> HError;
+
+
 // TypedCodeError is the Error's subclass, which only purpose is to override
 // error code type in constructor and Code() getter, that may be useful if
 // you'd like to restrict code values to particular enumerator.
-template <typename CodeType, typedef String (*GetErrorText)(CodeType)>
+template <typename CodeType, String (*GetErrorText)(CodeType)>
 class TypedCodeError : public Error
 {
 public:
@@ -122,7 +126,7 @@ public:
     TypedCodeError(CodeType code, String comment, PError inner_error = PError()) :
         Error(code, GetErrorText(code), comment, inner_error) {}
 
-    CodeType Code() const { return (CodeType)_code; }
+    CodeType Code() const { return (CodeType)Error::Code(); }
 };
 
 } // namespace Common

@@ -389,7 +389,9 @@ HSaveError ReadCharacters(PStream in, int32_t cmp_ver, const PreservedParams &pp
         if (loaded_game_file_version <= kGameVersion_272)
             game.intrChar[i]->ReadTimesRunFromSavedgame(in.get());
         // character movement path cache
-        mls[CHMLSOFFS + i].ReadFromFile(in.get(), cmp_ver);
+        err = mls[CHMLSOFFS + i].ReadFromFile(in.get(), cmp_ver > 0 ? 1 : 0);
+        if (!err)
+            return err;
     }
     return err;
 }
@@ -909,7 +911,9 @@ HSaveError ReadThisRoom(PStream in, int32_t cmp_ver, const PreservedParams &pp, 
         return err;
     for (int i = 0; i < objmls_count; ++i)
     {
-        mls[i].ReadFromFile(in.get(), cmp_ver);
+        err = mls[i].ReadFromFile(in.get(), cmp_ver > 0 ? 1 : 0);
+        if (!err)
+            return err;
     }
 
     // save the new room music vol for later use

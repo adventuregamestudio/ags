@@ -71,7 +71,7 @@ void GameSetupStruct::read_font_flags(Common::Stream *in, GameDataVersion data_v
     }
 }
 
-MainGameFileError GameSetupStruct::read_sprite_flags(Common::Stream *in, GameDataVersion data_ver)
+HGameFileError GameSetupStruct::read_sprite_flags(Common::Stream *in, GameDataVersion data_ver)
 {
     int numToRead;
     if (data_ver < kGameVersion_256)
@@ -80,10 +80,10 @@ MainGameFileError GameSetupStruct::read_sprite_flags(Common::Stream *in, GameDat
         numToRead = in->ReadInt32();
 
     if (numToRead > MAX_SPRITES)
-        return kMGFErr_TooManySprites;
+        return new MainGameFileError(kMGFErr_TooManySprites, String::FromFormat("Count: %d, max: %d", numToRead, MAX_SPRITES));
     in->Read(&spriteflags[0], numToRead);
     memset(spriteflags + numToRead, 0, MAX_SPRITES - numToRead);
-    return kMGFErr_NoError;
+    return HGameFileError::None();
 }
 
 void GameSetupStruct::ReadInvInfo_Aligned(Stream *in)
@@ -106,13 +106,13 @@ void GameSetupStruct::WriteInvInfo_Aligned(Stream *out)
     }
 }
 
-MainGameFileError GameSetupStruct::read_cursors(Common::Stream *in, GameDataVersion data_ver)
+HGameFileError GameSetupStruct::read_cursors(Common::Stream *in, GameDataVersion data_ver)
 {
     if (numcursors > MAX_CURSOR)
-        return kMGFErr_TooManyCursors;
+        return new MainGameFileError(kMGFErr_TooManyCursors, String::FromFormat("Count: %d, max: %d", numcursors, MAX_CURSOR));
 
     ReadMouseCursors_Aligned(in);
-    return kMGFErr_NoError;
+    return HGameFileError::None();
 }
 
 void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver)
@@ -247,14 +247,14 @@ void GameSetupStruct::WriteCharacters_Aligned(Stream *out)
 //-----------------------------------------------------------------------------
 // Reading Part 3
 
-MainGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVersion data_ver)
+HGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameDataVersion data_ver)
 {
     dialogScriptNames.resize(numdialog);
     viewNames.resize(numviews);
     if (data_ver >= kGameVersion_260) // >= 2.60
     {
         if (Properties::ReadSchema(propSchema, in) != kPropertyErr_NoError)
-            return kMGFErr_InvalidPropertySchema;
+            return new MainGameFileError(kMGFErr_InvalidPropertySchema);
 
         int errors = 0;
 
@@ -269,7 +269,7 @@ MainGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameData
         }
 
         if (errors > 0)
-            return kMGFErr_InvalidPropertyValues;
+            return new MainGameFileError(kMGFErr_InvalidPropertyValues);
 
         for (int i = 0; i < numviews; ++i)
             viewNames[i] = String::FromStream(in);
@@ -280,10 +280,10 @@ MainGameFileError GameSetupStruct::read_customprops(Common::Stream *in, GameData
         for (int i = 0; i < numdialog; ++i)
             dialogScriptNames[i] = String::FromStream(in);
     }
-    return kMGFErr_NoError;
+    return HGameFileError::None();
 }
 
-MainGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersion data_ver)
+HGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersion data_ver)
 {
     if (data_ver >= kGameVersion_320)
     {
@@ -301,7 +301,7 @@ MainGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersio
         
         scoreClipID = in->ReadInt32();
     }
-    return kMGFErr_NoError;
+    return HGameFileError::None();
 }
 
 // Temporarily copied this from acruntim.h;

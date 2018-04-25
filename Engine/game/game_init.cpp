@@ -107,24 +107,24 @@ namespace AGS
 namespace Engine
 {
 
-String GetGameInitErrorText(GameInitError err)
+String GetGameInitErrorText(GameInitErrorType err)
 {
     switch (err)
     {
     case kGameInitErr_NoError:
-        return "No error";
+        return "No error.";
     case kGameInitErr_NoFonts:
-        return "No fonts specified to be used in this game";
+        return "No fonts specified to be used in this game.";
     case kGameInitErr_TooManyAudioTypes:
-        return "Too many audio types for this engine to handle";
+        return "Too many audio types for this engine to handle.";
     case kGameInitErr_TooManyPlugins:
-        return "Too many plugins for this engine to handle";
+        return "Too many plugins for this engine to handle.";
     case kGameInitErr_PluginNameInvalid:
-        return "Plugin name is invalid";
+        return "Plugin name is invalid.";
     case kGameInitErr_ScriptLinkFailed:
-        return String::FromFormat("Script link failed: %s", ccErrorString);
+        return "Script link failed.";
     }
-    return "Unknown error";
+    return "Unknown error.";
 }
 
 // Initializes audio channels and clips and registers them in the script system
@@ -354,7 +354,7 @@ void AllocScriptModules()
     }
 }
 
-GameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
+HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
 {
     if (data_ver >= kGameVersion_341)
     {
@@ -375,9 +375,9 @@ GameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data
     // engine capabilities.
     //
     if (game.numfonts == 0)
-        return kGameInitErr_NoFonts;
+        return new GameInitError(kGameInitErr_NoFonts);
     if (game.audioClipTypeCount > MAX_AUDIO_TYPES)
-        return kGameInitErr_TooManyAudioTypes;
+        return new GameInitError(kGameInitErr_TooManyAudioTypes, String::FromFormat("Required: %d, max: %d", game.audioClipTypeCount, MAX_AUDIO_TYPES));
 
     //
     // 2. Apply overriding config settings
@@ -469,9 +469,9 @@ GameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data
     scriptModules = ents.ScriptModules;
     AllocScriptModules();
     if (create_global_script())
-        return kGameInitErr_ScriptLinkFailed;
+        return new GameInitError(kGameInitErr_ScriptLinkFailed, ccErrorString);
 
-    return kGameInitErr_NoError;
+    return HGameInitError::None();
 }
 
 } // namespace Engine

@@ -338,12 +338,8 @@ void OGLGraphicsDriver::UpdateDeviceScreen()
     _mode.Width = device_screen_physical_width;
     _mode.Height = device_screen_physical_height;
     InitGlParams(_mode);
-    // TODO: this action ignores any alternate render frame settings (non-scaled, etc).
-    // This could be solved in one of the two ways:
-    // * pass render frame type to GraphicsDriver class instead of explicit coordinates,
-    //   and let it calculate frame coordinates itself.
-    // * start this update in the external engine's callback, outside of GraphicsDriver.
-    SetRenderFrame(Rect(0, 0, _mode.Width - 1, _mode.Height - 1));
+    if (_initSurfaceUpdateCallback)
+        _initSurfaceUpdateCallback();
 }
 
 #endif
@@ -500,6 +496,14 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
     else
       glSwapIntervalEXT(0);
   }
+
+#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
+  // Setup library mouse to have 1:1 coordinate transformation.
+  // NOTE: cannot move this call to general mouse handling mode. Unfortunately, much of the setup and rendering
+  // is duplicated in the Android/iOS ports' Allegro library patches, and is run when the Software renderer
+  // is selected in AGS. This ugly situation causes trouble...
+  device_mouse_setup(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, 1.0, 1.0);
+#endif
 }
 
 bool OGLGraphicsDriver::CreateGlContext(const DisplayMode &mode)
@@ -862,16 +866,6 @@ void OGLGraphicsDriver::SetupViewport()
   // Setup viewport rect and scissor; notice that OpenGL viewport has Y axis inverted
   _viewportRect = RectWH(_dstRect.Left, device_screen_physical_height - 1 - _dstRect.Bottom, _dstRect.GetWidth(), _dstRect.GetHeight());
   glScissor(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
-
-#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
-  device_mouse_setup(
-      (device_screen_physical_width - _dstRect.GetWidth()) / 2,
-      device_screen_physical_width - ((device_screen_physical_width - _dstRect.GetWidth()) / 2),
-      (device_screen_physical_height - _dstRect.GetHeight()) / 2, 
-      device_screen_physical_height - ((device_screen_physical_height - _dstRect.GetHeight()) / 2), 
-      (float)_srcRect.GetWidth() / (float)_dstRect.GetWidth(),
-      (float)_srcRect.GetHeight() / (float)_dstRect.GetHeight());
-#endif
 }
 
 bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer)

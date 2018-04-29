@@ -428,14 +428,8 @@ void engine_post_gfxmode_mouse_setup(const DisplayMode &dm, const Size &init_des
     Debug::Printf(kDbgMsg_Init, "Mouse control: %s, base: %f, speed: %f", Mouse::IsControlEnabled() ? "on" : "off",
         Mouse::GetSpeedUnit(), Mouse::GetSpeed());
 
-    // The virtual->real conversion ratios could have change after new gfx mode is set,
-    // thus we need to reset mouse graphic area and bounds
-    Mouse::SetGraphicArea();
-    // If mouse bounds do not have valid values yet, then limit cursor to viewport
-    if (play.mboundx1 == 0 && play.mboundy1 == 0 && play.mboundx2 == 0 && play.mboundy2 == 0)
-        Mouse::SetMoveLimit(play.viewport);
-    else
-        Mouse::SetMoveLimit(Rect(play.mboundx1, play.mboundy1, play.mboundx2, play.mboundy2));
+    on_coordinates_scaling_changed();
+
     // If auto lock option is set, lock mouse to the game window
     if (usetup.mouse_auto_lock && scsystem.windowed != 0)
         Mouse::TryLockToWindow();
@@ -493,4 +487,15 @@ void engine_pre_gfxsystem_shutdown()
     engine_pre_gfxmode_release();
     engine_pre_gfxmode_draw_cleanup();
     engine_pre_gfxsystem_screen_destroy();
+}
+
+void on_coordinates_scaling_changed()
+{
+    // Reset mouse graphic area and bounds
+    Mouse::SetGraphicArea();
+    // If mouse bounds do not have valid values yet, then limit cursor to viewport
+    if (play.mboundx1 == 0 && play.mboundy1 == 0 && play.mboundx2 == 0 && play.mboundy2 == 0)
+        Mouse::SetMoveLimit(play.viewport);
+    else
+        Mouse::SetMoveLimit(Rect(play.mboundx1, play.mboundy1, play.mboundx2, play.mboundy2));
 }

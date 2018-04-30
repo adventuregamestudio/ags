@@ -23,27 +23,6 @@
 #include "platform/base/agsplatformdriver.h"
 
 
-//
-// NOTE: following external variables are used by the mobile ports:
-// TODO: parse them during config
-//
-// psp_gfx_scaling - scaling style:
-//    * 0 - no scaling
-//    * 1 - stretch and preserve aspect ratio
-//    * 2 - stretch to whole screen
-//
-// psp_gfx_smoothing - scaling filter:
-//    * 0 - nearest-neighbour
-//    * 1 - linear
-//
-// psp_gfx_renderer - rendering mode
-//    * 1 - render directly to screen
-//    * 2 - render to texture first and then to screen
-//
-// psp_gfx_super_sampling - enable super sampling
-//
-
-
 #if defined(WINDOWS_VERSION)
 
 const char* fbo_extension_string = "GL_EXT_framebuffer_object";
@@ -95,11 +74,6 @@ extern "C"
 
 extern "C" void android_debug_printf(char* format, ...);
 
-extern int psp_gfx_smoothing;
-extern int psp_gfx_scaling;
-extern int psp_gfx_renderer;
-extern int psp_gfx_super_sampling;
-
 extern unsigned int android_screen_physical_width;
 extern unsigned int android_screen_physical_height;
 extern int android_screen_initialized;
@@ -137,11 +111,6 @@ extern "C"
 
 #define glOrtho glOrthof
 #define GL_CLAMP GL_CLAMP_TO_EDGE
-
-extern int psp_gfx_smoothing;
-extern int psp_gfx_scaling;
-extern int psp_gfx_renderer;
-extern int psp_gfx_super_sampling;
 
 extern unsigned int ios_screen_physical_width;
 extern unsigned int ios_screen_physical_height;
@@ -349,10 +318,14 @@ void OGLGraphicsDriver::Vsync()
   // do nothing on OpenGL
 }
 
-void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled)
+void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled, int supersampling)
 {
   if (_can_render_to_texture)
+  {
     _do_render_to_texture = !enabled;
+    _super_sampling = supersampling;
+    TestSupersampling();
+  }
 
   if (_do_render_to_texture)
     glDisable(GL_SCISSOR_TEST);
@@ -604,14 +577,7 @@ void OGLGraphicsDriver::TestRenderToTexture()
   #endif
 
     _can_render_to_texture = true;
-    // Disable super-sampling if it would cause a too large texture size
-    if (_super_sampling > 1)
-    {
-      int max = 1024;
-      glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
-      if ((max < _srcRect.GetWidth() * 2) || (max < _srcRect.GetHeight() * 2))
-        _super_sampling = 1;
-    }
+    TestSupersampling();
   }
   else
   {
@@ -621,6 +587,20 @@ void OGLGraphicsDriver::TestRenderToTexture()
 
   if (!_can_render_to_texture)
     _do_render_to_texture = false;
+}
+
+void OGLGraphicsDriver::TestSupersampling()
+{
+    if (!_can_render_to_texture)
+        return;
+    // Disable super-sampling if it would cause a too large texture size
+    if (_super_sampling > 1)
+    {
+      int max = 1024;
+      glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
+      if ((max < _srcRect.GetWidth() * _super_sampling) || (max < _srcRect.GetHeight() * _super_sampling))
+        _super_sampling = 1;
+    }
 }
 
 void OGLGraphicsDriver::CreateShaders()
@@ -902,20 +882,6 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
   final_mode.Height = device_screen_physical_height;
   OnModeSet(final_mode);
 
-  // TODO: move these options parsing into config instead
-#if defined(ANDROID_VERSION) || defined (IOS_VERSION)
-  if (psp_gfx_renderer == 2 && _can_render_to_texture)
-  {
-    _super_sampling = ((psp_gfx_super_sampling > 0) ? 2 : 1);
-    _do_render_to_texture = true;
-  }
-  else
-  {
-    _super_sampling = 1;
-    _do_render_to_texture = false;
-  }
-#endif
-
   create_screen_tint_bitmap();
   // If we already have a native size set, then update virtual screen and setup backbuffer texture immediately
   CreateVirtualScreen();
@@ -938,6 +904,7 @@ bool OGLGraphicsDriver::SetNativeSize(const Size &src_size)
   SetupBackbufferTexture();
   // If we already have a gfx mode set, then update virtual screen immediately
   CreateVirtualScreen();
+  TestSupersampling();
   return !_srcRect.IsEmpty();
 }
 

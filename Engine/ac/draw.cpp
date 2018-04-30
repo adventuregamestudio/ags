@@ -2571,7 +2571,7 @@ void construct_virtual_screen(bool fullRedraw)
     Bitmap *ds = GetVirtualScreen();
 
     gfxDriver->UseSmoothScaling(IS_ANTIALIAS_SPRITES);
-    gfxDriver->RenderSpritesAtScreenResolution(usetup.RenderAtScreenRes);
+    gfxDriver->RenderSpritesAtScreenResolution(usetup.RenderAtScreenRes, usetup.Supersampling);
 
     pl_run_plugin_hooks(AGSE_PRERENDER, 0);
 

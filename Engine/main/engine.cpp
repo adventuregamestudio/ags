@@ -1338,11 +1338,7 @@ void engine_read_config(const String &exe_path, ConfigTree &cfg)
     // TODO: normally, those should be instead stored in the same config file in a uniform way
     // NOTE: the variable is historically called "ignore" but we use it in "override" meaning here
     if (psp_ignore_acsetup_cfg_file)
-    {
-        INIwritestring(cfg, "graphics", "driver", "Software"); // ???
-        INIwriteint(cfg, "misc", "antialias", psp_gfx_smooth_sprites != 0);
-        INIwritestring(cfg, "language", "translation", psp_translation);
-    }
+        override_config_ext(cfg);
 
     // Apply overriding options from command line
     // TODO: override config tree with all the command-line args.

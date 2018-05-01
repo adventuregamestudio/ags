@@ -274,12 +274,12 @@ namespace AGS.Editor
                 viewPreview.Width = viewPreview.PreferredSize.Width;
                 viewPreview.Height = viewPreview.PreferredSize.Height;
 
-				editorPanel.Left = viewPreview.Right + 10;
+				editorPanel.Left = viewPreview.Right;
 				viewPreview.ViewToPreview = _editingView;
 			}
 			else
 			{
-				editorPanel.Left = 10;
+				editorPanel.Left = 0;
 				viewPreview.ReleaseResources();
 			}
 

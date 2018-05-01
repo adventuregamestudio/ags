@@ -55,7 +55,7 @@ namespace AGS.Editor
             btnNewFrame.Height = FRAME_DISPLAY_SIZE;
             btnNewFrame.Top = _loopDisplayY;
 
-            _framelessWidth = Math.Max(chkRunNextLoop.Width + 10, Screen.PrimaryScreen.Bounds.Width);
+            _framelessWidth = Math.Min(chkRunNextLoop.Width, this.Width + this.Left);
             UpdateControlWidth();
         }
 
@@ -121,7 +121,7 @@ namespace AGS.Editor
 
         private void UpdateControlWidth()
         {
-            this.Width = Math.Max((_loop.Frames.Count + 1) * FRAME_DISPLAY_SIZE, _framelessWidth);
+            this.Width = Math.Max((_loop.Frames.Count + 1) * FRAME_DISPLAY_SIZE + 10, _framelessWidth);
             btnNewFrame.Left = _loop.Frames.Count * FRAME_DISPLAY_SIZE;
         }
 

@@ -78,7 +78,7 @@ int find_word_in_dictionary (const char *lookfor) {
 }
 
 int is_valid_word_char(char theChar) {
-    if ((isalnum(theChar)) || (theChar == '\'') || (theChar == '-')) {
+    if ((isalnum((unsigned char)theChar)) || (theChar == '\'') || (theChar == '-')) {
         return 1;
     }
     return 0;
@@ -231,7 +231,7 @@ int parse_sentence (const char *src_text, int *numwords, short*wordarray, short*
 
                         const char *textStart = &text[1];
 
-                        while ((text[0] == ',') || (isalnum(text[0]) != 0))
+                        while ((text[0] == ',') || (isalnum((unsigned char)text[0]) != 0))
                             text++;
 
                         continueSearching = 0;

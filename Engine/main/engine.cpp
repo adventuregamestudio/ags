@@ -44,7 +44,6 @@
 #include "debug/out.h"
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
-#include "game/main_game_file.h"
 #include "main/config.h"
 #include "main/game_start.h"
 #include "main/engine.h"
@@ -726,12 +725,12 @@ int engine_load_game_data()
     Debug::Printf("Load game data");
 
     our_eip=-17;
-    String err_str;
-    if (!load_game_file(err_str))
+    HError err = load_game_file();
+    if (!err)
     {
         proper_exit=1;
         platform->FinishedUsingGraphicsMode();
-        display_game_file_error(err_str);
+        display_game_file_error(err);
         return EXIT_NORMAL;
     }
 
@@ -1303,10 +1302,10 @@ bool engine_init_gamefile(const String &exe_path)
     // TODO: research if that is possible to avoid this step and just
     // read the full head game data at this point. This might require
     // further changes of the order of initialization.
-    String err_str;
-    if (!preload_game_data(err_str))
+    HError err = preload_game_data();
+    if (!err)
     {
-        display_game_file_error(err_str);
+        display_game_file_error(err);
         return false;
     }
     return true;

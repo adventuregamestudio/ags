@@ -37,9 +37,9 @@ typedef stdtr1compat::shared_ptr<Stream> PStream;
 namespace SavegameComponents
 {
     // Reads all available components from the stream
-    SavegameError ReadAll(PStream in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
+    HSaveError    ReadAll(PStream in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
     // Writes a full list of common components to the stream
-    SavegameError WriteAllCommon(PStream out);
+    HSaveError    WriteAllCommon(PStream out);
 }
 
 } // namespace Engine

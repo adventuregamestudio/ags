@@ -16,7 +16,8 @@
 #include "ac/common.h"
 #include "util/stream.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
+using namespace AGS::Engine;
 
 void MoveList::ReadFromFile_Legacy(Stream *in)
 {
@@ -34,15 +35,21 @@ void MoveList::ReadFromFile_Legacy(Stream *in)
     direct = in->ReadInt8();
 }
 
-void MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
+HSaveError MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
 {
     if (cmp_ver < 1)
-        return ReadFromFile_Legacy(in);
+    {
+        ReadFromFile_Legacy(in);
+        return HSaveError::None();
+    }
 
     numstage = in->ReadInt32();
-
+    // TODO: reimplement MoveList stages as vector to avoid these limits
     if (numstage > MAXNEEDSTAGES)
-        quit("attempt to read a movelist with too many stages");
+    {
+        return new SavegameError(kSvgErr_IncompatibleEngine,
+            String::FromFormat("Incompatible number of movelist steps (count: %d, max : %d).", numstage, MAXNEEDSTAGES));
+    }
 
     fromx = in->ReadInt32();
     fromy = in->ReadInt32();
@@ -56,6 +63,7 @@ void MoveList::ReadFromFile(Stream *in, int32_t cmp_ver)
     in->ReadArrayOfInt32(pos, numstage);
     in->ReadArrayOfInt32(xpermove, numstage);
     in->ReadArrayOfInt32(ypermove, numstage);
+    return HSaveError::None();
 }
 
 void MoveList::WriteToFile(Stream *out)

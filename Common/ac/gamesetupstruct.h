@@ -34,7 +34,7 @@ namespace AGS { namespace Common { struct AssetLibInfo; } }
 
 using AGS::Common::Interaction;
 using AGS::Common::InteractionScripts;
-using AGS::Common::MainGameFileError;
+using AGS::Common::HGameFileError;
 
 // TODO: split GameSetupStruct into struct used to hold loaded game data, and actual runtime object
 struct GameSetupStruct: public GameSetupStructBase {
@@ -99,8 +99,8 @@ struct GameSetupStruct: public GameSetupStructBase {
     // Part 1
     void read_savegame_info(Common::Stream *in, GameDataVersion data_ver);
     void read_font_flags(Common::Stream *in, GameDataVersion data_ver);
-    MainGameFileError read_sprite_flags(Common::Stream *in, GameDataVersion data_ver);
-    MainGameFileError read_cursors(Common::Stream *in, GameDataVersion data_ver);
+    HGameFileError read_sprite_flags(Common::Stream *in, GameDataVersion data_ver);
+    HGameFileError read_cursors(Common::Stream *in, GameDataVersion data_ver);
     void read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver);
     void read_words_dictionary(Common::Stream *in);
 
@@ -118,8 +118,8 @@ struct GameSetupStruct: public GameSetupStructBase {
     void WriteCharacters_Aligned(Common::Stream *out);
     //------------------------------
     // Part 3
-    MainGameFileError read_customprops(Common::Stream *in, GameDataVersion data_ver);
-    MainGameFileError read_audio(Common::Stream *in, GameDataVersion data_ver);
+    HGameFileError read_customprops(Common::Stream *in, GameDataVersion data_ver);
+    HGameFileError read_audio(Common::Stream *in, GameDataVersion data_ver);
     void read_room_names(Common::Stream *in, GameDataVersion data_ver);
 
     void ReadAudioClips_Aligned(Common::Stream *in);

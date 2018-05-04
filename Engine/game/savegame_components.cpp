@@ -109,65 +109,83 @@ bool AssertFormatTag(PStream in, const String &tag, bool open = true)
     return read_tag.Compare(tag) == 0;
 }
 
-inline bool AssertCompatLimit(int count, int max_count, const char *content_name)
+bool AssertFormatTagStrict(HSaveError &err, PStream in, const String &tag, bool open = true)
+{
+    
+    String read_tag;
+    if (!ReadFormatTag(in, read_tag, open) || read_tag.Compare(tag) != 0)
+    {
+        err = new SavegameError(kSvgErr_InconsistentFormat,
+            String::FromFormat("Mismatching tag: %s.", tag.GetCStr()));
+        return false;
+    }
+    return true;
+}
+
+inline bool AssertCompatLimit(HSaveError &err, int count, int max_count, const char *content_name)
 {
     if (count > max_count)
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: incompatible number of %s (count: %d, max: %d)",
-            content_name, count, max_count);
+        err = new SavegameError(kSvgErr_IncompatibleEngine,
+            String::FromFormat("Incompatible number of %s (count: %d, max: %d).",
+            content_name, count, max_count));
         return false;
     }
     return true;
 }
 
-inline bool AssertCompatRange(int value, int min_value, int max_value, const char *content_name)
+inline bool AssertCompatRange(HSaveError &err, int value, int min_value, int max_value, const char *content_name)
 {
     if (value < min_value || value > max_value)
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: incompatible %s (id: %d, range: %d - %d)",
-            content_name, value, min_value, max_value);
+        err = new SavegameError(kSvgErr_IncompatibleEngine,
+            String::FromFormat("Restore game error: incompatible %s (id: %d, range: %d - %d).",
+            content_name, value, min_value, max_value));
         return false;
     }
     return true;
 }
 
-inline bool AssertGameContent(int new_val, int original_val, const char *content_name)
+inline bool AssertGameContent(HSaveError &err, int new_val, int original_val, const char *content_name)
 {
     if (new_val != original_val)
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of %s (game: %d, save: %d)",
-            content_name, original_val, new_val);
+        err = new SavegameError(kSvgErr_GameContentAssertion,
+            String::FromFormat("Mismatching number of %s (game: %d, save: %d).",
+            content_name, original_val, new_val));
         return false;
     }
     return true;
 }
 
-inline bool AssertGameObjectContent(int new_val, int original_val, const char *content_name,
+inline bool AssertGameObjectContent(HSaveError &err, int new_val, int original_val, const char *content_name,
                                     const char *obj_type, int obj_id)
 {
     if (new_val != original_val)
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of %s, %s #%d (game: %d, save: %d)",
-            content_name, obj_type, obj_id, original_val, new_val);
+        err = new SavegameError(kSvgErr_GameContentAssertion,
+            String::FromFormat("Mismatching number of %s, %s #%d (game: %d, save: %d).",
+            content_name, obj_type, obj_id, original_val, new_val));
         return false;
     }
     return true;
 }
 
-inline bool AssertGameObjectContent2(int new_val, int original_val, const char *content_name,
+inline bool AssertGameObjectContent2(HSaveError &err, int new_val, int original_val, const char *content_name,
                                     const char *obj1_type, int obj1_id, const char *obj2_type, int obj2_id)
 {
     if (new_val != original_val)
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of %s, %s #%d, %s #%d (game: %d, save: %d)",
-            content_name, obj1_type, obj1_id, obj2_type, obj2_id, original_val, new_val);
+        err = new SavegameError(kSvgErr_GameContentAssertion,
+            String::FromFormat("Mismatching number of %s, %s #%d, %s #%d (game: %d, save: %d).",
+            content_name, obj1_type, obj1_id, obj2_type, obj2_id, original_val, new_val));
         return false;
     }
     return true;
 }
 
 
-SavegameError WriteGameState(PStream out)
+HSaveError WriteGameState(PStream out)
 {
     // Game base
     game.WriteForSavegame(out);
@@ -197,11 +215,12 @@ SavegameError WriteGameState(PStream out)
     // Viewport
     out->WriteInt32(offsetx);
     out->WriteInt32(offsety);
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
+    HSaveError err;
     // Game base
     game.ReadFromSavegame(in);
     // Game palette
@@ -210,8 +229,8 @@ SavegameError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &
     if (loaded_game_file_version <= kGameVersion_272)
     {
         // Legacy interaction global variables
-        if (!AssertGameContent(in->ReadInt32(), numGlobalVars, "Global Variables"))
-            return kSvgErr_GameContentAssertion;
+        if (!AssertGameContent(err, in->ReadInt32(), numGlobalVars, "Global Variables"))
+            return err;
         for (int i = 0; i < numGlobalVars; ++i)
             globalvars[i].Read(in.get());
     }
@@ -231,10 +250,10 @@ SavegameError ReadGameState(PStream in, int32_t cmp_ver, const PreservedParams &
     // Viewport state
     offsetx = in->ReadInt32();
     offsety = in->ReadInt32();
-    return kSvgErr_NoError;
+    return err;
 }
 
-SavegameError WriteAudio(PStream out)
+HSaveError WriteAudio(PStream out)
 {
     // Game content assertion
     out->WriteInt32(game.audioClipTypeCount);
@@ -276,16 +295,17 @@ SavegameError WriteAudio(PStream out)
     // Ambient sound
     for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
         ambient[i].WriteToFile(out.get());
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError ReadAudio(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadAudio(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
+    HSaveError err;
     // Game content assertion
-    if (!AssertGameContent(in->ReadInt32(), game.audioClipTypeCount, "Audio Clip Types"))
-        return kSvgErr_GameContentAssertion;
-    if (!AssertGameContent(in->ReadInt32(), game.audioClipCount, "Audio Clips"))
-        return kSvgErr_GameContentAssertion;
+    if (!AssertGameContent(err, in->ReadInt32(), game.audioClipTypeCount, "Audio Clip Types"))
+        return err;
+    if (!AssertGameContent(err, in->ReadInt32(), game.audioClipCount, "Audio Clips"))
+        return err;
 
     // Audio types
     for (int i = 0; i < game.audioClipTypeCount; ++i)
@@ -337,10 +357,10 @@ SavegameError ReadAudio(PStream in, int32_t cmp_ver, const PreservedParams &pp, 
             ambient[i].channel = 0;
         }
     }
-    return kSvgErr_NoError;
+    return err;
 }
 
-SavegameError WriteCharacters(PStream out)
+HSaveError WriteCharacters(PStream out)
 {
     out->WriteInt32(game.numcharacters);
     for (int i = 0; i < game.numcharacters; ++i)
@@ -353,13 +373,14 @@ SavegameError WriteCharacters(PStream out)
         // character movement path cache
         mls[CHMLSOFFS + i].WriteToFile(out.get());
     }
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError ReadCharacters(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadCharacters(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    if (!AssertGameContent(in->ReadInt32(), game.numcharacters, "Characters"))
-        return kSvgErr_GameContentAssertion;
+    HSaveError err;
+    if (!AssertGameContent(err, in->ReadInt32(), game.numcharacters, "Characters"))
+        return err;
     for (int i = 0; i < game.numcharacters; ++i)
     {
         game.chars[i].ReadFromFile(in.get());
@@ -368,33 +389,36 @@ SavegameError ReadCharacters(PStream in, int32_t cmp_ver, const PreservedParams 
         if (loaded_game_file_version <= kGameVersion_272)
             game.intrChar[i]->ReadTimesRunFromSavedgame(in.get());
         // character movement path cache
-        mls[CHMLSOFFS + i].ReadFromFile(in.get(), cmp_ver);
+        err = mls[CHMLSOFFS + i].ReadFromFile(in.get(), cmp_ver > 0 ? 1 : 0);
+        if (!err)
+            return err;
     }
-    return kSvgErr_NoError;
+    return err;
 }
 
-SavegameError WriteDialogs(PStream out)
+HSaveError WriteDialogs(PStream out)
 {
     out->WriteInt32(game.numdialog);
     for (int i = 0; i < game.numdialog; ++i)
     {
         dialog[i].WriteToSavegame(out.get());
     }
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError ReadDialogs(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadDialogs(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    if (!AssertGameContent(in->ReadInt32(), game.numdialog, "Dialogs"))
-        return kSvgErr_GameContentAssertion;
+    HSaveError err;
+    if (!AssertGameContent(err, in->ReadInt32(), game.numdialog, "Dialogs"))
+        return err;
     for (int i = 0; i < game.numdialog; ++i)
     {
         dialog[i].ReadFromSavegame(in.get());
     }
-    return kSvgErr_NoError;
+    return err;
 }
 
-SavegameError WriteGUI(PStream out)
+HSaveError WriteGUI(PStream out)
 {
     // GUI state
     WriteFormatTag(out, "GUIs");
@@ -437,74 +461,75 @@ SavegameError WriteGUI(PStream out)
     out->WriteInt32(numAnimButs);
     for (int i = 0; i < numAnimButs; ++i)
         animbuts[i].WriteToFile(out.get());
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError ReadGUI(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadGUI(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
+    HSaveError err;
     // GUI state
-    if (!AssertFormatTag(in, "GUIs"))
-        return kSvgErr_InconsistentFormat;
-    if (!AssertGameContent(in->ReadInt32(), game.numgui, "GUIs"))
-        return kSvgErr_GameContentAssertion;
+    if (!AssertFormatTagStrict(err, in, "GUIs"))
+        return err;
+    if (!AssertGameContent(err, in->ReadInt32(), game.numgui, "GUIs"))
+        return err;
     for (int i = 0; i < game.numgui; ++i)
         guis[i].ReadFromSavegame(in.get());
 
-    if (!AssertFormatTag(in, "GUIButtons"))
-        return kSvgErr_InconsistentFormat;
-    if (!AssertGameContent(in->ReadInt32(), numguibuts, "GUI Buttons"))
-        return kSvgErr_GameContentAssertion;
+    if (!AssertFormatTagStrict(err, in, "GUIButtons"))
+        return err;
+    if (!AssertGameContent(err, in->ReadInt32(), numguibuts, "GUI Buttons"))
+        return err;
     for (int i = 0; i < numguibuts; ++i)
         guibuts[i].ReadFromSavegame(in.get());
 
-    if (!AssertFormatTag(in, "GUILabels"))
-        return kSvgErr_InconsistentFormat;
-    if (!AssertGameContent(in->ReadInt32(), numguilabels, "GUI Labels"))
-        return kSvgErr_GameContentAssertion;
+    if (!AssertFormatTagStrict(err, in, "GUILabels"))
+        return err;
+    if (!AssertGameContent(err, in->ReadInt32(), numguilabels, "GUI Labels"))
+        return err;
     for (int i = 0; i < numguilabels; ++i)
         guilabels[i].ReadFromSavegame(in.get());
 
-    if (!AssertFormatTag(in, "GUIInvWindows"))
-        return kSvgErr_InconsistentFormat;
-    if (!AssertGameContent(in->ReadInt32(), numguiinv, "GUI InvWindows"))
-        return kSvgErr_GameContentAssertion;
+    if (!AssertFormatTagStrict(err, in, "GUIInvWindows"))
+        return err;
+    if (!AssertGameContent(err, in->ReadInt32(), numguiinv, "GUI InvWindows"))
+        return err;
     for (int i = 0; i < numguiinv; ++i)
         guiinv[i].ReadFromSavegame(in.get());
 
-    if (!AssertFormatTag(in, "GUISliders"))
-        return kSvgErr_InconsistentFormat;
-    if (!AssertGameContent(in->ReadInt32(), numguislider, "GUI Sliders"))
-        return kSvgErr_GameContentAssertion;
+    if (!AssertFormatTagStrict(err, in, "GUISliders"))
+        return err;
+    if (!AssertGameContent(err, in->ReadInt32(), numguislider, "GUI Sliders"))
+        return err;
     for (int i = 0; i < numguislider; ++i)
         guislider[i].ReadFromSavegame(in.get());
 
-    if (!AssertFormatTag(in, "GUITextBoxes"))
-        return kSvgErr_InconsistentFormat;
-    if (!AssertGameContent(in->ReadInt32(), numguitext, "GUI TextBoxes"))
-        return kSvgErr_GameContentAssertion;
+    if (!AssertFormatTagStrict(err, in, "GUITextBoxes"))
+        return err;
+    if (!AssertGameContent(err, in->ReadInt32(), numguitext, "GUI TextBoxes"))
+        return err;
     for (int i = 0; i < numguitext; ++i)
         guitext[i].ReadFromSavegame(in.get());
 
-    if (!AssertFormatTag(in, "GUIListBoxes"))
-        return kSvgErr_InconsistentFormat;
-    if (!AssertGameContent(in->ReadInt32(), numguilist, "GUI ListBoxes"))
-        return kSvgErr_GameContentAssertion;
+    if (!AssertFormatTagStrict(err, in, "GUIListBoxes"))
+        return err;
+    if (!AssertGameContent(err, in->ReadInt32(), numguilist, "GUI ListBoxes"))
+        return err;
     for (int i = 0; i < numguilist; ++i)
         guilist[i].ReadFromSavegame(in.get());
 
     // Animated buttons
-    if (!AssertFormatTag(in, "AnimatedButtons"))
-        return kSvgErr_InconsistentFormat;
+    if (!AssertFormatTagStrict(err, in, "AnimatedButtons"))
+        return err;
     int anim_count = in->ReadInt32();
-    if (!AssertCompatLimit(anim_count, MAX_ANIMATING_BUTTONS, "animated buttons"))
-        return kSvgErr_IncompatibleEngine;
+    if (!AssertCompatLimit(err, anim_count, MAX_ANIMATING_BUTTONS, "animated buttons"))
+        return err;
     numAnimButs = anim_count;
     for (int i = 0; i < numAnimButs; ++i)
         animbuts[i].ReadFromFile(in.get());
-    return kSvgErr_NoError;
+    return err;
 }
 
-SavegameError WriteInventory(PStream out)
+HSaveError WriteInventory(PStream out)
 {
     out->WriteInt32(game.numinvitems);
     for (int i = 0; i < game.numinvitems; ++i)
@@ -514,13 +539,14 @@ SavegameError WriteInventory(PStream out)
         if (loaded_game_file_version <= kGameVersion_272)
             game.intrInv[i]->WriteTimesRunToSavedgame(out.get());
     }
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError ReadInventory(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadInventory(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    if (!AssertGameContent(in->ReadInt32(), game.numinvitems, "Inventory Items"))
-        return kSvgErr_GameContentAssertion;
+    HSaveError err;
+    if (!AssertGameContent(err, in->ReadInt32(), game.numinvitems, "Inventory Items"))
+        return err;
     for (int i = 0; i < game.numinvitems; ++i)
     {
         game.invinfo[i].ReadFromSavegame(in.get());
@@ -528,31 +554,32 @@ SavegameError ReadInventory(PStream in, int32_t cmp_ver, const PreservedParams &
         if (loaded_game_file_version <= kGameVersion_272)
             game.intrInv[i]->ReadTimesRunFromSavedgame(in.get());
     }
-    return kSvgErr_NoError;
+    return err;
 }
 
-SavegameError WriteMouseCursors(PStream out)
+HSaveError WriteMouseCursors(PStream out)
 {
     out->WriteInt32(game.numcursors);
     for (int i = 0; i < game.numcursors; ++i)
     {
         game.mcurs[i].WriteToSavegame(out.get());
     }
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError ReadMouseCursors(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadMouseCursors(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    if (!AssertGameContent(in->ReadInt32(), game.numcursors, "Mouse Cursors"))
-        return kSvgErr_GameContentAssertion;
+    HSaveError err;
+    if (!AssertGameContent(err, in->ReadInt32(), game.numcursors, "Mouse Cursors"))
+        return err;
     for (int i = 0; i < game.numcursors; ++i)
     {
         game.mcurs[i].ReadFromSavegame(in.get());
     }
-    return kSvgErr_NoError;
+    return err;
 }
 
-SavegameError WriteViews(PStream out)
+HSaveError WriteViews(PStream out)
 {
     out->WriteInt32(game.numviews);
     for (int view = 0; view < game.numviews; ++view)
@@ -568,23 +595,24 @@ SavegameError WriteViews(PStream out)
             }
         }
     }
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError ReadViews(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadViews(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    if (!AssertGameContent(in->ReadInt32(), game.numviews, "Views"))
-        return kSvgErr_GameContentAssertion;
+    HSaveError err;
+    if (!AssertGameContent(err, in->ReadInt32(), game.numviews, "Views"))
+        return err;
     for (int view = 0; view < game.numviews; ++view)
     {
-        if (!AssertGameObjectContent(in->ReadInt32(), views[view].numLoops,
+        if (!AssertGameObjectContent(err, in->ReadInt32(), views[view].numLoops,
             "Loops", "View", view))
-            return kSvgErr_GameContentAssertion;
+            return err;
         for (int loop = 0; loop < views[view].numLoops; ++loop)
         {
-            if (!AssertGameObjectContent2(in->ReadInt32(), views[view].loops[loop].numFrames,
+            if (!AssertGameObjectContent2(err, in->ReadInt32(), views[view].loops[loop].numFrames,
                 "Frame", "View", view, "Loop", loop))
-                return kSvgErr_GameContentAssertion;
+                return err;
             for (int frame = 0; frame < views[view].loops[loop].numFrames; ++frame)
             {
                 views[view].loops[loop].frames[frame].sound = in->ReadInt32();
@@ -592,10 +620,10 @@ SavegameError ReadViews(PStream in, int32_t cmp_ver, const PreservedParams &pp, 
             }
         }
     }
-    return kSvgErr_NoError;
+    return err;
 }
 
-SavegameError WriteDynamicSprites(PStream out)
+HSaveError WriteDynamicSprites(PStream out)
 {
     const size_t ref_pos = out->GetPosition();
     out->WriteInt32(0); // number of dynamic sprites
@@ -618,31 +646,32 @@ SavegameError WriteDynamicSprites(PStream out)
     out->WriteInt32(count);
     out->WriteInt32(top_index);
     out->Seek(end_pos, kSeekBegin);
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError ReadDynamicSprites(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadDynamicSprites(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
+    HSaveError err;
     const int spr_count = in->ReadInt32();
     // ensure the sprite set is at least large enough
     // to accomodate top dynamic sprite index
     const int top_index = in->ReadInt32();
-    if (!AssertCompatRange(top_index, 1, MAX_SPRITES - 1, "sprite top index"))
-        return kSvgErr_IncompatibleEngine;
+    if (!AssertCompatRange(err, top_index, 1, MAX_SPRITES - 1, "sprite top index"))
+        return err;
     spriteset.enlargeTo(top_index);
     for (int i = 0; i < spr_count; ++i)
     {
         int id = in->ReadInt32();
-        if (!AssertCompatRange(id, 1, MAX_SPRITES - 1, "sprite index"))
-            return kSvgErr_IncompatibleEngine;
+        if (!AssertCompatRange(err, id, 1, MAX_SPRITES - 1, "sprite index"))
+            return err;
         int flags = in->ReadInt32();
         add_dynamic_sprite(id, read_serialized_bitmap(in.get()));
         game.spriteflags[id] = flags;
     }
-    return kSvgErr_NoError;
+    return err;
 }
 
-SavegameError WriteOverlays(PStream out)
+HSaveError WriteOverlays(PStream out)
 {
     out->WriteInt32(numscreenover);
     for (int i = 0; i < numscreenover; ++i)
@@ -650,14 +679,15 @@ SavegameError WriteOverlays(PStream out)
         screenover[i].WriteToFile(out.get());
         serialize_bitmap(screenover[i].pic, out.get());
     }
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError ReadOverlays(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadOverlays(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
+    HSaveError err;
     int over_count = in->ReadInt32();
-    if (!AssertCompatLimit(over_count, MAX_SCREEN_OVERLAYS, "overlays"))
-        return kSvgErr_IncompatibleEngine;
+    if (!AssertCompatLimit(err, over_count, MAX_SCREEN_OVERLAYS, "overlays"))
+        return err;
     numscreenover = over_count;
     for (int i = 0; i < numscreenover; ++i)
     {
@@ -665,10 +695,10 @@ SavegameError ReadOverlays(PStream in, int32_t cmp_ver, const PreservedParams &p
         if (screenover[i].hasSerializedBitmap)
             screenover[i].pic = read_serialized_bitmap(in.get());
     }
-    return kSvgErr_NoError;
+    return err;
 }
 
-SavegameError WriteDynamicSurfaces(PStream out)
+HSaveError WriteDynamicSurfaces(PStream out)
 {
     out->WriteInt32(MAX_DYNAMIC_SURFACES);
     for (int i = 0; i < MAX_DYNAMIC_SURFACES; ++i)
@@ -683,13 +713,14 @@ SavegameError WriteDynamicSurfaces(PStream out)
             serialize_bitmap(dynamicallyCreatedSurfaces[i], out.get());
         }
     }
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError ReadDynamicSurfaces(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadDynamicSurfaces(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    if (!AssertCompatLimit(in->ReadInt32(), MAX_DYNAMIC_SURFACES, "Dynamic Surfaces"))
-        return kSvgErr_GameContentAssertion;
+    HSaveError err;
+    if (!AssertCompatLimit(err, in->ReadInt32(), MAX_DYNAMIC_SURFACES, "Dynamic Surfaces"))
+        return err;
     // Load the surfaces into a temporary array since ccUnserialiseObjects will destroy them otherwise
     r_data.DynamicSurfaces.resize(MAX_DYNAMIC_SURFACES);
     for (int i = 0; i < MAX_DYNAMIC_SURFACES; ++i)
@@ -699,10 +730,10 @@ SavegameError ReadDynamicSurfaces(PStream in, int32_t cmp_ver, const PreservedPa
         else
             r_data.DynamicSurfaces[i] = read_serialized_bitmap(in.get());
     }
-    return kSvgErr_NoError;
+    return err;
 }
 
-SavegameError WriteScriptModules(PStream out)
+HSaveError WriteScriptModules(PStream out)
 {
     // write the data segment of the global script
     int data_len = gameinst->globaldatasize;
@@ -718,35 +749,36 @@ SavegameError WriteScriptModules(PStream out)
         if (data_len > 0)
             out->Write(moduleInst[i]->globaldata, data_len);
     }
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError ReadScriptModules(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadScriptModules(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
+    HSaveError err;
     // read the global script data segment
     int data_len = in->ReadInt32();
-    if (!AssertGameContent(data_len, pp.GlScDataSize, "global script data"))
-        return kSvgErr_GameContentAssertion;
+    if (!AssertGameContent(err, data_len, pp.GlScDataSize, "global script data"))
+        return err;
     r_data.GlobalScript.Len = data_len;
     r_data.GlobalScript.Data.reset(new char[data_len]);
     in->Read(r_data.GlobalScript.Data.get(), data_len);
 
-    if (!AssertGameContent(in->ReadInt32(), numScriptModules, "Script Modules"))
-        return kSvgErr_GameContentAssertion;
+    if (!AssertGameContent(err, in->ReadInt32(), numScriptModules, "Script Modules"))
+        return err;
     r_data.ScriptModules.resize(numScriptModules);
     for (int i = 0; i < numScriptModules; ++i)
     {
         data_len = in->ReadInt32();
-        if (!AssertGameObjectContent(data_len, pp.ScMdDataSize[i], "script module data", "module", i))
-            return kSvgErr_GameContentAssertion;
+        if (!AssertGameObjectContent(err, data_len, pp.ScMdDataSize[i], "script module data", "module", i))
+            return err;
         r_data.ScriptModules[i].Len = data_len;
         r_data.ScriptModules[i].Data.reset(new char[data_len]);
         in->Read(r_data.ScriptModules[i].Data.get(), data_len);
     }
-    return kSvgErr_NoError;
+    return err;
 }
 
-SavegameError WriteRoomStates(PStream out)
+HSaveError WriteRoomStates(PStream out)
 {
     // write the room state for all the rooms the player has been in
     out->WriteInt32(MAX_ROOMS);
@@ -768,11 +800,12 @@ SavegameError WriteRoomStates(PStream out)
         else
             out->WriteInt32(-1);
     }
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError ReadRoomStates(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadRoomStates(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
+    HSaveError err;
     int roomstat_count = in->ReadInt32();
     for (; roomstat_count > 0; --roomstat_count)
     {
@@ -780,24 +813,24 @@ SavegameError ReadRoomStates(PStream in, int32_t cmp_ver, const PreservedParams 
         // If id == -1, then the player has not been there yet (or room state was reset)
         if (id != -1)
         {
-            if (!AssertCompatRange(id, 0, MAX_ROOMS - 1, "room index"))
-                return kSvgErr_IncompatibleEngine;
-            if (!AssertFormatTag(in, "RoomState", true))
-                return kSvgErr_InconsistentFormat;
+            if (!AssertCompatRange(err, id, 0, MAX_ROOMS - 1, "room index"))
+                return err;
+            if (!AssertFormatTagStrict(err, in, "RoomState", true))
+                return err;
             RoomStatus *roomstat = getRoomStatus(id);
             roomstat->ReadFromSavegame(in.get());
-            if (!AssertFormatTag(in, "RoomState", false))
-                return kSvgErr_InconsistentFormat;
+            if (!AssertFormatTagStrict(err, in, "RoomState", false))
+                return err;
         }
     }
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError WriteThisRoom(PStream out)
+HSaveError WriteThisRoom(PStream out)
 {
     out->WriteInt32(displayed_room);
     if (displayed_room < 0)
-        return kSvgErr_NoError;
+        return HSaveError::None();
 
     // modified room backgrounds
     for (int i = 0; i < MAX_BSCENE; ++i)
@@ -838,14 +871,15 @@ SavegameError WriteThisRoom(PStream out)
     // write the current troom state, in case they save in temporary room
     if (!persist)
         troom.WriteToSavegame(out.get());
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError ReadThisRoom(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadThisRoom(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
+    HSaveError err;
     displayed_room = in->ReadInt32();
     if (displayed_room < 0)
-        return kSvgErr_NoError;
+        return err;
 
     // modified room backgrounds
     for (int i = 0; i < MAX_BSCENE; ++i)
@@ -873,11 +907,13 @@ SavegameError ReadThisRoom(PStream in, int32_t cmp_ver, const PreservedParams &p
 
     // room object movement paths cache
     int objmls_count = in->ReadInt32();
-    if (!AssertCompatLimit(objmls_count, CHMLSOFFS, "room object move lists"))
-        return kSvgErr_IncompatibleEngine;
+    if (!AssertCompatLimit(err, objmls_count, CHMLSOFFS, "room object move lists"))
+        return err;
     for (int i = 0; i < objmls_count; ++i)
     {
-        mls[i].ReadFromFile(in.get(), cmp_ver);
+        err = mls[i].ReadFromFile(in.get(), cmp_ver > 0 ? 1 : 0);
+        if (!err)
+            return err;
     }
 
     // save the new room music vol for later use
@@ -887,37 +923,37 @@ SavegameError ReadThisRoom(PStream in, int32_t cmp_ver, const PreservedParams &p
     if (!in->ReadBool())
         troom.ReadFromSavegame(in.get());
 
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError WriteManagedPool(PStream out)
+HSaveError WriteManagedPool(PStream out)
 {
     ccSerializeAllObjects(out.get());
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError ReadManagedPool(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadManagedPool(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
     if (ccUnserializeAllObjects(in.get(), &ccUnserializer))
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: managed pool deserialization failed: %s", ccErrorString);
-        return kSvgErr_GameObjectInitFailed;
+        return new SavegameError(kSvgErr_GameObjectInitFailed,
+            String::FromFormat("Managed pool deserialization failed: %s", ccErrorString));
     }
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError WritePluginData(PStream out)
+HSaveError WritePluginData(PStream out)
 {
     // [IKM] Plugins expect FILE pointer! // TODO something with this later...
     pl_run_plugin_hooks(AGSE_SAVEGAME, (long)((Common::FileStream*)out.get())->GetHandle());
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError ReadPluginData(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadPluginData(PStream in, int32_t cmp_ver, const PreservedParams &pp, RestoredData &r_data)
 {
     // [IKM] Plugins expect FILE pointer! // TODO something with this later
     pl_run_plugin_hooks(AGSE_RESTOREGAME, (long)((Common::FileStream*)in.get())->GetHandle());
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
 
@@ -926,8 +962,8 @@ struct ComponentHandler
 {
     String             Name;
     int32_t            Version;
-    SavegameError      (*Serialize)  (PStream);
-    SavegameError      (*Unserialize)(PStream, int32_t cmp_ver, const PreservedParams&, RestoredData&);
+    HSaveError       (*Serialize)  (PStream);
+    HSaveError       (*Unserialize)(PStream, int32_t cmp_ver, const PreservedParams&, RestoredData&);
 };
 
 // Array of supported components
@@ -1071,13 +1107,13 @@ struct ComponentInfo
     ComponentInfo() : Version(-1), Offset(0), DataOffset(0), DataSize(0) {}
 };
 
-SavegameError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &info)
+HSaveError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &info)
 {
     size_t pos = in->GetPosition();
     info = ComponentInfo(); // reset in case of early error
     info.Offset = in->GetPosition();
     if (!ReadFormatTag(in, info.Name, true))
-        return kSvgErr_ComponentOpeningTagFormat;
+        return new SavegameError(kSvgErr_ComponentOpeningTagFormat);
     info.Version = in->ReadInt32();
     info.DataSize = in->ReadInt32();
     info.DataOffset = in->GetPosition();
@@ -1088,20 +1124,20 @@ SavegameError ReadComponent(PStream in, SvgCmpReadHelper &hlp, ComponentInfo &in
         handler = &it_hdr->second;
 
     if (!handler || !handler->Unserialize)
-        return kSvgErr_UnsupportedComponent;
+        return new SavegameError(kSvgErr_UnsupportedComponent);
     if (info.Version > handler->Version)
-        return kSvgErr_UnsupportedComponentVersion;
-    SavegameError err = handler->Unserialize(in, info.Version, hlp.PP, hlp.RData);
-    if (err != kSvgErr_NoError)
+        return new SavegameError(kSvgErr_UnsupportedComponentVersion, String::FromFormat("Saved version: %d, supported: %d", info.Version, handler->Version));
+    HSaveError err = handler->Unserialize(in, info.Version, hlp.PP, hlp.RData);
+    if (!err)
         return err;
     if (in->GetPosition() - info.DataOffset != info.DataSize)
-        return kSvgErr_ComponentSizeMismatch;
+        return new SavegameError(kSvgErr_ComponentSizeMismatch, String::FromFormat("Expected: %d, actual: %d", info.DataSize, in->GetPosition() - info.DataOffset));
     if (!AssertFormatTag(in, info.Name, false))
-        return kSvgErr_ComponentClosingTagFormat;
-    return kSvgErr_NoError;
+        return new SavegameError(kSvgErr_ComponentClosingTagFormat);
+    return HSaveError::None();
 }
 
-SavegameError ReadAll(PStream in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data)
+HSaveError ReadAll(PStream in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data)
 {
     // Prepare a helper struct we will be passing to the block reading proc
     SvgCmpReadHelper hlp(svg_version, pp, r_data);
@@ -1109,63 +1145,65 @@ SavegameError ReadAll(PStream in, SavegameVersion svg_version, const PreservedPa
 
     size_t idx = 0;
     if (!AssertFormatTag(in, ComponentListTag, true))
-        return kSvgErr_ComponentListOpeningTagFormat;
+        return new SavegameError(kSvgErr_ComponentListOpeningTagFormat);
     do
     {
         // Look out for the end of the component list:
         // this is the only way how this function ends with success
         size_t off = in->GetPosition();
         if (AssertFormatTag(in, ComponentListTag, false))
-            return kSvgErr_NoError;
+            return HSaveError::None();
         // If the list's end was not detected, then seek back and continue reading
         in->Seek(off, kSeekBegin);
 
         ComponentInfo info;
-        SavegameError err = ReadComponent(in, hlp, info);
-        if (err != kSvgErr_NoError)
+        HSaveError err = ReadComponent(in, hlp, info);
+        if (!err)
         {
-            Debug::Printf(kDbgMsg_Error, "ERROR: failed to read savegame component: index = %d, type = %s, version = %i, at offset = %u",
-                idx, info.Name.IsEmpty() ? "unknown" : info.Name.GetCStr(), info.Version, info.Offset);
-            return err;
+            return new SavegameError(kSvgErr_ComponentUnserialization,
+                String::FromFormat("(#%d) %s, version %i, at offset %u.",
+                idx, info.Name.IsEmpty() ? "unknown" : info.Name.GetCStr(), info.Version, info.Offset),
+                err);
         }
         update_polled_stuff_if_runtime();
         idx++;
     }
     while (!in->EOS());
-    return kSvgErr_ComponentListClosingTagMissing;
+    return new SavegameError(kSvgErr_ComponentListClosingTagMissing);
 }
 
-SavegameError WriteComponent(PStream out, ComponentHandler &hdlr)
+HSaveError WriteComponent(PStream out, ComponentHandler &hdlr)
 {
     WriteFormatTag(out, hdlr.Name, true);
     out->WriteInt32(hdlr.Version);
     size_t ref_pos = out->GetPosition();
     out->WriteInt32(0); // size
-    SavegameError err = hdlr.Serialize(out);
+    HSaveError err = hdlr.Serialize(out);
     size_t end_pos = out->GetPosition();
     out->Seek(ref_pos, kSeekBegin);
     out->WriteInt32(end_pos - ref_pos - sizeof(int32_t)); // size of serialized component data
     out->Seek(end_pos, kSeekBegin);
-    if (err == kSvgErr_NoError)
+    if (err)
         WriteFormatTag(out, hdlr.Name, false);
     return err;
 }
 
-SavegameError WriteAllCommon(PStream out)
+HSaveError WriteAllCommon(PStream out)
 {
     WriteFormatTag(out, ComponentListTag, true);
     for (int type = 0; !ComponentHandlers[type].Name.IsEmpty(); ++type)
     {
-        SavegameError err = WriteComponent(out, ComponentHandlers[type]);
-        if (err != kSvgErr_NoError)
+        HSaveError err = WriteComponent(out, ComponentHandlers[type]);
+        if (!err)
         {
-            Debug::Printf(kDbgMsg_Error, "ERROR: failed to write savegame component: type = %s", ComponentHandlers[type].Name.GetCStr());
-            return err;
+            return new SavegameError(kSvgErr_ComponentSerialization,
+                String::FromFormat("Component: (#%d) %s", type, ComponentHandlers[type].Name.GetCStr()),
+                err);
         }
         update_polled_stuff_if_runtime();
     }
     WriteFormatTag(out, ComponentListTag, false);
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
 } // namespace SavegameBlocks

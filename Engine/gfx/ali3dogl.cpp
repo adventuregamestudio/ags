@@ -1570,25 +1570,20 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, O
 void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
 {
   OGLBitmap *target = (OGLBitmap*)bitmapToUpdate;
-  Bitmap *source = bitmap;
   if ((target->_width == bitmap->GetWidth()) &&
      (target->_height == bitmap->GetHeight()))
   {
     if (bitmap->GetColorDepth() != target->_colDepth)
     {
-      //throw Ali3DException("Mismatched colour depths");
-      source = BitmapHelper::CreateBitmapCopy(bitmap, 32);
+      throw Ali3DException("Mismatched colour depths");
     }
 
     target->_hasAlpha = hasAlpha;
 
     for (int i = 0; i < target->_numTiles; i++)
     {
-      UpdateTextureRegion(&target->_tiles[i], source, target, hasAlpha);
+      UpdateTextureRegion(&target->_tiles[i], bitmap, target, hasAlpha);
     }
-
-    if (source != bitmap)
-      delete source;
   }
 }
 

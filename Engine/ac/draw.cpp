@@ -347,9 +347,15 @@ Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
     return tempbl;
 }
 
-// We actually may need to do some of these conversions even when using
-// D3D and OpenGL rendering, because certain raw drawing operations
-// are still performed by software Allegro methods.
+// NOTE: Some of these conversions are required  even when using
+// D3D and OpenGL rendering, for two reasons:
+// 1) certain raw drawing operations are still performed by software
+// Allegro methods, hence bitmaps should be kept compatible to any native
+// software operations.
+// 2) mobile ports feature an OpenGL renderer built in Allegro library,
+// that assumes native bitmaps are in OpenGL-compatible format, so that it
+// could copy them to texture without additional changes.
+// AGS own OpenGL renderer tries to sync its behavior with the former one.
 //
 // TODO: find out if we may safely move software-driver only related parts
 // to ALSoftwareGraphicsDriver::ConvertBitmapToSupportedColourDepth()
@@ -365,16 +371,14 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
     if ((bmp_col_depth == 32) && (sys_col_depth == 32))
     {
 #if defined (AGS_INVERTED_COLOR_ORDER)
-        // PSP: Convert to BGR color order.
-        if (software_driver)
-            new_bitmap = convert_32_to_32bgr(bitmap);
+        // Convert RGB to BGR color order.
+        new_bitmap = convert_32_to_32bgr(bitmap);
 #endif
         if (has_alpha) // this adjustment is probably needed for DrawingSurface ops
             set_rgb_mask_using_alpha_channel(new_bitmap);
     }
-
-    if (((bmp_col_depth > 16) && (sys_col_depth <= 16)) ||
-        ((bmp_col_depth == 16) && (sys_col_depth > 16)))
+    else if (((bmp_col_depth > 16) && (sys_col_depth <= 16)) ||
+             ((bmp_col_depth == 16) && (sys_col_depth > 16)))
     {
             // 16-bit sprite in 32-bit game or vice versa - convert
             // so that scaling and blit calls work properly
@@ -386,7 +390,7 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
 #ifdef USE_15BIT_FIX
     // TODO: review this later, it may also happen e.g. when running 32-bit game in 24-bit mode
     // This is software driver only fix
-    else if (software_driver && (sys_col_depth != game_col_depth) && (bmp_col_depth == game_col_depth))
+    else if ((sys_col_depth != game_col_depth) && (bmp_col_depth == game_col_depth))
     {
         // running in 15-bit mode with a 16-bit game, convert sprites
         if (has_alpha)
@@ -395,7 +399,7 @@ Bitmap *AdjustBitmapForUseWithDisplayMode(Bitmap* bitmap, bool has_alpha)
         else
             new_bitmap = convert_16_to_15(bitmap);
     }
-    else if (software_driver && (convert_16bit_bgr == 1) && (bmp_col_depth == 16))
+    else if ((convert_16bit_bgr == 1) && (bmp_col_depth == 16))
     {
         new_bitmap = convert_16_to_16bgr(bitmap);
     }

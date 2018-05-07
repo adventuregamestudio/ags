@@ -1559,8 +1559,7 @@ Bitmap *D3DGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
   {
     int old_conv = get_color_conversion();
     set_color_conversion(COLORCONV_KEEP_TRANS | COLORCONV_TOTAL);
-    Bitmap* tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), col_depth);
-    tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+    Bitmap* tempBmp = BitmapHelper::CreateBitmapCopy(bitmap, col_depth);
     set_color_conversion(old_conv);
     return tempBmp;
   }

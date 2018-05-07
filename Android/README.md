@@ -44,8 +44,8 @@ your last savegame.
 
 ## Downloading prebuilt engine packages
 
-Go to http://jjs.at/daily to download the installation package for the current
-source snapshot.
+Unsigned APKs suitable for running any compatible AGS game may be found linked in the
+corresponding release posts on [AGS forum board](http://www.adventuregamestudio.co.uk/forums/index.php?board=28.0).
 
 
 
@@ -70,12 +70,60 @@ and place it into the  **ags** directory alongside your games.
 
 The Android app consists of three parts, each with different requirements:
 
--   Java app: needs the Android SDK for Windows, Linux or Mac
--   Native engine library: needs the Android NDK for Windows, Linux or Mac
--   Native 3rd party libraries: needs the Android NDK for Linux
+-   Java app: needs the Android SDK for Windows, Linux or Mac. Requires built native engine library.
+-   Native engine library: needs the Android NDK for Windows, Linux or Mac. Requires built native 3rd party libraries.
+-   Native 3rd party libraries: needs the Android NDK for Linux.
 
-To only build the app, first follow the "Native engine library" and then the "Java app"
-instructions below.
+For example, if you have prebuilt native engine library, you may follow instructions for "Java app" straight away.
+If you are building from scratch, then first follow "Native 3rd party libraries", then "Native engine library", and "Java app" only then.
+
+
+## Native 3rd party libraries
+
+These are backend and utility libraries necessary for the AGS engine.
+Building them currently is only possible on Linux.
+
+Before building you need to have Android NDK installed with prepared standalone toolchains
+for all Android platforms. See https://developer.android.com/ndk/guides/standalone_toolchain.html
+for instructions on creating the standalone toolchains.
+
+Make sure your Linux system has 'curl' utility installed, it is required for the download script.
+
+Set NDK_HOME variable, pointing to the location of Android NDK at your system.
+Change to the <SOURCE>/Android/buildlibs directory and run,
+e.g. assuming the ndk is installed in '/opt/android-ndk-r16b':
+
+    $ export NDK_HOME=/opt/android-ndk-r16b
+    $ cd <SOURCE>/Android/buildlibs
+    $ ./buildall.sh
+
+This will download, patch, build and properly install the required libraries.
+
+Library sources must be available in <SOURCE>/libsrc. Compiled libraries will be put to <SOURCE>/Android/nativelibs.
+
+
+## Native engine library
+
+This is the main AGS engine code. Before building it you must have native 3rd party libraries ready.
+
+**IMPORTANT:** Android port integrates number of plugins as a part of the engine. Some of the plugin sources
+may be included as submodules, so make sure to initialize submodules before compiling it, e.g. from the
+root <SOURCE> directory:
+
+    $ git submodule update --init --recursive
+
+It must be compiled using the Android NDK. This can
+simply be done by running ndk-build within the <SOURCE>Android/library directory.
+
+e.g. (assuming the ndk is installed in /opt)
+
+    $ export PATH=$PATH:/opt/android-ndk-r16b
+    $ cd <SOURCE>/Android/library
+    $ ndk-build
+
+The native code is built for all current Android architecture, that is armv6, armv7-a,
+x86 and mips.
+
 
 ## Java app
 
@@ -88,42 +136,12 @@ The easiest way to build the app is to create an Android project in Eclipse. Cho
 
 To build from the command line, you can use the tool 'ant'.
 
+e.g. (assuming the SDK is installed in /opt)
+
     $ export ANDROID_HOME=/opt/android-sdk-linux
     $ cd <SOURCE>/Android/launcher_list
     $ ant debug
     $ ant release # for release build
-
-## Native engine library
-
-This is the main AGS engine code. It must be compiled using the Android NDK. This can
-simply be done by running ndk-build within the <SOURCE>Android/library directory. 
-
-e.g. (assuming the ndk is installed in /opt)
-
-    $ export PATH=$PATH:/opt/android-ndk-r10e
-    $ cd <SOURCE>/Android/library
-    $ ndk-build
-
-The native code is built for all current Android architecture, that is armv6, armv7-a,
-x86 and mips.
-
-
-## Native 3rd party libraries
-
-You don't have to build these yourself unless you want to change the source code of
-a library.
-
-Change to the <SOURCE>/Android/buildlibs directory and run
-
-    ./buildall.sh
-
-This will download, patch, build and properly install the required libraries.
-
-The scripts require standalone toolchains for all Android platforms and they have to
-be available on the PATH. See https://developer.android.com/ndk/guides/standalone_toolchain.html
-for instructions on creating the standalone toolchains.
-
-Libraries must be available in <SOURCE>/libsrc
 
 
 
@@ -131,8 +149,6 @@ Libraries must be available in <SOURCE>/libsrc
 
 Android SDK: http://developer.android.com/sdk/
 
-Android NDK: http://developer.android.com/tools/sdk/ndk/
-
-Daily builds: http://jjs.at/daily/
+Android NDK: http://developer.android.com/ndk/
 
 Android thread on the AGS forum: http://www.adventuregamestudio.co.uk/yabb/index.php?topic=44768.0

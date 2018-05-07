@@ -6,9 +6,6 @@ pushd ../../libsrc
 ./download.sh
 popd
 
-# Please update NDK_HOME to the path of ndk-bundle in your system
-NDK_HOME=~/Android/Sdk/ndk-bundle
-
 # android-14 is the minimum we can go with current Android SDK
 PLATFORM=android-14
 

@@ -398,8 +398,8 @@ bool engine_init_game_data()
     // another one) save the path, so that it can load the VOX files, etc
     if (usetup.data_files_dir.IsEmpty())
     {
-        int ichar = game_file_name.FindCharReverse('/');
-        if (ichar >= 0)
+        size_t ichar = game_file_name.FindCharReverse('/');
+        if (ichar != -1)
         {
             usetup.data_files_dir = game_file_name.Left(ichar);
         }

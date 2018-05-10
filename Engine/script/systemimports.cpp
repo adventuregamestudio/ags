@@ -97,8 +97,8 @@ int SystemImports::get_index_of(const String &name)
 
     if (name.GetLength() > 3)
     {
-        int c = name.FindCharReverse('^');
-        if (c == name.GetLength() - 2 || c == name.GetLength() - 3)
+        size_t c = name.FindCharReverse('^');
+        if (c != -1 && (c == name.GetLength() - 2 || c == name.GetLength() - 3))
         {
             // Function with number of prametrs on the end
             // attempt to find it without the param count

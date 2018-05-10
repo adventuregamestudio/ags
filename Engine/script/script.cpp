@@ -153,13 +153,13 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
 // (eg. a room change occured)
 int run_interaction_event (Interaction *nint, int evnt, int chkAny, int isInv) {
 
-    if (evnt >= nint->Events.size() ||
+    if (evnt < 0 || (size_t)evnt >= nint->Events.size() ||
         (nint->Events[evnt].Response.get() == NULL) || (nint->Events[evnt].Response->Cmds.size() == 0)) {
         // no response defined for this event
         // If there is a response for "Any Click", then abort now so as to
         // run that instead
         if (chkAny < 0) ;
-        else if (chkAny < nint->Events.size() &&
+        else if ((size_t)chkAny < nint->Events.size() &&
                 (nint->Events[chkAny].Response.get() != NULL) && (nint->Events[chkAny].Response->Cmds.size() > 0))
             return 0;
 

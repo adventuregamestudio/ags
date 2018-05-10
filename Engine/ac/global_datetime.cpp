@@ -19,7 +19,7 @@
 
 int sc_GetTime(int whatti) {
     ScriptDateTime *sdt = DateTime_Now_Core();
-    int returnVal;
+    int returnVal = 0;
 
     if (whatti == 1) returnVal = sdt->hour;
     else if (whatti == 2) returnVal = sdt->minute;

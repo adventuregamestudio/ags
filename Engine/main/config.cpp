@@ -572,7 +572,6 @@ void save_config_file()
     if (force_window == 0)
     {
         bool is_windowed = System_GetWindowed() != 0;
-        ActiveDisplaySetting cur_mode = graphics_mode_get_last_setting(is_windowed);
         cfg["graphics"]["windowed"] = String::FromFormat("%d", is_windowed ? 1 : 0);
         // TODO: this is a hack, necessary because the original config system was designed when
         // switching mode at runtime was not considered a possibility.

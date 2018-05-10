@@ -42,7 +42,7 @@ MyLabel::MyLabel(int xx, int yy, int wii, const char *tee)
 
 void MyLabel::draw(Bitmap *ds)
 {
-    int curofs = 0, lastspac = 0, cyp = y;
+    int cyp = y;
     char *teptr = &text[0];
     color_t text_color = ds->GetCompatibleColor(0);
 
@@ -51,31 +51,6 @@ void MyLabel::draw(Bitmap *ds)
         wouttext_outline(ds, x, cyp, acdialog_font, text_color, lines[ee]);
         cyp += TEXT_HT;
     }
-    /*
-    while (1) {
-    if ((teptr[curofs] == ' ') | (teptr[curofs] == 0)) {
-    int itwas = teptr[curofs];
-    teptr[curofs] = 0;
-    if (wgettextwidth(teptr, cbuttfont) > wid) {
-    teptr[curofs] = itwas;
-    teptr[lastspac] = 0;
-    wouttextxy(x, cyp, cbuttfont, teptr);
-    teptr[lastspac] = ' ';
-    teptr += lastspac + 1;
-    curofs = 0;
-    cyp += TEXT_HT;
-    } else
-    teptr[curofs] = itwas;
-
-    lastspac = curofs;
-    }
-
-    if (teptr[curofs] == 0)
-    break;
-
-    curofs++;
-    }
-    wouttextxy(x, cyp, cbuttfont, teptr);*/
 }
 
 int MyLabel::pressedon()

@@ -1559,8 +1559,6 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, O
     memPtr += tileWidth * 4;
   }
 
-  unsigned int newTexture = tile->texture;
-
   glBindTexture(GL_TEXTURE_2D, tile->texture);
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tileWidth, tileHeight, GL_RGBA, GL_UNSIGNED_BYTE, origPtr);
 

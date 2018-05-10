@@ -242,8 +242,6 @@ bool get_script_position(ScriptPosition &script_pos)
     return false;
 }
 
-static const char* BREAK_MESSAGE = "BREAK";
-
 struct Breakpoint
 {
     char scriptName[80];

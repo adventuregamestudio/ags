@@ -394,8 +394,6 @@ void BuildAudioClipArray(GameSetupStruct &game, const AssetLibInfo &lib)
     // working with GameSetupStruct's getters and setters here
     int &audioClipCount            = game.audioClipCount;
     ScriptAudioClip *&audioClips   = game.audioClips;
-    int &audioClipTypeCount        = game.audioClipTypeCount;
-    AudioClipType *&audioClipTypes = game.audioClipTypes;
 
     size_t number_of_files = lib.AssetInfos.size();
     for (size_t i = 0; i < number_of_files; ++i)

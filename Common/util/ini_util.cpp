@@ -143,7 +143,6 @@ bool IniUtil::Merge(const String &file, const ConfigTree &tree)
         // Append new items
         if (!sections_found[secname])
         {
-            int added_count = 0;
             for (std::map<String, bool>::const_iterator item_f = items_found.begin(); item_f != items_found.end(); ++item_f)
             {
                 if (item_f->second)

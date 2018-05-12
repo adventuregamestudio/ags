@@ -454,21 +454,19 @@ void engine_init_speech()
         speech_file = "speech.vox";
         String speech_filepath = find_assetlib(speech_file);
         if (!speech_filepath.IsEmpty()) {
-
             Debug::Printf("Initializing speech vox");
-
-            //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
-            if (Common::AssetManager::SetDataFile(speech_filepath)!=Common::kAssetNoError) {
+            if (AssetManager::SetDataFile(speech_filepath)!=Common::kAssetNoError) {
                 platform->DisplayAlert("Unable to read voice pack, file could be corrupted or of unknown format.\nSpeech voice-over will be disabled.");
+                AssetManager::SetDataFile(game_file_name); // switch back to the main data pack
                 return;
             }
-            Stream *speechsync = Common::AssetManager::OpenAsset("syncdata.dat");
+            Stream *speechsync = AssetManager::OpenAsset("syncdata.dat");
             if (speechsync != NULL) {
                 // this game has voice lip sync
-                if (speechsync->ReadInt32() != 4)
-                { 
-                    // Don't display this warning.
-                    // platform->DisplayAlert("Unknown speech lip sync format (might be from older or newer version); lip sync disabled");
+                int lipsync_fmt = speechsync->ReadInt32();
+                if (lipsync_fmt != 4)
+                {
+                    Debug::Printf(kDbgMsg_Init, "Unknown speech lip sync format (%d).\nLip sync disabled.", lipsync_fmt);
                 }
                 else {
                     numLipLines = speechsync->ReadInt32();
@@ -485,7 +483,7 @@ void engine_init_speech()
                 }
                 delete speechsync;
             }
-            Common::AssetManager::SetDataFile(game_file_name);
+            AssetManager::SetDataFile(game_file_name); // switch back to the main data pack
             Debug::Printf(kDbgMsg_Init, "Voice pack found and initialized.");
             play.want_speech=1;
         }

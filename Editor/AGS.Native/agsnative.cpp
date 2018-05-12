@@ -1226,6 +1226,8 @@ void new_font () {
   wloadfont_size(thisgame.numfonts, fi);
   thisgame.fontflags[thisgame.numfonts] = 0;
   thisgame.fontoutline[thisgame.numfonts] = -1;
+  thisgame.fontvoffset[thisgame.numfonts] = 0;
+  thisgame.fontlnspace[thisgame.numfonts] = 0;
   thisgame.numfonts++;
 }
 
@@ -1442,7 +1444,9 @@ bool reload_font(int curFont)
   wfreefont(curFont);
 
   FontInfo fi;
-  fi.SizePt = thisgame.fontflags[curFont] & FFLG_SIZEMASK;
+  make_fontinfo(thisgame, curFont, fi);
+
+  // TODO: for some reason these compat fixes are different in the engine, investigate
   // if the font is designed for 640x400, half it
   if (thisgame.options[OPT_NOSCALEFNT]) {
     if (!thisgame.IsHiRes())
@@ -2604,9 +2608,20 @@ void GameUpdated(Game ^game) {
   {
 	  thisgame.fontflags[i] &= ~FFLG_SIZEMASK;
 	  thisgame.fontflags[i] |= game->Fonts[i]->PointSize;
+      thisgame.fontvoffset[i] = game->Fonts[i]->VerticalOffset;
+      thisgame.fontlnspace[i] = game->Fonts[i]->LineSpacing;
 	  reload_font(i);
 	  game->Fonts[i]->Height = getfontheight(i);
   }
+}
+
+void GameFontUpdated(Game ^game, int fontNumber)
+{
+    thisgame.fontvoffset[fontNumber] = game->Fonts[fontNumber]->VerticalOffset;
+    thisgame.fontlnspace[fontNumber] = game->Fonts[fontNumber]->LineSpacing;
+    FontInfo fi;
+    make_fontinfo(thisgame, fontNumber, fi);
+    set_fontinfo(fontNumber, fi);
 }
 
 void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel)

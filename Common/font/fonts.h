@@ -23,6 +23,7 @@ using namespace AGS;
 
 class IAGSFontRenderer;
 class IAGSFontRenderer2;
+struct GameSetupStruct;
 
 // Various font parameters, defining and extending font rendering behavior.
 // While FontRenderer object's main goal is to render single line of text at
@@ -71,6 +72,10 @@ void set_font_outline(int font_number, int outline_type);
 // Outputs a single line of text on the defined position on bitmap, using defined font, color and parameters
 int getfontlinespacing(int fontNumber);
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t text_color, const char *texx);
+// Fills in FontInfo structure from the GameSetupStruct data
+void make_fontinfo(const GameSetupStruct &game, int fontNumber, FontInfo &font_info);
+// Assigns FontInfo to the font
+void set_fontinfo(int fontNumber, const FontInfo &finfo);
 // Loads a font from disk
 bool wloadfont_size(int fontNumber, const FontInfo &font_info, const FontRenderParams *params = NULL);
 void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t text_color, char *fmt, ...);

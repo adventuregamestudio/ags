@@ -317,16 +317,13 @@ void LoadFonts()
     for (int i = 0; i < game.numfonts; ++i) 
     {
         FontInfo finfo;
-        finfo.Flags   = game.fontflags[i] & ~FFLG_SIZEMASK;
-        finfo.SizePt  = game.fontflags[i] &  FFLG_SIZEMASK;
-        finfo.Outline = game.fontoutline[i];
-        finfo.YOffset = game.fontvoffset[i];
-        finfo.LineSpacing = Math::Max(0, game.fontlnspace[i]);
+        make_fontinfo(game, i, finfo);
 
         // Apply compatibility adjustments
         if (finfo.SizePt == 0)
             finfo.SizePt = 8;
 
+        // TODO: for some reason these compat fixes are different in the editor, investigate
         if ((game.options[OPT_NOSCALEFNT] == 0) && game.IsHiRes())
             finfo.SizePt *= 2;
 

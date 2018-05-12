@@ -64,6 +64,7 @@ extern bool reset_sprite_file();
 extern int GetSpriteResolutionMultiplier(int slot);
 extern void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette);
 extern void GameUpdated(Game ^game);
+extern void GameFontUpdated(Game ^game, int fontNumber);
 extern void UpdateSpriteFlags(SpriteFolder ^folder) ;
 extern void draw_room_background(void *roomptr, int hdc, int x, int y, int bgnum, float scaleFactor, int maskType, int selectedArea, int maskTransparency);
 extern void ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette);
@@ -224,6 +225,11 @@ namespace AGS
       {
         throw gcnew AGSEditorException("Unable to load the TTF font file. The renderer was unable to load the font.");
       }
+    }
+
+    void NativeMethods::OnGameFontUpdated(Game^ game, int fontSlot)
+    {
+        GameFontUpdated(game, fontSlot);
     }
 
 		// Gets sprite height in 320x200-res co-ordinates

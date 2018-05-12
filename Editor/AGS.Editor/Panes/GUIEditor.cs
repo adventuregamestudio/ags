@@ -838,7 +838,7 @@ namespace AGS.Editor
 
         private void DeleteControlClick(object sender, EventArgs e)
         {
-            if (_selectedControl != null && !_selectedControl.Locked)
+            if (_gui is NormalGUI && _selectedControl != null && !_selectedControl.Locked)
             {
                 Factory.AGSEditor.CurrentGame.NotifyClientsGUIControlAddedOrRemoved(_gui, _selectedControl);
                 _selected.Remove(_selectedControl);

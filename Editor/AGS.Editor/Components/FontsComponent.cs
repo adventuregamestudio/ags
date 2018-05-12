@@ -126,6 +126,8 @@ namespace AGS.Editor.Components
 
         public override void PropertyChanged(string propertyName, object oldValue)
         {
+            AGS.Types.Font itemBeingEdited = ((FontEditor)_guiController.ActivePane.Control).ItemToEdit;
+
             if (propertyName == "Name")
             {
                 RePopulateTreeView();
@@ -139,9 +141,7 @@ namespace AGS.Editor.Components
             }
             else
             {
-                // TODO: could not find a good way to get the exact object that was changed!!
-                foreach (AGS.Types.Font item in _agsEditor.CurrentGame.Fonts)
-                    Factory.NativeProxy.OnFontUpdated(Factory.AGSEditor.CurrentGame, item.ID);
+                Factory.NativeProxy.OnFontUpdated(Factory.AGSEditor.CurrentGame, itemBeingEdited.ID);
             }
         }
 

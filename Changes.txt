@@ -1,5 +1,21 @@
 REVISION HISTORY
 ================
+VERSION 3.4.1 - Patch 2, May 2018
+
+Editor:
+ - Font's line spacing and offset are now used when displaying GUI previews.
+
+Engine:
+ - Removed limit on maximal asset files in a game package.
+ - Fixed game refused to start at all if speech.vox has bad format.
+ - Fixed DynamicSprite.SaveToFile() was not appending default  "bmp" extension
+   if user did not specify one.
+
+Android:
+ - Updated port to work with 3.4.1 engine. Software renderer works again too
+   (was broken in 3.4.0).
+
+
 VERSION 3.4.1 - Patch 1, January 2018
 
 Engine:

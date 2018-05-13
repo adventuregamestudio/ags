@@ -1515,16 +1515,16 @@ const char *load_dta_file_into_thisgame(const char *fileName)
 {
     AGS::Common::MainGameSource src;
     AGS::Common::LoadedGameEntities ents(thisgame, dialog, newViews);
-    MainGameFileError load_err = AGS::Common::OpenMainGameFile(fileName, src);
-    if (load_err == Common::kMGFErr_NoError)
+    HGameFileError load_err = AGS::Common::OpenMainGameFile(fileName, src);
+    if (load_err)
     {
         load_err = AGS::Common::ReadGameData(ents, src.InputStream.get(), src.DataVersion);
-        if (load_err == Common::kMGFErr_NoError)
+        if (load_err)
             load_err = AGS::Common::UpdateGameData(ents, src.DataVersion);
     }
-    if (load_err != Common::kMGFErr_NoError)
+    if (!load_err)
     {
-        return AGS::Common::GetMainGameFileErrorText(load_err);
+        return load_err->FullMessage();
     }
     return init_game_after_import(ents, src.DataVersion);
 }

@@ -200,6 +200,11 @@ namespace AGS.Editor
             _native.ReloadTTFFont(fontSlot);
         }
 
+        public void OnFontUpdated(Game game, int fontSlot)
+        {
+            _native.OnGameFontUpdated(game, fontSlot);
+        }
+
         public Dictionary<int, Sprite> LoadSpriteDimensions()
         {
             return _native.LoadAllSpriteDimensions();

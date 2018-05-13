@@ -209,7 +209,6 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
 
     unsigned short param1 = 0;
     unsigned short param2 = 0;
-    int new_topic = 0;
     bool script_running = true;
 
     while (script_running)
@@ -551,8 +550,7 @@ void DialogOptions::Show()
       return;
   }
 
-    Bitmap *ds = SetVirtualScreen(virtual_screen);
-    color_t draw_color = ds->GetCompatibleColor(0);
+    SetVirtualScreen(virtual_screen);
 
     is_textwindow = 0;
     forecol = play.dialog_options_highlight_color;

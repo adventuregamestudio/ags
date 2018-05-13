@@ -61,7 +61,6 @@ extern int psp_clear_cache_on_room_change;
 extern int psp_midi_preload_patches;
 extern int psp_audio_cachesize;
 extern char psp_game_file_name[];
-extern int psp_gfx_smooth_sprites;
 extern char psp_translation[];
 
 void main_print_help();

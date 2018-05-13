@@ -161,6 +161,11 @@ int ALSoftwareGraphicsDriver::GetAllegroGfxDriverID(bool windowed)
   if (windowed)
     return GFX_XWINDOWS;
   return GFX_XWINDOWS_FULLSCREEN;
+#elif defined (MAC_VERSION)
+    if (windowed) {
+        return GFX_COCOAGL_WINDOW;
+    }
+    return GFX_COCOAGL_FULLSCREEN;
 #else
   if (windowed)
     return GFX_AUTODETECT_WINDOWED;

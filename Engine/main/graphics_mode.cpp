@@ -26,11 +26,15 @@
 #include "gfx/gfxfilter.h"
 #include "gfx/graphicsdriver.h"
 #include "main/config.h"
+#include "main/engine_setup.h"
 #include "main/graphics_mode.h"
 #include "main/main_allegro.h"
 #include "platform/base/agsplatformdriver.h"
-#include "util/scaling.h"
 
+// Don't try to figure out the window size on the mac because the port resizes itself.
+#if defined(MAC_VERSION) || defined(ALLEGRO_SDL2) || defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
+#define USE_SIMPLE_GFX_INIT
+#endif
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -418,6 +422,29 @@ bool create_gfx_driver_and_init_mode_any(const String &gfx_driver_id, const Size
     return result;
 }
 
+bool simple_create_gfx_driver_and_init_mode(const String &gfx_driver_id,
+                                            const Size &game_size,
+                                            const DisplayModeSetup &dm_setup,
+                                            const ColorDepthOption &color_depth,
+                                            const GameFrameSetup &frame_setup,
+                                            const GfxFilterSetup &filter_setup)
+{
+    if (!graphics_mode_create_renderer(gfx_driver_id)) { return false; }
+
+    const int col_depth = gfxDriver->GetDisplayDepthForNativeDepth(color_depth.Bits);
+
+    DisplayMode dm(GraphicResolution(game_size.Width, game_size.Height, col_depth),
+                   dm_setup.Windowed, dm_setup.RefreshRate, dm_setup.VSync);
+
+    if (!graphics_mode_set_dm(dm)) { return false; }
+    if (!graphics_mode_set_native_size(game_size)) { return false; }
+    if (!graphics_mode_set_render_frame(frame_setup)) { return false; }
+    if (!graphics_mode_set_filter_any(filter_setup)) { return false; }
+
+    return true;
+}
+
+
 void display_gfx_mode_error(const Size &game_size, const ScreenSetup &setup, const int color_depth)
 {
     proper_exit=1;
@@ -474,8 +501,14 @@ bool graphics_mode_init_any(const Size game_size, const ScreenSetup &setup, cons
     bool result = false;
     for (StringV::const_iterator it = ids.begin(); it != ids.end(); ++it)
     {
-        result = create_gfx_driver_and_init_mode_any(*it, game_size, setup.DisplayMode, color_depth,
-                                                     gameframe, setup.Filter);
+        result =
+#ifdef USE_SIMPLE_GFX_INIT
+            simple_create_gfx_driver_and_init_mode
+#else
+            create_gfx_driver_and_init_mode_any
+#endif
+                (*it, game_size, setup.DisplayMode, color_depth, gameframe, setup.Filter);
+
         if (result)
             break;
         graphics_mode_shutdown();
@@ -494,12 +527,21 @@ ActiveDisplaySetting graphics_mode_get_last_setting(bool windowed)
     return windowed ? SavedWindowedSetting : SavedFullscreenSetting;
 }
 
+bool graphics_mode_update_render_frame();
+void GfxDriverOnSurfaceUpdate()
+{
+    // Resize render frame using current scaling settings
+    graphics_mode_update_render_frame();
+    on_coordinates_scaling_changed();
+}
+
 bool graphics_mode_create_renderer(const String &driver_id)
 {
     if (!create_gfx_driver(driver_id))
         return false;
 
     gfxDriver->SetCallbackOnInit(GfxDriverOnInitCallback);
+    gfxDriver->SetCallbackOnSurfaceUpdate(GfxDriverOnSurfaceUpdate);
     // TODO: this is remains of the old code; find out if this is really
     // the best time and place to set the tint method
     gfxDriver->SetTintMethod(TintReColourise);

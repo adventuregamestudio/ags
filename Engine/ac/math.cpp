@@ -22,7 +22,7 @@
 int FloatToInt(SCRIPT_FLOAT(value), int roundDirection) {
     INIT_SCRIPT_FLOAT(value);
 
-    int intval;
+    int intval = 0;
 
     if (value >= 0.0) {
         if (roundDirection == eRoundDown)

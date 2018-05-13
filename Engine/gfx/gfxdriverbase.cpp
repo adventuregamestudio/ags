@@ -33,6 +33,7 @@ GraphicsDriverBase::GraphicsDriverBase()
     , _drawScreenCallback(NULL)
     , _nullSpriteCallback(NULL)
     , _initGfxCallback(NULL)
+    , _initSurfaceUpdateCallback(NULL)
 {
 }
 

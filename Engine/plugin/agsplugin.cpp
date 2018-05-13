@@ -821,8 +821,7 @@ int pl_run_plugin_debug_hooks (const char *scriptfile, int linenum) {
 }
 
 void pl_run_plugin_init_gfx_hooks (const char *driverName, void *data) {
-    int i, retval = 0;
-    for (i = 0; i < numPlugins; i++) 
+    for (int i = 0; i < numPlugins; i++) 
     {
         if (plugins[i].initGfxHook != NULL)
         {

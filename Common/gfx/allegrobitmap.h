@@ -76,12 +76,10 @@ public:
         return is_linear_bitmap(_alBitmap) != 0;
     }
 
-    // Checks if bitmap CAN'T be used; positive reply usually means either bitmap was
-	// not properly constructed, or that a null pointer is being tested;
-	// Note: it is safe to call this method for null pointer
+    // Checks if bitmap cannot be used
     inline bool IsNull() const
     {
-        return !this || !_alBitmap;
+        return !_alBitmap;
     }
     // Checks if bitmap has zero size: either width or height (or both) is zero
     inline bool IsEmpty() const

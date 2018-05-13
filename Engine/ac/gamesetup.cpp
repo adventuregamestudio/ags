@@ -32,6 +32,7 @@ GameSetup::GameSetup()
     mouse_control = kMouseCtrl_Fullscreen;
     mouse_speed_def = kMouseSpeed_CurrentDisplay;
     RenderAtScreenRes = false;
+    Supersampling = 1;
 
     Screen.DisplayMode.ScreenSize.MatchDeviceRatio = true;
     Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_MaxDisplay;

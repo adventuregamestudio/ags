@@ -23,27 +23,6 @@
 #include "platform/base/agsplatformdriver.h"
 
 
-//
-// NOTE: following external variables are used by the mobile ports:
-// TODO: parse them during config
-//
-// psp_gfx_scaling - scaling style:
-//    * 0 - no scaling
-//    * 1 - stretch and preserve aspect ratio
-//    * 2 - stretch to whole screen
-//
-// psp_gfx_smoothing - scaling filter:
-//    * 0 - nearest-neighbour
-//    * 1 - linear
-//
-// psp_gfx_renderer - rendering mode
-//    * 1 - render directly to screen
-//    * 2 - render to texture first and then to screen
-//
-// psp_gfx_super_sampling - enable super sampling
-//
-
-
 #if defined(WINDOWS_VERSION)
 
 const char* fbo_extension_string = "GL_EXT_framebuffer_object";
@@ -95,11 +74,6 @@ extern "C"
 
 extern "C" void android_debug_printf(char* format, ...);
 
-extern int psp_gfx_smoothing;
-extern int psp_gfx_scaling;
-extern int psp_gfx_renderer;
-extern int psp_gfx_super_sampling;
-
 extern unsigned int android_screen_physical_width;
 extern unsigned int android_screen_physical_height;
 extern int android_screen_initialized;
@@ -137,11 +111,6 @@ extern "C"
 
 #define glOrtho glOrthof
 #define GL_CLAMP GL_CLAMP_TO_EDGE
-
-extern int psp_gfx_smoothing;
-extern int psp_gfx_scaling;
-extern int psp_gfx_renderer;
-extern int psp_gfx_super_sampling;
 
 extern unsigned int ios_screen_physical_width;
 extern unsigned int ios_screen_physical_height;
@@ -338,12 +307,8 @@ void OGLGraphicsDriver::UpdateDeviceScreen()
     _mode.Width = device_screen_physical_width;
     _mode.Height = device_screen_physical_height;
     InitGlParams(_mode);
-    // TODO: this action ignores any alternate render frame settings (non-scaled, etc).
-    // This could be solved in one of the two ways:
-    // * pass render frame type to GraphicsDriver class instead of explicit coordinates,
-    //   and let it calculate frame coordinates itself.
-    // * start this update in the external engine's callback, outside of GraphicsDriver.
-    SetRenderFrame(Rect(0, 0, _mode.Width - 1, _mode.Height - 1));
+    if (_initSurfaceUpdateCallback)
+        _initSurfaceUpdateCallback();
 }
 
 #endif
@@ -353,10 +318,14 @@ void OGLGraphicsDriver::Vsync()
   // do nothing on OpenGL
 }
 
-void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled)
+void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled, int supersampling)
 {
   if (_can_render_to_texture)
+  {
     _do_render_to_texture = !enabled;
+    _super_sampling = supersampling;
+    TestSupersampling();
+  }
 
   if (_do_render_to_texture)
     glDisable(GL_SCISSOR_TEST);
@@ -500,6 +469,14 @@ void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
     else
       glSwapIntervalEXT(0);
   }
+
+#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
+  // Setup library mouse to have 1:1 coordinate transformation.
+  // NOTE: cannot move this call to general mouse handling mode. Unfortunately, much of the setup and rendering
+  // is duplicated in the Android/iOS ports' Allegro library patches, and is run when the Software renderer
+  // is selected in AGS. This ugly situation causes trouble...
+  device_mouse_setup(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, 1.0, 1.0);
+#endif
 }
 
 bool OGLGraphicsDriver::CreateGlContext(const DisplayMode &mode)
@@ -600,14 +577,7 @@ void OGLGraphicsDriver::TestRenderToTexture()
   #endif
 
     _can_render_to_texture = true;
-    // Disable super-sampling if it would cause a too large texture size
-    if (_super_sampling > 1)
-    {
-      int max = 1024;
-      glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
-      if ((max < _srcRect.GetWidth() * 2) || (max < _srcRect.GetHeight() * 2))
-        _super_sampling = 1;
-    }
+    TestSupersampling();
   }
   else
   {
@@ -617,6 +587,20 @@ void OGLGraphicsDriver::TestRenderToTexture()
 
   if (!_can_render_to_texture)
     _do_render_to_texture = false;
+}
+
+void OGLGraphicsDriver::TestSupersampling()
+{
+    if (!_can_render_to_texture)
+        return;
+    // Disable super-sampling if it would cause a too large texture size
+    if (_super_sampling > 1)
+    {
+      int max = 1024;
+      glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
+      if ((max < _srcRect.GetWidth() * _super_sampling) || (max < _srcRect.GetHeight() * _super_sampling))
+        _super_sampling = 1;
+    }
 }
 
 void OGLGraphicsDriver::CreateShaders()
@@ -862,16 +846,6 @@ void OGLGraphicsDriver::SetupViewport()
   // Setup viewport rect and scissor; notice that OpenGL viewport has Y axis inverted
   _viewportRect = RectWH(_dstRect.Left, device_screen_physical_height - 1 - _dstRect.Bottom, _dstRect.GetWidth(), _dstRect.GetHeight());
   glScissor(_viewportRect.Left, _viewportRect.Top, _viewportRect.GetWidth(), _viewportRect.GetHeight());
-
-#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
-  device_mouse_setup(
-      (device_screen_physical_width - _dstRect.GetWidth()) / 2,
-      device_screen_physical_width - ((device_screen_physical_width - _dstRect.GetWidth()) / 2),
-      (device_screen_physical_height - _dstRect.GetHeight()) / 2, 
-      device_screen_physical_height - ((device_screen_physical_height - _dstRect.GetHeight()) / 2), 
-      (float)_srcRect.GetWidth() / (float)_dstRect.GetWidth(),
-      (float)_srcRect.GetHeight() / (float)_dstRect.GetHeight());
-#endif
 }
 
 bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *loopTimer)
@@ -908,20 +882,6 @@ bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode, volatile int *lo
   final_mode.Height = device_screen_physical_height;
   OnModeSet(final_mode);
 
-  // TODO: move these options parsing into config instead
-#if defined(ANDROID_VERSION) || defined (IOS_VERSION)
-  if (psp_gfx_renderer == 2 && _can_render_to_texture)
-  {
-    _super_sampling = ((psp_gfx_super_sampling > 0) ? 2 : 1);
-    _do_render_to_texture = true;
-  }
-  else
-  {
-    _super_sampling = 1;
-    _do_render_to_texture = false;
-  }
-#endif
-
   create_screen_tint_bitmap();
   // If we already have a native size set, then update virtual screen and setup backbuffer texture immediately
   CreateVirtualScreen();
@@ -944,6 +904,7 @@ bool OGLGraphicsDriver::SetNativeSize(const Size &src_size)
   SetupBackbufferTexture();
   // If we already have a gfx mode set, then update virtual screen immediately
   CreateVirtualScreen();
+  TestSupersampling();
   return !_srcRect.IsEmpty();
 }
 
@@ -1598,8 +1559,6 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, O
     memPtr += tileWidth * 4;
   }
 
-  unsigned int newTexture = tile->texture;
-
   glBindTexture(GL_TEXTURE_2D, tile->texture);
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tileWidth, tileHeight, GL_RGBA, GL_UNSIGNED_BYTE, origPtr);
 
@@ -1609,25 +1568,20 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, O
 void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
 {
   OGLBitmap *target = (OGLBitmap*)bitmapToUpdate;
-  Bitmap *source = bitmap;
   if ((target->_width == bitmap->GetWidth()) &&
      (target->_height == bitmap->GetHeight()))
   {
     if (bitmap->GetColorDepth() != target->_colDepth)
     {
-      //throw Ali3DException("Mismatched colour depths");
-      source = BitmapHelper::CreateBitmapCopy(bitmap, 32);
+      throw Ali3DException("Mismatched colour depths");
     }
 
     target->_hasAlpha = hasAlpha;
 
     for (int i = 0; i < target->_numTiles; i++)
     {
-      UpdateTextureRegion(&target->_tiles[i], source, target, hasAlpha);
+      UpdateTextureRegion(&target->_tiles[i], bitmap, target, hasAlpha);
     }
-
-    if (source != bitmap)
-      delete source;
   }
 }
 

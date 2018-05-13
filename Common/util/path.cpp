@@ -65,8 +65,8 @@ String GetDirectoryPath(const String &path)
     String dir = path;
     if (IsFile(dir))
     {
-        int slash_at = dir.FindCharReverse('/');
-        if (slash_at > 0)
+        size_t slash_at = dir.FindCharReverse('/');
+        if (slash_at != -1)
             dir.ClipMid(slash_at);
     }
     return dir;

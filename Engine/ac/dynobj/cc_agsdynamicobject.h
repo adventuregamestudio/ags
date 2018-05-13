@@ -18,6 +18,8 @@
 #include "ac/dynobj/cc_dynamicobject.h"
 
 struct AGSCCDynamicObject : ICCDynamicObject {
+protected:
+    virtual ~AGSCCDynamicObject(){}
 public:
     // default implementation
     virtual int Dispose(const char *address, bool force);

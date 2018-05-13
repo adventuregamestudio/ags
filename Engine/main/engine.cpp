@@ -397,8 +397,8 @@ bool engine_init_game_data()
     // another one) save the path, so that it can load the VOX files, etc
     if (usetup.data_files_dir.IsEmpty())
     {
-        int ichar = game_file_name.FindCharReverse('/');
-        if (ichar >= 0)
+        size_t ichar = game_file_name.FindCharReverse('/');
+        if (ichar != -1)
         {
             usetup.data_files_dir = game_file_name.Left(ichar);
         }
@@ -453,21 +453,19 @@ void engine_init_speech()
         speech_file = "speech.vox";
         String speech_filepath = find_assetlib(speech_file);
         if (!speech_filepath.IsEmpty()) {
-
             Debug::Printf("Initializing speech vox");
-
-            //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
-            if (Common::AssetManager::SetDataFile(speech_filepath)!=Common::kAssetNoError) {
+            if (AssetManager::SetDataFile(speech_filepath)!=Common::kAssetNoError) {
                 platform->DisplayAlert("Unable to read voice pack, file could be corrupted or of unknown format.\nSpeech voice-over will be disabled.");
+                AssetManager::SetDataFile(game_file_name); // switch back to the main data pack
                 return;
             }
-            Stream *speechsync = Common::AssetManager::OpenAsset("syncdata.dat");
+            Stream *speechsync = AssetManager::OpenAsset("syncdata.dat");
             if (speechsync != NULL) {
                 // this game has voice lip sync
-                if (speechsync->ReadInt32() != 4)
-                { 
-                    // Don't display this warning.
-                    // platform->DisplayAlert("Unknown speech lip sync format (might be from older or newer version); lip sync disabled");
+                int lipsync_fmt = speechsync->ReadInt32();
+                if (lipsync_fmt != 4)
+                {
+                    Debug::Printf(kDbgMsg_Init, "Unknown speech lip sync format (%d).\nLip sync disabled.", lipsync_fmt);
                 }
                 else {
                     numLipLines = speechsync->ReadInt32();
@@ -484,7 +482,7 @@ void engine_init_speech()
                 }
                 delete speechsync;
             }
-            Common::AssetManager::SetDataFile(game_file_name);
+            AssetManager::SetDataFile(game_file_name); // switch back to the main data pack
             Debug::Printf(kDbgMsg_Init, "Voice pack found and initialized.");
             play.want_speech=1;
         }
@@ -1337,11 +1335,7 @@ void engine_read_config(const String &exe_path, ConfigTree &cfg)
     // TODO: normally, those should be instead stored in the same config file in a uniform way
     // NOTE: the variable is historically called "ignore" but we use it in "override" meaning here
     if (psp_ignore_acsetup_cfg_file)
-    {
-        INIwritestring(cfg, "graphics", "driver", "Software"); // ???
-        INIwriteint(cfg, "misc", "antialias", psp_gfx_smooth_sprites != 0);
-        INIwritestring(cfg, "language", "translation", psp_translation);
-    }
+        override_config_ext(cfg);
 
     // Apply overriding options from command line
     // TODO: override config tree with all the command-line args.

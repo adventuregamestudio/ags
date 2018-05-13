@@ -191,7 +191,7 @@ public:
     virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res);
     virtual void EnableVsyncBeforeRender(bool enabled) { }
     virtual void Vsync();
-    virtual void RenderSpritesAtScreenResolution(bool enabled);
+    virtual void RenderSpritesAtScreenResolution(bool enabled, int supersampling);
     virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void BoxOutEffect(bool blackingOut, int speed, int delay);
@@ -292,6 +292,8 @@ private:
     void TestVSync();
     // Test if rendering to texture is supported
     void TestRenderToTexture();
+    // Test if supersampling should be allowed with the current setup
+    void TestSupersampling();
     // Create shader programs for sprite tinting and changing light level
     void CreateShaders();
     void CreateTintShader();

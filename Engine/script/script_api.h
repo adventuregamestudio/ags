@@ -371,6 +371,11 @@ inline const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *f
     METHOD((CLASS*)self, params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue, params[5].IValue); \
     return RuntimeScriptValue()
 
+#define API_OBJCALL_VOID_PBOOL(CLASS, METHOD) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 1); \
+    METHOD((CLASS*)self, params[0].GetAsBool()); \
+    return RuntimeScriptValue()
+
 #define API_OBJCALL_VOID_PINT_PBOOL(CLASS, METHOD) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 2); \
     METHOD((CLASS*)self, params[0].IValue, params[1].GetAsBool()); \

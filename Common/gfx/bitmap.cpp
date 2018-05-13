@@ -170,15 +170,15 @@ void CopyTransparency(Bitmap *dst, const Bitmap *mask, bool dst_has_alpha, bool 
     color_t mask_color     = mask->GetMaskColor();
     uint8_t *dst_ptr       = dst->GetDataForWriting();
     const uint8_t *src_ptr = mask->GetData();
-    size_t bpp             = mask->GetBPP();
-    size_t pitch           = mask->GetLineLength();
-    size_t height          = mask->GetHeight();
+    const size_t bpp       = mask->GetBPP();
+    const size_t pitch     = mask->GetLineLength();
+    const size_t height    = mask->GetHeight();
 
-    if (mask->GetBPP() == 1)
+    if (bpp == 1)
         ApplyMask(dst_ptr, src_ptr, pitch, height, PixelTransCpy8(),  PixelNoSkip(), mask_color, dst_has_alpha, mask_has_alpha);
-    else if (mask->GetBPP() == 2)
+    else if (bpp == 2)
         ApplyMask(dst_ptr, src_ptr, pitch, height, PixelTransCpy16(), PixelNoSkip(), mask_color, dst_has_alpha, mask_has_alpha);
-    else if (mask->GetBPP() == 3)
+    else if (bpp == 3)
         ApplyMask(dst_ptr, src_ptr, pitch, height, PixelTransCpy24(), PixelNoSkip(), mask_color, dst_has_alpha, mask_has_alpha);
     else
         ApplyMask(dst_ptr, src_ptr, pitch, height, PixelTransCpy32(), PixelTransSkip32(), mask_color, dst_has_alpha, mask_has_alpha);

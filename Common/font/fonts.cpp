@@ -20,7 +20,7 @@
 #include "alfont.h"
 
 #include "ac/common.h"
-#include "ac/gamestructdefines.h"
+#include "ac/gamesetupstruct.h"
 #include "font/fonts.h"
 #include "font/agsfontrenderer.h"
 #include "font/ttffontrenderer.h"
@@ -164,6 +164,21 @@ void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t te
   {
     fonts[fontNumber].Renderer->RenderText(texx, fontNumber, (BITMAP*)ds->GetAllegroBitmap(), xxx, yyy, text_color);
   }
+}
+
+void make_fontinfo(const GameSetupStruct &game, int fontNumber, FontInfo &finfo)
+{
+    finfo.Flags   = game.fontflags[fontNumber] & ~FFLG_SIZEMASK;
+    finfo.SizePt  = game.fontflags[fontNumber] &  FFLG_SIZEMASK;
+    finfo.Outline = game.fontoutline[fontNumber];
+    finfo.YOffset = game.fontvoffset[fontNumber];
+    finfo.LineSpacing = Math::Max(0, game.fontlnspace[fontNumber]);
+}
+
+void set_fontinfo(int fontNumber, const FontInfo &finfo)
+{
+    if (fonts[fontNumber].Renderer)
+        fonts[fontNumber].Info = finfo;
 }
 
 // Loads a font from disk

@@ -125,6 +125,8 @@ namespace AGS.Editor.Components
 
         public override void PropertyChanged(string propertyName, object oldValue)
         {
+            AGS.Types.Font itemBeingEdited = ((FontEditor)_guiController.ActivePane.Control).ItemToEdit;
+
             if (propertyName == "Name")
             {
                 RePopulateTreeView();
@@ -135,6 +137,10 @@ namespace AGS.Editor.Components
                 }
 
                 FontTypeConverter.SetFontList(_agsEditor.CurrentGame.Fonts);
+            }
+            else
+            {
+                Factory.NativeProxy.OnFontUpdated(Factory.AGSEditor.CurrentGame, itemBeingEdited.ID);
             }
         }
 

@@ -365,6 +365,11 @@ namespace AGS.Editor
             _native.ImportAreaMask(room, mask, bmp);
         }
 
+        public Bitmap ExportAreaMask(Room room, RoomAreaMaskType mask)
+        {
+            return _native.ExportAreaMask(room, mask);
+        }
+
         public string LoadRoomScript(string roomFileName)
         {
             return _native.LoadRoomScript(roomFileName);

@@ -289,6 +289,11 @@ namespace AGS.Editor
             _imageList.Images.Add(key, icon);
         }
 
+        public void RegisterImage(string key, Image image)
+        {
+            _imageList.Images.Add(key, image);
+        }
+
         public void AddOrShowPane(ContentDocument pane)
         {
             _mainForm.AddOrShowPane(pane);

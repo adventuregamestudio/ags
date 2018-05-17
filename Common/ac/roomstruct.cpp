@@ -267,7 +267,7 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
   if (rfh.version >= kRoomVersion_253) {
     rstruc->numLocalVars = in->ReadInt32();
     if (rstruc->numLocalVars > 0) {
-      rstruc->localvars = (InteractionVariable*)malloc (sizeof(InteractionVariable) * rstruc->numLocalVars);
+        rstruc->localvars = new InteractionVariable[rstruc->numLocalVars];
 
       for (int iteratorCount = 0; iteratorCount < rstruc->numLocalVars; ++iteratorCount)
       {
@@ -571,7 +571,7 @@ void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes) {
   rstruc->roomProps.clear();
 
   if (rstruc->localvars != NULL)
-    free (rstruc->localvars);
+    delete [] rstruc->localvars;
   rstruc->localvars = NULL;
   rstruc->numLocalVars = 0;
 

@@ -17,6 +17,7 @@ namespace AGS.Editor
 		protected const string DRAW_FILL_COMMAND = "DrawFill";
         protected const string COPY_WALKABLE_AREA_MASK_COMMAND = "CopyWalkableMaskToRegions";
         protected const string IMPORT_MASK_COMMAND = "ImportAreaMask";
+        protected const string EXPORT_MASK_COMMAND = "ExportAreaMask";
         protected const string UNDO_COMMAND = "UndoAreaDraw";
 		protected const string GREYED_OUT_MASKS_COMMAND = "GreyOutMasks";
 
@@ -66,6 +67,7 @@ namespace AGS.Editor
 				Factory.GUIController.RegisterIcon("DrawRectIcon", Resources.ResourceManager.GetIcon("drawrect.ico"));
 				Factory.GUIController.RegisterIcon("DrawFillIcon", Resources.ResourceManager.GetIcon("drawfill.ico"));
                 Factory.GUIController.RegisterIcon("ImportMaskIcon", Resources.ResourceManager.GetIcon("importmask.ico"));
+                Factory.GUIController.RegisterImage("ExportMaskIcon", Resources.ResourceManager.GetBitmap("exportmask.png"));
                 Factory.GUIController.RegisterIcon("CopyWalkableAreaMaskIcon", Resources.ResourceManager.GetIcon("copymask.ico"));
 				Factory.GUIController.RegisterIcon("GreyedOutMasksIcon", Resources.ResourceManager.GetIcon("greymasks.ico"));                
 				_selectCursor = Resources.ResourceManager.GetCursor("findarea.cur");
@@ -83,6 +85,7 @@ namespace AGS.Editor
 			_toolbarIcons.Add(new MenuCommand(DRAW_FILL_COMMAND, "Fill area (Ctrl+F)", "DrawFillIcon"));
             _toolbarIcons.Add(new MenuCommand(UNDO_COMMAND, "Undo (Ctrl+Z)", "UndoIcon"));
 			_toolbarIcons.Add(new MenuCommand(IMPORT_MASK_COMMAND, "Import mask from file", "ImportMaskIcon"));
+            _toolbarIcons.Add(new MenuCommand(EXPORT_MASK_COMMAND, "Export mask to file", "ExportMaskIcon"));
             _toolbarIcons.Add(new MenuCommand(COPY_WALKABLE_AREA_MASK_COMMAND, "Copy walkable area mask to regions", "CopyWalkableAreaMaskIcon"));
 			_toolbarIcons.Add(new MenuCommand(GREYED_OUT_MASKS_COMMAND, "Show non-selected masks greyed out", "GreyedOutMasksIcon"));
 			_toolbarIcons[(int)_drawMode].Checked = true;
@@ -490,7 +493,15 @@ namespace AGS.Editor
 					ImportMaskFromFile(fileName);
 				}
 			}
-			else if (command == COPY_WALKABLE_AREA_MASK_COMMAND)
+            else if (command == EXPORT_MASK_COMMAND)
+            {
+                string fileName = Factory.GUIController.ShowSaveFileDialog("Save mask as...", GUIController.IMAGE_FILE_FILTER);
+                if (fileName != null)
+                {
+                    ExportMaskFromFile(fileName);
+                }
+            }
+            else if (command == COPY_WALKABLE_AREA_MASK_COMMAND)
 			{
 				if (Factory.GUIController.ShowQuestion("This will overwrite your Regions mask with a copy of your Walkable Areas mask. Are you sure you want to do this?") == DialogResult.Yes)
 				{
@@ -544,6 +555,20 @@ namespace AGS.Editor
             catch (Exception ex)
             {
                 Factory.GUIController.ShowMessage("There was an error importing the area mask. The error was: " + ex.Message, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void ExportMaskFromFile(string fileName)
+        {
+            try
+            {
+                Bitmap bmp = Factory.NativeProxy.ExportAreaMask(_room, this.MaskToDraw);
+                bmp.Save(fileName);
+                bmp.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Factory.GUIController.ShowMessage("There was an error exporting the area mask. The error was: " + ex.Message, MessageBoxIcon.Warning);
             }
         }
 

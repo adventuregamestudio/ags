@@ -71,6 +71,7 @@ namespace AGS
 			void CopyWalkableMaskToRegions(Room ^room);
 			int  GetAreaMaskPixel(Room ^room, RoomAreaMaskType maskType, int x, int y);
       void ImportAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp);
+      Bitmap ^ExportAreaMask(Room ^room, RoomAreaMaskType maskType);
       void CreateUndoBuffer(Room ^room, RoomAreaMaskType maskType);
       bool DoesUndoBufferExist();
       void ClearUndoBuffer();

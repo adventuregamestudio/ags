@@ -48,16 +48,8 @@ using AGS::Common::InteractionCommand;
 using AGS::Common::InteractionCommandList;
 typedef AGS::Common::String AGSString;
 
-//-----------------------------------------------------------------------------
-// [IKM] 2012-09-07
-// TODO: need a way to make conversions between Common::Bitmap and Windows bitmap;
-// Possible plan:
-// - Common::Bitmap *ConvertToBitmapClass(int class_type) method in Common::Bitmap;
-// - WindowsBitmap implementation of Common::Bitmap;
-// - AllegroBitmap and WindowsBitmap know of each other and may convert to
-// each other.
-//
-//-----------------------------------------------------------------------------
+typedef System::Drawing::Bitmap SysBitmap;
+typedef AGS::Common::Bitmap AGSBitmap;
 
 // TODO: do something with this later
 // (those are from 'cstretch' unit)
@@ -118,6 +110,7 @@ bool reload_font(int curFont);
 void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, int scaleFactor);
 // this is to shut up the linker, it's used by CSRUN.CPP
 void write_log(const char *) { }
+SysBitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw, bool useAlphaChannel);
 
 int multiply_up_coordinate(int coord)
 {
@@ -2880,6 +2873,12 @@ void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
 	delete importedImage;
 
 	validate_mask(mask, "imported", (maskType == Hotspots) ? MAX_HOTSPOTS : (MAX_WALK_AREAS + 1));
+}
+
+SysBitmap ^export_area_mask(void *roomptr, int maskType)
+{
+    AGSBitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+    return ConvertBlockToBitmap(mask, false);
 }
 
 void set_rgb_mask_from_alpha_channel(Common::Bitmap *image)

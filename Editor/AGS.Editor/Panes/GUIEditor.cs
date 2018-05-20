@@ -1037,7 +1037,9 @@ namespace AGS.Editor
 
         protected override void OnKeyPressed(Keys keyData)
         {
-
+            // TODO: normally this should be done using class/method overriding
+            if (_gui is TextWindowGUI)
+                return; // do not let users move or delete TextWindow elements
 
             if (_selectedControl != null && (this.Focused))
             {

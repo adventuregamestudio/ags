@@ -2,26 +2,35 @@ REVISION HISTORY
 ================
 VERSION 3.4.2 - Alpha
 
-Common features:
- - Windows version of AGS is now built with MSVS 2015 and higher.
-
 Editor:
- - Editor uses (and requires) .NET 4.0 and C# 6.0.
+ - Editor requires .NET Framework 4.0 to run.
+ - Editor preferences are now stored using .NET configuration model, instead of the
+   Windows registry.
  - Added support for custom UI color themes.
- - Added navigation bar to the room editor, which allows to select any room object
-   or region for editing.
- - Added ability to show/hide and lock room objects and regions in any combination,
-   using the new navigation bar.
+ - New navigation bar in the room editor, which allows to select any room object
+   or region for editing, show/hide and lock room objects and regions in any combination.
+ - Added "Export mask to file" tool button to the Room Editor.
+ - Added "Always"choice to "Popup message on compile" preference. Successful compilation
+   popup will only be displayed if "Always" choice is selected.
  - Added shortcut key combination (Shift + F5) for stopping a game's debug run.
  - Don't modify filesystem permissions in Compiled directory when compiling the game.
    Editor no longer requires non-standard "takeown.exe" utility.
  - Corrected .NET version query for the anonymous statistics report.
+ - Fixed sprite folders collapsing after assigning sprite to a View frame or an object.
+ - Fixed view loops displayed with offset if the view panel area was scrolled
+   horizontally prior to their creation.
+ - Fixed TextWindow GUI's elements could be deleted or moved in the editor with key controls.
 
 Engine:
+ - New pathfinder based on the A* jump point search.
  - Implemented new savegame format. Much cleaner than the old one, and easier to
    extend, it should also reduce the size of the save files.
    The engine is still capable of loading older saves, temporarily.
+ - Expanded some of the error messages providing more information to end-user and developers.
  - On Linux improved CPU yield function, this supposedly may reduce CPU usage.
+
+Windows:
+ - Windows version of AGS is now built with MSVS 2015 and higher.
 
 
 VERSION 3.4.1 - Patch 2, May 2018

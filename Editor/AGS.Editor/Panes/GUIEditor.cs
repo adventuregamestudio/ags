@@ -1106,6 +1106,10 @@ namespace AGS.Editor
 
         protected bool ProcessGUIEditControl(Keys keyData)
         {
+            // TODO: normally this should be done using class/method overriding
+            if (_gui is TextWindowGUI)
+                return false; // do not let users move or delete TextWindow elements
+
             if (_selectedControl != null)
             {
                 switch (keyData)

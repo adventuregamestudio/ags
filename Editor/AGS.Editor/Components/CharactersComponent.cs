@@ -123,7 +123,6 @@ namespace AGS.Editor.Components
 			}
             document.TreeNodeID = GetNodeID(chosenItem);
 			_guiController.AddOrShowPane(document);
-			_guiController.ShowCuppit("Characters can move around from room to room within the game, and can take part in conversations. The Player Character is the one that the player is controlling.", "Characters introduction");
 		}
 
         public override void PropertyChanged(string propertyName, object oldValue)

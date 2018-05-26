@@ -69,10 +69,11 @@ public:
     // 0=not transparent, 255=invisible, 1..254 barely visible .. mostly visible
     virtual void SetTransparency(int transparency) { _transparency = transparency; }
     virtual void SetFlippedLeftRight(bool isFlipped) { _flipped = isFlipped; }
-    virtual void SetStretch(int width, int height) 
+    virtual void SetStretch(int width, int height, bool useResampler = true)
     {
         _stretchToWidth = width;
         _stretchToHeight = height;
+        _useResampler = useResampler;
     }
     virtual int GetWidth() { return _width; }
     virtual int GetHeight() { return _height; }
@@ -90,6 +91,7 @@ public:
     int _colDepth;
     bool _flipped;
     int _stretchToWidth, _stretchToHeight;
+    bool _useResampler;
     int _red, _green, _blue;
     int _tintSaturation;
     int _lightLevel;
@@ -109,6 +111,7 @@ public:
         _hasAlpha = false;
         _stretchToWidth = 0;
         _stretchToHeight = 0;
+        _useResampler = false;
         _tintSaturation = 0;
         _lightLevel = 0;
         _transparency = 0;
@@ -118,8 +121,8 @@ public:
         _numTiles = 0;
     }
 
-    int GetWidthToRender() { return (_stretchToWidth > 0) ? _stretchToWidth : _width; }
-    int GetHeightToRender() { return (_stretchToHeight > 0) ? _stretchToHeight : _height; }
+    int GetWidthToRender() const { return (_stretchToWidth > 0) ? _stretchToWidth : _width; }
+    int GetHeightToRender() const { return (_stretchToHeight > 0) ? _stretchToHeight : _height; }
 
     void Dispose();
 
@@ -188,7 +191,7 @@ public:
     virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination, bool at_native_res);
     virtual void EnableVsyncBeforeRender(bool enabled) { }
     virtual void Vsync();
-    virtual void RenderSpritesAtScreenResolution(bool enabled);
+    virtual void RenderSpritesAtScreenResolution(bool enabled, int supersampling);
     virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void FadeIn(int speed, PALETTE p, int targetColourRed, int targetColourGreen, int targetColourBlue);
     virtual void BoxOutEffect(bool blackingOut, int speed, int delay);
@@ -284,11 +287,13 @@ private:
     void DeleteGlContext();
     // Sets up general rendering parameters
     void InitGlParams(const DisplayMode &mode);
-    void set_up_default_vertices();
+    void SetupDefaultVertices();
     // Test if swap interval (used for vsync) is supported
     void TestVSync();
     // Test if rendering to texture is supported
     void TestRenderToTexture();
+    // Test if supersampling should be allowed with the current setup
+    void TestSupersampling();
     // Create shader programs for sprite tinting and changing light level
     void CreateShaders();
     void CreateTintShader();
@@ -301,7 +306,9 @@ private:
     void SetupBackbufferTexture();
     void DeleteBackbufferTexture();
 #if defined (WINDOWS_VERSION)
-    void create_desktop_screen(int width, int height, int depth);
+    void CreateDesktopScreen(int width, int height, int depth);
+#elif defined (ANDROID_VERSION) || defined (IOS_VERSION)
+    void UpdateDeviceScreen();
 #endif
     // Unset parameters and release resources related to the display mode
     void ReleaseDisplayMode();

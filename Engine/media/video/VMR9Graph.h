@@ -39,7 +39,7 @@ class CVMR9Graph
 public:
 	CVMR9Graph();
 	CVMR9Graph(HWND MediaWindow, IDirect3DDevice9 *device, int NumberOfStream = 4);
-	virtual ~CVMR9Graph();
+	~CVMR9Graph();
 
 	// Methods
 public:

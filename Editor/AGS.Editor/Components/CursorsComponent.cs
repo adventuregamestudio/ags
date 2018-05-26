@@ -96,7 +96,6 @@ namespace AGS.Editor.Components
 			}
             document.TreeNodeID = GetNodeID(chosenCursor);
             _guiController.AddOrShowPane(document);
-			_guiController.ShowCuppit("The Cursor Editor allows you to set up the various mouse cursors used in the game. You can probably just leave the default ones for now, unless you want some specialist cursor modes.", "Cursors introduction");
 		}
 
         public override void PropertyChanged(string propertyName, object oldValue)

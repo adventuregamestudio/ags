@@ -160,7 +160,7 @@ AssetError AssetManager::ReadDataFileTOC(const String &data_file, AssetLibInfo &
     assert(_theAssetManager != NULL);
     if (!_theAssetManager)
     {
-        return NULL;
+        return false;
     }
     return _theAssetManager->_DoesAssetExist(asset_name);
 }
@@ -354,7 +354,7 @@ bool AssetManager::GetAssetFromLib(const String &asset_name, AssetLocation &loc,
 
     AssetInfo *asset = FindAssetByFileName(asset_name);
     if (!asset)
-        return NULL; // asset not found
+        return false; // asset not found
 
     String libfile = free_char_to_string( ci_find_file(NULL, MakeLibraryFileNameForAsset(asset)) );
     if (libfile.IsEmpty())

@@ -72,6 +72,7 @@ public:
     virtual void        SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
     virtual void        SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
     virtual void        SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
+    virtual void        SetCallbackOnSurfaceUpdate(GFXDRV_CLIENTCALLBACKSURFACEUPDATE callback) { _initSurfaceUpdateCallback = callback; }
     virtual void        SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) { _nullSpriteCallback = callback; }
 
 protected:
@@ -110,6 +111,7 @@ protected:
     GFXDRV_CLIENTCALLBACK _drawScreenCallback;
     GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
     GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
+    GFXDRV_CLIENTCALLBACKSURFACEUPDATE _initSurfaceUpdateCallback;
 };
 
 

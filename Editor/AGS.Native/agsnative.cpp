@@ -46,16 +46,8 @@ using AGS::Common::GUIMain;
 using AGS::Common::InteractionVariable;
 typedef AGS::Common::String AGSString;
 
-//-----------------------------------------------------------------------------
-// [IKM] 2012-09-07
-// TODO: need a way to make conversions between Common::Bitmap and Windows bitmap;
-// Possible plan:
-// - Common::Bitmap *ConvertToBitmapClass(int class_type) method in Common::Bitmap;
-// - WindowsBitmap implementation of Common::Bitmap;
-// - AllegroBitmap and WindowsBitmap know of each other and may convert to
-// each other.
-//
-//-----------------------------------------------------------------------------
+typedef System::Drawing::Bitmap SysBitmap;
+typedef AGS::Common::Bitmap AGSBitmap;
 
 // TODO: do something with this later
 // (those are from 'cstretch' unit)
@@ -113,6 +105,7 @@ bool reload_font(int curFont);
 void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, int scaleFactor);
 // this is to shut up the linker, it's used by CSRUN.CPP
 void write_log(const char *) { }
+SysBitmap^ ConvertBlockToBitmap(Common::Bitmap *todraw, bool useAlphaChannel);
 
 // jibbles the sprite around to fix hi-color problems, by swapping
 // the red and blue elements
@@ -1190,6 +1183,8 @@ void new_font () {
   wloadfont_size(thisgame.numfonts, fi);
   thisgame.fontflags[thisgame.numfonts] = 0;
   thisgame.fontoutline[thisgame.numfonts] = -1;
+  thisgame.fontvoffset[thisgame.numfonts] = 0;
+  thisgame.fontlnspace[thisgame.numfonts] = 0;
   thisgame.numfonts++;
 }
 
@@ -1409,7 +1404,9 @@ bool reload_font(int curFont)
   wfreefont(curFont);
 
   FontInfo fi;
-  fi.SizePt = thisgame.fontflags[curFont] & FFLG_SIZEMASK;
+  make_fontinfo(thisgame, curFont, fi);
+
+  // TODO: for some reason these compat fixes are different in the engine, investigate
 
   return wloadfont_size(curFont, fi);
 }
@@ -1474,16 +1471,16 @@ const char *load_dta_file_into_thisgame(const char *fileName)
 {
     AGS::Common::MainGameSource src;
     AGS::Common::LoadedGameEntities ents(thisgame, dialog, newViews);
-    MainGameFileError load_err = AGS::Common::OpenMainGameFile(fileName, src);
-    if (load_err == Common::kMGFErr_NoError)
+    HGameFileError load_err = AGS::Common::OpenMainGameFile(fileName, src);
+    if (load_err)
     {
         load_err = AGS::Common::ReadGameData(ents, src.InputStream.get(), src.DataVersion);
-        if (load_err == Common::kMGFErr_NoError)
+        if (load_err)
             load_err = AGS::Common::UpdateGameData(ents, src.DataVersion);
     }
-    if (load_err != Common::kMGFErr_NoError)
+    if (!load_err)
     {
-        return AGS::Common::GetMainGameFileErrorText(load_err);
+        return load_err->FullMessage();
     }
     return init_game_after_import(ents, src.DataVersion);
 }
@@ -2559,9 +2556,20 @@ void GameUpdated(Game ^game) {
   {
 	  thisgame.fontflags[i] &= ~FFLG_SIZEMASK;
 	  thisgame.fontflags[i] |= game->Fonts[i]->PointSize;
+      thisgame.fontvoffset[i] = game->Fonts[i]->VerticalOffset;
+      thisgame.fontlnspace[i] = game->Fonts[i]->LineSpacing;
 	  reload_font(i);
 	  game->Fonts[i]->Height = getfontheight(i);
   }
+}
+
+void GameFontUpdated(Game ^game, int fontNumber)
+{
+    thisgame.fontvoffset[fontNumber] = game->Fonts[fontNumber]->VerticalOffset;
+    thisgame.fontlnspace[fontNumber] = game->Fonts[fontNumber]->LineSpacing;
+    FontInfo fi;
+    make_fontinfo(thisgame, fontNumber, fi);
+    set_fontinfo(fontNumber, fi);
 }
 
 void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cursel)
@@ -2823,6 +2831,12 @@ void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
 	delete importedImage;
 
 	validate_mask(mask, "imported", (maskType == Hotspots) ? MAX_HOTSPOTS : (MAX_WALK_AREAS + 1));
+}
+
+SysBitmap ^export_area_mask(void *roomptr, int maskType)
+{
+    AGSBitmap *mask = get_bitmap_for_mask((RoomStruct*)roomptr, (RoomAreaMask)maskType);
+    return ConvertBlockToBitmap(mask, false);
 }
 
 void set_rgb_mask_from_alpha_channel(Common::Bitmap *image)

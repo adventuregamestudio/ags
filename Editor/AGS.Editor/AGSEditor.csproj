@@ -64,6 +64,9 @@
     <Reference Include="irrKlang.NET4">
       <HintPath>..\References\irrKlang.NET4.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\Solutions\packages\Newtonsoft.Json.10.0.3\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -77,6 +80,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AGSEditor.cs" />
+    <Compile Include="ColorThemes\ColorTheme.cs" />
+    <Compile Include="ColorThemes\ColorThemes.cs" />
+    <Compile Include="ColorThemes\ColorThemeJson.cs" />
+    <Compile Include="ColorThemes\ColorThemeStub.cs" />
+    <Compile Include="ColorThemes\Controls\ComboBoxCustom.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ColorThemes\Controls\MainMenuColorTable.cs" />
+    <Compile Include="ColorThemes\Controls\ToolStripColorTable.cs" />
     <Compile Include="Components\CharactersComponent.cs" />
     <Compile Include="Components\CursorsComponent.cs" />
     <Compile Include="Components\DialogsComponent.cs" />
@@ -147,7 +159,7 @@
     <Compile Include="GUI\NumberEntryDialog.Designer.cs">
       <DependentUpon>NumberEntryDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="Panes\RoomEditFilters\CharactersEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\CharactersEditorFilter.cs" />
     <Compile Include="Plugins\IAGSEditor.cs" />
     <Compile Include="Plugins\NativePlugin.cs" />
     <Compile Include="Panes\BufferedPanel.cs">
@@ -306,12 +318,11 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <None Include="app.config" />
-    <None Include="app.manifest" />
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    <None Include="app.config">
+      <SubType>Designer</SubType>
     </None>
+    <None Include="app.manifest" />
+    <None Include="packages.config" />
     <EmbeddedResource Include="Resources\localvar.xpm" />
     <EmbeddedResource Include="Resources\methodext.xpm" />
     <EmbeddedResource Include="Resources\setup.dat" />
@@ -330,15 +341,9 @@
     <EmbeddedResource Include="Resources\AGSFNT0.WFN" />
     <EmbeddedResource Include="Resources\AGSFNT1.WFN" />
     <EmbeddedResource Include="Resources\AGSFNT2.WFN" />
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
     <Compile Include="Resources\ResourceManager.cs" />
     <Compile Include="Utils\AlternateStreams.cs" />
     <Compile Include="Utils\SourceControlProvider.cs" />
-    <Compile Include="Enums\SpriteImportMethod.cs" />
     <Compile Include="GUI\TabbedDocumentManager.cs">
     </Compile>
     <Compile Include="Utils\Utilities.cs" />
@@ -561,10 +566,6 @@
     <EmbeddedResource Include="GUI\GotoLineDialog.resx">
       <DependentUpon>GotoLineDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GUI\HelpPopup.resx">
-      <SubType>Designer</SubType>
-      <DependentUpon>HelpPopup.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="GUI\MakeTemplateWizardPage.resx">
       <DependentUpon>MakeTemplateWizardPage.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -635,6 +636,9 @@
       <DependentUpon>GlobalVariablesEditor.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="Panes\Room\RoomNodeControl.resx">
+      <DependentUpon>RoomNodeControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Panes\WelcomePane.resx">
       <SubType>Designer</SubType>
       <DependentUpon>WelcomePane.cs</DependentUpon>
@@ -664,8 +668,6 @@
     <EmbeddedResource Include="Resources\findnext.ico" />
     <EmbeddedResource Include="Resources\menu_file_stats.ico" />
     <EmbeddedResource Include="Resources\greymasks.ico" />
-    <EmbeddedResource Include="Resources\cuppit-back.gif" />
-    <EmbeddedResource Include="Resources\cuppit-back2.gif" />
     <EmbeddedResource Include="Resources\drawrect.ico" />
     <None Include="acsprset.spr">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -688,8 +690,13 @@
     <Content Include="Resources\audio_player-play.ico" />
     <Content Include="Resources\audio_player-stop.ico" />
     <Content Include="Resources\editor.ico" />
+    <None Include="Resources\eye.png" />
+    <None Include="Resources\eye closed.png" />
+    <EmbeddedResource Include="Resources\exportmask.png" />
     <Content Include="Resources\keyword.ico" />
     <Content Include="Resources\define.ico" />
+    <None Include="Resources\lock open.png" />
+    <None Include="Resources\lock.png" />
     <EmbeddedResource Include="Resources\menu_file_eventsgrid.ico" />
     <EmbeddedResource Include="Resources\menu_help_showstart.ico" />
     <EmbeddedResource Include="Resources\tree_audio_generic.ico" />
@@ -761,7 +768,7 @@
     <EmbeddedResource Include="Resources\drawline.ico" />
     <EmbeddedResource Include="Resources\save.ico" />
     <EmbeddedResource Include="Resources\open.ico" />
-    <EmbeddedResource Include="Panes\RoomSettingsEditor.resx">
+    <EmbeddedResource Include="Panes\Room\RoomSettingsEditor.resx">
       <SubType>Designer</SubType>
       <DependentUpon>RoomSettingsEditor.cs</DependentUpon>
     </EmbeddedResource>
@@ -848,6 +855,15 @@
     <Compile Include="Panes\GeneralSettingsPane.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="Panes\Room\RoomEditFilters\SelectedRoomItemEventArgs.cs" />
+    <Compile Include="Panes\Room\RoomEditNode.cs" />
+    <Compile Include="Panes\Room\RoomNodeControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\Room\RoomNodeControl.Designer.cs">
+      <DependentUpon>RoomNodeControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\Room\VisibleLayerRadioGroup.cs" />
     <Compile Include="Utils\ColorMapper.cs" />
     <Compile Include="Utils\DialogScriptConverter.cs" />
     <Compile Include="EditorEvents.cs" />
@@ -863,11 +879,8 @@
     <Compile Include="Entities\ZoomToFileEventArgs.cs" />
     <Compile Include="Enums\BackgroundAutoCompleteStatus.cs" />
     <Compile Include="Enums\DebugState.cs" />
-    <Compile Include="Enums\EditorStartupPane.cs" />
     <Compile Include="Enums\FunctionCallType.cs" />
     <Compile Include="Entities\RecentlyEditedGame.cs" />
-    <Compile Include="Enums\MessageBoxOnCompile.cs" />
-    <Compile Include="Enums\TestGameWindowStyle.cs" />
     <Compile Include="Enums\ZoomToFileZoomType.cs" />
     <Compile Include="Factory.cs" />
     <Compile Include="GIFLoader\GifDecoder.cs" />
@@ -918,12 +931,6 @@
     </Compile>
     <Compile Include="GUI\GlobalVariableDialog.Designer.cs">
       <DependentUpon>GlobalVariableDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="GUI\HelpPopup.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GUI\HelpPopup.Designer.cs">
-      <DependentUpon>HelpPopup.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\NewRoomDialog.cs">
       <SubType>Form</SubType>
@@ -1052,24 +1059,23 @@
     </Compile>
     <Compile Include="TextProcessing\IGameTextProcessor.cs" />
     <Compile Include="Utils\OldGameImporter.cs" />
-    <Compile Include="Panes\RoomEditFilters\AreaDrawMode.cs" />
-    <Compile Include="Panes\RoomEditFilters\BaseAreasEditorFilter.cs" />
-    <Compile Include="Panes\RoomEditFilters\EdgesEditorFilter.cs" />
-    <Compile Include="Panes\RoomEditFilters\EmptyEditorFilter.cs" />
-    <Compile Include="Panes\RoomEditFilters\HotspotsEditorFilter.cs" />
-    <Compile Include="Panes\RoomEditFilters\IRoomEditorFilter.cs" />
-    <Compile Include="Panes\RoomEditFilters\ObjectsEditorFilter.cs" />
-    <Compile Include="Panes\RoomEditFilters\RegionsEditorFilter.cs" />
-    <Compile Include="Panes\RoomEditFilters\WalkableAreasEditorFilter.cs" />
-    <Compile Include="Panes\RoomEditFilters\WalkBehindsEditorFilter.cs" />
-    <Compile Include="Panes\RoomSettingsEditor.cs">
+    <Compile Include="Panes\Room\RoomEditFilters\AreaDrawMode.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\BaseAreasEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\EdgesEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\EmptyEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\HotspotsEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\IRoomEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\ObjectsEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\RegionsEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\WalkableAreasEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\WalkBehindsEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomSettingsEditor.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panes\RoomSettingsEditor.Designer.cs">
+    <Compile Include="Panes\Room\RoomSettingsEditor.Designer.cs">
       <DependentUpon>RoomSettingsEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="Plugins\NativePluginCallbacks.cs" />
-    <Compile Include="RecentGamesList.cs" />
     <Compile Include="TextProcessing\SpeechLineProcessor.cs" />
     <Compile Include="TextProcessing\SpeechLinesNumbering.cs" />
     <Compile Include="TextProcessing\SpeechOnlyProcessor.cs" />
@@ -1085,6 +1091,7 @@
   <ItemGroup>
     <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

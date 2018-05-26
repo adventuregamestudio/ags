@@ -16,6 +16,7 @@ namespace AGS.Editor
         {
             this.propertyGrid.PropertyValueChanged +=
                 new System.Windows.Forms.PropertyValueChangedEventHandler(this.gameSettings_PropertyValueChanged);
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
         }
 
         protected override string OnGetHelpKeyword()
@@ -131,6 +132,19 @@ namespace AGS.Editor
             {
                 Factory.Events.OnGameSettingsChanged();
             }
+        }
+
+        private void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("general-settings/background");
+            ForeColor = t.GetColor("general-settings/foreground");
+            propertyGrid.BackColor = t.GetColor("general-settings/property-grid/background");
+            propertyGrid.LineColor = t.GetColor("general-settings/property-grid/line");
+            propertyGrid.CategoryForeColor = t.GetColor("general-settings/property-grid/category-fore");
+            propertyGrid.ViewBackColor = t.GetColor("general-settings/property-grid/view/background");
+            propertyGrid.ViewForeColor = t.GetColor("general-settings/property-grid/view/foreground");
+            propertyGrid.HelpBackColor = t.GetColor("general-settings/property-grid/help/background");
+            propertyGrid.HelpForeColor = t.GetColor("general-settings/property-grid/help/foreground");
         }
     }
 }

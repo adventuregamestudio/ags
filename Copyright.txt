@@ -1,5 +1,5 @@
 Adventure Game Studio (AGS)
-Copyright (c) 1999-2011 Chris Jones and 2011-2017 various contributors.
+Copyright (c) 1999-2011 Chris Jones and 2011-2018 various contributors.
 
 Adventure Game Studio was created by Chris Jones. 
 Original Linux port by berolinux (http://gitorious.org/ags); additional code by Bernhard Rosenkraenzer and Christian Morales Vega.
@@ -23,6 +23,7 @@ Ivan Mogilko
 Janet Gilbert
 Jochen Schleu
 Joe Lee
+Martin Sedlak
 Michael Rittenhouse
 Morgan Willcock
 Nick Sonneveld

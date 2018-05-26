@@ -1,17 +1,132 @@
-From 5bf1e9c45202eafd2be467dddfb22f5cfad2bf02 Mon Sep 17 00:00:00 2001
-From: Ivan Mogilko <ikm_spb@yahoo.com>
-Date: Sun, 26 Feb 2017 18:37:11 +0300
-Subject: [PATCH] Allegro-4.4.2 patch for AGS
-
-Supplied allegro-4.4.2.patch which has to be applied over Allegro 4.4.2 library sources before building Windows version of the engine.
-
-This patch simply makes several variables non-static, allowing them to be referred from the external code.
----
- src/win/wdsound.c | 2 +-
- src/win/wkeybd.c  | 4 ++--
- src/win/wmouse.c  | 2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
-
+diff --git a/include/allegro/fli.h b/include/allegro/fli.h
+index dda652e..3ed3c62 100644
+--- a/include/allegro/fli.h
++++ b/include/allegro/fli.h
+@@ -20,6 +20,7 @@
+ #define ALLEGRO_FLI_H
+ 
+ #include "base.h"
++#include "file.h"
+ #include "palette.h"
+ 
+ #ifdef __cplusplus
+@@ -34,9 +35,11 @@ struct BITMAP;
+ #define FLI_NOT_OPEN    -3
+ 
+ AL_FUNC(int, play_fli, (AL_CONST char *filename, struct BITMAP *bmp, int loop, AL_METHOD(int, callback, (void))));
++AL_FUNC(int, play_fli_pf, (PACKFILE *pf, struct BITMAP *bmp, AL_METHOD(int, callback, (void))));
+ AL_FUNC(int, play_memory_fli, (void *fli_data, struct BITMAP *bmp, int loop, AL_METHOD(int, callback, (void))));
+ 
+ AL_FUNC(int, open_fli, (AL_CONST char *filename));
++AL_FUNC(int, open_fli_pf, (PACKFILE *pf));
+ AL_FUNC(int, open_memory_fli, (void *fli_data));
+ AL_FUNC(void, close_fli, (void));
+ AL_FUNC(int, next_fli_frame, (int loop));
+diff --git a/include/allegro/platform/almsvc.h b/include/allegro/platform/almsvc.h
+index 063e98d..2098fa9 100644
+--- a/include/allegro/platform/almsvc.h
++++ b/include/allegro/platform/almsvc.h
+@@ -78,8 +78,12 @@
+ #define INLINE       __inline
+ 
+ #define LONG_LONG    __int64
+-#define int64_t      signed __int64
+-#define uint64_t     unsigned __int64
++#if (_MSC_VER >= 1600)
++   #define ALLEGRO_HAVE_STDINT_H
++#else
++   #define int64_t      signed __int64
++   #define uint64_t     unsigned __int64
++#endif
+ 
+ #define AL_CONST     const
+ 
+diff --git a/src/fli.c b/src/fli.c
+index d719159..a26feda 100644
+--- a/src/fli.c
++++ b/src/fli.c
+@@ -908,6 +908,24 @@ int play_fli(AL_CONST char *filename, BITMAP *bmp, int loop, int (*callback)(voi
+ 
+ 
+ 
++/* play_fli_pf:
++ *  Like play_fli(), but loads fli from the given packfile.
++ *  Automatic looping is currently not supported, because there is no way 
++ *  to rewind packfile without knowing how to reopen it.
++ */
++int play_fli_pf(PACKFILE *fp, BITMAP *bmp, int (*callback)(void))
++{
++   ASSERT(fp);
++   ASSERT(bmp);
++   
++   if (open_fli_pf(fp) != FLI_OK)
++      return FLI_ERROR;
++
++   return do_play_fli(bmp, 0, callback);
++}
++
++
++
+ /* play_memory_fli:
+  *  Like play_fli(), but for files which have already been loaded into 
+  *  memory. Pass a pointer to the memory containing the FLI data.
+@@ -1010,6 +1028,30 @@ int open_fli(AL_CONST char *filename)
+ 
+ 
+ 
++/* open_fli_pf:
++ *  Opens an FLI from packfile stream ready for playing.
++ */
++int open_fli_pf(PACKFILE *fp)
++{
++   ASSERT(fp);
++   
++   if (fli_status != FLI_NOT_OPEN)
++      return FLI_ERROR;
++
++   if (fli_filename) {
++      _AL_FREE(fli_filename);
++      fli_filename = NULL;
++   }
++
++   fli_file = fp;
++   if (!fli_file)
++      return FLI_ERROR;
++
++   return do_open_fli();
++}
++
++
++
+ /* open_memory_fli:
+  *  Like open_fli(), but for files which have already been loaded into 
+  *  memory. Pass a pointer to the memory containing the FLI data.
+@@ -1037,7 +1079,11 @@ void close_fli(void)
+    remove_int(fli_timer_callback);
+ 
+    if (fli_file) {
+-      pack_fclose(fli_file);
++      /* if fli_filename is NULL this means that the packfile was 
++       * provided by external program.
++       */
++      if (fli_filename)
++         pack_fclose(fli_file);
+       fli_file = NULL;
+    }
+ 
+@@ -1069,6 +1115,12 @@ void close_fli(void)
+  */
+ int next_fli_frame(int loop)
+ {
++   /* looping is not supported if fli is read from custom packfile, 
++    * because it cannot be rewinded.
++    */
++   if (fli_file && fli_filename == NULL)
++      loop = 0;
++
+    if (fli_status != FLI_OK)
+       return fli_status;
+ 
 diff --git a/src/win/wdsound.c b/src/win/wdsound.c
 index 6f33a22..485c340 100644
 --- a/src/win/wdsound.c
@@ -57,6 +172,3 @@ index ff85b73..346012f 100644
  
  static int dinput_buttons = 0;
  static int dinput_wheel = FALSE;
--- 
-1.9.5.msysgit.0
-

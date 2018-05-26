@@ -31,7 +31,7 @@ namespace Engine
 using namespace Common;
 
 // Error codes for initializing the game
-enum GameInitError
+enum GameInitErrorType
 {
     kGameInitErr_NoError,
     // currently AGS requires at least one font to be present in game
@@ -42,9 +42,13 @@ enum GameInitError
     kGameInitErr_ScriptLinkFailed
 };
 
-String          GetGameInitErrorText(GameInitError err);
+String GetGameInitErrorText(GameInitErrorType err);
+
+typedef TypedCodeError<GameInitErrorType, GetGameInitErrorText> GameInitError;
+typedef ErrorHandle<GameInitError> HGameInitError;
+
 // Sets up game state for play using preloaded data
-GameInitError   InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver);
+HGameInitError  InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver);
 
 } // namespace Engine
 } // namespace AGS

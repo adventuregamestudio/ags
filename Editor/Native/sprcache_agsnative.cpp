@@ -16,7 +16,7 @@
 // AGS.Native-specific implementation split out of sprcache.cpp
 //=============================================================================
 
-void get_new_size_for_sprite(int ee, int ww, int hh, int &newwid, int &newhit) {
+void get_new_size_for_sprite(int ww, int hh, int &newwid, int &newhit) {
   newwid = ww;
   newhit = hh;
 }

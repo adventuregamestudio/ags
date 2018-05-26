@@ -33,6 +33,7 @@ struct NewControl
 
   NewControl(int xx, int yy, int wi, int hi);
   NewControl();
+  virtual ~NewControl(){}
   int mouseisinarea();
   void drawifneeded();
   void drawandmouse();

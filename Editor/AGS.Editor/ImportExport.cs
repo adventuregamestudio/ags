@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml;
 using AGS.Types;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor
 {

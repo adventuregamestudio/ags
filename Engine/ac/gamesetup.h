@@ -40,7 +40,6 @@ struct GameSetup {
     int midicard;
     int mod_player;
     int textheight; // text height used on the certain built-in GUI
-    int mp3_player;
     bool  no_speech_pack;
     bool  enable_antialiasing;
     bool  force_hicolor_mode;
@@ -61,6 +60,7 @@ struct GameSetup {
     MouseControl mouse_control;
     MouseSpeedDef mouse_speed_def;
     bool  RenderAtScreenRes; // render sprites at screen resolution, as opposed to native one
+    int   Supersampling;
 
     ScreenSetup Screen;
 

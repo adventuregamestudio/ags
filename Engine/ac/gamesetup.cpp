@@ -20,7 +20,6 @@ GameSetup::GameSetup()
     digicard=DIGI_AUTODETECT;
     midicard=MIDI_AUTODETECT;
     mod_player=1;
-    mp3_player=1;
     no_speech_pack = false;
     enable_antialiasing = false;
     force_hicolor_mode = false;
@@ -33,6 +32,7 @@ GameSetup::GameSetup()
     mouse_control = kMouseCtrl_Fullscreen;
     mouse_speed_def = kMouseSpeed_CurrentDisplay;
     RenderAtScreenRes = false;
+    Supersampling = 1;
 
     Screen.DisplayMode.ScreenSize.MatchDeviceRatio = true;
     Screen.DisplayMode.ScreenSize.SizeDef = kScreenDef_MaxDisplay;

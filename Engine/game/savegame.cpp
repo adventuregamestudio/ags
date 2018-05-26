@@ -57,7 +57,7 @@ using namespace Common;
 using namespace Engine;
 
 // function is currently implemented in game.cpp
-SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
+HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data);
 void save_game_data(Stream *out);
 
 extern GameSetupStruct game;
@@ -113,52 +113,56 @@ RestoredData::RestoredData()
     memset(DoAmbient, 0, sizeof(DoAmbient));
 }
 
-String GetSavegameErrorText(SavegameError err)
+String GetSavegameErrorText(SavegameErrorType err)
 {
     switch (err)
     {
     case kSvgErr_NoError:
-        return "No error";
+        return "No error.";
     case kSvgErr_FileNotFound:
-        return "File not found";
+        return "File not found.";
     case kSvgErr_NoStream:
-        return "Failed to open input stream";
+        return "Failed to open input stream.";
     case kSvgErr_SignatureFailed:
-        return "Not an AGS saved game or unsupported format";
+        return "Not an AGS saved game or unsupported format.";
     case kSvgErr_FormatVersionNotSupported:
-        return "Save format version not supported";
+        return "Save format version not supported.";
     case kSvgErr_IncompatibleEngine:
-        return "Save was written by incompatible engine, or file is corrupted";
+        return "Save was written by incompatible engine, or file is corrupted.";
     case kSvgErr_GameGuidMismatch:
-        return "Game GUID does not match, saved by a different game";
+        return "Game GUID does not match, saved by a different game.";
     case kSvgErr_ComponentListOpeningTagFormat:
-        return "Failed to parse opening tag of the components list";
+        return "Failed to parse opening tag of the components list.";
     case kSvgErr_ComponentListClosingTagMissing:
-        return "Closing tag of the components list was not met";
+        return "Closing tag of the components list was not met.";
     case kSvgErr_ComponentOpeningTagFormat:
-        return "Failed to parse opening component tag";
+        return "Failed to parse opening component tag.";
     case kSvgErr_ComponentClosingTagFormat:
-        return "Failed to parse closing component tag";
+        return "Failed to parse closing component tag.";
     case kSvgErr_ComponentSizeMismatch:
-        return "Component data size mismatch";
+        return "Component data size mismatch.";
     case kSvgErr_UnsupportedComponent:
-        return "Unknown and/or unsupported component";
+        return "Unknown and/or unsupported component.";
+    case kSvgErr_ComponentSerialization:
+        return "Failed to write the savegame component.";
+    case kSvgErr_ComponentUnserialization:
+        return "Failed to restore the savegame component.";
     case kSvgErr_InconsistentFormat:
-        return "Inconsistent format, or file is corrupted";
+        return "Inconsistent format, or file is corrupted.";
     case kSvgErr_UnsupportedComponentVersion:
-        return "Component data version not supported";
+        return "Component data version not supported.";
     case kSvgErr_GameContentAssertion:
-        return "Saved content does not match current game";
+        return "Saved content does not match current game.";
     case kSvgErr_InconsistentData:
-        return "Inconsistent save data, or file is corrupted";
+        return "Inconsistent save data, or file is corrupted.";
     case kSvgErr_InconsistentPlugin:
-        return "One of the game plugins did not restore its game data correctly";
+        return "One of the game plugins did not restore its game data correctly.";
     case kSvgErr_DifferentColorDepth:
-        return "Saved with the engine running at a different colour depth";
+        return "Saved with the engine running at a different colour depth.";
     case kSvgErr_GameObjectInitFailed:
-        return "Game object initialization failed after save restoration";
+        return "Game object initialization failed after save restoration.";
     }
-    return "Unknown error";
+    return "Unknown error.";
 }
 
 Bitmap *RestoreSaveImage(Stream *in)
@@ -174,11 +178,12 @@ void SkipSaveImage(Stream *in)
         skip_serialized_bitmap(in);
 }
 
-// CLNUP check and remove compat stuff
-SavegameError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescription &desc, SavegameDescElem elems){
+HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescription &desc, SavegameDescElem elems)
+{
     svg_ver = (SavegameVersion)in->ReadInt32();
     if (svg_ver < kSvgVersion_LowestSupported || svg_ver > kSvgVersion_Current)
-        return kSvgErr_FormatVersionNotSupported;
+        return new SavegameError(kSvgErr_FormatVersionNotSupported,
+            String::FromFormat("Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current));
 
     // Enviroment information
     if (elems & kSvgDesc_EnvInfo)
@@ -209,10 +214,10 @@ SavegameError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDesc
     else
         SkipSaveImage(in);
 
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError ReadDescription_v321(Stream *in, SavegameVersion &svg_ver, SavegameDescription &desc, SavegameDescElem elems)
+HSaveError ReadDescription_v321(Stream *in, SavegameVersion &svg_ver, SavegameDescription &desc, SavegameDescElem elems)
 {
     // Legacy savegame header
     if (elems & kSvgDesc_UserText)
@@ -225,7 +230,8 @@ SavegameError ReadDescription_v321(Stream *in, SavegameVersion &svg_ver, Savegam
     if (svg_ver < kSvgVersion_LowestSupported ||
         svg_ver > kSvgVersion_Current)
     {
-        return kSvgErr_FormatVersionNotSupported;
+        return new SavegameError(kSvgErr_FormatVersionNotSupported,
+            String::FromFormat("Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current));
     }
 
     if (elems & kSvgDesc_UserImage)
@@ -239,7 +245,8 @@ SavegameError ReadDescription_v321(Stream *in, SavegameVersion &svg_ver, Savegam
         eng_version < SavedgameLowestBackwardCompatVersion)
     {
         // Engine version is either non-forward or non-backward compatible
-        return kSvgErr_IncompatibleEngine;
+        return new SavegameError(kSvgErr_IncompatibleEngine,
+            String::FromFormat("Required: %s, supported: %s - %s.", eng_version.LongString.GetCStr(), SavedgameLowestBackwardCompatVersion.LongString.GetCStr(), EngineVersion.LongString.GetCStr()));
     }
     if (elems & kSvgDesc_EnvInfo)
     {
@@ -254,14 +261,14 @@ SavegameError ReadDescription_v321(Stream *in, SavegameVersion &svg_ver, Savegam
         in->ReadInt32(); // color depth
     }
 
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError OpenSavegameBase(const String &filename, SavegameSource *src, SavegameDescription *desc, SavegameDescElem elems)
+HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, SavegameDescription *desc, SavegameDescElem elems)
 {
-    AStream in(File::OpenFileRead(filename));
+    UStream in(File::OpenFileRead(filename));
     if (!in.get())
-        return kSvgErr_FileNotFound;
+        return new SavegameError(kSvgErr_FileNotFound, String::FromFormat("Requested filename: %s.", filename.GetCStr()));
 
     // Skip MS Windows Vista rich media header
     RICH_GAME_MEDIA_HEADER rich_media_header;
@@ -280,17 +287,17 @@ SavegameError OpenSavegameBase(const String &filename, SavegameSource *src, Save
         in->Seek(pre_sig_pos, kSeekBegin);
         svg_sig = String::FromStreamCount(in.get(), SavegameSource::LegacySignature.GetLength());
         if (svg_sig.Compare(SavegameSource::LegacySignature) != 0)
-            return kSvgErr_SignatureFailed;
+            return new SavegameError(kSvgErr_SignatureFailed);
     }
 
     SavegameVersion svg_ver;
     SavegameDescription temp_desc;
-    SavegameError err;
+    HSaveError err;
     if (is_new_save)
         err = ReadDescription(in.get(), svg_ver, temp_desc, desc ? elems : kSvgDesc_None);
     else
         err = ReadDescription_v321(in.get(), svg_ver, temp_desc, desc ? elems : kSvgDesc_None);
-    if (err != kSvgErr_NoError)
+    if (!err)
         return err;
 
     if (src)
@@ -315,15 +322,15 @@ SavegameError OpenSavegameBase(const String &filename, SavegameSource *src, Save
         if (elems & kSvgDesc_UserImage)
             desc->UserImage.reset(temp_desc.UserImage.release());
     }
-    return kSvgErr_NoError;
+    return err;
 }
 
-SavegameError OpenSavegame(const String &filename, SavegameSource &src, SavegameDescription &desc, SavegameDescElem elems)
+HSaveError OpenSavegame(const String &filename, SavegameSource &src, SavegameDescription &desc, SavegameDescElem elems)
 {
     return OpenSavegameBase(filename, &src, &desc, elems);
 }
 
-SavegameError OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems)
+HSaveError OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems)
 {
     return OpenSavegameBase(filename, NULL, &desc, elems);
 }
@@ -410,7 +417,7 @@ void DoBeforeRestore(PreservedParams &pp)
 }
 
 // Final processing after successfully restoring from save
-SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
+HSaveError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_data)
 {
     // Preserve whether the music vox is available
     play.separate_music_lib = pp.MusicVOX;
@@ -440,8 +447,8 @@ SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_da
 
     if (create_global_script())
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: unable to recreate global script: %s", ccErrorString);
-        return kSvgErr_GameObjectInitFailed;
+        return new SavegameError(kSvgErr_GameObjectInitFailed,
+            String::FromFormat("Unable to recreate global script: %s", ccErrorString));
     }
 
     // read the global data into the newly created script
@@ -541,8 +548,8 @@ SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_da
             continue;
         if (chan_info.ClipID >= game.audioClipCount)
         {
-            Debug::Printf(kDbgMsg_Error, "Restore game error: invalid audio clip index: %d (clip count: %d)", chan_info.ClipID, game.audioClipCount);
-            return kSvgErr_GameObjectInitFailed;
+            return new SavegameError(kSvgErr_GameObjectInitFailed,
+                String::FromFormat("Invalid audio clip index: %d (clip count: %d).", chan_info.ClipID, game.audioClipCount));
         }
         play_audio_clip_on_channel(i, &game.audioClips[chan_info.ClipID],
             chan_info.Priority, chan_info.Repeat, chan_info.Pos);
@@ -619,20 +626,20 @@ SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_da
 
     set_game_speed(r_data.FPS);
 
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError RestoreGameState(PStream in, SavegameVersion svg_version)
+HSaveError RestoreGameState(PStream in, SavegameVersion svg_version)
 {
     PreservedParams pp;
     RestoredData r_data;
     DoBeforeRestore(pp);
-    SavegameError err;
+    HSaveError err;
     if (svg_version >= kSvgVersion_Components)
         err = SavegameComponents::ReadAll(in, svg_version, pp, r_data);
     else
         err = restore_game_data(in.get(), svg_version, pp, r_data);
-    if (err != kSvgErr_NoError)
+    if (!err)
         return err;
     return DoAfterRestore(pp, r_data);
 }

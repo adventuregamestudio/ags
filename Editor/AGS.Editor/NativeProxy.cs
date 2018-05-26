@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor
 {
@@ -199,6 +200,11 @@ namespace AGS.Editor
             _native.ReloadTTFFont(fontSlot);
         }
 
+        public void OnFontUpdated(Game game, int fontSlot)
+        {
+            _native.OnGameFontUpdated(game, fontSlot);
+        }
+
         public Dictionary<int, Sprite> LoadSpriteDimensions()
         {
             return _native.LoadAllSpriteDimensions();
@@ -337,6 +343,11 @@ namespace AGS.Editor
         public void ImportAreaMask(Room room, RoomAreaMaskType mask, Bitmap bmp)
         {
             _native.ImportAreaMask(room, mask, bmp);
+        }
+
+        public Bitmap ExportAreaMask(Room room, RoomAreaMaskType mask)
+        {
+            return _native.ExportAreaMask(room, mask);
         }
 
         public string LoadRoomScript(string roomFileName)

@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor
 {
@@ -17,15 +18,16 @@ namespace AGS.Editor
 
     public partial class WelcomeScreen : Form
     {
-        private List<RecentlyEditedGame> _recentGames;
-
-        public WelcomeScreen(RecentGamesList recentGames)
+        public WelcomeScreen()
         {
             InitializeComponent();
-			this.Shown += new EventHandler(WelcomeScreen_Shown);
-            _recentGames = recentGames.RecentGames;
 
-            if (_recentGames.Count == 0)
+            foreach (RecentGame game in Factory.AGSEditor.Settings.RecentGames)
+            {
+                lstRecentGames.Items.Add(game.Name).SubItems.Add(game.Path);
+            }
+
+            if (lstRecentGames.Items.Count == 0)
             {
                 radRecent.Enabled = false;
                 lstRecentGames.Enabled = false;
@@ -34,23 +36,16 @@ namespace AGS.Editor
             else
             {
                 radRecent.Checked = true;
-                foreach (RecentlyEditedGame game in _recentGames)
-                {
-                    lstRecentGames.Items.Add(game.GameName).SubItems.Add(game.DirectoryPath);
-                }
                 lstRecentGames.SelectedIndices.Add(0);
             }
+        }
 
-		}
-
-		private void WelcomeScreen_Shown(object sender, EventArgs e)
-		{
-			Factory.GUIController.ShowCuppit("Welcome to AGS! I'm Cuppit, here to help you out along the way. As you're new, you'll probably want to choose the Start New Game option.\nIf you press the Stop Bugging Me button, I won't tell you this hint again.", "Welcome text");
-		}
-
-        public RecentlyEditedGame SelectedRecentGame
+        public string GetSelectedRecentGamePath()
         {
-            get { return _recentGames[lstRecentGames.SelectedIndices[0]]; }
+            int index = lstRecentGames.SelectedItems[0].Index;
+            RecentGame game = Factory.AGSEditor.Settings.RecentGames[index];
+
+            return game.Path; 
         }
 
         public WelcomeScreenSelection SelectedOption

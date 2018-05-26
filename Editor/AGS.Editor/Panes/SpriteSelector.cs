@@ -10,6 +10,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using AGS.Types;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor
 {
@@ -72,6 +73,7 @@ namespace AGS.Editor
         public SpriteSelector()
         {
             InitializeComponent();
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _folders = new Dictionary<string, SpriteFolder>(
                 // The TreeNodeCollection uses case-insensitive string comparer
                 StringComparer.Create(System.Globalization.CultureInfo.CurrentCulture, true));
@@ -113,24 +115,57 @@ namespace AGS.Editor
 
         public void SetDataSource(SpriteFolder rootFolder)
         {
+            // store the hash for each expanded sprite folder
+            List<int> expanded = new List<int>();
+            for (int i = 0; i < folderList.Nodes.Count; i++)
+            {
+                AddNodeState(_nodeFolderMapping[folderList.Nodes[i]], expanded);
+            }
+
+            // reset - this could be adding a sprite or loading another game
             _rootFolder = rootFolder;
             folderList.Nodes.Clear();
             _folders.Clear();
             _folderNodeMapping.Clear();
             _nodeFolderMapping.Clear();
             BuildNodeTree(rootFolder, folderList.Nodes);
-            folderList.SelectedNode = folderList.Nodes[0];
-            folderList.Nodes[0].Expand();
-            /* This doens't work, not sure why
-			if ((_currentFolder != null) &&
-				(_folderNodeMapping.ContainsKey(_currentFolder)))
-			{
-				folderList.SelectedNode = _folderNodeMapping[_currentFolder];
-				DisplaySpritesForFolder(_currentFolder);
-			}
-			else*/
+
+            // re-expand nodes where they look to be the same
+            foreach (SpriteFolder folder in _folderNodeMapping.Keys)
             {
+                if (expanded.Contains(folder.GetHashCode()))
+                {
+                    _folderNodeMapping[folder].Expand();
+                }
+            }
+
+            if ((_currentFolder != null) &&
+	            (_folderNodeMapping.ContainsKey(_currentFolder)))
+            {
+                // reselect the previous node
+                folderList.SelectedNode = _folderNodeMapping[_currentFolder];
+	            DisplaySpritesForFolder(_currentFolder);
+            }
+            else
+            {
+                // default to expanded root node
+                folderList.SelectedNode = folderList.Nodes[0];
                 DisplaySpritesForFolder(rootFolder);
+                folderList.Nodes[0].Expand();
+            }
+        }
+
+        private void AddNodeState(SpriteFolder folder, List<int> expanded)
+        {
+            if (_folderNodeMapping.ContainsKey(folder) &&
+                _folderNodeMapping[folder].IsExpanded)
+            {
+                expanded.Add(folder.GetHashCode());
+            }
+
+            foreach (SpriteFolder subfolder in folder.SubFolders)
+            {
+                AddNodeState(subfolder, expanded);
             }
         }
 
@@ -919,7 +954,7 @@ namespace AGS.Editor
             string fileName = (string)parameter;
             Process imageEditor = new Process();
 
-            string paintProgramPath = Factory.AGSEditor.Preferences.PaintProgramPath;
+            string paintProgramPath = Factory.AGSEditor.Settings.PaintProgramPath;
             if (string.IsNullOrEmpty(paintProgramPath))
             {
                 imageEditor.StartInfo.FileName = GetAssociatedProgramForFileExtension(System.IO.Path.GetExtension(fileName));
@@ -1519,6 +1554,16 @@ namespace AGS.Editor
             return _nodeFolderMapping[draggedIntoFolder];
         }
 
+        private void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("sprite-selector/background");
+            ForeColor = t.GetColor("sprite-selector/foreground");
+            spriteList.BackColor = t.GetColor("sprite-selector/list/background");
+            spriteList.ForeColor = t.GetColor("sprite-selector/list/foreground");
+            folderList.BackColor = t.GetColor("sprite-selector/tree/background");
+            folderList.ForeColor = t.GetColor("sprite-selector/tree/foreground");
+            folderList.LineColor = t.GetColor("sprite-selector/tree/line");
+        }
     }
 
     internal class SpriteManagerDragDropData

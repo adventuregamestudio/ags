@@ -535,5 +535,8 @@
     <ClInclude Include="..\..\Common\game\plugininfo.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\util\error.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

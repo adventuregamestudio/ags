@@ -201,13 +201,14 @@ void AnimateCharacterEx(int chh, int loopn, int sppd, int rept, int direction, i
 void FollowCharacter(int who, int tofollow, int distaway, int eagerness) {
     if (!is_valid_character(who))
         quit("!FollowCharacter: Invalid character specified");
-    CharacterInfo *chtofollow;
-    if (tofollow == -1)
-        chtofollow = NULL;
-    else if (!is_valid_character(tofollow))
-        quit("!FollowCharacterEx: invalid character to follow");
-    else
-        chtofollow = &game.chars[tofollow];
+    CharacterInfo *chtofollow = NULL;
+    if (tofollow != -1)
+    {
+        if (!is_valid_character(tofollow))
+            quit("!FollowCharacterEx: invalid character to follow");
+        else
+            chtofollow = &game.chars[tofollow];
+    }
 
     Character_FollowCharacter(&game.chars[who], chtofollow, distaway, eagerness);
 }

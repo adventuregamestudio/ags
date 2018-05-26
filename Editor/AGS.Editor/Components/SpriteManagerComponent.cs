@@ -56,7 +56,6 @@ namespace AGS.Editor.Components
             _editorPane.TreeNodeID = controlID;
             _guiController.AddOrShowPane(_editorPane);
             _sprEditor.PopulatePropertyGrid();
-			_guiController.ShowCuppit("The Sprite Manager is where you import all your graphics, except room backgrounds. Once your images are in the sprite manager, they can be used across the game. Right-click in the main Sprite Manager window to try it out.", "Sprite Manager introduction");
 		}
 
         public void Refresh()

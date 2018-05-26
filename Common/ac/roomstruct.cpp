@@ -166,6 +166,7 @@ void room_file_header::WriteFromFile(Common::Stream *out)
 int usesmisccond = 0;
 
 void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_file_header rfh) {
+  int   f;
   char  buffer[3000];
   long  tesl;
 
@@ -183,12 +184,12 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
   memset(&rstruc->walk_area_zoom[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
   memset(&rstruc->walk_area_light[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
 
-  for (int i = 0; i < MAX_HOTSPOTS; i++) {
-    rstruc->hotspotScriptNames[i].Free();
-    if (i == 0)
-      rstruc->hotspotnames[i] = "No hotspot";
+  for (f = 0; f < MAX_HOTSPOTS; f++) {
+    rstruc->hotspotScriptNames[f].Free();
+    if (f == 0)
+      rstruc->hotspotnames[f] = "No hotspot";
     else
-      rstruc->hotspotnames[i].Format("Hotspot %d", i);
+      rstruc->hotspotnames[f].Format("Hotspot %d", f);
   }
 
 /*  memset(&rstruc->hscond[0], 0, sizeof(EventBlock) * MAX_HOTSPOTS);
@@ -217,14 +218,14 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
   // [IKM] TODO: read/write member for _Point?
   in->ReadArrayOfInt16((int16_t*)&rstruc->hswalkto[0], 2*rstruc->numhotspots);
 
-  for (int i = 0; i < rstruc->numhotspots; i++)
+  for (f = 0; f < rstruc->numhotspots; f++)
   {
     if (rfh.version >= kRoomVersion_3415)
-      rstruc->hotspotnames[i] = StrUtil::ReadString(in);
+      rstruc->hotspotnames[f] = StrUtil::ReadString(in);
     else if (rfh.version >= kRoomVersion_303a)
-      rstruc->hotspotnames[i] = String::FromStream(in);
+      rstruc->hotspotnames[f] = String::FromStream(in);
     else
-      rstruc->hotspotnames[i] = String::FromStreamCount(in, 30);
+      rstruc->hotspotnames[f] = String::FromStreamCount(in, 30);
    }
 
   if (rfh.version >= kRoomVersion_270)
@@ -278,24 +279,24 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
   // CLNUP I would hope they're already freed by now
   /*/
   // free all of the old interactions
-  for (i = 0; i < MAX_HOTSPOTS; i++) {
-    if (rstruc->intrHotspot[i] != NULL) {
-      delete rstruc->intrHotspot[i];
-      rstruc->intrHotspot[i] = NULL;
+  for (f = 0; f < MAX_HOTSPOTS; f++) {
+    if (rstruc->intrHotspot[f] != NULL) {
+      delete rstruc->intrHotspot[f];
+      rstruc->intrHotspot[f] = NULL;
     }
   }
 
-  for (i = 0; i < MAX_INIT_SPR; i++) {
-    if (rstruc->intrObject[i] != NULL) {
-      delete rstruc->intrObject[i];
-      rstruc->intrObject[i] = NULL;
+  for (f = 0; f < MAX_INIT_SPR; f++) {
+    if (rstruc->intrObject[f] != NULL) {
+      delete rstruc->intrObject[f];
+      rstruc->intrObject[f] = NULL;
     }
   }
 
-  for (i = 0; i < MAX_REGIONS; i++) {
-    if (rstruc->intrRegion[i] != NULL)
-      delete rstruc->intrRegion[i];
-    rstruc->intrRegion[i] = new Interaction();
+  for (f = 0; f < MAX_REGIONS; f++) {
+    if (rstruc->intrRegion[f] != NULL)
+      delete rstruc->intrRegion[f];
+    rstruc->intrRegion[f] = new Interaction();
   }
   */
   rstruc->numRegions = in->ReadInt32();
@@ -339,12 +340,12 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
   in->ReadArrayOfInt16(&rstruc->walk_area_top[0], num_walk_areas);
   in->ReadArrayOfInt16(&rstruc->walk_area_bottom[0], num_walk_areas);
 
-  for (int i = 0; i < num_walk_areas; i++) {
+  for (f = 0; f < num_walk_areas; f++) {
     // if they set a contiuously scaled area where the top
     // and bottom zoom levels are identical, set it as a normal
     // scaled area
-    if (rstruc->walk_area_zoom[i] == rstruc->walk_area_zoom2[i])
-      rstruc->walk_area_zoom2[i] = NOT_VECTOR_SCALED;
+    if (rstruc->walk_area_zoom[f] == rstruc->walk_area_zoom2[f])
+      rstruc->walk_area_zoom2[f] = NOT_VECTOR_SCALED;
   }
   
 
@@ -359,17 +360,17 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
       rstruc->msgi[iteratorCount].ReadFromFile(in);
   }
 
-  for (int i = 0;i < rstruc->nummes; i++) {
+  for (f = 0;f < rstruc->nummes; f++) {
     read_string_decrypt(in, buffer);
 
     int buffer_length = strlen(buffer);
 
-    rstruc->message[i] = (char *)malloc(buffer_length + 2);
-    strcpy(rstruc->message[i], buffer);
+    rstruc->message[f] = (char *)malloc(buffer_length + 2);
+    strcpy(rstruc->message[f], buffer);
 
     if ((buffer_length > 0) && (buffer[buffer_length-1] == (char)200)) {
-      rstruc->message[i][strlen(buffer)-1] = 0;
-      rstruc->msgi[i].flags |= MSG_DISPLAYNEXT;
+      rstruc->message[f][strlen(buffer)-1] = 0;
+      rstruc->msgi[f].flags |= MSG_DISPLAYNEXT;
     }
   }
 
@@ -418,8 +419,8 @@ void load_main_block(RoomStruct *rstruc, const char *files, Stream *in, room_fil
   update_polled_stuff_if_runtime();
   tesl = loadcompressed_allegro(in, &rstruc->lookat, rstruc->pal, tesl);
 
-  for (int i = 0; i < 11; i++)
-    rstruc->password[i] += passwencstring[i];
+  for (f = 0; f < 11; f++)
+    rstruc->password[f] += passwencstring[f];
 
 }
 

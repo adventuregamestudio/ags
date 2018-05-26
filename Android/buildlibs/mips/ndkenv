@@ -5,7 +5,7 @@ get_abs_path() {
 
 unset DEVROOT SDKROOT CFLAGS CC LD CPP CXX AR AS NM CXXCPP RANLIB LDFLAGS CPPFLAGS CXXFLAGS
 
-export NDK_PLATFORM_ROOT=/opt/android-ndk-r10e-standalone/android-9/mips
+export NDK_PLATFORM_ROOT=$NDK_STANDALONE/mips
 export NDK_PLATFORM_NAME=mips
 export NDK_HOST_NAME=mipsel-linux-android
 export NDK_ADDITIONAL_LIBRARY_PATH=$(get_abs_path "../../nativelibs/$NDK_PLATFORM_NAME")
@@ -14,4 +14,6 @@ export PKG_CONFIG_PATH=$NDK_ADDITIONAL_LIBRARY_PATH/lib/pkgconfig
 export ACLOCAL_PATH=$NDK_ADDITIONAL_LIBRARY_PATH/share/aclocal
 
 # NDK before R8b turns on "-mno-shared" in MIPS toolchain which disables -fpic
-export NDK_CFLAGS=" -fpic "
+export NDK_CFLAGS=" -fpic -D__ANDROID_API__=\$API"
+export CC=$NDK_PLATFORM_ROOT/bin/mipsel-linux-android-gcc
+export CXX=$NDK_PLATFORM_ROOT/bin/mipsel-linux-android-g++

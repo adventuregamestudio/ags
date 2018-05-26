@@ -24,7 +24,7 @@ namespace AGS
 namespace Common
 {
 
-typedef std::auto_ptr<Stream>         AStream;
+typedef std::unique_ptr<Stream>       UStream;
 typedef IniFile::SectionIterator      SectionIterator;
 typedef IniFile::ConstSectionIterator CSectionIterator;
 typedef IniFile::ItemIterator         ItemIterator;
@@ -32,7 +32,7 @@ typedef IniFile::ConstItemIterator    CItemIterator;
 
 static bool ReadIni(const String &file, IniFile &ini)
 {
-    AStream fs(File::OpenFileRead(file));
+    UStream fs(File::OpenFileRead(file));
     if (fs.get())
     {
         ini.Read(fs.get());
@@ -66,7 +66,7 @@ bool IniUtil::Read(const String &file, ConfigTree &tree)
 
 void IniUtil::Write(const String &file, const ConfigTree &tree)
 {
-    AStream fs(File::CreateFile(file));
+    UStream fs(File::CreateFile(file));
     TextStreamWriter writer(fs.get());
 
     for (ConfigNode it_sec = tree.begin(); it_sec != tree.end(); ++it_sec)
@@ -143,7 +143,6 @@ bool IniUtil::Merge(const String &file, const ConfigTree &tree)
         // Append new items
         if (!sections_found[secname])
         {
-            int added_count = 0;
             for (std::map<String, bool>::const_iterator item_f = items_found.begin(); item_f != items_found.end(); ++item_f)
             {
                 if (item_f->second)
@@ -167,7 +166,7 @@ bool IniUtil::Merge(const String &file, const ConfigTree &tree)
     }
 
     // Write the resulting set of lines
-    AStream fs(File::CreateFile(file));
+    UStream fs(File::CreateFile(file));
     if (!fs.get())
         return false;
     ini.Write(fs.get());

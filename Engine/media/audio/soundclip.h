@@ -149,7 +149,7 @@ struct SOUNDCLIP
     virtual void adjust_volume() = 0;
 
     SOUNDCLIP();
-    ~SOUNDCLIP();
+    virtual ~SOUNDCLIP();
 
 protected:
     // mute mode overrides the volume; if set, any volume assigned is stored

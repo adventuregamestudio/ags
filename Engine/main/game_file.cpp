@@ -82,13 +82,13 @@ String get_caps_list(const std::set<String> &caps)
 
 // Called when the game file is opened for the first time (when preloading game data);
 // it logs information on data version and reports first found errors, if any.
-MainGameFileError game_file_first_open(MainGameSource &src)
+HGameFileError game_file_first_open(MainGameSource &src)
 {
-    MainGameFileError err = OpenMainGameFileFromDefaultAsset(src);
-    if (err == kMGFErr_NoError ||
-        err == kMGFErr_SignatureFailed ||
-        err == kMGFErr_FormatVersionTooOld ||
-        err == kMGFErr_FormatVersionNotSupported)
+    HGameFileError err = OpenMainGameFileFromDefaultAsset(src);
+    if (err ||
+        err->Code() == kMGFErr_SignatureFailed ||
+        err->Code() == kMGFErr_FormatVersionTooOld ||
+        err->Code() == kMGFErr_FormatVersionNotSupported)
     {
         // Log data description for debugging
         Debug::Printf(kDbgMsg_Init, "Opened game data file: %s", src.Filename.GetCStr());
@@ -101,13 +101,13 @@ MainGameFileError game_file_first_open(MainGameSource &src)
         }
     }
     // Quit in case of error
-    if (err == kMGFErr_FormatVersionTooOld || err == kMGFErr_FormatVersionNotSupported)
+    if (!err && (err->Code() == kMGFErr_FormatVersionTooOld || err->Code() == kMGFErr_FormatVersionNotSupported))
     {
         platform->DisplayAlert("This game format is not supported by the engine (game compiled with: %s).\n\nIt cannot be run.",
             src.CompiledWith.GetCStr());
         return err;
     }
-    else if (err != kMGFErr_NoError)
+    else if (!err)
         return err;
 
     // Test the extended caps
@@ -115,11 +115,11 @@ MainGameFileError game_file_first_open(MainGameSource &src)
     if (!test_game_caps(src.Caps, failed_caps))
     {
         String caps_list = get_caps_list(failed_caps);
-        platform->DisplayAlert("This game requires extended capabilities which aren't supported by the engine:%s\n\nIt cannot be run.",
+        platform->DisplayAlert("This game requires extended capabilities which aren't supported by the engine: %s\n\nIt cannot be run.",
             caps_list.GetCStr());
-        return kMGFErr_CapsNotSupported;
+        return new MainGameFileError(kMGFErr_CapsNotSupported, String::FromFormat("Unsupported caps: %s", caps_list.GetCStr()));
     }
-    return kMGFErr_NoError;
+    return HGameFileError::None();
 }
 
 void PreReadSaveFileInfo(Stream *in, GameDataVersion data_ver)
@@ -132,48 +132,39 @@ void PreReadSaveFileInfo(Stream *in, GameDataVersion data_ver)
     game.read_savegame_info(in, data_ver);
 }
 
-bool preload_game_data(String &err_str)
+HError preload_game_data()
 {
     MainGameSource src;
-    MainGameFileError err = game_file_first_open(src);
-    if (err != kMGFErr_NoError)
-    {
-        err_str = GetMainGameFileErrorText(err);
-        return false;
-    }
+    HGameFileError err = game_file_first_open(src);
+    if (!err)
+        return (HError)err;
     // Read only the particular data we need for preliminary game analysis
     PreReadSaveFileInfo(src.InputStream.get(), src.DataVersion);
     FixupSaveDirectory(game);
-    return true;
+    return HError::None();
 }
 
-bool load_game_file(String &err_str)
+HError load_game_file()
 {
     MainGameSource src;
     LoadedGameEntities ents(game, dialog, views);
-    MainGameFileError load_err = OpenMainGameFileFromDefaultAsset(src);
-    if (load_err == kMGFErr_NoError)
+    HGameFileError load_err = OpenMainGameFileFromDefaultAsset(src);
+    if (load_err)
     {
         load_err = ReadGameData(ents, src.InputStream.get(), src.DataVersion);
-        if (load_err == kMGFErr_NoError)
+        if (load_err)
             load_err = UpdateGameData(ents, src.DataVersion);
     }
-    if (load_err != kMGFErr_NoError)
-    {
-        err_str = GetMainGameFileErrorText(load_err);
-        return false;
-    }
-    GameInitError init_err = InitGameState(ents, src.DataVersion);
-    if (init_err != kGameInitErr_NoError)
-    {
-        err_str = GetGameInitErrorText(init_err);
-        return false;
-    }
-    return true;
+    if (!load_err)
+        return (HError)load_err;
+    HGameInitError init_err = InitGameState(ents, src.DataVersion);
+    if (!init_err)
+        return (HError)init_err;
+    return HError::None();
 }
 
-void display_game_file_error(const String &err_str)
+void display_game_file_error(HError err)
 {
     platform->DisplayAlert(String::FromFormat("Loading game failed with error:\n%s.\n\nThe game files may be incomplete, corrupt or from unsupported version of AGS.",
-        err_str.GetCStr()));
+        err->FullMessage().GetCStr()));
 }

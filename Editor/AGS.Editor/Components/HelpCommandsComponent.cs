@@ -184,7 +184,7 @@ namespace AGS.Editor.Components
         /// </summary>
         private Form GetHelpParentWindow()
         {
-            if (_agsEditor.Preferences.KeepHelpOnTop)
+            if (Factory.AGSEditor.Settings.KeepHelpOnTop)
             {
                 return Form.ActiveForm;
             }

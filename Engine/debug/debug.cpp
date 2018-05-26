@@ -81,11 +81,11 @@ int first_debug_line = 0, last_debug_line = 0, display_console = 0;
 
 int fps=0,display_fps=0;
 
-std::auto_ptr<MessageBuffer> DebugMsgBuff;
-std::auto_ptr<LogFile> DebugLogFile;
+std::unique_ptr<MessageBuffer> DebugMsgBuff;
+std::unique_ptr<LogFile> DebugLogFile;
 // warnings.log for the games compiled in debug mode
-std::auto_ptr<LogFile> DebugWarningsFile;
-std::auto_ptr<ConsoleOutputTarget> DebugConsole;
+std::unique_ptr<LogFile> DebugWarningsFile;
+std::unique_ptr<ConsoleOutputTarget> DebugConsole;
 
 const String OutputMsgBufID = "buffer";
 const String OutputFileID = "logfile";
@@ -241,8 +241,6 @@ bool get_script_position(ScriptPosition &script_pos)
     }
     return false;
 }
-
-static const char* BREAK_MESSAGE = "BREAK";
 
 struct Breakpoint
 {

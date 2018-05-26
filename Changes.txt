@@ -1,5 +1,65 @@
 REVISION HISTORY
 ================
+VERSION 3.4.2 - Alpha
+
+Editor:
+ - Editor requires .NET Framework 4.0 to run.
+ - Editor preferences are now stored using .NET configuration model, instead of the
+   Windows registry.
+ - Added support for custom UI color themes.
+ - New navigation bar in the room editor, which allows to select any room object
+   or region for editing, show/hide and lock room objects and regions in any combination.
+ - Added "Export mask to file" tool button to the Room Editor.
+ - Added "Always"choice to "Popup message on compile" preference. Successful compilation
+   popup will only be displayed if "Always" choice is selected.
+ - Added shortcut key combination (Shift + F5) for stopping a game's debug run.
+ - Don't modify filesystem permissions in Compiled directory when compiling the game.
+   Editor no longer requires non-standard "takeown.exe" utility.
+ - Corrected .NET version query for the anonymous statistics report.
+ - Fixed sprite folders collapsing after assigning sprite to a View frame or an object.
+ - Fixed view loops displayed with offset if the view panel area was scrolled
+   horizontally prior to their creation.
+ - Fixed TextWindow GUI's elements could be deleted or moved in the editor with key controls.
+
+Engine:
+ - New pathfinder based on the A* jump point search.
+ - Implemented new savegame format. Much cleaner than the old one, and easier to
+   extend, it should also reduce the size of the save files.
+   The engine is still capable of loading older saves, temporarily.
+ - Expanded some of the error messages providing more information to end-user and developers.
+ - On Linux improved CPU yield function, this supposedly may reduce CPU usage.
+
+Windows:
+ - Windows version of AGS is now built with MSVS 2015 and higher.
+
+
+VERSION 3.4.1 - Patch 2, May 2018
+
+Editor:
+ - Font's line spacing and offset are now used when displaying GUI previews.
+
+Engine:
+ - Removed limit on maximal asset files in a game package.
+ - Fixed game refused to start at all if speech.vox has bad format.
+ - Fixed DynamicSprite.SaveToFile() was not appending default  "bmp" extension
+   if user did not specify one.
+
+Android:
+ - Updated port to work with 3.4.1 engine. Software renderer works again too
+   (was broken in 3.4.0).
+
+
+VERSION 3.4.1 - Patch 1, January 2018
+
+Engine:
+ - Removed game error reported when GUI coordinates were off the room limits.
+ - Fixed crash in Direct3D renderer when alt+tabbing out of fullscreen mode.
+ - Fixed OpenGL fullscreen mode was not minimized when you alt+tab from it.
+ - Fixed Direct3D and OpenGL renderers unnecessarily applied anti-aliasing on
+   utility sprites (used for transition effects) when "smooth scaled sprites"
+   option was enabled.
+
+
 VERSION 3.4.1, December 2017
 
 Common features:

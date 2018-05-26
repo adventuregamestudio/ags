@@ -25,6 +25,7 @@ namespace AGS.Editor
         public PaletteEditor()
         {
             InitializeComponent();
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
             _colourFinder = tabControl.TabPages[1];
             Factory.GUIController.OnPropertyObjectChanged += new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
             _selectedIndexes.Add(0);
@@ -377,5 +378,42 @@ namespace AGS.Editor
 			}
 			dialog.Dispose();
 		}
+
+        private void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("palette/background");
+            ForeColor = t.GetColor("palette/foreground");
+            colourFinderPage.BackColor = t.GetColor("palette/color-finder/background");
+            colourFinderPage.ForeColor = t.GetColor("palette/color-finder/foreground");
+            palettePage.BackColor = t.GetColor("palette/palette-page/background");
+            palettePage.ForeColor = t.GetColor("palette/palette-page/foreground");
+            groupBox1.BackColor = t.GetColor("palette/color-finder/background");
+            groupBox1.ForeColor = t.GetColor("palette/color-finder/foreground");
+            txtColourNumber.BackColor = t.GetColor("palette/color-finder/color-number-box/background");
+            txtColourNumber.ForeColor = t.GetColor("palette/color-finder/color-number-box/foreground");
+            txtColourNumber.BorderStyle = (BorderStyle)t.GetInt("palette/color-finder/color-number-box/border-style");
+            btnColorDialog.BackColor = t.GetColor("palette/color-finder/btn-color-dialog/background");
+            btnColorDialog.ForeColor = t.GetColor("palette/color-finder/btn-color-dialog/foreground");
+            btnColorDialog.FlatStyle = (FlatStyle)t.GetInt("palette/color-finder/btn-color-dialog/flat/style");
+            btnColorDialog.FlatAppearance.BorderSize = t.GetInt("palette/color-finder/btn-color-dialog/flat/border/size");
+            btnColorDialog.FlatAppearance.BorderColor = t.GetColor("palette/color-finder/btn-color-dialog/flat/border/color");
+            groupBox2.BackColor = t.GetColor("palette/palette-page/background");
+            groupBox2.ForeColor = t.GetColor("palette/palette-page/foreground");
+            tabControl.DrawMode = (TabDrawMode)t.GetInt("palette/draw-mode");
+            tabControl.DrawItem += (s, a) =>
+            {
+                if (a.Index == tabControl.SelectedIndex)
+                {
+                    a.Graphics.FillRectangle(new SolidBrush(t.GetColor("palette/draw-item/background/selected")), a.Bounds);
+                }
+                else
+                {
+                    a.Graphics.Clear(t.GetColor("palette/draw-item/background/not-selected"));
+                }
+
+                TabPage tab = tabControl.TabPages[a.Index];
+                a.Graphics.DrawString(tab.Text, tab.Font, new SolidBrush(t.GetColor("palette/draw-item/foreground")), a.Bounds.X, a.Bounds.Y + 5);
+            };
+        }
     }
 }

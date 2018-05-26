@@ -29,8 +29,6 @@ namespace MFLUtil
 
     static const size_t SingleFilePswLen = 13;
 
-    static const size_t MaxAssets        = 10000;
-    static const size_t MaxMultifiles    = 25;
     static const size_t MaxAssetFileLen  = 100;
     static const size_t MaxDataFileLen   = 50;
     static const size_t V10LibFileLen    = 20;
@@ -145,8 +143,6 @@ MFLUtil::MFLError MFLUtil::ReadSingleFileLib(AssetLibInfo &lib, Stream *in, int 
     in->ReadInt8(); // unused byte
     lib.LibFileNames.resize(1); // only one library part
     size_t asset_count = in->ReadInt16();
-    if (asset_count > MaxAssets)
-        return kMFLErrLibAssetCount; // too many files in clib, return error code
     lib.AssetInfos.resize(asset_count);
 
     in->Seek(SingleFilePswLen, kSeekCurrent); // skip password dooberry
@@ -208,8 +204,6 @@ MFLUtil::MFLError MFLUtil::ReadV10(AssetLibInfo &lib, Stream *in, int lib_versio
 
     // number of files in clib
     size_t asset_count = in->ReadInt32();
-    if (asset_count > MaxAssets)
-        return kMFLErrLibAssetCount; // too many files in clib, return error code
     // read information on clib contents
     lib.AssetInfos.resize(asset_count);
     // filename array is only 25 chars long in this format version
@@ -243,8 +237,6 @@ MFLUtil::MFLError MFLUtil::ReadV20(AssetLibInfo &lib, Stream *in)
 
     // number of files in clib
     size_t asset_count = in->ReadInt32();
-    if (asset_count > MaxAssets)
-        return kMFLErrLibAssetCount; // too many files in clib, return error code
     // read information on clib contents
     lib.AssetInfos.resize(asset_count);
     char fn_buf[MaxAssetFileLen];
@@ -283,8 +275,6 @@ MFLUtil::MFLError MFLUtil::ReadV21(AssetLibInfo &lib, Stream *in)
 
     // number of files in clib
     size_t asset_count = ReadEncInt32(in, rand_val);
-    if (asset_count > MaxAssets)
-        return kMFLErrLibAssetCount; // too many files in clib, return error code
     // read information on clib contents
     lib.AssetInfos.resize(asset_count);
     for (size_t i = 0; i < asset_count; ++i)

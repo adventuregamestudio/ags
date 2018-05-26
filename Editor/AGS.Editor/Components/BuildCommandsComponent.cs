@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
+using AGS.Editor.Preferences;
 
 namespace AGS.Editor.Components
 {
@@ -184,8 +185,6 @@ namespace AGS.Editor.Components
 
             if (controlID == RUN_COMMAND)
             {
-				_guiController.ShowCuppit("When using this Run command, the game will always run in a window. If you want to play full-screen, use the Run Without Debugger option.", "Test full screen warning", true);
-				
                 if (_debuggerState == DebugState.NotRunning)
                 {
                     TestGame(true);
@@ -239,7 +238,14 @@ namespace AGS.Editor.Components
 			{
 				if (_agsEditor.CompileGame(forceRebuild, false).Count == 0)
 				{
-					_guiController.ShowMessage("Compile successful!", MessageBoxIcon.Information);
+					string success = "Compilation successful!";
+					string[] messages = new string[] { success };
+					Factory.GUIController.ShowOutputPanel(messages);
+
+					if (_agsEditor.Settings.MessageBoxOnCompile == MessageBoxOnCompile.Always)
+					{
+						_guiController.ShowMessage(success, MessageBoxIcon.Information);
+					}
 				}
 			}
 		}

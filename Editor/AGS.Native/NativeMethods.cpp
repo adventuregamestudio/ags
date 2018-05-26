@@ -62,6 +62,7 @@ extern bool reset_sprite_file();
 extern int GetResolutionMultiplier();
 extern void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette);
 extern void GameUpdated(Game ^game);
+extern void GameFontUpdated(Game ^game, int fontNumber);
 extern void UpdateSpriteFlags(SpriteFolder ^folder) ;
 extern void draw_room_background(void *roomptr, int hdc, int x, int y, int bgnum, float scaleFactor, int maskType, int selectedArea, int maskTransparency);
 extern void ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette);
@@ -75,6 +76,7 @@ extern void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int
 extern void copy_walkable_to_regions(void *roomptr);
 extern int get_mask_pixel(void *roomptr, int maskType, int x, int y);
 extern void import_area_mask(void *roomptr, int maskType, Bitmap ^bmp);
+extern Bitmap ^export_area_mask(void *roomptr, int maskType);
 extern void create_undo_buffer(void *roomptr, int maskType) ;
 extern bool does_undo_buffer_exist();
 extern void clear_undo_buffer() ;
@@ -232,6 +234,10 @@ namespace AGS
       }
     }
 
+    void NativeMethods::OnGameFontUpdated(Game^ game, int fontSlot)
+    {
+        GameFontUpdated(game, fontSlot);
+    }
         int NativeMethods::GetResolutionMultiplier()
         {
             return ::GetResolutionMultiplier();
@@ -480,6 +486,11 @@ namespace AGS
     void NativeMethods::ImportAreaMask(Room ^room, RoomAreaMaskType maskType, Bitmap ^bmp)
     {
       import_area_mask((void*)room->_roomStructPtr, (int)maskType, bmp);
+    }
+
+    Bitmap ^NativeMethods::ExportAreaMask(Room ^room, RoomAreaMaskType maskType)
+    {
+        return export_area_mask((void*)room->_roomStructPtr, (int)maskType);
     }
 
     void NativeMethods::CreateUndoBuffer(Room ^room, RoomAreaMaskType maskType)

@@ -339,6 +339,7 @@
     <ClInclude Include="..\..\Common\util\compress.h" />
     <ClInclude Include="..\..\Common\util\datastream.h" />
     <ClInclude Include="..\..\Common\util\directory.h" />
+    <ClInclude Include="..\..\Common\util\error.h" />
     <ClInclude Include="..\..\Common\util\file.h" />
     <ClInclude Include="..\..\Common\util\filestream.h" />
     <ClInclude Include="..\..\Common\util\geometry.h" />

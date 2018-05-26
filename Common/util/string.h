@@ -135,6 +135,8 @@ public:
     int     CompareRight(const char *cstr, size_t count = -1) const;
     int     CompareRightNoCase(const char *cstr, size_t count = -1) const;
 
+    // These functions search for character or substring inside this string
+    // and return the index of the (first) character, or -1 if nothing found.
     size_t  FindChar(char c, size_t from = 0) const;
     size_t  FindCharReverse(char c, size_t from = -1) const;
     size_t  FindString(const char *cstr, size_t from = 0) const;

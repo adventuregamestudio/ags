@@ -279,9 +279,9 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     ds->Fill(0);
     show_preload();
 
-    String err_str;
-    if (!load_game_file(err_str))
-        quitprintf("!RunAGSGame: error loading new game file:\n%s", err_str.GetCStr());
+    HError err = load_game_file();
+    if (!err)
+        quitprintf("!RunAGSGame: error loading new game file:\n%s", err->FullMessage().GetCStr());
 
     spriteset.reset();
     if (spriteset.initFile ("acsprset.spr"))
@@ -523,6 +523,10 @@ int GetLocationType(int xxx,int yyy) {
 }
 
 void SaveCursorForLocationChange() {
+    // update the current location name
+    char tempo[100];
+    GetLocationName(mousex, mousey, tempo);
+
     if (play.get_loc_name_save_cursor != play.get_loc_name_last_time) {
         play.get_loc_name_save_cursor = play.get_loc_name_last_time;
         play.restore_cursor_mode_to = GetCursorMode();

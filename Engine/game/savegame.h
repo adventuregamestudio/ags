@@ -17,6 +17,7 @@
 
 #include "util/stdtr1compat.h"
 #include TR1INCLUDE(memory)
+#include "util/error.h"
 #include "util/version.h"
 
 
@@ -29,6 +30,8 @@ namespace Engine
 {
 
 using Common::Bitmap;
+using Common::ErrorHandle;
+using Common::TypedCodeError;
 using Common::Stream;
 using Common::String;
 using Common::Version;
@@ -51,7 +54,7 @@ enum SavegameVersion
 };
 
 // Error codes for save restoration routine
-enum SavegameError
+enum SavegameErrorType
 {
     kSvgErr_NoError,
     kSvgErr_FileNotFound,
@@ -66,6 +69,8 @@ enum SavegameError
     kSvgErr_ComponentClosingTagFormat,
     kSvgErr_ComponentSizeMismatch,
     kSvgErr_UnsupportedComponent,
+    kSvgErr_ComponentSerialization,
+    kSvgErr_ComponentUnserialization,
     kSvgErr_InconsistentFormat,
     kSvgErr_UnsupportedComponentVersion,
     kSvgErr_GameContentAssertion,
@@ -76,8 +81,12 @@ enum SavegameError
     kNumSavegameError
 };
 
-typedef std::auto_ptr<Stream> AStream;
-typedef std::auto_ptr<Bitmap> ABitmap;
+String GetSavegameErrorText(SavegameErrorType err);
+
+typedef TypedCodeError<SavegameErrorType, GetSavegameErrorText> SavegameError;
+typedef ErrorHandle<SavegameError> HSaveError;
+typedef std::unique_ptr<Stream> UStream;
+typedef std::unique_ptr<Bitmap> UBitmap;
 
 // SavegameSource defines a successfully opened savegame stream
 struct SavegameSource
@@ -128,21 +137,20 @@ struct SavegameDescription
     int                 ColorDepth;
     
     String              UserText;
-    ABitmap             UserImage;
+    UBitmap             UserImage;
 
     SavegameDescription();
 };
 
 
-String         GetSavegameErrorText(SavegameError err);
 // Opens savegame for reading; optionally reads description, if any is provided
-SavegameError  OpenSavegame(const String &filename, SavegameSource &src,
+HSaveError     OpenSavegame(const String &filename, SavegameSource &src,
                             SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
 // Opens savegame and reads the savegame description
-SavegameError  OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
+HSaveError     OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
 
 // Reads the game data from the save stream and reinitializes game state
-SavegameError  RestoreGameState(PStream in, SavegameVersion svg_version);
+HSaveError     RestoreGameState(PStream in, SavegameVersion svg_version);
 
 // Opens savegame for writing and puts in savegame description
 PStream        StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image);

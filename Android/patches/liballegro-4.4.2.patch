@@ -1,7 +1,8 @@
-diff -Naur CMakeLists.txt CMakeLists.txt
---- CMakeLists.txt	2011-03-25 00:18:50.000000000 +0100
-+++ CMakeLists.txt	2012-04-24 10:47:13.407278200 +0200
-@@ -673,6 +685,12 @@
+diff --git CMakeLists.txt CMakeLists.txt
+index 245be10..f109de5 100644
+--- CMakeLists.txt
++++ CMakeLists.txt
+@@ -673,6 +673,12 @@ if(PSP)
      m pspaudio pspgu psprtc pspdebug pspdisplay pspge pspctrl pspsdk c pspnet pspnet_inet pspnet_resolver psputility pspuser pspkernel)
  endif(PSP)
  
@@ -14,22 +15,11 @@ diff -Naur CMakeLists.txt CMakeLists.txt
  #-----------------------------------------------------------------------------#
  #
  # Generate and install headers
-diff -Naur cmake/Toolchain-android-gcc.cmake cmake/Toolchain-android-gcc.cmake
---- cmake/Toolchain-android-gcc.cmake	1970-01-01 01:00:00.000000000 +0100
-+++ cmake/Toolchain-android-gcc.cmake	2012-04-24 10:47:13.063734600 +0200
-@@ -0,0 +1,8 @@
-+# The name of the target operating system.
-+set(CMAKE_SYSTEM_NAME Generic)
-+
-+# Which compilers to use for C and C++.
-+set(CMAKE_C_COMPILER "$ENV{NDK_HOST_NAME}-gcc")
-+set(CMAKE_CXX_COMPILER "$ENV{NDK_HOST_NAME}-g++")
-+
-+set(ANDROID 1)
-diff -Naur cmake/FileList.cmake cmake/FileList.cmake
---- cmake/FileList.cmake	2011-03-12 01:26:00.000000000 +0100
-+++ cmake/FileList.cmake	2012-04-24 10:47:13.055733500 +0200
-@@ -335,6 +335,19 @@
+diff --git cmake/FileList.cmake cmake/FileList.cmake
+index 5604958..5f16919 100644
+--- cmake/FileList.cmake
++++ cmake/FileList.cmake
+@@ -335,6 +335,19 @@ set(ALLEGRO_SRC_PSP_FILES
          src/psp/pvtable8.c
          )
  
@@ -49,7 +39,7 @@ diff -Naur cmake/FileList.cmake cmake/FileList.cmake
  set(ALLEGRO_INCLUDE_ALLEGRO_FILES
          include/allegro/3d.h
          include/allegro/3dmaths.h
-@@ -400,6 +413,7 @@
+@@ -400,6 +413,7 @@ set(ALLEGRO_INCLUDE_ALLEGRO_PLATFORM_FILES
          include/allegro/platform/aintmac.h
          include/allegro/platform/aintosx.h
          include/allegro/platform/aintpsp.h
@@ -57,7 +47,7 @@ diff -Naur cmake/FileList.cmake cmake/FileList.cmake
          include/allegro/platform/aintqnx.h
          include/allegro/platform/aintunix.h
          include/allegro/platform/aintwin.h
-@@ -421,6 +435,8 @@
+@@ -421,6 +435,8 @@ set(ALLEGRO_INCLUDE_ALLEGRO_PLATFORM_FILES
          # include/allegro/platform/alplatf.h.cmake
          include/allegro/platform/alpsp.h
          include/allegro/platform/alpspcfg.h
@@ -66,9 +56,48 @@ diff -Naur cmake/FileList.cmake cmake/FileList.cmake
          include/allegro/platform/alqnx.h
          include/allegro/platform/alqnxcfg.h
          include/allegro/platform/alucfg.h
-diff -Naur include/allegro/internal/alconfig.h include/allegro/internal/alconfig.h
---- include/allegro/internal/alconfig.h	2008-12-24 02:39:48.000000000 +0100
-+++ include/allegro/internal/alconfig.h	2012-04-24 10:47:14.236883500 +0200
+diff --git cmake/Toolchain-android-gcc.cmake cmake/Toolchain-android-gcc.cmake
+new file mode 100644
+index 0000000..498c0c5
+--- /dev/null
++++ cmake/Toolchain-android-gcc.cmake
+@@ -0,0 +1,8 @@
++# The name of the target operating system.
++set(CMAKE_SYSTEM_NAME Generic)
++
++# Which compilers to use for C and C++.
++set(CMAKE_C_COMPILER "$ENV{NDK_HOST_NAME}-gcc")
++set(CMAKE_CXX_COMPILER "$ENV{NDK_HOST_NAME}-g++")
++
++set(ANDROID 1)
+diff --git include/allegro/fli.h include/allegro/fli.h
+index dda652e..3ed3c62 100644
+--- include/allegro/fli.h
++++ include/allegro/fli.h
+@@ -20,6 +20,7 @@
+ #define ALLEGRO_FLI_H
+ 
+ #include "base.h"
++#include "file.h"
+ #include "palette.h"
+ 
+ #ifdef __cplusplus
+@@ -34,9 +35,11 @@ struct BITMAP;
+ #define FLI_NOT_OPEN    -3
+ 
+ AL_FUNC(int, play_fli, (AL_CONST char *filename, struct BITMAP *bmp, int loop, AL_METHOD(int, callback, (void))));
++AL_FUNC(int, play_fli_pf, (PACKFILE *pf, struct BITMAP *bmp, AL_METHOD(int, callback, (void))));
+ AL_FUNC(int, play_memory_fli, (void *fli_data, struct BITMAP *bmp, int loop, AL_METHOD(int, callback, (void))));
+ 
+ AL_FUNC(int, open_fli, (AL_CONST char *filename));
++AL_FUNC(int, open_fli_pf, (PACKFILE *pf));
+ AL_FUNC(int, open_memory_fli, (void *fli_data));
+ AL_FUNC(void, close_fli, (void));
+ AL_FUNC(int, next_fli_frame, (int loop));
+diff --git include/allegro/internal/alconfig.h include/allegro/internal/alconfig.h
+index 68ec3e4..4374e06 100644
+--- include/allegro/internal/alconfig.h
++++ include/allegro/internal/alconfig.h
 @@ -14,7 +14,7 @@
   *
   *      See readme.txt for copyright information.
@@ -87,9 +116,11 @@ diff -Naur include/allegro/internal/alconfig.h include/allegro/internal/alconfig
     #else
        #error platform not supported
     #endif
-diff -Naur include/allegro/platform/aintand.h include/allegro/platform/aintand.h
---- include/allegro/platform/aintand.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/aintand.h	2012-04-24 10:47:14.253385600 +0200
+diff --git include/allegro/platform/aintand.h include/allegro/platform/aintand.h
+new file mode 100644
+index 0000000..b43538b
+--- /dev/null
++++ include/allegro/platform/aintand.h
 @@ -0,0 +1,50 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -141,9 +172,11 @@ diff -Naur include/allegro/platform/aintand.h include/allegro/platform/aintand.h
 +
 +#endif
 +
-diff -Naur include/allegro/platform/aland.h include/allegro/platform/aland.h
---- include/allegro/platform/aland.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/aland.h	2012-04-24 10:47:14.276388500 +0200
+diff --git include/allegro/platform/aland.h include/allegro/platform/aland.h
+new file mode 100644
+index 0000000..3d7bca6
+--- /dev/null
++++ include/allegro/platform/aland.h
 @@ -0,0 +1,74 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -219,9 +252,11 @@ diff -Naur include/allegro/platform/aland.h include/allegro/platform/aland.h
 +
 +
 +#endif
-diff -Naur include/allegro/platform/alandcfg.h include/allegro/platform/alandcfg.h
---- include/allegro/platform/alandcfg.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/alandcfg.h	2012-04-24 10:47:14.278388800 +0200
+diff --git include/allegro/platform/alandcfg.h include/allegro/platform/alandcfg.h
+new file mode 100644
+index 0000000..a368717
+--- /dev/null
++++ include/allegro/platform/alandcfg.h
 @@ -0,0 +1,68 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -291,9 +326,11 @@ diff -Naur include/allegro/platform/alandcfg.h include/allegro/platform/alandcfg
 +
 +
 +#endif
-diff -Naur include/allegro/platform/alplatf.h include/allegro/platform/alplatf.h
---- include/allegro/platform/alplatf.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/alplatf.h	2012-04-24 10:47:14.293890800 +0200
+diff --git include/allegro/platform/alplatf.h include/allegro/platform/alplatf.h
+new file mode 100644
+index 0000000..8775b54
+--- /dev/null
++++ include/allegro/platform/alplatf.h
 @@ -0,0 +1,17 @@
 +/* #undef ALLEGRO_BCC32 */
 +/* #undef ALLEGRO_BEOS */
@@ -312,10 +349,11 @@ diff -Naur include/allegro/platform/alplatf.h include/allegro/platform/alplatf.h
 +/* These are always defined now. */
 +#define ALLEGRO_NO_ASM
 +#define ALLEGRO_USE_C
-diff -Naur include/allegro/system.h include/allegro/system.h
---- include/allegro/system.h	2011-03-19 00:47:45.000000000 +0100
-+++ include/allegro/system.h	2012-04-24 10:47:14.315893600 +0200
-@@ -66,6 +66,7 @@
+diff --git include/allegro/system.h include/allegro/system.h
+index 2aa6a59..d80fc3c 100644
+--- include/allegro/system.h
++++ include/allegro/system.h
+@@ -66,6 +66,7 @@ AL_ARRAY(char, allegro_error);
  #define OSTYPE_MACOS       AL_ID('M','A','C',' ')
  #define OSTYPE_MACOSX      AL_ID('M','A','C','X')
  #define OSTYPE_PSP         AL_ID('K','P','S','P')
@@ -323,9 +361,11 @@ diff -Naur include/allegro/system.h include/allegro/system.h
  
  AL_VAR(int, os_type);
  AL_VAR(int, os_version);
-diff -Naur src/android/adrivers.c src/android/adrivers.c
---- src/android/adrivers.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/adrivers.c	2012-04-24 10:47:14.495916400 +0200
+diff --git src/android/adrivers.c src/android/adrivers.c
+new file mode 100644
+index 0000000..59784b0
+--- /dev/null
++++ src/android/adrivers.c
 @@ -0,0 +1,75 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -402,9 +442,11 @@ diff -Naur src/android/adrivers.c src/android/adrivers.c
 +
 +BEGIN_JOYSTICK_DRIVER_LIST
 +END_JOYSTICK_DRIVER_LIST
-diff -Naur src/android/afile.c src/android/afile.c
---- src/android/afile.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/afile.c	2012-04-24 10:47:14.498416700 +0200
+diff --git src/android/afile.c src/android/afile.c
+new file mode 100644
+index 0000000..7ef7efe
+--- /dev/null
++++ src/android/afile.c
 @@ -0,0 +1,536 @@
 +/*         ______   ___    ___ 
 + *        /\  _  \ /\_ \  /\_ \ 
@@ -942,9 +984,11 @@ diff -Naur src/android/afile.c src/android/afile.c
 +}
 +
 +
-diff -Naur src/android/agfx.c src/android/agfx.c
---- src/android/agfx.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/agfx.c	2012-04-24 10:47:14.500417000 +0200
+diff --git src/android/agfx.c src/android/agfx.c
+new file mode 100644
+index 0000000..9fab453
+--- /dev/null
++++ src/android/agfx.c
 @@ -0,0 +1,362 @@
 +/*         ______   ___    ___
 +*        /\  _  \ /\_ \  /\_ \
@@ -1308,9 +1352,11 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +   glFinish();
 +   android_swap_buffers();
 +}
-diff -Naur src/android/ajni.c src/android/ajni.c
---- src/android/ajni.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/ajni.c	2012-04-24 10:47:14.503417400 +0200
+diff --git src/android/ajni.c src/android/ajni.c
+new file mode 100644
+index 0000000..1eeff59
+--- /dev/null
++++ src/android/ajni.c
 @@ -0,0 +1,146 @@
 +/*         ______   ___    ___
 +*        /\  _  \ /\_ \  /\_ \
@@ -1458,9 +1504,11 @@ diff -Naur src/android/ajni.c src/android/ajni.c
 +{
 +   return (*android_jni_env)->CallIntMethod(android_jni_env, android_jni_object, android_jni_pollKeyboard);
 +}
-diff -Naur src/android/akey.c src/android/akey.c
---- src/android/akey.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/akey.c	2012-04-24 10:47:14.506917800 +0200
+diff --git src/android/akey.c src/android/akey.c
+new file mode 100644
+index 0000000..6d6b03b
+--- /dev/null
++++ src/android/akey.c
 @@ -0,0 +1,247 @@
 +/*         ______   ___    ___
 +*        /\  _  \ /\_ \  /\_ \
@@ -1709,9 +1757,11 @@ diff -Naur src/android/akey.c src/android/akey.c
 +
 +   android_last_scancode = allegro_keycode;
 +}
-diff -Naur src/android/amouse.c src/android/amouse.c
---- src/android/amouse.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/amouse.c	2012-04-24 10:47:14.518419300 +0200
+diff --git src/android/amouse.c src/android/amouse.c
+new file mode 100644
+index 0000000..d718650
+--- /dev/null
++++ src/android/amouse.c
 @@ -0,0 +1,214 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -1927,9 +1977,11 @@ diff -Naur src/android/amouse.c src/android/amouse.c
 +{
 +}
 +
-diff -Naur src/android/asound.c src/android/asound.c
---- src/android/asound.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/asound.c	2012-04-24 10:47:14.519919500 +0200
+diff --git src/android/asound.c src/android/asound.c
+new file mode 100644
+index 0000000..c695674
+--- /dev/null
++++ src/android/asound.c
 @@ -0,0 +1,160 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -2091,10 +2143,12 @@ diff -Naur src/android/asound.c src/android/asound.c
 +     pthread_join(soundthread, NULL);
 +   }
 +}
-diff -Naur src/android/asystem.c src/android/asystem.c
---- src/android/asystem.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/asystem.c	2012-04-24 10:47:14.522919800 +0200
-@@ -0,0 +1,102 @@
+diff --git src/android/asystem.c src/android/asystem.c
+new file mode 100644
+index 0000000..3784a1d
+--- /dev/null
++++ src/android/asystem.c
+@@ -0,0 +1,115 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
 + *        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
@@ -2125,6 +2179,7 @@ diff -Naur src/android/asystem.c src/android/asystem.c
 +
 +static int android_sys_init(void);
 +static void android_sys_exit(void);
++static int android_get_desktop_resolution(int *width, int *height);
 +static void android_get_gfx_safe_mode(int *driver, struct GFX_MODE *mode);
 +
 +
@@ -2156,7 +2211,7 @@ diff -Naur src/android/asystem.c src/android/asystem.c
 +   NULL,  /* AL_METHOD(int, set_display_switch_mode, (int mode)); */
 +   NULL,  /* AL_METHOD(void, display_switch_lock, (int lock, int foreground)); */
 +   NULL,  /* AL_METHOD(int, desktop_color_depth, (void)); */
-+   NULL,  /* AL_METHOD(int, get_desktop_resolution, (int *width, int *height)); */
++   android_get_desktop_resolution,  /* AL_METHOD(int, get_desktop_resolution, (int *width, int *height)); */
 +   android_get_gfx_safe_mode,  /*AL_METHOD(void, get_gfx_safe_mode, (int *driver, struct GFX_MODE *mode));*/
 +   NULL,  /* AL_METHOD(void, yield_timeslice, (void)); */
 +   NULL,  /* AL_METHOD(void *, create_mutex, (void)); */
@@ -2190,6 +2245,18 @@ diff -Naur src/android/asystem.c src/android/asystem.c
 +
 +
 +
++extern unsigned int android_screen_physical_width;
++extern unsigned int android_screen_physical_height;
++
++static int android_get_desktop_resolution(int *width, int *height)
++{
++   *width = android_screen_physical_width;
++   *height = android_screen_physical_height;
++   return 0;
++}
++
++
++
 +static void android_get_gfx_safe_mode(int *driver, struct GFX_MODE *mode)
 +{
 +   *driver = GFX_ANDROID;
@@ -2197,9 +2264,11 @@ diff -Naur src/android/asystem.c src/android/asystem.c
 +   mode->height = 200;
 +   mode->bpp = 16;
 +}
-diff -Naur src/android/atimer.c src/android/atimer.c
---- src/android/atimer.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/atimer.c	2012-04-24 10:47:14.524420000 +0200
+diff --git src/android/atimer.c src/android/atimer.c
+new file mode 100644
+index 0000000..a14b972
+--- /dev/null
++++ src/android/atimer.c
 @@ -0,0 +1,228 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -2429,9 +2498,10 @@ diff -Naur src/android/atimer.c src/android/atimer.c
 +      }
 +   }
 +}
-diff -Naur src/digmid.c src/digmid.c
---- src/digmid.c	2007-08-09 22:48:38.000000000 +0200
-+++ src/digmid.c	2012-04-24 10:47:14.657436900 +0200
+diff --git src/digmid.c src/digmid.c
+index 04b82af..c823e84 100644
+--- src/digmid.c
++++ src/digmid.c
 @@ -13,6 +13,8 @@
   *      By Shawn Hargreaves, based on code by Tom Novelli.
   *      Chris Robinson added some optimizations and the digmid_set_pan method.
@@ -2441,7 +2511,7 @@ diff -Naur src/digmid.c src/digmid.c
   *      See readme.txt for copyright information.
   */
  
-@@ -520,7 +522,7 @@
+@@ -520,7 +522,7 @@ static int digmid_load_patches(AL_CONST char *patches, AL_CONST char *drums)
  {
     PACKFILE *f;
     char dir[1024], file[1024], buf[1024], filename[1024];
@@ -2450,7 +2520,7 @@ diff -Naur src/digmid.c src/digmid.c
     char *argv[16], *p;
     char tmp[128];
     int argc;
-@@ -530,9 +532,12 @@
+@@ -530,9 +532,12 @@ static int digmid_load_patches(AL_CONST char *patches, AL_CONST char *drums)
     int drum_start = 0;
     int type, size;
     int i, j, c;
@@ -2464,7 +2534,7 @@ diff -Naur src/digmid.c src/digmid.c
  
     for (i=0; i<256; i++)
        usetc(todo[i], 0);
-@@ -542,7 +547,7 @@
+@@ -542,7 +547,7 @@ static int digmid_load_patches(AL_CONST char *patches, AL_CONST char *drums)
  
     f = pack_fopen(buf, F_READ);
     if (!f)
@@ -2473,7 +2543,7 @@ diff -Naur src/digmid.c src/digmid.c
  
     while (pack_fgets(buf, sizeof(buf), f) != 0) {
        argc = parse_string(buf, argv);
-@@ -584,7 +589,7 @@
+@@ -584,7 +589,7 @@ static int digmid_load_patches(AL_CONST char *patches, AL_CONST char *drums)
  
  		  if (!patch[patchnum]) {
  		     /* need to load this sample */
@@ -2482,7 +2552,7 @@ diff -Naur src/digmid.c src/digmid.c
  		  }
  	       }
  	    }
-@@ -608,13 +613,13 @@
+@@ -608,13 +613,13 @@ static int digmid_load_patches(AL_CONST char *patches, AL_CONST char *drums)
  
        f = pack_fopen(dir, F_READ_PACKED);
        if (!f)
@@ -2498,7 +2568,7 @@ diff -Naur src/digmid.c src/digmid.c
  	 }
        }
  
-@@ -675,6 +680,7 @@
+@@ -675,6 +680,7 @@ static int digmid_load_patches(AL_CONST char *patches, AL_CONST char *drums)
  	    pack_fseek(f, size+4);
  	 }
        }
@@ -2506,7 +2576,7 @@ diff -Naur src/digmid.c src/digmid.c
     }
     else {
        /* read from regular disk files */
-@@ -706,7 +712,16 @@
+@@ -706,7 +712,16 @@ static int digmid_load_patches(AL_CONST char *patches, AL_CONST char *drums)
        }
     }
  
@@ -2521,4 +2591,91 @@ diff -Naur src/digmid.c src/digmid.c
 +       free(todo[i]);
 +   return -1;
  }
-
+ 
+ 
+diff --git src/fli.c src/fli.c
+index d719159..a26feda 100644
+--- src/fli.c
++++ src/fli.c
+@@ -908,6 +908,24 @@ int play_fli(AL_CONST char *filename, BITMAP *bmp, int loop, int (*callback)(voi
+ 
+ 
+ 
++/* play_fli_pf:
++ *  Like play_fli(), but loads fli from the given packfile.
++ *  Automatic looping is currently not supported, because there is no way 
++ *  to rewind packfile without knowing how to reopen it.
++ */
++int play_fli_pf(PACKFILE *fp, BITMAP *bmp, int (*callback)(void))
++{
++   ASSERT(fp);
++   ASSERT(bmp);
++   
++   if (open_fli_pf(fp) != FLI_OK)
++      return FLI_ERROR;
++
++   return do_play_fli(bmp, 0, callback);
++}
++
++
++
+ /* play_memory_fli:
+  *  Like play_fli(), but for files which have already been loaded into 
+  *  memory. Pass a pointer to the memory containing the FLI data.
+@@ -1010,6 +1028,30 @@ int open_fli(AL_CONST char *filename)
+ 
+ 
+ 
++/* open_fli_pf:
++ *  Opens an FLI from packfile stream ready for playing.
++ */
++int open_fli_pf(PACKFILE *fp)
++{
++   ASSERT(fp);
++   
++   if (fli_status != FLI_NOT_OPEN)
++      return FLI_ERROR;
++
++   if (fli_filename) {
++      _AL_FREE(fli_filename);
++      fli_filename = NULL;
++   }
++
++   fli_file = fp;
++   if (!fli_file)
++      return FLI_ERROR;
++
++   return do_open_fli();
++}
++
++
++
+ /* open_memory_fli:
+  *  Like open_fli(), but for files which have already been loaded into 
+  *  memory. Pass a pointer to the memory containing the FLI data.
+@@ -1037,7 +1079,11 @@ void close_fli(void)
+    remove_int(fli_timer_callback);
+ 
+    if (fli_file) {
+-      pack_fclose(fli_file);
++      /* if fli_filename is NULL this means that the packfile was 
++       * provided by external program.
++       */
++      if (fli_filename)
++         pack_fclose(fli_file);
+       fli_file = NULL;
+    }
+ 
+@@ -1069,6 +1115,12 @@ void close_fli(void)
+  */
+ int next_fli_frame(int loop)
+ {
++   /* looping is not supported if fli is read from custom packfile, 
++    * because it cannot be rewinded.
++    */
++   if (fli_file && fli_filename == NULL)
++      loop = 0;
++
+    if (fli_status != FLI_OK)
+       return fli_status;
+ 

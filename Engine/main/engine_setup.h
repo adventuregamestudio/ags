@@ -30,5 +30,7 @@ void engine_post_gfxmode_setup(const Size &init_desktop);
 void engine_pre_gfxmode_release();
 // Prepare engine to the graphics mode shutdown and gfx driver destruction
 void engine_pre_gfxsystem_shutdown();
+// Applies necessary changes after screen<->virtual coordinate transformation has changed
+void on_coordinates_scaling_changed();
 
 #endif // __AGS_EE_MAIN__ENGINESETUP_H

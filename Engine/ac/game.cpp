@@ -1175,7 +1175,7 @@ void save_game(int slotn, const char*descript) {
 
 char rbuffer[200];
 
-SavegameError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
+HSaveError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
 {
     r_data.FPS = in->ReadInt32();
     r_data.CursorMode = in->ReadInt32();
@@ -1183,8 +1183,7 @@ SavegameError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
     offsetx = in->ReadInt32();
     offsety = in->ReadInt32();
     loopcounter = in->ReadInt32();
-
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
 void restore_game_spriteset(Stream *in)
@@ -1202,14 +1201,13 @@ void restore_game_spriteset(Stream *in)
     }
 }
 
-SavegameError restore_game_scripts(Stream *in, const PreservedParams &pp, RestoredData &r_data)
+HSaveError restore_game_scripts(Stream *in, const PreservedParams &pp, RestoredData &r_data)
 {
     // read the global script data segment
     int gdatasize = in->ReadInt32();
     if (pp.GlScDataSize != gdatasize)
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching size of global script data");
-        return kSvgErr_GameContentAssertion;
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching size of global script data.");
     }
     r_data.GlobalScript.Len = gdatasize;
     r_data.GlobalScript.Data.reset(new char[gdatasize]);
@@ -1217,8 +1215,7 @@ SavegameError restore_game_scripts(Stream *in, const PreservedParams &pp, Restor
 
     if (in->ReadInt32() != numScriptModules)
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of script modules");
-        return kSvgErr_GameContentAssertion;
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of script modules.");
     }
     r_data.ScriptModules.resize(numScriptModules);
     for (int i = 0; i < numScriptModules; ++i)
@@ -1226,14 +1223,13 @@ SavegameError restore_game_scripts(Stream *in, const PreservedParams &pp, Restor
         size_t module_size = in->ReadInt32();
         if (pp.ScMdDataSize[i] != module_size)
         {
-            Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching size of script module data, module %d", i);
-            return kSvgErr_GameContentAssertion;
+            return new SavegameError(kSvgErr_GameContentAssertion, String::FromFormat("Mismatching size of script module data, module %d.", i));
         }
         r_data.ScriptModules[i].Len = module_size;
         r_data.ScriptModules[i].Data.reset(new char[module_size]);
         in->Read(r_data.ScriptModules[i].Data.get(), module_size);
     }
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
 void ReadRoomStatus_Aligned(RoomStatus *roomstat, Stream *in)
@@ -1321,7 +1317,8 @@ void ReadMoveList_Aligned(Stream *in)
     AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < game.numcharacters + MAX_INIT_SPR + 1; ++i)
     {
-        mls[i].ReadFromFile(&align_s);
+        mls[i].ReadFromFile_Legacy(&align_s);
+
         align_s.Reset();
     }
 }
@@ -1372,35 +1369,33 @@ void ReadAnimatedButtons_Aligned(Stream *in)
     }
 }
 
-SavegameError restore_game_gui(Stream *in, int numGuisWas)
+HSaveError restore_game_gui(Stream *in, int numGuisWas)
 {
     GUI::ReadGUI(guis, in);
     game.numgui = guis.size();
 
     if (numGuisWas != game.numgui)
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of GUI");
-        return kSvgErr_GameContentAssertion;
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of GUI.");
     }
 
     numAnimButs = in->ReadInt32();
     ReadAnimatedButtons_Aligned(in);
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError restore_game_audiocliptypes(Stream *in)
+HSaveError restore_game_audiocliptypes(Stream *in)
 {
     if (in->ReadInt32() != game.audioClipTypeCount)
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of Audio Clip Types");
-        return kSvgErr_GameContentAssertion;
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Audio Clip Types.");
     }
 
     for (int i = 0; i < game.audioClipTypeCount; ++i)
     {
         game.audioClipTypes[i].ReadFromFile(in);
     }
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
 void restore_game_thisroom(Stream *in, RestoredData &r_data)
@@ -1499,27 +1494,25 @@ void restore_game_displayed_room_status(Stream *in, RestoredData &r_data)
     }
 }
 
-SavegameError restore_game_globalvars(Stream *in)
+HSaveError restore_game_globalvars(Stream *in)
 {
     if (in->ReadInt32() != numGlobalVars)
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of Global Variables");
-        return kSvgErr_GameContentAssertion;
+        return new SavegameError(kSvgErr_GameContentAssertion, "Restore game error: mismatching number of Global Variables.");
     }
 
     for (int i = 0; i < numGlobalVars; ++i)
     {
         globalvars[i].Read(in);
     }
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError restore_game_views(Stream *in)
+HSaveError restore_game_views(Stream *in)
 {
     if (in->ReadInt32() != game.numviews)
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of Views");
-        return kSvgErr_GameContentAssertion;
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Views.");
     }
 
     for (int bb = 0; bb < game.numviews; bb++) {
@@ -1531,15 +1524,14 @@ SavegameError restore_game_views(Stream *in)
             }
         }
     }
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_data)
+HSaveError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_data)
 {
     if (in->ReadInt32() != game.audioClipCount)
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of Audio Clips");
-        return kSvgErr_GameContentAssertion;
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Audio Clips.");
     }
 
     for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
@@ -1551,8 +1543,7 @@ SavegameError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_
         {
             if (chan_info.ClipID >= game.audioClipCount)
             {
-                Debug::Printf(kDbgMsg_Error, "Restore game error: invalid audio clip index");
-                return kSvgErr_GameObjectInitFailed;
+                return new SavegameError(kSvgErr_GameObjectInitFailed, "Invalid audio clip index.");
             }
 
             chan_info.Pos = in->ReadInt32();
@@ -1572,22 +1563,22 @@ SavegameError restore_game_audioclips_and_crossfade(Stream *in, RestoredData &r_
     crossFadeVolumePerStep = in->ReadInt32();
     crossFadeStep = in->ReadInt32();
     crossFadeVolumeAtStart = in->ReadInt32();
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
-SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data)
+HSaveError restore_game_data(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data)
 {
     int vv;
 
-    SavegameError err = restore_game_head_dynamic_values(in, r_data);
-    if (err != kSvgErr_NoError)
+    HSaveError err = restore_game_head_dynamic_values(in, r_data);
+    if (!err)
         return err;
     restore_game_spriteset(in);
 
     update_polled_stuff_if_runtime();
 
     err = restore_game_scripts(in, pp, r_data);
-    if (err != kSvgErr_NoError)
+    if (!err)
         return err;
     restore_game_room_state(in);
     restore_game_play(in);
@@ -1615,23 +1606,19 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const P
 
     if (game.numdialog!=numdiwas)
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of Dialogs");
-        return kSvgErr_GameContentAssertion;
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Dialogs.");
     }
     if (numchwas != game.numcharacters)
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of Characters");
-        return kSvgErr_GameContentAssertion;
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Characters.");
     }
     if (numinvwas != game.numinvitems)
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of Inventory Items");
-        return kSvgErr_GameContentAssertion;
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Inventory Items.");
     }
     if (game.numviews != numviewswas)
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: mismatching number of Views");
-        return kSvgErr_GameContentAssertion;
+        return new SavegameError(kSvgErr_GameContentAssertion, "Mismatching number of Views.");
     }
 
     game.ReadFromSaveGame_v321(in, gswas, compsc, chwas, olddict, mesbk);
@@ -1644,10 +1631,10 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const P
     restore_game_dialogs(in);
     restore_game_more_dynamic_values(in);
     err = restore_game_gui(in, numGuisWas);
-    if (err != kSvgErr_NoError)
+    if (!err)
         return err;
     err = restore_game_audiocliptypes(in);
-    if (err != kSvgErr_NoError)
+    if (!err)
         return err;
     restore_game_thisroom(in, r_data);
     restore_game_ambientsounds(in, r_data);
@@ -1661,40 +1648,39 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const P
 
     restore_game_displayed_room_status(in, r_data);
     err = restore_game_globalvars(in);
-    if (err != kSvgErr_NoError)
+    if (!err)
         return err;
     err = restore_game_views(in);
-    if (err != kSvgErr_NoError)
+    if (!err)
         return err;
 
     if (in->ReadInt32() != MAGICNUMBER+1)
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: MAGICNUMBER not found before Audio Clips");
-        return kSvgErr_InconsistentFormat;
+        return new SavegameError(kSvgErr_InconsistentFormat, "MAGICNUMBER not found before Audio Clips.");
     }
 
     err = restore_game_audioclips_and_crossfade(in, r_data);
-    if (err != kSvgErr_NoError)
+    if (!err)
         return err;
 
     // [IKM] Plugins expect FILE pointer! // TODO something with this later
     pl_run_plugin_hooks(AGSE_RESTOREGAME, (long)((Common::FileStream*)in)->GetHandle());
     if (in->ReadInt32() != (unsigned)MAGICNUMBER)
-        return kSvgErr_InconsistentPlugin;
+        return new SavegameError(kSvgErr_InconsistentPlugin);
 
     // save the new room music vol for later use
     r_data.RoomVolume = in->ReadInt32();
 
     if (ccUnserializeAllObjects(in, &ccUnserializer))
     {
-        Debug::Printf(kDbgMsg_Error, "Restore game error: managed pool deserialization failed: %s", ccErrorString);
-        return kSvgErr_GameObjectInitFailed;
+        return new SavegameError(kSvgErr_GameObjectInitFailed,
+            String::FromFormat("Managed pool deserialization failed: %s.", ccErrorString));
     }
 
     // preserve legacy music type setting
     current_music_type = in->ReadInt32();
 
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
 int gameHasBeenRestored = 0;
@@ -1703,8 +1689,7 @@ int oldeip;
 bool read_savedgame_description(const String &savedgame, String &description)
 {
     SavegameDescription desc;
-    SavegameError err = OpenSavegame(savedgame, desc, kSvgDesc_UserText);
-    if (err == kSvgErr_NoError)
+    if (OpenSavegame(savedgame, desc, kSvgDesc_UserText))
     {
         description = desc.UserText;
         return true;
@@ -1717,8 +1702,8 @@ bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
     want_shot = 0;
 
     SavegameDescription desc;
-    SavegameError err = OpenSavegame(savedgame, desc, kSvgDesc_UserImage);
-    if (err != kSvgErr_NoError)
+    HSaveError err = OpenSavegame(savedgame, desc, kSvgDesc_UserImage);
+    if (!err)
         return false;
 
     if (desc.UserImage.get())
@@ -1734,7 +1719,7 @@ bool read_savedgame_screenshot(const String &savedgame, int &want_shot)
     return true;
 }
 
-SavegameError load_game(const String &path, int slotNumber, bool &data_overwritten)
+HSaveError load_game(const String &path, int slotNumber, bool &data_overwritten)
 {
     data_overwritten = false;
     gameHasBeenRestored++;
@@ -1742,21 +1727,19 @@ SavegameError load_game(const String &path, int slotNumber, bool &data_overwritt
     oldeip = our_eip;
     our_eip = 2050;
 
-    SavegameError err;
+    HSaveError err;
     SavegameSource src;
     SavegameDescription desc;
     err = OpenSavegame(path, src, desc, kSvgDesc_EnvInfo);
 
-    our_eip = 2051;
-
     // saved in incompatible enviroment
-    if (err != kSvgErr_NoError)
+    if (!err)
         return err;
     // CHECKME: is this color depth test still essential? if yes, is there possible workaround?
     else if (desc.ColorDepth != System_GetColorDepth())
-        return kSvgErr_DifferentColorDepth;
+        return new SavegameError(kSvgErr_DifferentColorDepth, String::FromFormat("Running: %d-bit, saved in: %d-bit.", System_GetColorDepth(), desc.ColorDepth));
     else if (!src.InputStream.get())
-        return kSvgErr_NoStream;
+        return new SavegameError(kSvgErr_NoStream);
 
     // saved with different game file
     if (Path::ComparePaths(desc.MainDataFilename, usetup.main_data_filename))
@@ -1769,7 +1752,7 @@ SavegameError load_game(const String &path, int slotNumber, bool &data_overwritt
         {
             RunAGSGame (desc.MainDataFilename, 0, 0);
             load_new_game_restore = slotNumber;
-            return kSvgErr_NoError;
+            return HSaveError::None();
         }
         Common::Debug::Printf(kDbgMsg_Warn, "WARNING: the saved game '%s' references game file '%s', but it cannot be found in the current directory. Trying to restore in the running game instead.",
             path.GetCStr(), desc.MainDataFilename.GetCStr());
@@ -1778,7 +1761,7 @@ SavegameError load_game(const String &path, int slotNumber, bool &data_overwritt
     // do the actual restore
     err = RestoreGameState(src.InputStream, src.Version);
     data_overwritten = true;
-    if (err != kSvgErr_NoError)
+    if (!err)
         return err;
     src.InputStream.reset();
     our_eip = oldeip;
@@ -1789,7 +1772,7 @@ SavegameError load_game(const String &path, int slotNumber, bool &data_overwritt
     while (keypressed()) readkey();
     // call "After Restore" event callback
     run_on_event(GE_RESTORE_GAME, RuntimeScriptValue().SetInt32(slotNumber));
-    return kSvgErr_NoError;
+    return HSaveError::None();
 }
 
 bool try_restore_save(int slot)
@@ -1800,10 +1783,11 @@ bool try_restore_save(int slot)
 bool try_restore_save(const Common::String &path, int slot)
 {
     bool data_overwritten;
-    SavegameError err = load_game(path, slot, data_overwritten);
-    if (err != kSvgErr_NoError)
+    HSaveError err = load_game(path, slot, data_overwritten);
+    if (!err)
     {
-        String error = String::FromFormat("Unable to restore game:\n%s", GetSavegameErrorText(err).GetCStr());
+        String error = String::FromFormat("Unable to restore the saved game.\n%s",
+            err->FullMessage().GetCStr());
         // currently AGS cannot properly revert to stable state if some of the
         // game data was released or overwritten by the data from save file,
         // this is why we tell engine to shutdown if that happened.
@@ -1941,6 +1925,7 @@ void display_switch_out()
     switched_away = true;
     // Always unlock mouse when switching out from the game
     Mouse::UnlockFromWindow();
+    platform->DisplaySwitchOut();
     platform->ExitFullscreenMode();
 }
 
@@ -1952,7 +1937,7 @@ void display_switch_out_suspend()
 
     switching_away_from_game++;
 
-    platform->DisplaySwitchOut();
+    platform->PauseApplication();
 
     // allow background running temporarily to halt the sound
     if (set_display_switch_mode(SWITCH_BACKGROUND) == -1)
@@ -1982,6 +1967,7 @@ void display_switch_in()
         if (!mode.Windowed)
             platform->EnterFullscreenMode(mode);
     }
+    platform->DisplaySwitchIn();
     // If auto lock option is set, lock mouse to the game window
     if (usetup.mouse_auto_lock && scsystem.windowed)
         Mouse::TryLockToWindow();
@@ -2003,7 +1989,7 @@ void display_switch_in_resume()
         gfxDriver->ClearRectangle(0, 0, game.size.Width - 1, game.size.Height - 1, NULL);
 #endif
 
-    platform->DisplaySwitchIn();
+    platform->ResumeApplication();
 }
 
 void replace_tokens(const char*srcmes,char*destm, int maxlen) {

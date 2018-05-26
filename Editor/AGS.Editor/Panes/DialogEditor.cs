@@ -2,6 +2,7 @@ using AGS.Editor.TextProcessing;
 using AGS.Types;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
@@ -38,6 +39,7 @@ namespace AGS.Editor
         public void Init()
         {
             InitializeComponent();
+            Factory.GUIController.ColorThemes.Apply(LoadColorTheme);
 
             _extraMenu.Commands.Add(new MenuCommand(FIND_COMMAND, "Find...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F, "FindMenuIcon"));
             _extraMenu.Commands.Add(new MenuCommand(FIND_NEXT_COMMAND, "Find next", System.Windows.Forms.Keys.F3, "FindNextMenuIcon"));
@@ -320,6 +322,20 @@ namespace AGS.Editor
             }
         }
 
-
+        private void LoadColorTheme(ColorTheme t)
+        {
+            BackColor = t.GetColor("dialog-editor/background");
+            ForeColor = t.GetColor("dialog-editor/foreground");
+            btnDeleteOption.BackColor = t.GetColor("dialog-editor/btn-delete-option/background");
+            btnDeleteOption.ForeColor = t.GetColor("dialog-editor/btn-delete-option/foreground");
+            btnDeleteOption.FlatStyle = (FlatStyle)t.GetInt("dialog-editor/btn-delete-option/flat/style");
+            btnDeleteOption.FlatAppearance.BorderSize = t.GetInt("dialog-editor/btn-delete-option/flat/border/size");
+            btnDeleteOption.FlatAppearance.BorderColor = t.GetColor("dialog-editor/btn-delete-option/flat/border/color");
+            btnNewOption.BackColor = t.GetColor("dialog-editor/btn-new-option/background");
+            btnNewOption.ForeColor = t.GetColor("dialog-editor/btn-new-option/foreground");
+            btnNewOption.FlatStyle = (FlatStyle)t.GetInt("dialog-editor/btn-new-option/flat/style");
+            btnNewOption.FlatAppearance.BorderSize = t.GetInt("dialog-editor/btn-new-option/flat/border/size");
+            btnNewOption.FlatAppearance.BorderColor = t.GetColor("dialog-editor/btn-new-option/flat/border/color");
+        }
     }
 }

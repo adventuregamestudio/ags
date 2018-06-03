@@ -36,7 +36,7 @@ The [master](https://github.com/adventuregamestudio/ags/tree/master) branch shou
 The "release-X.X.X" branch is created to prepare the code for respected release, and continue making patches to that release. If you've found a critical issue in the latest release, it should be fixed in the release-X.X.X branch when possible (latter will be then merged to master).
 Because of the low number of active developers we only maintain one latest release branch along with master. If bugs were found in the much older version, we advise to update to the latest one first.
 
-We've made a big split, separating fully backwards compatible Editor and Engine into "ags3" branch. That branch acts as a "master" for AGS 3.x.x generation. We do not normally accept any feature additions to that branch anymore, except for bug fixes, compatibility updates and perfomance improvements. For more information about this split and reasons it was made for please refer to #448.
+We've made a big split, separating fully backwards compatible Editor and Engine into [ags3](https://github.com/adventuregamestudio/ags/tree/ags3) branch. That branch acts as a "master" for AGS 3.x.x generation. We do not normally accept any feature additions to that branch anymore, except for bug fixes, compatibility updates and perfomance improvements. For more information about this split and reasons it was made for please refer to [#448](https://github.com/adventuregamestudio/ags/issues/448).
 
 We have a coding convention, please check it before writing the code: http://www.adventuregamestudio.co.uk/wiki/AGS_Engine_Coding_Conventions
 
@@ -45,12 +45,12 @@ We have a coding convention, please check it before writing the code: http://www
 
 This repository now holds two generations of AGS program: AGS 3 and AGS 4.
 
-**Master branch** contains AGS 4.*, which is currently undergoing refactoring/rewrite and may not be very stable. It is intended to support games made with AGS 3.4.1 - 3.4.2, but only if these do not use any legacy features.
+**Master branch** contains AGS 4.x, which is currently undergoing refactoring/rewrite and may not be very stable. It is intended to support games made with AGS 3.4.1 - 3.4.2, but only if these do not use any legacy features.
 The 4.* engine should be reading savegames made with the 3.4.2 engine and above.
 
 **The 3rd generation** of AGS may be found in "ags3" branch. It's specifics are:
 
--   Supports (imports into editor and runs by the engine) all versions of AGS starting from 2.50 and until latest 3.* release, but there may be unknown compatibility issues with the very old games.
+-   Supports (imports into editor and runs by the engine) all versions of AGS starting from 2.50 and until latest 3.x release, but there may be unknown compatibility issues with the very old games.
 -   If you try to run an unsupported game, you will receive an error message, reporting original version of AGS it was made in, and data format index, which may be used for reference.
 -   Savegames are compatible between the different platforms if they are created with the same engine version. Engine should normally read savegames made by version 3.2.0 of runtime and above, but that has not been tested for a while.
 -   Games that depend on plugins for which there is no platform-independent replacement will not load.

@@ -46,7 +46,7 @@ We have a coding convention, please check it before writing the code: http://www
 This repository now holds two generations of AGS program: AGS 3 and AGS 4.
 
 **Master branch** contains AGS 4.x, which is currently undergoing refactoring/rewrite and may not be very stable. It is intended to support games made with AGS 3.4.1 - 3.4.2, but only if these do not use any legacy features.
-The 4.* engine should be reading savegames made with the 3.4.2 engine and above.
+The 4.x engine should be reading savegames made with the 3.4.2 engine and above.
 
 **The 3rd generation** of AGS may be found in "ags3" branch. It's specifics are:
 
@@ -66,4 +66,4 @@ A detailed documentation of the changes is provided in the form of the git log o
 
 ## Credits
 
-[Link](Credits.txt)
+[Link](Copyright.txt)

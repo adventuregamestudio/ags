@@ -987,6 +987,9 @@
     <ClCompile Include="..\..\Engine\ac\statobj\staticgame.cpp">
       <Filter>Header Files\ac\statobj</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptmouse.cpp">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">

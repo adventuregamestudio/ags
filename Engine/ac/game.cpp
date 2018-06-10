@@ -2492,7 +2492,7 @@ void RegisterStaticObjects()
 {
     ccAddExternalStaticObject("game",&play, &GameStaticManager);
 	ccAddExternalStaticObject("gs_globals",&play.globalvars[0], &GlobalStaticManager);
-	ccAddExternalStaticObject("mouse",&scmouse, &GlobalStaticManager);
+	ccAddExternalStaticObject("mouse",&scmouse, &scmouse);
 	ccAddExternalStaticObject("palette",&palette[0], &GlobalStaticManager);
 	ccAddExternalStaticObject("system",&scsystem, &GlobalStaticManager);
 	ccAddExternalStaticObject("savegameindex",&play.filenumbers[0], &GlobalStaticManager);

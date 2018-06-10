@@ -59,6 +59,7 @@
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "ac/dynobj/cc_audioclip.h"
+#include "ac/statobj/staticgame.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "device/mousew32.h"

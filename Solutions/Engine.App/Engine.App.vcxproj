@@ -267,6 +267,7 @@
     <ClCompile Include="..\..\Engine\ac\spritecache_engine.cpp" />
     <ClCompile Include="..\..\Engine\ac\statobj\agsstaticobject.cpp" />
     <ClCompile Include="..\..\Engine\ac\statobj\staticarray.cpp" />
+    <ClCompile Include="..\..\Engine\ac\statobj\staticgame.cpp" />
     <ClCompile Include="..\..\Engine\ac\string.cpp" />
     <ClCompile Include="..\..\Engine\ac\system.cpp" />
     <ClCompile Include="..\..\Engine\ac\textbox.cpp" />
@@ -586,6 +587,7 @@
     <ClInclude Include="..\..\Engine\ac\spritelistentry.h" />
     <ClInclude Include="..\..\Engine\ac\statobj\agsstaticobject.h" />
     <ClInclude Include="..\..\Engine\ac\statobj\staticarray.h" />
+    <ClInclude Include="..\..\Engine\ac\statobj\staticgame.h" />
     <ClInclude Include="..\..\Engine\ac\statobj\staticobject.h" />
     <ClInclude Include="..\..\Engine\ac\string.h" />
     <ClInclude Include="..\..\Engine\ac\system.h" />

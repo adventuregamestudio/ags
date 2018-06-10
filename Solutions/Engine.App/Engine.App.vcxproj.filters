@@ -984,6 +984,9 @@
     <ClCompile Include="..\..\Engine\game\savegame_components.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\statobj\staticgame.cpp">
+      <Filter>Header Files\ac\statobj</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1825,6 +1828,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\game\savegame_components.h">
       <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\statobj\staticgame.h">
+      <Filter>Header Files\ac\statobj</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

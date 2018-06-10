@@ -1838,6 +1838,9 @@
     <ClInclude Include="..\..\Engine\ac\statobj\staticgame.h">
       <Filter>Header Files\ac\statobj</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\plugin\plugin_builtin.h">
+      <Filter>Header Files\plugin</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\..\Engine\resource\DefaultGDF.gdf.xml">
